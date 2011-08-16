@@ -1,200 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43188 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751222Ab1HJODV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2011 10:03:21 -0400
-From: Deepthy Ravi <deepthy.ravi@ti.com>
-To: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<mchehab@infradead.org>, <laurent.pinchart@ideasonboard.com>
-CC: <linux-omap@vger.kernel.org>, Abhilash K V <abhilash.kv@ti.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: [PATCH 1/2] omap3: ISP: Fix the failure of CCDC capture during suspend/resume
-Date: Wed, 10 Aug 2011 19:33:12 +0530
-Message-ID: <1312984992-19315-1-git-send-email-deepthy.ravi@ti.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:44874 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751581Ab1HPWZR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Aug 2011 18:25:17 -0400
+Date: Wed, 17 Aug 2011 01:25:12 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: RFC: Negotiating frame buffer size between sensor subdevs and
+ bridge devices
+Message-ID: <20110816222512.GF7436@valkosipuli.localdomain>
+References: <4E31968B.9080603@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4E31968B.9080603@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Abhilash K V <abhilash.kv@ti.com>
+On Thu, Jul 28, 2011 at 07:04:11PM +0200, Sylwester Nawrocki wrote:
+> Hello,
 
-While resuming from the "suspended to memory" state,
-occasionally CCDC fails to get enabled and thus fails
-to capture frames any more till the next suspend/resume
-is issued.
-This is a race condition which happens only when a CCDC
-frame-completion ISR is pending even as ISP device's
-isp_pm_prepare() is getting called and only one buffer
-is left on the DMA queue.
-The DMA queue buffers are thus depleted which results in
-its underrun.So when ISP resumes there are no buffers on
-the queue (as the application which can issue buffers is
-yet to resume) to start video capture.
-This fix addresses this issue by dequeuing and enqueing
-the last buffer in isp_pm_prepare() after its DMA gets
-completed. Thus,when ISP resumes it always finds atleast
-one buffer on the DMA queue - this is true if application
-uses only 3 buffers.
+Hi Sylwester,
 
-Reviewed-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
-Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
----
- drivers/media/video/omap3isp/isp.c      |   20 +++++++++++
- drivers/media/video/omap3isp/isp.h      |    4 ++
- drivers/media/video/omap3isp/ispvideo.c |   56 ++++++++++++++++++++++++++++++-
- drivers/media/video/omap3isp/ispvideo.h |    2 +
- 4 files changed, 81 insertions(+), 1 deletions(-)
+> Trying to capture images in JPEG format with regular "image sensor -> 
+> mipi-csi receiver -> host interface" H/W configuration I've found there
+> is no standard way to communicate between the sensor subdev and the host
+> driver what is exactly a required maximum buffer size to capture a frame.
+> 
+> For the raw formats there is no issue as the buffer size can be easily
+> determined from the pixel format and resolution (or sizeimage set on
+> a video node). 
+> However compressed data formats are a bit more complicated, the required
+> memory buffer size depends on multiple factors, like compression ratio,
+> exact file header structure etc.
+> 
+> Often it is at the sensor driver where all information required to 
+> determine size of the allocated memory is present. Bridge/host devices
+> just do plain DMA without caring much what is transferred. I know of
+> hardware which, for some pixel formats, once data capture is started,
+> writes to memory whatever amount of data the sensor is transmitting,
+> without any means to interrupt on the host side. So it is critical
+> to assure the buffer allocation is done right, according to the sensor
+> requirements, to avoid buffer overrun.
+> 
+> 
+> Here is a link to somehow related discussion I could find:
+> [1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg27138.html
+> 
+> 
+> In order to let the host drivers query or configure subdevs with required
+> frame buffer size one of the following changes could be done at V4L2 API:
+> 
+> 1. Add a 'sizeimage' field in struct v4l2_mbus_framefmt and make subdev
+>  drivers optionally set/adjust it when setting or getting the format with
+>  set_fmt/get_fmt pad level ops (and s/g_mbus_fmt ?)
+>  There could be two situations:
+>  - effective required frame buffer size is specified by the sensor and the
+>    host driver relies on that value when allocating a buffer;
+>  - the host driver forces some arbitrary buffer size and the sensor performs
+>    any required action to limit transmitted amount of data to that amount
+>    of data;
+> Both cases could be covered similarly as it's done with VIDIOC_S_FMT. 
+> 
+> Introducing 'sizeimage' field is making the media bus format struct looking
+> more similar to struct v4l2_pix_format and not quite in line with media bus
+> format meaning, i.e. describing data on a physical bus, not in the memory.
+> The other option I can think of is to create separate subdev video ops.
+> 2. Add new s/g_sizeimage subdev video operations 
+> 
+> The best would be to make this an optional callback, not sure if it makes sense
+> though. It has an advantage of not polluting the user space API. Although 
+> 'sizeimage' in user space might be useful for some purposes I rather tried to
+> focus on "in-kernel" calls.
 
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index 94b6ed8..6604fbd 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -1566,8 +1566,20 @@ static int isp_pm_prepare(struct device *dev)
- {
- 	struct isp_device *isp = dev_get_drvdata(dev);
- 	int reset;
-+	int err = 0;
-+	struct isp_ccdc_device *ccdc = &isp->isp_ccdc;
-+	struct isp_video *video = &ccdc->video_out;
-+	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
-+	unsigned long flags;
- 
- 	WARN_ON(mutex_is_locked(&isp->isp_mutex));
-+	spin_lock_irqsave(&pipe->lock, flags);
-+	pipe->state |= ISP_PIPELINE_PREPARE_SUSPEND;
-+	spin_unlock_irqrestore(&pipe->lock, flags);
-+
-+	err = isp_video_handle_buffer_starvation(video);
-+	if (err < 0)
-+		return err;
- 
- 	if (isp->ref_count == 0)
- 		return 0;
-@@ -1596,6 +1608,14 @@ static int isp_pm_suspend(struct device *dev)
- static int isp_pm_resume(struct device *dev)
- {
- 	struct isp_device *isp = dev_get_drvdata(dev);
-+	struct isp_ccdc_device *ccdc = &isp->isp_ccdc;
-+	struct isp_video *video = &ccdc->video_out;
-+	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&pipe->lock, flags);
-+	pipe->state &= ~ISP_PIPELINE_PREPARE_SUSPEND;
-+	spin_unlock_irqrestore(&pipe->lock, flags);
- 
- 	if (isp->ref_count == 0)
- 		return 0;
-diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
-index 841870f..e391974 100644
---- a/drivers/media/video/omap3isp/isp.h
-+++ b/drivers/media/video/omap3isp/isp.h
-@@ -349,6 +349,10 @@ int omap3isp_register_entities(struct platform_device *pdev,
- 			       struct v4l2_device *v4l2_dev);
- void omap3isp_unregister_entities(struct platform_device *pdev);
- 
-+#ifdef CONFIG_PM
-+int isp_video_handle_buffer_starvation(struct isp_video *video);
-+#endif
-+
- /*
-  * isp_reg_readl - Read value of an OMAP3 ISP register
-  * @dev: Device pointer specific to the OMAP3 ISP.
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index 5833a0e..bf149a7 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -523,6 +523,26 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
- 	return 0;
- }
- 
-+#ifdef CONFIG_PM
-+static int isp_video_deq_enq(struct isp_video_queue *queue)
-+{
-+	int err = 0;
-+	struct v4l2_buffer vbuf;
-+
-+	vbuf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	/* blocking dequeue to ensure DMA is done */
-+	err = omap3isp_video_queue_dqbuf(queue, &vbuf, 0);
-+	if (err < 0)
-+		return err;
-+	else {
-+		err = omap3isp_video_queue_qbuf(queue, &vbuf);
-+		if (err < 0)
-+			return err;
-+	}
-+	return err;
-+}
-+#endif
-+
- /*
-  * isp_video_buffer_queue - Add buffer to streaming queue
-  * @buf: Video buffer
-@@ -546,7 +566,7 @@ static void isp_video_buffer_queue(struct isp_video_buffer *buf)
- 	empty = list_empty(&video->dmaqueue);
- 	list_add_tail(&buffer->buffer.irqlist, &video->dmaqueue);
- 
--	if (empty) {
-+	if (empty && !(pipe->state & ISP_PIPELINE_PREPARE_SUSPEND)) {
- 		if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 			state = ISP_PIPELINE_QUEUE_OUTPUT;
- 		else
-@@ -687,6 +707,40 @@ void omap3isp_video_resume(struct isp_video *video, int continuous)
- 	}
- }
- 
-+#ifdef CONFIG_PM
-+
-+/*
-+ * isp_video_handle_buffer_starvation - Handles the case when there are only 1
-+ * or less active buffers present on the dmaqueue while preparing for suspend.
-+ *
-+ * @video: ISP video object
-+ *
-+ * This function is intended to be used in suspend/resume scenario. While
-+ * preparing for suspend, if the number of active buffers on dmaqueue is 0 or 1,
-+ * the last buffer is dequeued after DMA completes and re-queued again. This
-+ * prevents ISP_VIDEO_DMAQUEUE_UNDERRUN from occuring on issue of resume.
-+ */
-+int isp_video_handle_buffer_starvation(struct isp_video *video)
-+{
-+	int err = 0;
-+	struct isp_video_queue *queue = video->queue;
-+	struct isp_video_buffer *buf;
-+	struct list_head *head = &video->dmaqueue;
-+
-+	if (list_empty(&video->dmaqueue)) {
-+		err = isp_video_deq_enq(queue);
-+	} else if (head->next->next == head) {
-+		/* only one buffer is left on dmaqueue */
-+		buf = list_first_entry(&video->dmaqueue,
-+					struct isp_video_buffer,
-+					irqlist);
-+		if (buf->state == ISP_BUF_STATE_ACTIVE)
-+			err = isp_video_deq_enq(queue);
-+	}
-+	return err;
-+}
-+#endif
-+
- /* -----------------------------------------------------------------------------
-  * V4L2 ioctls
-  */
-diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
-index 6f203aa..cf209f3 100644
---- a/drivers/media/video/omap3isp/ispvideo.h
-+++ b/drivers/media/video/omap3isp/ispvideo.h
-@@ -84,6 +84,8 @@ enum isp_pipeline_state {
- 	ISP_PIPELINE_IDLE_OUTPUT = 32,
- 	/* The pipeline is currently streaming. */
- 	ISP_PIPELINE_STREAM = 64,
-+	/* The pipeline is currently preparing to suspend. */
-+	ISP_PIPELINE_PREPARE_SUSPEND = 128,
- };
- 
- struct isp_pipeline {
+I prefer this second approach over the first once since the maxiumu size of
+the image in bytes really isn't a property of the bus.
+
+How about a regular V4L2 control? You would also have minimum and maximum
+values, I'm not quite sure whather this is a plus, though. :)
+
+Btw. how does v4l2_mbus_framefmt suit for compressed formats in general?
+
 -- 
-1.7.0.4
-
+Sakari Ailus
+sakari.ailus@iki.fi
