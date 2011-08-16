@@ -1,65 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59549 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751405Ab1HEUll (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Aug 2011 16:41:41 -0400
-Message-ID: <4E3C557A.2060103@redhat.com>
-Date: Fri, 05 Aug 2011 17:41:30 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from nm4.bt.bullet.mail.ukl.yahoo.com ([217.146.183.202]:26741 "HELO
+	nm4.bt.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751816Ab1HPVuJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Aug 2011 17:50:09 -0400
+Received: from volcano.underworld (volcano.underworld [192.168.0.3])
+	by wellhouse.underworld (8.14.3/8.14.3/Debian-5+lenny1) with ESMTP id p7GLo3oT032390
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
+	for <linux-media@vger.kernel.org>; Tue, 16 Aug 2011 22:50:06 +0100
+Message-ID: <4E4AE60B.4050903@yahoo.com>
+Date: Tue, 16 Aug 2011 22:50:03 +0100
+From: Chris Rankin <rankincj@yahoo.com>
 MIME-Version: 1.0
-To: Andrew Chew <AChew@nvidia.com>
-CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"'Doug Anderson'" <dianders@google.com>
-Subject: Re: Guidance regarding deferred I2C transactions
-References: <643E69AA4436674C8F39DCC2C05F76383CF0DD22D0@HQMAIL03.nvidia.com>
-In-Reply-To: <643E69AA4436674C8F39DCC2C05F76383CF0DD22D0@HQMAIL03.nvidia.com>
-Content-Type: text/plain; charset=UTF-8
+To: linux-media@vger.kernel.org
+Subject: Locking problem between em28xx and em28xx-dvb modules - Part 2
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 05-08-2011 17:18, Andrew Chew escreveu:
-> I'm looking for some guidance regarding a clean way to support a certain camera module. 
-> We are using the soc_camera framework, and in particular, the ov9740.c image sensor driver. 
-> 
-> This camera module has the camera activity status LED tied to the image sensor's power. 
-> This is meant as a security feature, so that there is no way to turn the camera on without 
-> the user being informed through the status LED.
-> 
-> The problem with this is that any I2C transaction to the image sensor necessitates turning 
-> the image sensor on, which results in the status LED turning on. Various methods in the soc 
-> camera sensor drivers typically perform I2C transactions. For example, probe will check the image 
-> sensor registers to validate device presence. However, this results in the LED blinking during probe,
-> which can be misconstrued as the camera having taken an actual picture. Opening the /dev/video node
-> will also typically blink the status LED for similar reasons (in this case, calling the s_mbus_fmt 
-> video op), so any application probing for camera presence will cause the status LED to blink. 
-> 
-> One way to solve this can be to defer these I2C transactions in the image sensor driver all the way up 
-> to the time the image sensor is asked to start streaming frames. However, it seems to me that this breaks 
-> the spirit of the probe; applications will successfully probe for camera presence even though the camera 
-> isn't actually there. Is this okay?
-> 
-> Is there a better way to do this? Maybe a more general thing we can add to the V4L2 framework?
+Hi,
 
-Probing for the presence of the device hardware at driver init time seems 
-to be the right thing to do, even when the LED blinks. PC keyboard LEDs
-also blinks during machine reset, and this is not really annoying. Even
-on some embedded devices like some cell phones, LEDs blink during the boot
-time.
+I've been looking deeper into the em28xx and em28xx-dvb modules, and I'm 
+concerned that there are some races and resource leaks inherent in the current code:
 
-So, as a general rule, I'd say that the better is to keep the capability of 
-probing the hardware at init time, especially since the same sensor may
-eventually be used by non SoC drivers.
+a) Shouldn't em28xx_init_extension() and em28xx_add_into_devlist() be unified 
+into a single function? Otherwise, consider someone plugging a DVB adapter into 
+a host when the em28xx-dvb module is not yet loaded:
 
-One strategy that several drivers do, and that solves the issue of blinking
-after the device reset is to have a shadow copy of the register contents.
-This way, you can defer the device register writes to occur only when you're
-actually streaming. E. g. you'll still have the blink at probe time (probably
-a longer one), but, after that, the driver can just work with the cached
-values, up to the moment it will really start streaming.
+- em28xx_init_dev() adds new device to list.
+- em28xx-dvb module registers itself, and initialises every device in the list 
+(including our new one).
+- em28xx_init_dev() iterates over the list of extensions (including em28xx-dvb) 
+with the new device.
 
-Would that strategy work for you?
+At this point, dvb_init() has been called twice for our new device, resulting in 
+a leaked struct em28xx_dvb.
 
-Regards,
-Mauro
+b) When em28xx_init_dev() returns something != 0, em28xx_usb_probe() frees the 
+struct em28xx and exits without calling usb_put_dev().
+
+c) There are many ways that em28xx_init_dev() can return something != 0, and not 
+all of them release the V4L2 device or I2C device.
+
+Am I understanding this code correctly, please? I can obviously extend my patch 
+accordingly - it is currently running without any obvious problems, but I only 
+have one DVB adapter and none that uses the ALSA extension.
+
+Cheers,
+Chris
+
