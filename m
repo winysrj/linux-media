@@ -1,77 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:43897 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752388Ab1HIJwK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2011 05:52:10 -0400
-Received: by qyk34 with SMTP id 34so2208037qyk.19
-        for <linux-media@vger.kernel.org>; Tue, 09 Aug 2011 02:52:09 -0700 (PDT)
-Message-ID: <4E410342.3010502@gmail.com>
-Date: Tue, 09 Aug 2011 15:22:02 +0530
-From: Subash Patel <subashrp@gmail.com>
+Received: from moutng.kundenserver.de ([212.227.126.187]:60083 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752005Ab1HPN3b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Aug 2011 09:29:31 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 7/9] ARM: DMA: steal memory for DMA coherent mappings
+Date: Tue, 16 Aug 2011 15:28:48 +0200
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>
+References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com> <201108121453.05898.arnd@arndb.de> <20110814075205.GA4986@n2100.arm.linux.org.uk>
+In-Reply-To: <20110814075205.GA4986@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Tuukka Toivonen <tuukka.toivonen@intel.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [ANN] Meeting minutes of the Cambourne meeting
-References: <201107261647.19235.laurent.pinchart@ideasonboard.com> <201108081750.07000.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201108081750.07000.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201108161528.48954.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Sunday 14 August 2011, Russell King - ARM Linux wrote:
+> On Fri, Aug 12, 2011 at 02:53:05PM +0200, Arnd Bergmann wrote:
+> > 
+> > I thought that our discussion ended with the plan to use this only
+> > for ARMv6+ (which has a problem with double mapping) but not on ARMv5
+> > and below (which don't have this problem but might need dmabounce).
+> 
+> I thought we'd decided to have a pool of available CMA memory on ARMv6K
+> to satisfy atomic allocations, which can grow and shrink in size, rather
+> than setting aside a fixed amount of contiguous system memory.
 
-I have a point with the pixel clock. During discussion we found that 
-pixel clock get/set is required for user space to do fine control over 
-the frame-rate etc. What if the user sets the pixel array clock which is 
-above the system/if bus clock? Suppose we are setting the pixel clock 
-(which user space sets) to higher rate at sensor array, but for some 
-reason the bus cannot handle that rate (either low speed or loaded) or 
-lower PCLK at say CSI2 interface is being set. Are we not going to loose 
-data due to this? Also, there would be data validation overhead in 
-driver on what is acceptable PCLK values for a particular sensor on an 
-interface etc.
+Hmm, I don't remember the point about dynamically sizing the pool for
+ARMv6K, but that can well be an oversight on my part.  I do remember the
+part about taking that memory pool from the CMA region as you say.
 
-I am still not favoring user space controlling this, and wish driver 
-decides this for a given frame-rate requested by the user space :)
+> ARMv6 and ARMv7+ could use CMA directly, and <= ARMv5 can use the existing
+> allocation method.
+> 
+> Has something changed?
 
-Frame-rate   resolution  HSYNC  VSYNC  PCLK(array)  PCLK (i/f bus) ...
+Nothing has changed regarding <=ARMv5. There was a small side discussion
+about ARMv6 and ARMv7+ based on the idea that they can either use CMA
+directly (doing TLB flushes for every allocation) or they could use the
+same method as ARMv6K by setting aside a pool of pages for atomic
+allocation. The first approach would consume less memory because it
+requires no special pool, the second approach would be simpler because
+it unifies the ARMv6K and ARMv6/ARMv7+ cases and also would be slightly
+more efficient for atomic allocations because it avoids the expensive
+TLB flush.
 
-Let user space control only first two, and driver decide rest (PCLK can 
-be different at different ISP h/w units though)
+I didn't have a strong opinion either way, so IIRC Marek said he'd try
+out both approaches and then send out the one that looked better, leaning
+towards the second for simplicity of having fewer compile-time options.
 
-Regards,
-Subash
-
- > Pixel clock and blanking
- > ------------------------
- >
- >   Preliminary conclusions:
- >
- >   - Pixel clock(s) and blanking will be exported through controls on 
-subdev
- >     nodes.
- >   - The pixel array pixel clock is needed by userspace.
- >   - Hosts/bridges/ISPs need pixel clock and blanking information to 
-validate
- >     pipelines.
- >
- >   Actions:
- >
- >   - CSI2 and CCP2 bus frequencies will be selectable use integer menu 
-controls.
- >     (Sakari)
- >   - Add an integer menu control type, replacing the name with a 
-64-bit integer.
- >     (Sakari, Hans)
- >   - Research which pixel clock(s) to expose based on the SMIA sensor.
- >     (Sakari)
- >   - Add two new internal subdev pad operations to get and set clocks and
- >     blanking.
- >     (Laurent, Sakari)
+	Arnd
