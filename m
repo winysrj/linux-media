@@ -1,49 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kaapeli.fi ([84.20.139.148]:34494 "EHLO mail.kaapeli.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751944Ab1HVRY4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Aug 2011 13:24:56 -0400
-Message-ID: <4E528FAE.5060801@iki.fi>
-Date: Mon, 22 Aug 2011 20:19:42 +0300
-From: Jyrki Kuoppala <jkp@iki.fi>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] Fix to qt1010 tuner frequency selection (media/dvb)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:9796 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752025Ab1HPKSG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Aug 2011 06:18:06 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Date: Tue, 16 Aug 2011 12:17:30 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 7/9] ARM: DMA: steal memory for DMA coherent mappings
+In-reply-to: <201108121453.05898.arnd@arndb.de>
+To: 'Arnd Bergmann' <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Russell King' <linux@arm.linux.org.uk>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>
+Message-id: <004301cc5bfd$b50048d0$1f00da70$%szyprowski@samsung.com>
+Content-language: pl
+References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
+ <1313146711-1767-8-git-send-email-m.szyprowski@samsung.com>
+ <201108121453.05898.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch fixes frequency selection for some UHF frequencies e.g. 
-channel 32 (562 MHz) on the qt1010 tuner. The tuner is used e.g. in the 
-MSI Mega Sky dvb-t stick ("MSI Mega Sky 55801 DVB-T USB2.0")
+Hello,
 
-One example of problem reports of the bug this fixes can be read at 
-http://www.freak-search.com/de/thread/330303/linux-dvb_tuning_problem_with_some_frequencies_qt1010,_dvb
+On Friday, August 12, 2011 2:53 PM Arnd Bergmann wrote:
 
-Applies to kernel versions 2.6.38.8, 2.6.39.4, 3.0.3 and 3.1-rc2.
+> On Friday 12 August 2011, Marek Szyprowski wrote:
+> >
+> > From: Russell King <rmk+kernel@arm.linux.org.uk>
+> >
+> > Steal memory from the kernel to provide coherent DMA memory to drivers.
+> > This avoids the problem with multiple mappings with differing attributes
+> > on later CPUs.
+> >
+> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> > [m.szyprowski: rebased onto 3.1-rc1]
+> > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> 
+> Hi Marek,
+> 
+> Is this the same patch that Russell had to revert because it didn't
+> work on some of the older machines, in particular those using
+> dmabounce?
 
-Signed-off-by: Jyrki Kuoppala <jkp@iki.fi>
+Yes.
+ 
+> I thought that our discussion ended with the plan to use this only
+> for ARMv6+ (which has a problem with double mapping) but not on ARMv5
+> and below (which don't have this problem but might need dmabounce).
 
-diff -upr linux-source-2.6.38.orig/drivers/media/common/tuners/qt1010.c 
-linux-source-2.6.38/drivers/media/common/tuners/qt1010.c
---- linux-source-2.6.38.orig/drivers/media/common/tuners/qt1010.c    
-2011-03-15 03:20:32.000000000 +0200
-+++ linux-source-2.6.38/drivers/media/common/tuners/qt1010.c    
-2011-08-21 23:16:38.209580365 +0300
-@@ -198,9 +198,10 @@ static int qt1010_set_params(struct dvb_
+Ok, my fault. I've forgot to mention that this patch was almost ready 
+during Linaro meeting, but I didn't manage to post it that time. Of course 
+it doesn't fulfill all the agreements from that discussion.
 
-      /* 22 */
-      if      (freq < 450000000) rd[15].val = 0xd0; /* 450 MHz */
--    else if (freq < 482000000) rd[15].val = 0xd1; /* 482 MHz */
-+    else if (freq < 482000000) rd[15].val = 0xd2; /* 482 MHz */
-      else if (freq < 514000000) rd[15].val = 0xd4; /* 514 MHz */
--    else if (freq < 546000000) rd[15].val = 0xd7; /* 546 MHz */
-+    else if (freq < 546000000) rd[15].val = 0xd6; /* 546 MHz */
-+    else if (freq < 578000000) rd[15].val = 0xd8; /* 578 MHz */
-      else if (freq < 610000000) rd[15].val = 0xda; /* 610 MHz */
-      else                       rd[15].val = 0xd0;
+I was only unsure if we should care about the case where CMA is not enabled
+for ARMv6+ or not. This patch was prepared in assumption that 
+dma_alloc_coherent should work in both cases - with and without CMA.
 
+Now I assume that for ARMv6+ the CMA should be enabled unconditionally.
+
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
