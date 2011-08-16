@@ -1,83 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38498 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753754Ab1H3Mp4 (ORCPT
+Received: from impaqm5.telefonica.net ([213.4.138.21]:15309 "EHLO
+	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751335Ab1HPXXX convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 08:45:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] media: Add support for arbitrary resolution for the ov5642 camera driver
-Date: Tue, 30 Aug 2011 14:46:22 +0200
-Cc: Bastian Hecht <hechtb@googlemail.com>, linux-media@vger.kernel.org
-References: <alpine.DEB.2.02.1108171551040.17540@ipanema> <201108291448.15139.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1108301051410.19151@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1108301051410.19151@axis700.grange>
+	Tue, 16 Aug 2011 19:23:23 -0400
+From: Jose Alberto Reguero <jareguero@telefonica.net>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: Afatech AF9013
+Date: Wed, 17 Aug 2011 01:23:09 +0200
+Cc: Josu Lazkano <josu.lazkano@gmail.com>, linux-media@vger.kernel.org
+References: <CAL9G6WUpso9FFUzC3WWiBZDqQDr-+HQFouCO_2V-zVHVyiyKeg@mail.gmail.com> <201108162227.00963.jareguero@telefonica.net> <4E4AD9B4.2040908@iki.fi>
+In-Reply-To: <4E4AD9B4.2040908@iki.fi>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108301446.22411.laurent.pinchart@ideasonboard.com>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201108170123.09647.jareguero@telefonica.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
-
-On Tuesday 30 August 2011 10:55:08 Guennadi Liakhovetski wrote:
-> On Mon, 29 Aug 2011, Laurent Pinchart wrote:
-> > On Monday 29 August 2011 14:34:53 Guennadi Liakhovetski wrote:
-> > > On Mon, 29 Aug 2011, Laurent Pinchart wrote:
-> > > > On Monday 29 August 2011 14:18:50 Guennadi Liakhovetski wrote:
-> > > > > On Sun, 28 Aug 2011, Laurent Pinchart wrote:
-> > > > > 
-> > > > > [snip]
-> > > > > 
-> > > > > > > @@ -774,17 +839,27 @@ static int ov5642_s_fmt(struct
-> > > > > > > v4l2_subdev *sd,
-> > > > > > > 
-> > > > > > >  	ov5642_try_fmt(sd, mf);
-> > > > > > > 
-> > > > > > > +	priv->out_size.width		= mf->width;
-> > > > > > > +	priv->out_size.height		= mf->height;
-> > > > > > 
-> > > > > > It looks like to me (but I may be wrong) that you achieve
-> > > > > > different resolutions using cropping, not scaling. If that's
-> > > > > > correct you should implement s_crop support and refuse changing
-> > > > > > the resolution through s_fmt.
-> > > > > 
-> > > > > As the patch explains (I think) on several occasions, currently
-> > > > > only the 1:1 scale is supported, and it was our deliberate choice
-> > > > > to implement this using the scaling API
-> > > > 
-> > > > If you implement cropping, you should use the crop API, not the
-> > > > scaling API
-> > > > 
-> > > > :-)
-> > > 
-> > > It's changing both - input and output sizes.
+On Martes, 16 de Agosto de 2011 22:57:24 Antti Palosaari escribió:
+> On 08/16/2011 11:27 PM, Jose Alberto Reguero wrote:
+> >> options dvb-usb force_pid_filter_usage=1
+> >> 
+> >> I change the signal timeout and tuning timeout and now it works perfect!
+> >> 
+> >> I can watch two HD channels, thanks for your help.
+> >> 
+> >> I really don't understand what force_pid_filter_usage do on the
+> >> module, is there any documentation?
+> >> 
+> >> Thanks and best regards.
 > > 
-> > Sure, but it's still cropping.
+> > For usb devices with usb 2.0 when tunned to a channel there is enought
+> > usb bandwith to deliver the whole transponder. With pid filters they
+> > only deliver the pids needed for the channel. The only limit is that the
+> > pid filters is limited normaly to 32 pids.
 > 
-> Why? Isn't it a matter of the PoV?
+> May I ask how wide DVB-T streams you have? Here in Finland it is about
+> 22 Mbit/sec and I think two such streams should be too much for one USB
+> bus. I suspect there is some other bug in back of this.
+> 
+> regards
+> Antti
 
-No it isn't. Cropping is cropping, regardless of how you look at it.
+Here the transport stream is like yours. About 4 Mbit/sec by channel, and 
+about 5 channels by transport stream. The problem I have is that when I have 
+the two tuners working I have a few packets lost, and I have some TS 
+discontinuitys. With pid filters the stream is perfect. Perhaps Josu have 
+another problem.
 
-> It changes the output window, i.e., implements S_FMT. And S_FMT is by far
-> more important / widely used than S_CROP. Refusing to change the output
-> window and always just returning the == crop size wouldn't be polite, IMHO.
-
-If your sensor has no scaler the output size is equal to the crop rectangle. 
-There's no way around that, and there's no reason to have the driver behave 
-otherwise.
-
-> Don't think many users would guess to use S_CROP.
-
-Users who want to crop use S_CROP.
-
-> Standard applications a la mplayer don't use S_CROP at all.
-
-That's because they don't want to crop. mplayer expects the driver to perform 
-scaling when it calls S_FMT, and users won't be happy if you crop instead.
-
--- 
-Regards,
-
-Laurent Pinchart
+Jose Alberto
