@@ -1,46 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56879 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750932Ab1HLQ0o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2011 12:26:44 -0400
-Received: from lancelot.localnet (unknown [91.178.165.160])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id DBB2935AA5
-	for <linux-media@vger.kernel.org>; Fri, 12 Aug 2011 16:26:42 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Is V4L2_PIX_FMT_RGB656 RGB or BGR ?
-Date: Fri, 12 Aug 2011 18:26:38 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108121826.39804.laurent.pinchart@ideasonboard.com>
+Received: from mga02.intel.com ([134.134.136.20]:15711 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751337Ab1HPK2q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Aug 2011 06:28:46 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [media-ctl][PATCHv2 2/4] libmediactl: split media_get_devname from media_enum_entities
+Date: Tue, 16 Aug 2011 13:28:03 +0300
+Message-Id: <14cdc542d995ab478460378d692b6100c4036cac.1313490446.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1313490446.git.andriy.shevchenko@linux.intel.com>
+References: <201108151652.54417.laurent.pinchart@ideasonboard.com>
+ <6075971b959c2e808cd4ceec6540dc09b101346f.1313490446.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1313490446.git.andriy.shevchenko@linux.intel.com>
+References: <6075971b959c2e808cd4ceec6540dc09b101346f.1313490446.git.andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-According to http://linuxtv.org/downloads/v4l-dvb-apis/packed-rgb.html, 
-V4L2_PIX_FMT_RGB565 is defined as
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ src/media.c |   69 +++++++++++++++++++++++++++++++++-------------------------
+ 1 files changed, 39 insertions(+), 30 deletions(-)
 
- Identifier           Byte 0 in memory         Byte 1 
-                  Bit  7  6  5  4  3  2  1  0    7  6  5  4  3  2  1  0
- V4L2_PIX_FMT_RGB565  g2 g1 g0 r4 r3 r2 r1 r0   b4 b3 b2 b1 b0 g5 g4 g3
-
-As this is stored in little-endian, the color word is thus
-
-b4 b3 b2 b1 b0 g5 g4 g3 g2 g1 g0 r4 r3 r2 r1 r0
-
-This looks awfully like BGR to me, not RGB.
-
-I need to define a FOURCC for the corresponding RGB format
-
- Identifier           Byte 0 in memory         Byte 1 
-                  Bit  7  6  5  4  3  2  1  0    7  6  5  4  3  2  1  0
- V4L2_PIX_FMT_RGB565  g2 g1 g0 b4 b3 b2 b1 b0   r4 r3 r2 r1 r0 g5 g4 g3
-
-Should I call it V4L2_PIX_FMT_BGR565 ? :-)
-
+diff --git a/src/media.c b/src/media.c
+index 050289e..fc05a86 100644
+--- a/src/media.c
++++ b/src/media.c
+@@ -245,15 +245,50 @@ static int media_enum_links(struct media_device *media)
+ 	return ret;
+ }
+ 
+-static int media_enum_entities(struct media_device *media)
++static int media_get_devname(struct media_entity *entity)
+ {
+-	struct media_entity *entity;
+ 	struct stat devstat;
+-	unsigned int size;
+ 	char devname[32];
+ 	char sysname[32];
+ 	char target[1024];
+ 	char *p;
++	int ret;
++
++	if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE &&
++	    media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV)
++		return 0;
++
++	sprintf(sysname, "/sys/dev/char/%u:%u", entity->info.v4l.major,
++		entity->info.v4l.minor);
++	ret = readlink(sysname, target, sizeof(target));
++	if (ret < 0)
++		return -errno;
++
++	target[ret] = '\0';
++	p = strrchr(target, '/');
++	if (p == NULL)
++		return -EINVAL;
++
++	sprintf(devname, "/dev/%s", p + 1);
++	ret = stat(devname, &devstat);
++	if (ret < 0)
++		return -errno;
++
++	/* Sanity check: udev might have reordered the device nodes.
++	 * Make sure the major/minor match. We should really use
++	 * libudev.
++	 */
++	if (major(devstat.st_rdev) == entity->info.v4l.major &&
++	    minor(devstat.st_rdev) == entity->info.v4l.minor)
++		strcpy(entity->devname, devname);
++
++	return 0;
++}
++
++static int media_enum_entities(struct media_device *media)
++{
++	struct media_entity *entity;
++	unsigned int size;
+ 	__u32 id;
+ 	int ret = 0;
+ 
+@@ -289,33 +324,7 @@ static int media_enum_entities(struct media_device *media)
+ 		media->entities_count++;
+ 
+ 		/* Find the corresponding device name. */
+-		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE &&
+-		    media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+-			continue;
+-
+-		sprintf(sysname, "/sys/dev/char/%u:%u", entity->info.v4l.major,
+-			entity->info.v4l.minor);
+-		ret = readlink(sysname, target, sizeof(target));
+-		if (ret < 0)
+-			continue;
+-
+-		target[ret] = '\0';
+-		p = strrchr(target, '/');
+-		if (p == NULL)
+-			continue;
+-
+-		sprintf(devname, "/dev/%s", p + 1);
+-		ret = stat(devname, &devstat);
+-		if (ret < 0)
+-			continue;
+-
+-		/* Sanity check: udev might have reordered the device nodes.
+-		 * Make sure the major/minor match. We should really use
+-		 * libudev.
+-		 */
+-		if (major(devstat.st_rdev) == entity->info.v4l.major &&
+-		    minor(devstat.st_rdev) == entity->info.v4l.minor)
+-			strcpy(entity->devname, devname);
++		media_get_devname(entity);
+ 	}
+ 
+ 	return ret;
 -- 
-Regards,
+1.7.5.4
 
-Laurent Pinchart
