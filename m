@@ -1,101 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:59246 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755720Ab1HECwa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 22:52:30 -0400
-Date: Thu, 4 Aug 2011 21:56:27 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Greg KH <greg@kroah.com>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
-	Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Adam Baker <linux@baker-net.org.uk>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-In-Reply-To: <20110804225603.GA2557@kroah.com>
-Message-ID: <alpine.LNX.2.00.1108042108210.18033@banach.math.auburn.edu>
-References: <20110610002103.GA7169@xanatos> <4E3B1B7B.2040501@infradead.org> <20110804225603.GA2557@kroah.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:42626 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751098Ab1HPK6a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Aug 2011 06:58:30 -0400
+Received: by bke11 with SMTP id 11so3619670bke.19
+        for <linux-media@vger.kernel.org>; Tue, 16 Aug 2011 03:58:29 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <p06240803ca6f0fc5adb0@simon.thehobsons.co.uk>
+References: <CAC3jWv+c1HOqmo0B18Z3vWOwjr=RoPrN7sfR3bqzz4Tw7=fPAQ@mail.gmail.com>
+	<1313226504.2840.22.camel@gagarin>
+	<p06240803ca6f0fc5adb0@simon.thehobsons.co.uk>
+Date: Tue, 16 Aug 2011 12:58:29 +0200
+Message-ID: <CAC3jWvJFnMBp+xxQEN-xHYHpvrHcG3D4W4PHDM26f-7YPby1Dw@mail.gmail.com>
+Subject: Re: [mythtv-users] Anyone tested the DVB-T2 dual tuner TBS6280?
+From: Harald Gustafsson <hgu1972@gmail.com>
+To: Discussion about MythTV <mythtv-users@mythtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Aug 15, 2011 at 8:11 PM, Simon Hobson <linux@thehobsons.co.uk> wrote:
+>>Date: Sat, 13 Aug 2011 22:08:30 +0300
+>>From: Turbosight Europe <euro_support@tbsdtv.com>
+...
+>>also, in case of TBS 6280 there is something else you should know -
+>>currently we keep two separate Linux drivers: one that support DVB-T
+>>only and another that supports DVB-T2 only. that's because we want
+>>more people to test those two drivers before we merge them and it's
+>>more efficient to locate the problem in case a customer report such.
+>>so, the driver for TBS 6280 you can find on our website supports
+>>DVB-T only, but it can be switched to support DVB-T2 very easy. so,
+>>single driver that supports DVB-T and DVB-T2 will be released after
+>>we're sure both codes are bug-free. so, far feedback we received
+>>doesn't reveal any serious bugs and reported problems were fixed -
+>>as i mentioned we already have customers in UK that are Linux users
+>>and use the card to watch DVB-T2 signal in UK.
 
+OK so this states that the current drivers don't support both DVB-T
+and -T2 simultaneously. This is good to know since this would be my
+common usage, going to record DVB-T2 on one of the tuners while
+recording DVB-T on the other.
 
-On Thu, 4 Aug 2011, Greg KH wrote:
-
-> On Thu, Aug 04, 2011 at 07:21:47PM -0300, Mauro Carvalho Chehab wrote:
-> > I know that this problem were somewhat solved for 3G modems, with the usage
-> > of the userspace problem usb_modeswitch, and with some quirks for the USB
-> > storage driver, but I'm not sure if such tricks will scale forever, as more
-> > functions are seen on some USB devices.
-> 
-> Well, no matter how it "scales" it needs to be done in userspace, like
-> usb_modeswitch does.  We made that decision a while ago, and it is
-> working out very well.  I see no reason why you can't do it in userspace
-> as well as that is the easiest place to control this type of thing.
-> 
-> I thought we had a long discussion about this topic a while ago and came
-> to this very conclusion.  Or am I mistaken?
-> 
-> thanks,
-> 
-> greg k-h
-> 
-
-Greg,
-
-A little bit more of precision would help me a lot, here. Precisely what 
-is one supposed to do in userspace? I would naturally assume that the user 
-will control the device by announcing what the user wants to do with the 
-device. Such control would therefore have to start in userspace. But this 
-is such an obvious truism that you must mean something else. What, then?
-
-To say to do things "like usb_modeswitch" is rather vague. For one thing, 
-usb_modeswitch, being something out there in userspace, does _not_ affect 
-what is in the kernel. However, what is (or is not) in the kernel might 
-make it possible (or, in the alternative, impossible) to facilitate the 
-action of some kind of userspace function-switching program similar to 
-usb_modeswitch, not so? 
-
-As to the "long discussion about this topic a while ago" that may have 
-been a discussion in which I was also involved. For, I do remember a 
-discussion about this topic a few months ago. In one respect my memory 
-differs from yours, however: It was not my impression that any definite 
-conclusions were reached, certainly not a consensus. BTW, I did try to lay 
-out what I remembered as three alternatives that came up, along with 
-arguments for and against each of them, in my message which kicked off 
-this thread today. 
-
-It is of course a real possibility that you have seen the perfect solution 
-in your mind to these problems, which have vexed a lot of people for 
-years, and others have not. If that is the way it is, then perhaps you 
-just wish that we would all shut up, implement what is obvious, and we 
-could all be happy. This could certainly be the case. You have written a 
-lot more code than I have, and you obviously must have started doing that 
-when you were at least 30 years younger, perhaps even 40 years younger, 
-than I was when I started. So I would be the first to say that you are 
-much better at it than I am. But there are others here, too, who seem 
-actively to have been sucked into this discussion, and they are similarly 
-younger and more clever than I am, too. 
-
-Giving due consideration to this, it would probably get the job done a lot 
-faster if you just take the time to describe what grand vision you 
-yourself have in mind for the solution of the problem, with a sufficient 
-accounting of the details that people can all see what it is and exactly 
-how and why it would work absolutely perfectly, and then we can just get 
-busy and do it.
-
-Theodore Kilgore
+/Harald
