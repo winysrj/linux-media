@@ -1,76 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:59302 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753237Ab1H2OOj convert rfc822-to-8bit (ORCPT
+Received: from mail.dream-property.net ([82.149.226.172]:33557 "EHLO
+	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751983Ab1HPOET (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 10:14:39 -0400
-MIME-Version: 1.0
-In-Reply-To: <201108291534.35951.laurent.pinchart@ideasonboard.com>
-References: <1313746626-23845-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<201108291455.36145.laurent.pinchart@ideasonboard.com>
-	<CAMuHMdVGV6dYW+szHyD30=HvAnSh92rRp=PMauwZZLw6H7DhYw@mail.gmail.com>
-	<201108291534.35951.laurent.pinchart@ideasonboard.com>
-Date: Mon, 29 Aug 2011 16:14:38 +0200
-Message-ID: <CAMuHMdV=ZWMSJ_-r9fRMs0RCHyDZL=1a0_ZPZCgLBYJf=Ws4=Q@mail.gmail.com>
-Subject: Re: [PATCH/RFC v2 1/3] fbdev: Add FOURCC-based format configuration API
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Tue, 16 Aug 2011 10:04:19 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.dream-property.net (Postfix) with ESMTP id E7995315386C
+	for <linux-media@vger.kernel.org>; Tue, 16 Aug 2011 16:04:18 +0200 (CEST)
+Received: from mail.dream-property.net ([127.0.0.1])
+	by localhost (mail.dream-property.net [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id Zy2ScAjf36fM for <linux-media@vger.kernel.org>;
+	Tue, 16 Aug 2011 16:04:09 +0200 (CEST)
+Received: from pepe.dream-property.nete (dreamboxupdate.com [82.149.226.174])
+	by mail.dream-property.net (Postfix) with SMTP id B6307315387D
+	for <linux-media@vger.kernel.org>; Tue, 16 Aug 2011 16:04:08 +0200 (CEST)
+From: Andreas Oberritter <obi@linuxtv.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] DVB: increment minor version after addition of SYS_TURBO
+Date: Tue, 16 Aug 2011 14:04:07 +0000
+Message-Id: <1313503447-13743-2-git-send-email-obi@linuxtv.org>
+In-Reply-To: <1313503447-13743-1-git-send-email-obi@linuxtv.org>
+References: <1313503447-13743-1-git-send-email-obi@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+---
+Depends on https://patchwork.kernel.org/patch/1045472/
 
-On Mon, Aug 29, 2011 at 15:34, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Monday 29 August 2011 15:09:04 Geert Uytterhoeven wrote:
->> On Mon, Aug 29, 2011 at 14:55, Laurent Pinchart wrote:
->> >> When will the driver report FB_{TYPE,VISUAL}_FOURCC?
->> >>   - When using a mode that cannot be represented in the legacy way,
->> >
->> > Definitely.
->> >
->> >>   - But what with modes that can be represented? Legacy software cannot
->> >>     handle FB_{TYPE,VISUAL}_FOURCC.
->> >
->> > My idea was to use FB_{TYPE,VISUAL}_FOURCC only when the mode is
->> > configured using the FOURCC API. If FBIOPUT_VSCREENINFO is called with a
->> > non-FOURCC format, the driver will report non-FOURCC types and visuals.
->>
->> Hmm, two use cases:
->>   - The video mode is configured using a FOURCC-aware tool ("fbset on
->> steroids").
->
-> Such as http://git.ideasonboard.org/?p=fbdev-test.git;a=summary :-)
+ include/linux/dvb/version.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Yep.
+diff --git a/include/linux/dvb/version.h b/include/linux/dvb/version.h
+index 1421cc8..66594b1 100644
+--- a/include/linux/dvb/version.h
++++ b/include/linux/dvb/version.h
+@@ -24,6 +24,6 @@
+ #define _DVBVERSION_H_
+ 
+ #define DVB_API_VERSION 5
+-#define DVB_API_VERSION_MINOR 3
++#define DVB_API_VERSION_MINOR 4
+ 
+ #endif /*_DVBVERSION_H_*/
+-- 
+1.7.2.5
 
->>     Later the user runs a legacy application.
->>       => Do not retain FOURCC across opening of /dev/fb*.
->
-> I know about that problem, but it's not that easy to work around. We have no
-> per-open fixed and variable screen info, and FB devices can be opened by
-> multiple applications at the same time.
->
->>   - Is there an easy way to force FOURCC reporting, so new apps don't have
->> to support parsing the legacy formats? This is useful for new apps that
->> want to support (a subset of) FOURCC modes only.
->
-> Not at the moment.
-
-So perhaps we do need new ioctls instead...
-That would also ease an in-kernel translation layer.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
