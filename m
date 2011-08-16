@@ -1,69 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:33338 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754604Ab1HDTAy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 15:00:54 -0400
-Date: Thu, 4 Aug 2011 14:05:49 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Jean-Francois Moine <moinejf@free.fr>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
-In-Reply-To: <20110804184020.6edb96d8@tele>
-Message-ID: <alpine.LNX.2.00.1108041358050.17533@banach.math.auburn.edu>
-References: <4E398381.4080505@redhat.com> <alpine.LNX.2.00.1108031418480.16384@banach.math.auburn.edu> <4E39B150.40108@redhat.com> <4E3A84F0.5050208@redhat.com> <4E3A9332.1060404@redhat.com> <20110804184020.6edb96d8@tele>
+Received: from moutng.kundenserver.de ([212.227.126.187]:55126 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752430Ab1HPNNU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Aug 2011 09:13:20 -0400
+Date: Tue, 16 Aug 2011 15:13:04 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hansverk@cisco.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer
+ management
+In-Reply-To: <Pine.LNX.4.64.1108151530410.7851@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1108161458510.13913@axis700.grange>
+References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
+ <201108081116.41126.hansverk@cisco.com> <Pine.LNX.4.64.1108151324220.7851@axis700.grange>
+ <201108151336.07258.hansverk@cisco.com> <Pine.LNX.4.64.1108151530410.7851@axis700.grange>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, 15 Aug 2011, Guennadi Liakhovetski wrote:
 
-
-On Thu, 4 Aug 2011, Jean-Francois Moine wrote:
-
-> On Thu, 04 Aug 2011 09:40:18 -0300
-> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> On Mon, 15 Aug 2011, Hans Verkuil wrote:
 > 
-> > > What we need for this is a simple API (new v4l ioctl's I guess) for the
-> > > stillcam mode of these dual mode cameras (stillcam + webcam). So that the
-> > > webcam drivers can grow code to also allow access to the stored pictures,
-> > > which were taken in standalone (iow not connected to usb) stillcam mode.
+> > On Monday, August 15, 2011 13:28:23 Guennadi Liakhovetski wrote:
+> > > Hi Hans
 > > > 
-> > > This API does not need to be terribly complex. AFAIK all of the currently
-> > > supported dual cam cameras don't have filenames only picture numbers,
-> > > so the API could consist of a simple, get highest picture nr, is picture
-> > > X present (some slots may contain deleted pictures), get picture X,
-> > > delete picture X, delete all API.  
-> > 
-> > That sounds to work. I would map it on a way close to the controls API
-> > (or like the DVB FE_[GET|SET]_PROPERTY API), as this would make easier to expand
-> > it in the future, if we start to see webcams with file names or other things
-> > like that.
-> 
-> I did not follow all the thread, but I was wondering about an other
-> solution: what about offering both USB mass storage and webcam accesses?
-> 
-> When a dual-mode webcam is plugged in, the driver creates two devices,
-> the video device /dev/videox and the volume /dev/sdx. When the webcam is
-> opened, the volume cannot be mounted. When the volume is mounted, the
-> webcam cannot be opened. There is no need for a specific API. As Mauro
-> said:
-> 
-> > For those, we may eventually need some sort of locking between
-> > the USB storage and V4L.
-> 
-> That's all. By where am I wrong?
+> > > On Mon, 8 Aug 2011, Hans Verkuil wrote:
 
-Jean-Francois,
+[snip]
 
-This idea seems to me basically on track. There is only one small problem 
-with it, in the details:
+> > > > but I've changed my mind: I think
+> > > > this should use a struct v4l2_format after all.
+> 
+> While switching back, I have to change the struct vb2_ops::queue_setup() 
+> operation to take a struct v4l2_create_buffers pointer. An earlier version 
+> of this patch just added one more parameter to .queue_setup(), which is 
+> easier - changes to videobuf2-core.c are smaller, but it is then 
+> redundant. We could use the create pointer for both input and output. The 
+> video plane configuration in frame format is the same as what is 
+> calculated in .queue_setup(), IIUC. So, we could just let the driver fill 
+> that one in. This would require then the videobuf2-core.c to parse struct 
+> v4l2_format to decide which union member we need, depending on the buffer 
+> type. Do we want this or shall drivers duplicate plane sizes in separate 
+> .queue_setup() parameters?
 
-As far as I know, /dev/sdx signifies a device which is accessible by 
-something like the USB mass storage protocols, at the very least. So, if 
-that fits the camera, fine. But most of the cameras in question are Class 
-Proprietary. Thus, not in any way standard mass storage devices. Then it 
-is probably better not to call the new device by that name unless that 
-name really fits. Probably, it would be better to have /dev/cam or 
-/dev/stillcam, or something like that.
+Let me explain my question a bit. The current .queue_setup() method is
 
-Theodore Kilgore
+	int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
+			   unsigned int *num_planes, unsigned int sizes[],
+			   void *alloc_ctxs[]);
+
+To support multiple-size buffers we also have to pass a pointer to struct 
+v4l2_create_buffers to this function now. We can either do it like this:
+
+	int (*queue_setup)(struct vb2_queue *q,
+			   struct v4l2_create_buffers *create,
+			   unsigned int *num_buffers,
+			   unsigned int *num_planes, unsigned int sizes[],
+			   void *alloc_ctxs[]);
+
+and let all drivers fill in respective fields in *create, e.g., either do
+
+	create->format.fmt.pix_mp.plane_fmt[i].sizeimage = ...;
+	create->format.fmt.pix_mp.num_planes = ...;
+
+and also duplicate it in method parameters
+
+	*num_planes = create->format.fmt.pix_mp.num_planes;
+	sizes[i] = create->format.fmt.pix_mp.plane_fmt[i].sizeimage;
+
+or with
+
+	create->format.fmt.pix.sizeimage = ...;
+
+for single-plane. Alternatively we make the prototype
+
+	int (*queue_setup)(struct vb2_queue *q,
+			   struct v4l2_create_buffers *create,
+			   unsigned int *num_buffers,
+			   void *alloc_ctxs[]);
+
+then drivers only fill in *create, and the videobuf2-core will have to 
+check create->format.type to decide, which of create->format.fmt.* is 
+relevant and extract plane sizes from there.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
