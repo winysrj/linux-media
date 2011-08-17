@@ -1,102 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.dream-property.net ([82.149.226.172]:36440 "EHLO
-	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751766Ab1HDPkm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 11:40:42 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.dream-property.net (Postfix) with ESMTP id 139EA3153478
-	for <linux-media@vger.kernel.org>; Thu,  4 Aug 2011 17:33:27 +0200 (CEST)
-Received: from mail.dream-property.net ([127.0.0.1])
-	by localhost (mail.dream-property.net [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id EW4nbBiJ-0Ff for <linux-media@vger.kernel.org>;
-	Thu,  4 Aug 2011 17:33:20 +0200 (CEST)
-Received: from pepe.dream-property.nete (dreamboxupdate.com [82.149.226.174])
-	by mail.dream-property.net (Postfix) with SMTP id 49E5F3153479
-	for <linux-media@vger.kernel.org>; Thu,  4 Aug 2011 17:33:19 +0200 (CEST)
-From: Andreas Oberritter <obi@linuxtv.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 4/4] DVB: dvb_frontend: update locking in dvb_frontend_{add,get_event}
-Date: Thu,  4 Aug 2011 15:33:15 +0000
-Message-Id: <1312471995-26292-4-git-send-email-obi@linuxtv.org>
-In-Reply-To: <1312471995-26292-1-git-send-email-obi@linuxtv.org>
-References: <1312471995-26292-1-git-send-email-obi@linuxtv.org>
+Received: from mx1.redhat.com ([209.132.183.28]:22973 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751399Ab1HQGOP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Aug 2011 02:14:15 -0400
+Message-ID: <4E4B5C27.3000008@redhat.com>
+Date: Tue, 16 Aug 2011 23:13:59 -0700
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Embedded device and the  V4L2 API support - Was: [GIT PATCHES FOR
+ 3.1] s5p-fimc and noon010pc30 driver updates
+References: <4E303E5B.9050701@samsung.com> <201108151430.42722.laurent.pinchart@ideasonboard.com> <4E49B60C.4060506@redhat.com> <201108161057.57875.laurent.pinchart@ideasonboard.com> <4E4A8D27.1040602@redhat.com> <4E4AE583.6050308@gmail.com>
+In-Reply-To: <4E4AE583.6050308@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- dvb_frontend_add_event:
-  - fepriv->parameters_out isn't protected by events->mtx, so
-    move the call to fe->ops.get_frontend out of the locked area.
-  - move the assignment of e->status into the locked area.
+It seems that there are too many miss understandings or maybe we're just
+talking the same thing on different ways.
 
-- dvb_frontend_get_event:
-  - use direct assignment instead of memcpy.
+So, instead of answering again, let's re-start this discussion on a
+different way.
 
-- dvb_frontend_add_event and dvb_frontend_get_event:
-  - use mutex_lock instead of mutex_lock_interruptible, because
-    all code paths protected by this mutex won't block.
+One of the requirements that it was discussed a lot on both mailing
+lists and on the Media Controllers meetings that we had (or, at least
+in the ones where I've participated) is that:
 
-Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |   24 +++++++-----------------
- 1 files changed, 7 insertions(+), 17 deletions(-)
+	"A pure V4L2 userspace application, knowing about video device
+	 nodes only, can still use the driver. Not all advanced features 
+	 will be available."
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 4102311..d02c32e 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -149,30 +149,25 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe, fe_status_t status)
- 
- 	dprintk ("%s\n", __func__);
- 
--	if (mutex_lock_interruptible (&events->mtx))
--		return;
-+	if ((status & FE_HAS_LOCK) && fe->ops.get_frontend)
-+		fe->ops.get_frontend(fe, &fepriv->parameters_out);
- 
--	wp = (events->eventw + 1) % MAX_EVENT;
-+	mutex_lock(&events->mtx);
- 
-+	wp = (events->eventw + 1) % MAX_EVENT;
- 	if (wp == events->eventr) {
- 		events->overflow = 1;
- 		events->eventr = (events->eventr + 1) % MAX_EVENT;
- 	}
- 
- 	e = &events->events[events->eventw];
--
--	if (status & FE_HAS_LOCK)
--		if (fe->ops.get_frontend)
--			fe->ops.get_frontend(fe, &fepriv->parameters_out);
--
-+	e->status = status;
- 	e->parameters = fepriv->parameters_out;
- 
- 	events->eventw = wp;
- 
- 	mutex_unlock(&events->mtx);
- 
--	e->status = status;
--
- 	wake_up_interruptible (&events->wait_queue);
- }
- 
-@@ -207,14 +202,9 @@ static int dvb_frontend_get_event(struct dvb_frontend *fe,
- 			return ret;
- 	}
- 
--	if (mutex_lock_interruptible (&events->mtx))
--		return -ERESTARTSYS;
--
--	memcpy (event, &events->events[events->eventr],
--		sizeof(struct dvb_frontend_event));
--
-+	mutex_lock(&events->mtx);
-+	*event = events->events[events->eventr];
- 	events->eventr = (events->eventr + 1) % MAX_EVENT;
--
- 	mutex_unlock(&events->mtx);
- 
- 	return 0;
--- 
-1.7.2.5
+This is easily said than done. Also, different understandings can be
+obtained by a simple phrase like that.
+
+The solution for this problem is to make a compliance profile that
+drivers need to implement. We should define such profile, change
+the existing drivers to properly implement it and enforce it for the
+newcoming drivers.
+
+Btw, I think we should also work on a profile for other kinds of hardware
+as well, but the thing is that, as some things can now be implemented
+using two different API's, we need to define the minimal requirements
+for the V4L2 implementation.
+
+
+For me, the above requirement means that, at least, the following features
+need to be present:
+
+1) The media driver should properly detect the existing hardware and
+should expose the available sensors for capture via the V4L2 API.
+
+For hardware development kits, it should be possible to specify the
+hardware sensor(s) at runtime via some tool at the v4l-utils tree 
+(or on another tree hosted at linuxtv.org or clearly indicated at
+the Kernel tree Documentation files) or via a modprobe parameter.
+
+2) Different sensors present at the hardware may be exposed either
+via S_INPUT or, if they're completely independent, via two different
+node interface;
+
+3) The active sensor basic controls to adjust color, bright, aperture time
+and exposition time, if the hardware directly supports them;
+
+4) The driver should implement the streaming ioctls and/or the read() method;
+
+5) It should be possible to configure the frame rate, if the sensor supports it;
+
+6) It should be possible to configure the crap area, if the sensor supports it.
+
+7) It should be possible to configure the format standard and resolution
+
+...
+(the above list is not exhaustive. It is just a few obvious things that are
+clear to me - I'm almost sure that I've forgot something).
+
+We'll also end by having some optional requirements, like the DV timings ioctls
+that also needs to be covered by the SoC hardware profile.
+
+In practice, the above requirements should be converted into a list of features
+and ioctl's that needs to be implemented on every SoC driver that implements
+a capture or output video streaming device.
+
+My suggestion is that we should start the discussions by filling the macro
+requirements. Once we agree on that, we can make a list of the V4L and MC
+ioctl's and convert them into a per-ioctl series of requirements.
+
+Regards,
+Mauro
+
 
