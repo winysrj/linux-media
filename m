@@ -1,62 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:55670 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752040Ab1HHOi2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 10:38:28 -0400
-Date: Mon, 8 Aug 2011 10:38:27 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Adam Baker <linux@baker-net.org.uk>
-cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
-In-Reply-To: <201108080130.57394.linux@baker-net.org.uk>
-Message-ID: <Pine.LNX.4.44L0.1108081034590.1944-100000@iolanthe.rowland.org>
+Received: from mx1.redhat.com ([209.132.183.28]:7795 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753526Ab1HQN2P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Aug 2011 09:28:15 -0400
+Message-ID: <4E4BC1DE.1060404@redhat.com>
+Date: Wed, 17 Aug 2011 06:27:58 -0700
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [GIT PATCHES FOR 3.1] s5p-fimc and noon010pc30 driver updates
+References: <4E303E5B.9050701@samsung.com>  <201108161744.34749.laurent.pinchart@ideasonboard.com>  <4E4AF0FC.4070104@redhat.com>  <201108170957.15955.laurent.pinchart@ideasonboard.com>  <4E4BB330.7010506@redhat.com> <1313584678.14286.27.camel@iivanov-desktop>
+In-Reply-To: <1313584678.14286.27.camel@iivanov-desktop>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 8 Aug 2011, Adam Baker wrote:
-
-> Further testing reveals the situation is more complex than I first thought - 
-> the behaviour I get depends upon whether what gets plugged in is a full speed 
-> or a high speed device. After I've run the test of running gphoto whilst 
-> streaming from a supported dual mode camera, lsusb fails to recognise a high 
-> speed device plugged into the port the camera was plugged into (it works fine 
-> if plugged in elsewhere) and lsusb hangs if I plug in a new low speed or full 
-> speed device. When I get some time I'll see if I can recreate the problem 
-> using libusb with a totally different device. Looking around my pile of USB 
-> bits for something full speed with a kernel driver I've got a PL2303 serial 
-> port. Would that be a good choice to test with?
-
-I have no idea.  But the symptoms you describe are indicative of a 
-hardware problem, not a driver bug.
-
-> Just for reference with a full speed device I see the messages below in dmesg
-> with the second one only appearing when I do lsusb
-> [10832.128039] usb 3-2: new full speed USB device using uhci_hcd and address 
-> 34
-> [10847.240031] usb 3-2: device descriptor read/64, error -110
+Em 17-08-2011 05:37, Ivan T. Ivanov escreveu:
 > 
-> and with a high speed device I see a continuous stream of
-> [11079.820097] usb 1-4: new high speed USB device using ehci_hcd and address 
-> 103
-> [11079.888355] hub 1-0:1.0: unable to enumerate USB device on port 4
-> [11080.072377] hub 1-0:1.0: unable to enumerate USB device on port 4
-> [11080.312053] usb 1-4: new high speed USB device using ehci_hcd and address 
-> 105
-> [11080.380418] hub 1-0:1.0: unable to enumerate USB device on port 4
-> [11080.620030] usb 1-4: new high speed USB device using ehci_hcd and address 
-> 106
-> [11080.688322] hub 1-0:1.0: unable to enumerate USB device on port 4
+> Hi everybody, 
+> 
+> On Wed, 2011-08-17 at 05:25 -0700, Mauro Carvalho Chehab wrote:
+>> Em 17-08-2011 00:57, Laurent Pinchart escreveu:
+>>> Hi Mauro,
+>>>
+>>> On Wednesday 17 August 2011 00:36:44 Mauro Carvalho Chehab wrote:
+>>>> Em 16-08-2011 08:44, Laurent Pinchart escreveu:
+>>>>> On Tuesday 16 August 2011 17:30:47 Mauro Carvalho Chehab wrote:
+>>>>>> Em 16-08-2011 01:57, Laurent Pinchart escreveu:
+>>>>> No. S_INPUT shouldn't be use to select between sensors. The hardware
+>>>>> pipeline is more complex than just that. We can't make it all fit in the
+>>>>> S_INPUT API.
+>>>>>
+>>>>> For instance, when switching between a b&w and a color sensor you will
+>>>>> need to reconfigure the whole pipeline to select the right gamma table,
+>>>>> white balance parameters, color conversion matrix, ... That's not
+>>>>> something we want to hardcode in the kernel. This needs to be done from
+>>>>> userspace.
+>>>>
+>>>> This is something that, if it is not written somehwere, no userspace
+>>>> applications not developed by the hardware vendor will ever work.
+>>>>
+>>>> I don't see any code for that any at the kernel or at libv4l. Am I missing
+>>>> something?
+>>>
+>>> Code for that needs to be written in libv4l. It's not there yet as I don't 
+>>> think we have any hardware for this particular example at the moment :-)
+>>>
+>> As no pure V4L2 application would set the pipelines as you've said, and
+>> no libv4l code exists yet, 
+> 
+> 
+> Actually there is such code for OMAP3 ISP driver. Plug-in support in
+> libv4l have been extended a little bit [1] and plugin-in which handle
+> request for "regular" video device nodes /dev/video0 and /dev/video1
+> and translate them to MC and sub-device API have been posted here [2],
+> but is still not merged.
+> 
+> Regards, 
+> iivanov
+> 
+> [1] http://www.spinics.net/lists/linux-media/msg35570.html
+> [2] http://www.spinics.net/lists/linux-media/msg32539.html
 
-The dmesg log is relatively uninformative unless you enable 
-CONFIG_USB_DEBUG in the kernel build.
+Ah, ok. So, it is just the usual delay of having some features merged.
 
-Have you tried running these tests on a different computer, preferably 
-one using a different chipset?
+Hans G.,
 
-Alan Stern
+FYI. Please review the OMAP3 MC-aware patches for libv4l when you have
+some time for that.
+
+Thanks!
+Mauro
+
 
