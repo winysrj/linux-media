@@ -1,89 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3985 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755280Ab1HZOQ0 (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:15334 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752582Ab1HQMtv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Aug 2011 10:16:26 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Embedded device and the  V4L2 API support - Was: [GIT PATCHES FOR 3.1] s5p-fimc and noon010pc30 driver updates
-Date: Fri, 26 Aug 2011 16:16:02 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-References: <4E303E5B.9050701@samsung.com> <4E56438C.1070102@redhat.com> <201108261545.30817.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201108261545.30817.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108261616.02417.hverkuil@xs4all.nl>
+	Wed, 17 Aug 2011 08:49:51 -0400
+Date: Wed, 17 Aug 2011 14:49:13 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 7/9] ARM: DMA: steal memory for DMA coherent mappings
+In-reply-to: 
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+	'Arnd Bergmann' <arnd@arndb.de>,
+	'Russell King - ARM Linux' <linux@arm.linux.org.uk>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>
+Message-id: <008d01cc5cdc$11392520$33ab6f60$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
+ <201108161528.48954.arnd@arndb.de>
+ <20110816135516.GC17310@n2100.arm.linux.org.uk>
+ <201108161626.26130.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, August 26, 2011 15:45:30 Laurent Pinchart wrote:
-> Hi Mauro,
+Hello,
+
+On Wednesday, August 17, 2011 10:01 AM Marek Szyprowski wrote:
+> On Tuesday, August 16, 2011 4:26 PM Arnd Bergmann wrote:
+> > On Tuesday 16 August 2011, Russell King - ARM Linux wrote:
+> > > On Tue, Aug 16, 2011 at 03:28:48PM +0200, Arnd Bergmann wrote:
+> > > > Hmm, I don't remember the point about dynamically sizing the pool for
+> > > > ARMv6K, but that can well be an oversight on my part.  I do remember the
+> > > > part about taking that memory pool from the CMA region as you say.
+> > >
+> > > If you're setting aside a pool of pages, then you have to dynamically
+> > > size it.  I did mention during our discussion about this.
+> > >
+> > > The problem is that a pool of fixed size is two fold: you need it to be
+> > > sufficiently large that it can satisfy all allocations which come along
+> > > in atomic context.  Yet, we don't want the pool to be too large because
+> > > then it prevents the memory being used for other purposes.
+> > >
+> > > Basically, the total number of pages in the pool can be a fixed size,
+> > > but as they are depleted through allocation, they need to be
+> > > re-populated from CMA to re-build the reserve for future atomic
+> > > allocations.  If the pool becomes larger via frees, then obviously
+> > > we need to give pages back.
+> >
+> > Ok, thanks for the reminder. I must have completely missed this part
+> > of the discussion.
+> >
+> > When I briefly considered this problem, my own conclusion was that
+> > the number of atomic DMA allocations would always be very low
+> > because they tend to be short-lived (e.g. incoming network packets),
+> > so we could ignore this problem and just use a smaller reservation
+> > size. While this seems to be true in general (see "git grep -w -A3
+> > dma_alloc_coherent | grep ATOMIC"), there is one very significant
+> > case that we cannot ignore, which is pci_alloc_consistent.
+> >
+> > This function is still called by hundreds of PCI drivers and always
+> > does dma_alloc_coherent(..., GFP_ATOMIC), even for long-lived
+> > allocations and those that are too large to be ignored.
+> >
+> > So at least for the case where we have PCI devices, I agree that
+> > we need to have the dynamic pool.
 > 
-> On Thursday 25 August 2011 14:43:56 Mauro Carvalho Chehab wrote:
-> > Em 24-08-2011 19:29, Sakari Ailus escreveu:
+> Do we really need the dynamic pool for the first version? I would like to
+> know how much memory can be allocated in GFP_ATOMIC context. What are the
+> typical sizes of such allocations?
 > 
-> [snip]
+> Maybe for the first version a static pool with reasonably small size
+> (like 128KiB) will be more than enough? This size can be even board
+> depended or changed with kernel command line for systems that really
+> needs more memory.
 > 
-> > > The question I still have on this is that how should the user know which
-> > > video node to access on an embedded system with a camera: the OMAP 3 ISP,
-> > > for example, contains some eight video nodes which have different ISP
-> > > blocks connected to them. Likely two of these nodes are useful for a
-> > > general purpose application based on which image format it requests. It
-> > > would make sense to provide generic applications information only on
-> > > those devices they may meaningfully use.
-> > 
-> > IMO, we should create a namespace device mapping for video devices. What I
-> > mean is that we should keep the "raw" V4L2 devices as:
-> > 	/dev/video??
-> > But also recommend the creation of a new userspace map, like:
-> > 	/dev/webcam??
-> > 	/dev/tv??
-> > 	...
-> > with is an alias for the actual device.
-> > 
-> > Something similar to dvd/cdrom aliases that already happen on most distros:
-> > 
-> > lrwxrwxrwx   1 root root           3 Ago 24 12:14 cdrom -> sr0
-> > lrwxrwxrwx   1 root root           3 Ago 24 12:14 cdrw -> sr0
-> > lrwxrwxrwx   1 root root           3 Ago 24 12:14 dvd -> sr0
-> > lrwxrwxrwx   1 root root           3 Ago 24 12:14 dvdrw -> sr0
-> 
-> I've been toying with a similar idea. libv4l currently wraps /dev/video* 
-> device nodes and assumes a 1:1 relationship between a video device node and a 
-> video device. Should this assumption be somehow removed, replaced by a video 
-> device concept that wouldn't be tied to a single video device node ?
+> I noticed one more problem. The size of the CMA managed area must be
+> the multiple of 16MiBs (MAX_ORDER+1). This means that the smallest CMA area
+> is 16MiB. These values comes from the internals of the kernel memory
+> management design and page blocks are the only entities that can be managed
+> with page migration code.
 
-Just as background information: the original idea was always that all v4l
-drivers would have a MC and that libv4l would use the information contained
-there as a helper (such as deciding which nodes would be the 'default' nodes
-for generic applications).
+I'm really sorry for the confusion. This 16MiB value worried me too much and
+I've checked the code once again and found that this MAX_ORDER+1 value was
+a miscalculation, which appeared in v11 of the  patches. The true minimal
+CMA area size is 8MiB for ARM architecture. I believe this shouldn't be
+an issue for the current ARMv6+ based machines.
 
-Since there is only one MC device node for each piece of video hardware that
-would make it much easier to discover what hardware there is and what video
-nodes to use.
+I've checked it with "mem=16M cma=8M" kernel arguments. System booted fine
+and CMA area has been successfully created.
 
-I always liked that idea, although I know Mauro is opposed to having a MC
-for all v4l drivers.
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
-While I am not opposed to creating such userspace maps I also think it is
-a bit of a poor-man's solution. In particular I am worried that we get a
-lot of those mappings (just think of ivtv with its 8 or 9 devices).
-
-I can think of: webcam, tv, compressed (mpeg), tv-out, compressed-out, mem2mem.
-
-But a 'tv' node might also be able to handle compressed video (depending
-on how the hardware is organized), so how do you handle that? It can all
-be solved, I'm sure, but I'm not sure if such userspace mappings will scale
-that well with the increasing hardware complexity.
-
-Regards,
-
-	Hans
