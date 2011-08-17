@@ -1,150 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:59015 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752092Ab1H3O4O (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:52432 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751888Ab1HQIwe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 10:56:14 -0400
-Message-ID: <4E5CFA0B.3010207@mlbassoc.com>
-Date: Tue, 30 Aug 2011 08:56:11 -0600
-From: Gary Thomas <gary@mlbassoc.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Getting started with OMAP3 ISP
-References: <4E56734A.3080001@mlbassoc.com> <4E5CEECC.6040804@mlbassoc.com> <4E5CF118.3050903@mlbassoc.com> <201108301620.09365.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201108301620.09365.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Wed, 17 Aug 2011 04:52:34 -0400
+Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LQ200228DZK3L@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 17 Aug 2011 09:52:32 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LQ200LY3DZI0A@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 17 Aug 2011 09:52:31 +0100 (BST)
+Date: Wed, 17 Aug 2011 10:51:56 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH] media: vb2: dma-sg allocator: change scatterlist
+ allocation method
+In-reply-to: <20110816180315.4be6ac9b@tpl.lwn.net>
+To: 'Jonathan Corbet' <corbet@lwn.net>
+Cc: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Message-id: <007a01cc5cba$eb512d60$c1f38820$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1312964617-3192-1-git-send-email-m.szyprowski@samsung.com>
+ <201108122354.51720.laurent.pinchart@ideasonboard.com>
+ <03bd01cc5bd6$40a86b10$c1f94130$%szyprowski@samsung.com>
+ <201108161041.40789.laurent.pinchart@ideasonboard.com>
+ <004401cc5c00$24998ce0$6dcca6a0$%szyprowski@samsung.com>
+ <20110816180315.4be6ac9b@tpl.lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2011-08-30 08:20, Laurent Pinchart wrote:
-> Hi Gary,
->
-> On Tuesday 30 August 2011 16:18:00 Gary Thomas wrote:
->> On 2011-08-30 08:08, Gary Thomas wrote:
->>> On 2011-08-29 04:49, Laurent Pinchart wrote:
->>>> On Thursday 25 August 2011 18:07:38 Gary Thomas wrote:
->>>>> Background: I have working video capture drivers based on the
->>>>> TI PSP codebase from 2.6.32. In particular, I managed to get
->>>>> a driver for the TVP5150 (analogue BT656) working with that kernel.
->>>>>
->>>>> Now I need to update to Linux 3.0, so I'm trying to get a driver
->>>>> working with the rewritten ISP code. Sadly, I'm having a hard
->>>>> time with this - probably just missing something basic.
->>>>>
->>>>> I've tried to clone the TVP514x driver which says that it works
->>>>> with the OMAP3 ISP code. I've updated it to use my decoder device,
->>>>> but I can't even seem to get into that code from user land.
->>>>>
->>>>> Here are the problems I've had so far:
->>>>> * udev doesn't create any video devices although they have been
->>>>> registered. I see a full set in /sys/class/video4linux
->>>>> # ls /sys/class/video4linux/
->>>>> v4l-subdev0 v4l-subdev3 v4l-subdev6 video1 video4
->>>>> v4l-subdev1 v4l-subdev4 v4l-subdev7 video2 video5
->>>>> v4l-subdev2 v4l-subdev5 video0 video3 video6
->>>>
->>>> It looks like a udev issue. I don't think that's related to the kernel
->>>> drivers.
->>>>
->>>>> Indeed, if I create /dev/videoX by hand, I can get somewhere, but
->>>>> I don't really understand how this is supposed to work. e.g.
->>>>> # v4l2-dbg --info /dev/video3
->>>>> Driver info:
->>>>> Driver name : ispvideo
->>>>> Card type : OMAP3 ISP CCP2 input
->>>>> Bus info : media
->>>>> Driver version: 1
->>>>> Capabilities : 0x04000002
->>>>> Video Output
->>>>> Streaming
->>>>>
->>>>> * If I try to grab video, the ISP layer gets a ton of warnings, but
->>>>> I never see it call down into my driver, e.g. to check the current
->>>>> format, etc. I have some of my own code from before which fails
->>>>> miserably (not a big surprise given the hack level of those programs).
->>>>> I tried something off-the-shelf which also fails pretty bad:
->>>>> # ffmpeg -t 10 -f video4linux2 -s 720x480 -r 30 -i /dev/video2
->>>>> junk.mp4
->>>>>
->>>>> I've read through Documentation/video4linux/omap3isp.txt without
->>>>> learning much about what might be wrong.
->>>>>
->>>>> Can someone give me some ideas/guidance, please?
->>>>
->>>> In a nutshell, you will first have to configure the OMAP3 ISP pipeline,
->>>> and then capture video.
->>>>
->>>> Configuring the pipeline is done through the media controller API and
->>>> the V4L2 subdev pad-level API. To experiment with those you can use the
->>>> media-ctl command line application available at
->>>> http://git.ideasonboard.org/?p=media- ctl.git;a=summary. You can run it
->>>> with --print-dot and pipe the result to dot -Tps to get a postscript
->>>> graphical view of your device.
->>>>
->>>> Here's a sample pipeline configuration to capture scaled-down YUV data
->>>> from a sensor:
->>>>
->>>> ./media-ctl -r -l '"mt9t001 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
->>>> CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP
->>>> resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
->>>> ./media-ctl -f '"mt9t001 3-005d":0[SGRBG10 1024x768], "OMAP3 ISP
->>>> CCDC":2[SGRBG10 1024x767], "OMAP3 ISP preview":1[YUYV 1006x759], "OMAP3
->>>> ISP resizer":1[YUYV 800x600]'
->>>>
->>>> After configuring your pipeline you will be able to capture video using
->>>> the V4L2 API on the device node at the output of the pipeline.
->>>
->>> Thanks for the info.
->>>
->>> When I run 'media-ctl -p', I see the various nodes, etc, and they all
->>> look good except that I get lots of messages like this:
->>> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
->>> type V4L2 subdev subtype Unknown
->>> pad0: Input v4l2_subdev_open: Failed to open subdev device node
->>
->> Could this be related to my missing [udev] device nodes?
->
-> It could be. You need the /dev/video* and /dev/v4l-subdev* device nodes.
+Hello,
 
-Yes, that helped a lot.  When I create the devices by hand, I can now see
-my driver starting to be accessed (right now it's very much an empty stub)
+On Wednesday, August 17, 2011 2:03 AM Jonathan Corbet wrote:
 
-Any ideas why udev (version 164) is not making these nodes automatically?
+> On Tue, 16 Aug 2011 12:34:56 +0200
+> Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+> 
+> > Right, I wasn't aware of that, but it still doesn't look like an issue. The
+only
+> >
+> > client of dma-sg allocator is marvell-ccic, which is used on x86 systems. If
+one
+> > needs dma-sg allocator on ARM, he should follow the suggestion from the
+> > 74facffeca3795ffb5cf8898f5859fbb822e4c5d commit message.
+> 
+> Um...that driver runs on ARM, actually - the controller is part of the
+> ARMADA 610 SoC...
 
->
->> I can see media-ctl get confused and try to open a nonsense device name.
->> Here's what I see when I run
->>     # strace media-ctl -p | grep open
->>     open("/dev/media0", O_RDWR)             = 3
->>     open("", O_RDWR)                        = -1 ENOENT (No such file or
->> directory) write(1, "\tpad0: Input v4l2_subdev_open: F"..., 66) = 66
->>
->>> When I try to setup my pipeline using something similar to what you
->>> provided, the first step runs and I can see that it does something (some
->>> lines on the graph went from dotted to solid), but I still get errors:
->>> # media-ctl -r -l '"tvp5150m1 2-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
->>> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]' Resetting all links to
->>> inactive
->>> Setting up link 16:0 ->  5:0 [1]
->>> Setting up link 5:1 ->  6:0 [1]
->>> # media-ctl -f '"tvp5150m1 2-005c":0[SGRBG12 320x240], "OMAP3 ISP
->>> CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]' Setting up
->>> format SGRBG12 320x240 on pad tvp5150m1 2-005c/0
->>> v4l2_subdev_open: Failed to open subdev device node
->>> Unable to set format: No such file or directory (-2)
->>>
->>> As far as I can tell, none if this is making any callbacks into my
->>> driver.
->>>
->>> Any ideas what I might be missing?
->>>
->>> Thanks
->
+Ups, I'm really sorry, it looks that I mixed something. I thought that OLPCs are
 
+only x86 based.
+
+> For the OLPC 1.75 there will never be a scatterlist longer than one
+> page, I don't think.  That controller can do HD, though, so longer
+> lists are possible in the future.
+
+Ok, I see. Do you think it would be possible to ask PXA/MMP platform developers
+to 
+review all the drivers that can be used on that platform and enable scatter-list
+
+chaining for this arm sub-arch? If this is a problem then we will have to delay
+this
+sg chaining patch.
+
+Best regards
 -- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+Marek Szyprowski
+Samsung Poland R&D Center
+
