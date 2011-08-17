@@ -1,61 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:47164 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752963Ab1H2LEQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 07:04:16 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:59438 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752749Ab1HQKes (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Aug 2011 06:34:48 -0400
+From: Deepthy Ravi <deepthy.ravi@ti.com>
+To: <mchehab@infradead.org>, <linux-media@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+CC: <linux-omap@vger.kernel.org>, Vaibhav Hiremath <hvaibhav@ti.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>
+Subject: [PATCH] Media controller: Define media_entity_init() and media_entity_cleanup() conditionally
+Date: Wed, 17 Aug 2011 16:04:36 +0530
+Message-ID: <1313577276-18182-1-git-send-email-deepthy.ravi@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <201108291209.08349.laurent.pinchart@ideasonboard.com>
-References: <1313746626-23845-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<201108291050.59109.laurent.pinchart@ideasonboard.com>
-	<CAMuHMdW9KPBJpTPYmCTmFG=G_7_tiFti-b3wzTM9Q5J7U9+JWg@mail.gmail.com>
-	<201108291209.08349.laurent.pinchart@ideasonboard.com>
-Date: Mon, 29 Aug 2011 13:04:15 +0200
-Message-ID: <CAMuHMdU3eO34zmGVejUj4B7Z5JWiwM_pieoycfinSspSiL1reQ@mail.gmail.com>
-Subject: Re: [PATCH/RFC v2 1/3] fbdev: Add FOURCC-based format configuration API
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-On Mon, Aug 29, 2011 at 12:09, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Monday 29 August 2011 11:36:07 Geert Uytterhoeven wrote:
->> On Mon, Aug 29, 2011 at 10:50, Laurent Pinchart wrote:
+Defines the two functions only when CONFIG_MEDIA_CONTROLLER
+is enabled.
 
-[...]
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+---
+ include/media/media-entity.h |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-> If my understanding is now correct, a V4L2 planar YUV type where Y, U and V
-> components are stored in separate byte-oriented planes, with each plane
-> storing Y, U or V components packed (such as http://linuxtv.org/downloads/v4l-
-> dvb-apis/V4L2-PIX-FMT-YUV422P.html), would be of neither FB_TYPE_PLANES nor
-> FB_TYPE_PACKED. The same would be true for an RGB format where each component
-> is stored in a separate plane with each plane sotring R, G or B packed.
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index cd8bca6..c90916e 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -121,9 +121,18 @@ struct media_entity_graph {
+ 	int top;
+ };
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
+ int media_entity_init(struct media_entity *entity, u16 num_pads,
+ 		struct media_pad *pads, u16 extra_links);
+ void media_entity_cleanup(struct media_entity *entity);
++#else
++static inline int media_entity_init(struct media_entity *entity, u16 num_pads,
++		struct media_pad *pads, u16 extra_links)
++{
++	return 0;
++}
++static inline void media_entity_cleanup(struct media_entity *entity) {}
++#endif
+ 
+ int media_entity_create_link(struct media_entity *source, u16 source_pad,
+ 		struct media_entity *sink, u16 sink_pad, u32 flags);
+-- 
+1.7.0.4
 
-Indeed. Currently this cannot be represented.
-For ideas from the past, see e.g.
-http://comments.gmane.org/gmane.linux.fbdev.devel/10951.
-
-> If the above is correct, what FB_TYPE_* should a driver report when using
-> FB_VISUAL_FOURCC with V4L2_PIX_FMT_YUV422P (http://linuxtv.org/downloads/v4l-
-> dvb-apis/V4L2-PIX-FMT-YUV422P.html) or V4L2_PIX_FMT_NV12
-> (http://linuxtv.org/downloads/v4l-dvb-apis/re25.html) for instance ?
-
-We need new types for those. Or always use FOURCC for them.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
