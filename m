@@ -1,52 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moh1-ve2.go2.pl ([193.17.41.132]:52079 "EHLO moh1-ve2.go2.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754505Ab1H2V4K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 17:56:10 -0400
-Received: from moh1-ve2.go2.pl (unknown [10.0.0.132])
-	by moh1-ve2.go2.pl (Postfix) with ESMTP id 54E621065173
-	for <linux-media@vger.kernel.org>; Mon, 29 Aug 2011 23:56:05 +0200 (CEST)
-Received: from unknown (unknown [10.0.0.142])
-	by moh1-ve2.go2.pl (Postfix) with SMTP
-	for <linux-media@vger.kernel.org>; Mon, 29 Aug 2011 23:56:05 +0200 (CEST)
-Message-ID: <4E5C0AF1.3090606@o2.pl>
-Date: Mon, 29 Aug 2011 23:56:01 +0200
-From: Maciej Szmigiero <mhej@o2.pl>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:48651 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752630Ab1HQMdV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Aug 2011 08:33:21 -0400
+Date: Wed, 17 Aug 2011 15:33:18 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [GIT PATCHES FOR 3.1] s5p-fimc and noon010pc30 driver updates
+Message-ID: <20110817123317.GL7436@valkosipuli.localdomain>
+References: <4E303E5B.9050701@samsung.com>
+ <201108161057.57875.laurent.pinchart@ideasonboard.com>
+ <4E4A8D27.1040602@redhat.com>
+ <201108161744.34749.laurent.pinchart@ideasonboard.com>
+ <4E4AF0FC.4070104@redhat.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [V4L2]decrement struct v4l2_device refcount on device unregister
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4E4AF0FC.4070104@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-commit bedf8bcf6b4f90a6e31add3721a2e71877289381 introduced reference counting
-for struct v4l2_device.
+Hi Mauro,
 
-In v4l2_device_register() a call to kref_init() initializes reference count to 1,
-but in v4l2_device_unregister() there is no corresponding decrement.
+On Tue, Aug 16, 2011 at 03:36:44PM -0700, Mauro Carvalho Chehab wrote:
+[clip]
+> > For instance, when switching between a b&w and a color sensor you will need to 
+> > reconfigure the whole pipeline to select the right gamma table, white balance 
+> > parameters, color conversion matrix, ... That's not something we want to 
+> > hardcode in the kernel. This needs to be done from userspace.
+> 
+> This is something that, if it is not written somehwere, no userspace
+> applications not developed by the hardware vendor will ever work.
+> 
+> I don't see any code for that any at the kernel or at libv4l. Am I missing
+> something?
 
-End result is that reference count never reaches zero and v4l2_device_release()
-is never called, not even on videodev module unload.
+There actually is. The plugin interface patches went in to libv4l 0.9.0.
+That's just an interface and it doesn't yet have support for any embedded
+devices.
 
-Fix this by adding reference counter decrement to v4l2_device_unregister().
-
-Resending due to spurious newlines around the patch in previous message.
-
-Signed-off-by: Maciej Szmigiero <mhej@o2.pl>
-
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index c72856c..eb39af9 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -131,6 +131,8 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
- 		}
- #endif
- 	}
-+
-+	v4l2_device_put(v4l2_dev);
- }
- EXPORT_SYMBOL_GPL(v4l2_device_unregister);
-
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
