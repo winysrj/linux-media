@@ -1,62 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:40429 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755228Ab1HRKbR convert rfc822-to-8bit (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:45107 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751914Ab1HQLff (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2011 06:31:17 -0400
-Subject: Re: [PATCH] adp1653: make ->power() method optional
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <20110818092158.GA8872@valkosipuli.localdomain>
-References: <aa45d92c4ec78b36b28eb721ef58f3a5512900a3.1313657559.git.andriy.shevchenko@linux.intel.com>
-	 <20110818092158.GA8872@valkosipuli.localdomain>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Thu, 18 Aug 2011 13:30:50 +0300
-Message-ID: <1313663450.25065.4.camel@smile>
-Mime-Version: 1.0
+	Wed, 17 Aug 2011 07:35:35 -0400
+Date: Wed, 17 Aug 2011 14:35:31 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] adp1653: set media entity type
+Message-ID: <20110817113531.GI7436@valkosipuli.localdomain>
+References: <20110811071900.GC5926@valkosipuli.localdomain>
+ <bdfa2fa007fe799206043c874017fb3b412f7f32.1313062441.git.andriy.shevchenko@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <bdfa2fa007fe799206043c874017fb3b412f7f32.1313062441.git.andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2011-08-18 at 12:21 +0300, Sakari Ailus wrote: 
-> On Thu, Aug 18, 2011 at 11:53:03AM +0300, Andy Shevchenko wrote:
-> > The ->power() could be absent or not used on some platforms. This patch makes
-> > its presence optional.
-> 
-> Hi Andy,
-> 
-> Thanks for the patch!
-> 
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  drivers/media/video/adp1653.c |    3 +++
-> >  1 files changed, 3 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
-> > index 0fd9579..65f6f3f 100644
-> > --- a/drivers/media/video/adp1653.c
-> > +++ b/drivers/media/video/adp1653.c
-> > @@ -309,6 +309,9 @@ __adp1653_set_power(struct adp1653_flash *flash, int on)
-> >  {
-> >  	int ret;
-> >  
-> > +	if (flash->platform_data->power == NULL)
-> > +		return 0;
-> > +
-> >  	ret = flash->platform_data->power(&flash->subdev, on);
-> >  	if (ret < 0)
-> >  		return ret;
+On Thu, Aug 11, 2011 at 02:35:04PM +0300, Andy Shevchenko wrote:
+> The type of a media entity is default for this driver. This patch makes it
+> explicitly defined as MEDIA_ENT_T_V4L2_SUBDEV_FLASH.
 
-> How about doing this in adp1653_set_power() instead of
-> __adp1653_set_power()? At least I don't see any ill effects from this.
-> There's no need to keep track of the power state (flash->power_count) if
-> there isn't one. :-)
-It was my first assumption. However, the __adp1653_set_power() is used
-directly from suspend/resume methods.
+Thanks again for the patch, Andy!
 
+Applied to my tree in linuxtv.org; the branch is called
+media-for-3.2-adp1653-1.
+
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/media/video/adp1653.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
+> index 7f2e710..0fd9579 100644
+> --- a/drivers/media/video/adp1653.c
+> +++ b/drivers/media/video/adp1653.c
+> @@ -438,6 +438,8 @@ static int adp1653_probe(struct i2c_client *client,
+>  	if (ret < 0)
+>  		goto free_and_quit;
+>  
+> +	flash->subdev.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
+> +
+>  	return 0;
+>  
+>  free_and_quit:
+> -- 
+> 1.7.5.4
+> 
 
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Sakari Ailus
+sakari.ailus@iki.fi
