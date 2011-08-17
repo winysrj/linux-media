@@ -1,103 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:40440 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750764Ab1HRSon convert rfc822-to-8bit (ORCPT
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:37830 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752922Ab1HQO6G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2011 14:44:43 -0400
-Received: by bke11 with SMTP id 11so1672769bke.19
-        for <linux-media@vger.kernel.org>; Thu, 18 Aug 2011 11:44:42 -0700 (PDT)
+	Wed, 17 Aug 2011 10:58:06 -0400
+Received: by qyk38 with SMTP id 38so2106113qyk.19
+        for <linux-media@vger.kernel.org>; Wed, 17 Aug 2011 07:58:04 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com>
-References: <4E4D5157.2080406@yahoo.com>
-	<CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com>
-Date: Thu, 18 Aug 2011 14:44:42 -0400
-Message-ID: <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com>
-Subject: Re: [PATCH] Latest version of em28xx / em28xx-dvb patch for PCTV 290e
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Chris Rankin <rankincj@yahoo.com>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	Antti Palosaari <crope@iki.fi>
+In-Reply-To: <009201cc5ce0$bd34de10$379e9a30$%szyprowski@samsung.com>
+References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
+ <201108081116.41126.hansverk@cisco.com> <Pine.LNX.4.64.1108151324220.7851@axis700.grange>
+ <201108151336.07258.hansverk@cisco.com> <Pine.LNX.4.64.1108151530410.7851@axis700.grange>
+ <009201cc5ce0$bd34de10$379e9a30$%szyprowski@samsung.com>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Wed, 17 Aug 2011 07:57:44 -0700
+Message-ID: <CAMm-=zBhUVnY3gd32PTs+TyP0pdJOY_gfiJkb0K6PF3=yskFGQ@mail.gmail.com>
+Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size
+ videobuffer management
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 18, 2011 at 2:43 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Thu, Aug 18, 2011 at 1:52 PM, Chris Rankin <rankincj@yahoo.com> wrote:
->> Hi,
->>
->> Here's my latest patch for the em28xx / em28xx-dvb modules, which addresses
->> the following problems:
->>
->> a) Locking problem when unplugging and then replugging USB adapter.
->> b) Race conditions between adding/removing devices from the devlist, while
->> simultaneously loading/unloading extension modules.
->> c) Resource leaks on error paths.
->> d) Preventing the DVB framework from trying to put the adapter into sleep
->> mode when the adapter has been physically unplugged. (This results in
->> occasional "-19" errors from I2C functions when disconnecting.)
->> e) Use atomic bit operations to manage "device in use" slots, and enforce
->> upper limit of EM28XX_MAXBOARDS slots.
+On Wed, Aug 17, 2011 at 06:22, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+> Hello,
 >
-> Hi Chris,
+> On Monday, August 15, 2011 3:46 PM Guennadi Liakhovetski wrote:
+>> While switching back, I have to change the struct vb2_ops::queue_setup()
+>> operation to take a struct v4l2_create_buffers pointer. An earlier version
+>> of this patch just added one more parameter to .queue_setup(), which is
+>> easier - changes to videobuf2-core.c are smaller, but it is then
+>> redundant. We could use the create pointer for both input and output. The
+>> video plane configuration in frame format is the same as what is
+>> calculated in .queue_setup(), IIUC. So, we could just let the driver fill
+>> that one in. This would require then the videobuf2-core.c to parse struct
+>> v4l2_format to decide which union member we need, depending on the buffer
+>> type. Do we want this or shall drivers duplicate plane sizes in separate
+>> .queue_setup() parameters?
 >
-> You would be well served to break this into a patch series, as it
-> tends to be difficult to review a whole series of changes in a single
-> patch.
->
-> You seem to be mixed in a bunch of "useless" changes alongside
-> functional changes.  For example, if you're trying to add in a missing
-> goto inside an exception block, doing that at the same time as
-> renaming instances of "errCode" to "retval" just creates confusion.
->
-> And finally, the mutex structure used for the modules is somewhat
-> complicated due to to the need to keep the analog side of the board
-> locked while initializing the digital side.  This code was added
-> specifically to prevent race conditions that were seen during
-> initialization as things like udev and dbus attempted to connect to
-> the newly created V4L device while the em28xx-dvb module was still
-> coming up.
->
-> In other words, I don't doubt there are bugs, and I cannot say whether
-> your fixes are appropriate without giving a hard look at the logic.
-> But you should be aware of the thinking behind the way it was done and
-> it would be very worthwhile if you could test with at least one hybrid
-> product to ensure the changes you are making don't break anything (the
-> em2874 used in the 290e is a poor test case since it doesn't have
-> analog support).
->
->> BTW, was there a reason why the em28xx-dvb module doesn't use dvb-usb?
->
-> This is largely a product of the history of the devices using the
-> framework.  The em28xx driver was originally analog only, and DVB
-> support was added later as new chips came out which needed it.  The
-> dvb-usb driver came from dedicated DVB devices that had no analog
-> support.  In fact, even today the lack of analog support is a huge
-> deficiency in that framework which is why we don't support the analog
-> side of any hybrid devices that use dvb-usb.
->
-> In other words, if we were reinventing this stuff today, there would
-> probably be only a single framework shared by dvb-usb and em28xx.  But
-> at this point it's too much cost and too little benefit to go through
-> the work to attempt to merge them.
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
+> IMHO if possible we should have only one callback for the driver. Please
+> notice that the driver should be also allowed to increase (or decrease) the
+> number of buffers for particular format/fourcc.
 >
 
-Probably one more point worth making:  I definitely appreciate that
-you've take the time to focus on these particular problems.  I've been
-complaining about them for months but just never got around to rolling
-up my sleeves to debug them myself.
-
-In other words, don't interpret anything in my previous email as discouragement.
-
-Devin
+Or remove queue_setup altogether (please see my example above). What
+do you think Marek?
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Best regards,
+Pawel Osciak
