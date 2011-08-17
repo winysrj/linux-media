@@ -1,49 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.dream-property.net ([82.149.226.172]:39120 "EHLO
-	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702Ab1HHOyr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 10:54:47 -0400
-From: Andreas Oberritter <obi@linuxtv.org>
-To: linux-media@vger.kernel.org
-Cc: user.vdr@gmail.com, alannisota@gmail.com
-Subject: [PATCH 1/3] DVB: Add SYS_TURBO for north american turbo code FEC
-Date: Mon,  8 Aug 2011 14:54:35 +0000
-Message-Id: <1312815277-9502-1-git-send-email-obi@linuxtv.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38962 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753679Ab1HQPaj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Aug 2011 11:30:39 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Ravi, Deepthy" <deepthy.ravi@ti.com>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Date: Wed, 17 Aug 2011 21:00:28 +0530
+Subject: RE: [PATCH] Media controller: Define media_entity_init() and
+ media_entity_cleanup() conditionally
+Message-ID: <19F8576C6E063C45BE387C64729E739404E3CDE6D9@dbde02.ent.ti.com>
+References: <1313577276-18182-1-git-send-email-deepthy.ravi@ti.com>
+In-Reply-To: <1313577276-18182-1-git-send-email-deepthy.ravi@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- Allow to distinguish turbo code from DVB-S
 
-Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
----
- Documentation/DocBook/media/dvb/dvbproperty.xml |    1 +
- include/linux/dvb/frontend.h                    |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+> -----Original Message-----
+> From: Ravi, Deepthy
+> Sent: Wednesday, August 17, 2011 4:05 PM
+> To: mchehab@infradead.org; linux-media@vger.kernel.org; linux-
+> kernel@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org; Hiremath, Vaibhav; Ravi, Deepthy
+> Subject: [PATCH] Media controller: Define media_entity_init() and
+> media_entity_cleanup() conditionally
+> 
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> Defines the two functions only when CONFIG_MEDIA_CONTROLLER
+> is enabled.
+[Hiremath, Vaibhav] Deepthy,
 
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index 207e1a5..75bea04 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -352,6 +352,7 @@ typedef enum fe_delivery_system {
- 	SYS_CMMB,
- 	SYS_DAB,
- 	SYS_DVBT2,
-+	SYS_TURBO,
- } fe_delivery_system_t;
- </programlisting>
- 		</section>
-diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-index 36a3ed6..1b1094c 100644
---- a/include/linux/dvb/frontend.h
-+++ b/include/linux/dvb/frontend.h
-@@ -349,6 +349,7 @@ typedef enum fe_delivery_system {
- 	SYS_CMMB,
- 	SYS_DAB,
- 	SYS_DVBT2,
-+	SYS_TURBO,
- } fe_delivery_system_t;
- 
- struct dtv_cmds_h {
--- 
-1.7.2.5
+You may want to mention about build failure without MEDIA_CONTROLLER option being enabled, especially if any sensor driver is being used between MC and non-MC framework compatible devices.
+For example, OMAP3 and AM3517, where TVP5146 is being used but OMAP3 is based on MC framework and AM3517 is based on simple sub-dev based interface.
+
+Thanks,
+Vaibhav
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+> ---
+>  include/media/media-entity.h |    9 +++++++++
+>  1 files changed, 9 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index cd8bca6..c90916e 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -121,9 +121,18 @@ struct media_entity_graph {
+>  	int top;
+>  };
+> 
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+>  int media_entity_init(struct media_entity *entity, u16 num_pads,
+>  		struct media_pad *pads, u16 extra_links);
+>  void media_entity_cleanup(struct media_entity *entity);
+> +#else
+> +static inline int media_entity_init(struct media_entity *entity, u16
+> num_pads,
+> +		struct media_pad *pads, u16 extra_links)
+> +{
+> +	return 0;
+> +}
+> +static inline void media_entity_cleanup(struct media_entity *entity) {}
+> +#endif
+> 
+>  int media_entity_create_link(struct media_entity *source, u16 source_pad,
+>  		struct media_entity *sink, u16 sink_pad, u32 flags);
+> --
+> 1.7.0.4
 
