@@ -1,207 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:62049 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756298Ab1HaNqk (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:57457 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751409Ab1HRTCl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 09:46:40 -0400
-Date: Wed, 31 Aug 2011 15:46:36 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 1/6] V4L menu: move USB drivers section to the top.
-In-Reply-To: <b5c71c4b9e2f88bd5698a9920b24d24786e4a28c.1314797675.git.hans.verkuil@cisco.com>
-Message-ID: <Pine.LNX.4.64.1108311546001.8429@axis700.grange>
-References: <1314797925-8113-1-git-send-email-hverkuil@xs4all.nl>
- <b5c71c4b9e2f88bd5698a9920b24d24786e4a28c.1314797675.git.hans.verkuil@cisco.com>
+	Thu, 18 Aug 2011 15:02:41 -0400
+Message-ID: <4E4D61CD.40405@iki.fi>
+Date: Thu, 18 Aug 2011 22:02:37 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCHv2] adp1653: make ->power() method optional
+References: <20110818092158.GA8872@valkosipuli.localdomain>	 <98c77ce2a17d7a098dedfc858f4055edc5556c54.1313666504.git.andriy.shevchenko@linux.intel.com>	 <1313667122.25065.8.camel@smile>	 <20110818115131.GD8872@valkosipuli.localdomain> <1313674341.25065.17.camel@smile> <4E4D4840.7050207@gmail.com>
+In-Reply-To: <4E4D4840.7050207@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 31 Aug 2011, Hans Verkuil wrote:
+Sylwester Nawrocki wrote:
+> Hi,
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> USB webcams are some of the most used V4L devices, so move it to a more
-> prominent place in the menu instead of being at the end.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/Kconfig |  141 ++++++++++++++++++++++---------------------
->  1 files changed, 71 insertions(+), 70 deletions(-)
-> 
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index f574dc0..336251f 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -545,6 +545,77 @@ config VIDEO_M52790
->  
->  endmenu # encoder / decoder chips
->  
-> +#
-> +# USB Multimedia device configuration
-> +#
-> +
-> +menuconfig V4L_USB_DRIVERS
-> +	bool "V4L USB devices"
-> +	depends on USB
-> +	default y
-> +
-> +if V4L_USB_DRIVERS && USB
+Hi Sylwester,
 
-is "&& USB" needed? V4L_USB_DRIVERS already depends on USB
+> On 08/18/2011 03:32 PM, Andy Shevchenko wrote:
+>> On Thu, 2011-08-18 at 14:51 +0300, Sakari Ailus wrote:
+>>> On Thu, Aug 18, 2011 at 02:32:02PM +0300, Andy Shevchenko wrote:
+>>>> On Thu, 2011-08-18 at 14:22 +0300, Andy Shevchenko wrote:
+>>>>> The ->power() could be absent or not used on some platforms. This patch makes
+>>>>> its presence optional.
+>>>>>
+>>>>> Signed-off-by: Andy Shevchenko<andriy.shevchenko@linux.intel.com>
+>>>>> Cc: Sakari Ailus<sakari.ailus@iki.fi>
+>>>>> ---
+>>>>>    drivers/media/video/adp1653.c |    5 +++++
+>>>>>    1 files changed, 5 insertions(+), 0 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
+>>>>> index 0fd9579..f830313 100644
+>>>>> --- a/drivers/media/video/adp1653.c
+>>>>> +++ b/drivers/media/video/adp1653.c
+>>>>> @@ -329,6 +329,11 @@ adp1653_set_power(struct v4l2_subdev *subdev, int on)
+>>>>>    	struct adp1653_flash *flash = to_adp1653_flash(subdev);
+>>>>>    	int ret = 0;
+>>>>>
+>>>>> +	/* There is no need to switch power in case of absence ->power()
+>>>>> +	 * method. */
+>>>>> +	if (flash->platform_data->power == NULL)
+>>>>> +		return 0;
+>>>>> +
+>>>>>    	mutex_lock(&flash->power_lock);
+>>>>>
+>>>>>    	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
+>>>>
+>>>> He-h, I guess you are not going to apply this one.
+>>>> The patch breaks init logic of the device. If we have no ->power(), we
+>>>> still need to bring the device to the known state. I have no good idea
+>>>> how to do this.
+>>>
+>>> I don't think it breaks anything actually. Albeit in practice one is still
+>>> likely to put the adp1653 reset line to the board since that lowers its power
+>>> consumption significantly.
+>> Yeah, even in practice we might see various ways of a chip connection.
+>>
+>>> Instead of being in power-up state after opening the flash subdev, it will
+>>> reach this state already when the system is powered up. At subdev open all
+>>> the relevant registers are written to anyway, so I don't see an issue here.
+>> You mean at first writing to the V4L2 value, do you? Because ->open()
+>> uses set_power() which will be skipped in case of no ->power method
+>> defined.
+>>
+>>> I think either this one, or one should check in probe() that the power()
+>>> callback is non-NULL.
+>>> The board code is going away in the near future so this callback will
+>>> disappear eventually anyway.
+>> So, it's up to you to include or not my last patch.
+>>
+>>> The gpio code in the board file should likely
+>>> be moved to the driver itself.
+>> The line could be different, the hw could be used in environment w/o
+>> gpio, but with (for example) external gate, and so on. I think current
+>> generic driver is pretty okay.
+>
+> Would it make sense to use the regulator API in place of the platform_data
+> callback? If there is only one GPIO then it's easy to create a 'fixed voltage
+> regulator' for this.
 
-Thanks
-Guennadi
+I don't know the regulator framework very well, but do you mean creating 
+a new regulator which just controls a gpio? It would be preferrable that 
+this wouldn't create a new driver nor add any board core.
 
-> +
-> +source "drivers/media/video/uvc/Kconfig"
-> +
-> +source "drivers/media/video/gspca/Kconfig"
-> +
-> +source "drivers/media/video/pvrusb2/Kconfig"
-> +
-> +source "drivers/media/video/hdpvr/Kconfig"
-> +
-> +source "drivers/media/video/em28xx/Kconfig"
-> +
-> +source "drivers/media/video/tlg2300/Kconfig"
-> +
-> +source "drivers/media/video/cx231xx/Kconfig"
-> +
-> +source "drivers/media/video/usbvision/Kconfig"
-> +
-> +source "drivers/media/video/et61x251/Kconfig"
-> +
-> +source "drivers/media/video/sn9c102/Kconfig"
-> +
-> +source "drivers/media/video/pwc/Kconfig"
-> +
-> +config USB_ZR364XX
-> +	tristate "USB ZR364XX Camera support"
-> +	depends on VIDEO_V4L2
-> +	select VIDEOBUF_GEN
-> +	select VIDEOBUF_VMALLOC
-> +	---help---
-> +	  Say Y here if you want to connect this type of camera to your
-> +	  computer's USB port.
-> +	  See <file:Documentation/video4linux/zr364xx.txt> for more info
-> +	  and list of supported cameras.
-> +
-> +	  To compile this driver as a module, choose M here: the
-> +	  module will be called zr364xx.
-> +
-> +config USB_STKWEBCAM
-> +	tristate "USB Syntek DC1125 Camera support"
-> +	depends on VIDEO_V4L2 && EXPERIMENTAL
-> +	---help---
-> +	  Say Y here if you want to use this type of camera.
-> +	  Supported devices are typically found in some Asus laptops,
-> +	  with USB id 174f:a311 and 05e1:0501. Other Syntek cameras
-> +	  may be supported by the stk11xx driver, from which this is
-> +	  derived, see <http://sourceforge.net/projects/syntekdriver/>
-> +
-> +	  To compile this driver as a module, choose M here: the
-> +	  module will be called stkwebcam.
-> +
-> +config USB_S2255
-> +	tristate "USB Sensoray 2255 video capture device"
-> +	depends on VIDEO_V4L2
-> +	select VIDEOBUF_VMALLOC
-> +	default n
-> +	help
-> +	  Say Y here if you want support for the Sensoray 2255 USB device.
-> +	  This driver can be compiled as a module, called s2255drv.
-> +
-> +endif # V4L_USB_DRIVERS
-> +
->  config VIDEO_SH_VOU
->  	tristate "SuperH VOU video output driver"
->  	depends on VIDEO_DEV && ARCH_SHMOBILE
-> @@ -979,76 +1050,6 @@ config VIDEO_S5P_MIPI_CSIS
->  
->  source "drivers/media/video/s5p-tv/Kconfig"
->  
-> -#
-> -# USB Multimedia device configuration
-> -#
-> -
-> -menuconfig V4L_USB_DRIVERS
-> -	bool "V4L USB devices"
-> -	depends on USB
-> -	default y
-> -
-> -if V4L_USB_DRIVERS && USB
-> -
-> -source "drivers/media/video/uvc/Kconfig"
-> -
-> -source "drivers/media/video/gspca/Kconfig"
-> -
-> -source "drivers/media/video/pvrusb2/Kconfig"
-> -
-> -source "drivers/media/video/hdpvr/Kconfig"
-> -
-> -source "drivers/media/video/em28xx/Kconfig"
-> -
-> -source "drivers/media/video/tlg2300/Kconfig"
-> -
-> -source "drivers/media/video/cx231xx/Kconfig"
-> -
-> -source "drivers/media/video/usbvision/Kconfig"
-> -
-> -source "drivers/media/video/et61x251/Kconfig"
-> -
-> -source "drivers/media/video/sn9c102/Kconfig"
-> -
-> -source "drivers/media/video/pwc/Kconfig"
-> -
-> -config USB_ZR364XX
-> -	tristate "USB ZR364XX Camera support"
-> -	depends on VIDEO_V4L2
-> -	select VIDEOBUF_GEN
-> -	select VIDEOBUF_VMALLOC
-> -	---help---
-> -	  Say Y here if you want to connect this type of camera to your
-> -	  computer's USB port.
-> -	  See <file:Documentation/video4linux/zr364xx.txt> for more info
-> -	  and list of supported cameras.
-> -
-> -	  To compile this driver as a module, choose M here: the
-> -	  module will be called zr364xx.
-> -
-> -config USB_STKWEBCAM
-> -	tristate "USB Syntek DC1125 Camera support"
-> -	depends on VIDEO_V4L2 && EXPERIMENTAL
-> -	---help---
-> -	  Say Y here if you want to use this type of camera.
-> -	  Supported devices are typically found in some Asus laptops,
-> -	  with USB id 174f:a311 and 05e1:0501. Other Syntek cameras
-> -	  may be supported by the stk11xx driver, from which this is
-> -	  derived, see <http://sourceforge.net/projects/syntekdriver/>
-> -
-> -	  To compile this driver as a module, choose M here: the
-> -	  module will be called stkwebcam.
-> -
-> -config USB_S2255
-> -	tristate "USB Sensoray 2255 video capture device"
-> -	depends on VIDEO_V4L2
-> -	select VIDEOBUF_VMALLOC
-> -	default n
-> -	help
-> -	  Say Y here if you want support for the Sensoray 2255 USB device.
-> -	  This driver can be compiled as a module, called s2255drv.
-> -
-> -endif # V4L_USB_DRIVERS
->  endif # VIDEO_CAPTURE_DRIVERS
->  
->  menuconfig V4L_MEM2MEM_DRIVERS
-> -- 
-> 1.7.5.4
-> 
+> Does the 'platform_data->power' callback control power supply on pin 14 (VDD)
+> or does it do something else?
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+No. The chip is always powered on the N900 but pulling down (or up, I 
+don't remember) its reset pin puts the chip to reset and causes the 
+current draw to reach almost zero. I think it's in the class of some or 
+few tens of µA. Someone still might implement a board containing the 
+adp1653 which would require enabling a regulator for it.
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
