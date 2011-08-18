@@ -1,43 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:21991 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753416Ab1HJLQ0 convert rfc822-to-8bit (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:58734 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751268Ab1HRFtv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2011 07:16:26 -0400
-Subject: adp1653 usage
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Wed, 10 Aug 2011 14:16:00 +0300
-Message-ID: <1312974960.2183.15.camel@smile>
-Mime-Version: 1.0
+	Thu, 18 Aug 2011 01:49:51 -0400
+Received: from spt2.w1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LQ4009IP071CI@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 18 Aug 2011 06:49:49 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LQ400KIX070IW@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 18 Aug 2011 06:49:48 +0100 (BST)
+Date: Thu, 18 Aug 2011 07:49:13 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size
+ videobuffer management
+In-reply-to: <CAMm-=zBhUVnY3gd32PTs+TyP0pdJOY_gfiJkb0K6PF3=yskFGQ@mail.gmail.com>
+To: 'Pawel Osciak' <pawel@osciak.com>
+Cc: 'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
+	'Hans Verkuil' <hansverk@cisco.com>,
+	'Linux Media Mailing List' <linux-media@vger.kernel.org>,
+	'Sakari Ailus' <sakari.ailus@iki.fi>,
+	'Sakari Ailus' <sakari.ailus@maxwell.research.nokia.com>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	'Mauro Carvalho Chehab' <mchehab@infradead.org>
+Message-id: <002301cc5d6a$8f41ea40$adc5bec0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
+ <201108081116.41126.hansverk@cisco.com>
+ <Pine.LNX.4.64.1108151324220.7851@axis700.grange>
+ <201108151336.07258.hansverk@cisco.com>
+ <Pine.LNX.4.64.1108151530410.7851@axis700.grange>
+ <009201cc5ce0$bd34de10$379e9a30$%szyprowski@samsung.com>
+ <CAMm-=zBhUVnY3gd32PTs+TyP0pdJOY_gfiJkb0K6PF3=yskFGQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello, Sakari.
+Hello,
 
-I would like to understand how to use subdevice (like adp1653) in
-current v4l2 framework from user space.
+On Wednesday, August 17, 2011 4:58 PM Pawel Osciak wrote:
 
-My understanding is following.
+> On Wed, Aug 17, 2011 at 06:22, Marek Szyprowski <m.szyprowski@samsung.com>
+> wrote:
+> > On Monday, August 15, 2011 3:46 PM Guennadi Liakhovetski wrote:
+> >> While switching back, I have to change the struct vb2_ops::queue_setup()
+> >> operation to take a struct v4l2_create_buffers pointer. An earlier version
+> >> of this patch just added one more parameter to .queue_setup(), which is
+> >> easier - changes to videobuf2-core.c are smaller, but it is then
+> >> redundant. We could use the create pointer for both input and output. The
+> >> video plane configuration in frame format is the same as what is
+> >> calculated in .queue_setup(), IIUC. So, we could just let the driver fill
+> >> that one in. This would require then the videobuf2-core.c to parse struct
+> >> v4l2_format to decide which union member we need, depending on the buffer
+> >> type. Do we want this or shall drivers duplicate plane sizes in separate
+> >> .queue_setup() parameters?
+> >
+> > IMHO if possible we should have only one callback for the driver. Please
+> > notice that the driver should be also allowed to increase (or decrease) the
+> > number of buffers for particular format/fourcc.
+> >
+> 
+> Or remove queue_setup altogether (please see my example above). What
+> do you think Marek?
 
-Kernel has two drivers (simplified view):
-- camera device
-- flash device
+I'm perfectly fine with replacing queue_setup callback with something else.
 
-Kernel initializes a camera driver from a platform specific setup code.
-The camera driver loads the subdevice drivers. Later I could access the
-subdevice driver parts via IOCTL(s) on /dev/videoX device node.
-
-What I have missed.
-- if the subdevice creates device node /dev/v4l-subdevX, how the user
-space will know the X is corresponding to let say flash device?
-- if there is no v4l-subdevX device node, when and how the kernel runs
-->open() and ->close() methods of v4l2_subdev_internal_ops?
-
-
+Best regards
 -- 
-Andy Shevchenko <andriy.shevchenko@intel.com>
-Intel Finland Oy
+Marek Szyprowski
+Samsung Poland R&D Center
+
