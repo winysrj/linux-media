@@ -1,58 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36001 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750967Ab1HMQVo (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:60266 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755261Ab1HROIP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Aug 2011 12:21:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH 2/2] omap3isp: video: Avoid crashes when pipeline set stream operation fails
-Date: Sat, 13 Aug 2011 18:21:46 +0200
-Message-Id: <1313252506-32376-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1313252506-32376-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1313252506-32376-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 18 Aug 2011 10:08:15 -0400
+Date: Thu, 18 Aug 2011 17:08:11 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCHv2] adp1653: make ->power() method optional
+Message-ID: <20110818140811.GF8872@valkosipuli.localdomain>
+References: <20110818092158.GA8872@valkosipuli.localdomain>
+ <98c77ce2a17d7a098dedfc858f4055edc5556c54.1313666504.git.andriy.shevchenko@linux.intel.com>
+ <1313667122.25065.8.camel@smile>
+ <20110818115131.GD8872@valkosipuli.localdomain>
+ <1313674341.25065.17.camel@smile>
+ <20110818135556.GE8872@valkosipuli.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110818135556.GE8872@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If streaming can't be enabled on the pipeline, the DMA buffers queue is
-not emptied. If the buffers then get freed the queue will end up
-referencing free memory. This is usually not an issue, as the DMA queue
-will be reinitialized the next time streaming is enabled, before
-enabling the hardware.
+On Thu, Aug 18, 2011 at 04:55:56PM +0300, Sakari Ailus wrote:
+[clip]
+> I'm beginning to think we should require power() callback and fail in
+> probe() if it doesn't exist, or directly make it a gpio.
+> 
+> My plan is to get the N900 board code with the rest of the subdev drivers to
+> mainline at some point but that will likely take quite a bit of calendar
+> time, unfortunately. The adp1653 driver and the flash interface was just a
+> first part of it.
 
-However, if the sensor connected at the pipeline input is free-running,
-the CCDC will start generating interrupts as soon as it gets powered up,
-before the streaming gets enabled on the hardware. This will make the
-CCDC interrupt handler access freed memory, causing a crash.
+FYI: the code is available here:
 
-Reinitialize the DMA buffers queue in isp_video_streamon() if the error
-path to make sure this situation won't happen.
+	git://gitorious.org/omap3camera/mainline.git rx51-005/002-devel
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/ispvideo.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index fd94cdf..ba86f11 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -1056,6 +1056,14 @@ error:
- 		if (video->isp->pdata->set_constraints)
- 			video->isp->pdata->set_constraints(video->isp, false);
- 		media_entity_pipeline_stop(&video->video.entity);
-+		/* The DMA queue must be emptied here, otherwise CCDC interrupts
-+		 * that will get triggered the next time the CCDC is powered up
-+		 * will try to access buffers that might have been freed but
-+		 * still present in the DMA queue. This can easily get triggered
-+		 * if the above omap3isp_pipeline_set_stream() call fails on a
-+		 * system with a free-running sensor.
-+		 */
-+		INIT_LIST_HEAD(&video->dmaqueue);
- 		video->queue = NULL;
- 	}
- 
 -- 
-1.7.3.4
-
+Sakari Ailus
+sakari.ailus@iki.fi
