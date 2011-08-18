@@ -1,154 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51107 "EHLO mx1.redhat.com"
+Received: from mms2.broadcom.com ([216.31.210.18]:1354 "EHLO mms2.broadcom.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751023Ab1HHU2B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Aug 2011 16:28:01 -0400
-Message-ID: <4E40469B.9060707@redhat.com>
-Date: Mon, 08 Aug 2011 16:27:07 -0400
-From: Jarod Wilson <jarod@redhat.com>
+	id S1751022Ab1HRNaA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Aug 2011 09:30:00 -0400
+From: "Al Cooper" <alcooperx@gmail.com>
+To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+	cernekee@gmail.com
+cc: "Al Cooper" <alcooperx@gmail.com>
+Subject: [PATCH] media: Fix a UVC performance problem on systems with
+ non-coherent DMA.
+Date: Thu, 18 Aug 2011 09:28:29 -0400
+Message-ID: <1313674109-6290-1-git-send-email-alcooperx@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Stephan Raue <sraue@openelec.tv>, stable@kernel.org
-Subject: Re: [PATCH] [media] nuvoton-cir: simplify raw IR sample handling
-References: <1312834840-16929-1-git-send-email-jarod@redhat.com>
-In-Reply-To: <1312834840-16929-1-git-send-email-jarod@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jarod Wilson wrote:
-> The nuvoton-cir driver was storing up consecutive pulse-pulse and
-> space-space samples internally, for no good reason, since
-> ir_raw_event_store_with_filter() already merges back to back like
-> samples types for us. This should also fix a regression introduced late
-> in 3.0 that related to a timeout change, which actually becomes correct
-> when coupled with this change. Tested with RC6 and RC5 on my own
-> nuvoton-cir hardware atop vanilla 3.0.0, after verifying quirky
-> behavior in 3.0 due to the timeout change.
->
-> Reported-by: Stephan Raue<sraue@openelec.tv>
-> CC: Stephan Raue<sraue@openelec.tv>
-> CC: stable@vger.kernel.org
+The UVC driver uses usb_alloc_coherent() to allocate DMA data buffers.
+On systems without coherent DMA this ends up allocating buffers in
+uncached memory. The subsequent memcpy's done to coalesce the DMA
+chunks into contiguous buffers then run VERY slowly. On a MIPS test
+system the memcpy is about 200 times slower. This issue prevents the
+system from keeping up with 720p YUYV data at 10fps.
 
-Bah. I pooched the above CC, should have been stable@kernel.org.
+The following patch uses kmalloc to alloc the DMA buffers instead of
+uab_alloc_coherent on systems without coherent DMA. With this patch
+the system was easily able to keep up with 720p at 10fps.
 
-> Signed-off-by: Jarod Wilson<jarod@redhat.com>
-> ---
->   drivers/media/rc/nuvoton-cir.c |   45 +++++++--------------------------------
->   drivers/media/rc/nuvoton-cir.h |    1 -
->   2 files changed, 8 insertions(+), 38 deletions(-)
->
-> diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-> index ce595f9..9fd019e 100644
-> --- a/drivers/media/rc/nuvoton-cir.c
-> +++ b/drivers/media/rc/nuvoton-cir.c
-> @@ -624,7 +624,6 @@ static void nvt_dump_rx_buf(struct nvt_dev *nvt)
->   static void nvt_process_rx_ir_data(struct nvt_dev *nvt)
->   {
->   	DEFINE_IR_RAW_EVENT(rawir);
-> -	unsigned int count;
->   	u32 carrier;
->   	u8 sample;
->   	int i;
-> @@ -637,65 +636,38 @@ static void nvt_process_rx_ir_data(struct nvt_dev *nvt)
->   	if (nvt->carrier_detect_enabled)
->   		carrier = nvt_rx_carrier_detect(nvt);
->
-> -	count = nvt->pkts;
-> -	nvt_dbg_verbose("Processing buffer of len %d", count);
-> +	nvt_dbg_verbose("Processing buffer of len %d", nvt->pkts);
->
->   	init_ir_raw_event(&rawir);
->
-> -	for (i = 0; i<  count; i++) {
-> -		nvt->pkts--;
-> +	for (i = 0; i<  nvt->pkts; i++) {
->   		sample = nvt->buf[i];
->
->   		rawir.pulse = ((sample&  BUF_PULSE_BIT) != 0);
->   		rawir.duration = US_TO_NS((sample&  BUF_LEN_MASK)
->   					  * SAMPLE_PERIOD);
->
-> -		if ((sample&  BUF_LEN_MASK) == BUF_LEN_MASK) {
-> -			if (nvt->rawir.pulse == rawir.pulse)
-> -				nvt->rawir.duration += rawir.duration;
-> -			else {
-> -				nvt->rawir.duration = rawir.duration;
-> -				nvt->rawir.pulse = rawir.pulse;
-> -			}
-> -			continue;
-> -		}
-> -
-> -		rawir.duration += nvt->rawir.duration;
-> +		nvt_dbg("Storing %s with duration %d",
-> +			rawir.pulse ? "pulse" : "space", rawir.duration);
->
-> -		init_ir_raw_event(&nvt->rawir);
-> -		nvt->rawir.duration = 0;
-> -		nvt->rawir.pulse = rawir.pulse;
-> -
-> -		if (sample == BUF_PULSE_BIT)
-> -			rawir.pulse = false;
-> -
-> -		if (rawir.duration) {
-> -			nvt_dbg("Storing %s with duration %d",
-> -				rawir.pulse ? "pulse" : "space",
-> -				rawir.duration);
-> -
-> -			ir_raw_event_store_with_filter(nvt->rdev,&rawir);
-> -		}
-> +		ir_raw_event_store_with_filter(nvt->rdev,&rawir);
->
->   		/*
->   		 * BUF_PULSE_BIT indicates end of IR data, BUF_REPEAT_BYTE
->   		 * indicates end of IR signal, but new data incoming. In both
->   		 * cases, it means we're ready to call ir_raw_event_handle
->   		 */
-> -		if ((sample == BUF_PULSE_BIT)&&  nvt->pkts) {
-> +		if ((sample == BUF_PULSE_BIT)&&  (i + 1<  nvt->pkts)) {
->   			nvt_dbg("Calling ir_raw_event_handle (signal end)\n");
->   			ir_raw_event_handle(nvt->rdev);
->   		}
->   	}
->
-> +	nvt->pkts = 0;
-> +
->   	nvt_dbg("Calling ir_raw_event_handle (buffer empty)\n");
->   	ir_raw_event_handle(nvt->rdev);
->
-> -	if (nvt->pkts) {
-> -		nvt_dbg("Odd, pkts should be 0 now... (its %u)", nvt->pkts);
-> -		nvt->pkts = 0;
-> -	}
-> -
->   	nvt_dbg_verbose("%s done", __func__);
->   }
->
-> @@ -1054,7 +1026,6 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
->
->   	spin_lock_init(&nvt->nvt_lock);
->   	spin_lock_init(&nvt->tx.lock);
-> -	init_ir_raw_event(&nvt->rawir);
->
->   	ret = -EBUSY;
->   	/* now claim resources */
-> diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
-> index 1241fc8..0d5e087 100644
-> --- a/drivers/media/rc/nuvoton-cir.h
-> +++ b/drivers/media/rc/nuvoton-cir.h
-> @@ -67,7 +67,6 @@ static int debug;
->   struct nvt_dev {
->   	struct pnp_dev *pdev;
->   	struct rc_dev *rdev;
-> -	struct ir_raw_event rawir;
->
->   	spinlock_t nvt_lock;
->
+Signed-off-by: Al Cooper <alcooperx@gmail.com>
+---
+ drivers/media/video/uvc/uvc_video.c |   18 +++++++++++++++++-
+ 1 files changed, 17 insertions(+), 1 deletions(-)
 
-
+diff --git a/drivers/media/video/uvc/uvc_video.c b/drivers/media/video/uvc/uvc_video.c
+index 4999479..30c18b4 100644
+--- a/drivers/media/video/uvc/uvc_video.c
++++ b/drivers/media/video/uvc/uvc_video.c
+@@ -790,8 +790,12 @@ static void uvc_free_urb_buffers(struct uvc_streaming *stream)
+ 
+ 	for (i = 0; i < UVC_URBS; ++i) {
+ 		if (stream->urb_buffer[i]) {
++#ifndef CONFIG_DMA_NONCOHERENT
+ 			usb_free_coherent(stream->dev->udev, stream->urb_size,
+ 				stream->urb_buffer[i], stream->urb_dma[i]);
++#else
++			kfree(stream->urb_buffer[i]);
++#endif
+ 			stream->urb_buffer[i] = NULL;
+ 		}
+ 	}
+@@ -831,9 +835,15 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming *stream,
+ 	for (; npackets > 1; npackets /= 2) {
+ 		for (i = 0; i < UVC_URBS; ++i) {
+ 			stream->urb_size = psize * npackets;
++#ifndef CONFIG_DMA_NONCOHERENT
+ 			stream->urb_buffer[i] = usb_alloc_coherent(
+ 				stream->dev->udev, stream->urb_size,
+ 				gfp_flags | __GFP_NOWARN, &stream->urb_dma[i]);
++#else
++			stream->urb_buffer[i] =
++			    kmalloc(stream->urb_size, gfp_flags | __GFP_NOWARN);
++#endif
++
+ 			if (!stream->urb_buffer[i]) {
+ 				uvc_free_urb_buffers(stream);
+ 				break;
+@@ -908,10 +918,14 @@ static int uvc_init_video_isoc(struct uvc_streaming *stream,
+ 		urb->context = stream;
+ 		urb->pipe = usb_rcvisocpipe(stream->dev->udev,
+ 				ep->desc.bEndpointAddress);
++#ifndef CONFIG_DMA_NONCOHERENT
+ 		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
++		urb->transfer_dma = stream->urb_dma[i];
++#else
++		urb->transfer_flags = URB_ISO_ASAP;
++#endif
+ 		urb->interval = ep->desc.bInterval;
+ 		urb->transfer_buffer = stream->urb_buffer[i];
+-		urb->transfer_dma = stream->urb_dma[i];
+ 		urb->complete = uvc_video_complete;
+ 		urb->number_of_packets = npackets;
+ 		urb->transfer_buffer_length = size;
+@@ -969,8 +983,10 @@ static int uvc_init_video_bulk(struct uvc_streaming *stream,
+ 		usb_fill_bulk_urb(urb, stream->dev->udev, pipe,
+ 			stream->urb_buffer[i], size, uvc_video_complete,
+ 			stream);
++#ifndef CONFIG_DMA_NONCOHERENT
+ 		urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
+ 		urb->transfer_dma = stream->urb_dma[i];
++#endif
+ 
+ 		stream->urb[i] = urb;
+ 	}
 -- 
-Jarod Wilson
-jarod@redhat.com
+1.7.3.2
 
 
