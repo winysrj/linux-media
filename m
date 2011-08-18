@@ -1,182 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:60119 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754473Ab1HaNuk (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:40440 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750764Ab1HRSon convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 09:50:40 -0400
-Message-ID: <4E5E3C2B.6020703@infradead.org>
-Date: Wed, 31 Aug 2011 10:50:35 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Thu, 18 Aug 2011 14:44:43 -0400
+Received: by bke11 with SMTP id 11so1672769bke.19
+        for <linux-media@vger.kernel.org>; Thu, 18 Aug 2011 11:44:42 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 5/6] V4L menu: move all platform drivers to the bottom
- of the menu.
-References: <1314797925-8113-1-git-send-email-hverkuil@xs4all.nl> <99c353d49539e4a2a8f165db612ed6a7e82a57b9.1314797675.git.hans.verkuil@cisco.com>
-In-Reply-To: <99c353d49539e4a2a8f165db612ed6a7e82a57b9.1314797675.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com>
+References: <4E4D5157.2080406@yahoo.com>
+	<CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com>
+Date: Thu, 18 Aug 2011 14:44:42 -0400
+Message-ID: <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com>
+Subject: Re: [PATCH] Latest version of em28xx / em28xx-dvb patch for PCTV 290e
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Chris Rankin <rankincj@yahoo.com>
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	Antti Palosaari <crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 31-08-2011 10:38, Hans Verkuil escreveu:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, Aug 18, 2011 at 2:43 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Thu, Aug 18, 2011 at 1:52 PM, Chris Rankin <rankincj@yahoo.com> wrote:
+>> Hi,
+>>
+>> Here's my latest patch for the em28xx / em28xx-dvb modules, which addresses
+>> the following problems:
+>>
+>> a) Locking problem when unplugging and then replugging USB adapter.
+>> b) Race conditions between adding/removing devices from the devlist, while
+>> simultaneously loading/unloading extension modules.
+>> c) Resource leaks on error paths.
+>> d) Preventing the DVB framework from trying to put the adapter into sleep
+>> mode when the adapter has been physically unplugged. (This results in
+>> occasional "-19" errors from I2C functions when disconnecting.)
+>> e) Use atomic bit operations to manage "device in use" slots, and enforce
+>> upper limit of EM28XX_MAXBOARDS slots.
+>
+> Hi Chris,
+>
+> You would be well served to break this into a patch series, as it
+> tends to be difficult to review a whole series of changes in a single
+> patch.
+>
+> You seem to be mixed in a bunch of "useless" changes alongside
+> functional changes.  For example, if you're trying to add in a missing
+> goto inside an exception block, doing that at the same time as
+> renaming instances of "errCode" to "retval" just creates confusion.
+>
+> And finally, the mutex structure used for the modules is somewhat
+> complicated due to to the need to keep the analog side of the board
+> locked while initializing the digital side.  This code was added
+> specifically to prevent race conditions that were seen during
+> initialization as things like udev and dbus attempted to connect to
+> the newly created V4L device while the em28xx-dvb module was still
+> coming up.
+>
+> In other words, I don't doubt there are bugs, and I cannot say whether
+> your fixes are appropriate without giving a hard look at the logic.
+> But you should be aware of the thinking behind the way it was done and
+> it would be very worthwhile if you could test with at least one hybrid
+> product to ensure the changes you are making don't break anything (the
+> em2874 used in the 290e is a poor test case since it doesn't have
+> analog support).
+>
+>> BTW, was there a reason why the em28xx-dvb module doesn't use dvb-usb?
+>
+> This is largely a product of the history of the devices using the
+> framework.  The em28xx driver was originally analog only, and DVB
+> support was added later as new chips came out which needed it.  The
+> dvb-usb driver came from dedicated DVB devices that had no analog
+> support.  In fact, even today the lack of analog support is a huge
+> deficiency in that framework which is why we don't support the analog
+> side of any hybrid devices that use dvb-usb.
+>
+> In other words, if we were reinventing this stuff today, there would
+> probably be only a single framework shared by dvb-usb and em28xx.  But
+> at this point it's too much cost and too little benefit to go through
+> the work to attempt to merge them.
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
 
-IMO, a submenu for those drivers makes sense.
+Probably one more point worth making:  I definitely appreciate that
+you've take the time to focus on these particular problems.  I've been
+complaining about them for months but just never got around to rolling
+up my sleeves to debug them myself.
 
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/Kconfig |  106 ++++++++++++++++++++++---------------------
->  1 files changed, 55 insertions(+), 51 deletions(-)
-> 
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index 5beff36..d14da37 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -630,25 +630,6 @@ config USB_S2255
->  
->  endif # V4L_USB_DRIVERS
->  
-> -config VIDEO_SH_VOU
-> -	tristate "SuperH VOU video output driver"
-> -	depends on VIDEO_DEV && ARCH_SHMOBILE
-> -	select VIDEOBUF_DMA_CONTIG
-> -	help
-> -	  Support for the Video Output Unit (VOU) on SuperH SoCs.
-> -
-> -config VIDEO_VIU
-> -	tristate "Freescale VIU Video Driver"
-> -	depends on VIDEO_V4L2 && PPC_MPC512x
-> -	select VIDEOBUF_DMA_CONTIG
-> -	default y
-> -	---help---
-> -	  Support for Freescale VIU video driver. This device captures
-> -	  video data, or overlays video on DIU frame buffer.
-> -
-> -	  Say Y here if you want to enable VIU device on MPC5121e Rev2+.
-> -	  In doubt, say N.
-> -
->  config VIDEO_VIVI
->  	tristate "Virtual Video Driver"
->  	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
-> @@ -663,20 +644,8 @@ config VIDEO_VIVI
->  	  Say Y here if you want to test video apps or debug V4L devices.
->  	  In doubt, say N.
->  
-> -source "drivers/media/video/davinci/Kconfig"
-> -
-> -source "drivers/media/video/omap/Kconfig"
-> -
->  source "drivers/media/video/bt8xx/Kconfig"
->  
-> -config VIDEO_VINO
-> -	tristate "SGI Vino Video For Linux"
-> -	depends on I2C && SGI_IP22 && VIDEO_V4L2
-> -	select VIDEO_SAA7191 if VIDEO_HELPER_CHIPS_AUTO
-> -	help
-> -	  Say Y here to build in support for the Vino video input system found
-> -	  on SGI Indy machines.
-> -
->  source "drivers/media/video/zoran/Kconfig"
->  
->  config VIDEO_MEYE
-> @@ -695,16 +664,6 @@ config VIDEO_MEYE
->  
->  source "drivers/media/video/saa7134/Kconfig"
->  
-> -config VIDEO_TIMBERDALE
-> -	tristate "Support for timberdale Video In/LogiWIN"
-> -	depends on VIDEO_V4L2 && I2C && DMADEVICES
-> -	select DMA_ENGINE
-> -	select TIMB_DMA
-> -	select VIDEO_ADV7180
-> -	select VIDEOBUF_DMA_CONTIG
-> -	---help---
-> -	  Add support for the Video In peripherial of the timberdale FPGA.
-> -
->  source "drivers/media/video/cx88/Kconfig"
->  
->  source "drivers/media/video/cx23885/Kconfig"
-> @@ -719,6 +678,61 @@ source "drivers/media/video/saa7164/Kconfig"
->  
->  source "drivers/media/video/marvell-ccic/Kconfig"
->  
-> +config VIDEO_VIA_CAMERA
-> +	tristate "VIAFB camera controller support"
-> +	depends on FB_VIA
-> +	select VIDEOBUF_DMA_SG
-> +	select VIDEO_OV7670
-> +	help
-> +	   Driver support for the integrated camera controller in VIA
-> +	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
-> +	   with ov7670 sensors.
-> +
-> +#
-> +# Platform multimedia device configuration
-> +#
-> +
-> +source "drivers/media/video/davinci/Kconfig"
-> +
-> +source "drivers/media/video/omap/Kconfig"
-> +
-> +config VIDEO_SH_VOU
-> +	tristate "SuperH VOU video output driver"
-> +	depends on VIDEO_DEV && ARCH_SHMOBILE
-> +	select VIDEOBUF_DMA_CONTIG
-> +	help
-> +	  Support for the Video Output Unit (VOU) on SuperH SoCs.
-> +
-> +config VIDEO_VIU
-> +	tristate "Freescale VIU Video Driver"
-> +	depends on VIDEO_V4L2 && PPC_MPC512x
-> +	select VIDEOBUF_DMA_CONTIG
-> +	default y
-> +	---help---
-> +	  Support for Freescale VIU video driver. This device captures
-> +	  video data, or overlays video on DIU frame buffer.
-> +
-> +	  Say Y here if you want to enable VIU device on MPC5121e Rev2+.
-> +	  In doubt, say N.
-> +
-> +config VIDEO_TIMBERDALE
-> +	tristate "Support for timberdale Video In/LogiWIN"
-> +	depends on VIDEO_V4L2 && I2C && DMADEVICES
-> +	select DMA_ENGINE
-> +	select TIMB_DMA
-> +	select VIDEO_ADV7180
-> +	select VIDEOBUF_DMA_CONTIG
-> +	---help---
-> +	  Add support for the Video In peripherial of the timberdale FPGA.
-> +
-> +config VIDEO_VINO
-> +	tristate "SGI Vino Video For Linux"
-> +	depends on I2C && SGI_IP22 && VIDEO_V4L2
-> +	select VIDEO_SAA7191 if VIDEO_HELPER_CHIPS_AUTO
-> +	help
-> +	  Say Y here to build in support for the Vino video input system found
-> +	  on SGI Indy machines.
-> +
->  config VIDEO_M32R_AR
->  	tristate "AR devices"
->  	depends on M32R && VIDEO_V4L2
-> @@ -738,16 +752,6 @@ config VIDEO_M32R_AR_M64278
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called arv.
->  
-> -config VIDEO_VIA_CAMERA
-> -	tristate "VIAFB camera controller support"
-> -	depends on FB_VIA
-> -	select VIDEOBUF_DMA_SG
-> -	select VIDEO_OV7670
-> -	help
-> -	   Driver support for the integrated camera controller in VIA
-> -	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
-> -	   with ov7670 sensors.
-> -
->  config VIDEO_OMAP3
->  	tristate "OMAP 3 Camera support (EXPERIMENTAL)"
->  	select OMAP_IOMMU
+In other words, don't interpret anything in my previous email as discouragement.
 
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
