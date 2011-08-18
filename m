@@ -1,358 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:65441 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755406Ab1HSO1w (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:59224 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751240Ab1HRRNm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Aug 2011 10:27:52 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 19 Aug 2011 16:27:40 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 4/8] mm: MIGRATE_CMA migration type added
-In-reply-to: <1313764064-9747-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-Message-id: <1313764064-9747-5-git-send-email-m.szyprowski@samsung.com>
-References: <1313764064-9747-1-git-send-email-m.szyprowski@samsung.com>
+	Thu, 18 Aug 2011 13:13:42 -0400
+Received: by eyx24 with SMTP id 24so1336193eyx.19
+        for <linux-media@vger.kernel.org>; Thu, 18 Aug 2011 10:13:41 -0700 (PDT)
+Message-ID: <4E4D4840.7050207@gmail.com>
+Date: Thu, 18 Aug 2011 19:13:36 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+CC: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCHv2] adp1653: make ->power() method optional
+References: <20110818092158.GA8872@valkosipuli.localdomain>	 <98c77ce2a17d7a098dedfc858f4055edc5556c54.1313666504.git.andriy.shevchenko@linux.intel.com>	 <1313667122.25065.8.camel@smile>	 <20110818115131.GD8872@valkosipuli.localdomain> <1313674341.25065.17.camel@smile>
+In-Reply-To: <1313674341.25065.17.camel@smile>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Hi,
 
-The MIGRATE_CMA migration type has two main characteristics:
-(i) only movable pages can be allocated from MIGRATE_CMA
-pageblocks and (ii) page allocator will never change migration
-type of MIGRATE_CMA pageblocks.
+On 08/18/2011 03:32 PM, Andy Shevchenko wrote:
+> On Thu, 2011-08-18 at 14:51 +0300, Sakari Ailus wrote:
+>> On Thu, Aug 18, 2011 at 02:32:02PM +0300, Andy Shevchenko wrote:
+>>> On Thu, 2011-08-18 at 14:22 +0300, Andy Shevchenko wrote:
+>>>> The ->power() could be absent or not used on some platforms. This patch makes
+>>>> its presence optional.
+>>>>
+>>>> Signed-off-by: Andy Shevchenko<andriy.shevchenko@linux.intel.com>
+>>>> Cc: Sakari Ailus<sakari.ailus@iki.fi>
+>>>> ---
+>>>>   drivers/media/video/adp1653.c |    5 +++++
+>>>>   1 files changed, 5 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
+>>>> index 0fd9579..f830313 100644
+>>>> --- a/drivers/media/video/adp1653.c
+>>>> +++ b/drivers/media/video/adp1653.c
+>>>> @@ -329,6 +329,11 @@ adp1653_set_power(struct v4l2_subdev *subdev, int on)
+>>>>   	struct adp1653_flash *flash = to_adp1653_flash(subdev);
+>>>>   	int ret = 0;
+>>>>
+>>>> +	/* There is no need to switch power in case of absence ->power()
+>>>> +	 * method. */
+>>>> +	if (flash->platform_data->power == NULL)
+>>>> +		return 0;
+>>>> +
+>>>>   	mutex_lock(&flash->power_lock);
+>>>>
+>>>>   	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
+>>>
+>>> He-h, I guess you are not going to apply this one.
+>>> The patch breaks init logic of the device. If we have no ->power(), we
+>>> still need to bring the device to the known state. I have no good idea
+>>> how to do this.
+>>
+>> I don't think it breaks anything actually. Albeit in practice one is still
+>> likely to put the adp1653 reset line to the board since that lowers its power
+>> consumption significantly.
+> Yeah, even in practice we might see various ways of a chip connection.
+> 
+>> Instead of being in power-up state after opening the flash subdev, it will
+>> reach this state already when the system is powered up. At subdev open all
+>> the relevant registers are written to anyway, so I don't see an issue here.
+> You mean at first writing to the V4L2 value, do you? Because ->open()
+> uses set_power() which will be skipped in case of no ->power method
+> defined.
+> 
+>> I think either this one, or one should check in probe() that the power()
+>> callback is non-NULL.
+>> The board code is going away in the near future so this callback will
+>> disappear eventually anyway.
+> So, it's up to you to include or not my last patch.
+> 
+>> The gpio code in the board file should likely
+>> be moved to the driver itself.
+> The line could be different, the hw could be used in environment w/o
+> gpio, but with (for example) external gate, and so on. I think current
+> generic driver is pretty okay.
 
-This guarantees that page in a MIGRATE_CMA page block can
-always be migrated somewhere else (unless there's no memory left
-in the system).
+Would it make sense to use the regulator API in place of the platform_data
+callback? If there is only one GPIO then it's easy to create a 'fixed voltage
+regulator' for this.
 
-It is designed to be used with Contiguous Memory Allocator
-(CMA) for allocating big chunks (eg. 10MiB) of physically
-contiguous memory.  Once driver requests contiguous memory,
-CMA will migrate pages from MIGRATE_CMA pageblocks.
+Does the 'platform_data->power' callback control power supply on pin 14 (VDD)
+or does it do something else?
 
-To minimise number of migrations, MIGRATE_CMA migration type
-is the last type tried when page allocator falls back to other
-migration types then requested.
+Also, what do you mean by an external gate?
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-[m.szyprowski: cleaned up Kconfig, renamed some functions, removed ifdefs]
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Michal Nazarewicz <mina86@mina86.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
----
- include/linux/mmzone.h         |   41 +++++++++++++++---
- include/linux/page-isolation.h |    1 +
- mm/Kconfig                     |    8 +++-
- mm/compaction.c                |   10 +++++
- mm/page_alloc.c                |   88 +++++++++++++++++++++++++++++++---------
- 5 files changed, 120 insertions(+), 28 deletions(-)
+> 
+> And what to do with limits? Pass them as the module parameters?
+> 
+>> That assumes that there will be a gpio which
+>> can be used to enable and disable the device and I'm not fully certain this
+>> is generic enough. Hopefully it is, but I don't know where else the adp1653
+>> would be used than on the N900.
+> Don't narrow a chip application to the one device.
 
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index be1ac8d..74b7f27 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -35,13 +35,35 @@
-  */
- #define PAGE_ALLOC_COSTLY_ORDER 3
- 
--#define MIGRATE_UNMOVABLE     0
--#define MIGRATE_RECLAIMABLE   1
--#define MIGRATE_MOVABLE       2
--#define MIGRATE_PCPTYPES      3 /* the number of types on the pcp lists */
--#define MIGRATE_RESERVE       3
--#define MIGRATE_ISOLATE       4 /* can't allocate from here */
--#define MIGRATE_TYPES         5
-+enum {
-+	MIGRATE_UNMOVABLE,
-+	MIGRATE_RECLAIMABLE,
-+	MIGRATE_MOVABLE,
-+	MIGRATE_PCPTYPES,	/* the number of types on the pcp lists */
-+	MIGRATE_RESERVE = MIGRATE_PCPTYPES,
-+	/*
-+	 * MIGRATE_CMA migration type is designed to mimic the way
-+	 * ZONE_MOVABLE works.  Only movable pages can be allocated
-+	 * from MIGRATE_CMA pageblocks and page allocator never
-+	 * implicitly change migration type of MIGRATE_CMA pageblock.
-+	 *
-+	 * The way to use it is to change migratetype of a range of
-+	 * pageblocks to MIGRATE_CMA which can be done by
-+	 * __free_pageblock_cma() function.  What is important though
-+	 * is that a range of pageblocks must be aligned to
-+	 * MAX_ORDER_NR_PAGES should biggest page be bigger then
-+	 * a single pageblock.
-+	 */
-+	MIGRATE_CMA,
-+	MIGRATE_ISOLATE,	/* can't allocate from here */
-+	MIGRATE_TYPES
-+};
-+
-+#ifdef CONFIG_CMA_MIGRATE_TYPE
-+#  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
-+#else
-+#  define is_migrate_cma(migratetype) false
-+#endif
- 
- #define for_each_migratetype_order(order, type) \
- 	for (order = 0; order < MAX_ORDER; order++) \
-@@ -54,6 +76,11 @@ static inline int get_pageblock_migratetype(struct page *page)
- 	return get_pageblock_flags_group(page, PB_migrate, PB_migrate_end);
- }
- 
-+static inline bool is_pageblock_cma(struct page *page)
-+{
-+	return is_migrate_cma(get_pageblock_migratetype(page));
-+}
-+
- struct free_area {
- 	struct list_head	free_list[MIGRATE_TYPES];
- 	unsigned long		nr_free;
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index c5d1a7c..856d9cf 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -46,4 +46,5 @@ int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn);
- unsigned long scan_lru_pages(unsigned long start, unsigned long end);
- int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn);
- 
-+extern void init_cma_reserved_pageblock(struct page *page);
- #endif
-diff --git a/mm/Kconfig b/mm/Kconfig
-index f2f1ca1..dd6e1ea 100644
---- a/mm/Kconfig
-+++ b/mm/Kconfig
-@@ -189,7 +189,7 @@ config COMPACTION
- config MIGRATION
- 	bool "Page migration"
- 	def_bool y
--	depends on NUMA || ARCH_ENABLE_MEMORY_HOTREMOVE || COMPACTION
-+	depends on NUMA || ARCH_ENABLE_MEMORY_HOTREMOVE || COMPACTION || CMA_MIGRATE_TYPE
- 	help
- 	  Allows the migration of the physical location of pages of processes
- 	  while the virtual addresses are not changed. This is useful in
-@@ -198,6 +198,12 @@ config MIGRATION
- 	  pages as migration can relocate pages to satisfy a huge page
- 	  allocation instead of reclaiming.
- 
-+config CMA_MIGRATE_TYPE
-+	bool
-+	help
-+	  This enables the use the MIGRATE_CMA migrate type, which lets lets CMA
-+	  work on almost arbitrary memory range and not only inside ZONE_MOVABLE.
-+
- config PHYS_ADDR_T_64BIT
- 	def_bool 64BIT || ARCH_PHYS_ADDR_T_64BIT
- 
-diff --git a/mm/compaction.c b/mm/compaction.c
-index 6cc604b..9e5cc59 100644
---- a/mm/compaction.c
-+++ b/mm/compaction.c
-@@ -119,6 +119,16 @@ static bool suitable_migration_target(struct page *page)
- 	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
- 		return false;
- 
-+	/* Keep MIGRATE_CMA alone as well. */
-+	/*
-+	 * XXX Revisit.  We currently cannot let compaction touch CMA
-+	 * pages since compaction insists on changing their migration
-+	 * type to MIGRATE_MOVABLE (see split_free_page() called from
-+	 * isolate_freepages_block() above).
-+	 */
-+	if (is_migrate_cma(migratetype))
-+		return false;
-+
- 	/* If the page is a large free page, then allow migration */
- 	if (PageBuddy(page) && page_order(page) >= pageblock_order)
- 		return true;
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 35423c2..c9dfed0 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -719,6 +719,29 @@ void __meminit __free_pages_bootmem(struct page *page, unsigned int order)
- 	}
- }
- 
-+#ifdef CONFIG_CMA_MIGRATE_TYPE
-+/*
-+ * Free whole pageblock and set it's migration type to MIGRATE_CMA.
-+ */
-+void __init init_cma_reserved_pageblock(struct page *page)
-+{
-+	struct page *p = page;
-+	unsigned i = pageblock_nr_pages;
-+
-+	prefetchw(p);
-+	do {
-+		if (--i)
-+			prefetchw(p + 1);
-+		__ClearPageReserved(p);
-+		set_page_count(p, 0);
-+	} while (++p, i);
-+
-+	set_page_refcounted(page);
-+	set_pageblock_migratetype(page, MIGRATE_CMA);
-+	__free_pages(page, pageblock_order);
-+	totalram_pages += pageblock_nr_pages;
-+}
-+#endif
- 
- /*
-  * The order of subdivision here is critical for the IO subsystem.
-@@ -827,11 +850,11 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
-  * This array describes the order lists are fallen back to when
-  * the free lists for the desirable migrate type are depleted
-  */
--static int fallbacks[MIGRATE_TYPES][MIGRATE_TYPES-1] = {
-+static int fallbacks[MIGRATE_TYPES][4] = {
- 	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_RESERVE },
- 	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_RESERVE },
--	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
--	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE,     MIGRATE_RESERVE,   MIGRATE_RESERVE }, /* Never used */
-+	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_CMA    , MIGRATE_RESERVE },
-+	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE }, /* Never used */
- };
- 
- /*
-@@ -926,12 +949,12 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
- 	/* Find the largest possible block of pages in the other list */
- 	for (current_order = MAX_ORDER-1; current_order >= order;
- 						--current_order) {
--		for (i = 0; i < MIGRATE_TYPES - 1; i++) {
-+		for (i = 0; i < ARRAY_SIZE(fallbacks[0]); i++) {
- 			migratetype = fallbacks[start_migratetype][i];
- 
- 			/* MIGRATE_RESERVE handled later if necessary */
- 			if (migratetype == MIGRATE_RESERVE)
--				continue;
-+				break;
- 
- 			area = &(zone->free_area[current_order]);
- 			if (list_empty(&area->free_list[migratetype]))
-@@ -946,19 +969,29 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
- 			 * pages to the preferred allocation list. If falling
- 			 * back for a reclaimable kernel allocation, be more
- 			 * aggressive about taking ownership of free pages
-+			 *
-+			 * On the other hand, never change migration
-+			 * type of MIGRATE_CMA pageblocks nor move CMA
-+			 * pages on different free lists. We don't
-+			 * want unmovable pages to be allocated from
-+			 * MIGRATE_CMA areas.
- 			 */
--			if (unlikely(current_order >= (pageblock_order >> 1)) ||
--					start_migratetype == MIGRATE_RECLAIMABLE ||
--					page_group_by_mobility_disabled) {
--				unsigned long pages;
-+			if (!is_pageblock_cma(page) &&
-+			    (unlikely(current_order >= pageblock_order / 2) ||
-+			     start_migratetype == MIGRATE_RECLAIMABLE ||
-+			     page_group_by_mobility_disabled)) {
-+				int pages;
- 				pages = move_freepages_block(zone, page,
--								start_migratetype);
-+							     start_migratetype);
- 
--				/* Claim the whole block if over half of it is free */
-+				/*
-+				 * Claim the whole block if over half
-+				 * of it is free
-+				 */
- 				if (pages >= (1 << (pageblock_order-1)) ||
--						page_group_by_mobility_disabled)
-+				    page_group_by_mobility_disabled)
- 					set_pageblock_migratetype(page,
--								start_migratetype);
-+							start_migratetype);
- 
- 				migratetype = start_migratetype;
- 			}
-@@ -968,11 +1001,14 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
- 			rmv_page_order(page);
- 
- 			/* Take ownership for orders >= pageblock_order */
--			if (current_order >= pageblock_order)
-+			if (current_order >= pageblock_order &&
-+			    !is_pageblock_cma(page))
- 				change_pageblock_range(page, current_order,
- 							start_migratetype);
- 
--			expand(zone, page, order, current_order, area, migratetype);
-+			expand(zone, page, order, current_order, area,
-+			       is_migrate_cma(start_migratetype)
-+			     ? start_migratetype : migratetype);
- 
- 			trace_mm_page_alloc_extfrag(page, order, current_order,
- 				start_migratetype, migratetype);
-@@ -1044,7 +1080,10 @@ static int rmqueue_bulk(struct zone *zone, unsigned int order,
- 			list_add(&page->lru, list);
- 		else
- 			list_add_tail(&page->lru, list);
--		set_page_private(page, migratetype);
-+		if (is_pageblock_cma(page))
-+			set_page_private(page, MIGRATE_CMA);
-+		else
-+			set_page_private(page, migratetype);
- 		list = &page->lru;
- 	}
- 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
-@@ -1185,9 +1224,16 @@ void free_hot_cold_page(struct page *page, int cold)
- 	 * offlined but treat RESERVE as movable pages so we can get those
- 	 * areas back if necessary. Otherwise, we may have to free
- 	 * excessively into the page allocator
-+	 *
-+	 * Still, do not change migration type of MIGRATE_CMA pages (if
-+	 * they'd be recorded as MIGRATE_MOVABLE an unmovable page could
-+	 * be allocated from MIGRATE_CMA block and we don't want to allow
-+	 * that).  In this respect, treat MIGRATE_CMA like
-+	 * MIGRATE_ISOLATE.
- 	 */
- 	if (migratetype >= MIGRATE_PCPTYPES) {
--		if (unlikely(migratetype == MIGRATE_ISOLATE)) {
-+		if (unlikely(migratetype == MIGRATE_ISOLATE
-+			  || is_migrate_cma(migratetype))) {
- 			free_one_page(zone, page, 0, migratetype);
- 			goto out;
- 		}
-@@ -1276,7 +1322,9 @@ int split_free_page(struct page *page)
- 	if (order >= pageblock_order - 1) {
- 		struct page *endpage = page + (1 << order) - 1;
- 		for (; page < endpage; page += pageblock_nr_pages)
--			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
-+			if (!is_pageblock_cma(page))
-+				set_pageblock_migratetype(page,
-+							  MIGRATE_MOVABLE);
- 	}
- 
- 	return 1 << order;
-@@ -5554,8 +5602,8 @@ __count_immobile_pages(struct zone *zone, struct page *page, int count)
- 	 */
- 	if (zone_idx(zone) == ZONE_MOVABLE)
- 		return true;
--
--	if (get_pageblock_migratetype(page) == MIGRATE_MOVABLE)
-+	if (get_pageblock_migratetype(page) == MIGRATE_MOVABLE ||
-+	    is_pageblock_cma(page))
- 		return true;
- 
- 	pfn = page_to_pfn(page);
--- 
-1.7.1.569.g6f426
+We don't want this, but on the other hand there is a need to replace custom
+callbacks in driver's platform_data with something else.
 
+--
+Regards,
+Sylwester
