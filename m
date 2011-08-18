@@ -1,113 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47236 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754198Ab1HZJXO (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:56683 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755181Ab1HRKKP convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Aug 2011 05:23:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Al Cooper" <alcooperx@gmail.com>
-Subject: Re: [PATCH] media: Fix a UVC performance problem on systems with non-coherent DMA.
-Date: Fri, 26 Aug 2011 11:23:30 +0200
-Cc: linux-media@vger.kernel.org, cernekee@gmail.com
-References: <1313674109-6290-1-git-send-email-alcooperx@gmail.com>
-In-Reply-To: <1313674109-6290-1-git-send-email-alcooperx@gmail.com>
+	Thu, 18 Aug 2011 06:10:15 -0400
+From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Date: Thu, 18 Aug 2011 15:39:07 +0530
+Subject: RE: [PATCH] Media controller: Define media_entity_init() and
+ media_entity_cleanup() conditionally
+Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D0907DB@dbde03.ent.ti.com>
+References: <1313577276-18182-1-git-send-email-deepthy.ravi@ti.com>,<19F8576C6E063C45BE387C64729E739404E3CDE6D9@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404E3CDE6D9@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108261123.30994.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Al,
 
-Thanks for the patch.
+Thanks,
+Deepthy Ravi.
+________________________________________
+From: Hiremath, Vaibhav
+Sent: Wednesday, August 17, 2011 9:00 PM
+To: Ravi, Deepthy; mchehab@infradead.org; linux-media@vger.kernel.org; linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Subject: RE: [PATCH] Media controller: Define media_entity_init() and media_entity_cleanup() conditionally
 
-On Thursday 18 August 2011 15:28:29 Al Cooper wrote:
-> The UVC driver uses usb_alloc_coherent() to allocate DMA data buffers.
-> On systems without coherent DMA this ends up allocating buffers in
-> uncached memory. The subsequent memcpy's done to coalesce the DMA
-> chunks into contiguous buffers then run VERY slowly. On a MIPS test
-> system the memcpy is about 200 times slower. This issue prevents the
-> system from keeping up with 720p YUYV data at 10fps.
-> 
-> The following patch uses kmalloc to alloc the DMA buffers instead of
-> uab_alloc_coherent on systems without coherent DMA. With this patch
-> the system was easily able to keep up with 720p at 10fps.
-> 
-> Signed-off-by: Al Cooper <alcooperx@gmail.com>
+> -----Original Message-----
+> From: Ravi, Deepthy
+> Sent: Wednesday, August 17, 2011 4:05 PM
+> To: mchehab@infradead.org; linux-media@vger.kernel.org; linux-
+> kernel@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org; Hiremath, Vaibhav; Ravi, Deepthy
+> Subject: [PATCH] Media controller: Define media_entity_init() and
+> media_entity_cleanup() conditionally
+>
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>
+> Defines the two functions only when CONFIG_MEDIA_CONTROLLER
+> is enabled.
+[Hiremath, Vaibhav] Deepthy,
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+You may want to mention about build failure without MEDIA_CONTROLLER option being enabled, especially if any sensor driver is being used between MC and non-MC framework compatible devices.
+For example, OMAP3 and AM3517, where TVP5146 is being used but OMAP3 is based on MC framework and AM3517 is based on simple sub-dev based interface.
 
-I will push it to v3.2.
+[Deepthy Ravi] Ok. I will change description to include that.
 
+Thanks,
+Vaibhav
+>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
 > ---
->  drivers/media/video/uvc/uvc_video.c |   18 +++++++++++++++++-
->  1 files changed, 17 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/uvc/uvc_video.c
-> b/drivers/media/video/uvc/uvc_video.c index 4999479..30c18b4 100644
-> --- a/drivers/media/video/uvc/uvc_video.c
-> +++ b/drivers/media/video/uvc/uvc_video.c
-> @@ -790,8 +790,12 @@ static void uvc_free_urb_buffers(struct uvc_streaming
-> *stream)
-> 
->  	for (i = 0; i < UVC_URBS; ++i) {
->  		if (stream->urb_buffer[i]) {
-> +#ifndef CONFIG_DMA_NONCOHERENT
->  			usb_free_coherent(stream->dev->udev, stream->urb_size,
->  				stream->urb_buffer[i], stream->urb_dma[i]);
+>  include/media/media-entity.h |    9 +++++++++
+>  1 files changed, 9 insertions(+), 0 deletions(-)
+>
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index cd8bca6..c90916e 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -121,9 +121,18 @@ struct media_entity_graph {
+>       int top;
+>  };
+>
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+>  int media_entity_init(struct media_entity *entity, u16 num_pads,
+>               struct media_pad *pads, u16 extra_links);
+>  void media_entity_cleanup(struct media_entity *entity);
 > +#else
-> +			kfree(stream->urb_buffer[i]);
+> +static inline int media_entity_init(struct media_entity *entity, u16
+> num_pads,
+> +             struct media_pad *pads, u16 extra_links)
+> +{
+> +     return 0;
+> +}
+> +static inline void media_entity_cleanup(struct media_entity *entity) {}
 > +#endif
->  			stream->urb_buffer[i] = NULL;
->  		}
->  	}
-> @@ -831,9 +835,15 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming
-> *stream, for (; npackets > 1; npackets /= 2) {
->  		for (i = 0; i < UVC_URBS; ++i) {
->  			stream->urb_size = psize * npackets;
-> +#ifndef CONFIG_DMA_NONCOHERENT
->  			stream->urb_buffer[i] = usb_alloc_coherent(
->  				stream->dev->udev, stream->urb_size,
->  				gfp_flags | __GFP_NOWARN, &stream->urb_dma[i]);
-> +#else
-> +			stream->urb_buffer[i] =
-> +			    kmalloc(stream->urb_size, gfp_flags | __GFP_NOWARN);
-> +#endif
-> +
->  			if (!stream->urb_buffer[i]) {
->  				uvc_free_urb_buffers(stream);
->  				break;
-> @@ -908,10 +918,14 @@ static int uvc_init_video_isoc(struct uvc_streaming
-> *stream, urb->context = stream;
->  		urb->pipe = usb_rcvisocpipe(stream->dev->udev,
->  				ep->desc.bEndpointAddress);
-> +#ifndef CONFIG_DMA_NONCOHERENT
->  		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
-> +		urb->transfer_dma = stream->urb_dma[i];
-> +#else
-> +		urb->transfer_flags = URB_ISO_ASAP;
-> +#endif
->  		urb->interval = ep->desc.bInterval;
->  		urb->transfer_buffer = stream->urb_buffer[i];
-> -		urb->transfer_dma = stream->urb_dma[i];
->  		urb->complete = uvc_video_complete;
->  		urb->number_of_packets = npackets;
->  		urb->transfer_buffer_length = size;
-> @@ -969,8 +983,10 @@ static int uvc_init_video_bulk(struct uvc_streaming
-> *stream, usb_fill_bulk_urb(urb, stream->dev->udev, pipe,
->  			stream->urb_buffer[i], size, uvc_video_complete,
->  			stream);
-> +#ifndef CONFIG_DMA_NONCOHERENT
->  		urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
->  		urb->transfer_dma = stream->urb_dma[i];
-> +#endif
-> 
->  		stream->urb[i] = urb;
->  	}
+>
+>  int media_entity_create_link(struct media_entity *source, u16 source_pad,
+>               struct media_entity *sink, u16 sink_pad, u32 flags);
+> --
+> 1.7.0.4
 
--- 
-Regards,
-
-Laurent Pinchart
