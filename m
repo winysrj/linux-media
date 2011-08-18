@@ -1,131 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48698 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751656Ab1HZPJT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Aug 2011 11:09:19 -0400
-Message-ID: <4E57B70E.9010103@redhat.com>
-Date: Fri, 26 Aug 2011 12:09:02 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:62880 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755278Ab1HRQNv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Aug 2011 12:13:51 -0400
+Received: by vxi9 with SMTP id 9so1846928vxi.19
+        for <linux-media@vger.kernel.org>; Thu, 18 Aug 2011 09:13:51 -0700 (PDT)
+Message-ID: <4E4D3A3B.3040305@gmail.com>
+Date: Thu, 18 Aug 2011 09:13:47 -0700
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Embedded device and the  V4L2 API support - Was: [GIT PATCHES
- FOR 3.1] s5p-fimc and noon010pc30 driver updates
-References: <4E303E5B.9050701@samsung.com> <4E56438C.1070102@redhat.com> <201108261545.30817.laurent.pinchart@ideasonboard.com> <201108261616.02417.hverkuil@xs4all.nl>
-In-Reply-To: <201108261616.02417.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
+To: shacky <shacky83@gmail.com>
+CC: Josu Lazkano <josu.lazkano@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Record DVB-T from command line
+References: <CAPz3gmkRoh_gXU4PtzVhXb=0BOBjcgmhK7CCCq5ioajfjHZg3A@mail.gmail.com> <CAL9G6WUFyWuKJQnTBCW6StEfoWeKhXix3rFkU9eC8AxEbuD5Uw@mail.gmail.com> <CAPz3gm=ABUESbFNjL+RJ6RHMCGW_a4T70h6A3GP4b_B2ves92w@mail.gmail.com> <4E4D3946.5060900@gmail.com>
+In-Reply-To: <4E4D3946.5060900@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 26-08-2011 11:16, Hans Verkuil escreveu:
-> On Friday, August 26, 2011 15:45:30 Laurent Pinchart wrote:
->> Hi Mauro,
+Em 18-08-2011 09:09, Mauro Carvalho Chehab escreveu:
+> Em 18-08-2011 08:47, shacky escreveu:
+>>> szap -a 0 -c channels_astra.conf -r "TV3 CAT"
+>>> cat /dev/dvb/adapter0/dvr0 > testvideo.mpg
+>>> mplayer testvideo.mpg
 >>
->> On Thursday 25 August 2011 14:43:56 Mauro Carvalho Chehab wrote:
->>> Em 24-08-2011 19:29, Sakari Ailus escreveu:
+>> I tried that, but cat tells me that the device is busy:
 >>
->> [snip]
+>> root@werecit1:/opt/utils/tv# tzap -c /etc/channels.conf -r "Rai 1"
+>> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>> reading channels from file '/etc/channels.conf'
+>> tuning to 177500000 Hz
+>> video pid 0x0200, audio pid 0x028a
+>> status 00 | signal 1b1b | snr 000c | ber 0000ffff | unc 00000000 |
+>> status 1f | signal fefe | snr 00f6 | ber 000000bd | unc 00000282 | FE_HAS_LOCK
+>> [last line repeated several times]
 >>
->>>> The question I still have on this is that how should the user know which
->>>> video node to access on an embedded system with a camera: the OMAP 3 ISP,
->>>> for example, contains some eight video nodes which have different ISP
->>>> blocks connected to them. Likely two of these nodes are useful for a
->>>> general purpose application based on which image format it requests. It
->>>> would make sense to provide generic applications information only on
->>>> those devices they may meaningfully use.
->>>
->>> IMO, we should create a namespace device mapping for video devices. What I
->>> mean is that we should keep the "raw" V4L2 devices as:
->>> 	/dev/video??
->>> But also recommend the creation of a new userspace map, like:
->>> 	/dev/webcam??
->>> 	/dev/tv??
->>> 	...
->>> with is an alias for the actual device.
->>>
->>> Something similar to dvd/cdrom aliases that already happen on most distros:
->>>
->>> lrwxrwxrwx   1 root root           3 Ago 24 12:14 cdrom -> sr0
->>> lrwxrwxrwx   1 root root           3 Ago 24 12:14 cdrw -> sr0
->>> lrwxrwxrwx   1 root root           3 Ago 24 12:14 dvd -> sr0
->>> lrwxrwxrwx   1 root root           3 Ago 24 12:14 dvdrw -> sr0
+>> In another console:
 >>
->> I've been toying with a similar idea. libv4l currently wraps /dev/video* 
->> device nodes and assumes a 1:1 relationship between a video device node and a 
->> video device. Should this assumption be somehow removed, replaced by a video 
->> device concept that wouldn't be tied to a single video device node ?
+>> root@werecit1:~# cat /dev/dvb/adapter0/dvr0 > prova.mpg
+>> cat: /dev/dvb/adapter0/dvr0: Dispositivo o risorsa occupata
+>>
+>> Could you help me please?
 > 
-> Just as background information: the original idea was always that all v4l
-> drivers would have a MC and that libv4l would use the information contained
-> there as a helper (such as deciding which nodes would be the 'default' nodes
-> for generic applications).
+> You can use gnometv for that. It is also part of dvb-utils package.
+Sorry... the name of the application is: gnutv
 
-This is something that libv4l won't do: it is up to the userspace application
-to choose the device node to open. Ok, libv4l can have helper APIs for
-that, like the one I wrote, but even adding MC support on it may not solve
-the issues.
+You'll use it with something like:
+	$ gnutv -out file test.mpeg -channels channel.conf mychannel
 
-> Since there is only one MC device node for each piece of video hardware that
-> would make it much easier to discover what hardware there is and what video
-> nodes to use.
+PS.: I'm fighting with a gnome application here that is doing something bad
+when called fom xfce... so, "gnome" come to my mind, instead of "gnu" ;)
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> I always liked that idea, although I know Mauro is opposed to having a MC
-> for all v4l drivers.
 
-It doesn't make sense to add MC for all V4L drivers. Not all devices are like
-ivtv with lots of device drivers. In a matter of fact, most supported devices
-create just one video node. Adding MC support for those devices will just 
-increase the drivers complexity without _any_ reason, as those devices are
-fully configurable using the existing ioctl's.
-
-Also, as I said before, and implemented at xawtv and at a v4l-utils library, 
-the code may use sysfs for simpler devices. It shouldn't be hard to implement
-a mc aware code there, although I don't think that MC API is useful to discover
-what nodes are meant to be used for TV, encoder, decoder, webcams, etc.
-The only type information it currently provides is:
-
-#define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENT_T_DEVNODE + 1)
-#define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
-#define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
-#define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
-
-So, a MC aware application also needs to be a hardware-dependent application,
-as it will need to use something else, like the media entity name, to discover
-for what purpose a media node is meant to be used.
-
-> While I am not opposed to creating such userspace maps I also think it is
-> a bit of a poor-man's solution.
-
-The creation of per-type devices is part of the current API: radio
-and vbi nodes are examples of that (except that they aren't aliases, but
-real devices, but the idea is the same: different names for different
-types of usage).
-
-> In particular I am worried that we get a
-> lot of those mappings (just think of ivtv with its 8 or 9 devices).
-> 
-> I can think of: webcam, tv, compressed (mpeg), tv-out, compressed-out, mem2mem.
-> 
-> But a 'tv' node might also be able to handle compressed video (depending
-> on how the hardware is organized), so how do you handle that? 
-
-Well, What you've called as "compressed" is, in IMO, "encoder". It probably makes
-sense to have, also "decoder". I'm in doubt about "webcam", as there are some
-grabber devices with analog camera inputs for video surveillance. Maybe "camera"
-is a better name for it.
-
-> It can all
-> be solved, I'm sure, but I'm not sure if such userspace mappings will scale
-> that well with the increasing hardware complexity.
-
-Not all video nodes would need an alias. Just the ones where it makes sense for
-an application to open it.
-
-Regards,
-Mauro
