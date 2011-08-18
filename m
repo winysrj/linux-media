@@ -1,36 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:41702 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751042Ab1HSGda (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Aug 2011 02:33:30 -0400
-Received: by yie30 with SMTP id 30so2009781yie.19
-        for <linux-media@vger.kernel.org>; Thu, 18 Aug 2011 23:33:30 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAPz3gmnkfe0Qtc=rXUMgbiFjL7XfiSfAOxrLkGDBx4DaOSacKQ@mail.gmail.com>
-References: <CAPz3gmkRoh_gXU4PtzVhXb=0BOBjcgmhK7CCCq5ioajfjHZg3A@mail.gmail.com>
-	<CAL9G6WUFyWuKJQnTBCW6StEfoWeKhXix3rFkU9eC8AxEbuD5Uw@mail.gmail.com>
-	<CAPz3gm=ABUESbFNjL+RJ6RHMCGW_a4T70h6A3GP4b_B2ves92w@mail.gmail.com>
-	<4E4D3946.5060900@gmail.com>
-	<4E4D3A3B.3040305@gmail.com>
-	<CAPz3gmnkfe0Qtc=rXUMgbiFjL7XfiSfAOxrLkGDBx4DaOSacKQ@mail.gmail.com>
-Date: Fri, 19 Aug 2011 08:33:29 +0200
-Message-ID: <CAPz3gmmyd9cUcChug+30f9ZjE+035LiGsLRKM-TDm0cOf8o8VQ@mail.gmail.com>
-Subject: Re: Record DVB-T from command line
-From: shacky <shacky83@gmail.com>
-To: Mauro Carvalho Chehab <maurochehab@gmail.com>
-Cc: Josu Lazkano <josu.lazkano@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mga11.intel.com ([192.55.52.93]:25278 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755139Ab1HRIxb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Aug 2011 04:53:31 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH] adp1653: make ->power() method optional
+Date: Thu, 18 Aug 2011 11:53:03 +0300
+Message-Id: <aa45d92c4ec78b36b28eb721ef58f3a5512900a3.1313657559.git.andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-One question.
-What if I need to record two channels in the same multiplex in the same time?
-Gnutv does not let me it, because the second recording command returns
-me that the device is busy, but I know this is possible (I know a
-Windows program - TV Scheduler Pro - that make it.
+The ->power() could be absent or not used on some platforms. This patch makes
+its presence optional.
 
-Could you help me please?
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/adp1653.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-Thank you very much!
-Bye.
+diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
+index 0fd9579..65f6f3f 100644
+--- a/drivers/media/video/adp1653.c
++++ b/drivers/media/video/adp1653.c
+@@ -309,6 +309,9 @@ __adp1653_set_power(struct adp1653_flash *flash, int on)
+ {
+ 	int ret;
+ 
++	if (flash->platform_data->power == NULL)
++		return 0;
++
+ 	ret = flash->platform_data->power(&flash->subdev, on);
+ 	if (ret < 0)
+ 		return ret;
+-- 
+1.7.5.4
+
