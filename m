@@ -1,35 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:59430 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751259Ab1HPHVR convert rfc822-to-8bit (ORCPT
+Received: from nm2.bt.bullet.mail.ird.yahoo.com ([212.82.108.233]:24262 "HELO
+	nm2.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751399Ab1HRXpd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2011 03:21:17 -0400
-Subject: Re: [media-ctl][PATCH] libmediactl: engage udev to get devname
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <201108151652.54417.laurent.pinchart@ideasonboard.com>
-References: <4a6d0bf1e50189da0c02e2326c3413d9088926c1.1313410776.git.andriy.shevchenko@linux.intel.com>
-	 <201108151652.54417.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Tue, 16 Aug 2011 10:20:50 +0300
-Message-ID: <1313479250.4898.16.camel@smile>
-Mime-Version: 1.0
+	Thu, 18 Aug 2011 19:45:33 -0400
+Message-ID: <4E4DA417.6030809@yahoo.com>
+Date: Fri, 19 Aug 2011 00:45:27 +0100
+From: Chris Rankin <rankincj@yahoo.com>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org, mchehab@redhat.com,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH] Latest version of em28xx / em28xx-dvb patch for PCTV
+ 290e
+References: <4E4D5157.2080406@yahoo.com> <CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com> <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com>
+In-Reply-To: <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------040701090302030607080206"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2011-08-15 at 16:52 +0200, Laurent Pinchart wrote: 
-> Hi Andy,
-> 
-> Thank you for the patch.
-> 
-> What about making it a configuration option to still support systems that 
-> don't provide libudev ? We could keep the current behaviour for those.
-Good point.
-Will do.
+This is a multi-part message in MIME format.
+--------------040701090302030607080206
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+This patch closes the race on the device and extension lists at USB disconnect 
+time. Previously, the device was removed from the device list during 
+em28xx_release_resources(), and then passed to the em28xx_close_extension() 
+function so that all extensions could run their fini() operations. However, this 
+left a (brief, theoretical, highly unlikely ;-)) window between these two calls 
+during which a new module could call em28xx_register_extension(). The result 
+would have been that the em28xx_usb_disconnect() function would also have passed 
+the device to the new extension's fini() function, despite never having called 
+the extension's init() function.
+
+This patch also restores em28xx_close_extension()'s symmetry with 
+em28xx_init_extension(), and establishes the property that every device in the 
+device list must have been initialised for every extension in the extension list.
+
+Signed-of-by: Chris Rankin <rankincj@yahoo.com>
 
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+--------------040701090302030607080206
+Content-Type: text/x-patch;
+ name="EM28xx-race-on-disconnect.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="EM28xx-race-on-disconnect.diff"
+
+--- linux-3.0/drivers/media/video/em28xx/em28xx-cards.c.orig	2011-08-19 00:23:17.000000000 +0100
++++ linux-3.0/drivers/media/video/em28xx/em28xx-cards.c	2011-08-19 00:32:40.000000000 +0100
+@@ -2738,9 +2738,9 @@
+ #endif /* CONFIG_MODULES */
+ 
+ /*
+- * em28xx_realease_resources()
++ * em28xx_release_resources()
+  * unregisters the v4l2,i2c and usb devices
+- * called when the device gets disconected or at module unload
++ * called when the device gets disconnected or at module unload
+ */
+ void em28xx_release_resources(struct em28xx *dev)
+ {
+@@ -2754,8 +2754,6 @@
+ 
+ 	em28xx_release_analog_resources(dev);
+ 
+-	em28xx_remove_from_devlist(dev);
+-
+ 	em28xx_i2c_unregister(dev);
+ 
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+@@ -3152,7 +3150,7 @@
+ 
+ /*
+  * em28xx_usb_disconnect()
+- * called when the device gets diconencted
++ * called when the device gets disconnected
+  * video device will be unregistered on v4l2_close in case it is still open
+  */
+ static void em28xx_usb_disconnect(struct usb_interface *interface)
+--- linux-3.0/drivers/media/video/em28xx/em28xx-core.c.orig	2011-08-18 23:07:51.000000000 +0100
++++ linux-3.0/drivers/media/video/em28xx/em28xx-core.c	2011-08-19 00:27:00.000000000 +0100
+@@ -1160,18 +1160,6 @@
+ static DEFINE_MUTEX(em28xx_devlist_mutex);
+ 
+ /*
+- * em28xx_realease_resources()
+- * unregisters the v4l2,i2c and usb devices
+- * called when the device gets disconected or at module unload
+-*/
+-void em28xx_remove_from_devlist(struct em28xx *dev)
+-{
+-	mutex_lock(&em28xx_devlist_mutex);
+-	list_del(&dev->devlist);
+-	mutex_unlock(&em28xx_devlist_mutex);
+-};
+-
+-/*
+  * Extension interface
+  */
+ 
+@@ -1221,14 +1209,13 @@
+ 
+ void em28xx_close_extension(struct em28xx *dev)
+ {
+-	struct em28xx_ops *ops = NULL;
++	const struct em28xx_ops *ops = NULL;
+ 
+ 	mutex_lock(&em28xx_devlist_mutex);
+-	if (!list_empty(&em28xx_extension_devlist)) {
+-		list_for_each_entry(ops, &em28xx_extension_devlist, next) {
+-			if (ops->fini)
+-				ops->fini(dev);
+-		}
++	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
++		if (ops->fini)
++			ops->fini(dev);
+ 	}
++	list_del(&dev->devlist);
+ 	mutex_unlock(&em28xx_devlist_mutex);
+ }
+
+--------------040701090302030607080206--
