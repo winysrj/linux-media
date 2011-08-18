@@ -1,107 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:61425 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753752Ab1HXSli (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:39017 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751875Ab1HRR0i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Aug 2011 14:41:38 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 0/7 v5] new ioctl()s and soc-camera implementation
-Date: Wed, 24 Aug 2011 20:41:25 +0200
-Message-Id: <1314211292-10414-1-git-send-email-g.liakhovetski@gmx.de>
+	Thu, 18 Aug 2011 13:26:38 -0400
+Received: by fxh19 with SMTP id 19so1421196fxh.19
+        for <linux-media@vger.kernel.org>; Thu, 18 Aug 2011 10:26:37 -0700 (PDT)
+Content-Type: multipart/mixed; boundary=----------OiMLXsE2eXrSc8lD8ezHdz
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+To: "Christoph Pfister" <christophpfister@gmail.com>
+Date: Thu, 18 Aug 2011 19:26:31 +0200
+Subject: dvb-apps: update hr-All
+MIME-Version: 1.0
+From: =?utf-8?B?U2FtdWVsIFJha2l0bmnEjWFu?= <samuel.rakitnican@gmail.com>
+Message-ID: <op.v0e6qhil31sqp4@2487aa0235.dummy.porta.siemens.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set is now trying to implement our most recent decisions. Any 
-improvements should be doable as incremental patches. As long as we are 
-happy with ioctl()s themselves, the rest can be improved. I'll quote my 
-earlier email with our strategic design decisions:
+------------OiMLXsE2eXrSc8lD8ezHdz
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
-1. VIDIOC_CREATE_BUFS passes struct v4l2_create_buffers from the user to 
-   the kernel, in which struct v4l2_format is embedded. The user _must_ 
-   fill in .type member of struct v4l2_format. For .type == 
-   V4L2_BUF_TYPE_VIDEO_CAPTURE or V4L2_BUF_TYPE_VIDEO_OUTPUT .fmt.pix is 
-   used, for .type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE or 
-   V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE .fmt.pix_mp is used. In both these 
-   cases the user _must_ fill in .width, .height, .pixelformat, .field, 
-   .colorspace by possibly calling VIDIOC_G_FMT or VIDIOC_TRY_FMT. The 
-   user also _may_ optionally fill in any further buffer-size related 
-   fields, if it believes to have any special requirements to them. On 
-   a successful return from the ioctl() .count and .index fields are 
-   filled in by the kernel, .format stays unchanged. The user has to call 
-   VIDIOC_QUERYBUF to retrieve specific buffer information.
+Hi,
 
-2. Videobuf2 drivers, that implement .vidioc_create_bufs() operation, call 
-   vb2_create_bufs() with a pointer to struct v4l2_create_buffers as a 
-   second argument. vb2_create_bufs() in turn calls the .queue_setup() 
-   driver callback, whose prototype is modified as follows:
+Attached updated patch for Croatia. Most of the updates are for MUX D as  
+it's in phase of implementation. Removed MUX C (experimental HD mux) as  
+it's no longer emitted.
 
-int (*queue_setup)(struct vb2_queue *q, const struct v4l2_format *fmt,
-                        unsigned int *num_buffers,
-                        unsigned int *num_planes, unsigned int sizes[],
-                        void *alloc_ctxs[]);
 
-   with &create->format as a second argument. As pointed out above, this 
-   struct is not modified by V4L, instead, the usual arguments 3-6 are 
-   filled in by the driver, which are then used by vb2_create_bufs() to 
-   call __vb2_queue_alloc().
+Best regards,
+Samuel
+------------OiMLXsE2eXrSc8lD8ezHdz
+Content-Disposition: attachment; filename=hr-All.patch
+Content-Type: application/octet-stream; name="hr-All.patch"
+Content-Transfer-Encoding: Base64
 
-3. vb2_reqbufs() shall call .queue_setup() with fmt == NULL, which will be 
-   a signal to the driver to use the current format.
+LS0tIGhyLUFsbAkyMDExLTA4LTE4IDE2OjE4OjQ0LjY0MDYyNTAwMCArMDIwMAor
+KysgaHItQWxsLm5ldwkyMDExLTA4LTE4IDE4OjI0OjE2LjI5Njg3NTAwMCArMDIw
+MApAQCAtMSwzMCArMSwzMCBAQAogIyBDcm9hdGlhLCB3aG9sZSBjb3VudHJ5CiAj
+IENyZWF0ZWQgZnJvbSBodHRwOi8vd3d3Lm9pdi5oci9icm9hZGNhc3RpbmcvdGFi
+bGVzL2R0dl9oci5hc3B4CisjIGFuZCBmcm9tIGh0dHA6Ly93d3cub2l2LmhyL2Jy
+b2FkY2FzdGluZy90YWJsZXMvZHR2X2NoYW5uZWxfaHIuYXNweAogIyBUIGZyZXEg
+YncgZmVjX2hpIGZlY19sbyBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50
+ZXJ2YWwgaGllcmFyY2h5Ci1UIDQ3NDAwMDAwMCA4TUh6IDMvNCBOT05FIFFBTTY0
+IDhrIDEvNCBOT05FICMgRDEgTVVYRAorVCA0NzQwMDAwMDAgOE1IeiA1LzYgTk9O
+RSBRQU02NCA4ayAxLzQgTk9ORSAjIEQxIE1VWEQKIFQgNDkwMDAwMDAwIDhNSHog
+My80IE5PTkUgUUFNNjQgOGsgMS80IE5PTkUgIyBEMiBNVVhBCiBUIDUwNjAwMDAw
+MCA4TUh6IDMvNCBOT05FIFFBTTY0IDhrIDEvNCBOT05FICMgRDQgTVVYQQogVCA1
+MzAwMDAwMDAgOE1IeiAzLzQgTk9ORSBRQU02NCA4ayAxLzQgTk9ORSAjIEQ1IE1V
+WEEsIEQ5IE1VWEQKLVQgNTM4MDAwMDAwIDhNSHogMy80IE5PTkUgUUFNNjQgOGsg
+MS80IE5PTkUgIyBENSBNVVhECitUIDUzODAwMDAwMCA4TUh6IDUvNiBOT05FIFFB
+TTY0IDhrIDEvMTYgTk9ORSAjIEQ1IE1VWEQKK1QgNTM4MDAwMDAwIDhNSHogMS8y
+IE5PTkUgUUFNMTYgOGsgMS84IE5PTkUgIyBkNzIgTVVYRAogVCA1NDYwMDAwMDAg
+OE1IeiAzLzQgTk9ORSBRQU02NCA4ayAxLzQgTk9ORSAjIEQ2IE1VWEEKIFQgNTU0
+MDAwMDAwIDhNSHogMy80IE5PTkUgUUFNNjQgOGsgMS80IE5PTkUgIyBENyBNVVhE
+Ci1UIDU3MDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvOCBOT05FICMg
+RDEgTVVYQwogVCA1NzAwMDAwMDAgOE1IeiAzLzQgTk9ORSBRQU02NCA4ayAxLzQg
+Tk9ORSAjIEQ4IE1VWEEKIFQgNTc4MDAwMDAwIDhNSHogMy80IE5PTkUgUUFNNjQg
+OGsgMS80IE5PTkUgIyBEOCBNVVhECi1UIDU5NDAwMDAwMCA4TUh6IDIvMyBOT05F
+IFFBTTY0IDhrIDEvOCBOT05FICMgRDUgTVVYQworVCA1ODYwMDAwMDAgOE1IeiAx
+LzIgTk9ORSBRQU0xNiA4ayAxLzggTk9ORSAjIGQ3MSBNVVhECiBUIDU5NDAwMDAw
+MCA4TUh6IDMvNCBOT05FIFFBTTY0IDhrIDEvNCBOT05FICMgRDMgTVVYRAogVCA2
+MTAwMDAwMDAgOE1IeiAzLzQgTk9ORSBRQU02NCA4ayAxLzQgTk9ORSAjIEQxIE1V
+WEEKIFQgNjE4MDAwMDAwIDhNSHogMy80IE5PTkUgUUFNNjQgOGsgMS80IE5PTkUg
+IyBEMiBNVVhCCi1UIDY0MjAwMDAwMCA4TUh6IDMvNCBOT05FIFFBTTY0IDhrIDEv
+NCBOT05FICMgRDQgTVVYRAotVCA2NTgwMDAwMDAgOE1IeiAzLzQgTk9ORSBRQU02
+NCA4ayAxLzQgTk9ORSAjIEQxIE1VWEIsIEQzIE1VWEEKK1QgNjQyMDAwMDAwIDhN
+SHogNS82IE5PTkUgUUFNNjQgOGsgMS80IE5PTkUgIyBENCBNVVhECitUIDY1ODAw
+MDAwMCA4TUh6IDMvNCBOT05FIFFBTTY0IDhrIDEvNCBOT05FICMgRDEgTVVYQiwg
+RDMgTVVYQSwgRDYgTVVYQgorVCA2NjYwMDAwMDAgOE1IeiA1LzYgTk9ORSBRQU02
+NCA4ayAxLzE2IE5PTkUgIyBENSBNVVhECiBUIDY2NjAwMDAwMCA4TUh6IDIvMyBO
+T05FIFFBTTY0IDhrIDEvNCBOT05FICMgU0xPIE1VWEEKLVQgNjc0MDAwMDAwIDhN
+SHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5PTkUgIyBEOCBNVVhDCi1UIDY3NDAw
+MDAwMCA4TUh6IDMvNCBOT05FIFFBTTY0IDhrIDEvNCBOT05FICMgRDggTVVYRAog
+VCA2OTAwMDAwMDAgOE1IeiAzLzQgTk9ORSBRQU02NCA4ayAxLzQgTk9ORSAjIEQz
+IE1VWEIsIEQ0IE1VWEIKIFQgNzE0MDAwMDAwIDhNSHogMy80IE5PTkUgUUFNNjQg
+OGsgMS80IE5PTkUgIyBENyBNVVhBLCBEOSBNVVhBCiBUIDczMDAwMDAwMCA4TUh6
+IDMvNCBOT05FIFFBTTY0IDhrIDEvNCBOT05FICMgRDUgTVVYQiwgRDggTVVYQgot
+VCA3MzgwMDAwMDAgOE1IeiAzLzQgTk9ORSBRQU02NCA4ayAxLzQgTk9ORSAjIEQ2
+IE1VWEIKLVQgNzU0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5P
+TkUgIyBENCBNVVhDCi1UIDc2MjAwMDAwMCA4TUh6IDMvNCBOT05FIFFBTTY0IDhr
+IDEvNCBOT05FICMgVHVzdGkgVnJoIE1VWEQKK1QgNzM4MDAwMDAwIDhNSHogMy80
+IE5PTkUgUUFNNjQgOGsgMS80IE5PTkUgIyBENiBNVVhECitUIDc2MjAwMDAwMCA4
+TUh6IDMvNCBOT05FIFFBTTE2IDhrIDEvNCBOT05FICMgVHVzdGkgVnJoIE1VWEQK
+IFQgNzcwMDAwMDAwIDhNSHogMy80IE5PTkUgUUFNNjQgOGsgMS80IE5PTkUgIyBE
+MiBNVVhECiBUIDc3ODAwMDAwMCA4TUh6IDMvNCBOT05FIFFBTTY0IDhrIDEvNCBO
+T05FICMgRDcgTVVYQiwgRDkgTVVYQgorVCA4NTAwMDAwMDAgOE1IeiA1LzYgTk9O
+RSBRQU02NCA4ayAxLzE2IE5PTkUgIyBENSBNRk4K
 
-I also split out ioctl() documentation. I'm sure it's still not perfect 
-and, being a favourite target for improvement suggestions in the past, I 
-humbly propose to leave any comma fixes to incremental patches too. BTW, 
-yes, I did try to replace various constants with '&...;' links, it didn't 
-work for me.
-
-Thanks
-Guennadi
-
-Guennadi Liakhovetski (7):
-  V4L: add a new videobuf2 buffer state VB2_BUF_STATE_PREPARED
-  V4L: add two new ioctl()s for multi-size videobuffer management
-  V4L: document the new VIDIOC_CREATE_BUFS and VIDIOC_PREPARE_BUF
-    ioctl()s
-  V4L: vb2: prepare to support multi-size buffers
-  V4L: vb2: add support for buffers of different sizes on a single
-    queue
-  V4L: sh-mobile-ceu-camera: prepare to support multi-size buffers
-  V4L: soc-camera: add 2 new ioctl() handlers
-
- Documentation/DocBook/media/v4l/io.xml             |   17 +
- Documentation/DocBook/media/v4l/v4l2.xml           |    2 +
- .../DocBook/media/v4l/vidioc-create-bufs.xml       |  147 +++++++++
- .../DocBook/media/v4l/vidioc-prepare-buf.xml       |   96 ++++++
- drivers/media/video/atmel-isi.c                    |    6 +-
- drivers/media/video/marvell-ccic/mcam-core.c       |    3 +-
- drivers/media/video/mem2mem_testdev.c              |    7 +-
- drivers/media/video/mx3_camera.c                   |    1 +
- drivers/media/video/pwc/pwc-if.c                   |    6 +-
- drivers/media/video/s5p-fimc/fimc-capture.c        |    6 +-
- drivers/media/video/s5p-fimc/fimc-core.c           |    6 +-
- drivers/media/video/s5p-mfc/s5p_mfc_dec.c          |    7 +-
- drivers/media/video/s5p-mfc/s5p_mfc_enc.c          |    5 +-
- drivers/media/video/s5p-tv/mixer_video.c           |    4 +-
- drivers/media/video/sh_mobile_ceu_camera.c         |  122 +++++---
- drivers/media/video/soc_camera.c                   |   33 ++-
- drivers/media/video/v4l2-compat-ioctl32.c          |   67 ++++-
- drivers/media/video/v4l2-ioctl.c                   |   29 ++
- drivers/media/video/videobuf2-core.c               |  341 ++++++++++++++++----
- drivers/media/video/vivi.c                         |    6 +-
- include/linux/videodev2.h                          |   15 +
- include/media/v4l2-ioctl.h                         |    2 +
- include/media/videobuf2-core.h                     |   39 ++-
- 23 files changed, 804 insertions(+), 163 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
-
--- 
-1.7.2.5
+------------OiMLXsE2eXrSc8lD8ezHdz--
 
