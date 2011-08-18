@@ -1,267 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:36302 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753084Ab1HVKGX (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:55393 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752739Ab1HRU7n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Aug 2011 06:06:23 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: Pawel Osciak <pawel@osciak.com>
-Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer management
-Date: Mon, 22 Aug 2011 12:06:25 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange> <Pine.LNX.4.64.1108161458510.13913@axis700.grange> <CAMm-=zCJBDzx=tzcnEU4RCS9jkbxDeDPDZsHRL5ZMHcdBMYivA@mail.gmail.com>
-In-Reply-To: <CAMm-=zCJBDzx=tzcnEU4RCS9jkbxDeDPDZsHRL5ZMHcdBMYivA@mail.gmail.com>
+	Thu, 18 Aug 2011 16:59:43 -0400
+Received: by eyx24 with SMTP id 24so1441359eyx.19
+        for <linux-media@vger.kernel.org>; Thu, 18 Aug 2011 13:59:41 -0700 (PDT)
+Message-ID: <4E4D7D3A.4040708@gmail.com>
+Date: Thu, 18 Aug 2011 22:59:38 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108221206.25308.hansverk@cisco.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCHv2] adp1653: make ->power() method optional
+References: <20110818092158.GA8872@valkosipuli.localdomain>	 <98c77ce2a17d7a098dedfc858f4055edc5556c54.1313666504.git.andriy.shevchenko@linux.intel.com>	 <1313667122.25065.8.camel@smile>	 <20110818115131.GD8872@valkosipuli.localdomain> <1313674341.25065.17.camel@smile> <4E4D4840.7050207@gmail.com> <4E4D61CD.40405@iki.fi>
+In-Reply-To: <4E4D61CD.40405@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry for starting this discussion and then disappearing. I've been very
-busy lately, so my apologies for that.
-
-On Tuesday, August 16, 2011 18:14:33 Pawel Osciak wrote:
-> Hi Guennadi,
+On 08/18/2011 09:02 PM, Sakari Ailus wrote:
+>>>>>
+>>>>> He-h, I guess you are not going to apply this one.
+>>>>> The patch breaks init logic of the device. If we have no ->power(), we
+>>>>> still need to bring the device to the known state. I have no good idea
+>>>>> how to do this.
+>>>>
+>>>> I don't think it breaks anything actually. Albeit in practice one is still
+>>>> likely to put the adp1653 reset line to the board since that lowers its power
+>>>> consumption significantly.
+>>> Yeah, even in practice we might see various ways of a chip connection.
+>>>
+>>>> Instead of being in power-up state after opening the flash subdev, it will
+>>>> reach this state already when the system is powered up. At subdev open all
+>>>> the relevant registers are written to anyway, so I don't see an issue here.
+>>> You mean at first writing to the V4L2 value, do you? Because ->open()
+>>> uses set_power() which will be skipped in case of no ->power method
+>>> defined.
+>>>
+>>>> I think either this one, or one should check in probe() that the power()
+>>>> callback is non-NULL.
+>>>> The board code is going away in the near future so this callback will
+>>>> disappear eventually anyway.
+>>> So, it's up to you to include or not my last patch.
+>>>
+>>>> The gpio code in the board file should likely
+>>>> be moved to the driver itself.
+>>> The line could be different, the hw could be used in environment w/o
+>>> gpio, but with (for example) external gate, and so on. I think current
+>>> generic driver is pretty okay.
+>>
+>> Would it make sense to use the regulator API in place of the platform_data
+>> callback? If there is only one GPIO then it's easy to create a 'fixed voltage
+>> regulator' for this.
 > 
-> On Tue, Aug 16, 2011 at 06:13, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
-> > On Mon, 15 Aug 2011, Guennadi Liakhovetski wrote:
-> >
-> >> On Mon, 15 Aug 2011, Hans Verkuil wrote:
-> >>
-> >> > On Monday, August 15, 2011 13:28:23 Guennadi Liakhovetski wrote:
-> >> > > Hi Hans
-> >> > >
-> >> > > On Mon, 8 Aug 2011, Hans Verkuil wrote:
-> >
-> > [snip]
-> >
-> >> > > > but I've changed my mind: I think
-> >> > > > this should use a struct v4l2_format after all.
-> >>
-> >> While switching back, I have to change the struct vb2_ops::queue_setup()
-> >> operation to take a struct v4l2_create_buffers pointer. An earlier 
-version
-> >> of this patch just added one more parameter to .queue_setup(), which is
-> >> easier - changes to videobuf2-core.c are smaller, but it is then
-> >> redundant. We could use the create pointer for both input and output. The
-> >> video plane configuration in frame format is the same as what is
-> >> calculated in .queue_setup(), IIUC. So, we could just let the driver fill
-> >> that one in. This would require then the videobuf2-core.c to parse struct
-> >> v4l2_format to decide which union member we need, depending on the buffer
-> >> type. Do we want this or shall drivers duplicate plane sizes in separate
-> >> .queue_setup() parameters?
-> >
-> > Let me explain my question a bit. The current .queue_setup() method is
-> >
-> >        int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
-> >                           unsigned int *num_planes, unsigned int sizes[],
-> >                           void *alloc_ctxs[]);
-> >
-> > To support multiple-size buffers we also have to pass a pointer to struct
-> > v4l2_create_buffers to this function now. We can either do it like this:
-> >
-> >        int (*queue_setup)(struct vb2_queue *q,
-> >                           struct v4l2_create_buffers *create,
-> >                           unsigned int *num_buffers,
-> >                           unsigned int *num_planes, unsigned int sizes[],
-> >                           void *alloc_ctxs[]);
-> >
-> > and let all drivers fill in respective fields in *create, e.g., either do
-> >
-> >        create->format.fmt.pix_mp.plane_fmt[i].sizeimage = ...;
-> >        create->format.fmt.pix_mp.num_planes = ...;
-> >
-> > and also duplicate it in method parameters
-> >
-> >        *num_planes = create->format.fmt.pix_mp.num_planes;
-> >        sizes[i] = create->format.fmt.pix_mp.plane_fmt[i].sizeimage;
-> >
-> > or with
-> >
-> >        create->format.fmt.pix.sizeimage = ...;
-> >
-> > for single-plane. Alternatively we make the prototype
-> >
-> >        int (*queue_setup)(struct vb2_queue *q,
-> >                           struct v4l2_create_buffers *create,
-> >                           unsigned int *num_buffers,
-> >                           void *alloc_ctxs[]);
-> >
-> > then drivers only fill in *create, and the videobuf2-core will have to
-> > check create->format.type to decide, which of create->format.fmt.* is
-> > relevant and extract plane sizes from there.
-> 
-> 
-> Could we try exploring an alternative idea?
-> The queue_setup callback was added to decouple formats from vb2 (and
-> add some asynchronousness). But now we are doing the opposite, adding
-> format awareness to vb2. Does vb2 really need to know about formats? I
-> really believe it doesn't. It only needs sizes and counts. Also, we
-> are actually complicating things I think. The proposal, IIUC, would
-> look like this:
-> 
-> driver_queue_setup(..., create, num_buffers, [num_planes], ...)
-> {
->     if (create != NULL && create->format != NULL) {
->         /* use create->fmt to fill sizes */
+> I don't know the regulator framework very well, but do you mean creating a new
+> regulator which just controls a gpio? It would be preferable that this wouldn't
+> create a new driver nor add any board core.
 
-Right.
+I'm afraid your requirements are too demanding :)
+Yes, I meant creating a new regulator. In case the ADP1635 voltage regulator
+is inhibited through a GPIO at a host processor such regulator would in fact
+be only flipping a GPIO (and its driver would request the GPIO and set it into
+a default inactive state during its initialization). But the LDO for ADP1635
+could be also a part of larger PMIC device, which are often configured through
+I2C and have their generic drivers (in drivers/regulator). So the regulator API
+in some extent abstracts the power supply details. There is a common API at the
+client driver side regardless of the details how the power is actually enabled/
+disabled.
 
->     } else if (create != NULL) { /* this assumes we have both format or 
-sizes */
->         /* use create->sizes to fill sizes */
+I've seen some patches for the device tree bindings for the regulator API
+but I guess this is not in the mainline yet.
 
-No, create->format should always be set. If the application can fill in the
-sizeimage field(s), then there is no need for create->sizes.
-
->     } else {
->         /* use currently selected format to fill sizes */
-
-Right.
-
->     }
-> }
-> 
-> driver_s_fmt(format)
-> {
->     /* ... */
->     driver_fill_format(&create->fmt);
->     /* ... */
-> }
-
-???
+Currently the 'fixed voltage regulator' is instantiated by creating a platform 
+device, with an appropriate 'id', in the board code. And you have to create... 
+a platform data for it :) The driver is common for all such devices
+(drivers/regulator/fixed.c). 
 
 > 
-> driver_create_bufs(create)
-> {
->     vb2_create_bufs(create);
-> }
+>> Does the 'platform_data->power' callback control power supply on pin 14 (VDD)
+>> or does it do something else?
 > 
-> vb2_create_bufs(create)
-> {
->     driver_queue_setup(..., create, ...);
->     vb2_fill_format(&create->fmt); /* note different from
-> driver_fill_format(), but both needed */
+> No. The chip is always powered on the N900 but pulling down (or up, I don't remember)
+> its reset pin puts the chip to reset and causes the current draw to reach almost zero.
+> I think it's in the class of some or few tens of µA. Someone still might implement
 
-Huh? Why call vb2_fill_format? vb2 should have no knowledge whatsoever about
-formats. The driver needs that information in order to be able to allocate
-buffers correctly since that depends on the required format. But vb2 doesn't
-need that knowledge.
+According to the datasheet it's even less, below 1 uA :)
 
-> }
-> 
-> vb2_reqbufs(reqbufs)
-> {
->    driver_queue_setup(..., NULL, ...);
-> }
-> 
-> The queue_setup not only becomes unnecessarily complicated, but I'm
-> starting to question the convenience of it. And we are teaching vb2
-> how to interpret format structs, even though vb2 only needs sizes, and
-> even though the driver has to do it anyway and knows better how.
+"Shutdown Current (EN = GND, TJ = −40°C to +85°C) = 0.1μA (Typ.), 1μA (Max)"
 
-No, vb2 just needs to pass the format information from the user to the
-driver.
+So the reset (EN) pin is basically a GPIO, but it could be as well some signal
+provided by a glue FPGA, driven by a memory mapped register(s).
+Then the callback is most flexible, but it's a little bit ugly at the same time:)
+If I were you I, would probably originally put a GPIO number in platform_data,
+instead of a function callback. But that depends on priorities.
 
-There seems to be some misunderstanding here.
+> a board containing the adp1653 which would require enabling a regulator for it.
+ 
+Indeed, I guess there is no point in adding support for the power supply control
+over the regulator API now. When someone needs it on some other board, it can
+be added in the driver then.
 
-The point of my original suggestion that create_bufs should use v4l2_format
-is that the driver needs the format information in order to decide how and
-where the buffers have to be allocated. Having the format available is the
-only reliable way to do that.
-
-This is already done for REQBUFS since the driver will use the current format
-to make these decisions.
-
-One way of simplifying queue_setup is actually to always supply the format.
-In the case of REQBUFS the driver might do something like this:
-
-driver_reqbufs(requestbuffers)
-{
-	struct v4l2_format fmt;
-	struct v4l2_create_buffers create;
-
-	vb2_free_bufs(); // reqbufs should free any existing bufs
-	if (requestbuffers->count == 0)
-		return 0;
-	driver_g_fmt(&fmt);	// call the g_fmt ioctl op
-	// fill in create
-	vb2_create_bufs(create);
-}
-
-So vb2 just sees a call requesting to create so many buffers for a particular
-format, and it just hands that information over to the driver *without*
-parsing it.
-
-And the driver gets the request from vb2 to create X buffers for format F, and
-will figure out how to do that and returns the buffer/plane/allocator context
-information back to vb2.
-
+--
 Regards,
-
-	Hans
-
-> As for the idea to fill fmt in vb2, even if vb2 was to do it in
-> create_bufs, some code to parse and fill the format fields would need
-> to be in the driver anyway, because it still has to support s_fmt and
-> friends. So adding that code to vb2 would duplicate it, and if the
-> driver wanted to be non-standard in a way it filled the format fields,
-> we'd not be allowing that.
-> 
-> My suggestion would be to remove queue_setup callback and instead
-> modify vb2_reqbufs and vb2_create_bufs to accept sizes and number of
-> buffers. I think it should simplify things both for drivers and vb2,
-> would keep vb2 format-unaware and save us some round trips between vb2
-> and driver:
-> 
-> driver_create_bufs(...) /* optional */
-> {
->     /* use create->fmt (or sizes) */
->     ret = vb2_create_bufs(num_buffers, num_planes, buf_sizes,
-> plane_sizes, alloc_ctxs);
->     fill_format(&create->fmt) /* because s_fmt has to do it anyway, so
-> have a common function for that */
->     return ret;
-> }
-> 
-> driver_reqbufs(...)
-> {
->     /* use current format */
->     return vb2_reqbufs(num_buffers, num_planes, buf_sizes,
-> plane_sizes, alloc_ctxs);
-> }
-> 
-> And the call to both could easily converge into one in vb2, as the
-> only difference is that vb2_reqbufs would need to free first, if any
-> allocated buffers were present:
-> 
-> vb2_reqbufs(num_buffers, num_planes, buf_sizes, plane_sizes, alloc_ctxs)
-> {
->     if (buffers_allocated(num_buffers, num_planes, buf_sizes,
-> plane_sizes, alloc_ctxs)) {
->         free_buffers(...);
->     }
-> 
->     return vb2_create_bufs(num_buffers, num_planes, buf_sizes,
-> plane_sizes, alloc_ctxs);
-> }
-> 
-> If the driver didn't want create_bufs, it'd just not implement it.
-> What do you think?
-> 
-> -- 
-> Best regards,
-> Pawel Osciak
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Sylwester
