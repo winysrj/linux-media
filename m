@@ -1,54 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:55883 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753556Ab1HDW4Q (ORCPT
+Received: from queue01.mail.zen.net.uk ([212.23.3.234]:59377 "EHLO
+	queue01.mail.zen.net.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755156Ab1HRIuK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Aug 2011 18:56:16 -0400
-Date: Thu, 4 Aug 2011 15:56:03 -0700
-From: Greg KH <greg@kroah.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
-	Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Adam Baker <linux@baker-net.org.uk>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-Message-ID: <20110804225603.GA2557@kroah.com>
-References: <20110610002103.GA7169@xanatos>
- <4E3B1B7B.2040501@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4E3B1B7B.2040501@infradead.org>
+	Thu, 18 Aug 2011 04:50:10 -0400
+Subject: RE: [PATCH 7/9] ARM: DMA: steal memory for DMA coherent mappings
+From: Tixy <tixy@yxit.co.uk>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: 'Arnd Bergmann' <arnd@arndb.de>, 'Ankita Garg' <ankita@in.ibm.com>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	linux-kernel@vger.kernel.org,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+In-Reply-To: <009101cc5cde$6dfaa660$49eff320$%szyprowski@samsung.com>
+References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
+	 <201108161626.26130.arnd@arndb.de>
+	 <006b01cc5cb3$dac09fa0$9041dee0$%szyprowski@samsung.com>
+	 <201108171428.44555.arnd@arndb.de>
+	 <009101cc5cde$6dfaa660$49eff320$%szyprowski@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 18 Aug 2011 09:27:53 +0100
+Message-ID: <1313656073.2254.23.camel@computer2>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 04, 2011 at 07:21:47PM -0300, Mauro Carvalho Chehab wrote:
-> I know that this problem were somewhat solved for 3G modems, with the usage
-> of the userspace problem usb_modeswitch, and with some quirks for the USB
-> storage driver, but I'm not sure if such tricks will scale forever, as more
-> functions are seen on some USB devices.
+On Wed, 2011-08-17 at 15:06 +0200, Marek Szyprowski wrote:
+[...]
+> > > Maybe for the first version a static pool with reasonably small size
+> > > (like 128KiB) will be more than enough? This size can be even board
+> > > depended or changed with kernel command line for systems that really
+> > > needs more memory.
+> > 
+> > For a first version that sounds good enough. Maybe we could use a fraction
+> > of the CONSISTENT_DMA_SIZE as an estimate?
+> 
+> Ok, good. For the initial values I will probably use 1/8 of 
+> CONSISTENT_DMA_SIZE for coherent allocations. Writecombine atomic allocations
+> are extremely rare and rather ARM specific. 1/32 of CONSISTENT_DMA_SIZE should
+> be more than enough for them.
 
-Well, no matter how it "scales" it needs to be done in userspace, like
-usb_modeswitch does.  We made that decision a while ago, and it is
-working out very well.  I see no reason why you can't do it in userspace
-as well as that is the easiest place to control this type of thing.
+For people who aren't aware, we have a patch to remove the define
+CONSISTENT_DMA_SIZE and replace it with a runtime call to an
+initialisation function [1]. I don't believe this fundamentally changes
+anything being discussed though.
 
-I thought we had a long discussion about this topic a while ago and came
-to this very conclusion.  Or am I mistaken?
+-- 
+Tixy
 
-thanks,
+[1] http://www.spinics.net/lists/arm-kernel/msg135589.html
 
-greg k-h
