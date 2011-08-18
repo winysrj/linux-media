@@ -1,50 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:38332 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753877Ab1H3OAy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 10:00:54 -0400
-Date: Tue, 30 Aug 2011 15:00:51 +0100
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tuukka Toivonen <tuukka.toivonen@intel.com>
-Subject: Re: [ANN] Meeting minutes of the Cambourne meeting
-Message-ID: <20110830140051.GH2061@opensource.wolfsonmicro.com>
-References: <201107261647.19235.laurent.pinchart@ideasonboard.com>
- <201108081750.07000.laurent.pinchart@ideasonboard.com>
- <4E5A2657.7030605@gmail.com>
- <201108291508.59649.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1108300018490.5065@axis700.grange>
- <20110830134148.GA14976@sirena.org.uk>
- <20110830135609.GC1355@ponder.secretlab.ca>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110830135609.GC1355@ponder.secretlab.ca>
+Received: from mga11.intel.com ([192.55.52.93]:17066 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755194Ab1HRLW4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Aug 2011 07:22:56 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCHv2] adp1653: make ->power() method optional
+Date: Thu, 18 Aug 2011 14:22:27 +0300
+Message-Id: <98c77ce2a17d7a098dedfc858f4055edc5556c54.1313666504.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20110818092158.GA8872@valkosipuli.localdomain>
+References: <20110818092158.GA8872@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 30, 2011 at 07:56:09AM -0600, Grant Likely wrote:
-> On Tue, Aug 30, 2011 at 02:41:48PM +0100, Mark Brown wrote:
+The ->power() could be absent or not used on some platforms. This patch makes
+its presence optional.
 
-> > The events should only be generated after the probe() has succeeded so
-> > if the driver talks to the hardware then it can fail probe() if need be.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/adp1653.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-> I'm a bit confused here.  Which events are you referring to, and which
-> .probe call? (the i2c/spi/whatever probe, or the aggregate v4l2 probe?)
+diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
+index 0fd9579..f830313 100644
+--- a/drivers/media/video/adp1653.c
++++ b/drivers/media/video/adp1653.c
+@@ -329,6 +329,11 @@ adp1653_set_power(struct v4l2_subdev *subdev, int on)
+ 	struct adp1653_flash *flash = to_adp1653_flash(subdev);
+ 	int ret = 0;
+ 
++	/* There is no need to switch power in case of absence ->power()
++	 * method. */
++	if (flash->platform_data->power == NULL)
++		return 0;
++
+ 	mutex_lock(&flash->power_lock);
+ 
+ 	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
+-- 
+1.7.5.4
 
-There's some driver model core level notifiers that are generated when
-things manage to bind (postdating all the ASoC stuff for this IIRC, and
-not covering the suspend/resume ordering issues).  Actually, thinking
-about it they may be per bus.
