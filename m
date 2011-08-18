@@ -1,60 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41085 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751436Ab1H2LIX (ORCPT
+Received: from nm4-vm0.bt.bullet.mail.ird.yahoo.com ([212.82.108.93]:24759
+	"HELO nm4-vm0.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754435Ab1HRW2s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 07:08:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH/RFC v2 1/3] fbdev: Add FOURCC-based format configuration API
-Date: Mon, 29 Aug 2011 13:08:49 +0200
-Cc: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com
-References: <1313746626-23845-1-git-send-email-laurent.pinchart@ideasonboard.com> <201108291209.08349.laurent.pinchart@ideasonboard.com> <CAMuHMdU3eO34zmGVejUj4B7Z5JWiwM_pieoycfinSspSiL1reQ@mail.gmail.com>
-In-Reply-To: <CAMuHMdU3eO34zmGVejUj4B7Z5JWiwM_pieoycfinSspSiL1reQ@mail.gmail.com>
+	Thu, 18 Aug 2011 18:28:48 -0400
+Message-ID: <4E4D921A.4080605@yahoo.com>
+Date: Thu, 18 Aug 2011 23:28:42 +0100
+From: Chris Rankin <rankincj@yahoo.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108291308.50244.laurent.pinchart@ideasonboard.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org, mchehab@redhat.com,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH] Latest version of em28xx / em28xx-dvb patch for PCTV
+ 290e
+References: <4E4D5157.2080406@yahoo.com> <CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com> <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com>
+In-Reply-To: <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------040001030805030306030300"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
+This is a multi-part message in MIME format.
+--------------040001030805030306030300
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Monday 29 August 2011 13:04:15 Geert Uytterhoeven wrote:
-> On Mon, Aug 29, 2011 at 12:09, Laurent Pinchart wrote:
-> > On Monday 29 August 2011 11:36:07 Geert Uytterhoeven wrote:
-> >> On Mon, Aug 29, 2011 at 10:50, Laurent Pinchart wrote:
-> [...]
-> 
-> > If my understanding is now correct, a V4L2 planar YUV type where Y, U and
-> > V components are stored in separate byte-oriented planes, with each
-> > plane storing Y, U or V components packed (such as
-> > http://linuxtv.org/downloads/v4l- dvb-apis/V4L2-PIX-FMT-YUV422P.html),
-> > would be of neither FB_TYPE_PLANES nor FB_TYPE_PACKED. The same would be
-> > true for an RGB format where each component is stored in a separate
-> > plane with each plane sotring R, G or B packed.
-> 
-> Indeed. Currently this cannot be represented.
+Next patch: By default, the DVB framework tries to put a frontend to sleep after 
+it has been shut down. This obviously doesn't work for a USB device that has 
+been disconnected, and can result in occasional errors in dmesg about I2C writes 
+failing with error code -19.
 
-Good, at least I now understand the situation :-)
+The patch works by nulling out the function pointers that the DVB framework 
+would otherwise try to call. I have therefore declared the structs in the 
+tda18271 and cxd2820r modules to be "const", so that we know that they are 
+supposed only to be templates.
 
-> For ideas from the past, see e.g.
-> http://comments.gmane.org/gmane.linux.fbdev.devel/10951.
-> 
-> > If the above is correct, what FB_TYPE_* should a driver report when using
-> > FB_VISUAL_FOURCC with V4L2_PIX_FMT_YUV422P
-> > (http://linuxtv.org/downloads/v4l- dvb-apis/V4L2-PIX-FMT-YUV422P.html)
-> > or V4L2_PIX_FMT_NV12
-> > (http://linuxtv.org/downloads/v4l-dvb-apis/re25.html) for instance ?
-> 
-> We need new types for those. Or always use FOURCC for them.
+Signed-off-by: Chris Rankin <rankincj@yahoo.com>
 
-My proposal currently defined FB_VISUAL_FOURCC. What about adding 
-FB_TYPE_FOURCC as well ?
 
--- 
-Regards,
+--------------040001030805030306030300
+Content-Type: text/x-patch;
+ name="EM28xx-disconnect-dont-sleep.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="EM28xx-disconnect-dont-sleep.diff"
 
-Laurent Pinchart
+--- linux-3.0/drivers/media/common/tuners/tda18271-fe.c.orig	2011-08-18 16:55:53.000000000 +0100
++++ linux-3.0/drivers/media/common/tuners/tda18271-fe.c	2011-08-18 23:12:55.000000000 +0100
+@@ -1230,7 +1230,7 @@
+ 	return 0;
+ }
+ 
+-static struct dvb_tuner_ops tda18271_tuner_ops = {
++static const struct dvb_tuner_ops tda18271_tuner_ops = {
+ 	.info = {
+ 		.name = "NXP TDA18271HD",
+ 		.frequency_min  =  45000000,
+--- linux-3.0/drivers/media/dvb/frontends/cxd2820r_core.c.orig	2011-08-18 16:56:02.000000000 +0100
++++ linux-3.0/drivers/media/dvb/frontends/cxd2820r_core.c	2011-08-18 23:14:06.000000000 +0100
+@@ -778,7 +778,7 @@
+ }
+ EXPORT_SYMBOL(cxd2820r_get_tuner_i2c_adapter);
+ 
+-static struct dvb_frontend_ops cxd2820r_ops[2];
++static const struct dvb_frontend_ops cxd2820r_ops[2];
+ 
+ struct dvb_frontend *cxd2820r_attach(const struct cxd2820r_config *cfg,
+ 	struct i2c_adapter *i2c, struct dvb_frontend *fe)
+@@ -844,7 +844,7 @@
+ }
+ EXPORT_SYMBOL(cxd2820r_attach);
+ 
+-static struct dvb_frontend_ops cxd2820r_ops[2] = {
++static const struct dvb_frontend_ops cxd2820r_ops[2] = {
+ 	{
+ 		/* DVB-T/T2 */
+ 		.info = {
+--- linux-3.0/drivers/media/video/em28xx/em28xx-dvb.c.orig	2011-08-17 08:52:30.000000000 +0100
++++ linux-3.0/drivers/media/video/em28xx/em28xx-dvb.c	2011-08-18 23:17:42.000000000 +0100
+@@ -720,6 +720,12 @@
+ 	goto ret;
+ }
+ 
++static inline void prevent_sleep(struct dvb_frontend_ops *ops) {
++	ops->set_voltage = NULL;
++	ops->sleep = NULL;
++	ops->tuner_ops.sleep = NULL;
++}
++
+ static int dvb_fini(struct em28xx *dev)
+ {
+ 	if (!dev->board.has_dvb) {
+@@ -728,8 +734,17 @@
+ 	}
+ 
+ 	if (dev->dvb) {
+-		unregister_dvb(dev->dvb);
+-		kfree(dev->dvb);
++		struct em28xx_dvb *dvb = dev->dvb;
++
++		if (dev->state & DEV_DISCONNECTED) {
++			/* We cannot tell the device to sleep
++			 * once it has been unplugged. */
++			prevent_sleep(&dvb->fe[0]->ops);
++			prevent_sleep(&dvb->fe[1]->ops);
++		}
++
++		unregister_dvb(dvb);
++		kfree(dvb);
+ 		dev->dvb = NULL;
+ 	}
+ 
+
+--------------040001030805030306030300--
