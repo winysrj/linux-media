@@ -1,54 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm16-vm4.bullet.mail.ne1.yahoo.com ([98.138.91.176]:43262 "HELO
-	nm16-vm4.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751120Ab1HYX1a convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Aug 2011 19:27:30 -0400
-Message-ID: <1314314849.52943.YahooMailClassic@web121708.mail.ne1.yahoo.com>
-Date: Thu, 25 Aug 2011 16:27:29 -0700 (PDT)
-From: Chris Rankin <rankincj@yahoo.com>
-Subject: Is DVB ioctl FE_SET_FRONTEND broken?
-To: linux-media@vger.kernel.org
+Received: from smtp-68.nebula.fi ([83.145.220.68]:55103 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755199Ab1HRJWF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Aug 2011 05:22:05 -0400
+Date: Thu, 18 Aug 2011 12:21:58 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] adp1653: make ->power() method optional
+Message-ID: <20110818092158.GA8872@valkosipuli.localdomain>
+References: <aa45d92c4ec78b36b28eb721ef58f3a5512900a3.1313657559.git.andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aa45d92c4ec78b36b28eb721ef58f3a5512900a3.1313657559.git.andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, Aug 18, 2011 at 11:53:03AM +0300, Andy Shevchenko wrote:
+> The ->power() could be absent or not used on some platforms. This patch makes
+> its presence optional.
 
-As far as I understand it, the FE_SET_FRONTEND ioctl is supposed to tell a DVB device to tune itself, and will send a poll() event when it completes. The "frequency" parameter of this event will be the frequency of the newly tuned channel, or 0 if tuning failed.
+Hi Andy,
 
-http://www.linuxtv.org/docs/dvbapi/DVB_Frontend_API.html#SECTION00328000000000000000
+Thanks for the patch!
 
-I have now tested with 2 different DVB adapters, and I don't think the 3.0.x kernel still behaves like this. A study of the dvb-core/dvb_frontend.c file reveals the following code:
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/video/adp1653.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
+> index 0fd9579..65f6f3f 100644
+> --- a/drivers/media/video/adp1653.c
+> +++ b/drivers/media/video/adp1653.c
+> @@ -309,6 +309,9 @@ __adp1653_set_power(struct adp1653_flash *flash, int on)
+>  {
+>  	int ret;
+>  
+> +	if (flash->platform_data->power == NULL)
+> +		return 0;
+> +
+>  	ret = flash->platform_data->power(&flash->subdev, on);
+>  	if (ret < 0)
+>  		return ret;
+> -- 
+> 1.7.5.4
+> 
 
-In the dvb_frontend_ioctl_legacy() function,
+How about doing this in adp1653_set_power() instead of
+__adp1653_set_power()? At least I don't see any ill effects from this.
+There's no need to keep track of the power state (flash->power_count) if
+there isn't one. :-)
 
-    switch(cmd) {
-
-    ...
-
-    case FE_SET_FRONTEND: {
-
-        ...
-
-        fepriv->state = FESTATE_RETUNE;
-
-        /* Request the search algorithm to search */
-        fepriv->algo_status |= DVBFE_ALGO_SEARCH_AGAIN;
-
-        dvb_frontend_wakeup(fe);
-        dvb_frontend_add_event(fe, 0);   // <--- HERE!!!!
-        fepriv->status = 0;
-        err = 0;
-        break;
-    }
-
-So basically, the ioctl always sends an event immediately and does not wait for the tuning to happen first. Presumably, the device still tunes in the background and writes the frequency into the frontend's private structure so that a second FE_SET_FRONTEND ioctl succeeds. But this is not the documented behaviour.
-
-The bug is visible when you try to use the device for the very first time. I tested by unloading / reloading the kernel modules, launching xine and then pressing its DVB button. This *always* fails the first time, for the reason described above, and works every time after that.
-
-Cheers,
-Chris
-
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
