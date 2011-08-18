@@ -1,91 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:37347 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753640Ab1HKUdL (ORCPT
+Received: from nm4-vm0.bt.bullet.mail.ird.yahoo.com ([212.82.108.93]:32500
+	"HELO nm4-vm0.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753245Ab1HRVfF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2011 16:33:11 -0400
-Message-ID: <4E443C6E.8040808@infradead.org>
-Date: Thu, 11 Aug 2011 17:32:46 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Thu, 18 Aug 2011 17:35:05 -0400
+Message-ID: <4E4D8583.4070606@yahoo.com>
+Date: Thu, 18 Aug 2011 22:34:59 +0100
+From: Chris Rankin <rankincj@yahoo.com>
 MIME-Version: 1.0
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-CC: Alan Stern <stern@rowland.harvard.edu>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	Greg KH <greg@kroah.com>, linux-usb@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	libusb-devel@lists.sourceforge.net, Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Adam Baker <linux@baker-net.org.uk>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-References: <Pine.LNX.4.44L0.1108111145360.1958-100000@iolanthe.rowland.org> <alpine.LNX.2.00.1108111235400.27040@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.1108111235400.27040@banach.math.auburn.edu>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org, mchehab@redhat.com,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH] Latest version of em28xx / em28xx-dvb patch for PCTV
+ 290e
+References: <4E4D5157.2080406@yahoo.com> <CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com> <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com>
+In-Reply-To: <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------090704090006030603010603"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 11-08-2011 17:01, Theodore Kilgore escreveu:
+This is a multi-part message in MIME format.
+--------------090704090006030603010603
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> As I said, I am agnostic, though leaning in the direction that Hans de 
-> Goede is pointing. What he says about a single control mechanism seems to 
-> make a lot of sense. If you can come up with an outline of the "easier to 
-> code" solution, that would be interesting, though.
-> 
-> I assume you are also going to be in Vancouver? If you will be there on 
-> Monday, then Hans and I are already planning to meet and discuss. 
-> 
-> BTW, as to using V4L with "tweaks" to handle still mode, it would probably 
-> be more difficult than is imagined. For, though the operations required to 
-> process still images and webcam frames are in principle similar, the 
-> priorities and constraints are too different. Therefore, my understanding 
-> is that the libgphoto2 image processing routines, not the libv4l image 
-> processing routines, would still be used for still images.
+On 18/08/11 19:44, Devin Heitmueller wrote:
+> You would be well served to break this into a patch series, as it tends to be 
+> difficult to review a whole series of changes in a single patch.
 
-I agree with Alan Cox: most of the code that the driver needs is already there: 
-register read/write routines, bulk transfer support, etc. The amount of extra 
-code for adding still cam functionality is probably not big.
+Here are the first three patches:
 
->From the kernel driver's perspective, it doesn't matter if the access will come
-via libv4l, libgphoto2 or whatever. The driver should be able to allow simultaneous
-open, while protecting the data access when userspace requests data stream or
-still image retrieve.
-
-instead of using the V4L2 device node to access the stored images, it probably makes 
-more sense to use a separate device for that, that will handle a separate set of 
-ioctl's, and just use read() to retrieve the image data, after selecting the desired
-image number, via ioctl().
-
-It probably makes sense to add a new set of callbacks at the gspca core in order
-to handle the new device node, and letting it to avoid start streaming while the
-store access is happening, and vice-versa. Alternatively, we may create a separate
-"still cam" core library to handle the new device node,.
-
-If all agree around such solution, I suggest to take the most complex case and try
-to map it into the driver and core, and see how it behaves, testing with some simple
-command line applications, only changing the libgphoto2 code after those initial
-tests. Writing a simple code for reading still images should be easy, and we have 
-already some testing tools for V4L2.
-
-After coding the core changes that are common to all drives, I suspect that adding 
-the remaining 4 drivers will be quick.
-
-With regards to libgphoto2, all it needs to do is to test if the new device nodes
-exist. If they exist, then the new code will be used. Otherwise, it will fallback
-to the libusb. This way, we can incrementally add the Dual mode drivers into the
-kernel.
-
-There is one advantage on using this strategy: if, in the future, new Dual Cams
-arise, one can write first a still cam kernel driver, adding V4L support later.
+- release the alt_max_pkt_size buffer.
+- use atomic bit operations for em28xx_devused.
+- use the correct amount of memory for snprintf().
 
 Cheers,
-Mauro
+Chris
+
+Signed-of-by: Chris Rankin <rankincj@yahoo.com>
+
+
+--------------090704090006030603010603
+Content-Type: text/x-patch;
+ name="EM28xx-devused-bits.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="EM28xx-devused-bits.diff"
+
+--- linux-3.0/drivers/media/video/em28xx/em28xx-cards.c.orig	2011-08-18 22:24:12.000000000 +0100
++++ linux-3.0/drivers/media/video/em28xx/em28xx-cards.c	2011-08-18 22:22:14.000000000 +0100
+@@ -60,7 +60,7 @@
+ module_param_array(card,  int, NULL, 0444);
+ MODULE_PARM_DESC(card,     "card type");
+ 
+-/* Bitmask marking allocated devices from 0 to EM28XX_MAXBOARDS */
++/* Bitmask marking allocated devices from 0 to EM28XX_MAXBOARDS - 1 */
+ static unsigned long em28xx_devused;
+ 
+ struct em28xx_hash_table {
+@@ -2763,7 +2763,7 @@
+ 	usb_put_dev(dev->udev);
+ 
+ 	/* Mark device as unused */
+-	em28xx_devused &= ~(1 << dev->devno);
++	clear_bit(dev->devno, &em28xx_devused);
+ };
+ 
+ /*
+@@ -2967,8 +2967,16 @@
+ 	ifnum = interface->altsetting[0].desc.bInterfaceNumber;
+ 
+ 	/* Check to see next free device and mark as used */
+-	nr = find_first_zero_bit(&em28xx_devused, EM28XX_MAXBOARDS);
+-	em28xx_devused |= 1<<nr;
++	do {
++		nr = find_first_zero_bit(&em28xx_devused, EM28XX_MAXBOARDS);
++		if (nr >= EM28XX_MAXBOARDS) {
++			/* No free device slots */
++			printk(DRIVER_NAME ": Supports only %i em28xx boards.\n",
++					EM28XX_MAXBOARDS);
++			retval = -ENOMEM;
++			goto err_no_slot;
++		}
++	} while (test_and_set_bit(nr, &em28xx_devused));
+ 
+ 	/* Don't register audio interfaces */
+ 	if (interface->altsetting[0].desc.bInterfaceClass == USB_CLASS_AUDIO) {
+@@ -2979,7 +2987,6 @@
+ 			ifnum,
+ 			interface->altsetting[0].desc.bInterfaceClass);
+ 
+-		em28xx_devused &= ~(1<<nr);
+ 		retval = -ENODEV;
+ 		goto err;
+ 	}
+@@ -3013,7 +3020,6 @@
+ 			em28xx_err(DRIVER_NAME " This is an anciliary "
+ 				"interface not used by the driver\n");
+ 
+-			em28xx_devused &= ~(1<<nr);
+ 			retval = -ENODEV;
+ 			goto err;
+ 		}
+@@ -3063,24 +3069,14 @@
+ 		printk(DRIVER_NAME ": Device initialization failed.\n");
+ 		printk(DRIVER_NAME ": Device must be connected to a high-speed"
+ 		       " USB 2.0 port.\n");
+-		em28xx_devused &= ~(1<<nr);
+ 		retval = -ENODEV;
+ 		goto err;
+ 	}
+ 
+-	if (nr >= EM28XX_MAXBOARDS) {
+-		printk(DRIVER_NAME ": Supports only %i em28xx boards.\n",
+-				EM28XX_MAXBOARDS);
+-		em28xx_devused &= ~(1<<nr);
+-		retval = -ENOMEM;
+-		goto err;
+-	}
+-
+ 	/* allocate memory for our device state and initialize it */
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+ 	if (dev == NULL) {
+ 		em28xx_err(DRIVER_NAME ": out of memory!\n");
+-		em28xx_devused &= ~(1<<nr);
+ 		retval = -ENOMEM;
+ 		goto err;
+ 	}
+@@ -3107,7 +3103,6 @@
+ 
+ 	if (dev->alt_max_pkt_size == NULL) {
+ 		em28xx_errdev("out of memory!\n");
+-		em28xx_devused &= ~(1<<nr);
+ 		kfree(dev);
+ 		retval = -ENOMEM;
+ 		goto err;
+@@ -3127,7 +3122,6 @@
+ 	mutex_lock(&dev->lock);
+ 	retval = em28xx_init_dev(&dev, udev, interface, nr);
+ 	if (retval) {
+-		em28xx_devused &= ~(1<<dev->devno);
+ 		kfree(dev->alt_max_pkt_size);
+ 		mutex_unlock(&dev->lock);
+ 		kfree(dev);
+@@ -3147,6 +3141,10 @@
+ 	return 0;
+ 
+ err:
++	clear_bit(nr, &em28xx_devused);
++
++err_no_slot:
++	usb_put_dev(udev);
+ 	return retval;
+ }
+ 
+
+--------------090704090006030603010603
+Content-Type: text/x-patch;
+ name="EM28xx-snprintf.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="EM28xx-snprintf.diff"
+
+--- linux-3.0/drivers/media/video/em28xx/em28xx-cards.c.orig	2011-08-17 08:52:19.000000000 +0100
++++ linux-3.0/drivers/media/video/em28xx/em28xx-cards.c	2011-08-18 22:03:05.000000000 +0100
+@@ -3085,7 +3085,7 @@
+ 		goto err;
+ 	}
+ 
+-	snprintf(dev->name, 29, "em28xx #%d", nr);
++	snprintf(dev->name, sizeof(dev->name), "em28xx #%d", nr);
+ 	dev->devno = nr;
+ 	dev->model = id->driver_info;
+ 	dev->alt   = -1;
+
+--------------090704090006030603010603
+Content-Type: text/x-patch;
+ name="EM28xx-video-leak.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="EM28xx-video-leak.diff"
+
+--- linux-3.0/drivers/media/video/em28xx/em28xx-video.c.orig	2011-08-18 17:20:10.000000000 +0100
++++ linux-3.0/drivers/media/video/em28xx/em28xx-video.c	2011-08-18 17:20:33.000000000 +0100
+@@ -2202,6 +2202,7 @@
+ 		   free the remaining resources */
+ 		if (dev->state & DEV_DISCONNECTED) {
+ 			em28xx_release_resources(dev);
++			kfree(dev->alt_max_pkt_size);
+ 			kfree(dev);
+ 			return 0;
+ 		}
+--- linux-3.0/drivers/media/video/em28xx/em28xx-cards.c.orig	2011-08-17 08:52:19.000000000 +0100
++++ linux-3.0/drivers/media/video/em28xx/em28xx-cards.c	2011-08-18 22:09:32.000000000 +0100
+@@ -3128,6 +3128,7 @@
+ 	retval = em28xx_init_dev(&dev, udev, interface, nr);
+ 	if (retval) {
+ 		em28xx_devused &= ~(1<<dev->devno);
++		kfree(dev->alt_max_pkt_size);
+ 		mutex_unlock(&dev->lock);
+ 		kfree(dev);
+ 		goto err;
+
+--------------090704090006030603010603--
