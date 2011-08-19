@@ -1,82 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:64756 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750922Ab1H2NY1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 09:24:27 -0400
-Received: by yie30 with SMTP id 30so3512613yie.19
-        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2011 06:24:27 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:61572 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751458Ab1HSBBp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Aug 2011 21:01:45 -0400
+Message-ID: <4E4DB5EE.7040107@redhat.com>
+Date: Thu, 18 Aug 2011 18:01:34 -0700
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CA+s_+RrGE2T0H+XSSjg81zh514g1oQePLCfV-y3nJC8DqXjWjQ@mail.gmail.com>
-References: <CA+s_+RqtWZuj5b55Vk5A==VqbPEnDoqFfSVGtA2n-pdR85mc8g@mail.gmail.com>
-	<CA+s_+RrGE2T0H+XSSjg81zh514g1oQePLCfV-y3nJC8DqXjWjQ@mail.gmail.com>
-Date: Mon, 29 Aug 2011 09:24:27 -0400
-Message-ID: <CA+s_+RpekDfRSWEQMZObjiR-RTgLeFUk1tc-g6ieQYLzcTqwdw@mail.gmail.com>
-Subject: Usb digital TV
-From: Gabriel Sartori <gabriel.sartori@gmail.com>
-To: linux-media@vger.kernel.org
+To: Chris Rankin <rankincj@yahoo.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH] Latest version of em28xx / em28xx-dvb patch for PCTV
+ 290e
+References: <4E4D5157.2080406@yahoo.com> <CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com> <4E4D6E72.5070509@yahoo.com>
+In-Reply-To: <4E4D6E72.5070509@yahoo.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Em 18-08-2011 12:56, Chris Rankin escreveu:
+> On 18/08/11 19:43, Devin Heitmueller wrote:
+>> You would be well served to break this into a patch series, as it tends to be difficult to review a whole series of changes in a single patch. You seem to be mixed in a bunch of "useless" changes alongside functional changes. For example, if you're trying to add in a missing goto inside an exception block, doing that at the same time as renaming instances of "errCode" to "retval" just creates confusion.
+> 
+> Actually, those two particular changes go together because I'm replacing "return errCode" with a goto to "return retval". Ultimately, errCode becomes an unused variable.
+> 
+>> And finally, the mutex structure used for the modules is somewhat complicated due to to the need to keep the analog side of the board locked while initializing the digital side. This code was added specifically to prevent race conditions that were seen during initialization as things like udev and dbus attempted to connect to the newly created V4L device while the em28xx-dvb module was still coming up.
+> 
+> OK, thanks. I've been tackling this problem from the "We must always take lock A before lock B, and never vice versa" point of view. So the order is:
+> 
+> - take device mutex
+> - enter em28xx_init_dev()
+> - enter em28xx_init_extension()
+> - take device list mutex
+> - call init() function for every extension with this device
+> 
+> Since dvb_init() is the init() function for the em28xx-dvb extension, it follows that it cannot take the device's mutex again. The problem is therefore moved to em28xx_dvb_register(), which takes the device list mutex and yet MUST not take the mutex for any device in the list.
+> 
+> Combining em28xx_add_into_devlist() with em28xx_init_extension() (and similarly em28xx_remove_from_devlist() with em28xx_close_extension()) means that the device list must always contain a list of devices that has been initialised against every extension in the extension list.
+> 
+> I can probably factor out the simpler patches first, such as using the bit operations on em28xx_devused, and the memory leak in em28xx_v4l2_close(). And the spelling fixes...
 
-  I am from Brazil and my english is not very good.
-  First of all, I am new on the list.
-  I work with embedded system development here in Brazil.
-  I have a lot to learn but I expect to help too!
+I agree with Devin: please break it into one patch with just the mutex
+fixes, and another one(s) with the cleanups. The basic rule is one patch
+per logic change. 
 
-  I don't know if it is the right place to ask. Sorry if it is not.
-  I have a i.mx28EVK board and I would like to get a usb digital tv
-module to work on it. It should work in 1seg.
+For the mutex patch, please add:
+"Cc: stable@kernel.org" at the line before your signed-off-by, as such
+patch should be backported to stable kernels.
 
-  First of all I bought a two usb devices:
-  - pixelview sbtvd hybrid
-  - Leadership
+With respect to return errCode, maybe the better would be to
+rename it as just "rc". It is very common to call the return
+code as that on several places, and it is smaller.
 
-  The first one uses driver cx231xx and the second one smsdvb.
-  My board have a 2.6.35 kernel with specific paths from freescale.
+PS.: I didn't make a full review of your patches yet. I'll probably
+do it by the next week, after returning from LinuxCon.
 
-  First off all I tried to plug the first device in my pc. It only
-worked with an newer kernel version 2.6.38 or with some specific
-pathes for brazil patterns in a 2.6.36.
-  I was able to see some channels here.
-  But It seems very dificult to me to port all these changes and make
-it work on my old 2.6.35 kernel.
-
-  The second device has a strange behavior. It worked on my PC with
-older kernels like 2.6.32. It should work in my mx28 board too.
-  But I cannot scan any channel!?!?!?
-
-  In dmesg i got:
-
-  [  332.620053] smscore_set_device_mode: firmware download success:
-isdbt_nova_12mhz_b0.inp
-  [  332.620615] usbcore: registered new interface driver smsusb
-  [  350.721231] DVB: registering new adapter (Siano Nova B Digital Receiver)
-  [  350.724588] DVB: registering adapter 0 frontend 0 (Siano Mobile
-Digital MDTV Receiver)...
-
-  In my /dev/dvb/adapter0 I have three devices:
-  - demux0
-  - dvr0
-  - frontend0
-
- If I tried to scan with:
-
- sudo w_scan -ft -x -c BR
-
- I got the follow messages:
-
- ERROR: Sorry - i couldn't get any working frequency/transponder
-
-Can someone help me with this last thing?
-It seems everything is ok but I cannot scan channel.
-It there some devices that has more chance to work on a 2.6.35 kernel
-version so I can just cross compile the driver to my mx28 board in a
-easier way?
-
-Thanks in advance.
-
-Gabriel Sartori
+Thanks!
+Mauro
