@@ -1,259 +1,643 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:60417 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752102Ab1HBJty (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2011 05:49:54 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=UTF-8; format=flowed
-Received: from spt2.w1.samsung.com ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LPA003THON5TO30@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Aug 2011 10:49:53 +0100 (BST)
-Received: from [127.0.0.1] ([106.10.22.139])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LPA00A68ON3BP@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Aug 2011 10:49:52 +0100 (BST)
-Date: Tue, 02 Aug 2011 11:49:53 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 1/6] drivers: base: add shared buffer framework
-In-reply-to: <4E37C7D7.40301@samsung.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <4E37C841.7000709@samsung.com>
-References: <4E37C7D7.40301@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40606 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752746Ab1HSJhL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Aug 2011 05:37:11 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-fbdev@vger.kernel.org
+Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com
+Subject: [PATCH/RFC v2 3/3] fbdev: sh_mobile_lcdc: Support FOURCC-based format API
+Date: Fri, 19 Aug 2011 11:37:06 +0200
+Message-Id: <1313746626-23845-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1313746626-23845-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1313746626-23845-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-
-This patch adds the framework for buffer sharing via a file descriptor. A
-driver that use shared buffer (shrbuf) can export a memory description by
-transforming it into a file descriptor. The reverse operation (import) 
-is done
-by obtaining a memory description from a file descriptor. The driver is
-responsible to get and put callbacks to avoid resource leakage. Current
-implementation is dedicated for dma-contiguous buffers but 
-scatter-gather lists
-will be use in the future.
-
-The framework depends on anonfd framework which is used to create files that
-are not associated with any inode.
-
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
-  drivers/base/Kconfig          |   11 +++++
-  drivers/base/Makefile         |    1 +
-  drivers/base/shared-buffer.c  |   96 
-+++++++++++++++++++++++++++++++++++++++++
-  include/linux/shared-buffer.h |   55 +++++++++++++++++++++++
-  4 files changed, 163 insertions(+), 0 deletions(-)
-  create mode 100644 drivers/base/shared-buffer.c
-  create mode 100644 include/linux/shared-buffer.h
+ arch/arm/mach-shmobile/board-ag5evm.c   |    2 +-
+ arch/arm/mach-shmobile/board-ap4evb.c   |    4 +-
+ arch/arm/mach-shmobile/board-mackerel.c |    4 +-
+ drivers/video/sh_mobile_lcdcfb.c        |  342 ++++++++++++++++++++-----------
+ include/video/sh_mobile_lcdc.h          |    4 +-
+ 5 files changed, 230 insertions(+), 126 deletions(-)
 
-diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
-index d57e8d0..d75a038 100644
---- a/drivers/base/Kconfig
-+++ b/drivers/base/Kconfig
-@@ -168,4 +168,15 @@ config SYS_HYPERVISOR
-      bool
-      default n
-
-+config SHARED_BUFFER
-+    bool "Framework for buffer sharing between drivers"
-+    depends on ANON_INODES
-+    help
-+      This option enables the framework for buffer sharing between
-+      multiple drivers. A buffer is associated with a file descriptor
-+      using driver API's extensions. The descriptor is passed to other
-+      driver.
-+
-+      If you are unsure about this, Say N here.
-+
-  endmenu
-diff --git a/drivers/base/Makefile b/drivers/base/Makefile
-index 4c5701c..eeeb813 100644
---- a/drivers/base/Makefile
-+++ b/drivers/base/Makefile
-@@ -8,6 +8,7 @@ obj-$(CONFIG_DEVTMPFS)    += devtmpfs.o
-  obj-y            += power/
-  obj-$(CONFIG_HAS_DMA)    += dma-mapping.o
-  obj-$(CONFIG_HAVE_GENERIC_DMA_COHERENT) += dma-coherent.o
-+obj-$(CONFIG_SHARED_BUFFER) += shared-buffer.o
-  obj-$(CONFIG_ISA)    += isa.o
-  obj-$(CONFIG_FW_LOADER)    += firmware_class.o
-  obj-$(CONFIG_NUMA)    += node.o
-diff --git a/drivers/base/shared-buffer.c b/drivers/base/shared-buffer.c
-new file mode 100644
-index 0000000..105b696
---- /dev/null
-+++ b/drivers/base/shared-buffer.c
-@@ -0,0 +1,96 @@
-+/*
-+ * Framework for shared buffer
-+ *
-+ * Copyright (C) 2011 Samsung Electronics Co., Ltd.
-+ * Author: Tomasz Stanislawski, <t.stanislaws@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/anon_inodes.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/fs.h>
-+#include <linux/file.h>
-+#include <linux/shared-buffer.h>
-+
-+/**
-+ * shrbuf_release() - release resources of shrbuf file
-+ * @inode:    a file's inode, not used
-+ * @file:    file pointer
-+ *
-+ * The function unbinds shrbuf structure from a file
-+ */
-+static int shrbuf_release(struct inode *inode, struct file *file)
+diff --git a/arch/arm/mach-shmobile/board-ag5evm.c b/arch/arm/mach-shmobile/board-ag5evm.c
+index ce5c251..e6dabaa 100644
+--- a/arch/arm/mach-shmobile/board-ag5evm.c
++++ b/arch/arm/mach-shmobile/board-ag5evm.c
+@@ -270,7 +270,7 @@ static struct sh_mobile_lcdc_info lcdc0_info = {
+ 		.flags = LCDC_FLAGS_DWPOL,
+ 		.lcd_size_cfg.width = 44,
+ 		.lcd_size_cfg.height = 79,
+-		.bpp = 16,
++		.fourcc = V4L2_PIX_FMT_RGB565,
+ 		.lcd_cfg = lcdc0_modes,
+ 		.num_cfg = ARRAY_SIZE(lcdc0_modes),
+ 		.board_cfg = {
+diff --git a/arch/arm/mach-shmobile/board-ap4evb.c b/arch/arm/mach-shmobile/board-ap4evb.c
+index 9e0856b..6f5db07 100644
+--- a/arch/arm/mach-shmobile/board-ap4evb.c
++++ b/arch/arm/mach-shmobile/board-ap4evb.c
+@@ -489,7 +489,7 @@ static struct sh_mobile_lcdc_info lcdc_info = {
+ 	.meram_dev = &meram_info,
+ 	.ch[0] = {
+ 		.chan = LCDC_CHAN_MAINLCD,
+-		.bpp = 16,
++		.fourcc = V4L2_PIX_FMT_RGB565,
+ 		.lcd_cfg = ap4evb_lcdc_modes,
+ 		.num_cfg = ARRAY_SIZE(ap4evb_lcdc_modes),
+ 		.meram_cfg = &lcd_meram_cfg,
+@@ -783,7 +783,7 @@ static struct sh_mobile_lcdc_info sh_mobile_lcdc1_info = {
+ 	.meram_dev = &meram_info,
+ 	.ch[0] = {
+ 		.chan = LCDC_CHAN_MAINLCD,
+-		.bpp = 16,
++		.fourcc = V4L2_PIX_FMT_RGB565,
+ 		.interface_type = RGB24,
+ 		.clock_divider = 1,
+ 		.flags = LCDC_FLAGS_DWPOL,
+diff --git a/arch/arm/mach-shmobile/board-mackerel.c b/arch/arm/mach-shmobile/board-mackerel.c
+index 6e3c2df..6e36349 100644
+--- a/arch/arm/mach-shmobile/board-mackerel.c
++++ b/arch/arm/mach-shmobile/board-mackerel.c
+@@ -387,7 +387,7 @@ static struct sh_mobile_lcdc_info lcdc_info = {
+ 	.clock_source = LCDC_CLK_BUS,
+ 	.ch[0] = {
+ 		.chan = LCDC_CHAN_MAINLCD,
+-		.bpp = 16,
++		.fourcc = V4L2_PIX_FMT_RGB565,
+ 		.lcd_cfg = mackerel_lcdc_modes,
+ 		.num_cfg = ARRAY_SIZE(mackerel_lcdc_modes),
+ 		.interface_type		= RGB24,
+@@ -450,7 +450,7 @@ static struct sh_mobile_lcdc_info hdmi_lcdc_info = {
+ 	.clock_source = LCDC_CLK_EXTERNAL,
+ 	.ch[0] = {
+ 		.chan = LCDC_CHAN_MAINLCD,
+-		.bpp = 16,
++		.fourcc = V4L2_PIX_FMT_RGB565,
+ 		.interface_type = RGB24,
+ 		.clock_divider = 1,
+ 		.flags = LCDC_FLAGS_DWPOL,
+diff --git a/drivers/video/sh_mobile_lcdcfb.c b/drivers/video/sh_mobile_lcdcfb.c
+index 97ab8ba..ea3f619 100644
+--- a/drivers/video/sh_mobile_lcdcfb.c
++++ b/drivers/video/sh_mobile_lcdcfb.c
+@@ -17,6 +17,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/interrupt.h>
++#include <linux/videodev2.h>
+ #include <linux/vmalloc.h>
+ #include <linux/ioctl.h>
+ #include <linux/slab.h>
+@@ -101,7 +102,7 @@ struct sh_mobile_lcdc_priv {
+ 	struct sh_mobile_lcdc_chan ch[2];
+ 	struct notifier_block notifier;
+ 	int started;
+-	int forced_bpp; /* 2 channel LCDC must share bpp setting */
++	int forced_fourcc; /* 2 channel LCDC must share fourcc setting */
+ 	struct sh_mobile_meram_info *meram_dev;
+ };
+ 
+@@ -214,6 +215,42 @@ struct sh_mobile_lcdc_sys_bus_ops sh_mobile_lcdc_sys_bus_ops = {
+ 	lcdc_sys_read_data,
+ };
+ 
++static int sh_mobile_format_fourcc(const struct fb_var_screeninfo *var)
 +{
-+    struct shrbuf *sb = file->private_data;
++	if (var->format.fourcc > 1)
++		return var->format.fourcc;
 +
-+    /* decrease reference counter increased in shrbuf_export */
-+    sb->put(sb);
-+    return 0;
++	switch (var->bits_per_pixel) {
++	case 16:
++		return V4L2_PIX_FMT_RGB565;
++	case 24:
++		return V4L2_PIX_FMT_BGR24;
++	case 32:
++		return V4L2_PIX_FMT_BGR32;
++	default:
++		return 0;
++	}
 +}
 +
-+static const struct file_operations shrbuf_fops = {
-+    .release = shrbuf_release,
-+};
-+
-+/**
-+ * shrbuf_export() - transforms shrbuf into a file descriptor
-+ * @sb:        shared buffer instance to be exported
-+ *
-+ * The function creates a file descriptor associated with a shared buffer
-+ *
-+ * Returns file descriptor or appropriate error on failure
-+ */
-+int shrbuf_export(struct shrbuf *sb)
++static bool sh_mobile_format_yuv(const struct fb_var_screeninfo *var)
 +{
-+    int fd;
++	if (var->format.fourcc <= 1)
++		return false;
 +
-+    BUG_ON(!sb || !sb->get || !sb->put);
-+    /* binding shrbuf to a file so reference count in increased */
-+    sb->get(sb);
-+    /* obtaing file descriptor without inode */
-+    fd = anon_inode_getfd("shrbuf", &shrbuf_fops, sb, 0);
-+    /* releasing shrbuf on failure */
-+    if (fd < 0)
-+        sb->put(sb);
-+    return fd;
++	switch (var->format.fourcc) {
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV16:
++	case V4L2_PIX_FMT_NV61:
++	case V4L2_PIX_FMT_NV24:
++	case V4L2_PIX_FMT_NV42:
++		return true;
++
++	default:
++		return false;
++	}
 +}
 +
-+EXPORT_SYMBOL(shrbuf_export);
+ static void sh_mobile_lcdc_clk_on(struct sh_mobile_lcdc_priv *priv)
+ {
+ 	if (atomic_inc_and_test(&priv->hw_usecnt)) {
+@@ -434,7 +471,6 @@ static void __sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
+ {
+ 	struct sh_mobile_lcdc_chan *ch;
+ 	unsigned long tmp;
+-	int bpp = 0;
+ 	int k, m;
+ 
+ 	/* Enable LCDC channels. Read data from external memory, avoid using the
+@@ -453,9 +489,6 @@ static void __sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
+ 		if (!ch->enabled)
+ 			continue;
+ 
+-		if (!bpp)
+-			bpp = ch->info->var.bits_per_pixel;
+-
+ 		/* Power supply */
+ 		lcdc_write_chan(ch, LDPMR, 0);
+ 
+@@ -486,31 +519,37 @@ static void __sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
+ 
+ 		sh_mobile_lcdc_geometry(ch);
+ 
+-		if (ch->info->var.nonstd) {
+-			tmp = (ch->info->var.nonstd << 16);
+-			switch (ch->info->var.bits_per_pixel) {
+-			case 12:
+-				tmp |= LDDFR_YF_420;
+-				break;
+-			case 16:
+-				tmp |= LDDFR_YF_422;
+-				break;
+-			case 24:
+-			default:
+-				tmp |= LDDFR_YF_444;
+-				break;
+-			}
+-		} else {
+-			switch (ch->info->var.bits_per_pixel) {
+-			case 16:
+-				tmp = LDDFR_PKF_RGB16;
+-				break;
+-			case 24:
+-				tmp = LDDFR_PKF_RGB24;
++		switch (sh_mobile_format_fourcc(&ch->info->var)) {
++		case V4L2_PIX_FMT_RGB565:
++			tmp = LDDFR_PKF_RGB16;
++			break;
++		case V4L2_PIX_FMT_BGR24:
++			tmp = LDDFR_PKF_RGB24;
++			break;
++		case V4L2_PIX_FMT_BGR32:
++			tmp = LDDFR_PKF_ARGB32;
++			break;
++		case V4L2_PIX_FMT_NV12:
++		case V4L2_PIX_FMT_NV21:
++			tmp = LDDFR_CC | LDDFR_YF_420;
++			break;
++		case V4L2_PIX_FMT_NV16:
++		case V4L2_PIX_FMT_NV61:
++			tmp = LDDFR_CC | LDDFR_YF_422;
++			break;
++		case V4L2_PIX_FMT_NV24:
++		case V4L2_PIX_FMT_NV42:
++			tmp = LDDFR_CC | LDDFR_YF_444;
++			break;
++		}
 +
-+/**
-+ * shrbuf_import() - obtain shrbuf structure from a file descriptor
-+ * @fd:        file descriptor
-+ *
-+ * The function obtains an instance of a  shared buffer from a file 
-descriptor
-+ * Call sb->put when imported buffer is not longer needed
-+ *
-+ * Returns pointer to a shared buffer or error pointer on failure
-+ */
-+struct shrbuf *shrbuf_import(int fd)
-+{
-+    struct file *file;
-+    struct shrbuf *sb;
++		if (sh_mobile_format_yuv(&ch->info->var)) {
++			switch (ch->info->var.format.colorspace) {
++			case V4L2_COLORSPACE_REC709:
++				tmp |= LDDFR_CF1;
+ 				break;
+-			case 32:
+-			default:
+-				tmp = LDDFR_PKF_ARGB32;
++			case V4L2_COLORSPACE_JPEG:
++				tmp |= LDDFR_CF0;
+ 				break;
+ 			}
+ 		}
+@@ -518,7 +557,7 @@ static void __sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
+ 		lcdc_write_chan(ch, LDDFR, tmp);
+ 		lcdc_write_chan(ch, LDMLSR, ch->pitch);
+ 		lcdc_write_chan(ch, LDSA1R, ch->base_addr_y);
+-		if (ch->info->var.nonstd)
++		if (sh_mobile_format_yuv(&ch->info->var))
+ 			lcdc_write_chan(ch, LDSA2R, ch->base_addr_c);
+ 
+ 		/* When using deferred I/O mode, configure the LCDC for one-shot
+@@ -535,21 +574,23 @@ static void __sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
+ 	}
+ 
+ 	/* Word and long word swap. */
+-	if  (priv->ch[0].info->var.nonstd)
++	switch (sh_mobile_format_fourcc(&priv->ch[0].info->var)) {
++	case V4L2_PIX_FMT_RGB565:
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV61:
++	case V4L2_PIX_FMT_NV42:
++		tmp = LDDDSR_LS | LDDDSR_WS;
++		break;
++	case V4L2_PIX_FMT_BGR24:
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV16:
++	case V4L2_PIX_FMT_NV24:
+ 		tmp = LDDDSR_LS | LDDDSR_WS | LDDDSR_BS;
+-	else {
+-		switch (bpp) {
+-		case 16:
+-			tmp = LDDDSR_LS | LDDDSR_WS;
+-			break;
+-		case 24:
+-			tmp = LDDDSR_LS | LDDDSR_WS | LDDDSR_BS;
+-			break;
+-		case 32:
+-		default:
+-			tmp = LDDDSR_LS;
+-			break;
+-		}
++		break;
++	case V4L2_PIX_FMT_BGR32:
++	default:
++		tmp = LDDDSR_LS;
++		break;
+ 	}
+ 	lcdc_write(priv, _LDDDSR, tmp);
+ 
+@@ -621,12 +662,24 @@ static int sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
+ 			ch->meram_enabled = 0;
+ 		}
+ 
+-		if (!ch->info->var.nonstd)
+-			pixelformat = SH_MOBILE_MERAM_PF_RGB;
+-		else if (ch->info->var.bits_per_pixel == 24)
+-			pixelformat = SH_MOBILE_MERAM_PF_NV24;
+-		else
++		switch (sh_mobile_format_fourcc(&ch->info->var)) {
++		case V4L2_PIX_FMT_NV12:
++		case V4L2_PIX_FMT_NV21:
++		case V4L2_PIX_FMT_NV16:
++		case V4L2_PIX_FMT_NV61:
+ 			pixelformat = SH_MOBILE_MERAM_PF_NV;
++			break;
++		case V4L2_PIX_FMT_NV24:
++		case V4L2_PIX_FMT_NV42:
++			pixelformat = SH_MOBILE_MERAM_PF_NV24;
++			break;
++		case V4L2_PIX_FMT_RGB565:
++		case V4L2_PIX_FMT_BGR24:
++		case V4L2_PIX_FMT_BGR32:
++		default:
++			pixelformat = SH_MOBILE_MERAM_PF_RGB;
++			break;
++		}
+ 
+ 		ret = mdev->ops->meram_register(mdev, cfg, ch->pitch,
+ 					ch->info->var.yres, pixelformat,
+@@ -844,6 +897,7 @@ static struct fb_fix_screeninfo sh_mobile_lcdc_fix  = {
+ 	.xpanstep =	0,
+ 	.ypanstep =	1,
+ 	.ywrapstep =	0,
++	.capabilities =	FB_CAP_FOURCC,
+ };
+ 
+ static void sh_mobile_lcdc_fillrect(struct fb_info *info,
+@@ -876,8 +930,9 @@ static int sh_mobile_fb_pan_display(struct fb_var_screeninfo *var,
+ 	unsigned long new_pan_offset;
+ 	unsigned long base_addr_y, base_addr_c;
+ 	unsigned long c_offset;
++	bool yuv = sh_mobile_format_yuv(&info->var);
+ 
+-	if (!info->var.nonstd)
++	if (!yuv)
+ 		new_pan_offset = var->yoffset * info->fix.line_length
+ 			       + var->xoffset * (info->var.bits_per_pixel / 8);
+ 	else
+@@ -891,7 +946,7 @@ static int sh_mobile_fb_pan_display(struct fb_var_screeninfo *var,
+ 
+ 	/* Set the source address for the next refresh */
+ 	base_addr_y = ch->dma_handle + new_pan_offset;
+-	if (info->var.nonstd) {
++	if (yuv) {
+ 		/* Set y offset */
+ 		c_offset = var->yoffset * info->fix.line_length
+ 			 * (info->var.bits_per_pixel - 8) / 8;
+@@ -899,7 +954,7 @@ static int sh_mobile_fb_pan_display(struct fb_var_screeninfo *var,
+ 			    + info->var.xres * info->var.yres_virtual
+ 			    + c_offset;
+ 		/* Set x offset */
+-		if (info->var.bits_per_pixel == 24)
++		if (sh_mobile_format_fourcc(&info->var) == V4L2_PIX_FMT_NV24)
+ 			base_addr_c += 2 * var->xoffset;
+ 		else
+ 			base_addr_c += var->xoffset;
+@@ -923,7 +978,7 @@ static int sh_mobile_fb_pan_display(struct fb_var_screeninfo *var,
+ 	ch->base_addr_c = base_addr_c;
+ 
+ 	lcdc_write_chan_mirror(ch, LDSA1R, base_addr_y);
+-	if (info->var.nonstd)
++	if (yuv)
+ 		lcdc_write_chan_mirror(ch, LDSA2R, base_addr_c);
+ 
+ 	if (lcdc_chan_is_sublcd(ch))
+@@ -1099,51 +1154,78 @@ static int sh_mobile_check_var(struct fb_var_screeninfo *var, struct fb_info *in
+ 	if (var->yres_virtual < var->yres)
+ 		var->yres_virtual = var->yres;
+ 
+-	if (var->bits_per_pixel <= 16) {		/* RGB 565 */
+-		var->bits_per_pixel = 16;
+-		var->red.offset = 11;
+-		var->red.length = 5;
+-		var->green.offset = 5;
+-		var->green.length = 6;
+-		var->blue.offset = 0;
+-		var->blue.length = 5;
+-		var->transp.offset = 0;
+-		var->transp.length = 0;
+-	} else if (var->bits_per_pixel <= 24) {		/* RGB 888 */
+-		var->bits_per_pixel = 24;
+-		var->red.offset = 16;
+-		var->red.length = 8;
+-		var->green.offset = 8;
+-		var->green.length = 8;
+-		var->blue.offset = 0;
+-		var->blue.length = 8;
+-		var->transp.offset = 0;
+-		var->transp.length = 0;
+-	} else if (var->bits_per_pixel <= 32) {		/* RGBA 888 */
+-		var->bits_per_pixel = 32;
+-		var->red.offset = 16;
+-		var->red.length = 8;
+-		var->green.offset = 8;
+-		var->green.length = 8;
+-		var->blue.offset = 0;
+-		var->blue.length = 8;
+-		var->transp.offset = 24;
+-		var->transp.length = 8;
+-	} else
+-		return -EINVAL;
++	if (var->format.fourcc > 1) {
++		switch (var->format.fourcc) {
++		case V4L2_PIX_FMT_NV12:
++		case V4L2_PIX_FMT_NV21:
++			var->bits_per_pixel = 12;
++			break;
++		case V4L2_PIX_FMT_RGB565:
++		case V4L2_PIX_FMT_NV16:
++		case V4L2_PIX_FMT_NV61:
++			var->bits_per_pixel = 16;
++			break;
++		case V4L2_PIX_FMT_BGR24:
++		case V4L2_PIX_FMT_NV24:
++		case V4L2_PIX_FMT_NV42:
++			var->bits_per_pixel = 24;
++			break;
++		case V4L2_PIX_FMT_BGR32:
++			var->bits_per_pixel = 32;
++			break;
++		default:
++			return -EINVAL;
++		}
 +
-+    /* obtain a file, assure that it will not be released */
-+    file = fget(fd);
-+    /* check if descriptor is incorrect */
-+    if (!file)
-+        return ERR_PTR(-EBADF);
-+    /* check if dealing with shrbuf-file */
-+    if (file->f_op != &shrbuf_fops) {
-+        fput(file);
-+        return ERR_PTR(-EINVAL);
-+    }
-+    /* add user of shared buffer */
-+    sb = file->private_data;
-+    sb->get(sb);
-+    /* release the file */
-+    fput(file);
++		memset(var->format.reserved, 0, sizeof(var->format.reserved));
++	} else {
++		if (var->bits_per_pixel <= 16) {		/* RGB 565 */
++			var->bits_per_pixel = 16;
++			var->red.offset = 11;
++			var->red.length = 5;
++			var->green.offset = 5;
++			var->green.length = 6;
++			var->blue.offset = 0;
++			var->blue.length = 5;
++			var->transp.offset = 0;
++			var->transp.length = 0;
++		} else if (var->bits_per_pixel <= 24) {		/* RGB 888 */
++			var->bits_per_pixel = 24;
++			var->red.offset = 16;
++			var->red.length = 8;
++			var->green.offset = 8;
++			var->green.length = 8;
++			var->blue.offset = 0;
++			var->blue.length = 8;
++			var->transp.offset = 0;
++			var->transp.length = 0;
++		} else if (var->bits_per_pixel <= 32) {		/* RGBA 888 */
++			var->bits_per_pixel = 32;
++			var->red.offset = 16;
++			var->red.length = 8;
++			var->green.offset = 8;
++			var->green.length = 8;
++			var->blue.offset = 0;
++			var->blue.length = 8;
++			var->transp.offset = 24;
++			var->transp.length = 8;
++		} else
++			return -EINVAL;
+ 
+-	var->red.msb_right = 0;
+-	var->green.msb_right = 0;
+-	var->blue.msb_right = 0;
+-	var->transp.msb_right = 0;
++		var->red.msb_right = 0;
++		var->green.msb_right = 0;
++		var->blue.msb_right = 0;
++		var->transp.msb_right = 0;
++	}
+ 
+ 	/* Make sure we don't exceed our allocated memory. */
+ 	if (var->xres_virtual * var->yres_virtual * var->bits_per_pixel / 8 >
+ 	    info->fix.smem_len)
+ 		return -EINVAL;
+ 
+-	/* only accept the forced_bpp for dual channel configurations */
+-	if (p->forced_bpp && p->forced_bpp != var->bits_per_pixel)
++	/* only accept the forced_fourcc for dual channel configurations */
++	if (p->forced_fourcc &&
++	    p->forced_fourcc != sh_mobile_format_fourcc(var))
+ 		return -EINVAL;
+ 
+ 	return 0;
+@@ -1157,7 +1239,7 @@ static int sh_mobile_set_par(struct fb_info *info)
+ 
+ 	sh_mobile_lcdc_stop(ch->lcdc);
+ 
+-	if (info->var.nonstd)
++	if (sh_mobile_format_yuv(&info->var))
+ 		info->fix.line_length = info->var.xres;
+ 	else
+ 		info->fix.line_length = info->var.xres
+@@ -1169,6 +1251,11 @@ static int sh_mobile_set_par(struct fb_info *info)
+ 		info->fix.line_length = line_length;
+ 	}
+ 
++	if (info->var.format.fourcc > 1)
++		info->fix.visual = FB_VISUAL_FOURCC;
++	else
++		info->fix.visual = FB_VISUAL_TRUECOLOR;
 +
-+    return sb;
-+}
+ 	return ret;
+ }
+ 
+@@ -1463,9 +1550,9 @@ static int __devinit sh_mobile_lcdc_channel_init(struct sh_mobile_lcdc_chan *ch,
+ 	for (i = 0, mode = cfg->lcd_cfg; i < cfg->num_cfg; i++, mode++) {
+ 		unsigned int size = mode->yres * mode->xres;
+ 
+-		/* NV12 buffers must have even number of lines */
+-		if ((cfg->nonstd) && cfg->bpp == 12 &&
+-				(mode->yres & 0x1)) {
++		/* NV12/NV21 buffers must have even number of lines */
++		if ((cfg->fourcc == V4L2_PIX_FMT_NV12 ||
++		     cfg->fourcc == V4L2_PIX_FMT_NV21) && (mode->yres & 0x1)) {
+ 			dev_err(dev, "yres must be multiple of 2 for YCbCr420 "
+ 				"mode.\n");
+ 			return -EINVAL;
+@@ -1483,14 +1570,6 @@ static int __devinit sh_mobile_lcdc_channel_init(struct sh_mobile_lcdc_chan *ch,
+ 		dev_dbg(dev, "Found largest videomode %ux%u\n",
+ 			max_mode->xres, max_mode->yres);
+ 
+-	/* Initialize fixed screen information. Restrict pan to 2 lines steps
+-	 * for NV12.
+-	 */
+-	info->fix = sh_mobile_lcdc_fix;
+-	info->fix.smem_len = max_size * 2 * cfg->bpp / 8;
+-	if (cfg->nonstd && cfg->bpp == 12)
+-		info->fix.ypanstep = 2;
+-
+ 	/* Create the mode list. */
+ 	if (cfg->lcd_cfg == NULL) {
+ 		mode = &default_720p;
+@@ -1508,19 +1587,38 @@ static int __devinit sh_mobile_lcdc_channel_init(struct sh_mobile_lcdc_chan *ch,
+ 	 */
+ 	var = &info->var;
+ 	fb_videomode_to_var(var, mode);
+-	var->bits_per_pixel = cfg->bpp;
+ 	var->width = cfg->lcd_size_cfg.width;
+ 	var->height = cfg->lcd_size_cfg.height;
+ 	var->yres_virtual = var->yres * 2;
+ 	var->activate = FB_ACTIVATE_NOW;
+ 
++	switch (cfg->fourcc) {
++	case V4L2_PIX_FMT_RGB565:
++		var->bits_per_pixel = 16;
++		break;
++	case V4L2_PIX_FMT_BGR24:
++		var->bits_per_pixel = 24;
++		break;
++	case V4L2_PIX_FMT_BGR32:
++		var->bits_per_pixel = 32;
++		break;
++	default:
++		var->format.fourcc = cfg->fourcc;
++		break;
++	}
 +
-+EXPORT_SYMBOL(shrbuf_import);
++	/* Make sure the memory size check won't fail. smem_len is initialized
++	 * later based on var.
++	 */
++	info->fix.smem_len = UINT_MAX;
+ 	ret = sh_mobile_check_var(var, info);
+ 	if (ret)
+ 		return ret;
+ 
++	max_size *= var->bits_per_pixel / 8 * 2;
 +
-diff --git a/include/linux/shared-buffer.h b/include/linux/shared-buffer.h
-new file mode 100644
-index 0000000..ac0822f
---- /dev/null
-+++ b/include/linux/shared-buffer.h
-@@ -0,0 +1,55 @@
-+/*
-+ * Framework for shared buffer
-+ *
-+ * Copyright (C) 2011 Samsung Electronics Co., Ltd.
-+ * Author: Tomasz Stanislawski, <t.stanislaws@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
+ 	/* Allocate frame buffer memory and color map. */
+-	buf = dma_alloc_coherent(dev, info->fix.smem_len, &ch->dma_handle,
+-				 GFP_KERNEL);
++	buf = dma_alloc_coherent(dev, max_size, &ch->dma_handle, GFP_KERNEL);
+ 	if (!buf) {
+ 		dev_err(dev, "unable to allocate buffer\n");
+ 		return -ENOMEM;
+@@ -1529,16 +1627,25 @@ static int __devinit sh_mobile_lcdc_channel_init(struct sh_mobile_lcdc_chan *ch,
+ 	ret = fb_alloc_cmap(&info->cmap, PALETTE_NR, 0);
+ 	if (ret < 0) {
+ 		dev_err(dev, "unable to allocate cmap\n");
+-		dma_free_coherent(dev, info->fix.smem_len,
+-				  buf, ch->dma_handle);
++		dma_free_coherent(dev, max_size, buf, ch->dma_handle);
+ 		return ret;
+ 	}
+ 
++	/* Initialize fixed screen information. Restrict pan to 2 lines steps
++	 * for NV12 and NV21.
++	 */
++	info->fix = sh_mobile_lcdc_fix;
+ 	info->fix.smem_start = ch->dma_handle;
+-	if (var->nonstd)
++	info->fix.smem_len = max_size * var->bits_per_pixel / 8 * 2;
++	if (cfg->fourcc == V4L2_PIX_FMT_NV12 ||
++	    cfg->fourcc == V4L2_PIX_FMT_NV21)
++		info->fix.ypanstep = 2;
 +
-+#ifndef _LINUX_SHARED_BUFFER_H
-+#define _LINUX_SHARED_BUFFER_H
-+
-+#include <linux/err.h>
-+
-+/**
-+ * struct shrbuf - shared buffer instance
-+ * @get:    increase number of a buffer's users
-+ * @put:    decrease number of a buffer's user, release resources if needed
-+ * @dma_addr:    start address of a contiguous buffer
-+ * @size:    size of a contiguous buffer
-+ *
-+ * Both get/put methods are required. The structure is dedicated for
-+ * embedding. The fields dma_addr and size are used for proof-of-concept
-+ * purpose. They will be substituted by scatter-gatter lists.
-+ */
-+struct shrbuf {
-+    void (*get)(struct shrbuf *);
-+    void (*put)(struct shrbuf *);
-+    unsigned long dma_addr;
-+    unsigned long size;
-+};
-+
-+#ifdef CONFIG_SHARED_BUFFER
-+
-+int shrbuf_export(struct shrbuf *sb);
-+
-+struct shrbuf *shrbuf_import(int fd);
-+
-+#else
-+
-+static inline int shrbuf_export(struct shrbuf *sb)
-+{
-+    return -ENODEV;
-+}
-+
-+static inline struct shrbuf *shrbuf_import(int fd)
-+{
-+    return ERR_PTR(-ENODEV);
-+}
-+
-+#endif /* CONFIG_SHARED_BUFFER */
-+
-+#endif /* _LINUX_SHARED_BUFFER_H */
++	if (sh_mobile_format_yuv(var))
+ 		info->fix.line_length = var->xres;
+ 	else
+-		info->fix.line_length = var->xres * (cfg->bpp / 8);
++		info->fix.line_length = var->xres * var->bits_per_pixel
++				      / 8;
+ 
+ 	info->screen_base = buf;
+ 	info->device = dev;
+@@ -1625,9 +1732,9 @@ static int __devinit sh_mobile_lcdc_probe(struct platform_device *pdev)
+ 		goto err1;
+ 	}
+ 
+-	/* for dual channel LCDC (MAIN + SUB) force shared bpp setting */
++	/* for dual channel LCDC (MAIN + SUB) force shared format setting */
+ 	if (num_channels == 2)
+-		priv->forced_bpp = pdata->ch[0].bpp;
++		priv->forced_fourcc = pdata->ch[0].fourcc;
+ 
+ 	priv->base = ioremap_nocache(res->start, resource_size(res));
+ 	if (!priv->base)
+@@ -1674,13 +1781,10 @@ static int __devinit sh_mobile_lcdc_probe(struct platform_device *pdev)
+ 		if (error < 0)
+ 			goto err1;
+ 
+-		dev_info(info->dev,
+-			 "registered %s/%s as %dx%d %dbpp.\n",
+-			 pdev->name,
+-			 (ch->cfg.chan == LCDC_CHAN_MAINLCD) ?
+-			 "mainlcd" : "sublcd",
+-			 info->var.xres, info->var.yres,
+-			 ch->cfg.bpp);
++		dev_info(info->dev, "registered %s/%s as %dx%d %dbpp.\n",
++			 pdev->name, (ch->cfg.chan == LCDC_CHAN_MAINLCD) ?
++			 "mainlcd" : "sublcd", info->var.xres, info->var.yres,
++			 info->var.bits_per_pixel);
+ 
+ 		/* deferred io mode: disable clock to save power */
+ 		if (info->fbdefio || info->state == FBINFO_STATE_SUSPENDED)
+diff --git a/include/video/sh_mobile_lcdc.h b/include/video/sh_mobile_lcdc.h
+index 8101b72..fe30b75 100644
+--- a/include/video/sh_mobile_lcdc.h
++++ b/include/video/sh_mobile_lcdc.h
+@@ -174,7 +174,8 @@ struct sh_mobile_lcdc_bl_info {
+ 
+ struct sh_mobile_lcdc_chan_cfg {
+ 	int chan;
+-	int bpp;
++	int fourcc;
++	int colorspace;
+ 	int interface_type; /* selects RGBn or SYSn I/F, see above */
+ 	int clock_divider;
+ 	unsigned long flags; /* LCDC_FLAGS_... */
+@@ -184,7 +185,6 @@ struct sh_mobile_lcdc_chan_cfg {
+ 	struct sh_mobile_lcdc_board_cfg board_cfg;
+ 	struct sh_mobile_lcdc_bl_info bl_info;
+ 	struct sh_mobile_lcdc_sys_bus_cfg sys_bus_cfg; /* only for SYSn I/F */
+-	int nonstd;
+ 	struct sh_mobile_meram_cfg *meram_cfg;
+ };
+ 
 -- 
-1.7.6
-
-
+1.7.3.4
 
