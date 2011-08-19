@@ -1,60 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:52529 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752050Ab1HDHO3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 03:14:29 -0400
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 16/21] [staging] tm6000: Select interface on first open.
-Date: Thu,  4 Aug 2011 09:14:14 +0200
-Message-Id: <1312442059-23935-17-git-send-email-thierry.reding@avionic-design.de>
-In-Reply-To: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
-References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:61211 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751755Ab1HSHFc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Aug 2011 03:05:32 -0400
+Received: by fxh19 with SMTP id 19so1760136fxh.19
+        for <linux-media@vger.kernel.org>; Fri, 19 Aug 2011 00:05:31 -0700 (PDT)
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: linux-media@vger.kernel.org, oselas@community.pengutronix.de
+Date: Fri, 19 Aug 2011 09:05:29 +0200
+Subject: image capturing on i.mx27 with gstreamer
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+From: "Jan Pohanka" <xhpohanka@gmail.com>
+Message-ID: <op.v0f8nfnjyxxkfz@localhost.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of selecting the default interface setting when preparing
-isochronous transfers, select it on the first call to open() to make
-sure it is available earlier.
----
- drivers/staging/tm6000/tm6000-video.c |   17 ++++++++++++-----
- 1 files changed, 12 insertions(+), 5 deletions(-)
+Hi all,
 
-diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
-index 70fc19e..b59a0da 100644
---- a/drivers/staging/tm6000/tm6000-video.c
-+++ b/drivers/staging/tm6000/tm6000-video.c
-@@ -595,11 +595,6 @@ static int tm6000_prepare_isoc(struct tm6000_core *dev)
- 	tm6000_uninit_isoc(dev);
- 	/* Stop interrupt USB pipe */
- 	tm6000_ir_int_stop(dev);
--
--	usb_set_interface(dev->udev,
--			  dev->isoc_in.bInterfaceNumber,
--			  dev->isoc_in.bAlternateSetting);
--
- 	/* Start interrupt USB pipe */
- 	tm6000_ir_int_start(dev);
- 
-@@ -1484,6 +1479,18 @@ static int tm6000_open(struct file *file)
- 		break;
- 	}
- 
-+	if (dev->users == 0) {
-+		int err = usb_set_interface(dev->udev,
-+				dev->isoc_in.bInterfaceNumber,
-+				dev->isoc_in.bAlternateSetting);
-+		if (err < 0) {
-+			dev_err(&vdev->dev, "failed to select interface %d, "
-+					"alt. setting %d\n",
-+					dev->isoc_in.bInterfaceNumber,
-+					dev->isoc_in.bAlternateSetting);
-+		}
-+	}
-+
- 	/* If more than one user, mutex should be added */
- 	dev->users++;
- 
+I'm playing with i.mx27 processor by Freescale, namely with ipcam  
+reference design. There is unfortunately no support available for this hw  
+this time so I have adapted a kernel from Pengutronix Oselas distribution  
+(available here  
+ftp://ftp.phytec.de/pub/Products/phyCORE-iMX27/Linux/PD11.1.0/).
+
+There is mt9d131 CMOS imager from Aptina on the board with 1600x1200  
+resolution. As there was none driver, I adapted the one for mt9m111 one  
+for my chip. Unfortunately I'm able to get image with any resolution only  
+up to 800x600, with higher resolution resulting image is fragmented - it  
+looks like the both synchronization (vertical, horizontal) fails. I was  
+not able to solve it yet, I'm only sure that I wrote correct values to  
+WINDOW_WIDHT and WINDOW_HEIGHT registers, also no skipping is set up.
+I use following command to capture single image:
+gst-launch \
+   v4l2src num-buffers=1 device=/dev/video1 ! \
+   video/x-raw-yuv,format=\(fourcc\)UYVY,width=$WIDTH,height=$HEIGHT ! \
+   ffmpegcolorspace ! \
+   video/x-raw-yuv,width=$WIDTH,height=$HEIGHT ! \
+   jpegenc ! \
+   filesink location=col_image.jpg
+
+My second problem concerns streaming via udp. I'm able to stream mpeg4  
+using hardware VPU on the chip using following gstreamer command
+gst-launch -v \
+   v4l2src device=/dev/video1 ! \
+   video/x-raw-yuv,format=\(fourcc\)UYVY,width=$WIDTH,height=$HEIGHT,  
+framerate='(fraction)'10/1 ! \
+   ffmpegcolorspace ! \
+   mfw_vpuencoder codec-type=std_mpeg4 bitrate=16383 gopsize=20  
+profile=true ! \
+   rtpmp4vpay send-config=TRUE  ! \
+   udpsink host=192.168.10.1 port=5434
+
+However, there is also an issue with resolution. This works up to 640x480.  
+For example for 800x600 i'm getting this error message
+WARNING: erroneous pipeline: could not link ffmpegcsp0 to mfwgstvpu_enc0
+
+Could please anyone give me an advice how to solve described problems?
+
+with best regards
+Jan
+
+
 -- 
-1.7.6
-
+Tato zpráva byla vytvořena převratným poštovním klientem Opery:  
+http://www.opera.com/mail/
