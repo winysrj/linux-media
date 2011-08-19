@@ -1,151 +1,398 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:51676 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754010Ab1H2PWi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 11:22:38 -0400
-Subject: Re: [PATCH 1/2] dmaengine: ipu-idmac: add support for the
- DMA_PAUSE control
-From: Vinod Koul <vinod.koul@linux.intel.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Pawel Osciak <pawel@osciak.com>, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-In-Reply-To: <Pine.LNX.4.64.1108251841300.17190@axis700.grange>
-References: <1314211292-10414-1-git-send-email-g.liakhovetski@gmx.de>
-	 <Pine.LNX.4.64.1108251838090.17190@axis700.grange>
-	 <Pine.LNX.4.64.1108251841300.17190@axis700.grange>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 29 Aug 2011 20:51:25 +0530
-Message-ID: <1314631285.1606.154.camel@vkoul-udesk3>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40600 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752528Ab1HSJhI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Aug 2011 05:37:08 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-fbdev@vger.kernel.org
+Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com
+Subject: [PATCH/RFC v2 1/3] fbdev: Add FOURCC-based format configuration API
+Date: Fri, 19 Aug 2011 11:37:04 +0200
+Message-Id: <1313746626-23845-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1313746626-23845-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1313746626-23845-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2011-08-25 at 18:45 +0200, Guennadi Liakhovetski wrote:
-> To support multi-size buffers in the mx3_camera V4L2 driver we have to be
-> able to stop DMA on a channel without releasing descriptors and completely
-> halting the hardware. Use the DMA_PAUSE control to implement this mode.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Acked-by Vinod Koul <vinod.koul@linux.intel.com>
+This API will be used to support YUV frame buffer formats in a standard
+way.
 
-Do you want this to go thru slave-dma or media tree?
+Last but not least, create a much needed fbdev API documentation and
+document the format setting APIs.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/fb/api.txt |  299 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/fb.h       |   27 ++++-
+ 2 files changed, 320 insertions(+), 6 deletions(-)
+ create mode 100644 Documentation/fb/api.txt
+
+diff --git a/Documentation/fb/api.txt b/Documentation/fb/api.txt
+new file mode 100644
+index 0000000..6808492
+--- /dev/null
++++ b/Documentation/fb/api.txt
+@@ -0,0 +1,299 @@
++			The Frame Buffer Device API
++			---------------------------
++
++Last revised: June 21, 2011
++
++
++0. Introduction
++---------------
++
++This document describes the frame buffer API used by applications to interact
++with frame buffer devices. In-kernel APIs between device drivers and the frame
++buffer core are not described.
++
++Due to a lack of documentation in the original frame buffer API, drivers
++behaviours differ in subtle (and not so subtle) ways. This document describes
++the recommended API implementation, but applications should be prepared to
++deal with different behaviours.
++
++
++1. Capabilities
++---------------
++
++Device and driver capabilities are reported in the fixed screen information
++capabilities field.
++
++struct fb_fix_screeninfo {
++	...
++	__u16 capabilities;		/* see FB_CAP_*			*/
++	...
++};
++
++Application should use those capabilities to find out what features they can
++expect from the device and driver.
++
++- FB_CAP_FOURCC
++
++The driver supports the four character code (FOURCC) based format setting API.
++When supported, formats are configured using a FOURCC instead of manually
++specifying color components layout.
++
++
++2. Types and visuals
++--------------------
++
++Pixels are stored in memory in hardware-dependent formats. Applications need
++to be aware of the pixel storage format in order to write image data to the
++frame buffer memory in the format expected by the hardware.
++
++Formats are described by frame buffer types and visuals. Some visuals require
++additional information, which are stored in the variable screen information
++bits_per_pixel, grayscale, fourcc, red, green, blue and transp fields.
++
++The following types and visuals are supported.
++
++- FB_TYPE_PACKED_PIXELS
++
++Color components (usually RGB or YUV) are packed together into macropixels
++that are stored in a single plane. The exact color components layout is
++described in a visual-dependent way.
++
++Frame buffer visuals that don't use multiple color components per pixel
++(such as monochrome and pseudo-color visuals) are reported as packed frame
++buffer types, even though they don't stricly speaking pack color components
++into macropixels.
++
++- FB_TYPE_PLANES
++
++Color components are stored in separate planes. Planes are located
++contiguously in memory.
++
++- FB_VISUAL_MONO01
++
++Pixels are black or white and stored on one bit. A bit set to 1 represents a
++black pixel and a bit set to 0 a white pixel. Pixels are packed together in
++bytes with 8 pixels per byte.
++
++FB_VISUAL_MONO01 is used with FB_TYPE_PACKED_PIXELS only.
++
++- FB_VISUAL_MONO10
++
++Pixels are black or white and stored on one bit. A bit set to 1 represents a
++white pixel and a bit set to 0 a black pixel. Pixels are packed together in
++bytes with 8 pixels per byte.
++
++FB_VISUAL_MONO01 is used with FB_TYPE_PACKED_PIXELS only.
++
++- FB_VISUAL_TRUECOLOR
++
++Pixels are broken into red, green and blue components, and each component
++indexes a read-only lookup table for the corresponding value. Lookup tables
++are device-dependent, and provide linear or non-linear ramps.
++
++Each component is stored in memory according to the variable screen
++information red, green, blue and transp fields.
++
++- FB_VISUAL_PSEUDOCOLOR and FB_VISUAL_STATIC_PSEUDOCOLOR
++
++Pixel values are encoded as indices into a colormap that stores red, green and
++blue components. The colormap is read-only for FB_VISUAL_STATIC_PSEUDOCOLOR
++and read-write for FB_VISUAL_PSEUDOCOLOR.
++
++Each pixel value is stored in the number of bits reported by the variable
++screen information bits_per_pixel field. Pixels are contiguous in memory.
++
++FB_VISUAL_PSEUDOCOLOR and FB_VISUAL_STATIC_PSEUDOCOLOR are used with
++FB_TYPE_PACKED_PIXELS only.
++
++- FB_VISUAL_DIRECTCOLOR
++
++Pixels are broken into red, green and blue components, and each component
++indexes a programmable lookup table for the corresponding value.
++
++Each component is stored in memory according to the variable screen
++information red, green, blue and transp fields.
++
++- FB_VISUAL_FOURCC
++
++Pixels are stored in memory as described by the format FOURCC identifier
++stored in the variable screen information fourcc field.
++
++
++3. Screen information
++---------------------
++
++Screen information are queried by applications using the FBIOGET_FSCREENINFO
++and FBIOGET_VSCREENINFO ioctls. Those ioctls take a pointer to a
++fb_fix_screeninfo and fb_var_screeninfo structure respectively.
++
++struct fb_fix_screeninfo stores device independent unchangeable information
++about the frame buffer device and the current format. Those information can't
++be directly modified by applications, but can be changed by the driver when an
++application modifies the format.
++
++struct fb_fix_screeninfo {
++	char id[16];			/* identification string eg "TT Builtin" */
++	unsigned long smem_start;	/* Start of frame buffer mem */
++					/* (physical address) */
++	__u32 smem_len;			/* Length of frame buffer mem */
++	__u32 type;			/* see FB_TYPE_*		*/
++	__u32 type_aux;			/* Interleave for interleaved Planes */
++	__u32 visual;			/* see FB_VISUAL_*		*/
++	__u16 xpanstep;			/* zero if no hardware panning  */
++	__u16 ypanstep;			/* zero if no hardware panning  */
++	__u16 ywrapstep;		/* zero if no hardware ywrap    */
++	__u32 line_length;		/* length of a line in bytes    */
++	unsigned long mmio_start;	/* Start of Memory Mapped I/O   */
++					/* (physical address) */
++	__u32 mmio_len;			/* Length of Memory Mapped I/O  */
++	__u32 accel;			/* Indicate to driver which	*/
++					/*  specific chip/card we have	*/
++	__u16 capabilities;		/* see FB_CAP_*			*/
++	__u16 reserved[2];		/* Reserved for future compatibility */
++};
++
++struct fb_var_screeninfo stores device independent changeable information
++about a frame buffer device, its current format and video mode, as well as
++other miscellaneous parameters.
++
++struct fb_var_screeninfo {
++	__u32 xres;			/* visible resolution		*/
++	__u32 yres;
++	__u32 xres_virtual;		/* virtual resolution		*/
++	__u32 yres_virtual;
++	__u32 xoffset;			/* offset from virtual to visible */
++	__u32 yoffset;			/* resolution			*/
++
++	__u32 bits_per_pixel;		/* guess what			*/
++	union {
++		struct {		/* Legacy format API		*/
++			__u32 grayscale; /* != 0 Graylevels instead of colors */
++			/* bitfields in fb mem if true color, else only */
++			/* length is significant			*/
++			struct fb_bitfield red;
++			struct fb_bitfield green;
++			struct fb_bitfield blue;
++			struct fb_bitfield transp;	/* transparency	*/
++		};
++		struct {		/* FOURCC-based format API	*/
++			__u32 fourcc;		/* FOURCC format	*/
++			__u32 colorspace;
++			__u32 reserved[11];
++		} format;
++	};
++
++	struct fb_bitfield red;		/* bitfield in fb mem if true color, */
++	struct fb_bitfield green;	/* else only length is significant */
++	struct fb_bitfield blue;
++	struct fb_bitfield transp;	/* transparency			*/
++
++	__u32 nonstd;			/* != 0 Non standard pixel format */
++
++	__u32 activate;			/* see FB_ACTIVATE_*		*/
++
++	__u32 height;			/* height of picture in mm    */
++	__u32 width;			/* width of picture in mm     */
++
++	__u32 accel_flags;		/* (OBSOLETE) see fb_info.flags */
++
++	/* Timing: All values in pixclocks, except pixclock (of course) */
++	__u32 pixclock;			/* pixel clock in ps (pico seconds) */
++	__u32 left_margin;		/* time from sync to picture	*/
++	__u32 right_margin;		/* time from picture to sync	*/
++	__u32 upper_margin;		/* time from sync to picture	*/
++	__u32 lower_margin;
++	__u32 hsync_len;		/* length of horizontal sync	*/
++	__u32 vsync_len;		/* length of vertical sync	*/
++	__u32 sync;			/* see FB_SYNC_*		*/
++	__u32 vmode;			/* see FB_VMODE_*		*/
++	__u32 rotate;			/* angle we rotate counter clockwise */
++	__u32 reserved[5];		/* Reserved for future compatibility */
++};
++
++To modify variable information, applications call the FBIOPUT_VSCREENINFO
++ioctl with a pointer to a fb_var_screeninfo structure. If the call is
++successful, the driver will update the fixed screen information accordingly.
++
++Instead of filling the complete fb_var_screeninfo structure manually,
++applications should call the FBIOGET_VSCREENINFO ioctl and modify only the
++fields they care about.
++
++
++4. Format configuration
++-----------------------
++
++Frame buffer devices offer two ways to configure the frame buffer format: the
++legacy API and the FOURCC-based API.
++
++
++The legacy API has been the only frame buffer format configuration API for a
++long time and is thus widely used by application. It is the recommended API
++for applications when using RGB and grayscale formats, as well as legacy
++non-standard formats.
++
++To select a format, applications set the fb_var_screeninfo bits_per_pixel field
++to the desired frame buffer depth. Values up to 8 will usually map to
++monochrome, grayscale or pseudocolor visuals, although this is not required.
++
++- For grayscale formats, applications set the grayscale field to a non-zero
++  value. The red, blue, green and transp fields must be set to 0 by
++  applications and ignored by drivers. Drivers must fill the red, blue and
++  green offsets to 0 and lengths to the bits_per_pixel value.
++
++- For pseudocolor formats, applications set the grayscale field to a zero
++  value. The red, blue, green and transp fields must be set to 0 by
++  applications and ignored by drivers. Drivers must fill the red, blue and
++  green offsets to 0 and lengths to the bits_per_pixel value.
++
++- For truecolor and directcolor formats, applications set the grayscale field
++  to a zero value, and the red, blue, green and transp fields to describe the
++  layout of color components in memory.
++
++struct fb_bitfield {
++	__u32 offset;			/* beginning of bitfield	*/
++	__u32 length;			/* length of bitfield		*/
++	__u32 msb_right;		/* != 0 : Most significant bit is */
++					/* right */
++};
++
++  Pixel values are bits_per_pixel wide and are split in non-overlapping red,
++  green, blue and alpha (transparency) components. Location and size of each
++  component in the pixel value are described by the fb_bitfield offset and
++  length fields. Offset are computed from the right.
++
++  Pixels are always stored in an integer number of bytes. If the number of
++  bits per pixel is not a multiple of 8, pixel values are padded to the next
++  multiple of 8 bits.
++
++Upon successful format configuration, drivers update the fb_fix_screeninfo
++type, visual and line_length fields depending on the selected format.
++
++
++The FOURCC-based API replaces format descriptions by four character codes
++(FOURCC). FOURCCs are abstract identifiers that uniquely define a format
++without explicitly describing it. This is the only API that supports YUV
++formats. Drivers are also encouraged to implement the FOURCC-based API for RGB
++and grayscale formats.
++
++Drivers that support the FOURCC-based API report this capability by setting
++the FB_CAP_FOURCC bit in the fb_fix_screeninfo capabilities field.
++
++FOURCC definitions are located in the linux/videodev2.h header. However, and
++despite starting with the V4L2_PIX_FMT_prefix, they are not restricted to V4L2
++and don't require usage of the V4L2 subsystem. FOURCC documentation is
++available in Documentation/DocBook/v4l/pixfmt.xml.
++
++To select a format, applications set the format.fourcc field to the desired
++FOURCC. For YUV formats, they should also select the appropriate colorspace by
++setting the format.colorspace field to one of the colorspaces listed in
++linux/videodev2.h and documented in Documentation/DocBook/v4l/colorspaces.xml.
++
++For forward compatibility reasons the format.reserved field must be set to 0 by
++applications and ignored by drivers. Values other than 0 may get a meaning in
++future extensions. Note that the grayscale, red, green, blue and transp field
++share memory with the format field. Application must thus not touch those
++fields when using the FOURCC-based API.
++
++Upon successful format configuration, drivers update the fb_fix_screeninfo
++type, visual and line_length fields depending on the selected format. The
++visual field is set to FB_VISUAL_FOURCC.
+diff --git a/include/linux/fb.h b/include/linux/fb.h
+index 1d6836c..c6baf28 100644
+--- a/include/linux/fb.h
++++ b/include/linux/fb.h
+@@ -69,6 +69,7 @@
+ #define FB_VISUAL_PSEUDOCOLOR		3	/* Pseudo color (like atari) */
+ #define FB_VISUAL_DIRECTCOLOR		4	/* Direct color */
+ #define FB_VISUAL_STATIC_PSEUDOCOLOR	5	/* Pseudo color readonly */
++#define FB_VISUAL_FOURCC		6	/* Visual identified by a V4L2 FOURCC */
+ 
+ #define FB_ACCEL_NONE		0	/* no hardware accelerator	*/
+ #define FB_ACCEL_ATARIBLITT	1	/* Atari Blitter		*/
+@@ -154,6 +155,8 @@
+ 
+ #define FB_ACCEL_PUV3_UNIGFX	0xa0	/* PKUnity-v3 Unigfx		*/
+ 
++#define FB_CAP_FOURCC		1	/* Device supports FOURCC-based formats */
++
+ struct fb_fix_screeninfo {
+ 	char id[16];			/* identification string eg "TT Builtin" */
+ 	unsigned long smem_start;	/* Start of frame buffer mem */
+@@ -171,7 +174,8 @@ struct fb_fix_screeninfo {
+ 	__u32 mmio_len;			/* Length of Memory Mapped I/O  */
+ 	__u32 accel;			/* Indicate to driver which	*/
+ 					/*  specific chip/card we have	*/
+-	__u16 reserved[3];		/* Reserved for future compatibility */
++	__u16 capabilities;		/* see FB_CAP_*			*/
++	__u16 reserved[2];		/* Reserved for future compatibility */
+ };
+ 
+ /* Interpretation of offset for color fields: All offsets are from the right,
+@@ -246,12 +250,23 @@ struct fb_var_screeninfo {
+ 	__u32 yoffset;			/* resolution			*/
+ 
+ 	__u32 bits_per_pixel;		/* guess what			*/
+-	__u32 grayscale;		/* != 0 Graylevels instead of colors */
+ 
+-	struct fb_bitfield red;		/* bitfield in fb mem if true color, */
+-	struct fb_bitfield green;	/* else only length is significant */
+-	struct fb_bitfield blue;
+-	struct fb_bitfield transp;	/* transparency			*/	
++	union {
++		struct {		/* Legacy format API		*/
++			__u32 grayscale; /* != 0 Graylevels instead of colors */
++			/* bitfields in fb mem if true color, else only */
++			/* length is significant			*/
++			struct fb_bitfield red;
++			struct fb_bitfield green;
++			struct fb_bitfield blue;
++			struct fb_bitfield transp;	/* transparency	*/
++		};
++		struct {		/* FOURCC-based format API	*/
++			__u32 fourcc;		/* FOURCC format	*/
++			__u32 colorspace;
++			__u32 reserved[11];
++		} format;
++	};
+ 
+ 	__u32 nonstd;			/* != 0 Non standard pixel format */
+ 
 -- 
-~Vinod
-> ---
->  drivers/dma/ipu/ipu_idmac.c |   65 +++++++++++++++++++++++++++---------------
->  1 files changed, 42 insertions(+), 23 deletions(-)
-> 
-> diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
-> index c1a125e..42cdf1c 100644
-> --- a/drivers/dma/ipu/ipu_idmac.c
-> +++ b/drivers/dma/ipu/ipu_idmac.c
-> @@ -1306,6 +1306,7 @@ static irqreturn_t idmac_interrupt(int irq, void *dev_id)
->  	    ipu_submit_buffer(ichan, descnew, sgnew, ichan->active_buffer) < 0) {
->  		callback = descnew->txd.callback;
->  		callback_param = descnew->txd.callback_param;
-> +		list_del_init(&descnew->list);
->  		spin_unlock(&ichan->lock);
->  		if (callback)
->  			callback(callback_param);
-> @@ -1427,39 +1428,58 @@ static int __idmac_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
->  {
->  	struct idmac_channel *ichan = to_idmac_chan(chan);
->  	struct idmac *idmac = to_idmac(chan->device);
-> +	struct ipu *ipu = to_ipu(idmac);
-> +	struct list_head *list, *tmp;
->  	unsigned long flags;
->  	int i;
->  
-> -	/* Only supports DMA_TERMINATE_ALL */
-> -	if (cmd != DMA_TERMINATE_ALL)
-> -		return -ENXIO;
-> +	switch (cmd) {
-> +	case DMA_PAUSE:
-> +		spin_lock_irqsave(&ipu->lock, flags);
-> +		ipu_ic_disable_task(ipu, chan->chan_id);
->  
-> -	ipu_disable_channel(idmac, ichan,
-> -			    ichan->status >= IPU_CHANNEL_ENABLED);
-> +		/* Return all descriptors into "prepared" state */
-> +		list_for_each_safe(list, tmp, &ichan->queue)
-> +			list_del_init(list);
->  
-> -	tasklet_disable(&to_ipu(idmac)->tasklet);
-> +		ichan->sg[0] = NULL;
-> +		ichan->sg[1] = NULL;
->  
-> -	/* ichan->queue is modified in ISR, have to spinlock */
-> -	spin_lock_irqsave(&ichan->lock, flags);
-> -	list_splice_init(&ichan->queue, &ichan->free_list);
-> +		spin_unlock_irqrestore(&ipu->lock, flags);
->  
-> -	if (ichan->desc)
-> -		for (i = 0; i < ichan->n_tx_desc; i++) {
-> -			struct idmac_tx_desc *desc = ichan->desc + i;
-> -			if (list_empty(&desc->list))
-> -				/* Descriptor was prepared, but not submitted */
-> -				list_add(&desc->list, &ichan->free_list);
-> +		ichan->status = IPU_CHANNEL_INITIALIZED;
-> +		break;
-> +	case DMA_TERMINATE_ALL:
-> +		ipu_disable_channel(idmac, ichan,
-> +				    ichan->status >= IPU_CHANNEL_ENABLED);
->  
-> -			async_tx_clear_ack(&desc->txd);
-> -		}
-> +		tasklet_disable(&ipu->tasklet);
->  
-> -	ichan->sg[0] = NULL;
-> -	ichan->sg[1] = NULL;
-> -	spin_unlock_irqrestore(&ichan->lock, flags);
-> +		/* ichan->queue is modified in ISR, have to spinlock */
-> +		spin_lock_irqsave(&ichan->lock, flags);
-> +		list_splice_init(&ichan->queue, &ichan->free_list);
->  
-> -	tasklet_enable(&to_ipu(idmac)->tasklet);
-> +		if (ichan->desc)
-> +			for (i = 0; i < ichan->n_tx_desc; i++) {
-> +				struct idmac_tx_desc *desc = ichan->desc + i;
-> +				if (list_empty(&desc->list))
-> +					/* Descriptor was prepared, but not submitted */
-> +					list_add(&desc->list, &ichan->free_list);
->  
-> -	ichan->status = IPU_CHANNEL_INITIALIZED;
-> +				async_tx_clear_ack(&desc->txd);
-> +			}
-> +
-> +		ichan->sg[0] = NULL;
-> +		ichan->sg[1] = NULL;
-> +		spin_unlock_irqrestore(&ichan->lock, flags);
-> +
-> +		tasklet_enable(&ipu->tasklet);
-> +
-> +		ichan->status = IPU_CHANNEL_INITIALIZED;
-> +		break;
-> +	default:
-> +		return -ENOSYS;
-> +	}
->  
->  	return 0;
->  }
-> @@ -1662,7 +1682,6 @@ static void __exit ipu_idmac_exit(struct ipu *ipu)
->  		struct idmac_channel *ichan = ipu->channel + i;
->  
->  		idmac_control(&ichan->dma_chan, DMA_TERMINATE_ALL, 0);
-> -		idmac_prep_slave_sg(&ichan->dma_chan, NULL, 0, DMA_NONE, 0);
->  	}
->  
->  	dma_async_device_unregister(&idmac->dma);
-
-
+1.7.3.4
 
