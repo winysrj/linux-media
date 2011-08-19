@@ -1,65 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54764 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754483Ab1HZNpO (ORCPT
+Received: from nm2-vm0.bt.bullet.mail.ird.yahoo.com ([212.82.108.92]:27062
+	"HELO nm2-vm0.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751685Ab1HSAMY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Aug 2011 09:45:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: Embedded device and the  V4L2 API support - Was: [GIT PATCHES FOR 3.1] s5p-fimc and noon010pc30 driver updates
-Date: Fri, 26 Aug 2011 15:45:30 +0200
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-References: <4E303E5B.9050701@samsung.com> <20110824222925.GR8872@valkosipuli.localdomain> <4E56438C.1070102@redhat.com>
-In-Reply-To: <4E56438C.1070102@redhat.com>
+	Thu, 18 Aug 2011 20:12:24 -0400
+Message-ID: <4E4DAA64.4050302@yahoo.com>
+Date: Fri, 19 Aug 2011 01:12:20 +0100
+From: Chris Rankin <rankincj@yahoo.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108261545.30817.laurent.pinchart@ideasonboard.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org, mchehab@redhat.com,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH] Latest version of em28xx / em28xx-dvb patch for PCTV
+ 290e
+References: <4E4D5157.2080406@yahoo.com> <CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com> <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com>
+In-Reply-To: <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------050603080709030200000600"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This is a multi-part message in MIME format.
+--------------050603080709030200000600
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Thursday 25 August 2011 14:43:56 Mauro Carvalho Chehab wrote:
-> Em 24-08-2011 19:29, Sakari Ailus escreveu:
+The final patch removes the unplug/replug deadlock by not holding the device 
+mutex during dvb_init(). However, this mutex has already been locked during 
+device initialisation by em28xx_usb_probe() and is not released again until all 
+extensions have been initialised successfully.
 
-[snip]
+The device mutex is not held during either em28xx_register_extension() or 
+em28xx_unregister_extension() any more. More importantly, I don't believe it can 
+safely be held by these functions because they must both - by their nature -  
+acquire the device list mutex before they can iterate through the device list. 
+In other words, while usb_probe() and usb_disconnect() acquire the device mutex 
+followed by the device list mutex, the register/unregister_extension() functions 
+would need to acquire these mutexes in the opposite order. And that sounds like 
+a potential deadlock.
 
-> > The question I still have on this is that how should the user know which
-> > video node to access on an embedded system with a camera: the OMAP 3 ISP,
-> > for example, contains some eight video nodes which have different ISP
-> > blocks connected to them. Likely two of these nodes are useful for a
-> > general purpose application based on which image format it requests. It
-> > would make sense to provide generic applications information only on
-> > those devices they may meaningfully use.
-> 
-> IMO, we should create a namespace device mapping for video devices. What I
-> mean is that we should keep the "raw" V4L2 devices as:
-> 	/dev/video??
-> But also recommend the creation of a new userspace map, like:
-> 	/dev/webcam??
-> 	/dev/tv??
-> 	...
-> with is an alias for the actual device.
-> 
-> Something similar to dvd/cdrom aliases that already happen on most distros:
-> 
-> lrwxrwxrwx   1 root root           3 Ago 24 12:14 cdrom -> sr0
-> lrwxrwxrwx   1 root root           3 Ago 24 12:14 cdrw -> sr0
-> lrwxrwxrwx   1 root root           3 Ago 24 12:14 dvd -> sr0
-> lrwxrwxrwx   1 root root           3 Ago 24 12:14 dvdrw -> sr0
+On the other hand, the new situation is a definite improvement :-).
 
-I've been toying with a similar idea. libv4l currently wraps /dev/video* 
-device nodes and assumes a 1:1 relationship between a video device node and a 
-video device. Should this assumption be somehow removed, replaced by a video 
-device concept that wouldn't be tied to a single video device node ?
+Signed-off-by: Chris Rankin <rankincj@yahoo.com>
 
--- 
-Regards,
 
-Laurent Pinchart
+--------------050603080709030200000600
+Content-Type: text/x-patch;
+ name="EM28xx-replug-deadlock.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="EM28xx-replug-deadlock.diff"
+
+--- linux-3.0/drivers/media/video/em28xx/em28xx-dvb.c.orig	2011-08-19 00:50:41.000000000 +0100
++++ linux-3.0/drivers/media/video/em28xx/em28xx-dvb.c	2011-08-19 00:51:03.000000000 +0100
+@@ -542,7 +542,6 @@
+ 	dev->dvb = dvb;
+ 	dvb->fe[0] = dvb->fe[1] = NULL;
+ 
+-	mutex_lock(&dev->lock);
+ 	em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
+ 	/* init frontend */
+ 	switch (dev->model) {
+@@ -711,7 +710,6 @@
+ 	em28xx_info("Successfully loaded em28xx-dvb\n");
+ ret:
+ 	em28xx_set_mode(dev, EM28XX_SUSPEND);
+-	mutex_unlock(&dev->lock);
+ 	return result;
+ 
+ out_free:
+
+--------------050603080709030200000600--
