@@ -1,56 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:49608 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754325Ab1H2RCn (ORCPT
+Received: from mail2.bitsnet.com.br ([200.252.189.137]:55985 "EHLO
+	cacau.bitsnet.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751828Ab1HXTeN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 13:02:43 -0400
-Subject: Kconfig unmet dependency with RADIO_WL1273
-From: Luciano Coelho <coelho@ti.com>
-To: matti.j.aaltonen@nokia.com
-Cc: johannes@sipsolutions.net, linux-kernel@vger.kernel.org,
-	sameo@linux.intel.com, mchehab@infradead.org,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 29 Aug 2011 20:02:38 +0300
-Message-ID: <1314637358.2296.395.camel@cumari>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 24 Aug 2011 15:34:13 -0400
+Cc: recipient list not shown:;
+Message-ID: <1313778806.4e4eac765a8be@www.bitsnet.com.br>
+Date: Fri, 19 Aug 2011 15:33:26 -0300
+From: WESTERN UNION MONEYS TRANSFER <western_union_team@w.cn>
+Reply-to: western.union.team@w.cn
+Subject: PROMOTION 2011
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Matti,
-
-Johannes has just reported a problem in the Kconfig of radio-wl1273.  It
-seems to select MFD_CORE, but if the platform doesn't support MFD, then
-MFD_SUPPORT won't be selected and this kind of warning will come out:
-
-warning: (OLPC_XO1_PM && OLPC_XO1_SCI && I2C_ISCH && GPIO_SCH && GPIO_RDC321X && RADIO_WL1273) 
-                selects MFD_CORE which has unmet direct dependencies (MFD_SUPPORT)
-
-I guess it must depend on MFD_SUPPORT, right? If that's the correct
-solution, the following patch should fix the problem:
-
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index 52798a1..e87f544 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -425,7 +425,7 @@ config RADIO_TIMBERDALE
- 
- config RADIO_WL1273
-        tristate "Texas Instruments WL1273 I2C FM Radio"
--       depends on I2C && VIDEO_V4L2
-+       depends on I2C && VIDEO_V4L2 && MFD_SUPPORT
-        select MFD_CORE
-        select MFD_WL1273_CORE
-        select FW_LOADER
-
-The same problem is happening with other drivers too, so maybe there is
-a better solution to fix all problems at once. ;)
-
-Reported-by: Johannes Berg <johannes@sipsolutions.net>
 
 
--- 
-Cheers,
-Luca.
+We happily announce to you that Your E-mail address has won you the sum of
+50,000USD. sending your name,address,age,phone number etc to
+(western.union.team@w.cn)
 
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
