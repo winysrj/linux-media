@@ -1,150 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33677 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751275Ab1HVRVI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Aug 2011 13:21:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer management
-Date: Mon, 22 Aug 2011 19:21:18 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange> <201108221742.37278.laurent.pinchart@ideasonboard.com> <201108221752.12950.hverkuil@xs4all.nl>
-In-Reply-To: <201108221752.12950.hverkuil@xs4all.nl>
+Received: from nm14-vm0.bullet.mail.ne1.yahoo.com ([98.138.91.52]:23373 "HELO
+	nm14-vm0.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752034Ab1HTOke convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Aug 2011 10:40:34 -0400
+Message-ID: <1313851233.95109.YahooMailClassic@web121704.mail.ne1.yahoo.com>
+Date: Sat, 20 Aug 2011 07:40:33 -0700 (PDT)
+From: Chris Rankin <rankincj@yahoo.com>
+Subject: Re: [PATCH 2/2] EM28xx - fix deadlock when unplugging and replugging a DVB adapter
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+In-Reply-To: <4E4FA9BA.1020306@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108221921.18864.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+--- On Sat, 20/8/11, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> No. The extension load can happen after the usb probe
+> phase. In practice, the only case where the extension init will happen
+> together with the usb probe phase is when the em28xx modules are
+> compiled builtin
 
-On Monday 22 August 2011 17:52:12 Hans Verkuil wrote:
-> On Monday, August 22, 2011 17:42:36 Laurent Pinchart wrote:
-> > On Monday 22 August 2011 15:54:03 Guennadi Liakhovetski wrote:
-> > > We discussed a bit more with Hans on IRC, and below is my attempt of a
-> > > summary. Hans, please, correct me, if I misunderstood anything. Pawel,
-> > > Sakari, Laurent: please, reply, whether you're ok with this.
-> > 
-> > Sakari is on holidays this week.
-> > 
-> > > On Mon, 22 Aug 2011, Hans Verkuil wrote:
-> > > > On Monday, August 22, 2011 12:40:25 Guennadi Liakhovetski wrote:
-> > > [snip]
-> > > 
-> > > > > It would be good if you also could have a look at my reply to this
-> > > > > Pawel's mail:
-> > > > > 
-> > > > > http://article.gmane.org/gmane.linux.drivers.video-input-
-> > > > 
-> > > > infrastructure/36905
-> > > > 
-> > > > > and, specifically, at the vb2_parse_planes() function in it. That's
-> > > > > my understanding of what would be needed, if we preserve
-> > > > > .queue_setup() and use your last suggestion to include struct
-> > > > > v4l2_format in struct v4l2_create_buffers.
-> > > > 
-> > > > vb2_parse_planes can be useful as a utility function that 'normal'
-> > > > drivers can call from the queue_setup. But vb2 should not parse the
-> > > > format directly, it should just pass it on to the driver through the
-> > > > queue_setup function.
-> > > > 
-> > > > You also mention: "All frame-format fields like fourcc code, width,
-> > > > height, colorspace are only input from the user. If the user didn't
-> > > > fill them in, they should not be used."
-> > > > 
-> > > > I disagree with that. The user should fill in a full format
-> > > > description, just as with S/TRY_FMT. That's the information that the
-> > > > driver will use to set up the buffers. It could have weird rules
-> > > > like: if the fourcc is this, and the size is less than that, then we
-> > > > can allocate in this memory bank.
-> > > > 
-> > > > It is also consistent with REQBUFS: there too the driver uses a full
-> > > > format (i.e. the last set format).
-> > > > 
-> > > > I would modify queue_setup to something like this:
-> > > > 
-> > > > int (*queue_setup)(struct vb2_queue *q, struct v4l2_format *fmt,
-> > > > 
-> > > >                      unsigned int *num_buffers,
-> > > >                      unsigned int *num_planes, unsigned int sizes[],
-> > > >                      void *alloc_ctxs[]);
-> > > > 
-> > > > Whether fmt is left to NULL in the reqbufs case, or whether the
-> > > > driver has to call g_fmt first before calling vb2 is something that
-> > > > could be decided by what is easiest to implement.
-> > > 
-> > > 1. VIDIOC_CREATE_BUFS passes struct v4l2_create_buffers from the user
-> > > to
-> > > 
-> > >    the kernel, in which struct v4l2_format is embedded. The user _must_
-> > >    fill in .type member of struct v4l2_format. For .type ==
-> > >    V4L2_BUF_TYPE_VIDEO_CAPTURE or V4L2_BUF_TYPE_VIDEO_OUTPUT .fmt.pix
-> > >    is used, for .type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE or
-> > >    V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE .fmt.pix_mp is used. In both these
-> > >    cases the user _must_ fill in .width, .height, .pixelformat, .field,
-> > >    .colorspace by possibly calling VIDIOC_G_FMT or VIDIOC_TRY_FMT. The
-> > >    user also _may_ optionally fill in any further buffer-size related
-> > >    fields, if it believes to have any special requirements to them. On
-> > >    a successful return from the ioctl() .count and .index fields are
-> > >    filled in by the kernel, .format stays unchanged. The user has to
-> > >    call VIDIOC_QUERYBUF to retrieve specific buffer information.
-> > > 
-> > > 2. Videobuf2 drivers, that implement .vidioc_create_bufs() operation,
-> > > call
-> > > 
-> > >    vb2_create_bufs() with a pointer to struct v4l2_create_buffers as a
-> > >    second argument. vb2_create_bufs() in turn calls the .queue_setup()
-> > > 
-> > >    driver callback, whose prototype is modified as follows:
-> > > int (*queue_setup)(struct vb2_queue *q, const struct v4l2_format *fmt,
-> > > 
-> > > 			unsigned int *num_buffers,
-> > > 			unsigned int *num_planes, unsigned int sizes[],
-> > > 			void *alloc_ctxs[]);
-> > > 			
-> > >    with &create->format as a second argument. As pointed out above,
-> > >    this struct is not modified by V4L, instead, the usual arguments
-> > >    3-6 are filled in by the driver, which are then used by
-> > >    vb2_create_bufs() to call __vb2_queue_alloc().
-> > > 
-> > > 3. vb2_reqbufs() shall call .queue_setup() with fmt == NULL, which will
-> > > be
-> > > 
-> > >    a signal to the driver to use the current format.
-> > > 
-> > > 4. We keep .queue_setup(), because its removal would inevitably push a
-> > > 
-> > >    part of the common code from vb2_reqbufs() and vb2_create_bufs()
-> > >    down into drivers, thus creating code redundancy and increasing its
-> > >    complexity.
-> > 
-> > How much common code would be pushed down to drivers ? I don't think this
-> > is a real issue. I like Pawel's proposal of removing .queue_setup()
-> > better.
-> 
-> I still don't see what removing queue_setup will solve or improve.
+It also happens when someone plugs an adapter into the machine when the modules are already loaded. E.g. someone plugging a second adapter in, or unplugging and then replugging the same one.
 
-It will remove handling of the format in vb2 (even if it's a pass-through 
-operation). I think it would be cleaner that way. It will also avoid going 
-back and forth between drivers and vb2, which would improve code readability.
+> Maybe the proper fix would be to change the logic under
+> em28xx_usb_probe() to not hold dev->lock anymore when the device is
+> loading the extensions.
 
-> I'd say leave it as it is to keep the diff as small as possible and someone
-> can always attempt to remove it later. Removing queue_setup is independent
-> from multi-size videobuffer management and we should not mix the two.
+I could certainly write such a patch, although I only have a PCTV 290e adapter to test with.
 
-Guennadi's patch will (at least in my opinion) be cleaner if built on top of 
-queue_setup() removal.
+Is this problem unique to the em28xx-dvb module? How does the em28xx-alsa module get away with creating ALSA devices without causing a similar race condition?
 
--- 
-Regards,
+Cheers,
+Chris
 
-Laurent Pinchart
