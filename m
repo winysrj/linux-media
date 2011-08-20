@@ -1,59 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:57408 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752912Ab1HLCeX (ORCPT
+Received: from nm31-vm4.bullet.mail.bf1.yahoo.com ([72.30.239.12]:38536 "HELO
+	nm31-vm4.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754458Ab1HTTIK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2011 22:34:23 -0400
-Date: Thu, 11 Aug 2011 21:38:47 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Alan Stern <stern@rowland.harvard.edu>
-cc: Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	Greg KH <greg@kroah.com>, linux-usb@vger.kernel.org,
-	linux-media@vger.kernel.org, Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Adam Baker <linux@baker-net.org.uk>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-In-Reply-To: <Pine.LNX.4.44L0.1108112104490.31728-100000@netrider.rowland.org>
-Message-ID: <alpine.LNX.2.00.1108112114500.27487@banach.math.auburn.edu>
-References: <Pine.LNX.4.44L0.1108112104490.31728-100000@netrider.rowland.org>
+	Sat, 20 Aug 2011 15:08:10 -0400
+Message-ID: <4E500486.4080009@yahoo.com>
+Date: Sat, 20 Aug 2011 20:01:26 +0100
+From: Chris Rankin <rankincj@yahoo.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH 6/6] EM28xx - don't sleep on disconnect
+References: <1313847960.1685.YahooMailClassic@web121706.mail.ne1.yahoo.com> <4E4FC2BE.4070409@redhat.com>
+In-Reply-To: <4E4FC2BE.4070409@redhat.com>
+Content-Type: multipart/mixed;
+ boundary="------------080901040701010802090502"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This is a multi-part message in MIME format.
+--------------080901040701010802090502
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Here's the updated patch that checks whether the frontend exists before 
+disabling the sleep operations.
+
+Cheers,
+Chris
 
 
-On Thu, 11 Aug 2011, Alan Stern wrote:
+--------------080901040701010802090502
+Content-Type: text/plain;
+ name="EM28xx-disconnect-no-sleep.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="EM28xx-disconnect-no-sleep.diff"
 
-<snip>
-
-> No, I'm not going to Vancouver.  
-
-Well, someday, somewhere, we will be together in the same place at the 
-same time and able to enjoy a good seafood restaurant.
-
-However I will attend the Linux 
-> Plumbers conference in Santa Rosa.
-
-Which I expect I will not. 
-
-Until next time we meet, cheers.
-
-Theodore Kilgore
-
-
-
-
-
-
+LS0tIGxpbnV4LTMuMC9kcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMvdGRhMTgyNzEtZmUu
+Yy5vcmlnCTIwMTEtMDgtMjAgMTg6NTM6NDguMDAwMDAwMDAwICswMTAwCisrKyBsaW51eC0z
+LjAvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3RkYTE4MjcxLWZlLmMJMjAxMS0wOC0y
+MCAxOToyMTozNC4wMDAwMDAwMDAgKzAxMDAKQEAgLTEyMzAsNyArMTIzMCw3IEBACiAJcmV0
+dXJuIDA7CiB9CiAKLXN0YXRpYyBzdHJ1Y3QgZHZiX3R1bmVyX29wcyB0ZGExODI3MV90dW5l
+cl9vcHMgPSB7CitzdGF0aWMgY29uc3Qgc3RydWN0IGR2Yl90dW5lcl9vcHMgdGRhMTgyNzFf
+dHVuZXJfb3BzID0gewogCS5pbmZvID0gewogCQkubmFtZSA9ICJOWFAgVERBMTgyNzFIRCIs
+CiAJCS5mcmVxdWVuY3lfbWluICA9ICA0NTAwMDAwMCwKLS0tIGxpbnV4LTMuMC9kcml2ZXJz
+L21lZGlhL2R2Yi9mcm9udGVuZHMvY3hkMjgyMHJfY29yZS5jLm9yaWcJMjAxMS0wOC0yMCAx
+ODo1NDowOS4wMDAwMDAwMDAgKzAxMDAKKysrIGxpbnV4LTMuMC9kcml2ZXJzL21lZGlhL2R2
+Yi9mcm9udGVuZHMvY3hkMjgyMHJfY29yZS5jCTIwMTEtMDgtMjAgMTk6MjI6MjEuMDAwMDAw
+MDAwICswMTAwCkBAIC03NzgsNyArNzc4LDcgQEAKIH0KIEVYUE9SVF9TWU1CT0woY3hkMjgy
+MHJfZ2V0X3R1bmVyX2kyY19hZGFwdGVyKTsKIAotc3RhdGljIHN0cnVjdCBkdmJfZnJvbnRl
+bmRfb3BzIGN4ZDI4MjByX29wc1syXTsKK3N0YXRpYyBjb25zdCBzdHJ1Y3QgZHZiX2Zyb250
+ZW5kX29wcyBjeGQyODIwcl9vcHNbMl07CiAKIHN0cnVjdCBkdmJfZnJvbnRlbmQgKmN4ZDI4
+MjByX2F0dGFjaChjb25zdCBzdHJ1Y3QgY3hkMjgyMHJfY29uZmlnICpjZmcsCiAJc3RydWN0
+IGkyY19hZGFwdGVyICppMmMsIHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlKQpAQCAtODQ0LDcg
+Kzg0NCw3IEBACiB9CiBFWFBPUlRfU1lNQk9MKGN4ZDI4MjByX2F0dGFjaCk7CiAKLXN0YXRp
+YyBzdHJ1Y3QgZHZiX2Zyb250ZW5kX29wcyBjeGQyODIwcl9vcHNbMl0gPSB7CitzdGF0aWMg
+Y29uc3Qgc3RydWN0IGR2Yl9mcm9udGVuZF9vcHMgY3hkMjgyMHJfb3BzWzJdID0gewogCXsK
+IAkJLyogRFZCLVQvVDIgKi8KIAkJLmluZm8gPSB7Ci0tLSBsaW51eC0zLjAvZHJpdmVycy9t
+ZWRpYS92aWRlby9lbTI4eHgvZW0yOHh4LWR2Yi5jLm9yaWcJMjAxMS0wOC0yMCAxODo1Mzoy
+NS4wMDAwMDAwMDAgKzAxMDAKKysrIGxpbnV4LTMuMC9kcml2ZXJzL21lZGlhL3ZpZGVvL2Vt
+Mjh4eC9lbTI4eHgtZHZiLmMJMjAxMS0wOC0yMCAxOToyNjo1MS4wMDAwMDAwMDAgKzAxMDAK
+QEAgLTcyMCw2ICs3MjAsMTMgQEAKIAlnb3RvIHJldDsKIH0KIAorc3RhdGljIGlubGluZSB2
+b2lkIHByZXZlbnRfc2xlZXAoc3RydWN0IGR2Yl9mcm9udGVuZF9vcHMgKm9wcykKK3sKKwlv
+cHMtPnNldF92b2x0YWdlID0gTlVMTDsKKwlvcHMtPnNsZWVwID0gTlVMTDsKKwlvcHMtPnR1
+bmVyX29wcy5zbGVlcCA9IE5VTEw7Cit9CisKIHN0YXRpYyBpbnQgZHZiX2Zpbmkoc3RydWN0
+IGVtMjh4eCAqZGV2KQogewogCWlmICghZGV2LT5ib2FyZC5oYXNfZHZiKSB7CkBAIC03Mjgs
+OCArNzM1LDE5IEBACiAJfQogCiAJaWYgKGRldi0+ZHZiKSB7Ci0JCXVucmVnaXN0ZXJfZHZi
+KGRldi0+ZHZiKTsKLQkJa2ZyZWUoZGV2LT5kdmIpOworCQlzdHJ1Y3QgZW0yOHh4X2R2YiAq
+ZHZiID0gZGV2LT5kdmI7CisKKwkJaWYgKGRldi0+c3RhdGUgJiBERVZfRElTQ09OTkVDVEVE
+KSB7CisJCQkvKiBXZSBjYW5ub3QgdGVsbCB0aGUgZGV2aWNlIHRvIHNsZWVwCisJCQkgKiBv
+bmNlIGl0IGhhcyBiZWVuIHVucGx1Z2dlZC4gKi8KKwkJCWlmIChkdmItPmZlWzBdKQorCQkJ
+CXByZXZlbnRfc2xlZXAoJmR2Yi0+ZmVbMF0tPm9wcyk7CisJCQlpZiAoZHZiLT5mZVsxXSkK
+KwkJCQlwcmV2ZW50X3NsZWVwKCZkdmItPmZlWzFdLT5vcHMpOworCQl9CisKKwkJdW5yZWdp
+c3Rlcl9kdmIoZHZiKTsKKwkJa2ZyZWUoZHZiKTsKIAkJZGV2LT5kdmIgPSBOVUxMOwogCX0K
+IAo=
+--------------080901040701010802090502--
