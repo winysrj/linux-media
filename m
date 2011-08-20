@@ -1,54 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f170.google.com ([209.85.210.170]:65069 "EHLO
-	mail-iy0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751008Ab1HMJmm convert rfc822-to-8bit (ORCPT
+Received: from nm4.bt.bullet.mail.ukl.yahoo.com ([217.146.183.202]:37896 "HELO
+	nm4.bt.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752566Ab1HTLOo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Aug 2011 05:42:42 -0400
+	Sat, 20 Aug 2011 07:14:44 -0400
+Message-ID: <4E4F971F.5070902@yahoo.com>
+Date: Sat, 20 Aug 2011 12:14:39 +0100
+From: Chris Rankin <rankincj@yahoo.com>
 MIME-Version: 1.0
-In-Reply-To: <201108111919.54649.laurent.pinchart@ideasonboard.com>
-References: <4DDAE63A.3070203@gmx.de>
-	<4E35DD38.7070609@gmx.de>
-	<CAMuHMdUMW3QC_43aKvw2KQqEmzmeXXois8+zFg+S+DG785GwjA@mail.gmail.com>
-	<201108111919.54649.laurent.pinchart@ideasonboard.com>
-Date: Sat, 13 Aug 2011 11:42:41 +0200
-Message-ID: <CAMuHMdVywgXhfrvGm4QzE79hPX-fRdY4eSFQP45XqAah_YdQ5Q@mail.gmail.com>
-Subject: Re: [PATCH/RFC] fbdev: Add FOURCC-based format configuration API
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Paul Mundt <lethal@linux-sh.org>, linux-fbdev@vger.kernel.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/6] Fix memory leak on disconnect or error.
+References: <4E4D5157.2080406@yahoo.com> <CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com> <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com> <4E4D8DFD.5060800@yahoo.com> <4E4DFA65.4090508@redhat.com>
+In-Reply-To: <4E4DFA65.4090508@redhat.com>
+Content-Type: multipart/mixed;
+ boundary="------------060602020005060702040206"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi LAurent,
+This is a multi-part message in MIME format.
+--------------060602020005060702040206
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Thu, Aug 11, 2011 at 19:19, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Monday 01 August 2011 11:49:46 Geert Uytterhoeven wrote:
->> As several of the FOURCC formats duplicate formats you can already specify
->> in some other way (e.g. the RGB and greyscale formats), and as FOURCC makes
->> life easier for the application writer, I'm wondering whether it makes sense
->> to add FOURCC support in the generic layer for drivers that don't support
->> it? I.e. the generic layer would fill in fb_var_screeninfo depending on the
->> requested FOURCC mode, if possible.
->
-> That's a good idea, but I'd like to add that in a second step. I'm working on
-> a proof-of-concept by porting a driver to the FOURCC-based API first.
+Release the dev->alt_max_pkt_size buffer in all cases.
 
-Sure! I was just mentioning it, so we keep it in the back of our head and don't
-make decisions now that would make it impossible to add that later.
+Signed-off-by: Chris Rankin <rankincj@yahoo.com>
 
-Gr{oetje,eeting}s,
 
-                        Geert
+--------------060602020005060702040206
+Content-Type: text/x-patch;
+ name="EM28xx-video-leak.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="EM28xx-video-leak.diff"
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+--- linux-3.0/drivers/media/video/em28xx/em28xx-video.c.orig	2011-08-18 17:20:10.000000000 +0100
++++ linux-3.0/drivers/media/video/em28xx/em28xx-video.c	2011-08-18 17:20:33.000000000 +0100
+@@ -2202,6 +2202,7 @@
+ 		   free the remaining resources */
+ 		if (dev->state & DEV_DISCONNECTED) {
+ 			em28xx_release_resources(dev);
++			kfree(dev->alt_max_pkt_size);
+ 			kfree(dev);
+ 			return 0;
+ 		}
+--- linux-3.0/drivers/media/video/em28xx/em28xx-cards.c.orig	2011-08-17 08:52:19.000000000 +0100
++++ linux-3.0/drivers/media/video/em28xx/em28xx-cards.c	2011-08-18 22:09:32.000000000 +0100
+@@ -3128,6 +3128,7 @@
+ 	retval = em28xx_init_dev(&dev, udev, interface, nr);
+ 	if (retval) {
+ 		em28xx_devused &= ~(1<<dev->devno);
++		kfree(dev->alt_max_pkt_size);
+ 		mutex_unlock(&dev->lock);
+ 		kfree(dev);
+ 		goto err;
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+--------------060602020005060702040206--
