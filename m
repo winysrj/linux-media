@@ -1,29 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f170.google.com ([209.85.210.170]:39268 "EHLO
-	mail-iy0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754707Ab1HWBrV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Aug 2011 21:47:21 -0400
-Received: by iye16 with SMTP id 16so11242279iye.1
-        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2011 18:47:20 -0700 (PDT)
+Received: from nm12-vm0.bullet.mail.ne1.yahoo.com ([98.138.91.51]:37178 "HELO
+	nm12-vm0.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751383Ab1HTNqB convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Aug 2011 09:46:01 -0400
+Message-ID: <1313847960.1685.YahooMailClassic@web121706.mail.ne1.yahoo.com>
+Date: Sat, 20 Aug 2011 06:46:00 -0700 (PDT)
+From: Chris Rankin <rankincj@yahoo.com>
+Subject: Re: [PATCH 6/6] EM28xx - don't sleep on disconnect
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+In-Reply-To: <4E4FA5E0.8050606@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CAATJ+fsUWPjh5aq38triZOu0-DmU=nCbd77qUzxUn5kiDiaR+w@mail.gmail.com>
-References: <CAATJ+fu5JqVmyY=zJn_CM_Eusst_YWKG2B2MAuu5fqELYYsYqA@mail.gmail.com>
-	<CAATJ+ft9HNqLA62ZZkkEP6EswXC1Jhq=FBcXU+OHCkXTKpqeUA@mail.gmail.com>
-	<1313949634.2874.13.camel@localhost>
-	<CAATJ+fv6x6p5kimJs4unWGQ_PU36hp29Rafu8BDCcRAABtAfgQ@mail.gmail.com>
-	<CAL9G6WUFddsFM2V46xXCDWEfhfCR0n5G-8S4JSYwLLkmZnYu7g@mail.gmail.com>
-	<CAATJ+fsUWPjh5aq38triZOu0-DmU=nCbd77qUzxUn5kiDiaR+w@mail.gmail.com>
-Date: Tue, 23 Aug 2011 11:47:20 +1000
-Message-ID: <CAATJ+ftemL4NYTQLxLw4vmXpD+nFfxrUVjmapUt9EzYJNqH6FQ@mail.gmail.com>
-Subject: Re: Afatech AF9013
-From: Jason Hecker <jwhecker@gmail.com>
-To: Josu Lazkano <josu.lazkano@gmail.com>
-Cc: Malcolm Priestley <tvboxspy@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Damn, this patch didn't help so maybe forget this patch.  Tuner A is
-still messed up.
+--- On Sat, 20/8/11, Mauro Carvalho Chehab <mchehab@redhat.com> wrot
+> 
+> This will cause an OOPS if dvb->fe[n] == NULL.
+> 
+
+OK, that's trivially fixable. I'll send you an updated patch. Is it safe to assume that dvb->fe[0] at least will always be non-NULL?
+
+Cheers,
+Chris
+
