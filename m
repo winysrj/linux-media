@@ -1,87 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:55706 "EHLO vena.lwn.net"
+Received: from mx1.redhat.com ([209.132.183.28]:65411 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751164Ab1HYN1T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Aug 2011 09:27:19 -0400
-Date: Thu, 25 Aug 2011 07:27:17 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Uwe =?ISO-8859-1?B?S2xlaW5lLUv2bmln?=
-	<u.kleine-koenig@pengutronix.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Marin Mitov <mitov@issp.bas.bg>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v2/RFC] media: vb2: change queue initialization order
-Message-ID: <20110825072717.6a0fa218@bike.lwn.net>
-In-Reply-To: <1314269531-30080-1-git-send-email-m.szyprowski@samsung.com>
-References: <1314269531-30080-1-git-send-email-m.szyprowski@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+	id S1752389Ab1HTMNL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Aug 2011 08:13:11 -0400
+Message-ID: <4E4FA4C8.4050703@redhat.com>
+Date: Sat, 20 Aug 2011 05:12:56 -0700
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Embedded device and the  V4L2 API support - Was: [GIT PATCHES
+ FOR 3.1] s5p-fimc and noon010pc30 driver updates
+References: <4E303E5B.9050701@samsung.com> <201108151430.42722.laurent.pinchart@ideasonboard.com> <4E49B60C.4060506@redhat.com> <201108161057.57875.laurent.pinchart@ideasonboard.com> <4E4A8D27.1040602@redhat.com> <4E4AE583.6050308@gmail.com> <4E4B5C27.3000008@redhat.com> <4E4F9A0B.4050302@gmail.com>
+In-Reply-To: <4E4F9A0B.4050302@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 25 Aug 2011 12:52:11 +0200
-Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+Em 20-08-2011 04:27, Sylwester Nawrocki escreveu:
+> Hi Mauro,
+> 
+> On 08/17/2011 08:13 AM, Mauro Carvalho Chehab wrote:
+>> It seems that there are too many miss understandings or maybe we're just
+>> talking the same thing on different ways.
+>>
+>> So, instead of answering again, let's re-start this discussion on a
+>> different way.
+>>
+>> One of the requirements that it was discussed a lot on both mailing
+>> lists and on the Media Controllers meetings that we had (or, at least
+>> in the ones where I've participated) is that:
+>>
+>> 	"A pure V4L2 userspace application, knowing about video device
+>> 	 nodes only, can still use the driver. Not all advanced features
+>> 	 will be available."
+> 
+> What does a term "a pure V4L2 userspace application" mean here ?
 
-> This patch changes the order of operations during stream on call. Now the
-> buffers are first queued to the driver and then the start_streaming method
-> is called.
+The above quotation are exactly the Laurent's words that I took from one 
+of his replies.
 
-This seems good to me (I guess it should, since I'm the guy who griped
-about it before :).
+> Does it also account an application which is linked to libv4l2 and uses
+> calls specific to a particular hardware which are included there?
 
-> This resolves the most common case when the driver needs to know buffer
-> addresses to enable dma engine and start streaming. Additional parameters
-> to start_streaming and buffer_queue methods have been added to simplify
-> drivers code. The driver are now obliged to check if the number of queued
-> buffers is enough to enable hardware streaming. If not - it should return
-> an error. In such case all the buffers that have been pre-queued are
-> invalidated.
+That's a good question. We need to properly define what it means, to avoid
+having libv4l abuses.
 
-I'd suggest that drivers that worked in the old scheme, where the buffers
-arrived after the start_streaming() call, should continue to work.  Why
-not? 
- 
-> Drivers that are able to start/stop streaming on-fly, can control dma
-> engine directly in buf_queue callback. In this case start_streaming
-> callback can be considered as optional. The driver can also assume that
-> after a few first buf_queue calls with zero 'streaming' parameter, the core
-> will finally call start_streaming callback.
+In other words, it seems ok to use libv4l to set pipelines via the MC API
+at open(), but it isn't ok to have an open() binary only libv4l plugin that
+will hook open and do the complete device initialization on userspace
+(I remember that one vendor once proposed a driver like that).
 
-This part I like a bit less.  In your patch, almost none of the changed
-drivers use that parameter.  start_streaming() is a significant state
-change, I don't think it's asking a lot of a driver to provide a callback
-and actually remember whether it's supposed to be streaming or not.
+Also, from my side, I'd like to see both libv4l and kernel drivers being
+submitted together, if the new driver depends on a special libv4l support
+for it to work.
 
-Beyond that, what happens to a driver without a start_streaming() callback
-if the application first queues all its buffers, then does its
-VIDIOC_STREAMON call?  I see:
-
-> +	list_for_each_entry(vb, &q->queued_list, queued_entry)
-> +		__enqueue_in_driver(vb, 0);
-
-(So we get streaming=0 for all queued buffers).
-
->  	/*
->  	 * Let driver notice that streaming state has been enabled.
->  	 */
-> -	ret = call_qop(q, start_streaming, q);
-> +	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
->  	if (ret) {
->  		dprintk(1, "streamon: driver refused to start streaming\n");
-> +		__vb2_queue_cancel(q);
->  		return ret;
->  	}
-
-The driver will have gotten all of the buffers with streaming=0, then will
-never get a call again; I don't think that will lead to the desired result.
-Am I missing something?
-
-Thanks,
-
-jon
+Regards,
+Mauro
