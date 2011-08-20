@@ -1,128 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:45041 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753006Ab1HQMNV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2011 08:13:21 -0400
-Date: Wed, 17 Aug 2011 15:13:16 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size
- videobuffer management
-Message-ID: <20110817121316.GJ7436@valkosipuli.localdomain>
-References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
- <Pine.LNX.4.64.1108050908590.26715@axis700.grange>
- <4E3D8B03.3090601@iki.fi>
- <Pine.LNX.4.64.1108171033510.18317@axis700.grange>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:45506 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752213Ab1HTNEY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Aug 2011 09:04:24 -0400
+Received: from [IPv6:2a01:e34:ee31:8020:bc01:e1f7:1966:31f2] (unknown [IPv6:2a01:e34:ee31:8020:bc01:e1f7:1966:31f2])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 0D7BC940109
+	for <linux-media@vger.kernel.org>; Sat, 20 Aug 2011 15:04:17 +0200 (CEST)
+Message-ID: <4E4FB068.50601@free.fr>
+Date: Sat, 20 Aug 2011 15:02:32 +0200
+From: SuperPat <guerin45@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1108171033510.18317@axis700.grange>
+To: linux-media@vger.kernel.org
+Subject: Updated DVB-T file fr-Bourges
+References: <4E4FAF8F.8000107@free.fr>
+In-Reply-To: <4E4FAF8F.8000107@free.fr>
+Content-Type: multipart/mixed;
+ boundary="------------010304070104020102040009"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 17, 2011 at 10:41:51AM +0200, Guennadi Liakhovetski wrote:
-> On Sat, 6 Aug 2011, Sakari Ailus wrote:
-> 
-> > Guennadi Liakhovetski wrote:
-> > > A possibility to preallocate and initialise buffers of different sizes
-> > > in V4L2 is required for an efficient implementation of asnapshot mode.
-> > > This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
-> > > VIDIOC_PREPARE_BUF and defines respective data structures.
-> > > 
-> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > ---
-> > 
-> > Hi Guennadi,
-> 
-> [snip]
-> 
-> > > +    <para>When the I/O method is not supported the ioctl
-> > > +returns an &EINVAL;.</para>
-> > > +
-> > > +    <table pgwide="1" frame="none" id="v4l2-create-buffers">
-> > > +      <title>struct <structname>v4l2_create_buffers</structname></title>
-> > > +      <tgroup cols="3">
-> > > +	&cs-str;
-> > > +	<tbody valign="top">
-> > > +	  <row>
-> > > +	    <entry>__u32</entry>
-> > > +	    <entry><structfield>index</structfield></entry>
-> > > +	    <entry>The starting buffer index, returned by the driver.</entry>
-> > > +	  </row>
-> > > +	  <row>
-> > > +	    <entry>__u32</entry>
-> > > +	    <entry><structfield>count</structfield></entry>
-> > > +	    <entry>The number of buffers requested or granted.</entry>
-> > > +	  </row>
-> > > +	  <row>
-> > > +	    <entry>__u32</entry>
-> > > +	    <entry><structfield>type</structfield></entry>
-> > > +	    <entry>V4L2 buffer type: one of <constant>V4L2_BUF_TYPE_*</constant>
-> > > +values.</entry>
-> > 
-> > &v4l2-buf-type;
-> > 
-> > here?
-> 
-> No idea and I don't care all that much, tbh. I certainly copy-pasted those 
-> constructs from other documents, and yes, they are inconsistent across 
-> v4l: some use my version, some yours, others <xref linkend=...>. I'm happy 
-> with either or none of those. Just tell me _something_, that's 
-> approapriate.
+This is a multi-part message in MIME format.
+--------------010304070104020102040009
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Links are being used in other parts of V4L2 documentation. I think
-PREPARE_BUF documentation should use them, too, rather than duplicating
-parts of definitions.
+Since the cessation of analog TV in my area, 5 of the 6 DTT multiplexes 
+have had their frequency changed.
 
-> > 
-> > > +	  </row>
-> > > +	  <row>
-> > > +	    <entry>__u32</entry>
-> > > +	    <entry><structfield>memory</structfield></entry>
-> > > +	    <entry>Applications set this field to
-> > > +<constant>V4L2_MEMORY_MMAP</constant> or
-> > > +<constant>V4L2_MEMORY_USERPTR</constant>.</entry>
-> > 
-> > &v4l2-memory;
-> 
-> [snip]
-> 
-> > > +    <para>Applications can optionally call the
-> > > +<constant>VIDIOC_PREPARE_BUF</constant> ioctl to pass ownership of the buffer
-> > > +to the driver before actually enqueuing it, using the
-> > > +<constant>VIDIOC_QBUF</constant> ioctl, and to prepare it for future I/O.
-> > 
-> > s/<constant>VIDIOC_QBUF</constant>/&VIDIOC_QBUF;/
-> 
-> *shrug*
-> 
-> > > > +Such preparations may include cache invalidation or cleaning. Performing them
-> > > +in advance saves time during the actual I/O. In case such cache operations are
-> > > +not required, the application can use one of
-> > > +<constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant> and
-> > > +<constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant> flags to skip the respective
-> > > +step.</para>
-> > > +
-> > > +    <para>The <structname>v4l2_buffer</structname> structure is
-> > 
-> > s/<structname>v4l2_buffer</structname>/&v4l2-buffer;/
-> 
-> "structname" seems to be more precise, but well...
+You will find attached the updated file for the DVB-T transmitter of 
+Bourges in France.
 
-It's precise but precision isn't everything: giving the user a link to the
-definition of e.g. v4l2_buffer is more useful than forcing him or her to
-look for it elsewhere in the documentation. These are small issues but the
-usability of the documentation counts a lot.
+I tested it successfully with the software "Me TV" Thank you kindly update.
 
-Regards,
+Sincerely,
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Superpat
+
+--------------010304070104020102040009
+Content-Type: text/plain; charset=UTF-8;
+ name="fr-Bourges"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="fr-Bourges"
+
+IyBCb3VyZ2VzIC0gRnJhbmNlIChEVkItVCB0cmFuc21pdHRlciBvZiBCb3VyZ2VzICggQ29s
+bGluZXNkdVNhbmNlcnJvaXMgKSApDQojIEJvdXJnZXMgLSBGcmFuY2UgKHNpZ25hbCBEVkIt
+VCB0cmFuc21pcyBkZXB1aXMgbCfDqW1ldHRldXIgZGUgQ29sbGluZXNkdVNhbmNlcnJvaXMg
+KQ0KIw0KIyBBVFRFTlRJT04gISBDZSBmaWNoaWVyIGEgZXRlIGNvbnN0cnVpdCBhdXRvbWF0
+aXF1ZW1lbnQgYSBwYXJ0aXINCiMgZGVzIGZyZXF1ZW5jZXMgb2J0ZW51ZXMgc3VyIDogaHR0
+cDovL3d3dy50dm50Lm5ldC9tdWx0aXBsZXhfZnJlcXVlbmNlcy5odG0NCiMgZW4gQXZyaWwg
+MjAwNi4gU2kgdm91cyBjb25zdGF0ZXogZGVzIHByb2JsZW1lcyBldCB2b3VsZXogYXBwb3J0
+ZXIgZGVzDQojIG1vZGlmaWNhdGlvbnMgYXUgZmljaGllciwgZW52b3lleiBsZSBmaWNoaWVy
+IG1vZGlmaWUgYQ0KIyBsJ2FkcmVzc2UgbGludXgtZHZiQGxpbnV4dHYub3JnIChkZXBvdCBk
+ZXMgZmljaGllcnMgZCdpbml0IGR2YikNCiMgb3UgYSBsJ2F1dGV1ciBkdSBmaWNoaWVyIDoN
+CiMgTmljb2xhcyBFc3RyZSA8bl9lc3RyZUB5YWhvby5mcj4NCiMNCiMgVCBmcmVxIGJ3IGZl
+Y19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFsIGhpZXJh
+cmNoeQ0KIyMjIyBCb3VyZ2VzIC0gQ29sbGluZXNkdVNhbmNlcnJvaXMgIyMjIw0KI1IxDQpU
+IDc1NDAwMDAwMCA4TUh6IEFVVE8gTk9ORSBRQU02NCA4ayBBVVRPIE5PTkUNCiNSMg0KVCA2
+NzQwMDAwMDAgOE1IeiBBVVRPIE5PTkUgUUFNNjQgOGsgQVVUTyBOT05FDQojUjMNClQgNjUw
+MDAwMDAwIDhNSHogQVVUTyBOT05FIFFBTTY0IDhrIEFVVE8gTk9ORQ0KI1I0DQpUIDQ5ODAw
+MDAwMCA4TUh6IEFVVE8gTk9ORSBRQU02NCA4ayBBVVRPIE5PTkUNCiNSNQ0KVCA2MjYwMDAw
+MDAgOE1IeiBBVVRPIE5PTkUgUUFNNjQgOGsgQVVUTyBOT05FDQojUjYNClQgNTk0MDAwMDAw
+IDhNSHogQVVUTyBOT05FIFFBTTY0IDhrIEFVVE8gTk9ORQ0KDQo=
+--------------010304070104020102040009--
