@@ -1,53 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from woodbine.london.02.net ([87.194.255.145]:48703 "EHLO
-	woodbine.london.02.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752876Ab1HDUlW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 16:41:22 -0400
-From: Adam Baker <linux@baker-net.org.uk>
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
-Date: Thu, 4 Aug 2011 21:35:15 +0100
-Cc: "Jean-Francois Moine" <moinejf@free.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4E398381.4080505@redhat.com> <20110804184020.6edb96d8@tele> <alpine.LNX.2.00.1108041358050.17533@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.1108041358050.17533@banach.math.auburn.edu>
+Received: from nm4.bt.bullet.mail.ird.yahoo.com ([212.82.108.235]:43110 "HELO
+	nm4.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752389Ab1HTLqS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Aug 2011 07:46:18 -0400
+Message-ID: <4E4F9E86.7030001@yahoo.com>
+Date: Sat, 20 Aug 2011 12:46:14 +0100
+From: Chris Rankin <rankincj@yahoo.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108042135.15972.linux@baker-net.org.uk>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 2/2] EM28xx - fix deadlock when unplugging and replugging
+ a DVB adapter
+References: <4E4D5157.2080406@yahoo.com> <CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com> <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com> <4E4D8DFD.5060800@yahoo.com> <4E4DFA65.4090508@redhat.com>
+In-Reply-To: <4E4DFA65.4090508@redhat.com>
+Content-Type: multipart/mixed;
+ boundary="------------080105000203040004080606"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 04 August 2011, Theodore Kilgore wrote:
-> As far as I know, /dev/sdx signifies a device which is accessible by 
-> something like the USB mass storage protocols, at the very least. So, if 
-> that fits the camera, fine. But most of the cameras in question are Class 
-> Proprietary. Thus, not in any way standard mass storage devices. Then it 
-> is probably better not to call the new device by that name unless that 
-> name really fits. Probably, it would be better to have /dev/cam or 
-> /dev/stillcam, or something like that.
+This is a multi-part message in MIME format.
+--------------080105000203040004080606
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Correct and that is why this idea doesn't work - /dev/sdx needs to be a block 
-device that can have a file system on it. These cameras don't have a 
-traditional file system and there is a lot of code in gphoto to support all 
-the different types of camera.
+The final patch removes the unplug/replug deadlock by not holding the device 
+mutex during dvb_init(). However, this mutex has already been locked during 
+device initialisation by em28xx_usb_probe() and is not released again until all 
+extensions have been initialised successfully.
 
-There does exist the possibility of a relatively simple fix - If libusb 
-include a usb_reattach_kernel_driver_np call to go with the 
-usb_detach_kernel_driver_np then once gphoto had finished with the device it 
-could restore the kernel driver and webcam mode would work. Unfortunately the 
-libusb devs don't want to support it in the 0.1 version of libusb that 
-everyone uses and the reattach function needs knowledge of libusb internals to 
-work reliably. 
+The device mutex is not held during either em28xx_register_extension() or 
+em28xx_unregister_extension() any more. More importantly, I don't believe it can 
+safely be held by these functions because they must both - by their nature - 
+acquire the device list mutex before they can iterate through the device list. 
+In other words, while usb_probe() and usb_disconnect() acquire the device mutex 
+followed by the device list mutex, the register/unregister_extension() functions 
+would need to acquire these mutexes in the opposite order. And that sounds like 
+a potential deadlock.
 
-I did come up with a hack that sort of worked but I never worked out how to 
-clean it up to be acceptable to go upstream.
+On the other hand, the new situation is a definite improvement :-).
 
-http://old.nabble.com/Re-attaching-USB-kernel-drivers-detached-by-libgphoto2-
-td22978838.html
+Signed-off-by: Chris Rankin <rankincj@yahoo.com>
 
-http://libusb.6.n5.nabble.com/re-attaching-after-usb-detach-kernel-driver-np-
-td6068.html
 
-Adam Baker
+--------------080105000203040004080606
+Content-Type: text/x-patch;
+ name="EM28xx-replug-deadlock.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="EM28xx-replug-deadlock.diff"
+
+--- linux-3.0/drivers/media/video/em28xx/em28xx-dvb.c.orig	2011-08-19 00:50:41.000000000 +0100
++++ linux-3.0/drivers/media/video/em28xx/em28xx-dvb.c	2011-08-19 00:51:03.000000000 +0100
+@@ -542,7 +542,6 @@
+ 	dev->dvb = dvb;
+ 	dvb->fe[0] = dvb->fe[1] = NULL;
+ 
+-	mutex_lock(&dev->lock);
+ 	em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
+ 	/* init frontend */
+ 	switch (dev->model) {
+@@ -711,7 +710,6 @@
+ 	em28xx_info("Successfully loaded em28xx-dvb\n");
+ ret:
+ 	em28xx_set_mode(dev, EM28XX_SUSPEND);
+-	mutex_unlock(&dev->lock);
+ 	return result;
+ 
+ out_free:
+
+--------------080105000203040004080606--
