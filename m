@@ -1,62 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43941 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751259Ab1HPIla (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2011 04:41:30 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH] media: vb2: dma-sg allocator: change scatterlist allocation method
-Date: Tue, 16 Aug 2011 10:41:40 +0200
-Cc: linux-media@vger.kernel.org,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Pawel Osciak'" <pawel@osciak.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-References: <1312964617-3192-1-git-send-email-m.szyprowski@samsung.com> <201108122354.51720.laurent.pinchart@ideasonboard.com> <03bd01cc5bd6$40a86b10$c1f94130$%szyprowski@samsung.com>
-In-Reply-To: <03bd01cc5bd6$40a86b10$c1f94130$%szyprowski@samsung.com>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:40397 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751784Ab1HTNAq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Aug 2011 09:00:46 -0400
+Received: from [IPv6:2a01:e34:ee31:8020:bc01:e1f7:1966:31f2] (unknown [IPv6:2a01:e34:ee31:8020:bc01:e1f7:1966:31f2])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id AD82B940049
+	for <linux-media@vger.kernel.org>; Sat, 20 Aug 2011 15:00:40 +0200 (CEST)
+Message-ID: <4E4FAF8F.8000107@free.fr>
+Date: Sat, 20 Aug 2011 14:58:55 +0200
+From: SuperPat <guerin45@free.fr>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108161041.40789.laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: Updated DVB-T file fr-Bourges
+References: <4E4FAD05.9030706@free.fr>
+In-Reply-To: <4E4FAD05.9030706@free.fr>
+Content-Type: multipart/mixed;
+ boundary="------------010007020809080502040402"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek,
+This is a multi-part message in MIME format.
+--------------010007020809080502040402
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Tuesday 16 August 2011 07:35:05 Marek Szyprowski wrote:
-> On Friday, August 12, 2011 11:55 PM Laurent Pinchart wrote:
-> > On Wednesday 10 August 2011 10:23:37 Marek Szyprowski wrote:
-> > > From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-> > > 
-> > > Scatter-gather lib provides a helper functions to allocate scatter
-> > > list, so there is no need to use vmalloc for it. sg_alloc_table()
-> > > splits allocation into page size chunks and links them together into a
-> > > chain.
-> > 
-> > Last time I check ARM platforms didn't support SG list chaining. Has that
-> > been fixed ?
-> 
-> DMA-mapping code for ARM platform use for_each_sg() macro which has no
-> problems with chained SG lists.
+Since the cessation of analog TV in my area, 5 of the 6 DTT multiplexes 
+have had their frequency changed.
 
-for_each_sg() is fine, but sg_alloc_table() doesn't seem to be. 
-__sg_alloc_table(), called from sg_alloc_table(), starts with
+You will find attached the updated file for the DVB-T transmitter of 
+Bourges in France.
 
-#ifndef ARCH_HAS_SG_CHAIN
-        BUG_ON(nents > max_ents);
-#endif
+I tested it successfully with the software "Me TV" Thank you kindly update.
 
-It also calls sg_chain() internally, which starts with
+Sincerely,
 
-#ifndef ARCH_HAS_SG_CHAIN
-        BUG();
-#endif
+Superpat
 
-ARCH_HAS_SG_CHAIN is defined on ARM if CONFIG_ARM_HAS_SG_CHAIN is set. That's 
-a boolean Kconfig option that is currently never set.
+--------------010007020809080502040402
+Content-Type: text/plain; charset=UTF-8;
+ name="fr-Bourges"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="fr-Bourges"
 
--- 
-Regards,
-
-Laurent Pinchart
+IyBCb3VyZ2VzIC0gRnJhbmNlIChEVkItVCB0cmFuc21pdHRlciBvZiBCb3VyZ2VzICggQ29s
+bGluZXNkdVNhbmNlcnJvaXMgKSApDQojIEJvdXJnZXMgLSBGcmFuY2UgKHNpZ25hbCBEVkIt
+VCB0cmFuc21pcyBkZXB1aXMgbCfDqW1ldHRldXIgZGUgQ29sbGluZXNkdVNhbmNlcnJvaXMg
+KQ0KIw0KIyBBVFRFTlRJT04gISBDZSBmaWNoaWVyIGEgZXRlIGNvbnN0cnVpdCBhdXRvbWF0
+aXF1ZW1lbnQgYSBwYXJ0aXINCiMgZGVzIGZyZXF1ZW5jZXMgb2J0ZW51ZXMgc3VyIDogaHR0
+cDovL3d3dy50dm50Lm5ldC9tdWx0aXBsZXhfZnJlcXVlbmNlcy5odG0NCiMgZW4gQXZyaWwg
+MjAwNi4gU2kgdm91cyBjb25zdGF0ZXogZGVzIHByb2JsZW1lcyBldCB2b3VsZXogYXBwb3J0
+ZXIgZGVzDQojIG1vZGlmaWNhdGlvbnMgYXUgZmljaGllciwgZW52b3lleiBsZSBmaWNoaWVy
+IG1vZGlmaWUgYQ0KIyBsJ2FkcmVzc2UgbGludXgtZHZiQGxpbnV4dHYub3JnIChkZXBvdCBk
+ZXMgZmljaGllcnMgZCdpbml0IGR2YikNCiMgb3UgYSBsJ2F1dGV1ciBkdSBmaWNoaWVyIDoN
+CiMgTmljb2xhcyBFc3RyZSA8bl9lc3RyZUB5YWhvby5mcj4NCiMNCiMgVCBmcmVxIGJ3IGZl
+Y19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFsIGhpZXJh
+cmNoeQ0KIyMjIyBCb3VyZ2VzIC0gQ29sbGluZXNkdVNhbmNlcnJvaXMgIyMjIw0KI1IxDQpU
+IDc1NDAwMDAwMCA4TUh6IEFVVE8gTk9ORSBRQU02NCA4ayBBVVRPIE5PTkUNCiNSMg0KVCA2
+NzQwMDAwMDAgOE1IeiBBVVRPIE5PTkUgUUFNNjQgOGsgQVVUTyBOT05FDQojUjMNClQgNjUw
+MDAwMDAwIDhNSHogQVVUTyBOT05FIFFBTTY0IDhrIEFVVE8gTk9ORQ0KI1I0DQpUIDQ5ODAw
+MDAwMCA4TUh6IEFVVE8gTk9ORSBRQU02NCA4ayBBVVRPIE5PTkUNCiNSNQ0KVCA2MjYwMDAw
+MDAgOE1IeiBBVVRPIE5PTkUgUUFNNjQgOGsgQVVUTyBOT05FDQojUjYNClQgNTk0MDAwMDAw
+IDhNSHogQVVUTyBOT05FIFFBTTY0IDhrIEFVVE8gTk9ORQ0KDQo=
+--------------010007020809080502040402--
