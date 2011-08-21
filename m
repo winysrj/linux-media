@@ -1,26 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f170.google.com ([209.85.210.170]:62456 "EHLO
-	mail-iy0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751091Ab1HLVIq (ORCPT
+Received: from wondertoys-mx.wondertoys.net ([206.117.179.246]:53061 "EHLO
+	labridge.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932077Ab1HUW7j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2011 17:08:46 -0400
-Received: by iye16 with SMTP id 16so2250404iye.1
-        for <linux-media@vger.kernel.org>; Fri, 12 Aug 2011 14:08:46 -0700 (PDT)
-MIME-Version: 1.0
-Date: Fri, 12 Aug 2011 22:08:45 +0100
-Message-ID: <CAM7MkrOcRNZhcfksvdj4AnscqWWCx1dbkPsKsqQYPP_e7ytBfw@mail.gmail.com>
-Subject: Any support for Hauppauge WinTV-Duet (USB Dual Tuner)?
-From: nospam312 <nospam312@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 21 Aug 2011 18:59:39 -0400
+From: Joe Perches <joe@perches.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Olivier Lorin <o.lorin@laposte.net>
+Cc: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 08/14] [media] gl860: Use current logging styles
+Date: Sun, 21 Aug 2011 15:56:51 -0700
+Message-Id: <82f14089032b403856a5306b5e53749897240c15.1313966090.git.joe@perches.com>
+In-Reply-To: <cover.1313966088.git.joe@perches.com>
+References: <cover.1313966088.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have searched the archives and can find no reference to this USB
-stick so I suspect it is not supported.
+Add pr_fmt.
+Convert err macro use to pr_err.
 
-Does anyone know if it is supported or not?
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/media/video/gspca/gl860/gl860.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-http://www.hauppauge.co.uk/site/products/data_duet.html
+diff --git a/drivers/media/video/gspca/gl860/gl860.c b/drivers/media/video/gspca/gl860/gl860.c
+index e8e071a..2ced3b7 100644
+--- a/drivers/media/video/gspca/gl860/gl860.c
++++ b/drivers/media/video/gspca/gl860/gl860.c
+@@ -18,6 +18,9 @@
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include "gspca.h"
+ #include "gl860.h"
+ 
+@@ -572,9 +575,8 @@ int gl860_RTx(struct gspca_dev *gspca_dev,
+ 	}
+ 
+ 	if (r < 0)
+-		err("ctrl transfer failed %4d "
+-			"[p%02x r%d v%04x i%04x len%d]",
+-			r, pref, req, val, index, len);
++		pr_err("ctrl transfer failed %4d [p%02x r%d v%04x i%04x len%d]\n",
++		       r, pref, req, val, index, len);
+ 	else if (len > 1 && r < len)
+ 		PDEBUG(D_ERR, "short ctrl transfer %d/%d", r, len);
+ 
+-- 
+1.7.6.405.gc1be0
 
-Thanks
