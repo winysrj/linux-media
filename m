@@ -1,309 +1,566 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oproxy8-pub.bluehost.com ([69.89.22.20]:57470 "HELO
-	oproxy8-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752678Ab1HLRpJ (ORCPT
+Received: from wondertoys-mx.wondertoys.net ([206.117.179.246]:56541 "EHLO
+	labridge.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932077Ab1HUW7w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2011 13:45:09 -0400
-Date: Fri, 12 Aug 2011 10:28:56 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
-To: Josef Lusticky <jlustick@redhat.com>, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Subject: Re: PROBLEM: Unable to handle kernel paging request
-Message-Id: <20110812102856.8493b94e.rdunlap@xenotime.net>
-In-Reply-To: <4E451ED0.1000909@redhat.com>
-References: <4E3FD98C.8040607@redhat.com>
-	<20110808114840.c0cbabef.rdunlap@xenotime.net>
-	<4E451ED0.1000909@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Sun, 21 Aug 2011 18:59:52 -0400
+From: Joe Perches <joe@perches.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Erik Andren <erik.andren@gmail.com>
+Cc: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 09/14] [media] m5602: Use current logging styles
+Date: Sun, 21 Aug 2011 15:56:52 -0700
+Message-Id: <c2d8f9c52af1d1feb7948ba29447d082defbdd6a.1313966090.git.joe@perches.com>
+In-Reply-To: <cover.1313966088.git.joe@perches.com>
+References: <cover.1313966088.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 12 Aug 2011 14:38:40 +0200 Josef Lusticky wrote:
+Add pr_fmt and convert usb style logging macro uses to pr_<level>.
+Coalesce format strings.
 
-> Hi Randy,
-> thank you for your answer!
-> 
-> The commit seems to fix issues with ip_vs_ctl module,
-> but I got another panic today using the script on the same machine.
-> Here's the output:
-
-Hi Josef,
-
-Adding linux-media mailing list...
-
-
-> *** Loading module lirc_dev ***
-> lirc_dev: module unloaded
-> IR JVC protocol handler initialized
-> IR Sony protocol handler initialized
-> IR MCE Keyboard/mouse protocol handler initialized
-> lirc_dev: IR Remote Control driver registered, major 250
-> IR LIRC bridge handler initialized
-> *** Removing modBUG: unable to handle kernel paging request at 
-> ffffffffa0852acc
-> IP: [<ffffffffa0852acc>] 0xffffffffa0852acb
-> PGD 1a06067 PUD 1a0a063 PMD 37e50067 PTE 0
-> Oops: 0010 [#1] SMP
-> CPU 1
-> Modules linked in: ir_lirc_codec lirc_dev ir_mce_kbd_decoder 
-> ir_sony_decoder ir_jvc_decoder ir_rc6_decoder ir_rc5_decoder 
-> ir_nec_decoder rc_core soc_mediabus ivtv cx2341x v4l2_common videodev 
-> v4l2_compat_ioctl32 tveeprom dvb_usb_af9005_remote des_generic dccp_ipv6 
-> dccp_ipv4 dccp sctp libcrc32c nf_tproxy_core ts_kmp kvm mce_inject 
-> cryptd aes_x86_64 aes_generic snd_mpu401_uart snd_rawmidi snd_seq_dummy 
-> snd_seq snd_seq_device sunrpc cpufreq_ondemand acpi_cpufreq freq_table 
-> mperf ipv6 dm_mirror dm_region_hash dm_log ppdev parport_pc parport 
-> hp_wmi sparse_keymap rfkill pcspkr serio_raw sg tg3 
-> snd_hda_codec_realtek snd_hda_codec snd_hwdep snd_pcm snd_timer snd 
-> soundcore snd_page_alloc x38_edac edac_core ext4 mbcache jbd2 floppy 
-> sr_mod cdrom sd_mod crc_t10dif ahci libahci nouveau ttm drm_kms_helper 
-> drm i2c_algo_bit i2c_core mxm_wmi wmi video dm_mod [last unloaded: lirc_dev]
-> 
-> Pid: 39, comm: kworker/1:2 Tainted: G          I 3.1.0-rc1 #1 
-> Hewlett-Packard HP xw4600 Workstation/0AA0h
-> RIP: 0010:[<ffffffffa0852acc>]  [<ffffffffa0852acc>] 0xffffffffa0852acb
-> RSP: 0000:ffff8800387ffdf0  EFLAGS: 00010246
-> RAX: 0000000000000000 RBX: ffff880038784740 RCX: 0000000000000000
-> RDX: 0000000000000000 RSI: 0000000000000286 RDI: 0000000000000286
-> RBP: ffff8800387ffdf0 R08: 0000000000000000 R09: 0000000000000001
-> R10: 0000000000000001 R11: 0000000000000000 R12: ffff88003fc8e140
-> R13: ffff88003fc96400 R14: ffffffffa0852ab0 R15: 0000000000000000
-> FS:  0000000000000000(0000) GS:ffff88003fc80000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-> CR2: ffffffffa0852acc CR3: 000000003608c000 CR4: 00000000000006e0
-> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> Process kworker/1:2 (pid: 39, threadinfo ffff8800387fe000, task 
-> ffff8800386d8b00)
-> Stack:
->   ffff8800387ffe50 ffffffff81082e11 ffff880000062ac0 ffffffffa08544e0
->   ffff88003fc96405 000000003fc8e140 ffff880038784740 ffff880038784740
->   ffff88003fc8e140 ffff88003fc8e148 ffff880038784760 0000000000013c80
-> Call Trace:
->   [<ffffffff81082e11>] process_one_work+0x131/0x450
->   [<ffffffff81084bbb>] worker_thread+0x17b/0x3c0
->   [<ffffffff81084a40>] ? manage_workers+0x120/0x120
->   [<ffffffff810894d6>] kthread+0x96/0xa0
->   [<ffffffff814f0114>] kernel_thread_helper+0x4/0x10
->   [<ffffffff81089440>] ? kthread_worker_fn+0x1a0/0x1a0
->   [<ffffffff814f0110>] ? gs_change+0x13/0x13
-> Code:  Bad RIP value.
-> RIP  [<ffffffffa0852acc>] 0xffffffffa0852acb
->   RSP <ffff8800387ffdf0>
-> CR2: ffffffffa0852acc
-> ---[ end trace a7919e7f17c0a727 ]---
-> ule xpnet ***
-> *BUG: unable to handle kernel paging request at fffffffffffffff8
-> IP: [<ffffffff81089030>] kthread_data+0x10/0x20
-> PGD 1a06067 PUD 1a07067 PMD 0
-> Oops: 0000 [#2] SMP
-> CPU 1
-> Modules linked in: xpnet(-) xp gru ir_lirc_codec lirc_dev 
-> ir_mce_kbd_decoder ir_sony_decoder ir_jvc_decoder ir_rc6_decoder 
-> ir_rc5_decoder ir_nec_decoder rc_core soc_mediabus ivtv cx2341x 
-> v4l2_common videodev v4l2_compat_ioctl32 tveeprom dvb_usb_af9005_remote 
-> des_generic dccp_ipv6 dccp_ipv4 dccp sctp libcrc32c nf_tproxy_core 
-> ts_kmp kvm mce_inject cryptd aes_x86_64 aes_generic snd_mpu401_uart 
-> snd_rawmidi snd_seq_dummy snd_seq snd_seq_device sunrpc cpufreq_ondemand 
-> acpi_cpufreq freq_table mperf ipv6 dm_mirror dm_region_hash dm_log ppdev 
-> parport_pc parport hp_wmi sparse_keymap rfkill pcspkr serio_raw sg tg3 
-> snd_hda_codec_realtek snd_hda_codec snd_hwdep snd_pcm snd_timer snd 
-> soundcore snd_page_alloc x38_edac edac_core ext4 mbcache jbd2 floppy 
-> sr_mod cdrom sd_mod crc_t10dif ahci libahci nouveau ttm drm_kms_helper 
-> drm i2c_algo_bit i2c_core mxm_wmi wmi video dm_mod [last unloaded: lirc_dev]
-> 
-> Pid: 39, comm: kworker/1:2 Tainted: G      D   I 3.1.0-rc1 #1 
-> Hewlett-Packard HP xw4600 Workstation/0AA0h
-> RIP: 0010:[<ffffffff81089030>]  [<ffffffff81089030>] kthread_data+0x10/0x20
-> RSP: 0018:ffff8800387ffa38  EFLAGS: 00010096
-> RAX: 0000000000000000 RBX: 0000000000000001 RCX: 0000000000000001
-> RDX: 0000000000000001 RSI: 0000000000000001 RDI: ffff8800386d8b00
-> RBP: ffff8800387ffa38 R08: ffff8800386d8b70 R09: dead000000200200
-> R10: 0000000000000400 R11: 0000000000000001 R12: ffff8800386d90a8
-> R13: 0000000000000001 R14: 0000000000000001 R15: 0000000000000096
-> FS:  0000000000000000(0000) GS:ffff88003fc80000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-> CR2: fffffffffffffff8 CR3: 000000003608c000 CR4: 00000000000006e0
-> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> Process kworker/1:2 (pid: 39, threadinfo ffff8800387fe000, task 
-> ffff8800386d8b00)
-> Stack:
->   ffff8800387ffa58 ffffffff81082365 ffff8800387ffa58 ffff88003fc93280
->   ffff8800387ffaf8 ffffffff814e3a63 ffff880035c2cda8 ffff880035c2cdf8
->   0000000000013280 ffff8800387fffd8 ffff8800387fe010 0000000000013280
-> Call Trace:
->   [<ffffffff81082365>] wq_worker_sleeping+0x15/0xa0
->   [<ffffffff814e3a63>] schedule+0x5e3/0x850
->   [<ffffffff8122812b>] ? put_io_context+0x4b/0x60
->   [<ffffffff8106b85a>] do_exit+0x26a/0x410
->   [<ffffffff814e702b>] oops_end+0xab/0xf0
->   [<ffffffff8104196c>] no_context+0xfc/0x190
->   [<ffffffff81041b25>] __bad_area_nosemaphore+0x125/0x1e0
->   [<ffffffff8124f371>] ? list_del+0x11/0x40
->   [<ffffffff81041bf3>] bad_area_nosemaphore+0x13/0x20
->   [<ffffffff814e9866>] do_page_fault+0x326/0x460
->   [<ffffffff81053e03>] ? __wake_up+0x53/0x70
->   [<ffffffff81080b9e>] ? call_usermodehelper_exec+0x9e/0xe0
->   [<ffffffff81080e1b>] ? __request_module+0x18b/0x220
->   [<ffffffff814e6375>] page_fault+0x25/0x30
->   [<ffffffff81082e11>] process_one_work+0x131/0x450
->   [<ffffffff81084bbb>] worker_thread+0x17b/0x3c0
->   [<ffffffff81084a40>] ? manage_workers+0x120/0x120
->   [<ffffffff810894d6>] kthread+0x96/0xa0
->   [<ffffffff814f0114>] kernel_thread_helper+0x4/0x10
->   [<ffffffff81089440>] ? kthread_worker_fn+0x1a0/0x1a0
->   [<ffffffff814f0110>] ? gs_change+0x13/0x13
-> Code: 66 66 66 90 65 48 8b 04 25 40 c4 00 00 48 8b 80 50 05 00 00 8b 40 
-> f0 c9 c3 66 90 55 48 89 e5 66 66 66 66 90 48 8b 87 50 05 00 00
->   8b 40 f8 c9 c3 66 2e 0f 1f 84 00 00 00 00 00 55 48 89 e5 66
-> RIP  [<ffffffff81089030>] kthread_data+0x10/0x20
->   RSP <ffff8800387ffa38>
-> CR2: fffffffffffffff8
-> ---[ end trace a7919e7f17c0a728 ]---
-> Fixing recursive fault but reboot is needed!
-> Kernel panic - not syncing: Watchdog detected hard LOCKUP on cpu 1
-> Pid: 39, comm: kworker/1:2 Tainted: G      D   I 3.1.0-rc1 #1
-> Call Trace:
-> <NMI>  [<ffffffff814e30fb>] panic+0x91/0x1b1
->   [<ffffffff810ccc11>] watchdog_overflow_callback+0xb1/0xc0
->   [<ffffffff81102073>] __perf_event_overflow+0x93/0x200
->   [<ffffffff810905e8>] ? sched_clock_cpu+0xb8/0x110
->   [<ffffffff810fca01>] ? perf_event_update_userpage+0x11/0xc0
->   [<ffffffff811025d4>] perf_event_overflow+0x14/0x20
->   [<ffffffff81025e51>] intel_pmu_handle_irq+0x321/0x530
->   [<ffffffff814e7649>] perf_event_nmi_handler+0x29/0xa0
->   [<ffffffff814e99f5>] notifier_call_chain+0x55/0x80
->   [<ffffffff814e9a5a>] atomic_notifier_call_chain+0x1a/0x20
->   [<ffffffff814e9a8e>] notify_die+0x2e/0x30
->   [<ffffffff814e6c39>] default_do_nmi+0x39/0x1f0
->   [<ffffffff814e6e70>] do_nmi+0x80/0xa0
->   [<ffffffff814e6630>] nmi+0x20/0x30
->   [<ffffffff8106b9b0>] ? do_exit+0x3c0/0x410
->   [<ffffffff814e5c25>] ? _raw_spin_lock_irq+0x25/0x30
-> <<EOE>>  [<ffffffff814e354e>] schedule+0xce/0x850
->   [<ffffffff8106b9b0>] do_exit+0x3c0/0x410
->   [<ffffffff814e702b>] oops_end+0xab/0xf0
->   [<ffffffff8104196c>] no_context+0xfc/0x190
->   [<ffffffff81041b25>] __bad_area_nosemaphore+0x125/0x1e0
->   [<ffffffff81041bf3>] bad_area_nosemaphore+0x13/0x20
->   [<ffffffff814e9866>] do_page_fault+0x326/0x460
->   [<ffffffff810d3405>] ? call_rcu_sched+0x15/0x20
->   [<ffffffff810d3405>] ? call_rcu_sched+0x15/0x20
->   [<ffffffff814e6375>] page_fault+0x25/0x30
->   [<ffffffff81089030>] ? kthread_data+0x10/0x20
->   [<ffffffff81082365>] wq_worker_sleeping+0x15/0xa0
->   [<ffffffff814e3a63>] schedule+0x5e3/0x850
->   [<ffffffff8122812b>] ? put_io_context+0x4b/0x60
->   [<ffffffff8106b85a>] do_exit+0x26a/0x410
->   [<ffffffff814e702b>] oops_end+0xab/0xf0
->   [<ffffffff8104196c>] no_context+0xfc/0x190
->   [<ffffffff81041b25>] __bad_area_nosemaphore+0x125/0x1e0
->   [<ffffffff8124f371>] ? list_del+0x11/0x40
->   [<ffffffff81041bf3>] bad_area_nosemaphore+0x13/0x20
->   [<ffffffff814e9866>] do_page_fault+0x326/0x460
->   [<ffffffff81053e03>] ? __wake_up+0x53/0x70
->   [<ffffffff81080b9e>] ? call_usermodehelper_exec+0x9e/0xe0
->   [<ffffffff81080e1b>] ? __request_module+0x18b/0x220
->   [<ffffffff814e6375>] page_fault+0x25/0x30
->   [<ffffffff81082e11>] process_one_work+0x131/0x450
->   [<ffffffff81084bbb>] worker_thread+0x17b/0x3c0
->   [<ffffffff81084a40>] ? manage_workers+0x120/0x120
->   [<ffffffff810894d6>] kthread+0x96/0xa0
->   [<ffffffff814f0114>] kernel_thread_helper+0x4/0x10
->   [<ffffffff81089440>] ? kthread_worker_fn+0x1a0/0x1a0
->   [<ffffffff814f0110>] ? gs_change+0x13/0x13
-> panic occurred, switching back to text console
-> ------------[ cut here ]------------
-> WARNING: at arch/x86/kernel/smp.c:118 native_smp_send_reschedule+0x5c/0x60()
-> Hardware name: HP xw4600 Workstation
-> Modules linked in: xpnet(-) xp gru ir_lirc_codec lirc_dev 
-> ir_mce_kbd_decoder ir_sony_decoder ir_jvc_decoder ir_rc6_decoder 
-> ir_rc5_decoder ir_nec_decoder rc_core soc_mediabus ivtv cx2341x 
-> v4l2_common videodev v4l2_compat_ioctl32 tveeprom dvb_usb_af9005_remote 
-> des_generic dccp_ipv6 dccp_ipv4 dccp sctp libcrc32c nf_tproxy_core 
-> ts_kmp kvm mce_inject cryptd aes_x86_64 aes_generic snd_mpu401_uart 
-> snd_rawmidi snd_seq_dummy snd_seq snd_seq_device sunrpc cpufreq_ondemand 
-> acpi_cpufreq freq_table mperf ipv6 dm_mirror dm_region_hash dm_log ppdev 
-> parport_pc parport hp_wmi sparse_keymap rfkill pcspkr serio_raw sg tg3 
-> snd_hda_codec_realtek snd_hda_codec snd_hwdep snd_pcm snd_timer snd 
-> soundcore snd_page_alloc x38_edac edac_core ext4 mbcache jbd2 floppy 
-> sr_mod cdrom sd_mod crc_t10dif ahci libahci nouveau ttm drm_kms_helper 
-> drm i2c_algo_bit i2c_core mxm_wmi wmi video dm_mod [last unloaded: lirc_dev]
-> Pid: 39, comm: kworker/1:2 Tainted: G      D   I 3.1.0-rc1 #1
-> Call Trace:
-> <IRQ>  [<ffffffff81066dbf>] warn_slowpath_common+0x7f/0xc0
->   [<ffffffff81066e1a>] warn_slowpath_null+0x1a/0x20
->   [<ffffffff8103066c>] native_smp_send_reschedule+0x5c/0x60
->   [<ffffffff8105e64a>] try_to_wake_up+0x1da/0x2a0
->   [<ffffffff8105e722>] default_wake_function+0x12/0x20
->   [<ffffffff81089b6d>] autoremove_wake_function+0x1d/0x50
->   [<ffffffff8110fa5f>] ? free_pages+0x4f/0x60
->   [<ffffffff8104e6c9>] __wake_up_common+0x59/0x90
->   [<ffffffff81053df8>] __wake_up+0x48/0x70
->   [<ffffffff810678f4>] printk_tick+0x44/0x50
->   [<ffffffff8107686d>] update_process_times+0x4d/0x90
->   [<ffffffff8109b1c6>] tick_sched_timer+0x66/0xc0
->   [<ffffffff810d36be>] ? __rcu_process_callbacks+0x5e/0x1d0
->   [<ffffffff8108dc62>] __run_hrtimer+0x82/0x1d0
->   [<ffffffff8109b160>] ? tick_nohz_handler+0x100/0x100
->   [<ffffffff8108e036>] hrtimer_interrupt+0x106/0x240
->   [<ffffffff814f0ba9>] smp_apic_timer_interrupt+0x69/0x99
->   [<ffffffff814eea5e>] apic_timer_interrupt+0x6e/0x80
-> <EOI> <NMI>  [<ffffffff814e31d3>] ? panic+0x169/0x1b1
->   [<ffffffff814e3130>] ? panic+0xc6/0x1b1
->   [<ffffffff810ccc11>] watchdog_overflow_callback+0xb1/0xc0
->   [<ffffffff81102073>] __perf_event_overflow+0x93/0x200
->   [<ffffffff810905e8>] ? sched_clock_cpu+0xb8/0x110
->   [<ffffffff810fca01>] ? perf_event_update_userpage+0x11/0xc0
->   [<ffffffff811025d4>] perf_event_overflow+0x14/0x20
->   [<ffffffff81025e51>] intel_pmu_handle_irq+0x321/0x530
->   [<ffffffff814e7649>] perf_event_nmi_handler+0x29/0xa0
->   [<ffffffff814e99f5>] notifier_call_chain+0x55/0x80
->   [<ffffffff814e9a5a>] atomic_notifier_call_chain+0x1a/0x20
->   [<ffffffff814e9a8e>] notify_die+0x2e/0x30
->   [<ffffffff814e6c39>] default_do_nmi+0x39/0x1f0
->   [<ffffffff814e6e70>] do_nmi+0x80/0xa0
->   [<ffffffff814e6630>] nmi+0x20/0x30
->   [<ffffffff8106b9b0>] ? do_exit+0x3c0/0x410
->   [<ffffffff814e5c25>] ? _raw_spin_lock_irq+0x25/0x30
-> <<EOE>>  [<ffffffff814e354e>] schedule+0xce/0x850
->   [<ffffffff8106b9b0>] do_exit+0x3c0/0x410
->   [<ffffffff814e702b>] oops_end+0xab/0xf0
->   [<ffffffff8104196c>] no_context+0xfc/0x190
->   [<ffffffff81041b25>] __bad_area_nosemaphore+0x125/0x1e0
->   [<ffffffff81041bf3>] bad_area_nosemaphore+0x13/0x20
->   [<ffffffff814e9866>] do_page_fault+0x326/0x460
->   [<ffffffff810d3405>] ? call_rcu_sched+0x15/0x20
->   [<ffffffff810d3405>] ? call_rcu_sched+0x15/0x20
->   [<ffffffff814e6375>] page_fault+0x25/0x30
->   [<ffffffff81089030>] ? kthread_data+0x10/0x20
->   [<ffffffff81082365>] wq_worker_sleeping+0x15/0xa0
->   [<ffffffff814e3a63>] schedule+0x5e3/0x850
->   [<ffffffff8122812b>] ? put_io_context+0x4b/0x60
->   [<ffffffff8106b85a>] do_exit+0x26a/0x410
->   [<ffffffff814e702b>] oops_end+0xab/0xf0
->   [<ffffffff8104196c>] no_context+0xfc/0x190
->   [<ffffffff81041b25>] __bad_area_nosemaphore+0x125/0x1e0
->   [<ffffffff8124f371>] ? list_del+0x11/0x40
->   [<ffffffff81041bf3>] bad_area_nosemaphore+0x13/0x20
->   [<ffffffff814e9866>] do_page_fault+0x326/0x460
->   [<ffffffff81053e03>] ? __wake_up+0x53/0x70
->   [<ffffffff81080b9e>] ? call_usermodehelper_exec+0x9e/0xe0
->   [<ffffffff81080e1b>] ? __request_module+0x18b/0x220
->   [<ffffffff814e6375>] page_fault+0x25/0x30
->   [<ffffffff81082e11>] process_one_work+0x131/0x450
->   [<ffffffff81084bbb>] worker_thread+0x17b/0x3c0
->   [<ffffffff81084a40>] ? manage_workers+0x120/0x120
->   [<ffffffff810894d6>] kthread+0x96/0xa0
->   [<ffffffff814f0114>] kernel_thread_helper+0x4/0x10
->   [<ffffffff81089440>] ? kthread_worker_fn+0x1a0/0x1a0
->   [<ffffffff814f0110>] ? gs_change+0x13/0x13
-> ---[ end trace a7919e7f17c0a729 ]---
-
-
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+ drivers/media/video/gspca/m5602/m5602_core.c    |    9 +++--
+ drivers/media/video/gspca/m5602/m5602_mt9m111.c |   28 ++++++++++--------
+ drivers/media/video/gspca/m5602/m5602_ov7660.c  |   21 +++++++------
+ drivers/media/video/gspca/m5602/m5602_ov9650.c  |   19 ++++++------
+ drivers/media/video/gspca/m5602/m5602_po1030.c  |   21 +++++++------
+ drivers/media/video/gspca/m5602/m5602_s5k4aa.c  |   35 +++++++++++++----------
+ drivers/media/video/gspca/m5602/m5602_s5k83a.c  |   30 +++++++++++--------
+ 7 files changed, 89 insertions(+), 74 deletions(-)
+
+diff --git a/drivers/media/video/gspca/m5602/m5602_core.c b/drivers/media/video/gspca/m5602/m5602_core.c
+index a7722b1..67533e5 100644
+--- a/drivers/media/video/gspca/m5602/m5602_core.c
++++ b/drivers/media/video/gspca/m5602/m5602_core.c
+@@ -16,6 +16,8 @@
+  *
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include "m5602_ov9650.h"
+ #include "m5602_ov7660.h"
+ #include "m5602_mt9m111.h"
+@@ -192,10 +194,9 @@ static void m5602_dump_bridge(struct sd *sd)
+ 	for (i = 0; i < 0x80; i++) {
+ 		unsigned char val = 0;
+ 		m5602_read_bridge(sd, i, &val);
+-		info("ALi m5602 address 0x%x contains 0x%x", i, val);
++		pr_info("ALi m5602 address 0x%x contains 0x%x\n", i, val);
+ 	}
+-	info("Warning: The ALi m5602 webcam probably won't work "
+-		"until it's power cycled");
++	pr_info("Warning: The ALi m5602 webcam probably won't work until it's power cycled\n");
+ }
+ 
+ static int m5602_probe_sensor(struct sd *sd)
+@@ -231,7 +232,7 @@ static int m5602_probe_sensor(struct sd *sd)
+ 		return 0;
+ 
+ 	/* More sensor probe function goes here */
+-	info("Failed to find a sensor");
++	pr_info("Failed to find a sensor\n");
+ 	sd->sensor = NULL;
+ 	return -ENODEV;
+ }
+diff --git a/drivers/media/video/gspca/m5602/m5602_mt9m111.c b/drivers/media/video/gspca/m5602/m5602_mt9m111.c
+index 0d605a5..6268aa2 100644
+--- a/drivers/media/video/gspca/m5602/m5602_mt9m111.c
++++ b/drivers/media/video/gspca/m5602/m5602_mt9m111.c
+@@ -16,6 +16,8 @@
+  *
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include "m5602_mt9m111.h"
+ 
+ static int mt9m111_set_vflip(struct gspca_dev *gspca_dev, __s32 val);
+@@ -163,7 +165,7 @@ int mt9m111_probe(struct sd *sd)
+ 
+ 	if (force_sensor) {
+ 		if (force_sensor == MT9M111_SENSOR) {
+-			info("Forcing a %s sensor", mt9m111.name);
++			pr_info("Forcing a %s sensor\n", mt9m111.name);
+ 			goto sensor_found;
+ 		}
+ 		/* If we want to force another sensor, don't try to probe this
+@@ -191,7 +193,7 @@ int mt9m111_probe(struct sd *sd)
+ 		return -ENODEV;
+ 
+ 	if ((data[0] == 0x14) && (data[1] == 0x3a)) {
+-		info("Detected a mt9m111 sensor");
++		pr_info("Detected a mt9m111 sensor\n");
+ 		goto sensor_found;
+ 	}
+ 
+@@ -612,34 +614,34 @@ static void mt9m111_dump_registers(struct sd *sd)
+ {
+ 	u8 address, value[2] = {0x00, 0x00};
+ 
+-	info("Dumping the mt9m111 register state");
++	pr_info("Dumping the mt9m111 register state\n");
+ 
+-	info("Dumping the mt9m111 sensor core registers");
++	pr_info("Dumping the mt9m111 sensor core registers\n");
+ 	value[1] = MT9M111_SENSOR_CORE;
+ 	m5602_write_sensor(sd, MT9M111_PAGE_MAP, value, 2);
+ 	for (address = 0; address < 0xff; address++) {
+ 		m5602_read_sensor(sd, address, value, 2);
+-		info("register 0x%x contains 0x%x%x",
+-		     address, value[0], value[1]);
++		pr_info("register 0x%x contains 0x%x%x\n",
++			address, value[0], value[1]);
+ 	}
+ 
+-	info("Dumping the mt9m111 color pipeline registers");
++	pr_info("Dumping the mt9m111 color pipeline registers\n");
+ 	value[1] = MT9M111_COLORPIPE;
+ 	m5602_write_sensor(sd, MT9M111_PAGE_MAP, value, 2);
+ 	for (address = 0; address < 0xff; address++) {
+ 		m5602_read_sensor(sd, address, value, 2);
+-		info("register 0x%x contains 0x%x%x",
+-		     address, value[0], value[1]);
++		pr_info("register 0x%x contains 0x%x%x\n",
++			address, value[0], value[1]);
+ 	}
+ 
+-	info("Dumping the mt9m111 camera control registers");
++	pr_info("Dumping the mt9m111 camera control registers\n");
+ 	value[1] = MT9M111_CAMERA_CONTROL;
+ 	m5602_write_sensor(sd, MT9M111_PAGE_MAP, value, 2);
+ 	for (address = 0; address < 0xff; address++) {
+ 		m5602_read_sensor(sd, address, value, 2);
+-		info("register 0x%x contains 0x%x%x",
+-		     address, value[0], value[1]);
++		pr_info("register 0x%x contains 0x%x%x\n",
++			address, value[0], value[1]);
+ 	}
+ 
+-	info("mt9m111 register state dump complete");
++	pr_info("mt9m111 register state dump complete\n");
+ }
+diff --git a/drivers/media/video/gspca/m5602/m5602_ov7660.c b/drivers/media/video/gspca/m5602/m5602_ov7660.c
+index b12f604..9a14835 100644
+--- a/drivers/media/video/gspca/m5602/m5602_ov7660.c
++++ b/drivers/media/video/gspca/m5602/m5602_ov7660.c
+@@ -16,6 +16,8 @@
+  *
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include "m5602_ov7660.h"
+ 
+ static int ov7660_get_gain(struct gspca_dev *gspca_dev, __s32 *val);
+@@ -149,7 +151,7 @@ int ov7660_probe(struct sd *sd)
+ 
+ 	if (force_sensor) {
+ 		if (force_sensor == OV7660_SENSOR) {
+-			info("Forcing an %s sensor", ov7660.name);
++			pr_info("Forcing an %s sensor\n", ov7660.name);
+ 			goto sensor_found;
+ 		}
+ 		/* If we want to force another sensor,
+@@ -180,10 +182,10 @@ int ov7660_probe(struct sd *sd)
+ 	if (m5602_read_sensor(sd, OV7660_VER, &ver_id, 1))
+ 		return -ENODEV;
+ 
+-	info("Sensor reported 0x%x%x", prod_id, ver_id);
++	pr_info("Sensor reported 0x%x%x\n", prod_id, ver_id);
+ 
+ 	if ((prod_id == 0x76) && (ver_id == 0x60)) {
+-		info("Detected a ov7660 sensor");
++		pr_info("Detected a ov7660 sensor\n");
+ 		goto sensor_found;
+ 	}
+ 	return -ENODEV;
+@@ -457,17 +459,16 @@ static int ov7660_set_vflip(struct gspca_dev *gspca_dev, __s32 val)
+ static void ov7660_dump_registers(struct sd *sd)
+ {
+ 	int address;
+-	info("Dumping the ov7660 register state");
++	pr_info("Dumping the ov7660 register state\n");
+ 	for (address = 0; address < 0xa9; address++) {
+ 		u8 value;
+ 		m5602_read_sensor(sd, address, &value, 1);
+-		info("register 0x%x contains 0x%x",
+-		     address, value);
++		pr_info("register 0x%x contains 0x%x\n", address, value);
+ 	}
+ 
+-	info("ov7660 register state dump complete");
++	pr_info("ov7660 register state dump complete\n");
+ 
+-	info("Probing for which registers that are read/write");
++	pr_info("Probing for which registers that are read/write\n");
+ 	for (address = 0; address < 0xff; address++) {
+ 		u8 old_value, ctrl_value;
+ 		u8 test_value[2] = {0xff, 0xff};
+@@ -477,9 +478,9 @@ static void ov7660_dump_registers(struct sd *sd)
+ 		m5602_read_sensor(sd, address, &ctrl_value, 1);
+ 
+ 		if (ctrl_value == test_value[0])
+-			info("register 0x%x is writeable", address);
++			pr_info("register 0x%x is writeable\n", address);
+ 		else
+-			info("register 0x%x is read only", address);
++			pr_info("register 0x%x is read only\n", address);
+ 
+ 		/* Restore original value */
+ 		m5602_write_sensor(sd, address, &old_value, 1);
+diff --git a/drivers/media/video/gspca/m5602/m5602_ov9650.c b/drivers/media/video/gspca/m5602/m5602_ov9650.c
+index 703d486..2114a8b 100644
+--- a/drivers/media/video/gspca/m5602/m5602_ov9650.c
++++ b/drivers/media/video/gspca/m5602/m5602_ov9650.c
+@@ -16,6 +16,8 @@
+  *
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include "m5602_ov9650.h"
+ 
+ static int ov9650_set_exposure(struct gspca_dev *gspca_dev, __s32 val);
+@@ -299,7 +301,7 @@ int ov9650_probe(struct sd *sd)
+ 
+ 	if (force_sensor) {
+ 		if (force_sensor == OV9650_SENSOR) {
+-			info("Forcing an %s sensor", ov9650.name);
++			pr_info("Forcing an %s sensor\n", ov9650.name);
+ 			goto sensor_found;
+ 		}
+ 		/* If we want to force another sensor,
+@@ -330,7 +332,7 @@ int ov9650_probe(struct sd *sd)
+ 		return -ENODEV;
+ 
+ 	if ((prod_id == 0x96) && (ver_id == 0x52)) {
+-		info("Detected an ov9650 sensor");
++		pr_info("Detected an ov9650 sensor\n");
+ 		goto sensor_found;
+ 	}
+ 	return -ENODEV;
+@@ -850,17 +852,16 @@ static int ov9650_set_auto_gain(struct gspca_dev *gspca_dev, __s32 val)
+ static void ov9650_dump_registers(struct sd *sd)
+ {
+ 	int address;
+-	info("Dumping the ov9650 register state");
++	pr_info("Dumping the ov9650 register state\n");
+ 	for (address = 0; address < 0xa9; address++) {
+ 		u8 value;
+ 		m5602_read_sensor(sd, address, &value, 1);
+-		info("register 0x%x contains 0x%x",
+-		     address, value);
++		pr_info("register 0x%x contains 0x%x\n", address, value);
+ 	}
+ 
+-	info("ov9650 register state dump complete");
++	pr_info("ov9650 register state dump complete\n");
+ 
+-	info("Probing for which registers that are read/write");
++	pr_info("Probing for which registers that are read/write\n");
+ 	for (address = 0; address < 0xff; address++) {
+ 		u8 old_value, ctrl_value;
+ 		u8 test_value[2] = {0xff, 0xff};
+@@ -870,9 +871,9 @@ static void ov9650_dump_registers(struct sd *sd)
+ 		m5602_read_sensor(sd, address, &ctrl_value, 1);
+ 
+ 		if (ctrl_value == test_value[0])
+-			info("register 0x%x is writeable", address);
++			pr_info("register 0x%x is writeable\n", address);
+ 		else
+-			info("register 0x%x is read only", address);
++			pr_info("register 0x%x is read only\n", address);
+ 
+ 		/* Restore original value */
+ 		m5602_write_sensor(sd, address, &old_value, 1);
+diff --git a/drivers/media/video/gspca/m5602/m5602_po1030.c b/drivers/media/video/gspca/m5602/m5602_po1030.c
+index 1febd34..b877169 100644
+--- a/drivers/media/video/gspca/m5602/m5602_po1030.c
++++ b/drivers/media/video/gspca/m5602/m5602_po1030.c
+@@ -16,6 +16,8 @@
+  *
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include "m5602_po1030.h"
+ 
+ static int po1030_get_exposure(struct gspca_dev *gspca_dev, __s32 *val);
+@@ -197,7 +199,7 @@ int po1030_probe(struct sd *sd)
+ 
+ 	if (force_sensor) {
+ 		if (force_sensor == PO1030_SENSOR) {
+-			info("Forcing a %s sensor", po1030.name);
++			pr_info("Forcing a %s sensor\n", po1030.name);
+ 			goto sensor_found;
+ 		}
+ 		/* If we want to force another sensor, don't try to probe this
+@@ -221,7 +223,7 @@ int po1030_probe(struct sd *sd)
+ 		return -ENODEV;
+ 
+ 	if (dev_id_h == 0x30) {
+-		info("Detected a po1030 sensor");
++		pr_info("Detected a po1030 sensor\n");
+ 		goto sensor_found;
+ 	}
+ 	return -ENODEV;
+@@ -267,7 +269,7 @@ int po1030_init(struct sd *sd)
+ 			break;
+ 
+ 		default:
+-			info("Invalid stream command, exiting init");
++			pr_info("Invalid stream command, exiting init\n");
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -733,16 +735,15 @@ static void po1030_dump_registers(struct sd *sd)
+ 	int address;
+ 	u8 value = 0;
+ 
+-	info("Dumping the po1030 sensor core registers");
++	pr_info("Dumping the po1030 sensor core registers\n");
+ 	for (address = 0; address < 0x7f; address++) {
+ 		m5602_read_sensor(sd, address, &value, 1);
+-		info("register 0x%x contains 0x%x",
+-		     address, value);
++		pr_info("register 0x%x contains 0x%x\n", address, value);
+ 	}
+ 
+-	info("po1030 register state dump complete");
++	pr_info("po1030 register state dump complete\n");
+ 
+-	info("Probing for which registers that are read/write");
++	pr_info("Probing for which registers that are read/write\n");
+ 	for (address = 0; address < 0xff; address++) {
+ 		u8 old_value, ctrl_value;
+ 		u8 test_value[2] = {0xff, 0xff};
+@@ -752,9 +753,9 @@ static void po1030_dump_registers(struct sd *sd)
+ 		m5602_read_sensor(sd, address, &ctrl_value, 1);
+ 
+ 		if (ctrl_value == test_value[0])
+-			info("register 0x%x is writeable", address);
++			pr_info("register 0x%x is writeable\n", address);
+ 		else
+-			info("register 0x%x is read only", address);
++			pr_info("register 0x%x is read only\n", address);
+ 
+ 		/* Restore original value */
+ 		m5602_write_sensor(sd, address, &old_value, 1);
+diff --git a/drivers/media/video/gspca/m5602/m5602_s5k4aa.c b/drivers/media/video/gspca/m5602/m5602_s5k4aa.c
+index d27280b..cc8ec3f 100644
+--- a/drivers/media/video/gspca/m5602/m5602_s5k4aa.c
++++ b/drivers/media/video/gspca/m5602/m5602_s5k4aa.c
+@@ -16,6 +16,8 @@
+  *
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include "m5602_s5k4aa.h"
+ 
+ static int s5k4aa_get_exposure(struct gspca_dev *gspca_dev, __s32 *val);
+@@ -240,7 +242,7 @@ int s5k4aa_probe(struct sd *sd)
+ 
+ 	if (force_sensor) {
+ 		if (force_sensor == S5K4AA_SENSOR) {
+-			info("Forcing a %s sensor", s5k4aa.name);
++			pr_info("Forcing a %s sensor\n", s5k4aa.name);
+ 			goto sensor_found;
+ 		}
+ 		/* If we want to force another sensor, don't try to probe this
+@@ -276,7 +278,7 @@ int s5k4aa_probe(struct sd *sd)
+ 						  data, 2);
+ 			break;
+ 		default:
+-			info("Invalid stream command, exiting init");
++			pr_info("Invalid stream command, exiting init\n");
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -292,7 +294,7 @@ int s5k4aa_probe(struct sd *sd)
+ 	if (memcmp(prod_id, expected_prod_id, sizeof(prod_id)))
+ 		return -ENODEV;
+ 	else
+-		info("Detected a s5k4aa sensor");
++		pr_info("Detected a s5k4aa sensor\n");
+ 
+ sensor_found:
+ 	sensor_settings = kmalloc(
+@@ -347,7 +349,7 @@ int s5k4aa_start(struct sd *sd)
+ 			break;
+ 
+ 			default:
+-				err("Invalid stream command, exiting init");
++				pr_err("Invalid stream command, exiting init\n");
+ 				return -EINVAL;
+ 			}
+ 		}
+@@ -383,7 +385,7 @@ int s5k4aa_start(struct sd *sd)
+ 			break;
+ 
+ 			default:
+-				err("Invalid stream command, exiting init");
++				pr_err("Invalid stream command, exiting init\n");
+ 				return -EINVAL;
+ 			}
+ 		}
+@@ -447,7 +449,7 @@ int s5k4aa_init(struct sd *sd)
+ 				init_s5k4aa[i][1], data, 2);
+ 			break;
+ 		default:
+-			info("Invalid stream command, exiting init");
++			pr_info("Invalid stream command, exiting init\n");
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -686,20 +688,21 @@ static void s5k4aa_dump_registers(struct sd *sd)
+ 	m5602_read_sensor(sd, S5K4AA_PAGE_MAP, &old_page, 1);
+ 	for (page = 0; page < 16; page++) {
+ 		m5602_write_sensor(sd, S5K4AA_PAGE_MAP, &page, 1);
+-		info("Dumping the s5k4aa register state for page 0x%x", page);
++		pr_info("Dumping the s5k4aa register state for page 0x%x\n",
++			page);
+ 		for (address = 0; address <= 0xff; address++) {
+ 			u8 value = 0;
+ 			m5602_read_sensor(sd, address, &value, 1);
+-			info("register 0x%x contains 0x%x",
+-			     address, value);
++			pr_info("register 0x%x contains 0x%x\n",
++				address, value);
+ 		}
+ 	}
+-	info("s5k4aa register state dump complete");
++	pr_info("s5k4aa register state dump complete\n");
+ 
+ 	for (page = 0; page < 16; page++) {
+ 		m5602_write_sensor(sd, S5K4AA_PAGE_MAP, &page, 1);
+-		info("Probing for which registers that are "
+-		     "read/write for page 0x%x", page);
++		pr_info("Probing for which registers that are read/write for page 0x%x\n",
++			page);
+ 		for (address = 0; address <= 0xff; address++) {
+ 			u8 old_value, ctrl_value, test_value = 0xff;
+ 
+@@ -708,14 +711,16 @@ static void s5k4aa_dump_registers(struct sd *sd)
+ 			m5602_read_sensor(sd, address, &ctrl_value, 1);
+ 
+ 			if (ctrl_value == test_value)
+-				info("register 0x%x is writeable", address);
++				pr_info("register 0x%x is writeable\n",
++					address);
+ 			else
+-				info("register 0x%x is read only", address);
++				pr_info("register 0x%x is read only\n",
++					address);
+ 
+ 			/* Restore original value */
+ 			m5602_write_sensor(sd, address, &old_value, 1);
+ 		}
+ 	}
+-	info("Read/write register probing complete");
++	pr_info("Read/write register probing complete\n");
+ 	m5602_write_sensor(sd, S5K4AA_PAGE_MAP, &old_page, 1);
+ }
+diff --git a/drivers/media/video/gspca/m5602/m5602_s5k83a.c b/drivers/media/video/gspca/m5602/m5602_s5k83a.c
+index fbd9154..1de743a 100644
+--- a/drivers/media/video/gspca/m5602/m5602_s5k83a.c
++++ b/drivers/media/video/gspca/m5602/m5602_s5k83a.c
+@@ -16,6 +16,8 @@
+  *
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/kthread.h>
+ #include "m5602_s5k83a.h"
+ 
+@@ -135,7 +137,7 @@ int s5k83a_probe(struct sd *sd)
+ 
+ 	if (force_sensor) {
+ 		if (force_sensor == S5K83A_SENSOR) {
+-			info("Forcing a %s sensor", s5k83a.name);
++			pr_info("Forcing a %s sensor\n", s5k83a.name);
+ 			goto sensor_found;
+ 		}
+ 		/* If we want to force another sensor, don't try to probe this
+@@ -168,7 +170,7 @@ int s5k83a_probe(struct sd *sd)
+ 	if ((prod_id == 0xff) || (ver_id == 0xff))
+ 		return -ENODEV;
+ 	else
+-		info("Detected a s5k83a sensor");
++		pr_info("Detected a s5k83a sensor\n");
+ 
+ sensor_found:
+ 	sens_priv = kmalloc(
+@@ -227,7 +229,7 @@ int s5k83a_init(struct sd *sd)
+ 				init_s5k83a[i][1], data, 2);
+ 			break;
+ 		default:
+-			info("Invalid stream command, exiting init");
++			pr_info("Invalid stream command, exiting init\n");
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -273,7 +275,7 @@ static int rotation_thread_function(void *data)
+ 		s5k83a_get_rotation(sd, &reg);
+ 		if (previous_rotation != reg) {
+ 			previous_rotation = reg;
+-			info("Camera was flipped");
++			pr_info("Camera was flipped\n");
+ 
+ 			s5k83a_get_vflip((struct gspca_dev *) sd, &vflip);
+ 			s5k83a_get_hflip((struct gspca_dev *) sd, &hflip);
+@@ -566,20 +568,20 @@ static void s5k83a_dump_registers(struct sd *sd)
+ 
+ 	for (page = 0; page < 16; page++) {
+ 		m5602_write_sensor(sd, S5K83A_PAGE_MAP, &page, 1);
+-		info("Dumping the s5k83a register state for page 0x%x", page);
++		pr_info("Dumping the s5k83a register state for page 0x%x\n",
++			page);
+ 		for (address = 0; address <= 0xff; address++) {
+ 			u8 val = 0;
+ 			m5602_read_sensor(sd, address, &val, 1);
+-			info("register 0x%x contains 0x%x",
+-			     address, val);
++			pr_info("register 0x%x contains 0x%x\n", address, val);
+ 		}
+ 	}
+-	info("s5k83a register state dump complete");
++	pr_info("s5k83a register state dump complete\n");
+ 
+ 	for (page = 0; page < 16; page++) {
+ 		m5602_write_sensor(sd, S5K83A_PAGE_MAP, &page, 1);
+-		info("Probing for which registers that are read/write "
+-				"for page 0x%x", page);
++		pr_info("Probing for which registers that are read/write for page 0x%x\n",
++			page);
+ 		for (address = 0; address <= 0xff; address++) {
+ 			u8 old_val, ctrl_val, test_val = 0xff;
+ 
+@@ -588,14 +590,16 @@ static void s5k83a_dump_registers(struct sd *sd)
+ 			m5602_read_sensor(sd, address, &ctrl_val, 1);
+ 
+ 			if (ctrl_val == test_val)
+-				info("register 0x%x is writeable", address);
++				pr_info("register 0x%x is writeable\n",
++					address);
+ 			else
+-				info("register 0x%x is read only", address);
++				pr_info("register 0x%x is read only\n",
++					address);
+ 
+ 			/* Restore original val */
+ 			m5602_write_sensor(sd, address, &old_val, 1);
+ 		}
+ 	}
+-	info("Read/write register probing complete");
++	pr_info("Read/write register probing complete\n");
+ 	m5602_write_sensor(sd, S5K83A_PAGE_MAP, &old_page, 1);
+ }
+-- 
+1.7.6.405.gc1be0
+
