@@ -1,39 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:49616 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752494Ab1HAKwW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2011 06:52:22 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 00/59] Convert soc-camera to .[gs]_mbus_config() subdev operations
-Date: Mon, 1 Aug 2011 12:51:35 +0200
-Cc: linux-media@vger.kernel.org
-References: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1311937019-29914-1-git-send-email-g.liakhovetski@gmx.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201108011251.36396.jkrzyszt@tis.icnet.pl>
+Received: from wondertoys-mx.wondertoys.net ([206.117.179.246]:58205 "EHLO
+	labridge.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932077Ab1HUXAB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Aug 2011 19:00:01 -0400
+From: Joe Perches <joe@perches.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Frank Zago <frank@zago.net>,
+	Jean-Francois Moine <moinejf@free.fr>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 10/14] [media] finepix: Use current logging styles
+Date: Sun, 21 Aug 2011 15:56:53 -0700
+Message-Id: <74571fd780c71f5dd4d4d03a9845c0c9b9ef395f.1313966090.git.joe@perches.com>
+In-Reply-To: <cover.1313966088.git.joe@perches.com>
+References: <cover.1313966088.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dnia pi±tek, 29 lipca 2011 o 12:56:00 Guennadi Liakhovetski napisa³(a):
-> This patch-series converts all soc-camera client and host drivers and
-> the core from soc-camera specific .{query,set}_bus_param()
-> operations to the new .[gs]_mbus_config() subdev operations. In
-> order to prevent bisect breakage we first have to only add new
-> methods to client drivers, then convert all host drivers, taking
-> care to preserve platform compatibility, and only then soc-camera
-> methods can be removed. These patches are also available as a git
-> branch:
-> 
-> git://linuxtv.org/gliakhovetski/v4l-dvb.git mbus-config
-> 
-> Tested on i.MX31, PXA270, SuperH, mach-shmobile. Compile-tested on
-> many others. Reviews and tests welcome!:-)
+Add pr_fmt.
+Convert usb style logging macros to pr_<level>.
 
-Tested on Amstrad Delta - omap1_camera + ov6650.
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/media/video/gspca/finepix.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-Thanks,
-Janusz
+diff --git a/drivers/media/video/gspca/finepix.c b/drivers/media/video/gspca/finepix.c
+index 987b4b6..ea48200 100644
+--- a/drivers/media/video/gspca/finepix.c
++++ b/drivers/media/video/gspca/finepix.c
+@@ -18,6 +18,8 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #define MODULE_NAME "finepix"
+ 
+ #include "gspca.h"
+@@ -182,7 +184,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 	/* Init the device */
+ 	ret = command(gspca_dev, 0);
+ 	if (ret < 0) {
+-		err("init failed %d", ret);
++		pr_err("init failed %d\n", ret);
+ 		return ret;
+ 	}
+ 
+@@ -194,14 +196,14 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 			FPIX_MAX_TRANSFER, &len,
+ 			FPIX_TIMEOUT);
+ 	if (ret < 0) {
+-		err("usb_bulk_msg failed %d", ret);
++		pr_err("usb_bulk_msg failed %d\n", ret);
+ 		return ret;
+ 	}
+ 
+ 	/* Request a frame, but don't read it */
+ 	ret = command(gspca_dev, 1);
+ 	if (ret < 0) {
+-		err("frame request failed %d", ret);
++		pr_err("frame request failed %d\n", ret);
+ 		return ret;
+ 	}
+ 
+-- 
+1.7.6.405.gc1be0
+
