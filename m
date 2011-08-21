@@ -1,43 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:40300 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753616Ab1H2OVS (ORCPT
+Received: from nm3-vm0.bt.bullet.mail.ird.yahoo.com ([212.82.108.88]:34460
+	"HELO nm3-vm0.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754307Ab1HUMcN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 10:21:18 -0400
-Received: by wyg24 with SMTP id 24so4104701wyg.19
-        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2011 07:21:17 -0700 (PDT)
+	Sun, 21 Aug 2011 08:32:13 -0400
+Message-ID: <4E50FAC7.6080807@yahoo.com>
+Date: Sun, 21 Aug 2011 13:32:07 +0100
+From: Chris Rankin <rankincj@yahoo.com>
 MIME-Version: 1.0
-In-Reply-To: <CA+s_+RpekDfRSWEQMZObjiR-RTgLeFUk1tc-g6ieQYLzcTqwdw@mail.gmail.com>
-References: <CA+s_+RqtWZuj5b55Vk5A==VqbPEnDoqFfSVGtA2n-pdR85mc8g@mail.gmail.com>
-	<CA+s_+RrGE2T0H+XSSjg81zh514g1oQePLCfV-y3nJC8DqXjWjQ@mail.gmail.com>
-	<CA+s_+RpekDfRSWEQMZObjiR-RTgLeFUk1tc-g6ieQYLzcTqwdw@mail.gmail.com>
-Date: Mon, 29 Aug 2011 11:20:56 -0300
-Message-ID: <CAG4Y6eTVzx-jwkzQzR97stabE6KEGh5HGD7UaWnxM333Z3iqxg@mail.gmail.com>
-Subject: Re: Usb digital TV
-From: Alan Carvalho de Assis <acassis@gmail.com>
-To: Gabriel Sartori <gabriel.sartori@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH 1/1] EM28xx - fix deadlock when unplugging and replugging
+ a DVB adapter
+References: <1313851233.95109.YahooMailClassic@web121704.mail.ne1.yahoo.com> <4E4FCC8D.3070305@redhat.com>
+In-Reply-To: <4E4FCC8D.3070305@redhat.com>
+Content-Type: multipart/mixed;
+ boundary="------------060703020508020303040009"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gabriel,
+This is a multi-part message in MIME format.
+--------------060703020508020303040009
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On 8/29/11, Gabriel Sartori <gabriel.sartori@gmail.com> wrote:
-> It there some devices that has more chance to work on a 2.6.35 kernel
-> version so I can just cross compile the driver to my mx28 board in a
-> easier way?
->
-> Thanks in advance.
->
+It occurred to me this morning that since we're no longer supposed to be holding 
+the device lock when taking the device list lock, then the 
+em28xx_usb_disconnect() function needs changing too.
 
-I suggest you using a device based on dib0700, I got it working on
-Linux <= 2.6.35:
-https://acassis.wordpress.com/2009/09/18/watching-digital-tv-sbtvd-in-the-linux/
+Signed-off-by: Chris Rankin <rankincj@yahoo.com>
 
-This same device working on i-MXT (Android 2.2 with Linux kernel 2.6.35):
-http://holoscopio.com/misc/androidtv/
 
-Best Regards,
+--------------060703020508020303040009
+Content-Type: text/x-patch;
+ name="EM28xx-replug-deadlock.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="EM28xx-replug-deadlock.diff"
 
-Alan
+--- linux-3.0/drivers/media/video/em28xx/em28xx-cards.c.orig	2011-08-19 00:45:48.000000000 +0100
++++ linux-3.0/drivers/media/video/em28xx/em28xx-cards.c	2011-08-21 13:16:43.000000000 +0100
+@@ -2929,7 +2929,9 @@
+ 		goto fail_reg_analog_devices;
+ 	}
+ 
++	mutex_unlock(&dev->lock);
+ 	em28xx_init_extension(dev);
++	mutex_lock(&dev->lock);
+ 
+ 	/* Save some power by putting tuner to sleep */
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+@@ -3191,10 +3193,10 @@
+ 		em28xx_release_resources(dev);
+ 	}
+ 
+-	em28xx_close_extension(dev);
+-
+ 	mutex_unlock(&dev->lock);
+ 
++	em28xx_close_extension(dev);
++
+ 	if (!dev->users) {
+ 		kfree(dev->alt_max_pkt_size);
+ 		kfree(dev);
+
+--------------060703020508020303040009--
