@@ -1,60 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61572 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751458Ab1HSBBp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2011 21:01:45 -0400
-Message-ID: <4E4DB5EE.7040107@redhat.com>
-Date: Thu, 18 Aug 2011 18:01:34 -0700
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Chris Rankin <rankincj@yahoo.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH] Latest version of em28xx / em28xx-dvb patch for PCTV
- 290e
-References: <4E4D5157.2080406@yahoo.com> <CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com> <4E4D6E72.5070509@yahoo.com>
-In-Reply-To: <4E4D6E72.5070509@yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from wondertoys-mx.wondertoys.net ([206.117.179.246]:33763 "EHLO
+	labridge.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932077Ab1HUW7a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Aug 2011 18:59:30 -0400
+From: Joe Perches <joe@perches.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Luca Risolia <luca.risolia@studio.unibo.it>
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 07/14] [media] et61x251: Use current logging styles
+Date: Sun, 21 Aug 2011 15:56:50 -0700
+Message-Id: <41e34fe23bba1bd41c5c246edf0065ce150faada.1313966090.git.joe@perches.com>
+In-Reply-To: <cover.1313966088.git.joe@perches.com>
+References: <cover.1313966088.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 18-08-2011 12:56, Chris Rankin escreveu:
-> On 18/08/11 19:43, Devin Heitmueller wrote:
->> You would be well served to break this into a patch series, as it tends to be difficult to review a whole series of changes in a single patch. You seem to be mixed in a bunch of "useless" changes alongside functional changes. For example, if you're trying to add in a missing goto inside an exception block, doing that at the same time as renaming instances of "errCode" to "retval" just creates confusion.
-> 
-> Actually, those two particular changes go together because I'm replacing "return errCode" with a goto to "return retval". Ultimately, errCode becomes an unused variable.
-> 
->> And finally, the mutex structure used for the modules is somewhat complicated due to to the need to keep the analog side of the board locked while initializing the digital side. This code was added specifically to prevent race conditions that were seen during initialization as things like udev and dbus attempted to connect to the newly created V4L device while the em28xx-dvb module was still coming up.
-> 
-> OK, thanks. I've been tackling this problem from the "We must always take lock A before lock B, and never vice versa" point of view. So the order is:
-> 
-> - take device mutex
-> - enter em28xx_init_dev()
-> - enter em28xx_init_extension()
-> - take device list mutex
-> - call init() function for every extension with this device
-> 
-> Since dvb_init() is the init() function for the em28xx-dvb extension, it follows that it cannot take the device's mutex again. The problem is therefore moved to em28xx_dvb_register(), which takes the device list mutex and yet MUST not take the mutex for any device in the list.
-> 
-> Combining em28xx_add_into_devlist() with em28xx_init_extension() (and similarly em28xx_remove_from_devlist() with em28xx_close_extension()) means that the device list must always contain a list of devices that has been initialised against every extension in the extension list.
-> 
-> I can probably factor out the simpler patches first, such as using the bit operations on em28xx_devused, and the memory leak in em28xx_v4l2_close(). And the spelling fixes...
+Add pr_fmt and convert printks to pr_<level>
+Remove explicit prefixes from logging messages.
+One of the prefixes was defective, a copy/paste error.
+Use ##__VA_ARGS__ for variadic macros.
+Whitespace neatening.
 
-I agree with Devin: please break it into one patch with just the mutex
-fixes, and another one(s) with the cleanups. The basic rule is one patch
-per logic change. 
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/media/video/et61x251/et61x251.h            |   66 ++++++++++---------
+ drivers/media/video/et61x251/et61x251_core.c       |    2 +
+ drivers/media/video/et61x251/et61x251_tas5130d1b.c |    2 +
+ 3 files changed, 39 insertions(+), 31 deletions(-)
 
-For the mutex patch, please add:
-"Cc: stable@kernel.org" at the line before your signed-off-by, as such
-patch should be backported to stable kernels.
+diff --git a/drivers/media/video/et61x251/et61x251.h b/drivers/media/video/et61x251/et61x251.h
+index 14bb907..337ded4 100644
+--- a/drivers/media/video/et61x251/et61x251.h
++++ b/drivers/media/video/et61x251/et61x251.h
+@@ -165,45 +165,49 @@ et61x251_attach_sensor(struct et61x251_device* cam,
+ #undef DBG
+ #undef KDBG
+ #ifdef ET61X251_DEBUG
+-#	define DBG(level, fmt, args...)                                       \
+-do {                                                                          \
+-	if (debug >= (level)) {                                               \
+-		if ((level) == 1)                                             \
+-			dev_err(&cam->usbdev->dev, fmt "\n", ## args);        \
+-		else if ((level) == 2)                                        \
+-			dev_info(&cam->usbdev->dev, fmt "\n", ## args);       \
+-		else if ((level) >= 3)                                        \
+-			dev_info(&cam->usbdev->dev, "[%s:%s:%d] " fmt "\n",   \
+-				 __FILE__, __func__, __LINE__ , ## args); \
+-	}                                                                     \
++#define DBG(level, fmt, ...)						\
++do {									\
++	if (debug >= (level)) {						\
++		if ((level) == 1)					\
++			dev_err(&cam->usbdev->dev, fmt "\n",		\
++				##__VA_ARGS__);				\
++		else if ((level) == 2)					\
++			dev_info(&cam->usbdev->dev, fmt "\n",		\
++				 ##__VA_ARGS__);			\
++		else if ((level) >= 3)					\
++			dev_info(&cam->usbdev->dev, "[%s:%s:%d] " fmt "\n", \
++				 __FILE__, __func__, __LINE__,		\
++				 ##__VA_ARGS__);			\
++	}								\
+ } while (0)
+-#	define KDBG(level, fmt, args...)                                      \
+-do {                                                                          \
+-	if (debug >= (level)) {                                               \
+-		if ((level) == 1 || (level) == 2)                             \
+-			pr_info("et61x251: " fmt "\n", ## args);              \
+-		else if ((level) == 3)                                        \
+-			pr_debug("sn9c102: [%s:%s:%d] " fmt "\n", __FILE__,   \
+-				 __func__, __LINE__ , ## args);           \
+-	}                                                                     \
++#define KDBG(level, fmt, ...)						\
++do {									\
++	if (debug >= (level)) {						\
++		if ((level) == 1 || (level) == 2)			\
++			pr_info(fmt "\n", ##__VA_ARGS__);		\
++		else if ((level) == 3)					\
++			pr_debug("[%s:%s:%d] " fmt "\n",		\
++				 __FILE__,  __func__, __LINE__,		\
++				 ##__VA_ARGS__);			\
++	}								\
+ } while (0)
+-#	define V4LDBG(level, name, cmd)                                       \
+-do {                                                                          \
+-	if (debug >= (level))                                                 \
+-		v4l_print_ioctl(name, cmd);                                   \
++#define V4LDBG(level, name, cmd)					\
++do {									\
++	if (debug >= (level))						\
++		v4l_print_ioctl(name, cmd);				\
+ } while (0)
+ #else
+-#	define DBG(level, fmt, args...) do {;} while(0)
+-#	define KDBG(level, fmt, args...) do {;} while(0)
+-#	define V4LDBG(level, name, cmd) do {;} while(0)
++#define DBG(level, fmt, ...) do {;} while(0)
++#define KDBG(level, fmt, ...) do {;} while(0)
++#define V4LDBG(level, name, cmd) do {;} while(0)
+ #endif
+ 
+ #undef PDBG
+-#define PDBG(fmt, args...)                                                    \
+-dev_info(&cam->usbdev->dev, "[%s:%s:%d] " fmt "\n", __FILE__, __func__,   \
+-	 __LINE__ , ## args)
++#define PDBG(fmt, ...)							\
++	dev_info(&cam->usbdev->dev, "[%s:%s:%d] " fmt "\n",		\
++		 __FILE__, __func__, __LINE__, ##__VA_ARGS__)
+ 
+ #undef PDBGG
+-#define PDBGG(fmt, args...) do {;} while(0) /* placeholder */
++#define PDBGG(fmt, args...) do {;} while (0) /* placeholder */
+ 
+ #endif /* _ET61X251_H_ */
+diff --git a/drivers/media/video/et61x251/et61x251_core.c b/drivers/media/video/et61x251/et61x251_core.c
+index 9a1e80a..d3777c8 100644
+--- a/drivers/media/video/et61x251/et61x251_core.c
++++ b/drivers/media/video/et61x251/et61x251_core.c
+@@ -18,6 +18,8 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
+  ***************************************************************************/
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/version.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+diff --git a/drivers/media/video/et61x251/et61x251_tas5130d1b.c b/drivers/media/video/et61x251/et61x251_tas5130d1b.c
+index 04b7fbb..ced2e16 100644
+--- a/drivers/media/video/et61x251/et61x251_tas5130d1b.c
++++ b/drivers/media/video/et61x251/et61x251_tas5130d1b.c
+@@ -19,6 +19,8 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
+  ***************************************************************************/
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include "et61x251_sensor.h"
+ 
+ 
+-- 
+1.7.6.405.gc1be0
 
-With respect to return errCode, maybe the better would be to
-rename it as just "rc". It is very common to call the return
-code as that on several places, and it is smaller.
-
-PS.: I didn't make a full review of your patches yet. I'll probably
-do it by the next week, after returning from LinuxCon.
-
-Thanks!
-Mauro
