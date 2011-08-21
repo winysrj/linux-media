@@ -1,41 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:9749 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755094Ab1HKLfc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2011 07:35:32 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH] adp1653: set media entity type
-Date: Thu, 11 Aug 2011 14:35:04 +0300
-Message-Id: <bdfa2fa007fe799206043c874017fb3b412f7f32.1313062441.git.andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20110811071900.GC5926@valkosipuli.localdomain>
-References: <20110811071900.GC5926@valkosipuli.localdomain>
+Received: from wondertoys-mx.wondertoys.net ([206.117.179.246]:50366 "EHLO
+	labridge.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756097Ab1HUW6Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Aug 2011 18:58:24 -0400
+From: Joe Perches <joe@perches.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 02/14] [media] rc-core.h: Surround macro with do {} while (0)
+Date: Sun, 21 Aug 2011 15:56:45 -0700
+Message-Id: <83cc61d8e120e2b18fe69bc85a6dafe9174ad2be.1313966089.git.joe@perches.com>
+In-Reply-To: <cover.1313966088.git.joe@perches.com>
+References: <cover.1313966088.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The type of a media entity is default for this driver. This patch makes it
-explicitly defined as MEDIA_ENT_T_V4L2_SUBDEV_FLASH.
+Macros coded with if statements should be do { if... } while (0)
+so the macros can be used in other if tests.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Use ##__VA_ARGS__ for variadic macro as well.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/media/video/adp1653.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ include/media/rc-core.h |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
-index 7f2e710..0fd9579 100644
---- a/drivers/media/video/adp1653.c
-+++ b/drivers/media/video/adp1653.c
-@@ -438,6 +438,8 @@ static int adp1653_probe(struct i2c_client *client,
- 	if (ret < 0)
- 		goto free_and_quit;
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index b1f19b7..b0c494a 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -23,8 +23,11 @@
+ #include <media/rc-map.h>
  
-+	flash->subdev.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
-+
- 	return 0;
+ extern int rc_core_debug;
+-#define IR_dprintk(level, fmt, arg...)	if (rc_core_debug >= level) \
+-	printk(KERN_DEBUG "%s: " fmt , __func__, ## arg)
++#define IR_dprintk(level, fmt, ...)				\
++do {								\
++	if (rc_core_debug >= level)				\
++		pr_debug("%s: " fmt, __func__, ##__VA_ARGS__);	\
++} while (0)
  
- free_and_quit:
+ enum rc_driver_type {
+ 	RC_DRIVER_SCANCODE = 0,	/* Driver or hardware generates a scancode */
 -- 
-1.7.5.4
+1.7.6.405.gc1be0
 
