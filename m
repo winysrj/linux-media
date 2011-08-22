@@ -1,91 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:35266 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754178Ab1HDQUK convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Aug 2011 12:20:10 -0400
-Received: by mail-yx0-f180.google.com with SMTP id 11so1260265yxi.39
-        for <linux-media@vger.kernel.org>; Thu, 04 Aug 2011 09:20:09 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37128 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751294Ab1HVPm3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Aug 2011 11:42:29 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer management
+Date: Mon, 22 Aug 2011 17:42:36 +0200
+Cc: Hans Verkuil <hansverk@cisco.com>, Pawel Osciak <pawel@osciak.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange> <201108221316.27491.hansverk@cisco.com> <Pine.LNX.4.64.1108221448030.29246@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1108221448030.29246@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <CAKMK7uG+UVynCQx-0AWXV8KM9Fe5unu0-9exaADTGrpAcMxHng@mail.gmail.com>
-References: <4E37C7D7.40301@samsung.com>
-	<4E381B73.8050706@codeaurora.org>
-	<20E136AF98049A48A90A7417B4343D5E1DF747A563@BUNGLE.Emea.Arm.com>
-	<4E396569.30708@codeaurora.org>
-	<CAKMK7uECwB70CnAaoTTfG0X5tMTcsYGZvvTaMxHE654bYNJyyQ@mail.gmail.com>
-	<CAO8GWq=6djefOgQGWf4fkRryWM2e7qOMA5qeZOGkUVx7VWf-wg@mail.gmail.com>
-	<CAKMK7uG+UVynCQx-0AWXV8KM9Fe5unu0-9exaADTGrpAcMxHng@mail.gmail.com>
-Date: Thu, 4 Aug 2011 11:19:59 -0500
-Message-ID: <CAO8GWqkoq0MT0PDHrP3eRQkVj-W=qWTDyL8vVNrwb9riDWYtFQ@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] Buffer sharing proof-of-concept
-From: "Clark, Rob" <rob@ti.com>
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Jordan Crouse <jcrouse@codeaurora.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108221742.37278.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Aug 4, 2011 at 7:34 AM, Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
-> On Thu, Aug 4, 2011 at 13:14, Clark, Rob <rob@ti.com> wrote:
->> hmm, there would be a dmabuf->private ptr in struct dmabuf.  Normally
->> that should be for private data of the buffer allocator, but I guess
->> it could be (ab)used for under the hood communication between drivers
->> a platform specific way.  It does seem a bit hacky, but at least it
->> does not need to be exposed to userspace.
->
-> An idea that just crossed my mind: I think we should seperate two
-> kinds of meta-data about a shared piece of data (dmabuf):
-> - logical metadata about it's contents, like strides, number of
-> dimensions, pixel format/vbo layout, ... Imo that stuff doesn't belong
-> into the buffer sharing simply because it's an a) awful mess and b)
-> gem doesn't know it. To recap: only userspace knows this stuff and has
-> to make sense of the data in the buffer by either setting up correct
-> gpu command streams or telling kms what format this thing it needs to
-> scan out has.
+Hi Guennadi,
 
+On Monday 22 August 2011 15:54:03 Guennadi Liakhovetski wrote:
+> We discussed a bit more with Hans on IRC, and below is my attempt of a
+> summary. Hans, please, correct me, if I misunderstood anything. Pawel,
+> Sakari, Laurent: please, reply, whether you're ok with this.
 
-for sure, I think we've ruled out putting this sort of stuff in
-'struct dmabuf'.. (notwithstanding any data stuffed away in a 'void *
-priv' on some platform or another)
+Sakari is on holidays this week.
 
-> - metadata about the physical layout: tiling layout, memory bank
-> interleaving, page size for the iommu/contiguous buffer. As far as I
-> can tell (i.e. please correct) for embedded systems this just depends
-> on the (in)saneness of to iommu/bus/memory controller sitting between
-> the ic block and it's data. So it would be great if we could
-> completely hide this from drivers (and userspace) an shovel it into
-> the dma subsystem (as private data). Unfortunately at least on Intel
-> tiling needs to be known by the iommu code, the core gem kernel driver
-> code and the userspace drivers. Otoh using tiled buffers for sharing
-> is maybe a bit ambitious for the first cut. So maybe we can just
-> ignore tiling which largely just leaves handling iommus restrictions
-> (or their complete lack) which looks doable.
+> On Mon, 22 Aug 2011, Hans Verkuil wrote:
+> > On Monday, August 22, 2011 12:40:25 Guennadi Liakhovetski wrote:
+> [snip]
+> 
+> > > It would be good if you also could have a look at my reply to this
+> > > Pawel's mail:
+> > > 
+> > > http://article.gmane.org/gmane.linux.drivers.video-input-
+> > 
+> > infrastructure/36905
+> > 
+> > > and, specifically, at the vb2_parse_planes() function in it. That's my
+> > > understanding of what would be needed, if we preserve .queue_setup()
+> > > and use your last suggestion to include struct v4l2_format in struct
+> > > v4l2_create_buffers.
+> > 
+> > vb2_parse_planes can be useful as a utility function that 'normal'
+> > drivers can call from the queue_setup. But vb2 should not parse the
+> > format directly, it should just pass it on to the driver through the
+> > queue_setup function.
+> > 
+> > You also mention: "All frame-format fields like fourcc code, width,
+> > height, colorspace are only input from the user. If the user didn't fill
+> > them in, they should not be used."
+> > 
+> > I disagree with that. The user should fill in a full format description,
+> > just as with S/TRY_FMT. That's the information that the driver will use
+> > to set up the buffers. It could have weird rules like: if the fourcc is
+> > this, and the size is less than that, then we can allocate in this
+> > memory bank.
+> > 
+> > It is also consistent with REQBUFS: there too the driver uses a full
+> > format (i.e. the last set format).
+> > 
+> > I would modify queue_setup to something like this:
+> > 
+> > int (*queue_setup)(struct vb2_queue *q, struct v4l2_format *fmt,
+> > 
+> >                      unsigned int *num_buffers,
+> >                      unsigned int *num_planes, unsigned int sizes[],
+> >                      void *alloc_ctxs[]);
+> > 
+> > Whether fmt is left to NULL in the reqbufs case, or whether the driver
+> > has to call g_fmt first before calling vb2 is something that could be
+> > decided by what is easiest to implement.
+> 
+> 1. VIDIOC_CREATE_BUFS passes struct v4l2_create_buffers from the user to
+>    the kernel, in which struct v4l2_format is embedded. The user _must_
+>    fill in .type member of struct v4l2_format. For .type ==
+>    V4L2_BUF_TYPE_VIDEO_CAPTURE or V4L2_BUF_TYPE_VIDEO_OUTPUT .fmt.pix is
+>    used, for .type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE or
+>    V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE .fmt.pix_mp is used. In both these
+>    cases the user _must_ fill in .width, .height, .pixelformat, .field,
+>    .colorspace by possibly calling VIDIOC_G_FMT or VIDIOC_TRY_FMT. The
+>    user also _may_ optionally fill in any further buffer-size related
+>    fields, if it believes to have any special requirements to them. On
+>    a successful return from the ioctl() .count and .index fields are
+>    filled in by the kernel, .format stays unchanged. The user has to call
+>    VIDIOC_QUERYBUF to retrieve specific buffer information.
+> 
+> 2. Videobuf2 drivers, that implement .vidioc_create_bufs() operation, call
+>    vb2_create_bufs() with a pointer to struct v4l2_create_buffers as a
+>    second argument. vb2_create_bufs() in turn calls the .queue_setup()
+>    driver callback, whose prototype is modified as follows:
+> 
+> int (*queue_setup)(struct vb2_queue *q, const struct v4l2_format *fmt,
+> 			unsigned int *num_buffers,
+> 			unsigned int *num_planes, unsigned int sizes[],
+> 			void *alloc_ctxs[]);
+> 
+>    with &create->format as a second argument. As pointed out above, this
+>    struct is not modified by V4L, instead, the usual arguments 3-6 are
+>    filled in by the driver, which are then used by vb2_create_bufs() to
+>    call __vb2_queue_alloc().
+> 
+> 3. vb2_reqbufs() shall call .queue_setup() with fmt == NULL, which will be
+>    a signal to the driver to use the current format.
+> 
+> 4. We keep .queue_setup(), because its removal would inevitably push a
+>    part of the common code from vb2_reqbufs() and vb2_create_bufs() down
+>    into drivers, thus creating code redundancy and increasing its
+>    complexity.
 
-btw, on intel (or desktop platforms in general), could another device
-(say a USB webcam) DMA directly to a tiled buffer via the GART... ie.
-assuming you had some way to pre-fault some pages into the GART before
-the DMA happened.
+How much common code would be pushed down to drivers ? I don't think this is a 
+real issue. I like Pawel's proposal of removing .queue_setup() better.
 
-I was sort of expecting 'struct dmabuf' to basically just be a
-scatterlist and some fxn ptrs, nothing about TILING.. not sure if we
-need an fxn ptr to ask the buffer allocator to generate some
-pages/addresses that some other DMA engine could write to (so you
-could do something like pre-faulting the buffer into some sort of
-GART) and again release the pages/addresses when DMA completes.
+> You have 24 hours to object, before I proceed with the next version;-)
 
-BR,
--R
+-- 
+Regards,
 
->> (Or maybe a better option is just 'rm -rf omx' ;-))
->
-> Yeah ;-)
-> -Daniel
-> --
-> Daniel Vetter
-> daniel.vetter@ffwll.ch - +41 (0) 79 365 57 48 - http://blog.ffwll.ch
->
+Laurent Pinchart
