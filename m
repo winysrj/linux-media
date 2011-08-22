@@ -1,92 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:36490 "EHLO mga11.intel.com"
+Received: from mail.kaapeli.fi ([84.20.139.148]:34494 "EHLO mail.kaapeli.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751191Ab1HRNcs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2011 09:32:48 -0400
-Subject: Re: [PATCHv2] adp1653: make ->power() method optional
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <20110818115131.GD8872@valkosipuli.localdomain>
-References: <20110818092158.GA8872@valkosipuli.localdomain>
-	 <98c77ce2a17d7a098dedfc858f4055edc5556c54.1313666504.git.andriy.shevchenko@linux.intel.com>
-	 <1313667122.25065.8.camel@smile>
-	 <20110818115131.GD8872@valkosipuli.localdomain>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Thu, 18 Aug 2011 16:32:21 +0300
-Message-ID: <1313674341.25065.17.camel@smile>
-Mime-Version: 1.0
+	id S1751944Ab1HVRY4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Aug 2011 13:24:56 -0400
+Message-ID: <4E528FAE.5060801@iki.fi>
+Date: Mon, 22 Aug 2011 20:19:42 +0300
+From: Jyrki Kuoppala <jkp@iki.fi>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] Fix to qt1010 tuner frequency selection (media/dvb)
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2011-08-18 at 14:51 +0300, Sakari Ailus wrote: 
-> On Thu, Aug 18, 2011 at 02:32:02PM +0300, Andy Shevchenko wrote:
-> > On Thu, 2011-08-18 at 14:22 +0300, Andy Shevchenko wrote: 
-> > > The ->power() could be absent or not used on some platforms. This patch makes
-> > > its presence optional.
-> > > 
-> > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > > Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> > > ---
-> > >  drivers/media/video/adp1653.c |    5 +++++
-> > >  1 files changed, 5 insertions(+), 0 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
-> > > index 0fd9579..f830313 100644
-> > > --- a/drivers/media/video/adp1653.c
-> > > +++ b/drivers/media/video/adp1653.c
-> > > @@ -329,6 +329,11 @@ adp1653_set_power(struct v4l2_subdev *subdev, int on)
-> > >  	struct adp1653_flash *flash = to_adp1653_flash(subdev);
-> > >  	int ret = 0;
-> > >  
-> > > +	/* There is no need to switch power in case of absence ->power()
-> > > +	 * method. */
-> > > +	if (flash->platform_data->power == NULL)
-> > > +		return 0;
-> > > +
-> > >  	mutex_lock(&flash->power_lock);
-> > >  
-> > >  	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
-> > 
-> > He-h, I guess you are not going to apply this one.
-> > The patch breaks init logic of the device. If we have no ->power(), we
-> > still need to bring the device to the known state. I have no good idea
-> > how to do this.
-> 
-> I don't think it breaks anything actually. Albeit in practice one is still
-> likely to put the adp1653 reset line to the board since that lowers its power
-> consumption significantly.
-Yeah, even in practice we might see various ways of a chip connection.
+The patch fixes frequency selection for some UHF frequencies e.g. 
+channel 32 (562 MHz) on the qt1010 tuner. The tuner is used e.g. in the 
+MSI Mega Sky dvb-t stick ("MSI Mega Sky 55801 DVB-T USB2.0")
 
-> Instead of being in power-up state after opening the flash subdev, it will
-> reach this state already when the system is powered up. At subdev open all
-> the relevant registers are written to anyway, so I don't see an issue here.
-You mean at first writing to the V4L2 value, do you? Because ->open()
-uses set_power() which will be skipped in case of no ->power method
-defined.
+One example of problem reports of the bug this fixes can be read at 
+http://www.freak-search.com/de/thread/330303/linux-dvb_tuning_problem_with_some_frequencies_qt1010,_dvb
 
-> I think either this one, or one should check in probe() that the power()
-> callback is non-NULL.
-> The board code is going away in the near future so this callback will
-> disappear eventually anyway.
-So, it's up to you to include or not my last patch.
+Applies to kernel versions 2.6.38.8, 2.6.39.4, 3.0.3 and 3.1-rc2.
 
-> The gpio code in the board file should likely
-> be moved to the driver itself.
-The line could be different, the hw could be used in environment w/o
-gpio, but with (for example) external gate, and so on. I think current
-generic driver is pretty okay. 
+Signed-off-by: Jyrki Kuoppala <jkp@iki.fi>
 
-And what to do with limits? Pass them as the module parameters?
+diff -upr linux-source-2.6.38.orig/drivers/media/common/tuners/qt1010.c 
+linux-source-2.6.38/drivers/media/common/tuners/qt1010.c
+--- linux-source-2.6.38.orig/drivers/media/common/tuners/qt1010.c    
+2011-03-15 03:20:32.000000000 +0200
++++ linux-source-2.6.38/drivers/media/common/tuners/qt1010.c    
+2011-08-21 23:16:38.209580365 +0300
+@@ -198,9 +198,10 @@ static int qt1010_set_params(struct dvb_
 
-> That assumes that there will be a gpio which
-> can be used to enable and disable the device and I'm not fully certain this
-> is generic enough. Hopefully it is, but I don't know where else the adp1653
-> would be used than on the N900.
-Don't narrow a chip application to the one device.
+      /* 22 */
+      if      (freq < 450000000) rd[15].val = 0xd0; /* 450 MHz */
+-    else if (freq < 482000000) rd[15].val = 0xd1; /* 482 MHz */
++    else if (freq < 482000000) rd[15].val = 0xd2; /* 482 MHz */
+      else if (freq < 514000000) rd[15].val = 0xd4; /* 514 MHz */
+-    else if (freq < 546000000) rd[15].val = 0xd7; /* 546 MHz */
++    else if (freq < 546000000) rd[15].val = 0xd6; /* 546 MHz */
++    else if (freq < 578000000) rd[15].val = 0xd8; /* 578 MHz */
+      else if (freq < 610000000) rd[15].val = 0xda; /* 610 MHz */
+      else                       rd[15].val = 0xd0;
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+
