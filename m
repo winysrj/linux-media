@@ -1,38 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:60184 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751481Ab1HOJ4p (ORCPT
+Received: from mail2.matrix-vision.com ([85.214.244.251]:36104 "EHLO
+	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752461Ab1HVKPw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2011 05:56:45 -0400
-Received: by vxi9 with SMTP id 9so3706266vxi.19
-        for <linux-media@vger.kernel.org>; Mon, 15 Aug 2011 02:56:44 -0700 (PDT)
+	Mon, 22 Aug 2011 06:15:52 -0400
+Message-ID: <4E522C56.3090605@matrix-vision.de>
+Date: Mon, 22 Aug 2011 12:15:50 +0200
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-In-Reply-To: <4E486AA2.30905@iki.fi>
-References: <4E486AA2.30905@iki.fi>
-Date: Mon, 15 Aug 2011 11:56:43 +0200
-Message-ID: <CAPEGoTBhSkud+QLACn3i=AFpx8wYDk1O=mSJHF8iPjGCxibEfA@mail.gmail.com>
-Subject: Re: dvb-apps: update DVB-T intial tuning files for Finland (fi-*)
-From: Hein Rigolo <rigolo@gmail.com>
-To: Antti Palosaari <crope@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Christoph Pfister <christophpfister@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: CJ <cjpostor@gmail.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	javier Martin <javier.martin@vista-silicon.com>,
+	Koen Kooi <koen@beagleboard.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, mch_kot@yahoo.com.cn
+Subject: Re: [beagleboard] Re: [PATCH v7 1/2] Add driver for Aptina (Micron)
+ mt9p031 sensor.
+References: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com> <201108191212.49729.laurent.pinchart@ideasonboard.com> <4E51D739.7010000@gmail.com> <201108221141.40818.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201108221141.40818.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 15, 2011 at 2:38 AM, Antti Palosaari <crope@iki.fi> wrote:
-> Updates all Finnish channels as today.
->
-> Antti
+Hi Chris,
 
-Do we still need to have separate initial tuning files per region in finland?
+On 08/22/2011 11:41 AM, Laurent Pinchart wrote:
+> 
+> Hi Chris,
+> 
+> On Monday 22 August 2011 06:12:41 CJ wrote:
+>> On 19/08/11 22:12, Laurent Pinchart wrote:
+>>>> I am trying to get the mt9p031 working from nand with a ubifs file
+>>>> system and I am having a few problems.
+>>>>
+>>>> /dev/media0 is not present unless I run:
+>>>> #mknod /dev/media0 c 251 0
+>>>> #chown root:video /dev/media0
+>>>>
+>>>> #media-ctl -p
+>>>> Enumerating entities
+>>>> media_open: Unable to enumerate entities for device /dev/media0
+>>>> (Inappropriate ioctl for device)
+>>>>
+>>>> With the same rig/files it works fine running from EXT4 on an SD card.
+>>>> Any idea why this does not work on nand with ubifs?
+>>>
+>>> Is the OMAP3 ISP driver loaded ? Has it probed the device successfully ?
+>>> Check the kernel log for OMAP3 ISP-related messages.
+>>
+>> Here is the version running from SD card:
+>> # dmesg | grep isp
+>> [    0.265502] omap-iommu omap-iommu.0: isp registered
+>> [    2.986541] omap3isp omap3isp: Revision 2.0 found
+>> [    2.991577] omap-iommu omap-iommu.0: isp: version 1.1
+>> [    2.997406] omap3isp omap3isp: hist: DMA channel = 0
+>> [    3.006256] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+>> 21600000 Hz
+>> [    3.011932] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
+>>
+>>  From NAND using UBIFS:
+>> # dmesg | grep isp
+>> [    3.457061] omap3isp omap3isp: Revision 2.0 found
+>> [    3.462036] omap-iommu omap-iommu.0: isp: version 1.1
+>> [    3.467620] omap3isp omap3isp: hist: DMA channel = 0
+>> [    3.472564] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+>> 21600000 Hz
+>> [    3.478027] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
+>>
+>> Seems to be missing:
+>> omap-iommu omap-iommu.0: isp registered
+>>
+>> Is that the issue? Why would this not work when running from NAND?
 
-For France it was decided that the auto-With167kHzOffsets file would
-be enough to find all possible DVB-T transponders in France. It was
-suggested to create a fr-All that would be symlinked to the
-auto-With167kHzOffsets file, but that was not implemented yet (as far
-as I can see from the dvb-apps repository)
+I'm not sure, either, but I had a similar problem before using Laurent's
+patch below. IIRC, usually udev would create /dev/media0 from a cached
+list of /dev/*. Later modutils would come along and load the modules in
+the proper order (iommu, then omap3-isp) and everybody was happy.
+Occasionally, udev would fail to use the cached version of /dev/, and
+look through /sys/devices to re-create the devices in /dev/. When media0
+was found, omap3-isp.ko would be loaded, but iommu had not yet been,
+presumably because it doesn't have an entry in /sys/devices/. So maybe
+udev is behaving differently for you on NAND than it did on the card?
+Either way, as I said, using Laurent's patch below did the job for me.
 
-Can this approach also work for Finland?
+-Michael
 
-Hein
+> 
+> I'm not sure why it doesn't work from NAND, but the iommu2 module needs to be 
+> loaded before the omap3-isp module. Alternatively you can compile the iommu2 
+> module in the kernel with
+> 
+> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> index 49a4c75..3c87644 100644
+> --- a/arch/arm/plat-omap/Kconfig
+> +++ b/arch/arm/plat-omap/Kconfig
+> @@ -132,7 +132,7 @@ config OMAP_MBOX_KFIFO_SIZE
+>  	  module parameter).
+>  
+>  config OMAP_IOMMU
+> -       tristate
+> +       bool
+>  
+>  config OMAP_IOMMU_DEBUG
+>         tristate "Export OMAP IOMMU internals in DebugFS"
+> 
+
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
