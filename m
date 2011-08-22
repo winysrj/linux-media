@@ -1,50 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:46764 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751592Ab1HRNjp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2011 09:39:45 -0400
-Received: by pzk37 with SMTP id 37so3022165pzk.1
-        for <linux-media@vger.kernel.org>; Thu, 18 Aug 2011 06:39:44 -0700 (PDT)
+Received: from mail.kaapeli.fi ([84.20.139.148]:40537 "EHLO mail.kaapeli.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752376Ab1HVTOF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Aug 2011 15:14:05 -0400
+Message-ID: <4E52AA7B.3070708@iki.fi>
+Date: Mon, 22 Aug 2011 22:14:03 +0300
+From: Jyrki Kuoppala <jkp@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CAPz3gmkRoh_gXU4PtzVhXb=0BOBjcgmhK7CCCq5ioajfjHZg3A@mail.gmail.com>
-References: <CAPz3gmkRoh_gXU4PtzVhXb=0BOBjcgmhK7CCCq5ioajfjHZg3A@mail.gmail.com>
-Date: Thu, 18 Aug 2011 15:39:44 +0200
-Message-ID: <CAL9G6WUFyWuKJQnTBCW6StEfoWeKhXix3rFkU9eC8AxEbuD5Uw@mail.gmail.com>
-Subject: Re: Record DVB-T from command line
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: shacky <shacky83@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-kernel@vger.kernel.org
+Subject: [PATCH] Fix to qt1010 tuner frequency selection (media/dvb), resend
+ as text-only
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/8/18 shacky <shacky83@gmail.com>:
-> Hi.
->
-> I need to record from DVB-T using the command line.
-> I'm looking for some commands to make that saving the recording to a .ts file.
-> Could you help me please?
->
-> Thank you very much!
-> Bye.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+The patch fixes frequency selection for some UHF frequencies e.g. 
+channel 32 (562 MHz) on the qt1010 tuner. The tuner is used e.g. in the 
+MSI Mega Sky dvb-t stick ("MSI Mega Sky 55801 DVB-T USB2.0")
 
-You can try this:
+One example of problem reports of the bug this fixes can be read at 
+http://www.freak-search.com/de/thread/330303/linux-dvb_tuning_problem_with_some_frequencies_qt1010,_dvb
 
-szap -a 0 -c channels_astra.conf -r "TV3 CAT"
-cat /dev/dvb/adapter0/dvr0 > testvideo.mpg
-mplayer testvideo.mpg
+Applies to kernel versions 2.6.38.8, 2.6.39.4, 3.0.3 and 3.1-rc2.
 
-This is for DVB-S, you can change it with tzap, first you need to scan
-your local channels.
+Signed-off-by: Jyrki Kuoppala <jkp@iki.fi>
 
-Regards.
+diff -upr linux-source-2.6.38.orig/drivers/media/common/tuners/qt1010.c 
+linux-source-2.6.38/drivers/media/common/tuners/qt1010.c
+--- linux-source-2.6.38.orig/drivers/media/common/tuners/qt1010.c 
+2011-03-15 03:20:32.000000000 +0200
++++ linux-source-2.6.38/drivers/media/common/tuners/qt1010.c	2011-08-21 
+23:16:38.209580365 +0300
+@@ -198,9 +198,10 @@ static int qt1010_set_params(struct dvb_
 
--- 
-Josu Lazkano
+  	/* 22 */
+  	if      (freq < 450000000) rd[15].val = 0xd0; /* 450 MHz */
+-	else if (freq < 482000000) rd[15].val = 0xd1; /* 482 MHz */
++	else if (freq < 482000000) rd[15].val = 0xd2; /* 482 MHz */
+  	else if (freq < 514000000) rd[15].val = 0xd4; /* 514 MHz */
+-	else if (freq < 546000000) rd[15].val = 0xd7; /* 546 MHz */
++	else if (freq < 546000000) rd[15].val = 0xd6; /* 546 MHz */
++	else if (freq < 578000000) rd[15].val = 0xd8; /* 578 MHz */
+  	else if (freq < 610000000) rd[15].val = 0xda; /* 610 MHz */
+  	else                       rd[15].val = 0xd0;
+
