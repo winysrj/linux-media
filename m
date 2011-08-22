@@ -1,62 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60114 "EHLO mail.kapsi.fi"
+Received: from smtp1-g21.free.fr ([212.27.42.1]:36456 "EHLO smtp1-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753757Ab1H2OvA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 10:51:00 -0400
-Message-ID: <4E5BA751.6090709@iki.fi>
-Date: Mon, 29 Aug 2011 17:50:57 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Istv=E1n_V=E1radi?= <ivaradi@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Smart card reader support for Anysee DVB devices
-References: <CAFk-VPxQvGiEUdd+X4jjUqcygPO-JsT0gTFvrX-q4cGAW6tq_Q@mail.gmail.com> <4E485F81.9020700@iki.fi> <4E48FF99.7030006@iki.fi> <4E4C2784.2020003@iki.fi> <CAFk-VPzKa4bNLCMMCagFi1LLK6PnY245YJqP5yisQH77nJ0Org@mail.gmail.com>
-In-Reply-To: <CAFk-VPzKa4bNLCMMCagFi1LLK6PnY245YJqP5yisQH77nJ0Org@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+	id S1753182Ab1HVSgP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Aug 2011 14:36:15 -0400
+Date: Mon, 22 Aug 2011 20:36:24 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Joe Perches <joe@perches.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 14/14] [media] gspca: Use current logging styles
+Message-ID: <20110822203624.7a382ef5@tele>
+In-Reply-To: <1314026428.18461.10.camel@Joe-Laptop>
+References: <cover.1313966088.git.joe@perches.com>
+	<9927bff9b5f212dcbe867a9f882e53ed80bd9a0f.1313966090.git.joe@perches.com>
+	<20110822105003.0002ef3c@tele>
+	<1314026428.18461.10.camel@Joe-Laptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/29/2011 05:44 PM, Istv·n V·radi wrote:
-> Hi,
->
-> 2011/8/17 Antti Palosaari<crope@iki.fi>:
->> On 08/15/2011 02:14 PM, Antti Palosaari wrote:
->>> On 08/15/2011 02:51 AM, Antti Palosaari wrote:
->>>> Biggest problem I see whole thing is poor application support. OpenCT is
->>>> rather legacy but there is no good alternative. All this kind of serial
->>>> drivers seems to be OpenCT currently.
->>>
->>> I wonder if it is possible to make virtual CCID device since CCID seems
->>> to be unfortunately the only interface SmartCard guys currently care.
->>
->> I studied scenario and looks like it is possible to implement way like,
->> register virtual USB HCI (virtual motherboard USB controller) then
->> register virtual PC/SC device to that which hooks all calls to HW via
->> Anysee driver. Some glue surely needed for emulate PC/SC. I think there
->> is not any such driver yet. Anyhow, there is virtual USB HCI driver
->> currently in staging which can be used as example, or even use it to
->> register virtual device. That kind of functionality surely needs more
->> talking...
->
-> It maybe that smartcard guys care only for CCID, but wouldn't it be an
-> overkill to implement an emulation of that for the driver? It can be
-> done, of course, but I think it would be much more complicated than
-> the current one. Is it really necessary to put such complexity into
-> the kernel? In my opinion, this should be handled in user-space.
+On Mon, 22 Aug 2011 08:20:28 -0700
+Joe Perches <joe@perches.com> wrote:
 
-Only De facto serial smartcard protocol is so called Phoenix/Smartmouse, 
-implementing new protocol is totally dead idea. It will never got any 
-support.
+> The primary current advantage is style standardization
+> both in code and dmesg output.
+> 
+> Future changes to printk.h will reduce object sizes
+> by centralizing the prefix to a singleton and
+> emitting it only in pr_<level>.
 
-There is already such drivers, at least Infinity Unlimited USB Phoenix 
-driver (iuu_phoenix.c). It uses USB-serial driver framework and some 
-small emulation for Phoenix protocol. Look that driver to see which kind 
-of complexity it adds. Anysee have *just* same situation.
+Hi Joe,
 
-regards
-Antti
+OK, I did not see that you started such changes a long time ago!
 
+Thanks and good luck!
+
+Acked-by: Jean-Francois Moine <moinejf@free.fr>
 
 -- 
-http://palosaari.fi/
+Ken ar c'henta√±	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
