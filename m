@@ -1,91 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37719 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753051Ab1HEHA7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Aug 2011 03:00:59 -0400
-Message-ID: <4E3B9597.4040307@redhat.com>
-Date: Fri, 05 Aug 2011 09:02:47 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33677 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751275Ab1HVRVI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Aug 2011 13:21:08 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer management
+Date: Mon, 22 Aug 2011 19:21:18 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange> <201108221742.37278.laurent.pinchart@ideasonboard.com> <201108221752.12950.hverkuil@xs4all.nl>
+In-Reply-To: <201108221752.12950.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	workshop-2011@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
-References: <4E398381.4080505@redhat.com>	<alpine.LNX.2.00.1108031418480.16384@banach.math.auburn.edu>	<4E39B150.40108@redhat.com>	<alpine.LNX.2.00.1108031750241.16520@banach.math.auburn.edu> <4E3A91D1.1040000@redhat.com>
-In-Reply-To: <4E3A91D1.1040000@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201108221921.18864.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Hans,
 
-On 08/04/2011 02:34 PM, Mauro Carvalho Chehab wrote:
-> Em 03-08-2011 20:20, Theodore Kilgore escreveu:
+On Monday 22 August 2011 17:52:12 Hans Verkuil wrote:
+> On Monday, August 22, 2011 17:42:36 Laurent Pinchart wrote:
+> > On Monday 22 August 2011 15:54:03 Guennadi Liakhovetski wrote:
+> > > We discussed a bit more with Hans on IRC, and below is my attempt of a
+> > > summary. Hans, please, correct me, if I misunderstood anything. Pawel,
+> > > Sakari, Laurent: please, reply, whether you're ok with this.
+> > 
+> > Sakari is on holidays this week.
+> > 
+> > > On Mon, 22 Aug 2011, Hans Verkuil wrote:
+> > > > On Monday, August 22, 2011 12:40:25 Guennadi Liakhovetski wrote:
+> > > [snip]
+> > > 
+> > > > > It would be good if you also could have a look at my reply to this
+> > > > > Pawel's mail:
+> > > > > 
+> > > > > http://article.gmane.org/gmane.linux.drivers.video-input-
+> > > > 
+> > > > infrastructure/36905
+> > > > 
+> > > > > and, specifically, at the vb2_parse_planes() function in it. That's
+> > > > > my understanding of what would be needed, if we preserve
+> > > > > .queue_setup() and use your last suggestion to include struct
+> > > > > v4l2_format in struct v4l2_create_buffers.
+> > > > 
+> > > > vb2_parse_planes can be useful as a utility function that 'normal'
+> > > > drivers can call from the queue_setup. But vb2 should not parse the
+> > > > format directly, it should just pass it on to the driver through the
+> > > > queue_setup function.
+> > > > 
+> > > > You also mention: "All frame-format fields like fourcc code, width,
+> > > > height, colorspace are only input from the user. If the user didn't
+> > > > fill them in, they should not be used."
+> > > > 
+> > > > I disagree with that. The user should fill in a full format
+> > > > description, just as with S/TRY_FMT. That's the information that the
+> > > > driver will use to set up the buffers. It could have weird rules
+> > > > like: if the fourcc is this, and the size is less than that, then we
+> > > > can allocate in this memory bank.
+> > > > 
+> > > > It is also consistent with REQBUFS: there too the driver uses a full
+> > > > format (i.e. the last set format).
+> > > > 
+> > > > I would modify queue_setup to something like this:
+> > > > 
+> > > > int (*queue_setup)(struct vb2_queue *q, struct v4l2_format *fmt,
+> > > > 
+> > > >                      unsigned int *num_buffers,
+> > > >                      unsigned int *num_planes, unsigned int sizes[],
+> > > >                      void *alloc_ctxs[]);
+> > > > 
+> > > > Whether fmt is left to NULL in the reqbufs case, or whether the
+> > > > driver has to call g_fmt first before calling vb2 is something that
+> > > > could be decided by what is easiest to implement.
+> > > 
+> > > 1. VIDIOC_CREATE_BUFS passes struct v4l2_create_buffers from the user
+> > > to
+> > > 
+> > >    the kernel, in which struct v4l2_format is embedded. The user _must_
+> > >    fill in .type member of struct v4l2_format. For .type ==
+> > >    V4L2_BUF_TYPE_VIDEO_CAPTURE or V4L2_BUF_TYPE_VIDEO_OUTPUT .fmt.pix
+> > >    is used, for .type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE or
+> > >    V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE .fmt.pix_mp is used. In both these
+> > >    cases the user _must_ fill in .width, .height, .pixelformat, .field,
+> > >    .colorspace by possibly calling VIDIOC_G_FMT or VIDIOC_TRY_FMT. The
+> > >    user also _may_ optionally fill in any further buffer-size related
+> > >    fields, if it believes to have any special requirements to them. On
+> > >    a successful return from the ioctl() .count and .index fields are
+> > >    filled in by the kernel, .format stays unchanged. The user has to
+> > >    call VIDIOC_QUERYBUF to retrieve specific buffer information.
+> > > 
+> > > 2. Videobuf2 drivers, that implement .vidioc_create_bufs() operation,
+> > > call
+> > > 
+> > >    vb2_create_bufs() with a pointer to struct v4l2_create_buffers as a
+> > >    second argument. vb2_create_bufs() in turn calls the .queue_setup()
+> > > 
+> > >    driver callback, whose prototype is modified as follows:
+> > > int (*queue_setup)(struct vb2_queue *q, const struct v4l2_format *fmt,
+> > > 
+> > > 			unsigned int *num_buffers,
+> > > 			unsigned int *num_planes, unsigned int sizes[],
+> > > 			void *alloc_ctxs[]);
+> > > 			
+> > >    with &create->format as a second argument. As pointed out above,
+> > >    this struct is not modified by V4L, instead, the usual arguments
+> > >    3-6 are filled in by the driver, which are then used by
+> > >    vb2_create_bufs() to call __vb2_queue_alloc().
+> > > 
+> > > 3. vb2_reqbufs() shall call .queue_setup() with fmt == NULL, which will
+> > > be
+> > > 
+> > >    a signal to the driver to use the current format.
+> > > 
+> > > 4. We keep .queue_setup(), because its removal would inevitably push a
+> > > 
+> > >    part of the common code from vb2_reqbufs() and vb2_create_bufs()
+> > >    down into drivers, thus creating code redundancy and increasing its
+> > >    complexity.
+> > 
+> > How much common code would be pushed down to drivers ? I don't think this
+> > is a real issue. I like Pawel's proposal of removing .queue_setup()
+> > better.
+> 
+> I still don't see what removing queue_setup will solve or improve.
 
-<snip snip>
+It will remove handling of the format in vb2 (even if it's a pass-through 
+operation). I think it would be cleaner that way. It will also avoid going 
+back and forth between drivers and vb2, which would improve code readability.
 
->> Yes, that kind of thing is an obvious problem. Actually, though, it may be
->> that this had just better not happen. For some of the hardware that I know
->> of, it could be a real problem no matter what approach would be taken. For
->> example, certain specific dual-mode cameras will delete all data stored on
->> the camera if the camera is fired up in webcam mode. To drop Gphoto
->> suddenly in order to do the videoconf call would, on such cameras, result
->> in the automatic deletion of all photos on the camera even if those photos
->> had not yet been downloaded. Presumably, one would not want to do that.
->
-> So, in other words, the Kernel driver should return -EBUSY if on such
-> cameras, if there are photos stored on them, and someone tries to stream.
->
+> I'd say leave it as it is to keep the diff as small as possible and someone
+> can always attempt to remove it later. Removing queue_setup is independent
+> from multi-size videobuffer management and we should not mix the two.
 
-Agreed.
+Guennadi's patch will (at least in my opinion) be cleaner if built on top of 
+queue_setup() removal.
 
->>> IMO, the right solution is to work on a proper snapshot mode, in kernelspace,
->>> and moving the drivers that have already a kernelspace out of Gphoto.
->>
->> Well, the problem with that is, a still camera and a webcam are entirely
->> different beasts. Still photos stored in the memory of an external device,
->> waiting to be downloaded, are not snapshots. Thus, access to those still
->> photos is not access to snapshots. Things are not that simple.
->
-> Yes, stored photos require a different API, as Hans pointed. I think that some cameras
-> just export them as a USB storage.
-
-Erm, that is not what I tried to say, or do you mean another
-Hans?
-
-<snip snip>
-
-> If I understood you well, there are 4 possible ways:
->
-> 1) UVC + USB mass storage;
-> 2) UVC + Vendor Class mass storage;
-> 3) Vendor Class video + USB mass storage;
-> 4) Vendor Class video + Vendor Class mass storage.
->
-
-Actually the cameras Theodore and I are talking about here all
-fall into category 4. I expect devices which do any of 1-3 to
-properly use different interfaces for this, actually the different
-class specifications mandate that they use different interfaces
-for this.
-
-> This sounds to be a good theme for the Workshop, or even to KS/2011.
->
-
-Agreed, although we don't need to talk about this for very long, the solution
-is basically:
-1) Define a still image retrieval API for v4l2 devices (there is only 1
-   interface for both functions on these devices, so only 1 driver, and to
-   me it makes sense to extend the existing drivers to also do still image
-   retrieval).
-2) Modify existing kernel v4l2 drivers to provide this API
-3) Write a new libgphoto driver which talks this interface (only need to
-   do one driver since all dual mode cams will export the same API).
-
-1) is something to discuss at the workshop.
-
+-- 
 Regards,
 
-Hans
+Laurent Pinchart
