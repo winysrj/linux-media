@@ -1,62 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out003.kontent.com ([81.88.40.217]:45050 "EHLO
-	smtp-out003.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752298Ab1HEH4K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Aug 2011 03:56:10 -0400
-From: Oliver Neukum <oliver@neukum.org>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: USB mini-summit at LinuxCon Vancouveroliver
-Date: Fri, 5 Aug 2011 09:59:00 +0200
-Cc: Greg KH <greg@kroah.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
-	Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Felipe Balbi <balbi@ti.com>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Adam Baker <linux@baker-net.org.uk>
-References: <20110610002103.GA7169@xanatos> <20110804225603.GA2557@kroah.com> <4E3B9FB4.30709@redhat.com>
-In-Reply-To: <4E3B9FB4.30709@redhat.com>
+Received: from mail-iy0-f170.google.com ([209.85.210.170]:54409 "EHLO
+	mail-iy0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756589Ab1HVCGA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Aug 2011 22:06:00 -0400
+Received: by mail-iy0-f170.google.com with SMTP id 16so9471111iye.1
+        for <linux-media@vger.kernel.org>; Sun, 21 Aug 2011 19:05:59 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108050959.00873.oliver@neukum.org>
+In-Reply-To: <1313949634.2874.13.camel@localhost>
+References: <CAATJ+fu5JqVmyY=zJn_CM_Eusst_YWKG2B2MAuu5fqELYYsYqA@mail.gmail.com>
+	<CAATJ+ft9HNqLA62ZZkkEP6EswXC1Jhq=FBcXU+OHCkXTKpqeUA@mail.gmail.com>
+	<1313949634.2874.13.camel@localhost>
+Date: Mon, 22 Aug 2011 12:05:59 +1000
+Message-ID: <CAATJ+fv6x6p5kimJs4unWGQ_PU36hp29Rafu8BDCcRAABtAfgQ@mail.gmail.com>
+Subject: Re: Afatech AF9013
+From: Jason Hecker <jwhecker@gmail.com>
+To: Malcolm Priestley <tvboxspy@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Freitag, 5. August 2011, 09:45:56 schrieb Hans de Goede:
-> This is the issue on which I feel a bit stonewalled. Simple putting your
-> fingers in your ears and singing la la la do it in userspace is not going
-> to cut it here. There is no way to do this race free in userspace, unless
-> all possible callers of mount get modified. Moreover 99% of the necessary
-> accounting for this is already done in the kernel. We already have the notion
-> of a block device being in use. We simply need to add some code to pass
-> this notion to the usb mass storage driver, and add a new try_disconnect
-> callback for usb drivers. I'm not saying this is going to be completely
-> straight forward, but it ain't rocket science either. And it so very
-> obviously is the right thing to do, that I'm getting very tired of
-> the do it in userspace song I keep hearing.
+I just tried LiveCDs of Mythbuntu 10.04 and 10.10 but had limited luck
+with the former and some joy with the latter.  Unfortunately the
+default framebuffer slowed things down.  Anyway in LiveCD 10.10 I used
+mplayer to set up and view Tuner A and Tuner B and Tuner A only showed
+some slight errors when Tuner B was being set up.  After that for some
+strange reason attempt at retuning with mplayer failed utterly so I
+suspect there is some problems with the older versions of mplayer.
 
-Doing a try_disconnect() would also solve the dual camera issue.
-But it doesn't really interfere with the user space vs. kernel space
-issue. You simply have to expand the ioctl interface to have
-an ioctl that triggers this API call in the kernel.
-
-A V4L2 device would return an error if its device node is opened,
-otherwise disconnect.
-
-	Regards
-		Oliver
-
-		
+These cards have blue LEDs for each tuner and light up when in use.  I
+did notice in my testing that the LED on tuner A would flicker off
+briefly (and presumably issue the errors) when Tuner B was being set
+up.  I am wondering if there is a general setup problem or even a I2S
+timing problem.  Could someone contact me off list about sending me
+the data sheets for the AF901x chips?
