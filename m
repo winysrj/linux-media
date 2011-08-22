@@ -1,80 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:35300 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752332Ab1HYHZJ (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:44878 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751456Ab1HVPi6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Aug 2011 03:25:09 -0400
-Date: Thu, 25 Aug 2011 09:22:18 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 8/8] ARM: S5PV210: example of CMA private area for FIMC
- device on Goni board
-In-reply-to: <CAKnK67RcMAt6j3CEi2Z7QTN42v07LDCfa_T38F9-5b97TJ0-hA@mail.gmail.com>
-To: "'Aguirre, Sergio'" <saaguirre@ti.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	'Russell King' <linux@arm.linux.org.uk>,
-	'Andrew Morton' <akpm@linux-foundation.org>
-Message-id: <01d801cc62f7$b9041b40$2b0c51c0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <CAKnK67RcMAt6j3CEi2Z7QTN42v07LDCfa_T38F9-5b97TJ0-hA@mail.gmail.com>
+	Mon, 22 Aug 2011 11:38:58 -0400
+Date: Mon, 22 Aug 2011 18:38:53 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l: Add V4L2_PIX_FMT_NV24 and V4L2_PIX_FMT_NV42
+ formats
+Message-ID: <20110822153852.GP8872@valkosipuli.localdomain>
+References: <1313734460-7479-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20110820052617.GJ8872@valkosipuli.localdomain>
+ <201108220117.16402.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201108220117.16402.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-
-On Wednesday, August 24, 2011 5:41 PM Aguirre, Sergio wrote:
-
-> On Fri, Aug 19, 2011 at 04:27:44PM +0200, Marek Szyprowski wrote:
-> > This patch is an example how device private CMA area can be activated.
-> > It creates one CMA region and assigns it to the first s5p-fimc device on
-> > Samsung Goni S5PC110 board.
-> >
-> > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > ---
-> >  arch/arm/mach-s5pv210/mach-goni.c |    4 ++++
-> >  1 files changed, 4 insertions(+), 0 deletions(-)
-> > diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-
-> goni.c
-> > index 14578f5..f766c45 100644
-> > --- a/arch/arm/mach-s5pv210/mach-goni.c
-> > +++ b/arch/arm/mach-s5pv210/mach-goni.c
-> > @@ -26,6 +26,7 @@
-> >  #include <linux/input.h>
-> >  #include <linux/gpio.h>
-> >  #include <linux/interrupt.h>
-> > +#include <linux/dma-contiguous.h>
-> >
-> >  #include <asm/mach/arch.h>
-> >  #include <asm/mach/map.h>
-> > @@ -857,6 +858,9 @@ static void __init goni_map_io(void)
-> >  static void __init goni_reserve(void)
-> >  {
-> >  	s5p_mfc_reserve_mem(0x43000000, 8 << 20, 0x51000000, 8 << 20);
-> > +
-> > +	/* Create private 16MiB contiguous memory area for s5p-fimc.0 device */
-> > +	dma_declare_contiguous(&s5p_device_fimc0.dev, 16*SZ_1M, 0);
+On Mon, Aug 22, 2011 at 01:17:16AM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> This is broken, since according to patch #0006, dma_declare_contiguous
-requires
-> a 4th param (limit) which you're not providing here.
+> On Saturday 20 August 2011 07:26:17 Sakari Ailus wrote:
+> > Hi Laurent,
+> > 
+> > Thanks for the patch.
+> 
+> And thanks for the comments.
+> 
+> > On Fri, Aug 19, 2011 at 08:14:20AM +0200, Laurent Pinchart wrote:
+> > > NV24 and NV42 are planar YCbCr 4:4:4 and YCrCb 4:4:4 formats with a
+> > > luma plane followed by an interleaved chroma plane.
+> > > 
+> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > ---
+> > > 
+> > >  Documentation/DocBook/media/v4l/pixfmt-nv24.xml |  128
+> > >  +++++++++++++++++++++++ Documentation/DocBook/media/v4l/pixfmt.xml     
+> > >  |    1 +
+> > >  include/linux/videodev2.h                       |    2 +
+> > >  3 files changed, 131 insertions(+), 0 deletions(-)
+> > >  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+> > > 
+> > > This format will be used by an fbdev driver. I'm already posting the
+> > > patch for for review and will send a pull request later.
+> > > 
+> > > diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+> > > b/Documentation/DocBook/media/v4l/pixfmt-nv24.xml new file mode 100644
+> > > index 0000000..e77301d
+> > > --- /dev/null
+> > > +++ b/Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+> > > @@ -0,0 +1,128 @@
+> > > +    <refentry>
+> > > +      <refmeta>
+> > > +	<refentrytitle>V4L2_PIX_FMT_NV24 ('NV24'), V4L2_PIX_FMT_NV42
+> > > ('NV42')</refentrytitle> +	&manvol;
+> > > +      </refmeta>
+> > > +      <refnamediv>
+> > > +	<refname
+> > > id="V4L2-PIX-FMT-NV24"><constant>V4L2_PIX_FMT_NV24</constant></refname>
+> > > +	<refname
+> > > id="V4L2-PIX-FMT-NV42"><constant>V4L2_PIX_FMT_NV42</constant></refname>
+> > > +	<refpurpose>Formats with full horizontal and vertical
+> > > +chroma resolutions, also known as YUV 4:4:4. One luminance and one
+> > > +chrominance plane with alternating chroma samples as opposed to
+> > > +<constant>V4L2_PIX_FMT_YVU420</constant></refpurpose>
+> > > +      </refnamediv>
+> > > +      <refsect1>
+> > > +	<title>Description</title>
+> > > +
+> > > +	<para>These are two-plane versions of the YUV 4:4:4 format.
+> > > +The three components are separated into two sub-images or planes. The
+> > > +Y plane is first. The Y plane has one byte per pixel. For
+> > 
+> > Are all 8 bits being used per sample, or is there padding?
+> 
+> All 8 bits are used, as in all YUV planar formats. Do you think that's worth 
+> mentioning ?
 
-You are definitely right, there should be one more parameter. This patch was
-just
-cherry-picked from older version just before posting to mailing lists. I'm
-really
-sorry for this trivial bug.
- 
-Best regards
+I think this should definitely be mentioned, but if the same issue touches
+all the YUV formats, I guess it doesn't need to be in this patch.
+
+E.g. many (if not most) raw bayer formats contain padding.
+
+> > > +<constant>V4L2_PIX_FMT_NV24</constant>, a combined CbCr plane
+> > > +immediately follows the Y plane in memory.  The CbCr plane is the same
+> > > +width and height, in pixels, as the Y plane (and of the image).
+> > > +Each line contains one CbCr pair per pixel.
+> > 
+> > How may bits / bytes per Cb / Cr sample? Perhaps you could mention this
+> > once somewhere if all have the same.
+> 
+> All YUV planar formats use 8 bits for each Cb and Cr samples. I will clarify 
+> this.
+
+Yes, I think the size per sample is important.
+
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
-
+Sakari Ailus
+sakari.ailus@iki.fi
