@@ -1,120 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:52875 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750934Ab1HZRHI (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:64378 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751649Ab1HVV1j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Aug 2011 13:07:08 -0400
-Message-ID: <4E57D2B5.7020604@gmx.de>
-Date: Fri, 26 Aug 2011 17:07:01 +0000
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+	Mon, 22 Aug 2011 17:27:39 -0400
+Received: by fxh19 with SMTP id 19so3535296fxh.19
+        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2011 14:27:38 -0700 (PDT)
+Message-ID: <4E52C9CE.3040900@googlemail.com>
+Date: Mon, 22 Aug 2011 23:27:42 +0200
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com
-Subject: Re: [PATCH/RFC v2 1/3] fbdev: Add FOURCC-based format configuration
- API
-References: <1313746626-23845-1-git-send-email-laurent.pinchart@ideasonboard.com> <1313746626-23845-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1313746626-23845-2-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+CC: moinejf@free.fr
+Subject: Re: [PATCH] gspca_sn9c20x: device 0c45:62b3: fix status LED
+References: <1309515598-14669-1-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1309515598-14669-1-git-send-email-fschaefer.oss@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Ping ... what happened to this patch ? ;-)
 
-hope we're close to the final thing now. Just a few minor issues.
-
-On 08/19/2011 09:37 AM, Laurent Pinchart wrote:
-> This API will be used to support YUV frame buffer formats in a standard
-> way.
-> 
-> Last but not least, create a much needed fbdev API documentation and
-> document the format setting APIs.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Am 01.07.2011 12:19, schrieb Frank Schaefer:
+> gspca_sn9c20x: device 0c45:62b3: fix status LED
+>
+> Tested with webcam "SilverCrest WC2130".
+>
+> Signed-off-by: Frank Schaefer<fschaefer.oss@googlemail.com>
+>
+> Cc: stable@kernel.org
 > ---
->  Documentation/fb/api.txt |  299 ++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/fb.h       |   27 ++++-
->  2 files changed, 320 insertions(+), 6 deletions(-)
->  create mode 100644 Documentation/fb/api.txt
-> 
+>   drivers/media/video/gspca/sn9c20x.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/media/video/gspca/sn9c20x.c b/drivers/media/video/gspca/sn9c20x.c
+> index c431900..af9cd50 100644
+> --- a/drivers/media/video/gspca/sn9c20x.c
+> +++ b/drivers/media/video/gspca/sn9c20x.c
+> @@ -2513,7 +2513,7 @@ static const struct usb_device_id device_table[] = {
+>   	{USB_DEVICE(0x0c45, 0x628f), SN9C20X(OV9650, 0x30, 0)},
+>   	{USB_DEVICE(0x0c45, 0x62a0), SN9C20X(OV7670, 0x21, 0)},
+>   	{USB_DEVICE(0x0c45, 0x62b0), SN9C20X(MT9VPRB, 0x00, 0)},
+> -	{USB_DEVICE(0x0c45, 0x62b3), SN9C20X(OV9655, 0x30, 0)},
+> +	{USB_DEVICE(0x0c45, 0x62b3), SN9C20X(OV9655, 0x30, LED_REVERSE)},
+>   	{USB_DEVICE(0x0c45, 0x62bb), SN9C20X(OV7660, 0x21, LED_REVERSE)},
+>   	{USB_DEVICE(0x0c45, 0x62bc), SN9C20X(HV7131R, 0x11, 0)},
+>   	{USB_DEVICE(0x045e, 0x00f4), SN9C20X(OV9650, 0x30, 0)},
 
-> diff --git a/include/linux/fb.h b/include/linux/fb.h
-> index 1d6836c..c6baf28 100644
-> --- a/include/linux/fb.h
-> +++ b/include/linux/fb.h
-> @@ -69,6 +69,7 @@
->  #define FB_VISUAL_PSEUDOCOLOR		3	/* Pseudo color (like atari) */
->  #define FB_VISUAL_DIRECTCOLOR		4	/* Direct color */
->  #define FB_VISUAL_STATIC_PSEUDOCOLOR	5	/* Pseudo color readonly */
-> +#define FB_VISUAL_FOURCC		6	/* Visual identified by a V4L2 FOURCC */
->  
->  #define FB_ACCEL_NONE		0	/* no hardware accelerator	*/
->  #define FB_ACCEL_ATARIBLITT	1	/* Atari Blitter		*/
-> @@ -154,6 +155,8 @@
->  
->  #define FB_ACCEL_PUV3_UNIGFX	0xa0	/* PKUnity-v3 Unigfx		*/
->  
-> +#define FB_CAP_FOURCC		1	/* Device supports FOURCC-based formats */
-> +
->  struct fb_fix_screeninfo {
->  	char id[16];			/* identification string eg "TT Builtin" */
->  	unsigned long smem_start;	/* Start of frame buffer mem */
-> @@ -171,7 +174,8 @@ struct fb_fix_screeninfo {
->  	__u32 mmio_len;			/* Length of Memory Mapped I/O  */
->  	__u32 accel;			/* Indicate to driver which	*/
->  					/*  specific chip/card we have	*/
-> -	__u16 reserved[3];		/* Reserved for future compatibility */
-> +	__u16 capabilities;		/* see FB_CAP_*			*/
-> +	__u16 reserved[2];		/* Reserved for future compatibility */
->  };
->  
->  /* Interpretation of offset for color fields: All offsets are from the right,
-> @@ -246,12 +250,23 @@ struct fb_var_screeninfo {
->  	__u32 yoffset;			/* resolution			*/
->  
->  	__u32 bits_per_pixel;		/* guess what			*/
-> -	__u32 grayscale;		/* != 0 Graylevels instead of colors */
->  
-> -	struct fb_bitfield red;		/* bitfield in fb mem if true color, */
-> -	struct fb_bitfield green;	/* else only length is significant */
-> -	struct fb_bitfield blue;
-> -	struct fb_bitfield transp;	/* transparency			*/	
-> +	union {
-> +		struct {		/* Legacy format API		*/
-> +			__u32 grayscale; /* != 0 Graylevels instead of colors */
-
-You should adjust the comment as well, to avoid misleading crazy people ;)
-Needs also be fixed in the documentation at some places.
-
-> +			/* bitfields in fb mem if true color, else only */
-> +			/* length is significant			*/
-> +			struct fb_bitfield red;
-> +			struct fb_bitfield green;
-> +			struct fb_bitfield blue;
-> +			struct fb_bitfield transp;	/* transparency	*/
-> +		};
-> +		struct {		/* FOURCC-based format API	*/
-> +			__u32 fourcc;		/* FOURCC format	*/
-> +			__u32 colorspace;
-
-So we have again fields that are not always used. Okay, as we still have 11 left
-that shouldn't be a big problem, I think.
-
-> +			__u32 reserved[11];
-> +		} format;
-
-Ugh, if you want this union to have a name I suggest 'fourcc' and not 'format'
-as the other struct contains format information as well and who knows, maybe in
-10 or 20 years we'll have yet another format description that can do things none
-of the existing can do.
-
-> +	};
->  
->  	__u32 nonstd;			/* != 0 Non standard pixel format */
->  
-
-
-Thanks,
-
-Florian Tobias Schandinat
