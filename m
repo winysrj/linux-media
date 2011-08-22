@@ -1,248 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:50039 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753844Ab1HLK6q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2011 06:58:46 -0400
-Date: Fri, 12 Aug 2011 12:58:27 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 5/9] mm: MIGRATE_CMA isolation functions added
-In-reply-to: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-Message-id: <1313146711-1767-6-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:40951 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751174Ab1HVSZI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Aug 2011 14:25:08 -0400
+Date: Mon, 22 Aug 2011 14:24:11 -0400
+From: Josh Boyer <jwboyer@redhat.com>
+To: Andy Walls <awalls@md.metrocast.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
+Subject: Lockdep warning in ivtv driver in 3.1
+Message-ID: <20110822182410.GH2270@zod.bos.redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Hi All,
 
-This commit changes various functions that change pages and
-pageblocks migrate type between MIGRATE_ISOLATE and
-MIGRATE_MOVABLE in such a way as to allow to work with
-MIGRATE_CMA migrate type.
+We've gotten a report[1] that the ivtv driver is throwing a lockdep
+warning when calling ivtv_gpio_init.  From what I can tell, it seems
+like the lock being held twice is the one allocated for ivtv->cxhdl, but
+I can't immediately see where it's locked and not unlocked in the
+callstack path.
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Michal Nazarewicz <mina86@mina86.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
----
- include/linux/page-isolation.h |   40 +++++++++++++++++++++++++++-------------
- mm/page_alloc.c                |   19 ++++++++++++-------
- mm/page_isolation.c            |   15 ++++++++-------
- 3 files changed, 47 insertions(+), 27 deletions(-)
+Does anyone have an idea where this could be happening?
 
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index 856d9cf..b2a81fd 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -3,39 +3,53 @@
- 
- /*
-  * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
-- * If specified range includes migrate types other than MOVABLE,
-+ * If specified range includes migrate types other than MOVABLE or CMA,
-  * this will fail with -EBUSY.
-  *
-  * For isolating all pages in the range finally, the caller have to
-  * free all pages in the range. test_page_isolated() can be used for
-  * test it.
-  */
--extern int
--start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
-+int __start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			       unsigned migratetype);
-+
-+static inline int
-+start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
-+{
-+	return __start_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
-+}
-+
-+int __undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			      unsigned migratetype);
- 
- /*
-  * Changes MIGRATE_ISOLATE to MIGRATE_MOVABLE.
-  * target range is [start_pfn, end_pfn)
-  */
--extern int
--undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
-+static inline int
-+undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
-+{
-+	return __undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
-+}
- 
- /*
-- * test all pages in [start_pfn, end_pfn)are isolated or not.
-+ * Test all pages in [start_pfn, end_pfn) are isolated or not.
-  */
--extern int
--test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
-+int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
- 
- /*
-- * Internal funcs.Changes pageblock's migrate type.
-- * Please use make_pagetype_isolated()/make_pagetype_movable().
-+ * Internal functions. Changes pageblock's migrate type.
-  */
--extern int set_migratetype_isolate(struct page *page);
--extern void unset_migratetype_isolate(struct page *page);
-+int set_migratetype_isolate(struct page *page);
-+void __unset_migratetype_isolate(struct page *page, unsigned migratetype);
-+static inline void unset_migratetype_isolate(struct page *page)
-+{
-+	__unset_migratetype_isolate(page, MIGRATE_MOVABLE);
-+}
- extern unsigned long alloc_contig_freed_pages(unsigned long start,
- 					      unsigned long end, gfp_t flag);
- extern int alloc_contig_range(unsigned long start, unsigned long end,
--			      gfp_t flags);
-+			      gfp_t flags, unsigned migratetype);
- extern void free_contig_pages(struct page *page, int nr_pages);
- 
- /*
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index aecf32a..e3d756a 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5702,7 +5702,7 @@ out:
- 	return ret;
- }
- 
--void unset_migratetype_isolate(struct page *page)
-+void __unset_migratetype_isolate(struct page *page, unsigned migratetype)
- {
- 	struct zone *zone;
- 	unsigned long flags;
-@@ -5710,8 +5710,8 @@ void unset_migratetype_isolate(struct page *page)
- 	spin_lock_irqsave(&zone->lock, flags);
- 	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
- 		goto out;
--	set_pageblock_migratetype(page, MIGRATE_MOVABLE);
--	move_freepages_block(zone, page, MIGRATE_MOVABLE);
-+	set_pageblock_migratetype(page, migratetype);
-+	move_freepages_block(zone, page, migratetype);
- out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
- }
-@@ -5816,6 +5816,10 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-  * @start:	start PFN to allocate
-  * @end:	one-past-the-last PFN to allocate
-  * @flags:	flags passed to alloc_contig_freed_pages().
-+ * @migratetype:	migratetype of the underlaying pageblocks (either
-+ *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
-+ *			in range must have the same migratetype and it must
-+ *			be either of the two.
-  *
-  * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
-  * aligned, hovewer it's callers responsibility to guarantee that we
-@@ -5827,7 +5831,7 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-  * need to be freed with free_contig_pages().
-  */
- int alloc_contig_range(unsigned long start, unsigned long end,
--		       gfp_t flags)
-+		       gfp_t flags, unsigned migratetype)
- {
- 	unsigned long outer_start, outer_end;
- 	int ret;
-@@ -5855,8 +5859,8 @@ int alloc_contig_range(unsigned long start, unsigned long end,
- 	 * them.
- 	 */
- 
--	ret = start_isolate_page_range(pfn_to_maxpage(start),
--				       pfn_to_maxpage_up(end));
-+	ret = __start_isolate_page_range(pfn_to_maxpage(start),
-+					 pfn_to_maxpage_up(end), migratetype);
- 	if (ret)
- 		goto done;
- 
-@@ -5894,7 +5898,8 @@ int alloc_contig_range(unsigned long start, unsigned long end,
- 
- 	ret = 0;
- done:
--	undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end));
-+	__undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end),
-+				  migratetype);
- 	return ret;
- }
- 
-diff --git a/mm/page_isolation.c b/mm/page_isolation.c
-index 270a026..e232b25 100644
---- a/mm/page_isolation.c
-+++ b/mm/page_isolation.c
-@@ -23,10 +23,11 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
- }
- 
- /*
-- * start_isolate_page_range() -- make page-allocation-type of range of pages
-+ * __start_isolate_page_range() -- make page-allocation-type of range of pages
-  * to be MIGRATE_ISOLATE.
-  * @start_pfn: The lower PFN of the range to be isolated.
-  * @end_pfn: The upper PFN of the range to be isolated.
-+ * @migratetype: migrate type to set in error recovery.
-  *
-  * Making page-allocation-type to be MIGRATE_ISOLATE means free pages in
-  * the range will never be allocated. Any free pages and pages freed in the
-@@ -35,8 +36,8 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
-  * start_pfn/end_pfn must be aligned to pageblock_order.
-  * Returns 0 on success and -EBUSY if any part of range cannot be isolated.
-  */
--int
--start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
-+int __start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			       unsigned migratetype)
- {
- 	unsigned long pfn;
- 	unsigned long undo_pfn;
-@@ -59,7 +60,7 @@ undo:
- 	for (pfn = start_pfn;
- 	     pfn < undo_pfn;
- 	     pfn += pageblock_nr_pages)
--		unset_migratetype_isolate(pfn_to_page(pfn));
-+		__unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
- 
- 	return -EBUSY;
- }
-@@ -67,8 +68,8 @@ undo:
- /*
-  * Make isolated pages available again.
-  */
--int
--undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
-+int __undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			      unsigned migratetype)
- {
- 	unsigned long pfn;
- 	struct page *page;
-@@ -80,7 +81,7 @@ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
- 		page = __first_valid_page(pfn, pageblock_nr_pages);
- 		if (!page || get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
- 			continue;
--		unset_migratetype_isolate(page);
-+		__unset_migratetype_isolate(page, migratetype);
- 	}
- 	return 0;
- }
--- 
-1.7.1.569.g6f426
+[   28.556610] =============================================
+[   28.557007] [ INFO: possible recursive locking detected ]
+[   28.557007] 3.1.0-0.rc0.git19.1.fc17.x86_64 #1
+[   28.557007] ---------------------------------------------
+[   28.557007] modprobe/684 is trying to acquire lock:
+[   28.557007]  (&hdl->lock){+.+...}, at: [<ffffffffa02919ba>]
+find_ref_lock+0x24/0x46 [videodev]
+[   28.557007] 
+[   28.557007] but task is already holding lock:
+[   28.557007]  (&hdl->lock){+.+...}, at: [<ffffffffa029380f>]
+v4l2_ctrl_add_handler+0x49/0x97 [videodev]
+[   28.557007] 
+[   28.557007] other info that might help us debug this:
+[   28.557007]  Possible unsafe locking scenario:
+[   28.557007] 
+[   28.557007]        CPU0
+[   28.557007]        ----
+[   28.557007]   lock(&hdl->lock);
+[   28.557007]   lock(&hdl->lock);
+[   28.557007] 
+[   28.557007]  *** DEADLOCK ***
+[   28.557007] 
+[   28.557007]  May be due to missing lock nesting notation
+[   28.557007] 
+[   28.557007] 3 locks held by modprobe/684:
+[   28.557007]  #0:  (&__lockdep_no_validate__){......}, at:
+[<ffffffff81314d0c>] __driver_attach+0x3b/0x82
+[   28.557007]  #1:  (&__lockdep_no_validate__){......}, at:
+[<ffffffff81314d1a>] __driver_attach+0x49/0x82
+[   28.557007]  #2:  (&hdl->lock){+.+...}, at: [<ffffffffa029380f>]
+v4l2_ctrl_add_handler+0x49/0x97 [videodev]
+[   28.557007] 
+[   28.557007] stack backtrace:
+[   28.557007] Pid: 684, comm: modprobe Not tainted
+3.1.0-0.rc0.git19.1.fc17.x86_64 #1
+[   28.557007] Call Trace:
+[   28.557007]  [<ffffffff8108eb06>] __lock_acquire+0x917/0xcf7
+[   28.557007]  [<ffffffff81014fbe>] ? sched_clock+0x9/0xd
+[   28.557007]  [<ffffffff8108dffc>] ? mark_lock+0x2d/0x220
+[   28.557007]  [<ffffffffa02919ba>] ? find_ref_lock+0x24/0x46 [videodev]
+[   28.557007]  [<ffffffff8108f3dc>] lock_acquire+0xf3/0x13e
+[   28.584886]  [<ffffffffa02919ba>] ? find_ref_lock+0x24/0x46 [videodev]
+[   28.585146]  [<ffffffffa02919ba>] ? find_ref_lock+0x24/0x46 [videodev]
+[   28.585146]  [<ffffffff814f2523>] __mutex_lock_common+0x5d/0x39a
+[   28.585146]  [<ffffffffa02919ba>] ? find_ref_lock+0x24/0x46 [videodev]
+[   28.585146]  [<ffffffff8108f6db>] ? mark_held_locks+0x6d/0x95
+[   28.585146]  [<ffffffff814f282f>] ? __mutex_lock_common+0x369/0x39a
+[   28.585146]  [<ffffffff8108f830>] ? trace_hardirqs_on_caller+0x12d/0x164
+[   28.585146]  [<ffffffff814f296f>] mutex_lock_nested+0x40/0x45
+[   28.585146]  [<ffffffffa02919ba>] find_ref_lock+0x24/0x46 [videodev]
+[   28.585146]  [<ffffffffa029367e>] handler_new_ref+0x42/0x18a [videodev]
+[   28.585146]  [<ffffffffa0293833>] v4l2_ctrl_add_handler+0x6d/0x97 [videodev]
+[   28.585146]  [<ffffffffa028f71b>] v4l2_device_register_subdev+0x16c/0x257
+[videodev]
+[   28.585146]  [<ffffffffa02ddfe9>] ivtv_gpio_init+0x14e/0x159 [ivtv]
+[   28.585146]  [<ffffffffa02ebd57>] ivtv_probe+0xdc4/0x1662 [ivtv]
+[   28.585146]  [<ffffffff8108f6c3>] ? mark_held_locks+0x55/0x95
+[   28.585146]  [<ffffffff814f41df>] ? _raw_spin_unlock_irqrestore+0x4d/0x61
+[   28.585146]  [<ffffffff8126a12b>] local_pci_probe+0x44/0x75
+[   28.585146]  [<ffffffff8126acb1>] pci_device_probe+0xd0/0xff
+[   28.585146]  [<ffffffff81314bef>] driver_probe_device+0x131/0x213
+[   28.585146]  [<ffffffff81314d2f>] __driver_attach+0x5e/0x82
+[   28.585146]  [<ffffffff81314cd1>] ? driver_probe_device+0x213/0x213
+[   28.585146]  [<ffffffff81313c30>] bus_for_each_dev+0x59/0x8f
+[   28.585146]  [<ffffffff813147c3>] driver_attach+0x1e/0x20
+[   28.585146]  [<ffffffff813143db>] bus_add_driver+0xd4/0x22a
+[   28.585146]  [<ffffffffa02ff000>] ? 0xffffffffa02fefff
+[   28.585146]  [<ffffffff813151f2>] driver_register+0x98/0x105
+[   28.618302]  [<ffffffffa02ff000>] ? 0xffffffffa02fefff
+[   28.618302]  [<ffffffff8126b584>] __pci_register_driver+0x66/0xd2
+[   28.618302]  [<ffffffffa02ff000>] ? 0xffffffffa02fefff
+[   28.618302]  [<ffffffffa02ff078>] module_start+0x78/0x1000 [ivtv]
+[   28.618302]  [<ffffffff81002099>] do_one_initcall+0x7f/0x13a
+[   28.618302]  [<ffffffffa02ff000>] ? 0xffffffffa02fefff
+[   28.618302]  [<ffffffff8109a864>] sys_init_module+0x114/0x267
+[   28.618302]  [<ffffffff814fafc2>] system_call_fastpath+0x16/0x1b
 
+josh
+
+[1] https://bugzilla.redhat.com/show_bug.cgi?id=728316
