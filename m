@@ -1,382 +1,293 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:52228 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.171]:56764 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756509Ab1H3UML (ORCPT
+	with ESMTP id S1751539Ab1HVKkf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 16:12:11 -0400
-Date: Tue, 30 Aug 2011 22:12:09 +0200 (CEST)
+	Mon, 22 Aug 2011 06:40:35 -0400
+Date: Mon, 22 Aug 2011 12:40:25 +0200 (CEST)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+To: Hans Verkuil <hansverk@cisco.com>
+cc: Pawel Osciak <pawel@osciak.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] media: none of the drivers should be enabled by default
-In-Reply-To: <201108302139.23337.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1108302208310.20675@axis700.grange>
-References: <Pine.LNX.4.64.1108301921040.19151@axis700.grange>
- <201108302139.23337.hverkuil@xs4all.nl>
+Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer
+ management
+In-Reply-To: <201108221206.25308.hansverk@cisco.com>
+Message-ID: <Pine.LNX.4.64.1108221234000.29246@axis700.grange>
+References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
+ <Pine.LNX.4.64.1108161458510.13913@axis700.grange>
+ <CAMm-=zCJBDzx=tzcnEU4RCS9jkbxDeDPDZsHRL5ZMHcdBMYivA@mail.gmail.com>
+ <201108221206.25308.hansverk@cisco.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 30 Aug 2011, Hans Verkuil wrote:
+Hi Hans
 
-> On Tuesday, August 30, 2011 19:22:00 Guennadi Liakhovetski wrote:
-> > None of the media drivers are compulsory, let users select which drivers
-> > they want to build, instead of having to unselect them one by one.
+On Mon, 22 Aug 2011, Hans Verkuil wrote:
+
+> Sorry for starting this discussion and then disappearing. I've been very
+> busy lately, so my apologies for that.
 > 
-> I disagree with this: while this is fine for SoCs, for a generic kernel I
-> think it is better to build it all. Even expert users can have a hard time
-> figuring out what chip is in a particular device.
+> On Tuesday, August 16, 2011 18:14:33 Pawel Osciak wrote:
+> > Hi Guennadi,
+> > 
+> > On Tue, Aug 16, 2011 at 06:13, Guennadi Liakhovetski
+> > <g.liakhovetski@gmx.de> wrote:
+> > > On Mon, 15 Aug 2011, Guennadi Liakhovetski wrote:
+> > >
+> > >> On Mon, 15 Aug 2011, Hans Verkuil wrote:
+> > >>
+> > >> > On Monday, August 15, 2011 13:28:23 Guennadi Liakhovetski wrote:
+> > >> > > Hi Hans
+> > >> > >
+> > >> > > On Mon, 8 Aug 2011, Hans Verkuil wrote:
+> > >
+> > > [snip]
+> > >
+> > >> > > > but I've changed my mind: I think
+> > >> > > > this should use a struct v4l2_format after all.
+> > >>
+> > >> While switching back, I have to change the struct vb2_ops::queue_setup()
+> > >> operation to take a struct v4l2_create_buffers pointer. An earlier 
+> version
+> > >> of this patch just added one more parameter to .queue_setup(), which is
+> > >> easier - changes to videobuf2-core.c are smaller, but it is then
+> > >> redundant. We could use the create pointer for both input and output. The
+> > >> video plane configuration in frame format is the same as what is
+> > >> calculated in .queue_setup(), IIUC. So, we could just let the driver fill
+> > >> that one in. This would require then the videobuf2-core.c to parse struct
+> > >> v4l2_format to decide which union member we need, depending on the buffer
+> > >> type. Do we want this or shall drivers duplicate plane sizes in separate
+> > >> .queue_setup() parameters?
+> > >
+> > > Let me explain my question a bit. The current .queue_setup() method is
+> > >
+> > >        int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
+> > >                           unsigned int *num_planes, unsigned int sizes[],
+> > >                           void *alloc_ctxs[]);
+> > >
+> > > To support multiple-size buffers we also have to pass a pointer to struct
+> > > v4l2_create_buffers to this function now. We can either do it like this:
+> > >
+> > >        int (*queue_setup)(struct vb2_queue *q,
+> > >                           struct v4l2_create_buffers *create,
+> > >                           unsigned int *num_buffers,
+> > >                           unsigned int *num_planes, unsigned int sizes[],
+> > >                           void *alloc_ctxs[]);
+> > >
+> > > and let all drivers fill in respective fields in *create, e.g., either do
+> > >
+> > >        create->format.fmt.pix_mp.plane_fmt[i].sizeimage = ...;
+> > >        create->format.fmt.pix_mp.num_planes = ...;
+> > >
+> > > and also duplicate it in method parameters
+> > >
+> > >        *num_planes = create->format.fmt.pix_mp.num_planes;
+> > >        sizes[i] = create->format.fmt.pix_mp.plane_fmt[i].sizeimage;
+> > >
+> > > or with
+> > >
+> > >        create->format.fmt.pix.sizeimage = ...;
+> > >
+> > > for single-plane. Alternatively we make the prototype
+> > >
+> > >        int (*queue_setup)(struct vb2_queue *q,
+> > >                           struct v4l2_create_buffers *create,
+> > >                           unsigned int *num_buffers,
+> > >                           void *alloc_ctxs[]);
+> > >
+> > > then drivers only fill in *create, and the videobuf2-core will have to
+> > > check create->format.type to decide, which of create->format.fmt.* is
+> > > relevant and extract plane sizes from there.
+> > 
+> > 
+> > Could we try exploring an alternative idea?
+> > The queue_setup callback was added to decouple formats from vb2 (and
+> > add some asynchronousness). But now we are doing the opposite, adding
+> > format awareness to vb2. Does vb2 really need to know about formats? I
+> > really believe it doesn't. It only needs sizes and counts. Also, we
+> > are actually complicating things I think. The proposal, IIUC, would
+> > look like this:
+> > 
+> > driver_queue_setup(..., create, num_buffers, [num_planes], ...)
+> > {
+> >     if (create != NULL && create->format != NULL) {
+> >         /* use create->fmt to fill sizes */
+> 
+> Right.
+> 
+> >     } else if (create != NULL) { /* this assumes we have both format or 
+> sizes */
+> >         /* use create->sizes to fill sizes */
+> 
+> No, create->format should always be set. If the application can fill in the
+> sizeimage field(s), then there is no need for create->sizes.
+> 
+> >     } else {
+> >         /* use currently selected format to fill sizes */
+> 
+> Right.
+> 
+> >     }
+> > }
+> > 
+> > driver_s_fmt(format)
+> > {
+> >     /* ... */
+> >     driver_fill_format(&create->fmt);
+> >     /* ... */
+> > }
+> 
+> ???
+> 
+> > 
+> > driver_create_bufs(create)
+> > {
+> >     vb2_create_bufs(create);
+> > }
+> > 
+> > vb2_create_bufs(create)
+> > {
+> >     driver_queue_setup(..., create, ...);
+> >     vb2_fill_format(&create->fmt); /* note different from
+> > driver_fill_format(), but both needed */
+> 
+> Huh? Why call vb2_fill_format? vb2 should have no knowledge whatsoever about
+> formats. The driver needs that information in order to be able to allocate
+> buffers correctly since that depends on the required format. But vb2 doesn't
+> need that knowledge.
 
-Then could someone, please, explain to me, why I don't find this 
-"convenience" in any other kernel driver class? Wireless, ALSA, USB, I2C - 
-you name them. Is there something special about media, that I'm missing, 
-or are all others just user-unfriendly? Why are distro-kernels, 
-allmodconfig, allyesconfig not enough for media and we think it's 
-necessary to build everything "just in case?"
+It would be good if you also could have a look at my reply to this Pawel's 
+mail:
+
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/36905
+
+and, specifically, at the vb2_parse_planes() function in it. That's my 
+understanding of what would be needed, if we preserve .queue_setup() and 
+use your last suggestion to include struct v4l2_format in struct 
+v4l2_create_buffers.
+
+However, from your reply I couldn't understand your attitude to removing 
+.queue_setup() altogether. Do you see any disadvantages in doing so? Is it 
+serving any special role, that we are overseeing?
 
 Thanks
 Guennadi
 
 > 
+> > }
+> > 
+> > vb2_reqbufs(reqbufs)
+> > {
+> >    driver_queue_setup(..., NULL, ...);
+> > }
+> > 
+> > The queue_setup not only becomes unnecessarily complicated, but I'm
+> > starting to question the convenience of it. And we are teaching vb2
+> > how to interpret format structs, even though vb2 only needs sizes, and
+> > even though the driver has to do it anyway and knows better how.
+> 
+> No, vb2 just needs to pass the format information from the user to the
+> driver.
+> 
+> There seems to be some misunderstanding here.
+> 
+> The point of my original suggestion that create_bufs should use v4l2_format
+> is that the driver needs the format information in order to decide how and
+> where the buffers have to be allocated. Having the format available is the
+> only reliable way to do that.
+> 
+> This is already done for REQBUFS since the driver will use the current format
+> to make these decisions.
+> 
+> One way of simplifying queue_setup is actually to always supply the format.
+> In the case of REQBUFS the driver might do something like this:
+> 
+> driver_reqbufs(requestbuffers)
+> {
+> 	struct v4l2_format fmt;
+> 	struct v4l2_create_buffers create;
+> 
+> 	vb2_free_bufs(); // reqbufs should free any existing bufs
+> 	if (requestbuffers->count == 0)
+> 		return 0;
+> 	driver_g_fmt(&fmt);	// call the g_fmt ioctl op
+> 	// fill in create
+> 	vb2_create_bufs(create);
+> }
+> 
+> So vb2 just sees a call requesting to create so many buffers for a particular
+> format, and it just hands that information over to the driver *without*
+> parsing it.
+> 
+> And the driver gets the request from vb2 to create X buffers for format F, and
+> will figure out how to do that and returns the buffer/plane/allocator context
+> information back to vb2.
+> 
 > Regards,
 > 
 > 	Hans
 > 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> >  drivers/media/common/tuners/Kconfig |   23 +----------------------
-> >  drivers/media/radio/Kconfig         |    1 -
-> >  drivers/media/rc/Kconfig            |   16 +---------------
-> >  drivers/media/rc/keymaps/Kconfig    |    1 -
-> >  drivers/media/video/Kconfig         |    7 ++-----
-> >  5 files changed, 4 insertions(+), 44 deletions(-)
+> > As for the idea to fill fmt in vb2, even if vb2 was to do it in
+> > create_bufs, some code to parse and fill the format fields would need
+> > to be in the driver anyway, because it still has to support s_fmt and
+> > friends. So adding that code to vb2 would duplicate it, and if the
+> > driver wanted to be non-standard in a way it filled the format fields,
+> > we'd not be allowing that.
 > > 
-> > diff --git a/drivers/media/common/tuners/Kconfig b/drivers/media/common/tuners/Kconfig
-> > index 996302a..1e53057 100644
-> > --- a/drivers/media/common/tuners/Kconfig
-> > +++ b/drivers/media/common/tuners/Kconfig
-> > @@ -33,7 +33,7 @@ config MEDIA_TUNER
-> >  	select MEDIA_TUNER_MC44S803 if !MEDIA_TUNER_CUSTOMISE
-> >  
-> >  config MEDIA_TUNER_CUSTOMISE
-> > -	bool "Customize analog and hybrid tuner modules to build"
-> > +	bool "Select analog and hybrid tuner modules to build"
-> >  	depends on MEDIA_TUNER
-> >  	default y if EXPERT
-> >  	help
-> > @@ -52,7 +52,6 @@ config MEDIA_TUNER_SIMPLE
-> >  	tristate "Simple tuner support"
-> >  	depends on VIDEO_MEDIA && I2C
-> >  	select MEDIA_TUNER_TDA9887
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  Say Y here to include support for various simple tuners.
-> >  
-> > @@ -61,28 +60,24 @@ config MEDIA_TUNER_TDA8290
-> >  	depends on VIDEO_MEDIA && I2C
-> >  	select MEDIA_TUNER_TDA827X
-> >  	select MEDIA_TUNER_TDA18271
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  Say Y here to include support for Philips TDA8290+8275(a) tuner.
-> >  
-> >  config MEDIA_TUNER_TDA827X
-> >  	tristate "Philips TDA827X silicon tuner"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  A DVB-T silicon tuner module. Say Y when you want to support this tuner.
-> >  
-> >  config MEDIA_TUNER_TDA18271
-> >  	tristate "NXP TDA18271 silicon tuner"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  A silicon tuner module. Say Y when you want to support this tuner.
-> >  
-> >  config MEDIA_TUNER_TDA9887
-> >  	tristate "TDA 9885/6/7 analog IF demodulator"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  Say Y here to include support for Philips TDA9885/6/7
-> >  	  analog IF demodulator.
-> > @@ -91,63 +86,54 @@ config MEDIA_TUNER_TEA5761
-> >  	tristate "TEA 5761 radio tuner (EXPERIMENTAL)"
-> >  	depends on VIDEO_MEDIA && I2C
-> >  	depends on EXPERIMENTAL
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  Say Y here to include support for the Philips TEA5761 radio tuner.
-> >  
-> >  config MEDIA_TUNER_TEA5767
-> >  	tristate "TEA 5767 radio tuner"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  Say Y here to include support for the Philips TEA5767 radio tuner.
-> >  
-> >  config MEDIA_TUNER_MT20XX
-> >  	tristate "Microtune 2032 / 2050 tuners"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  Say Y here to include support for the MT2032 / MT2050 tuner.
-> >  
-> >  config MEDIA_TUNER_MT2060
-> >  	tristate "Microtune MT2060 silicon IF tuner"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  A driver for the silicon IF tuner MT2060 from Microtune.
-> >  
-> >  config MEDIA_TUNER_MT2266
-> >  	tristate "Microtune MT2266 silicon tuner"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  A driver for the silicon baseband tuner MT2266 from Microtune.
-> >  
-> >  config MEDIA_TUNER_MT2131
-> >  	tristate "Microtune MT2131 silicon tuner"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  A driver for the silicon baseband tuner MT2131 from Microtune.
-> >  
-> >  config MEDIA_TUNER_QT1010
-> >  	tristate "Quantek QT1010 silicon tuner"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  A driver for the silicon tuner QT1010 from Quantek.
-> >  
-> >  config MEDIA_TUNER_XC2028
-> >  	tristate "XCeive xc2028/xc3028 tuners"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  Say Y here to include support for the xc2028/xc3028 tuners.
-> >  
-> >  config MEDIA_TUNER_XC5000
-> >  	tristate "Xceive XC5000 silicon tuner"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  A driver for the silicon tuner XC5000 from Xceive.
-> >  	  This device is only used inside a SiP called together with a
-> > @@ -156,7 +142,6 @@ config MEDIA_TUNER_XC5000
-> >  config MEDIA_TUNER_XC4000
-> >  	tristate "Xceive XC4000 silicon tuner"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  A driver for the silicon tuner XC4000 from Xceive.
-> >  	  This device is only used inside a SiP called together with a
-> > @@ -165,42 +150,36 @@ config MEDIA_TUNER_XC4000
-> >  config MEDIA_TUNER_MXL5005S
-> >  	tristate "MaxLinear MSL5005S silicon tuner"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  A driver for the silicon tuner MXL5005S from MaxLinear.
-> >  
-> >  config MEDIA_TUNER_MXL5007T
-> >  	tristate "MaxLinear MxL5007T silicon tuner"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  A driver for the silicon tuner MxL5007T from MaxLinear.
-> >  
-> >  config MEDIA_TUNER_MC44S803
-> >  	tristate "Freescale MC44S803 Low Power CMOS Broadband tuners"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  Say Y here to support the Freescale MC44S803 based tuners
-> >  
-> >  config MEDIA_TUNER_MAX2165
-> >  	tristate "Maxim MAX2165 silicon tuner"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  A driver for the silicon tuner MAX2165 from Maxim.
-> >  
-> >  config MEDIA_TUNER_TDA18218
-> >  	tristate "NXP TDA18218 silicon tuner"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  NXP TDA18218 silicon tuner driver.
-> >  
-> >  config MEDIA_TUNER_TDA18212
-> >  	tristate "NXP TDA18212 silicon tuner"
-> >  	depends on VIDEO_MEDIA && I2C
-> > -	default m if MEDIA_TUNER_CUSTOMISE
-> >  	help
-> >  	  NXP TDA18212 silicon tuner driver.
-> >  
-> > diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-> > index 52798a1..0195335 100644
-> > --- a/drivers/media/radio/Kconfig
-> > +++ b/drivers/media/radio/Kconfig
-> > @@ -5,7 +5,6 @@
-> >  menuconfig RADIO_ADAPTERS
-> >  	bool "Radio Adapters"
-> >  	depends on VIDEO_V4L2
-> > -	default y
-> >  	---help---
-> >  	  Say Y here to enable selecting AM/FM radio adapters.
-> >  
-> > diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> > index 899f783..2a4f829 100644
-> > --- a/drivers/media/rc/Kconfig
-> > +++ b/drivers/media/rc/Kconfig
-> > @@ -1,7 +1,6 @@
-> >  menuconfig RC_CORE
-> >  	tristate "Remote Controller adapters"
-> >  	depends on INPUT
-> > -	default INPUT
-> >  	---help---
-> >  	  Enable support for Remote Controllers on Linux. This is
-> >  	  needed in order to support several video capture adapters.
-> > @@ -11,12 +10,9 @@ menuconfig RC_CORE
-> >  	  if you don't need IR, as otherwise, you may not be able to
-> >  	  compile the driver for your adapter.
-> >  
-> > -if RC_CORE
-> > -
-> >  config LIRC
-> >  	tristate
-> > -	default y
-> > -
-> > +	depends on RC_CORE
-> >  	---help---
-> >  	   Enable this option to build the Linux Infrared Remote
-> >  	   Control (LIRC) core device interface driver. The LIRC
-> > @@ -30,7 +26,6 @@ config IR_NEC_DECODER
-> >  	tristate "Enable IR raw decoder for the NEC protocol"
-> >  	depends on RC_CORE
-> >  	select BITREVERSE
-> > -	default y
-> >  
-> >  	---help---
-> >  	   Enable this option if you have IR with NEC protocol, and
-> > @@ -40,7 +35,6 @@ config IR_RC5_DECODER
-> >  	tristate "Enable IR raw decoder for the RC-5 protocol"
-> >  	depends on RC_CORE
-> >  	select BITREVERSE
-> > -	default y
-> >  
-> >  	---help---
-> >  	   Enable this option if you have IR with RC-5 protocol, and
-> > @@ -50,7 +44,6 @@ config IR_RC6_DECODER
-> >  	tristate "Enable IR raw decoder for the RC6 protocol"
-> >  	depends on RC_CORE
-> >  	select BITREVERSE
-> > -	default y
-> >  
-> >  	---help---
-> >  	   Enable this option if you have an infrared remote control which
-> > @@ -60,7 +53,6 @@ config IR_JVC_DECODER
-> >  	tristate "Enable IR raw decoder for the JVC protocol"
-> >  	depends on RC_CORE
-> >  	select BITREVERSE
-> > -	default y
-> >  
-> >  	---help---
-> >  	   Enable this option if you have an infrared remote control which
-> > @@ -69,7 +61,6 @@ config IR_JVC_DECODER
-> >  config IR_SONY_DECODER
-> >  	tristate "Enable IR raw decoder for the Sony protocol"
-> >  	depends on RC_CORE
-> > -	default y
-> >  
-> >  	---help---
-> >  	   Enable this option if you have an infrared remote control which
-> > @@ -79,7 +70,6 @@ config IR_RC5_SZ_DECODER
-> >  	tristate "Enable IR raw decoder for the RC-5 (streamzap) protocol"
-> >  	depends on RC_CORE
-> >  	select BITREVERSE
-> > -	default y
-> >  
-> >  	---help---
-> >  	   Enable this option if you have IR with RC-5 (streamzap) protocol,
-> > @@ -91,7 +81,6 @@ config IR_MCE_KBD_DECODER
-> >  	tristate "Enable IR raw decoder for the MCE keyboard/mouse protocol"
-> >  	depends on RC_CORE
-> >  	select BITREVERSE
-> > -	default y
-> >  
-> >  	---help---
-> >  	   Enable this option if you have a Microsoft Remote Keyboard for
-> > @@ -102,7 +91,6 @@ config IR_LIRC_CODEC
-> >  	tristate "Enable IR to LIRC bridge"
-> >  	depends on RC_CORE
-> >  	depends on LIRC
-> > -	default y
-> >  
-> >  	---help---
-> >  	   Enable this option to pass raw IR to and from userspace via
-> > @@ -236,5 +224,3 @@ config RC_LOOPBACK
-> >  
-> >  	   To compile this driver as a module, choose M here: the module will
-> >  	   be called rc_loopback.
-> > -
-> > -endif #RC_CORE
-> > diff --git a/drivers/media/rc/keymaps/Kconfig b/drivers/media/rc/keymaps/Kconfig
-> > index 8e615fd..dbaacf1 100644
-> > --- a/drivers/media/rc/keymaps/Kconfig
-> > +++ b/drivers/media/rc/keymaps/Kconfig
-> > @@ -1,7 +1,6 @@
-> >  config RC_MAP
-> >  	tristate "Compile Remote Controller keymap modules"
-> >  	depends on RC_CORE
-> > -	default y
-> >  
-> >  	---help---
-> >  	   This option enables the compilation of lots of Remote
-> > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> > index f574dc0..d26443d 100644
-> > --- a/drivers/media/video/Kconfig
-> > +++ b/drivers/media/video/Kconfig
-> > @@ -73,7 +73,6 @@ config VIDEOBUF2_DMA_SG
-> >  menuconfig VIDEO_CAPTURE_DRIVERS
-> >  	bool "Video capture adapters"
-> >  	depends on VIDEO_V4L2
-> > -	default y
-> >  	---help---
-> >  	  Say Y here to enable selecting the video adapters for
-> >  	  webcams, analog TV, and hybrid analog/digital TV.
-> > @@ -113,8 +112,8 @@ config VIDEO_HELPER_CHIPS_AUTO
-> >  
-> >  config VIDEO_IR_I2C
-> >  	tristate "I2C module for IR" if !VIDEO_HELPER_CHIPS_AUTO
-> > -	depends on I2C && RC_CORE
-> > -	default y
-> > +	depends on I2C
-> > +	select RC_CORE
-> >  	---help---
-> >  	  Most boards have an IR chip directly connected via GPIO. However,
-> >  	  some video boards have the IR connected via I2C bus.
-> > @@ -556,7 +555,6 @@ config VIDEO_VIU
-> >  	tristate "Freescale VIU Video Driver"
-> >  	depends on VIDEO_V4L2 && PPC_MPC512x
-> >  	select VIDEOBUF_DMA_CONTIG
-> > -	default y
-> >  	---help---
-> >  	  Support for Freescale VIU video driver. This device captures
-> >  	  video data, or overlays video on DIU frame buffer.
-> > @@ -986,7 +984,6 @@ source "drivers/media/video/s5p-tv/Kconfig"
-> >  menuconfig V4L_USB_DRIVERS
-> >  	bool "V4L USB devices"
-> >  	depends on USB
-> > -	default y
-> >  
-> >  if V4L_USB_DRIVERS && USB
-> >  
+> > My suggestion would be to remove queue_setup callback and instead
+> > modify vb2_reqbufs and vb2_create_bufs to accept sizes and number of
+> > buffers. I think it should simplify things both for drivers and vb2,
+> > would keep vb2 format-unaware and save us some round trips between vb2
+> > and driver:
+> > 
+> > driver_create_bufs(...) /* optional */
+> > {
+> >     /* use create->fmt (or sizes) */
+> >     ret = vb2_create_bufs(num_buffers, num_planes, buf_sizes,
+> > plane_sizes, alloc_ctxs);
+> >     fill_format(&create->fmt) /* because s_fmt has to do it anyway, so
+> > have a common function for that */
+> >     return ret;
+> > }
+> > 
+> > driver_reqbufs(...)
+> > {
+> >     /* use current format */
+> >     return vb2_reqbufs(num_buffers, num_planes, buf_sizes,
+> > plane_sizes, alloc_ctxs);
+> > }
+> > 
+> > And the call to both could easily converge into one in vb2, as the
+> > only difference is that vb2_reqbufs would need to free first, if any
+> > allocated buffers were present:
+> > 
+> > vb2_reqbufs(num_buffers, num_planes, buf_sizes, plane_sizes, alloc_ctxs)
+> > {
+> >     if (buffers_allocated(num_buffers, num_planes, buf_sizes,
+> > plane_sizes, alloc_ctxs)) {
+> >         free_buffers(...);
+> >     }
+> > 
+> >     return vb2_create_bufs(num_buffers, num_planes, buf_sizes,
+> > plane_sizes, alloc_ctxs);
+> > }
+> > 
+> > If the driver didn't want create_bufs, it'd just not implement it.
+> > What do you think?
+> > 
+> > -- 
+> > Best regards,
+> > Pawel Osciak
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > > 
 > 
 
