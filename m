@@ -1,127 +1,267 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48078 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752533Ab1H3WuO (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:36302 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753084Ab1HVKGX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 18:50:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: Getting started with OMAP3 ISP
-Date: Wed, 31 Aug 2011 00:50:39 +0200
-Cc: linux-media@vger.kernel.org
-References: <4E56734A.3080001@mlbassoc.com> <201108291249.33118.laurent.pinchart@ideasonboard.com> <4E5D6813.4040707@mlbassoc.com>
-In-Reply-To: <4E5D6813.4040707@mlbassoc.com>
+	Mon, 22 Aug 2011 06:06:23 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: Pawel Osciak <pawel@osciak.com>
+Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer management
+Date: Mon, 22 Aug 2011 12:06:25 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange> <Pine.LNX.4.64.1108161458510.13913@axis700.grange> <CAMm-=zCJBDzx=tzcnEU4RCS9jkbxDeDPDZsHRL5ZMHcdBMYivA@mail.gmail.com>
+In-Reply-To: <CAMm-=zCJBDzx=tzcnEU4RCS9jkbxDeDPDZsHRL5ZMHcdBMYivA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201108310050.39314.laurent.pinchart@ideasonboard.com>
+Message-Id: <201108221206.25308.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gary,
+Sorry for starting this discussion and then disappearing. I've been very
+busy lately, so my apologies for that.
 
-On Wednesday 31 August 2011 00:45:39 Gary Thomas wrote:
-> On 2011-08-29 04:49, Laurent Pinchart wrote:
-> > On Thursday 25 August 2011 18:07:38 Gary Thomas wrote:
-> >> Background:  I have working video capture drivers based on the
-> >> TI PSP codebase from 2.6.32.  In particular, I managed to get
-> >> a driver for the TVP5150 (analogue BT656) working with that kernel.
-> >> 
-> >> Now I need to update to Linux 3.0, so I'm trying to get a driver
-> >> working with the rewritten ISP code.  Sadly, I'm having a hard
-> >> time with this - probably just missing something basic.
-> >> 
-> >> I've tried to clone the TVP514x driver which says that it works
-> >> with the OMAP3 ISP code.  I've updated it to use my decoder device,
-> >> but I can't even seem to get into that code from user land.
-> >> 
-> >> Here are the problems I've had so far:
-> >>     * udev doesn't create any video devices although they have been
-> >>     
-> >>       registered.  I see a full set in /sys/class/video4linux
-> >>       
-> >>          # ls /sys/class/video4linux/
-> >>          v4l-subdev0  v4l-subdev3  v4l-subdev6  video1       video4
-> >>          v4l-subdev1  v4l-subdev4  v4l-subdev7  video2       video5
-> >>          v4l-subdev2  v4l-subdev5  video0       video3       video6
-> > 
-> > It looks like a udev issue. I don't think that's related to the kernel
-> > drivers.
-> > 
-> >>       Indeed, if I create /dev/videoX by hand, I can get somewhere, but
-> >>       I don't really understand how this is supposed to work.  e.g.
-> >>       
-> >>         # v4l2-dbg --info /dev/video3
-> >>         
-> >>         Driver info:
-> >>             Driver name   : ispvideo
-> >>             Card type     : OMAP3 ISP CCP2 input
-> >>             Bus info      : media
-> >>             Driver version: 1
-> >>             Capabilities  : 0x04000002
-> >>             
-> >>                     Video Output
-> >>                     Streaming
-> >>     
-> >>     * If I try to grab video, the ISP layer gets a ton of warnings, but
-> >>     
-> >>       I never see it call down into my driver, e.g. to check the current
-> >>       format, etc.  I have some of my own code from before which fails
-> >>       miserably (not a big surprise given the hack level of those
-> >>       programs).
-> >>       
-> >>       I tried something off-the-shelf which also fails pretty bad:
-> >>         # ffmpeg -t 10 -f video4linux2 -s 720x480 -r 30 -i /dev/video2
-> >> 
-> >> junk.mp4
-> >> 
-> >> I've read through Documentation/video4linux/omap3isp.txt without
-> >> learning much about what might be wrong.
-> >> 
-> >> Can someone give me some ideas/guidance, please?
-> > 
-> > In a nutshell, you will first have to configure the OMAP3 ISP pipeline,
-> > and then capture video.
-> > 
-> > Configuring the pipeline is done through the media controller API and the
-> > V4L2 subdev pad-level API. To experiment with those you can use the
-> > media-ctl command line application available at
-> > http://git.ideasonboard.org/?p=media- ctl.git;a=summary. You can run it
-> > with --print-dot and pipe the result to dot -Tps to get a postscript
-> > graphical view of your device.
-> > 
-> > Here's a sample pipeline configuration to capture scaled-down YUV data
-> > from a sensor:
-> > 
-> > ./media-ctl -r -l '"mt9t001 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
-> > CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP
-> > resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
-> > ./media-ctl -f '"mt9t001 3-005d":0[SGRBG10 1024x768], "OMAP3 ISP
-> > CCDC":2[SGRBG10 1024x767], "OMAP3 ISP preview":1[YUYV 1006x759], "OMAP3
-> > ISP resizer":1[YUYV 800x600]'
-> > 
-> > After configuring your pipeline you will be able to capture video using
-> > the V4L2 API on the device node at the output of the pipeline.
+On Tuesday, August 16, 2011 18:14:33 Pawel Osciak wrote:
+> Hi Guennadi,
 > 
-> Getting somewhere now, thanks.  When I use this full pipeline, I can get
-> all the way into my driver where it's trying to start the data.
+> On Tue, Aug 16, 2011 at 06:13, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+> > On Mon, 15 Aug 2011, Guennadi Liakhovetski wrote:
+> >
+> >> On Mon, 15 Aug 2011, Hans Verkuil wrote:
+> >>
+> >> > On Monday, August 15, 2011 13:28:23 Guennadi Liakhovetski wrote:
+> >> > > Hi Hans
+> >> > >
+> >> > > On Mon, 8 Aug 2011, Hans Verkuil wrote:
+> >
+> > [snip]
+> >
+> >> > > > but I've changed my mind: I think
+> >> > > > this should use a struct v4l2_format after all.
+> >>
+> >> While switching back, I have to change the struct vb2_ops::queue_setup()
+> >> operation to take a struct v4l2_create_buffers pointer. An earlier 
+version
+> >> of this patch just added one more parameter to .queue_setup(), which is
+> >> easier - changes to videobuf2-core.c are smaller, but it is then
+> >> redundant. We could use the create pointer for both input and output. The
+> >> video plane configuration in frame format is the same as what is
+> >> calculated in .queue_setup(), IIUC. So, we could just let the driver fill
+> >> that one in. This would require then the videobuf2-core.c to parse struct
+> >> v4l2_format to decide which union member we need, depending on the buffer
+> >> type. Do we want this or shall drivers duplicate plane sizes in separate
+> >> .queue_setup() parameters?
+> >
+> > Let me explain my question a bit. The current .queue_setup() method is
+> >
+> >        int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
+> >                           unsigned int *num_planes, unsigned int sizes[],
+> >                           void *alloc_ctxs[]);
+> >
+> > To support multiple-size buffers we also have to pass a pointer to struct
+> > v4l2_create_buffers to this function now. We can either do it like this:
+> >
+> >        int (*queue_setup)(struct vb2_queue *q,
+> >                           struct v4l2_create_buffers *create,
+> >                           unsigned int *num_buffers,
+> >                           unsigned int *num_planes, unsigned int sizes[],
+> >                           void *alloc_ctxs[]);
+> >
+> > and let all drivers fill in respective fields in *create, e.g., either do
+> >
+> >        create->format.fmt.pix_mp.plane_fmt[i].sizeimage = ...;
+> >        create->format.fmt.pix_mp.num_planes = ...;
+> >
+> > and also duplicate it in method parameters
+> >
+> >        *num_planes = create->format.fmt.pix_mp.num_planes;
+> >        sizes[i] = create->format.fmt.pix_mp.plane_fmt[i].sizeimage;
+> >
+> > or with
+> >
+> >        create->format.fmt.pix.sizeimage = ...;
+> >
+> > for single-plane. Alternatively we make the prototype
+> >
+> >        int (*queue_setup)(struct vb2_queue *q,
+> >                           struct v4l2_create_buffers *create,
+> >                           unsigned int *num_buffers,
+> >                           void *alloc_ctxs[]);
+> >
+> > then drivers only fill in *create, and the videobuf2-core will have to
+> > check create->format.type to decide, which of create->format.fmt.* is
+> > relevant and extract plane sizes from there.
 > 
-> What if I want to use less of the pipeline?  For example, I'd normally be
-> happy with just the CCDC output.  How would I do that?
+> 
+> Could we try exploring an alternative idea?
+> The queue_setup callback was added to decouple formats from vb2 (and
+> add some asynchronousness). But now we are doing the opposite, adding
+> format awareness to vb2. Does vb2 really need to know about formats? I
+> really believe it doesn't. It only needs sizes and counts. Also, we
+> are actually complicating things I think. The proposal, IIUC, would
+> look like this:
+> 
+> driver_queue_setup(..., create, num_buffers, [num_planes], ...)
+> {
+>     if (create != NULL && create->format != NULL) {
+>         /* use create->fmt to fill sizes */
 
-Then connect CCDC's pad 1 to the CCDC output video node and capture on that 
-video node.
+Right.
 
-> What pixel format would I use with ffmpeg?
+>     } else if (create != NULL) { /* this assumes we have both format or 
+sizes */
+>         /* use create->sizes to fill sizes */
 
-What does your subdev deliver ?
+No, create->format should always be set. If the application can fill in the
+sizeimage field(s), then there is no need for create->sizes.
 
-> n.b. I know most of these are pretty n00b questions - I'd look up the
-> answers for myself, but I've had precious little success finding any
-> documentation, especially on media-ctl and/or the OMAP3 ISP setups.
+>     } else {
+>         /* use currently selected format to fill sizes */
 
--- 
+Right.
+
+>     }
+> }
+> 
+> driver_s_fmt(format)
+> {
+>     /* ... */
+>     driver_fill_format(&create->fmt);
+>     /* ... */
+> }
+
+???
+
+> 
+> driver_create_bufs(create)
+> {
+>     vb2_create_bufs(create);
+> }
+> 
+> vb2_create_bufs(create)
+> {
+>     driver_queue_setup(..., create, ...);
+>     vb2_fill_format(&create->fmt); /* note different from
+> driver_fill_format(), but both needed */
+
+Huh? Why call vb2_fill_format? vb2 should have no knowledge whatsoever about
+formats. The driver needs that information in order to be able to allocate
+buffers correctly since that depends on the required format. But vb2 doesn't
+need that knowledge.
+
+> }
+> 
+> vb2_reqbufs(reqbufs)
+> {
+>    driver_queue_setup(..., NULL, ...);
+> }
+> 
+> The queue_setup not only becomes unnecessarily complicated, but I'm
+> starting to question the convenience of it. And we are teaching vb2
+> how to interpret format structs, even though vb2 only needs sizes, and
+> even though the driver has to do it anyway and knows better how.
+
+No, vb2 just needs to pass the format information from the user to the
+driver.
+
+There seems to be some misunderstanding here.
+
+The point of my original suggestion that create_bufs should use v4l2_format
+is that the driver needs the format information in order to decide how and
+where the buffers have to be allocated. Having the format available is the
+only reliable way to do that.
+
+This is already done for REQBUFS since the driver will use the current format
+to make these decisions.
+
+One way of simplifying queue_setup is actually to always supply the format.
+In the case of REQBUFS the driver might do something like this:
+
+driver_reqbufs(requestbuffers)
+{
+	struct v4l2_format fmt;
+	struct v4l2_create_buffers create;
+
+	vb2_free_bufs(); // reqbufs should free any existing bufs
+	if (requestbuffers->count == 0)
+		return 0;
+	driver_g_fmt(&fmt);	// call the g_fmt ioctl op
+	// fill in create
+	vb2_create_bufs(create);
+}
+
+So vb2 just sees a call requesting to create so many buffers for a particular
+format, and it just hands that information over to the driver *without*
+parsing it.
+
+And the driver gets the request from vb2 to create X buffers for format F, and
+will figure out how to do that and returns the buffer/plane/allocator context
+information back to vb2.
+
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> As for the idea to fill fmt in vb2, even if vb2 was to do it in
+> create_bufs, some code to parse and fill the format fields would need
+> to be in the driver anyway, because it still has to support s_fmt and
+> friends. So adding that code to vb2 would duplicate it, and if the
+> driver wanted to be non-standard in a way it filled the format fields,
+> we'd not be allowing that.
+> 
+> My suggestion would be to remove queue_setup callback and instead
+> modify vb2_reqbufs and vb2_create_bufs to accept sizes and number of
+> buffers. I think it should simplify things both for drivers and vb2,
+> would keep vb2 format-unaware and save us some round trips between vb2
+> and driver:
+> 
+> driver_create_bufs(...) /* optional */
+> {
+>     /* use create->fmt (or sizes) */
+>     ret = vb2_create_bufs(num_buffers, num_planes, buf_sizes,
+> plane_sizes, alloc_ctxs);
+>     fill_format(&create->fmt) /* because s_fmt has to do it anyway, so
+> have a common function for that */
+>     return ret;
+> }
+> 
+> driver_reqbufs(...)
+> {
+>     /* use current format */
+>     return vb2_reqbufs(num_buffers, num_planes, buf_sizes,
+> plane_sizes, alloc_ctxs);
+> }
+> 
+> And the call to both could easily converge into one in vb2, as the
+> only difference is that vb2_reqbufs would need to free first, if any
+> allocated buffers were present:
+> 
+> vb2_reqbufs(num_buffers, num_planes, buf_sizes, plane_sizes, alloc_ctxs)
+> {
+>     if (buffers_allocated(num_buffers, num_planes, buf_sizes,
+> plane_sizes, alloc_ctxs)) {
+>         free_buffers(...);
+>     }
+> 
+>     return vb2_create_bufs(num_buffers, num_planes, buf_sizes,
+> plane_sizes, alloc_ctxs);
+> }
+> 
+> If the driver didn't want create_bufs, it'd just not implement it.
+> What do you think?
+> 
+> -- 
+> Best regards,
+> Pawel Osciak
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
