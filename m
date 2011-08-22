@@ -1,64 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:41250 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754102Ab1HKHTN (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:46667 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751197Ab1HVEMs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2011 03:19:13 -0400
-Date: Thu, 11 Aug 2011 10:19:00 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: adp1653 usage
-Message-ID: <20110811071900.GC5926@valkosipuli.localdomain>
-References: <1312974960.2183.15.camel@smile>
+	Mon, 22 Aug 2011 00:12:48 -0400
+Received: by gxk21 with SMTP id 21so3322273gxk.19
+        for <linux-media@vger.kernel.org>; Sun, 21 Aug 2011 21:12:48 -0700 (PDT)
+Message-ID: <4E51D739.7010000@gmail.com>
+Date: Mon, 22 Aug 2011 16:12:41 +1200
+From: CJ <cjpostor@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1312974960.2183.15.camel@smile>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: javier Martin <javier.martin@vista-silicon.com>,
+	Koen Kooi <koen@beagleboard.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, mch_kot@yahoo.com.cn
+Subject: Re: [beagleboard] Re: [PATCH v7 1/2] Add driver for Aptina (Micron)
+ mt9p031 sensor.
+References: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com> <BANLkTinqZ5xbTG=h+64rxVui=kXjjtehig@mail.gmail.com> <4E4DC6C3.1000800@gmail.com> <201108191212.49729.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201108191212.49729.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 10, 2011 at 02:16:00PM +0300, Andy Shevchenko wrote:
-> Hello, Sakari.
+Hi,
 
-Hi, Andy!
+On 19/08/11 22:12, Laurent Pinchart wrote:
+>> I am trying to get the mt9p031 working from nand with a ubifs file
+>> system and I am having a few problems.
+>>
+>> /dev/media0 is not present unless I run:
+>> #mknod /dev/media0 c 251 0
+>> #chown root:video /dev/media0
+>>
+>> #media-ctl -p
+>> Enumerating entities
+>> media_open: Unable to enumerate entities for device /dev/media0
+>> (Inappropriate ioctl for device)
+>>
+>> With the same rig/files it works fine running from EXT4 on an SD card.
+>> Any idea why this does not work on nand with ubifs?
+> Is the OMAP3 ISP driver loaded ? Has it probed the device successfully ? Check
+> the kernel log for OMAP3 ISP-related messages.
 
-> I would like to understand how to use subdevice (like adp1653) in
-> current v4l2 framework from user space.
-> 
-> My understanding is following.
-> 
-> Kernel has two drivers (simplified view):
-> - camera device
-> - flash device
-> 
-> Kernel initializes a camera driver from a platform specific setup code.
-> The camera driver loads the subdevice drivers. Later I could access the
-> subdevice driver parts via IOCTL(s) on /dev/videoX device node.
-> 
-> What I have missed.
-> - if the subdevice creates device node /dev/v4l-subdevX, how the user
-> space will know the X is corresponding to let say flash device?
+Here is the version running from SD card:
+# dmesg | grep isp
+[    0.265502] omap-iommu omap-iommu.0: isp registered
+[    2.986541] omap3isp omap3isp: Revision 2.0 found
+[    2.991577] omap-iommu omap-iommu.0: isp: version 1.1
+[    2.997406] omap3isp omap3isp: hist: DMA channel = 0
+[    3.006256] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 
+21600000 Hz
+[    3.011932] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
 
-The whole media device's entities (of which the flash in this case is one
-of) can be enumerated. The device is called /dev/mediaX.
+ From NAND using UBIFS:
+# dmesg | grep isp
+[    3.457061] omap3isp omap3isp: Revision 2.0 found
+[    3.462036] omap-iommu omap-iommu.0: isp: version 1.1
+[    3.467620] omap3isp omap3isp: hist: DMA channel = 0
+[    3.472564] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 
+21600000 Hz
+[    3.478027] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
 
-The Media controller API is defined here:
+Seems to be missing:
+omap-iommu omap-iommu.0: isp registered
 
-<URL:http://hverkuil.home.xs4all.nl/spec/media.html#media_common>
+Is that the issue? Why would this not work when running from NAND?
 
-> - if there is no v4l-subdevX device node, when and how the kernel runs
-> ->open() and ->close() methods of v4l2_subdev_internal_ops?
+Cheers,
+Chris
 
-No-one. This is part of the user space interface.
-
-Isp drivers are also free to use the adp1653 subdev directly, but in
-embedded systems where such chips typically are used that seldom makes
-sense.
-
-A webcam driver could implement the same interface and provide it through a
-video node.
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
