@@ -1,158 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:53737 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755169Ab1HaMaD (ORCPT
+Received: from wondertoys-mx.wondertoys.net ([206.117.179.246]:59615 "EHLO
+	labridge.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752977Ab1HVPUa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 08:30:03 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LQS00DKHLDZ9H30@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 31 Aug 2011 13:30:00 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LQS001VBLBZ5Z@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 31 Aug 2011 13:28:48 +0100 (BST)
-Date: Wed, 31 Aug 2011 14:28:22 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 3/4] v4l: emulate old crop API using extended crop/compose API
-In-reply-to: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
-Message-id: <1314793703-32345-4-git-send-email-t.stanislaws@samsung.com>
-References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com>
+	Mon, 22 Aug 2011 11:20:30 -0400
+Subject: Re: [PATCH 14/14] [media] gspca: Use current logging styles
+From: Joe Perches <joe@perches.com>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20110822105003.0002ef3c@tele>
+References: <cover.1313966088.git.joe@perches.com>
+	 <9927bff9b5f212dcbe867a9f882e53ed80bd9a0f.1313966090.git.joe@perches.com>
+	 <20110822105003.0002ef3c@tele>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 22 Aug 2011 08:20:28 -0700
+Message-ID: <1314026428.18461.10.camel@Joe-Laptop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch allows new video drivers to work correctly with applications that
-use the old-style crop API.  The old crop ioctl is emulated by using selection
-callbacks.
+On Mon, 2011-08-22 at 10:50 +0200, Jean-Francois Moine wrote:
+> On Sun, 21 Aug 2011 15:56:57 -0700
+> Joe Perches <joe@perches.com> wrote:
+> > Add pr_fmt.
+> > Convert usb style logging macros to pr_<level>.
+> > Remove now unused old usb style logging macros.
+> Hi Joe,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/v4l2-ioctl.c |   86 ++++++++++++++++++++++++++++++++-----
- 1 files changed, 74 insertions(+), 12 deletions(-)
+Hello Jean-Francois.
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 6e02b45..bb99c71 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -1696,11 +1696,29 @@ static long __video_do_ioctl(struct file *file,
- 	{
- 		struct v4l2_crop *p = arg;
- 
--		if (!ops->vidioc_g_crop)
--			break;
--
- 		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
--		ret = ops->vidioc_g_crop(file, fh, p);
-+
-+		if (ops->vidioc_g_crop) {
-+			ret = ops->vidioc_g_crop(file, fh, p);
-+		} else if (ops->vidioc_g_selection) {
-+			/* simulate capture crop using selection api */
-+			struct v4l2_selection s = {
-+				.type = p->type,
-+			};
-+
-+			/* crop means compose for output devices */
-+			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+				s.target = V4L2_SEL_COMPOSE_ACTIVE;
-+			else
-+				s.target = V4L2_SEL_CROP_ACTIVE;
-+
-+			ret = ops->vidioc_g_selection(file, fh, &s);
-+
-+			/* copying results to old structure on success */
-+			if (!ret)
-+				p->c = s.r;
-+		}
-+
- 		if (!ret)
- 			dbgrect(vfd, "", &p->c);
- 		break;
-@@ -1709,11 +1727,26 @@ static long __video_do_ioctl(struct file *file,
- 	{
- 		struct v4l2_crop *p = arg;
- 
--		if (!ops->vidioc_s_crop)
--			break;
- 		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
- 		dbgrect(vfd, "", &p->c);
--		ret = ops->vidioc_s_crop(file, fh, p);
-+
-+		if (ops->vidioc_s_crop) {
-+			ret = ops->vidioc_s_crop(file, fh, p);
-+		} else if (ops->vidioc_s_selection) {
-+			/* simulate capture crop using selection api */
-+			struct v4l2_selection s = {
-+				.type = p->type,
-+				.r = p->c,
-+			};
-+
-+			/* crop means compose for output devices */
-+			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+				s.target = V4L2_SEL_COMPOSE_ACTIVE;
-+			else
-+				s.target = V4L2_SEL_CROP_ACTIVE;
-+
-+			ret = ops->vidioc_s_selection(file, fh, &s);
-+		}
- 		break;
- 	}
- 	case VIDIOC_G_SELECTION:
-@@ -1746,12 +1779,41 @@ static long __video_do_ioctl(struct file *file,
- 	{
- 		struct v4l2_cropcap *p = arg;
- 
--		/*FIXME: Should also show v4l2_fract pixelaspect */
--		if (!ops->vidioc_cropcap)
--			break;
--
- 		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
--		ret = ops->vidioc_cropcap(file, fh, p);
-+		if (ops->vidioc_cropcap) {
-+			ret = ops->vidioc_cropcap(file, fh, p);
-+		} else
-+		if (ops->vidioc_g_selection) {
-+			struct v4l2_selection s = { .type = p->type };
-+
-+			/* obtaining bounds */
-+			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+				s.target = V4L2_SEL_COMPOSE_BOUNDS;
-+			else
-+				s.target = V4L2_SEL_CROP_BOUNDS;
-+
-+			ret = ops->vidioc_g_selection(file, fh, &s);
-+			if (ret)
-+				break;
-+			p->bounds = s.r;
-+
-+			/* obtaining defrect */
-+			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+				s.target = V4L2_SEL_COMPOSE_DEFAULT;
-+			else
-+				s.target = V4L2_SEL_CROP_DEFAULT;
-+
-+			ret = ops->vidioc_g_selection(file, fh, &s);
-+			if (ret)
-+				break;
-+			p->defrect = s.r;
-+
-+			/* setting trivial pixelaspect */
-+			p->pixelaspect.numerator = 1;
-+			p->pixelaspect.denominator = 1;
-+		}
-+
-+		/*FIXME: Should also show v4l2_fract pixelaspect */
- 		if (!ret) {
- 			dbgrect(vfd, "bounds ", &p->bounds);
- 			dbgrect(vfd, "defrect ", &p->defrect);
--- 
-1.7.6
+> Sorry, but I do not see the advantages of your patch.
+
+The primary current advantage is style standardization
+both in code and dmesg output.
+
+Future changes to printk.h will reduce object sizes
+by centralizing the prefix to a singleton and
+emitting it only in pr_<level>.
+
+> For gspca, the source files are bigger, and the only visible change is
+> the display of the real module name instead of the name defined by hand
+> (this change may have been done just in gspca.h).
+
+No, not really. gspca.h is not the first #include
+for all sources.
+
+Using #define pr_fmt before any #include avoids
+possible redefinition of the pr_<level> prefix.
+
+$ grep -rP --include=*.[ch] -l "gspca\.h" drivers/media | \
+	xargs grep -m1 "#\s*include"
+
+> Also, I think that defining 'pr_fmt' in each source file is not a good
+> idea...
+
+That's temporary for another year or so.
+After changes to printk are introduced, all
+of the uses of
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+could/should be removed.
+
+cheers, Joe
+
 
