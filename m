@@ -1,165 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:53678 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754374Ab1H2Ru2 (ORCPT
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:36445 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751393Ab1HWDr1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 13:50:28 -0400
-Date: Mon, 29 Aug 2011 19:50:13 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Vinod Koul <vinod.koul@linux.intel.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Pawel Osciak <pawel@osciak.com>, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 1/2] dmaengine: ipu-idmac: add support for the DMA_PAUSE
- control
-In-Reply-To: <1314631285.1606.154.camel@vkoul-udesk3>
-Message-ID: <Pine.LNX.4.64.1108291948310.5065@axis700.grange>
-References: <1314211292-10414-1-git-send-email-g.liakhovetski@gmx.de>
- <Pine.LNX.4.64.1108251838090.17190@axis700.grange>
- <Pine.LNX.4.64.1108251841300.17190@axis700.grange> <1314631285.1606.154.camel@vkoul-udesk3>
+	Mon, 22 Aug 2011 23:47:27 -0400
+Received: by gwaa12 with SMTP id a12so3487712gwa.19
+        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2011 20:47:27 -0700 (PDT)
+Message-ID: <4E5322C8.6040809@gmail.com>
+Date: Tue, 23 Aug 2011 15:47:20 +1200
+From: CJ <cjpostor@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Michael Jones <michael.jones@matrix-vision.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	javier Martin <javier.martin@vista-silicon.com>,
+	Koen Kooi <koen@beagleboard.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, mch_kot@yahoo.com.cn
+Subject: Re: [beagleboard] Re: [PATCH v7 1/2] Add driver for Aptina (Micron)
+ mt9p031 sensor.
+References: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com> <201108191212.49729.laurent.pinchart@ideasonboard.com> <4E51D739.7010000@gmail.com> <201108221141.40818.laurent.pinchart@ideasonboard.com> <4E522C56.3090605@matrix-vision.de>
+In-Reply-To: <4E522C56.3090605@matrix-vision.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 29 Aug 2011, Vinod Koul wrote:
+Hi Laurent and Michael,
 
-> On Thu, 2011-08-25 at 18:45 +0200, Guennadi Liakhovetski wrote:
-> > To support multi-size buffers in the mx3_camera V4L2 driver we have to be
-> > able to stop DMA on a channel without releasing descriptors and completely
-> > halting the hardware. Use the DMA_PAUSE control to implement this mode.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Acked-by Vinod Koul <vinod.koul@linux.intel.com>
-> 
-> Do you want this to go thru slave-dma or media tree?
+On 22/08/11 22:15, Michael Jones wrote:
+>>>>> I am trying to get the mt9p031 working from nand with a ubifs file
+>>>>> system and I am having a few problems.
+>>>>>
+>>>>> /dev/media0 is not present unless I run:
+>>>>> #mknod /dev/media0 c 251 0
+>>>>> #chown root:video /dev/media0
+>>>>>
+>>>>> #media-ctl -p
+>>>>> Enumerating entities
+>>>>> media_open: Unable to enumerate entities for device /dev/media0
+>>>>> (Inappropriate ioctl for device)
+>>>>>
+>>>>> With the same rig/files it works fine running from EXT4 on an SD card.
+>>>>> Any idea why this does not work on nand with ubifs?
+>>>> Is the OMAP3 ISP driver loaded ? Has it probed the device successfully ?
+>>>> Check the kernel log for OMAP3 ISP-related messages.
+>>> Here is the version running from SD card:
+>>> # dmesg | grep isp
+>>> [    0.265502] omap-iommu omap-iommu.0: isp registered
+>>> [    2.986541] omap3isp omap3isp: Revision 2.0 found
+>>> [    2.991577] omap-iommu omap-iommu.0: isp: version 1.1
+>>> [    2.997406] omap3isp omap3isp: hist: DMA channel = 0
+>>> [    3.006256] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+>>> 21600000 Hz
+>>> [    3.011932] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
+>>>
+>>>   From NAND using UBIFS:
+>>> # dmesg | grep isp
+>>> [    3.457061] omap3isp omap3isp: Revision 2.0 found
+>>> [    3.462036] omap-iommu omap-iommu.0: isp: version 1.1
+>>> [    3.467620] omap3isp omap3isp: hist: DMA channel = 0
+>>> [    3.472564] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+>>> 21600000 Hz
+>>> [    3.478027] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
+>>>
+>>> Seems to be missing:
+>>> omap-iommu omap-iommu.0: isp registered
+>>>
+>>> Is that the issue? Why would this not work when running from NAND?
+> I'm not sure, either, but I had a similar problem before using Laurent's
+> patch below. IIRC, usually udev would create /dev/media0 from a cached
+> list of /dev/*. Later modutils would come along and load the modules in
+> the proper order (iommu, then omap3-isp) and everybody was happy.
+> Occasionally, udev would fail to use the cached version of /dev/, and
+> look through /sys/devices to re-create the devices in /dev/. When media0
+> was found, omap3-isp.ko would be loaded, but iommu had not yet been,
+> presumably because it doesn't have an entry in /sys/devices/. So maybe
+> udev is behaving differently for you on NAND than it did on the card?
+> Either way, as I said, using Laurent's patch below did the job for me.
+>
+> -Michael
+>
+>> I'm not sure why it doesn't work from NAND, but the iommu2 module needs to be
+>> loaded before the omap3-isp module. Alternatively you can compile the iommu2
+>> module in the kernel with
+>>
+>> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+>> index 49a4c75..3c87644 100644
+>> --- a/arch/arm/plat-omap/Kconfig
+>> +++ b/arch/arm/plat-omap/Kconfig
+>> @@ -132,7 +132,7 @@ config OMAP_MBOX_KFIFO_SIZE
+>>   	  module parameter).
+>>
+>>   config OMAP_IOMMU
+>> -       tristate
+>> +       bool
+>>
+>>   config OMAP_IOMMU_DEBUG
+>>          tristate "Export OMAP IOMMU internals in DebugFS"
 
-With your above ack I can pull it together with the final form of patch 
-2/2, when it's ready, via media tree. 
+Thanks for the help!
 
-Thanks
-Guennadi
+For some reason dmesg does not read early kernel stuff when in UBIFS 
+from NAND.
+So when I went back and had a look the line I thought was not there is 
+actually included.
 
-> 
-> -- 
-> ~Vinod
-> > ---
-> >  drivers/dma/ipu/ipu_idmac.c |   65 +++++++++++++++++++++++++++---------------
-> >  1 files changed, 42 insertions(+), 23 deletions(-)
-> > 
-> > diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
-> > index c1a125e..42cdf1c 100644
-> > --- a/drivers/dma/ipu/ipu_idmac.c
-> > +++ b/drivers/dma/ipu/ipu_idmac.c
-> > @@ -1306,6 +1306,7 @@ static irqreturn_t idmac_interrupt(int irq, void *dev_id)
-> >  	    ipu_submit_buffer(ichan, descnew, sgnew, ichan->active_buffer) < 0) {
-> >  		callback = descnew->txd.callback;
-> >  		callback_param = descnew->txd.callback_param;
-> > +		list_del_init(&descnew->list);
-> >  		spin_unlock(&ichan->lock);
-> >  		if (callback)
-> >  			callback(callback_param);
-> > @@ -1427,39 +1428,58 @@ static int __idmac_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
-> >  {
-> >  	struct idmac_channel *ichan = to_idmac_chan(chan);
-> >  	struct idmac *idmac = to_idmac(chan->device);
-> > +	struct ipu *ipu = to_ipu(idmac);
-> > +	struct list_head *list, *tmp;
-> >  	unsigned long flags;
-> >  	int i;
-> >  
-> > -	/* Only supports DMA_TERMINATE_ALL */
-> > -	if (cmd != DMA_TERMINATE_ALL)
-> > -		return -ENXIO;
-> > +	switch (cmd) {
-> > +	case DMA_PAUSE:
-> > +		spin_lock_irqsave(&ipu->lock, flags);
-> > +		ipu_ic_disable_task(ipu, chan->chan_id);
-> >  
-> > -	ipu_disable_channel(idmac, ichan,
-> > -			    ichan->status >= IPU_CHANNEL_ENABLED);
-> > +		/* Return all descriptors into "prepared" state */
-> > +		list_for_each_safe(list, tmp, &ichan->queue)
-> > +			list_del_init(list);
-> >  
-> > -	tasklet_disable(&to_ipu(idmac)->tasklet);
-> > +		ichan->sg[0] = NULL;
-> > +		ichan->sg[1] = NULL;
-> >  
-> > -	/* ichan->queue is modified in ISR, have to spinlock */
-> > -	spin_lock_irqsave(&ichan->lock, flags);
-> > -	list_splice_init(&ichan->queue, &ichan->free_list);
-> > +		spin_unlock_irqrestore(&ipu->lock, flags);
-> >  
-> > -	if (ichan->desc)
-> > -		for (i = 0; i < ichan->n_tx_desc; i++) {
-> > -			struct idmac_tx_desc *desc = ichan->desc + i;
-> > -			if (list_empty(&desc->list))
-> > -				/* Descriptor was prepared, but not submitted */
-> > -				list_add(&desc->list, &ichan->free_list);
-> > +		ichan->status = IPU_CHANNEL_INITIALIZED;
-> > +		break;
-> > +	case DMA_TERMINATE_ALL:
-> > +		ipu_disable_channel(idmac, ichan,
-> > +				    ichan->status >= IPU_CHANNEL_ENABLED);
-> >  
-> > -			async_tx_clear_ack(&desc->txd);
-> > -		}
-> > +		tasklet_disable(&ipu->tasklet);
-> >  
-> > -	ichan->sg[0] = NULL;
-> > -	ichan->sg[1] = NULL;
-> > -	spin_unlock_irqrestore(&ichan->lock, flags);
-> > +		/* ichan->queue is modified in ISR, have to spinlock */
-> > +		spin_lock_irqsave(&ichan->lock, flags);
-> > +		list_splice_init(&ichan->queue, &ichan->free_list);
-> >  
-> > -	tasklet_enable(&to_ipu(idmac)->tasklet);
-> > +		if (ichan->desc)
-> > +			for (i = 0; i < ichan->n_tx_desc; i++) {
-> > +				struct idmac_tx_desc *desc = ichan->desc + i;
-> > +				if (list_empty(&desc->list))
-> > +					/* Descriptor was prepared, but not submitted */
-> > +					list_add(&desc->list, &ichan->free_list);
-> >  
-> > -	ichan->status = IPU_CHANNEL_INITIALIZED;
-> > +				async_tx_clear_ack(&desc->txd);
-> > +			}
-> > +
-> > +		ichan->sg[0] = NULL;
-> > +		ichan->sg[1] = NULL;
-> > +		spin_unlock_irqrestore(&ichan->lock, flags);
-> > +
-> > +		tasklet_enable(&ipu->tasklet);
-> > +
-> > +		ichan->status = IPU_CHANNEL_INITIALIZED;
-> > +		break;
-> > +	default:
-> > +		return -ENOSYS;
-> > +	}
-> >  
-> >  	return 0;
-> >  }
-> > @@ -1662,7 +1682,6 @@ static void __exit ipu_idmac_exit(struct ipu *ipu)
-> >  		struct idmac_channel *ichan = ipu->channel + i;
-> >  
-> >  		idmac_control(&ichan->dma_chan, DMA_TERMINATE_ALL, 0);
-> > -		idmac_prep_slave_sg(&ichan->dma_chan, NULL, 0, DMA_NONE, 0);
-> >  	}
-> >  
-> >  	dma_async_device_unregister(&idmac->dma);
-> 
-> 
-> 
+[    0.276977] omap-iommu omap-iommu.0: isp registered
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+So I guess everything is loading fine.
+
+I tried the patch and it didn't make a difference.
+
+Regarding what Michael said /dev/media0 is not created by udev when boot 
+from NAND.
+I tried creating it manually with:
+#mknod /dev/media0 c 251 0
+#chown root:video /dev/media0
+
+But this does not work - outputs:
+
+# media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP 
+CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP 
+resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+media_open: Unable to enumerate entities for device /dev/media0 
+(Inappropriate ioctl for device)
+
+So is there a problem with udev?
+
+Cheers,
+Chris
