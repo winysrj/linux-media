@@ -1,53 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm4-vm1.bullet.mail.ne1.yahoo.com ([98.138.91.44]:25903 "HELO
-	nm4-vm1.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751433Ab1HZLbt convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Aug 2011 07:31:49 -0400
-Message-ID: <1314358307.50448.YahooMailClassic@web121706.mail.ne1.yahoo.com>
-Date: Fri, 26 Aug 2011 04:31:47 -0700 (PDT)
-From: Chris Rankin <rankincj@yahoo.com>
-Subject: Re: Is DVB ioctl FE_SET_FRONTEND broken?
-To: Andreas Oberritter <obi@linuxtv.org>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <4E576C3B.9070204@linuxtv.org>
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:56748 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751384Ab1HWNyO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Aug 2011 09:54:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: More vb2 notes
+Date: Tue, 23 Aug 2011 15:54:12 +0200
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	"'Pawel Osciak'" <pawel@osciak.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108231554.12786.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---- On Fri, 26/8/11, Andreas Oberritter <obi@linuxtv.org> wrote:
-> I first thought that you were talking about a
-> regression in Linux 3.0.x.
+Hi all,
 
-Heh, yes and no. I am talking about a regression that I am definitely seeing in 3.0.x. However, I cannot say which kernel the problem first appeared in.
+I've been converting a Cisco internal driver to vb2 and while doing that I
+found a few issues.
 
-> This initial event with status=0 exists since 2002. It's
-> used to notify a new tuning operation to the event listener.
-> 
-> http://www.linuxtv.org/cgi-bin/viewvc.cgi/DVB/driver/dvb_frontend.c?revision=1.6.2.30&view=markup
+1) I noticed that struct vb2_buffer doesn't have a list_head that the driver
+can use to hook it in its dma queue. That forces you to make your own
+buffer struct just to have your own list_head.
 
-OK, that's different. I've only noticed this regression because xine has started having trouble using a brand new DVB adapter. Debugging the problem has shown that the first event received after a FE_SET_FRONTEND ioctl() has frequency == 0, which is considered an error.
+I think vb2_buffer should either get a driver_entry or the 'done_entry' field
+can be assigned for driver use (since a buffer can't be owned by the driver
+and be on the done list at the same time). I abused 'done_entry' for now.
 
-Reading the documentation for FE_SET_FRONTEND lead me to believe that it would send only a single event once tuning had completed, which is not what the code does.
- 
-> It's not my code and my patch doesn't create any new event.
+2) videobuf2-dma-sg.c no longer calls dma_(un)map_sg()! The old
+videobuf-dma-sg.c did that for you. Is there any reason for this change?
+I had to manually add it to my driver.
 
-Those patches don't, no. I was assuming that you were patching code that you had patched earlier. My bad, it seems.
+3) videobuf2-core.c uses this in __fill_v4l2_buffer:
 
-> Your example code can't work. You need to call FE_GET_EVENT
-> or FE_READ_STATUS.
+        if (vb->num_planes_mapped == vb->num_planes)
+                b->flags |= V4L2_BUF_FLAG_MAPPED;
 
-And that's why I only called it "pseudocode" :-).
- 
-> > So I'm going to say "No", your patches don't restore the old behaviour.
-> 
-> Yes. The patch is restoring a different old behaviour. The
-> behaviour you're referring to has never been in the kernel. ;-)
+However, I see no code that ever decreases num_planes_mapped. And I also 
+wonder what happens if vb2_mmap is called multiple times: num_planes_mapped
+will be increased so vb->num_planes_mapped > vb->num_planes and the MAPPED
+flag is no longer set.
 
-Yikes! Documentation bug, anyone?
+This is a particular problem with libv4l2 since that tests for the MAPPED
+flag and will refuse e.g. format changes if it is set.
 
-Cheers,
-Chris
+4) It is not clear to me when vb2_queue_release should be called. Is it in 
+close() when you close a filehandle that was used for streaming?
 
+Regards,
+
+	Hans
