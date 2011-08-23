@@ -1,50 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:63115 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752956Ab1HCVHA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Aug 2011 17:07:00 -0400
-Received: by wyf22 with SMTP id 22so116329wyf.19
-        for <linux-media@vger.kernel.org>; Wed, 03 Aug 2011 14:06:59 -0700 (PDT)
-Message-ID: <4E39B86C.3040003@grawet.be>
-Date: Wed, 03 Aug 2011 23:06:52 +0200
-From: Laurent Grawet <laurent.grawet@gmail.com>
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:37242 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752730Ab1HWVtj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Aug 2011 17:49:39 -0400
+Date: Tue, 23 Aug 2011 14:44:21 -0700
+From: Greg KH <greg@kroah.com>
+To: "Leonid V. Fedorenchik" <leonidsbox@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Palash Bandyopadhyay <Palash.Bandyopadhyay@conexant.com>,
+	Ruslan Pisarev <ruslan@rpisarev.org.ua>,
+	Ilya Gorskin <Revent82@gmail.com>,
+	Joe Perches <joe@perches.com>, Arnd Bergmann <arnd@arndb.de>,
+	linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] Staging: cx25821: fix coding style issues
+Message-ID: <20110823214421.GF3679@kroah.com>
+References: <1312275798-9669-1-git-send-email-leonidsbox@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Bug: Kernel oops with Kopete due to DVB device
-References: <4E38520F.4070809@grawet.be>
-In-Reply-To: <4E38520F.4070809@grawet.be>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1312275798-9669-1-git-send-email-leonidsbox@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/08/11 21:37, Laurent Grawet wrote:
-> Bug initially submitted to https://bugs.kde.org/show_bug.cgi?id=279202
->
-> Hello,
->
-> Kopete crash and kernel oopses when opening "Settings -> Configure" dialog
-> due to presence of DVB-S PCI card (av7110) as /dev/video0. This happens 
-> everytime I try to configure Kopete in presence of my DVB PCI card. 
-> (see attachment)
->
-> Reproducible: Always
->
-> Steps to Reproduce:
-> Own a DVB card and try to configure Kopete.
->
-> Actual Results:  
-> Kopete crash and Kernel oopses.
->
-> Expected Results:  
-> Configure dialog opening.
+On Tue, Aug 02, 2011 at 05:03:18PM +0800, Leonid V. Fedorenchik wrote:
+> Fix too long lines in cx25821-audio.h
+> Fix wrong brace placement in cx25821-cards.c, cx25821-core.c,
+> and cx25821-i2c.c
+> Use DEFINE_PCI_DEVICE_TABLE for cx25821_pci_tbl.
+> Move EXPORT_SYMBOL(cx25821_set_gpiopin_direction) to the right place.
+> Delete file cx25821-gpio.h since it is not used.
+> Get rid of typedef in cx25821.h.
 
-Cheese gnome app also get into trouble. No kernel oops but the machine
-get unresponsive and quickly begins to swap like hell until I kill
-cheese. I don't have this problem when I plug my USB uvc webcam.
-Probably because this is the first device picked up by kopete or cheese.
-But as soon I try to configure the DVB device in kopete, kernel oops...
+I prefer to get patches in a "one patch per thing you did" format.
 
-Thanks for helping,
+So, care to split this up into a number of smaller patches, all doing
+the individual thing you list above?
 
-Laurent
+Yes, it's going to be a bunch of small patches, but then they will be
+"obviously" correct and trivial to review and apply.
+
+thanks,
+
+greg k-h
