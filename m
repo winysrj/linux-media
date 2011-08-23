@@ -1,191 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60204 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753946Ab1HaLRz (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3032 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751595Ab1HWGb5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 07:17:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-fbdev@vger.kernel.org
-Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com
-Subject: [PATCH v3 2/3] v4l: Add V4L2_PIX_FMT_NV24 and V4L2_PIX_FMT_NV42 formats
-Date: Wed, 31 Aug 2011 13:18:20 +0200
-Message-Id: <1314789501-824-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1314789501-824-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1314789501-824-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 23 Aug 2011 02:31:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer management
+Date: Tue, 23 Aug 2011 08:31:41 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange> <201108221752.12950.hverkuil@xs4all.nl> <201108221921.18864.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201108221921.18864.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108230831.41332.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-NV24 and NV42 are planar YCbCr 4:4:4 and YCrCb 4:4:4 formats with a
-luma plane followed by an interleaved chroma plane.
+On Monday, August 22, 2011 19:21:18 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Monday 22 August 2011 17:52:12 Hans Verkuil wrote:
+> > On Monday, August 22, 2011 17:42:36 Laurent Pinchart wrote:
+> > > On Monday 22 August 2011 15:54:03 Guennadi Liakhovetski wrote:
+> > > > We discussed a bit more with Hans on IRC, and below is my attempt of a
+> > > > summary. Hans, please, correct me, if I misunderstood anything. Pawel,
+> > > > Sakari, Laurent: please, reply, whether you're ok with this.
+> > > 
+> > > Sakari is on holidays this week.
+> > > 
+> > > > On Mon, 22 Aug 2011, Hans Verkuil wrote:
+> > > > > On Monday, August 22, 2011 12:40:25 Guennadi Liakhovetski wrote:
+> > > > [snip]
+> > > > 
+> > > > > > It would be good if you also could have a look at my reply to this
+> > > > > > Pawel's mail:
+> > > > > > 
+> > > > > > http://article.gmane.org/gmane.linux.drivers.video-input-
+> > > > > 
+> > > > > infrastructure/36905
+> > > > > 
+> > > > > > and, specifically, at the vb2_parse_planes() function in it. That's
+> > > > > > my understanding of what would be needed, if we preserve
+> > > > > > .queue_setup() and use your last suggestion to include struct
+> > > > > > v4l2_format in struct v4l2_create_buffers.
+> > > > > 
+> > > > > vb2_parse_planes can be useful as a utility function that 'normal'
+> > > > > drivers can call from the queue_setup. But vb2 should not parse the
+> > > > > format directly, it should just pass it on to the driver through the
+> > > > > queue_setup function.
+> > > > > 
+> > > > > You also mention: "All frame-format fields like fourcc code, width,
+> > > > > height, colorspace are only input from the user. If the user didn't
+> > > > > fill them in, they should not be used."
+> > > > > 
+> > > > > I disagree with that. The user should fill in a full format
+> > > > > description, just as with S/TRY_FMT. That's the information that the
+> > > > > driver will use to set up the buffers. It could have weird rules
+> > > > > like: if the fourcc is this, and the size is less than that, then we
+> > > > > can allocate in this memory bank.
+> > > > > 
+> > > > > It is also consistent with REQBUFS: there too the driver uses a full
+> > > > > format (i.e. the last set format).
+> > > > > 
+> > > > > I would modify queue_setup to something like this:
+> > > > > 
+> > > > > int (*queue_setup)(struct vb2_queue *q, struct v4l2_format *fmt,
+> > > > > 
+> > > > >                      unsigned int *num_buffers,
+> > > > >                      unsigned int *num_planes, unsigned int sizes[],
+> > > > >                      void *alloc_ctxs[]);
+> > > > > 
+> > > > > Whether fmt is left to NULL in the reqbufs case, or whether the
+> > > > > driver has to call g_fmt first before calling vb2 is something that
+> > > > > could be decided by what is easiest to implement.
+> > > > 
+> > > > 1. VIDIOC_CREATE_BUFS passes struct v4l2_create_buffers from the user
+> > > > to
+> > > > 
+> > > >    the kernel, in which struct v4l2_format is embedded. The user _must_
+> > > >    fill in .type member of struct v4l2_format. For .type ==
+> > > >    V4L2_BUF_TYPE_VIDEO_CAPTURE or V4L2_BUF_TYPE_VIDEO_OUTPUT .fmt.pix
+> > > >    is used, for .type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE or
+> > > >    V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE .fmt.pix_mp is used. In both these
+> > > >    cases the user _must_ fill in .width, .height, .pixelformat, .field,
+> > > >    .colorspace by possibly calling VIDIOC_G_FMT or VIDIOC_TRY_FMT. The
+> > > >    user also _may_ optionally fill in any further buffer-size related
+> > > >    fields, if it believes to have any special requirements to them. On
+> > > >    a successful return from the ioctl() .count and .index fields are
+> > > >    filled in by the kernel, .format stays unchanged. The user has to
+> > > >    call VIDIOC_QUERYBUF to retrieve specific buffer information.
+> > > > 
+> > > > 2. Videobuf2 drivers, that implement .vidioc_create_bufs() operation,
+> > > > call
+> > > > 
+> > > >    vb2_create_bufs() with a pointer to struct v4l2_create_buffers as a
+> > > >    second argument. vb2_create_bufs() in turn calls the .queue_setup()
+> > > > 
+> > > >    driver callback, whose prototype is modified as follows:
+> > > > int (*queue_setup)(struct vb2_queue *q, const struct v4l2_format *fmt,
+> > > > 
+> > > > 			unsigned int *num_buffers,
+> > > > 			unsigned int *num_planes, unsigned int sizes[],
+> > > > 			void *alloc_ctxs[]);
+> > > > 			
+> > > >    with &create->format as a second argument. As pointed out above,
+> > > >    this struct is not modified by V4L, instead, the usual arguments
+> > > >    3-6 are filled in by the driver, which are then used by
+> > > >    vb2_create_bufs() to call __vb2_queue_alloc().
+> > > > 
+> > > > 3. vb2_reqbufs() shall call .queue_setup() with fmt == NULL, which will
+> > > > be
+> > > > 
+> > > >    a signal to the driver to use the current format.
+> > > > 
+> > > > 4. We keep .queue_setup(), because its removal would inevitably push a
+> > > > 
+> > > >    part of the common code from vb2_reqbufs() and vb2_create_bufs()
+> > > >    down into drivers, thus creating code redundancy and increasing its
+> > > >    complexity.
+> > > 
+> > > How much common code would be pushed down to drivers ? I don't think this
+> > > is a real issue. I like Pawel's proposal of removing .queue_setup()
+> > > better.
+> > 
+> > I still don't see what removing queue_setup will solve or improve.
+> 
+> It will remove handling of the format in vb2 (even if it's a pass-through 
+> operation). I think it would be cleaner that way. It will also avoid going 
+> back and forth between drivers and vb2, which would improve code readability.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/DocBook/media/v4l/pixfmt-nv24.xml |  129 +++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml      |    1 +
- include/linux/videodev2.h                       |    2 +
- 3 files changed, 132 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+I very much doubt it will be more readable or cleaner. For one thing it is
+inconsistent with the other ioctl ops where you just call a vb2 function to
+handle it. Suddenly here you have to do lots of things to make it work.
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv24.xml b/Documentation/DocBook/media/v4l/pixfmt-nv24.xml
-new file mode 100644
-index 0000000..939c803
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-nv24.xml
-@@ -0,0 +1,129 @@
-+    <refentry>
-+      <refmeta>
-+	<refentrytitle>V4L2_PIX_FMT_NV24 ('NV24'), V4L2_PIX_FMT_NV42 ('NV42')</refentrytitle>
-+	&manvol;
-+      </refmeta>
-+      <refnamediv>
-+	<refname id="V4L2-PIX-FMT-NV24"><constant>V4L2_PIX_FMT_NV24</constant></refname>
-+	<refname id="V4L2-PIX-FMT-NV42"><constant>V4L2_PIX_FMT_NV42</constant></refname>
-+	<refpurpose>Formats with full horizontal and vertical
-+chroma resolutions, also known as YUV 4:4:4. One luminance and one
-+chrominance plane with alternating chroma samples as opposed to
-+<constant>V4L2_PIX_FMT_YVU420</constant></refpurpose>
-+      </refnamediv>
-+      <refsect1>
-+	<title>Description</title>
-+
-+	<para>These are two-plane versions of the YUV 4:4:4 format. The three
-+	components are separated into two sub-images or planes. The Y plane is
-+	first, with each Y sample stored in one byte per pixel. For
-+	<constant>V4L2_PIX_FMT_NV24</constant>, a combined CbCr plane
-+	immediately follows the Y plane in memory. The CbCr plane has the same
-+	width and height, in pixels, as the Y plane (and the image). Each line
-+	contains one CbCr pair per pixel, with each Cb and Cr sample stored in
-+	one byte. <constant>V4L2_PIX_FMT_NV42</constant> is the same except that
-+	the Cb and Cr samples are swapped, the CrCb plane starts with a Cr
-+	sample.</para>
-+
-+	<para>If the Y plane has pad bytes after each row, then the CbCr plane
-+	has twice as many pad bytes after its rows.</para>
-+
-+	<example>
-+	  <title><constant>V4L2_PIX_FMT_NV24</constant> 4 &times; 4
-+pixel image</title>
-+
-+	  <formalpara>
-+	    <title>Byte Order.</title>
-+	    <para>Each cell is one byte.
-+		<informaltable frame="none">
-+		<tgroup cols="9" align="center">
-+		  <colspec align="left" colwidth="2*" />
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry>start&nbsp;+&nbsp;0:</entry>
-+		      <entry>Y'<subscript>00</subscript></entry>
-+		      <entry>Y'<subscript>01</subscript></entry>
-+		      <entry>Y'<subscript>02</subscript></entry>
-+		      <entry>Y'<subscript>03</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start&nbsp;+&nbsp;4:</entry>
-+		      <entry>Y'<subscript>10</subscript></entry>
-+		      <entry>Y'<subscript>11</subscript></entry>
-+		      <entry>Y'<subscript>12</subscript></entry>
-+		      <entry>Y'<subscript>13</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start&nbsp;+&nbsp;8:</entry>
-+		      <entry>Y'<subscript>20</subscript></entry>
-+		      <entry>Y'<subscript>21</subscript></entry>
-+		      <entry>Y'<subscript>22</subscript></entry>
-+		      <entry>Y'<subscript>23</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start&nbsp;+&nbsp;12:</entry>
-+		      <entry>Y'<subscript>30</subscript></entry>
-+		      <entry>Y'<subscript>31</subscript></entry>
-+		      <entry>Y'<subscript>32</subscript></entry>
-+		      <entry>Y'<subscript>33</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start&nbsp;+&nbsp;16:</entry>
-+		      <entry>Cb<subscript>00</subscript></entry>
-+		      <entry>Cr<subscript>00</subscript></entry>
-+		      <entry>Cb<subscript>01</subscript></entry>
-+		      <entry>Cr<subscript>01</subscript></entry>
-+		      <entry>Cb<subscript>02</subscript></entry>
-+		      <entry>Cr<subscript>02</subscript></entry>
-+		      <entry>Cb<subscript>03</subscript></entry>
-+		      <entry>Cr<subscript>03</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start&nbsp;+&nbsp;24:</entry>
-+		      <entry>Cb<subscript>10</subscript></entry>
-+		      <entry>Cr<subscript>10</subscript></entry>
-+		      <entry>Cb<subscript>11</subscript></entry>
-+		      <entry>Cr<subscript>11</subscript></entry>
-+		      <entry>Cb<subscript>12</subscript></entry>
-+		      <entry>Cr<subscript>12</subscript></entry>
-+		      <entry>Cb<subscript>13</subscript></entry>
-+		      <entry>Cr<subscript>13</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start&nbsp;+&nbsp;32:</entry>
-+		      <entry>Cb<subscript>20</subscript></entry>
-+		      <entry>Cr<subscript>20</subscript></entry>
-+		      <entry>Cb<subscript>21</subscript></entry>
-+		      <entry>Cr<subscript>21</subscript></entry>
-+		      <entry>Cb<subscript>22</subscript></entry>
-+		      <entry>Cr<subscript>22</subscript></entry>
-+		      <entry>Cb<subscript>23</subscript></entry>
-+		      <entry>Cr<subscript>23</subscript></entry>
-+		    </row>
-+		    <row>
-+		      <entry>start&nbsp;+&nbsp;40:</entry>
-+		      <entry>Cb<subscript>30</subscript></entry>
-+		      <entry>Cr<subscript>30</subscript></entry>
-+		      <entry>Cb<subscript>31</subscript></entry>
-+		      <entry>Cr<subscript>31</subscript></entry>
-+		      <entry>Cb<subscript>32</subscript></entry>
-+		      <entry>Cr<subscript>32</subscript></entry>
-+		      <entry>Cb<subscript>33</subscript></entry>
-+		      <entry>Cr<subscript>33</subscript></entry>
-+		    </row>
-+		  </tbody>
-+		</tgroup>
-+		</informaltable>
-+	      </para>
-+	  </formalpara>
-+	</example>
-+      </refsect1>
-+    </refentry>
-+
-+  <!--
-+Local Variables:
-+mode: sgml
-+sgml-parent-document: "pixfmt.sgml"
-+indent-tabs-mode: nil
-+End:
-+  -->
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 2ff6b77..aef4615 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -714,6 +714,7 @@ information.</para>
-     &sub-nv12m;
-     &sub-nv12mt;
-     &sub-nv16;
-+    &sub-nv24;
-     &sub-m420;
-   </section>
- 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index fca24cc..8225163 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -343,6 +343,8 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V', '2', '1') /* 12  Y/CrCb 4:2:0  */
- #define V4L2_PIX_FMT_NV16    v4l2_fourcc('N', 'V', '1', '6') /* 16  Y/CbCr 4:2:2  */
- #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
-+#define V4L2_PIX_FMT_NV24    v4l2_fourcc('N', 'V', '2', '4') /* 24  Y/CbCr 4:4:4  */
-+#define V4L2_PIX_FMT_NV42    v4l2_fourcc('N', 'V', '4', '2') /* 24  Y/CrCb 4:4:4  */
- 
- /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
- #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
--- 
-1.7.3.4
+> > I'd say leave it as it is to keep the diff as small as possible and someone
+> > can always attempt to remove it later. Removing queue_setup is independent
+> > from multi-size videobuffer management and we should not mix the two.
+> 
+> Guennadi's patch will (at least in my opinion) be cleaner if built on top of 
+> queue_setup() removal.
 
+Really? Just adding a single v4l2_format pointer is less clean than removing
+queue_setup? That would really surprise me.
+
+Anyway, let Guennadi choose what is easiest. It's an implementation detail in
+the end and I just want to get this functionality in.
+
+Regards,
+
+	Hans
