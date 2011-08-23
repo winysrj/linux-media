@@ -1,59 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2684 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755700Ab1HaNj2 (ORCPT
+Received: from mail-iy0-f170.google.com ([209.85.210.170]:60267 "EHLO
+	mail-iy0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754605Ab1HWA7V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 09:39:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 3/6] V4L menu: remove the EXPERIMENTAL tag from vino and c-qcam.
-Date: Wed, 31 Aug 2011 15:38:42 +0200
-Message-Id: <76dc3bcfdd0ba0d4320f673b3ba36a8df8845c07.1314797675.git.hans.verkuil@cisco.com>
-In-Reply-To: <1314797925-8113-1-git-send-email-hverkuil@xs4all.nl>
-References: <1314797925-8113-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <b5c71c4b9e2f88bd5698a9920b24d24786e4a28c.1314797675.git.hans.verkuil@cisco.com>
-References: <b5c71c4b9e2f88bd5698a9920b24d24786e4a28c.1314797675.git.hans.verkuil@cisco.com>
+	Mon, 22 Aug 2011 20:59:21 -0400
+Received: by iye16 with SMTP id 16so11183629iye.1
+        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2011 17:59:20 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAL9G6WUFddsFM2V46xXCDWEfhfCR0n5G-8S4JSYwLLkmZnYu7g@mail.gmail.com>
+References: <CAATJ+fu5JqVmyY=zJn_CM_Eusst_YWKG2B2MAuu5fqELYYsYqA@mail.gmail.com>
+	<CAATJ+ft9HNqLA62ZZkkEP6EswXC1Jhq=FBcXU+OHCkXTKpqeUA@mail.gmail.com>
+	<1313949634.2874.13.camel@localhost>
+	<CAATJ+fv6x6p5kimJs4unWGQ_PU36hp29Rafu8BDCcRAABtAfgQ@mail.gmail.com>
+	<CAL9G6WUFddsFM2V46xXCDWEfhfCR0n5G-8S4JSYwLLkmZnYu7g@mail.gmail.com>
+Date: Tue, 23 Aug 2011 10:59:20 +1000
+Message-ID: <CAATJ+fsUWPjh5aq38triZOu0-DmU=nCbd77qUzxUn5kiDiaR+w@mail.gmail.com>
+Subject: Re: Afatech AF9013
+From: Jason Hecker <jwhecker@gmail.com>
+To: Josu Lazkano <josu.lazkano@gmail.com>
+Cc: Malcolm Priestley <tvboxspy@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+I might have found one bug so far with the Afa9013 driver.
 
-These are really, really old drivers. These are really no longer experimental...
+As part of refactoring the code in
+http://git.linuxtv.org/linux-2.6.git/commitdiff/edb709b61abd3ba475e59d1ad81aab21ad025db6
+I think one of the u32->u8 calculations is wrong.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+The think the second last u32 in the tables has to be changed. Here is
+the diff.  I will try it later as I have run out of time to test it
+this morning.  This may not fix the problems we are having but it
+might help...  So patch the file af9013_priv.h with this in the latest
+git media_build and see what happens.  I'll report back later with my
+results.
+
+af9013_priv.h.diff
+
+<snip>------------------------------
+
+74c74
+<               0x29, 0x03, 0x5d, 0x7a, 0xec, 0x01, 0x45, 0x14, 0x14 } },
 ---
- drivers/media/video/Kconfig |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 815700b..8a16a69 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -656,8 +656,8 @@ source "drivers/media/video/omap/Kconfig"
- source "drivers/media/video/bt8xx/Kconfig"
- 
- config VIDEO_VINO
--	tristate "SGI Vino Video For Linux (EXPERIMENTAL)"
--	depends on I2C && SGI_IP22 && EXPERIMENTAL && VIDEO_V4L2
-+	tristate "SGI Vino Video For Linux"
-+	depends on I2C && SGI_IP22 && VIDEO_V4L2
- 	select VIDEO_SAA7191 if VIDEO_HELPER_CHIPS_AUTO
- 	help
- 	  Say Y here to build in support for the Vino video input system found
-@@ -1001,8 +1001,8 @@ config VIDEO_BWQCAM
- 	  module will be called bw-qcam.
- 
- config VIDEO_CQCAM
--	tristate "QuickCam Colour Video For Linux (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && PARPORT && VIDEO_V4L2
-+	tristate "QuickCam Colour Video For Linux"
-+	depends on PARPORT && VIDEO_V4L2
- 	help
- 	  This is the video4linux driver for the colour version of the
- 	  Connectix QuickCam.  If you have one of these cameras, say Y here,
--- 
-1.7.5.4
-
+>               0x29, 0x00, 0xa2, 0x85, 0x14, 0x01, 0x45, 0x14, 0x14 } },
+77c77
+<               0xe4, 0x03, 0x71, 0xcb, 0xe8, 0x01, 0x1c, 0x71, 0x32 } },
+---
+>               0xe4, 0x00, 0x8e, 0x34, 0x72, 0x01, 0x1c, 0x71, 0x32 } },
+80c80
+<               0x9e, 0x03, 0x86, 0x1c, 0x31, 0x00, 0xf3, 0xcf, 0x0f } },
+---
+>               0x9e, 0x00, 0x79, 0xe3, 0xcf, 0x00, 0xf3, 0xcf, 0x0f } },
+84c84
+<               0x49, 0x03, 0x1b, 0x74, 0xdb, 0x01, 0xc9, 0x24, 0x25 } },
+---
+>               0x49, 0x00, 0xe4, 0x8b, 0x25, 0x01, 0xc9, 0x24, 0x25 } },
+87c87
+<               0x00, 0x03, 0x38, 0x06, 0x40, 0x01, 0x90, 0x00, 0x00 } },
+---
+>               0x00, 0x00, 0xc7, 0xf9, 0xc0, 0x01, 0x90, 0x00, 0x00 } },
+90c90
+<               0xb7, 0x03, 0x54, 0x97, 0xa4, 0x01, 0x56, 0xdb, 0x1c } },
+---
+>               0xb7, 0x00, 0xab, 0x68, 0x5c, 0x01, 0x56, 0xdb, 0x1c } },
+94c94
+<               0x05, 0x03, 0x58, 0xd6, 0x34, 0x01, 0x4e, 0x5e, 0x03 } },
+---
+>               0x05, 0x00, 0xa7, 0x29, 0xcc, 0x01, 0x4e, 0x5e, 0x03 } },
+97c97
+<               0x25, 0x03, 0x6d, 0xbb, 0x6e, 0x01, 0x24, 0x92, 0x12 } },
+---
+>               0x25, 0x00, 0x92, 0x44, 0x92, 0x01, 0x24, 0x92, 0x12 } },
+100c100
+<               0x44, 0x03, 0x82, 0xa0, 0xa7, 0x00, 0xfa, 0xc6, 0x22 } },
+---
+>               0x44, 0x00, 0x7d, 0x5f, 0x59, 0x00, 0xfa, 0xc6, 0x22 } },
+104c104
+<               0xe7, 0x03, 0x44, 0xc6, 0xf3, 0x01, 0x76, 0x7d, 0x34 } },
+---
+>               0xe7, 0x00, 0xbb, 0x39, 0x0d, 0x01, 0x76, 0x7d, 0x34 } },
+107c107
+<               0x0a, 0x03, 0x5c, 0x2e, 0x14, 0x01, 0x47, 0xae, 0x05 } },
+---
+>               0x0a, 0x00, 0xa3, 0xd1, 0xec, 0x01, 0x47, 0xae, 0x05 } },
+110c110
+<               0x2d, 0x03, 0x73, 0x95, 0x36, 0x01, 0x18, 0xde, 0x17 } },
+---
+>               0x2d, 0x00, 0x8c, 0x6a, 0xca, 0x01, 0x18, 0xde, 0x17 } },
