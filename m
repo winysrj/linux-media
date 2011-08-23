@@ -1,338 +1,302 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oproxy8-pub.bluehost.com ([69.89.22.20]:47694 "HELO
-	oproxy8-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754404Ab1H2R1l (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2591 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751595Ab1HWGdh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 13:27:41 -0400
-Date: Mon, 29 Aug 2011 10:27:32 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
-To: Luciano Coelho <coelho@ti.com>
-Cc: matti.j.aaltonen@nokia.com, johannes@sipsolutions.net,
-	linux-kernel@vger.kernel.org, sameo@linux.intel.com,
-	mchehab@infradead.org, linux-media@vger.kernel.org
-Subject: Re: Kconfig unmet dependency with RADIO_WL1273
-Message-Id: <20110829102732.03f0f05d.rdunlap@xenotime.net>
-In-Reply-To: <1314637358.2296.395.camel@cumari>
-References: <1314637358.2296.395.camel@cumari>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Tue, 23 Aug 2011 02:33:37 -0400
+To: viro@zeniv.linux.org.uk, Andrew Morton <akpm@linux-foundation.org>
+Subject: Can you review or ack this patch?
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-kernel" <linux-kernel@vger.kernel.org>,
+	"linux-media" <linux-media@vger.kernel.org>,
+	linux-fsdevel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Tue, 23 Aug 2011 08:33:25 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201108230833.25812.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 29 Aug 2011 20:02:38 +0300 Luciano Coelho wrote:
+(and resent again, this time with the correct linux-fsdevel mail address)
+(Resent as requested by Andrew Morton since this is still stuck)
 
-> Hi Matti,
-> 
-> Johannes has just reported a problem in the Kconfig of radio-wl1273.  It
-> seems to select MFD_CORE, but if the platform doesn't support MFD, then
-> MFD_SUPPORT won't be selected and this kind of warning will come out:
-> 
-> warning: (OLPC_XO1_PM && OLPC_XO1_SCI && I2C_ISCH && GPIO_SCH && GPIO_RDC321X && RADIO_WL1273) 
->                 selects MFD_CORE which has unmet direct dependencies (MFD_SUPPORT)
-> 
-> I guess it must depend on MFD_SUPPORT, right? If that's the correct
-> solution, the following patch should fix the problem:
-> 
-> diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-> index 52798a1..e87f544 100644
-> --- a/drivers/media/radio/Kconfig
-> +++ b/drivers/media/radio/Kconfig
-> @@ -425,7 +425,7 @@ config RADIO_TIMBERDALE
->  
->  config RADIO_WL1273
->         tristate "Texas Instruments WL1273 I2C FM Radio"
-> -       depends on I2C && VIDEO_V4L2
-> +       depends on I2C && VIDEO_V4L2 && MFD_SUPPORT
->         select MFD_CORE
->         select MFD_WL1273_CORE
->         select FW_LOADER
-> 
-> The same problem is happening with other drivers too, so maybe there is
-> a better solution to fix all problems at once. ;)
-> 
-> Reported-by: Johannes Berg <johannes@sipsolutions.net>
+Hi Al, Andrew,
 
-Yes, it can depend on MFD_SUPPORT or it can select both
-MFD_SUPPORT and MFD_CORE or we could do what Jean Delvare
-suggested last December and combine the MFD_SUPPORT and MFD_CORE
-symbols, like I2c does.  I did a patch for that but never
-posted it.  It's below, but probably needs a good bit of
-updating since this patch was made in January.
+Can you take a look at this patch and send an Ack or review comments?
 
+It's already been reviewed by Jon Corbet and we really need this functionality
+for v3.1. You were in the CC list in earlier postings:
+
+Here: http://www.spinics.net/lists/linux-fsdevel/msg46753.html
+and here: http://www.mail-archive.com/linux-media@vger.kernel.org/msg34546.html
+
+The patch also featured on LWN: http://lwn.net/Articles/450658/
+
+Without your ack Mauro can't upstream this and we have a number of other
+patches that depend on this and are currently blocked.
+
+We would prefer to upstream this patch through the linux-media git tree
+due to these dependencies.
+
+My git branch containing this and the dependent patches is here:
+
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/poll
+
+Your help would be greatly appreciated (and your ack even more :-) )!
+
+Regards,
+
+	Hans
+
+
+[PATCH] poll: add poll_requested_events() function
+
+In some cases the poll() implementation in a driver has to do different
+things depending on the events the caller wants to poll for. An example is
+when a driver needs to start a DMA engine if the caller polls for POLLIN,
+but doesn't want to do that if POLLIN is not requested but instead only
+POLLOUT or POLLPRI is requested. This is something that can happen in the
+video4linux subsystem.
+
+Unfortunately, the current epoll/poll/select implementation doesn't provide
+that information reliably. The poll_table_struct does have it: it has a key
+field with the event mask. But once a poll() call matches one or more bits
+of that mask any following poll() calls are passed a NULL poll_table_struct
+pointer.
+
+The solution is to set the qproc field to NULL in poll_table_struct once
+poll() matches the events, not the poll_table_struct pointer itself. That
+way drivers can obtain the mask through a new poll_requested_events inline.
+
+The poll_table_struct can still be NULL since some kernel code calls it
+internally (netfs_state_poll() in ./drivers/staging/pohmelfs/netfs.h). In
+that case poll_requested_events() returns ~0 (i.e. all events).
+
+Since eventpoll always leaves the key field at ~0 instead of using the
+requested events mask, that source was changed as well to properly fill in
+the key field.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Jonathan Corbet <corbet@lwn.net>
 ---
-From: Randy Dunlap <rdunlap@xenotime.net>
+ fs/eventpoll.c       |   19 +++++++++++++++----
+ fs/select.c          |   38 +++++++++++++++++---------------------
+ include/linux/poll.h |    7 ++++++-
+ 3 files changed, 38 insertions(+), 26 deletions(-)
 
-Combine MFD_SUPPORT (which only enabled the remainder of the MFD
-menu) and MFD_CORE.  This allows other drivers to select MFD_CORE
-without needing to also select MFD_SUPPORT, which fixes some
-kconfig unmet dependency warnings.  Modeled after I2C kconfig.
-
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
----
- drivers/mfd/Kconfig |   42 ++++--------------------------------------
- 1 file changed, 4 insertions(+), 38 deletions(-)
-
---- lnx-2637-rc5.orig/drivers/mfd/Kconfig
-+++ lnx-2637-rc5/drivers/mfd/Kconfig
-@@ -2,10 +2,9 @@
- # Multifunction miscellaneous devices
- #
+diff --git a/fs/eventpoll.c b/fs/eventpoll.c
+index f9cfd16..6a54a69 100644
+--- a/fs/eventpoll.c
++++ b/fs/eventpoll.c
+@@ -650,9 +650,12 @@ static int ep_read_events_proc(struct eventpoll *ep, struct list_head *head,
+ 			       void *priv)
+ {
+ 	struct epitem *epi, *tmp;
++	poll_table pt;
  
--menuconfig MFD_SUPPORT
--	bool "Multifunction device drivers"
-+menuconfig MFD_CORE
-+	tristate "Multifunction device drivers"
- 	depends on HAS_IOMEM
--	default y
- 	help
- 	  Multifunction devices embed several functions (e.g. GPIOs,
- 	  touchscreens, keyboards, current regulators, power management chips,
-@@ -18,16 +17,11 @@ menuconfig MFD_SUPPORT
++	init_poll_funcptr(&pt, NULL);
+ 	list_for_each_entry_safe(epi, tmp, head, rdllink) {
+-		if (epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
++		pt.key = epi->event.events;
++		if (epi->ffd.file->f_op->poll(epi->ffd.file, &pt) &
+ 		    epi->event.events)
+ 			return POLLIN | POLLRDNORM;
+ 		else {
+@@ -946,6 +949,7 @@ static int ep_insert(struct eventpoll *ep, struct epoll_event *event,
+ 	/* Initialize the poll table using the queue callback */
+ 	epq.epi = epi;
+ 	init_poll_funcptr(&epq.pt, ep_ptable_queue_proc);
++	epq.pt.key = event->events;
  
- 	  This option alone does not add any kernel code.
+ 	/*
+ 	 * Attach the item to the poll hooks and get current event bits.
+@@ -1027,20 +1031,23 @@ static int ep_modify(struct eventpoll *ep, struct epitem *epi, struct epoll_even
+ {
+ 	int pwake = 0;
+ 	unsigned int revents;
++	poll_table pt;
++
++	init_poll_funcptr(&pt, NULL);
  
--if MFD_SUPPORT
--
--config MFD_CORE
--	tristate
--	default n
-+if MFD_CORE
+ 	/*
+ 	 * Set the new event interest mask before calling f_op->poll();
+ 	 * otherwise we might miss an event that happens between the
+ 	 * f_op->poll() call and the new event set registering.
+ 	 */
+-	epi->event.events = event->events;
++	epi->event.events = pt.key = event->events;
+ 	epi->event.data = event->data; /* protected by mtx */
  
- config MFD_88PM860X
- 	bool "Support Marvell 88PM8606/88PM8607"
- 	depends on I2C=y && GENERIC_HARDIRQS
--	select MFD_CORE
- 	help
- 	  This supports for Marvell 88PM8606/88PM8607 Power Management IC.
- 	  This includes the I2C driver and the core APIs _only_, you have to
-@@ -55,7 +49,6 @@ config MFD_SM501_GPIO
- config MFD_ASIC3
- 	bool "Support for Compaq ASIC3"
- 	depends on GENERIC_HARDIRQS && GPIOLIB && ARM
--	select MFD_CORE
- 	 ---help---
- 	  This driver supports the ASIC3 multifunction chip found on many
- 	  PDAs (mainly iPAQ and HTC based ones)
-@@ -63,7 +56,6 @@ config MFD_ASIC3
- config MFD_SH_MOBILE_SDHI
- 	bool "Support for SuperH Mobile SDHI"
- 	depends on SUPERH || ARCH_SHMOBILE
--	select MFD_CORE
- 	select TMIO_MMC_DMA
- 	 ---help---
- 	  This driver supports the SDHI hardware block found in many
-@@ -71,7 +63,6 @@ config MFD_SH_MOBILE_SDHI
+ 	/*
+ 	 * Get current event bits. We can safely use the file* here because
+ 	 * its usage count has been increased by the caller of this function.
+ 	 */
+-	revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL);
++	revents = epi->ffd.file->f_op->poll(epi->ffd.file, &pt);
  
- config MFD_DAVINCI_VOICECODEC
- 	tristate
--	select MFD_CORE
+ 	/*
+ 	 * If the item is "hot" and it is not registered inside the ready
+@@ -1075,6 +1082,9 @@ static int ep_send_events_proc(struct eventpoll *ep, struct list_head *head,
+ 	unsigned int revents;
+ 	struct epitem *epi;
+ 	struct epoll_event __user *uevent;
++	poll_table pt;
++
++	init_poll_funcptr(&pt, NULL);
  
- config MFD_DM355EVM_MSP
- 	bool "DaVinci DM355 EVM microcontroller"
-@@ -91,7 +82,6 @@ config HTC_EGPIO
+ 	/*
+ 	 * We can loop without lock because we are passed a task private list.
+@@ -1087,7 +1097,8 @@ static int ep_send_events_proc(struct eventpoll *ep, struct list_head *head,
  
- config HTC_PASIC3
- 	tristate "HTC PASIC3 LED/DS1WM chip support"
--	select MFD_CORE
- 	help
- 	  This core driver provides register access for the LED/DS1WM
- 	  chips labeled "AIC2" and "AIC3", found on HTC Blueangel and
-@@ -133,7 +123,6 @@ config TPS65010
+ 		list_del_init(&epi->rdllink);
  
- config TPS6507X
- 	tristate "TPS6507x Power Management / Touch Screen chips"
--	select MFD_CORE
- 	depends on I2C
- 	help
- 	  If you say yes here you get support for the TPS6507x series of
-@@ -183,7 +172,6 @@ config TWL4030_POWER
- config TWL4030_CODEC
- 	bool
- 	depends on TWL4030_CORE
--	select MFD_CORE
- 	default n
+-		revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
++		pt.key = epi->event.events;
++		revents = epi->ffd.file->f_op->poll(epi->ffd.file, &pt) &
+ 			epi->event.events;
  
- config TWL6030_PWM
-@@ -198,7 +186,6 @@ config TWL6030_PWM
- config MFD_STMPE
- 	bool "Support STMicroelectronics STMPE"
- 	depends on I2C=y && GENERIC_HARDIRQS
--	select MFD_CORE
- 	help
- 	  Support for the STMPE family of I/O Expanders from
- 	  STMicroelectronics.
-@@ -221,7 +208,6 @@ config MFD_STMPE
- config MFD_TC35892
- 	bool "Support Toshiba TC35892"
- 	depends on I2C=y && GENERIC_HARDIRQS
--	select MFD_CORE
- 	help
- 	  Support for the Toshiba TC35892 I/O Expander.
+ 		/*
+diff --git a/fs/select.c b/fs/select.c
+index d33418f..b6765cf 100644
+--- a/fs/select.c
++++ b/fs/select.c
+@@ -386,13 +386,11 @@ get_max:
+ static inline void wait_key_set(poll_table *wait, unsigned long in,
+ 				unsigned long out, unsigned long bit)
+ {
+-	if (wait) {
+-		wait->key = POLLEX_SET;
+-		if (in & bit)
+-			wait->key |= POLLIN_SET;
+-		if (out & bit)
+-			wait->key |= POLLOUT_SET;
+-	}
++	wait->key = POLLEX_SET;
++	if (in & bit)
++		wait->key |= POLLIN_SET;
++	if (out & bit)
++		wait->key |= POLLOUT_SET;
+ }
  
-@@ -241,7 +227,6 @@ config TMIO_MMC_DMA
- config MFD_T7L66XB
- 	bool "Support Toshiba T7L66XB"
- 	depends on ARM && HAVE_CLK
--	select MFD_CORE
- 	select MFD_TMIO
- 	help
- 	  Support for Toshiba Mobile IO Controller T7L66XB
-@@ -249,7 +234,6 @@ config MFD_T7L66XB
- config MFD_TC6387XB
- 	bool "Support Toshiba TC6387XB"
- 	depends on ARM && HAVE_CLK
--	select MFD_CORE
- 	select MFD_TMIO
- 	help
- 	  Support for Toshiba Mobile IO Controller TC6387XB
-@@ -257,7 +241,6 @@ config MFD_TC6387XB
- config MFD_TC6393XB
- 	bool "Support Toshiba TC6393XB"
- 	depends on GPIOLIB && ARM
--	select MFD_CORE
- 	select MFD_TMIO
- 	help
- 	  Support for Toshiba Mobile IO Controller TC6393XB
-@@ -286,7 +269,6 @@ config PMIC_ADP5520
- config MFD_MAX8925
- 	bool "Maxim Semiconductor MAX8925 PMIC Support"
- 	depends on I2C=y && GENERIC_HARDIRQS
--	select MFD_CORE
- 	help
- 	  Say yes here to support for Maxim Semiconductor MAX8925. This is
- 	  a Power Management IC. This driver provies common support for
-@@ -296,7 +278,6 @@ config MFD_MAX8925
- config MFD_MAX8998
- 	bool "Maxim Semiconductor MAX8998/National LP3974 PMIC Support"
- 	depends on I2C=y && GENERIC_HARDIRQS
--	select MFD_CORE
- 	help
- 	  Say yes here to support for Maxim Semiconductor MAX8998 and
- 	  National Semiconductor LP3974. This is a Power Management IC.
-@@ -306,7 +287,6 @@ config MFD_MAX8998
+ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
+@@ -414,7 +412,7 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
+ 	poll_initwait(&table);
+ 	wait = &table.pt;
+ 	if (end_time && !end_time->tv_sec && !end_time->tv_nsec) {
+-		wait = NULL;
++		wait->qproc = NULL;
+ 		timed_out = 1;
+ 	}
  
- config MFD_WM8400
- 	tristate "Support Wolfson Microelectronics WM8400"
--	select MFD_CORE
- 	depends on I2C
- 	help
- 	  Support for the Wolfson Microelecronics WM8400 PMIC and audio
-@@ -320,7 +300,6 @@ config MFD_WM831X
+@@ -459,17 +457,17 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
+ 					if ((mask & POLLIN_SET) && (in & bit)) {
+ 						res_in |= bit;
+ 						retval++;
+-						wait = NULL;
++						wait->qproc = NULL;
+ 					}
+ 					if ((mask & POLLOUT_SET) && (out & bit)) {
+ 						res_out |= bit;
+ 						retval++;
+-						wait = NULL;
++						wait->qproc = NULL;
+ 					}
+ 					if ((mask & POLLEX_SET) && (ex & bit)) {
+ 						res_ex |= bit;
+ 						retval++;
+-						wait = NULL;
++						wait->qproc = NULL;
+ 					}
+ 				}
+ 			}
+@@ -481,7 +479,7 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
+ 				*rexp = res_ex;
+ 			cond_resched();
+ 		}
+-		wait = NULL;
++		wait->qproc = NULL;
+ 		if (retval || timed_out || signal_pending(current))
+ 			break;
+ 		if (table.error) {
+@@ -720,7 +718,7 @@ struct poll_list {
+  * interested in events matching the pollfd->events mask, and the result
+  * matching that mask is both recorded in pollfd->revents and returned. The
+  * pwait poll_table will be used by the fd-provided poll handler for waiting,
+- * if non-NULL.
++ * if pwait->qproc is non-NULL.
+  */
+ static inline unsigned int do_pollfd(struct pollfd *pollfd, poll_table *pwait)
+ {
+@@ -738,9 +736,7 @@ static inline unsigned int do_pollfd(struct pollfd *pollfd, poll_table *pwait)
+ 		if (file != NULL) {
+ 			mask = DEFAULT_POLLMASK;
+ 			if (file->f_op && file->f_op->poll) {
+-				if (pwait)
+-					pwait->key = pollfd->events |
+-							POLLERR | POLLHUP;
++				pwait->key = pollfd->events | POLLERR | POLLHUP;
+ 				mask = file->f_op->poll(file, pwait);
+ 			}
+ 			/* Mask out unneeded events. */
+@@ -763,7 +759,7 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
  
- config MFD_WM831X_I2C
- 	bool "Support Wolfson Microelectronics WM831x/2x PMICs with I2C"
--	select MFD_CORE
- 	select MFD_WM831X
- 	depends on I2C=y && GENERIC_HARDIRQS
- 	help
-@@ -331,7 +310,6 @@ config MFD_WM831X_I2C
+ 	/* Optimise the no-wait case */
+ 	if (end_time && !end_time->tv_sec && !end_time->tv_nsec) {
+-		pt = NULL;
++		pt->qproc = NULL;
+ 		timed_out = 1;
+ 	}
  
- config MFD_WM831X_SPI
- 	bool "Support Wolfson Microelectronics WM831x/2x PMICs with SPI"
--	select MFD_CORE
- 	select MFD_WM831X
- 	depends on SPI_MASTER && GENERIC_HARDIRQS
- 	help
-@@ -405,7 +383,6 @@ config MFD_WM8350_I2C
+@@ -781,22 +777,22 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
+ 			for (; pfd != pfd_end; pfd++) {
+ 				/*
+ 				 * Fish for events. If we found one, record it
+-				 * and kill the poll_table, so we don't
++				 * and kill poll_table->qproc, so we don't
+ 				 * needlessly register any other waiters after
+ 				 * this. They'll get immediately deregistered
+ 				 * when we break out and return.
+ 				 */
+ 				if (do_pollfd(pfd, pt)) {
+ 					count++;
+-					pt = NULL;
++					pt->qproc = NULL;
+ 				}
+ 			}
+ 		}
+ 		/*
+ 		 * All waiters have already been registered, so don't provide
+-		 * a poll_table to them on the next loop iteration.
++		 * a poll_table->qproc to them on the next loop iteration.
+ 		 */
+-		pt = NULL;
++		pt->qproc = NULL;
+ 		if (!count) {
+ 			count = wait->error;
+ 			if (signal_pending(current))
+diff --git a/include/linux/poll.h b/include/linux/poll.h
+index cf40010..fe1e360 100644
+--- a/include/linux/poll.h
++++ b/include/linux/poll.h
+@@ -39,10 +39,15 @@ typedef struct poll_table_struct {
  
- config MFD_WM8994
- 	bool "Support Wolfson Microelectronics WM8994"
--	select MFD_CORE
- 	depends on I2C=y && GENERIC_HARDIRQS
- 	help
- 	  The WM8994 is a highly integrated hi-fi CODEC designed for
-@@ -430,7 +407,6 @@ config MFD_MC13783
- config MFD_MC13XXX
- 	tristate "Support Freescale MC13783 and MC13892"
- 	depends on SPI_MASTER
--	select MFD_CORE
- 	select MFD_MC13783
- 	help
- 	  Support for the Freescale (Atlas) PMIC and audio CODECs
-@@ -466,7 +442,6 @@ config ABX500_CORE
- config AB3100_CORE
- 	bool "ST-Ericsson AB3100 Mixed Signal Circuit core functions"
- 	depends on I2C=y && ABX500_CORE
--	select MFD_CORE
- 	default y if ARCH_U300
- 	help
- 	  Select this to enable the AB3100 Mixed Signal IC core
-@@ -497,7 +472,6 @@ config EZX_PCAP
- config AB8500_CORE
- 	bool "ST-Ericsson AB8500 Mixed Signal Power Management chip"
- 	depends on GENERIC_HARDIRQS && ABX500_CORE && SPI_MASTER && ARCH_U8500
--	select MFD_CORE
- 	help
- 	  Select this option to enable access to AB8500 power management
- 	  chip. This connects to U8500 either on the SSP/SPI bus
-@@ -525,7 +499,6 @@ config AB8500_DEBUG
+ static inline void poll_wait(struct file * filp, wait_queue_head_t * wait_address, poll_table *p)
+ {
+-	if (p && wait_address)
++	if (p && p->qproc && wait_address)
+ 		p->qproc(filp, wait_address, p);
+ }
  
- config AB3550_CORE
-         bool "ST-Ericsson AB3550 Mixed Signal Circuit core functions"
--	select MFD_CORE
- 	depends on I2C=y && GENERIC_HARDIRQS && ABX500_CORE
- 	help
- 	  Select this to enable the AB3550 Mixed Signal IC core
-@@ -539,7 +512,6 @@ config AB3550_CORE
- 
- config MFD_TIMBERDALE
- 	tristate "Support for the Timberdale FPGA"
--	select MFD_CORE
- 	depends on PCI && GPIOLIB
- 	---help---
- 	This is the core driver for the timberdale FPGA. This device is a
-@@ -551,14 +523,12 @@ config MFD_TIMBERDALE
- config LPC_SCH
- 	tristate "Intel SCH LPC"
- 	depends on PCI
--	select MFD_CORE
- 	help
- 	  LPC bridge function of the Intel SCH provides support for
- 	  System Management Bus and General Purpose I/O.
- 
- config MFD_RDC321X
- 	tristate "Support for RDC-R321x southbridge"
--	select MFD_CORE
- 	depends on PCI
- 	help
- 	  Say yes here if you want to have support for the RDC R-321x SoC
-@@ -567,7 +537,6 @@ config MFD_RDC321X
- 
- config MFD_JANZ_CMODIO
- 	tristate "Support for Janz CMOD-IO PCI MODULbus Carrier Board"
--	select MFD_CORE
- 	depends on PCI
- 	help
- 	  This is the core driver for the Janz CMOD-IO PCI MODULbus
-@@ -577,7 +546,6 @@ config MFD_JANZ_CMODIO
- 
- config MFD_JZ4740_ADC
- 	tristate "Support for the JZ4740 SoC ADC core"
--	select MFD_CORE
- 	depends on MACH_JZ4740
- 	help
- 	  Say yes here if you want support for the ADC unit in the JZ4740 SoC.
-@@ -586,7 +554,6 @@ config MFD_JZ4740_ADC
- config MFD_TPS6586X
- 	bool "TPS6586x Power Management chips"
- 	depends on I2C=y && GPIOLIB && GENERIC_HARDIRQS
--	select MFD_CORE
- 	help
- 	  If you say yes here you get support for the TPS6586X series of
- 	  Power Management chips.
-@@ -600,13 +567,12 @@ config MFD_TPS6586X
- config MFD_VX855
- 	tristate "Support for VIA VX855/VX875 integrated south bridge"
- 	depends on PCI
--	select MFD_CORE
- 	help
- 	  Say yes here to enable support for various functions of the
- 	  VIA VX855/VX875 south bridge. You will need to enable the vx855_spi
- 	  and/or vx855_gpio drivers for this to do anything useful.
- 
--endif # MFD_SUPPORT
-+endif # MFD_CORE
- 
- menu "Multimedia Capabilities Port drivers"
- 	depends on ARCH_SA1100
++static inline unsigned long poll_requested_events(const poll_table *p)
++{
++	return p ? p->key : ~0UL;
++}
++
+ static inline void init_poll_funcptr(poll_table *pt, poll_queue_proc qproc)
+ {
+ 	pt->qproc = qproc;
+-- 
+1.7.1
