@@ -1,86 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:40856 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753288Ab1HDWwQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 18:52:16 -0400
-Date: Thu, 4 Aug 2011 17:57:06 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: workshop-2011@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: Media Subsystem Workshop 2011
-In-Reply-To: <4E3B15EB.7050508@redhat.com>
-Message-ID: <alpine.LNX.2.00.1108041732060.17734@banach.math.auburn.edu>
-References: <4E398381.4080505@redhat.com> <alpine.LNX.2.00.1108031418480.16384@banach.math.auburn.edu> <4E39B150.40108@redhat.com> <alpine.LNX.2.00.1108031750241.16520@banach.math.auburn.edu> <4E3A91D1.1040000@redhat.com> <alpine.LNX.2.00.1108041255070.17533@banach.math.auburn.edu>
- <4E3AEEE3.8080704@redhat.com> <alpine.LNX.2.00.1108041549090.17734@banach.math.auburn.edu> <4E3B15EB.7050508@redhat.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:41080 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751935Ab1HXVjl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Aug 2011 17:39:41 -0400
+Received: by qwk3 with SMTP id 3so1065152qwk.19
+        for <linux-media@vger.kernel.org>; Wed, 24 Aug 2011 14:39:40 -0700 (PDT)
+Message-ID: <4E556F94.6060600@gmail.com>
+Date: Thu, 25 Aug 2011 09:39:32 +1200
+From: CJ <cjpostor@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Michael Jones <michael.jones@matrix-vision.de>,
+	javier Martin <javier.martin@vista-silicon.com>,
+	Koen Kooi <koen@beagleboard.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, mch_kot@yahoo.com.cn
+Subject: Re: [beagleboard] Re: [PATCH v7 1/2] Add driver for Aptina (Micron)
+ mt9p031 sensor.
+References: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com> <201108230947.18944.laurent.pinchart@ideasonboard.com> <4E545133.40907@gmail.com> <201108241112.54923.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201108241112.54923.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 24/08/11 21:12, Laurent Pinchart wrote:
+> On Wednesday 24 August 2011 03:17:39 CJ wrote:
+>> On 23/08/11 19:47, Laurent Pinchart wrote:
+>>> On Tuesday 23 August 2011 05:47:20 CJ wrote:
+>>>> On 22/08/11 22:15, Michael Jones wrote:
+>>>>>>>>> I am trying to get the mt9p031 working from nand with a ubifs file
+>>>>>>>>> system and I am having a few problems.
+>>>>>>>>>
+>>>>>>>>> /dev/media0 is not present unless I run:
+>>>>>>>>> #mknod /dev/media0 c 251 0
+>>>>>>>>> #chown root:video /dev/media0
+>>>>>>>>>
+>>>>>>>>> #media-ctl -p
+>>>>>>>>> Enumerating entities
+>>>>>>>>> media_open: Unable to enumerate entities for device /dev/media0
+>>>>>>>>> (Inappropriate ioctl for device)
+>>>>>>>>>
+>>>>>>>>> With the same rig/files it works fine running from EXT4 on an SD
+>>>>>>>>> card. Any idea why this does not work on nand with ubifs?
+>>>>>>>> Is the OMAP3 ISP driver loaded ? Has it probed the device
+>>>>>>>> successfully ? Check the kernel log for OMAP3 ISP-related messages.
+>>>>>>> Here is the version running from SD card:
+>>>>>>> # dmesg | grep isp
+>>>>>>> [    0.265502] omap-iommu omap-iommu.0: isp registered
+>>>>>>> [    2.986541] omap3isp omap3isp: Revision 2.0 found
+>>>>>>> [    2.991577] omap-iommu omap-iommu.0: isp: version 1.1
+>>>>>>> [    2.997406] omap3isp omap3isp: hist: DMA channel = 0
+>>>>>>> [    3.006256] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+>>>>>>> 21600000 Hz
+>>>>>>> [    3.011932] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0
+>>>>>>> Hz
+>>>>>>>
+>>>>>>>     From NAND using UBIFS:
+>>>>>>> # dmesg | grep isp
+>>>>>>> [    3.457061] omap3isp omap3isp: Revision 2.0 found
+>>>>>>> [    3.462036] omap-iommu omap-iommu.0: isp: version 1.1
+>>>>>>> [    3.467620] omap3isp omap3isp: hist: DMA channel = 0
+>>>>>>> [    3.472564] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+>>>>>>> 21600000 Hz
+>>>>>>> [    3.478027] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0
+>>>>>>> Hz
+>>>>>>>
+>>>>>>> Seems to be missing:
+>>>>>>> omap-iommu omap-iommu.0: isp registered
+>>>>>>>
+>>>>>>> Is that the issue? Why would this not work when running from NAND?
+>>>>> I'm not sure, either, but I had a similar problem before using
+>>>>> Laurent's patch below. IIRC, usually udev would create /dev/media0
+>>>>> from a cached list of /dev/*. Later modutils would come along and load
+>>>>> the modules in the proper order (iommu, then omap3-isp) and everybody
+>>>>> was happy. Occasionally, udev would fail to use the cached version of
+>>>>> /dev/, and look through /sys/devices to re-create the devices in
+>>>>> /dev/. When media0 was found, omap3-isp.ko would be loaded, but iommu
+>>>>> had not yet been, presumably because it doesn't have an entry in
+>>>>> /sys/devices/. So maybe udev is behaving differently for you on NAND
+>>>>> than it did on the card? Either way, as I said, using Laurent's patch
+>>>>> below did the job for me.
+>>>>>
+>>>>>> I'm not sure why it doesn't work from NAND, but the iommu2 module
+>>>>>> needs to be loaded before the omap3-isp module. Alternatively you can
+>>>>>> compile the iommu2 module in the kernel with
+>>>>>>
+>>>>>> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+>>>>>> index 49a4c75..3c87644 100644
+>>>>>> --- a/arch/arm/plat-omap/Kconfig
+>>>>>> +++ b/arch/arm/plat-omap/Kconfig
+>>>>>> @@ -132,7 +132,7 @@ config OMAP_MBOX_KFIFO_SIZE
+>>>>>>
+>>>>>>     	  module parameter).
+>>>>>>
+>>>>>>     config OMAP_IOMMU
+>>>>>>
+>>>>>> -       tristate
+>>>>>> +       bool
+>>>>>>
+>>>>>>     config OMAP_IOMMU_DEBUG
+>>>>>>
+>>>>>>            tristate "Export OMAP IOMMU internals in DebugFS"
+>>>> Thanks for the help!
+>>>>
+>>>> For some reason dmesg does not read early kernel stuff when in UBIFS
+>>>> from NAND.
+>>>> So when I went back and had a look the line I thought was not there is
+>>>> actually included.
+>>>>
+>>>> [    0.276977] omap-iommu omap-iommu.0: isp registered
+>>>>
+>>>> So I guess everything is loading fine.
+>>>>
+>>>> I tried the patch and it didn't make a difference.
+>>>>
+>>>> Regarding what Michael said /dev/media0 is not created by udev when boot
+>>>> from NAND.
+>>>> I tried creating it manually with:
+>>>> #mknod /dev/media0 c 251 0
+>>>> #chown root:video /dev/media0
+>>>>
+>>>> But this does not work - outputs:
+>>>>
+>>>> # media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
+>>>> CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP
+>>>> resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+>>>> media_open: Unable to enumerate entities for device /dev/media0
+>>>> (Inappropriate ioctl for device)
+>>>>
+>>>> So is there a problem with udev?
+>>> There could be. What's the output of
+>>>
+>>> ls /sys/class/video4linux
+>> #ls /sys/class/video4linux
+>> v4l-subdev0  v4l-subdev3  v4l-subdev6  video0       video3       video6
+>> v4l-subdev1  v4l-subdev4  v4l-subdev7  video1       video4
+>> v4l-subdev2  v4l-subdev5  v4l-subdev8  video2       video5
+> Devices are correctly registered with the Linux kernel. Does 'ls /dev/v4l-
+> subdev*' show the same entries ? If not you probably have a udev issue.
+>
 
+Slightly different..
 
-On Thu, 4 Aug 2011, Mauro Carvalho Chehab wrote:
+# ls /dev/v4l-subdev*
+/dev/v4l-subdev0  /dev/v4l-subdev3  /dev/v4l-subdev6
+/dev/v4l-subdev1  /dev/v4l-subdev4  /dev/v4l-subdev7
+/dev/v4l-subdev2  /dev/v4l-subdev5  /dev/v4l-subdev8
 
-> Em 04-08-2011 18:16, Theodore Kilgore escreveu:
-> >>>>
-> >>>> This sounds to be a good theme for the Workshop, or even to KS/2011.
-> >>>
-> >>> Thanks. Do you recall when and where is KS/2011 going to take place?
-> >>
-> >> The media workshop happens together with the KS/2011. Sunday is an
-> >> exclusive day for the workshops, Monday is an exclusive day for KS/2011,
-> >> and Tuesday is a joint day for both KS and the KS workshops.
-> > 
-> > So, as I understand, these are all about to take place in Vancouver, 
-> > sometime in the next two weeks? It really is the wrong time, but I really 
-> > wish now that I were going. I would at the very minimum try to get the 
-> > people together that I know of, who have wrestled with the issue.
-> 
-> Hmm... it seems that you didn't read the sites I've pointed on my original
-> email, 
+I probably should have said this earlier .. but I am using mdev not udev.
+It does work fine with exactly the same system running from the card in 
+EXT4.
 
-Not really, no. I had resigned myself to being unable to attend anything 
-like this, so why torture myself with looking in the shop window at what I 
-cannot buy?
+Any other thoughts?
 
-> or that I was not clear enough. 
-
-Without looking again, I expect that you were quite clear. 
-
-> 
-> The Media Subsystem Workshop and the Kernel Summit won't happen in Vancouver.
-> What will happen there is the LinuxCon North-America, plus the USB mini-summit. 
-> I should be there, btw. I think I should add an additional topic there to
-> discuss about multi-featured devices.
-
-A very good idea. 
-
-> 
-> The KS/2011 and the Media Workshop will happen in Prague, on Oct 23-25,
-> just before the LinuxCon Europe.
-
-Hmmm. That is still not good because classes are in session. But it is not 
-nearly so bad in the middle of a semester as it is at the beginning. It is 
-even conceivable that I might be able to shake loose some money -- if I 
-were either giving a presentation or would (for example) lead a panel 
-discussion on this topic. I believe that I would find it easier to be a 
-moderator or discussion "leader" than actually to present about a thing 
-like this. Namely, I can see the issues but not always the solutions.
-
-Probably, it is not good to apply to my university for money if I merely 
-were going to attend; mere intent to attend would probably not get me 
-funding for a mathematics conference, either. I also would need enough 
-lead time to be able to get things through the bureaucratic system. There 
-is some kind of very unreasonable deadline now in effect in the university 
-about how soon one needs to apply for foreign travel.
-
-So if you think my presence would have some value, I need something to get 
-the application started, over here. Invitation, or something similar. If 
-it is too much trouble or would interfere with already-existing plans, 
-then never mind. I would hardly be upset if I don't go to something which 
-I was not expecting to go to in the first place.
-
-Theodore Kilgore
+Cheers,
+Chris
