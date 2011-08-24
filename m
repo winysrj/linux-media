@@ -1,115 +1,344 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from impaqm5.telefonica.net ([213.4.138.21]:32775 "EHLO
-	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751739Ab1HPU1R convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:58998 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753764Ab1HXSlp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2011 16:27:17 -0400
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: Josu Lazkano <josu.lazkano@gmail.com>
-Subject: Re: Afatech AF9013
-Date: Tue, 16 Aug 2011 22:27:00 +0200
-Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-References: <CAL9G6WUpso9FFUzC3WWiBZDqQDr-+HQFouCO_2V-zVHVyiyKeg@mail.gmail.com> <201108160116.15648.jareguero@telefonica.net> <CAL9G6WXkyeBdy9V4gL8kp36U9Kzy3yEhb_Coh_d98BzNdR3qTQ@mail.gmail.com>
-In-Reply-To: <CAL9G6WXkyeBdy9V4gL8kp36U9Kzy3yEhb_Coh_d98BzNdR3qTQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201108162227.00963.jareguero@telefonica.net>
+	Wed, 24 Aug 2011 14:41:45 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 3/7 v5] V4L: document the new VIDIOC_CREATE_BUFS and VIDIOC_PREPARE_BUF ioctl()s
+Date: Wed, 24 Aug 2011 20:41:28 +0200
+Message-Id: <1314211292-10414-4-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1314211292-10414-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1314211292-10414-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Martes, 16 de Agosto de 2011 18:37:49 Josu Lazkano escribió:
-> Thanks again, I edit /etc/modprobe.d/options.conf
-> 
-> options dvb_usb_af9015 adapter_nr=4,5
-> options dvb-usb disable_rc_polling=1
-> options dvb-usb force_pid_filter_usage=1
-> 
-> I change the signal timeout and tuning timeout and now it works perfect!
-> 
-> I can watch two HD channels, thanks for your help.
-> 
-> I really don't understand what force_pid_filter_usage do on the
-> module, is there any documentation?
-> 
-> Thanks and best regards.
-> 
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Pawel Osciak <pawel@osciak.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ Documentation/DocBook/media/v4l/io.xml             |   17 +++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    2 +
+ .../DocBook/media/v4l/vidioc-create-bufs.xml       |  147 ++++++++++++++++++++
+ .../DocBook/media/v4l/vidioc-prepare-buf.xml       |   96 +++++++++++++
+ 4 files changed, 262 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
 
-For usb devices with usb 2.0 when tunned to a channel there is enought usb 
-bandwith to deliver the whole transponder. With pid filters they only deliver 
-the pids needed for the channel. The only limit is that the pid filters is 
-limited normaly to 32 pids.
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 227e7ac..ff03dd2 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -927,6 +927,23 @@ ioctl is called.</entry>
+ Applications set or clear this flag before calling the
+ <constant>VIDIOC_QBUF</constant> ioctl.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
++	    <entry>0x0400</entry>
++	    <entry>Caches do not have to be invalidated for this buffer.
++Typically applications shall use this flag if the data captured in the buffer
++is not going to be touched by the CPU, instead the buffer will, probably, be
++passed on to a DMA-capable hardware unit for further processing or output.
++</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
++	    <entry>0x0800</entry>
++	    <entry>Caches do not have to be cleaned for this buffer.
++Typically applications shall use this flag for output buffers if the data
++in this buffer has not been created by the CPU but by some DMA-capable unit,
++in which case caches have not been used.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 0d05e87..06bb179 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -462,6 +462,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-close;
+     &sub-ioctl;
+     <!-- All ioctls go here. -->
++    &sub-create-bufs;
+     &sub-cropcap;
+     &sub-dbg-g-chip-ident;
+     &sub-dbg-g-register;
+@@ -504,6 +505,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-queryctrl;
+     &sub-query-dv-preset;
+     &sub-querystd;
++    &sub-prepare-buf;
+     &sub-reqbufs;
+     &sub-s-hw-freq-seek;
+     &sub-streamon;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+new file mode 100644
+index 0000000..eb99604
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+@@ -0,0 +1,147 @@
++<refentry id="vidioc-create-bufs">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_CREATE_BUFS</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_CREATE_BUFS</refname>
++    <refpurpose>Create buffers for Memory Mapped or User Pointer I/O</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_create_buffers *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_CREATE_BUFS</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>This ioctl is used to create buffers for <link linkend="mmap">memory
++mapped</link> or <link linkend="userp">user pointer</link>
++I/O. It can be used as an alternative or in addition to the
++<constant>VIDIOC_REQBUFS</constant> ioctl, when a tighter control over buffers
++is required. This ioctl can be called multiple times to create buffers of
++different sizes.</para>
++
++    <para>To allocate device buffers applications initialize relevant fields of
++the <structname>v4l2_create_buffers</structname> structure. They set the
++<structfield>type</structfield> field in the
++<structname>v4l2_format</structname> structure, embedded in this
++structure, to the respective stream or buffer type.
++<structfield>count</structfield> must be set to the number of required buffers.
++<structfield>memory</structfield> specifies the required I/O method. The
++<structfield>format</structfield> field shall typically be filled in using
++either the <constant>VIDIOC_TRY_FMT</constant> or
++<constant>VIDIOC_G_FMT</constant> ioctl(). Additionally, applications can adjust
++<structfield>sizeimage</structfield> fields to fit their specific needs. The
++<structfield>reserved</structfield> array must be zeroed.</para>
++
++    <para>When the ioctl is called with a pointer to this structure the driver
++will attempt to allocate up to the requested number of buffers and store the
++actual number allocated and the starting index in the
++<structfield>count</structfield> and the <structfield>index</structfield> fields
++respectively. On return <structfield>count</structfield> can be smaller than
++the number requested. The driver may also adjust buffer sizes as it sees fit,
++however, it will not update <structfield>sizeimage</structfield> fields, the
++user has to use <constant>VIDIOC_QUERYBUF</constant> to retrieve that
++information.</para>
++
++    <table pgwide="1" frame="none" id="v4l2-create-buffers">
++      <title>struct <structname>v4l2_create_buffers</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>index</structfield></entry>
++	    <entry>The starting buffer index, returned by the driver.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>count</structfield></entry>
++	    <entry>The number of buffers requested or granted.</entry>
++	  </row>
++	  <row>
++	    <entry>&v4l2-memory;</entry>
++	    <entry><structfield>memory</structfield></entry>
++	    <entry>Applications set this field to
++<constant>V4L2_MEMORY_MMAP</constant> or
++<constant>V4L2_MEMORY_USERPTR</constant>.</entry>
++	  </row>
++	  <row>
++	    <entry>&v4l2-format;</entry>
++	    <entry><structfield>format</structfield></entry>
++	    <entry>Filled in by the application, preserved by the driver.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[8]</entry>
++	    <entry>A place holder for future extensions.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>ENOMEM</errorcode></term>
++	<listitem>
++	  <para>No memory to allocate buffers for <link linkend="mmap">memory
++mapped</link> I/O.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>The buffer type (<structfield>type</structfield> field) or the
++requested I/O method (<structfield>memory</structfield>) is not
++supported.</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
++
++<!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "v4l2.sgml"
++indent-tabs-mode: nil
++End:
++-->
+diff --git a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+new file mode 100644
+index 0000000..509e752
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+@@ -0,0 +1,96 @@
++<refentry id="vidioc-prepare-buf">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_PREPARE_BUF</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_PREPARE_BUF</refname>
++    <refpurpose>Prepare a buffer for I/O</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_buffer *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_PREPARE_BUF</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>Applications can optionally call the
++<constant>VIDIOC_PREPARE_BUF</constant> ioctl to pass ownership of the buffer
++to the driver before actually enqueuing it, using the
++<constant>VIDIOC_QBUF</constant> ioctl, and to prepare it for future I/O.
++Such preparations may include cache invalidation or cleaning. Performing them
++in advance saves time during the actual I/O. In case such cache operations are
++not required, the application can use one of
++<constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant> and
++<constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant> flags to skip the respective
++step.</para>
++
++    <para>The <structname>v4l2_buffer</structname> structure is
++specified in <xref linkend="buffer" />.</para>
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>EBUSY</errorcode></term>
++	<listitem>
++	  <para>File I/O is in progress.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>The buffer <structfield>type</structfield> is not
++supported, or the <structfield>index</structfield> is out of bounds,
++or no buffers have been allocated yet, or the
++<structfield>userptr</structfield> or
++<structfield>length</structfield> are invalid.</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
++
++<!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "v4l2.sgml"
++indent-tabs-mode: nil
++End:
++-->
+-- 
+1.7.2.5
 
-Jose Alberto
-
-> 2011/8/16 Jose Alberto Reguero <jareguero@telefonica.net>:
-> > On Martes, 16 de Agosto de 2011 00:22:05 Josu Lazkano escribió:
-> >> 2011/8/16 Jose Alberto Reguero <jareguero@telefonica.net>:
-> >> > I have problems with a dual usb tuner. I limit the bandwith using pid
-> >> > filters and the problem was gone.
-> >> > 
-> >> > Jose alberto
-> >> > 
-> >> > On Lunes, 15 de Agosto de 2011 15:34:20 Josu Lazkano escribió:
-> >> >> Hello, I have a problem with the KWorld USB Dual DVB-T TV Stick
-> >> >> (DVB-T 399U):
-> >> >> http://www.linuxtv.org/wiki/index.php/KWorld_USB_Dual_DVB-T_TV_Stick_
-> >> >> (DV B- T_399U)
-> >> >> 
-> >> >> I am using it on MythTV with Debian Squeeze (2.6.32). It is a dual
-> >> >> device, sometimes the second adapter works great, but sometimes has a
-> >> >> pixeled images. The first adapter always has pixeled images, I don't
-> >> >> know how to describe the pixeled images, so here is a mobile record:
-> >> >> http://dl.dropbox.com/u/1541853/kworld.3gp
-> >> >> 
-> >> >> I have this firmware:
-> >> >> http://palosaari.fi/linux/v4l-dvb/firmware/af9015/5.1.0.0/dvb-usb-af9
-> >> >> 015 .fw
-> >> >> 
-> >> >> I read on the linuxtv wiki and there are some problems with dual
-> >> >> mode, there is some links for how to patch the similar driver
-> >> >> (Afatech/ITE IT9135), but I am not good enough to understand the
-> >> >> code.
-> >> >> 
-> >> >> I check the kernel messages:
-> >> >> 
-> >> >> Aug 15 13:53:58 htpc kernel: [ 516.285369] af9013: I2C read failed
-> >> >> reg:d2e6 Aug 15 13:54:29 htpc kernel: [  547.407504] af9013: I2C read
-> >> >> failed reg:d330 Aug 15 13:54:44 htpc kernel: [  561.902710] af9013:
-> >> >> I2C read failed reg:d2e6
-> >> >> 
-> >> >> It looks I2C problem, but I don't know how to debug it deeper.
-> >> >> 
-> >> >> I don't know if this is important, but I compile the s2-liplianin for
-> >> >> other devices this way:
-> >> >> 
-> >> >> apt-get install linux-headers-`uname -r` build-essential
-> >> >> mkdir /usr/local/src/dvb
-> >> >> cd /usr/local/src/dvb
-> >> >> wget
-> >> >> http://mercurial.intuxication.org/hg/s2-liplianin/archive/tip.zip
-> >> >> unzip s2-liplianin-0b7d3cc65161.zip
-> >> >> cd s2-liplianin-0b7d3cc65161
-> >> >> make CONFIG_DVB_FIREDTV:=n
-> >> >> make install
-> >> >> 
-> >> >> Can you help with this? This hardware is a very cheap and works well
-> >> >> for HD channels but, I don't know why sometimes has pixeled images.
-> >> >> 
-> >> >> Thanks for your help, best regards.
-> >> 
-> >> Thanks Jose Alberto, I search on google for pid filters but I don't
-> >> find any interesting info.
-> >> 
-> >> How can I limit bandwidth on dvb?
-> >> 
-> >> Thanks for your help, I have two dual devices waiting for this fix on my
-> >> HTPC.
-> >> 
-> >> Best regards.
-> > 
-> > If  the driver has pid filters you can enable it with the parameter
-> > force_pid_filter_usage=1 of dvb-usb.
-> > 
-> > Jose Alberto
