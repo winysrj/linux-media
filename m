@@ -1,51 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:41044 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751535Ab1HYMfU convert rfc822-to-8bit (ORCPT
+Received: from mail-pz0-f42.google.com ([209.85.210.42]:37772 "EHLO
+	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750986Ab1HXDPK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Aug 2011 08:35:20 -0400
-Received: by fxh19 with SMTP id 19so1708242fxh.19
-        for <linux-media@vger.kernel.org>; Thu, 25 Aug 2011 05:35:19 -0700 (PDT)
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>
-Subject: Re: dma buffers for camera
-References: <op.v0p0hctkyxxkfz@localhost.localdomain>
- <Pine.LNX.4.64.1108242111560.14818@axis700.grange>
-Date: Thu, 25 Aug 2011 14:35:16 +0200
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-From: "Jan Pohanka" <xhpohanka@gmail.com>
-Message-ID: <op.v0rrw2nlyxxkfz@localhost.localdomain>
-In-Reply-To: <Pine.LNX.4.64.1108242111560.14818@axis700.grange>
+	Tue, 23 Aug 2011 23:15:10 -0400
+Date: Wed, 24 Aug 2011 11:14:59 +0800
+From: "Leonid V. Fedorenchik" <leonidsbox@gmail.com>
+To: Greg KH <greg@kroah.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Palash Bandyopadhyay <Palash.Bandyopadhyay@conexant.com>,
+	Ruslan Pisarev <ruslan@rpisarev.org.ua>,
+	Ilya Gorskin <Revent82@gmail.com>,
+	Joe Perches <joe@perches.com>, Arnd Bergmann <arnd@arndb.de>,
+	linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] Staging: cx25821: fix coding style issues
+Message-ID: <20110824111459.7320e557@inspire>
+In-Reply-To: <20110823214421.GF3679@kroah.com>
+References: <1312275798-9669-1-git-send-email-leonidsbox@gmail.com>
+	<20110823214421.GF3679@kroah.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On Tue, 23 Aug 2011 14:44:21 -0700
+Greg KH <greg@kroah.com> wrote:
 
->
-> The mx2_camera driver is allocating one "discard" buffer of the same  
-> size,
-> as regular buffers for cases, when the user is not fast enough to queue
-> new buffers for the running capture. Arguably, this could be aliminated
-> and the last submitted buffer could be re-used until either more buffers
-> are available or the streaming is stopped. Otherwise, it could also be
-> possible to stop capture until buffers are available again. In any case,
-> this is the current driver implementation. As for 2 buffers instead of  
-> one
-> for the actual capture, I think, gstreamer defines 2 as a minimum number
-> of buffers, which is actually also required for any streaming chance.
->
+> On Tue, Aug 02, 2011 at 05:03:18PM +0800, Leonid V. Fedorenchik wrote:
+> > Fix too long lines in cx25821-audio.h
+> > Fix wrong brace placement in cx25821-cards.c, cx25821-core.c,
+> > and cx25821-i2c.c
+> > Use DEFINE_PCI_DEVICE_TABLE for cx25821_pci_tbl.
+> > Move EXPORT_SYMBOL(cx25821_set_gpiopin_direction) to the right place.
+> > Delete file cx25821-gpio.h since it is not used.
+> > Get rid of typedef in cx25821.h.
+> 
+> I prefer to get patches in a "one patch per thing you did" format.
+> 
+> So, care to split this up into a number of smaller patches, all doing
+> the individual thing you list above?
+> 
+> Yes, it's going to be a bunch of small patches, but then they will be
+> "obviously" correct and trivial to review and apply.
+> 
+> thanks,
+> 
+> greg k-h
 
-Thank you for clarification...
+OK, no problem. I'll do this.
 
-regards
-Jan
-
-
-
--- 
-Tato zpráva byla vytvořena převratným poštovním klientem Opery:  
-http://www.opera.com/mail/
+Leonid V. Fedorenchik
