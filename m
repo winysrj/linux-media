@@ -1,42 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:52011 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754155Ab1HaNup (ORCPT
+Received: from mail.dream-property.net ([82.149.226.172]:35584 "EHLO
+	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752700Ab1HXReB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 09:50:45 -0400
-Date: Wed, 31 Aug 2011 15:50:42 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: none of the drivers should be enabled by default
-In-Reply-To: <4E5E3A12.4020902@infradead.org>
-Message-ID: <Pine.LNX.4.64.1108311550002.8429@axis700.grange>
-References: <Pine.LNX.4.64.1108301921040.19151@axis700.grange>
- <Pine.LNX.4.64.1108311103130.8429@axis700.grange> <4E5E23CA.4030208@infradead.org>
- <201108311441.28464.hverkuil@xs4all.nl> <4E5E3A12.4020902@infradead.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Wed, 24 Aug 2011 13:34:01 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.dream-property.net (Postfix) with ESMTP id C256C3153A1D
+	for <linux-media@vger.kernel.org>; Wed, 24 Aug 2011 19:34:00 +0200 (CEST)
+Received: from mail.dream-property.net ([127.0.0.1])
+	by localhost (mail.dream-property.net [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id paojpnRk8uLC for <linux-media@vger.kernel.org>;
+	Wed, 24 Aug 2011 19:33:54 +0200 (CEST)
+Received: from pepe.dream-property.nete (dreamboxupdate.com [82.149.226.174])
+	by mail.dream-property.net (Postfix) with SMTP id 7502B3153A4B
+	for <linux-media@vger.kernel.org>; Wed, 24 Aug 2011 19:33:53 +0200 (CEST)
+From: Andreas Oberritter <obi@linuxtv.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 2/2] DVB: dvb_frontend: check function pointers on reinitialize
+Date: Wed, 24 Aug 2011 17:33:52 +0000
+Message-Id: <1314207232-6031-2-git-send-email-obi@linuxtv.org>
+In-Reply-To: <1314207232-6031-1-git-send-email-obi@linuxtv.org>
+References: <1314207232-6031-1-git-send-email-obi@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 31 Aug 2011, Mauro Carvalho Chehab wrote:
-
-> Em 31-08-2011 09:41, Hans Verkuil escreveu:
-
-[snip]
-
-> > And by reordering the rest of the menu so 'popular' drivers like saa7134 come 
-> > before zoran and the motion eye drivers etc. would also make it easier to 
-> > navigate the menu.
-> 
-> Not sure about that. Maybe using an alphabetical order would be better.
-
-Agree, alphabetic is easier to navigate.
-
-Thanks
-Guennadi
+Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/dvb/dvb-core/dvb_frontend.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index f433a88..79a3cc3 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -576,12 +576,10 @@ restart:
+ 
+ 		if (fepriv->reinitialise) {
+ 			dvb_frontend_init(fe);
+-			if (fepriv->tone != -1) {
++			if (fe->ops.set_tone && fepriv->tone != -1)
+ 				fe->ops.set_tone(fe, fepriv->tone);
+-			}
+-			if (fepriv->voltage != -1) {
++			if (fe->ops.set_voltage && fepriv->voltage != -1)
+ 				fe->ops.set_voltage(fe, fepriv->voltage);
+-			}
+ 			fepriv->reinitialise = 0;
+ 		}
+ 
+-- 
+1.7.2.5
+
