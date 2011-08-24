@@ -1,86 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:47246 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751475Ab1HKPox (ORCPT
+Received: from eazy.amigager.de ([213.239.192.238]:53216 "EHLO
+	eazy.amigager.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751486Ab1HXQd4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2011 11:44:53 -0400
-Date: Thu, 11 Aug 2011 11:44:52 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Hans de Goede <hdegoede@redhat.com>,
-	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	Greg KH <greg@kroah.com>, <linux-usb@vger.kernel.org>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<libusb-devel@lists.sourceforge.net>,
-	Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, <hector@marcansoft.com>,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	<pbonzini@redhat.com>, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Adam Baker <linux@baker-net.org.uk>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-In-Reply-To: <4E43F17F.6030604@infradead.org>
-Message-ID: <Pine.LNX.4.44L0.1108111134540.1958-100000@iolanthe.rowland.org>
+	Wed, 24 Aug 2011 12:33:56 -0400
+Received: from mac.home (mnch-5d86e29b.pool.mediaWays.net [93.134.226.155])
+	by eazy.amigager.de (Postfix) with ESMTPA id 097FDF30007
+	for <linux-media@vger.kernel.org>; Wed, 24 Aug 2011 18:26:17 +0200 (CEST)
+Date: Wed, 24 Aug 2011 18:26:18 +0200
+From: Tino Keitel <tino.keitel@tikei.de>
+To: Florian Mickler <florian@mickler.org>
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, "v3.0.y" <stable@kernel.org>
+Subject: Re: [PATCH] [media] vp7045: fix buffer setup
+Message-ID: <20110824162618.GA26016@mac.home>
+References: <20110809200842.GA29662@mac.home>
+ <1312970720-25694-1-git-send-email-florian@mickler.org>
+ <20110819183521.1b5f7efe@schatten.dmk.lab>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110819183521.1b5f7efe@schatten.dmk.lab>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Alan Cox raised a bunch of good points.  I'm not going to respond to 
-them; they pretty much speak for themselves.
-
-On Thu, 11 Aug 2011, Mauro Carvalho Chehab wrote:
-
-> Between two or more kernel drivers, a resource locking mechanism like the one 
-> you've proposed works fine,
-
-It's not a locking mechanism.  More like cooperative multi-access.
-
->  but, when the driver is on userspace, there's one
-> additional issue that needs to be addressed: What happens if, for example,
-> if a camera application using libgphoto2 crashes? The lock will be enabled, and
-> the V4L driver will be locked forever. Also, if the lock is made generic enough
-> to protect between two different userspace applications, re-starting the
-> camera application won't get the control back.
-
-You're wrong, because what I proposed isn't a lock.  If the user 
-program dies, the usbfs device file will automatically be closed and 
-then usbfs will freely give control back to the webcam driver.
-
-If the program hangs at the wrong time, then the webcam driver won't be 
-able to regain control.  At least the user will have the option of 
-killing the program when this happens; a similar hang in a kernel 
-driver tends to be much uglier.
-
-Two different user programs trying to drive the device at the same time 
-doesn't necessarily have to cause a problem.  At any particular moment, 
-only one of them would be in control of the device.
-
-> To avoid such risk, kernel might need to implement some ugly hacks to detect
-> when the application was killed, and put the device into a sane state, if this
-> happens.
-
-No ugly hack is needed.  usbfs can directly inform the webcam driver 
-whether or not the device file was closed while the user program 
-retained control.  If that didn't happen, it's safe to assume that the 
-program gave up control voluntarily.
-
-> > Not all users of libgphoto2 have to be changed; only those which manage
-> > dual-mode cameras.  Adding a few ioctls to ask for and give up control
-> > at the appropriate times must be a lot easier than porting the entire
-> > driver into the kernel.
+On Fri, Aug 19, 2011 at 18:35:21 +0200, Florian Mickler wrote:
+> On Wed, 10 Aug 2011 12:05:20 +0200
+> Florian Mickler <florian@mickler.org> wrote:
 > 
-> Again, applications that won't implement this control will take the lock forever.
+> > dvb_usb_device_init calls the frontend_attach method of this driver which
+> > uses vp7045_usb_ob. In order to have a buffer ready in vp7045_usb_op, it has to
+> > be allocated before that happens.
+> > 
+> > Luckily we can use the whole private data as the buffer as it gets separately
+> > allocated on the heap via kzalloc in dvb_usb_device_init and is thus apt for
+> > use via usb_control_msg.
+> > 
+> > This fixes a
+> > 	BUG: unable to handle kernel paging request at 0000000000001e78
+> > 
+> > reported by Tino Keitel and diagnosed by Dan Carpenter.
+> > 
+> > References: https://bugzilla.kernel.org/show_bug.cgi?id=40062
+> > Cc: v3.0.y <stable@kernel.org>
+> > Tested-by: Tino Keitel <tino.keitel@tikei.de>
+> > Signed-off-by: Florian Mickler <florian@mickler.org>
+> 
+> ...ping...
 
-No, because there is no lock.  Programs that haven't been changed will 
-continue to behave as they do today -- they will unbind the webcam 
-driver and assume full control of the device.
+Even pinger. I can't see the patch in 3.1 git yet, and I'm using the
+patch on 3.0 kernels for 2 weeks now without problems.
 
-Alan Stern
-
+Regards,
+Tino
