@@ -1,50 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:39624 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752217Ab1HYCRj (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60058 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751433Ab1HXKcJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Aug 2011 22:17:39 -0400
-Received: by ywf7 with SMTP id 7so1355537ywf.19
-        for <linux-media@vger.kernel.org>; Wed, 24 Aug 2011 19:17:39 -0700 (PDT)
+	Wed, 24 Aug 2011 06:32:09 -0400
+Received: from lancelot.localnet (unknown [91.178.79.172])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id B649D35A9E
+	for <linux-media@vger.kernel.org>; Wed, 24 Aug 2011 10:32:08 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for v3.2] OMAP3 ISP fixes and new sensor driver
+Date: Wed, 24 Aug 2011 12:32:23 +0200
 MIME-Version: 1.0
-Date: Thu, 25 Aug 2011 10:17:39 +0800
-Message-ID: <CACPcZCNRvqn0o93HWxn-sRTo19XiTQVwbc0+cjtMPwAMmk88-w@mail.gmail.com>
-Subject: A S3/S4 issue about em28xx driver
-From: hbomb ustc <hbomb.ustc@gmail.com>
-To: linux-media@vger.kernel.org, mrechberger@gmail.com,
-	mchehab@redhat.com, cavedon@sssup.it
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108241232.23846.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi guys,
+Hi Mauro,
 
-I find an issue about the USB TV tuner, WinTV HVR950, which use em28xx
-driver. The linux can't going to S3/S4 when the device attach to
-USB2.0/USB3.0 ports.
+The following changes since commit 9bed77ee2fb46b74782d0d9d14b92e9d07f3df6e:
 
-        [Step]
-        - Boot linux (either with or without x-windows)
-        - Attach the HVR950 to USB port.
-        - dmesg and lsusb to make sure the device driver has been load
-sucessfully
-        - pm-suspend [--quirk-s3-bios]
-        - the screen show black light and hung
+  [media] tuner_xc2028: Allow selection of the frequency adjustment code for 
+XC3028 (2011-08-06 09:52:47 -0300)
 
-Then I do some research about it and find it seems caused by the
-em28xx-alsa module that can't implement some call back function about
-suspend and resume.
-After I make the em28xx-alsa.ko not installed by comment one line in
-em28xx-cards.c below.
+are available in the git repository at:
+  git://linuxtv.org/pinchartl/media.git omap3isp-sensors-next
 
-     else if (dev->has_alsa_audio)
-           // request_modules("em28xx-alsa");
+Javier Martin (1):
+      mt9p031: Aptina (Micron) MT9P031 5MP sensor driver
 
-Then the linux can go into S3/S4. I uses kernel 3.1.0-rc1 on
-Scientific Linux 6.1 do the debug. The issue can be reproduce on
-Ubuntu10,04 too.
-I am not familiar with linux-media driver. Is there someone know this issue?
+Laurent Pinchart (2):
+      omap3isp: Don't accept pipelines with no video source as valid
+      omap3isp: Move platform data definitions from isp.h to media/omap3isp.h
 
+Michael Jones (1):
+      omap3isp: queue: fail QBUF if user buffer is too small
 
-Thanks,
-Alex He
+ drivers/media/video/Kconfig             |    7 +
+ drivers/media/video/Makefile            |    1 +
+ drivers/media/video/mt9p031.c           |  963 ++++++++++++++++++++++++++++++
+ drivers/media/video/omap3isp/isp.h      |   85 +---
+ drivers/media/video/omap3isp/ispccp2.c  |    4 +-
+ drivers/media/video/omap3isp/ispqueue.c |    4 +
+ drivers/media/video/omap3isp/ispvideo.c |   14 +-
+ include/media/mt9p031.h                 |   19 +
+ include/media/omap3isp.h                |  140 +++++
+ 9 files changed, 1147 insertions(+), 90 deletions(-)
+ create mode 100644 drivers/media/video/mt9p031.c
+ create mode 100644 include/media/mt9p031.h
+ create mode 100644 include/media/omap3isp.h
+
+-- 
+Regards,
+
+Laurent Pinchart
