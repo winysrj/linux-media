@@ -1,133 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:60890 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752999Ab1HJUf2 (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:50079 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751395Ab1HXJye (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Aug 2011 16:35:28 -0400
-Date: Wed, 10 Aug 2011 15:39:50 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Alan Stern <stern@rowland.harvard.edu>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	Greg KH <greg@kroah.com>, linux-usb@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	libusb-devel@lists.sourceforge.net, Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Wed, 24 Aug 2011 05:54:34 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from spt2.w1.samsung.com ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LQF00F6FFIWXR20@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 24 Aug 2011 10:54:32 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LQF00I3KFIV9X@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 24 Aug 2011 10:54:31 +0100 (BST)
+Date: Wed, 24 Aug 2011 11:54:23 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH] media: vb2: fix handling MAPPED buffer flag
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Adam Baker <linux@baker-net.org.uk>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-In-Reply-To: <4E42E68D.6040501@infradead.org>
-Message-ID: <alpine.LNX.2.00.1108101534370.25232@banach.math.auburn.edu>
-References: <Pine.LNX.4.44L0.1108101156350.1917-100000@iolanthe.rowland.org> <alpine.LNX.2.00.1108101300500.25084@banach.math.auburn.edu> <4E42E68D.6040501@infradead.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Hans Verkuil <hverkuil@xs4all.nl>
+Message-id: <1314179663-8512-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+MAPPED flag was set for the buffer only if all it's planes were mapped and
+relied on a simple mapping counter. This assumption is really bogus,
+especially because the buffers may be mapped multiple times. Also the
+meaning of this flag for muliplane buffers was not really useful. This
+patch fixes this issue by setting the MAPPED flag for the buffer if any of
+it's planes is in use (what means that has been mapped at least once), so
+MAPPED flag can be used as 'in_use' indicator.
 
+Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/video/videobuf2-core.c |   67 ++++++++++++++++++----------------
+ include/media/videobuf2-core.h       |    3 --
+ 2 files changed, 36 insertions(+), 34 deletions(-)
 
-On Wed, 10 Aug 2011, Mauro Carvalho Chehab wrote:
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index c360627..e89fd53 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -277,6 +277,41 @@ static int __verify_planes_array(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ }
+ 
+ /**
++ * __buffer_in_use() - return true if the buffer is in use and
++ * the queue cannot be freed (by the means of REQBUFS(0)) call
++ */
++static bool __buffer_in_use(struct vb2_queue *q, struct vb2_buffer *vb)
++{
++	unsigned int plane;
++	for (plane = 0; plane < vb->num_planes; ++plane) {
++		/*
++		 * If num_users() has not been provided, call_memop
++		 * will return 0, apparently nobody cares about this
++		 * case anyway. If num_users() returns more than 1,
++		 * we are not the only user of the plane's memory.
++		 */
++		if (call_memop(q, plane, num_users,
++				vb->planes[plane].mem_priv) > 1)
++			return true;
++	}
++	return false;
++}
++
++/**
++ * __buffers_in_use() - return true if any buffers on the queue are in use and
++ * the queue cannot be freed (by the means of REQBUFS(0)) call
++ */
++static bool __buffers_in_use(struct vb2_queue *q)
++{
++	unsigned int buffer;
++	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
++		if (__buffer_in_use(q, q->bufs[buffer]))
++			return true;
++	}
++	return false;
++}
++
++/**
+  * __fill_v4l2_buffer() - fill in a struct v4l2_buffer with information to be
+  * returned to userspace
+  */
+@@ -335,7 +370,7 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 		break;
+ 	}
+ 
+-	if (vb->num_planes_mapped == vb->num_planes)
++	if (__buffer_in_use(q, vb))
+ 		b->flags |= V4L2_BUF_FLAG_MAPPED;
+ 
+ 	return ret;
+@@ -400,33 +435,6 @@ static int __verify_mmap_ops(struct vb2_queue *q)
+ }
+ 
+ /**
+- * __buffers_in_use() - return true if any buffers on the queue are in use and
+- * the queue cannot be freed (by the means of REQBUFS(0)) call
+- */
+-static bool __buffers_in_use(struct vb2_queue *q)
+-{
+-	unsigned int buffer, plane;
+-	struct vb2_buffer *vb;
+-
+-	for (buffer = 0; buffer < q->num_buffers; ++buffer) {
+-		vb = q->bufs[buffer];
+-		for (plane = 0; plane < vb->num_planes; ++plane) {
+-			/*
+-			 * If num_users() has not been provided, call_memop
+-			 * will return 0, apparently nobody cares about this
+-			 * case anyway. If num_users() returns more than 1,
+-			 * we are not the only user of the plane's memory.
+-			 */
+-			if (call_memop(q, plane, num_users,
+-					vb->planes[plane].mem_priv) > 1)
+-				return true;
+-		}
+-	}
+-
+-	return false;
+-}
+-
+-/**
+  * vb2_reqbufs() - Initiate streaming
+  * @q:		videobuf2 queue
+  * @req:	struct passed from userspace to vidioc_reqbufs handler in driver
+@@ -1343,9 +1351,6 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
+ 	if (ret)
+ 		return ret;
+ 
+-	vb_plane->mapped = 1;
+-	vb->num_planes_mapped++;
+-
+ 	dprintk(3, "Buffer %d, plane %d successfully mapped\n", buffer, plane);
+ 	return 0;
+ }
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 496d6e5..984f2ba 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -75,7 +75,6 @@ struct vb2_mem_ops {
+ 
+ struct vb2_plane {
+ 	void			*mem_priv;
+-	int			mapped:1;
+ };
+ 
+ /**
+@@ -147,7 +146,6 @@ struct vb2_queue;
+  * @done_entry:		entry on the list that stores all buffers ready to
+  *			be dequeued to userspace
+  * @planes:		private per-plane information; do not change
+- * @num_planes_mapped:	number of mapped planes; do not change
+  */
+ struct vb2_buffer {
+ 	struct v4l2_buffer	v4l2_buf;
+@@ -164,7 +162,6 @@ struct vb2_buffer {
+ 	struct list_head	done_entry;
+ 
+ 	struct vb2_plane	planes[VIDEO_MAX_PLANES];
+-	unsigned int		num_planes_mapped;
+ };
+ 
+ /**
+-- 
+1.7.1.569.g6f426
 
-> Em 10-08-2011 15:33, Theodore Kilgore escreveu:
-> 
-> > Hans seems to have argued cogently for doing all of this in the kernel and 
-> > for abandoning the usbfs-based drivers for these particular drivers for 
-> > dual-mode cameras and, I would conjecture, for drivers for dual-mode 
-> > hardware in general. Therefore, I anticipate that he won't like that very 
-> > much.
-> > 
-> > My position:
-> > 
-> > I do not have preconceptions about how the problem gets handled, and at 
-> > this point I remain agnostic and believe that all approaches ought to be 
-> > carefully analysed. I can imagine, abstractly, that things like this 
-> > could be handled by
-> > 
-> > -- moving all basic functionality to the kernel, and fixing the 
-> > relevant libgphoto2 drivers to look to the kernel instead of to libusb. 
-> > (What Hans argues for, and I am not opposed if his arguments convince 
-> > other concerned parties)
-> 
-> Not looking on the amount of work to be done, I think that this would
-> give better results, IMO.
-
-Okay. I would guess that I am one of the guys who gets to do the work, 
-though.
-
-> 
-> > -- doing some kind of patch job to make current arrangement somehow to 
-> > work better (this seems to be the position of Adam Baker; I do share
-> > the skepticism Hans has expressed about how well this could all be 
-> > pasted together)
-> 
-> Adam Baker's proposal of a locking between usbfs and the kernel driver seems
-> to be interesting, but, as he pointed, there are some side effects to consider,
-> like suspend/resume, PM, etc.
-> 
-> > -- doing something like the previous, but also figuring out how to bring 
-> > udev rules into play, which would make it all work better (just tossing 
-> > this one in, for laughs, but who knows someone might like it)
-> 
-> I don't think this is a good alternative.
-
-I was trying to mention all alternatives. I should have also mentioned 
-"leave things the way they are" but that is certainly out the window.
-
-> 
-> > -- moving the kernel webcam drivers out of the kernel and doing with these 
-> > cameras _everything_ including webcam function through libusb. I myself do 
-> > not have the imagination to be able to figure out how this could be done 
-> > without a rather humongous amount of work (for example, which streaming 
-> > apps that are currently available would be able to live with this?) but 
-> > unless I misunderstand what he was saying, Greg K-H seems to think that 
-> > this would be the best thing to do.
-> 
-> I also don't think that this a good alternative. As Hans V. pointed, one of
-> our long term targets is to create per-sensor I2C drivers that are independent
-> from the bridges. Also, moving it to userspace would require lots of work
-> with the duplication of V4L and gspca core into userspace for the devices
-> that would be moved, and may have some performance impacts.
-
-A good argument, though it probably does not affect the devices on my list 
-one way or the other. 
-
-> 
-> > Which one of these possibile approaches gets adopted is a policy issue 
-> > which I would consider is ultimately way above my pay grade.
-> > 
-> > My main motivation for bringing up the issue was to get it to the front 
-> > burner so that _something_ gets done. It is a matter which has been left 
-> > alone for too long. Therefore, I am very glad that the matter is being 
-> > addressed.
-> > 
-> > Let me add to this that I have gotten permission for time off and for a 
-> > expense money which might possibly cover my air fare. I hope to arrive in 
-> > Vancouver by sometime on Monday and intend to attend the mini-summit. I 
-> > suggest that we get all intersted parties together and figure out what is 
-> > the best way to go.
-> > 
-> > I hope everyone who is actively concerned can meet in Vancouver, and if 
-> > all goes well then on Monday as well as Tuesday. I can hang around for 
-> > another day or two after Tuesday, but I do not expect to register for 
-> > LinuxCon or be involved in it.
-> 
-> It will be great to have you there for those discussions.
-
-My take on this was that it seems to have become important for me to 
-attend, which, frankly, I was not expecting. So thanks for the nice words.
-
-> 
-> > When I leave Vancouver I will probably go 
-> > to Seattle and spend a couple of days with my oldest son, the musician, 
-> > before coming home on the next weekend.
-> > 
-> > Theodore Kilgore
-> 
