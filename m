@@ -1,67 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:63286 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750795Ab1HXM4V convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:46171 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752651Ab1HXSGc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Aug 2011 08:56:21 -0400
-Subject: RE: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Ravi, Deepthy" <deepthy.ravi@ti.com>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404EC007BE3@dbde02.ent.ti.com>
-References: <1313761725-6614-1-git-send-email-deepthy.ravi@ti.com>
-	 <201108241217.11430.laurent.pinchart@ideasonboard.com>
-	 <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D0907F6@dbde03.ent.ti.com>
-	 <201108241329.48147.laurent.pinchart@ideasonboard.com>
-	 <19F8576C6E063C45BE387C64729E739404EC007BE3@dbde02.ent.ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Wed, 24 Aug 2011 15:55:38 +0300
-Message-ID: <1314190538.9124.29.camel@smile>
-Mime-Version: 1.0
+	Wed, 24 Aug 2011 14:06:32 -0400
+Received: by bke11 with SMTP id 11so1096239bke.19
+        for <linux-media@vger.kernel.org>; Wed, 24 Aug 2011 11:06:31 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4E553CBE.8010506@linuxtv.org>
+References: <1314207232-6031-1-git-send-email-obi@linuxtv.org>
+	<CAGoCfizk8Ni96yJJq7Q=MGhH_-EgLskYd3SDMJ4w9mAdEPg1mg@mail.gmail.com>
+	<4E553CBE.8010506@linuxtv.org>
+Date: Wed, 24 Aug 2011 14:06:28 -0400
+Message-ID: <CAGoCfiwt6siLdT_bCgnBnpmUuwL-CK+r8rCUTviNHWko7=NKQA@mail.gmail.com>
+Subject: Re: [PATCH 1/2] DVB: dvb_frontend: convert semaphore to mutex
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Andreas Oberritter <obi@linuxtv.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> > > >> Fix the build break caused when CONFIG_MEDIA_CONTROLLER
-> > > >> option is disabled and if any sensor driver has to be used
-> > > >> between MC and non MC framework compatible devices.
-> > > >>
-> > > >> For example,if tvp514x video decoder driver migrated to
-> > > >> MC framework is being built without CONFIG_MEDIA_CONTROLLER
-> > > >> option enabled, the following error messages will result.
-> > > >> drivers/built-in.o: In function `tvp514x_remove':
-> > > >> drivers/media/video/tvp514x.c:1285: undefined reference to
-> > > >> `media_entity_cleanup'
-> > > >> drivers/built-in.o: In function `tvp514x_probe':
-> > > >> drivers/media/video/tvp514x.c:1237: undefined reference to
-> > > >> `media_entity_init'
-> > > >
-> > > > If the tvp514x is migrated to the MC framework, its Kconfig option
-> > should
-> > > > depend on MEDIA_CONTROLLER.
-> > >
-> > > The same TVP514x driver is being used for both MC and non MC compatible
-> > > devices, for example OMAP3 and AM35x. So if it is made dependent on
-> > MEDIA
-> > > CONTROLLER, we cannot enable the driver for MC independent devices.
-> > 
-> > Then you should use conditional compilation in the tvp514x driver itself.
-> > Or
-> [Hiremath, Vaibhav] No. I am not in favor of conditional compilation in driver code. 
-> 
-> > better, port the AM35x driver to the MC API.
-> > 
-> [Hiremath, Vaibhav] 
-> Why should we use MC if I have very simple device (like AM35x) which only supports single path? I can very well use simple V4L2 sub-dev based approach (master - slave), isn't it?
-Why should you break the API in unappropriated way?
+On Wed, Aug 24, 2011 at 2:02 PM, Andreas Oberritter <obi@linuxtv.org> wrote:
+> It's impossible to clean up dvb_frontend.c, which looks quite
+> unmaintained, without touching it.
 
-The patch is NACK, obviously.
+It is quite unmaintained.  In fact, it was broken for numerous cards
+for almost two years before I finally got someone in the Hauppauge UK
+office to mail me a couple of affected boards to test with.
+
+Now that it works, I'm very hesitant to see any chances made unless
+there is a *very* good reason. It's just too damn easy to introduce
+subtle bugs in there that work for "your card" but cause breakage for
+others.
+
+Devin
 
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
