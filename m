@@ -1,74 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47817 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751718Ab1HLUjO (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:42816 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751305Ab1HXO0Q convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2011 16:39:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Ravi, Deepthy" <deepthy.ravi@ti.com>
-Subject: Re: [QUERY] Inclusion of isp.h in board-omap3evm-camera.c
-Date: Fri, 12 Aug 2011 22:39:16 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-References: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D0907CF@dbde03.ent.ti.com>
-In-Reply-To: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D0907CF@dbde03.ent.ti.com>
+	Wed, 24 Aug 2011 10:26:16 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "Ravi, Deepthy" <deepthy.ravi@ti.com>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Date: Wed, 24 Aug 2011 19:56:03 +0530
+Subject: RE: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
+Message-ID: <19F8576C6E063C45BE387C64729E739404EC007C68@dbde02.ent.ti.com>
+References: <1313761725-6614-1-git-send-email-deepthy.ravi@ti.com>
+ <201108241329.48147.laurent.pinchart@ideasonboard.com>
+ <19F8576C6E063C45BE387C64729E739404EC007BE3@dbde02.ent.ti.com>
+ <201108241525.47332.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201108241525.47332.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108122239.17315.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ravi,
 
-On Friday 12 August 2011 09:35:16 Ravi, Deepthy wrote:
-> I need to use some isp structures ( isp_v4l2_subdevs_group,
-> isp_platform_data ,isp_subdev_i2c_board_info etc.) in 
-> board-omap3evm-camera.c. For that header file isp.h has to be included .
-> Currently I am including it in this way:
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Wednesday, August 24, 2011 6:56 PM
+> To: Hiremath, Vaibhav
+> Cc: Ravi, Deepthy; mchehab@infradead.org; linux-media@vger.kernel.org;
+> linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
+> Subject: Re: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
 > 
-> #include <../drivers/media/video/omap3isp/isp.h>
-
-OMAP3 ISP platform data should be split from isp.h into 
-include/media/omap3isp.h. I've sent a patch for that to the linux-media 
-mailing list and CC'ed you.
-
-Unfortunately that won't be enough, as board code currently requires the 
-isp_device structure definition to access the platform callback functions. 
-Those functions will be removed in the future when more generic alternatives 
-will be available, but there's still some work required for that.
-
-> Is there a better way to do this ? The relevant hunk of the patch is shown
-> below:
+> Hi Vaibhav,
 > 
-> diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c
-> b/arch/arm/mach-omap2/board-omap3evm-camera.c new file mode 100644
-> index 0000000..319a6a1
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
-> +#include <linux/io.h>
-> +#include <linux/i2c.h>
-> +#include <linux/delay.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/regulator/consumer.h>
-> +
-> +#include <mach/gpio.h>
-> +
-> +#include <media/tvp514x.h>
-> +
-> +#include <../drivers/media/video/omap3isp/isp.h>
+> On Wednesday 24 August 2011 14:19:01 Hiremath, Vaibhav wrote:
+> > On Wednesday, August 24, 2011 5:00 PM Laurent Pinchart wrote:
+> > > On Wednesday 24 August 2011 13:21:27 Ravi, Deepthy wrote:
+> > > > On Wed, Aug 24, 2011 at 4:47 PM, Laurent Pinchart wrote:
+> > > > > On Friday 19 August 2011 15:48:45 Deepthy Ravi wrote:
+> > > > >> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> > > > >>
+> > > > >> Fix the build break caused when CONFIG_MEDIA_CONTROLLER
+> > > > >> option is disabled and if any sensor driver has to be used
+> > > > >> between MC and non MC framework compatible devices.
+> > > > >>
+> > > > >> For example,if tvp514x video decoder driver migrated to
+> > > > >> MC framework is being built without CONFIG_MEDIA_CONTROLLER
+> > > > >> option enabled, the following error messages will result.
+> > > > >> drivers/built-in.o: In function `tvp514x_remove':
+> > > > >> drivers/media/video/tvp514x.c:1285: undefined reference to
+> > > > >> `media_entity_cleanup'
+> > > > >> drivers/built-in.o: In function `tvp514x_probe':
+> > > > >> drivers/media/video/tvp514x.c:1237: undefined reference to
+> > > > >> `media_entity_init'
+> > > > >
+> > > > > If the tvp514x is migrated to the MC framework, its Kconfig option
+> > > > > should depend on MEDIA_CONTROLLER.
+> > > >
+> > > > The same TVP514x driver is being used for both MC and non MC
+> compatible
+> > > > devices, for example OMAP3 and AM35x. So if it is made dependent on
+> > > > MEDIA CONTROLLER, we cannot enable the driver for MC independent
+> > > > devices.
+> > >
+> > > Then you should use conditional compilation in the tvp514x driver
+> itself.
+> > > Or
+> >
+> > No. I am not in favor of conditional compilation in driver code.
+> 
+> Actually, thinking some more about this, you should make the tvp514x
+> driver
+> depend on CONFIG_MEDIA_CONTROLLER unconditionally. This doesn't mean that
+> the
+> driver will become unusable by applications that are not MC-aware.
+[Hiremath, Vaibhav] I am not referring to application here, there is no doubt that application must support non-MC devices. 
+I should be able to use standard V4L2 streaming application and use it on streaming device node, the only change would be, for MC aware device, links need to be set before and for non-MC aware devices its default thing. 
 
-#include "../drivers/media/video/omap3isp/isp.h"
+> Hosts/bridges don't have to export subdev nodes, they can just call subdev
+> pad-level operations internally and let applications control the whole
+> device
+> through a single V4L2 video node.
+> 
+[Hiremath, Vaibhav] Agreed. That's what I thought.
 
-but that's not really better :-)
+> > > better, port the AM35x driver to the MC API.
+> >
+> > Why should we use MC if I have very simple device (like AM35x) which
+> only
+> > supports single path? I can very well use simple V4L2 sub-dev based
+> > approach (master - slave), isn't it?
+> 
+> The AM35x driver should use the in-kernel MC and V4L2 subdev APIs, but it
+> doesn't have to expose them to userspace.
+> 
+[Hiremath, Vaibhav] Let me digest this.
 
-You should include <media/omap3isp.h> (after applying the patch that creates 
-that file). If your board code doesn't use the OMAP3 ISP platform callback 
-functions, you don't need to include the isp.h header at all.
+Thanks,
+Vaibhav
 
--- 
-Regards,
-
-Laurent Pinchart
+> --
+> Regards,
+> 
+> Laurent Pinchart
