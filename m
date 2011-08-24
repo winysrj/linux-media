@@ -1,149 +1,291 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:39950 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750803Ab1HXW3e (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:53966 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756369Ab1HXGZk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Aug 2011 18:29:34 -0400
-Date: Thu, 25 Aug 2011 01:29:25 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Embedded device and the  V4L2 API support - Was: [GIT PATCHES
- FOR 3.1] s5p-fimc and noon010pc30 driver updates
-Message-ID: <20110824222925.GR8872@valkosipuli.localdomain>
-References: <4E303E5B.9050701@samsung.com>
- <201108151430.42722.laurent.pinchart@ideasonboard.com>
- <4E49B60C.4060506@redhat.com>
- <201108161057.57875.laurent.pinchart@ideasonboard.com>
- <4E4A8D27.1040602@redhat.com>
- <4E4AE583.6050308@gmail.com>
- <4E4B5C27.3000008@redhat.com>
- <4E4F9A0B.4050302@gmail.com>
- <4E4FA4C8.4050703@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4E4FA4C8.4050703@redhat.com>
+	Wed, 24 Aug 2011 02:25:40 -0400
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: <linux-arm-kernel@lists.infradead.org>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>,
+	Baruch Siach <baruch@tkos.co.il>, linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH] media i.MX27 camera: remove legacy dma support
+Date: Wed, 24 Aug 2011 08:24:33 +0200
+Message-Id: <1314167073-11058-1-git-send-email-s.hauer@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The i.MX27 dma support was introduced with the initial commit of
+this driver and originally created by me. However, I never got
+this stable due to the racy dma engine and used the EMMA engine
+instead. As the DMA support is most probably unused and broken in
+its current state, remove it. This also helps us to get rid of
+another user of the legacy i.MX DMA support,
+Also, remove the dependency on ARCH_MX* macros as these are scheduled
+for removal.
 
-On Sat, Aug 20, 2011 at 05:12:56AM -0700, Mauro Carvalho Chehab wrote:
-> Em 20-08-2011 04:27, Sylwester Nawrocki escreveu:
-> > Hi Mauro,
-> > 
-> > On 08/17/2011 08:13 AM, Mauro Carvalho Chehab wrote:
-> >> It seems that there are too many miss understandings or maybe we're just
-> >> talking the same thing on different ways.
-> >>
-> >> So, instead of answering again, let's re-start this discussion on a
-> >> different way.
-> >>
-> >> One of the requirements that it was discussed a lot on both mailing
-> >> lists and on the Media Controllers meetings that we had (or, at least
-> >> in the ones where I've participated) is that:
-> >>
-> >> 	"A pure V4L2 userspace application, knowing about video device
-> >> 	 nodes only, can still use the driver. Not all advanced features
-> >> 	 will be available."
-> > 
-> > What does a term "a pure V4L2 userspace application" mean here ?
-> 
-> The above quotation are exactly the Laurent's words that I took from one 
-> of his replies.
-
-I would define this as an application which uses V4L2 but does not use Media
-controller or the V4L2 subdev interfaces nor is aware of any particular
-hardware device.
-
-> > Does it also account an application which is linked to libv4l2 and uses
-> > calls specific to a particular hardware which are included there?
-> 
-> That's a good question. We need to properly define what it means, to avoid
-> having libv4l abuses.
-> 
-> In other words, it seems ok to use libv4l to set pipelines via the MC API
-> at open(), but it isn't ok to have an open() binary only libv4l plugin that
-> will hook open and do the complete device initialization on userspace
-> (I remember that one vendor once proposed a driver like that).
-> 
-> Also, from my side, I'd like to see both libv4l and kernel drivers being
-> submitted together, if the new driver depends on a special libv4l support
-> for it to work.
-
-I agree with the above.
-
-I do favour using libv4l to do the pipeline setup using MC and V4L2 subdev
-interfaces. This has the benefit that the driver provides just one interface
-to access different aspects of it, be it pipeline setup (Media controller),
-a control to change exposure time (V4L2 subdev) or queueing video buffer
-(V4L2). This means more simple and more maintainable drivers and less bugs
-in general.
-
-Apart from what the drivers already provide on video nodea, to support a
-general purpose V4L2 application, libv4l plugin can do is (not exhaustive
-list):
-
-- Perform pipeline setup using MC interface, possibly based on input
-  selected using S_INPUT so that e.g. multiple sensors can be supported and
-- implement {S,G,TRY}_EXT_CTRLS and QUERYCTRL using V4L2 subdev nodes as
-  backend.
-
-As the Media controller and V4L2 interfaces are standardised, I see no
-reason why this plugin could not be fully generic: only the configuration is
-device specific.
-
-This configuration could be stored into a configuration file which is
-selected based on the system type. On embedded systems (ARMs at least, but
-anyway the vast majority is based on ARM) the board type is easily available
-for the user space applications in /proc/cpuinfo --- this example is from
-the Nokia N900:
-
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Baruch Siach <baruch@tkos.co.il>
+Cc: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
-Processor       : ARMv7 Processor rev 3 (v7l)
-BogoMIPS        : 249.96
-Features        : swp half fastmult vfp edsp neon vfpv3 
-CPU implementer : 0x41
-CPU architecture: 7
-CPU variant     : 0x1
-CPU part        : 0xc08
-CPU revision    : 3
+ drivers/media/video/Kconfig      |    2 +-
+ drivers/media/video/mx2_camera.c |  183 --------------------------------------
+ 2 files changed, 1 insertions(+), 184 deletions(-)
 
-Hardware        : Nokia RX-51 board
-Revision        : 2101
-Serial          : 0000000000000000
----
-
-I think this would be a first step to support general purpose application on
-embedded systems.
-
-The question I still have on this is that how should the user know which
-video node to access on an embedded system with a camera: the OMAP 3 ISP,
-for example, contains some eight video nodes which have different ISP blocks
-connected to them. Likely two of these nodes are useful for a general
-purpose application based on which image format it requests. It would make
-sense to provide generic applications information only on those devices they
-may meaningfully use.
-
-Later on, more functionality could be added to better support hardware which
-supports e.g. different pixel formats, image sizes, scaling and crop. I'm
-not entirely certain if all of this is fully generic --- but I think the
-vast majority of it is --- at least converting from v4l2_mbus_framefmt
-pixelcode to v4l2_format.fmt is often quite hardware specific which must be
-taken into account by the generic plugin.
-
-At that point many policy decisions must be made on how to use the hardware
-the best way, and that must be also present in the configuration file.
-
-But perhaps I'm going too far with this now; we don't yet have a generic
-plugin providing basic functionality. We have the OMAP 3 ISP libv4l plugin
-which might be a good staring point for this work.
-
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index f574dc0..27b41b8 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -941,7 +941,7 @@ config VIDEO_MX2_HOSTSUPPORT
+ 
+ config VIDEO_MX2
+ 	tristate "i.MX27/i.MX25 Camera Sensor Interface driver"
+-	depends on VIDEO_DEV && SOC_CAMERA && (MACH_MX27 || ARCH_MX25)
++	depends on VIDEO_DEV && SOC_CAMERA && ARCH_MXC
+ 	select VIDEOBUF_DMA_CONTIG
+ 	select VIDEO_MX2_HOSTSUPPORT
+ 	---help---
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index ec2410c..3b5c8eb 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -38,9 +38,6 @@
+ #include <linux/videodev2.h>
+ 
+ #include <mach/mx2_cam.h>
+-#ifdef CONFIG_MACH_MX27
+-#include <mach/dma-mx1-mx2.h>
+-#endif
+ #include <mach/hardware.h>
+ 
+ #include <asm/dma.h>
+@@ -330,41 +327,10 @@ static void mx2_camera_remove_device(struct soc_camera_device *icd)
+ 	pcdev->icd = NULL;
+ }
+ 
+-#ifdef CONFIG_MACH_MX27
+-static void mx27_camera_dma_enable(struct mx2_camera_dev *pcdev)
+-{
+-	u32 tmp;
+-
+-	imx_dma_enable(pcdev->dma);
+-
+-	tmp = readl(pcdev->base_csi + CSICR1);
+-	tmp |= CSICR1_RF_OR_INTEN;
+-	writel(tmp, pcdev->base_csi + CSICR1);
+-}
+-
+-static irqreturn_t mx27_camera_irq(int irq_csi, void *data)
+-{
+-	struct mx2_camera_dev *pcdev = data;
+-	u32 status = readl(pcdev->base_csi + CSISR);
+-
+-	if (status & CSISR_SOF_INT && pcdev->active) {
+-		u32 tmp;
+-
+-		tmp = readl(pcdev->base_csi + CSICR1);
+-		writel(tmp | CSICR1_CLR_RXFIFO, pcdev->base_csi + CSICR1);
+-		mx27_camera_dma_enable(pcdev);
+-	}
+-
+-	writel(CSISR_SOF_INT | CSISR_RFF_OR_INT, pcdev->base_csi + CSISR);
+-
+-	return IRQ_HANDLED;
+-}
+-#else
+ static irqreturn_t mx27_camera_irq(int irq_csi, void *data)
+ {
+ 	return IRQ_NONE;
+ }
+-#endif /* CONFIG_MACH_MX27 */
+ 
+ static void mx25_camera_frame_done(struct mx2_camera_dev *pcdev, int fb,
+ 		int state)
+@@ -547,25 +513,6 @@ static void mx2_videobuf_queue(struct videobuf_queue *vq,
+ 
+ 	if (mx27_camera_emma(pcdev)) {
+ 		goto out;
+-#ifdef CONFIG_MACH_MX27
+-	} else if (cpu_is_mx27()) {
+-		int ret;
+-
+-		if (pcdev->active == NULL) {
+-			ret = imx_dma_setup_single(pcdev->dma,
+-					videobuf_to_dma_contig(vb), vb->size,
+-					(u32)pcdev->base_dma + 0x10,
+-					DMA_MODE_READ);
+-			if (ret) {
+-				vb->state = VIDEOBUF_ERROR;
+-				wake_up(&vb->done);
+-				goto out;
+-			}
+-
+-			vb->state = VIDEOBUF_ACTIVE;
+-			pcdev->active = buf;
+-		}
+-#endif
+ 	} else { /* cpu_is_mx25() */
+ 		u32 csicr3, dma_inten = 0;
+ 
+@@ -1037,117 +984,6 @@ static int mx2_camera_reqbufs(struct soc_camera_device *icd,
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_MACH_MX27
+-static void mx27_camera_frame_done(struct mx2_camera_dev *pcdev, int state)
+-{
+-	struct videobuf_buffer *vb;
+-	struct mx2_buffer *buf;
+-	unsigned long flags;
+-	int ret;
+-
+-	spin_lock_irqsave(&pcdev->lock, flags);
+-
+-	if (!pcdev->active) {
+-		dev_err(pcdev->dev, "%s called with no active buffer!\n",
+-				__func__);
+-		goto out;
+-	}
+-
+-	vb = &pcdev->active->vb;
+-	buf = container_of(vb, struct mx2_buffer, vb);
+-	WARN_ON(list_empty(&vb->queue));
+-	dev_dbg(pcdev->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
+-		vb, vb->baddr, vb->bsize);
+-
+-	/* _init is used to debug races, see comment in pxa_camera_reqbufs() */
+-	list_del_init(&vb->queue);
+-	vb->state = state;
+-	do_gettimeofday(&vb->ts);
+-	vb->field_count++;
+-
+-	wake_up(&vb->done);
+-
+-	if (list_empty(&pcdev->capture)) {
+-		pcdev->active = NULL;
+-		goto out;
+-	}
+-
+-	pcdev->active = list_entry(pcdev->capture.next,
+-			struct mx2_buffer, vb.queue);
+-
+-	vb = &pcdev->active->vb;
+-	vb->state = VIDEOBUF_ACTIVE;
+-
+-	ret = imx_dma_setup_single(pcdev->dma, videobuf_to_dma_contig(vb),
+-			vb->size, (u32)pcdev->base_dma + 0x10, DMA_MODE_READ);
+-
+-	if (ret) {
+-		vb->state = VIDEOBUF_ERROR;
+-		pcdev->active = NULL;
+-		wake_up(&vb->done);
+-	}
+-
+-out:
+-	spin_unlock_irqrestore(&pcdev->lock, flags);
+-}
+-
+-static void mx27_camera_dma_err_callback(int channel, void *data, int err)
+-{
+-	struct mx2_camera_dev *pcdev = data;
+-
+-	mx27_camera_frame_done(pcdev, VIDEOBUF_ERROR);
+-}
+-
+-static void mx27_camera_dma_callback(int channel, void *data)
+-{
+-	struct mx2_camera_dev *pcdev = data;
+-
+-	mx27_camera_frame_done(pcdev, VIDEOBUF_DONE);
+-}
+-
+-#define DMA_REQ_CSI_RX          31 /* FIXME: Add this to a resource */
+-
+-static int __devinit mx27_camera_dma_init(struct platform_device *pdev,
+-		struct mx2_camera_dev *pcdev)
+-{
+-	int err;
+-
+-	pcdev->dma = imx_dma_request_by_prio("CSI RX DMA", DMA_PRIO_HIGH);
+-	if (pcdev->dma < 0) {
+-		dev_err(&pdev->dev, "%s failed to request DMA channel\n",
+-				__func__);
+-		return pcdev->dma;
+-	}
+-
+-	err = imx_dma_setup_handlers(pcdev->dma, mx27_camera_dma_callback,
+-					mx27_camera_dma_err_callback, pcdev);
+-	if (err) {
+-		dev_err(&pdev->dev, "%s failed to set DMA callback\n",
+-				__func__);
+-		goto err_out;
+-	}
+-
+-	err = imx_dma_config_channel(pcdev->dma,
+-			IMX_DMA_MEMSIZE_32 | IMX_DMA_TYPE_FIFO,
+-			IMX_DMA_MEMSIZE_32 | IMX_DMA_TYPE_LINEAR,
+-			DMA_REQ_CSI_RX, 1);
+-	if (err) {
+-		dev_err(&pdev->dev, "%s failed to config DMA channel\n",
+-				__func__);
+-		goto err_out;
+-	}
+-
+-	imx_dma_config_burstlen(pcdev->dma, 64);
+-
+-	return 0;
+-
+-err_out:
+-	imx_dma_free(pcdev->dma);
+-
+-	return err;
+-}
+-#endif /* CONFIG_MACH_MX27 */
+-
+ static unsigned int mx2_camera_poll(struct file *file, poll_table *pt)
+ {
+ 	struct soc_camera_device *icd = file->private_data;
+@@ -1352,15 +1188,6 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+ 	dev_dbg(&pdev->dev, "Camera clock frequency: %ld\n",
+ 			clk_get_rate(pcdev->clk_csi));
+ 
+-	/* Initialize DMA */
+-#ifdef CONFIG_MACH_MX27
+-	if (cpu_is_mx27()) {
+-		err = mx27_camera_dma_init(pdev, pcdev);
+-		if (err)
+-			goto exit_clk_put;
+-	}
+-#endif /* CONFIG_MACH_MX27 */
+-
+ 	pcdev->res_csi = res_csi;
+ 	pcdev->pdata = pdev->dev.platform_data;
+ 	if (pcdev->pdata) {
+@@ -1452,12 +1279,6 @@ exit_iounmap:
+ exit_release:
+ 	release_mem_region(res_csi->start, resource_size(res_csi));
+ exit_dma_free:
+-#ifdef CONFIG_MACH_MX27
+-	if (cpu_is_mx27())
+-		imx_dma_free(pcdev->dma);
+-exit_clk_put:
+-	clk_put(pcdev->clk_csi);
+-#endif /* CONFIG_MACH_MX27 */
+ exit_kfree:
+ 	kfree(pcdev);
+ exit:
+@@ -1472,10 +1293,6 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
+ 	struct resource *res;
+ 
+ 	clk_put(pcdev->clk_csi);
+-#ifdef CONFIG_MACH_MX27
+-	if (cpu_is_mx27())
+-		imx_dma_free(pcdev->dma);
+-#endif /* CONFIG_MACH_MX27 */
+ 	free_irq(pcdev->irq_csi, pcdev);
+ 	if (mx27_camera_emma(pcdev))
+ 		free_irq(pcdev->irq_emma, pcdev);
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.5.4
+
