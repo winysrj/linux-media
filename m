@@ -1,160 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3032 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751595Ab1HWGb5 (ORCPT
+Received: from smtp2.chr.co.th ([58.137.229.209]:34277 "EHLO smtp2.chr.co.th"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750925Ab1HXGoU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Aug 2011 02:31:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size videobuffer management
-Date: Tue, 23 Aug 2011 08:31:41 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange> <201108221752.12950.hverkuil@xs4all.nl> <201108221921.18864.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201108221921.18864.laurent.pinchart@ideasonboard.com>
+	Wed, 24 Aug 2011 02:44:20 -0400
+From: CSBR - Reservations Department <CSBR@chr.co.th>
+Subject: $1,000,000.00 Dollars
+Date: Wed, 24 Aug 2011 06:35:03 +0000
+Message-ID: <2FC360718EEAD841B218BDDFDA4255BC1BC297D3@MBSERVER01.chr.co.th>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108230831.41332.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday, August 22, 2011 19:21:18 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Monday 22 August 2011 17:52:12 Hans Verkuil wrote:
-> > On Monday, August 22, 2011 17:42:36 Laurent Pinchart wrote:
-> > > On Monday 22 August 2011 15:54:03 Guennadi Liakhovetski wrote:
-> > > > We discussed a bit more with Hans on IRC, and below is my attempt of a
-> > > > summary. Hans, please, correct me, if I misunderstood anything. Pawel,
-> > > > Sakari, Laurent: please, reply, whether you're ok with this.
-> > > 
-> > > Sakari is on holidays this week.
-> > > 
-> > > > On Mon, 22 Aug 2011, Hans Verkuil wrote:
-> > > > > On Monday, August 22, 2011 12:40:25 Guennadi Liakhovetski wrote:
-> > > > [snip]
-> > > > 
-> > > > > > It would be good if you also could have a look at my reply to this
-> > > > > > Pawel's mail:
-> > > > > > 
-> > > > > > http://article.gmane.org/gmane.linux.drivers.video-input-
-> > > > > 
-> > > > > infrastructure/36905
-> > > > > 
-> > > > > > and, specifically, at the vb2_parse_planes() function in it. That's
-> > > > > > my understanding of what would be needed, if we preserve
-> > > > > > .queue_setup() and use your last suggestion to include struct
-> > > > > > v4l2_format in struct v4l2_create_buffers.
-> > > > > 
-> > > > > vb2_parse_planes can be useful as a utility function that 'normal'
-> > > > > drivers can call from the queue_setup. But vb2 should not parse the
-> > > > > format directly, it should just pass it on to the driver through the
-> > > > > queue_setup function.
-> > > > > 
-> > > > > You also mention: "All frame-format fields like fourcc code, width,
-> > > > > height, colorspace are only input from the user. If the user didn't
-> > > > > fill them in, they should not be used."
-> > > > > 
-> > > > > I disagree with that. The user should fill in a full format
-> > > > > description, just as with S/TRY_FMT. That's the information that the
-> > > > > driver will use to set up the buffers. It could have weird rules
-> > > > > like: if the fourcc is this, and the size is less than that, then we
-> > > > > can allocate in this memory bank.
-> > > > > 
-> > > > > It is also consistent with REQBUFS: there too the driver uses a full
-> > > > > format (i.e. the last set format).
-> > > > > 
-> > > > > I would modify queue_setup to something like this:
-> > > > > 
-> > > > > int (*queue_setup)(struct vb2_queue *q, struct v4l2_format *fmt,
-> > > > > 
-> > > > >                      unsigned int *num_buffers,
-> > > > >                      unsigned int *num_planes, unsigned int sizes[],
-> > > > >                      void *alloc_ctxs[]);
-> > > > > 
-> > > > > Whether fmt is left to NULL in the reqbufs case, or whether the
-> > > > > driver has to call g_fmt first before calling vb2 is something that
-> > > > > could be decided by what is easiest to implement.
-> > > > 
-> > > > 1. VIDIOC_CREATE_BUFS passes struct v4l2_create_buffers from the user
-> > > > to
-> > > > 
-> > > >    the kernel, in which struct v4l2_format is embedded. The user _must_
-> > > >    fill in .type member of struct v4l2_format. For .type ==
-> > > >    V4L2_BUF_TYPE_VIDEO_CAPTURE or V4L2_BUF_TYPE_VIDEO_OUTPUT .fmt.pix
-> > > >    is used, for .type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE or
-> > > >    V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE .fmt.pix_mp is used. In both these
-> > > >    cases the user _must_ fill in .width, .height, .pixelformat, .field,
-> > > >    .colorspace by possibly calling VIDIOC_G_FMT or VIDIOC_TRY_FMT. The
-> > > >    user also _may_ optionally fill in any further buffer-size related
-> > > >    fields, if it believes to have any special requirements to them. On
-> > > >    a successful return from the ioctl() .count and .index fields are
-> > > >    filled in by the kernel, .format stays unchanged. The user has to
-> > > >    call VIDIOC_QUERYBUF to retrieve specific buffer information.
-> > > > 
-> > > > 2. Videobuf2 drivers, that implement .vidioc_create_bufs() operation,
-> > > > call
-> > > > 
-> > > >    vb2_create_bufs() with a pointer to struct v4l2_create_buffers as a
-> > > >    second argument. vb2_create_bufs() in turn calls the .queue_setup()
-> > > > 
-> > > >    driver callback, whose prototype is modified as follows:
-> > > > int (*queue_setup)(struct vb2_queue *q, const struct v4l2_format *fmt,
-> > > > 
-> > > > 			unsigned int *num_buffers,
-> > > > 			unsigned int *num_planes, unsigned int sizes[],
-> > > > 			void *alloc_ctxs[]);
-> > > > 			
-> > > >    with &create->format as a second argument. As pointed out above,
-> > > >    this struct is not modified by V4L, instead, the usual arguments
-> > > >    3-6 are filled in by the driver, which are then used by
-> > > >    vb2_create_bufs() to call __vb2_queue_alloc().
-> > > > 
-> > > > 3. vb2_reqbufs() shall call .queue_setup() with fmt == NULL, which will
-> > > > be
-> > > > 
-> > > >    a signal to the driver to use the current format.
-> > > > 
-> > > > 4. We keep .queue_setup(), because its removal would inevitably push a
-> > > > 
-> > > >    part of the common code from vb2_reqbufs() and vb2_create_bufs()
-> > > >    down into drivers, thus creating code redundancy and increasing its
-> > > >    complexity.
-> > > 
-> > > How much common code would be pushed down to drivers ? I don't think this
-> > > is a real issue. I like Pawel's proposal of removing .queue_setup()
-> > > better.
-> > 
-> > I still don't see what removing queue_setup will solve or improve.
-> 
-> It will remove handling of the format in vb2 (even if it's a pass-through 
-> operation). I think it would be cleaner that way. It will also avoid going 
-> back and forth between drivers and vb2, which would improve code readability.
+One Million Dollars have been awarded to you
+catholiccharityfunds@yahoo.com
 
-I very much doubt it will be more readable or cleaner. For one thing it is
-inconsistent with the other ioctl ops where you just call a vb2 function to
-handle it. Suddenly here you have to do lots of things to make it work.
 
-> > I'd say leave it as it is to keep the diff as small as possible and someone
-> > can always attempt to remove it later. Removing queue_setup is independent
-> > from multi-size videobuffer management and we should not mix the two.
-> 
-> Guennadi's patch will (at least in my opinion) be cleaner if built on top of 
-> queue_setup() removal.
 
-Really? Just adding a single v4l2_format pointer is less clean than removing
-queue_setup? That would really surprise me.
 
-Anyway, let Guennadi choose what is easiest. It's an implementation detail in
-the end and I just want to get this functionality in.
 
-Regards,
 
-	Hans
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bali, Mauritius and Goa, India are just three of the new destinations 
+
+where you will find a Centara Resort in 2012
+
+More choice in Thailand this winter, with new resorts opening in Krabi, 
+
+Pattaya and Khoa lak.
+
+Discover a brand new look to our website from 01 July 2011
+
+
+Discover them all today at: www.centarahotelsresorts.com
+==============================================
+Centara Hotels & Resorts
+999/99 Rama 1 Road, Pathumwan
+Bangkok 10330, Thailand
+ 
+Tel: +66 (0) 2 769 1234
+Fax: +66 (0) 2 769 1235
+Email: centara@chr.co.th
+ 
+For Reservations:
+Tel: +66 (0) 2 101 1234, Press 1
+Fax: +66 (0) 2 101 1235
+Email: reservations@chr.co.th 
+==============================================
+Disclaimer: This e-mail and any files transmitted with it are confidential
+and are intended solely for the use of the individual or entity to whom 
+they are addressed. Unauthorized use, disclosure, copying or alteration 
+of this message is strictly forbidden. If you have received this e-mail in 
+error, please notify the sender and delete the e-mail and any copies of 
+it.Please note that CHR is able to, and reserves the right to, monitor
+e-mail communications passing through its network. 
+==============================================
+
