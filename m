@@ -1,84 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:64639 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753583Ab1H2PNp convert rfc822-to-8bit (ORCPT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54347 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750709Ab1HXNT6 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 11:13:45 -0400
-Received: by fxh19 with SMTP id 19so4500595fxh.19
-        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2011 08:13:44 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4E5BA751.6090709@iki.fi>
-References: <CAFk-VPxQvGiEUdd+X4jjUqcygPO-JsT0gTFvrX-q4cGAW6tq_Q@mail.gmail.com>
- <4E485F81.9020700@iki.fi> <4E48FF99.7030006@iki.fi> <4E4C2784.2020003@iki.fi>
- <CAFk-VPzKa4bNLCMMCagFi1LLK6PnY245YJqP5yisQH77nJ0Org@mail.gmail.com> <4E5BA751.6090709@iki.fi>
-From: =?ISO-8859-1?Q?Istv=E1n_V=E1radi?= <ivaradi@gmail.com>
-Date: Mon, 29 Aug 2011 17:13:24 +0200
-Message-ID: <CAFk-VPypTuaKgAHPxyvKg7GHYM358rZ2kypabfvxG-x7GjmFpw@mail.gmail.com>
-Subject: Re: Smart card reader support for Anysee DVB devices
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 24 Aug 2011 09:19:58 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Ravi, Deepthy" <deepthy.ravi@ti.com>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Date: Wed, 24 Aug 2011 18:49:46 +0530
+Subject: RE: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
+Message-ID: <19F8576C6E063C45BE387C64729E739404EC007C25@dbde02.ent.ti.com>
+References: <1313761725-6614-1-git-send-email-deepthy.ravi@ti.com>
+	 <201108241217.11430.laurent.pinchart@ideasonboard.com>
+	 <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D0907F6@dbde03.ent.ti.com>
+	 <201108241329.48147.laurent.pinchart@ideasonboard.com>
+	 <19F8576C6E063C45BE387C64729E739404EC007BE3@dbde02.ent.ti.com>
+ <1314190538.9124.29.camel@smile>
+In-Reply-To: <1314190538.9124.29.camel@smile>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/8/29 Antti Palosaari <crope@iki.fi>:
-> On 08/29/2011 05:44 PM, István Váradi wrote:
->>
->> Hi,
->>
->> 2011/8/17 Antti Palosaari<crope@iki.fi>:
->>>
->>> On 08/15/2011 02:14 PM, Antti Palosaari wrote:
->>>>
->>>> On 08/15/2011 02:51 AM, Antti Palosaari wrote:
->>>>>
->>>>> Biggest problem I see whole thing is poor application support. OpenCT
->>>>> is
->>>>> rather legacy but there is no good alternative. All this kind of serial
->>>>> drivers seems to be OpenCT currently.
->>>>
->>>> I wonder if it is possible to make virtual CCID device since CCID seems
->>>> to be unfortunately the only interface SmartCard guys currently care.
->>>
->>> I studied scenario and looks like it is possible to implement way like,
->>> register virtual USB HCI (virtual motherboard USB controller) then
->>> register virtual PC/SC device to that which hooks all calls to HW via
->>> Anysee driver. Some glue surely needed for emulate PC/SC. I think there
->>> is not any such driver yet. Anyhow, there is virtual USB HCI driver
->>> currently in staging which can be used as example, or even use it to
->>> register virtual device. That kind of functionality surely needs more
->>> talking...
->>
->> It maybe that smartcard guys care only for CCID, but wouldn't it be an
->> overkill to implement an emulation of that for the driver? It can be
->> done, of course, but I think it would be much more complicated than
->> the current one. Is it really necessary to put such complexity into
->> the kernel? In my opinion, this should be handled in user-space.
->
-> Only De facto serial smartcard protocol is so called Phoenix/Smartmouse,
-> implementing new protocol is totally dead idea. It will never got any
-> support.
->
-> There is already such drivers, at least Infinity Unlimited USB Phoenix
-> driver (iuu_phoenix.c). It uses USB-serial driver framework and some small
-> emulation for Phoenix protocol. Look that driver to see which kind of
-> complexity it adds. Anysee have *just* same situation.
 
-Phoenix/Smartmouse and CCID are quite different aren't they? So to
-support Phoenix I would need provide a USB serial device which talks
-the protocol, but there would be no need for a virtual USB HCI. Is
-that correct?
+> -----Original Message-----
+> From: Andy Shevchenko [mailto:andriy.shevchenko@linux.intel.com]
+> Sent: Wednesday, August 24, 2011 6:26 PM
+> To: Hiremath, Vaibhav
+> Cc: Laurent Pinchart; Ravi, Deepthy; mchehab@infradead.org; linux-
+> media@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
+> omap@vger.kernel.org
+> Subject: RE: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
+> 
+> > > > >> Fix the build break caused when CONFIG_MEDIA_CONTROLLER
+> > > > >> option is disabled and if any sensor driver has to be used
+> > > > >> between MC and non MC framework compatible devices.
+> > > > >>
+> > > > >> For example,if tvp514x video decoder driver migrated to
+> > > > >> MC framework is being built without CONFIG_MEDIA_CONTROLLER
+> > > > >> option enabled, the following error messages will result.
+> > > > >> drivers/built-in.o: In function `tvp514x_remove':
+> > > > >> drivers/media/video/tvp514x.c:1285: undefined reference to
+> > > > >> `media_entity_cleanup'
+> > > > >> drivers/built-in.o: In function `tvp514x_probe':
+> > > > >> drivers/media/video/tvp514x.c:1237: undefined reference to
+> > > > >> `media_entity_init'
+> > > > >
+> > > > > If the tvp514x is migrated to the MC framework, its Kconfig option
+> > > should
+> > > > > depend on MEDIA_CONTROLLER.
+> > > >
+> > > > The same TVP514x driver is being used for both MC and non MC
+> compatible
+> > > > devices, for example OMAP3 and AM35x. So if it is made dependent on
+> > > MEDIA
+> > > > CONTROLLER, we cannot enable the driver for MC independent devices.
+> > >
+> > > Then you should use conditional compilation in the tvp514x driver
+> itself.
+> > > Or
+> > [Hiremath, Vaibhav] No. I am not in favor of conditional compilation in
+> driver code.
+> >
+> > > better, port the AM35x driver to the MC API.
+> > >
+> > [Hiremath, Vaibhav]
+> > Why should we use MC if I have very simple device (like AM35x) which
+> only supports single path? I can very well use simple V4L2 sub-dev based
+> approach (master - slave), isn't it?
+> Why should you break the API in unappropriated way?
+[Hiremath, Vaibhav] Can you explain? 
 
-Regards,
+Thanks,
+Vaibhav
 
-Istvan
-
->
-> regards
-> Antti
->
->
+> 
+> The patch is NACK, obviously.
+> 
 > --
-> http://palosaari.fi/
->
+> Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Intel Finland Oy
