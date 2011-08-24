@@ -1,292 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:40244 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752923Ab1HQP30 convert rfc822-to-8bit (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:59856 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752089Ab1HXJys (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2011 11:29:26 -0400
-Received: by qyk38 with SMTP id 38so2132004qyk.19
-        for <linux-media@vger.kernel.org>; Wed, 17 Aug 2011 08:29:25 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1108171047210.18317@axis700.grange>
-References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
- <201108081116.41126.hansverk@cisco.com> <Pine.LNX.4.64.1108151324220.7851@axis700.grange>
- <201108151336.07258.hansverk@cisco.com> <Pine.LNX.4.64.1108151530410.7851@axis700.grange>
- <Pine.LNX.4.64.1108161458510.13913@axis700.grange> <CAMm-=zCJBDzx=tzcnEU4RCS9jkbxDeDPDZsHRL5ZMHcdBMYivA@mail.gmail.com>
- <Pine.LNX.4.64.1108171047210.18317@axis700.grange>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Wed, 17 Aug 2011 08:29:05 -0700
-Message-ID: <CAMm-=zCFzaJd5030LKknmOyu4K6Y3bMmQ83Z==R-bvgg_0O1bQ@mail.gmail.com>
-Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size
- videobuffer management
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hansverk@cisco.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Wed, 24 Aug 2011 05:54:48 -0400
+Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LQF00IIPFJAHH@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 24 Aug 2011 10:54:46 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LQF00I4HFJ99X@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 24 Aug 2011 10:54:46 +0100 (BST)
+Date: Wed, 24 Aug 2011 11:54:42 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH] media: vb2: change plane sizes array to unsigned int[]
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Hans Verkuil <hverkuil@xs4all.nl>
+Message-id: <1314179682-8557-1-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Plane sizes array was declared as unsigned long[], while unsigned int is
+more than enough for storing size of the video buffer. This patch reduces
+the size of the array by definiting it as unsigned int[].
 
-On Wed, Aug 17, 2011 at 02:11, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Tue, 16 Aug 2011, Pawel Osciak wrote:
->
->> Hi Guennadi,
->>
->> On Tue, Aug 16, 2011 at 06:13, Guennadi Liakhovetski
->> <g.liakhovetski@gmx.de> wrote:
->> > On Mon, 15 Aug 2011, Guennadi Liakhovetski wrote:
->> >
->> >> On Mon, 15 Aug 2011, Hans Verkuil wrote:
->> >>
->> >> > On Monday, August 15, 2011 13:28:23 Guennadi Liakhovetski wrote:
->> >> > > Hi Hans
->> >> > >
->> >> > > On Mon, 8 Aug 2011, Hans Verkuil wrote:
->> >
->> > [snip]
->> >
->> >> > > > but I've changed my mind: I think
->> >> > > > this should use a struct v4l2_format after all.
->> >>
->> >> While switching back, I have to change the struct vb2_ops::queue_setup()
->> >> operation to take a struct v4l2_create_buffers pointer. An earlier version
->> >> of this patch just added one more parameter to .queue_setup(), which is
->> >> easier - changes to videobuf2-core.c are smaller, but it is then
->> >> redundant. We could use the create pointer for both input and output. The
->> >> video plane configuration in frame format is the same as what is
->> >> calculated in .queue_setup(), IIUC. So, we could just let the driver fill
->> >> that one in. This would require then the videobuf2-core.c to parse struct
->> >> v4l2_format to decide which union member we need, depending on the buffer
->> >> type. Do we want this or shall drivers duplicate plane sizes in separate
->> >> .queue_setup() parameters?
->> >
->> > Let me explain my question a bit. The current .queue_setup() method is
->> >
->> >        int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
->> >                           unsigned int *num_planes, unsigned int sizes[],
->> >                           void *alloc_ctxs[]);
->> >
->> > To support multiple-size buffers we also have to pass a pointer to struct
->> > v4l2_create_buffers to this function now. We can either do it like this:
->> >
->> >        int (*queue_setup)(struct vb2_queue *q,
->> >                           struct v4l2_create_buffers *create,
->> >                           unsigned int *num_buffers,
->> >                           unsigned int *num_planes, unsigned int sizes[],
->> >                           void *alloc_ctxs[]);
->> >
->> > and let all drivers fill in respective fields in *create, e.g., either do
->> >
->> >        create->format.fmt.pix_mp.plane_fmt[i].sizeimage = ...;
->> >        create->format.fmt.pix_mp.num_planes = ...;
->> >
->> > and also duplicate it in method parameters
->> >
->> >        *num_planes = create->format.fmt.pix_mp.num_planes;
->> >        sizes[i] = create->format.fmt.pix_mp.plane_fmt[i].sizeimage;
->> >
->> > or with
->> >
->> >        create->format.fmt.pix.sizeimage = ...;
->> >
->> > for single-plane. Alternatively we make the prototype
->> >
->> >        int (*queue_setup)(struct vb2_queue *q,
->> >                           struct v4l2_create_buffers *create,
->> >                           unsigned int *num_buffers,
->> >                           void *alloc_ctxs[]);
->> >
->> > then drivers only fill in *create, and the videobuf2-core will have to
->> > check create->format.type to decide, which of create->format.fmt.* is
->> > relevant and extract plane sizes from there.
->>
->>
->> Could we try exploring an alternative idea?
->> The queue_setup callback was added to decouple formats from vb2 (and
->> add some asynchronousness). But now we are doing the opposite, adding
->> format awareness to vb2. Does vb2 really need to know about formats? I
->> really believe it doesn't. It only needs sizes and counts.
->
-> This kind of objection was expected:-) However, I think, you're a bit
-> exaggerating. VB2 does not have to _fill_ the format. All frame-format
-> fields like fourcc code, width, height, colorspace are only input from the
-> user. If the user didn't fill them in, they should not be used. The only
-> thing, that vb2 will have to learn about formats is to find the location
-> of (plane-)buffer sizes in struct v4l2_format, for which it will have to
-> interpret the .type value. I.e., we just have to add this:
->
-> static int vb2_parse_planes(const struct v4l2_create_buffers *create,
->                            unsigned int *num_planes, unsigned int *plane_sizes)
-> {
->        int i;
->
->        switch (create->format.type) {
->        case V4L2_BUF_TYPE_VIDEO_CAPTURE:
->        case V4L2_BUF_TYPE_VIDEO_OUTPUT:
->                *num_planes = 1;
->                plane_sizes[0] = create->format.fmt.pix.sizeimage;
->                return 0;
->        case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
->        case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
->                *num_planes = create->format.fmt.pix_mp.num_planes;
->                for (i = 0; i < *num_planes; i++)
->                        plane_sizes[i] = create->format.fmt.pix_mp.plane_fmt[i].sizeimage;
->                return 0;
->        default:
->                return -EINVAL;
->        }
-> }
->
-> Can you live with this or you still think it's too much format-knowledge
-> for vb2? Or am I missing something, why we need more knowledge?
->
+Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/video/atmel-isi.c              |    2 +-
+ drivers/media/video/marvell-ccic/mcam-core.c |    2 +-
+ drivers/media/video/mem2mem_testdev.c        |    2 +-
+ drivers/media/video/mx3_camera.c             |    2 +-
+ drivers/media/video/pwc/pwc-if.c             |    2 +-
+ drivers/media/video/s5p-fimc/fimc-capture.c  |    2 +-
+ drivers/media/video/s5p-fimc/fimc-core.c     |    2 +-
+ drivers/media/video/s5p-mfc/s5p_mfc_dec.c    |    2 +-
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.c    |    2 +-
+ drivers/media/video/s5p-tv/mixer_video.c     |    2 +-
+ drivers/media/video/sh_mobile_ceu_camera.c   |    2 +-
+ drivers/media/video/vivi.c                   |    2 +-
+ include/media/videobuf2-core.h               |    4 ++--
+ 13 files changed, 14 insertions(+), 14 deletions(-)
 
-True, I exaggerated a bit there. You are right with the above (I was
-also thinking of a case when the driver would want to adjust the
-format passed to CREATE_BUFS, but that seems to work as well).
-
-But I think my point still stands though: the drivers will have to
-parse the format struct themselves for both createbufs and s_fmt and
-friends, and know how to fill the sizeimage for both, but in the
-createbufs case instead of assigning them in fmt struct, drivers would
-be passing them to vb2 "outside" of it, as separate arguments. And the
-filling code would have to be in drivers anyway for s_fmt. I'm
-definitely for adding more things to vb2 to simplify drivers, but in
-this case I'm just not seeing much of a gain :)
-
-Now that I think of it, if we were to make vb2 get the format here,
-why not simply pass the format struct to vb2 with sizeimages filled in
-and forget about separate sizes arguments? I mean, it would be simpler
-for the driver to just fill in fmt struct with numbers of planes and
-sizeimages and pass only fmt to vb2 (and make vb2 use those for
-allocation), instead of passing fmt unfilled and sizes separately and
-make vb2 fill them in.
-
-Either way, I'm still strongly leaning towards removing the
-queue_setup callback and not passing format to vb2, for the reasons
-I've already stated above.
-
->> Also, we
->> are actually complicating things I think. The proposal, IIUC, would
->> look like this:
->>
->> driver_queue_setup(..., create, num_buffers, [num_planes], ...)
->> {
->>     if (create != NULL && create->format != NULL) {
->>         /* use create->fmt to fill sizes */
->>     } else if (create != NULL) { /* this assumes we have both format or sizes */
->>         /* use create->sizes to fill sizes */
->>     } else {
->>         /* use currently selected format to fill sizes */
->>     }
->> }
->>
->> driver_s_fmt(format)
->> {
->>     /* ... */
->>     driver_fill_format(&create->fmt);
->>     /* ... */
->> }
->>
->> driver_create_bufs(create)
->> {
->>     vb2_create_bufs(create);
->> }
->>
->> vb2_create_bufs(create)
->> {
->>     driver_queue_setup(..., create, ...);
->>     vb2_fill_format(&create->fmt); /* note different from
->> driver_fill_format(), but both needed */
->> }
->>
->> vb2_reqbufs(reqbufs)
->> {
->>    driver_queue_setup(..., NULL, ...);
->> }
->>
->> The queue_setup not only becomes unnecessarily complicated, but I'm
->> starting to question the convenience of it. And we are teaching vb2
->> how to interpret format structs, even though vb2 only needs sizes, and
->> even though the driver has to do it anyway and knows better how.
->>
->> As for the idea to fill fmt in vb2, even if vb2 was to do it in
->> create_bufs, some code to parse and fill the format fields would need
->> to be in the driver anyway, because it still has to support s_fmt and
->> friends. So adding that code to vb2 would duplicate it, and if the
->> driver wanted to be non-standard in a way it filled the format fields,
->> we'd not be allowing that.
->>
->> My suggestion would be to remove queue_setup callback and instead
->> modify vb2_reqbufs and vb2_create_bufs to accept sizes and number of
->> buffers. I think it should simplify things both for drivers and vb2,
->> would keep vb2 format-unaware and save us some round trips between vb2
->> and driver:
->
-> Right, I see what you mean. Well, this seems doable. Do we want this? It
-> does seem to simplify things a bit by removing .queue_setup()... Opinions?
->
-
-Thanks :) The more I think of queue_setup, the more I think that
-although it was giving us that nice callback-based design, it's not
-worth keeping if we were to make it more complicated. And it really
-isn't such a big difference from directly calling
-vb2_reqbufs/vb2_createbufs, which we have to call anyway, and the flow
-and parameters are simpler.
-
->> driver_create_bufs(...) /* optional */
->> {
->>     /* use create->fmt (or sizes) */
->>     ret = vb2_create_bufs(num_buffers, num_planes, buf_sizes,
->> plane_sizes, alloc_ctxs);
->>     fill_format(&create->fmt) /* because s_fmt has to do it anyway, so
->> have a common function for that */
->>     return ret;
->> }
->>
->> driver_reqbufs(...)
->> {
->>     /* use current format */
->>     return vb2_reqbufs(num_buffers, num_planes, buf_sizes,
->> plane_sizes, alloc_ctxs);
->> }
->>
->> And the call to both could easily converge into one in vb2, as the
->> only difference is that vb2_reqbufs would need to free first, if any
->> allocated buffers were present:
->>
->> vb2_reqbufs(num_buffers, num_planes, buf_sizes, plane_sizes, alloc_ctxs)
->> {
->>     if (buffers_allocated(num_buffers, num_planes, buf_sizes,
->> plane_sizes, alloc_ctxs)) {
->>         free_buffers(...);
->>     }
->>
->>     return vb2_create_bufs(num_buffers, num_planes, buf_sizes,
->> plane_sizes, alloc_ctxs);
->> }
->>
->> If the driver didn't want create_bufs, it'd just not implement it.
->> What do you think?
->>
->> --
->> Best regards,
->> Pawel Osciak
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
->
-
+diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
+index 7b89f00..5a4b2d7 100644
+--- a/drivers/media/video/atmel-isi.c
++++ b/drivers/media/video/atmel-isi.c
+@@ -249,7 +249,7 @@ static int atmel_isi_wait_status(struct atmel_isi *isi, int wait_reset)
+ 	Videobuf operations
+    ------------------------------------------------------------------*/
+ static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
+-				unsigned int *nplanes, unsigned long sizes[],
++				unsigned int *nplanes, unsigned int sizes[],
+ 				void *alloc_ctxs[])
+ {
+ 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
+diff --git a/drivers/media/video/marvell-ccic/mcam-core.c b/drivers/media/video/marvell-ccic/mcam-core.c
+index 83c1451..744cf37 100644
+--- a/drivers/media/video/marvell-ccic/mcam-core.c
++++ b/drivers/media/video/marvell-ccic/mcam-core.c
+@@ -884,7 +884,7 @@ static int mcam_read_setup(struct mcam_camera *cam)
+  */
+ 
+ static int mcam_vb_queue_setup(struct vb2_queue *vq, unsigned int *nbufs,
+-		unsigned int *num_planes, unsigned long sizes[],
++		unsigned int *num_planes, unsigned int sizes[],
+ 		void *alloc_ctxs[])
+ {
+ 	struct mcam_camera *cam = vb2_get_drv_priv(vq);
+diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
+index 166bf93..0d0c0d5 100644
+--- a/drivers/media/video/mem2mem_testdev.c
++++ b/drivers/media/video/mem2mem_testdev.c
+@@ -739,7 +739,7 @@ static const struct v4l2_ioctl_ops m2mtest_ioctl_ops = {
+  */
+ 
+ static int m2mtest_queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
+-				unsigned int *nplanes, unsigned long sizes[],
++				unsigned int *nplanes, unsigned int sizes[],
+ 				void *alloc_ctxs[])
+ {
+ 	struct m2mtest_ctx *ctx = vb2_get_drv_priv(vq);
+diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+index c045b47..9ae7785 100644
+--- a/drivers/media/video/mx3_camera.c
++++ b/drivers/media/video/mx3_camera.c
+@@ -191,7 +191,7 @@ static void mx3_cam_dma_done(void *arg)
+  */
+ static int mx3_videobuf_setup(struct vb2_queue *vq,
+ 			unsigned int *count, unsigned int *num_planes,
+-			unsigned long sizes[], void *alloc_ctxs[])
++			unsigned int sizes[], void *alloc_ctxs[])
+ {
+ 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
+index 51ca358..a7e4f56 100644
+--- a/drivers/media/video/pwc/pwc-if.c
++++ b/drivers/media/video/pwc/pwc-if.c
+@@ -745,7 +745,7 @@ static int pwc_video_mmap(struct file *file, struct vm_area_struct *vma)
+ /* Videobuf2 operations */
+ 
+ static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
+-				unsigned int *nplanes, unsigned long sizes[],
++				unsigned int *nplanes, unsigned int sizes[],
+ 				void *alloc_ctxs[])
+ {
+ 	struct pwc_device *pdev = vb2_get_drv_priv(vq);
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 0d730e5..e6afe5f 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -265,7 +265,7 @@ static unsigned int get_plane_size(struct fimc_frame *fr, unsigned int plane)
+ }
+ 
+ static int queue_setup(struct vb2_queue *vq, unsigned int *num_buffers,
+-		       unsigned int *num_planes, unsigned long sizes[],
++		       unsigned int *num_planes, unsigned int sizes[],
+ 		       void *allocators[])
+ {
+ 	struct fimc_ctx *ctx = vq->drv_priv;
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index aa55066..36d127f 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -692,7 +692,7 @@ static void fimc_job_abort(void *priv)
+ }
+ 
+ static int fimc_queue_setup(struct vb2_queue *vq, unsigned int *num_buffers,
+-			    unsigned int *num_planes, unsigned long sizes[],
++			    unsigned int *num_planes, unsigned int sizes[],
+ 			    void *allocators[])
+ {
+ 	struct fimc_ctx *ctx = vb2_get_drv_priv(vq);
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
+index b2c5052..dbc94b8 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
+@@ -745,7 +745,7 @@ static const struct v4l2_ioctl_ops s5p_mfc_dec_ioctl_ops = {
+ };
+ 
+ static int s5p_mfc_queue_setup(struct vb2_queue *vq, unsigned int *buf_count,
+-			       unsigned int *plane_count, unsigned long psize[],
++			       unsigned int *plane_count, unsigned int psize[],
+ 			       void *allocators[])
+ {
+ 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+index fee094a..019a9e7 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+@@ -1514,7 +1514,7 @@ static int check_vb_with_fmt(struct s5p_mfc_fmt *fmt, struct vb2_buffer *vb)
+ 
+ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
+ 		       unsigned int *buf_count, unsigned int *plane_count,
+-		       unsigned long psize[], void *allocators[])
++		       unsigned int psize[], void *allocators[])
+ {
+ 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
+ 
+diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
+index 43ac22f..8bea0f3 100644
+--- a/drivers/media/video/s5p-tv/mixer_video.c
++++ b/drivers/media/video/s5p-tv/mixer_video.c
+@@ -728,7 +728,7 @@ static const struct v4l2_file_operations mxr_fops = {
+ };
+ 
+ static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
+-	unsigned int *nplanes, unsigned long sizes[],
++	unsigned int *nplanes, unsigned int sizes[],
+ 	void *alloc_ctxs[])
+ {
+ 	struct mxr_layer *layer = vb2_get_drv_priv(vq);
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index e540898..f4f95ab 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -218,7 +218,7 @@ static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
+  */
+ static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
+ 			unsigned int *count, unsigned int *num_planes,
+-			unsigned long sizes[], void *alloc_ctxs[])
++			unsigned int sizes[], void *alloc_ctxs[])
+ {
+ 	struct soc_camera_device *icd = container_of(vq, struct soc_camera_device, vb2_vidq);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index a848bd2..26eda47 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -651,7 +651,7 @@ static void vivi_stop_generating(struct vivi_dev *dev)
+ 	Videobuf operations
+    ------------------------------------------------------------------*/
+ static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
+-				unsigned int *nplanes, unsigned long sizes[],
++				unsigned int *nplanes, unsigned int sizes[],
+ 				void *alloc_ctxs[])
+ {
+ 	struct vivi_dev *dev = vb2_get_drv_priv(vq);
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 984f2ba..5287e90 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -208,7 +208,7 @@ struct vb2_buffer {
+  */
+ struct vb2_ops {
+ 	int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
+-			   unsigned int *num_planes, unsigned long sizes[],
++			   unsigned int *num_planes, unsigned int sizes[],
+ 			   void *alloc_ctxs[]);
+ 
+ 	void (*wait_prepare)(struct vb2_queue *q);
+@@ -273,7 +273,7 @@ struct vb2_queue {
+ 	wait_queue_head_t		done_wq;
+ 
+ 	void				*alloc_ctx[VIDEO_MAX_PLANES];
+-	unsigned long			plane_sizes[VIDEO_MAX_PLANES];
++	unsigned int			plane_sizes[VIDEO_MAX_PLANES];
+ 
+ 	unsigned int			streaming:1;
+ 
 -- 
-Best regards,
-Pawel Osciak
+1.7.1.569.g6f426
+
