@@ -1,110 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:55874 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754428Ab1HQVJP (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54455 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751057Ab1HXL3c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2011 17:09:15 -0400
-Received: by wwf5 with SMTP id 5so1409473wwf.1
-        for <linux-media@vger.kernel.org>; Wed, 17 Aug 2011 14:09:14 -0700 (PDT)
-Subject: Re: Afatech AF9013
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Josu Lazkano <josu.lazkano@gmail.com>
-Cc: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
-	Jose Alberto Reguero <jareguero@telefonica.net>
-In-Reply-To: <CAL9G6WVNx+dYFF+OeFK0uuJU04vnRaUSsCr1r=x5M+=+Cq6o2g@mail.gmail.com>
-References: <CAL9G6WUpso9FFUzC3WWiBZDqQDr-+HQFouCO_2V-zVHVyiyKeg@mail.gmail.com>
-	 <201108162227.00963.jareguero@telefonica.net> <4E4AD9B4.2040908@iki.fi>
-	 <201108170123.09647.jareguero@telefonica.net>
-	 <1313597729.2672.11.camel@localhost>
-	 <CAL9G6WVNx+dYFF+OeFK0uuJU04vnRaUSsCr1r=x5M+=+Cq6o2g@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 17 Aug 2011 22:09:06 +0100
-Message-ID: <1313615346.2280.18.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Wed, 24 Aug 2011 07:29:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+Subject: Re: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
+Date: Wed, 24 Aug 2011 13:29:47 +0200
+Cc: "mchehab@infradead.org" <mchehab@infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+References: <1313761725-6614-1-git-send-email-deepthy.ravi@ti.com> <201108241217.11430.laurent.pinchart@ideasonboard.com> <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D0907F6@dbde03.ent.ti.com>
+In-Reply-To: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D0907F6@dbde03.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108241329.48147.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2011-08-17 at 19:27 +0200, Josu Lazkano wrote:
-> 2011/8/17 Malcolm Priestley <tvboxspy@gmail.com>:
-> > On Wed, 2011-08-17 at 01:23 +0200, Jose Alberto Reguero wrote:
-> >> On Martes, 16 de Agosto de 2011 22:57:24 Antti Palosaari escribió:
-> >> > On 08/16/2011 11:27 PM, Jose Alberto Reguero wrote:
-> >> > >> options dvb-usb force_pid_filter_usage=1
-> >> > >>
-> >> > >> I change the signal timeout and tuning timeout and now it works perfect!
-> >> > >>
-> >> > >> I can watch two HD channels, thanks for your help.
-> >> > >>
-> >> > >> I really don't understand what force_pid_filter_usage do on the
-> >> > >> module, is there any documentation?
-> >> > >>
-> >> > >> Thanks and best regards.
-> >> > >
-> >> > > For usb devices with usb 2.0 when tunned to a channel there is enought
-> >> > > usb bandwith to deliver the whole transponder. With pid filters they
-> >> > > only deliver the pids needed for the channel. The only limit is that the
-> >> > > pid filters is limited normaly to 32 pids.
-> >> >
-> >> > May I ask how wide DVB-T streams you have? Here in Finland it is about
-> >> > 22 Mbit/sec and I think two such streams should be too much for one USB
-> >> > bus. I suspect there is some other bug in back of this.
-> >> >
-> >> > regards
-> >> > Antti
-> >>
-> >> Here the transport stream is like yours. About 4 Mbit/sec by channel, and
-> >> about 5 channels by transport stream. The problem I have is that when I have
-> >> the two tuners working I have a few packets lost, and I have some TS
-> >> discontinuitys. With pid filters the stream is perfect. Perhaps Josu have
-> >> another problem.
-> >
-> > I am certain it is the configuration of the second frontend that ripples
-> > through Afatech devices.
-> >
-> > I have only got a single AF9015 device so can't test the dual
-> > configuration.
-> >
-> > Does the same problems exist when running the second frontend solo or
-> > dual with the Windows driver?
-> >
-> > With the IT1937(aka AF9035) the second frontend appeared not to work at
-> > all in Windows in dual mode.
-> >
-> > tvboxspy
-> >
-> >
-> 
-> Thanks Malcolm, sorry but I don't understand very good your post (my
-> poor english).
-> 
-> On Microsoft Windows XP the dual device works great, I can watch two
-> different channels (different transponder).
-> 
-> I want to know if there is an other command-line tool to test them,
-> because it will be MythTV playback problem.
-> 
-> The most problem is that sometimes one adapter work, then no adapter
-> work and then both adapter work but there is no clear image (pixeled).
-> 
-> How could I test if there is some packet drop?
-Looks like you need pid filtering on, but if you force the pid filter
-on, it won't work because there is no functions setup for it on the
-driver for the second frontend.
+Hi,
 
-btw, you need to force the pid filter on at boot time, add a line in
-file.
+On Wednesday 24 August 2011 13:21:27 Ravi, Deepthy wrote:
+> On Wed, Aug 24, 2011 at 4:47 PM, Laurent Pinchart wrote:
+> > On Friday 19 August 2011 15:48:45 Deepthy Ravi wrote:
+> >> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> >> 
+> >> Fix the build break caused when CONFIG_MEDIA_CONTROLLER
+> >> option is disabled and if any sensor driver has to be used
+> >> between MC and non MC framework compatible devices.
+> >> 
+> >> For example,if tvp514x video decoder driver migrated to
+> >> MC framework is being built without CONFIG_MEDIA_CONTROLLER
+> >> option enabled, the following error messages will result.
+> >> drivers/built-in.o: In function `tvp514x_remove':
+> >> drivers/media/video/tvp514x.c:1285: undefined reference to
+> >> `media_entity_cleanup'
+> >> drivers/built-in.o: In function `tvp514x_probe':
+> >> drivers/media/video/tvp514x.c:1237: undefined reference to
+> >> `media_entity_init'
+> > 
+> > If the tvp514x is migrated to the MC framework, its Kconfig option should
+> > depend on MEDIA_CONTROLLER.
+>
+> The same TVP514x driver is being used for both MC and non MC compatible
+> devices, for example OMAP3 and AM35x. So if it is made dependent on MEDIA
+> CONTROLLER, we cannot enable the driver for MC independent devices.
 
-/etc/modules (or  /etc/modules.preload) 
+Then you should use conditional compilation in the tvp514x driver itself. Or 
+better, port the AM35x driver to the MC API.
 
-dvb_usb force_pid_filter_usage=1
+-- 
+Regards,
 
-Otherwise, it keeps going off.
-
-But, it will only work on the first frontend(adapter). It works fine on
-my single one.
-
-Regards
-
-Malcolm 
-
+Laurent Pinchart
