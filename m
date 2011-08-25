@@ -1,54 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:48902 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751529Ab1HMS03 convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3093 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753154Ab1HYMvX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Aug 2011 14:26:29 -0400
-Received: by qwk3 with SMTP id 3so1978121qwk.19
-        for <linux-media@vger.kernel.org>; Sat, 13 Aug 2011 11:26:28 -0700 (PDT)
+	Thu, 25 Aug 2011 08:51:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Manu Abraham <abraham.manu@gmail.com>
+Subject: dst_ca.c warning: can ca_send_message be removed?
+Date: Thu, 25 Aug 2011 14:51:18 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <CAOO8FEfvJWvxDxL5VnXwsWRgKSMsEq8w3zc9K1M=TjypU431Ww@mail.gmail.com>
-References: <CAOO8FEfvJWvxDxL5VnXwsWRgKSMsEq8w3zc9K1M=TjypU431Ww@mail.gmail.com>
-From: Paulo Assis <pj.assis@gmail.com>
-Date: Sat, 13 Aug 2011 19:26:07 +0100
-Message-ID: <CAPueXH4QysAb=hsA12TQHe7Uumb0gOCBzkNkyExVGept8pa2+w@mail.gmail.com>
-Subject: Re: size of raw bayer data
-To: Veda N <veda74@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108251451.18970.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Manu,
 
-2011/8/13 Veda N <veda74@gmail.com>:
-> what should be the size of a raw bayer data from the driver.
->
-> for 640x480 = i get 640x480x2.
+While going through the daily build compiler warnings I came across this one:
 
-Is this in bytes?
+v4l-dvb-git/drivers/media/dvb/bt8xx/dst_ca.c: In function 'ca_send_message':
+v4l-dvb-git/drivers/media/dvb/bt8xx/dst_ca.c:480:15: warning: variable 'ca_message_header_len' set but not used [-Wunused-but-set-variable]
 
->
-> Shouldnt i get more? It shoule be more than yuv422/rgb565
->
+This variable is indeed set once but unused afterwards. The assignment is:
 
-No, that depends on the pixel size, so for 8 bit pixel you should get
-640x480 bytes, for 12 bit you should get 640x480x3/2 and so on.
+ca_message_header_len = p_ca_message->length;   /* Restore it back when you are done */
 
-640x480x2 is equivalent to a 16 bit pixel, this is a bit unusual I
-think, the most common is 8 bit pixel, what device/driver are you
-using ?
+Obviously it is not restored as the comment says.
 
+Is this a bug or just old code that can be removed?
 
 Regards,
-Paulo
 
-> --
-> Regards,
-> S. N. Veda
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+	Hans
