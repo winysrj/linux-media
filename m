@@ -1,65 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:60071 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751259Ab1HLIhs convert rfc822-to-8bit (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:65459 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753337Ab1HYMFW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2011 04:37:48 -0400
-Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:8db5])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id D4273940138
-	for <linux-media@vger.kernel.org>; Fri, 12 Aug 2011 10:37:42 +0200 (CEST)
-Date: Fri, 12 Aug 2011 10:37:49 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 3.2] gspca for_v3.2
-Message-ID: <20110812103749.0ba22d60@tele>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Thu, 25 Aug 2011 08:05:22 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=iso-8859-2
+Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LQH00AULG8X8X70@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 25 Aug 2011 13:05:21 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LQH00G4DG8WUB@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 25 Aug 2011 13:05:21 +0100 (BST)
+Date: Thu, 25 Aug 2011 14:02:33 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH v2/RFC] media: vb2: change queue initialization order
+In-reply-to: <201108251312.23728.hverkuil@xs4all.nl>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	=?iso-8859-2?Q?'Uwe_Kleine-K=F6nig'?=
+	<u.kleine-koenig@pengutronix.de>,
+	'Marin Mitov' <mitov@issp.bas.bg>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>
+Message-id: <021401cc631e$dfa8eba0$9efac2e0$%szyprowski@samsung.com>
+Content-language: pl
+References: <1314269531-30080-1-git-send-email-m.szyprowski@samsung.com>
+ <201108251312.23728.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit
-9bed77ee2fb46b74782d0d9d14b92e9d07f3df6e:
+Hello,
 
-  [media] tuner_xc2028: Allow selection of the frequency adjustment code for XC3028 (2011-08-06 09:52:47 -0300)
+On Thursday, August 25, 2011 1:12 PM Hans Verkuil wrote:
 
-are available in the git repository at:
-  git://linuxtv.org/jfrancois/gspca.git for_v3.2
+> On Thursday, August 25, 2011 12:52:11 Marek Szyprowski wrote:
+> > This patch changes the order of operations during stream on call. Now the
+> > buffers are first queued to the driver and then the start_streaming method
+> > is called.
+> >
+> > This resolves the most common case when the driver needs to know buffer
+> > addresses to enable dma engine and start streaming. Additional parameters
+> > to start_streaming and buffer_queue methods have been added to simplify
+> > drivers code. The driver are now obliged to check if the number of queued
+> > buffers is enough to enable hardware streaming. If not - it should return
+> > an error. In such case all the buffers that have been pre-queued are
+> > invalidated.
+> >
+> > Drivers that are able to start/stop streaming on-fly, can control dma
+> > engine directly in buf_queue callback. In this case start_streaming
+> > callback can be considered as optional. The driver can also assume that
+> > after a few first buf_queue calls with zero 'streaming' parameter, the core
+> > will finally call start_streaming callback.
+> 
+> Looks good!
+> 
+> > This patch also updates some videobuf2 clients (s5p-fimc, s5p-mfc, s5p-tv,
+> > mem2mem_testdev and vivi) to work properly with the changed order of
+> > operations.
+> 
+> I assume the final patch will update all vb2 clients?
 
-Jean-François Moine (15):
-      gspca - ov519: Fix LED inversion of some ov519 webcams
-      gspca - sonixj: Fix the darkness of sensor om6802 in 320x240
-      gspca - jeilinj: Cleanup code
-      gspca - sonixj: Adjust the contrast control
-      gspca - sonixj: Increase the exposure for sensor soi768
-      gspca - sonixj: Cleanup source and remove useless instructions
-      gspca - benq: Remove the useless function sd_isoc_init
-      gspca - kinect: Remove the gspca_debug definition
-      gspca - ov534_9: Use the new control mechanism
-      gspca - ov534_9: New sensor ov9712 and new webcam 05a9:8065
-      gspca - main: Fix the isochronous transfer interval
-      gspca - main: Better values for V4L2_FMT_FLAG_COMPRESSED
-      gspca - main: Use a better altsetting for image transfer
-      gspca - main: Handle the xHCI error on usb_set_interface()
-      gspca - tp6800: New subdriver for Topro webcams
+Yes, of cource. I just wanted to post the patch ASAP. Updating Samsung and 
+virtual drivers was easy because I already know a bit about them. Updating
+other drivers requires a bit more work to double check if I didn't break
+anything.
 
-Luiz Carlos Ramos (1):
-      gspca - sonixj: Fix wrong register mask for sensor om6802
+> I have a few very minor comments below:
 
- Documentation/video4linux/gspca.txt |    3 +
- drivers/media/video/gspca/Kconfig   |    9 +
- drivers/media/video/gspca/Makefile  |    2 +
- drivers/media/video/gspca/benq.c    |   15 -
- drivers/media/video/gspca/gspca.c   |  234 ++-
- drivers/media/video/gspca/jeilinj.c |   10 +-
- drivers/media/video/gspca/kinect.c  |    5 -
- drivers/media/video/gspca/ov519.c   |   22 +-
- drivers/media/video/gspca/ov534_9.c |  504 ++--
- drivers/media/video/gspca/sonixj.c  |   29 +-
- drivers/media/video/gspca/tp6800.c  | 4989 +++++++++++++++++++++++++++++++++++
- 11 files changed, 5430 insertions(+), 392 deletions(-)
- create mode 100644 drivers/media/video/gspca/tp6800.c
+Thanks for your comments :) I will include them in the final version.
 
+(snipped)
+
+Best regards
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
