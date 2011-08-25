@@ -1,68 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:57827 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.171]:58722 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756860Ab1HaQuB (ORCPT
+	with ESMTP id S1751991Ab1HYMg7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 12:50:01 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH] mfd: Combine MFD_SUPPORT and MFD_CORE
-Date: Wed, 31 Aug 2011 18:49:37 +0200
-Cc: Randy Dunlap <rdunlap@xenotime.net>, matti.j.aaltonen@nokia.com,
-	johannes@sipsolutions.net, linux-kernel@vger.kernel.org,
-	sameo@linux.intel.com, mchehab@infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	Jean Delvare <khali@linux-fr.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Grant Likely <grant.likely@secretlab.ca>
-References: <20110829102732.03f0f05d.rdunlap@xenotime.net> <1314643307-17780-1-git-send-email-coelho@ti.com>
-In-Reply-To: <1314643307-17780-1-git-send-email-coelho@ti.com>
+	Thu, 25 Aug 2011 08:36:59 -0400
+Date: Thu, 25 Aug 2011 14:36:32 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Uwe =?iso-8859-15?q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>, Marin Mitov <mitov@issp.bas.bg>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2/RFC] media: vb2: change queue initialization order
+In-Reply-To: <201108251312.23728.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1108251430440.17190@axis700.grange>
+References: <1314269531-30080-1-git-send-email-m.szyprowski@samsung.com>
+ <201108251312.23728.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108311849.37273.arnd@arndb.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 29 August 2011, Luciano Coelho wrote:
-> From: Randy Dunlap <rdunlap@xenotime.net>
-> 
-> Combine MFD_SUPPORT (which only enabled the remainder of the MFD
-> menu) and MFD_CORE.  This allows other drivers to select MFD_CORE
-> without needing to also select MFD_SUPPORT, which fixes some
-> kconfig unmet dependency warnings.  Modeled after I2C kconfig.
-> 
-> [Forward-ported to 3.1-rc4.  This fixes a warning when some drivers,
-> such as RADIO_WL1273, are selected, but MFD_SUPPORT is not. -- Luca]
-> 
-> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-> Reported-by: Johannes Berg <johannes@sipsolutions.net>
-> Cc: Jean Delvare <khali@linux-fr.org>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Signed-off-by: Luciano Coelho <coelho@ti.com>
-> ---
-> 
-> I guess this should fix the problem.  I've simple forward-ported
-> Randy's patch to the latest mainline kernel.  I don't know via which
-> tree this should go in, though.
-> 
-> NOTE: I have not tested this very thoroughly.  But at least
-> omap2plus stuff seems to work okay with this change.  MFD_SUPPORT is
-> also selected by a couple of "tile" platforms defconfigs, but I guess
-> the Kconfig system should take care of it.
+On Thu, 25 Aug 2011, Hans Verkuil wrote:
 
-Doing this is a good idea, but incidentally I have just spent some time
-with the same problem and ended up with a solution that I like better,
-which is removing CONFIG_MFD_SUPPORT altogether.
+> On Thursday, August 25, 2011 12:52:11 Marek Szyprowski wrote:
 
-The point is that there is no use enabling MFD_CORE if you don't also
-enable any of the specific drivers. MFD_SUPPORT was added as a 'menuconfig'
-before we had Kconfig warn about broken dependencies, so everything was
-fine. Since Kconfig now issues the warnings, I think it would be better
-to just turn the MFD menu into a plain 'menu' and remove all the
-'depends on MFD_SUPPORT' and 'select MFD_SUPPORT' lines from the other
-Kconfig files.
+[snip]
 
-	Arnd
+> > @@ -1110,6 +1110,8 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
+> >  }
+> >  EXPORT_SYMBOL_GPL(vb2_dqbuf);
+> >  
+> > +static void __vb2_queue_cancel(struct vb2_queue *q);
+> > +
+> 
+> Is it possible to move __vb2_queue_cancel forward instead of having to add a
+> forward declaration? In general you don't want forward declarations unless
+> you have some sort of circular dependency.
+
+IMHO, adding a forward declaration has the advantages of making the patch 
+smaller and showing clearly, that the function has not changed, or making 
+any changes directly visible. If such forward declarations should really 
+be avoided, moving of affected functions could be done in a separate 
+patch, clearly stating, that the function contents have not changed.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
