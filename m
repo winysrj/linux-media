@@ -1,56 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wondertoys-mx.wondertoys.net ([206.117.179.246]:52969 "EHLO
-	labridge.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932077Ab1HUW6n (ORCPT
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:4752 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751840Ab1HYOIl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Aug 2011 18:58:43 -0400
-From: Joe Perches <joe@perches.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 04/14] [media] winbond-cir: Use current logging styles
-Date: Sun, 21 Aug 2011 15:56:47 -0700
-Message-Id: <90e0dd84ad9404a4d6377d05a86c9ae60918ccda.1313966089.git.joe@perches.com>
-In-Reply-To: <cover.1313966088.git.joe@perches.com>
-References: <cover.1313966088.git.joe@perches.com>
+	Thu, 25 Aug 2011 10:08:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 01/12] radio-si4713.c: fix compiler warning
+Date: Thu, 25 Aug 2011 16:08:24 +0200
+Message-Id: <afd314e95a520c3a4de0f112735d1d5584ec8a9a.1314281302.git.hans.verkuil@cisco.com>
+In-Reply-To: <1314281315-32366-1-git-send-email-hverkuil@xs4all.nl>
+References: <1314281315-32366-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add pr_fmt, convert printks to pr_<level>.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Joe Perches <joe@perches.com>
+v4l-dvb-git/drivers/media/radio/radio-si4713.c: In function 'radio_si4713_querycap':
+v4l-dvb-git/drivers/media/radio/radio-si4713.c:95:30: warning: variable 'rsdev' set but not used [-Wunused-but-set-variable]
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/rc/winbond-cir.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/radio/radio-si4713.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
-index bec8abc..13f54b5 100644
---- a/drivers/media/rc/winbond-cir.c
-+++ b/drivers/media/rc/winbond-cir.c
-@@ -41,6 +41,8 @@
-  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/module.h>
- #include <linux/pnp.h>
- #include <linux/interrupt.h>
-@@ -1155,12 +1157,12 @@ wbcir_init(void)
- 	case IR_PROTOCOL_RC6:
- 		break;
- 	default:
--		printk(KERN_ERR DRVNAME ": Invalid power-on protocol\n");
-+		pr_err("Invalid power-on protocol\n");
- 	}
- 
- 	ret = pnp_register_driver(&wbcir_driver);
- 	if (ret)
--		printk(KERN_ERR DRVNAME ": Unable to register driver\n");
-+		pr_err("Unable to register driver\n");
- 
- 	return ret;
- }
+diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
+index 444b4cf..d1fab58 100644
+--- a/drivers/media/radio/radio-si4713.c
++++ b/drivers/media/radio/radio-si4713.c
+@@ -92,10 +92,6 @@ static int radio_si4713_s_audout(struct file *file, void *priv,
+ static int radio_si4713_querycap(struct file *file, void *priv,
+ 					struct v4l2_capability *capability)
+ {
+-	struct radio_si4713_device *rsdev;
+-
+-	rsdev = video_get_drvdata(video_devdata(file));
+-
+ 	strlcpy(capability->driver, "radio-si4713", sizeof(capability->driver));
+ 	strlcpy(capability->card, "Silicon Labs Si4713 Modulator",
+ 				sizeof(capability->card));
 -- 
-1.7.6.405.gc1be0
+1.7.5.4
 
