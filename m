@@ -1,218 +1,325 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33623 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752389Ab1HHXQi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Aug 2011 19:16:38 -0400
-Message-ID: <4E406E53.6050302@iki.fi>
-Date: Tue, 09 Aug 2011 02:16:35 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.17.8]:61123 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753074Ab1HYQqP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Aug 2011 12:46:15 -0400
+Date: Thu, 25 Aug 2011 18:46:03 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	Vinod Koul <vinod.koul@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: [PATCH 2/2] V4L: mx3-camera: prepare to support multi-size buffers
+In-Reply-To: <Pine.LNX.4.64.1108251838090.17190@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1108251843350.17190@axis700.grange>
+References: <1314211292-10414-1-git-send-email-g.liakhovetski@gmx.de>
+ <Pine.LNX.4.64.1108251838090.17190@axis700.grange>
 MIME-Version: 1.0
-To: Steve Kerrison <steve@stevekerrison.com>
-CC: linux-media@vger.kernel.org, robert_s@gmx.net
-Subject: Re: [PATCH] CXD2820R: Replace i2c message translation with repeater
- gate control
-References: <4E32AD92.8060500@iki.fi> <1312740489-17225-1-git-send-email-steve@stevekerrison.com>
-In-Reply-To: <1312740489-17225-1-git-send-email-steve@stevekerrison.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
-That patch is technically fine and I liked it much since get rid of
-complex repeater logic and going for normal I2C-gate.
+Prepare the mx3_camera friver to support the new VIDIOC_CREATE_BUFS and
+VIDIOC_PREPARE_BUF ioctl()s. The .queue_setup() vb2 operation must be
+able to handle buffer sizes, provided by the caller, and the
+.buf_prepare() operation must not use the currently configured frame
+format for its operation, which makes it superfluous for this driver.
+Its functionality is moved into .buf_queue().
 
-But fix these and send new patch:
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/mx3_camera.c |  153 +++++++++++++++++++------------------
+ 1 files changed, 79 insertions(+), 74 deletions(-)
 
-1) there is a lot of style errors. you should use always checkpatch.pl
-before send patches.
-./scripts/checkpatch.pl --file drivers/media/dvb/frontends/cxd2820r*.c
-
-2) it still lefts definition of cxd2820r_get_tuner_i2c_adapter() to header
-
-
-regards
-Antti
-
-On 08/07/2011 09:08 PM, Steve Kerrison wrote:
-> This patch implements an i2c_gate_ctrl op for the cxd2820r. Thanks to Robert
-> Schlabbach for identifying the register address and field to set.
-> 
-> The old i2c intercept code that prefixed messages with a passthrough byte has
-> been removed and the PCTV nanoStick T2 290e entry in em28xx-dvb has been
-> updated appropriately.
-> 
-> Tested for DVB-T2 use; I would appreciate it if somebody with DVB-C capabilities
-> could test it as well - from inspection I cannot see any problems.
-> 
-> Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
-> ---
->  drivers/media/dvb/frontends/cxd2820r_core.c |   73 +++------------------------
->  drivers/media/dvb/frontends/cxd2820r_priv.h |    1 -
->  drivers/media/video/em28xx/em28xx-dvb.c     |    7 +--
->  3 files changed, 10 insertions(+), 71 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/frontends/cxd2820r_core.c b/drivers/media/dvb/frontends/cxd2820r_core.c
-> index d416e85..15bfcf4 100644
-> --- a/drivers/media/dvb/frontends/cxd2820r_core.c
-> +++ b/drivers/media/dvb/frontends/cxd2820r_core.c
-> @@ -728,69 +728,20 @@ static void cxd2820r_release(struct dvb_frontend *fe)
->  	dbg("%s", __func__);
->  
->  	if (fe->ops.info.type == FE_OFDM) {
-> -		i2c_del_adapter(&priv->tuner_i2c_adapter);
->  		kfree(priv);
->  	}
->  
->  	return;
->  }
->  
-> -static u32 cxd2820r_tuner_i2c_func(struct i2c_adapter *adapter)
-> -{
-> -	return I2C_FUNC_I2C;
-> -}
-> -
-> -static int cxd2820r_tuner_i2c_xfer(struct i2c_adapter *i2c_adap,
-> -	struct i2c_msg msg[], int num)
-> -{
-> -	struct cxd2820r_priv *priv = i2c_get_adapdata(i2c_adap);
-> -	int ret;
-> -	u8 *obuf = kmalloc(msg[0].len + 2, GFP_KERNEL);
-> -	struct i2c_msg msg2[2] = {
-> -		{
-> -			.addr = priv->cfg.i2c_address,
-> -			.flags = 0,
-> -			.len = msg[0].len + 2,
-> -			.buf = obuf,
-> -		}, {
-> -			.addr = priv->cfg.i2c_address,
-> -			.flags = I2C_M_RD,
-> -			.len = msg[1].len,
-> -			.buf = msg[1].buf,
-> -		}
-> -	};
-> -
-> -	if (!obuf)
-> -		return -ENOMEM;
-> -
-> -	obuf[0] = 0x09;
-> -	obuf[1] = (msg[0].addr << 1);
-> -	if (num == 2) { /* I2C read */
-> -		obuf[1] = (msg[0].addr << 1) | I2C_M_RD; /* I2C RD flag */
-> -		msg2[0].len = msg[0].len + 2 - 1; /* '-1' maybe HW bug ? */
-> -	}
-> -	memcpy(&obuf[2], msg[0].buf, msg[0].len);
-> -
-> -	ret = i2c_transfer(priv->i2c, msg2, num);
-> -	if (ret < 0)
-> -		warn("tuner i2c failed ret:%d", ret);
-> -
-> -	kfree(obuf);
-> -
-> -	return ret;
-> -}
-> -
-> -static struct i2c_algorithm cxd2820r_tuner_i2c_algo = {
-> -	.master_xfer   = cxd2820r_tuner_i2c_xfer,
-> -	.functionality = cxd2820r_tuner_i2c_func,
-> -};
-> -
-> -struct i2c_adapter *cxd2820r_get_tuner_i2c_adapter(struct dvb_frontend *fe)
-> +static int cxd2820r_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
->  {
->  	struct cxd2820r_priv *priv = fe->demodulator_priv;
-> -	return &priv->tuner_i2c_adapter;
-> +	dbg("%s: %d", __func__, enable);
-> +	
-> +	/* Bit 0 of reg 0xdb in bank 0x00 controls I2C repeater */
-> +	return cxd2820r_wr_reg_mask(priv, 0xdb, enable ? 1 : 0, 0x1);
->  }
-> -EXPORT_SYMBOL(cxd2820r_get_tuner_i2c_adapter);
->  
->  static struct dvb_frontend_ops cxd2820r_ops[2];
->  
-> @@ -831,18 +782,6 @@ struct dvb_frontend *cxd2820r_attach(const struct cxd2820r_config *cfg,
->  		priv->fe[0].demodulator_priv = priv;
->  		priv->fe[1].demodulator_priv = priv;
->  
-> -		/* create tuner i2c adapter */
-> -		strlcpy(priv->tuner_i2c_adapter.name,
-> -			"CXD2820R tuner I2C adapter",
-> -			sizeof(priv->tuner_i2c_adapter.name));
-> -		priv->tuner_i2c_adapter.algo = &cxd2820r_tuner_i2c_algo;
-> -		priv->tuner_i2c_adapter.algo_data = NULL;
-> -		i2c_set_adapdata(&priv->tuner_i2c_adapter, priv);
-> -		if (i2c_add_adapter(&priv->tuner_i2c_adapter) < 0) {
-> -			err("tuner I2C bus could not be initialized");
-> -			goto error;
-> -		}
-> -
->  		return &priv->fe[0];
->  
->  	} else {
-> @@ -883,6 +822,7 @@ static struct dvb_frontend_ops cxd2820r_ops[2] = {
->  		.sleep = cxd2820r_sleep,
->  
->  		.get_tune_settings = cxd2820r_get_tune_settings,
-> +		.i2c_gate_ctrl = cxd2820r_i2c_gate_ctrl,
->  
->  		.get_frontend = cxd2820r_get_frontend,
->  
-> @@ -911,6 +851,7 @@ static struct dvb_frontend_ops cxd2820r_ops[2] = {
->  		.sleep = cxd2820r_sleep,
->  
->  		.get_tune_settings = cxd2820r_get_tune_settings,
-> +		.i2c_gate_ctrl = cxd2820r_i2c_gate_ctrl,
->  
->  		.set_frontend = cxd2820r_set_frontend,
->  		.get_frontend = cxd2820r_get_frontend,
-> diff --git a/drivers/media/dvb/frontends/cxd2820r_priv.h b/drivers/media/dvb/frontends/cxd2820r_priv.h
-> index 0c0ebc9..9553913 100644
-> --- a/drivers/media/dvb/frontends/cxd2820r_priv.h
-> +++ b/drivers/media/dvb/frontends/cxd2820r_priv.h
-> @@ -50,7 +50,6 @@ struct cxd2820r_priv {
->  	struct i2c_adapter *i2c;
->  	struct dvb_frontend fe[2];
->  	struct cxd2820r_config cfg;
-> -	struct i2c_adapter tuner_i2c_adapter;
->  
->  	struct mutex fe_lock; /*Â FE lock */
->  	int active_fe:2; /* FE lock, -1=NONE, 0=DVB-T/T2, 1=DVB-C */
-> diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
-> index e5916de..223a2fc 100644
-> --- a/drivers/media/video/em28xx/em28xx-dvb.c
-> +++ b/drivers/media/video/em28xx/em28xx-dvb.c
-> @@ -438,6 +438,7 @@ static struct cxd2820r_config em28xx_cxd2820r_config = {
->  
->  static struct tda18271_config em28xx_cxd2820r_tda18271_config = {
->  	.output_opt = TDA18271_OUTPUT_LT_OFF,
-> +	.gate = TDA18271_GATE_DIGITAL,
->  };
->  
->  /* ------------------------------------------------------------------ */
-> @@ -753,11 +754,9 @@ static int dvb_init(struct em28xx *dev)
->  		dvb->fe[0] = dvb_attach(cxd2820r_attach,
->  			&em28xx_cxd2820r_config, &dev->i2c_adap, NULL);
->  		if (dvb->fe[0]) {
-> -			struct i2c_adapter *i2c_tuner;
-> -			i2c_tuner = cxd2820r_get_tuner_i2c_adapter(dvb->fe[0]);
->  			/* FE 0 attach tuner */
->  			if (!dvb_attach(tda18271_attach, dvb->fe[0], 0x60,
-> -				i2c_tuner, &em28xx_cxd2820r_tda18271_config)) {
-> +				&dev->i2c_adap, &em28xx_cxd2820r_tda18271_config)) {
->  				dvb_frontend_detach(dvb->fe[0]);
->  				result = -EINVAL;
->  				goto out_free;
-> @@ -768,7 +767,7 @@ static int dvb_init(struct em28xx *dev)
->  			dvb->fe[1]->id = 1;
->  			/* FE 1 attach tuner */
->  			if (!dvb_attach(tda18271_attach, dvb->fe[1], 0x60,
-> -				i2c_tuner, &em28xx_cxd2820r_tda18271_config)) {
-> +				&dev->i2c_adap, &em28xx_cxd2820r_tda18271_config)) {
->  				dvb_frontend_detach(dvb->fe[1]);
->  				/* leave FE 0 still active */
->  			}
-
-
+diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+index 6bfbce9..51eee4e 100644
+--- a/drivers/media/video/mx3_camera.c
++++ b/drivers/media/video/mx3_camera.c
+@@ -114,6 +114,7 @@ struct mx3_camera_dev {
+ 	struct list_head	capture;
+ 	spinlock_t		lock;		/* Protects video buffer lists */
+ 	struct mx3_camera_buffer *active;
++	size_t			buf_total;
+ 	struct vb2_alloc_ctx	*alloc_ctx;
+ 	enum v4l2_field		field;
+ 	int			sequence;
+@@ -198,118 +199,117 @@ static int mx3_videobuf_setup(struct vb2_queue *vq,
+ 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct mx3_camera_dev *mx3_cam = ici->priv;
+-	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
+-						icd->current_fmt->host_fmt);
++	int bytes_per_line;
++	unsigned int height;
+ 
++	if (!mx3_cam->idmac_channel[0])
++		return -EINVAL;
++
++	if (fmt) {
++		const struct soc_camera_format_xlate *xlate = soc_camera_xlate_by_fourcc(icd,
++								fmt->fmt.pix.pixelformat);
++		bytes_per_line = soc_mbus_bytes_per_line(fmt->fmt.pix.width,
++							 xlate->host_fmt);
++		height = fmt->fmt.pix.height;
++	} else {
++		/* Called from VIDIOC_REQBUFS or in compatibility mode */
++		bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
++						icd->current_fmt->host_fmt);
++		height = icd->user_height;
++	}
+ 	if (bytes_per_line < 0)
+ 		return bytes_per_line;
+ 
+-	if (!mx3_cam->idmac_channel[0])
+-		return -EINVAL;
++	sizes[0] = bytes_per_line * height;
+ 
+ 	*num_planes = 1;
+ 
+-	mx3_cam->sequence = 0;
+-	sizes[0] = bytes_per_line * icd->user_height;
+ 	alloc_ctxs[0] = mx3_cam->alloc_ctx;
+ 
++	if (!vq->num_buffers)
++		mx3_cam->sequence = 0;
++
+ 	if (!*count)
+ 		*count = 32;
+ 
+-	if (sizes[0] * *count > MAX_VIDEO_MEM * 1024 * 1024)
+-		*count = MAX_VIDEO_MEM * 1024 * 1024 / sizes[0];
++	if (sizes[0] * *count + mx3_cam->buf_total > MAX_VIDEO_MEM * 1024 * 1024)
++		*count = (MAX_VIDEO_MEM * 1024 * 1024 - mx3_cam->buf_total) /
++			sizes[0];
+ 
+ 	return 0;
+ }
+ 
+-static int mx3_videobuf_prepare(struct vb2_buffer *vb)
++static enum pixel_fmt fourcc_to_ipu_pix(__u32 fourcc)
++{
++	/* Add more formats as need arises and test possibilities appear... */
++	switch (fourcc) {
++	case V4L2_PIX_FMT_RGB24:
++		return IPU_PIX_FMT_RGB24;
++	case V4L2_PIX_FMT_UYVY:
++	case V4L2_PIX_FMT_RGB565:
++	default:
++		return IPU_PIX_FMT_GENERIC;
++	}
++}
++
++static void mx3_videobuf_queue(struct vb2_buffer *vb)
+ {
+ 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct mx3_camera_dev *mx3_cam = ici->priv;
++	struct mx3_camera_buffer *buf = to_mx3_vb(vb);
++	struct scatterlist *sg = &buf->sg;
++	struct dma_async_tx_descriptor *txd;
+ 	struct idmac_channel *ichan = mx3_cam->idmac_channel[0];
+-	struct scatterlist *sg;
+-	struct mx3_camera_buffer *buf;
++	struct idmac_video_param *video = &ichan->params.video;
++	const struct soc_mbus_pixelfmt *host_fmt = icd->current_fmt->host_fmt;
++	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width, host_fmt);
++	unsigned long flags;
++	dma_cookie_t cookie;
+ 	size_t new_size;
+-	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
+-						icd->current_fmt->host_fmt);
+-
+-	if (bytes_per_line < 0)
+-		return bytes_per_line;
+ 
+-	buf = to_mx3_vb(vb);
+-	sg = &buf->sg;
++	BUG_ON(bytes_per_line <= 0);
+ 
+ 	new_size = bytes_per_line * icd->user_height;
+ 
+ 	if (vb2_plane_size(vb, 0) < new_size) {
+-		dev_err(icd->parent, "Buffer too small (%lu < %zu)\n",
+-			vb2_plane_size(vb, 0), new_size);
+-		return -ENOBUFS;
++		dev_err(icd->parent, "Buffer #%d too small (%lu < %zu)\n",
++			vb->v4l2_buf.index, vb2_plane_size(vb, 0), new_size);
++		goto error;
+ 	}
+ 
+ 	if (buf->state == CSI_BUF_NEEDS_INIT) {
+ 		sg_dma_address(sg)	= vb2_dma_contig_plane_paddr(vb, 0);
+ 		sg_dma_len(sg)		= new_size;
+ 
+-		buf->txd = ichan->dma_chan.device->device_prep_slave_sg(
++		txd = ichan->dma_chan.device->device_prep_slave_sg(
+ 			&ichan->dma_chan, sg, 1, DMA_FROM_DEVICE,
+ 			DMA_PREP_INTERRUPT);
+-		if (!buf->txd)
+-			return -EIO;
++		if (!txd)
++			goto error;
+ 
+-		buf->txd->callback_param	= buf->txd;
+-		buf->txd->callback		= mx3_cam_dma_done;
++		txd->callback_param	= txd;
++		txd->callback		= mx3_cam_dma_done;
+ 
+-		buf->state = CSI_BUF_PREPARED;
++		buf->state		= CSI_BUF_PREPARED;
++		buf->txd		= txd;
++	} else {
++		txd = buf->txd;
+ 	}
+ 
+ 	vb2_set_plane_payload(vb, 0, new_size);
+ 
+-	return 0;
+-}
+-
+-static enum pixel_fmt fourcc_to_ipu_pix(__u32 fourcc)
+-{
+-	/* Add more formats as need arises and test possibilities appear... */
+-	switch (fourcc) {
+-	case V4L2_PIX_FMT_RGB24:
+-		return IPU_PIX_FMT_RGB24;
+-	case V4L2_PIX_FMT_UYVY:
+-	case V4L2_PIX_FMT_RGB565:
+-	default:
+-		return IPU_PIX_FMT_GENERIC;
+-	}
+-}
+-
+-static void mx3_videobuf_queue(struct vb2_buffer *vb)
+-{
+-	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+-	struct mx3_camera_dev *mx3_cam = ici->priv;
+-	struct mx3_camera_buffer *buf = to_mx3_vb(vb);
+-	struct dma_async_tx_descriptor *txd = buf->txd;
+-	struct idmac_channel *ichan = to_idmac_chan(txd->chan);
+-	struct idmac_video_param *video = &ichan->params.video;
+-	dma_cookie_t cookie;
+-	u32 fourcc = icd->current_fmt->host_fmt->fourcc;
+-	unsigned long flags;
+-
+ 	/* This is the configuration of one sg-element */
+-	video->out_pixel_fmt	= fourcc_to_ipu_pix(fourcc);
++	video->out_pixel_fmt = fourcc_to_ipu_pix(host_fmt->fourcc);
+ 
+ 	if (video->out_pixel_fmt == IPU_PIX_FMT_GENERIC) {
+ 		/*
+-		 * If the IPU DMA channel is configured to transport
+-		 * generic 8-bit data, we have to set up correctly the
+-		 * geometry parameters upon the current pixel format.
+-		 * So, since the DMA horizontal parameters are expressed
+-		 * in bytes not pixels, convert these in the right unit.
++		 * If the IPU DMA channel is configured to transfer generic
++		 * 8-bit data, we have to set up the geometry parameters
++		 * correctly, according to the current pixel format. The DMA
++		 * horizontal parameters in this case are expressed in bytes,
++		 * not in pixels.
+ 		 */
+-		int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
+-						icd->current_fmt->host_fmt);
+-		BUG_ON(bytes_per_line <= 0);
+-
+ 		video->out_width	= bytes_per_line;
+ 		video->out_height	= icd->user_height;
+ 		video->out_stride	= bytes_per_line;
+@@ -353,6 +353,7 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
+ 		mx3_cam->active = NULL;
+ 
+ 	spin_unlock_irqrestore(&mx3_cam->lock, flags);
++error:
+ 	vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
+ }
+ 
+@@ -386,17 +387,24 @@ static void mx3_videobuf_release(struct vb2_buffer *vb)
+ 	}
+ 
+ 	spin_unlock_irqrestore(&mx3_cam->lock, flags);
++
++	mx3_cam->buf_total -= vb2_plane_size(vb, 0);
+ }
+ 
+ static int mx3_videobuf_init(struct vb2_buffer *vb)
+ {
++	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
++	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++	struct mx3_camera_dev *mx3_cam = ici->priv;
+ 	struct mx3_camera_buffer *buf = to_mx3_vb(vb);
++
+ 	/* This is for locking debugging only */
+ 	INIT_LIST_HEAD(&buf->queue);
+ 	sg_init_table(&buf->sg, 1);
+ 
+ 	buf->state = CSI_BUF_NEEDS_INIT;
+-	buf->txd = NULL;
++
++	mx3_cam->buf_total += vb2_plane_size(vb, 0);
+ 
+ 	return 0;
+ }
+@@ -407,13 +415,12 @@ static int mx3_stop_streaming(struct vb2_queue *q)
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct mx3_camera_dev *mx3_cam = ici->priv;
+ 	struct idmac_channel *ichan = mx3_cam->idmac_channel[0];
+-	struct dma_chan *chan;
+ 	struct mx3_camera_buffer *buf, *tmp;
+ 	unsigned long flags;
+ 
+ 	if (ichan) {
+-		chan = &ichan->dma_chan;
+-		chan->device->device_control(chan, DMA_TERMINATE_ALL, 0);
++		struct dma_chan *chan = &ichan->dma_chan;
++		chan->device->device_control(chan, DMA_PAUSE, 0);
+ 	}
+ 
+ 	spin_lock_irqsave(&mx3_cam->lock, flags);
+@@ -421,8 +428,8 @@ static int mx3_stop_streaming(struct vb2_queue *q)
+ 	mx3_cam->active = NULL;
+ 
+ 	list_for_each_entry_safe(buf, tmp, &mx3_cam->capture, queue) {
+-		buf->state = CSI_BUF_NEEDS_INIT;
+ 		list_del_init(&buf->queue);
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
+ 	}
+ 
+ 	spin_unlock_irqrestore(&mx3_cam->lock, flags);
+@@ -432,7 +439,6 @@ static int mx3_stop_streaming(struct vb2_queue *q)
+ 
+ static struct vb2_ops mx3_videobuf_ops = {
+ 	.queue_setup	= mx3_videobuf_setup,
+-	.buf_prepare	= mx3_videobuf_prepare,
+ 	.buf_queue	= mx3_videobuf_queue,
+ 	.buf_cleanup	= mx3_videobuf_release,
+ 	.buf_init	= mx3_videobuf_init,
+@@ -516,6 +522,7 @@ static int mx3_camera_add_device(struct soc_camera_device *icd)
+ 
+ 	mx3_camera_activate(mx3_cam, icd);
+ 
++	mx3_cam->buf_total = 0;
+ 	mx3_cam->icd = icd;
+ 
+ 	dev_info(icd->parent, "MX3 Camera driver attached to camera %d\n",
+@@ -1263,8 +1270,6 @@ static int __devexit mx3_camera_remove(struct platform_device *pdev)
+ 
+ 	dmaengine_put();
+ 
+-	dev_info(&pdev->dev, "i.MX3x Camera driver unloaded\n");
+-
+ 	return 0;
+ }
+ 
 -- 
-http://palosaari.fi/
+1.7.2.5
+
