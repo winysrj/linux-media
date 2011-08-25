@@ -1,91 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f170.google.com ([209.85.210.170]:60267 "EHLO
-	mail-iy0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754605Ab1HWA7V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Aug 2011 20:59:21 -0400
-Received: by iye16 with SMTP id 16so11183629iye.1
-        for <linux-media@vger.kernel.org>; Mon, 22 Aug 2011 17:59:20 -0700 (PDT)
+Received: from mail.li-life.net ([195.225.200.6]:3520 "EHLO mail.li-life.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753349Ab1HYRDO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Aug 2011 13:03:14 -0400
+Message-ID: <4E567CB8.5060409@kaiser-linux.li>
+Date: Thu, 25 Aug 2011 18:47:52 +0200
+From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
 MIME-Version: 1.0
-In-Reply-To: <CAL9G6WUFddsFM2V46xXCDWEfhfCR0n5G-8S4JSYwLLkmZnYu7g@mail.gmail.com>
-References: <CAATJ+fu5JqVmyY=zJn_CM_Eusst_YWKG2B2MAuu5fqELYYsYqA@mail.gmail.com>
-	<CAATJ+ft9HNqLA62ZZkkEP6EswXC1Jhq=FBcXU+OHCkXTKpqeUA@mail.gmail.com>
-	<1313949634.2874.13.camel@localhost>
-	<CAATJ+fv6x6p5kimJs4unWGQ_PU36hp29Rafu8BDCcRAABtAfgQ@mail.gmail.com>
-	<CAL9G6WUFddsFM2V46xXCDWEfhfCR0n5G-8S4JSYwLLkmZnYu7g@mail.gmail.com>
-Date: Tue, 23 Aug 2011 10:59:20 +1000
-Message-ID: <CAATJ+fsUWPjh5aq38triZOu0-DmU=nCbd77qUzxUn5kiDiaR+w@mail.gmail.com>
-Subject: Re: Afatech AF9013
-From: Jason Hecker <jwhecker@gmail.com>
-To: Josu Lazkano <josu.lazkano@gmail.com>
-Cc: Malcolm Priestley <tvboxspy@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media <linux-media@vger.kernel.org>
+Subject: DD Cine CT DVB-C/T
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I might have found one bug so far with the Afa9013 driver.
+Hi
 
-As part of refactoring the code in
-http://git.linuxtv.org/linux-2.6.git/commitdiff/edb709b61abd3ba475e59d1ad81aab21ad025db6
-I think one of the u32->u8 calculations is wrong.
+Which modules do I have to build and install to use this card (DD Cine 
+CT DVB-C/T Rev. V6).
 
-The think the second last u32 in the tables has to be changed. Here is
-the diff.  I will try it later as I have run out of time to test it
-this morning.  This may not fix the problems we are having but it
-might help...  So patch the file af9013_priv.h with this in the latest
-git media_build and see what happens.  I'll report back later with my
-results.
+I checkd out:
+hg clone http://linuxtv.org/hg/~endriss/media_build_experimental
 
-af9013_priv.h.diff
+I would like to build only the needed modules. What do I have to select 
+in "make menuconfig"?
 
-<snip>------------------------------
+Regards, Thomas
 
-74c74
-<               0x29, 0x03, 0x5d, 0x7a, 0xec, 0x01, 0x45, 0x14, 0x14 } },
----
->               0x29, 0x00, 0xa2, 0x85, 0x14, 0x01, 0x45, 0x14, 0x14 } },
-77c77
-<               0xe4, 0x03, 0x71, 0xcb, 0xe8, 0x01, 0x1c, 0x71, 0x32 } },
----
->               0xe4, 0x00, 0x8e, 0x34, 0x72, 0x01, 0x1c, 0x71, 0x32 } },
-80c80
-<               0x9e, 0x03, 0x86, 0x1c, 0x31, 0x00, 0xf3, 0xcf, 0x0f } },
----
->               0x9e, 0x00, 0x79, 0xe3, 0xcf, 0x00, 0xf3, 0xcf, 0x0f } },
-84c84
-<               0x49, 0x03, 0x1b, 0x74, 0xdb, 0x01, 0xc9, 0x24, 0x25 } },
----
->               0x49, 0x00, 0xe4, 0x8b, 0x25, 0x01, 0xc9, 0x24, 0x25 } },
-87c87
-<               0x00, 0x03, 0x38, 0x06, 0x40, 0x01, 0x90, 0x00, 0x00 } },
----
->               0x00, 0x00, 0xc7, 0xf9, 0xc0, 0x01, 0x90, 0x00, 0x00 } },
-90c90
-<               0xb7, 0x03, 0x54, 0x97, 0xa4, 0x01, 0x56, 0xdb, 0x1c } },
----
->               0xb7, 0x00, 0xab, 0x68, 0x5c, 0x01, 0x56, 0xdb, 0x1c } },
-94c94
-<               0x05, 0x03, 0x58, 0xd6, 0x34, 0x01, 0x4e, 0x5e, 0x03 } },
----
->               0x05, 0x00, 0xa7, 0x29, 0xcc, 0x01, 0x4e, 0x5e, 0x03 } },
-97c97
-<               0x25, 0x03, 0x6d, 0xbb, 0x6e, 0x01, 0x24, 0x92, 0x12 } },
----
->               0x25, 0x00, 0x92, 0x44, 0x92, 0x01, 0x24, 0x92, 0x12 } },
-100c100
-<               0x44, 0x03, 0x82, 0xa0, 0xa7, 0x00, 0xfa, 0xc6, 0x22 } },
----
->               0x44, 0x00, 0x7d, 0x5f, 0x59, 0x00, 0xfa, 0xc6, 0x22 } },
-104c104
-<               0xe7, 0x03, 0x44, 0xc6, 0xf3, 0x01, 0x76, 0x7d, 0x34 } },
----
->               0xe7, 0x00, 0xbb, 0x39, 0x0d, 0x01, 0x76, 0x7d, 0x34 } },
-107c107
-<               0x0a, 0x03, 0x5c, 0x2e, 0x14, 0x01, 0x47, 0xae, 0x05 } },
----
->               0x0a, 0x00, 0xa3, 0xd1, 0xec, 0x01, 0x47, 0xae, 0x05 } },
-110c110
-<               0x2d, 0x03, 0x73, 0x95, 0x36, 0x01, 0x18, 0xde, 0x17 } },
----
->               0x2d, 0x00, 0x8c, 0x6a, 0xca, 0x01, 0x18, 0xde, 0x17 } },
+
