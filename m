@@ -1,55 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:59296 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754258Ab1HLBHw (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:58651 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754392Ab1HYQqX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Aug 2011 21:07:52 -0400
-Date: Thu, 11 Aug 2011 21:07:51 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-cc: Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	Greg KH <greg@kroah.com>, <linux-usb@vger.kernel.org>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<libusb-devel@lists.sourceforge.net>,
-	Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, <hector@marcansoft.com>,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	<pbonzini@redhat.com>, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
+	Thu, 25 Aug 2011 12:46:23 -0400
+Date: Thu, 25 Aug 2011 18:45:58 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Adam Baker <linux@baker-net.org.uk>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-In-Reply-To: <alpine.LNX.2.00.1108111235400.27040@banach.math.auburn.edu>
-Message-ID: <Pine.LNX.4.44L0.1108112104490.31728-100000@netrider.rowland.org>
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	Vinod Koul <vinod.koul@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: [PATCH 1/2] dmaengine: ipu-idmac: add support for the DMA_PAUSE
+ control
+In-Reply-To: <Pine.LNX.4.64.1108251838090.17190@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1108251841300.17190@axis700.grange>
+References: <1314211292-10414-1-git-send-email-g.liakhovetski@gmx.de>
+ <Pine.LNX.4.64.1108251838090.17190@axis700.grange>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 11 Aug 2011, Theodore Kilgore wrote:
+To support multi-size buffers in the mx3_camera V4L2 driver we have to be
+able to stop DMA on a channel without releasing descriptors and completely
+halting the hardware. Use the DMA_PAUSE control to implement this mode.
 
-> Alan,
-> 
-> As I said, I am agnostic, though leaning in the direction that Hans de 
-> Goede is pointing. What he says about a single control mechanism seems to 
-> make a lot of sense. If you can come up with an outline of the "easier to 
-> code" solution, that would be interesting, though.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/dma/ipu/ipu_idmac.c |   65 +++++++++++++++++++++++++++---------------
+ 1 files changed, 42 insertions(+), 23 deletions(-)
 
-That approach has been outlined in the other emails I have posted 
-recently.
-
-> I assume you are also going to be in Vancouver? If you will be there on 
-> Monday, then Hans and I are already planning to meet and discuss. 
-
-No, I'm not going to Vancouver.  However I will attend the Linux 
-Plumbers conference in Santa Rosa.
-
-Alan Stern
+diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
+index c1a125e..42cdf1c 100644
+--- a/drivers/dma/ipu/ipu_idmac.c
++++ b/drivers/dma/ipu/ipu_idmac.c
+@@ -1306,6 +1306,7 @@ static irqreturn_t idmac_interrupt(int irq, void *dev_id)
+ 	    ipu_submit_buffer(ichan, descnew, sgnew, ichan->active_buffer) < 0) {
+ 		callback = descnew->txd.callback;
+ 		callback_param = descnew->txd.callback_param;
++		list_del_init(&descnew->list);
+ 		spin_unlock(&ichan->lock);
+ 		if (callback)
+ 			callback(callback_param);
+@@ -1427,39 +1428,58 @@ static int __idmac_control(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
+ {
+ 	struct idmac_channel *ichan = to_idmac_chan(chan);
+ 	struct idmac *idmac = to_idmac(chan->device);
++	struct ipu *ipu = to_ipu(idmac);
++	struct list_head *list, *tmp;
+ 	unsigned long flags;
+ 	int i;
+ 
+-	/* Only supports DMA_TERMINATE_ALL */
+-	if (cmd != DMA_TERMINATE_ALL)
+-		return -ENXIO;
++	switch (cmd) {
++	case DMA_PAUSE:
++		spin_lock_irqsave(&ipu->lock, flags);
++		ipu_ic_disable_task(ipu, chan->chan_id);
+ 
+-	ipu_disable_channel(idmac, ichan,
+-			    ichan->status >= IPU_CHANNEL_ENABLED);
++		/* Return all descriptors into "prepared" state */
++		list_for_each_safe(list, tmp, &ichan->queue)
++			list_del_init(list);
+ 
+-	tasklet_disable(&to_ipu(idmac)->tasklet);
++		ichan->sg[0] = NULL;
++		ichan->sg[1] = NULL;
+ 
+-	/* ichan->queue is modified in ISR, have to spinlock */
+-	spin_lock_irqsave(&ichan->lock, flags);
+-	list_splice_init(&ichan->queue, &ichan->free_list);
++		spin_unlock_irqrestore(&ipu->lock, flags);
+ 
+-	if (ichan->desc)
+-		for (i = 0; i < ichan->n_tx_desc; i++) {
+-			struct idmac_tx_desc *desc = ichan->desc + i;
+-			if (list_empty(&desc->list))
+-				/* Descriptor was prepared, but not submitted */
+-				list_add(&desc->list, &ichan->free_list);
++		ichan->status = IPU_CHANNEL_INITIALIZED;
++		break;
++	case DMA_TERMINATE_ALL:
++		ipu_disable_channel(idmac, ichan,
++				    ichan->status >= IPU_CHANNEL_ENABLED);
+ 
+-			async_tx_clear_ack(&desc->txd);
+-		}
++		tasklet_disable(&ipu->tasklet);
+ 
+-	ichan->sg[0] = NULL;
+-	ichan->sg[1] = NULL;
+-	spin_unlock_irqrestore(&ichan->lock, flags);
++		/* ichan->queue is modified in ISR, have to spinlock */
++		spin_lock_irqsave(&ichan->lock, flags);
++		list_splice_init(&ichan->queue, &ichan->free_list);
+ 
+-	tasklet_enable(&to_ipu(idmac)->tasklet);
++		if (ichan->desc)
++			for (i = 0; i < ichan->n_tx_desc; i++) {
++				struct idmac_tx_desc *desc = ichan->desc + i;
++				if (list_empty(&desc->list))
++					/* Descriptor was prepared, but not submitted */
++					list_add(&desc->list, &ichan->free_list);
+ 
+-	ichan->status = IPU_CHANNEL_INITIALIZED;
++				async_tx_clear_ack(&desc->txd);
++			}
++
++		ichan->sg[0] = NULL;
++		ichan->sg[1] = NULL;
++		spin_unlock_irqrestore(&ichan->lock, flags);
++
++		tasklet_enable(&ipu->tasklet);
++
++		ichan->status = IPU_CHANNEL_INITIALIZED;
++		break;
++	default:
++		return -ENOSYS;
++	}
+ 
+ 	return 0;
+ }
+@@ -1662,7 +1682,6 @@ static void __exit ipu_idmac_exit(struct ipu *ipu)
+ 		struct idmac_channel *ichan = ipu->channel + i;
+ 
+ 		idmac_control(&ichan->dma_chan, DMA_TERMINATE_ALL, 0);
+-		idmac_prep_slave_sg(&ichan->dma_chan, NULL, 0, DMA_NONE, 0);
+ 	}
+ 
+ 	dma_async_device_unregister(&idmac->dma);
+-- 
+1.7.2.5
 
