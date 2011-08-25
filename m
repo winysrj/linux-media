@@ -1,104 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:25630 "EHLO mgw-sa02.nokia.com"
+Received: from ffm.saftware.de ([83.141.3.46]:49640 "EHLO ffm.saftware.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753310Ab1HBKkc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Aug 2011 06:40:32 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	snjw23@gmail.com
-Subject: [PATCH v2 2/2] omap3isp: ccdc: Make frame start event generic
-Date: Tue,  2 Aug 2011 13:40:46 +0300
-Message-Id: <1312281646-3449-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4E37D415.8060000@iki.fi>
-References: <4E37D415.8060000@iki.fi>
+	id S1751120Ab1HYXnw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Aug 2011 19:43:52 -0400
+Message-ID: <4E56DE32.6010809@linuxtv.org>
+Date: Fri, 26 Aug 2011 01:43:46 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
+MIME-Version: 1.0
+To: Chris Rankin <rankincj@yahoo.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Is DVB ioctl FE_SET_FRONTEND broken?
+References: <1314314849.52943.YahooMailClassic@web121708.mail.ne1.yahoo.com>
+In-Reply-To: <1314314849.52943.YahooMailClassic@web121708.mail.ne1.yahoo.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ccdc block in the omap3isp produces frame start events. These events
-were previously specific to the omap3isp. Make them generic.
+Hello Chris,
 
-Also add sequence number to the frame. This is stored to the id field.
+On 26.08.2011 01:27, Chris Rankin wrote:
+> As far as I understand it, the FE_SET_FRONTEND ioctl is supposed to tell a DVB device to tune itself, and will send a poll() event when it completes. The "frequency" parameter of this event will be the frequency of the newly tuned channel, or 0 if tuning failed.
+> 
+> http://www.linuxtv.org/docs/dvbapi/DVB_Frontend_API.html#SECTION00328000000000000000
+> 
+> I have now tested with 2 different DVB adapters, and I don't think the 3.0.x kernel still behaves like this. A study of the dvb-core/dvb_frontend.c file reveals the following code:
+> 
+> In the dvb_frontend_ioctl_legacy() function,
+> 
+>     switch(cmd) {
+> 
+>     ...
+> 
+>     case FE_SET_FRONTEND: {
+> 
+>         ...
+> 
+>         fepriv->state = FESTATE_RETUNE;
+> 
+>         /* Request the search algorithm to search */
+>         fepriv->algo_status |= DVBFE_ALGO_SEARCH_AGAIN;
+> 
+>         dvb_frontend_wakeup(fe);
+>         dvb_frontend_add_event(fe, 0);   // <--- HERE!!!!
+>         fepriv->status = 0;
+>         err = 0;
+>         break;
+>     }
+> 
+> So basically, the ioctl always sends an event immediately and does not wait for the tuning to happen first. Presumably, the device still tunes in the background and writes the frequency into the frontend's private structure so that a second FE_SET_FRONTEND ioctl succeeds. But this is not the documented behaviour.
+> 
+> The bug is visible when you try to use the device for the very first time. I tested by unloading / reloading the kernel modules, launching xine and then pressing its DVB button. This *always* fails the first time, for the reason described above, and works every time after that.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/video4linux/omap3isp.txt |    9 +++++----
- drivers/media/video/omap3isp/ispccdc.c |   11 +++++++++--
- include/linux/omap3isp.h               |    2 --
- 3 files changed, 14 insertions(+), 8 deletions(-)
+can you please test whether https://patchwork.kernel.org/patch/1036132/
+restores the old behaviour?
 
-diff --git a/Documentation/video4linux/omap3isp.txt b/Documentation/video4linux/omap3isp.txt
-index 69be2c7..5dd1439 100644
---- a/Documentation/video4linux/omap3isp.txt
-+++ b/Documentation/video4linux/omap3isp.txt
-@@ -70,10 +70,11 @@ Events
- The OMAP 3 ISP driver does support the V4L2 event interface on CCDC and
- statistics (AEWB, AF and histogram) subdevs.
- 
--The CCDC subdev produces V4L2_EVENT_OMAP3ISP_HS_VS type event on HS_VS
--interrupt which is used to signal frame start. The event is triggered exactly
--when the reception of the first line of the frame starts in the CCDC module.
--The event can be subscribed on the CCDC subdev.
-+The CCDC subdev produces V4L2_EVENT_FRAME_SYNC type event on HS_VS
-+interrupt which is used to signal frame start. Earlier version of this
-+driver used V4L2_EVENT_OMAP3ISP_HS_VS for this purpose. The event is
-+triggered exactly when the reception of the first line of the frame starts
-+in the CCDC module. The event can be subscribed on the CCDC subdev.
- 
- (When using parallel interface one must pay account to correct configuration
- of the VS signal polarity. This is automatically correct when using the serial
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index 6766247..110d4ab 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -1402,11 +1402,14 @@ static int __ccdc_handle_stopping(struct isp_ccdc_device *ccdc, u32 event)
- 
- static void ccdc_hs_vs_isr(struct isp_ccdc_device *ccdc)
- {
-+	struct isp_pipeline *pipe =
-+		to_isp_pipeline(&ccdc->video_out.video.entity);
- 	struct video_device *vdev = &ccdc->subdev.devnode;
- 	struct v4l2_event event;
- 
- 	memset(&event, 0, sizeof(event));
--	event.type = V4L2_EVENT_OMAP3ISP_HS_VS;
-+	event.type = V4L2_EVENT_FRAME_SYNC;
-+	event.u.frame_sync.frame_sequence = atomic_read(&pipe->frame_number);
- 
- 	v4l2_event_queue(vdev, &event);
- }
-@@ -1688,7 +1691,11 @@ static long ccdc_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
- static int ccdc_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
- 				struct v4l2_event_subscription *sub)
- {
--	if (sub->type != V4L2_EVENT_OMAP3ISP_HS_VS)
-+	if (sub->type != V4L2_EVENT_FRAME_SYNC)
-+		return -EINVAL;
-+
-+	/* line number is zero at frame start */
-+	if (sub->id != 0)
- 		return -EINVAL;
- 
- 	return v4l2_event_subscribe(fh, sub, OMAP3ISP_CCDC_NEVENTS);
-diff --git a/include/linux/omap3isp.h b/include/linux/omap3isp.h
-index b6111f8..c73a34c 100644
---- a/include/linux/omap3isp.h
-+++ b/include/linux/omap3isp.h
-@@ -62,14 +62,12 @@
-  * V4L2_EVENT_OMAP3ISP_AEWB: AEWB statistics data ready
-  * V4L2_EVENT_OMAP3ISP_AF: AF statistics data ready
-  * V4L2_EVENT_OMAP3ISP_HIST: Histogram statistics data ready
-- * V4L2_EVENT_OMAP3ISP_HS_VS: Horizontal/vertical synchronization detected
-  */
- 
- #define V4L2_EVENT_OMAP3ISP_CLASS	(V4L2_EVENT_PRIVATE_START | 0x100)
- #define V4L2_EVENT_OMAP3ISP_AEWB	(V4L2_EVENT_OMAP3ISP_CLASS | 0x1)
- #define V4L2_EVENT_OMAP3ISP_AF		(V4L2_EVENT_OMAP3ISP_CLASS | 0x2)
- #define V4L2_EVENT_OMAP3ISP_HIST	(V4L2_EVENT_OMAP3ISP_CLASS | 0x3)
--#define V4L2_EVENT_OMAP3ISP_HS_VS	(V4L2_EVENT_OMAP3ISP_CLASS | 0x4)
- 
- struct omap3isp_stat_event_status {
- 	__u32 frame_number;
--- 
-1.7.2.5
+These three pending patches are also related to frontend events:
+https://patchwork.kernel.org/patch/1036112/
+https://patchwork.kernel.org/patch/1036142/
+https://patchwork.kernel.org/patch/1036122/
 
+Regards,
+Andreas
