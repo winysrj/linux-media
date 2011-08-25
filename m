@@ -1,284 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:49240 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753785Ab1HXSlr (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3249 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752103Ab1HYOIn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Aug 2011 14:41:47 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 4/7 v5] V4L: vb2: prepare to support multi-size buffers
-Date: Wed, 24 Aug 2011 20:41:29 +0200
-Message-Id: <1314211292-10414-5-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1314211292-10414-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1314211292-10414-1-git-send-email-g.liakhovetski@gmx.de>
+	Thu, 25 Aug 2011 10:08:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 04/12] saa7146: fix compiler warning
+Date: Thu, 25 Aug 2011 16:08:27 +0200
+Message-Id: <6d87d7fae9166b16990c5db200e61e3c4e82a9e6.1314281302.git.hans.verkuil@cisco.com>
+In-Reply-To: <1314281315-32366-1-git-send-email-hverkuil@xs4all.nl>
+References: <1314281315-32366-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <afd314e95a520c3a4de0f112735d1d5584ec8a9a.1314281302.git.hans.verkuil@cisco.com>
+References: <afd314e95a520c3a4de0f112735d1d5584ec8a9a.1314281302.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In preparation for the forthcoming VIDIOC_CREATE_BUFS ioctl add a
-"const struct v4l2_format *" argument to the .queue_setup() vb2
-operation.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Pawel Osciak <pawel@osciak.com>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+v4l-dvb-git/drivers/media/common/saa7146_video.c: In function 'video_close':
+v4l-dvb-git/drivers/media/common/saa7146_video.c:1350:6: warning: variable 'err' set but not used [-Wunused-but-set-variable]
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/atmel-isi.c              |    6 +++---
- drivers/media/video/marvell-ccic/mcam-core.c |    3 ++-
- drivers/media/video/mem2mem_testdev.c        |    7 ++++---
- drivers/media/video/mx3_camera.c             |    1 +
- drivers/media/video/pwc/pwc-if.c             |    6 +++---
- drivers/media/video/s5p-fimc/fimc-capture.c  |    6 +++---
- drivers/media/video/s5p-fimc/fimc-core.c     |    6 +++---
- drivers/media/video/s5p-mfc/s5p_mfc_dec.c    |    7 ++++---
- drivers/media/video/s5p-mfc/s5p_mfc_enc.c    |    5 +++--
- drivers/media/video/s5p-tv/mixer_video.c     |    4 ++--
- drivers/media/video/sh_mobile_ceu_camera.c   |    1 +
- drivers/media/video/videobuf2-core.c         |    6 +++---
- drivers/media/video/vivi.c                   |    6 +++---
- include/media/videobuf2-core.h               |    6 +++---
- 14 files changed, 38 insertions(+), 32 deletions(-)
+ drivers/media/common/saa7146_video.c |   12 ++++--------
+ 1 files changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
-index 3e3d4cc..7c41a87 100644
---- a/drivers/media/video/atmel-isi.c
-+++ b/drivers/media/video/atmel-isi.c
-@@ -249,9 +249,9 @@ static int atmel_isi_wait_status(struct atmel_isi *isi, int wait_reset)
- /* ------------------------------------------------------------------
- 	Videobuf operations
-    ------------------------------------------------------------------*/
--static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
--				unsigned int *nplanes, unsigned long sizes[],
--				void *alloc_ctxs[])
-+static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
-+				unsigned int *nbuffers, unsigned int *nplanes,
-+				unsigned long sizes[], void *alloc_ctxs[])
- {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-diff --git a/drivers/media/video/marvell-ccic/mcam-core.c b/drivers/media/video/marvell-ccic/mcam-core.c
-index 83c1451..65517c8 100644
---- a/drivers/media/video/marvell-ccic/mcam-core.c
-+++ b/drivers/media/video/marvell-ccic/mcam-core.c
-@@ -883,7 +883,8 @@ static int mcam_read_setup(struct mcam_camera *cam)
-  * Videobuf2 interface code.
-  */
+diff --git a/drivers/media/common/saa7146_video.c b/drivers/media/common/saa7146_video.c
+index 9aafa4e..77e232f 100644
+--- a/drivers/media/common/saa7146_video.c
++++ b/drivers/media/common/saa7146_video.c
+@@ -1347,18 +1347,14 @@ static void video_close(struct saa7146_dev *dev, struct file *file)
+ 	struct saa7146_fh *fh = file->private_data;
+ 	struct saa7146_vv *vv = dev->vv_data;
+ 	struct videobuf_queue *q = &fh->video_q;
+-	int err;
  
--static int mcam_vb_queue_setup(struct vb2_queue *vq, unsigned int *nbufs,
-+static int mcam_vb_queue_setup(struct vb2_queue *vq,
-+		const struct v4l2_format *fmt, unsigned int *nbufs,
- 		unsigned int *num_planes, unsigned long sizes[],
- 		void *alloc_ctxs[])
- {
-diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
-index 166bf93..c0e633f 100644
---- a/drivers/media/video/mem2mem_testdev.c
-+++ b/drivers/media/video/mem2mem_testdev.c
-@@ -738,9 +738,10 @@ static const struct v4l2_ioctl_ops m2mtest_ioctl_ops = {
-  * Queue operations
-  */
+-	if (IS_CAPTURE_ACTIVE(fh) != 0) {
+-		err = video_end(fh, file);
+-	} else if (IS_OVERLAY_ACTIVE(fh) != 0) {
+-		err = saa7146_stop_preview(fh);
+-	}
++	if (IS_CAPTURE_ACTIVE(fh) != 0)
++		video_end(fh, file);
++	else if (IS_OVERLAY_ACTIVE(fh) != 0)
++		saa7146_stop_preview(fh);
  
--static int m2mtest_queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
--				unsigned int *nplanes, unsigned long sizes[],
--				void *alloc_ctxs[])
-+static int m2mtest_queue_setup(struct vb2_queue *vq,
-+				const struct v4l2_format *fmt,
-+				unsigned int *nbuffers, unsigned int *nplanes,
-+				unsigned long sizes[], void *alloc_ctxs[])
- {
- 	struct m2mtest_ctx *ctx = vb2_get_drv_priv(vq);
- 	struct m2mtest_q_data *q_data;
-diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-index 3f37522f..6bfbce9 100644
---- a/drivers/media/video/mx3_camera.c
-+++ b/drivers/media/video/mx3_camera.c
-@@ -191,6 +191,7 @@ static void mx3_cam_dma_done(void *arg)
-  * Calculate the __buffer__ (not data) size and number of buffers.
-  */
- static int mx3_videobuf_setup(struct vb2_queue *vq,
-+			const struct v4l2_format *fmt,
- 			unsigned int *count, unsigned int *num_planes,
- 			unsigned long sizes[], void *alloc_ctxs[])
- {
-diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
-index 51ca358..d6ff2c9 100644
---- a/drivers/media/video/pwc/pwc-if.c
-+++ b/drivers/media/video/pwc/pwc-if.c
-@@ -744,9 +744,9 @@ static int pwc_video_mmap(struct file *file, struct vm_area_struct *vma)
- /***************************************************************************/
- /* Videobuf2 operations */
- 
--static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
--				unsigned int *nplanes, unsigned long sizes[],
--				void *alloc_ctxs[])
-+static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
-+				unsigned int *nbuffers, unsigned int *nplanes,
-+				unsigned long sizes[], void *alloc_ctxs[])
- {
- 	struct pwc_device *pdev = vb2_get_drv_priv(vq);
- 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 0d730e5..36d71a1 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -264,9 +264,9 @@ static unsigned int get_plane_size(struct fimc_frame *fr, unsigned int plane)
- 	return fr->f_width * fr->f_height * fr->fmt->depth[plane] / 8;
+ 	videobuf_stop(q);
+-
+ 	/* hmm, why is this function declared void? */
+-	/* return err */
  }
  
--static int queue_setup(struct vb2_queue *vq, unsigned int *num_buffers,
--		       unsigned int *num_planes, unsigned long sizes[],
--		       void *allocators[])
-+static int queue_setup(struct vb2_queue *vq,  const struct v4l2_format *pfmt,
-+		       unsigned int *num_buffers, unsigned int *num_planes,
-+		       unsigned long sizes[], void *allocators[])
- {
- 	struct fimc_ctx *ctx = vq->drv_priv;
- 	struct fimc_fmt *fmt = ctx->d_frame.fmt;
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index aa55066..26348e2 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -691,9 +691,9 @@ static void fimc_job_abort(void *priv)
- 	fimc_m2m_shutdown(priv);
- }
  
--static int fimc_queue_setup(struct vb2_queue *vq, unsigned int *num_buffers,
--			    unsigned int *num_planes, unsigned long sizes[],
--			    void *allocators[])
-+static int fimc_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
-+			    unsigned int *num_buffers, unsigned int *num_planes,
-+			    unsigned long sizes[], void *allocators[])
- {
- 	struct fimc_ctx *ctx = vb2_get_drv_priv(vq);
- 	struct fimc_frame *f;
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-index b2c5052..06f317c 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-@@ -744,9 +744,10 @@ static const struct v4l2_ioctl_ops s5p_mfc_dec_ioctl_ops = {
- 	.vidioc_g_crop = vidioc_g_crop,
- };
- 
--static int s5p_mfc_queue_setup(struct vb2_queue *vq, unsigned int *buf_count,
--			       unsigned int *plane_count, unsigned long psize[],
--			       void *allocators[])
-+static int s5p_mfc_queue_setup(struct vb2_queue *vq,
-+			const struct v4l2_format *fmt, unsigned int *buf_count,
-+			unsigned int *plane_count, unsigned long psize[],
-+			void *allocators[])
- {
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
- 
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-index fee094a..0c1a22f 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-@@ -1513,8 +1513,9 @@ static int check_vb_with_fmt(struct s5p_mfc_fmt *fmt, struct vb2_buffer *vb)
- }
- 
- static int s5p_mfc_queue_setup(struct vb2_queue *vq,
--		       unsigned int *buf_count, unsigned int *plane_count,
--		       unsigned long psize[], void *allocators[])
-+			const struct v4l2_format *fmt,
-+			unsigned int *buf_count, unsigned int *plane_count,
-+			unsigned long psize[], void *allocators[])
- {
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
- 
-diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
-index 43ac22f..74b86aa 100644
---- a/drivers/media/video/s5p-tv/mixer_video.c
-+++ b/drivers/media/video/s5p-tv/mixer_video.c
-@@ -727,8 +727,8 @@ static const struct v4l2_file_operations mxr_fops = {
- 	.unlocked_ioctl = video_ioctl2,
- };
- 
--static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
--	unsigned int *nplanes, unsigned long sizes[],
-+static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *pfmt,
-+	unsigned int *nbuffers, unsigned int *nplanes, unsigned long sizes[],
- 	void *alloc_ctxs[])
- {
- 	struct mxr_layer *layer = vb2_get_drv_priv(vq);
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 8b344d4..db3a24d 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -193,6 +193,7 @@ static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
-  *  Videobuf operations
-  */
- static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
-+			const struct v4l2_format *fmt,
- 			unsigned int *count, unsigned int *num_planes,
- 			unsigned long sizes[], void *alloc_ctxs[])
- {
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index fb7a3ac..8a81a89 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -525,7 +525,7 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 	 * Ask the driver how many buffers and planes per buffer it requires.
- 	 * Driver also sets the size and allocator context for each plane.
- 	 */
--	ret = call_qop(q, queue_setup, q, &num_buffers, &num_planes,
-+	ret = call_qop(q, queue_setup, q, NULL, &num_buffers, &num_planes,
- 		       plane_sizes, q->alloc_ctx);
- 	if (ret)
- 		return ret;
-@@ -545,8 +545,8 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 		unsigned int orig_num_buffers;
- 
- 		orig_num_buffers = num_buffers = ret;
--		ret = call_qop(q, queue_setup, q, &num_buffers, &num_planes,
--			       plane_sizes, q->alloc_ctx);
-+		ret = call_qop(q, queue_setup, q, NULL, &num_buffers,
-+			       &num_planes, plane_sizes, q->alloc_ctx);
- 		if (ret)
- 			goto free_mem;
- 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index a848bd2..0b24508 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -650,9 +650,9 @@ static void vivi_stop_generating(struct vivi_dev *dev)
- /* ------------------------------------------------------------------
- 	Videobuf operations
-    ------------------------------------------------------------------*/
--static int queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
--				unsigned int *nplanes, unsigned long sizes[],
--				void *alloc_ctxs[])
-+static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
-+				unsigned int *nbuffers, unsigned int *nplanes,
-+				unsigned long sizes[], void *alloc_ctxs[])
- {
- 	struct vivi_dev *dev = vb2_get_drv_priv(vq);
- 	unsigned long size;
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 65946c5..d043132 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -212,9 +212,9 @@ struct vb2_buffer {
-  *			the buffer back by calling vb2_buffer_done() function
-  */
- struct vb2_ops {
--	int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
--			   unsigned int *num_planes, unsigned long sizes[],
--			   void *alloc_ctxs[]);
-+	int (*queue_setup)(struct vb2_queue *q, const struct v4l2_format *fmt,
-+			   unsigned int *num_buffers, unsigned int *num_planes,
-+			   unsigned long sizes[], void *alloc_ctxs[]);
- 
- 	void (*wait_prepare)(struct vb2_queue *q);
- 	void (*wait_finish)(struct vb2_queue *q);
 -- 
-1.7.2.5
+1.7.5.4
 
