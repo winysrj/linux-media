@@ -1,64 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:49640 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751120Ab1HYXnw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Aug 2011 19:43:52 -0400
-Message-ID: <4E56DE32.6010809@linuxtv.org>
-Date: Fri, 26 Aug 2011 01:43:46 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from moutng.kundenserver.de ([212.227.126.187]:59722 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752594Ab1HYXHX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Aug 2011 19:07:23 -0400
+Date: Fri, 26 Aug 2011 01:07:17 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	Vinod Koul <vinod.koul@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: Re: [PATCH 2/2] V4L: mx3-camera: prepare to support multi-size
+ buffers
+In-Reply-To: <201108251857.16865.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1108260100330.17190@axis700.grange>
+References: <1314211292-10414-1-git-send-email-g.liakhovetski@gmx.de>
+ <Pine.LNX.4.64.1108251838090.17190@axis700.grange>
+ <Pine.LNX.4.64.1108251843350.17190@axis700.grange>
+ <201108251857.16865.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Chris Rankin <rankincj@yahoo.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Is DVB ioctl FE_SET_FRONTEND broken?
-References: <1314314849.52943.YahooMailClassic@web121708.mail.ne1.yahoo.com>
-In-Reply-To: <1314314849.52943.YahooMailClassic@web121708.mail.ne1.yahoo.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Chris,
+On Thu, 25 Aug 2011, Laurent Pinchart wrote:
 
-On 26.08.2011 01:27, Chris Rankin wrote:
-> As far as I understand it, the FE_SET_FRONTEND ioctl is supposed to tell a DVB device to tune itself, and will send a poll() event when it completes. The "frequency" parameter of this event will be the frequency of the newly tuned channel, or 0 if tuning failed.
+> Hi Guennadi,
 > 
-> http://www.linuxtv.org/docs/dvbapi/DVB_Frontend_API.html#SECTION00328000000000000000
+> On Thursday 25 August 2011 18:46:03 Guennadi Liakhovetski wrote:
+> > Prepare the mx3_camera friver to support the new VIDIOC_CREATE_BUFS and
+> > VIDIOC_PREPARE_BUF ioctl()s. The .queue_setup() vb2 operation must be
+> > able to handle buffer sizes, provided by the caller, and the
+> > .buf_prepare() operation must not use the currently configured frame
+> > format for its operation, which makes it superfluous for this driver.
+> > Its functionality is moved into .buf_queue().
 > 
-> I have now tested with 2 different DVB adapters, and I don't think the 3.0.x kernel still behaves like this. A study of the dvb-core/dvb_frontend.c file reveals the following code:
-> 
-> In the dvb_frontend_ioctl_legacy() function,
-> 
->     switch(cmd) {
-> 
->     ...
-> 
->     case FE_SET_FRONTEND: {
-> 
->         ...
-> 
->         fepriv->state = FESTATE_RETUNE;
-> 
->         /* Request the search algorithm to search */
->         fepriv->algo_status |= DVBFE_ALGO_SEARCH_AGAIN;
-> 
->         dvb_frontend_wakeup(fe);
->         dvb_frontend_add_event(fe, 0);   // <--- HERE!!!!
->         fepriv->status = 0;
->         err = 0;
->         break;
->     }
-> 
-> So basically, the ioctl always sends an event immediately and does not wait for the tuning to happen first. Presumably, the device still tunes in the background and writes the frequency into the frontend's private structure so that a second FE_SET_FRONTEND ioctl succeeds. But this is not the documented behaviour.
-> 
-> The bug is visible when you try to use the device for the very first time. I tested by unloading / reloading the kernel modules, launching xine and then pressing its DVB button. This *always* fails the first time, for the reason described above, and works every time after that.
+> You're moving the ichan->dma_chan.device->device_prep_slave_sg() call from 
+> .buf_prepare() to .buf_queue(). Is that call cheap ? Otherwise it would be 
+> better to keep the .buf_prepare() callback.
 
-can you please test whether https://patchwork.kernel.org/patch/1036132/
-restores the old behaviour?
+But only if (buf->state == CSI_BUF_NEEDS_INIT), i.e., only on the first 
+invocation. In any case, look at idmac_prep_slave_sg() - it is cheap. To 
+do this in .buf_prepare I'd have to store the frame format from the 
+.queue_setup() with a list of indices, to which it applies, and then use 
+it in .buf_prepare()...
 
-These three pending patches are also related to frontend events:
-https://patchwork.kernel.org/patch/1036112/
-https://patchwork.kernel.org/patch/1036142/
-https://patchwork.kernel.org/patch/1036122/
-
-Regards,
-Andreas
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
