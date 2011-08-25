@@ -1,57 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:11919 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754411Ab1HZNGU (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:41044 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751535Ab1HYMfU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Aug 2011 09:06:20 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from spt2.w1.samsung.com ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LQJ004E0DQJSD30@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 26 Aug 2011 14:06:19 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LQJ00KOCDQIKJ@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 26 Aug 2011 14:06:18 +0100 (BST)
-Date: Fri, 26 Aug 2011 15:06:06 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 4/5] [media] v4l: fix copying ioctl results on failure
-In-reply-to: <1314363967-6448-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com
-Message-id: <1314363967-6448-5-git-send-email-t.stanislaws@samsung.com>
-References: <1314363967-6448-1-git-send-email-t.stanislaws@samsung.com>
+	Thu, 25 Aug 2011 08:35:20 -0400
+Received: by fxh19 with SMTP id 19so1708242fxh.19
+        for <linux-media@vger.kernel.org>; Thu, 25 Aug 2011 05:35:19 -0700 (PDT)
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>
+Subject: Re: dma buffers for camera
+References: <op.v0p0hctkyxxkfz@localhost.localdomain>
+ <Pine.LNX.4.64.1108242111560.14818@axis700.grange>
+Date: Thu, 25 Aug 2011 14:35:16 +0200
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+From: "Jan Pohanka" <xhpohanka@gmail.com>
+Message-ID: <op.v0rrw2nlyxxkfz@localhost.localdomain>
+In-Reply-To: <Pine.LNX.4.64.1108242111560.14818@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fix the handling of data passed to V4L2 ioctls.  The content of the
-structures is not copied if the ioctl fails.  It blocks ability to obtain any
-information about occurred error other then errno code. This patch fix this
-issue.
+Hi Guennadi,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/v4l2-ioctl.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+>
+> The mx2_camera driver is allocating one "discard" buffer of the same  
+> size,
+> as regular buffers for cases, when the user is not fast enough to queue
+> new buffers for the running capture. Arguably, this could be aliminated
+> and the last submitted buffer could be re-used until either more buffers
+> are available or the streaming is stopped. Otherwise, it could also be
+> possible to stop capture until buffers are available again. In any case,
+> this is the current driver implementation. As for 2 buffers instead of  
+> one
+> for the actual capture, I think, gstreamer defines 2 as a minimum number
+> of buffers, which is actually also required for any streaming chance.
+>
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 543405b..9f54114 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -2490,8 +2490,6 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 			err = -EFAULT;
- 		goto out_array_args;
- 	}
--	if (err < 0)
--		goto out;
- 
- out_array_args:
- 	/*  Copy results into user buffer  */
+Thank you for clarification...
+
+regards
+Jan
+
+
+
 -- 
-1.7.6
-
+Tato zpráva byla vytvořena převratným poštovním klientem Opery:  
+http://www.opera.com/mail/
