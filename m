@@ -1,53 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42988 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755474Ab1H3PsZ (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:32813 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753172Ab1HYMBA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 11:48:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: Getting started with OMAP3 ISP
-Date: Tue, 30 Aug 2011 17:48:52 +0200
-Cc: linux-media@vger.kernel.org
-References: <4E56734A.3080001@mlbassoc.com> <201108301620.09365.laurent.pinchart@ideasonboard.com> <4E5CFA0B.3010207@mlbassoc.com>
-In-Reply-To: <4E5CFA0B.3010207@mlbassoc.com>
+	Thu, 25 Aug 2011 08:01:00 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108301748.52596.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Date: Thu, 25 Aug 2011 13:52:10 +0200
+From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+To: Joe Perches <joe@perches.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 04/14] [media] winbond-cir: Use current logging styles
+In-Reply-To: <90e0dd84ad9404a4d6377d05a86c9ae60918ccda.1313966089.git.joe@perches.com>
+References: <cover.1313966088.git.joe@perches.com> <90e0dd84ad9404a4d6377d05a86c9ae60918ccda.1313966089.git.joe@perches.com>
+Message-ID: <4056b67ddb72b944705f09dba2f00a62@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gary,
+Acked-by: David Härdeman <david@hardeman.nu>
 
-On Tuesday 30 August 2011 16:56:11 Gary Thomas wrote:
-> On 2011-08-30 08:20, Laurent Pinchart wrote:
-> > On Tuesday 30 August 2011 16:18:00 Gary Thomas wrote:
-> >> On 2011-08-30 08:08, Gary Thomas wrote:
-
-[snip]
-
-> >>> When I run 'media-ctl -p', I see the various nodes, etc, and they all
-> >>> look good except that I get lots of messages like this:
-> >>> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
-> >>> type V4L2 subdev subtype Unknown
-> >>> pad0: Input v4l2_subdev_open: Failed to open subdev device node
-> >> 
-> >> Could this be related to my missing [udev] device nodes?
-> > 
-> > It could be. You need the /dev/video* and /dev/v4l-subdev* device nodes.
+On Sun, 21 Aug 2011 15:56:47 -0700, Joe Perches <joe@perches.com> wrote:
+> Add pr_fmt, convert printks to pr_<level>.
 > 
-> Yes, that helped a lot.  When I create the devices by hand, I can now see
-> my driver starting to be accessed (right now it's very much an empty stub)
-> 
-> Any ideas why udev (version 164) is not making these nodes automatically?
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  drivers/media/rc/winbond-cir.c |    6 ++++--
+>  1 files changed, 4 insertions(+), 2 deletions(-)
 
-I'm sorry, I don't. You're not the first person to report this though. It 
-would be nice if you could explain how you solved the issue when you'll find 
-the solution.
-
--- 
-Regards,
-
-Laurent Pinchart
