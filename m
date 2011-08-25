@@ -1,53 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:49339 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755079Ab1H2WU3 (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2733 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751496Ab1HYOIr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 18:20:29 -0400
-Date: Tue, 30 Aug 2011 00:20:09 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Sylwester Nawrocki <snjw23@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Tuukka Toivonen <tuukka.toivonen@intel.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [ANN] Meeting minutes of the Cambourne meeting
-In-Reply-To: <201108291508.59649.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1108300018490.5065@axis700.grange>
-References: <201107261647.19235.laurent.pinchart@ideasonboard.com>
- <201108081750.07000.laurent.pinchart@ideasonboard.com> <4E5A2657.7030605@gmail.com>
- <201108291508.59649.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Thu, 25 Aug 2011 10:08:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 03/12] wl128x: fix compiler warning + wrong write() return.
+Date: Thu, 25 Aug 2011 16:08:26 +0200
+Message-Id: <cc3d210aa59d0665ce46f5f9dfd79c0881cd2327.1314281302.git.hans.verkuil@cisco.com>
+In-Reply-To: <1314281315-32366-1-git-send-email-hverkuil@xs4all.nl>
+References: <1314281315-32366-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <afd314e95a520c3a4de0f112735d1d5584ec8a9a.1314281302.git.hans.verkuil@cisco.com>
+References: <afd314e95a520c3a4de0f112735d1d5584ec8a9a.1314281302.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 29 Aug 2011, Laurent Pinchart wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-[snip]
+v4l-dvb-git/drivers/media/radio/wl128x/fmdrv_v4l2.c: In function 'fm_v4l2_fops_write':
+v4l-dvb-git/drivers/media/radio/wl128x/fmdrv_v4l2.c:81:6: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
 
-> My idea was to let the kernel register all devices based on the DT or board 
-> code. When the V4L2 host/bridge driver gets registered, it will then call a 
-> V4L2 core function with a list of subdevs it needs. The V4L2 core would store 
-> that information and react to bus notifier events to notify the V4L2 
-> host/bridge driver when all subdevs are present. At that point the host/bridge 
-> driver will get hold of all the subdevs and call (probably through the V4L2 
-> core) their .registered operation. That's where the subdevs will get access to 
-> their clock using clk_get().
+The fix is to check for ret and return -EFAULT if non-zero.
 
-Correct me, if I'm wrong, but this seems to be the case of sensor (and 
-other i2c-client) drivers having to succeed their probe() methods without 
-being able to actually access the hardware?
+I also noticed that write() didn't return the number of bytes written.
+Fixed as well.
 
-Thanks
-Guennadi
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/radio/wl128x/fmdrv_v4l2.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+index 8c0e192..478d1e9 100644
+--- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
++++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+@@ -84,12 +84,14 @@ static ssize_t fm_v4l2_fops_write(struct file *file, const char __user * buf,
+ 	ret = copy_from_user(&rds, buf, sizeof(rds));
+ 	fmdbg("(%d)type: %d, text %s, af %d\n",
+ 		   ret, rds.text_type, rds.text, rds.af_freq);
++	if (ret)
++		return -EFAULT;
+ 
+ 	fmdev = video_drvdata(file);
+ 	fm_tx_set_radio_text(fmdev, rds.text, rds.text_type);
+ 	fm_tx_set_af(fmdev, rds.af_freq);
+ 
+-	return 0;
++	return sizeof(rds);
+ }
+ 
+ static u32 fm_v4l2_fops_poll(struct file *file, struct poll_table_struct *pts)
+-- 
+1.7.5.4
+
