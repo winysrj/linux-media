@@ -1,54 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.dream-property.net ([82.149.226.172]:36442 "EHLO
-	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753883Ab1HDPkm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 11:40:42 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.dream-property.net (Postfix) with ESMTP id 288E3315347A
-	for <linux-media@vger.kernel.org>; Thu,  4 Aug 2011 17:33:24 +0200 (CEST)
-Received: from mail.dream-property.net ([127.0.0.1])
-	by localhost (mail.dream-property.net [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id ouKQqh6kKDZM for <linux-media@vger.kernel.org>;
-	Thu,  4 Aug 2011 17:33:17 +0200 (CEST)
-Received: from pepe.dream-property.nete (dreamboxupdate.com [82.149.226.174])
-	by mail.dream-property.net (Postfix) with SMTP id 0FA6A3153473
-	for <linux-media@vger.kernel.org>; Thu,  4 Aug 2011 17:33:16 +0200 (CEST)
-From: Andreas Oberritter <obi@linuxtv.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/4] DVB: dvb_frontend: fix stale parameters on initial frontend event
-Date: Thu,  4 Aug 2011 15:33:12 +0000
-Message-Id: <1312471995-26292-1-git-send-email-obi@linuxtv.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47236 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754198Ab1HZJXO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Aug 2011 05:23:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Al Cooper" <alcooperx@gmail.com>
+Subject: Re: [PATCH] media: Fix a UVC performance problem on systems with non-coherent DMA.
+Date: Fri, 26 Aug 2011 11:23:30 +0200
+Cc: linux-media@vger.kernel.org, cernekee@gmail.com
+References: <1313674109-6290-1-git-send-email-alcooperx@gmail.com>
+In-Reply-To: <1313674109-6290-1-git-send-email-alcooperx@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108261123.30994.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- FE_SET_FRONTEND triggers a frontend event, which uses stale data.
-  Modify it to use the data given by the user.
+Hi Al,
 
-- Fixes a regression caused by a5959dbea37973a2440eeba39fba32c79d862ec2.
+Thanks for the patch.
 
-Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+On Thursday 18 August 2011 15:28:29 Al Cooper wrote:
+> The UVC driver uses usb_alloc_coherent() to allocate DMA data buffers.
+> On systems without coherent DMA this ends up allocating buffers in
+> uncached memory. The subsequent memcpy's done to coalesce the DMA
+> chunks into contiguous buffers then run VERY slowly. On a MIPS test
+> system the memcpy is about 200 times slower. This issue prevents the
+> system from keeping up with 720p YUYV data at 10fps.
+> 
+> The following patch uses kmalloc to alloc the DMA buffers instead of
+> uab_alloc_coherent on systems without coherent DMA. With this patch
+> the system was easily able to keep up with 720p at 10fps.
+> 
+> Signed-off-by: Al Cooper <alcooperx@gmail.com>
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index efe9c30..23d79d0 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1827,6 +1827,13 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 			dtv_property_cache_sync(fe, c, &fepriv->parameters_in);
- 		}
- 
-+		/*
-+		 * Initialize output parameters to match the values given by
-+		 * the user. FE_SET_FRONTEND triggers an initial frontend event
-+		 * with status = 0, which copies output parameters to userspace.
-+		 */
-+		fepriv->parameters_out = fepriv->parameters_in;
-+
- 		memset(&fetunesettings, 0, sizeof(struct dvb_frontend_tune_settings));
- 		memcpy(&fetunesettings.parameters, parg,
- 		       sizeof (struct dvb_frontend_parameters));
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+I will push it to v3.2.
+
+> ---
+>  drivers/media/video/uvc/uvc_video.c |   18 +++++++++++++++++-
+>  1 files changed, 17 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/uvc/uvc_video.c
+> b/drivers/media/video/uvc/uvc_video.c index 4999479..30c18b4 100644
+> --- a/drivers/media/video/uvc/uvc_video.c
+> +++ b/drivers/media/video/uvc/uvc_video.c
+> @@ -790,8 +790,12 @@ static void uvc_free_urb_buffers(struct uvc_streaming
+> *stream)
+> 
+>  	for (i = 0; i < UVC_URBS; ++i) {
+>  		if (stream->urb_buffer[i]) {
+> +#ifndef CONFIG_DMA_NONCOHERENT
+>  			usb_free_coherent(stream->dev->udev, stream->urb_size,
+>  				stream->urb_buffer[i], stream->urb_dma[i]);
+> +#else
+> +			kfree(stream->urb_buffer[i]);
+> +#endif
+>  			stream->urb_buffer[i] = NULL;
+>  		}
+>  	}
+> @@ -831,9 +835,15 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming
+> *stream, for (; npackets > 1; npackets /= 2) {
+>  		for (i = 0; i < UVC_URBS; ++i) {
+>  			stream->urb_size = psize * npackets;
+> +#ifndef CONFIG_DMA_NONCOHERENT
+>  			stream->urb_buffer[i] = usb_alloc_coherent(
+>  				stream->dev->udev, stream->urb_size,
+>  				gfp_flags | __GFP_NOWARN, &stream->urb_dma[i]);
+> +#else
+> +			stream->urb_buffer[i] =
+> +			    kmalloc(stream->urb_size, gfp_flags | __GFP_NOWARN);
+> +#endif
+> +
+>  			if (!stream->urb_buffer[i]) {
+>  				uvc_free_urb_buffers(stream);
+>  				break;
+> @@ -908,10 +918,14 @@ static int uvc_init_video_isoc(struct uvc_streaming
+> *stream, urb->context = stream;
+>  		urb->pipe = usb_rcvisocpipe(stream->dev->udev,
+>  				ep->desc.bEndpointAddress);
+> +#ifndef CONFIG_DMA_NONCOHERENT
+>  		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+> +		urb->transfer_dma = stream->urb_dma[i];
+> +#else
+> +		urb->transfer_flags = URB_ISO_ASAP;
+> +#endif
+>  		urb->interval = ep->desc.bInterval;
+>  		urb->transfer_buffer = stream->urb_buffer[i];
+> -		urb->transfer_dma = stream->urb_dma[i];
+>  		urb->complete = uvc_video_complete;
+>  		urb->number_of_packets = npackets;
+>  		urb->transfer_buffer_length = size;
+> @@ -969,8 +983,10 @@ static int uvc_init_video_bulk(struct uvc_streaming
+> *stream, usb_fill_bulk_urb(urb, stream->dev->udev, pipe,
+>  			stream->urb_buffer[i], size, uvc_video_complete,
+>  			stream);
+> +#ifndef CONFIG_DMA_NONCOHERENT
+>  		urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
+>  		urb->transfer_dma = stream->urb_dma[i];
+> +#endif
+> 
+>  		stream->urb[i] = urb;
+>  	}
+
 -- 
-1.7.2.5
+Regards,
 
+Laurent Pinchart
