@@ -1,59 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wolverine02.qualcomm.com ([199.106.114.251]:44377 "EHLO
-	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753318Ab1HBPpU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2011 11:45:20 -0400
-Message-ID: <4E381B73.8050706@codeaurora.org>
-Date: Tue, 02 Aug 2011 09:44:51 -0600
-From: Jordan Crouse <jcrouse@codeaurora.org>
+Received: from ffm.saftware.de ([83.141.3.46]:36154 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754694Ab1HZKKe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Aug 2011 06:10:34 -0400
+Message-ID: <4E577117.7080104@linuxtv.org>
+Date: Fri, 26 Aug 2011 12:10:31 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [Linaro-mm-sig] Buffer sharing proof-of-concept
-References: <4E37C7D7.40301@samsung.com>
-In-Reply-To: <4E37C7D7.40301@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] DVB: dvb_frontend: convert semaphore to mutex
+References: <1314207232-6031-1-git-send-email-obi@linuxtv.org>	<CAGoCfizk8Ni96yJJq7Q=MGhH_-EgLskYd3SDMJ4w9mAdEPg1mg@mail.gmail.com>	<4E553CBE.8010506@linuxtv.org>	<CAGoCfiwt6siLdT_bCgnBnpmUuwL-CK+r8rCUTviNHWko7=NKQA@mail.gmail.com>	<4E553E2E.2020803@linuxtv.org> <CAGoCfixD0QVvWKc-6w+OrckJo2wX6q6ndpzCg5aOV2W0pgVUvg@mail.gmail.com>
+In-Reply-To: <CAGoCfixD0QVvWKc-6w+OrckJo2wX6q6ndpzCg5aOV2W0pgVUvg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/02/2011 03:48 AM, Marek Szyprowski wrote:
-> Hello Everyone,
->
-> This patchset introduces the proof-of-concept infrastructure for buffer sharing between multiple devices using file descriptors. The infrastructure has been integrated with V4L2 framework, more specifically videobuf2 and two S5P drivers FIMC (capture interface) and TV drivers, but it can be easily used by other kernel subsystems, like DRI.
->
-> In this patch the buffer object has been simplified to absolute minimum - it contains only the buffer physical address (only physically contiguous buffers are supported), but this can be easily extended to complete scatter list in the future.
->
-> Best regards
+On 24.08.2011 20:54, Devin Heitmueller wrote:
+> On Wed, Aug 24, 2011 at 2:08 PM, Andreas Oberritter <obi@linuxtv.org> wrote:
+>> Instead of wasting your time with theory, you could have easily reviewed
+>> my patch. It's really *very* simple any anyone having used semphores or
+>> mutexes in the kernel should be able to see that.
+> 
+> There's no need to resort to belittlement.  Both of us have a
+> non-trivial number of commits to the Linux kernel.
+> 
+> My concern is that in the kernel a semaphore with a unit of one is
+> *not* necessarily the same as a mutex.  In particular you need to take
+> into account the calling context since mutexes do more enforcement of
+> certain conditions that may have been acceptable for a semaphore.
+> 
+> From http://www.kernel.org/doc/Documentation/mutex-design.txt :
+> 
+> ===
+>  - 'struct mutex' semantics are well-defined and are enforced if
+>    CONFIG_DEBUG_MUTEXES is turned on. Semaphores on the other hand have
+>    virtually no debugging code or instrumentation. The mutex subsystem
+>    checks and enforces the following rules:
+> 
+>    * - only one task can hold the mutex at a time
+>    * - only the owner can unlock the mutex
+>    * - multiple unlocks are not permitted
+>    * - recursive locking is not permitted
+>    * - a mutex object must be initialized via the API
+>    * - a mutex object must not be initialized via memset or copying
+>    * - task may not exit with mutex held
+>    * - memory areas where held locks reside must not be freed
+>    * - held mutexes must not be reinitialized
+>    * - mutexes may not be used in hardware or software interrupt
+>    *   contexts such as tasklets and timers
+> ===
+> 
+> and:
+> 
+> ===
+> Disadvantages
+> -------------
+> 
+> The stricter mutex API means you cannot use mutexes the same way you
+> can use semaphores: e.g. they cannot be used from an interrupt context,
+> nor can they be unlocked from a different context that which acquired
+> it. [ I'm not aware of any other (e.g. performance) disadvantages from
+> using mutexes at the moment, please let me know if you find any. ]
+> ===
+> 
+> In short, you cannot just arbitrarily replace one with the other.  You
+> need to look at all the possible call paths and ensure that there
+> aren't any cases for example where the mutex is set in one but cleared
+> in the other.  Did you evaluate your change in the context of each of
+> the differences described in the list above?
 
-Looks like a good start.  I'm not sure what has already been discussed
-at the meetings, so please forgive me if any of these comments have
-already been added to the to-do list and/or discounted.
+You're right. There's one place where the semaphore is taken in user
+context and released by the frontend thread. I'm going to investigate
+whether this complicated locking is required. It might as well be
+possible to move the initialization steps from the beginning of the
+thread to dvb_frontend_start(), thus rendering this use of the semaphore
+unnecessary, and therefore making the code easier to understand and
+maintain.
 
-I would definitely consider adding lock and unlock functions. It would
-be great to have sane fencing built right into the sharing mechanism.
-Deferred unlock would be nice too, but that is probably hard to do in
-a generic way.
+Unfortunately, I couldn't find any pointers as to why unlocking a mutex
+in a different context is not allowed. The only drawback seems to be a
+warning (which doesn't show up if there was any previous warning...), if
+mutex debugging is enabled. Besides that, I didn't notice any problem
+during runtime tests (on mips with SMP enabled).
 
-The owner of the buffer should be able to attach a private information
-structure to the object and the consumer should be able to get it. This
-is key for sharing buffer information and out of band data, especially
-for video buffers (width, height, fourcc, alignment, pitch, start
-of U buffer, start of V buffer, UV pitch, etc)
-
-Thinking back to anything that could be salvaged from PMEM, about the only
-thing of value that wouldn't otherwise be implemented here is the idea of
-revoking a buffer. The thought is that when the master is was done with
-the buffer, it could revoke it so that the client couldn't hang on to it
-forever and possibly use it for nefarious purposes.  The client still has
-it mapped, but the range is remapped to garbage. I've never been very
-clear on how useful this was from a security standpoint because the master
-has to implicitly share the fd in the first place but it seems to be a
-feature that has survived several years of pmem hacking.
-
-I look forward to seeing the session notes from the meetings and seeing
-what the other ideas are.  Thanks for your hard work.
-
-Jordan
+Regards,
+Andreas
