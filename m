@@ -1,45 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www17.your-server.de ([213.133.104.17]:34619 "EHLO
-	www17.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752482Ab1HFJYg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Aug 2011 05:24:36 -0400
-Subject: [PATCH] [media] davinci vpbe: Use resource_size()
-From: Thomas Meyer <thomas@m3y3r.de>
-To: mchehab@infradead.org, linux-media@vger.kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Date: Sat, 06 Aug 2011 10:48:32 +0200
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1312620517.5589.36.camel@localhost.localdomain>
-Mime-Version: 1.0
+Received: from nm4-vm1.bullet.mail.ne1.yahoo.com ([98.138.91.44]:25903 "HELO
+	nm4-vm1.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751433Ab1HZLbt convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Aug 2011 07:31:49 -0400
+Message-ID: <1314358307.50448.YahooMailClassic@web121706.mail.ne1.yahoo.com>
+Date: Fri, 26 Aug 2011 04:31:47 -0700 (PDT)
+From: Chris Rankin <rankincj@yahoo.com>
+Subject: Re: Is DVB ioctl FE_SET_FRONTEND broken?
+To: Andreas Oberritter <obi@linuxtv.org>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4E576C3B.9070204@linuxtv.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Thomas Meyer <thomas@m3y3r.de>
+--- On Fri, 26/8/11, Andreas Oberritter <obi@linuxtv.org> wrote:
+> I first thought that you were talking about a
+> regression in Linux 3.0.x.
 
- Use resource_size function on resource object
- instead of explicit computation.
+Heh, yes and no. I am talking about a regression that I am definitely seeing in 3.0.x. However, I cannot say which kernel the problem first appeared in.
 
- The semantic patch that makes this output is available
- in scripts/coccinelle/api/resource_size.cocci.
+> This initial event with status=0 exists since 2002. It's
+> used to notify a new tuning operation to the event listener.
+> 
+> http://www.linuxtv.org/cgi-bin/viewvc.cgi/DVB/driver/dvb_frontend.c?revision=1.6.2.30&view=markup
 
- More information about semantic patching is available at
- http://coccinelle.lip6.fr/
+OK, that's different. I've only noticed this regression because xine has started having trouble using a brand new DVB adapter. Debugging the problem has shown that the first event received after a FE_SET_FRONTEND ioctl() has frequency == 0, which is considered an error.
 
-Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
----
+Reading the documentation for FE_SET_FRONTEND lead me to believe that it would send only a single event once tuning had completed, which is not what the code does.
+ 
+> It's not my code and my patch doesn't create any new event.
 
-diff -u -p a/drivers/media/video/davinci/vpbe_osd.c b/drivers/media/video/davinci/vpbe_osd.c
---- a/drivers/media/video/davinci/vpbe_osd.c 2011-07-30 11:10:29.138430171 +0200
-+++ b/drivers/media/video/davinci/vpbe_osd.c 2011-08-01 22:50:30.997700024 +0200
-@@ -1162,7 +1162,7 @@ static int osd_probe(struct platform_dev
- 		goto free_mem;
- 	}
- 	osd->osd_base_phys = res->start;
--	osd->osd_size = res->end - res->start + 1;
-+	osd->osd_size = resource_size(res);
- 	if (!request_mem_region(osd->osd_base_phys, osd->osd_size,
- 				MODULE_NAME)) {
- 		dev_err(osd->dev, "Unable to reserve OSD MMIO region\n");
+Those patches don't, no. I was assuming that you were patching code that you had patched earlier. My bad, it seems.
 
+> Your example code can't work. You need to call FE_GET_EVENT
+> or FE_READ_STATUS.
+
+And that's why I only called it "pseudocode" :-).
+ 
+> > So I'm going to say "No", your patches don't restore the old behaviour.
+> 
+> Yes. The patch is restoring a different old behaviour. The
+> behaviour you're referring to has never been in the kernel. ;-)
+
+Yikes! Documentation bug, anyone?
+
+Cheers,
+Chris
 
