@@ -1,170 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:63396 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752129Ab1HaOKr (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40742 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752182Ab1HZPFR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 10:10:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [RFC PATCH 2/6] V4L menu: move legacy drivers into their own submenu.
-Date: Wed, 31 Aug 2011 16:10:42 +0200
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1314797925-8113-1-git-send-email-hverkuil@xs4all.nl> <838c371cecce26c959eb550bc6f25f6f94b75b13.1314797675.git.hans.verkuil@cisco.com> <4E5E3B85.9010300@infradead.org>
-In-Reply-To: <4E5E3B85.9010300@infradead.org>
+	Fri, 26 Aug 2011 11:05:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH 3/5] [media] v4l: simulate old crop API using extended crop/compose API
+Date: Fri, 26 Aug 2011 17:05:35 +0200
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl
+References: <1314363967-6448-1-git-send-email-t.stanislaws@samsung.com> <1314363967-6448-4-git-send-email-t.stanislaws@samsung.com>
+In-Reply-To: <1314363967-6448-4-git-send-email-t.stanislaws@samsung.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201108311610.42183.hverkuil@xs4all.nl>
+Message-Id: <201108261705.36085.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday, August 31, 2011 15:47:49 Mauro Carvalho Chehab wrote:
-> Em 31-08-2011 10:38, Hans Verkuil escreveu:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/video/Kconfig |  185 
-+++++++++++++++++++++++-------------------
-> >  1 files changed, 101 insertions(+), 84 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> > index 336251f..815700b 100644
-> > --- a/drivers/media/video/Kconfig
-> > +++ b/drivers/media/video/Kconfig
-> > @@ -655,51 +655,6 @@ source "drivers/media/video/omap/Kconfig"
-> >  
-> >  source "drivers/media/video/bt8xx/Kconfig"
-> >  
-> > -config VIDEO_PMS
-> > -	tristate "Mediavision Pro Movie Studio Video For Linux"
-> > -	depends on ISA && VIDEO_V4L2
-> > -	help
-> > -	  Say Y if you have such a thing.
-> > -
-> > -	  To compile this driver as a module, choose M here: the
-> > -	  module will be called pms.
-> > -
-> > -config VIDEO_BWQCAM
-> > -	tristate "Quickcam BW Video For Linux"
-> > -	depends on PARPORT && VIDEO_V4L2
-> > -	help
-> > -	  Say Y have if you the black and white version of the QuickCam
-> > -	  camera. See the next option for the color version.
-> > -
-> > -	  To compile this driver as a module, choose M here: the
-> > -	  module will be called bw-qcam.
-> > -
-> > -config VIDEO_CQCAM
-> > -	tristate "QuickCam Colour Video For Linux (EXPERIMENTAL)"
-> > -	depends on EXPERIMENTAL && PARPORT && VIDEO_V4L2
-> > -	help
-> > -	  This is the video4linux driver for the colour version of the
-> > -	  Connectix QuickCam.  If you have one of these cameras, say Y here,
-> > -	  otherwise say N.  This driver does not work with the original
-> > -	  monochrome QuickCam, QuickCam VC or QuickClip.  It is also 
-available
-> > -	  as a module (c-qcam).
-> > -	  Read <file:Documentation/video4linux/CQcam.txt> for more 
-information.
-> > -
-> > -config VIDEO_W9966
-> > -	tristate "W9966CF Webcam (FlyCam Supra and others) Video For Linux"
-> > -	depends on PARPORT_1284 && PARPORT && VIDEO_V4L2
-> > -	help
-> > -	  Video4linux driver for Winbond's w9966 based Webcams.
-> > -	  Currently tested with the LifeView FlyCam Supra.
-> > -	  If you have one of these cameras, say Y here
-> > -	  otherwise say N.
-> > -	  This driver is also available as a module (w9966).
-> > -
-> > -	  Check out <file:Documentation/video4linux/w9966.txt> for more
-> > -	  information.
-> > -
-> > -source "drivers/media/video/cpia2/Kconfig"
-> > -
-> >  config VIDEO_VINO
-> >  	tristate "SGI Vino Video For Linux (EXPERIMENTAL)"
-> >  	depends on I2C && SGI_IP22 && EXPERIMENTAL && VIDEO_V4L2
-> > @@ -726,45 +681,6 @@ config VIDEO_MEYE
-> >  
-> >  source "drivers/media/video/saa7134/Kconfig"
-> >  
-> > -config VIDEO_MXB
-> > -	tristate "Siemens-Nixdorf 'Multimedia eXtension Board'"
-> > -	depends on PCI && VIDEO_V4L2 && I2C
-> > -	select VIDEO_SAA7146_VV
-> > -	select VIDEO_TUNER
-> > -	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
-> > -	select VIDEO_TDA9840 if VIDEO_HELPER_CHIPS_AUTO
-> > -	select VIDEO_TEA6415C if VIDEO_HELPER_CHIPS_AUTO
-> > -	select VIDEO_TEA6420 if VIDEO_HELPER_CHIPS_AUTO
-> > -	---help---
-> > -	  This is a video4linux driver for the 'Multimedia eXtension Board'
-> > -	  TV card by Siemens-Nixdorf.
-> > -
-> > -	  To compile this driver as a module, choose M here: the
-> > -	  module will be called mxb.
-> > -
-> > -config VIDEO_HEXIUM_ORION
-> > -	tristate "Hexium HV-PCI6 and Orion frame grabber"
-> > -	depends on PCI && VIDEO_V4L2 && I2C
-> > -	select VIDEO_SAA7146_VV
-> > -	---help---
-> > -	  This is a video4linux driver for the Hexium HV-PCI6 and
-> > -	  Orion frame grabber cards by Hexium.
-> > -
-> > -	  To compile this driver as a module, choose M here: the
-> > -	  module will be called hexium_orion.
-> > -
-> > -config VIDEO_HEXIUM_GEMINI
-> > -	tristate "Hexium Gemini frame grabber"
-> > -	depends on PCI && VIDEO_V4L2 && I2C
-> > -	select VIDEO_SAA7146_VV
-> > -	---help---
-> > -	  This is a video4linux driver for the Hexium Gemini frame
-> > -	  grabber card by Hexium. Please note that the Gemini Dual
-> > -	  card is *not* fully supported.
-> > -
-> > -	  To compile this driver as a module, choose M here: the
-> > -	  module will be called hexium_gemini.
-> > -
-> >  config VIDEO_TIMBERDALE
-> >  	tristate "Support for timberdale Video In/LogiWIN"
-> >  	depends on VIDEO_V4L2 && I2C && DMADEVICES
-> > @@ -1050,6 +966,107 @@ config VIDEO_S5P_MIPI_CSIS
-> >  
-> >  source "drivers/media/video/s5p-tv/Kconfig"
-> >  
-> > +#
-> > +# Legacy drivers configuration
-> > +#
-> > +
-> > +menuconfig V4L_LEGACY_DRIVERS
-> > +	bool "V4L legacy devices"
-> > +	default n
-> > +	---help---
-> > +	  Say Y here to enable support for these legacy drivers. These 
-drivers
-> > +	  are for old and obsure hardware (e.g. parallel port webcams, ISA
-> > +	  drivers, niche hardware).
+Hi Tomasz,
+
+Thanks for the patch.
+
+On Friday 26 August 2011 15:06:05 Tomasz Stanislawski wrote:
+> This patch allows new video drivers to work correctly with applications
+> that use the old-style crop API.  The old crop ioctl is simulated by using
+> selection callbacks.
 > 
-> Naming them as "legacy" seems that they'll be removed on some kernel.
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/video/v4l2-ioctl.c |   86
+> +++++++++++++++++++++++++++++++++---- 1 files changed, 76 insertions(+),
+> 10 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-ioctl.c
+> b/drivers/media/video/v4l2-ioctl.c index 6e02b45..543405b 100644
+> --- a/drivers/media/video/v4l2-ioctl.c
+> +++ b/drivers/media/video/v4l2-ioctl.c
+> @@ -1696,11 +1696,31 @@ static long __video_do_ioctl(struct file *file,
+>  	{
+>  		struct v4l2_crop *p = arg;
+> 
+> -		if (!ops->vidioc_g_crop)
+> +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+> +
+> +		if (ops->vidioc_g_crop) {
+> +			ret = ops->vidioc_g_crop(file, fh, p);
+> +		} else
+> +		if (ops->vidioc_g_selection) {
 
-'Legacy hardware drivers'? I think that 'Legacy hardware' is a valid term
-since that's really what it is.
+Does this construct (and the two identical ones in the next two hunks) pass 
+checkpatch.pl ?
 
-> "old and obscure" might fit, but again, this is not an objective criteria,
-> and we're not 100% sure that this list is complete. Also, keeping it updated
-> can be painful.
+> +			/* simulate capture crop using selection api */
+> +			struct v4l2_selection s = {
+> +				.type = p->type,
+> +				.target = V4L2_SEL_CROP_ACTIVE,
+> +			};
+> +
+> +			/* crop means compose for output devices */
+> +			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +				s.target = V4L2_SEL_COMPOSE_ACTIVE;
 
-This list is really for drivers where you *know* it is for legacy hardware.
-It doesn't have to be complete. Basically you are supposed to move drivers
-in but never out of this category.
- 
+You use
+
+			/* obtaining bounds */
+			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+				s.target = V4L2_SEL_COMPOSE_BOUNDS;
+			else
+				s.target = V4L2_SEL_CROP_BOUNDS;
+
+below instead of pre-initializing .target. Can you use the same method in all 
+locations ?
+
+> +
+> +			ret = ops->vidioc_g_selection(file, fh, &s);
+> +
+> +			/* copying results to old structure on success */
+> +			if (!ret)
+> +				p->c = s.r;
+> +		} else {
+>  			break;
+> +		}
+
+You can remove the last 'else'.
+
+> 
+> -		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+> -		ret = ops->vidioc_g_crop(file, fh, p);
+>  		if (!ret)
+>  			dbgrect(vfd, "", &p->c);
+>  		break;
+> @@ -1709,11 +1729,26 @@ static long __video_do_ioctl(struct file *file,
+>  	{
+>  		struct v4l2_crop *p = arg;
+> 
+> -		if (!ops->vidioc_s_crop)
+> -			break;
+>  		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+>  		dbgrect(vfd, "", &p->c);
+> -		ret = ops->vidioc_s_crop(file, fh, p);
+> +
+> +		if (ops->vidioc_s_crop) {
+> +			ret = ops->vidioc_s_crop(file, fh, p);
+> +		} else
+> +		if (ops->vidioc_s_selection) {
+> +			/* simulate capture crop using selection api */
+> +			struct v4l2_selection s = {
+> +				.type = p->type,
+> +				.target = V4L2_SEL_CROP_ACTIVE,
+> +				.r = p->c,
+> +			};
+> +
+> +			/* crop means compose for output devices */
+> +			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +				s.target = V4L2_SEL_COMPOSE_ACTIVE;
+> +
+> +			ret = ops->vidioc_s_selection(file, fh, &s);
+> +		}
+>  		break;
+>  	}
+>  	case VIDIOC_G_SELECTION:
+> @@ -1746,12 +1781,43 @@ static long __video_do_ioctl(struct file *file,
+>  	{
+>  		struct v4l2_cropcap *p = arg;
+> 
+> -		/*FIXME: Should also show v4l2_fract pixelaspect */
+> -		if (!ops->vidioc_cropcap)
+> +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+> +		if (ops->vidioc_cropcap) {
+> +			ret = ops->vidioc_cropcap(file, fh, p);
+> +		} else
+> +		if (ops->vidioc_g_selection) {
+> +			struct v4l2_selection s = { .type = p->type };
+> +			struct v4l2_rect bounds;
+> +
+> +			/* obtaining bounds */
+> +			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +				s.target = V4L2_SEL_COMPOSE_BOUNDS;
+> +			else
+> +				s.target = V4L2_SEL_CROP_BOUNDS;
+> +			ret = ops->vidioc_g_selection(file, fh, &s);
+> +			if (ret)
+> +				break;
+> +			bounds = s.r;
+
+You can assign p->bounds directly here, removing the need for the intermediate 
+bounds variable.
+
+> +
+> +			/* obtaining defrect */
+> +			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +				s.target = V4L2_SEL_COMPOSE_DEFAULT;
+> +			else
+> +				s.target = V4L2_SEL_CROP_DEFAULT;
+> +			ret = ops->vidioc_g_selection(file, fh, &s);
+> +			if (ret)
+> +				break;
+> +
+> +			/* storing results */
+> +			p->bounds = bounds;
+> +			p->defrect = s.r;
+> +			p->pixelaspect.numerator = 1;
+> +			p->pixelaspect.denominator = 1;
+> +		} else {
+>  			break;
+> +		}
+> 
+> -		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+> -		ret = ops->vidioc_cropcap(file, fh, p);
+> +		/*FIXME: Should also show v4l2_fract pixelaspect */
+>  		if (!ret) {
+>  			dbgrect(vfd, "bounds ", &p->bounds);
+>  			dbgrect(vfd, "defrect ", &p->defrect);
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
