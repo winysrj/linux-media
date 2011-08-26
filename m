@@ -1,92 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58236 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:50929 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753107Ab1HCLJG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Aug 2011 07:09:06 -0400
-Message-ID: <4E392C4B.10207@redhat.com>
-Date: Wed, 03 Aug 2011 08:08:59 -0300
+	id S1751839Ab1HZRcr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Aug 2011 13:32:47 -0400
+Message-ID: <4E57D8AE.6020107@redhat.com>
+Date: Fri, 26 Aug 2011 14:32:30 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Doron Cohen <doronc@siano-ms.com>
-CC: BOUWSMA Barry <freebeer.bouwsma@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] drivers: support new Siano tuner devices.
-References: <D945C405928A9949A0F33C69E64A1A3BAFFC82@s-mail.siano-ms.ent> <alpine.DEB.2.01.1107310018340.1800@localhost.localdomain> <D945C405928A9949A0F33C69E64A1A3BB39334@s-mail.siano-ms.ent>
-In-Reply-To: <D945C405928A9949A0F33C69E64A1A3BB39334@s-mail.siano-ms.ent>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Embedded device and the  V4L2 API support - Was: [GIT PATCHES
+ FOR 3.1] s5p-fimc and noon010pc30 driver updates
+References: <4E303E5B.9050701@samsung.com> <201108261616.02417.hverkuil@xs4all.nl> <4E57B70E.9010103@redhat.com> <201108261729.50483.hverkuil@xs4all.nl>
+In-Reply-To: <201108261729.50483.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 03-08-2011 02:06, Doron Cohen escreveu:
-> Hi Barry,
-> One thing I need to check before I approve and even extent this change:
-> What happens if the smsdvb module does not exists.
-> I assume nothing happens since we are not checking the return code and therefore everything will work as if this call was
-> not exist, but I would like to check that before my final decision.
-> The reason is that the devices from HAUPPAUGE which currently request for the smsdvb module must use the
-> v4l as defined by HAUPPAUGE. Other device based on other SMS chips (Not just the STELLAR but also the NOVA, VENICE, RIO
-> and other device series) not always uses the v4l but sometimes has proprietary player which used the SMS device directly. 
-> So I wouldn't like to cause harm for those users.
-> I seems that requesting the module will not harm, if the module does not exists - the request will fail and everything
-> will keep working, and if the module exists it will load but they still won't have to use it.
-
-I think you're calling the DVB API as "v4l". Be careful, as "v4l" is the name of 
-the API used for analog TV and webcams. "DVB API" is the name of the API used for
-Digital TV, where DVBv3 means the API that supports only DVB/C/T/S and ATSC, and
-DVBv5 is the flexible API that supports multiple Delivery Systems, and whose addition
-of a new one is just a matter of adding a new set of properties to FE_GET_PROPERTY and
-FE_SET_PROPERTY.
-
-The only API acceptable for a DVB driver at the Linux Kernel is the DVB API.
-Nothing prevents you to offer other API's to your customers, but upstream 
-patches with another API aren't accepted. We had a similar discussion years 
-ago, when Uri synced the Siano's internal tree with the kernel one.
-
-That's said, if smsdvb doesn't exist, request_module("smsdvb") won't produce 
-any error.
-
-> So in that case I would also add a few more devices to the list (all of Siano devices which 
-> supports standards supported by v4l. 
-
-The right solution is to move request_module("smsdvb")to be outside of
-the card-specific test, trying to load it for all boards, as it won't 
-make sense otherwise (as there's no sense to add the driver to Kernel
-without the DVB API, as it won't work as-is).
-
-
-If there are some Delivery System not yet supported, then the right solution 
-is to propose a DVB API addition (using DVBv5 API) to support the new Delivery
-System. There are a few ones not properly supported yet. So, go ahead and propose 
-adding new properties to support such standards.
-
-Recently, I found some time to update DVBv5 API description for the supported 
-Delivery Systems. It is at:
-	http://linuxtv.org/downloads/v4l-dvb-apis/FE_GET_SET_PROPERTY.html#fe_property_parameters
-The DocBook source for it is at Documentation/DocBook/media/dvb/dvbproperty.xml.
-
-Basically, the API currently documents: DVB-T/T2/C/S/S2, ISDB-T/S and ATSC.
-
-It misses a few standards like DVB-H, DMB and CMMB. Yet, there are a few frontends implementing
-them (lgs8gl5, for example, implements DMB-TH). So, maybe all that it is needed for some of
-those standards are already there or maybe the current implementations just put everything on
-the AUTO mode.
-
-So, maybe it is just a matter of properly documenting what properties those standards need. If not,
-adding a few new properties and/or extending the existing ones should be enough to add support
-for them.
-
-> If the change will cause problems for users who doesn't need the v4l I will object to this change.
-> I will run a few tests on that and either add these changes or let you know of a problem in a few days.
+Em 26-08-2011 12:29, Hans Verkuil escreveu:
+> On Friday, August 26, 2011 17:09:02 Mauro Carvalho Chehab wrote:
+>> Em 26-08-2011 11:16, Hans Verkuil escreveu:
+>>> On Friday, August 26, 2011 15:45:30 Laurent Pinchart wrote:
+>>>> Hi Mauro,
+>>>>
+>>>> On Thursday 25 August 2011 14:43:56 Mauro Carvalho Chehab wrote:
+>>>>> Em 24-08-2011 19:29, Sakari Ailus escreveu:
+>>>>
+>>>> [snip]
+>>>>
+>>>>>> The question I still have on this is that how should the user know which
+>>>>>> video node to access on an embedded system with a camera: the OMAP 3 ISP,
+>>>>>> for example, contains some eight video nodes which have different ISP
+>>>>>> blocks connected to them. Likely two of these nodes are useful for a
+>>>>>> general purpose application based on which image format it requests. It
+>>>>>> would make sense to provide generic applications information only on
+>>>>>> those devices they may meaningfully use.
+>>>>>
+>>>>> IMO, we should create a namespace device mapping for video devices. What I
+>>>>> mean is that we should keep the "raw" V4L2 devices as:
+>>>>> 	/dev/video??
+>>>>> But also recommend the creation of a new userspace map, like:
+>>>>> 	/dev/webcam??
+>>>>> 	/dev/tv??
+>>>>> 	...
+>>>>> with is an alias for the actual device.
+>>>>>
+>>>>> Something similar to dvd/cdrom aliases that already happen on most distros:
+>>>>>
+>>>>> lrwxrwxrwx   1 root root           3 Ago 24 12:14 cdrom -> sr0
+>>>>> lrwxrwxrwx   1 root root           3 Ago 24 12:14 cdrw -> sr0
+>>>>> lrwxrwxrwx   1 root root           3 Ago 24 12:14 dvd -> sr0
+>>>>> lrwxrwxrwx   1 root root           3 Ago 24 12:14 dvdrw -> sr0
+>>>>
+>>>> I've been toying with a similar idea. libv4l currently wraps /dev/video* 
+>>>> device nodes and assumes a 1:1 relationship between a video device node and a 
+>>>> video device. Should this assumption be somehow removed, replaced by a video 
+>>>> device concept that wouldn't be tied to a single video device node ?
+>>>
+>>> Just as background information: the original idea was always that all v4l
+>>> drivers would have a MC and that libv4l would use the information contained
+>>> there as a helper (such as deciding which nodes would be the 'default' nodes
+>>> for generic applications).
+>>
+>> This is something that libv4l won't do: it is up to the userspace application
+>> to choose the device node to open. Ok, libv4l can have helper APIs for
+>> that, like the one I wrote, but even adding MC support on it may not solve
+>> the issues.
+>>
+>>> Since there is only one MC device node for each piece of video hardware that
+>>> would make it much easier to discover what hardware there is and what video
+>>> nodes to use.
+>>>
+>>> I always liked that idea, although I know Mauro is opposed to having a MC
+>>> for all v4l drivers.
+>>
+>> It doesn't make sense to add MC for all V4L drivers. Not all devices are like
+>> ivtv with lots of device drivers. In a matter of fact, most supported devices
+>> create just one video node. Adding MC support for those devices will just 
+>> increase the drivers complexity without _any_ reason, as those devices are
+>> fully configurable using the existing ioctl's.
 > 
-> Regarding DAB+, it was added to the firmware about a year ago, it is required to change the firmware
-> file with a newer one and nothing is required in the host layers for that support. Bad news is that 
-> according to the patch you gave - you are probably using STELLAR device and there is no such firmware 
-> for that device. The DAB+ support was added to newer Siano devices (NOVA and up) but not for the 
-> STELLAR due to device HW limitations.
+> It's for consistency so applications know what to expect.
 
-Currently, DAB is not covered by DVBv5 API. So, we'll likely need to add some new properties there
-for it.
+I've already said it before: We won't be implementing an API for a device just 
+for "consistency" without any real reason.
 
-Cheers,
-Mauro
+> For all the simple
+> drivers you'd just need some simple core support to add a MC. What I always
+> thought would be handy is for applications to just iterate over all MCs and
+> show which video/dvb/audio hardware the user has in its system.
+
+MC doesn't work for audio yet, as snd-usb-audio doesn't use it. So, it will fail
+for a large amount of devices whose audio is implemented using standard USB
+Audio Class. Adding MC support for it doesn't sound trivial, and won't offer
+any gain over the sysfs equivalent.
+
+> 
+>> Also, as I said before, and implemented at xawtv and at a v4l-utils library, 
+>> the code may use sysfs for simpler devices. It shouldn't be hard to implement
+>> a mc aware code there, although I don't think that MC API is useful to discover
+>> what nodes are meant to be used for TV, encoder, decoder, webcams, etc.
+>> The only type information it currently provides is:
+>>
+>> #define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENT_T_DEVNODE + 1)
+>> #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
+>> #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
+>> #define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
+> 
+> That's because we never added meta information like that. As long as the MC
+> is only used for SoC/complex drivers there is no point in adding such info.
+
+Even For SoC, such info would probably be useful. As I said before, with the
+current way, I can't see how a generic MC aware application would do the right
+thing for the devices that currently implement the MC api, simply because
+there's no way for an application to know what pipelines need to be configured, as
+no entity at the MC (or elsewhere on some userspace library) describes what
+pipelines are meant to be used by the common usecase.
+
+> It would be trivial to add precisely this type of information, though.
+
+Yes, adding a new field to indicate what type of V4L devnode is there won't 
+be hard, but it would be better to replace the "MEDIA_ENT_T_DEVNODE_V4L" by
+something that actually describes the device type. The same kind of logic
+might also applies also to other device types. For example, ALSA means a
+playback, a capture or a mixer device? Or does it mean the complete audio
+hardware? (probably not, as it would hide alsa internal pipelines).
+
+>> So, a MC aware application also needs to be a hardware-dependent application,
+>> as it will need to use something else, like the media entity name, to discover
+>> for what purpose a media node is meant to be used.
+>>
+>>> While I am not opposed to creating such userspace maps I also think it is
+>>> a bit of a poor-man's solution.
+>>
+>> The creation of per-type devices is part of the current API: radio
+>> and vbi nodes are examples of that (except that they aren't aliases, but
+>> real devices, but the idea is the same: different names for different
+>> types of usage).
+> 
+> That's why I'm not opposed to it. I'm just not sure how detailed/extensive
+> that mapping should be.
+> 
+>>> In particular I am worried that we get a
+>>> lot of those mappings (just think of ivtv with its 8 or 9 devices).
+>>>
+>>> I can think of: webcam, tv, compressed (mpeg), tv-out, compressed-out, mem2mem.
+>>>
+>>> But a 'tv' node might also be able to handle compressed video (depending
+>>> on how the hardware is organized), so how do you handle that? 
+>>
+>> Well, What you've called as "compressed" is, in IMO, "encoder". It probably makes
+>> sense to have, also "decoder".
+> 
+> I couldn't remember the name :-)
+> 
+>> I'm in doubt about "webcam", as there are some
+>> grabber devices with analog camera inputs for video surveillance. Maybe "camera"
+>> is a better name for it.
+> 
+> Hmm. 'webcam' or 'camera' implies settings like exposure, etc. Many video
+> surveillance devices are just frame grabbers to which you can attach a camera,
+> but you can just as easily attach any composite/S-video input.
+
+"grabber" is for sure another type.
+
+The thing with the device type at the name is that S_INPUT may actually change the
+type of device.
+
+Btw, a proper implementation for the MC API for a device that has audio/video muxes 
+internally would require to map the internal pipelines via MC. So, it is something
+that just adding a V4L core "glue" won't work. So, even a "simple" device like em28xx
+or bttv would require lots of changes internally, as those things are currently not
+implemented fully as sub-devices. It will also create a conflict at userspace, as 
+the same pipeline could be changed via two different API's. As I said before, too
+much changes for no benefit.
+
+>>> It can all
+>>> be solved, I'm sure, but I'm not sure if such userspace mappings will scale
+>>> that well with the increasing hardware complexity.
+>>
+>> Not all video nodes would need an alias. Just the ones where it makes sense for
+>> an application to open it.
+> 
+> I'm not certain you will solve that much with this. Most people (i.e. the average
+> linux users) have only one or two video devices, most likely a webcam and perhaps
+> some DVB/V4L USB stick. Generic apps that needs to enumerate all devices will still
+> need to use sysfs or go through all video nodes.
+> 
+> It's why I like the MC: just one device node per hardware unit. Easy to enumerate,
+> easy to present to the user.
+
+It is not one device node per hardware unit. Sysfs is needed to match snd-usb-audio
+with the corresponding video device.
+
+Implementing MC to cover the non-SoC cases may work after lots of efforts. It is like
+implementing a nuclear bomb to kill a bug. It will work, but a bug spray insecticide
+will produce the same effect with a very small cost to implement.
+
+> I'm tempted to see if I can make a proof-of-concept... Time is a problem for me,
+> though.
+> 
+> Regards,
+> 
+> 	Hans
+
