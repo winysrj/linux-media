@@ -1,56 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:58722 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751991Ab1HYMg7 (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3462 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752603Ab1HZMAa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Aug 2011 08:36:59 -0400
-Date: Thu, 25 Aug 2011 14:36:32 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Uwe =?iso-8859-15?q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>, Marin Mitov <mitov@issp.bas.bg>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2/RFC] media: vb2: change queue initialization order
-In-Reply-To: <201108251312.23728.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1108251430440.17190@axis700.grange>
-References: <1314269531-30080-1-git-send-email-m.szyprowski@samsung.com>
- <201108251312.23728.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Fri, 26 Aug 2011 08:00:30 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 4/8] v4l2-controls.txt: update auto cluster documentation.
+Date: Fri, 26 Aug 2011 14:00:09 +0200
+Message-Id: <9f2781604a65ec30fdcf16e34be824e8b0e8c0ac.1314359706.git.hans.verkuil@cisco.com>
+In-Reply-To: <1314360013-9876-1-git-send-email-hverkuil@xs4all.nl>
+References: <1314360013-9876-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <c30383666acc85a530fba5b1a14189670dfb8bb3.1314359706.git.hans.verkuil@cisco.com>
+References: <c30383666acc85a530fba5b1a14189670dfb8bb3.1314359706.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 25 Aug 2011, Hans Verkuil wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> On Thursday, August 25, 2011 12:52:11 Marek Szyprowski wrote:
-
-[snip]
-
-> > @@ -1110,6 +1110,8 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
-> >  }
-> >  EXPORT_SYMBOL_GPL(vb2_dqbuf);
-> >  
-> > +static void __vb2_queue_cancel(struct vb2_queue *q);
-> > +
-> 
-> Is it possible to move __vb2_queue_cancel forward instead of having to add a
-> forward declaration? In general you don't want forward declarations unless
-> you have some sort of circular dependency.
-
-IMHO, adding a forward declaration has the advantages of making the patch 
-smaller and showing clearly, that the function has not changed, or making 
-any changes directly visible. If such forward declarations should really 
-be avoided, moving of affected functions could be done in a separate 
-patch, clearly stating, that the function contents have not changed.
-
-Thanks
-Guennadi
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ Documentation/video4linux/v4l2-controls.txt |   34 +++++++++-----------------
+ 1 files changed, 12 insertions(+), 22 deletions(-)
+
+diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+index f92ee30..26aa057 100644
+--- a/Documentation/video4linux/v4l2-controls.txt
++++ b/Documentation/video4linux/v4l2-controls.txt
+@@ -495,18 +495,20 @@ Handling autogain/gain-type Controls with Auto Clusters
+ 
+ A common type of control cluster is one that handles 'auto-foo/foo'-type
+ controls. Typical examples are autogain/gain, autoexposure/exposure,
+-autowhitebalance/red balance/blue balance. In all cases you have one controls
++autowhitebalance/red balance/blue balance. In all cases you have one control
+ that determines whether another control is handled automatically by the hardware,
+ or whether it is under manual control from the user.
+ 
+ If the cluster is in automatic mode, then the manual controls should be
+-marked inactive. When the volatile controls are read the g_volatile_ctrl
+-operation should return the value that the hardware's automatic mode set up
+-automatically.
++marked inactive and volatile. When the volatile controls are read the
++g_volatile_ctrl operation should return the value that the hardware's automatic
++mode set up automatically.
+ 
+ If the cluster is put in manual mode, then the manual controls should become
+-active again and V4L2_CTRL_FLAG_VOLATILE should be ignored (so g_volatile_ctrl
+-is no longer called while in manual mode).
++active again and the volatile flag is cleared (so g_volatile_ctrl is no longer
++called while in manual mode). In addition just before switching to manual mode
++the current values as determined by the auto mode are copied as the new manual
++values.
+ 
+ Finally the V4L2_CTRL_FLAG_UPDATE should be set for the auto control since
+ changing that control affects the control flags of the manual controls.
+@@ -520,6 +522,10 @@ void v4l2_ctrl_auto_cluster(unsigned ncontrols, struct v4l2_ctrl **controls,
+ The first two arguments are identical to v4l2_ctrl_cluster. The third argument
+ tells the framework which value switches the cluster into manual mode. The
+ last argument will optionally set V4L2_CTRL_FLAG_VOLATILE for the non-auto controls.
++If it is false, then the manual controls are never volatile. You would typically
++use that if the hardware does not give you the option to read back to values as
++determined by the auto mode (e.g. if autogain is on, the hardware doesn't allow
++you to obtain the current gain value).
+ 
+ The first control of the cluster is assumed to be the 'auto' control.
+ 
+@@ -680,16 +686,6 @@ if there are no controls at all.
+ count if nothing was done yet. If it is less than count then only the controls
+ up to error_idx-1 were successfully applied.
+ 
+-3) When attempting to read a button control the framework will return -EACCES
+-instead of -EINVAL as stated in the spec. It seems to make more sense since
+-button controls are write-only controls.
+-
+-4) Attempting to write to a read-only control will return -EACCES instead of
+--EINVAL as the spec says.
+-
+-5) The spec does not mention what should happen when you try to set/get a
+-control class controls. The framework will return -EACCES.
+-
+ 
+ Proposals for Extensions
+ ========================
+@@ -702,9 +698,3 @@ decimal. Useful for e.g. video_mute_yuv.
+ 2) It is possible to mark in the controls array which controls have been
+ successfully written and which failed by for example adding a bit to the
+ control ID. Not sure if it is worth the effort, though.
+-
+-3) Trying to set volatile inactive controls should result in -EACCESS.
+-
+-4) Add a new flag to mark volatile controls. Any application that wants
+-to store the state of the controls can then skip volatile inactive controls.
+-Currently it is not possible to detect such controls.
+-- 
+1.7.5.4
+
