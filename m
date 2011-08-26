@@ -1,96 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:42672 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753521Ab1HHUdS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 16:33:18 -0400
-Date: Mon, 8 Aug 2011 16:33:17 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-cc: Adam Baker <linux@baker-net.org.uk>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
-In-Reply-To: <alpine.LNX.2.00.1108081435340.21636@banach.math.auburn.edu>
-Message-ID: <Pine.LNX.4.44L0.1108081623490.1944-100000@iolanthe.rowland.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50258 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753027Ab1HZPA4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Aug 2011 11:00:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH 1/5] [media] v4l: add support for selection api
+Date: Fri, 26 Aug 2011 17:01:15 +0200
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl
+References: <1314363967-6448-1-git-send-email-t.stanislaws@samsung.com> <1314363967-6448-2-git-send-email-t.stanislaws@samsung.com>
+In-Reply-To: <1314363967-6448-2-git-send-email-t.stanislaws@samsung.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108261701.15699.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 8 Aug 2011, Theodore Kilgore wrote:
+Hi Tomasz,
 
-> > > > Maybe a good compromise would be to create a kind of stub driver that
-> > > > could negotiate the device access while still delegating most of the
-> > > > real work to userspace.
-> > > 
-> > > Hooray. This appears to me to be a very good solution.
-> > 
-> > I'm not so sure.  It would require vast changes to the userspace
-> > program, for example.
+On Friday 26 August 2011 15:06:03 Tomasz Stanislawski wrote:
+> This patch introduces new api for a precise control of cropping and
+> composing features for video devices. The new ioctls are
+> VIDIOC_S_SELECTION and VIDIOC_G_SELECTION.
 > 
-> Such as?
-
-Such as completely rewriting the USB interface.  You wouldn't be able 
-to use libusb, for example.
-
-> > The method Hans suggested was rather clunky.  
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/video/v4l2-compat-ioctl32.c |    2 ++
+>  drivers/media/video/v4l2-ioctl.c          |   28
+> ++++++++++++++++++++++++++++ include/linux/videodev2.h                 |  
+> 27 +++++++++++++++++++++++++++ include/media/v4l2-ioctl.h                |
+>    4 ++++
+>  4 files changed, 61 insertions(+), 0 deletions(-)
 > 
-> If it involves moving practically all of the gory details of the support 
-> of stillcam mode for individual dual-mode cameras into the kernel, then it 
-> certainly appears clunky to me, too. 
+
+[snip]
+
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index fca24cc..fad4fb3 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -738,6 +738,29 @@ struct v4l2_crop {
+>  	struct v4l2_rect        c;
+>  };
 > 
-> It also required drivers
-> > to know when the device was in use, which may be okay for a video
-> > driver but is not so practical for usb-storage (although to be fair, I
-> > suspect usb-storage wouldn't need to be involved).  
-> 
-> Yes, I can see that. Usb-storage is, essentially, "in use" while the 
-> device is attached, and that has to be true because the device is a 
-> storage device. And alas, not all storage devices even get mounted, so one 
-> cannot decide whether the device is "in use" just by checking whether or 
-> not something on it is mounted ...
-> 
-> And it required
-> > kernel drivers to inform user programs somehow when they want to get
-> > control of the device back, 
-> 
-> Why, exactly?
+> +/* Hints for adjustments of selection rectangle */
+> +#define V4L2_SEL_SIZE_GE	0x00000001
+> +#define V4L2_SEL_SIZE_LE	0x00000002
+> +
+> +enum v4l2_sel_target {
+> +	V4L2_SEL_CROP_ACTIVE  = 0,
+> +	V4L2_SEL_CROP_DEFAULT = 1,
+> +	V4L2_SEL_CROP_BOUNDS  = 2,
+> +	V4L2_SEL_COMPOSE_ACTIVE  = 256 + 0,
+> +	V4L2_SEL_COMPOSE_DEFAULT = 256 + 1,
+> +	V4L2_SEL_COMPOSE_BOUNDS  = 256 + 2,
+> +	V4L2_SEL_COMPOSE_PADDED  = 256 + 3,
+> +};
+> +
+> +struct v4l2_selection {
+> +	enum v4l2_buf_type      type;
+> +	enum v4l2_sel_target	target;
+> +	__u32                   flags;
+> +	struct v4l2_rect        r;
 
-Don't ask me, ask Hans!  :-)
+Maybe rect instead of r ? Lines such as
 
->  I mean, fundamentally we have two functionalities of the 
-> device which are accessed, at the user level, by two userspace programs. 
-> One of them gets the still photos off the camera, and the other one gets 
-> the video stream. Perhaps we just need a method for saying "No!" to either 
-> one of those apps if the other one is using the camera?
+	p->c = s.r;
 
-That's basically what I suggested below.
+in patch 3/5 look a bit cryptic.
 
-> > which is not the sort of thing drivers
-> > normally have to do.
-> > 
-> > Even if we could come up with a way to let the video driver somehow 
-> > "share" ownership of the device with usbfs, we'd still have to set up a 
-> > protocol for deciding who was in charge at any given time.  Would it be 
-> > okay for the userspace program simply to say "I want control now" and 
-> > "I'm done, you can have control back"?
-> 
-> Actually, I would expect that if one program is accessing the device then 
-> the other one can't, and this works the same in both directions. Unless 
-> you think that what you described is better?
+> +	__u32                   reserved[9];
+> +};
+> +
+> +
+>  /*
+>   *      A N A L O G   V I D E O   S T A N D A R D
+>   */
 
-When a program uses libgphoto2, how is the kernel supposed to know when
-the program is busy accessing the device?  The kernel can't just ask
-the program.
+[snip]
 
-> Incidentally, I think that in some respects the fact that webcam support 
-> is in the kernel and stillcam support is in userspace is a red herring. 
+> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> index dd9f1e7..2c0396b 100644
+> --- a/include/media/v4l2-ioctl.h
+> +++ b/include/media/v4l2-ioctl.h
+> @@ -194,6 +194,10 @@ struct v4l2_ioctl_ops {
+>  					struct v4l2_crop *a);
+>  	int (*vidioc_s_crop)           (struct file *file, void *fh,
+>  					struct v4l2_crop *a);
+> +	int (*vidioc_g_selection)      (struct file *file, void *fh,
+> +					struct v4l2_selection *a);
+> +	int (*vidioc_s_selection)      (struct file *file, void *fh,
+> +					struct v4l2_selection *a);
 
-No, this has some significant implications.  In particular, there's no
-good way for the kernel driver to ask the userspace driver if it is
-busy.  If both drivers were in the kernel, this would be easy to
-arrange.
+Why 'a' ? Don't blindly copy past mistakes :-) 'sel' would be a more 
+descriptive parameter name.
 
-Alan Stern
+>  	/* Compression ioctls */
+>  	int (*vidioc_g_jpegcomp)       (struct file *file, void *fh,
+>  					struct v4l2_jpegcompression *a);
 
+-- 
+Regards,
+
+Laurent Pinchart
