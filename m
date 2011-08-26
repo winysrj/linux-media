@@ -1,144 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:45052 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755046Ab1HXBRr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Aug 2011 21:17:47 -0400
-Received: by gwaa12 with SMTP id a12so541216gwa.19
-        for <linux-media@vger.kernel.org>; Tue, 23 Aug 2011 18:17:46 -0700 (PDT)
-Message-ID: <4E545133.40907@gmail.com>
-Date: Wed, 24 Aug 2011 13:17:39 +1200
-From: CJ <cjpostor@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:48698 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751656Ab1HZPJT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Aug 2011 11:09:19 -0400
+Message-ID: <4E57B70E.9010103@redhat.com>
+Date: Fri, 26 Aug 2011 12:09:02 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Michael Jones <michael.jones@matrix-vision.de>,
-	javier Martin <javier.martin@vista-silicon.com>,
-	Koen Kooi <koen@beagleboard.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org, mch_kot@yahoo.com.cn
-Subject: Re: [beagleboard] Re: [PATCH v7 1/2] Add driver for Aptina (Micron)
- mt9p031 sensor.
-References: <1307014603-22944-1-git-send-email-javier.martin@vista-silicon.com> <4E522C56.3090605@matrix-vision.de> <4E5322C8.6040809@gmail.com> <201108230947.18944.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201108230947.18944.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Embedded device and the  V4L2 API support - Was: [GIT PATCHES
+ FOR 3.1] s5p-fimc and noon010pc30 driver updates
+References: <4E303E5B.9050701@samsung.com> <4E56438C.1070102@redhat.com> <201108261545.30817.laurent.pinchart@ideasonboard.com> <201108261616.02417.hverkuil@xs4all.nl>
+In-Reply-To: <201108261616.02417.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On 23/08/11 19:47, Laurent Pinchart wrote:
-> Hi Chris,
->
-> On Tuesday 23 August 2011 05:47:20 CJ wrote:
->> On 22/08/11 22:15, Michael Jones wrote:
->>>>>>> I am trying to get the mt9p031 working from nand with a ubifs file
->>>>>>> system and I am having a few problems.
->>>>>>>
->>>>>>> /dev/media0 is not present unless I run:
->>>>>>> #mknod /dev/media0 c 251 0
->>>>>>> #chown root:video /dev/media0
->>>>>>>
->>>>>>> #media-ctl -p
->>>>>>> Enumerating entities
->>>>>>> media_open: Unable to enumerate entities for device /dev/media0
->>>>>>> (Inappropriate ioctl for device)
->>>>>>>
->>>>>>> With the same rig/files it works fine running from EXT4 on an SD
->>>>>>> card. Any idea why this does not work on nand with ubifs?
->>>>>> Is the OMAP3 ISP driver loaded ? Has it probed the device successfully
->>>>>> ? Check the kernel log for OMAP3 ISP-related messages.
->>>>> Here is the version running from SD card:
->>>>> # dmesg | grep isp
->>>>> [    0.265502] omap-iommu omap-iommu.0: isp registered
->>>>> [    2.986541] omap3isp omap3isp: Revision 2.0 found
->>>>> [    2.991577] omap-iommu omap-iommu.0: isp: version 1.1
->>>>> [    2.997406] omap3isp omap3isp: hist: DMA channel = 0
->>>>> [    3.006256] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
->>>>> 21600000 Hz
->>>>> [    3.011932] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
->>>>>
->>>>>    From NAND using UBIFS:
->>>>> # dmesg | grep isp
->>>>> [    3.457061] omap3isp omap3isp: Revision 2.0 found
->>>>> [    3.462036] omap-iommu omap-iommu.0: isp: version 1.1
->>>>> [    3.467620] omap3isp omap3isp: hist: DMA channel = 0
->>>>> [    3.472564] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
->>>>> 21600000 Hz
->>>>> [    3.478027] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
->>>>>
->>>>> Seems to be missing:
->>>>> omap-iommu omap-iommu.0: isp registered
->>>>>
->>>>> Is that the issue? Why would this not work when running from NAND?
->>> I'm not sure, either, but I had a similar problem before using Laurent's
->>> patch below. IIRC, usually udev would create /dev/media0 from a cached
->>> list of /dev/*. Later modutils would come along and load the modules in
->>> the proper order (iommu, then omap3-isp) and everybody was happy.
->>> Occasionally, udev would fail to use the cached version of /dev/, and
->>> look through /sys/devices to re-create the devices in /dev/. When media0
->>> was found, omap3-isp.ko would be loaded, but iommu had not yet been,
->>> presumably because it doesn't have an entry in /sys/devices/. So maybe
->>> udev is behaving differently for you on NAND than it did on the card?
->>> Either way, as I said, using Laurent's patch below did the job for me.
+Em 26-08-2011 11:16, Hans Verkuil escreveu:
+> On Friday, August 26, 2011 15:45:30 Laurent Pinchart wrote:
+>> Hi Mauro,
+>>
+>> On Thursday 25 August 2011 14:43:56 Mauro Carvalho Chehab wrote:
+>>> Em 24-08-2011 19:29, Sakari Ailus escreveu:
+>>
+>> [snip]
+>>
+>>>> The question I still have on this is that how should the user know which
+>>>> video node to access on an embedded system with a camera: the OMAP 3 ISP,
+>>>> for example, contains some eight video nodes which have different ISP
+>>>> blocks connected to them. Likely two of these nodes are useful for a
+>>>> general purpose application based on which image format it requests. It
+>>>> would make sense to provide generic applications information only on
+>>>> those devices they may meaningfully use.
 >>>
->>>> I'm not sure why it doesn't work from NAND, but the iommu2 module needs
->>>> to be loaded before the omap3-isp module. Alternatively you can compile
->>>> the iommu2 module in the kernel with
->>>>
->>>> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
->>>> index 49a4c75..3c87644 100644
->>>> --- a/arch/arm/plat-omap/Kconfig
->>>> +++ b/arch/arm/plat-omap/Kconfig
->>>> @@ -132,7 +132,7 @@ config OMAP_MBOX_KFIFO_SIZE
->>>>
->>>>    	  module parameter).
->>>>
->>>>    config OMAP_IOMMU
->>>>
->>>> -       tristate
->>>> +       bool
->>>>
->>>>    config OMAP_IOMMU_DEBUG
->>>>
->>>>           tristate "Export OMAP IOMMU internals in DebugFS"
->> Thanks for the help!
+>>> IMO, we should create a namespace device mapping for video devices. What I
+>>> mean is that we should keep the "raw" V4L2 devices as:
+>>> 	/dev/video??
+>>> But also recommend the creation of a new userspace map, like:
+>>> 	/dev/webcam??
+>>> 	/dev/tv??
+>>> 	...
+>>> with is an alias for the actual device.
+>>>
+>>> Something similar to dvd/cdrom aliases that already happen on most distros:
+>>>
+>>> lrwxrwxrwx   1 root root           3 Ago 24 12:14 cdrom -> sr0
+>>> lrwxrwxrwx   1 root root           3 Ago 24 12:14 cdrw -> sr0
+>>> lrwxrwxrwx   1 root root           3 Ago 24 12:14 dvd -> sr0
+>>> lrwxrwxrwx   1 root root           3 Ago 24 12:14 dvdrw -> sr0
 >>
->> For some reason dmesg does not read early kernel stuff when in UBIFS
->> from NAND.
->> So when I went back and had a look the line I thought was not there is
->> actually included.
->>
->> [    0.276977] omap-iommu omap-iommu.0: isp registered
->>
->> So I guess everything is loading fine.
->>
->> I tried the patch and it didn't make a difference.
->>
->> Regarding what Michael said /dev/media0 is not created by udev when boot
->> from NAND.
->> I tried creating it manually with:
->> #mknod /dev/media0 c 251 0
->> #chown root:video /dev/media0
->>
->> But this does not work - outputs:
->>
->> # media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
->> CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP
->> resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
->> media_open: Unable to enumerate entities for device /dev/media0
->> (Inappropriate ioctl for device)
->>
->> So is there a problem with udev?
-> There could be. What's the output of
->
-> ls /sys/class/video4linux
->
+>> I've been toying with a similar idea. libv4l currently wraps /dev/video* 
+>> device nodes and assumes a 1:1 relationship between a video device node and a 
+>> video device. Should this assumption be somehow removed, replaced by a video 
+>> device concept that wouldn't be tied to a single video device node ?
+> 
+> Just as background information: the original idea was always that all v4l
+> drivers would have a MC and that libv4l would use the information contained
+> there as a helper (such as deciding which nodes would be the 'default' nodes
+> for generic applications).
 
-#ls /sys/class/video4linux
-v4l-subdev0  v4l-subdev3  v4l-subdev6  video0       video3       video6
-v4l-subdev1  v4l-subdev4  v4l-subdev7  video1       video4
-v4l-subdev2  v4l-subdev5  v4l-subdev8  video2       video5
+This is something that libv4l won't do: it is up to the userspace application
+to choose the device node to open. Ok, libv4l can have helper APIs for
+that, like the one I wrote, but even adding MC support on it may not solve
+the issues.
 
-Cheers,
-Chris
+> Since there is only one MC device node for each piece of video hardware that
+> would make it much easier to discover what hardware there is and what video
+> nodes to use.
+> 
+> I always liked that idea, although I know Mauro is opposed to having a MC
+> for all v4l drivers.
+
+It doesn't make sense to add MC for all V4L drivers. Not all devices are like
+ivtv with lots of device drivers. In a matter of fact, most supported devices
+create just one video node. Adding MC support for those devices will just 
+increase the drivers complexity without _any_ reason, as those devices are
+fully configurable using the existing ioctl's.
+
+Also, as I said before, and implemented at xawtv and at a v4l-utils library, 
+the code may use sysfs for simpler devices. It shouldn't be hard to implement
+a mc aware code there, although I don't think that MC API is useful to discover
+what nodes are meant to be used for TV, encoder, decoder, webcams, etc.
+The only type information it currently provides is:
+
+#define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENT_T_DEVNODE + 1)
+#define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
+#define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
+#define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
+
+So, a MC aware application also needs to be a hardware-dependent application,
+as it will need to use something else, like the media entity name, to discover
+for what purpose a media node is meant to be used.
+
+> While I am not opposed to creating such userspace maps I also think it is
+> a bit of a poor-man's solution.
+
+The creation of per-type devices is part of the current API: radio
+and vbi nodes are examples of that (except that they aren't aliases, but
+real devices, but the idea is the same: different names for different
+types of usage).
+
+> In particular I am worried that we get a
+> lot of those mappings (just think of ivtv with its 8 or 9 devices).
+> 
+> I can think of: webcam, tv, compressed (mpeg), tv-out, compressed-out, mem2mem.
+> 
+> But a 'tv' node might also be able to handle compressed video (depending
+> on how the hardware is organized), so how do you handle that? 
+
+Well, What you've called as "compressed" is, in IMO, "encoder". It probably makes
+sense to have, also "decoder". I'm in doubt about "webcam", as there are some
+grabber devices with analog camera inputs for video surveillance. Maybe "camera"
+is a better name for it.
+
+> It can all
+> be solved, I'm sure, but I'm not sure if such userspace mappings will scale
+> that well with the increasing hardware complexity.
+
+Not all video nodes would need an alias. Just the ones where it makes sense for
+an application to open it.
+
+Regards,
+Mauro
