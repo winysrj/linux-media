@@ -1,59 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60058 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751433Ab1HXKcJ (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:11919 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754411Ab1HZNGU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Aug 2011 06:32:09 -0400
-Received: from lancelot.localnet (unknown [91.178.79.172])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id B649D35A9E
-	for <linux-media@vger.kernel.org>; Wed, 24 Aug 2011 10:32:08 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Fri, 26 Aug 2011 09:06:20 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from spt2.w1.samsung.com ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LQJ004E0DQJSD30@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 26 Aug 2011 14:06:19 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LQJ00KOCDQIKJ@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 26 Aug 2011 14:06:18 +0100 (BST)
+Date: Fri, 26 Aug 2011 15:06:06 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 4/5] [media] v4l: fix copying ioctl results on failure
+In-reply-to: <1314363967-6448-1-git-send-email-t.stanislaws@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL for v3.2] OMAP3 ISP fixes and new sensor driver
-Date: Wed, 24 Aug 2011 12:32:23 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108241232.23846.laurent.pinchart@ideasonboard.com>
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com
+Message-id: <1314363967-6448-5-git-send-email-t.stanislaws@samsung.com>
+References: <1314363967-6448-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This patch fix the handling of data passed to V4L2 ioctls.  The content of the
+structures is not copied if the ioctl fails.  It blocks ability to obtain any
+information about occurred error other then errno code. This patch fix this
+issue.
 
-The following changes since commit 9bed77ee2fb46b74782d0d9d14b92e9d07f3df6e:
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/v4l2-ioctl.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-  [media] tuner_xc2028: Allow selection of the frequency adjustment code for 
-XC3028 (2011-08-06 09:52:47 -0300)
-
-are available in the git repository at:
-  git://linuxtv.org/pinchartl/media.git omap3isp-sensors-next
-
-Javier Martin (1):
-      mt9p031: Aptina (Micron) MT9P031 5MP sensor driver
-
-Laurent Pinchart (2):
-      omap3isp: Don't accept pipelines with no video source as valid
-      omap3isp: Move platform data definitions from isp.h to media/omap3isp.h
-
-Michael Jones (1):
-      omap3isp: queue: fail QBUF if user buffer is too small
-
- drivers/media/video/Kconfig             |    7 +
- drivers/media/video/Makefile            |    1 +
- drivers/media/video/mt9p031.c           |  963 ++++++++++++++++++++++++++++++
- drivers/media/video/omap3isp/isp.h      |   85 +---
- drivers/media/video/omap3isp/ispccp2.c  |    4 +-
- drivers/media/video/omap3isp/ispqueue.c |    4 +
- drivers/media/video/omap3isp/ispvideo.c |   14 +-
- include/media/mt9p031.h                 |   19 +
- include/media/omap3isp.h                |  140 +++++
- 9 files changed, 1147 insertions(+), 90 deletions(-)
- create mode 100644 drivers/media/video/mt9p031.c
- create mode 100644 include/media/mt9p031.h
- create mode 100644 include/media/omap3isp.h
-
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 543405b..9f54114 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -2490,8 +2490,6 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 			err = -EFAULT;
+ 		goto out_array_args;
+ 	}
+-	if (err < 0)
+-		goto out;
+ 
+ out_array_args:
+ 	/*  Copy results into user buffer  */
 -- 
-Regards,
+1.7.6
 
-Laurent Pinchart
