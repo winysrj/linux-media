@@ -1,68 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48443 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755572Ab1HDXnv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Aug 2011 19:43:51 -0400
-Message-ID: <4E3B2EB3.6030501@iki.fi>
-Date: Fri, 05 Aug 2011 02:43:47 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:48183 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754556Ab1HZP7l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Aug 2011 11:59:41 -0400
+Received: by wwf5 with SMTP id 5so3652488wwf.1
+        for <linux-media@vger.kernel.org>; Fri, 26 Aug 2011 08:59:40 -0700 (PDT)
+Date: Fri, 26 Aug 2011 16:59:30 +0100 (BST)
+From: Edward Sheldrake <ejsheldrake@gmail.com>
 To: linux-media@vger.kernel.org
-CC: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	=?UTF-8?B?U2FzY2hhIFfDvHN0ZW1hbm4=?= <sascha@killerhippy.de>,
-	Thomas Holzeisen <thomas@holzeisen.de>, stybla@turnovfree.net
-Subject: Re: RTL2831U driver updates
-References: <4DF9BCAA.3030301@holzeisen.de>	 <4DF9EA62.2040008@killerhippy.de> <4DFA7748.6000704@hoogenraad.net>	 <4DFFC82B.10402@iki.fi> <1308649292.3635.2.camel@maxim-laptop> <4E006BDB.8060000@hoogenraad.net> <4E17CA94.8030307@iki.fi>
-In-Reply-To: <4E17CA94.8030307@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] drxd: fix divide error
+Message-ID: <alpine.LFD.2.02.1108261656270.31031@obsidian>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-I have done some updates. MXL5005S based RTL2831U devices didn't worked
-due to bug. That's main visible change. Secondly I added basic support
-for RTL2832U to rtl28xx driver. And implemented I2C as I see it really
-is, I think it is almost perfect now. It works fine my RTL2832U device
-with stubbed demod and tuner drivers.
+Fix division by zero in drxd triggered by running "femon" before any DVB
+tuning has been done (by "scandvb" or anything else).
 
-Next weeks I will hack most likely Anysee, but when I feel bored of
-Anysee, I will switch back to rtl28xx driver :p
+Signed-off-by: Edward Sheldrake <ejsheldrake@gmail.com>
+---
+ drivers/media/dvb/frontends/drxd_hard.c |   13 +++++++++----
+ 1 files changed, 9 insertions(+), 4 deletions(-)
 
-regards
-Antti
-
-
-On 07/09/2011 06:27 AM, Antti Palosaari wrote:
-> Hello
-> RTL2831U driver is now available here "realtek" branch:
-> http://git.linuxtv.org/anttip/media_tree.git
-> 
-> From my side it is ready for merge.
-> 
-> RTL2830 DVB-T demod
-> ===================
-> Driver is very limited, it basically just works, no any statistics.
-> That's written totally from the scratch.
-> 
-> RTL28XXU DVB USB
-> ================
-> I think it is also almost fully written from the scratch, but not sure
-> since it have been so loooong under the development. At least register
-> definitions are from Realtek driver. Jan could you now find out
-> copyrights, SOBs, etc. are correct? And how that should be merge...
-> 
-> I wonder Maxim can add support for RTL2832U to RTL28XXU DVB USB. It
-> should not be much work. I tested it with my RTL2832U device and some
-> minor changes were needed. Remote controller seems to be only which is
-> totally different between RTL2831U and RTL2832U (and later).
-> 
-> 
-> regards
-> Antti
-> 
-
-
+diff --git a/drivers/media/dvb/frontends/drxd_hard.c b/drivers/media/dvb/frontends/drxd_hard.c
+index 2238bf0..bcad01c 100644
+--- a/drivers/media/dvb/frontends/drxd_hard.c
++++ b/drivers/media/dvb/frontends/drxd_hard.c
+@@ -889,10 +889,15 @@ static int ReadIFAgc(struct drxd_state *state, u32 * pValue)
+ 			u32 R2 = state->if_agc_cfg.R2;
+ 			u32 R3 = state->if_agc_cfg.R3;
+ 
+-			u32 Vmax = (3300 * R2) / (R1 + R2);
+-			u32 Rpar = (R2 * R3) / (R3 + R2);
+-			u32 Vmin = (3300 * Rpar) / (R1 + Rpar);
+-			u32 Vout = Vmin + ((Vmax - Vmin) * Value) / 1024;
++			u32 Vmax, Rpar, Vmin, Vout;
++
++			if (R2 == 0 && (R1 == 0 || R3 == 0))
++				return 0;
++
++			Vmax = (3300 * R2) / (R1 + R2);
++			Rpar = (R2 * R3) / (R3 + R2);
++			Vmin = (3300 * Rpar) / (R1 + Rpar);
++			Vout = Vmin + ((Vmax - Vmin) * Value) / 1024;
+ 
+ 			*pValue = Vout;
+ 		}
 -- 
-http://palosaari.fi/
+1.7.6
+
