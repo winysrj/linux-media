@@ -1,52 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sinikuusama.dnainternet.net ([83.102.40.134]:57799 "EHLO
-	sinikuusama.dnainternet.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756808Ab1HFW2E (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:41199 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753407Ab1HZPDA convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Aug 2011 18:28:04 -0400
-From: Anssi Hannula <anssi.hannula@iki.fi>
-To: dmitry.torokhov@gmail.com
-Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 4/7] [media] ati_remote: fix check for a weird byte
-Date: Sun,  7 Aug 2011 01:18:10 +0300
-Message-Id: <1312669093-23771-5-git-send-email-anssi.hannula@iki.fi>
-In-Reply-To: <1312669093-23771-1-git-send-email-anssi.hannula@iki.fi>
-References: <4E3DB2C2.7040104@iki.fi>
- <1312669093-23771-1-git-send-email-anssi.hannula@iki.fi>
+	Fri, 26 Aug 2011 11:03:00 -0400
+Received: by ywf7 with SMTP id 7so2886724ywf.19
+        for <linux-media@vger.kernel.org>; Fri, 26 Aug 2011 08:02:59 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4E577AE3.5020304@mlbassoc.com>
+References: <CA+2YH7tJjssZs6-tQibHGYZw_t0xdu9d0PJBKkMaXn79=VFJ8g@mail.gmail.com>
+	<4E577AE3.5020304@mlbassoc.com>
+Date: Fri, 26 Aug 2011 17:02:59 +0200
+Message-ID: <CA+2YH7ucxV9ywh96C2ehfrUi+_5v8eT94aNK+v03rYVvTPvyiA@mail.gmail.com>
+Subject: Re: omap3isp and tvp5150 hangs
+From: Enrico <ebutera@users.berlios.de>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ati_remote_dump() function tries to not print "Weird byte" warning
-for 1-byte responses that contain 0xff or 0x00, but it doesn't work
-properly as it simply falls back to the "Weird data" warning in the else
-clause.
+On Fri, Aug 26, 2011 at 12:52 PM, Gary Thomas <gary@mlbassoc.com> wrote:
+> On 2011-08-26 04:42, Enrico wrote:
+>>
+>> Hi,
+>>
+>> i need some help to debug a kernel hang on an igep board (+ expansion)
+>>  when using omap3-isp and tvp5150 video capture. Kernel version is
+>> mainline 3.0.1
 
-Fix that by adding an inner if clause.
 
-Signed-off-by: Anssi Hannula <anssi.hannula@iki.fi>
----
- drivers/media/rc/ati_remote.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+> I found that this driver is not compatible with the [new] v4l2_subdev setup.
+> In particular, it does not define any "pads" and the call to
+> media_entity_create_link()
+> in omap3isp/isp.c:1803 fires a BUG_ON() for this condition.
 
-diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
-index 842dee4..74cc6b1 100644
---- a/drivers/media/rc/ati_remote.c
-+++ b/drivers/media/rc/ati_remote.c
-@@ -273,9 +273,10 @@ static struct usb_driver ati_remote_driver = {
- static void ati_remote_dump(struct device *dev, unsigned char *data,
- 			    unsigned int len)
- {
--	if ((len == 1) && (data[0] != (unsigned char)0xff) && (data[0] != 0x00))
--		dev_warn(dev, "Weird byte 0x%02x\n", data[0]);
--	else if (len == 4)
-+	if (len == 1) {
-+		if (data[0] != (unsigned char)0xff && data[0] != 0x00)
-+			dev_warn(dev, "Weird byte 0x%02x\n", data[0]);
-+	} else if (len == 4)
- 		dev_warn(dev, "Weird key %02x %02x %02x %02x\n",
- 		     data[0], data[1], data[2], data[3]);
- 	else
--- 
-1.7.4.4
+So basically what is needed is to implement pad functions and do
+something like this:
 
+static struct v4l2_subdev_pad_ops mt9v032_subdev_pad_ops = {
+        .enum_mbus_code = mt9v032_enum_mbus_code,
+        .enum_frame_size = mt9v032_enum_frame_size,
+        .get_fmt = mt9v032_get_format,
+        .set_fmt = mt9v032_set_format,
+        .get_crop = mt9v032_get_crop,
+        .set_crop = mt9v032_set_crop,
+};
+
+and add media init/cleanup functions? Can someone confirm this? Is
+someone already working on this?
+
+Enrico
