@@ -1,59 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:56307 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750955Ab1HNPuT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Aug 2011 11:50:19 -0400
-Received: by bke11 with SMTP id 11so2554724bke.19
-        for <linux-media@vger.kernel.org>; Sun, 14 Aug 2011 08:50:18 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1313226504.2840.22.camel@gagarin>
-References: <CAC3jWv+c1HOqmo0B18Z3vWOwjr=RoPrN7sfR3bqzz4Tw7=fPAQ@mail.gmail.com>
-	<1313226504.2840.22.camel@gagarin>
-Date: Sun, 14 Aug 2011 17:50:16 +0200
-Message-ID: <CAC3jWvLszU4gTSVW0mXUFrhnHCpPWRUqErytF9jXs39sbCJd3Q@mail.gmail.com>
-Subject: Re: [mythtv-users] Anyone tested the DVB-T2 dual tuner TBS6280?
-From: Harald Gustafsson <hgu1972@gmail.com>
-To: Discussion about MythTV <mythtv-users@mythtv.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from [206.117.179.246] ([206.117.179.246]:33386 "EHLO labridge.com"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750974Ab1H0Qmf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Aug 2011 12:42:35 -0400
+Subject: Re: [PATCH 06/14] [media] cx18: Use current logging styles
+From: Joe Perches <joe@perches.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+In-Reply-To: <1314451740.2244.7.camel@palomino.walls.org>
+References: <cover.1313966088.git.joe@perches.com>
+	 <29abc343c4fce5d019ce56f5a3882aedaeb092bc.1313966089.git.joe@perches.com>
+	 <1314182047.2253.3.camel@palomino.walls.org>
+	 <1314222175.15882.8.camel@Joe-Laptop>
+	 <1314451740.2244.7.camel@palomino.walls.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 27 Aug 2011 09:42:32 -0700
+Message-ID: <1314463352.6852.5.camel@Joe-Laptop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for sharing your experience.
+On Sat, 2011-08-27 at 09:28 -0400, Andy Walls wrote:
+> On Wed, 2011-08-24 at 14:42 -0700, Joe Perches wrote:
+> > On Wed, 2011-08-24 at 06:34 -0400, Andy Walls wrote:
+> > > On Sun, 2011-08-21 at 15:56 -0700, Joe Perches wrote:
+> > > > Add pr_fmt.
+> > > > Convert printks to pr_<level>.
+> > > > Convert printks without KERN_<level> to appropriate pr_<level>.
+> > > > Removed embedded prefixes when pr_fmt was added.
+> > > > Use ##__VA_ARGS__ for variadic macros.
+> > > > Coalesce format strings.
+> > > 1. It is important to preserve the per-card prefixes emitted by the
+> > > driver: cx18-0, cx18-1, cx18-2, etc.  With a quick skim, I think your
+> > > change preserves the format of all output messages (except removing
+> > > periods).  Can you confirm this?
+> > Here's the output diff of
+> > strings built-in.o | grep "^<.>" | sort
+> > new and old
+[]
+> Yuck.
+> > > 2. PLease don't add a pr_fmt() #define to exevry file.  Just put one
+> > > where all the other CX18_*() macros are defined.  Every file picks those
+> > > up.
+> > It's not the first #include of every file.
+> > printk.h has a default #define pr_fmt(fmt) fmt
+> Well then don't use "pr_fmt(fmt)" in cx18, if it overloads a define
+> somewhere else in the kernel and has a dependency on its order relative
+> to #include statements.  That sort of thing just ups maintenance hours
+> later.  That's not a good trade off for subjectively better log
+> messages.
+> Won't redifining the 'pr_fmt(fmt)' generate preprocessor warnings
+> anyway?
 
-On Sat, Aug 13, 2011 at 11:08 AM, Lawrence Rust <lvr@softsystem.co.uk> wrote:
-> The stock v4l sources supplied are old (from around 2.6.35) and don't
-> contain many current fixes.  This isn't a problem per-se unless you
-> intend to use the card with another v4l card.  In this case your brand
-> new, bug fixed drivers are replaced by TBS's version which may or, as in
-> my case, may not work.
-I have 2 other older cards that I intend to use it with, but currently
-I'm using Ubuntu 10.04 LTS which have a 2.6.32 kernel, so this would
-not be a problem, but later when I upgrade to 12.04 LTS and a newer
-kernel this will be problematic. Since I can't trust that TBS will
-deliver newer drivers.
+No.
 
-> I repeatedly mailed TBS support at support@tbsdtv.com to ask how I could
-> only install the 6981 driver but never got an answer.  In desperation I
-> setup a git tree of 2.6.35 and merged it with the TBS drivers in order
-> to separate their changes.  Finally after many hours I have a set of
-> patches that I can apply to 2.6.39 that produce a working driver.
-Is it possible to mix modules based on different versions of v4l? To
-me that looks like it will work as long as the core infrastructure is
-the same, but as soon as some common data structure that is used by
-the obj files is changed it will break and you might not notice
-directly. Just as you say with the IR changes, but also more subtle
-changes by adding/removing elements in structures.
+Andy, I fully understand how this stuff works.
+You apparently don't (yet).
 
-> Be warned that if you run a 2.6.38 or later kernel then the IR RC won't
-> work because of significant changes to the RC architecture that TBS
-> don't like (see http://www.tbsdtv.com/forum/viewtopic.php?f=22&t=929 and
-> http://www.tbsdtv.com/forum/viewtopic.php?f=22&t=110&start=90#p2693 )
+Look at include/linux/printk.h
 
-In the links you refer to the driver author (at least he seems to be
-the author) states that he has not upgraded to the latest IR code due
-to compatibility issues between the CX23885 and IR.
+#ifndef pr_fmt
+#define pr_fmt(fmt) fmt
+#endif
 
-/Harald
+A default empty define is used when one
+is not specified before printk.h is
+included.  kernel.h includes printk.h
+
+v4l2_<level> uses the "name" of the video
+device in its output.  That name may not
+be the same name as the module.
+
