@@ -1,280 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:49586 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753541Ab1HXSlf (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:42876 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750974Ab1H0RXk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Aug 2011 14:41:35 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 2/7 v5] V4L: add two new ioctl()s for multi-size videobuffer management
-Date: Wed, 24 Aug 2011 20:41:27 +0200
-Message-Id: <1314211292-10414-3-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1314211292-10414-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1314211292-10414-1-git-send-email-g.liakhovetski@gmx.de>
+	Sat, 27 Aug 2011 13:23:40 -0400
+References: <cover.1313966088.git.joe@perches.com> <29abc343c4fce5d019ce56f5a3882aedaeb092bc.1313966089.git.joe@perches.com> <1314182047.2253.3.camel@palomino.walls.org> <1314222175.15882.8.camel@Joe-Laptop> <1314451740.2244.7.camel@palomino.walls.org> <1314463352.6852.5.camel@Joe-Laptop>
+In-Reply-To: <1314463352.6852.5.camel@Joe-Laptop>
+MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH 06/14] [media] cx18: Use current logging styles
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Sat, 27 Aug 2011 13:23:14 -0400
+To: Joe Perches <joe@perches.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Message-ID: <40a27a5f-f4ec-4304-88a1-a254c7bc6c68@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A possibility to preallocate and initialise buffers of different sizes
-in V4L2 is required for an efficient implementation of a snapshot
-mode. This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
-VIDIOC_PREPARE_BUF and defines respective data structures.
+Joe Perches <joe@perches.com> wrote:
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Pawel Osciak <pawel@osciak.com>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-compat-ioctl32.c |   67 +++++++++++++++++++++++++---
- drivers/media/video/v4l2-ioctl.c          |   29 ++++++++++++
- include/linux/videodev2.h                 |   15 ++++++
- include/media/v4l2-ioctl.h                |    2 +
- 4 files changed, 105 insertions(+), 8 deletions(-)
+>On Sat, 2011-08-27 at 09:28 -0400, Andy Walls wrote:
+>> On Wed, 2011-08-24 at 14:42 -0700, Joe Perches wrote:
+>> > On Wed, 2011-08-24 at 06:34 -0400, Andy Walls wrote:
+>> > > On Sun, 2011-08-21 at 15:56 -0700, Joe Perches wrote:
+>> > > > Add pr_fmt.
+>> > > > Convert printks to pr_<level>.
+>> > > > Convert printks without KERN_<level> to appropriate pr_<level>.
+>> > > > Removed embedded prefixes when pr_fmt was added.
+>> > > > Use ##__VA_ARGS__ for variadic macros.
+>> > > > Coalesce format strings.
+>> > > 1. It is important to preserve the per-card prefixes emitted by
+>the
+>> > > driver: cx18-0, cx18-1, cx18-2, etc.  With a quick skim, I think
+>your
+>> > > change preserves the format of all output messages (except
+>removing
+>> > > periods).  Can you confirm this?
+>> > Here's the output diff of
+>> > strings built-in.o | grep "^<.>" | sort
+>> > new and old
+>[]
+>> Yuck.
+>> > > 2. PLease don't add a pr_fmt() #define to exevry file.  Just put
+>one
+>> > > where all the other CX18_*() macros are defined.  Every file
+>picks those
+>> > > up.
+>> > It's not the first #include of every file.
+>> > printk.h has a default #define pr_fmt(fmt) fmt
+>> Well then don't use "pr_fmt(fmt)" in cx18, if it overloads a define
+>> somewhere else in the kernel and has a dependency on its order
+>relative
+>> to #include statements.  That sort of thing just ups maintenance
+>hours
+>> later.  That's not a good trade off for subjectively better log
+>> messages.
+>> Won't redifining the 'pr_fmt(fmt)' generate preprocessor warnings
+>> anyway?
+>
+>No.
+>
+>Andy, I fully understand how this stuff works.
+>You apparently don't (yet).
+>
+>Look at include/linux/printk.h
+>
+>#ifndef pr_fmt
+>#define pr_fmt(fmt) fmt
+>#endif
+>
+>A default empty define is used when one
+>is not specified before printk.h is
+>included.  kernel.h includes printk.h
+>
+>v4l2_<level> uses the "name" of the video
+>device in its output.  That name may not
+>be the same name as the module.
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index 61979b7..85758d2 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -159,11 +159,16 @@ struct v4l2_format32 {
- 	} fmt;
- };
- 
--static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-+struct v4l2_create_buffers32 {
-+	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-+	__u32			count;
-+	enum v4l2_memory        memory;
-+	struct v4l2_format32	format;		/* filled in by the user, plane sizes calculated by the driver */
-+	__u32			reserved[8];
-+};
-+
-+static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
- {
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_format32)) ||
--			get_user(kp->type, &up->type))
--			return -EFAULT;
- 	switch (kp->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-@@ -192,11 +197,24 @@ static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user
- 	}
- }
- 
--static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-+static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-+{
-+	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_format32)) ||
-+			get_user(kp->type, &up->type))
-+			return -EFAULT;
-+	return __get_v4l2_format32(kp, up);
-+}
-+
-+static int get_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
-+{
-+	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_create_buffers32)) ||
-+	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32, format.fmt)))
-+			return -EFAULT;
-+	return __get_v4l2_format32(&kp->format, &up->format);
-+}
-+
-+static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
- {
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)) ||
--		put_user(kp->type, &up->type))
--		return -EFAULT;
- 	switch (kp->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-@@ -225,6 +243,22 @@ static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user
- 	}
- }
- 
-+static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-+{
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)) ||
-+		put_user(kp->type, &up->type))
-+		return -EFAULT;
-+	return __put_v4l2_format32(kp, up);
-+}
-+
-+static int put_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
-+{
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_create_buffers32)) ||
-+	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32, format.fmt)))
-+			return -EFAULT;
-+	return __put_v4l2_format32(&kp->format, &up->format);
-+}
-+
- struct v4l2_standard32 {
- 	__u32		     index;
- 	__u32		     id[2]; /* __u64 would get the alignment wrong */
-@@ -702,6 +736,8 @@ static int put_v4l2_event32(struct v4l2_event *kp, struct v4l2_event32 __user *u
- #define VIDIOC_S_EXT_CTRLS32    _IOWR('V', 72, struct v4l2_ext_controls32)
- #define VIDIOC_TRY_EXT_CTRLS32  _IOWR('V', 73, struct v4l2_ext_controls32)
- #define	VIDIOC_DQEVENT32	_IOR ('V', 89, struct v4l2_event32)
-+#define VIDIOC_CREATE_BUFS32	_IOWR('V', 92, struct v4l2_create_buffers32)
-+#define VIDIOC_PREPARE_BUF32	_IOW ('V', 93, struct v4l2_buffer32)
- 
- #define VIDIOC_OVERLAY32	_IOW ('V', 14, s32)
- #define VIDIOC_STREAMON32	_IOW ('V', 18, s32)
-@@ -721,6 +757,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 		struct v4l2_standard v2s;
- 		struct v4l2_ext_controls v2ecs;
- 		struct v4l2_event v2ev;
-+		struct v4l2_create_buffers v2crt;
- 		unsigned long vx;
- 		int vi;
- 	} karg;
-@@ -751,6 +788,8 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 	case VIDIOC_S_INPUT32: cmd = VIDIOC_S_INPUT; break;
- 	case VIDIOC_G_OUTPUT32: cmd = VIDIOC_G_OUTPUT; break;
- 	case VIDIOC_S_OUTPUT32: cmd = VIDIOC_S_OUTPUT; break;
-+	case VIDIOC_CREATE_BUFS32: cmd = VIDIOC_CREATE_BUFS; break;
-+	case VIDIOC_PREPARE_BUF32: cmd = VIDIOC_PREPARE_BUF; break;
- 	}
- 
- 	switch (cmd) {
-@@ -775,6 +814,12 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 		compatible_arg = 0;
- 		break;
- 
-+	case VIDIOC_CREATE_BUFS:
-+		err = get_v4l2_create32(&karg.v2crt, up);
-+		compatible_arg = 0;
-+		break;
-+
-+	case VIDIOC_PREPARE_BUF:
- 	case VIDIOC_QUERYBUF:
- 	case VIDIOC_QBUF:
- 	case VIDIOC_DQBUF:
-@@ -860,6 +905,10 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 		err = put_v4l2_format32(&karg.v2f, up);
- 		break;
- 
-+	case VIDIOC_CREATE_BUFS:
-+		err = put_v4l2_create32(&karg.v2crt, up);
-+		break;
-+
- 	case VIDIOC_QUERYBUF:
- 	case VIDIOC_QBUF:
- 	case VIDIOC_DQBUF:
-@@ -959,6 +1008,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	case VIDIOC_DQEVENT32:
- 	case VIDIOC_SUBSCRIBE_EVENT:
- 	case VIDIOC_UNSUBSCRIBE_EVENT:
-+	case VIDIOC_CREATE_BUFS32:
-+	case VIDIOC_PREPARE_BUF32:
- 		ret = do_video_ioctl(file, cmd, arg);
- 		break;
- 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 002ce13..6fa8e04 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -260,6 +260,8 @@ static const char *v4l2_ioctls[] = {
- 	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
- 	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
- 	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
-+	[_IOC_NR(VIDIOC_CREATE_BUFS)]      = "VIDIOC_CREATE_BUFS",
-+	[_IOC_NR(VIDIOC_PREPARE_BUF)]      = "VIDIOC_PREPARE_BUF",
- };
- #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
- 
-@@ -2216,6 +2218,33 @@ static long __video_do_ioctl(struct file *file,
- 		dbgarg(cmd, "type=0x%8.8x", sub->type);
- 		break;
- 	}
-+	case VIDIOC_CREATE_BUFS:
-+	{
-+		struct v4l2_create_buffers *create = arg;
-+
-+		if (!ops->vidioc_create_bufs)
-+			break;
-+		ret = check_fmt(ops, create->format.type);
-+		if (ret)
-+			break;
-+
-+		ret = ops->vidioc_create_bufs(file, fh, create);
-+
-+		dbgarg(cmd, "count=%d @ %d\n", create->count, create->index);
-+		break;
-+	}
-+	case VIDIOC_PREPARE_BUF:
-+	{
-+		struct v4l2_buffer *b = arg;
-+
-+		if (!ops->vidioc_prepare_buf)
-+			break;
-+
-+		ret = ops->vidioc_prepare_buf(file, fh, b);
-+
-+		dbgarg(cmd, "index=%d", b->index);
-+		break;
-+	}
- 	default:
- 	{
- 		bool valid_prio = true;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index fca24cc..988e1be 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -653,6 +653,9 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_ERROR	0x0040
- #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
- #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
-+/* Cache handling flags */
-+#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
-+#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
- 
- /*
-  *	O V E R L A Y   P R E V I E W
-@@ -2092,6 +2095,15 @@ struct v4l2_dbg_chip_ident {
- 	__u32 revision;    /* chip revision, chip specific */
- } __attribute__ ((packed));
- 
-+/* VIDIOC_CREATE_BUFS */
-+struct v4l2_create_buffers {
-+	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-+	__u32			count;
-+	enum v4l2_memory        memory;
-+	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
-+	__u32			reserved[8];
-+};
-+
- /*
-  *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-  *
-@@ -2182,6 +2194,9 @@ struct v4l2_dbg_chip_ident {
- #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
- #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
- 
-+#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
-+#define VIDIOC_PREPARE_BUF	 _IOW('V', 93, struct v4l2_buffer)
-+
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
- 
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index dd9f1e7..55cf8ae 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -122,6 +122,8 @@ struct v4l2_ioctl_ops {
- 	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
- 	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
- 
-+	int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
-+	int (*vidioc_prepare_buf)(struct file *file, void *fh, const struct v4l2_buffer *b);
- 
- 	int (*vidioc_overlay) (struct file *file, void *fh, unsigned int i);
- 	int (*vidioc_g_fbuf)   (struct file *file, void *fh,
--- 
-1.7.2.5
+Hi Joe,
 
+I don't need to fully understand it.
+
+This is a happy to glad change with no functional nor performance benefit.  It adds unneeded lines of code to the driver and mangles some of the log messages.
+
+I see no benefit from my perspective.
+
+Regards,
+Andy
