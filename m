@@ -1,70 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:44408 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755485Ab1HSO1x (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4308 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750926Ab1H0Ocs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Aug 2011 10:27:53 -0400
-Date: Fri, 19 Aug 2011 16:27:44 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 8/8] ARM: S5PV210: example of CMA private area for FIMC device
- on Goni board
-In-reply-to: <1313764064-9747-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-Message-id: <1313764064-9747-9-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1313764064-9747-1-git-send-email-m.szyprowski@samsung.com>
+	Sat, 27 Aug 2011 10:32:48 -0400
+Received: from alastor.dyndns.org (215.80-203-102.nextgentel.com [80.203.102.215])
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id p7REWj7c043163
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sat, 27 Aug 2011 16:32:47 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 2C8205A60001
+	for <linux-media@vger.kernel.org>; Sat, 27 Aug 2011 16:32:46 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 3.2] First round of compiler warning fixes
+Date: Sat, 27 Aug 2011 16:32:44 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108271632.44921.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch is an example how device private CMA area can be activated.
-It creates one CMA region and assigns it to the first s5p-fimc device on
-Samsung Goni S5PC110 board.
+The following changes since commit 9bed77ee2fb46b74782d0d9d14b92e9d07f3df6e:
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/mach-s5pv210/mach-goni.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+  [media] tuner_xc2028: Allow selection of the frequency adjustment code for XC3028 (2011-08-06 09:52:47 -0300)
 
-diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
-index 14578f5..f766c45 100644
---- a/arch/arm/mach-s5pv210/mach-goni.c
-+++ b/arch/arm/mach-s5pv210/mach-goni.c
-@@ -26,6 +26,7 @@
- #include <linux/input.h>
- #include <linux/gpio.h>
- #include <linux/interrupt.h>
-+#include <linux/dma-contiguous.h>
- 
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
-@@ -857,6 +858,9 @@ static void __init goni_map_io(void)
- static void __init goni_reserve(void)
- {
- 	s5p_mfc_reserve_mem(0x43000000, 8 << 20, 0x51000000, 8 << 20);
-+
-+	/* Create private 16MiB contiguous memory area for s5p-fimc.0 device */
-+	dma_declare_contiguous(&s5p_device_fimc0.dev, 16*SZ_1M, 0);
- }
- 
- static void __init goni_machine_init(void)
--- 
-1.7.1.569.g6f426
+are available in the git repository at:
+  ssh://linuxtv.org/git/hverkuil/media_tree.git fixes
 
+Hans Verkuil (14):
+      radio-si4713.c: fix compiler warning
+      mt20xx.c: fix compiler warnings
+      wl128x: fix compiler warning + wrong write() return.
+      saa7146: fix compiler warning
+      ddbridge: fix compiler warnings
+      mxl5005s: fix compiler warning
+      af9005-fe: fix compiler warning
+      tvaudio: fix compiler warnings
+      az6027: fix compiler warnings
+      mantis: fix compiler warnings
+      drxd_hard: fix compiler warnings
+      vpx3220, bt819: fix compiler warnings
+      si470x: fix compile warning.
+      dvb_frontend: fix compile warning.
+
+ drivers/media/common/saa7146_video.c          |   12 ++++--------
+ drivers/media/common/tuners/mt20xx.c          |   24 +++++++++++-------------
+ drivers/media/common/tuners/mxl5005s.c        |   22 ++++++++++------------
+ drivers/media/dvb/ddbridge/ddbridge-core.c    |    9 ++++++---
+ drivers/media/dvb/dvb-core/dvb_frontend.c     |    3 +--
+ drivers/media/dvb/dvb-usb/af9005-fe.c         |    2 --
+ drivers/media/dvb/dvb-usb/az6027.c            |   12 +++++-------
+ drivers/media/dvb/frontends/drxd_hard.c       |   11 ++++++-----
+ drivers/media/dvb/mantis/hopper_cards.c       |    4 ++--
+ drivers/media/dvb/mantis/mantis_cards.c       |    4 ++--
+ drivers/media/radio/radio-si4713.c            |    4 ----
+ drivers/media/radio/si470x/radio-si470x-usb.c |    2 --
+ drivers/media/radio/wl128x/fmdrv_v4l2.c       |    4 +++-
+ drivers/media/video/bt819.c                   |    2 +-
+ drivers/media/video/tvaudio.c                 |    9 ++++++---
+ drivers/media/video/vpx3220.c                 |    2 +-
+ 16 files changed, 58 insertions(+), 68 deletions(-)
