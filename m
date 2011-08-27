@@ -1,68 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm3-vm0.bt.bullet.mail.ird.yahoo.com ([212.82.108.88]:34460
-	"HELO nm3-vm0.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754307Ab1HUMcN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Aug 2011 08:32:13 -0400
-Message-ID: <4E50FAC7.6080807@yahoo.com>
-Date: Sun, 21 Aug 2011 13:32:07 +0100
-From: Chris Rankin <rankincj@yahoo.com>
+Received: from mx1.redhat.com ([209.132.183.28]:42462 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750984Ab1H0KdU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Aug 2011 06:33:20 -0400
+Message-ID: <4E58C883.60406@redhat.com>
+Date: Sat, 27 Aug 2011 12:35:47 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH 1/1] EM28xx - fix deadlock when unplugging and replugging
- a DVB adapter
-References: <1313851233.95109.YahooMailClassic@web121704.mail.ne1.yahoo.com> <4E4FCC8D.3070305@redhat.com>
-In-Reply-To: <4E4FCC8D.3070305@redhat.com>
-Content-Type: multipart/mixed;
- boundary="------------060703020508020303040009"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [RFCv2 PATCH 0/8] Add V4L2_CTRL_FLAG_VOLATILE and change volatile
+ autocluster handling.
+References: <1314360013-9876-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1314360013-9876-1-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060703020508020303040009
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Looks good ACK series.
 
-It occurred to me this morning that since we're no longer supposed to be holding 
-the device lock when taking the device list lock, then the 
-em28xx_usb_disconnect() function needs changing too.
+Acked-by: Hans de Goede <hdegoede@redhat.com>
 
-Signed-off-by: Chris Rankin <rankincj@yahoo.com>
-
-
---------------060703020508020303040009
-Content-Type: text/x-patch;
- name="EM28xx-replug-deadlock.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="EM28xx-replug-deadlock.diff"
-
---- linux-3.0/drivers/media/video/em28xx/em28xx-cards.c.orig	2011-08-19 00:45:48.000000000 +0100
-+++ linux-3.0/drivers/media/video/em28xx/em28xx-cards.c	2011-08-21 13:16:43.000000000 +0100
-@@ -2929,7 +2929,9 @@
- 		goto fail_reg_analog_devices;
- 	}
- 
-+	mutex_unlock(&dev->lock);
- 	em28xx_init_extension(dev);
-+	mutex_lock(&dev->lock);
- 
- 	/* Save some power by putting tuner to sleep */
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
-@@ -3191,10 +3193,10 @@
- 		em28xx_release_resources(dev);
- 	}
- 
--	em28xx_close_extension(dev);
--
- 	mutex_unlock(&dev->lock);
- 
-+	em28xx_close_extension(dev);
-+
- 	if (!dev->users) {
- 		kfree(dev->alt_max_pkt_size);
- 		kfree(dev);
-
---------------060703020508020303040009--
+On 08/26/2011 02:00 PM, Hans Verkuil wrote:
+> This is the second patch for this. The first is here:
+>
+> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/36650
+>
+> This second version changes the pwc code as suggested by Hans de Goede and it
+> adds documentation. The v4l2-ctrls.c code has also been improved to avoid
+> unnecessary calls to update_from_auto_cluster(). Thanks to Hans de Goede for
+> pointing me in the right direction.
+>
+> If there are no additional comments, then I will make a pull request early next
+> week.
+>
+> This will also be the basis for converting soc-camera to the control framework.
+>
+> Regards,
+>
+> 	Hans
+>
