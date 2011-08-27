@@ -1,54 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:53873 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756672Ab1H3VTh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 17:19:37 -0400
-Date: Wed, 31 Aug 2011 00:19:32 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: Enrico <ebutera@users.berlios.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Getting started with OMAP3 ISP
-Message-ID: <20110830211932.GI12368@valkosipuli.localdomain>
-References: <4E56734A.3080001@mlbassoc.com>
- <4E5CEECC.6040804@mlbassoc.com>
- <4E5CF118.3050903@mlbassoc.com>
- <201108301620.09365.laurent.pinchart@ideasonboard.com>
- <4E5CFA0B.3010207@mlbassoc.com>
- <CA+2YH7sfhWz_ubLExnGKmyLKOVKGOXYOmH6a1Hoy8ssJeMQnWQ@mail.gmail.com>
- <4E5D0E69.6020909@mlbassoc.com>
+Received: from mx1.redhat.com ([209.132.183.28]:64064 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751818Ab1H0NNS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Aug 2011 09:13:18 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p7RDDItP032262
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Aug 2011 09:13:18 -0400
+Message-ID: <4E58ED6C.6050000@redhat.com>
+Date: Sat, 27 Aug 2011 10:13:16 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4E5D0E69.6020909@mlbassoc.com>
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT FIXES FOR 3.1] pwc: various fixes
+References: <4E2C388E.30402@redhat.com>
+In-Reply-To: <4E2C388E.30402@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 30, 2011 at 10:23:05AM -0600, Gary Thomas wrote:
-> On 2011-08-30 10:07, Enrico wrote:
-> >On Tue, Aug 30, 2011 at 4:56 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
-> >>Yes, that helped a lot.  When I create the devices by hand, I can now see
-> >>my driver starting to be accessed (right now it's very much an empty stub)
-> >
-> >>From your logs it seems you are using a tvp5150, i've posted a patch
-> >[1] for tvp5150 that makes it very close to work, it could be faster
-> >to debug it instead of starting from scratch.
-> >
-> >Enrico
-> >
-> >[1] http://www.spinics.net/lists/linux-media/msg37116.html
+Em 24-07-2011 12:21, Hans de Goede escreveu:
+> Hi Mauro,
 > 
-> Thanks, I'll give it a look.
+> Please pull from my tree for 2 bug fixes patches + support for
+> control events for the pwc driver. Note that the control events
+> patch depends upon the patches from hverkuils poll tree
+> (and those patches are thus also in my tree, but not part of this
+> pull req).
 > 
-> Your note says that /dev/video* is properly registered.  Does this
-> mean that udev created them for you on boot as well?  If so, what
+> The following changes since commit 30178e8623281063c18592a848cdcd71f78f603d:
+> 
+>   vivi: let vb2_poll handle events. (2011-07-18 13:07:28 +0200)
+> 
+> are available in the git repository at:
+>   git://linuxtv.org/hgoede/gspca.git media-for_v3.1
+> 
+> Dan Carpenter (1):
+>       pwc: precedence bug in pwc_init_controls()
 
-No. This message means that the device has been registered to the kernel (
-it is accessbile through a major/minor number pair). Device node referring
-to the major/minor pair is separately created by udev.
+Applied.
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+> 
+> Hans de Goede (2):
+>       pwc: Add support for control events
+>       pwc: properly mark device_hint as unused in all probe error paths
+
+Those ones depend on hverkuil series, pending Al Viro's review.
+
+So, I'm not applying them for now, until we get Hans V. patches merged.
+
+Thanks
+Mauro
