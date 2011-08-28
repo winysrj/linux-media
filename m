@@ -1,99 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mms2.broadcom.com ([216.31.210.18]:1354 "EHLO mms2.broadcom.com"
+Received: from tango.tkos.co.il ([62.219.50.35]:49084 "EHLO tango.tkos.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751022Ab1HRNaA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2011 09:30:00 -0400
-From: "Al Cooper" <alcooperx@gmail.com>
-To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-	cernekee@gmail.com
-cc: "Al Cooper" <alcooperx@gmail.com>
-Subject: [PATCH] media: Fix a UVC performance problem on systems with
- non-coherent DMA.
-Date: Thu, 18 Aug 2011 09:28:29 -0400
-Message-ID: <1313674109-6290-1-git-send-email-alcooperx@gmail.com>
+	id S1751520Ab1H1Snf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Aug 2011 14:43:35 -0400
+Date: Sun, 28 Aug 2011 21:43:06 +0300
+From: Baruch Siach <baruch@tkos.co.il>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] media i.MX27 camera: remove legacy dma support
+Message-ID: <20110828184306.GA9157@tarshish>
+References: <1314167073-11058-1-git-send-email-s.hauer@pengutronix.de>
+ <Pine.LNX.4.64.1108240843001.8985@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1108240843001.8985@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The UVC driver uses usb_alloc_coherent() to allocate DMA data buffers.
-On systems without coherent DMA this ends up allocating buffers in
-uncached memory. The subsequent memcpy's done to coalesce the DMA
-chunks into contiguous buffers then run VERY slowly. On a MIPS test
-system the memcpy is about 200 times slower. This issue prevents the
-system from keeping up with 720p YUYV data at 10fps.
+Hi Guennadi,
 
-The following patch uses kmalloc to alloc the DMA buffers instead of
-uab_alloc_coherent on systems without coherent DMA. With this patch
-the system was easily able to keep up with 720p at 10fps.
+On Wed, Aug 24, 2011 at 09:19:24AM +0200, Guennadi Liakhovetski wrote:
+[snip]
+> On Wed, 24 Aug 2011, Sascha Hauer wrote:
+> > The i.MX27 dma support was introduced with the initial commit of
+> > this driver and originally created by me. However, I never got
+> > this stable due to the racy dma engine and used the EMMA engine
+> > instead. As the DMA support is most probably unused and broken in
+> > its current state, remove it. This also helps us to get rid of
+> > another user of the legacy i.MX DMA support,
+> > Also, remove the dependency on ARCH_MX* macros as these are scheduled
+> > for removal.
+> > 
+> > Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> > Cc: Baruch Siach <baruch@tkos.co.il>
+> > Cc: linux-media@vger.kernel.org
+> > Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
 
-Signed-off-by: Al Cooper <alcooperx@gmail.com>
----
- drivers/media/video/uvc/uvc_video.c |   18 +++++++++++++++++-
- 1 files changed, 17 insertions(+), 1 deletions(-)
+[snip]
 
-diff --git a/drivers/media/video/uvc/uvc_video.c b/drivers/media/video/uvc/uvc_video.c
-index 4999479..30c18b4 100644
---- a/drivers/media/video/uvc/uvc_video.c
-+++ b/drivers/media/video/uvc/uvc_video.c
-@@ -790,8 +790,12 @@ static void uvc_free_urb_buffers(struct uvc_streaming *stream)
- 
- 	for (i = 0; i < UVC_URBS; ++i) {
- 		if (stream->urb_buffer[i]) {
-+#ifndef CONFIG_DMA_NONCOHERENT
- 			usb_free_coherent(stream->dev->udev, stream->urb_size,
- 				stream->urb_buffer[i], stream->urb_dma[i]);
-+#else
-+			kfree(stream->urb_buffer[i]);
-+#endif
- 			stream->urb_buffer[i] = NULL;
- 		}
- 	}
-@@ -831,9 +835,15 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming *stream,
- 	for (; npackets > 1; npackets /= 2) {
- 		for (i = 0; i < UVC_URBS; ++i) {
- 			stream->urb_size = psize * npackets;
-+#ifndef CONFIG_DMA_NONCOHERENT
- 			stream->urb_buffer[i] = usb_alloc_coherent(
- 				stream->dev->udev, stream->urb_size,
- 				gfp_flags | __GFP_NOWARN, &stream->urb_dma[i]);
-+#else
-+			stream->urb_buffer[i] =
-+			    kmalloc(stream->urb_size, gfp_flags | __GFP_NOWARN);
-+#endif
-+
- 			if (!stream->urb_buffer[i]) {
- 				uvc_free_urb_buffers(stream);
- 				break;
-@@ -908,10 +918,14 @@ static int uvc_init_video_isoc(struct uvc_streaming *stream,
- 		urb->context = stream;
- 		urb->pipe = usb_rcvisocpipe(stream->dev->udev,
- 				ep->desc.bEndpointAddress);
-+#ifndef CONFIG_DMA_NONCOHERENT
- 		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
-+		urb->transfer_dma = stream->urb_dma[i];
-+#else
-+		urb->transfer_flags = URB_ISO_ASAP;
-+#endif
- 		urb->interval = ep->desc.bInterval;
- 		urb->transfer_buffer = stream->urb_buffer[i];
--		urb->transfer_dma = stream->urb_dma[i];
- 		urb->complete = uvc_video_complete;
- 		urb->number_of_packets = npackets;
- 		urb->transfer_buffer_length = size;
-@@ -969,8 +983,10 @@ static int uvc_init_video_bulk(struct uvc_streaming *stream,
- 		usb_fill_bulk_urb(urb, stream->dev->udev, pipe,
- 			stream->urb_buffer[i], size, uvc_video_complete,
- 			stream);
-+#ifndef CONFIG_DMA_NONCOHERENT
- 		urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
- 		urb->transfer_dma = stream->urb_dma[i];
-+#endif
- 
- 		stream->urb[i] = urb;
- 	}
+> Baruch, any comment?
+
+No comment so far. Thanks for your continued maintenance. I wish I could do 
+the videobuf2 migration of this driver.
+
+baruch
+
 -- 
-1.7.3.2
-
-
+                                                     ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
