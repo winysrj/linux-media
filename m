@@ -1,35 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36303 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750998Ab1H2JIj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 05:08:39 -0400
-From: <hvaibhav@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <mchehab@redhat.com>
-Subject: [GIT PULL for v3.1-rc] OMAP_VOUT: Fix build failure
-Date: Mon, 29 Aug 2011 14:38:28 +0530
-Message-ID: <1314608908-7264-1-git-send-email-hvaibhav@ti.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:61385 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750836Ab1H1Szc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Aug 2011 14:55:32 -0400
+Received: by gwaa12 with SMTP id a12so4252902gwa.19
+        for <linux-media@vger.kernel.org>; Sun, 28 Aug 2011 11:55:31 -0700 (PDT)
+Date: Sun, 28 Aug 2011 13:55:24 -0500
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: DiBxxxx: fixes for 3.1/3.0
+Message-ID: <20110828185524.GA8369@elie.gateway.2wire.net>
+References: <alpine.LRH.2.00.1108031728090.30199@pub2.ifh.de>
+ <alpine.LRH.2.00.1108051043480.19389@pub5.ifh.de>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.LRH.2.00.1108051043480.19389@pub5.ifh.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-I missed this patch for last rc release, can you please queue up for
-next rc.
+Patrick Boettcher wrote:
+> On Wed, 3 Aug 2011, Patrick Boettcher wrote:
 
+>> [media] dib0700: protect the dib0700 buffer access
+>> [media] DiBcom: protect the I2C bufer access
+>
+> I added a patch from Olivier which fixes wrongly used dprintks and replaces
+> them by err()-calls.
+>
+> [media] dib0700: correct error message
 
-The following changes since commit 55f9c40ff632d03c527d6a6ceddcda0a224587a6:
-  Linus Torvalds (1):
-        Merge git://git.kernel.org/.../davem/sparc
+Just for the record[1]:
 
-are available in the git repository at:
+Tested-by: Eric Valette <eric.valette@free.fr>
 
-  git://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git for-linux-media-rc
+Thanks!
 
-Archit Taneja (1):
-      OMAP_VOUT: Fix build break caused by update_mode removal in DSS2
-
- drivers/media/video/omap/omap_vout.c |   13 -------------
- 1 files changed, 0 insertions(+), 13 deletions(-)
+[1] http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=639161#22
