@@ -1,65 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:52992 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750849Ab1HDHOU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 03:14:20 -0400
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 00/21] [staging] tm6000: Assorted fixes and improvements.
-Date: Thu,  4 Aug 2011 09:13:58 +0200
-Message-Id: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51732 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751540Ab1H1I6g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Aug 2011 04:58:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: Re: [PATCH/RFC v2 3/3] fbdev: sh_mobile_lcdc: Support FOURCC-based format API
+Date: Sun, 28 Aug 2011 10:59:00 +0200
+Cc: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com
+References: <1313746626-23845-1-git-send-email-laurent.pinchart@ideasonboard.com> <1313746626-23845-4-git-send-email-laurent.pinchart@ideasonboard.com> <4E57D6B2.40001@gmx.de>
+In-Reply-To: <4E57D6B2.40001@gmx.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108281059.00860.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series fixes up some issues with the tm6000 driver. These
-patches were tested with a Cinergy Hybrid XE which is the only one I
-have access to, so it would be nice if someone with access to the other
-supported devices could take this series for a test run.
+Hi Florian,
 
-Among the changes are several speed-ups for firmware loading, addition
-of radio support for the Cinergy Hybrid XE and some memory leak fixes. I
-was able to reproduce the behaviour documented in the README about the
-device stopping to work for unknown reasons. Running tests with this
-series applied no longer exposes the problem, so I have high hopes that
-it's also fixed.
+Thanks for the review.
 
-Thierry Reding (21):
-  [media] tuner/xc2028: Add I2C flush callback.
-  [media] tuner/xc2028: Fix frequency offset for radio mode.
-  [staging] tm6000: Miscellaneous cleanups.
-  [staging] tm6000: Use correct input in radio mode.
-  [staging] tm6000: Implement I2C flush callback.
-  [staging] tm6000: Increase maximum I2C packet size.
-  [staging] tm6000: Remove artificial delay.
-  [staging] tm6000: Flesh out the IRQ callback.
-  [staging] tm6000: Rename active interface register.
-  [staging] tm6000: Disable video interface in radio mode.
-  [staging] tm6000: Rework standard register tables.
-  [staging] tm6000: Add locking for USB transfers.
-  [staging] tm6000: Properly count device usage.
-  [staging] tm6000: Initialize isochronous transfers only once.
-  [staging] tm6000: Execute lightweight reset on close.
-  [staging] tm6000: Select interface on first open.
-  [staging] tm6000: Do not use video buffers in radio mode.
-  [staging] tm6000: Plug memory leak on PCM free.
-  [staging] tm6000: Enable audio clock in radio mode.
-  [staging] tm6000: Enable radio mode for Cinergy Hybrid XE.
-  [staging] tm6000: Remove unnecessary workaround.
+On Friday 26 August 2011 19:24:02 Florian Tobias Schandinat wrote:
+> On 08/19/2011 09:37 AM, Laurent Pinchart wrote:
 
- drivers/media/common/tuners/tuner-xc2028.c |  144 ++++---
- drivers/media/common/tuners/tuner-xc2028.h |    1 +
- drivers/staging/tm6000/tm6000-alsa.c       |    9 +-
- drivers/staging/tm6000/tm6000-cards.c      |   35 +-
- drivers/staging/tm6000/tm6000-core.c       |  102 +++--
- drivers/staging/tm6000/tm6000-dvb.c        |   14 +-
- drivers/staging/tm6000/tm6000-i2c.c        |    7 +-
- drivers/staging/tm6000/tm6000-input.c      |    2 +-
- drivers/staging/tm6000/tm6000-regs.h       |    4 +-
- drivers/staging/tm6000/tm6000-stds.c       |  642 ++++++++++++++--------------
- drivers/staging/tm6000/tm6000-video.c      |  188 +++++----
- drivers/staging/tm6000/tm6000.h            |    6 +-
- 12 files changed, 600 insertions(+), 554 deletions(-)
+[snip]
+
+> > diff --git a/drivers/video/sh_mobile_lcdcfb.c
+> > b/drivers/video/sh_mobile_lcdcfb.c index 97ab8ba..ea3f619 100644
+> > --- a/drivers/video/sh_mobile_lcdcfb.c
+> > +++ b/drivers/video/sh_mobile_lcdcfb.c
+
+[snip]
+
+> > @@ -1099,51 +1154,78 @@ static int sh_mobile_check_var(struct
+
+[snip]
+
+> > +	if (var->format.fourcc > 1) {
+> > +		switch (var->format.fourcc) {
+> > +		case V4L2_PIX_FMT_NV12:
+> > +		case V4L2_PIX_FMT_NV21:
+> > +			var->bits_per_pixel = 12;
+> > +			break;
+> > +		case V4L2_PIX_FMT_RGB565:
+> > +		case V4L2_PIX_FMT_NV16:
+> > +		case V4L2_PIX_FMT_NV61:
+> > +			var->bits_per_pixel = 16;
+> > +			break;
+> > +		case V4L2_PIX_FMT_BGR24:
+> > +		case V4L2_PIX_FMT_NV24:
+> > +		case V4L2_PIX_FMT_NV42:
+> > +			var->bits_per_pixel = 24;
+> > +			break;
+> > +		case V4L2_PIX_FMT_BGR32:
+> > +			var->bits_per_pixel = 32;
+> > +			break;
+> > +		default:
+> > +			return -EINVAL;
+> > +		}
+> > +
+> > +		memset(var->format.reserved, 0, sizeof(var->format.reserved));
+> 
+> If we decide to use another of the reserved area this won't have the
+> desired behavior as the behavior of this driver will change even if it
+> does not support the new field. Probably the best thing is to get the
+> desired behavior is zeroing the whole struct and setting the supported
+> fields to the actual values. You should check and adjust colorspace here
+> as well.
+
+Agreed. I'll fix the patch accordingly.
 
 -- 
-1.7.6
+Regards,
 
+Laurent Pinchart
