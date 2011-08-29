@@ -1,119 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:16924 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751080Ab1HHPgf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 11:36:35 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LPM0023W8OX0O@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 08 Aug 2011 16:36:33 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LPM003K28OW4N@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 08 Aug 2011 16:36:32 +0100 (BST)
-Date: Mon, 08 Aug 2011 17:36:32 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [RFC] The clock dependencies between sensor subdevs and the host
- interface drivers
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"Marek Szyprowski/Poland R&D Center-Linux (MSS)/./????"
-	<m.szyprowski@samsung.com>
-Message-id: <4E400280.7070100@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7BIT
+Received: from moutng.kundenserver.de ([212.227.17.8]:50490 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751037Ab1H2Mez (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Aug 2011 08:34:55 -0400
+Date: Mon, 29 Aug 2011 14:34:53 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Bastian Hecht <hechtb@googlemail.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: Add support for arbitrary resolution for the
+ ov5642 camera driver
+In-Reply-To: <201108291426.57501.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1108291433090.31184@axis700.grange>
+References: <alpine.DEB.2.02.1108171551040.17540@ipanema>
+ <201108281949.05551.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1108291409300.31184@axis700.grange>
+ <201108291426.57501.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
+On Mon, 29 Aug 2011, Laurent Pinchart wrote:
 
-Nowadays many of the V4L2 camera device drivers heavily depend on the board
-code to set up voltage supplies, clocks, and some control signals, like 'reset'
-and 'standby' signals for the sensors. Those things are often being done
-by means of the driver specific platform data callbacks.
+> Hi Guennadi,
+> 
+> On Monday 29 August 2011 14:18:50 Guennadi Liakhovetski wrote:
+> > On Sun, 28 Aug 2011, Laurent Pinchart wrote:
+> > 
+> > [snip]
+> > 
+> > > > @@ -593,8 +639,7 @@ static struct ov5642 *to_ov5642(const struct
+> > > > i2c_client *client) }
+> > > > 
+> > > >  /* Find a data format by a pixel code in an array */
+> > > > 
+> > > > -static const struct ov5642_datafmt
+> > > > -			*ov5642_find_datafmt(enum v4l2_mbus_pixelcode code)
+> > > > +static const struct ov5642_datafmt *ov5642_find_datafmt(enum
+> > > > v4l2_mbus_pixelcode code) {
+> > > 
+> > > checkpatch.pl won't be happy.
+> > 
+> > Since the lift of the hard 80-char limit, I often find lines of 86
+> > characters more acceptable than their split versions.
+> 
+> When has that been lifted ?
 
-There has been recently quite a lot effort on ARM towards migration to the
-device tree. Unfortunately the custom platform data callbacks effectively
-prevent the boards to be booted and configured through the device tree
-bindings.
+Sorry, don't have a link at hand, a few months ago, either beginning of 
+this or end of last year, perhaps. There has been a lengthy discussion on 
+multiple lists, mainly lkml, the common mood was, that 80 chars wasn't 
+meaningful anymore, but I'm not sure what exact actions have been executed 
+to document this.
 
-The following is usually handled in the board files:
+> 
+> > [snip]
+> > 
+> > > > @@ -774,17 +839,27 @@ static int ov5642_s_fmt(struct v4l2_subdev *sd,
+> > > > 
+> > > >  	ov5642_try_fmt(sd, mf);
+> > > > 
+> > > > +	priv->out_size.width		= mf->width;
+> > > > +	priv->out_size.height		= mf->height;
+> > > 
+> > > It looks like to me (but I may be wrong) that you achieve different
+> > > resolutions using cropping, not scaling. If that's correct you should
+> > > implement s_crop support and refuse changing the resolution through
+> > > s_fmt.
+> > 
+> > As the patch explains (I think) on several occasions, currently only the
+> > 1:1 scale is supported, and it was our deliberate choice to implement this
+> > using the scaling API
+> 
+> If you implement cropping, you should use the crop API, not the scaling API 
+> :-)
 
-1) sensor/frontend power supply
-2) sensor's master clock (provided by the host device)
-3) reset and standby signals (GPIO)
-4) other signals applied by the host processor to the sensor device, e.g.
-   I2C level shifter enable, etc.
+It's changing both - input and output sizes.
 
-For 1), the regulator API should possibly be used. It should be applicable
-for most, if not all cases.
-3) and 4) are a bit hard as there might be huge differences across boards 
-as how many GPIOs are used, what are the required delays between changes
-of their states, etc. Still we could try to find a common description of the
-behaviour and pass such information to the drivers.  
+> 
+> > > > @@ -793,10 +868,12 @@ static int ov5642_g_fmt(struct v4l2_subdev *sd,
+> > > > 
+> > > >  	mf->code	= fmt->code;
+> > > >  	mf->colorspace	= fmt->colorspace;
+> > > > 
+> > > > -	mf->width	= OV5642_WIDTH;
+> > > > -	mf->height	= OV5642_HEIGHT;
+> > > > +	mf->width	= priv->out_size.width;
+> > > > +	mf->height	= priv->out_size.height;
+> > > > 
+> > > >  	mf->field	= V4L2_FIELD_NONE;
+> > > > 
+> > > > +	dev_dbg(sd->v4l2_dev->dev, "%s return width: %u heigth: %u\n",
+> > > > __func__, +			mf->width, mf->height);
+> > > 
+> > > Isn't that a bit too verbose ? Printing the format in a debug message in
+> > > the s_fmt handler is useful, but maybe doing it in g_fmt is a bit too
+> > > much.
+> > 
+> > This is a dev_dbg()... Personally, as long as they don't clutter the source
+> > code needlessly, compile without warnings and have their typos fixed (;-))
+> 
+> Removing it is a good way to fix the typo :-)
+> 
+> > I don't have problems with an odd instance, even if I don't really perceive
+> > its output as particularly useful:-)
 
-For 2) I'd like to propose adding a callback to struct v4l2_device, for
-instance as in the below patch. The host driver would implement such an
-operation and the sensor subdev driver would use it in its s_power op.
- 
-If there is more than one output clock at the host, to distinguish which
-clock applies to a given sensor the host driver could be passed the
-assignment information in it's platform data.
-
-AFAICS in the omap3isp case the clock control is done through the board
-code. I wonder what prevents making direct calls between the drivers,
-as the sensor subdevs call a board code callback there, which in turn only
-calls into the omap3isp driver.
-What am I missing ?
-
-In order to support fully DT based builds it would be desired to change
-that method so the board specific callbacks in platform data structures
-are avoided.
-
-
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index d61febf..08b6699 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -36,6 +36,15 @@
- 
- struct v4l2_ctrl_handler;
- 
-+struct v4l2_device_ops {
-+	/* notify callback called by some sub-devices */
-+	void (*notify)(struct v4l2_subdev *sd,
-+			unsigned int notification, void *arg);
-+	/* clock control callback */
-+	void (*set_clock)(struct v4l2_subdev *sd,
-+			  u_long *frequency, bool enable);
-+};
-+
- struct v4l2_device {
- 	/* dev->driver_data points to this struct.
- 	   Note: dev might be NULL if there is no parent device
-@@ -51,9 +60,8 @@ struct v4l2_device {
- 	spinlock_t lock;
- 	/* unique device name, by default the driver name + bus ID */
- 	char name[V4L2_DEVICE_NAME_SIZE];
--	/* notify callback called by some sub-devices. */
--	void (*notify)(struct v4l2_subdev *sd,
--			unsigned int notification, void *arg);
-+	/* ops for sub-devices */
-+	struct v4l2_device_ops ops;
- 	/* The control handler. May be NULL. */
- 	struct v4l2_ctrl_handler *ctrl_handler;
- 	/* Device's priority state */
-
-
-Comments, critics ?
-
-
-Regards,
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
