@@ -1,80 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31823 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750850Ab1HEIRJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Aug 2011 04:17:09 -0400
-Message-ID: <4E3BA739.20101@redhat.com>
-Date: Fri, 05 Aug 2011 10:18:01 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from nm10-vm4.bullet.mail.ne1.yahoo.com ([98.138.91.170]:43904 "HELO
+	nm10-vm4.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754293Ab1H2Q51 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Aug 2011 12:57:27 -0400
+Message-ID: <1314637046.40286.YahooMailClassic@web121807.mail.ne1.yahoo.com>
+Date: Mon, 29 Aug 2011 09:57:26 -0700 (PDT)
+From: Luiz Ramos <lramos.prof@yahoo.com.br>
+Subject: Re: [git:v4l-dvb/for_v3.2] [media] Fix wrong register mask in gspca/sonixj.c
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Cc: =?iso-8859-1?Q?Jean-Fran=E7ois_Moine?= <moinejf@free.fr>
+In-Reply-To: <E1QxHW0-0002rG-Ur@www.linuxtv.org>
 MIME-Version: 1.0
-To: Oliver Neukum <oliver@neukum.org>
-CC: Greg KH <greg@kroah.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
-	Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Felipe Balbi <balbi@ti.com>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Adam Baker <linux@baker-net.org.uk>
-Subject: Re: USB mini-summit at LinuxCon Vancouveroliver
-References: <20110610002103.GA7169@xanatos> <20110804225603.GA2557@kroah.com> <4E3B9FB4.30709@redhat.com> <201108050959.00873.oliver@neukum.org>
-In-Reply-To: <201108050959.00873.oliver@neukum.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Mauro:
 
-On 08/05/2011 09:59 AM, Oliver Neukum wrote:
-> Am Freitag, 5. August 2011, 09:45:56 schrieb Hans de Goede:
->> This is the issue on which I feel a bit stonewalled. Simple putting your
->> fingers in your ears and singing la la la do it in userspace is not going
->> to cut it here. There is no way to do this race free in userspace, unless
->> all possible callers of mount get modified. Moreover 99% of the necessary
->> accounting for this is already done in the kernel. We already have the notion
->> of a block device being in use. We simply need to add some code to pass
->> this notion to the usb mass storage driver, and add a new try_disconnect
->> callback for usb drivers. I'm not saying this is going to be completely
->> straight forward, but it ain't rocket science either. And it so very
->> obviously is the right thing to do, that I'm getting very tired of
->> the do it in userspace song I keep hearing.
->
-> Doing a try_disconnect() would also solve the dual camera issue.
-> But it doesn't really interfere with the user space vs. kernel space
-> issue. You simply have to expand the ioctl interface to have
-> an ioctl that triggers this API call in the kernel.
->
-> A V4L2 device would return an error if its device node is opened,
-> otherwise disconnect.
+To be fair, this patch itself isn't sufficient to solve the problem described in the text provided. One other patch is necessary to get this goal accomplished, named, one published in this same thread in 2011-07-18.
 
-Getting a bit offtopic here, but no a try_disconnect will fix the
-userspace stillcam mode driver being able to disconnect the device
-while the webcam function is active. If the webcam is not active
-userspace will still "win", and possibly never return the device
-back to the kernel driver (this already happens today with
-gvfs-gphoto creating a fuse mount and keeping the device open
-indefinitely, locking out the webcam function).
+This later fix is now embedded in a wider patch provided by Jean-François Moine in 2011-08-10.
 
-Likewise a v4l2 control panel like app (think alsamixer for
-videodevs to set brightness / contrast, etc.) can keep the /dev/video
-node open indefinitely. Unless we rewrite most of userspace, we need
-to allow the device to be open in bode modes *at the same time* and
-only fail with -EBUSY when something really exclusive is requested
-(so not just having the device open, or setting contrast, but
-trying to stream and read/delete pictures from the stillcam
-memory at the same time).
+I'd suggest to change the text below, if possible, mentioning only something like "fix wrong register masking".
 
-Regards,
+Thanks,
 
-Hans
+Luiz
+
+
+--- Em dom, 7/8/11, Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+
+> De: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Assunto: [git:v4l-dvb/for_v3.2] [media] Fix wrong register mask in gspca/sonixj.c
+> Para: linuxtv-commits@linuxtv.org
+> Cc: "Jean-François Moine" <moinejf@free.fr>, "Luiz Carlos Ramos" <lramos.prof@yahoo.com.br>
+> Data: Domingo, 7 de Agosto de 2011, 9:03
+> This is an automatic generated email
+> to let you know that the following patch were queued at the
+> 
+> http://git.linuxtv.org/media_tree.git
+> tree:
+> 
+> Subject: [media] Fix wrong register mask in gspca/sonixj.c
+> Author:  Luiz Ramos <luizzramos@yahoo.com.br>
+> Date:    Thu Jul 14 23:08:39 2011 -0300
+> 
+> Hello,
+> 
+> When migrating from Slackware 13.1 to 13.37 (kernel
+> 2.6.33.x to
+> 2.6.37.6), there was some sort of regression with the
+> external webcam
+> installed at the notebook (0x45:6128, SN9C325+OM6802).
+> 
+> In the version 2.6.37.6, the images got *very* dark, making
+> the webcam
+> almost unusable, unless if used with direct sunlight.
+> 
+> Tracing back what happened, I concluded that changeset
+> 0e4d413af
+> caused some sort of odd effects - including this - to this
+> specific model.
+> 
+> Signed-off-by: Luiz Carlos Ramos <lramos.prof@yahoo.com.br>
+> Acked-by: Jean-François Moine <moinejf@free.fr>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+>  drivers/media/video/gspca/sonixj.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> ---
+> 
+> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=d1520c58eb84ad1ec973a257cd835c948215aab5
+> 
+> diff --git a/drivers/media/video/gspca/sonixj.c
+> b/drivers/media/video/gspca/sonixj.c
+> index 81b8a60..2ad757d 100644
+> --- a/drivers/media/video/gspca/sonixj.c
+> +++ b/drivers/media/video/gspca/sonixj.c
+> @@ -2386,7 +2386,7 @@ static int sd_start(struct gspca_dev
+> *gspca_dev)
+>          reg_w1(gspca_dev,
+> 0x01, 0x22);
+>          msleep(100);
+>          reg01 = SCL_SEL_OD |
+> S_PDN_INV;
+> -        reg17 &=
+> MCK_SIZE_MASK;
+> +        reg17 &=
+> ~MCK_SIZE_MASK;
+>          reg17 |=
+> 0x04;        /* clock / 4 */
+>          break;
+>      }
+> 
