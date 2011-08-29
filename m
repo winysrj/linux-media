@@ -1,87 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:25971 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751874Ab1HAOKt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Aug 2011 10:10:49 -0400
-Received: from epcpsbgm2.samsung.com (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LP900DFM6202I50@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 01 Aug 2011 23:10:48 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LP900FLQ61XO2@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 01 Aug 2011 23:10:48 +0900 (KST)
-Date: Mon, 01 Aug 2011 16:10:43 +0200
-From: Kamil Debski <k.debski@samsung.com>
-Subject: RE: media Documentation Errors
-In-reply-to: <4E34E34E.9040200@infradead.org>
-To: 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Randy Dunlap' <rdunlap@xenotime.net>
-Cc: linux-media@vger.kernel.org
-Message-id: <001a01cc5054$cfb9d880$6f2d8980$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-language: en-gb
-Content-transfer-encoding: 7BIT
-References: <20110730165133.74b91104.rdunlap@xenotime.net>
- <4E34E34E.9040200@infradead.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54286 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752763Ab1H2M0d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Aug 2011 08:26:33 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] media: Add support for arbitrary resolution for the ov5642 camera driver
+Date: Mon, 29 Aug 2011 14:26:56 +0200
+Cc: Bastian Hecht <hechtb@googlemail.com>, linux-media@vger.kernel.org
+References: <alpine.DEB.2.02.1108171551040.17540@ipanema> <201108281949.05551.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1108291409300.31184@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1108291409300.31184@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108291426.57501.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Guennadi,
 
-> From: Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
+On Monday 29 August 2011 14:18:50 Guennadi Liakhovetski wrote:
+> On Sun, 28 Aug 2011, Laurent Pinchart wrote:
 > 
-> Hi Randy,
+> [snip]
 > 
-> Em 30-07-2011 20:51, Randy Dunlap escreveu:
-> > Hi,
-> >
-> > What do I need to do to eliminate these errors?
-> > (from 3.0-git12)
+> > > @@ -593,8 +639,7 @@ static struct ov5642 *to_ov5642(const struct
+> > > i2c_client *client) }
+> > > 
+> > >  /* Find a data format by a pixel code in an array */
+> > > 
+> > > -static const struct ov5642_datafmt
+> > > -			*ov5642_find_datafmt(enum v4l2_mbus_pixelcode code)
+> > > +static const struct ov5642_datafmt *ov5642_find_datafmt(enum
+> > > v4l2_mbus_pixelcode code) {
+> > 
+> > checkpatch.pl won't be happy.
 > 
-> Thanks for reporting it.
-> 
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-header-mode.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-multi-slice-mode.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-h264-entropy-mode.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-h264-level.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-h264-loop-filter-mode.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-h264-profile.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-h264-vui-sar-idc.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-level.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-profile.
-> > Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-frame-skip-mode.
-> > Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-force-frame-
-> type.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-header-mode.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-multi-slice-mode.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-h264-entropy-mode.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-h264-level.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-h264-loop-filter-mode.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-h264-profile.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-h264-vui-sar-idc.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-level.
-> > Error: no ID for constraint linkend: v4l2-mpeg-video-mpeg4-profile.
-> > Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-frame-skip-mode.
-> > Error: no ID for constraint linkend: v4l2-mpeg-mfc51-video-force-frame-
-> type.
-> 
-> This probably means that Samsung guys didn't properly documented those new
-> stuff
-> into the DocBook, e. g. they're defined at include/linux/videodev2.h, but
-> either there's no documentation for them, or the links inside the docbook
-> don't match.
-> 
-> Kamil?
+> Since the lift of the hard 80-char limit, I often find lines of 86
+> characters more acceptable than their split versions.
 
-Yes, I can confirm this and I am working on a fix. It is strange that I did not
-get those errors when I did "make htmldocs".
+When has that been lifted ?
 
-Best wishes,
+> [snip]
+> 
+> > > @@ -774,17 +839,27 @@ static int ov5642_s_fmt(struct v4l2_subdev *sd,
+> > > 
+> > >  	ov5642_try_fmt(sd, mf);
+> > > 
+> > > +	priv->out_size.width		= mf->width;
+> > > +	priv->out_size.height		= mf->height;
+> > 
+> > It looks like to me (but I may be wrong) that you achieve different
+> > resolutions using cropping, not scaling. If that's correct you should
+> > implement s_crop support and refuse changing the resolution through
+> > s_fmt.
+> 
+> As the patch explains (I think) on several occasions, currently only the
+> 1:1 scale is supported, and it was our deliberate choice to implement this
+> using the scaling API
+
+If you implement cropping, you should use the crop API, not the scaling API 
+:-)
+
+> > > @@ -793,10 +868,12 @@ static int ov5642_g_fmt(struct v4l2_subdev *sd,
+> > > 
+> > >  	mf->code	= fmt->code;
+> > >  	mf->colorspace	= fmt->colorspace;
+> > > 
+> > > -	mf->width	= OV5642_WIDTH;
+> > > -	mf->height	= OV5642_HEIGHT;
+> > > +	mf->width	= priv->out_size.width;
+> > > +	mf->height	= priv->out_size.height;
+> > > 
+> > >  	mf->field	= V4L2_FIELD_NONE;
+> > > 
+> > > +	dev_dbg(sd->v4l2_dev->dev, "%s return width: %u heigth: %u\n",
+> > > __func__, +			mf->width, mf->height);
+> > 
+> > Isn't that a bit too verbose ? Printing the format in a debug message in
+> > the s_fmt handler is useful, but maybe doing it in g_fmt is a bit too
+> > much.
+> 
+> This is a dev_dbg()... Personally, as long as they don't clutter the source
+> code needlessly, compile without warnings and have their typos fixed (;-))
+
+Removing it is a good way to fix the typo :-)
+
+> I don't have problems with an odd instance, even if I don't really perceive
+> its output as particularly useful:-)
+
 -- 
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+Regards,
 
+Laurent Pinchart
