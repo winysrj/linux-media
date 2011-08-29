@@ -1,368 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1480 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756161Ab1H3TkN (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50142 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753317Ab1H2Iud (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 15:40:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] media: none of the drivers should be enabled by default
-Date: Tue, 30 Aug 2011 21:39:23 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <Pine.LNX.4.64.1108301921040.19151@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1108301921040.19151@axis700.grange>
+	Mon, 29 Aug 2011 04:50:33 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH/RFC v2 1/3] fbdev: Add FOURCC-based format configuration API
+Date: Mon, 29 Aug 2011 10:50:58 +0200
+Cc: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com
+References: <1313746626-23845-1-git-send-email-laurent.pinchart@ideasonboard.com> <1313746626-23845-2-git-send-email-laurent.pinchart@ideasonboard.com> <CAMuHMdV-JxK1Pp1aHmEG7N8G8u_un-G7zGZa+KNzGx2D37EbKQ@mail.gmail.com>
+In-Reply-To: <CAMuHMdV-JxK1Pp1aHmEG7N8G8u_un-G7zGZa+KNzGx2D37EbKQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201108302139.23337.hverkuil@xs4all.nl>
+Message-Id: <201108291050.59109.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday, August 30, 2011 19:22:00 Guennadi Liakhovetski wrote:
-> None of the media drivers are compulsory, let users select which drivers
-> they want to build, instead of having to unselect them one by one.
+Hi Geert,
 
-I disagree with this: while this is fine for SoCs, for a generic kernel I
-think it is better to build it all. Even expert users can have a hard time
-figuring out what chip is in a particular device.
+Thanks for the review.
 
+On Monday 29 August 2011 10:13:07 Geert Uytterhoeven wrote:
+> On Fri, Aug 19, 2011 at 11:37, Laurent Pinchart wrote:
+
+[snip]
+
+> > +- FB_TYPE_PACKED_PIXELS
+> > +
+> > +Color components (usually RGB or YUV) are packed together into
+> > macropixels +that are stored in a single plane. The exact color
+> > components layout is +described in a visual-dependent way.
+> > +
+> > +Frame buffer visuals that don't use multiple color components per pixel
+> > +(such as monochrome and pseudo-color visuals) are reported as packed
+> > frame +buffer types, even though they don't stricly speaking pack color
+> > components +into macropixels.
+> 
+> That's because the "packing" is not about the color components, but about
+> the bits that represent a single pixel.
+> 
+> I.e. the bits that make up the pixel (the macropixel) are stored next
+> to each other
+> in memory.
+
+OK, I've modified that last sentence to read
+
+"Frame buffer visuals that don't use multiple color components per pixel (such 
+as monochrome and pseudo-color visuals) are also reported as packed frame
+buffer types, as the bits that make up individual pixels are packed next to
+each other in memory."
+
+> > +- FB_TYPE_PLANES
+> > +
+> > +Color components are stored in separate planes. Planes are located
+> > +contiguously in memory.
+> 
+> The bits that make up a pixel are stored in separate planes. Planes are
+> located contiguously in memory.
+
+I'm not sure to agree with this. You make it sounds like FB_TYPE_PLANES stores 
+each bit in a different plane. Is that really the case ?
+
+> - FB_TYPE_INTERLEAVED_PLANES
+> 
+> The bits that make up a pixel are stored in separate planes. Planes
+> are interleaved.
+> The interleave factor (the distance in bytes between the planes in
+> memory) is stored in the type_aux field.
+
+That's a bit unclear to me. How are they interleaved ?
+
+> > +- FB_VISUAL_MONO01
+> > +
+> > +Pixels are black or white and stored on one bit. A bit set to 1
+> > represents a +black pixel and a bit set to 0 a white pixel. Pixels are
+> > packed together in +bytes with 8 pixels per byte.
+> 
+> Actually we do have drivers that use 8 bits per pixel for a monochrome
+> visual. Hence:
+> 
+> "Pixels are black or white. A black pixel is represented by all
+> (typically one) bits set to ones, a white pixel by all bits set to zeroes."
+
+OK. I've rephrased it as
+
+"Pixels are black or white and stored on a number of bits (typically one)
+specified by the variable screen information bpp field. 
+
+Black pixels are represented by all bits set to 1 and white pixels by all bits
+set to 0. When the number of bits per pixel is smaller than 8, several pixels 
+are packed together in a byte."
+
+> > +FB_VISUAL_MONO01 is used with FB_TYPE_PACKED_PIXELS only.
+> 
+> ... so this may also not be true (but it is for all current drivers, IIRC).
+> There's a strict orthogonality between type (how is a pixel stored in
+> memory) and visual (how the bits that represent the pixel are interpreted
+> and converted to a color value).
+
+What about
+
+"FB_VISUAL_MONO01 is currently used with FB_TYPE_PACKED_PIXELS only." ?
+
+> Same comments for FB_VISUAL_MONO10
+
+Fixed the same way.
+
+> > +- FB_VISUAL_TRUECOLOR
+> > +
+> > +Pixels are broken into red, green and blue components, and each
+> > component +indexes a read-only lookup table for the corresponding value.
+> > Lookup tables +are device-dependent, and provide linear or non-linear
+> > ramps.
+> > +
+> > +Each component is stored in memory according to the variable screen
+> > +information red, green, blue and transp fields.
+> 
+> "Each component is stored in a macropixel according to the variable screen
+> information red, green, blue and transp fields."
+> 
+> Storage format in memory is determined by the FB_TYPE_* value.
+
+How so ? With FB_TYPE_PLANES and FB_VISUAL_TRUECOLOR for an RGB format, how 
+are the R, G and B planes ordered ? Are color components packed or padded 
+inside a plane ? I understand that the design goal was to have orthogonal 
+FB_TYPE_* and FB_VISUAL_* values, but we're missing too much information for 
+that to be truly generic.
+
+> > +- FB_VISUAL_PSEUDOCOLOR and FB_VISUAL_STATIC_PSEUDOCOLOR
+> > +
+> > +Pixel values are encoded as indices into a colormap that stores red,
+> > green and +blue components. The colormap is read-only for
+> > FB_VISUAL_STATIC_PSEUDOCOLOR +and read-write for FB_VISUAL_PSEUDOCOLOR.
+> > +
+> > +Each pixel value is stored in the number of bits reported by the
+> > variable +screen information bits_per_pixel field. Pixels are contiguous
+> > in memory.
+> 
+> Whether pixels are contiguous in memory or not is determined by the
+> FB_TYPE_* value.
+
+How can they not be contiguous in memory ? Can you please give an example ?
+
+> > +FB_VISUAL_PSEUDOCOLOR and FB_VISUAL_STATIC_PSEUDOCOLOR are used with
+> > +FB_TYPE_PACKED_PIXELS only.
+> 
+> Not true. Several drivers use bit planes or interleaved bitplanes.
+
+How does that work ?
+
+> > +- FB_VISUAL_DIRECTCOLOR
+> > +
+> > +Pixels are broken into red, green and blue components, and each
+> > component +indexes a programmable lookup table for the corresponding
+> > value. +
+> > +Each component is stored in memory according to the variable screen
+> > +information red, green, blue and transp fields.
+> 
+> "Each component is stored in a macropixel according to the variable screen
+> information red, green, blue and transp fields."
+> 
+> > +- FB_VISUAL_FOURCC
+> > +
+> > +Pixels are stored in memory as described by the format FOURCC identifier
+> > +stored in the variable screen information fourcc field.
+> 
+> ... stored in memory and interpreted ...
+> 
+> > +struct fb_var_screeninfo {
+> > +       __u32 xres;                     /* visible resolution          
+> > */ +       __u32 yres;
+> > +       __u32 xres_virtual;             /* virtual resolution          
+> > */ +       __u32 yres_virtual;
+> > +       __u32 xoffset;                  /* offset from virtual to visible
+> > */ +       __u32 yoffset;                  /* resolution                
+> >   */ +
+> > +       __u32 bits_per_pixel;           /* guess what                  
+> > */ +       union {
+> > +               struct {                /* Legacy format API          
+> >  */ +                       __u32 grayscale; /* != 0 Graylevels instead
+> > of colors */ +                       /* bitfields in fb mem if true
+> > color, else only */ +                       /* length is significant    
+> >                    */ +                       struct fb_bitfield red;
+> > +                       struct fb_bitfield green;
+> > +                       struct fb_bitfield blue;
+> > +                       struct fb_bitfield transp;      /* transparency
+> > */ +               };
+> > +               struct {                /* FOURCC-based format API    
+> >  */ +                       __u32 fourcc;           /* FOURCC format    
+> >    */ +                       __u32 colorspace;
+> > +                       __u32 reserved[11];
+> > +               } format;
+> > +       };
+> > +
+> > +       struct fb_bitfield red;         /* bitfield in fb mem if true
+> > color, */ +       struct fb_bitfield green;       /* else only length is
+> > significant */ +       struct fb_bitfield blue;
+> > +       struct fb_bitfield transp;      /* transparency                
+> > */
+> 
+> These four are duplicated, cfr. the union above.
+
+Oops :-)
+
+-- 
 Regards,
 
-	Hans
-
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  drivers/media/common/tuners/Kconfig |   23 +----------------------
->  drivers/media/radio/Kconfig         |    1 -
->  drivers/media/rc/Kconfig            |   16 +---------------
->  drivers/media/rc/keymaps/Kconfig    |    1 -
->  drivers/media/video/Kconfig         |    7 ++-----
->  5 files changed, 4 insertions(+), 44 deletions(-)
-> 
-> diff --git a/drivers/media/common/tuners/Kconfig b/drivers/media/common/tuners/Kconfig
-> index 996302a..1e53057 100644
-> --- a/drivers/media/common/tuners/Kconfig
-> +++ b/drivers/media/common/tuners/Kconfig
-> @@ -33,7 +33,7 @@ config MEDIA_TUNER
->  	select MEDIA_TUNER_MC44S803 if !MEDIA_TUNER_CUSTOMISE
->  
->  config MEDIA_TUNER_CUSTOMISE
-> -	bool "Customize analog and hybrid tuner modules to build"
-> +	bool "Select analog and hybrid tuner modules to build"
->  	depends on MEDIA_TUNER
->  	default y if EXPERT
->  	help
-> @@ -52,7 +52,6 @@ config MEDIA_TUNER_SIMPLE
->  	tristate "Simple tuner support"
->  	depends on VIDEO_MEDIA && I2C
->  	select MEDIA_TUNER_TDA9887
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  Say Y here to include support for various simple tuners.
->  
-> @@ -61,28 +60,24 @@ config MEDIA_TUNER_TDA8290
->  	depends on VIDEO_MEDIA && I2C
->  	select MEDIA_TUNER_TDA827X
->  	select MEDIA_TUNER_TDA18271
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  Say Y here to include support for Philips TDA8290+8275(a) tuner.
->  
->  config MEDIA_TUNER_TDA827X
->  	tristate "Philips TDA827X silicon tuner"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  A DVB-T silicon tuner module. Say Y when you want to support this tuner.
->  
->  config MEDIA_TUNER_TDA18271
->  	tristate "NXP TDA18271 silicon tuner"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  A silicon tuner module. Say Y when you want to support this tuner.
->  
->  config MEDIA_TUNER_TDA9887
->  	tristate "TDA 9885/6/7 analog IF demodulator"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  Say Y here to include support for Philips TDA9885/6/7
->  	  analog IF demodulator.
-> @@ -91,63 +86,54 @@ config MEDIA_TUNER_TEA5761
->  	tristate "TEA 5761 radio tuner (EXPERIMENTAL)"
->  	depends on VIDEO_MEDIA && I2C
->  	depends on EXPERIMENTAL
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  Say Y here to include support for the Philips TEA5761 radio tuner.
->  
->  config MEDIA_TUNER_TEA5767
->  	tristate "TEA 5767 radio tuner"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  Say Y here to include support for the Philips TEA5767 radio tuner.
->  
->  config MEDIA_TUNER_MT20XX
->  	tristate "Microtune 2032 / 2050 tuners"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  Say Y here to include support for the MT2032 / MT2050 tuner.
->  
->  config MEDIA_TUNER_MT2060
->  	tristate "Microtune MT2060 silicon IF tuner"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  A driver for the silicon IF tuner MT2060 from Microtune.
->  
->  config MEDIA_TUNER_MT2266
->  	tristate "Microtune MT2266 silicon tuner"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  A driver for the silicon baseband tuner MT2266 from Microtune.
->  
->  config MEDIA_TUNER_MT2131
->  	tristate "Microtune MT2131 silicon tuner"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  A driver for the silicon baseband tuner MT2131 from Microtune.
->  
->  config MEDIA_TUNER_QT1010
->  	tristate "Quantek QT1010 silicon tuner"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  A driver for the silicon tuner QT1010 from Quantek.
->  
->  config MEDIA_TUNER_XC2028
->  	tristate "XCeive xc2028/xc3028 tuners"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  Say Y here to include support for the xc2028/xc3028 tuners.
->  
->  config MEDIA_TUNER_XC5000
->  	tristate "Xceive XC5000 silicon tuner"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  A driver for the silicon tuner XC5000 from Xceive.
->  	  This device is only used inside a SiP called together with a
-> @@ -156,7 +142,6 @@ config MEDIA_TUNER_XC5000
->  config MEDIA_TUNER_XC4000
->  	tristate "Xceive XC4000 silicon tuner"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  A driver for the silicon tuner XC4000 from Xceive.
->  	  This device is only used inside a SiP called together with a
-> @@ -165,42 +150,36 @@ config MEDIA_TUNER_XC4000
->  config MEDIA_TUNER_MXL5005S
->  	tristate "MaxLinear MSL5005S silicon tuner"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  A driver for the silicon tuner MXL5005S from MaxLinear.
->  
->  config MEDIA_TUNER_MXL5007T
->  	tristate "MaxLinear MxL5007T silicon tuner"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  A driver for the silicon tuner MxL5007T from MaxLinear.
->  
->  config MEDIA_TUNER_MC44S803
->  	tristate "Freescale MC44S803 Low Power CMOS Broadband tuners"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  Say Y here to support the Freescale MC44S803 based tuners
->  
->  config MEDIA_TUNER_MAX2165
->  	tristate "Maxim MAX2165 silicon tuner"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  A driver for the silicon tuner MAX2165 from Maxim.
->  
->  config MEDIA_TUNER_TDA18218
->  	tristate "NXP TDA18218 silicon tuner"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  NXP TDA18218 silicon tuner driver.
->  
->  config MEDIA_TUNER_TDA18212
->  	tristate "NXP TDA18212 silicon tuner"
->  	depends on VIDEO_MEDIA && I2C
-> -	default m if MEDIA_TUNER_CUSTOMISE
->  	help
->  	  NXP TDA18212 silicon tuner driver.
->  
-> diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-> index 52798a1..0195335 100644
-> --- a/drivers/media/radio/Kconfig
-> +++ b/drivers/media/radio/Kconfig
-> @@ -5,7 +5,6 @@
->  menuconfig RADIO_ADAPTERS
->  	bool "Radio Adapters"
->  	depends on VIDEO_V4L2
-> -	default y
->  	---help---
->  	  Say Y here to enable selecting AM/FM radio adapters.
->  
-> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> index 899f783..2a4f829 100644
-> --- a/drivers/media/rc/Kconfig
-> +++ b/drivers/media/rc/Kconfig
-> @@ -1,7 +1,6 @@
->  menuconfig RC_CORE
->  	tristate "Remote Controller adapters"
->  	depends on INPUT
-> -	default INPUT
->  	---help---
->  	  Enable support for Remote Controllers on Linux. This is
->  	  needed in order to support several video capture adapters.
-> @@ -11,12 +10,9 @@ menuconfig RC_CORE
->  	  if you don't need IR, as otherwise, you may not be able to
->  	  compile the driver for your adapter.
->  
-> -if RC_CORE
-> -
->  config LIRC
->  	tristate
-> -	default y
-> -
-> +	depends on RC_CORE
->  	---help---
->  	   Enable this option to build the Linux Infrared Remote
->  	   Control (LIRC) core device interface driver. The LIRC
-> @@ -30,7 +26,6 @@ config IR_NEC_DECODER
->  	tristate "Enable IR raw decoder for the NEC protocol"
->  	depends on RC_CORE
->  	select BITREVERSE
-> -	default y
->  
->  	---help---
->  	   Enable this option if you have IR with NEC protocol, and
-> @@ -40,7 +35,6 @@ config IR_RC5_DECODER
->  	tristate "Enable IR raw decoder for the RC-5 protocol"
->  	depends on RC_CORE
->  	select BITREVERSE
-> -	default y
->  
->  	---help---
->  	   Enable this option if you have IR with RC-5 protocol, and
-> @@ -50,7 +44,6 @@ config IR_RC6_DECODER
->  	tristate "Enable IR raw decoder for the RC6 protocol"
->  	depends on RC_CORE
->  	select BITREVERSE
-> -	default y
->  
->  	---help---
->  	   Enable this option if you have an infrared remote control which
-> @@ -60,7 +53,6 @@ config IR_JVC_DECODER
->  	tristate "Enable IR raw decoder for the JVC protocol"
->  	depends on RC_CORE
->  	select BITREVERSE
-> -	default y
->  
->  	---help---
->  	   Enable this option if you have an infrared remote control which
-> @@ -69,7 +61,6 @@ config IR_JVC_DECODER
->  config IR_SONY_DECODER
->  	tristate "Enable IR raw decoder for the Sony protocol"
->  	depends on RC_CORE
-> -	default y
->  
->  	---help---
->  	   Enable this option if you have an infrared remote control which
-> @@ -79,7 +70,6 @@ config IR_RC5_SZ_DECODER
->  	tristate "Enable IR raw decoder for the RC-5 (streamzap) protocol"
->  	depends on RC_CORE
->  	select BITREVERSE
-> -	default y
->  
->  	---help---
->  	   Enable this option if you have IR with RC-5 (streamzap) protocol,
-> @@ -91,7 +81,6 @@ config IR_MCE_KBD_DECODER
->  	tristate "Enable IR raw decoder for the MCE keyboard/mouse protocol"
->  	depends on RC_CORE
->  	select BITREVERSE
-> -	default y
->  
->  	---help---
->  	   Enable this option if you have a Microsoft Remote Keyboard for
-> @@ -102,7 +91,6 @@ config IR_LIRC_CODEC
->  	tristate "Enable IR to LIRC bridge"
->  	depends on RC_CORE
->  	depends on LIRC
-> -	default y
->  
->  	---help---
->  	   Enable this option to pass raw IR to and from userspace via
-> @@ -236,5 +224,3 @@ config RC_LOOPBACK
->  
->  	   To compile this driver as a module, choose M here: the module will
->  	   be called rc_loopback.
-> -
-> -endif #RC_CORE
-> diff --git a/drivers/media/rc/keymaps/Kconfig b/drivers/media/rc/keymaps/Kconfig
-> index 8e615fd..dbaacf1 100644
-> --- a/drivers/media/rc/keymaps/Kconfig
-> +++ b/drivers/media/rc/keymaps/Kconfig
-> @@ -1,7 +1,6 @@
->  config RC_MAP
->  	tristate "Compile Remote Controller keymap modules"
->  	depends on RC_CORE
-> -	default y
->  
->  	---help---
->  	   This option enables the compilation of lots of Remote
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index f574dc0..d26443d 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -73,7 +73,6 @@ config VIDEOBUF2_DMA_SG
->  menuconfig VIDEO_CAPTURE_DRIVERS
->  	bool "Video capture adapters"
->  	depends on VIDEO_V4L2
-> -	default y
->  	---help---
->  	  Say Y here to enable selecting the video adapters for
->  	  webcams, analog TV, and hybrid analog/digital TV.
-> @@ -113,8 +112,8 @@ config VIDEO_HELPER_CHIPS_AUTO
->  
->  config VIDEO_IR_I2C
->  	tristate "I2C module for IR" if !VIDEO_HELPER_CHIPS_AUTO
-> -	depends on I2C && RC_CORE
-> -	default y
-> +	depends on I2C
-> +	select RC_CORE
->  	---help---
->  	  Most boards have an IR chip directly connected via GPIO. However,
->  	  some video boards have the IR connected via I2C bus.
-> @@ -556,7 +555,6 @@ config VIDEO_VIU
->  	tristate "Freescale VIU Video Driver"
->  	depends on VIDEO_V4L2 && PPC_MPC512x
->  	select VIDEOBUF_DMA_CONTIG
-> -	default y
->  	---help---
->  	  Support for Freescale VIU video driver. This device captures
->  	  video data, or overlays video on DIU frame buffer.
-> @@ -986,7 +984,6 @@ source "drivers/media/video/s5p-tv/Kconfig"
->  menuconfig V4L_USB_DRIVERS
->  	bool "V4L USB devices"
->  	depends on USB
-> -	default y
->  
->  if V4L_USB_DRIVERS && USB
->  
-> 
+Laurent Pinchart
