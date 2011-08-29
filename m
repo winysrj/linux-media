@@ -1,144 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36502 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47419 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756236Ab1HaPOX (ORCPT
+	with ESMTP id S1752824Ab1H2KtH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 11:14:23 -0400
+	Mon, 29 Aug 2011 06:49:07 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi, gary@mlbassoc.com
-Subject: [HACK 3/3] omap3isp: ccdc: Add YUV input formats support
-Date: Wed, 31 Aug 2011 17:14:48 +0200
-Message-Id: <1314803688-29566-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1314803688-29566-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1314803688-29566-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: Getting started with OMAP3 ISP
+Date: Mon, 29 Aug 2011 12:49:32 +0200
+Cc: linux-media@vger.kernel.org
+References: <4E56734A.3080001@mlbassoc.com>
+In-Reply-To: <4E56734A.3080001@mlbassoc.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108291249.33118.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/ispccdc.c  |   33 +++++++++++++++++++++++++++++-
- drivers/media/video/omap3isp/ispvideo.c |    6 +++++
- include/media/omap3isp.h                |    3 ++
- 3 files changed, 40 insertions(+), 2 deletions(-)
+Hi Gary,
 
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index 9efb703..3bc9b7d 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -57,6 +57,10 @@ static const unsigned int ccdc_fmts[] = {
- 	V4L2_MBUS_FMT_SRGGB12_1X12,
- 	V4L2_MBUS_FMT_SBGGR12_1X12,
- 	V4L2_MBUS_FMT_SGBRG12_1X12,
-+	V4L2_MBUS_FMT_YUYV8_1X16,
-+	V4L2_MBUS_FMT_UYVY8_1X16,
-+	V4L2_MBUS_FMT_YUYV8_2X8,
-+	V4L2_MBUS_FMT_UYVY8_2X8,
- };
- 
- /*
-@@ -628,7 +632,7 @@ static void ccdc_configure_alaw(struct isp_ccdc_device *ccdc)
- 
- 	info = omap3isp_video_format_info(ccdc->formats[CCDC_PAD_SINK].code);
- 
--	switch (info->bpp) {
-+	switch (info->width) {
- 	case 8:
- 		return;
- 
-@@ -822,7 +826,7 @@ static void ccdc_config_vp(struct isp_ccdc_device *ccdc)
- 
- 	info = omap3isp_video_format_info(ccdc->formats[CCDC_PAD_SINK].code);
- 
--	switch (info->bpp) {
-+	switch (info->width) {
- 	case 8:
- 	case 10:
- 		fmtcfg_vp |= ISPCCDC_FMTCFG_VPIN_9_0;
-@@ -968,6 +972,7 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
- 				unsigned int data_size)
- {
- 	struct isp_device *isp = to_isp_device(ccdc);
-+	struct v4l2_mbus_framefmt *format;
- 	u32 syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC,
- 				     ISPCCDC_SYN_MODE);
- 
-@@ -976,6 +981,16 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
- 		      ISPCCDC_SYN_MODE_FLDOUT | ISPCCDC_SYN_MODE_VDHDOUT);
- 	syn_mode |= ISPCCDC_SYN_MODE_VDHDEN;
- 
-+	format = &ccdc->formats[CCDC_PAD_SINK];
-+
-+	syn_mode &= ~ISPCCDC_SYN_MODE_INPMOD_MASK;
-+	if (format->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
-+	    format->code == V4L2_MBUS_FMT_UYVY8_2X8)
-+		syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
-+	else if (format->code == V4L2_MBUS_FMT_YUYV8_1X16 ||
-+		 format->code == V4L2_MBUS_FMT_UYVY8_1X16)
-+		syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
-+
- 	syn_mode &= ~ISPCCDC_SYN_MODE_DATSIZ_MASK;
- 	switch (data_size) {
- 	case 8:
-@@ -1008,6 +1023,20 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
- 		syn_mode &= ~ISPCCDC_SYN_MODE_VDPOL;
- 
- 	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-+
-+	if (format->code == V4L2_MBUS_FMT_UYVY8_2X8)
-+		isp_reg_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG,
-+			    ISPCCDC_CFG_Y8POS);
-+	else
-+		isp_reg_clr(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG,
-+			    ISPCCDC_CFG_Y8POS);
-+
-+	if (pdata && pdata->bt656)
-+		isp_reg_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_REC656IF,
-+			    ISPCCDC_REC656IF_R656ON);
-+	else
-+		isp_reg_clr(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_REC656IF,
-+			    ISPCCDC_REC656IF_R656ON);
- }
- 
- /* CCDC formats descriptions */
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index 1fd15c8..f88b8af 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -100,6 +100,12 @@ static struct isp_format_info formats[] = {
- 	{ V4L2_MBUS_FMT_YUYV8_1X16, V4L2_MBUS_FMT_YUYV8_1X16,
- 	  V4L2_MBUS_FMT_YUYV8_1X16, 0,
- 	  V4L2_PIX_FMT_YUYV, 16, 16, },
-+	{ V4L2_MBUS_FMT_UYVY8_2X8, V4L2_MBUS_FMT_UYVY8_2X8,
-+	  V4L2_MBUS_FMT_UYVY8_2X8, 0,
-+	  V4L2_PIX_FMT_UYVY, 8, 16, },
-+	{ V4L2_MBUS_FMT_YUYV8_2X8, V4L2_MBUS_FMT_YUYV8_2X8,
-+	  V4L2_MBUS_FMT_YUYV8_2X8, 0,
-+	  V4L2_PIX_FMT_YUYV, 8, 16, },
- };
- 
- const struct isp_format_info *
-diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-index 5291665..2cedd44 100644
---- a/include/media/omap3isp.h
-+++ b/include/media/omap3isp.h
-@@ -69,6 +69,8 @@ enum {
-  *		ISP_BRIDGE_DISABLE - Disable
-  *		ISP_BRIDGE_LITTLE_ENDIAN - Little endian
-  *		ISP_BRIDGE_BIG_ENDIAN - Big endian
-+ * @bt656: ITU-R BT656 embedded synchronization
-+ *		0 - HS/VS sync, 1 - BT656 sync
-  */
- struct isp_parallel_platform_data {
- 	unsigned int data_lane_shift:2;
-@@ -77,6 +79,7 @@ struct isp_parallel_platform_data {
- 	unsigned int vs_pol:1;
- 	unsigned int data_pol:1;
- 	unsigned int bridge:2;
-+	unsigned int bt656:1;
- };
- 
- enum {
+On Thursday 25 August 2011 18:07:38 Gary Thomas wrote:
+> Background:  I have working video capture drivers based on the
+> TI PSP codebase from 2.6.32.  In particular, I managed to get
+> a driver for the TVP5150 (analogue BT656) working with that kernel.
+> 
+> Now I need to update to Linux 3.0, so I'm trying to get a driver
+> working with the rewritten ISP code.  Sadly, I'm having a hard
+> time with this - probably just missing something basic.
+> 
+> I've tried to clone the TVP514x driver which says that it works
+> with the OMAP3 ISP code.  I've updated it to use my decoder device,
+> but I can't even seem to get into that code from user land.
+> 
+> Here are the problems I've had so far:
+>    * udev doesn't create any video devices although they have been
+>      registered.  I see a full set in /sys/class/video4linux
+>         # ls /sys/class/video4linux/
+>         v4l-subdev0  v4l-subdev3  v4l-subdev6  video1       video4
+>         v4l-subdev1  v4l-subdev4  v4l-subdev7  video2       video5
+>         v4l-subdev2  v4l-subdev5  video0       video3       video6
+
+It looks like a udev issue. I don't think that's related to the kernel 
+drivers.
+
+>      Indeed, if I create /dev/videoX by hand, I can get somewhere, but
+>      I don't really understand how this is supposed to work.  e.g.
+>        # v4l2-dbg --info /dev/video3
+>        Driver info:
+>            Driver name   : ispvideo
+>            Card type     : OMAP3 ISP CCP2 input
+>            Bus info      : media
+>            Driver version: 1
+>            Capabilities  : 0x04000002
+>                    Video Output
+>                    Streaming
+> 
+>    * If I try to grab video, the ISP layer gets a ton of warnings, but
+>      I never see it call down into my driver, e.g. to check the current
+>      format, etc.  I have some of my own code from before which fails
+>      miserably (not a big surprise given the hack level of those programs).
+>      I tried something off-the-shelf which also fails pretty bad:
+>        # ffmpeg -t 10 -f video4linux2 -s 720x480 -r 30 -i /dev/video2
+> junk.mp4
+> 
+> I've read through Documentation/video4linux/omap3isp.txt without learning
+> much about what might be wrong.
+> 
+> Can someone give me some ideas/guidance, please?
+
+In a nutshell, you will first have to configure the OMAP3 ISP pipeline, and 
+then capture video.
+
+Configuring the pipeline is done through the media controller API and the V4L2 
+subdev pad-level API. To experiment with those you can use the media-ctl 
+command line application available at http://git.ideasonboard.org/?p=media-
+ctl.git;a=summary. You can run it with --print-dot and pipe the result to dot 
+-Tps to get a postscript graphical view of your device.
+
+Here's a sample pipeline configuration to capture scaled-down YUV data from a 
+sensor:
+
+./media-ctl -r -l '"mt9t001 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP 
+CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP 
+resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+./media-ctl -f '"mt9t001 3-005d":0[SGRBG10 1024x768], "OMAP3 ISP 
+CCDC":2[SGRBG10 1024x767], "OMAP3 ISP preview":1[YUYV 1006x759], "OMAP3 ISP 
+resizer":1[YUYV 800x600]'
+
+After configuring your pipeline you will be able to capture video using the 
+V4L2 API on the device node at the output of the pipeline.
+
 -- 
-1.7.3.4
+Regards,
 
+Laurent Pinchart
