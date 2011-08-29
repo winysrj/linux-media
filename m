@@ -1,76 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [206.117.179.246] ([206.117.179.246]:33386 "EHLO labridge.com"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750974Ab1H0Qmf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Aug 2011 12:42:35 -0400
-Subject: Re: [PATCH 06/14] [media] cx18: Use current logging styles
-From: Joe Perches <joe@perches.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-In-Reply-To: <1314451740.2244.7.camel@palomino.walls.org>
-References: <cover.1313966088.git.joe@perches.com>
-	 <29abc343c4fce5d019ce56f5a3882aedaeb092bc.1313966089.git.joe@perches.com>
-	 <1314182047.2253.3.camel@palomino.walls.org>
-	 <1314222175.15882.8.camel@Joe-Laptop>
-	 <1314451740.2244.7.camel@palomino.walls.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 27 Aug 2011 09:42:32 -0700
-Message-ID: <1314463352.6852.5.camel@Joe-Laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:43014 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753038Ab1H2ICF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Aug 2011 04:02:05 -0400
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LQO00BG2JNEYH@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 29 Aug 2011 09:02:02 +0100 (BST)
+Received: from [106.116.48.223] by spt2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LQO000VOJNEAN@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 29 Aug 2011 09:02:02 +0100 (BST)
+Date: Mon, 29 Aug 2011 10:01:58 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH 4/5] [media] v4l: fix copying ioctl results on failure
+In-reply-to: <201108261709.02567.laurent.pinchart@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl
+Message-id: <4E5B4776.3030709@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-15; format=flowed
+Content-transfer-encoding: 7BIT
+References: <1314363967-6448-1-git-send-email-t.stanislaws@samsung.com>
+ <1314363967-6448-5-git-send-email-t.stanislaws@samsung.com>
+ <201108261709.02567.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2011-08-27 at 09:28 -0400, Andy Walls wrote:
-> On Wed, 2011-08-24 at 14:42 -0700, Joe Perches wrote:
-> > On Wed, 2011-08-24 at 06:34 -0400, Andy Walls wrote:
-> > > On Sun, 2011-08-21 at 15:56 -0700, Joe Perches wrote:
-> > > > Add pr_fmt.
-> > > > Convert printks to pr_<level>.
-> > > > Convert printks without KERN_<level> to appropriate pr_<level>.
-> > > > Removed embedded prefixes when pr_fmt was added.
-> > > > Use ##__VA_ARGS__ for variadic macros.
-> > > > Coalesce format strings.
-> > > 1. It is important to preserve the per-card prefixes emitted by the
-> > > driver: cx18-0, cx18-1, cx18-2, etc.  With a quick skim, I think your
-> > > change preserves the format of all output messages (except removing
-> > > periods).  Can you confirm this?
-> > Here's the output diff of
-> > strings built-in.o | grep "^<.>" | sort
-> > new and old
-[]
-> Yuck.
-> > > 2. PLease don't add a pr_fmt() #define to exevry file.  Just put one
-> > > where all the other CX18_*() macros are defined.  Every file picks those
-> > > up.
-> > It's not the first #include of every file.
-> > printk.h has a default #define pr_fmt(fmt) fmt
-> Well then don't use "pr_fmt(fmt)" in cx18, if it overloads a define
-> somewhere else in the kernel and has a dependency on its order relative
-> to #include statements.  That sort of thing just ups maintenance hours
-> later.  That's not a good trade off for subjectively better log
-> messages.
-> Won't redifining the 'pr_fmt(fmt)' generate preprocessor warnings
-> anyway?
+On 08/26/2011 05:09 PM, Laurent Pinchart wrote:
+Hi Laurent,
+> Hi Tomasz,
+>
+> On Friday 26 August 2011 15:06:06 Tomasz Stanislawski wrote:
+>> This patch fix the handling of data passed to V4L2 ioctls.  The content of
+>> the structures is not copied if the ioctl fails.  It blocks ability to
+>> obtain any information about occurred error other then errno code. This
+>> patch fix this issue.
+> Does the V4L2 spec say anything on this topic ? We might have applications
+> that rely on the ioctl argument structure not being touched when a failure
+> occurs.
+Ups.. I missed something. It looks that modifying ioctl content is 
+illegal if ioctl fails. The spec says:
+"When an ioctl that takes an output or read/write parameter fails, the 
+parameter remains unmodified." (v4l2 ioctl section)
+However, there is probably a bug already present in V4L2 framework.
+There are some ioctls that takes a pointer to an array as a field in the 
+argument struct.
+The examples are all VIDIOC_*_EXT_CTRLS and VIDIOC_{QUERY/DQ/Q}_BUF family.
+The content of such an auxiliary arays is copied even if ioctl fails. 
+Please take a look to video_usercopy function in v4l2-ioctl.c. Therefore 
+I think that the spec is already violated. What is your opinion about 
+this problem?
 
-No.
+Now back to selection case.
+This patch was added as proposition of fix to VIDIOC_S_SELECTION, to 
+return the best-hit rectangle if constraints could not be satisfied. The 
+ioctl return -ERANGE in this case. Using those return values the 
+application gets some feedback
+on loosing constraints.
 
-Andy, I fully understand how this stuff works.
-You apparently don't (yet).
+I could remove rectangle returning from the spec and s5p-tv code for now.
 
-Look at include/linux/printk.h
+Regards,
+Tomasz Stanislawski
 
-#ifndef pr_fmt
-#define pr_fmt(fmt) fmt
-#endif
-
-A default empty define is used when one
-is not specified before printk.h is
-included.  kernel.h includes printk.h
-
-v4l2_<level> uses the "name" of the video
-device in its output.  That name may not
-be the same name as the module.
+>> Signed-off-by: Tomasz Stanislawski<t.stanislaws@samsung.com>
+>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>> ---
+>>   drivers/media/video/v4l2-ioctl.c |    2 --
+>>   1 files changed, 0 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/video/v4l2-ioctl.c
+>> b/drivers/media/video/v4l2-ioctl.c index 543405b..9f54114 100644
+>> --- a/drivers/media/video/v4l2-ioctl.c
+>> +++ b/drivers/media/video/v4l2-ioctl.c
+>> @@ -2490,8 +2490,6 @@ video_usercopy(struct file *file, unsigned int cmd,
+>> unsigned long arg, err = -EFAULT;
+>>   		goto out_array_args;
+>>   	}
+>> -	if (err<  0)
+>> -		goto out;
+>>
+>>   out_array_args:
+>>   	/*  Copy results into user buffer  */
 
