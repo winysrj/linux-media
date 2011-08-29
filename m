@@ -1,156 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:32972 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752791Ab1HRUcL (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54427 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753474Ab1H2JLe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2011 16:32:11 -0400
-Date: Thu, 18 Aug 2011 23:32:07 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: RFC: Negotiating frame buffer size between sensor subdevs and
- bridge devices
-Message-ID: <20110818203206.GG8872@valkosipuli.localdomain>
-References: <4E31968B.9080603@samsung.com>
- <20110816222512.GF7436@valkosipuli.localdomain>
- <4E4C2302.3060105@gmail.com>
+	Mon, 29 Aug 2011 05:11:34 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: Embedded device and the  V4L2 API support - Was: [GIT PATCHES FOR 3.1] s5p-fimc and noon010pc30 driver updates
+Date: Mon, 29 Aug 2011 11:12:00 +0200
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+References: <4E303E5B.9050701@samsung.com> <201108261616.02417.hverkuil@xs4all.nl> <4E57B70E.9010103@redhat.com>
+In-Reply-To: <4E57B70E.9010103@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4E4C2302.3060105@gmail.com>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108291112.00665.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 17, 2011 at 10:22:26PM +0200, Sylwester Nawrocki wrote:
-> On 08/17/2011 12:25 AM, Sakari Ailus wrote:
-> > On Thu, Jul 28, 2011 at 07:04:11PM +0200, Sylwester Nawrocki wrote:
-> >> Hello,
+Hi Mauro,
+
+On Friday 26 August 2011 17:09:02 Mauro Carvalho Chehab wrote:
+> Em 26-08-2011 11:16, Hans Verkuil escreveu:
+> > On Friday, August 26, 2011 15:45:30 Laurent Pinchart wrote:
+> >> On Thursday 25 August 2011 14:43:56 Mauro Carvalho Chehab wrote:
+> >>> Em 24-08-2011 19:29, Sakari Ailus escreveu:
+> >> [snip]
+> >> 
+> >>>> The question I still have on this is that how should the user know
+> >>>> which video node to access on an embedded system with a camera: the
+> >>>> OMAP 3 ISP, for example, contains some eight video nodes which have
+> >>>> different ISP blocks connected to them. Likely two of these nodes are
+> >>>> useful for a general purpose application based on which image format
+> >>>> it requests. It would make sense to provide generic applications
+> >>>> information only on those devices they may meaningfully use.
+> >>> 
+> >>> IMO, we should create a namespace device mapping for video devices.
+> >>> What I
+> >>> 
+> >>> mean is that we should keep the "raw" V4L2 devices as:
+> >>> 	/dev/video??
+> >>> 
+> >>> But also recommend the creation of a new userspace map, like:
+> >>> 	/dev/webcam??
+> >>> 	/dev/tv??
+> >>> 	...
+> >>> 
+> >>> with is an alias for the actual device.
+> >>> 
+> >>> Something similar to dvd/cdrom aliases that already happen on most
+> >>> distros:
+> >>> 
+> >>> lrwxrwxrwx   1 root root           3 Ago 24 12:14 cdrom -> sr0
+> >>> lrwxrwxrwx   1 root root           3 Ago 24 12:14 cdrw -> sr0
+> >>> lrwxrwxrwx   1 root root           3 Ago 24 12:14 dvd -> sr0
+> >>> lrwxrwxrwx   1 root root           3 Ago 24 12:14 dvdrw -> sr0
+> >> 
+> >> I've been toying with a similar idea. libv4l currently wraps /dev/video*
+> >> device nodes and assumes a 1:1 relationship between a video device node
+> >> and a video device. Should this assumption be somehow removed, replaced
+> >> by a video device concept that wouldn't be tied to a single video
+> >> device node ?
 > > 
-> > Hi Sylwester,
+> > Just as background information: the original idea was always that all v4l
+> > drivers would have a MC and that libv4l would use the information
+> > contained there as a helper (such as deciding which nodes would be the
+> > 'default' nodes for generic applications).
 > 
-> Hi Sakari,
+> This is something that libv4l won't do: it is up to the userspace
+> application to choose the device node to open.
+
+I think this is one of our fundamental issues. Most applications are actually 
+not interested in video nodes at all. What they want is a video device. 
+Shouldn't libv4l should allow applications to enumerate video devices (as 
+opposed to video nodes) and open them without caring about video nodes ?
+
+> Ok, libv4l can have helper APIs for that, like the one I wrote, but even
+> adding MC support on it may not solve the issues.
 > 
-> kiitos commentti ;)
-
-Hi Sylwester!
-
-Ole hyvä! :)
-
+> > Since there is only one MC device node for each piece of video hardware
+> > that would make it much easier to discover what hardware there is and
+> > what video nodes to use.
 > > 
-> >> Trying to capture images in JPEG format with regular "image sensor ->
-> >> mipi-csi receiver ->  host interface" H/W configuration I've found there
-> >> is no standard way to communicate between the sensor subdev and the host
-> >> driver what is exactly a required maximum buffer size to capture a frame.
-> >>
-> >> For the raw formats there is no issue as the buffer size can be easily
-> >> determined from the pixel format and resolution (or sizeimage set on
-> >> a video node).
-> >> However compressed data formats are a bit more complicated, the required
-> >> memory buffer size depends on multiple factors, like compression ratio,
-> >> exact file header structure etc.
-> >>
-> >> Often it is at the sensor driver where all information required to
-> >> determine size of the allocated memory is present. Bridge/host devices
-> >> just do plain DMA without caring much what is transferred. I know of
-> >> hardware which, for some pixel formats, once data capture is started,
-> >> writes to memory whatever amount of data the sensor is transmitting,
-> >> without any means to interrupt on the host side. So it is critical
-> >> to assure the buffer allocation is done right, according to the sensor
-> >> requirements, to avoid buffer overrun.
-> >>
-> >>
-> >> Here is a link to somehow related discussion I could find:
-> >> [1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg27138.html
-> >>
-> >>
-> >> In order to let the host drivers query or configure subdevs with required
-> >> frame buffer size one of the following changes could be done at V4L2 API:
-> >>
-> >> 1. Add a 'sizeimage' field in struct v4l2_mbus_framefmt and make subdev
-> >>   drivers optionally set/adjust it when setting or getting the format with
-> >>   set_fmt/get_fmt pad level ops (and s/g_mbus_fmt ?)
-> >>   There could be two situations:
-> >>   - effective required frame buffer size is specified by the sensor and the
-> >>     host driver relies on that value when allocating a buffer;
-> >>   - the host driver forces some arbitrary buffer size and the sensor performs
-> >>     any required action to limit transmitted amount of data to that amount
-> >>     of data;
-> >> Both cases could be covered similarly as it's done with VIDIOC_S_FMT.
-> >>
-> >> Introducing 'sizeimage' field is making the media bus format struct looking
-> >> more similar to struct v4l2_pix_format and not quite in line with media bus
-> >> format meaning, i.e. describing data on a physical bus, not in the memory.
-> >> The other option I can think of is to create separate subdev video ops.
-> >> 2. Add new s/g_sizeimage subdev video operations
-> >>
-> >> The best would be to make this an optional callback, not sure if it makes sense
-> >> though. It has an advantage of not polluting the user space API. Although
-> >> 'sizeimage' in user space might be useful for some purposes I rather tried to
-> >> focus on "in-kernel" calls.
+> > I always liked that idea, although I know Mauro is opposed to having a MC
+> > for all v4l drivers.
+> 
+> It doesn't make sense to add MC for all V4L drivers. Not all devices are
+> like ivtv with lots of device drivers. In a matter of fact, most supported
+> devices create just one video node. Adding MC support for those devices
+> will just increase the drivers complexity without _any_ reason, as those
+> devices are fully configurable using the existing ioctl's.
+
+Hans' proposal is to handle this in the V4L2 core for most drivers, so those 
+drivers won't become more complex as they won't be modified at all. The MC API 
+for those devices will only offer read-only enumeration, not link 
+configuration.
+
+> Also, as I said before, and implemented at xawtv and at a v4l-utils library,
+> the code may use sysfs for simpler devices. It shouldn't be hard to
+> implement a mc aware code there, although I don't think that MC API is
+> useful to discover what nodes are meant to be used for TV, encoder, decoder,
+> webcams, etc. The only type information it currently provides is:
+> 
+> #define MEDIA_ENT_T_DEVNODE_V4L		(MEDIA_ENT_T_DEVNODE + 1)
+> #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
+> #define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
+> #define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
+> 
+> So, a MC aware application also needs to be a hardware-dependent
+> application, as it will need to use something else, like the media entity
+> name, to discover for what purpose a media node is meant to be used.
+
+As Hans pointed out, this is because we haven't implemented more detailed 
+information *yet*. It has always been a goal to provide more details through 
+the MC API.
+
+> > While I am not opposed to creating such userspace maps I also think it is
+> > a bit of a poor-man's solution.
+> 
+> The creation of per-type devices is part of the current API: radio
+> and vbi nodes are examples of that (except that they aren't aliases, but
+> real devices, but the idea is the same: different names for different
+> types of usage).
+
+This would only work in a black-and-white world. Devices are often not just 
+webcams or tv tuners.
+
+> > In particular I am worried that we get a lot of those mappings (just think
+> > of ivtv with its 8 or 9 devices).
 > > 
-> > I prefer this second approach over the first once since the maxiumu size of
-> > the image in bytes really isn't a property of the bus.
-> 
-> After thinking some more about it I came to similar conclusion. I intended to
-> find some better name for s/g_sizeimage callbacks and post relevant patch
-> for consideration.
-> Although I haven't yet found some time to carry on with this.
-
-That sounds a possible solution to me as well. The upside would be that
-v4l2_mbus_framefmt would be left to describe relatively low level bus and
-format properties.
-
-That said, I'm not anymore quite certain it should not be part of that
-structure. Is the size always the same, or is this maximum?
-
-> > How about a regular V4L2 control? You would also have minimum and maximum
-> > values, I'm not quite sure whather this is a plus, though. :)
-> 
-> My intention was to have these calls used only internally in the kernel and
-> do not allow the userspace to mess with it. All in all, if anything had 
-> interfered and the host driver would have allocated too small buffer the system
-> would crash miserably due to buffer overrun.
-
-The user space wouldn't be allowed to do anything like that. E.g. the control
-would become read-only during streaming and the bridge driver would need to
-check its value against the sizes of the video buffers. Although this might
-not be relevant at all if there are no direct ways to affect the maximum size
-of the resulting image.
-
-> The final buffer size for a JFIF/EXIF file will depend on other factors, like
-> main image resolution, JPEG compression ratio, the thumbnail inclusion and its
-> format/resolution, etc. I imagine we should be rather creating controls
-> for those parameters.   
-> 
-> Also the driver would most likely have to validate the buffer size during 
-> STREAMON call.
-> 
+> > I can think of: webcam, tv, compressed (mpeg), tv-out, compressed-out,
+> > mem2mem.
 > > 
-> > Btw. how does v4l2_mbus_framefmt suit for compressed formats in general?
-> > 
+> > But a 'tv' node might also be able to handle compressed video (depending
+> > on how the hardware is organized), so how do you handle that?
 > 
-> Well, there is really nothing particularly addressing the compressed formats
-> in that struct. But we need to use it as the compressed data flows through 
-> the media bus in same way as the raw data.
-> It's rather hard to define the pixel codes using existing convention as there
-> is no simple relationship between the pixel data and what is transferred on
-> the bus.
-> Yet I haven't run into issues other than no means to specify the whole image
-> size.
+> Well, What you've called as "compressed" is, in IMO, "encoder". It probably
+> makes sense to have, also "decoder". I'm in doubt about "webcam", as there
+> are some grabber devices with analog camera inputs for video surveillance.
+> Maybe "camera" is a better name for it.
+> 
+> > It can all be solved, I'm sure, but I'm not sure if such userspace
+> > mappings will scale that well with the increasing hardware complexity.
+> 
+> Not all video nodes would need an alias. Just the ones where it makes sense
+> for an application to open it.
 
-I've never dealt with compressed image formats in drivers in general but I'd
-suppose it might require taking this into account in the CSI-2 or the
-parallel bus receivers.
-
-How does this work in your case?
-
-Is the image size actually used in programming the CSI-2 receiver? What
-about the width and the height?
-
-Cheers,
+If it doesn't make sense for an application to open a video node, you can 
+remove it completely :-)
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Regards,
+
+Laurent Pinchart
