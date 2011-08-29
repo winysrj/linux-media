@@ -1,83 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:42826 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751543Ab1HPKfc (ORCPT
+Received: from mail-yi0-f46.google.com ([209.85.218.46]:64756 "EHLO
+	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750922Ab1H2NY1 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2011 06:35:32 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LQ000D9PO36Q900@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 16 Aug 2011 11:35:30 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LQ000EARO35OH@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 16 Aug 2011 11:35:30 +0100 (BST)
-Date: Tue, 16 Aug 2011 12:34:56 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH] media: vb2: dma-sg allocator: change scatterlist
- allocation method
-In-reply-to: <201108161041.40789.laurent.pinchart@ideasonboard.com>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Pawel Osciak' <pawel@osciak.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Message-id: <004401cc5c00$24998ce0$6dcca6a0$%szyprowski@samsung.com>
-Content-language: pl
-References: <1312964617-3192-1-git-send-email-m.szyprowski@samsung.com>
- <201108122354.51720.laurent.pinchart@ideasonboard.com>
- <03bd01cc5bd6$40a86b10$c1f94130$%szyprowski@samsung.com>
- <201108161041.40789.laurent.pinchart@ideasonboard.com>
+	Mon, 29 Aug 2011 09:24:27 -0400
+Received: by yie30 with SMTP id 30so3512613yie.19
+        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2011 06:24:27 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CA+s_+RrGE2T0H+XSSjg81zh514g1oQePLCfV-y3nJC8DqXjWjQ@mail.gmail.com>
+References: <CA+s_+RqtWZuj5b55Vk5A==VqbPEnDoqFfSVGtA2n-pdR85mc8g@mail.gmail.com>
+	<CA+s_+RrGE2T0H+XSSjg81zh514g1oQePLCfV-y3nJC8DqXjWjQ@mail.gmail.com>
+Date: Mon, 29 Aug 2011 09:24:27 -0400
+Message-ID: <CA+s_+RpekDfRSWEQMZObjiR-RTgLeFUk1tc-g6ieQYLzcTqwdw@mail.gmail.com>
+Subject: Usb digital TV
+From: Gabriel Sartori <gabriel.sartori@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hello,
 
-On Tuesday, August 16, 2011 10:42 AM Laurent Pinchart wrote:
+  I am from Brazil and my english is not very good.
+  First of all, I am new on the list.
+  I work with embedded system development here in Brazil.
+  I have a lot to learn but I expect to help too!
 
-> On Tuesday 16 August 2011 07:35:05 Marek Szyprowski wrote:
-> > On Friday, August 12, 2011 11:55 PM Laurent Pinchart wrote:
-> > > On Wednesday 10 August 2011 10:23:37 Marek Szyprowski wrote:
-> > > > From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-> > > >
-> > > > Scatter-gather lib provides a helper functions to allocate scatter
-> > > > list, so there is no need to use vmalloc for it. sg_alloc_table()
-> > > > splits allocation into page size chunks and links them together into a
-> > > > chain.
-> > >
-> > > Last time I check ARM platforms didn't support SG list chaining. Has that
-> > > been fixed ?
-> >
-> > DMA-mapping code for ARM platform use for_each_sg() macro which has no
-> > problems with chained SG lists.
-> 
-> for_each_sg() is fine, but sg_alloc_table() doesn't seem to be.
-> __sg_alloc_table(), called from sg_alloc_table(), starts with
-> 
-> #ifndef ARCH_HAS_SG_CHAIN
->         BUG_ON(nents > max_ents);
-> #endif
-> 
-> It also calls sg_chain() internally, which starts with
-> 
-> #ifndef ARCH_HAS_SG_CHAIN
->         BUG();
-> #endif
-> 
-> ARCH_HAS_SG_CHAIN is defined on ARM if CONFIG_ARM_HAS_SG_CHAIN is set. That's
-> a boolean Kconfig option that is currently never set.
+  I don't know if it is the right place to ask. Sorry if it is not.
+  I have a i.mx28EVK board and I would like to get a usb digital tv
+module to work on it. It should work in 1seg.
 
-Right, I wasn't aware of that, but it still doesn't look like an issue. The only
+  First of all I bought a two usb devices:
+  - pixelview sbtvd hybrid
+  - Leadership
 
-client of dma-sg allocator is marvell-ccic, which is used on x86 systems. If one
-needs dma-sg allocator on ARM, he should follow the suggestion from the 
-74facffeca3795ffb5cf8898f5859fbb822e4c5d commit message.
+  The first one uses driver cx231xx and the second one smsdvb.
+  My board have a 2.6.35 kernel with specific paths from freescale.
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+  First off all I tried to plug the first device in my pc. It only
+worked with an newer kernel version 2.6.38 or with some specific
+pathes for brazil patterns in a 2.6.36.
+  I was able to see some channels here.
+  But It seems very dificult to me to port all these changes and make
+it work on my old 2.6.35 kernel.
 
+  The second device has a strange behavior. It worked on my PC with
+older kernels like 2.6.32. It should work in my mx28 board too.
+  But I cannot scan any channel!?!?!?
+
+  In dmesg i got:
+
+  [  332.620053] smscore_set_device_mode: firmware download success:
+isdbt_nova_12mhz_b0.inp
+  [  332.620615] usbcore: registered new interface driver smsusb
+  [  350.721231] DVB: registering new adapter (Siano Nova B Digital Receiver)
+  [  350.724588] DVB: registering adapter 0 frontend 0 (Siano Mobile
+Digital MDTV Receiver)...
+
+  In my /dev/dvb/adapter0 I have three devices:
+  - demux0
+  - dvr0
+  - frontend0
+
+ If I tried to scan with:
+
+ sudo w_scan -ft -x -c BR
+
+ I got the follow messages:
+
+ ERROR: Sorry - i couldn't get any working frequency/transponder
+
+Can someone help me with this last thing?
+It seems everything is ok but I cannot scan channel.
+It there some devices that has more chance to work on a 2.6.35 kernel
+version so I can just cross compile the driver to my mx28 board in a
+easier way?
+
+Thanks in advance.
+
+Gabriel Sartori
