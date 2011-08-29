@@ -1,125 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:58644 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753658Ab1H3OIQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 10:08:16 -0400
-Message-ID: <4E5CEECC.6040804@mlbassoc.com>
-Date: Tue, 30 Aug 2011 08:08:12 -0600
-From: Gary Thomas <gary@mlbassoc.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:39568 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753791Ab1H2PH3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Aug 2011 11:07:29 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p7TF7P7I010117
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 29 Aug 2011 10:07:28 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Nagabhushana Netagunte <nagabhushana.netagunte@ti.com>
+Subject: [PATCH v2 8/8] davinci: vpfe: build infrastructure for dm365
+Date: Mon, 29 Aug 2011 20:37:19 +0530
+Message-ID: <1314630439-1122-9-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1314630439-1122-1-git-send-email-manjunath.hadli@ti.com>
+References: <1314630439-1122-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Getting started with OMAP3 ISP
-References: <4E56734A.3080001@mlbassoc.com> <201108291249.33118.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201108291249.33118.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2011-08-29 04:49, Laurent Pinchart wrote:
-> Hi Gary,
->
-> On Thursday 25 August 2011 18:07:38 Gary Thomas wrote:
->> Background:  I have working video capture drivers based on the
->> TI PSP codebase from 2.6.32.  In particular, I managed to get
->> a driver for the TVP5150 (analogue BT656) working with that kernel.
->>
->> Now I need to update to Linux 3.0, so I'm trying to get a driver
->> working with the rewritten ISP code.  Sadly, I'm having a hard
->> time with this - probably just missing something basic.
->>
->> I've tried to clone the TVP514x driver which says that it works
->> with the OMAP3 ISP code.  I've updated it to use my decoder device,
->> but I can't even seem to get into that code from user land.
->>
->> Here are the problems I've had so far:
->>     * udev doesn't create any video devices although they have been
->>       registered.  I see a full set in /sys/class/video4linux
->>          # ls /sys/class/video4linux/
->>          v4l-subdev0  v4l-subdev3  v4l-subdev6  video1       video4
->>          v4l-subdev1  v4l-subdev4  v4l-subdev7  video2       video5
->>          v4l-subdev2  v4l-subdev5  video0       video3       video6
->
-> It looks like a udev issue. I don't think that's related to the kernel
-> drivers.
->
->>       Indeed, if I create /dev/videoX by hand, I can get somewhere, but
->>       I don't really understand how this is supposed to work.  e.g.
->>         # v4l2-dbg --info /dev/video3
->>         Driver info:
->>             Driver name   : ispvideo
->>             Card type     : OMAP3 ISP CCP2 input
->>             Bus info      : media
->>             Driver version: 1
->>             Capabilities  : 0x04000002
->>                     Video Output
->>                     Streaming
->>
->>     * If I try to grab video, the ISP layer gets a ton of warnings, but
->>       I never see it call down into my driver, e.g. to check the current
->>       format, etc.  I have some of my own code from before which fails
->>       miserably (not a big surprise given the hack level of those programs).
->>       I tried something off-the-shelf which also fails pretty bad:
->>         # ffmpeg -t 10 -f video4linux2 -s 720x480 -r 30 -i /dev/video2
->> junk.mp4
->>
->> I've read through Documentation/video4linux/omap3isp.txt without learning
->> much about what might be wrong.
->>
->> Can someone give me some ideas/guidance, please?
->
-> In a nutshell, you will first have to configure the OMAP3 ISP pipeline, and
-> then capture video.
->
-> Configuring the pipeline is done through the media controller API and the V4L2
-> subdev pad-level API. To experiment with those you can use the media-ctl
-> command line application available at http://git.ideasonboard.org/?p=media-
-> ctl.git;a=summary. You can run it with --print-dot and pipe the result to dot
-> -Tps to get a postscript graphical view of your device.
->
-> Here's a sample pipeline configuration to capture scaled-down YUV data from a
-> sensor:
->
-> ./media-ctl -r -l '"mt9t001 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
-> CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP
-> resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
-> ./media-ctl -f '"mt9t001 3-005d":0[SGRBG10 1024x768], "OMAP3 ISP
-> CCDC":2[SGRBG10 1024x767], "OMAP3 ISP preview":1[YUYV 1006x759], "OMAP3 ISP
-> resizer":1[YUYV 800x600]'
->
-> After configuring your pipeline you will be able to capture video using the
-> V4L2 API on the device node at the output of the pipeline.
+add build infrastructure for dm365 specific modules
+such as IPIPE, AEW, AF.
 
-Thanks for the info.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Nagabhushana Netagunte <nagabhushana.netagunte@ti.com>
+---
+ drivers/media/video/davinci/Kconfig  |   46 ++++++++++++++++++++++++++++++++-
+ drivers/media/video/davinci/Makefile |   17 +++++++++++-
+ 2 files changed, 59 insertions(+), 4 deletions(-)
 
-When I run 'media-ctl -p', I see the various nodes, etc, and they all look
-good except that I get lots of messages like this:
-   - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
-             type V4L2 subdev subtype Unknown
-         pad0: Input v4l2_subdev_open: Failed to open subdev device node
-
-When I try to setup my pipeline using something similar to what you provided, the
-first step runs and I can see that it does something (some lines on the graph went
-from dotted to solid), but I still get errors:
-   # media-ctl -r -l '"tvp5150m1 2-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-   Resetting all links to inactive
-   Setting up link 16:0 -> 5:0 [1]
-   Setting up link 5:1 -> 6:0 [1]
-   # media-ctl -f '"tvp5150m1 2-005c":0[SGRBG12 320x240], "OMAP3 ISP CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
-   Setting up format SGRBG12 320x240 on pad tvp5150m1 2-005c/0
-   v4l2_subdev_open: Failed to open subdev device node
-   Unable to set format: No such file or directory (-2)
-
-As far as I can tell, none if this is making any callbacks into my driver.
-
-Any ideas what I might be missing?
-
-Thanks
-
+diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
+index 6b19540..6f6da53 100644
+--- a/drivers/media/video/davinci/Kconfig
++++ b/drivers/media/video/davinci/Kconfig
+@@ -11,6 +11,48 @@ config DISPLAY_DAVINCI_DM646X_EVM
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called vpif_display.
+ 
++config VIDEO_DM365_3A_HW
++	tristate "DM365 Auto Focus, Auto Exposure/ White Balance HW module"
++	depends on ARCH_DAVINCI_DM365
++	help
++	  DM365 Auto Focus, Auto Exposure and Auto White Balancing HW module
++
++	  This module has functions which configure AEW/AF hardware, high level
++	  AF module and AEW module use these functionalities. It collects metrics
++	  about the image or video data
++
++config VIDEO_DM365_AF
++	tristate "DM365 Auto Focus Driver"
++	depends on ARCH_DAVINCI_DM365
++	select VIDEO_DM365_3A_HW
++	help
++	  DM365 Auto Focus hardware module.
++
++	  Auto Focus driver is used to support control loop for Auto Focus.
++	  It collects metrics about the image or video data. This provides
++	  hooks to AF subdevice driver.
++
++config VIDEO_DM365_AEW
++	tristate "DM365 Auto exposure /White Balance Driver"
++	depends on ARCH_DAVINCI_DM365
++	select VIDEO_DM365_3A_HW
++	help
++	  DM365 Auto Exposure and Auto White Balance hardware module.
++
++	  This is used to support the control loops for Auto Exposure
++	  and Auto White Balance. It collects metrics about the image
++	  or video data
++
++config DM365_IPIPE
++	depends on ARCH_DAVINCI && ARCH_DAVINCI_DM365
++	tristate "DM365 IPIPE"
++	help
++	  dm365 IPIPE hardware module.
++
++	  This is the hardware module that implements imp_hw_interface
++	  for DM365. This hardware module provides previewer and resizer
++	  functionality for image processing.
++
+ config CAPTURE_DAVINCI_DM646X_EVM
+ 	tristate "DM646x EVM Video Capture"
+ 	depends on VIDEO_DEV && MACH_DAVINCI_DM6467_EVM
+@@ -51,7 +93,7 @@ config VIDEO_VPFE_CAPTURE
+ 
+ config VIDEO_DM6446_CCDC
+ 	tristate "DM6446 CCDC HW module"
+-	depends on VIDEO_VPFE_CAPTURE
++	depends on VIDEO_VPFE_CAPTURE && ARCH_DAVINCI_DM644x
+ 	select VIDEO_VPSS_SYSTEM
+ 	default y
+ 	help
+@@ -80,7 +122,7 @@ config VIDEO_DM355_CCDC
+ 	   module will be called vpfe.
+ 
+ config VIDEO_ISIF
+-	tristate "ISIF HW module"
++	tristate "DM365 ISIF HW module"
+ 	depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_CAPTURE
+ 	select VIDEO_VPSS_SYSTEM
+ 	default y
+diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
+index a379557..8544040 100644
+--- a/drivers/media/video/davinci/Makefile
++++ b/drivers/media/video/davinci/Makefile
+@@ -12,7 +12,20 @@ obj-$(CONFIG_CAPTURE_DAVINCI_DM646X_EVM) += vpif_capture.o
+ 
+ # Capture: DM6446 and DM355
+ obj-$(CONFIG_VIDEO_VPSS_SYSTEM) += vpss.o
+-obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
++obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o vpfe_ccdc.o \
++                                       vpfe_resizer.o vpfe_previewer.o \
++                                       vpfe_aew.o vpfe_af.o vpfe_video.o
+ obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
+ obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
+-obj-$(CONFIG_VIDEO_ISIF) += isif.o
++obj-$(CONFIG_VIDEO_ISIF) += dm365_ccdc.o
++
++dm365_a3_hw_driver-objs := dm365_a3_hw.o
++obj-$(CONFIG_VIDEO_DM365_3A_HW) += dm365_a3_hw_driver.o
++dm365_af_driver-objs := dm365_af.o
++obj-$(CONFIG_VIDEO_DM365_AF)    += dm365_af_driver.o
++dm365_aew_driver-objs := dm365_aew.o
++obj-$(CONFIG_VIDEO_DM365_AEW)   += dm365_aew_driver.o
++
++dm365_imp-objs                  := dm365_ipipe.o dm365_def_para.o \
++                                        dm365_ipipe_hw.o dm3xx_ipipeif.o
++obj-$(CONFIG_DM365_IPIPE)       += dm365_imp.o
 -- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+1.6.2.4
+
