@@ -1,52 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm4.bt.bullet.mail.ukl.yahoo.com ([217.146.183.202]:26741 "HELO
-	nm4.bt.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751816Ab1HPVuJ (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:59302 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753237Ab1H2OOj convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2011 17:50:09 -0400
-Received: from volcano.underworld (volcano.underworld [192.168.0.3])
-	by wellhouse.underworld (8.14.3/8.14.3/Debian-5+lenny1) with ESMTP id p7GLo3oT032390
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <linux-media@vger.kernel.org>; Tue, 16 Aug 2011 22:50:06 +0100
-Message-ID: <4E4AE60B.4050903@yahoo.com>
-Date: Tue, 16 Aug 2011 22:50:03 +0100
-From: Chris Rankin <rankincj@yahoo.com>
+	Mon, 29 Aug 2011 10:14:39 -0400
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Locking problem between em28xx and em28xx-dvb modules - Part 2
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <201108291534.35951.laurent.pinchart@ideasonboard.com>
+References: <1313746626-23845-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<201108291455.36145.laurent.pinchart@ideasonboard.com>
+	<CAMuHMdVGV6dYW+szHyD30=HvAnSh92rRp=PMauwZZLw6H7DhYw@mail.gmail.com>
+	<201108291534.35951.laurent.pinchart@ideasonboard.com>
+Date: Mon, 29 Aug 2011 16:14:38 +0200
+Message-ID: <CAMuHMdV=ZWMSJ_-r9fRMs0RCHyDZL=1a0_ZPZCgLBYJf=Ws4=Q@mail.gmail.com>
+Subject: Re: [PATCH/RFC v2 1/3] fbdev: Add FOURCC-based format configuration API
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Laurent,
 
-I've been looking deeper into the em28xx and em28xx-dvb modules, and I'm 
-concerned that there are some races and resource leaks inherent in the current code:
+On Mon, Aug 29, 2011 at 15:34, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> On Monday 29 August 2011 15:09:04 Geert Uytterhoeven wrote:
+>> On Mon, Aug 29, 2011 at 14:55, Laurent Pinchart wrote:
+>> >> When will the driver report FB_{TYPE,VISUAL}_FOURCC?
+>> >>   - When using a mode that cannot be represented in the legacy way,
+>> >
+>> > Definitely.
+>> >
+>> >>   - But what with modes that can be represented? Legacy software cannot
+>> >>     handle FB_{TYPE,VISUAL}_FOURCC.
+>> >
+>> > My idea was to use FB_{TYPE,VISUAL}_FOURCC only when the mode is
+>> > configured using the FOURCC API. If FBIOPUT_VSCREENINFO is called with a
+>> > non-FOURCC format, the driver will report non-FOURCC types and visuals.
+>>
+>> Hmm, two use cases:
+>>   - The video mode is configured using a FOURCC-aware tool ("fbset on
+>> steroids").
+>
+> Such as http://git.ideasonboard.org/?p=fbdev-test.git;a=summary :-)
 
-a) Shouldn't em28xx_init_extension() and em28xx_add_into_devlist() be unified 
-into a single function? Otherwise, consider someone plugging a DVB adapter into 
-a host when the em28xx-dvb module is not yet loaded:
+Yep.
 
-- em28xx_init_dev() adds new device to list.
-- em28xx-dvb module registers itself, and initialises every device in the list 
-(including our new one).
-- em28xx_init_dev() iterates over the list of extensions (including em28xx-dvb) 
-with the new device.
+>>     Later the user runs a legacy application.
+>>       => Do not retain FOURCC across opening of /dev/fb*.
+>
+> I know about that problem, but it's not that easy to work around. We have no
+> per-open fixed and variable screen info, and FB devices can be opened by
+> multiple applications at the same time.
+>
+>>   - Is there an easy way to force FOURCC reporting, so new apps don't have
+>> to support parsing the legacy formats? This is useful for new apps that
+>> want to support (a subset of) FOURCC modes only.
+>
+> Not at the moment.
 
-At this point, dvb_init() has been called twice for our new device, resulting in 
-a leaked struct em28xx_dvb.
+So perhaps we do need new ioctls instead...
+That would also ease an in-kernel translation layer.
 
-b) When em28xx_init_dev() returns something != 0, em28xx_usb_probe() frees the 
-struct em28xx and exits without calling usb_put_dev().
+Gr{oetje,eeting}s,
 
-c) There are many ways that em28xx_init_dev() can return something != 0, and not 
-all of them release the V4L2 device or I2C device.
+                        Geert
 
-Am I understanding this code correctly, please? I can obviously extend my patch 
-accordingly - it is currently running without any obvious problems, but I only 
-have one DVB adapter and none that uses the ALSA extension.
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-Cheers,
-Chris
-
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
