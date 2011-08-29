@@ -1,59 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:37830 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752922Ab1HQO6G (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:63006 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751037Ab1H2MgV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2011 10:58:06 -0400
-Received: by qyk38 with SMTP id 38so2106113qyk.19
-        for <linux-media@vger.kernel.org>; Wed, 17 Aug 2011 07:58:04 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <009201cc5ce0$bd34de10$379e9a30$%szyprowski@samsung.com>
-References: <Pine.LNX.4.64.1108042329460.31239@axis700.grange>
- <201108081116.41126.hansverk@cisco.com> <Pine.LNX.4.64.1108151324220.7851@axis700.grange>
- <201108151336.07258.hansverk@cisco.com> <Pine.LNX.4.64.1108151530410.7851@axis700.grange>
- <009201cc5ce0$bd34de10$379e9a30$%szyprowski@samsung.com>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Wed, 17 Aug 2011 07:57:44 -0700
-Message-ID: <CAMm-=zBhUVnY3gd32PTs+TyP0pdJOY_gfiJkb0K6PF3=yskFGQ@mail.gmail.com>
-Subject: Re: [PATCH 1/6 v4] V4L: add two new ioctl()s for multi-size
- videobuffer management
+	Mon, 29 Aug 2011 08:36:21 -0400
+Date: Mon, 29 Aug 2011 14:35:49 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+cc: linux-media@vger.kernel.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	=?iso-8859-2?Q?'Uwe_Kleine-K=F6nig'?=
+	<u.kleine-koenig@pengutronix.de>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>,
+	'Marin Mitov' <mitov@issp.bas.bg>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	'Kamil Debski' <k.debski@samsung.com>,
+	'Josh Wu' <josh.wu@atmel.com>,
+	'Hans de Goede' <hdegoede@redhat.com>,
+	'Paul Mundt' <lethal@linux-sh.org>
+Subject: RE: [PATCH v3] media: vb2: change queue initialization order
+In-Reply-To: <009901cc6646$d2a7d4e0$77f77ea0$%szyprowski@samsung.com>
+Message-ID: <Pine.LNX.4.64.1108291435230.31184@axis700.grange>
+References: <1314618332-13262-1-git-send-email-m.szyprowski@samsung.com>
+ <Pine.LNX.4.64.1108291402270.31184@axis700.grange>
+ <009901cc6646$d2a7d4e0$77f77ea0$%szyprowski@samsung.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 17, 2011 at 06:22, Marek Szyprowski
-<m.szyprowski@samsung.com> wrote:
+On Mon, 29 Aug 2011, Marek Szyprowski wrote:
+
 > Hello,
->
-> On Monday, August 15, 2011 3:46 PM Guennadi Liakhovetski wrote:
->> While switching back, I have to change the struct vb2_ops::queue_setup()
->> operation to take a struct v4l2_create_buffers pointer. An earlier version
->> of this patch just added one more parameter to .queue_setup(), which is
->> easier - changes to videobuf2-core.c are smaller, but it is then
->> redundant. We could use the create pointer for both input and output. The
->> video plane configuration in frame format is the same as what is
->> calculated in .queue_setup(), IIUC. So, we could just let the driver fill
->> that one in. This would require then the videobuf2-core.c to parse struct
->> v4l2_format to decide which union member we need, depending on the buffer
->> type. Do we want this or shall drivers duplicate plane sizes in separate
->> .queue_setup() parameters?
->
-> IMHO if possible we should have only one callback for the driver. Please
-> notice that the driver should be also allowed to increase (or decrease) the
-> number of buffers for particular format/fourcc.
->
+> 
+> On Monday, August 29, 2011 2:05 PM Guennadi Liakhovetski wrote:
+> 
+> > Hi Marek
+> > 
+> > On Mon, 29 Aug 2011, Marek Szyprowski wrote:
+> > 
+> > > This patch changes the order of operations during stream on call. Now the
+> > > buffers are first queued to the driver and then the start_streaming method
+> > > is called.
+> > >
+> > > This resolves the most common case when the driver needs to know buffer
+> > > addresses to enable dma engine and start streaming. Additional parameter
+> > > to start_streaming method have been added to simplify drivers code. The
+> > > driver are now obliged to check if the number of queued buffers is high
+> > > enough to enable hardware streaming. If not - it can return an error. In
+> > > such case all the buffers that have been pre-queued are invalidated.
+> > >
+> > > This patch also updates all videobuf2 clients to work properly with the
+> > > changed order of operations.
+> > >
+> > > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> > > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > > CC: Pawel Osciak <pawel@osciak.com>
+> > > CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > CC: Hans Verkuil <hverkuil@xs4all.nl>
+> > > CC: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> > > CC: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > > CC: Kamil Debski <k.debski@samsung.com>
+> > > CC: Jonathan Corbet <corbet@lwn.net>
+> > > CC: Josh Wu <josh.wu@atmel.com>
+> > > CC: Hans de Goede <hdegoede@redhat.com>
+> > > CC: Paul Mundt <lethal@linux-sh.org>
+> > > ---
+> > >
+> > > Hello,
+> > >
+> > > This is yet another version of the patch that introduces significant
+> > > changes in the vb2 streamon operation. I've decided to remove the
+> > > additional parameter to buf_queue callback and added a few cleanups here
+> > > and there. This patch also includes an update for all vb2 clients.
+> > 
+> > Just for the record: These are not all vb2 clients. A simple grep for
+> > something like vb2_ops gives you also
+> > 
+> > drivers/media/video/mx3_camera.c
+> > drivers/media/video/sh_mobile_ceu_camera.c
+> 
+> Yes, they are also vb2 clients, but since they don't use start_streaming() 
+> callback no changes were needed there. Same applies to mem2mem_testdev driver.
 
-Or remove queue_setup altogether (please see my example above). What
-do you think Marek?
+Great, thanks for the explanation!
 
--- 
-Best regards,
-Pawel Osciak
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
