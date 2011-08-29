@@ -1,291 +1,485 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:56258 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753985Ab1HaRfm convert rfc822-to-8bit (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:39937 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752757Ab1H2H2l (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 13:35:42 -0400
-Received: by gya6 with SMTP id 6so744112gya.19
-        for <linux-media@vger.kernel.org>; Wed, 31 Aug 2011 10:35:41 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201108311739.43057.laurent.pinchart@ideasonboard.com>
-References: <alpine.DEB.2.02.1108171553540.17550@ipanema>
-	<201108282006.09790.laurent.pinchart@ideasonboard.com>
-	<CABYn4sx5jQPyLC4d6OfVbX5SSuS4TiNsB_LPoCheaOSbwM9Pzw@mail.gmail.com>
-	<201108311739.43057.laurent.pinchart@ideasonboard.com>
-Date: Wed, 31 Aug 2011 19:35:41 +0200
-Message-ID: <CABYn4syYeSA7nG3RCvJVpkwcor8ybkso_aXsmrR=7RB1PDZPjA@mail.gmail.com>
-Subject: Re: [PATCH] media: Add camera controls for the ov5642 driver
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 29 Aug 2011 03:28:41 -0400
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LQO00BGDI3PZ8@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 29 Aug 2011 08:28:37 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LQO00EYVI3PQS@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 29 Aug 2011 08:28:37 +0100 (BST)
+Date: Mon, 29 Aug 2011 09:28:27 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH] media: vb2: dma contig allocator: use dma_addr instread of
+ paddr
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>
+Message-id: <1314602908-5815-1-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/8/31 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Bastian,
->
-> On Wednesday 31 August 2011 17:27:49 Bastian Hecht wrote:
->> 2011/8/28 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> > On Wednesday 17 August 2011 18:02:07 Bastian Hecht wrote:
->> >> The driver now supports automatic/manual gain, automatic/manual white
->> >> balance, automatic/manual exposure control, vertical flip, brightness
->> >> control, contrast control and saturation control. Additionally the
->> >> following effects are available now: rotating the hue in the colorspace,
->> >> gray scale image and solarize effect.
->> >
->> > Any chance to port soc-camera to the control framework ? :-)
->>
->> I redirect that to Guennadi :-)
->
-> Guennadi, do you have any update on this ? Hans posted patches early this
-> year, do you know if there has been any work on them since then ?
->
->> >> Signed-off-by: Bastian Hecht <hechtb@gmail.com>
->> >> ---
->> >>
->> >> diff --git a/drivers/media/video/ov5642.c b/drivers/media/video/ov5642.c
->> >> index 1b40d90..069a720 100644
->> >> --- a/drivers/media/video/ov5642.c
->> >> +++ b/drivers/media/video/ov5642.c
->> >> @@ -74,6 +74,34 @@
->> >>  #define REG_AVG_WINDOW_END_Y_HIGH    0x5686
->> >>  #define REG_AVG_WINDOW_END_Y_LOW     0x5687
->> >>
->> >> +/* default values in native space */
->> >> +#define DEFAULT_RBBALANCE            0x400
->> >> +#define DEFAULT_CONTRAST             0x20
->> >> +#define DEFAULT_SATURATION           0x40
->> >> +
->> >> +#define MAX_EXP_NATIVE                       0x01ffff
->> >> +#define MAX_GAIN_NATIVE                      0x1f
->> >> +#define MAX_RBBALANCE_NATIVE         0x0fff
->> >> +#define MAX_EXP                              0xffff
->> >> +#define MAX_GAIN                     0xff
->> >> +#define MAX_RBBALANCE                        0xff
->> >> +#define MAX_HUE_TRIG_NATIVE          0x80
->> >> +
->> >> +#define OV5642_CONTROL_BLUE_SATURATION       (V4L2_CID_PRIVATE_BASE +
->> >> 0) +#define OV5642_CONTROL_RED_SATURATION        (V4L2_CID_PRIVATE_BASE
->> >> + 1) +#define OV5642_CONTROL_GRAY_SCALE    (V4L2_CID_PRIVATE_BASE + 2)
->> >> +#define OV5642_CONTROL_SOLARIZE              (V4L2_CID_PRIVATE_BASE +
->> >> 3)
->> >
->> > If I'm not mistaken V4L2_CID_PRIVATE_BASE is deprecated.
->>
->> I checked at http://v4l2spec.bytesex.org/spec/x542.htm, googled
->> "V4L2_CID_PRIVATE_BASE deprecated" and read
->> Documentation/feature-removal-schedule.txt. I couldn't find anything.
->> If it is deprecated, do you have an idea how to offer device specific
->> features to the user?
->
-> The basic idea is that controls should be standardized, or at least documented
-> and added to the V4L2 spec. Controls should belong to a class, so you should
-> select the proper base class and add a big offset (I've used 0x1000) in the
-> meantime if you want to export private controls.
+Use the correct 'dma_addr' name for the buffer address. 'paddr' suggested
+that this is the physical address in system memory. For most ARM platforms
+these two are the same, but this is not a generic rule. 'dma_addr' will
+also point better to dma-mapping api.
 
-Is this code accessable? Then I can just copy the scheme.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/video/atmel-isi.c              |    2 +-
+ drivers/media/video/marvell-ccic/mcam-core.c |    4 +-
+ drivers/media/video/mx3_camera.c             |    2 +-
+ drivers/media/video/s5p-fimc/fimc-core.c     |    6 ++--
+ drivers/media/video/s5p-mfc/s5p_mfc.c        |    4 +-
+ drivers/media/video/s5p-mfc/s5p_mfc_dec.c    |   10 ++++----
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.c    |   30 +++++++++++++-------------
+ drivers/media/video/s5p-mfc/s5p_mfc_opr.c    |   14 ++++++------
+ drivers/media/video/s5p-tv/mixer_grp_layer.c |    2 +-
+ drivers/media/video/s5p-tv/mixer_vp_layer.c  |    4 +-
+ drivers/media/video/sh_mobile_ceu_camera.c   |    2 +-
+ drivers/media/video/videobuf2-dma-contig.c   |   16 +++++++-------
+ include/media/videobuf2-dma-contig.h         |    6 ++--
+ 13 files changed, 51 insertions(+), 51 deletions(-)
 
->> >> +
->> >> +#define EXP_V4L2_TO_NATIVE(x) ((x) << 4)
->> >> +#define EXP_NATIVE_TO_V4L2(x) ((x) >> 4)
->> >> +#define GAIN_V4L2_TO_NATIVE(x) ((x) * MAX_GAIN_NATIVE / MAX_GAIN)
->> >> +#define GAIN_NATIVE_TO_V4L2(x) ((x) * MAX_GAIN / MAX_GAIN_NATIVE)
->> >> +#define RBBALANCE_V4L2_TO_NATIVE(x) ((x) * MAX_RBBALANCE_NATIVE /
->> >> MAX_RBBALANCE) +#define RBBALANCE_NATIVE_TO_V4L2(x) ((x) * MAX_RBBALANCE
->> >> / MAX_RBBALANCE_NATIVE) +
->> >> +/* flaw in the datasheet. we need some extra lines */
->> >> +#define MANUAL_LONG_EXP_SAFETY_DISTANCE      20
->> >> +
->> >>  /* active pixel array size */
->> >>  #define OV5642_SENSOR_SIZE_X 2592
->> >>  #define OV5642_SENSOR_SIZE_Y 1944
->> >
->> > [snip]
->> >
->> >> @@ -804,6 +1013,100 @@ static int ov5642_set_resolution(struct
->> >> v4l2_subdev *sd) return ret;
->> >>  }
->> >>
->> >> +static int ov5642_restore_state(struct v4l2_subdev *sd)
->> >> +{
->> >> +     struct i2c_client *client = v4l2_get_subdevdata(sd);
->> >> +     struct ov5642 *priv = to_ov5642(client);
->> >> +     struct v4l2_control set_ctrl;
->> >> +     int tmp_red_balance = priv->red_balance;
->> >> +     int tmp_blue_balance = priv->blue_balance;
->> >> +     int tmp_gain = priv->gain;
->> >> +     int tmp_exp = priv->exposure;
->> >> +     int ret;
->> >> +
->> >> +     set_ctrl.id = V4L2_CID_AUTOGAIN;
->> >> +     set_ctrl.value = priv->agc;
->> >> +     ret = ov5642_s_ctrl(sd, &set_ctrl);
->> >
->> > What about writing to registers directly ?
->>
->> I thought about that too, but code duplication would be very large
->> (e.g. take the hue control). I considered the speedup of avoiding
->> function calls less than the error-proness of this duplication. It is
->> just cleaner imho.
->
-> OK. This will be replaced when soc-camera will use the control framework
-> anyway.
->
->> >> +
->> >> +     if (!priv->agc) {
->> >> +             set_ctrl.id = V4L2_CID_GAIN;
->> >> +             set_ctrl.value = tmp_gain;
->> >> +             if (!ret)
->> >> +                     ret = ov5642_s_ctrl(sd, &set_ctrl);
->> >> +     }
->> >> +
->> >> +     set_ctrl.id = V4L2_CID_AUTO_WHITE_BALANCE;
->> >> +     set_ctrl.value = priv->awb;
->> >> +     if (!ret)
->> >> +             ret = ov5642_s_ctrl(sd, &set_ctrl);
->> >> +
->> >> +     if (!priv->awb) {
->> >> +             set_ctrl.id = V4L2_CID_RED_BALANCE;
->> >> +             set_ctrl.value = tmp_red_balance;
->> >> +             if (!ret)
->> >> +                     ret = ov5642_s_ctrl(sd, &set_ctrl);
->> >> +
->> >> +             set_ctrl.id = V4L2_CID_BLUE_BALANCE;
->> >> +             set_ctrl.value = tmp_blue_balance;
->> >> +             if (!ret)
->> >> +                     ret = ov5642_s_ctrl(sd, &set_ctrl);
->> >> +     }
->> >> +
->> >> +     set_ctrl.id = V4L2_CID_EXPOSURE_AUTO;
->> >> +     set_ctrl.value = priv->aec;
->> >> +     if (!ret)
->> >> +             ret = ov5642_s_ctrl(sd, &set_ctrl);
->> >> +
->> >> +     if (priv->aec == V4L2_EXPOSURE_MANUAL) {
->> >> +             set_ctrl.id = V4L2_CID_EXPOSURE;
->> >> +             set_ctrl.value = tmp_exp;
->> >> +             if (!ret)
->> >> +                     ret = ov5642_s_ctrl(sd, &set_ctrl);
->> >> +     }
->> >> +
->> >> +     set_ctrl.id = V4L2_CID_VFLIP;
->> >> +     set_ctrl.value = priv->vflip;
->> >> +     if (!ret)
->> >> +             ret = ov5642_s_ctrl(sd, &set_ctrl);
->> >> +
->> >> +     set_ctrl.id = OV5642_CONTROL_GRAY_SCALE;
->> >> +     set_ctrl.value = priv->grayscale;
->> >> +     if (!ret)
->> >> +             ret = ov5642_s_ctrl(sd, &set_ctrl);
->> >> +
->> >> +     set_ctrl.id = OV5642_CONTROL_SOLARIZE;
->> >> +     set_ctrl.value = priv->solarize;
->> >> +     if (!ret)
->> >> +             ret = ov5642_s_ctrl(sd, &set_ctrl);
->> >> +
->> >> +     set_ctrl.id = OV5642_CONTROL_BLUE_SATURATION;
->> >> +     set_ctrl.value = priv->blue_saturation;
->> >> +     if (!ret)
->> >> +             ret = ov5642_s_ctrl(sd, &set_ctrl);
->> >> +
->> >> +     set_ctrl.id = OV5642_CONTROL_RED_SATURATION;
->> >> +     set_ctrl.value = priv->red_saturation;
->> >> +     if (!ret)
->> >> +             ret = ov5642_s_ctrl(sd, &set_ctrl);
->> >> +
->> >> +     set_ctrl.id = V4L2_CID_BRIGHTNESS;
->> >> +     set_ctrl.value = priv->brightness;
->> >> +     if (!ret)
->> >> +             ret = ov5642_s_ctrl(sd, &set_ctrl);
->> >> +
->> >> +     set_ctrl.id = V4L2_CID_CONTRAST;
->> >> +     set_ctrl.value = priv->contrast;
->> >> +     if (!ret)
->> >> +             ret = ov5642_s_ctrl(sd, &set_ctrl);
->> >> +
->> >> +     set_ctrl.id = V4L2_CID_HUE;
->> >> +     set_ctrl.value = priv->hue;
->> >> +     if (!ret)
->> >> +             ret = ov5642_s_ctrl(sd, &set_ctrl);
->> >> +
->> >> +     return ret;
->> >> +}
->> >> +
->> >>  static int ov5642_try_fmt(struct v4l2_subdev *sd, struct
->> >> v4l2_mbus_framefmt *mf) {
->> >>       const struct ov5642_datafmt *fmt   =
->> >> ov5642_find_datafmt(mf->code); @@ -856,6 +1159,9 @@ static int
->> >> ov5642_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf) if
->> >> (!ret)
->> >>               ret = ov5642_write_array(client,
->> >> ov5642_default_regs_finalise);
->> >>
->> >> +     /* the chip has been reset, so configure it again */
->> >> +     if (!ret)
->> >> +             ret = ov5642_restore_state(sd);
->> >
->> > I suppose there's no way to avoid resetting the chip ?
->>
->> Whenever the clock is down, the chip looses its state.
->
-> But the clock isn't turned down at every s_fmt call. Would it be possible
-> reinit the chip in the .s_power operation instead ?
+diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
+index 5a4b2d7..7e1d789 100644
+--- a/drivers/media/video/atmel-isi.c
++++ b/drivers/media/video/atmel-isi.c
+@@ -341,7 +341,7 @@ static int buffer_prepare(struct vb2_buffer *vb)
+ 
+ 			/* Initialize the dma descriptor */
+ 			desc->p_fbd->fb_address =
+-					vb2_dma_contig_plane_paddr(vb, 0);
++					vb2_dma_contig_plane_dma_addr(vb, 0);
+ 			desc->p_fbd->next_fbd_address = 0;
+ 			set_dma_ctrl(desc->p_fbd, ISI_DMA_CTRL_WB);
+ 
+diff --git a/drivers/media/video/marvell-ccic/mcam-core.c b/drivers/media/video/marvell-ccic/mcam-core.c
+index 744cf37..7abe503 100644
+--- a/drivers/media/video/marvell-ccic/mcam-core.c
++++ b/drivers/media/video/marvell-ccic/mcam-core.c
+@@ -450,7 +450,7 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
+ 		buf = cam->vb_bufs[frame ^ 0x1];
+ 		cam->vb_bufs[frame] = buf;
+ 		mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR,
+-				vb2_dma_contig_plane_paddr(&buf->vb_buf, 0));
++				vb2_dma_contig_plane_dma_addr(&buf->vb_buf, 0));
+ 		set_bit(CF_SINGLE_BUFFER, &cam->flags);
+ 		singles++;
+ 		return;
+@@ -461,7 +461,7 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
+ 	buf = list_first_entry(&cam->buffers, struct mcam_vb_buffer, queue);
+ 	list_del_init(&buf->queue);
+ 	mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR,
+-			vb2_dma_contig_plane_paddr(&buf->vb_buf, 0));
++			vb2_dma_contig_plane_dma_addr(&buf->vb_buf, 0));
+ 	cam->vb_bufs[frame] = buf;
+ 	clear_bit(CF_SINGLE_BUFFER, &cam->flags);
+ }
+diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+index 9ae7785..c8e958a 100644
+--- a/drivers/media/video/mx3_camera.c
++++ b/drivers/media/video/mx3_camera.c
+@@ -247,7 +247,7 @@ static int mx3_videobuf_prepare(struct vb2_buffer *vb)
+ 	}
+ 
+ 	if (buf->state == CSI_BUF_NEEDS_INIT) {
+-		sg_dma_address(sg)	= vb2_dma_contig_plane_paddr(vb, 0);
++		sg_dma_address(sg)	= vb2_dma_contig_plane_dma_addr(vb, 0);
+ 		sg_dma_len(sg)		= new_size;
+ 
+ 		buf->txd = ichan->dma_chan.device->device_prep_slave_sg(
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 8152756..266d6b9 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -457,7 +457,7 @@ int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
+ 	dbg("memplanes= %d, colplanes= %d, pix_size= %d",
+ 		frame->fmt->memplanes, frame->fmt->colplanes, pix_size);
+ 
+-	paddr->y = vb2_dma_contig_plane_paddr(vb, 0);
++	paddr->y = vb2_dma_contig_plane_dma_addr(vb, 0);
+ 
+ 	if (frame->fmt->memplanes == 1) {
+ 		switch (frame->fmt->colplanes) {
+@@ -485,10 +485,10 @@ int fimc_prepare_addr(struct fimc_ctx *ctx, struct vb2_buffer *vb,
+ 		}
+ 	} else {
+ 		if (frame->fmt->memplanes >= 2)
+-			paddr->cb = vb2_dma_contig_plane_paddr(vb, 1);
++			paddr->cb = vb2_dma_contig_plane_dma_addr(vb, 1);
+ 
+ 		if (frame->fmt->memplanes == 3)
+-			paddr->cr = vb2_dma_contig_plane_paddr(vb, 2);
++			paddr->cr = vb2_dma_contig_plane_dma_addr(vb, 2);
+ 	}
+ 
+ 	dbg("PHYS_ADDR: y= 0x%X  cb= 0x%X cr= 0x%X ret= %d",
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc.c b/drivers/media/video/s5p-mfc/s5p_mfc.c
+index 7dc7eab..af32e02 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc.c
+@@ -202,7 +202,7 @@ static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
+ 	   appropraite flags */
+ 	src_buf = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
+ 	list_for_each_entry(dst_buf, &ctx->dst_queue, list) {
+-		if (vb2_dma_contig_plane_paddr(dst_buf->b, 0) == dec_y_addr) {
++		if (vb2_dma_contig_plane_dma_addr(dst_buf->b, 0) == dec_y_addr) {
+ 			memcpy(&dst_buf->b->v4l2_buf.timecode,
+ 				&src_buf->b->v4l2_buf.timecode,
+ 				sizeof(struct v4l2_timecode));
+@@ -248,7 +248,7 @@ static void s5p_mfc_handle_frame_new(struct s5p_mfc_ctx *ctx, unsigned int err)
+ 	 * check which videobuf does it correspond to */
+ 	list_for_each_entry(dst_buf, &ctx->dst_queue, list) {
+ 		/* Check if this is the buffer we're looking for */
+-		if (vb2_dma_contig_plane_paddr(dst_buf->b, 0) == dspl_y_addr) {
++		if (vb2_dma_contig_plane_dma_addr(dst_buf->b, 0) == dspl_y_addr) {
+ 			list_del(&dst_buf->list);
+ 			ctx->dst_queue_cnt--;
+ 			dst_buf->b->v4l2_buf.sequence = ctx->sequence;
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
+index 13099b8..feac53f 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
+@@ -824,7 +824,7 @@ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
+ 			return 0;
+ 		for (i = 0; i <= ctx->src_fmt->num_planes ; i++) {
+ 			if (IS_ERR_OR_NULL(ERR_PTR(
+-					vb2_dma_contig_plane_paddr(vb, i)))) {
++					vb2_dma_contig_plane_dma_addr(vb, i)))) {
+ 				mfc_err("Plane mem not allocated\n");
+ 				return -EINVAL;
+ 			}
+@@ -837,13 +837,13 @@ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
+ 		i = vb->v4l2_buf.index;
+ 		ctx->dst_bufs[i].b = vb;
+ 		ctx->dst_bufs[i].cookie.raw.luma =
+-					vb2_dma_contig_plane_paddr(vb, 0);
++					vb2_dma_contig_plane_dma_addr(vb, 0);
+ 		ctx->dst_bufs[i].cookie.raw.chroma =
+-					vb2_dma_contig_plane_paddr(vb, 1);
++					vb2_dma_contig_plane_dma_addr(vb, 1);
+ 		ctx->dst_bufs_cnt++;
+ 	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+ 		if (IS_ERR_OR_NULL(ERR_PTR(
+-					vb2_dma_contig_plane_paddr(vb, 0)))) {
++					vb2_dma_contig_plane_dma_addr(vb, 0)))) {
+ 			mfc_err("Plane memory not allocated\n");
+ 			return -EINVAL;
+ 		}
+@@ -855,7 +855,7 @@ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
+ 		i = vb->v4l2_buf.index;
+ 		ctx->src_bufs[i].b = vb;
+ 		ctx->src_bufs[i].cookie.stream =
+-					vb2_dma_contig_plane_paddr(vb, 0);
++					vb2_dma_contig_plane_dma_addr(vb, 0);
+ 		ctx->src_bufs_cnt++;
+ 	} else {
+ 		mfc_err("s5p_mfc_buf_init: unknown queue type\n");
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+index 593ff41..321cdfe 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+@@ -599,8 +599,8 @@ static void cleanup_ref_queue(struct s5p_mfc_ctx *ctx)
+ 	while (!list_empty(&ctx->ref_queue)) {
+ 		mb_entry = list_entry((&ctx->ref_queue)->next,
+ 						struct s5p_mfc_buf, list);
+-		mb_y_addr = vb2_dma_contig_plane_paddr(mb_entry->b, 0);
+-		mb_c_addr = vb2_dma_contig_plane_paddr(mb_entry->b, 1);
++		mb_y_addr = vb2_dma_contig_plane_dma_addr(mb_entry->b, 0);
++		mb_c_addr = vb2_dma_contig_plane_dma_addr(mb_entry->b, 1);
+ 		list_del(&mb_entry->list);
+ 		ctx->ref_queue_cnt--;
+ 		list_add_tail(&mb_entry->list, &ctx->src_queue);
+@@ -622,7 +622,7 @@ static int enc_pre_seq_start(struct s5p_mfc_ctx *ctx)
+ 
+ 	spin_lock_irqsave(&dev->irqlock, flags);
+ 	dst_mb = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf, list);
+-	dst_addr = vb2_dma_contig_plane_paddr(dst_mb->b, 0);
++	dst_addr = vb2_dma_contig_plane_dma_addr(dst_mb->b, 0);
+ 	dst_size = vb2_plane_size(dst_mb->b, 0);
+ 	s5p_mfc_set_enc_stream_buffer(ctx, dst_addr, dst_size);
+ 	spin_unlock_irqrestore(&dev->irqlock, flags);
+@@ -668,14 +668,14 @@ static int enc_pre_frame_start(struct s5p_mfc_ctx *ctx)
+ 
+ 	spin_lock_irqsave(&dev->irqlock, flags);
+ 	src_mb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
+-	src_y_addr = vb2_dma_contig_plane_paddr(src_mb->b, 0);
+-	src_c_addr = vb2_dma_contig_plane_paddr(src_mb->b, 1);
++	src_y_addr = vb2_dma_contig_plane_dma_addr(src_mb->b, 0);
++	src_c_addr = vb2_dma_contig_plane_dma_addr(src_mb->b, 1);
+ 	s5p_mfc_set_enc_frame_buffer(ctx, src_y_addr, src_c_addr);
+ 	spin_unlock_irqrestore(&dev->irqlock, flags);
+ 
+ 	spin_lock_irqsave(&dev->irqlock, flags);
+ 	dst_mb = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf, list);
+-	dst_addr = vb2_dma_contig_plane_paddr(dst_mb->b, 0);
++	dst_addr = vb2_dma_contig_plane_dma_addr(dst_mb->b, 0);
+ 	dst_size = vb2_plane_size(dst_mb->b, 0);
+ 	s5p_mfc_set_enc_stream_buffer(ctx, dst_addr, dst_size);
+ 	spin_unlock_irqrestore(&dev->irqlock, flags);
+@@ -703,8 +703,8 @@ static int enc_post_frame_start(struct s5p_mfc_ctx *ctx)
+ 	if (slice_type >= 0) {
+ 		s5p_mfc_get_enc_frame_buffer(ctx, &enc_y_addr, &enc_c_addr);
+ 		list_for_each_entry(mb_entry, &ctx->src_queue, list) {
+-			mb_y_addr = vb2_dma_contig_plane_paddr(mb_entry->b, 0);
+-			mb_c_addr = vb2_dma_contig_plane_paddr(mb_entry->b, 1);
++			mb_y_addr = vb2_dma_contig_plane_dma_addr(mb_entry->b, 0);
++			mb_c_addr = vb2_dma_contig_plane_dma_addr(mb_entry->b, 1);
+ 			if ((enc_y_addr == mb_y_addr) &&
+ 						(enc_c_addr == mb_c_addr)) {
+ 				list_del(&mb_entry->list);
+@@ -715,8 +715,8 @@ static int enc_post_frame_start(struct s5p_mfc_ctx *ctx)
+ 			}
+ 		}
+ 		list_for_each_entry(mb_entry, &ctx->ref_queue, list) {
+-			mb_y_addr = vb2_dma_contig_plane_paddr(mb_entry->b, 0);
+-			mb_c_addr = vb2_dma_contig_plane_paddr(mb_entry->b, 1);
++			mb_y_addr = vb2_dma_contig_plane_dma_addr(mb_entry->b, 0);
++			mb_c_addr = vb2_dma_contig_plane_dma_addr(mb_entry->b, 1);
+ 			if ((enc_y_addr == mb_y_addr) &&
+ 						(enc_c_addr == mb_c_addr)) {
+ 				list_del(&mb_entry->list);
+@@ -1501,13 +1501,13 @@ static int check_vb_with_fmt(struct s5p_mfc_fmt *fmt, struct vb2_buffer *vb)
+ 		return -EINVAL;
+ 	}
+ 	for (i = 0; i < fmt->num_planes; i++) {
+-		if (!vb2_dma_contig_plane_paddr(vb, i)) {
++		if (!vb2_dma_contig_plane_dma_addr(vb, i)) {
+ 			mfc_err("failed to get plane cookie\n");
+ 			return -EINVAL;
+ 		}
+ 		mfc_debug(2, "index: %d, plane[%d] cookie: 0x%08zx",
+ 				vb->v4l2_buf.index, i,
+-				vb2_dma_contig_plane_paddr(vb, i));
++				vb2_dma_contig_plane_dma_addr(vb, i));
+ 	}
+ 	return 0;
+ }
+@@ -1584,7 +1584,7 @@ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
+ 		i = vb->v4l2_buf.index;
+ 		ctx->dst_bufs[i].b = vb;
+ 		ctx->dst_bufs[i].cookie.stream =
+-					vb2_dma_contig_plane_paddr(vb, 0);
++					vb2_dma_contig_plane_dma_addr(vb, 0);
+ 		ctx->dst_bufs_cnt++;
+ 	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+ 		ret = check_vb_with_fmt(ctx->src_fmt, vb);
+@@ -1593,9 +1593,9 @@ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
+ 		i = vb->v4l2_buf.index;
+ 		ctx->src_bufs[i].b = vb;
+ 		ctx->src_bufs[i].cookie.raw.luma =
+-					vb2_dma_contig_plane_paddr(vb, 0);
++					vb2_dma_contig_plane_dma_addr(vb, 0);
+ 		ctx->src_bufs[i].cookie.raw.chroma =
+-					vb2_dma_contig_plane_paddr(vb, 1);
++					vb2_dma_contig_plane_dma_addr(vb, 1);
+ 		ctx->src_bufs_cnt++;
+ 	} else {
+ 		mfc_err("inavlid queue type: %d\n", vq->type);
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_opr.c b/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
+index 7b23916..e08b21c 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
+@@ -1135,7 +1135,7 @@ static int s5p_mfc_run_dec_frame(struct s5p_mfc_ctx *ctx, int last_frame)
+ 	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
+ 	temp_vb->used = 1;
+ 	s5p_mfc_set_dec_stream_buffer(ctx,
+-		vb2_dma_contig_plane_paddr(temp_vb->b, 0), ctx->consumed_stream,
++		vb2_dma_contig_plane_dma_addr(temp_vb->b, 0), ctx->consumed_stream,
+ 					temp_vb->b->v4l2_planes[0].bytesused);
+ 	spin_unlock_irqrestore(&dev->irqlock, flags);
+ 	index = temp_vb->b->v4l2_buf.index;
+@@ -1172,12 +1172,12 @@ static int s5p_mfc_run_enc_frame(struct s5p_mfc_ctx *ctx)
+ 	}
+ 	src_mb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
+ 	src_mb->used = 1;
+-	src_y_addr = vb2_dma_contig_plane_paddr(src_mb->b, 0);
+-	src_c_addr = vb2_dma_contig_plane_paddr(src_mb->b, 1);
++	src_y_addr = vb2_dma_contig_plane_dma_addr(src_mb->b, 0);
++	src_c_addr = vb2_dma_contig_plane_dma_addr(src_mb->b, 1);
+ 	s5p_mfc_set_enc_frame_buffer(ctx, src_y_addr, src_c_addr);
+ 	dst_mb = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf, list);
+ 	dst_mb->used = 1;
+-	dst_addr = vb2_dma_contig_plane_paddr(dst_mb->b, 0);
++	dst_addr = vb2_dma_contig_plane_dma_addr(dst_mb->b, 0);
+ 	dst_size = vb2_plane_size(dst_mb->b, 0);
+ 	s5p_mfc_set_enc_stream_buffer(ctx, dst_addr, dst_size);
+ 	spin_unlock_irqrestore(&dev->irqlock, flags);
+@@ -1200,7 +1200,7 @@ static void s5p_mfc_run_init_dec(struct s5p_mfc_ctx *ctx)
+ 	s5p_mfc_set_dec_desc_buffer(ctx);
+ 	mfc_debug(2, "Header size: %d\n", temp_vb->b->v4l2_planes[0].bytesused);
+ 	s5p_mfc_set_dec_stream_buffer(ctx,
+-				vb2_dma_contig_plane_paddr(temp_vb->b, 0),
++				vb2_dma_contig_plane_dma_addr(temp_vb->b, 0),
+ 				0, temp_vb->b->v4l2_planes[0].bytesused);
+ 	spin_unlock_irqrestore(&dev->irqlock, flags);
+ 	dev->curr_ctx = ctx->num;
+@@ -1219,7 +1219,7 @@ static void s5p_mfc_run_init_enc(struct s5p_mfc_ctx *ctx)
+ 	s5p_mfc_set_enc_ref_buffer(ctx);
+ 	spin_lock_irqsave(&dev->irqlock, flags);
+ 	dst_mb = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf, list);
+-	dst_addr = vb2_dma_contig_plane_paddr(dst_mb->b, 0);
++	dst_addr = vb2_dma_contig_plane_dma_addr(dst_mb->b, 0);
+ 	dst_size = vb2_plane_size(dst_mb->b, 0);
+ 	s5p_mfc_set_enc_stream_buffer(ctx, dst_addr, dst_size);
+ 	spin_unlock_irqrestore(&dev->irqlock, flags);
+@@ -1255,7 +1255,7 @@ static int s5p_mfc_run_init_dec_buffers(struct s5p_mfc_ctx *ctx)
+ 	temp_vb = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
+ 	mfc_debug(2, "Header size: %d\n", temp_vb->b->v4l2_planes[0].bytesused);
+ 	s5p_mfc_set_dec_stream_buffer(ctx,
+-				vb2_dma_contig_plane_paddr(temp_vb->b, 0),
++				vb2_dma_contig_plane_dma_addr(temp_vb->b, 0),
+ 				0, temp_vb->b->v4l2_planes[0].bytesused);
+ 	spin_unlock_irqrestore(&dev->irqlock, flags);
+ 	dev->curr_ctx = ctx->num;
+diff --git a/drivers/media/video/s5p-tv/mixer_grp_layer.c b/drivers/media/video/s5p-tv/mixer_grp_layer.c
+index 58f0ba4..de8270c 100644
+--- a/drivers/media/video/s5p-tv/mixer_grp_layer.c
++++ b/drivers/media/video/s5p-tv/mixer_grp_layer.c
+@@ -86,7 +86,7 @@ static void mxr_graph_buffer_set(struct mxr_layer *layer,
+ 	dma_addr_t addr = 0;
+ 
+ 	if (buf)
+-		addr = vb2_dma_contig_plane_paddr(&buf->vb, 0);
++		addr = vb2_dma_contig_plane_dma_addr(&buf->vb, 0);
+ 	mxr_reg_graph_buffer(layer->mdev, layer->idx, addr);
+ }
+ 
+diff --git a/drivers/media/video/s5p-tv/mixer_vp_layer.c b/drivers/media/video/s5p-tv/mixer_vp_layer.c
+index 6950ed8..f3bb2e3 100644
+--- a/drivers/media/video/s5p-tv/mixer_vp_layer.c
++++ b/drivers/media/video/s5p-tv/mixer_vp_layer.c
+@@ -97,9 +97,9 @@ static void mxr_vp_buffer_set(struct mxr_layer *layer,
+ 		mxr_reg_vp_buffer(layer->mdev, luma_addr, chroma_addr);
+ 		return;
+ 	}
+-	luma_addr[0] = vb2_dma_contig_plane_paddr(&buf->vb, 0);
++	luma_addr[0] = vb2_dma_contig_plane_dma_addr(&buf->vb, 0);
+ 	if (layer->fmt->num_subframes == 2) {
+-		chroma_addr[0] = vb2_dma_contig_plane_paddr(&buf->vb, 1);
++		chroma_addr[0] = vb2_dma_contig_plane_dma_addr(&buf->vb, 1);
+ 	} else {
+ 		/* FIXME: mxr_get_plane_size compute integer division,
+ 		 * which is slow and should not be performed in interrupt */
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 8298c89..8615fb8 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -312,7 +312,7 @@ static int sh_mobile_ceu_capture(struct sh_mobile_ceu_dev *pcdev)
+ 		bottom2	= CDBCR;
+ 	}
+ 
+-	phys_addr_top = vb2_dma_contig_plane_paddr(pcdev->active, 0);
++	phys_addr_top = vb2_dma_contig_plane_dma_addr(pcdev->active, 0);
+ 
+ 	ceu_write(pcdev, top1, phys_addr_top);
+ 	if (V4L2_FIELD_NONE != pcdev->field) {
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index a790a5f..f17ad98 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -24,7 +24,7 @@ struct vb2_dc_conf {
+ struct vb2_dc_buf {
+ 	struct vb2_dc_conf		*conf;
+ 	void				*vaddr;
+-	dma_addr_t			paddr;
++	dma_addr_t			dma_addr;
+ 	unsigned long			size;
+ 	struct vm_area_struct		*vma;
+ 	atomic_t			refcount;
+@@ -42,7 +42,7 @@ static void *vb2_dma_contig_alloc(void *alloc_ctx, unsigned long size)
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	buf->vaddr = dma_alloc_coherent(conf->dev, size, &buf->paddr,
++	buf->vaddr = dma_alloc_coherent(conf->dev, size, &buf->dma_addr,
+ 					GFP_KERNEL);
+ 	if (!buf->vaddr) {
+ 		dev_err(conf->dev, "dma_alloc_coherent of size %ld failed\n",
+@@ -69,7 +69,7 @@ static void vb2_dma_contig_put(void *buf_priv)
+ 
+ 	if (atomic_dec_and_test(&buf->refcount)) {
+ 		dma_free_coherent(buf->conf->dev, buf->size, buf->vaddr,
+-				  buf->paddr);
++				  buf->dma_addr);
+ 		kfree(buf);
+ 	}
+ }
+@@ -78,7 +78,7 @@ static void *vb2_dma_contig_cookie(void *buf_priv)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 
+-	return &buf->paddr;
++	return &buf->dma_addr;
+ }
+ 
+ static void *vb2_dma_contig_vaddr(void *buf_priv)
+@@ -106,7 +106,7 @@ static int vb2_dma_contig_mmap(void *buf_priv, struct vm_area_struct *vma)
+ 		return -EINVAL;
+ 	}
+ 
+-	return vb2_mmap_pfn_range(vma, buf->paddr, buf->size,
++	return vb2_mmap_pfn_range(vma, buf->dma_addr, buf->size,
+ 				  &vb2_common_vm_ops, &buf->handler);
+ }
+ 
+@@ -115,14 +115,14 @@ static void *vb2_dma_contig_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ {
+ 	struct vb2_dc_buf *buf;
+ 	struct vm_area_struct *vma;
+-	dma_addr_t paddr = 0;
++	dma_addr_t dma_addr = 0;
+ 	int ret;
+ 
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	ret = vb2_get_contig_userptr(vaddr, size, &vma, &paddr);
++	ret = vb2_get_contig_userptr(vaddr, size, &vma, &dma_addr);
+ 	if (ret) {
+ 		printk(KERN_ERR "Failed acquiring VMA for vaddr 0x%08lx\n",
+ 				vaddr);
+@@ -131,7 +131,7 @@ static void *vb2_dma_contig_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	}
+ 
+ 	buf->size = size;
+-	buf->paddr = paddr;
++	buf->dma_addr = dma_addr;
+ 	buf->vma = vma;
+ 
+ 	return buf;
+diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
+index 7e6c68b..19ae1e3 100644
+--- a/include/media/videobuf2-dma-contig.h
++++ b/include/media/videobuf2-dma-contig.h
+@@ -17,11 +17,11 @@
+ #include <linux/dma-mapping.h>
+ 
+ static inline dma_addr_t
+-vb2_dma_contig_plane_paddr(struct vb2_buffer *vb, unsigned int plane_no)
++vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
+ {
+-	dma_addr_t *paddr = vb2_plane_cookie(vb, plane_no);
++	dma_addr_t *addr = vb2_plane_cookie(vb, plane_no);
+ 
+-	return *paddr;
++	return *addr;
+ }
+ 
+ void *vb2_dma_contig_init_ctx(struct device *dev);
+-- 
+1.7.1.569.g6f426
 
-Guennadi had the same idea. I tried it out already to do it in
-s_power, but the chip hangs most times then. Even when I use mplayer
-and the s_power() is closely followed by the s_fmt() the chip crashes.
-Witch the same register writes but a small time gap. The chip has
-suuuch a strange behavior that I gave up trying to solve it. It sounds
-quite unbelievable I must admit, but meantime I stopped being amazed
-by the ov5642.
-
->> >>       return ret;
->> >>  }
->> >
->> > [snip]
->> >
->> >> +static int ov5642_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control
->> >> *ctrl) +{
->> >> +     struct i2c_client *client = v4l2_get_subdevdata(sd);
->> >> +     struct ov5642 *priv = to_ov5642(client);
->> >> +     int ret = 0;
->> >> +     u8 val8;
->> >> +     u16 val16;
->> >> +     u32 val32;
->> >> +     int trig;
->> >> +     struct v4l2_control aux_ctrl;
->> >> +
->> >> +     switch (ctrl->id) {
->> >> +     case V4L2_CID_AUTOGAIN:
->> >> +             if (!ctrl->value) {
->> >> +                     aux_ctrl.id = V4L2_CID_GAIN;
->> >> +                     ret = ov5642_g_ctrl(sd, &aux_ctrl);
->> >> +                     if (ret)
->> >> +                             break;
->> >> +                     priv->gain = aux_ctrl.value;
->> >> +             }
->> >> +
->> >> +             ret = reg_read(client, REG_EXP_GAIN_CTRL, &val8);
->> >> +             if (ret)
->> >> +                     break;
->> >> +             val8 = ctrl->value ? val8 & ~BIT(1) : val8 | BIT(1);
->> >> +             ret = reg_write(client, REG_EXP_GAIN_CTRL, val8);
->> >> +             if (!ret)
->> >> +                     priv->agc = ctrl->value;
->> >
->> > What about caching the content of this register (and of other registers
->> > below) instead of reading it back ? If you can't do that, a
->> > reg_clr_set() function would make the code simpler.
->>
->> Ok I will do the caching.
->>
->> >> +             break;
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
