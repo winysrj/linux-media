@@ -1,61 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:38266 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753316Ab1HWNWK (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:65359 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753583Ab1H2Ooe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Aug 2011 09:22:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH/RFC] media: vb2: change queue initialization order
-Date: Tue, 23 Aug 2011 15:22:05 +0200
-Cc: linux-media@vger.kernel.org,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Pawel Osciak'" <pawel@osciak.com>,
-	"'Jonathan Corbet'" <corbet@lwn.net>,
-	"'Uwe =?iso-8859-2?q?Kleine-K=F6nig=27?="
-	<u.kleine-koenig@pengutronix.de>,
-	"'Marin Mitov'" <mitov@issp.bas.bg>,
-	"'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
-	"'Guennadi Liakhovetski'" <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-References: <1309340946-5658-1-git-send-email-m.szyprowski@samsung.com> <201108231211.25278.hverkuil@xs4all.nl> <010001cc617d$6a6aeb60$3f40c220$%szyprowski@samsung.com>
-In-Reply-To: <010001cc617d$6a6aeb60$3f40c220$%szyprowski@samsung.com>
+	Mon, 29 Aug 2011 10:44:34 -0400
+Received: by fxh19 with SMTP id 19so4477113fxh.19
+        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2011 07:44:33 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108231522.05578.hverkuil@xs4all.nl>
+In-Reply-To: <4E4C2784.2020003@iki.fi>
+References: <CAFk-VPxQvGiEUdd+X4jjUqcygPO-JsT0gTFvrX-q4cGAW6tq_Q@mail.gmail.com>
+ <4E485F81.9020700@iki.fi> <4E48FF99.7030006@iki.fi> <4E4C2784.2020003@iki.fi>
+From: =?ISO-8859-1?Q?Istv=E1n_V=E1radi?= <ivaradi@gmail.com>
+Date: Mon, 29 Aug 2011 16:44:13 +0200
+Message-ID: <CAFk-VPzKa4bNLCMMCagFi1LLK6PnY245YJqP5yisQH77nJ0Org@mail.gmail.com>
+Subject: Re: Smart card reader support for Anysee DVB devices
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday, August 23, 2011 12:14:17 Marek Szyprowski wrote:
-> Hello,
-> 
-> On Tuesday, August 23, 2011 12:11 PM Hans Verkuil wrote:
-> 
-> > Are you planning a RFCv2 for this?
-> > 
-> > I've been implementing vb2 in an internal driver and this initialization
-> > order of vb2 is a bit of a pain to be honest.
-> 
-> (snipped)
-> 
-> Yes, I will post it till the end of the week. I'm sorry for the delay, I was
-> a bit busy with updating CMA and dma-mapping patches...
+Hi,
 
-No problem, I just wanted to make sure it wasn't lost...
+2011/8/17 Antti Palosaari <crope@iki.fi>:
+> On 08/15/2011 02:14 PM, Antti Palosaari wrote:
+>> On 08/15/2011 02:51 AM, Antti Palosaari wrote:
+>>> Biggest problem I see whole thing is poor application support. OpenCT is
+>>> rather legacy but there is no good alternative. All this kind of serial
+>>> drivers seems to be OpenCT currently.
+>>
+>> I wonder if it is possible to make virtual CCID device since CCID seems
+>> to be unfortunately the only interface SmartCard guys currently care.
+>
+> I studied scenario and looks like it is possible to implement way like,
+> register virtual USB HCI (virtual motherboard USB controller) then
+> register virtual PC/SC device to that which hooks all calls to HW via
+> Anysee driver. Some glue surely needed for emulate PC/SC. I think there
+> is not any such driver yet. Anyhow, there is virtual USB HCI driver
+> currently in staging which can be used as example, or even use it to
+> register virtual device. That kind of functionality surely needs more
+> talking...
 
-I've found a few other issues as well, I'll post those separately.
+It maybe that smartcard guys care only for CCID, but wouldn't it be an
+overkill to implement an emulation of that for the driver? It can be
+done, of course, but I think it would be much more complicated than
+the current one. Is it really necessary to put such complexity into
+the kernel? In my opinion, this should be handled in user-space.
 
 Regards,
 
-	Hans
+Istvan
 
-> 
-> Best regards
-> -- 
-> Marek Szyprowski
-> Samsung Poland R&D Center
-> 
-> 
-> 
+>
+>
+> regards,
+> Antti
+> --
+> http://palosaari.fi/
+>
