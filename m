@@ -1,70 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:60083 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752005Ab1HPN3b (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:15718 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752618Ab1H2M0X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2011 09:29:31 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 7/9] ARM: DMA: steal memory for DMA coherent mappings
-Date: Tue, 16 Aug 2011 15:28:48 +0200
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com> <201108121453.05898.arnd@arndb.de> <20110814075205.GA4986@n2100.arm.linux.org.uk>
-In-Reply-To: <20110814075205.GA4986@n2100.arm.linux.org.uk>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108161528.48954.arnd@arndb.de>
+	Mon, 29 Aug 2011 08:26:23 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=iso-8859-2
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LQO005MMVVX4P70@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 29 Aug 2011 13:26:21 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LQO0074QVVWLP@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 29 Aug 2011 13:26:21 +0100 (BST)
+Date: Mon, 29 Aug 2011 14:26:04 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH v3] media: vb2: change queue initialization order
+In-reply-to: <Pine.LNX.4.64.1108291402270.31184@axis700.grange>
+To: 'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	=?iso-8859-2?Q?'Uwe_Kleine-K=F6nig'?=
+	<u.kleine-koenig@pengutronix.de>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>,
+	'Marin Mitov' <mitov@issp.bas.bg>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	'Kamil Debski' <k.debski@samsung.com>,
+	'Josh Wu' <josh.wu@atmel.com>,
+	'Hans de Goede' <hdegoede@redhat.com>,
+	'Paul Mundt' <lethal@linux-sh.org>
+Message-id: <009901cc6646$d2a7d4e0$77f77ea0$%szyprowski@samsung.com>
+Content-language: pl
+References: <1314618332-13262-1-git-send-email-m.szyprowski@samsung.com>
+ <Pine.LNX.4.64.1108291402270.31184@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 14 August 2011, Russell King - ARM Linux wrote:
-> On Fri, Aug 12, 2011 at 02:53:05PM +0200, Arnd Bergmann wrote:
-> > 
-> > I thought that our discussion ended with the plan to use this only
-> > for ARMv6+ (which has a problem with double mapping) but not on ARMv5
-> > and below (which don't have this problem but might need dmabounce).
+Hello,
+
+On Monday, August 29, 2011 2:05 PM Guennadi Liakhovetski wrote:
+
+> Hi Marek
 > 
-> I thought we'd decided to have a pool of available CMA memory on ARMv6K
-> to satisfy atomic allocations, which can grow and shrink in size, rather
-> than setting aside a fixed amount of contiguous system memory.
-
-Hmm, I don't remember the point about dynamically sizing the pool for
-ARMv6K, but that can well be an oversight on my part.  I do remember the
-part about taking that memory pool from the CMA region as you say.
-
-> ARMv6 and ARMv7+ could use CMA directly, and <= ARMv5 can use the existing
-> allocation method.
+> On Mon, 29 Aug 2011, Marek Szyprowski wrote:
 > 
-> Has something changed?
+> > This patch changes the order of operations during stream on call. Now the
+> > buffers are first queued to the driver and then the start_streaming method
+> > is called.
+> >
+> > This resolves the most common case when the driver needs to know buffer
+> > addresses to enable dma engine and start streaming. Additional parameter
+> > to start_streaming method have been added to simplify drivers code. The
+> > driver are now obliged to check if the number of queued buffers is high
+> > enough to enable hardware streaming. If not - it can return an error. In
+> > such case all the buffers that have been pre-queued are invalidated.
+> >
+> > This patch also updates all videobuf2 clients to work properly with the
+> > changed order of operations.
+> >
+> > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > CC: Pawel Osciak <pawel@osciak.com>
+> > CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > CC: Hans Verkuil <hverkuil@xs4all.nl>
+> > CC: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> > CC: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > CC: Kamil Debski <k.debski@samsung.com>
+> > CC: Jonathan Corbet <corbet@lwn.net>
+> > CC: Josh Wu <josh.wu@atmel.com>
+> > CC: Hans de Goede <hdegoede@redhat.com>
+> > CC: Paul Mundt <lethal@linux-sh.org>
+> > ---
+> >
+> > Hello,
+> >
+> > This is yet another version of the patch that introduces significant
+> > changes in the vb2 streamon operation. I've decided to remove the
+> > additional parameter to buf_queue callback and added a few cleanups here
+> > and there. This patch also includes an update for all vb2 clients.
+> 
+> Just for the record: These are not all vb2 clients. A simple grep for
+> something like vb2_ops gives you also
+> 
+> drivers/media/video/mx3_camera.c
+> drivers/media/video/sh_mobile_ceu_camera.c
 
-Nothing has changed regarding <=ARMv5. There was a small side discussion
-about ARMv6 and ARMv7+ based on the idea that they can either use CMA
-directly (doing TLB flushes for every allocation) or they could use the
-same method as ARMv6K by setting aside a pool of pages for atomic
-allocation. The first approach would consume less memory because it
-requires no special pool, the second approach would be simpler because
-it unifies the ARMv6K and ARMv6/ARMv7+ cases and also would be slightly
-more efficient for atomic allocations because it avoids the expensive
-TLB flush.
+Yes, they are also vb2 clients, but since they don't use start_streaming() 
+callback no changes were needed there. Same applies to mem2mem_testdev driver.
 
-I didn't have a strong opinion either way, so IIRC Marek said he'd try
-out both approaches and then send out the one that looked better, leaning
-towards the second for simplicity of having fewer compile-time options.
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
-	Arnd
+
