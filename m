@@ -1,65 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.dream-property.net ([82.149.226.172]:36441 "EHLO
-	mail.dream-property.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754126Ab1HDPkm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Aug 2011 11:40:42 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.dream-property.net (Postfix) with ESMTP id 25FBC3153477
-	for <linux-media@vger.kernel.org>; Thu,  4 Aug 2011 17:33:26 +0200 (CEST)
-Received: from mail.dream-property.net ([127.0.0.1])
-	by localhost (mail.dream-property.net [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id XyuOmJHJnMGQ for <linux-media@vger.kernel.org>;
-	Thu,  4 Aug 2011 17:33:19 +0200 (CEST)
-Received: from pepe.dream-property.nete (dreamboxupdate.com [82.149.226.174])
-	by mail.dream-property.net (Postfix) with SMTP id 385523153478
-	for <linux-media@vger.kernel.org>; Thu,  4 Aug 2011 17:33:18 +0200 (CEST)
-From: Andreas Oberritter <obi@linuxtv.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 3/4] DVB: dvb_frontend: clear stale events on FE_SET_FRONTEND
-Date: Thu,  4 Aug 2011 15:33:14 +0000
-Message-Id: <1312471995-26292-3-git-send-email-obi@linuxtv.org>
-In-Reply-To: <1312471995-26292-1-git-send-email-obi@linuxtv.org>
-References: <1312471995-26292-1-git-send-email-obi@linuxtv.org>
+Received: from moutng.kundenserver.de ([212.227.17.8]:59951 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752153Ab1H3O52 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Aug 2011 10:57:28 -0400
+Date: Tue, 30 Aug 2011 16:57:15 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Bastian Hecht <hechtb@googlemail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] media: Add support for arbitrary resolution for the
+ ov5642 camera driver
+In-Reply-To: <201108301636.55251.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1108301650190.19151@axis700.grange>
+References: <alpine.DEB.2.02.1108171551040.17540@ipanema>
+ <201108301546.42050.hverkuil@xs4all.nl> <Pine.LNX.4.64.1108301555350.19151@axis700.grange>
+ <201108301636.55251.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- Old events aren't very useful, so clear them before adding
-  the first event after an attempt to tune.
+On Tue, 30 Aug 2011, Hans Verkuil wrote:
 
-Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+> On Tuesday, August 30, 2011 16:24:55 Guennadi Liakhovetski wrote:
+> > Hi Hans
+> > 
+> > On Tue, 30 Aug 2011, Hans Verkuil wrote:
+
+[snip]
+
+> > > The problem with S_FMT changing the crop rectangle (and I assume we are not
+> > > talking about small pixel tweaks to make the hardware happy) is that the
+> > > crop operation actually removes part of the frame. That's not something you
+> > > would expect S_FMT to do, ever. Such an operation has to be explicitly
+> > > requested by the user.
+> > > 
+> > > It's also why properly written applications (e.g. capture-example.c) has
+> > > code like this to reset the crop rectangle before starting streaming:
+> > > 
+> > >         if (0 == xioctl(fd, VIDIOC_CROPCAP, &cropcap)) {
+> > >                 crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> > >                 crop.c = cropcap.defrect; /* reset to default */
+> > > 
+> > >                 if (-1 == xioctl(fd, VIDIOC_S_CROP, &crop)) {
+> > >                         switch (errno) {
+> > >                         case EINVAL:
+> > >                                 /* Cropping not supported. */
+> > >                                 break;
+> > >                         default:
+> > >                                 /* Errors ignored. */
+> > >                                 break;
+> > >                         }
+> > >                 }
+> > >         }
+> > > 
+> > > (Hmm, capture-example.c should also test for ENOTTY since we changed the
+> > > error code).
+> > 
+> > I agree, that preserving input rectangle == output rectangle in reply to 
+> > S_FMT is not nice, and should be avoided, wherever possible. Still, I 
+> > prefer this to sticking with just one fixed output geometry, especially 
+> > since (1) the spec doesn't prohibit this behaviour,
+> 
+> Hmm, I think it should be prohibited. Few drivers actually implement crop,
+> and fewer applications use it. So I'm not surprised the spec doesn't go into 
+> much detail.
+> 
+> > (2) there are already 
+> > precedents in the mainline.
+> 
+> Which precedents? My guess is that any driver that does this was either not
+> (or poorly) reviewed, or everyone just missed it.
+
+My first two sensor drivers mt9m001 and mt9v022 do this, but, I suspect, I 
+didn't invent it at that time, I think, I copied it from somewhere, cannot 
+say for sure though anymore.
+
+> > Maybe, a bit of hardware background would help: the sensor is actually 
+> > supposed to be able to both crop and scale, and we did try to implement 
+> > scales other than 1:1, but the chip just refused to produce anything 
+> > meaningful.
+> 
+> I still don't see any reason why S_FMT would suddenly crop on such a sensor.
+> It's completely unexpected and the user does not get what he expects.
+
+Good, let's make it simple for all (except Bastian) then: Bastian, sorry 
+for having misguided you, please, switch to .s_crop().
+
+Thanks
+Guennadi
 ---
- drivers/media/dvb/dvb-core/dvb_frontend.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 45ea843..4102311 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -220,6 +220,16 @@ static int dvb_frontend_get_event(struct dvb_frontend *fe,
- 	return 0;
- }
- 
-+static void dvb_frontend_clear_events(struct dvb_frontend *fe)
-+{
-+	struct dvb_frontend_private *fepriv = fe->frontend_priv;
-+	struct dvb_fe_events *events = &fepriv->events;
-+
-+	mutex_lock(&events->mtx);
-+	events->eventr = events->eventw;
-+	mutex_unlock(&events->mtx);
-+}
-+
- static void dvb_frontend_init(struct dvb_frontend *fe)
- {
- 	dprintk ("DVB: initialising adapter %i frontend %i (%s)...\n",
-@@ -1891,6 +1901,7 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 		/* Request the search algorithm to search */
- 		fepriv->algo_status |= DVBFE_ALGO_SEARCH_AGAIN;
- 
-+		dvb_frontend_clear_events(fe);
- 		dvb_frontend_add_event(fe, 0);
- 		dvb_frontend_wakeup(fe);
- 		fepriv->status = 0;
--- 
-1.7.2.5
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
