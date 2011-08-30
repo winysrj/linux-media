@@ -1,55 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64064 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751818Ab1H0NNS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Aug 2011 09:13:18 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p7RDDItP032262
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Aug 2011 09:13:18 -0400
-Message-ID: <4E58ED6C.6050000@redhat.com>
-Date: Sat, 27 Aug 2011 10:13:16 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:54234 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754501Ab1H3Og7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Aug 2011 10:36:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] media: Add support for arbitrary resolution for the ov5642 camera driver
+Date: Tue, 30 Aug 2011 16:36:55 +0200
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Bastian Hecht <hechtb@googlemail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <alpine.DEB.2.02.1108171551040.17540@ipanema> <201108301546.42050.hverkuil@xs4all.nl> <Pine.LNX.4.64.1108301555350.19151@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1108301555350.19151@axis700.grange>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT FIXES FOR 3.1] pwc: various fixes
-References: <4E2C388E.30402@redhat.com>
-In-Reply-To: <4E2C388E.30402@redhat.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201108301636.55251.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 24-07-2011 12:21, Hans de Goede escreveu:
-> Hi Mauro,
+On Tuesday, August 30, 2011 16:24:55 Guennadi Liakhovetski wrote:
+> Hi Hans
 > 
-> Please pull from my tree for 2 bug fixes patches + support for
-> control events for the pwc driver. Note that the control events
-> patch depends upon the patches from hverkuils poll tree
-> (and those patches are thus also in my tree, but not part of this
-> pull req).
+> On Tue, 30 Aug 2011, Hans Verkuil wrote:
 > 
-> The following changes since commit 30178e8623281063c18592a848cdcd71f78f603d:
+> > On Tuesday, August 30, 2011 15:13:25 Guennadi Liakhovetski wrote:
+> > > (also replying to a similar comment by Sakari)
+> > > 
+> > > On Tue, 30 Aug 2011, Laurent Pinchart wrote:
+> > > 
+> > > > Hi Guennadi,
+> > > > 
+> > > > On Tuesday 30 August 2011 10:55:08 Guennadi Liakhovetski wrote:
+> > > > > On Mon, 29 Aug 2011, Laurent Pinchart wrote:
+> > > > > > On Monday 29 August 2011 14:34:53 Guennadi Liakhovetski wrote:
+> > > > > > > On Mon, 29 Aug 2011, Laurent Pinchart wrote:
+> > > > > > > > On Monday 29 August 2011 14:18:50 Guennadi Liakhovetski wrote:
+> > > > > > > > > On Sun, 28 Aug 2011, Laurent Pinchart wrote:
+> > > > > > > > > 
+> > > > > > > > > [snip]
+> > > > > > > > > 
+> > > > > > > > > > > @@ -774,17 +839,27 @@ static int ov5642_s_fmt(struct
+> > > > > > > > > > > v4l2_subdev *sd,
+> > > > > > > > > > > 
+> > > > > > > > > > >  	ov5642_try_fmt(sd, mf);
+> > > > > > > > > > > 
+> > > > > > > > > > > +	priv->out_size.width		= mf->width;
+> > > > > > > > > > > +	priv->out_size.height		= mf->height;
+> > > > > > > > > > 
+> > > > > > > > > > It looks like to me (but I may be wrong) that you achieve
+> > > > > > > > > > different resolutions using cropping, not scaling. If 
+that's
+> > > > > > > > > > correct you should implement s_crop support and refuse 
+> > changing
+> > > > > > > > > > the resolution through s_fmt.
+> > > > > > > > > 
+> > > > > > > > > As the patch explains (I think) on several occasions, 
+currently
+> > > > > > > > > only the 1:1 scale is supported, and it was our deliberate 
+> > choice
+> > > > > > > > > to implement this using the scaling API
+> > > > > > > > 
+> > > > > > > > If you implement cropping, you should use the crop API, not 
+the
+> > > > > > > > scaling API
+> > > > > > > > 
+> > > > > > > > :-)
+> > > > > > > 
+> > > > > > > It's changing both - input and output sizes.
+> > > > > > 
+> > > > > > Sure, but it's still cropping.
+> > > > > 
+> > > > > Why? Isn't it a matter of the PoV?
+> > > > 
+> > > > No it isn't. Cropping is cropping, regardless of how you look at it.
+> > > > 
+> > > > > It changes the output window, i.e., implements S_FMT. And S_FMT is 
+by 
+> > far
+> > > > > more important / widely used than S_CROP. Refusing to change the 
+output
+> > > > > window and always just returning the == crop size wouldn't be 
+polite, 
+> > IMHO.
+> > > > 
+> > > > If your sensor has no scaler the output size is equal to the crop 
+> > rectangle. 
+> > > > There's no way around that, and there's no reason to have the driver 
+> > behave 
+> > > > otherwise.
+> > > > 
+> > > > > Don't think many users would guess to use S_CROP.
+> > > > 
+> > > > Users who want to crop use S_CROP.
+> > > > 
+> > > > > Standard applications a la mplayer don't use S_CROP at all.
+> > > > 
+> > > > That's because they don't want to crop. mplayer expects the driver to 
+> > perform 
+> > > > scaling when it calls S_FMT, and users won't be happy if you crop 
+instead.
+> > > 
+> > > So, here's my opinion, based on the V4L2 spec. I'm going to base on this 
+> > > and pull this patch into my tree and let Mauro decide, unless he 
+expresses 
+> > > his negative opinion before that.
+> > > 
+> > > The spec defines S_FMT as an operation to set the output (in case of a 
+> > > capture device) frame format. Which this driver clearly does. The output 
+> > > format should be set, using scaling, however, if the driver or the 
+> > > hardware are unable to preserve the exact same input rectangle to 
+satisfy 
+> > > the request, the driver is also allowed to change the cropping rectangle 
+> > > _as much as necessary_ - S_FMT takes precedence. This has been discussed 
+> > > before, and the conclusion was - of the two geometry calls (S_FMT and 
+> > > S_CROP) the last call overrides previous setting of the opposite 
+geometry.
+> > > 
+> > > It also defines S_CROP as an operation to set the cropping rectangle. 
+The 
+> > > driver is also allowed to change the output window, if it cannot be 
+> > > preserved. Similarly, the last call wins.
+> > > 
+> > > Ideally in this situation I would implement both S_CROP and S_FMT and 
+let 
+> > > both change the opposite window as needed, which in this case means set 
+it 
+> > > equal to the one, being configured. Since most applications are 
+primarily 
+> > > interested in the S_FMT call to configure their user interface, I find 
+it 
+> > > a wrong approach to refuse S_FMT and always return the current cropping 
+> > > rectangle. In such a case the application will possibly be stuck with 
+some 
+> > > default output rectangle, because it certainly will _not_ guess to use 
+> > > S_CROP to configure it. Whereas if we implement S_FMT with a constant 
+1:1 
+> > > scale the application will get the required UI size. I agree, that 
+> > > changing the view area, while changing the output window, is not exactly 
+> > > what the user expects, but it's better than presenting all applications 
+> > > with a fixed, possibly completely unsuitable, UI window.
+> > 
+> > The problem with S_FMT changing the crop rectangle (and I assume we are 
+not
+> > talking about small pixel tweaks to make the hardware happy) is that the
+> > crop operation actually removes part of the frame. That's not something 
+you
+> > would expect S_FMT to do, ever. Such an operation has to be explicitly
+> > requested by the user.
+> > 
+> > It's also why properly written applications (e.g. capture-example.c) has
+> > code like this to reset the crop rectangle before starting streaming:
+> > 
+> >         if (0 == xioctl(fd, VIDIOC_CROPCAP, &cropcap)) {
+> >                 crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> >                 crop.c = cropcap.defrect; /* reset to default */
+> > 
+> >                 if (-1 == xioctl(fd, VIDIOC_S_CROP, &crop)) {
+> >                         switch (errno) {
+> >                         case EINVAL:
+> >                                 /* Cropping not supported. */
+> >                                 break;
+> >                         default:
+> >                                 /* Errors ignored. */
+> >                                 break;
+> >                         }
+> >                 }
+> >         }
+> > 
+> > (Hmm, capture-example.c should also test for ENOTTY since we changed the
+> > error code).
 > 
->   vivi: let vb2_poll handle events. (2011-07-18 13:07:28 +0200)
-> 
-> are available in the git repository at:
->   git://linuxtv.org/hgoede/gspca.git media-for_v3.1
-> 
-> Dan Carpenter (1):
->       pwc: precedence bug in pwc_init_controls()
+> I agree, that preserving input rectangle == output rectangle in reply to 
+> S_FMT is not nice, and should be avoided, wherever possible. Still, I 
+> prefer this to sticking with just one fixed output geometry, especially 
+> since (1) the spec doesn't prohibit this behaviour,
 
-Applied.
+Hmm, I think it should be prohibited. Few drivers actually implement crop,
+and fewer applications use it. So I'm not surprised the spec doesn't go into 
+much detail.
 
-> 
-> Hans de Goede (2):
->       pwc: Add support for control events
->       pwc: properly mark device_hint as unused in all probe error paths
+> (2) there are already 
+> precedents in the mainline.
 
-Those ones depend on hverkuil series, pending Al Viro's review.
+Which precedents? My guess is that any driver that does this was either not
+(or poorly) reviewed, or everyone just missed it.
 
-So, I'm not applying them for now, until we get Hans V. patches merged.
+> Maybe, a bit of hardware background would help: the sensor is actually 
+> supposed to be able to both crop and scale, and we did try to implement 
+> scales other than 1:1, but the chip just refused to produce anything 
+> meaningful.
 
-Thanks
-Mauro
+I still don't see any reason why S_FMT would suddenly crop on such a sensor.
+It's completely unexpected and the user does not get what he expects.
+
+Regards,
+
+	Hans
