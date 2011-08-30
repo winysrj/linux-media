@@ -1,97 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:47771 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751948Ab1HaIgH (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45162 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756134Ab1H3TNq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 04:36:07 -0400
-Received: from epcpsbgm2.samsung.com (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LQS00JKQAK3EFP0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 31 Aug 2011 17:36:03 +0900 (KST)
-Received: from jtppark (12-23-121-105.csky.net [12.23.121.105])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LQS00I00AK3W8@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 31 Aug 2011 17:36:03 +0900 (KST)
-Date: Wed, 31 Aug 2011 17:35:58 +0900
-From: Jeongtae Park <jtp.park@samsung.com>
-Subject: RE: [PATCH] MAINTAINERS: add entries for s5p-mfc and s5p-tv drivers
-In-reply-to: <1312968749-15988-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org,
-	'Marek Szyprowski' <m.szyprowski@samsung.com>
-Cc: kgene.kim@samsung.com, 'Kamil Debski' <k.debski@samsung.com>,
-	younglak1004.kim@samsung.com, kyungmin.park@samsung.com
-Reply-to: jtp.park@samsung.com
-Message-id: <005a01cc67b9$02315560$06940020$%park@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ks_c_5601-1987
-Content-language: ko
-Content-transfer-encoding: 7BIT
-References: <1312968749-15988-1-git-send-email-m.szyprowski@samsung.com>
+	Tue, 30 Aug 2011 15:13:46 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [media-ctl][PATCHv2 3/4] libmediactl: use udev conditionally to get a devname
+Date: Tue, 30 Aug 2011 21:14:13 +0200
+Cc: linux-media@vger.kernel.org
+References: <201108151652.54417.laurent.pinchart@ideasonboard.com> <6075971b959c2e808cd4ceec6540dc09b101346f.1313490446.git.andriy.shevchenko@linux.intel.com> <3fa73211e84c4b2e70d4777e3664954948042d64.1313490446.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <3fa73211e84c4b2e70d4777e3664954948042d64.1313490446.git.andriy.shevchenko@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108302114.14136.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Andy,
 
-Authors of the code definitely should be maintainers.
-I think everyone will agree.
-
-Best Regards
-/jtpark
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Marek Szyprowski
-> Sent: Wednesday, August 10, 2011 6:32 PM
-> To: linux-media@vger.kernel.org
-> Cc: Marek Szyprowski; Kyungmin Park; Kamil Debski; Tomasz Stanislawski
-> Subject: [PATCH] MAINTAINERS: add entries for s5p-mfc and s5p-tv drivers
-> 
-> Both driver has been merged to v3.1-rc1, so add its authors as maintainers.
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+On Tuesday 16 August 2011 12:28:04 Andy Shevchenko wrote:
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 > ---
->  MAINTAINERS |   18 ++++++++++++++++++
->  1 files changed, 18 insertions(+), 0 deletions(-)
+>  configure.in    |   22 ++++++++++++++++++++++
+>  src/Makefile.am |    2 ++
+>  src/media.c     |   50 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 74 insertions(+), 0 deletions(-)
 > 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 51d42fb..0618d9a 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -1084,6 +1084,24 @@ F:	arch/arm/plat-s5p/dev-fimc*
->  F:	arch/arm/plat-samsung/include/plat/*fimc*
->  F:	drivers/media/video/s5p-fimc/
+> diff --git a/configure.in b/configure.in
+> index fd4c70c..45e0663 100644
+> --- a/configure.in
+> +++ b/configure.in
+> @@ -13,6 +13,28 @@ AC_PROG_LIBTOOL
 > 
-> +ARM/SAMSUNG S5P SERIES Multi Format Codec (MFC) SUPPORT
-> +M:	Kyungmin Park <kyungmin.park@samsung.com>
-> +M:	Kamil Debski <k.debski@samsung.com>
-
-M:	Jeongtae Park<jtp.park@samsung.com>
-
-> +L:	linux-arm-kernel@lists.infradead.org
-> +L:	linux-media@vger.kernel.org
-> +S:	Maintained
-> +F:	arch/arm/plat-s5p/dev-mfc.c
-> +F:	drivers/media/video/s5p-mfc/
+>  # Checks for libraries.
+> 
+> +AC_ARG_WITH([libudev],
+> +    AS_HELP_STRING([--without-libudev],
+> +        [Ignore presence of libudev and disable it]))
 > +
-> +ARM/SAMSUNG S5P SERIES TV SUBSYSTEM SUPPORT
-> +M:	Kyungmin Park <kyungmin.park@samsung.com>
-> +M:	Tomasz Stanislawski <t.stanislaws@samsung.com>
-> +L:	linux-arm-kernel@lists.infradead.org
-> +L:	linux-media@vger.kernel.org
-> +S:	Maintained
-> +F:	arch/arm/plat-s5p/dev-tv.c
-> +F:	drivers/media/video/s5p-tv/
-> +
->  ARM/SHMOBILE ARM ARCHITECTURE
->  M:	Paul Mundt <lethal@linux-sh.org>
->  M:	Magnus Damm <magnus.damm@gmail.com>
-> --
-> 1.7.1.569.g6f426
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +AS_IF([test "x$with_libudev" != "xno"],
+> +    [PKG_CHECK_MODULES(libudev, libudev, have_libudev=yes,
+> have_libudev=no)],
+> +    [have_libudev=no])
 
+I don't think this works when cross-compiling.
+
+> +
+> +AS_IF([test "x$have_libudev" = "xyes"],
+> +    [
+> +        AC_DEFINE([HAVE_LIBUDEV], [], [Use libudev])
+> +        LIBUDEV_CFLAGS="$lbudev_CFLAGS"
+> +        LIBUDEV_LIBS="$libudev_LIBS"
+> +        AC_SUBST(LIBUDEV_CFLAGS)
+> +        AC_SUBST(LIBUDEV_LIBS)
+> +    ],
+> +    [AS_IF([test "x$with_libudev" = "xyes"],
+> +        [AC_MSG_ERROR([libudev requested but not found])
+> +    ])
+> +])
+> +
+> +
+>  # Kernel headers path.
+>  AC_ARG_WITH(kernel-headers,
+>      [AC_HELP_STRING([--with-kernel-headers=DIR],
+
+-- 
+Regards,
+
+Laurent Pinchart
