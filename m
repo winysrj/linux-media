@@ -1,27 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2.bitsnet.com.br ([200.252.189.137]:55985 "EHLO
-	cacau.bitsnet.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751828Ab1HXTeN (ORCPT
+Received: from cpsmtpb-ews05.kpnxchange.com ([213.75.39.8]:2923 "EHLO
+	cpsmtpb-ews05.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751112Ab1H3HiO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Aug 2011 15:34:13 -0400
-Cc: recipient list not shown:;
-Message-ID: <1313778806.4e4eac765a8be@www.bitsnet.com.br>
-Date: Fri, 19 Aug 2011 15:33:26 -0300
-From: WESTERN UNION MONEYS TRANSFER <western_union_team@w.cn>
-Reply-to: western.union.team@w.cn
-Subject: PROMOTION 2011
+	Tue, 30 Aug 2011 03:38:14 -0400
+Message-ID: <4E5C9214.2000107@videolan.org>
+Date: Tue, 30 Aug 2011 09:32:36 +0200
+From: Jean-Paul Saman <jpsaman@videolan.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: mchehab@redhat.com, linux-media@vger.kernel.org
+Subject: Media subsystem workshop 2011
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Mauro,
+
+I would like to get invited to the Media Subsystem workshop in Prague.
 
 
-We happily announce to you that Your E-mail address has won you the sum of
-50,000USD. sending your name,address,age,phone number etc to
-(western.union.team@w.cn)
+Kind Regards,
 
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
+Jean-Paul Saman
