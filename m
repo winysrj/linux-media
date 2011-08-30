@@ -1,95 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:54907 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756871Ab1HXJEU (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:64867 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752139Ab1H3LGM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Aug 2011 05:04:20 -0400
-Received: from spt2.w1.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LQF002ILD768W@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 24 Aug 2011 10:04:18 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LQF00C6KD756F@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 24 Aug 2011 10:04:17 +0100 (BST)
-Date: Wed, 24 Aug 2011 11:04:14 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: More vb2 notes
-In-reply-to: <201108231554.12786.hverkuil@xs4all.nl>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: 'Pawel Osciak' <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <019901cc623c$cbd167c0$63743740$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <201108231554.12786.hverkuil@xs4all.nl>
+	Tue, 30 Aug 2011 07:06:12 -0400
+Received: from ultra.eu.tandberg.int ([10.47.1.15])
+	by ams-core-2.cisco.com (8.14.3/8.14.3) with ESMTP id p7UB5vrf028979
+	for <linux-media@vger.kernel.org>; Tue, 30 Aug 2011 11:05:57 GMT
+Received: from cobaltpc1.localnet ([10.54.77.72])
+	by ultra.eu.tandberg.int (8.13.1/8.13.1) with ESMTP id p7UB5tt7006204
+	for <linux-media@vger.kernel.org>; Tue, 30 Aug 2011 13:05:55 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 3.2] Two small fixes and more -ENOTTY fixes
+Date: Tue, 30 Aug 2011 13:05:56 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108301305.56802.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Two small fixes that fix v4l2-compliance errors in vivi and ivtv, and one
+larger fix that fixes some remaining v4l2-compliance errors with regards to 
+ENOTTY handling.
 
-On Tuesday, August 23, 2011 3:54 PM Hans Verkuil wrote:
+This has been posted before:
 
-> I've been converting a Cisco internal driver to vb2 and while doing that I
-> found a few issues.
-> 
-> 1) I noticed that struct vb2_buffer doesn't have a list_head that the driver
-> can use to hook it in its dma queue. That forces you to make your own
-> buffer struct just to have your own list_head.
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg35415.html
 
-This is done on purpose to keep clear separation between videobuf2 internal
-entries and the entries altered by the driver. Drivers usually embed struct
-vb2_buffer into their own structure, so adding a struct list head entry there
-is not a problem anyway.
+But it received no comments, so it's time to merge this.
 
-I really hated the old videobuf for the fact that it messed around driver's 
-list entries (and requiring drivers to mess with videobuf list entries as 
-well).
- 
-> I think vb2_buffer should either get a driver_entry or the 'done_entry' field
-> can be assigned for driver use (since a buffer can't be owned by the driver
-> and be on the done list at the same time). I abused 'done_entry' for now.
+Regards,
 
-Please don't do it! One more struct list_head doesn't really cost much.
-Using separate entry makes also the code much easier to understand.
+	Hans
 
-> 2) videobuf2-dma-sg.c no longer calls dma_(un)map_sg()! The old
-> videobuf-dma-sg.c did that for you. Is there any reason for this change?
-> I had to manually add it to my driver.
+The following changes since commit 69d232ae8e95a229e7544989d6014e875deeb121:
 
-Right, this has been changed mainly because we had no experience with dma
-sg api. You are right that this should be moved back to the memory allocator.
-This can be done together with adding new memory allocator ops for buffer
-synchronization (buf_prepare/buf_finish), so dma_sync_* operations will be
-also moved to the allocator.
+  [media] omap3isp: ccdc: Use generic frame sync event instead of private 
+HS_VS event (2011-08-29 12:38:51 -0300)
 
-> 3) videobuf2-core.c uses this in __fill_v4l2_buffer:
-> 
->         if (vb->num_planes_mapped == vb->num_planes)
->                 b->flags |= V4L2_BUF_FLAG_MAPPED;
-> 
-> However, I see no code that ever decreases num_planes_mapped. And I also
-> wonder what happens if vb2_mmap is called multiple times: num_planes_mapped
-> will be increased so vb->num_planes_mapped > vb->num_planes and the MAPPED
-> flag is no longer set.
-> 
-> This is a particular problem with libv4l2 since that tests for the MAPPED
-> flag and will refuse e.g. format changes if it is set.
+are available in the git repository at:
+  ssh://linuxtv.org/git/hverkuil/media_tree.git enottyv2
 
-Hmmm. I didn't know that there is anything that relies on the MAPPED flag. 
-I will add support for this missing feature/bug asap.
+Hans Verkuil (3):
+      vivi: fill in colorspace.
+      ivtv: fill in service_set.
+      v4l2-ioctl: more -ENOTTY fixes
 
-> 4) It is not clear to me when vb2_queue_release should be called. Is it in
-> close() when you close a filehandle that was used for streaming?
-
-Yes, this is the best place to call it.
-
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+ drivers/media/video/ivtv/ivtv-ioctl.c |   15 ++-
+ drivers/media/video/v4l2-ioctl.c      |  206 
++++++++++++++++++++++++----------
+ drivers/media/video/vivi.c            |   10 ++
+ 3 files changed, 165 insertions(+), 66 deletions(-)
