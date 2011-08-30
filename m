@@ -1,125 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:51957 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752174Ab1HBIPJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Aug 2011 04:15:09 -0400
-Date: Tue, 2 Aug 2011 10:15:02 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Pawel Osciak <pawel@osciak.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size videobuffer
- management
-In-Reply-To: <201107280856.55731.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1108020919290.29918@axis700.grange>
-References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange>
- <CAMm-=zB3dOJyCy7ZhqiTQkeL2b=Dvtz8geMR8zbHYBCVR6=pEw@mail.gmail.com>
- <201107280856.55731.hverkuil@xs4all.nl>
+Received: from hermes.mlbassoc.com ([64.234.241.98]:59015 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752092Ab1H3O4O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Aug 2011 10:56:14 -0400
+Message-ID: <4E5CFA0B.3010207@mlbassoc.com>
+Date: Tue, 30 Aug 2011 08:56:11 -0600
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Getting started with OMAP3 ISP
+References: <4E56734A.3080001@mlbassoc.com> <4E5CEECC.6040804@mlbassoc.com> <4E5CF118.3050903@mlbassoc.com> <201108301620.09365.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201108301620.09365.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 28 Jul 2011, Hans Verkuil wrote:
+On 2011-08-30 08:20, Laurent Pinchart wrote:
+> Hi Gary,
+>
+> On Tuesday 30 August 2011 16:18:00 Gary Thomas wrote:
+>> On 2011-08-30 08:08, Gary Thomas wrote:
+>>> On 2011-08-29 04:49, Laurent Pinchart wrote:
+>>>> On Thursday 25 August 2011 18:07:38 Gary Thomas wrote:
+>>>>> Background: I have working video capture drivers based on the
+>>>>> TI PSP codebase from 2.6.32. In particular, I managed to get
+>>>>> a driver for the TVP5150 (analogue BT656) working with that kernel.
+>>>>>
+>>>>> Now I need to update to Linux 3.0, so I'm trying to get a driver
+>>>>> working with the rewritten ISP code. Sadly, I'm having a hard
+>>>>> time with this - probably just missing something basic.
+>>>>>
+>>>>> I've tried to clone the TVP514x driver which says that it works
+>>>>> with the OMAP3 ISP code. I've updated it to use my decoder device,
+>>>>> but I can't even seem to get into that code from user land.
+>>>>>
+>>>>> Here are the problems I've had so far:
+>>>>> * udev doesn't create any video devices although they have been
+>>>>> registered. I see a full set in /sys/class/video4linux
+>>>>> # ls /sys/class/video4linux/
+>>>>> v4l-subdev0 v4l-subdev3 v4l-subdev6 video1 video4
+>>>>> v4l-subdev1 v4l-subdev4 v4l-subdev7 video2 video5
+>>>>> v4l-subdev2 v4l-subdev5 video0 video3 video6
+>>>>
+>>>> It looks like a udev issue. I don't think that's related to the kernel
+>>>> drivers.
+>>>>
+>>>>> Indeed, if I create /dev/videoX by hand, I can get somewhere, but
+>>>>> I don't really understand how this is supposed to work. e.g.
+>>>>> # v4l2-dbg --info /dev/video3
+>>>>> Driver info:
+>>>>> Driver name : ispvideo
+>>>>> Card type : OMAP3 ISP CCP2 input
+>>>>> Bus info : media
+>>>>> Driver version: 1
+>>>>> Capabilities : 0x04000002
+>>>>> Video Output
+>>>>> Streaming
+>>>>>
+>>>>> * If I try to grab video, the ISP layer gets a ton of warnings, but
+>>>>> I never see it call down into my driver, e.g. to check the current
+>>>>> format, etc. I have some of my own code from before which fails
+>>>>> miserably (not a big surprise given the hack level of those programs).
+>>>>> I tried something off-the-shelf which also fails pretty bad:
+>>>>> # ffmpeg -t 10 -f video4linux2 -s 720x480 -r 30 -i /dev/video2
+>>>>> junk.mp4
+>>>>>
+>>>>> I've read through Documentation/video4linux/omap3isp.txt without
+>>>>> learning much about what might be wrong.
+>>>>>
+>>>>> Can someone give me some ideas/guidance, please?
+>>>>
+>>>> In a nutshell, you will first have to configure the OMAP3 ISP pipeline,
+>>>> and then capture video.
+>>>>
+>>>> Configuring the pipeline is done through the media controller API and
+>>>> the V4L2 subdev pad-level API. To experiment with those you can use the
+>>>> media-ctl command line application available at
+>>>> http://git.ideasonboard.org/?p=media- ctl.git;a=summary. You can run it
+>>>> with --print-dot and pipe the result to dot -Tps to get a postscript
+>>>> graphical view of your device.
+>>>>
+>>>> Here's a sample pipeline configuration to capture scaled-down YUV data
+>>>> from a sensor:
+>>>>
+>>>> ./media-ctl -r -l '"mt9t001 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
+>>>> CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP
+>>>> resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+>>>> ./media-ctl -f '"mt9t001 3-005d":0[SGRBG10 1024x768], "OMAP3 ISP
+>>>> CCDC":2[SGRBG10 1024x767], "OMAP3 ISP preview":1[YUYV 1006x759], "OMAP3
+>>>> ISP resizer":1[YUYV 800x600]'
+>>>>
+>>>> After configuring your pipeline you will be able to capture video using
+>>>> the V4L2 API on the device node at the output of the pipeline.
+>>>
+>>> Thanks for the info.
+>>>
+>>> When I run 'media-ctl -p', I see the various nodes, etc, and they all
+>>> look good except that I get lots of messages like this:
+>>> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+>>> type V4L2 subdev subtype Unknown
+>>> pad0: Input v4l2_subdev_open: Failed to open subdev device node
+>>
+>> Could this be related to my missing [udev] device nodes?
+>
+> It could be. You need the /dev/video* and /dev/v4l-subdev* device nodes.
 
-> On Thursday, July 28, 2011 06:11:38 Pawel Osciak wrote:
-> > Hi Guennadi,
-> > 
-> > On Wed, Jul 20, 2011 at 01:43, Guennadi Liakhovetski
-> > <g.liakhovetski@gmx.de> wrote:
-> > > A possibility to preallocate and initialise buffers of different sizes
-> > > in V4L2 is required for an efficient implementation of asnapshot mode.
-> > > This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
-> > > VIDIOC_PREPARE_BUF and defines respective data structures.
-> > >
-> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > ---
-> > >
-> > <snip>
-> > 
-> > This looks nicer, I like how we got rid of destroy and gave up on
-> > making holes, it would've given us a lot of headaches. I'm thinking
-> > about some issues though and also have some comments/questions further
-> > below.
-> > 
-> > Already mentioned by others mixing of REQBUFS and CREATE_BUFS.
-> > Personally I'd like to allow mixing, including REQBUFS for non-zero,
-> > because I think it would be easy to do. I think it could work in the
-> > same way as REQBUFS for !=0 works currently (at least in vb2), if we
-> > already have some buffers allocated and they are not in use, we free
-> > them and a new set is allocated. So I guess it could just stay this
-> > way. REQBUFS(0) would of course free everything.
-> > 
-> > Passing format to CREATE_BUFS will make vb2 a bit format-aware, as it
-> > would have to pass it forward to the driver somehow. The obvious way
-> > would be just vb2 calling the driver's s_fmt handler, but that won't
-> > work, as you can't pass indexes to s_fmt. So we'd have to implement a
-> > new driver callback for setting formats per index. I guess there is no
-> > way around it, unless we actually take the format struct out of
-> > CREATE_BUFS and somehow do it via S_FMT. The single-planar structure
-> > is full already though, the only way would be to use
-> > v4l2_pix_format_mplane instead with plane count = 1 (or more if
-> > needed).
-> 
-> I just got an idea for this: use TRY_FMT. That will do exactly what
-> you want. In fact, perhaps we should remove the format struct from
-> CREATE_BUFS and use __u32 sizes[VIDEO_MAX_PLANES] instead. Let the
-> application call TRY_FMT and initialize the sizes array instead of
-> putting that into vb2. We may need a num_planes field as well. If the
-> sizes are all 0 (or num_planes is 0), then the driver can use the current
-> format, just as it does with REQBUFS.
-> 
-> Or am I missing something?
+Yes, that helped a lot.  When I create the devices by hand, I can now see
+my driver starting to be accessed (right now it's very much an empty stub)
 
-...After more thinking and looking at the vb2 code, this began to feel 
-wrong to me. This introduces an asymmetry, which doesn't necessarily look 
-good to me. At present we have the TRY_FMT and S_FMT ioctl()s, which among 
-other tasks calculate sizeimage and bytesperline - either per plane or 
-total. Besides we also have the REQBUFS call, that internally calls the 
-.queue_setup() queue method. In that method the _driver_ has a chance to 
-calculate for the _current format_ the number of planes (again?...) and 
-buffer sizes for each plane. This suggests, that the latter calculation 
-can be different from the former.
+Any ideas why udev (version 164) is not making these nodes automatically?
 
-Now you're suggesting to use TRY_FMT to calculate the number of planes and 
-per-plane sizeofimage, and then use _only_ this information to set up the 
-buffers from the CREATE_BUFS ioctl(). So, are we now claiming, that this 
-information alone (per-plane-sizeofimage) should be dufficient to set up 
-buffers?
+>
+>> I can see media-ctl get confused and try to open a nonsense device name.
+>> Here's what I see when I run
+>>     # strace media-ctl -p | grep open
+>>     open("/dev/media0", O_RDWR)             = 3
+>>     open("", O_RDWR)                        = -1 ENOENT (No such file or
+>> directory) write(1, "\tpad0: Input v4l2_subdev_open: F"..., 66) = 66
+>>
+>>> When I try to setup my pipeline using something similar to what you
+>>> provided, the first step runs and I can see that it does something (some
+>>> lines on the graph went from dotted to solid), but I still get errors:
+>>> # media-ctl -r -l '"tvp5150m1 2-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+>>> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]' Resetting all links to
+>>> inactive
+>>> Setting up link 16:0 ->  5:0 [1]
+>>> Setting up link 5:1 ->  6:0 [1]
+>>> # media-ctl -f '"tvp5150m1 2-005c":0[SGRBG12 320x240], "OMAP3 ISP
+>>> CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]' Setting up
+>>> format SGRBG12 320x240 on pad tvp5150m1 2-005c/0
+>>> v4l2_subdev_open: Failed to open subdev device node
+>>> Unable to set format: No such file or directory (-2)
+>>>
+>>> As far as I can tell, none if this is making any callbacks into my
+>>> driver.
+>>>
+>>> Any ideas what I might be missing?
+>>>
+>>> Thanks
+>
 
-OTOH, Pawel's above question has a simple answer: vb2 is not becoming 
-format aware. It just passes the format on to the driver with the 
-(modified) .queue_setup() method:
-
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index f87472a..f5a7d92 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -210,9 +216,10 @@ struct vb2_buffer {
-  *			the buffer back by calling vb2_buffer_done() function
-  */
- struct vb2_ops {
--	int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
--			   unsigned int *num_planes, unsigned long sizes[],
--			   void *alloc_ctxs[]);
-+	int (*queue_setup)(struct vb2_queue *q,
-+			 struct v4l2_create_buffers *create,
-+			 unsigned int *num_buffers, unsigned int *num_planes,
-+			 unsigned long sizes[], void *alloc_ctxs[]);
- 
- 	void (*wait_prepare)(struct vb2_queue *q);
- 	void (*wait_finish)(struct vb2_queue *q);
-
-(of course, we would first add a new method, migrate all drivers, then 
-remove the old one).
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
