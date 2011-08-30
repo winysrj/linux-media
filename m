@@ -1,83 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:50039 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753679Ab1HLK6r (ORCPT
+Received: from hermes.mlbassoc.com ([64.234.241.98]:34064 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752594Ab1H3Wpn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2011 06:58:47 -0400
-Date: Fri, 12 Aug 2011 12:58:31 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 9/9] ARM: S5PV210: example of CMA private area for FIMC device
- on Goni board
-In-reply-to: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-Message-id: <1313146711-1767-10-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
+	Tue, 30 Aug 2011 18:45:43 -0400
+Message-ID: <4E5D6813.4040707@mlbassoc.com>
+Date: Tue, 30 Aug 2011 16:45:39 -0600
+From: Gary Thomas <gary@mlbassoc.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Getting started with OMAP3 ISP
+References: <4E56734A.3080001@mlbassoc.com> <201108291249.33118.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201108291249.33118.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch is an example how device private CMA area can be activated.
-It creates one CMA region and assigns it to the first s5p-fimc device on
-Samsung Goni S5PC110 board.
+On 2011-08-29 04:49, Laurent Pinchart wrote:
+> Hi Gary,
+>
+> On Thursday 25 August 2011 18:07:38 Gary Thomas wrote:
+>> Background:  I have working video capture drivers based on the
+>> TI PSP codebase from 2.6.32.  In particular, I managed to get
+>> a driver for the TVP5150 (analogue BT656) working with that kernel.
+>>
+>> Now I need to update to Linux 3.0, so I'm trying to get a driver
+>> working with the rewritten ISP code.  Sadly, I'm having a hard
+>> time with this - probably just missing something basic.
+>>
+>> I've tried to clone the TVP514x driver which says that it works
+>> with the OMAP3 ISP code.  I've updated it to use my decoder device,
+>> but I can't even seem to get into that code from user land.
+>>
+>> Here are the problems I've had so far:
+>>     * udev doesn't create any video devices although they have been
+>>       registered.  I see a full set in /sys/class/video4linux
+>>          # ls /sys/class/video4linux/
+>>          v4l-subdev0  v4l-subdev3  v4l-subdev6  video1       video4
+>>          v4l-subdev1  v4l-subdev4  v4l-subdev7  video2       video5
+>>          v4l-subdev2  v4l-subdev5  video0       video3       video6
+>
+> It looks like a udev issue. I don't think that's related to the kernel
+> drivers.
+>
+>>       Indeed, if I create /dev/videoX by hand, I can get somewhere, but
+>>       I don't really understand how this is supposed to work.  e.g.
+>>         # v4l2-dbg --info /dev/video3
+>>         Driver info:
+>>             Driver name   : ispvideo
+>>             Card type     : OMAP3 ISP CCP2 input
+>>             Bus info      : media
+>>             Driver version: 1
+>>             Capabilities  : 0x04000002
+>>                     Video Output
+>>                     Streaming
+>>
+>>     * If I try to grab video, the ISP layer gets a ton of warnings, but
+>>       I never see it call down into my driver, e.g. to check the current
+>>       format, etc.  I have some of my own code from before which fails
+>>       miserably (not a big surprise given the hack level of those programs).
+>>       I tried something off-the-shelf which also fails pretty bad:
+>>         # ffmpeg -t 10 -f video4linux2 -s 720x480 -r 30 -i /dev/video2
+>> junk.mp4
+>>
+>> I've read through Documentation/video4linux/omap3isp.txt without learning
+>> much about what might be wrong.
+>>
+>> Can someone give me some ideas/guidance, please?
+>
+> In a nutshell, you will first have to configure the OMAP3 ISP pipeline, and
+> then capture video.
+>
+> Configuring the pipeline is done through the media controller API and the V4L2
+> subdev pad-level API. To experiment with those you can use the media-ctl
+> command line application available at http://git.ideasonboard.org/?p=media-
+> ctl.git;a=summary. You can run it with --print-dot and pipe the result to dot
+> -Tps to get a postscript graphical view of your device.
+>
+> Here's a sample pipeline configuration to capture scaled-down YUV data from a
+> sensor:
+>
+> ./media-ctl -r -l '"mt9t001 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
+> CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP
+> resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+> ./media-ctl -f '"mt9t001 3-005d":0[SGRBG10 1024x768], "OMAP3 ISP
+> CCDC":2[SGRBG10 1024x767], "OMAP3 ISP preview":1[YUYV 1006x759], "OMAP3 ISP
+> resizer":1[YUYV 800x600]'
+>
+> After configuring your pipeline you will be able to capture video using the
+> V4L2 API on the device node at the output of the pipeline.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/mach-s5pv210/Kconfig     |    1 +
- arch/arm/mach-s5pv210/mach-goni.c |    4 ++++
- 2 files changed, 5 insertions(+), 0 deletions(-)
+Getting somewhere now, thanks.  When I use this full pipeline, I can get all
+the way into my driver where it's trying to start the data.
 
-diff --git a/arch/arm/mach-s5pv210/Kconfig b/arch/arm/mach-s5pv210/Kconfig
-index 69dd87c..697a5be 100644
---- a/arch/arm/mach-s5pv210/Kconfig
-+++ b/arch/arm/mach-s5pv210/Kconfig
-@@ -64,6 +64,7 @@ menu "S5PC110 Machines"
- config MACH_AQUILA
- 	bool "Aquila"
- 	select CPU_S5PV210
-+	select CMA
- 	select S3C_DEV_FB
- 	select S5P_DEV_FIMC0
- 	select S5P_DEV_FIMC1
-diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
-index 85c2d51..665c4ae 100644
---- a/arch/arm/mach-s5pv210/mach-goni.c
-+++ b/arch/arm/mach-s5pv210/mach-goni.c
-@@ -26,6 +26,7 @@
- #include <linux/input.h>
- #include <linux/gpio.h>
- #include <linux/interrupt.h>
-+#include <linux/dma-contiguous.h>
- 
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
-@@ -848,6 +849,9 @@ static void __init goni_map_io(void)
- static void __init goni_reserve(void)
- {
- 	s5p_mfc_reserve_mem(0x43000000, 8 << 20, 0x51000000, 8 << 20);
-+
-+	/* Create private 16MiB contiguous memory area for s5p-fimc.0 device */
-+	dma_declare_contiguous(&s5p_device_fimc0.dev, 16*SZ_1M, 0);
- }
- 
- static void __init goni_machine_init(void)
+What if I want to use less of the pipeline?  For example, I'd normally be
+happy with just the CCDC output.  How would I do that?  What pixel format
+would I use with ffmpeg?
+
+n.b. I know most of these are pretty n00b questions - I'd look up the
+answers for myself, but I've had precious little success finding any
+documentation, especially on media-ctl and/or the OMAP3 ISP setups.
+
+Thanks again
+
 -- 
-1.7.1.569.g6f426
-
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
