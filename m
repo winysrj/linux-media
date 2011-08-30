@@ -1,176 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:34467 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753921Ab1HaTrR (ORCPT
+Received: from hermes.mlbassoc.com ([64.234.241.98]:59821 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753849Ab1H3QXH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 15:47:17 -0400
-Date: Wed, 31 Aug 2011 22:47:11 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, gary@mlbassoc.com
-Subject: Re: [HACK v2 1/4] omap3isp: ccdc: Remove support for interlaced
- data and master HS/VS mode
-Message-ID: <20110831194711.GO12368@valkosipuli.localdomain>
-References: <1314808322-30069-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1314808322-30069-2-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 30 Aug 2011 12:23:07 -0400
+Message-ID: <4E5D0E69.6020909@mlbassoc.com>
+Date: Tue, 30 Aug 2011 10:23:05 -0600
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1314808322-30069-2-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Enrico <ebutera@users.berlios.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Getting started with OMAP3 ISP
+References: <4E56734A.3080001@mlbassoc.com> <4E5CEECC.6040804@mlbassoc.com> <4E5CF118.3050903@mlbassoc.com> <201108301620.09365.laurent.pinchart@ideasonboard.com> <4E5CFA0B.3010207@mlbassoc.com> <CA+2YH7sfhWz_ubLExnGKmyLKOVKGOXYOmH6a1Hoy8ssJeMQnWQ@mail.gmail.com>
+In-Reply-To: <CA+2YH7sfhWz_ubLExnGKmyLKOVKGOXYOmH6a1Hoy8ssJeMQnWQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On 2011-08-30 10:07, Enrico wrote:
+> On Tue, Aug 30, 2011 at 4:56 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>> Yes, that helped a lot.  When I create the devices by hand, I can now see
+>> my driver starting to be accessed (right now it's very much an empty stub)
+>
+>> From your logs it seems you are using a tvp5150, i've posted a patch
+> [1] for tvp5150 that makes it very close to work, it could be faster
+> to debug it instead of starting from scratch.
+>
+> Enrico
+>
+> [1] http://www.spinics.net/lists/linux-media/msg37116.html
 
-Thanks for the patch.
+Thanks, I'll give it a look.
 
-On Wed, Aug 31, 2011 at 06:31:59PM +0200, Laurent Pinchart wrote:
-> Those features are half-implemented and not used. Remove them.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/omap3isp/ispccdc.c |   42 +++----------------------------
->  drivers/media/video/omap3isp/ispccdc.h |   18 -------------
->  2 files changed, 4 insertions(+), 56 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-> index 40b141c..176efae 100644
-> --- a/drivers/media/video/omap3isp/ispccdc.c
-> +++ b/drivers/media/video/omap3isp/ispccdc.c
-> @@ -965,13 +965,11 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
->  	u32 syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC,
->  				     ISPCCDC_SYN_MODE);
->  
-> +	syn_mode &= ~(ISPCCDC_SYN_MODE_FLDSTAT | ISPCCDC_SYN_MODE_EXWEN |
-> +		      ISPCCDC_SYN_MODE_FLDMODE | ISPCCDC_SYN_MODE_FLDPOL |
-> +		      ISPCCDC_SYN_MODE_FLDOUT | ISPCCDC_SYN_MODE_VDHDOUT);
+Your note says that /dev/video* is properly registered.  Does this
+mean that udev created them for you on boot as well?  If so, what
+version of udev are you using?  What's your root file system setup?
+n.b. I'm using an OpenEmbedded variant, Poky
 
-This might be a silly question but is there a need to read some bits from
-the the register? It seems to me that awfully many of the will always get
-overwritten.
-
->  	syn_mode |= ISPCCDC_SYN_MODE_VDHDEN;
->  
-> -	if (syncif->fldstat)
-> -		syn_mode |= ISPCCDC_SYN_MODE_FLDSTAT;
-> -	else
-> -		syn_mode &= ~ISPCCDC_SYN_MODE_FLDSTAT;
-> -
->  	syn_mode &= ~ISPCCDC_SYN_MODE_DATSIZ_MASK;
->  	switch (syncif->datsz) {
->  	case 8:
-> @@ -988,21 +986,11 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
->  		break;
->  	};
->  
-> -	if (syncif->fldmode)
-> -		syn_mode |= ISPCCDC_SYN_MODE_FLDMODE;
-> -	else
-> -		syn_mode &= ~ISPCCDC_SYN_MODE_FLDMODE;
-> -
->  	if (syncif->datapol)
->  		syn_mode |= ISPCCDC_SYN_MODE_DATAPOL;
->  	else
->  		syn_mode &= ~ISPCCDC_SYN_MODE_DATAPOL;
->  
-> -	if (syncif->fldpol)
-> -		syn_mode |= ISPCCDC_SYN_MODE_FLDPOL;
-> -	else
-> -		syn_mode &= ~ISPCCDC_SYN_MODE_FLDPOL;
-> -
->  	if (syncif->hdpol)
->  		syn_mode |= ISPCCDC_SYN_MODE_HDPOL;
->  	else
-> @@ -1013,23 +1001,6 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
->  	else
->  		syn_mode &= ~ISPCCDC_SYN_MODE_VDPOL;
->  
-> -	if (syncif->ccdc_mastermode) {
-> -		syn_mode |= ISPCCDC_SYN_MODE_FLDOUT | ISPCCDC_SYN_MODE_VDHDOUT;
-> -		isp_reg_writel(isp,
-> -			       syncif->hs_width << ISPCCDC_HD_VD_WID_HDW_SHIFT
-> -			     | syncif->vs_width << ISPCCDC_HD_VD_WID_VDW_SHIFT,
-> -			       OMAP3_ISP_IOMEM_CCDC,
-> -			       ISPCCDC_HD_VD_WID);
-> -
-> -		isp_reg_writel(isp,
-> -			       syncif->ppln << ISPCCDC_PIX_LINES_PPLN_SHIFT
-> -			     | syncif->hlprf << ISPCCDC_PIX_LINES_HLPRF_SHIFT,
-> -			       OMAP3_ISP_IOMEM_CCDC,
-> -			       ISPCCDC_PIX_LINES);
-> -	} else
-> -		syn_mode &= ~(ISPCCDC_SYN_MODE_FLDOUT |
-> -			      ISPCCDC_SYN_MODE_VDHDOUT);
-> -
->  	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
->  
->  	if (!syncif->bt_r656_en)
-> @@ -1148,6 +1119,7 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
->  	omap3isp_configure_bridge(isp, ccdc->input, pdata, shift);
->  
->  	ccdc->syncif.datsz = depth_out;
-> +	ccdc->syncif.datapol = 0;
->  	ccdc->syncif.hdpol = pdata ? pdata->hs_pol : 0;
->  	ccdc->syncif.vdpol = pdata ? pdata->vs_pol : 0;
->  	ccdc_config_sync_if(ccdc, &ccdc->syncif);
-> @@ -2258,13 +2230,7 @@ int omap3isp_ccdc_init(struct isp_device *isp)
->  	INIT_LIST_HEAD(&ccdc->lsc.free_queue);
->  	spin_lock_init(&ccdc->lsc.req_lock);
->  
-> -	ccdc->syncif.ccdc_mastermode = 0;
-> -	ccdc->syncif.datapol = 0;
->  	ccdc->syncif.datsz = 0;
-> -	ccdc->syncif.fldmode = 0;
-> -	ccdc->syncif.fldout = 0;
-> -	ccdc->syncif.fldpol = 0;
-> -	ccdc->syncif.fldstat = 0;
->  
->  	ccdc->clamp.oblen = 0;
->  	ccdc->clamp.dcsubval = 0;
-> diff --git a/drivers/media/video/omap3isp/ispccdc.h b/drivers/media/video/omap3isp/ispccdc.h
-> index 483a19c..0e98f10 100644
-> --- a/drivers/media/video/omap3isp/ispccdc.h
-> +++ b/drivers/media/video/omap3isp/ispccdc.h
-> @@ -48,35 +48,17 @@ enum ccdc_input_entity {
->  
->  /*
->   * struct ispccdc_syncif - Structure for Sync Interface between sensor and CCDC
-> - * @ccdc_mastermode: Master mode. 1 - Master, 0 - Slave.
-> - * @fldstat: Field state. 0 - Odd Field, 1 - Even Field.
->   * @datsz: Data size.
-> - * @fldmode: 0 - Progressive, 1 - Interlaced.
->   * @datapol: 0 - Positive, 1 - Negative.
-> - * @fldpol: 0 - Positive, 1 - Negative.
->   * @hdpol: 0 - Positive, 1 - Negative.
->   * @vdpol: 0 - Positive, 1 - Negative.
-> - * @fldout: 0 - Input, 1 - Output.
-> - * @hs_width: Width of the Horizontal Sync pulse, used for HS/VS Output.
-> - * @vs_width: Width of the Vertical Sync pulse, used for HS/VS Output.
-> - * @ppln: Number of pixels per line, used for HS/VS Output.
-> - * @hlprf: Number of half lines per frame, used for HS/VS Output.
->   * @bt_r656_en: 1 - Enable ITU-R BT656 mode, 0 - Sync mode.
->   */
->  struct ispccdc_syncif {
-> -	u8 ccdc_mastermode;
-> -	u8 fldstat;
->  	u8 datsz;
-> -	u8 fldmode;
->  	u8 datapol;
-> -	u8 fldpol;
->  	u8 hdpol;
->  	u8 vdpol;
-> -	u8 fldout;
-> -	u8 hs_width;
-> -	u8 vs_width;
-> -	u8 ppln;
-> -	u8 hlprf;
->  	u8 bt_r656_en;
->  };
->  
-> -- 
-> 1.7.3.4
-> 
+Thanks
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
