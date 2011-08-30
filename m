@@ -1,89 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54347 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750709Ab1HXNT6 convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34832 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752637Ab1H3N0f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Aug 2011 09:19:58 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Ravi, Deepthy" <deepthy.ravi@ti.com>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Date: Wed, 24 Aug 2011 18:49:46 +0530
-Subject: RE: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC007C25@dbde02.ent.ti.com>
-References: <1313761725-6614-1-git-send-email-deepthy.ravi@ti.com>
-	 <201108241217.11430.laurent.pinchart@ideasonboard.com>
-	 <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D0907F6@dbde03.ent.ti.com>
-	 <201108241329.48147.laurent.pinchart@ideasonboard.com>
-	 <19F8576C6E063C45BE387C64729E739404EC007BE3@dbde02.ent.ti.com>
- <1314190538.9124.29.camel@smile>
-In-Reply-To: <1314190538.9124.29.camel@smile>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Tue, 30 Aug 2011 09:26:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] media: Add support for arbitrary resolution for the ov5642 camera driver
+Date: Tue, 30 Aug 2011 15:26:56 +0200
+Cc: Bastian Hecht <hechtb@googlemail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <alpine.DEB.2.02.1108171551040.17540@ipanema> <201108301446.22411.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1108301455120.19151@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1108301455120.19151@axis700.grange>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108301526.56431.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
-> -----Original Message-----
-> From: Andy Shevchenko [mailto:andriy.shevchenko@linux.intel.com]
-> Sent: Wednesday, August 24, 2011 6:26 PM
-> To: Hiremath, Vaibhav
-> Cc: Laurent Pinchart; Ravi, Deepthy; mchehab@infradead.org; linux-
-> media@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
-> omap@vger.kernel.org
-> Subject: RE: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
-> 
-> > > > >> Fix the build break caused when CONFIG_MEDIA_CONTROLLER
-> > > > >> option is disabled and if any sensor driver has to be used
-> > > > >> between MC and non MC framework compatible devices.
-> > > > >>
-> > > > >> For example,if tvp514x video decoder driver migrated to
-> > > > >> MC framework is being built without CONFIG_MEDIA_CONTROLLER
-> > > > >> option enabled, the following error messages will result.
-> > > > >> drivers/built-in.o: In function `tvp514x_remove':
-> > > > >> drivers/media/video/tvp514x.c:1285: undefined reference to
-> > > > >> `media_entity_cleanup'
-> > > > >> drivers/built-in.o: In function `tvp514x_probe':
-> > > > >> drivers/media/video/tvp514x.c:1237: undefined reference to
-> > > > >> `media_entity_init'
-> > > > >
-> > > > > If the tvp514x is migrated to the MC framework, its Kconfig option
-> > > should
-> > > > > depend on MEDIA_CONTROLLER.
-> > > >
-> > > > The same TVP514x driver is being used for both MC and non MC
-> compatible
-> > > > devices, for example OMAP3 and AM35x. So if it is made dependent on
-> > > MEDIA
-> > > > CONTROLLER, we cannot enable the driver for MC independent devices.
-> > >
-> > > Then you should use conditional compilation in the tvp514x driver
-> itself.
-> > > Or
-> > [Hiremath, Vaibhav] No. I am not in favor of conditional compilation in
-> driver code.
-> >
-> > > better, port the AM35x driver to the MC API.
-> > >
-> > [Hiremath, Vaibhav]
-> > Why should we use MC if I have very simple device (like AM35x) which
-> only supports single path? I can very well use simple V4L2 sub-dev based
-> approach (master - slave), isn't it?
-> Why should you break the API in unappropriated way?
-[Hiremath, Vaibhav] Can you explain? 
+Could you please comment on this ? In a nutshell (and from my biased point of 
+view), the question is "can cropping be configured using S_FMT instead of 
+S_CROP ?". The answer is of course no :-)
 
-Thanks,
-Vaibhav
+On Tuesday 30 August 2011 15:13:25 Guennadi Liakhovetski wrote:
+> On Tue, 30 Aug 2011, Laurent Pinchart wrote:
+> > On Tuesday 30 August 2011 10:55:08 Guennadi Liakhovetski wrote:
+> > > On Mon, 29 Aug 2011, Laurent Pinchart wrote:
+> > > > On Monday 29 August 2011 14:34:53 Guennadi Liakhovetski wrote:
+> > > > > On Mon, 29 Aug 2011, Laurent Pinchart wrote:
+> > > > > > On Monday 29 August 2011 14:18:50 Guennadi Liakhovetski wrote:
+> > > > > > > On Sun, 28 Aug 2011, Laurent Pinchart wrote:
+> > > > > > > 
+> > > > > > > [snip]
+> > > > > > > 
+> > > > > > > > > @@ -774,17 +839,27 @@ static int ov5642_s_fmt(struct
+> > > > > > > > > v4l2_subdev *sd,
+> > > > > > > > > 
+> > > > > > > > >  	ov5642_try_fmt(sd, mf);
+> > > > > > > > > 
+> > > > > > > > > +	priv->out_size.width		= mf->width;
+> > > > > > > > > +	priv->out_size.height		= mf->height;
+> > > > > > > > 
+> > > > > > > > It looks like to me (but I may be wrong) that you achieve
+> > > > > > > > different resolutions using cropping, not scaling. If that's
+> > > > > > > > correct you should implement s_crop support and refuse
+> > > > > > > > changing the resolution through s_fmt.
+> > > > > > > 
+> > > > > > > As the patch explains (I think) on several occasions, currently
+> > > > > > > only the 1:1 scale is supported, and it was our deliberate
+> > > > > > > choice to implement this using the scaling API
+> > > > > > 
+> > > > > > If you implement cropping, you should use the crop API, not the
+> > > > > > scaling API
+> > > > > > 
+> > > > > > :-)
+> > > > > 
+> > > > > It's changing both - input and output sizes.
+> > > > 
+> > > > Sure, but it's still cropping.
+> > > 
+> > > Why? Isn't it a matter of the PoV?
+> > 
+> > No it isn't. Cropping is cropping, regardless of how you look at it.
+> > 
+> > > It changes the output window, i.e., implements S_FMT. And S_FMT is by
+> > > far more important / widely used than S_CROP. Refusing to change the
+> > > output window and always just returning the == crop size wouldn't be
+> > > polite, IMHO.
+> > 
+> > If your sensor has no scaler the output size is equal to the crop
+> > rectangle. There's no way around that, and there's no reason to have the
+> > driver behave otherwise.
+> > 
+> > > Don't think many users would guess to use S_CROP.
+> > 
+> > Users who want to crop use S_CROP.
+> > 
+> > > Standard applications a la mplayer don't use S_CROP at all.
+> > 
+> > That's because they don't want to crop. mplayer expects the driver to
+> > perform scaling when it calls S_FMT, and users won't be happy if you
+> > crop instead.
+> 
+> So, here's my opinion, based on the V4L2 spec. I'm going to base on this
+> and pull this patch into my tree and let Mauro decide, unless he expresses
+> his negative opinion before that.
+> 
+> The spec defines S_FMT as an operation to set the output (in case of a
+> capture device) frame format. Which this driver clearly does. The output
+> format should be set, using scaling, however, if the driver or the
+> hardware are unable to preserve the exact same input rectangle to satisfy
+> the request, the driver is also allowed to change the cropping rectangle
+> _as much as necessary_ - S_FMT takes precedence. This has been discussed
+> before, and the conclusion was - of the two geometry calls (S_FMT and
+> S_CROP) the last call overrides previous setting of the opposite geometry.
+> 
+> It also defines S_CROP as an operation to set the cropping rectangle. The
+> driver is also allowed to change the output window, if it cannot be
+> preserved. Similarly, the last call wins.
+> 
+> Ideally in this situation I would implement both S_CROP and S_FMT and let
+> both change the opposite window as needed, which in this case means set it
+> equal to the one, being configured. Since most applications are primarily
+> interested in the S_FMT call to configure their user interface, I find it
+> a wrong approach to refuse S_FMT and always return the current cropping
+> rectangle. In such a case the application will possibly be stuck with some
+> default output rectangle, because it certainly will _not_ guess to use
+> S_CROP to configure it. Whereas if we implement S_FMT with a constant 1:1
+> scale the application will get the required UI size. I agree, that
+> changing the view area, while changing the output window, is not exactly
+> what the user expects, but it's better than presenting all applications
+> with a fixed, possibly completely unsuitable, UI window.
 
-> 
-> The patch is NACK, obviously.
-> 
-> --
-> Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Intel Finland Oy
+-- 
+Regards,
+
+Laurent Pinchart
