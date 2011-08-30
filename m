@@ -1,96 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:44853 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751466Ab1HHKQm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Aug 2011 06:16:42 -0400
-Message-ID: <4E3FB786.2080403@matrix-vision.de>
-Date: Mon, 08 Aug 2011 12:16:38 +0200
-From: Michael Jones <michael.jones@matrix-vision.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56671 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753257Ab1H3OTo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Aug 2011 10:19:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: Getting started with OMAP3 ISP
+Date: Tue, 30 Aug 2011 16:20:09 +0200
+Cc: linux-media@vger.kernel.org
+References: <4E56734A.3080001@mlbassoc.com> <4E5CEECC.6040804@mlbassoc.com> <4E5CF118.3050903@mlbassoc.com>
+In-Reply-To: <4E5CF118.3050903@mlbassoc.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] omap3isp: queue: fail QBUF if buffer is too small
-References: <1312472437-26231-1-git-send-email-michael.jones@matrix-vision.de> <201108051059.46485.laurent.pinchart@ideasonboard.com> <4E3BD702.8030204@matrix-vision.de> <201108081208.16888.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201108081208.16888.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201108301620.09365.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Gary,
 
-On 08/08/2011 12:08 PM, Laurent Pinchart wrote:
+On Tuesday 30 August 2011 16:18:00 Gary Thomas wrote:
+> On 2011-08-30 08:08, Gary Thomas wrote:
+> > On 2011-08-29 04:49, Laurent Pinchart wrote:
+> >> On Thursday 25 August 2011 18:07:38 Gary Thomas wrote:
+> >>> Background: I have working video capture drivers based on the
+> >>> TI PSP codebase from 2.6.32. In particular, I managed to get
+> >>> a driver for the TVP5150 (analogue BT656) working with that kernel.
+> >>> 
+> >>> Now I need to update to Linux 3.0, so I'm trying to get a driver
+> >>> working with the rewritten ISP code. Sadly, I'm having a hard
+> >>> time with this - probably just missing something basic.
+> >>> 
+> >>> I've tried to clone the TVP514x driver which says that it works
+> >>> with the OMAP3 ISP code. I've updated it to use my decoder device,
+> >>> but I can't even seem to get into that code from user land.
+> >>> 
+> >>> Here are the problems I've had so far:
+> >>> * udev doesn't create any video devices although they have been
+> >>> registered. I see a full set in /sys/class/video4linux
+> >>> # ls /sys/class/video4linux/
+> >>> v4l-subdev0 v4l-subdev3 v4l-subdev6 video1 video4
+> >>> v4l-subdev1 v4l-subdev4 v4l-subdev7 video2 video5
+> >>> v4l-subdev2 v4l-subdev5 video0 video3 video6
+> >> 
+> >> It looks like a udev issue. I don't think that's related to the kernel
+> >> drivers.
+> >> 
+> >>> Indeed, if I create /dev/videoX by hand, I can get somewhere, but
+> >>> I don't really understand how this is supposed to work. e.g.
+> >>> # v4l2-dbg --info /dev/video3
+> >>> Driver info:
+> >>> Driver name : ispvideo
+> >>> Card type : OMAP3 ISP CCP2 input
+> >>> Bus info : media
+> >>> Driver version: 1
+> >>> Capabilities : 0x04000002
+> >>> Video Output
+> >>> Streaming
+> >>> 
+> >>> * If I try to grab video, the ISP layer gets a ton of warnings, but
+> >>> I never see it call down into my driver, e.g. to check the current
+> >>> format, etc. I have some of my own code from before which fails
+> >>> miserably (not a big surprise given the hack level of those programs).
+> >>> I tried something off-the-shelf which also fails pretty bad:
+> >>> # ffmpeg -t 10 -f video4linux2 -s 720x480 -r 30 -i /dev/video2
+> >>> junk.mp4
+> >>> 
+> >>> I've read through Documentation/video4linux/omap3isp.txt without
+> >>> learning much about what might be wrong.
+> >>> 
+> >>> Can someone give me some ideas/guidance, please?
+> >> 
+> >> In a nutshell, you will first have to configure the OMAP3 ISP pipeline,
+> >> and then capture video.
+> >> 
+> >> Configuring the pipeline is done through the media controller API and
+> >> the V4L2 subdev pad-level API. To experiment with those you can use the
+> >> media-ctl command line application available at
+> >> http://git.ideasonboard.org/?p=media- ctl.git;a=summary. You can run it
+> >> with --print-dot and pipe the result to dot -Tps to get a postscript
+> >> graphical view of your device.
+> >> 
+> >> Here's a sample pipeline configuration to capture scaled-down YUV data
+> >> from a sensor:
+> >> 
+> >> ./media-ctl -r -l '"mt9t001 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
+> >> CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3 ISP
+> >> resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+> >> ./media-ctl -f '"mt9t001 3-005d":0[SGRBG10 1024x768], "OMAP3 ISP
+> >> CCDC":2[SGRBG10 1024x767], "OMAP3 ISP preview":1[YUYV 1006x759], "OMAP3
+> >> ISP resizer":1[YUYV 800x600]'
+> >> 
+> >> After configuring your pipeline you will be able to capture video using
+> >> the V4L2 API on the device node at the output of the pipeline.
+> > 
+> > Thanks for the info.
+> > 
+> > When I run 'media-ctl -p', I see the various nodes, etc, and they all
+> > look good except that I get lots of messages like this:
+> > - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+> > type V4L2 subdev subtype Unknown
+> > pad0: Input v4l2_subdev_open: Failed to open subdev device node
 > 
-> Hi Michael,
-> 
-> On Friday 05 August 2011 13:41:54 Michael Jones wrote:
->> On 08/05/2011 10:59 AM, Laurent Pinchart wrote:
->>> Hi Michael,
->>>
->>> Thanks for the patch.
->>>
->>> On Thursday 04 August 2011 17:40:37 Michael Jones wrote:
->>>> Add buffer length to sanity checks for QBUF.
->>>>
->>>> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
->>>> ---
->>>>
->>>>  drivers/media/video/omap3isp/ispqueue.c |    3 +++
->>>>  1 files changed, 3 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/drivers/media/video/omap3isp/ispqueue.c
->>>> b/drivers/media/video/omap3isp/ispqueue.c index 9c31714..4f6876f 100644
->>>> --- a/drivers/media/video/omap3isp/ispqueue.c
->>>> +++ b/drivers/media/video/omap3isp/ispqueue.c
->>>> @@ -867,6 +867,9 @@ int omap3isp_video_queue_qbuf(struct isp_video_queue
->>>> *queue, if (buf->state != ISP_BUF_STATE_IDLE)
->>>>
->>>>  		goto done;
->>>>
->>>> +	if (vbuf->length < buf->vbuf.length)
->>>> +		goto done;
->>>> +
->>>
->>> The vbuf->length value passed from userspace isn't used by the driver, so
->>> I'm not sure if verifying it is really useful. We verify the memory
->>> itself instead, to make sure that enough pages can be accessed. The
->>> application can always lie about the length, so we can't rely on it
->>> anyway.
->>
->> According to the spec, it's expected that the application set 'length':
->> "To enqueue a user pointer buffer applications set [...] length to its
->> size." (Now that I say that, I realize I should only do this length
->> check for USERPTR buffers.) If we don't at least sanity check it for the
->> application, then it has no purpose at all on QBUF. If this is
->> desirable, I would propose changing the spec.
->>
->> This patch was born of a mistake when my application set 624x480, which
->> resulted in sizeimage=640x480=307200 but it used width & height to
->> calculate the buffer size rather than sizeimage or even to take
->> bytesperline into account. It was then honest with QBUF, confessing that
->> it wasn't providing enough space, but QBUF just went ahead. What
->> followed were random crashes while data was DMA'd into memory not set
->> aside for the buffer, while I assumed that the buffer size was OK
->> because QBUF had succeeded and was looking elsewhere in the program for
->> the culprit. I think it makes sense to give the app an error on QBUF in
->> this situation.
-> 
-> Right. This will help catching application errors without any drawback on the 
-> kernel side.
-> 
-> Do you want to resubmit the patch with an additional USERPTR check, or should 
-> I write one ?
+> Could this be related to my missing [udev] device nodes?
 
-Thanks for the review. I will resubmit the patch with the USERPTR check.
+It could be. You need the /dev/video* and /dev/v4l-subdev* device nodes.
 
+> I can see media-ctl get confused and try to open a nonsense device name. 
+> Here's what I see when I run
+>    # strace media-ctl -p | grep open
+>    open("/dev/media0", O_RDWR)             = 3
+>    open("", O_RDWR)                        = -1 ENOENT (No such file or
+> directory) write(1, "\tpad0: Input v4l2_subdev_open: F"..., 66) = 66
 > 
->>>>  	if (vbuf->memory == V4L2_MEMORY_USERPTR &&
->>>>  	    vbuf->m.userptr != buf->vbuf.m.userptr) {
->>>>  		isp_video_buffer_cleanup(buf);
-> 
+> > When I try to setup my pipeline using something similar to what you
+> > provided, the first step runs and I can see that it does something (some
+> > lines on the graph went from dotted to solid), but I still get errors:
+> > # media-ctl -r -l '"tvp5150m1 2-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+> > ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]' Resetting all links to
+> > inactive
+> > Setting up link 16:0 -> 5:0 [1]
+> > Setting up link 5:1 -> 6:0 [1]
+> > # media-ctl -f '"tvp5150m1 2-005c":0[SGRBG12 320x240], "OMAP3 ISP
+> > CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]' Setting up
+> > format SGRBG12 320x240 on pad tvp5150m1 2-005c/0
+> > v4l2_subdev_open: Failed to open subdev device node
+> > Unable to set format: No such file or directory (-2)
+> > 
+> > As far as I can tell, none if this is making any callbacks into my
+> > driver.
+> > 
+> > Any ideas what I might be missing?
+> > 
+> > Thanks
 
+-- 
+Regards,
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
+Laurent Pinchart
