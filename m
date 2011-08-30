@@ -1,80 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:9796 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752025Ab1HPKSG (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:36647 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754141Ab1H3UPx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Aug 2011 06:18:06 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Date: Tue, 16 Aug 2011 12:17:30 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 7/9] ARM: DMA: steal memory for DMA coherent mappings
-In-reply-to: <201108121453.05898.arnd@arndb.de>
-To: 'Arnd Bergmann' <arnd@arndb.de>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Russell King' <linux@arm.linux.org.uk>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
-	'Chunsang Jeong' <chunsang.jeong@linaro.org>
-Message-id: <004301cc5bfd$b50048d0$1f00da70$%szyprowski@samsung.com>
-Content-language: pl
-References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
- <1313146711-1767-8-git-send-email-m.szyprowski@samsung.com>
- <201108121453.05898.arnd@arndb.de>
+	Tue, 30 Aug 2011 16:15:53 -0400
+Received: by fxh19 with SMTP id 19so43686fxh.19
+        for <linux-media@vger.kernel.org>; Tue, 30 Aug 2011 13:15:52 -0700 (PDT)
+Message-ID: <4E5D44F6.5020805@googlemail.com>
+Date: Tue, 30 Aug 2011 22:15:50 +0200
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] gspca_sn9c20x: device 0c45:62b3: fix status LED
+References: <1309515598-14669-1-git-send-email-fschaefer.oss@googlemail.com> <4E52C9CE.3040900@googlemail.com> <4E58DB23.4070807@redhat.com>
+In-Reply-To: <4E58DB23.4070807@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Am 27.08.2011 13:55, schrieb Hans de Goede:
+> Hi,
+>
+> On 08/22/2011 11:27 PM, Frank Schäfer wrote:
+>> Ping ... what happened to this patch ? ;-)
+>
+> I think it has fallen through the cracks. I've added it
+> to my tree for 3.1 / 3.2 (more likely will be 3.2)
+>
+> Regards,
+>
+> Hans
+>
+Thank you Hans. I will check if it has reached mainline in a few weeks. ;)
 
-On Friday, August 12, 2011 2:53 PM Arnd Bergmann wrote:
+Regards,
+Frank
 
-> On Friday 12 August 2011, Marek Szyprowski wrote:
-> >
-> > From: Russell King <rmk+kernel@arm.linux.org.uk>
-> >
-> > Steal memory from the kernel to provide coherent DMA memory to drivers.
-> > This avoids the problem with multiple mappings with differing attributes
-> > on later CPUs.
-> >
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > [m.szyprowski: rebased onto 3.1-rc1]
-> > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> 
-> Hi Marek,
-> 
-> Is this the same patch that Russell had to revert because it didn't
-> work on some of the older machines, in particular those using
-> dmabounce?
-
-Yes.
- 
-> I thought that our discussion ended with the plan to use this only
-> for ARMv6+ (which has a problem with double mapping) but not on ARMv5
-> and below (which don't have this problem but might need dmabounce).
-
-Ok, my fault. I've forgot to mention that this patch was almost ready 
-during Linaro meeting, but I didn't manage to post it that time. Of course 
-it doesn't fulfill all the agreements from that discussion.
-
-I was only unsure if we should care about the case where CMA is not enabled
-for ARMv6+ or not. This patch was prepared in assumption that 
-dma_alloc_coherent should work in both cases - with and without CMA.
-
-Now I assume that for ARMv6+ the CMA should be enabled unconditionally.
-
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+>
+>
+>>
+>> Am 01.07.2011 12:19, schrieb Frank Schaefer:
+>>> gspca_sn9c20x: device 0c45:62b3: fix status LED
+>>>
+>>> Tested with webcam "SilverCrest WC2130".
+>>>
+>>> Signed-off-by: Frank Schaefer<fschaefer.oss@googlemail.com>
+>>>
+>>> Cc: stable@kernel.org
+>>> ---
+>>> drivers/media/video/gspca/sn9c20x.c | 2 +-
+>>> 1 files changed, 1 insertions(+), 1 deletions(-)
+>>>
+>>> diff --git a/drivers/media/video/gspca/sn9c20x.c 
+>>> b/drivers/media/video/gspca/sn9c20x.c
+>>> index c431900..af9cd50 100644
+>>> --- a/drivers/media/video/gspca/sn9c20x.c
+>>> +++ b/drivers/media/video/gspca/sn9c20x.c
+>>> @@ -2513,7 +2513,7 @@ static const struct usb_device_id 
+>>> device_table[] = {
+>>> {USB_DEVICE(0x0c45, 0x628f), SN9C20X(OV9650, 0x30, 0)},
+>>> {USB_DEVICE(0x0c45, 0x62a0), SN9C20X(OV7670, 0x21, 0)},
+>>> {USB_DEVICE(0x0c45, 0x62b0), SN9C20X(MT9VPRB, 0x00, 0)},
+>>> - {USB_DEVICE(0x0c45, 0x62b3), SN9C20X(OV9655, 0x30, 0)},
+>>> + {USB_DEVICE(0x0c45, 0x62b3), SN9C20X(OV9655, 0x30, LED_REVERSE)},
+>>> {USB_DEVICE(0x0c45, 0x62bb), SN9C20X(OV7660, 0x21, LED_REVERSE)},
+>>> {USB_DEVICE(0x0c45, 0x62bc), SN9C20X(HV7131R, 0x11, 0)},
+>>> {USB_DEVICE(0x045e, 0x00f4), SN9C20X(OV9650, 0x30, 0)},
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at http://vger.kernel.org/majordomo-info.html
 
