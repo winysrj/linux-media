@@ -1,87 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:35303 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752150Ab1HAOy5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Aug 2011 10:54:57 -0400
-Message-ID: <4E36BE4F.7080704@iki.fi>
-Date: Mon, 01 Aug 2011 17:55:11 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:65095 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753252Ab1H3M7h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Aug 2011 08:59:37 -0400
+Received: by gxk21 with SMTP id 21so5603012gxk.19
+        for <linux-media@vger.kernel.org>; Tue, 30 Aug 2011 05:59:37 -0700 (PDT)
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>
-Subject: Re: [PATCH v3] V4L: add two new ioctl()s for multi-size videobuffer
- management
-References: <Pine.LNX.4.64.1107201025120.12084@axis700.grange> <201107261305.29863.hverkuil@xs4all.nl> <20110726114427.GC32507@valkosipuli.localdomain> <201107261357.31673.hverkuil@xs4all.nl> <Pine.LNX.4.64.1108011031150.30975@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1108011031150.30975@axis700.grange>
+In-Reply-To: <CAG4Y6eTVzx-jwkzQzR97stabE6KEGh5HGD7UaWnxM333Z3iqxg@mail.gmail.com>
+References: <CA+s_+RqtWZuj5b55Vk5A==VqbPEnDoqFfSVGtA2n-pdR85mc8g@mail.gmail.com>
+	<CA+s_+RrGE2T0H+XSSjg81zh514g1oQePLCfV-y3nJC8DqXjWjQ@mail.gmail.com>
+	<CA+s_+RpekDfRSWEQMZObjiR-RTgLeFUk1tc-g6ieQYLzcTqwdw@mail.gmail.com>
+	<CAG4Y6eTVzx-jwkzQzR97stabE6KEGh5HGD7UaWnxM333Z3iqxg@mail.gmail.com>
+Date: Tue, 30 Aug 2011 08:59:36 -0400
+Message-ID: <CA+s_+Roj2eDz1nagxVQwZtFjpfB5EHX=t7+DLb8foLLzuJu5WA@mail.gmail.com>
+Subject: Re: Usb digital TV
+From: Gabriel Sartori <gabriel.sartori@gmail.com>
+To: Alan Carvalho de Assis <acassis@gmail.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski wrote:
-> On Tue, 26 Jul 2011, Hans Verkuil wrote:
-> 
->> On Tuesday, July 26, 2011 13:44:28 Sakari Ailus wrote:
->>> Hi Hans and Guennadi,
->>
->> <snip>
->>
->>>> I realized that it is not clear from the documentation whether it is possible to call
->>>> VIDIOC_REQBUFS and make additional calls to VIDIOC_CREATE_BUFS afterwards.
->>>
->>> That's actually a must if one wants to release buffers. Currently no other
->>> method than requesting 0 buffers using REQBUFS is provided (apart from
->>> closing the file handle).
->>
->> I was referring to the non-0 use-case :-)
->>
->>>> I can't remember whether the code allows it or not, but it should be clearly documented.
->>>
->>> I would guess no user application would have to call REQBUFS with other than
->>> zero buffers when using CREATE_BUFS. This must be an exception if mixing
->>> REQBUFS and CREATE_BUFS is not allowed in general. That said, I don't see a
->>> reason to prohibit either, but perhaps Guennadi has more informed opinion
->>> on this.
->>  
->> <snip>
->>
->>>>>>> Future functionality which would be nice:
->>>>>>>
->>>>>>> - Format counters. Every format set by S_FMT (or gotten by G_FMT) should
->>>>>>>   come with a counter value so that the user would know the format of
->>>>>>>   dequeued buffers when setting the format on-the-fly. Currently there are
->>>>>>>   only bytesperline and length, but the format can't be explicitly
->>>>>>>   determined from those.
->>>>
->>>> Actually, the index field will give you that information. When you create the
->>>> buffers you know that range [index, index + count - 1] is associated with that
->>>> specific format.
->>>
->>> Some hardware is able to change the format while streaming is ongoing (for
->>> example: OMAP 3). The problem is that the user should be able to know which
->>> frame has the new format.
-> 
-> How exactly does this work or should it work? You mean, you just configure 
-> your hardware with new frame size parameters without stopping the current 
-> streaming, and the ISP will change frame sizes, beginning with some future 
-> frame? How does the driver then get to know, which frame already has the 
+Thank you Allan!
 
-That's correct.
+  Did this device that you use works in 1-seg? I think it is just full-seg!
 
-> new sizes? You actually want to know this in advance to already queue a 
-> suitably sized buffer to the hardware?
+  Using the Siano based device I tried a better antenna and still
+cannot scan channels.
+  I also tried the patches from Mauro and modified the device firmware
+to isdbt_nova_12mhz_b0.inp forcing it to use mode 6!
+  But it did not work either.
 
-The driver knows that since it has configured the hardware to produce
-that frame size.
+  In my Windows machine it worked without any problem.
 
-The assumption is that all the buffers have suitable size for all the
-formats. This must be checked by the driver, something which also must
-be taken into account.
+  I really don't have much more options.
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Thanks in advance!
+
+2011/8/29 Alan Carvalho de Assis <acassis@gmail.com>:
+> Hi Gabriel,
+>
+> On 8/29/11, Gabriel Sartori <gabriel.sartori@gmail.com> wrote:
+>> It there some devices that has more chance to work on a 2.6.35 kernel
+>> version so I can just cross compile the driver to my mx28 board in a
+>> easier way?
+>>
+>> Thanks in advance.
+>>
+>
+> I suggest you using a device based on dib0700, I got it working on
+> Linux <= 2.6.35:
+> https://acassis.wordpress.com/2009/09/18/watching-digital-tv-sbtvd-in-the-linux/
+>
+> This same device working on i-MXT (Android 2.2 with Linux kernel 2.6.35):
+> http://holoscopio.com/misc/androidtv/
+>
+> Best Regards,
+>
+> Alan
+>
