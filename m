@@ -1,52 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:51097 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753069Ab1H3NmJ (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53601 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756568Ab1H3Ugz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 09:42:09 -0400
-Date: Tue, 30 Aug 2011 14:41:48 +0100
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Tuukka Toivonen <tuukka.toivonen@intel.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>
+	Tue, 30 Aug 2011 16:36:55 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Grant Likely <grant.likely@secretlab.ca>
 Subject: Re: [ANN] Meeting minutes of the Cambourne meeting
-Message-ID: <20110830134148.GA14976@sirena.org.uk>
-References: <201107261647.19235.laurent.pinchart@ideasonboard.com>
- <201108081750.07000.laurent.pinchart@ideasonboard.com>
- <4E5A2657.7030605@gmail.com>
- <201108291508.59649.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1108300018490.5065@axis700.grange>
+Date: Tue, 30 Aug 2011 22:37:21 +0200
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Tuukka Toivonen <tuukka.toivonen@intel.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	"linux-media" <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	devicetree-discuss@lists.ozlabs.org
+References: <201107261647.19235.laurent.pinchart@ideasonboard.com> <20110830201929.GS2061@opensource.wolfsonmicro.com> <CACxGe6v0Tm8oz5+vcrdjzk3x0DdvBoyeqEv=aZv=XEA=Ev7WpQ@mail.gmail.com>
+In-Reply-To: <CACxGe6v0Tm8oz5+vcrdjzk3x0DdvBoyeqEv=aZv=XEA=Ev7WpQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1108300018490.5065@axis700.grange>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108302237.22468.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 30, 2011 at 12:20:09AM +0200, Guennadi Liakhovetski wrote:
-> On Mon, 29 Aug 2011, Laurent Pinchart wrote:
+On Tuesday 30 August 2011 22:35:59 Grant Likely wrote:
+> On Aug 30, 2011 2:19 PM, "Mark Brown" wrote:
+> > On Tue, Aug 30, 2011 at 10:12:30PM +0200, Laurent Pinchart wrote:
+> > > Would such a device be included in the DT ? My understanding is that
+> > > the DT should only describe the hardware.
+> > 
+> > For ASoC they will be, the view is that the schematic for the board is
+> > sufficiently interesting to count as hardware.
+> 
+> Yes. Aggregate devices are sufficiently complex that there is a strong
+> argument for using a node to describe one.
 
-> > My idea was to let the kernel register all devices based on the DT or board 
-> > code. When the V4L2 host/bridge driver gets registered, it will then call a 
-> > V4L2 core function with a list of subdevs it needs. The V4L2 core would store 
-> > that information and react to bus notifier events to notify the V4L2 
-> > host/bridge driver when all subdevs are present. At that point the host/bridge 
-> > driver will get hold of all the subdevs and call (probably through the V4L2 
-> > core) their .registered operation. That's where the subdevs will get access to 
-> > their clock using clk_get().
+Is there any document or sample implementation ?
 
-> Correct me, if I'm wrong, but this seems to be the case of sensor (and 
-> other i2c-client) drivers having to succeed their probe() methods without 
-> being able to actually access the hardware?
+-- 
+Regards,
 
-The events should only be generated after the probe() has succeeded so
-if the driver talks to the hardware then it can fail probe() if need be.
+Laurent Pinchart
