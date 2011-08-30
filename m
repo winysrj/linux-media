@@ -1,93 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:50282 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754247Ab1H3OD6 (ORCPT
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:48017 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755815Ab1H3Ql0 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Aug 2011 10:03:58 -0400
-Date: Tue, 30 Aug 2011 16:03:49 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Grant Likely <grant.likely@secretlab.ca>
-cc: Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tuukka Toivonen <tuukka.toivonen@intel.com>
-Subject: Re: [ANN] Meeting minutes of the Cambourne meeting
-In-Reply-To: <20110830135609.GC1355@ponder.secretlab.ca>
-Message-ID: <Pine.LNX.4.64.1108301600020.19151@axis700.grange>
-References: <201107261647.19235.laurent.pinchart@ideasonboard.com>
- <201108081750.07000.laurent.pinchart@ideasonboard.com> <4E5A2657.7030605@gmail.com>
- <201108291508.59649.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1108300018490.5065@axis700.grange> <20110830134148.GA14976@sirena.org.uk>
- <20110830135609.GC1355@ponder.secretlab.ca>
+	Tue, 30 Aug 2011 12:41:26 -0400
+Received: by gwaa12 with SMTP id a12so5740170gwa.19
+        for <linux-media@vger.kernel.org>; Tue, 30 Aug 2011 09:41:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <CAG4Y6eQvpsxLmE9ZUWfH8UE0bxYP-_v5YzutepKnu=_eybwfmA@mail.gmail.com>
+References: <CA+s_+RqtWZuj5b55Vk5A==VqbPEnDoqFfSVGtA2n-pdR85mc8g@mail.gmail.com>
+	<CA+s_+RrGE2T0H+XSSjg81zh514g1oQePLCfV-y3nJC8DqXjWjQ@mail.gmail.com>
+	<CA+s_+RpekDfRSWEQMZObjiR-RTgLeFUk1tc-g6ieQYLzcTqwdw@mail.gmail.com>
+	<CAG4Y6eTVzx-jwkzQzR97stabE6KEGh5HGD7UaWnxM333Z3iqxg@mail.gmail.com>
+	<CA+s_+Roj2eDz1nagxVQwZtFjpfB5EHX=t7+DLb8foLLzuJu5WA@mail.gmail.com>
+	<CAG4Y6eQvpsxLmE9ZUWfH8UE0bxYP-_v5YzutepKnu=_eybwfmA@mail.gmail.com>
+Date: Tue, 30 Aug 2011 12:41:25 -0400
+Message-ID: <CA+s_+RpCLk0aFm4jB_UdRCEBtZhoovRg9UZwW4rSunoSG3SQ0Q@mail.gmail.com>
+Subject: Re: Usb digital TV
+From: Gabriel Sartori <gabriel.sartori@gmail.com>
+To: Alan Carvalho de Assis <acassis@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Grant
+Thank you Allan!
 
-On Tue, 30 Aug 2011, Grant Likely wrote:
+I tried that device and it worked fine in my workstation.
+Now I will try this at my mx28 based board!!!
 
-> On Tue, Aug 30, 2011 at 02:41:48PM +0100, Mark Brown wrote:
-> > On Tue, Aug 30, 2011 at 12:20:09AM +0200, Guennadi Liakhovetski wrote:
-> > > On Mon, 29 Aug 2011, Laurent Pinchart wrote:
-> > 
-> > > > My idea was to let the kernel register all devices based on the DT or board 
-> > > > code. When the V4L2 host/bridge driver gets registered, it will then call a 
-> > > > V4L2 core function with a list of subdevs it needs. The V4L2 core would store 
-> > > > that information and react to bus notifier events to notify the V4L2 
-> > > > host/bridge driver when all subdevs are present. At that point the host/bridge 
-> 
-> Sounds a lot like what ASoC is currently doing.
-> 
-> > > > driver will get hold of all the subdevs and call (probably through the V4L2 
-> > > > core) their .registered operation. That's where the subdevs will get access to 
-> > > > their clock using clk_get().
-> > 
-> > > Correct me, if I'm wrong, but this seems to be the case of sensor (and 
-> > > other i2c-client) drivers having to succeed their probe() methods without 
-> > > being able to actually access the hardware?
-> 
-> It indeed sounds like that, which also concerns me.  ASoC and other
-> subsystems have exactly the same problem where the 'device' is
-> actually an aggregate of multiple devices attached to different
-> busses.  My personal opinion is that the best way to handle this is to
-> support deferred probing
+Best regards,
 
-Yes, that's also what I think should be done. But I was thinking about a 
-slightly different approach - a dependency-based probing. I.e., you should 
-be able to register a device, depending on another one (parent?), and only 
-after the latter one has successfully probed, the driver core should be 
-allowed to probe the child. Of course, devices can depend on multiple 
-other devices, so, a single parent might not be enough.
+Gabriel Sartori
 
-Thanks
-Guennadi
-
-> so that a driver can fail with -EAGAIN if all
-> the resources that it requires are not available immediately, and have
-> the driver core retry the probe after other devices have successfully
-> probed.
-> 
-> I've got prototype code for this, but it needs some more work before
-> being mainlined.
-> 
-> > The events should only be generated after the probe() has succeeded so
-> > if the driver talks to the hardware then it can fail probe() if need be.
-> 
-> I'm a bit confused here.  Which events are you referring to, and which
-> .probe call? (the i2c/spi/whatever probe, or the aggregate v4l2 probe?)
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+2011/8/30 Alan Carvalho de Assis <acassis@gmail.com>:
+> Hi Gabriel,
+>
+> On 8/30/11, Gabriel Sartori <gabriel.sartori@gmail.com> wrote:
+>> Thank you Allan!
+>>
+>>   Did this device that you use works in 1-seg? I think it is just full-seg!
+>>
+>
+> Yes, it support both: 1-seg and full-seg.
+>
+> In our device we use only 1-seg because your processor cannot decode full-seg.
+>
+> Best Regards,
+>
+> Alan
+>
