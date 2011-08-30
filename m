@@ -1,103 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:43633 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753348Ab1HBSJk convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Aug 2011 14:09:40 -0400
-Received: by mail-gx0-f175.google.com with SMTP id 3so21187gxk.20
-        for <linux-media@vger.kernel.org>; Tue, 02 Aug 2011 11:09:39 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4E37C841.7000709@samsung.com>
-References: <4E37C7D7.40301@samsung.com>
-	<4E37C841.7000709@samsung.com>
-Date: Tue, 2 Aug 2011 13:09:39 -0500
-Message-ID: <CAO8GWq=sMkm08L56rgc6xophAj_uGO9AE3bfK8D=oCOHBSmNRA@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 1/6] drivers: base: add shared buffer framework
-From: "Clark, Rob" <rob@ti.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linaro-mm-sig@lists.linaro.org,
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46112 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755471Ab1H3Pm3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Aug 2011 11:42:29 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [ANN] Meeting minutes of the Cambourne meeting
+Date: Tue, 30 Aug 2011 17:42:55 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
 	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	"linux-media" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Tuukka Toivonen <tuukka.toivonen@intel.com>
+References: <201107261647.19235.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1108301600020.19151@axis700.grange> <CACxGe6tCLJ6F-Rsf=1ENj98YzXHRm9p9xr4-TAiWTHpQbQVOVA@mail.gmail.com>
+In-Reply-To: <CACxGe6tCLJ6F-Rsf=1ENj98YzXHRm9p9xr4-TAiWTHpQbQVOVA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108301742.56581.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 2, 2011 at 4:49 AM, Marek Szyprowski
-<m.szyprowski@samsung.com> wrote:
-> From: Tomasz Stanislawski <t.stanislaws@samsung.com>
->
+On Tuesday 30 August 2011 17:18:31 Grant Likely wrote:
+> On Tue, Aug 30, 2011 at 8:03 AM, Guennadi Liakhovetski
+> 
+> <g.liakhovetski@gmx.de> wrote:
+> > Hi Grant
+> > 
+> > On Tue, 30 Aug 2011, Grant Likely wrote:
+> >> On Tue, Aug 30, 2011 at 02:41:48PM +0100, Mark Brown wrote:
+> >> > On Tue, Aug 30, 2011 at 12:20:09AM +0200, Guennadi Liakhovetski wrote:
+> >> > > On Mon, 29 Aug 2011, Laurent Pinchart wrote:
+> >> > > > My idea was to let the kernel register all devices based on the DT
+> >> > > > or board code. When the V4L2 host/bridge driver gets registered,
+> >> > > > it will then call a V4L2 core function with a list of subdevs it
+> >> > > > needs. The V4L2 core would store that information and react to
+> >> > > > bus notifier events to notify the V4L2 host/bridge driver when
+> >> > > > all subdevs are present. At that point the host/bridge
+> >> 
+> >> Sounds a lot like what ASoC is currently doing.
+> >> 
+> >> > > > driver will get hold of all the subdevs and call (probably through
+> >> > > > the V4L2 core) their .registered operation. That's where the
+> >> > > > subdevs will get access to their clock using clk_get().
+> >> > > 
+> >> > > Correct me, if I'm wrong, but this seems to be the case of sensor
+> >> > > (and other i2c-client) drivers having to succeed their probe()
+> >> > > methods without being able to actually access the hardware?
+> >> 
+> >> It indeed sounds like that, which also concerns me.  ASoC and other
+> >> subsystems have exactly the same problem where the 'device' is
+> >> actually an aggregate of multiple devices attached to different
+> >> busses.  My personal opinion is that the best way to handle this is to
+> >> support deferred probing
+> > 
+> > Yes, that's also what I think should be done. But I was thinking about a
+> > slightly different approach - a dependency-based probing. I.e., you
+> > should be able to register a device, depending on another one (parent?),
+> > and only after the latter one has successfully probed, the driver core
+> > should be allowed to probe the child. Of course, devices can depend on
+> > multiple other devices, so, a single parent might not be enough.
+> 
+> Yes, a dependency system would be lovely... but it gets really complex
+> in a hurry, especially when faced with heterogeneous device
+> registrations.  A deferral system ends up being really simple to
+> implement and probably work just as well.
 
-> +/**
-> + * shrbuf_import() - obtain shrbuf structure from a file descriptor
-> + * @fd:        file descriptor
-> + *
-> + * The function obtains an instance of a  shared buffer from a file
-> descriptor
-> + * Call sb->put when imported buffer is not longer needed
-> + *
-> + * Returns pointer to a shared buffer or error pointer on failure
-> + */
-> +struct shrbuf *shrbuf_import(int fd)
-> +{
-> +    struct file *file;
-> +    struct shrbuf *sb;
-> +
-> +    /* obtain a file, assure that it will not be released */
-> +    file = fget(fd);
-> +    /* check if descriptor is incorrect */
-> +    if (!file)
-> +        return ERR_PTR(-EBADF);
-> +    /* check if dealing with shrbuf-file */
-> +    if (file->f_op != &shrbuf_fops) {
+The core issue is that physical device trees, clock trees, power trees and 
+logical device tress are not always aligned. Instanciating devices based on 
+the parent-child device relationships will always lead to situations where a 
+device probe() method will be called with clocks or power sources not 
+available yet.
 
+A dependency system is tempting but will be very complex to implement 
+properly, especially when faced with cyclic dependencies. For instance the 
+OMAP3 ISP driver requires the camera sensor device to be present to proceed, 
+and the camera sensor requires a clock provided by the OMAP3 ISP. To solve 
+this we need to probe the OMAP3 ISP first, have it register its clock devices, 
+and then wait until all sensors become available.
 
-Hmm.. I was liking the idea of letting the buffer allocator provide
-the fops, so it could deal w/ mmap'ing and that sort of thing.
-Although this reminds me that we would need a sane way to detect if
-someone tries to pass in a non-<umm/dmabuf/shrbuf/whatever> fd.
+A probe deferral system is probably simpler, but it will have its share of 
+problems as well. In the above example, if the sensor is probed first, the 
+driver can return -EAGAIN in the probe() method as the clock isn't available 
+yet (I'm not sure how to differentiate between "not available yet" and "not 
+present in the system" though). However, if the OMAP3 ISP is probed first, 
+returning -EAGAIN in its probe() method won't really help, as we need to 
+register the clock before waiting for the sensor.
 
+-- 
+Regards,
 
-> +        fput(file);
-> +        return ERR_PTR(-EINVAL);
-> +    }
-> +    /* add user of shared buffer */
-> +    sb = file->private_data;
-> +    sb->get(sb);
-> +    /* release the file */
-> +    fput(file);
-> +
-> +    return sb;
-> +}
-
-
-> +/**
-> + * struct shrbuf - shared buffer instance
-> + * @get:    increase number of a buffer's users
-> + * @put:    decrease number of a buffer's user, release resources if needed
-> + * @dma_addr:    start address of a contiguous buffer
-> + * @size:    size of a contiguous buffer
-> + *
-> + * Both get/put methods are required. The structure is dedicated for
-> + * embedding. The fields dma_addr and size are used for proof-of-concept
-> + * purpose. They will be substituted by scatter-gatter lists.
-> + */
-> +struct shrbuf {
-> +    void (*get)(struct shrbuf *);
-> +    void (*put)(struct shrbuf *);
-
-Hmm, is fput()/fget() and fops->release() not enough?
-
-Ie. original buffer allocator provides fops, incl the fops->release(),
-which may in turn be decrementing an internal ref cnt used by the
-allocating driver..  so if your allocating driver was the GPU, it's
-release fxn might be calling drm_gem_object_unreference_unlocked()..
-and I guess there must be something similar for videobuf2.
-
-(Previous comment about letting the allocating driver implement fops
-notwithstanding.. but I guess there must be some good way to deal with
-that.)
-
-BR,
--R
+Laurent Pinchart
