@@ -1,37 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:51142 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754708Ab1HZKRj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Aug 2011 06:17:39 -0400
-Message-ID: <4E5772C0.6020004@linuxtv.org>
-Date: Fri, 26 Aug 2011 12:17:36 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:35479 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756614Ab1H3UTc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Aug 2011 16:19:32 -0400
+Date: Tue, 30 Aug 2011 21:19:29 +0100
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Tuukka Toivonen <tuukka.toivonen@intel.com>
+Subject: Re: [ANN] Meeting minutes of the Cambourne meeting
+Message-ID: <20110830201929.GS2061@opensource.wolfsonmicro.com>
+References: <201107261647.19235.laurent.pinchart@ideasonboard.com>
+ <201108301742.56581.laurent.pinchart@ideasonboard.com>
+ <20110830154642.GM2061@opensource.wolfsonmicro.com>
+ <201108302212.31144.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: dvb_frontend.c warning: can 'timeout' be removed?
-References: <201108251529.18402.hverkuil@xs4all.nl>
-In-Reply-To: <201108251529.18402.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201108302212.31144.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+On Tue, Aug 30, 2011 at 10:12:30PM +0200, Laurent Pinchart wrote:
 
-On 25.08.2011 15:29, Hans Verkuil wrote:
-> This is the warning the daily build gives:
-> 
-> v4l-dvb-git/drivers/media/dvb/dvb-core/dvb_frontend.c: In function 'dvb_frontend_thread':
-> v4l-dvb-git/drivers/media/dvb/dvb-core/dvb_frontend.c:540:16: warning: variable 'timeout' set but not used [-Wunused-but-set-variable]
-> 
-> The 'timeout' variable is indeed not used, but should it? I'm not familiar enough
-> with this code to decide.
+> Would such a device be included in the DT ? My understanding is that the DT 
+> should only describe the hardware.
 
-you can safely remove this variable. The code always behaves the same
-way, be it woken up by a timeout or on demand (unless freezing or
-stopping the thread).
-
-Regards,
-Andreas
+For ASoC they will be, the view is that the schematic for the board is
+sufficiently interesting to count as hardware.
