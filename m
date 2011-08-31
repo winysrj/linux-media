@@ -1,119 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:50633 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750858Ab1HYNvB (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:48155 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756659Ab1HaVak (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Aug 2011 09:51:01 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LQH00JZNL4ZG0@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Aug 2011 14:50:59 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LQH00F2QL4YG9@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Aug 2011 14:50:58 +0100 (BST)
-Date: Thu, 25 Aug 2011 15:48:11 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH v2/RFC] media: vb2: change queue initialization order
-In-reply-to: <20110825072717.6a0fa218@bike.lwn.net>
-To: 'Jonathan Corbet' <corbet@lwn.net>
-Cc: linux-media@vger.kernel.org,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Pawel Osciak' <pawel@osciak.com>,
-	=?iso-8859-2?Q?'Uwe_Kleine-K=F6nig'?=
-	<u.kleine-koenig@pengutronix.de>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>,
-	'Marin Mitov' <mitov@issp.bas.bg>,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>
-Message-id: <022101cc632d$a11a8650$e34f92f0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=iso-8859-2
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1314269531-30080-1-git-send-email-m.szyprowski@samsung.com>
- <20110825072717.6a0fa218@bike.lwn.net>
+	Wed, 31 Aug 2011 17:30:40 -0400
+Date: Thu, 1 Sep 2011 00:30:32 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Subject: Re: [PATCH v2 0/8] RFC for Media Controller capture driver for
+ DM365
+Message-ID: <20110831213032.GT12368@valkosipuli.localdomain>
+References: <1314630439-1122-1-git-send-email-manjunath.hadli@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1314630439-1122-1-git-send-email-manjunath.hadli@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Manju,
 
-On Thursday, August 25, 2011 3:27 PM Jonathan Corbet wrote:
+Do you have the media device grap that would be typical for this hardware
+produced by media-ctl? That can be converted to postscript using dotfile.
 
-> On Thu, 25 Aug 2011 12:52:11 +0200
-> Marek Szyprowski <m.szyprowski@samsung.com> wrote:
-> 
-> > This patch changes the order of operations during stream on call. Now the
-> > buffers are first queued to the driver and then the start_streaming method
-> > is called.
-> 
-> This seems good to me (I guess it should, since I'm the guy who griped
-> about it before :).
-> 
-> > This resolves the most common case when the driver needs to know buffer
-> > addresses to enable dma engine and start streaming. Additional parameters
-> > to start_streaming and buffer_queue methods have been added to simplify
-> > drivers code. The driver are now obliged to check if the number of queued
-> > buffers is enough to enable hardware streaming. If not - it should return
-> > an error. In such case all the buffers that have been pre-queued are
-> > invalidated.
-> 
-> I'd suggest that drivers that worked in the old scheme, where the buffers
-> arrived after the start_streaming() call, should continue to work.  Why
-> not?
+this would make it a little easier to understan this driver. Thanks.
 
-Such change might have some side effect - the logic in buf_queue usually
-assumed that the code from start_streaming has been called earlier, so some
-additional checks or changes might be needed.
- 
-> > Drivers that are able to start/stop streaming on-fly, can control dma
-> > engine directly in buf_queue callback. In this case start_streaming
-> > callback can be considered as optional. The driver can also assume that
-> > after a few first buf_queue calls with zero 'streaming' parameter, the core
-> > will finally call start_streaming callback.
+On Mon, Aug 29, 2011 at 08:37:11PM +0530, Manjunath Hadli wrote:
+> changes from last patch set:
+> 1. Made changes based on Sakari's feedback mainly:
+>         a. returned early to allow unindenting
+>         b. reformatting to shift the code to left where possible
+>         c. changed hex numbers to lower case
+>         d. corrected the defines according to module names.
+>         e. magic numbers removed.
+>         f. changed non-integer returning functions to void
+>         g. removed unwanted paranthses.
+>         h. fixed error codes.
+>         i. fixed some RESET_BIt code to what it was intended for.
+> 2. reorganized the header files to move the kernel-only headers
+> along with the c files and interface headers in the include folder.
 > 
-> This part I like a bit less.  In your patch, almost none of the changed
-> drivers use that parameter.  start_streaming() is a significant state
-> change, I don't think it's asking a lot of a driver to provide a callback
-> and actually remember whether it's supposed to be streaming or not.
+> Manjunath Hadli (6):
+>   davinci: vpfe: add dm3xx IPIPEIF hardware support module
+>   davinci: vpfe: add support for CCDC hardware for dm365
+>   davinci: vpfe: add ccdc driver with media controller interface
+>   davinci: vpfe: add v4l2 video driver support
+>   davinci: vpfe: v4l2 capture driver with media interface
+>   davinci: vpfe: build infrastructure for dm365
+> 
+> Nagabhushana Netagunte (2):
+>   davinci: vpfe: add IPIPE hardware layer support
+>   davinci: vpfe: add IPIPE support for media controller driver
+> 
+>  drivers/media/video/davinci/Kconfig           |   46 +-
+>  drivers/media/video/davinci/Makefile          |   17 +-
+>  drivers/media/video/davinci/ccdc_hw_device.h  |   10 +-
+>  drivers/media/video/davinci/ccdc_types.h      |   43 +
+>  drivers/media/video/davinci/dm365_ccdc.c      | 1519 ++++++++++
+>  drivers/media/video/davinci/dm365_ccdc.h      |   88 +
+>  drivers/media/video/davinci/dm365_ccdc_regs.h |  309 ++
+>  drivers/media/video/davinci/dm365_def_para.c  |  486 +++
+>  drivers/media/video/davinci/dm365_def_para.h  |   39 +
+>  drivers/media/video/davinci/dm365_ipipe.c     | 3966 +++++++++++++++++++++++++
+>  drivers/media/video/davinci/dm365_ipipe.h     |  300 ++
+>  drivers/media/video/davinci/dm365_ipipe_hw.c  |  949 ++++++
+>  drivers/media/video/davinci/dm365_ipipe_hw.h  |  539 ++++
+>  drivers/media/video/davinci/dm3xx_ipipeif.c   |  317 ++
+>  drivers/media/video/davinci/dm3xx_ipipeif.h   |  258 ++
+>  drivers/media/video/davinci/imp_common.h      |   85 +
+>  drivers/media/video/davinci/imp_hw_if.h       |  178 ++
+>  drivers/media/video/davinci/vpfe_capture.c    |  793 +++++
+>  drivers/media/video/davinci/vpfe_capture.h    |  104 +
+>  drivers/media/video/davinci/vpfe_ccdc.c       |  813 +++++
+>  drivers/media/video/davinci/vpfe_ccdc.h       |   85 +
+>  drivers/media/video/davinci/vpfe_video.c      | 1712 +++++++++++
+>  drivers/media/video/davinci/vpfe_video.h      |  142 +
+>  include/linux/davinci_vpfe.h                  | 1223 ++++++++
+>  include/linux/dm365_ccdc.h                    |  664 +++++
+>  include/linux/dm3xx_ipipeif.h                 |   64 +
+>  include/media/davinci/vpfe.h                  |   91 +
+>  27 files changed, 14829 insertions(+), 11 deletions(-)
+>  create mode 100644 drivers/media/video/davinci/ccdc_types.h
+>  create mode 100644 drivers/media/video/davinci/dm365_ccdc.c
+>  create mode 100644 drivers/media/video/davinci/dm365_ccdc.h
+>  create mode 100644 drivers/media/video/davinci/dm365_ccdc_regs.h
+>  create mode 100644 drivers/media/video/davinci/dm365_def_para.c
+>  create mode 100644 drivers/media/video/davinci/dm365_def_para.h
+>  create mode 100644 drivers/media/video/davinci/dm365_ipipe.c
+>  create mode 100644 drivers/media/video/davinci/dm365_ipipe.h
+>  create mode 100644 drivers/media/video/davinci/dm365_ipipe_hw.c
+>  create mode 100644 drivers/media/video/davinci/dm365_ipipe_hw.h
+>  create mode 100644 drivers/media/video/davinci/dm3xx_ipipeif.c
+>  create mode 100644 drivers/media/video/davinci/dm3xx_ipipeif.h
+>  create mode 100644 drivers/media/video/davinci/imp_common.h
+>  create mode 100644 drivers/media/video/davinci/imp_hw_if.h
+>  create mode 100644 drivers/media/video/davinci/vpfe_capture.c
+>  create mode 100644 drivers/media/video/davinci/vpfe_capture.h
+>  create mode 100644 drivers/media/video/davinci/vpfe_ccdc.c
+>  create mode 100644 drivers/media/video/davinci/vpfe_ccdc.h
+>  create mode 100644 drivers/media/video/davinci/vpfe_video.c
+>  create mode 100644 drivers/media/video/davinci/vpfe_video.h
+>  create mode 100644 include/linux/davinci_vpfe.h
+>  create mode 100644 include/linux/dm365_ccdc.h
+>  create mode 100644 include/linux/dm3xx_ipipeif.h
+>  create mode 100644 include/media/davinci/vpfe.h
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-I would like to get some more comments on this. Usually this matters only to
-the drivers that are able to be in streaming state without any buffers
-(usually some camera capture interfaces), which might need to enable dma
-engine from buf_queue callback. Other drivers only adds the buffer to the
-internal list and don't care about streaming state at all.
-
-> Beyond that, what happens to a driver without a start_streaming() callback
-> if the application first queues all its buffers, then does its
-> VIDIOC_STREAMON call?  I see:
-> 
-> > +	list_for_each_entry(vb, &q->queued_list, queued_entry)
-> > +		__enqueue_in_driver(vb, 0);
-> 
-> (So we get streaming=0 for all queued buffers).
-> 
-> >  	/*
-> >  	 * Let driver notice that streaming state has been enabled.
-> >  	 */
-> > -	ret = call_qop(q, start_streaming, q);
-> > +	ret = call_qop(q, start_streaming, q, atomic_read(&q->queued_count));
-> >  	if (ret) {
-> >  		dprintk(1, "streamon: driver refused to start streaming\n");
-> > +		__vb2_queue_cancel(q);
-> >  		return ret;
-> >  	}
-> 
-> The driver will have gotten all of the buffers with streaming=0, then will
-> never get a call again; I don't think that will lead to the desired result.
-> Am I missing something?
-
-Hmmm. Looks that I missed something. The driver will need to ignore streaming
-parameter in such case...
-
-Best regards
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+Sakari Ailus
+sakari.ailus@iki.fi
