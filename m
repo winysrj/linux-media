@@ -1,80 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from april.london.02.net ([87.194.255.143]:40795 "EHLO
-	april.london.02.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753080Ab1HIUbZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2011 16:31:25 -0400
-From: Adam Baker <linux@baker-net.org.uk>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: USB mini-summit at LinuxCon Vancouver
-Date: Tue, 9 Aug 2011 21:31:03 +0100
-Cc: Alan Stern <stern@rowland.harvard.edu>,
-	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
-	Greg KH <greg@kroah.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, libusb-devel@lists.sourceforge.net,
-	Alexander Graf <agraf@suse.de>,
-	Gerd Hoffmann <kraxel@redhat.com>, hector@marcansoft.com,
-	Jan Kiszka <jan.kiszka@siemens.com>,
-	Stefan Hajnoczi <stefanha@linux.vnet.ibm.com>,
-	pbonzini@redhat.com, Anthony Liguori <aliguori@us.ibm.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>,
-	Oliver Neukum <oliver@neukum.org>, Felipe Balbi <balbi@ti.com>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Theodore Kilgore <kilgota@banach.math.auburn.edu>
-References: <Pine.LNX.4.44L0.1108091016380.1949-100000@iolanthe.rowland.org> <4E41912F.50901@redhat.com>
-In-Reply-To: <4E41912F.50901@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:29207 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753484Ab1HaTui (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Aug 2011 15:50:38 -0400
+Message-ID: <4E5E9089.8030804@redhat.com>
+Date: Wed, 31 Aug 2011 16:50:33 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Thierry Reding <thierry.reding@avionic-design.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 07/21] [staging] tm6000: Remove artificial delay.
+References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de> <1312442059-23935-8-git-send-email-thierry.reding@avionic-design.de>
+In-Reply-To: <1312442059-23935-8-git-send-email-thierry.reding@avionic-design.de>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201108092131.03818.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 09 August 2011, Hans de Goede wrote:
-> Hi,
+Em 04-08-2011 04:14, Thierry Reding escreveu:
+> ---
+>  drivers/staging/tm6000/tm6000-core.c |    3 ---
+>  1 files changed, 0 insertions(+), 3 deletions(-)
 > 
-> On 08/09/2011 04:19 PM, Alan Stern wrote:
+> diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
+> index e14bd3d..2c156dd 100644
+> --- a/drivers/staging/tm6000/tm6000-core.c
+> +++ b/drivers/staging/tm6000/tm6000-core.c
+> @@ -86,9 +86,6 @@ int tm6000_read_write_usb(struct tm6000_core *dev, u8 req_type, u8 req,
+>  	}
+>  
+>  	kfree(data);
+> -
+> -	msleep(5);
+> -
+>  	return ret;
+>  }
+>  
 
-> >  Does it really make sense to combine 5 drivers into one?
-> 
-> Right, that is not the plan. The plan is to simply stop having 2 drivers
-> for 1 logical (and physical) block. So we go from 10 drivers, 5 stillcam
-> + 5 webcam, to just 5 drivers. We will also likely be able to share
-> code between the code for the 2 functionalities for things like generic
-> set / get register functions, initialization, etc.
-> 
+This delay is needed by some tm5600/6000 devices. Maybe it is due to
+some specific chipset revision, but I can't remember anymore what
+device(s) were affected.
 
-Unfortunately as Theodore recently pointed out you don't go from 10 to 5, you 
-go from 10 to 10 where 5 of the new 10 are only used on Win32, FreeBSD and OSX 
-(but they aren't any simpler because they still rely on libusb) and the other 
-5 that are only used on Linux become significantly more complicated than they 
-currently are.
+The right thing to do seems to whitelist the devices that don't need
+any delay there.
 
-It has also just occured to me that it might be possible to solve the issues 
-we are facing just in the kernel. At the moment when the kernel performs a 
-USBDEVFS_DISCONNECT it keeps the kernel driver locked out until userspace 
-performs a USBDEVFS_CONNECT. If the kernel reattached the kernel driver when 
-the device file was closed then, as gvfs doesn't keep the file open the 
-biggest current issue would be solved instantly. If a mechanism could be found 
-to prevent USBDEVFS_DISCONNECT from succeeding when the corresponding 
-/dev/videox file was open then that would seem to be a reasonable solution.
-
-Hans had expressed the opinion that merely having the device open to control 
-the camera not to stream shouldn't  prevent stillcam operation - I disagree 
-because if you are setting up the controls you are probably already streaming 
-so you can see what you are doing and if not you are probably about to.
-
-Of course changing the behaviour of USBDEVFS_DISCONNECT is not something to be 
-done lightly. I don't know how many other users there are for it and if the 
-current behaviour is actually correct for any of them. Cleaning up on file 
-close does have the useful side effect though that applications no longer need 
-to worry about the fact that even if they clean up properly on a normal exit, 
-if they crash they leave the kernel driver permanently disabled
-
-Regards
-
-Adam
+Thanks,
+Mauro
