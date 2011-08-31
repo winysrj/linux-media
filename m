@@ -1,93 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1727 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146Ab1HYOIn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Aug 2011 10:08:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 09/12] az6027: fix compiler warnings
-Date: Thu, 25 Aug 2011 16:08:32 +0200
-Message-Id: <20f8c6ba7077e8599f954bd241e7d8da083a5a62.1314281302.git.hans.verkuil@cisco.com>
-In-Reply-To: <1314281315-32366-1-git-send-email-hverkuil@xs4all.nl>
-References: <1314281315-32366-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <afd314e95a520c3a4de0f112735d1d5584ec8a9a.1314281302.git.hans.verkuil@cisco.com>
-References: <afd314e95a520c3a4de0f112735d1d5584ec8a9a.1314281302.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:65359 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750820Ab1HaScQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Aug 2011 14:32:16 -0400
+Message-ID: <4E5E7E2B.90603@redhat.com>
+Date: Wed, 31 Aug 2011 15:32:11 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Thierry Reding <thierry.reding@avionic-design.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 02/21] [media] tuner/xc2028: Fix frequency offset for
+ radio mode.
+References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de> <1312442059-23935-3-git-send-email-thierry.reding@avionic-design.de>
+In-Reply-To: <1312442059-23935-3-git-send-email-thierry.reding@avionic-design.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em 04-08-2011 04:14, Thierry Reding escreveu:
+> In radio mode, no frequency offset is needed. While at it, split off the
+> frequency offset computation for digital TV into a separate function.
 
-v4l-dvb-git/drivers/media/dvb/dvb-usb/az6027.c: In function 'az6027_set_voltage':
-v4l-dvb-git/drivers/media/dvb/dvb-usb/az6027.c:785:6: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
-v4l-dvb-git/drivers/media/dvb/dvb-usb/az6027.c: In function 'az6027_i2c_xfer':
-v4l-dvb-git/drivers/media/dvb/dvb-usb/az6027.c:957:6: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
+Nah, it is better to keep the offset calculation there. there is already
+a set_freq for DVB. breaking the frequency logic even further seems to
+increase the driver's logic. Also, patch is simpler and easier to review.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/dvb/dvb-usb/az6027.c |   12 +++++-------
- 1 files changed, 5 insertions(+), 7 deletions(-)
+The patch bellow seems to be better. On a quick review, I think that the 
+	send_seq(priv, {0x00, 0x00})
+sequence may be wrong. I suspect that the device is just discarding that,
+but changing it needs more testing.
 
-diff --git a/drivers/media/dvb/dvb-usb/az6027.c b/drivers/media/dvb/dvb-usb/az6027.c
-index d59430c..bf389f4 100644
---- a/drivers/media/dvb/dvb-usb/az6027.c
-+++ b/drivers/media/dvb/dvb-usb/az6027.c
-@@ -782,7 +782,6 @@ static int az6027_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
- {
- 
- 	u8 buf;
--	int ret;
- 	struct dvb_usb_adapter *adap = fe->dvb->priv;
- 
- 	struct i2c_msg i2c_msg = {
-@@ -800,17 +799,17 @@ static int az6027_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
- 	switch (voltage) {
- 	case SEC_VOLTAGE_13:
- 		buf = 1;
--		ret = i2c_transfer(&adap->dev->i2c_adap, &i2c_msg, 1);
-+		i2c_transfer(&adap->dev->i2c_adap, &i2c_msg, 1);
- 		break;
- 
- 	case SEC_VOLTAGE_18:
- 		buf = 2;
--		ret = i2c_transfer(&adap->dev->i2c_adap, &i2c_msg, 1);
-+		i2c_transfer(&adap->dev->i2c_adap, &i2c_msg, 1);
- 		break;
- 
- 	case SEC_VOLTAGE_OFF:
- 		buf = 0;
--		ret = i2c_transfer(&adap->dev->i2c_adap, &i2c_msg, 1);
-+		i2c_transfer(&adap->dev->i2c_adap, &i2c_msg, 1);
- 		break;
- 
- 	default:
-@@ -954,7 +953,6 @@ static int az6027_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[], int n
- {
- 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
- 	int i = 0, j = 0, len = 0;
--	int ret;
- 	u16 index;
- 	u16 value;
- 	int length;
-@@ -990,7 +988,7 @@ static int az6027_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[], int n
- 				index = (((msg[i].buf[0] << 8) & 0xff00) | (msg[i].buf[1] & 0x00ff));
- 				value = msg[i].addr + (msg[i].len << 8);
- 				length = msg[i + 1].len + 6;
--				ret = az6027_usb_in_op(d, req, value, index, data, length);
-+				az6027_usb_in_op(d, req, value, index, data, length);
- 				len = msg[i + 1].len;
- 				for (j = 0; j < len; j++)
- 					msg[i + 1].buf[j] = data[j + 5];
-@@ -1017,7 +1015,7 @@ static int az6027_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[], int n
- 				index = 0x0;
- 				value = msg[i].addr;
- 				length = msg[i].len + 6;
--				ret = az6027_usb_in_op(d, req, value, index, data, length);
-+				az6027_usb_in_op(d, req, value, index, data, length);
- 				len = msg[i].len;
- 				for (j = 0; j < len; j++)
- 					msg[i].buf[j] = data[j + 5];
--- 
-1.7.5.4
+-
 
+[media] tuner/xc2028: Fix frequency offset for radio mode
+
+In radio mode, no frequency offset should be used.
+  
+Instead of taking Thierry's patch that creates a separate function
+to calculate the digital offset, it seemed better to just keep
+everything at the same place.
+
+Reported-by: Thierry Reding <thierry.reding@avionic-design.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
+index b6b2868..3acbaa0 100644
+--- a/drivers/media/common/tuners/tuner-xc2028.c
++++ b/drivers/media/common/tuners/tuner-xc2028.c
+@@ -940,11 +940,16 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
+ 	 * that xc2028 will be in a safe state.
+ 	 * Maybe this might also be needed for DTV.
+ 	 */
+-	if (new_type == V4L2_TUNER_ANALOG_TV) {
++	switch (new_type) {
++	case V4L2_TUNER_ANALOG_TV:
+ 		rc = send_seq(priv, {0x00, 0x00});
+ 
+-		/* Analog modes require offset = 0 */
+-	} else {
++		/* Analog mode requires offset = 0 */
++		break;
++	case V4L2_TUNER_RADIO:
++		/* Radio mode requires offset = 0 */
++		break;
++	case V4L2_TUNER_DIGITAL_TV:
+ 		/*
+ 		 * Digital modes require an offset to adjust to the
+ 		 * proper frequency. The offset depends on what
