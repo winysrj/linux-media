@@ -1,67 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from honeysuckle.london.02.net ([87.194.255.144]:54255 "EHLO
-	honeysuckle.london.02.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751103Ab1HGWxs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Aug 2011 18:53:48 -0400
-From: Adam Baker <linux@baker-net.org.uk>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [Workshop-2011] Media Subsystem Workshop 2011
-Date: Sun, 7 Aug 2011 23:53:41 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	workshop-2011@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4E398381.4080505@redhat.com> <4E3A91D1.1040000@redhat.com> <4E3B9597.4040307@redhat.com>
-In-Reply-To: <4E3B9597.4040307@redhat.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:50147 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752824Ab1HaLX2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Aug 2011 07:23:28 -0400
+Date: Wed, 31 Aug 2011 14:23:23 +0300
+From: 'Sakari Ailus' <sakari.ailus@iki.fi>
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	"Netagunte, Nagabhushana" <nagabhushana.netagunte@ti.com>
+Subject: Re: [RFC PATCH 1/8] davinci: vpfe: add dm3xx IPIPEIF hardware
+ support module
+Message-ID: <20110831112323.GL12368@valkosipuli.localdomain>
+References: <1309439597-15998-1-git-send-email-manjunath.hadli@ti.com>
+ <1309439597-15998-2-git-send-email-manjunath.hadli@ti.com>
+ <20110713185050.GC27451@valkosipuli.localdomain>
+ <B85A65D85D7EB246BE421B3FB0FBB593025729ADDF@dbde02.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108072353.42237.linux@baker-net.org.uk>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593025729ADDF@dbde02.ent.ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 05 August 2011, Hans de Goede wrote:
-> > This sounds to be a good theme for the Workshop, or even to KS/2011.
+On Mon, Aug 29, 2011 at 08:49:30PM +0530, Hadli, Manjunath wrote:
 > 
-> Agreed, although we don't need to talk about this for very long, the
-> solution is basically:
-> 1) Define a still image retrieval API for v4l2 devices (there is only 1
->    interface for both functions on these devices, so only 1 driver, and to
->    me it makes sense to extend the existing drivers to also do still image
->    retrieval).
-> 2) Modify existing kernel v4l2 drivers to provide this API
-> 3) Write a new libgphoto driver which talks this interface (only need to
->    do one driver since all dual mode cams will export the same API).
+> Sakari,
+
+Hi Manju,
+
+> 	I have sent a fresh patch-set with your comments  fixed and and some
+> cleanup and reorg of my own- mainly the headers. Please review.
+
+I'll try to review at the patches when I have time.
+
+> Also, I had to keep one of your comments without code change as I felt it
+> was Ok to keep it here as it is only a local variable which actually gets
+> the info from the device specific data structures. I removed the other
+> however.
 > 
-> 1) is something to discuss at the workshop.
+> Looking forward for your comments on further patches as well.
 > 
-This approach sounds fine as long as you can come up with a definition for the 
-API that covers the existing needs and is extensible when new cameras come 
-along and doesn't create horrible inefficiencies by not matching the way some 
-cameras work. I've only got one example of such a camera and it is a fairly 
-basic one but things I can imagine the API needing to provide are
+> -Manju
+> 
+> 
+> On Thu, Jul 14, 2011 at 00:20:50, Sakari Ailus wrote:
+> > Hi Manju,
+> > 
+> > Thanks for the patchset!
+> > 
+> > I have a few comments on this patch below. I haven't read the rest of the patches yet so I may have more comments on this one when I do that.
+> > 
+> > On Thu, Jun 30, 2011 at 06:43:10PM +0530, Manjunath Hadli wrote:
+> > > add support for dm3xx IPIPEIF hardware setup. This is the lowest 
+> > > software layer for the dm3x vpfe driver which directly accesses 
+> > > hardware. Add support for features like default pixel correction, dark 
+> > > frame substraction  and hardware setup.
+> > > 
+> > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > > Signed-off-by: Nagabhushana Netagunte <nagabhushana.netagunte@ti.com>
+> > > ---
+> > >  drivers/media/video/davinci/dm3xx_ipipeif.c |  368 +++++++++++++++++++++++++++
+> > >  include/media/davinci/dm3xx_ipipeif.h       |  292 +++++++++++++++++++++
+> > >  2 files changed, 660 insertions(+), 0 deletions(-)  create mode 
+> > > 100644 drivers/media/video/davinci/dm3xx_ipipeif.c
+> > >  create mode 100644 include/media/davinci/dm3xx_ipipeif.h
+> > > 
+> > > diff --git a/drivers/media/video/davinci/dm3xx_ipipeif.c 
+> > > b/drivers/media/video/davinci/dm3xx_ipipeif.c
+> > > new file mode 100644
+> > > index 0000000..36cb61b
+> > > --- /dev/null
+> > > +++ b/drivers/media/video/davinci/dm3xx_ipipeif.c
+> > > @@ -0,0 +1,368 @@
+> ---code----
+> > > +#include <linux/kernel.h> #include <linux/platform_device.h> #include 
+> > > +<linux/uaccess.h> #include <linux/io.h> #include 
+> > > +<linux/v4l2-mediabus.h> #include <media/davinci/dm3xx_ipipeif.h>
+> > > +
+> > > +#define DM355	0
+> > > +#define DM365	1
+> > > +
+> > > +static void *__iomem ipipeif_base_addr;
+> > 
+> > This looks device specific. What about using dev_set/get_drvdata and remove this one?
+> This one is actually gotten from the platform data structure in the manner you suggested but stored here for local usage.
 
-1) Report number of images on device
-2) Select an image to read (for some cameras selecting next may be much more 
-efficient than selecting at random although whether that inefficiency occurs 
-when selecting, when reading image info or when reading image data may vary)
-3) Read image information for selected image (resolution, compression type, 
-FOURCC)
-4) Read raw image data for selected image
-5) Delete individual image (not supported by all cameras)
-6) Delete all images (sometimes supported on cameras that don't support 
-individual delete)
+You always will get this pointer from other sources, and it will be the
+pointer to the very device you will be accessing. Look at the OMAP 3 ISP
+driver, for example: there are no such static variables.
 
-I'm not sure if any of these cameras support tethered capture but if they do 
-then add
-Take photo
-Set resolution
+Basically keeping this in a static variable which is specific to a driver
+rather than the device is just wrong.
 
-I doubt if any of them support EXIF data, thumbnail images, the ability to 
-upload images to the camera or any sound recording but if they do then those 
-are additional things that gphoto2 would want to be able to do.
-
-Regards
-
-Adam
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
