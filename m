@@ -1,104 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:44878 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751456Ab1HVPi6 (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:60119 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754473Ab1HaNuk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Aug 2011 11:38:58 -0400
-Date: Mon, 22 Aug 2011 18:38:53 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: Add V4L2_PIX_FMT_NV24 and V4L2_PIX_FMT_NV42
- formats
-Message-ID: <20110822153852.GP8872@valkosipuli.localdomain>
-References: <1313734460-7479-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <20110820052617.GJ8872@valkosipuli.localdomain>
- <201108220117.16402.laurent.pinchart@ideasonboard.com>
+	Wed, 31 Aug 2011 09:50:40 -0400
+Message-ID: <4E5E3C2B.6020703@infradead.org>
+Date: Wed, 31 Aug 2011 10:50:35 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201108220117.16402.laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 5/6] V4L menu: move all platform drivers to the bottom
+ of the menu.
+References: <1314797925-8113-1-git-send-email-hverkuil@xs4all.nl> <99c353d49539e4a2a8f165db612ed6a7e82a57b9.1314797675.git.hans.verkuil@cisco.com>
+In-Reply-To: <99c353d49539e4a2a8f165db612ed6a7e82a57b9.1314797675.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 22, 2011 at 01:17:16AM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Saturday 20 August 2011 07:26:17 Sakari Ailus wrote:
-> > Hi Laurent,
-> > 
-> > Thanks for the patch.
-> 
-> And thanks for the comments.
-> 
-> > On Fri, Aug 19, 2011 at 08:14:20AM +0200, Laurent Pinchart wrote:
-> > > NV24 and NV42 are planar YCbCr 4:4:4 and YCrCb 4:4:4 formats with a
-> > > luma plane followed by an interleaved chroma plane.
-> > > 
-> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > ---
-> > > 
-> > >  Documentation/DocBook/media/v4l/pixfmt-nv24.xml |  128
-> > >  +++++++++++++++++++++++ Documentation/DocBook/media/v4l/pixfmt.xml     
-> > >  |    1 +
-> > >  include/linux/videodev2.h                       |    2 +
-> > >  3 files changed, 131 insertions(+), 0 deletions(-)
-> > >  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv24.xml
-> > > 
-> > > This format will be used by an fbdev driver. I'm already posting the
-> > > patch for for review and will send a pull request later.
-> > > 
-> > > diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv24.xml
-> > > b/Documentation/DocBook/media/v4l/pixfmt-nv24.xml new file mode 100644
-> > > index 0000000..e77301d
-> > > --- /dev/null
-> > > +++ b/Documentation/DocBook/media/v4l/pixfmt-nv24.xml
-> > > @@ -0,0 +1,128 @@
-> > > +    <refentry>
-> > > +      <refmeta>
-> > > +	<refentrytitle>V4L2_PIX_FMT_NV24 ('NV24'), V4L2_PIX_FMT_NV42
-> > > ('NV42')</refentrytitle> +	&manvol;
-> > > +      </refmeta>
-> > > +      <refnamediv>
-> > > +	<refname
-> > > id="V4L2-PIX-FMT-NV24"><constant>V4L2_PIX_FMT_NV24</constant></refname>
-> > > +	<refname
-> > > id="V4L2-PIX-FMT-NV42"><constant>V4L2_PIX_FMT_NV42</constant></refname>
-> > > +	<refpurpose>Formats with full horizontal and vertical
-> > > +chroma resolutions, also known as YUV 4:4:4. One luminance and one
-> > > +chrominance plane with alternating chroma samples as opposed to
-> > > +<constant>V4L2_PIX_FMT_YVU420</constant></refpurpose>
-> > > +      </refnamediv>
-> > > +      <refsect1>
-> > > +	<title>Description</title>
-> > > +
-> > > +	<para>These are two-plane versions of the YUV 4:4:4 format.
-> > > +The three components are separated into two sub-images or planes. The
-> > > +Y plane is first. The Y plane has one byte per pixel. For
-> > 
-> > Are all 8 bits being used per sample, or is there padding?
-> 
-> All 8 bits are used, as in all YUV planar formats. Do you think that's worth 
-> mentioning ?
+Em 31-08-2011 10:38, Hans Verkuil escreveu:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I think this should definitely be mentioned, but if the same issue touches
-all the YUV formats, I guess it doesn't need to be in this patch.
+IMO, a submenu for those drivers makes sense.
 
-E.g. many (if not most) raw bayer formats contain padding.
-
-> > > +<constant>V4L2_PIX_FMT_NV24</constant>, a combined CbCr plane
-> > > +immediately follows the Y plane in memory.  The CbCr plane is the same
-> > > +width and height, in pixels, as the Y plane (and of the image).
-> > > +Each line contains one CbCr pair per pixel.
-> > 
-> > How may bits / bytes per Cb / Cr sample? Perhaps you could mention this
-> > once somewhere if all have the same.
 > 
-> All YUV planar formats use 8 bits for each Cb and Cr samples. I will clarify 
-> this.
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/video/Kconfig |  106 ++++++++++++++++++++++---------------------
+>  1 files changed, 55 insertions(+), 51 deletions(-)
+> 
+> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> index 5beff36..d14da37 100644
+> --- a/drivers/media/video/Kconfig
+> +++ b/drivers/media/video/Kconfig
+> @@ -630,25 +630,6 @@ config USB_S2255
+>  
+>  endif # V4L_USB_DRIVERS
+>  
+> -config VIDEO_SH_VOU
+> -	tristate "SuperH VOU video output driver"
+> -	depends on VIDEO_DEV && ARCH_SHMOBILE
+> -	select VIDEOBUF_DMA_CONTIG
+> -	help
+> -	  Support for the Video Output Unit (VOU) on SuperH SoCs.
+> -
+> -config VIDEO_VIU
+> -	tristate "Freescale VIU Video Driver"
+> -	depends on VIDEO_V4L2 && PPC_MPC512x
+> -	select VIDEOBUF_DMA_CONTIG
+> -	default y
+> -	---help---
+> -	  Support for Freescale VIU video driver. This device captures
+> -	  video data, or overlays video on DIU frame buffer.
+> -
+> -	  Say Y here if you want to enable VIU device on MPC5121e Rev2+.
+> -	  In doubt, say N.
+> -
+>  config VIDEO_VIVI
+>  	tristate "Virtual Video Driver"
+>  	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
+> @@ -663,20 +644,8 @@ config VIDEO_VIVI
+>  	  Say Y here if you want to test video apps or debug V4L devices.
+>  	  In doubt, say N.
+>  
+> -source "drivers/media/video/davinci/Kconfig"
+> -
+> -source "drivers/media/video/omap/Kconfig"
+> -
+>  source "drivers/media/video/bt8xx/Kconfig"
+>  
+> -config VIDEO_VINO
+> -	tristate "SGI Vino Video For Linux"
+> -	depends on I2C && SGI_IP22 && VIDEO_V4L2
+> -	select VIDEO_SAA7191 if VIDEO_HELPER_CHIPS_AUTO
+> -	help
+> -	  Say Y here to build in support for the Vino video input system found
+> -	  on SGI Indy machines.
+> -
+>  source "drivers/media/video/zoran/Kconfig"
+>  
+>  config VIDEO_MEYE
+> @@ -695,16 +664,6 @@ config VIDEO_MEYE
+>  
+>  source "drivers/media/video/saa7134/Kconfig"
+>  
+> -config VIDEO_TIMBERDALE
+> -	tristate "Support for timberdale Video In/LogiWIN"
+> -	depends on VIDEO_V4L2 && I2C && DMADEVICES
+> -	select DMA_ENGINE
+> -	select TIMB_DMA
+> -	select VIDEO_ADV7180
+> -	select VIDEOBUF_DMA_CONTIG
+> -	---help---
+> -	  Add support for the Video In peripherial of the timberdale FPGA.
+> -
+>  source "drivers/media/video/cx88/Kconfig"
+>  
+>  source "drivers/media/video/cx23885/Kconfig"
+> @@ -719,6 +678,61 @@ source "drivers/media/video/saa7164/Kconfig"
+>  
+>  source "drivers/media/video/marvell-ccic/Kconfig"
+>  
+> +config VIDEO_VIA_CAMERA
+> +	tristate "VIAFB camera controller support"
+> +	depends on FB_VIA
+> +	select VIDEOBUF_DMA_SG
+> +	select VIDEO_OV7670
+> +	help
+> +	   Driver support for the integrated camera controller in VIA
+> +	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
+> +	   with ov7670 sensors.
+> +
+> +#
+> +# Platform multimedia device configuration
+> +#
+> +
+> +source "drivers/media/video/davinci/Kconfig"
+> +
+> +source "drivers/media/video/omap/Kconfig"
+> +
+> +config VIDEO_SH_VOU
+> +	tristate "SuperH VOU video output driver"
+> +	depends on VIDEO_DEV && ARCH_SHMOBILE
+> +	select VIDEOBUF_DMA_CONTIG
+> +	help
+> +	  Support for the Video Output Unit (VOU) on SuperH SoCs.
+> +
+> +config VIDEO_VIU
+> +	tristate "Freescale VIU Video Driver"
+> +	depends on VIDEO_V4L2 && PPC_MPC512x
+> +	select VIDEOBUF_DMA_CONTIG
+> +	default y
+> +	---help---
+> +	  Support for Freescale VIU video driver. This device captures
+> +	  video data, or overlays video on DIU frame buffer.
+> +
+> +	  Say Y here if you want to enable VIU device on MPC5121e Rev2+.
+> +	  In doubt, say N.
+> +
+> +config VIDEO_TIMBERDALE
+> +	tristate "Support for timberdale Video In/LogiWIN"
+> +	depends on VIDEO_V4L2 && I2C && DMADEVICES
+> +	select DMA_ENGINE
+> +	select TIMB_DMA
+> +	select VIDEO_ADV7180
+> +	select VIDEOBUF_DMA_CONTIG
+> +	---help---
+> +	  Add support for the Video In peripherial of the timberdale FPGA.
+> +
+> +config VIDEO_VINO
+> +	tristate "SGI Vino Video For Linux"
+> +	depends on I2C && SGI_IP22 && VIDEO_V4L2
+> +	select VIDEO_SAA7191 if VIDEO_HELPER_CHIPS_AUTO
+> +	help
+> +	  Say Y here to build in support for the Vino video input system found
+> +	  on SGI Indy machines.
+> +
+>  config VIDEO_M32R_AR
+>  	tristate "AR devices"
+>  	depends on M32R && VIDEO_V4L2
+> @@ -738,16 +752,6 @@ config VIDEO_M32R_AR_M64278
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called arv.
+>  
+> -config VIDEO_VIA_CAMERA
+> -	tristate "VIAFB camera controller support"
+> -	depends on FB_VIA
+> -	select VIDEOBUF_DMA_SG
+> -	select VIDEO_OV7670
+> -	help
+> -	   Driver support for the integrated camera controller in VIA
+> -	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
+> -	   with ov7670 sensors.
+> -
+>  config VIDEO_OMAP3
+>  	tristate "OMAP 3 Camera support (EXPERIMENTAL)"
+>  	select OMAP_IOMMU
 
-Yes, I think the size per sample is important.
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
