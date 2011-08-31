@@ -1,70 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:55437 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753798Ab1HXTSA (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2684 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755700Ab1HaNj2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Aug 2011 15:18:00 -0400
-Date: Wed, 24 Aug 2011 21:17:54 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Jan Pohanka <xhpohanka@gmail.com>
-cc: linux-media@vger.kernel.org,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>
-Subject: Re: dma buffers for camera
-In-Reply-To: <op.v0p0hctkyxxkfz@localhost.localdomain>
-Message-ID: <Pine.LNX.4.64.1108242111560.14818@axis700.grange>
-References: <op.v0p0hctkyxxkfz@localhost.localdomain>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Wed, 31 Aug 2011 09:39:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 3/6] V4L menu: remove the EXPERIMENTAL tag from vino and c-qcam.
+Date: Wed, 31 Aug 2011 15:38:42 +0200
+Message-Id: <76dc3bcfdd0ba0d4320f673b3ba36a8df8845c07.1314797675.git.hans.verkuil@cisco.com>
+In-Reply-To: <1314797925-8113-1-git-send-email-hverkuil@xs4all.nl>
+References: <1314797925-8113-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <b5c71c4b9e2f88bd5698a9920b24d24786e4a28c.1314797675.git.hans.verkuil@cisco.com>
+References: <b5c71c4b9e2f88bd5698a9920b24d24786e4a28c.1314797675.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jan
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Wed, 24 Aug 2011, Jan Pohanka wrote:
+These are really, really old drivers. These are really no longer experimental...
 
-> Hello,
-> 
-> could please anyone explain me a bit situation about using memory buffers for
-> dma for video input devices? Unfortunately I don't understand it at all.
-> I want to capture images 1600x1200 from 2 mpix sensor on i.mx27 board.
-> I gave 8MB to mx2_camera device with dma_declare_coherent_memory.
-> 
-> Unfortunately it seems to be not enough. In UYVY format I need 1600x1200x2 for
-> one picture, it is cca 3.8MB.
-> After some digging I noticed, that dma_alloc_coherent() is called three times
-> and each time with the 3.8MB demand. Once it is directly from mx2_camera
-> driver and two times from videobuf_dma_contig. OK, that is more than 8MB
-> available, but why there are so big memory demands for one picture?
-> 
-> I'm using gstremer for capturing, so it probably requests several buffers with
-> VIDIOC_REQBUFS. Is this behaviour normal, even if there is explicitly noted
-> that I want only one buffer?
-
-The mx2_camera driver is allocating one "discard" buffer of the same size, 
-as regular buffers for cases, when the user is not fast enough to queue 
-new buffers for the running capture. Arguably, this could be aliminated 
-and the last submitted buffer could be re-used until either more buffers 
-are available or the streaming is stopped. Otherwise, it could also be 
-possible to stop capture until buffers are available again. In any case, 
-this is the current driver implementation. As for 2 buffers instead of one 
-for the actual capture, I think, gstreamer defines 2 as a minimum number 
-of buffers, which is actually also required for any streaming chance.
-
-Thanks
-Guennadi
-
-> gst-launch \
->  v4l2src num-buffers=1 device=/dev/video1 ! \
->  video/x-raw-yuv,format=\(fourcc\)UYVY,width=$WIDTH,height=$HEIGHT ! \
->  jpegenc ! \
->  filesink location=col_image.jpg
-> 
-> 
-> with best regards
-> Jan
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/Kconfig |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 815700b..8a16a69 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -656,8 +656,8 @@ source "drivers/media/video/omap/Kconfig"
+ source "drivers/media/video/bt8xx/Kconfig"
+ 
+ config VIDEO_VINO
+-	tristate "SGI Vino Video For Linux (EXPERIMENTAL)"
+-	depends on I2C && SGI_IP22 && EXPERIMENTAL && VIDEO_V4L2
++	tristate "SGI Vino Video For Linux"
++	depends on I2C && SGI_IP22 && VIDEO_V4L2
+ 	select VIDEO_SAA7191 if VIDEO_HELPER_CHIPS_AUTO
+ 	help
+ 	  Say Y here to build in support for the Vino video input system found
+@@ -1001,8 +1001,8 @@ config VIDEO_BWQCAM
+ 	  module will be called bw-qcam.
+ 
+ config VIDEO_CQCAM
+-	tristate "QuickCam Colour Video For Linux (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL && PARPORT && VIDEO_V4L2
++	tristate "QuickCam Colour Video For Linux"
++	depends on PARPORT && VIDEO_V4L2
+ 	help
+ 	  This is the video4linux driver for the colour version of the
+ 	  Connectix QuickCam.  If you have one of these cameras, say Y here,
+-- 
+1.7.5.4
+
