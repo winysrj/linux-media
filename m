@@ -1,61 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f170.google.com ([209.85.210.170]:36408 "EHLO
-	mail-iy0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752850Ab1HUBvM convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:57827 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756860Ab1HaQuB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Aug 2011 21:51:12 -0400
-Received: by iye16 with SMTP id 16so8028685iye.1
-        for <linux-media@vger.kernel.org>; Sat, 20 Aug 2011 18:51:12 -0700 (PDT)
+	Wed, 31 Aug 2011 12:50:01 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Luciano Coelho <coelho@ti.com>
+Subject: Re: [PATCH] mfd: Combine MFD_SUPPORT and MFD_CORE
+Date: Wed, 31 Aug 2011 18:49:37 +0200
+Cc: Randy Dunlap <rdunlap@xenotime.net>, matti.j.aaltonen@nokia.com,
+	johannes@sipsolutions.net, linux-kernel@vger.kernel.org,
+	sameo@linux.intel.com, mchehab@infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	Jean Delvare <khali@linux-fr.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Grant Likely <grant.likely@secretlab.ca>
+References: <20110829102732.03f0f05d.rdunlap@xenotime.net> <1314643307-17780-1-git-send-email-coelho@ti.com>
+In-Reply-To: <1314643307-17780-1-git-send-email-coelho@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <CAATJ+fu5JqVmyY=zJn_CM_Eusst_YWKG2B2MAuu5fqELYYsYqA@mail.gmail.com>
-References: <CAATJ+fu5JqVmyY=zJn_CM_Eusst_YWKG2B2MAuu5fqELYYsYqA@mail.gmail.com>
-Date: Sun, 21 Aug 2011 11:51:11 +1000
-Message-ID: <CAATJ+ft9HNqLA62ZZkkEP6EswXC1Jhq=FBcXU+OHCkXTKpqeUA@mail.gmail.com>
-Subject: Re: Afatech AF9013
-From: Jason Hecker <jwhecker@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108311849.37273.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have a problem that may be related to the issues on this thread and
-it's driving me nuts.
+On Monday 29 August 2011, Luciano Coelho wrote:
+> From: Randy Dunlap <rdunlap@xenotime.net>
+> 
+> Combine MFD_SUPPORT (which only enabled the remainder of the MFD
+> menu) and MFD_CORE.  This allows other drivers to select MFD_CORE
+> without needing to also select MFD_SUPPORT, which fixes some
+> kconfig unmet dependency warnings.  Modeled after I2C kconfig.
+> 
+> [Forward-ported to 3.1-rc4.  This fixes a warning when some drivers,
+> such as RADIO_WL1273, are selected, but MFD_SUPPORT is not. -- Luca]
+> 
+> Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+> Reported-by: Johannes Berg <johannes@sipsolutions.net>
+> Cc: Jean Delvare <khali@linux-fr.org>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Signed-off-by: Luciano Coelho <coelho@ti.com>
+> ---
+> 
+> I guess this should fix the problem.  I've simple forward-ported
+> Randy's patch to the latest mainline kernel.  I don't know via which
+> tree this should go in, though.
+> 
+> NOTE: I have not tested this very thoroughly.  But at least
+> omap2plus stuff seems to work okay with this change.  MFD_SUPPORT is
+> also selected by a couple of "tile" platforms defconfigs, but I guess
+> the Kconfig system should take care of it.
 
-I have two dual tuner Afatech based cards, they are both Leadtek
-2000DS cards, one made by Leadtek and the other branded as KWorld but
-they are otherwise identical in spite of different VID:PID.
+Doing this is a good idea, but incidentally I have just spent some time
+with the same problem and ended up with a solution that I like better,
+which is removing CONFIG_MFD_SUPPORT altogether.
 
-On each card tuner A is an AF9015 and tuner B is an AF9013.  The
-KWorld card worked just fine for about 18 months in Mythbuntu 10.04
-with the rebuilt and patched modules as described in the Wiki entry on
-the 2000DS.  A few weeks ago tuner A started giving errors making the
-viewing unwatchable so figuring the card had died I bought the
-Leadtek.  To my surprise it gave the same problem as the KWorld when
-using tuner A.  It seems Tuner A is OK until Tuner B is used and then
-Tuner A gets a lot of errors.  Tuner B never has errors.  I did try
-using the latest "media_build" from V4L but that didn't help.
+The point is that there is no use enabling MFD_CORE if you don't also
+enable any of the specific drivers. MFD_SUPPORT was added as a 'menuconfig'
+before we had Kconfig warn about broken dependencies, so everything was
+fine. Since Kconfig now issues the warnings, I think it would be better
+to just turn the MFD menu into a plain 'menu' and remove all the
+'depends on MFD_SUPPORT' and 'select MFD_SUPPORT' lines from the other
+Kconfig files.
 
-So, I installed Mythbuntu 11.04 and with both cards I
-still get the same problem.  Watching live TV with MythTV or with
-mplayer on tuner A gives errors and tuner B is always flawless even
-with "media_build" updates.
-
-I honestly can't recall if when the failure first occurred if I had
-done a routine kernel update at that time - though it would have just
-been the usual 2.6.32 update that is in line with 10.04 maintenance.
-
-I have tried everything imaginable to nail down the problem but can't
-seem to fix it.  Even "options dvb-usb force_pid_filter_usage=1" seems
-to improve the problem somewhat but the errors are still there.  I
-have tried every firmware from 4.65 to 5.10, adjusting the PCI latency
-from 32 to 96, fed each card directly from the antenna (taking the
-splitter out of the loop), one card fitted, both cards fitted, kernel
-and system upgrades (Mythbuntu 10.04 to 11.04), mplayer vs MythTV but
-the results are always the same.  Tuner B is perfect, tuner A
-corrupts when Tuner B is used.  There are no errors or warnings in
-syslog or dmesg to
-suggest anything has failed.
-
-I'd appreciate any suggestions at this point as I am pretty unhappy
-with the situation considering it *used* to work.
+	Arnd
