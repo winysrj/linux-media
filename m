@@ -1,112 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm2.bt.bullet.mail.ukl.yahoo.com ([217.146.183.200]:35838 "HELO
-	nm2.bt.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753031Ab1HTLhb (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36658 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932118Ab1HaRF6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Aug 2011 07:37:31 -0400
-Message-ID: <4E4F9C77.6010008@yahoo.com>
-Date: Sat, 20 Aug 2011 12:37:27 +0100
-From: Chris Rankin <rankincj@yahoo.com>
+	Wed, 31 Aug 2011 13:05:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bastian Hecht <hechtb@googlemail.com>
+Subject: Re: [PATCH 1/2 v2] media: Add support for arbitrary resolution for the ov5642 camera driver
+Date: Wed, 31 Aug 2011 19:06:25 +0200
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <alpine.DEB.2.02.1108311420540.2154@ipanema>
+In-Reply-To: <alpine.DEB.2.02.1108311420540.2154@ipanema>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 6/6] EM28xx - don't sleep on disconnect
-References: <4E4D5157.2080406@yahoo.com> <CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com> <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com> <4E4D8DFD.5060800@yahoo.com> <4E4DFA65.4090508@redhat.com>
-In-Reply-To: <4E4DFA65.4090508@redhat.com>
-Content-Type: multipart/mixed;
- boundary="------------010004040001090104030006"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108311906.25386.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------010004040001090104030006
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Bastian,
 
-The DVB framework will try to power-down an adapter that no-one is using any 
-more, but this assumes that the adapter is still connected to the machine. 
-That's not always true for a USB adapter, so disable the sleep operations when 
-the adapter has been physically unplugged.
+Thanks for the patch.
 
-This prevents I2C write failures with error -19 from appearing occasionally in 
-the dmesg log.
+On Wednesday 31 August 2011 17:05:52 Bastian Hecht wrote:
+> This patch adds the ability to get arbitrary resolutions with a width
+> up to 2592 and a height up to 720 pixels instead of the standard 1280x720
+> only.
+> 
+> Signed-off-by: Bastian Hecht <hechtb@gmail.com>
+> ---
+> diff --git a/drivers/media/video/ov5642.c b/drivers/media/video/ov5642.c
+> index 6410bda..87b432e 100644
+> --- a/drivers/media/video/ov5642.c
+> +++ b/drivers/media/video/ov5642.c
 
-Signed-off-by: Chris Rankin <rankincj@yahoo.com>
+[snip]
 
+> @@ -684,107 +737,101 @@ static int ov5642_write_array(struct i2c_client
 
---------------010004040001090104030006
-Content-Type: text/x-patch;
- name="EM28xx-disconnect-dont-sleep.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="EM28xx-disconnect-dont-sleep.diff"
+[snip]
 
---- linux-3.0/drivers/media/common/tuners/tda18271-fe.c.orig	2011-08-18 16:55:53.000000000 +0100
-+++ linux-3.0/drivers/media/common/tuners/tda18271-fe.c	2011-08-18 23:12:55.000000000 +0100
-@@ -1230,7 +1230,7 @@
- 	return 0;
- }
- 
--static struct dvb_tuner_ops tda18271_tuner_ops = {
-+static const struct dvb_tuner_ops tda18271_tuner_ops = {
- 	.info = {
- 		.name = "NXP TDA18271HD",
- 		.frequency_min  =  45000000,
---- linux-3.0/drivers/media/dvb/frontends/cxd2820r_core.c.orig	2011-08-18 16:56:02.000000000 +0100
-+++ linux-3.0/drivers/media/dvb/frontends/cxd2820r_core.c	2011-08-18 23:14:06.000000000 +0100
-@@ -778,7 +778,7 @@
- }
- EXPORT_SYMBOL(cxd2820r_get_tuner_i2c_adapter);
- 
--static struct dvb_frontend_ops cxd2820r_ops[2];
-+static const struct dvb_frontend_ops cxd2820r_ops[2];
- 
- struct dvb_frontend *cxd2820r_attach(const struct cxd2820r_config *cfg,
- 	struct i2c_adapter *i2c, struct dvb_frontend *fe)
-@@ -844,7 +844,7 @@
- }
- EXPORT_SYMBOL(cxd2820r_attach);
- 
--static struct dvb_frontend_ops cxd2820r_ops[2] = {
-+static const struct dvb_frontend_ops cxd2820r_ops[2] = {
- 	{
- 		/* DVB-T/T2 */
- 		.info = {
---- linux-3.0/drivers/media/video/em28xx/em28xx-dvb.c.orig	2011-08-17 08:52:30.000000000 +0100
-+++ linux-3.0/drivers/media/video/em28xx/em28xx-dvb.c	2011-08-18 23:17:42.000000000 +0100
-@@ -720,6 +720,12 @@
- 	goto ret;
- }
- 
-+static inline void prevent_sleep(struct dvb_frontend_ops *ops) {
-+	ops->set_voltage = NULL;
-+	ops->sleep = NULL;
-+	ops->tuner_ops.sleep = NULL;
-+}
-+
- static int dvb_fini(struct em28xx *dev)
- {
- 	if (!dev->board.has_dvb) {
-@@ -728,8 +734,17 @@
- 	}
- 
- 	if (dev->dvb) {
--		unregister_dvb(dev->dvb);
--		kfree(dev->dvb);
-+		struct em28xx_dvb *dvb = dev->dvb;
-+
-+		if (dev->state & DEV_DISCONNECTED) {
-+			/* We cannot tell the device to sleep
-+			 * once it has been unplugged. */
-+			prevent_sleep(&dvb->fe[0]->ops);
-+			prevent_sleep(&dvb->fe[1]->ops);
-+		}
-+
-+		unregister_dvb(dvb);
-+		kfree(dvb);
- 		dev->dvb = NULL;
- 	}
- 
+> -static int ov5642_s_fmt(struct v4l2_subdev *sd,
+> -			struct v4l2_mbus_framefmt *mf)
+> +static int ov5642_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt
+> *mf) {
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  	struct ov5642 *priv = to_ov5642(client);
+> -
+> -	dev_dbg(sd->v4l2_dev->dev, "%s(%u)\n", __func__, mf->code);
+> +	int ret;
+> 
+>  	/* MIPI CSI could have changed the format, double-check */
+>  	if (!ov5642_find_datafmt(mf->code))
+>  		return -EINVAL;
+> 
+>  	ov5642_try_fmt(sd, mf);
+> -
+>  	priv->fmt = ov5642_find_datafmt(mf->code);
+> 
+> -	ov5642_write_array(client, ov5642_default_regs_init);
+> -	ov5642_set_resolution(client);
+> -	ov5642_write_array(client, ov5642_default_regs_finalise);
+> +	ret = ov5642_write_array(client, ov5642_default_regs_init);
+> +	if (!ret)
+> +		ret = ov5642_set_resolution(sd);
+> +	if (!ret)
+> +		ret = ov5642_write_array(client, ov5642_default_regs_finalise);
 
---------------010004040001090104030006--
+You shouldn't write anything to the sensor here. As only .s_crop can currently 
+change the format, .s_fmt should just return the current format without 
+performing any change or writing anything to the device.
+
+> -	return 0;
+> +	return ret;
+>  }
+
+[snip]
+
+> @@ -827,15 +874,42 @@ static int ov5642_g_chip_ident(struct v4l2_subdev
+
+[snip]
+
+>  static int ov5642_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+>  {
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	struct ov5642 *priv = to_ov5642(client);
+>  	struct v4l2_rect *rect = &a->c;
+> 
+> -	a->type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> -	rect->top	= 0;
+> -	rect->left	= 0;
+> -	rect->width	= OV5642_WIDTH;
+> -	rect->height	= OV5642_HEIGHT;
+> +	a->type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+Shouldn't you return an error instead when a->type is not 
+V4L2_BUF_TYPE_VIDEO_CAPTURE ?
+
+> +	*rect = priv->crop_rect;
+> 
+>  	return 0;
+>  }
+
+-- 
+Regards,
+
+Laurent Pinchart
