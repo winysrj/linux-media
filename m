@@ -1,630 +1,366 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:50039 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751476Ab1HLK6w (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:47850 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752604Ab1HaVMD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2011 06:58:52 -0400
-Date: Fri, 12 Aug 2011 12:58:29 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 7/9] ARM: DMA: steal memory for DMA coherent mappings
-In-reply-to: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-Message-id: <1313146711-1767-8-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1313146711-1767-1-git-send-email-m.szyprowski@samsung.com>
+	Wed, 31 Aug 2011 17:12:03 -0400
+Date: Thu, 1 Sep 2011 00:11:58 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH 3/9 v6] V4L: document the new VIDIOC_CREATE_BUFS and
+ VIDIOC_PREPARE_BUF ioctl()s
+Message-ID: <20110831211157.GR12368@valkosipuli.localdomain>
+References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
+ <1314813768-27752-4-git-send-email-g.liakhovetski@gmx.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1314813768-27752-4-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Russell King <rmk+kernel@arm.linux.org.uk>
+Hi Guennadi,
 
-Steal memory from the kernel to provide coherent DMA memory to drivers.
-This avoids the problem with multiple mappings with differing attributes
-on later CPUs.
+On Wed, Aug 31, 2011 at 08:02:42PM +0200, Guennadi Liakhovetski wrote:
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Pawel Osciak <pawel@osciak.com>
+> Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> ---
+>  Documentation/DocBook/media/v4l/io.xml             |   17 +++
+>  Documentation/DocBook/media/v4l/v4l2.xml           |    2 +
+>  .../DocBook/media/v4l/vidioc-create-bufs.xml       |  147 ++++++++++++++++++++
+>  .../DocBook/media/v4l/vidioc-prepare-buf.xml       |   96 +++++++++++++
+>  4 files changed, 262 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+> 
+> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+> index 227e7ac..ff03dd2 100644
+> --- a/Documentation/DocBook/media/v4l/io.xml
+> +++ b/Documentation/DocBook/media/v4l/io.xml
+> @@ -927,6 +927,23 @@ ioctl is called.</entry>
+>  Applications set or clear this flag before calling the
+>  <constant>VIDIOC_QBUF</constant> ioctl.</entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
+> +	    <entry>0x0400</entry>
+> +	    <entry>Caches do not have to be invalidated for this buffer.
+> +Typically applications shall use this flag if the data captured in the buffer
+> +is not going to be touched by the CPU, instead the buffer will, probably, be
+> +passed on to a DMA-capable hardware unit for further processing or output.
+> +</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
+> +	    <entry>0x0800</entry>
+> +	    <entry>Caches do not have to be cleaned for this buffer.
+> +Typically applications shall use this flag for output buffers if the data
+> +in this buffer has not been created by the CPU but by some DMA-capable unit,
+> +in which case caches have not been used.</entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+> index 0d05e87..06bb179 100644
+> --- a/Documentation/DocBook/media/v4l/v4l2.xml
+> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
+> @@ -462,6 +462,7 @@ and discussions on the V4L mailing list.</revremark>
+>      &sub-close;
+>      &sub-ioctl;
+>      <!-- All ioctls go here. -->
+> +    &sub-create-bufs;
+>      &sub-cropcap;
+>      &sub-dbg-g-chip-ident;
+>      &sub-dbg-g-register;
+> @@ -504,6 +505,7 @@ and discussions on the V4L mailing list.</revremark>
+>      &sub-queryctrl;
+>      &sub-query-dv-preset;
+>      &sub-querystd;
+> +    &sub-prepare-buf;
+>      &sub-reqbufs;
+>      &sub-s-hw-freq-seek;
+>      &sub-streamon;
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+> new file mode 100644
+> index 0000000..eb99604
+> --- /dev/null
+> +++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+> @@ -0,0 +1,147 @@
+> +<refentry id="vidioc-create-bufs">
+> +  <refmeta>
+> +    <refentrytitle>ioctl VIDIOC_CREATE_BUFS</refentrytitle>
+> +    &manvol;
+> +  </refmeta>
+> +
+> +  <refnamediv>
+> +    <refname>VIDIOC_CREATE_BUFS</refname>
+> +    <refpurpose>Create buffers for Memory Mapped or User Pointer I/O</refpurpose>
+> +  </refnamediv>
+> +
+> +  <refsynopsisdiv>
+> +    <funcsynopsis>
+> +      <funcprototype>
+> +	<funcdef>int <function>ioctl</function></funcdef>
+> +	<paramdef>int <parameter>fd</parameter></paramdef>
+> +	<paramdef>int <parameter>request</parameter></paramdef>
+> +	<paramdef>struct v4l2_create_buffers *<parameter>argp</parameter></paramdef>
+> +      </funcprototype>
+> +    </funcsynopsis>
+> +  </refsynopsisdiv>
+> +
+> +  <refsect1>
+> +    <title>Arguments</title>
+> +
+> +    <variablelist>
+> +      <varlistentry>
+> +	<term><parameter>fd</parameter></term>
+> +	<listitem>
+> +	  <para>&fd;</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><parameter>request</parameter></term>
+> +	<listitem>
+> +	  <para>VIDIOC_CREATE_BUFS</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><parameter>argp</parameter></term>
+> +	<listitem>
+> +	  <para></para>
+> +	</listitem>
+> +      </varlistentry>
+> +    </variablelist>
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    <title>Description</title>
+> +
+> +    <para>This ioctl is used to create buffers for <link linkend="mmap">memory
+> +mapped</link> or <link linkend="userp">user pointer</link>
+> +I/O. It can be used as an alternative or in addition to the
+> +<constant>VIDIOC_REQBUFS</constant> ioctl, when a tighter control over buffers
+> +is required. This ioctl can be called multiple times to create buffers of
+> +different sizes.</para>
+> +
+> +    <para>To allocate device buffers applications initialize relevant fields of
+> +the <structname>v4l2_create_buffers</structname> structure. They set the
+> +<structfield>type</structfield> field in the
+> +<structname>v4l2_format</structname> structure, embedded in this
+> +structure, to the respective stream or buffer type.
+> +<structfield>count</structfield> must be set to the number of required buffers.
+> +<structfield>memory</structfield> specifies the required I/O method. The
+> +<structfield>format</structfield> field shall typically be filled in using
+> +either the <constant>VIDIOC_TRY_FMT</constant> or
+> +<constant>VIDIOC_G_FMT</constant> ioctl(). Additionally, applications can adjust
+> +<structfield>sizeimage</structfield> fields to fit their specific needs. The
+> +<structfield>reserved</structfield> array must be zeroed.</para>
+> +
+> +    <para>When the ioctl is called with a pointer to this structure the driver
+> +will attempt to allocate up to the requested number of buffers and store the
+> +actual number allocated and the starting index in the
+> +<structfield>count</structfield> and the <structfield>index</structfield> fields
+> +respectively. On return <structfield>count</structfield> can be smaller than
+> +the number requested. The driver may also adjust buffer sizes as it sees fit,
+> +however, it will not update <structfield>sizeimage</structfield> fields, the
+> +user has to use <constant>VIDIOC_QUERYBUF</constant> to retrieve that
+> +information.</para>
+> +
+> +    <table pgwide="1" frame="none" id="v4l2-create-buffers">
+> +      <title>struct <structname>v4l2_create_buffers</structname></title>
+> +      <tgroup cols="3">
+> +	&cs-str;
+> +	<tbody valign="top">
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>index</structfield></entry>
+> +	    <entry>The starting buffer index, returned by the driver.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>count</structfield></entry>
+> +	    <entry>The number of buffers requested or granted.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>&v4l2-memory;</entry>
+> +	    <entry><structfield>memory</structfield></entry>
+> +	    <entry>Applications set this field to
+> +<constant>V4L2_MEMORY_MMAP</constant> or
+> +<constant>V4L2_MEMORY_USERPTR</constant>.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>&v4l2-format;</entry>
+> +	    <entry><structfield>format</structfield></entry>
+> +	    <entry>Filled in by the application, preserved by the driver.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>reserved</structfield>[8]</entry>
+> +	    <entry>A place holder for future extensions.</entry>
+> +	  </row>
+> +	</tbody>
+> +      </tgroup>
+> +    </table>
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    &return-value;
+> +
+> +    <variablelist>
+> +      <varlistentry>
+> +	<term><errorcode>ENOMEM</errorcode></term>
+> +	<listitem>
+> +	  <para>No memory to allocate buffers for <link linkend="mmap">memory
+> +mapped</link> I/O.</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><errorcode>EINVAL</errorcode></term>
+> +	<listitem>
+> +	  <para>The buffer type (<structfield>type</structfield> field) or the
+> +requested I/O method (<structfield>memory</structfield>) is not
+> +supported.</para>
+> +	</listitem>
+> +      </varlistentry>
+> +    </variablelist>
+> +  </refsect1>
+> +</refentry>
+> +
+> +<!--
+> +Local Variables:
+> +mode: sgml
+> +sgml-parent-document: "v4l2.sgml"
+> +indent-tabs-mode: nil
+> +End:
+> +-->
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+> new file mode 100644
+> index 0000000..509e752
+> --- /dev/null
+> +++ b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+> @@ -0,0 +1,96 @@
+> +<refentry id="vidioc-prepare-buf">
+> +  <refmeta>
+> +    <refentrytitle>ioctl VIDIOC_PREPARE_BUF</refentrytitle>
+> +    &manvol;
+> +  </refmeta>
+> +
+> +  <refnamediv>
+> +    <refname>VIDIOC_PREPARE_BUF</refname>
+> +    <refpurpose>Prepare a buffer for I/O</refpurpose>
+> +  </refnamediv>
+> +
+> +  <refsynopsisdiv>
+> +    <funcsynopsis>
+> +      <funcprototype>
+> +	<funcdef>int <function>ioctl</function></funcdef>
+> +	<paramdef>int <parameter>fd</parameter></paramdef>
+> +	<paramdef>int <parameter>request</parameter></paramdef>
+> +	<paramdef>struct v4l2_buffer *<parameter>argp</parameter></paramdef>
+> +      </funcprototype>
+> +    </funcsynopsis>
+> +  </refsynopsisdiv>
+> +
+> +  <refsect1>
+> +    <title>Arguments</title>
+> +
+> +    <variablelist>
+> +      <varlistentry>
+> +	<term><parameter>fd</parameter></term>
+> +	<listitem>
+> +	  <para>&fd;</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><parameter>request</parameter></term>
+> +	<listitem>
+> +	  <para>VIDIOC_PREPARE_BUF</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><parameter>argp</parameter></term>
+> +	<listitem>
+> +	  <para></para>
+> +	</listitem>
+> +      </varlistentry>
+> +    </variablelist>
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    <title>Description</title>
+> +
+> +    <para>Applications can optionally call the
+> +<constant>VIDIOC_PREPARE_BUF</constant> ioctl to pass ownership of the buffer
+> +to the driver before actually enqueuing it, using the
+> +<constant>VIDIOC_QBUF</constant> ioctl, and to prepare it for future I/O.
+> +Such preparations may include cache invalidation or cleaning. Performing them
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-[m.szyprowski: rebased onto 3.1-rc1]
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- arch/arm/include/asm/dma-mapping.h |    3 +-
- arch/arm/include/asm/mach/map.h    |    2 +
- arch/arm/include/asm/memory.h      |    7 +
- arch/arm/mm/dma-mapping.c          |  313 +++++++++++++++++++-----------------
- arch/arm/mm/init.c                 |    1 +
- arch/arm/mm/mm.h                   |    2 +
- arch/arm/mm/mmu.c                  |   24 +++
- 7 files changed, 202 insertions(+), 150 deletions(-)
+I think it could be added that the first time when the buffer is prepared,
+the preparation may include very time consuming tasks such as memory
+allocation and iommu mapping of that memory.
 
-diff --git a/arch/arm/include/asm/dma-mapping.h b/arch/arm/include/asm/dma-mapping.h
-index 7a21d0b..2f50659 100644
---- a/arch/arm/include/asm/dma-mapping.h
-+++ b/arch/arm/include/asm/dma-mapping.h
-@@ -199,8 +199,7 @@ int dma_mmap_coherent(struct device *, struct vm_area_struct *,
- extern void *dma_alloc_writecombine(struct device *, size_t, dma_addr_t *,
- 		gfp_t);
- 
--#define dma_free_writecombine(dev,size,cpu_addr,handle) \
--	dma_free_coherent(dev,size,cpu_addr,handle)
-+extern void dma_free_writecombine(struct device *, size_t, void *, dma_addr_t);
- 
- int dma_mmap_writecombine(struct device *, struct vm_area_struct *,
- 		void *, dma_addr_t, size_t);
-diff --git a/arch/arm/include/asm/mach/map.h b/arch/arm/include/asm/mach/map.h
-index d2fedb5..3845215 100644
---- a/arch/arm/include/asm/mach/map.h
-+++ b/arch/arm/include/asm/mach/map.h
-@@ -29,6 +29,8 @@ struct map_desc {
- #define MT_MEMORY_NONCACHED	11
- #define MT_MEMORY_DTCM		12
- #define MT_MEMORY_ITCM		13
-+#define MT_DMA_COHERENT		14
-+#define MT_WC_COHERENT		15
- 
- #ifdef CONFIG_MMU
- extern void iotable_init(struct map_desc *, int);
-diff --git a/arch/arm/include/asm/memory.h b/arch/arm/include/asm/memory.h
-index b8de516..334b288 100644
---- a/arch/arm/include/asm/memory.h
-+++ b/arch/arm/include/asm/memory.h
-@@ -88,6 +88,13 @@
- #define CONSISTENT_END		(0xffe00000UL)
- #define CONSISTENT_BASE		(CONSISTENT_END - CONSISTENT_DMA_SIZE)
- 
-+#ifndef CONSISTENT_WC_SIZE
-+#define CONSISTENT_WC_SIZE	SZ_2M
-+#endif
-+
-+#define CONSISTENT_WC_END	CONSISTENT_BASE
-+#define CONSISTENT_WC_BASE	(CONSISTENT_WC_END - CONSISTENT_WC_SIZE)
-+
- #else /* CONFIG_MMU */
- 
- /*
-diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
-index 0a0a1e7..b643262 100644
---- a/arch/arm/mm/dma-mapping.c
-+++ b/arch/arm/mm/dma-mapping.c
-@@ -18,12 +18,14 @@
- #include <linux/device.h>
- #include <linux/dma-mapping.h>
- #include <linux/highmem.h>
-+#include <linux/memblock.h>
- 
- #include <asm/memory.h>
- #include <asm/highmem.h>
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
- #include <asm/sizes.h>
-+#include <asm/mach/map.h>
- 
- #include "mm.h"
- 
-@@ -117,93 +119,128 @@ static void __dma_free_buffer(struct page *page, size_t size)
- }
- 
- #ifdef CONFIG_MMU
--/* Sanity check size */
--#if (CONSISTENT_DMA_SIZE % SZ_2M)
--#error "CONSISTENT_DMA_SIZE must be multiple of 2MiB"
-+/* Sanity check sizes */
-+#if CONSISTENT_DMA_SIZE % SECTION_SIZE
-+#error "CONSISTENT_DMA_SIZE must be a multiple of the section size"
-+#endif
-+#if CONSISTENT_WC_SIZE % SECTION_SIZE
-+#error "CONSISTENT_WC_SIZE must be a multiple of the section size"
-+#endif
-+#if ((CONSISTENT_DMA_SIZE + CONSISTENT_WC_SIZE) % SZ_2M)
-+#error "Sum of CONSISTENT_DMA_SIZE and CONSISTENT_WC_SIZE must be multiple of 2MiB"
- #endif
- 
--#define CONSISTENT_OFFSET(x)	(((unsigned long)(x) - CONSISTENT_BASE) >> PAGE_SHIFT)
--#define CONSISTENT_PTE_INDEX(x) (((unsigned long)(x) - CONSISTENT_BASE) >> PGDIR_SHIFT)
--#define NUM_CONSISTENT_PTES (CONSISTENT_DMA_SIZE >> PGDIR_SHIFT)
-+#include "vmregion.h"
- 
--/*
-- * These are the page tables (2MB each) covering uncached, DMA consistent allocations
-- */
--static pte_t *consistent_pte[NUM_CONSISTENT_PTES];
-+struct dma_coherent_area {
-+	struct arm_vmregion_head vm;
-+	unsigned long pfn;
-+	unsigned int type;
-+	const char *name;
-+};
- 
--#include "vmregion.h"
-+static struct dma_coherent_area coherent_wc_head = {
-+	.vm = {
-+		.vm_start	= CONSISTENT_WC_BASE,
-+		.vm_end		= CONSISTENT_WC_END,
-+	},
-+	.type = MT_WC_COHERENT,
-+	.name = "WC ",
-+};
- 
--static struct arm_vmregion_head consistent_head = {
--	.vm_lock	= __SPIN_LOCK_UNLOCKED(&consistent_head.vm_lock),
--	.vm_list	= LIST_HEAD_INIT(consistent_head.vm_list),
--	.vm_start	= CONSISTENT_BASE,
--	.vm_end		= CONSISTENT_END,
-+static struct dma_coherent_area coherent_dma_head = {
-+	.vm = {
-+		.vm_start	= CONSISTENT_BASE,
-+		.vm_end		= CONSISTENT_END,
-+	},
-+	.type = MT_DMA_COHERENT,
-+	.name = "DMA coherent ",
- };
- 
--#ifdef CONFIG_HUGETLB_PAGE
--#error ARM Coherent DMA allocator does not (yet) support huge TLB
--#endif
-+static struct dma_coherent_area *coherent_areas[2] __initdata =
-+	{ &coherent_wc_head, &coherent_dma_head };
- 
--/*
-- * Initialise the consistent memory allocation.
-- */
--static int __init consistent_init(void)
-+static struct dma_coherent_area *coherent_map[2];
-+#define coherent_wc_area coherent_map[0]
-+#define coherent_dma_area coherent_map[1]
-+
-+void dma_coherent_reserve(void)
- {
--	int ret = 0;
--	pgd_t *pgd;
--	pud_t *pud;
--	pmd_t *pmd;
--	pte_t *pte;
--	int i = 0;
--	u32 base = CONSISTENT_BASE;
-+	phys_addr_t base, max_addr;
-+	unsigned long size;
-+	int can_share, i;
- 
--	do {
--		pgd = pgd_offset(&init_mm, base);
-+	if (arch_is_coherent())
-+		return;
- 
--		pud = pud_alloc(&init_mm, pgd, base);
--		if (!pud) {
--			printk(KERN_ERR "%s: no pud tables\n", __func__);
--			ret = -ENOMEM;
--			break;
--		}
-+#ifdef CONFIG_ARM_DMA_MEM_BUFFERABLE
-+	/* ARMv6: only when DMA_MEM_BUFFERABLE is enabled */
-+	can_share = cpu_architecture() >= CPU_ARCH_ARMv6;
-+#else
-+	/* ARMv7+: WC and DMA areas have the same properties, so can share */
-+	can_share = cpu_architecture() >= CPU_ARCH_ARMv7;
-+#endif
-+	if (can_share) {
-+		coherent_wc_head.name = "DMA coherent/WC ";
-+		coherent_wc_head.vm.vm_end = coherent_dma_head.vm.vm_end;
-+		coherent_dma_head.vm.vm_start = coherent_dma_head.vm.vm_end;
-+		coherent_dma_area = coherent_wc_area = &coherent_wc_head;
-+	} else {
-+		memcpy(coherent_map, coherent_areas, sizeof(coherent_map));
-+	}
- 
--		pmd = pmd_alloc(&init_mm, pud, base);
--		if (!pmd) {
--			printk(KERN_ERR "%s: no pmd tables\n", __func__);
--			ret = -ENOMEM;
--			break;
--		}
--		WARN_ON(!pmd_none(*pmd));
-+#ifdef CONFIG_ARM_DMA_ZONE_SIZE
-+	max_addr = PHYS_OFFSET + ARM_DMA_ZONE_SIZE - 1;
-+#else
-+	max_addr = MEMBLOCK_ALLOC_ANYWHERE;
-+#endif
-+	for (i = 0; i < ARRAY_SIZE(coherent_areas); i++) {
-+		struct dma_coherent_area *area = coherent_areas[i];
- 
--		pte = pte_alloc_kernel(pmd, base);
--		if (!pte) {
--			printk(KERN_ERR "%s: no pte tables\n", __func__);
--			ret = -ENOMEM;
--			break;
--		}
-+		size = area->vm.vm_end - area->vm.vm_start;
-+		if (!size)
-+			continue;
- 
--		consistent_pte[i++] = pte;
--		base += (1 << PGDIR_SHIFT);
--	} while (base < CONSISTENT_END);
-+		spin_lock_init(&area->vm.vm_lock);
-+		INIT_LIST_HEAD(&area->vm.vm_list);
- 
--	return ret;
-+		base = memblock_alloc_base(size, SZ_1M, max_addr);
-+		memblock_free(base, size);
-+		memblock_remove(base, size);
-+
-+		area->pfn = __phys_to_pfn(base);
-+
-+		pr_info("DMA: %luMiB %smemory allocated at 0x%08llx phys\n",
-+			size / 1048576, area->name, (unsigned long long)base);
-+	}
- }
- 
--core_initcall(consistent_init);
-+void __init dma_coherent_mapping(void)
-+{
-+	struct map_desc map[ARRAY_SIZE(coherent_areas)];
-+	int nr;
- 
--static void *
--__dma_alloc_remap(struct page *page, size_t size, gfp_t gfp, pgprot_t prot)
-+	for (nr = 0; nr < ARRAY_SIZE(map); nr++) {
-+		struct dma_coherent_area *area = coherent_areas[nr];
-+
-+		map[nr].pfn = area->pfn;
-+		map[nr].virtual = area->vm.vm_start;
-+		map[nr].length = area->vm.vm_end - area->vm.vm_start;
-+		map[nr].type = area->type;
-+		if (map[nr].length == 0)
-+			break;
-+	}
-+
-+	iotable_init(map, nr);
-+}
-+
-+static void *dma_alloc_area(size_t size, unsigned long *pfn, gfp_t gfp,
-+	struct dma_coherent_area *area)
- {
- 	struct arm_vmregion *c;
- 	size_t align;
- 	int bit;
- 
--	if (!consistent_pte[0]) {
--		printk(KERN_ERR "%s: not initialised\n", __func__);
--		dump_stack();
--		return NULL;
--	}
--
- 	/*
- 	 * Align the virtual region allocation - maximum alignment is
- 	 * a section size, minimum is a page size.  This helps reduce
-@@ -218,45 +255,21 @@ __dma_alloc_remap(struct page *page, size_t size, gfp_t gfp, pgprot_t prot)
- 	/*
- 	 * Allocate a virtual address in the consistent mapping region.
- 	 */
--	c = arm_vmregion_alloc(&consistent_head, align, size,
-+	c = arm_vmregion_alloc(&area->vm, align, size,
- 			    gfp & ~(__GFP_DMA | __GFP_HIGHMEM));
--	if (c) {
--		pte_t *pte;
--		int idx = CONSISTENT_PTE_INDEX(c->vm_start);
--		u32 off = CONSISTENT_OFFSET(c->vm_start) & (PTRS_PER_PTE-1);
--
--		pte = consistent_pte[idx] + off;
--		c->vm_pages = page;
--
--		do {
--			BUG_ON(!pte_none(*pte));
--
--			set_pte_ext(pte, mk_pte(page, prot), 0);
--			page++;
--			pte++;
--			off++;
--			if (off >= PTRS_PER_PTE) {
--				off = 0;
--				pte = consistent_pte[++idx];
--			}
--		} while (size -= PAGE_SIZE);
--
--		dsb();
-+	if (!c)
-+		return NULL;
- 
--		return (void *)c->vm_start;
--	}
--	return NULL;
-+	memset((void *)c->vm_start, 0, size);
-+	*pfn = area->pfn + ((c->vm_start - area->vm.vm_start) >> PAGE_SHIFT);
-+	return (void *)c->vm_start;
- }
- 
--static void __dma_free_remap(void *cpu_addr, size_t size)
-+static void dma_free_area(void *cpu_addr, size_t size, struct dma_coherent_area *area)
- {
- 	struct arm_vmregion *c;
--	unsigned long addr;
--	pte_t *ptep;
--	int idx;
--	u32 off;
- 
--	c = arm_vmregion_find_remove(&consistent_head, (unsigned long)cpu_addr);
-+	c = arm_vmregion_find_remove(&area->vm, (unsigned long)cpu_addr);
- 	if (!c) {
- 		printk(KERN_ERR "%s: trying to free invalid coherent area: %p\n",
- 		       __func__, cpu_addr);
-@@ -271,61 +284,62 @@ static void __dma_free_remap(void *cpu_addr, size_t size)
- 		size = c->vm_end - c->vm_start;
- 	}
- 
--	idx = CONSISTENT_PTE_INDEX(c->vm_start);
--	off = CONSISTENT_OFFSET(c->vm_start) & (PTRS_PER_PTE-1);
--	ptep = consistent_pte[idx] + off;
--	addr = c->vm_start;
--	do {
--		pte_t pte = ptep_get_and_clear(&init_mm, addr, ptep);
--
--		ptep++;
--		addr += PAGE_SIZE;
--		off++;
--		if (off >= PTRS_PER_PTE) {
--			off = 0;
--			ptep = consistent_pte[++idx];
--		}
-+	arm_vmregion_free(&area->vm, c);
-+}
- 
--		if (pte_none(pte) || !pte_present(pte))
--			printk(KERN_CRIT "%s: bad page in kernel page table\n",
--			       __func__);
--	} while (size -= PAGE_SIZE);
-+#define nommu() (0)
- 
--	flush_tlb_kernel_range(c->vm_start, c->vm_end);
-+#else	/* !CONFIG_MMU */
- 
--	arm_vmregion_free(&consistent_head, c);
--}
-+#define dma_alloc_area(size, pfn, gfp, area)	({ *(pfn) = 0; NULL })
-+#define dma_free_area(addr, size, area)		do { } while (0)
- 
--#else	/* !CONFIG_MMU */
-+#define nommu()	(1)
-+#define coherent_wc_area NULL
-+#define coherent_dma_area NULL
- 
--#define __dma_alloc_remap(page, size, gfp, prot)	page_address(page)
--#define __dma_free_remap(addr, size)			do { } while (0)
-+void dma_coherent_reserve(void)
-+{
-+}
- 
- #endif	/* CONFIG_MMU */
- 
- static void *
- __dma_alloc(struct device *dev, size_t size, dma_addr_t *handle, gfp_t gfp,
--	    pgprot_t prot)
-+	    struct dma_coherent_area *area)
- {
--	struct page *page;
--	void *addr;
-+	unsigned long pfn;
-+	void *ret;
- 
- 	*handle = ~0;
- 	size = PAGE_ALIGN(size);
- 
--	page = __dma_alloc_buffer(dev, size, gfp);
--	if (!page)
--		return NULL;
-+	if (arch_is_coherent() || nommu()) {
-+		struct page *page = __dma_alloc_buffer(dev, size, gfp);
-+		if (!page)
-+			return NULL;
-+		pfn = page_to_pfn(page);
-+		ret = page_address(page);
-+	} else {
-+		ret = dma_alloc_area(size, &pfn, gfp, area);
-+	}
- 
--	if (!arch_is_coherent())
--		addr = __dma_alloc_remap(page, size, gfp, prot);
--	else
--		addr = page_address(page);
-+	if (ret)
-+		*handle = pfn_to_dma(dev, pfn);
- 
--	if (addr)
--		*handle = pfn_to_dma(dev, page_to_pfn(page));
-+	return ret;
-+}
-+
-+static void __dma_free(struct device *dev, size_t size, void *cpu_addr,
-+	dma_addr_t handle, struct dma_coherent_area *area)
-+{
-+	size = PAGE_ALIGN(size);
- 
--	return addr;
-+	if (arch_is_coherent() || nommu()) {
-+		__dma_free_buffer(pfn_to_page(dma_to_pfn(dev, handle)), size);
-+	} else {
-+		dma_free_area(cpu_addr, size, area);
-+	}
- }
- 
- /*
-@@ -340,8 +354,7 @@ dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *handle, gfp_t gf
- 	if (dma_alloc_from_coherent(dev, size, handle, &memory))
- 		return memory;
- 
--	return __dma_alloc(dev, size, handle, gfp,
--			   pgprot_dmacoherent(pgprot_kernel));
-+	return __dma_alloc(dev, size, handle, gfp, coherent_dma_area);
- }
- EXPORT_SYMBOL(dma_alloc_coherent);
- 
-@@ -352,13 +365,13 @@ EXPORT_SYMBOL(dma_alloc_coherent);
- void *
- dma_alloc_writecombine(struct device *dev, size_t size, dma_addr_t *handle, gfp_t gfp)
- {
--	return __dma_alloc(dev, size, handle, gfp,
--			   pgprot_writecombine(pgprot_kernel));
-+	return __dma_alloc(dev, size, handle, gfp, coherent_wc_area);
- }
- EXPORT_SYMBOL(dma_alloc_writecombine);
- 
- static int dma_mmap(struct device *dev, struct vm_area_struct *vma,
--		    void *cpu_addr, dma_addr_t dma_addr, size_t size)
-+		    void *cpu_addr, dma_addr_t dma_addr, size_t size,
-+		    struct dma_coherent_area *area)
- {
- 	int ret = -ENXIO;
- #ifdef CONFIG_MMU
-@@ -367,7 +380,7 @@ static int dma_mmap(struct device *dev, struct vm_area_struct *vma,
- 
- 	user_size = (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
- 
--	c = arm_vmregion_find(&consistent_head, (unsigned long)cpu_addr);
-+	c = arm_vmregion_find(&area->vm, (unsigned long)cpu_addr);
- 	if (c) {
- 		unsigned long off = vma->vm_pgoff;
- 
-@@ -390,7 +403,7 @@ int dma_mmap_coherent(struct device *dev, struct vm_area_struct *vma,
- 		      void *cpu_addr, dma_addr_t dma_addr, size_t size)
- {
- 	vma->vm_page_prot = pgprot_dmacoherent(vma->vm_page_prot);
--	return dma_mmap(dev, vma, cpu_addr, dma_addr, size);
-+	return dma_mmap(dev, vma, cpu_addr, dma_addr, size, coherent_dma_area);
- }
- EXPORT_SYMBOL(dma_mmap_coherent);
- 
-@@ -398,7 +411,7 @@ int dma_mmap_writecombine(struct device *dev, struct vm_area_struct *vma,
- 			  void *cpu_addr, dma_addr_t dma_addr, size_t size)
- {
- 	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
--	return dma_mmap(dev, vma, cpu_addr, dma_addr, size);
-+	return dma_mmap(dev, vma, cpu_addr, dma_addr, size, coherent_wc_area);
- }
- EXPORT_SYMBOL(dma_mmap_writecombine);
- 
-@@ -413,14 +426,18 @@ void dma_free_coherent(struct device *dev, size_t size, void *cpu_addr, dma_addr
- 	if (dma_release_from_coherent(dev, get_order(size), cpu_addr))
- 		return;
- 
--	size = PAGE_ALIGN(size);
-+	__dma_free(dev, size, cpu_addr, handle, coherent_dma_area);
-+}
-+EXPORT_SYMBOL(dma_free_coherent);
- 
--	if (!arch_is_coherent())
--		__dma_free_remap(cpu_addr, size);
-+void dma_free_writecombine(struct device *dev, size_t size, void *cpu_addr,
-+	dma_addr_t handle)
-+{
-+	WARN_ON(irqs_disabled());
- 
--	__dma_free_buffer(pfn_to_page(dma_to_pfn(dev, handle)), size);
-+	__dma_free(dev, size, cpu_addr, handle, coherent_wc_area);
- }
--EXPORT_SYMBOL(dma_free_coherent);
-+EXPORT_SYMBOL(dma_free_writecombine);
- 
- /*
-  * Make an area consistent for devices.
-diff --git a/arch/arm/mm/init.c b/arch/arm/mm/init.c
-index 2fee782..77076a6 100644
---- a/arch/arm/mm/init.c
-+++ b/arch/arm/mm/init.c
-@@ -365,6 +365,7 @@ void __init arm_memblock_init(struct meminfo *mi, struct machine_desc *mdesc)
- 
- 	arm_mm_memblock_reserve();
- 	arm_dt_memblock_reserve();
-+	dma_coherent_reserve();
- 
- 	/* reserve any platform specific memblock areas */
- 	if (mdesc->reserve)
-diff --git a/arch/arm/mm/mm.h b/arch/arm/mm/mm.h
-index 0105667..3abaa2c 100644
---- a/arch/arm/mm/mm.h
-+++ b/arch/arm/mm/mm.h
-@@ -31,3 +31,5 @@ extern u32 arm_dma_limit;
- 
- void __init bootmem_init(void);
- void arm_mm_memblock_reserve(void);
-+void dma_coherent_reserve(void);
-+void dma_coherent_mapping(void);
-diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
-index 594d677..027f118 100644
---- a/arch/arm/mm/mmu.c
-+++ b/arch/arm/mm/mmu.c
-@@ -273,6 +273,16 @@ static struct mem_type mem_types[] = {
- 		.prot_l1   = PMD_TYPE_TABLE,
- 		.domain    = DOMAIN_KERNEL,
- 	},
-+	[MT_DMA_COHERENT] = {
-+		.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE |
-+				  PMD_SECT_S,
-+		.domain		= DOMAIN_IO,
-+	},
-+	[MT_WC_COHERENT] = {
-+		.prot_sect	= PMD_TYPE_SECT | PMD_SECT_AP_WRITE |
-+				  PMD_SECT_S,
-+		.domain		= DOMAIN_IO,
-+	},
- };
- 
- const struct mem_type *get_mem_type(unsigned int type)
-@@ -353,6 +363,7 @@ static void __init build_mem_type_table(void)
- 			mem_types[MT_DEVICE_NONSHARED].prot_sect |= PMD_SECT_XN;
- 			mem_types[MT_DEVICE_CACHED].prot_sect |= PMD_SECT_XN;
- 			mem_types[MT_DEVICE_WC].prot_sect |= PMD_SECT_XN;
-+			mem_types[MT_DMA_COHERENT].prot_sect |= PMD_SECT_XN;
- 		}
- 		if (cpu_arch >= CPU_ARCH_ARMv7 && (cr & CR_TRE)) {
- 			/*
-@@ -457,13 +468,24 @@ static void __init build_mem_type_table(void)
- 			/* Non-cacheable Normal is XCB = 001 */
- 			mem_types[MT_MEMORY_NONCACHED].prot_sect |=
- 				PMD_SECT_BUFFERED;
-+			mem_types[MT_WC_COHERENT].prot_sect |=
-+				PMD_SECT_BUFFERED;
-+			mem_types[MT_DMA_COHERENT].prot_sect |=
-+				PMD_SECT_BUFFERED;
- 		} else {
- 			/* For both ARMv6 and non-TEX-remapping ARMv7 */
- 			mem_types[MT_MEMORY_NONCACHED].prot_sect |=
- 				PMD_SECT_TEX(1);
-+			mem_types[MT_WC_COHERENT].prot_sect |=
-+				PMD_SECT_TEX(1);
-+#ifdef CONFIG_ARM_DMA_MEM_BUFFERABLE
-+			mem_types[MT_DMA_COHERENT].prot_sect |=
-+				PMD_SECT_TEX(1);
-+#endif
- 		}
- 	} else {
- 		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_BUFFERABLE;
-+		mem_types[MT_WC_COHERENT].prot_sect |= PMD_SECT_BUFFERED;
- 	}
- 
- 	for (i = 0; i < 16; i++) {
-@@ -976,6 +998,8 @@ static void __init devicemaps_init(struct machine_desc *mdesc)
- 		create_mapping(&map);
- 	}
- 
-+	dma_coherent_mapping();
-+
- 	/*
- 	 * Ask the machine support to map in the statically mapped devices.
- 	 */
+> +in advance saves time during the actual I/O. In case such cache operations are
+> +not required, the application can use one of
+> +<constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant> and
+> +<constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant> flags to skip the respective
+> +step.</para>
+> +
+> +    <para>The <structname>v4l2_buffer</structname> structure is
+> +specified in <xref linkend="buffer" />.</para>
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    &return-value;
+> +
+> +    <variablelist>
+> +      <varlistentry>
+> +	<term><errorcode>EBUSY</errorcode></term>
+> +	<listitem>
+> +	  <para>File I/O is in progress.</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><errorcode>EINVAL</errorcode></term>
+> +	<listitem>
+> +	  <para>The buffer <structfield>type</structfield> is not
+> +supported, or the <structfield>index</structfield> is out of bounds,
+> +or no buffers have been allocated yet, or the
+> +<structfield>userptr</structfield> or
+> +<structfield>length</structfield> are invalid.</para>
+> +	</listitem>
+> +      </varlistentry>
+> +    </variablelist>
+> +  </refsect1>
+> +</refentry>
+> +
+> +<!--
+> +Local Variables:
+> +mode: sgml
+> +sgml-parent-document: "v4l2.sgml"
+> +indent-tabs-mode: nil
+> +End:
+> +-->
+> -- 
+> 1.7.2.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 -- 
-1.7.1.569.g6f426
-
+Sakari Ailus
+sakari.ailus@iki.fi
