@@ -1,86 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:35585 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752187Ab1HSUac (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2026 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755923Ab1HaNjc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Aug 2011 16:30:32 -0400
-Received: by eyx24 with SMTP id 24so1980227eyx.19
-        for <linux-media@vger.kernel.org>; Fri, 19 Aug 2011 13:30:31 -0700 (PDT)
-Message-ID: <4E4EC7E3.8030500@gmail.com>
-Date: Fri, 19 Aug 2011 22:30:27 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCHv2] adp1653: make ->power() method optional
-References: <20110818092158.GA8872@valkosipuli.localdomain>	 <98c77ce2a17d7a098dedfc858f4055edc5556c54.1313666504.git.andriy.shevchenko@linux.intel.com>	 <1313667122.25065.8.camel@smile>	 <20110818115131.GD8872@valkosipuli.localdomain> <1313674341.25065.17.camel@smile> <4E4D4840.7050207@gmail.com> <4E4D61CD.40405@iki.fi> <4E4D7D3A.4040708@gmail.com> <4E4E8C7B.7090806@iki.fi>
-In-Reply-To: <4E4E8C7B.7090806@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Wed, 31 Aug 2011 09:39:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 5/6] V4L menu: move all platform drivers to the bottom of the menu.
+Date: Wed, 31 Aug 2011 15:38:44 +0200
+Message-Id: <99c353d49539e4a2a8f165db612ed6a7e82a57b9.1314797675.git.hans.verkuil@cisco.com>
+In-Reply-To: <1314797925-8113-1-git-send-email-hverkuil@xs4all.nl>
+References: <1314797925-8113-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <b5c71c4b9e2f88bd5698a9920b24d24786e4a28c.1314797675.git.hans.verkuil@cisco.com>
+References: <b5c71c4b9e2f88bd5698a9920b24d24786e4a28c.1314797675.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/19/2011 06:16 PM, Sakari Ailus wrote:
-> Sylwester Nawrocki wrote:
->> On 08/18/2011 09:02 PM, Sakari Ailus wrote:
->>>>>>>
->>>>>>> He-h, I guess you are not going to apply this one.
->>>>>>> The patch breaks init logic of the device. If we have no ->power(), we
->>>>>>> still need to bring the device to the known state. I have no good idea
->>>>>>> how to do this.
->>>>>>
->>>>>> I don't think it breaks anything actually. Albeit in practice one is still
->>>>>> likely to put the adp1653 reset line to the board since that lowers its power
->>>>>> consumption significantly.
->>>>> Yeah, even in practice we might see various ways of a chip connection.
->>>>>
->>>>>> Instead of being in power-up state after opening the flash subdev, it will
->>>>>> reach this state already when the system is powered up. At subdev open all
->>>>>> the relevant registers are written to anyway, so I don't see an issue here.
->>>>> You mean at first writing to the V4L2 value, do you? Because ->open()
->>>>> uses set_power() which will be skipped in case of no ->power method
->>>>> defined.
->>>>>
->>>>>> I think either this one, or one should check in probe() that the power()
->>>>>> callback is non-NULL.
->>>>>> The board code is going away in the near future so this callback will
->>>>>> disappear eventually anyway.
->>>>> So, it's up to you to include or not my last patch.
->>>>>
->>>>>> The gpio code in the board file should likely
->>>>>> be moved to the driver itself.
->>>>> The line could be different, the hw could be used in environment w/o
->>>>> gpio, but with (for example) external gate, and so on. I think current
->>>>> generic driver is pretty okay.
->>>>
->>>> Would it make sense to use the regulator API in place of the platform_data
->>>> callback? If there is only one GPIO then it's easy to create a 'fixed voltage
->>>> regulator' for this.
->>>
->>> I don't know the regulator framework very well, but do you mean creating a new
->>> regulator which just controls a gpio? It would be preferable that this wouldn't
->>> create a new driver nor add any board core.
->>
->> I'm afraid your requirements are too demanding :)
->> Yes, I meant creating a new regulator. In case the ADP1635 voltage regulator
->> is inhibited through a GPIO at a host processor such regulator would in fact
->> be only flipping a GPIO (and its driver would request the GPIO and set it into
->> a default inactive state during its initialization). But the LDO for ADP1635
-> 
-> Thinking about this again, I think we'd need a regulator and reset gpio.
-> The reset line probably can't be really modelled as a power supply, as
-> the voltage provided to the chip is different from the reset line. Both
-> may exist on some boards.
-> 
-> The regulator might be a dummy one, too, as well as the reset line. 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Yes, this would make the driver most complete I guess.
-And the gpio API seems a natural choice for the reset signal. If there is
-some 'non-standard' circuit to drive the ADP1635 pin possibly it can be
-handled by some existing or dedicated gpio driver.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/Kconfig |  106 ++++++++++++++++++++++---------------------
+ 1 files changed, 55 insertions(+), 51 deletions(-)
 
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 5beff36..d14da37 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -630,25 +630,6 @@ config USB_S2255
+ 
+ endif # V4L_USB_DRIVERS
+ 
+-config VIDEO_SH_VOU
+-	tristate "SuperH VOU video output driver"
+-	depends on VIDEO_DEV && ARCH_SHMOBILE
+-	select VIDEOBUF_DMA_CONTIG
+-	help
+-	  Support for the Video Output Unit (VOU) on SuperH SoCs.
+-
+-config VIDEO_VIU
+-	tristate "Freescale VIU Video Driver"
+-	depends on VIDEO_V4L2 && PPC_MPC512x
+-	select VIDEOBUF_DMA_CONTIG
+-	default y
+-	---help---
+-	  Support for Freescale VIU video driver. This device captures
+-	  video data, or overlays video on DIU frame buffer.
+-
+-	  Say Y here if you want to enable VIU device on MPC5121e Rev2+.
+-	  In doubt, say N.
+-
+ config VIDEO_VIVI
+ 	tristate "Virtual Video Driver"
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
+@@ -663,20 +644,8 @@ config VIDEO_VIVI
+ 	  Say Y here if you want to test video apps or debug V4L devices.
+ 	  In doubt, say N.
+ 
+-source "drivers/media/video/davinci/Kconfig"
+-
+-source "drivers/media/video/omap/Kconfig"
+-
+ source "drivers/media/video/bt8xx/Kconfig"
+ 
+-config VIDEO_VINO
+-	tristate "SGI Vino Video For Linux"
+-	depends on I2C && SGI_IP22 && VIDEO_V4L2
+-	select VIDEO_SAA7191 if VIDEO_HELPER_CHIPS_AUTO
+-	help
+-	  Say Y here to build in support for the Vino video input system found
+-	  on SGI Indy machines.
+-
+ source "drivers/media/video/zoran/Kconfig"
+ 
+ config VIDEO_MEYE
+@@ -695,16 +664,6 @@ config VIDEO_MEYE
+ 
+ source "drivers/media/video/saa7134/Kconfig"
+ 
+-config VIDEO_TIMBERDALE
+-	tristate "Support for timberdale Video In/LogiWIN"
+-	depends on VIDEO_V4L2 && I2C && DMADEVICES
+-	select DMA_ENGINE
+-	select TIMB_DMA
+-	select VIDEO_ADV7180
+-	select VIDEOBUF_DMA_CONTIG
+-	---help---
+-	  Add support for the Video In peripherial of the timberdale FPGA.
+-
+ source "drivers/media/video/cx88/Kconfig"
+ 
+ source "drivers/media/video/cx23885/Kconfig"
+@@ -719,6 +678,61 @@ source "drivers/media/video/saa7164/Kconfig"
+ 
+ source "drivers/media/video/marvell-ccic/Kconfig"
+ 
++config VIDEO_VIA_CAMERA
++	tristate "VIAFB camera controller support"
++	depends on FB_VIA
++	select VIDEOBUF_DMA_SG
++	select VIDEO_OV7670
++	help
++	   Driver support for the integrated camera controller in VIA
++	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
++	   with ov7670 sensors.
++
++#
++# Platform multimedia device configuration
++#
++
++source "drivers/media/video/davinci/Kconfig"
++
++source "drivers/media/video/omap/Kconfig"
++
++config VIDEO_SH_VOU
++	tristate "SuperH VOU video output driver"
++	depends on VIDEO_DEV && ARCH_SHMOBILE
++	select VIDEOBUF_DMA_CONTIG
++	help
++	  Support for the Video Output Unit (VOU) on SuperH SoCs.
++
++config VIDEO_VIU
++	tristate "Freescale VIU Video Driver"
++	depends on VIDEO_V4L2 && PPC_MPC512x
++	select VIDEOBUF_DMA_CONTIG
++	default y
++	---help---
++	  Support for Freescale VIU video driver. This device captures
++	  video data, or overlays video on DIU frame buffer.
++
++	  Say Y here if you want to enable VIU device on MPC5121e Rev2+.
++	  In doubt, say N.
++
++config VIDEO_TIMBERDALE
++	tristate "Support for timberdale Video In/LogiWIN"
++	depends on VIDEO_V4L2 && I2C && DMADEVICES
++	select DMA_ENGINE
++	select TIMB_DMA
++	select VIDEO_ADV7180
++	select VIDEOBUF_DMA_CONTIG
++	---help---
++	  Add support for the Video In peripherial of the timberdale FPGA.
++
++config VIDEO_VINO
++	tristate "SGI Vino Video For Linux"
++	depends on I2C && SGI_IP22 && VIDEO_V4L2
++	select VIDEO_SAA7191 if VIDEO_HELPER_CHIPS_AUTO
++	help
++	  Say Y here to build in support for the Vino video input system found
++	  on SGI Indy machines.
++
+ config VIDEO_M32R_AR
+ 	tristate "AR devices"
+ 	depends on M32R && VIDEO_V4L2
+@@ -738,16 +752,6 @@ config VIDEO_M32R_AR_M64278
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called arv.
+ 
+-config VIDEO_VIA_CAMERA
+-	tristate "VIAFB camera controller support"
+-	depends on FB_VIA
+-	select VIDEOBUF_DMA_SG
+-	select VIDEO_OV7670
+-	help
+-	   Driver support for the integrated camera controller in VIA
+-	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
+-	   with ov7670 sensors.
+-
+ config VIDEO_OMAP3
+ 	tristate "OMAP 3 Camera support (EXPERIMENTAL)"
+ 	select OMAP_IOMMU
+-- 
+1.7.5.4
 
---
-Regards,
-Sylwester
