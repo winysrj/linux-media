@@ -1,107 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:46384 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753144Ab1HSOr7 (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:39633 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750779Ab1HaIxP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Aug 2011 10:47:59 -0400
-Received: by pzk37 with SMTP id 37so4949232pzk.1
-        for <linux-media@vger.kernel.org>; Fri, 19 Aug 2011 07:47:58 -0700 (PDT)
+	Wed, 31 Aug 2011 04:53:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] media: none of the drivers should be enabled by default
+Date: Wed, 31 Aug 2011 10:53:00 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <Pine.LNX.4.64.1108301921040.19151@axis700.grange> <201108311021.05793.hverkuil@xs4all.nl> <Pine.LNX.4.64.1108311023260.8429@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1108311023260.8429@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <4E4C2631.6010405@iki.fi>
-References: <CAL9G6WUpso9FFUzC3WWiBZDqQDr-+HQFouCO_2V-zVHVyiyKeg@mail.gmail.com>
-	<201108162227.00963.jareguero@telefonica.net>
-	<4E4AD9B4.2040908@iki.fi>
-	<201108170123.09647.jareguero@telefonica.net>
-	<CAL9G6WW3Atz9Vj7xoWqrYQKKAsLL1Q9Hj+v6FYxYE5dqdPRjFQ@mail.gmail.com>
-	<4E4C2631.6010405@iki.fi>
-Date: Fri, 19 Aug 2011 16:47:57 +0200
-Message-ID: <CAL9G6WXwRJ5MgK-KL8Ni+O3jZbofPcKafv+=XTMOMM_YqgNJHw@mail.gmail.com>
-Subject: Re: Afatech AF9013
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Jose Alberto Reguero <jareguero@telefonica.net>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108311053.00687.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/8/17 Antti Palosaari <crope@iki.fi>:
-> On 08/17/2011 10:36 AM, Josu Lazkano wrote:
->> I don't know how wide is the stream, but it could be a USB wide
->> limitation. My board is a little ION based and I have some USB
->> devices:
->> $ lsusb
->> Bus 001 Device 002: ID 1b80:e399 Afatech
->> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
->
-> I don't think so. Total under 50Mbit/sec stream should not be too much
-> for one USB2.0 root hub.
->
-> Which is chipset used ION (it is southbridge which contains usually USB
-> ports)?
->
->> The problematic twin device is the "Afatech" one, there is an DVB-S2
->> USB tuner, a bluetooth dongle, a IR receiver and a wireless
->> mouse/keybord receiver.
->>
->> Now I am at work, I will try to disconnect all devices and try with
->> just the DVB-T device.
->>
->> I use to try with MythTV if it works or not. Is there any other tool
->> to test and debug more deep about USB or DVB wide?
->
-> You can look stream sizes using dvbtraffic tool. It is last line of
-> output which shows total stream size.
->
-> tzap can be used to tune channel. But it you can use some other app like
-> MythTV and then run dvbtraffic same time.
->
->> I apreciate your help. Thanks and best regards.
->
-> regards
-> Antti
->
-> --
-> http://palosaari.fi/
->
+On Wednesday, August 31, 2011 10:26:08 Guennadi Liakhovetski wrote:
+> On Wed, 31 Aug 2011, Hans Verkuil wrote:
+> 
+> > On Tuesday, August 30, 2011 23:31:06 Guennadi Liakhovetski wrote:
+> > > On Tue, 30 Aug 2011, Hans Verkuil wrote:
+> > > 
+> > > > On Tuesday, August 30, 2011 22:12:09 Guennadi Liakhovetski wrote:
+> > > > > On Tue, 30 Aug 2011, Hans Verkuil wrote:
+> > > > > 
+> > > > > > On Tuesday, August 30, 2011 19:22:00 Guennadi Liakhovetski wrote:
+> > > > > > > None of the media drivers are compulsory, let users select which 
+> > drivers
+> > > > > > > they want to build, instead of having to unselect them one by 
+one.
+> > > > > > 
+> > > > > > I disagree with this: while this is fine for SoCs, for a generic 
+> > kernel I
+> > > > > > think it is better to build it all. Even expert users can have a 
+hard 
+> > time
+> > > > > > figuring out what chip is in a particular device.
+> > > > > 
+> > > > > Then could someone, please, explain to me, why I don't find this 
+> > > > > "convenience" in any other kernel driver class? Wireless, ALSA, USB, 
+I2C 
+> > - 
+> > > > > you name them. Is there something special about media, that I'm 
+missing, 
+> > > > > or are all others just user-unfriendly? Why are distro-kernels, 
+> > > > > allmodconfig, allyesconfig not enough for media and we think it's 
+> > > > > necessary to build everything "just in case?"
+> > > > 
+> > > > That's actually a good question. I certainly think that the more 
+obscure
+> > > > drivers can be disabled by default. But I also think that you want to 
+keep
+> > > > a certain subset of commonly used drivers enabled. I'm thinking bttv, 
+uvc,
+> > > > perhaps gspca.
+> > > 
+> > > Good, this is a good beginning! It was actually the purpose of my patch 
+- 
+> > > to make us actually consider which drivers we need enabled per default, 
+> > > and which we don't, instead of just enabling all.
+> > > 
+> > > > As far as I can see, alsa enables for example HD Audio, which almost 
+all
+> > > > modern hw supports. We should do something similar for v4l.
+> > > 
+> > > Yes, agree.
+> > > 
+> > > > And we should really reorder some of the entries in the menu: one of 
+the
+> > > > first drivers you see are parallel port webcams and other very obscure
+> > > > devices.
+> > > 
+> > > Ok.
+> > > 
+> > > So, how should we proceed? What I certainly would like to disable 
+> > > completely or to 99% are remote controls and tuners. The rest are 
+actually 
+> > > disabled by default, which is great. Or at least I would like to have a 
+> > > single switch "disable all," ideally active by default. One of the 
+> > > possibilities would be to take the patch as is and _then_ begin to 
+think, 
+> > > which drivers we want enabled by default. I just think, that the correct 
+> > > approach is to think, which drivers we need enabled by default - as 
+> > > exceptions, instead of - which drivers we can afford to disable.
+> > 
+> > I would propose to start by reorganizing the menu. E.g. make a submenu for
+> > old legacy bus drivers (parallel port, ISA), for platform drivers, and for
+> > 'rare' drivers (need a better name for that :-) ). For example the Hexium
+> > PCI drivers are very rare, and few people have them.
+> 
+> Sure, this can be done, not sure whether I'm a suitable person for this 
+> task - I don't have a very good overview of the present market 
+> situation;-)
+> 
+> > Once that is done we can look at disabling those legacy/platform/rare 
+drivers.
+> 
+> I'm not sure any of those are actually enabled. What concerns me most are 
+> tuner and remote controller drivers. Do they also belong to your "rare" 
+> category? Do you agree, that they have to be disabled by default?
 
-Thanks Antti, I don't know the chipset model, my board is this one:
-ZOTAC ION ITX-G Synergy Edition:
-http://www.zotac.com/pdbrochures/mb/ION-ITX-G-E-Synergy-Edition_v1.3.pdf
+I can't comment on the remote controller drivers as I haven't been involved
+with that.
 
-On the BIOS there is something about southbridge, but now I am
-connected remotely so I can not access to the BIOS, I must change
-something on the BIOS?
+With regards to the tuners: perhaps it is sufficient to default MEDIA_ATTACH
+to 'y'? That should prevent building those tuners that are not needed.
 
-I make this steps to record a TV channel:
+I wouldn't change anything else here.
 
-1. Scan with w_scan with both adapters:
-w_scan -a 2 -ft -c ES >> canales1_TDT.conf
-w_scan -a 3 -ft -c ES >> canales2_TDT.conf
+Regards,
 
-Here is the output and the channel files:
-http://dl.dropbox.com/u/1541853/w_scan1
-http://dl.dropbox.com/u/1541853/canales1_TDT.conf
-
-http://dl.dropbox.com/u/1541853/w_scan2
-http://dl.dropbox.com/u/1541853/canales2_TDT.conf
-
-I think there is something wrong, because there must be more channels
-as TVE 1, La 2...
-
-How can I tune the correct channel?
-
-I try this:
-
-$ tzap -a 2 -c canales1_TDT.conf -r "TELECINCO"
-using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
-reading channels from file 'canales1_TDT.conf'
-ERROR: could not find channel 'TELECINCO' in channel list
-
-I want to try to tune the channel and record it with gnutv and see if
-there is any problem. Thanks for the dvbtraffic tool.
-
-Thanks for all your help, best regards.
-
--- 
-Josu Lazkano
+	Hans
