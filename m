@@ -1,73 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:2948 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753228Ab1HRLBG convert rfc822-to-8bit (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:7170 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755169Ab1HaMld (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2011 07:01:06 -0400
-Subject: Re: [PATCH] adp1653: make ->power() method optional
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <20110818105355.GC8872@valkosipuli.localdomain>
-References: <aa45d92c4ec78b36b28eb721ef58f3a5512900a3.1313657559.git.andriy.shevchenko@linux.intel.com>
-	 <20110818092158.GA8872@valkosipuli.localdomain>
-	 <1313663450.25065.4.camel@smile>
-	 <20110818105355.GC8872@valkosipuli.localdomain>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Thu, 18 Aug 2011 14:00:37 +0300
-Message-ID: <1313665237.25065.6.camel@smile>
-Mime-Version: 1.0
+	Wed, 31 Aug 2011 08:41:33 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] media: none of the drivers should be enabled by default
+Date: Wed, 31 Aug 2011 14:41:28 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <Pine.LNX.4.64.1108301921040.19151@axis700.grange> <Pine.LNX.4.64.1108311103130.8429@axis700.grange> <4E5E23CA.4030208@infradead.org>
+In-Reply-To: <4E5E23CA.4030208@infradead.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108311441.28464.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2011-08-18 at 13:53 +0300, Sakari Ailus wrote: 
-> On Thu, Aug 18, 2011 at 01:30:50PM +0300, Andy Shevchenko wrote:
-> > On Thu, 2011-08-18 at 12:21 +0300, Sakari Ailus wrote: 
-> > > On Thu, Aug 18, 2011 at 11:53:03AM +0300, Andy Shevchenko wrote:
-> > > > The ->power() could be absent or not used on some platforms. This patch makes
-> > > > its presence optional.
-> > > 
-> > > Hi Andy,
-> > > 
-> > > Thanks for the patch!
-> > > 
-> > > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > > > Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> > > > ---
-> > > >  drivers/media/video/adp1653.c |    3 +++
-> > > >  1 files changed, 3 insertions(+), 0 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
-> > > > index 0fd9579..65f6f3f 100644
-> > > > --- a/drivers/media/video/adp1653.c
-> > > > +++ b/drivers/media/video/adp1653.c
-> > > > @@ -309,6 +309,9 @@ __adp1653_set_power(struct adp1653_flash *flash, int on)
-> > > >  {
-> > > >  	int ret;
-> > > >  
-> > > > +	if (flash->platform_data->power == NULL)
-> > > > +		return 0;
-> > > > +
-> > > >  	ret = flash->platform_data->power(&flash->subdev, on);
-> > > >  	if (ret < 0)
-> > > >  		return ret;
-> > 
-> > > How about doing this in adp1653_set_power() instead of
-> > > __adp1653_set_power()? At least I don't see any ill effects from this.
-> > > There's no need to keep track of the power state (flash->power_count) if
-> > > there isn't one. :-)
-> > It was my first assumption. However, the __adp1653_set_power() is used
-> > directly from suspend/resume methods.
+On Wednesday, August 31, 2011 14:06:34 Mauro Carvalho Chehab wrote:
+> Em 31-08-2011 06:06, Guennadi Liakhovetski escreveu:
+> >>>> I would propose to start by reorganizing the menu. E.g. make a submenu 
+for
+> >>>> old legacy bus drivers (parallel port, ISA), for platform drivers, and 
+for
+> >>>> 'rare' drivers (need a better name for that :-) ). For example the 
+Hexium
+> >>>> PCI drivers are very rare, and few people have them.
+> >>>
+> >>> Sure, this can be done, not sure whether I'm a suitable person for this 
+> >>> task - I don't have a very good overview of the present market 
+> >>> situation;-)
 > 
-> It is but it won't get called: power_count will be always zero when the
-> power() callback doesn't exist.
+> It is hard to say what's "rare". While we know a few examples, nobody has a
+> worldwide situation about what's rare.
 
-Ah, now I got the full picture. Yes, if we leave adp1653_set_power()
-immediately, then power_count stays 0.
+I actually have a pretty good overview of that when it comes to video capture.
 
-I will send patch v2 soon.
+Going through the menu it is IMHO reasonably to classify the following drivers 
+as rare:
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+w9966 (still haven't been able to find hardware to test this)
+cpia2 (after a long hunt I finally tracked down a cpia2-based webcam)
+mxb
+hexium (orion and gemini drivers)
+
+As an aside: the cpia2 menu entry should really move to the 'V4L USB devices' 
+section.
+
+I think making a menu with 'legacy drivers' containing the parallel port 
+webcams (bw-qcam, c-qcam, w9966), the cpia2 driver, the ISA pms driver and the 
+'rare' mxb and hexium drivers would go a long way to cleaning up the v4l menu.
+
+And by reordering the rest of the menu so 'popular' drivers like saa7134 come 
+before zoran and the motion eye drivers etc. would also make it easier to 
+navigate the menu.
+
+The USB devices should be moved up to the top.
+
+I also think a 'Sensors' submenu will be useful. Right now most sensors are 
+under SoC camera, but once the soc-camera dependency is removed we can move 
+them all under their own submenu.
+
+Regards,
+
+	Hans
