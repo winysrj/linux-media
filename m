@@ -1,261 +1,375 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:52926 "EHLO
-	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753168Ab1HIKQb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2011 06:16:31 -0400
-From: Steve Kerrison <steve@stevekerrison.com>
+Received: from impaqm2.telefonica.net ([213.4.138.18]:22225 "EHLO
+	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752249Ab1HaXrp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Aug 2011 19:47:45 -0400
+From: Jose Alberto Reguero <jareguero@telefonica.net>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Robert Schlabbach <robert_s@gmx.net>,
-	Steve Kerrison <steve@stevekerrison.com>
-Subject: [PATCH v2] CXD2820R: Replace i2c message translation with repeater gate control
-Date: Tue,  9 Aug 2011 11:16:21 +0100
-Message-Id: <1312884981-15835-1-git-send-email-steve@stevekerrison.com>
-In-Reply-To: <4E406E53.6050302@iki.fi>
-References: <4E406E53.6050302@iki.fi>
+Subject: [PATCH] TT CT-3650 CI support
+Date: Thu, 1 Sep 2011 01:47:32 +0200
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_UgsXOXR2KehbyNm"
+Message-Id: <201109010147.33030.jareguero@telefonica.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch implements an i2c_gate_ctrl op for the cxd2820r. Thanks to Robert
-Schlabbach for identifying the register address and field to set.
+--Boundary-00=_UgsXOXR2KehbyNm
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-The old i2c intercept code that prefixed messages with a passthrough byte has
-been removed and the PCTV nanoStick T2 290e entry in em28xx-dvb has been
-updated appropriately.
+From:
 
-Tested for DVB-T2 use; I would appreciate it if somebody with DVB-C capabilities
-could test it as well - from inspection I cannot see any problems.
+http://www.spinics.net/lists/linux-media/msg20440.html
 
-This is patch v2. It fixes some schoolboy style errors and removes superfluous
-i2c entries in cxd2820r.h.
+This patch add support for the CI of the TT CT-3650.
 
-Signed-off-by: Steve Kerrison <steve@stevekerrison.com>
----
- drivers/media/dvb/frontends/cxd2820r.h      |    9 ---
- drivers/media/dvb/frontends/cxd2820r_c.c    |    1 -
- drivers/media/dvb/frontends/cxd2820r_core.c |   76 +++------------------------
- drivers/media/dvb/frontends/cxd2820r_priv.h |    1 -
- drivers/media/dvb/frontends/cxd2820r_t.c    |    1 -
- drivers/media/dvb/frontends/cxd2820r_t2.c   |    1 -
- drivers/media/video/em28xx/em28xx-dvb.c     |    7 +--
- 7 files changed, 11 insertions(+), 85 deletions(-)
+Jose Alberto
 
-diff --git a/drivers/media/dvb/frontends/cxd2820r.h b/drivers/media/dvb/frontends/cxd2820r.h
-index 2906582..03cab7b 100644
---- a/drivers/media/dvb/frontends/cxd2820r.h
-+++ b/drivers/media/dvb/frontends/cxd2820r.h
-@@ -93,9 +93,6 @@ extern struct dvb_frontend *cxd2820r_attach(
- 	struct i2c_adapter *i2c,
- 	struct dvb_frontend *fe
- );
--extern struct i2c_adapter *cxd2820r_get_tuner_i2c_adapter(
--	struct dvb_frontend *fe
--);
- #else
- static inline struct dvb_frontend *cxd2820r_attach(
- 	const struct cxd2820r_config *config,
-@@ -106,12 +103,6 @@ static inline struct dvb_frontend *cxd2820r_attach(
- 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
- 	return NULL;
- }
--static inline struct i2c_adapter *cxd2820r_get_tuner_i2c_adapter(
--	struct dvb_frontend *fe
--)
--{
--	return NULL;
--}
+Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+
+--Boundary-00=_UgsXOXR2KehbyNm
+Content-Type: text/x-patch;
+  charset="UTF-8";
+  name="ttusb2-ci.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="ttusb2-ci.diff"
+
+diff -ur linux/drivers/media/dvb/dvb-usb/ttusb2.c linux.new/drivers/media/dvb/dvb-usb/ttusb2.c
+--- linux/drivers/media/dvb/dvb-usb/ttusb2.c	2011-08-28 05:45:24.000000000 +0200
++++ linux.new/drivers/media/dvb/dvb-usb/ttusb2.c	2011-09-01 01:13:45.348101193 +0200
+@@ -33,6 +33,8 @@
+ #include "tda10048.h"
+ #include "tda827x.h"
+ #include "lnbp21.h"
++/* CA */
++#include "dvb_ca_en50221.h"
  
- #endif
+ /* debug */
+ static int dvb_usb_ttusb2_debug;
+@@ -42,7 +44,26 @@
  
-diff --git a/drivers/media/dvb/frontends/cxd2820r_c.c b/drivers/media/dvb/frontends/cxd2820r_c.c
-index 3c07d40..b85f501 100644
---- a/drivers/media/dvb/frontends/cxd2820r_c.c
-+++ b/drivers/media/dvb/frontends/cxd2820r_c.c
-@@ -335,4 +335,3 @@ int cxd2820r_get_tune_settings_c(struct dvb_frontend *fe,
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
  
- 	return 0;
- }
--
-diff --git a/drivers/media/dvb/frontends/cxd2820r_core.c b/drivers/media/dvb/frontends/cxd2820r_core.c
-index d416e85..0151267 100644
---- a/drivers/media/dvb/frontends/cxd2820r_core.c
-+++ b/drivers/media/dvb/frontends/cxd2820r_core.c
-@@ -727,70 +727,20 @@ static void cxd2820r_release(struct dvb_frontend *fe)
- 	struct cxd2820r_priv *priv = fe->demodulator_priv;
- 	dbg("%s", __func__);
- 
--	if (fe->ops.info.type == FE_OFDM) {
--		i2c_del_adapter(&priv->tuner_i2c_adapter);
-+	if (fe->ops.info.type == FE_OFDM)
- 		kfree(priv);
--	}
- 
- 	return;
- }
- 
--static u32 cxd2820r_tuner_i2c_func(struct i2c_adapter *adapter)
--{
--	return I2C_FUNC_I2C;
--}
--
--static int cxd2820r_tuner_i2c_xfer(struct i2c_adapter *i2c_adap,
--	struct i2c_msg msg[], int num)
--{
--	struct cxd2820r_priv *priv = i2c_get_adapdata(i2c_adap);
--	int ret;
--	u8 *obuf = kmalloc(msg[0].len + 2, GFP_KERNEL);
--	struct i2c_msg msg2[2] = {
--		{
--			.addr = priv->cfg.i2c_address,
--			.flags = 0,
--			.len = msg[0].len + 2,
--			.buf = obuf,
--		}, {
--			.addr = priv->cfg.i2c_address,
--			.flags = I2C_M_RD,
--			.len = msg[1].len,
--			.buf = msg[1].buf,
--		}
--	};
--
--	if (!obuf)
--		return -ENOMEM;
--
--	obuf[0] = 0x09;
--	obuf[1] = (msg[0].addr << 1);
--	if (num == 2) { /* I2C read */
--		obuf[1] = (msg[0].addr << 1) | I2C_M_RD; /* I2C RD flag */
--		msg2[0].len = msg[0].len + 2 - 1; /* '-1' maybe HW bug ? */
--	}
--	memcpy(&obuf[2], msg[0].buf, msg[0].len);
--
--	ret = i2c_transfer(priv->i2c, msg2, num);
--	if (ret < 0)
--		warn("tuner i2c failed ret:%d", ret);
--
--	kfree(obuf);
--
--	return ret;
--}
--
--static struct i2c_algorithm cxd2820r_tuner_i2c_algo = {
--	.master_xfer   = cxd2820r_tuner_i2c_xfer,
--	.functionality = cxd2820r_tuner_i2c_func,
--};
--
--struct i2c_adapter *cxd2820r_get_tuner_i2c_adapter(struct dvb_frontend *fe)
-+static int cxd2820r_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
- {
- 	struct cxd2820r_priv *priv = fe->demodulator_priv;
--	return &priv->tuner_i2c_adapter;
-+	dbg("%s: %d", __func__, enable);
++#define ci_dbg(format, arg...)                \
++do {                                          \
++	if (0)                                    \
++		printk(KERN_DEBUG DVB_USB_LOG_PREFIX \
++			": " format "\n" , ## arg);       \
++} while (0)
 +
-+	/* Bit 0 of reg 0xdb in bank 0x00 controls I2C repeater */
-+	return cxd2820r_wr_reg_mask(priv, 0xdb, enable ? 1 : 0, 0x1);
++enum {
++	TT3650_CMD_CI_TEST = 0x40,
++	TT3650_CMD_CI_RD_CTRL,
++	TT3650_CMD_CI_WR_CTRL,
++	TT3650_CMD_CI_RD_ATTR,
++	TT3650_CMD_CI_WR_ATTR,
++	TT3650_CMD_CI_RESET,
++	TT3650_CMD_CI_SET_VIDEO_PORT
++};
++
+ struct ttusb2_state {
++	struct dvb_ca_en50221 ca;
++	struct mutex ca_mutex;
+ 	u8 id;
+ 	u16 last_rc_key;
+ };
+@@ -79,6 +100,261 @@
+ 	return 0;
  }
--EXPORT_SYMBOL(cxd2820r_get_tuner_i2c_adapter);
  
- static struct dvb_frontend_ops cxd2820r_ops[2];
- 
-@@ -831,18 +781,6 @@ struct dvb_frontend *cxd2820r_attach(const struct cxd2820r_config *cfg,
- 		priv->fe[0].demodulator_priv = priv;
- 		priv->fe[1].demodulator_priv = priv;
- 
--		/* create tuner i2c adapter */
--		strlcpy(priv->tuner_i2c_adapter.name,
--			"CXD2820R tuner I2C adapter",
--			sizeof(priv->tuner_i2c_adapter.name));
--		priv->tuner_i2c_adapter.algo = &cxd2820r_tuner_i2c_algo;
--		priv->tuner_i2c_adapter.algo_data = NULL;
--		i2c_set_adapdata(&priv->tuner_i2c_adapter, priv);
--		if (i2c_add_adapter(&priv->tuner_i2c_adapter) < 0) {
--			err("tuner I2C bus could not be initialized");
--			goto error;
--		}
--
- 		return &priv->fe[0];
- 
++/* ci */
++static int tt3650_ci_msg(struct dvb_usb_device *d, u8 cmd, u8 *data, unsigned int write_len, unsigned int read_len)
++{
++	int ret;
++	u8 rx[60];/* (64 -4) */
++	ret = ttusb2_msg(d, cmd, data, write_len, rx, read_len);
++	if (ret == 0)
++		memcpy(data, rx, read_len);
++	return ret;
++}
++
++static int tt3650_ci_msg_locked(struct dvb_ca_en50221 *ca, u8 cmd, u8 *data, unsigned int write_len, unsigned int read_len)
++{
++	struct dvb_usb_device *d = (struct dvb_usb_device *)ca->data;
++	struct ttusb2_state *state = (struct ttusb2_state *)d->priv;
++	int ret;
++
++	mutex_lock(&state->ca_mutex);
++	ret = tt3650_ci_msg(d, cmd, data, write_len, read_len);
++	mutex_unlock(&state->ca_mutex);
++
++	return ret;
++}
++
++static int tt3650_ci_read_attribute_mem(struct dvb_ca_en50221 *ca, int slot, int address)
++{
++	u8 buf[3];
++	int ret = 0;
++
++	if (0 != slot)
++		return -EINVAL;
++
++	buf[0] = (address >> 8) & 0x0F;
++	buf[1] = address;
++
++
++	ret = tt3650_ci_msg_locked(ca, TT3650_CMD_CI_RD_ATTR, buf, 2, 3);
++
++	ci_dbg("%s %04x -> %d 0x%02x",
++		__func__, address, ret, buf[2]);
++
++	if (ret < 0)
++		return ret;
++
++	return buf[2];
++}
++
++static int tt3650_ci_write_attribute_mem(struct dvb_ca_en50221 *ca, int slot, int address, u8 value)
++{
++	u8 buf[3];
++
++	ci_dbg("%s %d 0x%04x 0x%02x",
++		__func__, slot, address, value);
++
++	if (0 != slot)
++		return -EINVAL;
++
++	buf[0] = (address >> 8) & 0x0F;
++	buf[1] = address;
++	buf[2] = value;
++
++	return tt3650_ci_msg_locked(ca, TT3650_CMD_CI_WR_ATTR, buf, 3, 3);
++}
++
++static int tt3650_ci_read_cam_control(struct dvb_ca_en50221 *ca, int slot, u8 address)
++{
++	u8 buf[2];
++	int ret;
++
++	if (0 != slot)
++		return -EINVAL;
++
++	buf[0] = address & 3;
++
++	ret = tt3650_ci_msg_locked(ca, TT3650_CMD_CI_RD_CTRL, buf, 1, 2);
++
++	ci_dbg("%s 0x%02x -> %d 0x%02x",
++		__func__, address, ret, buf[1]);
++
++	if (ret < 0)
++		return ret;
++
++	return buf[1];
++}
++
++static int tt3650_ci_write_cam_control(struct dvb_ca_en50221 *ca, int slot, u8 address, u8 value)
++{
++	u8 buf[2];
++
++	ci_dbg("%s %d 0x%02x 0x%02x",
++		__func__, slot, address, value);
++
++	if (0 != slot)
++		return -EINVAL;
++
++	buf[0] = address;
++	buf[1] = value;
++
++	return tt3650_ci_msg_locked(ca, TT3650_CMD_CI_WR_CTRL, buf, 2, 2);
++}
++
++static int tt3650_ci_set_video_port(struct dvb_ca_en50221 *ca, int slot, int enable)
++{
++	u8 buf[1];
++	int ret;
++
++	ci_dbg("%s %d %d", __func__, slot, enable);
++
++	if (0 != slot)
++		return -EINVAL;
++
++	enable = !!enable;
++	buf[0] = enable;
++
++	ret = tt3650_ci_msg_locked(ca, TT3650_CMD_CI_SET_VIDEO_PORT, buf, 1, 1);
++	if (ret < 0)
++		return ret;
++
++	if (enable != buf[0]) {
++		err("CI not %sabled.", enable ? "en" : "dis");
++		return -EIO;
++	}
++
++	return 0;
++}
++
++static int tt3650_ci_slot_shutdown(struct dvb_ca_en50221 *ca, int slot)
++{
++	return tt3650_ci_set_video_port(ca, slot, /* enable */ 0);
++}
++
++static int tt3650_ci_slot_ts_enable(struct dvb_ca_en50221 *ca, int slot)
++{
++	return tt3650_ci_set_video_port(ca, slot, /* enable */ 1);
++}
++
++static int tt3650_ci_slot_reset(struct dvb_ca_en50221 *ca, int slot)
++{
++	struct dvb_usb_device *d = (struct dvb_usb_device *)ca->data;
++	struct ttusb2_state *state = (struct ttusb2_state *)d->priv;
++	u8 buf[1];
++	int ret;
++
++	ci_dbg("%s %d", __func__, slot);
++
++	if (0 != slot)
++		return -EINVAL;
++
++	buf[0] = 0;
++
++	mutex_lock(&state->ca_mutex);
++
++	ret = tt3650_ci_msg(d, TT3650_CMD_CI_RESET, buf, 1, 1);
++	if (0 != ret)
++		goto failed;
++
++	msleep(500);
++
++	buf[0] = 1;
++
++	ret = tt3650_ci_msg(d, TT3650_CMD_CI_RESET, buf, 1, 1);
++	if (0 != ret)
++		goto failed;
++
++	msleep(500);
++
++	buf[0] = 0; /* FTA */
++
++	ret = tt3650_ci_msg(d, TT3650_CMD_CI_SET_VIDEO_PORT, buf, 1, 1);
++
++	msleep(1100);
++
++ failed:
++	mutex_unlock(&state->ca_mutex);
++
++	return ret;
++}
++
++static int tt3650_ci_poll_slot_status(struct dvb_ca_en50221 *ca, int slot, int open)
++{
++	u8 buf[1];
++	int ret;
++
++	if (0 != slot)
++		return -EINVAL;
++
++	ret = tt3650_ci_msg_locked(ca, TT3650_CMD_CI_TEST, buf, 0, 1);
++	if (0 != ret)
++		return ret;
++
++	if (1 == buf[0]) {
++		return DVB_CA_EN50221_POLL_CAM_PRESENT |
++			DVB_CA_EN50221_POLL_CAM_READY;
++	} else {
++		return 0;
++	}
++}
++
++static void tt3650_ci_uninit(struct dvb_usb_device *d)
++{
++	struct ttusb2_state *state;
++
++	ci_dbg("%s", __func__);
++
++	if (NULL == d)
++		return;
++
++	state = (struct ttusb2_state *)d->priv;
++	if (NULL == state)
++		return;
++
++	if (NULL == state->ca.data)
++		return;
++
++	dvb_ca_en50221_release(&state->ca);
++
++	memset(&state->ca, 0, sizeof(state->ca));
++}
++
++static int tt3650_ci_init(struct dvb_usb_adapter *a)
++{
++	struct dvb_usb_device *d = a->dev;
++	struct ttusb2_state *state = (struct ttusb2_state *)d->priv;
++	int ret;
++
++	ci_dbg("%s", __func__);
++
++	mutex_init(&state->ca_mutex);
++
++	state->ca.owner = THIS_MODULE;
++	state->ca.read_attribute_mem = tt3650_ci_read_attribute_mem;
++	state->ca.write_attribute_mem = tt3650_ci_write_attribute_mem;
++	state->ca.read_cam_control = tt3650_ci_read_cam_control;
++	state->ca.write_cam_control = tt3650_ci_write_cam_control;
++	state->ca.slot_reset = tt3650_ci_slot_reset;
++	state->ca.slot_shutdown = tt3650_ci_slot_shutdown;
++	state->ca.slot_ts_enable = tt3650_ci_slot_ts_enable;
++	state->ca.poll_slot_status = tt3650_ci_poll_slot_status;
++	state->ca.data = d;
++
++	ret = dvb_ca_en50221_init(&a->dvb_adap,
++				  &state->ca,
++				  /* flags */ 0,
++				  /* n_slots */ 1);
++	if (0 != ret) {
++		err("Cannot initialize CI: Error %d.", ret);
++		memset(&state->ca, 0, sizeof(state->ca));
++		return ret;
++	}
++
++	info("CI initialized.");
++
++	return 0;
++}
++
+ static int ttusb2_i2c_xfer(struct i2c_adapter *adap,struct i2c_msg msg[],int num)
+ {
+ 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
+@@ -251,6 +527,7 @@
+ 			deb_info("TDA10023 attach failed\n");
+ 			return -ENODEV;
+ 		}
++		tt3650_ci_init(adap);
  	} else {
-@@ -883,6 +821,7 @@ static struct dvb_frontend_ops cxd2820r_ops[2] = {
- 		.sleep = cxd2820r_sleep,
+ 		adap->fe[1] = dvb_attach(tda10048_attach,
+ 			&tda10048_config, &adap->dev->i2c_adap);
+@@ -305,6 +582,14 @@
+ static struct dvb_usb_device_properties ttusb2_properties_s2400;
+ static struct dvb_usb_device_properties ttusb2_properties_ct3650;
  
- 		.get_tune_settings = cxd2820r_get_tune_settings,
-+		.i2c_gate_ctrl = cxd2820r_i2c_gate_ctrl,
- 
- 		.get_frontend = cxd2820r_get_frontend,
- 
-@@ -911,6 +850,7 @@ static struct dvb_frontend_ops cxd2820r_ops[2] = {
- 		.sleep = cxd2820r_sleep,
- 
- 		.get_tune_settings = cxd2820r_get_tune_settings,
-+		.i2c_gate_ctrl = cxd2820r_i2c_gate_ctrl,
- 
- 		.set_frontend = cxd2820r_set_frontend,
- 		.get_frontend = cxd2820r_get_frontend,
-diff --git a/drivers/media/dvb/frontends/cxd2820r_priv.h b/drivers/media/dvb/frontends/cxd2820r_priv.h
-index 0c0ebc9..9553913 100644
---- a/drivers/media/dvb/frontends/cxd2820r_priv.h
-+++ b/drivers/media/dvb/frontends/cxd2820r_priv.h
-@@ -50,7 +50,6 @@ struct cxd2820r_priv {
- 	struct i2c_adapter *i2c;
- 	struct dvb_frontend fe[2];
- 	struct cxd2820r_config cfg;
--	struct i2c_adapter tuner_i2c_adapter;
- 
- 	struct mutex fe_lock; /* FE lock */
- 	int active_fe:2; /* FE lock, -1=NONE, 0=DVB-T/T2, 1=DVB-C */
-diff --git a/drivers/media/dvb/frontends/cxd2820r_t.c b/drivers/media/dvb/frontends/cxd2820r_t.c
-index 6582564..a04f9c8 100644
---- a/drivers/media/dvb/frontends/cxd2820r_t.c
-+++ b/drivers/media/dvb/frontends/cxd2820r_t.c
-@@ -446,4 +446,3 @@ int cxd2820r_get_tune_settings_t(struct dvb_frontend *fe,
- 
- 	return 0;
- }
--
-diff --git a/drivers/media/dvb/frontends/cxd2820r_t2.c b/drivers/media/dvb/frontends/cxd2820r_t2.c
-index c47b35c..6548588 100644
---- a/drivers/media/dvb/frontends/cxd2820r_t2.c
-+++ b/drivers/media/dvb/frontends/cxd2820r_t2.c
-@@ -420,4 +420,3 @@ int cxd2820r_get_tune_settings_t2(struct dvb_frontend *fe,
- 
- 	return 0;
- }
--
-diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
-index e5916de..223a2fc 100644
---- a/drivers/media/video/em28xx/em28xx-dvb.c
-+++ b/drivers/media/video/em28xx/em28xx-dvb.c
-@@ -438,6 +438,7 @@ static struct cxd2820r_config em28xx_cxd2820r_config = {
- 
- static struct tda18271_config em28xx_cxd2820r_tda18271_config = {
- 	.output_opt = TDA18271_OUTPUT_LT_OFF,
-+	.gate = TDA18271_GATE_DIGITAL,
++static void ttusb2_usb_disconnect(struct usb_interface *intf)
++{
++	struct dvb_usb_device *d = usb_get_intfdata(intf);
++
++	tt3650_ci_uninit(d);
++	dvb_usb_device_exit(intf);
++}
++
+ static int ttusb2_probe(struct usb_interface *intf,
+ 		const struct usb_device_id *id)
+ {
+@@ -486,7 +771,7 @@
+ static struct usb_driver ttusb2_driver = {
+ 	.name		= "dvb_usb_ttusb2",
+ 	.probe		= ttusb2_probe,
+-	.disconnect = dvb_usb_device_exit,
++	.disconnect	= ttusb2_usb_disconnect,
+ 	.id_table	= ttusb2_table,
  };
  
- /* ------------------------------------------------------------------ */
-@@ -753,11 +754,9 @@ static int dvb_init(struct em28xx *dev)
- 		dvb->fe[0] = dvb_attach(cxd2820r_attach,
- 			&em28xx_cxd2820r_config, &dev->i2c_adap, NULL);
- 		if (dvb->fe[0]) {
--			struct i2c_adapter *i2c_tuner;
--			i2c_tuner = cxd2820r_get_tuner_i2c_adapter(dvb->fe[0]);
- 			/* FE 0 attach tuner */
- 			if (!dvb_attach(tda18271_attach, dvb->fe[0], 0x60,
--				i2c_tuner, &em28xx_cxd2820r_tda18271_config)) {
-+				&dev->i2c_adap, &em28xx_cxd2820r_tda18271_config)) {
- 				dvb_frontend_detach(dvb->fe[0]);
- 				result = -EINVAL;
- 				goto out_free;
-@@ -768,7 +767,7 @@ static int dvb_init(struct em28xx *dev)
- 			dvb->fe[1]->id = 1;
- 			/* FE 1 attach tuner */
- 			if (!dvb_attach(tda18271_attach, dvb->fe[1], 0x60,
--				i2c_tuner, &em28xx_cxd2820r_tda18271_config)) {
-+				&dev->i2c_adap, &em28xx_cxd2820r_tda18271_config)) {
- 				dvb_frontend_detach(dvb->fe[1]);
- 				/* leave FE 0 still active */
- 			}
--- 
-1.7.1
 
+--Boundary-00=_UgsXOXR2KehbyNm--
