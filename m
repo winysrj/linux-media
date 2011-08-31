@@ -1,121 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bedivere.hansenpartnership.com ([66.63.167.143]:50788 "EHLO
-	bedivere.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752077Ab1HCRnz (ORCPT
+Received: from hermes.mlbassoc.com ([64.234.241.98]:38870 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755001Ab1HaMBL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Aug 2011 13:43:55 -0400
-Subject: Re: [PATCH 6/8] drivers: add Contiguous Memory Allocator
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	ksummit-2011-discuss@lists.linux-foundation.org
-In-Reply-To: <201107051427.44899.arnd@arndb.de>
-References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
-	 <1309851710-3828-7-git-send-email-m.szyprowski@samsung.com>
-	 <20110705113345.GA8286@n2100.arm.linux.org.uk>
-	 <201107051427.44899.arnd@arndb.de>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 03 Aug 2011 12:43:50 -0500
-Message-ID: <1312393430.2855.51.camel@mulgrave>
-Mime-Version: 1.0
+	Wed, 31 Aug 2011 08:01:11 -0400
+Message-ID: <4E5E2283.9030100@mlbassoc.com>
+Date: Wed, 31 Aug 2011 06:01:07 -0600
+From: Gary Thomas <gary@mlbassoc.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Getting started with OMAP3 ISP
+References: <4E56734A.3080001@mlbassoc.com> <201108311013.52490.laurent.pinchart@ideasonboard.com> <4E5E135D.1010500@mlbassoc.com> <201108311300.30808.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201108311300.30808.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[cc to ks-discuss added, since this may be a relevant topic]
+On 2011-08-31 05:00, Laurent Pinchart wrote:
+> Hi Gary,
+>
+> On Wednesday 31 August 2011 12:56:29 Gary Thomas wrote:
+>> On 2011-08-31 02:13, Laurent Pinchart wrote:
+>>> On Wednesday 31 August 2011 02:07:36 Gary Thomas wrote:
+>>>> On 2011-08-30 16:50, Laurent Pinchart wrote:
+>>>>> On Wednesday 31 August 2011 00:45:39 Gary Thomas wrote:
+>>>>>> On 2011-08-29 04:49, Laurent Pinchart wrote:
+>>>>>>> On Thursday 25 August 2011 18:07:38 Gary Thomas wrote:
+>>>>>>>> Background:  I have working video capture drivers based on the
+>>>>>>>> TI PSP codebase from 2.6.32.  In particular, I managed to get
+>>>>>>>> a driver for the TVP5150 (analogue BT656) working with that kernel.
+>>>>>>>>
+>>>>>>>> Now I need to update to Linux 3.0, so I'm trying to get a driver
+>>>>>>>> working with the rewritten ISP code.  Sadly, I'm having a hard
+>>>>>>>> time with this - probably just missing something basic.
+>>>>>>>>
+>>>>>>>> I've tried to clone the TVP514x driver which says that it works
+>>>>>>>> with the OMAP3 ISP code.  I've updated it to use my decoder device,
+>>>>>>>> but I can't even seem to get into that code from user land.
+>>>>>>>>
+>>>>>>>> Here are the problems I've had so far:
+>>>>>>>>        * udev doesn't create any video devices although they have
+>>>>>>>>        been
+>>>>>>>>
+>>>>>>>>          registered.  I see a full set in /sys/class/video4linux
+>>>>>>>>
+>>>>>>>>             # ls /sys/class/video4linux/
+>>>>>>>>             v4l-subdev0  v4l-subdev3  v4l-subdev6  video1
+>>>>>>>>             video4 v4l-subdev1  v4l-subdev4  v4l-subdev7  video2
+>>>>>>>>               video5 v4l-subdev2  v4l-subdev5  video0       video3
+>>>>>>>>                 video6
+>>>>>>>
+>>>>>>> It looks like a udev issue. I don't think that's related to the
+>>>>>>> kernel drivers.
+>>>>>>>
+>>>>>>>>          Indeed, if I create /dev/videoX by hand, I can get
+>>>>>>>>          somewhere, but I don't really understand how this is
+>>>>>>>>          supposed to work. e.g.
+>>>>>>>>
+>>>>>>>>            # v4l2-dbg --info /dev/video3
+>>>>>>>>
+>>>>>>>>            Driver info:
+>>>>>>>>                Driver name   : ispvideo
+>>>>>>>>                Card type     : OMAP3 ISP CCP2 input
+>>>>>>>>                Bus info      : media
+>>>>>>>>                Driver version: 1
+>>>>>>>>                Capabilities  : 0x04000002
+>>>>>>>>
+>>>>>>>>                        Video Output
+>>>>>>>>                        Streaming
+>>>>>>>>
+>>>>>>>>        * If I try to grab video, the ISP layer gets a ton of
+>>>>>>>>        warnings, but
+>>>>>>>>
+>>>>>>>>          I never see it call down into my driver, e.g. to check the
+>>>>>>>>          current format, etc.  I have some of my own code from before
+>>>>>>>>          which fails miserably (not a big surprise given the hack
+>>>>>>>>          level of those programs).
+>>>>>>>>
+>>>>>>>>          I tried something off-the-shelf which also fails pretty bad:
+>>>>>>>>            # ffmpeg -t 10 -f video4linux2 -s 720x480 -r 30 -i
+>>>>>>>>            /dev/video2
+>>>>>>>>
+>>>>>>>> junk.mp4
+>>>>>>>>
+>>>>>>>> I've read through Documentation/video4linux/omap3isp.txt without
+>>>>>>>> learning much about what might be wrong.
+>>>>>>>>
+>>>>>>>> Can someone give me some ideas/guidance, please?
+>>>>>>>
+>>>>>>> In a nutshell, you will first have to configure the OMAP3 ISP
+>>>>>>> pipeline, and then capture video.
+>>>>>>>
+>>>>>>> Configuring the pipeline is done through the media controller API and
+>>>>>>> the V4L2 subdev pad-level API. To experiment with those you can use
+>>>>>>> the media-ctl command line application available at
+>>>>>>> http://git.ideasonboard.org/?p=media- ctl.git;a=summary. You can run
+>>>>>>> it with --print-dot and pipe the result to dot -Tps to get a
+>>>>>>> postscript graphical view of your device.
+>>>>>>>
+>>>>>>> Here's a sample pipeline configuration to capture scaled-down YUV
+>>>>>>> data from a sensor:
+>>>>>>>
+>>>>>>> ./media-ctl -r -l '"mt9t001 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+>>>>>>> ISP CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP preview":1->"OMAP3
+>>>>>>> ISP resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3 ISP resizer
+>>>>>>> output":0[1]' ./media-ctl -f '"mt9t001 3-005d":0[SGRBG10 1024x768],
+>>>>>>> "OMAP3 ISP CCDC":2[SGRBG10 1024x767], "OMAP3 ISP preview":1[YUYV
+>>>>>>> 1006x759], "OMAP3 ISP resizer":1[YUYV 800x600]'
+>>>>>>>
+>>>>>>> After configuring your pipeline you will be able to capture video
+>>>>>>> using the V4L2 API on the device node at the output of the pipeline.
+>>>>>>
+>>>>>> Getting somewhere now, thanks.  When I use this full pipeline, I can
+>>>>>> get all the way into my driver where it's trying to start the data.
+>>>>>>
+>>>>>> What if I want to use less of the pipeline?  For example, I'd normally
+>>>>>> be happy with just the CCDC output.  How would I do that?
+>>>>>
+>>>>> Then connect CCDC's pad 1 to the CCDC output video node and capture on
+>>>>> that video node.
+>>>>>
+>>>>>> What pixel format would I use with ffmpeg?
+>>>>>
+>>>>> What does your subdev deliver ?
+>>>>
+>>>> It's a BT656 encoder - 8-bit UYVY 4:2:2
+>>>
+>>> Then you will first have to add YUV support to the CCDC. It wouldn't be
+>>> fun if it worked out of the box, would it ? :-)
+>>
+>> So, functionality that was present in 2.6.32 (TI PSP version at least)
+>> is not currently available?
+>
+> That's right. You can blame TI for not pushing it to mainline :-)
+>
 
-On Tue, 2011-07-05 at 14:27 +0200, Arnd Bergmann wrote:
-> On Tuesday 05 July 2011, Russell King - ARM Linux wrote:
-> > On Tue, Jul 05, 2011 at 09:41:48AM +0200, Marek Szyprowski wrote:
-> > > The Contiguous Memory Allocator is a set of helper functions for DMA
-> > > mapping framework that improves allocations of contiguous memory chunks.
-> > > 
-> > > CMA grabs memory on system boot, marks it with CMA_MIGRATE_TYPE and
-> > > gives back to the system. Kernel is allowed to allocate movable pages
-> > > within CMA's managed memory so that it can be used for example for page
-> > > cache when DMA mapping do not use it. On dma_alloc_from_contiguous()
-> > > request such pages are migrated out of CMA area to free required
-> > > contiguous block and fulfill the request. This allows to allocate large
-> > > contiguous chunks of memory at any time assuming that there is enough
-> > > free memory available in the system.
-> > > 
-> > > This code is heavily based on earlier works by Michal Nazarewicz.
-> > 
-> > And how are you addressing the technical concerns about aliasing of
-> > cache attributes which I keep bringing up with this and you keep
-> > ignoring and telling me that I'm standing in your way.
+Is this only important if I want to push data past the CCDC?  In the past, we were
+happy with just using the CCDC like a frame grabber which delivered YUV data to memory
+[raw data from /dev/videoN]  Is this possible with the CCDC support as is?  The only
+discussion I could find about this on this list was in early March 2011 and I think
+you implied that it should work. I'm a bit concerned that it won't as the BT656 data
+has embedded syncs that the CCDC needs to be set up for.
 
-Just to chime in here, parisc has an identical issue.  If the CPU ever
-sees an alias with different attributes for the same page, it will HPMC
-the box (that's basically the bios will kill the system as being
-architecturally inconsistent), so an architecture neutral solution on
-this point is essential to us as well.
+I saw a reference to 'Add YUV support to CCDC' on 2010-11-15, but no followup.
+That work seemed to be for a much older driver and not applicable to the current
+work, or am I missing something?
 
-> This is of course an important issue, and it's the one item listed as
-> TODO in the introductory mail that sent.
-> 
-> It's also a preexisting problem as far as I can tell, and it needs
-> to be solved in __dma_alloc for both cases, dma_alloc_from_contiguous
-> and __alloc_system_pages as introduced in patch 7.
-> 
-> We've discussed this back and forth, and it always comes down to
-> one of two ugly solutions:
-> 
-> 1. Put all of the MIGRATE_CMA and pages into highmem and change
-> __alloc_system_pages so it also allocates only from highmem pages.
-> The consequences of this are that we always need to build kernels
-> with highmem enabled and that we have less lowmem on systems that
-> are already small, both of which can be fairly expensive unless
-> you have lots of highmem already.
+Has there been other discussion on this topic (I didn't see it in onthis list which
+I've been quietly monitoring for two years)?  Is the lack of YUV support in CCDC
+for this current driver (drivers/media/video/omap3isp) a concious decision, or just
+a lack of movement?  Is there someone at TI that I should contact?
 
-So this would require that systems using the API have a highmem? (parisc
-doesn't today).
+I'm just trying to understand what I have to do to move forward on this.  I really
+hadn't planned/scheduled a large effort to recreate functionality that we've already
+been using for years when we moved to a newer kernel.
 
-> 2. Add logic to unmap pages from the linear mapping, which is
-> very expensive because it forces the use of small pages in the
-> linear mapping (or in parts of it), and possibly means walking
-> all page tables to remove the PTEs on alloc and put them back
-> in on free.
-> 
-> I believe that Chunsang Jeong from Linaro is planning to
-> implement both variants and post them for review, so we can
-> decide which one to merge, or even to merge both and make
-> it a configuration option. See also
-> https://blueprints.launchpad.net/linaro-mm-sig/+spec/engr-mm-dma-mapping-2011.07
-> 
-> I don't think we need to make merging the CMA patches depending on
-> the other patches, it's clear that both need to be solved, and
-> they are independent enough.
+That said though I can see that this new driver structure (with the flexible elements
+and connections, etc) is a vast improvement on the old, hard-wired stuff.  I only hope
+I can figure out how to make it work with my sensor.
 
-I assume from the above that ARM has a hardware page walker?
+Thanks
 
-The way I'd fix this on parisc, because we have a software based TLB, is
-to rely on the fact that a page may only be used either for DMA or for
-Page Cache, so the aliases should never be interleaved.  Since you know
-the point at which the page flips from DMA to Cache (and vice versa),
-I'd purge the TLB entry and flush the page at that point and rely on the
-usage guarantees to ensure that the alias TLB entry doesn't reappear.
-This isn't inexpensive but the majority of the cost is the cache flush
-which is a requirement to clean the aliases anyway (a TLB entry purge is
-pretty cheap).
-
-Would this work for the ARM hardware walker as well?  It would require
-you to have a TLB entry purge instruction as well as some architectural
-guarantees about not speculating the TLB.
-
-James
-
-
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
