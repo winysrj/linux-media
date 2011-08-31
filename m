@@ -1,126 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm2.bt.bullet.mail.ird.yahoo.com ([212.82.108.233]:24262 "HELO
-	nm2.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751399Ab1HRXpd (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:55185 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755549Ab1HaNMd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Aug 2011 19:45:33 -0400
-Message-ID: <4E4DA417.6030809@yahoo.com>
-Date: Fri, 19 Aug 2011 00:45:27 +0100
-From: Chris Rankin <rankincj@yahoo.com>
+	Wed, 31 Aug 2011 09:12:33 -0400
+Date: Wed, 31 Aug 2011 15:12:31 +0200
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 00/21] [staging] tm6000: Assorted fixes and improvements.
+Message-ID: <20110831131231.GA32056@avionic-0098.mockup.avionic-design.de>
+References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
+ <4E5E2BF8.6040701@redhat.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org, mchehab@redhat.com,
-	Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH] Latest version of em28xx / em28xx-dvb patch for PCTV
- 290e
-References: <4E4D5157.2080406@yahoo.com> <CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com> <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com>
-In-Reply-To: <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------040701090302030607080206"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BOKacYhQ+x31HxR3"
+Content-Disposition: inline
+In-Reply-To: <4E5E2BF8.6040701@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040701090302030607080206
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 
-This patch closes the race on the device and extension lists at USB disconnect 
-time. Previously, the device was removed from the device list during 
-em28xx_release_resources(), and then passed to the em28xx_close_extension() 
-function so that all extensions could run their fini() operations. However, this 
-left a (brief, theoretical, highly unlikely ;-)) window between these two calls 
-during which a new module could call em28xx_register_extension(). The result 
-would have been that the em28xx_usb_disconnect() function would also have passed 
-the device to the new extension's fini() function, despite never having called 
-the extension's init() function.
+--BOKacYhQ+x31HxR3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This patch also restores em28xx_close_extension()'s symmetry with 
-em28xx_init_extension(), and establishes the property that every device in the 
-device list must have been initialised for every extension in the extension list.
+* Mauro Carvalho Chehab wrote:
+> Hi Thierry,
+>=20
+> Em 04-08-2011 04:13, Thierry Reding escreveu:
+> > This patch series fixes up some issues with the tm6000 driver. These
+> > patches were tested with a Cinergy Hybrid XE which is the only one I
+> > have access to, so it would be nice if someone with access to the other
+> > supported devices could take this series for a test run.
+> >=20
+> > Among the changes are several speed-ups for firmware loading, addition
+> > of radio support for the Cinergy Hybrid XE and some memory leak fixes. I
+> > was able to reproduce the behaviour documented in the README about the
+> > device stopping to work for unknown reasons. Running tests with this
+> > series applied no longer exposes the problem, so I have high hopes that
+> > it's also fixed.
+>=20
+> You forgot to send your Signed-off-by: at the patches you sent me. Could =
+you
+> please reply on this email with your SOB, for me to be able to apply them
+> on my tree?
+>=20
+> Thanks!
+> Mauro
+> >=20
+> > Thierry Reding (21):
+> >   [media] tuner/xc2028: Add I2C flush callback.
+> >   [media] tuner/xc2028: Fix frequency offset for radio mode.
+> >   [staging] tm6000: Miscellaneous cleanups.
+> >   [staging] tm6000: Use correct input in radio mode.
+> >   [staging] tm6000: Implement I2C flush callback.
+> >   [staging] tm6000: Increase maximum I2C packet size.
+> >   [staging] tm6000: Remove artificial delay.
+> >   [staging] tm6000: Flesh out the IRQ callback.
+> >   [staging] tm6000: Rename active interface register.
+> >   [staging] tm6000: Disable video interface in radio mode.
+> >   [staging] tm6000: Rework standard register tables.
+> >   [staging] tm6000: Add locking for USB transfers.
+> >   [staging] tm6000: Properly count device usage.
+> >   [staging] tm6000: Initialize isochronous transfers only once.
+> >   [staging] tm6000: Execute lightweight reset on close.
+> >   [staging] tm6000: Select interface on first open.
+> >   [staging] tm6000: Do not use video buffers in radio mode.
+> >   [staging] tm6000: Plug memory leak on PCM free.
+> >   [staging] tm6000: Enable audio clock in radio mode.
+> >   [staging] tm6000: Enable radio mode for Cinergy Hybrid XE.
+> >   [staging] tm6000: Remove unnecessary workaround.
+> >=20
+> >  drivers/media/common/tuners/tuner-xc2028.c |  144 ++++---
+> >  drivers/media/common/tuners/tuner-xc2028.h |    1 +
+> >  drivers/staging/tm6000/tm6000-alsa.c       |    9 +-
+> >  drivers/staging/tm6000/tm6000-cards.c      |   35 +-
+> >  drivers/staging/tm6000/tm6000-core.c       |  102 +++--
+> >  drivers/staging/tm6000/tm6000-dvb.c        |   14 +-
+> >  drivers/staging/tm6000/tm6000-i2c.c        |    7 +-
+> >  drivers/staging/tm6000/tm6000-input.c      |    2 +-
+> >  drivers/staging/tm6000/tm6000-regs.h       |    4 +-
+> >  drivers/staging/tm6000/tm6000-stds.c       |  642 ++++++++++++++------=
+--------
+> >  drivers/staging/tm6000/tm6000-video.c      |  188 +++++----
+> >  drivers/staging/tm6000/tm6000.h            |    6 +-
+> >  12 files changed, 600 insertions(+), 554 deletions(-)
 
-Signed-of-by: Chris Rankin <rankincj@yahoo.com>
+Sorry for not adding it in the first place. All of the above patches:
 
+Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
 
---------------040701090302030607080206
-Content-Type: text/x-patch;
- name="EM28xx-race-on-disconnect.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="EM28xx-race-on-disconnect.diff"
+Thierry
 
---- linux-3.0/drivers/media/video/em28xx/em28xx-cards.c.orig	2011-08-19 00:23:17.000000000 +0100
-+++ linux-3.0/drivers/media/video/em28xx/em28xx-cards.c	2011-08-19 00:32:40.000000000 +0100
-@@ -2738,9 +2738,9 @@
- #endif /* CONFIG_MODULES */
- 
- /*
-- * em28xx_realease_resources()
-+ * em28xx_release_resources()
-  * unregisters the v4l2,i2c and usb devices
-- * called when the device gets disconected or at module unload
-+ * called when the device gets disconnected or at module unload
- */
- void em28xx_release_resources(struct em28xx *dev)
- {
-@@ -2754,8 +2754,6 @@
- 
- 	em28xx_release_analog_resources(dev);
- 
--	em28xx_remove_from_devlist(dev);
--
- 	em28xx_i2c_unregister(dev);
- 
- 	v4l2_device_unregister(&dev->v4l2_dev);
-@@ -3152,7 +3150,7 @@
- 
- /*
-  * em28xx_usb_disconnect()
-- * called when the device gets diconencted
-+ * called when the device gets disconnected
-  * video device will be unregistered on v4l2_close in case it is still open
-  */
- static void em28xx_usb_disconnect(struct usb_interface *interface)
---- linux-3.0/drivers/media/video/em28xx/em28xx-core.c.orig	2011-08-18 23:07:51.000000000 +0100
-+++ linux-3.0/drivers/media/video/em28xx/em28xx-core.c	2011-08-19 00:27:00.000000000 +0100
-@@ -1160,18 +1160,6 @@
- static DEFINE_MUTEX(em28xx_devlist_mutex);
- 
- /*
-- * em28xx_realease_resources()
-- * unregisters the v4l2,i2c and usb devices
-- * called when the device gets disconected or at module unload
--*/
--void em28xx_remove_from_devlist(struct em28xx *dev)
--{
--	mutex_lock(&em28xx_devlist_mutex);
--	list_del(&dev->devlist);
--	mutex_unlock(&em28xx_devlist_mutex);
--};
--
--/*
-  * Extension interface
-  */
- 
-@@ -1221,14 +1209,13 @@
- 
- void em28xx_close_extension(struct em28xx *dev)
- {
--	struct em28xx_ops *ops = NULL;
-+	const struct em28xx_ops *ops = NULL;
- 
- 	mutex_lock(&em28xx_devlist_mutex);
--	if (!list_empty(&em28xx_extension_devlist)) {
--		list_for_each_entry(ops, &em28xx_extension_devlist, next) {
--			if (ops->fini)
--				ops->fini(dev);
--		}
-+	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
-+		if (ops->fini)
-+			ops->fini(dev);
- 	}
-+	list_del(&dev->devlist);
- 	mutex_unlock(&em28xx_devlist_mutex);
- }
+--BOKacYhQ+x31HxR3
+Content-Type: application/pgp-signature
 
---------------040701090302030607080206--
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEARECAAYFAk5eMz8ACgkQZ+BJyKLjJp/cbACgl/XP3seSfDk+KbAebPImBRvS
+4lMAn0IZ9Na2hzMJ+X2SCs2OQBIs7qic
+=qL9u
+-----END PGP SIGNATURE-----
+
+--BOKacYhQ+x31HxR3--
