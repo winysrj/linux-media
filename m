@@ -1,46 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:37196 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753640Ab1HFQKn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Aug 2011 12:10:43 -0400
-Received: by fxh19 with SMTP id 19so3819517fxh.19
-        for <linux-media@vger.kernel.org>; Sat, 06 Aug 2011 09:10:41 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20110806160526.GA2666@achter.swolter.sdf1.org>
-References: <20110806144444.GA11588@achter.swolter.sdf1.org>
-	<CAGoCfiw8R_RsYdHucMqRCXPndZGO7bG=0ogw9k9vpd-xYuPtAw@mail.gmail.com>
-	<20110806160526.GA2666@achter.swolter.sdf1.org>
-Date: Sat, 6 Aug 2011 12:10:40 -0400
-Message-ID: <CAGoCfiwEYaoUT05U5=wDr5ti8m+7WPts09QEd6yJczhYUyLDWw@mail.gmail.com>
-Subject: Re: Support for Hauppauge WinTV HVR-3300
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Steve Wolter <swolter@sdf.lonestar.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:30580 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753074Ab1HaFQ3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Aug 2011 01:16:29 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LQS00ADH1BE6180@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 31 Aug 2011 06:16:26 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LQS00MSR1BEDD@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 31 Aug 2011 06:16:26 +0100 (BST)
+Date: Wed, 31 Aug 2011 07:12:44 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: videobuf2 user pointer vma release seqeuence
+In-reply-to: <CAOQL7V-Jp7KX71-nrzBnHObfZd8MZr2=9oK1vWskuxiJ-+U8DA@mail.gmail.com>
+To: "'Tang, Yu'" <ytang5@gmail.com>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+	g.liakhovetski@gmx.de
+Message-id: <010e01cc679c$9f68b3e0$de3a1ba0$%szyprowski@samsung.com>
+Content-language: pl
+References: <CAOQL7V_6bjnsG9QwhwA7+DNOfq3ugSH47ybiHg=jKw0mB__TUw@mail.gmail.com>
+ <00c901cc66d5$07692420$163b6c60$%szyprowski@samsung.com>
+ <CAOQL7V-Jp7KX71-nrzBnHObfZd8MZr2=9oK1vWskuxiJ-+U8DA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Aug 6, 2011 at 12:05 PM, Steve Wolter <swolter@sdf.lonestar.org> wrote:
-> Fair enough, thanks for the feedback, I think that project is out of my
-> scope for now. I'm mainly interested in the analog demodulation at the
-> moment, have the DVB capacity mainly for future use. Do you know anything
-> about the analog TV decoder in there? Is this decoupled from the DVB
-> stuff and could be made to work on its own?
+Hello,
 
-The support for dvb is indeed decoupled from analog.  However, the
-cx23888 is different enough from the cx23885 where work needs to be
-done on the core driver before analog could work.  Steven Toth did a
-bunch of this work in a private tree, but it hasn't been merged into
-the mainline kernel yet (and given how onerous the upstream submission
-process has become, it is unclear when that will actually happen).
+On Tuesday, August 30, 2011 5:38 PM Tang, Yu wrote:
+ 
+> Marek,
+> 
+> Thanks for the quick response and confirmation!  Will submit the patch tomorrow.
 
-http://kernellabs.com/hg/~stoth/cx23888-encoder/
+I've already extracted it from your mail. It is available on my vb2 fixes branch which I want to
+send for merging soon:
 
-In other words, even for analog you would need a bunch of patches in
-the mainline cx23885 driver before anything would start to work.
+http://git.infradead.org/users/kmpark/linux-2.6-samsung/commit/f55e3591f3a607d580ad8b6ff8979b7aae432
+b95
 
-Devin
-
+Best regards
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
+
+
