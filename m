@@ -1,87 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:42178 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752653Ab1HXSym (ORCPT
+Received: from hermes.mlbassoc.com ([64.234.241.98]:47409 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756836Ab1HaWe0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Aug 2011 14:54:42 -0400
-Received: by bke11 with SMTP id 11so1126561bke.19
-        for <linux-media@vger.kernel.org>; Wed, 24 Aug 2011 11:54:41 -0700 (PDT)
+	Wed, 31 Aug 2011 18:34:26 -0400
+Message-ID: <4E5EB6EC.1000400@mlbassoc.com>
+Date: Wed, 31 Aug 2011 16:34:20 -0600
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-In-Reply-To: <4E553E2E.2020803@linuxtv.org>
-References: <1314207232-6031-1-git-send-email-obi@linuxtv.org>
-	<CAGoCfizk8Ni96yJJq7Q=MGhH_-EgLskYd3SDMJ4w9mAdEPg1mg@mail.gmail.com>
-	<4E553CBE.8010506@linuxtv.org>
-	<CAGoCfiwt6siLdT_bCgnBnpmUuwL-CK+r8rCUTviNHWko7=NKQA@mail.gmail.com>
-	<4E553E2E.2020803@linuxtv.org>
-Date: Wed, 24 Aug 2011 14:54:41 -0400
-Message-ID: <CAGoCfixD0QVvWKc-6w+OrckJo2wX6q6ndpzCg5aOV2W0pgVUvg@mail.gmail.com>
-Subject: Re: [PATCH 1/2] DVB: dvb_frontend: convert semaphore to mutex
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andreas Oberritter <obi@linuxtv.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Getting started with OMAP3 ISP
+References: <4E56734A.3080001@mlbassoc.com> <201108311715.33777.laurent.pinchart@ideasonboard.com> <CA+2YH7sYsUuEcsu56aG-DzEU4dushzH=_LXKekMb1-zKxoRCOg@mail.gmail.com> <201108311833.24394.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201108311833.24394.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 24, 2011 at 2:08 PM, Andreas Oberritter <obi@linuxtv.org> wrote:
-> Instead of wasting your time with theory, you could have easily reviewed
-> my patch. It's really *very* simple any anyone having used semphores or
-> mutexes in the kernel should be able to see that.
+On 2011-08-31 10:33, Laurent Pinchart wrote:
+> Hi Enrico,
+>
+> On Wednesday 31 August 2011 18:25:28 Enrico wrote:
+>> On Wed, Aug 31, 2011 at 5:15 PM, Laurent Pinchart wrote:
+>>> I've just sent three preliminary patches to the list to add YUYV support
+>>> in the OMAP3 ISP CCDC.
+>>
+>> What tree are those based on?
+>
+> On http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
+> omap3isp-next (sorry for not mentioning it), but the patch set was missing a
+> patch. I've sent a v2.
+>
 
-There's no need to resort to belittlement.  Both of us have a
-non-trivial number of commits to the Linux kernel.
-
-My concern is that in the kernel a semaphore with a unit of one is
-*not* necessarily the same as a mutex.  In particular you need to take
-into account the calling context since mutexes do more enforcement of
-certain conditions that may have been acceptable for a semaphore.
-
->From http://www.kernel.org/doc/Documentation/mutex-design.txt :
-
-===
- - 'struct mutex' semantics are well-defined and are enforced if
-   CONFIG_DEBUG_MUTEXES is turned on. Semaphores on the other hand have
-   virtually no debugging code or instrumentation. The mutex subsystem
-   checks and enforces the following rules:
-
-   * - only one task can hold the mutex at a time
-   * - only the owner can unlock the mutex
-   * - multiple unlocks are not permitted
-   * - recursive locking is not permitted
-   * - a mutex object must be initialized via the API
-   * - a mutex object must not be initialized via memset or copying
-   * - task may not exit with mutex held
-   * - memory areas where held locks reside must not be freed
-   * - held mutexes must not be reinitialized
-   * - mutexes may not be used in hardware or software interrupt
-   *   contexts such as tasklets and timers
-===
-
-and:
-
-===
-Disadvantages
--------------
-
-The stricter mutex API means you cannot use mutexes the same way you
-can use semaphores: e.g. they cannot be used from an interrupt context,
-nor can they be unlocked from a different context that which acquired
-it. [ I'm not aware of any other (e.g. performance) disadvantages from
-using mutexes at the moment, please let me know if you find any. ]
-===
-
-In short, you cannot just arbitrarily replace one with the other.  You
-need to look at all the possible call paths and ensure that there
-aren't any cases for example where the mutex is set in one but cleared
-in the other.  Did you evaluate your change in the context of each of
-the differences described in the list above?
-
-Without any documentation in the patch, we have absolutely no idea
-what level of due diligence you exercised in ensuring this didn't
-cause breakage.
-
-Devin
+Sorry to be a pain, but is there an easy way to generate a patchset for this
+tree against the vanilla released 3.0 tree?  (that's what my tree is using)
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
