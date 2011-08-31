@@ -1,308 +1,344 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44785 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751218Ab1HLUie (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:49647 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757005Ab1HaSCz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Aug 2011 16:38:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi, deepthy.ravi@ti.com
-Subject: [PATCH] omap3isp: Move platform data definitions from isp.h to media/omap3isp.h
-Date: Fri, 12 Aug 2011 22:38:35 +0200
-Message-Id: <1313181515-11120-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 31 Aug 2011 14:02:55 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 3/9 v6] V4L: document the new VIDIOC_CREATE_BUFS and VIDIOC_PREPARE_BUF ioctl()s
+Date: Wed, 31 Aug 2011 20:02:42 +0200
+Message-Id: <1314813768-27752-4-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/video/omap3isp/isp.h is not a proper location for a header
-that needs to be included from board code. Move the platform data
-definitions to media/omap3isp.h.
-
-Board code still needs to include isp.h to get the struct isp_device
-definition and access OMAP3 ISP platform callbacks. Those callbacks will
-be replaced by more generic code.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Pawel Osciak <pawel@osciak.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
- drivers/media/video/omap3isp/isp.h     |   85 +-------------------
- drivers/media/video/omap3isp/ispccp2.c |    4 +-
- include/media/omap3isp.h               |  140 ++++++++++++++++++++++++++++++++
- 3 files changed, 143 insertions(+), 86 deletions(-)
- create mode 100644 include/media/omap3isp.h
+ Documentation/DocBook/media/v4l/io.xml             |   17 +++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    2 +
+ .../DocBook/media/v4l/vidioc-create-bufs.xml       |  147 ++++++++++++++++++++
+ .../DocBook/media/v4l/vidioc-prepare-buf.xml       |   96 +++++++++++++
+ 4 files changed, 262 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
 
-diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
-index 529e582..521db0c 100644
---- a/drivers/media/video/omap3isp/isp.h
-+++ b/drivers/media/video/omap3isp/isp.h
-@@ -27,6 +27,7 @@
- #ifndef OMAP3_ISP_CORE_H
- #define OMAP3_ISP_CORE_H
- 
-+#include <media/omap3isp.h>
- #include <media/v4l2-device.h>
- #include <linux/device.h>
- #include <linux/io.h>
-@@ -94,14 +95,6 @@ enum isp_subclk_resource {
- 	OMAP3_ISP_SUBCLK_RESIZER	= (1 << 4),
- };
- 
--enum isp_interface_type {
--	ISP_INTERFACE_PARALLEL,
--	ISP_INTERFACE_CSI2A_PHY2,
--	ISP_INTERFACE_CCP2B_PHY1,
--	ISP_INTERFACE_CCP2B_PHY2,
--	ISP_INTERFACE_CSI2C_PHY1,
--};
--
- /* ISP: OMAP 34xx ES 1.0 */
- #define ISP_REVISION_1_0		0x10
- /* ISP2: OMAP 34xx ES 2.0, 2.1 and 3.0 */
-@@ -130,82 +123,6 @@ struct isp_reg {
- 	u32 val;
- };
- 
--/**
-- * struct isp_parallel_platform_data - Parallel interface platform data
-- * @data_lane_shift: Data lane shifter
-- *		0 - CAMEXT[13:0] -> CAM[13:0]
-- *		1 - CAMEXT[13:2] -> CAM[11:0]
-- *		2 - CAMEXT[13:4] -> CAM[9:0]
-- *		3 - CAMEXT[13:6] -> CAM[7:0]
-- * @clk_pol: Pixel clock polarity
-- *		0 - Non Inverted, 1 - Inverted
-- * @hs_pol: Horizontal synchronization polarity
-- *		0 - Active high, 1 - Active low
-- * @vs_pol: Vertical synchronization polarity
-- *		0 - Active high, 1 - Active low
-- * @bridge: CCDC Bridge input control
-- *		ISPCTRL_PAR_BRIDGE_DISABLE - Disable
-- *		ISPCTRL_PAR_BRIDGE_LENDIAN - Little endian
-- *		ISPCTRL_PAR_BRIDGE_BENDIAN - Big endian
-- */
--struct isp_parallel_platform_data {
--	unsigned int data_lane_shift:2;
--	unsigned int clk_pol:1;
--	unsigned int hs_pol:1;
--	unsigned int vs_pol:1;
--	unsigned int bridge:4;
--};
--
--/**
-- * struct isp_ccp2_platform_data - CCP2 interface platform data
-- * @strobe_clk_pol: Strobe/clock polarity
-- *		0 - Non Inverted, 1 - Inverted
-- * @crc: Enable the cyclic redundancy check
-- * @ccp2_mode: Enable CCP2 compatibility mode
-- *		0 - MIPI-CSI1 mode, 1 - CCP2 mode
-- * @phy_layer: Physical layer selection
-- *		ISPCCP2_CTRL_PHY_SEL_CLOCK - Data/clock physical layer
-- *		ISPCCP2_CTRL_PHY_SEL_STROBE - Data/strobe physical layer
-- * @vpclk_div: Video port output clock control
-- */
--struct isp_ccp2_platform_data {
--	unsigned int strobe_clk_pol:1;
--	unsigned int crc:1;
--	unsigned int ccp2_mode:1;
--	unsigned int phy_layer:1;
--	unsigned int vpclk_div:2;
--};
--
--/**
-- * struct isp_csi2_platform_data - CSI2 interface platform data
-- * @crc: Enable the cyclic redundancy check
-- * @vpclk_div: Video port output clock control
-- */
--struct isp_csi2_platform_data {
--	unsigned crc:1;
--	unsigned vpclk_div:2;
--};
--
--struct isp_subdev_i2c_board_info {
--	struct i2c_board_info *board_info;
--	int i2c_adapter_id;
--};
--
--struct isp_v4l2_subdevs_group {
--	struct isp_subdev_i2c_board_info *subdevs;
--	enum isp_interface_type interface;
--	union {
--		struct isp_parallel_platform_data parallel;
--		struct isp_ccp2_platform_data ccp2;
--		struct isp_csi2_platform_data csi2;
--	} bus; /* gcc < 4.6.0 chokes on anonymous union initializers */
--};
--
--struct isp_platform_data {
--	struct isp_v4l2_subdevs_group *subdevs;
--	void (*set_constraints)(struct isp_device *isp, bool enable);
--};
--
- struct isp_platform_callback {
- 	u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
- 	int (*csiphy_config)(struct isp_csiphy *phy,
-diff --git a/drivers/media/video/omap3isp/ispccp2.c b/drivers/media/video/omap3isp/ispccp2.c
-index ec9e395f..fa1d09b 100644
---- a/drivers/media/video/omap3isp/ispccp2.c
-+++ b/drivers/media/video/omap3isp/ispccp2.c
-@@ -243,9 +243,9 @@ static int ccp2_phyif_config(struct isp_ccp2_device *ccp2,
- 
- 	val = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL);
- 	if (!(val & ISPCCP2_CTRL_MODE)) {
--		if (pdata->ccp2_mode)
-+		if (pdata->ccp2_mode == ISP_CCP2_MODE_CCP2)
- 			dev_warn(isp->dev, "OMAP3 CCP2 bus not available\n");
--		if (pdata->phy_layer == ISPCCP2_CTRL_PHY_SEL_STROBE)
-+		if (pdata->phy_layer == ISP_CCP2_PHY_DATA_STROBE)
- 			/* Strobe mode requires CCP2 */
- 			return -EIO;
- 	}
-diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 227e7ac..ff03dd2 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -927,6 +927,23 @@ ioctl is called.</entry>
+ Applications set or clear this flag before calling the
+ <constant>VIDIOC_QBUF</constant> ioctl.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
++	    <entry>0x0400</entry>
++	    <entry>Caches do not have to be invalidated for this buffer.
++Typically applications shall use this flag if the data captured in the buffer
++is not going to be touched by the CPU, instead the buffer will, probably, be
++passed on to a DMA-capable hardware unit for further processing or output.
++</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
++	    <entry>0x0800</entry>
++	    <entry>Caches do not have to be cleaned for this buffer.
++Typically applications shall use this flag for output buffers if the data
++in this buffer has not been created by the CPU but by some DMA-capable unit,
++in which case caches have not been used.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 0d05e87..06bb179 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -462,6 +462,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-close;
+     &sub-ioctl;
+     <!-- All ioctls go here. -->
++    &sub-create-bufs;
+     &sub-cropcap;
+     &sub-dbg-g-chip-ident;
+     &sub-dbg-g-register;
+@@ -504,6 +505,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-queryctrl;
+     &sub-query-dv-preset;
+     &sub-querystd;
++    &sub-prepare-buf;
+     &sub-reqbufs;
+     &sub-s-hw-freq-seek;
+     &sub-streamon;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
 new file mode 100644
-index 0000000..e917b1d
+index 0000000..eb99604
 --- /dev/null
-+++ b/include/media/omap3isp.h
-@@ -0,0 +1,140 @@
-+/*
-+ * omap3isp.h
-+ *
-+ * TI OMAP3 ISP - Platform data
-+ *
-+ * Copyright (C) 2011 Nokia Corporation
-+ *
-+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *	     Sakari Ailus <sakari.ailus@iki.fi>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
++++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+@@ -0,0 +1,147 @@
++<refentry id="vidioc-create-bufs">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_CREATE_BUFS</refentrytitle>
++    &manvol;
++  </refmeta>
 +
-+#ifndef __MEDIA_OMAP3ISP_H__
-+#define __MEDIA_OMAP3ISP_H__
++  <refnamediv>
++    <refname>VIDIOC_CREATE_BUFS</refname>
++    <refpurpose>Create buffers for Memory Mapped or User Pointer I/O</refpurpose>
++  </refnamediv>
 +
-+struct i2c_board_info;
-+struct isp_device;
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_create_buffers *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
 +
-+enum isp_interface_type {
-+	ISP_INTERFACE_PARALLEL,
-+	ISP_INTERFACE_CSI2A_PHY2,
-+	ISP_INTERFACE_CCP2B_PHY1,
-+	ISP_INTERFACE_CCP2B_PHY2,
-+	ISP_INTERFACE_CSI2C_PHY1,
-+};
++  <refsect1>
++    <title>Arguments</title>
 +
-+enum {
-+	ISP_BRIDGE_DISABLE = 0,
-+	ISP_BRIDGE_LITTLE_ENDIAN = 2,
-+	ISP_BRIDGE_BIG_ENDIAN = 3,
-+};
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_CREATE_BUFS</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
 +
-+enum {
-+	ISP_LANE_SHIFT_0 = 0,
-+	ISP_LANE_SHIFT_2 = 1,
-+	ISP_LANE_SHIFT_4 = 2,
-+	ISP_LANE_SHIFT_6 = 3,
-+};
++  <refsect1>
++    <title>Description</title>
 +
-+/**
-+ * struct isp_parallel_platform_data - Parallel interface platform data
-+ * @data_lane_shift: Data lane shifter
-+ *		ISP_LANE_SHIFT_0 - CAMEXT[13:0] -> CAM[13:0]
-+ *		ISP_LANE_SHIFT_2 - CAMEXT[13:2] -> CAM[11:0]
-+ *		ISP_LANE_SHIFT_4 - CAMEXT[13:4] -> CAM[9:0]
-+ *		ISP_LANE_SHIFT_6 - CAMEXT[13:6] -> CAM[7:0]
-+ * @clk_pol: Pixel clock polarity
-+ *		0 - Non Inverted, 1 - Inverted
-+ * @hs_pol: Horizontal synchronization polarity
-+ *		0 - Active high, 1 - Active low
-+ * @vs_pol: Vertical synchronization polarity
-+ *		0 - Active high, 1 - Active low
-+ * @bridge: CCDC Bridge input control
-+ *		ISP_BRIDGE_DISABLE - Disable
-+ *		ISP_BRIDGE_LITTLE_ENDIAN - Little endian
-+ *		ISP_BRIDGE_BIG_ENDIAN - Big endian
-+ */
-+struct isp_parallel_platform_data {
-+	unsigned int data_lane_shift:2;
-+	unsigned int clk_pol:1;
-+	unsigned int hs_pol:1;
-+	unsigned int vs_pol:1;
-+	unsigned int bridge:2;
-+};
++    <para>This ioctl is used to create buffers for <link linkend="mmap">memory
++mapped</link> or <link linkend="userp">user pointer</link>
++I/O. It can be used as an alternative or in addition to the
++<constant>VIDIOC_REQBUFS</constant> ioctl, when a tighter control over buffers
++is required. This ioctl can be called multiple times to create buffers of
++different sizes.</para>
 +
-+enum {
-+	ISP_CCP2_PHY_DATA_CLOCK = 0,
-+	ISP_CCP2_PHY_DATA_STROBE = 1,
-+};
++    <para>To allocate device buffers applications initialize relevant fields of
++the <structname>v4l2_create_buffers</structname> structure. They set the
++<structfield>type</structfield> field in the
++<structname>v4l2_format</structname> structure, embedded in this
++structure, to the respective stream or buffer type.
++<structfield>count</structfield> must be set to the number of required buffers.
++<structfield>memory</structfield> specifies the required I/O method. The
++<structfield>format</structfield> field shall typically be filled in using
++either the <constant>VIDIOC_TRY_FMT</constant> or
++<constant>VIDIOC_G_FMT</constant> ioctl(). Additionally, applications can adjust
++<structfield>sizeimage</structfield> fields to fit their specific needs. The
++<structfield>reserved</structfield> array must be zeroed.</para>
 +
-+enum {
-+	ISP_CCP2_MODE_MIPI = 0,
-+	ISP_CCP2_MODE_CCP2 = 1,
-+};
++    <para>When the ioctl is called with a pointer to this structure the driver
++will attempt to allocate up to the requested number of buffers and store the
++actual number allocated and the starting index in the
++<structfield>count</structfield> and the <structfield>index</structfield> fields
++respectively. On return <structfield>count</structfield> can be smaller than
++the number requested. The driver may also adjust buffer sizes as it sees fit,
++however, it will not update <structfield>sizeimage</structfield> fields, the
++user has to use <constant>VIDIOC_QUERYBUF</constant> to retrieve that
++information.</para>
 +
-+/**
-+ * struct isp_ccp2_platform_data - CCP2 interface platform data
-+ * @strobe_clk_pol: Strobe/clock polarity
-+ *		0 - Non Inverted, 1 - Inverted
-+ * @crc: Enable the cyclic redundancy check
-+ * @ccp2_mode: Enable CCP2 compatibility mode
-+ *		ISP_CCP2_MODE_MIPI - MIPI-CSI1 mode
-+ *		ISP_CCP2_MODE_CCP2 - CCP2 mode
-+ * @phy_layer: Physical layer selection
-+ *		ISP_CCP2_PHY_DATA_CLOCK - Data/clock physical layer
-+ *		ISP_CCP2_PHY_DATA_STROBE - Data/strobe physical layer
-+ * @vpclk_div: Video port output clock control
-+ */
-+struct isp_ccp2_platform_data {
-+	unsigned int strobe_clk_pol:1;
-+	unsigned int crc:1;
-+	unsigned int ccp2_mode:1;
-+	unsigned int phy_layer:1;
-+	unsigned int vpclk_div:2;
-+};
++    <table pgwide="1" frame="none" id="v4l2-create-buffers">
++      <title>struct <structname>v4l2_create_buffers</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>index</structfield></entry>
++	    <entry>The starting buffer index, returned by the driver.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>count</structfield></entry>
++	    <entry>The number of buffers requested or granted.</entry>
++	  </row>
++	  <row>
++	    <entry>&v4l2-memory;</entry>
++	    <entry><structfield>memory</structfield></entry>
++	    <entry>Applications set this field to
++<constant>V4L2_MEMORY_MMAP</constant> or
++<constant>V4L2_MEMORY_USERPTR</constant>.</entry>
++	  </row>
++	  <row>
++	    <entry>&v4l2-format;</entry>
++	    <entry><structfield>format</structfield></entry>
++	    <entry>Filled in by the application, preserved by the driver.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[8]</entry>
++	    <entry>A place holder for future extensions.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++  </refsect1>
 +
-+/**
-+ * struct isp_csi2_platform_data - CSI2 interface platform data
-+ * @crc: Enable the cyclic redundancy check
-+ * @vpclk_div: Video port output clock control
-+ */
-+struct isp_csi2_platform_data {
-+	unsigned crc:1;
-+	unsigned vpclk_div:2;
-+};
++  <refsect1>
++    &return-value;
 +
-+struct isp_subdev_i2c_board_info {
-+	struct i2c_board_info *board_info;
-+	int i2c_adapter_id;
-+};
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>ENOMEM</errorcode></term>
++	<listitem>
++	  <para>No memory to allocate buffers for <link linkend="mmap">memory
++mapped</link> I/O.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>The buffer type (<structfield>type</structfield> field) or the
++requested I/O method (<structfield>memory</structfield>) is not
++supported.</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
 +
-+struct isp_v4l2_subdevs_group {
-+	struct isp_subdev_i2c_board_info *subdevs;
-+	enum isp_interface_type interface;
-+	union {
-+		struct isp_parallel_platform_data parallel;
-+		struct isp_ccp2_platform_data ccp2;
-+		struct isp_csi2_platform_data csi2;
-+	} bus; /* gcc < 4.6.0 chokes on anonymous union initializers */
-+};
++<!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "v4l2.sgml"
++indent-tabs-mode: nil
++End:
++-->
+diff --git a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+new file mode 100644
+index 0000000..509e752
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+@@ -0,0 +1,96 @@
++<refentry id="vidioc-prepare-buf">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_PREPARE_BUF</refentrytitle>
++    &manvol;
++  </refmeta>
 +
-+struct isp_platform_data {
-+	struct isp_v4l2_subdevs_group *subdevs;
-+	void (*set_constraints)(struct isp_device *isp, bool enable);
-+};
++  <refnamediv>
++    <refname>VIDIOC_PREPARE_BUF</refname>
++    <refpurpose>Prepare a buffer for I/O</refpurpose>
++  </refnamediv>
 +
-+#endif	/* __MEDIA_OMAP3ISP_H__ */
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_buffer *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_PREPARE_BUF</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>Applications can optionally call the
++<constant>VIDIOC_PREPARE_BUF</constant> ioctl to pass ownership of the buffer
++to the driver before actually enqueuing it, using the
++<constant>VIDIOC_QBUF</constant> ioctl, and to prepare it for future I/O.
++Such preparations may include cache invalidation or cleaning. Performing them
++in advance saves time during the actual I/O. In case such cache operations are
++not required, the application can use one of
++<constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant> and
++<constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant> flags to skip the respective
++step.</para>
++
++    <para>The <structname>v4l2_buffer</structname> structure is
++specified in <xref linkend="buffer" />.</para>
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>EBUSY</errorcode></term>
++	<listitem>
++	  <para>File I/O is in progress.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>The buffer <structfield>type</structfield> is not
++supported, or the <structfield>index</structfield> is out of bounds,
++or no buffers have been allocated yet, or the
++<structfield>userptr</structfield> or
++<structfield>length</structfield> are invalid.</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
++
++<!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "v4l2.sgml"
++indent-tabs-mode: nil
++End:
++-->
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.2.5
 
