@@ -1,171 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nschwmtas06p.mx.bigpond.com ([61.9.189.152]:28272 "EHLO
-	nschwmtas06p.mx.bigpond.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753176Ab1HOMcu (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:62844 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756995Ab1HaSCx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Aug 2011 08:32:50 -0400
-From: Declan Mullen <declan.mullen@bigpond.com>
-To: linux-media@vger.kernel.org
-Subject: Re: How to git and build HVR-2200 drivers from Kernel labs ?
-Date: Mon, 15 Aug 2011 22:32:46 +1000
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Steven Toth <stoth@kernellabs.com>
-References: <201108150923.44824.declan.mullen@bigpond.com> <CAGoCfixyKbR4rJUjxpSu2H2ss=jbk45VEJiPeSzq6FO0G7EFbQ@mail.gmail.com> <201108152109.53885.declan.mullen@bigpond.com>
-In-Reply-To: <201108152109.53885.declan.mullen@bigpond.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201108152232.46744.declan.mullen@bigpond.com>
+	Wed, 31 Aug 2011 14:02:53 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 9/9 v6] V4L: soc-camera: add 2 new ioctl() handlers
+Date: Wed, 31 Aug 2011 20:02:48 +0200
+Message-Id: <1314813768-27752-10-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday, August 15, 2011 09:09:53 pm Declan Mullen wrote:
-> On Monday, August 15, 2011 09:28:44 am Devin Heitmueller wrote:
-> > Only Steven can look at the schematic and know for sure what prompted
-> > them to update to a new PCI ID.  However, you can definitely try doing
-> > "card=4" and see if it works.
-> > 
-> > Card=9 won't work since that card number is not valid given the card
-> > list in your driver.
-> > 
-> > Devin
-> > 
-> > On Sun, Aug 14, 2011 at 7:23 PM, Declan Mullen
-> > 
-> > <declan.mullen@bigpond.com> wrote:
-> > > On Sunday 14 August 2011 22:14:48 you wrote:
-> > >> On Sun, Aug 14, 2011 at 5:21 AM, Declan Mullen
-> > >> 
-> > >> <declan.mullen@bigpond.com> wrote:
-> > >> > Hi
-> > >> > 
-> > >> > I've got a 8940 edition of a Hauppauge HVR-2200. The driver is
-> > >> > called saa7164. The versions included in my OS (mythbuntu 10.10 x86
-> > >> > 32bit, kernel 2.6.35-30) and from linuxtv.org are too old to
-> > >> > recognise the 8940 edition. Posts #124 to #128 in the "Hauppauge
-> > >> > HVR-2200 Tuner Install Guide" topic
-> > >> > (http://www.pcmediacenter.com.au/forum/topic/37541-hauppauge-hvr-220
-> > >> > 0- tun er- install-guide/page__view__findpost__p__321195) document
-> > >> > my efforts with those versions.
-> > >> > 
-> > >> > So I wish to use the latest stable drivers from the driver
-> > >> > maintainers, ie
-> > >> > http://kernellabs.com/gitweb/?p=stoth/saa7164-stable.git;a=summary
-> > >> > 
-> > >> > Problem is, I don't know git and I don't know how I'm suppose to
-> > >> > git, build and install it.
-> > >> > 
-> > >> > Taking a guess I've tried:
-> > >> >  git clone git://kernellabs.com/stoth/saa7164-stable.git
-> > >> >  cd saa7164-stable
-> > >> >  make menuconfig
-> > >> >  make
-> > >> > 
-> > >> > However I suspect these are not the optimum steps, as it seems to
-> > >> > have downloaded and built much more than just the saa7164 drivers.
-> > >> > The git pulled down nearly 1GB (which seems a lot) and the
-> > >> > resultant menuconfig produced a very big ".config".
-> > >> > 
-> > >> > Am I doing the right steps or should I be doing something else to
-> > >> > git, build and install  the latest drivers ?
-> > >> > 
-> > >> > Thanks,
-> > >> > Declan
-> > >> 
-> > >> Hello Declan,
-> > >> 
-> > >> Blame Mauro and the other LinuxTV developers for moving to Git.  When
-> > >> we had HG you could do just the v4l-dvb stack and apply it to your
-> > >> existing kernel.  Now you have to suck down the *entire* kernel, and
-> > >> there's no easy way to separate out just the v4l-dvb stuff (like the
-> > >> saa7164 driver).  The net effect is it's that much harder for
-> > >> end-users to try out new drivers, and even harder still for developers
-> > >> to maintain drivers out-of-tree.
-> > >> 
-> > >> All that said, Ubuntu 10.10 deviates very little in terms of the
-> > >> saa7164 driver.  What you have is probably already identical to what's
-> > >> in the kernellabs.com tree.
-> > >> 
-> > >> And yes, PAL support is broken even in the kernellabs tree, so if that
-> > >> was your motivation then updating to the current KL stable tree won't
-> > >> help you.
-> > >> 
-> > >> Cheers,
-> > >> 
-> > >> Devin
-> > > 
-> > > Many thanks for the clarification about git.
-> > > 
-> > > The only reason why I'm attempting to use a newer saa7164 driver is
-> > > because the driver in my ubuntu 10.10 (2.6.35-30, x86 32bit) doesn't
-> > > recognise the 8940 edition of my HVR-2200  (and doesn't support the
-> > > 
-> > >  "card=9" option that I believe is specifically for the 8940 edition).
-> > > 
-> > > Example dmesg output:
-> > >  $ dmesg | grep saa7
-> > >  [   18.367431] saa7164 driver loaded
-> > >  [   18.367467] saa7164 0000:02:00.0: PCI INT A -> GSI 16 (level, low)
-> > >  ->
-> > > 
-> > > IRQ 16 [   18.367472] saa7164[0]: Your board isn't known (yet) to the
-> > > driver. [   18.367473] saa7164[0]: Try to pick one of the existing card
-> > > configs via [   18.367474] saa7164[0]: card=<n> insmod option. 
-> > > Updating to the latest [   18.367475] saa7164[0]: version might help
-> > > as well.
-> > > 
-> > >  [   18.367684] saa7164[0]: Here are valid choices for the card=<n>
-> > > 
-> > > insmod option: [   18.367739] saa7164[0]:    card=0 -> Unknown
-> > > 
-> > >  [   18.367789] saa7164[0]:    card=1 -> Generic Rev2
-> > >  [   18.367840] saa7164[0]:    card=2 -> Generic Rev3
-> > >  [   18.367891] saa7164[0]:    card=3 -> Hauppauge WinTV-HVR2250
-> > >  [   18.367943] saa7164[0]:    card=4 -> Hauppauge WinTV-HVR2200
-> > >  [   18.367995] saa7164[0]:    card=5 -> Hauppauge WinTV-HVR2200
-> > >  [   18.368059] saa7164[0]:    card=6 -> Hauppauge WinTV-HVR2200
-> > >  [   18.368112] saa7164[0]:    card=7 -> Hauppauge WinTV-HVR2250
-> > >  [   18.368164] saa7164[0]:    card=8 -> Hauppauge WinTV-HVR2250
-> > >  [   18.369142] CORE saa7164[0]: subsystem: 0070:8940, board: Unknown
-> > > 
-> > > [card=0,autodetected] [   18.369147] saa7164[0]/0: found at
-> > > 0000:02:00.0, rev: 129, irq: 16, latency: 0, mmio: 0xfd400000 [
-> > > 18.369152] saa7164 0000:02:00.0: setting latency timer to 64 [
-> > > 18.369162] saa7164_initdev() Unsupported board detected, registering
-> > > without firmware
-> > > 
-> > > To get this 8940 card working with my ubuntu 10.10 system,
-> > > what would you recommend I try ?
-> > > 
-> > > Should I be trying to extract the new driver from what the above
-> > > git and makes, ie just copy into place the new saa7164.ko file ?
-> > > Or should my existing driver work if i use the card=4 option ?
-> > > 
-> > > Thanks,
-> > > Declan
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-media"
-> > > in the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> Hi Devin
-> 
-> With respect to installing the new saa7164 driver (from
-> kernellabs.com/stoth/saa7164-stable.git) into my ubuntu/mythbuntu 10.10
-> system (x86 32bit kernel 2.6.35-30), assuming that I've already put the
-> correct firmware in place, do I just replace my existing saa7164.ko with
-> the new one created by the above make and reboot ? Or is there more to it
-> ?
-> 
-> Thanks,
-> Declan
+This patch adds two new ioctl() handlers: .vidioc_create_bufs() and
+.vidioc_prepare_buf() for compliant vb2 soc-camera hosts.
 
-I copied the new saa7164.ko to "/lib/modules/2.6.35-30-generic-
-pae/kernel/drivers/media/video/saa7164/saa7164.ko" and rebooted. However the 
-new saa7164.ko seems to be incompatible with my existing kernel, as dmesg now 
-reports: "saa7164: disagrees about version of symbol module_layout"
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Pawel Osciak <pawel@osciak.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/soc_camera.c |   33 +++++++++++++++++++++++++++++++--
+ 1 files changed, 31 insertions(+), 2 deletions(-)
 
-So how do I get a 8940 edition of a HVR-2200 working with Ubuntu ?
-
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index ac23916..5943235 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -318,6 +318,32 @@ static int soc_camera_dqbuf(struct file *file, void *priv,
+ 		return vb2_dqbuf(&icd->vb2_vidq, p, file->f_flags & O_NONBLOCK);
+ }
+ 
++static int soc_camera_create_bufs(struct file *file, void *priv,
++			    struct v4l2_create_buffers *create)
++{
++	struct soc_camera_device *icd = file->private_data;
++	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++
++	/* videobuf2 only */
++	if (ici->ops->init_videobuf)
++		return -EINVAL;
++	else
++		return vb2_create_bufs(&icd->vb2_vidq, create);
++}
++
++static int soc_camera_prepare_buf(struct file *file, void *priv,
++				  const struct v4l2_buffer *b)
++{
++	struct soc_camera_device *icd = file->private_data;
++	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++
++	/* videobuf2 only */
++	if (ici->ops->init_videobuf)
++		return -EINVAL;
++	else
++		return vb2_prepare_buf(&icd->vb2_vidq, b);
++}
++
+ /* Always entered with .video_lock held */
+ static int soc_camera_init_user_formats(struct soc_camera_device *icd)
+ {
+@@ -1101,6 +1127,7 @@ static int soc_camera_probe(struct soc_camera_device *icd)
+ 		if (!control || !control->driver || !dev_get_drvdata(control) ||
+ 		    !try_module_get(control->driver->owner)) {
+ 			icl->del_device(icd);
++			ret = -ENODEV;
+ 			goto enodrv;
+ 		}
+ 	}
+@@ -1366,19 +1393,21 @@ static int soc_camera_device_register(struct soc_camera_device *icd)
+ 
+ static const struct v4l2_ioctl_ops soc_camera_ioctl_ops = {
+ 	.vidioc_querycap	 = soc_camera_querycap,
++	.vidioc_try_fmt_vid_cap  = soc_camera_try_fmt_vid_cap,
+ 	.vidioc_g_fmt_vid_cap    = soc_camera_g_fmt_vid_cap,
+-	.vidioc_enum_fmt_vid_cap = soc_camera_enum_fmt_vid_cap,
+ 	.vidioc_s_fmt_vid_cap    = soc_camera_s_fmt_vid_cap,
++	.vidioc_enum_fmt_vid_cap = soc_camera_enum_fmt_vid_cap,
+ 	.vidioc_enum_input	 = soc_camera_enum_input,
+ 	.vidioc_g_input		 = soc_camera_g_input,
+ 	.vidioc_s_input		 = soc_camera_s_input,
+ 	.vidioc_s_std		 = soc_camera_s_std,
+ 	.vidioc_enum_framesizes  = soc_camera_enum_fsizes,
+ 	.vidioc_reqbufs		 = soc_camera_reqbufs,
+-	.vidioc_try_fmt_vid_cap  = soc_camera_try_fmt_vid_cap,
+ 	.vidioc_querybuf	 = soc_camera_querybuf,
+ 	.vidioc_qbuf		 = soc_camera_qbuf,
+ 	.vidioc_dqbuf		 = soc_camera_dqbuf,
++	.vidioc_create_bufs	 = soc_camera_create_bufs,
++	.vidioc_prepare_buf	 = soc_camera_prepare_buf,
+ 	.vidioc_streamon	 = soc_camera_streamon,
+ 	.vidioc_streamoff	 = soc_camera_streamoff,
+ 	.vidioc_queryctrl	 = soc_camera_queryctrl,
+-- 
+1.7.2.5
 
