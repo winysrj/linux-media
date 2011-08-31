@@ -1,90 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:38368 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755179Ab1HUPGQ convert rfc822-to-8bit (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:54793 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750912Ab1HaKAF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Aug 2011 11:06:16 -0400
-Received: by pzk37 with SMTP id 37so7405923pzk.1
-        for <linux-media@vger.kernel.org>; Sun, 21 Aug 2011 08:06:16 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAATJ+ft9HNqLA62ZZkkEP6EswXC1Jhq=FBcXU+OHCkXTKpqeUA@mail.gmail.com>
-References: <CAATJ+fu5JqVmyY=zJn_CM_Eusst_YWKG2B2MAuu5fqELYYsYqA@mail.gmail.com>
-	<CAATJ+ft9HNqLA62ZZkkEP6EswXC1Jhq=FBcXU+OHCkXTKpqeUA@mail.gmail.com>
-Date: Sun, 21 Aug 2011 17:06:15 +0200
-Message-ID: <CAL9G6WX12UihYwCLUQueURyHR7vaps+Gge_VuZeMLvUjqUe=wg@mail.gmail.com>
-Subject: Re: Afatech AF9013
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: Jason Hecker <jwhecker@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 31 Aug 2011 06:00:05 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LQS00FH1EG0R020@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 31 Aug 2011 11:00:01 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LQS0094SEEC0K@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 31 Aug 2011 10:59:01 +0100 (BST)
+Date: Wed, 31 Aug 2011 11:56:05 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH] MAINTAINERS: add entries for s5p-mfc and s5p-tv drivers
+In-reply-to: <005a01cc67b9$02315560$06940020$%park@samsung.com>
+To: jtp.park@samsung.com, linux-media@vger.kernel.org
+Cc: kgene.kim@samsung.com, 'Kamil Debski' <k.debski@samsung.com>,
+	younglak1004.kim@samsung.com, kyungmin.park@samsung.com
+Message-id: <012401cc67c4$33acdf00$9b069d00$%szyprowski@samsung.com>
+Content-language: pl
+References: <1312968749-15988-1-git-send-email-m.szyprowski@samsung.com>
+ <005a01cc67b9$02315560$06940020$%park@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello again, thanks Jason for your reply. It is interesting to ear
-that is not just my problem.
+Hello,
 
-I add the dual device on a laptop with same kernel 2.6.32.
+On Wednesday, August 31, 2011 10:36 AM Jeongtae Park wrote:
 
-It works well, both tuners working great with no pixeled images.
+> Authors of the code definitely should be maintainers.
+> I think everyone will agree.
 
-Two weeks ago, I must change my HTPC power supply, a 300W PFC. I had
-some problems when connecting a 2,5 USB drive (it use to shutdown). On
-the local shop they test it and there are more than 5V on the USB, so
-they change it.
+Ok, I will update the patch.
 
-How can I test the USB? Is there any USB debug tool?
+> 
+> Best Regards
+> /jtpark
+> > -----Original Message-----
+> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of
+Marek
+> Szyprowski
+> > Sent: Wednesday, August 10, 2011 6:32 PM
+> > To: linux-media@vger.kernel.org
+> > Cc: Marek Szyprowski; Kyungmin Park; Kamil Debski; Tomasz Stanislawski
+> > Subject: [PATCH] MAINTAINERS: add entries for s5p-mfc and s5p-tv drivers
+> >
+> > Both driver has been merged to v3.1-rc1, so add its authors as maintainers.
+> >
+> > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> > Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > ---
+> >  MAINTAINERS |   18 ++++++++++++++++++
+> >  1 files changed, 18 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/MAINTAINERS b/MAINTAINERS
+> > index 51d42fb..0618d9a 100644
+> > --- a/MAINTAINERS
+> > +++ b/MAINTAINERS
+> > @@ -1084,6 +1084,24 @@ F:	arch/arm/plat-s5p/dev-fimc*
+> >  F:	arch/arm/plat-samsung/include/plat/*fimc*
+> >  F:	drivers/media/video/s5p-fimc/
+> >
+> > +ARM/SAMSUNG S5P SERIES Multi Format Codec (MFC) SUPPORT
+> > +M:	Kyungmin Park <kyungmin.park@samsung.com>
+> > +M:	Kamil Debski <k.debski@samsung.com>
+> 
+> M:	Jeongtae Park<jtp.park@samsung.com>
+> 
+> > +L:	linux-arm-kernel@lists.infradead.org
+> > +L:	linux-media@vger.kernel.org
+> > +S:	Maintained
+> > +F:	arch/arm/plat-s5p/dev-mfc.c
+> > +F:	drivers/media/video/s5p-mfc/
+> > +
+> > +ARM/SAMSUNG S5P SERIES TV SUBSYSTEM SUPPORT
+> > +M:	Kyungmin Park <kyungmin.park@samsung.com>
+> > +M:	Tomasz Stanislawski <t.stanislaws@samsung.com>
+> > +L:	linux-arm-kernel@lists.infradead.org
+> > +L:	linux-media@vger.kernel.org
+> > +S:	Maintained
+> > +F:	arch/arm/plat-s5p/dev-tv.c
+> > +F:	drivers/media/video/s5p-tv/
+> > +
+> >  ARM/SHMOBILE ARM ARCHITECTURE
+> >  M:	Paul Mundt <lethal@linux-sh.org>
+> >  M:	Magnus Damm <magnus.damm@gmail.com>
 
-I don't know how to continue with this, thanks for all your help, best regards.
-
-2011/8/21 Jason Hecker <jwhecker@gmail.com>:
-> I have a problem that may be related to the issues on this thread and
-> it's driving me nuts.
->
-> I have two dual tuner Afatech based cards, they are both Leadtek
-> 2000DS cards, one made by Leadtek and the other branded as KWorld but
-> they are otherwise identical in spite of different VID:PID.
->
-> On each card tuner A is an AF9015 and tuner B is an AF9013.  The
-> KWorld card worked just fine for about 18 months in Mythbuntu 10.04
-> with the rebuilt and patched modules as described in the Wiki entry on
-> the 2000DS.  A few weeks ago tuner A started giving errors making the
-> viewing unwatchable so figuring the card had died I bought the
-> Leadtek.  To my surprise it gave the same problem as the KWorld when
-> using tuner A.  It seems Tuner A is OK until Tuner B is used and then
-> Tuner A gets a lot of errors.  Tuner B never has errors.  I did try
-> using the latest "media_build" from V4L but that didn't help.
->
-> So, I installed Mythbuntu 11.04 and with both cards I
-> still get the same problem.  Watching live TV with MythTV or with
-> mplayer on tuner A gives errors and tuner B is always flawless even
-> with "media_build" updates.
->
-> I honestly can't recall if when the failure first occurred if I had
-> done a routine kernel update at that time - though it would have just
-> been the usual 2.6.32 update that is in line with 10.04 maintenance.
->
-> I have tried everything imaginable to nail down the problem but can't
-> seem to fix it.  Even "options dvb-usb force_pid_filter_usage=1" seems
-> to improve the problem somewhat but the errors are still there.  I
-> have tried every firmware from 4.65 to 5.10, adjusting the PCI latency
-> from 32 to 96, fed each card directly from the antenna (taking the
-> splitter out of the loop), one card fitted, both cards fitted, kernel
-> and system upgrades (Mythbuntu 10.04 to 11.04), mplayer vs MythTV but
-> the results are always the same.  Tuner B is perfect, tuner A
-> corrupts when Tuner B is used.  There are no errors or warnings in
-> syslog or dmesg to
-> suggest anything has failed.
->
-> I'd appreciate any suggestions at this point as I am pretty unhappy
-> with the situation considering it *used* to work.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
-
+Best regards
 -- 
-Josu Lazkano
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
+
