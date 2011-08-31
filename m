@@ -1,47 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53648 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752512Ab1HQKgQ (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60201 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752207Ab1HaLRy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Aug 2011 06:36:16 -0400
-From: Deepthy Ravi <deepthy.ravi@ti.com>
-To: <g.liakhovetski@gmx.de>, <mchehab@infradead.org>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC: <linux-omap@vger.kernel.org>, Vaibhav Hiremath <hvaibhav@ti.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: [PATCH] V4L/DVB: Add chip ID of TVP5146 video decoder
-Date: Wed, 17 Aug 2011 16:06:05 +0530
-Message-ID: <1313577365-18516-1-git-send-email-deepthy.ravi@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Wed, 31 Aug 2011 07:17:54 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-fbdev@vger.kernel.org
+Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com
+Subject: [PATCH v3 0/3] fbdev: Add FOURCC-based format configuration API
+Date: Wed, 31 Aug 2011 13:18:18 +0200
+Message-Id: <1314789501-824-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+Hi everybody,
 
-This patch is to add chip identifier entry for
-TVP5146 video decoder.
+Here's the third version of the fbdev FOURCC-based format configuration API.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
----
- include/media/v4l2-chip-ident.h |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+Compared to the previous version, I've added an FB_TYPE_FOURCC in addition to
+FB_VISUAL_FOURCC, fixed the documentation (thanks to Geert for reviewing it
+and explaining how fbdev bitplanes work) and fixed bugs in the sh_mobile_lcdc
+YUV support.
 
-diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
-index 63fd9d3..cd9b66f 100644
---- a/include/media/v4l2-chip-ident.h
-+++ b/include/media/v4l2-chip-ident.h
-@@ -122,6 +122,9 @@ enum {
- 	/* Other via devs could use 3314, 3324, 3327, 3336, 3364, 3353 */
- 	V4L2_IDENT_VIA_VX855 = 3409,
- 
-+	/* module tvp514x */
-+	V4L2_IDENT_TVP5146 = 5146,
-+
- 	/* module tvp5150 */
- 	V4L2_IDENT_TVP5150 = 5150,
- 
+The sb_mobile_lcdc patch applies on top of the latest patches that I've sent
+to the list. You can find a consolidated version that includes this patch set
+at http://git.linuxtv.org/pinchartl/fbdev.git/shortlog/refs/heads/fbdev-yuv.
+
+I've updated the fbdev-test tool to add FOURCC support. The code is available
+in the fbdev-test yuv branch at
+http://git.ideasonboard.org/?p=fbdev-test.git;a=shortlog;h=refs/heads/yuv.
+
+Laurent Pinchart (3):
+  fbdev: Add FOURCC-based format configuration API
+  v4l: Add V4L2_PIX_FMT_NV24 and V4L2_PIX_FMT_NV42 formats
+  fbdev: sh_mobile_lcdc: Support FOURCC-based format API
+
+ Documentation/DocBook/media/v4l/pixfmt-nv24.xml |  129 ++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml      |    1 +
+ Documentation/fb/api.txt                        |  317 ++++++++++++++++++++
+ arch/arm/mach-shmobile/board-ag5evm.c           |    2 +-
+ arch/arm/mach-shmobile/board-ap4evb.c           |    4 +-
+ arch/arm/mach-shmobile/board-mackerel.c         |    4 +-
+ arch/sh/boards/mach-ap325rxa/setup.c            |    2 +-
+ arch/sh/boards/mach-ecovec24/setup.c            |    2 +-
+ arch/sh/boards/mach-kfr2r09/setup.c             |    2 +-
+ arch/sh/boards/mach-migor/setup.c               |    4 +-
+ arch/sh/boards/mach-se/7724/setup.c             |    2 +-
+ drivers/video/sh_mobile_lcdcfb.c                |  362 +++++++++++++++--------
+ include/linux/fb.h                              |   28 ++-
+ include/linux/videodev2.h                       |    2 +
+ include/video/sh_mobile_lcdc.h                  |    4 +-
+ 15 files changed, 726 insertions(+), 139 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+ create mode 100644 Documentation/fb/api.txt
+
 -- 
-1.7.0.4
+Regards,
 
+Laurent Pinchart
