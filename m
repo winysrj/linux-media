@@ -1,60 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:65359 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753583Ab1H2Ooe (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:26827 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750792Ab1HaONE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 10:44:34 -0400
-Received: by fxh19 with SMTP id 19so4477113fxh.19
-        for <linux-media@vger.kernel.org>; Mon, 29 Aug 2011 07:44:33 -0700 (PDT)
+	Wed, 31 Aug 2011 10:13:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [RFC PATCH 5/6] V4L menu: move all platform drivers to the bottom of the menu.
+Date: Wed, 31 Aug 2011 16:13:00 +0200
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1314797925-8113-1-git-send-email-hverkuil@xs4all.nl> <99c353d49539e4a2a8f165db612ed6a7e82a57b9.1314797675.git.hans.verkuil@cisco.com> <4E5E3C2B.6020703@infradead.org>
+In-Reply-To: <4E5E3C2B.6020703@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <4E4C2784.2020003@iki.fi>
-References: <CAFk-VPxQvGiEUdd+X4jjUqcygPO-JsT0gTFvrX-q4cGAW6tq_Q@mail.gmail.com>
- <4E485F81.9020700@iki.fi> <4E48FF99.7030006@iki.fi> <4E4C2784.2020003@iki.fi>
-From: =?ISO-8859-1?Q?Istv=E1n_V=E1radi?= <ivaradi@gmail.com>
-Date: Mon, 29 Aug 2011 16:44:13 +0200
-Message-ID: <CAFk-VPzKa4bNLCMMCagFi1LLK6PnY245YJqP5yisQH77nJ0Org@mail.gmail.com>
-Subject: Re: Smart card reader support for Anysee DVB devices
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108311613.00238.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wednesday, August 31, 2011 15:50:35 Mauro Carvalho Chehab wrote:
+> Em 31-08-2011 10:38, Hans Verkuil escreveu:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> IMO, a submenu for those drivers makes sense.
 
-2011/8/17 Antti Palosaari <crope@iki.fi>:
-> On 08/15/2011 02:14 PM, Antti Palosaari wrote:
->> On 08/15/2011 02:51 AM, Antti Palosaari wrote:
->>> Biggest problem I see whole thing is poor application support. OpenCT is
->>> rather legacy but there is no good alternative. All this kind of serial
->>> drivers seems to be OpenCT currently.
->>
->> I wonder if it is possible to make virtual CCID device since CCID seems
->> to be unfortunately the only interface SmartCard guys currently care.
->
-> I studied scenario and looks like it is possible to implement way like,
-> register virtual USB HCI (virtual motherboard USB controller) then
-> register virtual PC/SC device to that which hooks all calls to HW via
-> Anysee driver. Some glue surely needed for emulate PC/SC. I think there
-> is not any such driver yet. Anyhow, there is virtual USB HCI driver
-> currently in staging which can be used as example, or even use it to
-> register virtual device. That kind of functionality surely needs more
-> talking...
+I thought about that, but actually you never see any of these drivers
+unless you have the right architecture options enabled.
 
-It maybe that smartcard guys care only for CCID, but wouldn't it be an
-overkill to implement an emulation of that for the driver? It can be
-done, of course, but I think it would be much more complicated than
-the current one. Is it really necessary to put such complexity into
-the kernel? In my opinion, this should be handled in user-space.
+So if you would put them in a submenu, then you'll end up with just a
+few entries. It's not worth it in my opinion.
 
 Regards,
 
-Istvan
-
->
->
-> regards,
-> Antti
-> --
-> http://palosaari.fi/
->
+	Hans
