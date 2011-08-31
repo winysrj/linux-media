@@ -1,54 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:63167 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751784Ab1HTMgL (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:53737 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755169Ab1HaMaD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Aug 2011 08:36:11 -0400
-Received: by ewy4 with SMTP id 4so1405792ewy.19
-        for <linux-media@vger.kernel.org>; Sat, 20 Aug 2011 05:36:10 -0700 (PDT)
-Message-ID: <4E4FAA37.20703@gmail.com>
-Date: Sat, 20 Aug 2011 14:36:07 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Chris Rankin <rankincj@yahoo.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH 1/2] EM28xx - fix race on disconnect
-References: <4E4D5157.2080406@yahoo.com> <CAGoCfiwk4vy1V7T=Hdz1CsywgWVpWEis0eDoh2Aqju3LYqcHfA@mail.gmail.com> <CAGoCfiw4v-ZsUPmVgOhARwNqjCVK458EV79djD625Sf+8Oghag@mail.gmail.com> <4E4D8DFD.5060800@yahoo.com> <4E4DFA65.4090508@redhat.com> <4E4F9DA4.90701@yahoo.com>
-In-Reply-To: <4E4F9DA4.90701@yahoo.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Wed, 31 Aug 2011 08:30:03 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LQS00DKHLDZ9H30@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 31 Aug 2011 13:30:00 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LQS001VBLBZ5Z@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 31 Aug 2011 13:28:48 +0100 (BST)
+Date: Wed, 31 Aug 2011 14:28:22 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 3/4] v4l: emulate old crop API using extended crop/compose API
+In-reply-to: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
+Message-id: <1314793703-32345-4-git-send-email-t.stanislaws@samsung.com>
+References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Chris,
+This patch allows new video drivers to work correctly with applications that
+use the old-style crop API.  The old crop ioctl is emulated by using selection
+callbacks.
 
-On 08/20/2011 01:42 PM, Chris Rankin wrote:
-> *Sigh* I overlooked two patches in the original numbering...
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/v4l2-ioctl.c |   86 ++++++++++++++++++++++++++++++++-----
+ 1 files changed, 74 insertions(+), 12 deletions(-)
 
-How about using git format-patch and git send-email ?
-http://www.kernel.org/pub/software/scm/git/docs/git-send-email.html
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 6e02b45..bb99c71 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -1696,11 +1696,29 @@ static long __video_do_ioctl(struct file *file,
+ 	{
+ 		struct v4l2_crop *p = arg;
+ 
+-		if (!ops->vidioc_g_crop)
+-			break;
+-
+ 		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+-		ret = ops->vidioc_g_crop(file, fh, p);
++
++		if (ops->vidioc_g_crop) {
++			ret = ops->vidioc_g_crop(file, fh, p);
++		} else if (ops->vidioc_g_selection) {
++			/* simulate capture crop using selection api */
++			struct v4l2_selection s = {
++				.type = p->type,
++			};
++
++			/* crop means compose for output devices */
++			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
++				s.target = V4L2_SEL_COMPOSE_ACTIVE;
++			else
++				s.target = V4L2_SEL_CROP_ACTIVE;
++
++			ret = ops->vidioc_g_selection(file, fh, &s);
++
++			/* copying results to old structure on success */
++			if (!ret)
++				p->c = s.r;
++		}
++
+ 		if (!ret)
+ 			dbgrect(vfd, "", &p->c);
+ 		break;
+@@ -1709,11 +1727,26 @@ static long __video_do_ioctl(struct file *file,
+ 	{
+ 		struct v4l2_crop *p = arg;
+ 
+-		if (!ops->vidioc_s_crop)
+-			break;
+ 		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+ 		dbgrect(vfd, "", &p->c);
+-		ret = ops->vidioc_s_crop(file, fh, p);
++
++		if (ops->vidioc_s_crop) {
++			ret = ops->vidioc_s_crop(file, fh, p);
++		} else if (ops->vidioc_s_selection) {
++			/* simulate capture crop using selection api */
++			struct v4l2_selection s = {
++				.type = p->type,
++				.r = p->c,
++			};
++
++			/* crop means compose for output devices */
++			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
++				s.target = V4L2_SEL_COMPOSE_ACTIVE;
++			else
++				s.target = V4L2_SEL_CROP_ACTIVE;
++
++			ret = ops->vidioc_s_selection(file, fh, &s);
++		}
+ 		break;
+ 	}
+ 	case VIDIOC_G_SELECTION:
+@@ -1746,12 +1779,41 @@ static long __video_do_ioctl(struct file *file,
+ 	{
+ 		struct v4l2_cropcap *p = arg;
+ 
+-		/*FIXME: Should also show v4l2_fract pixelaspect */
+-		if (!ops->vidioc_cropcap)
+-			break;
+-
+ 		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+-		ret = ops->vidioc_cropcap(file, fh, p);
++		if (ops->vidioc_cropcap) {
++			ret = ops->vidioc_cropcap(file, fh, p);
++		} else
++		if (ops->vidioc_g_selection) {
++			struct v4l2_selection s = { .type = p->type };
++
++			/* obtaining bounds */
++			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
++				s.target = V4L2_SEL_COMPOSE_BOUNDS;
++			else
++				s.target = V4L2_SEL_CROP_BOUNDS;
++
++			ret = ops->vidioc_g_selection(file, fh, &s);
++			if (ret)
++				break;
++			p->bounds = s.r;
++
++			/* obtaining defrect */
++			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
++				s.target = V4L2_SEL_COMPOSE_DEFAULT;
++			else
++				s.target = V4L2_SEL_CROP_DEFAULT;
++
++			ret = ops->vidioc_g_selection(file, fh, &s);
++			if (ret)
++				break;
++			p->defrect = s.r;
++
++			/* setting trivial pixelaspect */
++			p->pixelaspect.numerator = 1;
++			p->pixelaspect.denominator = 1;
++		}
++
++		/*FIXME: Should also show v4l2_fract pixelaspect */
+ 		if (!ret) {
+ 			dbgrect(vfd, "bounds ", &p->bounds);
+ 			dbgrect(vfd, "defrect ", &p->defrect);
+-- 
+1.7.6
 
-It's easier to review when patches are inlined rather than sent
-as an attachment.
-
-git format-patch will make you a nice series of patches. For instance,
-when you have 3 of your patches applied on top of some branch and it's
-checked out, to generate the patches the simple command:
-
-$ git format-patch -3 --cover-letter
-
-will do. Then you just need to pass the files to 'git send-email'.
-
-Also, the patch description should be wrapped around 75 characters.
-So there is no need for text wrapping with 'git log', etc.
-
-Unfortunately git send-email won't work with free e-email accounts
-on yahoo.com. The SMTP server throws an error like:
-"Access denied : Free users cannot access this server."
-Gmail works for me.
-
---
-Regards,
-Sylwester
