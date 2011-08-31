@@ -1,62 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:51435 "EHLO
-	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752338Ab1HIK5Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Aug 2011 06:57:24 -0400
-Subject: Re: Anyone tested the DVB-T2 dual tuner TBS6280?
-From: Steve Kerrison <steve@stevekerrison.com>
-To: Harald Gustafsson <hgu1972@gmail.com>
-Cc: mythtv-users@mythtv.org, linux-media@vger.kernel.org
-In-Reply-To: <CAC3jWv+c1HOqmo0B18Z3vWOwjr=RoPrN7sfR3bqzz4Tw7=fPAQ@mail.gmail.com>
-References: <CAC3jWv+c1HOqmo0B18Z3vWOwjr=RoPrN7sfR3bqzz4Tw7=fPAQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 09 Aug 2011 11:57:19 +0100
-Message-ID: <1312887439.2249.38.camel@ares>
-Mime-Version: 1.0
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51916 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755777Ab1HaPcr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Aug 2011 11:32:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sebastian Reichel <sre@debian.org>
+Subject: Re: status request of et8k8, ad5820 and their corresponding rx51 board code
+Date: Wed, 31 Aug 2011 17:33:16 +0200
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@iki.fi>
+References: <20110831151524.GA28065@earth.universe>
+In-Reply-To: <20110831151524.GA28065@earth.universe>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201108311733.16363.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Harald,
+Hi Sebastian,
 
-Currently the controller chip on the BlackGold card is unsupported - I
-don't know if there's any development work going on for that in this
-arena or if perhaps BlackGold are working on something themselves.
-Perhaps somebody else here knows the full story.
+(CC'ing Sakari Ailus)
 
-This TBS card has only just been brought to my attention. I cannot tell
-what PCIe chip it uses and if it's supported. The alleged Linux driver
-download for it doesn't have the cxd2820r code in it, so I can't see
-that having much chance of working.
-
-Perhaps ask TBS directly what the status on this one is? I don't know of
-anybody who has used it yet (even in Windows).
-
-Regards,
--- 
-Steve Kerrison MEng Hons.
-http://www.stevekerrison.com/ 
-
-On Tue, 2011-08-09 at 12:35 +0200, Harald Gustafsson wrote:
+On Wednesday 31 August 2011 17:15:24 Sebastian Reichel wrote:
 > Hi,
 > 
-> I searched for a dual tuner PCI-e DVB-T2 card with Linux support and
-> found this TBS6280 card:
-> http://tbsdvb.blog.com/2011/07/22/tbs-6280-freeview-hd-twin-tuner-card/
-> http://www.buydvb.net/tbs6280-pcie-dvbt2t-dual-tuner-card_p38.html
-> http://www.tbsdtv.com/english/Download.html
-> 
-> Previously I have only found the blackgold product that state they
-> will have Linux support but have not seen any drivers yet.
-> 
-> But when searching the mythtv lists and the linux dvb list I could not
-> find anyone using it. Do anyone have any info about this card, does it
-> work well with terrestrial DVB-T2 reception, is linux support working,
-> does it work with mythtv, etc.
-> 
-> /Harald
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> What's the plan for the rx51 camera drivers from [0]? Is there a
+> chance, that they get included in the mainline 3.2 or 3.3 kernel?
 
+The ad5820 driver will probably be the simplest one to upstream. It should be 
+possible to push it to v3.3. Someone needs to look at the lens-related 
+controls and how they can be standardized (if at all).
+
+The et8ek8 driver is a different story. I don't think it should get mainlined 
+in its current state. We need to get rid of the "camera firmware" support from 
+the driver first, and if possible implement the V4L2 API correctly without 
+relying on register lists.
+
+-- 
+Regards,
+
+Laurent Pinchart
