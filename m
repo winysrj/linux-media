@@ -1,89 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:43014 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753038Ab1H2ICF (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:59669 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755220Ab1HaVUP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Aug 2011 04:02:05 -0400
-Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LQO00BG2JNEYH@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 29 Aug 2011 09:02:02 +0100 (BST)
-Received: from [106.116.48.223] by spt2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LQO000VOJNEAN@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 29 Aug 2011 09:02:02 +0100 (BST)
-Date: Mon, 29 Aug 2011 10:01:58 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 4/5] [media] v4l: fix copying ioctl results on failure
-In-reply-to: <201108261709.02567.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl
-Message-id: <4E5B4776.3030709@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-15; format=flowed
-Content-transfer-encoding: 7BIT
-References: <1314363967-6448-1-git-send-email-t.stanislaws@samsung.com>
- <1314363967-6448-5-git-send-email-t.stanislaws@samsung.com>
- <201108261709.02567.laurent.pinchart@ideasonboard.com>
+	Wed, 31 Aug 2011 17:20:15 -0400
+Date: Thu, 1 Sep 2011 00:20:10 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Bastian Hecht <hechtb@googlemail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] media: Add camera controls for the ov5642 driver
+Message-ID: <20110831212010.GS12368@valkosipuli.localdomain>
+References: <alpine.DEB.2.02.1108171553540.17550@ipanema>
+ <201108282006.09790.laurent.pinchart@ideasonboard.com>
+ <CABYn4sx5jQPyLC4d6OfVbX5SSuS4TiNsB_LPoCheaOSbwM9Pzw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CABYn4sx5jQPyLC4d6OfVbX5SSuS4TiNsB_LPoCheaOSbwM9Pzw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/26/2011 05:09 PM, Laurent Pinchart wrote:
-Hi Laurent,
-> Hi Tomasz,
->
-> On Friday 26 August 2011 15:06:06 Tomasz Stanislawski wrote:
->> This patch fix the handling of data passed to V4L2 ioctls.  The content of
->> the structures is not copied if the ioctl fails.  It blocks ability to
->> obtain any information about occurred error other then errno code. This
->> patch fix this issue.
-> Does the V4L2 spec say anything on this topic ? We might have applications
-> that rely on the ioctl argument structure not being touched when a failure
-> occurs.
-Ups.. I missed something. It looks that modifying ioctl content is 
-illegal if ioctl fails. The spec says:
-"When an ioctl that takes an output or read/write parameter fails, the 
-parameter remains unmodified." (v4l2 ioctl section)
-However, there is probably a bug already present in V4L2 framework.
-There are some ioctls that takes a pointer to an array as a field in the 
-argument struct.
-The examples are all VIDIOC_*_EXT_CTRLS and VIDIOC_{QUERY/DQ/Q}_BUF family.
-The content of such an auxiliary arays is copied even if ioctl fails. 
-Please take a look to video_usercopy function in v4l2-ioctl.c. Therefore 
-I think that the spec is already violated. What is your opinion about 
-this problem?
+On Wed, Aug 31, 2011 at 03:27:49PM +0000, Bastian Hecht wrote:
+> 2011/8/28 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+[clip]
+> > If I'm not mistaken V4L2_CID_PRIVATE_BASE is deprecated.
+> 
+> I checked at http://v4l2spec.bytesex.org/spec/x542.htm, googled
+> "V4L2_CID_PRIVATE_BASE deprecated" and read
+> Documentation/feature-removal-schedule.txt. I couldn't find anything.
 
-Now back to selection case.
-This patch was added as proposition of fix to VIDIOC_S_SELECTION, to 
-return the best-hit rectangle if constraints could not be satisfied. The 
-ioctl return -ERANGE in this case. Using those return values the 
-application gets some feedback
-on loosing constraints.
+Hmm. Did you happen to check when that has been written? :)
 
-I could remove rectangle returning from the spec and s5p-tv code for now.
+Please use this one instead:
 
-Regards,
-Tomasz Stanislawski
+<URL:http://hverkuil.home.xs4all.nl/spec/media.html>
 
->> Signed-off-by: Tomasz Stanislawski<t.stanislaws@samsung.com>
->> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->> ---
->>   drivers/media/video/v4l2-ioctl.c |    2 --
->>   1 files changed, 0 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/video/v4l2-ioctl.c
->> b/drivers/media/video/v4l2-ioctl.c index 543405b..9f54114 100644
->> --- a/drivers/media/video/v4l2-ioctl.c
->> +++ b/drivers/media/video/v4l2-ioctl.c
->> @@ -2490,8 +2490,6 @@ video_usercopy(struct file *file, unsigned int cmd,
->> unsigned long arg, err = -EFAULT;
->>   		goto out_array_args;
->>   	}
->> -	if (err<  0)
->> -		goto out;
->>
->>   out_array_args:
->>   	/*  Copy results into user buffer  */
-
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
