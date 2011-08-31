@@ -1,56 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comu.ring0.de ([46.4.151.82]:39837 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756751Ab1HaPtK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Aug 2011 11:49:10 -0400
-Date: Wed, 31 Aug 2011 17:15:24 +0200
-From: Sebastian Reichel <sre@debian.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: status request of et8k8, ad5820 and their corresponding rx51 board
- code
-Message-ID: <20110831151524.GA28065@earth.universe>
+Received: from casper.infradead.org ([85.118.1.10]:60068 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756030Ab1HaNr5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Aug 2011 09:47:57 -0400
+Message-ID: <4E5E3B85.9010300@infradead.org>
+Date: Wed, 31 Aug 2011 10:47:49 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="wRRV7LY7NUeQGEoC"
-Content-Disposition: inline
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 2/6] V4L menu: move legacy drivers into their own
+ submenu.
+References: <1314797925-8113-1-git-send-email-hverkuil@xs4all.nl> <838c371cecce26c959eb550bc6f25f6f94b75b13.1314797675.git.hans.verkuil@cisco.com>
+In-Reply-To: <838c371cecce26c959eb550bc6f25f6f94b75b13.1314797675.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em 31-08-2011 10:38, Hans Verkuil escreveu:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/video/Kconfig |  185 +++++++++++++++++++++++-------------------
+>  1 files changed, 101 insertions(+), 84 deletions(-)
+> 
+> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> index 336251f..815700b 100644
+> --- a/drivers/media/video/Kconfig
+> +++ b/drivers/media/video/Kconfig
+> @@ -655,51 +655,6 @@ source "drivers/media/video/omap/Kconfig"
+>  
+>  source "drivers/media/video/bt8xx/Kconfig"
+>  
+> -config VIDEO_PMS
+> -	tristate "Mediavision Pro Movie Studio Video For Linux"
+> -	depends on ISA && VIDEO_V4L2
+> -	help
+> -	  Say Y if you have such a thing.
+> -
+> -	  To compile this driver as a module, choose M here: the
+> -	  module will be called pms.
+> -
+> -config VIDEO_BWQCAM
+> -	tristate "Quickcam BW Video For Linux"
+> -	depends on PARPORT && VIDEO_V4L2
+> -	help
+> -	  Say Y have if you the black and white version of the QuickCam
+> -	  camera. See the next option for the color version.
+> -
+> -	  To compile this driver as a module, choose M here: the
+> -	  module will be called bw-qcam.
+> -
+> -config VIDEO_CQCAM
+> -	tristate "QuickCam Colour Video For Linux (EXPERIMENTAL)"
+> -	depends on EXPERIMENTAL && PARPORT && VIDEO_V4L2
+> -	help
+> -	  This is the video4linux driver for the colour version of the
+> -	  Connectix QuickCam.  If you have one of these cameras, say Y here,
+> -	  otherwise say N.  This driver does not work with the original
+> -	  monochrome QuickCam, QuickCam VC or QuickClip.  It is also available
+> -	  as a module (c-qcam).
+> -	  Read <file:Documentation/video4linux/CQcam.txt> for more information.
+> -
+> -config VIDEO_W9966
+> -	tristate "W9966CF Webcam (FlyCam Supra and others) Video For Linux"
+> -	depends on PARPORT_1284 && PARPORT && VIDEO_V4L2
+> -	help
+> -	  Video4linux driver for Winbond's w9966 based Webcams.
+> -	  Currently tested with the LifeView FlyCam Supra.
+> -	  If you have one of these cameras, say Y here
+> -	  otherwise say N.
+> -	  This driver is also available as a module (w9966).
+> -
+> -	  Check out <file:Documentation/video4linux/w9966.txt> for more
+> -	  information.
+> -
+> -source "drivers/media/video/cpia2/Kconfig"
+> -
+>  config VIDEO_VINO
+>  	tristate "SGI Vino Video For Linux (EXPERIMENTAL)"
+>  	depends on I2C && SGI_IP22 && EXPERIMENTAL && VIDEO_V4L2
+> @@ -726,45 +681,6 @@ config VIDEO_MEYE
+>  
+>  source "drivers/media/video/saa7134/Kconfig"
+>  
+> -config VIDEO_MXB
+> -	tristate "Siemens-Nixdorf 'Multimedia eXtension Board'"
+> -	depends on PCI && VIDEO_V4L2 && I2C
+> -	select VIDEO_SAA7146_VV
+> -	select VIDEO_TUNER
+> -	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
+> -	select VIDEO_TDA9840 if VIDEO_HELPER_CHIPS_AUTO
+> -	select VIDEO_TEA6415C if VIDEO_HELPER_CHIPS_AUTO
+> -	select VIDEO_TEA6420 if VIDEO_HELPER_CHIPS_AUTO
+> -	---help---
+> -	  This is a video4linux driver for the 'Multimedia eXtension Board'
+> -	  TV card by Siemens-Nixdorf.
+> -
+> -	  To compile this driver as a module, choose M here: the
+> -	  module will be called mxb.
+> -
+> -config VIDEO_HEXIUM_ORION
+> -	tristate "Hexium HV-PCI6 and Orion frame grabber"
+> -	depends on PCI && VIDEO_V4L2 && I2C
+> -	select VIDEO_SAA7146_VV
+> -	---help---
+> -	  This is a video4linux driver for the Hexium HV-PCI6 and
+> -	  Orion frame grabber cards by Hexium.
+> -
+> -	  To compile this driver as a module, choose M here: the
+> -	  module will be called hexium_orion.
+> -
+> -config VIDEO_HEXIUM_GEMINI
+> -	tristate "Hexium Gemini frame grabber"
+> -	depends on PCI && VIDEO_V4L2 && I2C
+> -	select VIDEO_SAA7146_VV
+> -	---help---
+> -	  This is a video4linux driver for the Hexium Gemini frame
+> -	  grabber card by Hexium. Please note that the Gemini Dual
+> -	  card is *not* fully supported.
+> -
+> -	  To compile this driver as a module, choose M here: the
+> -	  module will be called hexium_gemini.
+> -
+>  config VIDEO_TIMBERDALE
+>  	tristate "Support for timberdale Video In/LogiWIN"
+>  	depends on VIDEO_V4L2 && I2C && DMADEVICES
+> @@ -1050,6 +966,107 @@ config VIDEO_S5P_MIPI_CSIS
+>  
+>  source "drivers/media/video/s5p-tv/Kconfig"
+>  
+> +#
+> +# Legacy drivers configuration
+> +#
+> +
+> +menuconfig V4L_LEGACY_DRIVERS
+> +	bool "V4L legacy devices"
+> +	default n
+> +	---help---
+> +	  Say Y here to enable support for these legacy drivers. These drivers
+> +	  are for old and obsure hardware (e.g. parallel port webcams, ISA
+> +	  drivers, niche hardware).
 
---wRRV7LY7NUeQGEoC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Naming them as "legacy" seems that they'll be removed on some kernel.
 
-Hi,
+"old and obscure" might fit, but again, this is not an objective criteria,
+and we're not 100% sure that this list is complete. Also, keeping it updated
+can be painful.
 
-What's the plan for the rx51 camera drivers from [0]? Is there a
-chance, that they get included in the mainline 3.2 or 3.3 kernel?
+> +
+> +if V4L_LEGACY_DRIVERS
+> +
+> +config VIDEO_PMS
+> +	tristate "Mediavision Pro Movie Studio Video For Linux"
+> +	depends on ISA && VIDEO_V4L2
+> +	help
+> +	  Say Y if you have the ISA Mediavision Pro Movie Studio
+> +	  capture card.
+> +
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called pms.
+> +
+> +config VIDEO_BWQCAM
+> +	tristate "Quickcam BW Video For Linux"
+> +	depends on PARPORT && VIDEO_V4L2
+> +	help
+> +	  Say Y have if you the black and white version of the QuickCam
+> +	  camera. See the next option for the color version.
+> +
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called bw-qcam.
+> +
+> +config VIDEO_CQCAM
+> +	tristate "QuickCam Colour Video For Linux (EXPERIMENTAL)"
+> +	depends on EXPERIMENTAL && PARPORT && VIDEO_V4L2
+> +	help
+> +	  This is the video4linux driver for the colour version of the
+> +	  Connectix QuickCam.  If you have one of these cameras, say Y here,
+> +	  otherwise say N.  This driver does not work with the original
+> +	  monochrome QuickCam, QuickCam VC or QuickClip.  It is also available
+> +	  as a module (c-qcam).
+> +	  Read <file:Documentation/video4linux/CQcam.txt> for more information.
+> +
+> +config VIDEO_W9966
+> +	tristate "W9966CF Webcam (FlyCam Supra and others) Video For Linux"
+> +	depends on PARPORT_1284 && PARPORT && VIDEO_V4L2
+> +	help
+> +	  Video4linux driver for Winbond's w9966 based Webcams.
+> +	  Currently tested with the LifeView FlyCam Supra.
+> +	  If you have one of these cameras, say Y here
+> +	  otherwise say N.
+> +	  This driver is also available as a module (w9966).
+> +
+> +	  Check out <file:Documentation/video4linux/w9966.txt> for more
+> +	  information.
+> +
+> +source "drivers/media/video/cpia2/Kconfig"
+> +
+> +config VIDEO_MXB
+> +	tristate "Siemens-Nixdorf 'Multimedia eXtension Board'"
+> +	depends on PCI && VIDEO_V4L2 && I2C
+> +	select VIDEO_SAA7146_VV
+> +	select VIDEO_TUNER
+> +	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
+> +	select VIDEO_TDA9840 if VIDEO_HELPER_CHIPS_AUTO
+> +	select VIDEO_TEA6415C if VIDEO_HELPER_CHIPS_AUTO
+> +	select VIDEO_TEA6420 if VIDEO_HELPER_CHIPS_AUTO
+> +	---help---
+> +	  This is a video4linux driver for the 'Multimedia eXtension Board'
+> +	  TV card by Siemens-Nixdorf.
+> +
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called mxb.
+> +
+> +config VIDEO_HEXIUM_ORION
+> +	tristate "Hexium HV-PCI6 and Orion frame grabber"
+> +	depends on PCI && VIDEO_V4L2 && I2C
+> +	select VIDEO_SAA7146_VV
+> +	---help---
+> +	  This is a video4linux driver for the Hexium HV-PCI6 and
+> +	  Orion frame grabber cards by Hexium.
+> +
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called hexium_orion.
+> +
+> +config VIDEO_HEXIUM_GEMINI
+> +	tristate "Hexium Gemini frame grabber"
+> +	depends on PCI && VIDEO_V4L2 && I2C
+> +	select VIDEO_SAA7146_VV
+> +	---help---
+> +	  This is a video4linux driver for the Hexium Gemini frame
+> +	  grabber card by Hexium. Please note that the Gemini Dual
+> +	  card is *not* fully supported.
+> +
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called hexium_gemini.
+> +
+> +endif # V4L_LEGACY_DRIVERS
+> +
+>  endif # VIDEO_CAPTURE_DRIVERS
+>  
+>  menuconfig V4L_MEM2MEM_DRIVERS
 
-[0] http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-2.6.37-rx51
-
--- Sebastian
-
---wRRV7LY7NUeQGEoC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCAAGBQJOXlALAAoJENju1/PIO/qaXrIP/RQs5wdGITB9ErOQgsaD966s
-oHifThXMk5K8n3XDoEFvTTDB91jcoOejJn1TtGhrRM8dOc62PYFIzhRTb0CPYuuf
-uGp6wY97pOZ+ehwcBN7WtD48pXGAFrkPMX9sNs+oqj/g9RERsf05kRd8qMXagh7R
-6F96VXOELKGjkNOCJDWIK7XotKDE4qnyqTPxgyDZ0pH3GxKNjwwAwdgs4zFV1Bhi
-DAwXHe1BqLuTB1de88GVCm4gtX4Xc4RyOHfmJExuPNJMqOmxe74KzNbuImRgi+RD
-kkKo4NaiEuJoNIGoe97+jzVUprdzISWJyIa8z/d/7uHO/8FOlpNOCeWozKpp59M0
-190QgOvGP4uufQTvLFfMtJszDRtpUMIMmkQP99JUY5iDzidOfH+QAWP40QLC3Td5
-RJHSX/jDSbdhkSQHq9ddNXPx6/JRbZZFf5plmxzymvGkSXp2/0CJLiuKpp8fmUS8
-3D9SRV1oerI+WSJ5YQ3v07hAZqZGfL2QEMkJY/bvKsnvPfJbva1dDbMPFJhBPl7A
-QdX0CpvFsBa6DdmKGLx+mLg/uXMT9GWzezya6cU0jVb/4TxxfBGHX457T+YZI+bI
-cooSMil+0iXBI8HgiGJm5va85ZSLpe8dFO1M1tG3kZBwlyn7vM6/TmVfFpNVHDyi
-VM0NLD5XcK+Q70+DnZ4M
-=YU35
------END PGP SIGNATURE-----
-
---wRRV7LY7NUeQGEoC--
