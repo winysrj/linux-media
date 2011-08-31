@@ -1,63 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm3-vm4.bullet.mail.ne1.yahoo.com ([98.138.91.163]:29788 "HELO
-	nm3-vm4.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752623Ab1HNAjf convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Aug 2011 20:39:35 -0400
-Message-ID: <1313282374.97725.YahooMailClassic@web121715.mail.ne1.yahoo.com>
-Date: Sat, 13 Aug 2011 17:39:34 -0700 (PDT)
-From: Chris Rankin <rankincj@yahoo.com>
-Subject: Re: PCTV 290e nanostick and remote control support
-To: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35564 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755302Ab1HaMY0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Aug 2011 08:24:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: hvaibhav@ti.com
+Subject: Re: [PATCH] omap_vout: Add poll() support
+Date: Wed, 31 Aug 2011 14:24:52 +0200
 Cc: linux-media@vger.kernel.org
-In-Reply-To: <4E46FB3C.7060402@iki.fi>
+References: <1314181669-10263-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1314181669-10263-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201108311424.53122.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---- On Sat, 13/8/11, Antti Palosaari <crope@iki.fi> wrote:
-> Remote is already supported, but from the 3.1 or maybe 3.2
-> (I am not sure if Mauro was hurry to sent it 3.1).
+Hi Vaibhav,
 
-Hi,
+Any opinion on this patch ?
 
-This appears to be the diff from 3.1 that adds RC support:
+On Wednesday 24 August 2011 12:27:49 Laurent Pinchart wrote:
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/video/omap/omap_vout.c |   10 ++++++++++
+>  1 files changed, 10 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap/omap_vout.c
+> b/drivers/media/video/omap/omap_vout.c index a1f3c0f..cfc1705 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -1184,6 +1184,15 @@ static void omap_vout_buffer_release(struct
+> videobuf_queue *q, /*
+>   *  File operations
+>   */
+> +static unsigned int omap_vout_poll(struct file *file,
+> +				   struct poll_table_struct *wait)
+> +{
+> +	struct omap_vout_device *vout = file->private_data;
+> +	struct videobuf_queue *q = &vout->vbq;
+> +
+> +	return videobuf_poll_stream(file, q, wait);
+> +}
+> +
+>  static void omap_vout_vm_open(struct vm_area_struct *vma)
+>  {
+>  	struct omap_vout_device *vout = vma->vm_private_data;
+> @@ -2175,6 +2184,7 @@ static const struct v4l2_ioctl_ops vout_ioctl_ops = {
+> 
+>  static const struct v4l2_file_operations omap_vout_fops = {
+>  	.owner 		= THIS_MODULE,
+> +	.poll		= omap_vout_poll,
+>  	.unlocked_ioctl	= video_ioctl2,
+>  	.mmap 		= omap_vout_mmap,
+>  	.open 		= omap_vout_open,
 
---- linux-3.0/drivers/media/video/em28xx/em28xx-cards.c.orig	2011-08-13 20:37:26.000000000 +0100
-+++ linux-3.0/drivers/media/video/em28xx/em28xx-cards.c	2011-08-14 00:34:59.000000000 +0100
-@@ -1773,13 +1773,13 @@
- 	/* 2013:024f PCTV Systems nanoStick T2 290e.
- 	 * Empia EM28174, Sony CXD2820R and NXP TDA18271HD/C2 */
- 	[EM28174_BOARD_PCTV_290E] = {
-+		.name          = "PCTV nanoStick T2 290e",
- 		.i2c_speed      = EM2874_I2C_SECONDARY_BUS_SELECT |
- 			EM28XX_I2C_CLK_WAIT_ENABLE | EM28XX_I2C_FREQ_100_KHZ,
--		.xclk          = EM28XX_XCLK_FREQUENCY_12MHZ,
--		.name          = "PCTV Systems nanoStick T2 290e",
- 		.tuner_type    = TUNER_ABSENT,
- 		.tuner_gpio    = pctv_290e,
- 		.has_dvb       = 1,
-+		.ir_codes      = RC_MAP_PINNACLE_PCTV_HD,
- 	},
- };
- const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
---- linux-3.0/drivers/media/video/em28xx/em28xx-input.c.orig	2011-08-14 00:30:57.000000000 +0100
-+++ linux-3.0/drivers/media/video/em28xx/em28xx-input.c	2011-08-14 00:31:20.000000000 +0100
-@@ -372,6 +372,7 @@
- 		ir->get_key = default_polling_getkey;
- 		break;
- 	case CHIP_ID_EM2874:
-+	case CHIP_ID_EM28174:
- 		ir->get_key = em2874_polling_getkey;
- 		em28xx_write_regs(dev, EM2874_R50_IR_CONFIG, &ir_config, 1);
- 		break;
+-- 
+Regards,
 
-It certainly creates a new /dev/input/event? node, and allows me to program all but *one* button on the handset: the "OK" button. At this early stage, it would seem unlikely that this particular button is faulty. Could there be an error in the IR code configuration, please?
-
-Or maybe someone else *does* have a PCTV 290e device where the OK button works?
-
-Thanks,
-Chris
-
+Laurent Pinchart
