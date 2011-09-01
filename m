@@ -1,132 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:40170 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755997Ab1IAImj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 04:42:39 -0400
-Date: Thu, 1 Sep 2011 11:42:30 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 2/9 v6] V4L: add two new ioctl()s for multi-size
- videobuffer management
-Message-ID: <20110901084229.GU12368@valkosipuli.localdomain>
-References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
- <1314813768-27752-3-git-send-email-g.liakhovetski@gmx.de>
- <20110831210615.GQ12368@valkosipuli.localdomain>
- <Pine.LNX.4.64.1109010850560.21309@axis700.grange>
+Received: from hermes.mlbassoc.com ([64.234.241.98]:37380 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757189Ab1IASTE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 14:19:04 -0400
+Message-ID: <4E5FCC93.1090807@mlbassoc.com>
+Date: Thu, 01 Sep 2011 12:18:59 -0600
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1109010850560.21309@axis700.grange>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Enrico <ebutera@users.berlios.de>, linux-media@vger.kernel.org,
+	Enric Balletbo i Serra <eballetbo@iseebcn.com>
+Subject: Re: Getting started with OMAP3 ISP
+References: <4E56734A.3080001@mlbassoc.com> <CA+2YH7uT0ZGV9Drc-8V1vRB0o3gyKhyX8=f+Crsn7vtDGpem=Q@mail.gmail.com> <CA+2YH7ucT=Q8_Q=_HEuBNYF9d7dvOFX8ma7yLD1=6DijnUAE+w@mail.gmail.com> <201109012014.32996.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201109012014.32996.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 01, 2011 at 09:03:52AM +0200, Guennadi Liakhovetski wrote:
-> Hi Sakari
+On 2011-09-01 12:14, Laurent Pinchart wrote:
+> Hi Enrico,
+>
+> On Thursday 01 September 2011 19:24:54 Enrico wrote:
+>> On Thu, Sep 1, 2011 at 6:14 PM, Enrico<ebutera@users.berlios.de>  wrote:
+>>> On Thu, Sep 1, 2011 at 5:16 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>>>> - entity 16: tvp5150m1 2-005c (1 pad, 1 link)
+>>>>              type V4L2 subdev subtype Unknown
+>>>>              device node name /dev/v4l-subdev8
+>>>>         pad0: Output [unknown 720x480 (1,1)/720x480]
+>>>>                 ->  'OMAP3 ISP CCDC':pad0 [ACTIVE]
+>>>>
+>>>> Ideas where to look for the 'unknown' mode?
+>>>
+>>> I didn't notice that, if you are using UYVY8_2X8 the reason is in
+>>> media-ctl main.c:
+>>>
+>>> { "UYVY", V4L2_MBUS_FMT_UYVY8_1X16 },
+>>>
+>>> You can add a line like:
+>>>
+>>> { "UYVY2X8", V4L2_MBUS_FMT_UYVY8_2X8 },
+>>>
+>>> recompile and it should work, i'll try it now.
+>>
+>> That worked, but now there is another problem.
+>
+> That's correct. My bad for not spotting it sooner.
 
-Hi Guennadi,
+Will you be adding this to the media-ctl tree?  Would you like a patch?
 
-> On Thu, 1 Sep 2011, Sakari Ailus wrote:
-[clip]
-> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > > index fca24cc..988e1be 100644
-> > > --- a/include/linux/videodev2.h
-> > > +++ b/include/linux/videodev2.h
-> > > @@ -653,6 +653,9 @@ struct v4l2_buffer {
-> > >  #define V4L2_BUF_FLAG_ERROR	0x0040
-> > >  #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
-> > >  #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
-> > > +/* Cache handling flags */
-> > > +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
-> > > +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
-> > >  
-> > >  /*
-> > >   *	O V E R L A Y   P R E V I E W
-> > > @@ -2092,6 +2095,15 @@ struct v4l2_dbg_chip_ident {
-> > >  	__u32 revision;    /* chip revision, chip specific */
-> > >  } __attribute__ ((packed));
-> > >  
-> > > +/* VIDIOC_CREATE_BUFS */
-> > > +struct v4l2_create_buffers {
-> > > +	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-> > > +	__u32			count;
-> > > +	enum v4l2_memory        memory;
-> > > +	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
-> > > +	__u32			reserved[8];
-> > > +};
-> > 
-> > How about splitting the above comments? These lines are really long.
-> > Kerneldoc could also be used, I think.
-> 
-> Sure, how about this incremental patch:
-> 
-> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Subject: V4L: improve struct v4l2_create_buffers documentation
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 988e1be..64e0bf2 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -2095,12 +2095,20 @@ struct v4l2_dbg_chip_ident {
->  	__u32 revision;    /* chip revision, chip specific */
->  } __attribute__ ((packed));
->  
-> -/* VIDIOC_CREATE_BUFS */
-> +/**
-> + * struct v4l2_create_buffers - VIDIOC_CREATE_BUFS argument
-> + * @index:	on return, index of the first created buffer
-> + * @count:	entry: number of requested buffers,
-> + *		return: number of created buffers
-> + * @memory:	buffer memory type
-> + * @format:	frame format, for which buffers are requested
-> + * @reserved:	future extensions
-> + */
->  struct v4l2_create_buffers {
-> -	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-> +	__u32			index;
->  	__u32			count;
->  	enum v4l2_memory        memory;
-> -	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
-> +	struct v4l2_format	format;
->  	__u32			reserved[8];
->  };
+>
+>> yavta will set UYVY (PIX_FMT), this will cause a call to
+>> ispvideo.c:isp_video_pix_to_mbus(..), that will do this:
+>>
+>> for (i = 0; i<  ARRAY_SIZE(formats); ++i) {
+>>                  if (formats[i].pixelformat == pix->pixelformat)
+>>                          break;
+>> }
+>>
+>> that is it will stop at the first matching array item, and that's:
+>>
+>> { V4L2_MBUS_FMT_UYVY8_1X16, V4L2_MBUS_FMT_UYVY8_1X16,
+>>            V4L2_MBUS_FMT_UYVY8_1X16, 0,
+>>            V4L2_PIX_FMT_UYVY, 16, 16, },
+>>
+>>
+>> but you wanted this:
+>>
+>> { V4L2_MBUS_FMT_UYVY8_2X8, V4L2_MBUS_FMT_UYVY8_2X8,
+>>            V4L2_MBUS_FMT_UYVY8_2X8, 0,
+>>            V4L2_PIX_FMT_UYVY, 8, 16, },
+>>
+>> so a better check could be to check for width too, but i don't know if
+>> it's possibile to pass a width requirement or if it's already there in
+>> some struct passed to the function.
+>
+> That's not really an issue, as the isp_video_pix_to_mbus() and
+> isp_video_mbus_to_pix() calls in isp_video_set_format() are just used to fill
+> the bytesperline and sizeimage fields. From a quick look at the code
+> isp_video_check_format() should succeed as well.
+>
+> Have you run into any specific issue with isp_video_pix_to_mbus() when using
+> V4L2_MBUS_FMT_UYVY8_2X8 ?
+>
 
-Thanks! This looks good to me. Could you do a similar change to the
-compat-IOCTL version of this struct (v4l2_create_buffers32)?
-
-> > > +
-> > >  /*
-> > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-> > >   *
-> > > @@ -2182,6 +2194,9 @@ struct v4l2_dbg_chip_ident {
-> > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
-> > >  #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
-> > >  
-> > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
-> > > +#define VIDIOC_PREPARE_BUF	 _IOW('V', 93, struct v4l2_buffer)
-> > 
-> > Does prepare_buf ever do anything that would need to return anything to the
-> > user? I guess the answer is "no"?
-> 
-> Exactly, that's why it's an "_IOW" ioctl(), not an "_IOWR", or have I 
-> misunderstood you?
-
-I was thinking if this will be the case now and in the foreseeable future as
-this can't be changed after once defined. I just wanted to bring this up
-even though I don't see myself that any of the fields would need to be
-returned to the user. But there are reserved fields...
-
-So unless someone comes up with something quick, I think this should stay
-as-is.
+Not yet - I was able to configure the pipeline as
+   # media-ctl -f '"tvp5150m1 2-005c":0[UYVY2X8 720x480], "OMAP3 ISP CCDC":0[UYVY2X8 720x480], "OMAP3 ISP CCDC":1[UYVY2X8 720x480]'
+and this gets me all the way into my driver (which I'm now working on)
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
