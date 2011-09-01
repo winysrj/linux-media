@@ -1,67 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59168 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753680Ab1IMNMS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Sep 2011 09:12:18 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC] New class for low level sensors controls?
-Date: Tue, 13 Sep 2011 15:12:16 +0200
-Cc: Subash Patel <subashrp@gmail.com>, linux-media@vger.kernel.org,
-	s.nawrocki@samsung.com, hechtb@googlemail.com,
-	g.liakhovetski@gmx.de
-References: <20110906113653.GF1393@valkosipuli.localdomain> <201109131233.59003.laurent.pinchart@ideasonboard.com> <20110913120036.GD1845@valkosipuli.localdomain>
-In-Reply-To: <20110913120036.GD1845@valkosipuli.localdomain>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:50529 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756043Ab1IARY4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 13:24:56 -0400
+Received: by bke11 with SMTP id 11so1932669bke.19
+        for <linux-media@vger.kernel.org>; Thu, 01 Sep 2011 10:24:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109131512.16667.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <CA+2YH7uT0ZGV9Drc-8V1vRB0o3gyKhyX8=f+Crsn7vtDGpem=Q@mail.gmail.com>
+References: <4E56734A.3080001@mlbassoc.com>
+	<CA+2YH7t9K6PFW-4YvLUx-BfteJ8ORujHppM+iesn4u2qP-Of=w@mail.gmail.com>
+	<4E5F7FB3.8020405@mlbassoc.com>
+	<201109011526.29507.laurent.pinchart@ideasonboard.com>
+	<4E5FA1B3.9050005@mlbassoc.com>
+	<CA+2YH7uT0ZGV9Drc-8V1vRB0o3gyKhyX8=f+Crsn7vtDGpem=Q@mail.gmail.com>
+Date: Thu, 1 Sep 2011 19:24:54 +0200
+Message-ID: <CA+2YH7ucT=Q8_Q=_HEuBNYF9d7dvOFX8ma7yLD1=6DijnUAE+w@mail.gmail.com>
+Subject: Re: Getting started with OMAP3 ISP
+From: Enrico <ebutera@users.berlios.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Gary Thomas <gary@mlbassoc.com>, linux-media@vger.kernel.org,
+	Enric Balletbo i Serra <eballetbo@iseebcn.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Thu, Sep 1, 2011 at 6:14 PM, Enrico <ebutera@users.berlios.de> wrote:
+> On Thu, Sep 1, 2011 at 5:16 PM, Gary Thomas <gary@mlbassoc.com> wrote:
+>>
+>> - entity 16: tvp5150m1 2-005c (1 pad, 1 link)
+>>             type V4L2 subdev subtype Unknown
+>>             device node name /dev/v4l-subdev8
+>>        pad0: Output [unknown 720x480 (1,1)/720x480]
+>>                -> 'OMAP3 ISP CCDC':pad0 [ACTIVE]
+>>
+>> Ideas where to look for the 'unknown' mode?
+>
+> I didn't notice that, if you are using UYVY8_2X8 the reason is in
+> media-ctl main.c:
+>
+> { "UYVY", V4L2_MBUS_FMT_UYVY8_1X16 },
+>
+> You can add a line like:
+>
+> { "UYVY2X8", V4L2_MBUS_FMT_UYVY8_2X8 },
+>
+> recompile and it should work, i'll try it now.
 
-On Tuesday 13 September 2011 14:00:36 Sakari Ailus wrote:
-> On Tue, Sep 13, 2011 at 12:33:58PM +0200, Laurent Pinchart wrote:
-> > On Thursday 08 September 2011 13:44:28 Sakari Ailus wrote:
-> > > On Thu, Sep 08, 2011 at 04:54:23PM +0530, Subash Patel wrote:
-> > > > On 09/06/2011 05:52 PM, Sakari Ailus wrote:
-> > > > > On Tue, Sep 06, 2011 at 01:41:11PM +0200, Laurent Pinchart wrote:
-> > > > > > Other controls often found in bayer sensors are black level
-> > > > > > compensation and test pattern.
-> > > > 
-> > > > Does all BAYER sensor allow the dark level compensation programming?
-> > > 
-> > > I'm not sure. I have always seen ISPs being used for that, not sensors.
-> > > 
-> > > > I thought it must be auto dark level compensation, which is done by
-> > > > the sensor. The sensor detects the optical black value at start of
-> > > > each frame, and analog-to-digital conversion is shifted to
-> > > > compensate the dark level for that frame. Hence I am thinking if
-> > > > this should be a controllable feature.
-> > > 
-> > > This is probably what smart sensors could do. If we have a raw bayer
-> > > sensor the computation of the optimal black level compensation could
-> > > be done by some of the controls algorithms run in the user space.
-> > > Automatic exposure probably?
-> > 
-> > Many "non-smart" raw bayer sensors implement both manual and automatic
-> > black level compensation. In the first case the user programs a value to
-> > be subtracted from the pixels (whether that's done in the analog or
-> > digital domain might be sensor-specific), and in the second case the
-> > sensor computes a mean black level value based on black lines (optically
-> > unexposed) at the top of the image.
-> 
-> Sounds like two controls to me, right?
+That worked, but now there is another problem.
 
-At least two, an auto control and a manual value control. Additional controls 
-(such as the number of lines on which to compute the black level average 
-automatically for instance, or a read-only control to report the computed 
-average) will probably be added later.
+yavta will set UYVY (PIX_FMT), this will cause a call to
+ispvideo.c:isp_video_pix_to_mbus(..), that will do this:
 
--- 
-Regards,
+for (i = 0; i < ARRAY_SIZE(formats); ++i) {
+                if (formats[i].pixelformat == pix->pixelformat)
+                        break;
+}
 
-Laurent Pinchart
+that is it will stop at the first matching array item, and that's:
+
+{ V4L2_MBUS_FMT_UYVY8_1X16, V4L2_MBUS_FMT_UYVY8_1X16,
+          V4L2_MBUS_FMT_UYVY8_1X16, 0,
+          V4L2_PIX_FMT_UYVY, 16, 16, },
+
+
+but you wanted this:
+
+{ V4L2_MBUS_FMT_UYVY8_2X8, V4L2_MBUS_FMT_UYVY8_2X8,
+          V4L2_MBUS_FMT_UYVY8_2X8, 0,
+          V4L2_PIX_FMT_UYVY, 8, 16, },
+
+so a better check could be to check for width too, but i don't know if
+it's possibile to pass a width requirement or if it's already there in
+some struct passed to the function.
+
+Enrico
