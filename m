@@ -1,176 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20581 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755006Ab1IFPaV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Sep 2011 11:30:21 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 08/10] Use a saner way to disable screensaver
-Date: Tue,  6 Sep 2011 12:29:54 -0300
-Message-Id: <1315322996-10576-8-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1315322996-10576-7-git-send-email-mchehab@redhat.com>
-References: <1315322996-10576-1-git-send-email-mchehab@redhat.com>
- <1315322996-10576-2-git-send-email-mchehab@redhat.com>
- <1315322996-10576-3-git-send-email-mchehab@redhat.com>
- <1315322996-10576-4-git-send-email-mchehab@redhat.com>
- <1315322996-10576-5-git-send-email-mchehab@redhat.com>
- <1315322996-10576-6-git-send-email-mchehab@redhat.com>
- <1315322996-10576-7-git-send-email-mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40759 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757451Ab1IANej (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 09:34:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 2/9 v6] V4L: add two new ioctl()s for multi-size videobuffer management
+Date: Thu, 1 Sep 2011 15:35:08 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1109011249430.6316@axis700.grange> <20110901110612.GY12368@valkosipuli.localdomain>
+In-Reply-To: <20110901110612.GY12368@valkosipuli.localdomain>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109011535.09789.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Backport a Fedora patch that improves the way to disable
-the screensaver:
+Hi Sakari,
 
-commit 36cc9d2e1d762eddf5d8278fa58edd4680a7b449
-Author: Tomas Smetana <tsmetana@zaphod.usersys.redhat.com>
-Date:   Mon Nov 8 22:01:57 2010 +0100
+On Thursday 01 September 2011 13:06:12 Sakari Ailus wrote:
+> On Thu, Sep 01, 2011 at 12:51:58PM +0200, Guennadi Liakhovetski wrote:
+> > On Thu, 1 Sep 2011, Sakari Ailus wrote:
+> > > Guennadi Liakhovetski wrote:
+> > > > On Thu, 1 Sep 2011, Sakari Ailus wrote:
+> > > >> On Thu, Sep 01, 2011 at 09:03:52AM +0200, Guennadi Liakhovetski 
+wrote:
+> > > >>> Hi Sakari
+> > > >> 
+> > > >> Hi Guennadi,
+> > > >> 
+> > > >>> On Thu, 1 Sep 2011, Sakari Ailus wrote:
+> > > >> [clip]
+> > > >> 
+> > > >>>>> diff --git a/include/linux/videodev2.h
+> > > >>>>> b/include/linux/videodev2.h index fca24cc..988e1be 100644
+> > > >>>>> --- a/include/linux/videodev2.h
+> > > >>>>> +++ b/include/linux/videodev2.h
+> > > >>>>> @@ -653,6 +653,9 @@ struct v4l2_buffer {
+> > > >>>>> 
+> > > >>>>>  #define V4L2_BUF_FLAG_ERROR	0x0040
+> > > >>>>>  #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid
+> > > >>>>>  */ #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is
+> > > >>>>>  valid */
+> > > >>>>> 
+> > > >>>>> +/* Cache handling flags */
+> > > >>>>> +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
+> > > >>>>> +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
+> > > >>>>> 
+> > > >>>>>  /*
+> > > >>>>>  
+> > > >>>>>   *	O V E R L A Y   P R E V I E W
+> > > >>>>> 
+> > > >>>>> @@ -2092,6 +2095,15 @@ struct v4l2_dbg_chip_ident {
+> > > >>>>> 
+> > > >>>>>  	__u32 revision;    /* chip revision, chip specific */
+> > > >>>>>  
+> > > >>>>>  } __attribute__ ((packed));
+> > > >>>>> 
+> > > >>>>> +/* VIDIOC_CREATE_BUFS */
+> > > >>>>> +struct v4l2_create_buffers {
+> > > >>>>> +	__u32			index;		/* output: buffers index...index + count 
+- 1
+> > > >>>>> have been created */ +	__u32			count;
+> > > >>>>> +	enum v4l2_memory        memory;
+> > > >>>>> +	struct v4l2_format	format;		/* "type" is used always, the 
+rest
+> > > >>>>> if sizeimage == 0 */ +	__u32			reserved[8];
+> > > >>>>> +};
+> > > >>>> 
+> > > >>>> How about splitting the above comments? These lines are really
+> > > >>>> long. Kerneldoc could also be used, I think.
+> > > >>> 
+> > > >>> Sure, how about this incremental patch:
+> > > >>> 
+> > > >>> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > >>> Subject: V4L: improve struct v4l2_create_buffers documentation
+> > > >>> 
+> > > >>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > >>> ---
+> > > >>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > > >>> index 988e1be..64e0bf2 100644
+> > > >>> --- a/include/linux/videodev2.h
+> > > >>> +++ b/include/linux/videodev2.h
+> > > >>> @@ -2095,12 +2095,20 @@ struct v4l2_dbg_chip_ident {
+> > > >>> 
+> > > >>>  	__u32 revision;    /* chip revision, chip specific */
+> > > >>>  
+> > > >>>  } __attribute__ ((packed));
+> > > >>> 
+> > > >>> -/* VIDIOC_CREATE_BUFS */
+> > > >>> +/**
+> > > >>> + * struct v4l2_create_buffers - VIDIOC_CREATE_BUFS argument
+> > > >>> + * @index:	on return, index of the first created buffer
+> > > >>> + * @count:	entry: number of requested buffers,
+> > > >>> + *		return: number of created buffers
+> > > >>> + * @memory:	buffer memory type
+> > > >>> + * @format:	frame format, for which buffers are requested
+> > > >>> + * @reserved:	future extensions
+> > > >>> + */
+> > > >>> 
+> > > >>>  struct v4l2_create_buffers {
+> > > >>> 
+> > > >>> -	__u32			index;		/* output: buffers index...index + count - 1 
+have
+> > > >>> been created */ +	__u32			index;
+> > > >>> 
+> > > >>>  	__u32			count;
+> > > >>>  	enum v4l2_memory        memory;
+> > > >>> 
+> > > >>> -	struct v4l2_format	format;		/* "type" is used always, the 
+rest if
+> > > >>> sizeimage == 0 */ +	struct v4l2_format	format;
+> > > >>> 
+> > > >>>  	__u32			reserved[8];
+> > > >>>  
+> > > >>>  };
+> > > >> 
+> > > >> Thanks! This looks good to me. Could you do a similar change to the
+> > > >> compat-IOCTL version of this struct (v4l2_create_buffers32)?
+> > > > 
+> > > > Of course, I'll submit an incremental patch as soon as this is
+> > > > accepted for upstream, unless there are other important changes to
+> > > > this patch and a new revision is anyway unavoidable.
+> > > 
+> > > Ok. I'll send a small patch to the documentation as well then.
+> > 
+> > Good, thanks!
+> > 
+> > > >>>>> +
+> > > >>>>> 
+> > > >>>>>  /*
+> > > >>>>>  
+> > > >>>>>   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+> > > >>>>>   *
+> > > >>>>> 
+> > > >>>>> @@ -2182,6 +2194,9 @@ struct v4l2_dbg_chip_ident {
+> > > >>>>> 
+> > > >>>>>  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct
+> > > >>>>>  v4l2_event_subscription) #define	VIDIOC_UNSUBSCRIBE_EVENT
+> > > >>>>>  _IOW('V', 91, struct v4l2_event_subscription)
+> > > >>>>> 
+> > > >>>>> +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct
+> > > >>>>> v4l2_create_buffers) +#define VIDIOC_PREPARE_BUF	 _IOW('V', 93,
+> > > >>>>> struct v4l2_buffer)
+> > > >>>> 
+> > > >>>> Does prepare_buf ever do anything that would need to return
+> > > >>>> anything to the user? I guess the answer is "no"?
+> > > >>> 
+> > > >>> Exactly, that's why it's an "_IOW" ioctl(), not an "_IOWR", or have
+> > > >>> I misunderstood you?
+> > > >> 
+> > > >> I was thinking if this will be the case now and in the foreseeable
+> > > >> future as this can't be changed after once defined. I just wanted
+> > > >> to bring this up even though I don't see myself that any of the
+> > > >> fields would need to be returned to the user. But there are
+> > > >> reserved fields...
+> > > >> 
+> > > >> So unless someone comes up with something quick, I think this should
+> > > >> stay as-is.
+> > > > 
+> > > > Agree. I understand, it is important to try to design the user-space
+> > > > API as clever as possible, so, I'm relying on our combined wisdom
+> > > > for it. But even that is probably limited, so, mistakes are still
+> > > > possible. Therefore, unless someone comes up with a realistic
+> > > > reason, why this has to be _IOWR, we shall keep it _IOW and be
+> > > > prepared to delight our user-space colleagues with more shiny new
+> > > > ioctl()s in the somewhat near future;-)
+> > > 
+> > > What we could also do is to mark the new IOCTLs experimental, and
+> > > remove the note after one or two more kernel releases. This would
+> > > allow postponing the decision.
+> > 
+> > Is there a standard way to do this, or is it just a free-form note in the
+> > documentation / in the header?
+> 
+> I think a free form note saying this out loud in a visible place should be
+> enough. A note should also be added to
+> Documentation/DocBook/media/v4l/compat.xml to the section "Experimental API
+> Elements".
+> 
+> Speaking of this, we seem to have quite a few of these that probably
+> shouldn't be experimental anymore, such as VIDIOC_ENUM_FRAMESIZES.
+> Interestingly enough, VIDIOC_ENUM_FRAMEINTERVALS no longer is experimental.
+> I think I'll send a patch for this.
+> 
+> <URL:http://hverkuil.home.xs4all.nl/spec/media.html#vidioc-enum-framesizes>
+> 
+> > > We also don't have anyone using these ioctls from user space as far as
+> > > I understand, so we might get important input later on as well.
+> > 
+> > Does either of these allow us to actually _change_ ioctl()s after their
+> > appearance in the mainline?
+> 
+> That's my understanding, but of course someone could just say "no" when we
+> try to do that. I think that if something is marked experimental at least
+> the argument that it can't be changed is a little bit moot since the users
+> have been notified of this beforehand.
+> 
+> There are a few examples of this. At least the V4L2 subdev and MC
+> interfaces are marked experimental. However, we haven't actually tried to
+> use that to make changes which might break user space since we haven't got
+> a need to.
+> 
+> Hans, Laurent: do you have an opinion on this?
 
-    - fix #571339 use a saner way to disable screensaver, thanks to Debian folks
-      for the patch, namely Resul Cetin
+We should of course try to keep the API and ABI compatible across kernel 
+versions, but experimental APIs can be changed. It also depends on how widely 
+the API has been picked up by userspace and how much the changes would break 
+it. Being experimental isn't an excuse for making userspace's life a 
+nightmare.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- configure.ac  |   10 +++++-----
- src/xcommon.c |   50 +++++++++++++++++++++++---------------------------
- 2 files changed, 28 insertions(+), 32 deletions(-)
-
-diff --git a/configure.ac b/configure.ac
-index 6cdedfb..f102b5b 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -140,11 +140,11 @@ if test x"$no_x" != x"yes"; then
- 	    X11_LIBS="$X11_LIBS -lXinerama"],,
- 	    [$X_PRE_LIBS $X_LIBS -lX11 $X_EXTRA_LIBS -lXext])
- 
--	dnl check for XTest
--        AC_CHECK_LIB([Xtst],[XTestFakeKeyEvent],
--            [AC_DEFINE([HAVE_XTESTEXTENSION],,[XTest support])
--            X11_LIBS="$X11_LIBS -lXtst"],,
--	    [$X_PRE_LIBS $X_LIBS -lX11 $X_EXTRA_LIBS -lXext])
-+	dnl check for XSs
-+	PKG_CHECK_MODULES(XSS, xscrnsaver >= 1.2.0,
-+		AC_DEFINE([HAVE_XSSEXTENSION],,[XScrnSaver support])
-+		AC_SUBST(XSS_LIBS)
-+		X11_LIBS="$X11_LIBS $XSS_LIBS",)
- 
- 	dnl check for Xvidmode
- 	AC_CHECK_LIB([Xxf86vm],[XF86VidModeGetModeLine],
-diff --git a/src/xcommon.c b/src/xcommon.c
-index 8e3be4c..681b895 100644
---- a/src/xcommon.c
-+++ b/src/xcommon.c
-@@ -45,8 +45,8 @@
- #include <X11/keysym.h>
- #include <X11/cursorfont.h>
- #include <X11/extensions/XShm.h>
--#ifdef HAVE_XTESTEXTENSION
--#include <X11/extensions/XTest.h>
-+#ifdef HAVE_XSSEXTENSION
-+#include <X11/extensions/scrnsaver.h>
- #endif
- 
- #include "xfullscreen.h"
-@@ -67,7 +67,7 @@ static Window wm_window;
- static Window fs_window;
- static Window output_window;
- static GC gc;
--static int have_xtest;
-+static int have_xss;
- static int output_width, output_height;
- static int output_aspect;
- static int output_on_root;
-@@ -107,10 +107,6 @@ static Atom wm_delete_window;
- static Atom xawtv_station;
- static Atom xawtv_remote;
- 
--#ifdef HAVE_XTESTEXTENSION
--static KeyCode kc_shift_l; /* Fake key to send. */
--#endif
--
- static area_t video_area;
- static area_t window_area;
- static area_t scale_area;
-@@ -248,12 +244,12 @@ static void x11_wait_mapped( Display *dpy, Window win )
-     } while ( (event.type != MapNotify) || (event.xmap.event != win) );
- }
- 
--static int have_xtestextention( void )
-+static int have_xssextention( void )
- {  
--#ifdef HAVE_XTESTEXTENSION
--    int dummy1, dummy2, dummy3, dummy4;
-+#ifdef HAVE_XSSEXTENSION
-+    int dummy1, dummy2;
-   
--    return (XTestQueryExtension( display, &dummy1, &dummy2, &dummy3, &dummy4 ) == True);
-+    return (XScreenSaverQueryExtension( display, &dummy1, &dummy2 ) == True);
- #endif
-     return 0;
- }
-@@ -843,7 +839,7 @@ int xcommon_open_display( const char *user_geometry, int aspect, int verbose )
-     output_aspect = aspect;
-     output_height = 576;
- 
--    have_xtest = 0;
-+    have_xss = 0;
-     output_on_root = 0;
-     has_ewmh_state_fullscreen = 0;
-     has_ewmh_state_above = 0;
-@@ -927,13 +923,16 @@ int xcommon_open_display( const char *user_geometry, int aspect, int verbose )
-         xfullscreen_print_summary( xf );
-     }
- 
--#ifdef HAVE_XTESTEXTENSION
--    kc_shift_l = XKeysymToKeycode( display, XK_Shift_L );
--#endif
--    have_xtest = have_xtestextention();
--    if( have_xtest && xcommon_verbose ) {
--        fprintf( stderr, "xcommon: Have XTest, will use it to ping the screensaver.\n" );
-+    have_xss = have_xssextention();
-+    if( have_xss && xcommon_verbose ) {
-+        fprintf( stderr, "xcommon: Have XSS, will use it to disable the screensaver.\n" );
-+    }
-+
-+#ifdef HAVE_XSSEXTENSION
-+    if ( have_xss ) {
-+        XScreenSaverSuspend( display, True );
-     }
-+#endif
- 
-     /* Initially, get the best width for our height. */
-     output_width = xv_get_width_for_height( output_height );
-@@ -1112,15 +1111,7 @@ void xcommon_ping_screensaver( void )
-     gettimeofday( &curtime, 0 );
-     if( timediff( &curtime, &last_ping_time ) > SCREENSAVER_PING_TIME ) { 
-         last_ping_time = curtime;
--#ifdef HAVE_XTESTEXTENSION
--        if( have_xtest ) {
--            XTestFakeKeyEvent( display, kc_shift_l, True, CurrentTime );
--            XTestFakeKeyEvent( display, kc_shift_l, False, CurrentTime );
--        } else 
--#endif
--        {
--            XResetScreenSaver( display );
--        }
-+        XResetScreenSaver( display );
-     }
- }
- 
-@@ -1715,6 +1706,11 @@ void xcommon_poll_events( input_t *in )
- 
- void xcommon_close_display( void )
- {
-+#ifdef HAVE_XSSEXTENSION
-+    if ( have_xss ) {
-+        XScreenSaverSuspend( display, False );
-+    }
-+#endif
-     XDestroyWindow( display, output_window );
-     XDestroyWindow( display, wm_window );
-     XDestroyWindow( display, fs_window );
 -- 
-1.7.6.1
+Regards,
 
+Laurent Pinchart
