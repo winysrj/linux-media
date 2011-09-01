@@ -1,46 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38831 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891Ab1IMJIi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Sep 2011 05:08:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Enrico <ebutera@users.berlios.de>
-Subject: Re: omap3isp as a wakeup source
-Date: Tue, 13 Sep 2011 11:08:37 +0200
+Received: from moutng.kundenserver.de ([212.227.17.8]:54081 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751000Ab1IAFKk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 01:10:40 -0400
+Date: Thu, 1 Sep 2011 07:10:37 +0200
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: linux-media@vger.kernel.org
-References: <CA+2YH7s-BH=4vN-DUZJXa9DKrwYsZORWq-YR9fK7JV9236ntMQ@mail.gmail.com>
-In-Reply-To: <CA+2YH7s-BH=4vN-DUZJXa9DKrwYsZORWq-YR9fK7JV9236ntMQ@mail.gmail.com>
+Subject: Re: [PATCH 02/21] [media] tuner/xc2028: Fix frequency offset for
+ radio mode.
+Message-ID: <20110901051037.GB18473@avionic-0098.mockup.avionic-design.de>
+References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
+ <1312442059-23935-3-git-send-email-thierry.reding@avionic-design.de>
+ <4E5E7E2B.90603@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109131108.37394.laurent.pinchart@ideasonboard.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="NMuMz9nt05w80d4+"
+Content-Disposition: inline
+In-Reply-To: <4E5E7E2B.90603@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enrico,
 
-On Monday 12 September 2011 16:50:42 Enrico wrote:
-> 
-> While testing omap3isp+tvp5150 with latest Deepthy bt656 patches
-> (kernel 3.1rc4) i noticed that yavta hangs very often when grabbing
-> or, if not hanged, it grabs at max ~10fps.
-> 
-> Then i noticed that tapping on the (serial) console made it "unblock"
-> for some frames, so i thought it doesn't prevent the cpu to go
-> idle/sleep. Using the boot arg "nohlt" the problem disappear and it
-> grabs at a steady 25fps.
-> 
-> In the code i found a comment that says the camera can't be a wakeup
-> source but the camera powerdomain is instead used to decide to not go
-> idle, so at this point i think the camera powerdomain is not enabled
-> but i don't know how/where to enable it. Any ideas?
+--NMuMz9nt05w80d4+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Could that be related to the OMAP3 ISP driver not implementing the runtime PM 
-API ?
+* Mauro Carvalho Chehab wrote:
+> Em 04-08-2011 04:14, Thierry Reding escreveu:
+> > In radio mode, no frequency offset is needed. While at it, split off the
+> > frequency offset computation for digital TV into a separate function.
+>=20
+> Nah, it is better to keep the offset calculation there. there is already
+> a set_freq for DVB. breaking the frequency logic even further seems to
+> increase the driver's logic. Also, patch is simpler and easier to review.
 
--- 
-Regards,
+Okay, no problem. Feel free to replace the patch with yours.
 
-Laurent Pinchart
+> The patch bellow seems to be better. On a quick review, I think that the=
+=20
+> 	send_seq(priv, {0x00, 0x00})
+> sequence may be wrong. I suspect that the device is just discarding that,
+> but changing it needs more testing.
+
+I ran across that as well, but I didn't dare touch it because I wasn't sure
+what the broader impact would be.
+
+Thierry
+
+--NMuMz9nt05w80d4+
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEARECAAYFAk5fE80ACgkQZ+BJyKLjJp9nkgCfdjy1xFdPkyCSvuyAwuePKUUH
+UyYAn36TbWFlGlWEN9Log1F5F/jyrxG/
+=MeWN
+-----END PGP SIGNATURE-----
+
+--NMuMz9nt05w80d4+--
