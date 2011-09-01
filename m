@@ -1,101 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36032 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753227Ab1IFIUB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 04:20:01 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sitsofe Wheeler <sitsofe@yahoo.com>
-Subject: Re: BUG: unable to handle kernel paging request at 6b6b6bcb (v4l2_device_disconnect+0x11/0x30)
-Date: Tue, 6 Sep 2011 10:20:00 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Dave Young <hidave.darkstar@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <20110829204846.GA14699@sucs.org> <201109051216.42579.hverkuil@xs4all.nl> <20110905223102.GA26980@sucs.org>
-In-Reply-To: <20110905223102.GA26980@sucs.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109061020.01208.laurent.pinchart@ideasonboard.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:37965 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932480Ab1IAPae (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 11:30:34 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Thu, 01 Sep 2011 17:30:08 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 04/19 v4] s5p-fimc: Remove sensor management code from FIMC
+ capture driver
+In-reply-to: <1314891023-14227-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: mchehab@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com
+Message-id: <1314891023-14227-5-git-send-email-s.nawrocki@samsung.com>
+References: <1314891023-14227-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 06 September 2011 00:31:03 Sitsofe Wheeler wrote:
-> On Mon, Sep 05, 2011 at 12:16:42PM +0200, Hans Verkuil wrote:
-> > On Monday, September 05, 2011 12:13:26 Hans Verkuil wrote:
-> > > The original order is correct, but what I missed is that for drivers
-> > > that release (free) everything in the videodev release callback the
-> > > v4l2_device struct is also freed and v4l2_device_put will fail.
-> > > 
-> > > To fix this, add this code just before the vdev->release call:
-> > > 	/* Do not call v4l2_device_put if there is no release callback set. */
-> > > 	if (v4l2_dev->release == NULL)
-> > > 	
-> > > 		v4l2_dev = NULL;
-> > > 
-> > > If there is no release callback, then the refcounting is pointless
-> > > anyway.
-> > > 
-> > > This should work.
-> > 
-> > Note that in the long run using the v4l2_device release callback
-> > instead of the videodev release is better. But it's a lot of work to
-> > convert everything so that's long term. I'm quite surprised BTW that
-> > this bug wasn't found much earlier.
-> 
-> This inline patch fixes the second "poison overwritten" problem so:
-> Tested-by: Sitsofe Wheeler <sitsofe@yahoo.com>
-> 
-> However, it does not prevent the original oops that was reported in the
-> original message. Yang Ruirui's patch in
-> https://lkml.org/lkml/2011/9/1/74 seems to be required to resolve
-> that initial problem - can it be ACK'd? Yang's patch is reproduced
-> inline below:
-> 
-> For uvc device, dev->vdev.dev is the &intf->dev,
-> uvc_delete code is as below:
-> 	usb_put_intf(dev->intf);
-> 	usb_put_dev(dev->udev);
-> 
-> 	uvc_status_cleanup(dev);
-> 	uvc_ctrl_cleanup_device(dev);
-> 
-> ## the intf dev is released above, so below code will oops.
-> 
-> 	if (dev->vdev.dev)
-> 		v4l2_device_unregister(&dev->vdev);
-> Fix it by get_device in v4l2_device_register and put_device in
-> v4l2_device_disconnect
+The sensor subdevs need to be shared between all available FIMC instances.
+Remove their registration from FIMC capture driver so they can then be
+registered to the media device driver.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |  139 +--------------------------
+ drivers/media/video/s5p-fimc/fimc-core.h    |    2 +-
+ 2 files changed, 2 insertions(+), 139 deletions(-)
 
-> ---
->  drivers/media/video/v4l2-device.c |    2 ++
->  1 file changed, 2 insertions(+)
-> diff --git a/drivers/media/video/v4l2-device.c
-> b/drivers/media/video/v4l2-device.c index c72856c..e6a2c3b 100644
-> --- a/drivers/media/video/v4l2-device.c
-> +++ b/drivers/media/video/v4l2-device.c
-> @@ -38,6 +38,7 @@ int v4l2_device_register(struct device *dev, struct
-> v4l2_device *v4l2_dev) mutex_init(&v4l2_dev->ioctl_lock);
->  	v4l2_prio_init(&v4l2_dev->prio);
->  	kref_init(&v4l2_dev->ref);
-> +	get_device(dev);
->  	v4l2_dev->dev = dev;
->  	if (dev == NULL) {
->  		/* If dev == NULL, then name must be filled in by the caller */
-> @@ -93,6 +94,7 @@ void v4l2_device_disconnect(struct v4l2_device *v4l2_dev)
-> 
->  	if (dev_get_drvdata(v4l2_dev->dev) == v4l2_dev)
->  		dev_set_drvdata(v4l2_dev->dev, NULL);
-> +	put_device(v4l2_dev->dev);
->  	v4l2_dev->dev = NULL;
->  }
->  EXPORT_SYMBOL_GPL(v4l2_device_disconnect);
-
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index b786c2c..40f3330 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -16,12 +16,9 @@
+ #include <linux/bug.h>
+ #include <linux/interrupt.h>
+ #include <linux/device.h>
+-#include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/list.h>
+ #include <linux/slab.h>
+-#include <linux/clk.h>
+-#include <linux/i2c.h>
+ 
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+@@ -32,126 +29,6 @@
+ 
+ #include "fimc-core.h"
+ 
+-static struct v4l2_subdev *fimc_subdev_register(struct fimc_dev *fimc,
+-					    struct s5p_fimc_isp_info *isp_info)
+-{
+-	struct i2c_adapter *i2c_adap;
+-	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
+-	struct v4l2_subdev *sd = NULL;
+-
+-	i2c_adap = i2c_get_adapter(isp_info->i2c_bus_num);
+-	if (!i2c_adap)
+-		return ERR_PTR(-ENOMEM);
+-
+-	sd = v4l2_i2c_new_subdev_board(&vid_cap->v4l2_dev, i2c_adap,
+-				       isp_info->board_info, NULL);
+-	if (!sd) {
+-		v4l2_err(&vid_cap->v4l2_dev, "failed to acquire subdev\n");
+-		return NULL;
+-	}
+-
+-	v4l2_info(&vid_cap->v4l2_dev, "subdevice %s registered successfuly\n",
+-		isp_info->board_info->type);
+-
+-	return sd;
+-}
+-
+-static void fimc_subdev_unregister(struct fimc_dev *fimc)
+-{
+-	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
+-	struct i2c_client *client;
+-
+-	if (vid_cap->input_index < 0)
+-		return;	/* Subdevice already released or not registered. */
+-
+-	if (vid_cap->sd) {
+-		v4l2_device_unregister_subdev(vid_cap->sd);
+-		client = v4l2_get_subdevdata(vid_cap->sd);
+-		i2c_unregister_device(client);
+-		i2c_put_adapter(client->adapter);
+-		vid_cap->sd = NULL;
+-	}
+-
+-	vid_cap->input_index = -1;
+-}
+-
+-/**
+- * fimc_subdev_attach - attach v4l2_subdev to camera host interface
+- *
+- * @fimc: FIMC device information
+- * @index: index to the array of available subdevices,
+- *	   -1 for full array search or non negative value
+- *	   to select specific subdevice
+- */
+-static int fimc_subdev_attach(struct fimc_dev *fimc, int index)
+-{
+-	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
+-	struct s5p_platform_fimc *pdata = fimc->pdata;
+-	struct s5p_fimc_isp_info *isp_info;
+-	struct v4l2_subdev *sd;
+-	int i;
+-
+-	for (i = 0; i < pdata->num_clients; ++i) {
+-		isp_info = &pdata->isp_info[i];
+-
+-		if (index >= 0 && i != index)
+-			continue;
+-
+-		sd = fimc_subdev_register(fimc, isp_info);
+-		if (!IS_ERR_OR_NULL(sd)) {
+-			vid_cap->sd = sd;
+-			vid_cap->input_index = i;
+-
+-			return 0;
+-		}
+-	}
+-
+-	vid_cap->input_index = -1;
+-	vid_cap->sd = NULL;
+-	v4l2_err(&vid_cap->v4l2_dev, "fimc%d: sensor attach failed\n",
+-		 fimc->id);
+-	return -ENODEV;
+-}
+-
+-static int fimc_isp_subdev_init(struct fimc_dev *fimc, unsigned int index)
+-{
+-	struct s5p_fimc_isp_info *isp_info;
+-	struct s5p_platform_fimc *pdata = fimc->pdata;
+-	int ret;
+-
+-	if (index >= pdata->num_clients)
+-		return -EINVAL;
+-
+-	isp_info = &pdata->isp_info[index];
+-
+-	if (isp_info->clk_frequency)
+-		clk_set_rate(fimc->clock[CLK_CAM], isp_info->clk_frequency);
+-
+-	ret = clk_enable(fimc->clock[CLK_CAM]);
+-	if (ret)
+-		return ret;
+-
+-	ret = fimc_subdev_attach(fimc, index);
+-	if (ret)
+-		return ret;
+-
+-	ret = fimc_hw_set_camera_polarity(fimc, isp_info);
+-	if (ret)
+-		return ret;
+-
+-	ret = v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 1);
+-	if (!ret)
+-		return ret;
+-
+-	/* enabling power failed so unregister subdev */
+-	fimc_subdev_unregister(fimc);
+-
+-	v4l2_err(&fimc->vid_cap.v4l2_dev, "ISP initialization failed: %d\n",
+-		 ret);
+-
+-	return ret;
+-}
+-
+ static void fimc_capture_state_cleanup(struct fimc_dev *fimc)
+ {
+ 	struct fimc_vid_cap *cap = &fimc->vid_cap;
+@@ -411,15 +288,7 @@ static int fimc_capture_open(struct file *file)
+ 	if (ret)
+ 		return ret;
+ 
+-	if (++fimc->vid_cap.refcnt == 1) {
+-		ret = fimc_isp_subdev_init(fimc, 0);
+-		if (ret) {
+-			pm_runtime_put_sync(&fimc->pdev->dev);
+-			fimc->vid_cap.refcnt--;
+-			return -EIO;
+-		}
+-	}
+-
++	++fimc->vid_cap.refcnt;
+ 	file->private_data = fimc->vid_cap.ctx;
+ 
+ 	return 0;
+@@ -434,12 +303,6 @@ static int fimc_capture_close(struct file *file)
+ 	if (--fimc->vid_cap.refcnt == 0) {
+ 		fimc_stop_capture(fimc);
+ 		vb2_queue_release(&fimc->vid_cap.vbq);
+-
+-		v4l2_err(&fimc->vid_cap.v4l2_dev, "releasing ISP\n");
+-
+-		v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 0);
+-		clk_disable(fimc->clock[CLK_CAM]);
+-		fimc_subdev_unregister(fimc);
+ 	}
+ 
+ 	pm_runtime_put(&fimc->pdev->dev);
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index d82bff8..a0d6f81 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -11,6 +11,7 @@
+ 
+ /*#define DEBUG*/
+ 
++#include <linux/platform_device.h>
+ #include <linux/sched.h>
+ #include <linux/spinlock.h>
+ #include <linux/types.h>
+@@ -649,7 +650,6 @@ int fimc_register_m2m_device(struct fimc_dev *fimc);
+ /* fimc-capture.c					*/
+ int fimc_register_capture_device(struct fimc_dev *fimc);
+ void fimc_unregister_capture_device(struct fimc_dev *fimc);
+-int fimc_sensor_sd_init(struct fimc_dev *fimc, int index);
+ int fimc_vid_cap_buf_queue(struct fimc_dev *fimc,
+ 			     struct fimc_vid_buffer *fimc_vb);
+ int fimc_capture_suspend(struct fimc_dev *fimc);
 -- 
-Regards,
+1.7.6
 
-Laurent Pinchart
