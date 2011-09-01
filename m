@@ -1,75 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32561 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750887Ab1IZLNz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 07:13:55 -0400
-Message-ID: <4E805E6E.3080007@redhat.com>
-Date: Mon, 26 Sep 2011 08:13:50 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34641 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754518Ab1IAJzO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 05:55:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Enrico <ebutera@users.berlios.de>
+Subject: Re: Getting started with OMAP3 ISP
+Date: Thu, 1 Sep 2011 11:55:44 +0200
+Cc: linux-media@vger.kernel.org, Gary Thomas <gary@mlbassoc.com>,
+	Enric Balletbo i Serra <eballetbo@iseebcn.com>
+References: <4E56734A.3080001@mlbassoc.com> <201108311833.24394.laurent.pinchart@ideasonboard.com> <CA+2YH7t9K6PFW-4YvLUx-BfteJ8ORujHppM+iesn4u2qP-Of=w@mail.gmail.com>
+In-Reply-To: <CA+2YH7t9K6PFW-4YvLUx-BfteJ8ORujHppM+iesn4u2qP-Of=w@mail.gmail.com>
 MIME-Version: 1.0
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL] Selection API and fixes for v3.2
-References: <1316704391-13596-1-git-send-email-m.szyprowski@samsung.com>
-In-Reply-To: <1316704391-13596-1-git-send-email-m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201109011155.44516.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 22-09-2011 12:13, Marek Szyprowski escreveu:
-> Hello Mauro,
+Hi Enrico,
+
+On Thursday 01 September 2011 11:51:58 Enrico wrote:
+> On Wed, Aug 31, 2011 at 6:33 PM, Laurent Pinchart wrote:
+> > On
+> > http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
+> > omap3isp-next (sorry for not mentioning it), but the patch set was
+> > missing a patch. I've sent a v2.
 > 
-> I've collected pending selection API patches together with pending
-> videobuf2 and Samsung driver fixes to a single git branch. Please pull
-> them to your media tree.
+> Thanks Laurent, i can confirm it is a step forward. With your tree and
+> patches (and my tvp5150 patch) i made a step forward:
 > 
-> Best regards,
-> Marek Szyprowski
-> Samsung Poland R&D Center
+> Setting up link 16:0 -> 5:0 [1]
+> Setting up link 5:1 -> 6:0 [1]
+> Setting up format UYVY 720x628 on pad tvp5150 2-005c/0
+> Format set: UYVY 720x628
+> Setting up format UYVY 720x628 on pad OMAP3 ISP CCDC/0
+> Format set: UYVY 720x628
 > 
-> The following changes since commit 699cc1962c85351689c27dd46e598e4204fdd105:
+> Now the problem is that i can't get a capture with yavta, it blocks on
+> the VIDIO_DQBUF ioctl. Probably something wrong in my patch.
+
+Does your tvp5150 generate progressive or interlaced images ?
+
+> I tried also to route it through the resizer but nothing changes.
 > 
->   [media] TT-budget S2-3200 cannot tune on HB13E DVBS2 transponder (2011-09-21 17:06:56 -0300)
+> Is it normal that --enum-formats returns this?
 > 
-> are available in the git repository at:
->   git://git.infradead.org/users/kmpark/linux-2.6-samsung for_mauro
+> Device /dev/video2 opened.
+> Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
+> - Available formats:
+> Video format:  (00000000) 0x0 buffer size 0
 
-Continuing the patches review from this series:
+Yes that's normal. Format enumeration on video device nodes isn't supported by 
+the OMAP3 ISP driver.
 
-0689133 [media] s5p-tv: fix mbus configuration
-17b2747 [media] s5p-tv: hdmi: use DVI mode
-0f6c565 [media] s5p-tv: Add PM_RUNTIME dependency
+-- 
+Regards,
 
-Applied, thanks!
-
-> Scott Jiang (1):
->       vb2: add vb2_get_unmapped_area in vb2 core
-
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index ea55c08..977410b 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -309,6 +309,13 @@ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
->  int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type);
->  
->  int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma);
-> +#ifndef CONFIG_MMU
-> +unsigned long vb2_get_unmapped_area(struct vb2_queue *q,
-> +				    unsigned long addr,
-> +				    unsigned long len,
-> +				    unsigned long pgoff,
-> +				    unsigned long flags);
-> +#endif
->  unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait);
->  size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
->  		loff_t *ppos, int nonblock);
-
-This sounds me like a hack, as it is passing the problem of working with a non-mmu
-capable hardware to the driver, inserting architecture-dependent bits on them.
-
-The proper way to do it is to provide a vb2 core support to handle the non-mmu case 
-inside it.
-
-Thanks,
-Mauro
+Laurent Pinchart
