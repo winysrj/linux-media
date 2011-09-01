@@ -1,100 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:33510 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752425Ab1IFVSL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 17:18:11 -0400
-Received: by bke11 with SMTP id 11so5830934bke.19
-        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2011 14:18:10 -0700 (PDT)
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:57973 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751068Ab1IAKot (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 06:44:49 -0400
+Received: by wwf5 with SMTP id 5so1763245wwf.1
+        for <linux-media@vger.kernel.org>; Thu, 01 Sep 2011 03:44:48 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4E667094.6010508@redhat.com>
-References: <1315322996-10576-1-git-send-email-mchehab@redhat.com>
-	<4E663EE2.3050403@redhat.com>
-	<CAGoCfiz9YAHYNJdEAT51fyfLY8RS_TcRpzKzLYCdNFCc3JcbEA@mail.gmail.com>
-	<4E666417.9090706@redhat.com>
-	<CAGoCfiy9QK1vcrDSBw7J382LXAdE+YzN3SdAu+fCkD-6-8M8=g@mail.gmail.com>
-	<4E667094.6010508@redhat.com>
-Date: Tue, 6 Sep 2011 17:18:09 -0400
-Message-ID: <CAGoCfiyFTwHRLvct_Rf7Mmiua4MZ7Mtq_G4ka+F6sYEjAQ-aow@mail.gmail.com>
-Subject: Re: [PATCH 01/10] alsa_stream: port changes made on xawtv3
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Date: Thu, 1 Sep 2011 12:43:24 +0200
+Message-ID: <CAMDtrVKutgzR0c_-BBfVU3-dYgxDXMdJqBaUH+hoJn8JoARJvw@mail.gmail.com>
+Subject: Updated DVB-S file Thor-1.0W
+From: Harald Overas <harald.overas@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=001485f1e26e0d613204abdeea40
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 6, 2011 at 3:12 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
->> From a practical standpoint, the Ubuntu folks have the original tvtime
->> tarball and all their changes in one patch, which is clearly a bunch
->> of patches that are mashed together probably in their build system. I
->> need to reach out to them to find where they have an actual SCM tree
->> or the individual patches.  They've got a bunch of patches which would
->> be good to get into a single tree (autobuild fixes, cross-compilation,
->> locale updates, etc).
->
-> Yeah, it seems interesting. Maybe we can get something from this place:
->        http://packages.qa.debian.org/t/tvtime.html
->
-> The maintainer there seems to be:
->        http://qa.debian.org/developer.php?login=bartm@debian.org
+--001485f1e26e0d613204abdeea40
+Content-Type: text/plain; charset=UTF-8
 
-I reached out to the Ubuntu maintainer; we'll see if he gets back to
-me.  From what I can tell it seems like Debian is actually taking the
-patches from Ubuntu (yes, I realize this is backwards from their
-typical process where Ubuntu bases their stuff on Debian).
+Hi
 
->> In the long term I have no real issue with the LinuxTV group being the
->> official maintainer of record.  I've got lots of ideas and things I
->> would like to do to improve tvtime, but in practice I've done a pretty
->> crappy job of maintaining the source (merging patches, etc) at this
->> point.
->
-> Putting it on a common place and giving permissions to a group of people
-> is interesting, as none of us are focused on userspace, so we all
-> have a very limited amount of time for dealing with userspace applications.
->
-> By giving commit rights to a group of developers, it ends that more
-> developers will contribute, speeding up the development.
->
-> That was what happened with v4l-utils and, on a minor scale, with xawtv3.
->
-> If you're ok with that, I can set a tvtime git repository at LinuxTV,
-> cloning the tree I've created there already (it is a pure conversion
-> of your tree from mercurial into git, if I remove the patches I've
-> done so far from your clone), giving you the ownership of the new tree,
-> and marking it as a shared repository.
+I have attached a patch for Thor-1.0W. Most of the mux updates are for
+the new Thor 6 satellite.
+http://www.telenorsbc.com/templates/Page.aspx?id=783
 
-I have no problem with this.  Let's set it up.
+I have also taking the liberty to update one of the existing muxes.
+http://www.telenorsbc.com/templates/Page.aspx?id=674
 
-> I have already all set there to allow shared access to the repository
-> (in opposite to -hg, git works really cool with shared repositories).
+I have tested the patch with tvheadend and it works without any problems.
 
-I actually haven't hosted any git repos on linuxtv.org before.  I'm
-assuming my ssh public key got copied over from when I was hosting hg
-repos there?
+Best regards,
+Harald
 
-> We can later add permissions to the developers interested on helping
-> the tvtime maintenance that you agree to add.
+--001485f1e26e0d613204abdeea40
+Content-Type: application/octet-stream; name="Thor-1.0W.patch"
+Content-Disposition: attachment; filename="Thor-1.0W.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gs1lwjov0
 
-Sounds good.
-
-As said earlier, Kernel Labs never really wanted to be the maintainer
-for tvtime - we did it because nobody else wanted to (and vektor never
-responded to emails I sent him offering to help).  That said, a
-community oriented approach is probably the best for everybody
-involved.
-
-I'll probably be looking in the next couple of weeks to write some
-fresh content for a tvtime website.  The stuff on
-tvtime.sourceforge.net is so dated almost none of it still applies.
-
-Thanks,
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+ZGlmZiAtcnVwTiBkdmItYXBwcy0zNmEwODRhYWNlNDctb3JnLy91dGlsL3NjYW4vZHZiLXMvVGhv
+ci0xLjBXIGR2Yi1hcHBzLTM2YTA4NGFhY2U0Ny91dGlsL3NjYW4vZHZiLXMvVGhvci0xLjBXCi0t
+LSBkdmItYXBwcy0zNmEwODRhYWNlNDctb3JnLy91dGlsL3NjYW4vZHZiLXMvVGhvci0xLjBXCTIw
+MTEtMDktMDEgMTA6MjA6MTYuMDAwMDAwMDAwICswMjAwCisrKyBkdmItYXBwcy0zNmEwODRhYWNl
+NDcvdXRpbC9zY2FuL2R2Yi1zL1Rob3ItMS4wVwkyMDExLTA5LTAxIDEwOjE1OjQ5LjAwMDAwMDAw
+MCArMDIwMApAQCAtMSw1ICsxLDE4IEBACiAjIFRob3IgMS4wVwogIyBmcmVxIHBvbCBzciBmZWMK
+K1MgMTA3NDcwMDAgSCAyNTAwMDAwMCAzLzQKK1MgMTA3NzgwMDAgViAyNTAwMDAwMCAzLzQKK1Mg
+MTA3NzgwMDAgSCAyNDUwMDAwMCA3LzgKK1MgMTA4MDkwMDAgViAyNDUwMDAwMCA3LzgKK1MgMTA4
+MDkwMDAgSCAyNDUwMDAwMCA3LzgKK1MgMTA4NDEwMDAgViAyNDUwMDAwMCA3LzgKK1MgMTA4NDEw
+MDAgSCAyNDUwMDAwMCA3LzgKK1MgMTA4NzIwMDAgViAyNDUwMDAwMCA3LzgKK1MgMTA4NzIwMDAg
+SCAyNDUwMDAwMCA3LzgKK1MgMTA5MDMwMDAgViAyNTAwMDAwMCAzLzQKK1MgMTA5MDMwMDAgSCAy
+NTAwMDAwMCAzLzQKK1MgMTA5MzQwMDAgViAyNDUwMDAwMCA3LzgKK1MgMTA5MzQwMDAgSCAyNTAw
+MDAwMCAzLzQJCiBTIDExMjE2MDAwIFYgMjQ1MDAwMDAgNy84CiBTIDExMjI5MDAwIEggMjQ1MDAw
+MDAgNy84CiBTIDExMjQ3MDAwIFYgMjQ1MDAwMDAgNy84CkBAIC0xNywxMSArMzAsMjUgQEAgUyAx
+MTM4OTAwMCBIIDI0NTAwMDAwIDcvOAogUyAxMTQwMzAwMCBWIDI0NTAwMDAwIDcvOAogUyAxMTQy
+MTAwMCBIIDI0NTAwMDAwIDcvOAogUyAxMTQzNDAwMCBWIDI0NTAwMDAwIDcvOAorUyAxMTcyNzAw
+MCBWIDI4MDAwMDAwIDcvOAogUyAxMTc0NzAwMCBIIDI4MDAwMDAwIDUvNgotUyAxMTc4NTAwMCBI
+IDI4MDAwMDAwIDUvNgorUyAxMTc2NjAwMCBWIDI4MDAwMDAwIDcvOAorUyAxMTc4NTAwMCBIIDMw
+MDAwMDAwIDMvNAorUyAxMTgwNDAwMCBWIDI4MDAwMDAwIDcvOAogUyAxMTgyMzAwMCBIIDI4MDAw
+MDAwIDcvOAorUyAxMTg0MzAwMCBWIDMwMDAwMDAwIDMvNAorUyAxMTg2MjAwMCBIIDI4MDAwMDAw
+IDcvOAorUyAxMTg4MTAwMCBWIDI4MDAwMDAwIDUvNgorUyAxMTkwMDAwMCBIIDI4MDAwMDAwIDUv
+NgorUyAxMTkxOTAwMCBWIDI4MDAwMDAwIDcvOAogUyAxMTkzODAwMCBIIDI1MDAwMDAwIDMvNAor
+UyAxMTk1ODAwMCBWIDI4MDAwMDAwIDcvOAorUyAxMTk3NzAwMCBIIDI4MDAwMDAwIDcvOAorUyAx
+MTk5NjAwMCBWIDI4MDAwMDAwIDcvOAogUyAxMjAxNTAwMCBIIDMwMDAwMDAwIDMvNAorUyAxMjAz
+NDAwMCBWIDI4MDAwMDAwIDcvOAorUyAxMjA3MzAwMCBWIDI4MDAwMDAwIDcvOAorUyAxMjA5MjAw
+MCBIIDMwMDAwMDAwIDMvNAogUyAxMjEzMDAwMCBIIDMwMDAwMDAwIDMvNAogUyAxMjE0OTAwMCBW
+IDI4MDAwMDAwIDUvNgogUyAxMjE2OTAwMCBIIDI4MDAwMDAwIDcvOApAQCAtMzAsNiArNTcsOCBA
+QCBTIDEyMjI2MDAwIFYgMjgwMDAwMDAgMy80CiBTIDEyMjQ1MDAwIEggMjgwMDAwMDAgNS82CiBT
+IDEyMzAzMDAwIFYgMjgwMDAwMDAgNS82CiBTIDEyMzIyMDAwIEggMjc4MDAwMDAgMy80CitTIDEy
+MzQxMDAwIFYgMjgwMDAwMDAgNy84CitTIDEyMzgwMDAwIFYgMjgwMDAwMDAgNS82CiBTIDEyMzk5
+MDAwIEggMjgwMDAwMDAgNy84CiBTIDEyNDE4MDAwIFYgMjgwMDAwMDAgNy84CiBTIDEyNDU2MDAw
+IFYgMjgwMDAwMDAgMy80Cg==
+--001485f1e26e0d613204abdeea40--
