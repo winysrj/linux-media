@@ -1,130 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:44920 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757709Ab1ILPKo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Sep 2011 11:10:44 -0400
-Message-ID: <4E6E20B5.2020004@tis.icnet.pl>
-Date: Mon, 12 Sep 2011 17:09:41 +0200
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] media: ov6650: Fix wrong register used for red control
-References: <201109121325.25986.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1109121343350.9638@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1109121343350.9638@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:42950 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750787Ab1IAJOL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 05:14:11 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LQU002U26ZLBU@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 01 Sep 2011 10:14:09 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LQU00FMJ6ZKCP@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 01 Sep 2011 10:14:09 +0100 (BST)
+Date: Thu, 01 Sep 2011 11:14:08 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH] media: Add camera controls for the ov5642 driver
+In-reply-to: <20110901084722.GV12368@valkosipuli.localdomain>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Bastian Hecht <hechtb@googlemail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Message-id: <4E5F4CE0.8050909@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7BIT
+References: <alpine.DEB.2.02.1108171553540.17550@ipanema>
+ <201108282006.09790.laurent.pinchart@ideasonboard.com>
+ <CABYn4sx5jQPyLC4d6OfVbX5SSuS4TiNsB_LPoCheaOSbwM9Pzw@mail.gmail.com>
+ <20110831212010.GS12368@valkosipuli.localdomain>
+ <Pine.LNX.4.64.1109010911550.21309@axis700.grange>
+ <20110901084722.GV12368@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski wrote:
-> Hi Janusz
-> 
-> Thanks for the patch, but, since I anyway will have to re-roll my branch 
-> on linuxtv, maybe I'll roll in your s/BLUE/RED/ hunk into the original 
-> patch from Hans with a suitable
-> 
-> [jkrzyszt@tis.icnet.pl: fix a typo in the register name]
-> 
-> comment, and then add this your patch without that hunk and with an 
-> amended description on top, would that be ok with you?
+Hi Sakari,
 
-Yeah, that's exactly what I thought could be more appropriate.
+On 09/01/2011 10:47 AM, Sakari Ailus wrote:
+> On Thu, Sep 01, 2011 at 09:15:20AM +0200, Guennadi Liakhovetski wrote:
+>> On Thu, 1 Sep 2011, Sakari Ailus wrote:
+>>
+>>> On Wed, Aug 31, 2011 at 03:27:49PM +0000, Bastian Hecht wrote:
+>>>> 2011/8/28 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>>> [clip]
+>>>>> If I'm not mistaken V4L2_CID_PRIVATE_BASE is deprecated.
+>>>>
+>>>> I checked at http://v4l2spec.bytesex.org/spec/x542.htm, googled
+>>>> "V4L2_CID_PRIVATE_BASE deprecated" and read
+>>>> Documentation/feature-removal-schedule.txt. I couldn't find anything.
+>>>
+>>> Hmm. Did you happen to check when that has been written? :)
+>>>
+>>> Please use this one instead:
+>>>
+>>> <URL:http://hverkuil.home.xs4all.nl/spec/media.html>
+>>
+>> "Drivers can also implement their own custom controls using 
+>> V4L2_CID_PRIVATE_BASE and higher values."
+>>
+>> Which specific location describes V4L2_CID_PRIVATE_BASE differently there?
+> 
+> That was a general comment, not related to the private base. There's no
+> use for a three-year-old spec as a reference!
+> 
+> The control framework does not support private controls, for example. The
+> controls should be put to their own class in videodev2.h nowadays, that's my
+> understanding. Cc Hans.
 
-Thanks,
-Janusz
+Is this really the case that we close the door for private controls in
+the mainline kernel ? Or am I misunderstanding something ?
+How about v4l2_ctrl_new_custom() ?
 
-> 
-> Thanks
-> Guennadi
-> 
-> On Mon, 12 Sep 2011, Janusz Krzysztofik wrote:
-> 
->> REG_BLUE has been used by mistake instead of REG_RED. Fix it.
->>
->> While being at it, fix a few minor issues:
->> * with no "retrun ret;" at the end, there is no need to initialize ret
->>   any longer,
->> * consequently use conditional expressions, not if...else constructs,
->>   throughout ov6650_s_ctrl(),
->> * v4l2_ctrl_new_std_menu() max value of V4L2_EXPOSURE_MANUAL instead of
->>   equivalent 1 looks more clear.
->>
->> Created on top of "Converting soc_camera to the control framework"
->> series.
->>
->> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
->> ---
->>  drivers/media/video/ov6650.c |   16 +++++++---------
->>  1 files changed, 7 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/media/video/ov6650.c b/drivers/media/video/ov6650.c
->> index 089a4aa..c0709ee 100644
->> --- a/drivers/media/video/ov6650.c
->> +++ b/drivers/media/video/ov6650.c
->> @@ -310,7 +310,7 @@ static int ov6550_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
->>  	struct v4l2_subdev *sd = &priv->subdev;
->>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
->>  	uint8_t reg, reg2;
->> -	int ret = 0;
->> +	int ret;
->>  
->>  	switch (ctrl->id) {
->>  	case V4L2_CID_AUTOGAIN:
->> @@ -342,7 +342,7 @@ static int ov6550_s_ctrl(struct v4l2_ctrl *ctrl)
->>  	struct ov6650 *priv = container_of(ctrl->handler, struct ov6650, hdl);
->>  	struct v4l2_subdev *sd = &priv->subdev;
->>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
->> -	int ret = 0;
->> +	int ret;
->>  
->>  	switch (ctrl->id) {
->>  	case V4L2_CID_AUTOGAIN:
->> @@ -357,7 +357,7 @@ static int ov6550_s_ctrl(struct v4l2_ctrl *ctrl)
->>  		if (!ret && !ctrl->val) {
->>  			ret = ov6650_reg_write(client, REG_BLUE, priv->blue->val);
->>  			if (!ret)
->> -				ret = ov6650_reg_write(client, REG_BLUE,
->> +				ret = ov6650_reg_write(client, REG_RED,
->>  							priv->red->val);
->>  		}
->>  		return ret;
->> @@ -370,10 +370,8 @@ static int ov6550_s_ctrl(struct v4l2_ctrl *ctrl)
->>  	case V4L2_CID_BRIGHTNESS:
->>  		return ov6650_reg_write(client, REG_BRT, ctrl->val);
->>  	case V4L2_CID_EXPOSURE_AUTO:
->> -		if (ctrl->val == V4L2_EXPOSURE_AUTO)
->> -			ret = ov6650_reg_rmw(client, REG_COMB, COMB_AEC, 0);
->> -		else
->> -			ret = ov6650_reg_rmw(client, REG_COMB, 0, COMB_AEC);
->> +		ret = ov6650_reg_rmw(client, REG_COMB, ctrl->val ==
->> +				V4L2_EXPOSURE_AUTO ? COMB_AEC : 0, COMB_AEC);
->>  		if (!ret && ctrl->val == V4L2_EXPOSURE_MANUAL)
->>  			ret = ov6650_reg_write(client, REG_AECH,
->>  						priv->exposure->val);
->> @@ -993,8 +991,8 @@ static int ov6650_probe(struct i2c_client *client,
->>  	v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
->>  			V4L2_CID_BRIGHTNESS, 0, 0xff, 1, 0x80);
->>  	priv->autoexposure = v4l2_ctrl_new_std_menu(&priv->hdl,
->> -			&ov6550_ctrl_ops, V4L2_CID_EXPOSURE_AUTO, 1, 0,
->> -			V4L2_EXPOSURE_AUTO);
->> +			&ov6550_ctrl_ops, V4L2_CID_EXPOSURE_AUTO,
->> +			V4L2_EXPOSURE_MANUAL, 0, V4L2_EXPOSURE_AUTO);
->>  	priv->exposure = v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
->>  			V4L2_CID_EXPOSURE, 0, 0xff, 1, DEF_AECH);
->>  	v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
->> -- 
->> 1.7.3.4
->>
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+What if there are controls applicable to single driver only ?
+Do we really want to have plenty of such in videodev2.h ?
 
+-- 
+Sylwester Nawrocki
+Samsung Poland R&D Center
