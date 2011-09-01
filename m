@@ -1,39 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47433 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752767Ab1IDXqK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Sep 2011 19:46:10 -0400
-Message-ID: <4E640DBB.8010504@iki.fi>
-Date: Mon, 05 Sep 2011 02:46:03 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.17.8]:57691 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751000Ab1IAFTv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 01:19:51 -0400
+Date: Thu, 1 Sep 2011 07:19:45 +0200
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 16/21] [staging] tm6000: Select interface on first open.
+Message-ID: <20110901051945.GD18473@avionic-0098.mockup.avionic-design.de>
+References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
+ <1312442059-23935-17-git-send-email-thierry.reding@avionic-design.de>
+ <4E5E934A.7000500@redhat.com>
 MIME-Version: 1.0
-To: Chris Rankin <rankincj@yahoo.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: ERROR: "em28xx_add_into_devlist" [drivers/media/video/em28xx/em28xx.ko]
- undefined!
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="kvUQC+jR9YzypDnK"
+Content-Disposition: inline
+In-Reply-To: <4E5E934A.7000500@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka,
-Current linux-media make gives error. Any idea what's wrong?
 
+--kvUQC+jR9YzypDnK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Kernel: arch/x86/boot/bzImage is ready  (#1)
-   Building modules, stage 2.
-   MODPOST 1907 modules
-ERROR: "em28xx_add_into_devlist" [drivers/media/video/em28xx/em28xx.ko] 
-undefined!
-WARNING: modpost: Found 2 section mismatch(es).
-To see full details build your kernel with:
-'make CONFIG_DEBUG_SECTION_MISMATCH=y'
-make[1]: *** [__modpost] Error 1
-make: *** [modules] Error 2
+* Mauro Carvalho Chehab wrote:
+> Em 04-08-2011 04:14, Thierry Reding escreveu:
+> > Instead of selecting the default interface setting when preparing
+> > isochronous transfers, select it on the first call to open() to make
+> > sure it is available earlier.
+>=20
+> Hmm... I fail to see what this is needed earlier. The ISOC endpont is used
+> only when the device is streaming.
+>=20
+> Did you get any bug related to it? If so, please describe it better.
 
+I'm not sure whether this really fixes a bug, but it seems a little wrong to
+me to selecting the interface so late in the process when in fact the device
+is already being configured before (video standard, audio mode, firmware
+upload, ...).
 
-regards
-Antti
--- 
-http://palosaari.fi/
+Thinking about it, this may actually be part of the fix for the "device han=
+gs
+sometimes for inexplicable reasons" bug that this whole patch series seems =
+to
+fix.
+
+Thierry
+
+--kvUQC+jR9YzypDnK
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEARECAAYFAk5fFfAACgkQZ+BJyKLjJp9ytQCeJxGjPNnYF/nZRgkAPHRvnRD5
+g2QAoIWpGarT2k4+/hF+4F3bFMlMFhWO
+=C0Xe
+-----END PGP SIGNATURE-----
+
+--kvUQC+jR9YzypDnK--
