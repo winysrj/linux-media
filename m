@@ -1,42 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:60190 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752329Ab1I1ILt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Sep 2011 04:11:49 -0400
-Date: Wed, 28 Sep 2011 10:11:46 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Paul Mundt <lethal@linux-sh.org>,
-	Magnus Damm <magnus.damm@gmail.com>
-Subject: acks needed
-Message-ID: <Pine.LNX.4.64.1109281008310.30317@axis700.grange>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:42231 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932437Ab1IAPcr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 11:32:47 -0400
+Received: by qyk15 with SMTP id 15so184418qyk.19
+        for <linux-media@vger.kernel.org>; Thu, 01 Sep 2011 08:32:46 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Thu, 1 Sep 2011 17:26:38 +0200
+Message-ID: <CA+__RmD42gPxdxqF2H8DfTaTsLJjv++KvnQXMeEEAvnenLes=A@mail.gmail.com>
+Subject: Updated DVB-T scandata for es-Donostia
+From: Tuukka Laurikainen <tlaurikainen@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paul, Magnus
+Hi,
 
-The following patches need your acks to allow the whole stack to go on 
-time into 3.2 without breaking platforms even intermittently.
+This is the updated scan data for es-Donostia:
 
-[20/59] ARM: ap4evb: switch imx074 configuration to default number of lanes
-http://patchwork.linuxtv.org/patch/7514/
-[27/59] ARM: mach-shmobile: convert mackerel to mediabus flags
-http://patchwork.linuxtv.org/patch/7506/
-[28/59] sh: convert ap325rxa to mediabus flags
-http://patchwork.linuxtv.org/patch/7513/
-[49/59] sh: ap3rxa: remove redundant soc-camera platform data fields
-http://patchwork.linuxtv.org/patch/7517/
-[50/59] sh: migor: remove unused ov772x buswidth flag
-http://patchwork.linuxtv.org/patch/7516/
-[56/59] ARM: mach-shmobile: mackerel doesn't need legacy SOCAM_* flags anymore
-http://patchwork.linuxtv.org/patch/7523/
+T 490000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
+T 554000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
+T 562000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
+T 626000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
+T 634000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
+T 658000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
+T 690000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
+T 786000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
+T 810000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
+T 850000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Regards,
+
+Tuukka
