@@ -1,21 +1,21 @@
 Return-Path: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <gnu.andrew.rocks@gmail.com>) id 1R6QXu-0006w8-8H
-	for linux-dvb@linuxtv.org; Wed, 21 Sep 2011 19:25:18 +0200
-Received: from mail-qw0-f42.google.com ([209.85.216.42])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-2) with esmtps
+	(envelope-from <harald.overas@gmail.com>) id 1Qz4Ee-0006CJ-Bk
+	for linux-dvb@linuxtv.org; Thu, 01 Sep 2011 12:11:24 +0200
+Received: from mail-ww0-f48.google.com ([74.125.82.48])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-4) with esmtps
 	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
-	id 1R6QXt-0002LT-J9; Wed, 21 Sep 2011 19:25:18 +0200
-Received: by qwm42 with SMTP id 42so3055750qwm.1
-	for <linux-dvb@linuxtv.org>; Wed, 21 Sep 2011 10:25:16 -0700 (PDT)
+	id 1Qz4Ee-0002QP-9w; Thu, 01 Sep 2011 12:11:00 +0200
+Received: by wwj26 with SMTP id 26so1152629wwj.5
+	for <linux-dvb@linuxtv.org>; Thu, 01 Sep 2011 03:10:59 -0700 (PDT)
 MIME-Version: 1.0
-Date: Wed, 21 Sep 2011 18:25:14 +0100
-Message-ID: <CAFXTvn7otkiKw90aA8Yh4o7z87uarbtj3C8OdNYyKbywdMHdiQ@mail.gmail.com>
-From: Andii Hughes <gnu_andrew@member.fsf.org>
+Date: Thu, 1 Sep 2011 12:10:58 +0200
+Message-ID: <CAMDtrVK2mMc3tpyUkLg7ZfA-rnA91r=KUNNhEv-fkTgP1VWcPw@mail.gmail.com>
+From: Harald Overas <harald.overas@gmail.com>
 To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary=001485f87b2cf0247004ad76db55
-Subject: [linux-dvb] uk-EmleyMoor update
+Content-Type: multipart/mixed; boundary=0016e6d77cfe15037104abde760d
+Subject: [linux-dvb] Updated DVB-S file Thor-1.0W
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -28,45 +28,62 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---001485f87b2cf0247004ad76db55
+--0016e6d77cfe15037104abde760d
 Content-Type: text/plain; charset=UTF-8
 
-The Emley Moor transmitter in the UK completed digital switchover
-today, making the existing transmitter file:
+Hi
 
-http://linuxtv.org/hg/dvb-apps/file/tip/util/scan/dvb-t/uk-EmleyMoor
+I have attached a patch for Thor-1.0W. Most of the mux updates are for
+the new Thor 6 satellite.
+http://www.telenorsbc.com/templates/Page.aspx?id=783
 
-obsolete.  Attached is a patch which I've just successfully used with
-dvbscan to obtain a new channels.conf.
+I have also taking the liberty to update one of the existing muxes.
+http://www.telenorsbc.com/templates/Page.aspx?id=674
 
-Thanks,
--- 
-Andii :-)
+I have tested the patch with tvheadend and it works without any problems.
 
---001485f87b2cf0247004ad76db55
-Content-Type: text/x-patch; charset=US-ASCII; name="emley.patch"
-Content-Disposition: attachment; filename="emley.patch"
+Best regards,
+Harald
+
+--0016e6d77cfe15037104abde760d
+Content-Type: application/octet-stream; name="Thor-1.0W.patch"
+Content-Disposition: attachment; filename="Thor-1.0W.patch"
 Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gsul1hc30
+X-Attachment-Id: f_gs1kqjgj0
 
-LS0tIC91c3Ivc2hhcmUvZHZiL2R2Yi10L3VrLUVtbGV5TW9vcgkyMDEwLTA4LTAyIDE5OjE3OjA0
-LjMwMjQxNjQwMiArMDEwMAorKysgL2hvbWUvYW5kcmV3Ly50emFwL3VrLUVtbGV5TW9vcgkyMDEx
-LTA5LTIxIDE4OjExOjAyLjkzNjEwNjA5MCArMDEwMApAQCAtMSwxMCArMSw3IEBACiAjIFVLLCBF
-bWxleSBNb29yCi0jIEF1dG8tZ2VuZXJhdGVkIGZyb20gaHR0cDovL3d3dy5kdGcub3JnLnVrL3Jl
-dGFpbGVyL2R0dF9jaGFubmVscy5odG1sCi0jIGFuZCBodHRwOi8vd3d3Lm9mY29tLm9yZy51ay9z
-dGF0aWMvcmVjZXB0aW9uX2FkdmljZS9pbmRleC5hc3AuaHRtbAogIyBUIGZyZXEgYncgZmVjX2hp
-IGZlY19sbyBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFyY2h5Ci1U
-IDcyMjE2NzAwMCA4TUh6IDMvNCBOT05FIFFBTTE2IDJrIDEvMzIgTk9ORQotVCA2MjU4MzMwMDAg
-OE1IeiAyLzMgTk9ORSBRQU02NCAyayAxLzMyIE5PTkUKLVQgNjQ5ODMzMDAwIDhNSHogMi8zIE5P
-TkUgUUFNNjQgMmsgMS8zMiBOT05FCi1UIDY3MzgzMzAwMCA4TUh6IDMvNCBOT05FIFFBTTE2IDJr
-IDEvMzIgTk9ORQotVCA3MDU4MzMwMDAgOE1IeiAzLzQgTk9ORSBRQU0xNiAyayAxLzMyIE5PTkUK
-LVQgNjk3ODMzMDAwIDhNSHogMy80IE5PTkUgUUFNMTYgMmsgMS8zMiBOT05FCitUIDY4MjAwMDAw
-MCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS8zMiBOT05FICMgUFNCMS9CQkNBCitUIDY1ODAwMDAw
-MCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS8zMiBOT05FICMgUFNCMi9EMyY0CitUIDcxNDAwMDAw
-MCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS8zMiBOT05FICMgQ09NNC9TRE4KK1QgNzIyMDAwMDAw
-IDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzMyIE5PTkUgIyBDT001L0FSUUEKK1QgNjkwMDAwMDAw
-IDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzMyIE5PTkUgIyBDT002L0FSUUIK
---001485f87b2cf0247004ad76db55
+ZGlmZiAtcnVwTiBkdmItYXBwcy0zNmEwODRhYWNlNDctb3JnLy91dGlsL3NjYW4vZHZiLXMvVGhv
+ci0xLjBXIGR2Yi1hcHBzLTM2YTA4NGFhY2U0Ny91dGlsL3NjYW4vZHZiLXMvVGhvci0xLjBXCi0t
+LSBkdmItYXBwcy0zNmEwODRhYWNlNDctb3JnLy91dGlsL3NjYW4vZHZiLXMvVGhvci0xLjBXCTIw
+MTEtMDktMDEgMTA6MjA6MTYuMDAwMDAwMDAwICswMjAwCisrKyBkdmItYXBwcy0zNmEwODRhYWNl
+NDcvdXRpbC9zY2FuL2R2Yi1zL1Rob3ItMS4wVwkyMDExLTA5LTAxIDEwOjE1OjQ5LjAwMDAwMDAw
+MCArMDIwMApAQCAtMSw1ICsxLDE4IEBACiAjIFRob3IgMS4wVwogIyBmcmVxIHBvbCBzciBmZWMK
+K1MgMTA3NDcwMDAgSCAyNTAwMDAwMCAzLzQKK1MgMTA3NzgwMDAgViAyNTAwMDAwMCAzLzQKK1Mg
+MTA3NzgwMDAgSCAyNDUwMDAwMCA3LzgKK1MgMTA4MDkwMDAgViAyNDUwMDAwMCA3LzgKK1MgMTA4
+MDkwMDAgSCAyNDUwMDAwMCA3LzgKK1MgMTA4NDEwMDAgViAyNDUwMDAwMCA3LzgKK1MgMTA4NDEw
+MDAgSCAyNDUwMDAwMCA3LzgKK1MgMTA4NzIwMDAgViAyNDUwMDAwMCA3LzgKK1MgMTA4NzIwMDAg
+SCAyNDUwMDAwMCA3LzgKK1MgMTA5MDMwMDAgViAyNTAwMDAwMCAzLzQKK1MgMTA5MDMwMDAgSCAy
+NTAwMDAwMCAzLzQKK1MgMTA5MzQwMDAgViAyNDUwMDAwMCA3LzgKK1MgMTA5MzQwMDAgSCAyNTAw
+MDAwMCAzLzQJCiBTIDExMjE2MDAwIFYgMjQ1MDAwMDAgNy84CiBTIDExMjI5MDAwIEggMjQ1MDAw
+MDAgNy84CiBTIDExMjQ3MDAwIFYgMjQ1MDAwMDAgNy84CkBAIC0xNywxMSArMzAsMjUgQEAgUyAx
+MTM4OTAwMCBIIDI0NTAwMDAwIDcvOAogUyAxMTQwMzAwMCBWIDI0NTAwMDAwIDcvOAogUyAxMTQy
+MTAwMCBIIDI0NTAwMDAwIDcvOAogUyAxMTQzNDAwMCBWIDI0NTAwMDAwIDcvOAorUyAxMTcyNzAw
+MCBWIDI4MDAwMDAwIDcvOAogUyAxMTc0NzAwMCBIIDI4MDAwMDAwIDUvNgotUyAxMTc4NTAwMCBI
+IDI4MDAwMDAwIDUvNgorUyAxMTc2NjAwMCBWIDI4MDAwMDAwIDcvOAorUyAxMTc4NTAwMCBIIDMw
+MDAwMDAwIDMvNAorUyAxMTgwNDAwMCBWIDI4MDAwMDAwIDcvOAogUyAxMTgyMzAwMCBIIDI4MDAw
+MDAwIDcvOAorUyAxMTg0MzAwMCBWIDMwMDAwMDAwIDMvNAorUyAxMTg2MjAwMCBIIDI4MDAwMDAw
+IDcvOAorUyAxMTg4MTAwMCBWIDI4MDAwMDAwIDUvNgorUyAxMTkwMDAwMCBIIDI4MDAwMDAwIDUv
+NgorUyAxMTkxOTAwMCBWIDI4MDAwMDAwIDcvOAogUyAxMTkzODAwMCBIIDI1MDAwMDAwIDMvNAor
+UyAxMTk1ODAwMCBWIDI4MDAwMDAwIDcvOAorUyAxMTk3NzAwMCBIIDI4MDAwMDAwIDcvOAorUyAx
+MTk5NjAwMCBWIDI4MDAwMDAwIDcvOAogUyAxMjAxNTAwMCBIIDMwMDAwMDAwIDMvNAorUyAxMjAz
+NDAwMCBWIDI4MDAwMDAwIDcvOAorUyAxMjA3MzAwMCBWIDI4MDAwMDAwIDcvOAorUyAxMjA5MjAw
+MCBIIDMwMDAwMDAwIDMvNAogUyAxMjEzMDAwMCBIIDMwMDAwMDAwIDMvNAogUyAxMjE0OTAwMCBW
+IDI4MDAwMDAwIDUvNgogUyAxMjE2OTAwMCBIIDI4MDAwMDAwIDcvOApAQCAtMzAsNiArNTcsOCBA
+QCBTIDEyMjI2MDAwIFYgMjgwMDAwMDAgMy80CiBTIDEyMjQ1MDAwIEggMjgwMDAwMDAgNS82CiBT
+IDEyMzAzMDAwIFYgMjgwMDAwMDAgNS82CiBTIDEyMzIyMDAwIEggMjc4MDAwMDAgMy80CitTIDEy
+MzQxMDAwIFYgMjgwMDAwMDAgNy84CitTIDEyMzgwMDAwIFYgMjgwMDAwMDAgNS82CiBTIDEyMzk5
+MDAwIEggMjgwMDAwMDAgNy84CiBTIDEyNDE4MDAwIFYgMjgwMDAwMDAgNy84CiBTIDEyNDU2MDAw
+IFYgMjgwMDAwMDAgMy80Cg==
+--0016e6d77cfe15037104abde760d
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -77,4 +94,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---001485f87b2cf0247004ad76db55--
+--0016e6d77cfe15037104abde760d--
