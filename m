@@ -1,63 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3383 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750750Ab1IZNJV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 09:09:21 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: Re: [PATCH RESEND 0/4] davinci vpbe: enable DM365 v4l2 display driver
-Date: Mon, 26 Sep 2011 15:09:05 +0200
-Cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-References: <1316410529-14744-1-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1316410529-14744-1-git-send-email-manjunath.hadli@ti.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:58920 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753809Ab1IAHKx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 03:10:53 -0400
+Date: Thu, 1 Sep 2011 09:10:48 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH 3/9 v6] V4L: document the new VIDIOC_CREATE_BUFS and
+ VIDIOC_PREPARE_BUF ioctl()s
+In-Reply-To: <20110831211157.GR12368@valkosipuli.localdomain>
+Message-ID: <Pine.LNX.4.64.1109010904300.21309@axis700.grange>
+References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
+ <1314813768-27752-4-git-send-email-g.liakhovetski@gmx.de>
+ <20110831211157.GR12368@valkosipuli.localdomain>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109261509.05809.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday, September 19, 2011 07:35:25 Manjunath Hadli wrote:
-> The patchset adds incremental changes necessary to enable dm365
-> v4l2 display driver, which includes vpbe display driver changes,
-> osd specific changes and venc changes. The changes are incremental
-> in nature,addind a few HD modes, and taking care of register level
-> changes.
-> 
-> The patch set does not include THS7303 amplifier driver which is planned
-> to be sent seperately.
+On Thu, 1 Sep 2011, Sakari Ailus wrote:
 
-Looks OK, except for patch 2/4.
-
-For patches 1, 3 and 4:
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
+> Hi Guennadi,
 > 
+> On Wed, Aug 31, 2011 at 08:02:42PM +0200, Guennadi Liakhovetski wrote:
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> > Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> > Cc: Pawel Osciak <pawel@osciak.com>
+> > Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> > ---
+> >  Documentation/DocBook/media/v4l/io.xml             |   17 +++
+> >  Documentation/DocBook/media/v4l/v4l2.xml           |    2 +
+> >  .../DocBook/media/v4l/vidioc-create-bufs.xml       |  147 ++++++++++++++++++++
+> >  .../DocBook/media/v4l/vidioc-prepare-buf.xml       |   96 +++++++++++++
+> >  4 files changed, 262 insertions(+), 0 deletions(-)
+> >  create mode 100644 Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+> >  create mode 100644 Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+
+[snip]
+
+> > +  <refsect1>
+> > +    <title>Description</title>
+> > +
+> > +    <para>Applications can optionally call the
+> > +<constant>VIDIOC_PREPARE_BUF</constant> ioctl to pass ownership of the buffer
+> > +to the driver before actually enqueuing it, using the
+> > +<constant>VIDIOC_QBUF</constant> ioctl, and to prepare it for future I/O.
+> > +Such preparations may include cache invalidation or cleaning. Performing them
 > 
-> Manjunath Hadli (4):
->   davinci vpbe: remove unused macro.
->   davinci vpbe: add dm365 VPBE display driver changes
->   davinci vpbe: add dm365 and dm355 specific OSD changes
->   davinci vpbe: add VENC block changes to enable dm365 and dm355
-> 
->  drivers/media/video/davinci/vpbe.c         |   55 +++-
->  drivers/media/video/davinci/vpbe_display.c |    1 -
->  drivers/media/video/davinci/vpbe_osd.c     |  474 +++++++++++++++++++++++++---
->  drivers/media/video/davinci/vpbe_venc.c    |  205 +++++++++++--
->  include/media/davinci/vpbe.h               |   16 +
->  include/media/davinci/vpbe_venc.h          |    4 +
->  6 files changed, 686 insertions(+), 69 deletions(-)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> I think it could be added that the first time when the buffer is prepared,
+> the preparation may include very time consuming tasks such as memory
+> allocation and iommu mapping of that memory.
+
+Sure, looking forward to your incremental patch.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
