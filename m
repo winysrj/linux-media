@@ -1,79 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:42950 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750787Ab1IAJOL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 05:14:11 -0400
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LQU002U26ZLBU@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 01 Sep 2011 10:14:09 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LQU00FMJ6ZKCP@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 01 Sep 2011 10:14:09 +0100 (BST)
-Date: Thu, 01 Sep 2011 11:14:08 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH] media: Add camera controls for the ov5642 driver
-In-reply-to: <20110901084722.GV12368@valkosipuli.localdomain>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Bastian Hecht <hechtb@googlemail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Message-id: <4E5F4CE0.8050909@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7BIT
-References: <alpine.DEB.2.02.1108171553540.17550@ipanema>
- <201108282006.09790.laurent.pinchart@ideasonboard.com>
- <CABYn4sx5jQPyLC4d6OfVbX5SSuS4TiNsB_LPoCheaOSbwM9Pzw@mail.gmail.com>
- <20110831212010.GS12368@valkosipuli.localdomain>
- <Pine.LNX.4.64.1109010911550.21309@axis700.grange>
- <20110901084722.GV12368@valkosipuli.localdomain>
+Received: from moutng.kundenserver.de ([212.227.17.8]:60004 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757417Ab1IANpg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 09:45:36 -0400
+Date: Thu, 1 Sep 2011 15:45:21 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH 2/9 v6] V4L: add two new ioctl()s for multi-size videobuffer
+ management
+In-Reply-To: <201109011535.09789.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1109011544290.6316@axis700.grange>
+References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
+ <Pine.LNX.4.64.1109011249430.6316@axis700.grange> <20110901110612.GY12368@valkosipuli.localdomain>
+ <201109011535.09789.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Thu, 1 Sep 2011, Laurent Pinchart wrote:
 
-On 09/01/2011 10:47 AM, Sakari Ailus wrote:
-> On Thu, Sep 01, 2011 at 09:15:20AM +0200, Guennadi Liakhovetski wrote:
->> On Thu, 1 Sep 2011, Sakari Ailus wrote:
->>
->>> On Wed, Aug 31, 2011 at 03:27:49PM +0000, Bastian Hecht wrote:
->>>> 2011/8/28 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->>> [clip]
->>>>> If I'm not mistaken V4L2_CID_PRIVATE_BASE is deprecated.
->>>>
->>>> I checked at http://v4l2spec.bytesex.org/spec/x542.htm, googled
->>>> "V4L2_CID_PRIVATE_BASE deprecated" and read
->>>> Documentation/feature-removal-schedule.txt. I couldn't find anything.
->>>
->>> Hmm. Did you happen to check when that has been written? :)
->>>
->>> Please use this one instead:
->>>
->>> <URL:http://hverkuil.home.xs4all.nl/spec/media.html>
->>
->> "Drivers can also implement their own custom controls using 
->> V4L2_CID_PRIVATE_BASE and higher values."
->>
->> Which specific location describes V4L2_CID_PRIVATE_BASE differently there?
+> Hi Sakari,
 > 
-> That was a general comment, not related to the private base. There's no
-> use for a three-year-old spec as a reference!
+> On Thursday 01 September 2011 13:06:12 Sakari Ailus wrote:
+
+[snip]
+
+> > That's my understanding, but of course someone could just say "no" when we
+> > try to do that. I think that if something is marked experimental at least
+> > the argument that it can't be changed is a little bit moot since the users
+> > have been notified of this beforehand.
+> > 
+> > There are a few examples of this. At least the V4L2 subdev and MC
+> > interfaces are marked experimental. However, we haven't actually tried to
+> > use that to make changes which might break user space since we haven't got
+> > a need to.
+> > 
+> > Hans, Laurent: do you have an opinion on this?
 > 
-> The control framework does not support private controls, for example. The
-> controls should be put to their own class in videodev2.h nowadays, that's my
-> understanding. Cc Hans.
+> We should of course try to keep the API and ABI compatible across kernel 
+> versions, but experimental APIs can be changed. It also depends on how widely 
+> the API has been picked up by userspace and how much the changes would break 
+> it. Being experimental isn't an excuse for making userspace's life a 
+> nightmare.
 
-Is this really the case that we close the door for private controls in
-the mainline kernel ? Or am I misunderstanding something ?
-How about v4l2_ctrl_new_custom() ?
+Right, they deserve it regardless;-)
 
-What if there are controls applicable to single driver only ?
-Do we really want to have plenty of such in videodev2.h ?
-
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
