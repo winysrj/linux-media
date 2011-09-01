@@ -1,109 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2887 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754081Ab1I2LAT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Sep 2011 07:00:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFC PATCH] Introduce a strict tuner type check for VIDIOC_S_FREQUENCY
-Date: Thu, 29 Sep 2011 13:00:05 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:40170 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755997Ab1IAImj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 04:42:39 -0400
+Date: Thu, 1 Sep 2011 11:42:30 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH 2/9 v6] V4L: add two new ioctl()s for multi-size
+ videobuffer management
+Message-ID: <20110901084229.GU12368@valkosipuli.localdomain>
+References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
+ <1314813768-27752-3-git-send-email-g.liakhovetski@gmx.de>
+ <20110831210615.GQ12368@valkosipuli.localdomain>
+ <Pine.LNX.4.64.1109010850560.21309@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109291300.06047.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1109010850560.21309@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As per feature-removal-schedule.
+On Thu, Sep 01, 2011 at 09:03:52AM +0200, Guennadi Liakhovetski wrote:
+> Hi Sakari
 
-If there are no comments, then I'll make a pull request in a few days.
+Hi Guennadi,
 
-Regards,
+> On Thu, 1 Sep 2011, Sakari Ailus wrote:
+[clip]
+> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > > index fca24cc..988e1be 100644
+> > > --- a/include/linux/videodev2.h
+> > > +++ b/include/linux/videodev2.h
+> > > @@ -653,6 +653,9 @@ struct v4l2_buffer {
+> > >  #define V4L2_BUF_FLAG_ERROR	0x0040
+> > >  #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
+> > >  #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
+> > > +/* Cache handling flags */
+> > > +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
+> > > +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
+> > >  
+> > >  /*
+> > >   *	O V E R L A Y   P R E V I E W
+> > > @@ -2092,6 +2095,15 @@ struct v4l2_dbg_chip_ident {
+> > >  	__u32 revision;    /* chip revision, chip specific */
+> > >  } __attribute__ ((packed));
+> > >  
+> > > +/* VIDIOC_CREATE_BUFS */
+> > > +struct v4l2_create_buffers {
+> > > +	__u32			index;		/* output: buffers index...index + count - 1 have been created */
+> > > +	__u32			count;
+> > > +	enum v4l2_memory        memory;
+> > > +	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
+> > > +	__u32			reserved[8];
+> > > +};
+> > 
+> > How about splitting the above comments? These lines are really long.
+> > Kerneldoc could also be used, I think.
+> 
+> Sure, how about this incremental patch:
+> 
+> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Subject: V4L: improve struct v4l2_create_buffers documentation
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 988e1be..64e0bf2 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -2095,12 +2095,20 @@ struct v4l2_dbg_chip_ident {
+>  	__u32 revision;    /* chip revision, chip specific */
+>  } __attribute__ ((packed));
+>  
+> -/* VIDIOC_CREATE_BUFS */
+> +/**
+> + * struct v4l2_create_buffers - VIDIOC_CREATE_BUFS argument
+> + * @index:	on return, index of the first created buffer
+> + * @count:	entry: number of requested buffers,
+> + *		return: number of created buffers
+> + * @memory:	buffer memory type
+> + * @format:	frame format, for which buffers are requested
+> + * @reserved:	future extensions
+> + */
+>  struct v4l2_create_buffers {
+> -	__u32			index;		/* output: buffers index...index + count - 1 have been created */
+> +	__u32			index;
+>  	__u32			count;
+>  	enum v4l2_memory        memory;
+> -	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
+> +	struct v4l2_format	format;
+>  	__u32			reserved[8];
+>  };
 
-	Hans
+Thanks! This looks good to me. Could you do a similar change to the
+compat-IOCTL version of this struct (v4l2_create_buffers32)?
 
+> > > +
+> > >  /*
+> > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+> > >   *
+> > > @@ -2182,6 +2194,9 @@ struct v4l2_dbg_chip_ident {
+> > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
+> > >  #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
+> > >  
+> > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
+> > > +#define VIDIOC_PREPARE_BUF	 _IOW('V', 93, struct v4l2_buffer)
+> > 
+> > Does prepare_buf ever do anything that would need to return anything to the
+> > user? I guess the answer is "no"?
+> 
+> Exactly, that's why it's an "_IOW" ioctl(), not an "_IOWR", or have I 
+> misunderstood you?
 
-For tuners the tuner type as passed by VIDIOC_S_FREQUENCY must match the
-type of the device node. So setting the radio frequency through a video
-node instead of the radio node is no longer allowed.
+I was thinking if this will be the case now and in the foreseeable future as
+this can't be changed after once defined. I just wanted to bring this up
+even though I don't see myself that any of the fields would need to be
+returned to the user. But there are reserved fields...
 
-This is now implemented as per the feature removal schedule.
+So unless someone comes up with something quick, I think this should stay
+as-is.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../DocBook/media/v4l/vidioc-g-frequency.xml       |    5 ++++-
- Documentation/feature-removal-schedule.txt         |   11 -----------
- drivers/media/video/v4l2-ioctl.c                   |    9 ++++++++-
- 3 files changed, 12 insertions(+), 13 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-index 062d720..d18645c 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-@@ -99,7 +99,10 @@ the &v4l2-output; <structfield>modulator</structfield> field and the
- 	    <entry><structfield>type</structfield></entry>
- 	    <entry>The tuner type. This is the same value as in the
- &v4l2-tuner; <structfield>type</structfield> field. The field is not
--applicable to modulators, &ie; ignored by drivers.</entry>
-+applicable to modulators, &ie; ignored by drivers. The tuner type must
-+match the type of the device node, &ie; you cannot specify V4L2_TUNER_RADIO
-+for a video/vbi device node or V4L2_TUNER_ANALOG_TV for a radio device node.
-+<errorcode>EINVAL</errorcode> will be returned in case of a mismatch.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index ead08f1..b0ed38c 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -530,17 +530,6 @@ Who:	Hans de Goede <hdegoede@redhat.com>
- 
- ----------------------------
- 
--What:	For VIDIOC_S_FREQUENCY the type field must match the device node's type.
--	If not, return -EINVAL.
--When:	3.2
--Why:	It makes no sense to switch the tuner to radio mode by calling
--	VIDIOC_S_FREQUENCY on a video node, or to switch the tuner to tv mode by
--	calling VIDIOC_S_FREQUENCY on a radio node. This is the first step of a
--	move to more consistent handling of tv and radio tuners.
--Who:	Hans Verkuil <hans.verkuil@cisco.com>
--
------------------------------
--
- What:	Opening a radio device node will no longer automatically switch the
- 	tuner mode from tv to radio.
- When:	3.3
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 21c49dc..4004b77 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -1757,6 +1757,8 @@ static long __video_do_ioctl(struct file *file,
- 	case VIDIOC_S_FREQUENCY:
- 	{
- 		struct v4l2_frequency *p = arg;
-+		enum v4l2_tuner_type type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
-+			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
- 
- 		if (!ops->vidioc_s_frequency)
- 			break;
-@@ -1766,7 +1768,12 @@ static long __video_do_ioctl(struct file *file,
- 		}
- 		dbgarg(cmd, "tuner=%d, type=%d, frequency=%d\n",
- 				p->tuner, p->type, p->frequency);
--		ret = ops->vidioc_s_frequency(file, fh, p);
-+		/* type is ignored for modulators, so only do this check
-+		   if there is no modulator support. */
-+		if (ops->vidioc_s_modulator == NULL && type != p->type)
-+			ret = -EINVAL;
-+		else
-+			ret = ops->vidioc_s_frequency(file, fh, p);
- 		break;
- 	}
- 	case VIDIOC_G_SLICED_VBI_CAP:
 -- 
-1.7.5.4
-
+Sakari Ailus
+sakari.ailus@iki.fi
