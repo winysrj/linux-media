@@ -1,69 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35740 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751721Ab1IEJok (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 05:44:40 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bastian Hecht <hechtb@googlemail.com>
-Subject: Re: [PATCH 1/2 v2] media: Add support for arbitrary resolution for the ov5642 camera driver
-Date: Mon, 5 Sep 2011 11:45:19 +0200
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <alpine.DEB.2.02.1108311420540.2154@ipanema> <201109051125.33829.laurent.pinchart@ideasonboard.com> <CABYn4sxJQsoCZXcVtKg9N+oJBgf42JSKe6YXV+fCCtY919Suaw@mail.gmail.com>
-In-Reply-To: <CABYn4sxJQsoCZXcVtKg9N+oJBgf42JSKe6YXV+fCCtY919Suaw@mail.gmail.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:34193 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757571Ab1IAO2Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 10:28:16 -0400
+Date: Thu, 1 Sep 2011 17:28:11 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] mt9t001: Aptina (Micron) MT9T001 3MP sensor driver
+Message-ID: <20110901142811.GB12368@valkosipuli.localdomain>
+References: <1314793452-23641-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <201109011105.06121.laurent.pinchart@ideasonboard.com>
+ <20110901103310.GX12368@valkosipuli.localdomain>
+ <201109011548.22376.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109051145.19702.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201109011548.22376.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bastian,
-
-On Monday 05 September 2011 11:41:28 Bastian Hecht wrote:
-> 2011/9/5 Laurent Pinchart:
-> > On Monday 05 September 2011 11:10:48 Bastian Hecht wrote:
-> >> 2011/8/31 Laurent Pinchart:
-> >> >> >  static int ov5642_g_crop(struct v4l2_subdev *sd, struct v4l2_crop
-> >> >> > *a) {
-> >> >> > 
-> >> >> > +   struct i2c_client *client = v4l2_get_subdevdata(sd);
-> >> >> > +   struct ov5642 *priv = to_ov5642(client);
-> >> >> > 
-> >> >> >     struct v4l2_rect *rect = &a->c;
-> >> >> > 
-> >> >> > -   a->type         = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> >> >> > -   rect->top       = 0;
-> >> >> > -   rect->left      = 0;
-> >> >> > -   rect->width     = OV5642_WIDTH;
-> >> >> > -   rect->height    = OV5642_HEIGHT;
-> >> >> > +   a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> >> >> 
-> >> >> Shouldn't you return an error instead when a->type is not
-> >> >> V4L2_BUF_TYPE_VIDEO_CAPTURE ?
-> >> 
-> >> No idea, but if you say so, I'll change it.
-> > 
-> > VIDIOC_G_FMT documentation states that
-> > 
-> > "When the requested buffer type is not supported drivers return an EINVAL
-> > error code."
-> > 
-> > I thought VIDIOC_G_CROP documentation did as well, but it doesn't.
-> > However I believe the above should apply to VIDIOC_G_CROP as well. There
-> > is no explicit documentation about error codes for subdev operations,
-> > but I think it makes sense to follow what the V4L2 ioctls do.
+On Thu, Sep 01, 2011 at 03:48:22PM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> And these ioctl calls go straight through to my driver? Or is there
-> some intermediate work by the subdev architecture? I'm asking because
-> I don't check the buffer type in g_fmt as well. If so, I have to
-> change that too.
+> On Thursday 01 September 2011 12:33:11 Sakari Ailus wrote:
+> > On Thu, Sep 01, 2011 at 11:05:05AM +0200, Laurent Pinchart wrote:
+> > > On Wednesday 31 August 2011 20:23:33 Sakari Ailus wrote:
+> > > > On Wed, Aug 31, 2011 at 02:24:12PM +0200, Laurent Pinchart wrote:
+> > > > > The MT9T001 is a parallel 3MP sensor from Aptina (formerly Micron)
+> > > > > controlled through I2C.
+> > > > > 
+> > > > > The driver creates a V4L2 subdevice. It currently supports binning
+> > > > > and cropping, and the gain, exposure, test pattern and black level
+> > > > > controls.
+> > > > > 
+> > > > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> [snip]
+> 
+> > > > > +#define V4L2_CID_TEST_PATTERN		(V4L2_CID_USER_BASE | 0x1001)
+> > > > 
+> > > > Thest pattern is something that almost every sensor have.
+> > > > 
+> > > > > +#define V4L2_CID_GAIN_RED		(V4L2_CTRL_CLASS_CAMERA | 0x1001)
+> > > > > +#define V4L2_CID_GAIN_GREEN1		(V4L2_CTRL_CLASS_CAMERA | 0x1002)
+> > > > > +#define V4L2_CID_GAIN_GREEN2		(V4L2_CTRL_CLASS_CAMERA | 0x1003)
+> 
+> [snip]
+> 
+> > > > Also these are quite low level controls as opposed to the other higher
+> > > > level controls in this class. I wonder if creating a separate class for
+> > > > them would make sense. We'll need a new class for the hblank/vblank
+> > > > controls anyway. I might call it "sensor".
+> > > > 
+> > > > These controls could be also standardised.
+> > > 
+> > > I agree.
+> > > 
+> > > A "sensor" control class might make sense for these 5 controls, but they
+> > > can also be useful for non-sensor hardware (for instance with an analog
+> > > pixel decoder).
+> > 
+> > What about calling it differently then?
+> > 
+> > V4L2_CTRL_CLASS_SOURCE
+> > V4L2_CTRL_CLASS_IMAGE_SOURCE
+> > V4L2_CTRL_CLASS_MBUS_SOURCE
+> 
+> Calling differently is probably a good idea. I'm not sure which name is the 
+> best though. I need to sleep on that.
+> 
+> Gain is an issue, as it can be applied at any stage in the pipeline. As such 
+> it doesn't really belong to a "source" class.
 
-The ioctls go to the host/bridge driver, which then decides when and how to 
-call g/s_fmt and g/s_crop. I would add the same check to g_fmt.
+True. Analog gain does still belong there.
+
+We might need more than one new class.
+
+> > > > > +#define V4L2_CID_GAIN_BLUE		(V4L2_CTRL_CLASS_CAMERA | 0x1004)
+> > > > > +
+> > > > > +static int mt9t001_gain_data(s32 *gain)
+> > > > > +{
+> > > > > +	/* Gain is controlled by 2 analog stages and a digital stage. Valid
+> > > > > +	 * values for the 3 stages are
+> > > > > +	 *
+> > > > > +	 * Stage		Min	Max	Step
+> > > > > +	 * ------------------------------------------
+> > > > > +	 * First analog stage	x1	x2	1
+> > > > > +	 * Second analog stage	x1	x4	0.125
+> > > > > +	 * Digital stage	x1	x16	0.125
+> > > > > +	 *
+> > > > > +	 * To minimize noise, the gain stages should be used in the second
+> > > > > +	 * analog stage, first analog stage, digital stage order. Gain from
+> > > > > a +	 * previous stage should be pushed to its maximum value before
+> > > > > the next +	 * stage is used.
+> > > > > +	 */
+> > > > > +	if (*gain <= 32)
+> > > > > +		return *gain;
+> > > > > +
+> > > > > +	if (*gain <= 64) {
+> > > > > +		*gain &= ~1;
+> > > > > +		return (1 << 6) | (*gain >> 1);
+> > > > > +	}
+> > > > > +
+> > > > > +	*gain &= ~7;
+> > > > > +	return ((*gain - 64) << 5) | (1 << 6) | 32;
+> > > > > +}
+> > > > 
+> > > > This one looks very similar to another Aptina sensor driver. My comment
+> > > > back then was that the analog and digital gain should be separate
+> > > > controls as the user typically would e.g. want to know (s)he's using
+> > > > digital gain instead of analog one.
+> > > > 
+> > > > What about implementing this?
+> > > > 
+> > > > It's a good question whether we need one or two new controls. If the
+> > > > answer is two, then how do they relate to the existing control?
+> > > 
+> > > I'm not too sure about this. If an application needs that much control
+> > > over the hardware, wouldn't it be hardware-specific anyway, and know
+> > > about control ranges ? The mt9t001 actually has 3 gain stages, so one
+> > > might even argue that we should expose 3 gain controls :-)
+> > 
+> > At least we should have two different ones. The driver might implement a
+> > policy for the single exposure control which would be combination of the
+> > two, but I'd rather see this done more genericly in libv4l: the algorithm
+> > is trivial and the same, and I also think this is relatively generic.
+> 
+> The algorithm isn't that generic, it depends on the hardware and how the gain 
+> stages are implemented.
+
+At least the et8ek8 prefers the same. There may be some parameters that
+might be needed for the algorithm which might need to be a little more
+complex than that.
+
+> > I don't think there's a need to show the secondary analog gain stage to the
+> > user, especially if the relation of the two stages is so simple. Are the
+> > units also the same?
+> 
+> I'm not sure what you mean here. Gains have no units :-)
+
+Uh, well, at least the granularity of the gain steps can be different in
+different gain stages.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+sakari.ailus@iki.fi
