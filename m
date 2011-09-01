@@ -1,87 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:48598 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753832Ab1ICH0R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Sep 2011 03:26:17 -0400
-Received: from hillosipuli.localdomain (nblzone-211-213.nblnetworks.fi [83.145.211.213])
-	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by smtp-68.nebula.fi (Postfix) with ESMTP id 573D543F0438
-	for <linux-media@vger.kernel.org>; Sat,  3 Sep 2011 10:26:14 +0300 (EEST)
-Received: from valkosipuli.localdomain (valkosipuli.localdomain [192.168.4.2])
-	by hillosipuli.localdomain (Postfix) with ESMTP id BC7BA60099
-	for <linux-media@vger.kernel.org>; Sat,  3 Sep 2011 10:26:13 +0300 (EEST)
-Date: Sat, 3 Sep 2011 10:26:12 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: Remove experimental note from ENUM_FRAMESIZES and
- ENUM_FRAMEINTERVALS
-Message-ID: <20110903072612.GG13242@valkosipuli.localdomain>
-References: <1315002508-11651-1-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1315002508-11651-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:37965 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932396Ab1IAPa3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 11:30:29 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Thu, 01 Sep 2011 17:30:04 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 0/19 v4] s5p-fimc driver conversion to media controller and
+ control framework
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: mchehab@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com
+Message-id: <1314891023-14227-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Sep 03, 2011 at 01:28:28AM +0300, Sakari Ailus wrote:
-> VIDIOC_ENUM_FRAMESIZES and VIDIOC_FRAME_INTERVALS have existed for quite
-> some time, are widely supported by various drivers and are being used by
-> applications. Thus they no longer can be considered experimental.
+Hello,
 
-I mostly intended to send this as RFC/PATCH (but forgot to give right
-options to git format-patch) to provoke a little bit discussion on how we
-should remove the experimental tags from features. These two ioctls are such
-that I'm aware are relatively widely used. No idea about the rest.
+following is a fourth version of the patchset converting s5p-fimc driver
+to the media controller API and the new control framework.
 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  Documentation/DocBook/media/v4l/compat.xml         |    4 ----
->  .../DocBook/media/v4l/vidioc-enum-framesizes.xml   |    7 -------
->  2 files changed, 0 insertions(+), 11 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-> index ce1004a..a6261c1 100644
-> --- a/Documentation/DocBook/media/v4l/compat.xml
-> +++ b/Documentation/DocBook/media/v4l/compat.xml
-> @@ -2458,10 +2458,6 @@ and may change in the future.</para>
->  &VIDIOC-QUERYCAP; ioctl, <xref linkend="device-capabilities" />.</para>
->          </listitem>
->          <listitem>
-> -	  <para>&VIDIOC-ENUM-FRAMESIZES; and
-> -&VIDIOC-ENUM-FRAMEINTERVALS; ioctls.</para>
-> -        </listitem>
-> -        <listitem>
->  	  <para>&VIDIOC-G-ENC-INDEX; ioctl.</para>
->          </listitem>
->          <listitem>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml b/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
-> index f77a13f..a78454b 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
-> @@ -50,13 +50,6 @@ and pixel format and receives a frame width and height.</para>
->    <refsect1>
->      <title>Description</title>
->  
-> -    <note>
-> -      <title>Experimental</title>
-> -
-> -      <para>This is an <link linkend="experimental">experimental</link>
-> -interface and may change in the future.</para>
-> -    </note>
-> -
->      <para>This ioctl allows applications to enumerate all frame sizes
->  (&ie; width and height in pixels) that the device supports for the
->  given pixel format.</para>
-> -- 
-> 1.7.2.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Mauro, could you please have a look at the patches and let me know of any doubts?
+I tried to provide possibly detailed description of what each patch does and why.
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+The changeset is available at:
+  http://git.infradead.org/users/kmpark/linux-2.6-samsung
+  branch: v4l_fimc_for_mauro
+
+on top of patches from Marek's 'Videobuf2 & FIMC fixes" pull request
+which this series depends on.
+
+Changes since v3:
+ - more detailed commit descriptions
+ - add missing dependency on EXPERIMENTAL and mark the driver as experimental
+   in the config menu
+ - removed the first patch as of v3 series, it has been posted separately
+ - added 2 new patches: 18/19, 19/19
+ - moved the link_setup capture video node media entity operation to the capture
+   subdev entity; the link_setup op prevented having 2 active source attached to
+   single data sink, there is no need for this at the video node entity as it
+   has only an immutable link; Instead we guard the number of sources being 
+   connected to the FIMC capture subdev
+ - rebased onto recent vb2 modifications changing the queue initialization order
+ - s/fimc_start_capture/fimc_init_capture, 
+   s/fimc_capture_apply_cfg/fimc_capture_config_update
+ - slightly improved the comments and fixed typos 
+
+Changes since v2:
+- reworked (runtime) power management;
+- added pm_runtime_get_sync/pm_runtime_put around sensor registration
+  code so the clock for sensors is enabled during host driver's probe();
+- reworked try_crop operation handler to support multiple of the prescaler
+  ratio relationship constraint for format at the sink pad;
+- corrected fimc_md_unregister_entities() function
+
+
+Sylwester Nawrocki (19):
+  s5p-fimc: Remove registration of video nodes from probe()
+  s5p-fimc: Remove sclk_cam clock handling
+  s5p-fimc: Limit number of available inputs to one
+  s5p-fimc: Remove sensor management code from FIMC capture driver
+  s5p-fimc: Remove v4l2_device from video capture and m2m driver
+  s5p-fimc: Add the media device driver
+  s5p-fimc: Conversion to use struct v4l2_fh
+  s5p-fimc: Convert to the new control framework
+  s5p-fimc: Add media operations in the capture entity driver
+  s5p-fimc: Add PM helper function for streaming control
+  s5p-fimc: Correct color format enumeration
+  s5p-fimc: Convert to use media pipeline operations
+  s5p-fimc: Add subdev for the FIMC processing block
+  s5p-fimc: Add support for JPEG capture
+  s5p-fimc: Add v4l2_device notification support for single frame
+    capture
+  s5p-fimc: Use consistent names for the buffer list functions
+  s5p-fimc: Add runtime PM support in the camera capture driver
+  s5p-fimc: Correct crop offset alignment on exynos4
+  s5p-fimc: Remove single-planar capability flags
+
+ drivers/media/video/Kconfig                 |    5 +-
+ drivers/media/video/s5p-fimc/Makefile       |    2 +-
+ drivers/media/video/s5p-fimc/fimc-capture.c | 1416 ++++++++++++++++++--------
+ drivers/media/video/s5p-fimc/fimc-core.c    |  884 ++++++++---------
+ drivers/media/video/s5p-fimc/fimc-core.h    |  201 +++--
+ drivers/media/video/s5p-fimc/fimc-mdevice.c |  857 ++++++++++++++++
+ drivers/media/video/s5p-fimc/fimc-mdevice.h |  118 +++
+ drivers/media/video/s5p-fimc/fimc-reg.c     |   74 +-
+ drivers/media/video/s5p-fimc/regs-fimc.h    |    8 +-
+ include/media/s5p_fimc.h                    |   11 +
+ 10 files changed, 2551 insertions(+), 1025 deletions(-)
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-mdevice.c
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-mdevice.h
+
+
+Regards,
+--
+Sylwester Nawrocki
+Samsung Poland R&D Center
+
