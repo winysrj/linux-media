@@ -1,221 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:3259 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752852Ab1IUQ0d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 12:26:33 -0400
-Received: from wpaz5.hot.corp.google.com (wpaz5.hot.corp.google.com [172.24.198.69])
-	by smtp-out.google.com with ESMTP id p8LGQThq032603
-	for <linux-media@vger.kernel.org>; Wed, 21 Sep 2011 09:26:29 -0700
-Received: from ewy19 (ewy19.prod.google.com [10.241.103.19])
-	by wpaz5.hot.corp.google.com with ESMTP id p8LGQIhE018711
-	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
-	for <linux-media@vger.kernel.org>; Wed, 21 Sep 2011 09:26:28 -0700
-Received: by ewy19 with SMTP id 19so1582743ewy.39
-        for <linux-media@vger.kernel.org>; Wed, 21 Sep 2011 09:26:27 -0700 (PDT)
-From: Michal Nazarewicz <mnazarewicz@google.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-Subject: [PATCH 1/3] fixup! mm: alloc_contig_freed_pages() added
-Date: Wed, 21 Sep 2011 18:26:21 +0200
-Message-Id: <f57b57f83bc5980e3db7d9d42f91c7e1765b4766.1316622205.git.mina86@mina86.com>
-In-Reply-To: <1316619959.16137.308.camel@nimitz>
-References: <1316619959.16137.308.camel@nimitz>
+Received: from moutng.kundenserver.de ([212.227.17.9]:60237 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751097Ab1IAGju (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 02:39:50 -0400
+Date: Thu, 1 Sep 2011 08:39:44 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] media: none of the drivers should be enabled by default
+In-Reply-To: <4E5E23CA.4030208@infradead.org>
+Message-ID: <Pine.LNX.4.64.1108311447000.8429@axis700.grange>
+References: <Pine.LNX.4.64.1108301921040.19151@axis700.grange>
+ <201108311021.05793.hverkuil@xs4all.nl> <Pine.LNX.4.64.1108311023260.8429@axis700.grange>
+ <201108311053.00687.hverkuil@xs4all.nl> <Pine.LNX.4.64.1108311103130.8429@axis700.grange>
+ <4E5E23CA.4030208@infradead.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <mina86@mina86.com>
+Hi Mauro
 
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+On Wed, 31 Aug 2011, Mauro Carvalho Chehab wrote:
 
+[snip]
+
+> >> I can't comment on the remote controller drivers as I haven't been involved
+> >> with that.
+> > 
+> > Mauro?
+> 
+> If RC is disabled, most PC cards don't work (bttv, cx88, ivtv, dvb-usb, ...).
+> Ok, this is due to a lack of proper module support on those drivers, but changing
+> it requires some work on each driver that depends on RC.
+
+wouldn't a simple "select RC_CORE" in those drivers solve this? E.g., for 
+BT848
+
+diff --git a/drivers/media/video/bt8xx/Kconfig b/drivers/media/video/bt8xx/Kconfig
+index 7da5c2e..28c087bd 100644
+--- a/drivers/media/video/bt8xx/Kconfig
++++ b/drivers/media/video/bt8xx/Kconfig
+@@ -4,7 +4,7 @@ config VIDEO_BT848
+ 	select I2C_ALGOBIT
+ 	select VIDEO_BTCX
+ 	select VIDEOBUF_DMA_SG
+-	depends on RC_CORE
++	select RC_CORE
+ 	select VIDEO_TUNER
+ 	select VIDEO_TVEEPROM
+ 	select VIDEO_MSP3400 if VIDEO_HELPER_CHIPS_AUTO
+
+and deselect RC_CORE:
+
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 899f783..259a3e7 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -1,7 +1,6 @@
+ menuconfig RC_CORE
+ 	tristate "Remote Controller adapters"
+ 	depends on INPUT
+-	default INPUT
+ 	---help---
+ 	  Enable support for Remote Controllers on Linux. This is
+ 	  needed in order to support several video capture adapters.
+
+This way by default you have no RCs, but as soon as you enable one card, 
+like bttv, you get all potentially needed drivers.
+
+> Also, if RC is selected, the RC decoder protocols need to be enabled by default, 
+> as otherwise several devices will stop working, as, on modern devices, there's
+> no hardware anymore to decode the IR pulses. The RC protocol Kconfig options are 
+> there, in fact, to allow disabling some RC decoding protocol when people are 100% 
+> sure that such software decoder won't be needed on some particular environment.
+
+Ok, they can be selected. Or even I don't mind them being turned on by 
+default, when RC is on, as long as RC itself is off by default.
+
+> >> With regards to the tuners: perhaps it is sufficient to default MEDIA_ATTACH
+> >> to 'y'? That should prevent building those tuners that are not needed.
+> > 
+> > Sorry, I don't see how this should work. I mean tuners under 
+> > drivers/media/common/tuners/.
+> > 
+> >> I wouldn't change anything else here.
+> 
+> Tuners are required for all TV and DVB cards. Maybe we can put an explicit Kconfig
+> item for TV devices, and change the config stuff to something like:
+> 
+> config MEDIA_NEED_TUNER
+> 	tristate
+> 
+> menuconfig MEDIA_TV
+> 	tristate "TV and grabber cards"
+> 	select MEDIA_NEED_TUNER
+> ...
+> menuconfig MEDIA_WEBCAMS
+> 	tristate "Webcameras"
+> ...
+> 
+> config DVB_CORE
+> 	tristate "DVB for Linux"
+> 	depends on NET && INET
+> 	select CRC32
+> 	select MEDIA_NEED_TUNER
+> 
+> 
+> config MEDIA_TUNER_TDA827X
+> 	tristate "Philips TDA827X silicon tuner"
+> 	depends on VIDEO_MEDIA && I2C
+> 	default MEDIA_NEED_TUNER if MEDIA_TUNER_CUSTOMIZE
+> 	help
+> 	  A DVB-T silicon tuner module. Say Y when you want to support this tuner.
+> 
+> There's one problem with the above strategy: on a few drivers, the same
+> driver is used for both webcams and TV. I know that em28xx has this problem,
+> as the same driver also supports the non-UVC em27xx-based webcams.
+> I think that the same is true also for usbvision.
+> 
+> If we put those devices under the "TV and grabber cards", people that have just a
+> em28xx-based webcam won't find them inside the MEDIA_WEBCAMS menus.
+> 
+> Of course, we can workaround it, by creating a "fake" item inside the webcams
+> menu, like:
+
+Yes, sure, or maybe put it under some "hybrid" menu.
+
+> menuconfig MEDIA_WEBCAMS
+> 	tristate "Webcameras"
+> 
+> config MEDIA_EM27xx
+> 	tristate "em27xx-based webcams"
+> 
+> 
+> and put some glue magic between MEDIA_EM27xx and em28xx:
+> 
+> config VIDEO_EM28XX
+> 	depends on MEDIA_EM27xx if MEDIA_EM27xx
+
+ehem... why not just
+
+config MEDIA_EM27xx
+	tristate "em27xx-based webcams"
+	select VIDEO_EM28XX
+
+Thanks
+Guennadi
 ---
- include/asm-generic/memory_model.h |   17 ++++++++++++++
- include/linux/page-isolation.h     |    4 ++-
- mm/page_alloc.c                    |   43 +++++++++++++++++++++++++++--------
- 3 files changed, 53 insertions(+), 11 deletions(-)
-
-> On Wed, 2011-09-21 at 17:19 +0200, Michal Nazarewicz wrote:
->> I wanted to avoid calling pfn_to_page() each time as it seem fairly
->> expensive in sparsemem and disctontig modes.  At the same time, the
->> macro trickery is so that users of sparsemem-vmemmap and flatmem won't
->> have to pay the price.
-
-On Wed, 21 Sep 2011 17:45:59 +0200, Dave Hansen <dave@linux.vnet.ibm.com> wrote:
-> Personally, I'd say the (incredibly minuscule) runtime cost is worth the
-> cost of making folks' eyes bleed when they see those macros.  I think
-> there are some nicer ways to do it.
-
-Yeah.  I wasn't amazed by them either.
-
-> Is there a reason you can't logically do?
->	page = pfn_to_page(pfn);
-> 	for (;;) {
-> 		if (pfn_to_section_nr(pfn) == pfn_to_section_nr(pfn+1))
-> 			page++;
-> 		else
-> 			page = pfn_to_page(pfn+1);
-> 	}
-
-Done.  Thanks for the suggestions!
-
->> +#define __contig_next_page(page, pageblock_left, pfn, increment)	\
->> +	(likely((pageblock_left) -= (increment)) ? (page) + (increment)	\
->> +	 : (((pageblock_left) = pageblock_nr_pages), pfn_to_page(pfn)))
->> +
->> +#define __contig_first_page(pageblock_left, pfn) (			\
->> +	((pageblock_left) = pageblock_nr_pages -			\
->> +		 ((pfn) & (pageblock_nr_pages - 1))),			\
->> +	pfn_to_page(pfn))
->> +
->> +#endif
-
-> For the love of Pete, please make those in to functions if you're going
-> to keep them.
-
-That was tricky because they modify pageblock_left.  Not relevant now
-anyways though.
-
-diff --git a/include/asm-generic/memory_model.h b/include/asm-generic/memory_model.h
-index fb2d63f..900da88 100644
---- a/include/asm-generic/memory_model.h
-+++ b/include/asm-generic/memory_model.h
-@@ -69,6 +69,23 @@
- })
- #endif /* CONFIG_FLATMEM/DISCONTIGMEM/SPARSEMEM */
- 
-+#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
-+
-+/*
-+ * Both PFNs must be from the same zone!  If this function returns
-+ * true, pfn_to_page(pfn1) + (pfn2 - pfn1) == pfn_to_page(pfn2).
-+ */
-+static inline bool zone_pfn_same_memmap(unsigned long pfn1, unsigned long pfn2)
-+{
-+	return pfn_to_section_nr(pfn1) == pfn_to_section_nr(pfn2);
-+}
-+
-+#else
-+
-+#define zone_pfn_same_memmap(pfn1, pfn2) (true)
-+
-+#endif
-+
- #define page_to_pfn __page_to_pfn
- #define pfn_to_page __pfn_to_page
- 
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index b2a81fd..003c52f 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -46,11 +46,13 @@ static inline void unset_migratetype_isolate(struct page *page)
- {
- 	__unset_migratetype_isolate(page, MIGRATE_MOVABLE);
- }
-+
-+/* The below functions must be run on a range from a single zone. */
- extern unsigned long alloc_contig_freed_pages(unsigned long start,
- 					      unsigned long end, gfp_t flag);
- extern int alloc_contig_range(unsigned long start, unsigned long end,
- 			      gfp_t flags, unsigned migratetype);
--extern void free_contig_pages(struct page *page, int nr_pages);
-+extern void free_contig_pages(unsigned long pfn, unsigned nr_pages);
- 
- /*
-  * For migration.
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 46e78d4..bc200a9 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5725,31 +5725,46 @@ unsigned long alloc_contig_freed_pages(unsigned long start, unsigned long end,
- 	int order;
- 
- 	VM_BUG_ON(!pfn_valid(start));
--	zone = page_zone(pfn_to_page(start));
-+	page = pfn_to_page(start);
-+	zone = page_zone(page);
- 
- 	spin_lock_irq(&zone->lock);
- 
--	page = pfn_to_page(pfn);
- 	for (;;) {
--		VM_BUG_ON(page_count(page) || !PageBuddy(page));
-+		VM_BUG_ON(!page_count(page) || !PageBuddy(page) ||
-+			  page_zone(page) != zone);
-+
- 		list_del(&page->lru);
- 		order = page_order(page);
-+		count = 1UL << order;
- 		zone->free_area[order].nr_free--;
- 		rmv_page_order(page);
--		__mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
--		pfn  += 1 << order;
-+		__mod_zone_page_state(zone, NR_FREE_PAGES, -(long)count);
-+
-+		pfn += count;
- 		if (pfn >= end)
- 			break;
- 		VM_BUG_ON(!pfn_valid(pfn));
--		page += 1 << order;
-+
-+		if (zone_pfn_same_memmap(pfn - count, pfn))
-+			page += count;
-+		else
-+			page = pfn_to_page(pfn);
- 	}
- 
- 	spin_unlock_irq(&zone->lock);
- 
- 	/* After this, pages in the range can be freed one be one */
--	page = pfn_to_page(start);
--	for (count = pfn - start; count; --count, ++page)
-+	count = pfn - start;
-+	pfn = start;
-+	for (page = pfn_to_page(pfn); count; --count) {
- 		prep_new_page(page, 0, flag);
-+		++pfn;
-+		if (likely(zone_pfn_same_memmap(pfn - 1, pfn)))
-+			++page;
-+		else
-+			page = pfn_to_page(pfn);
-+	}
- 
- 	return pfn;
- }
-@@ -5903,10 +5918,18 @@ done:
- 	return ret;
- }
- 
--void free_contig_pages(struct page *page, int nr_pages)
-+void free_contig_pages(unsigned long pfn, unsigned nr_pages)
- {
--	for (; nr_pages; --nr_pages, ++page)
-+	struct page *page = pfn_to_page(pfn);
-+
-+	while (nr_pages--) {
- 		__free_page(page);
-+		++pfn;
-+		if (likely(zone_pfn_same_memmap(pfn - 1, pfn)))
-+			++page;
-+		else
-+			page = pfn_to_page(pfn);
-+	}
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
--- 
-1.7.3.1
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
