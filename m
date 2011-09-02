@@ -1,69 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:51961 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566Ab1IPR2u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Sep 2011 13:28:50 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LRM00KT0LW09Y50@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2011 18:28:48 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRM00BJRLVY4A@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2011 18:28:48 +0100 (BST)
-Date: Fri, 16 Sep 2011 19:28:42 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC 1/2] v4l2: Add the parallel bus HREF signal polarity flags
-In-reply-to: <1316194123-21185-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	g.liakhovetski@gmx.de, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <1316194123-21185-2-git-send-email-s.nawrocki@samsung.com>
-References: <1316194123-21185-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mga01.intel.com ([192.55.52.88]:47286 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932683Ab1IBIks (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Sep 2011 04:40:48 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [media-ctl][PATCHv3 3/3] libmediactl: get the device name via udev
+Date: Fri,  2 Sep 2011 11:39:44 +0300
+Message-Id: <fa50aa5ff03919bf88cb60043de4c2fe4c9f2a58.1314952687.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1314952687.git.andriy.shevchenko@linux.intel.com>
+References: <201108302101.58685.laurent.pinchart@ideasonboard.com>
+ <6075971b959c2e808cd4ceec6540dc09b101346f.1314952687.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1314952687.git.andriy.shevchenko@linux.intel.com>
+References: <6075971b959c2e808cd4ceec6540dc09b101346f.1314952687.git.andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HREF is a signal indicating valid data during single line transmission.
-Add corresponding flags for this signal to the set of mediabus signal
-polarity flags.
+If configured with --with-libudev, the libmediactl is built with libudev
+support. It allows to get the device name in right way in the modern linux
+systems.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- include/media/v4l2-mediabus.h |   14 ++++++++------
- 1 files changed, 8 insertions(+), 6 deletions(-)
+ configure.in    |   22 ++++++++++++++++
+ src/Makefile.am |    2 +
+ src/media.c     |   73 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/media.h     |    1 +
+ 4 files changed, 98 insertions(+), 0 deletions(-)
 
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 6114007..41d8771 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -26,12 +26,14 @@
- /* Note: in BT.656 mode HSYNC and VSYNC are unused */
- #define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
- #define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
--#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
--#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 5)
--#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 6)
--#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
--#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
--#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
-+#define V4L2_MBUS_HREF_ACTIVE_HIGH		(1 << 4)
-+#define V4L2_MBUS_HREF_ACTIVE_LOW		(1 << 5)
-+#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 6)
-+#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 7)
-+#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 8)
-+#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 9)
-+#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 10)
-+#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 11)
+diff --git a/configure.in b/configure.in
+index fd4c70c..2f31831 100644
+--- a/configure.in
++++ b/configure.in
+@@ -13,6 +13,28 @@ AC_PROG_LIBTOOL
  
- /* Serial flags */
- /* How many lanes the client can use */
+ # Checks for libraries.
+ 
++AC_ARG_WITH([libudev],
++    AS_HELP_STRING([--without-libudev],
++        [Ignore presence of libudev and disable it]))
++
++AS_IF([test "x$with_libudev" != "xno"],
++    [PKG_CHECK_MODULES(libudev, libudev, have_libudev=yes, have_libudev=no)],
++    [have_libudev=no])
++
++AS_IF([test "x$have_libudev" = "xyes"],
++    [
++        AC_DEFINE([HAVE_LIBUDEV], [], [Use libudev])
++        LIBUDEV_CFLAGS="$libudev_CFLAGS"
++        LIBUDEV_LIBS="$libudev_LIBS"
++        AC_SUBST(LIBUDEV_CFLAGS)
++        AC_SUBST(LIBUDEV_LIBS)
++    ],
++    [AS_IF([test "x$with_libudev" = "xyes"],
++        [AC_MSG_ERROR([libudev requested but not found])
++    ])
++])
++
++
+ # Kernel headers path.
+ AC_ARG_WITH(kernel-headers,
+     [AC_HELP_STRING([--with-kernel-headers=DIR],
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 267ea83..52628d2 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -5,6 +5,8 @@ mediactl_includedir=$(includedir)/mediactl
+ mediactl_include_HEADERS = media.h subdev.h
+ 
+ bin_PROGRAMS = media-ctl
++media_ctl_CFLAGS = $(LIBUDEV_CFLAGS)
++media_ctl_LDFLAGS = $(LIBUDEV_LIBS)
+ media_ctl_SOURCES = main.c options.c options.h tools.h
+ media_ctl_LDADD = libmediactl.la libv4l2subdev.la
+ 
+diff --git a/src/media.c b/src/media.c
+index 5d3ff7c..dae649a 100644
+--- a/src/media.c
++++ b/src/media.c
+@@ -17,6 +17,8 @@
+  * with this program; if not, write to the Free Software Foundation, Inc.,
+  */
+ 
++#include "config.h"
++
+ #include <sys/ioctl.h>
+ #include <sys/stat.h>
+ #include <sys/types.h>
+@@ -245,6 +247,64 @@ static int media_enum_links(struct media_device *media)
+ 	return ret;
+ }
+ 
++#ifdef HAVE_LIBUDEV
++
++#include <libudev.h>
++
++static inline int media_udev_open(struct media_device *media)
++{
++	media->priv = udev_new();
++	if (media->priv == NULL)
++		return -ENOMEM;
++	return 0;
++}
++
++static inline void media_udev_close(struct media_device *media)
++{
++	udev_unref(media->priv);
++}
++
++static int media_get_devname_udev(struct media_device *media,
++		struct media_entity *entity)
++{
++	int ret = -ENODEV;
++	struct udev *udev = media->priv;
++	dev_t devnum;
++	struct udev_device *device;
++	const char *p;
++
++	if (udev == NULL)
++		return -EINVAL;
++
++	devnum = makedev(entity->info.v4l.major, entity->info.v4l.minor);
++	printf("looking up device: %u:%u\n", major(devnum), minor(devnum));
++	device = udev_device_new_from_devnum(udev, 'c', devnum);
++	if (device) {
++		p = udev_device_get_devnode(device);
++		if (p)
++			snprintf(entity->devname, sizeof(entity->devname), "%s", p);
++		ret = 0;
++	}
++
++	udev_device_unref(device);
++
++	return ret;
++}
++
++#else	/* HAVE_LIBUDEV */
++
++static inline int media_udev_open(struct media_device *media) { return 0; }
++
++static inline void media_udev_close(struct media_device *media) { }
++
++static inline int media_get_devname_udev(struct media_device *media,
++		struct media_entity *entity)
++{
++	return -ENOTSUP;
++}
++
++#endif	/* HAVE_LIBUDEV */
++
+ static int media_get_devname_sysfs(struct media_entity *entity)
+ {
+ 	struct stat devstat;
+@@ -324,6 +384,11 @@ static int media_enum_entities(struct media_device *media)
+ 		    media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+ 			continue;
+ 
++		/* Try to get the device name via udev */
++		if (!media_get_devname_udev(media, entity))
++			continue;
++
++		/* Fall back to get the device name via sysfs */
+ 		media_get_devname_sysfs(entity);
+ 	}
+ 
+@@ -351,6 +416,13 @@ struct media_device *media_open(const char *name, int verbose)
+ 		return NULL;
+ 	}
+ 
++	ret = media_udev_open(media);
++	if (ret < 0) {
++		printf("%s: Can't get udev context\n", __func__);
++		media_close(media);
++		return NULL;
++	}
++
+ 	if (verbose)
+ 		printf("Enumerating entities\n");
+ 
+@@ -395,6 +467,7 @@ void media_close(struct media_device *media)
+ 	}
+ 
+ 	free(media->entities);
++	media_udev_close(media);
+ 	free(media);
+ }
+ 
+diff --git a/src/media.h b/src/media.h
+index b91a2ac..4201451 100644
+--- a/src/media.h
++++ b/src/media.h
+@@ -54,6 +54,7 @@ struct media_device {
+ 	struct media_entity *entities;
+ 	unsigned int entities_count;
+ 	__u32 padding[6];
++	void *priv;
+ };
+ 
+ /**
 -- 
-1.7.6
+1.7.5.4
 
