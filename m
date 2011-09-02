@@ -1,267 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53060 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753042Ab1I0Nlq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 09:41:46 -0400
-From: Deepthy Ravi <deepthy.ravi@ti.com>
-To: <laurent.pinchart@ideasonboard.com>, <mchehab@infradead.org>,
-	<tony@atomide.com>, <hvaibhav@ti.com>,
-	<linux-media@vger.kernel.org>, <linux@arm.linux.org.uk>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<kyungmin.park@samsung.com>, <hverkuil@xs4all.nl>,
-	<m.szyprowski@samsung.com>, <g.liakhovetski@gmx.de>,
-	<santosh.shilimkar@ti.com>, <khilman@deeprootsystems.com>,
-	<linux-kernel@vger.kernel.org>
-CC: <linux-omap@vger.kernel.org>, Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: [PATCH v2 3/5] omap3evm: Add Camera board init/hookup file
-Date: Tue, 27 Sep 2011 19:10:46 +0530
-Message-ID: <1317130848-21136-4-git-send-email-deepthy.ravi@ti.com>
-In-Reply-To: <1317130848-21136-1-git-send-email-deepthy.ravi@ti.com>
-References: <1317130848-21136-1-git-send-email-deepthy.ravi@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48976 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758032Ab1IBIIv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 04:08:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: Getting started with OMAP3 ISP
+Date: Fri, 2 Sep 2011 10:09:21 +0200
+Cc: Enrico <ebutera@users.berlios.de>, linux-media@vger.kernel.org,
+	Enric Balletbo i Serra <eballetbo@iseebcn.com>
+References: <4E56734A.3080001@mlbassoc.com> <201109012014.32996.laurent.pinchart@ideasonboard.com> <4E5FCC93.1090807@mlbassoc.com>
+In-Reply-To: <4E5FCC93.1090807@mlbassoc.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109021009.22196.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+Hi Gary,
 
-Adds board support for MT9T111 sensor.
+On Thursday 01 September 2011 20:18:59 Gary Thomas wrote:
+> On 2011-09-01 12:14, Laurent Pinchart wrote:
+> > On Thursday 01 September 2011 19:24:54 Enrico wrote:
+> >> On Thu, Sep 1, 2011 at 6:14 PM, Enrico<ebutera@users.berlios.de>  wrote:
+> >>> On Thu, Sep 1, 2011 at 5:16 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
+> >>>> - entity 16: tvp5150m1 2-005c (1 pad, 1 link)
+> >>>> 
+> >>>>              type V4L2 subdev subtype Unknown
+> >>>>              device node name /dev/v4l-subdev8
+> >>>>         
+> >>>>         pad0: Output [unknown 720x480 (1,1)/720x480]
+> >>>>         
+> >>>>                 ->  'OMAP3 ISP CCDC':pad0 [ACTIVE]
+> >>>> 
+> >>>> Ideas where to look for the 'unknown' mode?
+> >>> 
+> >>> I didn't notice that, if you are using UYVY8_2X8 the reason is in
+> >>> media-ctl main.c:
+> >>> 
+> >>> { "UYVY", V4L2_MBUS_FMT_UYVY8_1X16 },
+> >>> 
+> >>> You can add a line like:
+> >>> 
+> >>> { "UYVY2X8", V4L2_MBUS_FMT_UYVY8_2X8 },
+> >>> 
+> >>> recompile and it should work, i'll try it now.
+> >> 
+> >> That worked, but now there is another problem.
+> > 
+> > That's correct. My bad for not spotting it sooner.
+> 
+> Will you be adding this to the media-ctl tree?  Would you like a patch?
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
----
- arch/arm/mach-omap2/Makefile                |    5 +
- arch/arm/mach-omap2/board-omap3evm-camera.c |  185 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-omap3evm.c        |    4 +
- 3 files changed, 194 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
+I need to think about format names. I've used V4L2 FOURCC names so far to 
+refer to media bus format codes, that proved not to be the best idea. I will 
+fix that.
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index f343365..a19753c 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -280,3 +280,8 @@ disp-$(CONFIG_OMAP2_DSS)		:= display.o
- obj-y					+= $(disp-m) $(disp-y)
- 
- obj-y					+= common-board-devices.o twl-common.o
-+
-+ifeq ($(CONFIG_MACH_OMAP3EVM),y)
-+evm-camera-$(CONFIG_VIDEO_OMAP3)       := board-omap3evm-camera.o
-+obj-y                                  += $(evm-camera-m) $(evm-camera-y)
-+endif
-diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c b/arch/arm/mach-omap2/board-omap3evm-camera.c
-new file mode 100644
-index 0000000..e762f61
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
-@@ -0,0 +1,185 @@
-+/*
-+ * arch/arm/mach-omap2/board-omap3evm-camera.c
-+ *
-+ * OMAP3EVM: Driver for Leopard Module Board
-+ *
-+ * Copyright (C) 2011 Texas Instruments Inc
-+ * Author: Vaibhav Hiremath <hvaibhav@ti.com>
-+ *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/io.h>
-+#include <linux/i2c.h>
-+#include <linux/delay.h>
-+#include <linux/gpio.h>
-+#include <linux/err.h>
-+#include <linux/platform_device.h>
-+#include <mach/gpio.h>
-+#include <media/mt9t111.h>
-+#include <media/omap3isp.h>
-+#include <../drivers/media/video/omap3isp/isp.h>
-+#include "devices.h"
-+
-+#define CAM_USE_XCLKA			0
-+
-+#define T2_GPIO_2			194
-+#define nCAM_VD_SEL			157
-+#define nCAM_VD_EN			200
-+
-+/* mux id to enable/disable signal routing to different peripherals */
-+enum omap3evm_cam_mux {
-+	MUX_EN_TVP5146 = 0,
-+	MUX_EN_CAMERA_SENSOR,
-+	MUX_EN_EXP_CAMERA_SENSOR,
-+	MUX_INVALID,
-+};
-+
-+/**
-+ * @brief omap3evm_set_mux - Sets mux to enable/disable signal routing to
-+ *                             different peripherals present on new EVM board
-+ *
-+ * @param mux_id - enum, mux id to enable/disable
-+ * @param value - enum, ENABLE_MUX for enabling and DISABLE_MUX for disabling
-+ *
-+ */
-+static void omap3evm_set_mux(enum omap3evm_cam_mux mux_id)
-+{
-+	switch (mux_id) {
-+	/*
-+	* JP1 jumper need to configure to choose between on-board
-+	* camera sensor conn and on-board LI-3MC02 camera sensor.
-+	*/
-+	case MUX_EN_CAMERA_SENSOR:
-+		/* Set nCAM_VD_EN (T2_GPIO8) = 0 */
-+		gpio_set_value_cansleep(nCAM_VD_EN, 0);
-+		/* Set nCAM_VD_SEL (GPIO157) = 0 */
-+		gpio_set_value(nCAM_VD_SEL, 0);
-+		break;
-+	case MUX_EN_EXP_CAMERA_SENSOR:
-+		/* Set nCAM_VD_EN (T2_GPIO8) = 1 */
-+		gpio_set_value_cansleep(nCAM_VD_EN, 1);
-+		break;
-+	case MUX_EN_TVP5146:
-+	default:
-+		/* Set nCAM_VD_EN (T2_GPIO8) = 0 */
-+		gpio_set_value_cansleep(nCAM_VD_EN, 0);
-+		/* Set nCAM_VD_SEL (GPIO157) = 1 */
-+		gpio_set_value(nCAM_VD_SEL, 1);
-+		break;
-+	}
-+}
-+
-+/* MT9T111: 3M sensor */
-+static int omap3evm_mt9t111_s_power(struct v4l2_subdev *subdev, u32 on)
-+{
-+	struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
-+
-+	omap3evm_set_mux(MUX_EN_CAMERA_SENSOR);
-+
-+	if (on) {
-+		/* Enable EXTCLK */
-+		if (isp->platform_cb.set_xclk)
-+			isp->platform_cb.set_xclk(isp, 24000000, CAM_USE_XCLKA);
-+		udelay(5);
-+	} else {
-+		if (isp->platform_cb.set_xclk)
-+			isp->platform_cb.set_xclk(isp, 0, CAM_USE_XCLKA);
-+	}
-+
-+	return 0;
-+}
-+
-+static struct mt9t111_platform_data omap3evm_mt9t111_platform_data = {
-+	.s_power		= omap3evm_mt9t111_s_power,
-+};
-+
-+
-+#define MT9T111_I2C_BUS_NUM		2
-+
-+static struct i2c_board_info omap3evm_camera_i2c_devices[] = {
-+	{
-+		I2C_BOARD_INFO(MT9T111_MODULE_NAME, MT9T111_I2C_ADDR),
-+		.platform_data = &omap3evm_mt9t111_platform_data,
-+	}
-+};
-+
-+static struct isp_subdev_i2c_board_info omap3evm_mt9t111_subdevs[] = {
-+	{
-+		.board_info = &omap3evm_camera_i2c_devices[0],
-+		.i2c_adapter_id = MT9T111_I2C_BUS_NUM,
-+	},
-+	{ NULL, 0 },
-+};
-+
-+static struct isp_v4l2_subdevs_group omap3evm_camera_subdevs[] = {
-+	{
-+		.subdevs = omap3evm_mt9t111_subdevs,
-+		.interface = ISP_INTERFACE_PARALLEL,
-+		.bus = {
-+			.parallel = {
-+				.data_lane_shift	= 1,
-+				.clk_pol		= 0,
-+				.hs_pol			= 0,
-+				.vs_pol			= 0,
-+				.bridge			= 3,
-+				.bt656			= 0,
-+			},
-+		},
-+	},
-+	{ NULL, 0 },
-+};
-+
-+static struct isp_platform_data omap3evm_isp_platform_data = {
-+	.subdevs = omap3evm_camera_subdevs,
-+};
-+
-+static struct gpio omap3evm_gpios[] __initdata = {
-+	/* First level GPIO enable: T2_GPIO.2 */
-+	{ T2_GPIO_2, GPIOF_OUT_INIT_LOW, "T2_GPIO.2" },
-+	/* nCAM_VD_SEL (GPIO157) */
-+	{ nCAM_VD_SEL, GPIOF_OUT_INIT_HIGH, "cam_vd_sel" },
-+	/*EXP_nCAM_VD_EN (T2_GPIO.8) */
-+	{ nCAM_VD_EN, GPIOF_OUT_INIT_LOW, "cam_vd_en" },
-+};
-+
-+static int __init omap3evm_cam_init(void)
-+{
-+	int ret;
-+
-+	ret = gpio_request_array(omap3evm_gpios,
-+			ARRAY_SIZE(omap3evm_gpios));
-+	if (ret < 0) {
-+		printk(KERN_ERR "Unable to get GPIO pins\n");
-+		return ret;
-+	}
-+
-+	omap3_init_camera(&omap3evm_isp_platform_data);
-+
-+	printk(KERN_INFO "omap3evm camera init done successfully...\n");
-+	return 0;
-+}
-+
-+static void __exit omap3evm_cam_exit(void)
-+{
-+	gpio_free_array(omap3evm_gpios,
-+			ARRAY_SIZE(omap3evm_gpios));
-+}
-+
-+module_init(omap3evm_cam_init);
-+module_exit(omap3evm_cam_exit);
-+
-+MODULE_AUTHOR("Texas Instruments");
-+MODULE_DESCRIPTION("OMAP3EVM: Driver for Leopard Module Board");
-+MODULE_LICENSE("GPL");
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index f63a8fa..485bc1c 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -573,6 +573,8 @@ static struct omap_board_mux omap35x_board_mux[] __initdata = {
- 				OMAP_PIN_OFF_NONE),
- 	OMAP3_MUX(GPMC_WAIT2, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
- 				OMAP_PIN_OFF_NONE),
-+	OMAP3_MUX(MCBSP1_FSR, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
-+				OMAP_PIN_OFF_NONE),
- #ifdef CONFIG_WL12XX_PLATFORM_DATA
- 	/* WLAN IRQ - GPIO 149 */
- 	OMAP3_MUX(UART1_RTS, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
-@@ -598,6 +600,8 @@ static struct omap_board_mux omap36x_board_mux[] __initdata = {
- 	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
- 				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
- 				OMAP_PIN_OFF_WAKEUPENABLE),
-+	OMAP3_MUX(MCBSP1_FSR, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
-+				OMAP_PIN_OFF_NONE),
- 	/* AM/DM37x EVM: DSS data bus muxed with sys_boot */
- 	OMAP3_MUX(DSS_DATA18, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
- 	OMAP3_MUX(DSS_DATA19, OMAP_MUX_MODE3 | OMAP_PIN_OFF_NONE),
+> >> yavta will set UYVY (PIX_FMT), this will cause a call to
+> >> ispvideo.c:isp_video_pix_to_mbus(..), that will do this:
+> >> 
+> >> for (i = 0; i<  ARRAY_SIZE(formats); ++i) {
+> >> 
+> >>                  if (formats[i].pixelformat == pix->pixelformat)
+> >>                  
+> >>                          break;
+> >> 
+> >> }
+> >> 
+> >> that is it will stop at the first matching array item, and that's:
+> >> 
+> >> { V4L2_MBUS_FMT_UYVY8_1X16, V4L2_MBUS_FMT_UYVY8_1X16,
+> >> 
+> >>            V4L2_MBUS_FMT_UYVY8_1X16, 0,
+> >>            V4L2_PIX_FMT_UYVY, 16, 16, },
+> >> 
+> >> but you wanted this:
+> >> 
+> >> { V4L2_MBUS_FMT_UYVY8_2X8, V4L2_MBUS_FMT_UYVY8_2X8,
+> >> 
+> >>            V4L2_MBUS_FMT_UYVY8_2X8, 0,
+> >>            V4L2_PIX_FMT_UYVY, 8, 16, },
+> >> 
+> >> so a better check could be to check for width too, but i don't know if
+> >> it's possibile to pass a width requirement or if it's already there in
+> >> some struct passed to the function.
+> > 
+> > That's not really an issue, as the isp_video_pix_to_mbus() and
+> > isp_video_mbus_to_pix() calls in isp_video_set_format() are just used to
+> > fill the bytesperline and sizeimage fields. From a quick look at the
+> > code isp_video_check_format() should succeed as well.
+> > 
+> > Have you run into any specific issue with isp_video_pix_to_mbus() when
+> > using V4L2_MBUS_FMT_UYVY8_2X8 ?
+> 
+> Not yet - I was able to configure the pipeline as
+>    # media-ctl -f '"tvp5150m1 2-005c":0[UYVY2X8 720x480], "OMAP3 ISP
+> CCDC":0[UYVY2X8 720x480], "OMAP3 ISP CCDC":1[UYVY2X8 720x480]' and this
+> gets me all the way into my driver (which I'm now working on)
+
+OK.
+
 -- 
-1.7.0.4
+Regards,
 
+Laurent Pinchart
