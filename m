@@ -1,71 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm3-vm0.bt.bullet.mail.ukl.yahoo.com ([217.146.182.230]:36866
-	"HELO nm3-vm0.bt.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752792Ab1IDT0Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Sep 2011 15:26:25 -0400
-Message-ID: <4E63D0DD.2050508@yahoo.com>
-Date: Sun, 04 Sep 2011 20:26:21 +0100
-From: Chris Rankin <rankincj@yahoo.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33326 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750860Ab1IBLle convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 07:41:34 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: Re: Using atmel-isi for direct output on framebuffer ?
+Date: Fri, 2 Sep 2011 13:42:03 +0200
+Cc: "Wu, Josh" <Josh.wu@atmel.com>, linux-media@vger.kernel.org
+References: <20110901170555.568af6ea@skate> <4C79549CB6F772498162A641D92D532802A09156@penmb01.corp.atmel.com> <20110902111853.292d7f26@skate>
+In-Reply-To: <20110902111853.292d7f26@skate>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [git:v4l-dvb/for_v3.2] [media] em28xx: use atomic bit operations
- for devices-in-use mask
-References: <E1R00r0-0005PG-6Q@www.linuxtv.org>
-In-Reply-To: <E1R00r0-0005PG-6Q@www.linuxtv.org>
-Content-Type: multipart/mixed;
- boundary="------------080304080400060603040008"
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201109021342.03721.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------080304080400060603040008
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Thomas,
 
-On 04/09/11 00:49, Mauro Carvalho Chehab wrote:
-> This is an automatic generated email to let you know that the following patch were queued at the
-> http://git.linuxtv.org/media_tree.git tree:
->
-> Subject: [media] em28xx: use atomic bit operations for devices-in-use mask
-> Author:  Chris Rankin<rankincj@yahoo.com>
-> Date:    Sat Aug 20 08:21:03 2011 -0300
->
-> Use atomic bit operations for the em28xx_devused mask, to prevent an
-> unlikely race condition should two adapters be plugged in
-> simultaneously. The operations also clearer than explicit bit
-> manipulation anyway.
->
-> Signed-off-by: Chris Rankin<rankincj@yahoo.com>
-> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
->
->   drivers/media/video/em28xx/em28xx-cards.c |   33 ++++++++++++++---------------
->   1 files changed, 16 insertions(+), 17 deletions(-)
+On Friday 02 September 2011 11:18:53 Thomas Petazzoni wrote:
+> Le Fri, 2 Sep 2011 17:08:32 +0800, "Wu, Josh" a écrit :
+> > My understanding is that you want to use Atmel ISI to output RGB data
+> > then work with framebuffer. So yes, it is possible.
+> 
+> Good.
+> 
+> > Since current atmel_isi.c only uses its codec path to output YUV
+> > data. So first need add RGB format support in
+> > isi_camera_get_formats(). Then you have two choices to enable RGB
+> > output of ISI: 1. Enable isi's preview path(DMA, interrupts) to
+> > convert YUV to RGB. 2. Or still use codec path but don't need add
+> > much ISI code, just set camera sensor(if it support RGB565 output) to
+> > output RGB565 data for ISI, then what the data ISI output now should
+> > be RGB565 format. But in this way you cannot do any scale.
+> 
+> Doing the YUV -> RGB within the V4L2 driver is something I understand
+> quite well. The part I miss is how the V4L2 driver interacts with the
+> framebuffer driver to output the camera image into the framebuffer.
+> 
+> > For V4L2_CAP_VIDEO_OVERLAY type driver, I don't know much about that.
+> 
+> Hum, ok, found http://v4l2spec.bytesex.org/spec/x6570.htm which seems
+> to explain a bit the userspace interface for this.
 
-Hi Mauro,
+I'm not sure if V4L2_CAP_VIDEO_OVERLAY is a good solution for this. This 
+driver type (or rather buffer type) was used on old systems to capture 
+directly to the PCI graphics card memory. Nowadays I would advice using 
+USERPTR with framebuffer memory.
 
-I think you missed this line in the merge.
+-- 
+Regards,
 
-Cheers,
-Chris
-
---------------080304080400060603040008
-Content-Type: text/x-patch;
- name="EM28xx-more-devunused-bits.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="EM28xx-more-devunused-bits.diff"
-
---- linux/drivers/media/video/em28xx/em28xx-cards.c.orig	2011-09-04 20:17:00.000000000 +0100
-+++ linux/drivers/media/video/em28xx/em28xx-cards.c	2011-09-04 20:19:21.000000000 +0100
-@@ -3083,7 +3083,6 @@
- 				em28xx_err(DRIVER_NAME " This is an anciliary "
- 					"interface not used by the driver\n");
- 
--				em28xx_devused &= ~(1<<nr);
- 				retval = -ENODEV;
- 				goto err;
- 			}
-
---------------080304080400060603040008--
+Laurent Pinchart
