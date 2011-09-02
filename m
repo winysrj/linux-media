@@ -1,63 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:47560 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751578Ab1IPCoB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Sep 2011 22:44:01 -0400
-Received: by iaqq3 with SMTP id q3so1776307iaq.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2011 19:44:00 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4E723281.6070208@iki.fi>
-References: <CAFhB-RACaxtkBuXsch5-giTBqCHR+s5_SP-sGeR=E1HVeGfQLQ@mail.gmail.com>
-	<CAFhB-RBLA410nRJ3w7qyEq2dD+96=eDTneVfmo5Bm6NwevW0Pw@mail.gmail.com>
-	<4E723281.6070208@iki.fi>
-Date: Fri, 16 Sep 2011 10:44:00 +0800
-Message-ID: <CAFhB-RCNN74MdPCGB-J9Jqu0f_nxxspFoGsp+R97cQrWSUDFdw@mail.gmail.com>
-Subject: Re: Asking advice for Camera/ISP driver framework design
-From: Cliff Cai <cliffcai.sh@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mga09.intel.com ([134.134.136.24]:11512 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751806Ab1IBNKJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Sep 2011 09:10:09 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [media-ctl][PATCHv4 2/3] libmediactl: split media_get_devname_sysfs from media_enum_entities
+Date: Fri,  2 Sep 2011 16:09:27 +0300
+Message-Id: <05824e3de1c4470932403064c64a7746b39e025c.1314968925.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1314968925.git.andriy.shevchenko@linux.intel.com>
+References: <201109021326.14340.laurent.pinchart@ideasonboard.com>
+ <6075971b959c2e808cd4ceec6540dc09b101346f.1314968925.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1314968925.git.andriy.shevchenko@linux.intel.com>
+References: <6075971b959c2e808cd4ceec6540dc09b101346f.1314968925.git.andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 16, 2011 at 1:14 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Cliff Cai wrote:
->> Dear guys,
->
-> Hi Cliff,
->
->> I'm currently working on a camera/ISP Linux driver project.Of course,I
->> want it to be a V4L2 driver,but I got a problem about how to design
->> the driver framework.
->> let me introduce the background of this ISP(Image signal processor) a
->> little bit.
->> 1.The ISP has two output paths,first one called main path which is
->> used to transfer image data for taking picture and recording,the other
->> one called preview path which is used to transfer image data for
->> previewing.
->> 2.the two paths have the same image data input from sensor,but their
->> outputs are different,the output of main path is high quality and
->> larger image,while the output of preview path is smaller image.
->
-> Is the ISP able to process images which already are in memory, or is
-> this only from the sensor?
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ src/media.c |   61 +++++++++++++++++++++++++++++++++-------------------------
+ 1 files changed, 35 insertions(+), 26 deletions(-)
 
-yes,it has another DMA to achieve  this.
+diff --git a/src/media.c b/src/media.c
+index 050289e..5d3ff7c 100644
+--- a/src/media.c
++++ b/src/media.c
+@@ -245,15 +245,46 @@ static int media_enum_links(struct media_device *media)
+ 	return ret;
+ }
+ 
+-static int media_enum_entities(struct media_device *media)
++static int media_get_devname_sysfs(struct media_entity *entity)
+ {
+-	struct media_entity *entity;
+ 	struct stat devstat;
+-	unsigned int size;
+ 	char devname[32];
+ 	char sysname[32];
+ 	char target[1024];
+ 	char *p;
++	int ret;
++
++	sprintf(sysname, "/sys/dev/char/%u:%u", entity->info.v4l.major,
++		entity->info.v4l.minor);
++	ret = readlink(sysname, target, sizeof(target));
++	if (ret < 0)
++		return -errno;
++
++	target[ret] = '\0';
++	p = strrchr(target, '/');
++	if (p == NULL)
++		return -EINVAL;
++
++	sprintf(devname, "/dev/%s", p + 1);
++	ret = stat(devname, &devstat);
++	if (ret < 0)
++		return -errno;
++
++	/* Sanity check: udev might have reordered the device nodes.
++	 * Make sure the major/minor match. We should really use
++	 * libudev.
++	 */
++	if (major(devstat.st_rdev) == entity->info.v4l.major &&
++	    minor(devstat.st_rdev) == entity->info.v4l.minor)
++		strcpy(entity->devname, devname);
++
++	return 0;
++}
++
++static int media_enum_entities(struct media_device *media)
++{
++	struct media_entity *entity;
++	unsigned int size;
+ 	__u32 id;
+ 	int ret = 0;
+ 
+@@ -293,29 +324,7 @@ static int media_enum_entities(struct media_device *media)
+ 		    media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+ 			continue;
+ 
+-		sprintf(sysname, "/sys/dev/char/%u:%u", entity->info.v4l.major,
+-			entity->info.v4l.minor);
+-		ret = readlink(sysname, target, sizeof(target));
+-		if (ret < 0)
+-			continue;
+-
+-		target[ret] = '\0';
+-		p = strrchr(target, '/');
+-		if (p == NULL)
+-			continue;
+-
+-		sprintf(devname, "/dev/%s", p + 1);
+-		ret = stat(devname, &devstat);
+-		if (ret < 0)
+-			continue;
+-
+-		/* Sanity check: udev might have reordered the device nodes.
+-		 * Make sure the major/minor match. We should really use
+-		 * libudev.
+-		 */
+-		if (major(devstat.st_rdev) == entity->info.v4l.major &&
+-		    minor(devstat.st_rdev) == entity->info.v4l.minor)
+-			strcpy(entity->devname, devname);
++		media_get_devname_sysfs(entity);
+ 	}
+ 
+ 	return ret;
+-- 
+1.7.5.4
 
-Cliff
-
->> 3.the two output paths have independent DMA engines used to move image
->> data to system memory.
->>
->> The problem is currently, the V4L2 framework seems only support one
->> buffer queue,and in my case,obviously,two buffer queues are required.
->> Any idea/advice for implementing such kind of V4L2 driver? or any
->> other better solutions?
->
-> Regards,
->
-> --
-> Sakari Ailus
-> sakari.ailus@iki.fi
->
