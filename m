@@ -1,144 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:56475 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752233Ab1I0RFx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 13:05:53 -0400
-Date: Tue, 27 Sep 2011 19:05:46 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v5] V4L: dynamically allocate video_device nodes in subdevices
-In-Reply-To: <201109131952.08202.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1109271902450.7004@axis700.grange>
-References: <Pine.LNX.4.64.1109091701060.915@axis700.grange>
- <201109131116.35408.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1109131318450.17902@axis700.grange>
- <201109131952.08202.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mga02.intel.com ([134.134.136.20]:3933 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932683Ab1IBIkZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Sep 2011 04:40:25 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [media-ctl][PATCHv3 2/3] libmediactl: split media_get_devname_sysfs from media_enum_entities
+Date: Fri,  2 Sep 2011 11:39:43 +0300
+Message-Id: <05824e3de1c4470932403064c64a7746b39e025c.1314952687.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1314952687.git.andriy.shevchenko@linux.intel.com>
+References: <201108302101.58685.laurent.pinchart@ideasonboard.com>
+ <6075971b959c2e808cd4ceec6540dc09b101346f.1314952687.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1314952687.git.andriy.shevchenko@linux.intel.com>
+References: <6075971b959c2e808cd4ceec6540dc09b101346f.1314952687.git.andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently only very few drivers actually use video_device nodes, embedded
-in struct v4l2_subdev. Allocate these nodes dynamically for those drivers
-to save memory for the rest.
-
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
+ src/media.c |   61 +++++++++++++++++++++++++++++++++-------------------------
+ 1 files changed, 35 insertions(+), 26 deletions(-)
 
-v5: replace kzalloc() with video_device_alloc() and kfree() with 
-video_device_release(), no changes otherwise. I hope, I'm entitled to keep 
-the tested- and acked-by's;-)
-
- drivers/media/video/v4l2-device.c |   36 +++++++++++++++++++++++++++++++-----
- include/media/v4l2-subdev.h       |    4 ++--
- 2 files changed, 33 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index c72856c..93c0350 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -21,6 +21,7 @@
- #include <linux/types.h>
- #include <linux/ioctl.h>
- #include <linux/i2c.h>
-+#include <linux/slab.h>
- #if defined(CONFIG_SPI)
- #include <linux/spi/spi.h>
- #endif
-@@ -191,6 +192,13 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+diff --git a/src/media.c b/src/media.c
+index 050289e..5d3ff7c 100644
+--- a/src/media.c
++++ b/src/media.c
+@@ -245,15 +245,46 @@ static int media_enum_links(struct media_device *media)
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
  
-+static void v4l2_device_release_subdev_node(struct video_device *vdev)
-+{
-+	struct v4l2_subdev *sd = video_get_drvdata(vdev);
-+	sd->devnode = NULL;
-+	video_device_release(vdev);
+-static int media_enum_entities(struct media_device *media)
++static int media_get_devname_sysfs(struct media_entity *entity)
+ {
+-	struct media_entity *entity;
+ 	struct stat devstat;
+-	unsigned int size;
+ 	char devname[32];
+ 	char sysname[32];
+ 	char target[1024];
+ 	char *p;
++	int ret;
++
++	sprintf(sysname, "/sys/dev/char/%u:%u", entity->info.v4l.major,
++		entity->info.v4l.minor);
++	ret = readlink(sysname, target, sizeof(target));
++	if (ret < 0)
++		return -errno;
++
++	target[ret] = '\0';
++	p = strrchr(target, '/');
++	if (p == NULL)
++		return -EINVAL;
++
++	sprintf(devname, "/dev/%s", p + 1);
++	ret = stat(devname, &devstat);
++	if (ret < 0)
++		return -errno;
++
++	/* Sanity check: udev might have reordered the device nodes.
++	 * Make sure the major/minor match. We should really use
++	 * libudev.
++	 */
++	if (major(devstat.st_rdev) == entity->info.v4l.major &&
++	    minor(devstat.st_rdev) == entity->info.v4l.minor)
++		strcpy(entity->devname, devname);
++
++	return 0;
 +}
 +
- int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
- {
- 	struct video_device *vdev;
-@@ -204,22 +212,40 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
- 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
++static int media_enum_entities(struct media_device *media)
++{
++	struct media_entity *entity;
++	unsigned int size;
+ 	__u32 id;
+ 	int ret = 0;
+ 
+@@ -293,29 +324,7 @@ static int media_enum_entities(struct media_device *media)
+ 		    media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV)
  			continue;
  
--		vdev = &sd->devnode;
-+		vdev = video_device_alloc();
-+		if (!vdev) {
-+			err = -ENOMEM;
-+			goto clean_up;
-+		}
-+
-+		video_set_drvdata(vdev, sd);
- 		strlcpy(vdev->name, sd->name, sizeof(vdev->name));
- 		vdev->v4l2_dev = v4l2_dev;
- 		vdev->fops = &v4l2_subdev_fops;
--		vdev->release = video_device_release_empty;
-+		vdev->release = v4l2_device_release_subdev_node;
- 		vdev->ctrl_handler = sd->ctrl_handler;
- 		err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
- 					      sd->owner);
--		if (err < 0)
--			return err;
-+		if (err < 0) {
-+			video_device_release(vdev);
-+			goto clean_up;
-+		}
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 		sd->entity.v4l.major = VIDEO_MAJOR;
- 		sd->entity.v4l.minor = vdev->minor;
- #endif
-+		sd->devnode = vdev;
+-		sprintf(sysname, "/sys/dev/char/%u:%u", entity->info.v4l.major,
+-			entity->info.v4l.minor);
+-		ret = readlink(sysname, target, sizeof(target));
+-		if (ret < 0)
+-			continue;
+-
+-		target[ret] = '\0';
+-		p = strrchr(target, '/');
+-		if (p == NULL)
+-			continue;
+-
+-		sprintf(devname, "/dev/%s", p + 1);
+-		ret = stat(devname, &devstat);
+-		if (ret < 0)
+-			continue;
+-
+-		/* Sanity check: udev might have reordered the device nodes.
+-		 * Make sure the major/minor match. We should really use
+-		 * libudev.
+-		 */
+-		if (major(devstat.st_rdev) == entity->info.v4l.major &&
+-		    minor(devstat.st_rdev) == entity->info.v4l.minor)
+-			strcpy(entity->devname, devname);
++		media_get_devname_sysfs(entity);
  	}
- 	return 0;
-+
-+clean_up:
-+	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
-+		if (!sd->devnode)
-+			break;
-+		video_unregister_device(sd->devnode);
-+	}
-+
-+	return err;
- }
- EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_nodes);
  
-@@ -245,7 +271,7 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
- 	if (v4l2_dev->mdev)
- 		media_device_unregister_entity(&sd->entity);
- #endif
--	video_unregister_device(&sd->devnode);
-+	video_unregister_device(sd->devnode);
- 	module_put(sd->owner);
- }
- EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 257da1a..5dd049a 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -534,13 +534,13 @@ struct v4l2_subdev {
- 	void *dev_priv;
- 	void *host_priv;
- 	/* subdev device node */
--	struct video_device devnode;
-+	struct video_device *devnode;
- };
- 
- #define media_entity_to_v4l2_subdev(ent) \
- 	container_of(ent, struct v4l2_subdev, entity)
- #define vdev_to_v4l2_subdev(vdev) \
--	container_of(vdev, struct v4l2_subdev, devnode)
-+	video_get_drvdata(vdev)
- 
- /*
-  * Used for storing subdev information per file handle
+ 	return ret;
 -- 
-1.7.2.5
+1.7.5.4
 
