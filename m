@@ -1,91 +1,250 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:64348 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754930Ab1IGDmH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 23:42:07 -0400
-Received: by bke11 with SMTP id 11so6039418bke.19
-        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2011 20:42:05 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAGoCfiw7vjprc_skYYAXy9sTA7zkYEWtzXy9tEmJD+q8aazPog@mail.gmail.com>
-References: <1315322996-10576-1-git-send-email-mchehab@redhat.com>
-	<CAGoCfiy2hnH0Xoz_+Q8JgcB-tzuTGbfv8QdK0kv+ttP7t+EZKg@mail.gmail.com>
-	<CAGoCfixa0pr048=-P3OUkZ2HMaY471eNO79BON0vjSVa1eRcTw@mail.gmail.com>
-	<4E66E532.4050402@redhat.com>
-	<CAGoCfiw7vjprc_skYYAXy9sTA7zkYEWtzXy9tEmJD+q8aazPog@mail.gmail.com>
-Date: Tue, 6 Sep 2011 23:42:05 -0400
-Message-ID: <CAGoCfiw-QnfVVwOhejwbMmb+K2F0VDwN_L-6E37w+=jKYGGFkg@mail.gmail.com>
-Subject: Re: [PATCH 01/10] alsa_stream: port changes made on xawtv3
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from newsmtp5.atmel.com ([204.2.163.5]:46357 "EHLO
+	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933313Ab1IBKuV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 06:50:21 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-media@vger.kernel.org, nicolas.ferre@atmel.com,
+	g.liakhovetski@gmx.de, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH] at91: add Atmel ISI and ov2640 support on m10/g45 board.
+Date: Fri,  2 Sep 2011 18:50:09 +0800
+Message-Id: <1314960609-23396-1-git-send-email-josh.wu@atmel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 6, 2011 at 11:37 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Tue, Sep 6, 2011 at 11:29 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->>> Basically the above starts at the *maximum* capture resolution and
->>> works its way down.  One might argue that this heuristic makes more
->>> sense anyway - why *wouldn't* you want the highest quality audio
->>> possible by default (rather than the lowest)?
->>
->> That change makes sense to me. Yet, you should try to disable pulseaudio
->> and see what's the _real_ speed that the audio announces. On Fedora,
->> just removing pulsaudio-oss-plugin (or something like that) is enough.
->>
->> It seems doubtful that my em2820 WinTV USB2 is different than yours.
->> I suspect that pulseaudio is passing the "extra" range, offering to
->> interpolate the data.
->
-> I disabled pulseaudio and the capture device is advertising the exact
-> same range (8-48 KHz).  Seems to be behaving the same way as well.
->
-> So while I'm usually willing to blame things on Pulse, this doesn't
-> look like the case here.
->
->>> Even with that patch though, I hit severe underrun/overrun conditions
->>> at 30ms of latency (to the point where the audio is interrupted dozens
->>> of times per second).
->>
->> Yes, it is the same here: 30ms on my notebook is not enough for WinTV
->> USB2 (it is OK with HVR-950).
->>
->>> Turned it up to 50ms and it's much better.
->>> That said, of course such a change would impact lipsync, so perhaps we
->>> need to be adjusting the periods instead.
->>
->> We've added a parameter for that on xawtv3 (--alsa-latency). We've parametrized
->> it at the alsa stream function call. So, all it needs is to add a new parameter
->> at tvtime config file.
->
-> Ugh.  We really need some sort of heuristic to do this.  It's
-> unreasonable to expect users to know about some magic parameter buried
-> in a config file which causes it to start working.  Perhaps a counter
-> that increments whenever an underrun is hit, and after a certain
-> number it automatically restarts the stream with a higher latency.  Or
-> perhaps we're just making some poor choice in terms of the
-> buffers/periods for a given rate.
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
->
+AT91: m10/g45: add Atmel ISI device and OV2640 on board.
 
-One more thing worth noting before I quit for the night:
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+ arch/arm/mach-at91/at91sam9g45_devices.c |   66 ++++++++++++++++++++
+ arch/arm/mach-at91/board-sam9m10g45ek.c  |   97 ++++++++++++++++++++++++++++++
+ arch/arm/mach-at91/include/mach/board.h  |    3 +-
+ 3 files changed, 165 insertions(+), 1 deletions(-)
 
-What audio processor is on your WinTV USB 2 device?  The DVC-90 has an
-emp202.  Perhaps the WInTV uses a different audio processor (while
-still using an em2820 as the bridge)?  That might explain why your
-device advertises effectively only one capture rate (32), while mine
-advertises a whole range (8-48).
-
-Devin
-
+diff --git a/arch/arm/mach-at91/at91sam9g45_devices.c b/arch/arm/mach-at91/at91sam9g45_devices.c
+index 1e8f275..ea9a161 100644
+--- a/arch/arm/mach-at91/at91sam9g45_devices.c
++++ b/arch/arm/mach-at91/at91sam9g45_devices.c
+@@ -28,6 +28,8 @@
+ #include <mach/at_hdmac.h>
+ #include <mach/atmel-mci.h>
+ 
++#include <media/atmel-isi.h>
++
+ #include "generic.h"
+ 
+ 
+@@ -872,6 +874,70 @@ void __init at91_add_device_ac97(struct ac97c_platform_data *data)
+ void __init at91_add_device_ac97(struct ac97c_platform_data *data) {}
+ #endif
+ 
++/* --------------------------------------------------------------------
++ *  Image Sensor Interface
++ * -------------------------------------------------------------------- */
++#if defined(CONFIG_VIDEO_ATMEL_ISI) || defined(CONFIG_VIDEO_ATMEL_ISI_MODULE)
++static u64 isi_dmamask = DMA_BIT_MASK(32);
++static struct isi_platform_data isi_data;
++
++struct resource isi_resources[] = {
++	[0] = {
++		.start	= AT91SAM9G45_BASE_ISI,
++		.end	= AT91SAM9G45_BASE_ISI + SZ_16K - 1,
++		.flags	= IORESOURCE_MEM,
++	},
++	[1] = {
++		.start	= AT91SAM9G45_ID_ISI,
++		.end	= AT91SAM9G45_ID_ISI,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static struct platform_device at91sam9g45_isi_device = {
++	.name		= "atmel_isi",
++	.id		= 0,
++	.dev		= {
++			.dma_mask		= &isi_dmamask,
++			.coherent_dma_mask	= DMA_BIT_MASK(32),
++			.platform_data		= &isi_data,
++	},
++	.resource	= isi_resources,
++	.num_resources	= ARRAY_SIZE(isi_resources),
++};
++
++void __init at91_add_device_isi(struct isi_platform_data * data)
++{
++	struct platform_device *pdev;
++
++	if (!data)
++		return;
++	isi_data = *data;
++
++	at91_set_A_periph(AT91_PIN_PB20, 0);	/* ISI_D0 */
++	at91_set_A_periph(AT91_PIN_PB21, 0);	/* ISI_D1 */
++	at91_set_A_periph(AT91_PIN_PB22, 0);	/* ISI_D2 */
++	at91_set_A_periph(AT91_PIN_PB23, 0);	/* ISI_D3 */
++	at91_set_A_periph(AT91_PIN_PB24, 0);	/* ISI_D4 */
++	at91_set_A_periph(AT91_PIN_PB25, 0);	/* ISI_D5 */
++	at91_set_A_periph(AT91_PIN_PB26, 0);	/* ISI_D6 */
++	at91_set_A_periph(AT91_PIN_PB27, 0);	/* ISI_D7 */
++	at91_set_A_periph(AT91_PIN_PB28, 0);	/* ISI_PCK */
++	at91_set_A_periph(AT91_PIN_PB30, 0);	/* ISI_HSYNC */
++	at91_set_A_periph(AT91_PIN_PB29, 0);	/* ISI_VSYNC */
++	at91_set_B_periph(AT91_PIN_PB31, 0);	/* ISI_MCK (PCK1) */
++	at91_set_B_periph(AT91_PIN_PB8, 0);	/* ISI_PD8 */
++	at91_set_B_periph(AT91_PIN_PB9, 0);	/* ISI_PD9 */
++	at91_set_B_periph(AT91_PIN_PB10, 0);	/* ISI_PD10 */
++	at91_set_B_periph(AT91_PIN_PB11, 0);	/* ISI_PD11 */
++
++	pdev = &at91sam9g45_isi_device;
++	platform_device_register(pdev);
++}
++#else
++void __init at91_add_device_isi(struct isi_platform_data * data) { }
++#endif
++
+ 
+ /* --------------------------------------------------------------------
+  *  LCD Controller
+diff --git a/arch/arm/mach-at91/board-sam9m10g45ek.c b/arch/arm/mach-at91/board-sam9m10g45ek.c
+index 6c999db..2ca219e 100644
+--- a/arch/arm/mach-at91/board-sam9m10g45ek.c
++++ b/arch/arm/mach-at91/board-sam9m10g45ek.c
+@@ -25,9 +25,12 @@
+ #include <linux/leds.h>
+ #include <linux/clk.h>
+ #include <linux/atmel-mci.h>
++#include <linux/delay.h>
+ 
+ #include <mach/hardware.h>
+ #include <video/atmel_lcdc.h>
++#include <media/soc_camera.h>
++#include <media/atmel-isi.h>
+ 
+ #include <asm/setup.h>
+ #include <asm/mach-types.h>
+@@ -194,6 +197,95 @@ static void __init ek_add_device_nand(void)
+ 	at91_add_device_nand(&ek_nand_data);
+ }
+ 
++/*
++ *  ISI
++ */
++#if defined(CONFIG_VIDEO_ATMEL_ISI) || defined(CONFIG_VIDEO_ATMEL_ISI_MODULE)
++static struct isi_platform_data __initdata isi_data = {
++	.frate		= ISI_CFG1_FRATE_CAPTURE_ALL,
++	.has_emb_sync	= 0,
++	.emb_crc_sync = 0,
++	.hsync_act_low = 0,
++	.vsync_act_low = 0,
++	.pclk_act_falling = 0,
++	/* to use codec and preview path simultaneously */
++	.isi_full_mode = 1,
++	.data_width_flags = ISI_DATAWIDTH_8 | ISI_DATAWIDTH_10,
++};
++
++static void __init isi_set_clk(void)
++{
++	struct clk *pck1;
++	struct clk *plla;
++
++	pck1 = clk_get(NULL, "pck1");
++	plla = clk_get(NULL, "plla");
++
++	clk_set_parent(pck1, plla);
++	clk_set_rate(pck1, 25000000);
++	clk_enable(pck1);
++}
++#else
++static void __init isi_set_clk(void) {}
++
++static struct isi_platform_data __initdata isi_data;
++#endif
++
++/*
++ * soc-camera OV2640
++ */
++#if defined(CONFIG_SOC_CAMERA_OV2640)
++static unsigned long isi_camera_query_bus_param(struct soc_camera_link *link)
++{
++	/* ISI board for ek using default 8-bits connection */
++	return SOCAM_DATAWIDTH_8;
++}
++
++static int i2c_camera_power(struct device *dev, int on)
++{
++	/* enable or disable the camera */
++	pr_debug("%s: %s the camera\n", __func__, on ? "ENABLE" : "DISABLE");
++	at91_set_gpio_output(AT91_PIN_PD13, on ? 0 : 1);
++
++	if (!on)
++		goto out;
++
++	/* If enabled, give a reset impulse */
++	at91_set_gpio_output(AT91_PIN_PD12, 0);
++	msleep(20);
++	at91_set_gpio_output(AT91_PIN_PD12, 1);
++	msleep(100);
++
++out:
++	return 0;
++}
++
++static struct i2c_board_info i2c_camera = {
++	I2C_BOARD_INFO("ov2640", 0x30),
++};
++
++static struct soc_camera_link iclink_ov2640 = {
++	.bus_id		= 0,
++	.board_info	= &i2c_camera,
++	.i2c_adapter_id	= 0,
++	.power		= i2c_camera_power,
++	.query_bus_param	= isi_camera_query_bus_param,
++};
++
++static struct platform_device isi_ov2640 = {
++	.name	= "soc-camera-pdrv",
++	.id	= 0,
++	.dev	= {
++		.platform_data = &iclink_ov2640,
++	},
++};
++
++static struct platform_device *devices[] __initdata = {
++	&isi_ov2640,
++};
++#else
++static struct platform_device *devices[] __initdata = {};
++#endif
+ 
+ /*
+  * LCD Controller
+@@ -409,6 +501,11 @@ static void __init ek_board_init(void)
+ 	ek_add_device_nand();
+ 	/* I2C */
+ 	at91_add_device_i2c(0, NULL, 0);
++	/* ISI */
++	platform_add_devices(devices, ARRAY_SIZE(devices));
++	isi_set_clk();
++	at91_add_device_isi(&isi_data);
++
+ 	/* LCD Controller */
+ 	at91_add_device_lcdc(&ek_lcdc_data);
+ 	/* Touch Screen */
+diff --git a/arch/arm/mach-at91/include/mach/board.h b/arch/arm/mach-at91/include/mach/board.h
+index 2b499eb..099c4f7 100644
+--- a/arch/arm/mach-at91/include/mach/board.h
++++ b/arch/arm/mach-at91/include/mach/board.h
+@@ -182,7 +182,8 @@ extern void __init at91_add_device_lcdc(struct atmel_lcdfb_info *data);
+ extern void __init at91_add_device_ac97(struct ac97c_platform_data *data);
+ 
+  /* ISI */
+-extern void __init at91_add_device_isi(void);
++struct isi_platform_data;
++extern void __init at91_add_device_isi(struct isi_platform_data *data);
+ 
+  /* Touchscreen Controller */
+ struct at91_tsadcc_data {
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.6.3.3
+
