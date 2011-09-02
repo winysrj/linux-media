@@ -1,41 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:59413 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755956Ab1INH22 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Sep 2011 03:28:28 -0400
-Received: by qyk7 with SMTP id 7so1359355qyk.19
-        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2011 00:28:27 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAMjpGUenjQbGAM69J7mAt4anP9advZcdngXNuMddt+=HUnVK+w@mail.gmail.com>
-References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com>
-	<1315938892-20243-3-git-send-email-scott.jiang.linux@gmail.com>
-	<CAMjpGUenjQbGAM69J7mAt4anP9advZcdngXNuMddt+=HUnVK+w@mail.gmail.com>
-Date: Wed, 14 Sep 2011 15:28:27 +0800
-Message-ID: <CAHG8p1DaVN9sxBUxfZtGYg6Q==hHUDou=voJqRW-QQnis=-_3g@mail.gmail.com>
-Subject: Re: [uclinux-dist-devel] [PATCH 3/4] v4l2: add vs6624 sensor driver
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Mike Frysinger <vapier.adi@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	uclinux-dist-devel@blackfin.uclinux.org,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.free-electrons.com ([88.190.12.23]:51413 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933106Ab1IBJTD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 05:19:03 -0400
+Date: Fri, 2 Sep 2011 11:18:53 +0200
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+To: "Wu, Josh" <Josh.wu@atmel.com>
+Cc: <linux-media@vger.kernel.org>
+Subject: Re: Using atmel-isi for direct output on framebuffer ?
+Message-ID: <20110902111853.292d7f26@skate>
+In-Reply-To: <4C79549CB6F772498162A641D92D532802A09156@penmb01.corp.atmel.com>
+References: <20110901170555.568af6ea@skate>
+	<4C79549CB6F772498162A641D92D532802A09156@penmb01.corp.atmel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->
->> +#ifdef CONFIG_VIDEO_ADV_DEBUG
->
-> just use DEBUG ?
->
-no, v4l2 use CONFIG_VIDEO_ADV_DEBUG
+Hello Josh,
 
->> +       v4l_info(client, "chip found @ 0x%02x (%s)\n",
->> +                       client->addr << 1, client->adapter->name);
->
-> is that "<< 1" correct ?  i dont think so ...
-every driver under media I see use this, so what's wrong?
+Le Fri, 2 Sep 2011 17:08:32 +0800,
+"Wu, Josh" <Josh.wu@atmel.com> a Ã©crit :
+
+> My understanding is that you want to use Atmel ISI to output RGB data
+> then work with framebuffer. So yes, it is possible.
+
+Good.
+
+> Since current atmel_isi.c only uses its codec path to output YUV
+> data. So first need add RGB format support in
+> isi_camera_get_formats(). Then you have two choices to enable RGB
+> output of ISI: 1. Enable isi's preview path(DMA, interrupts) to
+> convert YUV to RGB. 2. Or still use codec path but don't need add
+> much ISI code, just set camera sensor(if it support RGB565 output) to
+> output RGB565 data for ISI, then what the data ISI output now should
+> be RGB565 format. But in this way you cannot do any scale.
+
+Doing the YUV -> RGB within the V4L2 driver is something I understand
+quite well. The part I miss is how the V4L2 driver interacts with the
+framebuffer driver to output the camera image into the framebuffer.
+
+> For V4L2_CAP_VIDEO_OVERLAY type driver, I don't know much about that.
+
+Hum, ok, found http://v4l2spec.bytesex.org/spec/x6570.htm which seems
+to explain a bit the userspace interface for this.
+
+Thanks for your feedback!
+
+Thomas
+-- 
+Thomas Petazzoni, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
