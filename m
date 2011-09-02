@@ -1,27 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [125.19.68.203] ([125.19.68.203]:36489 "EHLO
-	webmail.imtech.res.in" rhost-flags-FAIL-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753552Ab1IFLNB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Sep 2011 07:13:01 -0400
-Message-ID: <36196.41.203.64.252.1315307579.squirrel@webmail.imtech.res.in>
-Date: Tue, 6 Sep 2011 16:42:59 +0530 (IST)
-Subject: Love spell for you...
-From: "Dr ojojide spell" <parag@imtech.res.in>
-Reply-To: dr.ojojide@hotmail.co.uk
-MIME-Version: 1.0
-Content-Type: text/plain;charset=utf-8
-Content-Transfer-Encoding: 8bit
-To: undisclosed-recipients:;
+Received: from zone0.gcu-squad.org ([212.85.147.21]:13929 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751846Ab1IBMhh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 08:37:37 -0400
+Date: Fri, 2 Sep 2011 14:37:13 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Luciano Coelho <coelho@ti.com>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	matti.j.aaltonen@nokia.com, johannes@sipsolutions.net,
+	linux-kernel@vger.kernel.org, sameo@linux.intel.com,
+	mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH] mfd: Combine MFD_SUPPORT and MFD_CORE
+Message-ID: <20110902143713.307bbebe@endymion.delvare>
+In-Reply-To: <201108311849.37273.arnd@arndb.de>
+References: <20110829102732.03f0f05d.rdunlap@xenotime.net>
+	<1314643307-17780-1-git-send-email-coelho@ti.com>
+	<201108311849.37273.arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i am a man called ojojide from nigeria,I know how you feel, you just don't
-understand. One moment they were madly in love
-with you and then Wham, out of the blue it's finished. Or you found out they
-were seeing someone else, or worse still,they
-have gone back to their ex or the family interfered! No matter what the reason
-is, you just want to get them back! Well,
-the good news is, I can help you, by using magic I will cast a love spell to
-bring them back to you.get back to me urgently
+Hi Arnd,
 
+On Wed, 31 Aug 2011 18:49:37 +0200, Arnd Bergmann wrote:
+> On Monday 29 August 2011, Luciano Coelho wrote:
+> > From: Randy Dunlap <rdunlap@xenotime.net>
+> > 
+> > Combine MFD_SUPPORT (which only enabled the remainder of the MFD
+> > menu) and MFD_CORE.  This allows other drivers to select MFD_CORE
+> > without needing to also select MFD_SUPPORT, which fixes some
+> > kconfig unmet dependency warnings.  Modeled after I2C kconfig.
+> > 
+> > [Forward-ported to 3.1-rc4.  This fixes a warning when some drivers,
+> > such as RADIO_WL1273, are selected, but MFD_SUPPORT is not. -- Luca]
+> > 
+> > Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+> > Reported-by: Johannes Berg <johannes@sipsolutions.net>
+> > Cc: Jean Delvare <khali@linux-fr.org>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Grant Likely <grant.likely@secretlab.ca>
+> > Signed-off-by: Luciano Coelho <coelho@ti.com>
+> > ---
+> > 
+> > I guess this should fix the problem.  I've simple forward-ported
+> > Randy's patch to the latest mainline kernel.  I don't know via which
+> > tree this should go in, though.
+> > 
+> > NOTE: I have not tested this very thoroughly.  But at least
+> > omap2plus stuff seems to work okay with this change.  MFD_SUPPORT is
+> > also selected by a couple of "tile" platforms defconfigs, but I guess
+> > the Kconfig system should take care of it.
+> 
+> Doing this is a good idea, but incidentally I have just spent some time
+> with the same problem and ended up with a solution that I like better,
+> which is removing CONFIG_MFD_SUPPORT altogether.
+> 
+> The point is that there is no use enabling MFD_CORE if you don't also
+> enable any of the specific drivers.
+
+Same holds for pretty much every subsystem, right?
+
+> MFD_SUPPORT was added as a 'menuconfig'
+> before we had Kconfig warn about broken dependencies, so everything was
+> fine. Since Kconfig now issues the warnings, I think it would be better
+> to just turn the MFD menu into a plain 'menu' and remove all the
+> 'depends on MFD_SUPPORT' and 'select MFD_SUPPORT' lines from the other
+> Kconfig files.
+
+This would make it impossible to turn off all MFD drivers at once. I
+think this is considered a feature, at least I find it very convenient
+to be able to "kill" a subsystem completely. And in the past few years
+many subsystems were turned from menu to menuconfig for this reason.
+But maybe MFD is a special case here.
+
+Anyway, if you want your patch to be applied, you'll have to send it
+for review first, as at this point all we have is Luciano's proposal.
+
+-- 
+Jean Delvare
