@@ -1,75 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:28964 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753705Ab1IUNY1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 09:24:27 -0400
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LRV003FUJWPKU@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 Sep 2011 14:24:25 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRV00JKZJWP67@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 Sep 2011 14:24:25 +0100 (BST)
-Date: Wed, 21 Sep 2011 15:24:24 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v3 1/2] v4l2: Add the polarity flags for parallel camera
- bus FIELD signal
-In-reply-to: <201109210112.39469.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, g.liakhovetski@gmx.de,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Message-id: <4E79E588.4000608@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-15
-Content-transfer-encoding: 7BIT
-References: <1316450497-6723-1-git-send-email-s.nawrocki@samsung.com>
- <1316452075-10700-1-git-send-email-s.nawrocki@samsung.com>
- <201109210112.39469.laurent.pinchart@ideasonboard.com>
+Received: from mga01.intel.com ([192.55.52.88]:7297 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932608Ab1IBIkM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Sep 2011 04:40:12 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [media-ctl][PATCHv3 1/3] libmediactl: restruct error path
+Date: Fri,  2 Sep 2011 11:39:42 +0300
+Message-Id: <6075971b959c2e808cd4ceec6540dc09b101346f.1314952687.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <201108302101.58685.laurent.pinchart@ideasonboard.com>
+References: <201108302101.58685.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ src/media.c |   16 +++++++++-------
+ 1 files changed, 9 insertions(+), 7 deletions(-)
 
-On 09/21/2011 01:12 AM, Laurent Pinchart wrote:
-> Hi Sylwester,
-> 
-> Thanks for the patch.
-> 
-> On Monday 19 September 2011 19:07:55 Sylwester Nawrocki wrote:
->> FIELD is an Even/Odd field selection signal, as specified in ITU-R BT.601
->> standard. Add corresponding flag for configuring the FIELD signal polarity.
->> Also add a comment about usage of V4L2_MBUS_[HV]SYNC* flags for the
->> hardware that uses [HV]REF signals.
-> 
-> I like this approach better.
-> 
-...
->> +/* Field selection signal for interlaced scan mode */
->> +#define V4L2_MBUS_FIELD_ACTIVE_HIGH		(1 << 10)
->> +#define V4L2_MBUS_FIELD_ACTIVE_LOW		(1 << 11)
-> 
-> What does this mean ? The FIELD signal is used to select between odd and even 
-> fields. Does "active high" mean that the field is odd or even when the signal 
-> has a high level ? The comment should make it explicit, or we could even 
-> rename those two constants to FIELD_ODD_HIGH/FIELD_ODD_LOW (or 
-> FIELD_EVEN_HIGH/FIELD_EVEN_LOW).
-
-Yes, certainly I didn't think enough about this. I silently assumed that for
-V4L2_MBUS_FIELD_ACTIVE_HIGH FIELD = 0 selects Field1 (odd) and FIELD = 1 selects
-Field2 (even).
-I think it would be good to construct the macro so it is possibly self-explanatory,
-rather than requiring often to dig in the documentation.
-
-So I would go for V4L2_MBUS_FIELD_ODD_LOW/V4L2_MBUS_FIELD_ODD_HIGH.
-Unless someone proposes something different/better I'll send an amended version
-tomorrow. 
-
-
-Thanks,
+diff --git a/src/media.c b/src/media.c
+index e3cab86..050289e 100644
+--- a/src/media.c
++++ b/src/media.c
+@@ -255,7 +255,7 @@ static int media_enum_entities(struct media_device *media)
+ 	char target[1024];
+ 	char *p;
+ 	__u32 id;
+-	int ret;
++	int ret = 0;
+ 
+ 	for (id = 0; ; id = entity->info.id) {
+ 		size = (media->entities_count + 1) * sizeof(*media->entities);
+@@ -268,9 +268,9 @@ static int media_enum_entities(struct media_device *media)
+ 
+ 		ret = ioctl(media->fd, MEDIA_IOC_ENUM_ENTITIES, &entity->info);
+ 		if (ret < 0) {
+-			if (errno == EINVAL)
+-				break;
+-			return -errno;
++			if (errno != EINVAL)
++				ret = -errno;
++			break;
+ 		}
+ 
+ 		/* Number of links (for outbound links) plus number of pads (for
+@@ -281,8 +281,10 @@ static int media_enum_entities(struct media_device *media)
+ 
+ 		entity->pads = malloc(entity->info.pads * sizeof(*entity->pads));
+ 		entity->links = malloc(entity->max_links * sizeof(*entity->links));
+-		if (entity->pads == NULL || entity->links == NULL)
+-			return -ENOMEM;
++		if (entity->pads == NULL || entity->links == NULL) {
++			ret = -ENOMEM;
++			break;
++		}
+ 
+ 		media->entities_count++;
+ 
+@@ -316,7 +318,7 @@ static int media_enum_entities(struct media_device *media)
+ 			strcpy(entity->devname, devname);
+ 	}
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ struct media_device *media_open(const char *name, int verbose)
 -- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+1.7.5.4
+
