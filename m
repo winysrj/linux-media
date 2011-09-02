@@ -1,57 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.skynet.fr ([91.121.146.144]:58717 "EHLO mail.skynet.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752302Ab1IXSr0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Sep 2011 14:47:26 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.skynet.fr (Postfix) with ESMTP id 6FA50126003
-	for <linux-media@vger.kernel.org>; Sat, 24 Sep 2011 18:47:25 +0000 (UTC)
-Received: from mail.skynet.fr ([127.0.0.1])
-	by localhost (mail.skynet.fr [127.0.0.1]) (amavisd-new, port 10026)
-	with ESMTP id w9CJ7GFl5aUV for <linux-media@vger.kernel.org>;
-	Sat, 24 Sep 2011 18:47:25 +0000 (UTC)
-Received: from Jin-Kazamas-MacBook-Pro.local (gli74-3-78-241-6-73.fbx.proxad.net [78.241.6.73])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: mathieu@seillon.fr)
-	by mail.skynet.fr (Postfix) with ESMTPSA id 080BB126002
-	for <linux-media@vger.kernel.org>; Sat, 24 Sep 2011 18:47:24 +0000 (UTC)
-Message-ID: <4E7E25BC.5090709@skynet.fr>
-Date: Sat, 24 Sep 2011 20:47:24 +0200
-From: Jin Kazama <jin.ml@skynet.fr>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:40888 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932712Ab1IBJCY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 05:02:24 -0400
+Received: by gya6 with SMTP id 6so1845993gya.19
+        for <linux-media@vger.kernel.org>; Fri, 02 Sep 2011 02:02:24 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: af9015/tda18218: Multiples (separates) usb devices errors/conflicts
-References: <S1752295Ab1IWUja/20110923203930Z+74@vger.kernel.org> <4E7CF4DA.5020607@skynet.fr> <4E7D02DC.3010201@iki.fi>
-In-Reply-To: <4E7D02DC.3010201@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <201109012014.32996.laurent.pinchart@ideasonboard.com>
+References: <4E56734A.3080001@mlbassoc.com>
+	<CA+2YH7uT0ZGV9Drc-8V1vRB0o3gyKhyX8=f+Crsn7vtDGpem=Q@mail.gmail.com>
+	<CA+2YH7ucT=Q8_Q=_HEuBNYF9d7dvOFX8ma7yLD1=6DijnUAE+w@mail.gmail.com>
+	<201109012014.32996.laurent.pinchart@ideasonboard.com>
+Date: Fri, 2 Sep 2011 11:02:23 +0200
+Message-ID: <CA+2YH7s9EEQi55TbzhE7yHdFB196t5g24Za0WJbWut+SzZHv2A@mail.gmail.com>
+Subject: Re: Getting started with OMAP3 ISP
+From: Enrico <ebutera@users.berlios.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Gary Thomas <gary@mlbassoc.com>, linux-media@vger.kernel.org,
+	Enric Balletbo i Serra <eballetbo@iseebcn.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 9/24/11 12:06 AM, Antti Palosaari wrote:
-> On 09/24/2011 12:06 AM, Jin Kazama wrote:
->> Hello,
->> I've been testing af9015/tda18218 based usb DVB-T tuners on a 2.6.39.4
->> kernel with the latest v4l drivers avaiable (from git).
->> When I'm using a single USB module, (listed as /dev/dvb/adapter0),
->> everything works fine.
->> When I'm plugging another module, at first it looks like everything's ok
->> (/dev/dvb/adapter1) and if I try to use this module while the adapter0
->> is not been used, it works - but if try to use both modules at the same
->> time, I get garbage output on both cards (error: warning: discontinuity
->> for PID... with dvblast on both cards.
->> Does anyone have any idea on how to fix this problem?
+On Thu, Sep 1, 2011 at 8:14 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> On Thursday 01 September 2011 19:24:54 Enrico wrote:
+>> yavta will set UYVY (PIX_FMT), this will cause a call to
+>> ispvideo.c:isp_video_pix_to_mbus(..), that will do this:
+>>
+>> for (i = 0; i < ARRAY_SIZE(formats); ++i) {
+>>                 if (formats[i].pixelformat == pix->pixelformat)
+>>                         break;
+>> }
+>>
+>> that is it will stop at the first matching array item, and that's:
+>>
+>> { V4L2_MBUS_FMT_UYVY8_1X16, V4L2_MBUS_FMT_UYVY8_1X16,
+>>           V4L2_MBUS_FMT_UYVY8_1X16, 0,
+>>           V4L2_PIX_FMT_UYVY, 16, 16, },
+>>
+>>
+>> but you wanted this:
+>>
+>> { V4L2_MBUS_FMT_UYVY8_2X8, V4L2_MBUS_FMT_UYVY8_2X8,
+>>           V4L2_MBUS_FMT_UYVY8_2X8, 0,
+>>           V4L2_PIX_FMT_UYVY, 8, 16, },
+>>
+>> so a better check could be to check for width too, but i don't know if
+>> it's possibile to pass a width requirement or if it's already there in
+>> some struct passed to the function.
 >
-> Feel free to fix it. I am too busy currently.
+> That's not really an issue, as the isp_video_pix_to_mbus() and
+> isp_video_mbus_to_pix() calls in isp_video_set_format() are just used to fill
+> the bytesperline and sizeimage fields. From a quick look at the code
+> isp_video_check_format() should succeed as well.
 >
-Well, it looks like if I put 2 devices on different USB buses (on the 
-same machine), they work fine, but if they're on the same USB bus, I get 
-the problem...
-I think the driver may get raw data from the USB bus - and the way it 
-identifies the device is not the proper way (I have 2 exactly identical 
-devices) => when both devices send data, the driver catches all the data 
-from the bus, which is a corrupt mix of both streams...)
-Unfortunately, I don't think that I'm capable of fixing the problem by 
-myself, I don't even know which part of the driver to look for... if 
-someone can give me a hint, I might *try* to *attempt* to fix it :)...
+> Have you run into any specific issue with isp_video_pix_to_mbus() when using
+> V4L2_MBUS_FMT_UYVY8_2X8 ?
+
+No, i assumed it was used to set the format on the pad too but this is
+not the case, sorry for the noise.
+
+Right now my problem is that i can't get the isp to generate
+interrupts, i think there is some isp configuration error.
+
+Enrico
