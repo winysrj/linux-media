@@ -1,52 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57066 "EHLO mail.kapsi.fi"
+Received: from mga11.intel.com ([192.55.52.93]:56543 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756373Ab1INKpx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Sep 2011 06:45:53 -0400
-Message-ID: <4E7085DB.2050809@iki.fi>
-Date: Wed, 14 Sep 2011 13:45:47 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org, David Daney <david.daney@cavium.com>
-Subject: Re: recursive locking problem
-References: <4E68EE98.90201@iki.fi> <20110909114634.GA22776@minime.bse> <4E6FFD7E.2060500@iki.fi> <20110914061922.GA1851@minime.bse>
-In-Reply-To: <20110914061922.GA1851@minime.bse>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+	id S1751806Ab1IBNKV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Sep 2011 09:10:21 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [media-ctl][PATCHv4 3/3] libmediactl: get the device name via udev
+Date: Fri,  2 Sep 2011 16:09:28 +0300
+Message-Id: <62c72745987f6490497a54512d1569490c173af3.1314968925.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1314968925.git.andriy.shevchenko@linux.intel.com>
+References: <201109021326.14340.laurent.pinchart@ideasonboard.com>
+ <6075971b959c2e808cd4ceec6540dc09b101346f.1314968925.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1314968925.git.andriy.shevchenko@linux.intel.com>
+References: <6075971b959c2e808cd4ceec6540dc09b101346f.1314968925.git.andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/14/2011 09:19 AM, Daniel Glöckner wrote:
-> On Wed, Sep 14, 2011 at 04:03:58AM +0300, Antti Palosaari wrote:
->> On 09/09/2011 02:46 PM, Daniel Glöckner wrote:
->>> On Thu, Sep 08, 2011 at 07:34:32PM +0300, Antti Palosaari wrote:
->>>> I am working with AF9015 I2C-adapter lock. I need lock I2C-bus since
->>>> there is two tuners having same I2C address on same bus, demod I2C
->>>> gate is used to select correct tuner.
->>>
->>> Would it be possible to use the i2c-mux framework to handle this?
->>> Each tuner will then have its own i2c bus.
->>
->> Interesting idea, but it didn't worked. It deadlocks. I think it
->> locks since I2C-mux is controlled by I2C "switch" in same I2C bus,
->> not GPIO or some other HW.
->
-> Take a look at drivers/i2c/muxes/pca954x.c. You need to use
-> parent->algo->master_xfer/smbus_xfer directly as the lock that
-> protects you from having both gates open is the lock of the
-> root i2c bus.
+If configured with --with-libudev, the libmediactl is built with libudev
+support. It allows to get the device name in right way in the modern linux
+systems.
 
-Ah yes, rather similar case. I see it as commented in pca954x.c:
-/* Write to mux register. Don't use i2c_transfer()/i2c_smbus_xfer()
-    for this as they will try to lock adapter a second time */
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ configure.in    |   22 ++++++++++++++++
+ src/Makefile.am |    2 +
+ src/media.c     |   73 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/media.h     |    1 +
+ 4 files changed, 98 insertions(+), 0 deletions(-)
 
-This looks even more hackish solution than calling existing demod 
-.i2c_gate_ctrl() callback from USB-interface driver. But yes, it must 
-work - not beautiful but workable workaround.
-
-
-regards
-Antti
-
+diff --git a/configure.in b/configure.in
+index fd4c70c..983023e 100644
+--- a/configure.in
++++ b/configure.in
+@@ -13,6 +13,28 @@ AC_PROG_LIBTOOL
+ 
+ # Checks for libraries.
+ 
++AC_ARG_WITH([libudev],
++    AS_HELP_STRING([--with-libudev],
++        [Enable libudev to detect a device name]))
++
++AS_IF([test "x$with_libudev" = "xyes"],
++    [PKG_CHECK_MODULES(libudev, libudev, have_libudev=yes, have_libudev=no)],
++    [have_libudev=no])
++
++AS_IF([test "x$have_libudev" = "xyes"],
++    [
++        AC_DEFINE([HAVE_LIBUDEV], [], [Use libudev])
++        LIBUDEV_CFLAGS="$libudev_CFLAGS"
++        LIBUDEV_LIBS="$libudev_LIBS"
++        AC_SUBST(LIBUDEV_CFLAGS)
++        AC_SUBST(LIBUDEV_LIBS)
++    ],
++    [AS_IF([test "x$with_libudev" = "xyes"],
++        [AC_MSG_ERROR([libudev requested but not found])
++    ])
++])
++
++
+ # Kernel headers path.
+ AC_ARG_WITH(kernel-headers,
+     [AC_HELP_STRING([--with-kernel-headers=DIR],
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 267ea83..52628d2 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -5,6 +5,8 @@ mediactl_includedir=$(includedir)/mediactl
+ mediactl_include_HEADERS = media.h subdev.h
+ 
+ bin_PROGRAMS = media-ctl
++media_ctl_CFLAGS = $(LIBUDEV_CFLAGS)
++media_ctl_LDFLAGS = $(LIBUDEV_LIBS)
+ media_ctl_SOURCES = main.c options.c options.h tools.h
+ media_ctl_LDADD = libmediactl.la libv4l2subdev.la
+ 
+diff --git a/src/media.c b/src/media.c
+index 5d3ff7c..dae649a 100644
+--- a/src/media.c
++++ b/src/media.c
+@@ -17,6 +17,8 @@
+  * with this program; if not, write to the Free Software Foundation, Inc.,
+  */
+ 
++#include "config.h"
++
+ #include <sys/ioctl.h>
+ #include <sys/stat.h>
+ #include <sys/types.h>
+@@ -245,6 +247,64 @@ static int media_enum_links(struct media_device *media)
+ 	return ret;
+ }
+ 
++#ifdef HAVE_LIBUDEV
++
++#include <libudev.h>
++
++static inline int media_udev_open(struct media_device *media)
++{
++	media->priv = udev_new();
++	if (media->priv == NULL)
++		return -ENOMEM;
++	return 0;
++}
++
++static inline void media_udev_close(struct media_device *media)
++{
++	udev_unref(media->priv);
++}
++
++static int media_get_devname_udev(struct media_device *media,
++		struct media_entity *entity)
++{
++	int ret = -ENODEV;
++	struct udev *udev = media->priv;
++	dev_t devnum;
++	struct udev_device *device;
++	const char *p;
++
++	if (udev == NULL)
++		return -EINVAL;
++
++	devnum = makedev(entity->info.v4l.major, entity->info.v4l.minor);
++	printf("looking up device: %u:%u\n", major(devnum), minor(devnum));
++	device = udev_device_new_from_devnum(udev, 'c', devnum);
++	if (device) {
++		p = udev_device_get_devnode(device);
++		if (p)
++			snprintf(entity->devname, sizeof(entity->devname), "%s", p);
++		ret = 0;
++	}
++
++	udev_device_unref(device);
++
++	return ret;
++}
++
++#else	/* HAVE_LIBUDEV */
++
++static inline int media_udev_open(struct media_device *media) { return 0; }
++
++static inline void media_udev_close(struct media_device *media) { }
++
++static inline int media_get_devname_udev(struct media_device *media,
++		struct media_entity *entity)
++{
++	return -ENOTSUP;
++}
++
++#endif	/* HAVE_LIBUDEV */
++
+ static int media_get_devname_sysfs(struct media_entity *entity)
+ {
+ 	struct stat devstat;
+@@ -324,6 +384,11 @@ static int media_enum_entities(struct media_device *media)
+ 		    media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+ 			continue;
+ 
++		/* Try to get the device name via udev */
++		if (!media_get_devname_udev(media, entity))
++			continue;
++
++		/* Fall back to get the device name via sysfs */
+ 		media_get_devname_sysfs(entity);
+ 	}
+ 
+@@ -351,6 +416,13 @@ struct media_device *media_open(const char *name, int verbose)
+ 		return NULL;
+ 	}
+ 
++	ret = media_udev_open(media);
++	if (ret < 0) {
++		printf("%s: Can't get udev context\n", __func__);
++		media_close(media);
++		return NULL;
++	}
++
+ 	if (verbose)
+ 		printf("Enumerating entities\n");
+ 
+@@ -395,6 +467,7 @@ void media_close(struct media_device *media)
+ 	}
+ 
+ 	free(media->entities);
++	media_udev_close(media);
+ 	free(media);
+ }
+ 
+diff --git a/src/media.h b/src/media.h
+index b91a2ac..4201451 100644
+--- a/src/media.h
++++ b/src/media.h
+@@ -54,6 +54,7 @@ struct media_device {
+ 	struct media_entity *entities;
+ 	unsigned int entities_count;
+ 	__u32 padding[6];
++	void *priv;
+ };
+ 
+ /**
 -- 
-http://palosaari.fi/
+1.7.5.4
+
