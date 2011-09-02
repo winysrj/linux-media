@@ -1,98 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from e5.ny.us.ibm.com ([32.97.182.145]:46387 "EHLO e5.ny.us.ibm.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:36743 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757691Ab1IICic (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 Sep 2011 22:38:32 -0400
-Subject: Re: [PATCH 2/8] mm: alloc_contig_freed_pages() added
-From: Dave Hansen <dave@linux.vnet.ibm.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-In-Reply-To: <1313764064-9747-3-git-send-email-m.szyprowski@samsung.com>
-References: <1313764064-9747-1-git-send-email-m.szyprowski@samsung.com>
-	 <1313764064-9747-3-git-send-email-m.szyprowski@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 08 Sep 2011 11:05:52 -0700
-Message-ID: <1315505152.3114.9.camel@nimitz>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1752017Ab1IBNdC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Sep 2011 09:33:02 -0400
+Message-ID: <4E60DB09.1060304@iki.fi>
+Date: Fri, 02 Sep 2011 16:32:57 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: =?UTF-8?B?QmrDuHJuIE1vcms=?= <bjorn@mork.no>
+CC: =?UTF-8?B?SXN0dsOhbiBWw6FyYWRp?= <ivaradi@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Smart card reader support for Anysee DVB devices
+References: <CAFk-VPxQvGiEUdd+X4jjUqcygPO-JsT0gTFvrX-q4cGAW6tq_Q@mail.gmail.com>	<4E485F81.9020700@iki.fi> <4E48FF99.7030006@iki.fi>	<4E4C2784.2020003@iki.fi>	<CAFk-VPzKa4bNLCMMCagFi1LLK6PnY245YJqP5yisQH77nJ0Org@mail.gmail.com>	<4E5BA751.6090709@iki.fi>	<CAFk-VPypTuaKgAHPxyvKg7GHYM358rZ2kypabfvxG-x7GjmFpw@mail.gmail.com>	<4E5BAF03.503@iki.fi> <87wrdri4sp.fsf@nemi.mork.no>
+In-Reply-To: <87wrdri4sp.fsf@nemi.mork.no>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2011-08-19 at 16:27 +0200, Marek Szyprowski wrote:
-> +unsigned long alloc_contig_freed_pages(unsigned long start, unsigned long end,
-> +				       gfp_t flag)
-> +{
-> +	unsigned long pfn = start, count;
-> +	struct page *page;
-> +	struct zone *zone;
-> +	int order;
-> +
-> +	VM_BUG_ON(!pfn_valid(start));
-> +	zone = page_zone(pfn_to_page(start));
+On 09/02/2011 02:04 PM, Bjørn Mork wrote:
+> Antti Palosaari<crope@iki.fi>  writes:
+>
+>> Since Anysee device itself does not have CCID interface it is needed
+>> to make virtual USB device in order to get CCID support. I have never
+>> seen virtual USB devices like that, but there is VHCI in current
+>> kernel staging that actually does something like that over IP.
+>
+> Don't know if you have seen this already, but there's a virtual CCID
+> device implementation in QEMU.  See http://wiki.qemu.org/Features/Smartcard
+> Should be a good starting point.  Combine it withe the VHCI driver from
+> USBIP and you have your CCID device.
 
-This implies that start->end are entirely contained in a single zone.
-What enforces that?  If some higher layer enforces that, I think we
-probably need at least a VM_BUG_ON() in here and a comment about who
-enforces it.
+It is first time I hear about QEMU virtual CCID. Now we have all parts 
+needed for USBIP VHCI and QEMU virtual CCID, just glue those together.
 
-> +	spin_lock_irq(&zone->lock);
-> +
-> +	page = pfn_to_page(pfn);
-> +	for (;;) {
-> +		VM_BUG_ON(page_count(page) || !PageBuddy(page));
-> +		list_del(&page->lru);
-> +		order = page_order(page);
-> +		zone->free_area[order].nr_free--;
-> +		rmv_page_order(page);
-> +		__mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
-> +		pfn  += 1 << order;
-> +		if (pfn >= end)
-> +			break;
-> +		VM_BUG_ON(!pfn_valid(pfn));
-> +		page += 1 << order;
-> +	}
+I wonder if it is wise to even create virtual CCID "core" to Kernel. 
+There is few other readers that can use that too, actually I think all 
+USB readers that have unique USB ID (blocking out those which uses 
+USB-serial converters with common IDs).
 
-This 'struct page *'++ stuff is OK, but only for small, aligned areas.
-For at least some of the sparsemem modes (non-VMEMMAP), you could walk
-off of the end of the section_mem_map[] when you cross a MAX_ORDER
-boundary.  I'd feel a little bit more comfortable if pfn_to_page() was
-being done each time, or only occasionally when you cross a section
-boundary.
+As I see that CCID still more complex as serial device I will still look 
+implementing it as serial as now.
 
-This may not apply to what ARM is doing today, but it shouldn't be too
-difficult to fix up, or to document what's going on.
+regards
+Antti
 
-> +	spin_unlock_irq(&zone->lock);
-> +
-> +	/* After this, pages in the range can be freed one be one */
-> +	page = pfn_to_page(start);
-> +	for (count = pfn - start; count; --count, ++page)
-> +		prep_new_page(page, 0, flag);
-> +
-> +	return pfn;
-> +}
-> +
-> +void free_contig_pages(struct page *page, int nr_pages)
-> +{
-> +	for (; nr_pages; --nr_pages, ++page)
-> +		__free_page(page);
-> +}
 
-The same thing about 'struct page' pointer math goes here.
-
--- Dave
-
+-- 
+http://palosaari.fi/
