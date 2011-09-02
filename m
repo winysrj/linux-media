@@ -1,112 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34111 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751554Ab1I0HJd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 03:09:33 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Taneja, Archit" <archit@ti.com>
-CC: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	"Semwal, Sumit" <sumit.semwal@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 27 Sep 2011 12:39:24 +0530
-Subject: RE: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
- omap_vout_isr
-Message-ID: <19F8576C6E063C45BE387C64729E739404ECA548EE@dbde02.ent.ti.com>
-References: <1316167233-1437-1-git-send-email-archit@ti.com>
-	 <1316167233-1437-4-git-send-email-archit@ti.com>
-	 <19F8576C6E063C45BE387C64729E739404EC941F86@dbde02.ent.ti.com>
-	 <4E7AD29C.4070804@ti.com>
-	 <19F8576C6E063C45BE387C64729E739404ECA54614@dbde02.ent.ti.com>
-	 <CAB2ybb8ab9jSFB1J_CQfObB11QcdtQ=6Kf9zdbg0v5Jckf09sw@mail.gmail.com>
-	 <CAB2ybb-rZgDvS9Bo6AJF=KVd0irXHa0S0LrPJ=SWr0daJ6gX1w@mail.gmail.com>
-	 <CAB2ybb8UGC=HK7jpYaDym8Y8iy=omwWiXrV7cdRw3k20e0NiZw@mail.gmail.com>
-	 <19F8576C6E063C45BE387C64729E739404ECA548CF@dbde02.ent.ti.com>
- <1317106147.1991.10.camel@deskari>
- <19F8576C6E063C45BE387C64729E739404ECA548E1@dbde02.ent.ti.com>
- <4E8174D8.6060001@ti.com>
-In-Reply-To: <4E8174D8.6060001@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from moutng.kundenserver.de ([212.227.126.186]:53382 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752612Ab1IBOo3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 10:44:29 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Jean Delvare <khali@linux-fr.org>
+Subject: [PATCH 2/2] mfd: remove CONFIG_MFD_SUPPORT
+Date: Fri, 2 Sep 2011 16:43:36 +0200
+Cc: Luciano Coelho <coelho@ti.com>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	matti.j.aaltonen@nokia.com, johannes@sipsolutions.net,
+	linux-kernel@vger.kernel.org, sameo@linux.intel.com,
+	mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
+	Grant Likely <grant.likely@secretlab.ca>
+References: <20110829102732.03f0f05d.rdunlap@xenotime.net> <201108311849.37273.arnd@arndb.de> <20110902143713.307bbebe@endymion.delvare>
+In-Reply-To: <20110902143713.307bbebe@endymion.delvare>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109021643.36369.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+We currently have two symbols to control compilation the MFD subsystem,
+MFD_SUPPORT and MFD_CORE. The MFD_SUPPORT is actually not required
+at all, it only hides the submenu when not set, with the effect that
+Kconfig warns about missing dependencies when another driver selects
+an MFD driver while MFD_SUPPORT is disabled. Turning the MFD submenu
+back from menuconfig into a plain menu simplifies the Kconfig syntax
+for those kinds of users and avoids the surprise when the menu
+suddenly appears because another driver was enabled that selects this
+symbol.
 
-> -----Original Message-----
-> From: Taneja, Archit
-> Sent: Tuesday, September 27, 2011 12:32 PM
-> To: Hiremath, Vaibhav
-> Cc: Valkeinen, Tomi; Semwal, Sumit; linux-omap@vger.kernel.org; linux-
-> media@vger.kernel.org
-> Subject: Re: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
-> omap_vout_isr
-> 
-> On Tuesday 27 September 2011 12:24 PM, Hiremath, Vaibhav wrote:
-> >> -----Original Message-----
-> >> From: Valkeinen, Tomi
-> >> Sent: Tuesday, September 27, 2011 12:19 PM
-> >> To: Hiremath, Vaibhav
-> >> Cc: Semwal, Sumit; Taneja, Archit; linux-omap@vger.kernel.org; linux-
-> >> media@vger.kernel.org
-> >> Subject: RE: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
-> >> omap_vout_isr
-> >>
-> >> On Tue, 2011-09-27 at 12:09 +0530, Hiremath, Vaibhav wrote:
-> >>> Please look at the patch carefully, it does exactly same thing. I
-> >>> understand the use-case what Archit explained in the last email but in
-> >>> this patch context, the use-case change anything here in this patch.
-> >>
-> >> With the current code, the ISR code will be ran for a panel connected
-> to
-> >> LCD1 output when VSYNC for LCD2 happens.
-> >>
-> >> After Archit's patch, this no longer happens.
-> >>
-> >> I don't know what the ISR code does, so it may not cause any problems,
-> >> but it sure doesn't sound right running the code when a wrong interrupt
-> >> happens.
-> >>
-> >
-> > If you look at the patch, the patch barely checks for the condition and
-> > makes sure that the interrupt is either of VSYNC or VSYNC2, else return.
-> Rest everything is same.
-> 
-> It doesn't only make sure that the interrupt it one of them, it uses it
-> later too in the check:
-> 
-> if (!(irqstatus & irq))
-> 	goto vout_isr_err;
-> ...
-> ...
-> 
-> >
-> > The right fix is in streamon api, where you mask the interrupt before
-> > registering it.
-> 
-> If this is the right fix, we should have a purely selective method of
-> selecting the interrupts. Even for OMAP3, we register interrupts for LCD
-> and TV, and then check the interrupt in the handler using panel type.
-> Now, since have 2 different interrupts for the same panel type, we have
-> to further distinguish using the manager id.
-> 
-I have to agree here with you that we do not have this available now.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/arm/mach-omap2/Kconfig |    1 -
+ drivers/gpio/Kconfig        |    3 +--
+ drivers/i2c/busses/Kconfig  |    1 -
+ drivers/media/radio/Kconfig |    1 -
+ drivers/mfd/Kconfig         |   22 ++++------------------
+ 5 files changed, 5 insertions(+), 23 deletions(-)
 
-Also I had reviewed the patch again, and I think I now understand what usecase you are referring here. My bad, I concluded early on this....
-
-Thanks,
-Vaibhav
-
-> Archit
-> 
-> >
-> > Thanks,
-> > Vaibhav
-> >
-> >>   Tomi
-> >>
-> >
-> >
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 57b66d5..1aee224 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -14,7 +14,6 @@ config ARCH_OMAP2PLUS_TYPICAL
+ 	select SERIAL_OMAP_CONSOLE
+ 	select I2C
+ 	select I2C_OMAP
+-	select MFD_SUPPORT
+ 	select MENELAUS if ARCH_OMAP2
+ 	select TWL4030_CORE if ARCH_OMAP3 || ARCH_OMAP4
+ 	select TWL4030_POWER if ARCH_OMAP3 || ARCH_OMAP4
+diff --git a/drivers/gpio/Kconfig b/drivers/gpio/Kconfig
+index d539efd..fbc5fd4 100644
+--- a/drivers/gpio/Kconfig
++++ b/drivers/gpio/Kconfig
+@@ -180,7 +180,7 @@ config GPIO_SCH
+ 
+ config GPIO_VX855
+ 	tristate "VIA VX855/VX875 GPIO"
+-	depends on MFD_SUPPORT && PCI
++	depends on PCI
+ 	select MFD_CORE
+ 	select MFD_VX855
+ 	help
+@@ -417,7 +417,6 @@ config GPIO_TIMBERDALE
+ config GPIO_RDC321X
+ 	tristate "RDC R-321x GPIO support"
+ 	depends on PCI
+-	select MFD_SUPPORT
+ 	select MFD_CORE
+ 	select MFD_RDC321X
+ 	help
+diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
+index 646068e..d625a48 100644
+--- a/drivers/i2c/busses/Kconfig
++++ b/drivers/i2c/busses/Kconfig
+@@ -110,7 +110,6 @@ config I2C_I801
+ config I2C_ISCH
+ 	tristate "Intel SCH SMBus 1.0"
+ 	depends on PCI
+-	select MFD_CORE
+ 	select LPC_SCH
+ 	help
+ 	  Say Y here if you want to use SMBus controller on the Intel SCH
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index 52798a1..ccd5f0d 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -426,7 +426,6 @@ config RADIO_TIMBERDALE
+ config RADIO_WL1273
+ 	tristate "Texas Instruments WL1273 I2C FM Radio"
+ 	depends on I2C && VIDEO_V4L2
+-	select MFD_CORE
+ 	select MFD_WL1273_CORE
+ 	select FW_LOADER
+ 	---help---
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index 21574bd..a7f1137 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -2,23 +2,8 @@
+ # Multifunction miscellaneous devices
+ #
+ 
+-menuconfig MFD_SUPPORT
+-	bool "Multifunction device drivers"
+-	depends on HAS_IOMEM
+-	default y
+-	help
+-	  Multifunction devices embed several functions (e.g. GPIOs,
+-	  touchscreens, keyboards, current regulators, power management chips,
+-	  etc...) in one single integrated circuit. They usually talk to the
+-	  main CPU through one or more IRQ lines and low speed data busses (SPI,
+-	  I2C, etc..). They appear as one single device to the main system
+-	  through the data bus and the MFD framework allows for sub devices
+-	  (a.k.a. functions) to appear as discrete platform devices.
+-	  MFDs are typically found on embedded platforms.
+-
+-	  This option alone does not add any kernel code.
+-
+-if MFD_SUPPORT
++if HAS_IOMEM
++menu "Multifunction device drivers"
+ 
+ config MFD_CORE
+ 	tristate
+@@ -770,7 +755,8 @@ config MFD_AAT2870_CORE
+ 	  additional drivers must be enabled in order to use the
+ 	  functionality of the device.
+ 
+-endif # MFD_SUPPORT
++endmenu
++endif
+ 
+ menu "Multimedia Capabilities Port drivers"
+ 	depends on ARCH_SA1100
+-- 
+1.7.1
 
