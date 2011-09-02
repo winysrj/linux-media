@@ -1,49 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm2.bt.bullet.mail.ukl.yahoo.com ([217.146.183.200]:33397 "HELO
-	nm2.bt.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756122Ab1IMUrl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Sep 2011 16:47:41 -0400
-Message-ID: <4E6FC167.4070505@yahoo.com>
-Date: Tue, 13 Sep 2011 21:47:35 +0100
-From: Chris Rankin <rankincj@yahoo.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] EM28xx - fix deadlock when unplugging and replugging
- a DVB adapter
-References: <1313851233.95109.YahooMailClassic@web121704.mail.ne1.yahoo.com> <4E4FCC8D.3070305@redhat.com> <4E50FAC7.6080807@yahoo.com> <4E6FB736.4080202@iki.fi>
-In-Reply-To: <4E6FB736.4080202@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:24435 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932970Ab1IBJdi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 05:33:38 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=UTF-8
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LQW00L4G2K050B0@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 02 Sep 2011 10:33:36 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LQW00J4O2JZY1@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 02 Sep 2011 10:33:36 +0100 (BST)
+Date: Fri, 02 Sep 2011 11:33:35 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: Using atmel-isi for direct output on framebuffer ?
+In-reply-to: <20110902111853.292d7f26@skate>
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: "Wu, Josh" <Josh.wu@atmel.com>, linux-media@vger.kernel.org
+Message-id: <4E60A2EF.10105@samsung.com>
+References: <20110901170555.568af6ea@skate>
+ <4C79549CB6F772498162A641D92D532802A09156@penmb01.corp.atmel.com>
+ <20110902111853.292d7f26@skate>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13/09/11 21:04, Antti Palosaari wrote:
-> On 08/21/2011 03:32 PM, Chris Rankin wrote:
->> It occurred to me this morning that since we're no longer supposed to be
->> holding the device lock when taking the device list lock, then the
->> em28xx_usb_disconnect() function needs changing too.
->>
->> Signed-off-by: Chris Rankin <rankincj@yahoo.com>
->
-> I ran that also when re-plugging both PCTV 290e and 460e as today LinuxTV 3.2
-> tree. Seems like this patch is still missing and maybe some more.
+Hi,
 
-There was also this patch, which fixed a couple of memory leaks:
+On 09/02/2011 11:18 AM, Thomas Petazzoni wrote:
+> Doing the YUV -> RGB within the V4L2 driver is something I understand
+> quite well. The part I miss is how the V4L2 driver interacts with the
+> framebuffer driver to output the camera image into the framebuffer.
+> 
+>> For V4L2_CAP_VIDEO_OVERLAY type driver, I don't know much about that.
+> 
+> Hum, ok, found http://v4l2spec.bytesex.org/spec/x6570.htm which seems
+> to explain a bit the userspace interface for this.
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg36432.html
+Most up to date documentation is hosted at linuxtv.org:
 
-IIRC, the main purpose of the other patch was to delete the 
-em28xx_remove_from_devlist() function as well by adding the
-
-     list_del(&dev->devlist);
-
-to the em28xx_close_extension() function instead.
-
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg35783.html
-
-Cheers,
-Chris
+http://linuxtv.org/downloads/v4l-dvb-apis/overlay.html
