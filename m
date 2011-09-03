@@ -1,76 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:53842 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756469Ab1IAIxR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 04:53:17 -0400
-Date: Thu, 1 Sep 2011 10:53:02 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 2/9 v6] V4L: add two new ioctl()s for multi-size videobuffer
- management
-In-Reply-To: <201109011035.48845.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1109011044270.6316@axis700.grange>
-References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
- <20110831210615.GQ12368@valkosipuli.localdomain> <Pine.LNX.4.64.1109010850560.21309@axis700.grange>
- <201109011035.48845.laurent.pinchart@ideasonboard.com>
+Received: from casper.infradead.org ([85.118.1.10]:35462 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752195Ab1ICWWH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Sep 2011 18:22:07 -0400
+Message-ID: <4E62A872.7070808@infradead.org>
+Date: Sat, 03 Sep 2011 19:21:38 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Ravi, Deepthy" <deepthy.ravi@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: Re: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
+References: <1313761725-6614-1-git-send-email-deepthy.ravi@ti.com> <201108241329.48147.laurent.pinchart@ideasonboard.com> <19F8576C6E063C45BE387C64729E739404EC007BE3@dbde02.ent.ti.com> <201108241525.47332.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201108241525.47332.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 1 Sep 2011, Laurent Pinchart wrote:
-
-> Hi Guennadi,
+Em 24-08-2011 10:25, Laurent Pinchart escreveu:
+> Hi Vaibhav,
 > 
-> On Thursday 01 September 2011 09:03:52 Guennadi Liakhovetski wrote:
-> > On Thu, 1 Sep 2011, Sakari Ailus wrote:
-> > > On Wed, Aug 31, 2011 at 08:02:41PM +0200, Guennadi Liakhovetski wrote:
+> On Wednesday 24 August 2011 14:19:01 Hiremath, Vaibhav wrote:
+>> On Wednesday, August 24, 2011 5:00 PM Laurent Pinchart wrote: 
+>>> On Wednesday 24 August 2011 13:21:27 Ravi, Deepthy wrote:
+>>>> On Wed, Aug 24, 2011 at 4:47 PM, Laurent Pinchart wrote:
+>>>>> On Friday 19 August 2011 15:48:45 Deepthy Ravi wrote:
+>>>>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>>>>>>
+>>>>>> Fix the build break caused when CONFIG_MEDIA_CONTROLLER
+>>>>>> option is disabled and if any sensor driver has to be used
+>>>>>> between MC and non MC framework compatible devices.
+>>>>>>
+>>>>>> For example,if tvp514x video decoder driver migrated to
+>>>>>> MC framework is being built without CONFIG_MEDIA_CONTROLLER
+>>>>>> option enabled, the following error messages will result.
+>>>>>> drivers/built-in.o: In function `tvp514x_remove':
+>>>>>> drivers/media/video/tvp514x.c:1285: undefined reference to
+>>>>>> `media_entity_cleanup'
+>>>>>> drivers/built-in.o: In function `tvp514x_probe':
+>>>>>> drivers/media/video/tvp514x.c:1237: undefined reference to
+>>>>>> `media_entity_init'
+>>>>>
+>>>>> If the tvp514x is migrated to the MC framework, its Kconfig option
+>>>>> should depend on MEDIA_CONTROLLER.
+>>>>
+>>>> The same TVP514x driver is being used for both MC and non MC compatible
+>>>> devices, for example OMAP3 and AM35x. So if it is made dependent on
+>>>> MEDIA CONTROLLER, we cannot enable the driver for MC independent
+>>>> devices.
+>>>
+>>> Then you should use conditional compilation in the tvp514x driver itself.
+>>> Or
+>>
+>> No. I am not in favor of conditional compilation in driver code.
 > 
-> [snip]
+> Actually, thinking some more about this, you should make the tvp514x driver 
+> depend on CONFIG_MEDIA_CONTROLLER unconditionally. This doesn't mean that the 
+> driver will become unusable by applications that are not MC-aware. 
+> Hosts/bridges don't have to export subdev nodes, they can just call subdev 
+> pad-level operations internally and let applications control the whole device 
+> through a single V4L2 video node.
 > 
-> > > > +
-> > > > 
-> > > >  /*
-> > > >  
-> > > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-> > > >   *
-> > > > 
-> > > > @@ -2182,6 +2194,9 @@ struct v4l2_dbg_chip_ident {
-> > > > 
-> > > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct
-> > > >  v4l2_event_subscription) #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V',
-> > > >  91, struct v4l2_event_subscription)
-> > > > 
-> > > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
-> > > > +#define VIDIOC_PREPARE_BUF	 _IOW('V', 93, struct v4l2_buffer)
-> > > 
-> > > Does prepare_buf ever do anything that would need to return anything to
-> > > the user? I guess the answer is "no"?
-> > 
-> > Exactly, that's why it's an "_IOW" ioctl(), not an "_IOWR", or have I
-> > misunderstood you?
+>>> better, port the AM35x driver to the MC API.
+>>
+>> Why should we use MC if I have very simple device (like AM35x) which only
+>> supports single path? I can very well use simple V4L2 sub-dev based
+>> approach (master - slave), isn't it?
 > 
-> This caught my eyes as well. Do you think VIDIOC_PREPARE_BUF could need to 
-> return information to userspace in the future ?
+> The AM35x driver should use the in-kernel MC and V4L2 subdev APIs, but it 
+> doesn't have to expose them to userspace.
 
-Let's see: "[PATCH 2/9 v6]," it has been an "_IOW" since v1, posted on 
-01.04 - exactly 5 months ago, when it was still called SUBMIT_BUF. So, 
-IIRC, since then noone has come up with even a doubt, that this might need 
-to change in the future (until today), let alone an example, what might 
-need to be given back.
+I don't agree. If AM35x doesn't expose the MC API to userspace, 
+CONFIG_MEDIA_CONTROLLER should not be required at all.
 
-But sure, I cannot look into the future, so, I'm all ears.
+Also, according with the Linux best practices, when  #if tests for config
+symbols are required, developers should put it into the header files, and
+not inside the code, as it helps to improve code readability. From
+Documentation/SubmittingPatches:
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+	2) #ifdefs are ugly
+
+	Code cluttered with ifdefs is difficult to read and maintain.  Don't do
+	it.  Instead, put your ifdefs in a header, and conditionally define
+	'static inline' functions, or macros, which are used in the code.
+	Let the compiler optimize away the "no-op" case.
+
+So, this patch is perfectly fine on my eyes.
+
+Regards,
+Mauro
