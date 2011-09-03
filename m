@@ -1,52 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:51119 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754582Ab1IGC6g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 22:58:36 -0400
-Received: by bke11 with SMTP id 11so6018481bke.19
-        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2011 19:58:35 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:45841 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752573Ab1ICPnH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Sep 2011 11:43:07 -0400
+Message-ID: <4E624B00.5040202@redhat.com>
+Date: Sat, 03 Sep 2011 12:42:56 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1315322996-10576-1-git-send-email-mchehab@redhat.com>
-References: <1315322996-10576-1-git-send-email-mchehab@redhat.com>
-Date: Tue, 6 Sep 2011 22:58:35 -0400
-Message-ID: <CAGoCfiy2hnH0Xoz_+Q8JgcB-tzuTGbfv8QdK0kv+ttP7t+EZKg@mail.gmail.com>
-Subject: Re: [PATCH 01/10] alsa_stream: port changes made on xawtv3
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] dvb-core, tda18271c2dd: define get_if_frequency()
+ callback
+References: <1315062777-12049-1-git-send-email-mchehab@redhat.com> <4E6246BB.8000500@iki.fi> <4E6249EF.9080702@iki.fi>
+In-Reply-To: <4E6249EF.9080702@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 6, 2011 at 11:29 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> There are several issues with the original alsa_stream code that got
-> fixed on xawtv3, made by me and by Hans de Goede. Basically, the
-> code were re-written, in order to follow the alsa best practises.
->
-> Backport the changes from xawtv, in order to make it to work on a
-> wider range of V4L and sound adapters.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Em 03-09-2011 12:38, Antti Palosaari escreveu:
+> On 09/03/2011 06:24 PM, Antti Palosaari wrote:
+>> On 09/03/2011 06:12 PM, Mauro Carvalho Chehab wrote:
+>>> The DRX-K frontend needs to know the IF frequency in order to work,
+>>> just like all other frontends. However, as it is a multi-standard
+>>> FE, the IF may change if the standard is changed. So, the usual
+>>> procedure of passing it via a config struct doesn't work.
+>>>
+>>> One might code it as two separate IF frequencies, one by each type
+>>> of FE, but, as, on tda18271, the IF changes if the bandwidth for
+>>> DVB-C changes, this also won't work.
+>>>
+>>> So, the better is to just add a new callback for it and require
+>>> it for the tuners that can be used with MFE frontends like drx-k.
+>>>
+>>> It makes sense to add support for it on all existing tuners, and
+>>> remove the IF parameter from the demods, cleaning up the code.
+>>
+>> Is it clear that only used tuner IC defines used IF?
+>>
+>> I have seen some cases where used IF is different depending on other
+>> used hardware, even same tuner IC used. Very good example is to see all
+>> configuration structs of old tda18271 driver. Those are mainly used for
+>> setting different IF than tuner default...
 
-Mauro,
+Not sure if I understood your comments here.
 
-What tuners did you test this patch with?  I went ahead and did a git
-pull of your patch series into my local git tree, and now my DVC-90
-(an em28xx device) is capturing at 32 KHz instead of 48 (this is one
-of the snd-usb-audio based devices, not em28xx-alsa).
+There are two separate things here:
 
-Note I tested immediately before pulling your patch series and the
-audio capture was working fine.
+1) digital tuners like tda18271, xc3028, etc allow changing the IF frequency,
+while others, like the analog tuners, have a fixed IF frequency. For digital
+tuners, it makes sense to have ways to configure it, via the tuner's configuration
+file, like the tda18271-fe driver.
 
-I think this patch series is going in the right direction in general,
-but this patch in particular seems to cause a regression.  Is this
-something you want to investigate?  I think we need to hold off on
-pulling this series into the new tvtime master until this problem is
-resolved.
+This patch doesn't change anything with that regards.
 
-Devin
+2) Demods need to know what IF is used by the tuner. Currently, the bridge driver
+needs to fill a per-demod configuration struct for it, or pass it via parameter.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+This works fine, when the IF is fixed.
+
+However, the tda18271 specs recommend different IF values for each bandwidth, and
+between dvb-t and dvb-c.
+
+It would be possible to workaround that and just use the same IF for everything
+at tda18271, not obeying the recommended values, but this seems a bad idea, as
+the chipset will be used on a non-tested configuration.
+
+So, instead of fixing the same IF at the tuner, this patch allows the tuner to
+change the IF as needed/desired, and letting the demod to change according with
+the tuner changes.
+
+I'll put the above comments at the committed patch.
+
+> Hmm, I think that will actually only reduce defining same IFs to demod which are already set to tuner allowing to remove "redundant" demod definitions. OK, now it looks fine for me.
+> 
+> Acked-by: Antti Palosaari <crope@iki.fi>
+
+Thanks!
+
+
+> 
+> 
+> Antti
+
