@@ -1,51 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog119.obsmtp.com ([207.126.144.147]:40787 "EHLO
-	eu1sys200aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756025Ab1IBJiK convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Sep 2011 05:38:10 -0400
-Received: from zeta.dmz-eu.st.com (zeta.dmz-eu.st.com [164.129.230.9])
-	by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 0AF48111
-	for <linux-media@vger.kernel.org>; Fri,  2 Sep 2011 09:38:08 +0000 (GMT)
-Received: from Webmail-eu.st.com (safex1hubcas4.st.com [10.75.90.69])
-	by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id B7E861A6C
-	for <linux-media@vger.kernel.org>; Fri,  2 Sep 2011 09:38:08 +0000 (GMT)
-From: Alain VOLMAT <alain.volmat@st.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 2 Sep 2011 11:38:06 +0200
-Subject: Questions regarding Devices/Subdevices/MediaController usage in
- case of a SoC
-Message-ID: <E27519AE45311C49887BE8C438E68FAA0100DBB53E71@SAFEX1MAIL1.st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:8149 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751751Ab1ICPNR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Sep 2011 11:13:17 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p83FDGgj009490
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 3 Sep 2011 11:13:16 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] [media] dvb-core, tda18271c2dd: define get_if_frequency() callback
+Date: Sat,  3 Sep 2011 12:12:57 -0300
+Message-Id: <1315062777-12049-1-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The DRX-K frontend needs to know the IF frequency in order to work,
+just like all other frontends. However, as it is a multi-standard
+FE, the IF may change if the standard is changed. So, the usual
+procedure of passing it via a config struct doesn't work.
 
-I'm writing you in order to have some advices in the design of the V4L2 driver for a rather complex device. It is mainly related to device/subdev/media controller.
+One might code it as two separate IF frequencies, one by each type
+of FE, but, as, on tda18271, the IF changes if the bandwidth for
+DVB-C changes, this also won't work.
 
-This driver would target SoCs which usually handle inputs (capture devices, for ex LinuxDVB, HDMI capture), several layers of graphical or video planes and outputs such as HDMI/analog. 
-Basically we have 3 levels, capture devices data being pushed onto planes and planes being mixed on outputs. Moreover it is also possible to input or output datas from several points of the device.
+So, the better is to just add a new callback for it and require
+it for the tuners that can be used with MFE frontends like drx-k.
 
-The idea is to take advantage of the new MediaController in order to be able to define internal data path by linking capture devices to layers and layers to outputs.
-Since MediaController allows to link pads of entities together, our understanding is that we need to have 1 subdevice per hardware resource. That is if we have 2 planes, we will have 2 subdevices handling them. Same for outputs and capture.
-Is our understanding correct ?
+It makes sense to add support for it on all existing tuners, and
+remove the IF parameter from the demods, cleaning up the code.
 
-A second point is now about the number of devices. I think we have 2 ways of doing that, and I would like to get your opinions about those 2 ways.
-#1 Single device:
-I could think of a single device which expose several inputs and outputs. We could enumerate them with VIDIOC_ENUM* and select them using VIDIOC_S_*. After the selection, data exchange could be done upon specifying a proper buffer type. The merit of such model is that an application using such device would only have to access the single available /dev/video0 for everything, without having to know if video0 is for capture, video1 output and so on.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-core/dvb_frontend.h  |    1 +
+ drivers/media/dvb/frontends/drxk_hard.c    |   10 +++++++++-
+ drivers/media/dvb/frontends/tda18271c2dd.c |    4 ++--
+ 3 files changed, 12 insertions(+), 3 deletions(-)
 
-#2 Multiple device:
-In such case, each video device would only provide a single (or small amount of similar) input or output. So several video device nodes would be available to the application.
-Looking at some other drivers around such as the OMAP4 ISP or Samsung S5P, it seems to be the preferred way to go, is that correct ? This way also fit more in the V4L2 model of device type (Video capture device, video output device) since way #1 would at last create a single big device which implement a mix of all those devices.
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
+index 5590eb6..67bbfa7 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
+@@ -209,6 +209,7 @@ struct dvb_tuner_ops {
+ 
+ 	int (*get_frequency)(struct dvb_frontend *fe, u32 *frequency);
+ 	int (*get_bandwidth)(struct dvb_frontend *fe, u32 *bandwidth);
++	int (*get_if_frequency)(struct dvb_frontend *fe, u32 *frequency);
+ 
+ #define TUNER_STATUS_LOCKED 1
+ #define TUNER_STATUS_STEREO 2
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index 41b0838..f6431ef 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -6211,6 +6211,14 @@ static int drxk_set_parameters(struct dvb_frontend *fe,
+ 	u32 IF;
+ 
+ 	dprintk(1, "\n");
++
++	if (!fe->ops.tuner_ops.get_if_frequency) {
++		printk(KERN_ERR
++		       "drxk: Error: get_if_frequency() not defined at tuner. Can't work without it!\n");
++		return -EINVAL;
++	}
++
++
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+ 	if (fe->ops.tuner_ops.set_params)
+@@ -6218,7 +6226,7 @@ static int drxk_set_parameters(struct dvb_frontend *fe,
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 0);
+ 	state->param = *p;
+-	fe->ops.tuner_ops.get_frequency(fe, &IF);
++	fe->ops.tuner_ops.get_if_frequency(fe, &IF);
+ 	Start(state, 0, IF);
+ 
+ 	/* printk(KERN_DEBUG "drxk: %s IF=%d done\n", __func__, IF); */
+diff --git a/drivers/media/dvb/frontends/tda18271c2dd.c b/drivers/media/dvb/frontends/tda18271c2dd.c
+index 0384e8d..1b1bf20 100644
+--- a/drivers/media/dvb/frontends/tda18271c2dd.c
++++ b/drivers/media/dvb/frontends/tda18271c2dd.c
+@@ -1195,7 +1195,7 @@ static int GetSignalStrength(s32 *pSignalStrength, u32 RFAgc, u32 IFAgc)
+ }
+ #endif
+ 
+-static int get_frequency(struct dvb_frontend *fe, u32 *frequency)
++static int get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
+ {
+ 	struct tda_state *state = fe->tuner_priv;
+ 
+@@ -1222,7 +1222,7 @@ static struct dvb_tuner_ops tuner_ops = {
+ 	.sleep             = sleep,
+ 	.set_params        = set_params,
+ 	.release           = release,
+-	.get_frequency     = get_frequency,
++	.get_if_frequency  = get_if_frequency,
+ 	.get_bandwidth     = get_bandwidth,
+ };
+ 
+-- 
+1.7.1
 
-As far as the media controller is concerned, since all those resources are not sharable, it seems proper to have only a single media entry point in order to setup the SoC and internal data path (and not abstract media to match their video device counterpart)
-
-It would be very helpful if you could advice me about the preferred design, based on your experience, existing drivers and existing applications ?
-
-Best regards,
-
-Alain Volmat
