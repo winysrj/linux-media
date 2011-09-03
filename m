@@ -1,63 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53048 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752133Ab1I0Nlk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 09:41:40 -0400
-From: Deepthy Ravi <deepthy.ravi@ti.com>
-To: <laurent.pinchart@ideasonboard.com>, <mchehab@infradead.org>,
-	<tony@atomide.com>, <hvaibhav@ti.com>,
-	<linux-media@vger.kernel.org>, <linux@arm.linux.org.uk>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<kyungmin.park@samsung.com>, <hverkuil@xs4all.nl>,
-	<m.szyprowski@samsung.com>, <g.liakhovetski@gmx.de>,
-	<santosh.shilimkar@ti.com>, <khilman@deeprootsystems.com>,
-	<linux-kernel@vger.kernel.org>
-CC: <linux-omap@vger.kernel.org>, Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: [PATCH v2 0/5] OMAP3EVM: Add support for MT9T111 sensor
-Date: Tue, 27 Sep 2011 19:10:43 +0530
-Message-ID: <1317130848-21136-1-git-send-email-deepthy.ravi@ti.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:60190 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752573Ab1ICQc4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Sep 2011 12:32:56 -0400
+Message-ID: <4E6256B2.7010407@gmail.com>
+Date: Sat, 03 Sep 2011 18:32:50 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: linux-media@vger.kernel.org
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, mchehab@redhat.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com
+Subject: Re: [PATCH 0/19 v4] s5p-fimc driver conversion to media controller
+ and control framework
+References: <1314891023-14227-1-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1314891023-14227-1-git-send-email-s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset
-	-adds support for MT9T111 sensor on omap3evm.
-	Currently the sensor driver supports only
-	VGA resolution.
-	-enables MT9T111 sensor in omap2plus_defconfig.
+On 09/01/2011 05:30 PM, Sylwester Nawrocki wrote:
+> Hello,
+>
+> following is a fourth version of the patchset converting s5p-fimc driver
+> to the media controller API and the new control framework.
+>
+> Mauro, could you please have a look at the patches and let me know of any doubts?
+> I tried to provide possibly detailed description of what each patch does and why.
+>
+> The changeset is available at:
+>    http://git.infradead.org/users/kmpark/linux-2.6-samsung
+>    branch: v4l_fimc_for_mauro
+>
+> on top of patches from Marek's 'Videobuf2&  FIMC fixes" pull request
+> which this series depends on.
+...
+>
+> Sylwester Nawrocki (19):
+>    s5p-fimc: Remove registration of video nodes from probe()
+>    s5p-fimc: Remove sclk_cam clock handling
+>    s5p-fimc: Limit number of available inputs to one
+>    s5p-fimc: Remove sensor management code from FIMC capture driver
+>    s5p-fimc: Remove v4l2_device from video capture and m2m driver
+>    s5p-fimc: Add the media device driver
+>    s5p-fimc: Conversion to use struct v4l2_fh
+>    s5p-fimc: Convert to the new control framework
+>    s5p-fimc: Add media operations in the capture entity driver
+>    s5p-fimc: Add PM helper function for streaming control
+>    s5p-fimc: Correct color format enumeration
+>    s5p-fimc: Convert to use media pipeline operations
+>    s5p-fimc: Add subdev for the FIMC processing block
+>    s5p-fimc: Add support for JPEG capture
+>    s5p-fimc: Add v4l2_device notification support for single frame
+>      capture
+>    s5p-fimc: Use consistent names for the buffer list functions
+>    s5p-fimc: Add runtime PM support in the camera capture driver
+>    s5p-fimc: Correct crop offset alignment on exynos4
+>    s5p-fimc: Remove single-planar capability flags
 
-This is dependent on the following patchset
-http://www.spinics.net/lists/linux-media/msg37270.html 
-which adds YUYV input support for OMAP3ISP. And is 
-applied on top of rc1-for-3.2 of gliakhovetski/v4l-dvb.git
----
-Changes in v2:
-	As per the discussion here,
-	https://lkml.org/lkml/2011/9/20/280
-	the existing mt9t112 driver is reused for
-	adding support for mt9t111 sensor.
-Deepthy Ravi (3):
-  [media] v4l: Add support for mt9t111 sensor driver
-  ispccdc: Configure CCDC_SYN_MODE register
-  omap2plus_defconfig: Enable omap3isp and MT9T111 sensor drivers
+oops, I've done this posting wrong, the first patch is missing here :(
+-> s5p-fimc: Add media entity initialization
 
-Vaibhav Hiremath (2):
-  omap3evm: Enable regulators for camera interface
-  omap3evm: Add Camera board init/hookup file
+Still the patch set is complete at git repository as indicated above.
+I'm sorry for the confusion.
 
- arch/arm/configs/omap2plus_defconfig        |    9 +
- arch/arm/mach-omap2/Makefile                |    5 +
- arch/arm/mach-omap2/board-omap3evm-camera.c |  185 ++++
- arch/arm/mach-omap2/board-omap3evm.c        |   26 +
- drivers/media/video/Kconfig                 |    7 +
- drivers/media/video/Makefile                |    1 +
- drivers/media/video/mt9t111_reg.h           | 1367 +++++++++++++++++++++++++++
- drivers/media/video/mt9t112.c               |  320 ++++++-
- drivers/media/video/omap3isp/ispccdc.c      |   11 +-
- include/media/mt9t111.h                     |   45 +
- 10 files changed, 1937 insertions(+), 39 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
- create mode 100644 drivers/media/video/mt9t111_reg.h
- create mode 100644 include/media/mt9t111.h
+--
+Regards,
+Sylwester
+
+
+
+
 
