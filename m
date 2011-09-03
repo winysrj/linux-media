@@ -1,68 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23397 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:55282 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753790Ab1I1UBA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Sep 2011 16:01:00 -0400
-Message-ID: <4E837CF8.3060605@redhat.com>
-Date: Wed, 28 Sep 2011 17:00:56 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1752779Ab1ICPic (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Sep 2011 11:38:32 -0400
+Message-ID: <4E6249EF.9080702@iki.fi>
+Date: Sat, 03 Sep 2011 18:38:23 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v3.2] media fixes
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] dvb-core, tda18271c2dd: define get_if_frequency()
+ callback
+References: <1315062777-12049-1-git-send-email-mchehab@redhat.com> <4E6246BB.8000500@iki.fi>
+In-Reply-To: <4E6246BB.8000500@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Linus,
+On 09/03/2011 06:24 PM, Antti Palosaari wrote:
+> On 09/03/2011 06:12 PM, Mauro Carvalho Chehab wrote:
+>> The DRX-K frontend needs to know the IF frequency in order to work,
+>> just like all other frontends. However, as it is a multi-standard
+>> FE, the IF may change if the standard is changed. So, the usual
+>> procedure of passing it via a config struct doesn't work.
+>>
+>> One might code it as two separate IF frequencies, one by each type
+>> of FE, but, as, on tda18271, the IF changes if the bandwidth for
+>> DVB-C changes, this also won't work.
+>>
+>> So, the better is to just add a new callback for it and require
+>> it for the tuners that can be used with MFE frontends like drx-k.
+>>
+>> It makes sense to add support for it on all existing tuners, and
+>> remove the IF parameter from the demods, cleaning up the code.
+>
+> Is it clear that only used tuner IC defines used IF?
+>
+> I have seen some cases where used IF is different depending on other
+> used hardware, even same tuner IC used. Very good example is to see all
+> configuration structs of old tda18271 driver. Those are mainly used for
+> setting different IF than tuner default...
 
-Please pull from:
-	git://linuxtv.org/mchehab/for_linus.git v4l_for_linus
+Hmm, I think that will actually only reduce defining same IFs to demod 
+which are already set to tuner allowing to remove "redundant" demod 
+definitions. OK, now it looks fine for me.
 
-For a few fixes at the omap3 and UVC video drivers.
+Acked-by: Antti Palosaari <crope@iki.fi>
 
-Thanks!
-Mauro
 
--
-
-Last commit at the branch: e74d83aad3709a17d68f01481f2b5f240250b1c3 [media] omap3isp: Fix build error in ispccdc.c
-
-The following changes since commit b6fd41e29dea9c6753b1843a77e50433e6123bcb:
-
-  Linux 3.1-rc6 (2011-09-12 14:02:02 -0700)
-
-are available in the git repository at:
-  git://linuxtv.org/mchehab/for_linus.git v4l_for_linus
-
-Archit Taneja (1):
-      [media] OMAP_VOUT: Fix build break caused by update_mode removal in DSS2
-
-Dave Young (1):
-      [media] v4l: Make sure we hold a reference to the v4l2_device before using it
-
-Hans Verkuil (1):
-      [media] v4l: Fix use-after-free case in v4l2_device_release
-
-Joerg Roedel (1):
-      [media] omap3isp: Fix build error in ispccdc.c
-
-Laurent Pinchart (1):
-      [media] uvcvideo: Fix crash when linking entities
-
-Ming Lei (1):
-      [media] uvcvideo: Set alternate setting 0 on resume if the bus has been reset
-
- drivers/media/video/omap/omap_vout.c   |   13 -------------
- drivers/media/video/omap3isp/ispccdc.c |    1 +
- drivers/media/video/uvc/uvc_driver.c   |    2 +-
- drivers/media/video/uvc/uvc_entity.c   |    2 +-
- drivers/media/video/uvc/uvc_video.c    |   10 +++++++++-
- drivers/media/video/uvc/uvcvideo.h     |    2 +-
- drivers/media/video/v4l2-dev.c         |   11 +++++++++++
- drivers/media/video/v4l2-device.c      |    2 ++
- 8 files changed, 26 insertions(+), 17 deletions(-)
-
+Antti
+-- 
+http://palosaari.fi/
