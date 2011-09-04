@@ -1,75 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:20645 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932306Ab1IHIKT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 Sep 2011 04:10:19 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, pawel@osciak.com,
-	mchehab@infradead.org, m.szyprowski@samsung.com
-Subject: [PATCH 1/1] v4l: Mark VIDIOC_PREPARE_BUFS and VIDIOC_CREATE_BUFS experimental.
-Date: Thu,  8 Sep 2011 11:10:02 +0300
-Message-Id: <1315469402-7145-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <Pine.LNX.4.64.1109080942172.31156@axis700.grange>
-References: <Pine.LNX.4.64.1109080942172.31156@axis700.grange>
+Received: from nschwmtas06p.mx.bigpond.com ([61.9.189.152]:19065 "EHLO
+	nschwmtas06p.mx.bigpond.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752985Ab1IDLld (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 4 Sep 2011 07:41:33 -0400
+Message-ID: <4E6363E9.407@bigpond.com>
+Date: Sun, 04 Sep 2011 21:41:29 +1000
+From: Declan Mullen <declan.mullen@bigpond.com>
+MIME-Version: 1.0
+To: Steven Toth <stoth@kernellabs.com>
+CC: linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: How to git and build HVR-2200 drivers from Kernel labs ?
+References: <201108150923.44824.declan.mullen@bigpond.com> <201108152232.46744.declan.mullen@bigpond.com> <CALzAhNW2iZA7f=hj+Kao055T-z5C-z4sArX7OE=JHU1DiyRx2Q@mail.gmail.com> <201108172233.53829.declan.mullen@bigpond.com> <CALzAhNUsACrYnSYbMj2wQN1GgBNMExLPWcnJPX0XwHiLEB2Qpw@mail.gmail.com>
+In-Reply-To: <CALzAhNUsACrYnSYbMj2wQN1GgBNMExLPWcnJPX0XwHiLEB2Qpw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a note to documentation of both VIDIOC_PREPARE_BUFS and
-VIDIOC_CREATE_BUFS that these ioctls are experimental.
+On 18/08/2011 2:20 AM, Steven Toth wrote:
+>> Eg should I use the source from "git clone git://kernellabs.com/stoth/saa7164-
+>> dev.git" or do you recommend something else that might be more stable ?
+> pull a snapshot:
+>
+> http://www.kernellabs.com/gitweb/?p=stoth/saa7164-stable.git;a=snapshot;h=87e0c0378bf2068df5d0c43acd66aea9ba71bd89;sf=tgz
+>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
-
-I think it would be even better to add the note to the ioctls themselves.
-The users are not going to be looking at the list of experimental features
-when then want to implement something.
-
- .../DocBook/media/v4l/vidioc-create-bufs.xml       |    9 +++++++++
- .../DocBook/media/v4l/vidioc-prepare-buf.xml       |    9 +++++++++
- 2 files changed, 18 insertions(+), 0 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-index eb99604..d43e24a 100644
---- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-@@ -48,6 +48,15 @@
-   <refsect1>
-     <title>Description</title>
- 
-+    <note>
-+      <title>Experimental</title>
-+
-+      <para>
-+	This is an <link linkend="experimental">experimental</link>
-+	interface and may change in the future.
-+      </para>
-+    </note>
-+
-     <para>This ioctl is used to create buffers for <link linkend="mmap">memory
- mapped</link> or <link linkend="userp">user pointer</link>
- I/O. It can be used as an alternative or in addition to the
-diff --git a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
-index 509e752..8889c6d 100644
---- a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
-@@ -48,6 +48,15 @@
-   <refsect1>
-     <title>Description</title>
- 
-+    <note>
-+      <title>Experimental</title>
-+
-+      <para>
-+	This is an <link linkend="experimental">experimental</link>
-+	interface and may change in the future.
-+      </para>
-+    </note>
-+
-     <para>Applications can optionally call the
- <constant>VIDIOC_PREPARE_BUF</constant> ioctl to pass ownership of the buffer
- to the driver before actually enqueuing it, using the
--- 
-1.7.2.5
+I've now got my card working with the saa7164 driver from the 
+"87e0c0378bf2068df5d0c43acd66aea9ba71bd89" commit. Many thanks for your 
+help.
 
