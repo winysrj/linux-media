@@ -1,137 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:57482 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752640Ab1IURUL (ORCPT
+Received: from nm2-vm0.bt.bullet.mail.ukl.yahoo.com ([217.146.182.242]:49073
+	"HELO nm2-vm0.bt.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753152Ab1IDTiT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 13:20:11 -0400
-Date: Wed, 21 Sep 2011 20:20:07 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Subject: Re: [PATCH v1 2/3] v4l: Add AUTO option for the
- V4L2_CID_POWER_LINE_FREQUENCY control
-Message-ID: <20110921172006.GQ1845@valkosipuli.localdomain>
-References: <1316519939-22540-1-git-send-email-s.nawrocki@samsung.com>
- <20110920221730.GP1845@valkosipuli.localdomain>
- <4E79D869.80708@samsung.com>
- <201109211447.30114.laurent.pinchart@ideasonboard.com>
+	Sun, 4 Sep 2011 15:38:19 -0400
+Message-ID: <4E63D3A6.3010505@yahoo.com>
+Date: Sun, 04 Sep 2011 20:38:14 +0100
+From: Chris Rankin <rankincj@yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201109211447.30114.laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: [PATCH 1/1] EM28xx - Fix memory leak on disconnect or error.
+Content-Type: multipart/mixed;
+ boundary="------------060705040009050508050601"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 21, 2011 at 02:47:29PM +0200, Laurent Pinchart wrote:
-> Hi Sylwester,
+This is a multi-part message in MIME format.
+--------------060705040009050508050601
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hi Laurent and Sylwester,
+Mauro,
 
-> On Wednesday 21 September 2011 14:28:25 Sylwester Nawrocki wrote:
-> > On 09/21/2011 12:17 AM, Sakari Ailus wrote:
-> > > On Tue, Sep 20, 2011 at 11:25:31PM +0200, Sylwester Nawrocki wrote:
-> > >> On 09/20/2011 10:57 PM, Sakari Ailus wrote:
-> > >>> On Tue, Sep 20, 2011 at 01:58:58PM +0200, Sylwester Nawrocki wrote:
-> > >>>> V4L2_CID_POWER_LINE_FREQUENCY control allows applications to instruct
-> > >>>> a driver what is the power line frequency so an appropriate filter
-> > >>>> can be used by the device to cancel flicker by compensating the light
-> > >>>> intensity ripple and thus. Currently in the menu we have entries for
-> > >>>> 50 and 60 Hz and for entirely disabling the anti-flicker filter.
-> > >>>> However some devices are capable of automatically detecting the
-> > >>>> frequency, so add V4L2_CID_POWER_LINE_FREQUENCY_AUTO entry for them.
-> > >>>> 
-> > >>>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
-> > >>>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
-> > >>>> Acked-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
-> > >>>> ---
-> > >>>> 
-> > >>>>   Documentation/DocBook/media/v4l/controls.xml |    5 +++--
-> > >>>>   drivers/media/video/v4l2-ctrls.c             |    1 +
-> > >>>>   include/linux/videodev2.h                    |    1 +
-> > >>>>   3 files changed, 5 insertions(+), 2 deletions(-)
-> > >>>> 
-> > >>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
-> > >>>> b/Documentation/DocBook/media/v4l/controls.xml index 2420e4a..c6b3c46
-> > >>>> 100644
-> > >>>> --- a/Documentation/DocBook/media/v4l/controls.xml
-> > >>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> > >>>> @@ -232,8 +232,9 @@ control is deprecated. New drivers and
-> > >>>> applications should use the
-> > >>>> 
-> > >>>>   	<entry>Enables a power line frequency filter to avoid
-> > >>>>   
-> > >>>>   flicker. Possible values for<constant>enum
-> > >>>>   v4l2_power_line_frequency</constant>  are:
-> > >>>>   <constant>V4L2_CID_POWER_LINE_FREQUENCY_DISABLED</constant>  (0),
-> > >>>> 
-> > >>>> -<constant>V4L2_CID_POWER_LINE_FREQUENCY_50HZ</constant>  (1) and
-> > >>>> -<constant>V4L2_CID_POWER_LINE_FREQUENCY_60HZ</constant>  (2).</entry>
-> > >>>> +<constant>V4L2_CID_POWER_LINE_FREQUENCY_50HZ</constant>  (1),
-> > >>>> +<constant>V4L2_CID_POWER_LINE_FREQUENCY_60HZ</constant>  (2) and
-> > >>>> +<constant>V4L2_CID_POWER_LINE_FREQUENCY_AUTO</constant>  (3).</entry>
-> > >>> 
-> > >>> A stupid question: wouldn't this be a case for a new control for
-> > >>> automatic power line frequency, in other words enabling or disabling
-> > >>> it?
-> > >> 
-> > >> IMO this would complicate things in kernel and user land, without any
-> > >> reasonable positive effects. AUTO seems to fit well here, it's just
-> > >> another mode of operation of a power line noise filter. Why make things
-> > >> more complicated than they need to be ?
-> > > 
-> > > The advantage would be to be able to get the power line frquency if
-> > > that's supported by the hardware. This implementation excludes that.
-> > > Such information might be interesting to add e.g. to the image's exif
-> > > data.
-> > 
-> > AFAIU, the power line frequency filter just modifies frame exposure time to
-> > be multiple of half of the mains frequency period. So it's the exposure
-> > time that gets finally affected. Maybe there is some hardware that
-> > supports retrieving of the detected frequency, however I'm not aware of
-> > it. And it doesn't seem useful unless you want to use camera as some
-> > non-standard measurement tool. It also takes some time until the detection
-> > algorithm locks, during this time an undefined frequency value would be
-> > read.
-> > 
-> > I believe the filter settings do not really apply to still capture as it
-> > involves periodic operation, like preview. Even if we had this as meta
-> > data tag, there are more direct raw image parameters than the PL noise
-> > filter frequency.
-> > 
-> > I feel uncomfortable with having 2 controls, where one can disable the
-> > filter and the other enable it with AUTO setting.
-> > Let's say the sensor supports 4 distinct settings of the filter: OFF, 50HZ,
-> > 60HZ, AUTO. (there is already one sensor driver in mainline that support
-> > it - ov519). How do we map this onto 2 controls ?
-> > 
-> > What do we return from the menu control that covers { OFF, 50HZ, 60HZ }
-> > when AUTO mode is enabled through the other control and H/W doesn't allow
-> > to read the detected frequency ?
-> > 
-> > I think, for the 2 controls we would need the DISABLED entry not to belong
-> > to V4L2_CID_POWER_LINE_FREQUENCY at first place.
-> > 
-> > > Not sure if that's important, though.
-> > 
-> > I would say no, but someone can prove me wrong. And who knows what kind of
-> > strange H/W future brings.
-> 
-> I think it all boils down to whether V4L2_CID_POWER_LINE_FREQUENCY is the 
-> power line frequency filter control or the power line frequency control. In 
-> the first case it doesn't make sense to use two separate controls. In the 
-> second case it could.
-> 
-> I don't think we need two controls for this, but that's just a personal 
-> opinion of the "I don't think we need to bother" type :-)
+This patch seems to have been missed, so I'm resending it.
 
-I'm fine with the auto option being part of the same control.
+Release the dev->alt_max_pkt_size buffer in all cases.
+
+Signed-off-by: Chris Rankin <rankincj@yahoo.com>
 
 Cheers,
+Chris
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+--------------060705040009050508050601
+Content-Type: text/x-patch;
+ name="EM28xx-video-leak.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="EM28xx-video-leak.diff"
+
+--- linux/drivers/media/video/em28xx/em28xx-cards.c.orig	2011-09-04 20:30:14.000000000 +0100
++++ linux/drivers/media/video/em28xx/em28xx-cards.c	2011-09-04 20:28:59.000000000 +0100
+@@ -3200,6 +3200,7 @@
+ 	retval = em28xx_init_dev(&dev, udev, interface, nr);
+ 	if (retval) {
+ 		mutex_unlock(&dev->lock);
++		kfree(dev->alt_max_pkt_size);
+ 		kfree(dev);
+ 		goto err;
+ 	}
+--- linux/drivers/media/video/em28xx/em28xx-video.c.orig	2011-09-04 20:16:52.000000000 +0100
++++ linux/drivers/media/video/em28xx/em28xx-video.c	2011-09-04 20:27:41.000000000 +0100
+@@ -2200,6 +2200,7 @@
+ 		   free the remaining resources */
+ 		if (dev->state & DEV_DISCONNECTED) {
+ 			em28xx_release_resources(dev);
++			kfree(dev->alt_max_pkt_size);
+ 			kfree(dev);
+ 			return 0;
+ 		}
+
+--------------060705040009050508050601--
