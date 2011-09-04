@@ -1,59 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33006 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754251Ab1IEO5Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 10:57:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [media-ctl][PATCHv4 3/3] libmediactl: get the device name via udev
-Date: Mon, 5 Sep 2011 16:57:21 +0200
-Cc: linux-media@vger.kernel.org
-References: <201109021326.14340.laurent.pinchart@ideasonboard.com> <201109051231.24430.laurent.pinchart@ideasonboard.com> <1315234114.28628.7.camel@smile>
-In-Reply-To: <1315234114.28628.7.camel@smile>
+Received: from moh1-ve1.go2.pl ([193.17.41.131]:49898 "EHLO moh1-ve1.go2.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752775Ab1IDTLF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 4 Sep 2011 15:11:05 -0400
+Received: from moh1-ve1.go2.pl (unknown [10.0.0.131])
+	by moh1-ve1.go2.pl (Postfix) with ESMTP id CD8F7928815
+	for <linux-media@vger.kernel.org>; Sun,  4 Sep 2011 21:11:00 +0200 (CEST)
+Received: from unknown (unknown [10.0.0.108])
+	by moh1-ve1.go2.pl (Postfix) with SMTP
+	for <linux-media@vger.kernel.org>; Sun,  4 Sep 2011 21:11:00 +0200 (CEST)
+Message-ID: <4E63CD41.7020404@o2.pl>
+Date: Sun, 04 Sep 2011 21:10:57 +0200
+From: Maciej Szmigiero <mhej@o2.pl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Arnaud Lacombe <lacombar@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Malcolm Priestley <tvboxspy@gmail.com>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Martin Wilks <m.wilks@technisat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sven Barth <pascaldragon@googlemail.com>,
+	Lucas De Marchi <lucas.demarchi@profusion.mobi>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH]Medion 95700 analog video support
+References: <4E63C8A0.7030702@o2.pl> <CACqU3MUY9sUbuA5KZht8ytyUt73e4o0Spdioui_972iY-dFBRA@mail.gmail.com>
+In-Reply-To: <CACqU3MUY9sUbuA5KZht8ytyUt73e4o0Spdioui_972iY-dFBRA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109051657.21646.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
-
-On Monday 05 September 2011 16:48:34 Andy Shevchenko wrote:
-> On Mon, 2011-09-05 at 12:31 +0200, Laurent Pinchart wrote:
-> > Hi Andy,
-> > 
-> > On Friday 02 September 2011 15:09:28 Andy Shevchenko wrote:
-> > > If configured with --with-libudev, the libmediactl is built with
-> > > libudev support. It allows to get the device name in right way in the
-> > > modern linux systems.
-> > 
-> > Thanks for the patch. We're nearly there :-)
+W dniu 04.09.2011 21:05, Arnaud Lacombe pisze:
+> Hi,
 > 
-> I see.
+> On Sun, Sep 4, 2011 at 2:51 PM, Maciej Szmigiero <mhej@o2.pl> wrote:
+>> This patch adds support for analog part of Medion 95700 in the cxusb driver.
+>>
+> For what reason am I CC'ed on this ? Most of the relevant changes I
+> ever made in the media tree were only mechanical.
 > 
-> > This will break binary compatibility if an application creates a struct
-> > media_device instances itself. On the other hand applications are not
-> > supposed to do that.
-> > 
-> > As the struct udev pointer is only used internally, what about passing it
-> > around between functions explicitly instead ?
-> 
-> That we will break the API in media_close().
-> Might be I am a blind, but I can't see the way how to do both 1) don't
-> provide static global variable and 2) don't break the API/ABI.
+> Thanks,
+>  - Arnaud
 
-What about passing the udev pointer explictly to media_enum_entities() (which 
-is static), and calling media_udev_close() in media_open() after the 
-media_enum_entities() call ?
+Hi,
 
-> So, I'll send 5th version of the patchset with API breakage.
-> Hope that what you could accept as a final version.
+get_maintainer.pl script output on this patch returned your name, thats
+why it was included.
 
-Sorry for making it so difficult :-/
+If thats a mistake I'm sorry for spamming you.
 
--- 
-Regards,
-
-Laurent Pinchart
+Best regards,
+Maciej Szmigiero
