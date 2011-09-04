@@ -1,45 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1325 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758515Ab1I3MUJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 08:20:09 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 5/7] V4L menu: remove duplicate USB dependency.
-Date: Fri, 30 Sep 2011 14:18:32 +0200
-Message-Id: <869ba38b3a89818b8c69a5c5603830a79224b279.1317384926.git.hans.verkuil@cisco.com>
-In-Reply-To: <1317385114-7475-1-git-send-email-hverkuil@xs4all.nl>
-References: <1317385114-7475-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <9198dc44ea6f7b8e481c8e6bb24c80fc1b2429ed.1317384926.git.hans.verkuil@cisco.com>
-References: <9198dc44ea6f7b8e481c8e6bb24c80fc1b2429ed.1317384926.git.hans.verkuil@cisco.com>
+Received: from ist.d-labs.de ([213.239.218.44]:47499 "EHLO mx01.d-labs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753439Ab1IDVMs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 4 Sep 2011 17:12:48 -0400
+Date: Sun, 4 Sep 2011 23:12:18 +0200
+From: Florian Mickler <florian@mickler.org>
+To: Florian Mickler <florian@mickler.org>
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
+	error27@gmail.com, pboettcher@kernellabs.com,
+	Markus_Stephan@freenet.de, jirislaby@gmail.com
+Subject: Re: [PATCH v2] [media] vp702x: fix buffer handling
+Message-ID: <20110904231218.7469551d@schatten.dmk.lab>
+In-Reply-To: <1314310275-30960-1-git-send-email-florian@mickler.org>
+References: <1312300213-29099-1-git-send-email-florian@mickler.org>
+	<1314310275-30960-1-git-send-email-florian@mickler.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Fri, 26 Aug 2011 00:11:15 +0200
+Florian Mickler <florian@mickler.org> wrote:
 
-Thanks to Guennadi Liakhovetski <g.liakhovetski@gmx.de> for pointing this
-out to me.
+> In my previous change to this driver, I was not aware, that dvb_usb_device_init
+> calls the frontend_attach routine which needs a transfer
+> buffer. So we can not setup anything private in the probe routine beforehand but
+> have to allocate when needed. This means also that we cannot use a private
+> buffer mutex to serialize that buffer but instead need to use the
+> dvb_usb_device's usb_mutex.
+> 
+> Fixes: https://bugzilla.novell.com/show_bug.cgi?id=709440
+> 
+> Tested-by: Markus Stephan <Markus_Stephan@freenet.de>
+> Signed-off-by: Florian Mickler <florian@mickler.org>
+> ---
+> 
+> So, someone who could test that driver found me after all.
+> 
+> I renamed the functions to get rid of that ugly and pointless _unlocked suffix I
+> deliriously added earlier. Markus tested this patch modulo function renaming. I am
+> so shure that this version will still work for him, that I already added his
+> Tested-by. *fingerscrossed*
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index f059eed..399804f 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -582,7 +582,7 @@ menuconfig V4L_USB_DRIVERS
- 	depends on USB
- 	default y
- 
--if V4L_USB_DRIVERS && USB
-+if V4L_USB_DRIVERS
- 
- source "drivers/media/video/uvc/Kconfig"
- 
--- 
-1.7.6.3
+Hi Mauro!
+I just checked patchwork and in case you hold off on this because of my
+*fingerscrossed* remark above: Markus reported off-list that this
+version still works for him. 
+
+Regards,
+Flo
 
