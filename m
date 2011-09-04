@@ -1,208 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35635 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752608Ab1IWW3j (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Sep 2011 18:29:39 -0400
-Message-ID: <4E7D084D.2060306@redhat.com>
-Date: Fri, 23 Sep 2011 19:29:33 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from nm3-vm0.bt.bullet.mail.ukl.yahoo.com ([217.146.182.230]:36866
+	"HELO nm3-vm0.bt.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752792Ab1IDT0Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 4 Sep 2011 15:26:25 -0400
+Message-ID: <4E63D0DD.2050508@yahoo.com>
+Date: Sun, 04 Sep 2011 20:26:21 +0100
+From: Chris Rankin <rankincj@yahoo.com>
 MIME-Version: 1.0
-To: doronc@siano-ms.com
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
 CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 8/17]DVB:Siano drivers -  Hide smscore structure from
- all modules which are not the core device.
-References: <1316514684.5199.86.camel@Doron-Ubuntu>
-In-Reply-To: <1316514684.5199.86.camel@Doron-Ubuntu>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Subject: Re: [git:v4l-dvb/for_v3.2] [media] em28xx: use atomic bit operations
+ for devices-in-use mask
+References: <E1R00r0-0005PG-6Q@www.linuxtv.org>
+In-Reply-To: <E1R00r0-0005PG-6Q@www.linuxtv.org>
+Content-Type: multipart/mixed;
+ boundary="------------080304080400060603040008"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 20-09-2011 07:31, Doron Cohen escreveu:
-> Hi,
-> This patch makes smscore structure hidden from all other module by
-> making it's pointer NULL.
-> 
-> Thanks,
-> Doron Cohen
-> 
-> --------------
-> 
-> 
->>From b003e8ec2893b7d6e68720abeb490fba38904e59 Mon Sep 17 00:00:00 2001
-> From: Doron Cohen <doronc@siano-ms.com>
-> Date: Mon, 19 Sep 2011 14:16:02 +0300
-> Subject: [PATCH 11/21] Hide smscore data by making pointer NULL with
-> unkniown fields.
+This is a multi-part message in MIME format.
+--------------080304080400060603040008
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Please better explain this patch at the description: why to hide smscore data here?
+On 04/09/11 00:49, Mauro Carvalho Chehab wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the
+> http://git.linuxtv.org/media_tree.git tree:
+>
+> Subject: [media] em28xx: use atomic bit operations for devices-in-use mask
+> Author:  Chris Rankin<rankincj@yahoo.com>
+> Date:    Sat Aug 20 08:21:03 2011 -0300
+>
+> Use atomic bit operations for the em28xx_devused mask, to prevent an
+> unlikely race condition should two adapters be plugged in
+> simultaneously. The operations also clearer than explicit bit
+> manipulation anyway.
+>
+> Signed-off-by: Chris Rankin<rankincj@yahoo.com>
+> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+>
+>   drivers/media/video/em28xx/em28xx-cards.c |   33 ++++++++++++++---------------
+>   1 files changed, 16 insertions(+), 17 deletions(-)
 
-> 
-> ---
->  drivers/media/dvb/siano/smsdvb.c |   65
-> +++++++++++++++++++++-----------------
->  1 files changed, 36 insertions(+), 29 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/siano/smsdvb.c
-> b/drivers/media/dvb/siano/smsdvb.c
-> index 62dd37c..2695d3a 100644
-> --- a/drivers/media/dvb/siano/smsdvb.c
-> +++ b/drivers/media/dvb/siano/smsdvb.c
-> @@ -37,7 +37,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
->  struct smsdvb_client_t {
->  	struct list_head entry;
->  
-> -	struct smscore_device_t *coredev;
-> +	void *coredev;
->  	struct smscore_client_t *smsclient;
->  
->  	struct dvb_adapter      adapter;
-> @@ -73,15 +73,15 @@ enum SMS_DVB3_EVENTS {
->  static struct list_head g_smsdvb_clients;
->  static struct mutex g_smsdvb_clientslock;
->  
-> -static int sms_dbg;
-> -module_param_named(debug, sms_dbg, int, 0644);
-> +int sms_debug;
-> +module_param_named(debug, sms_debug, int, 0644);
->  MODULE_PARM_DESC(debug, "set debug level (info=1, adv=2 (or-able))");
->  
->  /* Events that may come from DVB v3 adapter */
->  static void sms_board_dvb3_event(struct smsdvb_client_t *client,
->  		enum SMS_DVB3_EVENTS event) {
->  
-> -	struct smscore_device_t *coredev = client->coredev;
-> +	void *coredev = client->coredev;
->  	switch (event) {
->  	case DVB3_EVENT_INIT:
->  		sms_debug("DVB3_EVENT_INIT");
-> @@ -656,45 +656,43 @@ static int smsdvb_isdbt_set_frontend(struct
-> dvb_frontend *fe,
->  	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->  	struct smsdvb_client_t *client =
->  		container_of(fe, struct smsdvb_client_t, frontend);
-> -
-> -	struct {
-> -		struct SmsMsgHdr_S	Msg;
-> -		u32		Data[4];
-> -	} Msg;
-> +	struct SmsMsgData4Args_S Msg;
->  
->  	fe->dtv_property_cache.delivery_system = SYS_ISDBT;
->  
-> -	Msg.Msg.msgSrcId  = DVBT_BDA_CONTROL_MSG_ID;
-> -	Msg.Msg.msgDstId  = HIF_TASK;
-> -	Msg.Msg.msgFlags  = 0;
-> -	Msg.Msg.msgType   = MSG_SMS_ISDBT_TUNE_REQ;
-> -	Msg.Msg.msgLength = sizeof(Msg);
-> -
-> +	Msg.xMsgHeader.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
-> +	Msg.xMsgHeader.msgDstId = HIF_TASK;
-> +	Msg.xMsgHeader.msgFlags = 0;
-> +	Msg.xMsgHeader.msgType   = MSG_SMS_ISDBT_TUNE_REQ;
-> +	Msg.xMsgHeader.msgLength = sizeof(Msg);
-> +	Msg.msgData[0] = p->frequency;
->  	if (c->isdbt_sb_segment_idx == -1)
->  		c->isdbt_sb_segment_idx = 0;
-> +	sms_info("freq %d band %d",
-> +		  p->frequency, p->u.ofdm.bandwidth);
->  
->  	switch (c->isdbt_sb_segment_count) {
->  	case 3:
-> -		Msg.Data[1] = BW_ISDBT_3SEG;
-> +		Msg.msgData[1] = BW_ISDBT_3SEG;
->  		break;
->  	case 1:
-> -		Msg.Data[1] = BW_ISDBT_1SEG;
-> +		Msg.msgData[1] = BW_ISDBT_1SEG;
->  		break;
->  	case 0:	/* AUTO */
->  		switch (c->bandwidth_hz / 1000000) {
->  		case 8:
->  		case 7:
->  			c->isdbt_sb_segment_count = 3;
-> -			Msg.Data[1] = BW_ISDBT_3SEG;
-> +			Msg.msgData[1] = BW_ISDBT_3SEG;
->  			break;
->  		case 6:
->  			c->isdbt_sb_segment_count = 1;
-> -			Msg.Data[1] = BW_ISDBT_1SEG;
-> +			Msg.msgData[1] = BW_ISDBT_1SEG;
->  			break;
->  		default: /* Assumes 6 MHZ bw */
->  			c->isdbt_sb_segment_count = 1;
->  			c->bandwidth_hz = 6000;
-> -			Msg.Data[1] = BW_ISDBT_1SEG;
-> +			Msg.msgData[1] = BW_ISDBT_1SEG;
->  			break;
->  		}
->  		break;
-> @@ -702,10 +700,9 @@ static int smsdvb_isdbt_set_frontend(struct
-> dvb_frontend *fe,
->  		sms_info("Segment count %d not supported",
-> c->isdbt_sb_segment_count);
->  		return -EINVAL;
->  	}
-> -
-> -	Msg.Data[0] = c->frequency;
-> -	Msg.Data[2] = 12000000;
-> -	Msg.Data[3] = c->isdbt_sb_segment_idx;
-> +        Msg.msgData[0] = c->frequency;
-> +	Msg.msgData[2] = 12000000;
-> +	Msg.msgData[3] = c->isdbt_sb_segment_idx;
->  
->  	sms_info("%s: freq %d segwidth %d segindex %d\n", __func__,
->  		 c->frequency, c->isdbt_sb_segment_count,
-> @@ -782,7 +779,7 @@ static struct dvb_frontend_ops smsdvb_fe_ops = {
->  	.info = {
->  		.name			= "Siano Mobile Digital MDTV Receiver",
->  		.type			= FE_OFDM,
-> -		.frequency_min		= 44250000,
-> +	        .frequency_min = 164000000,
->  		.frequency_max		= 867250000,
->  		.frequency_stepsize	= 250000,
->  		.caps = FE_CAN_INVERSION_AUTO |
-> @@ -811,16 +808,24 @@ static struct dvb_frontend_ops smsdvb_fe_ops = {
->  	.sleep = smsdvb_sleep,
->  };
->  
-> -static int smsdvb_hotplug(void *coredev,
-> -			  struct device *device, int arrival)
-> +static int smsdvb_hotplug(void *coredev, struct device *device, int
-> arrival)
->  {
->  	struct smsclient_params_t params;
->  	struct smsdvb_client_t *client;
->  	int rc;
-> +	int mode = smscore_get_device_mode(coredev);
->  
->  	/* device removal handled by onremove callback */
->  	if (!arrival)
->  		return 0;
-> +
-> +	if ( (mode != SMSHOSTLIB_DEVMD_DVBT_BDA) &&
-> +	     (mode != SMSHOSTLIB_DEVMD_ISDBT_BDA) ) {
-> +		sms_err("SMS Device mode is not set for "
-> +			"DVB operation.");
-> +		return 0;
-> +	}
-> +
+Hi Mauro,
 
-Hmm... this looks weird to me: why to only enable the two above modes?
+I think you missed this line in the merge.
 
->  	client = kzalloc(sizeof(struct smsdvb_client_t), GFP_KERNEL);
->  	if (!client) {
->  		sms_err("kmalloc() failed");
-> @@ -949,6 +954,8 @@ static void __exit smsdvb_module_exit(void)
->  module_init(smsdvb_module_init);
->  module_exit(smsdvb_module_exit);
->  
-> -MODULE_DESCRIPTION("SMS DVB subsystem adaptation module");
-> -MODULE_AUTHOR("Siano Mobile Silicon, Inc. (uris@siano-ms.com)");
-> +#define MODULE_VERSION_STRING "Siano DVB module for LinuxTV interface
-> "VERSION_STRING
-> +
-> +MODULE_DESCRIPTION(MODULE_VERSION_STRING);
-> +MODULE_AUTHOR(MODULE_AUTHOR_STRING);
->  MODULE_LICENSE("GPL");
+Cheers,
+Chris
 
+--------------080304080400060603040008
+Content-Type: text/x-patch;
+ name="EM28xx-more-devunused-bits.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="EM28xx-more-devunused-bits.diff"
+
+--- linux/drivers/media/video/em28xx/em28xx-cards.c.orig	2011-09-04 20:17:00.000000000 +0100
++++ linux/drivers/media/video/em28xx/em28xx-cards.c	2011-09-04 20:19:21.000000000 +0100
+@@ -3083,7 +3083,6 @@
+ 				em28xx_err(DRIVER_NAME " This is an anciliary "
+ 					"interface not used by the driver\n");
+ 
+-				em28xx_devused &= ~(1<<nr);
+ 				retval = -ENODEV;
+ 				goto err;
+ 			}
+
+--------------080304080400060603040008--
