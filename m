@@ -1,213 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:57739 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753307Ab1IFJfY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 05:35:24 -0400
-Received: by gya6 with SMTP id 6so3660109gya.19
-        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2011 02:35:24 -0700 (PDT)
+Received: from smtp-68.nebula.fi ([83.145.220.68]:43591 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753082Ab1IEM4J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 08:56:09 -0400
+Date: Mon, 5 Sep 2011 15:55:58 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH 1/4] v4l: add support for selection api
+Message-ID: <20110905125558.GC955@valkosipuli.localdomain>
+References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com>
+ <1314793703-32345-2-git-send-email-t.stanislaws@samsung.com>
+ <20110905102508.GB955@valkosipuli.localdomain>
+ <201109051452.04372.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <20110906090910.GD1393@valkosipuli.localdomain>
-References: <20110831212010.GS12368@valkosipuli.localdomain>
-	<Pine.LNX.4.64.1109010911550.21309@axis700.grange>
-	<20110901084722.GV12368@valkosipuli.localdomain>
-	<4E5F4CE0.8050909@samsung.com>
-	<20110901120801.GA12368@valkosipuli.localdomain>
-	<CABYn4sx8s0nX5iooKM4XHs1Ard_nLS4ppB848EpGLS4bQbemyw@mail.gmail.com>
-	<20110906065313.GB1393@valkosipuli.localdomain>
-	<CABYn4sxWHRWqNTtsisNvwUr+ZG5djLA-f5GNCf72i6q983tGNg@mail.gmail.com>
-	<20110906082739.GC1393@valkosipuli.localdomain>
-	<CABYn4sxob_OXJ3cHF+CmOB+68C2T4XznjcXm7s1n_YwbXAwYwg@mail.gmail.com>
-	<20110906090910.GD1393@valkosipuli.localdomain>
-Date: Tue, 6 Sep 2011 09:35:24 +0000
-Message-ID: <CABYn4swEYcwzTpYVjG9DCR2C3+68_QArrZuxW0KvEKtOhGt1rg@mail.gmail.com>
-Subject: Re: [PATCH] media: Add camera controls for the ov5642 driver
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201109051452.04372.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sakari,
+On Mon, Sep 05, 2011 at 02:52:03PM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Monday 05 September 2011 12:25:08 Sakari Ailus wrote:
+> > On Wed, Aug 31, 2011 at 02:28:20PM +0200, Tomasz Stanislawski wrote:
+> > > This patch introduces new api for a precise control of cropping and
+> > > composing features for video devices. The new ioctls are
+> > > VIDIOC_S_SELECTION and VIDIOC_G_SELECTION.
+> > > 
+> > > Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> > > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > > ---
+> > > 
+> > >  drivers/media/video/v4l2-compat-ioctl32.c |    2 +
+> > >  drivers/media/video/v4l2-ioctl.c          |   28 +++++++++++++++++
+> > >  include/linux/videodev2.h                 |   46
+> > >  +++++++++++++++++++++++++++++ include/media/v4l2-ioctl.h               
+> > >  |    4 ++
+> > >  4 files changed, 80 insertions(+), 0 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/video/v4l2-compat-ioctl32.c
+> > > b/drivers/media/video/v4l2-compat-ioctl32.c index 61979b7..f3b9d15
+> > > 100644
+> > > --- a/drivers/media/video/v4l2-compat-ioctl32.c
+> > > +++ b/drivers/media/video/v4l2-compat-ioctl32.c
+> > > @@ -927,6 +927,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned
+> > > int cmd, unsigned long arg)
+> > > 
+> > >  	case VIDIOC_CROPCAP:
+> > >  	case VIDIOC_G_CROP:
+> > > 
+> > >  	case VIDIOC_S_CROP:
+> > > +	case VIDIOC_G_SELECTION:
+> > > 
+> > > +	case VIDIOC_S_SELECTION:
+> > >  	case VIDIOC_G_JPEGCOMP:
+> > >  	case VIDIOC_S_JPEGCOMP:
+> > > 
+> > >  	case VIDIOC_QUERYSTD:
+> > > diff --git a/drivers/media/video/v4l2-ioctl.c
+> > > b/drivers/media/video/v4l2-ioctl.c index 002ce13..6e02b45 100644
+> > > --- a/drivers/media/video/v4l2-ioctl.c
+> > > +++ b/drivers/media/video/v4l2-ioctl.c
+> > > @@ -225,6 +225,8 @@ static const char *v4l2_ioctls[] = {
+> > > 
+> > >  	[_IOC_NR(VIDIOC_CROPCAP)]          = "VIDIOC_CROPCAP",
+> > >  	[_IOC_NR(VIDIOC_G_CROP)]           = "VIDIOC_G_CROP",
+> > >  	[_IOC_NR(VIDIOC_S_CROP)]           = "VIDIOC_S_CROP",
+> > > 
+> > > +	[_IOC_NR(VIDIOC_G_SELECTION)]      = "VIDIOC_G_SELECTION",
+> > > +	[_IOC_NR(VIDIOC_S_SELECTION)]      = "VIDIOC_S_SELECTION",
+> > > 
+> > >  	[_IOC_NR(VIDIOC_G_JPEGCOMP)]       = "VIDIOC_G_JPEGCOMP",
+> > >  	[_IOC_NR(VIDIOC_S_JPEGCOMP)]       = "VIDIOC_S_JPEGCOMP",
+> > >  	[_IOC_NR(VIDIOC_QUERYSTD)]         = "VIDIOC_QUERYSTD",
+> > > 
+> > > @@ -1714,6 +1716,32 @@ static long __video_do_ioctl(struct file *file,
+> > > 
+> > >  		ret = ops->vidioc_s_crop(file, fh, p);
+> > >  		break;
+> > >  	
+> > >  	}
+> > > 
+> > > +	case VIDIOC_G_SELECTION:
+> > > +	{
+> > > +		struct v4l2_selection *p = arg;
+> > > +
+> > > +		if (!ops->vidioc_g_selection)
+> > > +			break;
+> > > +
+> > > +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+> > > +
+> > > +		ret = ops->vidioc_g_selection(file, fh, p);
+> > > +		if (!ret)
+> > > +			dbgrect(vfd, "", &p->r);
+> > > +		break;
+> > > +	}
+> > > +	case VIDIOC_S_SELECTION:
+> > > +	{
+> > > +		struct v4l2_selection *p = arg;
+> > > +
+> > > +		if (!ops->vidioc_s_selection)
+> > > +			break;
+> > > +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+> > > +		dbgrect(vfd, "", &p->r);
+> > > +
+> > > +		ret = ops->vidioc_s_selection(file, fh, p);
+> > > +		break;
+> > > +	}
+> > > 
+> > >  	case VIDIOC_CROPCAP:
+> > >  	{
+> > >  	
+> > >  		struct v4l2_cropcap *p = arg;
+> > > 
+> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > > index fca24cc..b7471fe 100644
+> > > --- a/include/linux/videodev2.h
+> > > +++ b/include/linux/videodev2.h
+> > > @@ -738,6 +738,48 @@ struct v4l2_crop {
+> > > 
+> > >  	struct v4l2_rect        c;
+> > >  
+> > >  };
+> > > 
+> > > +/* Hints for adjustments of selection rectangle */
+> > > +#define V4L2_SEL_SIZE_GE	0x00000001
+> > > +#define V4L2_SEL_SIZE_LE	0x00000002
+> > > +
+> > > +/* Selection targets */
+> > > +
+> > > +/* current cropping area */
+> > > +#define V4L2_SEL_CROP_ACTIVE		0
+> > > +/* default cropping area */
+> > > +#define V4L2_SEL_CROP_DEFAULT		1
+> > > +/* cropping bounds */
+> > > +#define V4L2_SEL_CROP_BOUNDS		2
+> > > +/* current composing area */
+> > > +#define V4L2_SEL_COMPOSE_ACTIVE		256
+> > > +/* default composing area */
+> > > +#define V4L2_SEL_COMPOSE_DEFAULT	257
+> > > +/* composing bounds */
+> > > +#define V4L2_SEL_COMPOSE_BOUNDS		258
+> > > +/* current composing area plus all padding pixels */
+> > > +#define V4L2_SEL_COMPOSE_PADDED		259
+> > > +
+> > > +/**
+> > > + * struct v4l2_selection - selection info
+> > > + * @type:	buffer type (do not use *_MPLANE types)
+> > > + * @target:	selection target, used to choose one of possible rectangles
+> > > + * @flags:	constraints flags
+> > > + * @r:		coordinates of selection window
+> > > + * @reserved:	for future use, rounds structure size to 64 bytes, set to
+> > > zero + *
+> > > + * Hardware may use multiple helper window to process a video stream.
+> > > + * The structure is used to exchange this selection areas between
+> > > + * an application and a driver.
+> > > + */
+> > > +struct v4l2_selection {
+> > > +	__u32			type;
+> > > +	__u32			target;
+> > > +	__u32                   flags;
+> > > +	struct v4l2_rect        r;
+> > > +	__u32                   reserved[9];
+> > > +};
+> > 
+> > The v4l2_selection doesn't have "which" field such as v4l2_subdev_crop and
+> > v4l2_subdev_format. This field is used to differentiate between try and
+> > active format / crop. Shouldn't we use the same approach in selection?
+> 
+> We definitely should, for the subdev-level selection API. This is the V4L2 
+> selection API, and V4L2 uses a VIDIOC_TRY_* approach instead.
 
-2011/9/6 Sakari Ailus <sakari.ailus@iki.fi>:
-> On Tue, Sep 06, 2011 at 09:01:15AM +0000, Bastian Hecht wrote:
->> 2011/9/6 Sakari Ailus <sakari.ailus@iki.fi>:
->> > On Tue, Sep 06, 2011 at 07:56:40AM +0000, Bastian Hecht wrote:
->> >> Hello Sakari!
->> >
->> > Hi Bastian,
->> >
->> >> 2011/9/6 Sakari Ailus <sakari.ailus@iki.fi>:
->> >> > Hi Bastian,
->> >> >
->> >> > On Mon, Sep 05, 2011 at 09:32:55AM +0000, Bastian Hecht wrote:
->> >> >> 2011/9/1 Sakari Ailus <sakari.ailus@iki.fi>:
->> >> >> > On Thu, Sep 01, 2011 at 11:14:08AM +0200, Sylwester Nawrocki wrote:
->> >> >> >> Hi Sakari,
->> >> >> >>
->> >> >> >> On 09/01/2011 10:47 AM, Sakari Ailus wrote:
->> >> >> >> > On Thu, Sep 01, 2011 at 09:15:20AM +0200, Guennadi Liakhovetski wrote:
->> >> >> >> >> On Thu, 1 Sep 2011, Sakari Ailus wrote:
->> >> >> >> >>
->> >> >> >> >>> On Wed, Aug 31, 2011 at 03:27:49PM +0000, Bastian Hecht wrote:
->> >> >> >> >>>> 2011/8/28 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> >> >> >> >>> [clip]
->> >> >> >> >>>>> If I'm not mistaken V4L2_CID_PRIVATE_BASE is deprecated.
->> >> >> >> >>>>
->> >> >> >> >>>> I checked at http://v4l2spec.bytesex.org/spec/x542.htm, googled
->> >> >> >> >>>> "V4L2_CID_PRIVATE_BASE deprecated" and read
->> >> >> >> >>>> Documentation/feature-removal-schedule.txt. I couldn't find anything.
->> >> >> >> >>>
->> >> >> >> >>> Hmm. Did you happen to check when that has been written? :)
->> >> >> >> >>>
->> >> >> >> >>> Please use this one instead:
->> >> >> >> >>>
->> >> >> >> >>> <URL:http://hverkuil.home.xs4all.nl/spec/media.html>
->> >> >> >> >>
->> >> >> >> >> "Drivers can also implement their own custom controls using
->> >> >> >> >> V4L2_CID_PRIVATE_BASE and higher values."
->> >> >> >> >>
->> >> >> >> >> Which specific location describes V4L2_CID_PRIVATE_BASE differently there?
->> >> >> >> >
->> >> >> >> > That was a general comment, not related to the private base. There's no
->> >> >> >> > use for a three-year-old spec as a reference!
->> >> >> >> >
->> >> >> >> > The control framework does not support private controls, for example. The
->> >> >> >> > controls should be put to their own class in videodev2.h nowadays, that's my
->> >> >> >> > understanding. Cc Hans.
->> >> >> >>
->> >> >> >> Is this really the case that we close the door for private controls in
->> >> >> >> the mainline kernel ? Or am I misunderstanding something ?
->> >> >> >> How about v4l2_ctrl_new_custom() ?
->> >> >> >>
->> >> >> >> What if there are controls applicable to single driver only ?
->> >> >> >> Do we really want to have plenty of such in videodev2.h ?
->> >> >> >
->> >> >> > We have some of those already in videodev2.h. I'm not certain if I'm happy
->> >> >> > with this myself, considering e.g. that we could get a few truckloads of
->> >> >> > only camera lens hardware specific controls in the near future.
->> >> >>
->> >> >> So in my case (as these are controls that might be used by others too)
->> >> >> I should add something like
->> >> >>
->> >> >> #define V4L2_CID_BLUE_SATURATION              (V4L2_CID_CAMERA_CLASS_BASE+19)
->> >> >> #define V4L2_CID_RED_SATURATION               (V4L2_CID_CAMERA_CLASS_BASE+20)
->> >> >
->> >> > What do these two controls do? Do they control gain or something else?
->> >>
->> >> Hmm. Maybe I named them a bit unsharp. It is the U Saturation and V
->> >> Saturation. To me it looks like turning up the saturation in HSV
->> >> space, but only for either the blue or the red channel. This would
->> >> correspond to V4L2_CID_{RED,BLUE}_BALANCE when I read the docs. They
->> >> say it is "{Red,Blue} chroma balance".
->> >>
->> >> I have other controls for that I used V4L2_CID_{RED,BLUE}_BALANCE.
->> >> These are gains. So in fact I should swap them in my code and the
->> >> remaining question is, how to name the red and blue gain controls.
->> >
->> > I think Laurent had a similar issue in his Aptina sensor driver. In my
->> > opinion we need a class for low level controls such as the gain ones. Do I
->> > understand correctly they control the red and blue pixel gain in the sensor
->> > pixel matrix? Do you also have gain controls for the two greens?
->>
->> Yes, I assume that this is done there. Either in the analog circuit by
->> decreasing the preload or digitally then. Don't know exactly. There
->> are registers for the green pixels as well. As I used the
->> V4L2_CID_{RED,BLUE}_BALANCE controls and there was no
->> V4L2_CID_GREEN_BALANCE, I just skipped green as one can
->> increase/decrease the global gain and get an arbitrary mix as well.
->>
->> So for these gain settings we should add these?
->> V4L2_CID_RED_GAIN
->> V4L2_CID_BLUE_GAIN
->> V4L2_CID_GREEN_GAIN
->
-> Do you have two or just one green gains? In all sensors I've seen there are
-> two.
+Oops. I missed that one. :-P I was only thinking of the subdev nodes. :-)
 
-No, here is only one.
-
-> I think I could send an RFC on this to the list and cc you and Laurent.
-
-Ok fine, thanks! But hmmm - what do I do with my driver in the
-meantime actually? Stall the upstream process or remove my controls
-temporarily - or is there a better way?
-
->> >> >> #define V4L2_CID_GRAY_SCALE_IMAGE             (V4L2_CID_CAMERA_CLASS_BASE+21)
->> >> >
->> >> > V4L2_CID_COLOR_KILLER looks like something which would fit for the purpose.
->> >>
->> >> Oh great! So I just take this.
->> >>
->> >> >> #define V4L2_CID_SOLARIZE_EFFECT              (V4L2_CID_CAMERA_CLASS_BASE+22)
->> >> >
->> >> > Sounds interesting for a sensor. I wonder if this would fall under a menu
->> >> > control, V4L2_CID_COLORFX.
->> >>
->> >> When I read the the possible enums for V4L2_CID_COLORFX, it indeed
->> >> sounds very much like my solarize effect should be added there too. I
->> >> found V4L2_COLORFX_BW there, too. Isn't that a duplicate of the color
->> >> killer control then?
->> >
->> > In my opinion V4L2_CID_COLORFX should never be implemented in drivers for
->> > which the hardware doesn't implement these effects in a non-parametrisable
->> > way. This control was originally added for the OMAP 3 ISP driver but the
->> > driver never implemented it.
->>
->> Your triple negation (never, doesn't, non-) is quite tricky xD
->> If I get it right, you say that one should not use V4L2_CID_COLORFX
->> for hardware with parametrisable effects.
->
-> Yes. I could have written that in a more clear way. ;-)
-
-After starring dazzled for 2 minutes on it, I realized at some point
-that formal logic is your friend ;)
-
->> My BW and Solarize effects are non-parametrisable and they can be
->> turned on together (which makes not so much sense though - but these
->> fun-effects like "solarize" aren't here to make sense, I guess :-) ).
->
-> Good.
->
-> The OMAP 3 ISP actually provides a way to set gamma tables, any effects
-> implemented using them are more or less use case specific. There are also
-> other uses for those same gamma tables, making a driver implementation for
-> effects using them non-functional in practice.
-
-Ok I see. Luckily (for me) in my sensor it is binary on/off only.
-
->> > I think you have a valid case using this control. I think the main
->> > difference between the two is that V4L2_COLORFX_BW is something that you
->> > can't use with other effects while V4L2_CID_COLOR_KILLER can be used with
->> > any of the effects.
->>
->> > Based on your original proposal the black/white should stay as a separate
->> > control but the solarise should be configurable through V4L2_CID_COLORFX
->> > menu control. So it boils down to the question whether you can use them at
->> > the same time.
->>
->> I can - so it is still working to enable V4L2_COLORFX_BW and
->> V4L2_CID_COLORFX with a new enum value, right? Is that the way to go
->> now?
->
-> That's my opinion, yes.
-
-So I will post an additional patch for videodev2.h with
-enum v4l2_colorfx {
-        ...
-	V4L2_COLORFX_SOLARIZE = 10,
-};
-
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     jabber/XMPP/Gmail: sailus@retiisi.org.uk
->
-
-Thanks,
-
- Bastian
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
