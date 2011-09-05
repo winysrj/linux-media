@@ -1,41 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58267 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755479Ab1IQPeF (ORCPT
+Received: from nm2.bt.bullet.mail.ukl.yahoo.com ([217.146.183.200]:45391 "HELO
+	nm2.bt.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753559Ab1IEO0h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Sep 2011 11:34:05 -0400
-Received: from localhost.localdomain (unknown [91.178.181.94])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 0A93935AA3
-	for <linux-media@vger.kernel.org>; Sat, 17 Sep 2011 15:34:03 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 5/5] USB: export video.h to the includes available for userspace
-Date: Sat, 17 Sep 2011 17:34:02 +0200
-Message-Id: <1316273642-3624-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1316273642-3624-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1316273642-3624-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 5 Sep 2011 10:26:37 -0400
+Message-ID: <4E64DC18.1060308@yahoo.com>
+Date: Mon, 05 Sep 2011 15:26:32 +0100
+From: Chris Rankin <rankincj@yahoo.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: ERROR: "em28xx_add_into_devlist" [drivers/media/video/em28xx/em28xx.ko]
+ undefined!
+References: <4E640DBB.8010504@iki.fi> <4E64148A.3010704@yahoo.com> <4E6416D6.2060706@iki.fi> <4E64192E.7060505@yahoo.com> <4E64D566.4070105@redhat.com>
+In-Reply-To: <4E64D566.4070105@redhat.com>
+Content-Type: multipart/mixed;
+ boundary="------------030108040208010102070408"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Marek Szyprowski <m.szyprowski@samsung.com>
+This is a multi-part message in MIME format.
+--------------030108040208010102070408
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-The uvcvideo extension unit API requires constants defined in the
-video.h header. Add it to the list of includes exported to userspace.
+On 05/09/11 14:57, Mauro Carvalho Chehab wrote:
+> Could you please provide me a patch for it? I'll merge with your original one
+> when submitting it upstream.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/usb/Kbuild |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Here you go. Did you also pick up the other merge fix and the (separate) memory 
+leak fix, please?
 
-diff --git a/include/linux/usb/Kbuild b/include/linux/usb/Kbuild
-index ed91fb6..b607f35 100644
---- a/include/linux/usb/Kbuild
-+++ b/include/linux/usb/Kbuild
-@@ -7,3 +7,4 @@ header-y += gadgetfs.h
- header-y += midi.h
- header-y += g_printer.h
- header-y += tmc.h
-+header-y += video.h
--- 
-1.7.3.4
+Cheers,
+Chris
 
+Signed-off-by: Chris Rankin <rankincj@yahoo.com>
+
+
+--------------030108040208010102070408
+Content-Type: text/x-patch;
+ name="EM28xx-devlist-merge-fix.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="EM28xx-devlist-merge-fix.diff"
+
+--- linux/drivers/media/video/em28xx/em28xx-cards.c.orig	2011-09-05 15:21:38.000000000 +0100
++++ linux/drivers/media/video/em28xx/em28xx-cards.c	2011-09-05 15:21:55.000000000 +0100
+@@ -2885,7 +2885,6 @@
+ 		retval = em28xx_audio_setup(dev);
+ 		if (retval)
+ 			return -ENODEV;
+-		em28xx_add_into_devlist(dev);
+ 		em28xx_init_extension(dev);
+ 
+ 		return 0;
+
+--------------030108040208010102070408--
