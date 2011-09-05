@@ -1,28 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:59384 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1758154Ab1IILqP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2011 07:46:15 -0400
-Date: Fri, 9 Sep 2011 13:46:34 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: recursive locking problem
-Message-ID: <20110909114634.GA22776@minime.bse>
-References: <4E68EE98.90201@iki.fi>
+Received: from mx1.redhat.com ([209.132.183.28]:5071 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753050Ab1IEN6I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Sep 2011 09:58:08 -0400
+Message-ID: <4E64D566.4070105@redhat.com>
+Date: Mon, 05 Sep 2011 10:57:58 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4E68EE98.90201@iki.fi>
+To: Chris Rankin <rankincj@yahoo.com>
+CC: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: ERROR: "em28xx_add_into_devlist" [drivers/media/video/em28xx/em28xx.ko]
+ undefined!
+References: <4E640DBB.8010504@iki.fi> <4E64148A.3010704@yahoo.com> <4E6416D6.2060706@iki.fi> <4E64192E.7060505@yahoo.com>
+In-Reply-To: <4E64192E.7060505@yahoo.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 08, 2011 at 07:34:32PM +0300, Antti Palosaari wrote:
-> I am working with AF9015 I2C-adapter lock. I need lock I2C-bus since
-> there is two tuners having same I2C address on same bus, demod I2C
-> gate is used to select correct tuner.
+Em 04-09-2011 21:34, Chris Rankin escreveu:
+> On 05/09/11 01:24, Antti Palosaari wrote:
+>> If you select em28xx-cards.c blob link you give you can see it is there still
+>> for some reason.
+> 
+> It's a merge issue. This lingering reference must have been added after I posted my original patch. Fortunately, it's easily fixed: the
+> 
+> list_add_tail(&dev->devlist, &em28xx_devlist);
+> 
+> operation is now done by ex28xx_init_extension() instead, meaning we only take the devlist mutex once. So that last em28xx_add_into_devlist() reference is obsolete.
 
-Would it be possible to use the i2c-mux framework to handle this?
-Each tuner will then have its own i2c bus.
+Could you please provide me a patch for it? I'll merge with your original one
+when submitting it upstream.
 
-  Daniel
+> 
+> Cheers,
+> Chris
+> 
+
