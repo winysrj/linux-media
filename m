@@ -1,182 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:43591 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753082Ab1IEM4J (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 08:56:09 -0400
-Date: Mon, 5 Sep 2011 15:55:58 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.17.10]:57860 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751665Ab1IEJwL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 05:52:11 -0400
+Date: Mon, 5 Sep 2011 11:51:57 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH 1/4] v4l: add support for selection api
-Message-ID: <20110905125558.GC955@valkosipuli.localdomain>
-References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com>
- <1314793703-32345-2-git-send-email-t.stanislaws@samsung.com>
- <20110905102508.GB955@valkosipuli.localdomain>
- <201109051452.04372.laurent.pinchart@ideasonboard.com>
+cc: Bastian Hecht <hechtb@googlemail.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2 v2] media: Add support for arbitrary resolution for
+ the ov5642 camera driver
+In-Reply-To: <201109051125.33829.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1109051130590.1112@axis700.grange>
+References: <alpine.DEB.2.02.1108311420540.2154@ipanema>
+ <201108311932.08252.laurent.pinchart@ideasonboard.com>
+ <CABYn4sx25RbeKFDn8=cPuJETpornXW+osstrMEi9AjrtQAfSeA@mail.gmail.com>
+ <201109051125.33829.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201109051452.04372.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 05, 2011 at 02:52:03PM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
+On Mon, 5 Sep 2011, Laurent Pinchart wrote:
+
+> Hi Bastian,
 > 
-> On Monday 05 September 2011 12:25:08 Sakari Ailus wrote:
-> > On Wed, Aug 31, 2011 at 02:28:20PM +0200, Tomasz Stanislawski wrote:
-> > > This patch introduces new api for a precise control of cropping and
-> > > composing features for video devices. The new ioctls are
-> > > VIDIOC_S_SELECTION and VIDIOC_G_SELECTION.
+> On Monday 05 September 2011 11:10:48 Bastian Hecht wrote:
+> > 2011/8/31 Laurent Pinchart:
+> > > Hi Bastian,
 > > > 
-> > > Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> > > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > > ---
+> > > Guennadi pointed out that "should" can sound a bit harsh, so please read
+> > > my reviews as if
 > > > 
-> > >  drivers/media/video/v4l2-compat-ioctl32.c |    2 +
-> > >  drivers/media/video/v4l2-ioctl.c          |   28 +++++++++++++++++
-> > >  include/linux/videodev2.h                 |   46
-> > >  +++++++++++++++++++++++++++++ include/media/v4l2-ioctl.h               
-> > >  |    4 ++
-> > >  4 files changed, 80 insertions(+), 0 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/video/v4l2-compat-ioctl32.c
-> > > b/drivers/media/video/v4l2-compat-ioctl32.c index 61979b7..f3b9d15
-> > > 100644
-> > > --- a/drivers/media/video/v4l2-compat-ioctl32.c
-> > > +++ b/drivers/media/video/v4l2-compat-ioctl32.c
-> > > @@ -927,6 +927,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned
-> > > int cmd, unsigned long arg)
-> > > 
-> > >  	case VIDIOC_CROPCAP:
-> > >  	case VIDIOC_G_CROP:
-> > > 
-> > >  	case VIDIOC_S_CROP:
-> > > +	case VIDIOC_G_SELECTION:
-> > > 
-> > > +	case VIDIOC_S_SELECTION:
-> > >  	case VIDIOC_G_JPEGCOMP:
-> > >  	case VIDIOC_S_JPEGCOMP:
-> > > 
-> > >  	case VIDIOC_QUERYSTD:
-> > > diff --git a/drivers/media/video/v4l2-ioctl.c
-> > > b/drivers/media/video/v4l2-ioctl.c index 002ce13..6e02b45 100644
-> > > --- a/drivers/media/video/v4l2-ioctl.c
-> > > +++ b/drivers/media/video/v4l2-ioctl.c
-> > > @@ -225,6 +225,8 @@ static const char *v4l2_ioctls[] = {
-> > > 
-> > >  	[_IOC_NR(VIDIOC_CROPCAP)]          = "VIDIOC_CROPCAP",
-> > >  	[_IOC_NR(VIDIOC_G_CROP)]           = "VIDIOC_G_CROP",
-> > >  	[_IOC_NR(VIDIOC_S_CROP)]           = "VIDIOC_S_CROP",
-> > > 
-> > > +	[_IOC_NR(VIDIOC_G_SELECTION)]      = "VIDIOC_G_SELECTION",
-> > > +	[_IOC_NR(VIDIOC_S_SELECTION)]      = "VIDIOC_S_SELECTION",
-> > > 
-> > >  	[_IOC_NR(VIDIOC_G_JPEGCOMP)]       = "VIDIOC_G_JPEGCOMP",
-> > >  	[_IOC_NR(VIDIOC_S_JPEGCOMP)]       = "VIDIOC_S_JPEGCOMP",
-> > >  	[_IOC_NR(VIDIOC_QUERYSTD)]         = "VIDIOC_QUERYSTD",
-> > > 
-> > > @@ -1714,6 +1716,32 @@ static long __video_do_ioctl(struct file *file,
-> > > 
-> > >  		ret = ops->vidioc_s_crop(file, fh, p);
-> > >  		break;
-> > >  	
-> > >  	}
-> > > 
-> > > +	case VIDIOC_G_SELECTION:
-> > > +	{
-> > > +		struct v4l2_selection *p = arg;
-> > > +
-> > > +		if (!ops->vidioc_g_selection)
-> > > +			break;
-> > > +
-> > > +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
-> > > +
-> > > +		ret = ops->vidioc_g_selection(file, fh, p);
-> > > +		if (!ret)
-> > > +			dbgrect(vfd, "", &p->r);
-> > > +		break;
-> > > +	}
-> > > +	case VIDIOC_S_SELECTION:
-> > > +	{
-> > > +		struct v4l2_selection *p = arg;
-> > > +
-> > > +		if (!ops->vidioc_s_selection)
-> > > +			break;
-> > > +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
-> > > +		dbgrect(vfd, "", &p->r);
-> > > +
-> > > +		ret = ops->vidioc_s_selection(file, fh, p);
-> > > +		break;
-> > > +	}
-> > > 
-> > >  	case VIDIOC_CROPCAP:
-> > >  	{
-> > >  	
-> > >  		struct v4l2_cropcap *p = arg;
-> > > 
-> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > > index fca24cc..b7471fe 100644
-> > > --- a/include/linux/videodev2.h
-> > > +++ b/include/linux/videodev2.h
-> > > @@ -738,6 +738,48 @@ struct v4l2_crop {
-> > > 
-> > >  	struct v4l2_rect        c;
-> > >  
-> > >  };
-> > > 
-> > > +/* Hints for adjustments of selection rectangle */
-> > > +#define V4L2_SEL_SIZE_GE	0x00000001
-> > > +#define V4L2_SEL_SIZE_LE	0x00000002
-> > > +
-> > > +/* Selection targets */
-> > > +
-> > > +/* current cropping area */
-> > > +#define V4L2_SEL_CROP_ACTIVE		0
-> > > +/* default cropping area */
-> > > +#define V4L2_SEL_CROP_DEFAULT		1
-> > > +/* cropping bounds */
-> > > +#define V4L2_SEL_CROP_BOUNDS		2
-> > > +/* current composing area */
-> > > +#define V4L2_SEL_COMPOSE_ACTIVE		256
-> > > +/* default composing area */
-> > > +#define V4L2_SEL_COMPOSE_DEFAULT	257
-> > > +/* composing bounds */
-> > > +#define V4L2_SEL_COMPOSE_BOUNDS		258
-> > > +/* current composing area plus all padding pixels */
-> > > +#define V4L2_SEL_COMPOSE_PADDED		259
-> > > +
-> > > +/**
-> > > + * struct v4l2_selection - selection info
-> > > + * @type:	buffer type (do not use *_MPLANE types)
-> > > + * @target:	selection target, used to choose one of possible rectangles
-> > > + * @flags:	constraints flags
-> > > + * @r:		coordinates of selection window
-> > > + * @reserved:	for future use, rounds structure size to 64 bytes, set to
-> > > zero + *
-> > > + * Hardware may use multiple helper window to process a video stream.
-> > > + * The structure is used to exchange this selection areas between
-> > > + * an application and a driver.
-> > > + */
-> > > +struct v4l2_selection {
-> > > +	__u32			type;
-> > > +	__u32			target;
-> > > +	__u32                   flags;
-> > > +	struct v4l2_rect        r;
-> > > +	__u32                   reserved[9];
-> > > +};
+> > > #define "you should" "I think you should"
 > > 
-> > The v4l2_selection doesn't have "which" field such as v4l2_subdev_crop and
-> > v4l2_subdev_format. This field is used to differentiate between try and
-> > active format / crop. Shouldn't we use the same approach in selection?
+> > I think that you think I should do the right thing. I removed out_sizes and
+> > repost v3 in a moment :)
 > 
-> We definitely should, for the subdev-level selection API. This is the V4L2 
-> selection API, and V4L2 uses a VIDIOC_TRY_* approach instead.
+> Thanks :-)
+> 
+> > > was prepended to all of them :-)
+> > > 
+> > > On Wednesday 31 August 2011 19:06:25 Laurent Pinchart wrote:
+> > >> On Wednesday 31 August 2011 17:05:52 Bastian Hecht wrote:
+> > >> > This patch adds the ability to get arbitrary resolutions with a width
+> > >> > up to 2592 and a height up to 720 pixels instead of the standard
+> > >> > 1280x720 only.
+> > >> > 
+> > >> > Signed-off-by: Bastian Hecht <hechtb@gmail.com>
+> > >> > ---
+> > >> > diff --git a/drivers/media/video/ov5642.c
+> > >> > b/drivers/media/video/ov5642.c index 6410bda..87b432e 100644
+> > >> > --- a/drivers/media/video/ov5642.c
+> > >> > +++ b/drivers/media/video/ov5642.c
+> > >> 
+> > >> [snip]
+> > >> 
+> > >> > @@ -684,107 +737,101 @@ static int ov5642_write_array(struct
+> > >> > i2c_client
+> > >> 
+> > >> [snip]
+> > >> 
+> > >> > -static int ov5642_s_fmt(struct v4l2_subdev *sd,
+> > >> > -                   struct v4l2_mbus_framefmt *mf)
+> > >> > +static int ov5642_s_fmt(struct v4l2_subdev *sd, struct
+> > >> > v4l2_mbus_framefmt *mf) {
+> > >> > 
+> > >> >     struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > >> >     struct ov5642 *priv = to_ov5642(client);
+> > >> > 
+> > >> > -
+> > >> > -   dev_dbg(sd->v4l2_dev->dev, "%s(%u)\n", __func__, mf->code);
+> > >> > +   int ret;
+> > >> > 
+> > >> >     /* MIPI CSI could have changed the format, double-check */
+> > >> >     if (!ov5642_find_datafmt(mf->code))
+> > >> > 
+> > >> >             return -EINVAL;
+> > >> > 
+> > >> >     ov5642_try_fmt(sd, mf);
+> > >> > 
+> > >> > -
+> > >> > 
+> > >> >     priv->fmt = ov5642_find_datafmt(mf->code);
+> > >> > 
+> > >> > -   ov5642_write_array(client, ov5642_default_regs_init);
+> > >> > -   ov5642_set_resolution(client);
+> > >> > -   ov5642_write_array(client, ov5642_default_regs_finalise);
+> > >> > +   ret = ov5642_write_array(client, ov5642_default_regs_init);
+> > >> > +   if (!ret)
+> > >> > +           ret = ov5642_set_resolution(sd);
+> > >> > +   if (!ret)
+> > >> > +           ret = ov5642_write_array(client,
+> > >> > ov5642_default_regs_finalise);
+> > >> 
+> > >> You shouldn't write anything to the sensor here. As only .s_crop can
+> > >> currently change the format, .s_fmt should just return the current
+> > >> format without performing any change or writing anything to the device.
+> > 
+> > We talked about it in the ov5642 controls thread. I need to initialize
+> > the sensor at some point and it doesn't work to divide the calls
+> > between different locations.
+> 
+> Sure, but calling s_fmt isn't mandatory for hosts/bridges. What about moving 
+> sensor initialization to s_stream() ?
 
-Oops. I missed that one. :-P I was only thinking of the subdev nodes. :-)
+Throughout the development of this driver, I was opposing the "delayed 
+configuration" approach. I.e., the approach, in which all the ioctl()s, 
+like S_FMT, S_CROP, etc. only store user values internally, and the actual 
+hardware configuration is only performed at STREAMON time. There are 
+several reasons to this: the spec says "the driver may program the 
+hardware, allocate resources and generally prepare for data exchange" 
+(yes, "may" != "must"), most drivers seem to do the same, the possibility 
+to check and return any hardware errors, returned by this operation, I 
+probably have forgotten something. But if we ignore all these reasons as 
+insufficiently important, then yes, doing the actualy hardware 
+configuration in .s_stream() brings a couple of advantages with it, 
+especially for drivers / devices like this one.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+So, if there are no strong objections, maybe indeed move this back to 
+.s_stream() would be the better solution here.
+
+Thanks
+Guennadi
+
+> 
+> > >> > -   return 0;
+> > >> > +   return ret;
+> > >> > 
+> > >> >  }
+> > >> 
+> > >> [snip]
+> > >> 
+> > >> > @@ -827,15 +874,42 @@ static int ov5642_g_chip_ident(struct
+> > >> > v4l2_subdev
+> > >> 
+> > >> [snip]
+> > >> 
+> > >> >  static int ov5642_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+> > >> >  {
+> > >> > 
+> > >> > +   struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > >> > +   struct ov5642 *priv = to_ov5642(client);
+> > >> > 
+> > >> >     struct v4l2_rect *rect = &a->c;
+> > >> > 
+> > >> > -   a->type         = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> > >> > -   rect->top       = 0;
+> > >> > -   rect->left      = 0;
+> > >> > -   rect->width     = OV5642_WIDTH;
+> > >> > -   rect->height    = OV5642_HEIGHT;
+> > >> > +   a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> > >> 
+> > >> Shouldn't you return an error instead when a->type is not
+> > >> V4L2_BUF_TYPE_VIDEO_CAPTURE ?
+> > 
+> > No idea, but if you say so, I'll change it.
+> 
+> VIDIOC_G_FMT documentation states that
+> 
+> "When the requested buffer type is not supported drivers return an EINVAL 
+> error code."
+> 
+> I thought VIDIOC_G_CROP documentation did as well, but it doesn't. However I 
+> believe the above should apply to VIDIOC_G_CROP as well. There is no explicit 
+> documentation about error codes for subdev operations, but I think it makes 
+> sense to follow what the V4L2 ioctls do.
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
