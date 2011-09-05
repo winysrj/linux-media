@@ -1,58 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:34524 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756529Ab1IORQj (ORCPT
+Received: from nm3.bt.bullet.mail.ird.yahoo.com ([212.82.108.234]:22305 "HELO
+	nm3.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753570Ab1IEAe7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Sep 2011 13:16:39 -0400
-Date: Thu, 15 Sep 2011 11:16:34 -0600
-From: Grant Likely <grant.likely@secretlab.ca>
-To: Luciano Coelho <coelho@ti.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>, matti.j.aaltonen@nokia.com,
-	johannes@sipsolutions.net, linux-kernel@vger.kernel.org,
-	sameo@linux.intel.com, mchehab@infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	Jean Delvare <khali@linux-fr.org>,
-	Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mfd: Combine MFD_SUPPORT and MFD_CORE
-Message-ID: <20110915171634.GD3523@ponder.secretlab.ca>
-References: <20110829102732.03f0f05d.rdunlap@xenotime.net>
- <1314643307-17780-1-git-send-email-coelho@ti.com>
+	Sun, 4 Sep 2011 20:34:59 -0400
+Message-ID: <4E64192E.7060505@yahoo.com>
+Date: Mon, 05 Sep 2011 01:34:54 +0100
+From: Chris Rankin <rankincj@yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1314643307-17780-1-git-send-email-coelho@ti.com>
+To: Antti Palosaari <crope@iki.fi>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: ERROR: "em28xx_add_into_devlist" [drivers/media/video/em28xx/em28xx.ko]
+ undefined!
+References: <4E640DBB.8010504@iki.fi> <4E64148A.3010704@yahoo.com> <4E6416D6.2060706@iki.fi>
+In-Reply-To: <4E6416D6.2060706@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 29, 2011 at 09:41:47PM +0300, Luciano Coelho wrote:
-> ---
-> @@ -417,7 +417,6 @@ config GPIO_TIMBERDALE
->  config GPIO_RDC321X
->  	tristate "RDC R-321x GPIO support"
->  	depends on PCI
-> -	select MFD_SUPPORT
->  	select MFD_CORE
->  	select MFD_RDC321X
->  	help
-> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-> index 21574bd..1836cdf 100644
-> --- a/drivers/mfd/Kconfig
-> +++ b/drivers/mfd/Kconfig
-> @@ -2,10 +2,9 @@
->  # Multifunction miscellaneous devices
->  #
->  
-> -menuconfig MFD_SUPPORT
-> -	bool "Multifunction device drivers"
-> +menuconfig MFD_CORE
-> +	tristate "Multifunction device drivers"
->  	depends on HAS_IOMEM
-> -	default y
+On 05/09/11 01:24, Antti Palosaari wrote:
+> If you select em28xx-cards.c blob link you give you can see it is there still
+> for some reason.
 
-Looks like there is a bug here.  Kconfig symbols with dependencies
-(HAS_IOMEM) must not ever be selected by other symbols because Kconfig
-doesn't implement a way to resolve them.  This patch means that every
-"select MFD_CORE" just assumes that HAS_IOMEM is also selected.
+It's a merge issue. This lingering reference must have been added after I posted 
+my original patch. Fortunately, it's easily fixed: the
 
-g.
+     list_add_tail(&dev->devlist, &em28xx_devlist);
+
+operation is now done by ex28xx_init_extension() instead, meaning we only take 
+the devlist mutex once. So that last em28xx_add_into_devlist() reference is 
+obsolete.
+
+Cheers,
+Chris
 
