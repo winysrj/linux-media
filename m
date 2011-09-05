@@ -1,136 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42948 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754285Ab1I1NrH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Sep 2011 09:47:07 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: "Ravi, Deepthy" <deepthy.ravi@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Date: Wed, 28 Sep 2011 19:16:35 +0530
-Subject: RE: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
-Message-ID: <19F8576C6E063C45BE387C64729E739404ECA54E23@dbde02.ent.ti.com>
-References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com>
- <201109280041.29952.laurent.pinchart@ideasonboard.com>
- <4E82F002.4040401@infradead.org>
- <201109281529.17387.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201109281529.17387.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from zone0.gcu-squad.org ([212.85.147.21]:22362 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753051Ab1IEMmk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 08:42:40 -0400
+Date: Mon, 5 Sep 2011 14:41:34 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Luciano Coelho <coelho@ti.com>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	matti.j.aaltonen@nokia.com, johannes@sipsolutions.net,
+	linux-kernel@vger.kernel.org, sameo@linux.intel.com,
+	mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 1/2] misc: remove CONFIG_MISC_DEVICES
+Message-ID: <20110905144134.2c80c4b9@endymion.delvare>
+In-Reply-To: <201109021643.14275.arnd@arndb.de>
+References: <20110829102732.03f0f05d.rdunlap@xenotime.net>
+	<201108311849.37273.arnd@arndb.de>
+	<20110902143713.307bbebe@endymion.delvare>
+	<201109021643.14275.arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Wednesday, September 28, 2011 6:59 PM
-> To: Mauro Carvalho Chehab
-> Cc: Hiremath, Vaibhav; Ravi, Deepthy; linux-media@vger.kernel.org;
-> g.liakhovetski@gmx.de; Sakari Ailus
-> Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+Hi Arnd,
+
+On Fri, 2 Sep 2011 16:43:14 +0200, Arnd Bergmann wrote:
+> Since misc devices have nothing in common besides fitting in no
+> other category, there is no need to group them in one Kconfig
+> symbol. Simply removing the symbol gets rid of all sorts of
+> Kconfig warnings about missing dependencies when another driver
+> selects a misc driver without also selecting MISC_DEVICES.
 > 
-> Hi Mauro,
-> 
-> On Wednesday 28 September 2011 11:59:30 Mauro Carvalho Chehab wrote:
-> > Em 27-09-2011 19:41, Laurent Pinchart escreveu:
-> > > On Wednesday 28 September 2011 00:31:32 Mauro Carvalho Chehab wrote:
-> > >> Em 19-09-2011 12:31, Hiremath, Vaibhav escreveu:
-> > >>> On Friday, September 16, 2011 6:36 PM Laurent Pinchart wrote:
-> > >>>> On Friday 16 September 2011 15:00:53 Ravi, Deepthy wrote:
-> > >>>>> On Thursday, September 08, 2011 10:51 PM Laurent Pinchart wrote:
-> > >>>>>> On Thursday 08 September 2011 15:35:22 Deepthy Ravi wrote:
-> > >>>>>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > >>>>>>>
-> > >>>>>>> In order to support TVP5146 (for that matter any video decoder),
-> > >>>>>>> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
-> > >>>>>>> device node.
-> > >>>>>>
-> > >>>>>> Why so ? Shouldn't it be queried on the subdev output pad
-> directly ?
-> > >>>>>
-> > >>>>> Because standard v4l2 application for analog devices will call
-> these
-> > >>>>> std ioctls on the streaming device node. So it's done on
-> /dev/video
-> > >>>>> to make the existing apllication work.
-> > >>>>
-> > >>>> Existing applications can't work with the OMAP3 ISP (and similar
-> > >>>> complex embedded devices) without userspace support anyway, either
-> in
-> > >>>> the form of a GStreamer element or a libv4l plugin. I still believe
-> > >>>> that analog video standard operations should be added to the subdev
-> > >>>> pad operations and exposed through subdev device nodes, exactly as
-> > >>>> done with formats.
-> > >>>
-> > >>> I completely agree with your point that, existing application will
-> not
-> > >>> work without setting links properly. But I believe the assumption
-> here
-> > >>> is, media-controller should set the links (along with pad formants)
-> and
-> > >>> all existing application should work as is. Isn't it?
-> > >>
-> > >> Yes.
-> > >>
-> > >>> The way it is being done currently is, set the format at the pad
-> level
-> > >>> which is same as analog standard resolution and use existing
-> > >>> application for streaming...
-> > >>
-> > >> Yes.
-> > >>
-> > >>> I am ok, if we add s/g/enum_std api support at sub-dev level but
-> this
-> > >>> should also be supported on streaming device node.
-> > >>
-> > >> Agreed. Standards selection should be done at device node, just like
-> any
-> > >> other device.
-> > >
-> > > No. Please see my reply to Vaibhav's e-mail. Standard selection should
-> be
-> > > done on the subdev pads, for the exact same reason why formats and
-> > > selection rectangles are configured on subdev pads.
-> >
-> > NACK. Let's not reinvent the wheel. the MC should not replace the V4L2
-> API.
-> 
-> I will NACK any patch that implements G/S/ENUM_STD in the OMAP3 ISP driver
-> itself, so we got a deadlock here :-)
-> 
-> Maybe it would be easier to discuss this face to face in Prague ?
-> 
-[Hiremath, Vaibhav] I am surprised and afraid to say that, we are breaking
-existing V4L2 standard applications. 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  arch/arm/mach-davinci/Kconfig |    6 ------
+>  arch/unicore32/Kconfig        |    1 -
+>  drivers/misc/Kconfig          |   26 ++++++++------------------
+>  drivers/mmc/host/Kconfig      |    1 -
+>  4 files changed, 8 insertions(+), 26 deletions(-)
+> (...)
+> --- a/drivers/misc/Kconfig
+> +++ b/drivers/misc/Kconfig
+> @@ -2,23 +2,7 @@
+>  # Misc strange devices
+>  #
+>  
+> -# This one has to live outside of the MISC_DEVICES conditional,
+> -# because it may be selected by drivers/platform/x86/hp_accel.
+> -config SENSORS_LIS3LV02D
+> -	tristate
+> -	depends on INPUT
+> -	select INPUT_POLLDEV
+> -	default n
+> -
+> -menuconfig MISC_DEVICES
+> -	bool "Misc devices"
+> -	---help---
+> -	  Say Y here to get to see options for device drivers from various
+> -	  different categories. This option alone does not add any kernel code.
+> -
+> -	  If you say N, all options in this submenu will be skipped and disabled.
+> -
+> -if MISC_DEVICES
+> +menu "Misc devices"
 
-We are referring to libv4l, which anyway should follow (compliant to)
-standard V4L2 spec; and for analog device interface we must support
-G/S/ENUM_STD ioctl interface.
+As said before, I'm not sure. Yes, it makes it easier to select misc
+device drivers from Kconfig files. But it also makes it impossible to
+deselect all misc device drivers at once.
 
-What if I don't want to use libv4l and writing my own application?
-What if I only want to validate my driver (without libv4l) and the
-underneath TVP5146 device is being used in both MC and non-MC compatible devices?
+I think that what we really need is the implementation in the Kconfig
+system of smart selects, i.e. whenever an entry is selected, everything
+it depends on gets selected as well. I don't know how feasible this is,
+but if it can be done then I'd prefer this to your proposal.
 
-For example,
+Meanwhile, I am not in favor of applying your patch. The benefit is
+relatively small IMHO (misc device drivers are rarely selected) and
+there is one significant drawback.
 
-In my case, I have OMAP3 (with MC support) and AM3517 (without MC support),
-And I do my whole testing with simple and plain C application which works on both without any change/issues. 
-Streaming application is exactly same, only in case of OMAP3, I have to set the links with media-ctl before streaming.
+That being said, I'm not the one to decide, so if you can convince
+someone with more power (aka Andrew Morton)...
 
+>  
+>  config AD525X_DPOT
+>  	tristate "Analog Devices Digital Potentiometers"
+> @@ -344,6 +328,12 @@ config ISL29020
+>  	  This driver can also be built as a module.  If so, the module
+>  	  will be called isl29020.
+>  
+> +config SENSORS_LIS3LV02D
+> +	tristate
+> +	depends on INPUT
+> +	select INPUT_POLLDEV
+> +	default n
+> +
 
-I think we had enough discussion on this, and I don't see you are getting 
-into alignment with this (I am surprised). I vote for F2F discussion, but
-I will not be available. Hope you will update me on this.
+If you patch gets applied, then this one would better be moved to
+drivers/misc/lis3lv02d/Kconfig.
 
-Thanks,
-Vaibhav
-
-> --
-> Regards,
-> 
-> Laurent Pinchart
+-- 
+Jean Delvare
