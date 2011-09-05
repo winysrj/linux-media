@@ -1,60 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:37523 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932834Ab1IMWB0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Sep 2011 18:01:26 -0400
-Received: by bkbzt4 with SMTP id zt4so963491bkb.19
-        for <linux-media@vger.kernel.org>; Tue, 13 Sep 2011 15:01:25 -0700 (PDT)
+Received: from smtp-68.nebula.fi ([83.145.220.68]:49814 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751999Ab1IEPze (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 11:55:34 -0400
+Date: Mon, 5 Sep 2011 18:55:28 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	s.nawrocki@samsung.com
+Subject: [RFC] Reserved fields in v4l2_mbus_framefmt, v4l2_subdev_format
+ alignment
+Message-ID: <20110905155528.GB1308@valkosipuli.localdomain>
 MIME-Version: 1.0
-In-Reply-To: <1315949644.10987.25.camel@ares>
-References: <4E68EE98.90201@iki.fi>
-	<4E69EE5E.8080605@rd.bbc.co.uk>
-	<4E6FC41A.5030803@iki.fi>
-	<1315949644.10987.25.camel@ares>
-Date: Tue, 13 Sep 2011 18:01:24 -0400
-Message-ID: <CAGoCfiy69Mk6qCtQ0w6CtGsiba+WbZ9isk2y4J4Rh6vNRhOLnQ@mail.gmail.com>
-Subject: Re: recursive locking problem
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Steve Kerrison <steve@stevekerrison.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	David Waring <davidjw@rd.bbc.co.uk>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 13, 2011 at 5:34 PM, Steve Kerrison <steve@stevekerrison.com> wrote:
-> At the risk of sounding silly, why do we rely on i2c gating so much? The
-> whole point of i2c is that you can sit a bunch of devices on the same
-> pair of wires and talk to one at a time.
+Hi all,
 
-Steve,
+I recently came across a few issues in the definitions of v4l2_subdev_format
+and v4l2_mbus_framefmt when I was working on sensor control that I wanted to
+bring up here. The appropriate structure right now look like this:
 
-There are essentially two issues here.  To address the general
-question, many tuner chips require an i2c gate because their onboard
-i2c controller is implemented using interrupts, and servicing the
-interrupts to even check if the traffic is intended for the tuner can
-interfere with the core tuning function.  In other words, the cost of
-the chip "watching for traffic" can adversely effect tuning quality.
-As a result, most hardware designs are such that the demodulator gates
-the i2c traffic such that the tuner only *ever* sees traffic intended
-for it.
+include/linux/v4l2-subdev.h:
+---8<---
+/**
+ * struct v4l2_subdev_format - Pad-level media bus format
+ * @which: format type (from enum v4l2_subdev_format_whence)
+ * @pad: pad number, as reported by the media API
+ * @format: media bus format (format code and frame size)
+ */
+struct v4l2_subdev_format {
+        __u32 which;
+        __u32 pad;
+        struct v4l2_mbus_framefmt format;
+        __u32 reserved[8];
+};
+---8<---
 
-The second issue is that within the LinuxTV drivers there is
-inconsistency regarding whether the i2c gate is opened/closed by the
-tuner driver or whether it's done by the demod.  Some drivers have the
-demod driver open the gate, issue the tuning request, and then close
-the gate, while in other drivers the tuner driver opens/closes the
-gate whenever there are register reads/writes to the tuner.  It's all
-about the granularity of implementation (the demod approach only
-involves one open/close but it's for potentially a longer period of
-time, versus the tuner approach which opens/closes the gate repeatedly
-as needed, which means more open/closes but the gate is open for the
-bare minimum of time required).
+include/linux/v4l2-mediabus.h:
+---8<---
+/**
+ * struct v4l2_mbus_framefmt - frame format on the media bus
+ * @width:      frame width
+ * @height:     frame height
+ * @code:       data format code (from enum v4l2_mbus_pixelcode)
+ * @field:      used interlacing type (from enum v4l2_field)
+ * @colorspace: colorspace of the data (from enum v4l2_colorspace)
+ */
+struct v4l2_mbus_framefmt {
+        __u32                   width;
+        __u32                   height;
+        __u32                   code;
+        __u32                   field;
+        __u32                   colorspace;
+        __u32                   reserved[7];
+};
+---8<---
 
-Devin
+Offering a lower level interface for sensors which allows better control of
+them from the user space involves providing the link frequency to the user
+space. While the link frequency will be a control, together with the bus
+type and number of lanes (on serial links), this will define the pixel
+clock.
+
+<URL:http://www.spinics.net/lists/linux-media/msg36492.html>
+
+After adding pixel clock to v4l2_mbus_framefmt there will be six reserved
+fields left, one of which will be further possibly consumed by maximum image
+size:
+
+<URL:http://www.spinics.net/lists/linux-media/msg35949.html>
+
+Frame blanking (horizontal and vertical) and number of lanes might be needed
+in the struct as well in the future, bringing the reserved count down to
+two. I find this alarmingly low for a relatively new structure definition
+which will potentially have a few different uses in the future.
+
+The another issue is that the size of the v4l2_subdev_format struct is not
+aligned to a power of two. Instead of the intended 32 u32's, the size is
+actually 22 u32's.
+
+The interface is present in the 3.0 and marked experimental. My proposal is
+to add reserved fields to v4l2_mbus_framefmt to extend its size up to 32
+u32's. I understand there are already few which use the interface right now
+and thus this change must be done now or left as-is forever.
+
+Kind regards,
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
