@@ -1,91 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:33412 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753570Ab1IKXaV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Sep 2011 19:30:21 -0400
-Received: by wwf22 with SMTP id 22so643879wwf.1
-        for <linux-media@vger.kernel.org>; Sun, 11 Sep 2011 16:30:20 -0700 (PDT)
-Subject: [PATCH 2/2] [ver 1.90] DM04/QQBOX Reduce USB buffer size.
-From: tvboxspy <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Mon, 12 Sep 2011 00:30:10 +0100
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <4e6d448b.d0c8e30a.4606.ffff8ac9@mx.google.com>
-Mime-Version: 1.0
+Received: from smtp-68.nebula.fi ([83.145.220.68]:51270 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752439Ab1IEKZS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 06:25:18 -0400
+Date: Mon, 5 Sep 2011 13:25:08 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 1/4] v4l: add support for selection api
+Message-ID: <20110905102508.GB955@valkosipuli.localdomain>
+References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com>
+ <1314793703-32345-2-git-send-email-t.stanislaws@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1314793703-32345-2-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reduced unused buffer size to 64.
+Hi Tomasz,
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/dvb/dvb-usb/lmedm04.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+Thanks for the patch!
 
-diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
-index 5fdeed1..b922824 100644
---- a/drivers/media/dvb/dvb-usb/lmedm04.c
-+++ b/drivers/media/dvb/dvb-usb/lmedm04.c
-@@ -162,7 +162,7 @@ static int lme2510_usb_talk(struct dvb_usb_device *d,
- 	int ret = 0;
- 
- 	if (st->usb_buffer == NULL) {
--		st->usb_buffer = kmalloc(512, GFP_KERNEL);
-+		st->usb_buffer = kmalloc(64, GFP_KERNEL);
- 		if (st->usb_buffer == NULL) {
- 			info("MEM Error no memory");
- 			return -ENOMEM;
-@@ -175,8 +175,8 @@ static int lme2510_usb_talk(struct dvb_usb_device *d,
- 	if (ret < 0)
- 		return -EAGAIN;
- 
--	/* the read/write capped at 512 */
--	memcpy(buff, wbuf, (wlen > 512) ? 512 : wlen);
-+	/* the read/write capped at 64 */
-+	memcpy(buff, wbuf, (wlen < 64) ? wlen : 64);
- 
- 	ret |= usb_clear_halt(d->udev, usb_sndbulkpipe(d->udev, 0x01));
- 
-@@ -186,8 +186,8 @@ static int lme2510_usb_talk(struct dvb_usb_device *d,
- 
- 	ret |= usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x01));
- 
--	ret |= lme2510_bulk_read(d->udev, buff, (rlen > 512) ?
--			512 : rlen , 0x01);
-+	ret |= lme2510_bulk_read(d->udev, buff, (rlen < 64) ?
-+			rlen : 64 , 0x01);
- 
- 	if (rlen > 0)
- 		memcpy(rbuf, buff, rlen);
-@@ -580,7 +580,7 @@ static int lme2510_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
- {
- 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
- 	struct lme2510_state *st = d->priv;
--	static u8 obuf[64], ibuf[512];
-+	static u8 obuf[64], ibuf[64];
- 	int i, read, read_o;
- 	u16 len;
- 	u8 gate = st->i2c_gate;
-@@ -621,7 +621,7 @@ static int lme2510_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
- 			len = msg[i].len+3;
- 		}
- 
--		if (lme2510_msg(d, obuf, len, ibuf, 512) < 0) {
-+		if (lme2510_msg(d, obuf, len, ibuf, 64) < 0) {
- 			deb_info(1, "i2c transfer failed.");
- 			return -EAGAIN;
- 		}
-@@ -1312,5 +1312,5 @@ module_exit(lme2510_module_exit);
- 
- MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
- MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
--MODULE_VERSION("1.89");
-+MODULE_VERSION("1.90");
- MODULE_LICENSE("GPL");
+On Wed, Aug 31, 2011 at 02:28:20PM +0200, Tomasz Stanislawski wrote:
+> This patch introduces new api for a precise control of cropping and composing
+> features for video devices. The new ioctls are VIDIOC_S_SELECTION and
+> VIDIOC_G_SELECTION.
+> 
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/video/v4l2-compat-ioctl32.c |    2 +
+>  drivers/media/video/v4l2-ioctl.c          |   28 +++++++++++++++++
+>  include/linux/videodev2.h                 |   46 +++++++++++++++++++++++++++++
+>  include/media/v4l2-ioctl.h                |    4 ++
+>  4 files changed, 80 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+> index 61979b7..f3b9d15 100644
+> --- a/drivers/media/video/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
+> @@ -927,6 +927,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+>  	case VIDIOC_CROPCAP:
+>  	case VIDIOC_G_CROP:
+>  	case VIDIOC_S_CROP:
+> +	case VIDIOC_G_SELECTION:
+> +	case VIDIOC_S_SELECTION:
+>  	case VIDIOC_G_JPEGCOMP:
+>  	case VIDIOC_S_JPEGCOMP:
+>  	case VIDIOC_QUERYSTD:
+> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> index 002ce13..6e02b45 100644
+> --- a/drivers/media/video/v4l2-ioctl.c
+> +++ b/drivers/media/video/v4l2-ioctl.c
+> @@ -225,6 +225,8 @@ static const char *v4l2_ioctls[] = {
+>  	[_IOC_NR(VIDIOC_CROPCAP)]          = "VIDIOC_CROPCAP",
+>  	[_IOC_NR(VIDIOC_G_CROP)]           = "VIDIOC_G_CROP",
+>  	[_IOC_NR(VIDIOC_S_CROP)]           = "VIDIOC_S_CROP",
+> +	[_IOC_NR(VIDIOC_G_SELECTION)]      = "VIDIOC_G_SELECTION",
+> +	[_IOC_NR(VIDIOC_S_SELECTION)]      = "VIDIOC_S_SELECTION",
+>  	[_IOC_NR(VIDIOC_G_JPEGCOMP)]       = "VIDIOC_G_JPEGCOMP",
+>  	[_IOC_NR(VIDIOC_S_JPEGCOMP)]       = "VIDIOC_S_JPEGCOMP",
+>  	[_IOC_NR(VIDIOC_QUERYSTD)]         = "VIDIOC_QUERYSTD",
+> @@ -1714,6 +1716,32 @@ static long __video_do_ioctl(struct file *file,
+>  		ret = ops->vidioc_s_crop(file, fh, p);
+>  		break;
+>  	}
+> +	case VIDIOC_G_SELECTION:
+> +	{
+> +		struct v4l2_selection *p = arg;
+> +
+> +		if (!ops->vidioc_g_selection)
+> +			break;
+> +
+> +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+> +
+> +		ret = ops->vidioc_g_selection(file, fh, p);
+> +		if (!ret)
+> +			dbgrect(vfd, "", &p->r);
+> +		break;
+> +	}
+> +	case VIDIOC_S_SELECTION:
+> +	{
+> +		struct v4l2_selection *p = arg;
+> +
+> +		if (!ops->vidioc_s_selection)
+> +			break;
+> +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+> +		dbgrect(vfd, "", &p->r);
+> +
+> +		ret = ops->vidioc_s_selection(file, fh, p);
+> +		break;
+> +	}
+>  	case VIDIOC_CROPCAP:
+>  	{
+>  		struct v4l2_cropcap *p = arg;
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index fca24cc..b7471fe 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -738,6 +738,48 @@ struct v4l2_crop {
+>  	struct v4l2_rect        c;
+>  };
+>  
+> +/* Hints for adjustments of selection rectangle */
+> +#define V4L2_SEL_SIZE_GE	0x00000001
+> +#define V4L2_SEL_SIZE_LE	0x00000002
+> +
+> +/* Selection targets */
+> +
+> +/* current cropping area */
+> +#define V4L2_SEL_CROP_ACTIVE		0
+> +/* default cropping area */
+> +#define V4L2_SEL_CROP_DEFAULT		1
+> +/* cropping bounds */
+> +#define V4L2_SEL_CROP_BOUNDS		2
+> +/* current composing area */
+> +#define V4L2_SEL_COMPOSE_ACTIVE		256
+> +/* default composing area */
+> +#define V4L2_SEL_COMPOSE_DEFAULT	257
+> +/* composing bounds */
+> +#define V4L2_SEL_COMPOSE_BOUNDS		258
+> +/* current composing area plus all padding pixels */
+> +#define V4L2_SEL_COMPOSE_PADDED		259
+> +
+> +/**
+> + * struct v4l2_selection - selection info
+> + * @type:	buffer type (do not use *_MPLANE types)
+> + * @target:	selection target, used to choose one of possible rectangles
+> + * @flags:	constraints flags
+> + * @r:		coordinates of selection window
+> + * @reserved:	for future use, rounds structure size to 64 bytes, set to zero
+> + *
+> + * Hardware may use multiple helper window to process a video stream.
+> + * The structure is used to exchange this selection areas between
+> + * an application and a driver.
+> + */
+> +struct v4l2_selection {
+> +	__u32			type;
+> +	__u32			target;
+> +	__u32                   flags;
+> +	struct v4l2_rect        r;
+> +	__u32                   reserved[9];
+> +};
+
+The v4l2_selection doesn't have "which" field such as v4l2_subdev_crop and
+v4l2_subdev_format. This field is used to differentiate between try and
+active format / crop. Shouldn't we use the same approach in selection?
+
+> +
+>  /*
+>   *      A N A L O G   V I D E O   S T A N D A R D
+>   */
+> @@ -2182,6 +2224,10 @@ struct v4l2_dbg_chip_ident {
+>  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
+>  #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
+>  
+> +/* Experimental crop/compose API */
+> +#define VIDIOC_G_SELECTION	_IOWR('V', 92, struct v4l2_selection)
+> +#define VIDIOC_S_SELECTION	_IOWR('V', 93, struct v4l2_selection)
+> +
+>  /* Reminder: when adding new ioctls please add support for them to
+>     drivers/media/video/v4l2-compat-ioctl32.c as well! */
+>  
+> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> index dd9f1e7..9dd6e18 100644
+> --- a/include/media/v4l2-ioctl.h
+> +++ b/include/media/v4l2-ioctl.h
+> @@ -194,6 +194,10 @@ struct v4l2_ioctl_ops {
+>  					struct v4l2_crop *a);
+>  	int (*vidioc_s_crop)           (struct file *file, void *fh,
+>  					struct v4l2_crop *a);
+> +	int (*vidioc_g_selection)      (struct file *file, void *fh,
+> +					struct v4l2_selection *s);
+> +	int (*vidioc_s_selection)      (struct file *file, void *fh,
+> +					struct v4l2_selection *s);
+>  	/* Compression ioctls */
+>  	int (*vidioc_g_jpegcomp)       (struct file *file, void *fh,
+>  					struct v4l2_jpegcompression *a);
+> -- 
+> 1.7.6
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 -- 
-1.7.5.4
-
-
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
