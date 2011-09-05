@@ -1,142 +1,220 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:50755 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753521Ab1ISTRj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Sep 2011 15:17:39 -0400
-Date: Mon, 19 Sep 2011 21:17:29 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v2] arm: omap3evm: Add support for an MT9M032 based camera
- board.
-In-Reply-To: <201109182358.55816.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1109192112210.20916@axis700.grange>
-References: <1316252097-4213-1-git-send-email-martin@neutronstar.dyndns.org>
- <201109182358.55816.laurent.pinchart@ideasonboard.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54687 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752521Ab1IEKar (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 06:30:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [media-ctl][PATCHv4 3/3] libmediactl: get the device name via udev
+Date: Mon, 5 Sep 2011 12:31:24 +0200
+Cc: linux-media@vger.kernel.org
+References: <201109021326.14340.laurent.pinchart@ideasonboard.com> <6075971b959c2e808cd4ceec6540dc09b101346f.1314968925.git.andriy.shevchenko@linux.intel.com> <62c72745987f6490497a54512d1569490c173af3.1314968925.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <62c72745987f6490497a54512d1569490c173af3.1314968925.git.andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109051231.24430.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Hi Andy,
 
-On Sun, 18 Sep 2011, Laurent Pinchart wrote:
+On Friday 02 September 2011 15:09:28 Andy Shevchenko wrote:
+> If configured with --with-libudev, the libmediactl is built with libudev
+> support. It allows to get the device name in right way in the modern linux
+> systems.
 
-> Hi Martin,
+Thanks for the patch. We're nearly there :-)
+
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  configure.in    |   22 ++++++++++++++++
+>  src/Makefile.am |    2 +
+>  src/media.c     |   73
+> +++++++++++++++++++++++++++++++++++++++++++++++++++++++ src/media.h     | 
+>   1 +
+>  4 files changed, 98 insertions(+), 0 deletions(-)
 > 
-> On Saturday 17 September 2011 11:34:57 Martin Hostettler wrote:
-> > Adds board support for an MT9M032 based camera to omap3evm.
-> > 
-> > Sigend-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
-> > ---
-> >  arch/arm/mach-omap2/Makefile                |    1 +
-> >  arch/arm/mach-omap2/board-omap3evm-camera.c |  183
-> > +++++++++++++++++++++++++++ 2 files changed, 184 insertions(+), 0
-> > deletions(-)
-> >  create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
-> > 
-> > Changes in V2:
-> >  * ported to current mainline
-> >  * Style fixes
-> >  * Fix error handling
-> > 
-> > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> > index f343365..8ae3d25 100644
-> > --- a/arch/arm/mach-omap2/Makefile
-> > +++ b/arch/arm/mach-omap2/Makefile
-> > @@ -202,6 +202,7 @@ obj-$(CONFIG_MACH_OMAP3_TORPEDO)        +=
-> > board-omap3logic.o \ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
-> >  					   hsmmc.o
-> >  obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
-> > +					   board-omap3evm-camera.o \
-> >  					   hsmmc.o
-> >  obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
-> >  					   hsmmc.o
-> > diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c
-> > b/arch/arm/mach-omap2/board-omap3evm-camera.c new file mode 100644
-> > index 0000000..be987d9
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
-> > @@ -0,0 +1,183 @@
-
-[snip]
-
-> > +static int __init camera_init(void)
-> > +{
-> > +	int ret = -EINVAL;
-> > +
-> > +	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
-> > +	if (gpio_request(nCAM_VD_SEL, "nCAM_VD_SEL") < 0) {
-> > +		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_SEL(%d)\n",
-> > +		       nCAM_VD_SEL);
-> > +		goto err;
-> > +	}
-> > +	if (gpio_direction_output(nCAM_VD_SEL, 1) < 0) {
-> > +		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_SEL(%d)
-> > direction\n", +		       nCAM_VD_SEL);
-> > +		goto err_vdsel;
-> > +	}
-> > +
-> > +	if (gpio_request(EVM_TWL_GPIO_BASE + 2, "T2_GPIO2") < 0) {
-> > +		pr_err("omap3evm-camera: Failed to get GPIO T2_GPIO2(%d)\n",
-> > +		       EVM_TWL_GPIO_BASE + 2);
-> > +		goto err_vdsel;
-> > +	}
-> > +	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 2, 0) < 0) {
-> > +		pr_err("omap3evm-camera: Failed to set GPIO T2_GPIO2(%d) direction\n",
-> > +		       EVM_TWL_GPIO_BASE + 2);
-> > +		goto err_2;
-> > +	}
-> > +
-> > +	if (gpio_request(EVM_TWL_GPIO_BASE + 8, "nCAM_VD_EN") < 0) {
-> > +		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_EN(%d)\n",
-> > +		       EVM_TWL_GPIO_BASE + 8);
-> > +		goto err_2;
-> > +	}
-> > +	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 8, 0) < 0) {
-> > +		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_EN(%d) direction\n",
-> > +		       EVM_TWL_GPIO_BASE + 8);
-> > +		goto err_8;
-> > +	}
-> > +
-> > +	omap3evm_set_mux(MUX_CAMERA_SENSOR);
-> > +
-> > +
-> > +	ret = omap3_init_camera(&isp_platform_data);
-> > +	if (ret < 0)
-> > +		goto err_8;
-> > +	return 0;
-> > +
-> > +err_8:
-> > +	gpio_free(EVM_TWL_GPIO_BASE + 8);
-> > +err_2:
-> > +	gpio_free(EVM_TWL_GPIO_BASE + 2);
-> > +err_vdsel:
-> > +	gpio_free(nCAM_VD_SEL);
-> > +err:
-> > +	return ret;
-> > +}
-> > +
-> > +device_initcall(camera_init);
+> diff --git a/configure.in b/configure.in
+> index fd4c70c..983023e 100644
+> --- a/configure.in
+> +++ b/configure.in
+> @@ -13,6 +13,28 @@ AC_PROG_LIBTOOL
 > 
-> Please don't use device_initcall(), but call the function directly from the 
-> OMAP3 EVM init handler. Otherwise camera_init() will be called if OMAP3 EVM 
-> support is compiled in the kernel, regardless of the board the kernel runs on.
+>  # Checks for libraries.
+> 
+> +AC_ARG_WITH([libudev],
+> +    AS_HELP_STRING([--with-libudev],
+> +        [Enable libudev to detect a device name]))
+> +
+> +AS_IF([test "x$with_libudev" = "xyes"],
+> +    [PKG_CHECK_MODULES(libudev, libudev, have_libudev=yes,
+> have_libudev=no)], +    [have_libudev=no])
+> +
+> +AS_IF([test "x$have_libudev" = "xyes"],
+> +    [
+> +        AC_DEFINE([HAVE_LIBUDEV], [], [Use libudev])
+> +        LIBUDEV_CFLAGS="$libudev_CFLAGS"
+> +        LIBUDEV_LIBS="$libudev_LIBS"
+> +        AC_SUBST(LIBUDEV_CFLAGS)
+> +        AC_SUBST(LIBUDEV_LIBS)
+> +    ],
+> +    [AS_IF([test "x$with_libudev" = "xyes"],
+> +        [AC_MSG_ERROR([libudev requested but not found])
+> +    ])
+> +])
+> +
+> +
+>  # Kernel headers path.
+>  AC_ARG_WITH(kernel-headers,
+>      [AC_HELP_STRING([--with-kernel-headers=DIR],
+> diff --git a/src/Makefile.am b/src/Makefile.am
+> index 267ea83..52628d2 100644
+> --- a/src/Makefile.am
+> +++ b/src/Makefile.am
+> @@ -5,6 +5,8 @@ mediactl_includedir=$(includedir)/mediactl
+>  mediactl_include_HEADERS = media.h subdev.h
+> 
+>  bin_PROGRAMS = media-ctl
+> +media_ctl_CFLAGS = $(LIBUDEV_CFLAGS)
+> +media_ctl_LDFLAGS = $(LIBUDEV_LIBS)
+>  media_ctl_SOURCES = main.c options.c options.h tools.h
+>  media_ctl_LDADD = libmediactl.la libv4l2subdev.la
+> 
+> diff --git a/src/media.c b/src/media.c
+> index 5d3ff7c..dae649a 100644
+> --- a/src/media.c
+> +++ b/src/media.c
+> @@ -17,6 +17,8 @@
+>   * with this program; if not, write to the Free Software Foundation, Inc.,
+>   */
+> 
+> +#include "config.h"
+> +
+>  #include <sys/ioctl.h>
+>  #include <sys/stat.h>
+>  #include <sys/types.h>
+> @@ -245,6 +247,64 @@ static int media_enum_links(struct media_device
+> *media) return ret;
+>  }
+> 
+> +#ifdef HAVE_LIBUDEV
+> +
+> +#include <libudev.h>
+> +
+> +static inline int media_udev_open(struct media_device *media)
+> +{
+> +	media->priv = udev_new();
+> +	if (media->priv == NULL)
+> +		return -ENOMEM;
+> +	return 0;
+> +}
+> +
+> +static inline void media_udev_close(struct media_device *media)
+> +{
+> +	udev_unref(media->priv);
+> +}
+> +
+> +static int media_get_devname_udev(struct media_device *media,
+> +		struct media_entity *entity)
+> +{
+> +	int ret = -ENODEV;
+> +	struct udev *udev = media->priv;
+> +	dev_t devnum;
+> +	struct udev_device *device;
+> +	const char *p;
+> +
+> +	if (udev == NULL)
+> +		return -EINVAL;
+> +
+> +	devnum = makedev(entity->info.v4l.major, entity->info.v4l.minor);
+> +	printf("looking up device: %u:%u\n", major(devnum), minor(devnum));
+> +	device = udev_device_new_from_devnum(udev, 'c', devnum);
+> +	if (device) {
+> +		p = udev_device_get_devnode(device);
+> +		if (p)
+> +			snprintf(entity->devname, sizeof(entity->devname), "%s", p);
+> +		ret = 0;
+> +	}
+> +
+> +	udev_device_unref(device);
+> +
+> +	return ret;
+> +}
+> +
+> +#else	/* HAVE_LIBUDEV */
+> +
+> +static inline int media_udev_open(struct media_device *media) { return 0;
+> } +
+> +static inline void media_udev_close(struct media_device *media) { }
+> +
+> +static inline int media_get_devname_udev(struct media_device *media,
+> +		struct media_entity *entity)
+> +{
+> +	return -ENOTSUP;
+> +}
+> +
+> +#endif	/* HAVE_LIBUDEV */
+> +
+>  static int media_get_devname_sysfs(struct media_entity *entity)
+>  {
+>  	struct stat devstat;
+> @@ -324,6 +384,11 @@ static int media_enum_entities(struct media_device
+> *media) media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+>  			continue;
+> 
+> +		/* Try to get the device name via udev */
+> +		if (!media_get_devname_udev(media, entity))
+> +			continue;
+> +
+> +		/* Fall back to get the device name via sysfs */
+>  		media_get_devname_sysfs(entity);
+>  	}
+> 
+> @@ -351,6 +416,13 @@ struct media_device *media_open(const char *name, int
+> verbose) return NULL;
+>  	}
+> 
+> +	ret = media_udev_open(media);
+> +	if (ret < 0) {
+> +		printf("%s: Can't get udev context\n", __func__);
+> +		media_close(media);
+> +		return NULL;
+> +	}
+> +
+>  	if (verbose)
+>  		printf("Enumerating entities\n");
+> 
+> @@ -395,6 +467,7 @@ void media_close(struct media_device *media)
+>  	}
+> 
+>  	free(media->entities);
+> +	media_udev_close(media);
+>  	free(media);
+>  }
+> 
+> diff --git a/src/media.h b/src/media.h
+> index b91a2ac..4201451 100644
+> --- a/src/media.h
+> +++ b/src/media.h
+> @@ -54,6 +54,7 @@ struct media_device {
+>  	struct media_entity *entities;
+>  	unsigned int entities_count;
+>  	__u32 padding[6];
+> +	void *priv;
+>  };
+> 
+>  /**
 
-Another possibility is to put
+This will break binary compatibility if an application creates a struct 
+media_device instances itself. On the other hand applications are not supposed 
+to do that.
 
-	if (!machine_is_omap3evm())
-		return 0;
+As the struct udev pointer is only used internally, what about passing it 
+around between functions explicitly instead ?
 
-in the beginning of the function. Probably, best to follow what other 
-omap3 boards do.
+-- 
+Regards,
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Laurent Pinchart
