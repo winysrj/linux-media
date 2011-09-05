@@ -1,161 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34990 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756332Ab1IGSUW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Sep 2011 14:20:22 -0400
-Message-ID: <4E67B5E2.4040006@iki.fi>
-Date: Wed, 07 Sep 2011 21:20:18 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52253 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752214Ab1IEKHD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 06:07:03 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 1/2 v2] media: Add support for arbitrary resolution for the ov5642 camera driver
+Date: Mon, 5 Sep 2011 12:07:41 +0200
+Cc: Bastian Hecht <hechtb@googlemail.com>, linux-media@vger.kernel.org
+References: <alpine.DEB.2.02.1108311420540.2154@ipanema> <201109051125.33829.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1109051130590.1112@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1109051130590.1112@axis700.grange>
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@kernellabs.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Jose Alberto Reguero <jareguero@telefonica.net>
-Subject: Re: [PATCH 2/3] dvb-usb: multi-frontend support (MFE)
-References: <4E2E0788.3010507@iki.fi>	<4E3061CF.2080009@redhat.com>	<4E306BAE.1020302@iki.fi>	<4E35F773.3060807@redhat.com>	<4E35FFBF.9010408@iki.fi>	<4E360E53.80107@redhat.com>	<4E67A12B.8020908@iki.fi>	<CAOcJUbz-hTf+xi=9JfJVGYsPSs7Cay6uwuwRdK7aiJeQrCtrGQ@mail.gmail.com> <CAOcJUbzDNXw8j6seVuM1ZkYzV5WRV0nv6Np620hKq5sHe0Bk=g@mail.gmail.com>
-In-Reply-To: <CAOcJUbzDNXw8j6seVuM1ZkYzV5WRV0nv6Np620hKq5sHe0Bk=g@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201109051207.42195.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/07/2011 08:45 PM, Michael Krufky wrote:
-> On Wed, Sep 7, 2011 at 1:41 PM, Michael Krufky<mkrufky@kernellabs.com>  wrote:
->> On Wed, Sep 7, 2011 at 12:51 PM, Antti Palosaari<crope@iki.fi>  wrote:
->>> On 08/01/2011 05:24 AM, Mauro Carvalho Chehab wrote:
->>>>
->>>> Em 31-07-2011 22:22, Antti Palosaari escreveu:
->>>>>
->>>>> On 08/01/2011 03:46 AM, Mauro Carvalho Chehab wrote:
->>>>>>
->>>>>> One bad thing I noticed with the API is that it calls
->>>>>> adap->props.frontend_attach(adap)
->>>>>> several times, instead of just one, without even passing an argument for
->>>>>> the driver to
->>>>>> know that it was called twice.
->>>>>>
->>>>>> IMO, there are two ways of doing the attach:
->>>>>>
->>>>>> 1) call it only once, and, inside the driver, it will loop to add the
->>>>>> other FE's;
->>>>>> 2) add a parameter, at the call, to say what FE needs to be initialized.
->>>>>>
->>>>>> I think (1) is preferred, as it is more flexible, allowing the driver to
->>>>>> test for
->>>>>> several types of frontends.
->>>
->>> I am planning to change DVB USB MFE call .frontend_attach() only once. Is
->>> there any comments about that?
->>>
->>> Currently there is anysee, ttusb2 and cx88 drivers which uses MFE and change
->>> is needed ASAP before more MFE devices are coming.
->>>
->>> Also .num_frontends can be removed after that, since DVB USB will just loop
->>> through 0 to MAX FEs and register all FEs found (fe pointer !NULL).
->>>
->>> CURRENTLY:
->>> ==========
->>> .frontend_attach()
->>>         if (adap->fe_adap[0].fe == NULL)
->>>                 adap->fe_adap[0].fe = dvb_attach(DVB-T)
->>>         else if (adap->fe_adap[1].fe == NULL)
->>>                 adap->fe_adap[1].fe = dvb_attach(DVB-C)
->>>         else if (adap->fe_adap[2].fe == NULL)
->>>                 adap->fe_adap[2].fe = dvb_attach(DVB-S)
->>>
->>> PLANNED:
->>> ========
->>> .frontend_attach()
->>>         adap->fe_adap[0].fe = dvb_attach(DVB-T)
->>>         adap->fe_adap[1].fe = dvb_attach(DVB-C)
->>>         adap->fe_adap[2].fe = dvb_attach(DVB-S)
->>
->> Antti,
->>
->> I don't understand exactly what you are proposing -- Is this a change
->> for the anysee driver?  ...or is it a change for the dvb-usb
->> framework?  ...or is it a change to dvb-core, and every driver in the
->> subsystem?
->>
->> In the anysee driver, I see that you are using this:
->>
->> .frontend_attach()
->>          if (adap->fe_adap[0].fe == NULL)
->>                  adap->fe_adap[0].fe = dvb_attach(DVB-T)
->>          else if (adap->fe_adap[1].fe == NULL)
->>                  adap->fe_adap[1].fe = dvb_attach(DVB-C)
->>          else if (adap->fe_adap[2].fe == NULL)
->>                  adap->fe_adap[2].fe = dvb_attach(DVB-S)
->>
->> I have no problem if you want to change the anysee driver to remove
->> the second dvb_usb_adap_fe_props context, and replace with the
->> following:
->>
->>
->> .frontend_attach()
->>         adap->fe_adap[0].fe = dvb_attach(DVB-T)
->>         adap->fe_adap[1].fe = dvb_attach(DVB-C)
->>         adap->fe_adap[2].fe = dvb_attach(DVB-S)
->>
->> I believe this will work in the anysee driver for you, even with my
->> changes that got merged yesterday... However, I do *not* believe that
->> such change should propogate to the dvb-usb framework or dvb-core
->> itself, because it can have a large negative impact on the drivers
->> using it.
->>
->> For example, my mxl111sf driver was merged yesterday.  Since it is the
->> initial driver merge, it currently only supports one frontend (ATSC).
->> The device also supports two other delivery systems, and has two
->> additional dtv demodulators, each attached via a separate input bus to
->> the USB device, each streaming on a separate USB endpoint.
->>
->> Many demod drivers do an ID test or some other kind of initialization
->> during the _attach() function.  A device like the mxl111sf would have
->> to manipulate the USB device state and alter the bus operations before
->> and after each frontend attachment in order for the _attach() calls to
->> succeed, not to mention the separate calls needed for bus negotiation
->> to power on the correct demodulator and initialize its streaming data
->> path.
->>
->> I repeat, if this is a change that is specific to your anysee driver,
->> then it seems like a good idea to me.  However, if your plan is to
->> change dvb-usb itself, and / or dvb-core, then I'd really like to have
->> a better idea of the implications that this change will bring forth.
->>
->> So, to help reduce the confusion, can you clarify exactly what code
->> you plan to change, and what impact it will have on the drivers that
->> exist today?
->>
->> Best Regards,
->>
->> Michael Krufky
->>
->
-> ADDENDUM:
->
-> For the anysee driver, for your single .frontend_attach()
->         adap->fe_adap[0].fe = dvb_attach(DVB-T)
->         adap->fe_adap[1].fe = dvb_attach(DVB-C)
->         adap->fe_adap[2].fe = dvb_attach(DVB-S)
->
-> ...for this to work in today's dvb-usb code without modification to
-> the dvb-usb framework, i believe that you should do a test for
-> (adap->fe_adap[0].fe&&  adap->fe_adap[1].fe&&  adap->fe_adap[2].fe )
-> ... if null, then attach, if not null, then exit -- this will prevent
-> the second context's initialization from occurring twice.
+Hi Guennadi,
 
-Yes, I now saw when looked latest anysee driver that you moved 
-.streaming_ctrl(), .frontend_attach() and .tuner_attach() to frontend 
-property. OK, it is not then relevant anymore to change register all as 
-once.
+On Monday 05 September 2011 11:51:57 Guennadi Liakhovetski wrote:
+> On Mon, 5 Sep 2011, Laurent Pinchart wrote:
+> > On Monday 05 September 2011 11:10:48 Bastian Hecht wrote:
+> > > 2011/8/31 Laurent Pinchart:
+> > > > On Wednesday 31 August 2011 19:06:25 Laurent Pinchart wrote:
+> > > >> On Wednesday 31 August 2011 17:05:52 Bastian Hecht wrote:
+> > > >> > This patch adds the ability to get arbitrary resolutions with a
+> > > >> > width up to 2592 and a height up to 720 pixels instead of the
+> > > >> > standard 1280x720 only.
+> > > >> > 
+> > > >> > Signed-off-by: Bastian Hecht <hechtb@gmail.com>
+> > > >> > ---
+> > > >> > diff --git a/drivers/media/video/ov5642.c
+> > > >> > b/drivers/media/video/ov5642.c index 6410bda..87b432e 100644
+> > > >> > --- a/drivers/media/video/ov5642.c
+> > > >> > +++ b/drivers/media/video/ov5642.c
+> > > >> 
+> > > >> [snip]
+> > > >> 
+> > > >> > @@ -684,107 +737,101 @@ static int ov5642_write_array(struct
+> > > >> > i2c_client
+> > > >> 
+> > > >> [snip]
+> > > >> 
+> > > >> > -static int ov5642_s_fmt(struct v4l2_subdev *sd,
+> > > >> > -                   struct v4l2_mbus_framefmt *mf)
+> > > >> > +static int ov5642_s_fmt(struct v4l2_subdev *sd, struct
+> > > >> > v4l2_mbus_framefmt *mf) {
+> > > >> > 
+> > > >> >     struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > > >> >     struct ov5642 *priv = to_ov5642(client);
+> > > >> > 
+> > > >> > -
+> > > >> > -   dev_dbg(sd->v4l2_dev->dev, "%s(%u)\n", __func__, mf->code);
+> > > >> > +   int ret;
+> > > >> > 
+> > > >> >     /* MIPI CSI could have changed the format, double-check */
+> > > >> >     if (!ov5642_find_datafmt(mf->code))
+> > > >> >     
+> > > >> >             return -EINVAL;
+> > > >> >     
+> > > >> >     ov5642_try_fmt(sd, mf);
+> > > >> > 
+> > > >> > -
+> > > >> > 
+> > > >> >     priv->fmt = ov5642_find_datafmt(mf->code);
+> > > >> > 
+> > > >> > -   ov5642_write_array(client, ov5642_default_regs_init);
+> > > >> > -   ov5642_set_resolution(client);
+> > > >> > -   ov5642_write_array(client, ov5642_default_regs_finalise);
+> > > >> > +   ret = ov5642_write_array(client, ov5642_default_regs_init);
+> > > >> > +   if (!ret)
+> > > >> > +           ret = ov5642_set_resolution(sd);
+> > > >> > +   if (!ret)
+> > > >> > +           ret = ov5642_write_array(client,
+> > > >> > ov5642_default_regs_finalise);
+> > > >> 
+> > > >> You shouldn't write anything to the sensor here. As only .s_crop can
+> > > >> currently change the format, .s_fmt should just return the current
+> > > >> format without performing any change or writing anything to the
+> > > >> device.
+> > > 
+> > > We talked about it in the ov5642 controls thread. I need to initialize
+> > > the sensor at some point and it doesn't work to divide the calls
+> > > between different locations.
+> > 
+> > Sure, but calling s_fmt isn't mandatory for hosts/bridges. What about
+> > moving sensor initialization to s_stream() ?
+> 
+> Throughout the development of this driver, I was opposing the "delayed
+> configuration" approach. I.e., the approach, in which all the ioctl()s,
+> like S_FMT, S_CROP, etc. only store user values internally, and the actual
+> hardware configuration is only performed at STREAMON time. There are
+> several reasons to this: the spec says "the driver may program the
+> hardware, allocate resources and generally prepare for data exchange"
+> (yes, "may" != "must"), most drivers seem to do the same, the possibility
+> to check and return any hardware errors, returned by this operation, I
+> probably have forgotten something. But if we ignore all these reasons as
+> insufficiently important, then yes, doing the actualy hardware
+> configuration in .s_stream() brings a couple of advantages with it,
+> especially for drivers / devices like this one.
+> 
+> So, if there are no strong objections, maybe indeed move this back to
+> .s_stream() would be the better solution here.
 
-What is size_of_priv used?
-
-regards
-Antti
-
-
-
+I have no strong opinion here. Your points are certainly valid. I'm fine with 
+performing direct hardware setup in .s_crop(), but doing it in .s_fmt() looks 
+weird to me as .s_fmt() doesn't perform any operation now that the driver 
+moved to using .s_crop(). Without delayed initialization I believe the device 
+should be initialized when powered up, and have its crop rectangle altered in 
+.s_crop().
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
