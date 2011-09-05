@@ -1,123 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mr.siano-ms.com ([62.0.79.70]:6301 "EHLO
-	Siano-NV.ser.netvision.net.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932161Ab1ITKTS convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Sep 2011 06:19:18 -0400
-Subject: [PATCH  15/17]DVB:Siano drivers - Bug fix - avoid (rare) dead
- locks causing the driver to hang when module removed.
-From: Doron Cohen <doronc@siano-ms.com>
-Reply-To: doronc@siano-ms.com
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Tue, 20 Sep 2011 13:32:00 +0300
-Message-ID: <1316514720.5199.93.camel@Doron-Ubuntu>
-Mime-Version: 1.0
+Received: from nm2-vm0.bt.bullet.mail.ird.yahoo.com ([212.82.108.92]:31171
+	"HELO nm2-vm0.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752829Ab1IEAPN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 4 Sep 2011 20:15:13 -0400
+Message-ID: <4E64148A.3010704@yahoo.com>
+Date: Mon, 05 Sep 2011 01:15:06 +0100
+From: Chris Rankin <rankincj@yahoo.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: ERROR: "em28xx_add_into_devlist" [drivers/media/video/em28xx/em28xx.ko]
+ undefined!
+References: <4E640DBB.8010504@iki.fi>
+In-Reply-To: <4E640DBB.8010504@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-This patch step is a  Bug fix - avoid (rare) dead locks causing the
-driver to hang when module removed.
-Thanks,
-Doron Cohen
+On 05/09/11 00:46, Antti Palosaari wrote:
+> Moikka,
+> Current linux-media make gives error. Any idea what's wrong?
+>
+>
+> Kernel: arch/x86/boot/bzImage is ready (#1)
+> Building modules, stage 2.
+> MODPOST 1907 modules
+> ERROR: "em28xx_add_into_devlist" [drivers/media/video/em28xx/em28xx.ko] undefined!
+> WARNING: modpost: Found 2 section mismatch(es).
+> To see full details build your kernel with:
+> 'make CONFIG_DEBUG_SECTION_MISMATCH=y'
+> make[1]: *** [__modpost] Error 1
+> make: *** [modules] Error 2
 
------------------------
+The function em28xx_add_into_devlist() should have been deleted as part of this 
+change:
 
->From ad75d9ce48d440c6db6c5147530f1e23de2fcb28 Mon Sep 17 00:00:00 2001
-From: Doron Cohen <doronc@siano-ms.com>
-Date: Tue, 20 Sep 2011 08:46:52 +0300
-Subject: [PATCH 19/21] Bug fix - waiting for free buffers might have
-caused dead locks. Mechanism changed so locks are released around each
-wait.
+http://git.linuxtv.org/media_tree.git?a=commitdiff;h=6c03e38b34dcfcdfa2f10cf984995a48f030f039
 
----
- drivers/media/dvb/siano/smscoreapi.c |   53
-+++++++++++++++++++++++++++------
- 1 files changed, 43 insertions(+), 10 deletions(-)
+Its only reference should have been removed at the same time.
 
-diff --git a/drivers/media/dvb/siano/smscoreapi.c
-b/drivers/media/dvb/siano/smscoreapi.c
-index bb92351..0555a38 100644
---- a/drivers/media/dvb/siano/smscoreapi.c
-+++ b/drivers/media/dvb/siano/smscoreapi.c
-@@ -1543,26 +1543,59 @@ EXPORT_SYMBOL_GPL(smscore_onresponse);
-  *
-  * @return pointer to descriptor on success, NULL on error.
-  */
--
--struct smscore_buffer_t *get_entry(struct smscore_device_t *coredev)
-+struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t
-*coredev)
- {
- 	struct smscore_buffer_t *cb = NULL;
- 	unsigned long flags;
- 
-+	DEFINE_WAIT(wait);
-+
-+	spin_lock_irqsave(&coredev->bufferslock, flags);
-+
-+	/* set the current process state to interruptible sleep
-+	 * in case schedule() will be called, this process will go to sleep 
-+	 * and woken up only when a new buffer is available (see
-smscore_putbuffer)
-+	 */
-+	prepare_to_wait(&coredev->buffer_mng_waitq, &wait,
-TASK_INTERRUPTIBLE);
-+
-+	if (list_empty(&coredev->buffers)) {
-+		sms_debug("no avaliable common buffer, need to schedule");
-+
-+		/* 
-+         * before going to sleep, release the lock 
-+         */
-+		spin_unlock_irqrestore(&coredev->bufferslock, flags);
-+
-+		schedule();
-+
-+		sms_debug("wake up after schedule()");
-+
-+		/* 
-+         * acquire the lock again 
-+         */
- 	spin_lock_irqsave(&coredev->bufferslock, flags);
--	if (!list_empty(&coredev->buffers)) {
--		cb = (struct smscore_buffer_t *) coredev->buffers.next;
--		list_del(&cb->entry);
- 	}
-+
-+	/* 
-+         * in case that schedule() was skipped, set the process state
-to running
-+	 */
-+	finish_wait(&coredev->buffer_mng_waitq, &wait);
-+
-+	/* 
-+         * verify that the list is not empty, since it might have been 
-+	 * emptied during the sleep
-+	 * comment : this sitation can be avoided using
-spin_unlock_irqrestore_exclusive	
-+	 */	
-+	if (list_empty(&coredev->buffers)) {
-+		sms_err("failed to allocate buffer, returning NULL");
- 	spin_unlock_irqrestore(&coredev->bufferslock, flags);
--	return cb;
-+		return NULL;
- }
- 
--struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t
-*coredev)
--{
--	struct smscore_buffer_t *cb = NULL;
-+	cb = (struct smscore_buffer_t *) coredev->buffers.next;
-+	list_del(&cb->entry);
- 
--	wait_event(coredev->buffer_mng_waitq, (cb = get_entry(coredev)));
-+	spin_unlock_irqrestore(&coredev->bufferslock, flags);
- 
- 	return cb;
- }
--- 
-1.7.4.1
+Cheers,
+Chris
 
