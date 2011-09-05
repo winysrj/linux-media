@@ -1,56 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:63966 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753255Ab1ISIsx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Sep 2011 04:48:53 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Greg KH <greg@kroah.com>, Jean Delvare <khali@linux-fr.org>,
-	Luciano Coelho <coelho@ti.com>, matti.j.aaltonen@nokia.com,
-	johannes@sipsolutions.net, linux-kernel@vger.kernel.org,
-	sameo@linux.intel.com, mchehab@infradead.org,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	Tony Lindgren <tony@atomide.com>,
-	Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 1/2] misc: remove CONFIG_MISC_DEVICES
-Date: Mon, 19 Sep 2011 10:47:50 +0200
-Message-ID: <2282172.TF7nejTDIZ@wuerfel>
-In-Reply-To: <4E763C3C.3050909@xenotime.net>
-References: <20110829102732.03f0f05d.rdunlap@xenotime.net> <20110918152835.GA30696@kroah.com> <4E763C3C.3050909@xenotime.net>
+Received: from banach.math.auburn.edu ([131.204.45.3]:43077 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751002Ab1IECDA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Sep 2011 22:03:00 -0400
+Date: Sun, 4 Sep 2011 21:07:23 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Mauricio Henriquez <buhochileno@gmail.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: spca1528 device (Device 015: ID 04fc:1528 Sunplus Technology)..libv4l2:
+ error turning on stream: Timer expired issue
+In-Reply-To: <4E63D3F2.8090500@gmail.com>
+Message-ID: <alpine.LNX.2.00.1109042055540.8537@banach.math.auburn.edu>
+References: <4E63D3F2.8090500@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 18 September 2011 11:45:16 Randy Dunlap wrote:
-> >> We have fallbacks to Andrew and/or GregKH currently, but GregKH is not
-> >> consistent or timely with applying drivers/misc/ patches.  It deserves better.
-> >> [added him to Cc: list]
-> > 
-> > I do try to handle patches sent to me for misc/ in time for the
-> > different merge windows as that directory contains drivers that have
-> > moved out of the staging/ directory.
-> > 
-> > But yes, I'm not the overall drivers/misc/ maintainer, do we really need
-> > one?  If so, I can easily start maintaining a development tree for it to
-> > keep it separate for the different driver authors to send me stuff and
-> > start tracking it more "for real" if Arnd doesn't want to do it.
+
+
+On Sun, 4 Sep 2011, Mauricio Henriquez wrote:
+
+> Hi guys,
 > 
-> We need for the patches to be applied in a timely manner.
-> Sometimes when there is no real maintainer, that does not happen.
+> Not sure if is the right place to ask since this device use a gspca driver
+> and not sure if that driver is related to uvc or not, if not please point
+> me to the right place...
 
-I think the other equally import aspect of maintainership that
-drivers/misc (and drivers/char) needs is someone who says no to
-stuff that doesn't belong there and helps submitters to find a
-proper place where appropriate and to come up with a proper user
-interface abstraction.
+Looks right to me, and I hope that someone has more direct knowledge about 
+your camera, which I do not. I do have a couple of questions, however, and 
+a comment.
 
-I'm definitely willing to do that part.
+> 
+> Recently I'm trying to make work a Sunplus crappy mini HD USB camera, lsusb
+> list this info related to the device:
+> 
+> Picture Transfer Protocol (PIMA 15470)
+> Bus 001 Device 015: ID 04fc:1528 Sunplus Technology Co., Ltd
+> 
+>  idVendor           0x04fc Sunplus Technology Co., Ltd
+>   idProduct          0x1528
+>   bcdDevice            1.00
+>   iManufacturer           1 Sunplus Co Ltd
+>   iProduct                2 General Image Devic
+>   iSerial                 0
+> ...
+> 
+> Using the gspca-2.13.6 on my Fed12 (2.6.31.6-166.fc12.i686.PAE kernel), the
+> device is listed as /dev/video1 and no error doing a dmesg...but trying to
+> make it work, let say with xawtv, I get:
+> 
+> This is xawtv-3.95, running on Linux/i686 (2.6.31.6-166.fc12.i686.PAE)
+> xinerama 0: 1600x900+0+0
+> WARNING: No DGA direct video mode for this display.
+> /dev/video1 [v4l2]: no overlay support
+> v4l-conf had some trouble, trying to continue anyway
+> Warning: Missing charsets in String to FontSet conversion
+> Warning: Missing charsets in String to FontSet conversion
+> libv4l2: error turning on stream: Timer expired
+> ioctl: VIDIOC_STREAMON(int=1): Timer expired
+> ioctl: VIDIOC_S_STD(std=0x0 []): Invalid argument
+> v4l2: oops: select timeout
+> 
+> ..or doing:
+> xawtv -c /dev/video1 -nodga -novm -norandr -noxv -noxv-video
+> 
+> I get:
+> ioctl: VIDIOC_STREAMON(int=1): Timer expired
+> ioctl: VIDIOC_S_STD(std=0x0 []): Invalid argument
+> v4l2: oops: select timeout
+> libv4l2: error turning on stream: Timer expired
+> libv4l2: error reading: Invalid argument
+> 
+> 
+> vlc, cheese, etc give me similar "Timeout" related messages...
 
-Greg, how about we both formally take ownership of driver/{misc,char}
-and you track the patches while I do the bulk of the reviews? You
-are definitely better than me with the patch tracking workflow.
+The comment:
 
-	Arnd
+Perhaps a good thing to try would be the nice, simple, basic program svv, 
+which you can get from the website of Jean-Francois Moine. Some of these 
+other things do not always work. Especially I have had trouble with xawtv, 
+though the xawtv people may have fixed a lot of problems while I was not 
+watching them.
+
+The question:
+
+Is this a dual-mode camera which is also supposed to have still camera 
+capabilities? If so, you might be interested in contacting the Gphoto 
+project. I just searched for it there, and it does not seem to be listed.
+
+I assume that the specialists on the spca cameras will step forward. I 
+am not one of them, as I said. Good luck.
+
+Theodore Kilgore
