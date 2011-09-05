@@ -1,76 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42368 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752336Ab1IMKbT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Sep 2011 06:31:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [RFC] New class for low level sensors controls?
-Date: Tue, 13 Sep 2011 12:31:17 +0200
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	s.nawrocki@samsung.com, hechtb@googlemail.com
-References: <20110906113653.GF1393@valkosipuli.localdomain> <20110906122226.GH1393@valkosipuli.localdomain> <Pine.LNX.4.64.1109081409380.31156@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1109081409380.31156@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109131231.18178.laurent.pinchart@ideasonboard.com>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:45570 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750844Ab1IEHTb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 03:19:31 -0400
+Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:8db5])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 7CD43940099
+	for <linux-media@vger.kernel.org>; Mon,  5 Sep 2011 09:19:20 +0200 (CEST)
+Date: Mon, 5 Sep 2011 09:19:59 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: linux-media@vger.kernel.org
+Subject: Re: spca1528 device (Device 015: ID 04fc:1528 Sunplus
+ Technology)..libv4l2: error turning on	stream: Timer expired issue
+Message-ID: <20110905091959.727346d5@tele>
+In-Reply-To: <4E63D3F2.8090500@gmail.com>
+References: <4E63D3F2.8090500@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On Sun, 04 Sep 2011 15:39:30 -0400
+Mauricio Henriquez <buhochileno@gmail.com> wrote:
 
-On Thursday 08 September 2011 14:35:54 Guennadi Liakhovetski wrote:
-> On Tue, 6 Sep 2011, Sakari Ailus wrote:
-> > On Tue, Sep 06, 2011 at 01:41:11PM +0200, Laurent Pinchart wrote:
-> > > On Tuesday 06 September 2011 13:36:53 Sakari Ailus wrote:
-
-[snip]
-
-> > > > Typically such sensors are not controlled by general purpose
-> > > > applications but e.g. require a camera control algorithm framework
-> > > > in user space. This needs to be implemented in libv4l for general
-> > > > purpose applications to work properly on this kind of hardware.
-> > > > 
-> > > > These sensors expose controls such as
-> > > > 
-> > > > - Per-component gain controls. Red, blue, green (blue) and green
-> > > > (red) gains.
-> > > > 
-> > > > - Link frequency. The frequency of the data link from the sensor to
-> > > > the bridge.
-> > > > 
-> > > > - Horizontal and vertical blanking.
-> > > 
-> > > Other controls often found in bayer sensors are black level
-> > > compensation and test pattern.
+> Recently I'm trying to make work a Sunplus crappy mini HD USB camera, lsusb
+> list this info related to the device:
 > 
-> May I suggest a couple more:
+> Picture Transfer Protocol (PIMA 15470)
+> Bus 001 Device 015: ID 04fc:1528 Sunplus Technology Co., Ltd
 > 
-> (1) snapshot mode (I really badly want this one, please;-))
+>   idVendor           0x04fc Sunplus Technology Co., Ltd
+>    idProduct          0x1528
+>    bcdDevice            1.00
+>    iManufacturer           1 Sunplus Co Ltd
+>    iProduct                2 General Image Devic
+>    iSerial                 0
+> ...
+> 
+> Using the gspca-2.13.6 on my Fed12 (2.6.31.6-166.fc12.i686.PAE kernel), the
+> device is listed as /dev/video1 and no error doing a dmesg...but trying to
+> make it work, let say with xawtv, I get:
+	[snip]
 
-What do you mean exactly by snapshot mode ? Is that just external trigger, or 
-does it cover more features than that ?
+Hi Mauricio,
 
-> (2) flash controls (yes, I know we already have V4L2_CTRL_CLASS_FLASH, I
->     just have the impression, that these controls are mostly meant for
->     either pure software implementations, or for external controllers, I
->     think it should also be possible to have them exported by a normal
->     sensor driver, but wasn't really sure. So, wanted to point out to this
->     possibility once again.)
+The problem seems tied to the alternate setting. It must be the #3
+while the lastest versions of gspca compute a "best" one. May you apply
+the following patch to gspca-2.13.6?
 
-As Sakari told you in his answer, we can add new controls to the flash class.
+----------------------8<----------------------
+--- build/spca1528.c.orig	2011-09-05 08:41:54.000000000 +0200
++++ build/spca1528.c	2011-09-05 08:53:51.000000000 +0200
+@@ -307,8 +307,6 @@
+ 	sd->color = COLOR_DEF;
+ 	sd->sharpness = SHARPNESS_DEF;
+ 
+-	gspca_dev->nbalt = 4;		/* use alternate setting 3 */
+-
+ 	return 0;
+ }
+ 
+@@ -349,6 +347,9 @@
+ 	reg_r(gspca_dev, 0x25, 0x0004, 1);
+ 	reg_wb(gspca_dev, 0x27, 0x0000, 0x0000, 0x06);
+ 	reg_r(gspca_dev, 0x27, 0x0000, 1);
++
++	gspca_dev->alt = 4;		/* use alternate setting 3 */
++
+ 	return gspca_dev->usb_err;
+ }
+ 
+----------------------8<----------------------
 
-> (3) AEC / AGC regions
-
-This will get tricky. I'm tempted to propose the idea of v4l2_rect controls 
-and control arrays again :-)
-
-> (4) stereo (3D anyone?;)) - no, don't think we need it now...
+(Theodore, this webcam may work in mass storage mode with ID 04fc:0171.
+In webcam mode with ID 04fc:1528, it offers 3 interfaces: interface 0
+contains only an interrupt endpoint, interface 1 is the webcam with
+only isochronous endpoints and interface 2 contains bulk in, bulk out
+and interrupt in endpoints - I don't know how to use the interfaces 0
+and 2, but sure the interface 2 could be used to access the camera
+images)
 
 -- 
-Regards,
-
-Laurent Pinchart
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
