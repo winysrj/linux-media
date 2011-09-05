@@ -1,101 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout0.thls.bbc.co.uk ([132.185.240.35]:63210 "EHLO
-	mailout0.thls.bbc.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933307Ab1IILHY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2011 07:07:24 -0400
-Message-ID: <4E69EE5E.8080605@rd.bbc.co.uk>
-Date: Fri, 09 Sep 2011 11:45:50 +0100
-From: David Waring <davidjw@rd.bbc.co.uk>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Antti Palosaari <crope@iki.fi>
-Subject: Re: recursive locking problem
-References: <4E68EE98.90201@iki.fi>
-In-Reply-To: <4E68EE98.90201@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mga11.intel.com ([192.55.52.93]:28087 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754574Ab1IEPZ3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Sep 2011 11:25:29 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [media-ctl][PATCHv5 5/5] libmediactl: get rid of memset via using calloc
+Date: Mon,  5 Sep 2011 18:24:07 +0300
+Message-Id: <c6fb27f616b6e6b0b99e690109ba6a2466ba980d.1315236211.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1315236211.git.andriy.shevchenko@linux.intel.com>
+References: <201109051657.21646.laurent.pinchart@ideasonboard.com>
+ <6075971b959c2e808cd4ceec6540dc09b101346f.1315236211.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1315236211.git.andriy.shevchenko@linux.intel.com>
+References: <6075971b959c2e808cd4ceec6540dc09b101346f.1315236211.git.andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/09/11 17:34, Antti Palosaari wrote:
-> [snip]
-> 
-> Is there any lock can do recursive locking but unlock frees all locks?
-> 
-> Like that:
-> gate_open
-> +gate_open
-> +gate_close
-> == lock is free
-> 
-> AFAIK mutex can do only simple lock() + unlock(). Semaphore can do
-> recursive locking, like lock() + lock() + unlock() + unlock(). But how I
-> can do lock() + lock() + unlock() == free.
-> 
-Antti,
+The code snippet
+	x = malloc(sizeof(*x));
+	memset(x, 0, sizeof(*x));
+could be easily changed to
+	x = calloc(1, sizeof(*x));
 
-It's a very bad idea to try and use a mutex like that. The number of
-locks and unlocks must be balanced otherwise you risk accessing
-variables without a lock.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ src/media.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-Consider:
-
-static struct mutex foo_mutex;
-static int foo=3;
-
-void a() {
-  mutex_lock(&foo_mutex);
-  if (foo<5) foo++;
-  b();
-  foo--; /* <<< still need lock here */
-  mutex_unlock(&foo_mutex);
-}
-
-void b() {
-  mutex_lock(&foo_mutex);
-  if (foo>6) foo=(foo>>1);
-  mutex_unlock(&foo_mutex);
-}
-
-Note: this assumes mutex_lock will allow the same thread get multiple
-locks as you would like (which it doesn't).
-
-As pointed out in the code, when a() is called, you still need the lock
-for accesses to foo after the call to b() that also requires the lock.
-If we used the locks in the way you propose then foo would be accessed
-without a lock.
-
-To code properly for cases like these I usually use a wrapper functions
-to acquire the lock and call a thread unsafe version (i.e. doesn't use
-locks) of the function that only uses other thread unsafe functions. e.g.
-
-void a() {
-  mutex_lock(&foo_mutex);
-  __a_thr_unsafe();
-  mutex_unlock(&foo_mutex);
-}
-
-void b() {
-  mutex_lock(&foo_mutex);
-  __b_thr_unsafe();
-  mutex_unlock(&foo_mutex);
-}
-
-static void __a_thr_unsafe() {
-  if (foo<5) foo++;
-  __b_thr_unsafe();
-  foo--;
-}
-
-static void __b_thr_unsafe() {
-  if (foo>6) foo=(foo>>1);
-}
-
-This way a call to a() or b() will acquire the lock once for that
-thread, perform all actions and then release the lock. The mutex is
-handled properly.
-
-Can you restructure the code so that you don't need multiple locks?
-
+diff --git a/src/media.c b/src/media.c
+index 6c03369..38ebaac 100644
+--- a/src/media.c
++++ b/src/media.c
+@@ -415,12 +415,11 @@ struct media_device *media_open(const char *name, int verbose)
+ 	struct media_private *priv;
+ 	int ret;
+ 
+-	media = malloc(sizeof(*media));
++	media = calloc(1, sizeof(*media));
+ 	if (media == NULL) {
+ 		printf("%s: unable to allocate memory\n", __func__);
+ 		return NULL;
+ 	}
+-	memset(media, 0, sizeof(*media));
+ 
+ 	if (verbose)
+ 		printf("Opening media device %s\n", name);
+@@ -431,13 +430,12 @@ struct media_device *media_open(const char *name, int verbose)
+ 		return NULL;
+ 	}
+ 
+-	priv = malloc(sizeof(*priv));
++	priv = calloc(1, sizeof(*priv));
+ 	if (priv == NULL) {
+ 		printf("%s: unable to allocate memory\n", __func__);
+ 		media_close(media);
+ 		return NULL;
+ 	}
+-	memset(priv, 0, sizeof(*priv));
+ 
+ 	/* Fill the private structure */
+ 	priv->media = media;
 -- 
-David Waring
+1.7.5.4
+
