@@ -1,110 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:52262 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754370Ab1IWOT0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Sep 2011 10:19:26 -0400
-From: penberg@cs.helsinki.fi
-To: linux-kernel@vger.kernel.org
-Cc: Pekka Enberg <penberg@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	Jarod Wilson <jarod@redhat.com>, <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] media, rc: Use static inline functions to kill warnings
-Date: Fri, 23 Sep 2011 17:19:07 +0300
-Message-Id: <1316787547-1971-2-git-send-email-penberg@cs.helsinki.fi>
-In-Reply-To: <1316787547-1971-1-git-send-email-penberg@cs.helsinki.fi>
-References: <1316787547-1971-1-git-send-email-penberg@cs.helsinki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35740 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751721Ab1IEJok (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 05:44:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bastian Hecht <hechtb@googlemail.com>
+Subject: Re: [PATCH 1/2 v2] media: Add support for arbitrary resolution for the ov5642 camera driver
+Date: Mon, 5 Sep 2011 11:45:19 +0200
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <alpine.DEB.2.02.1108311420540.2154@ipanema> <201109051125.33829.laurent.pinchart@ideasonboard.com> <CABYn4sxJQsoCZXcVtKg9N+oJBgf42JSKe6YXV+fCCtY919Suaw@mail.gmail.com>
+In-Reply-To: <CABYn4sxJQsoCZXcVtKg9N+oJBgf42JSKe6YXV+fCCtY919Suaw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109051145.19702.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pekka Enberg <penberg@kernel.org>
+Hi Bastian,
 
-This patch converts some ifdef'd wrapper functions from macros to static inline
-functions to kill the following warnings issued by GCC:
+On Monday 05 September 2011 11:41:28 Bastian Hecht wrote:
+> 2011/9/5 Laurent Pinchart:
+> > On Monday 05 September 2011 11:10:48 Bastian Hecht wrote:
+> >> 2011/8/31 Laurent Pinchart:
+> >> >> >  static int ov5642_g_crop(struct v4l2_subdev *sd, struct v4l2_crop
+> >> >> > *a) {
+> >> >> > 
+> >> >> > +   struct i2c_client *client = v4l2_get_subdevdata(sd);
+> >> >> > +   struct ov5642 *priv = to_ov5642(client);
+> >> >> > 
+> >> >> >     struct v4l2_rect *rect = &a->c;
+> >> >> > 
+> >> >> > -   a->type         = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> >> >> > -   rect->top       = 0;
+> >> >> > -   rect->left      = 0;
+> >> >> > -   rect->width     = OV5642_WIDTH;
+> >> >> > -   rect->height    = OV5642_HEIGHT;
+> >> >> > +   a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> >> >> 
+> >> >> Shouldn't you return an error instead when a->type is not
+> >> >> V4L2_BUF_TYPE_VIDEO_CAPTURE ?
+> >> 
+> >> No idea, but if you say so, I'll change it.
+> > 
+> > VIDIOC_G_FMT documentation states that
+> > 
+> > "When the requested buffer type is not supported drivers return an EINVAL
+> > error code."
+> > 
+> > I thought VIDIOC_G_CROP documentation did as well, but it doesn't.
+> > However I believe the above should apply to VIDIOC_G_CROP as well. There
+> > is no explicit documentation about error codes for subdev operations,
+> > but I think it makes sense to follow what the V4L2 ioctls do.
+> 
+> And these ioctl calls go straight through to my driver? Or is there
+> some intermediate work by the subdev architecture? I'm asking because
+> I don't check the buffer type in g_fmt as well. If so, I have to
+> change that too.
 
-    CC [M]  drivers/media/rc/ir-raw.o
-  drivers/media/rc/ir-raw.c: In function ‘init_decoders’:
-  drivers/media/rc/ir-raw.c:353:2: warning: statement with no effect [-Wunused-value]
-  drivers/media/rc/ir-raw.c:354:2: warning: statement with no effect [-Wunused-value]
-  drivers/media/rc/ir-raw.c:355:2: warning: statement with no effect [-Wunused-value]
-  drivers/media/rc/ir-raw.c:356:2: warning: statement with no effect [-Wunused-value]
-  drivers/media/rc/ir-raw.c:357:2: warning: statement with no effect [-Wunused-value]
-  drivers/media/rc/ir-raw.c:359:2: warning: statement with no effect [-Wunused-value]
+The ioctls go to the host/bridge driver, which then decides when and how to 
+call g/s_fmt and g/s_crop. I would add the same check to g_fmt.
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: "David Härdeman" <david@hardeman.nu>
-Cc: Jarod Wilson <jarod@redhat.com>
-Cc: <linux-media@vger.kernel.org>
-Signed-off-by: Pekka Enberg <penberg@kernel.org>
----
- drivers/media/rc/rc-core-priv.h |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 04c2c72..c6ca870 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -162,49 +162,49 @@ void ir_raw_init(void);
- #ifdef CONFIG_IR_NEC_DECODER_MODULE
- #define load_nec_decode()	request_module("ir-nec-decoder")
- #else
--#define load_nec_decode()	0
-+static inline void load_nec_decode(void) { }
- #endif
- 
- /* from ir-rc5-decoder.c */
- #ifdef CONFIG_IR_RC5_DECODER_MODULE
- #define load_rc5_decode()	request_module("ir-rc5-decoder")
- #else
--#define load_rc5_decode()	0
-+static inline void load_rc5_decode(void) { }
- #endif
- 
- /* from ir-rc6-decoder.c */
- #ifdef CONFIG_IR_RC6_DECODER_MODULE
- #define load_rc6_decode()	request_module("ir-rc6-decoder")
- #else
--#define load_rc6_decode()	0
-+static inline void load_rc6_decode(void) { }
- #endif
- 
- /* from ir-jvc-decoder.c */
- #ifdef CONFIG_IR_JVC_DECODER_MODULE
- #define load_jvc_decode()	request_module("ir-jvc-decoder")
- #else
--#define load_jvc_decode()	0
-+static inline void load_jvc_decode(void) { }
- #endif
- 
- /* from ir-sony-decoder.c */
- #ifdef CONFIG_IR_SONY_DECODER_MODULE
- #define load_sony_decode()	request_module("ir-sony-decoder")
- #else
--#define load_sony_decode()	0
-+static inline void load_sony_decode(void) { }
- #endif
- 
- /* from ir-mce_kbd-decoder.c */
- #ifdef CONFIG_IR_MCE_KBD_DECODER_MODULE
- #define load_mce_kbd_decode()	request_module("ir-mce_kbd-decoder")
- #else
--#define load_mce_kbd_decode()	0
-+static inline void load_mce_kbd_decode(void) { }
- #endif
- 
- /* from ir-lirc-codec.c */
- #ifdef CONFIG_IR_LIRC_CODEC_MODULE
- #define load_lirc_codec()	request_module("ir-lirc-codec")
- #else
--#define load_lirc_codec()	0
-+static inline void load_lirc_codec(void) { }
- #endif
- 
- 
 -- 
-1.7.6.2
+Regards,
 
+Laurent Pinchart
