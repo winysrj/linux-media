@@ -1,64 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from e3.ny.us.ibm.com ([32.97.182.143]:50092 "EHLO e3.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751109Ab1IUOSU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 10:18:20 -0400
-Received: from /spool/local
-	by us.ibm.com with XMail ESMTP
-	for <linux-media@vger.kernel.org> from <dave@linux.vnet.ibm.com>;
-	Wed, 21 Sep 2011 10:09:36 -0400
-Subject: Re: [PATCH 2/8] mm: alloc_contig_freed_pages() added
-From: Dave Hansen <dave@linux.vnet.ibm.com>
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-In-Reply-To: <op.v15tv0183l0zgt@mnazarewicz-glaptop>
-References: <1313764064-9747-1-git-send-email-m.szyprowski@samsung.com>
-	 <1313764064-9747-3-git-send-email-m.szyprowski@samsung.com>
-	 <1315505152.3114.9.camel@nimitz>  <op.v15tv0183l0zgt@mnazarewicz-glaptop>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 21 Sep 2011 07:07:36 -0700
-Message-ID: <1316614056.16137.278.camel@nimitz>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:44230 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751424Ab1IETJa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 15:09:30 -0400
+Received: by yxj19 with SMTP id 19so2515884yxj.19
+        for <linux-media@vger.kernel.org>; Mon, 05 Sep 2011 12:09:30 -0700 (PDT)
+Message-ID: <4E652C9C.9000706@gmail.com>
+Date: Mon, 05 Sep 2011 16:10:04 -0400
+From: Mauricio Henriquez <buhochileno@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: spca1528 device (Device 015: ID 04fc:1528 Sunplus Technology)..libv4l2:
+ error turning on	stream: Timer expired issue
+References: <4E63D3F2.8090500@gmail.com>	<20110905091959.727346d5@tele>	<4E64EBDD.9050807@gmail.com> <20110905191517.6945c15c@tele>
+In-Reply-To: <20110905191517.6945c15c@tele>
+Content-Type: multipart/mixed;
+ boundary="------------030000070107040209000800"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2011-09-21 at 15:17 +0200, Michal Nazarewicz wrote:
-> > This 'struct page *'++ stuff is OK, but only for small, aligned areas.
-> > For at least some of the sparsemem modes (non-VMEMMAP), you could walk
-> > off of the end of the section_mem_map[] when you cross a MAX_ORDER
-> > boundary.  I'd feel a little bit more comfortable if pfn_to_page() was
-> > being done each time, or only occasionally when you cross a section
-> > boundary.
-> 
-> I'm fine with that.  I've used pointer arithmetic for performance reasons
-> but if that may potentially lead to bugs then obviously pfn_to_page()  
-> should be used
+This is a multi-part message in MIME format.
+--------------030000070107040209000800
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-pfn_to_page() on x86 these days is usually:
+On 09/05/2011 01:15 PM, Jean-Francois Moine wrote:
+> On Mon, 05 Sep 2011 11:33:49 -0400
+> Mauricio Henriquez<buhochileno@gmail.com>  wrote:
+>
+>    
+>> Thanks Jean, yeap I apply the patch, but still the same kind of messages
+>> about timeout sing xawtv or svv:
+>>      
+> OK Mauricio. So, I need more information. May you set the gspca debug
+> level to 0x0f
+>
+> 	echo 0x0f>  /sys/module/gspca_main/parameters/debug
+>
+> run 'svv' and send me the kernel messages starting from the last gspca
+> open?
+>    
+Ok, I set the gspca debug thing and this is the dmesg messages after 
+running svv:
 
-	#define __pfn_to_page(pfn)      (vmemmap + (pfn))
+gspca-2.13.6: [svv] open
+gspca-2.13.6: try fmt cap JPEG 640x480
+gspca-2.13.6: try fmt cap JPEG 640x480
+gspca-2.13.6: frame alloc frsz: 115790
+gspca-2.13.6: reqbufs st:0 c:4
+gspca-2.13.6: mmap start:b7739000 size:118784
+gspca-2.13.6: mmap start:b7621000 size:118784
+gspca-2.13.6: mmap start:b7604000 size:118784
+gspca-2.13.6: mmap start:b75e7000 size:118784
+gspca-2.13.6: init transfer alt 3
+gspca-2.13.6: isoc 128 pkts size 512 = bsize:65536
+spca1528-2.13.6: wait_status_0 timeout
+gspca-2.13.6: kill transfer
+gspca-2.13.6: [svv] close
+gspca-2.13.6: frame free
+gspca-2.13.6: close done
+gspca-2.13.6: [svv] open
+gspca-2.13.6: try fmt cap JPEG 640x480
+gspca-2.13.6: try fmt cap JPEG 640x480
+gspca-2.13.6: frame alloc frsz: 115790
+gspca-2.13.6: reqbufs st:0 c:4
+gspca-2.13.6: mmap start:b7732000 size:118784
+gspca-2.13.6: mmap start:b761a000 size:118784
+gspca-2.13.6: mmap start:b75fd000 size:118784
+gspca-2.13.6: mmap start:b75e0000 size:118784
+gspca-2.13.6: init transfer alt 3
+gspca-2.13.6: isoc 128 pkts size 512 = bsize:65536
+spca1528-2.13.6: wait_status_0 timeout
+gspca-2.13.6: kill transfer
+gspca-2.13.6: [svv] close
+gspca-2.13.6: frame free
+gspca-2.13.6: close done
 
-Even for the non-vmemmap sparsemem it stays pretty quick because the
-section array is in cache as you run through the loop.
+...hope you know what it mean :-) ..let me know if I can help in 
+anything else, here I'm also playing with the code :-)
 
-There are ways to _minimize_ the number of pfn_to_page() calls by
-checking when you cross a section boundary, or even at a
-MAX_ORDER_NR_PAGES boundary.  But, I don't think it's worth the trouble.
+Mauricio
+> Thanks.
+>
+>    
 
--- Dave
 
+-- 
+Mauricio R. Henriquez Schott
+Escuela de Ingeniería en Computación
+Universidad Austral de Chile - Sede Puerto Montt
+Los Pinos S/N, Balneario de Pelluco, Puerto Montt - Chile
+Tel: 65-487440
+Fax: 65-277156
+mail: mauriciohenriquez@uach.cl
+
+
+--------------030000070107040209000800
+Content-Type: text/x-vcard; charset=utf-8;
+ name="buhochileno.vcf"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="buhochileno.vcf"
+
+YmVnaW46dmNhcmQNCmZuOk1hdXJpY2lvIEhlbnJpcXVleg0KbjpIZW5yaXF1ZXo7TWF1cmlj
+aW8NCm9yZztxdW90ZWQtcHJpbnRhYmxlOlVuaXZlcnNpZGFkIEF1c3RyYWwgZGUgQ2hpbGUg
+LSBTZWRlIFB1ZXJ0byBNb250dDtFc2N1ZWxhIGRlIENvbXB1dGFjaT1DMz1CM24NCmFkcjo7
+O0xvcyBQaW5vcyBTL04gQmFsbmVhcmlvIGRlIFBlbGx1Y287UHVlcnRvIE1vbnR0O0xsYW5x
+dWlodWU7NTQ4MDAwMDtDaGlsZQ0KZW1haWw7aW50ZXJuZXQ6bWF1cmljaW9oZW5yaXF1ZXpA
+dWFjaC5jbA0KdGl0bGU6RG9jZW50ZQ0KdGVsO3dvcms6NjUtNDg3NDQwDQp0ZWw7ZmF4OjY1
+LTI3NzE1Ng0KdXJsOmh0dHA6Ly93d3cubW9ub2JvdGljcy5pYy51YWNoLmNsDQp2ZXJzaW9u
+OjIuMQ0KZW5kOnZjYXJkDQoNCg==
+--------------030000070107040209000800--
