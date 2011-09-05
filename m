@@ -1,309 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47681 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756583Ab1IAJEy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 05:04:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] mt9t001: Aptina (Micron) MT9T001 3MP sensor driver
-Date: Thu, 1 Sep 2011 11:05:05 +0200
-Cc: linux-media@vger.kernel.org
-References: <1314793452-23641-1-git-send-email-laurent.pinchart@ideasonboard.com> <20110831182332.GM12368@valkosipuli.localdomain>
-In-Reply-To: <20110831182332.GM12368@valkosipuli.localdomain>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:61993 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752628Ab1IEMgz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 08:36:55 -0400
+Received: by yxj19 with SMTP id 19so2302864yxj.19
+        for <linux-media@vger.kernel.org>; Mon, 05 Sep 2011 05:36:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109011105.06121.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201109051207.42195.laurent.pinchart@ideasonboard.com>
+References: <alpine.DEB.2.02.1108311420540.2154@ipanema>
+	<201109051125.33829.laurent.pinchart@ideasonboard.com>
+	<Pine.LNX.4.64.1109051130590.1112@axis700.grange>
+	<201109051207.42195.laurent.pinchart@ideasonboard.com>
+Date: Mon, 5 Sep 2011 12:36:54 +0000
+Message-ID: <CABYn4sw9Vbk9k7Xm8up7+p1nO6V-1hYJ42Y7=-mZ6JRQ=wxUpw@mail.gmail.com>
+Subject: Re: [PATCH 1/2 v2] media: Add support for arbitrary resolution for
+ the ov5642 camera driver
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+2011/9/5 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Guennadi,
+>
+> On Monday 05 September 2011 11:51:57 Guennadi Liakhovetski wrote:
+>> On Mon, 5 Sep 2011, Laurent Pinchart wrote:
+>> > On Monday 05 September 2011 11:10:48 Bastian Hecht wrote:
+>> > > 2011/8/31 Laurent Pinchart:
+>> > > > On Wednesday 31 August 2011 19:06:25 Laurent Pinchart wrote:
+>> > > >> On Wednesday 31 August 2011 17:05:52 Bastian Hecht wrote:
+>> > > >> > This patch adds the ability to get arbitrary resolutions with a
+>> > > >> > width up to 2592 and a height up to 720 pixels instead of the
+>> > > >> > standard 1280x720 only.
+>> > > >> >
+>> > > >> > Signed-off-by: Bastian Hecht <hechtb@gmail.com>
+>> > > >> > ---
+>> > > >> > diff --git a/drivers/media/video/ov5642.c
+>> > > >> > b/drivers/media/video/ov5642.c index 6410bda..87b432e 100644
+>> > > >> > --- a/drivers/media/video/ov5642.c
+>> > > >> > +++ b/drivers/media/video/ov5642.c
+>> > > >>
+>> > > >> [snip]
+>> > > >>
+>> > > >> > @@ -684,107 +737,101 @@ static int ov5642_write_array(struct
+>> > > >> > i2c_client
+>> > > >>
+>> > > >> [snip]
+>> > > >>
+>> > > >> > -static int ov5642_s_fmt(struct v4l2_subdev *sd,
+>> > > >> > -                   struct v4l2_mbus_framefmt *mf)
+>> > > >> > +static int ov5642_s_fmt(struct v4l2_subdev *sd, struct
+>> > > >> > v4l2_mbus_framefmt *mf) {
+>> > > >> >
+>> > > >> >     struct i2c_client *client = v4l2_get_subdevdata(sd);
+>> > > >> >     struct ov5642 *priv = to_ov5642(client);
+>> > > >> >
+>> > > >> > -
+>> > > >> > -   dev_dbg(sd->v4l2_dev->dev, "%s(%u)\n", __func__, mf->code);
+>> > > >> > +   int ret;
+>> > > >> >
+>> > > >> >     /* MIPI CSI could have changed the format, double-check */
+>> > > >> >     if (!ov5642_find_datafmt(mf->code))
+>> > > >> >
+>> > > >> >             return -EINVAL;
+>> > > >> >
+>> > > >> >     ov5642_try_fmt(sd, mf);
+>> > > >> >
+>> > > >> > -
+>> > > >> >
+>> > > >> >     priv->fmt = ov5642_find_datafmt(mf->code);
+>> > > >> >
+>> > > >> > -   ov5642_write_array(client, ov5642_default_regs_init);
+>> > > >> > -   ov5642_set_resolution(client);
+>> > > >> > -   ov5642_write_array(client, ov5642_default_regs_finalise);
+>> > > >> > +   ret = ov5642_write_array(client, ov5642_default_regs_init);
+>> > > >> > +   if (!ret)
+>> > > >> > +           ret = ov5642_set_resolution(sd);
+>> > > >> > +   if (!ret)
+>> > > >> > +           ret = ov5642_write_array(client,
+>> > > >> > ov5642_default_regs_finalise);
+>> > > >>
+>> > > >> You shouldn't write anything to the sensor here. As only .s_crop can
+>> > > >> currently change the format, .s_fmt should just return the current
+>> > > >> format without performing any change or writing anything to the
+>> > > >> device.
+>> > >
+>> > > We talked about it in the ov5642 controls thread. I need to initialize
+>> > > the sensor at some point and it doesn't work to divide the calls
+>> > > between different locations.
+>> >
+>> > Sure, but calling s_fmt isn't mandatory for hosts/bridges. What about
+>> > moving sensor initialization to s_stream() ?
+>>
+>> Throughout the development of this driver, I was opposing the "delayed
+>> configuration" approach. I.e., the approach, in which all the ioctl()s,
+>> like S_FMT, S_CROP, etc. only store user values internally, and the actual
+>> hardware configuration is only performed at STREAMON time. There are
+>> several reasons to this: the spec says "the driver may program the
+>> hardware, allocate resources and generally prepare for data exchange"
+>> (yes, "may" != "must"), most drivers seem to do the same, the possibility
+>> to check and return any hardware errors, returned by this operation, I
+>> probably have forgotten something. But if we ignore all these reasons as
+>> insufficiently important, then yes, doing the actualy hardware
+>> configuration in .s_stream() brings a couple of advantages with it,
+>> especially for drivers / devices like this one.
+>>
+>> So, if there are no strong objections, maybe indeed move this back to
+>> .s_stream() would be the better solution here.
+>
+> I have no strong opinion here. Your points are certainly valid. I'm fine with
+> performing direct hardware setup in .s_crop(), but doing it in .s_fmt() looks
+> weird to me as .s_fmt() doesn't perform any operation now that the driver
+> moved to using .s_crop(). Without delayed initialization I believe the device
+> should be initialized when powered up, and have its crop rectangle altered in
+> .s_crop().
 
-Thanks for the review.
+Ok, it is moved to s_power and s_crop now. This approach sounds clean indeed.
 
-On Wednesday 31 August 2011 20:23:33 Sakari Ailus wrote:
-> On Wed, Aug 31, 2011 at 02:24:12PM +0200, Laurent Pinchart wrote:
-> > The MT9T001 is a parallel 3MP sensor from Aptina (formerly Micron)
-> > controlled through I2C.
-> > 
-> > The driver creates a V4L2 subdevice. It currently supports binning and
-> > cropping, and the gain, exposure, test pattern and black level controls.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+best,
 
-[snip]
+ Bastian
 
-> > diff --git a/drivers/media/video/mt9t001.c
-> > b/drivers/media/video/mt9t001.c new file mode 100644
-> > index 0000000..32ab217
-> > --- /dev/null
-> > +++ b/drivers/media/video/mt9t001.c
-> > @@ -0,0 +1,788 @@
 
-[snip]
-
-> > +/*
-> > + * mt9m001 i2c address 0x5d
-> 
-> Is it also that for mt8t001?
-
-Do you mean mt9t001 ? :-) The comment isn't really useful, I've removed it.
-
-> > + */
-
-[snip]
-
-> > +static struct mt9t001 *to_mt9t001(struct v4l2_subdev *sd)
-> > +{
-> > +	return container_of(sd, struct mt9t001, subdev);
-> > +}
-> 
-> I guess you could add inline here, or define it as a macro.
-
-I've added inline.
-
-> > +static int mt9t001_read(struct i2c_client *client, const u8 reg)
-> > +{
-> > +	s32 data = i2c_smbus_read_word_data(client, reg);
-> > +	return data < 0 ? data : swab16(data);
-> 
-> Is the swab16 correct here? What about be16_to_cpu()?
-
-Fixed.
-
-> > +}
-> > +
-> > +static int mt9t001_write(struct i2c_client *client, const u8 reg,
-> > +			 const u16 data)
-> > +{
-> > +	return i2c_smbus_write_word_data(client, reg, swab16(data));
-> 
-> Ditto.
-> 
-> > +}
-
-[snip]
-
-> > +static int mt9t001_s_stream(struct v4l2_subdev *subdev, int enable)
-> > +{
-> > +	struct mt9t001 *mt9t001 = to_mt9t001(subdev);
-> > +
-> > +	/* Switch to master "normal" mode or stop sensor readout */
-> > +	return mt9t001_set_output_control(mt9t001,
-> > +		enable ? 0 : MT9T001_OUTPUT_CONTROL_CHIP_ENABLE,
-> > +		enable ? MT9T001_OUTPUT_CONTROL_CHIP_ENABLE : 0);
-> 
-> I wonder if an if would be better here. You also could change the
-> mt9t001_set_output_control() to take in the number of the bit and whether
-> you enable or disable it.
-
-I've added more code to s_stream, the code looks cleaner now.
-
-> > +}
-
-[snip]
-
-> > +#define V4L2_CID_TEST_PATTERN		(V4L2_CID_USER_BASE | 0x1001)
-> 
-> Thest pattern is something that almost every sensor have.
-> 
-> > +#define V4L2_CID_GAIN_RED		(V4L2_CTRL_CLASS_CAMERA | 0x1001)
-> > +#define V4L2_CID_GAIN_GREEN1		(V4L2_CTRL_CLASS_CAMERA | 0x1002)
-> > +#define V4L2_CID_GAIN_GREEN2		(V4L2_CTRL_CLASS_CAMERA | 0x1003)
-> 
-> The greens are usually not numbered but have either blue/red subscript
-> based on the colour of the adjacent pixel as far as I understand. What
-> about calling them GREEN_RED or GREEN_R (and same for blue)?
-
-Good point. I've fixed that.
-
-> Also these are quite low level controls as opposed to the other higher
-> level controls in this class. I wonder if creating a separate class for
-> them would make sense. We'll need a new class for the hblank/vblank
-> controls anyway. I might call it "sensor".
-> 
-> These controls could be also standardised.
-
-I agree.
-
-A "sensor" control class might make sense for these 5 controls, but they can 
-also be useful for non-sensor hardware (for instance with an analog pixel 
-decoder).
-
-> > +#define V4L2_CID_GAIN_BLUE		(V4L2_CTRL_CLASS_CAMERA | 0x1004)
-> > +
-> > +static int mt9t001_gain_data(s32 *gain)
-> > +{
-> > +	/* Gain is controlled by 2 analog stages and a digital stage. Valid
-> > +	 * values for the 3 stages are
-> > +	 *
-> > +	 * Stage		Min	Max	Step
-> > +	 * ------------------------------------------
-> > +	 * First analog stage	x1	x2	1
-> > +	 * Second analog stage	x1	x4	0.125
-> > +	 * Digital stage	x1	x16	0.125
-> > +	 *
-> > +	 * To minimize noise, the gain stages should be used in the second
-> > +	 * analog stage, first analog stage, digital stage order. Gain from a
-> > +	 * previous stage should be pushed to its maximum value before the next
-> > +	 * stage is used.
-> > +	 */
-> > +	if (*gain <= 32)
-> > +		return *gain;
-> > +
-> > +	if (*gain <= 64) {
-> > +		*gain &= ~1;
-> > +		return (1 << 6) | (*gain >> 1);
-> > +	}
-> > +
-> > +	*gain &= ~7;
-> > +	return ((*gain - 64) << 5) | (1 << 6) | 32;
-> > +}
-> 
-> This one looks very similar to another Aptina sensor driver. My comment
-> back then was that the analog and digital gain should be separate controls
-> as the user typically would e.g. want to know (s)he's using digital gain
-> instead of analog one.
-> 
-> What about implementing this?
-> 
-> It's a good question whether we need one or two new controls. If the answer
-> is two, then how do they relate to the existing control?
-
-I'm not too sure about this. If an application needs that much control over 
-the hardware, wouldn't it be hardware-specific anyway, and know about control 
-ranges ? The mt9t001 actually has 3 gain stages, so one might even argue that 
-we should expose 3 gain controls :-)
-
-> > +static int mt9t001_ctrl_freeze(struct mt9t001 *mt9t001, bool freeze)
-> > +{
-> > +	return mt9t001_set_output_control(mt9t001,
-> > +		freeze ? 0 : MT9T001_OUTPUT_CONTROL_SYNC,
-> > +		freeze ? MT9T001_OUTPUT_CONTROL_SYNC : 0);
-> > +}
-> > +
-> > +static int mt9t001_s_ctrl(struct v4l2_ctrl *ctrl)
-> > +{
-> > +	static const u8 gains[4] = {
-> > +		MT9T001_RED_GAIN, MT9T001_GREEN1_GAIN,
-> > +		MT9T001_GREEN2_GAIN, MT9T001_BLUE_GAIN
-> > +	};
-> > +
-> > +	struct mt9t001 *mt9t001 =
-> > +			container_of(ctrl->handler, struct mt9t001, ctrls);
-> > +	struct i2c_client *client = v4l2_get_subdevdata(&mt9t001->subdev);
-> > +	unsigned int count;
-> > +	unsigned int i;
-> > +	int data;
-> > +	int ret;
-> > +
-> > +	switch (ctrl->id) {
-> > +	case V4L2_CID_GAIN_RED:
-> > +	case V4L2_CID_GAIN_GREEN1:
-> > +	case V4L2_CID_GAIN_GREEN2:
-> > +	case V4L2_CID_GAIN_BLUE:
-> > +
-> > +		/* Disable control updates if more than one control has changed
-> > +		 * in the cluster.
-> > +		 */
-> > +		for (i = 0, count = 0; i < 4; ++i) {
-> > +			struct v4l2_ctrl *gain = mt9t001->gains[i];
-> > +
-> > +			if (gain->val != gain->cur.val)
-> > +				count++;
-> > +		}
-> > +
-> > +		if (count > 1) {
-> > +			ret = mt9t001_ctrl_freeze(mt9t001, true);
-> > +			if (ret < 0)
-> > +				return ret;
-> > +		}
-> > +
-> > +		/* Update the gain controls. */
-> > +		for (i = 0; i < 4; ++i) {
-> > +			struct v4l2_ctrl *gain = mt9t001->gains[i];
-> > +
-> > +			if (gain->val == gain->cur.val)
-> > +				continue;
-> > +
-> > +			data = mt9t001_gain_data(&gain->val);
-> > +			ret = mt9t001_write(client, gains[i], data);
-> > +			if (ret < 0) {
-> > +				mt9t001_ctrl_freeze(mt9t001, false);
-> > +				return ret;
-> > +			}
-> > +		}
-> > +
-> > +		/* Enable control updates. */
-> > +		if (count > 1) {
-> > +			ret = mt9t001_ctrl_freeze(mt9t001, false);
-> > +			if (ret < 0)
-> > +				return ret;
-> > +		}
-> > +
-> > +		break;
-> > +
-> > +	case V4L2_CID_EXPOSURE:
-> > +		ret = mt9t001_write(client, MT9T001_SHUTTER_WIDTH_LOW,
-> > +				    ctrl->val & 0xffff);
-> > +		if (ret < 0)
-> > +			return ret;
-> > +
-> > +		return mt9t001_write(client, MT9T001_SHUTTER_WIDTH_HIGH,
-> > +				     ctrl->val >> 16);
-> > +	case V4L2_CID_TEST_PATTERN:
-> > +		ret = mt9t001_set_output_control(mt9t001,
-> > +			ctrl->val ? 0 : MT9T001_OUTPUT_CONTROL_TEST_DATA,
-> > +			ctrl->val ? MT9T001_OUTPUT_CONTROL_TEST_DATA : 0);
-> > +		if (ret < 0)
-> > +			return ret;
-> > +
-> > +		return mt9t001_write(client, MT9T001_TEST_DATA, ctrl->val << 2);
-> > +
-> 
-> > +	case V4L2_CID_BLACK_LEVEL:
-> Does this do automatic black level calibration? If so, I'd call this
-> BLACK_LEVEL_CALIBRATE instead.
-
-V4L2_CID_BLACK_LEVEL is marked as deprecated, so a new control indeed makes 
-sense. It should probably belong to the sensor class.
-
-> > +		return mt9t001_write(client, MT9T001_BLACK_LEVEL_CALIBRATION,
-> > +				     MT9T001_BLACK_LEVEL_RECALCULATE);
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-
-[snip]
-
-> Just a general comment. How much does this sensor share with other Aptina
-> sensors? Could one of the existing Aptina sensor drivers such as the mt9v032
-> used to drive this sensor?
-
-Not all features are available on both sensors, but that shouldn't be too much 
-of an issue.
-
-The biggest problem is that there are many subtle differences. For instance 
-
-#define MT9T001_ROW_START                               0x01
-#define MT9T001_COLUMN_START                            0x02
-
-#define MT9V032_COLUMN_START                            0x01
-#define MT9V032_ROW_START                               0x02
-
-is quite easy to miss. The MT9T001 needs to be programmed with window 
-width/height minus one, while the MT9V032 needs to be programmed with window 
-width/height. Horizontal and vertical binning are configured in two separate 
-registers in the MT9T001 and in a single register in the MT9V032. The list 
-goes on.
-
-It might be possible to support several chips with a single driver, but I 
-think we need a couple more before we can identify the proper recurring 
-patterns.
-
--- 
-Regards,
-
-Laurent Pinchart
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
