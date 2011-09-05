@@ -1,55 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from newsmtp5.atmel.com ([204.2.163.5]:28924 "EHLO
-	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752333Ab1IZJWj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 05:22:39 -0400
-Message-ID: <4E804440.7030709@atmel.com>
-Date: Mon, 26 Sep 2011 11:22:08 +0200
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
-MIME-Version: 1.0
-To: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Josh Wu <josh.wu@atmel.com>, linux-kernel@vger.kernel.org,
-	s.nawrocki@samsung.com, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 2/2] at91: add Atmel ISI and ov2640 support on sam9m10/sam9g45
- board.
-References: <1316664661-11383-1-git-send-email-josh.wu@atmel.com> <1316664661-11383-2-git-send-email-josh.wu@atmel.com> <Pine.LNX.4.64.1109220911500.11164@axis700.grange> <20110924052609.GI29998@game.jcrosoft.org>
-In-Reply-To: <20110924052609.GI29998@game.jcrosoft.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from zone0.gcu-squad.org ([212.85.147.21]:12430 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753112Ab1IENJ6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 09:09:58 -0400
+Date: Mon, 5 Sep 2011 15:09:42 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Luciano Coelho <coelho@ti.com>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	matti.j.aaltonen@nokia.com, johannes@sipsolutions.net,
+	linux-kernel@vger.kernel.org, sameo@linux.intel.com,
+	mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 2/2] mfd: remove CONFIG_MFD_SUPPORT
+Message-ID: <20110905150942.54aecf4e@endymion.delvare>
+In-Reply-To: <201109021643.36369.arnd@arndb.de>
+References: <20110829102732.03f0f05d.rdunlap@xenotime.net>
+	<201108311849.37273.arnd@arndb.de>
+	<20110902143713.307bbebe@endymion.delvare>
+	<201109021643.36369.arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 24/09/2011 07:26, Jean-Christophe PLAGNIOL-VILLARD :
-> On 09:35 Thu 22 Sep     , Guennadi Liakhovetski wrote:
->> On Thu, 22 Sep 2011, Josh Wu wrote:
->>
->>> This patch
->>> 1. add ISI_MCK parent setting code when add ISI device.
->>> 2. add ov2640 support on board file.
->>> 3. define isi_mck clock in sam9g45 chip file.
->>>
->>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->>> ---
->>>  arch/arm/mach-at91/at91sam9g45.c         |    3 +
->>>  arch/arm/mach-at91/at91sam9g45_devices.c |  105 +++++++++++++++++++++++++++++-
->>>  arch/arm/mach-at91/board-sam9m10g45ek.c  |   85 ++++++++++++++++++++++++-
->>>  arch/arm/mach-at91/include/mach/board.h  |    3 +-
->>
->> Personally, I think, it would be better to separate this into two patches 
->> at least: one for at91 core and one for the specific board, but that's up 
->> to arch maintainers to decide.
->>
->> You also want to patch arch/arm/mach-at91/at91sam9263_devices.c, don't 
->> you?
-> agreed
+On Fri, 2 Sep 2011 16:43:36 +0200, Arnd Bergmann wrote:
+> We currently have two symbols to control compilation the MFD subsystem,
+> MFD_SUPPORT and MFD_CORE. The MFD_SUPPORT is actually not required
+> at all, it only hides the submenu when not set, with the effect that
+> Kconfig warns about missing dependencies when another driver selects
+> an MFD driver while MFD_SUPPORT is disabled. Turning the MFD submenu
+> back from menuconfig into a plain menu simplifies the Kconfig syntax
+> for those kinds of users and avoids the surprise when the menu
+> suddenly appears because another driver was enabled that selects this
+> symbol.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  arch/arm/mach-omap2/Kconfig |    1 -
+>  drivers/gpio/Kconfig        |    3 +--
+>  drivers/i2c/busses/Kconfig  |    1 -
+>  drivers/media/radio/Kconfig |    1 -
+>  drivers/mfd/Kconfig         |   22 ++++------------------
+>  5 files changed, 5 insertions(+), 23 deletions(-)
+> (...)
+> --- a/drivers/mfd/Kconfig
+> +++ b/drivers/mfd/Kconfig
+> @@ -2,23 +2,8 @@
+>  # Multifunction miscellaneous devices
+>  #
+>  
+> -menuconfig MFD_SUPPORT
+> -	bool "Multifunction device drivers"
+> -	depends on HAS_IOMEM
+> -	default y
+> -	help
+> -	  Multifunction devices embed several functions (e.g. GPIOs,
+> -	  touchscreens, keyboards, current regulators, power management chips,
+> -	  etc...) in one single integrated circuit. They usually talk to the
+> -	  main CPU through one or more IRQ lines and low speed data busses (SPI,
+> -	  I2C, etc..). They appear as one single device to the main system
+> -	  through the data bus and the MFD framework allows for sub devices
+> -	  (a.k.a. functions) to appear as discrete platform devices.
+> -	  MFDs are typically found on embedded platforms.
+> -
+> -	  This option alone does not add any kernel code.
+> -
+> -if MFD_SUPPORT
+> +if HAS_IOMEM
+> +menu "Multifunction device drivers"
+>  
+>  config MFD_CORE
+>  	tristate
 
-No, I am not sure. The IP is not the same between 9263 and 9g45/9m10. So
-this inclusion will not apply.
+I think I prefer Luciano's proposal, for the same reasons given for the
+misc device drivers patch. But here again I'm not the one making the
+decision, so it's up to Samuel to decide which patch he wants to apply.
 
-Best regards,
+
 -- 
-Nicolas Ferre
-
+Jean Delvare
