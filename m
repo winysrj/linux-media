@@ -1,32 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:38915 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751210Ab1I3Rep (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 13:34:45 -0400
-Received: by yxl31 with SMTP id 31so1762522yxl.19
-        for <linux-media@vger.kernel.org>; Fri, 30 Sep 2011 10:34:44 -0700 (PDT)
-Message-ID: <e9f9d962fccf0ef7c4bddd24ed065c8c.squirrel@localhost>
-In-Reply-To: <20110930080609.GD2284@localhost2.local>
-References: <20110929224418.GD2824@localhost2.local>
-    <4e856d27.92d1e30a.6587.13f8@mx.google.com>
-    <20110930080609.GD2284@localhost2.local>
-Date: Fri, 30 Sep 2011 12:34:41 -0500
-Subject: Re: dvbscan output Channel Number into final stdout?
-From: david.hagood@gmail.com
-To: "Roger" <rogerx.oss@gmail.com>
-Cc: unlisted-recipients:; ""@Deathwish.hagood.sktc.net,
-	"no To-header on input"
-	<"@yx-in-f108.1e100.net"@Deathwish.hagood.sktc.net>,
+Received: from perches-mx.perches.com ([206.117.179.246]:42707 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755191Ab1IFQKj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Sep 2011 12:10:39 -0400
+Subject: Re: checkpatch.pl WARNING: Do not use whitespace before
+ Signed-off-by:
+From: Joe Perches <joe@perches.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: =?ISO-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>,
 	linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Date: Tue, 06 Sep 2011 09:10:38 -0700
+In-Reply-To: <4E663C95.4080503@iki.fi>
+References: <4E654F93.9060506@iki.fi> <87r53uf6tg.fsf@nemi.mork.no>
+	 <4E66312F.5070102@iki.fi> <1315322125.30316.1.camel@Joe-Laptop>
+	 <4E663C95.4080503@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1315325439.30316.8.camel@Joe-Laptop>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Even that won't always save you. In my area, we have 2 distinct signals,
-both identifying themselves as "KAKE-DT" on virtual channel 10.1, so even
-that isn't guaranteed to be unique.
+On Tue, 2011-09-06 at 18:30 +0300, Antti Palosaari wrote:
+> On 09/06/2011 06:15 PM, Joe Perches wrote:
+> > On Tue, 2011-09-06 at 17:41 +0300, Antti Palosaari wrote:
+> >> So what is recommended way to ensure patch is correct currently?
+> >> a) before commit
+> > Use checkpatch.
+> >> b) after commit
+> > Make the output of the commit log look like a patch.
+> --format=email
+> But still that sounds annoying, GIT is our default tool for handling 
+> patches and all the other tools like checkpatch.pl should honour that 
+> without any tricks. Why you don't add some detection logic to 
+> checkpatch.pl or even some new switch like --git.
+
+checkpatch is, as the name shows, for patches.
+
+I think using checkpatch on commit logs is not
+really useful.
+
+If you're using checkpatch on commit logs, format
+the commit log output appropriately or use
+--ignore=BAD_SIGN_OFF or add that --ignore=
+to a .checkpatch.conf if you really must.
 
 
