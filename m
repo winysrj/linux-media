@@ -1,88 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62541 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753076Ab1IGQe1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Sep 2011 12:34:27 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p87GYQ55011355
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 7 Sep 2011 12:34:27 -0400
-Message-ID: <4E67686E.8000502@redhat.com>
-Date: Wed, 07 Sep 2011 09:49:50 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-pz0-f42.google.com ([209.85.210.42]:46860 "EHLO
+	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753551Ab1IFJBR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 05:01:17 -0400
+Received: by pzk37 with SMTP id 37so10002329pzk.1
+        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2011 02:01:16 -0700 (PDT)
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 01/10] alsa_stream: port changes made on xawtv3
-References: <1315322996-10576-1-git-send-email-mchehab@redhat.com> <CAGoCfiy2hnH0Xoz_+Q8JgcB-tzuTGbfv8QdK0kv+ttP7t+EZKg@mail.gmail.com> <CAGoCfixa0pr048=-P3OUkZ2HMaY471eNO79BON0vjSVa1eRcTw@mail.gmail.com> <4E66E532.4050402@redhat.com> <CAGoCfiw7vjprc_skYYAXy9sTA7zkYEWtzXy9tEmJD+q8aazPog@mail.gmail.com>
-In-Reply-To: <CAGoCfiw7vjprc_skYYAXy9sTA7zkYEWtzXy9tEmJD+q8aazPog@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20110906082739.GC1393@valkosipuli.localdomain>
+References: <201108282006.09790.laurent.pinchart@ideasonboard.com>
+	<CABYn4sx5jQPyLC4d6OfVbX5SSuS4TiNsB_LPoCheaOSbwM9Pzw@mail.gmail.com>
+	<20110831212010.GS12368@valkosipuli.localdomain>
+	<Pine.LNX.4.64.1109010911550.21309@axis700.grange>
+	<20110901084722.GV12368@valkosipuli.localdomain>
+	<4E5F4CE0.8050909@samsung.com>
+	<20110901120801.GA12368@valkosipuli.localdomain>
+	<CABYn4sx8s0nX5iooKM4XHs1Ard_nLS4ppB848EpGLS4bQbemyw@mail.gmail.com>
+	<20110906065313.GB1393@valkosipuli.localdomain>
+	<CABYn4sxWHRWqNTtsisNvwUr+ZG5djLA-f5GNCf72i6q983tGNg@mail.gmail.com>
+	<20110906082739.GC1393@valkosipuli.localdomain>
+Date: Tue, 6 Sep 2011 09:01:15 +0000
+Message-ID: <CABYn4sxob_OXJ3cHF+CmOB+68C2T4XznjcXm7s1n_YwbXAwYwg@mail.gmail.com>
+Subject: Re: [PATCH] media: Add camera controls for the ov5642 driver
+From: Bastian Hecht <hechtb@googlemail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 07-09-2011 00:37, Devin Heitmueller escreveu:
-> On Tue, Sep 6, 2011 at 11:29 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->>> Basically the above starts at the *maximum* capture resolution and
->>> works its way down.  One might argue that this heuristic makes more
->>> sense anyway - why *wouldn't* you want the highest quality audio
->>> possible by default (rather than the lowest)?
+2011/9/6 Sakari Ailus <sakari.ailus@iki.fi>:
+> On Tue, Sep 06, 2011 at 07:56:40AM +0000, Bastian Hecht wrote:
+>> Hello Sakari!
+>
+> Hi Bastian,
+>
+>> 2011/9/6 Sakari Ailus <sakari.ailus@iki.fi>:
+>> > Hi Bastian,
+>> >
+>> > On Mon, Sep 05, 2011 at 09:32:55AM +0000, Bastian Hecht wrote:
+>> >> 2011/9/1 Sakari Ailus <sakari.ailus@iki.fi>:
+>> >> > On Thu, Sep 01, 2011 at 11:14:08AM +0200, Sylwester Nawrocki wrote:
+>> >> >> Hi Sakari,
+>> >> >>
+>> >> >> On 09/01/2011 10:47 AM, Sakari Ailus wrote:
+>> >> >> > On Thu, Sep 01, 2011 at 09:15:20AM +0200, Guennadi Liakhovetski wrote:
+>> >> >> >> On Thu, 1 Sep 2011, Sakari Ailus wrote:
+>> >> >> >>
+>> >> >> >>> On Wed, Aug 31, 2011 at 03:27:49PM +0000, Bastian Hecht wrote:
+>> >> >> >>>> 2011/8/28 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>> >> >> >>> [clip]
+>> >> >> >>>>> If I'm not mistaken V4L2_CID_PRIVATE_BASE is deprecated.
+>> >> >> >>>>
+>> >> >> >>>> I checked at http://v4l2spec.bytesex.org/spec/x542.htm, googled
+>> >> >> >>>> "V4L2_CID_PRIVATE_BASE deprecated" and read
+>> >> >> >>>> Documentation/feature-removal-schedule.txt. I couldn't find anything.
+>> >> >> >>>
+>> >> >> >>> Hmm. Did you happen to check when that has been written? :)
+>> >> >> >>>
+>> >> >> >>> Please use this one instead:
+>> >> >> >>>
+>> >> >> >>> <URL:http://hverkuil.home.xs4all.nl/spec/media.html>
+>> >> >> >>
+>> >> >> >> "Drivers can also implement their own custom controls using
+>> >> >> >> V4L2_CID_PRIVATE_BASE and higher values."
+>> >> >> >>
+>> >> >> >> Which specific location describes V4L2_CID_PRIVATE_BASE differently there?
+>> >> >> >
+>> >> >> > That was a general comment, not related to the private base. There's no
+>> >> >> > use for a three-year-old spec as a reference!
+>> >> >> >
+>> >> >> > The control framework does not support private controls, for example. The
+>> >> >> > controls should be put to their own class in videodev2.h nowadays, that's my
+>> >> >> > understanding. Cc Hans.
+>> >> >>
+>> >> >> Is this really the case that we close the door for private controls in
+>> >> >> the mainline kernel ? Or am I misunderstanding something ?
+>> >> >> How about v4l2_ctrl_new_custom() ?
+>> >> >>
+>> >> >> What if there are controls applicable to single driver only ?
+>> >> >> Do we really want to have plenty of such in videodev2.h ?
+>> >> >
+>> >> > We have some of those already in videodev2.h. I'm not certain if I'm happy
+>> >> > with this myself, considering e.g. that we could get a few truckloads of
+>> >> > only camera lens hardware specific controls in the near future.
+>> >>
+>> >> So in my case (as these are controls that might be used by others too)
+>> >> I should add something like
+>> >>
+>> >> #define V4L2_CID_BLUE_SATURATION              (V4L2_CID_CAMERA_CLASS_BASE+19)
+>> >> #define V4L2_CID_RED_SATURATION               (V4L2_CID_CAMERA_CLASS_BASE+20)
+>> >
+>> > What do these two controls do? Do they control gain or something else?
 >>
->> That change makes sense to me. Yet, you should try to disable pulseaudio
->> and see what's the _real_ speed that the audio announces. On Fedora,
->> just removing pulsaudio-oss-plugin (or something like that) is enough.
+>> Hmm. Maybe I named them a bit unsharp. It is the U Saturation and V
+>> Saturation. To me it looks like turning up the saturation in HSV
+>> space, but only for either the blue or the red channel. This would
+>> correspond to V4L2_CID_{RED,BLUE}_BALANCE when I read the docs. They
+>> say it is "{Red,Blue} chroma balance".
 >>
->> It seems doubtful that my em2820 WinTV USB2 is different than yours.
->> I suspect that pulseaudio is passing the "extra" range, offering to
->> interpolate the data.
-> 
-> I disabled pulseaudio and the capture device is advertising the exact
-> same range (8-48 KHz).  Seems to be behaving the same way as well.
+>> I have other controls for that I used V4L2_CID_{RED,BLUE}_BALANCE.
+>> These are gains. So in fact I should swap them in my code and the
+>> remaining question is, how to name the red and blue gain controls.
+>
+> I think Laurent had a similar issue in his Aptina sensor driver. In my
+> opinion we need a class for low level controls such as the gain ones. Do I
+> understand correctly they control the red and blue pixel gain in the sensor
+> pixel matrix? Do you also have gain controls for the two greens?
 
+Yes, I assume that this is done there. Either in the analog circuit by
+decreasing the preload or digitally then. Don't know exactly. There
+are registers for the green pixels as well. As I used the
+V4L2_CID_{RED,BLUE}_BALANCE controls and there was no
+V4L2_CID_GREEN_BALANCE, I just skipped green as one can
+increase/decrease the global gain and get an arbitrary mix as well.
 
-Hmm... just checked with WinTV USB2:
-[    3.819236] msp3400 15-0044: MSP3445G-B8 found @ 0x88 (em28xx #0)
+So for these gain settings we should add these?
+V4L2_CID_RED_GAIN
+V4L2_CID_BLUE_GAIN
+V4L2_CID_GREEN_GAIN
 
-While this device uses snd-usb-audio, it is a non-AC97 adapter. So,
-we may expect it to be different from yours. 
-
-Its A/D works at a fixed rate of 32 kHZ, according with MSP34x5G datasheet,
-so snd-usb-audio is working properly here.
-
-> So while I'm usually willing to blame things on Pulse, this doesn't
-> look like the case here.
-
-That's good. One less problem to deal with.
-
->>> Even with that patch though, I hit severe underrun/overrun conditions
->>> at 30ms of latency (to the point where the audio is interrupted dozens
->>> of times per second).
+>> >> #define V4L2_CID_GRAY_SCALE_IMAGE             (V4L2_CID_CAMERA_CLASS_BASE+21)
+>> >
+>> > V4L2_CID_COLOR_KILLER looks like something which would fit for the purpose.
 >>
->> Yes, it is the same here: 30ms on my notebook is not enough for WinTV
->> USB2 (it is OK with HVR-950).
+>> Oh great! So I just take this.
 >>
->>> Turned it up to 50ms and it's much better.
->>> That said, of course such a change would impact lipsync, so perhaps we
->>> need to be adjusting the periods instead.
+>> >> #define V4L2_CID_SOLARIZE_EFFECT              (V4L2_CID_CAMERA_CLASS_BASE+22)
+>> >
+>> > Sounds interesting for a sensor. I wonder if this would fall under a menu
+>> > control, V4L2_CID_COLORFX.
 >>
->> We've added a parameter for that on xawtv3 (--alsa-latency). We've parametrized
->> it at the alsa stream function call. So, all it needs is to add a new parameter
->> at tvtime config file.
-> 
-> Ugh.  We really need some sort of heuristic to do this.  It's
-> unreasonable to expect users to know about some magic parameter buried
-> in a config file which causes it to start working.
+>> When I read the the possible enums for V4L2_CID_COLORFX, it indeed
+>> sounds very much like my solarize effect should be added there too. I
+>> found V4L2_COLORFX_BW there, too. Isn't that a duplicate of the color
+>> killer control then?
+>
+> In my opinion V4L2_CID_COLORFX should never be implemented in drivers for
+> which the hardware doesn't implement these effects in a non-parametrisable
+> way. This control was originally added for the OMAP 3 ISP driver but the
+> driver never implemented it.
 
-Agreed, but still it makes sense to allow users to adjust, as extra delays
-might be needed on really slow machines.
+Your triple negation (never, doesn't, non-) is quite tricky xD
+If I get it right, you say that one should not use V4L2_CID_COLORFX
+for hardware with parametrisable effects.
+My BW and Solarize effects are non-parametrisable and they can be
+turned on together (which makes not so much sense though - but these
+fun-effects like "solarize" aren't here to make sense, I guess :-) ).
 
-> Perhaps a counter
-> that increments whenever an underrun is hit, and after a certain
-> number it automatically restarts the stream with a higher latency.  Or
-> perhaps we're just making some poor choice in terms of the
-> buffers/periods for a given rate.
-> 
-> Devin
-> 
+> I think you have a valid case using this control. I think the main
+> difference between the two is that V4L2_COLORFX_BW is something that you
+> can't use with other effects while V4L2_CID_COLOR_KILLER can be used with
+> any of the effects.
 
+> Based on your original proposal the black/white should stay as a separate
+> control but the solarise should be configurable through V4L2_CID_COLORFX
+> menu control. So it boils down to the question whether you can use them at
+> the same time.
+
+I can - so it is still working to enable V4L2_COLORFX_BW and
+V4L2_CID_COLORFX with a new enum value, right? Is that the way to go
+now?
+
+> --
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     jabber/XMPP/Gmail: sailus@retiisi.org.uk
+>
+
+Thanks,
+
+ Bastian
