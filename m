@@ -1,92 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:58644 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753563Ab1IPR2t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Sep 2011 13:28:49 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LRM0001BLVZDO@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2011 18:28:47 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRM00K9PLVYAI@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2011 18:28:47 +0100 (BST)
-Date: Fri, 16 Sep 2011 19:28:43 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 2/2] s5p-fimc: Convert to use generic bus polarity flags
-In-reply-to: <1316194123-21185-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	g.liakhovetski@gmx.de, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <1316194123-21185-3-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1316194123-21185-1-git-send-email-s.nawrocki@samsung.com>
+Received: from newsmtp5.atmel.com ([204.2.163.5]:4438 "EHLO sjogate2.atmel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751935Ab1IFDaX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 23:30:23 -0400
+Content-class: urn:content-classes:message
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Subject: RE: [PATCH] [media] at91: add code to initialize and manage theISI_MCK for Atmel ISI driver.
+Date: Tue, 6 Sep 2011 11:29:50 +0800
+Message-ID: <4C79549CB6F772498162A641D92D532802A09D8F@penmb01.corp.atmel.com>
+In-Reply-To: <20110905103339.GG6619@n2100.arm.linux.org.uk>
+References: <1315218593-10822-1-git-send-email-josh.wu@atmel.com> <20110905103339.GG6619@n2100.arm.linux.org.uk>
+From: "Wu, Josh" <Josh.wu@atmel.com>
+To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Cc: <g.liakhovetski@gmx.de>, <linux-media@vger.kernel.org>,
+	<plagnioj@jcrosoft.com>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <s.nawrocki@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-reg.c |    8 ++++----
- include/media/s5p_fimc.h                |    7 +------
- 2 files changed, 5 insertions(+), 10 deletions(-)
+Hi, Russell
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
-index 2a1ae51..5543b1b 100644
---- a/drivers/media/video/s5p-fimc/fimc-reg.c
-+++ b/drivers/media/video/s5p-fimc/fimc-reg.c
-@@ -535,16 +535,16 @@ int fimc_hw_set_camera_polarity(struct fimc_dev *fimc,
- 	cfg &= ~(S5P_CIGCTRL_INVPOLPCLK | S5P_CIGCTRL_INVPOLVSYNC |
- 		 S5P_CIGCTRL_INVPOLHREF | S5P_CIGCTRL_INVPOLHSYNC);
- 
--	if (cam->flags & FIMC_CLK_INV_PCLK)
-+	if (cam->flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
- 		cfg |= S5P_CIGCTRL_INVPOLPCLK;
- 
--	if (cam->flags & FIMC_CLK_INV_VSYNC)
-+	if (cam->flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
- 		cfg |= S5P_CIGCTRL_INVPOLVSYNC;
- 
--	if (cam->flags & FIMC_CLK_INV_HREF)
-+	if (cam->flags & V4L2_MBUS_HREF_ACTIVE_LOW)
- 		cfg |= S5P_CIGCTRL_INVPOLHREF;
- 
--	if (cam->flags & FIMC_CLK_INV_HSYNC)
-+	if (cam->flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
- 		cfg |= S5P_CIGCTRL_INVPOLHSYNC;
- 
- 	writel(cfg, fimc->regs + S5P_CIGCTRL);
-diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
-index 2b58904..688fb3f 100644
---- a/include/media/s5p_fimc.h
-+++ b/include/media/s5p_fimc.h
-@@ -19,11 +19,6 @@ enum cam_bus_type {
- 	FIMC_LCD_WB, /* FIFO link from LCD mixer */
- };
- 
--#define FIMC_CLK_INV_PCLK	(1 << 0)
--#define FIMC_CLK_INV_VSYNC	(1 << 1)
--#define FIMC_CLK_INV_HREF	(1 << 2)
--#define FIMC_CLK_INV_HSYNC	(1 << 3)
--
- struct i2c_board_info;
- 
- /**
-@@ -37,7 +32,7 @@ struct i2c_board_info;
-  * @i2c_bus_num: i2c control bus id the sensor is attached to
-  * @mux_id: FIMC camera interface multiplexer index (separate for MIPI and ITU)
-  * @clk_id: index of the SoC peripheral clock for sensors
-- * @flags: flags defining bus signals polarity inversion (High by default)
-+ * @flags: the parallel bus flags defining signals polarity (V4L2_MBUS_*)
-  */
- struct s5p_fimc_isp_info {
- 	struct i2c_board_info *board_info;
--- 
-1.7.6
+On 09/05/2011 6:34 PM Russell King wrote:
 
+> On Mon, Sep 05, 2011 at 06:29:53PM +0800, Josh Wu wrote:
+>> +static int initialize_mck(struct atmel_isi *isi,
+>> +			struct isi_platform_data *pdata)
+>> +{
+>> +	int ret;
+>> +	struct clk *pck_parent;
+>> +
+>> +	if (!strlen(pdata->pck_name) || !strlen(pdata->pck_parent_name))
+>> +		return -EINVAL;
+>> +
+>> +	/* ISI_MCK is provided by PCK clock */
+>> +	isi->mck = clk_get(NULL, pdata->pck_name);
+
+> No, this is not how you use the clk API.  You do not pass clock names via
+> platform data.
+
+> You pass clk_get() the struct device.  You then pass clk_get() a
+> _connection id_ on that _device_ if you have more than one struct clk
+> associated with the _device_.  You then use clkdev to associate the
+> struct device plus the connection id with the appropriate struct clk.
+
+I think I missed the struct device when called clk_get(). I will fix it in v2 version.
+
+Best Regards,
+Josh Wu
