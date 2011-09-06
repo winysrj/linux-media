@@ -1,187 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4077 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752282Ab1IZKVS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 06:21:18 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 2/2] as3645a: Add driver for LED flash controller
-Date: Mon, 26 Sep 2011 12:21:11 +0200
-Cc: linux-media@vger.kernel.org,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Tuukka Toivonen <tuukkat76@gmail.com>,
-	Antti Koskipaa <antti.koskipaa@gmail.com>,
-	Stanimir Varbanov <svarbanov@mm-sol.com>,
-	Vimarsh Zutshi <vimarsh.zutshi@gmail.com>,
-	"Ivan T. Ivanov" <iivanov@mm-sol.com>,
-	Mika Westerberg <ext-mika.1.westerberg@nokia.com>,
-	David Cohen <dacohen@gmail.com>
-References: <1315583569-22727-1-git-send-email-laurent.pinchart@ideasonboard.com> <1315583569-22727-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1315583569-22727-3-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33889 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753193Ab1IFNah convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 09:30:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] v4l2: uvcvideo use after free bug fix
+Date: Tue, 6 Sep 2011 15:30:23 +0200
+Cc: Dave Young <hidave.darkstar@gmail.com>,
+	Sitsofe Wheeler <sitsofe@yahoo.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <20110906120808.GC2321@darkstar> <201109061412.16088.laurent.pinchart@ideasonboard.com> <201109061502.54340.hverkuil@xs4all.nl>
+In-Reply-To: <201109061502.54340.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109261221.12068.hverkuil@xs4all.nl>
+Content-Type: Text/Plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Message-Id: <201109061530.24925.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi,
 
-Here's a quick review (just two small things):
-
-On Friday, September 09, 2011 17:52:49 Laurent Pinchart wrote:
-> This patch adds the driver for the as3645a LED flash controller. This
-> controller supports a high power led in flash and torch modes and an
-> indicator light, sometimes also called privacy light.
+On Tuesday 06 September 2011 15:02:54 Hans Verkuil wrote:
+> On Tuesday, September 06, 2011 14:12:14 Laurent Pinchart wrote:
+> > On Tuesday 06 September 2011 14:08:08 Dave Young wrote:
+> > > Reported-by: Sitsofe Wheeler <sitsofe@yahoo.com>
+> > > Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+> > > Tested-by: Sitsofe Wheeler <sitsofe@yahoo.com>
+> > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > 
+> > > Unplugging uvc video camera trigger following oops:
+> > > 
+> > > eeepc kernel: [ 1393.500719] usb 3-2: USB disconnect, device number 4
+> > > eeepc kernel: [ 1393.504351] uvcvideo: Failed to resubmit video URB
+> > > (-19). eeepc kernel: [ 1495.428853] BUG: unable to handle kernel
+> > > paging request at 6b6b6bcb eeepc kernel: [ 1495.429017] IP:
+> > > [<b0358d37>]
+> > > dev_get_drvdata+0x17/0x20 eeepc kernel: [ 1495.429017] *pde = 00000000
+> > > eeepc kernel: [ 1495.429017] Oops: 0000 [#1] DEBUG_PAGEALLOC
+> > > eeepc kernel: [ 1495.429017]
+> > > eeepc kernel: [ 1495.429017] Pid: 3476, comm: cheese Not tainted
+> > > 3.1.0-rc3-00270-g7a54f5e-dirty #485 ASUSTeK Computer INC. 900/900 eeepc
+> > > kernel: [ 1495.429017] EIP: 0060:[<b0358d37>] EFLAGS: 00010202 CPU: 0
+> > > eeepc kernel: [ 1495.429017] EIP is at dev_get_drvdata+0x17/0x20
+> > > eeepc kernel: [ 1495.429017] EAX: 6b6b6b6b EBX: eb08d870 ECX: 00000000
+> > > EDX: eb08d930 eeepc kernel: [ 1495.429017] ESI: eb08d870 EDI: eb08d870
+> > > EBP: d3249cac ESP: d3249cac eeepc kernel: [ 1495.429017]  DS: 007b ES:
+> > > 007b FS: 0000 GS: 00e0 SS: 0068 eeepc kernel: [ 1495.429017] Process
+> > > cheese (pid: 3476, ti=d3248000 task=df46d870 task.ti=d3248000) eeepc
+> > > kernel: [ 1495.429017] Stack:
+> > > eeepc kernel: [ 1495.429017]  d3249cb8 b03e77a1 d307b840 d3249ccc
+> > > b03e77d1 d307b840 eb08d870 eb08d830 eeepc kernel: [ 1495.429017] 
+> > > d3249ce4 b03ed3b7 00000246 d307b840 eb08d870 d3021b80 d3249cec
+> > > b03ed565 eeepc kernel: [ 1495.429017]  d3249cfc b03e044d e8323d10
+> > > b06e013c d3249d18 b0355fb9 fffffffe d3249d1c eeepc kernel: [
+> > > 1495.429017] Call Trace:
+> > > eeepc kernel: [ 1495.429017]  [<b03e77a1>]
+> > > v4l2_device_disconnect+0x11/0x30 eeepc kernel: [ 1495.429017] 
+> > > [<b03e77d1>] v4l2_device_unregister+0x11/0x50 eeepc kernel: [
+> > > 1495.429017]  [<b03ed3b7>] uvc_delete+0x37/0x110 eeepc kernel: [
+> > > 1495.429017]  [<b03ed565>] uvc_release+0x25/0x30 eeepc kernel: [
+> > > 1495.429017]  [<b03e044d>] v4l2_device_release+0x9d/0xc0 eeepc kernel:
+> > > [ 1495.429017]  [<b0355fb9>] device_release+0x19/0x90 eeepc kernel: [
+> > > 1495.429017]  [<b03adfdc>] ? usb_hcd_unlink_urb+0x7c/0x90 eeepc
+> > > kernel: [ 1495.429017]  [<b026b99c>] kobject_release+0x3c/0x90 eeepc
+> > > kernel: [ 1495.429017]  [<b026b960>] ? kobject_del+0x30/0x30 eeepc
+> > > kernel: [ 1495.429017]  [<b026ca4c>] kref_put+0x2c/0x60
+> > > eeepc kernel: [ 1495.429017]  [<b026b88d>] kobject_put+0x1d/0x50
+> > > eeepc kernel: [ 1495.429017]  [<b03b2385>] ?
+> > > usb_autopm_put_interface+0x25/0x30 eeepc kernel: [ 1495.429017]
+> > > [<b03f0e5d>] ? uvc_v4l2_release+0x5d/0xd0 eeepc kernel: [ 1495.429017]
+> > > [<b0355d2f>] put_device+0xf/0x20
+> > > eeepc kernel: [ 1495.429017]  [<b03dfa96>] v4l2_release+0x56/0x60
+> > > eeepc kernel: [ 1495.429017]  [<b019c8dc>] fput+0xcc/0x220
+> > > eeepc kernel: [ 1495.429017]  [<b01990f4>] filp_close+0x44/0x70
+> > > eeepc kernel: [ 1495.429017]  [<b012b238>] put_files_struct+0x158/0x180
+> > > eeepc kernel: [ 1495.429017]  [<b012b100>] ?
+> > > put_files_struct+0x20/0x180 eeepc kernel: [ 1495.429017]  [<b012b2a0>]
+> > > exit_files+0x40/0x50 eeepc kernel: [ 1495.429017]  [<b012b9e7>]
+> > > do_exit+0x5a7/0x660 eeepc kernel: [ 1495.429017]  [<b0135f72>] ?
+> > > __dequeue_signal+0x12/0x120 eeepc kernel: [ 1495.429017]  [<b055edf2>]
+> > > ? _raw_spin_unlock_irq+0x22/0x30 eeepc kernel: [ 1495.429017] 
+> > > [<b012badc>] do_group_exit+0x3c/0xb0 eeepc kernel: [ 1495.429017] 
+> > > [<b015792b>] ? trace_hardirqs_on+0xb/0x10 eeepc kernel: [ 1495.429017]
+> > >  [<b013755f>]
+> > > get_signal_to_deliver+0x18f/0x570 eeepc kernel: [ 1495.429017]
+> > > [<b01020f7>] do_signal+0x47/0x9e0
+> > > eeepc kernel: [ 1495.429017]  [<b055edf2>] ?
+> > > _raw_spin_unlock_irq+0x22/0x30 eeepc kernel: [ 1495.429017] 
+> > > [<b015792b>] ? trace_hardirqs_on+0xb/0x10 eeepc kernel: [ 1495.429017]
+> > >  [<b0123300>] ? T.1034+0x30/0xc0
+> > > eeepc kernel: [ 1495.429017]  [<b055c45f>] ? schedule+0x29f/0x640
+> > > eeepc kernel: [ 1495.429017]  [<b0102ac8>] do_notify_resume+0x38/0x40
+> > > eeepc kernel: [ 1495.429017]  [<b055f154>] work_notifysig+0x9/0x11
+> > > eeepc kernel: [ 1495.429017] Code: e5 5d 83 f8 01 19 c0 f7 d0 83 e0 f0
+> > > c3 8d b4 26 00 00 00 00 55 85 c0 89 e5 75 09 31 c0 5d c3 90 8d 74 26
+> > > 00 8b 40 04 85 c0 74 f0 <8b> 40 60 5d c3 8d 74 26 00 55 89 e5 53 89 c3
+> > > 83 ec 04 8b 40 04 eeepc kernel: [ 1495.429017] EIP: [<b0358d37>]
+> > > dev_get_drvdata+0x17/0x20 SS:ESP 0068:d3249cac eeepc kernel: [
+> > > 1495.429017] CR2: 000000006b6b6bcb
+> > > eeepc kernel: [ 1495.466975] uvcvideo: Failed to resubmit video URB
+> > > (-27). eeepc kernel: [ 1495.467860] uvcvideo: Failed to resubmit video
+> > > URB (-27). eeepc kernel: last message repeated 3 times
+> > > eeepc kernel: [ 1495.512610] ---[ end trace 73ec16848794e5a5 ]---
+> > > 
+> > > For uvc device, dev->vdev.dev is the &intf->dev,
+> > > 
+> > > uvc_delete code is as below:
+> > > 	usb_put_intf(dev->intf);
+> > > 	usb_put_dev(dev->udev);
+> > > 	
+> > > 	uvc_status_cleanup(dev);
+> > > 	uvc_ctrl_cleanup_device(dev);
+> > > 
+> > > ## the intf dev is released above, so below code will oops.
+> > > 
+> > > 	if (dev->vdev.dev)
+> > > 	
+> > > 		v4l2_device_unregister(&dev->vdev);
+> > > 
+> > > Fix it by get_device in v4l2_device_register and put_device in
+> > > v4l2_device_disconnect ---
+> > > 
+> > >  drivers/media/video/v4l2-device.c |    2 ++
+> > >  1 file changed, 2 insertions(+)
+> > > 
+> > > diff --git a/drivers/media/video/v4l2-device.c
+> > > b/drivers/media/video/v4l2-device.c index c72856c..e6a2c3b 100644
+> > > --- a/drivers/media/video/v4l2-device.c
+> > > +++ b/drivers/media/video/v4l2-device.c
+> > > @@ -38,6 +38,7 @@ int v4l2_device_register(struct device *dev, struct
+> > > v4l2_device *v4l2_dev) mutex_init(&v4l2_dev->ioctl_lock);
+> > > 
+> > >  	v4l2_prio_init(&v4l2_dev->prio);
+> > >  	kref_init(&v4l2_dev->ref);
+> > > 
+> > > +	get_device(dev);
+> > > 
+> > >  	v4l2_dev->dev = dev;
+> > 
+> > We store a reference to the device in v4l2_dev, and we use it later. We
+> > thus need either get a reference to the device (like done by this
+> > patch), or mandate drivers not to release their reference to the device
+> > before calling v4l2_device_unregister and/or v4l2_device_disconnect (in
+> > this case that would mean moving the usb_put_intf call after the
+> > v4l2_device_unregister call in the uvcvideo driver).
+> > 
+> > Do you have a preference ?
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Nayden Kanchev <nkanchev@mm-sol.com>
-> Signed-off-by: Tuukka Toivonen <tuukkat76@gmail.com>
-> Signed-off-by: Antti Koskipaa <antti.koskipaa@gmail.com>
-> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-> Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@gmail.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
-> Signed-off-by: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
-> Signed-off-by: David Cohen <dacohen@gmail.com>
-> ---
->  drivers/media/video/Kconfig   |    7 +
->  drivers/media/video/Makefile  |    1 +
->  drivers/media/video/as3645a.c | 1425 +++++++++++++++++++++++++++++++++++++++++
->  include/linux/as3645a.h       |   36 +
->  include/media/as3645a.h       |   69 ++
->  5 files changed, 1538 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/as3645a.c
->  create mode 100644 include/linux/as3645a.h
->  create mode 100644 include/media/as3645a.h
-> 
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index c1c4aed..d01c670 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -505,6 +505,13 @@ config VIDEO_ADP1653
->  	  This is a driver for the ADP1653 flash controller. It is used for
->  	  example in Nokia N900.
->  
-> +config VIDEO_AS3645A
-> +	tristate "AS3645A flash driver support"
-> +	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-> +	---help---
-> +	  This is a driver for the AS3645A flash chip. It has build in control
-> +	  for Flash, Torch and Indicator LEDs.
-> +
->  comment "Video improvement chips"
->  
->  config VIDEO_UPD64031A
-> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> index a1bfd06..e0b495a 100644
-> --- a/drivers/media/video/Makefile
-> +++ b/drivers/media/video/Makefile
-> @@ -72,6 +72,7 @@ obj-$(CONFIG_VIDEO_SR030PC30)	+= sr030pc30.o
->  obj-$(CONFIG_VIDEO_NOON010PC30)	+= noon010pc30.o
->  obj-$(CONFIG_VIDEO_M5MOLS)	+= m5mols/
->  obj-$(CONFIG_VIDEO_ADP1653)	+= adp1653.o
-> +obj-$(CONFIG_VIDEO_AS3645A)	+= as3645a.o
->  
->  obj-$(CONFIG_SOC_CAMERA_IMX074)		+= imx074.o
->  obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
-> diff --git a/drivers/media/video/as3645a.c b/drivers/media/video/as3645a.c
-> new file mode 100644
-> index 0000000..6e8adf8
-> --- /dev/null
-> +++ b/drivers/media/video/as3645a.c
-> @@ -0,0 +1,1425 @@
-> +/*
-> + * drivers/media/video/as3645a.c
-> + *
-> + * Copyright (C) 2008-2011 Nokia Corporation
-> + *
-> + * Contact: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + *
-> + * NOTES:
-> + * - Inductor peak current limit setting fixed to 1.75A
-> + * - VREF offset fixed to 0V
-> + *
-> + * TODO:
-> + * - Check hardware FSTROBE control when sensor driver add support for this
-> + *
-> + */
-> +
-> +#include <linux/i2c.h>
-> +#include <linux/version.h>
-> +#include <linux/sysfs.h>
-> +#include <linux/as3645a.h>
-> +#include <linux/ktime.h>
-> +#include <linux/delay.h>
-> +#include <linux/timer.h>
-> +#include <linux/mutex.h>
-> +
-> +#include <media/as3645a.h>
-> +
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-event.h>
-> +
-> +#define AS_TIMER_MS_TO_CODE(t)			(((t) - 100) / 50)
-> +#define AS_TIMER_CODE_TO_MS(c)			(50 * (c) + 100)
-> +
-> +/* Register definitions */
-> +
-> +/* Read-only Design info register: Reset state: xxxx 0001 - for Senna */
+> My preference would be to get a reference ourselves,
 
-What's 'Senna'? I see this at several places in this driver. It's probably
-a code name of some sort, but this needs some explanation.
+Sounds good to me.
 
-<...cut...>
+> but I don't have the time to fully analyze this. So I leave that to you.
 
-> +
-> +	/* V4L2_CID_FLASH_INDICATOR_INTENSITY */
-> +	v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
-> +			  V4L2_CID_FLASH_INDICATOR_INTENSITY,
-> +			  AS3645A_INDICATOR_INTENSITY_MIN,
-> +			  AS3645A_INDICATOR_INTENSITY_MAX,
-> +			  AS3645A_INDICATOR_INTENSITY_STEP,
-> +			  AS3645A_INDICATOR_INTENSITY_MIN);
-> +
-> +	flash->indicator_current = 0;
-> +
-> +	/* V4L2_CID_FLASH_FAULT */
-> +	ctrl = v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
-> +				 V4L2_CID_FLASH_FAULT, 0,
-> +				 V4L2_FLASH_FAULT_OVER_VOLTAGE |
-> +				 V4L2_FLASH_FAULT_TIMEOUT |
-> +				 V4L2_FLASH_FAULT_OVER_TEMPERATURE |
-> +				 V4L2_FLASH_FAULT_SHORT_CIRCUIT, 0, 0);
-> +	if (ctrl != NULL)
-> +		ctrl->is_volatile = 1;
-> +
-> +	/* V4L2_CID_FLASH_READY */
-> +	ctrl = v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
-> +				 V4L2_CID_FLASH_READY, 0, 1, 1, 1);
-> +	if (ctrl != NULL)
-> +		ctrl->is_volatile = 1;
+I will pick the patch and push it to v3.1. Dave, your patch fixes a problem 
+that is not UVC-specific. Do you mind if I rephrase the (pretty verbose) 
+commit message to explain the v4l issue instead ?
 
-Note that 'is_volatile' is now replaced by the new V4L2_CTRL_FLAG_VOLATILE
-flag for ctrl->flags. You'll need to redo your patch.
+Hans, can I get your SoB line for
 
+>From face69e36b00c0e461a4b894f46213091515defd Mon Sep 17 00:00:00 2001
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Tue, 6 Sep 2011 15:23:18 +0200
+Subject: [PATCH] v4l: Fix use-after-free case in v4l2_device_release
+
+Drivers that have no v4l2_device release callback might free the
+v4l2_device instance in the video_device release callback. Make sure we
+don't access the v4l2_device instance after it gets freed.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/v4l2-dev.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 06f1400..d721565 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -173,6 +173,17 @@ static void v4l2_device_release(struct device *cd)
+ 		media_device_unregister_entity(&vdev->entity);
+ #endif
+ 
++	/* Do not call v4l2_device_put if there is no release callback set.
++	 * Drivers that have no v4l2_device release callback might free the
++	 * v4l2_dev instance in the video_device release callback below, so we
++	 * must perform this check here.
++	 *
++	 * TODO: In the long run all drivers that use v4l2_device should use the
++	 * v4l2_device release callback. This check will then be unnecessary.
++	 */
++	if (v4l2_dev->release == NULL)
++		v4l2_dev = NULL;
++
+ 	/* Release video_device and perform other
+ 	   cleanups as needed. */
+ 	vdev->release(vdev);
+-- 
+1.7.3.4
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
