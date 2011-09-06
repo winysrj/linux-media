@@ -1,42 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40537 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751083Ab1IBMAJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 08:00:09 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: Re: Using atmel-isi for direct output on framebuffer ?
-Date: Fri, 2 Sep 2011 14:00:35 +0200
-Cc: "Wu, Josh" <Josh.wu@atmel.com>, linux-media@vger.kernel.org
-References: <20110901170555.568af6ea@skate> <201109021342.03721.laurent.pinchart@ideasonboard.com> <20110902135158.41e9c84d@skate>
-In-Reply-To: <20110902135158.41e9c84d@skate>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201109021400.36513.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:51689 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754945Ab1IFPaZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Sep 2011 11:30:25 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 10/10] tvtime: Bump to version 1.0.3
+Date: Tue,  6 Sep 2011 12:29:56 -0300
+Message-Id: <1315322996-10576-10-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1315322996-10576-9-git-send-email-mchehab@redhat.com>
+References: <1315322996-10576-1-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-2-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-3-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-4-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-5-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-6-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-7-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-8-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-9-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thomas,
+Need to update its version, in order to allow distros to use it.
 
-On Friday 02 September 2011 13:51:58 Thomas Petazzoni wrote:
-> Le Fri, 2 Sep 2011 13:42:03 +0200, Laurent Pinchart a écrit :
-> > I'm not sure if V4L2_CAP_VIDEO_OVERLAY is a good solution for this.
-> > This driver type (or rather buffer type) was used on old systems to
-> > capture directly to the PCI graphics card memory. Nowadays I would
-> > advice using USERPTR with framebuffer memory.
-> 
-> Could you give a short summary of how the USERPTR mechanism works?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ ChangeLog    |    7 +++++++
+ NEWS         |   10 +++++-----
+ configure.ac |    4 ++--
+ 3 files changed, 14 insertions(+), 7 deletions(-)
 
-In a nutshell, instead of asking the capture driver to allocate buffers and 
-map them to userspace, applications pass userspace buffer pointers to the 
-driver.
-
-In your case the application would mmap() the framebuffer memory and give 
-pointers to that memory to the capture driver.
-
+diff --git a/ChangeLog b/ChangeLog
+index 147b822..c613bde 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,3 +1,10 @@
++1.0.3 - Tue Sep 6 14:53:23 CEST 2011
++  * djh: Conversion to Mercurial, compilation fixes, patch backports
++	 from other places, more generic VBI handling, Alsa streaming
++	 support, get rid of V4L1.
++  * mchehab/hdegoede: Improved alsa audio streaming code.
++  * mchehab: Backport the remaining patches found on Fedora.
++
+ 1.0.2 - Wed Nov  9 21:46:28 EST 2005
+   * vektor: Add a proper TVTIME_NOOP command so that you can remove
+       keybindings.  Thanks to Andrew Dalton for the fix.
+diff --git a/NEWS b/NEWS
+index 7fe5522..0279b1d 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,8 +1,8 @@
+-
+-For news and updates on tvtime, please visit our website at:
+-
+-  http://tvtime.net/
+-
++News for 1.0.3
++  * V4L1 removal
++  * Alsa streaming support
++  * Compilation fixes, patch backports from other places
++  * More generic VBI handling
+ 
+ News for 1.0.2
+ 
+diff --git a/configure.ac b/configure.ac
+index f102b5b..37c2871 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1,8 +1,8 @@
+ # Process this file with autoconf to produce a configure script.
+ AC_PREREQ(2.52)
+-AC_INIT(tvtime, 1.0.2, http://tvtime.net/)
++AC_INIT(tvtime, 1.0.3, http://linuxtv.org/)
+ AC_CONFIG_SRCDIR([src/tvtime.c])
+-AM_INIT_AUTOMAKE(tvtime,1.0.2)
++AM_INIT_AUTOMAKE(tvtime,1.0.3)
+ AM_CONFIG_HEADER(config.h)
+ AM_MAINTAINER_MODE
+ AC_CANONICAL_HOST
 -- 
-Regards,
+1.7.6.1
 
-Laurent Pinchart
