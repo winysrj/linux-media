@@ -1,169 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:41772 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752682Ab1IZXwt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 19:52:49 -0400
-Subject: Re: [PATCH]Medion 95700 analog video support
-From: Andy Walls <awalls@md.metrocast.net>
-To: Maciej Szmigiero <mhej@o2.pl>
-Cc: Michael Krufky <mkrufky@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Malcolm Priestley <tvboxspy@gmail.com>,
-	Patrick Boettcher <pboettcher@kernellabs.com>,
-	Martin Wilks <m.wilks@technisat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Arnaud Lacombe <lacombar@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sven Barth <pascaldragon@googlemail.com>,
-	Lucas De Marchi <lucas.demarchi@profusion.mobi>,
-	linux-media@vger.kernel.org
-Date: Mon, 26 Sep 2011 19:53:31 -0400
-In-Reply-To: <4E80F080.7030500@o2.pl>
-References: <4E63C8A0.7030702@o2.pl>
-	 <CAOcJUbzXKVoOsfLA+YewyfDKmxuX0PgB8mWdfG49ArdS1fpyfA@mail.gmail.com>
-	 <4E7CDEB1.9090901@infradead.org>
-	 <CAOcJUby0dK_sjhTB3HEfdxkc9rsWU9KkZ=2B4O=Tcn4E90AE2w@mail.gmail.com>
-	 <c651371a-b2c4-4e95-bbb3-5b97a8b7281e@email.android.com>
-	 <4E7CF707.7060800@o2.pl> <1316895712.12899.84.camel@palomino.walls.org>
-	 <4E80F080.7030500@o2.pl>
-Content-Type: text/plain; charset="UTF-8"
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55162 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753552Ab1IFK1U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 06:27:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [PATCH] mt9p031: Do not use PLL if external frequency is the same as target frequency.
+Date: Tue, 6 Sep 2011 12:27:18 +0200
+Cc: linux-media@vger.kernel.org
+References: <1315303380-20698-1-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1315303380-20698-1-git-send-email-javier.martin@vista-silicon.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-ID: <1317081213.2345.13.camel@palomino.walls.org>
-Mime-Version: 1.0
+Message-Id: <201109061227.18685.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2011-09-26 at 23:37 +0200, Maciej Szmigiero wrote:
-> W dniu 24.09.2011 22:21, Andy Walls pisze:
-> > Hi Maciej,
-> > 
-> > I'll try and comment on the specific areas below, but overall the
-> > problem is this:
-> > 
-> > 1. The default setup and behavior of the cx25840 module was written
-> > around hardware designs supported by the ivtv driver: i.e. interfacing
-> > to a CX23416 MPEG encoder.
-> > 
-> > 2. The ivtv and pvrusb2 drivers rely on that default setup and behavior
-> > of the cx25840 module.
-> > 
-> > 3. The PVR-150 and PVR-500 are very popular cards supported by ivtv that
-> > use a CX25843 and CX23416.  Many MythTV users still have these cards in
-> > service.
-> > 
-> > 4. The ivtv driver also supports other hardware designs that use
-> > different encoders, so trying fix ivtv to match new changes in the
-> > cx25840 will ripples along to other analog video decoder drivers.  This
-> > would result in a lot of time to perform regression testing with as many
-> > different ivtv supported capture cards as possible. 
-> > 
-> > 
-> > What I recommend is that you rework your changes so that the cx25840
-> > module is provided information by the bridge driver as to the board
-> > model, and then have the cx25840 module behave appropriately based on
-> > the board information passed in by the bridge driver.
-> > 
-> > 1. Add whatever data fields you think you need to the "struct
-> > cx25840_platform_data" structure in include/media/cx25840.h.  Maybe
-> > something as simple as "bool is_medion95700"
-> > 
-> > 2. In cxusb-analog.c you instantiate the cx25840 sub-device with
-> > v4l2_i2c_new_subdev_board() with the cx25840 platform data filled in as
-> > needed for the Medion 95700.  Look at
-> > drivers/media/video/ivtv/ivtv-i2c.c:ivtv_i2c_register() for an example
-> > of how this is done for the cx25840 module.
-> > 
-> > 3. Modify the cx25840 module to behave as you need it if the platform
-> > data indicates a Medion 95700; otherwise, leave the default cx25840
-> > setup and behavior.
-> > 
+Hi Javier,
+
+On Tuesday 06 September 2011 12:03:00 Javier Martin wrote:
+> This patch adds a check to see whether ext_freq and target_freq are equal
+> and, if true, PLL won't be used.
+
+Thanks for the patch.
+
+As you're touching PLL code, what about fixing PLL setup by computing 
+parameters dynamically instead of using a table of hardcoded values ? :-)
+
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> ---
+>  drivers/media/video/mt9p031.c |   18 +++++++++++++++---
+>  1 files changed, 15 insertions(+), 3 deletions(-)
 > 
-> Hi Andy,
+> diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
+> index 5cfa39f..42b5d18 100644
+> --- a/drivers/media/video/mt9p031.c
+> +++ b/drivers/media/video/mt9p031.c
+> @@ -117,6 +117,7 @@ struct mt9p031 {
+>  	u16 xskip;
+>  	u16 yskip;
 > 
-> Thanks for you detailed explanation, I did not know that ivtv boards are that
-> quirky with regard to VBI capture.
-> I will do as you wrote above, make my changes to cx25840 driver conditional, 
-> so ivtv won't be affected.
-
-Thanks!
-
-
-> > Any specific comments I have are in-line below:
-> > 
-> >> @@ -18,6 +18,9 @@
-> >>   * CX2388[578] IRQ handling, IO Pin mux configuration and other small fixes are
-> >>   * Copyright (C) 2010 Andy Walls <awalls@md.metrocast.net>
-> >>   *
-> >> + * CX2384x pin to pad mapping and output format configuration support are
-> >       ^^^^^^^
-> > CX2584x?
-> >>  	if ((fmt->width * 16 < Hsrc) || (Hsrc < fmt->width) ||
-> >>  			(Vlines * 8 < Vsrc) || (Vsrc < Vlines)) {
-> >> @@ -1403,6 +1695,112 @@ static void log_audio_status(struct i2c_client *client)
-> >>  	}
-> >>  }
-> >>  
-> >> +#define CX25480_VCONFIG_OPTION(option_mask) \
-> >            ^^^^^^
-> > CX25840?
-> > 
-> >> +	if (config_in & option_mask) { \
-> >> +		state->vid_config &= ~(option_mask); \
-> >> +		state->vid_config |= config_in & option_mask; \
-> >> +	} \
-> >> +
-> >> +#define CX25480_VCONFIG_SET_BIT(optionmask, reg, bit, oneval) \
-> >            ^^^^^^
-> > CX25840?
-> > 
+> +	bool use_pll;
+>  	const struct mt9p031_pll_divs *pll;
 > 
-> You mean here that it should be named consistently either as CX2584x or CX25840?
-
-No.  You simply appear to have transposed the 8 with the 4.
-
-
-> >>  	return set_input(client, input, state->aud_input);
-> >>  }
-> >>  
-> >> @@ -1877,7 +2278,7 @@ static int cx25840_probe(struct i2c_client *client,
-> >>  	u16 device_id;
-> >>  
-> >>  	/* Check if the adapter supports the needed features */
-> >> -	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-> >> +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
-> >>  		return -EIO;
-> > 
-> > On the surface, this change doesn't appear to adversely affect the ivtv,
-> > pvrusb2, cx23885, and cx231xx bridge drivers.  
-> > 
-> > I would need to take a hard look at the CX2584[0123], CX2583[67],
-> > CX2388[578], and CX2310[12] datasheets to see why, and if, all the Mako
-> > core variants require I2C_FUNC_SMBUS_BYTE_DATA.
-> > 
-> > However, if the cxusb bridge has a full I2C master, shouldn't the cxusb
-> > driver be specifying (I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL) as its
-> > functionality?  See Documentation/i2c/functionality.
+>  	/* Registers cache */
+> @@ -201,10 +202,16 @@ static int mt9p031_pll_get_divs(struct mt9p031
+> *mt9p031) struct i2c_client *client =
+> v4l2_get_subdevdata(&mt9p031->subdev); int i;
 > 
-> Adding I2C_FUNC_SMBUS_EMUL flag to cxusb i2c host seems to be a right thing to do for now,
-> but I would be very surprised if any of Conexant video decoders actually used SMBus instead
-> of plain I2C.
+> +	if (mt9p031->pdata->ext_freq == mt9p031->pdata->target_freq) {
+> +		mt9p031->use_pll = false;
+> +		return 0;
+> +	}
+> +
+>  	for (i = 0; i < ARRAY_SIZE(mt9p031_divs); i++) {
+>  		if (mt9p031_divs[i].ext_freq == mt9p031->pdata->ext_freq &&
+>  		  mt9p031_divs[i].target_freq == mt9p031->pdata->target_freq) {
+>  			mt9p031->pll = &mt9p031_divs[i];
+> +			mt9p031->use_pll = true;
+>  			return 0;
+>  		}
+>  	}
+> @@ -385,8 +392,10 @@ static int mt9p031_s_stream(struct v4l2_subdev
+> *subdev, int enable) MT9P031_OUTPUT_CONTROL_CEN, 0);
+>  		if (ret < 0)
+>  			return ret;
+> -
+> -		return mt9p031_pll_disable(mt9p031);
+> +		if (mt9p031->use_pll)
+> +			return mt9p031_pll_disable(mt9p031);
+> +		else
+> +			return 0;
+>  	}
+> 
+>  	ret = mt9p031_set_params(mt9p031);
+> @@ -399,7 +408,10 @@ static int mt9p031_s_stream(struct v4l2_subdev
+> *subdev, int enable) if (ret < 0)
+>  		return ret;
+> 
+> -	return mt9p031_pll_enable(mt9p031);
+> +	if (mt9p031->use_pll)
+> +		return mt9p031_pll_enable(mt9p031);
+> +	else
+> +		return 0;
+>  }
+> 
+>  static int mt9p031_enum_mbus_code(struct v4l2_subdev *subdev,
 
-I'm confident they use plain I2C as well.
-
-Hans added this particular i2c_check_functionality() call to the cx25840
-module in 2007.  It appears to be a cut and paste of what many I2C chip
-drivers in drivers/media/video do.
-
-The check might have its origin in some example code from Greg K-H in
-2003 for a Tiny I2C chip driver:
-http://www.linuxjournal.com/article/7252?page=0,0
-ftp://ftp.linuxjournal.com/pub/lj/listings/issue118/7252.tgz
-
+-- 
 Regards,
-Andy
 
-
-
-
+Laurent Pinchart
