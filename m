@@ -1,126 +1,425 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:33411 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754444Ab1IFMJF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 08:09:05 -0400
-Date: Tue, 6 Sep 2011 20:08:08 +0800
-From: Dave Young <hidave.darkstar@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sitsofe Wheeler <sitsofe@yahoo.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] v4l2: uvcvideo use after free bug fix
-Message-ID: <20110906120808.GC2321@darkstar>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:52772 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753441Ab1IFJTL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 05:19:11 -0400
+Received: by fxh19 with SMTP id 19so4413365fxh.19
+        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2011 02:19:09 -0700 (PDT)
+Date: Tue, 6 Sep 2011 09:19:05 +0000 (UTC)
+From: Bastian Hecht <hechtb@googlemail.com>
+To: linux-media@vger.kernel.org
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH 1/2 v5] media: Add support for arbitrary resolution
+Message-ID: <alpine.DEB.2.02.1109060914520.8391@ipanema>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reported-by: Sitsofe Wheeler <sitsofe@yahoo.com>
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Tested-by: Sitsofe Wheeler <sitsofe@yahoo.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+This patch adds the ability to get arbitrary resolutions with a width
+up to 2592 and a height up to 720 pixels instead of the standard 1280x720
+only.
 
-Unplugging uvc video camera trigger following oops:
-
-eeepc kernel: [ 1393.500719] usb 3-2: USB disconnect, device number 4
-eeepc kernel: [ 1393.504351] uvcvideo: Failed to resubmit video URB (-19).
-eeepc kernel: [ 1495.428853] BUG: unable to handle kernel paging request at 6b6b6bcb
-eeepc kernel: [ 1495.429017] IP: [<b0358d37>] dev_get_drvdata+0x17/0x20
-eeepc kernel: [ 1495.429017] *pde = 00000000 
-eeepc kernel: [ 1495.429017] Oops: 0000 [#1] DEBUG_PAGEALLOC
-eeepc kernel: [ 1495.429017] 
-eeepc kernel: [ 1495.429017] Pid: 3476, comm: cheese Not tainted 3.1.0-rc3-00270-g7a54f5e-dirty #485 ASUSTeK Computer INC. 900/900
-eeepc kernel: [ 1495.429017] EIP: 0060:[<b0358d37>] EFLAGS: 00010202 CPU: 0
-eeepc kernel: [ 1495.429017] EIP is at dev_get_drvdata+0x17/0x20
-eeepc kernel: [ 1495.429017] EAX: 6b6b6b6b EBX: eb08d870 ECX: 00000000 EDX: eb08d930
-eeepc kernel: [ 1495.429017] ESI: eb08d870 EDI: eb08d870 EBP: d3249cac ESP: d3249cac
-eeepc kernel: [ 1495.429017]  DS: 007b ES: 007b FS: 0000 GS: 00e0 SS: 0068
-eeepc kernel: [ 1495.429017] Process cheese (pid: 3476, ti=d3248000 task=df46d870 task.ti=d3248000)
-eeepc kernel: [ 1495.429017] Stack:
-eeepc kernel: [ 1495.429017]  d3249cb8 b03e77a1 d307b840 d3249ccc b03e77d1 d307b840 eb08d870 eb08d830
-eeepc kernel: [ 1495.429017]  d3249ce4 b03ed3b7 00000246 d307b840 eb08d870 d3021b80 d3249cec b03ed565
-eeepc kernel: [ 1495.429017]  d3249cfc b03e044d e8323d10 b06e013c d3249d18 b0355fb9 fffffffe d3249d1c
-eeepc kernel: [ 1495.429017] Call Trace:
-eeepc kernel: [ 1495.429017]  [<b03e77a1>] v4l2_device_disconnect+0x11/0x30
-eeepc kernel: [ 1495.429017]  [<b03e77d1>] v4l2_device_unregister+0x11/0x50
-eeepc kernel: [ 1495.429017]  [<b03ed3b7>] uvc_delete+0x37/0x110
-eeepc kernel: [ 1495.429017]  [<b03ed565>] uvc_release+0x25/0x30
-eeepc kernel: [ 1495.429017]  [<b03e044d>] v4l2_device_release+0x9d/0xc0
-eeepc kernel: [ 1495.429017]  [<b0355fb9>] device_release+0x19/0x90
-eeepc kernel: [ 1495.429017]  [<b03adfdc>] ? usb_hcd_unlink_urb+0x7c/0x90
-eeepc kernel: [ 1495.429017]  [<b026b99c>] kobject_release+0x3c/0x90
-eeepc kernel: [ 1495.429017]  [<b026b960>] ? kobject_del+0x30/0x30
-eeepc kernel: [ 1495.429017]  [<b026ca4c>] kref_put+0x2c/0x60
-eeepc kernel: [ 1495.429017]  [<b026b88d>] kobject_put+0x1d/0x50
-eeepc kernel: [ 1495.429017]  [<b03b2385>] ? usb_autopm_put_interface+0x25/0x30
-eeepc kernel: [ 1495.429017]  [<b03f0e5d>] ? uvc_v4l2_release+0x5d/0xd0
-eeepc kernel: [ 1495.429017]  [<b0355d2f>] put_device+0xf/0x20
-eeepc kernel: [ 1495.429017]  [<b03dfa96>] v4l2_release+0x56/0x60
-eeepc kernel: [ 1495.429017]  [<b019c8dc>] fput+0xcc/0x220
-eeepc kernel: [ 1495.429017]  [<b01990f4>] filp_close+0x44/0x70
-eeepc kernel: [ 1495.429017]  [<b012b238>] put_files_struct+0x158/0x180
-eeepc kernel: [ 1495.429017]  [<b012b100>] ? put_files_struct+0x20/0x180
-eeepc kernel: [ 1495.429017]  [<b012b2a0>] exit_files+0x40/0x50
-eeepc kernel: [ 1495.429017]  [<b012b9e7>] do_exit+0x5a7/0x660
-eeepc kernel: [ 1495.429017]  [<b0135f72>] ? __dequeue_signal+0x12/0x120
-eeepc kernel: [ 1495.429017]  [<b055edf2>] ? _raw_spin_unlock_irq+0x22/0x30
-eeepc kernel: [ 1495.429017]  [<b012badc>] do_group_exit+0x3c/0xb0
-eeepc kernel: [ 1495.429017]  [<b015792b>] ? trace_hardirqs_on+0xb/0x10
-eeepc kernel: [ 1495.429017]  [<b013755f>] get_signal_to_deliver+0x18f/0x570
-eeepc kernel: [ 1495.429017]  [<b01020f7>] do_signal+0x47/0x9e0
-eeepc kernel: [ 1495.429017]  [<b055edf2>] ? _raw_spin_unlock_irq+0x22/0x30
-eeepc kernel: [ 1495.429017]  [<b015792b>] ? trace_hardirqs_on+0xb/0x10
-eeepc kernel: [ 1495.429017]  [<b0123300>] ? T.1034+0x30/0xc0
-eeepc kernel: [ 1495.429017]  [<b055c45f>] ? schedule+0x29f/0x640
-eeepc kernel: [ 1495.429017]  [<b0102ac8>] do_notify_resume+0x38/0x40
-eeepc kernel: [ 1495.429017]  [<b055f154>] work_notifysig+0x9/0x11
-eeepc kernel: [ 1495.429017] Code: e5 5d 83 f8 01 19 c0 f7 d0 83 e0 f0 c3 8d b4 26 00 00 00 00 55 85 c0 89 e5 75 09 31 c0 5d c3 90 8d 74 26 00 8b 40 04 85 c0 74 f0 <8b> 40 60 5d c3 8d 74 26 00 55 89 e5 53 89 c3 83 ec 04 8b 40 04 
-eeepc kernel: [ 1495.429017] EIP: [<b0358d37>] dev_get_drvdata+0x17/0x20 SS:ESP 0068:d3249cac
-eeepc kernel: [ 1495.429017] CR2: 000000006b6b6bcb
-eeepc kernel: [ 1495.466975] uvcvideo: Failed to resubmit video URB (-27).
-eeepc kernel: [ 1495.467860] uvcvideo: Failed to resubmit video URB (-27).
-eeepc kernel: last message repeated 3 times
-eeepc kernel: [ 1495.512610] ---[ end trace 73ec16848794e5a5 ]---
-
-For uvc device, dev->vdev.dev is the &intf->dev,
-uvc_delete code is as below:
-	usb_put_intf(dev->intf);
-	usb_put_dev(dev->udev);
-
-	uvc_status_cleanup(dev);
-	uvc_ctrl_cleanup_device(dev);
-
-## the intf dev is released above, so below code will oops.
-
-	if (dev->vdev.dev)
-		v4l2_device_unregister(&dev->vdev);
-
-Fix it by get_device in v4l2_device_register and put_device in v4l2_device_disconnect
+Signed-off-by: Bastian Hecht <hechtb@gmail.com>
 ---
- drivers/media/video/v4l2-device.c |    2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index c72856c..e6a2c3b 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -38,6 +38,7 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
- 	mutex_init(&v4l2_dev->ioctl_lock);
- 	v4l2_prio_init(&v4l2_dev->prio);
- 	kref_init(&v4l2_dev->ref);
-+	get_device(dev);
- 	v4l2_dev->dev = dev;
- 	if (dev == NULL) {
- 		/* If dev == NULL, then name must be filled in by the caller */
-@@ -93,6 +94,7 @@ void v4l2_device_disconnect(struct v4l2_device *v4l2_dev)
+diff --git a/drivers/media/video/ov5642.c b/drivers/media/video/ov5642.c
+index 6410bda..e52fdb1 100644
+--- a/drivers/media/video/ov5642.c
++++ b/drivers/media/video/ov5642.c
+@@ -14,8 +14,10 @@
+  * published by the Free Software Foundation.
+  */
  
- 	if (dev_get_drvdata(v4l2_dev->dev) == v4l2_dev)
- 		dev_set_drvdata(v4l2_dev->dev, NULL);
-+	put_device(v4l2_dev->dev);
- 	v4l2_dev->dev = NULL;
++#include <linux/bitops.h>
+ #include <linux/delay.h>
+ #include <linux/i2c.h>
++#include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+ 
+@@ -34,7 +36,7 @@
+ #define REG_WINDOW_START_Y_LOW		0x3803
+ #define REG_WINDOW_WIDTH_HIGH		0x3804
+ #define REG_WINDOW_WIDTH_LOW		0x3805
+-#define REG_WINDOW_HEIGHT_HIGH 		0x3806
++#define REG_WINDOW_HEIGHT_HIGH		0x3806
+ #define REG_WINDOW_HEIGHT_LOW		0x3807
+ #define REG_OUT_WIDTH_HIGH		0x3808
+ #define REG_OUT_WIDTH_LOW		0x3809
+@@ -44,19 +46,44 @@
+ #define REG_OUT_TOTAL_WIDTH_LOW		0x380d
+ #define REG_OUT_TOTAL_HEIGHT_HIGH	0x380e
+ #define REG_OUT_TOTAL_HEIGHT_LOW	0x380f
++#define REG_OUTPUT_FORMAT		0x4300
++#define REG_ISP_CTRL_01			0x5001
++#define REG_AVG_WINDOW_END_X_HIGH	0x5682
++#define REG_AVG_WINDOW_END_X_LOW	0x5683
++#define REG_AVG_WINDOW_END_Y_HIGH	0x5686
++#define REG_AVG_WINDOW_END_Y_LOW	0x5687
++
++/* active pixel array size */
++#define OV5642_SENSOR_SIZE_X	2592
++#define OV5642_SENSOR_SIZE_Y	1944
+ 
+ /*
+- * define standard resolution.
+- * Works currently only for up to 720 lines
+- * eg. 320x240, 640x480, 800x600, 1280x720, 2048x720
++ * About OV5642 resolution, cropping and binning:
++ * This sensor supports it all, at least in the feature description.
++ * Unfortunately, no combination of appropriate registers settings could make
++ * the chip work the intended way. As it works with predefined register lists,
++ * some undocumented registers are presumably changed there to achieve their
++ * goals.
++ * This driver currently only works for resolutions up to 720 lines with a
++ * 1:1 scale. Hopefully these restrictions will be removed in the future.
+  */
++#define OV5642_MAX_WIDTH	OV5642_SENSOR_SIZE_X
++#define OV5642_MAX_HEIGHT	720
+ 
+-#define OV5642_WIDTH		1280
+-#define OV5642_HEIGHT		720
+-#define OV5642_TOTAL_WIDTH	3200
+-#define OV5642_TOTAL_HEIGHT	2000
+-#define OV5642_SENSOR_SIZE_X	2592
+-#define OV5642_SENSOR_SIZE_Y	1944
++/* default sizes */
++#define OV5642_DEFAULT_WIDTH	1280
++#define OV5642_DEFAULT_HEIGHT	OV5642_MAX_HEIGHT
++
++/* minimum extra blanking */
++#define BLANKING_EXTRA_WIDTH		500
++#define BLANKING_EXTRA_HEIGHT		20
++
++/*
++ * the sensor's autoexposure is buggy when setting total_height low.
++ * It tries to expose longer than 1 frame period without taking care of it
++ * and this leads to weird output. So we set 1000 lines as minimum.
++ */
++#define BLANKING_MIN_HEIGHT		1000
+ 
+ struct regval_list {
+ 	u16 reg_num;
+@@ -581,6 +608,11 @@ struct ov5642_datafmt {
+ struct ov5642 {
+ 	struct v4l2_subdev		subdev;
+ 	const struct ov5642_datafmt	*fmt;
++	struct v4l2_rect                crop_rect;
++
++	/* blanking information */
++	int total_width;
++	int total_height;
+ };
+ 
+ static const struct ov5642_datafmt ov5642_colour_fmts[] = {
+@@ -641,6 +673,21 @@ static int reg_write(struct i2c_client *client, u16 reg, u8 val)
+ 
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(v4l2_device_disconnect);
++
++/*
++ * convenience function to write 16 bit register values that are split up
++ * into two consecutive high and low parts
++ */
++static int reg_write16(struct i2c_client *client, u16 reg, u16 val16)
++{
++	int ret;
++
++	ret = reg_write(client, reg, val16 >> 8);
++	if (ret)
++		return ret;
++	return reg_write(client, reg + 1, val16 & 0x00ff);
++}
++
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ static int ov5642_get_register(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg)
+ {
+@@ -684,58 +731,55 @@ static int ov5642_write_array(struct i2c_client *client,
+ 	return 0;
+ }
+ 
+-static int ov5642_set_resolution(struct i2c_client *client)
++static int ov5642_set_resolution(struct v4l2_subdev *sd)
+ {
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct ov5642 *priv = to_ov5642(client);
++	int width = priv->crop_rect.width;
++	int height = priv->crop_rect.height;
++	int total_width = priv->total_width;
++	int total_height = priv->total_height;
++	int start_x = (OV5642_SENSOR_SIZE_X - width) / 2;
++	int start_y = (OV5642_SENSOR_SIZE_Y - height) / 2;
+ 	int ret;
+-	u8 start_x_high = ((OV5642_SENSOR_SIZE_X - OV5642_WIDTH) / 2) >> 8;
+-	u8 start_x_low  = ((OV5642_SENSOR_SIZE_X - OV5642_WIDTH) / 2) & 0xff;
+-	u8 start_y_high = ((OV5642_SENSOR_SIZE_Y - OV5642_HEIGHT) / 2) >> 8;
+-	u8 start_y_low  = ((OV5642_SENSOR_SIZE_Y - OV5642_HEIGHT) / 2) & 0xff;
+-
+-	u8 width_high	= OV5642_WIDTH  >> 8;
+-	u8 width_low	= OV5642_WIDTH  & 0xff;
+-	u8 height_high	= OV5642_HEIGHT >> 8;
+-	u8 height_low	= OV5642_HEIGHT & 0xff;
+-
+-	u8 total_width_high  = OV5642_TOTAL_WIDTH  >> 8;
+-	u8 total_width_low   = OV5642_TOTAL_WIDTH  & 0xff;
+-	u8 total_height_high = OV5642_TOTAL_HEIGHT >> 8;
+-	u8 total_height_low  = OV5642_TOTAL_HEIGHT & 0xff;
+-
+-	ret = reg_write(client, REG_WINDOW_START_X_HIGH, start_x_high);
+-	if (!ret)
+-		ret = reg_write(client, REG_WINDOW_START_X_LOW, start_x_low);
+-	if (!ret)
+-		ret = reg_write(client, REG_WINDOW_START_Y_HIGH, start_y_high);
+-	if (!ret)
+-		ret = reg_write(client, REG_WINDOW_START_Y_LOW, start_y_low);
+ 
++	/*
++	 * This should set the starting point for cropping.
++	 * Doesn't work so far.
++	 */
++	ret = reg_write16(client, REG_WINDOW_START_X_HIGH, start_x);
+ 	if (!ret)
+-		ret = reg_write(client, REG_WINDOW_WIDTH_HIGH, width_high);
+-	if (!ret)
+-		ret = reg_write(client, REG_WINDOW_WIDTH_LOW , width_low);
+-	if (!ret)
+-		ret = reg_write(client, REG_WINDOW_HEIGHT_HIGH, height_high);
+-	if (!ret)
+-		ret = reg_write(client, REG_WINDOW_HEIGHT_LOW,  height_low);
++		ret = reg_write16(client, REG_WINDOW_START_Y_HIGH, start_y);
++	if (!ret) {
++		priv->crop_rect.left = start_x;
++		priv->crop_rect.top = start_y;
++	}
+ 
+ 	if (!ret)
+-		ret = reg_write(client, REG_OUT_WIDTH_HIGH, width_high);
+-	if (!ret)
+-		ret = reg_write(client, REG_OUT_WIDTH_LOW , width_low);
++		ret = reg_write16(client, REG_WINDOW_WIDTH_HIGH, width);
+ 	if (!ret)
+-		ret = reg_write(client, REG_OUT_HEIGHT_HIGH, height_high);
++		ret = reg_write16(client, REG_WINDOW_HEIGHT_HIGH, height);
++	if (ret)
++		return ret;
++	priv->crop_rect.width = width;
++	priv->crop_rect.height = height;
++
++	/* Set the output window size. Only 1:1 scale is supported so far. */
++	ret = reg_write16(client, REG_OUT_WIDTH_HIGH, width);
+ 	if (!ret)
+-		ret = reg_write(client, REG_OUT_HEIGHT_LOW,  height_low);
++		ret = reg_write16(client, REG_OUT_HEIGHT_HIGH, height);
+ 
++	/* Total width = output size + blanking */
+ 	if (!ret)
+-		ret = reg_write(client, REG_OUT_TOTAL_WIDTH_HIGH, total_width_high);
++		ret = reg_write16(client, REG_OUT_TOTAL_WIDTH_HIGH, total_width);
+ 	if (!ret)
+-		ret = reg_write(client, REG_OUT_TOTAL_WIDTH_LOW, total_width_low);
++		ret = reg_write16(client, REG_OUT_TOTAL_HEIGHT_HIGH, total_height);
++
++	/* Sets the window for AWB calculations */
+ 	if (!ret)
+-		ret = reg_write(client, REG_OUT_TOTAL_HEIGHT_HIGH, total_height_high);
++		ret = reg_write16(client, REG_AVG_WINDOW_END_X_HIGH, width);
+ 	if (!ret)
+-		ret = reg_write(client, REG_OUT_TOTAL_HEIGHT_LOW,  total_height_low);
++		ret = reg_write16(client, REG_AVG_WINDOW_END_Y_HIGH, height);
+ 
+ 	return ret;
+ }
+@@ -743,18 +787,18 @@ static int ov5642_set_resolution(struct i2c_client *client)
+ static int ov5642_try_fmt(struct v4l2_subdev *sd,
+ 			  struct v4l2_mbus_framefmt *mf)
+ {
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct ov5642 *priv = to_ov5642(client);
+ 	const struct ov5642_datafmt *fmt = ov5642_find_datafmt(mf->code);
+ 
+-	dev_dbg(sd->v4l2_dev->dev, "%s(%u) width: %u heigth: %u\n",
+-			__func__, mf->code, mf->width, mf->height);
++	mf->width = priv->crop_rect.width;
++	mf->height = priv->crop_rect.height;
+ 
+ 	if (!fmt) {
+ 		mf->code	= ov5642_colour_fmts[0].code;
+ 		mf->colorspace	= ov5642_colour_fmts[0].colorspace;
+ 	}
+ 
+-	mf->width	= OV5642_WIDTH;
+-	mf->height	= OV5642_HEIGHT;
+ 	mf->field	= V4L2_FIELD_NONE;
+ 
+ 	return 0;
+@@ -766,20 +810,13 @@ static int ov5642_s_fmt(struct v4l2_subdev *sd,
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct ov5642 *priv = to_ov5642(client);
+ 
+-	dev_dbg(sd->v4l2_dev->dev, "%s(%u)\n", __func__, mf->code);
+-
+ 	/* MIPI CSI could have changed the format, double-check */
+ 	if (!ov5642_find_datafmt(mf->code))
+ 		return -EINVAL;
+ 
+ 	ov5642_try_fmt(sd, mf);
+-
+ 	priv->fmt = ov5642_find_datafmt(mf->code);
+ 
+-	ov5642_write_array(client, ov5642_default_regs_init);
+-	ov5642_set_resolution(client);
+-	ov5642_write_array(client, ov5642_default_regs_finalise);
+-
+ 	return 0;
+ }
+ 
+@@ -793,8 +830,8 @@ static int ov5642_g_fmt(struct v4l2_subdev *sd,
+ 
+ 	mf->code	= fmt->code;
+ 	mf->colorspace	= fmt->colorspace;
+-	mf->width	= OV5642_WIDTH;
+-	mf->height	= OV5642_HEIGHT;
++	mf->width	= priv->crop_rect.width;
++	mf->height	= priv->crop_rect.height;
+ 	mf->field	= V4L2_FIELD_NONE;
+ 
+ 	return 0;
+@@ -827,15 +864,44 @@ static int ov5642_g_chip_ident(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
++static int ov5642_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct ov5642 *priv = to_ov5642(client);
++	struct v4l2_rect *rect = &a->c;
++	int ret;
++
++	v4l_bound_align_image(&rect->width, 48, OV5642_MAX_WIDTH, 1,
++			      &rect->height, 32, OV5642_MAX_HEIGHT, 1, 0);
++
++	priv->crop_rect.width	= rect->width;
++	priv->crop_rect.height	= rect->height;
++	priv->total_width	= rect->width + BLANKING_EXTRA_WIDTH;
++	priv->total_height	= max_t(int, rect->height +
++							BLANKING_EXTRA_HEIGHT,
++							BLANKING_MIN_HEIGHT);
++	priv->crop_rect.width		= rect->width;
++	priv->crop_rect.height		= rect->height;
++
++	ret = ov5642_write_array(client, ov5642_default_regs_init);
++	if (!ret)
++		ret = ov5642_set_resolution(sd);
++	if (!ret)
++		ret = ov5642_write_array(client, ov5642_default_regs_finalise);
++
++	return ret;
++}
++
+ static int ov5642_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ {
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct ov5642 *priv = to_ov5642(client);
+ 	struct v4l2_rect *rect = &a->c;
+ 
+-	a->type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-	rect->top	= 0;
+-	rect->left	= 0;
+-	rect->width	= OV5642_WIDTH;
+-	rect->height	= OV5642_HEIGHT;
++	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	*rect = priv->crop_rect;
+ 
+ 	return 0;
+ }
+@@ -844,8 +910,8 @@ static int ov5642_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
+ {
+ 	a->bounds.left			= 0;
+ 	a->bounds.top			= 0;
+-	a->bounds.width			= OV5642_WIDTH;
+-	a->bounds.height		= OV5642_HEIGHT;
++	a->bounds.width			= OV5642_MAX_WIDTH;
++	a->bounds.height		= OV5642_MAX_HEIGHT;
+ 	a->defrect			= a->bounds;
+ 	a->type				= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	a->pixelaspect.numerator	= 1;
+@@ -858,24 +924,37 @@ static int ov5642_g_mbus_config(struct v4l2_subdev *sd,
+ 				struct v4l2_mbus_config *cfg)
+ {
+ 	cfg->type = V4L2_MBUS_CSI2;
+-	cfg->flags = V4L2_MBUS_CSI2_2_LANE |
+-		V4L2_MBUS_CSI2_CHANNEL_0 |
+-		V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
++	cfg->flags = V4L2_MBUS_CSI2_2_LANE | V4L2_MBUS_CSI2_CHANNEL_0 |
++					V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
+ 
+ 	return 0;
+ }
+ 
++static int ov5642_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	int ret = ov5642_write_array(client, ov5642_default_regs_init);
++	if (!ret)
++		ret = ov5642_set_resolution(sd);
++	if (!ret)
++		ret = ov5642_write_array(client, ov5642_default_regs_finalise);
++
++	return ret;
++}
++
+ static struct v4l2_subdev_video_ops ov5642_subdev_video_ops = {
+ 	.s_mbus_fmt	= ov5642_s_fmt,
+ 	.g_mbus_fmt	= ov5642_g_fmt,
+ 	.try_mbus_fmt	= ov5642_try_fmt,
+ 	.enum_mbus_fmt	= ov5642_enum_fmt,
++	.s_crop		= ov5642_s_crop,
+ 	.g_crop		= ov5642_g_crop,
+ 	.cropcap	= ov5642_cropcap,
+ 	.g_mbus_config	= ov5642_g_mbus_config,
+ };
+ 
+ static struct v4l2_subdev_core_ops ov5642_subdev_core_ops = {
++	.s_power	= ov5642_s_power,
+ 	.g_chip_ident	= ov5642_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.g_register	= ov5642_get_register,
+@@ -941,8 +1020,17 @@ static int ov5642_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov5642_subdev_ops);
+ 
+-	icd->ops	= NULL;
+-	priv->fmt	= &ov5642_colour_fmts[0];
++	icd->ops		= NULL;
++	priv->fmt		= &ov5642_colour_fmts[0];
++
++	priv->crop_rect.width	= OV5642_DEFAULT_WIDTH;
++	priv->crop_rect.height	= OV5642_DEFAULT_HEIGHT;
++	priv->crop_rect.left	= (OV5642_MAX_WIDTH - OV5642_DEFAULT_WIDTH) / 2;
++	priv->crop_rect.top	= (OV5642_MAX_HEIGHT - OV5642_DEFAULT_HEIGHT) / 2;
++	priv->crop_rect.width	= OV5642_DEFAULT_WIDTH;
++	priv->crop_rect.height	= OV5642_DEFAULT_HEIGHT;
++	priv->total_width = OV5642_DEFAULT_WIDTH + BLANKING_EXTRA_WIDTH;
++	priv->total_height = BLANKING_MIN_HEIGHT;
+ 
+ 	ret = ov5642_video_probe(icd, client);
+ 	if (ret < 0)
+@@ -951,6 +1039,7 @@ static int ov5642_probe(struct i2c_client *client,
+ 	return 0;
+ 
+ error:
++	icd->ops = NULL;
+ 	kfree(priv);
+ 	return ret;
+ }
+@@ -961,6 +1050,7 @@ static int ov5642_remove(struct i2c_client *client)
+ 	struct soc_camera_device *icd = client->dev.platform_data;
+ 	struct soc_camera_link *icl = to_soc_camera_link(icd);
+ 
++	icd->ops = NULL;
+ 	if (icl->free_bus)
+ 		icl->free_bus(icl);
+ 	kfree(priv);
