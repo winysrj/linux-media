@@ -1,46 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:35853 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755416Ab1IRUlK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Sep 2011 16:41:10 -0400
-Received: by pzk1 with SMTP id 1so8826923pzk.1
-        for <linux-media@vger.kernel.org>; Sun, 18 Sep 2011 13:41:09 -0700 (PDT)
+Received: from moutng.kundenserver.de ([212.227.17.8]:61295 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752859Ab1IFGzA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 02:55:00 -0400
+Date: Tue, 6 Sep 2011 08:54:55 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Josh Wu <josh.wu@atmel.com>
+cc: linux-media@vger.kernel.org, plagnioj@jcrosoft.com,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v2] [media] at91: add code to initialize and manage the
+ ISI_MCK for Atmel ISI driver.
+In-Reply-To: <1315288601-22384-1-git-send-email-josh.wu@atmel.com>
+Message-ID: <Pine.LNX.4.64.1109060803590.14818@axis700.grange>
+References: <1315288601-22384-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Date: Sun, 18 Sep 2011 22:41:09 +0200
-Message-ID: <CACiveRuv4iT1ck-so_+_=MXHXgtZpy0hNkgk_uXxo46GtSWaGw@mail.gmail.com>
-Subject: em28xx: new board id [eb1a:2870]
-From: Karim <gouchi@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
+On Tue, 6 Sep 2011, Josh Wu wrote:
 
-I've made some tests with my Pinnacle PCTV Stick[1]
+> This patch enable the configuration for ISI_MCK, which is provided by programmable clock.
+> 
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> ---
+>  drivers/media/video/atmel-isi.c |   60 ++++++++++++++++++++++++++++++++++++++-
+>  include/media/atmel-isi.h       |    4 ++
+>  2 files changed, 63 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
+> index 7b89f00..768bf59 100644
+> --- a/drivers/media/video/atmel-isi.c
+> +++ b/drivers/media/video/atmel-isi.c
+> @@ -90,7 +90,10 @@ struct atmel_isi {
+>  	struct isi_dma_desc		dma_desc[MAX_BUFFER_NUM];
+>  
+>  	struct completion		complete;
+> +	/* ISI peripherial clock */
+>  	struct clk			*pclk;
+> +	/* ISI_MCK, provided by PCK */
+> +	struct clk			*mck;
+>  	unsigned int			irq;
+>  
+>  	struct isi_platform_data	*pdata;
+> @@ -763,6 +766,10 @@ static int isi_camera_add_device(struct soc_camera_device *icd)
+>  	if (ret)
+>  		return ret;
+>  
+> +	ret = clk_enable(isi->mck);
+> +	if (ret)
+> +		return ret;
+> +
 
-Model: Pinnacle PCTV Stick
-Vendor/Product id: [eb1a:2870].
+Don't you have to disable the pixel clock (isi->pclk), that you just have 
+enabled above this hunk, on the above error path?
 
-lsusb :
-Bus 001 Device 009: ID eb1a:2870 eMPIA Technology, Inc. Pinnacle PCTV Stick
+>  	isi->icd = icd;
+>  	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
+>  		 icd->devnum);
+> @@ -776,6 +783,7 @@ static void isi_camera_remove_device(struct soc_camera_device *icd)
+>  
+>  	BUG_ON(icd != isi->icd);
+>  
+> +	clk_disable(isi->mck);
+>  	clk_disable(isi->pclk);
+>  	isi->icd = NULL;
+>  
+> @@ -882,6 +890,49 @@ static struct soc_camera_host_ops isi_soc_camera_host_ops = {
+>  };
+>  
+>  /* -----------------------------------------------------------------------*/
+> +/* Initialize ISI_MCK clock, called by atmel_isi_probe() function */
+> +static int initialize_mck(struct platform_device *pdev,
+> +			struct atmel_isi *isi)
+> +{
+> +	struct device *dev = &pdev->dev;
+> +	struct isi_platform_data *pdata = dev->platform_data;
+> +	struct clk *pck_parent;
+> +	int ret;
+> +
+> +	if (!strlen(pdata->pck_name) || !strlen(pdata->pck_parent_name))
+> +		return -EINVAL;
+> +
+> +	/* ISI_MCK is provided by PCK clock */
+> +	isi->mck = clk_get(dev, pdata->pck_name);
 
-Dmesg with kernel 3.0 :
-http://pastebin.com/VDpczS7V
+I think, it's still not what Russell meant. Look at 
+drivers/mmc/host/atmel-mci.c:
 
-Tests made with Kaffeine :
+	host->mck = clk_get(&pdev->dev, "mci_clk");
 
-     - Analog [Worked]
-     - DVB    [Worked]
+and in arch/arm/mach-at91/at91sam9g45.c they've got
 
-I have tested this driver[2] with this patch[3]
-(em28xx-new-2.6.35-patch) and it works on 2.6.XX
+	CLKDEV_CON_DEV_ID("mci_clk", "atmel_mci.0", &mmc0_clk),
+	CLKDEV_CON_DEV_ID("mci_clk", "atmel_mci.1", &mmc1_clk),
 
-Is it possible to port it to 3.0 ?
+where
 
-Thank you, best regards.
+#define CLKDEV_CON_DEV_ID(_con_id, _dev_id, _clk)	\
+	{						\
+		.con_id = _con_id,			\
+		.dev_id = _dev_id,			\
+		.clk = _clk,				\
+	}
 
-[1] http://linuxtv.org/wiki/index.php/Pinnacle_PCTV_unidentified_DVB-T_USB_device
-[2] http://bitbucket.org/mdonoughe/em28xx-new
-[3] http://archlinux.pastebin.com/nfwA8sU9
+I.e., in the device driver (mmc in this case) you only use the (platform) 
+device instance, whose dev_name(dev) is then matched against one of clock 
+lookups above, and a connection ID, which is used in case your device is 
+using more than one clock. In the ISI case, your pck1 clock, that you seem 
+to need here, doesn't have a clock lookup object, so, you might have to 
+add one, and then use its connection ID.
+
+> +	if (IS_ERR(isi->mck)) {
+> +		dev_err(dev, "Failed to get PCK: %s\n", pdata->pck_name);
+> +		return PTR_ERR(isi->mck);
+> +	}
+> +
+> +	pck_parent = clk_get(dev, pdata->pck_parent_name);
+> +	if (IS_ERR(pck_parent)) {
+> +		ret = PTR_ERR(pck_parent);
+> +		dev_err(dev, "Failed to get PCK parent: %s\n",
+> +				pdata->pck_parent_name);
+> +		goto err_init_mck;
+> +	}
+> +
+> +	ret = clk_set_parent(isi->mck, pck_parent);
+
+I'm not entirely sure on this one, but as we had a similar situation with 
+clocks, we decided to extablish the clock hierarchy in the board code, and 
+only deal with the actual device clocks in the driver itself. I.e., we 
+moved all clk_set_parent() and setting up the parent clock into the board. 
+And I do think, this makes more sense, than doing this in the driver, not 
+all users of this driver will need to manage the parent clock, right?
+
+> +	clk_put(pck_parent);
+> +	if (ret)
+> +		goto err_init_mck;
+> +
+> +	ret = clk_set_rate(isi->mck, pdata->isi_mck_hz);
+> +	if (ret < 0)
+> +		goto err_init_mck;
+> +
+> +	return 0;
+> +
+> +err_init_mck:
+> +	clk_put(isi->mck);
+> +	return ret;
+> +}
+> +
+>  static int __devexit atmel_isi_remove(struct platform_device *pdev)
+>  {
+>  	struct soc_camera_host *soc_host = to_soc_camera_host(&pdev->dev);
+> @@ -897,6 +948,7 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
+>  			isi->fb_descriptors_phys);
+>  
+>  	iounmap(isi->regs);
+> +	clk_put(isi->mck);
+>  	clk_put(isi->pclk);
+>  	kfree(isi);
+>  
+> @@ -915,7 +967,8 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+>  	struct isi_platform_data *pdata;
+>  
+>  	pdata = dev->platform_data;
+> -	if (!pdata || !pdata->data_width_flags) {
+> +	if (!pdata || !pdata->data_width_flags || !pdata->isi_mck_hz
+> +			|| !pdata->pck_name || !pdata->pck_parent_name) {
+
+These names you won't need either.
+
+>  		dev_err(&pdev->dev,
+>  			"No config available for Atmel ISI\n");
+>  		return -EINVAL;
+> @@ -944,6 +997,11 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+>  	INIT_LIST_HEAD(&isi->video_buffer_list);
+>  	INIT_LIST_HEAD(&isi->dma_desc_head);
+>  
+> +	/* Initialize ISI_MCK clock */
+> +	ret = initialize_mck(pdev, isi);
+> +	if (ret)
+> +		goto err_alloc_descriptors;
+> +
+>  	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
+>  				sizeof(struct fbd) * MAX_BUFFER_NUM,
+>  				&isi->fb_descriptors_phys,
+> diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
+> index 26cece5..dcbb822 100644
+> --- a/include/media/atmel-isi.h
+> +++ b/include/media/atmel-isi.h
+> @@ -114,6 +114,10 @@ struct isi_platform_data {
+>  	u32 data_width_flags;
+>  	/* Using for ISI_CFG1 */
+>  	u32 frate;
+> +	/* Using for ISI_MCK, provided by PCK */
+> +	u32 isi_mck_hz;
+> +	const char *pck_name;
+> +	const char *pck_parent_name;
+>  };
+>  
+>  #endif /* __ATMEL_ISI_H__ */
+> -- 
+> 1.6.3.3
+> 
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
