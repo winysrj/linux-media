@@ -1,85 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53283 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755300Ab1ISPb2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Sep 2011 11:31:28 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Ravi, Deepthy" <deepthy.ravi@ti.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"tony@atomide.com" <tony@atomide.com>,
-	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
-Date: Mon, 19 Sep 2011 21:01:02 +0530
-Subject: RE: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
-Message-ID: <19F8576C6E063C45BE387C64729E739404EC8113E2@dbde02.ent.ti.com>
-References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com>
- <201109081921.28051.laurent.pinchart@ideasonboard.com>
- <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09083D@dbde03.ent.ti.com>
- <201109161506.16505.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201109161506.16505.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-qw0-f42.google.com ([209.85.216.42]:37907 "EHLO
+	mail-qw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753369Ab1IFIHu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 04:07:50 -0400
 MIME-Version: 1.0
+In-Reply-To: <20110905223102.GA26980@sucs.org>
+References: <20110829204846.GA14699@sucs.org>
+	<201109051159.08268.laurent.pinchart@ideasonboard.com>
+	<201109051213.26482.hverkuil@xs4all.nl>
+	<201109051216.42579.hverkuil@xs4all.nl>
+	<20110905223102.GA26980@sucs.org>
+Date: Tue, 6 Sep 2011 16:07:48 +0800
+Message-ID: <CABqxG0dwKgCVNDJhitn3M5t099-eAV1MPVRRji+U_u6ooABY9A@mail.gmail.com>
+Subject: Re: BUG: unable to handle kernel paging request at 6b6b6bcb (v4l2_device_disconnect+0x11/0x30)
+From: Dave Young <hidave.darkstar@gmail.com>
+To: Sitsofe Wheeler <sitsofe@yahoo.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, Sep 6, 2011 at 6:31 AM, Sitsofe Wheeler <sitsofe@yahoo.com> wrote:
+> On Mon, Sep 05, 2011 at 12:16:42PM +0200, Hans Verkuil wrote:
+>> On Monday, September 05, 2011 12:13:26 Hans Verkuil wrote:
+>> >
+>> > The original order is correct, but what I missed is that for drivers
+>> > that release (free) everything in the videodev release callback the
+>> > v4l2_device struct is also freed and v4l2_device_put will fail.
+>> >
+>> > To fix this, add this code just before the vdev->release call:
+>> >
+>> >     /* Do not call v4l2_device_put if there is no release callback set. */
+>> >     if (v4l2_dev->release == NULL)
+>> >             v4l2_dev = NULL;
+>> >
+>> > If there is no release callback, then the refcounting is pointless
+>> > anyway.
+>> >
+>> > This should work.
+>>
+>> Note that in the long run using the v4l2_device release callback
+>> instead of the videodev release is better. But it's a lot of work to
+>> convert everything so that's long term. I'm quite surprised BTW that
+>> this bug wasn't found much earlier.
+>
+> This inline patch fixes the second "poison overwritten" problem so:
+> Tested-by: Sitsofe Wheeler <sitsofe@yahoo.com>
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Friday, September 16, 2011 6:36 PM
-> To: Ravi, Deepthy
-> Cc: linux-media@vger.kernel.org; tony@atomide.com; linux@arm.linux.org.uk;
-> linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
-> kernel@vger.kernel.org; mchehab@infradead.org; g.liakhovetski@gmx.de;
-> Hiremath, Vaibhav
-> Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
-> 
-> Hi Deepthy,
-> 
-> On Friday 16 September 2011 15:00:53 Ravi, Deepthy wrote:
-> > On Thursday, September 08, 2011 10:51 PM Laurent Pinchart wrote:
-> > > On Thursday 08 September 2011 15:35:22 Deepthy Ravi wrote:
-> > >> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > >>
-> > >> In order to support TVP5146 (for that matter any video decoder),
-> > >> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
-> > >> device node.
-> > >
-> > > Why so ? Shouldn't it be queried on the subdev output pad directly ?
-> >
-> > Because standard v4l2 application for analog devices will call these std
-> > ioctls on the streaming device node. So it's done on /dev/video to make
-> the
-> > existing apllication work.
-> 
-> Existing applications can't work with the OMAP3 ISP (and similar complex
-> embedded devices) without userspace support anyway, either in the form of
-> a
-> GStreamer element or a libv4l plugin. I still believe that analog video
-> standard operations should be added to the subdev pad operations and
-> exposed
-> through subdev device nodes, exactly as done with formats.
-> 
-[Hiremath, Vaibhav] Laurent,
+Confirmed
 
-I completely agree with your point that, existing application will not work without setting links properly. But I believe the assumption here is, media-controller should set the links (along with pad formants) and all existing application should work as is. Isn't it?
+>
+> However, it does not prevent the original oops that was reported in the
+> original message. Yang Ruirui's patch in
+> https://lkml.org/lkml/2011/9/1/74 seems to be required to resolve
+> that initial problem - can it be ACK'd? Yang's patch is reproduced
+> inline below:
 
-The way it is being done currently is, set the format at the pad level which is same as analog standard resolution and use existing application for streaming...
+Thanks, If it's ok, I can resend it as inline.
 
-I am ok, if we add s/g/enum_std api support at sub-dev level but this should also be supported on streaming device node.
-
-Thanks,
-Vaibhav
-
+>
+> For uvc device, dev->vdev.dev is the &intf->dev,
+> uvc_delete code is as below:
+>        usb_put_intf(dev->intf);
+>        usb_put_dev(dev->udev);
+>
+>        uvc_status_cleanup(dev);
+>        uvc_ctrl_cleanup_device(dev);
+>
+> ## the intf dev is released above, so below code will oops.
+>
+>        if (dev->vdev.dev)
+>                v4l2_device_unregister(&dev->vdev);
+> Fix it by get_device in v4l2_device_register and put_device in v4l2_device_disconnect
+> ---
+>  drivers/media/video/v4l2-device.c |    2 ++
+>  1 file changed, 2 insertions(+)
+> diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+> index c72856c..e6a2c3b 100644
+> --- a/drivers/media/video/v4l2-device.c
+> +++ b/drivers/media/video/v4l2-device.c
+> @@ -38,6 +38,7 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
+>        mutex_init(&v4l2_dev->ioctl_lock);
+>        v4l2_prio_init(&v4l2_dev->prio);
+>        kref_init(&v4l2_dev->ref);
+> +       get_device(dev);
+>        v4l2_dev->dev = dev;
+>        if (dev == NULL) {
+>                /* If dev == NULL, then name must be filled in by the caller */
+> @@ -93,6 +94,7 @@ void v4l2_device_disconnect(struct v4l2_device *v4l2_dev)
+>
+>        if (dev_get_drvdata(v4l2_dev->dev) == v4l2_dev)
+>                dev_set_drvdata(v4l2_dev->dev, NULL);
+> +       put_device(v4l2_dev->dev);
+>        v4l2_dev->dev = NULL;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_device_disconnect);
+>
 > --
-> Regards,
-> 
-> Laurent Pinchart
+> Sitsofe | http://sucs.org/~sits/
+>
+
+
+
+-- 
+Regards
+Yang RuiRui
