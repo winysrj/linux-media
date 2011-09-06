@@ -1,37 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3118 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754188Ab1I2Hoy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Sep 2011 03:44:54 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	viro@zeniv.linux.org.uk, Jonathan Corbet <corbet@lwn.net>,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: [RFCv4 PATCH 0/6]: add poll_requested_events() function
-Date: Thu, 29 Sep 2011 09:44:06 +0200
-Message-Id: <1317282252-8290-1-git-send-email-hverkuil@xs4all.nl>
+Received: from moutng.kundenserver.de ([212.227.126.186]:50886 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752825Ab1IFHiS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 03:38:18 -0400
+Date: Tue, 6 Sep 2011 09:38:16 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?ISO-8859-1?B?TEJN?= <lbm9527@qq.com>
+cc: =?ISO-8859-1?B?bGludXgtbWVkaWE=?= <linux-media@vger.kernel.org>
+Subject: Re: migrate soc-camera  to  V4L2 
+In-Reply-To: <tencent_3A0B806D0B9604E629799037@qq.com>
+Message-ID: <Pine.LNX.4.64.1109060917280.14818@axis700.grange>
+References: <tencent_3A0B806D0B9604E629799037@qq.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the fourth version of this patch series, incorporating the comments
-from Andrew Morton: I've split up the multiple-assignment line and added a
-comment explaining the purpose of the new function in poll.h.
+On Tue, 6 Sep 2011, LBM wrote:
 
-It's also rebased to the current staging/for_v3.2 branch of the linux-media
-tree.
+> hi Guennadi
+>    thank you very much!
+>     but,how can i port mt9m111 to work with omap3?can you give me some examples?
 
-There are no other changes compared to the RFCv3 patches.
+I'm hoping to get a fixed version of Hans' patches by the end of the day 
+today. After that the use of struct soc_camera_device has to be eliminated 
+in the driver, I might be able to do that too. Then you should be able to 
+more or less just add mt9m111 platform data to your board file, including 
+struct soc_camera_link, and start experimenting.
 
-I'd very much like to get an Acked-by (or additional comments) from Al or
-Andrew! This patch series really should go into v3.2 which is getting close.
+Thanks
+Guennadi
 
-Normally I would have posted this v4 3 weeks ago, but due to Real Life
-interference in the past few weeks I was unable to. But I'm back, and this is
-currently the highest priority for me.
+>                         thanks
+>                           LEE
+>    
+>   ------------------ Original ------------------
+>   From:  "g.liakhovetski"<g.liakhovetski@gmx.de>;
+>  Date:  Tue, Sep 6, 2011 03:00 PM
+>  To:  "LBM"<lbm9527@qq.com>; 
+>  Cc:  "linux-media"<linux-media@vger.kernel.org>; 
+>  Subject:  Re: migrate soc-camera to V4L2 
+> 
+>   
+> Hi Lee
+> 
+> On Tue, 6 Sep 2011, LBM wrote:
+> 
+> > hi  Guennadi
+> >         I used Hans's codes about "migrate soc-camera to the new V4L2 
+> > control framework".There is a problem,the programe can't go to exec the 
+> > function "soc_camera_probe()".
+> 
+> You don't need it.
+> 
+> > I find some information,that say it need 
+> > to use the function "soc_camera_host_register()".
+> 
+> Nor you need this one.
+> 
+> > but i don't know why 
+> > and how to use it.  My system is "omap3530+mt9m111" and kernel is 
+> > linux2.6.32.
+> >          And now i find the oamp1_camera.c,maby i must fill codes in the 
+> > struct soc_camera_host for my omap3.or if you did this thing already?if 
+> > that can you give me the codes?
+> 
+> You shouldn't need to touch the SoC drivers (omap). omap3isp is the 
+> correct driver for you. You only need to port mt9m111 to work with omap3.
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
 
-Regards,
-
-	Hans
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
