@@ -1,809 +1,1115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mr.siano-ms.com ([62.0.79.70]:6294 "EHLO
-	Siano-NV.ser.netvision.net.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932094Ab1ITKTI convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Sep 2011 06:19:08 -0400
-Subject: [PATCH  12/17]DVB:Siano drivers - Improve firmware load and reload
- mechanism.
-From: Doron Cohen <doronc@siano-ms.com>
-Reply-To: doronc@siano-ms.com
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Tue, 20 Sep 2011 13:31:50 +0300
-Message-ID: <1316514710.5199.90.camel@Doron-Ubuntu>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:11341 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754858Ab1IFPaN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Sep 2011 11:30:13 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 03/10] Backport mixer-alsa patch from Fedora
+Date: Tue,  6 Sep 2011 12:29:49 -0300
+Message-Id: <1315322996-10576-3-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1315322996-10576-2-git-send-email-mchehab@redhat.com>
+References: <1315322996-10576-1-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-2-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-This patch step Improve firmware load and reload mechanism in order to
-support new siano devices and match all existing devices.
+commit e53212e85a71d831fff3bf61c792ed7235fa3a79
+Author: Tomas Smetana <tsmetana@fedoraproject.org>
+Date:   Mon May 11 16:24:09 2009 +0000
 
-Thanks,
-Doron Cohen
+    Added first version of the ALSA mixer patch. Unused yet.
 
------------------------
-
->From 59062b9fbc2f3c28cbb1ec014c6ed5a3e065a7de Mon Sep 17 00:00:00 2001
-From: Doron Cohen <doronc@siano-ms.com>
-Date: Tue, 20 Sep 2011 08:22:29 +0300
-Subject: [PATCH 16/21] Improve firmware load and reload mechanism in
-order to support new siano devices and match all existing devices.
-
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb/siano/smscoreapi.c |  530
-+++++++++++++++++++++++++++-------
- 1 files changed, 423 insertions(+), 107 deletions(-)
+ configure.ac     |   12 ++-
+ src/Makefile.am  |   15 ++-
+ src/commands.c   |    8 +-
+ src/mixer-alsa.c |  240 +++++++++++++++++++++++++++++++++++++++++++++++
+ src/mixer-oss.c  |  261 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/mixer.c      |  272 +++++++++++++++---------------------------------------
+ src/mixer.h      |   31 +++++--
+ src/tvtime.c     |   10 +-
+ src/videoinput.c |    6 +-
+ 9 files changed, 628 insertions(+), 227 deletions(-)
+ create mode 100644 src/mixer-alsa.c
+ create mode 100644 src/mixer-oss.c
 
-diff --git a/drivers/media/dvb/siano/smscoreapi.c
-b/drivers/media/dvb/siano/smscoreapi.c
-index db24391..e50e356 100644
---- a/drivers/media/dvb/siano/smscoreapi.c
-+++ b/drivers/media/dvb/siano/smscoreapi.c
-@@ -312,6 +312,7 @@ smscore_buffer_t *smscore_createbuffer(u8 *buffer,
-void *common_buffer,
- 	cb->p = buffer;
- 	cb->offset_in_common = buffer - (u8 *) common_buffer;
- 	cb->phys = common_buffer_phys + cb->offset_in_common;
-+	cb->offset=0;
- 
- 	return cb;
- }
-@@ -352,6 +353,7 @@ int smscore_register_device(struct
-smsdevice_params_t *params,
- 	/* init completion events */
- 	init_completion(&dev->version_ex_done);
- 	init_completion(&dev->data_download_done);
-+	init_completion(&dev->data_validity_done);
- 	init_completion(&dev->trigger_done);
- 	init_completion(&dev->init_device_done);
- 	init_completion(&dev->reload_start_done);
-@@ -360,6 +362,7 @@ int smscore_register_device(struct
-smsdevice_params_t *params,
- 	init_completion(&dev->gpio_set_level_done);
- 	init_completion(&dev->gpio_get_level_done);
- 	init_completion(&dev->ir_init_done);
-+	init_completion(&dev->device_ready_done);
- 
- 	/* Buffer management */
- 	init_waitqueue_head(&dev->buffer_mng_waitq);
-@@ -426,7 +429,13 @@ EXPORT_SYMBOL_GPL(smscore_register_device);
- 
- static int smscore_sendrequest_and_wait(struct smscore_device_t
-*coredev,
- 		void *buffer, size_t size, struct completion *completion) {
--	int rc = coredev->sendrequest_handler(coredev->context, buffer, size);
-+	int rc;
-+
-+	if (completion == NULL)
-+		return -EINVAL;
-+	init_completion(completion);
-+
-+	rc = coredev->sendrequest_handler(coredev->context, buffer, size);
- 	if (rc < 0) {
- 		sms_info("sendrequest returned error %d", rc);
- 		return rc;
-@@ -535,7 +544,8 @@ static int smscore_load_firmware_family2(struct
-smscore_device_t *coredev,
- {
- 	struct SmsFirmware_ST *firmware = (struct SmsFirmware_ST *) buffer;
- 	struct SmsMsgHdr_S *msg;
--	u32 mem_address;
-+	u32 mem_address,  calc_checksum = 0;
-+	u32 i, *ptr;
- 	u8 *payload = firmware->Payload;
- 	int rc = 0;
- 	firmware->StartAddress = le32_to_cpu(firmware->StartAddress);
-@@ -563,9 +573,17 @@ static int smscore_load_firmware_family2(struct
-smscore_device_t *coredev,
- 		rc = smscore_sendrequest_and_wait(coredev, msg,
- 						  msg->msgLength,
- 						  &coredev->reload_start_done);
-+
-+		if (rc < 0) {				
-+			sms_err("device reload failed, rc %d", rc);
-+			goto exit_fw_download;
-+		}
-+
- 		mem_address = *(u32 *) &payload[20];
- 	}
- 
-+	for (i = 0, ptr = (u32*)firmware->Payload; i < firmware->Length/4 ; i
-++, ptr++)
-+		calc_checksum += *ptr;
- 	while (size && rc >= 0) {
- 		struct SmsDataDownload_S *DataMsg =
- 			(struct SmsDataDownload_S *) msg;
-@@ -578,14 +596,9 @@ static int smscore_load_firmware_family2(struct
-smscore_device_t *coredev,
- 		DataMsg->MemAddr = mem_address;
- 		memcpy(DataMsg->Payload, payload, payload_size);
- 
--		if ((coredev->device_flags & SMS_ROM_NO_RESPONSE) &&
--		    (coredev->mode == SMSHOSTLIB_DEVMD_NONE))
--			rc = coredev->sendrequest_handler(
--				coredev->context, DataMsg,
--				DataMsg->xMsgHeader.msgLength);
--		else
--			rc = smscore_sendrequest_and_wait(
--				coredev, DataMsg,
-+
-+	
-+		rc = smscore_sendrequest_and_wait(coredev, DataMsg,
- 				DataMsg->xMsgHeader.msgLength,
- 				&coredev->data_download_done);
- 
-@@ -594,44 +607,63 @@ static int smscore_load_firmware_family2(struct
-smscore_device_t *coredev,
- 		mem_address += payload_size;
- 	}
- 
--	if (rc >= 0) {
-+	if (rc < 0) 		
-+		goto exit_fw_download;
-+
-+	sms_err("sending MSG_SMS_DATA_VALIDITY_REQ expecting 0x%x",
-calc_checksum);
-+	SMS_INIT_MSG(msg, MSG_SMS_DATA_VALIDITY_REQ,
-+			sizeof(struct SmsMsgHdr_S) +
-+			sizeof(u32) * 3);
-+	((struct SmsMsgData_S *)msg)->msgData[0] = firmware->StartAddress;
-+		/* Entry point */
-+	((struct SmsMsgData_S *)msg)->msgData[1] = firmware->Length;
-+	((struct SmsMsgData_S *)msg)->msgData[2] = 0; /* Regular checksum*/
-+	smsendian_handle_tx_message((struct SmsMsgHdr_S *)msg);
-+	rc = smscore_sendrequest_and_wait(coredev, msg,	((struct SmsMsgData_S
-*)msg)->xMsgHeader.msgLength, &coredev->data_validity_done);
-+	if (rc < 0) 		
-+		goto exit_fw_download;
-+
-+
- 		if (coredev->mode == SMSHOSTLIB_DEVMD_NONE) {
- 			struct SmsMsgData_S *TriggerMsg =
- 				(struct SmsMsgData_S *) msg;
- 
-+		        sms_debug("sending MSG_SMS_SWDOWNLOAD_TRIGGER_REQ");
- 			SMS_INIT_MSG(msg, MSG_SMS_SWDOWNLOAD_TRIGGER_REQ,
- 				     sizeof(struct SmsMsgHdr_S) +
- 				     sizeof(u32) * 5);
- 
- 			TriggerMsg->msgData[0] = firmware->StartAddress;
- 						/* Entry point */
--			TriggerMsg->msgData[1] = 5; /* Priority */
-+		TriggerMsg->msgData[1] = 6; /* Priority */
- 			TriggerMsg->msgData[2] = 0x200; /* Stack size */
- 			TriggerMsg->msgData[3] = 0; /* Parameter */
- 			TriggerMsg->msgData[4] = 4; /* Task ID */
- 
--			if (coredev->device_flags & SMS_ROM_NO_RESPONSE) {
--				rc = coredev->sendrequest_handler(
--					coredev->context, TriggerMsg,
--					TriggerMsg->xMsgHeader.msgLength);
--				msleep(100);
--			} else
--				rc = smscore_sendrequest_and_wait(
--					coredev, TriggerMsg,
-+		smsendian_handle_tx_message((struct SmsMsgHdr_S *)msg);
-+		rc = smscore_sendrequest_and_wait(coredev,
-+			TriggerMsg,
- 					TriggerMsg->xMsgHeader.msgLength,
- 					&coredev->trigger_done);
- 		} else {
- 			SMS_INIT_MSG(msg, MSG_SW_RELOAD_EXEC_REQ,
- 				     sizeof(struct SmsMsgHdr_S));
+diff --git a/configure.ac b/configure.ac
+index eac6c20..6cdedfb 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -76,18 +76,26 @@ dnl ---------------------------------------------
+ dnl libxml2
+ dnl ---------------------------------------------
+ dnl Test for libxml2
 -
--			rc = coredev->sendrequest_handler(coredev->context,
--							  msg, msg->msgLength);
--		}
--		msleep(500);
-+		smsendian_handle_tx_message((struct SmsMsgHdr_S *)msg);
-+		rc = coredev->sendrequest_handler(coredev->context, msg,
-+				msg->msgLength);
- 	}
+ AC_PATH_PROG(LIBXML2_CONFIG,xml2-config,no)
+ if test "$LIBXML2_CONFIG" = "no" ; then
+ 	AC_MSG_ERROR(libxml2 needed and xml2-config not found)
+ else
+ 	XML2_LIBS="`$LIBXML2_CONFIG --libs`"
+ 	XML2_FLAG="`$LIBXML2_CONFIG --cflags`"
+-	AC_DEFINE(HAVE_LIBXML2,,[LIBXML2 support])	
++	AC_DEFINE(HAVE_LIBXML2,,[LIBXML2 support])
+ fi
+ AC_SUBST(XML2_LIBS)
+ AC_SUBST(XML2_FLAG)
  
--	sms_debug("rc=%d, postload=%p ", rc,
--		  coredev->postload_handler);
-+	if (rc < 0)
-+		goto exit_fw_download;
-+			
-+	/*
-+	 * backward compatibility - wait to device_ready_done for
-+	 * not more than 400 ms
-+	 */
-+	msleep(400);
++dnl ---------------------------------------------
++dnl libasound2
++dnl ---------------------------------------------
++dnl Test for ALSA
++AM_PATH_ALSA(1.0.9,
++	[ AC_DEFINE(HAVE_ALSA,1,[Define this if you have Alsa (libasound) installed]) ],
++	AC_MSG_RESULT(libasound needed and not found))
++AM_CONDITIONAL(HAVE_ALSA, test x"$no_alsa" != "yes")
 +
-+exit_fw_download:
-+	sms_debug("rc=%d, postload=0x%p ", rc, coredev->postload_handler);
  
- 	kfree(msg);
+ dnl ---------------------------------------------
+ dnl asound
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 3a38aac..56e26a6 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -29,6 +29,11 @@ OPT_CFLAGS = -Wall -pedantic -I. -DDATADIR="\"$(pkgdatadir)\"" \
+ 	-DCONFDIR="\"$(pkgsysconfdir)\"" -DFIFODIR="\"$(tmpdir)\"" \
+ 	-D_LARGEFILE64_SOURCE -DLOCALEDIR="\"$(localedir)\""
  
-@@ -653,42 +685,211 @@ static int smscore_load_firmware_family2(struct
-smscore_device_t *coredev,
-  * @return 0 on success, <0 on error.
++if HAVE_ALSA
++ALSA_SRCS =	mixer-alsa.c
++else
++ALSA_SRCS =
++endif
+ COMMON_SRCS = mixer.c videoinput.c rtctimer.c leetft.c osdtools.c tvtimeconf.c \
+ 	pngoutput.c tvtimeosd.c input.c cpu_accel.c speedy.c pnginput.c \
+ 	deinterlace.c videotools.c attributes.h deinterlace.h leetft.h \
+@@ -40,7 +45,7 @@ COMMON_SRCS = mixer.c videoinput.c rtctimer.c leetft.c osdtools.c tvtimeconf.c \
+ 	utils.h utils.c pulldown.h pulldown.c hashtable.h hashtable.c \
+ 	cpuinfo.h cpuinfo.c menu.c menu.h \
+ 	outputfilter.h outputfilter.c xmltv.h xmltv.c gettext.h tvtimeglyphs.h \
+-	copyfunctions.h copyfunctions.c alsa_stream.c
++	copyfunctions.h copyfunctions.c alsa_stream.c mixer-oss.c $(ALSA_SRCS)
+ 
+ if ARCH_X86
+ DSCALER_SRCS = $(top_srcdir)/plugins/dscalerapi.h \
+@@ -74,10 +79,10 @@ bin_PROGRAMS = tvtime tvtime-command tvtime-configure tvtime-scanner
+ 
+ tvtime_SOURCES = $(COMMON_SRCS) $(OUTPUT_SRCS) $(PLUGIN_SRCS) tvtime.c
+ tvtime_CFLAGS = $(TTF_CFLAGS) $(PNG_CFLAGS) $(OPT_CFLAGS) \
+-	$(PLUGIN_CFLAGS) $(X11_CFLAGS) $(XML2_FLAG) \
++	$(PLUGIN_CFLAGS) $(X11_CFLAGS) $(XML2_FLAG) $(ALSA_CFLAGS) \
+ 	$(FONT_CFLAGS) $(AM_CFLAGS)
+ tvtime_LDFLAGS  = $(TTF_LIBS) $(ZLIB_LIBS) $(PNG_LIBS) \
+-	$(X11_LIBS) $(XML2_LIBS) $(ASOUND_LIBS) -lm -lstdc++
++	$(X11_LIBS) $(XML2_LIBS) $(ALSA_LIBS) -lm -lstdc++
+ 
+ tvtime_command_SOURCES = utils.h utils.c tvtimeconf.h tvtimeconf.c \
+ 	tvtime-command.c
+@@ -90,6 +95,6 @@ tvtime_configure_LDFLAGS  = $(ZLIB_LIBS) $(XML2_LIBS)
+ tvtime_scanner_SOURCES = utils.h utils.c videoinput.h videoinput.c \
+ 	tvtimeconf.h tvtimeconf.c station.h station.c tvtime-scanner.c \
+ 	mixer.h mixer.c
+-tvtime_scanner_CFLAGS = $(OPT_CFLAGS) $(XML2_FLAG) $(AM_CFLAGS)
+-tvtime_scanner_LDFLAGS  = $(ZLIB_LIBS) $(XML2_LIBS)
++tvtime_scanner_CFLAGS = $(OPT_CFLAGS) $(XML2_FLAG) $(ALSA_CFLAGS) $(AM_CFLAGS)
++tvtime_scanner_LDFLAGS  = $(ZLIB_LIBS) $(XML2_LIBS) $(ALSA_LIBS)
+ 
+diff --git a/src/commands.c b/src/commands.c
+index 964cab7..9141276 100644
+--- a/src/commands.c
++++ b/src/commands.c
+@@ -3012,10 +3012,10 @@ void commands_handle( commands_t *cmd, int tvtime_cmd, const char *arg )
+         break;
+ 
+     case TVTIME_MIXER_TOGGLE_MUTE:
+-        mixer_mute( !mixer_ismute() );
++        mixer->mute( !mixer->ismute() );
+ 
+         if( cmd->osd ) {
+-            tvtime_osd_show_data_bar( cmd->osd, _("Volume"), (mixer_get_volume()) & 0xff );
++            tvtime_osd_show_data_bar( cmd->osd, _("Volume"), (mixer->get_volume()) & 0xff );
+         }
+         break;
+ 
+@@ -3029,9 +3029,9 @@ void commands_handle( commands_t *cmd, int tvtime_cmd, const char *arg )
+         /* Check to see if an argument was passed, if so, use it. */
+         if (atoi(arg) > 0) {
+             int perc = atoi(arg);
+-            volume = mixer_set_volume( ( (tvtime_cmd == TVTIME_MIXER_UP) ? perc : -perc ) );
++            volume = mixer->set_volume( ( (tvtime_cmd == TVTIME_MIXER_UP) ? perc : -perc ) );
+         } else {
+-            volume = mixer_set_volume( ( (tvtime_cmd == TVTIME_MIXER_UP) ? 1 : -1 ) );
++            volume = mixer->set_volume( ( (tvtime_cmd == TVTIME_MIXER_UP) ? 1 : -1 ) );
+         }
+ 
+         if( cmd->osd ) {
+diff --git a/src/mixer-alsa.c b/src/mixer-alsa.c
+new file mode 100644
+index 0000000..635d44c
+--- /dev/null
++++ b/src/mixer-alsa.c
+@@ -0,0 +1,240 @@
++/**
++ * Copyright (C) 2006 Philipp Hahn <pmhahn@users.sourceforge.net>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2, or (at your option)
++ * any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software Foundation,
++ * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
++ */
++
++#include <stdio.h>
++#include <sys/types.h>
++#include <string.h>
++#include <math.h>
++#include <alsa/asoundlib.h>
++#include "utils.h"
++#include "mixer.h"
++
++static const char alsa_core_devnames[] = "default";
++static char *card, *channel;
++static int muted = 0;
++static int mutecount = 0;
++static snd_mixer_t *handle = NULL;
++static snd_mixer_elem_t *elem = NULL;
++
++static long alsa_min, alsa_max, alsa_vol;
++
++static void alsa_open_mixer( void )
++{
++    int err;
++    static snd_mixer_selem_id_t *sid = NULL;
++    if ((err = snd_mixer_open (&handle, 0)) < 0) {
++        fprintf(stderr, "mixer: open error: %s\n", snd_strerror(err));
++        return;
++    }
++    if ((err = snd_mixer_attach (handle, card)) < 0) {
++        fprintf(stderr, "mixer: attach error: %s\n", snd_strerror(err));
++        goto error;
++    }
++    if ((err = snd_mixer_selem_register (handle, NULL, NULL)) < 0) {
++        fprintf(stderr, "mixer: register error: %s\n", snd_strerror(err));
++        goto error;
++    }
++    if ((err = snd_mixer_load (handle)) < 0) {
++        fprintf(stderr, "mixer: load error: %s\n", snd_strerror(err));
++        goto error;
++    }
++    snd_mixer_selem_id_malloc(&sid);
++    if (sid == NULL)
++        goto error;
++    snd_mixer_selem_id_set_name(sid, channel);
++    if (!(elem = snd_mixer_find_selem(handle, sid))) {
++        fprintf(stderr, "mixer: find error: %s\n", snd_strerror(err));
++        goto error;
++    }
++    if (!snd_mixer_selem_has_playback_volume(elem)) {
++        fprintf(stderr, "mixer: no playback\n");
++        goto error;
++    }
++    snd_mixer_selem_get_playback_volume_range(elem, &alsa_min, &alsa_max);
++    if ((alsa_max - alsa_min) <= 0) {
++        fprintf(stderr, "mixer: no valid playback range\n");
++        goto error;
++    }
++    snd_mixer_selem_id_free(sid);
++    return;
++
++error:
++    if (sid)
++        snd_mixer_selem_id_free(sid);
++    if (handle) {
++        snd_mixer_close(handle);
++        handle = NULL;
++    }
++    return;
++}
++
++/* Volume saved to file */
++static int alsa_get_unmute_volume( void )
++{
++    long val;
++    assert (elem);
++
++    if (snd_mixer_selem_is_playback_mono(elem)) {
++        snd_mixer_selem_get_playback_volume(elem, SND_MIXER_SCHN_MONO, &val);
++        return val;
++    } else {
++        int c, n = 0;
++        long sum = 0;
++        for (c = 0; c <= SND_MIXER_SCHN_LAST; c++) {
++            if (snd_mixer_selem_has_playback_channel(elem, c)) {
++                snd_mixer_selem_get_playback_volume(elem, SND_MIXER_SCHN_FRONT_LEFT, &val);
++                sum += val;
++                n++;
++            }
++        }
++        if (! n) {
++            return 0;
++        }
++
++        val = sum / n;
++        sum = (long)((double)(alsa_vol * (alsa_max - alsa_min)) / 100. + 0.5);
++
++        if (sum != val) {
++           alsa_vol = (long)(((val * 100.) / (alsa_max - alsa_min)) + 0.5);
++        }
++        return alsa_vol;
++    }
++}
++
++static int alsa_get_volume( void )
++{
++    if (muted)
++        return 0;
++    else
++        return alsa_get_unmute_volume();
++}
++
++static int alsa_set_volume( int percentdiff )
++{
++    long volume;
++
++    alsa_get_volume();
++
++    alsa_vol += percentdiff;
++    if( alsa_vol > 100 ) alsa_vol = 100;
++    if( alsa_vol < 0 ) alsa_vol = 0;
++
++    volume = (long)((alsa_vol * (alsa_max - alsa_min) / 100.) + 0.5);
++
++    snd_mixer_selem_set_playback_volume_all(elem, volume + alsa_min);
++    snd_mixer_selem_set_playback_switch_all(elem, 1);
++    muted = 0;
++    mutecount = 0;
++
++    return alsa_vol;
++}
++
++static void alsa_mute( int mute )
++{
++    /**
++     * Make sure that if multiple users mute the card,
++     * we only honour the last one.
++     */
++    if( !mute && mutecount ) mutecount--;
++    if( mutecount ) return;
++
++    if( mute ) {
++        mutecount++;
++        muted = 1;
++        if (snd_mixer_selem_has_playback_switch(elem))
++            snd_mixer_selem_set_playback_switch_all(elem, 0);
++        else
++            fprintf(stderr, "mixer: mute not implemented\n");
++    } else {
++        muted = 0;
++        if (snd_mixer_selem_has_playback_switch(elem))
++            snd_mixer_selem_set_playback_switch_all(elem, 1);
++        else
++            fprintf(stderr, "mixer: mute not implemented\n");
++    }
++}
++
++static int alsa_ismute( void )
++{
++    return muted;
++}
++
++static int alsa_set_device( const char *devname )
++{
++    int i;
++
++    if (card) free(card);
++    card = strdup( devname );
++    if( !card ) return -1;
++
++    i = strcspn( card, "/" );
++    if( i == strlen( card ) ) {
++        channel = "Line";
++    } else {
++        card[i] = 0;
++        channel = card + i + 1;
++    }
++    alsa_open_mixer();
++    if (!handle) {
++        fprintf( stderr, "mixer: Can't open mixer %s, "
++                 "mixer volume and mute unavailable.\n", card );
++        return -1;
++    }
++    return 0;
++}
++
++static void alsa_set_state( int ismuted, int unmute_volume )
++{
++    /**
++     * 1. we come back unmuted: Don't touch anything
++     * 2. we don't have a saved volume: Don't touch anything
++     * 3. we come back muted and we have a saved volume:
++     *    - if tvtime muted it, unmute to old volume
++     *    - if user did it, remember that we're muted and old volume
++     */
++    if( alsa_get_volume() == 0 && unmute_volume > 0 ) {
++        snd_mixer_selem_set_playback_volume_all(elem, unmute_volume);
++        muted = 1;
++
++        if( !ismuted ) {
++            alsa_mute( 0 );
++        }
++    }
++}
++
++static void alsa_close_device( void )
++{
++    elem = NULL;
++    if (handle)
++        snd_mixer_close(handle);
++    handle = NULL;
++    muted = 0;
++    mutecount = 0;
++}
++
++struct mixer alsa_mixer = {
++    .set_device = alsa_set_device,
++    .set_state = alsa_set_state,
++    .get_volume = alsa_get_volume,
++    .get_unmute_volume = alsa_get_unmute_volume,
++    .set_volume = alsa_set_volume,
++    .mute = alsa_mute,
++    .ismute = alsa_ismute,
++    .close_device = alsa_close_device,
++};
++// vim: ts=4 sw=4 et foldmethod=marker
+diff --git a/src/mixer-oss.c b/src/mixer-oss.c
+new file mode 100644
+index 0000000..08aa0ca
+--- /dev/null
++++ b/src/mixer-oss.c
+@@ -0,0 +1,261 @@
++/**
++ * Copyright (C) 2002, 2003 Doug Bell <drbell@users.sourceforge.net>
++ *
++ * Some mixer routines from mplayer, http://mplayer.sourceforge.net.
++ * Copyright (C) 2000-2002. by A'rpi/ESP-team & others
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2, or (at your option)
++ * any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software Foundation,
++ * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
++ */
++
++#include <stdio.h>
++#include <fcntl.h>
++#include <unistd.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <sys/ioctl.h>
++#include <sys/soundcard.h>
++#include <sys/mman.h>
++#include <string.h>
++#include "utils.h"
++#include "mixer.h"
++
++static char *mixer_device = "/dev/mixer";
++static int saved_volume = (50 << 8 & 0xFF00) | (50 & 0x00FF);
++static int mixer_channel = SOUND_MIXER_LINE;
++static int mixer_dev_mask = 1 << SOUND_MIXER_LINE;
++static int muted = 0;
++static int mutecount = 0;
++static int fd = -1;
++
++static int oss_get_volume( void )
++{
++    int v, cmd, devs;
++    int curvol = 0;
++
++    if( fd < 0 ) fd = open( mixer_device, O_RDONLY );
++    if( fd != -1 ) {
++
++        ioctl( fd, SOUND_MIXER_READ_DEVMASK, &devs );
++        if( devs & mixer_dev_mask ) {
++            cmd = MIXER_READ( mixer_channel );
++        } else {
++            return curvol;
++        }
++
++        ioctl( fd, cmd, &v );
++        curvol = ( v & 0xFF00 ) >> 8;
++    }
++
++    return curvol;
++}
++
++static int oss_get_unmute_volume( void )
++{
++    if( muted ) {
++        return saved_volume;
++    } else {
++        int v, cmd, devs;
++
++        if( fd < 0 ) fd = open( mixer_device, O_RDONLY );
++        if( fd != -1 ) {
++
++            ioctl( fd, SOUND_MIXER_READ_DEVMASK, &devs );
++            if( devs & mixer_dev_mask ) {
++                cmd = MIXER_READ( mixer_channel );
++            } else {
++                return -1;
++            }
++
++            ioctl( fd, cmd, &v );
++            return v;
++        }
++    }
++
++    return -1;
++}
++
++static int oss_set_volume( int percentdiff )
++{
++    int v, cmd, devs, levelpercentage;
++
++    levelpercentage = oss_get_volume();
++
++    levelpercentage += percentdiff;
++    if( levelpercentage > 100 ) levelpercentage = 100;
++    if( levelpercentage < 0 ) levelpercentage = 0;
++
++    if( fd < 0 ) fd = open( mixer_device, O_RDONLY );
++    if( fd != -1 ) {
++        ioctl( fd, SOUND_MIXER_READ_DEVMASK, &devs );
++        if( devs & mixer_dev_mask ) {
++            cmd = MIXER_WRITE( mixer_channel );
++        } else {
++            return 0;
++        }
++
++        v = ( levelpercentage << 8 ) | levelpercentage;
++        ioctl( fd, cmd, &v );
++        muted = 0;
++        mutecount = 0;
++        return v;
++    }
++
++    return 0;
++}
++
++static void oss_mute( int mute )
++{
++    int v, cmd, devs;
++
++    /**
++     * Make sure that if multiple users mute the card,
++     * we only honour the last one.
++     */
++    if( !mute && mutecount ) mutecount--;
++    if( mutecount ) return;
++
++    if( fd < 0 ) fd = open( mixer_device, O_RDONLY );
++
++    if( mute ) {
++        mutecount++;
++        if( fd != -1 ) {
++
++            /* Save volume */
++            ioctl( fd, SOUND_MIXER_READ_DEVMASK, &devs );
++            if( devs & mixer_dev_mask ) {
++                cmd = MIXER_READ( mixer_channel );
++            } else {
++                return;
++            }
++
++            ioctl( fd,cmd,&v );
++            saved_volume = v;
++
++            /* Now set volume to 0 */
++            ioctl( fd, SOUND_MIXER_READ_DEVMASK, &devs );
++            if( devs & mixer_dev_mask ) {
++                cmd = MIXER_WRITE( mixer_channel );
++            } else {
++                return;
++            }
++
++            v = 0;
++            ioctl( fd, cmd, &v );
++
++            muted = 1;
++            return;
++        }
++    } else {
++        if( fd != -1 ) {
++            ioctl( fd, SOUND_MIXER_READ_DEVMASK, &devs );
++            if( devs & mixer_dev_mask ) {
++                cmd = MIXER_WRITE( mixer_channel );
++            } else {
++                return;
++            }
++
++            v = saved_volume;
++            ioctl( fd, cmd, &v );
++            muted = 0;
++            return;
++        }
++    }
++}
++
++static int oss_ismute( void )
++{
++    return muted;
++}
++
++static char *oss_core_devnames[] = SOUND_DEVICE_NAMES;
++
++static int oss_set_device( const char *devname )
++{
++    const char *channame;
++    int found = 0;
++    int i;
++
++    mixer_device = strdup( devname );
++    if( !mixer_device ) return -1;
++
++    i = strcspn( mixer_device, ":" );
++    if( i == strlen( mixer_device ) ) {
++        channame = "line";
++    } else {
++        mixer_device[ i ] = 0;
++        channame = mixer_device + i + 1;
++    }
++    if( !file_is_openable_for_read( mixer_device ) ) {
++        fprintf( stderr, "mixer: Can't open device %s, "
++                 "mixer volume and mute unavailable.\n", mixer_device );
++        return -1;
++    }
++
++    mixer_channel = SOUND_MIXER_LINE;
++    for( i = 0; i < SOUND_MIXER_NRDEVICES; i++ ) {
++        if( !strcasecmp( channame, oss_core_devnames[ i ] ) ) {
++            mixer_channel = i;
++            found = 1;
++            break;
++        }
++    }
++    if( !found ) {
++        fprintf( stderr, "mixer: No such mixer channel '%s', using channel 'line'.\n", channame );
++        return -1;
++    }
++    mixer_dev_mask = 1 << mixer_channel;
++    return 0;
++}
++
++static void oss_set_state( int ismuted, int unmute_volume )
++{
++    /**
++     * 1. we come back unmuted: Don't touch anything
++     * 2. we don't have a saved volume: Don't touch anything
++     * 3. we come back muted and we have a saved volume:
++     *    - if tvtime muted it, unmute to old volume
++     *    - if user did it, remember that we're muted and old volume
++     */
++    if( oss_get_volume() == 0 && unmute_volume > 0 ) {
++        saved_volume = unmute_volume;
++        muted = 1;
++
++        if( !ismuted ) {
++            oss_mute( 0 );
++        }
++    }
++}
++
++static void oss_close_device( void )
++{
++    if( fd >= 0 ) close( fd );
++    saved_volume = (50 << 8 & 0xFF00) | (50 & 0x00FF);
++    mixer_channel = SOUND_MIXER_LINE;
++    mixer_dev_mask = 1 << SOUND_MIXER_LINE;
++    muted = 0;
++    mutecount = 0;
++    fd = -1;
++}
++
++struct mixer oss_mixer = {
++    .set_device = oss_set_device,
++    .set_state = oss_set_state,
++    .get_volume = oss_get_volume,
++    .get_unmute_volume = oss_get_unmute_volume,
++    .set_volume = oss_set_volume,
++    .mute = oss_mute,
++    .ismute = oss_ismute,
++    .close_device = oss_close_device,
++};
+diff --git a/src/mixer.c b/src/mixer.c
+index bd2e5d9..901ef78 100644
+--- a/src/mixer.c
++++ b/src/mixer.c
+@@ -19,230 +19,104 @@
+  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
   */
- static int smscore_load_firmware_from_file(struct smscore_device_t
-*coredev,
--					   char *filename,
--					   loadfirmware_t loadfirmware_handler)
+ 
+-#include <stdio.h>
+-#include <fcntl.h>
+-#include <unistd.h>
+-#include <sys/types.h>
+-#include <sys/stat.h>
+-#include <sys/ioctl.h>
+-#include <sys/soundcard.h>
+-#include <sys/mman.h>
+-#include <string.h>
+-#include "utils.h"
+ #include "mixer.h"
+ 
+-static char *mixer_device = "/dev/mixer";
+-static int saved_volume = (50 << 8 & 0xFF00) | (50 & 0x00FF);
+-static int mixer_channel = SOUND_MIXER_LINE;
+-static int mixer_dev_mask = 1 << SOUND_MIXER_LINE;
+-static int muted = 0;
+-static int mutecount = 0;
+-static int fd = -1;
+-
+-int mixer_get_volume( void )
++/**
++ * Sets the mixer device and channel.
++ */
++static int null_set_device( const char *devname )
+ {
+-    int v, cmd, devs;
+-    int curvol = 0;
+-
+-    if( fd < 0 ) fd = open( mixer_device, O_RDONLY );
+-    if( fd != -1 ) {
+-
+-        ioctl( fd, SOUND_MIXER_READ_DEVMASK, &devs );
+-        if( devs & mixer_dev_mask ) {
+-            cmd = MIXER_READ( mixer_channel );
+-        } else {
+-            return curvol;
+-        }
+-
+-        ioctl( fd, cmd, &v );
+-        curvol = ( v & 0xFF00 ) >> 8;
+-    }
+-
+-    return curvol;
++    return 0;
+ }
+ 
+-int mixer_get_unmute_volume( void )
++/**
++ * Sets the initial state of the mixer device.
++ */
++static void null_set_state( int ismuted, int unmute_volume )
+ {
+-    if( muted ) {
+-        return saved_volume;
+-    } else {
+-        int v, cmd, devs;
+-
+-        if( fd < 0 ) fd = open( mixer_device, O_RDONLY );
+-        if( fd != -1 ) {
+-
+-            ioctl( fd, SOUND_MIXER_READ_DEVMASK, &devs );
+-            if( devs & mixer_dev_mask ) {
+-                cmd = MIXER_READ( mixer_channel );
+-            } else {
+-                return -1;
+-            }
+-
+-            ioctl( fd, cmd, &v );
+-            return v;
+-        }
+-    }
+-
+-    return -1;
+ }
+ 
+-int mixer_set_volume( int percentdiff )
++/**
++ * Returns the current volume setting.
++ */
++static int null_get_volume( void )
+ {
+-    int v, cmd, devs, levelpercentage;
+-
+-    levelpercentage = mixer_get_volume();
+-
+-    levelpercentage += percentdiff;
+-    if( levelpercentage > 100 ) levelpercentage = 100;
+-    if( levelpercentage < 0 ) levelpercentage = 0;
+-
+-    if( fd < 0 ) fd = open( mixer_device, O_RDONLY );
+-    if( fd != -1 ) {
+-        ioctl( fd, SOUND_MIXER_READ_DEVMASK, &devs );
+-        if( devs & mixer_dev_mask ) {
+-            cmd = MIXER_WRITE( mixer_channel );
+-        } else {
+-            return 0;
+-        }
+-
+-        v = ( levelpercentage << 8 ) | levelpercentage;
+-        ioctl( fd, cmd, &v );
+-        muted = 0;
+-        mutecount = 0;
+-        return v;
+-    }
+-
+     return 0;
+ }
+ 
+-void mixer_mute( int mute )
++/**
++ * Returns the volume that would be used to restore the unmute state.
++ */
++static int null_get_unmute_volume( void )
+ {
+-    int v, cmd, devs;
+-
+-    /**
+-     * Make sure that if multiple users mute the card,
+-     * we only honour the last one.
+-     */
+-    if( !mute && mutecount ) mutecount--;
+-    if( mutecount ) return;
+-
+-    if( fd < 0 ) fd = open( mixer_device, O_RDONLY );
+-
+-    if( mute ) {
+-        mutecount++;
+-        if( fd != -1 ) {
+-
+-            /* Save volume */
+-            ioctl( fd, SOUND_MIXER_READ_DEVMASK, &devs );
+-            if( devs & mixer_dev_mask ) {
+-                cmd = MIXER_READ( mixer_channel );
+-            } else {
+-                return;
+-            }
+-
+-            ioctl( fd,cmd,&v );
+-            saved_volume = v;
+-
+-            /* Now set volume to 0 */
+-            ioctl( fd, SOUND_MIXER_READ_DEVMASK, &devs );
+-            if( devs & mixer_dev_mask ) {
+-                cmd = MIXER_WRITE( mixer_channel );
+-            } else {
+-                return;
+-            }
++    return 0;
++}
+ 
+-            v = 0;
+-            ioctl( fd, cmd, &v );
++/**
++ * Tunes the relative volume.
++ */
++static int null_set_volume( int percentdiff )
++{
++    return 0;
++}
+ 
+-            muted = 1;
+-            return;
+-        }
+-    } else {
+-        if( fd != -1 ) {
+-            ioctl( fd, SOUND_MIXER_READ_DEVMASK, &devs );
+-            if( devs & mixer_dev_mask ) {
+-                cmd = MIXER_WRITE( mixer_channel );
+-            } else {
+-                return;
+-            }
++/**
++ * Sets the mute state.
++ */
++static void null_mute( int mute )
++{
++}
+ 
+-            v = saved_volume;
+-            ioctl( fd, cmd, &v );
+-            muted = 0;
+-            return;
+-        }
+-    }
++/**
++ * Returns true if the mixer is muted.
++ */
++static int null_ismute( void )
++{
++    return 0;
+ }
+ 
+-int mixer_ismute( void )
++/**
++ * Closes the mixer device if it is open.
++ */
++static void null_close_device( void )
+ {
+-    return muted;
+ }
+ 
+-static char *oss_core_devnames[] = SOUND_DEVICE_NAMES;
++/* The null device, which always works. */
++static struct mixer null_mixer = {
++    .set_device = null_set_device,
++    .set_state = null_set_state,
++    .get_volume = null_get_volume,
++    .get_unmute_volume = null_get_unmute_volume,
++    .set_volume = null_set_volume,
++    .mute = null_mute,
++    .ismute = null_ismute,
++    .close_device = null_close_device,
++};
++
++/* List of all available access methods.
++ * Uses weak symbols: NULL is not linked in. */
++static struct mixer *mixers[] = {
++    &alsa_mixer,
++    &oss_mixer,
++    &null_mixer /* LAST */
++};
++/* The actual access method. */
++struct mixer *mixer = &null_mixer;
+ 
++/**
++ * Sets the mixer device and channel.
++ * Try each access method until one succeeds.
++ */
+ void mixer_set_device( const char *devname )
+ {
+-    const char *channame;
+-    int found = 0;
+     int i;
+-
+-    mixer_device = strdup( devname );
+-    if( !mixer_device ) return;
+-
+-    i = strcspn( mixer_device, ":" );
+-    if( i == strlen( mixer_device ) ) {
+-        channame = "line";
+-    } else {
+-        mixer_device[ i ] = 0;
+-        channame = mixer_device + i + 1;
+-    }
+-    if( !file_is_openable_for_read( mixer_device ) ) {
+-        fprintf( stderr, "mixer: Can't open device %s, "
+-                 "mixer volume and mute unavailable.\n", mixer_device );
+-    }
+-
+-    mixer_channel = SOUND_MIXER_LINE;
+-    for( i = 0; i < SOUND_MIXER_NRDEVICES; i++ ) {
+-        if( !strcasecmp( channame, oss_core_devnames[ i ] ) ) {
+-            mixer_channel = i;
+-            found = 1;
++    mixer->close_device();
++    for (i = 0; i < sizeof(mixers)/sizeof(mixers[0]); i++) {
++        mixer = mixers[i];
++        if (!mixer)
++            continue;
++        if (mixer->set_device(devname) == 0)
+             break;
+-        }
+-    }
+-    if( !found ) {
+-        fprintf( stderr, "mixer: No such mixer channel '%s', using channel 'line'.\n", channame );
+-    }
+-    mixer_dev_mask = 1 << mixer_channel;
+-}
+-
+-void mixer_set_state( int ismuted, int unmute_volume )
 -{
-+		int mode, int lookup, loadfirmware_t loadfirmware_handler) {
- 	int rc = -ENOENT;
-+	u8 *fw_buf;
-+	u32 fw_buf_size;
-+
-+#ifdef REQUEST_FIRMWARE_SUPPORTED
- 	const struct firmware *fw;
--	u8 *fw_buffer;
- 
--	if (loadfirmware_handler == NULL && !(coredev->device_flags &
--					      SMS_DEVICE_FAMILY2))
-+	char* fw_filename = smscore_get_fw_filename(coredev, mode, lookup);
-+	if (!strcmp(fw_filename,"none"))
-+		return -ENOENT;
-+
-+	if (loadfirmware_handler == NULL && !(coredev->device_flags
-+			& SMS_DEVICE_FAMILY2))
- 		return -EINVAL;
- 
--	rc = request_firmware(&fw, filename, coredev->device);
-+	rc = request_firmware(&fw, fw_filename, coredev->device);
- 	if (rc < 0) {
--		sms_info("failed to open \"%s\"", filename);
-+		sms_info("failed to open \"%s\"", fw_filename);
- 		return rc;
- 	}
--	sms_info("read FW %s, size=%zd", filename, fw->size);
--	fw_buffer = kmalloc(ALIGN(fw->size, SMS_ALLOC_ALIGNMENT),
-+	sms_info("read fw %s, buffer size=0x%x", fw_filename, fw->size);
-+	fw_buf = kmalloc(ALIGN(fw->size, SMS_ALLOC_ALIGNMENT),
- 			    GFP_KERNEL | GFP_DMA);
--	if (fw_buffer) {
--		memcpy(fw_buffer, fw->data, fw->size);
-+	if (!fw_buf) {
-+		sms_info("failed to allocate firmware buffer");
-+		return -ENOMEM;
-+	}
-+	memcpy(fw_buf, fw->data, fw->size);
-+	fw_buf_size = fw->size;
-+#else
-+	if (!coredev->fw_buf) {
-+		sms_info("missing fw file buffer");
-+		return -EINVAL;
-+	}
-+	fw_buf = coredev->fw_buf;
-+	fw_buf_size = coredev->fw_buf_size;
-+#endif
- 
- 		rc = (coredev->device_flags & SMS_DEVICE_FAMILY2) ?
--		      smscore_load_firmware_family2(coredev,
--						    fw_buffer,
--						    fw->size) :
--		      loadfirmware_handler(coredev->context,
--					   fw_buffer, fw->size);
-+		smscore_load_firmware_family2(coredev, fw_buf, fw_buf_size)
-+		: loadfirmware_handler(coredev->context, fw_buf,
-+		fw_buf_size);
-+
-+	kfree(fw_buf);
-+
-+#ifdef REQUEST_FIRMWARE_SUPPORTED
-+	release_firmware(fw);
-+#else
-+	coredev->fw_buf = NULL;
-+	coredev->fw_buf_size = 0;
-+#endif
-+	return rc;
-+}
-+
-+/**
-+ * Send chunk of firmware data using SMS MSGs
-+ * The motivation is to eliminate the need of big memory allocation in
-kernel for firmware
-+ * download.
-+ *
-+ * @param coredev pointer to a coredev object returned by
-+ *                smscore_register_device
-+ * @param buffer  pointer to a buffer
-+ * @param size    size of buffer
-+ *
-+ * @return 0 on success, <0 on error.
-+ */
-+int smscore_send_fw_chunk(struct smscore_device_t *coredev,
-+		void *buffer, size_t size) 
-+{
-+
-+	struct SmsMsgHdr_S *msg;
-+	int rc = 0;
-+	int offset = 0;
-+	
-+	if (buffer == NULL)
-+	{
-+		sms_debug("Error: NULL buffer");
-+		return -1;
-+	}
-+	
-+	/* First chunk */
-+	if (coredev->start_address == 0)
-+	{
-+		struct SmsFirmware_ST *firmware = (struct SmsFirmware_ST *) buffer;
-+		coredev->start_address = le32_to_cpu(firmware->StartAddress);
-+		coredev->current_address = coredev->start_address;
-+		offset = 12;
-+		size -= 12;
-+		
-+		if (coredev->preload_handler) 
-+		{
-+			rc = coredev->preload_handler(coredev->context);
-+			if (rc < 0)
-+				return rc;
-+		}
-+	}
-+		
-+	/* PAGE_SIZE buffer shall be enough and dma aligned */
-+	msg = kmalloc(PAGE_SIZE, GFP_KERNEL | GFP_DMA);
-+	if (!msg)
-+		return -ENOMEM;
-+		
-+	while (size && rc >= 0) {
-+		int payload_size;
-+		struct SmsDataDownload_S *DataMsg;
-+		sms_debug("sending MSG_SMS_DATA_DOWNLOAD_REQ");
-+		DataMsg = (struct SmsDataDownload_S *) msg;
-+		payload_size = min((int)size, SMS_MAX_PAYLOAD_SIZE);
- 
--		kfree(fw_buffer);
-+		SMS_INIT_MSG(msg, MSG_SMS_DATA_DOWNLOAD_REQ,
-+				(u16) (sizeof(struct SmsMsgHdr_S) +
-+						sizeof(u32) + payload_size));
-+
-+		DataMsg->MemAddr = coredev->current_address;
-+		copy_from_user(DataMsg->Payload, (u8*)(buffer + offset),
-payload_size);
-+
-+		smsendian_handle_tx_message((struct SmsMsgHdr_S *)msg);
-+		rc = smscore_sendrequest_and_wait(coredev, DataMsg,
-+			DataMsg->xMsgHeader.msgLength,
-+			&coredev->data_download_done);
-+
-+		size -= payload_size;
-+		offset += payload_size;
-+		coredev->current_address += payload_size;
-+	}
-+
-+	kfree(msg);
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(smscore_send_fw_chunk);
-+
-+
-+/**
-+ * Send last chunk of firmware data using SMS MSGs
-+ *
-+ * @param coredev pointer to a coredev object returned by
-+ *                smscore_register_device
-+ * @param buffer  pointer to a buffer
-+ * @param size    size of buffer
-+ *
-+ * @return 0 on success, <0 on error.
-+ */
-+int smscore_send_last_fw_chunk(struct smscore_device_t *coredev,
-+		void *buffer, size_t size) 
-+{
-+	int rc = 0;
-+	struct SmsMsgHdr_S *msg;
-+	
-+	rc = smscore_send_fw_chunk(coredev, buffer, size);
-+	if (rc < 0)
-+		return rc;
-+	
-+	/* PAGE_SIZE buffer shall be enough and dma aligned */
-+	msg = kmalloc(PAGE_SIZE, GFP_KERNEL | GFP_DMA);
-+	if (!msg)
-+		return -ENOMEM;
-+	
-+	if (coredev->mode == SMSHOSTLIB_DEVMD_NONE) {
-+		struct SmsMsgData_S *TriggerMsg =
-+				(struct SmsMsgData_S *) msg;
-+
-+		sms_debug("sending MSG_SMS_SWDOWNLOAD_TRIGGER_REQ");
-+		SMS_INIT_MSG(msg, MSG_SMS_SWDOWNLOAD_TRIGGER_REQ,
-+				sizeof(struct SmsMsgHdr_S) +
-+				sizeof(u32) * 5);
-+
-+		TriggerMsg->msgData[0] = coredev->start_address;
-+		/* Entry point */
-+		TriggerMsg->msgData[1] = 6; /* Priority */
-+		TriggerMsg->msgData[2] = 0x200; /* Stack size */
-+		TriggerMsg->msgData[3] = 0; /* Parameter */
-+		TriggerMsg->msgData[4] = 4; /* Task ID */
-+
-+		smsendian_handle_tx_message((struct SmsMsgHdr_S *)msg);
-+		rc = smscore_sendrequest_and_wait(coredev,
-+			TriggerMsg,
-+			TriggerMsg->xMsgHeader.msgLength,
-+			&coredev->trigger_done);
- 	} else {
--		sms_info("failed to allocate firmware buffer");
--		rc = -ENOMEM;
-+		SMS_INIT_MSG(msg, MSG_SW_RELOAD_EXEC_REQ,
-+				sizeof(struct SmsMsgHdr_S));
-+		smsendian_handle_tx_message((struct SmsMsgHdr_S *)msg);
-+		rc = coredev->sendrequest_handler(coredev->context, msg,
-+				msg->msgLength);
- 	}
- 
--	release_firmware(fw);
-+	/* clear start_address */
-+	coredev->start_address = 0;
-+
-+	if (rc < 0)
-+		goto exit_fw_download;
-+			
-+	/*
-+	 * backward compatibility - wait to device_ready_done for
-+	 * not more than 400 ms
-+	 */
-+	wait_for_completion_timeout(&coredev->device_ready_done,
-+			msecs_to_jiffies(400));		
-+
-+exit_fw_download:
-+	sms_debug("rc=%d, postload=0x%p ", rc, coredev->postload_handler);
-+
-+	kfree(msg);
- 
- 	return rc;
+-    /**
+-     * 1. we come back unmuted: Don't touch anything
+-     * 2. we don't have a saved volume: Don't touch anything
+-     * 3. we come back muted and we have a saved volume:
+-     *    - if tvtime muted it, unmute to old volume
+-     *    - if user did it, remember that we're muted and old volume
+-     */
+-    if( mixer_get_volume() == 0 && unmute_volume > 0 ) {
+-        saved_volume = unmute_volume;
+-        muted = 1;
+-
+-        if( !ismuted ) {
+-            mixer_mute( 0 );
+-        }
+     }
  }
-@@ -712,6 +913,7 @@ void smscore_unregister_device(struct
-smscore_device_t *coredev)
+-
+-void mixer_close_device( void )
+-{
+-    if( fd >= 0 ) close( fd );
+-    saved_volume = (50 << 8 & 0xFF00) | (50 & 0x00FF);
+-    mixer_channel = SOUND_MIXER_LINE;
+-    mixer_dev_mask = 1 << SOUND_MIXER_LINE;
+-    muted = 0;
+-    mutecount = 0;
+-    fd = -1;
+-}
+-
+diff --git a/src/mixer.h b/src/mixer.h
+index 07923f4..a26fc88 100644
+--- a/src/mixer.h
++++ b/src/mixer.h
+@@ -27,45 +27,58 @@ extern "C" {
+ #endif
  
- 	/* Release input device (IR) resources */
- #ifdef SMS_RC_SUPPORT_SUBSYS
-+	/* Release input device (IR) resources */
- 	sms_ir_exit(coredev);
- #endif /*SMS_RC_SUPPORT_SUBSYS*/
- 	smscore_notify_clients(coredev);
-@@ -737,7 +939,9 @@ void smscore_unregister_device(struct
-smscore_device_t *coredev)
+ /**
+- * Sets the mixer device and channel.  The device name is of the form
+- * devicename:channelname.  The default is /dev/mixer:line.
++ * Sets the mixer device and channel.
++ * All interfaces are scanned until one succeeds.
+  */
+ void mixer_set_device( const char *devname );
  
- 		sms_info("waiting for %d buffer(s)",
- 			 coredev->num_buffers - num_buffers);
-+		kmutex_unlock(&g_smscore_deviceslock);
- 		msleep(100);
-+		kmutex_lock(&g_smscore_deviceslock);
- 	}
++struct mixer {
++/**
++ * Sets the mixer device and channel.
++ */
++int (* set_device)( const char *devname );
++
+ /**
+  * Sets the initial state of the mixer device.
+  */
+-void mixer_set_state( int ismuted, int unmute_volume );
++void (* set_state)( int ismuted, int unmute_volume );
  
- 	sms_info("freed %d buffers", num_buffers);
-@@ -800,30 +1004,106 @@ static int smscore_detect_mode(struct
-smscore_device_t *coredev)
- }
+ /**
+  * Returns the current volume setting.
+  */
+-int mixer_get_volume( void );
++int (* get_volume)( void );
  
- static char *smscore_fw_lkup[][SMS_NUM_OF_DEVICE_TYPES] = {
--	/*Stellar		NOVA A0		Nova B0		VEGA*/
-+/*Stellar, NOVA A0, Nova B0, VEGA, VENICE, MING, PELE, RIO,
-DENVER_1530, DENVER_2160*/
- 	/*DVBT*/
--	{"none", "dvb_nova_12mhz.inp", "dvb_nova_12mhz_b0.inp", "none"},
-+{ "none", "dvb_nova_12mhz.inp", "dvb_nova_12mhz_b0.inp", "none",
-"none", "none", "none", "dvb_rio.inp", "none", "none" },
- 	/*DVBH*/
--	{"none", "dvb_nova_12mhz.inp", "dvb_nova_12mhz_b0.inp", "none"},
-+{ "none", "dvb_nova_12mhz.inp", "dvb_nova_12mhz_b0.inp", "none",
-"none", "none", "none", "dvbh_rio.inp", "none", "none" },
- 	/*TDMB*/
--	{"none", "tdmb_nova_12mhz.inp", "tdmb_nova_12mhz_b0.inp", "none"},
-+{ "none", "tdmb_nova_12mhz.inp", "tdmb_nova_12mhz_b0.inp", "none",
-"none", "none", "none", "none", "none", "tdmb_denver.inp" },
- 	/*DABIP*/
--	{"none", "none", "none", "none"},
--	/*BDA*/
--	{"none", "dvb_nova_12mhz.inp", "dvb_nova_12mhz_b0.inp", "none"},
-+{ "none", "none", "none", "none", "none", "none", "none", "none",
-"none", "none" },
-+/*DVBT_BDA*/
-+{ "none", "dvb_nova_12mhz.inp", "dvb_nova_12mhz_b0.inp", "none",
-"none", "none", "none", "dvb_rio.inp", "none", "none" },
- 	/*ISDBT*/
--	{"none", "isdbt_nova_12mhz.inp", "isdbt_nova_12mhz_b0.inp", "none"},
--	/*ISDBTBDA*/
--	{"none", "isdbt_nova_12mhz.inp", "isdbt_nova_12mhz_b0.inp", "none"},
-+{ "none", "isdbt_nova_12mhz.inp", "isdbt_nova_12mhz_b0.inp", "none",
-"none", "none", "isdbt_pele.inp", "isdbt_rio.inp", "none", "none" },
-+/*ISDBT_BDA*/
-+{ "none", "isdbt_nova_12mhz.inp", "isdbt_nova_12mhz_b0.inp", "none",
-"none", "none", "isdbt_pele.inp", "isdbt_rio.inp", "none", "none" },
- 	/*CMMB*/
--	{"none", "none", "none", "cmmb_vega_12mhz.inp"}
-+{ "none", "none", "none", "cmmb_vega_12mhz.inp",
-"cmmb_venice_12mhz.inp", "cmmb_ming_app.inp", "none", "none", "none",
-"none" },
-+/*RAW - not supported*/
-+{ "none", "none", "none", "none", "none", "none", "none", "none",
-"none", "none" },
-+/*FM*/
-+{ "none", "none", "fm_radio.inp", "none", "none", "none", "none",
-"fm_radio_rio.inp", "none", "none" },
-+/*FM_BDA*/
-+{ "none", "none", "fm_radio.inp", "none", "none", "none", "none",
-"fm_radio_rio.inp", "none", "none" },
-+/*ATSC*/
-+{ "none", "none", "none", "none", "none", "none", "none", "none",
-"atsc_denver.inp", "none" }
+ /**
+  * Returns the volume that would be used to restore the unmute state.
+  */
+-int mixer_get_unmute_volume( void );
++int (* get_unmute_volume)( void );
+ 
+ /**
+  * Tunes the relative volume.
+  */
+-int mixer_set_volume( int percentdiff );
++int (* set_volume)( int percentdiff );
+ 
+ /**
+  * Sets the mute state.
+  */
+-void mixer_mute( int mute );
++void (* mute)( int mute );
+ 
+ /**
+  * Returns true if the mixer is muted.
+  */
+-int mixer_ismute( void );
++int (* ismute)( void );
+ 
+ /**
+  * Closes the mixer device if it is open.
+  */
+-void mixer_close_device( void );
++void (* close_device)( void );
++};
++
++#pragma weak alsa_mixer
++extern struct mixer alsa_mixer;
++#pragma weak oss_mixer
++extern struct mixer oss_mixer;
++extern struct mixer *mixer;
+ 
+ #ifdef __cplusplus
  };
+diff --git a/src/tvtime.c b/src/tvtime.c
+index d9066cc..3d42d53 100644
+--- a/src/tvtime.c
++++ b/src/tvtime.c
+@@ -1430,7 +1430,7 @@ int tvtime_main( rtctimer_t *rtctimer, int read_stdin, int realtime,
  
--static inline char *sms_get_fw_name(struct smscore_device_t *coredev,
--				    int mode, enum sms_device_type_st type)
-+/**
-+ * get firmware file name from one of the two mechanisms : sms_boards
-or 
-+ * smscore_fw_lkup.
-+
-+ * @param coredev pointer to a coredev object returned by
-+ * 		  smscore_register_device
-+ * @param mode requested mode of operation
-+ * @param lookup if 1, always get the fw filename from smscore_fw_lkup 
-+ * 	 table. if 0, try first to get from sms_boards
-+ *
-+ * @return 0 on success, <0 on error.
-+ */
-+char *smscore_get_fw_filename(struct smscore_device_t *coredev, int
-mode, int lookup) {
-+	char **fw;
-+	int board_id = smscore_get_board_id(coredev);
-+	enum sms_device_type_st type =
-smscore_registry_gettype(coredev->devpath); 
-+
-+	if ( (board_id == SMS_BOARD_UNKNOWN) || 
-+	     (lookup == 1) ) {
-+		sms_debug("trying to get fw name from lookup table mode %d type %d",
-mode, type);
-+		return smscore_fw_lkup[mode][type];
-+	}
-+	
-+	sms_debug("trying to get fw name from sms_boards board_id %d mode %d",
-board_id, mode);
-+	fw = sms_get_board(board_id)->fw;
-+	if (fw == NULL) {
-+		sms_debug("cannot find fw name in sms_boards, getting from lookup
-table mode %d type %d", mode, type);
-+		return smscore_fw_lkup[mode][type];
-+	}
-+
-+	if (fw[mode] == NULL) {
-+		sms_debug("cannot find fw name in sms_boards, getting from lookup
-table mode %d type %d", mode, type);
-+		return smscore_fw_lkup[mode][type];
-+	}
-+
-+	return fw[mode];
-+}
-+
-+/**
-+ * send init device request and wait for response
-+ *
-+ * @param coredev pointer to a coredev object returned by
-+ *                smscore_register_device
-+ * @param mode requested mode of operation
-+ *
-+ * @return 0 on success, <0 on error.
-+ */
-+int smscore_init_device(struct smscore_device_t *coredev, int mode)
- {
--	char **fw = sms_get_board(smscore_get_board_id(coredev))->fw;
--	return (fw && fw[mode]) ? fw[mode] : smscore_fw_lkup[mode][type];
-+	void* buffer;
-+	struct SmsMsgData_S *msg;
-+	int rc = 0;
-+
-+	buffer = kmalloc(sizeof(struct SmsMsgData_S) +
-+			SMS_DMA_ALIGNMENT, GFP_KERNEL | GFP_DMA);
-+	if (!buffer) {
-+		sms_err("Could not allocate buffer for "
-+				"init device message.");
-+		return -ENOMEM;
-+	}
-+
-+	msg = (struct SmsMsgData_S *)SMS_ALIGN_ADDRESS(buffer);
-+	SMS_INIT_MSG(&msg->xMsgHeader, MSG_SMS_INIT_DEVICE_REQ,
-+			sizeof(struct SmsMsgData_S));
-+	msg->msgData[0] = mode;
-+
-+	smsendian_handle_tx_message((struct SmsMsgHdr_S *)msg);
-+	rc = smscore_sendrequest_and_wait(coredev, msg,
-+			msg->xMsgHeader. msgLength,
-+			&coredev->init_device_done);
-+
-+	kfree(buffer);
-+	return rc;
- }
+     /* Set the mixer device. */
+     mixer_set_device( config_get_mixer_device( ct ) );
+-    mixer_set_state( config_get_muted( ct ), config_get_unmute_volume( ct ) );
++    mixer->set_state( config_get_muted( ct ), config_get_unmute_volume( ct ) );
  
- /**
-@@ -838,13 +1118,11 @@ static inline char *sms_get_fw_name(struct
-smscore_device_t *coredev,
-  */
- int smscore_set_device_mode(struct smscore_device_t *coredev, int mode)
- {
--	void *buffer;
- 	int rc = 0;
--	enum sms_device_type_st type;
+     /* Setup OSD stuff. */
+     pixel_aspect = ( (double) width ) /
+@@ -2555,14 +2555,14 @@ int tvtime_main( rtctimer_t *rtctimer, int read_stdin, int realtime,
+     snprintf( number, 4, "%d", quiet_screenshots );
+     config_save( ct, "QuietScreenshots", number );
  
- 	sms_debug("set device mode to %d", mode);
- 	if (coredev->device_flags & SMS_DEVICE_FAMILY2) {
--		if (mode < SMSHOSTLIB_DEVMD_DVBT || mode >=
-SMSHOSTLIB_DEVMD_RAW_TUNER) {
-+		if (mode < SMSHOSTLIB_DEVMD_DVBT || mode >= SMSHOSTLIB_DEVMD_MAX) {
- 			sms_err("invalid mode specified %d", mode);
- 			return -EINVAL;
- 		}
-@@ -865,56 +1143,35 @@ int smscore_set_device_mode(struct
-smscore_device_t *coredev, int mode)
- 		}
+-    snprintf( number, 6, "%d", mixer_get_unmute_volume() );
++    snprintf( number, 6, "%d", mixer->get_unmute_volume() );
+     config_save( ct, "UnmuteVolume", number );
  
- 		if (!(coredev->modes_supported & (1 << mode))) {
--			char *fw_filename;
-+			rc = smscore_load_firmware_from_file(coredev, mode, 0, NULL);
+-    snprintf( number, 4, "%d", mixer_ismute() );
++    snprintf( number, 4, "%d", mixer->ismute() );
+     config_save( ct, "Muted", number );
  
--			type = smscore_registry_gettype(coredev->devpath);
--			fw_filename = sms_get_fw_name(coredev, mode, type);
--
--			rc = smscore_load_firmware_from_file(coredev,
--							     fw_filename, NULL);
-+			/* 
-+			* try again with the default firmware -
-+			* get the fw filename from look-up table
-+			*/
- 			if (rc < 0) {
--				sms_debug("error %d loading firmware: %s, "
--					 "trying again with default firmware",
--					 rc, fw_filename);
--
--				/* try again with the default firmware */
--				fw_filename = smscore_fw_lkup[mode][type];
--				rc = smscore_load_firmware_from_file(coredev,
--							     fw_filename, NULL);
-+				sms_debug("error %d loading firmware, "
-+					"trying again with default firmware", rc);
-+				rc = smscore_load_firmware_from_file(coredev, mode, 1, NULL);
-+			}
+     if( config_get_mute_on_exit( ct ) ) {
+-        mixer_mute( 1 );
++        mixer->mute( 1 );
+     }
  
- 				if (rc < 0) {
--				        sms_debug("error %d loading firmware", rc);
-+				sms_debug("error %d loading firmware", rc);
- 					return rc;
- 				}
--			}
--			sms_log("firmware download success: %s", fw_filename);
--		} else
--			sms_info("mode %d supported by running "
--				 "firmware", mode);
+     if( vidin ) {
+@@ -2599,7 +2599,7 @@ int tvtime_main( rtctimer_t *rtctimer, int read_stdin, int realtime,
+     if( osd ) {
+         tvtime_osd_delete( osd );
+     }
+-    mixer_close_device();
++    mixer->close_device();
  
--		buffer = kmalloc(sizeof(struct SmsMsgData_S) +
--				 SMS_DMA_ALIGNMENT, GFP_KERNEL | GFP_DMA);
--		if (buffer) {
--			struct SmsMsgData_S *msg =
--				(struct SmsMsgData_S *)
--					SMS_ALIGN_ADDRESS(buffer);
--
--			SMS_INIT_MSG(&msg->xMsgHeader, MSG_SMS_INIT_DEVICE_REQ,
--				     sizeof(struct SmsMsgData_S));
--			msg->msgData[0] = mode;
--
--			rc = smscore_sendrequest_and_wait(
--				coredev, msg, msg->xMsgHeader.msgLength,
--				&coredev->init_device_done);
--
--			kfree(buffer);
-+			sms_info("firmware download success");
- 		} else {
--			sms_err("Could not allocate buffer for "
--				"init device message.");
--			rc = -ENOMEM;
-+			sms_info("mode %d is already supported by running "
-+					"firmware", mode);
-+			}
-+
-+		rc = smscore_init_device(coredev, mode);
-+		if (rc < 0) {
-+			sms_err("device init failed, rc %d.", rc);
- 		}
- 	} else {
--		if (mode < SMSHOSTLIB_DEVMD_DVBT || mode > SMSHOSTLIB_DEVMD_DVBT_BDA)
-{
-+		if (mode < SMSHOSTLIB_DEVMD_DVBT || mode >= SMSHOSTLIB_DEVMD_MAX) {
- 			sms_err("invalid mode specified %d", mode);
- 			return -EINVAL;
- 		}
-@@ -943,6 +1200,58 @@ int smscore_set_device_mode(struct
-smscore_device_t *coredev, int mode)
- 		sms_err("return error code %d.", rc);
- 	return rc;
- }
-+EXPORT_SYMBOL_GPL(smscore_set_device_mode);
-+
-+/**
-+ * configures device features according to voard configuration
-structure.
-+ *
-+ * @param coredev pointer to a coredev object returned by
-+ *                smscore_register_device
-+ *
-+ * @return 0 on success, <0 on error.
-+ */
-+int smscore_configure_board(struct smscore_device_t *coredev) {
-+	struct sms_board* board;
-+
-+	board = sms_get_board(coredev->board_id);
-+	if (!board)
-+	{
-+		sms_err("no board configuration exist.");
-+		return -1;
-+	}
-+	
-+	if (board->mtu)
-+	{
-+		struct SmsMsgData_S MtuMsg;
-+		sms_debug("set max transmit unit %d", board->mtu);
-+
-+		MtuMsg.xMsgHeader.msgSrcId = 0;
-+		MtuMsg.xMsgHeader.msgDstId = HIF_TASK;
-+		MtuMsg.xMsgHeader.msgFlags = 0;
-+		MtuMsg.xMsgHeader.msgType = MSG_SMS_SET_MAX_TX_MSG_LEN_REQ;
-+		MtuMsg.xMsgHeader.msgLength = sizeof(MtuMsg);
-+		MtuMsg.msgData[0] = board->mtu;
-+
-+		smsendian_handle_tx_message((struct SmsMsgHdr_S *)&MtuMsg);
-+		coredev->sendrequest_handler(coredev->context, &MtuMsg,
-sizeof(MtuMsg));
-+	}
-+
-+	if (board->crystal)
-+	{
-+		struct SmsMsgData_S CrysMsg;
-+		sms_debug("set crystal value %d", board->crystal);
-+
-+		SMS_INIT_MSG(&CrysMsg.xMsgHeader, 
-+				MSG_SMS_NEW_CRYSTAL_REQ,
-+				sizeof(CrysMsg));
-+		CrysMsg.msgData[0] = board->crystal;
-+
-+		smsendian_handle_tx_message((struct SmsMsgHdr_S *)&CrysMsg);
-+		coredev->sendrequest_handler(coredev->context, &CrysMsg,
-sizeof(CrysMsg));
-+	}
-+
-+	return 0;
-+}
+     /* Free temporary memory. */
+     free( colourbars );
+diff --git a/src/videoinput.c b/src/videoinput.c
+index dd60334..2102b04 100644
+--- a/src/videoinput.c
++++ b/src/videoinput.c
+@@ -760,7 +760,7 @@ void videoinput_set_tuner_freq( videoinput_t *vidin, int freqKHz )
+         }
  
- /**
-  * calls device handler to get current mode of operation
-@@ -1099,6 +1408,13 @@ void smscore_onresponse(struct smscore_device_t
-*coredev,
- 		case MSG_SW_RELOAD_EXEC_RES:
- 			sms_debug("MSG_SW_RELOAD_EXEC_RES");
- 			break;
-+		case MSG_SMS_DATA_VALIDITY_RES:
-+		{
-+			struct SmsMsgData_S *validity = (struct SmsMsgData_S *) phdr;			
-+			sms_err("MSG_SMS_DATA_VALIDITY_RES, checksum = 0x%x",
-validity->msgData[0]);
-+			complete(&coredev->data_validity_done);
-+			break;
-+		}
- 		case MSG_SMS_SWDOWNLOAD_TRIGGER_RES:
- 			sms_debug("MSG_SMS_SWDOWNLOAD_TRIGGER_RES");
- 			complete(&coredev->trigger_done);
-@@ -1188,8 +1504,8 @@ EXPORT_SYMBOL_GPL(smscore_getbuffer);
-  */
- void smscore_putbuffer(struct smscore_device_t *coredev,
- 		struct smscore_buffer_t *cb) {
--	wake_up_interruptible(&coredev->buffer_mng_waitq);
- 	list_add_locked(&cb->entry, &coredev->buffers, &coredev->bufferslock);
-+	wake_up_interruptible(&coredev->buffer_mng_waitq);
- }
- EXPORT_SYMBOL_GPL(smscore_putbuffer);
- 
+         vidin->change_muted = 1;
+-        mixer_mute( 1 );
++        mixer->mute( 1 );
+         videoinput_do_mute( vidin, vidin->user_muted || vidin->change_muted );
+         vidin->cur_tuner_state = TUNER_STATE_SIGNAL_DETECTED;
+         vidin->signal_acquire_wait = SIGNAL_ACQUIRE_DELAY;
+@@ -931,7 +931,7 @@ int videoinput_check_for_signal( videoinput_t *vidin, int check_freq_present )
+             if( vidin->change_muted ) {
+                 vidin->change_muted = 0;
+                 videoinput_do_mute( vidin, vidin->user_muted || vidin->change_muted );
+-                mixer_mute( 0 );
++                mixer->mute( 0 );
+             }
+             break;
+         }
+@@ -942,7 +942,7 @@ int videoinput_check_for_signal( videoinput_t *vidin, int check_freq_present )
+             vidin->cur_tuner_state = TUNER_STATE_SIGNAL_LOST;
+             vidin->signal_recover_wait = SIGNAL_RECOVER_DELAY;
+             vidin->change_muted = 1;
+-            mixer_mute( 1 );
++            mixer->mute( 1 );
+             videoinput_do_mute( vidin, vidin->user_muted || vidin->change_muted );
+         case TUNER_STATE_SIGNAL_LOST:
+             if( vidin->signal_recover_wait ) {
 -- 
-1.7.4.1
+1.7.6.1
 
