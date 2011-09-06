@@ -1,55 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:32412 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752834Ab1ISIhB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Sep 2011 04:37:01 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 0/2] Patches for TVP7002
-Date: Mon, 19 Sep 2011 10:32:48 +0200
-Cc: mats.randgaard@tandberg.com, linux-media@vger.kernel.org,
-	sudhakar.raj@ti.com, Hans Verkuil <hans.verkuil@cisco.com>
-References: <1280823484-21664-1-git-send-email-mats.randgaard@tandberg.com> <4E7632F6.204@redhat.com>
-In-Reply-To: <4E7632F6.204@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55150 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753552Ab1IFKZg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 06:25:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [media-ctl][PATCHv5 1/5] libmediactl: restruct error path
+Date: Tue, 6 Sep 2011 12:25:33 +0200
+Cc: linux-media@vger.kernel.org
+References: <201109051657.21646.laurent.pinchart@ideasonboard.com> <6075971b959c2e808cd4ceec6540dc09b101346f.1315236211.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1315236211.git.andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109191032.48771.hansverk@cisco.com>
+Message-Id: <201109061225.34125.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday, September 18, 2011 20:05:42 Mauro Carvalho Chehab wrote:
-> Em 03-08-2010 05:18, mats.randgaard@tandberg.com escreveu:
-> > From: Mats Randgaard <mats.randgaard@tandberg.com>
-> > 
-> > The patch "TVP7002: Changed register values" depends on http://www.mail-
-archive.com/linux-media@vger.kernel.org/msg20769.html
-> 
-> Hmm... those patches still apply over the latest development tree.
-> I didn't saw any comments about it. Are they still applicable?
+Hi Andy,
 
-Yes, they are still applicable.
+Thank you for the patches.
 
-Weird, we all must have lost track of these two patches.
+I've slightly modified 1/5 and 3/5 (the first one returned -1 from 
+media_enum_entities(), which made media-ctl stop with a failure message) and 
+pushed the result to the repository.
 
+I've also added another patch to fix autoconf malloc/realloc tests when cross-
+compiling that resulted in a compilation failure.
+
+-- 
 Regards,
 
-	Hans
-
-> 
-> > 
-> > Mats Randgaard (2):
-> >   TVP7002: Return V4L2_DV_INVALID if any of the errors occur.
-> >   TVP7002: Changed register values.
-> > 
-> >  drivers/media/video/tvp7002.c |   14 ++++----------
-> >  1 files changed, 4 insertions(+), 10 deletions(-)
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Laurent Pinchart
