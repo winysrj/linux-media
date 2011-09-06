@@ -1,80 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:53858 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751315Ab1ISGIN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Sep 2011 02:08:13 -0400
-Received: by pzk1 with SMTP id 1so10115445pzk.1
-        for <linux-media@vger.kernel.org>; Sun, 18 Sep 2011 23:08:13 -0700 (PDT)
-Message-ID: <4E76DC47.7050106@gmail.com>
-Date: Mon, 19 Sep 2011 11:38:07 +0530
-From: Subash Patel <subashrp@gmail.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Subject: Re: [PATCH 1/3] v4l: Extend V4L2_CID_COLORFX control with AQUA effect
-References: <1316192730-18099-1-git-send-email-s.nawrocki@samsung.com> <1316192730-18099-2-git-send-email-s.nawrocki@samsung.com> <201109190108.49283.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201109190108.49283.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:41402 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754947Ab1IFPaP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Sep 2011 11:30:15 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 05/10] Ignore auto-generated files
+Date: Tue,  6 Sep 2011 12:29:51 -0300
+Message-Id: <1315322996-10576-5-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1315322996-10576-4-git-send-email-mchehab@redhat.com>
+References: <1315322996-10576-1-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-2-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-3-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-4-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ .gitignore      |   17 +++++++++++++++++
+ docs/.gitignore |    3 +++
+ intl/.gitignore |    2 ++
+ m4/.gitignore   |    8 ++++++++
+ po/.gitignore   |    7 +++++++
+ src/.gitignore  |    9 +++++++++
+ 6 files changed, 46 insertions(+), 0 deletions(-)
+ create mode 100644 .gitignore
+ create mode 100644 docs/.gitignore
+ create mode 100644 intl/.gitignore
+ create mode 100644 m4/.gitignore
+ create mode 100644 po/.gitignore
+ create mode 100644 src/.gitignore
 
-I am not representing Sylwester :), But with a similar sensor I use, 
-Aqua means cool tone which is Cb/Cr manipulations.
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..9bbc8df
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,17 @@
++autom4te.cache/
++Makefile
++Makefile.in
++aclocal.m4
++config.guess
++config.h
++config.h.in
++config.log
++config.status
++config.sub
++configure
++install-sh
++libtool
++ltmain.sh
++missing
++stamp-h1
++depcomp
+diff --git a/docs/.gitignore b/docs/.gitignore
+new file mode 100644
+index 0000000..22a4e72
+--- /dev/null
++++ b/docs/.gitignore
+@@ -0,0 +1,3 @@
++Makefile
++Makefile.in
++
+diff --git a/intl/.gitignore b/intl/.gitignore
+new file mode 100644
+index 0000000..5c1aa8c
+--- /dev/null
++++ b/intl/.gitignore
+@@ -0,0 +1,2 @@
++plural.c
++
+diff --git a/m4/.gitignore b/m4/.gitignore
+new file mode 100644
+index 0000000..19aca97
+--- /dev/null
++++ b/m4/.gitignore
+@@ -0,0 +1,8 @@
++Makefile
++Makefile.in
++libtool.m4
++ltoptions.m4
++ltsugar.m4
++ltversion.m4
++lt~obsolete.m4
++
+diff --git a/po/.gitignore b/po/.gitignore
+new file mode 100644
+index 0000000..d2fdb57
+--- /dev/null
++++ b/po/.gitignore
+@@ -0,0 +1,7 @@
++*.gmo
++Makefile
++Makefile.in
++POTFILES
++remove-potcdate.sed
++stamp-po
++
+diff --git a/src/.gitignore b/src/.gitignore
+new file mode 100644
+index 0000000..3a6766d
+--- /dev/null
++++ b/src/.gitignore
+@@ -0,0 +1,9 @@
++*.o
++.deps/
++Makefile
++Makefile.in
++tvtime
++tvtime-command
++tvtime-configure
++tvtime-scanner
++
+-- 
+1.7.6.1
 
-Regards,
-Subash
-
-On 09/19/2011 04:38 AM, Laurent Pinchart wrote:
-> Hi Sylwester,
->
-> Thanks for the patch.
->
-> On Friday 16 September 2011 19:05:28 Sylwester Nawrocki wrote:
->> Add V4L2_COLORFX_AQUA image effect in the V4L2_CID_COLORFX menu.
->
-> What's the aqua effect ?
->
->> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
->> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->> ---
->>   Documentation/DocBook/media/v4l/controls.xml |    5 +++--
->>   include/linux/videodev2.h                    |    1 +
->>   2 files changed, 4 insertions(+), 2 deletions(-)
->>
->> diff --git a/Documentation/DocBook/media/v4l/controls.xml
->> b/Documentation/DocBook/media/v4l/controls.xml index 8516401..f3c6457
->> 100644
->> --- a/Documentation/DocBook/media/v4l/controls.xml
->> +++ b/Documentation/DocBook/media/v4l/controls.xml
->> @@ -294,8 +294,9 @@ minimum value disables backlight compensation.</entry>
->>   <constant>V4L2_COLORFX_SKETCH</constant>  (5),
->>   <constant>V4L2_COLORFX_SKY_BLUE</constant>  (6),
->>   <constant>V4L2_COLORFX_GRASS_GREEN</constant>  (7),
->> -<constant>V4L2_COLORFX_SKIN_WHITEN</constant>  (8) and
->> -<constant>V4L2_COLORFX_VIVID</constant>  (9).</entry>
->> +<constant>V4L2_COLORFX_SKIN_WHITEN</constant>  (8),
->> +<constant>V4L2_COLORFX_VIVID</constant>  (9) and
->> +<constant>V4L2_COLORFX_AQUA</constant>  (10).</entry>
->>   	</row>
->>   	<row>
->>   	<entry><constant>V4L2_CID_ROTATE</constant></entry>
->> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
->> index fca24cc..5032226 100644
->> --- a/include/linux/videodev2.h
->> +++ b/include/linux/videodev2.h
->> @@ -1144,6 +1144,7 @@ enum v4l2_colorfx {
->>   	V4L2_COLORFX_GRASS_GREEN = 7,
->>   	V4L2_COLORFX_SKIN_WHITEN = 8,
->>   	V4L2_COLORFX_VIVID = 9,
->> +	V4L2_COLORFX_AQUA = 10,
->>   };
->>   #define V4L2_CID_AUTOBRIGHTNESS			(V4L2_CID_BASE+32)
->>   #define V4L2_CID_BAND_STOP_FILTER		(V4L2_CID_BASE+33)
->
