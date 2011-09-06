@@ -1,107 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:19467 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750940Ab1I0IXx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 04:23:53 -0400
-Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LS600MK59ZR0Q@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 27 Sep 2011 09:23:51 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LS600K1E9ZRCV@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 27 Sep 2011 09:23:51 +0100 (BST)
-Date: Tue, 27 Sep 2011 10:23:42 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [GIT PULL] Selection API and fixes for v3.2
-In-reply-to: <4E807E67.3000508@redhat.com>
-To: 'Mauro Carvalho Chehab' <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-	laurent.pinchart@ideasonboard.com
-Message-id: <000001cc7cee$c465d350$4d3179f0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1316704391-13596-1-git-send-email-m.szyprowski@samsung.com>
- <4E805E6E.3080007@redhat.com>
- <011201cc7c3e$798c5bc0$6ca51340$%szyprowski@samsung.com>
- <4E807E67.3000508@redhat.com>
+Received: from 8.mo2.mail-out.ovh.net ([188.165.52.147]:51011 "EHLO
+	mo2.mail-out.ovh.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753345Ab1IFIbp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 04:31:45 -0400
+Received: from mail616.ha.ovh.net (b6.ovh.net [213.186.33.56])
+	by mo2.mail-out.ovh.net (Postfix) with SMTP id 6E244DC4303
+	for <linux-media@vger.kernel.org>; Tue,  6 Sep 2011 08:37:01 +0200 (CEST)
+Date: Tue, 6 Sep 2011 08:15:11 +0200
+From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+To: "Wu, Josh" <Josh.wu@atmel.com>
+Cc: linux-arm-kernel@lists.infradead.org,
+	"Ferre, Nicolas" <Nicolas.FERRE@atmel.com>, g.liakhovetski@gmx.de,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] at91: add Atmel ISI and ov2640 support on m10/g45
+ board.
+Message-ID: <20110906061511.GD677@game.jcrosoft.org>
+References: <1314960609-23396-1-git-send-email-josh.wu@atmel.com>
+ <20110902182137.GL20128@game.jcrosoft.org>
+ <4C79549CB6F772498162A641D92D532802A0995F@penmb01.corp.atmel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4C79549CB6F772498162A641D92D532802A0995F@penmb01.corp.atmel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-
-On Monday, September 26, 2011 3:30 PM Mauro Carvalho Chehab wrote:
-
-> Em 26-09-2011 08:21, Marek Szyprowski escreveu:
-> > Hello,
-> >
-> > On Monday, September 26, 2011 1:14 PM Mauro Carvalho Chehab wrote:
-> >
-> >>> Scott Jiang (1):
-> >>>       vb2: add vb2_get_unmapped_area in vb2 core
-> >>
-> >>> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> >>> index ea55c08..977410b 100644
-> >>> --- a/include/media/videobuf2-core.h
-> >>> +++ b/include/media/videobuf2-core.h
-> >>> @@ -309,6 +309,13 @@ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
-> >>>  int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type);
-> >>>
-> >>>  int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma);
-> >>> +#ifndef CONFIG_MMU
-> >>> +unsigned long vb2_get_unmapped_area(struct vb2_queue *q,
-> >>> +				    unsigned long addr,
-> >>> +				    unsigned long len,
-> >>> +				    unsigned long pgoff,
-> >>> +				    unsigned long flags);
-> >>> +#endif
-> >>>  unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait);
-> >>>  size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
-> >>>  		loff_t *ppos, int nonblock);
-> >>
-> >> This sounds me like a hack, as it is passing the problem of working with a non-mmu
-> >> capable hardware to the driver, inserting architecture-dependent bits on them.
-> >>
-> >> The proper way to do it is to provide a vb2 core support to handle the non-mmu case
-> >> inside it.
-> >
-> > This is exactly what this patch does - it provides generic vb2 implementation for
-> > fops->get_unmapped_area callback which any vb2 ready driver can use. This operation
-> > is used only on NON-MMU systems. Please check drivers/media/video/v4l2-dev.c file and
-> > the implementation of get_unmapped_area there. Similar code is used by uvc driver.
+On 16:55 Mon 05 Sep     , Wu, Josh wrote:
 > 
-> At least there, there is a:
-> #ifdef CONFIG_MMU
-> #define v4l2_get_unmapped_area NULL
-> #else
-> ...
-> #endif
 > 
-> block, so, in thesis, a driver can be written to support both cases without inserting
-> #ifdefs inside it.
+> On 09/03/2011 2:22 AM Jean-Christophe PLAGNIOL-VILLARD wrote: 
+> 
+> >>  
+> >>  #include <asm/setup.h>
+> >>  #include <asm/mach-types.h>
+> >> @@ -194,6 +197,95 @@ static void __init ek_add_device_nand(void)
+> >>  	at91_add_device_nand(&ek_nand_data);
+> >>  }
+> >>  
+> >> +/*
+> >> + *  ISI
+> >> + */
+> >> +#if defined(CONFIG_VIDEO_ATMEL_ISI) || defined(CONFIG_VIDEO_ATMEL_ISI_MODULE)
+> >> +static struct isi_platform_data __initdata isi_data = {
+> >> +	.frate		= ISI_CFG1_FRATE_CAPTURE_ALL,
+> >> +	.has_emb_sync	= 0,
+> >> +	.emb_crc_sync = 0,
+> >> +	.hsync_act_low = 0,
+> >> +	.vsync_act_low = 0,
+> >> +	.pclk_act_falling = 0,
+> >> +	/* to use codec and preview path simultaneously */
+> >> +	.isi_full_mode = 1,
+> >> +	.data_width_flags = ISI_DATAWIDTH_8 | ISI_DATAWIDTH_10,
+> >> +};
+> >> +
+> >> +static void __init isi_set_clk(void)
+> >> +{
+> >> +	struct clk *pck1;
+> >> +	struct clk *plla;
+> >> +
+> >> +	pck1 = clk_get(NULL, "pck1");
+> >> +	plla = clk_get(NULL, "plla");
+> >> +
+> >> +	clk_set_parent(pck1, plla);
+> >> +	clk_set_rate(pck1, 25000000);
+> >> +	clk_enable(pck1);
+> 
+> > you must not enable the clock always
+> 
+> > you must enable it just when you need it
+> 
+> > and manage the clock at the board level really so so
+> 
+> I see, I will move such clock code to atmel_isi.c driver and add clock name, clock frequence to isi_platform_data structure in next version.
+no you miss the idea bind the clkdev
 
-videobuf2 functions are not meant to be used as direct callbacks in fops so defining it
-as NULL makes no sense at all.
+you manage the clock at soc level and then only if it's mandatory at board
+level
 
-> Ideally, I would prefer if all those iommu-specific calls would be inside the core.
-> A driver should not need to do anything special in order to support a different
-> (sub)architecture.
+for the clock rate you pass it to the driver
 
-It is not about IOMMU at all. Some (embedded) systems don't have MMU at all. Drivers on
-such systems cannot do regular mmap operation. Instead it is emulated with 
-get_unmapped_area fops callback and some (u)libC magic. This patch just provides
-vb2_get_unmapped_area function. Drivers have to call it from their respective
-my_driver_get_unmapped_area() function provided in its fops. Implementing it makes
-sense only on NO-MMU systems. I really see no other way of dealing with this.
+and let the driver manage when it want to enable/disable the clock
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+the driver need to have a abtraction of the clock constraint and just request
+it and use it
 
-
-
+Best Regards,
+J.
