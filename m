@@ -1,393 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:35403 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751095Ab1IWSSH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Sep 2011 14:18:07 -0400
-Received: by fxe4 with SMTP id 4so4066693fxe.19
-        for <linux-media@vger.kernel.org>; Fri, 23 Sep 2011 11:18:06 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: linux-media@vger.kernel.org
-Subject: Fwd: various patches for TT S2-3650 CI
-Date: Fri, 23 Sep 2011 21:18:08 +0300
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:61611 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755227Ab1IFUm1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 16:42:27 -0400
+Received: by ewy4 with SMTP id 4so2920511ewy.19
+        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2011 13:42:26 -0700 (PDT)
+Message-ID: <4E6685AE.1060102@gmail.com>
+Date: Tue, 06 Sep 2011 22:42:22 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_h1MfO7OWku4AAPn"
-Message-Id: <201109232118.09009.liplianin@me.by>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Subject: Re: [PATCH v4] s5p-fimc: Add runtime PM support in the mem-to-mem
+ driver
+References: <1314716439-23642-1-git-send-email-s.nawrocki@samsung.com> <20110905060645.GA955@valkosipuli.localdomain> <4E651C8F.5020807@gmail.com> <20110905212000.GA1393@valkosipuli.localdomain>
+In-Reply-To: <20110905212000.GA1393@valkosipuli.localdomain>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 09/05/2011 11:20 PM, Sakari Ailus wrote:
+>>>> +static int fimc_suspend(struct device *dev)
+>>>> +{
+>>>> +	struct fimc_dev *fimc =	dev_get_drvdata(dev);
+>>>> +
+>>>> +	dbg("fimc%d: state: 0x%lx", fimc->id, fimc->state);
+>>>> +
+>>>> +	if (test_and_set_bit(ST_LPM,&fimc->state))
+>>>> +		return 0;
+>>>> +	if (fimc_capture_busy(fimc))
+>>>> +		return fimc_capture_suspend(fimc);
+>>>
+>>> Now that fimc_capture_suspend()  returns -EBUSY always, is this intended
+>>> behavious or do you plan to change this later on?
+>>
+>> No, it's by no means the intended behaviour. This patch is only a part of the
+>> whole picture, but I thought it's independent from the MC related patches
+>> which are on hold and could be merged independently. Moreover the FIMC driver
+>> is broken without this patch on Exynos4, if the boot loader doesn't enable
+>> the related power domain permanently. So I thought it should be merged
+>> regardless of the fate of the capture PM support patch which depends on the
+>> MC related patches.
+> 
+> Right, I agree the patch has enough merits for merging.
+> 
+>> Here is the capture PM patch for your critics;) http://tinyurl.com/4yj8z4t
+> 
+> I'll take a look at it once you post it on the list. ;)
 
+It's been on the lists for some time already, this is the fourth version:
+https://patchwork.kernel.org/patch/1119562/
+However it doesn't include a small fix I have added after posting v4, 
+which is available in the above git repository.
 
---Boundary-00=_h1MfO7OWku4AAPn
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+>>>
+>>> Not that it'd be really easy to do this properly; the sensors, for example,
+>>> probably need a clock from the ISP and I2C before they can continue. The
+>>> OMAP 3 ISP driver does attempt to do this but doesn't handle these
+>>> dependencies.
+>>
+>> I'm not handling the device PM dependencies explicitly in this driver either.
+>>
+>> But it's assured the I2C bus device is registered first, then the camera host
+>> device, and finally the I2C client devices.
+>> AFAIU the PM core should call PM suspend helpers on the subdev/host drivers
+>> in order: I2C clients, the camera host and I2C bus. And for the resume helpers
+>> the sequence should be reversed.
+> 
+> In my understanding it is not ensured that the I2C bus driver starts before
+> the media device parent does (as it is controlling the sensors' power
+> state). The same goes for suspend. Or am I missing something?
 
+AFAIU PM core maintains private list of its active devices which it then walks
+when preparing, suspending, resuming and 'completing' subsystems.
+Please check pm_device_add() and dpm_start_suspend() for instance. It looks like
+the list can only be reordered through returning -EAGAIN from subsystem prepare
+helper or by calling implicitly pm_device_move().
+I might be missing some important details though, it would be best to clarify
+these things on linux-pm ML.
 
-=2D---------  Forwarded Message  ----------
+> 
+>> The sensor drivers do not implement their standard PM helper callbacks,
+>> their are just controlled directly through s_power op by the host driver.
+>>
+>>>
+>>> I'm not suggesting this should be part of the patch, just thought of asking
+>>> it. :)
+>>
+>> First of all I'm not entirely happy with this code. The are some issues in
+>> the v4l2-mem2mem framework which I plan to address when time permits. I think
+>> it wasn't designed in PM use cases in mind. Plus PM support in Exynos4 platform
+>> (including drivers) is rather not yet stable in the mainline kernel. So I was
+>> having hard time to make this PM code working in the mem-to-mem device.
+>> But it's now done and only a per frame clock gating is still missing.
+>> This is a quite complex topic, to get everything right, in line with all
+>> frameworks involved.
+>>
+>>>
+>>>> +	return fimc_m2m_suspend(fimc);
+>>>
+>>> Does pending mean there are further images to process in a queue, or just
+>>> that driver is busy one?
+>>
+>> It means the driver got an ownership of a pair of buffers and is about to or
+>> is already processing them. In any case fimc_m2m_suspend() will wait for
+>> only those two buffers to be processed, without dequeuing them back to user
+>> space. They will be returned back to user space when the driver's resume helper
+>> is called.
+> 
+> I think this is a good approach. Processing the buffers takes a fraction of
+> a second. If one would cancel this it would unnecessarily complicate the
+> user space.
 
-Subject: various patches for TT S2-3650 CI
-Date: 16 =D0=BC=D0=B0=D1=8F 2011, 00:53:18
-=46rom: Damien Fouilleul <damien.fouilleul@laposte.net>
-=D0=9F=D0=BE=D0=BB=D1=83=D1=87=D0=B0=D1=82=D0=B5=D0=BB=D1=8C:  "Igor M. Lip=
-lianin" <liplianin@me.by>
-=D0=9A=D0=BE=D0=BF=D0=B8=D1=8F:  Dominik Kuhlen <dkuhlen@gmx.net>
+Yes, and applications should not really care much about device power state 
+transitions.
 
-Hi Igor,
+> 
+>>>
+>>>> +#endif /* CONFIG_PM_SLEEP */
+>>>> +
+>> ...
+>>>> diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
+>>>> index 4893b2d..938dadf 100644
+>>>> --- a/drivers/media/video/s5p-fimc/fimc-reg.c
+>>>> +++ b/drivers/media/video/s5p-fimc/fimc-reg.c
+>>>> @@ -30,7 +30,7 @@ void fimc_hw_reset(struct fimc_dev *dev)
+>>>>    	cfg = readl(dev->regs + S5P_CIGCTRL);
+>>>>    	cfg |= (S5P_CIGCTRL_SWRST | S5P_CIGCTRL_IRQ_LEVEL);
+>>>>    	writel(cfg, dev->regs + S5P_CIGCTRL);
+>>>> -	udelay(1000);
+>>>> +	udelay(10);
+>>>
+>>> Good catch. Large delays such as this one should have either used msleep()
+>>> or usleep_range(). If a smaller one does, all the better.
+>>
+>> Yeah, now this delay gets in the way every time the device is brought from
+>> no power to fully operational state, e.g. the video node is opened.
+>> Some of this code comes from original vendor BSP package as sometimes
+>> it saves plenty of time on experimenting to bring everything up due to
+>> not so good documentation.
+> 
+> I wonder if it would make sense to separate this into another patch as it is
+> a significant change in terms of controlling the device and has nothing to
+> do with power management. I have no strong opinion on this.
+> 
+> Either way,
+> 
+> Acked-by: Sakari Ailus<sakari.ailus@iki.fi>
 
-I do not know what procedure you expect for submitting patches to s2-lilipi=
-an,=20
-so i apologize in advance if i'm just spamming your mailbox.
+Thanks a lot! Unfortunately I can't add this tag yet, as Mauro already pulled
+the patch. 
 
-i've own a 3650 for a few months, and i could not get it working with the=20
-current driver in s2-lilipian on my setup, consisting of universal LNB=20
-connected to a Stab HH-100 rotor.
-the windows drivers works flawlessly, so i decided to get USB sniffer and=20
-compare the linux and windows driver. The following patches are a direct=20
-result of a couple of months of investigation.
+> 
+> Btw. is there public documentation on FIMC block or SoCs that have it
+> integrated? I probably have seen links but I don't remember any right now.
+> :)
 
-In a nutshell, the current driver for the LNBP22 SEC does not allow it for=
-=20
-providing enough current to power up the rotor, which requires about 300mA =
-for=20
-about a second to charge up its DC/DC capacitors. The following patch enabl=
-e a=20
-bit in the driver, which raises the current overload threshold. I've also=20
-documented the status register based on my own investigations.
+You can find S5PV210 Soc User Manual at this site: http://www.aesop.or.kr
+(requires free registration).
+There is also a public UM there for Exynos4210 SoC, however FIMC documentation
+is not included.
 
-Regarding the pctv452e driver, I fixed an issue with the remote control bei=
-ng=20
-too sensitive; i've discovered a bit in the remote control data, which gets=
-=20
-flipped every time a key is pressed, and does't when a key is held down. By=
-=20
-combining this finding and some code I lifted from the cinergyT2-core (whic=
-h=20
-does a good job at managing repeatable keys), i've come up with the followi=
-ng=20
-patch.
-
-I've also modified the USB transfer parameters to match the values used by =
-the=20
-windows driver. It does help on my old powerpc macmini running mythtv-backe=
-nd,=20
-it could barely cope with the number of interrupts generated by using the=20
-original parameters.
-
-I hope you'll find this useful
-
-Damien
-
-
-
-
-=2D----------------------------------------
-=2D-=20
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
-
---Boundary-00=_h1MfO7OWku4AAPn
-Content-Type: application/octet-stream;
-  name="lnbp22.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="lnbp22.diff"
-
-diff -r 7e47ba1d4ae8 -r c2c6eb5bf6d2 linux/drivers/media/dvb/frontends/lnbp22.c
---- a/linux/drivers/media/dvb/frontends/lnbp22.c	Tue Mar 08 13:38:53 2011 +0200
-+++ b/linux/drivers/media/dvb/frontends/lnbp22.c	Tue Apr 26 10:49:23 2011 +0100
-@@ -48,38 +48,93 @@
- 	struct i2c_adapter *i2c;
- };
- 
-+static int lnbp22_read_config(struct dvb_frontend *fe, u8 *config) {
-+        struct lnbp22 *lnbp22 = (struct lnbp22 *) fe->sec_priv;
-+        struct i2c_msg msg = {  .addr = 0x08, .flags = I2C_M_RD,
-+                                .buf = (char*)config,
-+                                .len = sizeof(lnbp22->config) };
-+
-+	if (i2c_transfer(lnbp22->i2c, &msg, 1) == 1) {
-+		dprintk(2, "%s: %02X %02X %02X %02X\n", __FUNCTION__,
-+			 config[0], config[1], config[2], config[3]);
-+		return 0;
-+        }
-+        return -EIO;
-+}
-+
-+static int lnbp22_write_config(struct dvb_frontend *fe, u8 *config) {
-+        struct lnbp22 *lnbp22 = (struct lnbp22 *) fe->sec_priv;
-+        struct i2c_msg msg = {  .addr = 0x08, .flags = 0,
-+                                .buf = (char*)config,
-+                                .len = sizeof(lnbp22->config) };
-+
-+	if (i2c_transfer(lnbp22->i2c, &msg, 1) == 1) {
-+		dprintk(2, "%s: %02X %02X %02X %02X\n", __FUNCTION__,
-+			 config[0], config[1], config[2], config[3]);
-+		return 0;
-+        }
-+        return -EIO;
-+}
-+
- static int lnbp22_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage) {
- 	struct lnbp22 *lnbp22 = (struct lnbp22 *) fe->sec_priv;
--	struct i2c_msg msg = {	.addr = 0x08, .flags = 0,
--				.buf = (char*)&lnbp22->config,
--				.len = sizeof(lnbp22->config) };
-+	int status;
- 
- 	dprintk(1, "%s: %d (18V=%d 13V=%d)\n", __FUNCTION__, voltage,
- 	       SEC_VOLTAGE_18, SEC_VOLTAGE_13);
- 
--	lnbp22->config[3] = 0x60; // Power down
- 	switch(voltage) {
--	case SEC_VOLTAGE_OFF:
--		break;
--	case SEC_VOLTAGE_13:
--		lnbp22->config[3] |= LNBP22_EN;
--		break;
--	case SEC_VOLTAGE_18:
--		lnbp22->config[3] |= (LNBP22_EN | LNBP22_VSEL);
--		break;
--	default:
--		return -EINVAL;
--	};
-+		case SEC_VOLTAGE_OFF:
-+			lnbp22->config[3] &= ~LNBP22_EN;
-+			return lnbp22_write_config(fe, lnbp22->config);
-+		case SEC_VOLTAGE_13:
-+			lnbp22->config[3] |= LNBP22_EN;
-+			lnbp22->config[3] &= ~LNBP22_VSEL;
-+			break;
-+		case SEC_VOLTAGE_18:
-+			lnbp22->config[3] |= LNBP22_EN|LNBP22_VSEL;
-+			break;
-+		default:
-+			return -EINVAL;
-+	}
- 
--	dprintk(1, "%s: 0x%02x)\n", __FUNCTION__, lnbp22->config[3]);
--	return (i2c_transfer(lnbp22->i2c, &msg, 1) == 1) ? 0 : -EIO;
-+	status = lnbp22_write_config(fe, lnbp22->config);
-+	if(  status == 0 ) {
-+		u8 config[4];
-+		int retries = 20;
-+
-+		/* byte 0: status
-+		    bit 3: open loop
-+		    bit 2: in progress/not ready
-+		    bit 1: over current limit
-+		    bit 0: over voltage limit */
-+
-+		/* wait up to 2 seconds for voltage to stablize.
-+		   It is important to wait that long, especially if there is a
-+		   rotor to power on, as DC/DC converter capacitors can take a
-+		   while to charge up and could cause a temporary overload */
-+		do
-+		{
-+			msleep(50);
-+			status = lnbp22_read_config(fe, config);
-+			if( status < 0 )
-+				return status;
-+		}
-+		while( (config[0] & (1<<2)) && retries-- );
-+
-+		dprintk(1, "%s status=0x%02X\n", __FUNCTION__, config[0]);
-+
-+		if( retries < 0 )
-+			return -EAGAIN;  /* temporary overload ? */
-+
-+		if( config[0] & (1<<3) )
-+			return -ENOLINK; /* open loop */
-+	}
-+	return status;
- }
- 
- static int lnbp22_enable_high_lnb_voltage(struct dvb_frontend *fe, long arg) {
- 	struct lnbp22 *lnbp22 = (struct lnbp22 *) fe->sec_priv;
--	struct i2c_msg msg = {	.addr = 0x08, .flags = 0,
--				.buf = (char*)&lnbp22->config,
--				.len = sizeof(lnbp22->config) };
- 
- 	dprintk(1, "%s: %d\n", __FUNCTION__, (int)arg);
- 	if (arg)
-@@ -87,12 +142,11 @@
- 	else
- 		lnbp22->config[3] &= ~LNBP22_LLC;
- 
--	return (i2c_transfer(lnbp22->i2c, &msg, 1) == 1) ? 0 : -EIO;
-+	return lnbp22_write_config(fe, lnbp22->config);
- }
- 
- static void lnbp22_release(struct dvb_frontend *fe)
- {
--
- 	dprintk(1, "%s\n", __FUNCTION__);
- 	/* LNBP power off */
- 	lnbp22_set_voltage(fe, SEC_VOLTAGE_OFF);
-@@ -109,20 +163,14 @@
- 		return NULL;
- 
- 	/* default configuration */
--	lnbp22->config[0] = 0x00; /* ? */
-+	lnbp22->config[0] = 0x00; /* status */
- 	lnbp22->config[1] = 0x28; /* ? */
--	lnbp22->config[2] = 0x48; /* ? */
-+	lnbp22->config[2] = 0x49; /* ? */
- 	lnbp22->config[3] = 0x60; /* Power down */
- 	lnbp22->i2c = i2c;
- 	fe->sec_priv = lnbp22;
- 
--	/* detect if it is present or not */
--	if (lnbp22_set_voltage(fe, SEC_VOLTAGE_OFF)) {
--		dprintk(0, "%s LNBP22 not found\n", __FUNCTION__);
--		kfree(lnbp22);
--		fe->sec_priv = NULL;
--		return NULL;
--	}
-+	lnbp22_set_voltage(fe, SEC_VOLTAGE_OFF);
- 
- 	/* install release callback */
- 	fe->ops.release_sec = lnbp22_release;
-
-
---Boundary-00=_h1MfO7OWku4AAPn
-Content-Type: application/octet-stream;
-  name="pctv452e.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="pctv452e.diff"
-
-diff -r e63eda5bc85d linux/drivers/media/dvb/dvb-usb/pctv452e.c
---- a/linux/drivers/media/dvb/dvb-usb/pctv452e.c	Tue Apr 26 11:02:32 2011 +0100
-+++ b/linux/drivers/media/dvb/dvb-usb/pctv452e.c	Sun May 15 20:36:37 2011 +0100
-@@ -98,6 +98,8 @@
- 
- 	u8 c;	   /* transaction counter, wraps around...  */
- 	u8 initialized; /* set to 1 if 0x15 has been sent */
-+        u8 rc_repeat;
-+        u8 rc_counter;
- };
- 
- static int
-@@ -607,6 +609,20 @@
- 	{0x153f, KEY_FORWARD}
- };
- 
-+/* Number of keypresses to ignore before detect repeating */
-+#define RC_REPEAT_DELAY 3
-+
-+static int repeatable_keys[] = {
-+        KEY_UP,
-+        KEY_DOWN,
-+        KEY_LEFT,
-+        KEY_RIGHT,
-+        KEY_VOLUMEUP,
-+        KEY_VOLUMEDOWN,
-+        KEY_CHANNELUP,
-+        KEY_CHANNELDOWN
-+};
-+
- static int pctv452e_rc_query(struct dvb_usb_device *d, u32 *keyevent, int *keystate) {
- 	struct pctv452e_state *state = (struct pctv452e_state *)d->priv;
- 	u8 b[CMD_BUFFER_SIZE];
-@@ -629,7 +645,7 @@
- 
- 	if (debug > 3) {
- 		printk("%s: read: %2d: %02x %02x %02x: ", __func__, ret, rx[0], rx[1], rx[2]);
--		for (i = 0; (i < rx[3]) && ((i+3) < PCTV_ANSWER_LEN); i++) {
-+		for (i = 0; (i < rx[3]) && ((i+3) <= PCTV_ANSWER_LEN); i++) {
- 			printk(" %02x", rx[i+3]);
- 		}
- 		printk("\n");
-@@ -640,13 +656,37 @@
- 		if (debug > 2) {
- 	 		printk("%s: cmd=0x%02x sys=0x%02x\n", __func__, rx[6], rx[7]);
- 		}
--		keybuf[0] = 0x01;// DVB_USB_RC_NEC_KEY_PRESSED; why is this #define'd privately?
--		keybuf[1] = rx[7];
--		keybuf[2] = ~keybuf[1]; // fake checksum
--		keybuf[3] = rx[6];
--		keybuf[4] = ~keybuf[3]; // fake checksum
--		dvb_usb_nec_rc_key_to_event(d, keybuf, keyevent, keystate);
--
-+		/* press or repeat */
-+                if( rx[5] != state->rc_repeat ) {
-+			keybuf[0] = 0x01;// DVB_USB_RC_NEC_KEY_PRESSED; why is this #define'd privately?
-+			keybuf[1] = rx[7];
-+			keybuf[2] = ~keybuf[1]; // fake checksum
-+			keybuf[3] = rx[6];
-+			keybuf[4] = ~keybuf[3]; // fake checksum
-+			dvb_usb_nec_rc_key_to_event(d, keybuf, keyevent, keystate);
-+			state->rc_counter = 0;
-+			state->rc_repeat = rx[5];
-+                }
-+		else {
-+			/* key repeat */
-+			state->rc_counter++;
-+			if (state->rc_counter > RC_REPEAT_DELAY) {
-+				for (i = 0; i < ARRAY_SIZE(repeatable_keys); i++) {
-+					if (d->last_event == repeatable_keys[i]) {
-+						*keystate = REMOTE_KEY_REPEAT;
-+						*keyevent = d->last_event;
-+						if (debug > 2) {
-+							printk("%s: repeat key, event %x\n", __func__,
-+							   *keyevent);
-+						}
-+						return 0;
-+					}
-+				}
-+				if (debug > 2) {
-+					printk("%s: repeated key (non repeatable)\n", __func__);
-+				}
-+			}
-+                }
- 	}
- 
- 	return 0;
-@@ -751,14 +791,14 @@
- 
- 
- static const struct stb0899_s1_reg pctv452e_init_dev [] = {
--	{ STB0899_DISCNTRL1	, 0x26 },
-+	{ STB0899_DISCNTRL1	, 0x32 },
- 	{ STB0899_DISCNTRL2	, 0x80 },
- 	{ STB0899_DISRX_ST0	, 0x04 },
- 	{ STB0899_DISRX_ST1	, 0x20 },
- 	{ STB0899_DISPARITY	, 0x00 },
--	{ STB0899_DISFIFO	, 0x00 },
--	{ STB0899_DISF22	, 0x99 },
--	{ STB0899_DISF22RX	, 0x85 }, // 0xa8
-+	/*{ STB0899_DISFIFO	, 0x00 }, don't fill fifo with garbage */
-+	{ STB0899_DISF22	, 0x8c }, // 22 Khz Diseqc TX
-+	{ STB0899_DISF22RX	, 0x9a }, // 20 Khz Diseqc RX
- 	{ STB0899_ACRPRESC	, 0x11 },
- 	{ STB0899_ACRDIV1	, 0x0a },
- 	{ STB0899_ACRDIV2	, 0x05 },
-@@ -1353,7 +1393,7 @@
- 	.rc_key_map		= tt_connect_s2_3600_rc_key,
- 	.rc_key_map_size	= ARRAY_SIZE(tt_connect_s2_3600_rc_key),
- 	.rc_query		= pctv452e_rc_query,
--	.rc_interval		= 500,
-+	.rc_interval		= 100,
- 
- 	.num_adapters		= 1,
- 	.adapter = {{
-@@ -1368,11 +1408,11 @@
- 		/* parameter for the MPEG2-data transfer */
- 		.stream = {
- 			.type = USB_ISOC,
--			.count = 7,
-+			.count = 4,
- 			.endpoint = 0x02,
- 			.u = {
- 				.isoc = {
--					.framesperurb = 4,
-+					.framesperurb = 64,
- 					.framesize = 940,
- 					.interval = 1
- 				}
-
-
---Boundary-00=_h1MfO7OWku4AAPn--
-
+--
+Regards,
+Sylwester
