@@ -1,294 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49149 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751336Ab1IUKnL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 06:43:11 -0400
-Message-ID: <4E79C053.903@ti.com>
-Date: Wed, 21 Sep 2011 16:15:39 +0530
-From: Archit Taneja <archit@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52137 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753795Ab1IFLlM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 07:41:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC] New class for low level sensors controls?
+Date: Tue, 6 Sep 2011 13:41:11 +0200
+Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	hechtb@googlemail.com, g.liakhovetski@gmx.de
+References: <20110906113653.GF1393@valkosipuli.localdomain>
+In-Reply-To: <20110906113653.GF1393@valkosipuli.localdomain>
 MIME-Version: 1.0
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-CC: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Semwal, Sumit" <sumit.semwal@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/5] [media]: OMAP_VOUT: CLEANUP: Remove redundant code
- from omap_vout_isr
-References: <1316167233-1437-1-git-send-email-archit@ti.com> <1316167233-1437-3-git-send-email-archit@ti.com> <19F8576C6E063C45BE387C64729E739404EC941E8B@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404EC941E8B@dbde02.ent.ti.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201109061341.11991.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sakari,
 
-On Wednesday 21 September 2011 03:35 PM, Hiremath, Vaibhav wrote:
+On Tuesday 06 September 2011 13:36:53 Sakari Ailus wrote:
+> Hi all,
+> 
+> We are beginning to have raw bayer image sensor drivers in the mainline.
+> Typically such sensors are not controlled by general purpose applications
+> but e.g. require a camera control algorithm framework in user space. This
+> needs to be implemented in libv4l for general purpose applications to work
+> properly on this kind of hardware.
+> 
+> These sensors expose controls such as
+> 
+> - Per-component gain controls. Red, blue, green (blue) and green (red)
+>   gains.
 >
->> -----Original Message-----
->> From: Taneja, Archit
->> Sent: Friday, September 16, 2011 3:31 PM
->> To: Hiremath, Vaibhav
->> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
->> media@vger.kernel.org; Taneja, Archit
->> Subject: [PATCH 2/5] [media]: OMAP_VOUT: CLEANUP: Remove redundant code
->> from omap_vout_isr
->>
->> Currently, there is a lot of redundant code is between DPI and VENC panels,
->> this
->> can be made common by moving out field/interlace specific code to a
->> separate
->> function called omapvid_handle_interlace_display(). There is no functional
->> change made.
->>
->> Signed-off-by: Archit Taneja<archit@ti.com>
->> ---
->>   drivers/media/video/omap/omap_vout.c |  172 ++++++++++++++++-------------
->> -----
->>   1 files changed, 82 insertions(+), 90 deletions(-)
->>
->> diff --git a/drivers/media/video/omap/omap_vout.c
->> b/drivers/media/video/omap/omap_vout.c
->> index e14c82b..c5f2ea0 100644
->> --- a/drivers/media/video/omap/omap_vout.c
->> +++ b/drivers/media/video/omap/omap_vout.c
->> @@ -524,10 +524,50 @@ static int omapvid_apply_changes(struct
->> omap_vout_device *vout)
->>   	return 0;
->>   }
->>
->> +static int omapvid_handle_interlace_display(struct omap_vout_device *vout,
->> +		unsigned int irqstatus, struct timeval timevalue)
->> +{
->> +	u32 fid;
->> +
->> +	if (vout->first_int) {
->> +		vout->first_int = 0;
->> +		goto err;
->> +	}
->> +
->> +	if (irqstatus&  DISPC_IRQ_EVSYNC_ODD)
->> +		fid = 1;
->> +	else if (irqstatus&  DISPC_IRQ_EVSYNC_EVEN)
->> +		fid = 0;
->> +	else
->> +		goto err;
->> +
->> +	vout->field_id ^= 1;
->> +	if (fid != vout->field_id) {
->> +		/* reset field ID */
->> +		vout->field_id = 0;
-> [Hiremath, Vaibhav] You should check whether fid == 0 before resetting it.
->
->> +	} else if (0 == fid) {
-> [Hiremath, Vaibhav] This is not matching with the original code, probably I have to be more careful here. I need to spend more time here...
+> - Link frequency. The frequency of the data link from the sensor to the
+>   bridge.
+> 
+> - Horizontal and vertical blanking.
 
-If you do a dry run of it you'll see that it does the same thing 
-functionally. If fid was 1, vout->field_id would have been 0 anyway.
-So the check for fid == 0 looked a bit redundant to me. However, if you 
-think that doing this makes the code less clear, we can surely keep this 
-check.
+Other controls often found in bayer sensors are black level compensation and 
+test pattern.
 
->
->
->> +		if (vout->cur_frm == vout->next_frm)
->> +			goto err;
->> +
->> +		vout->cur_frm->ts = timevalue;
->> +		vout->cur_frm->state = VIDEOBUF_DONE;
->> +		wake_up_interruptible(&vout->cur_frm->done);
->> +		vout->cur_frm = vout->next_frm;
->> +	} else {
->> +		if (list_empty(&vout->dma_queue) ||
->> +				(vout->cur_frm != vout->next_frm))
->> +			goto err;
->> +	}
->> +
->> +	return vout->field_id;
->> +err:
->> +	return 0;
->> +}
->> +
->>   static void omap_vout_isr(void *arg, unsigned int irqstatus)
->>   {
->> -	int ret;
->> -	u32 addr, fid;
->> +	int ret, fid;
->> +	u32 addr;
->>   	struct omap_overlay *ovl;
->>   	struct timeval timevalue;
->>   	struct omapvideo_info *ovid;
->> @@ -548,107 +588,59 @@ static void omap_vout_isr(void *arg, unsigned int
->> irqstatus)
->>   	spin_lock(&vout->vbq_lock);
->>   	do_gettimeofday(&timevalue);
->>
->> -	if (cur_display->type != OMAP_DISPLAY_TYPE_VENC) {
->> -		switch (cur_display->type) {
->> -		case OMAP_DISPLAY_TYPE_DPI:
->> -			if (!(irqstatus&  (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
->> -				goto vout_isr_err;
->> -			break;
->> -		case OMAP_DISPLAY_TYPE_HDMI:
->> -			if (!(irqstatus&  DISPC_IRQ_EVSYNC_EVEN))
->> -				goto vout_isr_err;
->> -			break;
->> -		default:
->> +	switch (cur_display->type) {
->> +	case OMAP_DISPLAY_TYPE_DPI:
->> +		if (!(irqstatus&  (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
->>   			goto vout_isr_err;
->> -		}
->> -		if (!vout->first_int&&  (vout->cur_frm != vout->next_frm)) {
->> -			vout->cur_frm->ts = timevalue;
->> -			vout->cur_frm->state = VIDEOBUF_DONE;
->> -			wake_up_interruptible(&vout->cur_frm->done);
->> -			vout->cur_frm = vout->next_frm;
->> -		}
->> -		vout->first_int = 0;
->> -		if (list_empty(&vout->dma_queue))
->> +		break;
->> +	case OMAP_DISPLAY_TYPE_VENC:
->> +		fid = omapvid_handle_interlace_display(vout, irqstatus,
->> +				timevalue);
->> +		if (!fid)
->>   			goto vout_isr_err;
-> [Hiremath, Vaibhav]
-> Have you tested TV out functionality?
+> None of these controls are suitable for use of general purpose applications
+> (let alone the end user!) but for the camera control algorithms.
+> 
+> We have a control class called V4L2_CTRL_CLASS_CAMERA for camera controls.
+> However, the controls in this class are relatively high level controls
+> which are suitable for end user. The algorithms in the libv4l or a webcam
+> could implement many of these controls whereas I see that only
+> V4L2_CID_EXPOSURE_ABSOLUTE might be implemented by raw bayer sensors.
+> 
+> My question is: would it make sense to create a new class of controls for
+> the low level sensor controls in a similar fashion we have a control class
+> for the flash controls?
 
-I haven't checked it yet to be totally honest. Its hard to find a VENC 
-TV! I wanted to anyway get some kind of Ack from you before starting to 
-test this. Since you also feel that this clean up is needed, I'll start 
-testing this out :)
+I think it would, but I'm not sure how we should name that class. 
+V4L2_CTRL_CLASS_SENSOR is tempting, but many of the controls that will be 
+found there (digital gains, black leverl compensation, test pattern, ...) can 
+also be found in ISPs or other hardware blocks.
 
->
->> +		break;
->> +	case OMAP_DISPLAY_TYPE_HDMI:
->> +		if (!(irqstatus&  DISPC_IRQ_EVSYNC_EVEN))
->> +			goto vout_isr_err;
->> +		break;
->> +	default:
->> +		goto vout_isr_err;
->> +	}
->>
->> -		vout->next_frm = list_entry(vout->dma_queue.next,
->> -				struct videobuf_buffer, queue);
->> -		list_del(&vout->next_frm->queue);
->> -
->> -		vout->next_frm->state = VIDEOBUF_ACTIVE;
->> -
->> -		addr = (unsigned long) vout->queued_buf_addr[vout->next_frm-
->>> i]
->> -			+ vout->cropped_offset;
->> +	if (!vout->first_int&&  (vout->cur_frm != vout->next_frm)) {
->> +		vout->cur_frm->ts = timevalue;
->> +		vout->cur_frm->state = VIDEOBUF_DONE;
->> +		wake_up_interruptible(&vout->cur_frm->done);
->> +		vout->cur_frm = vout->next_frm;
->> +	}
->>
->> -		/* First save the configuration in ovelray structure */
->> -		ret = omapvid_init(vout, addr);
->> -		if (ret)
->> -			printk(KERN_ERR VOUT_NAME
->> -				"failed to set overlay info\n");
->> -		/* Enable the pipeline and set the Go bit */
->> -		ret = omapvid_apply_changes(vout);
->> -		if (ret)
->> -			printk(KERN_ERR VOUT_NAME "failed to change mode\n");
->> -	} else {
->> +	vout->first_int = 0;
->> +	if (list_empty(&vout->dma_queue))
->> +		goto vout_isr_err;
->>
->> -		if (vout->first_int) {
->> -			vout->first_int = 0;
->> -			goto vout_isr_err;
->> -		}
->> -		if (irqstatus&  DISPC_IRQ_EVSYNC_ODD)
->> -			fid = 1;
->> -		else if (irqstatus&  DISPC_IRQ_EVSYNC_EVEN)
->> -			fid = 0;
->> -		else
->> -			goto vout_isr_err;
->> +	vout->next_frm = list_entry(vout->dma_queue.next,
->> +			struct videobuf_buffer, queue);
->> +	list_del(&vout->next_frm->queue);
->>
->> -		vout->field_id ^= 1;
->> -		if (fid != vout->field_id) {
->> -			if (0 == fid)
->> -				vout->field_id = fid;
->> +	vout->next_frm->state = VIDEOBUF_ACTIVE;
->>
->> -			goto vout_isr_err;
->> -		}
->> -		if (0 == fid) {
->> -			if (vout->cur_frm == vout->next_frm)
->> -				goto vout_isr_err;
->> -
->> -			vout->cur_frm->ts = timevalue;
->> -			vout->cur_frm->state = VIDEOBUF_DONE;
->> -			wake_up_interruptible(&vout->cur_frm->done);
->> -			vout->cur_frm = vout->next_frm;
->> -		} else if (1 == fid) {
->> -			if (list_empty(&vout->dma_queue) ||
->> -					(vout->cur_frm != vout->next_frm))
->> -				goto vout_isr_err;
->> -
->> -			vout->next_frm = list_entry(vout->dma_queue.next,
->> -					struct videobuf_buffer, queue);
->> -			list_del(&vout->next_frm->queue);
->> -
->> -			vout->next_frm->state = VIDEOBUF_ACTIVE;
->> -			addr = (unsigned long)
->> -				vout->queued_buf_addr[vout->next_frm->i] +
->> -				vout->cropped_offset;
->> -			/* First save the configuration in ovelray structure */
->> -			ret = omapvid_init(vout, addr);
->> -			if (ret)
->> -				printk(KERN_ERR VOUT_NAME
->> -						"failed to set overlay info\n");
->> -			/* Enable the pipeline and set the Go bit */
->> -			ret = omapvid_apply_changes(vout);
->> -			if (ret)
->> -				printk(KERN_ERR VOUT_NAME
->> -						"failed to change mode\n");
->> -		}
->> +	addr = (unsigned long) vout->queued_buf_addr[vout->next_frm->i]
->> +		+ vout->cropped_offset;
->>
->> -	}
->> +	/* First save the configuration in ovelray structure */
->> +	ret = omapvid_init(vout, addr);
->> +	if (ret)
->> +		printk(KERN_ERR VOUT_NAME
->> +			"failed to set overlay info\n");
->> +	/* Enable the pipeline and set the Go bit */
->> +	ret = omapvid_apply_changes(vout);
->> +	if (ret)
->> +		printk(KERN_ERR VOUT_NAME "failed to change mode\n");
->>
->>   vout_isr_err:
->>   	spin_unlock(&vout->vbq_lock);
->>   }
-> [Hiremath, Vaibhav] Overall this clean-up was required, thanks for working on this patch.
+-- 
+Regards,
 
-Thanks for the review!
-
-Archit
-
->
-> Thanks,
-> Vaibhav
->>
->> -
->>   /* Video buffer call backs */
->>
->>   /*
->> --
->> 1.7.1
->
->
-
+Laurent Pinchart
