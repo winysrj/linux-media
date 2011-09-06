@@ -1,113 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:1712 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752725Ab1IEPYu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Sep 2011 11:24:50 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [media-ctl][PATCHv5 2/5] libmediactl: split media_get_devname_sysfs from media_enum_entities
-Date: Mon,  5 Sep 2011 18:24:04 +0300
-Message-Id: <05824e3de1c4470932403064c64a7746b39e025c.1315236211.git.andriy.shevchenko@linux.intel.com>
-In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1315236211.git.andriy.shevchenko@linux.intel.com>
-References: <201109051657.21646.laurent.pinchart@ideasonboard.com>
- <6075971b959c2e808cd4ceec6540dc09b101346f.1315236211.git.andriy.shevchenko@linux.intel.com>
-In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1315236211.git.andriy.shevchenko@linux.intel.com>
-References: <6075971b959c2e808cd4ceec6540dc09b101346f.1315236211.git.andriy.shevchenko@linux.intel.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:61044 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752334Ab1IFVI0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 17:08:26 -0400
+Message-ID: <4E668BBF.4020600@gmail.com>
+Date: Tue, 06 Sep 2011 23:08:15 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Josh Wu <josh.wu@atmel.com>, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] [media] at91: add code to initialize and manage the
+ ISI_MCK for Atmel ISI driver.
+References: <1315288601-22384-1-git-send-email-josh.wu@atmel.com>	<Pine.LNX.4.64.1109060803590.14818@axis700.grange> <20110906200512.GA15083@game.jcrosoft.org>
+In-Reply-To: <20110906200512.GA15083@game.jcrosoft.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- src/media.c |   61 +++++++++++++++++++++++++++++++++-------------------------
- 1 files changed, 35 insertions(+), 26 deletions(-)
+On 09/06/2011 10:05 PM, Jean-Christophe PLAGNIOL-VILLARD wrote:
+>> I'm not entirely sure on this one, but as we had a similar situation with
+>> clocks, we decided to extablish the clock hierarchy in the board code, and
+>> only deal with the actual device clocks in the driver itself. I.e., we
+>> moved all clk_set_parent() and setting up the parent clock into the board.
+>> And I do think, this makes more sense, than doing this in the driver, not
+>> all users of this driver will need to manage the parent clock, right?
+>
+> I don't like to manage the clock in the board except if it's manadatory otherwise
+> we manage this at soc level
+> 
+> the driver does not have to manage the clock hierachy or detail implementation
+> but manage the clock enable/disable and speed depending on it's need
 
-diff --git a/src/media.c b/src/media.c
-index 050289e..5d3ff7c 100644
---- a/src/media.c
-+++ b/src/media.c
-@@ -245,15 +245,46 @@ static int media_enum_links(struct media_device *media)
- 	return ret;
- }
- 
--static int media_enum_entities(struct media_device *media)
-+static int media_get_devname_sysfs(struct media_entity *entity)
- {
--	struct media_entity *entity;
- 	struct stat devstat;
--	unsigned int size;
- 	char devname[32];
- 	char sysname[32];
- 	char target[1024];
- 	char *p;
-+	int ret;
-+
-+	sprintf(sysname, "/sys/dev/char/%u:%u", entity->info.v4l.major,
-+		entity->info.v4l.minor);
-+	ret = readlink(sysname, target, sizeof(target));
-+	if (ret < 0)
-+		return -errno;
-+
-+	target[ret] = '\0';
-+	p = strrchr(target, '/');
-+	if (p == NULL)
-+		return -EINVAL;
-+
-+	sprintf(devname, "/dev/%s", p + 1);
-+	ret = stat(devname, &devstat);
-+	if (ret < 0)
-+		return -errno;
-+
-+	/* Sanity check: udev might have reordered the device nodes.
-+	 * Make sure the major/minor match. We should really use
-+	 * libudev.
-+	 */
-+	if (major(devstat.st_rdev) == entity->info.v4l.major &&
-+	    minor(devstat.st_rdev) == entity->info.v4l.minor)
-+		strcpy(entity->devname, devname);
-+
-+	return 0;
-+}
-+
-+static int media_enum_entities(struct media_device *media)
-+{
-+	struct media_entity *entity;
-+	unsigned int size;
- 	__u32 id;
- 	int ret = 0;
- 
-@@ -293,29 +324,7 @@ static int media_enum_entities(struct media_device *media)
- 		    media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV)
- 			continue;
- 
--		sprintf(sysname, "/sys/dev/char/%u:%u", entity->info.v4l.major,
--			entity->info.v4l.minor);
--		ret = readlink(sysname, target, sizeof(target));
--		if (ret < 0)
--			continue;
--
--		target[ret] = '\0';
--		p = strrchr(target, '/');
--		if (p == NULL)
--			continue;
--
--		sprintf(devname, "/dev/%s", p + 1);
--		ret = stat(devname, &devstat);
--		if (ret < 0)
--			continue;
--
--		/* Sanity check: udev might have reordered the device nodes.
--		 * Make sure the major/minor match. We should really use
--		 * libudev.
--		 */
--		if (major(devstat.st_rdev) == entity->info.v4l.major &&
--		    minor(devstat.st_rdev) == entity->info.v4l.minor)
--			strcpy(entity->devname, devname);
-+		media_get_devname_sysfs(entity);
- 	}
- 
- 	return ret;
--- 
-1.7.5.4
+We had a similar problem in the past and we ended up having the boot loader
+setting up the parent clock for the device clock. The driver only controls clock
+gating and sets its clock frequency based on an internal IP version information,
+derived from the SoC revision.
 
+AFAIK there is also a generic API at the runtime PM core so the driver can
+register the clock(s) with it and only use pm_runtime_clk_* calls afterwards.
+
+--
+Regards,
+Sylwester
