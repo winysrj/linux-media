@@ -1,226 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36384 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752589Ab1IEMwG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 08:52:06 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 1/4] v4l: add support for selection api
-Date: Mon, 5 Sep 2011 14:52:03 +0200
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl
-References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com> <1314793703-32345-2-git-send-email-t.stanislaws@samsung.com> <20110905102508.GB955@valkosipuli.localdomain>
-In-Reply-To: <20110905102508.GB955@valkosipuli.localdomain>
+Received: from moutng.kundenserver.de ([212.227.17.10]:60587 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753073Ab1IFHAc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 03:00:32 -0400
+Date: Tue, 6 Sep 2011 09:00:29 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?ISO-8859-1?B?TEJN?= <lbm9527@qq.com>
+cc: =?ISO-8859-1?B?bGludXgtbWVkaWE=?= <linux-media@vger.kernel.org>
+Subject: Re: migrate soc-camera  to  V4L2 
+In-Reply-To: <tencent_49AB69CE6334B0340CE14349@qq.com>
+Message-ID: <Pine.LNX.4.64.1109060857270.14818@axis700.grange>
+References: <tencent_49AB69CE6334B0340CE14349@qq.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109051452.04372.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Lee
 
-On Monday 05 September 2011 12:25:08 Sakari Ailus wrote:
-> On Wed, Aug 31, 2011 at 02:28:20PM +0200, Tomasz Stanislawski wrote:
-> > This patch introduces new api for a precise control of cropping and
-> > composing features for video devices. The new ioctls are
-> > VIDIOC_S_SELECTION and VIDIOC_G_SELECTION.
-> > 
-> > Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > ---
-> > 
-> >  drivers/media/video/v4l2-compat-ioctl32.c |    2 +
-> >  drivers/media/video/v4l2-ioctl.c          |   28 +++++++++++++++++
-> >  include/linux/videodev2.h                 |   46
-> >  +++++++++++++++++++++++++++++ include/media/v4l2-ioctl.h               
-> >  |    4 ++
-> >  4 files changed, 80 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/v4l2-compat-ioctl32.c
-> > b/drivers/media/video/v4l2-compat-ioctl32.c index 61979b7..f3b9d15
-> > 100644
-> > --- a/drivers/media/video/v4l2-compat-ioctl32.c
-> > +++ b/drivers/media/video/v4l2-compat-ioctl32.c
-> > @@ -927,6 +927,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned
-> > int cmd, unsigned long arg)
-> > 
-> >  	case VIDIOC_CROPCAP:
-> >  	case VIDIOC_G_CROP:
-> > 
-> >  	case VIDIOC_S_CROP:
-> > +	case VIDIOC_G_SELECTION:
-> > 
-> > +	case VIDIOC_S_SELECTION:
-> >  	case VIDIOC_G_JPEGCOMP:
-> >  	case VIDIOC_S_JPEGCOMP:
-> > 
-> >  	case VIDIOC_QUERYSTD:
-> > diff --git a/drivers/media/video/v4l2-ioctl.c
-> > b/drivers/media/video/v4l2-ioctl.c index 002ce13..6e02b45 100644
-> > --- a/drivers/media/video/v4l2-ioctl.c
-> > +++ b/drivers/media/video/v4l2-ioctl.c
-> > @@ -225,6 +225,8 @@ static const char *v4l2_ioctls[] = {
-> > 
-> >  	[_IOC_NR(VIDIOC_CROPCAP)]          = "VIDIOC_CROPCAP",
-> >  	[_IOC_NR(VIDIOC_G_CROP)]           = "VIDIOC_G_CROP",
-> >  	[_IOC_NR(VIDIOC_S_CROP)]           = "VIDIOC_S_CROP",
-> > 
-> > +	[_IOC_NR(VIDIOC_G_SELECTION)]      = "VIDIOC_G_SELECTION",
-> > +	[_IOC_NR(VIDIOC_S_SELECTION)]      = "VIDIOC_S_SELECTION",
-> > 
-> >  	[_IOC_NR(VIDIOC_G_JPEGCOMP)]       = "VIDIOC_G_JPEGCOMP",
-> >  	[_IOC_NR(VIDIOC_S_JPEGCOMP)]       = "VIDIOC_S_JPEGCOMP",
-> >  	[_IOC_NR(VIDIOC_QUERYSTD)]         = "VIDIOC_QUERYSTD",
-> > 
-> > @@ -1714,6 +1716,32 @@ static long __video_do_ioctl(struct file *file,
-> > 
-> >  		ret = ops->vidioc_s_crop(file, fh, p);
-> >  		break;
-> >  	
-> >  	}
-> > 
-> > +	case VIDIOC_G_SELECTION:
-> > +	{
-> > +		struct v4l2_selection *p = arg;
-> > +
-> > +		if (!ops->vidioc_g_selection)
-> > +			break;
-> > +
-> > +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
-> > +
-> > +		ret = ops->vidioc_g_selection(file, fh, p);
-> > +		if (!ret)
-> > +			dbgrect(vfd, "", &p->r);
-> > +		break;
-> > +	}
-> > +	case VIDIOC_S_SELECTION:
-> > +	{
-> > +		struct v4l2_selection *p = arg;
-> > +
-> > +		if (!ops->vidioc_s_selection)
-> > +			break;
-> > +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
-> > +		dbgrect(vfd, "", &p->r);
-> > +
-> > +		ret = ops->vidioc_s_selection(file, fh, p);
-> > +		break;
-> > +	}
-> > 
-> >  	case VIDIOC_CROPCAP:
-> >  	{
-> >  	
-> >  		struct v4l2_cropcap *p = arg;
-> > 
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index fca24cc..b7471fe 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -738,6 +738,48 @@ struct v4l2_crop {
-> > 
-> >  	struct v4l2_rect        c;
-> >  
-> >  };
-> > 
-> > +/* Hints for adjustments of selection rectangle */
-> > +#define V4L2_SEL_SIZE_GE	0x00000001
-> > +#define V4L2_SEL_SIZE_LE	0x00000002
-> > +
-> > +/* Selection targets */
-> > +
-> > +/* current cropping area */
-> > +#define V4L2_SEL_CROP_ACTIVE		0
-> > +/* default cropping area */
-> > +#define V4L2_SEL_CROP_DEFAULT		1
-> > +/* cropping bounds */
-> > +#define V4L2_SEL_CROP_BOUNDS		2
-> > +/* current composing area */
-> > +#define V4L2_SEL_COMPOSE_ACTIVE		256
-> > +/* default composing area */
-> > +#define V4L2_SEL_COMPOSE_DEFAULT	257
-> > +/* composing bounds */
-> > +#define V4L2_SEL_COMPOSE_BOUNDS		258
-> > +/* current composing area plus all padding pixels */
-> > +#define V4L2_SEL_COMPOSE_PADDED		259
-> > +
-> > +/**
-> > + * struct v4l2_selection - selection info
-> > + * @type:	buffer type (do not use *_MPLANE types)
-> > + * @target:	selection target, used to choose one of possible rectangles
-> > + * @flags:	constraints flags
-> > + * @r:		coordinates of selection window
-> > + * @reserved:	for future use, rounds structure size to 64 bytes, set to
-> > zero + *
-> > + * Hardware may use multiple helper window to process a video stream.
-> > + * The structure is used to exchange this selection areas between
-> > + * an application and a driver.
-> > + */
-> > +struct v4l2_selection {
-> > +	__u32			type;
-> > +	__u32			target;
-> > +	__u32                   flags;
-> > +	struct v4l2_rect        r;
-> > +	__u32                   reserved[9];
-> > +};
-> 
-> The v4l2_selection doesn't have "which" field such as v4l2_subdev_crop and
-> v4l2_subdev_format. This field is used to differentiate between try and
-> active format / crop. Shouldn't we use the same approach in selection?
+On Tue, 6 Sep 2011, LBM wrote:
 
-We definitely should, for the subdev-level selection API. This is the V4L2 
-selection API, and V4L2 uses a VIDIOC_TRY_* approach instead.
+> hi  Guennadi
+>         I used Hans's codes about "migrate soc-camera to the new V4L2 
+> control framework".There is a problem,the programe can't go to exec the 
+> function "soc_camera_probe()".
 
-This being said, I wouldn't mind a 'which'-based approach at the V4L2 API, but 
-that got nacked pretty strongly during previous discussions (I'm not sure if 
-that was on the list or face to face).
+You don't need it.
 
-> > +
-> > 
-> >  /*
-> >  
-> >   *      A N A L O G   V I D E O   S T A N D A R D
-> >   */
-> > 
-> > @@ -2182,6 +2224,10 @@ struct v4l2_dbg_chip_ident {
-> > 
-> >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct
-> >  v4l2_event_subscription) #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91,
-> >  struct v4l2_event_subscription)
-> > 
-> > +/* Experimental crop/compose API */
-> > +#define VIDIOC_G_SELECTION	_IOWR('V', 92, struct v4l2_selection)
-> > +#define VIDIOC_S_SELECTION	_IOWR('V', 93, struct v4l2_selection)
-> > +
-> > 
-> >  /* Reminder: when adding new ioctls please add support for them to
-> >  
-> >     drivers/media/video/v4l2-compat-ioctl32.c as well! */
-> > 
-> > diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> > index dd9f1e7..9dd6e18 100644
-> > --- a/include/media/v4l2-ioctl.h
-> > +++ b/include/media/v4l2-ioctl.h
-> > @@ -194,6 +194,10 @@ struct v4l2_ioctl_ops {
-> > 
-> >  					struct v4l2_crop *a);
-> >  	
-> >  	int (*vidioc_s_crop)           (struct file *file, void *fh,
-> >  	
-> >  					struct v4l2_crop *a);
-> > 
-> > +	int (*vidioc_g_selection)      (struct file *file, void *fh,
-> > +					struct v4l2_selection *s);
-> > +	int (*vidioc_s_selection)      (struct file *file, void *fh,
-> > +					struct v4l2_selection *s);
-> > 
-> >  	/* Compression ioctls */
-> >  	int (*vidioc_g_jpegcomp)       (struct file *file, void *fh,
-> >  	
-> >  					struct v4l2_jpegcompression *a);
+> I find some information,that say it need 
+> to use the function "soc_camera_host_register()".
 
--- 
-Regards,
+Nor you need this one.
 
-Laurent Pinchart
+> but i don't know why 
+> and how to use it.  My system is "omap3530+mt9m111" and kernel is 
+> linux2.6.32.
+>          And now i find the oamp1_camera.c,maby i must fill codes in the 
+> struct soc_camera_host for my omap3.or if you did this thing already?if 
+> that can you give me the codes?
+
+You shouldn't need to touch the SoC drivers (omap). omap3isp is the 
+correct driver for you. You only need to port mt9m111 to work with omap3.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
