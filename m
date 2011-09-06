@@ -1,60 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56879 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36032 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752865Ab1IGQdk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2011 12:33:40 -0400
+	with ESMTP id S1753227Ab1IFIUB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 04:20:01 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Subject: Re: [PATCH 1/2] omap3: ISP: Fix the failure of CCDC capture during suspend/resume
-Date: Wed, 7 Sep 2011 12:36:34 +0200
-Cc: "Ravi, Deepthy" <deepthy.ravi@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-References: <1312984992-19315-1-git-send-email-deepthy.ravi@ti.com> <201108302307.47564.laurent.pinchart@ideasonboard.com> <FCCFB4CDC6E5564B9182F639FC356087037AF843C7@dbde02.ent.ti.com>
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087037AF843C7@dbde02.ent.ti.com>
+To: Sitsofe Wheeler <sitsofe@yahoo.com>
+Subject: Re: BUG: unable to handle kernel paging request at 6b6b6bcb (v4l2_device_disconnect+0x11/0x30)
+Date: Tue, 6 Sep 2011 10:20:00 +0200
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Dave Young <hidave.darkstar@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <20110829204846.GA14699@sucs.org> <201109051216.42579.hverkuil@xs4all.nl> <20110905223102.GA26980@sucs.org>
+In-Reply-To: <20110905223102.GA26980@sucs.org>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109071236.34883.laurent.pinchart@ideasonboard.com>
+Message-Id: <201109061020.01208.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On Wednesday 07 September 2011 12:10:23 Koyamangalath, Abhilash wrote:
-> On Tue, Aug 30, 2011  Laurent Pinchart wrote:
-> > On Wednesday 10 August 2011 16:03:12 Deepthy Ravi wrote:
-> >> From: Abhilash K V <abhilash.kv@ti.com>
-> >> 
-> >> While resuming from the "suspended to memory" state,
-> >> occasionally CCDC fails to get enabled and thus fails
-> >> to capture frames any more till the next suspend/resume
-> >> is issued.
-> >> This is a race condition which happens only when a CCDC
-> >> frame-completion ISR is pending even as ISP device's
-> >> isp_pm_prepare() is getting called and only one buffer
-> >> is left on the DMA queue.
-> >> The DMA queue buffers are thus depleted which results in
-> >> its underrun.So when ISP resumes there are no buffers on
-> >> the queue (as the application which can issue buffers is
-> >> yet to resume) to start video capture.
-> >> This fix addresses this issue by dequeuing and enqueing
-> >> the last buffer in isp_pm_prepare() after its DMA gets
-> >> completed. Thus,when ISP resumes it always finds atleast
-> >> one buffer on the DMA queue - this is true if application
-> >> uses only 3 buffers.
+On Tuesday 06 September 2011 00:31:03 Sitsofe Wheeler wrote:
+> On Mon, Sep 05, 2011 at 12:16:42PM +0200, Hans Verkuil wrote:
+> > On Monday, September 05, 2011 12:13:26 Hans Verkuil wrote:
+> > > The original order is correct, but what I missed is that for drivers
+> > > that release (free) everything in the videodev release callback the
+> > > v4l2_device struct is also freed and v4l2_device_put will fail.
+> > > 
+> > > To fix this, add this code just before the vdev->release call:
+> > > 	/* Do not call v4l2_device_put if there is no release callback set. */
+> > > 	if (v4l2_dev->release == NULL)
+> > > 	
+> > > 		v4l2_dev = NULL;
+> > > 
+> > > If there is no release callback, then the refcounting is pointless
+> > > anyway.
+> > > 
+> > > This should work.
 > > 
-> > How is that problem specific to the CCDC ? Can't it be reproduce at the
-> > preview engine or resizer output as well ?
+> > Note that in the long run using the v4l2_device release callback
+> > instead of the videodev release is better. But it's a lot of work to
+> > convert everything so that's long term. I'm quite surprised BTW that
+> > this bug wasn't found much earlier.
 > 
-> Yes, I believe this issue would crop with preview and resizer too though I
-> have not been able to try these out.
+> This inline patch fixes the second "poison overwritten" problem so:
+> Tested-by: Sitsofe Wheeler <sitsofe@yahoo.com>
+> 
+> However, it does not prevent the original oops that was reported in the
+> original message. Yang Ruirui's patch in
+> https://lkml.org/lkml/2011/9/1/74 seems to be required to resolve
+> that initial problem - can it be ACK'd? Yang's patch is reproduced
+> inline below:
+> 
+> For uvc device, dev->vdev.dev is the &intf->dev,
+> uvc_delete code is as below:
+> 	usb_put_intf(dev->intf);
+> 	usb_put_dev(dev->udev);
+> 
+> 	uvc_status_cleanup(dev);
+> 	uvc_ctrl_cleanup_device(dev);
+> 
+> ## the intf dev is released above, so below code will oops.
+> 
+> 	if (dev->vdev.dev)
+> 		v4l2_device_unregister(&dev->vdev);
+> Fix it by get_device in v4l2_device_register and put_device in
+> v4l2_device_disconnect
 
-That's my belief as well. In that case the fix should be generic, not CCDC-
-specific.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/video/v4l2-device.c |    2 ++
+>  1 file changed, 2 insertions(+)
+> diff --git a/drivers/media/video/v4l2-device.c
+> b/drivers/media/video/v4l2-device.c index c72856c..e6a2c3b 100644
+> --- a/drivers/media/video/v4l2-device.c
+> +++ b/drivers/media/video/v4l2-device.c
+> @@ -38,6 +38,7 @@ int v4l2_device_register(struct device *dev, struct
+> v4l2_device *v4l2_dev) mutex_init(&v4l2_dev->ioctl_lock);
+>  	v4l2_prio_init(&v4l2_dev->prio);
+>  	kref_init(&v4l2_dev->ref);
+> +	get_device(dev);
+>  	v4l2_dev->dev = dev;
+>  	if (dev == NULL) {
+>  		/* If dev == NULL, then name must be filled in by the caller */
+> @@ -93,6 +94,7 @@ void v4l2_device_disconnect(struct v4l2_device *v4l2_dev)
+> 
+>  	if (dev_get_drvdata(v4l2_dev->dev) == v4l2_dev)
+>  		dev_set_drvdata(v4l2_dev->dev, NULL);
+> +	put_device(v4l2_dev->dev);
+>  	v4l2_dev->dev = NULL;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_device_disconnect);
 
 -- 
 Regards,
