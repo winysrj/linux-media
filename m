@@ -1,76 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:60190 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752573Ab1ICQc4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Sep 2011 12:32:56 -0400
-Message-ID: <4E6256B2.7010407@gmail.com>
-Date: Sat, 03 Sep 2011 18:32:50 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:50846 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754632Ab1IFOMt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 10:12:49 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: "Ravi, Deepthy" <deepthy.ravi@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Date: Tue, 6 Sep 2011 19:42:35 +0530
+Subject: RE: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
+Message-ID: <19F8576C6E063C45BE387C64729E739404EC6BEE0C@dbde02.ent.ti.com>
+References: <1313761725-6614-1-git-send-email-deepthy.ravi@ti.com>
+ <201109041101.05028.laurent.pinchart@ideasonboard.com>
+ <4E637DEC.5080507@infradead.org>
+ <201109051449.50744.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201109051449.50744.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-samsung-soc@vger.kernel.org, mchehab@redhat.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Subject: Re: [PATCH 0/19 v4] s5p-fimc driver conversion to media controller
- and control framework
-References: <1314891023-14227-1-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1314891023-14227-1-git-send-email-s.nawrocki@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/01/2011 05:30 PM, Sylwester Nawrocki wrote:
-> Hello,
->
-> following is a fourth version of the patchset converting s5p-fimc driver
-> to the media controller API and the new control framework.
->
-> Mauro, could you please have a look at the patches and let me know of any doubts?
-> I tried to provide possibly detailed description of what each patch does and why.
->
-> The changeset is available at:
->    http://git.infradead.org/users/kmpark/linux-2.6-samsung
->    branch: v4l_fimc_for_mauro
->
-> on top of patches from Marek's 'Videobuf2&  FIMC fixes" pull request
-> which this series depends on.
-...
->
-> Sylwester Nawrocki (19):
->    s5p-fimc: Remove registration of video nodes from probe()
->    s5p-fimc: Remove sclk_cam clock handling
->    s5p-fimc: Limit number of available inputs to one
->    s5p-fimc: Remove sensor management code from FIMC capture driver
->    s5p-fimc: Remove v4l2_device from video capture and m2m driver
->    s5p-fimc: Add the media device driver
->    s5p-fimc: Conversion to use struct v4l2_fh
->    s5p-fimc: Convert to the new control framework
->    s5p-fimc: Add media operations in the capture entity driver
->    s5p-fimc: Add PM helper function for streaming control
->    s5p-fimc: Correct color format enumeration
->    s5p-fimc: Convert to use media pipeline operations
->    s5p-fimc: Add subdev for the FIMC processing block
->    s5p-fimc: Add support for JPEG capture
->    s5p-fimc: Add v4l2_device notification support for single frame
->      capture
->    s5p-fimc: Use consistent names for the buffer list functions
->    s5p-fimc: Add runtime PM support in the camera capture driver
->    s5p-fimc: Correct crop offset alignment on exynos4
->    s5p-fimc: Remove single-planar capability flags
 
-oops, I've done this posting wrong, the first patch is missing here :(
--> s5p-fimc: Add media entity initialization
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Monday, September 05, 2011 6:20 PM
+> To: Mauro Carvalho Chehab
+> Cc: Hiremath, Vaibhav; Ravi, Deepthy; linux-media@vger.kernel.org; linux-
+> kernel@vger.kernel.org; linux-omap@vger.kernel.org
+> Subject: Re: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
+> 
+> Hi Mauro,
+> 
+> On Sunday 04 September 2011 15:32:28 Mauro Carvalho Chehab wrote:
+> > Em 04-09-2011 06:01, Laurent Pinchart escreveu:
+> > > On Sunday 04 September 2011 00:21:38 Mauro Carvalho Chehab wrote:
+> > >> Em 24-08-2011 10:25, Laurent Pinchart escreveu:
+> > >>> On Wednesday 24 August 2011 14:19:01 Hiremath, Vaibhav wrote:
+> > >>>> On Wednesday, August 24, 2011 5:00 PM Laurent Pinchart wrote:
+> > >>>>> On Wednesday 24 August 2011 13:21:27 Ravi, Deepthy wrote:
+> > >>>>>> On Wed, Aug 24, 2011 at 4:47 PM, Laurent Pinchart wrote:
+> > >>>>>>> On Friday 19 August 2011 15:48:45 Deepthy Ravi wrote:
+> > >>>>>>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> > >>>>>>>>
+> > >>>>>>>> Fix the build break caused when CONFIG_MEDIA_CONTROLLER
+> > >>>>>>>> option is disabled and if any sensor driver has to be used
+> > >>>>>>>> between MC and non MC framework compatible devices.
+> > >>>>>>>>
+> > >>>>>>>> For example,if tvp514x video decoder driver migrated to
+> > >>>>>>>> MC framework is being built without CONFIG_MEDIA_CONTROLLER
+> > >>>>>>>> option enabled, the following error messages will result.
+> > >>>>>>>> drivers/built-in.o: In function `tvp514x_remove':
+> > >>>>>>>> drivers/media/video/tvp514x.c:1285: undefined reference to
+> > >>>>>>>> `media_entity_cleanup'
+> > >>>>>>>> drivers/built-in.o: In function `tvp514x_probe':
+> > >>>>>>>> drivers/media/video/tvp514x.c:1237: undefined reference to
+> > >>>>>>>> `media_entity_init'
+<snip>
+> I don't mind splitting the config option. An alternative would be to
+> compile
+> media_entity_init() and media_entity_cleanup() based on
+> CONFIG_MEDIA_SUPPORT
+> instead of CONFIG_MEDIA_CONTROLLER, but that looks a bit hackish to me.
+> 
+> > Also, I don't like the idea of increasing drivers complexity for the
+> > existing drivers that work properly without MC. All those core
+> conversions
+> > that were done in the last two years caused already too much instability
+> > to them.
+> >
+> > We should really avoid touching on them again for something that won't
+> be
+> > adding any new feature nor fixing any known bug.
+> 
+> We don't have to convert them all in one go right now, we can implement
+> pad-
+> level operations support selectively when a subdev driver becomes used by
+> an
+> MC-enabled host/bridge driver.
+> 
+[Hiremath, Vaibhav] I completely agree that we should not be duplicating the code just for sake of it.
 
-Still the patch set is complete at git repository as indicated above.
-I'm sorry for the confusion.
+Isn't the wrapper approach seems feasible here? 
 
---
-Regards,
-Sylwester
+Thanks,
+Vaibhav
 
-
-
-
-
+> > > This will result in no modification to the userspace.
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
