@@ -1,50 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:58644 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566Ab1IPR2t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Sep 2011 13:28:49 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LRM0001BLVZDO@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2011 18:28:47 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRM00KWDLVYOD@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2011 18:28:47 +0100 (BST)
-Date: Fri, 16 Sep 2011 19:28:41 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 0/2] v4l: Add media bus polarity flags for HREF signal
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	g.liakhovetski@gmx.de, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <1316194123-21185-1-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:39804 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753424Ab1IFLpz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 07:45:55 -0400
+Date: Tue, 6 Sep 2011 14:45:48 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [RFC/PATCH 0/1] Ignore ctrl_class
+Message-ID: <20110906114548.GG1393@valkosipuli.localdomain>
+References: <20110906110742.GE1393@valkosipuli.localdomain>
+ <201109061320.27093.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201109061320.27093.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Hans,
 
-The following patche adds support for HREF signal polarity configuration
-through the parallel media bus flags.
-The second one just converts s5p-fimc driver to use generic flags.
+On Tue, Sep 06, 2011 at 01:20:26PM +0200, Hans Verkuil wrote:
+> On Tuesday, September 06, 2011 13:07:42 Sakari Ailus wrote:
+> > Hi,
+> > 
+> > I remember being in a discussion a while ago regarding the requirement of
+> > having all the controls belonging to the same class in
+> > VIDIOC_{TRY,S,G}_EXT_CTRLS. The answer I remember was that there was a
+> > historical reason for this and it no longer exists.
+> 
+> The original rule was that all controls have to belong to the same class. This was
+> done to simplify drivers. Drivers that use the control framework can handle a class
+> of 0, which means that the controls can be of any class.
+> 
+> But we still have drivers that implement S_EXT_CTRLS but do not use the control
+> framework, and for those this restriction is still valid. Usually such drivers will only
+> handle MPEG class controls through that API.
+> 
+> So I don't think this restriction can be lifted as long as there are drivers that do not
+> use the control framework.
 
+All the drivers which implement *_EXT_CTRLS and check for ctrl_class do the
+check for a single class. All the references for ctrl_class in individual
+drivers (which actually were only checks that the user has set the field
+correctly) are removed by the patch I posted.
 
-Sylwester Nawrocki (2):
-  v4l2: Add the parallel bus HREF signal polarity flags
-  s5p-fimc: Convert to use generic bus polarity flags
+So I don't see a reason why we couldn't just say "please set this to zero
+from now on".
 
- drivers/media/video/s5p-fimc/fimc-reg.c |    8 ++++----
- include/media/s5p_fimc.h                |    7 +------
- include/media/v4l2-mediabus.h           |   14 ++++++++------
- 3 files changed, 13 insertions(+), 16 deletions(-)
-
-
-Thanks,
---
-Sylwester Nawrocki
-Samsung Poland R&D Center
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
