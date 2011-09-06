@@ -1,109 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53268 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755876Ab1IHX6l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 19:58:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: Re: [PATCH 1/8] omap3evm: Enable regulators for camera interface
-Date: Thu, 8 Sep 2011 18:51:52 +0200
-Cc: linux-omap@vger.kernel.org, tony@atomide.com,
-	linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, mchehab@infradead.org,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	Vaibhav Hiremath <hvaibhav@ti.com>
-References: <1315488831-15998-1-git-send-email-deepthy.ravi@ti.com>
-In-Reply-To: <1315488831-15998-1-git-send-email-deepthy.ravi@ti.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4678 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753940Ab1IFM4U convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 08:56:20 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC/PATCH 0/1] Ignore ctrl_class
+Date: Tue, 6 Sep 2011 14:55:39 +0200
+Cc: linux-media@vger.kernel.org
+References: <20110906110742.GE1393@valkosipuli.localdomain> <201109061320.27093.hverkuil@xs4all.nl> <20110906114548.GG1393@valkosipuli.localdomain>
+In-Reply-To: <20110906114548.GG1393@valkosipuli.localdomain>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109081851.53078.laurent.pinchart@ideasonboard.com>
+Content-Type: Text/Plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Message-Id: <201109061455.39177.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On Thursday 08 September 2011 15:33:51 Deepthy Ravi wrote:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
+On Tuesday, September 06, 2011 13:45:48 Sakari Ailus wrote:
+> Hi Hans,
 > 
-> Enabled 1v8 and 2v8 regulator output, which is being used by
-> camera module.
-
-Thanks for the patch. Just one minor comment below.
-
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
-> ---
->  arch/arm/mach-omap2/board-omap3evm.c |   40
-> ++++++++++++++++++++++++++++++++++ 1 files changed, 40 insertions(+), 0
-> deletions(-)
+> On Tue, Sep 06, 2011 at 01:20:26PM +0200, Hans Verkuil wrote:
+> > On Tuesday, September 06, 2011 13:07:42 Sakari Ailus wrote:
+> > > Hi,
+> > > 
+> > > I remember being in a discussion a while ago regarding the requirement of
+> > > having all the controls belonging to the same class in
+> > > VIDIOC_{TRY,S,G}_EXT_CTRLS. The answer I remember was that there was a
+> > > historical reason for this and it no longer exists.
+> > 
+> > The original rule was that all controls have to belong to the same class. This was
+> > done to simplify drivers. Drivers that use the control framework can handle a class
+> > of 0, which means that the controls can be of any class.
+> > 
+> > But we still have drivers that implement S_EXT_CTRLS but do not use the control
+> > framework, and for those this restriction is still valid. Usually such drivers will only
+> > handle MPEG class controls through that API.
+> > 
+> > So I don't think this restriction can be lifted as long as there are drivers that do not
+> > use the control framework.
 > 
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c
-> b/arch/arm/mach-omap2/board-omap3evm.c index a1184b3..8333ee4 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -273,6 +273,44 @@ static struct omap_dss_board_info omap3_evm_dss_data =
-> { .default_device	= &omap3_evm_lcd_device,
->  };
+> All the drivers which implement *_EXT_CTRLS and check for ctrl_class do the
+> check for a single class. All the references for ctrl_class in individual
+> drivers (which actually were only checks that the user has set the field
+> correctly) are removed by the patch I posted.
 > 
-> +static struct regulator_consumer_supply omap3evm_vaux3_supply = {
-> +	.supply         = "cam_1v8",
-> +};
-> +
-> +static struct regulator_consumer_supply omap3evm_vaux4_supply = {
-> +	.supply         = "cam_2v8",
-> +};
-> +
-> +/* VAUX3 for CAM_1V8 */
-> +static struct regulator_init_data omap3evm_vaux3 = {
-> +	.constraints = {
-> +		.min_uV                 = 1800000,
-> +		.max_uV                 = 1800000,
-> +		.apply_uV               = true,
-> +		.valid_modes_mask       = REGULATOR_MODE_NORMAL
-> +					| REGULATOR_MODE_STANDBY,
-> +		.valid_ops_mask         = REGULATOR_CHANGE_MODE
-> +					| REGULATOR_CHANGE_STATUS,
-> +		},
-> +	.num_consumer_supplies  = 1,
-> +	.consumer_supplies      = &omap3evm_vaux3_supply,
-
-I might be wrong, but I think we're standardizing on using REGULATOR_SUPPLY 
-arrays as described in commit 786b01a8c1db0c0decca55d660a2a3ebd7cfb26b 
-("cleanup regulator supply definitions in mach-omap2").
-
-> +};
-> +
-> +/* VAUX4 for CAM_2V8 */
-> +static struct regulator_init_data omap3evm_vaux4 = {
-> +	.constraints = {
-> +		.min_uV                 = 1800000,
-> +		.max_uV                 = 1800000,
-> +		.apply_uV               = true,
-> +		.valid_modes_mask       = REGULATOR_MODE_NORMAL
-> +			| REGULATOR_MODE_STANDBY,
-> +		.valid_ops_mask         = REGULATOR_CHANGE_MODE
-> +			| REGULATOR_CHANGE_STATUS,
-> +	},
-> +	.num_consumer_supplies  = 1,
-> +	.consumer_supplies      = &omap3evm_vaux4_supply,
-> +};
-> +
->  static struct regulator_consumer_supply omap3evm_vmmc1_supply[] = {
->  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
->  };
-> @@ -499,6 +537,8 @@ static struct twl4030_platform_data omap3evm_twldata =
-> { .vio		= &omap3evm_vio,
->  	.vmmc1		= &omap3evm_vmmc1,
->  	.vsim		= &omap3evm_vsim,
-> +	.vaux3          = &omap3evm_vaux3,
-> +	.vaux4          = &omap3evm_vaux4,
->  };
+> So I don't see a reason why we couldn't just say "please set this to zero
+> from now on".
 > 
->  static int __init omap3_evm_i2c_init(void)
+> 
 
--- 
+>From what I remember (and I may be wrong by now) the drivers that implement S_EXT_CTRLS
+by themselves typically only support ext_ctrls for controls of a specific class (MPEG usually).
+
+Dropping the check means that: 1) applications may think they can use any control when they
+can't for a certain group of drivers, and 2) applications can no longer detect up front whether
+a driver supports mixing of control classes or not.
+
+The way you can do 2) is by setting the control class to 0 and calling G/S/TRY_EXT_CTRLS with
+0 controls.
+
+Once everything is converted I don't mind dropping this check, but until then I believe it should
+stay.
+
 Regards,
 
-Laurent Pinchart
+	Hans
