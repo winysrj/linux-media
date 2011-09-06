@@ -1,121 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:63694 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758618Ab1I3Muu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 08:50:50 -0400
-Received: by yib18 with SMTP id 18so1459482yib.19
-        for <linux-media@vger.kernel.org>; Fri, 30 Sep 2011 05:50:49 -0700 (PDT)
-Message-ID: <4E85BB23.70300@linaro.org>
-Date: Fri, 30 Sep 2011 18:20:43 +0530
-From: Subash Patel <subash.ramaswamy@linaro.org>
-MIME-Version: 1.0
-To: Kamil Debski <k.debski@samsung.com>
-CC: 'Sachin Kamat' <sachin.kamat@linaro.org>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	mchehab@infradead.org, patches@linaro.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 1/1] [media] MFC: Change MFC firmware binary name
-References: <1317380162-16344-1-git-send-email-sachin.kamat@linaro.org> <001201cc7f69$9e690c80$db3b2580$%debski@samsung.com>
-In-Reply-To: <001201cc7f69$9e690c80$db3b2580$%debski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:20581 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755006Ab1IFPaV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Sep 2011 11:30:21 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 08/10] Use a saner way to disable screensaver
+Date: Tue,  6 Sep 2011 12:29:54 -0300
+Message-Id: <1315322996-10576-8-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1315322996-10576-7-git-send-email-mchehab@redhat.com>
+References: <1315322996-10576-1-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-2-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-3-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-4-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-5-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-6-git-send-email-mchehab@redhat.com>
+ <1315322996-10576-7-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Backport a Fedora patch that improves the way to disable
+the screensaver:
 
-There is option in menu->"Device Drivers"->"Generic Driver 
-Options"->"External firmware blobs to build into the kernel binary".
-I have used this many times instead of /lib/firmware mechanism. If 
-someone chooses to add firmware in that way, and gives different name, 
-then this code too can break. So I have proposed another way to solve 
-that. Have a look into this.
+commit 36cc9d2e1d762eddf5d8278fa58edd4680a7b449
+Author: Tomas Smetana <tsmetana@zaphod.usersys.redhat.com>
+Date:   Mon Nov 8 22:01:57 2010 +0100
 
-Regards,
-Subash
+    - fix #571339 use a saner way to disable screensaver, thanks to Debian folks
+      for the patch, namely Resul Cetin
 
-On 09/30/2011 05:38 PM, Kamil Debski wrote:
-> Hi Sachin,
->
-> Thanks for the patch. I agree with you - MFC module could be used in other
-> SoCs as well.
->
->> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
->> Sent: 30 September 2011 12:56
->>
->> This patches renames the MFC firmware binary to avoid SoC name in it.
->>
->> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
->
-> Acked-by: Kamil Debski<k.debski@samsung.com>
->
->> ---
->>   drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c |    4 ++--
->>   1 files changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
->> b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
->> index 5f4da80..f2481a8 100644
->> --- a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
->> +++ b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
->> @@ -38,7 +38,7 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev
->> *dev)
->>   	 * into kernel. */
->>   	mfc_debug_enter();
->>   	err = request_firmware((const struct firmware **)&fw_blob,
->> -				     "s5pc110-mfc.fw", dev->v4l2_dev.dev);
->> +				     "s5p-mfc.fw", dev->v4l2_dev.dev);
->>   	if (err != 0) {
->>   		mfc_err("Firmware is not present in the /lib/firmware directory
->> nor compiled in kernel\n");
->>   		return -EINVAL;
->> @@ -116,7 +116,7 @@ int s5p_mfc_reload_firmware(struct s5p_mfc_dev *dev)
->>   	 * into kernel. */
->>   	mfc_debug_enter();
->>   	err = request_firmware((const struct firmware **)&fw_blob,
->> -				     "s5pc110-mfc.fw", dev->v4l2_dev.dev);
->> +				     "s5p-mfc.fw", dev->v4l2_dev.dev);
-int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev *dev)
-{
-         struct firmware *fw_blob;
-         size_t bank2_base_phys;
-         void *b_base;
-         int err;
-         /* default name */
-         char firmware_name[30] = "s5p-mfc.fw";
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ configure.ac  |   10 +++++-----
+ src/xcommon.c |   50 +++++++++++++++++++++++---------------------------
+ 2 files changed, 28 insertions(+), 32 deletions(-)
 
-         /* Firmare has to be present as a separate file or compiled
-          * into kernel. */
-         mfc_debug_enter();
+diff --git a/configure.ac b/configure.ac
+index 6cdedfb..f102b5b 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -140,11 +140,11 @@ if test x"$no_x" != x"yes"; then
+ 	    X11_LIBS="$X11_LIBS -lXinerama"],,
+ 	    [$X_PRE_LIBS $X_LIBS -lX11 $X_EXTRA_LIBS -lXext])
+ 
+-	dnl check for XTest
+-        AC_CHECK_LIB([Xtst],[XTestFakeKeyEvent],
+-            [AC_DEFINE([HAVE_XTESTEXTENSION],,[XTest support])
+-            X11_LIBS="$X11_LIBS -lXtst"],,
+-	    [$X_PRE_LIBS $X_LIBS -lX11 $X_EXTRA_LIBS -lXext])
++	dnl check for XSs
++	PKG_CHECK_MODULES(XSS, xscrnsaver >= 1.2.0,
++		AC_DEFINE([HAVE_XSSEXTENSION],,[XScrnSaver support])
++		AC_SUBST(XSS_LIBS)
++		X11_LIBS="$X11_LIBS $XSS_LIBS",)
+ 
+ 	dnl check for Xvidmode
+ 	AC_CHECK_LIB([Xxf86vm],[XF86VidModeGetModeLine],
+diff --git a/src/xcommon.c b/src/xcommon.c
+index 8e3be4c..681b895 100644
+--- a/src/xcommon.c
++++ b/src/xcommon.c
+@@ -45,8 +45,8 @@
+ #include <X11/keysym.h>
+ #include <X11/cursorfont.h>
+ #include <X11/extensions/XShm.h>
+-#ifdef HAVE_XTESTEXTENSION
+-#include <X11/extensions/XTest.h>
++#ifdef HAVE_XSSEXTENSION
++#include <X11/extensions/scrnsaver.h>
+ #endif
+ 
+ #include "xfullscreen.h"
+@@ -67,7 +67,7 @@ static Window wm_window;
+ static Window fs_window;
+ static Window output_window;
+ static GC gc;
+-static int have_xtest;
++static int have_xss;
+ static int output_width, output_height;
+ static int output_aspect;
+ static int output_on_root;
+@@ -107,10 +107,6 @@ static Atom wm_delete_window;
+ static Atom xawtv_station;
+ static Atom xawtv_remote;
+ 
+-#ifdef HAVE_XTESTEXTENSION
+-static KeyCode kc_shift_l; /* Fake key to send. */
+-#endif
+-
+ static area_t video_area;
+ static area_t window_area;
+ static area_t scale_area;
+@@ -248,12 +244,12 @@ static void x11_wait_mapped( Display *dpy, Window win )
+     } while ( (event.type != MapNotify) || (event.xmap.event != win) );
+ }
+ 
+-static int have_xtestextention( void )
++static int have_xssextention( void )
+ {  
+-#ifdef HAVE_XTESTEXTENSION
+-    int dummy1, dummy2, dummy3, dummy4;
++#ifdef HAVE_XSSEXTENSION
++    int dummy1, dummy2;
+   
+-    return (XTestQueryExtension( display, &dummy1, &dummy2, &dummy3, &dummy4 ) == True);
++    return (XScreenSaverQueryExtension( display, &dummy1, &dummy2 ) == True);
+ #endif
+     return 0;
+ }
+@@ -843,7 +839,7 @@ int xcommon_open_display( const char *user_geometry, int aspect, int verbose )
+     output_aspect = aspect;
+     output_height = 576;
+ 
+-    have_xtest = 0;
++    have_xss = 0;
+     output_on_root = 0;
+     has_ewmh_state_fullscreen = 0;
+     has_ewmh_state_above = 0;
+@@ -927,13 +923,16 @@ int xcommon_open_display( const char *user_geometry, int aspect, int verbose )
+         xfullscreen_print_summary( xf );
+     }
+ 
+-#ifdef HAVE_XTESTEXTENSION
+-    kc_shift_l = XKeysymToKeycode( display, XK_Shift_L );
+-#endif
+-    have_xtest = have_xtestextention();
+-    if( have_xtest && xcommon_verbose ) {
+-        fprintf( stderr, "xcommon: Have XTest, will use it to ping the screensaver.\n" );
++    have_xss = have_xssextention();
++    if( have_xss && xcommon_verbose ) {
++        fprintf( stderr, "xcommon: Have XSS, will use it to disable the screensaver.\n" );
++    }
++
++#ifdef HAVE_XSSEXTENSION
++    if ( have_xss ) {
++        XScreenSaverSuspend( display, True );
+     }
++#endif
+ 
+     /* Initially, get the best width for our height. */
+     output_width = xv_get_width_for_height( output_height );
+@@ -1112,15 +1111,7 @@ void xcommon_ping_screensaver( void )
+     gettimeofday( &curtime, 0 );
+     if( timediff( &curtime, &last_ping_time ) > SCREENSAVER_PING_TIME ) { 
+         last_ping_time = curtime;
+-#ifdef HAVE_XTESTEXTENSION
+-        if( have_xtest ) {
+-            XTestFakeKeyEvent( display, kc_shift_l, True, CurrentTime );
+-            XTestFakeKeyEvent( display, kc_shift_l, False, CurrentTime );
+-        } else 
+-#endif
+-        {
+-            XResetScreenSaver( display );
+-        }
++        XResetScreenSaver( display );
+     }
+ }
+ 
+@@ -1715,6 +1706,11 @@ void xcommon_poll_events( input_t *in )
+ 
+ void xcommon_close_display( void )
+ {
++#ifdef HAVE_XSSEXTENSION
++    if ( have_xss ) {
++        XScreenSaverSuspend( display, False );
++    }
++#endif
+     XDestroyWindow( display, output_window );
+     XDestroyWindow( display, wm_window );
+     XDestroyWindow( display, fs_window );
+-- 
+1.7.6.1
 
-#ifdef CONFIG_EXTRA_FIRMWARE
-         snprintf(firmware_name, sizeof(firmware_name), "%s",
-                                         CONFIG_EXTRA_FIRMWARE);
-#endif
-         err = request_firmware((const struct firmware **)&fw_blob,
-                                      firmware_name, dev->v4l2_dev.dev);
-         if (err != 0) {
-                 mfc_err("Firmware is not present in the /lib/firmware 
-directory nor compiled in kernel\n");
-                 return -EINVAL;
-         }
-<snip>
-
->>   	if (err != 0) {
->>   		mfc_err("Firmware is not present in the /lib/firmware directory
->> nor compiled in kernel\n");
->>   		return -EINVAL;
->> --
->> 1.7.4.1
->
-> Best regards,
-> --
-> Kamil Debski
-> Linux Platform Group
-> Samsung Poland R&D Center
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
