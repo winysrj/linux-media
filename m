@@ -1,79 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54263 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750821Ab1I0HBZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 03:01:25 -0400
-Message-ID: <4E8174D8.6060001@ti.com>
-Date: Tue, 27 Sep 2011 12:31:44 +0530
-From: Archit Taneja <archit@ti.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:37400 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753729Ab1IFSlG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 14:41:06 -0400
+Received: by bke11 with SMTP id 11so5685075bke.19
+        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2011 11:41:04 -0700 (PDT)
 MIME-Version: 1.0
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-CC: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	"Semwal, Sumit" <sumit.semwal@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in omap_vout_isr
-References: <1316167233-1437-1-git-send-email-archit@ti.com>	 <1316167233-1437-4-git-send-email-archit@ti.com>	 <19F8576C6E063C45BE387C64729E739404EC941F86@dbde02.ent.ti.com>	 <4E7AD29C.4070804@ti.com>	 <19F8576C6E063C45BE387C64729E739404ECA54614@dbde02.ent.ti.com>	 <CAB2ybb8ab9jSFB1J_CQfObB11QcdtQ=6Kf9zdbg0v5Jckf09sw@mail.gmail.com>	 <CAB2ybb-rZgDvS9Bo6AJF=KVd0irXHa0S0LrPJ=SWr0daJ6gX1w@mail.gmail.com>	 <CAB2ybb8UGC=HK7jpYaDym8Y8iy=omwWiXrV7cdRw3k20e0NiZw@mail.gmail.com>	 <19F8576C6E063C45BE387C64729E739404ECA548CF@dbde02.ent.ti.com> <1317106147.1991.10.camel@deskari> <19F8576C6E063C45BE387C64729E739404ECA548E1@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404ECA548E1@dbde02.ent.ti.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4E666417.9090706@redhat.com>
+References: <1315322996-10576-1-git-send-email-mchehab@redhat.com>
+	<4E663EE2.3050403@redhat.com>
+	<CAGoCfiz9YAHYNJdEAT51fyfLY8RS_TcRpzKzLYCdNFCc3JcbEA@mail.gmail.com>
+	<4E666417.9090706@redhat.com>
+Date: Tue, 6 Sep 2011 14:41:03 -0400
+Message-ID: <CAGoCfiy9QK1vcrDSBw7J382LXAdE+YzN3SdAu+fCkD-6-8M8=g@mail.gmail.com>
+Subject: Re: [PATCH 01/10] alsa_stream: port changes made on xawtv3
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 27 September 2011 12:24 PM, Hiremath, Vaibhav wrote:
->> -----Original Message-----
->> From: Valkeinen, Tomi
->> Sent: Tuesday, September 27, 2011 12:19 PM
->> To: Hiremath, Vaibhav
->> Cc: Semwal, Sumit; Taneja, Archit; linux-omap@vger.kernel.org; linux-
->> media@vger.kernel.org
->> Subject: RE: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
->> omap_vout_isr
->>
->> On Tue, 2011-09-27 at 12:09 +0530, Hiremath, Vaibhav wrote:
->>> Please look at the patch carefully, it does exactly same thing. I
->>> understand the use-case what Archit explained in the last email but in
->>> this patch context, the use-case change anything here in this patch.
->>
->> With the current code, the ISR code will be ran for a panel connected to
->> LCD1 output when VSYNC for LCD2 happens.
->>
->> After Archit's patch, this no longer happens.
->>
->> I don't know what the ISR code does, so it may not cause any problems,
->> but it sure doesn't sound right running the code when a wrong interrupt
->> happens.
->>
->
-> If you look at the patch, the patch barely checks for the condition and
-> makes sure that the interrupt is either of VSYNC or VSYNC2, else return. Rest everything is same.
+On Tue, Sep 6, 2011 at 2:19 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+> I think that what should be done is contact the debian / ubuntu maintainers,
+> get any interesting fixes they have which the kl version misses merged,
+> and then just declare the kl version as being the new official upstream
+> (with the blessing of the debian / ubuntu guys, and if possible also
+> with the blessing of the original authors).
 
-It doesn't only make sure that the interrupt it one of them, it uses it 
-later too in the check:
+It has always been my intention to get the Debian/Ubuntu patches
+merged (as well as other distros).  My thoughts behind renaming were
+oriented around the notion that that there are more distros out there
+than just Fedora/Ubuntu/Debian, but that may be something that isn't
+really a concern.  Also, I had no idea whether the distros would
+actually switch over to the Kernel Labs version as the official
+upstream source, so providing it under a different name would in
+theory allow both packages to be available in parallel.
 
-if (!(irqstatus & irq))
-	goto vout_isr_err;
-...
-...
+>From a practical standpoint, the Ubuntu folks have the original tvtime
+tarball and all their changes in one patch, which is clearly a bunch
+of patches that are mashed together probably in their build system.  I
+need to reach out to them to find where they have an actual SCM tree
+or the individual patches.  They've got a bunch of patches which would
+be good to get into a single tree (autobuild fixes, cross-compilation,
+locale updates, etc).
 
->
-> The right fix is in streamon api, where you mask the interrupt before
-> registering it.
+> This would require kl git to be open to others for pushing, or we
+> could move the tree to git.linuxtv.org (which I assume may be
+> easier then for you to make the necessary changes to give
+> others push rights on kl.org).
 
-If this is the right fix, we should have a purely selective method of 
-selecting the interrupts. Even for OMAP3, we register interrupts for LCD 
-and TV, and then check the interrupt in the handler using panel type. 
-Now, since have 2 different interrupts for the same panel type, we have 
-to further distinguish using the manager id.
+Kernel Labs has never really had any real interest in "owning" tvtime.
+ I just setup the hg tree in an effort to get all the distro patches
+in one place and have something that builds against current kernels
+(and on which I can add improvements/fixes without users having to
+deal with patches).  At the time there was also nobody who clearly had
+the desire to serve as an official maintainer.
 
-Archit
+In the long term I have no real issue with the LinuxTV group being the
+official maintainer of record.  I've got lots of ideas and things I
+would like to do to improve tvtime, but in practice I've done a pretty
+crappy job of maintaining the source (merging patches, etc) at this
+point.
 
->
-> Thanks,
-> Vaibhav
->
->>   Tomi
->>
->
->
+Devin
 
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
