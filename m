@@ -1,73 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:2036 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751726Ab1IBNJ4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Sep 2011 09:09:56 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [media-ctl][PATCHv4 1/3] libmediactl: restruct error path
-Date: Fri,  2 Sep 2011 16:09:26 +0300
-Message-Id: <6075971b959c2e808cd4ceec6540dc09b101346f.1314968925.git.andriy.shevchenko@linux.intel.com>
-In-Reply-To: <201109021326.14340.laurent.pinchart@ideasonboard.com>
-References: <201109021326.14340.laurent.pinchart@ideasonboard.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:45530 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754714Ab1IGDVA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 23:21:00 -0400
+Received: by bke11 with SMTP id 11so6029321bke.19
+        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2011 20:20:59 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAGoCfiy2hnH0Xoz_+Q8JgcB-tzuTGbfv8QdK0kv+ttP7t+EZKg@mail.gmail.com>
+References: <1315322996-10576-1-git-send-email-mchehab@redhat.com>
+	<CAGoCfiy2hnH0Xoz_+Q8JgcB-tzuTGbfv8QdK0kv+ttP7t+EZKg@mail.gmail.com>
+Date: Tue, 6 Sep 2011 23:20:58 -0400
+Message-ID: <CAGoCfixa0pr048=-P3OUkZ2HMaY471eNO79BON0vjSVa1eRcTw@mail.gmail.com>
+Subject: Re: [PATCH 01/10] alsa_stream: port changes made on xawtv3
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- src/media.c |   16 +++++++++-------
- 1 files changed, 9 insertions(+), 7 deletions(-)
+On Tue, Sep 6, 2011 at 10:58 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Tue, Sep 6, 2011 at 11:29 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> There are several issues with the original alsa_stream code that got
+>> fixed on xawtv3, made by me and by Hans de Goede. Basically, the
+>> code were re-written, in order to follow the alsa best practises.
+>>
+>> Backport the changes from xawtv, in order to make it to work on a
+>> wider range of V4L and sound adapters.
+>>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+> Mauro,
+>
+> What tuners did you test this patch with?  I went ahead and did a git
+> pull of your patch series into my local git tree, and now my DVC-90
+> (an em28xx device) is capturing at 32 KHz instead of 48 (this is one
+> of the snd-usb-audio based devices, not em28xx-alsa).
+>
+> Note I tested immediately before pulling your patch series and the
+> audio capture was working fine.
+>
+> I think this patch series is going in the right direction in general,
+> but this patch in particular seems to cause a regression.  Is this
+> something you want to investigate?  I think we need to hold off on
+> pulling this series into the new tvtime master until this problem is
+> resolved.
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
 
-diff --git a/src/media.c b/src/media.c
-index e3cab86..050289e 100644
---- a/src/media.c
-+++ b/src/media.c
-@@ -255,7 +255,7 @@ static int media_enum_entities(struct media_device *media)
- 	char target[1024];
- 	char *p;
- 	__u32 id;
--	int ret;
-+	int ret = 0;
- 
- 	for (id = 0; ; id = entity->info.id) {
- 		size = (media->entities_count + 1) * sizeof(*media->entities);
-@@ -268,9 +268,9 @@ static int media_enum_entities(struct media_device *media)
- 
- 		ret = ioctl(media->fd, MEDIA_IOC_ENUM_ENTITIES, &entity->info);
- 		if (ret < 0) {
--			if (errno == EINVAL)
--				break;
--			return -errno;
-+			if (errno != EINVAL)
-+				ret = -errno;
-+			break;
- 		}
- 
- 		/* Number of links (for outbound links) plus number of pads (for
-@@ -281,8 +281,10 @@ static int media_enum_entities(struct media_device *media)
- 
- 		entity->pads = malloc(entity->info.pads * sizeof(*entity->pads));
- 		entity->links = malloc(entity->max_links * sizeof(*entity->links));
--		if (entity->pads == NULL || entity->links == NULL)
--			return -ENOMEM;
-+		if (entity->pads == NULL || entity->links == NULL) {
-+			ret = -ENOMEM;
-+			break;
-+		}
- 
- 		media->entities_count++;
- 
-@@ -316,7 +318,7 @@ static int media_enum_entities(struct media_device *media)
- 			strcpy(entity->devname, devname);
- 	}
- 
--	return 0;
-+	return ret;
- }
- 
- struct media_device *media_open(const char *name, int verbose)
+Spent a few minutes digging into this.  Looks like the snd-usb-audio
+driver advertises 8-48KHz.  However, it seems that it only captures
+successfully at 48 KHz.
+
+I made the following hack and it started working:
+
+diff --git a/src/alsa_stream.c b/src/alsa_stream.c
+index b6a41a5..57e3c3d 100644
+--- a/src/alsa_stream.c
++++ b/src/alsa_stream.c
+@@ -261,7 +261,7 @@ static int setparams(snd_pcm_t *phandle, snd_pcm_t *chandle,
+        fprintf(error_fp, "alsa: Will search a common rate between %u and %u\n",
+                ratemin, ratemax);
+
+-    for (i = ratemin; i <= ratemax; i+= 100) {
++    for (i = ratemax; i >= ratemin; i-= 100) {
+        err = snd_pcm_hw_params_set_rate_near(chandle, c_hwparams, &i, 0);
+        if (err)
+            continue;
+
+Basically the above starts at the *maximum* capture resolution and
+works its way down.  One might argue that this heuristic makes more
+sense anyway - why *wouldn't* you want the highest quality audio
+possible by default (rather than the lowest)?
+
+Even with that patch though, I hit severe underrun/overrun conditions
+at 30ms of latency (to the point where the audio is interrupted dozens
+of times per second).  Turned it up to 50ms and it's much better.
+That said, of course such a change would impact lipsync, so perhaps we
+need to be adjusting the periods instead.
+
+ALSA has never been my area of expertise, so I look to you and Hans to
+offer some suggestions.
+
+Devin
+
 -- 
-1.7.5.4
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
