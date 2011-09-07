@@ -1,84 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mr.siano-ms.com ([62.0.79.70]:6297 "EHLO
-	Siano-NV.ser.netvision.net.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932138Ab1ITKTM convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Sep 2011 06:19:12 -0400
-Subject: [PATCH  13/17]DVB:Siano drivers - Support big endian platform
- which uses SPI/I2C
-From: Doron Cohen <doronc@siano-ms.com>
-Reply-To: doronc@siano-ms.com
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Tue, 20 Sep 2011 13:31:54 +0300
-Message-ID: <1316514714.5199.91.camel@Doron-Ubuntu>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:52331 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755887Ab1IGG1E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Sep 2011 02:27:04 -0400
+Message-ID: <4E670F51.8050100@redhat.com>
+Date: Wed, 07 Sep 2011 08:29:37 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 01/10] alsa_stream: port changes made on xawtv3
+References: <1315322996-10576-1-git-send-email-mchehab@redhat.com> <CAGoCfiy2hnH0Xoz_+Q8JgcB-tzuTGbfv8QdK0kv+ttP7t+EZKg@mail.gmail.com> <CAGoCfixa0pr048=-P3OUkZ2HMaY471eNO79BON0vjSVa1eRcTw@mail.gmail.com> <4E66E532.4050402@redhat.com> <CAGoCfiw7vjprc_skYYAXy9sTA7zkYEWtzXy9tEmJD+q8aazPog@mail.gmail.com>
+In-Reply-To: <CAGoCfiw7vjprc_skYYAXy9sTA7zkYEWtzXy9tEmJD+q8aazPog@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
-This patch step adds support big endian platform which uses SPI/I2C
 
-Thanks,
-Doron Cohen
+Lots of good stuff in this thread! It seems Mauro has answered most
+things, so I'm just going to respond to this bit.
 
->From 2b77c0b5f69924206b9e09cda42aad56772e9380 Mon Sep 17 00:00:00 2001
-From: Doron Cohen <doronc@siano-ms.com>
-Date: Tue, 20 Sep 2011 08:31:52 +0300
-Subject: [PATCH 17/21] Support big endian platform which uses SPI/I2C
-(need to switch header byte order)
+On 09/07/2011 05:37 AM, Devin Heitmueller wrote:
 
----
- drivers/media/dvb/siano/smscoreapi.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+<Snip>
+>> We've added a parameter for that on xawtv3 (--alsa-latency). We've parametrized
+>> it at the alsa stream function call. So, all it needs is to add a new parameter
+>> at tvtime config file.
+>
+> Ugh.  We really need some sort of heuristic to do this.  It's
+> unreasonable to expect users to know about some magic parameter buried
+> in a config file which causes it to start working.  Perhaps a counter
+> that increments whenever an underrun is hit, and after a certain
+> number it automatically restarts the stream with a higher latency.  Or
+> perhaps we're just making some poor choice in terms of the
+> buffers/periods for a given rate.
 
-diff --git a/drivers/media/dvb/siano/smscoreapi.c
-b/drivers/media/dvb/siano/smscoreapi.c
-index e50e356..459c6e9 100644
---- a/drivers/media/dvb/siano/smscoreapi.c
-+++ b/drivers/media/dvb/siano/smscoreapi.c
-@@ -570,8 +570,8 @@ static int smscore_load_firmware_family2(struct
-smscore_device_t *coredev,
- 		sms_debug("sending reload command.");
- 		SMS_INIT_MSG(msg, MSG_SW_RELOAD_START_REQ,
- 			     sizeof(struct SmsMsgHdr_S));
--		rc = smscore_sendrequest_and_wait(coredev, msg,
--						  msg->msgLength,
-+		smsendian_handle_tx_message((struct SmsMsgHdr_S *)msg);
-+		rc = smscore_sendrequest_and_wait(coredev, msg, msg->msgLength,
- 						  &coredev->reload_start_done);
- 
- 		if (rc < 0) {				
-@@ -597,7 +597,7 @@ static int smscore_load_firmware_family2(struct
-smscore_device_t *coredev,
- 		memcpy(DataMsg->Payload, payload, payload_size);
- 
- 
--	
-+		smsendian_handle_tx_message((struct SmsMsgHdr_S *)msg);
- 		rc = smscore_sendrequest_and_wait(coredev, DataMsg,
- 				DataMsg->xMsgHeader.msgLength,
- 				&coredev->data_download_done);
-@@ -976,6 +976,7 @@ static int smscore_detect_mode(struct
-smscore_device_t *coredev)
- 	SMS_INIT_MSG(msg, MSG_SMS_GET_VERSION_EX_REQ,
- 		     sizeof(struct SmsMsgHdr_S));
- 
-+	smsendian_handle_tx_message((struct SmsMsgHdr_S *)msg);
- 	rc = smscore_sendrequest_and_wait(coredev, msg, msg->msgLength,
- 					  &coredev->version_ex_done);
- 
-@@ -1356,6 +1357,8 @@ void smscore_onresponse(struct smscore_device_t
-*coredev,
- 		rc = client->onresponse_handler(client->context, cb);
- 
- 	if (rc < 0) {
-+		smsendian_handle_rx_message((struct SmsMsgData_S *)phdr);
-+
- 		switch (phdr->msgType) {
- 		case MSG_SMS_ISDBT_TUNE_RES:
- 			sms_debug("MSG_SMS_ISDBT_TUNE_RES");
--- 
-1.7.4.1
+This may have something to do with usb versus pci capture, on my bttv card
+30 ms works fine, but I can imagine it being a bit on the low side when
+doing video + audio capture over USB. So maybe should default to say
+50 for usb capture devices and 30 for pci capture devices?
 
+In the end if people load there system enough / have a slow enough
+system our default will always be wrong for them. All we can do is try to
+get a default which is sane for most setups ...
+
+Regards,
+
+Hans
