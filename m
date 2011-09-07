@@ -1,88 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:36394 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754900Ab1ITJT3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Sep 2011 05:19:29 -0400
-Received: by ywb5 with SMTP id 5so182093ywb.19
-        for <linux-media@vger.kernel.org>; Tue, 20 Sep 2011 02:19:28 -0700 (PDT)
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:48291 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757237Ab1IGVzX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2011 17:55:23 -0400
+Received: by yxj19 with SMTP id 19so107857yxj.19
+        for <linux-media@vger.kernel.org>; Wed, 07 Sep 2011 14:55:23 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CA+2YH7uXQDC5x5O09oyuPJERxR1MRaSd44KC7Cfp_79X4dZcpg@mail.gmail.com>
-References: <CA+2YH7s-BH=4vN-DUZJXa9DKrwYsZORWq-YR9fK7JV9236ntMQ@mail.gmail.com>
-	<20110912202822.GB1845@valkosipuli.localdomain>
-	<CAK7N6vpr8uJSHMgTnrd=FrnvYf_Oqy8D3ua__S63T3nEvqaKGw@mail.gmail.com>
-	<4E6EFCFC.5030803@iki.fi>
-	<1315907297.2355.9.camel@sokoban>
-	<CA+2YH7tEfmXnfgyFwbCEi4u5viRESM_Qckbc4MceSwsn151q6A@mail.gmail.com>
-	<1315909766.2355.13.camel@sokoban>
-	<CA+2YH7uXQDC5x5O09oyuPJERxR1MRaSd44KC7Cfp_79X4dZcpg@mail.gmail.com>
-Date: Tue, 20 Sep 2011 11:19:28 +0200
-Message-ID: <CA+2YH7tGvNjn7QGQYsa59uQ4zDEXB-VnSHCyBiG_bZWUPd1W6w@mail.gmail.com>
-Subject: Re: omap3isp as a wakeup source
-From: Enrico <ebutera@users.berlios.de>
-To: t-kristo@ti.com
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	anish singh <anish198519851985@gmail.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	khilman@ti.com
+In-Reply-To: <CAOcJUbyiNP3DY-XpTG3GNB9v1KRN+FebButtjv23Pk5VjxafOA@mail.gmail.com>
+References: <E1R0zZM-0008EU-2T@www.linuxtv.org>
+	<4E67DF8C.603@iki.fi>
+	<4E67E046.9060808@iki.fi>
+	<CAOcJUbzuKB5aXbfo9Ao5abuR_LvG3L17EhhOX-sKUVoVkURHmg@mail.gmail.com>
+	<CAOcJUbzrc2AM7VnWYaqt0Pfb4x_HmjWBJUKc1D0OFxs_SVm_0Q@mail.gmail.com>
+	<4E67E605.90202@iki.fi>
+	<CAOcJUbyiNP3DY-XpTG3GNB9v1KRN+FebButtjv23Pk5VjxafOA@mail.gmail.com>
+Date: Wed, 7 Sep 2011 17:55:22 -0400
+Message-ID: <CAOcJUbzkFaKbqK3b4ggedsX1pSP_8B+=hDHqHWvbnFtudWdX9w@mail.gmail.com>
+Subject: Re: [git:v4l-dvb/for_v3.2] [media] dvb-usb: refactor MFE code for
+ individual streaming config per frontend
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 13, 2011 at 3:25 PM, Enrico <ebutera@users.berlios.de> wrote:
-> On Tue, Sep 13, 2011 at 12:29 PM, Tero Kristo <t-kristo@ti.com> wrote:
->> Powerdomain is automatically on if there are any clocks enabled on it.
->> If you make sure that ISP has some activity ongoing, then it should be
->> on. You can check the state of the camera powerdomain
->> from /sys/kernel/debug/pm_debug/count file, if you have mounted debugfs.
+On Wed, Sep 7, 2011 at 5:52 PM, Michael Krufky <mkrufky@kernellabs.com> wrote:
+> On Wed, Sep 7, 2011 at 5:45 PM, Antti Palosaari <crope@iki.fi> wrote:
+>> On 09/08/2011 12:39 AM, Michael Krufky wrote:
+>>>
+>>> On Wed, Sep 7, 2011 at 5:35 PM, Michael Krufky<mkrufky@kernellabs.com>
+>>>  wrote:
+>>>>>
+>>>>> On 09/08/2011 12:18 AM, Antti Palosaari wrote:
+>>>>>>
+>>>>>> This patch seems to break all DVB USB devices we have. Michael, could
+>>>>>> you check and fix it asap.
+>>>>>>
+>>>>>> On 09/06/2011 08:21 PM, Mauro Carvalho Chehab wrote:
+>>>>>>>
+>>>>>>> This is an automatic generated email to let you know that the
+>>>>>>> following patch were queued at the
+>>>>>>> http://git.linuxtv.org/media_tree.git tree:
+>>>>>>>
+>>>>>>> Subject: [media] dvb-usb: refactor MFE code for individual streaming
+>>>>>>> config per frontend
+>>>>>>> Author: Michael Krufky<mkrufky@kernellabs.com>
+>>>>>>> Date: Tue Sep 6 09:31:57 2011 -0300
+>>>>>>>
+>>>>>>> refactor MFE code to allow for individual streaming configuration
+>>>>>>> for each frontend
+>>>>>>>
+>>>>>>> Signed-off-by: Michael Krufky<mkrufky@kernellabs.com>
+>>>>>>> Reviewed-by: Antti Palosaari<crope@iki.fi>
+>>>>>>> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+>>>>>>
+>>>>>>> drivers/media/dvb/dvb-usb/dvb-usb-dvb.c | 141 ++++++-----
+>>>>>>
+>>>>>> dvb_usb_ctrl_feed()
+>>>>>> if ((adap->feedcount == onoff)&&  (!onoff))
+>>>>>> adap->active_fe = -1;
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=77eed219fed5a913f59329cc846420fdeab0150f
+>>>>>>>
+>>>>>>> <diff discarded since it is too big>
+>>>>>>
+>>>>>>
+>>>>
+>>>> On Wed, Sep 7, 2011 at 5:21 PM, Antti Palosaari<crope@iki.fi>  wrote:
+>>>>>
+>>>>> This error is shown by VLC when channel changed:
+>>>>>
+>>>>> [0x7f1bbc000cd0] dvb access error: DMXSetFilter: failed with -1 (Invalid
+>>>>> argument)
+>>>>> [0x7f1bbc000cd0] dvb access error: DMXSetFilter failed
+>>>>> [0x7f1bbc32f910] main stream error: cannot pre fill buffer
+>>>>>
+>>>>>
+>>>>> but it seems to be related dvb_usb_ctrl_feed() I pointed earlier mail.
+>>>>>
+>>>>> Antti
+>>>>>
+>>>>>
+>>>>
+>>>>
+>>>> I will take a look at this tonight and give it a test with vlc.
+>>>> Thanks for reporting the problem.
+>>>
+>>>
+>>> Antti,
+>>>
+>>> Just to be sure -- which device driver did you use for your testing,
+>>> and are you using the exact code in Mauro's for_v3.2 branch, or
+>>> modified code?
+>>
+>> Few hours since updated linux-media remote.
+>> remotes/media/staging/for_v3.2
+>>
+>> last commit:
+>>
+>> commit d4d4e3c97211f20d4fde5d82878561adaa42b578
+>> Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Date:   Thu Jul 7 12:13:25 2011 -0300
+>>
+>>    [media] s5p-csis: Rework the system suspend/resume helpers
+>>
+>>    Do not resume the device during system resume if it was idle
+>>    before system suspend, as this causes resume from suspend
+>>    to RAM failures on Exynos4. For this purpose runtime PM and
+>>    system sleep helpers are separated.
+>>
+>>    Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>>    Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>>    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
+>> I tested using one Anysee DVB-C model and one AF9015 DVB-T device.
+>>
+>> Commenting out that
+>>>>>> if ((adap->feedcount == onoff)&&  (!onoff))
+>>>>>> adap->active_fe = -1;
+>>
+>> resolves problem.
 >
-> And in fact something seems wrong (this is on a patched 3.0.4 kernel):
->
-> usbhost_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-> sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-> per_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-> dss_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-> cam_pwrdm (RET),OFF:0,RET:9,INA:0,ON:9,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-> core_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-> neon_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0
-> mpu_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-> iva2_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0
-> per_clkdm->per_pwrdm (20)
-> usbhost_clkdm->usbhost_pwrdm (3)
-> cam_clkdm->cam_pwrdm (0)
-> dss_clkdm->dss_pwrdm (1)
-> core_l4_clkdm->core_pwrdm (23)
-> core_l3_clkdm->core_pwrdm (4)
-> d2d_clkdm->core_pwrdm (0)
-> sgx_clkdm->sgx_pwrdm (0)
-> iva2_clkdm->iva2_pwrdm (0)
-> neon_clkdm->neon_pwrdm (0)
-> mpu_clkdm->mpu_pwrdm (0)
-> prm_clkdm->wkup_pwrdm (0)
-> cm_clkdm->core_pwrdm (0)
->
->
-> I think the line "cam_clkdm->cam_pwrdm (0)" means that it was never
-> enabled, but i grabbed some frames with yavta before that.
+> OK...  I think it's safe to remove that code.  The only time that
+> "adap->active_fe" should really be set to -1 is at startup, before
+> *any* frontend is used.  Does removal of those two lines fix it for
+> you completely?
 
-Forget that, i was wrong.
+BTW, I understand the cause of this now -- this error case occurs when
+the application stops streaming but leaves the frontend open.  (for
+instance, to change the channel)  We only want to set (adap->active_fe
+= -1) if ( ((adap->feedcount == onoff)&&  (!onoff)) AND ALSO only if
+the file handle gets closed.
 
-While yavta is running (or better to say: hanged waiting for frames) i
-have this:
+It's safe to just disable those lines for now.
 
-cam_pwrdm (ON),OFF:0,RET:6,INA:0,ON:7,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+Regards,
 
-cam_clkdm->cam_pwrdm (3)
-
-
-So it seems that clocks/power domains are "acquired" correctly but
-ignored. And from /proc/interrupts i can see the isp counter
-increasing (while yavta is hanged waiting for frames).
-
-Is it possibile this happens only because some
-pm_runtime_enable/disable/get/put are missing in omap3isp?
-
-Thanks,
-
-Enrico
+Mike Krufky
