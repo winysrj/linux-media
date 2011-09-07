@@ -1,56 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9241 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754602Ab1IWPMT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Sep 2011 11:12:19 -0400
-Message-ID: <4E7CA1CD.50309@redhat.com>
-Date: Fri, 23 Sep 2011 12:12:13 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56879 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752865Ab1IGQdk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2011 12:33:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Subject: Re: [PATCH 1/2] omap3: ISP: Fix the failure of CCDC capture during suspend/resume
+Date: Wed, 7 Sep 2011 12:36:34 +0200
+Cc: "Ravi, Deepthy" <deepthy.ravi@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+References: <1312984992-19315-1-git-send-email-deepthy.ravi@ti.com> <201108302307.47564.laurent.pinchart@ideasonboard.com> <FCCFB4CDC6E5564B9182F639FC356087037AF843C7@dbde02.ent.ti.com>
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087037AF843C7@dbde02.ent.ti.com>
 MIME-Version: 1.0
-To: Chris Rankin <rankincj@yahoo.com>
-CC: Stuart Morris <stuart_morris@talk21.com>,
-	linux-media@vger.kernel.org
-Subject: Re: em28xx PCTV 290e patches
-References: <1316767965.1148.YahooMailClassic@web86705.mail.ird.yahoo.com> <4E7C51A7.9020209@yahoo.com>
-In-Reply-To: <4E7C51A7.9020209@yahoo.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201109071236.34883.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 23-09-2011 06:30, Chris Rankin escreveu:
-> Hi Stuart,
-> 
-> On 23/09/11 09:52, Stuart Morris wrote:
->> I have a PCTV 290e and have been watching closely the updates to the Linux media
->> tree for this device. Thanks for addressing the issues with the 290e driver, I am
->> now able to use my 290e for watching UK FreeviewHD with a good degree of success.
-> 
-> No problems, although I think Mauro has been working on the locking problem as well :-).
-> 
->> I have a question regarding some patches you requested a while back that have
->> yet to be applied to the media tree.
->> These patches are:
->> http://www.spinics.net/lists/linux-media/msg36799.html
->> http://www.spinics.net/lists/linux-media/msg36818.html
-> 
-> Yes, I have noticed this. My advice would be to apply the first patch that remove the em28xx_remove_from_devlist() function (and the race condition that it creates), but not the second patch because I don't think it's compatible with Mauro's work.
-> 
-> My other patches have *slowly* been added to the queue for 3.2; I am still waiting to see if this patch will join the others before resubmitting it.
+Hi,
 
-Chris,
-
-Please, re-submit the ones that are pertinent. Some of your patches are
-missing your SOB, and, due to the patchwork.kernel.org outage, I lost
-part of my control about what patches got obsoleted, especially since you
-didn't add a version number to the patches you've submitted. In general, when
-people re-submit a patch series, they tag the new series as [PATCHv2] or
-something, to help maintainers to discard the old stuff ;)
+On Wednesday 07 September 2011 12:10:23 Koyamangalath, Abhilash wrote:
+> On Tue, Aug 30, 2011  Laurent Pinchart wrote:
+> > On Wednesday 10 August 2011 16:03:12 Deepthy Ravi wrote:
+> >> From: Abhilash K V <abhilash.kv@ti.com>
+> >> 
+> >> While resuming from the "suspended to memory" state,
+> >> occasionally CCDC fails to get enabled and thus fails
+> >> to capture frames any more till the next suspend/resume
+> >> is issued.
+> >> This is a race condition which happens only when a CCDC
+> >> frame-completion ISR is pending even as ISP device's
+> >> isp_pm_prepare() is getting called and only one buffer
+> >> is left on the DMA queue.
+> >> The DMA queue buffers are thus depleted which results in
+> >> its underrun.So when ISP resumes there are no buffers on
+> >> the queue (as the application which can issue buffers is
+> >> yet to resume) to start video capture.
+> >> This fix addresses this issue by dequeuing and enqueing
+> >> the last buffer in isp_pm_prepare() after its DMA gets
+> >> completed. Thus,when ISP resumes it always finds atleast
+> >> one buffer on the DMA queue - this is true if application
+> >> uses only 3 buffers.
+> > 
+> > How is that problem specific to the CCDC ? Can't it be reproduce at the
+> > preview engine or resizer output as well ?
 > 
-> Cheers,
-> Chris
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Yes, I believe this issue would crop with preview and resizer too though I
+> have not been able to try these out.
 
+That's my belief as well. In that case the fix should be generic, not CCDC-
+specific.
+
+-- 
+Regards,
+
+Laurent Pinchart
