@@ -1,108 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48976 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758032Ab1IBIIv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 04:08:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: Getting started with OMAP3 ISP
-Date: Fri, 2 Sep 2011 10:09:21 +0200
-Cc: Enrico <ebutera@users.berlios.de>, linux-media@vger.kernel.org,
-	Enric Balletbo i Serra <eballetbo@iseebcn.com>
-References: <4E56734A.3080001@mlbassoc.com> <201109012014.32996.laurent.pinchart@ideasonboard.com> <4E5FCC93.1090807@mlbassoc.com>
-In-Reply-To: <4E5FCC93.1090807@mlbassoc.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:59359 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757201Ab1IGVpr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Sep 2011 17:45:47 -0400
+Message-ID: <4E67E605.90202@iki.fi>
+Date: Thu, 08 Sep 2011 00:45:41 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Michael Krufky <mkrufky@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [git:v4l-dvb/for_v3.2] [media] dvb-usb: refactor MFE code for
+ individual streaming config per frontend
+References: <E1R0zZM-0008EU-2T@www.linuxtv.org>	<4E67DF8C.603@iki.fi>	<4E67E046.9060808@iki.fi>	<CAOcJUbzuKB5aXbfo9Ao5abuR_LvG3L17EhhOX-sKUVoVkURHmg@mail.gmail.com> <CAOcJUbzrc2AM7VnWYaqt0Pfb4x_HmjWBJUKc1D0OFxs_SVm_0Q@mail.gmail.com>
+In-Reply-To: <CAOcJUbzrc2AM7VnWYaqt0Pfb4x_HmjWBJUKc1D0OFxs_SVm_0Q@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109021009.22196.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gary,
+On 09/08/2011 12:39 AM, Michael Krufky wrote:
+> On Wed, Sep 7, 2011 at 5:35 PM, Michael Krufky<mkrufky@kernellabs.com>  wrote:
+>>> On 09/08/2011 12:18 AM, Antti Palosaari wrote:
+>>>>
+>>>> This patch seems to break all DVB USB devices we have. Michael, could
+>>>> you check and fix it asap.
+>>>>
+>>>> On 09/06/2011 08:21 PM, Mauro Carvalho Chehab wrote:
+>>>>>
+>>>>> This is an automatic generated email to let you know that the
+>>>>> following patch were queued at the
+>>>>> http://git.linuxtv.org/media_tree.git tree:
+>>>>>
+>>>>> Subject: [media] dvb-usb: refactor MFE code for individual streaming
+>>>>> config per frontend
+>>>>> Author: Michael Krufky<mkrufky@kernellabs.com>
+>>>>> Date: Tue Sep 6 09:31:57 2011 -0300
+>>>>>
+>>>>> refactor MFE code to allow for individual streaming configuration
+>>>>> for each frontend
+>>>>>
+>>>>> Signed-off-by: Michael Krufky<mkrufky@kernellabs.com>
+>>>>> Reviewed-by: Antti Palosaari<crope@iki.fi>
+>>>>> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+>>>>
+>>>>> drivers/media/dvb/dvb-usb/dvb-usb-dvb.c | 141 ++++++-----
+>>>>
+>>>> dvb_usb_ctrl_feed()
+>>>> if ((adap->feedcount == onoff)&&  (!onoff))
+>>>> adap->active_fe = -1;
+>>>>
+>>>>
+>>>>
+>>>>>
+>>>>> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=77eed219fed5a913f59329cc846420fdeab0150f
+>>>>>
+>>>>> <diff discarded since it is too big>
+>>>>
+>>>>
+>>
+>> On Wed, Sep 7, 2011 at 5:21 PM, Antti Palosaari<crope@iki.fi>  wrote:
+>>> This error is shown by VLC when channel changed:
+>>>
+>>> [0x7f1bbc000cd0] dvb access error: DMXSetFilter: failed with -1 (Invalid
+>>> argument)
+>>> [0x7f1bbc000cd0] dvb access error: DMXSetFilter failed
+>>> [0x7f1bbc32f910] main stream error: cannot pre fill buffer
+>>>
+>>>
+>>> but it seems to be related dvb_usb_ctrl_feed() I pointed earlier mail.
+>>>
+>>> Antti
+>>>
+>>>
+>>
+>>
+>> I will take a look at this tonight and give it a test with vlc.
+>> Thanks for reporting the problem.
+>
+>
+> Antti,
+>
+> Just to be sure -- which device driver did you use for your testing,
+> and are you using the exact code in Mauro's for_v3.2 branch, or
+> modified code?
 
-On Thursday 01 September 2011 20:18:59 Gary Thomas wrote:
-> On 2011-09-01 12:14, Laurent Pinchart wrote:
-> > On Thursday 01 September 2011 19:24:54 Enrico wrote:
-> >> On Thu, Sep 1, 2011 at 6:14 PM, Enrico<ebutera@users.berlios.de>  wrote:
-> >>> On Thu, Sep 1, 2011 at 5:16 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
-> >>>> - entity 16: tvp5150m1 2-005c (1 pad, 1 link)
-> >>>> 
-> >>>>              type V4L2 subdev subtype Unknown
-> >>>>              device node name /dev/v4l-subdev8
-> >>>>         
-> >>>>         pad0: Output [unknown 720x480 (1,1)/720x480]
-> >>>>         
-> >>>>                 ->  'OMAP3 ISP CCDC':pad0 [ACTIVE]
-> >>>> 
-> >>>> Ideas where to look for the 'unknown' mode?
-> >>> 
-> >>> I didn't notice that, if you are using UYVY8_2X8 the reason is in
-> >>> media-ctl main.c:
-> >>> 
-> >>> { "UYVY", V4L2_MBUS_FMT_UYVY8_1X16 },
-> >>> 
-> >>> You can add a line like:
-> >>> 
-> >>> { "UYVY2X8", V4L2_MBUS_FMT_UYVY8_2X8 },
-> >>> 
-> >>> recompile and it should work, i'll try it now.
-> >> 
-> >> That worked, but now there is another problem.
-> > 
-> > That's correct. My bad for not spotting it sooner.
-> 
-> Will you be adding this to the media-ctl tree?  Would you like a patch?
+Few hours since updated linux-media remote.
+remotes/media/staging/for_v3.2
 
-I need to think about format names. I've used V4L2 FOURCC names so far to 
-refer to media bus format codes, that proved not to be the best idea. I will 
-fix that.
+last commit:
 
-> >> yavta will set UYVY (PIX_FMT), this will cause a call to
-> >> ispvideo.c:isp_video_pix_to_mbus(..), that will do this:
-> >> 
-> >> for (i = 0; i<  ARRAY_SIZE(formats); ++i) {
-> >> 
-> >>                  if (formats[i].pixelformat == pix->pixelformat)
-> >>                  
-> >>                          break;
-> >> 
-> >> }
-> >> 
-> >> that is it will stop at the first matching array item, and that's:
-> >> 
-> >> { V4L2_MBUS_FMT_UYVY8_1X16, V4L2_MBUS_FMT_UYVY8_1X16,
-> >> 
-> >>            V4L2_MBUS_FMT_UYVY8_1X16, 0,
-> >>            V4L2_PIX_FMT_UYVY, 16, 16, },
-> >> 
-> >> but you wanted this:
-> >> 
-> >> { V4L2_MBUS_FMT_UYVY8_2X8, V4L2_MBUS_FMT_UYVY8_2X8,
-> >> 
-> >>            V4L2_MBUS_FMT_UYVY8_2X8, 0,
-> >>            V4L2_PIX_FMT_UYVY, 8, 16, },
-> >> 
-> >> so a better check could be to check for width too, but i don't know if
-> >> it's possibile to pass a width requirement or if it's already there in
-> >> some struct passed to the function.
-> > 
-> > That's not really an issue, as the isp_video_pix_to_mbus() and
-> > isp_video_mbus_to_pix() calls in isp_video_set_format() are just used to
-> > fill the bytesperline and sizeimage fields. From a quick look at the
-> > code isp_video_check_format() should succeed as well.
-> > 
-> > Have you run into any specific issue with isp_video_pix_to_mbus() when
-> > using V4L2_MBUS_FMT_UYVY8_2X8 ?
-> 
-> Not yet - I was able to configure the pipeline as
->    # media-ctl -f '"tvp5150m1 2-005c":0[UYVY2X8 720x480], "OMAP3 ISP
-> CCDC":0[UYVY2X8 720x480], "OMAP3 ISP CCDC":1[UYVY2X8 720x480]' and this
-> gets me all the way into my driver (which I'm now working on)
+commit d4d4e3c97211f20d4fde5d82878561adaa42b578
+Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Date:   Thu Jul 7 12:13:25 2011 -0300
 
-OK.
+     [media] s5p-csis: Rework the system suspend/resume helpers
 
+     Do not resume the device during system resume if it was idle
+     before system suspend, as this causes resume from suspend
+     to RAM failures on Exynos4. For this purpose runtime PM and
+     system sleep helpers are separated.
+
+     Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+     Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+I tested using one Anysee DVB-C model and one AF9015 DVB-T device.
+
+Commenting out that
+ >>>> if ((adap->feedcount == onoff)&&  (!onoff))
+ >>>> adap->active_fe = -1;
+
+resolves problem.
+
+regards
+Antti
 -- 
-Regards,
-
-Laurent Pinchart
+http://palosaari.fi/
