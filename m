@@ -1,67 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:54560 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755252Ab1ILL73 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Sep 2011 07:59:29 -0400
-Date: Mon, 12 Sep 2011 14:59:25 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Subject: Re: [PATCH v2 0/8] RFC for Media Controller capture driver for
- DM365
-Message-ID: <20110912115925.GC1716@valkosipuli.localdomain>
-References: <1314630439-1122-1-git-send-email-manjunath.hadli@ti.com>
- <20110831213032.GT12368@valkosipuli.localdomain>
- <B85A65D85D7EB246BE421B3FB0FBB593025743F3CE@dbde02.ent.ti.com>
- <20110909161940.GJ1724@valkosipuli.localdomain>
- <B85A65D85D7EB246BE421B3FB0FBB593025743F4CE@dbde02.ent.ti.com>
+Received: from d1.icnet.pl ([212.160.220.21]:55792 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751278Ab1IGSDf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Sep 2011 14:03:35 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] V4L: omap1-camera: fix Oops with NULL platform data
+Date: Wed, 7 Sep 2011 19:55:00 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <Pine.LNX.4.64.1109071548070.14818@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1109071548070.14818@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593025743F4CE@dbde02.ent.ti.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109071955.00932.jkrzyszt@tis.icnet.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Sep 10, 2011 at 12:11:37PM +0530, Hadli, Manjunath wrote:
-> Hi Sakari,
-> On Fri, Sep 09, 2011 at 21:49:40, Sakari Ailus wrote:
-> > On Fri, Sep 09, 2011 at 07:10:49PM +0530, Hadli, Manjunath wrote:
-> > > Hi Sakari,
-> > > 
-> > > On Thu, Sep 01, 2011 at 03:00:32, Sakari Ailus wrote:
-> > > > Hi Manju,
-> > > > 
-> > > > Do you have the media device grap that would be typical for this hardware produced by media-ctl? That can be converted to postscript using dotfile.
-> > > > 
-> > > > this would make it a little easier to understan this driver. Thanks.
-> > > 
-> > > Sure. But can you be a little more elaborate on how you need this 
-> > > information? If you can tell me in little more detail about this that 
-> > > will help me make the information in a way that everyone can understand.
-> > 
-> > Preferrably in PostScript format so it's easy to visualise the layout of the hardware that the driver supports, as the OMAP 3 ISP example was.
-> Sure.
->  I was more looking for an example of the same so it could help me put the
-> data together in the way it has been done before. Can you send across if
-> you have one?
+On Wed, 7 Sep 2011 at 15:49:15 Guennadi Liakhovetski wrote:
+> Consistently check for platform data != NULL before dereferencing.
 
-Ah. I think I misunderstood you first. :-)
+Sure, thanks for taking care of this.
+Janusz
 
-On the device, run
-
-	$ media-ctl --print-dot > graph.dot
-
-This will produce a graph of the media device in the dot format. This is
-then processed by program called dot:
-
-	$ dot -o graph.ps -T ps < graph.dot
-
-dot is available at least in Debian in a package called graphviz.
-
-Cheers,
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> ---
+>  drivers/media/video/omap1_camera.c |   10 +++++-----
+>  1 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap1_camera.c
+> b/drivers/media/video/omap1_camera.c index f24bcaf..e87ae2f 100644
+> --- a/drivers/media/video/omap1_camera.c
+> +++ b/drivers/media/video/omap1_camera.c
+> @@ -1579,10 +1579,10 @@ static int __init omap1_cam_probe(struct
+> platform_device *pdev) pcdev->clk = clk;
+> 
+>  	pcdev->pdata = pdev->dev.platform_data;
+> -	pcdev->pflags = pcdev->pdata->flags;
+> -
+> -	if (pcdev->pdata)
+> +	if (pcdev->pdata) {
+> +		pcdev->pflags = pcdev->pdata->flags;
+>  		pcdev->camexclk = pcdev->pdata->camexclk_khz * 1000;
+> +	}
+> 
+>  	switch (pcdev->camexclk) {
+>  	case 6000000:
+> @@ -1592,6 +1592,7 @@ static int __init omap1_cam_probe(struct
+> platform_device *pdev) case 24000000:
+>  		break;
+>  	default:
+> +		/* pcdev->camexclk != 0 => pcdev->pdata != NULL */
+>  		dev_warn(&pdev->dev,
+>  				"Incorrect sensor clock frequency %ld kHz, "
+>  				"should be one of 0, 6, 8, 9.6, 12 or 24 MHz, "
+> @@ -1599,8 +1600,7 @@ static int __init omap1_cam_probe(struct
+> platform_device *pdev) pcdev->pdata->camexclk_khz);
+>  		pcdev->camexclk = 0;
+>  	case 0:
+> -		dev_info(&pdev->dev,
+> -				"Not providing sensor clock\n");
+> +		dev_info(&pdev->dev, "Not providing sensor clock\n");
+>  	}
+> 
+>  	INIT_LIST_HEAD(&pcdev->capture);
