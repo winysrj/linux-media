@@ -1,87 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44157 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751642Ab1ITO5n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Sep 2011 10:57:43 -0400
-From: Deepthy Ravi <deepthy.ravi@ti.com>
-To: <laurent.pinchart@ideasonboard.com>, <mchehab@infradead.org>,
-	<tony@atomide.com>, <hvaibhav@ti.com>,
-	<linux-media@vger.kernel.org>, <linux@arm.linux.org.uk>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<kyungmin.park@samsung.com>, <hverkuil@xs4all.nl>,
-	<m.szyprowski@samsung.com>, <g.liakhovetski@gmx.de>,
-	<santosh.shilimkar@ti.com>, <khilman@deeprootsystems.com>,
-	<david.woodhouse@intel.com>, <akpm@linux-foundation.org>,
-	<linux-kernel@vger.kernel.org>
-CC: <linux-omap@vger.kernel.org>, Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: [PATCH 1/5] omap3evm: Enable regulators for camera interface
-Date: Tue, 20 Sep 2011 20:26:48 +0530
-Message-ID: <1316530612-23075-2-git-send-email-deepthy.ravi@ti.com>
-In-Reply-To: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com>
-References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:60062 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750896Ab1IGQ5b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2011 12:57:31 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id 2D77318B03B
+	for <linux-media@vger.kernel.org>; Wed,  7 Sep 2011 17:13:07 +0200 (CEST)
+Date: Wed, 7 Sep 2011 17:13:07 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/2] V4L: soc-camera: split a function into two
+In-Reply-To: <Pine.LNX.4.64.1109071706550.14818@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1109071712010.14818@axis700.grange>
+References: <Pine.LNX.4.64.1109071706550.14818@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+The soc_camera_power_set() function processes two cases: power on anf off.
+These two cases don't share and common code, and the function is always
+called with a constant power on / off argument. Splitting this function
+into two removes a condition check, reduces indentation levels and makes
+the code look cleaner.
 
-Enabled 1v8 and 2v8 regulator output, which is being used by
-camera module.
-
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- arch/arm/mach-omap2/board-omap3evm.c |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+), 0 deletions(-)
+ drivers/media/video/soc_camera.c |   65 ++++++++++++++++++++------------------
+ 1 files changed, 34 insertions(+), 31 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index c452b3f..cf30fff 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -273,6 +273,25 @@ static struct omap_dss_board_info omap3_evm_dss_data = {
- 	.default_device	= &omap3_evm_lcd_device,
- };
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 5943235..de374da 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -50,49 +50,52 @@ static LIST_HEAD(hosts);
+ static LIST_HEAD(devices);
+ static DEFINE_MUTEX(list_lock);		/* Protects the list of hosts */
  
-+static struct regulator_consumer_supply omap3evm_vaux3_supply[] = {
-+	REGULATOR_SUPPLY("cam_2v8", NULL),
-+};
+-static int soc_camera_power_set(struct soc_camera_device *icd,
+-				struct soc_camera_link *icl,
+-				int power_on)
++static int soc_camera_power_on(struct soc_camera_device *icd,
++			       struct soc_camera_link *icl)
+ {
+ 	int ret;
+ 
+-	if (power_on) {
+-		ret = regulator_bulk_enable(icl->num_regulators,
+-					    icl->regulators);
+-		if (ret < 0) {
+-			dev_err(icd->pdev, "Cannot enable regulators\n");
+-			return ret;
+-		}
++	ret = regulator_bulk_enable(icl->num_regulators,
++				    icl->regulators);
++	if (ret < 0) {
++		dev_err(icd->pdev, "Cannot enable regulators\n");
++		return ret;
++	}
+ 
+-		if (icl->power)
+-			ret = icl->power(icd->pdev, power_on);
++	if (icl->power) {
++		ret = icl->power(icd->pdev, 1);
+ 		if (ret < 0) {
+ 			dev_err(icd->pdev,
+ 				"Platform failed to power-on the camera.\n");
+ 
+ 			regulator_bulk_disable(icl->num_regulators,
+ 					       icl->regulators);
+-			return ret;
+ 		}
+-	} else {
+-		ret = 0;
+-		if (icl->power)
+-			ret = icl->power(icd->pdev, 0);
++	}
 +
-+/* VAUX3 for CAM_2V8 */
-+static struct regulator_init_data omap3evm_vaux3 = {
-+	.constraints = {
-+		.min_uV                 = 2800000,
-+		.max_uV                 = 2800000,
-+		.apply_uV               = true,
-+		.valid_modes_mask       = REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask         = REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+		},
-+	.num_consumer_supplies  = ARRAY_SIZE(omap3evm_vaux3_supply),
-+	.consumer_supplies      = omap3evm_vaux3_supply,
-+};
++	return ret;
++}
 +
- static struct regulator_consumer_supply omap3evm_vmmc1_supply[] = {
- 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
- };
-@@ -433,6 +452,7 @@ static struct twl4030_keypad_data omap3evm_kp_data = {
- /* ads7846 on SPI */
- static struct regulator_consumer_supply omap3evm_vio_supply[] = {
- 	REGULATOR_SUPPLY("vcc", "spi1.0"),
-+	REGULATOR_SUPPLY("vio_1v8", NULL),
- };
++static int soc_camera_power_off(struct soc_camera_device *icd,
++				struct soc_camera_link *icl)
++{
++	int ret;
++
++	if (icl->power) {
++		ret = icl->power(icd->pdev, 0);
+ 		if (ret < 0) {
+ 			dev_err(icd->pdev,
+ 				"Platform failed to power-off the camera.\n");
+ 			return ret;
+ 		}
+-
+-		ret = regulator_bulk_disable(icl->num_regulators,
+-					     icl->regulators);
+-		if (ret < 0) {
+-			dev_err(icd->pdev, "Cannot disable regulators\n");
+-			return ret;
+-		}
+ 	}
  
- /* VIO for ads7846 */
-@@ -499,6 +519,7 @@ static struct twl4030_platform_data omap3evm_twldata = {
- 	.vio		= &omap3evm_vio,
- 	.vmmc1		= &omap3evm_vmmc1,
- 	.vsim		= &omap3evm_vsim,
-+	.vaux3          = &omap3evm_vaux3,
- };
+-	return 0;
++	ret = regulator_bulk_disable(icl->num_regulators,
++				     icl->regulators);
++	if (ret < 0)
++		dev_err(icd->pdev, "Cannot disable regulators\n");
++
++	return ret;
+ }
  
- static int __init omap3_evm_i2c_init(void)
+ const struct soc_camera_format_xlate *soc_camera_xlate_by_fourcc(
+@@ -502,7 +505,7 @@ static int soc_camera_open(struct file *file)
+ 			},
+ 		};
+ 
+-		ret = soc_camera_power_set(icd, icl, 1);
++		ret = soc_camera_power_on(icd, icl);
+ 		if (ret < 0)
+ 			goto epower;
+ 
+@@ -555,7 +558,7 @@ esfmt:
+ eresume:
+ 	ici->ops->remove(icd);
+ eiciadd:
+-	soc_camera_power_set(icd, icl, 0);
++	soc_camera_power_off(icd, icl);
+ epower:
+ 	icd->use_count--;
+ 	module_put(ici->ops->owner);
+@@ -579,7 +582,7 @@ static int soc_camera_close(struct file *file)
+ 		if (ici->ops->init_videobuf2)
+ 			vb2_queue_release(&icd->vb2_vidq);
+ 
+-		soc_camera_power_set(icd, icl, 0);
++		soc_camera_power_off(icd, icl);
+ 	}
+ 
+ 	if (icd->streamer == file)
+@@ -1086,7 +1089,7 @@ static int soc_camera_probe(struct soc_camera_device *icd)
+ 	if (ret < 0)
+ 		goto ereg;
+ 
+-	ret = soc_camera_power_set(icd, icl, 1);
++	ret = soc_camera_power_on(icd, icl);
+ 	if (ret < 0)
+ 		goto epower;
+ 
+@@ -1163,7 +1166,7 @@ static int soc_camera_probe(struct soc_camera_device *icd)
+ 
+ 	ici->ops->remove(icd);
+ 
+-	soc_camera_power_set(icd, icl, 0);
++	soc_camera_power_off(icd, icl);
+ 
+ 	mutex_unlock(&icd->video_lock);
+ 
+@@ -1185,7 +1188,7 @@ eadddev:
+ evdc:
+ 	ici->ops->remove(icd);
+ eadd:
+-	soc_camera_power_set(icd, icl, 0);
++	soc_camera_power_off(icd, icl);
+ epower:
+ 	regulator_bulk_free(icl->num_regulators, icl->regulators);
+ ereg:
 -- 
-1.7.0.4
+1.7.2.5
 
