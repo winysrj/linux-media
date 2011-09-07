@@ -1,79 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3583 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752661Ab1I0JoO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 05:44:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Subject: Re: [PATCH 4/4 v2][FOR 3.1] v4l2: add blackfin capture bridge driver
-Date: Tue, 27 Sep 2011 11:42:41 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	uclinux-dist-devel@blackfin.uclinux.org
-References: <1316465981-28469-1-git-send-email-scott.jiang.linux@gmail.com> <201109261609.32349.hverkuil@xs4all.nl> <CAHG8p1BiKzS8sJ+qxWSFw0Uk+0gC0e7ABmJaT8igaSeYttOtLw@mail.gmail.com>
-In-Reply-To: <CAHG8p1BiKzS8sJ+qxWSFw0Uk+0gC0e7ABmJaT8igaSeYttOtLw@mail.gmail.com>
+Received: from mail-yi0-f46.google.com ([209.85.218.46]:61943 "EHLO
+	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754311Ab1IGRlm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2011 13:41:42 -0400
+Received: by yie30 with SMTP id 30so5142685yie.19
+        for <linux-media@vger.kernel.org>; Wed, 07 Sep 2011 10:41:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109271142.41309.hverkuil@xs4all.nl>
+In-Reply-To: <4E67A12B.8020908@iki.fi>
+References: <4E2E0788.3010507@iki.fi>
+	<4E3061CF.2080009@redhat.com>
+	<4E306BAE.1020302@iki.fi>
+	<4E35F773.3060807@redhat.com>
+	<4E35FFBF.9010408@iki.fi>
+	<4E360E53.80107@redhat.com>
+	<4E67A12B.8020908@iki.fi>
+Date: Wed, 7 Sep 2011 13:41:41 -0400
+Message-ID: <CAOcJUbz-hTf+xi=9JfJVGYsPSs7Cay6uwuwRdK7aiJeQrCtrGQ@mail.gmail.com>
+Subject: Re: [PATCH 2/3] dvb-usb: multi-frontend support (MFE)
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Jose Alberto Reguero <jareguero@telefonica.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday, September 27, 2011 10:23:35 Scott Jiang wrote:
-> >
-> >> +             ret = v4l2_subdev_call(bcap_dev->sd, video,
-> >> +                                     g_mbus_fmt, &mbus_fmt);
-> >> +             if (ret < 0)
-> >> +                     return ret;
-> >> +
-> >> +             for (i = 0; i < BCAP_MAX_FMTS; i++) {
-> >> +                     if (mbus_fmt.code != bcap_formats[i].mbus_code)
-> >> +                             continue;
-> >> +                     bcap_fmt = &bcap_formats[i];
-> >> +                     v4l2_fill_pix_format(pixfmt, &mbus_fmt);
-> >> +                     pixfmt->pixelformat = bcap_fmt->pixelformat;
-> >> +                     pixfmt->bytesperline = pixfmt->width * bcap_fmt->bpp / 8;
-> >> +                     pixfmt->sizeimage = pixfmt->bytesperline * pixfmt->height;
-> >> +                     break;
-> >> +             }
-> >> +             if (i == BCAP_MAX_FMTS) {
-> >> +                     v4l2_err(&bcap_dev->v4l2_dev,
-> >> +                                     "subdev fmt is not supported by bcap\n");
-> >> +                     return -EINVAL;
-> >> +             }
-> >
-> > Why do this on first open? Shouldn't it be better to do this after the subdev
-> > was loaded?
-> >
-> Hi Hans, thank you for your comments.
-> This point I haven't had a good solution. PPI is only a parallel port,
-> it has no default std or format.
-> That's why you always found I have no default std and format.
-> Sylwester Nawrocki recommend me add this code here, but different
-> input can has different std and format according to v4l2 spec.
-> That means if app only set input, or set input and std without setting
-> format, the default format getting here may be invalid.
-> Do you have any better solution for this?
+On Wed, Sep 7, 2011 at 12:51 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 08/01/2011 05:24 AM, Mauro Carvalho Chehab wrote:
+>>
+>> Em 31-07-2011 22:22, Antti Palosaari escreveu:
+>>>
+>>> On 08/01/2011 03:46 AM, Mauro Carvalho Chehab wrote:
+>>>>
+>>>> One bad thing I noticed with the API is that it calls
+>>>> adap->props.frontend_attach(adap)
+>>>> several times, instead of just one, without even passing an argument for
+>>>> the driver to
+>>>> know that it was called twice.
+>>>>
+>>>> IMO, there are two ways of doing the attach:
+>>>>
+>>>> 1) call it only once, and, inside the driver, it will loop to add the
+>>>> other FE's;
+>>>> 2) add a parameter, at the call, to say what FE needs to be initialized.
+>>>>
+>>>> I think (1) is preferred, as it is more flexible, allowing the driver to
+>>>> test for
+>>>> several types of frontends.
+>
+> I am planning to change DVB USB MFE call .frontend_attach() only once. Is
+> there any comments about that?
+>
+> Currently there is anysee, ttusb2 and cx88 drivers which uses MFE and change
+> is needed ASAP before more MFE devices are coming.
+>
+> Also .num_frontends can be removed after that, since DVB USB will just loop
+> through 0 to MAX FEs and register all FEs found (fe pointer !NULL).
+>
+> CURRENTLY:
+> ==========
+> .frontend_attach()
+>        if (adap->fe_adap[0].fe == NULL)
+>                adap->fe_adap[0].fe = dvb_attach(DVB-T)
+>        else if (adap->fe_adap[1].fe == NULL)
+>                adap->fe_adap[1].fe = dvb_attach(DVB-C)
+>        else if (adap->fe_adap[2].fe == NULL)
+>                adap->fe_adap[2].fe = dvb_attach(DVB-S)
+>
+> PLANNED:
+> ========
+> .frontend_attach()
+>        adap->fe_adap[0].fe = dvb_attach(DVB-T)
+>        adap->fe_adap[1].fe = dvb_attach(DVB-C)
+>        adap->fe_adap[2].fe = dvb_attach(DVB-S)
 
-What you would typically do in a case like this (if I understand it
-correctly) is that in the s_input ioctl you first select the input in the
-subdev, and then you can call the subdev to determine the standard and
-format and use that information to set up the bridge. This requires that
-the subdev is able to return a proper standard/format after an input
-change.
+Antti,
 
-By also selecting an initial input at driver load you will ensure that
-you always have a default std/fmt available from the very beginning.
+I don't understand exactly what you are proposing -- Is this a change
+for the anysee driver?  ...or is it a change for the dvb-usb
+framework?  ...or is it a change to dvb-core, and every driver in the
+subsystem?
 
-It also looks like the s_input in the bridge driver allows for inputs that
-return a subdev format that can't be supported by the bridge. Is that correct?
-If so, then the board code should disallow such inputs. Frankly, that's a
-WARN_ON since that is something that is never supposed to happen.
+In the anysee driver, I see that you are using this:
 
-Regards,
+.frontend_attach()
+        if (adap->fe_adap[0].fe == NULL)
+                adap->fe_adap[0].fe = dvb_attach(DVB-T)
+        else if (adap->fe_adap[1].fe == NULL)
+                adap->fe_adap[1].fe = dvb_attach(DVB-C)
+        else if (adap->fe_adap[2].fe == NULL)
+                adap->fe_adap[2].fe = dvb_attach(DVB-S)
 
-	Hans
+I have no problem if you want to change the anysee driver to remove
+the second dvb_usb_adap_fe_props context, and replace with the
+following:
+
+
+.frontend_attach()
+       adap->fe_adap[0].fe = dvb_attach(DVB-T)
+       adap->fe_adap[1].fe = dvb_attach(DVB-C)
+       adap->fe_adap[2].fe = dvb_attach(DVB-S)
+
+I believe this will work in the anysee driver for you, even with my
+changes that got merged yesterday... However, I do *not* believe that
+such change should propogate to the dvb-usb framework or dvb-core
+itself, because it can have a large negative impact on the drivers
+using it.
+
+For example, my mxl111sf driver was merged yesterday.  Since it is the
+initial driver merge, it currently only supports one frontend (ATSC).
+The device also supports two other delivery systems, and has two
+additional dtv demodulators, each attached via a separate input bus to
+the USB device, each streaming on a separate USB endpoint.
+
+Many demod drivers do an ID test or some other kind of initialization
+during the _attach() function.  A device like the mxl111sf would have
+to manipulate the USB device state and alter the bus operations before
+and after each frontend attachment in order for the _attach() calls to
+succeed, not to mention the separate calls needed for bus negotiation
+to power on the correct demodulator and initialize its streaming data
+path.
+
+I repeat, if this is a change that is specific to your anysee driver,
+then it seems like a good idea to me.  However, if your plan is to
+change dvb-usb itself, and / or dvb-core, then I'd really like to have
+a better idea of the implications that this change will bring forth.
+
+So, to help reduce the confusion, can you clarify exactly what code
+you plan to change, and what impact it will have on the drivers that
+exist today?
+
+Best Regards,
+
+Michael Krufky
