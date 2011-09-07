@@ -1,59 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:49464 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.187]:61955 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757193Ab1I2QTD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Sep 2011 12:19:03 -0400
+	with ESMTP id S1753512Ab1IGQrL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2011 12:47:11 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id F23F118B03B
+	for <linux-media@vger.kernel.org>; Wed,  7 Sep 2011 17:03:09 +0200 (CEST)
+Date: Wed, 7 Sep 2011 17:03:09 +0200 (CEST)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: [PATCH 4/9] V4L: add convenience macros to the subdevice / Media Controller API
-Date: Thu, 29 Sep 2011 18:18:52 +0200
-Message-Id: <1317313137-4403-5-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1317313137-4403-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1317313137-4403-1-git-send-email-g.liakhovetski@gmx.de>
+Subject: [PATCH 1/2] V4L: sh_mobile_ceu_camera: the host shall configure the
+ pipeline
+In-Reply-To: <Pine.LNX.4.64.1109071550320.14818@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1109071645550.14818@axis700.grange>
+References: <Pine.LNX.4.64.1109071550320.14818@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Drivers, that can be built and work with and without
-CONFIG_VIDEO_V4L2_SUBDEV_API, need the v4l2_subdev_get_try_format() and
-v4l2_subdev_get_try_crop() functions, even though their return value
-should never be dereferenced. Also add convenience macros to init and
-clean up subdevice internal media entities.
+>From 2ead2de80898ad53923a4fc4d4e1142ae414fd2f Mon Sep 17 00:00:00 2001
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Date: Wed, 7 Sep 2011 16:59:47 +0200
+Subject: [PATCH] V4L: sh_mobile_ceu_camera: the host shall configure the pipeline
+
+It is a task of the host / bridge driver to bind single subdevices into a
+pipeline, not of respective subdevices. Eventually this might be handled
+by the Media Controller API.
 
 Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- include/media/v4l2-subdev.h |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+ drivers/media/video/sh_mobile_ceu_camera.c |   20 +++++++++++++++-----
+ 1 files changed, 15 insertions(+), 5 deletions(-)
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index f0f3358..4670506 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -569,6 +569,9 @@ v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh, unsigned int pad)
- {
- 	return &fh->try_crop[pad];
- }
-+#else
-+#define v4l2_subdev_get_try_format(arg...)	NULL
-+#define v4l2_subdev_get_try_crop(arg...)	NULL
- #endif
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 56bb82d..ddb3951 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -564,16 +564,24 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
+ 	ret = sh_mobile_ceu_soft_reset(pcdev);
  
- extern const struct v4l2_file_operations v4l2_subdev_fops;
-@@ -610,4 +613,12 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
- 	((!(sd) || !(sd)->v4l2_dev || !(sd)->v4l2_dev->notify) ? -ENODEV : \
- 	 (sd)->v4l2_dev->notify((sd), (notification), (arg)))
+ 	csi2_sd = find_csi2(pcdev);
++	if (csi2_sd)
++		csi2_sd->grp_id = (long)icd;
  
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+#define subdev_media_entity_init(sd, n, p, e)	media_entity_init(&(sd)->entity, n, p, e)
-+#define subdev_media_entity_cleanup(sd)		media_entity_cleanup(&(sd)->entity)
-+#else
-+#define subdev_media_entity_init(sd, n, p, e)	0
-+#define subdev_media_entity_cleanup(sd)		do {} while (0)
-+#endif
+ 	ret = v4l2_subdev_call(csi2_sd, core, s_power, 1);
+-	if (ret != -ENODEV && ret != -ENOIOCTLCMD && ret < 0) {
++	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV) {
+ 		pm_runtime_put_sync(ici->v4l2_dev.dev);
+-	} else {
+-		pcdev->icd = icd;
+-		ret = 0;
++		return ret;
+ 	}
+ 
+-	return ret;
++	/*
++	 * -ENODEV is special: either csi2_sd == NULL or the CSI-2 driver
++	 * has not found this soc-camera device among its clients
++	 */
++	if (ret == -ENODEV && csi2_sd)
++		csi2_sd->grp_id = 0;
++	pcdev->icd = icd;
 +
- #endif
++	return 0;
+ }
+ 
+ /* Called with .video_lock held */
+@@ -586,6 +594,8 @@ static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
+ 	BUG_ON(icd != pcdev->icd);
+ 
+ 	v4l2_subdev_call(csi2_sd, core, s_power, 0);
++	if (csi2_sd)
++		csi2_sd->grp_id = 0;
+ 	/* disable capture, disable interrupts */
+ 	ceu_write(pcdev, CEIER, 0);
+ 	sh_mobile_ceu_soft_reset(pcdev);
 -- 
 1.7.2.5
 
