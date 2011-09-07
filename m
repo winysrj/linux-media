@@ -1,81 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:61955 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753512Ab1IGQrL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2011 12:47:11 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id F23F118B03B
-	for <linux-media@vger.kernel.org>; Wed,  7 Sep 2011 17:03:09 +0200 (CEST)
-Date: Wed, 7 Sep 2011 17:03:09 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] V4L: sh_mobile_ceu_camera: the host shall configure the
- pipeline
-In-Reply-To: <Pine.LNX.4.64.1109071550320.14818@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1109071645550.14818@axis700.grange>
-References: <Pine.LNX.4.64.1109071550320.14818@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54639 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756647Ab1IGXvO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Sep 2011 19:51:14 -0400
+Date: Wed, 7 Sep 2011 16:51:03 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: viro@zeniv.linux.org.uk,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-kernel" <linux-kernel@vger.kernel.org>,
+	"linux-media" <linux-media@vger.kernel.org>,
+	linux-fsdevel@vger.kernel.org
+Subject: Re: Can you review or ack this patch?
+Message-Id: <20110907165103.41b8b252.akpm@linux-foundation.org>
+In-Reply-To: <201108230833.25812.hverkuil@xs4all.nl>
+References: <201108230833.25812.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From 2ead2de80898ad53923a4fc4d4e1142ae414fd2f Mon Sep 17 00:00:00 2001
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Date: Wed, 7 Sep 2011 16:59:47 +0200
-Subject: [PATCH] V4L: sh_mobile_ceu_camera: the host shall configure the pipeline
+On Tue, 23 Aug 2011 08:33:25 +0200
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-It is a task of the host / bridge driver to bind single subdevices into a
-pipeline, not of respective subdevices. Eventually this might be handled
-by the Media Controller API.
+> (and resent again, this time with the correct linux-fsdevel mail address)
+> (Resent as requested by Andrew Morton since this is still stuck)
+> 
+> Hi Al, Andrew,
+> 
+> Can you take a look at this patch and send an Ack or review comments?
+> 
+> It's already been reviewed by Jon Corbet and we really need this functionality
+> for v3.1. You were in the CC list in earlier postings:
+> 
+> Here: http://www.spinics.net/lists/linux-fsdevel/msg46753.html
+> and here: http://www.mail-archive.com/linux-media@vger.kernel.org/msg34546.html
+> 
+> The patch also featured on LWN: http://lwn.net/Articles/450658/
+> 
+> Without your ack Mauro can't upstream this and we have a number of other
+> patches that depend on this and are currently blocked.
+> 
+> We would prefer to upstream this patch through the linux-media git tree
+> due to these dependencies.
+> 
+> My git branch containing this and the dependent patches is here:
+> 
+> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/poll
+> 
+> Your help would be greatly appreciated (and your ack even more :-) )!
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/sh_mobile_ceu_camera.c |   20 +++++++++++++++-----
- 1 files changed, 15 insertions(+), 5 deletions(-)
+I'll grab the patch to get it a bit of testing while Al cogitates.
 
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 56bb82d..ddb3951 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -564,16 +564,24 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
- 	ret = sh_mobile_ceu_soft_reset(pcdev);
- 
- 	csi2_sd = find_csi2(pcdev);
-+	if (csi2_sd)
-+		csi2_sd->grp_id = (long)icd;
- 
- 	ret = v4l2_subdev_call(csi2_sd, core, s_power, 1);
--	if (ret != -ENODEV && ret != -ENOIOCTLCMD && ret < 0) {
-+	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV) {
- 		pm_runtime_put_sync(ici->v4l2_dev.dev);
--	} else {
--		pcdev->icd = icd;
--		ret = 0;
-+		return ret;
- 	}
- 
--	return ret;
-+	/*
-+	 * -ENODEV is special: either csi2_sd == NULL or the CSI-2 driver
-+	 * has not found this soc-camera device among its clients
-+	 */
-+	if (ret == -ENODEV && csi2_sd)
-+		csi2_sd->grp_id = 0;
-+	pcdev->icd = icd;
-+
-+	return 0;
- }
- 
- /* Called with .video_lock held */
-@@ -586,6 +594,8 @@ static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
- 	BUG_ON(icd != pcdev->icd);
- 
- 	v4l2_subdev_call(csi2_sd, core, s_power, 0);
-+	if (csi2_sd)
-+		csi2_sd->grp_id = 0;
- 	/* disable capture, disable interrupts */
- 	ceu_write(pcdev, CEIER, 0);
- 	sh_mobile_ceu_soft_reset(pcdev);
--- 
-1.7.2.5
+> 
+> 
+> [PATCH] poll: add poll_requested_events() function
+> 
+> In some cases the poll() implementation in a driver has to do different
+> things depending on the events the caller wants to poll for. An example is
+> when a driver needs to start a DMA engine if the caller polls for POLLIN,
+> but doesn't want to do that if POLLIN is not requested but instead only
+> POLLOUT or POLLPRI is requested. This is something that can happen in the
+> video4linux subsystem.
+> 
+> Unfortunately, the current epoll/poll/select implementation doesn't provide
+> that information reliably. The poll_table_struct does have it: it has a key
+> field with the event mask. But once a poll() call matches one or more bits
+> of that mask any following poll() calls are passed a NULL poll_table_struct
+> pointer.
+> 
+> The solution is to set the qproc field to NULL in poll_table_struct once
+> poll() matches the events, not the poll_table_struct pointer itself. That
+> way drivers can obtain the mask through a new poll_requested_events inline.
+> 
+> The poll_table_struct can still be NULL since some kernel code calls it
+> internally (netfs_state_poll() in ./drivers/staging/pohmelfs/netfs.h). In
+> that case poll_requested_events() returns ~0 (i.e. all events).
+> 
+> Since eventpoll always leaves the key field at ~0 instead of using the
+> requested events mask, that source was changed as well to properly fill in
+> the key field.
+
+It would be nice to find some suitable place in the code where we can
+explain all this to other potential users of the capability.  Perhaps
+the implementation site for the currently undocumented
+poll_requested_events() would be a suitable place.
+
+>
+> ...
+>
+> -	epi->event.events = event->events;
+> +	epi->event.events = pt.key = event->events;
+
+coding style nit: we generally try to avoid multiple assignemnts like this.
+
+>
+> ...
+>
 
