@@ -1,81 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f43.google.com ([209.85.212.43]:54889 "EHLO
-	mail-vw0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751175Ab1IHE2b convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 00:28:31 -0400
-Received: by vws10 with SMTP id 10so593895vws.2
-        for <linux-media@vger.kernel.org>; Wed, 07 Sep 2011 21:28:30 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:33973 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757028Ab1IGVVM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Sep 2011 17:21:12 -0400
+Message-ID: <4E67E046.9060808@iki.fi>
+Date: Thu, 08 Sep 2011 00:21:10 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Date: Thu, 8 Sep 2011 00:28:30 -0400
-Message-ID: <CAHAyoxyG9pS+3pOSQYepXsc+HDLGiW8EOud10JaXjas4Ku0fxw@mail.gmail.com>
-Subject: [PULL] git://git.linuxtv.org/mkrufky/mxl111sf.git mfe-fixes | WAS:
- Re: [git:v4l-dvb/for_v3.2] [media] dvb-usb: refactor MFE code for individual
- streaming config per frontend
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: Re: [git:v4l-dvb/for_v3.2] [media] dvb-usb: refactor MFE code for
+ individual streaming config per frontend
+References: <E1R0zZM-0008EU-2T@www.linuxtv.org> <4E67DF8C.603@iki.fi>
+In-Reply-To: <4E67DF8C.603@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>>>>> On 09/08/2011 12:18 AM, Antti Palosaari wrote:
->>>>>>> This patch seems to break all DVB USB devices we have. Michael, could
->>>>>>> you check and fix it asap.
-[snip]
->>>>>>>> Subject: [media] dvb-usb: refactor MFE code for individual streaming
->>>>>>>> config per frontend
-[snip]
->>>>>> This error is shown by VLC when channel changed:
->>>>>>
->>>>>> [0x7f1bbc000cd0] dvb access error: DMXSetFilter: failed with -1 (Invalid
->>>>>> argument)
->>>>>> [0x7f1bbc000cd0] dvb access error: DMXSetFilter failed
->>>>>> [0x7f1bbc32f910] main stream error: cannot pre fill buffer
->>>>>>
->>>>>> but it seems to be related dvb_usb_ctrl_feed() I pointed earlier mail.
-[snip]
->>>
->>> Commenting out that
->>>>>>> if ((adap->feedcount == onoff)&&  (!onoff))
->>>>>>> adap->active_fe = -1;
->>>
->>> resolves problem.
+This error is shown by VLC when channel changed:
+
+[0x7f1bbc000cd0] dvb access error: DMXSetFilter: failed with -1 (Invalid 
+argument)
+[0x7f1bbc000cd0] dvb access error: DMXSetFilter failed
+[0x7f1bbc32f910] main stream error: cannot pre fill buffer
+
+
+but it seems to be related dvb_usb_ctrl_feed() I pointed earlier mail.
+
+Antti
+
+
+On 09/08/2011 12:18 AM, Antti Palosaari wrote:
+> This patch seems to break all DVB USB devices we have. Michael, could
+> you check and fix it asap.
+>
+> On 09/06/2011 08:21 PM, Mauro Carvalho Chehab wrote:
+>> This is an automatic generated email to let you know that the
+>> following patch were queued at the
+>> http://git.linuxtv.org/media_tree.git tree:
 >>
->> OK...  I think it's safe to remove that code.  The only time that
->> "adap->active_fe" should really be set to -1 is at startup, before
->> *any* frontend is used.  Does removal of those two lines fix it for
->> you completely?
+>> Subject: [media] dvb-usb: refactor MFE code for individual streaming
+>> config per frontend
+>> Author: Michael Krufky<mkrufky@kernellabs.com>
+>> Date: Tue Sep 6 09:31:57 2011 -0300
+>>
+>> refactor MFE code to allow for individual streaming configuration
+>> for each frontend
+>>
+>> Signed-off-by: Michael Krufky<mkrufky@kernellabs.com>
+>> Reviewed-by: Antti Palosaari<crope@iki.fi>
+>> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
 >
-> BTW, I understand the cause of this now -- this error case occurs when
-> the application stops streaming but leaves the frontend open.  (for
-> instance, to change the channel)  We only want to set (adap->active_fe
-> = -1) if ( ((adap->feedcount == onoff)&&  (!onoff)) AND ALSO only if
-> the file handle gets closed.
+>> drivers/media/dvb/dvb-usb/dvb-usb-dvb.c | 141 ++++++-----
 >
-> It's safe to just disable those lines for now.
+> dvb_usb_ctrl_feed()
+> if ((adap->feedcount == onoff) && (!onoff))
+> adap->active_fe = -1;
+>
+>
+>
+>> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=77eed219fed5a913f59329cc846420fdeab0150f
+>>
+>> <diff discarded since it is too big>
+>
+>
+> regards
+> Antti
+>
 
-Mauro,
 
-Please pull from git://git.linuxtv.org/mkrufky/mxl111sf.git mfe-fixes
-branch, to fix the issue that Antti pointed out.
-
-
-The following changes since commit d4d4e3c97211f20d4fde5d82878561adaa42b578:
-  Sylwester Nawrocki (1):
-        [media] s5p-csis: Rework the system suspend/resume helpers
-
-are available in the git repository at:
-
-  git://git.linuxtv.org/mkrufky/mxl111sf.git mfe-fixes
-
-Michael Krufky (2):
-      dvb-usb: fix streaming failure on channel change
-      dvb-usb: improve sanity check of adap->active_fe in dvb_usb_ctrl_feed
-
- drivers/media/dvb/dvb-usb/dvb-usb-dvb.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
-
-Cheers,
-
-Michael Krufky
+-- 
+http://palosaari.fi/
