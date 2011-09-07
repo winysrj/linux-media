@@ -1,124 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56203 "EHLO comal.ext.ti.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:34990 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750903Ab1ISFJT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Sep 2011 01:09:19 -0400
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Date: Mon, 19 Sep 2011 10:39:04 +0530
-Subject: RE: [PATCH v2 0/8] RFC for Media Controller capture driver for DM365
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593025729ADE2@dbde02.ent.ti.com>
-References: <1314630439-1122-1-git-send-email-manjunath.hadli@ti.com>
- <4E7601C2.9030900@redhat.com>
-In-Reply-To: <4E7601C2.9030900@redhat.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1756332Ab1IGSUW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Sep 2011 14:20:22 -0400
+Message-ID: <4E67B5E2.4040006@iki.fi>
+Date: Wed, 07 Sep 2011 21:20:18 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
+To: Michael Krufky <mkrufky@kernellabs.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Jose Alberto Reguero <jareguero@telefonica.net>
+Subject: Re: [PATCH 2/3] dvb-usb: multi-frontend support (MFE)
+References: <4E2E0788.3010507@iki.fi>	<4E3061CF.2080009@redhat.com>	<4E306BAE.1020302@iki.fi>	<4E35F773.3060807@redhat.com>	<4E35FFBF.9010408@iki.fi>	<4E360E53.80107@redhat.com>	<4E67A12B.8020908@iki.fi>	<CAOcJUbz-hTf+xi=9JfJVGYsPSs7Cay6uwuwRdK7aiJeQrCtrGQ@mail.gmail.com> <CAOcJUbzDNXw8j6seVuM1ZkYzV5WRV0nv6Np620hKq5sHe0Bk=g@mail.gmail.com>
+In-Reply-To: <CAOcJUbzDNXw8j6seVuM1ZkYzV5WRV0nv6Np620hKq5sHe0Bk=g@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
-  Thank you for your note.
-  The first RFC for this (VPFE MC) driver was sent only in August this year. The other driver being discussed before was VPBE (which did go through some grind but not 2 years) which you accepted. This series of patches is definitely not two years old (unless I am mistaken somewhere).
- Currently Sakari is taking active interest in reviewing the patches, but I would like to take the cue from your note to request others also to actively review these patches and help me get them accepted.
+On 09/07/2011 08:45 PM, Michael Krufky wrote:
+> On Wed, Sep 7, 2011 at 1:41 PM, Michael Krufky<mkrufky@kernellabs.com>  wrote:
+>> On Wed, Sep 7, 2011 at 12:51 PM, Antti Palosaari<crope@iki.fi>  wrote:
+>>> On 08/01/2011 05:24 AM, Mauro Carvalho Chehab wrote:
+>>>>
+>>>> Em 31-07-2011 22:22, Antti Palosaari escreveu:
+>>>>>
+>>>>> On 08/01/2011 03:46 AM, Mauro Carvalho Chehab wrote:
+>>>>>>
+>>>>>> One bad thing I noticed with the API is that it calls
+>>>>>> adap->props.frontend_attach(adap)
+>>>>>> several times, instead of just one, without even passing an argument for
+>>>>>> the driver to
+>>>>>> know that it was called twice.
+>>>>>>
+>>>>>> IMO, there are two ways of doing the attach:
+>>>>>>
+>>>>>> 1) call it only once, and, inside the driver, it will loop to add the
+>>>>>> other FE's;
+>>>>>> 2) add a parameter, at the call, to say what FE needs to be initialized.
+>>>>>>
+>>>>>> I think (1) is preferred, as it is more flexible, allowing the driver to
+>>>>>> test for
+>>>>>> several types of frontends.
+>>>
+>>> I am planning to change DVB USB MFE call .frontend_attach() only once. Is
+>>> there any comments about that?
+>>>
+>>> Currently there is anysee, ttusb2 and cx88 drivers which uses MFE and change
+>>> is needed ASAP before more MFE devices are coming.
+>>>
+>>> Also .num_frontends can be removed after that, since DVB USB will just loop
+>>> through 0 to MAX FEs and register all FEs found (fe pointer !NULL).
+>>>
+>>> CURRENTLY:
+>>> ==========
+>>> .frontend_attach()
+>>>         if (adap->fe_adap[0].fe == NULL)
+>>>                 adap->fe_adap[0].fe = dvb_attach(DVB-T)
+>>>         else if (adap->fe_adap[1].fe == NULL)
+>>>                 adap->fe_adap[1].fe = dvb_attach(DVB-C)
+>>>         else if (adap->fe_adap[2].fe == NULL)
+>>>                 adap->fe_adap[2].fe = dvb_attach(DVB-S)
+>>>
+>>> PLANNED:
+>>> ========
+>>> .frontend_attach()
+>>>         adap->fe_adap[0].fe = dvb_attach(DVB-T)
+>>>         adap->fe_adap[1].fe = dvb_attach(DVB-C)
+>>>         adap->fe_adap[2].fe = dvb_attach(DVB-S)
+>>
+>> Antti,
+>>
+>> I don't understand exactly what you are proposing -- Is this a change
+>> for the anysee driver?  ...or is it a change for the dvb-usb
+>> framework?  ...or is it a change to dvb-core, and every driver in the
+>> subsystem?
+>>
+>> In the anysee driver, I see that you are using this:
+>>
+>> .frontend_attach()
+>>          if (adap->fe_adap[0].fe == NULL)
+>>                  adap->fe_adap[0].fe = dvb_attach(DVB-T)
+>>          else if (adap->fe_adap[1].fe == NULL)
+>>                  adap->fe_adap[1].fe = dvb_attach(DVB-C)
+>>          else if (adap->fe_adap[2].fe == NULL)
+>>                  adap->fe_adap[2].fe = dvb_attach(DVB-S)
+>>
+>> I have no problem if you want to change the anysee driver to remove
+>> the second dvb_usb_adap_fe_props context, and replace with the
+>> following:
+>>
+>>
+>> .frontend_attach()
+>>         adap->fe_adap[0].fe = dvb_attach(DVB-T)
+>>         adap->fe_adap[1].fe = dvb_attach(DVB-C)
+>>         adap->fe_adap[2].fe = dvb_attach(DVB-S)
+>>
+>> I believe this will work in the anysee driver for you, even with my
+>> changes that got merged yesterday... However, I do *not* believe that
+>> such change should propogate to the dvb-usb framework or dvb-core
+>> itself, because it can have a large negative impact on the drivers
+>> using it.
+>>
+>> For example, my mxl111sf driver was merged yesterday.  Since it is the
+>> initial driver merge, it currently only supports one frontend (ATSC).
+>> The device also supports two other delivery systems, and has two
+>> additional dtv demodulators, each attached via a separate input bus to
+>> the USB device, each streaming on a separate USB endpoint.
+>>
+>> Many demod drivers do an ID test or some other kind of initialization
+>> during the _attach() function.  A device like the mxl111sf would have
+>> to manipulate the USB device state and alter the bus operations before
+>> and after each frontend attachment in order for the _attach() calls to
+>> succeed, not to mention the separate calls needed for bus negotiation
+>> to power on the correct demodulator and initialize its streaming data
+>> path.
+>>
+>> I repeat, if this is a change that is specific to your anysee driver,
+>> then it seems like a good idea to me.  However, if your plan is to
+>> change dvb-usb itself, and / or dvb-core, then I'd really like to have
+>> a better idea of the implications that this change will bring forth.
+>>
+>> So, to help reduce the confusion, can you clarify exactly what code
+>> you plan to change, and what impact it will have on the drivers that
+>> exist today?
+>>
+>> Best Regards,
+>>
+>> Michael Krufky
+>>
+>
+> ADDENDUM:
+>
+> For the anysee driver, for your single .frontend_attach()
+>         adap->fe_adap[0].fe = dvb_attach(DVB-T)
+>         adap->fe_adap[1].fe = dvb_attach(DVB-C)
+>         adap->fe_adap[2].fe = dvb_attach(DVB-S)
+>
+> ...for this to work in today's dvb-usb code without modification to
+> the dvb-usb framework, i believe that you should do a test for
+> (adap->fe_adap[0].fe&&  adap->fe_adap[1].fe&&  adap->fe_adap[2].fe )
+> ... if null, then attach, if not null, then exit -- this will prevent
+> the second context's initialization from occurring twice.
 
-Thanks and Regards,
--Manju
+Yes, I now saw when looked latest anysee driver that you moved 
+.streaming_ctrl(), .frontend_attach() and .tuner_attach() to frontend 
+property. OK, it is not then relevant anymore to change register all as 
+once.
+
+What is size_of_priv used?
+
+regards
+Antti
 
 
-On Sun, Sep 18, 2011 at 20:05:46, Mauro Carvalho Chehab wrote:
-> Em 29-08-2011 12:07, Manjunath Hadli escreveu:
-> > changes from last patch set:
-> > 1. Made changes based on Sakari's feedback mainly:
-> >         a. returned early to allow unindenting
-> >         b. reformatting to shift the code to left where possible
-> >         c. changed hex numbers to lower case
-> >         d. corrected the defines according to module names.
-> >         e. magic numbers removed.
-> >         f. changed non-integer returning functions to void
-> >         g. removed unwanted paranthses.
-> >         h. fixed error codes.
-> >         i. fixed some RESET_BIt code to what it was intended for.
-> > 2. reorganized the header files to move the kernel-only headers along 
-> > with the c files and interface headers in the include folder.
-> 
-> Manju,
-> 
-> Please be sure to send me a pull request when you think this driver is ready for merge. The first submission I'm noticing for this driver was back on 2009, and still today, nobody sent me a git pull request for it. Two years seems too much time to solve the pending issues and sending a pull request for me to merge it!
-> > 
-> > Manjunath Hadli (6):
-> >   davinci: vpfe: add dm3xx IPIPEIF hardware support module
-> >   davinci: vpfe: add support for CCDC hardware for dm365
-> >   davinci: vpfe: add ccdc driver with media controller interface
-> >   davinci: vpfe: add v4l2 video driver support
-> >   davinci: vpfe: v4l2 capture driver with media interface
-> >   davinci: vpfe: build infrastructure for dm365
-> > 
-> > Nagabhushana Netagunte (2):
-> >   davinci: vpfe: add IPIPE hardware layer support
-> >   davinci: vpfe: add IPIPE support for media controller driver
-> > 
-> >  drivers/media/video/davinci/Kconfig           |   46 +-
-> >  drivers/media/video/davinci/Makefile          |   17 +-
-> >  drivers/media/video/davinci/ccdc_hw_device.h  |   10 +-
-> >  drivers/media/video/davinci/ccdc_types.h      |   43 +
-> >  drivers/media/video/davinci/dm365_ccdc.c      | 1519 ++++++++++
-> >  drivers/media/video/davinci/dm365_ccdc.h      |   88 +
-> >  drivers/media/video/davinci/dm365_ccdc_regs.h |  309 ++  
-> > drivers/media/video/davinci/dm365_def_para.c  |  486 +++
-> >  drivers/media/video/davinci/dm365_def_para.h  |   39 +
-> >  drivers/media/video/davinci/dm365_ipipe.c     | 3966 +++++++++++++++++++++++++
-> >  drivers/media/video/davinci/dm365_ipipe.h     |  300 ++
-> >  drivers/media/video/davinci/dm365_ipipe_hw.c  |  949 ++++++  
-> > drivers/media/video/davinci/dm365_ipipe_hw.h  |  539 ++++
-> >  drivers/media/video/davinci/dm3xx_ipipeif.c   |  317 ++
-> >  drivers/media/video/davinci/dm3xx_ipipeif.h   |  258 ++
-> >  drivers/media/video/davinci/imp_common.h      |   85 +
-> >  drivers/media/video/davinci/imp_hw_if.h       |  178 ++
-> >  drivers/media/video/davinci/vpfe_capture.c    |  793 +++++
-> >  drivers/media/video/davinci/vpfe_capture.h    |  104 +
-> >  drivers/media/video/davinci/vpfe_ccdc.c       |  813 +++++
-> >  drivers/media/video/davinci/vpfe_ccdc.h       |   85 +
-> >  drivers/media/video/davinci/vpfe_video.c      | 1712 +++++++++++
-> >  drivers/media/video/davinci/vpfe_video.h      |  142 +
-> >  include/linux/davinci_vpfe.h                  | 1223 ++++++++
-> >  include/linux/dm365_ccdc.h                    |  664 +++++
-> >  include/linux/dm3xx_ipipeif.h                 |   64 +
-> >  include/media/davinci/vpfe.h                  |   91 +
-> >  27 files changed, 14829 insertions(+), 11 deletions(-)  create mode 
-> > 100644 drivers/media/video/davinci/ccdc_types.h
-> >  create mode 100644 drivers/media/video/davinci/dm365_ccdc.c
-> >  create mode 100644 drivers/media/video/davinci/dm365_ccdc.h
-> >  create mode 100644 drivers/media/video/davinci/dm365_ccdc_regs.h
-> >  create mode 100644 drivers/media/video/davinci/dm365_def_para.c
-> >  create mode 100644 drivers/media/video/davinci/dm365_def_para.h
-> >  create mode 100644 drivers/media/video/davinci/dm365_ipipe.c
-> >  create mode 100644 drivers/media/video/davinci/dm365_ipipe.h
-> >  create mode 100644 drivers/media/video/davinci/dm365_ipipe_hw.c
-> >  create mode 100644 drivers/media/video/davinci/dm365_ipipe_hw.h
-> >  create mode 100644 drivers/media/video/davinci/dm3xx_ipipeif.c
-> >  create mode 100644 drivers/media/video/davinci/dm3xx_ipipeif.h
-> >  create mode 100644 drivers/media/video/davinci/imp_common.h
-> >  create mode 100644 drivers/media/video/davinci/imp_hw_if.h
-> >  create mode 100644 drivers/media/video/davinci/vpfe_capture.c
-> >  create mode 100644 drivers/media/video/davinci/vpfe_capture.h
-> >  create mode 100644 drivers/media/video/davinci/vpfe_ccdc.c
-> >  create mode 100644 drivers/media/video/davinci/vpfe_ccdc.h
-> >  create mode 100644 drivers/media/video/davinci/vpfe_video.c
-> >  create mode 100644 drivers/media/video/davinci/vpfe_video.h
-> >  create mode 100644 include/linux/davinci_vpfe.h  create mode 100644 
-> > include/linux/dm365_ccdc.h  create mode 100644 
-> > include/linux/dm3xx_ipipeif.h  create mode 100644 
-> > include/media/davinci/vpfe.h
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" 
-> > in the body of a message to majordomo@vger.kernel.org More majordomo 
-> > info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
 
+
+-- 
+http://palosaari.fi/
