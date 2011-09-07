@@ -1,67 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39966 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751099Ab1IZFe2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 01:34:28 -0400
-Message-ID: <4E800EEC.8080905@ti.com>
-Date: Mon, 26 Sep 2011 11:04:36 +0530
-From: Archit Taneja <archit@ti.com>
+Received: from nm10-vm2.bullet.mail.ne1.yahoo.com ([98.138.90.158]:48793 "HELO
+	nm10-vm2.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755050Ab1IGErm convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Sep 2011 00:47:42 -0400
+Message-ID: <1315370468.62946.YahooMailNeo@web31707.mail.mud.yahoo.com>
+Date: Tue, 6 Sep 2011 21:41:08 -0700 (PDT)
+From: Lothsahn <lothsahn@yahoo.com>
+Reply-To: Lothsahn <lothsahn@yahoo.com>
+Subject: Compiling on 2.6.32-31-generic fails (nightly build server has same problem)
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-To: "Taneja, Archit" <archit@ti.com>
-CC: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Semwal, Sumit" <sumit.semwal@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/5] [media]: OMAP_VOUT: CLEANUP: Remove redundant code
- from omap_vout_isr
-References: <1316167233-1437-1-git-send-email-archit@ti.com> <1316167233-1437-3-git-send-email-archit@ti.com> <19F8576C6E063C45BE387C64729E739404EC941E8B@dbde02.ent.ti.com> <4E79C053.903@ti.com>
-In-Reply-To: <4E79C053.903@ti.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+I'm using Mythbuntu 10.04 LTS with the 2.6.32-31-generic kernel.  I 
+tried to compile the latest v4l code, and I'm getting the following 
+compile error:
 
-On Wednesday 21 September 2011 04:15 PM, Taneja, Archit wrote:
-> Hi,
->
-> On Wednesday 21 September 2011 03:35 PM, Hiremath, Vaibhav wrote:
->>
->>> -----Original Message-----
->>> From: Taneja, Archit
->>> Sent: Friday, September 16, 2011 3:31 PM
->>> To: Hiremath, Vaibhav
->>> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
->>> media@vger.kernel.org; Taneja, Archit
->>> Subject: [PATCH 2/5] [media]: OMAP_VOUT: CLEANUP: Remove redundant code
->>> from omap_vout_isr
->>>
->>> Currently, there is a lot of redundant code is between DPI and VENC panels,
->>> this
->>> can be made common by moving out field/interlace specific code to a
->>> separate
->>> function called omapvid_handle_interlace_display(). There is no functional
->>> change made.
->>>
->>> Signed-off-by: Archit Taneja<archit@ti.com>
->>> ---
->>>    drivers/media/video/omap/omap_vout.c |  172 ++++++++++++++++-------------
->>> -----
+/home/lowmanator/media_build/v4l/tda18271-common.c: In function '_tda_printk':
+/home/lowmanator/media_build/v4l/tda18271-common.c:682: error: storage size of 'vaf' isn't known
+/home/lowmanator/media_build/v4l/tda18271-common.c:682: warning: unused variable 'vaf'
+make[3]: *** [/home/lowmanator/media_build/v4l/tda18271-common.o] Error 1
+make[2]: ***
+[_module_/home/lowmanator/media_build/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.32-31-generic'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/home/lowmanator/media_build/v4l'
+make: *** [all] Error
+2
 
 
->> [Hiremath, Vaibhav]
->> Have you tested TV out functionality?
->
-> I haven't checked it yet to be totally honest. Its hard to find a VENC
-> TV! I wanted to anyway get some kind of Ack from you before starting to
-> test this. Since you also feel that this clean up is needed, I'll start
-> testing this out :)
 
-I tested the TV out functionality. It works fine. I have left the extra 
-fid == 0 check so that the code is more clear. Will post out the new 
-patch soon.
+Just to try to workaround the error for now (and just because I'm a sadist for failure), I've 
+removed the entire tda_printk method from that module, hoping that my 
+hd-pvr isn't using the tda18271 chip :)  When I do this and recontinue 
+the make, I then fail on the following error:
+  CC [M]  /home/lowmanator/media_build/v4l/imon.o
+/home/lowmanator/media_build/v4l/imon.c: In function 'send_packet':
+/home/lowmanator/media_build/v4l/imon.c:521: error: implicit declaration of function 'pr_err_ratelimited'
+make[3]: *** [/home/lowmanator/media_build/v4l/imon.o] Error 1
+make[2]: *** [_module_/home/lowmanator/media_build/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.32-31-generic'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/home/lowmanator/media_build/v4l'
+make: *** [all] Error
+2
 
-Archit
+
+imon.c sounds a little more 
+centralized than tda18271, so I didn't feel like ripping out the 
+"send_packet" method :)  I've stopped for now.
+
+I've also noticed that these errors are reported in the nightly builds 
+for the last week or so (I don't have nightly logs from before that).
+
+
+
+Any idea how I can workaround these two errors (without changing out my 
+entire kernel)?  I have a brand new shiny F2 revision HD-PVR and I'd 
+really like to use it...
+
+Thanks,
+Lothsahn
