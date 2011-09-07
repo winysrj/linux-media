@@ -1,82 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:65271 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753912Ab1IEOTo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 10:19:44 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 1/2] misc: remove CONFIG_MISC_DEVICES
-Date: Mon, 5 Sep 2011 16:19:35 +0200
-Cc: Luciano Coelho <coelho@ti.com>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	matti.j.aaltonen@nokia.com, johannes@sipsolutions.net,
-	linux-kernel@vger.kernel.org, sameo@linux.intel.com,
-	mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
-	Grant Likely <grant.likely@secretlab.ca>
-References: <20110829102732.03f0f05d.rdunlap@xenotime.net> <201109021643.14275.arnd@arndb.de> <20110905144134.2c80c4b9@endymion.delvare>
-In-Reply-To: <20110905144134.2c80c4b9@endymion.delvare>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:54408 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757145Ab1IGVcO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2011 17:32:14 -0400
+Received: by ywf7 with SMTP id 7so87645ywf.19
+        for <linux-media@vger.kernel.org>; Wed, 07 Sep 2011 14:32:14 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109051619.35553.arnd@arndb.de>
+In-Reply-To: <4E67DDCA.8000908@iki.fi>
+References: <4E2E0788.3010507@iki.fi>
+	<4E3061CF.2080009@redhat.com>
+	<4E306BAE.1020302@iki.fi>
+	<4E35F773.3060807@redhat.com>
+	<4E35FFBF.9010408@iki.fi>
+	<4E360E53.80107@redhat.com>
+	<4E67A12B.8020908@iki.fi>
+	<CAOcJUbz-hTf+xi=9JfJVGYsPSs7Cay6uwuwRdK7aiJeQrCtrGQ@mail.gmail.com>
+	<CAOcJUbzDNXw8j6seVuM1ZkYzV5WRV0nv6Np620hKq5sHe0Bk=g@mail.gmail.com>
+	<4E67B5E2.4040006@iki.fi>
+	<CAHAyoxyc6EyZdUueiF9VpssX8i0LazzL_BgJKczi=MOsfO1fKg@mail.gmail.com>
+	<4E67DDCA.8000908@iki.fi>
+Date: Wed, 7 Sep 2011 17:32:14 -0400
+Message-ID: <CAOcJUbz9HrfPC1bnihb2gjPSE7iM8H64J=kGGSPw6NfYoBog4w@mail.gmail.com>
+Subject: Re: [PATCH 2/3] dvb-usb: multi-frontend support (MFE)
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Jose Alberto Reguero <jareguero@telefonica.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 05 September 2011, Jean Delvare wrote:
-> As said before, I'm not sure. Yes, it makes it easier to select misc
-> device drivers from Kconfig files. But it also makes it impossible to
-> deselect all misc device drivers at once.
-> 
-> I think that what we really need is the implementation in the Kconfig
-> system of smart selects, i.e. whenever an entry is selected, everything
-> it depends on gets selected as well. I don't know how feasible this is,
-> but if it can be done then I'd prefer this to your proposal.
-> 
-> Meanwhile, I am not in favor of applying your patch. The benefit is
-> relatively small IMHO (misc device drivers are rarely selected) and
-> there is one significant drawback.
+On Wed, Sep 7, 2011 at 5:10 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 09/07/2011 09:36 PM, Michael Krufky wrote:
+>>
+>> On Wed, Sep 7, 2011 at 2:20 PM, Antti Palosaari<crope@iki.fi>  wrote:
+>
+>>> Yes, I now saw when looked latest anysee driver that you moved
+>>> .streaming_ctrl(), .frontend_attach() and .tuner_attach() to frontend
+>>> property. OK, it is not then relevant anymore to change register all as
+>>> once.
+>>>
+>>> What is size_of_priv used?
+>>
+>> size_of_priv is a signal to the dvb-usb framework to allocate memory
+>> of size, size_of_priv to track device state at a given context.  If
+>> you look in dvb-usb.h, there was always a size_of_priv / void *priv at
+>> the dvb_usb_device context level, and there was always a size_of_priv
+>> / void *priv at the dvb_usb_adapter context level.   After my MFE
+>> patch, there is now a size_of_priv / void *priv at the
+>> dvb_usb_fe_adapter context level.  This private state structure is
+>> used to track state at the context of each dvb_usb_fe_adap, to manage
+>> the environment needed to switch between the various attached
+>> frontends.  You may take a look in mxl111sf.c to see how this is used
+>> (ie, struct mxl111sf_adap_state *adap_state =
+>> adap->fe_adap[fe->id].priv;)
+>>
+>> If size_of_priv is left undefined, it is initialized to 0, and the
+>> void *priv pointer remains null.
+>
+> I marvel at there was 3 states, one for device, one for each adapter and now
+> even one for each frontend. Surely enough, generally only device state is
+> used. And your new driver seems to even use that new FE priv added.
 
-Before I made this patch, I started a different one that added about
-a dozen 'select MISC_DEVICES' statements sprinkled all over the kernel
-in order to silence the Kconfig warnings.
+My new driver requires state tracking at the dvb_usb_fe_adapter
+context level, but it does *not* require state tracking at the
+dvb_usb_adapter level.  The driver also has state tracking at the
+dvb_usb_device context level.  It needs this tracking at both levels,
+but not at the middle adapter level.
 
-The problem is that whenever you select that option, the misc directory
-suddenly becomes visible when it was disabled before, and things like
-'oldconfig' will start asking about all other misc drivers as well.
+dib0700, however, requires state tracking at the dvb_usb_adapter
+context level and it also requires state tracking at the
+dvb_usb_device context level.  Most devices that have multiple
+adapters follow this same schema for tracking state within various
+context levels.
 
-I think it would simply be more consistent to have it enabled all
-the time. Well, even better would be to move the bulk of the misc
-drivers to a proper location sorted by their subsystems. A lot of them
-should never have been merged in their current state IMHO.
+The private state tracking structures are allocated dynamically as
+needed, and only if size_of_priv is defined.  Device property contexts
+that do not define size_of_priv simply do not allocate any additional
+memory for state tracking.
 
-> That being said, I'm not the one to decide, so if you can convince
-> someone with more power (aka Andrew Morton)...
+Having the ability to track private state within each context level
+gives the dvb-usb framework the maximum flexibility to work with
+various styles of both simple and complex digital media receiver
+devices.
 
-I think I should finally do what has been  talked about a few times and
-formally become the maintainer of drivers/char and drivers/misc ;-)
+Regards,
 
-The problem is that I'm not actually a good maintainer, but maybe it's
-better to just have someone instead of falling back to Andrew or
-some random subsystem maintainer to send any patches for drivers/misc.
-
-> >  config AD525X_DPOT
-> >       tristate "Analog Devices Digital Potentiometers"
-> > @@ -344,6 +328,12 @@ config ISL29020
-> >         This driver can also be built as a module.  If so, the module
-> >         will be called isl29020.
-> >  
-> > +config SENSORS_LIS3LV02D
-> > +     tristate
-> > +     depends on INPUT
-> > +     select INPUT_POLLDEV
-> > +     default n
-> > +
-> 
-> If you patch gets applied, then this one would better be moved to
-> drivers/misc/lis3lv02d/Kconfig.
-
-Ah, that's true.
-
-	Arnd
+Mike Krufky
