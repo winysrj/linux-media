@@ -1,96 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:57620 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.186]:49264 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753211Ab1IAGKe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 02:10:34 -0400
-Date: Thu, 1 Sep 2011 08:10:32 +0200
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 16/21] [staging] tm6000: Select interface on first open.
-Message-ID: <20110901061032.GG18473@avionic-0098.mockup.avionic-design.de>
-References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de>
- <1312442059-23935-17-git-send-email-thierry.reding@avionic-design.de>
- <4E5E934A.7000500@redhat.com>
- <20110901051945.GD18473@avionic-0098.mockup.avionic-design.de>
- <4E5F1DCA.3000804@redhat.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3607uds81ZQvwCD0"
-Content-Disposition: inline
-In-Reply-To: <4E5F1DCA.3000804@redhat.com>
+	with ESMTP id S932404Ab1IHIoR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 04:44:17 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 09/13 v3] ov9740: convert to the control framework.
+Date: Thu,  8 Sep 2011 10:44:02 +0200
+Message-Id: <1315471446-17890-10-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1315471446-17890-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1315471446-17890-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---3607uds81ZQvwCD0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/ov9740.c |   83 ++++++++++++++----------------------------
+ 1 files changed, 28 insertions(+), 55 deletions(-)
 
-* Mauro Carvalho Chehab wrote:
-> Em 01-09-2011 02:19, Thierry Reding escreveu:
-> > * Mauro Carvalho Chehab wrote:
-> >> Em 04-08-2011 04:14, Thierry Reding escreveu:
-> >>> Instead of selecting the default interface setting when preparing
-> >>> isochronous transfers, select it on the first call to open() to make
-> >>> sure it is available earlier.
-> >>
-> >> Hmm... I fail to see what this is needed earlier. The ISOC endpont is =
-used
-> >> only when the device is streaming.
-> >>
-> >> Did you get any bug related to it? If so, please describe it better.
-> >=20
-> > I'm not sure whether this really fixes a bug, but it seems a little wro=
-ng to
-> > me to selecting the interface so late in the process when in fact the d=
-evice
-> > is already being configured before (video standard, audio mode, firmware
-> > upload, ...).
->=20
-> Some applications may open the device just to change the controls. All ot=
-her drivers
-> only set alternates/interfaces when the streaming is requested, as altern=
-ates/interfaces
-> are needed only there.
+diff --git a/drivers/media/video/ov9740.c b/drivers/media/video/ov9740.c
+index 5920f60..3dd910d 100644
+--- a/drivers/media/video/ov9740.c
++++ b/drivers/media/video/ov9740.c
+@@ -18,6 +18,7 @@
+ #include <media/soc_camera.h>
+ #include <media/soc_mediabus.h>
+ #include <media/v4l2-chip-ident.h>
++#include <media/v4l2-ctrls.h>
+ 
+ #define to_ov9740(sd)		container_of(sd, struct ov9740_priv, subdev)
+ 
+@@ -194,6 +195,7 @@ struct ov9740_reg {
+ 
+ struct ov9740_priv {
+ 	struct v4l2_subdev		subdev;
++	struct v4l2_ctrl_handler	hdl;
+ 
+ 	int				ident;
+ 	u16				model;
+@@ -394,27 +396,6 @@ static enum v4l2_mbus_pixelcode ov9740_codes[] = {
+ 	V4L2_MBUS_FMT_YUYV8_2X8,
+ };
+ 
+-static const struct v4l2_queryctrl ov9740_controls[] = {
+-	{
+-		.id		= V4L2_CID_VFLIP,
+-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+-		.name		= "Flip Vertically",
+-		.minimum	= 0,
+-		.maximum	= 1,
+-		.step		= 1,
+-		.default_value	= 0,
+-	},
+-	{
+-		.id		= V4L2_CID_HFLIP,
+-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+-		.name		= "Flip Horizontally",
+-		.minimum	= 0,
+-		.maximum	= 1,
+-		.step		= 1,
+-		.default_value	= 0,
+-	},
+-};
+-
+ /* read a register */
+ static int ov9740_reg_read(struct i2c_client *client, u16 reg, u8 *val)
+ {
+@@ -771,36 +752,18 @@ static int ov9740_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 	return 0;
+ }
+ 
+-/* Get status of additional camera capabilities */
+-static int ov9740_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+-{
+-	struct ov9740_priv *priv = to_ov9740(sd);
+-
+-	switch (ctrl->id) {
+-	case V4L2_CID_VFLIP:
+-		ctrl->value = priv->flag_vflip;
+-		break;
+-	case V4L2_CID_HFLIP:
+-		ctrl->value = priv->flag_hflip;
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	return 0;
+-}
+-
+ /* Set status of additional camera capabilities */
+-static int ov9740_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
++static int ov9740_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	struct ov9740_priv *priv = to_ov9740(sd);
++	struct ov9740_priv *priv =
++		container_of(ctrl->handler, struct ov9740_priv, hdl);
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_VFLIP:
+-		priv->flag_vflip = ctrl->value;
++		priv->flag_vflip = ctrl->val;
+ 		break;
+ 	case V4L2_CID_HFLIP:
+-		priv->flag_hflip = ctrl->value;
++		priv->flag_hflip = ctrl->val;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+@@ -925,11 +888,6 @@ err:
+ 	return ret;
+ }
+ 
+-static struct soc_camera_ops ov9740_ops = {
+-	.controls		= ov9740_controls,
+-	.num_controls		= ARRAY_SIZE(ov9740_controls),
+-};
+-
+ /* Request bus settings on camera side */
+ static int ov9740_g_mbus_config(struct v4l2_subdev *sd,
+ 				struct v4l2_mbus_config *cfg)
+@@ -958,8 +916,6 @@ static struct v4l2_subdev_video_ops ov9740_video_ops = {
+ };
+ 
+ static struct v4l2_subdev_core_ops ov9740_core_ops = {
+-	.g_ctrl			= ov9740_g_ctrl,
+-	.s_ctrl			= ov9740_s_ctrl,
+ 	.g_chip_ident		= ov9740_g_chip_ident,
+ 	.s_power		= ov9740_s_power,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+@@ -973,6 +929,10 @@ static struct v4l2_subdev_ops ov9740_subdev_ops = {
+ 	.video			= &ov9740_video_ops,
+ };
+ 
++static const struct v4l2_ctrl_ops ov9740_ctrl_ops = {
++	.s_ctrl = ov9740_s_ctrl,
++};
++
+ /*
+  * i2c_driver function
+  */
+@@ -980,7 +940,7 @@ static int ov9740_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *did)
+ {
+ 	struct ov9740_priv *priv;
+-	struct soc_camera_device *icd	= client->dev.platform_data;
++	struct soc_camera_device *icd = client->dev.platform_data;
+ 	struct soc_camera_link *icl;
+ 	int ret;
+ 
+@@ -1002,12 +962,24 @@ static int ov9740_probe(struct i2c_client *client,
+ 	}
+ 
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov9740_subdev_ops);
++	v4l2_ctrl_handler_init(&priv->hdl, 13);
++	v4l2_ctrl_new_std(&priv->hdl, &ov9740_ctrl_ops,
++			V4L2_CID_VFLIP, 0, 1, 1, 0);
++	v4l2_ctrl_new_std(&priv->hdl, &ov9740_ctrl_ops,
++			V4L2_CID_HFLIP, 0, 1, 1, 0);
++	priv->subdev.ctrl_handler = &priv->hdl;
++	if (priv->hdl.error) {
++		int err = priv->hdl.error;
+ 
+-	icd->ops = &ov9740_ops;
++		kfree(priv);
++		return err;
++	}
+ 
+ 	ret = ov9740_video_probe(icd, client);
++	if (!ret)
++		ret = v4l2_ctrl_handler_setup(&priv->hdl);
+ 	if (ret < 0) {
+-		icd->ops = NULL;
++		v4l2_ctrl_handler_free(&priv->hdl);
+ 		kfree(priv);
+ 	}
+ 
+@@ -1018,8 +990,9 @@ static int ov9740_remove(struct i2c_client *client)
+ {
+ 	struct ov9740_priv *priv = i2c_get_clientdata(client);
+ 
++	v4l2_device_unregister_subdev(&priv->subdev);
++	v4l2_ctrl_handler_free(&priv->hdl);
+ 	kfree(priv);
+-
+ 	return 0;
+ }
+ 
+-- 
+1.7.2.5
 
-Okay, I didn't know that it was only necessary for streaming.
-
-> > Thinking about it, this may actually be part of the fix for the "device=
- hangs
-> > sometimes for inexplicable reasons" bug that this whole patch series se=
-ems to
-> > fix.
->=20
-> It is unlikely, except if the firmware inside the chip is broken (unfortu=
-nately,=20
-> we have serious reasons to believe that the internal firmware on this chi=
-pset has
-> serious bugs).
-
-Indeed! =3D)
-
-> I prefer to not apply this patch, except if we have a good reason for tha=
-t,
-> as otherwise this driver will behave different than the others.
-
-Okay, it's your call. Unfortunately I no longer have the hardware available
-to test if this is really related to the bug. I'll have to check again when=
- I
-have the hardware.
-
-Thierry
-
---3607uds81ZQvwCD0
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEARECAAYFAk5fIdgACgkQZ+BJyKLjJp8AxgCfTSmXYANNvNwnUImrHtXbUHcX
-0yMAnRQrcD+Hj4DZZKdIEZO6QyTHjc6J
-=EpNs
------END PGP SIGNATURE-----
-
---3607uds81ZQvwCD0--
