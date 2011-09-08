@@ -1,49 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:54168 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751151Ab1I0GtM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 02:49:12 -0400
-Subject: RE: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
- omap_vout_isr
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Semwal, Sumit" <sumit.semwal@ti.com>,
-	"Taneja, Archit" <archit@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404ECA548CF@dbde02.ent.ti.com>
-References: <1316167233-1437-1-git-send-email-archit@ti.com>
-	 <1316167233-1437-4-git-send-email-archit@ti.com>
-	 <19F8576C6E063C45BE387C64729E739404EC941F86@dbde02.ent.ti.com>
-	 <4E7AD29C.4070804@ti.com>
-	 <19F8576C6E063C45BE387C64729E739404ECA54614@dbde02.ent.ti.com>
-	 <CAB2ybb8ab9jSFB1J_CQfObB11QcdtQ=6Kf9zdbg0v5Jckf09sw@mail.gmail.com>
-	 <CAB2ybb-rZgDvS9Bo6AJF=KVd0irXHa0S0LrPJ=SWr0daJ6gX1w@mail.gmail.com>
-	 <CAB2ybb8UGC=HK7jpYaDym8Y8iy=omwWiXrV7cdRw3k20e0NiZw@mail.gmail.com>
-	 <19F8576C6E063C45BE387C64729E739404ECA548CF@dbde02.ent.ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 27 Sep 2011 09:49:07 +0300
-Message-ID: <1317106147.1991.10.camel@deskari>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.126.171]:64355 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932400Ab1IHMgH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 08:36:07 -0400
+Date: Thu, 8 Sep 2011 14:35:54 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	hechtb@googlemail.com
+Subject: Re: [RFC] New class for low level sensors controls?
+In-Reply-To: <20110906122226.GH1393@valkosipuli.localdomain>
+Message-ID: <Pine.LNX.4.64.1109081409380.31156@axis700.grange>
+References: <20110906113653.GF1393@valkosipuli.localdomain>
+ <201109061341.11991.laurent.pinchart@ideasonboard.com>
+ <20110906122226.GH1393@valkosipuli.localdomain>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2011-09-27 at 12:09 +0530, Hiremath, Vaibhav wrote:
-> Please look at the patch carefully, it does exactly same thing. I
-> understand the use-case what Archit explained in the last email but in
-> this patch context, the use-case change anything here in this patch. 
+On Tue, 6 Sep 2011, Sakari Ailus wrote:
 
-With the current code, the ISR code will be ran for a panel connected to
-LCD1 output when VSYNC for LCD2 happens.
+> On Tue, Sep 06, 2011 at 01:41:11PM +0200, Laurent Pinchart wrote:
+> > Hi Sakari,
+> > 
+> > On Tuesday 06 September 2011 13:36:53 Sakari Ailus wrote:
+> > > Hi all,
+> > > 
+> > > We are beginning to have raw bayer image sensor drivers in the mainline.
 
-After Archit's patch, this no longer happens.
+Well, we've been "beginning" since several years now;-) But why only 
+Bayer? Don't we want to have the same controls available on sensors, 
+sending processed  YUV / RGB data, or for those, capable of both Bayer and 
+processed?
 
-I don't know what the ISR code does, so it may not cause any problems,
-but it sure doesn't sound right running the code when a wrong interrupt
-happens.
+> > > Typically such sensors are not controlled by general purpose applications
+> > > but e.g. require a camera control algorithm framework in user space. This
+> > > needs to be implemented in libv4l for general purpose applications to work
+> > > properly on this kind of hardware.
+> > > 
+> > > These sensors expose controls such as
+> > > 
+> > > - Per-component gain controls. Red, blue, green (blue) and green (red)
+> > >   gains.
+> > >
+> > > - Link frequency. The frequency of the data link from the sensor to the
+> > >   bridge.
+> > > 
+> > > - Horizontal and vertical blanking.
+> > 
+> > Other controls often found in bayer sensors are black level compensation and 
+> > test pattern.
 
- Tomi
+May I suggest a couple more:
 
+(1) snapshot mode (I really badly want this one, please;-))
+(2) flash controls (yes, I know we already have V4L2_CTRL_CLASS_FLASH, I 
+    just have the impression, that these controls are mostly meant for 
+    either pure software implementations, or for external controllers, I 
+    think it should also be possible to have them exported by a normal 
+    sensor driver, but wasn't really sure. So, wanted to point out to this 
+    possibility once again.)
+(3) AEC / AGC regions
+(4) stereo (3D anyone?;)) - no, don't think we need it now...
 
+> > > None of these controls are suitable for use of general purpose applications
+> > > (let alone the end user!) but for the camera control algorithms.
+> > > 
+> > > We have a control class called V4L2_CTRL_CLASS_CAMERA for camera controls.
+> > > However, the controls in this class are relatively high level controls
+> > > which are suitable for end user. The algorithms in the libv4l or a webcam
+> > > could implement many of these controls whereas I see that only
+> > > V4L2_CID_EXPOSURE_ABSOLUTE might be implemented by raw bayer sensors.
+> > > 
+> > > My question is: would it make sense to create a new class of controls for
+> > > the low level sensor controls in a similar fashion we have a control class
+> > > for the flash controls?
+> > 
+> > I think it would, but I'm not sure how we should name that class. 
+> > V4L2_CTRL_CLASS_SENSOR is tempting, but many of the controls that will be 
+> > found there (digital gains, black leverl compensation, test pattern, ...) can 
+> > also be found in ISPs or other hardware blocks.
+> 
+> I don't think ISPs typically implement test patterns. Do you know of any?
+
+Yes, i.MX31.
+
+> Should we separate controls which clearly apply to sensors only from the
+> rest?
+> 
+> For sensors only:
+> 
+> - Analog gain(s)
+> - Horizontal and vertical blanking
+> - Link frequency
+> - Test pattern
+> 
+> The following can be implemented also on ISPs:
+> 
+> - Per-component gains
+> - Black level compensation
+> 
+> Do we have more to add to the list?
+> 
+> If we keep the two the same class, I could propose the following names:
+> 
+> V4L2_CTRL_CLASS_LL_CAMERA (for low level camera)
+> V4L2_CTRL_CLASS_SOURCE
+> V4L2_CTRL_CLASS_IMAGE_SOURCE
+> 
+> The last one would be a good name for the sensor control class, as far as I
+> understand some are using tuners with the OMAP 3 ISP these days. For the
+> another one, I propose V4L2_CTRL_CLASS_ISP.
+> 
+> Better names are always welcome. :-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
