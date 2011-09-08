@@ -1,63 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51658 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752897Ab1IWXij (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Sep 2011 19:38:39 -0400
-Message-ID: <4E7D187A.8060005@redhat.com>
-Date: Fri, 23 Sep 2011 20:38:34 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58746 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932778Ab1IHNdl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 09:33:41 -0400
+From: Deepthy Ravi <deepthy.ravi@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <tony@atomide.com>, <linux@arm.linux.org.uk>,
+	<linux-omap@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>, <mchehab@infradead.org>,
+	<laurent.pinchart@ideasonboard.com>, <g.liakhovetski@gmx.de>,
+	Deepthy Ravi <deepthy.ravi@ti.com>,
+	Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH 0/8] OMAP3EVM: Add tvp514x video decoder support
+Date: Thu, 8 Sep 2011 19:03:12 +0530
+Message-ID: <1315488792-15949-1-git-send-email-deepthy.ravi@ti.com>
 MIME-Version: 1.0
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Subject: Re: [PATCH RESEND 0/4] davinci vpbe: enable DM365 v4l2 display driver
-References: <1316410529-14744-1-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1316410529-14744-1-git-send-email-manjunath.hadli@ti.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 19-09-2011 02:35, Manjunath Hadli escreveu:
-> The patchset adds incremental changes necessary to enable dm365
-> v4l2 display driver, which includes vpbe display driver changes,
-> osd specific changes and venc changes. The changes are incremental
-> in nature,addind a few HD modes, and taking care of register level
-> changes.
-> 
-> The patch set does not include THS7303 amplifier driver which is planned
-> to be sent seperately.
-> 
-> 
-> Manjunath Hadli (4):
->   davinci vpbe: remove unused macro.
->   davinci vpbe: add dm365 VPBE display driver changes
->   davinci vpbe: add dm365 and dm355 specific OSD changes
->   davinci vpbe: add VENC block changes to enable dm365 and dm355
-> 
->  drivers/media/video/davinci/vpbe.c         |   55 +++-
->  drivers/media/video/davinci/vpbe_display.c |    1 -
->  drivers/media/video/davinci/vpbe_osd.c     |  474 +++++++++++++++++++++++++---
->  drivers/media/video/davinci/vpbe_venc.c    |  205 +++++++++++--
->  include/media/davinci/vpbe.h               |   16 +
->  include/media/davinci/vpbe_venc.h          |    4 +
->  6 files changed, 686 insertions(+), 69 deletions(-)
+This patchset
+        -add support for tvp514x video decoder on omap3evm and also migrate the
+         decoder driver to media controller framework.
+        -add support for BT656 interface.
+        -enable multimedia driver and tvp514x decoder support in omap2plus_defconfig.
 
+It is dependent on the following patch
+https://patchwork.kernel.org/patch/1062042/ which moves
+platform data definitions from isp.h to media/omap3isp.h
 
-Not sure why are you re-sending this patch series. To whom are you
-re-sending it? You have your git access at linuxtv.org. So, if the patches
-are ready for merge, just send me a pull request. Otherwise, please mark
-the patches as RFC or send to the one that will maintain the driver, c/c the
-mailing list.
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+---
 
-In any case, I'll mark the patches 2-4 as RFC (patch 1 is too trivial, I'll
-just apply it, to never see it again ;) ).
+Deepthy Ravi (1):
+  omap2plus_defconfig: Enable tvp514x video decoder support
 
-Thanks,
-Mauro
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Vaibhav Hiremath (7):
+  omap3evm: Enable regulators for camera interface
+  omap3evm: Add Camera board init/hookup file
+  tvp514x: Migrate to media-controller framework
+  ispvideo: Add support for G/S/ENUM_STD ioctl
+  ispccdc: Configure CCDC registers
+  ispccdc: Add support for BT656 interface
+  omap3evm: camera: Configure BT656 interface
+
+ arch/arm/configs/omap2plus_defconfig        |   10 +
+ arch/arm/mach-omap2/Makefile                |    5 +
+ arch/arm/mach-omap2/board-omap3evm-camera.c |  258 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3evm.c        |   44 +++++
+ drivers/media/video/omap3isp/ispccdc.c      |  185 +++++++++++++++-----
+ drivers/media/video/omap3isp/ispreg.h       |    1 +
+ drivers/media/video/omap3isp/ispvideo.c     |  106 +++++++++++-
+ drivers/media/video/omap3isp/ispvideo.h     |    5 +-
+ drivers/media/video/tvp514x.c               |  241 ++++++++++++++++++++++---
+ include/media/omap3isp.h                    |    7 +
+ include/media/tvp514x.h                     |    3 +
+ include/media/v4l2-subdev.h                 |    7 +-
+ 12 files changed, 797 insertions(+), 75 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
 
