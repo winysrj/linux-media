@@ -1,130 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:13667 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752834Ab1ISIhT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Sep 2011 04:37:19 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=UTF-8
-Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LRR000VDHA57J00@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 19 Sep 2011 09:37:17 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRR00LXKHA4S5@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 19 Sep 2011 09:37:17 +0100 (BST)
-Date: Mon, 19 Sep 2011 10:37:16 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH/RFC 1/2] v4l2: Add the parallel bus HREF signal polarity
- flags
-In-reply-to: <201109190102.04870.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>, linux-media@vger.kernel.org,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	g.liakhovetski@gmx.de, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <4E76FF3C.9020703@samsung.com>
-References: <1316194123-21185-1-git-send-email-s.nawrocki@samsung.com>
- <201109171254.49003.laurent.pinchart@ideasonboard.com>
- <4E748D82.8040006@gmail.com>
- <201109190102.04870.laurent.pinchart@ideasonboard.com>
+Received: from e5.ny.us.ibm.com ([32.97.182.145]:46387 "EHLO e5.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757691Ab1IICic (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 Sep 2011 22:38:32 -0400
+Subject: Re: [PATCH 2/8] mm: alloc_contig_freed_pages() added
+From: Dave Hansen <dave@linux.vnet.ibm.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>
+In-Reply-To: <1313764064-9747-3-git-send-email-m.szyprowski@samsung.com>
+References: <1313764064-9747-1-git-send-email-m.szyprowski@samsung.com>
+	 <1313764064-9747-3-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 08 Sep 2011 11:05:52 -0700
+Message-ID: <1315505152.3114.9.camel@nimitz>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/19/2011 01:02 AM, Laurent Pinchart wrote:
-> On Saturday 17 September 2011 14:07:30 Sylwester Nawrocki wrote:
->> On 09/17/2011 12:54 PM, Laurent Pinchart wrote:
->>> On Friday 16 September 2011 19:28:42 Sylwester Nawrocki wrote:
->>>> HREF is a signal indicating valid data during single line transmission.
->>>> Add corresponding flags for this signal to the set of mediabus signal
->>>> polarity flags.
->>>
->>> So that's a data valid signal that gates the pixel data ? The OMAP3 ISP
->>> has a
->>
->> Yes, it's "horizontal window reference" signal, it's well described in this
->> datasheet: http://www.morninghan.com/pdf/OV2640FSL_DS_(1_3).pdf
-> 
-> In that specific case I would likely connect to HREF signal to the ISP HSYNC 
-> signal and ignore the sensor HSYNC signal completely :-)
-> 
->> AFAICS there can be also its vertical counterpart - VREF.
-> 
-> OK, your HREF signal is thus completely unrelated to my DVAL signal. DVAL 
-> really qualifies pixel. For instance, if the sensor outputs pixels at half the 
-> pixel rate, DVAL would switch at every pixel clock cycle during a line.
+On Fri, 2011-08-19 at 16:27 +0200, Marek Szyprowski wrote:
+> +unsigned long alloc_contig_freed_pages(unsigned long start, unsigned long end,
+> +				       gfp_t flag)
+> +{
+> +	unsigned long pfn = start, count;
+> +	struct page *page;
+> +	struct zone *zone;
+> +	int order;
+> +
+> +	VM_BUG_ON(!pfn_valid(start));
+> +	zone = page_zone(pfn_to_page(start));
 
-Yeah, sounds it's entirely different.
+This implies that start->end are entirely contained in a single zone.
+What enforces that?  If some higher layer enforces that, I think we
+probably need at least a VM_BUG_ON() in here and a comment about who
+enforces it.
 
-> 
->> Many devices seem to use this terminology. However, I realize, not all, as
->> you're pointing out. So perhaps it's time for some naming contest now..
->> :-)
->>
->>> similar signal called WEN, and I've seen other chips using DVAL. Your
->>> patch looks good to me, except maybe for the signal name that could be
->>> made a bit more explicit (I'm not sure what most chips use though).
->>
->> I'm pretty OK with HREF/VREF. But I'm open to any better suggestions.
->>
->> Maybe
->>
->> V4L2_MBUS_LINE_VALID_ACTIVE_HIGH
->> V4L2_MBUS_LINE_VALID_ACTIVE_LOW
->>
->> V4L2_MBUS_FRAME_VALID_ACTIVE_HIGH
->> V4L2_MBUS_FRAME_VALID_ACTIVE_LOW
->>
->> ?
->> Some of Aptina sensor datasheets describes those signals as
->> LINE_VALID/FRAME_VALID, (www.aptina.com/assets/downloadDocument.do?id=76).
-> 
-> LINE_VALID/FRAME_VALID are HSYNC/VSYNC.
+> +	spin_lock_irq(&zone->lock);
+> +
+> +	page = pfn_to_page(pfn);
+> +	for (;;) {
+> +		VM_BUG_ON(page_count(page) || !PageBuddy(page));
+> +		list_del(&page->lru);
+> +		order = page_order(page);
+> +		zone->free_area[order].nr_free--;
+> +		rmv_page_order(page);
+> +		__mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
+> +		pfn  += 1 << order;
+> +		if (pfn >= end)
+> +			break;
+> +		VM_BUG_ON(!pfn_valid(pfn));
+> +		page += 1 << order;
+> +	}
 
-I would say these are rather inverted horizontal/vertical blanking signal.
+This 'struct page *'++ stuff is OK, but only for small, aligned areas.
+For at least some of the sparsemem modes (non-VMEMMAP), you could walk
+off of the end of the section_mem_map[] when you cross a MAX_ORDER
+boundary.  I'd feel a little bit more comfortable if pfn_to_page() was
+being done each time, or only occasionally when you cross a section
+boundary.
 
-> 
->>>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
->>>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->>>> ---
->>>>
->>>>   include/media/v4l2-mediabus.h |   14 ++++++++------
->>>>   1 files changed, 8 insertions(+), 6 deletions(-)
->>>>
->>>> diff --git a/include/media/v4l2-mediabus.h
->>>> b/include/media/v4l2-mediabus.h index 6114007..41d8771 100644
->>>> --- a/include/media/v4l2-mediabus.h
->>>> +++ b/include/media/v4l2-mediabus.h
->>>> @@ -26,12 +26,14 @@
->>>>
->>>>   /* Note: in BT.656 mode HSYNC and VSYNC are unused */
->>
->> I've forgotten to update this:
->>
->> /* Note: in BT.656 mode HSYNC, HREF and VSYNC are unused */
->>
->>>>   #define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1<<  2)
->>>>   #define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1<<  3)
->>>>
->>>> -#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1<<  4)
->>>> -#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1<<  5)
->>>> -#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1<<  6)
->>>> -#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1<<  7)
->>>> -#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1<<  8)
->>>> -#define V4L2_MBUS_DATA_ACTIVE_LOW		(1<<  9)
->>>> +#define V4L2_MBUS_HREF_ACTIVE_HIGH		(1<<  4)
->>>> +#define V4L2_MBUS_HREF_ACTIVE_LOW		(1<<  5)
->>>> +#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1<<  6)
->>>> +#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1<<  7)
->>>> +#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1<<  8)
->>>> +#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1<<  9)
->>>> +#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1<<  10)
->>>> +#define V4L2_MBUS_DATA_ACTIVE_LOW		(1<<  11)
-> 
+This may not apply to what ARM is doing today, but it shouldn't be too
+difficult to fix up, or to document what's going on.
 
-Thanks
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+> +	spin_unlock_irq(&zone->lock);
+> +
+> +	/* After this, pages in the range can be freed one be one */
+> +	page = pfn_to_page(start);
+> +	for (count = pfn - start; count; --count, ++page)
+> +		prep_new_page(page, 0, flag);
+> +
+> +	return pfn;
+> +}
+> +
+> +void free_contig_pages(struct page *page, int nr_pages)
+> +{
+> +	for (; nr_pages; --nr_pages, ++page)
+> +		__free_page(page);
+> +}
+
+The same thing about 'struct page' pointer math goes here.
+
+-- Dave
+
