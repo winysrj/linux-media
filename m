@@ -1,69 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:50760 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751327Ab1I0HFu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 03:05:50 -0400
-Subject: RE: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
- omap_vout_isr
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Semwal, Sumit" <sumit.semwal@ti.com>,
-	"Taneja, Archit" <archit@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404ECA548E1@dbde02.ent.ti.com>
-References: <1316167233-1437-1-git-send-email-archit@ti.com>
-	 <1316167233-1437-4-git-send-email-archit@ti.com>
-	 <19F8576C6E063C45BE387C64729E739404EC941F86@dbde02.ent.ti.com>
-	 <4E7AD29C.4070804@ti.com>
-	 <19F8576C6E063C45BE387C64729E739404ECA54614@dbde02.ent.ti.com>
-	 <CAB2ybb8ab9jSFB1J_CQfObB11QcdtQ=6Kf9zdbg0v5Jckf09sw@mail.gmail.com>
-	 <CAB2ybb-rZgDvS9Bo6AJF=KVd0irXHa0S0LrPJ=SWr0daJ6gX1w@mail.gmail.com>
-	 <CAB2ybb8UGC=HK7jpYaDym8Y8iy=omwWiXrV7cdRw3k20e0NiZw@mail.gmail.com>
-	 <19F8576C6E063C45BE387C64729E739404ECA548CF@dbde02.ent.ti.com>
-	 <1317106147.1991.10.camel@deskari>
-	 <19F8576C6E063C45BE387C64729E739404ECA548E1@dbde02.ent.ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 27 Sep 2011 10:05:45 +0300
-Message-ID: <1317107145.1991.16.camel@deskari>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.17.8]:59695 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932379Ab1IHIoM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 04:44:12 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 13/13 v3] soc_camera: remove the now obsolete struct soc_camera_ops
+Date: Thu,  8 Sep 2011 10:44:06 +0200
+Message-Id: <1315471446-17890-14-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1315471446-17890-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1315471446-17890-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2011-09-27 at 12:24 +0530, Hiremath, Vaibhav wrote:
-> If you look at the patch, the patch barely checks for the condition
-> and
-> makes sure that the interrupt is either of VSYNC or VSYNC2, else
-> return. Rest everything is same.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This is what the current code does, in clearer form and slightly pseudo
-code:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+[g.liakhovetski@gmx.de: mt9m001 hunk moved to an earlier patch]
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/imx074.c              |    1 -
+ drivers/media/video/mt9t112.c             |    2 --
+ drivers/media/video/soc_camera_platform.c |    2 --
+ drivers/media/video/tw9910.c              |    1 -
+ include/media/soc_camera.h                |   18 ------------------
+ 5 files changed, 0 insertions(+), 24 deletions(-)
 
-if (irq == VSYNC || irq == VSYNC2) {
-	do isr stuff
-}
-
-This is what it does after Archit's patch:
-
-if ((lcd == LCD1 && irq == VSYNC) || (lcd == LCD2 && irq == VSYNC2)) {
-	do isr stuff;
-}
-
-I see a clear difference there. Or am I missing something?
-
-> The right fix is in streamon api, where you mask the interrupt before
-> registering it.
-
-I'm not familiar with v4l so I don't know what that means, but yes, it
-would be better if it's possible to only register for the needed
-interrupts.
-
-But the ISR code is still needed. If you are using both LCDs, you will
-get both interrupts and you need to check if the interrupt is for the
-right output.
-
- Tomi
-
+diff --git a/drivers/media/video/imx074.c b/drivers/media/video/imx074.c
+index 20756e0..3f5d4de 100644
+--- a/drivers/media/video/imx074.c
++++ b/drivers/media/video/imx074.c
+@@ -437,7 +437,6 @@ static int imx074_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &imx074_subdev_ops);
+ 
+-	icd->ops	= NULL;
+ 	priv->fmt	= &imx074_colour_fmts[0];
+ 
+ 	ret = imx074_video_probe(icd, client);
+diff --git a/drivers/media/video/mt9t112.c b/drivers/media/video/mt9t112.c
+index 25cdcb9..b8da7fe 100644
+--- a/drivers/media/video/mt9t112.c
++++ b/drivers/media/video/mt9t112.c
+@@ -1095,8 +1095,6 @@ static int mt9t112_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &mt9t112_subdev_ops);
+ 
+-	icd->ops = NULL;
+-
+ 	ret = mt9t112_camera_probe(icd, client);
+ 	if (ret)
+ 		kfree(priv);
+diff --git a/drivers/media/video/soc_camera_platform.c b/drivers/media/video/soc_camera_platform.c
+index c8f6b18..4402a8a 100644
+--- a/drivers/media/video/soc_camera_platform.c
++++ b/drivers/media/video/soc_camera_platform.c
+@@ -150,8 +150,6 @@ static int soc_camera_platform_probe(struct platform_device *pdev)
+ 	/* Set the control device reference */
+ 	icd->control = &pdev->dev;
+ 
+-	icd->ops = NULL;
+-
+ 	ici = to_soc_camera_host(icd->parent);
+ 
+ 	v4l2_subdev_init(&priv->subdev, &platform_subdev_ops);
+diff --git a/drivers/media/video/tw9910.c b/drivers/media/video/tw9910.c
+index 40cc149..2fddd1f 100644
+--- a/drivers/media/video/tw9910.c
++++ b/drivers/media/video/tw9910.c
+@@ -921,7 +921,6 @@ static int tw9910_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &tw9910_subdev_ops);
+ 
+-	icd->ops     = NULL;
+ 	icd->iface   = icl->bus_id;
+ 
+ 	ret = tw9910_video_probe(icd, client);
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index d41b8bd..6398ff0 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -39,7 +39,6 @@ struct soc_camera_device {
+ 	unsigned char iface;		/* Host number */
+ 	unsigned char devnum;		/* Device number per host */
+ 	struct soc_camera_sense *sense;	/* See comment in struct definition */
+-	struct soc_camera_ops *ops;
+ 	struct video_device *vdev;
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	const struct soc_camera_format_xlate *current_fmt;
+@@ -192,11 +191,6 @@ struct soc_camera_format_xlate {
+ 	const struct soc_mbus_pixelfmt *host_fmt;
+ };
+ 
+-struct soc_camera_ops {
+-	const struct v4l2_queryctrl *controls;
+-	int num_controls;
+-};
+-
+ #define SOCAM_SENSE_PCLK_CHANGED	(1 << 0)
+ 
+ /**
+@@ -223,18 +217,6 @@ struct soc_camera_sense {
+ 	unsigned long pixel_clock;
+ };
+ 
+-static inline struct v4l2_queryctrl const *soc_camera_find_qctrl(
+-	struct soc_camera_ops *ops, int id)
+-{
+-	int i;
+-
+-	for (i = 0; i < ops->num_controls; i++)
+-		if (ops->controls[i].id == id)
+-			return &ops->controls[i];
+-
+-	return NULL;
+-}
+-
+ #define SOCAM_DATAWIDTH(x)	BIT((x) - 1)
+ #define SOCAM_DATAWIDTH_4	SOCAM_DATAWIDTH(4)
+ #define SOCAM_DATAWIDTH_8	SOCAM_DATAWIDTH(8)
+-- 
+1.7.2.5
 
