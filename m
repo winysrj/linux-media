@@ -1,94 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ch1ehsobe005.messaging.microsoft.com ([216.32.181.185]:47096
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754665Ab1IMGg3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Sep 2011 02:36:29 -0400
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: <linux-media@vger.kernel.org>,
-	<uclinux-dist-devel@blackfin.uclinux.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>
-Subject: [PATCH 1/4] v4l2: add vb2_get_unmapped_area in vb2 core
-Date: Tue, 13 Sep 2011 14:34:49 -0400
-Message-ID: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:33995 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932846Ab1IHNfm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 Sep 2011 09:35:42 -0400
+From: Deepthy Ravi <deepthy.ravi@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <tony@atomide.com>, <linux@arm.linux.org.uk>,
+	<linux-omap@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>, <mchehab@infradead.org>,
+	<laurent.pinchart@ideasonboard.com>, <g.liakhovetski@gmx.de>,
+	Vaibhav Hiremath <hvaibhav@ti.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>
+Subject: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+Date: Thu, 8 Sep 2011 19:05:22 +0530
+Message-ID: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-no mmu system needs get_unmapped_area file operations to do mmap
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
+In order to support TVP5146 (for that matter any video decoder),
+it is important to support G/S/ENUM_STD ioctl on /dev/videoX
+device node.
+
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
 ---
- drivers/media/video/videobuf2-core.c |   31 +++++++++++++++++++++++++++++++
- include/media/videobuf2-core.h       |    7 +++++++
- 2 files changed, 38 insertions(+), 0 deletions(-)
+ drivers/media/video/omap3isp/ispvideo.c |   98 ++++++++++++++++++++++++++++++-
+ drivers/media/video/omap3isp/ispvideo.h |    1 +
+ 2 files changed, 98 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 3015e60..02a0ec6 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -1344,6 +1344,37 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
- }
- EXPORT_SYMBOL_GPL(vb2_mmap);
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index d5b8236..ff0ffed 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -37,6 +37,7 @@
+ #include <plat/iovmm.h>
+ #include <plat/omap-pm.h>
  
-+#ifndef CONFIG_MMU
-+unsigned long vb2_get_unmapped_area(struct vb2_queue *q,
-+				    unsigned long addr,
-+				    unsigned long len,
-+				    unsigned long pgoff,
-+				    unsigned long flags)
-+{
-+	unsigned long off = pgoff << PAGE_SHIFT;
-+	struct vb2_buffer *vb;
-+	unsigned int buffer, plane;
-+	int ret;
++#include <media/tvp514x.h>
+ #include "ispvideo.h"
+ #include "isp.h"
+ 
+@@ -1136,7 +1137,97 @@ isp_video_g_input(struct file *file, void *fh, unsigned int *input)
+ static int
+ isp_video_s_input(struct file *file, void *fh, unsigned int input)
+ {
+-	return input == 0 ? 0 : -EINVAL;
++	struct isp_video *video = video_drvdata(file);
++	struct media_entity *entity = &video->video.entity;
++	struct media_entity_graph graph;
++	struct v4l2_subdev *subdev;
++	struct v4l2_routing route;
++	int ret = 0;
 +
-+	if (q->memory != V4L2_MEMORY_MMAP) {
-+		dprintk(1, "Queue is not currently set up for mmap\n");
-+		return -EINVAL;
++	media_entity_graph_walk_start(&graph, entity);
++	while ((entity = media_entity_graph_walk_next(&graph))) {
++		if (media_entity_type(entity) ==
++				MEDIA_ENT_T_V4L2_SUBDEV) {
++			subdev = media_entity_to_v4l2_subdev(entity);
++			if (subdev != NULL) {
++				if (input == 0)
++					route.input = INPUT_CVBS_VI4A;
++				else
++					route.input = INPUT_SVIDEO_VI2C_VI1C;
++				route.output = 0;
++				ret = v4l2_subdev_call(subdev, video, s_routing,
++						route.input, route.output, 0);
++				if (ret < 0 && ret != -ENOIOCTLCMD)
++					return ret;
++			}
++		}
 +	}
 +
-+	/*
-+	 * Find the plane corresponding to the offset passed by userspace.
-+	 */
-+	ret = __find_plane_by_offset(q, off, &buffer, &plane);
-+	if (ret)
-+		return ret;
-+
-+	vb = q->bufs[buffer];
-+
-+	return (unsigned long)vb2_plane_vaddr(vb, plane);
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(vb2_get_unmapped_area);
-+#endif
 +
- static int __vb2_init_fileio(struct vb2_queue *q, int read);
- static int __vb2_cleanup_fileio(struct vb2_queue *q);
++static int isp_video_querystd(struct file *file, void *fh, v4l2_std_id *a)
++{
++	struct isp_video_fh *vfh = to_isp_video_fh(fh);
++	struct isp_video *video = video_drvdata(file);
++	struct media_entity *entity = &video->video.entity;
++	struct media_entity_graph graph;
++	struct v4l2_subdev *subdev;
++	int ret = 0;
++
++	media_entity_graph_walk_start(&graph, entity);
++	while ((entity = media_entity_graph_walk_next(&graph))) {
++		if (media_entity_type(entity) ==
++				MEDIA_ENT_T_V4L2_SUBDEV) {
++			subdev = media_entity_to_v4l2_subdev(entity);
++			if (subdev != NULL) {
++				ret = v4l2_subdev_call(subdev, video, querystd,
++						a);
++				if (ret < 0 && ret != -ENOIOCTLCMD)
++					return ret;
++			}
++		}
++	}
++
++	vfh->standard.id = *a;
++	return 0;
++}
++
++static int isp_video_g_std(struct file *file, void *fh, v4l2_std_id *norm)
++{
++	struct isp_video_fh *vfh = to_isp_video_fh(fh);
++	struct isp_video *video = video_drvdata(file);
++
++	mutex_lock(&video->mutex);
++	*norm = vfh->standard.id;
++	mutex_unlock(&video->mutex);
++
++	return 0;
++}
++
++static int isp_video_s_std(struct file *file, void *fh, v4l2_std_id *norm)
++{
++	struct isp_video *video = video_drvdata(file);
++	struct media_entity *entity = &video->video.entity;
++	struct media_entity_graph graph;
++	struct v4l2_subdev *subdev;
++	int ret = 0;
++
++	media_entity_graph_walk_start(&graph, entity);
++	while ((entity = media_entity_graph_walk_next(&graph))) {
++		if (media_entity_type(entity) ==
++				MEDIA_ENT_T_V4L2_SUBDEV) {
++			subdev = media_entity_to_v4l2_subdev(entity);
++			if (subdev != NULL) {
++				ret = v4l2_subdev_call(subdev, core, s_std,
++						*norm);
++				if (ret < 0 && ret != -ENOIOCTLCMD)
++					return ret;
++			}
++		}
++	}
++
++	return 0;
+ }
  
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index f87472a..5c7b5b4 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -302,6 +302,13 @@ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
- int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type);
+ static const struct v4l2_ioctl_ops isp_video_ioctl_ops = {
+@@ -1161,6 +1252,9 @@ static const struct v4l2_ioctl_ops isp_video_ioctl_ops = {
+ 	.vidioc_enum_input		= isp_video_enum_input,
+ 	.vidioc_g_input			= isp_video_g_input,
+ 	.vidioc_s_input			= isp_video_s_input,
++	.vidioc_querystd		= isp_video_querystd,
++	.vidioc_g_std			= isp_video_g_std,
++	.vidioc_s_std			= isp_video_s_std,
+ };
  
- int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma);
-+#ifndef CONFIG_MMU
-+unsigned long vb2_get_unmapped_area(struct vb2_queue *q,
-+				    unsigned long addr,
-+				    unsigned long len,
-+				    unsigned long pgoff,
-+				    unsigned long flags);
-+#endif
- unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait);
- size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
- 		loff_t *ppos, int nonblock);
+ /* -----------------------------------------------------------------------------
+@@ -1325,6 +1419,8 @@ int omap3isp_video_register(struct isp_video *video, struct v4l2_device *vdev)
+ 		printk(KERN_ERR "%s: could not register video device (%d)\n",
+ 			__func__, ret);
+ 
++	video->video.tvnorms		= V4L2_STD_NTSC | V4L2_STD_PAL;
++	video->video.current_norm	= V4L2_STD_NTSC;
+ 	return ret;
+ }
+ 
+diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
+index 53160aa..bb8feb6 100644
+--- a/drivers/media/video/omap3isp/ispvideo.h
++++ b/drivers/media/video/omap3isp/ispvideo.h
+@@ -182,6 +182,7 @@ struct isp_video_fh {
+ 	struct isp_video *video;
+ 	struct isp_video_queue queue;
+ 	struct v4l2_format format;
++	struct v4l2_standard standard;
+ 	struct v4l2_fract timeperframe;
+ };
+ 
 -- 
 1.7.0.4
-
 
