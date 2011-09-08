@@ -1,274 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42558 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51027 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751510Ab1IVUPn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Sep 2011 16:15:43 -0400
+	with ESMTP id S1754051Ab1IHX2l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 19:28:41 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi, g.liakhovetski@gmx.de
-Subject: [PATCH 1/4] omap3isp: Move media_entity_cleanup() from unregister() to cleanup()
-Date: Thu, 22 Sep 2011 22:15:36 +0200
-Message-Id: <1316722539-7372-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1316722539-7372-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1316722539-7372-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] v4l: Remove experimental note from ENUM_FRAMESIZES and ENUM_FRAMEINTERVALS
+Date: Thu, 8 Sep 2011 18:22:02 +0200
+Cc: linux-media@vger.kernel.org
+References: <1315002508-11651-1-git-send-email-sakari.ailus@iki.fi> <20110903072612.GG13242@valkosipuli.localdomain>
+In-Reply-To: <20110903072612.GG13242@valkosipuli.localdomain>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109081822.02491.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The media_entity_cleanup() function belong to the module cleanup
-handlers, not the entity registration handlers. Move it there.
+Hi Sakari,
 
-Create a omap3isp_video_cleanup() function to cleanup the video node
-entity, and call it from the module cleanup handlers.
+On Saturday 03 September 2011 09:26:12 Sakari Ailus wrote:
+> On Sat, Sep 03, 2011 at 01:28:28AM +0300, Sakari Ailus wrote:
+> > VIDIOC_ENUM_FRAMESIZES and VIDIOC_FRAME_INTERVALS have existed for quite
+> > some time, are widely supported by various drivers and are being used by
+> > applications. Thus they no longer can be considered experimental.
+> 
+> I mostly intended to send this as RFC/PATCH (but forgot to give right
+> options to git format-patch) to provoke a little bit discussion on how we
+> should remove the experimental tags from features. These two ioctls are
+> such that I'm aware are relatively widely used. No idea about the rest.
 
-Rename omap3isp_stat_free() to omap3isp_stat_cleanup().
+I agree with the removal of the experimental note. Those ioctls are widely 
+used by webcam (and other) applications and have been available for quite some 
+time now.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/ispccdc.c     |    5 +++--
- drivers/media/video/omap3isp/ispccp2.c     |    5 +++--
- drivers/media/video/omap3isp/ispcsi2.c     |    6 ++++--
- drivers/media/video/omap3isp/isph3a_aewb.c |    2 +-
- drivers/media/video/omap3isp/isph3a_af.c   |    2 +-
- drivers/media/video/omap3isp/isphist.c     |    2 +-
- drivers/media/video/omap3isp/isppreview.c  |    9 ++++++---
- drivers/media/video/omap3isp/ispresizer.c  |    7 +++++--
- drivers/media/video/omap3isp/ispstat.c     |    4 ++--
- drivers/media/video/omap3isp/ispstat.h     |    2 +-
- drivers/media/video/omap3isp/ispvideo.c    |    9 ++++++---
- drivers/media/video/omap3isp/ispvideo.h    |    1 +
- 12 files changed, 34 insertions(+), 20 deletions(-)
+This being said, I'm not sure if I would design them the same way today. They 
+have clear UVC roots, and I would likely merge V4L2_FRMSIZE_TYPE_CONTINUOUS 
+and V4L2_FRMSIZE_TYPE_STEPWISE in a single type for instance. Howevern given 
+the wide user base, I don't think it would be a good idea to break the API and 
+ABI, even though both ioctls are currently experimental.
 
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index 40b141c..4e4bf48 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -2204,8 +2204,6 @@ static int ccdc_init_entities(struct isp_ccdc_device *ccdc)
- 
- void omap3isp_ccdc_unregister_entities(struct isp_ccdc_device *ccdc)
- {
--	media_entity_cleanup(&ccdc->subdev.entity);
--
- 	v4l2_device_unregister_subdev(&ccdc->subdev);
- 	omap3isp_video_unregister(&ccdc->video_out);
- }
-@@ -2285,6 +2283,9 @@ void omap3isp_ccdc_cleanup(struct isp_device *isp)
- {
- 	struct isp_ccdc_device *ccdc = &isp->isp_ccdc;
- 
-+	omap3isp_video_cleanup(&ccdc->video_out);
-+	media_entity_cleanup(&ccdc->subdev.entity);
-+
- 	/* Free LSC requests. As the CCDC is stopped there's no active request,
- 	 * so only the pending request and the free queue need to be handled.
- 	 */
-diff --git a/drivers/media/video/omap3isp/ispccp2.c b/drivers/media/video/omap3isp/ispccp2.c
-index fa1d09b..b8e0863 100644
---- a/drivers/media/video/omap3isp/ispccp2.c
-+++ b/drivers/media/video/omap3isp/ispccp2.c
-@@ -1100,8 +1100,6 @@ static int ccp2_init_entities(struct isp_ccp2_device *ccp2)
-  */
- void omap3isp_ccp2_unregister_entities(struct isp_ccp2_device *ccp2)
- {
--	media_entity_cleanup(&ccp2->subdev.entity);
--
- 	v4l2_device_unregister_subdev(&ccp2->subdev);
- 	omap3isp_video_unregister(&ccp2->video_in);
- }
-@@ -1146,6 +1144,9 @@ void omap3isp_ccp2_cleanup(struct isp_device *isp)
- {
- 	struct isp_ccp2_device *ccp2 = &isp->isp_ccp2;
- 
-+	omap3isp_video_cleanup(&ccp2->video_in);
-+	media_entity_cleanup(&ccp2->subdev.entity);
-+
- 	regulator_put(ccp2->vdds_csib);
- }
- 
-diff --git a/drivers/media/video/omap3isp/ispcsi2.c b/drivers/media/video/omap3isp/ispcsi2.c
-index 69161a6..5612e95 100644
---- a/drivers/media/video/omap3isp/ispcsi2.c
-+++ b/drivers/media/video/omap3isp/ispcsi2.c
-@@ -1241,8 +1241,6 @@ static int csi2_init_entities(struct isp_csi2_device *csi2)
- 
- void omap3isp_csi2_unregister_entities(struct isp_csi2_device *csi2)
- {
--	media_entity_cleanup(&csi2->subdev.entity);
--
- 	v4l2_device_unregister_subdev(&csi2->subdev);
- 	omap3isp_video_unregister(&csi2->video_out);
- }
-@@ -1277,6 +1275,10 @@ error:
-  */
- void omap3isp_csi2_cleanup(struct isp_device *isp)
- {
-+	struct isp_csi2_device *csi2a = &isp->isp_csi2a;
-+
-+	omap3isp_video_cleanup(&csi2a->video_out);
-+	media_entity_cleanup(&csi2a->subdev.entity);
- }
- 
- /*
-diff --git a/drivers/media/video/omap3isp/isph3a_aewb.c b/drivers/media/video/omap3isp/isph3a_aewb.c
-index 8068cef..a3c76bf 100644
---- a/drivers/media/video/omap3isp/isph3a_aewb.c
-+++ b/drivers/media/video/omap3isp/isph3a_aewb.c
-@@ -370,5 +370,5 @@ void omap3isp_h3a_aewb_cleanup(struct isp_device *isp)
- {
- 	kfree(isp->isp_aewb.priv);
- 	kfree(isp->isp_aewb.recover_priv);
--	omap3isp_stat_free(&isp->isp_aewb);
-+	omap3isp_stat_cleanup(&isp->isp_aewb);
- }
-diff --git a/drivers/media/video/omap3isp/isph3a_af.c b/drivers/media/video/omap3isp/isph3a_af.c
-index ba54d0a..58e0bc4 100644
---- a/drivers/media/video/omap3isp/isph3a_af.c
-+++ b/drivers/media/video/omap3isp/isph3a_af.c
-@@ -425,5 +425,5 @@ void omap3isp_h3a_af_cleanup(struct isp_device *isp)
- {
- 	kfree(isp->isp_af.priv);
- 	kfree(isp->isp_af.recover_priv);
--	omap3isp_stat_free(&isp->isp_af);
-+	omap3isp_stat_cleanup(&isp->isp_af);
- }
-diff --git a/drivers/media/video/omap3isp/isphist.c b/drivers/media/video/omap3isp/isphist.c
-index 1743856..1163907 100644
---- a/drivers/media/video/omap3isp/isphist.c
-+++ b/drivers/media/video/omap3isp/isphist.c
-@@ -516,5 +516,5 @@ void omap3isp_hist_cleanup(struct isp_device *isp)
- 	if (HIST_USING_DMA(&isp->isp_hist))
- 		omap_free_dma(isp->isp_hist.dma_ch);
- 	kfree(isp->isp_hist.priv);
--	omap3isp_stat_free(&isp->isp_hist);
-+	omap3isp_stat_cleanup(&isp->isp_hist);
- }
-diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
-index aba537a..84a18b6 100644
---- a/drivers/media/video/omap3isp/isppreview.c
-+++ b/drivers/media/video/omap3isp/isppreview.c
-@@ -2046,10 +2046,7 @@ static int preview_init_entities(struct isp_prev_device *prev)
- 
- void omap3isp_preview_unregister_entities(struct isp_prev_device *prev)
- {
--	media_entity_cleanup(&prev->subdev.entity);
--
- 	v4l2_device_unregister_subdev(&prev->subdev);
--	v4l2_ctrl_handler_free(&prev->ctrls);
- 	omap3isp_video_unregister(&prev->video_in);
- 	omap3isp_video_unregister(&prev->video_out);
- }
-@@ -2085,6 +2082,12 @@ error:
- 
- void omap3isp_preview_cleanup(struct isp_device *isp)
- {
-+	struct isp_prev_device *prev = &isp->isp_prev;
-+
-+	v4l2_ctrl_handler_free(&prev->ctrls);
-+	omap3isp_video_cleanup(&prev->video_in);
-+	omap3isp_video_cleanup(&prev->video_out);
-+	media_entity_cleanup(&prev->subdev.entity);
- }
- 
- /*
-diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
-index 0bb0f8c..78ce040 100644
---- a/drivers/media/video/omap3isp/ispresizer.c
-+++ b/drivers/media/video/omap3isp/ispresizer.c
-@@ -1674,8 +1674,6 @@ static int resizer_init_entities(struct isp_res_device *res)
- 
- void omap3isp_resizer_unregister_entities(struct isp_res_device *res)
- {
--	media_entity_cleanup(&res->subdev.entity);
--
- 	v4l2_device_unregister_subdev(&res->subdev);
- 	omap3isp_video_unregister(&res->video_in);
- 	omap3isp_video_unregister(&res->video_out);
-@@ -1712,6 +1710,11 @@ error:
- 
- void omap3isp_resizer_cleanup(struct isp_device *isp)
- {
-+	struct isp_res_device *res = &isp->isp_res;
-+
-+	omap3isp_video_cleanup(&res->video_in);
-+	omap3isp_video_cleanup(&res->video_out);
-+	media_entity_cleanup(&res->subdev.entity);
- }
- 
- /*
-diff --git a/drivers/media/video/omap3isp/ispstat.c b/drivers/media/video/omap3isp/ispstat.c
-index 8080659..4ffddd2 100644
---- a/drivers/media/video/omap3isp/ispstat.c
-+++ b/drivers/media/video/omap3isp/ispstat.c
-@@ -1061,7 +1061,6 @@ int omap3isp_stat_unsubscribe_event(struct v4l2_subdev *subdev,
- 
- void omap3isp_stat_unregister_entities(struct ispstat *stat)
- {
--	media_entity_cleanup(&stat->subdev.entity);
- 	v4l2_device_unregister_subdev(&stat->subdev);
- }
- 
-@@ -1084,8 +1083,9 @@ int omap3isp_stat_init(struct ispstat *stat, const char *name,
- 	return isp_stat_init_entities(stat, name, sd_ops);
- }
- 
--void omap3isp_stat_free(struct ispstat *stat)
-+void omap3isp_stat_cleanup(struct ispstat *stat)
- {
-+	media_entity_cleanup(&stat->subdev.entity);
- 	isp_stat_bufs_free(stat);
- 	kfree(stat->buf);
- }
-diff --git a/drivers/media/video/omap3isp/ispstat.h b/drivers/media/video/omap3isp/ispstat.h
-index d86da94..9b7c865 100644
---- a/drivers/media/video/omap3isp/ispstat.h
-+++ b/drivers/media/video/omap3isp/ispstat.h
-@@ -144,7 +144,7 @@ int omap3isp_stat_request_statistics(struct ispstat *stat,
- 				     struct omap3isp_stat_data *data);
- int omap3isp_stat_init(struct ispstat *stat, const char *name,
- 		       const struct v4l2_subdev_ops *sd_ops);
--void omap3isp_stat_free(struct ispstat *stat);
-+void omap3isp_stat_cleanup(struct ispstat *stat);
- int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
- 				  struct v4l2_fh *fh,
- 				  struct v4l2_event_subscription *sub);
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index ba86f11..910c745 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -1325,6 +1325,11 @@ int omap3isp_video_init(struct isp_video *video, const char *name)
- 	return 0;
- }
- 
-+void omap3isp_video_cleanup(struct isp_video *video)
-+{
-+	media_entity_cleanup(&video->video.entity);
-+}
-+
- int omap3isp_video_register(struct isp_video *video, struct v4l2_device *vdev)
- {
- 	int ret;
-@@ -1341,8 +1346,6 @@ int omap3isp_video_register(struct isp_video *video, struct v4l2_device *vdev)
- 
- void omap3isp_video_unregister(struct isp_video *video)
- {
--	if (video_is_registered(&video->video)) {
--		media_entity_cleanup(&video->video.entity);
-+	if (video_is_registered(&video->video))
- 		video_unregister_device(&video->video);
--	}
- }
-diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
-index 53160aa..08cbfa1 100644
---- a/drivers/media/video/omap3isp/ispvideo.h
-+++ b/drivers/media/video/omap3isp/ispvideo.h
-@@ -190,6 +190,7 @@ struct isp_video_fh {
- 				container_of(q, struct isp_video_fh, queue)
- 
- int omap3isp_video_init(struct isp_video *video, const char *name);
-+void omap3isp_video_cleanup(struct isp_video *video);
- int omap3isp_video_register(struct isp_video *video,
- 			    struct v4l2_device *vdev);
- void omap3isp_video_unregister(struct isp_video *video);
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> > 
+> >  Documentation/DocBook/media/v4l/compat.xml         |    4 ----
+> >  .../DocBook/media/v4l/vidioc-enum-framesizes.xml   |    7 -------
+> >  2 files changed, 0 insertions(+), 11 deletions(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/compat.xml
+> > b/Documentation/DocBook/media/v4l/compat.xml index ce1004a..a6261c1
+> > 100644
+> > --- a/Documentation/DocBook/media/v4l/compat.xml
+> > +++ b/Documentation/DocBook/media/v4l/compat.xml
+> > @@ -2458,10 +2458,6 @@ and may change in the future.</para>
+> > 
+> >  &VIDIOC-QUERYCAP; ioctl, <xref linkend="device-capabilities" />.</para>
+> >  
+> >          </listitem>
+> >          <listitem>
+> > 
+> > -	  <para>&VIDIOC-ENUM-FRAMESIZES; and
+> > -&VIDIOC-ENUM-FRAMEINTERVALS; ioctls.</para>
+> > -        </listitem>
+> > -        <listitem>
+> > 
+> >  	  <para>&VIDIOC-G-ENC-INDEX; ioctl.</para>
+> >  	  
+> >          </listitem>
+> >          <listitem>
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
+> > b/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml index
+> > f77a13f..a78454b 100644
+> > --- a/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
+> > +++ b/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
+> > @@ -50,13 +50,6 @@ and pixel format and receives a frame width and
+> > height.</para>
+> > 
+> >    <refsect1>
+> >    
+> >      <title>Description</title>
+> > 
+> > -    <note>
+> > -      <title>Experimental</title>
+> > -
+> > -      <para>This is an <link linkend="experimental">experimental</link>
+> > -interface and may change in the future.</para>
+> > -    </note>
+> > -
+> > 
+> >      <para>This ioctl allows applications to enumerate all frame sizes
+> >  
+> >  (&ie; width and height in pixels) that the device supports for the
+> >  given pixel format.</para>
+
 -- 
-1.7.3.4
+Regards,
 
+Laurent Pinchart
