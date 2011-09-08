@@ -1,73 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55349 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932770Ab1IRXIp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Sep 2011 19:08:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 1/3] v4l: Extend V4L2_CID_COLORFX control with AQUA effect
-Date: Mon, 19 Sep 2011 01:08:48 +0200
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-References: <1316192730-18099-1-git-send-email-s.nawrocki@samsung.com> <1316192730-18099-2-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1316192730-18099-2-git-send-email-s.nawrocki@samsung.com>
+Received: from hermes.mlbassoc.com ([64.234.241.98]:56256 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932789Ab1IHNkv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 09:40:51 -0400
+Message-ID: <4E68C5DF.1040405@mlbassoc.com>
+Date: Thu, 08 Sep 2011 07:40:47 -0600
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Enrico <ebutera@users.berlios.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: OMAP3 ISP and UYVY422
+References: <4E679407.1090300@mlbassoc.com> <CA+2YH7tTbPNjK8+Ao-H30huYmdtWRJFvNbkoD=HQXeppMaZ9aw@mail.gmail.com>
+In-Reply-To: <CA+2YH7tTbPNjK8+Ao-H30huYmdtWRJFvNbkoD=HQXeppMaZ9aw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109190108.49283.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On 2011-09-08 07:22, Enrico wrote:
+> On Wed, Sep 7, 2011 at 5:55 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>> My UYVY422 data looks like this (raw-3.0):
+>>   0000000: 0080 0080 007f 0080 007f 0080 007f 0080  ................
+>>   0000010: 0080 0080 0080 0080 0080 0080 0080 0080  ................
+>>   0000020: 0080 0080 0080 0080 007f 0080 0080 0080  ................
+>>   0000030: 0080 007f 0080 007f 0080 007f 0080 007f  ................
+>>
+>> It should look more like this (raw-2.6.32):
+>>   0000000: 8034 8033 8034 8034 8034 8034 8034 8034  .4.3.4.4.4.4.4.4
+>>   0000010: 8034 8033 8034 8034 8034 8034 8034 8033  .4.3.4.4.4.4.4.3
+>>   0000020: 8034 8034 8034 8034 8034 8034 8033 8032  .4.4.4.4.4.4.3.2
+>>   0000030: 8034 8035 8033 8034 8033 8034 8033 8034  .4.5.3.4.3.4.3.4
+>>
+>> n.b. these are grabbed from the same image on the camera, on the same
+>> board - either running the new media controller code (3.0+) or old TI
+>> PSP code (2.6.32)
+>>
+>> I've compared the CCDC registers between the two systems and they look
+>> pretty good to me (none of the differences explain the behaviour above)
+>>
+>> It looks to me like the 8 bit data coming into the CCDC is not being
+>> packed properly, as well as the second byte of each pair is being
+>> dropped.
+>>
+>> Any hints on where to look, what might be mis-configured, etc?
+>
+> Apart from that (i have the same issue) do you get the full 720
+> horizontal pixels?
+>
+> Because this is what i get:
+>
+> http://imageshack.us/f/215/newkernel0.png/
+>
+> It's not simply "stretched", the right part is missing. Did you change
+> some ccdc parameters in the files i sent you?
 
-Thanks for the patch.
-
-On Friday 16 September 2011 19:05:28 Sylwester Nawrocki wrote:
-> Add V4L2_COLORFX_AQUA image effect in the V4L2_CID_COLORFX menu.
-
-What's the aqua effect ?
-
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  Documentation/DocBook/media/v4l/controls.xml |    5 +++--
->  include/linux/videodev2.h                    |    1 +
->  2 files changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml
-> b/Documentation/DocBook/media/v4l/controls.xml index 8516401..f3c6457
-> 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -294,8 +294,9 @@ minimum value disables backlight compensation.</entry>
->  <constant>V4L2_COLORFX_SKETCH</constant> (5),
->  <constant>V4L2_COLORFX_SKY_BLUE</constant> (6),
->  <constant>V4L2_COLORFX_GRASS_GREEN</constant> (7),
-> -<constant>V4L2_COLORFX_SKIN_WHITEN</constant> (8) and
-> -<constant>V4L2_COLORFX_VIVID</constant> (9).</entry>
-> +<constant>V4L2_COLORFX_SKIN_WHITEN</constant> (8),
-> +<constant>V4L2_COLORFX_VIVID</constant> (9) and
-> +<constant>V4L2_COLORFX_AQUA</constant> (10).</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>V4L2_CID_ROTATE</constant></entry>
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index fca24cc..5032226 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -1144,6 +1144,7 @@ enum v4l2_colorfx {
->  	V4L2_COLORFX_GRASS_GREEN = 7,
->  	V4L2_COLORFX_SKIN_WHITEN = 8,
->  	V4L2_COLORFX_VIVID = 9,
-> +	V4L2_COLORFX_AQUA = 10,
->  };
->  #define V4L2_CID_AUTOBRIGHTNESS			(V4L2_CID_BASE+32)
->  #define V4L2_CID_BAND_STOP_FILTER		(V4L2_CID_BASE+33)
+This is precisely what I see.  If you look at the raw UYVY data as
+I did, you'll see that 1/2 of the data is being lost.  It looks like
+there is some setup wrong in how the data is being moved from the CCDC
+to memory but I don't know enough about the code to know where that
+might be configured.
 
 -- 
-Regards,
-
-Laurent Pinchart
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
