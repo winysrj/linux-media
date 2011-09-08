@@ -1,82 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4759 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753002Ab1IZJvp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 05:51:45 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from moutng.kundenserver.de ([212.227.17.8]:56034 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932708Ab1IHNnq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 09:43:46 -0400
+Date: Thu, 8 Sep 2011 15:43:43 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Sakari Ailus <sakari.ailus@iki.fi>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	hechtb@googlemail.com
 Subject: Re: [RFC] New class for low level sensors controls?
-Date: Mon, 26 Sep 2011 11:51:05 +0200
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, hechtb@googlemail.com,
-	g.liakhovetski@gmx.de
+In-Reply-To: <20110908132157.GD1724@valkosipuli.localdomain>
+Message-ID: <Pine.LNX.4.64.1109081532280.31156@axis700.grange>
 References: <20110906113653.GF1393@valkosipuli.localdomain>
-In-Reply-To: <20110906113653.GF1393@valkosipuli.localdomain>
+ <201109061341.11991.laurent.pinchart@ideasonboard.com>
+ <20110906122226.GH1393@valkosipuli.localdomain> <Pine.LNX.4.64.1109081409380.31156@axis700.grange>
+ <20110908132157.GD1724@valkosipuli.localdomain>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109261151.05572.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday, September 06, 2011 13:36:53 Sakari Ailus wrote:
-> Hi all,
+On Thu, 8 Sep 2011, Sakari Ailus wrote:
+
+> On Thu, Sep 08, 2011 at 02:35:54PM +0200, Guennadi Liakhovetski wrote:
+> > On Tue, 6 Sep 2011, Sakari Ailus wrote:
+> > 
+> > > On Tue, Sep 06, 2011 at 01:41:11PM +0200, Laurent Pinchart wrote:
+> > > > Hi Sakari,
+> > > > 
+> > > > On Tuesday 06 September 2011 13:36:53 Sakari Ailus wrote:
+
+[snip]
+
+> > > > > Typically such sensors are not controlled by general purpose applications
+> > > > > but e.g. require a camera control algorithm framework in user space. This
+> > > > > needs to be implemented in libv4l for general purpose applications to work
+> > > > > properly on this kind of hardware.
+> > > > > 
+> > > > > These sensors expose controls such as
+> > > > > 
+> > > > > - Per-component gain controls. Red, blue, green (blue) and green (red)
+> > > > >   gains.
+> > > > >
+> > > > > - Link frequency. The frequency of the data link from the sensor to the
+> > > > >   bridge.
+> > > > > 
+> > > > > - Horizontal and vertical blanking.
+> > > > 
+> > > > Other controls often found in bayer sensors are black level compensation and 
+> > > > test pattern.
+> > 
+> > May I suggest a couple more:
+> > 
+> > (1) snapshot mode (I really badly want this one, please;-))
 > 
-> We are beginning to have raw bayer image sensor drivers in the mainline.
-> Typically such sensors are not controlled by general purpose applications
-> but e.g. require a camera control algorithm framework in user space. This
-> needs to be implemented in libv4l for general purpose applications to work
-> properly on this kind of hardware.
+> Sounds good.
 > 
-> These sensors expose controls such as
+> > (2) flash controls (yes, I know we already have V4L2_CTRL_CLASS_FLASH, I 
+> >     just have the impression, that these controls are mostly meant for 
+> >     either pure software implementations, or for external controllers, I 
+> >     think it should also be possible to have them exported by a normal 
+> >     sensor driver, but wasn't really sure. So, wanted to point out to this 
+> >     possibility once again.)
 > 
-> - Per-component gain controls. Red, blue, green (blue) and green (red)
->   gains.
+> There was a lengthy discussion during the review process. Do you see that
+> something would be missing from the current interface?
+
+I didn't try to systemise them. Just having a look at a couple of 
+datasheets I see a few more parameters, like flash strobe delay, etc. But 
+I don't think we should just add as many of them as we can just for the 
+sake of them. I think, as soon as someone comes with a new requirement, 
+we'll think of a way to implement it. 
+
+> I vaguely remember that you had a sensor that expected to be controlled by
+> the flash controller considering the flash timing, rather than the other way
+> around.
+
+Maybe:-) But again - let's wait until someone needs that functionality.
+
+> > (3) AEC / AGC regions
 > 
-> - Link frequency. The frequency of the data link from the sensor to the
->   bridge.
+> This might get tricky. I wonder how we could eventually standardise these
+> ones.
 > 
-> - Horizontal and vertical blanking.
+> > (4) stereo (3D anyone?;)) - no, don't think we need it now...
 > 
-> None of these controls are suitable for use of general purpose applications
-> (let alone the end user!) but for the camera control algorithms.
+> I wonder what is needed to support this on V4L2. It might also depend on how
+> the hardware will look like.
+
+The sensor, that I looked at (mt9v022) has one bit to turn stereo mode on 
+or off, and one more bit to set master or slave.
+
+> > > > > None of these controls are suitable for use of general purpose applications
+> > > > > (let alone the end user!) but for the camera control algorithms.
+> > > > > 
+> > > > > We have a control class called V4L2_CTRL_CLASS_CAMERA for camera controls.
+> > > > > However, the controls in this class are relatively high level controls
+> > > > > which are suitable for end user. The algorithms in the libv4l or a webcam
+> > > > > could implement many of these controls whereas I see that only
+> > > > > V4L2_CID_EXPOSURE_ABSOLUTE might be implemented by raw bayer sensors.
+> > > > > 
+> > > > > My question is: would it make sense to create a new class of controls for
+> > > > > the low level sensor controls in a similar fashion we have a control class
+> > > > > for the flash controls?
+> > > > 
+> > > > I think it would, but I'm not sure how we should name that class. 
+> > > > V4L2_CTRL_CLASS_SENSOR is tempting, but many of the controls that will be 
+> > > > found there (digital gains, black leverl compensation, test pattern, ...) can 
+> > > > also be found in ISPs or other hardware blocks.
+> > > 
+> > > I don't think ISPs typically implement test patterns. Do you know of any?
+> > 
+> > Yes, i.MX31.
 > 
-> We have a control class called V4L2_CTRL_CLASS_CAMERA for camera controls.
-> However, the controls in this class are relatively high level controls which
-> are suitable for end user. The algorithms in the libv4l or a webcam could
-> implement many of these controls whereas I see that only
-> V4L2_CID_EXPOSURE_ABSOLUTE might be implemented by raw bayer sensors.
+> Good to know that.
 > 
-> My question is: would it make sense to create a new class of controls for
-> the low level sensor controls in a similar fashion we have a control class
-> for the flash controls?
+> But you already know I'm with Laurent in believing that the controls should
+> be classified based on what they do, not where they are implemented. :-)
 
-I'm plowing through all the mails on this list that piled up during the last
-3-4 weeks, so my reply is a bit late :-)
+Sure, I agree too, that was just FYI.
 
-I don't believe a new class is the right approach. If such controls are part
-of a sub-device, then they can be marked 'private', which means they are only
-accessible through the subdev device node.
-
-For low-level controls that are part of the bridge chip there is currently no
-suitable way of hiding them.
-
-In that case the best approach would be to add a new control flag called
-V4L2_CTRL_FLAG_HIDE (or _INVISIBLE, or _LOW_LEVEL, or something similar).
-Applications can filter such controls and not show them.
-
-I've toyed with this idea before, but of course it has the disadvantage of
-requiring application support.
-
-One alternative to this is to let QUERYCTRL skip such hidden controls unless
-instructed otherwise (e.g. by adding a V4L2_CTRL_FLAG_SHOW_ALL to the control's
-id). But I think that's getting a bit too complex.
-
-I think adding a 'HIDE' flag of some sort is a good idea. It's simple and does
-the job.
-
-Regards,
-
-	Hans
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
