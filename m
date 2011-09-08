@@ -1,636 +1,486 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42562 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39622 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753647Ab1IVUPo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Sep 2011 16:15:44 -0400
+	with ESMTP id S1753147Ab1IHXSl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 19:18:41 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi, g.liakhovetski@gmx.de
-Subject: [PATCH 2/4] omap3isp: Move *_init_entities() functions to the init/cleanup section
-Date: Thu, 22 Sep 2011 22:15:37 +0200
-Message-Id: <1316722539-7372-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1316722539-7372-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1316722539-7372-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Deepthy Ravi <deepthy.ravi@ti.com>
+Subject: Re: [PATCH 3/8] tvp514x: Migrate to media-controller framework
+Date: Thu, 8 Sep 2011 19:20:38 +0200
+Cc: linux-media@vger.kernel.org, tony@atomide.com,
+	linux@arm.linux.org.uk, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	mchehab@infradead.org, g.liakhovetski@gmx.de,
+	Vaibhav Hiremath <hvaibhav@ti.com>
+References: <1315488900-16106-1-git-send-email-deepthy.ravi@ti.com>
+In-Reply-To: <1315488900-16106-1-git-send-email-deepthy.ravi@ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109081920.38758.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Group all init/cleanup functions together to make the code more
-readable.
+Hi,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/ispccdc.c    |   62 ++++++++--------
- drivers/media/video/omap3isp/ispccp2.c    |  112 ++++++++++++++--------------
- drivers/media/video/omap3isp/ispcsi2.c    |   84 +++++++++++-----------
- drivers/media/video/omap3isp/isppreview.c |   94 ++++++++++++------------
- drivers/media/video/omap3isp/ispresizer.c |   90 ++++++++++++------------
- drivers/media/video/omap3isp/ispstat.c    |   36 +++++-----
- 6 files changed, 239 insertions(+), 239 deletions(-)
+On Thursday 08 September 2011 15:35:00 Deepthy Ravi wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> Migrate tvp5146 driver to media controller framework. The
+> driver registers as a sub-device entity to MC framwork
+> and sub-device to V4L2 layer. The default format code was
+> V4L2_MBUS_FMT_YUYV10_2X10. Changed it to V4L2_MBUS_FMT_UYVY8_2X8
+> and hence added the new format code to ccdc and isp format
+> arrays.
 
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index 4e4bf48..9ed4d8a 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -2150,6 +2150,37 @@ static const struct media_entity_operations ccdc_media_ops = {
- 	.link_setup = ccdc_link_setup,
- };
- 
-+void omap3isp_ccdc_unregister_entities(struct isp_ccdc_device *ccdc)
-+{
-+	v4l2_device_unregister_subdev(&ccdc->subdev);
-+	omap3isp_video_unregister(&ccdc->video_out);
-+}
-+
-+int omap3isp_ccdc_register_entities(struct isp_ccdc_device *ccdc,
-+	struct v4l2_device *vdev)
-+{
-+	int ret;
-+
-+	/* Register the subdev and video node. */
-+	ret = v4l2_device_register_subdev(vdev, &ccdc->subdev);
-+	if (ret < 0)
-+		goto error;
-+
-+	ret = omap3isp_video_register(&ccdc->video_out, vdev);
-+	if (ret < 0)
-+		goto error;
-+
-+	return 0;
-+
-+error:
-+	omap3isp_ccdc_unregister_entities(ccdc);
-+	return ret;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * ISP CCDC initialisation and cleanup
-+ */
-+
- /*
-  * ccdc_init_entities - Initialize V4L2 subdev and media entity
-  * @ccdc: ISP CCDC module
-@@ -2202,37 +2233,6 @@ static int ccdc_init_entities(struct isp_ccdc_device *ccdc)
- 	return 0;
- }
- 
--void omap3isp_ccdc_unregister_entities(struct isp_ccdc_device *ccdc)
--{
--	v4l2_device_unregister_subdev(&ccdc->subdev);
--	omap3isp_video_unregister(&ccdc->video_out);
--}
--
--int omap3isp_ccdc_register_entities(struct isp_ccdc_device *ccdc,
--	struct v4l2_device *vdev)
--{
--	int ret;
--
--	/* Register the subdev and video node. */
--	ret = v4l2_device_register_subdev(vdev, &ccdc->subdev);
--	if (ret < 0)
--		goto error;
--
--	ret = omap3isp_video_register(&ccdc->video_out, vdev);
--	if (ret < 0)
--		goto error;
--
--	return 0;
--
--error:
--	omap3isp_ccdc_unregister_entities(ccdc);
--	return ret;
--}
--
--/* -----------------------------------------------------------------------------
-- * ISP CCDC initialisation and cleanup
-- */
--
- /*
-  * omap3isp_ccdc_init - CCDC module initialization.
-  * @dev: Device pointer specific to the OMAP3 ISP.
-diff --git a/drivers/media/video/omap3isp/ispccp2.c b/drivers/media/video/omap3isp/ispccp2.c
-index b8e0863..883a282 100644
---- a/drivers/media/video/omap3isp/ispccp2.c
-+++ b/drivers/media/video/omap3isp/ispccp2.c
-@@ -1032,6 +1032,48 @@ static const struct media_entity_operations ccp2_media_ops = {
- };
- 
- /*
-+ * omap3isp_ccp2_unregister_entities - Unregister media entities: subdev
-+ * @ccp2: Pointer to ISP CCP2 device
-+ */
-+void omap3isp_ccp2_unregister_entities(struct isp_ccp2_device *ccp2)
-+{
-+	v4l2_device_unregister_subdev(&ccp2->subdev);
-+	omap3isp_video_unregister(&ccp2->video_in);
-+}
-+
-+/*
-+ * omap3isp_ccp2_register_entities - Register the subdev media entity
-+ * @ccp2: Pointer to ISP CCP2 device
-+ * @vdev: Pointer to v4l device
-+ * return negative error code or zero on success
-+ */
-+
-+int omap3isp_ccp2_register_entities(struct isp_ccp2_device *ccp2,
-+				    struct v4l2_device *vdev)
-+{
-+	int ret;
-+
-+	/* Register the subdev and video nodes. */
-+	ret = v4l2_device_register_subdev(vdev, &ccp2->subdev);
-+	if (ret < 0)
-+		goto error;
-+
-+	ret = omap3isp_video_register(&ccp2->video_in, vdev);
-+	if (ret < 0)
-+		goto error;
-+
-+	return 0;
-+
-+error:
-+	omap3isp_ccp2_unregister_entities(ccp2);
-+	return ret;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * ISP ccp2 initialisation and cleanup
-+ */
-+
-+/*
-  * ccp2_init_entities - Initialize ccp2 subdev and media entity.
-  * @ccp2: Pointer to ISP CCP2 device
-  * return negative error code or zero on success
-@@ -1095,62 +1137,6 @@ static int ccp2_init_entities(struct isp_ccp2_device *ccp2)
- }
- 
- /*
-- * omap3isp_ccp2_unregister_entities - Unregister media entities: subdev
-- * @ccp2: Pointer to ISP CCP2 device
-- */
--void omap3isp_ccp2_unregister_entities(struct isp_ccp2_device *ccp2)
--{
--	v4l2_device_unregister_subdev(&ccp2->subdev);
--	omap3isp_video_unregister(&ccp2->video_in);
--}
--
--/*
-- * omap3isp_ccp2_register_entities - Register the subdev media entity
-- * @ccp2: Pointer to ISP CCP2 device
-- * @vdev: Pointer to v4l device
-- * return negative error code or zero on success
-- */
--
--int omap3isp_ccp2_register_entities(struct isp_ccp2_device *ccp2,
--				    struct v4l2_device *vdev)
--{
--	int ret;
--
--	/* Register the subdev and video nodes. */
--	ret = v4l2_device_register_subdev(vdev, &ccp2->subdev);
--	if (ret < 0)
--		goto error;
--
--	ret = omap3isp_video_register(&ccp2->video_in, vdev);
--	if (ret < 0)
--		goto error;
--
--	return 0;
--
--error:
--	omap3isp_ccp2_unregister_entities(ccp2);
--	return ret;
--}
--
--/* -----------------------------------------------------------------------------
-- * ISP ccp2 initialisation and cleanup
-- */
--
--/*
-- * omap3isp_ccp2_cleanup - CCP2 un-initialization
-- * @isp : Pointer to ISP device
-- */
--void omap3isp_ccp2_cleanup(struct isp_device *isp)
--{
--	struct isp_ccp2_device *ccp2 = &isp->isp_ccp2;
--
--	omap3isp_video_cleanup(&ccp2->video_in);
--	media_entity_cleanup(&ccp2->subdev.entity);
--
--	regulator_put(ccp2->vdds_csib);
--}
--
--/*
-  * omap3isp_ccp2_init - CCP2 initialization.
-  * @isp : Pointer to ISP device
-  * return negative error code or zero on success
-@@ -1195,3 +1181,17 @@ out:
- 
- 	return ret;
- }
-+
-+/*
-+ * omap3isp_ccp2_cleanup - CCP2 un-initialization
-+ * @isp : Pointer to ISP device
-+ */
-+void omap3isp_ccp2_cleanup(struct isp_device *isp)
-+{
-+	struct isp_ccp2_device *ccp2 = &isp->isp_ccp2;
-+
-+	omap3isp_video_cleanup(&ccp2->video_in);
-+	media_entity_cleanup(&ccp2->subdev.entity);
-+
-+	regulator_put(ccp2->vdds_csib);
-+}
-diff --git a/drivers/media/video/omap3isp/ispcsi2.c b/drivers/media/video/omap3isp/ispcsi2.c
-index 5612e95..2c9bffc 100644
---- a/drivers/media/video/omap3isp/ispcsi2.c
-+++ b/drivers/media/video/omap3isp/ispcsi2.c
-@@ -1187,6 +1187,37 @@ static const struct media_entity_operations csi2_media_ops = {
- 	.link_setup = csi2_link_setup,
- };
- 
-+void omap3isp_csi2_unregister_entities(struct isp_csi2_device *csi2)
-+{
-+	v4l2_device_unregister_subdev(&csi2->subdev);
-+	omap3isp_video_unregister(&csi2->video_out);
-+}
-+
-+int omap3isp_csi2_register_entities(struct isp_csi2_device *csi2,
-+				    struct v4l2_device *vdev)
-+{
-+	int ret;
-+
-+	/* Register the subdev and video nodes. */
-+	ret = v4l2_device_register_subdev(vdev, &csi2->subdev);
-+	if (ret < 0)
-+		goto error;
-+
-+	ret = omap3isp_video_register(&csi2->video_out, vdev);
-+	if (ret < 0)
-+		goto error;
-+
-+	return 0;
-+
-+error:
-+	omap3isp_csi2_unregister_entities(csi2);
-+	return ret;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * ISP CSI2 initialisation and cleanup
-+ */
-+
- /*
-  * csi2_init_entities - Initialize subdev and media entity.
-  * @csi2: Pointer to csi2 structure.
-@@ -1239,48 +1270,6 @@ static int csi2_init_entities(struct isp_csi2_device *csi2)
- 	return 0;
- }
- 
--void omap3isp_csi2_unregister_entities(struct isp_csi2_device *csi2)
--{
--	v4l2_device_unregister_subdev(&csi2->subdev);
--	omap3isp_video_unregister(&csi2->video_out);
--}
--
--int omap3isp_csi2_register_entities(struct isp_csi2_device *csi2,
--				    struct v4l2_device *vdev)
--{
--	int ret;
--
--	/* Register the subdev and video nodes. */
--	ret = v4l2_device_register_subdev(vdev, &csi2->subdev);
--	if (ret < 0)
--		goto error;
--
--	ret = omap3isp_video_register(&csi2->video_out, vdev);
--	if (ret < 0)
--		goto error;
--
--	return 0;
--
--error:
--	omap3isp_csi2_unregister_entities(csi2);
--	return ret;
--}
--
--/* -----------------------------------------------------------------------------
-- * ISP CSI2 initialisation and cleanup
-- */
--
--/*
-- * omap3isp_csi2_cleanup - Routine for module driver cleanup
-- */
--void omap3isp_csi2_cleanup(struct isp_device *isp)
--{
--	struct isp_csi2_device *csi2a = &isp->isp_csi2a;
--
--	omap3isp_video_cleanup(&csi2a->video_out);
--	media_entity_cleanup(&csi2a->subdev.entity);
--}
--
- /*
-  * omap3isp_csi2_init - Routine for module driver init
-  */
-@@ -1317,3 +1306,14 @@ fail:
- 	omap3isp_csi2_cleanup(isp);
- 	return ret;
- }
-+
-+/*
-+ * omap3isp_csi2_cleanup - Routine for module driver cleanup
-+ */
-+void omap3isp_csi2_cleanup(struct isp_device *isp)
-+{
-+	struct isp_csi2_device *csi2a = &isp->isp_csi2a;
-+
-+	omap3isp_video_cleanup(&csi2a->video_out);
-+	media_entity_cleanup(&csi2a->subdev.entity);
-+}
-diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
-index 84a18b6..b926ebb 100644
---- a/drivers/media/video/omap3isp/isppreview.c
-+++ b/drivers/media/video/omap3isp/isppreview.c
-@@ -1966,8 +1966,44 @@ static const struct media_entity_operations preview_media_ops = {
- 	.link_setup = preview_link_setup,
- };
- 
-+void omap3isp_preview_unregister_entities(struct isp_prev_device *prev)
-+{
-+	v4l2_device_unregister_subdev(&prev->subdev);
-+	omap3isp_video_unregister(&prev->video_in);
-+	omap3isp_video_unregister(&prev->video_out);
-+}
-+
-+int omap3isp_preview_register_entities(struct isp_prev_device *prev,
-+	struct v4l2_device *vdev)
-+{
-+	int ret;
-+
-+	/* Register the subdev and video nodes. */
-+	ret = v4l2_device_register_subdev(vdev, &prev->subdev);
-+	if (ret < 0)
-+		goto error;
-+
-+	ret = omap3isp_video_register(&prev->video_in, vdev);
-+	if (ret < 0)
-+		goto error;
-+
-+	ret = omap3isp_video_register(&prev->video_out, vdev);
-+	if (ret < 0)
-+		goto error;
-+
-+	return 0;
-+
-+error:
-+	omap3isp_preview_unregister_entities(prev);
-+	return ret;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * ISP previewer initialisation and cleanup
-+ */
-+
- /*
-- * review_init_entities - Initialize subdev and media entity.
-+ * preview_init_entities - Initialize subdev and media entity.
-  * @prev : Pointer to preview structure
-  * return -ENOMEM or zero on success
-  */
-@@ -2044,52 +2080,6 @@ static int preview_init_entities(struct isp_prev_device *prev)
- 	return 0;
- }
- 
--void omap3isp_preview_unregister_entities(struct isp_prev_device *prev)
--{
--	v4l2_device_unregister_subdev(&prev->subdev);
--	omap3isp_video_unregister(&prev->video_in);
--	omap3isp_video_unregister(&prev->video_out);
--}
--
--int omap3isp_preview_register_entities(struct isp_prev_device *prev,
--	struct v4l2_device *vdev)
--{
--	int ret;
--
--	/* Register the subdev and video nodes. */
--	ret = v4l2_device_register_subdev(vdev, &prev->subdev);
--	if (ret < 0)
--		goto error;
--
--	ret = omap3isp_video_register(&prev->video_in, vdev);
--	if (ret < 0)
--		goto error;
--
--	ret = omap3isp_video_register(&prev->video_out, vdev);
--	if (ret < 0)
--		goto error;
--
--	return 0;
--
--error:
--	omap3isp_preview_unregister_entities(prev);
--	return ret;
--}
--
--/* -----------------------------------------------------------------------------
-- * ISP previewer initialisation and cleanup
-- */
--
--void omap3isp_preview_cleanup(struct isp_device *isp)
--{
--	struct isp_prev_device *prev = &isp->isp_prev;
--
--	v4l2_ctrl_handler_free(&prev->ctrls);
--	omap3isp_video_cleanup(&prev->video_in);
--	omap3isp_video_cleanup(&prev->video_out);
--	media_entity_cleanup(&prev->subdev.entity);
--}
--
- /*
-  * isp_preview_init - Previewer initialization.
-  * @dev : Pointer to ISP device
-@@ -2114,3 +2104,13 @@ out:
- 
- 	return ret;
- }
-+
-+void omap3isp_preview_cleanup(struct isp_device *isp)
-+{
-+	struct isp_prev_device *prev = &isp->isp_prev;
-+
-+	v4l2_ctrl_handler_free(&prev->ctrls);
-+	omap3isp_video_cleanup(&prev->video_in);
-+	omap3isp_video_cleanup(&prev->video_out);
-+	media_entity_cleanup(&prev->subdev.entity);
-+}
-diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
-index 78ce040..224b0b9 100644
---- a/drivers/media/video/omap3isp/ispresizer.c
-+++ b/drivers/media/video/omap3isp/ispresizer.c
-@@ -1608,6 +1608,42 @@ static const struct media_entity_operations resizer_media_ops = {
- 	.link_setup = resizer_link_setup,
- };
- 
-+void omap3isp_resizer_unregister_entities(struct isp_res_device *res)
-+{
-+	v4l2_device_unregister_subdev(&res->subdev);
-+	omap3isp_video_unregister(&res->video_in);
-+	omap3isp_video_unregister(&res->video_out);
-+}
-+
-+int omap3isp_resizer_register_entities(struct isp_res_device *res,
-+				       struct v4l2_device *vdev)
-+{
-+	int ret;
-+
-+	/* Register the subdev and video nodes. */
-+	ret = v4l2_device_register_subdev(vdev, &res->subdev);
-+	if (ret < 0)
-+		goto error;
-+
-+	ret = omap3isp_video_register(&res->video_in, vdev);
-+	if (ret < 0)
-+		goto error;
-+
-+	ret = omap3isp_video_register(&res->video_out, vdev);
-+	if (ret < 0)
-+		goto error;
-+
-+	return 0;
-+
-+error:
-+	omap3isp_resizer_unregister_entities(res);
-+	return ret;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * ISP resizer initialization and cleanup
-+ */
-+
- /*
-  * resizer_init_entities - Initialize resizer subdev and media entity.
-  * @res : Pointer to resizer device structure
-@@ -1672,51 +1708,6 @@ static int resizer_init_entities(struct isp_res_device *res)
- 	return 0;
- }
- 
--void omap3isp_resizer_unregister_entities(struct isp_res_device *res)
--{
--	v4l2_device_unregister_subdev(&res->subdev);
--	omap3isp_video_unregister(&res->video_in);
--	omap3isp_video_unregister(&res->video_out);
--}
--
--int omap3isp_resizer_register_entities(struct isp_res_device *res,
--				       struct v4l2_device *vdev)
--{
--	int ret;
--
--	/* Register the subdev and video nodes. */
--	ret = v4l2_device_register_subdev(vdev, &res->subdev);
--	if (ret < 0)
--		goto error;
--
--	ret = omap3isp_video_register(&res->video_in, vdev);
--	if (ret < 0)
--		goto error;
--
--	ret = omap3isp_video_register(&res->video_out, vdev);
--	if (ret < 0)
--		goto error;
--
--	return 0;
--
--error:
--	omap3isp_resizer_unregister_entities(res);
--	return ret;
--}
--
--/* -----------------------------------------------------------------------------
-- * ISP resizer initialization and cleanup
-- */
--
--void omap3isp_resizer_cleanup(struct isp_device *isp)
--{
--	struct isp_res_device *res = &isp->isp_res;
--
--	omap3isp_video_cleanup(&res->video_in);
--	omap3isp_video_cleanup(&res->video_out);
--	media_entity_cleanup(&res->subdev.entity);
--}
--
- /*
-  * isp_resizer_init - Resizer initialization.
-  * @isp : Pointer to ISP device
-@@ -1739,3 +1730,12 @@ out:
- 
- 	return ret;
- }
-+
-+void omap3isp_resizer_cleanup(struct isp_device *isp)
-+{
-+	struct isp_res_device *res = &isp->isp_res;
-+
-+	omap3isp_video_cleanup(&res->video_in);
-+	omap3isp_video_cleanup(&res->video_out);
-+	media_entity_cleanup(&res->subdev.entity);
-+}
-diff --git a/drivers/media/video/omap3isp/ispstat.c b/drivers/media/video/omap3isp/ispstat.c
-index 4ffddd2..253b32f 100644
---- a/drivers/media/video/omap3isp/ispstat.c
-+++ b/drivers/media/video/omap3isp/ispstat.c
-@@ -1022,24 +1022,6 @@ void omap3isp_stat_dma_isr(struct ispstat *stat)
- 	__stat_isr(stat, 1);
- }
- 
--static int isp_stat_init_entities(struct ispstat *stat, const char *name,
--				  const struct v4l2_subdev_ops *sd_ops)
--{
--	struct v4l2_subdev *subdev = &stat->subdev;
--	struct media_entity *me = &subdev->entity;
--
--	v4l2_subdev_init(subdev, sd_ops);
--	snprintf(subdev->name, V4L2_SUBDEV_NAME_SIZE, "OMAP3 ISP %s", name);
--	subdev->grp_id = 1 << 16;	/* group ID for isp subdevs */
--	subdev->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
--	v4l2_set_subdevdata(subdev, stat);
--
--	stat->pad.flags = MEDIA_PAD_FL_SINK;
--	me->ops = NULL;
--
--	return media_entity_init(me, 1, &stat->pad, 0);
--}
--
- int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
- 				  struct v4l2_fh *fh,
- 				  struct v4l2_event_subscription *sub)
-@@ -1070,6 +1052,24 @@ int omap3isp_stat_register_entities(struct ispstat *stat,
- 	return v4l2_device_register_subdev(vdev, &stat->subdev);
- }
- 
-+static int isp_stat_init_entities(struct ispstat *stat, const char *name,
-+				  const struct v4l2_subdev_ops *sd_ops)
-+{
-+	struct v4l2_subdev *subdev = &stat->subdev;
-+	struct media_entity *me = &subdev->entity;
-+
-+	v4l2_subdev_init(subdev, sd_ops);
-+	snprintf(subdev->name, V4L2_SUBDEV_NAME_SIZE, "OMAP3 ISP %s", name);
-+	subdev->grp_id = 1 << 16;	/* group ID for isp subdevs */
-+	subdev->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	v4l2_set_subdevdata(subdev, stat);
-+
-+	stat->pad.flags = MEDIA_PAD_FL_SINK;
-+	me->ops = NULL;
-+
-+	return media_entity_init(me, 1, &stat->pad, 0);
-+}
-+
- int omap3isp_stat_init(struct ispstat *stat, const char *name,
- 		       const struct v4l2_subdev_ops *sd_ops)
- {
+Thanks for the patch.
+
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+> ---
+>  drivers/media/video/omap3isp/ispccdc.c  |    1 +
+>  drivers/media/video/omap3isp/ispvideo.c |    3 +
+>  drivers/media/video/tvp514x.c           |  241 +++++++++++++++++++++++++---
+>  include/media/v4l2-subdev.h             |    7 +-
+
+This should be split in 3 patches.
+
+I've already posted patches to support UYVY8_2X8 in the OMAP3 ISP driver to 
+the linux-media mailing list. Can you reuse them ?
+
+>  4 files changed, 222 insertions(+), 30 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/ispccdc.c
+> b/drivers/media/video/omap3isp/ispccdc.c index 9d3459d..d58fe45 100644
+> --- a/drivers/media/video/omap3isp/ispccdc.c
+> +++ b/drivers/media/video/omap3isp/ispccdc.c
+> @@ -57,6 +57,7 @@ static const unsigned int ccdc_fmts[] = {
+>  	V4L2_MBUS_FMT_SRGGB12_1X12,
+>  	V4L2_MBUS_FMT_SBGGR12_1X12,
+>  	V4L2_MBUS_FMT_SGBRG12_1X12,
+> +	V4L2_MBUS_FMT_UYVY8_2X8,
+>  };
+> 
+>  /*
+> diff --git a/drivers/media/video/omap3isp/ispvideo.c
+> b/drivers/media/video/omap3isp/ispvideo.c index fd965ad..d5b8236 100644
+> --- a/drivers/media/video/omap3isp/ispvideo.c
+> +++ b/drivers/media/video/omap3isp/ispvideo.c
+> @@ -100,6 +100,9 @@ static struct isp_format_info formats[] = {
+>  	{ V4L2_MBUS_FMT_YUYV8_1X16, V4L2_MBUS_FMT_YUYV8_1X16,
+>  	  V4L2_MBUS_FMT_YUYV8_1X16, 0,
+>  	  V4L2_PIX_FMT_YUYV, 16, },
+> +	{ V4L2_MBUS_FMT_UYVY8_2X8, V4L2_MBUS_FMT_UYVY8_2X8,
+> +	  V4L2_MBUS_FMT_UYVY8_2X8, 0,
+> +	  V4L2_PIX_FMT_UYVY, 16, },
+>  };
+> 
+>  const struct isp_format_info *
+> diff --git a/drivers/media/video/tvp514x.c b/drivers/media/video/tvp514x.c
+> index 9b3e828..10f3e87 100644
+> --- a/drivers/media/video/tvp514x.c
+> +++ b/drivers/media/video/tvp514x.c
+> @@ -32,11 +32,14 @@
+>  #include <linux/slab.h>
+>  #include <linux/delay.h>
+>  #include <linux/videodev2.h>
+> +#include <linux/v4l2-mediabus.h>
+> 
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-common.h>
+> -#include <media/v4l2-mediabus.h>
+>  #include <media/v4l2-chip-ident.h>
+> +#include <media/v4l2-subdev.h>
+> +#include <media/v4l2-ctrls.h>
+> +
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/tvp514x.h>
+> 
+> @@ -78,6 +81,8 @@ struct tvp514x_std_info {
+>  	unsigned long height;
+>  	u8 video_std;
+>  	struct v4l2_standard standard;
+> +	unsigned int mbus_code;
+> +	struct v4l2_mbus_framefmt format;
+>  };
+> 
+>  static struct tvp514x_reg tvp514x_reg_list_default[0x40];
+> @@ -101,6 +106,7 @@ struct tvp514x_decoder {
+>  	struct v4l2_ctrl_handler hdl;
+>  	struct tvp514x_reg tvp514x_regs[ARRAY_SIZE(tvp514x_reg_list_default)];
+>  	const struct tvp514x_platform_data *pdata;
+> +	struct media_pad pad;
+> 
+>  	int ver;
+>  	int streaming;
+> @@ -207,29 +213,46 @@ static struct tvp514x_reg tvp514x_reg_list_default[]
+> = { static const struct tvp514x_std_info tvp514x_std_list[] = {
+>  	/* Standard: STD_NTSC_MJ */
+>  	[STD_NTSC_MJ] = {
+> -	 .width = NTSC_NUM_ACTIVE_PIXELS,
+> -	 .height = NTSC_NUM_ACTIVE_LINES,
+> -	 .video_std = VIDEO_STD_NTSC_MJ_BIT,
+> -	 .standard = {
+> -		      .index = 0,
+> -		      .id = V4L2_STD_NTSC,
+> -		      .name = "NTSC",
+> -		      .frameperiod = {1001, 30000},
+> -		      .framelines = 525
+> -		     },
+> -	/* Standard: STD_PAL_BDGHIN */
+> +		.width = NTSC_NUM_ACTIVE_PIXELS,
+> +		.height = NTSC_NUM_ACTIVE_LINES,
+> +		.video_std = VIDEO_STD_NTSC_MJ_BIT,
+> +		.mbus_code = V4L2_MBUS_FMT_UYVY8_2X8,
+> +		.standard = {
+> +			.index = 0,
+> +			.id = V4L2_STD_NTSC,
+> +			.name = "NTSC",
+> +			.frameperiod = {1001, 30000},
+> +			.framelines = 525
+> +		},
+> +		.format = {
+> +			.width = NTSC_NUM_ACTIVE_PIXELS,
+> +			.height = NTSC_NUM_ACTIVE_LINES,
+> +			.code = V4L2_MBUS_FMT_UYVY8_2X8,
+> +			.field = V4L2_FIELD_INTERLACED,
+> +			.colorspace = V4L2_COLORSPACE_SMPTE170M,
+> +		}
+> +
+>  	},
+> +	/* Standard: STD_PAL_BDGHIN */
+>  	[STD_PAL_BDGHIN] = {
+> -	 .width = PAL_NUM_ACTIVE_PIXELS,
+> -	 .height = PAL_NUM_ACTIVE_LINES,
+> -	 .video_std = VIDEO_STD_PAL_BDGHIN_BIT,
+> -	 .standard = {
+> -		      .index = 1,
+> -		      .id = V4L2_STD_PAL,
+> -		      .name = "PAL",
+> -		      .frameperiod = {1, 25},
+> -		      .framelines = 625
+> -		     },
+> +		.width = PAL_NUM_ACTIVE_PIXELS,
+> +		.height = PAL_NUM_ACTIVE_LINES,
+> +		.video_std = VIDEO_STD_PAL_BDGHIN_BIT,
+> +		.mbus_code = V4L2_MBUS_FMT_UYVY8_2X8,
+> +		.standard = {
+> +			.index = 1,
+> +			.id = V4L2_STD_PAL,
+> +			.name = "PAL",
+> +			.frameperiod = {1, 25},
+> +			.framelines = 625
+> +		},
+> +		.format = {
+> +			.width = PAL_NUM_ACTIVE_PIXELS,
+> +			.height = PAL_NUM_ACTIVE_LINES,
+> +			.code = V4L2_MBUS_FMT_UYVY8_2X8,
+> +			.field = V4L2_FIELD_INTERLACED,
+> +			.colorspace = V4L2_COLORSPACE_SMPTE170M,
+> +		},
+>  	},
+>  	/* Standard: need to add for additional standard */
+>  };
+> @@ -792,7 +815,7 @@ tvp514x_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned
+> index, if (index)
+>  		return -EINVAL;
+> 
+> -	*code = V4L2_MBUS_FMT_YUYV10_2X10;
+> +	*code = V4L2_MBUS_FMT_UYVY8_2X8;
+>  	return 0;
+>  }
+> 
+> @@ -815,7 +838,7 @@ tvp514x_mbus_fmt(struct v4l2_subdev *sd, struct
+> v4l2_mbus_framefmt *f) /* Calculate height and width based on current
+> standard */
+>  	current_std = decoder->current_std;
+> 
+> -	f->code = V4L2_MBUS_FMT_YUYV10_2X10;
+> +	f->code = V4L2_MBUS_FMT_UYVY8_2X8;
+>  	f->width = decoder->std_list[current_std].width;
+>  	f->height = decoder->std_list[current_std].height;
+>  	f->field = V4L2_FIELD_INTERLACED;
+> @@ -952,11 +975,154 @@ static int tvp514x_s_stream(struct v4l2_subdev *sd,
+> int enable) return err;
+>  }
+> 
+> +static int tvp514x_s_power(struct v4l2_subdev *sd, int on)
+> +{
+> +	struct tvp514x_decoder *decoder = to_decoder(sd);
+> +
+> +	if (decoder->pdata && decoder->pdata->s_power)
+
+The probe() method will fail if pdata is NULL, so you can check decoder-
+>pdata->s_power only.
+
+> +		return decoder->pdata->s_power(sd, on);
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> +* tvp514x_enum_mbus_code - V4L2 sensor interface handler for pad_ops
+> +* @subdev: pointer to standard V4L2 sub-device structure
+> +* @fh: pointer to standard V4L2 sub-device file handle
+> +* @code: pointer to v4l2_subdev_pad_mbus_code_enum structure
+> +*/
+> +static int tvp514x_enum_mbus_code(struct v4l2_subdev *subdev,
+> +		struct v4l2_subdev_fh *fh,
+> +		struct v4l2_subdev_mbus_code_enum *code)
+> +{
+> +	if (code->index >= ARRAY_SIZE(tvp514x_std_list))
+> +		return -EINVAL;
+> +	code->code = V4L2_MBUS_FMT_UYVY8_2X8;
+> +
+> +	return 0;
+> +}
+> +
+> +static int tvp514x_get_pad_format(struct v4l2_subdev *subdev,
+> +		struct v4l2_subdev_fh *fh,
+> +		struct v4l2_subdev_format *fmt)
+> +{
+> +	struct tvp514x_decoder *decoder = to_decoder(subdev);
+> +	enum tvp514x_std current_std;
+> +
+> +	/* query the current standard */
+> +	current_std = tvp514x_query_current_std(subdev);
+> +	if (current_std == STD_INVALID) {
+> +		v4l2_err(subdev, "Unable to query std\n");
+> +		return -EINVAL;
+> +	}
+
+Hmmmm... I'm not sure if I really like this. I have little experience with 
+analog video sources, so this code could be required, but having the format 
+changing dynamically out of the driver's control depending on the video source 
+looks to me like it will bring a whole new share of issues. I'd appreciate 
+comments and advises from developers used to the analog world on this.
+
+> +
+> +	fmt->format = decoder->std_list[current_std].format;
+> +
+> +	return 0;
+> +}
+> +
+> +static int tvp514x_set_pad_format(struct v4l2_subdev *subdev,
+> +		struct v4l2_subdev_fh *fh,
+> +		struct v4l2_subdev_format *fmt)
+> +{
+> +	struct tvp514x_decoder *decoder = to_decoder(subdev);
+> +	enum tvp514x_std current_std;
+> +
+> +	/* query the current standard */
+> +	current_std = tvp514x_query_current_std(subdev);
+> +	if (current_std == STD_INVALID) {
+> +		v4l2_err(subdev, "Unable to query std\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	fmt->format.width = decoder->std_list[current_std].width;
+> +	fmt->format.height = decoder->std_list[current_std].height;
+> +	fmt->format.code = V4L2_MBUS_FMT_UYVY8_2X8;
+> +	fmt->format.field = V4L2_FIELD_INTERLACED;
+> +	fmt->format.colorspace = V4L2_COLORSPACE_SMPTE170M;
+> +
+> +	return 0;
+> +}
+> +
+> +static int tvp514x_enum_frame_size(struct v4l2_subdev *subdev,
+> +		struct v4l2_subdev_fh *fh,
+> +		struct v4l2_subdev_frame_size_enum *fse)
+> +{
+> +	struct tvp514x_decoder *decoder = to_decoder(subdev);
+> +	enum tvp514x_std current_std;
+> +
+> +	if (fse->code != V4L2_MBUS_FMT_UYVY8_2X8)
+> +		return -EINVAL;
+> +
+> +	/* query the current standard */
+> +	current_std = tvp514x_query_current_std(subdev);
+> +	if (current_std == STD_INVALID) {
+> +		v4l2_err(subdev, "Unable to query std\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	fse->min_width = decoder->std_list[current_std].width;
+> +	fse->min_height = decoder->std_list[current_std].height;
+> +	fse->max_width = fse->min_width;
+> +	fse->max_height = fse->min_height;
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> +* V4L2 subdev internal operations
+> +*/
+> +static int tvp514x_registered(struct v4l2_subdev *subdev)
+> +{
+> +	enum tvp514x_std current_std;
+> +
+> +	tvp514x_s_stream(subdev, 1);
+> +	/* query the current standard */
+> +	current_std = tvp514x_query_current_std(subdev);
+> +	if (current_std == STD_INVALID) {
+> +		v4l2_err(subdev, "Unable to query std\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	tvp514x_s_stream(subdev, 0);
+> +
+> +	return 0;
+> +}
+> +
+> +static int tvp514x_open(struct v4l2_subdev *subdev, struct v4l2_subdev_fh
+> *fh) +{
+> +	enum tvp514x_std current_std;
+> +
+> +	tvp514x_s_stream(subdev, 1);
+> +	/* query the current standard */
+> +	current_std = tvp514x_query_current_std(subdev);
+> +	if (current_std == STD_INVALID) {
+> +		v4l2_err(subdev, "Unable to query std\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	tvp514x_s_stream(subdev, 0);
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> +* V4L2 subdev core operations
+> +*/
+> +static int tvp514x_g_chip_ident(struct v4l2_subdev *subdev,
+> +				struct v4l2_dbg_chip_ident *chip)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> +
+> +	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_TVP5146, 0);
+> +}
+> +
+
+g_chip_ident isn't mandatory for MC-enabled subdev drivers, I'm not sure if 
+you should add it.
+
+>  static const struct v4l2_ctrl_ops tvp514x_ctrl_ops = {
+>  	.s_ctrl = tvp514x_s_ctrl,
+>  };
+> 
+>  static const struct v4l2_subdev_core_ops tvp514x_core_ops = {
+> +	.g_chip_ident = tvp514x_g_chip_ident,
+>  	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
+>  	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+>  	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+> @@ -965,6 +1131,12 @@ static const struct v4l2_subdev_core_ops
+> tvp514x_core_ops = { .queryctrl = v4l2_subdev_queryctrl,
+>  	.querymenu = v4l2_subdev_querymenu,
+>  	.s_std = tvp514x_s_std,
+> +	.s_power = tvp514x_s_power,
+> +};
+> +
+> +static struct v4l2_subdev_internal_ops tvp514x_subdev_internal_ops = {
+> +	.registered	= tvp514x_registered,
+> +	.open		= tvp514x_open,
+>  };
+> 
+>  static const struct v4l2_subdev_video_ops tvp514x_video_ops = {
+> @@ -979,9 +1151,17 @@ static const struct v4l2_subdev_video_ops
+> tvp514x_video_ops = { .s_stream = tvp514x_s_stream,
+>  };
+> 
+> +static const struct v4l2_subdev_pad_ops tvp514x_pad_ops = {
+> +	.enum_mbus_code = tvp514x_enum_mbus_code,
+> +	.enum_frame_size = tvp514x_enum_frame_size,
+> +	.get_fmt = tvp514x_get_pad_format,
+> +	.set_fmt = tvp514x_set_pad_format,
+> +};
+> +
+>  static const struct v4l2_subdev_ops tvp514x_ops = {
+>  	.core = &tvp514x_core_ops,
+>  	.video = &tvp514x_video_ops,
+> +	.pad = &tvp514x_pad_ops,
+>  };
+> 
+>  static struct tvp514x_decoder tvp514x_dev = {
+> @@ -1005,6 +1185,7 @@ tvp514x_probe(struct i2c_client *client, const struct
+> i2c_device_id *id) {
+>  	struct tvp514x_decoder *decoder;
+>  	struct v4l2_subdev *sd;
+> +	int ret;
+> 
+>  	/* Check if the adapter supports the needed features */
+>  	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+> @@ -1046,6 +1227,17 @@ tvp514x_probe(struct i2c_client *client, const
+> struct i2c_device_id *id) sd = &decoder->sd;
+>  	v4l2_i2c_subdev_init(sd, client, &tvp514x_ops);
+> 
+> +	decoder->sd.internal_ops = &tvp514x_subdev_internal_ops;
+> +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+
+To be consistent you should probably use decoder->sd.flags here (or use sd-> 
+directly on the other lines).
+
+> +	decoder->pad.flags = MEDIA_PAD_FL_SOURCE;
+> +	decoder->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV;
+> +	ret = media_entity_init(&decoder->sd.entity, 1, &decoder->pad, 0);
+> +	if (ret < 0) {
+> +		v4l2_err(client, "failed to register as a media entity!!\n");
+> +		kfree(decoder);
+> +		return ret;
+> +	}
+> +
+>  	v4l2_ctrl_handler_init(&decoder->hdl, 5);
+>  	v4l2_ctrl_new_std(&decoder->hdl, &tvp514x_ctrl_ops,
+>  		V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
+> @@ -1087,6 +1279,7 @@ static int tvp514x_remove(struct i2c_client *client)
+> 
+>  	v4l2_device_unregister_subdev(sd);
+>  	v4l2_ctrl_handler_free(&decoder->hdl);
+> +	media_entity_cleanup(&decoder->sd.entity);
+>  	kfree(decoder);
+>  	return 0;
+>  }
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 257da1a..0e9aa30 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -514,9 +514,8 @@ struct v4l2_subdev_internal_ops {
+>     stand-alone or embedded in a larger struct.
+>   */
+>  struct v4l2_subdev {
+> -#if defined(CONFIG_MEDIA_CONTROLLER)
+>  	struct media_entity entity;
+> -#endif
+> +
+>  	struct list_head list;
+>  	struct module *owner;
+>  	u32 flags;
+> @@ -547,16 +546,13 @@ struct v4l2_subdev {
+>   */
+>  struct v4l2_subdev_fh {
+>  	struct v4l2_fh vfh;
+> -#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+>  	struct v4l2_mbus_framefmt *try_fmt;
+>  	struct v4l2_rect *try_crop;
+> -#endif
+>  };
+> 
+>  #define to_v4l2_subdev_fh(fh)	\
+>  	container_of(fh, struct v4l2_subdev_fh, vfh)
+> 
+> -#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+>  static inline struct v4l2_mbus_framefmt *
+>  v4l2_subdev_get_try_format(struct v4l2_subdev_fh *fh, unsigned int pad)
+>  {
+> @@ -568,7 +564,6 @@ v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh,
+> unsigned int pad) {
+>  	return &fh->try_crop[pad];
+>  }
+> -#endif
+> 
+>  extern const struct v4l2_file_operations v4l2_subdev_fops;
+
 -- 
-1.7.3.4
+Regards,
 
+Laurent Pinchart
