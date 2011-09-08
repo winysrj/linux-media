@@ -1,55 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45167 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752348Ab1IPJ7X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Sep 2011 05:59:23 -0400
-From: Archit Taneja <archit@ti.com>
-To: <hvaibhav@ti.com>
-CC: <tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>,
-	<sumit.semwal@ti.com>, <linux-media@vger.kernel.org>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH 5/5] [media]: OMAP_VOUT: Don't trigger updates in omap_vout_probe
-Date: Fri, 16 Sep 2011 15:30:33 +0530
-Message-ID: <1316167233-1437-6-git-send-email-archit@ti.com>
-In-Reply-To: <1316167233-1437-1-git-send-email-archit@ti.com>
-References: <1316167233-1437-1-git-send-email-archit@ti.com>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4639 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932218Ab1IHHtt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 03:49:49 -0400
+Date: Thu, 08 Sep 2011 09:49:14 +0200
+Subject: Re: Can you review or ack this patch?
+Message-ID: <mb4qm7m8fdvcxgd7l5278ckf.1315468154963@email.android.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: viro@zeniv.linux.org.uk,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-fsdevel@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the code in omap_vout_probe() which calls display->driver->update() for
-all the displays. This isn't correct because:
-
-- An update in probe doesn't make sense, because we don't have any valid content
-  to show at this time.
-- Calling update for a panel which isn't enabled is not supported by DSS2. This
-  leads to a crash at probe.
-
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/media/video/omap/omap_vout.c |    8 --------
- 1 files changed, 0 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index 51cf6c2..a9fcb1a 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -2220,14 +2220,6 @@ static int __init omap_vout_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto probe_err2;
- 
--	for (i = 0; i < vid_dev->num_displays; i++) {
--		struct omap_dss_device *display = vid_dev->displays[i];
--
--		if (display->driver->update)
--			display->driver->update(display, 0, 0,
--					display->panel.timings.x_res,
--					display->panel.timings.y_res);
--	}
- 	return 0;
- 
- probe_err2:
--- 
-1.7.1
+SGkgQW5kcmV3LAoKU29ycnkgZm9yIHRvcC1wb3N0aW5nLCBJIG9ubHkgaGF2ZSBhIGNyYXBweSBB
+bmRyb2lkIG1haWxlciBhdCB0aGUgbW9tZW50LgoKVGhhbmsgeW91IGZvciBsb29raW5nIGF0IHRo
+aXMuIFVuZm9ydHVuYXRlbHkgSSBhbSBkZWFsaW5nIHdpdGggYSBmYW1pbHkgZW1lcmdlbmN5IGF0
+IHRoZSBtb21lbnQgKGFuZCBmb3IgdGhlIG5leHQgMS0yIHdlZWtzKSwgc28gSSBkb24ndCBoYXZl
+IHRoZSB0aW1lIG9yIG1vdGl2YXRpb24gdG8gZm9sbG93IHVwIG9uIHRoaXMuIFNvIGlmIHlvdSBv
+ciBNYXVybyAob3Igc29tZW9uZSBlbHNlIGZvciB0aGF0IG1hdHRlcikgY2FuIGZpeCB0aGUgdHdv
+IGlzc3VlcyB5b3UgZm91bmQsIHRoZW4gdGhhdCB3b3VsZCBiZSBoZWxwZnVsLgoKQWx0ZXJuYXRp
+dmVseSwgSSBjYW4gYWxzbyBtYWtlIGEgZm9sbG93LW9uIHBhdGNoIGxhdGVyIG9uY2UgdGhpbmdz
+IGhhdmUgc2V0dGxlZCBkb3duIGZvciBtZS4KCkkgZ3Vlc3MgdGhhdCBtdWx0aXBsZS1hc3NpZ25t
+ZW50IHRoaW5nIGlzIHNvbWV0aGluZyB0aGF0IGFueW9uZSBjYW4gY29ycmVjdCBvZiBjb3Vyc2Uu
+CgpSZWdhcmRzLAoKICAgICBIYW5zCgpBbmRyZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRp
+b24ub3JnPiB3cm90ZToKCj5PbiBUdWUsIDIzIEF1ZyAyMDExIDA4OjMzOjI1ICswMjAwCj5IYW5z
+IFZlcmt1aWwgPGh2ZXJrdWlsQHhzNGFsbC5ubD4gd3JvdGU6Cj4KPj4gKGFuZCByZXNlbnQgYWdh
+aW4sIHRoaXMgdGltZSB3aXRoIHRoZSBjb3JyZWN0IGxpbnV4LWZzZGV2ZWwgbWFpbCBhZGRyZXNz
+KQo+PiAoUmVzZW50IGFzIHJlcXVlc3RlZCBieSBBbmRyZXcgTW9ydG9uIHNpbmNlIHRoaXMgaXMg
+c3RpbGwgc3R1Y2spCj4+IAo+PiBIaSBBbCwgQW5kcmV3LAo+PiAKPj4gQ2FuIHlvdSB0YWtlIGEg
+bG9vayBhdCB0aGlzIHBhdGNoIGFuZCBzZW5kIGFuIEFjayBvciByZXZpZXcgY29tbWVudHM/Cj4+
+IAo+PiBJdCdzIGFscmVhZHkgYmVlbiByZXZpZXdlZCBieSBKb24gQ29yYmV0IGFuZCB3ZSByZWFs
+bHkgbmVlZCB0aGlzIGZ1bmN0aW9uYWxpdHkKPj4gZm9yIHYzLjEuIFlvdSB3ZXJlIGluIHRoZSBD
+QyBsaXN0IGluIGVhcmxpZXIgcG9zdGluZ3M6Cj4+IAo+PiBIZXJlOiBodHRwOi8vd3d3LnNwaW5p
+Y3MubmV0L2xpc3RzL2xpbnV4LWZzZGV2ZWwvbXNnNDY3NTMuaHRtbAo+PiBhbmQgaGVyZTogaHR0
+cDovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZy9tc2cz
+NDU0Ni5odG1sCj4+IAo+PiBUaGUgcGF0Y2ggYWxzbyBmZWF0dXJlZCBvbiBMV046IGh0dHA6Ly9s
+d24ubmV0L0FydGljbGVzLzQ1MDY1OC8KPj4gCj4+IFdpdGhvdXQgeW91ciBhY2sgTWF1cm8gY2Fu
+J3QgdXBzdHJlYW0gdGhpcyBhbmQgd2UgaGF2ZSBhIG51bWJlciBvZiBvdGhlcgo+PiBwYXRjaGVz
+IHRoYXQgZGVwZW5kIG9uIHRoaXMgYW5kIGFyZSBjdXJyZW50bHkgYmxvY2tlZC4KPj4gCj4+IFdl
+IHdvdWxkIHByZWZlciB0byB1cHN0cmVhbSB0aGlzIHBhdGNoIHRocm91Z2ggdGhlIGxpbnV4LW1l
+ZGlhIGdpdCB0cmVlCj4+IGR1ZSB0byB0aGVzZSBkZXBlbmRlbmNpZXMuCj4+IAo+PiBNeSBnaXQg
+YnJhbmNoIGNvbnRhaW5pbmcgdGhpcyBhbmQgdGhlIGRlcGVuZGVudCBwYXRjaGVzIGlzIGhlcmU6
+Cj4+IAo+PiBodHRwOi8vZ2l0LmxpbnV4dHYub3JnL2h2ZXJrdWlsL21lZGlhX3RyZWUuZ2l0L3No
+b3J0bG9nL3JlZnMvaGVhZHMvcG9sbAo+PiAKPj4gWW91ciBoZWxwIHdvdWxkIGJlIGdyZWF0bHkg
+YXBwcmVjaWF0ZWQgKGFuZCB5b3VyIGFjayBldmVuIG1vcmUgOi0pICkhCj4KPkknbGwgZ3JhYiB0
+aGUgcGF0Y2ggdG8gZ2V0IGl0IGEgYml0IG9mIHRlc3Rpbmcgd2hpbGUgQWwgY29naXRhdGVzLgo+
+Cj4+IAo+PiAKPj4gW1BBVENIXSBwb2xsOiBhZGQgcG9sbF9yZXF1ZXN0ZWRfZXZlbnRzKCkgZnVu
+Y3Rpb24KPj4gCj4+IEluIHNvbWUgY2FzZXMgdGhlIHBvbGwoKSBpbXBsZW1lbnRhdGlvbiBpbiBh
+IGRyaXZlciBoYXMgdG8gZG8gZGlmZmVyZW50Cj4+IHRoaW5ncyBkZXBlbmRpbmcgb24gdGhlIGV2
+ZW50cyB0aGUgY2FsbGVyIHdhbnRzIHRvIHBvbGwgZm9yLiBBbiBleGFtcGxlIGlzCj4+IHdoZW4g
+YSBkcml2ZXIgbmVlZHMgdG8gc3RhcnQgYSBETUEgZW5naW5lIGlmIHRoZSBjYWxsZXIgcG9sbHMg
+Zm9yIFBPTExJTiwKPj4gYnV0IGRvZXNuJ3Qgd2FudCB0byBkbyB0aGF0IGlmIFBPTExJTiBpcyBu
+b3QgcmVxdWVzdGVkIGJ1dCBpbnN0ZWFkIG9ubHkKPj4gUE9MTE9VVCBvciBQT0xMUFJJIGlzIHJl
+cXVlc3RlZC4gVGhpcyBpcyBzb21ldGhpbmcgdGhhdCBjYW4gaGFwcGVuIGluIHRoZQo+PiB2aWRl
+bzRsaW51eCBzdWJzeXN0ZW0uCj4+IAo+PiBVbmZvcnR1bmF0ZWx5LCB0aGUgY3VycmVudCBlcG9s
+bC9wb2xsL3NlbGVjdCBpbXBsZW1lbnRhdGlvbiBkb2Vzbid0IHByb3ZpZGUKPj4gdGhhdCBpbmZv
+cm1hdGlvbiByZWxpYWJseS4gVGhlIHBvbGxfdGFibGVfc3RydWN0IGRvZXMgaGF2ZSBpdDogaXQg
+aGFzIGEga2V5Cj4+IGZpZWxkIHdpdGggdGhlIGV2ZW50IG1hc2suIEJ1dCBvbmNlIGEgcG9sbCgp
+IGNhbGwgbWF0Y2hlcyBvbmUgb3IgbW9yZSBiaXRzCj4+IG9mIHRoYXQgbWFzayBhbnkgZm9sbG93
+aW5nIHBvbGwoKSBjYWxscyBhcmUgcGFzc2VkIGEgTlVMTCBwb2xsX3RhYmxlX3N0cnVjdAo+PiBw
+b2ludGVyLgo+PiAKPj4gVGhlIHNvbHV0aW9uIGlzIHRvIHNldCB0aGUgcXByb2MgZmllbGQgdG8g
+TlVMTCBpbiBwb2xsX3RhYmxlX3N0cnVjdCBvbmNlCj4+IHBvbGwoKSBtYXRjaGVzIHRoZSBldmVu
+dHMsIG5vdCB0aGUgcG9sbF90YWJsZV9zdHJ1Y3QgcG9pbnRlciBpdHNlbGYuIFRoYXQKPj4gd2F5
+IGRyaXZlcnMgY2FuIG9idGFpbiB0aGUgbWFzayB0aHJvdWdoIGEgbmV3IHBvbGxfcmVxdWVzdGVk
+X2V2ZW50cyBpbmxpbmUuCj4+IAo+PiBUaGUgcG9sbF90YWJsZV9zdHJ1Y3QgY2FuIHN0aWxsIGJl
+IE5VTEwgc2luY2Ugc29tZSBrZXJuZWwgY29kZSBjYWxscyBpdAo+PiBpbnRlcm5hbGx5IChuZXRm
+c19zdGF0ZV9wb2xsKCkgaW4gLi9kcml2ZXJzL3N0YWdpbmcvcG9obWVsZnMvbmV0ZnMuaCkuIElu
+Cj4+IHRoYXQgY2FzZSBwb2xsX3JlcXVlc3RlZF9ldmVudHMoKSByZXR1cm5zIH4wIChpLmUuIGFs
+bCBldmVudHMpLgo+PiAKPj4gU2luY2UgZXZlbnRwb2xsIGFsd2F5cyBsZWF2ZXMgdGhlIGtleSBm
+aWVsZCBhdCB+MCBpbnN0ZWFkIG9mIHVzaW5nIHRoZQo+PiByZXF1ZXN0ZWQgZXZlbnRzIG1hc2ss
+IHRoYXQgc291cmNlIHdhcyBjaGFuZ2VkIGFzIHdlbGwgdG8gcHJvcGVybHkgZmlsbCBpbgo+PiB0
+aGUga2V5IGZpZWxkLgo+Cj5JdCB3b3VsZCBiZSBuaWNlIHRvIGZpbmQgc29tZSBzdWl0YWJsZSBw
+bGFjZSBpbiB0aGUgY29kZSB3aGVyZSB3ZSBjYW4KPmV4cGxhaW4gYWxsIHRoaXMgdG8gb3RoZXIg
+cG90ZW50aWFsIHVzZXJzIG9mIHRoZSBjYXBhYmlsaXR5LiAgUGVyaGFwcwo+dGhlIGltcGxlbWVu
+dGF0aW9uIHNpdGUgZm9yIHRoZSBjdXJyZW50bHkgdW5kb2N1bWVudGVkCj5wb2xsX3JlcXVlc3Rl
+ZF9ldmVudHMoKSB3b3VsZCBiZSBhIHN1aXRhYmxlIHBsYWNlLgo+Cj4+Cj4+IC4uLgo+Pgo+PiAt
+CWVwaS0+ZXZlbnQuZXZlbnRzID0gZXZlbnQtPmV2ZW50czsKPj4gKwllcGktPmV2ZW50LmV2ZW50
+cyA9IHB0LmtleSA9IGV2ZW50LT5ldmVudHM7Cj4KPmNvZGluZyBzdHlsZSBuaXQ6IHdlIGdlbmVy
+YWxseSB0cnkgdG8gYXZvaWQgbXVsdGlwbGUgYXNzaWduZW1udHMgbGlrZSB0aGlzLgo+Cj4+Cj4+
+IC4uLgo+Pgo=
 
