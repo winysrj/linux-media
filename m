@@ -1,43 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:40522 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753555Ab1I0Ln0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 07:43:26 -0400
-From: jonghun.han@samsung.com
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Jonghun Han <jonghun.han@samsung.com>
-Subject: [PATCH] media: DocBook: Fix trivial typo in Sub-device Interface
-Date: Mon, 26 Sep 2011 14:14:04 +0900
-Message-Id: <1317014044-17462-1-git-send-email-jonghun.han@samsung.com>
+Received: from mail-vw0-f43.google.com ([209.85.212.43]:54889 "EHLO
+	mail-vw0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751175Ab1IHE2b convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 00:28:31 -0400
+Received: by vws10 with SMTP id 10so593895vws.2
+        for <linux-media@vger.kernel.org>; Wed, 07 Sep 2011 21:28:30 -0700 (PDT)
+MIME-Version: 1.0
+Date: Thu, 8 Sep 2011 00:28:30 -0400
+Message-ID: <CAHAyoxyG9pS+3pOSQYepXsc+HDLGiW8EOud10JaXjas4Ku0fxw@mail.gmail.com>
+Subject: [PULL] git://git.linuxtv.org/mkrufky/mxl111sf.git mfe-fixes | WAS:
+ Re: [git:v4l-dvb/for_v3.2] [media] dvb-usb: refactor MFE code for individual
+ streaming config per frontend
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jonghun Han <jonghun.han@samsung.com>
+>>>>>> On 09/08/2011 12:18 AM, Antti Palosaari wrote:
+>>>>>>> This patch seems to break all DVB USB devices we have. Michael, could
+>>>>>>> you check and fix it asap.
+[snip]
+>>>>>>>> Subject: [media] dvb-usb: refactor MFE code for individual streaming
+>>>>>>>> config per frontend
+[snip]
+>>>>>> This error is shown by VLC when channel changed:
+>>>>>>
+>>>>>> [0x7f1bbc000cd0] dvb access error: DMXSetFilter: failed with -1 (Invalid
+>>>>>> argument)
+>>>>>> [0x7f1bbc000cd0] dvb access error: DMXSetFilter failed
+>>>>>> [0x7f1bbc32f910] main stream error: cannot pre fill buffer
+>>>>>>
+>>>>>> but it seems to be related dvb_usb_ctrl_feed() I pointed earlier mail.
+[snip]
+>>>
+>>> Commenting out that
+>>>>>>> if ((adap->feedcount == onoff)&&  (!onoff))
+>>>>>>> adap->active_fe = -1;
+>>>
+>>> resolves problem.
+>>
+>> OK...  I think it's safe to remove that code.  The only time that
+>> "adap->active_fe" should really be set to -1 is at startup, before
+>> *any* frontend is used.  Does removal of those two lines fix it for
+>> you completely?
+>
+> BTW, I understand the cause of this now -- this error case occurs when
+> the application stops streaming but leaves the frontend open.  (for
+> instance, to change the channel)  We only want to set (adap->active_fe
+> = -1) if ( ((adap->feedcount == onoff)&&  (!onoff)) AND ALSO only if
+> the file handle gets closed.
+>
+> It's safe to just disable those lines for now.
 
-When satisfied with the try results, applications can set the active formats
-by setting the which argument to V4L2_SUBDEV_FORMAT_ACTIVE
-not V4L2_SUBDEV_FORMAT_TRY.
+Mauro,
 
-Signed-off-by: Jonghun Han <jonghun.han@samsung.com>
----
- Documentation/DocBook/v4l/dev-subdev.xml |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Please pull from git://git.linuxtv.org/mkrufky/mxl111sf.git mfe-fixes
+branch, to fix the issue that Antti pointed out.
 
-diff --git a/Documentation/DocBook/v4l/dev-subdev.xml b/Documentation/DocBook/v4l/dev-subdev.xml
-index 05c8fef..0916a73 100644
---- a/Documentation/DocBook/v4l/dev-subdev.xml
-+++ b/Documentation/DocBook/v4l/dev-subdev.xml
-@@ -266,7 +266,7 @@
- 
-       <para>When satisfied with the try results, applications can set the active
-       formats by setting the <structfield>which</structfield> argument to
--      <constant>V4L2_SUBDEV_FORMAT_TRY</constant>. Active formats are changed
-+      <constant>V4L2_SUBDEV_FORMAT_ACTIVE</constant>. Active formats are changed
-       exactly as try formats by drivers. To avoid modifying the hardware state
-       during format negotiation, applications should negotiate try formats first
-       and then modify the active settings using the try formats returned during
--- 
-1.7.1
 
+The following changes since commit d4d4e3c97211f20d4fde5d82878561adaa42b578:
+  Sylwester Nawrocki (1):
+        [media] s5p-csis: Rework the system suspend/resume helpers
+
+are available in the git repository at:
+
+  git://git.linuxtv.org/mkrufky/mxl111sf.git mfe-fixes
+
+Michael Krufky (2):
+      dvb-usb: fix streaming failure on channel change
+      dvb-usb: improve sanity check of adap->active_fe in dvb_usb_ctrl_feed
+
+ drivers/media/dvb/dvb-usb/dvb-usb-dvb.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
+
+Cheers,
+
+Michael Krufky
