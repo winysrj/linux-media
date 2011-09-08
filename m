@@ -1,471 +1,373 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:40673 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751189Ab1IUO0I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 10:26:08 -0400
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LRV0024HMRIAW@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 Sep 2011 15:26:06 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRV00K9VMRH0C@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 Sep 2011 15:26:06 +0100 (BST)
-Date: Wed, 21 Sep 2011 16:26:00 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v4] noon010pc30: Conversion to the media controller API
-In-reply-to: <201109210018.14185.laurent.pinchart@ideasonboard.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:62214 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932426Ab1IHIoS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 04:44:18 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <1316615160-15580-1-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <201109210018.14185.laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 11/13 v3] mt9m111: convert to the control framework.
+Date: Thu,  8 Sep 2011 10:44:04 +0200
+Message-Id: <1315471446-17890-12-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1315471446-17890-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1315471446-17890-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace g/s_mbus_fmt ops with the pad level get/set_fmt operations.
-Add media entity initialization and set subdev flags so the host driver
-creates a subdev device node for the driver.
-A mutex was added for serializing the subdev operations. When setting
-format is attempted during streaming an (EBUSY) error will be returned.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-After the device is powered up it will now remain in "power sleep"
-mode until s_stream(1) is called. The "power sleep" mode is used
-to suspend/resume frame generation at the sensor's output through
-s_stream op.
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+[g.liakhovetski@gmx.de: simplified pointer arithmetic]
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
-Addresing Laurent's comments, changes since v3:
- - set constant default TRY format in subdev open() internal op
-   rather than the currently set format
----
- drivers/media/video/Kconfig       |    2 +-
- drivers/media/video/noon010pc30.c |  221 +++++++++++++++++++++++++-----------
- 2 files changed, 154 insertions(+), 69 deletions(-)
+ drivers/media/video/mt9m111.c |  203 ++++++++++-------------------------------
+ 1 files changed, 48 insertions(+), 155 deletions(-)
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 6279663..75bb46f 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -755,7 +755,7 @@ config VIDEO_VIA_CAMERA
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index d7a0773..41df6c3 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -17,6 +17,7 @@
+ #include <media/soc_camera.h>
+ #include <media/soc_mediabus.h>
+ #include <media/v4l2-common.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-chip-ident.h>
  
- config VIDEO_NOON010PC30
- 	tristate "NOON010PC30 CIF camera sensor support"
--	depends on I2C && VIDEO_V4L2
-+	depends on I2C && VIDEO_V4L2 && EXPERIMENTAL && VIDEO_V4L2_SUBDEV_API
- 	---help---
- 	  This driver supports NOON010PC30 CIF camera from Siliconfile
- 
-diff --git a/drivers/media/video/noon010pc30.c b/drivers/media/video/noon010pc30.c
-index 35f722a..1a874ec 100644
---- a/drivers/media/video/noon010pc30.c
-+++ b/drivers/media/video/noon010pc30.c
-@@ -1,7 +1,7 @@
  /*
-  * Driver for SiliconFile NOON010PC30 CIF (1/11") Image Sensor with ISP
-  *
-- * Copyright (C) 2010 Samsung Electronics
-+ * Copyright (C) 2010 - 2011 Samsung Electronics Co., Ltd.
-  * Contact: Sylwester Nawrocki, <s.nawrocki@samsung.com>
-  *
-  * Initial register configuration based on a driver authored by
-@@ -10,7 +10,7 @@
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later vergsion.
-+ * (at your option) any later version.
-  */
+@@ -178,6 +179,8 @@ enum mt9m111_context {
  
- #include <linux/delay.h>
-@@ -131,17 +131,24 @@ static const char * const noon010_supply_name[] = {
- 
- struct noon010_info {
- 	struct v4l2_subdev sd;
-+	struct media_pad pad;
- 	struct v4l2_ctrl_handler hdl;
- 	const struct noon010pc30_platform_data *pdata;
-+	struct regulator_bulk_data supply[NOON010_NUM_SUPPLIES];
-+	u32 gpio_nreset;
-+	u32 gpio_nstby;
-+
-+	/* Protects the struct members below */
-+	struct mutex lock;
-+
- 	const struct noon010_format *curr_fmt;
- 	const struct noon010_frmsize *curr_win;
-+	unsigned int apply_new_cfg:1;
-+	unsigned int streaming:1;
- 	unsigned int hflip:1;
- 	unsigned int vflip:1;
- 	unsigned int power:1;
- 	u8 i2c_reg_page;
--	struct regulator_bulk_data supply[NOON010_NUM_SUPPLIES];
--	u32 gpio_nreset;
--	u32 gpio_nstby;
+ struct mt9m111 {
+ 	struct v4l2_subdev subdev;
++	struct v4l2_ctrl_handler hdl;
++	struct v4l2_ctrl *gain;
+ 	int model;	/* V4L2_IDENT_MT9M111 or V4L2_IDENT_MT9M112 code
+ 			 * from v4l2-chip-ident.h */
+ 	enum mt9m111_context context;
+@@ -185,13 +188,8 @@ struct mt9m111 {
+ 	struct mutex power_lock; /* lock to protect power_count */
+ 	int power_count;
+ 	const struct mt9m111_datafmt *fmt;
+-	unsigned int gain;
+-	unsigned char autoexposure;
+ 	unsigned char datawidth;
+ 	unsigned int powered:1;
+-	unsigned int hflip:1;
+-	unsigned int vflip:1;
+-	unsigned int autowhitebalance:1;
  };
  
- struct i2c_regval {
-@@ -313,6 +320,7 @@ static int noon010_enable_autowhitebalance(struct v4l2_subdev *sd, int on)
- 	return ret;
+ static struct mt9m111 *to_mt9m111(const struct i2c_client *client)
+@@ -645,48 +643,6 @@ static int mt9m111_s_register(struct v4l2_subdev *sd,
  }
+ #endif
  
-+/* Called with struct noon010_info.lock mutex held */
- static int noon010_set_flip(struct v4l2_subdev *sd, int hflip, int vflip)
- {
- 	struct noon010_info *info = to_noon010(sd);
-@@ -340,21 +348,18 @@ static int noon010_set_flip(struct v4l2_subdev *sd, int hflip, int vflip)
- static int noon010_set_params(struct v4l2_subdev *sd)
- {
- 	struct noon010_info *info = to_noon010(sd);
--	int ret;
- 
--	if (!info->curr_win)
--		return -EINVAL;
+-static const struct v4l2_queryctrl mt9m111_controls[] = {
+-	{
+-		.id		= V4L2_CID_VFLIP,
+-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+-		.name		= "Flip Verticaly",
+-		.minimum	= 0,
+-		.maximum	= 1,
+-		.step		= 1,
+-		.default_value	= 0,
+-	}, {
+-		.id		= V4L2_CID_HFLIP,
+-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+-		.name		= "Flip Horizontaly",
+-		.minimum	= 0,
+-		.maximum	= 1,
+-		.step		= 1,
+-		.default_value	= 0,
+-	}, {	/* gain = 1/32*val (=>gain=1 if val==32) */
+-		.id		= V4L2_CID_GAIN,
+-		.type		= V4L2_CTRL_TYPE_INTEGER,
+-		.name		= "Gain",
+-		.minimum	= 0,
+-		.maximum	= 63 * 2 * 2,
+-		.step		= 1,
+-		.default_value	= 32,
+-		.flags		= V4L2_CTRL_FLAG_SLIDER,
+-	}, {
+-		.id		= V4L2_CID_EXPOSURE_AUTO,
+-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+-		.name		= "Auto Exposure",
+-		.minimum	= 0,
+-		.maximum	= 1,
+-		.step		= 1,
+-		.default_value	= 1,
+-	}
+-};
 -
--	ret = cam_i2c_write(sd, VDO_CTL_REG(0), info->curr_win->vid_ctl1);
+-static struct soc_camera_ops mt9m111_ops = {
+-	.controls		= mt9m111_controls,
+-	.num_controls		= ARRAY_SIZE(mt9m111_controls),
+-};
 -
--	if (!ret && info->curr_fmt)
--		ret = cam_i2c_write(sd, ISP_CTL_REG(0),
--				info->curr_fmt->ispctl1_reg);
--	return ret;
-+	int ret = cam_i2c_write(sd, VDO_CTL_REG(0),
-+				info->curr_win->vid_ctl1);
-+	if (ret)
-+		return ret;
-+	return cam_i2c_write(sd, ISP_CTL_REG(0),
-+			     info->curr_fmt->ispctl1_reg);
- }
- 
- /* Find nearest matching image pixel size. */
--static int noon010_try_frame_size(struct v4l2_mbus_framefmt *mf)
-+static int noon010_try_frame_size(struct v4l2_mbus_framefmt *mf,
-+				  const struct noon010_frmsize **size)
+ static int mt9m111_set_flip(struct mt9m111 *mt9m111, int flip, int mask)
  {
- 	unsigned int min_err = ~0;
- 	int i = ARRAY_SIZE(noon010_sizes);
-@@ -374,11 +379,14 @@ static int noon010_try_frame_size(struct v4l2_mbus_framefmt *mf)
- 	if (match) {
- 		mf->width  = match->width;
- 		mf->height = match->height;
-+		if (size)
-+			*size = match;
- 		return 0;
- 	}
- 	return -EINVAL;
- }
- 
-+/* Called with info.lock mutex held */
- static int power_enable(struct noon010_info *info)
- {
- 	int ret;
-@@ -419,6 +427,7 @@ static int power_enable(struct noon010_info *info)
- 	return 0;
- }
- 
-+/* Called with info.lock mutex held */
- static int power_disable(struct noon010_info *info)
- {
- 	int ret;
-@@ -448,93 +457,120 @@ static int power_disable(struct noon010_info *info)
- static int noon010_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct v4l2_subdev *sd = to_sd(ctrl);
-+	struct noon010_info *info = to_noon010(sd);
-+	int ret = 0;
- 
- 	v4l2_dbg(1, debug, sd, "%s: ctrl_id: %d, value: %d\n",
- 		 __func__, ctrl->id, ctrl->val);
- 
-+	mutex_lock(&info->lock);
-+	/*
-+	 * If the device is not powered up by the host driver do
-+	 * not apply any controls to H/W at this time. Instead
-+	 * the controls will be restored right after power-up.
-+	 */
-+	if (!info->power)
-+		goto unlock;
-+
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUTO_WHITE_BALANCE:
--		return noon010_enable_autowhitebalance(sd, ctrl->val);
-+		ret = noon010_enable_autowhitebalance(sd, ctrl->val);
-+		break;
- 	case V4L2_CID_BLUE_BALANCE:
--		return cam_i2c_write(sd, MWB_BGAIN_REG, ctrl->val);
-+		ret = cam_i2c_write(sd, MWB_BGAIN_REG, ctrl->val);
-+		break;
- 	case V4L2_CID_RED_BALANCE:
--		return cam_i2c_write(sd, MWB_RGAIN_REG, ctrl->val);
-+		ret =  cam_i2c_write(sd, MWB_RGAIN_REG, ctrl->val);
-+		break;
- 	default:
--		return -EINVAL;
-+		ret = -EINVAL;
- 	}
-+unlock:
-+	mutex_unlock(&info->lock);
-+	return ret;
- }
- 
--static int noon010_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
--			    enum v4l2_mbus_pixelcode *code)
-+static int noon010_enum_mbus_code(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_fh *fh,
-+				  struct v4l2_subdev_mbus_code_enum *code)
- {
--	if (!code || index >= ARRAY_SIZE(noon010_formats))
-+	if (code->index >= ARRAY_SIZE(noon010_formats))
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
+@@ -727,7 +683,6 @@ static int mt9m111_set_global_gain(struct mt9m111 *mt9m111, int gain)
+ 	if (gain > 63 * 2 * 2)
  		return -EINVAL;
  
--	*code = noon010_formats[index].code;
-+	code->code = noon010_formats[code->index].code;
- 	return 0;
- }
- 
--static int noon010_g_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
-+static int noon010_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+			   struct v4l2_subdev_format *fmt)
+-	mt9m111->gain = gain;
+ 	if ((gain >= 64 * 2) && (gain < 63 * 2 * 2))
+ 		val = (1 << 10) | (1 << 9) | (gain / 4);
+ 	else if ((gain >= 64) && (gain < 64 * 2))
+@@ -741,118 +696,47 @@ static int mt9m111_set_global_gain(struct mt9m111 *mt9m111, int gain)
+ static int mt9m111_set_autoexposure(struct mt9m111 *mt9m111, int on)
  {
- 	struct noon010_info *info = to_noon010(sd);
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
 -	int ret;
+ 
+ 	if (on)
+-		ret = reg_set(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOEXPO_EN);
+-	else
+-		ret = reg_clear(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOEXPO_EN);
 -
--	if (!mf)
--		return -EINVAL;
-+	struct v4l2_mbus_framefmt *mf;
- 
--	if (!info->curr_win || !info->curr_fmt) {
--		ret = noon010_set_params(sd);
--		if (ret)
--			return ret;
-+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		if (fh) {
-+			mf = v4l2_subdev_get_try_format(fh, 0);
-+			fmt->format = *mf;
-+		}
-+		return 0;
- 	}
-+	mf = &fmt->format;
- 
--	mf->width	= info->curr_win->width;
--	mf->height	= info->curr_win->height;
--	mf->code	= info->curr_fmt->code;
--	mf->colorspace	= info->curr_fmt->colorspace;
--	mf->field	= V4L2_FIELD_NONE;
-+	mutex_lock(&info->lock);
-+	mf->width = info->curr_win->width;
-+	mf->height = info->curr_win->height;
-+	mf->code = info->curr_fmt->code;
-+	mf->colorspace = info->curr_fmt->colorspace;
-+	mf->field = V4L2_FIELD_NONE;
- 
-+	mutex_unlock(&info->lock);
- 	return 0;
+-	if (!ret)
+-		mt9m111->autoexposure = on;
+-
+-	return ret;
++		return reg_set(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOEXPO_EN);
++	return reg_clear(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOEXPO_EN);
  }
  
- /* Return nearest media bus frame format. */
--static const struct noon010_format *try_fmt(struct v4l2_subdev *sd,
-+static const struct noon010_format *noon010_try_fmt(struct v4l2_subdev *sd,
- 					    struct v4l2_mbus_framefmt *mf)
+ static int mt9m111_set_autowhitebalance(struct mt9m111 *mt9m111, int on)
  {
- 	int i = ARRAY_SIZE(noon010_formats);
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
+-	int ret;
  
--	noon010_try_frame_size(mf);
+ 	if (on)
+-		ret = reg_set(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOWHITEBAL_EN);
+-	else
+-		ret = reg_clear(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOWHITEBAL_EN);
 -
--	while (i--)
-+	while (--i)
- 		if (mf->code == noon010_formats[i].code)
- 			break;
+-	if (!ret)
+-		mt9m111->autowhitebalance = on;
 -
- 	mf->code = noon010_formats[i].code;
- 
- 	return &noon010_formats[i];
+-	return ret;
++		return reg_set(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOWHITEBAL_EN);
++	return reg_clear(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOWHITEBAL_EN);
  }
  
--static int noon010_try_fmt(struct v4l2_subdev *sd,
--			   struct v4l2_mbus_framefmt *mf)
--{
--	if (!sd || !mf)
--		return -EINVAL;
+-static int mt9m111_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
++static int mt9m111_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
+-	int data;
++	struct mt9m111 *mt9m111 = container_of(ctrl->handler,
++					       struct mt9m111, hdl);
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_VFLIP:
+-		if (mt9m111->context == HIGHPOWER)
+-			data = reg_read(READ_MODE_B);
+-		else
+-			data = reg_read(READ_MODE_A);
 -
--	try_fmt(sd, mf);
+-		if (data < 0)
+-			return -EIO;
+-		ctrl->value = !!(data & MT9M111_RMB_MIRROR_ROWS);
+-		break;
+-	case V4L2_CID_HFLIP:
+-		if (mt9m111->context == HIGHPOWER)
+-			data = reg_read(READ_MODE_B);
+-		else
+-			data = reg_read(READ_MODE_A);
+-
+-		if (data < 0)
+-			return -EIO;
+-		ctrl->value = !!(data & MT9M111_RMB_MIRROR_COLS);
+-		break;
+-	case V4L2_CID_GAIN:
+-		data = mt9m111_get_global_gain(mt9m111);
+-		if (data < 0)
+-			return data;
+-		ctrl->value = data;
+-		break;
+-	case V4L2_CID_EXPOSURE_AUTO:
+-		ctrl->value = mt9m111->autoexposure;
+-		break;
+-	case V4L2_CID_AUTO_WHITE_BALANCE:
+-		ctrl->value = mt9m111->autowhitebalance;
+-		break;
+-	}
 -	return 0;
 -}
 -
--static int noon010_s_fmt(struct v4l2_subdev *sd,
--			 struct v4l2_mbus_framefmt *mf)
-+static int noon010_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+			   struct v4l2_subdev_format *fmt)
- {
- 	struct noon010_info *info = to_noon010(sd);
-+	const struct noon010_frmsize *size = NULL;
-+	const struct noon010_format *nf;
-+	struct v4l2_mbus_framefmt *mf;
-+	int ret = 0;
- 
--	if (!sd || !mf)
+-static int mt9m111_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+-{
+-	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
+-	const struct v4l2_queryctrl *qctrl;
+-	int ret;
+-
+-	qctrl = soc_camera_find_qctrl(&mt9m111_ops, ctrl->id);
+-	if (!qctrl)
 -		return -EINVAL;
 -
--	info->curr_fmt = try_fmt(sd, mf);
-+	nf = noon010_try_fmt(sd, &fmt->format);
-+	noon010_try_frame_size(&fmt->format, &size);
-+	fmt->format.colorspace = V4L2_COLORSPACE_JPEG;
+-	switch (ctrl->id) {
+-	case V4L2_CID_VFLIP:
+-		mt9m111->vflip = ctrl->value;
+-		ret = mt9m111_set_flip(mt9m111, ctrl->value,
++		return mt9m111_set_flip(mt9m111, ctrl->val,
+ 					MT9M111_RMB_MIRROR_ROWS);
+-		break;
+ 	case V4L2_CID_HFLIP:
+-		mt9m111->hflip = ctrl->value;
+-		ret = mt9m111_set_flip(mt9m111, ctrl->value,
++		return mt9m111_set_flip(mt9m111, ctrl->val,
+ 					MT9M111_RMB_MIRROR_COLS);
+-		break;
+ 	case V4L2_CID_GAIN:
+-		ret = mt9m111_set_global_gain(mt9m111, ctrl->value);
+-		break;
++		return mt9m111_set_global_gain(mt9m111, ctrl->val);
+ 	case V4L2_CID_EXPOSURE_AUTO:
+-		ret =  mt9m111_set_autoexposure(mt9m111, ctrl->value);
+-		break;
++		return mt9m111_set_autoexposure(mt9m111, ctrl->val);
+ 	case V4L2_CID_AUTO_WHITE_BALANCE:
+-		ret =  mt9m111_set_autowhitebalance(mt9m111, ctrl->value);
+-		break;
+-	default:
+-		ret = -EINVAL;
++		return mt9m111_set_autowhitebalance(mt9m111, ctrl->val);
+ 	}
  
--	return noon010_set_params(sd);
-+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		if (fh) {
-+			mf = v4l2_subdev_get_try_format(fh, 0);
-+			*mf = fmt->format;
-+		}
-+		return 0;
-+	}
-+	mutex_lock(&info->lock);
-+	if (!info->streaming) {
-+		info->apply_new_cfg = 1;
-+		info->curr_fmt = nf;
-+		info->curr_win = size;
-+	} else {
-+		ret = -EBUSY;
-+	}
-+	mutex_unlock(&info->lock);
-+	return ret;
+-	return ret;
++	return -EINVAL;
  }
  
- static int noon010_base_config(struct v4l2_subdev *sd)
-@@ -550,8 +586,6 @@ static int noon010_base_config(struct v4l2_subdev *sd)
- 	}
- 	if (!ret)
- 		ret = noon010_set_flip(sd, 1, 0);
--	if (!ret)
--		ret = noon010_power_ctrl(sd, false, false);
+ static int mt9m111_suspend(struct mt9m111 *mt9m111)
+ {
+-	mt9m111->gain = mt9m111_get_global_gain(mt9m111);
++	v4l2_ctrl_s_ctrl(mt9m111->gain, mt9m111_get_global_gain(mt9m111));
  
- 	/* sync the handler and the registers state */
- 	v4l2_ctrl_handler_setup(&to_noon010(sd)->hdl);
-@@ -582,6 +616,26 @@ static int noon010_s_power(struct v4l2_subdev *sd, int on)
+ 	return 0;
+ }
+@@ -862,11 +746,7 @@ static void mt9m111_restore_state(struct mt9m111 *mt9m111)
+ 	mt9m111_set_context(mt9m111, mt9m111->context);
+ 	mt9m111_set_pixfmt(mt9m111, mt9m111->fmt->code);
+ 	mt9m111_setup_rect(mt9m111, &mt9m111->rect);
+-	mt9m111_set_flip(mt9m111, mt9m111->hflip, MT9M111_RMB_MIRROR_COLS);
+-	mt9m111_set_flip(mt9m111, mt9m111->vflip, MT9M111_RMB_MIRROR_ROWS);
+-	mt9m111_set_global_gain(mt9m111, mt9m111->gain);
+-	mt9m111_set_autoexposure(mt9m111, mt9m111->autoexposure);
+-	mt9m111_set_autowhitebalance(mt9m111, mt9m111->autowhitebalance);
++	v4l2_ctrl_handler_setup(&mt9m111->hdl);
+ }
+ 
+ static int mt9m111_resume(struct mt9m111 *mt9m111)
+@@ -894,8 +774,6 @@ static int mt9m111_init(struct mt9m111 *mt9m111)
+ 		ret = mt9m111_reset(mt9m111);
+ 	if (!ret)
+ 		ret = mt9m111_set_context(mt9m111, mt9m111->context);
+-	if (!ret)
+-		ret = mt9m111_set_autoexposure(mt9m111, mt9m111->autoexposure);
+ 	if (ret)
+ 		dev_err(&client->dev, "mt9m111 init failed: %d\n", ret);
+ 	return ret;
+@@ -916,9 +794,6 @@ static int mt9m111_video_probe(struct soc_camera_device *icd,
+ 	BUG_ON(!icd->parent ||
+ 	       to_soc_camera_host(icd->parent)->nr != icd->iface);
+ 
+-	mt9m111->autoexposure = 1;
+-	mt9m111->autowhitebalance = 1;
+-
+ 	data = reg_read(CHIP_VERSION);
+ 
+ 	switch (data) {
+@@ -932,17 +807,16 @@ static int mt9m111_video_probe(struct soc_camera_device *icd,
+ 		dev_info(&client->dev, "Detected a MT9M112 chip ID %x\n", data);
+ 		break;
+ 	default:
+-		ret = -ENODEV;
+ 		dev_err(&client->dev,
+ 			"No MT9M111/MT9M112/MT9M131 chip detected register read %x\n",
+ 			data);
+-		goto ei2c;
++		return -ENODEV;
+ 	}
+ 
+ 	ret = mt9m111_init(mt9m111);
+-
+-ei2c:
+-	return ret;
++	if (ret)
++		return ret;
++	return v4l2_ctrl_handler_setup(&mt9m111->hdl);
+ }
+ 
+ static int mt9m111_s_power(struct v4l2_subdev *sd, int on)
+@@ -979,9 +853,11 @@ out:
  	return ret;
  }
  
-+static int noon010_s_stream(struct v4l2_subdev *sd, int on)
-+{
-+	struct noon010_info *info = to_noon010(sd);
-+	int ret = 0;
-+
-+	mutex_lock(&info->lock);
-+	if (!info->streaming != !on) {
-+		ret = noon010_power_ctrl(sd, false, !on);
-+		if (!ret)
-+			info->streaming = on;
-+	}
-+	if (!ret && on && info->apply_new_cfg) {
-+		ret = noon010_set_params(sd);
-+		if (!ret)
-+			info->apply_new_cfg = 0;
-+	}
-+	mutex_unlock(&info->lock);
-+	return ret;
-+}
-+
- static int noon010_g_chip_ident(struct v4l2_subdev *sd,
- 				struct v4l2_dbg_chip_ident *chip)
- {
-@@ -599,6 +653,22 @@ static int noon010_log_status(struct v4l2_subdev *sd)
- 	return 0;
- }
- 
-+static int noon010_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	struct v4l2_mbus_framefmt *mf = v4l2_subdev_get_try_format(fh, 0);
-+
-+	mf->width = noon010_sizes[0].width;
-+	mf->height = noon010_sizes[0].height;
-+	mf->code = noon010_formats[0].code;
-+	mf->colorspace = V4L2_COLORSPACE_JPEG;
-+	mf->field = V4L2_FIELD_NONE;
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_internal_ops noon010_subdev_internal_ops = {
-+	.open = noon010_open,
++static const struct v4l2_ctrl_ops mt9m111_ctrl_ops = {
++	.s_ctrl = mt9m111_s_ctrl,
 +};
 +
- static const struct v4l2_ctrl_ops noon010_ctrl_ops = {
- 	.s_ctrl = noon010_s_ctrl,
- };
-@@ -616,15 +686,19 @@ static const struct v4l2_subdev_core_ops noon010_core_ops = {
- 	.log_status	= noon010_log_status,
- };
- 
--static const struct v4l2_subdev_video_ops noon010_video_ops = {
--	.g_mbus_fmt	= noon010_g_fmt,
--	.s_mbus_fmt	= noon010_s_fmt,
--	.try_mbus_fmt	= noon010_try_fmt,
--	.enum_mbus_fmt	= noon010_enum_fmt,
-+static struct v4l2_subdev_pad_ops noon010_pad_ops = {
-+	.enum_mbus_code	= noon010_enum_mbus_code,
-+	.get_fmt	= noon010_get_fmt,
-+	.set_fmt	= noon010_set_fmt,
-+};
-+
-+static struct v4l2_subdev_video_ops noon010_video_ops = {
-+	.s_stream	= noon010_s_stream,
- };
- 
- static const struct v4l2_subdev_ops noon010_ops = {
- 	.core	= &noon010_core_ops,
-+	.pad	= &noon010_pad_ops,
- 	.video	= &noon010_video_ops,
- };
- 
-@@ -665,10 +739,14 @@ static int noon010_probe(struct i2c_client *client,
- 	if (!info)
+ static struct v4l2_subdev_core_ops mt9m111_subdev_core_ops = {
+-	.g_ctrl		= mt9m111_g_ctrl,
+-	.s_ctrl		= mt9m111_s_ctrl,
+ 	.g_chip_ident	= mt9m111_g_chip_ident,
+ 	.s_power	= mt9m111_s_power,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+@@ -1063,10 +939,27 @@ static int mt9m111_probe(struct i2c_client *client,
  		return -ENOMEM;
  
-+	mutex_init(&info->lock);
- 	sd = &info->sd;
- 	strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
- 	v4l2_i2c_subdev_init(sd, client, &noon010_ops);
+ 	v4l2_i2c_subdev_init(&mt9m111->subdev, client, &mt9m111_subdev_ops);
++	v4l2_ctrl_handler_init(&mt9m111->hdl, 5);
++	v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
++			V4L2_CID_VFLIP, 0, 1, 1, 0);
++	v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
++			V4L2_CID_HFLIP, 0, 1, 1, 0);
++	v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
++			V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
++	mt9m111->gain = v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
++			V4L2_CID_GAIN, 0, 63 * 2 * 2, 1, 32);
++	v4l2_ctrl_new_std_menu(&mt9m111->hdl,
++			&mt9m111_ctrl_ops, V4L2_CID_EXPOSURE_AUTO, 1, 0,
++			V4L2_EXPOSURE_AUTO);
++	mt9m111->subdev.ctrl_handler = &mt9m111->hdl;
++	if (mt9m111->hdl.error) {
++		int err = mt9m111->hdl.error;
  
-+	sd->internal_ops = &noon010_subdev_internal_ops;
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+
- 	v4l2_ctrl_handler_init(&info->hdl, 3);
+-	/* Second stage probe - when a capture adapter is there */
+-	icd->ops		= &mt9m111_ops;
++		kfree(mt9m111);
++		return err;
++	}
  
- 	v4l2_ctrl_new_std(&info->hdl, &noon010_ctrl_ops,
-@@ -719,11 +797,17 @@ static int noon010_probe(struct i2c_client *client,
- 	if (ret)
- 		goto np_reg_err;
++	/* Second stage probe - when a capture adapter is there */
+ 	mt9m111->rect.left	= MT9M111_MIN_DARK_COLS;
+ 	mt9m111->rect.top	= MT9M111_MIN_DARK_ROWS;
+ 	mt9m111->rect.width	= MT9M111_MAX_WIDTH;
+@@ -1075,7 +968,7 @@ static int mt9m111_probe(struct i2c_client *client,
  
-+	info->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-+	ret = media_entity_init(&sd->entity, 1, &info->pad, 0);
-+	if (ret < 0)
-+		goto np_me_err;
-+
- 	ret = noon010_detect(client, info);
- 	if (!ret)
- 		return 0;
+ 	ret = mt9m111_video_probe(icd, client);
+ 	if (ret) {
+-		icd->ops = NULL;
++		v4l2_ctrl_handler_free(&mt9m111->hdl);
+ 		kfree(mt9m111);
+ 	}
  
--	/* the sensor detection failed */
-+np_me_err:
- 	regulator_bulk_free(NOON010_NUM_SUPPLIES, info->supply);
- np_reg_err:
- 	if (gpio_is_valid(info->gpio_nstby))
-@@ -754,6 +838,7 @@ static int noon010_remove(struct i2c_client *client)
- 	if (gpio_is_valid(info->gpio_nstby))
- 		gpio_free(info->gpio_nstby);
+@@ -1085,9 +978,9 @@ static int mt9m111_probe(struct i2c_client *client,
+ static int mt9m111_remove(struct i2c_client *client)
+ {
+ 	struct mt9m111 *mt9m111 = to_mt9m111(client);
+-	struct soc_camera_device *icd = client->dev.platform_data;
  
-+	media_entity_cleanup(&sd->entity);
- 	kfree(info);
+-	icd->ops = NULL;
++	v4l2_device_unregister_subdev(&mt9m111->subdev);
++	v4l2_ctrl_handler_free(&mt9m111->hdl);
+ 	kfree(mt9m111);
+ 
  	return 0;
- }
 -- 
-1.7.6.3
+1.7.2.5
 
