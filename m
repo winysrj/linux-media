@@ -1,82 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:64189 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752473Ab1I3U6M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 16:58:12 -0400
-Received: by fxe4 with SMTP id 4so3354208fxe.19
-        for <linux-media@vger.kernel.org>; Fri, 30 Sep 2011 13:58:10 -0700 (PDT)
-Subject: [PATCH] pctv452e: hm.. tidy bogus code up
-To: Mauro Chehab <mchehab@infradead.org>
-From: "Igor M. Liplianin" <liplianin@me.by>
-Cc: linux-media@vger.kernel.org, Michael Schimek <mschimek@gmx.at>,
-	Hans Petter Selasky <hselasky@c2i.net>,
-	Doychin Dokov <root@net1.cc>,
-	Steffen Barszus <steffenbpunkt@googlemail.com>,
-	Dominik Kuhlen <dkuhlen@gmx.net>
-Date: Fri, 30 Sep 2011 23:58:11 +0300
+Received: from smtp-68.nebula.fi ([83.145.220.68]:39356 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758153Ab1IHKkX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 06:40:23 -0400
+Date: Thu, 8 Sep 2011 13:40:07 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	hechtb@googlemail.com, g.liakhovetski@gmx.de
+Subject: Re: [RFC] New class for low level sensors controls?
+Message-ID: <20110908104007.GB1724@valkosipuli.localdomain>
+References: <20110906113653.GF1393@valkosipuli.localdomain>
+ <201109061341.11991.laurent.pinchart@ideasonboard.com>
+ <20110906122226.GH1393@valkosipuli.localdomain>
+ <201109081151.06667.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109302358.11233.liplianin@me.by>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201109081151.06667.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, usb_register calls two times with cloned structures, but for 
-different driver names. Let's remove it.
+On Thu, Sep 08, 2011 at 11:51:06AM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
 
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
----
- drivers/media/dvb/dvb-usb/pctv452e.c |   16 +---------------
- 1 files changed, 1 insertions(+), 15 deletions(-)
+Hi Laurent,
 
-diff --git a/drivers/media/dvb/dvb-usb/pctv452e.c b/drivers/media/dvb/dvb-
-usb/pctv452e.c
-index 9a5c811..f9aec5c 100644
---- a/drivers/media/dvb/dvb-usb/pctv452e.c
-+++ b/drivers/media/dvb/dvb-usb/pctv452e.c
-@@ -1012,7 +1012,7 @@ static struct dvb_usb_device_properties 
-tt_connect_s2_3600_properties = {
- 
- 	.i2c_algo = &pctv452e_i2c_algo,
- 
--	.generic_bulk_ctrl_endpoint = 1, /* allow generice rw function*/
-+	.generic_bulk_ctrl_endpoint = 1, /* allow generic rw function*/
- 
- 	.num_device_descs = 2,
- 	.devices = {
-@@ -1055,22 +1055,9 @@ static struct usb_driver pctv452e_usb_driver = {
- 	.id_table   = pctv452e_usb_table,
- };
- 
--static struct usb_driver tt_connects2_3600_usb_driver = {
--	.name       = "dvb-usb-tt-connect-s2-3600-01.fw",
--	.probe      = pctv452e_usb_probe,
--	.disconnect = pctv452e_usb_disconnect,
--	.id_table   = pctv452e_usb_table,
--};
--
- static int __init pctv452e_usb_init(void)
- {
- 	int ret = usb_register(&pctv452e_usb_driver);
--
--	if (ret) {
--		err("%s: usb_register failed! Error %d", __FILE__, ret);
--		return ret;
--	}
--	ret = usb_register(&tt_connects2_3600_usb_driver);
- 	if (ret)
- 		err("%s: usb_register failed! Error %d", __FILE__, ret);
- 
-@@ -1080,7 +1067,6 @@ static int __init pctv452e_usb_init(void)
- static void __exit pctv452e_usb_exit(void)
- {
- 	usb_deregister(&pctv452e_usb_driver);
--	usb_deregister(&tt_connects2_3600_usb_driver);
- }
- 
- module_init(pctv452e_usb_init);
+> On Tuesday 06 September 2011 14:22:27 Sakari Ailus wrote:
+> > On Tue, Sep 06, 2011 at 01:41:11PM +0200, Laurent Pinchart wrote:
+> > > On Tuesday 06 September 2011 13:36:53 Sakari Ailus wrote:
+> > > > Hi all,
+> > > > 
+> > > > We are beginning to have raw bayer image sensor drivers in the
+> > > > mainline. Typically such sensors are not controlled by general purpose
+> > > > applications but e.g. require a camera control algorithm framework in
+> > > > user space. This needs to be implemented in libv4l for general purpose
+> > > > applications to work properly on this kind of hardware.
+> > > > 
+> > > > These sensors expose controls such as
+> > > > 
+> > > > - Per-component gain controls. Red, blue, green (blue) and green (red)
+> > > > 
+> > > >   gains.
+> > > > 
+> > > > - Link frequency. The frequency of the data link from the sensor to the
+> > > > 
+> > > >   bridge.
+> > > > 
+> > > > - Horizontal and vertical blanking.
+> > > 
+> > > Other controls often found in bayer sensors are black level compensation
+> > > and test pattern.
+> > > 
+> > > > None of these controls are suitable for use of general purpose
+> > > > applications (let alone the end user!) but for the camera control
+> > > > algorithms.
+> > > > 
+> > > > We have a control class called V4L2_CTRL_CLASS_CAMERA for camera
+> > > > controls. However, the controls in this class are relatively high
+> > > > level controls which are suitable for end user. The algorithms in the
+> > > > libv4l or a webcam could implement many of these controls whereas I
+> > > > see that only V4L2_CID_EXPOSURE_ABSOLUTE might be implemented by raw
+> > > > bayer sensors.
+> > > > 
+> > > > My question is: would it make sense to create a new class of controls
+> > > > for the low level sensor controls in a similar fashion we have a
+> > > > control class for the flash controls?
+> > > 
+> > > I think it would, but I'm not sure how we should name that class.
+> > > V4L2_CTRL_CLASS_SENSOR is tempting, but many of the controls that will be
+> > > found there (digital gains, black leverl compensation, test pattern, ...)
+> > > can also be found in ISPs or other hardware blocks.
+> > 
+> > I don't think ISPs typically implement test patterns. Do you know of any?
+> 
+> Not from the top of my head, but I don't think it would be too uncommon.
+> 
+> > Should we separate controls which clearly apply to sensors only from the
+> > rest?
+> > 
+> > For sensors only:
+> > 
+> > - Analog gain(s)
+> > - Horizontal and vertical blanking
+> > - Link frequency
+> > - Test pattern
+> > 
+> > The following can be implemented also on ISPs:
+> > 
+> > - Per-component gains
+> > - Black level compensation
+> > 
+> > Do we have more to add to the list?
+> 
+> Not right now.
+> 
+> > If we keep the two the same class, I could propose the following names:
+> > 
+> > V4L2_CTRL_CLASS_LL_CAMERA (for low level camera)
+> > V4L2_CTRL_CLASS_SOURCE
+> > V4L2_CTRL_CLASS_IMAGE_SOURCE
+> > 
+> > The last one would be a good name for the sensor control class, as far as I
+> > understand some are using tuners with the OMAP 3 ISP these days. For the
+> > another one, I propose V4L2_CTRL_CLASS_ISP.
+> 
+> The issue with ISP is that pretty much any digital-based control can fall into 
+> that class.
+> 
+> Maybe we should group controls by what they do, instead of the kind of 
+> component that implements them ?
+
+Sounds like a good idea. The two could fit into these classes:
+
+- image capture control and
+- digital image processing.
+
+What do you think?
+
 -- 
-1.7.5.1
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
