@@ -1,63 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46434 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755983Ab1IAIfT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 04:35:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 2/9 v6] V4L: add two new ioctl()s for multi-size videobuffer management
-Date: Thu, 1 Sep 2011 10:35:48 +0200
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de> <20110831210615.GQ12368@valkosipuli.localdomain> <Pine.LNX.4.64.1109010850560.21309@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1109010850560.21309@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109011035.48845.laurent.pinchart@ideasonboard.com>
+Received: from smtp.nokia.com ([147.243.1.48]:20645 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932306Ab1IHIKT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 Sep 2011 04:10:19 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, pawel@osciak.com,
+	mchehab@infradead.org, m.szyprowski@samsung.com
+Subject: [PATCH 1/1] v4l: Mark VIDIOC_PREPARE_BUFS and VIDIOC_CREATE_BUFS experimental.
+Date: Thu,  8 Sep 2011 11:10:02 +0300
+Message-Id: <1315469402-7145-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <Pine.LNX.4.64.1109080942172.31156@axis700.grange>
+References: <Pine.LNX.4.64.1109080942172.31156@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Add a note to documentation of both VIDIOC_PREPARE_BUFS and
+VIDIOC_CREATE_BUFS that these ioctls are experimental.
 
-On Thursday 01 September 2011 09:03:52 Guennadi Liakhovetski wrote:
-> On Thu, 1 Sep 2011, Sakari Ailus wrote:
-> > On Wed, Aug 31, 2011 at 08:02:41PM +0200, Guennadi Liakhovetski wrote:
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
 
-[snip]
+I think it would be even better to add the note to the ioctls themselves.
+The users are not going to be looking at the list of experimental features
+when then want to implement something.
 
-> > > +
-> > > 
-> > >  /*
-> > >  
-> > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-> > >   *
-> > > 
-> > > @@ -2182,6 +2194,9 @@ struct v4l2_dbg_chip_ident {
-> > > 
-> > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct
-> > >  v4l2_event_subscription) #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V',
-> > >  91, struct v4l2_event_subscription)
-> > > 
-> > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
-> > > +#define VIDIOC_PREPARE_BUF	 _IOW('V', 93, struct v4l2_buffer)
-> > 
-> > Does prepare_buf ever do anything that would need to return anything to
-> > the user? I guess the answer is "no"?
-> 
-> Exactly, that's why it's an "_IOW" ioctl(), not an "_IOWR", or have I
-> misunderstood you?
+ .../DocBook/media/v4l/vidioc-create-bufs.xml       |    9 +++++++++
+ .../DocBook/media/v4l/vidioc-prepare-buf.xml       |    9 +++++++++
+ 2 files changed, 18 insertions(+), 0 deletions(-)
 
-This caught my eyes as well. Do you think VIDIOC_PREPARE_BUF could need to 
-return information to userspace in the future ?
-
+diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+index eb99604..d43e24a 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+@@ -48,6 +48,15 @@
+   <refsect1>
+     <title>Description</title>
+ 
++    <note>
++      <title>Experimental</title>
++
++      <para>
++	This is an <link linkend="experimental">experimental</link>
++	interface and may change in the future.
++      </para>
++    </note>
++
+     <para>This ioctl is used to create buffers for <link linkend="mmap">memory
+ mapped</link> or <link linkend="userp">user pointer</link>
+ I/O. It can be used as an alternative or in addition to the
+diff --git a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+index 509e752..8889c6d 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+@@ -48,6 +48,15 @@
+   <refsect1>
+     <title>Description</title>
+ 
++    <note>
++      <title>Experimental</title>
++
++      <para>
++	This is an <link linkend="experimental">experimental</link>
++	interface and may change in the future.
++      </para>
++    </note>
++
+     <para>Applications can optionally call the
+ <constant>VIDIOC_PREPARE_BUF</constant> ioctl to pass ownership of the buffer
+ to the driver before actually enqueuing it, using the
 -- 
-Regards,
+1.7.2.5
 
-Laurent Pinchart
