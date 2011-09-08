@@ -1,105 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2268 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753459Ab1I0L1w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 07:27:52 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 2/4] v4l: add documentation for selection API
-Date: Tue, 27 Sep 2011 13:27:06 +0200
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sakari.ailus@iki.fi
-References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com> <201109271120.29606.hverkuil@xs4all.nl> <201109271311.36174.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201109271311.36174.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109271327.07095.hverkuil@xs4all.nl>
+Received: from moutng.kundenserver.de ([212.227.126.186]:56689 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932379Ab1IHIoR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 04:44:17 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 03/13 v3] ov9640: convert to the control framework.
+Date: Thu,  8 Sep 2011 10:43:56 +0200
+Message-Id: <1315471446-17890-4-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1315471446-17890-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1315471446-17890-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday, September 27, 2011 13:11:35 Laurent Pinchart wrote:
-> On Tuesday 27 September 2011 11:20:29 Hans Verkuil wrote:
-> > On Wednesday, August 31, 2011 14:28:21 Tomasz Stanislawski wrote:
-> > > This patch adds a documentation for VIDIOC_{G/S}_SELECTION ioctl.
-> > > Moreover, the patch adds the description of modeling of composing,
-> > > cropping and scaling features in V4L2. Finally, some examples are
-> > > presented.
-> > > 
-> > > Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> > > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> 
-> [snip]
-> 
-> > >    <section id="crop">
-> > > 
-> > > -    <title>Image Cropping, Insertion and Scaling</title>
-> > > +    <title>Deprecated API for image cropping, insertion and
-> > > scaling</title>
-> > 
-> > I wouldn't call this deprecated. It's part of the API and we will just keep
-> > on supporting this.
-> 
-> I think we should still encourage driver and application developers to 
-> implement the selection API and use it when available instead of the crop API.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-New drivers should use the selection API and old drivers are encouraged
-to convert to the selection API. But the existing crop API can't go away.
-And applications can't use it any time soon (it takes years before all customers
-are on kernels that have the selection API).
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/ov9640.c |  119 +++++++++++++-----------------------------
+ drivers/media/video/ov9640.h |    4 +-
+ 2 files changed, 38 insertions(+), 85 deletions(-)
 
-And anyway, an ioctl like G/S_CROP can't be deprecated. It's been part of V4L2
-for ages and it just works fine for those use-cases.
+diff --git a/drivers/media/video/ov9640.c b/drivers/media/video/ov9640.c
+index 352a8fb..12d33a9 100644
+--- a/drivers/media/video/ov9640.c
++++ b/drivers/media/video/ov9640.c
+@@ -30,6 +30,7 @@
+ #include <media/soc_mediabus.h>
+ #include <media/v4l2-chip-ident.h>
+ #include <media/v4l2-common.h>
++#include <media/v4l2-ctrls.h>
+ 
+ #include "ov9640.h"
+ 
+@@ -164,27 +165,6 @@ static enum v4l2_mbus_pixelcode ov9640_codes[] = {
+ 	V4L2_MBUS_FMT_RGB565_2X8_LE,
+ };
+ 
+-static const struct v4l2_queryctrl ov9640_controls[] = {
+-	{
+-		.id		= V4L2_CID_VFLIP,
+-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+-		.name		= "Flip Vertically",
+-		.minimum	= 0,
+-		.maximum	= 1,
+-		.step		= 1,
+-		.default_value	= 0,
+-	},
+-	{
+-		.id		= V4L2_CID_HFLIP,
+-		.type		= V4L2_CTRL_TYPE_BOOLEAN,
+-		.name		= "Flip Horizontally",
+-		.minimum	= 0,
+-		.maximum	= 1,
+-		.step		= 1,
+-		.default_value	= 0,
+-	},
+-};
+-
+ /* read a register */
+ static int ov9640_reg_read(struct i2c_client *client, u8 reg, u8 *val)
+ {
+@@ -286,52 +266,25 @@ static int ov9640_s_stream(struct v4l2_subdev *sd, int enable)
+ 	return 0;
+ }
+ 
+-/* Get status of additional camera capabilities */
+-static int ov9640_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+-{
+-	struct ov9640_priv *priv = to_ov9640_sensor(sd);
+-
+-	switch (ctrl->id) {
+-	case V4L2_CID_VFLIP:
+-		ctrl->value = priv->flag_vflip;
+-		break;
+-	case V4L2_CID_HFLIP:
+-		ctrl->value = priv->flag_hflip;
+-		break;
+-	}
+-	return 0;
+-}
+-
+ /* Set status of additional camera capabilities */
+-static int ov9640_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
++static int ov9640_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct ov9640_priv *priv = to_ov9640_sensor(sd);
+-
+-	int ret = 0;
++	struct ov9640_priv *priv = container_of(ctrl->handler, struct ov9640_priv, hdl);
++	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_VFLIP:
+-		priv->flag_vflip = ctrl->value;
+-		if (ctrl->value)
+-			ret = ov9640_reg_rmw(client, OV9640_MVFP,
++		if (ctrl->val)
++			return ov9640_reg_rmw(client, OV9640_MVFP,
+ 							OV9640_MVFP_V, 0);
+-		else
+-			ret = ov9640_reg_rmw(client, OV9640_MVFP,
+-							0, OV9640_MVFP_V);
+-		break;
++		return ov9640_reg_rmw(client, OV9640_MVFP, 0, OV9640_MVFP_V);
+ 	case V4L2_CID_HFLIP:
+-		priv->flag_hflip = ctrl->value;
+-		if (ctrl->value)
+-			ret = ov9640_reg_rmw(client, OV9640_MVFP,
++		if (ctrl->val)
++			return ov9640_reg_rmw(client, OV9640_MVFP,
+ 							OV9640_MVFP_H, 0);
+-		else
+-			ret = ov9640_reg_rmw(client, OV9640_MVFP,
+-							0, OV9640_MVFP_H);
+-		break;
++		return ov9640_reg_rmw(client, OV9640_MVFP, 0, OV9640_MVFP_H);
+ 	}
+-
+-	return ret;
++	return -EINVAL;
+ }
+ 
+ /* Get chip identification */
+@@ -643,20 +596,14 @@ static int ov9640_video_probe(struct soc_camera_device *icd,
+ 	 */
+ 
+ 	ret = ov9640_reg_read(client, OV9640_PID, &pid);
++	if (!ret)
++		ret = ov9640_reg_read(client, OV9640_VER, &ver);
++	if (!ret)
++		ret = ov9640_reg_read(client, OV9640_MIDH, &midh);
++	if (!ret)
++		ret = ov9640_reg_read(client, OV9640_MIDL, &midl);
+ 	if (ret)
+-		goto err;
+-
+-	ret = ov9640_reg_read(client, OV9640_VER, &ver);
+-	if (ret)
+-		goto err;
+-
+-	ret = ov9640_reg_read(client, OV9640_MIDH, &midh);
+-	if (ret)
+-		goto err;
+-
+-	ret = ov9640_reg_read(client, OV9640_MIDL, &midl);
+-	if (ret)
+-		goto err;
++		return ret;
+ 
+ 	switch (VERSION(pid, ver)) {
+ 	case OV9640_V2:
+@@ -670,25 +617,20 @@ static int ov9640_video_probe(struct soc_camera_device *icd,
+ 		break;
+ 	default:
+ 		dev_err(&client->dev, "Product ID error %x:%x\n", pid, ver);
+-		ret = -ENODEV;
+-		goto err;
++		return -ENODEV;
+ 	}
+ 
+ 	dev_info(&client->dev, "%s Product ID %0x:%0x Manufacturer ID %x:%x\n",
+ 		 devname, pid, ver, midh, midl);
+ 
+-err:
+-	return ret;
++	return v4l2_ctrl_handler_setup(&priv->hdl);
+ }
+ 
+-static struct soc_camera_ops ov9640_ops = {
+-	.controls		= ov9640_controls,
+-	.num_controls		= ARRAY_SIZE(ov9640_controls),
++static const struct v4l2_ctrl_ops ov9640_ctrl_ops = {
++	.s_ctrl = ov9640_s_ctrl,
+ };
+ 
+ static struct v4l2_subdev_core_ops ov9640_core_ops = {
+-	.g_ctrl			= ov9640_g_ctrl,
+-	.s_ctrl			= ov9640_s_ctrl,
+ 	.g_chip_ident		= ov9640_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.g_register		= ov9640_get_register,
+@@ -760,12 +702,23 @@ static int ov9640_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov9640_subdev_ops);
+ 
+-	icd->ops	= &ov9640_ops;
++	v4l2_ctrl_handler_init(&priv->hdl, 2);
++	v4l2_ctrl_new_std(&priv->hdl, &ov9640_ctrl_ops,
++			V4L2_CID_VFLIP, 0, 1, 1, 0);
++	v4l2_ctrl_new_std(&priv->hdl, &ov9640_ctrl_ops,
++			V4L2_CID_HFLIP, 0, 1, 1, 0);
++	priv->subdev.ctrl_handler = &priv->hdl;
++	if (priv->hdl.error) {
++		int err = priv->hdl.error;
++
++		kfree(priv);
++		return err;
++	}
+ 
+ 	ret = ov9640_video_probe(icd, client);
+ 
+ 	if (ret) {
+-		icd->ops = NULL;
++		v4l2_ctrl_handler_free(&priv->hdl);
+ 		kfree(priv);
+ 	}
+ 
+@@ -777,6 +730,8 @@ static int ov9640_remove(struct i2c_client *client)
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+ 	struct ov9640_priv *priv = to_ov9640_sensor(sd);
+ 
++	v4l2_device_unregister_subdev(&priv->subdev);
++	v4l2_ctrl_handler_free(&priv->hdl);
+ 	kfree(priv);
+ 	return 0;
+ }
+diff --git a/drivers/media/video/ov9640.h b/drivers/media/video/ov9640.h
+index f8a51b7..6b33a97 100644
+--- a/drivers/media/video/ov9640.h
++++ b/drivers/media/video/ov9640.h
+@@ -198,12 +198,10 @@ struct ov9640_reg {
+ 
+ struct ov9640_priv {
+ 	struct v4l2_subdev		subdev;
++	struct v4l2_ctrl_handler	hdl;
+ 
+ 	int				model;
+ 	int				revision;
+-
+-	bool				flag_vflip;
+-	bool				flag_hflip;
+ };
+ 
+ #endif	/* __DRIVERS_MEDIA_VIDEO_OV9640_H__ */
+-- 
+1.7.2.5
 
-For driver development it is a different story, but that's outside the scope
-of the V4L2 spec.
-
-> > I would instead refer to the new section on the selection API.
-> 
-> [snip]
-> 
-> > > +<para>The range of coordinates of the top left corner, width and height
-> > > of a +area which can be sampled is given by the <constant>
-> > > V4L2_SEL_CROP_BOUNDS +</constant> target. To support a wide range of
-> > > hardware this specification does +not define an origin or units.</para>
-> > 
-> > I know this phrase is present in the crop API, but I've never liked it. It
-> > makes life very hard for applications if the units aren't in pixels. The
-> > main reason the crop API was written in that way was for analog video
-> > receivers: while analog TV has discrete lines, in the horizontal direction
-> > there really isn't a clear 'pixel' concept. However, I've always thought
-> > that was a bogus argument since after sampling you end up with pixels
-> > anyway.
-> > 
-> > In my opinion the selection API should deal with pixels only.
-> 
-> What about hardware that supports sub-pixel cropping and/or composing ?
-
-That should be an addition to the API: sub-pixel targets etc. We would need
-to discuss that in more detail (how is it done? how are the sub-pixels defined?
-how would you represent it?). We may even only support such things on the
-subdev API. I just can't see any 'normal' application wanting to use sub-pixel
-cropping/composing.
-
-> > The main driver where this might cause problems is bttv. I'm not sure how
-> > the selection vs crop API translation would work there. It might be best to
-> > just keep the current crop implementation in bttv and make a separate
-> > selection implementation. I'm pretty sure the bttv driver actually
-> > does/can do sub-pixel cropping.
-> > 
-> > With respect to the origin: I think I would put the top-left corner of the
-> > default crop rectangle at (0, 0). Strictly speaking it shouldn't matter
-> > where the origin is, but it seems to me that that's a logical choice.
-> 
-> For sensor drivers I found it easier to have the pixel array origin at (0, 0). 
-> It might just be me though.
-
-This was just a suggestion from me. We may also leave it to the driver.
-I don't have a very strong opinion on this.
-
-Regards,
-
-	Hans
