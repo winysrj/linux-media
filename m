@@ -1,84 +1,263 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:32827 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751921Ab1IZL1a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 07:27:30 -0400
-Received: by iaqq3 with SMTP id q3so4439097iaq.19
-        for <linux-media@vger.kernel.org>; Mon, 26 Sep 2011 04:27:29 -0700 (PDT)
-Message-ID: <4E80619D.2080803@gmail.com>
-Date: Mon, 26 Sep 2011 06:27:25 -0500
-From: Patrick Dickey <pdickeybeta@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44153 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751766Ab1IHXXl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 19:23:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Deepthy Ravi <deepthy.ravi@ti.com>
+Subject: Re: [PATCH 5/8] ispccdc: Configure CCDC registers
+Date: Thu, 8 Sep 2011 19:23:54 +0200
+Cc: linux-media@vger.kernel.org, tony@atomide.com,
+	linux@arm.linux.org.uk, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	mchehab@infradead.org, g.liakhovetski@gmx.de,
+	"Vaibhav Hiremath" <hvaibhav@ti.com>
+References: <1315488944-16190-1-git-send-email-deepthy.ravi@ti.com>
+In-Reply-To: <1315488944-16190-1-git-send-email-deepthy.ravi@ti.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <maurochehab@gmail.com>
-CC: Johannes Stezenbach <js@linuxtv.org>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: Problems cloning the git repostories
-References: <4E7F1FB5.5030803@gmail.com> <20110925180340.GB23820@linuxtv.org> <4E7FE9E8.3010404@gmail.com>
-In-Reply-To: <4E7FE9E8.3010404@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201109081923.55365.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi,
 
-I ran into that issue yesterday, but figured that I'd caused enough of a
-headache asking about the problems already--so I decided to wait and see
-if it was fixed this morning.
+Thanks for the patch.
 
-Thank you (even though I didn't report the issue), and have a great day:)
-Patrick.
-
-On 09/25/2011 09:56 PM, Mauro Carvalho Chehab wrote:
-> Em 25-09-2011 15:03, Johannes Stezenbach escreveu:
->> On Sun, Sep 25, 2011 at 07:33:57AM -0500, Patrick Dickey wrote:
->>>
->>> I tried to follow the steps for cloning both the "media_tree.git" and
->>> "media_build.git" repositories, and received errors for both.  The
->>> media_tree repository failed on the first line
->>>
->>>> git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git v4l-dvb 
->>>
->>> which I'm assuming is because kernel.org is down.
->>>
->>> The media_build.git repository fails on the first line also
->>>
->>>> git clone git://linuxtv.org/media_build.git 
->>>
->>> with a fatal: read error: Connection reset by peer.
->>
->> The git error should be fixed now.
->>
->> But please don't clone from linuxtv.org, intead use
->> git clone git://github.com/torvalds/linux.git
->> and then add linuxtv to your repo like described on
->> http://git.linuxtv.org/media_tree.git
+On Thursday 08 September 2011 15:35:44 Deepthy Ravi wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
 > 
-> I've updated the instructions together with the git tree to point to the
-> github tree.
-> 
-> Btw, the media_build had an issue due to the move of tm6000 and altera-stapl
-> out of staging. I've fixed it. At least here with 3.0 kernel, everything
-> is compiling fine.
-> 
-> Cheers,
-> Mauro
->>
->>
->> Johannes
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> Configure the CCDC registers for YUV and non YUV
+> data. Also some code clean-up for making it compact.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+I've already posted patches to the linux-media mailing list for this. Can you 
+rebase this patch on top of them ?
 
-iEYEARECAAYFAk6AYZ0ACgkQMp6rvjb3CAQj1QCffarBsYJw3Dx8sowrXF0i0gnF
-tugAoKBFVFcRcX8jHyQM1vMKpX3qz6Ks
-=GGGa
------END PGP SIGNATURE-----
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+> ---
+>  drivers/media/video/omap3isp/ispccdc.c  |   65
+> +++++++++++++++++++++---------- drivers/media/video/omap3isp/ispreg.h   | 
+>   1 +
+>  drivers/media/video/omap3isp/ispvideo.c |    3 +
+>  3 files changed, 48 insertions(+), 21 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/ispccdc.c
+> b/drivers/media/video/omap3isp/ispccdc.c index d58fe45..c583384 100644
+> --- a/drivers/media/video/omap3isp/ispccdc.c
+> +++ b/drivers/media/video/omap3isp/ispccdc.c
+> @@ -58,6 +58,7 @@ static const unsigned int ccdc_fmts[] = {
+>  	V4L2_MBUS_FMT_SBGGR12_1X12,
+>  	V4L2_MBUS_FMT_SGBRG12_1X12,
+>  	V4L2_MBUS_FMT_UYVY8_2X8,
+> +	V4L2_MBUS_FMT_YUYV8_2X8,
+>  };
+> 
+>  /*
+> @@ -788,11 +789,16 @@ static void ccdc_apply_controls(struct
+> isp_ccdc_device *ccdc) void omap3isp_ccdc_restore_context(struct
+> isp_device *isp)
+>  {
+>  	struct isp_ccdc_device *ccdc = &isp->isp_ccdc;
+> +	struct v4l2_mbus_framefmt *format;
+> 
+>  	isp_reg_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG, ISPCCDC_CFG_VDLC);
+> 
+> -	ccdc->update = OMAP3ISP_CCDC_ALAW | OMAP3ISP_CCDC_LPF
+> -		     | OMAP3ISP_CCDC_BLCLAMP | OMAP3ISP_CCDC_BCOMP;
+> +	/* CCDC_PAD_SINK */
+> +	format = &ccdc->formats[CCDC_PAD_SINK];
+> +	if ((format->code != V4L2_MBUS_FMT_UYVY8_2X8) &&
+> +			(format->code != V4L2_MBUS_FMT_UYVY8_2X8))
+> +		ccdc->update = OMAP3ISP_CCDC_ALAW | OMAP3ISP_CCDC_LPF
+> +				| OMAP3ISP_CCDC_BLCLAMP | OMAP3ISP_CCDC_BCOMP;
+>  	ccdc_apply_controls(ccdc);
+>  	ccdc_configure_fpc(ccdc);
+>  }
+> @@ -966,14 +972,22 @@ static void ccdc_config_sync_if(struct
+> isp_ccdc_device *ccdc, u32 syn_mode = isp_reg_readl(isp,
+> OMAP3_ISP_IOMEM_CCDC,
+>  				     ISPCCDC_SYN_MODE);
+> 
+> +	syn_mode &= ~(ISPCCDC_SYN_MODE_VDHDOUT |
+> +			ISPCCDC_SYN_MODE_FLDOUT |
+> +			ISPCCDC_SYN_MODE_VDPOL |
+> +			ISPCCDC_SYN_MODE_HDPOL |
+> +			ISPCCDC_SYN_MODE_FLDPOL |
+> +			ISPCCDC_SYN_MODE_FLDMODE |
+> +			ISPCCDC_SYN_MODE_DATAPOL |
+> +			ISPCCDC_SYN_MODE_DATSIZ_MASK |
+> +			ISPCCDC_SYN_MODE_PACK8 |
+> +			ISPCCDC_SYN_MODE_INPMOD_MASK);
+> +
+>  	syn_mode |= ISPCCDC_SYN_MODE_VDHDEN;
+> 
+>  	if (syncif->fldstat)
+>  		syn_mode |= ISPCCDC_SYN_MODE_FLDSTAT;
+> -	else
+> -		syn_mode &= ~ISPCCDC_SYN_MODE_FLDSTAT;
+> 
+> -	syn_mode &= ~ISPCCDC_SYN_MODE_DATSIZ_MASK;
+>  	switch (syncif->datsz) {
+>  	case 8:
+>  		syn_mode |= ISPCCDC_SYN_MODE_DATSIZ_8;
+> @@ -991,28 +1005,18 @@ static void ccdc_config_sync_if(struct
+> isp_ccdc_device *ccdc,
+> 
+>  	if (syncif->fldmode)
+>  		syn_mode |= ISPCCDC_SYN_MODE_FLDMODE;
+> -	else
+> -		syn_mode &= ~ISPCCDC_SYN_MODE_FLDMODE;
+> 
+>  	if (syncif->datapol)
+>  		syn_mode |= ISPCCDC_SYN_MODE_DATAPOL;
+> -	else
+> -		syn_mode &= ~ISPCCDC_SYN_MODE_DATAPOL;
+> 
+>  	if (syncif->fldpol)
+>  		syn_mode |= ISPCCDC_SYN_MODE_FLDPOL;
+> -	else
+> -		syn_mode &= ~ISPCCDC_SYN_MODE_FLDPOL;
+> 
+>  	if (syncif->hdpol)
+>  		syn_mode |= ISPCCDC_SYN_MODE_HDPOL;
+> -	else
+> -		syn_mode &= ~ISPCCDC_SYN_MODE_HDPOL;
+> 
+>  	if (syncif->vdpol)
+>  		syn_mode |= ISPCCDC_SYN_MODE_VDPOL;
+> -	else
+> -		syn_mode &= ~ISPCCDC_SYN_MODE_VDPOL;
+> 
+>  	if (syncif->ccdc_mastermode) {
+>  		syn_mode |= ISPCCDC_SYN_MODE_FLDOUT | ISPCCDC_SYN_MODE_VDHDOUT;
+> @@ -1027,9 +1031,7 @@ static void ccdc_config_sync_if(struct
+> isp_ccdc_device *ccdc,
+> 
+>  			     | syncif->hlprf << ISPCCDC_PIX_LINES_HLPRF_SHIFT,
+> 
+>  			       OMAP3_ISP_IOMEM_CCDC,
+>  			       ISPCCDC_PIX_LINES);
+> -	} else
+> -		syn_mode &= ~(ISPCCDC_SYN_MODE_FLDOUT |
+> -			      ISPCCDC_SYN_MODE_VDHDOUT);
+> +	}
+> 
+>  	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
+> 
+> @@ -1181,6 +1183,9 @@ static void ccdc_configure(struct isp_ccdc_device
+> *ccdc)
+> 
+>  	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
+> 
+> +	if (format->code == V4L2_MBUS_FMT_UYVY8_2X8)
+> +		isp_reg_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG,
+> +			    ISPCCDC_CFG_Y8POS);
+>  	/* Mosaic filter */
+>  	switch (format->code) {
+>  	case V4L2_MBUS_FMT_SRGGB10_1X10:
+> @@ -1200,7 +1205,10 @@ static void ccdc_configure(struct isp_ccdc_device
+> *ccdc) ccdc_pattern = ccdc_sgrbg_pattern;
+>  		break;
+>  	}
+> -	ccdc_config_imgattr(ccdc, ccdc_pattern);
+> +
+> +	if ((format->code != V4L2_MBUS_FMT_YUYV8_2X8) &&
+> +			(format->code != V4L2_MBUS_FMT_UYVY8_2X8))
+> +		ccdc_config_imgattr(ccdc, ccdc_pattern);
+> 
+>  	/* Generate VD0 on the last line of the image and VD1 on the
+>  	 * 2/3 height line.
+> @@ -1221,6 +1229,15 @@ static void ccdc_configure(struct isp_ccdc_device
+> *ccdc) << ISPCCDC_VERT_LINES_NLV_SHIFT,
+>  		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_LINES);
+> 
+> +	isp_reg_clr(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST,
+> +		    ISPCCDC_SDOFST_LOFST_MASK << ISPCCDC_SDOFST_LOFST0_SHIFT);
+> +	isp_reg_clr(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST,
+> +		    ISPCCDC_SDOFST_LOFST_MASK << ISPCCDC_SDOFST_LOFST1_SHIFT);
+> +	isp_reg_clr(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST,
+> +		    ISPCCDC_SDOFST_LOFST_MASK << ISPCCDC_SDOFST_LOFST2_SHIFT);
+> +	isp_reg_clr(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST,
+> +		    ISPCCDC_SDOFST_LOFST_MASK << ISPCCDC_SDOFST_LOFST3_SHIFT);
+> +
+>  	ccdc_config_outlineoffset(ccdc, ccdc->video_out.bpl_value, 0, 0);
+> 
+>  	/* CCDC_PAD_SOURCE_VP */
+> @@ -1270,6 +1287,7 @@ static void __ccdc_enable(struct isp_ccdc_device
+> *ccdc, int enable) ISPCCDC_PCR_EN, enable ? ISPCCDC_PCR_EN : 0);
+>  }
+> 
+> +static int __ccdc_handle_stopping(struct isp_ccdc_device *ccdc, u32
+> event); static int ccdc_disable(struct isp_ccdc_device *ccdc)
+>  {
+>  	unsigned long flags;
+> @@ -1280,6 +1298,11 @@ static int ccdc_disable(struct isp_ccdc_device
+> *ccdc) ccdc->stopping = CCDC_STOP_REQUEST;
+>  	spin_unlock_irqrestore(&ccdc->lock, flags);
+> 
+> +	__ccdc_lsc_enable(ccdc, 0);
+> +	__ccdc_enable(ccdc, 0);
+> +	ccdc->stopping = CCDC_STOP_EXECUTED;
+> +	__ccdc_handle_stopping(ccdc, CCDC_STOP_FINISHED);
+> +
+
+This looks a bit unrelated. Could you please explain why that's needed ?
+
+>  	ret = wait_event_timeout(ccdc->wait,
+>  				 ccdc->stopping == CCDC_STOP_FINISHED,
+>  				 msecs_to_jiffies(2000));
+> @@ -1735,7 +1758,7 @@ static int ccdc_set_stream(struct v4l2_subdev *sd,
+> int enable) * links are inactive.
+>  		 */
+>  		ccdc_config_vp(ccdc);
+> -		ccdc_enable_vp(ccdc, 1);
+> +		ccdc_enable_vp(ccdc, 0);
+
+Are you sure about this ?
+
+>  		ccdc->error = 0;
+>  		ccdc_print_status(ccdc);
+>  	}
+> @@ -2265,7 +2288,7 @@ int omap3isp_ccdc_init(struct isp_device *isp)
+> 
+>  	ccdc->vpcfg.pixelclk = 0;
+> 
+> -	ccdc->update = OMAP3ISP_CCDC_BLCLAMP;
+> +	ccdc->update = 0;
+>  	ccdc_apply_controls(ccdc);
+> 
+>  	return ccdc_init_entities(ccdc);
+> diff --git a/drivers/media/video/omap3isp/ispreg.h
+> b/drivers/media/video/omap3isp/ispreg.h index 69f6af6..ada39c6 100644
+> --- a/drivers/media/video/omap3isp/ispreg.h
+> +++ b/drivers/media/video/omap3isp/ispreg.h
+> @@ -827,6 +827,7 @@
+>  #define ISPCCDC_SDOFST_LOFST2_SHIFT		3
+>  #define ISPCCDC_SDOFST_LOFST1_SHIFT		6
+>  #define ISPCCDC_SDOFST_LOFST0_SHIFT		9
+> +#define ISPCCDC_SDOFST_LOFST_MASK              0x7
+>  #define EVENEVEN				1
+>  #define ODDEVEN					2
+>  #define EVENODD					3
+> diff --git a/drivers/media/video/omap3isp/ispvideo.c
+> b/drivers/media/video/omap3isp/ispvideo.c index ff0ffed..d595d01 100644
+> --- a/drivers/media/video/omap3isp/ispvideo.c
+> +++ b/drivers/media/video/omap3isp/ispvideo.c
+> @@ -104,6 +104,9 @@ static struct isp_format_info formats[] = {
+>  	{ V4L2_MBUS_FMT_UYVY8_2X8, V4L2_MBUS_FMT_UYVY8_2X8,
+>  	  V4L2_MBUS_FMT_UYVY8_2X8, 0,
+>  	  V4L2_PIX_FMT_UYVY, 16, },
+> +	{ V4L2_MBUS_FMT_YUYV8_2X8, V4L2_MBUS_FMT_YUYV8_2X8,
+> +	  V4L2_MBUS_FMT_YUYV8_2X8, 0,
+> +	  V4L2_PIX_FMT_YUYV, 16, },
+>  };
+> 
+>  const struct isp_format_info *
+
+-- 
+Regards,
+
+Laurent Pinchart
