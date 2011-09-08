@@ -1,156 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:40417 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753255Ab1ISIsR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Sep 2011 04:48:17 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=UTF-8
-Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LRR008Z1HSF7D00@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 19 Sep 2011 09:48:15 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRR00MTKHSE7E@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 19 Sep 2011 09:48:15 +0100 (BST)
-Date: Mon, 19 Sep 2011 10:48:14 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH/RFC 1/2] v4l2: Add the parallel bus HREF signal polarity
- flags
-In-reply-to: <201109190105.29383.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <4E7701CE.6050201@samsung.com>
-References: <1316194123-21185-1-git-send-email-s.nawrocki@samsung.com>
- <alpine.DEB.2.00.1109171423460.28766@axis700.grange>
- <4E74C57C.8030801@gmail.com>
- <201109190105.29383.laurent.pinchart@ideasonboard.com>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:55168 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932367Ab1IHLY3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 07:24:29 -0400
+Received: by ywf7 with SMTP id 7so550733ywf.19
+        for <linux-media@vger.kernel.org>; Thu, 08 Sep 2011 04:24:29 -0700 (PDT)
+Message-ID: <4E68A5E7.8070800@gmail.com>
+Date: Thu, 08 Sep 2011 16:54:23 +0530
+From: Subash Patel <subashrp@gmail.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	hechtb@googlemail.com, g.liakhovetski@gmx.de
+Subject: Re: [RFC] New class for low level sensors controls?
+References: <20110906113653.GF1393@valkosipuli.localdomain> <201109061341.11991.laurent.pinchart@ideasonboard.com> <20110906122226.GH1393@valkosipuli.localdomain>
+In-Reply-To: <20110906122226.GH1393@valkosipuli.localdomain>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Sakari,
 
-On 09/19/2011 01:05 AM, Laurent Pinchart wrote:
-> On Saturday 17 September 2011 18:06:20 Sylwester Nawrocki wrote:
->> On 09/17/2011 02:34 PM, Guennadi Liakhovetski wrote:
->>> On Sat, 17 Sep 2011, Sylwester Nawrocki wrote:
->>>> On 09/17/2011 12:54 PM, Laurent Pinchart wrote:
->>>>> On Friday 16 September 2011 19:28:42 Sylwester Nawrocki wrote:
->>>>>> HREF is a signal indicating valid data during single line
->>>>>> transmission. Add corresponding flags for this signal to the set of
->>>>>> mediabus signal polarity flags.
->>>>>
->>>>> So that's a data valid signal that gates the pixel data ? The OMAP3 ISP
->>>>> has a
->>>>
->>>> Yes, it's "horizontal window reference" signal, it's well described in
->>>> this datasheet: http://www.morninghan.com/pdf/OV2640FSL_DS_(1_3).pdf
->>>>
->>>> AFAICS there can be also its vertical counterpart - VREF.
->>>>
->>>> Many devices seem to use this terminology. However, I realize, not all,
->>>> as you're pointing out. So perhaps it's time for some naming contest
->>>> now.. :-)
+On 09/06/2011 05:52 PM, Sakari Ailus wrote:
+> On Tue, Sep 06, 2011 at 01:41:11PM +0200, Laurent Pinchart wrote:
+>> Hi Sakari,
+>>
+>> On Tuesday 06 September 2011 13:36:53 Sakari Ailus wrote:
+>>> Hi all,
 >>>
->>> No objections in principle, just one question though: can these signals
->>> actually be used simultaneously with respective *SYNC signals or only as
->>> an alternative? If the latter, maybe we could reuse same names by just
->>> making them more generic?
+>>> We are beginning to have raw bayer image sensor drivers in the mainline.
+>>> Typically such sensors are not controlled by general purpose applications
+>>> but e.g. require a camera control algorithm framework in user space. This
+>>> needs to be implemented in libv4l for general purpose applications to work
+>>> properly on this kind of hardware.
+>>>
+>>> These sensors expose controls such as
+>>>
+>>> - Per-component gain controls. Red, blue, green (blue) and green (red)
+>>>    gains.
+>>>
+>>> - Link frequency. The frequency of the data link from the sensor to the
+>>>    bridge.
+>>>
+>>> - Horizontal and vertical blanking.
 >>
->> That's actually a good question. In my use cases only HREF is used as
->> horizontal synchronization signal, i.e. physical bus interface has this
->> signals:
+>> Other controls often found in bayer sensors are black level compensation and
+>> test pattern.
+
+Does all BAYER sensor allow the dark level compensation programming? I 
+thought it must be auto dark level compensation, which is done by the 
+sensor. The sensor detects the optical black value at start of each 
+frame, and analog-to-digital conversion is shifted to compensate the 
+dark level for that frame. Hence I am thinking if this should be a 
+controllable feature.
+
 >>
->> ->| PCLK
->> ->| VSYNC
->> ->| HREF
->> ->| DATA[0:7]
->> ->| FIELD
+>>> None of these controls are suitable for use of general purpose applications
+>>> (let alone the end user!) but for the camera control algorithms.
+>>>
+>>> We have a control class called V4L2_CTRL_CLASS_CAMERA for camera controls.
+>>> However, the controls in this class are relatively high level controls
+>>> which are suitable for end user. The algorithms in the libv4l or a webcam
+>>> could implement many of these controls whereas I see that only
+>>> V4L2_CID_EXPOSURE_ABSOLUTE might be implemented by raw bayer sensors.
+>>>
+>>> My question is: would it make sense to create a new class of controls for
+>>> the low level sensor controls in a similar fashion we have a control class
+>>> for the flash controls?
 >>
->> For interlaced mode FIELD can be connected to the horizontal
->> synchronization signal. For this case there is InvPolHSYNC bit in the host
->> interface registers to indicate the polarity. There are 5 bits actually:
->>
->> InvPolPCLK
->> InvPolVSYNC (vertical sychronization)
->> InvPolHREF  (horizontal synchronization)
->> InvPolHSYNC (for interlaced mode only, FIELD port = horizontal sync.
->> signal) InvPolFIELD (interlaced mode,  FIELD port = FIELD signal)
-> 
-> Shouldn't this be handled through platform data only ?
+>> I think it would, but I'm not sure how we should name that class.
+>> V4L2_CTRL_CLASS_SENSOR is tempting, but many of the controls that will be
+>> found there (digital gains, black leverl compensation, test pattern, ...) can
+>> also be found in ISPs or other hardware blocks.
+>
+> I don't think ISPs typically implement test patterns. Do you know of any?
+>
+I know atleast two sensors (ov5642 and s5k4bafx) which have inbuilt ISP, 
+programmed through i2c. They both have test patten generator. I think 
+RAW(BAYER) sensors themselves cannot generate a test pattern without 
+some h/w entity to convert RGGB into color bars in RGB or YUV.
 
-Indeed, this is how it's done now and I didn't intend to change that.
-I just wanted to replace driver's private signal polarity flag definitions
-with the standard ones. Do you think I should rather keep these things in
-driver's public header? It's of course a way of less resistance :)
+> Should we separate controls which clearly apply to sensors only from the
+> rest?
+>
+> For sensors only:
+>
+> - Analog gain(s)
+> - Horizontal and vertical blanking
+> - Link frequency
+> - Test pattern
 
+Where should the shutter operation be listed into? Also type (rolling, 
+global) and method (manual, electronic) of shutter operation?
 
-To make things complete I thought about adding the FIELD flags, i.e.
+>
+> The following can be implemented also on ISPs:
+>
+> - Per-component gains
+> - Black level compensation
+>
+> Do we have more to add to the list?
+>
+> If we keep the two the same class, I could propose the following names:
+>
+> V4L2_CTRL_CLASS_LL_CAMERA (for low level camera)
 
->From 9bd11f9b14dffe877f9c546e068b4b4027c9472a Mon Sep 17 00:00:00 2001
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Date: Sun, 18 Sep 2011 11:28:58 +0200
-Subject: [PATCH 1/2] v4l2: Add the parallel bus HREF and FIELD signal polarity
-flags
+Instead of LL_CAMERA, wouldnt something like CAM_SENSOR_ARRAY would be 
+more meaningful? We control the sensor array properties in this level.
 
-HREF is a signal gating valid data during single line transmission.
-FIELD is an Even/Odd field selection signal, as specified in ITU-R BT.601
-standard.
-Add corresponding flags for these signals to the set of media bus signal
-polarity flags.
+> V4L2_CTRL_CLASS_SOURCE
+> V4L2_CTRL_CLASS_IMAGE_SOURCE
+>
+> The last one would be a good name for the sensor control class, as far as I
+> understand some are using tuners with the OMAP 3 ISP these days. For the
+> another one, I propose V4L2_CTRL_CLASS_ISP.
+>
+> Better names are always welcome. :-)
+>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- include/media/v4l2-mediabus.h |   20 +++++++++++++-------
- 1 files changed, 13 insertions(+), 7 deletions(-)
-
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 6114007..1952d9f 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -23,15 +23,21 @@
- #define V4L2_MBUS_MASTER			(1 << 0)
- #define V4L2_MBUS_SLAVE				(1 << 1)
- /* Which signal polarities it supports */
--/* Note: in BT.656 mode HSYNC and VSYNC are unused */
-+/* Note: in BT.656 mode HSYNC, HREF, FIELD, and VSYNC are unused */
- #define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
- #define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
--#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
--#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 5)
--#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 6)
--#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
--#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
--#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
-+/* HREF is a horizontal window reference signal gating valid pixel data */
-+#define V4L2_MBUS_HREF_ACTIVE_HIGH		(1 << 4)
-+#define V4L2_MBUS_HREF_ACTIVE_LOW		(1 << 5)
-+#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 6)
-+#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 7)
-+#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 8)
-+#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 9)
-+#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 10)
-+#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 11)
-+/* Field selection signal for interlaced scan mode */
-+#define V4L2_MBUS_FIELD_ACTIVE_HIGH		(1 << 12)
-+#define V4L2_MBUS_FIELD_ACTIVE_LOW		(1 << 13)
-
- /* Serial flags */
- /* How many lanes the client can use */
--- 1.7.4.1
-
-If there is more objection to the above changes then I'll drop the patch
-and stay with driver's private definitions.
-
-
-Thanks,
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+Regards,
+Subash
