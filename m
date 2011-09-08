@@ -1,54 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:40781 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750973Ab1I0HHt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 03:07:49 -0400
-Subject: Re: [PATCH v3 4/4] OMAP_VOUT: Don't trigger updates in
- omap_vout_probe
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Archit Taneja <archit@ti.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Semwal, Sumit" <sumit.semwal@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <4E81750F.7060200@ti.com>
-References: <1317038365-30650-1-git-send-email-archit@ti.com>
-	 <1317038365-30650-5-git-send-email-archit@ti.com>
-	 <1317103833.1991.6.camel@deskari>  <4E81750F.7060200@ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 27 Sep 2011 10:07:41 +0300
-Message-ID: <1317107261.1991.18.camel@deskari>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58676 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932868Ab1IHNeV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 Sep 2011 09:34:21 -0400
+From: Deepthy Ravi <deepthy.ravi@ti.com>
+To: <linux-omap@vger.kernel.org>
+CC: <tony@atomide.com>, <linux@arm.linux.org.uk>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>, <mchehab@infradead.org>,
+	<linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+	<g.liakhovetski@gmx.de>, Vaibhav Hiremath <hvaibhav@ti.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>
+Subject: [PATCH 1/8] omap3evm: Enable regulators for camera interface
+Date: Thu, 8 Sep 2011 19:03:51 +0530
+Message-ID: <1315488831-15998-1-git-send-email-deepthy.ravi@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2011-09-27 at 12:32 +0530, Archit Taneja wrote:
-> On Tuesday 27 September 2011 11:40 AM, Valkeinen, Tomi wrote:
-> > On Mon, 2011-09-26 at 17:29 +0530, Archit Taneja wrote:
-> >> Remove the code in omap_vout_probe() which calls display->driver->update() for
-> >> all the displays. This isn't correct because:
-> >>
-> >> - An update in probe doesn't make sense, because we don't have any valid content
-> >>    to show at this time.
-> >> - Calling update for a panel which isn't enabled is not supported by DSS2. This
-> >>    leads to a crash at probe.
-> >
-> > Calling update() on a disabled panel should not crash... Where is the
-> > crash coming from?
-> 
-> you are right, the crash isn't coming from the updates. I see the crash 
-> when we have 4 dss devices in our board file. The last display pointer 
-> is corrupted in that case. I'm trying to figure out why.
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Could be totally unrelated, but does the V4L2 driver make sure that the
-used dss devices have a driver loaded?
+Enabled 1v8 and 2v8 regulator output, which is being used by
+camera module.
 
-OMAPFB previously refused to start if all the devices do not have a
-driver, but nowadays it starts fine by skipping the devices without a
-driver.
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c |   40 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 40 insertions(+), 0 deletions(-)
 
- Tomi
-
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index a1184b3..8333ee4 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -273,6 +273,44 @@ static struct omap_dss_board_info omap3_evm_dss_data = {
+ 	.default_device	= &omap3_evm_lcd_device,
+ };
+ 
++static struct regulator_consumer_supply omap3evm_vaux3_supply = {
++	.supply         = "cam_1v8",
++};
++
++static struct regulator_consumer_supply omap3evm_vaux4_supply = {
++	.supply         = "cam_2v8",
++};
++
++/* VAUX3 for CAM_1V8 */
++static struct regulator_init_data omap3evm_vaux3 = {
++	.constraints = {
++		.min_uV                 = 1800000,
++		.max_uV                 = 1800000,
++		.apply_uV               = true,
++		.valid_modes_mask       = REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask         = REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++		},
++	.num_consumer_supplies  = 1,
++	.consumer_supplies      = &omap3evm_vaux3_supply,
++};
++
++/* VAUX4 for CAM_2V8 */
++static struct regulator_init_data omap3evm_vaux4 = {
++	.constraints = {
++		.min_uV                 = 1800000,
++		.max_uV                 = 1800000,
++		.apply_uV               = true,
++		.valid_modes_mask       = REGULATOR_MODE_NORMAL
++			| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask         = REGULATOR_CHANGE_MODE
++			| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies  = 1,
++	.consumer_supplies      = &omap3evm_vaux4_supply,
++};
++
+ static struct regulator_consumer_supply omap3evm_vmmc1_supply[] = {
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
+ };
+@@ -499,6 +537,8 @@ static struct twl4030_platform_data omap3evm_twldata = {
+ 	.vio		= &omap3evm_vio,
+ 	.vmmc1		= &omap3evm_vmmc1,
+ 	.vsim		= &omap3evm_vsim,
++	.vaux3          = &omap3evm_vaux3,
++	.vaux4          = &omap3evm_vaux4,
+ };
+ 
+ static int __init omap3_evm_i2c_init(void)
+-- 
+1.7.0.4
 
