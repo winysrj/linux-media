@@ -1,97 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:62724 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756359Ab1INKhQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Sep 2011 06:37:16 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LRI00KCODI1LE20@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 14 Sep 2011 11:37:13 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRI00GIODI0FR@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 14 Sep 2011 11:37:13 +0100 (BST)
-Date: Wed, 14 Sep 2011 12:37:12 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v4] V4L: dynamically allocate video_device nodes in
- subdevices
-In-reply-to: <alpine.DEB.2.00.1109132245570.11360@axis700.grange>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from moutng.kundenserver.de ([212.227.126.186]:60167 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752932Ab1IIPCT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2011 11:02:19 -0400
+Date: Fri, 9 Sep 2011 17:02:17 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>
-Message-id: <4E7083D8.9050804@samsung.com>
-References: <Pine.LNX.4.64.1109091701060.915@axis700.grange>
- <201109092332.59943.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1109121253270.9638@axis700.grange>
- <201109131116.35408.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1109131318450.17902@axis700.grange>
- <4E6F9832.1070404@samsung.com>
- <alpine.DEB.2.00.1109132245570.11360@axis700.grange>
+Subject: [PATCH] V4L: dynamically allocate video_device nodes in subdevices
+Message-ID: <Pine.LNX.4.64.1109091701060.915@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Currently only very few drivers actually use video_device nodes, embedded
+in struct v4l2_subdev. Allocate these nodes dynamically for those drivers
+to save memory for the rest.
 
-On 09/13/2011 11:18 PM, Guennadi Liakhovetski wrote:
-> On Tue, 13 Sep 2011, Sylwester Nawrocki wrote:
->> On 09/13/2011 04:48 PM, Guennadi Liakhovetski wrote:
->>> Currently only very few drivers actually use video_device nodes, embedded
->>> in struct v4l2_subdev. Allocate these nodes dynamically for those drivers
->>> to save memory for the rest.
->>>
->>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->>
->> I have tested this patch with Samsung FIMC driver and with MC enabled
->> sensor driver.
->> After some hundreds of module load/unload I didn't observe anything unusual.
->> The patch seem to be safe for device node enabled subdevs. You can stick my:
->>
->> Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->>
->> if you feel so.
-> 
-> Thanks very much for testing! However, depending on your test scenario, 
-> you might still not notice a problem by just loading and unloading of 
-> modules. It would, however, be useful to execute just one test:
-> 
-> 1. add one line v4l2-device.c:
-> 
-> diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-> index a3b89f4..33226857 100644
-> --- a/drivers/media/video/v4l2-device.c
-> +++ b/drivers/media/video/v4l2-device.c
-> @@ -195,6 +195,7 @@ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
->  static void v4l2_device_release_subdev_node(struct video_device *vdev)
->  {
->  	struct v4l2_subdev *sd = video_get_drvdata(vdev);
-> +	dev_info(&vdev->dev, "%s()\n", __func__);
->  	sd->devnode = NULL;
->  	kfree(vdev);
->  }
-> 
-> 2. with this patch start and stop capture
-> 
-> 3. check dmesg - v4l2_device_release_subdev_node() output should not be 
-> there yet
-> 
-> 4. rmmod modules, then the output should be there
-> 
-> If you could test that - that would be great!
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-OK, I double checked if v4l2_device_release_subdev_node() is called at the right
-time, i.e. I've also checked if the streaming works in between the module unload/load.
+Only compile tested. Please, give it a spin on affected hardware.
 
-I'd added the printk and everything behaved as expected, other than I've tracked
-down a few minor bugs in the drivers in the meantime;)
+ drivers/media/video/v4l2-device.c |   28 +++++++++++++++++++++++++---
+ include/media/v4l2-subdev.h       |   10 ++++++++--
+ 2 files changed, 33 insertions(+), 5 deletions(-)
 
-I'll keep your patch applied in my development tree.
-
-Thanks,
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index c72856c..0c0f6ba 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -21,6 +21,7 @@
+ #include <linux/types.h>
+ #include <linux/ioctl.h>
+ #include <linux/i2c.h>
++#include <linux/slab.h>
+ #if defined(CONFIG_SPI)
+ #include <linux/spi/spi.h>
+ #endif
+@@ -194,6 +195,7 @@ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+ {
+ 	struct video_device *vdev;
++	struct v4l2_devnode *node;
+ 	struct v4l2_subdev *sd;
+ 	int err;
+ 
+@@ -204,7 +206,13 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+ 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
+ 			continue;
+ 
+-		vdev = &sd->devnode;
++		node = kzalloc(sizeof(*node), GFP_KERNEL);
++		if (!node) {
++			err = -ENOMEM;
++			goto clean_up;
++		}
++		vdev = &node->vdev;
++
+ 		strlcpy(vdev->name, sd->name, sizeof(vdev->name));
+ 		vdev->v4l2_dev = v4l2_dev;
+ 		vdev->fops = &v4l2_subdev_fops;
+@@ -213,13 +221,25 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+ 		err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
+ 					      sd->owner);
+ 		if (err < 0)
+-			return err;
++			goto clean_up;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 		sd->entity.v4l.major = VIDEO_MAJOR;
+ 		sd->entity.v4l.minor = vdev->minor;
+ #endif
++		sd->devnode = node;
+ 	}
+ 	return 0;
++
++clean_up:
++	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
++		if (!sd->devnode)
++			break;
++		video_unregister_device(&sd->devnode->vdev);
++		kfree(sd->devnode);
++		sd->devnode = NULL;
++	}
++
++	return err;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_nodes);
+ 
+@@ -245,7 +265,9 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+ 	if (v4l2_dev->mdev)
+ 		media_device_unregister_entity(&sd->entity);
+ #endif
+-	video_unregister_device(&sd->devnode);
++	video_unregister_device(&sd->devnode->vdev);
++	kfree(sd->devnode);
++	sd->devnode = NULL;
+ 	module_put(sd->owner);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 257da1a..6e958df 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -510,6 +510,12 @@ struct v4l2_subdev_internal_ops {
+ /* Set this flag if this subdev generates events. */
+ #define V4L2_SUBDEV_FL_HAS_EVENTS		(1U << 3)
+ 
++/* video_device with a reverse lookup */
++struct v4l2_devnode {
++	struct v4l2_subdev *sd;
++	struct video_device vdev;
++};
++
+ /* Each instance of a subdev driver should create this struct, either
+    stand-alone or embedded in a larger struct.
+  */
+@@ -534,13 +540,13 @@ struct v4l2_subdev {
+ 	void *dev_priv;
+ 	void *host_priv;
+ 	/* subdev device node */
+-	struct video_device devnode;
++	struct v4l2_devnode *devnode;
+ };
+ 
+ #define media_entity_to_v4l2_subdev(ent) \
+ 	container_of(ent, struct v4l2_subdev, entity)
+ #define vdev_to_v4l2_subdev(vdev) \
+-	container_of(vdev, struct v4l2_subdev, devnode)
++	(container_of(vdev, struct v4l2_devnode, vdev)->sd)
+ 
+ /*
+  * Used for storing subdev information per file handle
 -- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+1.7.2.5
+
