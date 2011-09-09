@@ -1,46 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:56149 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752543Ab1I0KAE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 06:00:04 -0400
-Received: by vcbfk10 with SMTP id fk10so3482920vcb.19
-        for <linux-media@vger.kernel.org>; Tue, 27 Sep 2011 03:00:03 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201109271142.41309.hverkuil@xs4all.nl>
-References: <1316465981-28469-1-git-send-email-scott.jiang.linux@gmail.com>
-	<201109261609.32349.hverkuil@xs4all.nl>
-	<CAHG8p1BiKzS8sJ+qxWSFw0Uk+0gC0e7ABmJaT8igaSeYttOtLw@mail.gmail.com>
-	<201109271142.41309.hverkuil@xs4all.nl>
-Date: Tue, 27 Sep 2011 18:00:03 +0800
-Message-ID: <CAHG8p1DO9qYf8rbToqFXZ=mpbksJHJbieZRVv9NbEQOz7iy98g@mail.gmail.com>
-Subject: Re: [PATCH 4/4 v2][FOR 3.1] v4l2: add blackfin capture bridge driver
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	uclinux-dist-devel@blackfin.uclinux.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45782 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756288Ab1IIPwu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2011 11:52:50 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 0/2] as3645a flash driver
+Date: Fri,  9 Sep 2011 17:52:47 +0200
+Message-Id: <1315583569-22727-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->
-> What you would typically do in a case like this (if I understand it
-> correctly) is that in the s_input ioctl you first select the input in the
-> subdev, and then you can call the subdev to determine the standard and
-> format and use that information to set up the bridge. This requires that
-> the subdev is able to return a proper standard/format after an input
-> change.
->
-> By also selecting an initial input at driver load you will ensure that
-> you always have a default std/fmt available from the very beginning.
->
-The default input is 0. So you mean I ask the subdev std and fmt in
-probe instead of open?
+Hi everybody,
 
-> It also looks like the s_input in the bridge driver allows for inputs that
-> return a subdev format that can't be supported by the bridge. Is that correct?
-> If so, then the board code should disallow such inputs. Frankly, that's a
-> WARN_ON since that is something that is never supposed to happen.
+Here's a driver for the as3645a flash controller.
+
+The first patch adds two new flash faults bits to the V4L2 API, and the second
+patch adds the driver itself.
+
+Laurent Pinchart (2):
+  v4l: Add over-current and indicator flash fault bits
+  as3645a: Add driver for LED flash controller
+
+ Documentation/DocBook/media/v4l/controls.xml |   10 +
+ drivers/media/video/Kconfig                  |    7 +
+ drivers/media/video/Makefile                 |    1 +
+ drivers/media/video/as3645a.c                | 1425 ++++++++++++++++++++++++++
+ include/linux/as3645a.h                      |   36 +
+ include/linux/videodev2.h                    |    2 +
+ include/media/as3645a.h                      |   69 ++
+ 7 files changed, 1550 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/as3645a.c
+ create mode 100644 include/linux/as3645a.h
+ create mode 100644 include/media/as3645a.h
+
+-- 
+Regards,
+
+Laurent Pinchart
+
