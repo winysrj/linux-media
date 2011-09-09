@@ -1,65 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:64555 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.186]:51663 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751737Ab1IQJ1V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Sep 2011 05:27:21 -0400
-From: Martin Hostettler <martin@neutronstar.dyndns.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	with ESMTP id S1758672Ab1IIRqA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2011 13:46:00 -0400
+Date: Fri, 9 Sep 2011 19:45:57 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: [PATCH] v4l subdev: add dispatching for VIDIOC_DBG_G_REGISTER and VIDIOC_DBG_S_REGISTER.
-Date: Sat, 17 Sep 2011 11:26:36 +0200
-Message-Id: <1316251596-32073-1-git-send-email-martin@neutronstar.dyndns.org>
+Subject: [PATCH v2] V4L: dynamically allocate video_device nodes in subdevices
+In-Reply-To: <Pine.LNX.4.64.1109091701060.915@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1109091943480.915@axis700.grange>
+References: <Pine.LNX.4.64.1109091701060.915@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ioctls on the subdevs node currently don't dispatch the register access debug driver callbacks. Add
-the dispatching with the same security checks are for non subdev video nodes
-(i.e. only capable(CAP_SYS_ADMIN may call the register access ioctls).
----
- drivers/media/video/v4l2-subdev.c |   20 ++++++++++++++++++++
- 1 files changed, 20 insertions(+), 0 deletions(-)
+Currently only very few drivers actually use video_device nodes, embedded
+in struct v4l2_subdev. Allocate these nodes dynamically for those drivers
+to save memory for the rest.
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index b7967c9..8bf8397 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -25,6 +25,7 @@
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+
+v2: Checking for NULL is not always enough, you also have to check the 
+right thing for it. In this case it was sd->devnode in 
+v4l2_device_unregister_subdev().
+
+ drivers/media/video/v4l2-device.c |   29 ++++++++++++++++++++++++++---
+ include/media/v4l2-subdev.h       |   10 ++++++++--
+ 2 files changed, 34 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index c72856c..d4c093f 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -21,6 +21,7 @@
  #include <linux/types.h>
- #include <linux/videodev2.h>
+ #include <linux/ioctl.h>
+ #include <linux/i2c.h>
++#include <linux/slab.h>
+ #if defined(CONFIG_SPI)
+ #include <linux/spi/spi.h>
+ #endif
+@@ -194,6 +195,7 @@ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+ {
+ 	struct video_device *vdev;
++	struct v4l2_devnode *node;
+ 	struct v4l2_subdev *sd;
+ 	int err;
  
-+#include <media/v4l2-chip-ident.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
-@@ -173,6 +174,25 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+@@ -204,7 +206,13 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+ 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
+ 			continue;
  
- 	case VIDIOC_UNSUBSCRIBE_EVENT:
- 		return v4l2_subdev_call(sd, core, unsubscribe_event, vfh, arg);
+-		vdev = &sd->devnode;
++		node = kzalloc(sizeof(*node), GFP_KERNEL);
++		if (!node) {
++			err = -ENOMEM;
++			goto clean_up;
++		}
++		vdev = &node->vdev;
 +
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+	case VIDIOC_DBG_G_REGISTER:
-+	{
-+		struct v4l2_dbg_register *p = arg;
+ 		strlcpy(vdev->name, sd->name, sizeof(vdev->name));
+ 		vdev->v4l2_dev = v4l2_dev;
+ 		vdev->fops = &v4l2_subdev_fops;
+@@ -213,13 +221,25 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+ 		err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
+ 					      sd->owner);
+ 		if (err < 0)
+-			return err;
++			goto clean_up;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 		sd->entity.v4l.major = VIDEO_MAJOR;
+ 		sd->entity.v4l.minor = vdev->minor;
+ #endif
++		sd->devnode = node;
+ 	}
+ 	return 0;
 +
-+		if (!capable(CAP_SYS_ADMIN))
-+			return -EPERM;
-+		return v4l2_subdev_call(sd, core, g_register, p);
++clean_up:
++	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
++		if (!sd->devnode)
++			break;
++		video_unregister_device(&sd->devnode->vdev);
++		kfree(sd->devnode);
++		sd->devnode = NULL;
 +	}
-+	case VIDIOC_DBG_S_REGISTER:
-+	{
-+		struct v4l2_dbg_register *p = arg;
 +
-+		if (!capable(CAP_SYS_ADMIN))
-+			return -EPERM;
-+		return v4l2_subdev_call(sd, core, s_register, p);
-+	}
-+#endif
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
- 	case VIDIOC_SUBDEV_G_FMT: {
- 		struct v4l2_subdev_format *format = arg;
++	return err;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_nodes);
+ 
+@@ -245,7 +265,10 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+ 	if (v4l2_dev->mdev)
+ 		media_device_unregister_entity(&sd->entity);
+ #endif
+-	video_unregister_device(&sd->devnode);
++	if (sd->devnode)
++		video_unregister_device(&sd->devnode->vdev);
++	kfree(sd->devnode);
++	sd->devnode = NULL;
+ 	module_put(sd->owner);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 257da1a..6e958df 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -510,6 +510,12 @@ struct v4l2_subdev_internal_ops {
+ /* Set this flag if this subdev generates events. */
+ #define V4L2_SUBDEV_FL_HAS_EVENTS		(1U << 3)
+ 
++/* video_device with a reverse lookup */
++struct v4l2_devnode {
++	struct v4l2_subdev *sd;
++	struct video_device vdev;
++};
++
+ /* Each instance of a subdev driver should create this struct, either
+    stand-alone or embedded in a larger struct.
+  */
+@@ -534,13 +540,13 @@ struct v4l2_subdev {
+ 	void *dev_priv;
+ 	void *host_priv;
+ 	/* subdev device node */
+-	struct video_device devnode;
++	struct v4l2_devnode *devnode;
+ };
+ 
+ #define media_entity_to_v4l2_subdev(ent) \
+ 	container_of(ent, struct v4l2_subdev, entity)
+ #define vdev_to_v4l2_subdev(vdev) \
+-	container_of(vdev, struct v4l2_subdev, devnode)
++	(container_of(vdev, struct v4l2_devnode, vdev)->sd)
+ 
+ /*
+  * Used for storing subdev information per file handle
 -- 
 1.7.2.5
 
