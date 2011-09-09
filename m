@@ -1,90 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:53294 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933201Ab1IIUkf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Sep 2011 16:40:35 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 08/13 v3] ov6650: convert to the control framework.
-Date: Fri, 9 Sep 2011 22:39:53 +0200
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <1315471446-17890-1-git-send-email-g.liakhovetski@gmx.de> <201109091907.05823.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1109091947540.915@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1109091947540.915@axis700.grange>
+Received: from moutng.kundenserver.de ([212.227.126.187]:61851 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758672Ab1IIRnZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2011 13:43:25 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id 79B3E18B03B
+	for <linux-media@vger.kernel.org>; Fri,  9 Sep 2011 19:43:23 +0200 (CEST)
+Date: Fri, 9 Sep 2011 19:43:23 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 0/4] release soc-camera client drivers into the wild V4L2
+ world;-)
+Message-ID: <Pine.LNX.4.64.1109091917260.915@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109092239.53733.jkrzyszt@tis.icnet.pl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 9 Sep 2011 at 20:01:14 Guennadi Liakhovetski wrote:
-> Hi Janusz
-> 
-> On Fri, 9 Sep 2011, Janusz Krzysztofik wrote:
-> 
-> > On Thu, 8 Sep 2011 at 10:44:01 Guennadi Liakhovetski wrote:
-> > > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > > 
-> > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > > [g.liakhovetski@gmx.de: simplified pointer arithmetic]
-> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > 
-> > Hi,
-> > I've successfully tested this one for you, to the extent possible using 
-> > mplayer, i.e., only saturation, hue and brightness controls, and an 
-> > overall functionality.
-> 
-> Thanks for testing and reviewing!
-> 
-> > Modifications to other (not runtime tested) controls look good to me, 
-> > except for one copy-paste mistake, see below. With that erratic REG_BLUE 
-> > corrected:
-> > 
-> > Acked-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> > 
-> > There are also a few minor comments for you to consider.
-> 
-> Well, some of them are not so minor, I would say;-) But I personally would 
-> be happy to have this just as an incremental patch. Would you like to 
-> prepare one or should I do it?
+This patch set finally makes most (except for two) soc-camera client 
+(sensor and 1 tv-decoder) drivers also usable outside of the framework. 
+The drivers still include headers and rely on a couple of inline and 
+out-of-line library functions, which just means you have to build and load 
+the soc_camera.ko module. Otherwise there should be no run-time 
+dependencies. Completely untested, of course (without soc-camera);-)
 
-OK, I can do it.
+All patches are again available under the well-known location
 
-Do you want them all (except the one below) go into the incremental 
-patch, or would you rather fix that REG_RED bug still before applying?
+git://linuxtv.org/gliakhovetski/v4l-dvb.git rc1-for-3.2
 
-Thanks,
-Janusz
-
-> 
-> I basically agree with all your comments apart from maybe
-> 
-> [snip]
-> 
-> > > @@ -1176,9 +1021,11 @@ static int ov6650_probe(struct i2c_client *client,
-> > >  	priv->colorspace  = V4L2_COLORSPACE_JPEG;
-> > >  
-> > >  	ret = ov6650_video_probe(icd, client);
-> > > +	if (!ret)
-> > > +		ret = v4l2_ctrl_handler_setup(&priv->hdl);
-> > 
-> > Are you sure the probe function should fail if v4l2_ctrl_handler_setup() 
-> > fails? Its usage is documented as optional.
-> 
-> Not sure what the standard really meant, but it looks like this is done in 
-> all patches in this series. So, we'd have to change this everywhere. Most 
-> other drivers indeed do not care.
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Enjoy
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
