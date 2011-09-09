@@ -1,85 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40027 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932744Ab1IRWxF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Sep 2011 18:53:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: Re: [PATCH] v4l subdev: add dispatching for VIDIOC_DBG_G_REGISTER and VIDIOC_DBG_S_REGISTER.
-Date: Mon, 19 Sep 2011 00:53:07 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <1316251596-32073-1-git-send-email-martin@neutronstar.dyndns.org>
-In-Reply-To: <1316251596-32073-1-git-send-email-martin@neutronstar.dyndns.org>
+Received: from mail.smbclouisville.org ([216.116.183.133]:62834 "EHLO
+	smbclouisville.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933201Ab1IIJdu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2011 05:33:50 -0400
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109190053.08451.laurent.pinchart@ideasonboard.com>
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: Re:Hello Dear
+To: Recipients <infos@vise.com>
+From: "Wenzhou Ourvis" <infos@vise.com>
+Date: Thu, 08 Sep 2011 21:20:40 -0500
+Message-ID: <WIN2K3SRVRnvBVgfbCR00003684@smbclouisville.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Martin,
+Dear E-mail User,
 
-Thanks for the patch.
 
-On Saturday 17 September 2011 11:26:36 Martin Hostettler wrote:
-> Ioctls on the subdevs node currently don't dispatch the register access
-> debug driver callbacks. Add the dispatching with the same security checks
-> are for non subdev video nodes (i.e. only capable(CAP_SYS_ADMIN may call
-> the register access ioctls).
+This is to immediately inform you that your email address with Micros ID:
+IDJT-32238-EHI-676GI-8ED has won you £ 2,485,000.00 GBP and a brand new Range Rover SUV
+from the Wenzhou Ourvis yearly draw promo.
 
-Can we get your SoB line ? If you resubmit the patch, please fold the commit 
-message at 72 columns to keep git happy.
+Use the details below to login and fill in the claim form to immediately begin your claims.
 
-> ---
->  drivers/media/video/v4l2-subdev.c |   20 ++++++++++++++++++++
->  1 files changed, 20 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-subdev.c
-> b/drivers/media/video/v4l2-subdev.c index b7967c9..8bf8397 100644
-> --- a/drivers/media/video/v4l2-subdev.c
-> +++ b/drivers/media/video/v4l2-subdev.c
-> @@ -25,6 +25,7 @@
->  #include <linux/types.h>
->  #include <linux/videodev2.h>
-> 
-> +#include <media/v4l2-chip-ident.h>
 
-Is this needed ?
 
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-ioctl.h>
-> @@ -173,6 +174,25 @@ static long subdev_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg)
-> 
->  	case VIDIOC_UNSUBSCRIBE_EVENT:
->  		return v4l2_subdev_call(sd, core, unsubscribe_event, vfh, arg);
-> +
-> +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> +	case VIDIOC_DBG_G_REGISTER:
-> +	{
-> +		struct v4l2_dbg_register *p = arg;
-> +
-> +		if (!capable(CAP_SYS_ADMIN))
-> +			return -EPERM;
-> +		return v4l2_subdev_call(sd, core, g_register, p);
-> +	}
-> +	case VIDIOC_DBG_S_REGISTER:
-> +	{
-> +		struct v4l2_dbg_register *p = arg;
-> +
-> +		if (!capable(CAP_SYS_ADMIN))
-> +			return -EPERM;
-> +		return v4l2_subdev_call(sd, core, s_register, p);
-> +	}
-> +#endif
->  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
->  	case VIDIOC_SUBDEV_G_FMT: {
->  		struct v4l2_subdev_format *format = arg;
+WEBSITE: www.wenz-houviss.c.la
+USERNAME: APEX07WIZ
+PASSWORD: IEP2011JK
 
--- 
+
+
 Regards,
-
-Laurent Pinchart
+Dr. Warren Payne,
+Wenzhou Ourvis Company.
+European Zonal Coordinator,
+United Kingdom.
