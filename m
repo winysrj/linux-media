@@ -1,43 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:54700 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751160Ab1INGS4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Sep 2011 02:18:56 -0400
-Date: Wed, 14 Sep 2011 08:19:22 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, David Daney <david.daney@cavium.com>
-Subject: Re: recursive locking problem
-Message-ID: <20110914061922.GA1851@minime.bse>
-References: <4E68EE98.90201@iki.fi>
- <20110909114634.GA22776@minime.bse>
- <4E6FFD7E.2060500@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.17.8]:52159 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758459Ab1IIRRU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2011 13:17:20 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id 0371918B03B
+	for <linux-media@vger.kernel.org>; Fri,  9 Sep 2011 19:17:18 +0200 (CEST)
+Date: Fri, 9 Sep 2011 19:17:18 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] V4L: add .g_std() core V4L2 subdevice operation
+Message-ID: <Pine.LNX.4.64.1109091916480.915@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4E6FFD7E.2060500@iki.fi>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 14, 2011 at 04:03:58AM +0300, Antti Palosaari wrote:
-> On 09/09/2011 02:46 PM, Daniel Glöckner wrote:
-> >On Thu, Sep 08, 2011 at 07:34:32PM +0300, Antti Palosaari wrote:
-> >>I am working with AF9015 I2C-adapter lock. I need lock I2C-bus since
-> >>there is two tuners having same I2C address on same bus, demod I2C
-> >>gate is used to select correct tuner.
-> >
-> >Would it be possible to use the i2c-mux framework to handle this?
-> >Each tuner will then have its own i2c bus.
-> 
-> Interesting idea, but it didn't worked. It deadlocks. I think it
-> locks since I2C-mux is controlled by I2C "switch" in same I2C bus,
-> not GPIO or some other HW.
+VIDIOC_G_STD can return the current TV-norm to the user in one of two ways:
+if an .vidioc_g_std() ioctl operation is provided by the driver, it is
+called, otherwise the value ot the .current_norm field of struct
+video_device is returned. Since subdevice drivers currently have no access
+to struct video_device objects, the only way to provide this information to
+the user is by implementing a .g_std() method.
 
-Take a look at drivers/i2c/muxes/pca954x.c. You need to use
-parent->algo->master_xfer/smbus_xfer directly as the lock that
-protects you from having both gates open is the lock of the
-root i2c bus.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ include/media/v4l2-subdev.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-  Daniel
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 6e958df..84a61b2 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -158,6 +158,7 @@ struct v4l2_subdev_core_ops {
+ 	int (*s_ext_ctrls)(struct v4l2_subdev *sd, struct v4l2_ext_controls *ctrls);
+ 	int (*try_ext_ctrls)(struct v4l2_subdev *sd, struct v4l2_ext_controls *ctrls);
+ 	int (*querymenu)(struct v4l2_subdev *sd, struct v4l2_querymenu *qm);
++	int (*g_std)(struct v4l2_subdev *sd, v4l2_std_id *norm);
+ 	int (*s_std)(struct v4l2_subdev *sd, v4l2_std_id norm);
+ 	long (*ioctl)(struct v4l2_subdev *sd, unsigned int cmd, void *arg);
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+-- 
+1.7.2.5
+
