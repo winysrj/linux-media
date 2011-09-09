@@ -1,191 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39621 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58435 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753134Ab1IHXSl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 19:18:41 -0400
+	with ESMTP id S933345Ab1IIVdy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2011 17:33:54 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
-Date: Thu, 8 Sep 2011 19:21:27 +0200
-Cc: linux-media@vger.kernel.org, tony@atomide.com,
-	linux@arm.linux.org.uk, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	mchehab@infradead.org, g.liakhovetski@gmx.de,
-	Vaibhav Hiremath <hvaibhav@ti.com>
-References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com>
-In-Reply-To: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2] V4L: dynamically allocate video_device nodes in subdevices
+Date: Fri, 9 Sep 2011 23:32:59 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <Pine.LNX.4.64.1109091701060.915@axis700.grange> <Pine.LNX.4.64.1109091943480.915@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1109091943480.915@axis700.grange>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109081921.28051.laurent.pinchart@ideasonboard.com>
+Message-Id: <201109092332.59943.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Guennadi,
+
+On Friday 09 September 2011 19:45:57 Guennadi Liakhovetski wrote:
+> Currently only very few drivers actually use video_device nodes, embedded
+> in struct v4l2_subdev. Allocate these nodes dynamically for those drivers
+> to save memory for the rest.
 
 Thanks for the patch.
 
-On Thursday 08 September 2011 15:35:22 Deepthy Ravi wrote:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> In order to support TVP5146 (for that matter any video decoder),
-> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
-> device node.
-
-Why so ? Shouldn't it be queried on the subdev output pad directly ?
-
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 > ---
->  drivers/media/video/omap3isp/ispvideo.c |   98
-> ++++++++++++++++++++++++++++++- drivers/media/video/omap3isp/ispvideo.h | 
->   1 +
->  2 files changed, 98 insertions(+), 1 deletions(-)
 > 
-> diff --git a/drivers/media/video/omap3isp/ispvideo.c
-> b/drivers/media/video/omap3isp/ispvideo.c index d5b8236..ff0ffed 100644
-> --- a/drivers/media/video/omap3isp/ispvideo.c
-> +++ b/drivers/media/video/omap3isp/ispvideo.c
-> @@ -37,6 +37,7 @@
->  #include <plat/iovmm.h>
->  #include <plat/omap-pm.h>
+> v2: Checking for NULL is not always enough, you also have to check the
+> right thing for it. In this case it was sd->devnode in
+> v4l2_device_unregister_subdev().
 > 
-> +#include <media/tvp514x.h>
->  #include "ispvideo.h"
->  #include "isp.h"
+>  drivers/media/video/v4l2-device.c |   29 ++++++++++++++++++++++++++---
+>  include/media/v4l2-subdev.h       |   10 ++++++++--
+>  2 files changed, 34 insertions(+), 5 deletions(-)
 > 
-> @@ -1136,7 +1137,97 @@ isp_video_g_input(struct file *file, void *fh,
-> unsigned int *input) static int
->  isp_video_s_input(struct file *file, void *fh, unsigned int input)
+> diff --git a/drivers/media/video/v4l2-device.c
+> b/drivers/media/video/v4l2-device.c index c72856c..d4c093f 100644
+> --- a/drivers/media/video/v4l2-device.c
+> +++ b/drivers/media/video/v4l2-device.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/types.h>
+>  #include <linux/ioctl.h>
+>  #include <linux/i2c.h>
+> +#include <linux/slab.h>
+>  #if defined(CONFIG_SPI)
+>  #include <linux/spi/spi.h>
+>  #endif
+> @@ -194,6 +195,7 @@ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+>  int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
 >  {
-> -	return input == 0 ? 0 : -EINVAL;
-> +	struct isp_video *video = video_drvdata(file);
-> +	struct media_entity *entity = &video->video.entity;
-> +	struct media_entity_graph graph;
-> +	struct v4l2_subdev *subdev;
-> +	struct v4l2_routing route;
-> +	int ret = 0;
-> +
-> +	media_entity_graph_walk_start(&graph, entity);
-> +	while ((entity = media_entity_graph_walk_next(&graph))) {
-> +		if (media_entity_type(entity) ==
-> +				MEDIA_ENT_T_V4L2_SUBDEV) {
-> +			subdev = media_entity_to_v4l2_subdev(entity);
-> +			if (subdev != NULL) {
-> +				if (input == 0)
-> +					route.input = INPUT_CVBS_VI4A;
-> +				else
-> +					route.input = INPUT_SVIDEO_VI2C_VI1C;
-> +				route.output = 0;
-> +				ret = v4l2_subdev_call(subdev, video, s_routing,
-> +						route.input, route.output, 0);
-> +				if (ret < 0 && ret != -ENOIOCTLCMD)
-> +					return ret;
-> +			}
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int isp_video_querystd(struct file *file, void *fh, v4l2_std_id *a)
-> +{
-> +	struct isp_video_fh *vfh = to_isp_video_fh(fh);
-> +	struct isp_video *video = video_drvdata(file);
-> +	struct media_entity *entity = &video->video.entity;
-> +	struct media_entity_graph graph;
-> +	struct v4l2_subdev *subdev;
-> +	int ret = 0;
-> +
-> +	media_entity_graph_walk_start(&graph, entity);
-> +	while ((entity = media_entity_graph_walk_next(&graph))) {
-> +		if (media_entity_type(entity) ==
-> +				MEDIA_ENT_T_V4L2_SUBDEV) {
-> +			subdev = media_entity_to_v4l2_subdev(entity);
-> +			if (subdev != NULL) {
-> +				ret = v4l2_subdev_call(subdev, video, querystd,
-> +						a);
-> +				if (ret < 0 && ret != -ENOIOCTLCMD)
-> +					return ret;
-> +			}
-> +		}
-> +	}
-> +
-> +	vfh->standard.id = *a;
-> +	return 0;
-> +}
-> +
-> +static int isp_video_g_std(struct file *file, void *fh, v4l2_std_id *norm)
-> +{
-> +	struct isp_video_fh *vfh = to_isp_video_fh(fh);
-> +	struct isp_video *video = video_drvdata(file);
-> +
-> +	mutex_lock(&video->mutex);
-> +	*norm = vfh->standard.id;
-> +	mutex_unlock(&video->mutex);
-> +
-> +	return 0;
-> +}
-> +
-> +static int isp_video_s_std(struct file *file, void *fh, v4l2_std_id *norm)
-> +{
-> +	struct isp_video *video = video_drvdata(file);
-> +	struct media_entity *entity = &video->video.entity;
-> +	struct media_entity_graph graph;
-> +	struct v4l2_subdev *subdev;
-> +	int ret = 0;
-> +
-> +	media_entity_graph_walk_start(&graph, entity);
-> +	while ((entity = media_entity_graph_walk_next(&graph))) {
-> +		if (media_entity_type(entity) ==
-> +				MEDIA_ENT_T_V4L2_SUBDEV) {
-> +			subdev = media_entity_to_v4l2_subdev(entity);
-> +			if (subdev != NULL) {
-> +				ret = v4l2_subdev_call(subdev, core, s_std,
-> +						*norm);
-> +				if (ret < 0 && ret != -ENOIOCTLCMD)
-> +					return ret;
-> +			}
-> +		}
-> +	}
-> +
-> +	return 0;
->  }
+>  	struct video_device *vdev;
+> +	struct v4l2_devnode *node;
+>  	struct v4l2_subdev *sd;
+>  	int err;
 > 
->  static const struct v4l2_ioctl_ops isp_video_ioctl_ops = {
-> @@ -1161,6 +1252,9 @@ static const struct v4l2_ioctl_ops
-> isp_video_ioctl_ops = { .vidioc_enum_input		= isp_video_enum_input,
->  	.vidioc_g_input			= isp_video_g_input,
->  	.vidioc_s_input			= isp_video_s_input,
-> +	.vidioc_querystd		= isp_video_querystd,
-> +	.vidioc_g_std			= isp_video_g_std,
-> +	.vidioc_s_std			= isp_video_s_std,
+> @@ -204,7 +206,13 @@ int v4l2_device_register_subdev_nodes(struct
+> v4l2_device *v4l2_dev) if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
+>  			continue;
+> 
+> -		vdev = &sd->devnode;
+> +		node = kzalloc(sizeof(*node), GFP_KERNEL);
+> +		if (!node) {
+> +			err = -ENOMEM;
+> +			goto clean_up;
+> +		}
+> +		vdev = &node->vdev;
+> +
+>  		strlcpy(vdev->name, sd->name, sizeof(vdev->name));
+>  		vdev->v4l2_dev = v4l2_dev;
+>  		vdev->fops = &v4l2_subdev_fops;
+> @@ -213,13 +221,25 @@ int v4l2_device_register_subdev_nodes(struct
+> v4l2_device *v4l2_dev) err = __video_register_device(vdev,
+> VFL_TYPE_SUBDEV, -1, 1,
+>  					      sd->owner);
+>  		if (err < 0)
+> -			return err;
+> +			goto clean_up;
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  		sd->entity.v4l.major = VIDEO_MAJOR;
+>  		sd->entity.v4l.minor = vdev->minor;
+>  #endif
+> +		sd->devnode = node;
+>  	}
+>  	return 0;
+> +
+> +clean_up:
+> +	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
+> +		if (!sd->devnode)
+> +			break;
+> +		video_unregister_device(&sd->devnode->vdev);
+> +		kfree(sd->devnode);
+> +		sd->devnode = NULL;
+> +	}
+> +
+> +	return err;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_nodes);
+> 
+> @@ -245,7 +265,10 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev
+> *sd) if (v4l2_dev->mdev)
+>  		media_device_unregister_entity(&sd->entity);
+>  #endif
+> -	video_unregister_device(&sd->devnode);
+> +	if (sd->devnode)
+> +		video_unregister_device(&sd->devnode->vdev);
+> +	kfree(sd->devnode);
+
+Won't this crash if the node is open ? I think you need to refcount it.
+
+> +	sd->devnode = NULL;
+>  	module_put(sd->owner);
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 257da1a..6e958df 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -510,6 +510,12 @@ struct v4l2_subdev_internal_ops {
+>  /* Set this flag if this subdev generates events. */
+>  #define V4L2_SUBDEV_FL_HAS_EVENTS		(1U << 3)
+> 
+> +/* video_device with a reverse lookup */
+> +struct v4l2_devnode {
+> +	struct v4l2_subdev *sd;
+> +	struct video_device vdev;
+> +};
+> +
+
+Instead of that, why don't you store the subdev pointer in the video_device 
+driver data ?
+
+>  /* Each instance of a subdev driver should create this struct, either
+>     stand-alone or embedded in a larger struct.
+>   */
+> @@ -534,13 +540,13 @@ struct v4l2_subdev {
+>  	void *dev_priv;
+>  	void *host_priv;
+>  	/* subdev device node */
+> -	struct video_device devnode;
+> +	struct v4l2_devnode *devnode;
 >  };
+> 
+>  #define media_entity_to_v4l2_subdev(ent) \
+>  	container_of(ent, struct v4l2_subdev, entity)
+>  #define vdev_to_v4l2_subdev(vdev) \
+> -	container_of(vdev, struct v4l2_subdev, devnode)
+> +	(container_of(vdev, struct v4l2_devnode, vdev)->sd)
 > 
 >  /*
-> --------------------------------------------------------------------------
-> --- @@ -1325,6 +1419,8 @@ int omap3isp_video_register(struct isp_video
-> *video, struct v4l2_device *vdev) printk(KERN_ERR "%s: could not register
-> video device (%d)\n",
->  			__func__, ret);
-> 
-> +	video->video.tvnorms		= V4L2_STD_NTSC | V4L2_STD_PAL;
-> +	video->video.current_norm	= V4L2_STD_NTSC;
->  	return ret;
->  }
-> 
-> diff --git a/drivers/media/video/omap3isp/ispvideo.h
-> b/drivers/media/video/omap3isp/ispvideo.h index 53160aa..bb8feb6 100644
-> --- a/drivers/media/video/omap3isp/ispvideo.h
-> +++ b/drivers/media/video/omap3isp/ispvideo.h
-> @@ -182,6 +182,7 @@ struct isp_video_fh {
->  	struct isp_video *video;
->  	struct isp_video_queue queue;
->  	struct v4l2_format format;
-> +	struct v4l2_standard standard;
->  	struct v4l2_fract timeperframe;
->  };
+>   * Used for storing subdev information per file handle
 
 -- 
 Regards,
