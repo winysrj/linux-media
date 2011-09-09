@@ -1,178 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3765 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752707Ab1I0JbK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 05:31:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 3/5] [media] v4l: simulate old crop API using extended crop/compose API
-Date: Tue, 27 Sep 2011 11:30:55 +0200
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com
-References: <1314363967-6448-1-git-send-email-t.stanislaws@samsung.com> <1314363967-6448-4-git-send-email-t.stanislaws@samsung.com>
-In-Reply-To: <1314363967-6448-4-git-send-email-t.stanislaws@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43517 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758461Ab1IINY4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2011 09:24:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 3/9 v7] V4L: document the new VIDIOC_CREATE_BUFS and VIDIOC_PREPARE_BUF ioctl()s
+Date: Fri, 9 Sep 2011 15:24:37 +0200
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1109080942172.31156@axis700.grange> <Pine.LNX.4.64.1109080945290.31156@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1109080945290.31156@axis700.grange>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109271130.55602.hverkuil@xs4all.nl>
+Message-Id: <201109091524.41716.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, August 26, 2011 15:06:05 Tomasz Stanislawski wrote:
-> This patch allows new video drivers to work correctly with applications that
-> use the old-style crop API.  The old crop ioctl is simulated by using selection
-> callbacks.
-> 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/video/v4l2-ioctl.c |   86 +++++++++++++++++++++++++++++++++----
->  1 files changed, 76 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> index 6e02b45..543405b 100644
-> --- a/drivers/media/video/v4l2-ioctl.c
-> +++ b/drivers/media/video/v4l2-ioctl.c
-> @@ -1696,11 +1696,31 @@ static long __video_do_ioctl(struct file *file,
->  	{
->  		struct v4l2_crop *p = arg;
->  
-> -		if (!ops->vidioc_g_crop)
-> +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
-> +
-> +		if (ops->vidioc_g_crop) {
-> +			ret = ops->vidioc_g_crop(file, fh, p);
-> +		} else
-> +		if (ops->vidioc_g_selection) {
-> +			/* simulate capture crop using selection api */
-> +			struct v4l2_selection s = {
-> +				.type = p->type,
-> +				.target = V4L2_SEL_CROP_ACTIVE,
-> +			};
-> +
-> +			/* crop means compose for output devices */
-> +			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> +				s.target = V4L2_SEL_COMPOSE_ACTIVE;
-> +
-> +			ret = ops->vidioc_g_selection(file, fh, &s);
-> +
-> +			/* copying results to old structure on success */
-> +			if (!ret)
-> +				p->c = s.r;
-> +		} else {
->  			break;
-> +		}
->  
-> -		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
-> -		ret = ops->vidioc_g_crop(file, fh, p);
->  		if (!ret)
->  			dbgrect(vfd, "", &p->c);
->  		break;
-> @@ -1709,11 +1729,26 @@ static long __video_do_ioctl(struct file *file,
->  	{
->  		struct v4l2_crop *p = arg;
->  
-> -		if (!ops->vidioc_s_crop)
-> -			break;
->  		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
->  		dbgrect(vfd, "", &p->c);
-> -		ret = ops->vidioc_s_crop(file, fh, p);
-> +
-> +		if (ops->vidioc_s_crop) {
-> +			ret = ops->vidioc_s_crop(file, fh, p);
-> +		} else
-> +		if (ops->vidioc_s_selection) {
-> +			/* simulate capture crop using selection api */
-> +			struct v4l2_selection s = {
-> +				.type = p->type,
-> +				.target = V4L2_SEL_CROP_ACTIVE,
-> +				.r = p->c,
-> +			};
-> +
-> +			/* crop means compose for output devices */
-> +			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> +				s.target = V4L2_SEL_COMPOSE_ACTIVE;
-> +
-> +			ret = ops->vidioc_s_selection(file, fh, &s);
-> +		}
->  		break;
->  	}
->  	case VIDIOC_G_SELECTION:
-> @@ -1746,12 +1781,43 @@ static long __video_do_ioctl(struct file *file,
->  	{
->  		struct v4l2_cropcap *p = arg;
->  
-> -		/*FIXME: Should also show v4l2_fract pixelaspect */
-> -		if (!ops->vidioc_cropcap)
-> +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
-> +		if (ops->vidioc_cropcap) {
-> +			ret = ops->vidioc_cropcap(file, fh, p);
-> +		} else
-> +		if (ops->vidioc_g_selection) {
-> +			struct v4l2_selection s = { .type = p->type };
-> +			struct v4l2_rect bounds;
-> +
-> +			/* obtaining bounds */
-> +			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> +				s.target = V4L2_SEL_COMPOSE_BOUNDS;
-> +			else
-> +				s.target = V4L2_SEL_CROP_BOUNDS;
-> +			ret = ops->vidioc_g_selection(file, fh, &s);
-> +			if (ret)
-> +				break;
-> +			bounds = s.r;
-> +
-> +			/* obtaining defrect */
-> +			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> +				s.target = V4L2_SEL_COMPOSE_DEFAULT;
-> +			else
-> +				s.target = V4L2_SEL_CROP_DEFAULT;
-> +			ret = ops->vidioc_g_selection(file, fh, &s);
-> +			if (ret)
-> +				break;
-> +
-> +			/* storing results */
-> +			p->bounds = bounds;
-> +			p->defrect = s.r;
-> +			p->pixelaspect.numerator = 1;
-> +			p->pixelaspect.denominator = 1;
-> +		} else {
->  			break;
-> +		}
->  
-> -		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
-> -		ret = ops->vidioc_cropcap(file, fh, p);
-> +		/*FIXME: Should also show v4l2_fract pixelaspect */
+Hi Guennadi,
 
-We really need a solution for this. I'm not happy that this hasn't been
-resolved yet.
+Thank you for the patch.
 
-What about this: if ops->vidioc_g_selection is non-NULL, then fill in bounds
-and defrect as above. But also call ops->vidioc_cropcap at the end if non-NULL,
-so that the driver can fill in the pixelaspect.
+As discussed over jabber, we're suffering from an AB-BA deadlock that this 
+patch could make worse.
 
-So the code would look like this:
+The mmap code path takes mm->mmap_sem in the kernel' mmap handler before 
+calling the driver's mmap handler. The driver will then lock the queue mutex 
+before calling vb2_mmap (or let the core lock the vdev mutex).
 
-	if (ops->vidioc_g_selection) {
-		fill in bounds and defrect and set pixelaspect to 1, 1
-	}
-	if (ops->vidioc_cropcap)
-		ops->vidioc_cropcap();
+In the VIDIOC_QBUF code path, the driver will first lock the queue mutex (or 
+let the core lock the vdev mutex) and call vb2_qbuf. This will then take mm-
+>mmap_sem to call get_user_pages for USERPTR buffers. The two locks are taken 
+in different orders depending on the code paths, resulting in a possible AB-BA 
+deadlock.
 
-If a driver supports g_selection, then cropcap only needs to fill in the
-pixelaspect.
+mmap'ing USERPTR buffers doesn't make sense, so application will likely not 
+experience any deadlock. However, if VIDIOC_CREATE_BUFS allows mixing MMAP and 
+USERPTR buffers, we could suddenly see a rise of deadlock issues resulting 
+from valid use cases.
 
->  		if (!ret) {
->  			dbgrect(vfd, "bounds ", &p->bounds);
->  			dbgrect(vfd, "defrect ", &p->defrect);
-> 
+This problem needs to be fixed anyway, as a rogue application can currently 
+produce a kernel deadlock. The fix can probably be pretty simple if we decide 
+not to support mixing MMAP and USERPTR buffers, but it might become more 
+complex if we need to support that.
 
-And let's show the pixelaspect here as well.
+I'm interested in hearing what others think about this.
 
-Does this sounds reasonable?
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
