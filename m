@@ -1,85 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19399 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754190Ab1IRP0a (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Sep 2011 11:26:30 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p8IFQU4s015753
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 18 Sep 2011 11:26:30 -0400
-Received: from [10.11.10.158] (vpn-10-158.rdu.redhat.com [10.11.10.158])
-	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p8IFQSfr019108
-	for <linux-media@vger.kernel.org>; Sun, 18 Sep 2011 11:26:29 -0400
-Message-ID: <4E760DA4.8030906@redhat.com>
-Date: Sun, 18 Sep 2011 12:26:28 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:61806 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759356Ab1IIRiB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2011 13:38:01 -0400
+Received: by eyx24 with SMTP id 24so1490328eyx.19
+        for <linux-media@vger.kernel.org>; Fri, 09 Sep 2011 10:37:59 -0700 (PDT)
+Message-ID: <4E6A4EF3.3010502@gmail.com>
+Date: Fri, 09 Sep 2011 19:37:55 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [ANNOUNCE] patchwork.linuxtv.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	hverkuil@xs4all.nl, s.nawrocki@samsung.com
+Subject: Re: [RFC] Reserved fields in v4l2_mbus_framefmt, v4l2_subdev_format
+ alignment
+References: <20110905155528.GB1308@valkosipuli.localdomain> <4E667019.9000703@gmail.com> <20110906210743.GA1724@valkosipuli.localdomain> <201109081221.30031.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201109081221.30031.laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Sirs,
+Hi Laurent,
 
-As several of you noticed, we were having several troubles with patchwork.kernel.org,
-resulting on patches that got lost and several other troubles. Still, it is the
-main tool I use here to collect random patches that people send through the mailing
-list and that the driver maintainer is lazy^Wbusy enough to not care to pick and
-send me via a git pull request.
+On 09/08/2011 12:21 PM, Laurent Pinchart wrote:
+> On Tuesday 06 September 2011 23:07:43 Sakari Ailus wrote:
+>> On Tue, Sep 06, 2011 at 09:10:17PM +0200, Sylwester Nawrocki wrote:
+>>> On 09/05/2011 05:55 PM, Sakari Ailus wrote:
+>>>> Hi all,
+>>>>
+>>>> I recently came across a few issues in the definitions of
+>>>> v4l2_subdev_format and v4l2_mbus_framefmt when I was working on sensor
+>>>> control that I wanted to bring up here. The appropriate structure
+>>>> right now look like this:
+>>>>
+>>>> include/linux/v4l2-subdev.h:
+>>>> ---8<---
+>>>> /**
+>>>>
+>>>>    * struct v4l2_subdev_format - Pad-level media bus format
+>>>>    * @which: format type (from enum v4l2_subdev_format_whence)
+>>>>    * @pad: pad number, as reported by the media API
+>>>>    * @format: media bus format (format code and frame size)
+>>>>    */
+>>>>
+>>>> struct v4l2_subdev_format {
+>>>>
+>>>>           __u32 which;
+>>>>           __u32 pad;
+>>>>           struct v4l2_mbus_framefmt format;
+>>>>           __u32 reserved[8];
+>>>>
+>>>> };
+>>>> ---8<---
+>>>>
+>>>> include/linux/v4l2-mediabus.h:
+>>>> ---8<---
+>>>> /**
+>>>>
+>>>>    * struct v4l2_mbus_framefmt - frame format on the media bus
+>>>>    * @width:      frame width
+>>>>    * @height:     frame height
+>>>>    * @code:       data format code (from enum v4l2_mbus_pixelcode)
+>>>>    * @field:      used interlacing type (from enum v4l2_field)
+>>>>    * @colorspace: colorspace of the data (from enum v4l2_colorspace)
+>>>>    */
+>>>>
+>>>> struct v4l2_mbus_framefmt {
+>>>>
+>>>>           __u32                   width;
+>>>>           __u32                   height;
+>>>>           __u32                   code;
+>>>>           __u32                   field;
+>>>>           __u32                   colorspace;
+>>>>           __u32                   reserved[7];
+>>>>
+>>>> };
+>>>> ---8<---
+>>>>
+>>>> Offering a lower level interface for sensors which allows better
+>>>> control of them from the user space involves providing the link
+>>>> frequency to the user space. While the link frequency will be a
+>>>> control, together with the bus type and number of lanes (on serial
+>>>> links), this will define the pixel clock.
+>>>>
+>>>> <URL:http://www.spinics.net/lists/linux-media/msg36492.html>
+>>>>
+>>>> After adding pixel clock to v4l2_mbus_framefmt there will be six
+>>>> reserved fields left, one of which will be further possibly consumed
+>>>> by maximum image size:
+>>>>
+>>>> <URL:http://www.spinics.net/lists/linux-media/msg35949.html>
+>>>
+>>> Yes, thanks for remembering about it. I have done some experiments with a
+>>> sensor producing JPEG data and I'd like to add '__u32 framesamples'
+>>> field to struct v4l2_mbus_framefmt, even though it solves only part of
+>>> the problem. I'm not sure when I'll be able to get this finished though.
+>>> I've just attached the initial patch now.
+>>>
+>>>> Frame blanking (horizontal and vertical) and number of lanes might be
+>>>> needed in the struct as well in the future, bringing the reserved
+>>>> count down to two. I find this alarmingly low for a relatively new
+>>>> structure definition which will potentially have a few different uses
+>>>> in the future.
+>>>
+>>> Sorry, could you explain why we need to put the blanking information in
+>>> struct v4l2_mbus_framefmt ? I thought it had been initially agreed that
+>>> the control framework will be used for this.
+>>
+>> Configuration of blanking will be implemented as controls, yes.
+>>
+>> Bandwidth calculation in the ISP driver may well need to know more detailed
+>> information than just the maximum pixel rate. Averge rate over certain
+>> period may also be important.
+>>
+>> For example, take a sensor which is able to produce pixel rate of 200 Mp/s.
+>> In the OMAP 3 ISP only the CSI2 block will be able to process pixels at
+>> such rate. The ISP driver needs this information to be able to decide
+>> whether it's safe to start streaming or not.
+>>
+>> Higher momentary pixel rates are still possible as there are buffers
+>> between some of the blocks. When using downscaling on sensors this gets
+>> more tricky. There may be bursts of data which may overflow these buffers
+>> since the sensors do not output data at amortised rate. Information on the
+>> sensor (bursts) and size of the buffers is at least required to assess
+>> this question.
+>>
+>> I have a vague feeling we may need some of this data as part of the
+>> v4l2_mbus_framefmt before we have a solution.
+> 
+> Do we really need to make all this (including the proposed framesamples field)
+> part of v4l2_mbus_framefmt ? My understanding is that the information needs to
+> be propagated down the pipeline to verify pipeline validity at streamon time
+> and to configure blocks down in the chain. That's an in-kernel requirement,
+> wouldn't it be better to use an in-kernel API for that instead of requiring
+> userspace to do the job ?
 
-At the end of August, Kernel.org infrastructure were put down for maintainance, and 
-there's no ETA for it to return.
+I'll hold on for a moment on commenting the handling of blanking information
+and the pixel clock in user space, but as far as memory buffer size negotiation
+between drivers is concerned it always felt more appropriate to me to handle
+such things in the kernel and isolate that from user space.
 
-All new patches sent to the linux-media ML will now be sent also to patchwork.linuxtv.org,
-where they'll be stored if patchwork euristics detect the email as a patch.
+Actually we need to retrieve the size of the buffer during allocation time
+in the host driver. So even if we have added maximum buffer size information
+to struct v4l2_mbus_framefmt the format would have to be queried internally 
+from a sensor subdev.
 
-So, I decided to run a new patchwork instance at linuxtv.org. Unfortunately, with
-kernel.org servers down, I could not recover the patches that were there. Due to that,
-I've sent to patchwork filter the emails from my linux-media archives (that has a few
-holes, but it is better than nothing).
+I can't really think of any usage of the v4l2_mbus_framefmt::framesamples
+field in user space ATM. The MIPI CSI receiver drivers which transfer data 
+directly to memory will, AFAIU, always expose a video node, so those subdevs
+could possibly negotiate the buffer size in kernel with sensor subdev directly.
 
-About 7500+ patches were added there, since 2009. As most of the patches were already
-applied, I've scripted some logic to detect if a patch were (partially) applied, or if
-the patch were rejected. I'm now reviewing manually the patches that still applies and
-pinging people about them, if the patch is too old and I didn't notice it being applied.
-This gives us a second chance of reviewing the patches that older versions of Patchwork
-(or kernel.org instance) didn't catch.
-
-The patchwork instance at linuxtv is capable of automatically sending notifications to
-people if a patch changes its state. I'll likely enable this feature on a near future,
-after finishing the review of the old stuff. I'll also likely try to use the delegate
-function of patchwork. I'll keep you updated about new features as we'll be able to
-activate them.
-
-For those that are submitting patches, I'd like to remember that patchwork has some rules
-to accept a patch. It basically will get your patch if:
-	- the patch sent inlined;
-	- the patch weren't mangled by the emailer (some emailers love to break long
-lines into smaller ones, damaging the patches);
-	- are encoded with ASCII and doesn't contain any character upper than 0x80
-(no accented characters).
-
-Patchwork might also get patches uuencoded, with different charsets (in particular, if
-your name has accents, I recommend you to use UTF-8) and/or with the patch attached, but
-I recommend you to double check at patchwork.linuxtv.org to see if the patch were caught.
-
-Also, although patchwork does accept attached patches, you should not send patches
-on this way, as people can't easily review it (as several developers use plain text
-emailers that can't reply to the inlined patch text).
-
-If you discover any problems there, or notice a patch that were badly tagged (and aren't
-marked there as "New"), please drop me an email.
-
-Ah, you should notice that, by default, patchwork will only show patches tagged as
-New or Under review (e. g., patches with "Action required"). So, if you want to search
-for a patch that might be wrongly tagged, you'll need to click into patchwork "Filters:"
-field and change it to show all patch status, or click on the URL bellow:
-
-	http://patchwork.linuxtv.org/project/linux-media/list/?state=*
-
-I hope you enjoy patchwork.linuxtv.org!
-
-Thanks,
-Mauro
+--
+Regards,
+Sylwester
