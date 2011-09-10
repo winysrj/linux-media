@@ -1,64 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:48224 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750971Ab1IZC4s (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:57581 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758887Ab1IJK1w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Sep 2011 22:56:48 -0400
-Received: by wwf22 with SMTP id 22so6105872wwf.1
-        for <linux-media@vger.kernel.org>; Sun, 25 Sep 2011 19:56:46 -0700 (PDT)
-Message-ID: <4E7FE9E8.3010404@gmail.com>
-Date: Sun, 25 Sep 2011 23:56:40 -0300
-From: Mauro Carvalho Chehab <maurochehab@gmail.com>
+	Sat, 10 Sep 2011 06:27:52 -0400
+Date: Sat, 10 Sep 2011 12:27:47 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2] V4L: dynamically allocate video_device nodes in
+ subdevices
+In-Reply-To: <201109092332.59943.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1109101224190.25219@axis700.grange>
+References: <Pine.LNX.4.64.1109091701060.915@axis700.grange>
+ <Pine.LNX.4.64.1109091943480.915@axis700.grange>
+ <201109092332.59943.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Johannes Stezenbach <js@linuxtv.org>
-CC: Patrick Dickey <pdickeybeta@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: Problems cloning the git repostories
-References: <4E7F1FB5.5030803@gmail.com> <20110925180340.GB23820@linuxtv.org>
-In-Reply-To: <20110925180340.GB23820@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 25-09-2011 15:03, Johannes Stezenbach escreveu:
-> On Sun, Sep 25, 2011 at 07:33:57AM -0500, Patrick Dickey wrote:
->>
->> I tried to follow the steps for cloning both the "media_tree.git" and
->> "media_build.git" repositories, and received errors for both.  The
->> media_tree repository failed on the first line
->>
->>> git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git v4l-dvb 
->>
->> which I'm assuming is because kernel.org is down.
->>
->> The media_build.git repository fails on the first line also
->>
->>> git clone git://linuxtv.org/media_build.git 
->>
->> with a fatal: read error: Connection reset by peer.
-> 
-> The git error should be fixed now.
-> 
-> But please don't clone from linuxtv.org, intead use
-> git clone git://github.com/torvalds/linux.git
-> and then add linuxtv to your repo like described on
-> http://git.linuxtv.org/media_tree.git
+Hi Laurent
 
-I've updated the instructions together with the git tree to point to the
-github tree.
+On Fri, 9 Sep 2011, Laurent Pinchart wrote:
 
-Btw, the media_build had an issue due to the move of tm6000 and altera-stapl
-out of staging. I've fixed it. At least here with 3.0 kernel, everything
-is compiling fine.
-
-Cheers,
-Mauro
+> Hi Guennadi,
 > 
+> On Friday 09 September 2011 19:45:57 Guennadi Liakhovetski wrote:
+> > Currently only very few drivers actually use video_device nodes, embedded
+> > in struct v4l2_subdev. Allocate these nodes dynamically for those drivers
+> > to save memory for the rest.
 > 
-> Johannes
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Thanks for the patch.
+> 
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> > 
+> > v2: Checking for NULL is not always enough, you also have to check the
+> > right thing for it. In this case it was sd->devnode in
+> > v4l2_device_unregister_subdev().
+> > 
+> >  drivers/media/video/v4l2-device.c |   29 ++++++++++++++++++++++++++---
+> >  include/media/v4l2-subdev.h       |   10 ++++++++--
+> >  2 files changed, 34 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/v4l2-device.c
+> > b/drivers/media/video/v4l2-device.c index c72856c..d4c093f 100644
+> > --- a/drivers/media/video/v4l2-device.c
+> > +++ b/drivers/media/video/v4l2-device.c
+> > @@ -21,6 +21,7 @@
+> >  #include <linux/types.h>
+> >  #include <linux/ioctl.h>
+> >  #include <linux/i2c.h>
+> > +#include <linux/slab.h>
+> >  #if defined(CONFIG_SPI)
+> >  #include <linux/spi/spi.h>
+> >  #endif
+> > @@ -194,6 +195,7 @@ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+> >  int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+> >  {
+> >  	struct video_device *vdev;
+> > +	struct v4l2_devnode *node;
+> >  	struct v4l2_subdev *sd;
+> >  	int err;
+> > 
+> > @@ -204,7 +206,13 @@ int v4l2_device_register_subdev_nodes(struct
+> > v4l2_device *v4l2_dev) if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
+> >  			continue;
+> > 
+> > -		vdev = &sd->devnode;
+> > +		node = kzalloc(sizeof(*node), GFP_KERNEL);
+> > +		if (!node) {
+> > +			err = -ENOMEM;
+> > +			goto clean_up;
+> > +		}
+> > +		vdev = &node->vdev;
+> > +
+> >  		strlcpy(vdev->name, sd->name, sizeof(vdev->name));
+> >  		vdev->v4l2_dev = v4l2_dev;
+> >  		vdev->fops = &v4l2_subdev_fops;
+> > @@ -213,13 +221,25 @@ int v4l2_device_register_subdev_nodes(struct
+> > v4l2_device *v4l2_dev) err = __video_register_device(vdev,
+> > VFL_TYPE_SUBDEV, -1, 1,
+> >  					      sd->owner);
+> >  		if (err < 0)
+> > -			return err;
+> > +			goto clean_up;
+> >  #if defined(CONFIG_MEDIA_CONTROLLER)
+> >  		sd->entity.v4l.major = VIDEO_MAJOR;
+> >  		sd->entity.v4l.minor = vdev->minor;
+> >  #endif
+> > +		sd->devnode = node;
+> >  	}
+> >  	return 0;
+> > +
+> > +clean_up:
+> > +	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
+> > +		if (!sd->devnode)
+> > +			break;
+> > +		video_unregister_device(&sd->devnode->vdev);
+> > +		kfree(sd->devnode);
+> > +		sd->devnode = NULL;
+> > +	}
+> > +
+> > +	return err;
+> >  }
+> >  EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_nodes);
+> > 
+> > @@ -245,7 +265,10 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev
+> > *sd) if (v4l2_dev->mdev)
+> >  		media_device_unregister_entity(&sd->entity);
+> >  #endif
+> > -	video_unregister_device(&sd->devnode);
+> > +	if (sd->devnode)
+> > +		video_unregister_device(&sd->devnode->vdev);
+> > +	kfree(sd->devnode);
+> 
+> Won't this crash if the node is open ? I think you need to refcount it.
 
+Hm, I've been thinking about it, but maybe not far enough.
+
+> 
+> > +	sd->devnode = NULL;
+> >  	module_put(sd->owner);
+> >  }
+> >  EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> > index 257da1a..6e958df 100644
+> > --- a/include/media/v4l2-subdev.h
+> > +++ b/include/media/v4l2-subdev.h
+> > @@ -510,6 +510,12 @@ struct v4l2_subdev_internal_ops {
+> >  /* Set this flag if this subdev generates events. */
+> >  #define V4L2_SUBDEV_FL_HAS_EVENTS		(1U << 3)
+> > 
+> > +/* video_device with a reverse lookup */
+> > +struct v4l2_devnode {
+> > +	struct v4l2_subdev *sd;
+> > +	struct video_device vdev;
+> > +};
+> > +
+> 
+> Instead of that, why don't you store the subdev pointer in the video_device 
+> driver data ?
+
+Is it free yet? Could do, sure.
+
+> >  /* Each instance of a subdev driver should create this struct, either
+> >     stand-alone or embedded in a larger struct.
+> >   */
+> > @@ -534,13 +540,13 @@ struct v4l2_subdev {
+> >  	void *dev_priv;
+> >  	void *host_priv;
+> >  	/* subdev device node */
+> > -	struct video_device devnode;
+> > +	struct v4l2_devnode *devnode;
+> >  };
+> > 
+> >  #define media_entity_to_v4l2_subdev(ent) \
+> >  	container_of(ent, struct v4l2_subdev, entity)
+> >  #define vdev_to_v4l2_subdev(vdev) \
+> > -	container_of(vdev, struct v4l2_subdev, devnode)
+> > +	(container_of(vdev, struct v4l2_devnode, vdev)->sd)
+> > 
+> >  /*
+> >   * Used for storing subdev information per file handle
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
