@@ -1,60 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58443 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753791Ab1IEAZB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Sep 2011 20:25:01 -0400
-Message-ID: <4E6416D6.2060706@iki.fi>
-Date: Mon, 05 Sep 2011 03:24:54 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.17.8]:50223 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758700Ab1IJKbm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Sep 2011 06:31:42 -0400
+Date: Sat, 10 Sep 2011 12:30:34 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+cc: Sylwester Nawrocki <snjw23@gmail.com>, linux-media@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 08/13 v3] ov6650: convert to the control framework.
+In-Reply-To: <201109092258.06012.jkrzyszt@tis.icnet.pl>
+Message-ID: <Pine.LNX.4.64.1109101228460.25219@axis700.grange>
+References: <1315471446-17890-1-git-send-email-g.liakhovetski@gmx.de>
+ <Pine.LNX.4.64.1109091947540.915@axis700.grange> <4E6A59AA.3060703@gmail.com>
+ <201109092258.06012.jkrzyszt@tis.icnet.pl>
 MIME-Version: 1.0
-To: Chris Rankin <rankincj@yahoo.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: ERROR: "em28xx_add_into_devlist" [drivers/media/video/em28xx/em28xx.ko]
- undefined!
-References: <4E640DBB.8010504@iki.fi> <4E64148A.3010704@yahoo.com>
-In-Reply-To: <4E64148A.3010704@yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/05/2011 03:15 AM, Chris Rankin wrote:
-> On 05/09/11 00:46, Antti Palosaari wrote:
->> Moikka,
->> Current linux-media make gives error. Any idea what's wrong?
->>
->>
->> Kernel: arch/x86/boot/bzImage is ready (#1)
->> Building modules, stage 2.
->> MODPOST 1907 modules
->> ERROR: "em28xx_add_into_devlist"
->> [drivers/media/video/em28xx/em28xx.ko] undefined!
->> WARNING: modpost: Found 2 section mismatch(es).
->> To see full details build your kernel with:
->> 'make CONFIG_DEBUG_SECTION_MISMATCH=y'
->> make[1]: *** [__modpost] Error 1
->> make: *** [modules] Error 2
->
-> The function em28xx_add_into_devlist() should have been deleted as part
-> of this change:
->
-> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=6c03e38b34dcfcdfa2f10cf984995a48f030f039
->
->
-> Its only reference should have been removed at the same time.
+On Fri, 9 Sep 2011, Janusz Krzysztofik wrote:
 
-git grep m28xx_add_into_devlis drivers/media/
-drivers/media/video/em28xx/em28xx-cards.c: 
-em28xx_add_into_devlist(dev);
-drivers/media/video/em28xx/em28xx.h:void em28xx_add_into_devlist(struct 
-em28xx *dev);
+> On Fri, 9 Sep 2011 at 20:23:38 Sylwester Nawrocki wrote:
+> > Hi,
+> > 
+> > On 09/09/2011 08:01 PM, Guennadi Liakhovetski wrote:
+> 
+> [snip]
+> 
+> > > I basically agree with all your comments apart from maybe
+> > > 
+> > > [snip]
+> > > 
+> > >>> @@ -1176,9 +1021,11 @@ static int ov6650_probe(struct i2c_client *client,
+> > >>>   	priv->colorspace  = V4L2_COLORSPACE_JPEG;
+> > >>>
+> > >>>   	ret = ov6650_video_probe(icd, client);
+> > >>> +	if (!ret)
+> > >>> +		ret = v4l2_ctrl_handler_setup(&priv->hdl);
+> > >>
+> > >> Are you sure the probe function should fail if v4l2_ctrl_handler_setup()
+> > >> fails? Its usage is documented as optional.
+> > > 
+> > > Not sure what the standard really meant, but it looks like this is done in
+> > > all patches in this series. So, we'd have to change this everywhere. Most
+> > > other drivers indeed do not care.
+> > 
+> > The usage of v4l2_ctrl_handler_setup() is optional, but if this function
+> > is not used, then AFAIU the driver writer needs to ensure the control's 
+> > values after the device is initialized are exactly as those specified during
+> > the control creation. Of course v4l2_ctrl_handler_setup() failure might
+> > mean s_ctrl op failed, which might be caused by some H/W access errors.
+> > So IMHO it is always a good idea to check the return value if we know
+> > the batch controls setup shouldn't fail.
+> 
+> I'm not for ignoring that return value, only wondering if the i2c_driver 
+> .probe handler should really fail in such cases, effectivelly preventing 
+> the device from being accessible at all.
+> 
+> Perhaps a warning message would be sufficient?
 
-If you select em28xx-cards.c blob link you give you can see it is there 
-still for some reason.
+Well, restoring the state is normally something pretty basic like writing 
+a couple of registers via i2c. If that didn't work out, there's little 
+chance you'll be able to use the device anyway. So, I'd feel pretty safe 
+with erroring out. If we ever encounter a case, where this can fail in a 
+non-fatal way, we can always relax it.
 
-regards
-Antti
-
--- 
-http://palosaari.fi/
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
