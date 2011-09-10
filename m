@@ -1,92 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:59127 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757179Ab1IGVj0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2011 17:39:26 -0400
-Received: by gxk21 with SMTP id 21so322617gxk.5
-        for <linux-media@vger.kernel.org>; Wed, 07 Sep 2011 14:39:26 -0700 (PDT)
+Received: from mailout-de.gmx.net ([213.165.64.22]:54704 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1759171Ab1IJKvk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Sep 2011 06:51:40 -0400
+Received: from [192.168.178.41] (Rokh.fritz.box [192.168.178.41])
+	by AMD-Geode-LX.localdomain (Postfix) with ESMTP id BE0A3C0064
+	for <linux-media@vger.kernel.org>; Sat, 10 Sep 2011 12:51:38 +0200 (CEST)
+Message-ID: <4E6B413B.8040802@gmx.de>
+Date: Sat, 10 Sep 2011 12:51:39 +0200
+From: Georg Gast <schorsch_76@gmx.de>
 MIME-Version: 1.0
-In-Reply-To: <CAOcJUbzuKB5aXbfo9Ao5abuR_LvG3L17EhhOX-sKUVoVkURHmg@mail.gmail.com>
-References: <E1R0zZM-0008EU-2T@www.linuxtv.org>
-	<4E67DF8C.603@iki.fi>
-	<4E67E046.9060808@iki.fi>
-	<CAOcJUbzuKB5aXbfo9Ao5abuR_LvG3L17EhhOX-sKUVoVkURHmg@mail.gmail.com>
-Date: Wed, 7 Sep 2011 17:39:26 -0400
-Message-ID: <CAOcJUbzrc2AM7VnWYaqt0Pfb4x_HmjWBJUKc1D0OFxs_SVm_0Q@mail.gmail.com>
-Subject: Re: [git:v4l-dvb/for_v3.2] [media] dvb-usb: refactor MFE code for
- individual streaming config per frontend
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: Some Questions from a noobie v4l driver developer
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 7, 2011 at 5:35 PM, Michael Krufky <mkrufky@kernellabs.com> wrote:
->> On 09/08/2011 12:18 AM, Antti Palosaari wrote:
->>>
->>> This patch seems to break all DVB USB devices we have. Michael, could
->>> you check and fix it asap.
->>>
->>> On 09/06/2011 08:21 PM, Mauro Carvalho Chehab wrote:
->>>>
->>>> This is an automatic generated email to let you know that the
->>>> following patch were queued at the
->>>> http://git.linuxtv.org/media_tree.git tree:
->>>>
->>>> Subject: [media] dvb-usb: refactor MFE code for individual streaming
->>>> config per frontend
->>>> Author: Michael Krufky<mkrufky@kernellabs.com>
->>>> Date: Tue Sep 6 09:31:57 2011 -0300
->>>>
->>>> refactor MFE code to allow for individual streaming configuration
->>>> for each frontend
->>>>
->>>> Signed-off-by: Michael Krufky<mkrufky@kernellabs.com>
->>>> Reviewed-by: Antti Palosaari<crope@iki.fi>
->>>> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
->>>
->>>> drivers/media/dvb/dvb-usb/dvb-usb-dvb.c | 141 ++++++-----
->>>
->>> dvb_usb_ctrl_feed()
->>> if ((adap->feedcount == onoff) && (!onoff))
->>> adap->active_fe = -1;
->>>
->>>
->>>
->>>>
->>>> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=77eed219fed5a913f59329cc846420fdeab0150f
->>>>
->>>> <diff discarded since it is too big>
->>>
->>>
->
-> On Wed, Sep 7, 2011 at 5:21 PM, Antti Palosaari <crope@iki.fi> wrote:
->> This error is shown by VLC when channel changed:
->>
->> [0x7f1bbc000cd0] dvb access error: DMXSetFilter: failed with -1 (Invalid
->> argument)
->> [0x7f1bbc000cd0] dvb access error: DMXSetFilter failed
->> [0x7f1bbc32f910] main stream error: cannot pre fill buffer
->>
->>
->> but it seems to be related dvb_usb_ctrl_feed() I pointed earlier mail.
->>
->> Antti
->>
->>
->
->
-> I will take a look at this tonight and give it a test with vlc.
-> Thanks for reporting the problem.
+Hi all!
 
+Currently i try to write a driver for a "Technisat Skysat2 HD eXpress"
+DVB-S2 card. My current module is able to register the pci device and
+unload. And now begins the journey to v4l ;)
 
-Antti,
+As there is no driver available for linux i decided to write it myself.
 
-Just to be sure -- which device driver did you use for your testing,
-and are you using the exact code in Mauro's for_v3.2 branch, or
-modified code?
+Subdevice IDs: 1ae4:0700
 
-Thanks,
+My device contains the folowing ics:
+SAA7160 rev3 (PCIe Bridge)
+STV0903B (decoder)
+STV6110A (tuner)
 
-Mike Krufky
+For the two frontends STV0903B and the tuner STV6110A exists already
+driver. I dived a little through the linux kernel code and found the
+driver for the "Technisat DVB-S/S2 USB 2.0 device" (from Patrick
+Boettcher) which contains the same chips except the pcie bridge.
+
+I read in the documentation of the linux kernel (Debian Wheezy - kernel
+3.0.0), that v4l(1) was droped in 2.6.37 and new drivers should use
+v4l2. The documentation of video4linux2 in the linux kernel shows that
+there is a important function where all "ops" are registered.
+v4l2_subdev_init(). In my "reference" driver (technisat-usb2.c for the
+technisat usb device) that function is not used. Patrick Boettcher
+speeks of a DVB-USB framework on his
+homepage(http://www.wi-bw.tfh-wildau.de/~pboettch/home/index.php).
+
+So my questions are:
+a) What framework should i use? V4L2?
+b) Is it reasonable that i could refactor most of the code of Patrick
+Boettchers Technisat USB Driver?
+c) Is the documentation for video4linux2 uptodate in the kernel? Or
+should i use an other documentation?
+d) There is a driver namned saa716x from Manu Abrahams. Is this driver
+in  state where i could modify it that it supports my device?
+
+Best Regards
+Georg Gast
