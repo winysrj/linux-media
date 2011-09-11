@@ -1,57 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49136 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750978Ab1IPNGO (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:33412 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753570Ab1IKXaV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Sep 2011 09:06:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Ravi, Deepthy" <deepthy.ravi@ti.com>
-Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
-Date: Fri, 16 Sep 2011 15:06:16 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"tony@atomide.com" <tony@atomide.com>,
-	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com> <201109081921.28051.laurent.pinchart@ideasonboard.com> <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09083D@dbde03.ent.ti.com>
-In-Reply-To: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09083D@dbde03.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Sun, 11 Sep 2011 19:30:21 -0400
+Received: by wwf22 with SMTP id 22so643879wwf.1
+        for <linux-media@vger.kernel.org>; Sun, 11 Sep 2011 16:30:20 -0700 (PDT)
+Subject: [PATCH 2/2] [ver 1.90] DM04/QQBOX Reduce USB buffer size.
+From: tvboxspy <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Mon, 12 Sep 2011 00:30:10 +0100
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109161506.16505.laurent.pinchart@ideasonboard.com>
+Message-ID: <4e6d448b.d0c8e30a.4606.ffff8ac9@mx.google.com>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Deepthy,
+Reduced unused buffer size to 64.
 
-On Friday 16 September 2011 15:00:53 Ravi, Deepthy wrote:
-> On Thursday, September 08, 2011 10:51 PM Laurent Pinchart wrote: 
-> > On Thursday 08 September 2011 15:35:22 Deepthy Ravi wrote:
-> >> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >> 
-> >> In order to support TVP5146 (for that matter any video decoder),
-> >> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
-> >> device node.
-> > 
-> > Why so ? Shouldn't it be queried on the subdev output pad directly ?
-> 
-> Because standard v4l2 application for analog devices will call these std
-> ioctls on the streaming device node. So it's done on /dev/video to make the
-> existing apllication work.
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/dvb/dvb-usb/lmedm04.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-Existing applications can't work with the OMAP3 ISP (and similar complex 
-embedded devices) without userspace support anyway, either in the form of a 
-GStreamer element or a libv4l plugin. I still believe that analog video 
-standard operations should be added to the subdev pad operations and exposed 
-through subdev device nodes, exactly as done with formats.
-
+diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
+index 5fdeed1..b922824 100644
+--- a/drivers/media/dvb/dvb-usb/lmedm04.c
++++ b/drivers/media/dvb/dvb-usb/lmedm04.c
+@@ -162,7 +162,7 @@ static int lme2510_usb_talk(struct dvb_usb_device *d,
+ 	int ret = 0;
+ 
+ 	if (st->usb_buffer == NULL) {
+-		st->usb_buffer = kmalloc(512, GFP_KERNEL);
++		st->usb_buffer = kmalloc(64, GFP_KERNEL);
+ 		if (st->usb_buffer == NULL) {
+ 			info("MEM Error no memory");
+ 			return -ENOMEM;
+@@ -175,8 +175,8 @@ static int lme2510_usb_talk(struct dvb_usb_device *d,
+ 	if (ret < 0)
+ 		return -EAGAIN;
+ 
+-	/* the read/write capped at 512 */
+-	memcpy(buff, wbuf, (wlen > 512) ? 512 : wlen);
++	/* the read/write capped at 64 */
++	memcpy(buff, wbuf, (wlen < 64) ? wlen : 64);
+ 
+ 	ret |= usb_clear_halt(d->udev, usb_sndbulkpipe(d->udev, 0x01));
+ 
+@@ -186,8 +186,8 @@ static int lme2510_usb_talk(struct dvb_usb_device *d,
+ 
+ 	ret |= usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x01));
+ 
+-	ret |= lme2510_bulk_read(d->udev, buff, (rlen > 512) ?
+-			512 : rlen , 0x01);
++	ret |= lme2510_bulk_read(d->udev, buff, (rlen < 64) ?
++			rlen : 64 , 0x01);
+ 
+ 	if (rlen > 0)
+ 		memcpy(rbuf, buff, rlen);
+@@ -580,7 +580,7 @@ static int lme2510_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ {
+ 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
+ 	struct lme2510_state *st = d->priv;
+-	static u8 obuf[64], ibuf[512];
++	static u8 obuf[64], ibuf[64];
+ 	int i, read, read_o;
+ 	u16 len;
+ 	u8 gate = st->i2c_gate;
+@@ -621,7 +621,7 @@ static int lme2510_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 			len = msg[i].len+3;
+ 		}
+ 
+-		if (lme2510_msg(d, obuf, len, ibuf, 512) < 0) {
++		if (lme2510_msg(d, obuf, len, ibuf, 64) < 0) {
+ 			deb_info(1, "i2c transfer failed.");
+ 			return -EAGAIN;
+ 		}
+@@ -1312,5 +1312,5 @@ module_exit(lme2510_module_exit);
+ 
+ MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
+ MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
+-MODULE_VERSION("1.89");
++MODULE_VERSION("1.90");
+ MODULE_LICENSE("GPL");
 -- 
-Regards,
+1.7.5.4
 
-Laurent Pinchart
+
+
