@@ -1,56 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:51413 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933106Ab1IBJTD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 05:19:03 -0400
-Date: Fri, 2 Sep 2011 11:18:53 +0200
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-To: "Wu, Josh" <Josh.wu@atmel.com>
-Cc: <linux-media@vger.kernel.org>
-Subject: Re: Using atmel-isi for direct output on framebuffer ?
-Message-ID: <20110902111853.292d7f26@skate>
-In-Reply-To: <4C79549CB6F772498162A641D92D532802A09156@penmb01.corp.atmel.com>
-References: <20110901170555.568af6ea@skate>
-	<4C79549CB6F772498162A641D92D532802A09156@penmb01.corp.atmel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from bear.ext.ti.com ([192.94.94.41]:56911 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754774Ab1ILOJQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Sep 2011 10:09:16 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p8CE9Ct5005182
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 12 Sep 2011 09:09:14 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [RFC PATCH 1/4] davinci vpbe: remove unused macro.
+Date: Mon, 12 Sep 2011 19:39:04 +0530
+Message-ID: <1315836547-20658-2-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1315836547-20658-1-git-send-email-manjunath.hadli@ti.com>
+References: <1315836547-20658-1-git-send-email-manjunath.hadli@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Josh,
+remove VPBE_DISPLAY_SD_BUF_SIZE as it is no longer used.
 
-Le Fri, 2 Sep 2011 17:08:32 +0800,
-"Wu, Josh" <Josh.wu@atmel.com> a écrit :
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+---
+ drivers/media/video/davinci/vpbe_display.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-> My understanding is that you want to use Atmel ISI to output RGB data
-> then work with framebuffer. So yes, it is possible.
-
-Good.
-
-> Since current atmel_isi.c only uses its codec path to output YUV
-> data. So first need add RGB format support in
-> isi_camera_get_formats(). Then you have two choices to enable RGB
-> output of ISI: 1. Enable isi's preview path(DMA, interrupts) to
-> convert YUV to RGB. 2. Or still use codec path but don't need add
-> much ISI code, just set camera sensor(if it support RGB565 output) to
-> output RGB565 data for ISI, then what the data ISI output now should
-> be RGB565 format. But in this way you cannot do any scale.
-
-Doing the YUV -> RGB within the V4L2 driver is something I understand
-quite well. The part I miss is how the V4L2 driver interacts with the
-framebuffer driver to output the camera image into the framebuffer.
-
-> For V4L2_CAP_VIDEO_OVERLAY type driver, I don't know much about that.
-
-Hum, ok, found http://v4l2spec.bytesex.org/spec/x6570.htm which seems
-to explain a bit the userspace interface for this.
-
-Thanks for your feedback!
-
-Thomas
+diff --git a/drivers/media/video/davinci/vpbe_display.c b/drivers/media/video/davinci/vpbe_display.c
+index ae7add1..09a659e 100644
+--- a/drivers/media/video/davinci/vpbe_display.c
++++ b/drivers/media/video/davinci/vpbe_display.c
+@@ -43,7 +43,6 @@
+ 
+ static int debug;
+ 
+-#define VPBE_DISPLAY_SD_BUF_SIZE (720*576*2)
+ #define VPBE_DEFAULT_NUM_BUFS 3
+ 
+ module_param(debug, int, 0644);
 -- 
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+1.6.2.4
+
