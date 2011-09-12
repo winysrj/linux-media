@@ -1,108 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ingra.acsalaska.net ([209.112.173.251]:49770 "EHLO
-	ingra.acsalaska.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755351Ab1I3IUz (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:49244 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750835Ab1ILKzu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 04:20:55 -0400
-Received: from localhost2.local (66-230-86-166-rb1.fai.dsl.dynamic.acsalaska.net [66.230.86.166])
-	by ingra.acsalaska.net (8.14.4/8.14.4) with ESMTP id p8U86Dpi039629
-	for <linux-media@vger.kernel.org>; Fri, 30 Sep 2011 00:06:13 -0800 (AKDT)
-	(envelope-from rogerx.oss@gmail.com)
-Date: Fri, 30 Sep 2011 00:06:09 -0800
-From: Roger <rogerx.oss@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: dvbscan output Channel Number into final stdout?
-Message-ID: <20110930080609.GD2284@localhost2.local>
-References: <20110929224418.GD2824@localhost2.local>
- <4e856d27.92d1e30a.6587.13f8@mx.google.com>
+	Mon, 12 Sep 2011 06:55:50 -0400
+Date: Mon, 12 Sep 2011 12:55:46 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v3] V4L: dynamically allocate video_device nodes in subdevices
+In-Reply-To: <201109092332.59943.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1109121253270.9638@axis700.grange>
+References: <Pine.LNX.4.64.1109091701060.915@axis700.grange>
+ <Pine.LNX.4.64.1109091943480.915@axis700.grange>
+ <201109092332.59943.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4e856d27.92d1e30a.6587.13f8@mx.google.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On Fri, Sep 30, 2011 at 08:17:53AM +0100, tvboxspy wrote:
->On Thu, 2011-09-29 at 14:44 -0800, Roger wrote:
->> Can we get dvbscan to output the Channel Number into the final stdout somehow?
->> 
->> A likely format would be something such as the following.
->> 
->> Current output:
->> 
->> KATN-DT:497028615:8VSB:49:52:3
->> KWFA-DT:497028615:8VSB:65:68:4
->> ...
->> 
->> 
->> Suggested output:
->> 2.1:497028615:8VSB:49:52:3
->> 2.2:497028615:8VSB:65:68:4
->> ...
->> 
->> The reason for this, the local ATSC broadcast over the air channels are not
->> assigning unique channel names.  However, channel numbers seem to be consistent
->> between the published TV Guide/TV Listings and are unique!  This seems to be
->> the norm for the past several years now.
->> 
->Trouble is, internationally channel numbering is regional, and has
->variations in many countries.
->
->Not to show the channel name would confuse users, but to show both with
->the number first in a string might be an idea.
+Currently only very few drivers actually use video_device nodes, embedded
+in struct v4l2_subdev. Allocate these nodes dynamically for those drivers
+to save memory for the rest.
 
-True.  However we're talking an additional option to output, the already
-gotten, channel numbers instead of channel names into the final output.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-We're not talking standard here.  We are talking an additional option to make
-it easier for scripting and updating the channel.conf file.  Channel names here
-have changed many times over the past year.  Channel names are also duplicated
-instead of being assigned a unique name.  However, channel numbers have stayed
-somewhat more stable, noting only one or two changes over the past year.  And,
-channel numbers have always been more commonly referred to when changing the
-channel on the TV. (ie. Hey, lets watch channel 11 news!  We usually don't
-hear, "Hey, lets watch NBC news.")
+v3: addressed comments from Laurent Pinchart - thanks
 
+1. switch to using a device-release method, instead of freeing directly in 
+v4l2_device_unregister_subdev()
 
-(On the flip to chew the fat here, from a local perspective, most things are
-done by channel number and not channel name.  It all depends on your point of
-view! ;-)
+2. switch to using drvdata instead of a wrapper struct
 
+ drivers/media/video/v4l2-device.c |   41 ++++++++++++++++++++++++++++++++----
+ include/media/v4l2-subdev.h       |    4 +-
+ 2 files changed, 38 insertions(+), 7 deletions(-)
 
-Anyways, since I know the information (channel num) is already already gotten
-and ditched, I'm thinking it won't be too much more code to assign it a
-variable and print instead of channel name.
-
-Another idea, I might have been able to code my script to map to regular
-channel numbers.  However, updating the channel.conf using dvbscan will then
-break things, causing me to finger through manually to figure out which channel
-name is which number.
-
-Maybe I should output my full channel.conf here, as it might help show the
-problem better:
-
-[0001]:213028615:8VSB:65:68:1
-KATN-DT:497028615:8VSB:49:52:3
-KWFA-DT:497028615:8VSB:65:68:4
-KJNP-DT:509028615:8VSB:49:52:3
-KFXF-DTC:177028615:8VSB:49:52:3
-K13XD-DC:177028615:8VSB:65:68:4
-KUAC-DTC:189028615:8VSB:49:52:3
-KUAC-DTC:189028615:8VSB:65:68:4
-KUAC-DT:189028615:8VSB:81:84:5
-KUAC-DT:189028616:8VSB:97:100:6
-KTVF DT:545028615:8VSB:65:68:4
-KTVF DT:545028615:8VSB:49:52:3
-K13XD-D:521028615:8VSB:49:52:3
-KFXF-DT:521028615:8VSB:65:68:4
-
-
-Can you tell me which KUAC-DTC is the man channel for my area?  24.1 is the
-channel number.  Of the four, there's no real way of telling unless you
-memorize the frequency data?
-
-
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index c72856c..9bf3d70 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -21,6 +21,7 @@
+ #include <linux/types.h>
+ #include <linux/ioctl.h>
+ #include <linux/i2c.h>
++#include <linux/slab.h>
+ #if defined(CONFIG_SPI)
+ #include <linux/spi/spi.h>
+ #endif
+@@ -191,6 +192,13 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+ 
++void v4l2_device_release_subdev_node(struct video_device *vdev)
++{
++	struct v4l2_subdev *sd = video_get_drvdata(vdev);
++	sd->devnode = NULL;
++	kfree(vdev);
++}
++
+ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+ {
+ 	struct video_device *vdev;
+@@ -204,22 +212,42 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+ 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
+ 			continue;
+ 
+-		vdev = &sd->devnode;
++		vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
++		if (!vdev) {
++			err = -ENOMEM;
++			goto clean_up;
++		}
++
++		video_set_drvdata(vdev, sd);
+ 		strlcpy(vdev->name, sd->name, sizeof(vdev->name));
+ 		vdev->v4l2_dev = v4l2_dev;
+ 		vdev->fops = &v4l2_subdev_fops;
+-		vdev->release = video_device_release_empty;
++		vdev->release = v4l2_device_release_subdev_node;
+ 		vdev->ctrl_handler = sd->ctrl_handler;
+ 		err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
+ 					      sd->owner);
+-		if (err < 0)
+-			return err;
++		if (err < 0) {
++			kfree(vdev);
++			goto clean_up;
++		}
++		get_device(&vdev->dev);
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 		sd->entity.v4l.major = VIDEO_MAJOR;
+ 		sd->entity.v4l.minor = vdev->minor;
+ #endif
++		sd->devnode = vdev;
+ 	}
+ 	return 0;
++
++clean_up:
++	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
++		if (!sd->devnode)
++			break;
++		video_unregister_device(sd->devnode);
++		put_device(&sd->devnode->dev);
++	}
++
++	return err;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_nodes);
+ 
+@@ -245,7 +273,10 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+ 	if (v4l2_dev->mdev)
+ 		media_device_unregister_entity(&sd->entity);
+ #endif
+-	video_unregister_device(&sd->devnode);
++	if (sd->devnode) {
++		video_unregister_device(sd->devnode);
++		put_device(&sd->devnode->dev);
++	}
+ 	module_put(sd->owner);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 257da1a..5dd049a 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -534,13 +534,13 @@ struct v4l2_subdev {
+ 	void *dev_priv;
+ 	void *host_priv;
+ 	/* subdev device node */
+-	struct video_device devnode;
++	struct video_device *devnode;
+ };
+ 
+ #define media_entity_to_v4l2_subdev(ent) \
+ 	container_of(ent, struct v4l2_subdev, entity)
+ #define vdev_to_v4l2_subdev(vdev) \
+-	container_of(vdev, struct v4l2_subdev, devnode)
++	video_get_drvdata(vdev)
+ 
+ /*
+  * Used for storing subdev information per file handle
 -- 
-Roger
-http://rogerx.freeshell.org/
+1.7.2.5
+
