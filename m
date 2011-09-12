@@ -1,55 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35268 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752671Ab1IZL7h (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 07:59:37 -0400
-From: Archit Taneja <archit@ti.com>
-To: <hvaibhav@ti.com>
-CC: <tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>,
-	<sumit.semwal@ti.com>, <linux-media@vger.kernel.org>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH v3 4/4] OMAP_VOUT: Don't trigger updates in omap_vout_probe
-Date: Mon, 26 Sep 2011 17:29:25 +0530
-Message-ID: <1317038365-30650-5-git-send-email-archit@ti.com>
-In-Reply-To: <1317038365-30650-1-git-send-email-archit@ti.com>
-References: <1317038365-30650-1-git-send-email-archit@ti.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:54560 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755252Ab1ILL73 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Sep 2011 07:59:29 -0400
+Date: Mon, 12 Sep 2011 14:59:25 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Subject: Re: [PATCH v2 0/8] RFC for Media Controller capture driver for
+ DM365
+Message-ID: <20110912115925.GC1716@valkosipuli.localdomain>
+References: <1314630439-1122-1-git-send-email-manjunath.hadli@ti.com>
+ <20110831213032.GT12368@valkosipuli.localdomain>
+ <B85A65D85D7EB246BE421B3FB0FBB593025743F3CE@dbde02.ent.ti.com>
+ <20110909161940.GJ1724@valkosipuli.localdomain>
+ <B85A65D85D7EB246BE421B3FB0FBB593025743F4CE@dbde02.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593025743F4CE@dbde02.ent.ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the code in omap_vout_probe() which calls display->driver->update() for
-all the displays. This isn't correct because:
+On Sat, Sep 10, 2011 at 12:11:37PM +0530, Hadli, Manjunath wrote:
+> Hi Sakari,
+> On Fri, Sep 09, 2011 at 21:49:40, Sakari Ailus wrote:
+> > On Fri, Sep 09, 2011 at 07:10:49PM +0530, Hadli, Manjunath wrote:
+> > > Hi Sakari,
+> > > 
+> > > On Thu, Sep 01, 2011 at 03:00:32, Sakari Ailus wrote:
+> > > > Hi Manju,
+> > > > 
+> > > > Do you have the media device grap that would be typical for this hardware produced by media-ctl? That can be converted to postscript using dotfile.
+> > > > 
+> > > > this would make it a little easier to understan this driver. Thanks.
+> > > 
+> > > Sure. But can you be a little more elaborate on how you need this 
+> > > information? If you can tell me in little more detail about this that 
+> > > will help me make the information in a way that everyone can understand.
+> > 
+> > Preferrably in PostScript format so it's easy to visualise the layout of the hardware that the driver supports, as the OMAP 3 ISP example was.
+> Sure.
+>  I was more looking for an example of the same so it could help me put the
+> data together in the way it has been done before. Can you send across if
+> you have one?
 
-- An update in probe doesn't make sense, because we don't have any valid content
-  to show at this time.
-- Calling update for a panel which isn't enabled is not supported by DSS2. This
-  leads to a crash at probe.
+Ah. I think I misunderstood you first. :-)
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/media/video/omap/omap_vout.c |    8 --------
- 1 files changed, 0 insertions(+), 8 deletions(-)
+On the device, run
 
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index 7b8e87a..3d9c83e 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -2213,14 +2213,6 @@ static int __init omap_vout_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto probe_err2;
- 
--	for (i = 0; i < vid_dev->num_displays; i++) {
--		struct omap_dss_device *display = vid_dev->displays[i];
--
--		if (display->driver->update)
--			display->driver->update(display, 0, 0,
--					display->panel.timings.x_res,
--					display->panel.timings.y_res);
--	}
- 	return 0;
- 
- probe_err2:
+	$ media-ctl --print-dot > graph.dot
+
+This will produce a graph of the media device in the dot format. This is
+then processed by program called dot:
+
+	$ dot -o graph.ps -T ps < graph.dot
+
+dot is available at least in Debian in a package called graphviz.
+
+Cheers,
+
 -- 
-1.7.1
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
