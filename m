@@ -1,50 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40722 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752517Ab1IZUDt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 16:03:49 -0400
-Message-ID: <4E80DA9B.5000604@redhat.com>
-Date: Mon, 26 Sep 2011 17:03:39 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42894 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756080Ab1ILOUm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Sep 2011 10:20:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jonathan Nieder <jrnieder@gmail.com>
+Subject: Re: [PATCH] uvcvideo: Fix crash when linking entities
+Date: Mon, 12 Sep 2011 16:20:39 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Josh Boyer <jwboyer@redhat.com>, linux-media@vger.kernel.org,
+	Dave Jones <davej@redhat.com>,
+	Daniel Dickinson <libre@cshore.neomailbox.net>
+References: <1315348148-7207-1-git-send-email-laurent.pinchart@ideasonboard.com> <201109080938.54655.laurent.pinchart@ideasonboard.com> <20110912011614.GA4834@elie.sbx02827.chicail.wayport.net>
+In-Reply-To: <20110912011614.GA4834@elie.sbx02827.chicail.wayport.net>
 MIME-Version: 1.0
-To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org, srinivasa.deevi@conexant.com,
-	Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: Re: cx231xx: DMA problem on ARM
-References: <20110921135604.64363a2e@skate> <20110926101323.41708d64@skate> <4E80B73F.5020804@redhat.com> <201109262102.49056.laurent.pinchart@ideasonboard.com> <20110926215954.5ab059e4@skate>
-In-Reply-To: <20110926215954.5ab059e4@skate>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109121620.39982.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 26-09-2011 16:59, Thomas Petazzoni escreveu:
-> Hello Laurent,
-> 
-> Le Mon, 26 Sep 2011 21:02:48 +0200,
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com> a écrit :
-> 
->> Are you using the MMAP or USERPTR capture method ? If using MMAP, can
->> you try (as a test only) to unmap the buffer before queueing it and
->> to remap it after dequeuing it ?
-> 
-> So far, we have used VLC, Cheese, or a simple OpenCV based application
-> to test the V4L2 device on our ARM platform, and I have no idea which
-> capture method those are using. Is there a very simple V4L test
-> application that we could use to hack the buffer unmap/remap trick
-> you're suggesting as a test ?
+Hi Jonathan,
 
-The simplest application is the v4l2grab util:
-	http://git.linuxtv.org/v4l-utils.git/blob/HEAD:/contrib/test/v4l2grab.c
-
-it uses libv4l to convert to RGB and outputs a series of ppm images. By
-generating one image per frame, it is easy to check artifacts on each
-image.
-
+On Monday 12 September 2011 03:16:14 Jonathan Nieder wrote:
+> Laurent Pinchart wrote:
+> > On Wednesday 07 September 2011 17:32:41 Josh Boyer wrote:
+> >> On Wed, Sep 07, 2011 at 12:29:08AM +0200, Laurent Pinchart wrote:
+> >>>  drivers/media/video/uvc/uvc_entity.c |    2 +-
+> >>>  1 files changed, 1 insertions(+), 1 deletions(-)
+> >>> 
+> >>> This patch should fix a v3.0 regression that results in a kernel crash
+> >>> as reported in http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=637740
+> >>> and https://bugzilla.redhat.com/show_bug.cgi?id=735437.
 > 
-> Regards,
+> [...]
 > 
-> Thomas
+> >> I built a test kernel for Fedora with the patch and the submitter of the
+> >> above bug has reported that the issue seems to be fixed.
+> > 
+> > Thank you. I will push the patch upstream.
+> 
+> Any news?  From Red Hat bugzilla, it seems that the fix was tested by
+> Marcin Zajaczkowski and user matanya.  More importantly, the patch
+> just makes sense.
+> 
+> I don't see this patch in Linus's master or
+> 
+>  git://linuxtv.org/media_tree.git staging/for_v3.2
 
+I've just sent a pull request to Mauro.
+
+-- 
+Regards,
+
+Laurent Pinchart
