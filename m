@@ -1,119 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:53323 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756697Ab1ISQlp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Sep 2011 12:41:45 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LRS00FSX3PJT6@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 19 Sep 2011 17:41:43 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRS002303PJS0@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 19 Sep 2011 17:41:43 +0100 (BST)
-Date: Mon, 19 Sep 2011 18:41:37 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 2/2] s5p-fimc: Convert to use generic media bus polarity
- flags
-In-reply-to: <1316450497-6723-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
-	kyungmin.park@samsung.com, g.liakhovetski@gmx.de,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <1316450497-6723-3-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <alpine.DEB.2.00.1109171423460.28766@axis700.grange>
- <1316450497-6723-1-git-send-email-s.nawrocki@samsung.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:60205 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756058Ab1ILOJQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Sep 2011 10:09:16 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p8CE9CtZ010140
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 12 Sep 2011 09:09:14 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [RFC PATCH 2/4] davinci vpbe: add dm365 VPBE display driver changes
+Date: Mon, 12 Sep 2011 19:39:05 +0530
+Message-ID: <1315836547-20658-3-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1315836547-20658-1-git-send-email-manjunath.hadli@ti.com>
+References: <1315836547-20658-1-git-send-email-manjunath.hadli@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch to generic media bus signal polarity flags and allow
-configuring the FIELD signal polarity.
+This patch implements the core additions to the display driver,
+mainly controlling the VENC and other encoders for dm365.
+This patch also includes addition of amplifier subdevice to the
+vpbe driver and interfacing with venc subdevice.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <s.nawrocki@samsung.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
 ---
- drivers/media/video/s5p-fimc/fimc-reg.c  |   14 +++++++++-----
- drivers/media/video/s5p-fimc/regs-fimc.h |    1 +
- include/media/s5p_fimc.h                 |    7 +------
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/media/video/davinci/vpbe.c |   55 ++++++++++++++++++++++++++++++++++--
+ include/media/davinci/vpbe.h       |   16 ++++++++++
+ 2 files changed, 68 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
-index 2a1ae51..678d7d3 100644
---- a/drivers/media/video/s5p-fimc/fimc-reg.c
-+++ b/drivers/media/video/s5p-fimc/fimc-reg.c
-@@ -533,20 +533,24 @@ int fimc_hw_set_camera_polarity(struct fimc_dev *fimc,
- 	u32 cfg = readl(fimc->regs + S5P_CIGCTRL);
+diff --git a/drivers/media/video/davinci/vpbe.c b/drivers/media/video/davinci/vpbe.c
+index d773d30..21a8645 100644
+--- a/drivers/media/video/davinci/vpbe.c
++++ b/drivers/media/video/davinci/vpbe.c
+@@ -141,11 +141,12 @@ static int vpbe_enum_outputs(struct vpbe_device *vpbe_dev,
+ 	return 0;
+ }
  
- 	cfg &= ~(S5P_CIGCTRL_INVPOLPCLK | S5P_CIGCTRL_INVPOLVSYNC |
--		 S5P_CIGCTRL_INVPOLHREF | S5P_CIGCTRL_INVPOLHSYNC);
-+		 S5P_CIGCTRL_INVPOLHREF | S5P_CIGCTRL_INVPOLHSYNC |
-+		 S5P_CIGCTRL_INVPOLFIELD);
+-static int vpbe_get_mode_info(struct vpbe_device *vpbe_dev, char *mode)
++static int vpbe_get_mode_info(struct vpbe_device *vpbe_dev, char *mode,
++			      int output_index)
+ {
+ 	struct vpbe_config *cfg = vpbe_dev->cfg;
+ 	struct vpbe_enc_mode_info var;
+-	int curr_output = vpbe_dev->current_out_index;
++	int curr_output = output_index;
+ 	int i;
  
--	if (cam->flags & FIMC_CLK_INV_PCLK)
-+	if (cam->flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
- 		cfg |= S5P_CIGCTRL_INVPOLPCLK;
+ 	if (NULL == mode)
+@@ -245,6 +246,8 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
+ 	struct encoder_config_info *curr_enc_info =
+ 			vpbe_current_encoder_info(vpbe_dev);
+ 	struct vpbe_config *cfg = vpbe_dev->cfg;
++	struct venc_platform_data *venc_device = vpbe_dev->venc_device;
++	enum v4l2_mbus_pixelcode if_params;
+ 	int enc_out_index;
+ 	int sd_index;
+ 	int ret = 0;
+@@ -274,6 +277,8 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
+ 			goto out;
+ 		}
  
--	if (cam->flags & FIMC_CLK_INV_VSYNC)
-+	if (cam->flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
- 		cfg |= S5P_CIGCTRL_INVPOLVSYNC;
++		if_params = cfg->outputs[index].if_params;
++		venc_device->setup_if_config(if_params);
+ 		if (ret)
+ 			goto out;
+ 	}
+@@ -293,7 +298,7 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
+ 	 * encoder.
+ 	 */
+ 	ret = vpbe_get_mode_info(vpbe_dev,
+-				 cfg->outputs[index].default_mode);
++				 cfg->outputs[index].default_mode, index);
+ 	if (!ret) {
+ 		struct osd_state *osd_device = vpbe_dev->osd_device;
  
--	if (cam->flags & FIMC_CLK_INV_HREF)
-+	if (cam->flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
- 		cfg |= S5P_CIGCTRL_INVPOLHREF;
+@@ -367,6 +372,11 @@ static int vpbe_s_dv_preset(struct vpbe_device *vpbe_dev,
  
--	if (cam->flags & FIMC_CLK_INV_HSYNC)
-+	if (cam->flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
- 		cfg |= S5P_CIGCTRL_INVPOLHSYNC;
+ 	ret = v4l2_subdev_call(vpbe_dev->encoders[sd_index], video,
+ 					s_dv_preset, dv_preset);
++	if (!ret && (vpbe_dev->amp != NULL)) {
++		/* Call amplifier subdevice */
++		ret = v4l2_subdev_call(vpbe_dev->amp, video,
++				s_dv_preset, dv_preset);
++	}
+ 	/* set the lcd controller output for the given mode */
+ 	if (!ret) {
+ 		struct osd_state *osd_device = vpbe_dev->osd_device;
+@@ -566,6 +576,8 @@ static int platform_device_get(struct device *dev, void *data)
  
-+	if (cam->flags & V4L2_MBUS_FIELD_ACTIVE_LOW)
-+		cfg |= S5P_CIGCTRL_INVPOLFIELD;
-+
- 	writel(cfg, fimc->regs + S5P_CIGCTRL);
+ 	if (strcmp("vpbe-osd", pdev->name) == 0)
+ 		vpbe_dev->osd_device = platform_get_drvdata(pdev);
++	if (strcmp("vpbe-venc", pdev->name) == 0)
++		vpbe_dev->venc_device = dev_get_platdata(&pdev->dev);
  
  	return 0;
-diff --git a/drivers/media/video/s5p-fimc/regs-fimc.h b/drivers/media/video/s5p-fimc/regs-fimc.h
-index 94d2302..c8e3b94 100644
---- a/drivers/media/video/s5p-fimc/regs-fimc.h
-+++ b/drivers/media/video/s5p-fimc/regs-fimc.h
-@@ -61,6 +61,7 @@
- #define S5P_CIGCTRL_CSC_ITU601_709	(1 << 5)
- #define S5P_CIGCTRL_INVPOLHSYNC		(1 << 4)
- #define S5P_CIGCTRL_SELCAM_MIPI		(1 << 3)
-+#define S5P_CIGCTRL_INVPOLFIELD		(1 << 1)
- #define S5P_CIGCTRL_INTERLACE		(1 << 0)
+ }
+@@ -584,6 +596,7 @@ static int platform_device_get(struct device *dev, void *data)
+ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ {
+ 	struct encoder_config_info *enc_info;
++	struct amp_config_info *amp_info;
+ 	struct v4l2_subdev **enc_subdev;
+ 	struct osd_state *osd_device;
+ 	struct i2c_adapter *i2c_adap;
+@@ -704,6 +717,39 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 			v4l2_warn(&vpbe_dev->v4l2_dev, "non-i2c encoders"
+ 				 " currently not supported");
+ 	}
++	/* Add amplifier subdevice for dm365 */
++	if ((strcmp(vpbe_dev->cfg->module_name, "dm365-vpbe-display") == 0) &&
++			vpbe_dev->cfg->amp != NULL) {
++		vpbe_dev->amp = kmalloc(sizeof(struct v4l2_subdev *),
++					GFP_KERNEL);
++		if (vpbe_dev->amp == NULL) {
++			v4l2_err(&vpbe_dev->v4l2_dev,
++				"unable to allocate memory for sub device");
++			ret = -ENOMEM;
++			goto vpbe_fail_v4l2_device;
++		}
++		amp_info = vpbe_dev->cfg->amp;
++		if (amp_info->is_i2c) {
++			vpbe_dev->amp = v4l2_i2c_new_subdev_board(
++			&vpbe_dev->v4l2_dev, i2c_adap,
++			&amp_info->board_info, NULL);
++			if (!vpbe_dev->amp) {
++				v4l2_err(&vpbe_dev->v4l2_dev,
++					 "amplifier %s failed to register",
++					 amp_info->module_name);
++				ret = -ENODEV;
++				goto vpbe_fail_amp_register;
++			}
++			v4l2_info(&vpbe_dev->v4l2_dev,
++					  "v4l2 sub device %s registered\n",
++					  amp_info->module_name);
++		} else {
++			    vpbe_dev->amp = NULL;
++			    v4l2_warn(&vpbe_dev->v4l2_dev, "non-i2c amplifiers"
++			    " currently not supported");
++		}
++	} else
++	    vpbe_dev->amp = NULL;
  
- /* Window offset 2 */
-diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
-index 2b58904..688fb3f 100644
---- a/include/media/s5p_fimc.h
-+++ b/include/media/s5p_fimc.h
-@@ -19,11 +19,6 @@ enum cam_bus_type {
- 	FIMC_LCD_WB, /* FIFO link from LCD mixer */
+ 	/* set the current encoder and output to that of venc by default */
+ 	vpbe_dev->current_sd_index = 0;
+@@ -731,6 +777,8 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 	/* TBD handling of bootargs for default output and mode */
+ 	return 0;
+ 
++vpbe_fail_amp_register:
++	kfree(vpbe_dev->amp);
+ vpbe_fail_sd_register:
+ 	kfree(vpbe_dev->encoders);
+ vpbe_fail_v4l2_device:
+@@ -757,6 +805,7 @@ static void vpbe_deinitialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 	if (strcmp(vpbe_dev->cfg->module_name, "dm644x-vpbe-display") != 0)
+ 		clk_put(vpbe_dev->dac_clk);
+ 
++	kfree(vpbe_dev->amp);
+ 	kfree(vpbe_dev->encoders);
+ 	vpbe_dev->initialized = 0;
+ 	/* disable vpss clocks */
+diff --git a/include/media/davinci/vpbe.h b/include/media/davinci/vpbe.h
+index 8b11fb0..8bc1b3c 100644
+--- a/include/media/davinci/vpbe.h
++++ b/include/media/davinci/vpbe.h
+@@ -63,6 +63,7 @@ struct vpbe_output {
+ 	 * output basis. If per mode is needed, we may have to move this to
+ 	 * mode_info structure
+ 	 */
++	enum v4l2_mbus_pixelcode if_params;
  };
  
--#define FIMC_CLK_INV_PCLK	(1 << 0)
--#define FIMC_CLK_INV_VSYNC	(1 << 1)
--#define FIMC_CLK_INV_HREF	(1 << 2)
--#define FIMC_CLK_INV_HSYNC	(1 << 3)
--
- struct i2c_board_info;
+ /* encoder configuration info */
+@@ -74,6 +75,15 @@ struct encoder_config_info {
+ 	struct i2c_board_info board_info;
+ };
  
- /**
-@@ -37,7 +32,7 @@ struct i2c_board_info;
-  * @i2c_bus_num: i2c control bus id the sensor is attached to
-  * @mux_id: FIMC camera interface multiplexer index (separate for MIPI and ITU)
-  * @clk_id: index of the SoC peripheral clock for sensors
-- * @flags: flags defining bus signals polarity inversion (High by default)
-+ * @flags: the parallel bus flags defining signals polarity (V4L2_MBUS_*)
-  */
- struct s5p_fimc_isp_info {
- 	struct i2c_board_info *board_info;
++/*amplifier configuration info */
++struct amp_config_info {
++	char module_name[32];
++	/* Is this an i2c device ? */
++	unsigned int is_i2c:1;
++	/* i2c subdevice board info */
++	struct i2c_board_info board_info;
++};
++
+ /* structure for defining vpbe display subsystem components */
+ struct vpbe_config {
+ 	char module_name[32];
+@@ -84,6 +94,8 @@ struct vpbe_config {
+ 	/* external encoder information goes here */
+ 	int num_ext_encoders;
+ 	struct encoder_config_info *ext_encoders;
++	/* amplifier information goes here */
++	struct amp_config_info *amp;
+ 	int num_outputs;
+ 	/* Order is venc outputs followed by LCD and then external encoders */
+ 	struct vpbe_output *outputs;
+@@ -158,6 +170,8 @@ struct vpbe_device {
+ 	struct v4l2_subdev **encoders;
+ 	/* current encoder index */
+ 	int current_sd_index;
++	/* external amplifier v4l2 subdevice */
++	struct v4l2_subdev *amp;
+ 	struct mutex lock;
+ 	/* device initialized */
+ 	int initialized;
+@@ -165,6 +179,8 @@ struct vpbe_device {
+ 	struct clk *dac_clk;
+ 	/* osd_device pointer */
+ 	struct osd_state *osd_device;
++	/* venc device pointer */
++	struct venc_platform_data *venc_device;
+ 	/*
+ 	 * fields below are accessed by users of vpbe_device. Not the
+ 	 * ones above
 -- 
-1.7.6.3
+1.6.2.4
 
