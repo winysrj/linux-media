@@ -1,104 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53404 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757552Ab1IAOYa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 10:24:30 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:35657 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754300Ab1ILU20 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Sep 2011 16:28:26 -0400
+Date: Mon, 12 Sep 2011 23:28:23 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: Enrico <ebutera@users.berlios.de>
-Subject: Re: Getting started with OMAP3 ISP
-Date: Thu, 1 Sep 2011 16:24:55 +0200
-Cc: linux-media@vger.kernel.org, Gary Thomas <gary@mlbassoc.com>,
-	Enric Balletbo i Serra <eballetbo@iseebcn.com>
-References: <4E56734A.3080001@mlbassoc.com> <CA+2YH7ttb-dUVHqKVA-Bazo0of0vJR7gdhPmz3VLE=TebS0oPQ@mail.gmail.com> <CA+2YH7voYvf9LK50rtWG39zGnMGiLQhK6qUcZ63TRWVBphmEhg@mail.gmail.com>
-In-Reply-To: <CA+2YH7voYvf9LK50rtWG39zGnMGiLQhK6qUcZ63TRWVBphmEhg@mail.gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: omap3isp as a wakeup source
+Message-ID: <20110912202822.GB1845@valkosipuli.localdomain>
+References: <CA+2YH7s-BH=4vN-DUZJXa9DKrwYsZORWq-YR9fK7JV9236ntMQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109011624.56512.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+2YH7s-BH=4vN-DUZJXa9DKrwYsZORWq-YR9fK7JV9236ntMQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Sep 12, 2011 at 04:50:42PM +0200, Enrico wrote:
+> Hi,
+
 Hi Enrico,
 
-On Thursday 01 September 2011 16:12:42 Enrico wrote:
-> On Thu, Sep 1, 2011 at 12:24 PM, Enrico <ebutera@users.berlios.de> wrote:
-> > On Thu, Sep 1, 2011 at 11:55 AM, Laurent Pinchart
-> > 
-> >> Does your tvp5150 generate progressive or interlaced images ?
-> > 
-> > In the driver it is setup to decode by default in bt656 mode, so
-> > interlaced.
-> > 
-> > I've read on the omap trm that the isp can deinterlace it setting
-> > properly SDOFST, i just noticed in the register dump this:
-> > 
-> > omap3isp omap3isp: ###CCDC SDOFST=0x00000000
-> > 
-> > and maybe this is related too:
-> > 
-> > omap3isp omap3isp: ###CCDC REC656IF=0x00000000
-> > 
-> > Moreover i just found this [1] old thread about the same problem, i'm
-> > reading it now.
-> > 
-> > Enrico
-> > 
-> > [1]: http://www.spinics.net/lists/linux-media/msg28079.html
+> While testing omap3isp+tvp5150 with latest Deepthy bt656 patches
+> (kernel 3.1rc4) i noticed that yavta hangs very often when grabbing
+> or, if not hanged, it grabs at max ~10fps.
 > 
-> Still not working, and much more doubts :D
+> Then i noticed that tapping on the (serial) console made it "unblock"
+> for some frames, so i thought it doesn't prevent the cpu to go
+> idle/sleep. Using the boot arg "nohlt" the problem disappear and it
+> grabs at a steady 25fps.
 > 
-> 1) In board code isp_parallel_platform_data i added the bt656 = 1
-> setting and i see it gets applied, but reading code and omap trm i've
-> found that you must set ISPCCDC_REC656IF_ECCFVH flag too.
+> In the code i found a comment that says the camera can't be a wakeup
+> source but the camera powerdomain is instead used to decide to not go
+> idle, so at this point i think the camera powerdomain is not enabled
+> but i don't know how/where to enable it. Any ideas?
 
-That's not mandatory, but I suppose it wouldn't hurt.
-
-> 2) ispccdc.c:ccdc_config_outlineoffset(..) seems broken to me.
-> 
-> It is used only once in ccdc_configure:
-> ccdc_config_outlineoffset(ccdc, ccdc->video_out.bpl_value, 0, 0);
-> 
-> so the last two parameters are always set to 0, while they should be
-> (conditionally) set with for ex. EVENODD, 1
-> 
-> Moreover the implementation has this (hope it will keep formatting...):
-> 
-> switch (oddeven) {
->         case EVENEVEN:
->                 isp_reg_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST,
->                             (numlines & 0x7) <<
-> ISPCCDC_SDOFST_LOFST0_SHIFT); break;
->         case ODDEVEN:
->                 isp_reg_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST,
->                             (numlines & 0x7) <<
-> ISPCCDC_SDOFST_LOFST1_SHIFT); break;
->         case EVENODD:
->                 isp_reg_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST,
->                             (numlines & 0x7) <<
-> ISPCCDC_SDOFST_LOFST2_SHIFT); break;
->         case ODDODD:
->                 isp_reg_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST,
->                             (numlines & 0x7) <<
-> ISPCCDC_SDOFST_LOFST3_SHIFT); break;
->         default:
->                 break;
->         }
-> 
-> But reading the omap trm (Figure 12-77) it seems to me that all the
-> LOFSTX should be set.
-
-The driver currently has no support for interlaced video. This code has never 
-been properly tested.
-
-> 3) Last but not least, i'm using V4L2_MBUS_FMT_UYVY8_1X16 format in
-> tvp5150, but i'm not sure it is correct. What is the proper format for
-> bt656? Maybe V4L2_MBUS_FMT_UYVY8_2X8?
-
-You should use V4L2_MBUS_FMT_UYVY8_2X8, as video data is transmitted on a 8-
-bit bus with two samples per pixel.
+I can confirm this indeed is the case --- ISP can't wake up the system ---
+but don't know how to prevent the system from going to sleep when using the
+ISP.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
