@@ -1,79 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:58754 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753338Ab1IOPae (ORCPT
+Received: from mga11.intel.com ([192.55.52.93]:51387 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752190Ab1ILKTq convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Sep 2011 11:30:34 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Date: Thu, 15 Sep 2011 17:30:31 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v2] [media] at91: add code to initialize and manage the
- ISI_MCK for Atmel ISI driver.
-In-reply-to: <20110915132301.GK28104@game.jcrosoft.org>
-To: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>, Josh Wu <josh.wu@atmel.com>,
-	linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Message-id: <4E721A17.40206@samsung.com>
-References: <1315288601-22384-1-git-send-email-josh.wu@atmel.com>
- <Pine.LNX.4.64.1109060803590.14818@axis700.grange>
- <20110906200512.GA15083@game.jcrosoft.org> <4E668BBF.4020600@gmail.com>
- <20110915132301.GK28104@game.jcrosoft.org>
+	Mon, 12 Sep 2011 06:19:46 -0400
+Subject: Re: [RFC][PATCH] as3645a: introduce new LED Flash driver
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "Ivan T . Ivanov" <iivanov@mm-sol.com>,
+	linux-media@vger.kernel.org, Tuukka Toivonen <tuukkat76@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Mon, 12 Sep 2011 13:19:15 +0300
+In-Reply-To: <201109091708.02328.laurent.pinchart@ideasonboard.com>
+References: <020b9977ca7e8f0eabfe1b52b7f37a2105611605.1315580169.git.andriy.shevchenko@linux.intel.com>
+	 <201109091708.02328.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Message-ID: <1315822755.28628.49.camel@smile>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/15/2011 03:23 PM, Jean-Christophe PLAGNIOL-VILLARD wrote:
-> On 23:08 Tue 06 Sep     , Sylwester Nawrocki wrote:
->> On 09/06/2011 10:05 PM, Jean-Christophe PLAGNIOL-VILLARD wrote:
->>>> I'm not entirely sure on this one, but as we had a similar situation with
->>>> clocks, we decided to extablish the clock hierarchy in the board code, and
->>>> only deal with the actual device clocks in the driver itself. I.e., we
->>>> moved all clk_set_parent() and setting up the parent clock into the board.
->>>> And I do think, this makes more sense, than doing this in the driver, not
->>>> all users of this driver will need to manage the parent clock, right?
->>>
->>> I don't like to manage the clock in the board except if it's manadatory otherwise
->>> we manage this at soc level
-
-You often just can't decide about clocks hierarchy at SoC level as it
-can depend on the board layout and which devices are used on it.
-
->>>
->>> the driver does not have to manage the clock hierachy or detail implementation
->>> but manage the clock enable/disable and speed depending on it's need
-
-I think everyone agrees on that.
-
->>
->> We had a similar problem in the past and we ended up having the boot loader
->> setting up the parent clock for the device clock. The driver only controls clock
->> gating and sets its clock frequency based on an internal IP version information,
->> derived from the SoC revision.
-> sorry NACK
-
-:) When we tried to upstream the code setting up parent clocks in board files
-some people disagreed on that too..
-
+On Fri, 2011-09-09 at 17:08 +0200, Laurent Pinchart wrote: 
+> Hi Andy,
 > 
-> I do not want to rely on bootloader
-
-Yeah, I don't believe this is best possible solution either..
-
-> when we will have the DT we will pass it via it right now we need find an
-
-I hope this can be be properly resolved with the DT. I thought there is not
-much work
-going on yet wrt supporting clocks hierarchy in DT though.
-
-
-> other generic way
+> On Friday 09 September 2011 16:59:31 Andy Shevchenko wrote:
+> > The driver supports the AS3645A, LM3555 chips and their clones.
+> > 
+> > Accordingly to datasheet the AS3645 chip is a "1000/720mA Ultra Small High
+> > efficient single/dual LED Flash Driver with Safety Features". LM3555 is
+> > similar one, that has following difference - the current in the torch mode
+> > is the same (60mA) for the levels 0, 1, and 2.
+> > 
+> > This driver is a huge rework of the previously published driver which could
+> > be found in the MeeGo kernel package.
 > 
-> Best Regards,
-> J.
+> Thank you for the patch.
+> 
+> I was about to send a new AS3645A driver version that supports more chip 
+> features. I will CC you.
+It's nice to hear this, however, I have some comments and questions I
+will ask.
+
+And just out of curiosity, how many drivers do you have already done,
+but not published yet? I would like (and I hope you too) to avoid such
+double effort in the future.
 
 -- 
-Regards,
-Sylwester
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
