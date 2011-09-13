@@ -1,56 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.mail.ru ([94.100.176.130]:33630 "EHLO smtp2.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750762Ab1IXNVT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Sep 2011 09:21:19 -0400
-Message-ID: <4E7DD92A.8030300@list.ru>
-Date: Sat, 24 Sep 2011 17:20:42 +0400
-From: Stas Sergeev <stsp@list.ru>
+Received: from moutng.kundenserver.de ([212.227.126.187]:58546 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754474Ab1IMOsO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Sep 2011 10:48:14 -0400
+Date: Tue, 13 Sep 2011 16:48:10 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v4] V4L: dynamically allocate video_device nodes in subdevices
+In-Reply-To: <201109131116.35408.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1109131318450.17902@axis700.grange>
+References: <Pine.LNX.4.64.1109091701060.915@axis700.grange>
+ <201109092332.59943.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1109121253270.9638@axis700.grange>
+ <201109131116.35408.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org,
-	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
-	Lennart Poettering <lpoetter@redhat.com>,
-	ALSA devel <alsa-devel@alsa-project.org>
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru> <4E2A23C7.3040209@infradead.org> <4E2A7BF0.8080606@list.ru> <4E2AC742.8020407@infradead.org> <4E2ACAAD.4050602@list.ru> <4E2AE40F.7030108@infradead.org> <4E2C5A35.9030404@list.ru> <4E2C6638.2040707@infrade ad.org> <4E760BCA.6080900@list.ru> <4E7DB798.4060201@infradead.org> <4E7DBB1C.1090407@list.ru> <4E7DC93C.9080101@infradead.org> <4E7DCEC1.6010405@list.ru> <4E7DD1A5.5080204@infradead.org>
-In-Reply-To: <4E7DD1A5.5080204@infradead.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-24.09.2011 16:48, Mauro Carvalho Chehab wrote:
-> A first scan at driver's init can be removed, IMO.
-OK, that's the great news.
-Will write a new patch then.
+Currently only very few drivers actually use video_device nodes, embedded
+in struct v4l2_subdev. Allocate these nodes dynamically for those drivers
+to save memory for the rest.
 
- > There's nothing the driver can do if the hardware
- > missdetects a carrier. Dirty tricks to try solving it
- > are not good, as they'll do the wrong thing on some situations.
-Well, if we assume the first scan can be removed,
-then we also assume the previous "dirty trick" is
-harmless, as it affects only the first scan. But I'll
-better remove both the trick and the first scan then,
-as the fewer the hacks, the better the code.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
- > If someone is using the board on an environment
- > without udev and pulseaudio, this trick will break the first tuning.
-I feel this somehow contradicts with your suggestion
-to remove the first scan, so could you clarify?
+v4:
 
- > Well, if you think that this would solve, then just write a patch
- > exporting the mute control via ALSA. I have no problems with that.
-That would solve all the problems, but only if:
-1. The mplayer is then moved to the use of that new
-control to not depend on the autounmute hack.
-I can write the patch for that too.
-2. Make sure all the other apps are fixed the same way
-(I hope there are none though)
-3. The autounmute hack is then removed. (no
-regressions if steps 1 and 2 are carefully done)
+1. added "static" in v4l2_device_release_subdev_node() definition
+2. removed superfluous get_device() and put_device() (thanks to Laurent 
+for pointing out)
 
-If you are fine with that plan, then I'll try to find
-the time and do the things that way. Otherwise,
-I'll remove the first scan, and that will do the trick
-in a simpler, though less cleaner way.
+ drivers/media/video/v4l2-device.c |   36 +++++++++++++++++++++++++++++++-----
+ include/media/v4l2-subdev.h       |    4 ++--
+ 2 files changed, 33 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index c72856c..8abf830 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -21,6 +21,7 @@
+ #include <linux/types.h>
+ #include <linux/ioctl.h>
+ #include <linux/i2c.h>
++#include <linux/slab.h>
+ #if defined(CONFIG_SPI)
+ #include <linux/spi/spi.h>
+ #endif
+@@ -191,6 +192,13 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+ 
++static void v4l2_device_release_subdev_node(struct video_device *vdev)
++{
++	struct v4l2_subdev *sd = video_get_drvdata(vdev);
++	sd->devnode = NULL;
++	kfree(vdev);
++}
++
+ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+ {
+ 	struct video_device *vdev;
+@@ -204,22 +212,40 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+ 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
+ 			continue;
+ 
+-		vdev = &sd->devnode;
++		vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
++		if (!vdev) {
++			err = -ENOMEM;
++			goto clean_up;
++		}
++
++		video_set_drvdata(vdev, sd);
+ 		strlcpy(vdev->name, sd->name, sizeof(vdev->name));
+ 		vdev->v4l2_dev = v4l2_dev;
+ 		vdev->fops = &v4l2_subdev_fops;
+-		vdev->release = video_device_release_empty;
++		vdev->release = v4l2_device_release_subdev_node;
+ 		vdev->ctrl_handler = sd->ctrl_handler;
+ 		err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
+ 					      sd->owner);
+-		if (err < 0)
+-			return err;
++		if (err < 0) {
++			kfree(vdev);
++			goto clean_up;
++		}
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 		sd->entity.v4l.major = VIDEO_MAJOR;
+ 		sd->entity.v4l.minor = vdev->minor;
+ #endif
++		sd->devnode = vdev;
+ 	}
+ 	return 0;
++
++clean_up:
++	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
++		if (!sd->devnode)
++			break;
++		video_unregister_device(sd->devnode);
++	}
++
++	return err;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_nodes);
+ 
+@@ -245,7 +271,7 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+ 	if (v4l2_dev->mdev)
+ 		media_device_unregister_entity(&sd->entity);
+ #endif
+-	video_unregister_device(&sd->devnode);
++	video_unregister_device(sd->devnode);
+ 	module_put(sd->owner);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 257da1a..5dd049a 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -534,13 +534,13 @@ struct v4l2_subdev {
+ 	void *dev_priv;
+ 	void *host_priv;
+ 	/* subdev device node */
+-	struct video_device devnode;
++	struct video_device *devnode;
+ };
+ 
+ #define media_entity_to_v4l2_subdev(ent) \
+ 	container_of(ent, struct v4l2_subdev, entity)
+ #define vdev_to_v4l2_subdev(vdev) \
+-	container_of(vdev, struct v4l2_subdev, devnode)
++	video_get_drvdata(vdev)
+ 
+ /*
+  * Used for storing subdev information per file handle
+-- 
+1.7.2.5
+
