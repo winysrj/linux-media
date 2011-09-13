@@ -1,170 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:60062 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750896Ab1IGQ5b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2011 12:57:31 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id 2D77318B03B
-	for <linux-media@vger.kernel.org>; Wed,  7 Sep 2011 17:13:07 +0200 (CEST)
-Date: Wed, 7 Sep 2011 17:13:07 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] V4L: soc-camera: split a function into two
-In-Reply-To: <Pine.LNX.4.64.1109071706550.14818@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1109071712010.14818@axis700.grange>
-References: <Pine.LNX.4.64.1109071706550.14818@axis700.grange>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49950 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752629Ab1IMKu0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Sep 2011 06:50:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Alain VOLMAT <alain.volmat@st.com>
+Subject: Re: Questions regarding Devices/Subdevices/MediaController usage in case of a SoC
+Date: Tue, 13 Sep 2011 12:50:22 +0200
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <E27519AE45311C49887BE8C438E68FAA0100DBB53E71@SAFEX1MAIL1.st.com> <201109051210.19288.laurent.pinchart@ideasonboard.com> <E27519AE45311C49887BE8C438E68FAA0100DBC9948B@SAFEX1MAIL1.st.com>
+In-Reply-To: <E27519AE45311C49887BE8C438E68FAA0100DBC9948B@SAFEX1MAIL1.st.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109131250.22346.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The soc_camera_power_set() function processes two cases: power on anf off.
-These two cases don't share and common code, and the function is always
-called with a constant power on / off argument. Splitting this function
-into two removes a condition check, reduces indentation levels and makes
-the code look cleaner.
+Hi Alain,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/soc_camera.c |   65 ++++++++++++++++++++------------------
- 1 files changed, 34 insertions(+), 31 deletions(-)
+On Tuesday 13 September 2011 11:07:02 Alain VOLMAT wrote:
+> Hi Sakari, Hi Laurent,
+> 
+> Thanks for your replies. Sorry for taking so much time.
+> 
+> I don't have perfect graphs to explain our device but the following links
+> helps a little. Device as this one are targeted:   
+> http://www.st.com/internet/imag_video/product/251021.jsp Corresponding
+> circuit diagram:     
+> http://www.st.com/internet/com/TECHNICAL_RESOURCES/TECHNICAL_DIAGRAM/CIRCU
+> IT_DIAGRAM/circuit_diagram_17848.pdf
+> 
+> Although the audio part will have to be addressed also at some point, I'm
+> now focusing on the video part so it is the area above the ST-Bus
+> INTERCONNECT. Basically we have several kind of inputs (memory, HDMI,
+> analog, frontends) and several kind of outputs (memory, graphic plane,
+> video plane, dual ..)
+> 
+> Currently those kind of devices are already supported at some level via
+> LinuxDVB/V4L2 drivers (those drivers are actually already available on the
+> web) but they do not offer enough flexibility. As you know those kind of
+> devices can have several data path which were not easily configurable via
+> LinuxDVB/V4L2 and that's the reason why we are now trying to move to a
+> Subdev/Media Controller based implementation. I actually discovered
+> recently the presentation about the OMAP2+ Display Subsystem (DSS)
+> (http://elinux.org/images/8/83/Elc2011_semwal.pdf). It is quite similar to
+> what we have to do except that in case of the DSS, as the name says, it is
+> about the display part only. One difference with the DSS is that in our
+> case, we do not feed directly the GFX/OVLs from the userspace (as
+> framebuffer or video device) but they can ALSO be feed via data decoded by
+> the hardware, coming from data pushed via LinuxDVB. To give you an
+> example, we can pushed streams to be decoded via LinuxDVB, they are
+> decoded, will receive all the necessary processing before "going out" as
+> V4L2 capture devices (all this is done within the kernel and in some cases
+> might never even come back to user space before being displayed on the
+> display panel). So going back to the graph of the DSS, in our case, in
+> front of the GFX/OVLs, we'll have another set of subdevices that
+> correspond to our decoders "capture device". And even before that (but not
+> available as a subdevice/media controller entity), we have LinuxDVB
+> inputs.
+> 
+> I will post you a graph to explain that more easily but need to have a bit
+> more of internal paper work for that.
 
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index 5943235..de374da 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -50,49 +50,52 @@ static LIST_HEAD(hosts);
- static LIST_HEAD(devices);
- static DEFINE_MUTEX(list_lock);		/* Protects the list of hosts */
- 
--static int soc_camera_power_set(struct soc_camera_device *icd,
--				struct soc_camera_link *icl,
--				int power_on)
-+static int soc_camera_power_on(struct soc_camera_device *icd,
-+			       struct soc_camera_link *icl)
- {
- 	int ret;
- 
--	if (power_on) {
--		ret = regulator_bulk_enable(icl->num_regulators,
--					    icl->regulators);
--		if (ret < 0) {
--			dev_err(icd->pdev, "Cannot enable regulators\n");
--			return ret;
--		}
-+	ret = regulator_bulk_enable(icl->num_regulators,
-+				    icl->regulators);
-+	if (ret < 0) {
-+		dev_err(icd->pdev, "Cannot enable regulators\n");
-+		return ret;
-+	}
- 
--		if (icl->power)
--			ret = icl->power(icd->pdev, power_on);
-+	if (icl->power) {
-+		ret = icl->power(icd->pdev, 1);
- 		if (ret < 0) {
- 			dev_err(icd->pdev,
- 				"Platform failed to power-on the camera.\n");
- 
- 			regulator_bulk_disable(icl->num_regulators,
- 					       icl->regulators);
--			return ret;
- 		}
--	} else {
--		ret = 0;
--		if (icl->power)
--			ret = icl->power(icd->pdev, 0);
-+	}
-+
-+	return ret;
-+}
-+
-+static int soc_camera_power_off(struct soc_camera_device *icd,
-+				struct soc_camera_link *icl)
-+{
-+	int ret;
-+
-+	if (icl->power) {
-+		ret = icl->power(icd->pdev, 0);
- 		if (ret < 0) {
- 			dev_err(icd->pdev,
- 				"Platform failed to power-off the camera.\n");
- 			return ret;
- 		}
--
--		ret = regulator_bulk_disable(icl->num_regulators,
--					     icl->regulators);
--		if (ret < 0) {
--			dev_err(icd->pdev, "Cannot disable regulators\n");
--			return ret;
--		}
- 	}
- 
--	return 0;
-+	ret = regulator_bulk_disable(icl->num_regulators,
-+				     icl->regulators);
-+	if (ret < 0)
-+		dev_err(icd->pdev, "Cannot disable regulators\n");
-+
-+	return ret;
- }
- 
- const struct soc_camera_format_xlate *soc_camera_xlate_by_fourcc(
-@@ -502,7 +505,7 @@ static int soc_camera_open(struct file *file)
- 			},
- 		};
- 
--		ret = soc_camera_power_set(icd, icl, 1);
-+		ret = soc_camera_power_on(icd, icl);
- 		if (ret < 0)
- 			goto epower;
- 
-@@ -555,7 +558,7 @@ esfmt:
- eresume:
- 	ici->ops->remove(icd);
- eiciadd:
--	soc_camera_power_set(icd, icl, 0);
-+	soc_camera_power_off(icd, icl);
- epower:
- 	icd->use_count--;
- 	module_put(ici->ops->owner);
-@@ -579,7 +582,7 @@ static int soc_camera_close(struct file *file)
- 		if (ici->ops->init_videobuf2)
- 			vb2_queue_release(&icd->vb2_vidq);
- 
--		soc_camera_power_set(icd, icl, 0);
-+		soc_camera_power_off(icd, icl);
- 	}
- 
- 	if (icd->streamer == file)
-@@ -1086,7 +1089,7 @@ static int soc_camera_probe(struct soc_camera_device *icd)
- 	if (ret < 0)
- 		goto ereg;
- 
--	ret = soc_camera_power_set(icd, icl, 1);
-+	ret = soc_camera_power_on(icd, icl);
- 	if (ret < 0)
- 		goto epower;
- 
-@@ -1163,7 +1166,7 @@ static int soc_camera_probe(struct soc_camera_device *icd)
- 
- 	ici->ops->remove(icd);
- 
--	soc_camera_power_set(icd, icl, 0);
-+	soc_camera_power_off(icd, icl);
- 
- 	mutex_unlock(&icd->video_lock);
- 
-@@ -1185,7 +1188,7 @@ eadddev:
- evdc:
- 	ici->ops->remove(icd);
- eadd:
--	soc_camera_power_set(icd, icl, 0);
-+	soc_camera_power_off(icd, icl);
- epower:
- 	regulator_bulk_free(icl->num_regulators, icl->regulators);
- ereg:
+Thank you for the information. The hardware looks quite complex indeed, and I 
+believe using the media controller would be a good solution.
+
+> > In general, V4L2 device nodes should represent memory input / output for
+> > the device, or a DMA engine. The devices you are referring to above
+> > offer possibilities to write the data to memory in several points in the
+> > pipeline. Based on what you're writing above, it sounds like to me that
+> > your device should likely expose several V4L2 device nodes.
+> 
+> Ok, yes, since we can output / input data at various part of the device, we
+> will have several device nodes.
+> 
+> Concerning the media controller, since we have 1 entity for each resource
+> we can use, we should be able to have a whole bunch of entities(sub
+> devices), attached to several video devices and to a single media device.
+
+That looks good to me.
+
+> Talking now a bit more about legacy applications (application that are
+> using V4L2 and thus need to have some "default" data path but do not know
+> anything about the media controller), what is the intended way to handle
+> them ? Should we have a "platform configuration" application that
+> configure data path via the media controller in order to make those
+> application happy ? I kind of understood that there were some idea of
+> plugin for libv4l in order to configure the media controller.
+
+If you can configure your hardware with a default pipeline at startup that's 
+of course good, but as soon as a media controller-aware application will 
+modify the pipeline pure V4L2 applications will be stuck.
+
+For that reason implementing pipeline configuration support in a libv4l plugin 
+for pure V4L2 applications has my preference. The idea is that high-level V4L2 
+applications (such as a popular closed-source video-conferencing application 
+that people seem to like for a reason I can't fathom :-)) should work with 
+that plugin, and the high-level features they expect should be provided.
+
+> Are there any useful document about this plugin thing are should I just dig
+> into libv4l source code to have a better understanding of that ?
+
+Sakari, do you know if the libv4l plugin API is documented ? Do you have a 
+link to the OMAP3 ISP libv4l plugin ?
+
 -- 
-1.7.2.5
+Regards,
 
+Laurent Pinchart
