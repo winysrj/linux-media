@@ -1,37 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:52375 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753271Ab1I2F7w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Sep 2011 01:59:52 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:39959 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755185Ab1IMQG7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Sep 2011 12:06:59 -0400
+Message-ID: <4E6F7FA0.6030106@redhat.com>
+Date: Tue, 13 Sep 2011 13:06:56 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1317221368-3301-4-git-send-email-archit@ti.com>
-References: <1317221368-3301-1-git-send-email-archit@ti.com> <1317221368-3301-4-git-send-email-archit@ti.com>
-From: "Semwal, Sumit" <sumit.semwal@ti.com>
-Date: Thu, 29 Sep 2011 11:29:31 +0530
-Message-ID: <CAB2ybb9OLHt=Z9s7s=V+46G_WWT5YbPAxFr6Ju8HS5owZb9CbA@mail.gmail.com>
-Subject: Re: [PATCH v4 3/5] OMAP_VOUT: Fix VSYNC IRQ handling in omap_vout_isr
-To: Archit Taneja <archit@ti.com>
-Cc: hvaibhav@ti.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Lukas Sukdol <lukas.sukdol@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Fwd: V4L2 driver EM28xx
+References: <CAJ+hA-xLWGZN7CQOv6=NrXw5pVU1HUmeXXfXkLtb54hbK6-jHQ@mail.gmail.com> <CAJ+hA-xw2RzgwSz-9CbgyXYYJLPVJYWCjRDVAT0MQNuAbxzTng@mail.gmail.com> <CAJ+hA-zM00RDSSFW++kSqN5HRsTMfZFXqDNYxDv=QSxe+hoOJw@mail.gmail.com>
+In-Reply-To: <CAJ+hA-zM00RDSSFW++kSqN5HRsTMfZFXqDNYxDv=QSxe+hoOJw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 28, 2011 at 8:19 PM, Archit Taneja <archit@ti.com> wrote:
-> Currently, in omap_vout_isr(), if the panel type is DPI, and if we
-> get either VSYNC or VSYNC2 interrupts, we proceed ahead to set the
-> current buffers state to VIDEOBUF_DONE and prepare to display the
-> next frame in the queue.
->
-> On OMAP4, because we have 2 LCD managers, the panel type itself is not
-> sufficient to tell if we have received the correct irq, i.e, we shouldn't
-> proceed ahead if we get a VSYNC interrupt for LCD2 manager, or a VSYNC2
-> interrupt for LCD manager.
->
-> Fix this by correlating LCD manager to VSYNC interrupt and LCD2 manager
-> to VSYNC2 interrupt.
->
-> Signed-off-by: Archit Taneja <archit@ti.com>
-Reviewed-by: Sumit Semwal <sumit.semwal@ti.com>
-<snip>
+Em 12-09-2011 18:56, Lukas Sukdol escreveu:
+> Hello,
+> I can't get working USB DVR Box (4 video channels / 2 audio) with the
+> EM2860 chip.
+> The USB device is recognized, but it doesn't work with any of 77 cards
+> in the list...
+> I'm using Fedora 14 (2.6.35.14-96.fc14.i686).
+> 
+> See details in attached dmesg log file.
+> 
+> Link to card (TE-3104AE): http://www.tungson.cn/en/product_info.asp?InfoID=164
+> 
+> Is this card (or will be) supported by EM28xx driver?
+
+Only if someone with the hardware adds support for it ;)
+
+It shouldn't be that hard to add support for it: all you need to do is to
+capture the USB logs from the original driver and use the existing parsers
+for em28xx to discover what it does to select between the 4 video inputs
+and the 2 audio inputs. It probably uses some GPIO's to select them.
+
+Linuxtv wiki pages explain how to do it at the developer's section. You should
+search there for the USB sniffing pages.
+
+Good luck,
+Mauro
