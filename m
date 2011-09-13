@@ -1,87 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:58156 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752308Ab1IGQJt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2011 12:09:49 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id 7161D18B03C
-	for <linux-media@vger.kernel.org>; Wed,  7 Sep 2011 17:03:13 +0200 (CEST)
-Date: Wed, 7 Sep 2011 17:03:13 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] V4L: sh_mobile_csi2: do not guess the client, the host
- tells us
-In-Reply-To: <Pine.LNX.4.64.1109071550320.14818@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1109071701460.14818@axis700.grange>
-References: <Pine.LNX.4.64.1109071550320.14818@axis700.grange>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57580 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750712Ab1IMI5w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Sep 2011 04:57:52 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jonathan Nieder <jrnieder@gmail.com>
+Subject: Re: [PATCH] uvcvideo: Fix crash when linking entities
+Date: Tue, 13 Sep 2011 10:57:48 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Josh Boyer <jwboyer@redhat.com>, linux-media@vger.kernel.org,
+	Dave Jones <davej@redhat.com>,
+	Daniel Dickinson <libre@cshore.neomailbox.net>
+References: <1315348148-7207-1-git-send-email-laurent.pinchart@ideasonboard.com> <201109121620.39982.laurent.pinchart@ideasonboard.com> <20110912172233.GB27651@elie>
+In-Reply-To: <20110912172233.GB27651@elie>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109131057.49337.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We do not have to scan the list of subdevices to find our client - the
-sensor, the host has already set our grp_id value.
+Hi Jonathan,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/sh_mobile_csi2.c |   18 +++---------------
- 1 files changed, 3 insertions(+), 15 deletions(-)
+On Monday 12 September 2011 19:22:33 Jonathan Nieder wrote:
+> Laurent Pinchart wrote:
+> > I've just sent a pull request to Mauro.
+> 
+> Thanks!  Looks good to me, for what little that's worth.  My only nits
+> are that in the future it might be nice to "Cc: stable" and credit
+> testers so they can grep through commit logs to find out if the kernel
+> is fixed.
 
-diff --git a/drivers/media/video/sh_mobile_csi2.c b/drivers/media/video/sh_mobile_csi2.c
-index 6f9f2b7..91c680a 100644
---- a/drivers/media/video/sh_mobile_csi2.c
-+++ b/drivers/media/video/sh_mobile_csi2.c
-@@ -201,22 +201,13 @@ static void sh_csi2_hwinit(struct sh_csi2 *priv)
- static int sh_csi2_client_connect(struct sh_csi2 *priv)
- {
- 	struct sh_csi2_pdata *pdata = priv->pdev->dev.platform_data;
--	struct v4l2_subdev *sd, *csi2_sd = &priv->subdev;
--	struct soc_camera_device *icd = NULL;
-+	struct soc_camera_device *icd = (struct soc_camera_device *)priv->subdev.grp_id;
-+	struct v4l2_subdev *client_sd = soc_camera_to_subdev(icd);
- 	struct device *dev = v4l2_get_subdevdata(&priv->subdev);
- 	struct v4l2_mbus_config cfg;
- 	unsigned long common_flags, csi2_flags;
- 	int i, ret;
- 
--	v4l2_device_for_each_subdev(sd, csi2_sd->v4l2_dev)
--		if (sd->grp_id) {
--			icd = (struct soc_camera_device *)sd->grp_id;
--			break;
--		}
--
--	if (!icd)
--		return -EINVAL;
--
- 	for (i = 0; i < pdata->num_clients; i++)
- 		if (&pdata->clients[i].pdev->dev == icd->pdev)
- 			break;
-@@ -246,7 +237,7 @@ static int sh_csi2_client_connect(struct sh_csi2 *priv)
- 	}
- 
- 	cfg.type = V4L2_MBUS_CSI2;
--	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
-+	ret = v4l2_subdev_call(client_sd, video, g_mbus_config, &cfg);
- 	if (ret == -ENOIOCTLCMD)
- 		common_flags = csi2_flags;
- 	else if (!ret)
-@@ -262,8 +253,6 @@ static int sh_csi2_client_connect(struct sh_csi2 *priv)
- 	priv->mipi_flags = common_flags;
- 	priv->client = pdata->clients + i;
- 
--	csi2_sd->grp_id = (long)icd;
--
- 	pm_runtime_get_sync(dev);
- 
- 	sh_csi2_hwinit(priv);
-@@ -274,7 +263,6 @@ static int sh_csi2_client_connect(struct sh_csi2 *priv)
- static void sh_csi2_client_disconnect(struct sh_csi2 *priv)
- {
- 	priv->client = NULL;
--	priv->subdev.grp_id = 0;
- 
- 	pm_runtime_put(v4l2_get_subdevdata(&priv->subdev));
- }
+I agree. Sorry for having forgotten about that.
+
+Mauro, if it's not too late, can you add "Cc: stable@kernel.org" to this patch 
+? Or should I send you a new pull request ?
+
 -- 
-1.7.2.5
+Regards,
 
+Laurent Pinchart
