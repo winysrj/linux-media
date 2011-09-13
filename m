@@ -1,90 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:63288 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753841Ab1IGUrx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2011 16:47:53 -0400
-Date: Wed, 7 Sep 2011 22:47:38 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-cc: linux-arm-kernel@lists.infradead.org,
-	Baruch Siach <baruch@tkos.co.il>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] media i.MX27 camera: remove legacy dma support
-In-Reply-To: <20110824073614.GU31404@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1109072246320.31156@axis700.grange>
-References: <1314167073-11058-1-git-send-email-s.hauer@pengutronix.de>
- <Pine.LNX.4.64.1108240843001.8985@axis700.grange> <20110824073614.GU31404@pengutronix.de>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:46119 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753963Ab1IMIU2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Sep 2011 04:20:28 -0400
+Received: by qyk7 with SMTP id 7so180406qyk.19
+        for <linux-media@vger.kernel.org>; Tue, 13 Sep 2011 01:20:28 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <Pine.LNX.4.64.1109130926020.17902@axis700.grange>
+References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com>
+	<1315938892-20243-3-git-send-email-scott.jiang.linux@gmail.com>
+	<Pine.LNX.4.64.1109130926020.17902@axis700.grange>
+Date: Tue, 13 Sep 2011 16:20:28 +0800
+Message-ID: <CAHG8p1AJgPiE7VixBAKkwvcEfXyQP=62XhEG+ZdKSvCkwdocBA@mail.gmail.com>
+Subject: Re: [PATCH 3/4] v4l2: add vs6624 sensor driver
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sascha
+>> +#define VGA_WIDTH       640
+>> +#define VGA_HEIGHT      480
+>> +#define QVGA_WIDTH      320
+>> +#define QVGA_HEIGHT     240
+>> +#define QQVGA_WIDTH     160
+>> +#define QQVGA_HEIGHT    120
+>> +#define CIF_WIDTH       352
+>> +#define CIF_HEIGHT      288
+>> +#define QCIF_WIDTH      176
+>> +#define QCIF_HEIGHT     144
+>> +#define QQCIF_WIDTH     88
+>> +#define QQCIF_HEIGHT    72
+>
+> ...Can anyone put these in a central header, please? really, please?;-)
+>
+if already exists in some common file, please tell me
 
-(hope, you've had good holidays:-))
+>
+> I'm sure many other reviewers will also ask you to replace numerical
+> register addresses with symbolic names, since it looks like a sufficiently
+> detailed documentation is available to you.
+>
+sorry, I can't find these names in the datasheet I downloaded from st website.
 
-Any update on this? Do we want this for 3.2?
+>
+>> +     0x200d, 0x3c,           /* Damper PeakGain Output MSB */
+>
+> Actually, some of these registers are already defined in your header:
+>
+> +#define VS6624_PEAK_MIN_OUT_G_MSB     0x200D /* minimum damper output for gain MSB */
+>
+> so, please, just use those names here and add defines for missing registers
+>
+I can't find many register names in datasheet. so I treat it as a
+binary firmware patch.
 
-Thanks
-Guennadi
+>> +     ret = gpio_request(*ce, "VS6624 Chip Enable");
+>> +     if (ret) {
+>> +             v4l_err(client, "failed to request GPIO %d\n", *ce);
+>> +             return ret;
+>> +     }
+>> +     gpio_direction_output(*ce, 1);
+>> +     /* wait 100ms before any further i2c writes are performed */
+>> +     mdelay(100);
+>
+> Logically, it could be a good idea to toggle chip-enable in your
+> v4l2_subdev_core_ops::s_power() method, but if you really have to wait for
+> 100ms before accessing the chip...
+yes, I found if I don't wait a long time, the i2c operation will fail
 
-On Wed, 24 Aug 2011, Sascha Hauer wrote:
+>
+>> +
+>> +     vs6624_writeregs(sd, vs6624_p1);
+>> +     vs6624_write(sd, VS6624_MICRO_EN, 0x2);
+>> +     vs6624_write(sd, VS6624_DIO_EN, 0x1);
+>> +     mdelay(10);
+>> +     vs6624_writeregs(sd, vs6624_p2);
+>> +
+>> +     /* make sure the sensor is vs6624 */
+>> +     device_id = vs6624_read(sd, VS6624_DEV_ID_MSB) << 8
+>> +                     | vs6624_read(sd, VS6624_DEV_ID_LSB);
+>
+> Wow... this is like saying - sorry, guys, the chip, we just killed by
+> writing random rubbish to it wasn't a vs6624;-) I mean, are ID registers
+> really unreadable before writing defaults to registers?
+>
+I remember I put this before writing registers at the first version
+but it failed...
+Perhaps I should remove the id check, it looks strange
 
-> Hi Guennadi,
-> 
-> On Wed, Aug 24, 2011 at 09:19:24AM +0200, Guennadi Liakhovetski wrote:
-> > Sure, if it's broken, let's remove it. But there are a couple of points, 
-> > that we have to fix in this patch. Sorry, a stupid question: has this been 
-> > tested on i.MX27?
-> 
-> Nope, I currently do not have mainline board support for this driver.
-> Could be a good opportunity to add some...
-> 
-> Your other points are totally valid and I will fix them in the next
-> round. Let's first see if someone proves me wrong and says this dma
-> support is indeed working.
-> 
-> > > -	return IRQ_HANDLED;
-> > > -}
-> > > -#else
-> > >  static irqreturn_t mx27_camera_irq(int irq_csi, void *data)
-> > >  {
-> > >  	return IRQ_NONE;
-> > >  }
-> > 
-> > If this is really all, what's needed for i.MX27 ISR, let's remove it 
-> > completely. But maybe you could explain to me, how it is now supposed to 
-> > work on i.MX27. In probe() we have
-> > 
-> > 	irq_handler_t mx2_cam_irq_handler = cpu_is_mx25() ? mx25_camera_irq
-> > 		: mx27_camera_irq;
-> > 
-> > 	...
-> > 
-> > 	err = request_irq(pcdev->irq_csi, mx2_cam_irq_handler, 0,
-> > 			MX2_CAM_DRV_NAME, pcdev);
-> > 
-> > So, after this patch i.MX27 will always have a dummy camera ISR and just 
-> > use EMMA, right?
-> 
-> Yes, only the EMMA irq is used, we can remove this one.
-> 
-> > Then maybe we have to make EMMA resource availability 
-> > compulsory on those SoCs, and not optional, as now? You'll have to make 
-> > emma the only possibility on i.MX27, then pcdev->use_emma will disappear, 
-> > locations like
-> 
-> ok.
-> 
-> Sascha
-> 
-> -- 
-> Pengutronix e.K.                           |                             |
-> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-> Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-> Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Scott
