@@ -1,224 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60205 "EHLO comal.ext.ti.com"
+Received: from lapsus.org ([91.121.59.153]:50339 "EHLO lapsus.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756058Ab1ILOJQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Sep 2011 10:09:16 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p8CE9CtZ010140
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 12 Sep 2011 09:09:14 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [RFC PATCH 2/4] davinci vpbe: add dm365 VPBE display driver changes
-Date: Mon, 12 Sep 2011 19:39:05 +0530
-Message-ID: <1315836547-20658-3-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1315836547-20658-1-git-send-email-manjunath.hadli@ti.com>
-References: <1315836547-20658-1-git-send-email-manjunath.hadli@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	id S1755159Ab1IMQNc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Sep 2011 12:13:32 -0400
+Received: from [IPv6:2a01:e35:8a35:39e0:5ab0:35ff:fef6:9c0] (unknown [IPv6:2a01:e35:8a35:39e0:5ab0:35ff:fef6:9c0])
+	by lapsus.org (Postfix) with ESMTPSA id 9A97BEC0AB
+	for <linux-media@vger.kernel.org>; Tue, 13 Sep 2011 16:08:04 +0000 (UTC)
+From: Eric Petit <eric@lapsus.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Subject: ngene/cxd2099 occasional timeouts/errors
+Date: Tue, 13 Sep 2011 18:08:03 +0200
+Message-Id: <09560277-E300-4B9F-99D1-58BECBF38B51@lapsus.org>
+To: linux-media@vger.kernel.org
+Mime-Version: 1.0 (Apple Message framework v1084)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch implements the core additions to the display driver,
-mainly controlling the VENC and other encoders for dm365.
-This patch also includes addition of amplifier subdevice to the
-vpbe driver and interfacing with venc subdevice.
+Hello,
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
----
- drivers/media/video/davinci/vpbe.c |   55 ++++++++++++++++++++++++++++++++++--
- include/media/davinci/vpbe.h       |   16 ++++++++++
- 2 files changed, 68 insertions(+), 3 deletions(-)
+I am trying to run Mystique SaTiX-S2 CI Dual cards to fetch and decrypt a number of channels 24/7. I got it to work with the ngene/cxd2099 drivers (passing the stream through the sec0 device etc), but one remaining issue is that the driver occasionally reports a command timeout followed by more errors from the CI:
 
-diff --git a/drivers/media/video/davinci/vpbe.c b/drivers/media/video/davinci/vpbe.c
-index d773d30..21a8645 100644
---- a/drivers/media/video/davinci/vpbe.c
-+++ b/drivers/media/video/davinci/vpbe.c
-@@ -141,11 +141,12 @@ static int vpbe_enum_outputs(struct vpbe_device *vpbe_dev,
- 	return 0;
- }
- 
--static int vpbe_get_mode_info(struct vpbe_device *vpbe_dev, char *mode)
-+static int vpbe_get_mode_info(struct vpbe_device *vpbe_dev, char *mode,
-+			      int output_index)
- {
- 	struct vpbe_config *cfg = vpbe_dev->cfg;
- 	struct vpbe_enc_mode_info var;
--	int curr_output = vpbe_dev->current_out_index;
-+	int curr_output = output_index;
- 	int i;
- 
- 	if (NULL == mode)
-@@ -245,6 +246,8 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
- 	struct encoder_config_info *curr_enc_info =
- 			vpbe_current_encoder_info(vpbe_dev);
- 	struct vpbe_config *cfg = vpbe_dev->cfg;
-+	struct venc_platform_data *venc_device = vpbe_dev->venc_device;
-+	enum v4l2_mbus_pixelcode if_params;
- 	int enc_out_index;
- 	int sd_index;
- 	int ret = 0;
-@@ -274,6 +277,8 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
- 			goto out;
- 		}
- 
-+		if_params = cfg->outputs[index].if_params;
-+		venc_device->setup_if_config(if_params);
- 		if (ret)
- 			goto out;
- 	}
-@@ -293,7 +298,7 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
- 	 * encoder.
- 	 */
- 	ret = vpbe_get_mode_info(vpbe_dev,
--				 cfg->outputs[index].default_mode);
-+				 cfg->outputs[index].default_mode, index);
- 	if (!ret) {
- 		struct osd_state *osd_device = vpbe_dev->osd_device;
- 
-@@ -367,6 +372,11 @@ static int vpbe_s_dv_preset(struct vpbe_device *vpbe_dev,
- 
- 	ret = v4l2_subdev_call(vpbe_dev->encoders[sd_index], video,
- 					s_dv_preset, dv_preset);
-+	if (!ret && (vpbe_dev->amp != NULL)) {
-+		/* Call amplifier subdevice */
-+		ret = v4l2_subdev_call(vpbe_dev->amp, video,
-+				s_dv_preset, dv_preset);
-+	}
- 	/* set the lcd controller output for the given mode */
- 	if (!ret) {
- 		struct osd_state *osd_device = vpbe_dev->osd_device;
-@@ -566,6 +576,8 @@ static int platform_device_get(struct device *dev, void *data)
- 
- 	if (strcmp("vpbe-osd", pdev->name) == 0)
- 		vpbe_dev->osd_device = platform_get_drvdata(pdev);
-+	if (strcmp("vpbe-venc", pdev->name) == 0)
-+		vpbe_dev->venc_device = dev_get_platdata(&pdev->dev);
- 
- 	return 0;
- }
-@@ -584,6 +596,7 @@ static int platform_device_get(struct device *dev, void *data)
- static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
- {
- 	struct encoder_config_info *enc_info;
-+	struct amp_config_info *amp_info;
- 	struct v4l2_subdev **enc_subdev;
- 	struct osd_state *osd_device;
- 	struct i2c_adapter *i2c_adap;
-@@ -704,6 +717,39 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
- 			v4l2_warn(&vpbe_dev->v4l2_dev, "non-i2c encoders"
- 				 " currently not supported");
- 	}
-+	/* Add amplifier subdevice for dm365 */
-+	if ((strcmp(vpbe_dev->cfg->module_name, "dm365-vpbe-display") == 0) &&
-+			vpbe_dev->cfg->amp != NULL) {
-+		vpbe_dev->amp = kmalloc(sizeof(struct v4l2_subdev *),
-+					GFP_KERNEL);
-+		if (vpbe_dev->amp == NULL) {
-+			v4l2_err(&vpbe_dev->v4l2_dev,
-+				"unable to allocate memory for sub device");
-+			ret = -ENOMEM;
-+			goto vpbe_fail_v4l2_device;
-+		}
-+		amp_info = vpbe_dev->cfg->amp;
-+		if (amp_info->is_i2c) {
-+			vpbe_dev->amp = v4l2_i2c_new_subdev_board(
-+			&vpbe_dev->v4l2_dev, i2c_adap,
-+			&amp_info->board_info, NULL);
-+			if (!vpbe_dev->amp) {
-+				v4l2_err(&vpbe_dev->v4l2_dev,
-+					 "amplifier %s failed to register",
-+					 amp_info->module_name);
-+				ret = -ENODEV;
-+				goto vpbe_fail_amp_register;
-+			}
-+			v4l2_info(&vpbe_dev->v4l2_dev,
-+					  "v4l2 sub device %s registered\n",
-+					  amp_info->module_name);
-+		} else {
-+			    vpbe_dev->amp = NULL;
-+			    v4l2_warn(&vpbe_dev->v4l2_dev, "non-i2c amplifiers"
-+			    " currently not supported");
-+		}
-+	} else
-+	    vpbe_dev->amp = NULL;
- 
- 	/* set the current encoder and output to that of venc by default */
- 	vpbe_dev->current_sd_index = 0;
-@@ -731,6 +777,8 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
- 	/* TBD handling of bootargs for default output and mode */
- 	return 0;
- 
-+vpbe_fail_amp_register:
-+	kfree(vpbe_dev->amp);
- vpbe_fail_sd_register:
- 	kfree(vpbe_dev->encoders);
- vpbe_fail_v4l2_device:
-@@ -757,6 +805,7 @@ static void vpbe_deinitialize(struct device *dev, struct vpbe_device *vpbe_dev)
- 	if (strcmp(vpbe_dev->cfg->module_name, "dm644x-vpbe-display") != 0)
- 		clk_put(vpbe_dev->dac_clk);
- 
-+	kfree(vpbe_dev->amp);
- 	kfree(vpbe_dev->encoders);
- 	vpbe_dev->initialized = 0;
- 	/* disable vpss clocks */
-diff --git a/include/media/davinci/vpbe.h b/include/media/davinci/vpbe.h
-index 8b11fb0..8bc1b3c 100644
---- a/include/media/davinci/vpbe.h
-+++ b/include/media/davinci/vpbe.h
-@@ -63,6 +63,7 @@ struct vpbe_output {
- 	 * output basis. If per mode is needed, we may have to move this to
- 	 * mode_info structure
- 	 */
-+	enum v4l2_mbus_pixelcode if_params;
- };
- 
- /* encoder configuration info */
-@@ -74,6 +75,15 @@ struct encoder_config_info {
- 	struct i2c_board_info board_info;
- };
- 
-+/*amplifier configuration info */
-+struct amp_config_info {
-+	char module_name[32];
-+	/* Is this an i2c device ? */
-+	unsigned int is_i2c:1;
-+	/* i2c subdevice board info */
-+	struct i2c_board_info board_info;
-+};
-+
- /* structure for defining vpbe display subsystem components */
- struct vpbe_config {
- 	char module_name[32];
-@@ -84,6 +94,8 @@ struct vpbe_config {
- 	/* external encoder information goes here */
- 	int num_ext_encoders;
- 	struct encoder_config_info *ext_encoders;
-+	/* amplifier information goes here */
-+	struct amp_config_info *amp;
- 	int num_outputs;
- 	/* Order is venc outputs followed by LCD and then external encoders */
- 	struct vpbe_output *outputs;
-@@ -158,6 +170,8 @@ struct vpbe_device {
- 	struct v4l2_subdev **encoders;
- 	/* current encoder index */
- 	int current_sd_index;
-+	/* external amplifier v4l2 subdevice */
-+	struct v4l2_subdev *amp;
- 	struct mutex lock;
- 	/* device initialized */
- 	int initialized;
-@@ -165,6 +179,8 @@ struct vpbe_device {
- 	struct clk *dac_clk;
- 	/* osd_device pointer */
- 	struct osd_state *osd_device;
-+	/* venc device pointer */
-+	struct venc_platform_data *venc_device;
- 	/*
- 	 * fields below are accessed by users of vpbe_device. Not the
- 	 * ones above
+Sep  6 08:46:48 s102-34 kernel: [1636918.174974] slot_shutdown
+Sep  6 08:46:50 s102-34 kernel: [1636920.481706] dvb_ca adapter 2: DVB CAM detected and initialised successfully
+  (Running fine...)
+Sep 10 09:20:41 s102-34 kernel: [1984551.380033] ngene: Command timeout cmd=03 prev=04
+Sep 10 09:20:41 s102-34 kernel: [1984551.384675] host_to_ngene (c000): 03 04 80 01 01 00 00 00
+Sep 10 09:20:41 s102-34 kernel: [1984551.389345] ngene_to_host (c100): 00 00 00 00 00 00 00 00
+Sep 10 09:20:41 s102-34 kernel: [1984551.393900] dev->hosttongene (f3025000): 03 04 80 01 01 00 00 00
+Sep 10 09:20:41 s102-34 kernel: [1984551.398551] dev->ngenetohost (f3025100): 00 00 00 00 00 00 00 00
+Sep 10 09:20:41 s102-34 kernel: [1984551.403176] error in i2c_read
+Sep 10 09:20:41 s102-34 kernel: [1984551.407999] Failed to write to I2C!
+Sep 10 09:20:41 s102-34 kernel: [1984551.412801] Failed to write to I2C!
+Sep 10 09:20:41 s102-34 kernel: [1984551.417474] Failed to write to I2C!
+Sep 10 09:20:41 s102-34 kernel: [1984551.422085] Failed to write to I2C!
+Sep 10 09:20:41 s102-34 kernel: [1984551.426605] Failed to write to I2C!
+Sep 10 09:20:41 s102-34 kernel: [1984551.512361] Failed to write to I2C register 00@40!
+Sep 10 09:20:41 s102-34 kernel: [1984551.516719] Failed to write to I2C register 00@40!
+Sep 10 09:20:41 s102-34 kernel: [1984551.520784] DR
+Sep 10 09:20:41 s102-34 kernel: [1984551.520789] WC
+Sep 10 09:20:41 s102-34 kernel: [1984551.521108] Failed to write to I2C register 00@40!
+Sep 10 09:20:41 s102-34 kernel: [1984551.525402] Failed to write to I2C register 00@40!
+Sep 10 09:20:41 s102-34 kernel: [1984551.529326] NO CAM
+Sep 10 09:20:41 s102-34 kernel: [1984551.529652] Failed to write to I2C register 00@40!
+Sep 10 09:20:41 s102-34 kernel: [1984551.533528] slot_shutdown
+Sep 10 09:20:41 s102-34 kernel: [1984551.533853] Failed to write to I2C register 00@40!
+Sep 10 09:20:41 s102-34 kernel: [1984551.538034] Failed to write to I2C register 00@40!
+Sep 10 09:20:41 s102-34 kernel: [1984551.542166] Failed to write to I2C register 00@40!
+
+>From the moment that happens, I can't do anything with the card: all ioctls fail even after re-opening the adapter or after reloading the drivers. Only a reboot can bring it back to a good state.
+
+This condition is not so frequent, I've seen it happen maybe 5 times running a dozen cards for a week. Has anyone experienced it? Is this something the driver would be able to recover from?
+
+Versions details below,
+
+Thanks,
+
 -- 
-1.6.2.4
+Eric
+
+
+
+
+Kernel:
+    linux-image-3.0.0-1-686-pae Debian package (32-bit)
+
+Modules built from v4l-dvb:
+    cxd2099
+    dvb_core
+    lnbp21
+    ngene
+    stv090x
+    stv6110x
+
+Dmesg output from loading the drivers:
+    slot_shutdown
+    ngene 0000:03:00.0: PCI INT A disabled
+    WARNING: You are using an experimental version of the media stack.
+    	As the driver is backported to an older kernel, it doesn't offer
+    	enough quality for its usage in production.
+    	Use it with care.
+    Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
+    	3d589db03f09c1ace6f71849085595f1f114cd3c [media] v4l: mt9v032: Fix Bayer pattern
+    	fcbd986d61c726d64db940b27d4f3604a6cbecb0 [media] V4L: mt9m111: rewrite set_pixfmt
+    	4e817223d7f4cf8b740037be4a1ca1578850e8c9 [media] V4L: mt9m111: fix missing return value check mt9m111_reg_clear
+    nGene PCIE bridge driver, Copyright (C) 2005-2007 Micronas
+    ngene 0000:03:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+    ngene: Found Mystique SaTiX-S2 Dual (v2)
+    ngene 0000:03:00.0: setting latency timer to 64
+    ngene: Device version 1
+    ngene: Loading firmware file ngene_18.fw.
+    ngene 0000:03:00.0: irq 68 for MSI/MSI-X
+    Attached CXD2099AR at 40
+    LNBx2x attached on addr=a
+    stv6110x_attach: Attaching STV6110x
+    DVB: registering new adapter (nGene)
+    DVB: registering adapter 0 frontend 0 (STV090x Multistandard)...
+    LNBx2x attached on addr=8
+    stv6110x_attach: Attaching STV6110x
+    DVB: registering new adapter (nGene)
+    DVB: registering adapter 1 frontend 0 (STV090x Multistandard)...
+    No demod found on chan 2
+    No demod found on chan 3
+    DVB: registering new adapter (nGene)
+
+>From lspci:
+    03:00.0 Multimedia video controller [0400]: Micronas Semiconductor Holding AG Device [18c3:0720] (rev 01)
+        Subsystem: Micronas Semiconductor Holding AG Device [18c3:db02]
+        Flags: bus master, fast devsel, latency 0, IRQ 68
+        Memory at b8910000 (32-bit, non-prefetchable) [size=64K]
+        Memory at b8900000 (64-bit, non-prefetchable) [size=64K]
+        Capabilities: [40] Power Management version 2
+        Capabilities: [48] MSI: Enable+ Count=1/1 Maskable- 64bit+
+        Capabilities: [58] Express Endpoint, MSI 00
+        Capabilities: [100] Device Serial Number 00-00-00-00-00-00-00-00
+        Capabilities: [400] Virtual Channel
+        Kernel driver in use: ngene
 
