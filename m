@@ -1,227 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55927 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754855Ab1IGRDX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Sep 2011 13:03:23 -0400
-From: Deepthy Ravi <deepthy.ravi@ti.com>
-To: <laurent.pinchart@ideasonboard.com>, <mchehab@infradead.org>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-CC: <linux-omap@vger.kernel.org>, Abhilash K V <abhilash.kv@ti.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: [PATCH v2] omap3: ISP: Fix the failure of CCDC capture during suspend/resume
-Date: Wed, 7 Sep 2011 15:58:25 +0530
-Message-ID: <1315391305-31669-1-git-send-email-deepthy.ravi@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:11645 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755851Ab1IMRvu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Sep 2011 13:51:50 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LRH005VM2YBXD60@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 13 Sep 2011 18:51:47 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LRH00K6S2YBNN@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 13 Sep 2011 18:51:47 +0100 (BST)
+Date: Tue, 13 Sep 2011 19:51:46 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v4] V4L: dynamically allocate video_device nodes in
+ subdevices
+In-reply-to: <Pine.LNX.4.64.1109131318450.17902@axis700.grange>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Message-id: <4E6F9832.1070404@samsung.com>
+References: <Pine.LNX.4.64.1109091701060.915@axis700.grange>
+ <201109092332.59943.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1109121253270.9638@axis700.grange>
+ <201109131116.35408.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1109131318450.17902@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Abhilash K V <abhilash.kv@ti.com>
+Hi Guennadi,
 
-While resuming from the "suspended to memory" state,
-occasionally CCDC fails to get enabled and thus fails
-to capture frames any more till the next suspend/resume
-is issued.
-This is a race condition which happens only when a CCDC
-frame-completion ISR is pending even as ISP device's
-isp_pm_prepare() is getting called and only one buffer
-is left on the DMA queue.
-The DMA queue buffers are thus depleted which results in
-its underrun.So when ISP resumes there are no buffers on
-the queue (as the application which can issue buffers is
-yet to resume) to start video capture.
-This fix addresses this issue by dequeuing and enqueing
-the last buffer in isp_pm_prepare() after its DMA gets
-completed. Thus,when ISP resumes it always finds atleast
-one buffer on the DMA queue - this is true if application
-uses only 3 buffers.
+On 09/13/2011 04:48 PM, Guennadi Liakhovetski wrote:
+> Currently only very few drivers actually use video_device nodes, embedded
+> in struct v4l2_subdev. Allocate these nodes dynamically for those drivers
+> to save memory for the rest.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
-Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
----
-Changes since v1:
-Merged the patch which fixes kernel crash when attempting suspend
- 
- drivers/media/video/omap3isp/isp.c      |   30 +++++++++++++++-
- drivers/media/video/omap3isp/isp.h      |    4 ++
- drivers/media/video/omap3isp/ispvideo.c |   58 ++++++++++++++++++++++++++++++-
- drivers/media/video/omap3isp/ispvideo.h |    2 +
- 4 files changed, 92 insertions(+), 2 deletions(-)
+I have tested this patch with Samsung FIMC driver and with MC enabled
+sensor driver.
+After some hundreds of module load/unload I didn't observe anything unusual.
+The patch seem to be safe for device node enabled subdevs. You can stick my:
 
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index 5cea2bb..00fd021 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -1566,12 +1566,24 @@ static int isp_pm_prepare(struct device *dev)
- {
- 	struct isp_device *isp = dev_get_drvdata(dev);
- 	int reset;
-+	int err = 0;
-+	struct isp_ccdc_device *ccdc = &isp->isp_ccdc;
-+	struct isp_video *video = &ccdc->video_out;
-+	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
-+	unsigned long flags;
- 
- 	WARN_ON(mutex_is_locked(&isp->isp_mutex));
--
- 	if (isp->ref_count == 0)
- 		return 0;
- 
-+	spin_lock_irqsave(&pipe->lock, flags);
-+	pipe->state |= ISP_PIPELINE_PREPARE_SUSPEND;
-+	spin_unlock_irqrestore(&pipe->lock, flags);
-+
-+	err = isp_video_handle_buffer_starvation(video);
-+	if (err < 0)
-+		return err;
-+
- 	reset = isp_suspend_modules(isp);
- 	isp_disable_interrupts(isp);
- 	isp_save_ctx(isp);
-@@ -1596,16 +1608,32 @@ static int isp_pm_suspend(struct device *dev)
- static int isp_pm_resume(struct device *dev)
- {
- 	struct isp_device *isp = dev_get_drvdata(dev);
-+	struct isp_ccdc_device *ccdc = &isp->isp_ccdc;
-+	struct isp_video *video = &ccdc->video_out;
-+	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
-+	unsigned long flags;
- 
- 	if (isp->ref_count == 0)
- 		return 0;
- 
-+	spin_lock_irqsave(&pipe->lock, flags);
-+	pipe->state &= ~ISP_PIPELINE_PREPARE_SUSPEND;
-+	spin_unlock_irqrestore(&pipe->lock, flags);
-+
- 	return isp_enable_clocks(isp);
- }
- 
- static void isp_pm_complete(struct device *dev)
- {
- 	struct isp_device *isp = dev_get_drvdata(dev);
-+	struct isp_ccdc_device *ccdc = &isp->isp_ccdc;
-+	struct isp_video *video = &ccdc->video_out;
-+	struct isp_pipeline *pipe = to_isp_pipeline(&video->video.entity);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&pipe->lock, flags);
-+	pipe->state &= ~ISP_PIPELINE_PREPARE_SUSPEND;
-+	spin_unlock_irqrestore(&pipe->lock, flags);
- 
- 	if (isp->ref_count == 0)
- 		return;
-diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
-index 521db0c..0acc622 100644
---- a/drivers/media/video/omap3isp/isp.h
-+++ b/drivers/media/video/omap3isp/isp.h
-@@ -259,6 +259,10 @@ int omap3isp_register_entities(struct platform_device *pdev,
- 			       struct v4l2_device *v4l2_dev);
- void omap3isp_unregister_entities(struct platform_device *pdev);
- 
-+#ifdef CONFIG_PM
-+int isp_video_handle_buffer_starvation(struct isp_video *video);
-+#endif
-+
- /*
-  * isp_reg_readl - Read value of an OMAP3 ISP register
-  * @dev: Device pointer specific to the OMAP3 ISP.
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index 0b7b6dd..d1c316c 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -526,6 +526,26 @@ static int isp_video_buffer_prepare(struct isp_video_buffer *buf)
- 	return 0;
- }
- 
-+#ifdef CONFIG_PM
-+static int isp_video_deq_enq(struct isp_video_queue *queue)
-+{
-+	int err = 0;
-+	struct v4l2_buffer vbuf;
-+
-+	vbuf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	/* blocking dequeue to ensure DMA is done */
-+	err = omap3isp_video_queue_dqbuf(queue, &vbuf, 0);
-+	if (err < 0)
-+		return err;
-+	else {
-+		err = omap3isp_video_queue_qbuf(queue, &vbuf);
-+		if (err < 0)
-+			return err;
-+	}
-+	return err;
-+}
-+#endif
-+
- /*
-  * isp_video_buffer_queue - Add buffer to streaming queue
-  * @buf: Video buffer
-@@ -549,7 +569,7 @@ static void isp_video_buffer_queue(struct isp_video_buffer *buf)
- 	empty = list_empty(&video->dmaqueue);
- 	list_add_tail(&buffer->buffer.irqlist, &video->dmaqueue);
- 
--	if (empty) {
-+	if (empty && !(pipe->state & ISP_PIPELINE_PREPARE_SUSPEND)) {
- 		if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 			state = ISP_PIPELINE_QUEUE_OUTPUT;
- 		else
-@@ -690,6 +710,42 @@ void omap3isp_video_resume(struct isp_video *video, int continuous)
- 	}
- }
- 
-+#ifdef CONFIG_PM
-+
-+/*
-+ * isp_video_handle_buffer_starvation - Handles the case when there are only 1
-+ * or less active buffers present on the dmaqueue while preparing for suspend.
-+ *
-+ * @video: ISP video object
-+ *
-+ * This function is intended to be used in suspend/resume scenario. While
-+ * preparing for suspend, if the number of active buffers on dmaqueue is 0 or 1,
-+ * the last buffer is dequeued after DMA completes and re-queued again. This
-+ * prevents ISP_VIDEO_DMAQUEUE_UNDERRUN from occuring on issue of resume.
-+ */
-+int isp_video_handle_buffer_starvation(struct isp_video *video)
-+{
-+	int err = 0;
-+	struct isp_video_queue *queue = video->queue;
-+	struct isp_video_buffer *buf;
-+	struct list_head *head = &video->dmaqueue;
-+	struct isp_ccdc_device *ccdc = &video->isp->isp_ccdc;
-+
-+	if (list_empty(&video->dmaqueue)
-+		&& ccdc->state != ISP_PIPELINE_STREAM_STOPPED) {
-+		err = isp_video_deq_enq(queue);
-+	} else if (head->next->next == head) {
-+		/* only one buffer is left on dmaqueue */
-+		buf = list_first_entry(&video->dmaqueue,
-+					struct isp_video_buffer,
-+					irqlist);
-+		if (buf->state == ISP_BUF_STATE_ACTIVE)
-+			err = isp_video_deq_enq(queue);
-+	}
-+	return err;
-+}
-+#endif
-+
- /* -----------------------------------------------------------------------------
-  * V4L2 ioctls
-  */
-diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
-index 01d8728..cba6649 100644
---- a/drivers/media/video/omap3isp/ispvideo.h
-+++ b/drivers/media/video/omap3isp/ispvideo.h
-@@ -83,6 +83,8 @@ enum isp_pipeline_state {
- 	ISP_PIPELINE_IDLE_OUTPUT = 32,
- 	/* The pipeline is currently streaming. */
- 	ISP_PIPELINE_STREAM = 64,
-+	/* The pipeline is currently preparing to suspend. */
-+	ISP_PIPELINE_PREPARE_SUSPEND = 128,
- };
- 
- struct isp_pipeline {
+Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+
+if you feel so.
+
+
+Thanks,
+Sylwester Nawrocki
+Samsung Poland R&D Center
+
+> ---
+> 
+> v4:
+> 
+> 1. added "static" in v4l2_device_release_subdev_node() definition
+> 2. removed superfluous get_device() and put_device() (thanks to Laurent 
+> for pointing out)
+> 
+>  drivers/media/video/v4l2-device.c |   36 +++++++++++++++++++++++++++++++-----
+>  include/media/v4l2-subdev.h       |    4 ++--
+>  2 files changed, 33 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+> index c72856c..8abf830 100644
+> --- a/drivers/media/video/v4l2-device.c
+> +++ b/drivers/media/video/v4l2-device.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/types.h>
+>  #include <linux/ioctl.h>
+>  #include <linux/i2c.h>
+> +#include <linux/slab.h>
+>  #if defined(CONFIG_SPI)
+>  #include <linux/spi/spi.h>
+>  #endif
+> @@ -191,6 +192,13 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+>  
+> +static void v4l2_device_release_subdev_node(struct video_device *vdev)
+> +{
+> +	struct v4l2_subdev *sd = video_get_drvdata(vdev);
+> +	sd->devnode = NULL;
+> +	kfree(vdev);
+> +}
+> +
+>  int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+>  {
+>  	struct video_device *vdev;
+> @@ -204,22 +212,40 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
+>  		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
+>  			continue;
+>  
+> -		vdev = &sd->devnode;
+> +		vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
+> +		if (!vdev) {
+> +			err = -ENOMEM;
+> +			goto clean_up;
+> +		}
+> +
+> +		video_set_drvdata(vdev, sd);
+>  		strlcpy(vdev->name, sd->name, sizeof(vdev->name));
+>  		vdev->v4l2_dev = v4l2_dev;
+>  		vdev->fops = &v4l2_subdev_fops;
+> -		vdev->release = video_device_release_empty;
+> +		vdev->release = v4l2_device_release_subdev_node;
+>  		vdev->ctrl_handler = sd->ctrl_handler;
+>  		err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
+>  					      sd->owner);
+> -		if (err < 0)
+> -			return err;
+> +		if (err < 0) {
+> +			kfree(vdev);
+> +			goto clean_up;
+> +		}
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  		sd->entity.v4l.major = VIDEO_MAJOR;
+>  		sd->entity.v4l.minor = vdev->minor;
+>  #endif
+> +		sd->devnode = vdev;
+>  	}
+>  	return 0;
+> +
+> +clean_up:
+> +	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
+> +		if (!sd->devnode)
+> +			break;
+> +		video_unregister_device(sd->devnode);
+> +	}
+> +
+> +	return err;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_nodes);
+>  
+> @@ -245,7 +271,7 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+>  	if (v4l2_dev->mdev)
+>  		media_device_unregister_entity(&sd->entity);
+>  #endif
+> -	video_unregister_device(&sd->devnode);
+> +	video_unregister_device(sd->devnode);
+>  	module_put(sd->owner);
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 257da1a..5dd049a 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -534,13 +534,13 @@ struct v4l2_subdev {
+>  	void *dev_priv;
+>  	void *host_priv;
+>  	/* subdev device node */
+> -	struct video_device devnode;
+> +	struct video_device *devnode;
+>  };
+>  
+>  #define media_entity_to_v4l2_subdev(ent) \
+>  	container_of(ent, struct v4l2_subdev, entity)
+>  #define vdev_to_v4l2_subdev(vdev) \
+> -	container_of(vdev, struct v4l2_subdev, devnode)
+> +	video_get_drvdata(vdev)
+>  
+>  /*
+>   * Used for storing subdev information per file handle
+
+
 -- 
-1.7.0.4
-
+Sylwester Nawrocki
+Samsung Poland R&D Center
