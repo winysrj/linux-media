@@ -1,267 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51170 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754095Ab1I2L3E convert rfc822-to-8bit (ORCPT
+Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:54292 "EHLO
+	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932835Ab1IMVeM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Sep 2011 07:29:04 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Taneja, Archit" <archit@ti.com>
-CC: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Semwal, Sumit" <sumit.semwal@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 29 Sep 2011 16:58:54 +0530
-Subject: RE: [PATCH v4 2/5] OMAP_VOUT: CLEANUP: Remove redundant code from
- omap_vout_isr
-Message-ID: <19F8576C6E063C45BE387C64729E739404ECA5512B@dbde02.ent.ti.com>
-References: <1317221368-3301-1-git-send-email-archit@ti.com>
- <1317221368-3301-3-git-send-email-archit@ti.com>
-In-Reply-To: <1317221368-3301-3-git-send-email-archit@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Tue, 13 Sep 2011 17:34:12 -0400
+Subject: Re: recursive locking problem
+From: Steve Kerrison <steve@stevekerrison.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: David Waring <davidjw@rd.bbc.co.uk>, linux-media@vger.kernel.org
+In-Reply-To: <4E6FC41A.5030803@iki.fi>
+References: <4E68EE98.90201@iki.fi> <4E69EE5E.8080605@rd.bbc.co.uk>
+	 <4E6FC41A.5030803@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 13 Sep 2011 22:34:04 +0100
+Message-ID: <1315949644.10987.25.camel@ares>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+At the risk of sounding silly, why do we rely on i2c gating so much? The
+whole point of i2c is that you can sit a bunch of devices on the same
+pair of wires and talk to one at a time.
 
-> -----Original Message-----
-> From: Taneja, Archit
-> Sent: Wednesday, September 28, 2011 8:19 PM
-> To: Hiremath, Vaibhav
-> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
-> media@vger.kernel.org; Taneja, Archit
-> Subject: [PATCH v4 2/5] OMAP_VOUT: CLEANUP: Remove redundant code from
-> omap_vout_isr
-> 
-> Currently, there is a lot of redundant code is between DPI and VENC panels,
-> this
-> can be made common by moving out field/interlace specific code to a
-> separate
-> function called omapvid_handle_interlace_display(). There is no functional
-> change made.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/media/video/omap/omap_vout.c |  172 ++++++++++++++++-------------
-> -----
->  1 files changed, 82 insertions(+), 90 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c
-> index e64a83c..247ea31 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -524,10 +524,50 @@ static int omapvid_apply_changes(struct
-> omap_vout_device *vout)
->  	return 0;
->  }
-> 
-> +static int omapvid_handle_interlace_display(struct omap_vout_device *vout,
-> +		unsigned int irqstatus, struct timeval timevalue)
-> +{
-> +	u32 fid;
-> +
-> +	if (vout->first_int) {
-> +		vout->first_int = 0;
-> +		goto err;
-> +	}
-> +
-> +	if (irqstatus & DISPC_IRQ_EVSYNC_ODD)
-> +		fid = 1;
-> +	else if (irqstatus & DISPC_IRQ_EVSYNC_EVEN)
-> +		fid = 0;
-> +	else
-> +		goto err;
-> +
-> +	vout->field_id ^= 1;
-> +	if (fid != vout->field_id) {
-> +		if (fid == 0)
-> +			vout->field_id = fid;
-> +	} else if (0 == fid) {
-> +		if (vout->cur_frm == vout->next_frm)
-> +			goto err;
-> +
-> +		vout->cur_frm->ts = timevalue;
-> +		vout->cur_frm->state = VIDEOBUF_DONE;
-> +		wake_up_interruptible(&vout->cur_frm->done);
-> +		vout->cur_frm = vout->next_frm;
-> +	} else {
-> +		if (list_empty(&vout->dma_queue) ||
-> +				(vout->cur_frm != vout->next_frm))
-> +			goto err;
-> +	}
-> +
-> +	return vout->field_id;
-> +err:
-> +	return 0;
-> +}
-> +
->  static void omap_vout_isr(void *arg, unsigned int irqstatus)
->  {
-> -	int ret;
-> -	u32 addr, fid;
-> +	int ret, fid;
-> +	u32 addr;
->  	struct omap_overlay *ovl;
->  	struct timeval timevalue;
->  	struct omapvideo_info *ovid;
-> @@ -548,107 +588,59 @@ static void omap_vout_isr(void *arg, unsigned int
-> irqstatus)
->  	spin_lock(&vout->vbq_lock);
->  	do_gettimeofday(&timevalue);
-> 
-> -	if (cur_display->type != OMAP_DISPLAY_TYPE_VENC) {
-> -		switch (cur_display->type) {
-> -		case OMAP_DISPLAY_TYPE_DPI:
-> -			if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
-> -				goto vout_isr_err;
-> -			break;
-> -		case OMAP_DISPLAY_TYPE_HDMI:
-> -			if (!(irqstatus & DISPC_IRQ_EVSYNC_EVEN))
-> -				goto vout_isr_err;
-> -			break;
-> -		default:
-> +	switch (cur_display->type) {
-> +	case OMAP_DISPLAY_TYPE_DPI:
-> +		if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
->  			goto vout_isr_err;
-> -		}
-> -		if (!vout->first_int && (vout->cur_frm != vout->next_frm)) {
-> -			vout->cur_frm->ts = timevalue;
-> -			vout->cur_frm->state = VIDEOBUF_DONE;
-> -			wake_up_interruptible(&vout->cur_frm->done);
-> -			vout->cur_frm = vout->next_frm;
-> -		}
-> -		vout->first_int = 0;
-> -		if (list_empty(&vout->dma_queue))
-> +		break;
-> +	case OMAP_DISPLAY_TYPE_VENC:
-> +		fid = omapvid_handle_interlace_display(vout, irqstatus,
-> +				timevalue);
-> +		if (!fid)
->  			goto vout_isr_err;
-> +		break;
-> +	case OMAP_DISPLAY_TYPE_HDMI:
-> +		if (!(irqstatus & DISPC_IRQ_EVSYNC_EVEN))
-> +			goto vout_isr_err;
-> +		break;
-> +	default:
-> +		goto vout_isr_err;
-> +	}
-> 
-> -		vout->next_frm = list_entry(vout->dma_queue.next,
-> -				struct videobuf_buffer, queue);
-> -		list_del(&vout->next_frm->queue);
-> -
-> -		vout->next_frm->state = VIDEOBUF_ACTIVE;
-> -
-> -		addr = (unsigned long) vout->queued_buf_addr[vout->next_frm-
-> >i]
-> -			+ vout->cropped_offset;
-> +	if (!vout->first_int && (vout->cur_frm != vout->next_frm)) {
-> +		vout->cur_frm->ts = timevalue;
-> +		vout->cur_frm->state = VIDEOBUF_DONE;
-> +		wake_up_interruptible(&vout->cur_frm->done);
-> +		vout->cur_frm = vout->next_frm;
-> +	}
-> 
-> -		/* First save the configuration in ovelray structure */
-> -		ret = omapvid_init(vout, addr);
-> -		if (ret)
-> -			printk(KERN_ERR VOUT_NAME
-> -				"failed to set overlay info\n");
-> -		/* Enable the pipeline and set the Go bit */
-> -		ret = omapvid_apply_changes(vout);
-> -		if (ret)
-> -			printk(KERN_ERR VOUT_NAME "failed to change mode\n");
-> -	} else {
-> +	vout->first_int = 0;
-> +	if (list_empty(&vout->dma_queue))
-> +		goto vout_isr_err;
-> 
-> -		if (vout->first_int) {
-> -			vout->first_int = 0;
-> -			goto vout_isr_err;
-> -		}
-> -		if (irqstatus & DISPC_IRQ_EVSYNC_ODD)
-> -			fid = 1;
-> -		else if (irqstatus & DISPC_IRQ_EVSYNC_EVEN)
-> -			fid = 0;
-> -		else
-> -			goto vout_isr_err;
-> +	vout->next_frm = list_entry(vout->dma_queue.next,
-> +			struct videobuf_buffer, queue);
-> +	list_del(&vout->next_frm->queue);
-> 
-> -		vout->field_id ^= 1;
-> -		if (fid != vout->field_id) {
-> -			if (0 == fid)
-> -				vout->field_id = fid;
-> +	vout->next_frm->state = VIDEOBUF_ACTIVE;
-> 
-> -			goto vout_isr_err;
-> -		}
-> -		if (0 == fid) {
-> -			if (vout->cur_frm == vout->next_frm)
-> -				goto vout_isr_err;
-> -
-> -			vout->cur_frm->ts = timevalue;
-> -			vout->cur_frm->state = VIDEOBUF_DONE;
-> -			wake_up_interruptible(&vout->cur_frm->done);
-> -			vout->cur_frm = vout->next_frm;
-> -		} else if (1 == fid) {
-> -			if (list_empty(&vout->dma_queue) ||
-> -					(vout->cur_frm != vout->next_frm))
-> -				goto vout_isr_err;
-> -
-> -			vout->next_frm = list_entry(vout->dma_queue.next,
-> -					struct videobuf_buffer, queue);
-> -			list_del(&vout->next_frm->queue);
-> -
-> -			vout->next_frm->state = VIDEOBUF_ACTIVE;
-> -			addr = (unsigned long)
-> -				vout->queued_buf_addr[vout->next_frm->i] +
-> -				vout->cropped_offset;
-> -			/* First save the configuration in ovelray structure */
-> -			ret = omapvid_init(vout, addr);
-> -			if (ret)
-> -				printk(KERN_ERR VOUT_NAME
-> -						"failed to set overlay info\n");
-> -			/* Enable the pipeline and set the Go bit */
-> -			ret = omapvid_apply_changes(vout);
-> -			if (ret)
-> -				printk(KERN_ERR VOUT_NAME
-> -						"failed to change mode\n");
-> -		}
-> +	addr = (unsigned long) vout->queued_buf_addr[vout->next_frm->i]
-> +		+ vout->cropped_offset;
-> 
-> -	}
-> +	/* First save the configuration in ovelray structure */
-> +	ret = omapvid_init(vout, addr);
-> +	if (ret)
-> +		printk(KERN_ERR VOUT_NAME
-> +			"failed to set overlay info\n");
-> +	/* Enable the pipeline and set the Go bit */
-> +	ret = omapvid_apply_changes(vout);
-> +	if (ret)
-> +		printk(KERN_ERR VOUT_NAME "failed to change mode\n");
-> 
->  vout_isr_err:
->  	spin_unlock(&vout->vbq_lock);
->  }
-> 
-> -
->  /* Video buffer call backs */
-> 
+Why not just open up the gates and be done with it, except for
+situations where the i2c chain foolishly has two devices that have the
+same address because somebody didn't net the address configuration pins
+correctly, or it's a really big system with more devices on it that a
+particular chip family has sub-addresses?
 
-Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>From a signal-driving point of view, the gate circuitry is surely a
+sufficient buffer. I guess the only two things I can think of as real
+reasons are to 1) reduce the chance of misbehaving devices from causing
+problems and 2) to save power by not sending clocks and data where we
+know they aren't needed.
 
-Thanks,
-Vaibhav
+Can any one shed some light on this? I appreciate it's not a linux or
+indeed linux-media specific issue as the hardware itself is designed
+this way.
 
->  /*
-> --
-> 1.7.1
+Getting back to the subject, Antti's af9015 example demonstrates
+precisely when gating is needed. But I have to ask, does the MXL5003
+really only support one address; can it not be reconfigured? it's a bit
+late to ask that question once the PCB is fabbed, I admit.
+
+Would it make any sense to haul the gate locking (or some wrapper at
+least) up into the uC for that particular configuration?
+
+E.g:
+
+Tuner driver wants to i2c write tuner 0
+Calls i2c_gate_ctrl(open)
+uC checks if a gate is already open, if it is, and is the same gate as
+is already open, just carry on. If not, wait on a lock, then set which
+gate is open and proceed to the 'real' gate_ctrl op.
+Similar path for i2c_gate_ctrl(close), as relaxed as it needs to be to
+cope with how different tuner drivers work.
+
+You could wrap the checking of which gate is open in a lock for
+atomicity, and only wait on a device lock where necessary. This way you
+can also check whether you're trying to change the state of a gate or
+not and early-out (unless calling gate_ctrl(open) more than once does
+something /different/ to calling it just once, in which case we're
+doomed and this was nothing more than naive rambling).
+
+Cheers,
+-- 
+Steve Kerrison MEng Hons.
+http://www.stevekerrison.com/ 
+
+On Tue, 2011-09-13 at 23:59 +0300, Antti Palosaari wrote:
+> On 09/09/2011 01:45 PM, David Waring wrote:
+> > On 08/09/11 17:34, Antti Palosaari wrote:
+> >> [snip]
+> >>
+> >> Is there any lock can do recursive locking but unlock frees all locks?
+> >>
+> >> Like that:
+> >> gate_open
+> >> +gate_open
+> >> +gate_close
+> >> == lock is free
+> >>
+> >> AFAIK mutex can do only simple lock() + unlock(). Semaphore can do
+> >> recursive locking, like lock() + lock() + unlock() + unlock(). But how I
+> >> can do lock() + lock() + unlock() == free.
+> >>
+> > Antti,
+> >
+> > It's a very bad idea to try and use a mutex like that. The number of
+> > locks and unlocks must be balanced otherwise you risk accessing
+> > variables without a lock.
+> >
+> > Consider:
+> >
+> > static struct mutex foo_mutex;
+> > static int foo=3;
+> >
+> > void a() {
+> >    mutex_lock(&foo_mutex);
+> >    if (foo<5) foo++;
+> >    b();
+> >    foo--; /*<<<  still need lock here */
+> >    mutex_unlock(&foo_mutex);
+> > }
+> >
+> > void b() {
+> >    mutex_lock(&foo_mutex);
+> >    if (foo>6) foo=(foo>>1);
+> >    mutex_unlock(&foo_mutex);
+> > }
+> >
+> > Note: this assumes mutex_lock will allow the same thread get multiple
+> > locks as you would like (which it doesn't).
+> >
+> > As pointed out in the code, when a() is called, you still need the lock
+> > for accesses to foo after the call to b() that also requires the lock.
+> > If we used the locks in the way you propose then foo would be accessed
+> > without a lock.
+> >
+> > To code properly for cases like these I usually use a wrapper functions
+> > to acquire the lock and call a thread unsafe version (i.e. doesn't use
+> > locks) of the function that only uses other thread unsafe functions. e.g.
+> >
+> > void a() {
+> >    mutex_lock(&foo_mutex);
+> >    __a_thr_unsafe();
+> >    mutex_unlock(&foo_mutex);
+> > }
+> >
+> > void b() {
+> >    mutex_lock(&foo_mutex);
+> >    __b_thr_unsafe();
+> >    mutex_unlock(&foo_mutex);
+> > }
+> >
+> > static void __a_thr_unsafe() {
+> >    if (foo<5) foo++;
+> >    __b_thr_unsafe();
+> >    foo--;
+> > }
+> >
+> > static void __b_thr_unsafe() {
+> >    if (foo>6) foo=(foo>>1);
+> > }
+> >
+> > This way a call to a() or b() will acquire the lock once for that
+> > thread, perform all actions and then release the lock. The mutex is
+> > handled properly.
+> >
+> > Can you restructure the code so that you don't need multiple locks?
+> 
+> Thank you for very long and detailed reply with examples :)
+> 
+> I need lock for hardware access. Single I2C-adapter have two I2C-clients 
+> that have same I2C-address in same bus. There is gate (demod I2C-gate) 
+> logic that is used to select desired tuner. See that:
+> http://palosaari.fi/linux/v4l-dvb/controlling_tuner_af9015_dual_demod.txt
+> 
+> You can never know surely how tuner drivers calls to open or close gate, 
+> very commonly there is situations where multiple close or open happens. 
+> That's why lock/unlock is problematic.
+> 
+> .i2c_gate_ctrl() is demod driver callback (struct dvb_frontend_ops) 
+> which controls gate that gate. That callback is always called from tuner 
+> driver when gate is needed to open or close.
+> 
+> regards
+> Antti
+> 
 
