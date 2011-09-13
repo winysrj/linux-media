@@ -1,60 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:54704 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1759171Ab1IJKvk (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:61128 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751522Ab1IMLRP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Sep 2011 06:51:40 -0400
-Received: from [192.168.178.41] (Rokh.fritz.box [192.168.178.41])
-	by AMD-Geode-LX.localdomain (Postfix) with ESMTP id BE0A3C0064
-	for <linux-media@vger.kernel.org>; Sat, 10 Sep 2011 12:51:38 +0200 (CEST)
-Message-ID: <4E6B413B.8040802@gmx.de>
-Date: Sat, 10 Sep 2011 12:51:39 +0200
-From: Georg Gast <schorsch_76@gmx.de>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Some Questions from a noobie v4l driver developer
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 13 Sep 2011 07:17:15 -0400
+From: Arvydas Sidorenko <asido4@gmail.com>
+To: mchehab@infradead.org
+Cc: asido4@gmail.com, hverkuil@xs4all.nl, arnd@arndb.de,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 2/2] drivers/media/video/stk-webcam.c: coding style issue
+Date: Tue, 13 Sep 2011 13:18:11 +0200
+Message-Id: <1315912691-11227-2-git-send-email-asido4@gmail.com>
+In-Reply-To: <1315912691-11227-1-git-send-email-asido4@gmail.com>
+References: <1315912691-11227-1-git-send-email-asido4@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all!
+checkpatch.pl gave some coding style errors, so on the way to the first
+patch I added the fix to them.
 
-Currently i try to write a driver for a "Technisat Skysat2 HD eXpress"
-DVB-S2 card. My current module is able to register the pci device and
-unload. And now begins the journey to v4l ;)
+Signed-off-by: Arvydas Sidorenko <asido4@gmail.com>
+---
+ drivers/media/video/stk-webcam.c |   18 ++++++++----------
+ 1 files changed, 8 insertions(+), 10 deletions(-)
 
-As there is no driver available for linux i decided to write it myself.
+diff --git a/drivers/media/video/stk-webcam.c b/drivers/media/video/stk-webcam.c
+index 859e78f..5fc6bbc 100644
+--- a/drivers/media/video/stk-webcam.c
++++ b/drivers/media/video/stk-webcam.c
+@@ -518,7 +518,7 @@ static int stk_prepare_sio_buffers(struct stk_camera *dev, unsigned n_sbufs)
+ 			return -ENOMEM;
+ 		for (i = 0; i < n_sbufs; i++) {
+ 			if (stk_setup_siobuf(dev, i))
+-				return (dev->n_sbufs > 1)? 0 : -ENOMEM;
++				return (dev->n_sbufs > 1 ? 0 : -ENOMEM);
+ 			dev->n_sbufs = i+1;
+ 		}
+ 	}
+@@ -558,9 +558,8 @@ static int v4l_stk_open(struct file *fp)
+ 	vdev = video_devdata(fp);
+ 	dev = vdev_to_camera(vdev);
+ 
+-	if (dev == NULL || !is_present(dev)) {
++	if (dev == NULL || !is_present(dev))
+ 		return -ENXIO;
+-	}
+ 	fp->private_data = dev;
+ 	usb_autopm_get_interface(dev->interface);
+ 
+@@ -579,7 +578,7 @@ static int v4l_stk_release(struct file *fp)
+ 		dev->owner = NULL;
+ 	}
+ 
+-	if(is_present(dev))
++	if (is_present(dev))
+ 		usb_autopm_put_interface(dev->interface);
+ 
+ 	return 0;
+@@ -656,7 +655,7 @@ static unsigned int v4l_stk_poll(struct file *fp, poll_table *wait)
+ 		return POLLERR;
+ 
+ 	if (!list_empty(&dev->sio_full))
+-		return (POLLIN | POLLRDNORM);
++		return POLLIN | POLLRDNORM;
+ 
+ 	return 0;
+ }
+@@ -893,9 +892,9 @@ static int stk_vidioc_g_fmt_vid_cap(struct file *filp,
+ 	struct stk_camera *dev = priv;
+ 	int i;
+ 
+-	for (i = 0; i < ARRAY_SIZE(stk_sizes)
+-			&& stk_sizes[i].m != dev->vsettings.mode;
+-		i++);
++	for (i = 0; i < ARRAY_SIZE(stk_sizes) &&
++			stk_sizes[i].m != dev->vsettings.mode; i++)
++		;
+ 	if (i == ARRAY_SIZE(stk_sizes)) {
+ 		STK_ERROR("ERROR: mode invalid\n");
+ 		return -EINVAL;
+@@ -1307,9 +1306,8 @@ static int stk_camera_probe(struct usb_interface *interface,
+ 	usb_set_intfdata(interface, dev);
+ 
+ 	err = stk_register_video_device(dev);
+-	if (err) {
++	if (err)
+ 		goto error;
+-	}
+ 
+ 	return 0;
+ 
+-- 
+1.7.4.4
 
-Subdevice IDs: 1ae4:0700
-
-My device contains the folowing ics:
-SAA7160 rev3 (PCIe Bridge)
-STV0903B (decoder)
-STV6110A (tuner)
-
-For the two frontends STV0903B and the tuner STV6110A exists already
-driver. I dived a little through the linux kernel code and found the
-driver for the "Technisat DVB-S/S2 USB 2.0 device" (from Patrick
-Boettcher) which contains the same chips except the pcie bridge.
-
-I read in the documentation of the linux kernel (Debian Wheezy - kernel
-3.0.0), that v4l(1) was droped in 2.6.37 and new drivers should use
-v4l2. The documentation of video4linux2 in the linux kernel shows that
-there is a important function where all "ops" are registered.
-v4l2_subdev_init(). In my "reference" driver (technisat-usb2.c for the
-technisat usb device) that function is not used. Patrick Boettcher
-speeks of a DVB-USB framework on his
-homepage(http://www.wi-bw.tfh-wildau.de/~pboettch/home/index.php).
-
-So my questions are:
-a) What framework should i use? V4L2?
-b) Is it reasonable that i could refactor most of the code of Patrick
-Boettchers Technisat USB Driver?
-c) Is the documentation for video4linux2 uptodate in the kernel? Or
-should i use an other documentation?
-d) There is a driver namned saa716x from Manu Abrahams. Is this driver
-in  state where i could modify it that it supports my device?
-
-Best Regards
-Georg Gast
