@@ -1,57 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:18708 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750789Ab1IVHE4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Sep 2011 03:04:56 -0400
-Date: Thu, 22 Sep 2011 09:04:42 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH] staging: dt3155v4l: fix build break
-In-reply-to: <20110922131232.56210b544f587210621ae339@canb.auug.org.au>
-To: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	Marin Mitov <mitov@issp.bas.bg>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <1316675082-9310-1-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <20110922131232.56210b544f587210621ae339@canb.auug.org.au>
+Received: from mail.kapsi.fi ([217.30.184.167]:33849 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932395Ab1IMT5N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Sep 2011 15:57:13 -0400
+Message-ID: <4E6FB595.5030204@iki.fi>
+Date: Tue, 13 Sep 2011 22:57:09 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org, Chris Rankin <rankincj@yahoo.com>
+Subject: [GIT PULL FOR 3.2] PCTV DVB-S2 Stick 460e
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes build break caused by commit ba7fcb0c9549 ("[media] media: vb2: dma
-contig allocator: use dma_addr instread of paddr").
+Morjens Mauro
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/staging/dt3155v4l/dt3155v4l.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+This patch series adds support for PCTV DVB-S2 Stick 460e, that is 
+DVB-S2 USB stick.
 
-diff --git a/drivers/staging/dt3155v4l/dt3155v4l.c b/drivers/staging/dt3155v4l/dt3155v4l.c
-index 05aa41c..0ede5d1 100644
---- a/drivers/staging/dt3155v4l/dt3155v4l.c
-+++ b/drivers/staging/dt3155v4l/dt3155v4l.c
-@@ -207,7 +207,7 @@ dt3155_start_acq(struct dt3155_priv *pd)
- 	struct vb2_buffer *vb = pd->curr_buf;
- 	dma_addr_t dma_addr;
- 
--	dma_addr = vb2_dma_contig_plane_paddr(vb, 0);
-+	dma_addr = vb2_dma_contig_plane_dma_addr(vb, 0);
- 	iowrite32(dma_addr, pd->regs + EVEN_DMA_START);
- 	iowrite32(dma_addr + img_width, pd->regs + ODD_DMA_START);
- 	iowrite32(img_width, pd->regs + EVEN_DMA_STRIDE);
-@@ -374,7 +374,7 @@ dt3155_irq_handler_even(int irq, void *dev_id)
- 	ivb = list_first_entry(&ipd->dmaq, typeof(*ivb), done_entry);
- 	list_del(&ivb->done_entry);
- 	ipd->curr_buf = ivb;
--	dma_addr = vb2_dma_contig_plane_paddr(ivb, 0);
-+	dma_addr = vb2_dma_contig_plane_dma_addr(ivb, 0);
- 	iowrite32(dma_addr, ipd->regs + EVEN_DMA_START);
- 	iowrite32(dma_addr + img_width, ipd->regs + ODD_DMA_START);
- 	iowrite32(img_width, ipd->regs + EVEN_DMA_STRIDE);
+Is is based of;
+* Empia EM28174
+* NXP TDA10071 & Conexant CX24118A combo
+* Allegro A8293
+
+It introduces two new chipset drivers namely tda10071 and a8293 - former 
+is DVB-S/S2 demod + tuner combo and later is LNB controller.
+
+Also Chris Rankin em28xx bug fix is included since it wasn't committed 
+to 3.2 tree as today.
+
+regards
+Antti
+
+
+The following changes since commit 2d04c13a507f5a01daa7422cd52250809573cfdb:
+
+   [media] dvb-usb: improve sanity check of adap->active_fe in 
+dvb_usb_ctrl_feed (2011-09-09 15:28:04 -0300)
+
+are available in the git repository at:
+   git://linuxtv.org/anttip/media_tree.git pctv_460e
+
+Antti Palosaari (8):
+       a8293: Allegro A8293 SEC driver
+       tda10071: NXP TDA10071 DVB-S/S2 driver
+       em28xx: add support for PCTV DVB-S2 Stick 460e [2013:024f]
+       get_dvb_firmware: add dvb-fe-tda10071.fw
+       get_dvb_firmware: update tda10071 file url
+       tda10071: do not download last byte of fw
+       tda10071: change sleeps to more suitable ones
+       get_dvb_firmware: whitespace fix
+
+Chris Rankin (1):
+       em28xx: ERROR: "em28xx_add_into_devlist" 
+[drivers/media/video/em28xx/em28xx.ko] undefined!
+
+  Documentation/dvb/get_dvb_firmware          |   19 +-
+  drivers/media/dvb/frontends/Kconfig         |   12 +
+  drivers/media/dvb/frontends/Makefile        |    2 +
+  drivers/media/dvb/frontends/a8293.c         |  184 ++++
+  drivers/media/dvb/frontends/a8293.h         |   41 +
+  drivers/media/dvb/frontends/tda10071.c      | 1269 
++++++++++++++++++++++++++++
+  drivers/media/dvb/frontends/tda10071.h      |   81 ++
+  drivers/media/dvb/frontends/tda10071_priv.h |  122 +++
+  drivers/media/video/em28xx/Kconfig          |    2 +
+  drivers/media/video/em28xx/em28xx-cards.c   |   33 +-
+  drivers/media/video/em28xx/em28xx-dvb.c     |   25 +
+  drivers/media/video/em28xx/em28xx.h         |    1 +
+  12 files changed, 1788 insertions(+), 3 deletions(-)
+  create mode 100644 drivers/media/dvb/frontends/a8293.c
+  create mode 100644 drivers/media/dvb/frontends/a8293.h
+  create mode 100644 drivers/media/dvb/frontends/tda10071.c
+  create mode 100644 drivers/media/dvb/frontends/tda10071.h
+  create mode 100644 drivers/media/dvb/frontends/tda10071_priv.h
+
 -- 
-1.7.1.569.g6f426
-
+http://palosaari.fi/
