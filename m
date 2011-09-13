@@ -1,59 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:39059 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751154Ab1INHlo convert rfc822-to-8bit (ORCPT
+Received: from nm2.bt.bullet.mail.ukl.yahoo.com ([217.146.183.200]:33397 "HELO
+	nm2.bt.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756122Ab1IMUrl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Sep 2011 03:41:44 -0400
-Received: by qyk7 with SMTP id 7so1368277qyk.19
-        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2011 00:41:43 -0700 (PDT)
+	Tue, 13 Sep 2011 16:47:41 -0400
+Message-ID: <4E6FC167.4070505@yahoo.com>
+Date: Tue, 13 Sep 2011 21:47:35 +0100
+From: Chris Rankin <rankincj@yahoo.com>
 MIME-Version: 1.0
-In-Reply-To: <CAFhB-RBLA410nRJ3w7qyEq2dD+96=eDTneVfmo5Bm6NwevW0Pw@mail.gmail.com>
-References: <CAFhB-RACaxtkBuXsch5-giTBqCHR+s5_SP-sGeR=E1HVeGfQLQ@mail.gmail.com>
-	<CAFhB-RBLA410nRJ3w7qyEq2dD+96=eDTneVfmo5Bm6NwevW0Pw@mail.gmail.com>
-Date: Wed, 14 Sep 2011 15:41:43 +0800
-Message-ID: <CAHG8p1BCsNdSu__aDV3OkQZxgz8Ohz01J9ufAHAjxDkwErOuuQ@mail.gmail.com>
-Subject: Re: Asking advice for Camera/ISP driver framework design
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Cliff Cai <cliffcai.sh@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Antti Palosaari <crope@iki.fi>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] EM28xx - fix deadlock when unplugging and replugging
+ a DVB adapter
+References: <1313851233.95109.YahooMailClassic@web121704.mail.ne1.yahoo.com> <4E4FCC8D.3070305@redhat.com> <4E50FAC7.6080807@yahoo.com> <4E6FB736.4080202@iki.fi>
+In-Reply-To: <4E6FB736.4080202@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/9/14 Cliff Cai <cliffcai.sh@gmail.com>:
-> Dear guys,
+On 13/09/11 21:04, Antti Palosaari wrote:
+> On 08/21/2011 03:32 PM, Chris Rankin wrote:
+>> It occurred to me this morning that since we're no longer supposed to be
+>> holding the device lock when taking the device list lock, then the
+>> em28xx_usb_disconnect() function needs changing too.
+>>
+>> Signed-off-by: Chris Rankin <rankincj@yahoo.com>
 >
-> I'm currently working on a camera/ISP Linux driver project.Of course,I
-> want it to be a V4L2 driver,but I got a problem about how to design
-> the driver framework.
-> let me introduce the background of this ISP(Image signal processor) a
-> little bit.
-> 1.The ISP has two output paths,first one called main path which is
-> used to transfer image data for taking picture and recording,the other
-> one called preview path which is used to transfer image data for
-> previewing.
-> 2.the two paths have the same image data input from sensor,but their
-> outputs are different,the output of main path is high quality and
-> larger image,while the output of preview path is smaller image.
-> 3.the two output paths have independent DMA engines used to move image
-> data to system memory.
->
-> The problem is currently, the V4L2 framework seems only support one
-> buffer queue,and in my case,obviously,two buffer queues are required.
-> Any idea/advice for implementing such kind of V4L2 driver? or any
-> other better solutions?
->
-> Thanks a lot!
-> Cliff
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-Your chip seems like davinci isp, only difference is dma. So you can
-reference davinci drivers.
-If dma interrupt doesn't happen at the same time,  I guess you must
-wait because source image is the same.
+> I ran that also when re-plugging both PCTV 290e and 460e as today LinuxTV 3.2
+> tree. Seems like this patch is still missing and maybe some more.
 
-Scott
+There was also this patch, which fixed a couple of memory leaks:
+
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg36432.html
+
+IIRC, the main purpose of the other patch was to delete the 
+em28xx_remove_from_devlist() function as well by adding the
+
+     list_del(&dev->devlist);
+
+to the em28xx_close_extension() function instead.
+
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg35783.html
+
+Cheers,
+Chris
