@@ -1,50 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:50836 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753040Ab1IRCws convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47277 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755851Ab1IMRwM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Sep 2011 22:52:48 -0400
-Received: by bkbzt4 with SMTP id zt4so4460007bkb.19
-        for <linux-media@vger.kernel.org>; Sat, 17 Sep 2011 19:52:46 -0700 (PDT)
+	Tue, 13 Sep 2011 13:52:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v4] V4L: dynamically allocate video_device nodes in subdevices
+Date: Tue, 13 Sep 2011 19:52:07 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <Pine.LNX.4.64.1109091701060.915@axis700.grange> <201109131116.35408.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1109131318450.17902@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1109131318450.17902@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <CAHG8p1DaVN9sxBUxfZtGYg6Q==hHUDou=voJqRW-QQnis=-_3g@mail.gmail.com>
-References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com>
- <1315938892-20243-3-git-send-email-scott.jiang.linux@gmail.com>
- <CAMjpGUenjQbGAM69J7mAt4anP9advZcdngXNuMddt+=HUnVK+w@mail.gmail.com> <CAHG8p1DaVN9sxBUxfZtGYg6Q==hHUDou=voJqRW-QQnis=-_3g@mail.gmail.com>
-From: Mike Frysinger <vapier.adi@gmail.com>
-Date: Sat, 17 Sep 2011 22:52:26 -0400
-Message-ID: <CAMjpGUft+KvyanM-AAqXRfCxdq-yC8mjpZ0NEQEGr=KEFRsGGg@mail.gmail.com>
-Subject: Re: [uclinux-dist-devel] [PATCH 3/4] v4l2: add vs6624 sensor driver
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	uclinux-dist-devel@blackfin.uclinux.org,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109131952.08202.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 14, 2011 at 03:28, Scott Jiang wrote:
->>> +#ifdef CONFIG_VIDEO_ADV_DEBUG
->>
->> just use DEBUG ?
->>
-> no, v4l2 use CONFIG_VIDEO_ADV_DEBUG
+Hi Guennadi,
 
-ok, i was thinking this was something we added (since we have "ADVxxx" parts)
+On Tuesday 13 September 2011 16:48:10 Guennadi Liakhovetski wrote:
+> Currently only very few drivers actually use video_device nodes, embedded
+> in struct v4l2_subdev. Allocate these nodes dynamically for those drivers
+> to save memory for the rest.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
->>> +       v4l_info(client, "chip found @ 0x%02x (%s)\n",
->>> +                       client->addr << 1, client->adapter->name);
->>
->> is that "<< 1" correct ?  i dont think so ...
->
-> every driver under media I see use this, so what's wrong?
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-meh, they're all wrong imo then :p.  they're shifting the address to
-accommodate datasheets that incorrectly specify the i2c "address" with
-the read/write as bit 0.  but it's fine for this driver to do that if
-it's the standard that the rest of the v4l code has adopted.
--mike
+I will try to test the patch tomorrow on an OMAP3 system.
+
+-- 
+Regards,
+
+Laurent Pinchart
