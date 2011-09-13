@@ -1,191 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:51393 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754895Ab1I2OWt (ORCPT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43337 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754743Ab1IMHKH convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Sep 2011 10:22:49 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LSA0078HFXZX350@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 29 Sep 2011 15:22:47 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LSA00KVYFXYNL@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 29 Sep 2011 15:22:47 +0100 (BST)
-Date: Thu, 29 Sep 2011 16:22:37 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 1/5] v4l: add support for selection api
-In-reply-to: <1317306161-23696-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	mchehab@redhat.com
-Message-id: <1317306161-23696-2-git-send-email-t.stanislaws@samsung.com>
-References: <1317306161-23696-1-git-send-email-t.stanislaws@samsung.com>
+	Tue, 13 Sep 2011 03:10:07 -0400
+From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"tony@atomide.com" <tony@atomide.com>,
+	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Date: Tue, 13 Sep 2011 12:36:20 +0530
+Subject: RE: [PATCH 1/8] omap3evm: Enable regulators for camera interface
+Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090831@dbde03.ent.ti.com>
+References: <1315488831-15998-1-git-send-email-deepthy.ravi@ti.com>,<201109081851.53078.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201109081851.53078.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch introduces new api for a precise control of cropping and composing
-features for video devices. The new ioctls are VIDIOC_S_SELECTION and
-VIDIOC_G_SELECTION.
+Hi,
+> ________________________________________
+> From: Laurent Pinchart [laurent.pinchart@ideasonboard.com]
+> Sent: Thursday, September 08, 2011 10:21 PM
+> To: Ravi, Deepthy
+> Cc: linux-omap@vger.kernel.org; tony@atomide.com; linux@arm.linux.org.uk; linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org; mchehab@infradead.org; linux-media@vger.kernel.org; g.liakhovetski@gmx.de; Hiremath, Vaibhav
+> Subject: Re: [PATCH 1/8] omap3evm: Enable regulators for camera interface
+>
+> Hi,
+>
+> On Thursday 08 September 2011 15:33:51 Deepthy Ravi wrote:
+>> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>>
+>> Enabled 1v8 and 2v8 regulator output, which is being used by
+>> camera module.
+>
+> Thanks for the patch. Just one minor comment below.
+>
+>> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/board-omap3evm.c |   40
+>> ++++++++++++++++++++++++++++++++++ 1 files changed, 40 insertions(+), 0
+>> deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/board-omap3evm.c
+>> b/arch/arm/mach-omap2/board-omap3evm.c index a1184b3..8333ee4 100644
+>> --- a/arch/arm/mach-omap2/board-omap3evm.c
+>> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+>> @@ -273,6 +273,44 @@ static struct omap_dss_board_info omap3_evm_dss_data =
+>> { .default_device     = &omap3_evm_lcd_device,
+>>  };
+>>
+>> +static struct regulator_consumer_supply omap3evm_vaux3_supply = {
+>> +     .supply         = "cam_1v8",
+>> +};
+>> +
+>> +static struct regulator_consumer_supply omap3evm_vaux4_supply = {
+>> +     .supply         = "cam_2v8",
+>> +};
+>> +
+>> +/* VAUX3 for CAM_1V8 */
+>> +static struct regulator_init_data omap3evm_vaux3 = {
+>> +     .constraints = {
+>> +             .min_uV                 = 1800000,
+>> +             .max_uV                 = 1800000,
+>> +             .apply_uV               = true,
+>> +             .valid_modes_mask       = REGULATOR_MODE_NORMAL
+>> +                                     | REGULATOR_MODE_STANDBY,
+>> +             .valid_ops_mask         = REGULATOR_CHANGE_MODE
+>> +                                     | REGULATOR_CHANGE_STATUS,
+>> +             },
+>> +     .num_consumer_supplies  = 1,
+>> +     .consumer_supplies      = &omap3evm_vaux3_supply,
+>
+> I might be wrong, but I think we're standardizing on using REGULATOR_SUPPLY
+> arrays as described in commit 786b01a8c1db0c0decca55d660a2a3ebd7cfb26b
+> ("cleanup regulator supply definitions in mach-omap2").
+>
+[Deepthy Ravi] Yes, you are right. I will modify it.
+>> +};
+>> +
+>> +/* VAUX4 for CAM_2V8 */
+>> +static struct regulator_init_data omap3evm_vaux4 = {
+>> +     .constraints = {
+>> +             .min_uV                 = 1800000,
+>> +             .max_uV                 = 1800000,
+>> +             .apply_uV               = true,
+>> +             .valid_modes_mask       = REGULATOR_MODE_NORMAL
+>> +                     | REGULATOR_MODE_STANDBY,
+>> +             .valid_ops_mask         = REGULATOR_CHANGE_MODE
+>> +                     | REGULATOR_CHANGE_STATUS,
+>> +     },
+>> +     .num_consumer_supplies  = 1,
+>> +     .consumer_supplies      = &omap3evm_vaux4_supply,
+>> +};
+>> +
+>>  static struct regulator_consumer_supply omap3evm_vmmc1_supply[] = {
+>>       REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
+>>  };
+>> @@ -499,6 +537,8 @@ static struct twl4030_platform_data omap3evm_twldata =
+>> { .vio                = &omap3evm_vio,
+>>       .vmmc1          = &omap3evm_vmmc1,
+>>       .vsim           = &omap3evm_vsim,
+>> +     .vaux3          = &omap3evm_vaux3,
+>> +     .vaux4          = &omap3evm_vaux4,
+>>  };
+>>
+>>  static int __init omap3_evm_i2c_init(void)
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/v4l2-compat-ioctl32.c |    2 +
- drivers/media/video/v4l2-ioctl.c          |   34 +++++++++++++++++++++
- include/linux/videodev2.h                 |   46 +++++++++++++++++++++++++++++
- include/media/v4l2-ioctl.h                |    4 ++
- 4 files changed, 86 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index 61979b7..f3b9d15 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -927,6 +927,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	case VIDIOC_CROPCAP:
- 	case VIDIOC_G_CROP:
- 	case VIDIOC_S_CROP:
-+	case VIDIOC_G_SELECTION:
-+	case VIDIOC_S_SELECTION:
- 	case VIDIOC_G_JPEGCOMP:
- 	case VIDIOC_S_JPEGCOMP:
- 	case VIDIOC_QUERYSTD:
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 21c49dc..4cbb695e 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -238,6 +238,8 @@ static const char *v4l2_ioctls[] = {
- 	[_IOC_NR(VIDIOC_CROPCAP)]          = "VIDIOC_CROPCAP",
- 	[_IOC_NR(VIDIOC_G_CROP)]           = "VIDIOC_G_CROP",
- 	[_IOC_NR(VIDIOC_S_CROP)]           = "VIDIOC_S_CROP",
-+	[_IOC_NR(VIDIOC_G_SELECTION)]      = "VIDIOC_G_SELECTION",
-+	[_IOC_NR(VIDIOC_S_SELECTION)]      = "VIDIOC_S_SELECTION",
- 	[_IOC_NR(VIDIOC_G_JPEGCOMP)]       = "VIDIOC_G_JPEGCOMP",
- 	[_IOC_NR(VIDIOC_S_JPEGCOMP)]       = "VIDIOC_S_JPEGCOMP",
- 	[_IOC_NR(VIDIOC_QUERYSTD)]         = "VIDIOC_QUERYSTD",
-@@ -1561,6 +1563,38 @@ static long __video_do_ioctl(struct file *file,
- 		ret = ops->vidioc_s_crop(file, fh, p);
- 		break;
- 	}
-+	case VIDIOC_G_SELECTION:
-+	{
-+		struct v4l2_selection *p = arg;
-+
-+		if (!ops->vidioc_g_selection)
-+			break;
-+
-+		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
-+
-+		ret = ops->vidioc_g_selection(file, fh, p);
-+		if (!ret)
-+			dbgrect(vfd, "", &p->r);
-+		break;
-+	}
-+	case VIDIOC_S_SELECTION:
-+	{
-+		struct v4l2_selection *p = arg;
-+
-+		if (!ops->vidioc_s_selection)
-+			break;
-+
-+		if (ret_prio) {
-+			ret = ret_prio;
-+			break;
-+		}
-+
-+		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
-+		dbgrect(vfd, "", &p->r);
-+
-+		ret = ops->vidioc_s_selection(file, fh, p);
-+		break;
-+	}
- 	case VIDIOC_CROPCAP:
- 	{
- 		struct v4l2_cropcap *p = arg;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 9d14523..bdb2b49 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -738,6 +738,48 @@ struct v4l2_crop {
- 	struct v4l2_rect        c;
- };
- 
-+/* Hints for adjustments of selection rectangle */
-+#define V4L2_SEL_SIZE_GE	0x00000001
-+#define V4L2_SEL_SIZE_LE	0x00000002
-+
-+/* Selection targets */
-+
-+/* current cropping area */
-+#define V4L2_SEL_CROP_ACTIVE		0
-+/* default cropping area */
-+#define V4L2_SEL_CROP_DEFAULT		1
-+/* cropping bounds */
-+#define V4L2_SEL_CROP_BOUNDS		2
-+/* current composing area */
-+#define V4L2_SEL_COMPOSE_ACTIVE		256
-+/* default composing area */
-+#define V4L2_SEL_COMPOSE_DEFAULT	257
-+/* composing bounds */
-+#define V4L2_SEL_COMPOSE_BOUNDS		258
-+/* current composing area plus all padding pixels */
-+#define V4L2_SEL_COMPOSE_PADDED		259
-+
-+/**
-+ * struct v4l2_selection - selection info
-+ * @type:	buffer type (do not use *_MPLANE types)
-+ * @target:	selection target, used to choose one of possible rectangles
-+ * @flags:	constraints flags
-+ * @r:		coordinates of selection window
-+ * @reserved:	for future use, rounds structure size to 64 bytes, set to zero
-+ *
-+ * Hardware may use multiple helper window to process a video stream.
-+ * The structure is used to exchange this selection areas between
-+ * an application and a driver.
-+ */
-+struct v4l2_selection {
-+	__u32			type;
-+	__u32			target;
-+	__u32                   flags;
-+	struct v4l2_rect        r;
-+	__u32                   reserved[9];
-+};
-+
-+
- /*
-  *      A N A L O G   V I D E O   S T A N D A R D
-  */
-@@ -2189,6 +2231,10 @@ struct v4l2_dbg_chip_ident {
- #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
- #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
- 
-+/* Experimental crop/compose API */
-+#define VIDIOC_G_SELECTION	_IOWR('V', 92, struct v4l2_selection)
-+#define VIDIOC_S_SELECTION	_IOWR('V', 93, struct v4l2_selection)
-+
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
- 
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index dd9f1e7..9dd6e18 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -194,6 +194,10 @@ struct v4l2_ioctl_ops {
- 					struct v4l2_crop *a);
- 	int (*vidioc_s_crop)           (struct file *file, void *fh,
- 					struct v4l2_crop *a);
-+	int (*vidioc_g_selection)      (struct file *file, void *fh,
-+					struct v4l2_selection *s);
-+	int (*vidioc_s_selection)      (struct file *file, void *fh,
-+					struct v4l2_selection *s);
- 	/* Compression ioctls */
- 	int (*vidioc_g_jpegcomp)       (struct file *file, void *fh,
- 					struct v4l2_jpegcompression *a);
--- 
-1.7.6
-
+Thanks,
+Deepthy Ravi.
