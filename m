@@ -1,193 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:49354 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753055Ab1IALGS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 07:06:18 -0400
-Date: Thu, 1 Sep 2011 14:06:12 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 2/9 v6] V4L: add two new ioctl()s for multi-size
- videobuffer management
-Message-ID: <20110901110612.GY12368@valkosipuli.localdomain>
-References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
- <1314813768-27752-3-git-send-email-g.liakhovetski@gmx.de>
- <20110831210615.GQ12368@valkosipuli.localdomain>
- <Pine.LNX.4.64.1109010850560.21309@axis700.grange>
- <20110901084229.GU12368@valkosipuli.localdomain>
- <Pine.LNX.4.64.1109011118020.6316@axis700.grange>
- <4E5F5C16.9050202@maxwell.research.nokia.com>
- <Pine.LNX.4.64.1109011249430.6316@axis700.grange>
+Received: from moutng.kundenserver.de ([212.227.126.186]:56660 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753964Ab1IMO0H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Sep 2011 10:26:07 -0400
+Date: Tue, 13 Sep 2011 16:26:03 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	s.nawrocki@samsung.com, hechtb@googlemail.com
+Subject: Re: [RFC] New class for low level sensors controls?
+In-Reply-To: <201109131231.18178.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1109131618310.17902@axis700.grange>
+References: <20110906113653.GF1393@valkosipuli.localdomain>
+ <20110906122226.GH1393@valkosipuli.localdomain> <Pine.LNX.4.64.1109081409380.31156@axis700.grange>
+ <201109131231.18178.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1109011249430.6316@axis700.grange>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 01, 2011 at 12:51:58PM +0200, Guennadi Liakhovetski wrote:
-> On Thu, 1 Sep 2011, Sakari Ailus wrote:
+On Tue, 13 Sep 2011, Laurent Pinchart wrote:
+
+> Hi Guennadi,
 > 
-> > Guennadi Liakhovetski wrote:
-> > > On Thu, 1 Sep 2011, Sakari Ailus wrote:
-> > > 
-> > >> On Thu, Sep 01, 2011 at 09:03:52AM +0200, Guennadi Liakhovetski wrote:
-> > >>> Hi Sakari
-> > >>
-> > >> Hi Guennadi,
-> > >>
-> > >>> On Thu, 1 Sep 2011, Sakari Ailus wrote:
-> > >> [clip]
-> > >>>>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > >>>>> index fca24cc..988e1be 100644
-> > >>>>> --- a/include/linux/videodev2.h
-> > >>>>> +++ b/include/linux/videodev2.h
-> > >>>>> @@ -653,6 +653,9 @@ struct v4l2_buffer {
-> > >>>>>  #define V4L2_BUF_FLAG_ERROR	0x0040
-> > >>>>>  #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
-> > >>>>>  #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
-> > >>>>> +/* Cache handling flags */
-> > >>>>> +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
-> > >>>>> +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
-> > >>>>>  
-> > >>>>>  /*
-> > >>>>>   *	O V E R L A Y   P R E V I E W
-> > >>>>> @@ -2092,6 +2095,15 @@ struct v4l2_dbg_chip_ident {
-> > >>>>>  	__u32 revision;    /* chip revision, chip specific */
-> > >>>>>  } __attribute__ ((packed));
-> > >>>>>  
-> > >>>>> +/* VIDIOC_CREATE_BUFS */
-> > >>>>> +struct v4l2_create_buffers {
-> > >>>>> +	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-> > >>>>> +	__u32			count;
-> > >>>>> +	enum v4l2_memory        memory;
-> > >>>>> +	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
-> > >>>>> +	__u32			reserved[8];
-> > >>>>> +};
-> > >>>>
-> > >>>> How about splitting the above comments? These lines are really long.
-> > >>>> Kerneldoc could also be used, I think.
-> > >>>
-> > >>> Sure, how about this incremental patch:
-> > >>>
-> > >>> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > >>> Subject: V4L: improve struct v4l2_create_buffers documentation
-> > >>>
-> > >>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > >>> ---
-> > >>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > >>> index 988e1be..64e0bf2 100644
-> > >>> --- a/include/linux/videodev2.h
-> > >>> +++ b/include/linux/videodev2.h
-> > >>> @@ -2095,12 +2095,20 @@ struct v4l2_dbg_chip_ident {
-> > >>>  	__u32 revision;    /* chip revision, chip specific */
-> > >>>  } __attribute__ ((packed));
-> > >>>  
-> > >>> -/* VIDIOC_CREATE_BUFS */
-> > >>> +/**
-> > >>> + * struct v4l2_create_buffers - VIDIOC_CREATE_BUFS argument
-> > >>> + * @index:	on return, index of the first created buffer
-> > >>> + * @count:	entry: number of requested buffers,
-> > >>> + *		return: number of created buffers
-> > >>> + * @memory:	buffer memory type
-> > >>> + * @format:	frame format, for which buffers are requested
-> > >>> + * @reserved:	future extensions
-> > >>> + */
-> > >>>  struct v4l2_create_buffers {
-> > >>> -	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-> > >>> +	__u32			index;
-> > >>>  	__u32			count;
-> > >>>  	enum v4l2_memory        memory;
-> > >>> -	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
-> > >>> +	struct v4l2_format	format;
-> > >>>  	__u32			reserved[8];
-> > >>>  };
-> > >>
-> > >> Thanks! This looks good to me. Could you do a similar change to the
-> > >> compat-IOCTL version of this struct (v4l2_create_buffers32)?
-> > > 
-> > > Of course, I'll submit an incremental patch as soon as this is accepted 
-> > > for upstream, unless there are other important changes to this patch and a 
-> > > new revision is anyway unavoidable.
+> On Thursday 08 September 2011 14:35:54 Guennadi Liakhovetski wrote:
+> > On Tue, 6 Sep 2011, Sakari Ailus wrote:
+> > > On Tue, Sep 06, 2011 at 01:41:11PM +0200, Laurent Pinchart wrote:
+> > > > On Tuesday 06 September 2011 13:36:53 Sakari Ailus wrote:
+> 
+> [snip]
+> 
+> > > > > Typically such sensors are not controlled by general purpose
+> > > > > applications but e.g. require a camera control algorithm framework
+> > > > > in user space. This needs to be implemented in libv4l for general
+> > > > > purpose applications to work properly on this kind of hardware.
+> > > > > 
+> > > > > These sensors expose controls such as
+> > > > > 
+> > > > > - Per-component gain controls. Red, blue, green (blue) and green
+> > > > > (red) gains.
+> > > > > 
+> > > > > - Link frequency. The frequency of the data link from the sensor to
+> > > > > the bridge.
+> > > > > 
+> > > > > - Horizontal and vertical blanking.
+> > > > 
+> > > > Other controls often found in bayer sensors are black level
+> > > > compensation and test pattern.
 > > 
-> > Ok. I'll send a small patch to the documentation as well then.
-> 
-> Good, thanks!
-> 
-> > >>>>> +
-> > >>>>>  /*
-> > >>>>>   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-> > >>>>>   *
-> > >>>>> @@ -2182,6 +2194,9 @@ struct v4l2_dbg_chip_ident {
-> > >>>>>  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
-> > >>>>>  #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
-> > >>>>>  
-> > >>>>> +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
-> > >>>>> +#define VIDIOC_PREPARE_BUF	 _IOW('V', 93, struct v4l2_buffer)
-> > >>>>
-> > >>>> Does prepare_buf ever do anything that would need to return anything to the
-> > >>>> user? I guess the answer is "no"?
-> > >>>
-> > >>> Exactly, that's why it's an "_IOW" ioctl(), not an "_IOWR", or have I 
-> > >>> misunderstood you?
-> > >>
-> > >> I was thinking if this will be the case now and in the foreseeable future as
-> > >> this can't be changed after once defined. I just wanted to bring this up
-> > >> even though I don't see myself that any of the fields would need to be
-> > >> returned to the user. But there are reserved fields...
-> > >>
-> > >> So unless someone comes up with something quick, I think this should stay
-> > >> as-is.
-> > > 
-> > > Agree. I understand, it is important to try to design the user-space API 
-> > > as clever as possible, so, I'm relying on our combined wisdom for it. But 
-> > > even that is probably limited, so, mistakes are still possible. Therefore, 
-> > > unless someone comes up with a realistic reason, why this has to be _IOWR, 
-> > > we shall keep it _IOW and be prepared to delight our user-space colleagues 
-> > > with more shiny new ioctl()s in the somewhat near future;-)
+> > May I suggest a couple more:
 > > 
-> > What we could also do is to mark the new IOCTLs experimental, and remove
-> > the note after one or two more kernel releases. This would allow
-> > postponing the decision.
+> > (1) snapshot mode (I really badly want this one, please;-))
 > 
-> Is there a standard way to do this, or is it just a free-form note in the 
-> documentation / in the header?
+> What do you mean exactly by snapshot mode ? Is that just external trigger, or 
+> does it cover more features than that ?
 
-I think a free form note saying this out loud in a visible place should be
-enough. A note should also be added to
-Documentation/DocBook/media/v4l/compat.xml to the section "Experimental API
-Elements".
+I mean flipping the "snapshot" bit in the respective sensor configuration 
+register. There are variants, of course. On some sensors there's just one 
+such bit and all it does is enable the flash strobe. On others it also 
+switches the configuration registers to immediately start recording a 
+different frame size. On some other sensors, I think, there are more than 
+2 sets of such configurations, then you need more than one control to 
+switch between them. On yet other sensors you can program, how many frames 
+you want to take in this mode (before switching back or before halting). I 
+think, as a minimum we would expect from this control: switch flash strobe 
+on & switch to the snapshot frame size, driver implementation details 
+depend on the hardware capabilities, of course.
 
-Speaking of this, we seem to have quite a few of these that probably
-shouldn't be experimental anymore, such as VIDIOC_ENUM_FRAMESIZES.
-Interestingly enough, VIDIOC_ENUM_FRAMEINTERVALS no longer is experimental.
-I think I'll send a patch for this.
+Thanks
+Guennadi
 
-<URL:http://hverkuil.home.xs4all.nl/spec/media.html#vidioc-enum-framesizes>
-
-> > We also don't have anyone using these ioctls from user space as far as I
-> > understand, so we might get important input later on as well.
 > 
-> Does either of these allow us to actually _change_ ioctl()s after their 
-> appearance in the mainline?
+> > (2) flash controls (yes, I know we already have V4L2_CTRL_CLASS_FLASH, I
+> >     just have the impression, that these controls are mostly meant for
+> >     either pure software implementations, or for external controllers, I
+> >     think it should also be possible to have them exported by a normal
+> >     sensor driver, but wasn't really sure. So, wanted to point out to this
+> >     possibility once again.)
+> 
+> As Sakari told you in his answer, we can add new controls to the flash class.
+> 
+> > (3) AEC / AGC regions
+> 
+> This will get tricky. I'm tempted to propose the idea of v4l2_rect controls 
+> and control arrays again :-)
+> 
+> > (4) stereo (3D anyone?;)) - no, don't think we need it now...
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
 
-That's my understanding, but of course someone could just say "no" when we
-try to do that. I think that if something is marked experimental at least
-the argument that it can't be changed is a little bit moot since the users
-have been notified of this beforehand.
-
-There are a few examples of this. At least the V4L2 subdev and MC interfaces
-are marked experimental. However, we haven't actually tried to use that to
-make changes which might break user space since we haven't got a need to.
-
-Hans, Laurent: do you have an opinion on this?
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
