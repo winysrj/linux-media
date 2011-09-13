@@ -1,88 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56210 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751433Ab1IZQDL (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:37523 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932834Ab1IMWB0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 12:03:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: Asking advice for Camera/ISP driver framework design
-Date: Mon, 26 Sep 2011 18:03:16 +0200
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Cliff Cai <cliffcai.sh@gmail.com>, linux-media@vger.kernel.org
-References: <CAFhB-RACaxtkBuXsch5-giTBqCHR+s5_SP-sGeR=E1HVeGfQLQ@mail.gmail.com> <4E72319C.4030904@iki.fi> <201109261255.05783.hverkuil@xs4all.nl>
-In-Reply-To: <201109261255.05783.hverkuil@xs4all.nl>
+	Tue, 13 Sep 2011 18:01:26 -0400
+Received: by bkbzt4 with SMTP id zt4so963491bkb.19
+        for <linux-media@vger.kernel.org>; Tue, 13 Sep 2011 15:01:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109261803.17249.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1315949644.10987.25.camel@ares>
+References: <4E68EE98.90201@iki.fi>
+	<4E69EE5E.8080605@rd.bbc.co.uk>
+	<4E6FC41A.5030803@iki.fi>
+	<1315949644.10987.25.camel@ares>
+Date: Tue, 13 Sep 2011 18:01:24 -0400
+Message-ID: <CAGoCfiy69Mk6qCtQ0w6CtGsiba+WbZ9isk2y4J4Rh6vNRhOLnQ@mail.gmail.com>
+Subject: Re: recursive locking problem
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Steve Kerrison <steve@stevekerrison.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	David Waring <davidjw@rd.bbc.co.uk>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Tue, Sep 13, 2011 at 5:34 PM, Steve Kerrison <steve@stevekerrison.com> wrote:
+> At the risk of sounding silly, why do we rely on i2c gating so much? The
+> whole point of i2c is that you can sit a bunch of devices on the same
+> pair of wires and talk to one at a time.
 
-On Monday 26 September 2011 12:55:05 Hans Verkuil wrote:
-> On Thursday, September 15, 2011 19:10:52 Sakari Ailus wrote:
-> > Cliff Cai wrote:
-> > > On Thu, Sep 15, 2011 at 6:20 PM, Laurent Pinchart wrote:
-> > >> On Wednesday 14 September 2011 08:13:32 Cliff Cai wrote:
-> > >>> Dear guys,
-> > >>> 
-> > >>> I'm currently working on a camera/ISP Linux driver project.Of
-> > >>> course,I want it to be a V4L2 driver,but I got a problem about how
-> > >>> to design the driver framework.
-> > >>> let me introduce the background of this ISP(Image signal processor) a
-> > >>> little bit.
-> > >>> 1.The ISP has two output paths,first one called main path which is
-> > >>> used to transfer image data for taking picture and recording,the
-> > >>> other one called preview path which is used to transfer image data
-> > >>> for previewing.
-> > >>> 2.the two paths have the same image data input from sensor,but their
-> > >>> outputs are different,the output of main path is high quality and
-> > >>> larger image,while the output of preview path is smaller image.
-> > >>> 3.the two output paths have independent DMA engines used to move
-> > >>> image data to system memory.
-> > >>> 
-> > >>> The problem is currently, the V4L2 framework seems only support one
-> > >>> buffer queue,and in my case,obviously,two buffer queues are required.
-> > >>> Any idea/advice for implementing such kind of V4L2 driver? or any
-> > >>> other better solutions?
-> > >> 
-> > >> Your driver should create two video nodes, one for each stream. They
-> > >> will each have their own buffers queue.
-> > >> 
-> > >> The driver should also implement the media controller API to let
-> > >> applications discover that the video nodes are related and how they
-> > >> interact with the ISP.
-> > > 
-> > > Hi Laurent,
-> > > 
-> > > As "Documentation/media-framework" says, one of the goals of media
-> > > device model is "Discovering a device internal topology,and
-> > > configuring it at runtime".I'm just a bit confused about how
-> > > applications can discover the related video notes? Could you explain
-> > > it a little more?
-> > 
-> > Hi Cliff,
-> > 
-> > The major and minor numbers of video nodes are provided to the user
-> > space in struct media_entity_desc (defined in include/linux/media.h)
-> > using MEDIA_IOC_ENUM_ENTITIES IOCTL. The major and minor numbers define
-> > which device node corresponds to the video device; this isn't trivial
-> > for an application to do so there's a library which makes it easier:
-> > 
-> > <URL:http://git.ideasonboard.org/?p=media-ctl.git;a=summary>
-> 
-> That reminds me: Laurent, this should really be moved to v4l-utils.git.
-> Any progress on that?
+Steve,
 
-There are several pending patches for media-ctl that I want to apply first.
+There are essentially two issues here.  To address the general
+question, many tuner chips require an i2c gate because their onboard
+i2c controller is implemented using interrupts, and servicing the
+interrupts to even check if the traffic is intended for the tuner can
+interfere with the core tuning function.  In other words, the cost of
+the chip "watching for traffic" can adversely effect tuning quality.
+As a result, most hardware designs are such that the demodulator gates
+the i2c traffic such that the tuner only *ever* sees traffic intended
+for it.
 
-BTW, the MC API is not restricted to V4L devices. Wouldn't it be a bad signal 
-for the MC API adoption to move media-ctl to v4l-utils ?
+The second issue is that within the LinuxTV drivers there is
+inconsistency regarding whether the i2c gate is opened/closed by the
+tuner driver or whether it's done by the demod.  Some drivers have the
+demod driver open the gate, issue the tuning request, and then close
+the gate, while in other drivers the tuner driver opens/closes the
+gate whenever there are register reads/writes to the tuner.  It's all
+about the granularity of implementation (the demod approach only
+involves one open/close but it's for potentially a longer period of
+time, versus the tuner approach which opens/closes the gate repeatedly
+as needed, which means more open/closes but the gate is open for the
+bare minimum of time required).
+
+Devin
 
 -- 
-Regards,
-
-Laurent Pinchart
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
