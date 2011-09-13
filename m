@@ -1,57 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:27151 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750736Ab1IAFxU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Sep 2011 01:53:20 -0400
-Message-ID: <4E5F1DCA.3000804@redhat.com>
-Date: Thu, 01 Sep 2011 02:53:14 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-vw0-f52.google.com ([209.85.212.52]:35787 "EHLO
+	mail-vw0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754528Ab1IMGZP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Sep 2011 02:25:15 -0400
+Received: by vws16 with SMTP id 16so466381vws.11
+        for <linux-media@vger.kernel.org>; Mon, 12 Sep 2011 23:25:14 -0700 (PDT)
 MIME-Version: 1.0
-To: Thierry Reding <thierry.reding@avionic-design.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 16/21] [staging] tm6000: Select interface on first open.
-References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de> <1312442059-23935-17-git-send-email-thierry.reding@avionic-design.de> <4E5E934A.7000500@redhat.com> <20110901051945.GD18473@avionic-0098.mockup.avionic-design.de>
-In-Reply-To: <20110901051945.GD18473@avionic-0098.mockup.avionic-design.de>
+In-Reply-To: <20110912202822.GB1845@valkosipuli.localdomain>
+References: <CA+2YH7s-BH=4vN-DUZJXa9DKrwYsZORWq-YR9fK7JV9236ntMQ@mail.gmail.com>
+	<20110912202822.GB1845@valkosipuli.localdomain>
+Date: Tue, 13 Sep 2011 11:55:13 +0530
+Message-ID: <CAK7N6vpr8uJSHMgTnrd=FrnvYf_Oqy8D3ua__S63T3nEvqaKGw@mail.gmail.com>
+Subject: Re: omap3isp as a wakeup source
+From: anish singh <anish198519851985@gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Enrico <ebutera@users.berlios.de>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 01-09-2011 02:19, Thierry Reding escreveu:
-> * Mauro Carvalho Chehab wrote:
->> Em 04-08-2011 04:14, Thierry Reding escreveu:
->>> Instead of selecting the default interface setting when preparing
->>> isochronous transfers, select it on the first call to open() to make
->>> sure it is available earlier.
+On Tue, Sep 13, 2011 at 1:58 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> On Mon, Sep 12, 2011 at 04:50:42PM +0200, Enrico wrote:
+>> Hi,
+>
+> Hi Enrico,
+>
+>> While testing omap3isp+tvp5150 with latest Deepthy bt656 patches
+>> (kernel 3.1rc4) i noticed that yavta hangs very often when grabbing
+>> or, if not hanged, it grabs at max ~10fps.
 >>
->> Hmm... I fail to see what this is needed earlier. The ISOC endpont is used
->> only when the device is streaming.
+>> Then i noticed that tapping on the (serial) console made it "unblock"
+>> for some frames, so i thought it doesn't prevent the cpu to go
+>> idle/sleep. Using the boot arg "nohlt" the problem disappear and it
+>> grabs at a steady 25fps.
 >>
->> Did you get any bug related to it? If so, please describe it better.
-> 
-> I'm not sure whether this really fixes a bug, but it seems a little wrong to
-> me to selecting the interface so late in the process when in fact the device
-> is already being configured before (video standard, audio mode, firmware
-> upload, ...).
-
-Some applications may open the device just to change the controls. All other drivers
-only set alternates/interfaces when the streaming is requested, as alternates/interfaces
-are needed only there.
-
-> Thinking about it, this may actually be part of the fix for the "device hangs
-> sometimes for inexplicable reasons" bug that this whole patch series seems to
-> fix.
-
-It is unlikely, except if the firmware inside the chip is broken (unfortunately, 
-we have serious reasons to believe that the internal firmware on this chipset has
-serious bugs).
-
-I prefer to not apply this patch, except if we have a good reason for that,
-as otherwise this driver will behave different than the others.
-
-Regards,
-Mauro.
-
-> 
-> Thierry
-
+>> In the code i found a comment that says the camera can't be a wakeup
+>> source but the camera powerdomain is instead used to decide to not go
+>> idle, so at this point i think the camera powerdomain is not enabled
+>> but i don't know how/where to enable it. Any ideas?
+>
+> I can confirm this indeed is the case --- ISP can't wake up the system ---
+> but don't know how to prevent the system from going to sleep when using the
+> ISP.
+Had it been on android i think wakelock would have been very useful.
+>
+> --
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     jabber/XMPP/Gmail: sailus@retiisi.org.uk
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
