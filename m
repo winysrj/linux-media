@@ -1,154 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:57801 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751868Ab1IFVHs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 17:07:48 -0400
-Date: Wed, 7 Sep 2011 00:07:43 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, s.nawrocki@samsung.com
-Subject: Re: [RFC] Reserved fields in v4l2_mbus_framefmt,
- v4l2_subdev_format alignment
-Message-ID: <20110906210743.GA1724@valkosipuli.localdomain>
-References: <20110905155528.GB1308@valkosipuli.localdomain>
- <4E667019.9000703@gmail.com>
+Received: from mail-qw0-f42.google.com ([209.85.216.42]:64527 "EHLO
+	mail-qw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755509Ab1INHKd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Sep 2011 03:10:33 -0400
+Received: by qwi4 with SMTP id 4so1800663qwi.1
+        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2011 00:10:32 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4E667019.9000703@gmail.com>
+In-Reply-To: <4E6FC8E8.70008@gmail.com>
+References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com>
+	<1315938892-20243-4-git-send-email-scott.jiang.linux@gmail.com>
+	<4E6FC8E8.70008@gmail.com>
+Date: Wed, 14 Sep 2011 15:10:32 +0800
+Message-ID: <CAHG8p1C5F_HKX_GPHv_RdCRRNw9s3+ybK4giCjUXxgSUAUDRVw@mail.gmail.com>
+Subject: Re: [PATCH 4/4] v4l2: add blackfin capture bridge driver
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 06, 2011 at 09:10:17PM +0200, Sylwester Nawrocki wrote:
-> Hi Sakari,
+>> +static int bcap_qbuf(struct file *file, void *priv,
+>> +                     struct v4l2_buffer *buf)
+>> +{
+>> +     struct bcap_device *bcap_dev = video_drvdata(file);
+>> +     struct v4l2_fh *fh = file->private_data;
+>> +     struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
+>> +
+>> +     if (!bcap_fh->io_allowed)
+>> +             return -EACCES;
+>
+> I suppose -EBUSY would be more appropriate here.
+>
+no, io_allowed is to control which file instance has the right to do I/O.
 
-Hi Sylwester,
+>> +                     fmt =&bcap_formats[i];
+>> +                     if (mbus_code)
+>> +                             *mbus_code = fmt->mbus_code;
+>> +                     if (bpp)
+>> +                             *bpp = fmt->bpp;
+>> +                     v4l2_fill_mbus_format(&mbus_fmt, pixfmt,
+>> +                                             fmt->mbus_code);
+>> +                     ret = v4l2_subdev_call(bcap->sd, video,
+>> +                                             try_mbus_fmt,&mbus_fmt);
+>> +                     if (ret<  0)
+>> +                             return ret;
+>> +                     v4l2_fill_pix_format(pixfmt,&mbus_fmt);
+>> +                     pixfmt->bytesperline = pixfmt->width * fmt->bpp;
+>> +                     pixfmt->sizeimage = pixfmt->bytesperline
+>> +                                             * pixfmt->height;
+>
+> Still pixfmt->pixelformat isn't filled.
+>
+no here pixfmt->pixelformat is passed in
 
-> On 09/05/2011 05:55 PM, Sakari Ailus wrote:
-> > Hi all,
-> > 
-> > I recently came across a few issues in the definitions of v4l2_subdev_format
-> > and v4l2_mbus_framefmt when I was working on sensor control that I wanted to
-> > bring up here. The appropriate structure right now look like this:
-> > 
-> > include/linux/v4l2-subdev.h:
-> > ---8<---
-> > /**
-> >   * struct v4l2_subdev_format - Pad-level media bus format
-> >   * @which: format type (from enum v4l2_subdev_format_whence)
-> >   * @pad: pad number, as reported by the media API
-> >   * @format: media bus format (format code and frame size)
-> >   */
-> > struct v4l2_subdev_format {
-> >          __u32 which;
-> >          __u32 pad;
-> >          struct v4l2_mbus_framefmt format;
-> >          __u32 reserved[8];
-> > };
-> > ---8<---
-> > 
-> > include/linux/v4l2-mediabus.h:
-> > ---8<---
-> > /**
-> >   * struct v4l2_mbus_framefmt - frame format on the media bus
-> >   * @width:      frame width
-> >   * @height:     frame height
-> >   * @code:       data format code (from enum v4l2_mbus_pixelcode)
-> >   * @field:      used interlacing type (from enum v4l2_field)
-> >   * @colorspace: colorspace of the data (from enum v4l2_colorspace)
-> >   */
-> > struct v4l2_mbus_framefmt {
-> >          __u32                   width;
-> >          __u32                   height;
-> >          __u32                   code;
-> >          __u32                   field;
-> >          __u32                   colorspace;
-> >          __u32                   reserved[7];
-> > };
-> > ---8<---
-> > 
-> > Offering a lower level interface for sensors which allows better control of
-> > them from the user space involves providing the link frequency to the user
-> > space. While the link frequency will be a control, together with the bus
-> > type and number of lanes (on serial links), this will define the pixel
-> > clock.
-> > 
-> > <URL:http://www.spinics.net/lists/linux-media/msg36492.html>
-> > 
-> > After adding pixel clock to v4l2_mbus_framefmt there will be six reserved
-> > fields left, one of which will be further possibly consumed by maximum image
-> > size:
-> > 
-> > <URL:http://www.spinics.net/lists/linux-media/msg35949.html>
-> 
-> Yes, thanks for remembering about it. I have done some experiments with a sensor
-> producing JPEG data and I'd like to add '__u32 framesamples' field to struct
-> v4l2_mbus_framefmt, even though it solves only part of the problem.
-> I'm not sure when I'll be able to get this finished though. I've just attached
-> the initial patch now.
-> 
-> > 
-> > Frame blanking (horizontal and vertical) and number of lanes might be needed
-> > in the struct as well in the future, bringing the reserved count down to
-> > two. I find this alarmingly low for a relatively new structure definition
-> > which will potentially have a few different uses in the future.
-> 
-> Sorry, could you explain why we need to put the blanking information in struct
-> v4l2_mbus_framefmt ? I thought it had been initially agreed that the control
-> framework will be used for this.
+>> +                     return 0;
+>> +             }
+>> +     }
+>> +     return -EINVAL;
+>
+> I think you should return some default format, rather than giving up
+> when the fourcc doesn't match. However I'm not 100% sure this is
+> the specification requirement.
+>
+no, there is no default format for bridge driver because it knows
+nothing about this.
+all the format info bridge needs ask subdevice.
 
-Configuration of blanking will be implemented as controls, yes.
+>> +static const struct ppi_ops ppi_ops = {
+>> +     .attach_irq = ppi_attach_irq,
+>> +     .detach_irq = ppi_detach_irq,
+>> +     .start = ppi_start,
+>> +     .stop = ppi_stop,
+>> +     .set_params = ppi_set_params,
+>> +     .update_addr = ppi_update_addr,
+>> +};
+>
+> How about moving this struct to the bottom of the file and getting rid of
+> all the above forward declarations ?
+>
+I'd like to put global varible before function in a file.
 
-Bandwidth calculation in the ISP driver may well need to know more detailed
-information than just the maximum pixel rate. Averge rate over certain
-period may also be important.
-
-For example, take a sensor which is able to produce pixel rate of 200 Mp/s.
-In the OMAP 3 ISP only the CSI2 block will be able to process pixels at such
-rate. The ISP driver needs this information to be able to decide whether
-it's safe to start streaming or not.
-
-Higher momentary pixel rates are still possible as there are buffers between
-some of the blocks. When using downscaling on sensors this gets more tricky.
-There may be bursts of data which may overflow these buffers since the
-sensors do not output data at amortised rate. Information on the sensor
-(bursts) and size of the buffers is at least required to assess this
-question.
-
-I have a vague feeling we may need some of this data as part of the
-v4l2_mbus_framefmt before we have a solution.
-
-> > The another issue is that the size of the v4l2_subdev_format struct is not
-> > aligned to a power of two. Instead of the intended 32 u32's, the size is
-> > actually 22 u32's.
-> 
-> hmm, is this really an issue ? What is advantage of having the structure size
-> being the power of 2 ? Isn't multiple of 4 just enough ?
-
-A power of two has been considered a good practice. It's also how kmalloc
-will allocate memory for the duration of the ioctl call. Typical sizes can
-be found in /proc/slabinfo. For small sizes also some non-power of two sizes
-appear available, at least on my machines.
-
-I'm not sure about the allocation in user space.
-
-> > The interface is present in the 3.0 and marked experimental. My proposal is
-> > to add reserved fields to v4l2_mbus_framefmt to extend its size up to 32
-> > u32's. I understand there are already few which use the interface right now
-> > and thus this change must be done now or left as-is forever.
-> 
-> hmm, I feel a bit uncomfortable with increasing size of data structure which
-> is quite widely used, not only in sensors, also in TV capture cards, tuners, etc.
-> So far struct v4l2_mbus_framefmt was quite generic. IMHO it might be good to try
-> to avoid extending it widely with properties specific to single subsystem.
-
-This is why I wanted to bring this up now rather than later. Of course I
-should have realised these issues before we had .39. ;)
-
-I agree the pixel rate management should be implemented in a way which is
-not specific to sensors.
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+>> +
+>> +void delete_ppi_instance(struct ppi_if *ppi)
+>> +{
+>> +     peripheral_free_list(ppi->info->pin_req);
+>> +     kfree(ppi);
+>> +}
+>
+> As a side note, I was not sure if this is just a resend of your original
+> patches or a second version. It would be good to indicate that in the message
+> subject. I think it's not a big deal and makes the reviewers' life easier.
+if I don't add a version number in subject, it means it is the first version.
