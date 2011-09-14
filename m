@@ -1,59 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60967 "EHLO mail.kapsi.fi"
+Received: from smtp1-g21.free.fr ([212.27.42.1]:49747 "EHLO smtp1-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751600Ab1IFQXQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Sep 2011 12:23:16 -0400
-Message-ID: <4E6648EF.3070802@iki.fi>
-Date: Tue, 06 Sep 2011 19:23:11 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Joe Perches <joe@perches.com>
-CC: =?UTF-8?B?QmrDuHJuIE1vcms=?= <bjorn@mork.no>,
-	linux-media@vger.kernel.org
-Subject: Re: checkpatch.pl WARNING: Do not use whitespace before Signed-off-by:
-References: <4E654F93.9060506@iki.fi> <87r53uf6tg.fsf@nemi.mork.no>	 <4E66312F.5070102@iki.fi> <1315322125.30316.1.camel@Joe-Laptop>	 <4E663C95.4080503@iki.fi> <1315325439.30316.8.camel@Joe-Laptop>
-In-Reply-To: <1315325439.30316.8.camel@Joe-Laptop>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1751802Ab1INGZT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Sep 2011 02:25:19 -0400
+Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:8db5])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id D9E569400F2
+	for <linux-media@vger.kernel.org>; Wed, 14 Sep 2011 08:25:11 +0200 (CEST)
+Date: Wed, 14 Sep 2011 08:25:13 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Question about USB interface index restriction in gspca
+Message-ID: <20110914082513.574baac2@tele>
+In-Reply-To: <4E6FAB94.2010007@googlemail.com>
+References: <4E6FAB94.2010007@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/06/2011 07:10 PM, Joe Perches wrote:
-> On Tue, 2011-09-06 at 18:30 +0300, Antti Palosaari wrote:
->> On 09/06/2011 06:15 PM, Joe Perches wrote:
->>> On Tue, 2011-09-06 at 17:41 +0300, Antti Palosaari wrote:
->>>> So what is recommended way to ensure patch is correct currently?
->>>> a) before commit
->>> Use checkpatch.
->>>> b) after commit
->>> Make the output of the commit log look like a patch.
->> --format=email
->> But still that sounds annoying, GIT is our default tool for handling
->> patches and all the other tools like checkpatch.pl should honour that
->> without any tricks. Why you don't add some detection logic to
->> checkpatch.pl or even some new switch like --git.
->
-> checkpatch is, as the name shows, for patches.
->
-> I think using checkpatch on commit logs is not
-> really useful.
+On Tue, 13 Sep 2011 21:14:28 +0200
+Frank Schäfer <fschaefer.oss@googlemail.com> wrote:
 
-But that's what I have done every time I have added patches coming 
-community. And also for my own patches. And when problem is found it is 
-easy to git commit --amend and fix it. I think I am not the only 
-maintainer who checks incoming patches like this way - you will got 
-surely more feedback when that version of checkpatch will get more usage.
+> I have a question about the following code in gspca.c:
+> 
+> in function gspca_dev_probe(...):
+>      ...
+>      /* the USB video interface must be the first one */
+>      if (dev->config->desc.bNumInterfaces != 1
+> && intf->cur_altsetting->desc.bInterfaceNumber != 0)
+>              return -ENODEV;
+>      ...
+> 
+> Is there a special reason for not allowing devices with USB interface 
+> index > 0 for video ?
+> I'm experimenting with a device that has the video interface at index 3 
+> and two audio interfaces at index 0 and 1 (index two is missing !).
+> And the follow-up question: can we assume that all device handled by the 
+> gspca-driver have vendor specific video interfaces ?
+> Then we could change the code to
+> 
+>      ...
+>      /* the USB video interface must be of class vendor */
+>      if (intf->cur_altsetting->desc.bInterfaceClass != 
+> USB_CLASS_VENDOR_SPEC)
+>              return -ENODEV;
+>       ...
 
-> If you're using checkpatch on commit logs, format
-> the commit log output appropriately or use
-> --ignore=BAD_SIGN_OFF or add that --ignore=
-> to a .checkpatch.conf if you really must.
+Hi Frank,
 
-hmm, lets see. Maybe I will add --format=email as keyboard shortcut button.
+For webcam devices, the interface class is meaningful only when set to
+USB_CLASS_VIDEO (UVC). Otherwise, I saw many different values.
 
+For video on a particular interface, the subdriver must call the
+function gspca_dev_probe2() as this is done in spca1528 and xirlink_cit.
 
-Antti
-
+Regards.
 
 -- 
-http://palosaari.fi/
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
