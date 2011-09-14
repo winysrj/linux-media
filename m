@@ -1,58 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback.mail.timico.net ([62.121.11.168]:45380 "EHLO
-	fallback.mail.timico.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752338Ab1ITGaO convert rfc822-to-8bit (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:62724 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756359Ab1INKhQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Sep 2011 02:30:14 -0400
-Received: from [62.121.20.91] (helo=relay.timico.net)
-	by fallback.mail.timico.net with esmtp (Exim 4.69)
-	(envelope-from <Jon.Povey@racelogic.co.uk>)
-	id 1R5tWs-0003hH-Cy
-	for linux-media@vger.kernel.org; Tue, 20 Sep 2011 07:10:02 +0100
-From: Jon Povey <Jon.Povey@racelogic.co.uk>
-To: Manjunath Hadli <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>
-Content-Class: urn:content-classes:message
-Date: Tue, 20 Sep 2011 07:09:54 +0100
-Subject: RE: [PATCH RESEND 2/4] davinci vpbe: add dm365 VPBE display driver
- changes
-Message-ID: <70E876B0EA86DD4BAF101844BC814DFE0BF22415C3@Cloud.RL.local>
-In-Reply-To: <1316410529-14744-3-git-send-email-manjunath.hadli@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Wed, 14 Sep 2011 06:37:16 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LRI00KCODI1LE20@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 14 Sep 2011 11:37:13 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LRI00GIODI0FR@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 14 Sep 2011 11:37:13 +0100 (BST)
+Date: Wed, 14 Sep 2011 12:37:12 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v4] V4L: dynamically allocate video_device nodes in
+ subdevices
+In-reply-to: <alpine.DEB.2.00.1109132245570.11360@axis700.grange>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Message-id: <4E7083D8.9050804@samsung.com>
+References: <Pine.LNX.4.64.1109091701060.915@axis700.grange>
+ <201109092332.59943.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1109121253270.9638@axis700.grange>
+ <201109131116.35408.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1109131318450.17902@axis700.grange>
+ <4E6F9832.1070404@samsung.com>
+ <alpine.DEB.2.00.1109132245570.11360@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-davinci-linux-open-source-bounces@linux.davincidsp.com wrote:
-> This patch implements the core additions to the display driver,
-> mainly controlling the VENC and other encoders for dm365.
-> This patch also includes addition of amplifier subdevice to the
-> vpbe driver and interfacing with venc subdevice.
+Hi Guennadi,
 
-One small nit.
-Sorry about the probably broken quoting to follow.
+On 09/13/2011 11:18 PM, Guennadi Liakhovetski wrote:
+> On Tue, 13 Sep 2011, Sylwester Nawrocki wrote:
+>> On 09/13/2011 04:48 PM, Guennadi Liakhovetski wrote:
+>>> Currently only very few drivers actually use video_device nodes, embedded
+>>> in struct v4l2_subdev. Allocate these nodes dynamically for those drivers
+>>> to save memory for the rest.
+>>>
+>>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>>
+>> I have tested this patch with Samsung FIMC driver and with MC enabled
+>> sensor driver.
+>> After some hundreds of module load/unload I didn't observe anything unusual.
+>> The patch seem to be safe for device node enabled subdevs. You can stick my:
+>>
+>> Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>>
+>> if you feel so.
+> 
+> Thanks very much for testing! However, depending on your test scenario, 
+> you might still not notice a problem by just loading and unloading of 
+> modules. It would, however, be useful to execute just one test:
+> 
+> 1. add one line v4l2-device.c:
+> 
+> diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+> index a3b89f4..33226857 100644
+> --- a/drivers/media/video/v4l2-device.c
+> +++ b/drivers/media/video/v4l2-device.c
+> @@ -195,6 +195,7 @@ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+>  static void v4l2_device_release_subdev_node(struct video_device *vdev)
+>  {
+>  	struct v4l2_subdev *sd = video_get_drvdata(vdev);
+> +	dev_info(&vdev->dev, "%s()\n", __func__);
+>  	sd->devnode = NULL;
+>  	kfree(vdev);
+>  }
+> 
+> 2. with this patch start and stop capture
+> 
+> 3. check dmesg - v4l2_device_release_subdev_node() output should not be 
+> there yet
+> 
+> 4. rmmod modules, then the output should be there
+> 
+> If you could test that - that would be great!
 
-> @@ -704,6 +717,39 @@ static int vpbe_initialize(struct device
-> *dev, struct vpbe_device *vpbe_dev)
-> +                         v4l2_warn(&vpbe_dev->v4l2_dev, "non-i2c amplifiers"
-> +                         " currently not supported");
-> +             }
-> +     } else
-> +         vpbe_dev->amp = NULL;
+OK, I double checked if v4l2_device_release_subdev_node() is called at the right
+time, i.e. I've also checked if the streaming works in between the module unload/load.
 
-iirc this is not kernel style, if the "then" side of an if needs braces
-then the "else" side must have them too.
+I'd added the printk and everything behaved as expected, other than I've tracked
+down a few minor bugs in the drivers in the meantime;)
 
---
-Jon Povey
-jon.povey@racelogic.co.uk
+I'll keep your patch applied in my development tree.
 
-Racelogic is a limited company registered in England. Registered number 2743719 .
-Registered Office Unit 10, Swan Business Centre, Osier Way, Buckingham, Bucks, MK18 1TB .
-
-The information contained in this electronic mail transmission is intended by Racelogic Ltd for the use of the named individual or entity to which it is directed and may contain information that is confidential or privileged. If you have received this electronic mail transmission in error, please delete it from your system without copying or forwarding it, and notify the sender of the error by reply email so that the sender's address records can be corrected. The views expressed by the sender of this communication do not necessarily represent those of Racelogic Ltd. Please note that Racelogic reserves the right to monitor e-mail communications passing through its network
-
-
+Thanks,
+-- 
+Sylwester Nawrocki
+Samsung Poland R&D Center
