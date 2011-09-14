@@ -1,69 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60836 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755079Ab1I2L3k convert rfc822-to-8bit (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.23]:54700 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751160Ab1INGS4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Sep 2011 07:29:40 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Taneja, Archit" <archit@ti.com>
-CC: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Semwal, Sumit" <sumit.semwal@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 29 Sep 2011 16:59:31 +0530
-Subject: RE: [PATCH v4 4/5] OMAP_VOUT: Add support for DSI panels
-Message-ID: <19F8576C6E063C45BE387C64729E739404ECA5512D@dbde02.ent.ti.com>
-References: <1317221368-3301-1-git-send-email-archit@ti.com>
- <1317221368-3301-5-git-send-email-archit@ti.com>
-In-Reply-To: <1317221368-3301-5-git-send-email-archit@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Wed, 14 Sep 2011 02:18:56 -0400
+Date: Wed, 14 Sep 2011 08:19:22 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org, David Daney <david.daney@cavium.com>
+Subject: Re: recursive locking problem
+Message-ID: <20110914061922.GA1851@minime.bse>
+References: <4E68EE98.90201@iki.fi>
+ <20110909114634.GA22776@minime.bse>
+ <4E6FFD7E.2060500@iki.fi>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4E6FFD7E.2060500@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> -----Original Message-----
-> From: Taneja, Archit
-> Sent: Wednesday, September 28, 2011 8:19 PM
-> To: Hiremath, Vaibhav
-> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
-> media@vger.kernel.org; Taneja, Archit
-> Subject: [PATCH v4 4/5] OMAP_VOUT: Add support for DSI panels
+On Wed, Sep 14, 2011 at 04:03:58AM +0300, Antti Palosaari wrote:
+> On 09/09/2011 02:46 PM, Daniel Glöckner wrote:
+> >On Thu, Sep 08, 2011 at 07:34:32PM +0300, Antti Palosaari wrote:
+> >>I am working with AF9015 I2C-adapter lock. I need lock I2C-bus since
+> >>there is two tuners having same I2C address on same bus, demod I2C
+> >>gate is used to select correct tuner.
+> >
+> >Would it be possible to use the i2c-mux framework to handle this?
+> >Each tuner will then have its own i2c bus.
 > 
-> Add support for DSI panels. DSI video mode panels will work directly. For
-> command mode panels, we will need to trigger updates regularly. This isn't
-> done
-> by the omap_vout driver currently. It can still be supported if we connect
-> a
-> framebuffer device to the panel and configure it in auto update mode.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/media/video/omap/omap_vout.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c
-> index 6bc2620..65374b5 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -590,6 +590,7 @@ static void omap_vout_isr(void *arg, unsigned int
-> irqstatus)
->  	do_gettimeofday(&timevalue);
-> 
->  	switch (cur_display->type) {
-> +	case OMAP_DISPLAY_TYPE_DSI:
->  	case OMAP_DISPLAY_TYPE_DPI:
->  		if (mgr_id == OMAP_DSS_CHANNEL_LCD)
->  			irq = DISPC_IRQ_VSYNC;
+> Interesting idea, but it didn't worked. It deadlocks. I think it
+> locks since I2C-mux is controlled by I2C "switch" in same I2C bus,
+> not GPIO or some other HW.
 
-Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Take a look at drivers/i2c/muxes/pca954x.c. You need to use
+parent->algo->master_xfer/smbus_xfer directly as the lock that
+protects you from having both gates open is the lock of the
+root i2c bus.
 
-Thanks,
-Vaibhav
-
-
-> --
-> 1.7.1
-
+  Daniel
