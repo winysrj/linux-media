@@ -1,62 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:61493 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756871Ab1ISGFT (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:60754 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754486Ab1IND2h convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Sep 2011 02:05:19 -0400
-From: Martin Hostettler <martin@neutronstar.dyndns.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: [PATCH v2] v4l subdev: add dispatching for VIDIOC_DBG_G_REGISTER and VIDIOC_DBG_S_REGISTER.
-Date: Mon, 19 Sep 2011 08:04:56 +0200
-Message-Id: <1316412296-17465-1-git-send-email-martin@neutronstar.dyndns.org>
-In-Reply-To: <201109190053.08451.laurent.pinchart@ideasonboard.com>
-References: <201109190053.08451.laurent.pinchart@ideasonboard.com>
+	Tue, 13 Sep 2011 23:28:37 -0400
+Received: by bkbzt4 with SMTP id zt4so1145066bkb.19
+        for <linux-media@vger.kernel.org>; Tue, 13 Sep 2011 20:28:36 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1315938892-20243-3-git-send-email-scott.jiang.linux@gmail.com>
+References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com> <1315938892-20243-3-git-send-email-scott.jiang.linux@gmail.com>
+From: Mike Frysinger <vapier.adi@gmail.com>
+Date: Tue, 13 Sep 2011 23:28:16 -0400
+Message-ID: <CAMjpGUenjQbGAM69J7mAt4anP9advZcdngXNuMddt+=HUnVK+w@mail.gmail.com>
+Subject: Re: [uclinux-dist-devel] [PATCH 3/4] v4l2: add vs6624 sensor driver
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	uclinux-dist-devel@blackfin.uclinux.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ioctls on the subdevs node currently don't dispatch the register access debug
-driver callbacks. Add the dispatching with the same security checks are for
-non subdev video nodes (i.e. only capable(CAP_SYS_ADMIN may call the register
-access ioctls).
+On Tue, Sep 13, 2011 at 14:34, Scott Jiang wrote:
+> --- a/drivers/media/video/Makefile
+> +++ b/drivers/media/video/Makefile
+>
+> +obj-$(CONFIG_VIDEO_VS6624)  += vs6624.o
+>  obj-$(CONFIG_VIDEO_VPX3220) += vpx3220.o
 
-Sigend-off-by: Martin Hostettler <martin <at> neutronstar.dyndns.org>
----
- drivers/media/video/v4l2-subdev.c |   19 +++++++++++++++++++
- 1 files changed, 19 insertions(+), 0 deletions(-)
+should be after vpx, not before ?
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index b7967c9..179e20e 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -173,6 +173,25 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 
- 	case VIDIOC_UNSUBSCRIBE_EVENT:
- 		return v4l2_subdev_call(sd, core, unsubscribe_event, vfh, arg);
-+
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+	case VIDIOC_DBG_G_REGISTER:
-+	{
-+		struct v4l2_dbg_register *p = arg;
-+
-+		if (!capable(CAP_SYS_ADMIN))
-+			return -EPERM;
-+		return v4l2_subdev_call(sd, core, g_register, p);
-+	}
-+	case VIDIOC_DBG_S_REGISTER:
-+	{
-+		struct v4l2_dbg_register *p = arg;
-+
-+		if (!capable(CAP_SYS_ADMIN))
-+			return -EPERM;
-+		return v4l2_subdev_call(sd, core, s_register, p);
-+	}
-+#endif
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
- 	case VIDIOC_SUBDEV_G_FMT: {
- 		struct v4l2_subdev_format *format = arg;
--- 
-1.7.2.5
+> --- /dev/null
+> +++ b/drivers/media/video/vs6624.c
+>
+> +#include <asm/gpio.h>
 
+run these patches through checkpatch.pl ?  this should be linux/gpio.h ...
+
+> +static const u16 vs6624_p1[] = {
+> +static const u16 vs6624_p2[] = {
+
+add comments as to what these are for ?
+
+> +static inline int vs6624_read(struct v4l2_subdev *sd, u16 index)
+> +static inline int vs6624_write(struct v4l2_subdev *sd, u16 index,
+> +                               u8 value)
+
+should these be inline ?  they're a little "fat" ... better to let the
+compiler choose
+
+> +static int vs6624_writeregs(struct v4l2_subdev *sd, const u16 *regs)
+> +{
+> +       u16 reg, data;
+> +
+> +       while (*regs != 0x00) {
+> +               reg = *regs++;
+> +               data = *regs++;
+> +
+> +               vs6624_write(sd, reg, (u8)data);
+
+what's the point of declaring data as u16 if the top 8 bits are never used ?
+
+> +static int vs6624_g_chip_ident(struct v4l2_subdev *sd,
+> +               struct v4l2_dbg_chip_ident *chip)
+> +{
+> +       int rev;
+> +       struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +       rev = vs6624_read(sd, VS6624_FW_VSN_MAJOR) << 8
+> +               | vs6624_read(sd, VS6624_FW_VSN_MINOR);
+
+i'm a little surprised the compiler didnt warn about this.  usually
+bit shifts + bitwise operators want paren to keep things clear.
+
+> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+
+just use DEBUG ?
+
+> +       v4l_info(client, "chip found @ 0x%02x (%s)\n",
+> +                       client->addr << 1, client->adapter->name);
+
+is that "<< 1" correct ?  i dont think so ...
+-mike
