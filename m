@@ -1,60 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:22174 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754765Ab1IWP4f (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:50079 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750740Ab1IOGg4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Sep 2011 11:56:35 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LRZ009G6GA9J050@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 23 Sep 2011 16:56:33 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRZ00A59GA9J0@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 23 Sep 2011 16:56:33 +0100 (BST)
-Date: Fri, 23 Sep 2011 17:56:33 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PATCHES FOR 3.2] Media bus configuration flags
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Message-id: <4E7CAC31.3090007@samsung.com>
+	Thu, 15 Sep 2011 02:36:56 -0400
+Date: Thu, 15 Sep 2011 08:35:41 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org
+Subject: Re: [PATCH 4/4] v4l2: add blackfin capture bridge driver
+In-Reply-To: <CAHG8p1D1jnwRO0ie6xrXGL5Uhu+2YjoNdXzhnnBweZDPRyE1fw@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1109150826560.11565@axis700.grange>
+References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com>
+ <1315938892-20243-4-git-send-email-scott.jiang.linux@gmail.com>
+ <4E6FC8E8.70008@gmail.com> <CAHG8p1C5F_HKX_GPHv_RdCRRNw9s3+ybK4giCjUXxgSUAUDRVw@mail.gmail.com>
+ <4E70BA97.1090904@samsung.com> <CAHG8p1D1jnwRO0ie6xrXGL5Uhu+2YjoNdXzhnnBweZDPRyE1fw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Thu, 15 Sep 2011, Scott Jiang wrote:
 
-Please pull from git://git.infradead.org/users/kmpark/linux-2.6-samsung v4l_mbus_config
-for a small addition to the media bus configuration flags, a patch converting s5p-fimc
-driver to use generic flags and an optimization patch for m5mols driver.
+> accually this array is to convert mbus to pixformat. ppi supports any formats.
 
-I have added the m5mols patch which has also been included in recent pull request from
-Marek, as I wasn't sure if you're going to pull it due to some further ongoing discussion
-on the selection API.
+You mean, it doesn't distinguish formats? It just packs bytes in RAM 
+exactly as it ready them from the bus, and doesn't support any formats 
+natively, i.e., doesn't offer any data processing?
 
-The following changes since commit 3a7a62378be538944ff00904b8e0b795fe16609a:
+> Ideally it should contain all formats in v4l2, but it is enough at
+> present for our platform.
+> If I find someone needs more, I will add it.
+> So return -EINVAL means this format is out of range, it can't be supported now.
 
-  [media] ati_remote: update Kconfig description (2011-09-22 10:55:10 -0300)
+You might consider using
 
-are available in the git repository at:
-  git://git.infradead.org/users/kmpark/linux-2.6-samsung v4l_mbus_config
+drivers/media/video/soc_mediabus.c
 
-Sylwester Nawrocki (3):
-      v4l2: Add polarity flag definitions for the parallel bus FIELD signal
-      s5p-fimc: Convert to use generic media bus polarity flags
-      m5mols: Remove superfluous irq field from the platform data struct
+If your driver were using soc-camera, it could benefit from the 
+dynamically built pixel translation table, see
 
- drivers/media/video/m5mols/m5mols_core.c |    6 +++---
- drivers/media/video/s5p-fimc/fimc-reg.c  |   14 +++++++++-----
- drivers/media/video/s5p-fimc/regs-fimc.h |    1 +
- include/media/m5mols.h                   |    4 +---
- include/media/s5p_fimc.h                 |    7 +------
- include/media/v4l2-mediabus.h            |   12 ++++++++++--
- 6 files changed, 25 insertions(+), 19 deletions(-)
+drivers/media/video/soc_camera.c::soc_camera_init_user_formats()
 
-Best regards,
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+and simpler examples like mx1_camera.c or more complex ones like 
+sh_mobile_ceu_camera.c, pxa_camera.c or mx3_camera.c and the use of the 
+soc_camera_xlate_by_fourcc() function in them.
+
+> about default format, I think I can only call bcap_g_fmt_vid_cap in
+> probe to get this info.
+> Dose anybody have a better solution?
+
+In soc-camera we just use .g_mbus_fmt() to get sensor's default format and 
+see what we can produce from it for the user.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
