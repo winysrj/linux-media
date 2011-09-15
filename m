@@ -1,209 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60618 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751290Ab1IWWbh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Sep 2011 18:31:37 -0400
-Message-ID: <4E7D08C4.5040203@redhat.com>
-Date: Fri, 23 Sep 2011 19:31:32 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: doronc@siano-ms.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 9/17]DVB:Siano drivers - Improve debug capabilities by
- separating debug and info messages.
-References: <1316514688.5199.87.camel@Doron-Ubuntu>
-In-Reply-To: <1316514688.5199.87.camel@Doron-Ubuntu>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:23216 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755388Ab1IOItN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Sep 2011 04:49:13 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LRK008VU35ZNT00@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 15 Sep 2011 09:49:11 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LRK004OX35ZZR@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 15 Sep 2011 09:49:11 +0100 (BST)
+Date: Thu, 15 Sep 2011 10:49:10 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 4/4] v4l2: add blackfin capture bridge driver
+In-reply-to: <CAHG8p1AM9HxRSfEOEc8_cuvSkRO8LvUw0DCAfcK+_SHD8yr=cg@mail.gmail.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org
+Message-id: <4E71BC06.5020401@samsung.com>
+References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com>
+ <1315938892-20243-4-git-send-email-scott.jiang.linux@gmail.com>
+ <Pine.LNX.4.64.1109130943021.17902@axis700.grange>
+ <CAHG8p1AM9HxRSfEOEc8_cuvSkRO8LvUw0DCAfcK+_SHD8yr=cg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 20-09-2011 07:31, Doron Cohen escreveu:
-> Hi,
-> This patch Improves debug capabilities by changing debug messages.
+On 09/15/2011 08:37 AM, Scott Jiang wrote:
+>>
+>>> +
+>>> +#define CAPTURE_DRV_NAME        "bfin_capture"
+>>> +#define BCAP_MIN_NUM_BUF        2
+>>> +
+>>> +struct bcap_format {
+>>> +     u8 *desc;
+>>> +     u32 pixelformat;
+>>> +     enum v4l2_mbus_pixelcode mbus_code;
+>>> +     int bpp; /* bytes per pixel */
+>>
+>> Don't you think you might have to process 12 bpp formats at some point,
+>> like YUV 4:2:0, or NV12? Maybe better calculate in bits from the beginning?
+>>
+> I have a question here. How to calculate bytesperline for planar format?
+> According to v4l2 specification  width, height and bytesperline apply
+> to largest plane.
+> Does it mean bytesperline equal to Y plane distance between two line?
 
-seems ok.
+For planar formats - I think so.
 
-Ah, please, when submitting a patch, don't add a comment like that before
-the patch, as my scripts and patchwork.linuxtv.org will do the wrong thing
-with it.
+> And so you can't use bytesperline x height to calculate sizeimage?
 
-> Thanks,
-> Doron Cohen
-> 
-> --------------
-> 
-> 
->>From 1adbdde1dc186b23eb772f0c647d7175dc3f7418 Mon Sep 17 00:00:00 2001
-> From: Doron Cohen <doronc@siano-ms.com>
-> Date: Mon, 19 Sep 2011 14:24:29 +0300
-> Subject: [PATCH 12/21] Improve debug capabilities by separating debug
-> and info messages
-> 
-> ---
->  drivers/media/dvb/siano/smsdvb.c |   39
-> ++++++++++++++++++++++---------------
->  1 files changed, 23 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/siano/smsdvb.c
-> b/drivers/media/dvb/siano/smsdvb.c
-> index 2695d3a..b80868c 100644
-> --- a/drivers/media/dvb/siano/smsdvb.c
-> +++ b/drivers/media/dvb/siano/smsdvb.c
-> @@ -84,42 +84,42 @@ static void sms_board_dvb3_event(struct
-> smsdvb_client_t *client,
->  	void *coredev = client->coredev;
->  	switch (event) {
->  	case DVB3_EVENT_INIT:
-> -		sms_debug("DVB3_EVENT_INIT");
-> +		sms_info("DVB3_EVENT_INIT");
->  		sms_board_event(coredev, BOARD_EVENT_BIND);
->  		break;
->  	case DVB3_EVENT_SLEEP:
-> -		sms_debug("DVB3_EVENT_SLEEP");
-> +		sms_info("DVB3_EVENT_SLEEP");
->  		sms_board_event(coredev, BOARD_EVENT_POWER_SUSPEND);
->  		break;
->  	case DVB3_EVENT_HOTPLUG:
-> -		sms_debug("DVB3_EVENT_HOTPLUG");
-> +		sms_info("DVB3_EVENT_HOTPLUG");
->  		sms_board_event(coredev, BOARD_EVENT_POWER_INIT);
->  		break;
->  	case DVB3_EVENT_FE_LOCK:
->  		if (client->event_fe_state != DVB3_EVENT_FE_LOCK) {
->  			client->event_fe_state = DVB3_EVENT_FE_LOCK;
-> -			sms_debug("DVB3_EVENT_FE_LOCK");
-> +			sms_info("DVB3_EVENT_FE_LOCK");
->  			sms_board_event(coredev, BOARD_EVENT_FE_LOCK);
->  		}
->  		break;
->  	case DVB3_EVENT_FE_UNLOCK:
->  		if (client->event_fe_state != DVB3_EVENT_FE_UNLOCK) {
->  			client->event_fe_state = DVB3_EVENT_FE_UNLOCK;
-> -			sms_debug("DVB3_EVENT_FE_UNLOCK");
-> +			sms_info("DVB3_EVENT_FE_UNLOCK");
->  			sms_board_event(coredev, BOARD_EVENT_FE_UNLOCK);
->  		}
->  		break;
->  	case DVB3_EVENT_UNC_OK:
->  		if (client->event_unc_state != DVB3_EVENT_UNC_OK) {
->  			client->event_unc_state = DVB3_EVENT_UNC_OK;
-> -			sms_debug("DVB3_EVENT_UNC_OK");
-> +			sms_info("DVB3_EVENT_UNC_OK");
->  			sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_OK);
->  		}
->  		break;
->  	case DVB3_EVENT_UNC_ERR:
->  		if (client->event_unc_state != DVB3_EVENT_UNC_ERR) {
->  			client->event_unc_state = DVB3_EVENT_UNC_ERR;
-> -			sms_debug("DVB3_EVENT_UNC_ERR");
-> +			sms_info("DVB3_EVENT_UNC_ERR");
->  			sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_ERRORS);
->  		}
->  		break;
-> @@ -249,20 +249,24 @@ static int smsdvb_onresponse(void *context, struct
-> smscore_buffer_t *cb)
->  	struct smsdvb_client_t *client = (struct smsdvb_client_t *) context;
->  	struct SmsMsgHdr_S *phdr = (struct SmsMsgHdr_S *) (((u8 *) cb->p)
->  			+ cb->offset);
-> -	u32 *pMsgData = (u32 *) phdr + 1;
-> -	/*u32 MsgDataLen = phdr->msgLength - sizeof(struct SmsMsgHdr_S);*/
-> +	u32 *pMsgData = (u32 *) (phdr + 1);
->  	bool is_status_update = false;
-> +	static int data_packets = 0;
->  
->  	smsendian_handle_rx_message((struct SmsMsgData_S *) phdr);
->  
->  	switch (phdr->msgType) {
->  	case MSG_SMS_DVBT_BDA_DATA:
-> +		if (!(data_packets & 0xf));
-> +			sms_info("Got %d data packets so far.", data_packets);
-> +		data_packets++;
->  		dvb_dmx_swfilter(&client->demux, (u8 *)(phdr + 1),
->  				 cb->size - sizeof(struct SmsMsgHdr_S));
->  		break;
->  
->  	case MSG_SMS_RF_TUNE_RES:
->  	case MSG_SMS_ISDBT_TUNE_RES:
-> +		sms_info("MSG_SMS_RF_TUNE_RES");
->  		complete(&client->tune_done);
->  		break;
->  
-> @@ -416,8 +420,7 @@ static int smsdvb_start_feed(struct dvb_demux_feed
-> *feed)
->  		container_of(feed->demux, struct smsdvb_client_t, demux);
->  	struct SmsMsgData_S PidMsg;
->  
-> -	sms_debug("add pid %d(%x)",
-> -		  feed->pid, feed->pid);
-> +	sms_info("add pid %d(%x)", feed->pid, feed->pid);
->  
->  	PidMsg.xMsgHeader.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
->  	PidMsg.xMsgHeader.msgDstId = HIF_TASK;
-> @@ -437,8 +440,7 @@ static int smsdvb_stop_feed(struct dvb_demux_feed
-> *feed)
->  		container_of(feed->demux, struct smsdvb_client_t, demux);
->  	struct SmsMsgData_S PidMsg;
->  
-> -	sms_debug("remove pid %d(%x)",
-> -		  feed->pid, feed->pid);
-> +	sms_info("remove pid %d(%x)", feed->pid, feed->pid);
->  
->  	PidMsg.xMsgHeader.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
->  	PidMsg.xMsgHeader.msgDstId = HIF_TASK;
-> @@ -578,7 +580,7 @@ static int smsdvb_read_ucblocks(struct dvb_frontend
-> *fe, u32 *ucblocks)
->  static int smsdvb_get_tune_settings(struct dvb_frontend *fe,
->  				    struct dvb_frontend_tune_settings *tune)
->  {
-> -	sms_debug("");
-> +	sms_info("");
->  
->  	tune->min_delay_ms = 400;
->  	tune->step_size = 250000;
-> @@ -629,6 +631,8 @@ static int smsdvb_dvbt_set_frontend(struct
-> dvb_frontend *fe,
->  		return -EINVAL;
->  	}
->  	/* Disable LNA, if any. An error is returned if no LNA is present */
-> +	sms_info("setting LNA");
-> +
->  	ret = sms_board_lna_control(client->coredev, 0);
->  	if (ret == 0) {
->  		fe_status_t status;
-> @@ -645,9 +649,11 @@ static int smsdvb_dvbt_set_frontend(struct
-> dvb_frontend *fe,
->  		/* previous tune didn't lock - enable LNA and tune again */
->  		sms_board_lna_control(client->coredev, 1);
->  	}
-> +	sms_info("Sending message");
->  
->  	return smsdvb_sendrequest_and_wait(client, &Msg, sizeof(Msg),
->  					   &client->tune_done);
-> +	sms_info("Tune Done.");
->  }
->  
->  static int smsdvb_isdbt_set_frontend(struct dvb_frontend *fe,
-> @@ -727,6 +733,7 @@ static int smsdvb_set_frontend(struct dvb_frontend
-> *fe,
->  	case SMSHOSTLIB_DEVMD_ISDBT_BDA:
->  		return smsdvb_isdbt_set_frontend(fe, fep);
->  	default:
-> +		sms_err("SMS Device mode is not set for DVB operation.");
->  		return -EINVAL;
->  	}
->  }
-> @@ -737,9 +744,9 @@ static int smsdvb_get_frontend(struct dvb_frontend
-> *fe,
->  	struct smsdvb_client_t *client =
->  		container_of(fe, struct smsdvb_client_t, frontend);
->  
-> -	sms_debug("");
-> +	sms_info("");
-> +
->  
-> -	/* todo: */
->  	memcpy(fep, &client->fe_params,
->  	       sizeof(struct dvb_frontend_parameters));
->  
+No, you can't. Please see this thread:
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg28957.html
 
+
+Regards,
+-- 
+Sylwester Nawrocki
+Samsung Poland R&D Center
