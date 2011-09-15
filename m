@@ -1,45 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55819 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754631Ab1I1OtR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Sep 2011 10:49:17 -0400
-From: Archit Taneja <archit@ti.com>
-To: <hvaibhav@ti.com>
-CC: <tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>,
-	<sumit.semwal@ti.com>, <linux-media@vger.kernel.org>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH v4 4/5] OMAP_VOUT: Add support for DSI panels
-Date: Wed, 28 Sep 2011 20:19:27 +0530
-Message-ID: <1317221368-3301-5-git-send-email-archit@ti.com>
-In-Reply-To: <1317221368-3301-1-git-send-email-archit@ti.com>
-References: <1317221368-3301-1-git-send-email-archit@ti.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:37061 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751110Ab1IOGsF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Sep 2011 02:48:05 -0400
+Received: by qwj8 with SMTP id 8so722408qwj.33
+        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2011 23:48:04 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <Pine.LNX.4.64.1109150826560.11565@axis700.grange>
+References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com>
+	<1315938892-20243-4-git-send-email-scott.jiang.linux@gmail.com>
+	<4E6FC8E8.70008@gmail.com>
+	<CAHG8p1C5F_HKX_GPHv_RdCRRNw9s3+ybK4giCjUXxgSUAUDRVw@mail.gmail.com>
+	<4E70BA97.1090904@samsung.com>
+	<CAHG8p1D1jnwRO0ie6xrXGL5Uhu+2YjoNdXzhnnBweZDPRyE1fw@mail.gmail.com>
+	<Pine.LNX.4.64.1109150826560.11565@axis700.grange>
+Date: Thu, 15 Sep 2011 14:48:04 +0800
+Message-ID: <CAHG8p1CDQ-nFwTCXzJBBp76n+16Pz=mDat=dpdNy5N3jjNNvbQ@mail.gmail.com>
+Subject: Re: [PATCH 4/4] v4l2: add blackfin capture bridge driver
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for DSI panels. DSI video mode panels will work directly. For
-command mode panels, we will need to trigger updates regularly. This isn't done
-by the omap_vout driver currently. It can still be supported if we connect a
-framebuffer device to the panel and configure it in auto update mode.
+2011/9/15 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> On Thu, 15 Sep 2011, Scott Jiang wrote:
+>
+>> accually this array is to convert mbus to pixformat. ppi supports any formats.
+>
+> You mean, it doesn't distinguish formats? It just packs bytes in RAM
+> exactly as it ready them from the bus, and doesn't support any formats
+> natively, i.e., doesn't offer any data processing?
+>
+yes, ppi means Parallel Peripheral Interface.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/media/video/omap/omap_vout.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index 6bc2620..65374b5 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -590,6 +590,7 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
- 	do_gettimeofday(&timevalue);
- 
- 	switch (cur_display->type) {
-+	case OMAP_DISPLAY_TYPE_DSI:
- 	case OMAP_DISPLAY_TYPE_DPI:
- 		if (mgr_id == OMAP_DSS_CHANNEL_LCD)
- 			irq = DISPC_IRQ_VSYNC;
--- 
-1.7.1
-
+>> Ideally it should contain all formats in v4l2, but it is enough at
+>> present for our platform.
+>> If I find someone needs more, I will add it.
+>> So return -EINVAL means this format is out of range, it can't be supported now.
+>
+> You might consider using
+>
+> drivers/media/video/soc_mediabus.c
+>
+> If your driver were using soc-camera, it could benefit from the
+> dynamically built pixel translation table, see
+>
+> drivers/media/video/soc_camera.c::soc_camera_init_user_formats()
+>
+> and simpler examples like mx1_camera.c or more complex ones like
+> sh_mobile_ceu_camera.c, pxa_camera.c or mx3_camera.c and the use of the
+> soc_camera_xlate_by_fourcc() function in them.
+>
+I have considered using soc, but it can't support decoder when I began
+to write this driver in 2.6.38.
