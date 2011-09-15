@@ -1,38 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58054 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754033Ab1IFKec (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 06:34:32 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bastian Hecht <hechtb@googlemail.com>
-Subject: Re: [PATCH 1/2 v5] media: Add support for arbitrary resolution
-Date: Tue, 6 Sep 2011 12:34:31 +0200
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <alpine.DEB.2.02.1109060914520.8391@ipanema>
-In-Reply-To: <alpine.DEB.2.02.1109060914520.8391@ipanema>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:41233 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935182Ab1IOW0D convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Sep 2011 18:26:03 -0400
+Received: by fxe4 with SMTP id 4so1083494fxe.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2011 15:26:02 -0700 (PDT)
+From: Krzysztof =?utf-8?B?R2xvd2nFhHNraQ==?= <goviczek@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: ARDATA My Vision Hybrid TV support
+Date: Fri, 16 Sep 2011 00:25:58 +0200
+Message-ID: <11546653.u4LCKO9akC@czarny.dom>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109061234.32190.laurent.pinchart@ideasonboard.com>
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bastian,
+I've got "My Vision Hybrid TV" DVB-T tuner.
 
-On Tuesday 06 September 2011 11:19:05 Bastian Hecht wrote:
-> This patch adds the ability to get arbitrary resolutions with a width
-> up to 2592 and a height up to 720 pixels instead of the standard 1280x720
-> only.
-> 
-> Signed-off-by: Bastian Hecht <hechtb@gmail.com>
+lsub shows:
+Bus 002 Device 002: ID 1b80:d412 Afatech 
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass          239 Miscellaneous Device
+  bDeviceSubClass         2 ?
+  bDeviceProtocol         1 Interface Association
+  bMaxPacketSize0        64
+  idVendor           0x1b80 Afatech
+  idProduct          0xd412 
+  bcdDevice           40.01
+  iManufacturer           1 Conexant Corporation
+  iProduct                2 Polaris AV Capture
+  iSerial                 3 0000000000
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength          344
+    bNumInterfaces          7
+    bConfigurationValue     1
+    iConfiguration          4 Polaris AV Capture
+    bmAttributes         0xa0
+      (Bus Powered)
+      Remote Wakeup
+    MaxPower              500mA
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Finally :-) Thank you for your work on this.
+There are 3 chips inside:
+cx3102-11z NOK770.25 
+cx24232-11z (or14z) 
+tda18271HDC2
 
--- 
-Regards,
+Any chance to be it supported.  Is it any well-known device with just strange 
+bus-id and need just add it to the driver or it is some exotic device?
 
-Laurent Pinchart
+Greetings
+
+Krzysztof Głowiński
+
