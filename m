@@ -1,58 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:62957 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756725Ab1ISQlp (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:56614 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934046Ab1IOPjD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Sep 2011 12:41:45 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LRS000WZ3PJ8360@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 19 Sep 2011 17:41:43 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRS002J13PJ2S@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 19 Sep 2011 17:41:43 +0100 (BST)
-Date: Mon, 19 Sep 2011 18:41:35 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 0/2] v4l: Add media bus polarity flags for FIELD signal
-In-reply-to: <alpine.DEB.2.00.1109171423460.28766@axis700.grange>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
-	kyungmin.park@samsung.com, g.liakhovetski@gmx.de,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Message-id: <1316450497-6723-1-git-send-email-s.nawrocki@samsung.com>
-References: <alpine.DEB.2.00.1109171423460.28766@axis700.grange>
+	Thu, 15 Sep 2011 11:39:03 -0400
+Received: by yxm8 with SMTP id 8so2256463yxm.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2011 08:39:02 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201109151220.54131.laurent.pinchart@ideasonboard.com>
+References: <CAFhB-RACaxtkBuXsch5-giTBqCHR+s5_SP-sGeR=E1HVeGfQLQ@mail.gmail.com>
+	<CAFhB-RBLA410nRJ3w7qyEq2dD+96=eDTneVfmo5Bm6NwevW0Pw@mail.gmail.com>
+	<201109151220.54131.laurent.pinchart@ideasonboard.com>
+Date: Thu, 15 Sep 2011 23:38:32 +0800
+Message-ID: <CAFhB-RB8Pm--H5__kjKN=v=7pF0xtt_VKJw0Dh3YfQ6GE+4KVg@mail.gmail.com>
+Subject: Re: Asking advice for Camera/ISP driver framework design
+From: Cliff Cai <cliffcai.sh@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Thu, Sep 15, 2011 at 6:20 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Cliff,
+>
+> On Wednesday 14 September 2011 08:13:32 Cliff Cai wrote:
+>> Dear guys,
+>>
+>> I'm currently working on a camera/ISP Linux driver project.Of course,I
+>> want it to be a V4L2 driver,but I got a problem about how to design
+>> the driver framework.
+>> let me introduce the background of this ISP(Image signal processor) a
+>> little bit.
+>> 1.The ISP has two output paths,first one called main path which is
+>> used to transfer image data for taking picture and recording,the other
+>> one called preview path which is used to transfer image data for
+>> previewing.
+>> 2.the two paths have the same image data input from sensor,but their
+>> outputs are different,the output of main path is high quality and
+>> larger image,while the output of preview path is smaller image.
+>> 3.the two output paths have independent DMA engines used to move image
+>> data to system memory.
+>>
+>> The problem is currently, the V4L2 framework seems only support one
+>> buffer queue,and in my case,obviously,two buffer queues are required.
+>> Any idea/advice for implementing such kind of V4L2 driver? or any
+>> other better solutions?
+>
+> Your driver should create two video nodes, one for each stream. They will each
+> have their own buffers queue.
+>
+> The driver should also implement the media controller API to let applications
+> discover that the video nodes are related and how they interact with the ISP.
 
-The following patch adds support for FIELD signal polarity configuration
-through the parallel media bus flags.
-The second one just converts s5p-fimc driver to use generic flags.
+Hi Laurent,
 
-Changes since v2:
- - dropped V4L2_MBUS_HREF* definitions, added comment on usage of
-   V4L2_MBUS_[HV]SYNC* flags for [HV]REF signals
- - added V4L2_MBUS_FIELD*
- - modified the second patch to use HSYNC flags only
-
-Sylwester Nawrocki (2):
-  v4l2: Add the polarity flags for parallel camera bus FIELD signal
-  s5p-fimc: Convert to use generic media bus polarity flags
-
- drivers/media/video/s5p-fimc/fimc-reg.c  |   14 +++++++++-----
- drivers/media/video/s5p-fimc/regs-fimc.h |    1 +
- include/media/s5p_fimc.h                 |    7 +------
- include/media/v4l2-mediabus.h            |   11 +++++++++--
- 4 files changed, 20 insertions(+), 13 deletions(-)
+As "Documentation/media-framework" says, one of the goals of media
+device model is "Discovering a device internal topology,and
+configuring it at runtime".I'm just a bit confused about how
+applications can discover the related video notes? Could you explain
+it a little more?
 
 
-Thanks,
---
-Sylwester Nawrocki
-Samsung Poland R&D Center
-
+Thanks a lot!
+Cliff
