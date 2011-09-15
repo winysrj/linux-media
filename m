@@ -1,46 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm4.bt.bullet.mail.ird.yahoo.com ([212.82.108.235]:24595 "HELO
-	nm4.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752231Ab1IWJaU (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:58982 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935160Ab1IOVq7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Sep 2011 05:30:20 -0400
-Message-ID: <4E7C51A7.9020209@yahoo.com>
-Date: Fri, 23 Sep 2011 10:30:15 +0100
-From: Chris Rankin <rankincj@yahoo.com>
+	Thu, 15 Sep 2011 17:46:59 -0400
+Received: by fxe4 with SMTP id 4so1043833fxe.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2011 14:46:58 -0700 (PDT)
+Message-ID: <4E727251.9030308@googlemail.com>
+Date: Thu, 15 Sep 2011 23:46:57 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Stuart Morris <stuart_morris@talk21.com>,
-	linux-media@vger.kernel.org
-Subject: Re: em28xx PCTV 290e patches
-References: <1316767965.1148.YahooMailClassic@web86705.mail.ird.yahoo.com>
-In-Reply-To: <1316767965.1148.YahooMailClassic@web86705.mail.ird.yahoo.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: moinejf@free.fr
+Subject: Re: Question about USB interface index restriction in gspca
+References: <4E6FAB94.2010007@googlemail.com> <20110914082513.574baac2@tele>
+In-Reply-To: <20110914082513.574baac2@tele>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stuart,
+Am 14.09.2011 08:25, schrieb Jean-Francois Moine:
+> On Tue, 13 Sep 2011 21:14:28 +0200
+> Frank Schäfer<fschaefer.oss@googlemail.com>  wrote:
+>
+>> I have a question about the following code in gspca.c:
+>>
+>> in function gspca_dev_probe(...):
+>>       ...
+>>       /* the USB video interface must be the first one */
+>>       if (dev->config->desc.bNumInterfaces != 1
+>> &&  intf->cur_altsetting->desc.bInterfaceNumber != 0)
+>>               return -ENODEV;
+>>       ...
+>>
+>> Is there a special reason for not allowing devices with USB interface
+>> index>  0 for video ?
+>> I'm experimenting with a device that has the video interface at index 3
+>> and two audio interfaces at index 0 and 1 (index two is missing !).
+>> And the follow-up question: can we assume that all device handled by the
+>> gspca-driver have vendor specific video interfaces ?
+>> Then we could change the code to
+>>
+>>       ...
+>>       /* the USB video interface must be of class vendor */
+>>       if (intf->cur_altsetting->desc.bInterfaceClass !=
+>> USB_CLASS_VENDOR_SPEC)
+>>               return -ENODEV;
+>>        ...
+> Hi Frank,
+>
+> For webcam devices, the interface class is meaningful only when set to
+> USB_CLASS_VIDEO (UVC). Otherwise, I saw many different values.
+Does that mean that there are devices out in the wild that report for 
+example USB_CLASS_WIRELESS_CONTROLLER for the video interface ???
 
-On 23/09/11 09:52, Stuart Morris wrote:
-> I have a PCTV 290e and have been watching closely the updates to the Linux media
-> tree for this device. Thanks for addressing the issues with the 290e driver, I am
-> now able to use my 290e for watching UK FreeviewHD with a good degree of success.
+> For video on a particular interface, the subdriver must call the
+> function gspca_dev_probe2() as this is done in spca1528 and xirlink_cit.
+>
+> Regards.
+Hmm, sure, that would work...
+But wouldn't it be better to improve the interface check and merge the 
+two probing functions ?
+The subdrivers can decide which interfaces are (not) probed and the 
+gspca core does plausability checks (e.g. bulk/isoc endpoint ? usb class ?).
 
-No problems, although I think Mauro has been working on the locking problem as 
-well :-).
+Regards,
+Frank
 
-> I have a question regarding some patches you requested a while back that have
-> yet to be applied to the media tree.
-> These patches are:
-> http://www.spinics.net/lists/linux-media/msg36799.html
-> http://www.spinics.net/lists/linux-media/msg36818.html
-
-Yes, I have noticed this. My advice would be to apply the first patch that 
-remove the em28xx_remove_from_devlist() function (and the race condition that it 
-creates), but not the second patch because I don't think it's compatible with 
-Mauro's work.
-
-My other patches have *slowly* been added to the queue for 3.2; I am still 
-waiting to see if this patch will join the others before resubmitting it.
-
-Cheers,
-Chris
