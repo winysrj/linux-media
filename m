@@ -1,93 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:55551 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750730Ab1ITL7G (ORCPT
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:43938 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750740Ab1IOGhO convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Sep 2011 07:59:06 -0400
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LRT00HFXLAFT2@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 20 Sep 2011 12:59:03 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRT00MVRLAFLZ@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 20 Sep 2011 12:59:03 +0100 (BST)
-Date: Tue, 20 Sep 2011 13:58:58 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v1 2/3] v4l: Add AUTO option for the
- V4L2_CID_POWER_LINE_FREQUENCY control
-In-reply-to: <1316519939-22540-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1316519939-22540-3-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1316519939-22540-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 15 Sep 2011 02:37:14 -0400
+Received: by qwj8 with SMTP id 8so717856qwj.33
+        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2011 23:37:14 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1109130943021.17902@axis700.grange>
+References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com>
+	<1315938892-20243-4-git-send-email-scott.jiang.linux@gmail.com>
+	<Pine.LNX.4.64.1109130943021.17902@axis700.grange>
+Date: Thu, 15 Sep 2011 14:37:13 +0800
+Message-ID: <CAHG8p1AM9HxRSfEOEc8_cuvSkRO8LvUw0DCAfcK+_SHD8yr=cg@mail.gmail.com>
+Subject: Re: [PATCH 4/4] v4l2: add blackfin capture bridge driver
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2_CID_POWER_LINE_FREQUENCY control allows applications to instruct
-a driver what is the power line frequency so an appropriate filter
-can be used by the device to cancel flicker by compensating the light
-intensity ripple and thus. Currently in the menu we have entries for
-50 and 60 Hz and for entirely disabling the anti-flicker filter.
-However some devices are capable of automatically detecting the
-frequency, so add V4L2_CID_POWER_LINE_FREQUENCY_AUTO entry for them.
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/DocBook/media/v4l/controls.xml |    5 +++--
- drivers/media/video/v4l2-ctrls.c             |    1 +
- include/linux/videodev2.h                    |    1 +
- 3 files changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 2420e4a..c6b3c46 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -232,8 +232,9 @@ control is deprecated. New drivers and applications should use the
- 	    <entry>Enables a power line frequency filter to avoid
- flicker. Possible values for <constant>enum v4l2_power_line_frequency</constant> are:
- <constant>V4L2_CID_POWER_LINE_FREQUENCY_DISABLED</constant> (0),
--<constant>V4L2_CID_POWER_LINE_FREQUENCY_50HZ</constant> (1) and
--<constant>V4L2_CID_POWER_LINE_FREQUENCY_60HZ</constant> (2).</entry>
-+<constant>V4L2_CID_POWER_LINE_FREQUENCY_50HZ</constant> (1),
-+<constant>V4L2_CID_POWER_LINE_FREQUENCY_60HZ</constant> (2) and
-+<constant>V4L2_CID_POWER_LINE_FREQUENCY_AUTO</constant> (3).</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_CID_HUE_AUTO</constant></entry>
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 06b6014..20abe5d 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -210,6 +210,7 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Disabled",
- 		"50 Hz",
- 		"60 Hz",
-+		"Auto",
- 		NULL
- 	};
- 	static const char * const camera_exposure_auto[] = {
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index c33f462..87210f1 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1125,6 +1125,7 @@ enum v4l2_power_line_frequency {
- 	V4L2_CID_POWER_LINE_FREQUENCY_DISABLED	= 0,
- 	V4L2_CID_POWER_LINE_FREQUENCY_50HZ	= 1,
- 	V4L2_CID_POWER_LINE_FREQUENCY_60HZ	= 2,
-+	V4L2_CID_POWER_LINE_FREQUENCY_AUTO	= 3,
- };
- #define V4L2_CID_HUE_AUTO			(V4L2_CID_BASE+25)
- #define V4L2_CID_WHITE_BALANCE_TEMPERATURE	(V4L2_CID_BASE+26)
--- 
-1.7.6.3
-
+>
+>> +
+>> +#define CAPTURE_DRV_NAME        "bfin_capture"
+>> +#define BCAP_MIN_NUM_BUF        2
+>> +
+>> +struct bcap_format {
+>> +     u8 *desc;
+>> +     u32 pixelformat;
+>> +     enum v4l2_mbus_pixelcode mbus_code;
+>> +     int bpp; /* bytes per pixel */
+>
+> Don't you think you might have to process 12 bpp formats at some point,
+> like YUV 4:2:0, or NV12? Maybe better calculate in bits from the beginning?
+>
+I have a question here. How to calculate bytesperline for planar format?
+According to v4l2 specification  width, height and bytesperline apply
+to largest plane.
+Does it mean bytesperline equal to Y plane distance between two line?
+And so you can't use bytesperline x height to calculate sizeimage?
