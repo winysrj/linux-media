@@ -1,87 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:8626 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750757Ab1IUPbd (ORCPT
+Received: from 8.mo2.mail-out.ovh.net ([188.165.52.147]:35955 "EHLO
+	mo2.mail-out.ovh.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933682Ab1IOOUg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 11:31:33 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=UTF-8
-Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LRV003NWPSJFV50@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 Sep 2011 16:31:31 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRV00K0SPSJ0C@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 Sep 2011 16:31:31 +0100 (BST)
-Date: Wed, 21 Sep 2011 17:31:30 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 1/3] sr030pc30: Remove empty s_stream op
-In-reply-to: <4E7A014F.5040602@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, Kyungmin Park <kyungin.park@samsung.com>
-Message-id: <4E7A0352.104@samsung.com>
-References: <1295487842-23410-1-git-send-email-s.nawrocki@samsung.com>
- <1295487842-23410-2-git-send-email-s.nawrocki@samsung.com>
- <4E7A014F.5040602@redhat.com>
+	Thu, 15 Sep 2011 10:20:36 -0400
+Received: from mail240.ha.ovh.net (b6.ovh.net [213.186.33.56])
+	by mo2.mail-out.ovh.net (Postfix) with SMTP id 217A1DCDA15
+	for <linux-media@vger.kernel.org>; Thu, 15 Sep 2011 15:45:59 +0200 (CEST)
+Date: Thu, 15 Sep 2011 15:23:01 +0200
+From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Josh Wu <josh.wu@atmel.com>, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] [media] at91: add code to initialize and manage the
+ ISI_MCK for Atmel ISI driver.
+Message-ID: <20110915132301.GK28104@game.jcrosoft.org>
+References: <1315288601-22384-1-git-send-email-josh.wu@atmel.com>
+ <Pine.LNX.4.64.1109060803590.14818@axis700.grange>
+ <20110906200512.GA15083@game.jcrosoft.org>
+ <4E668BBF.4020600@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4E668BBF.4020600@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/21/2011 05:22 PM, Mauro Carvalho Chehab wrote:
-> Em 19-01-2011 23:44, Sylwester Nawrocki escreveu:
->> s_stream does nothing in current form so remove it.
->>
->> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Signed-off-by: Kyungmin Park <kyungin.park@samsung.com>
->> ---
->>  drivers/media/video/sr030pc30.c |    6 ------
->>  1 files changed, 0 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/media/video/sr030pc30.c b/drivers/media/video/sr030pc30.c
->> index c901721..e1eced1 100644
->> --- a/drivers/media/video/sr030pc30.c
->> +++ b/drivers/media/video/sr030pc30.c
->> @@ -714,11 +714,6 @@ static int sr030pc30_base_config(struct v4l2_subdev *sd)
->>  	return ret;
->>  }
->>  
->> -static int sr030pc30_s_stream(struct v4l2_subdev *sd, int enable)
->> -{
->> -	return 0;
->> -}
->> -
->>  static int sr030pc30_s_power(struct v4l2_subdev *sd, int on)
->>  {
->>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
->> @@ -761,7 +756,6 @@ static const struct v4l2_subdev_core_ops sr030pc30_core_ops = {
->>  };
->>  
->>  static const struct v4l2_subdev_video_ops sr030pc30_video_ops = {
->> -	.s_stream	= sr030pc30_s_stream,
->>  	.g_mbus_fmt	= sr030pc30_g_fmt,
->>  	.s_mbus_fmt	= sr030pc30_s_fmt,
->>  	.try_mbus_fmt	= sr030pc30_try_fmt,
+On 23:08 Tue 06 Sep     , Sylwester Nawrocki wrote:
+> On 09/06/2011 10:05 PM, Jean-Christophe PLAGNIOL-VILLARD wrote:
+> >> I'm not entirely sure on this one, but as we had a similar situation with
+> >> clocks, we decided to extablish the clock hierarchy in the board code, and
+> >> only deal with the actual device clocks in the driver itself. I.e., we
+> >> moved all clk_set_parent() and setting up the parent clock into the board.
+> >> And I do think, this makes more sense, than doing this in the driver, not
+> >> all users of this driver will need to manage the parent clock, right?
+> >
+> > I don't like to manage the clock in the board except if it's manadatory otherwise
+> > we manage this at soc level
+> > 
+> > the driver does not have to manage the clock hierachy or detail implementation
+> > but manage the clock enable/disable and speed depending on it's need
 > 
-> Hmm...
-> this patch[1] were never merged. It seems a cleanup, though.
-> 
-> Care to review it?
+> We had a similar problem in the past and we ended up having the boot loader
+> setting up the parent clock for the device clock. The driver only controls clock
+> gating and sets its clock frequency based on an internal IP version information,
+> derived from the SoC revision.
+sorry NACK
 
-Indeed, it is still worth to apply. There was some ongoing work
-at the control framework and other patches form this series need some
-more modifications. But this one alone can be merged.
+I do not want to rely on bootloader
+when we will have the DT we will pass it via it right now we need find an
+other generic way
 
-> 
-> Thanks!
-> Mauro
-> 
-> [1] http://patchwork.linuxtv.org/patch/5631/
-> 
-> 
-
-Thank you,
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+Best Regards,
+J.
