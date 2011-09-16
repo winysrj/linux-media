@@ -1,67 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:63817 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750751Ab1ITPJb convert rfc822-to-8bit (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:44119 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932215Ab1IPVFN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Sep 2011 11:09:31 -0400
-Date: Tue, 20 Sep 2011 17:09:26 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Deepthy Ravi <deepthy.ravi@ti.com>
-cc: laurent.pinchart@ideasonboard.com, mchehab@infradead.org,
-	tony@atomide.com, hvaibhav@ti.com, linux-media@vger.kernel.org,
-	linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	m.szyprowski@samsung.com, santosh.shilimkar@ti.com,
-	khilman@deeprootsystems.com, david.woodhouse@intel.com,
-	akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH 2/5] [media] v4l: Add mt9t111 sensor driver
-In-Reply-To: <1316530612-23075-3-git-send-email-deepthy.ravi@ti.com>
-Message-ID: <Pine.LNX.4.64.1109201704190.11274@axis700.grange>
-References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com>
- <1316530612-23075-3-git-send-email-deepthy.ravi@ti.com>
+	Fri, 16 Sep 2011 17:05:13 -0400
+Date: Sat, 17 Sep 2011 00:05:09 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Subject: Re: [PATCH v2 0/8] RFC for Media Controller capture driver for
+ DM365
+Message-ID: <20110916210509.GK1845@valkosipuli.localdomain>
+References: <1314630439-1122-1-git-send-email-manjunath.hadli@ti.com>
+ <20110831213032.GT12368@valkosipuli.localdomain>
+ <B85A65D85D7EB246BE421B3FB0FBB593025743F3CE@dbde02.ent.ti.com>
+ <20110909161940.GJ1724@valkosipuli.localdomain>
+ <B85A65D85D7EB246BE421B3FB0FBB593025743F4CE@dbde02.ent.ti.com>
+ <20110912115925.GC1716@valkosipuli.localdomain>
+ <B85A65D85D7EB246BE421B3FB0FBB593025729ADE1@dbde02.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593025729ADE1@dbde02.ent.ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 20 Sep 2011, Deepthy Ravi wrote:
+On Thu, Sep 15, 2011 at 12:32:33AM +0530, Hadli, Manjunath wrote:
+> Hello Sakari,
+>  I have attached two .ps files with the entity graph details in them, one with RAW input and the other with YCbCr.
+> Hope this is what you were looking for?
 
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> The MT9T111 is a 3.1Mp CMOS sensor from Aptina with
-> its latest image signal processing (ISP) and 1.75μm
-> pixel technology.
-> The sensor driver currently supports only VGA
-> resolution.
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
-> ---
->  drivers/media/video/Kconfig       |    7 +
->  drivers/media/video/Makefile      |    1 +
->  drivers/media/video/mt9t111.c     |  793 +++++++++++++++++++++
->  drivers/media/video/mt9t111_reg.h | 1367 +++++++++++++++++++++++++++++++++++++
->  include/media/mt9t111.h           |   45 ++
->  5 files changed, 2213 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/mt9t111.c
->  create mode 100644 drivers/media/video/mt9t111_reg.h
->  create mode 100644 include/media/mt9t111.h
+Hi Manju,
 
-NAK. The mt9t112 driver claims to also support mt9t111. I'm not sure, 
-whether the driver has indeed been tested with mt9t111, but this is 
-definitely something to verify. If the chips are indeed similar, please 
-use the tree at
+This was exactly what I was looking for. Thanks!
 
-http://git.linuxtv.org/gliakhovetski/v4l-dvb.git/shortlog/refs/heads/rc1-for-3.2
-
-which has converted the mt9t112 driver to be also used outside ot the 
-soc-camera subsystem, and use that driver instead of adding another one.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
