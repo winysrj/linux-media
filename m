@@ -1,52 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:46697 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751960Ab1ILBQa (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49136 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750978Ab1IPNGO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Sep 2011 21:16:30 -0400
-Received: by yie30 with SMTP id 30so2276555yie.19
-        for <linux-media@vger.kernel.org>; Sun, 11 Sep 2011 18:16:29 -0700 (PDT)
-Date: Sun, 11 Sep 2011 20:16:14 -0500
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Josh Boyer <jwboyer@redhat.com>, linux-media@vger.kernel.org,
-	Dave Jones <davej@redhat.com>,
-	Daniel Dickinson <libre@cshore.neomailbox.net>
-Subject: Re: [PATCH] uvcvideo: Fix crash when linking entities
-Message-ID: <20110912011614.GA4834@elie.sbx02827.chicail.wayport.net>
-References: <1315348148-7207-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <20110907153240.GI10700@zod.bos.redhat.com>
- <201109080938.54655.laurent.pinchart@ideasonboard.com>
+	Fri, 16 Sep 2011 09:06:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+Date: Fri, 16 Sep 2011 15:06:16 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"tony@atomide.com" <tony@atomide.com>,
+	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com> <201109081921.28051.laurent.pinchart@ideasonboard.com> <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09083D@dbde03.ent.ti.com>
+In-Reply-To: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09083D@dbde03.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201109080938.54655.laurent.pinchart@ideasonboard.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109161506.16505.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent and Mauro,
+Hi Deepthy,
 
-Laurent Pinchart wrote:
-> On Wednesday 07 September 2011 17:32:41 Josh Boyer wrote:
->> On Wed, Sep 07, 2011 at 12:29:08AM +0200, Laurent Pinchart wrote:
+On Friday 16 September 2011 15:00:53 Ravi, Deepthy wrote:
+> On Thursday, September 08, 2011 10:51 PM Laurent Pinchart wrote: 
+> > On Thursday 08 September 2011 15:35:22 Deepthy Ravi wrote:
+> >> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> >> 
+> >> In order to support TVP5146 (for that matter any video decoder),
+> >> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
+> >> device node.
+> > 
+> > Why so ? Shouldn't it be queried on the subdev output pad directly ?
+> 
+> Because standard v4l2 application for analog devices will call these std
+> ioctls on the streaming device node. So it's done on /dev/video to make the
+> existing apllication work.
 
->>>  drivers/media/video/uvc/uvc_entity.c |    2 +-
->>>  1 files changed, 1 insertions(+), 1 deletions(-)
->>>
->>> This patch should fix a v3.0 regression that results in a kernel crash as
->>> reported in http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=637740 and
->>> https://bugzilla.redhat.com/show_bug.cgi?id=735437.
-[...]
->> I built a test kernel for Fedora with the patch and the submitter of the
->> above bug has reported that the issue seems to be fixed.
->
-> Thank you. I will push the patch upstream.
+Existing applications can't work with the OMAP3 ISP (and similar complex 
+embedded devices) without userspace support anyway, either in the form of a 
+GStreamer element or a libv4l plugin. I still believe that analog video 
+standard operations should be added to the subdev pad operations and exposed 
+through subdev device nodes, exactly as done with formats.
 
-Any news?  From Red Hat bugzilla, it seems that the fix was tested by
-Marcin Zajaczkowski and user matanya.  More importantly, the patch
-just makes sense.
+-- 
+Regards,
 
-I don't see this patch in Linus's master or
-
- git://linuxtv.org/media_tree.git staging/for_v3.2
+Laurent Pinchart
