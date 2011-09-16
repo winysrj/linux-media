@@ -1,97 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:45530 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754714Ab1IGDVA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 23:21:00 -0400
-Received: by bke11 with SMTP id 11so6029321bke.19
-        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2011 20:20:59 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAGoCfiy2hnH0Xoz_+Q8JgcB-tzuTGbfv8QdK0kv+ttP7t+EZKg@mail.gmail.com>
-References: <1315322996-10576-1-git-send-email-mchehab@redhat.com>
-	<CAGoCfiy2hnH0Xoz_+Q8JgcB-tzuTGbfv8QdK0kv+ttP7t+EZKg@mail.gmail.com>
-Date: Tue, 6 Sep 2011 23:20:58 -0400
-Message-ID: <CAGoCfixa0pr048=-P3OUkZ2HMaY471eNO79BON0vjSVa1eRcTw@mail.gmail.com>
-Subject: Re: [PATCH 01/10] alsa_stream: port changes made on xawtv3
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from devils.ext.ti.com ([198.47.26.153]:45327 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754543Ab1IPNCX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Sep 2011 09:02:23 -0400
+From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"tony@atomide.com" <tony@atomide.com>,
+	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Date: Fri, 16 Sep 2011 18:30:53 +0530
+Subject: RE: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09083D@dbde03.ent.ti.com>
+References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com>,<201109081921.28051.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201109081921.28051.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 6, 2011 at 10:58 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Tue, Sep 6, 2011 at 11:29 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> There are several issues with the original alsa_stream code that got
->> fixed on xawtv3, made by me and by Hans de Goede. Basically, the
->> code were re-written, in order to follow the alsa best practises.
+Hi,
+Sorry for the delayed response.
+> ________________________________________
+> From: Laurent Pinchart [laurent.pinchart@ideasonboard.com]
+> Sent: Thursday, September 08, 2011 10:51 PM
+> To: Ravi, Deepthy
+> Cc: linux-media@vger.kernel.org; tony@atomide.com; linux@arm.linux.org.uk; linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org; mchehab@infradead.org; g.liakhovetski@gmx.de; Hiremath, Vaibhav
+> Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+>
+> Hi,
+>
+> Thanks for the patch.
+>
+> On Thursday 08 September 2011 15:35:22 Deepthy Ravi wrote:
+>> From: Vaibhav Hiremath <hvaibhav@ti.com>
 >>
->> Backport the changes from xawtv, in order to make it to work on a
->> wider range of V4L and sound adapters.
+>> In order to support TVP5146 (for that matter any video decoder),
+>> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
+>> device node.
+>
+> Why so ? Shouldn't it be queried on the subdev output pad directly ?
+>
+[Deepthy Ravi] Because standard v4l2 application for analog devices will call these std ioctls on the streaming device node. So it's done on /dev/video to make the existing apllication work.
+
+>> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+>> ---
+>>  drivers/media/video/omap3isp/ispvideo.c |   98
+>> ++++++++++++++++++++++++++++++- drivers/media/video/omap3isp/ispvideo.h |
+>>   1 +
+>>  2 files changed, 98 insertions(+), 1 deletions(-)
 >>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->
-> Mauro,
->
-> What tuners did you test this patch with?  I went ahead and did a git
-> pull of your patch series into my local git tree, and now my DVC-90
-> (an em28xx device) is capturing at 32 KHz instead of 48 (this is one
-> of the snd-usb-audio based devices, not em28xx-alsa).
->
-> Note I tested immediately before pulling your patch series and the
-> audio capture was working fine.
->
-> I think this patch series is going in the right direction in general,
-> but this patch in particular seems to cause a regression.  Is this
-> something you want to investigate?  I think we need to hold off on
-> pulling this series into the new tvtime master until this problem is
-> resolved.
->
-> Devin
+>> diff --git a/drivers/media/video/omap3isp/ispvideo.c
+>> b/drivers/media/video/omap3isp/ispvideo.c index d5b8236..ff0ffed 100644
+>> --- a/drivers/media/video/omap3isp/ispvideo.c
+>> +++ b/drivers/media/video/omap3isp/ispvideo.c
+>> @@ -37,6 +37,7 @@
+>>  #include <plat/iovmm.h>
+>>  #include <plat/omap-pm.h>
+>>
+>> +#include <media/tvp514x.h>
+>>  #include "ispvideo.h"
+>>  #include "isp.h"
+>>
+>> @@ -1136,7 +1137,97 @@ isp_video_g_input(struct file *file, void *fh,
+>> unsigned int *input) static int
+>>  isp_video_s_input(struct file *file, void *fh, unsigned int input)
+>>  {
+>> -     return input == 0 ? 0 : -EINVAL;
+>> +     struct isp_video *video = video_drvdata(file);
+>> +     struct media_entity *entity = &video->video.entity;
+>> +     struct media_entity_graph graph;
+>> +     struct v4l2_subdev *subdev;
+>> +     struct v4l2_routing route;
+>> +     int ret = 0;
+>> +
+>> +     media_entity_graph_walk_start(&graph, entity);
+>> +     while ((entity = media_entity_graph_walk_next(&graph))) {
+>> +             if (media_entity_type(entity) ==
+>> +                             MEDIA_ENT_T_V4L2_SUBDEV) {
+>> +                     subdev = media_entity_to_v4l2_subdev(entity);
+>> +                     if (subdev != NULL) {
+>> +                             if (input == 0)
+>> +                                     route.input = INPUT_CVBS_VI4A;
+>> +                             else
+>> +                                     route.input = INPUT_SVIDEO_VI2C_VI1C;
+>> +                             route.output = 0;
+>> +                             ret = v4l2_subdev_call(subdev, video, s_routing,
+>> +                                             route.input, route.output, 0);
+>> +                             if (ret < 0 && ret != -ENOIOCTLCMD)
+>> +                                     return ret;
+>> +                     }
+>> +             }
+>> +     }
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static int isp_video_querystd(struct file *file, void *fh, v4l2_std_id *a)
+>> +{
+>> +     struct isp_video_fh *vfh = to_isp_video_fh(fh);
+>> +     struct isp_video *video = video_drvdata(file);
+>> +     struct media_entity *entity = &video->video.entity;
+>> +     struct media_entity_graph graph;
+>> +     struct v4l2_subdev *subdev;
+>> +     int ret = 0;
+>> +
+>> +     media_entity_graph_walk_start(&graph, entity);
+>> +     while ((entity = media_entity_graph_walk_next(&graph))) {
+>> +             if (media_entity_type(entity) ==
+>> +                             MEDIA_ENT_T_V4L2_SUBDEV) {
+>> +                     subdev = media_entity_to_v4l2_subdev(entity);
+>> +                     if (subdev != NULL) {
+>> +                             ret = v4l2_subdev_call(subdev, video, querystd,
+>> +                                             a);
+>> +                             if (ret < 0 && ret != -ENOIOCTLCMD)
+>> +                                     return ret;
+>> +                     }
+>> +             }
+>> +     }
+>> +
+>> +     vfh->standard.id = *a;
+>> +     return 0;
+>> +}
+>> +
+>> +static int isp_video_g_std(struct file *file, void *fh, v4l2_std_id *norm)
+>> +{
+>> +     struct isp_video_fh *vfh = to_isp_video_fh(fh);
+>> +     struct isp_video *video = video_drvdata(file);
+>> +
+>> +     mutex_lock(&video->mutex);
+>> +     *norm = vfh->standard.id;
+>> +     mutex_unlock(&video->mutex);
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static int isp_video_s_std(struct file *file, void *fh, v4l2_std_id *norm)
+>> +{
+>> +     struct isp_video *video = video_drvdata(file);
+>> +     struct media_entity *entity = &video->video.entity;
+>> +     struct media_entity_graph graph;
+>> +     struct v4l2_subdev *subdev;
+>> +     int ret = 0;
+>> +
+>> +     media_entity_graph_walk_start(&graph, entity);
+>> +     while ((entity = media_entity_graph_walk_next(&graph))) {
+>> +             if (media_entity_type(entity) ==
+>> +                             MEDIA_ENT_T_V4L2_SUBDEV) {
+>> +                     subdev = media_entity_to_v4l2_subdev(entity);
+>> +                     if (subdev != NULL) {
+>> +                             ret = v4l2_subdev_call(subdev, core, s_std,
+>> +                                             *norm);
+>> +                             if (ret < 0 && ret != -ENOIOCTLCMD)
+>> +                                     return ret;
+>> +                     }
+>> +             }
+>> +     }
+>> +
+>> +     return 0;
+>>  }
+>>
+>>  static const struct v4l2_ioctl_ops isp_video_ioctl_ops = {
+>> @@ -1161,6 +1252,9 @@ static const struct v4l2_ioctl_ops
+>> isp_video_ioctl_ops = { .vidioc_enum_input            = isp_video_enum_input,
+>>       .vidioc_g_input                 = isp_video_g_input,
+>>       .vidioc_s_input                 = isp_video_s_input,
+>> +     .vidioc_querystd                = isp_video_querystd,
+>> +     .vidioc_g_std                   = isp_video_g_std,
+>> +     .vidioc_s_std                   = isp_video_s_std,
+>>  };
+>>
+>>  /*
+>> --------------------------------------------------------------------------
+>> --- @@ -1325,6 +1419,8 @@ int omap3isp_video_register(struct isp_video
+>> *video, struct v4l2_device *vdev) printk(KERN_ERR "%s: could not register
+>> video device (%d)\n",
+>>                       __func__, ret);
+>>
+>> +     video->video.tvnorms            = V4L2_STD_NTSC | V4L2_STD_PAL;
+>> +     video->video.current_norm       = V4L2_STD_NTSC;
+>>       return ret;
+>>  }
+>>
+>> diff --git a/drivers/media/video/omap3isp/ispvideo.h
+>> b/drivers/media/video/omap3isp/ispvideo.h index 53160aa..bb8feb6 100644
+>> --- a/drivers/media/video/omap3isp/ispvideo.h
+>> +++ b/drivers/media/video/omap3isp/ispvideo.h
+>> @@ -182,6 +182,7 @@ struct isp_video_fh {
+>>       struct isp_video *video;
+>>       struct isp_video_queue queue;
+>>       struct v4l2_format format;
+>> +     struct v4l2_standard standard;
+>>       struct v4l2_fract timeperframe;
+>>  };
 >
 > --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
+> Regards,
+>
+> Laurent Pinchart
 >
 
-Spent a few minutes digging into this.  Looks like the snd-usb-audio
-driver advertises 8-48KHz.  However, it seems that it only captures
-successfully at 48 KHz.
 
-I made the following hack and it started working:
-
-diff --git a/src/alsa_stream.c b/src/alsa_stream.c
-index b6a41a5..57e3c3d 100644
---- a/src/alsa_stream.c
-+++ b/src/alsa_stream.c
-@@ -261,7 +261,7 @@ static int setparams(snd_pcm_t *phandle, snd_pcm_t *chandle,
-        fprintf(error_fp, "alsa: Will search a common rate between %u and %u\n",
-                ratemin, ratemax);
-
--    for (i = ratemin; i <= ratemax; i+= 100) {
-+    for (i = ratemax; i >= ratemin; i-= 100) {
-        err = snd_pcm_hw_params_set_rate_near(chandle, c_hwparams, &i, 0);
-        if (err)
-            continue;
-
-Basically the above starts at the *maximum* capture resolution and
-works its way down.  One might argue that this heuristic makes more
-sense anyway - why *wouldn't* you want the highest quality audio
-possible by default (rather than the lowest)?
-
-Even with that patch though, I hit severe underrun/overrun conditions
-at 30ms of latency (to the point where the audio is interrupted dozens
-of times per second).  Turned it up to 50ms and it's much better.
-That said, of course such a change would impact lipsync, so perhaps we
-need to be adjusting the periods instead.
-
-ALSA has never been my area of expertise, so I look to you and Hans to
-offer some suggestions.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
