@@ -1,54 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52646 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756849Ab1ISFtg convert rfc822-to-8bit (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:42242 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755475Ab1IPVMA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Sep 2011 01:49:36 -0400
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>
-Date: Mon, 19 Sep 2011 11:19:18 +0530
-Subject: RE: [PATCH RESEND 0/4] davinci vpbe: enable DM365 v4l2 display
- driver
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593025729ADE3@dbde02.ent.ti.com>
-References: <1316410529-14744-1-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1316410529-14744-1-git-send-email-manjunath.hadli@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Fri, 16 Sep 2011 17:12:00 -0400
+Received: by wwf22 with SMTP id 22so5592622wwf.1
+        for <linux-media@vger.kernel.org>; Fri, 16 Sep 2011 14:11:59 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <34ed0a9a184676a68afe4327938219bd.squirrel@ssl-webmail-vh.clara.net>
+References: <34ed0a9a184676a68afe4327938219bd.squirrel@ssl-webmail-vh.clara.net>
+Date: Fri, 16 Sep 2011 17:11:59 -0400
+Message-ID: <CALzAhNVqgtGfx7EEKk0fLF11mq6nem+RUaZRBxLQzAVHw2nNrw@mail.gmail.com>
+Subject: Re: Trident TV Master (TM5600/TM6000) information
+From: Steven Toth <stoth@kernellabs.com>
+To: markk@clara.co.uk
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sakari, Hans,
- Can I request you to have a look at these patches too?
+> If you google for "tv master technical reference" (with quotes), the first
+> result is a PDF with fairly detailed info on the TV Master chips including
+> register names.
 
-Thanks and Regards,
--Manju
+Thank you Mark, its appreciated.
 
-On Mon, Sep 19, 2011 at 11:05:25, Hadli, Manjunath wrote:
-> The patchset adds incremental changes necessary to enable dm365
-> v4l2 display driver, which includes vpbe display driver changes, osd specific changes and venc changes. The changes are incremental in nature,addind a few HD modes, and taking care of register level changes.
-> 
-> The patch set does not include THS7303 amplifier driver which is planned to be sent seperately.
-> 
-> 
-> Manjunath Hadli (4):
->   davinci vpbe: remove unused macro.
->   davinci vpbe: add dm365 VPBE display driver changes
->   davinci vpbe: add dm365 and dm355 specific OSD changes
->   davinci vpbe: add VENC block changes to enable dm365 and dm355
-> 
->  drivers/media/video/davinci/vpbe.c         |   55 +++-
->  drivers/media/video/davinci/vpbe_display.c |    1 -
->  drivers/media/video/davinci/vpbe_osd.c     |  474 +++++++++++++++++++++++++---
->  drivers/media/video/davinci/vpbe_venc.c    |  205 +++++++++++--
->  include/media/davinci/vpbe.h               |   16 +
->  include/media/davinci/vpbe_venc.h          |    4 +
->  6 files changed, 686 insertions(+), 69 deletions(-)
-> 
-> 
+- Steve
 
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
