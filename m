@@ -1,56 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42890 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756101Ab1ILOUN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Sep 2011 10:20:13 -0400
-Received: from lancelot.localnet (unknown [91.178.101.12])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id CDDC8359BB
-	for <linux-media@vger.kernel.org>; Mon, 12 Sep 2011 14:20:11 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from nm3.bt.bullet.mail.ukl.yahoo.com ([217.146.183.201]:22991 "HELO
+	nm3.bt.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754546Ab1IPIan convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Sep 2011 04:30:43 -0400
+Message-ID: <1316161491.32471.YahooMailClassic@web86705.mail.ird.yahoo.com>
+Date: Fri, 16 Sep 2011 09:24:51 +0100 (BST)
+From: Stuart Morris <stuart_morris@talk21.com>
+Subject: media_build script fails for kernel 2.6.35 fc14
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.1] v4l and uvcvideo fixes
-Date: Mon, 12 Sep 2011 16:20:05 +0200
 MIME-Version: 1.0
-Message-Id: <201109121620.06762.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+In tda18271-common.c
+Error 'vaf' storage size unknown.
 
-Here are four bug fixes for v3.1.
+I do not get this error when building against 2.6.36 mdv2010.2
 
-The following changes since commit c6a389f123b9f68d605bb7e0f9b32ec1e3e14132:                                                                               
-                                                                                                                                                           
-  Linux 3.1-rc4 (2011-08-28 21:16:01 -0700)                                                                                                                
+Please can anyone suggest a work-around?
 
-are available in the git repository at:
-  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-stable
+Stu-e
 
-Dave Young (1):
-      v4l: Make sure we hold a reference to the v4l2_device before using it
-
-Hans Verkuil (1):
-      v4l: Fix use-after-free case in v4l2_device_release
-
-Laurent Pinchart (1):
-      uvcvideo: Fix crash when linking entities
-
-Ming Lei (1):
-      uvcvideo: Set alternate setting 0 on resume if the bus has been reset
-
- drivers/media/video/uvc/uvc_driver.c |    2 +-
- drivers/media/video/uvc/uvc_entity.c |    2 +-
- drivers/media/video/uvc/uvc_video.c  |   10 +++++++++-
- drivers/media/video/uvc/uvcvideo.h   |    2 +-
- drivers/media/video/v4l2-dev.c       |   11 +++++++++++
- drivers/media/video/v4l2-device.c    |    2 ++
- 6 files changed, 25 insertions(+), 4 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
