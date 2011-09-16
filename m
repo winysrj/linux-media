@@ -1,58 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:55427 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755432Ab1I2Taa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Sep 2011 15:30:30 -0400
-Date: Thu, 29 Sep 2011 21:30:28 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: GIGIN JOSE <gigin_jose@yahoo.co.in>
-cc: linux-arm-kernel@lists.infradead.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: YCbCr 422 on s3c2440
-In-Reply-To: <loom.20110929T160147-550@post.gmane.org>
-Message-ID: <Pine.LNX.4.64.1109292127370.2405@axis700.grange>
-References: <loom.20110929T160147-550@post.gmane.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:34248 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752348Ab1IPJ7O (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Sep 2011 05:59:14 -0400
+From: Archit Taneja <archit@ti.com>
+To: <hvaibhav@ti.com>
+CC: <tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>,
+	<sumit.semwal@ti.com>, <linux-media@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in omap_vout_isr
+Date: Fri, 16 Sep 2011 15:30:31 +0530
+Message-ID: <1316167233-1437-4-git-send-email-archit@ti.com>
+In-Reply-To: <1316167233-1437-1-git-send-email-archit@ti.com>
+References: <1316167233-1437-1-git-send-email-archit@ti.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Forwarding to the suitable list, although, I don't think s3c24xx SoCs are 
-currently supported by V4L.
+Currently, in omap_vout_isr(), if the panel type is DPI, and if we
+get either VSYNC or VSYNC2 interrupts, we proceed ahead to set the
+current buffers state to VIDEOBUF_DONE and prepare to display the
+next frame in the queue.
 
-Thanks
-Guennadi
+On OMAP4, because we have 2 LCD managers, the panel type itself is not
+sufficient to tell if we have received the correct irq, i.e, we shouldn't
+proceed ahead if we get a VSYNC interrupt for LCD2 manager, or a VSYNC2
+interrupt for LCD manager.
 
-On Thu, 29 Sep 2011, GIGIN JOSE wrote:
+Fix this by correlating LCD manager to VSYNC interrupt and LCD2 manager
+to VSYNC2 interrupt.
 
-> Hi, 
-> 
-> I am working on s3c2440 ARM linux platform. I am connecting 
-> an image sensor device to the camera controller of the s3c2440 
-> ARM processor. The image sensor outputs YCbCr 4:2:2 output. 
-> Can I pass the output of this format to the preview path of 
-> the camera controller to get proper image ? 
-> 
-> The image sensor also outputs RGB565 format, which I can 
-> comfortably view using the preview path. But I would like 
-> to get the YCbCr 4:2:2 format from the image sensor device. 
-> 
-> Is this possible with the preview path ? Any other register
->  settings are required for YCbCr 4:2:2 mode on the preview 
-> path, other than that done for the RGB565 format. ?
-> 
-> Thank You
-> GIGIN  
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
-
+Signed-off-by: Archit Taneja <archit@ti.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/omap/omap_vout.c |   14 +++++++++++---
+ 1 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index c5f2ea0..20638c3 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -566,8 +566,8 @@ err:
+ 
+ static void omap_vout_isr(void *arg, unsigned int irqstatus)
+ {
+-	int ret, fid;
+-	u32 addr;
++	int ret, fid, mgr_id;
++	u32 addr, irq;
+ 	struct omap_overlay *ovl;
+ 	struct timeval timevalue;
+ 	struct omapvideo_info *ovid;
+@@ -583,6 +583,7 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
+ 	if (!ovl->manager || !ovl->manager->device)
+ 		return;
+ 
++	mgr_id = ovl->manager->id;
+ 	cur_display = ovl->manager->device;
+ 
+ 	spin_lock(&vout->vbq_lock);
+@@ -590,7 +591,14 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
+ 
+ 	switch (cur_display->type) {
+ 	case OMAP_DISPLAY_TYPE_DPI:
+-		if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
++		if (mgr_id == OMAP_DSS_CHANNEL_LCD)
++			irq = DISPC_IRQ_VSYNC;
++		else if (mgr_id == OMAP_DSS_CHANNEL_LCD2)
++			irq = DISPC_IRQ_VSYNC2;
++		else
++			goto vout_isr_err;
++
++		if (!(irqstatus & irq))
+ 			goto vout_isr_err;
+ 		break;
+ 	case OMAP_DISPLAY_TYPE_VENC:
+-- 
+1.7.1
+
