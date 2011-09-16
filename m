@@ -1,46 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:36908 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932185Ab1IAPGD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 11:06:03 -0400
-Date: Thu, 1 Sep 2011 17:05:55 +0200
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-To: josh.wu@atmel.com
-Cc: linux-media@vger.kernel.org
-Subject: Using atmel-isi for direct output on framebuffer ?
-Message-ID: <20110901170555.568af6ea@skate>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:51961 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752566Ab1IPR2u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Sep 2011 13:28:50 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LRM00KT0LW09Y50@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 16 Sep 2011 18:28:48 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LRM00BJRLVY4A@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 16 Sep 2011 18:28:48 +0100 (BST)
+Date: Fri, 16 Sep 2011 19:28:42 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC 1/2] v4l2: Add the parallel bus HREF signal polarity flags
+In-reply-to: <1316194123-21185-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	g.liakhovetski@gmx.de, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1316194123-21185-2-git-send-email-s.nawrocki@samsung.com>
+References: <1316194123-21185-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Josh,
+HREF is a signal indicating valid data during single line transmission.
+Add corresponding flags for this signal to the set of mediabus signal
+polarity flags.
 
-I am currently looking at V4L2 and your atmel-isi driver for an AT91
-based platform on which I would like the ISI interface to capture the
-image from a camera and have this image directly output in RGB format
-at a specific location on the screen (so that it can be nicely
-integrated into a Qt application for example).
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ include/media/v4l2-mediabus.h |   14 ++++++++------
+ 1 files changed, 8 insertions(+), 6 deletions(-)
 
-At the moment, I grab frames from the V4L2 device to userspace, do the
-YUV -> RGB conversion manually in my application, and then displays the
-converted frame on the framebuffer thanks to normal Qt painting
-mechanisms. This works, but obviously consumes a lot of CPU.
-
->From the AT91 datasheet, I understand that the ISI interface is capable
-of doing the YUV -> RGB conversion and is also capable of outputting
-the frame at some location in the framebuffer, but I don't see how to
-use this capability with the Linux V4L2 and framebuffer infrastructures.
-
-Is this possible ? If so, could you provide some pointers or starting
-points to get me started ? If not, what is missing in the driver ?
-
-Thanks a lot,
-
-Thomas
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 6114007..41d8771 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -26,12 +26,14 @@
+ /* Note: in BT.656 mode HSYNC and VSYNC are unused */
+ #define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
+ #define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
+-#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
+-#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 5)
+-#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 6)
+-#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
+-#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
+-#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
++#define V4L2_MBUS_HREF_ACTIVE_HIGH		(1 << 4)
++#define V4L2_MBUS_HREF_ACTIVE_LOW		(1 << 5)
++#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 6)
++#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 7)
++#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 8)
++#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 9)
++#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 10)
++#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 11)
+ 
+ /* Serial flags */
+ /* How many lanes the client can use */
 -- 
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+1.7.6
+
