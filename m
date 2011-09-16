@@ -1,88 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:55906 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750746Ab1IFQYx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 12:24:53 -0400
-Received: by bke11 with SMTP id 11so5562185bke.19
-        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2011 09:24:52 -0700 (PDT)
+Received: from moutng.kundenserver.de ([212.227.126.171]:61924 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752905Ab1IPGs7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Sep 2011 02:48:59 -0400
+Date: Fri, 16 Sep 2011 08:48:47 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+cc: Sylwester Nawrocki <snjw23@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org
+Subject: Re: [PATCH 4/4] v4l2: add blackfin capture bridge driver
+In-Reply-To: <CAHG8p1D=Y0bD-QAtsqtRk2NmW8+tXNgUCr45Ho_Uayspn9=N9w@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1109160848020.28447@axis700.grange>
+References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com>
+ <1315938892-20243-4-git-send-email-scott.jiang.linux@gmail.com>
+ <4E6FC8E8.70008@gmail.com> <CAHG8p1C5F_HKX_GPHv_RdCRRNw9s3+ybK4giCjUXxgSUAUDRVw@mail.gmail.com>
+ <4E70BA97.1090904@samsung.com> <CAHG8p1D1jnwRO0ie6xrXGL5Uhu+2YjoNdXzhnnBweZDPRyE1fw@mail.gmail.com>
+ <4E726B66.2020808@gmail.com> <CAHG8p1D=Y0bD-QAtsqtRk2NmW8+tXNgUCr45Ho_Uayspn9=N9w@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4E663EE2.3050403@redhat.com>
-References: <1315322996-10576-1-git-send-email-mchehab@redhat.com>
-	<4E663EE2.3050403@redhat.com>
-Date: Tue, 6 Sep 2011 12:24:52 -0400
-Message-ID: <CAGoCfiz9YAHYNJdEAT51fyfLY8RS_TcRpzKzLYCdNFCc3JcbEA@mail.gmail.com>
-Subject: Re: [PATCH 01/10] alsa_stream: port changes made on xawtv3
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 6, 2011 at 11:40 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Hi Devin,
->
-> Em 06-09-2011 12:29, Mauro Carvalho Chehab escreveu:
->> There are several issues with the original alsa_stream code that got
->> fixed on xawtv3, made by me and by Hans de Goede. Basically, the
->> code were re-written, in order to follow the alsa best practises.
->>
->> Backport the changes from xawtv, in order to make it to work on a
->> wider range of V4L and sound adapters.
->
-> FYI, just flooded your mailbox with 10 patches for tvtime. ;)
->
-> I'm wanting to test some things with tvtime on one of my testboxes, but some
-> of my cards weren't working with the alsa streaming, due to a few bugs that
-> were solved on xawtv fork.
->
-> So, I decided to backport it to tvtime and recompile the Fedora package for it.
-> That's where the other 9 patches come ;)
->
-> Basically, after applying this series of 10 patches, we can just remove all
-> patches from Fedora, making life easier for distro maintainers (as the same
-> thing is probably true on other distros - at least one of the Fedora patches
-> came from Debian, from the fedora git logs).
->
-> One important thing for distros is to have a tarball with the latest version
-> hosted on a public site, so I've increased the version to 1.0.3 and I'm
-> thinking on storing a copy of it at linuxtv, just like we do with xawtv3.
->
-> If you prefer, all patches are also on my tvtime git tree, at:
->        http://git.linuxtv.org/mchehab/tvtime.git
->
-> Thanks,
-> Mauro
+On Fri, 16 Sep 2011, Scott Jiang wrote:
 
-Hi Mauro,
+> 2011/9/16 Sylwester Nawrocki <snjw23@gmail.com>:
+> > On 09/15/2011 04:40 AM, Scott Jiang wrote:
+> >> 2011/9/14 Sylwester Nawrocki<s.nawrocki@samsung.com>:
+> >>> On 09/14/2011 09:10 AM, Scott Jiang wrote:
+> >>>>
+> >>>>>> +                     fmt =&bcap_formats[i];
+> >>>>>> +                     if (mbus_code)
+> >>>>>> +                             *mbus_code = fmt->mbus_code;
+> >>>>>> +                     if (bpp)
+> >>>>>> +                             *bpp = fmt->bpp;
+> >>>>>> +                     v4l2_fill_mbus_format(&mbus_fmt, pixfmt,
+> >>>>>> +                                             fmt->mbus_code);
+> >>>>>> +                     ret = v4l2_subdev_call(bcap->sd, video,
+> >>>>>> +                                             try_mbus_fmt,&mbus_fmt);
+> >>>>>> +                     if (ret<    0)
+> >>>>>> +                             return ret;
+> >>>>>> +                     v4l2_fill_pix_format(pixfmt,&mbus_fmt);
+> >>>>>> +                     pixfmt->bytesperline = pixfmt->width * fmt->bpp;
+> >>>>>> +                     pixfmt->sizeimage = pixfmt->bytesperline
+> >>>>>> +                                             * pixfmt->height;
+> >
+> > No need to clamp mbus_fmt.width and mbus_fmt.height to some maximum values
+> > to prevent allocating huge memory buffers ?
+> >
+> >>>>>
+> >>>>> Still pixfmt->pixelformat isn't filled.
+> >>>>>
+> >>>> no here pixfmt->pixelformat is passed in
+> >>>>
+> >>>>>> +                     return 0;
+> >>>>>> +             }
+> >>>>>> +     }
+> >>>>>> +     return -EINVAL;
+> >>>>>
+> >>>>> I think you should return some default format, rather than giving up
+> >>>>> when the fourcc doesn't match. However I'm not 100% sure this is
+> >>>>> the specification requirement.
+> >>>>>
+> >>>> no, there is no default format for bridge driver because it knows
+> >>>> nothing about this.
+> >>>> all the format info bridge needs ask subdevice.
+> >>>
+> >>> It's the bridge driver that exports a device node and is responsible for
+> >>> setting the default format. It should be possible to start streaming right
+> >>> after opening the device, without VIDIOC_S_FMT, with some reasonable defaults.
+> >>>
+> >>> If, as you say, the bridge knows nothing about formats what the bcap_formats[]
+> >>> array is here for ?
+> >>>
+> >> accually this array is to convert mbus to pixformat. ppi supports any formats.
+> >> Ideally it should contain all formats in v4l2, but it is enough at
+> >> present for our platform.
+> >> If I find someone needs more, I will add it.
+> >> So return -EINVAL means this format is out of range, it can't be supported now.
+> >
+> > Ok, fair enough. I guess you rely on subdev driver to return some supported
+> > value through mbus_try_fmt and then the bridge driver must be able to handle
+> > this. However it might make sense to validate the resolution in some places
+> > to prevent allocating insanely huge buffers, when the sensor subdev misbehaves.
+> >
+> all the format info is got from sensor, so it isn't out of control
+> 
+> >>
+> >> about default format, I think I can only call bcap_g_fmt_vid_cap in
+> >> probe to get this info.
+> >> Dose anybody have a better solution?
+> >
+> > How about doing that when device is opened for the first time ?
+> >
+> no, different input and std has different default format, so I think
+> there is no default format is a good choice.
+> app should negotiate format before use. I'm not sure all the v4l2 app
+> will do this step.
+> v4l2 spec only says driver must implement xx ioctl, but it doesn't say
+> app must call xx ioctl.
+> Anyone can tell me how many steps app must call?
 
-Funny you should send these along today.  Last Friday I was actually
-poking around at the Fedora tvtime repo because I was curious how they
-had dealt with the V4L1 support issue (whether they were using my
-patch removing v4l1 or some variant).
+IIRC, the user shall be able to open a v4l2 device, queue buffers and 
+start streaming - without setting any format.
 
-I've actually pulled in Fedora patches in the past (as you can see
-from the hg repo), and it has always been my intention to do it for
-the other distros as well (e.g. debian/Ubuntu).  So I appreciate your
-having sent these along.
+> > However it
+> > could make more sense to try to set format at the subdev and then check how
+> > it was adjusted. Not all subdevs might implement g_mbus_fmt op or some might
+> > not deliver sane default values.
+> >
+> in try_format and s_fmt I have implemented this in bridge driver and
+> all my sensor drivers have implemented relative callback.
 
-I'll pull these in this week, do some testing to make sure nothing
-serious got broken, and work to spin a 1.0.3 toward the end of the
-week.  Given the number of features/changes, and how long it's been
-since the last formal release, I was considering calling it 1.1.0
-instead though.
-
-I've been thinking for a while that perhaps the project should be
-renamed (or I considered prepending "kl" onto the front resulting in
-it being called "kl-tvtime").  This isn't out of vanity but rather my
-concern that the fork will get confused with the original project (for
-example, I believe Ubuntu actually already calls their modified tree
-tvtime 1.0.3).  I'm open to suggestions in this regards.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
