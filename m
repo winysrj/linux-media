@@ -1,56 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:64939 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753932Ab1ISPGq (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:58644 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753563Ab1IPR2t (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Sep 2011 11:06:46 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] mfd: Combine MFD_SUPPORT and MFD_CORE
-Date: Mon, 19 Sep 2011 17:06:01 +0200
-Cc: Luciano Coelho <coelho@ti.com>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	matti.j.aaltonen@nokia.com, johannes@sipsolutions.net,
-	linux-kernel@vger.kernel.org, sameo@linux.intel.com,
-	mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org, Jean Delvare <khali@linux-fr.org>,
-	Tony Lindgren <tony@atomide.com>
-References: <20110829102732.03f0f05d.rdunlap@xenotime.net> <1314643307-17780-1-git-send-email-coelho@ti.com> <20110915171634.GD3523@ponder.secretlab.ca>
-In-Reply-To: <20110915171634.GD3523@ponder.secretlab.ca>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109191706.01569.arnd@arndb.de>
+	Fri, 16 Sep 2011 13:28:49 -0400
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LRM0001BLVZDO@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 16 Sep 2011 18:28:47 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LRM00K9PLVYAI@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 16 Sep 2011 18:28:47 +0100 (BST)
+Date: Fri, 16 Sep 2011 19:28:43 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 2/2] s5p-fimc: Convert to use generic bus polarity flags
+In-reply-to: <1316194123-21185-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	g.liakhovetski@gmx.de, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1316194123-21185-3-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1316194123-21185-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 15 September 2011, Grant Likely wrote:
-> > diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-> > index 21574bd..1836cdf 100644
-> > --- a/drivers/mfd/Kconfig
-> > +++ b/drivers/mfd/Kconfig
-> > @@ -2,10 +2,9 @@
-> >  # Multifunction miscellaneous devices
-> >  #
-> >  
-> > -menuconfig MFD_SUPPORT
-> > -     bool "Multifunction device drivers"
-> > +menuconfig MFD_CORE
-> > +     tristate "Multifunction device drivers"
-> >       depends on HAS_IOMEM
-> > -     default y
-> 
-> Looks like there is a bug here.  Kconfig symbols with dependencies
-> (HAS_IOMEM) must not ever be selected by other symbols because Kconfig
-> doesn't implement a way to resolve them.  This patch means that every
-> "select MFD_CORE" just assumes that HAS_IOMEM is also selected.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <s.nawrocki@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-reg.c |    8 ++++----
+ include/media/s5p_fimc.h                |    7 +------
+ 2 files changed, 5 insertions(+), 10 deletions(-)
 
-That is probably a fair assumption though. Almost all architectures
-set HAS_IOMEM unconditionally, and the other ones (probably just s390)
-would not select MFD_CORE.
+diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
+index 2a1ae51..5543b1b 100644
+--- a/drivers/media/video/s5p-fimc/fimc-reg.c
++++ b/drivers/media/video/s5p-fimc/fimc-reg.c
+@@ -535,16 +535,16 @@ int fimc_hw_set_camera_polarity(struct fimc_dev *fimc,
+ 	cfg &= ~(S5P_CIGCTRL_INVPOLPCLK | S5P_CIGCTRL_INVPOLVSYNC |
+ 		 S5P_CIGCTRL_INVPOLHREF | S5P_CIGCTRL_INVPOLHSYNC);
+ 
+-	if (cam->flags & FIMC_CLK_INV_PCLK)
++	if (cam->flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
+ 		cfg |= S5P_CIGCTRL_INVPOLPCLK;
+ 
+-	if (cam->flags & FIMC_CLK_INV_VSYNC)
++	if (cam->flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
+ 		cfg |= S5P_CIGCTRL_INVPOLVSYNC;
+ 
+-	if (cam->flags & FIMC_CLK_INV_HREF)
++	if (cam->flags & V4L2_MBUS_HREF_ACTIVE_LOW)
+ 		cfg |= S5P_CIGCTRL_INVPOLHREF;
+ 
+-	if (cam->flags & FIMC_CLK_INV_HSYNC)
++	if (cam->flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
+ 		cfg |= S5P_CIGCTRL_INVPOLHSYNC;
+ 
+ 	writel(cfg, fimc->regs + S5P_CIGCTRL);
+diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
+index 2b58904..688fb3f 100644
+--- a/include/media/s5p_fimc.h
++++ b/include/media/s5p_fimc.h
+@@ -19,11 +19,6 @@ enum cam_bus_type {
+ 	FIMC_LCD_WB, /* FIFO link from LCD mixer */
+ };
+ 
+-#define FIMC_CLK_INV_PCLK	(1 << 0)
+-#define FIMC_CLK_INV_VSYNC	(1 << 1)
+-#define FIMC_CLK_INV_HREF	(1 << 2)
+-#define FIMC_CLK_INV_HSYNC	(1 << 3)
+-
+ struct i2c_board_info;
+ 
+ /**
+@@ -37,7 +32,7 @@ struct i2c_board_info;
+  * @i2c_bus_num: i2c control bus id the sensor is attached to
+  * @mux_id: FIMC camera interface multiplexer index (separate for MIPI and ITU)
+  * @clk_id: index of the SoC peripheral clock for sensors
+- * @flags: flags defining bus signals polarity inversion (High by default)
++ * @flags: the parallel bus flags defining signals polarity (V4L2_MBUS_*)
+  */
+ struct s5p_fimc_isp_info {
+ 	struct i2c_board_info *board_info;
+-- 
+1.7.6
 
-Note that Samuel already took the other patch in the end, so it doesn't
-matter. The patch I posted encloses the entire directory in "if HAS_IOMEM".
-
-	Arnd
