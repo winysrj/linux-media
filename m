@@ -1,86 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:59920 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.9]:56570 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753644Ab1I1Ubl (ORCPT
+	with ESMTP id S1752503Ab1IQMe2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Sep 2011 16:31:41 -0400
-Date: Wed, 28 Sep 2011 22:31:25 +0200 (CEST)
+	Sat, 17 Sep 2011 08:34:28 -0400
+Date: Sat, 17 Sep 2011 14:34:25 +0200 (CEST)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, pawel@osciak.com,
-	mchehab@infradead.org, m.szyprowski@samsung.com
-Subject: Re: [PATCH 1/1] v4l: Add note on buffer locking to memory and DMA
- mapping to PREPARE_BUF
-In-Reply-To: <20110928202035.GE6180@valkosipuli.localdomain>
-Message-ID: <Pine.LNX.4.64.1109282227300.21237@axis700.grange>
-References: <Pine.LNX.4.64.1109010904300.21309@axis700.grange>
- <1314875336-21811-1-git-send-email-sakari.ailus@iki.fi>
- <20110928202035.GE6180@valkosipuli.localdomain>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Subject: Re: [PATCH/RFC 1/2] v4l2: Add the parallel bus HREF signal polarity
+ flags
+In-Reply-To: <4E748D82.8040006@gmail.com>
+Message-ID: <alpine.DEB.2.00.1109171423460.28766@axis700.grange>
+References: <1316194123-21185-1-git-send-email-s.nawrocki@samsung.com> <1316194123-21185-2-git-send-email-s.nawrocki@samsung.com> <201109171254.49003.laurent.pinchart@ideasonboard.com> <4E748D82.8040006@gmail.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 28 Sep 2011, Sakari Ailus wrote:
+On Sat, 17 Sep 2011, Sylwester Nawrocki wrote:
 
-> Hi Guennadi,
+> Hi Laurent,
 > 
-> What's your opinion on this? I was intended to complement the PREPARE_BUF
-> documentation.
+> thanks for your comments.
+> 
+> On 09/17/2011 12:54 PM, Laurent Pinchart wrote:
+> > Hi Sylwester,
+> > 
+> > On Friday 16 September 2011 19:28:42 Sylwester Nawrocki wrote:
+> >> HREF is a signal indicating valid data during single line transmission.
+> >> Add corresponding flags for this signal to the set of mediabus signal
+> >> polarity flags.
+> > 
+> > So that's a data valid signal that gates the pixel data ? The OMAP3 ISP has a
+> 
+> Yes, it's "horizontal window reference" signal, it's well described in this datasheet:
+> http://www.morninghan.com/pdf/OV2640FSL_DS_(1_3).pdf
+> 
+> AFAICS there can be also its vertical counterpart - VREF.
+> 
+> Many devices seem to use this terminology. However, I realize, not all, as you're
+> pointing out. So perhaps it's time for some naming contest now.. :-)
 
-I don't think I have a very strong opinion about this. AFAIU this is so 
-far just a (yet another) speculation about what the driver might want or 
-need to do in PREPARE_BUF. Let's wait until the author of these patches 
-manages to get them straight (...) and until all the reviewers are 
-satisfied:-) Then you're certainly welcome to submit any improvement you 
-see fit, then the usual suspects will express their opinions on them. So, 
-business as usual, I would say;-)
+Hi
+
+No objections in principle, just one question though: can these signals 
+actually be used simultaneously with respective *SYNC signals or only as 
+an alternative? If the latter, maybe we could reuse same names by just 
+making them more generic?
 
 Thanks
 Guennadi
 
+> > similar signal called WEN, and I've seen other chips using DVAL. Your patch
+> > looks good to me, except maybe for the signal name that could be made a bit
+> > more explicit (I'm not sure what most chips use though).
 > 
-> On Thu, Sep 01, 2011 at 02:08:56PM +0300, Sakari Ailus wrote:
-> > Add note to documentation of VIDIOC_PREPARE_BUF that the preparation done by
-> > the IOCTL may include locking buffers to system memory and creating DMA
-> > mappings for them.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  .../DocBook/media/v4l/vidioc-prepare-buf.xml       |    8 +++++---
-> >  1 files changed, 5 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
-> > index 509e752..7177c2f 100644
-> > --- a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
-> > +++ b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
-> > @@ -52,9 +52,11 @@
-> >  <constant>VIDIOC_PREPARE_BUF</constant> ioctl to pass ownership of the buffer
-> >  to the driver before actually enqueuing it, using the
-> >  <constant>VIDIOC_QBUF</constant> ioctl, and to prepare it for future I/O.
-> > -Such preparations may include cache invalidation or cleaning. Performing them
-> > -in advance saves time during the actual I/O. In case such cache operations are
-> > -not required, the application can use one of
-> > +Such preparations may include locking the buffer to system memory and
-> > +creating DMA mapping for it (on the first time
-> > +<constant>VIDIOC_PREPARE_BUF</constant> is called), cache invalidation or
-> > +cleaning. Performing them in advance saves time during the actual I/O. In
-> > +case such cache operations are not required, the application can use one of
-> >  <constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant> and
-> >  <constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant> flags to skip the respective
-> >  step.</para>
-> > -- 
-> > 1.7.2.5
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I'm pretty OK with HREF/VREF. But I'm open to any better suggestions.
 > 
-> -- 
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+> Maybe 
+> 
+> V4L2_MBUS_LINE_VALID_ACTIVE_HIGH
+> V4L2_MBUS_LINE_VALID_ACTIVE_LOW
+> 
+> V4L2_MBUS_FRAME_VALID_ACTIVE_HIGH
+> V4L2_MBUS_FRAME_VALID_ACTIVE_LOW
+> 	
+> ? 
+> Some of Aptina sensor datasheets describes those signals as LINE_VALID/FRAME_VALID,
+> (www.aptina.com/assets/downloadDocument.do?id=76).
+> 
+> > 
+> >> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+> >> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+> >> ---
+> >>   include/media/v4l2-mediabus.h |   14 ++++++++------
+> >>   1 files changed, 8 insertions(+), 6 deletions(-)
+> >>
+> >> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+> >> index 6114007..41d8771 100644
+> >> --- a/include/media/v4l2-mediabus.h
+> >> +++ b/include/media/v4l2-mediabus.h
+> >> @@ -26,12 +26,14 @@
+> >>   /* Note: in BT.656 mode HSYNC and VSYNC are unused */
+> 
+> I've forgotten to update this:
+> 
+> /* Note: in BT.656 mode HSYNC, HREF and VSYNC are unused */
+> 
+> >>   #define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1<<  2)
+> >>   #define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1<<  3)
+> >> -#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1<<  4)
+> >> -#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1<<  5)
+> >> -#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1<<  6)
+> >> -#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1<<  7)
+> >> -#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1<<  8)
+> >> -#define V4L2_MBUS_DATA_ACTIVE_LOW		(1<<  9)
+> >> +#define V4L2_MBUS_HREF_ACTIVE_HIGH		(1<<  4)
+> >> +#define V4L2_MBUS_HREF_ACTIVE_LOW		(1<<  5)
+> >> +#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1<<  6)
+> >> +#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1<<  7)
+> >> +#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1<<  8)
+> >> +#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1<<  9)
+> >> +#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1<<  10)
+> >> +#define V4L2_MBUS_DATA_ACTIVE_LOW		(1<<  11)
+> 
+> --
+> Thanks,
+> Sylwester
 > 
 
 ---
