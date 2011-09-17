@@ -1,186 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53084 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58265 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751901Ab1IWIdt (ORCPT
+	with ESMTP id S1754840Ab1IQWIg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Sep 2011 04:33:49 -0400
+	Sat, 17 Sep 2011 18:08:36 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 1/4] v4l: add support for selection api
-Date: Fri, 23 Sep 2011 10:33:49 +0200
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl, sakari.ailus@iki.fi
-References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com> <1314793703-32345-2-git-send-email-t.stanislaws@samsung.com>
-In-Reply-To: <1314793703-32345-2-git-send-email-t.stanislaws@samsung.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Subject: Re: [PATCH v2] arm: omap3evm: Add support for an MT9M032 based camera board.
+Date: Sun, 18 Sep 2011 00:08:20 +0200
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
+	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+References: <1316252097-4213-1-git-send-email-martin@neutronstar.dyndns.org> <4E751870.5080605@gmail.com>
+In-Reply-To: <4E751870.5080605@gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109231033.49757.laurent.pinchart@ideasonboard.com>
+Message-Id: <201109180008.21254.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+On Sunday 18 September 2011 00:00:16 Sylwester Nawrocki wrote:
+> On 09/17/2011 11:34 AM, Martin Hostettler wrote:
+> > Adds board support for an MT9M032 based camera to omap3evm.
+> 
+> ...
+> 
+> > +
+> > +static int __init camera_init(void)
+> > +{
+> > +	int ret = -EINVAL;
+> > +
+> > +	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
+> > +	if (gpio_request(nCAM_VD_SEL, "nCAM_VD_SEL")<  0) {
+> > +		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_SEL(%d)\n",
+> > +		       nCAM_VD_SEL);
+> > +		goto err;
+> > +	}
+> > +	if (gpio_direction_output(nCAM_VD_SEL, 1)<  0) {
+> > +		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_SEL(%d)
+> > direction\n", +		       nCAM_VD_SEL);
+> > +		goto err_vdsel;
+> > +	}
+> 
+> How about replacing gpio_request + gpio_direction_output with:
+> 
+> 	gpio_request_one(nCAM_VD_SEL, GPIOF_OUT_INIT_HIGH, "nCAM_VD_SEL");
 
-Thanks for the patch, and sorry for the late reply.
+I'd even propose gpio_request_array().
 
-On Wednesday 31 August 2011 14:28:20 Tomasz Stanislawski wrote:
-> This patch introduces new api for a precise control of cropping and
-> composing features for video devices. The new ioctls are
-> VIDIOC_S_SELECTION and VIDIOC_G_SELECTION.
+> > +
+> > +	if (gpio_request(EVM_TWL_GPIO_BASE + 2, "T2_GPIO2")<  0) {
+> > +		pr_err("omap3evm-camera: Failed to get GPIO T2_GPIO2(%d)\n",
+> > +		       EVM_TWL_GPIO_BASE + 2);
+> > +		goto err_vdsel;
+> > +	}
+> > +	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 2, 0)<  0) {
+> > +		pr_err("omap3evm-camera: Failed to set GPIO T2_GPIO2(%d) 
+direction\n",
+> > +		       EVM_TWL_GPIO_BASE + 2);
+> > +		goto err_2;
+> > +	}
 > 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/video/v4l2-compat-ioctl32.c |    2 +
->  drivers/media/video/v4l2-ioctl.c          |   28 +++++++++++++++++
->  include/linux/videodev2.h                 |   46
-> +++++++++++++++++++++++++++++ include/media/v4l2-ioctl.h                | 
->   4 ++
->  4 files changed, 80 insertions(+), 0 deletions(-)
+>  	gpio_request_one(EVM_TWL_GPIO_BASE + 2, GPIOF_OUT_INIT_LOW, "T2_GPIO2");
 > 
-> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c
-> b/drivers/media/video/v4l2-compat-ioctl32.c index 61979b7..f3b9d15 100644
-> --- a/drivers/media/video/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
-> @@ -927,6 +927,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned
-> int cmd, unsigned long arg) case VIDIOC_CROPCAP:
->  	case VIDIOC_G_CROP:
->  	case VIDIOC_S_CROP:
-> +	case VIDIOC_G_SELECTION:
-> +	case VIDIOC_S_SELECTION:
->  	case VIDIOC_G_JPEGCOMP:
->  	case VIDIOC_S_JPEGCOMP:
->  	case VIDIOC_QUERYSTD:
-> diff --git a/drivers/media/video/v4l2-ioctl.c
-> b/drivers/media/video/v4l2-ioctl.c index 002ce13..6e02b45 100644
-> --- a/drivers/media/video/v4l2-ioctl.c
-> +++ b/drivers/media/video/v4l2-ioctl.c
-> @@ -225,6 +225,8 @@ static const char *v4l2_ioctls[] = {
->  	[_IOC_NR(VIDIOC_CROPCAP)]          = "VIDIOC_CROPCAP",
->  	[_IOC_NR(VIDIOC_G_CROP)]           = "VIDIOC_G_CROP",
->  	[_IOC_NR(VIDIOC_S_CROP)]           = "VIDIOC_S_CROP",
-> +	[_IOC_NR(VIDIOC_G_SELECTION)]      = "VIDIOC_G_SELECTION",
-> +	[_IOC_NR(VIDIOC_S_SELECTION)]      = "VIDIOC_S_SELECTION",
->  	[_IOC_NR(VIDIOC_G_JPEGCOMP)]       = "VIDIOC_G_JPEGCOMP",
->  	[_IOC_NR(VIDIOC_S_JPEGCOMP)]       = "VIDIOC_S_JPEGCOMP",
->  	[_IOC_NR(VIDIOC_QUERYSTD)]         = "VIDIOC_QUERYSTD",
-> @@ -1714,6 +1716,32 @@ static long __video_do_ioctl(struct file *file,
->  		ret = ops->vidioc_s_crop(file, fh, p);
->  		break;
->  	}
-> +	case VIDIOC_G_SELECTION:
-> +	{
-> +		struct v4l2_selection *p = arg;
-> +
-> +		if (!ops->vidioc_g_selection)
-> +			break;
-> +
-> +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
-> +
-> +		ret = ops->vidioc_g_selection(file, fh, p);
-> +		if (!ret)
-> +			dbgrect(vfd, "", &p->r);
-> +		break;
-> +	}
-> +	case VIDIOC_S_SELECTION:
-> +	{
-> +		struct v4l2_selection *p = arg;
-> +
-> +		if (!ops->vidioc_s_selection)
-> +			break;
-> +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
-> +		dbgrect(vfd, "", &p->r);
-> +
-> +		ret = ops->vidioc_s_selection(file, fh, p);
-> +		break;
-> +	}
->  	case VIDIOC_CROPCAP:
->  	{
->  		struct v4l2_cropcap *p = arg;
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index fca24cc..b7471fe 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -738,6 +738,48 @@ struct v4l2_crop {
->  	struct v4l2_rect        c;
->  };
+> > +
+> > +	if (gpio_request(EVM_TWL_GPIO_BASE + 8, "nCAM_VD_EN")<  0) {
+> > +		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_EN(%d)\n",
+> > +		       EVM_TWL_GPIO_BASE + 8);
+> > +		goto err_2;
+> > +	}
+> > +	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 8, 0)<  0) {
+> > +		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_EN(%d)
+> > direction\n", +		       EVM_TWL_GPIO_BASE + 8);
+> > +		goto err_8;
+> > +	}
 > 
-> +/* Hints for adjustments of selection rectangle */
-> +#define V4L2_SEL_SIZE_GE	0x00000001
-> +#define V4L2_SEL_SIZE_LE	0x00000002
-> +
-> +/* Selection targets */
-> +
-> +/* current cropping area */
-> +#define V4L2_SEL_CROP_ACTIVE		0
-> +/* default cropping area */
-> +#define V4L2_SEL_CROP_DEFAULT		1
-> +/* cropping bounds */
-> +#define V4L2_SEL_CROP_BOUNDS		2
-> +/* current composing area */
-> +#define V4L2_SEL_COMPOSE_ACTIVE		256
-> +/* default composing area */
-> +#define V4L2_SEL_COMPOSE_DEFAULT	257
-> +/* composing bounds */
-> +#define V4L2_SEL_COMPOSE_BOUNDS		258
-> +/* current composing area plus all padding pixels */
-> +#define V4L2_SEL_COMPOSE_PADDED		259
-> +
-> +/**
-> + * struct v4l2_selection - selection info
-> + * @type:	buffer type (do not use *_MPLANE types)
-> + * @target:	selection target, used to choose one of possible rectangles
-> + * @flags:	constraints flags
-> + * @r:		coordinates of selection window
-> + * @reserved:	for future use, rounds structure size to 64 bytes, set to
-> zero + *
-> + * Hardware may use multiple helper window to process a video stream.
-> + * The structure is used to exchange this selection areas between
-> + * an application and a driver.
-> + */
-> +struct v4l2_selection {
-> +	__u32			type;
-> +	__u32			target;
-> +	__u32                   flags;
-> +	struct v4l2_rect        r;
-> +	__u32                   reserved[9];
-> +};
-> +
-> +
->  /*
->   *      A N A L O G   V I D E O   S T A N D A R D
->   */
-> @@ -2182,6 +2224,10 @@ struct v4l2_dbg_chip_ident {
->  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct
-> v4l2_event_subscription) #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91,
-> struct v4l2_event_subscription)
+> ...and	gpio_request_one(EVM_TWL_GPIO_BASE + 8, GPIOF_OUT_INIT_LOW,
+> "nCAM_VD_EN") ?
 > 
-> +/* Experimental crop/compose API */
-> +#define VIDIOC_G_SELECTION	_IOWR('V', 92, struct v4l2_selection)
-> +#define VIDIOC_S_SELECTION	_IOWR('V', 93, struct v4l2_selection)
-> +
->  /* Reminder: when adding new ioctls please add support for them to
->     drivers/media/video/v4l2-compat-ioctl32.c as well! */
-> 
-> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> index dd9f1e7..9dd6e18 100644
-> --- a/include/media/v4l2-ioctl.h
-> +++ b/include/media/v4l2-ioctl.h
-> @@ -194,6 +194,10 @@ struct v4l2_ioctl_ops {
->  					struct v4l2_crop *a);
->  	int (*vidioc_s_crop)           (struct file *file, void *fh,
->  					struct v4l2_crop *a);
-> +	int (*vidioc_g_selection)      (struct file *file, void *fh,
-> +					struct v4l2_selection *s);
-> +	int (*vidioc_s_selection)      (struct file *file, void *fh,
-> +					struct v4l2_selection *s);
->  	/* Compression ioctls */
->  	int (*vidioc_g_jpegcomp)       (struct file *file, void *fh,
->  					struct v4l2_jpegcompression *a);
+> > +
+> > +	omap3evm_set_mux(MUX_CAMERA_SENSOR);
+> > +
+> > +
+> > +	ret = omap3_init_camera(&isp_platform_data);
+> > +	if (ret<  0)
+> > +		goto err_8;
+> > +	return 0;
+> > +
+> > +err_8:
+> > +	gpio_free(EVM_TWL_GPIO_BASE + 8);
+> > +err_2:
+> > +	gpio_free(EVM_TWL_GPIO_BASE + 2);
+> > +err_vdsel:
+> > +	gpio_free(nCAM_VD_SEL);
+> > +err:
+> > +	return ret;
+> > +}
+> > +
+> > +device_initcall(camera_init);
 
 -- 
 Regards,
