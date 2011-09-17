@@ -1,70 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33408 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752422Ab1IZL0t convert rfc822-to-8bit (ORCPT
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:55920 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752619Ab1IQVf3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 07:26:49 -0400
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Date: Mon, 26 Sep 2011 16:56:37 +0530
-Subject: RE: [PATCH RESEND 0/4] davinci vpbe: enable DM365 v4l2 display
- driver
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593025729ADE6@dbde02.ent.ti.com>
-References: <1316410529-14744-1-git-send-email-manjunath.hadli@ti.com>
- <4E7D187A.8060005@redhat.com>
-In-Reply-To: <4E7D187A.8060005@redhat.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Sat, 17 Sep 2011 17:35:29 -0400
+Received: by wwn22 with SMTP id 22so2115683wwn.1
+        for <linux-media@vger.kernel.org>; Sat, 17 Sep 2011 14:35:28 -0700 (PDT)
 MIME-Version: 1.0
+Date: Sat, 17 Sep 2011 17:35:27 -0400
+Message-ID: <CALzAhNUObL0WB2wfsVEKdNP_qddHtQyygz730AfNfPFNbJfbJg@mail.gmail.com>
+Subject: [GIT PULL for v3.2] [media] saa7164: Adding support for HVR2200 card
+ id 0x8953
+From: Steven Toth <stoth@kernellabs.com>
+To: Linux-Media <linux-media@vger.kernel.org>
+Cc: Mauro Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Sep 24, 2011 at 05:08:34, Mauro Carvalho Chehab wrote:
-> Em 19-09-2011 02:35, Manjunath Hadli escreveu:
-> > The patchset adds incremental changes necessary to enable dm365
-> > v4l2 display driver, which includes vpbe display driver changes, osd 
-> > specific changes and venc changes. The changes are incremental in 
-> > nature,addind a few HD modes, and taking care of register level 
-> > changes.
-> > 
-> > The patch set does not include THS7303 amplifier driver which is 
-> > planned to be sent seperately.
-> > 
-> > 
-> > Manjunath Hadli (4):
-> >   davinci vpbe: remove unused macro.
-> >   davinci vpbe: add dm365 VPBE display driver changes
-> >   davinci vpbe: add dm365 and dm355 specific OSD changes
-> >   davinci vpbe: add VENC block changes to enable dm365 and dm355
-> > 
-> >  drivers/media/video/davinci/vpbe.c         |   55 +++-
-> >  drivers/media/video/davinci/vpbe_display.c |    1 -
-> >  drivers/media/video/davinci/vpbe_osd.c     |  474 +++++++++++++++++++++++++---
-> >  drivers/media/video/davinci/vpbe_venc.c    |  205 +++++++++++--
-> >  include/media/davinci/vpbe.h               |   16 +
-> >  include/media/davinci/vpbe_venc.h          |    4 +
-> >  6 files changed, 686 insertions(+), 69 deletions(-)
-> 
-> 
-> Not sure why are you re-sending this patch series. To whom are you re-sending it? You have your git access at linuxtv.org. So, if the patches are ready for merge, just send me a pull request. Otherwise, please mark the patches as RFC or send to the one that will maintain the driver, c/c the mailing list.
+Hi Mauro,
 
-Thank you Mauro. I will send you a pull request for the rest of the 
-three patches.
+Please pull 92aa36f8f9d19b7c47ad3daca15aa0932254246b from
+git://git.kernellabs.com/stoth/saa7164-dev.git
 
--Manju
-> 
-> In any case, I'll mark the patches 2-4 as RFC (patch 1 is too trivial, I'll just apply it, to never see it again ;) ).
-> 
-> Thanks,
-> Mauro
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" 
-> > in the body of a message to majordomo@vger.kernel.org More majordomo 
-> > info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Another SAA7164 HVR220 card profile.
 
+http://git.kernellabs.com/?p=stoth/saa7164-dev.git;a=commit;h=92aa36f8f9d19b7c47ad3daca15aa0932254246b
+
+drivers/media/video/saa7164/saa7164-cards.c |   62 +++++++++++++++++++++++++++
+drivers/media/video/saa7164/saa7164-dvb.c   |    1 +
+drivers/media/video/saa7164/saa7164.h       |    1 +
+
+Thanks,
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
