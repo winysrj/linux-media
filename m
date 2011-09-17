@@ -1,111 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25951 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752816Ab1IYTni (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Sep 2011 15:43:38 -0400
-Message-ID: <4E7F8467.1090106@redhat.com>
-Date: Sun, 25 Sep 2011 16:43:35 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52850 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755479Ab1IQQYR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Sep 2011 12:24:17 -0400
+Received: from lancelot.localnet (unknown [91.178.181.94])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id D0047359E9
+	for <linux-media@vger.kernel.org>; Sat, 17 Sep 2011 16:24:16 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/5] USB: export video.h to the includes available for userspace
+Date: Sat, 17 Sep 2011 18:24:14 +0200
+References: <1316273642-3624-1-git-send-email-laurent.pinchart@ideasonboard.com> <1316273642-3624-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1316273642-3624-5-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Chris Rankin <rankincj@yahoo.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v3] EM28xx - fix deadlock when unplugging and replugging
- a DVB adapter
-References: <4E7E43A2.3020905@yahoo.com> <4E7F25D4.2080504@redhat.com> <4E7F2D6B.5000603@yahoo.com>
-In-Reply-To: <4E7F2D6B.5000603@yahoo.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201109171824.15845.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 25-09-2011 10:32, Chris Rankin escreveu:
-> On 25/09/11 14:00, Mauro Carvalho Chehab wrote:
->> Hmm... This would probably work better (not tested). Could you please test it
->> on your hardware?
-> 
-> Hmm, I don't understand this.
-> The deadlock isn't about taking em28xx_devlist_mutex, but happens because em28xx_dvb_init() tries to retake dev->lock when em28xx_usb_probe() is already holding it. That's why I unlocked dev->lock before calling em28xx_init_extension().
-> 
-> So why are you avoiding locking em28xx_devlist_mutex?
+On Saturday 17 September 2011 17:34:02 Laurent Pinchart wrote:
+> From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Yeah, I realized it just after sending it. I didn't have time to re-post another
-email, as I was about to leave.
+I'm not sure how this From: line got there, I'll fix it.
 
-I'm still not comfortable on releasing the mutex too early, as this may cause driver
-hungup, due to udev early access. I'll try to do some tests with it here, and think on
-a better solution.
+> The uvcvideo extension unit API requires constants defined in the
+> video.h header. Add it to the list of includes exported to userspace.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  include/linux/usb/Kbuild |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/linux/usb/Kbuild b/include/linux/usb/Kbuild
+> index ed91fb6..b607f35 100644
+> --- a/include/linux/usb/Kbuild
+> +++ b/include/linux/usb/Kbuild
+> @@ -7,3 +7,4 @@ header-y += gadgetfs.h
+>  header-y += midi.h
+>  header-y += g_printer.h
+>  header-y += tmc.h
+> +header-y += video.h
 
-> 
-> Cheers,
-> Chris
-> 
->> diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
->> index 7297d90..c92c177 100644
->> --- a/drivers/media/video/em28xx/em28xx-cards.c
->> +++ b/drivers/media/video/em28xx/em28xx-cards.c
->> @@ -3005,7 +3005,8 @@ static int em28xx_init_dev(struct em28xx **devhandle, struct usb_device *udev,
->>           goto fail;
->>       }
->>
->> -    em28xx_init_extension(dev);
->> +    /* dev->lock needs to be holded */
->> +    __em28xx_init_extension(dev);
->>
->>       /* Save some power by putting tuner to sleep */
->>       v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
->> @@ -3301,10 +3302,10 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
->>           em28xx_release_resources(dev);
->>       }
->>
->> -    em28xx_close_extension(dev);
->> -
->>       mutex_unlock(&dev->lock);
->>
->> +    em28xx_close_extension(dev);
->> +
->>       if (!dev->users) {
->>           kfree(dev->alt_max_pkt_size);
->>           kfree(dev);
->> diff --git a/drivers/media/video/em28xx/em28xx-core.c b/drivers/media/video/em28xx/em28xx-core.c
->> index 804a4ab..afddfea 100644
->> --- a/drivers/media/video/em28xx/em28xx-core.c
->> +++ b/drivers/media/video/em28xx/em28xx-core.c
->> @@ -1218,16 +1218,22 @@ void em28xx_unregister_extension(struct em28xx_ops *ops)
->>   }
->>   EXPORT_SYMBOL(em28xx_unregister_extension);
->>
->> -void em28xx_init_extension(struct em28xx *dev)
->> +/* Need to take the mutex lock before calling it */
->> +void __em28xx_init_extension(struct em28xx *dev)
->>   {
->>       const struct em28xx_ops *ops = NULL;
->>
->> -    mutex_lock(&em28xx_devlist_mutex);
->>       list_add_tail(&dev->devlist,&em28xx_devlist);
->>       list_for_each_entry(ops,&em28xx_extension_devlist, next) {
->>           if (ops->init)
->>               ops->init(dev);
->>       }
->> +}
->> +
->> +void em28xx_init_extension(struct em28xx *dev)
->> +{
->> +    mutex_lock(&em28xx_devlist_mutex);
->> +    __em28xx_init_extension(dev);
->>       mutex_unlock(&em28xx_devlist_mutex);
->>   }
->>
->> diff --git a/drivers/media/video/em28xx/em28xx.h b/drivers/media/video/em28xx/em28xx.h
->> index 1626e4a..a5c1ba2 100644
->> --- a/drivers/media/video/em28xx/em28xx.h
->> +++ b/drivers/media/video/em28xx/em28xx.h
->> @@ -682,6 +682,7 @@ void em28xx_remove_from_devlist(struct em28xx *dev);
->>   void em28xx_add_into_devlist(struct em28xx *dev);
->>   int em28xx_register_extension(struct em28xx_ops *dev);
->>   void em28xx_unregister_extension(struct em28xx_ops *dev);
->> +void __em28xx_init_extension(struct em28xx *dev);
->>   void em28xx_init_extension(struct em28xx *dev);
->>   void em28xx_close_extension(struct em28xx *dev);
->>
-> 
+-- 
+Regards,
 
+Laurent Pinchart
