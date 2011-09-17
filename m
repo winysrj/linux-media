@@ -1,94 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32878 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751468Ab1I0LlE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 07:41:04 -0400
-Message-ID: <4E81B646.2010400@redhat.com>
-Date: Tue, 27 Sep 2011 08:40:54 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.126.187]:57773 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752378Ab1IQUz6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Sep 2011 16:55:58 -0400
+Date: Sat, 17 Sep 2011 22:54:48 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org
+Subject: Re: [PATCH 4/4] v4l2: add blackfin capture bridge driver
+In-Reply-To: <1315938892-20243-4-git-send-email-scott.jiang.linux@gmail.com>
+Message-ID: <Pine.LNX.4.64.1109172251140.31071@axis700.grange>
+References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com>
+ <1315938892-20243-4-git-send-email-scott.jiang.linux@gmail.com>
 MIME-Version: 1.0
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: linux-media@vger.kernel.org, pawel@osciak.com,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [GIT PULL] Selection API and fixes for v3.2
-References: <1316704391-13596-1-git-send-email-m.szyprowski@samsung.com> <4E805E6E.3080007@redhat.com> <011201cc7c3e$798c5bc0$6ca51340$%szyprowski@samsung.com> <4E807E67.3000508@redhat.com> <000001cc7cee$c465d350$4d3179f0$%szyprowski@samsung.com>
-In-Reply-To: <000001cc7cee$c465d350$4d3179f0$%szyprowski@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 27-09-2011 05:23, Marek Szyprowski escreveu:
-> Hello,
-> 
-> On Monday, September 26, 2011 3:30 PM Mauro Carvalho Chehab wrote:
-> 
->> Em 26-09-2011 08:21, Marek Szyprowski escreveu:
->>> Hello,
->>>
->>> On Monday, September 26, 2011 1:14 PM Mauro Carvalho Chehab wrote:
->>>
->>>>> Scott Jiang (1):
->>>>>       vb2: add vb2_get_unmapped_area in vb2 core
->>>>
->>>>> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
->>>>> index ea55c08..977410b 100644
->>>>> --- a/include/media/videobuf2-core.h
->>>>> +++ b/include/media/videobuf2-core.h
->>>>> @@ -309,6 +309,13 @@ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
->>>>>  int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type);
->>>>>
->>>>>  int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma);
->>>>> +#ifndef CONFIG_MMU
->>>>> +unsigned long vb2_get_unmapped_area(struct vb2_queue *q,
->>>>> +				    unsigned long addr,
->>>>> +				    unsigned long len,
->>>>> +				    unsigned long pgoff,
->>>>> +				    unsigned long flags);
->>>>> +#endif
->>>>>  unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait);
->>>>>  size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
->>>>>  		loff_t *ppos, int nonblock);
->>>>
->>>> This sounds me like a hack, as it is passing the problem of working with a non-mmu
->>>> capable hardware to the driver, inserting architecture-dependent bits on them.
->>>>
->>>> The proper way to do it is to provide a vb2 core support to handle the non-mmu case
->>>> inside it.
->>>
->>> This is exactly what this patch does - it provides generic vb2 implementation for
->>> fops->get_unmapped_area callback which any vb2 ready driver can use. This operation
->>> is used only on NON-MMU systems. Please check drivers/media/video/v4l2-dev.c file and
->>> the implementation of get_unmapped_area there. Similar code is used by uvc driver.
->>
->> At least there, there is a:
->> #ifdef CONFIG_MMU
->> #define v4l2_get_unmapped_area NULL
->> #else
->> ...
->> #endif
->>
->> block, so, in thesis, a driver can be written to support both cases without inserting
->> #ifdefs inside it.
-> 
-> videobuf2 functions are not meant to be used as direct callbacks in fops so defining it
-> as NULL makes no sense at all.
-> 
->> Ideally, I would prefer if all those iommu-specific calls would be inside the core.
->> A driver should not need to do anything special in order to support a different
->> (sub)architecture.
-> 
-> It is not about IOMMU at all. Some (embedded) systems don't have MMU at all. Drivers on
-> such systems cannot do regular mmap operation. Instead it is emulated with 
-> get_unmapped_area fops callback and some (u)libC magic. This patch just provides
-> vb2_get_unmapped_area function. Drivers have to call it from their respective
-> my_driver_get_unmapped_area() function provided in its fops. Implementing it makes
-> sense only on NO-MMU systems. I really see no other way of dealing with this.
+One more clean-up possibility:
 
-Ok. Feel free to add this patch again on a next request.
+On Tue, 13 Sep 2011, Scott Jiang wrote:
 
-Thanks,
-Mauro
+> this is a v4l2 bridge driver for Blackfin video capture device,
+> support ppi interface
 > 
-> Best regards
+> Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
+> ---
 
+[snip]
+
+> diff --git a/drivers/media/video/blackfin/bfin_capture.c b/drivers/media/video/blackfin/bfin_capture.c
+> new file mode 100644
+> index 0000000..24f89f2
+> --- /dev/null
+> +++ b/drivers/media/video/blackfin/bfin_capture.c
+> @@ -0,0 +1,1099 @@
+
+[snip]
+
+> +static int __devinit bcap_probe(struct platform_device *pdev)
+> +{
+> +	struct bcap_device *bcap_dev;
+> +	struct video_device *vfd;
+> +	struct i2c_adapter *i2c_adap;
+> +	struct bfin_capture_config *config;
+> +	struct vb2_queue *q;
+> +	int ret;
+> +
+> +	config = pdev->dev.platform_data;
+> +	if (!config) {
+> +		v4l2_err(pdev->dev.driver, "Unable to get board config\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	bcap_dev = kzalloc(sizeof(*bcap_dev), GFP_KERNEL);
+> +	if (!bcap_dev) {
+> +		v4l2_err(pdev->dev.driver, "Unable to alloc bcap_dev\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	bcap_dev->cfg = config;
+> +
+> +	bcap_dev->ppi = create_ppi_instance(config->ppi_info);
+> +	if (!bcap_dev->ppi) {
+> +		v4l2_err(pdev->dev.driver, "Unable to create ppi\n");
+> +		ret = -ENODEV;
+> +		goto err_free_dev;
+> +	}
+> +	bcap_dev->ppi->priv = bcap_dev;
+> +
+> +	bcap_dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+> +	if (IS_ERR(bcap_dev->alloc_ctx)) {
+> +		ret = PTR_ERR(bcap_dev->alloc_ctx);
+> +		goto err_free_ppi;
+> +	}
+> +
+> +	vfd = video_device_alloc();
+> +	if (!vfd) {
+> +		ret = -ENOMEM;
+> +		v4l2_err(pdev->dev.driver, "Unable to alloc video device\n");
+> +		goto err_cleanup_ctx;
+> +	}
+> +
+> +	/* initialize field of video device */
+> +	vfd->release            = video_device_release;
+> +	vfd->fops               = &bcap_fops;
+> +	vfd->ioctl_ops          = &bcap_ioctl_ops;
+> +	vfd->tvnorms            = 0;
+> +	vfd->v4l2_dev           = &bcap_dev->v4l2_dev;
+> +	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
+> +	strncpy(vfd->name, CAPTURE_DRV_NAME, sizeof(vfd->name));
+> +	bcap_dev->video_dev     = vfd;
+> +
+> +	ret = v4l2_device_register(&pdev->dev, &bcap_dev->v4l2_dev);
+> +	if (ret) {
+> +		v4l2_err(pdev->dev.driver,
+> +				"Unable to register v4l2 device\n");
+> +		goto err_release_vdev;
+> +	}
+> +	v4l2_info(&bcap_dev->v4l2_dev, "v4l2 device registered\n");
+> +
+> +	spin_lock_init(&bcap_dev->lock);
+> +	/* initialize queue */
+> +	q = &bcap_dev->buffer_queue;
+> +	memset(q, 0, sizeof(*q));
+
+This is superfluous: bcap_dev is allocated with kzalloc().
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
