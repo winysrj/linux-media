@@ -1,59 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:57743 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755467Ab1IPRFg (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:57361 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751737Ab1IQJbP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Sep 2011 13:05:36 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LRM003O9KTAZP@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2011 18:05:34 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRM00KN0KTAAI@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2011 18:05:34 +0100 (BST)
-Date: Fri, 16 Sep 2011 19:05:27 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 0/3] Add v4l2 subdev driver for S5K6AAFX sensor with embedded
- ISP
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Message-id: <1316192730-18099-1-git-send-email-s.nawrocki@samsung.com>
+	Sat, 17 Sep 2011 05:31:15 -0400
+Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LRN008Z0UG2ZC60@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 17 Sep 2011 18:31:14 +0900 (KST)
+Received: from jtppark (12-23-121-105.csky.net [12.23.121.105])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LRN00GV6UFVAY@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 17 Sep 2011 18:31:14 +0900 (KST)
+Date: Sat, 17 Sep 2011 18:31:06 +0900
+From: Jeongtae Park <jtp.park@samsung.com>
+Subject: RE: [PATCH] MAINTAINERS: add entries for s5p-mfc and s5p-tv drivers
+In-reply-to: <012401cc67c4$33acdf00$9b069d00$%szyprowski@samsung.com>
+To: 'Marek Szyprowski' <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: kgene.kim@samsung.com, 'Kamil Debski' <k.debski@samsung.com>,
+	kyungmin.park@samsung.com
+Reply-to: jtp.park@samsung.com
+Message-id: <000001cc751c$8b0ad9e0$a1208da0$%park@samsung.com>
 MIME-version: 1.0
-Content-type: TEXT/PLAIN
+Content-type: text/plain; charset=Windows-1252
+Content-language: ko
 Content-transfer-encoding: 7BIT
+References: <1312968749-15988-1-git-send-email-m.szyprowski@samsung.com>
+ <005a01cc67b9$02315560$06940020$%park@samsung.com>
+ <012401cc67c4$33acdf00$9b069d00$%szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi,
 
-The following 3 patches add the S5K6AAFX sensor with embedded ISP driver and
-minor enhancement of v4l2 control API. This is not a complete work and I thought
-I'd publish this to get some feedback as early as possible.
+How is it going?
 
-In particular this driver depends on planned R/G/B component gain controls. 
+Best Regards
+/jtpark
 
-Sylwester Nawrocki (3):
-  v4l: Extend V4L2_CID_COLORFX control with AQUA effect
-  v4l: Add AUTO option for the V4L2_CID_POWER_LINE_FREQUENCY control
-  v4l: Add S5K6AA(FX) sensor driver
+> -----Original Message-----
+> From: Marek Szyprowski [mailto:m.szyprowski@samsung.com]
+> Sent: Wednesday, August 31, 2011 6:56 PM
+> To: jtp.park@samsung.com; linux-media@vger.kernel.org
+> Cc: kgene.kim@samsung.com; 'Kamil Debski'; younglak1004.kim@samsung.com; kyungmin.park@samsung.com
+> Subject: RE: [PATCH] MAINTAINERS: add entries for s5p-mfc and s5p-tv drivers
+> 
+> Hello,
+> 
+> On Wednesday, August 31, 2011 10:36 AM Jeongtae Park wrote:
+> 
+> > Authors of the code definitely should be maintainers.
+> > I think everyone will agree.
+> 
+> Ok, I will update the patch.
+> 
+> >
+> > Best Regards
+> > /jtpark
+> > > -----Original Message-----
+> > > From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of
+> Marek
+> > Szyprowski
+> > > Sent: Wednesday, August 10, 2011 6:32 PM
+> > > To: linux-media@vger.kernel.org
+> > > Cc: Marek Szyprowski; Kyungmin Park; Kamil Debski; Tomasz Stanislawski
+> > > Subject: [PATCH] MAINTAINERS: add entries for s5p-mfc and s5p-tv drivers
+> > >
+> > > Both driver has been merged to v3.1-rc1, so add its authors as maintainers.
+> > >
+> > > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> > > Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> > > Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> > > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > > ---
+> > >  MAINTAINERS |   18 ++++++++++++++++++
+> > >  1 files changed, 18 insertions(+), 0 deletions(-)
+> > >
+> > > diff --git a/MAINTAINERS b/MAINTAINERS
+> > > index 51d42fb..0618d9a 100644
+> > > --- a/MAINTAINERS
+> > > +++ b/MAINTAINERS
+> > > @@ -1084,6 +1084,24 @@ F:	arch/arm/plat-s5p/dev-fimc*
+> > >  F:	arch/arm/plat-samsung/include/plat/*fimc*
+> > >  F:	drivers/media/video/s5p-fimc/
+> > >
+> > > +ARM/SAMSUNG S5P SERIES Multi Format Codec (MFC) SUPPORT
+> > > +M:	Kyungmin Park <kyungmin.park@samsung.com>
+> > > +M:	Kamil Debski <k.debski@samsung.com>
+> >
+> > M:	Jeongtae Park<jtp.park@samsung.com>
+> >
+> > > +L:	linux-arm-kernel@lists.infradead.org
+> > > +L:	linux-media@vger.kernel.org
+> > > +S:	Maintained
+> > > +F:	arch/arm/plat-s5p/dev-mfc.c
+> > > +F:	drivers/media/video/s5p-mfc/
+> > > +
+> > > +ARM/SAMSUNG S5P SERIES TV SUBSYSTEM SUPPORT
+> > > +M:	Kyungmin Park <kyungmin.park@samsung.com>
+> > > +M:	Tomasz Stanislawski <t.stanislaws@samsung.com>
+> > > +L:	linux-arm-kernel@lists.infradead.org
+> > > +L:	linux-media@vger.kernel.org
+> > > +S:	Maintained
+> > > +F:	arch/arm/plat-s5p/dev-tv.c
+> > > +F:	drivers/media/video/s5p-tv/
+> > > +
+> > >  ARM/SHMOBILE ARM ARCHITECTURE
+> > >  M:	Paul Mundt <lethal@linux-sh.org>
+> > >  M:	Magnus Damm <magnus.damm@gmail.com>
+> 
+> Best regards
+> --
+> Marek Szyprowski
+> Samsung Poland R&D Center
+> 
 
- Documentation/DocBook/media/v4l/controls.xml |   10 +-
- drivers/media/video/Kconfig                  |    6 +
- drivers/media/video/Makefile                 |    1 +
- drivers/media/video/s5k6aa.c                 | 1578 ++++++++++++++++++++++++++
- drivers/media/video/v4l2-ctrls.c             |    1 +
- include/linux/videodev2.h                    |    2 +
- include/media/s5k6aa.h                       |   51 +
- 7 files changed, 1645 insertions(+), 4 deletions(-)
- create mode 100644 drivers/media/video/s5k6aa.c
- create mode 100644 include/media/s5k6aa.h
 
-
-Regards,
---
-Sylwester Nawrocki
-Samsung Poland R&D Center
