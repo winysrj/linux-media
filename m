@@ -1,93 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58676 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932868Ab1IHNeV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 Sep 2011 09:34:21 -0400
-From: Deepthy Ravi <deepthy.ravi@ti.com>
-To: <linux-omap@vger.kernel.org>
-CC: <tony@atomide.com>, <linux@arm.linux.org.uk>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-kernel@vger.kernel.org>, <mchehab@infradead.org>,
-	<linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-	<g.liakhovetski@gmx.de>, Vaibhav Hiremath <hvaibhav@ti.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: [PATCH 1/8] omap3evm: Enable regulators for camera interface
-Date: Thu, 8 Sep 2011 19:03:51 +0530
-Message-ID: <1315488831-15998-1-git-send-email-deepthy.ravi@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:51709 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753334Ab1IQTI7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Sep 2011 15:08:59 -0400
+Subject: Re: Lockdep warning in ivtv driver in 3.1
+From: Andy Walls <awalls@md.metrocast.net>
+To: Josh Boyer <jwboyer@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
+Date: Sat, 17 Sep 2011 15:09:33 -0400
+In-Reply-To: <20110822182410.GH2270@zod.bos.redhat.com>
+References: <20110822182410.GH2270@zod.bos.redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1316286574.2253.23.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+On Mon, 2011-08-22 at 14:24 -0400, Josh Boyer wrote:
+> Hi All,
+> 
+> We've gotten a report[1] that the ivtv driver is throwing a lockdep
+> warning when calling ivtv_gpio_init.  From what I can tell, it seems
+> like the lock being held twice is the one allocated for ivtv->cxhdl, but
+> I can't immediately see where it's locked and not unlocked in the
+> callstack path.
+>
+> Does anyone have an idea where this could be happening?
 
-Enabled 1v8 and 2v8 regulator output, which is being used by
-camera module.
+Yes, I do.  Right here:
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
----
- arch/arm/mach-omap2/board-omap3evm.c |   40 ++++++++++++++++++++++++++++++++++
- 1 files changed, 40 insertions(+), 0 deletions(-)
+http://git.linuxtv.org/media_tree.git/blob/refs/heads/staging/for_v3.2:/drivers/media/video/v4l2-ctrls.c#l1120
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index a1184b3..8333ee4 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -273,6 +273,44 @@ static struct omap_dss_board_info omap3_evm_dss_data = {
- 	.default_device	= &omap3_evm_lcd_device,
- };
- 
-+static struct regulator_consumer_supply omap3evm_vaux3_supply = {
-+	.supply         = "cam_1v8",
-+};
-+
-+static struct regulator_consumer_supply omap3evm_vaux4_supply = {
-+	.supply         = "cam_2v8",
-+};
-+
-+/* VAUX3 for CAM_1V8 */
-+static struct regulator_init_data omap3evm_vaux3 = {
-+	.constraints = {
-+		.min_uV                 = 1800000,
-+		.max_uV                 = 1800000,
-+		.apply_uV               = true,
-+		.valid_modes_mask       = REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask         = REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+		},
-+	.num_consumer_supplies  = 1,
-+	.consumer_supplies      = &omap3evm_vaux3_supply,
-+};
-+
-+/* VAUX4 for CAM_2V8 */
-+static struct regulator_init_data omap3evm_vaux4 = {
-+	.constraints = {
-+		.min_uV                 = 1800000,
-+		.max_uV                 = 1800000,
-+		.apply_uV               = true,
-+		.valid_modes_mask       = REGULATOR_MODE_NORMAL
-+			| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask         = REGULATOR_CHANGE_MODE
-+			| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies  = 1,
-+	.consumer_supplies      = &omap3evm_vaux4_supply,
-+};
-+
- static struct regulator_consumer_supply omap3evm_vmmc1_supply[] = {
- 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
- };
-@@ -499,6 +537,8 @@ static struct twl4030_platform_data omap3evm_twldata = {
- 	.vio		= &omap3evm_vio,
- 	.vmmc1		= &omap3evm_vmmc1,
- 	.vsim		= &omap3evm_vsim,
-+	.vaux3          = &omap3evm_vaux3,
-+	.vaux4          = &omap3evm_vaux4,
- };
- 
- static int __init omap3_evm_i2c_init(void)
--- 
-1.7.0.4
+But it is almost certainly a false positive because of the way the mutex
+is initialized in the body of a helper function used by many drivers:
+
+http://git.linuxtv.org/media_tree.git/blob/refs/heads/staging/for_v3.2:/drivers/media/video/v4l2-ctrls.c#l1099
+
+So there is no way for lockdep to distinguish between a control handler
+lock in the bridge driver vs. one of the subdevices under the bridge
+driver's control.
+
+The mutex should really be initialized in a macro or inline function.
+Say like in this patch:
+
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg26097.html
+http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/27027
+
+See if it still applies and solves your problem.
+
+Further reading:
+Comments 11-13 of this ivtv bugzilla report:
+https://bugzilla.redhat.com/show_bug.cgi?id=662384
+
+This post by me:
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg33565.html
+
+
+Honestly I wish all mutexes and spinlocks were initalized with such
+descriptive names as my patch sets up for the control handler mutex.  It
+would make the output of lockdep a lot easier to follow.
+
+Regards,
+Andy W.
+
+> [   28.556610] =============================================
+> [   28.557007] [ INFO: possible recursive locking detected ]
+> [   28.557007] 3.1.0-0.rc0.git19.1.fc17.x86_64 #1
+> [   28.557007] ---------------------------------------------
+> [   28.557007] modprobe/684 is trying to acquire lock:
+> [   28.557007]  (&hdl->lock){+.+...}, at: [<ffffffffa02919ba>]
+> find_ref_lock+0x24/0x46 [videodev]
+> [   28.557007] 
+> [   28.557007] but task is already holding lock:
+> [   28.557007]  (&hdl->lock){+.+...}, at: [<ffffffffa029380f>]
+> v4l2_ctrl_add_handler+0x49/0x97 [videodev]
+> [   28.557007] 
+> [   28.557007] other info that might help us debug this:
+> [   28.557007]  Possible unsafe locking scenario:
+> [   28.557007] 
+> [   28.557007]        CPU0
+> [   28.557007]        ----
+> [   28.557007]   lock(&hdl->lock);
+> [   28.557007]   lock(&hdl->lock);
+> [   28.557007] 
+> [   28.557007]  *** DEADLOCK ***
+> [   28.557007] 
+> [   28.557007]  May be due to missing lock nesting notation
+> [   28.557007] 
+> [   28.557007] 3 locks held by modprobe/684:
+> [   28.557007]  #0:  (&__lockdep_no_validate__){......}, at:
+> [<ffffffff81314d0c>] __driver_attach+0x3b/0x82
+> [   28.557007]  #1:  (&__lockdep_no_validate__){......}, at:
+> [<ffffffff81314d1a>] __driver_attach+0x49/0x82
+> [   28.557007]  #2:  (&hdl->lock){+.+...}, at: [<ffffffffa029380f>]
+> v4l2_ctrl_add_handler+0x49/0x97 [videodev]
+> [   28.557007] 
+> [   28.557007] stack backtrace:
+> [   28.557007] Pid: 684, comm: modprobe Not tainted
+> 3.1.0-0.rc0.git19.1.fc17.x86_64 #1
+> [   28.557007] Call Trace:
+> [   28.557007]  [<ffffffff8108eb06>] __lock_acquire+0x917/0xcf7
+> [   28.557007]  [<ffffffff81014fbe>] ? sched_clock+0x9/0xd
+> [   28.557007]  [<ffffffff8108dffc>] ? mark_lock+0x2d/0x220
+> [   28.557007]  [<ffffffffa02919ba>] ? find_ref_lock+0x24/0x46 [videodev]
+> [   28.557007]  [<ffffffff8108f3dc>] lock_acquire+0xf3/0x13e
+> [   28.584886]  [<ffffffffa02919ba>] ? find_ref_lock+0x24/0x46 [videodev]
+> [   28.585146]  [<ffffffffa02919ba>] ? find_ref_lock+0x24/0x46 [videodev]
+> [   28.585146]  [<ffffffff814f2523>] __mutex_lock_common+0x5d/0x39a
+> [   28.585146]  [<ffffffffa02919ba>] ? find_ref_lock+0x24/0x46 [videodev]
+> [   28.585146]  [<ffffffff8108f6db>] ? mark_held_locks+0x6d/0x95
+> [   28.585146]  [<ffffffff814f282f>] ? __mutex_lock_common+0x369/0x39a
+> [   28.585146]  [<ffffffff8108f830>] ? trace_hardirqs_on_caller+0x12d/0x164
+> [   28.585146]  [<ffffffff814f296f>] mutex_lock_nested+0x40/0x45
+> [   28.585146]  [<ffffffffa02919ba>] find_ref_lock+0x24/0x46 [videodev]
+> [   28.585146]  [<ffffffffa029367e>] handler_new_ref+0x42/0x18a [videodev]
+> [   28.585146]  [<ffffffffa0293833>] v4l2_ctrl_add_handler+0x6d/0x97 [videodev]
+> [   28.585146]  [<ffffffffa028f71b>] v4l2_device_register_subdev+0x16c/0x257
+> [videodev]
+> [   28.585146]  [<ffffffffa02ddfe9>] ivtv_gpio_init+0x14e/0x159 [ivtv]
+> [   28.585146]  [<ffffffffa02ebd57>] ivtv_probe+0xdc4/0x1662 [ivtv]
+> [   28.585146]  [<ffffffff8108f6c3>] ? mark_held_locks+0x55/0x95
+> [   28.585146]  [<ffffffff814f41df>] ? _raw_spin_unlock_irqrestore+0x4d/0x61
+> [   28.585146]  [<ffffffff8126a12b>] local_pci_probe+0x44/0x75
+> [   28.585146]  [<ffffffff8126acb1>] pci_device_probe+0xd0/0xff
+> [   28.585146]  [<ffffffff81314bef>] driver_probe_device+0x131/0x213
+> [   28.585146]  [<ffffffff81314d2f>] __driver_attach+0x5e/0x82
+> [   28.585146]  [<ffffffff81314cd1>] ? driver_probe_device+0x213/0x213
+> [   28.585146]  [<ffffffff81313c30>] bus_for_each_dev+0x59/0x8f
+> [   28.585146]  [<ffffffff813147c3>] driver_attach+0x1e/0x20
+> [   28.585146]  [<ffffffff813143db>] bus_add_driver+0xd4/0x22a
+> [   28.585146]  [<ffffffffa02ff000>] ? 0xffffffffa02fefff
+> [   28.585146]  [<ffffffff813151f2>] driver_register+0x98/0x105
+> [   28.618302]  [<ffffffffa02ff000>] ? 0xffffffffa02fefff
+> [   28.618302]  [<ffffffff8126b584>] __pci_register_driver+0x66/0xd2
+> [   28.618302]  [<ffffffffa02ff000>] ? 0xffffffffa02fefff
+> [   28.618302]  [<ffffffffa02ff078>] module_start+0x78/0x1000 [ivtv]
+> [   28.618302]  [<ffffffff81002099>] do_one_initcall+0x7f/0x13a
+> [   28.618302]  [<ffffffffa02ff000>] ? 0xffffffffa02fefff
+> [   28.618302]  [<ffffffff8109a864>] sys_init_module+0x114/0x267
+> [   28.618302]  [<ffffffff814fafc2>] system_call_fastpath+0x16/0x1b
+> 
+> josh
+> 
+> [1] https://bugzilla.redhat.com/show_bug.cgi?id=728316
+
 
