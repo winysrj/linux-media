@@ -1,51 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:49073 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756047Ab1IGSEn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2011 14:04:43 -0400
-Received: by yxj19 with SMTP id 19so4134857yxj.19
-        for <linux-media@vger.kernel.org>; Wed, 07 Sep 2011 11:04:43 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAOcJUbzDNXw8j6seVuM1ZkYzV5WRV0nv6Np620hKq5sHe0Bk=g@mail.gmail.com>
-References: <4E2E0788.3010507@iki.fi>
-	<4E3061CF.2080009@redhat.com>
-	<4E306BAE.1020302@iki.fi>
-	<4E35F773.3060807@redhat.com>
-	<4E35FFBF.9010408@iki.fi>
-	<4E360E53.80107@redhat.com>
-	<4E67A12B.8020908@iki.fi>
-	<CAOcJUbz-hTf+xi=9JfJVGYsPSs7Cay6uwuwRdK7aiJeQrCtrGQ@mail.gmail.com>
-	<CAOcJUbzDNXw8j6seVuM1ZkYzV5WRV0nv6Np620hKq5sHe0Bk=g@mail.gmail.com>
-Date: Wed, 7 Sep 2011 14:04:42 -0400
-Message-ID: <CAOcJUbwVgAo-OpruY44ZC0VP07-4Gmq=4s+zdSsH9biJgg-zRg@mail.gmail.com>
-Subject: Re: [PATCH 2/3] dvb-usb: multi-frontend support (MFE)
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Jose Alberto Reguero <jareguero@telefonica.net>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from moutng.kundenserver.de ([212.227.17.8]:64555 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751737Ab1IQJ1V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Sep 2011 05:27:21 -0400
+From: Martin Hostettler <martin@neutronstar.dyndns.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: [PATCH] v4l subdev: add dispatching for VIDIOC_DBG_G_REGISTER and VIDIOC_DBG_S_REGISTER.
+Date: Sat, 17 Sep 2011 11:26:36 +0200
+Message-Id: <1316251596-32073-1-git-send-email-martin@neutronstar.dyndns.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> On Wed, Sep 7, 2011 at 12:51 PM, Antti Palosaari <crope@iki.fi> wrote:
->>> Also .num_frontends can be removed after that, since DVB USB will just loop
->>> through 0 to MAX FEs and register all FEs found (fe pointer !NULL).
+Ioctls on the subdevs node currently don't dispatch the register access debug driver callbacks. Add
+the dispatching with the same security checks are for non subdev video nodes
+(i.e. only capable(CAP_SYS_ADMIN may call the register access ioctls).
+---
+ drivers/media/video/v4l2-subdev.c |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
 
-We need to keep .num_frontends and .num_adapters both, because my next
-change to dvb-usb is to convert the hard-sized array of struct
-dvb_usb_adapter[MAX_NO_OF_ADAPTER_PER_DEVICE] and struct
-dvb_usb_fe_adapter[MAX_NO_OF_FE_PER_ADAP] to a dynamic-allocated array
-of pointers, to reduce the size of *all* dvb-usb drivers.
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index b7967c9..8bf8397 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -25,6 +25,7 @@
+ #include <linux/types.h>
+ #include <linux/videodev2.h>
+ 
++#include <media/v4l2-chip-ident.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+@@ -173,6 +174,25 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 
+ 	case VIDIOC_UNSUBSCRIBE_EVENT:
+ 		return v4l2_subdev_call(sd, core, unsubscribe_event, vfh, arg);
++
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	case VIDIOC_DBG_G_REGISTER:
++	{
++		struct v4l2_dbg_register *p = arg;
++
++		if (!capable(CAP_SYS_ADMIN))
++			return -EPERM;
++		return v4l2_subdev_call(sd, core, g_register, p);
++	}
++	case VIDIOC_DBG_S_REGISTER:
++	{
++		struct v4l2_dbg_register *p = arg;
++
++		if (!capable(CAP_SYS_ADMIN))
++			return -EPERM;
++		return v4l2_subdev_call(sd, core, s_register, p);
++	}
++#endif
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+ 	case VIDIOC_SUBDEV_G_FMT: {
+ 		struct v4l2_subdev_format *format = arg;
+-- 
+1.7.2.5
 
-I didn't push all changes yet because I thought we should test each
-change for a few days before merging too much all at once.  I wanted
-to prevent the introduction of instability by making this a gradual
-change so we can test things one by one.
-
-Should I wait a bit before making the conversion of the hardcoded
-sized-arrays to dynamic sized property pointers?
-
-Regards,
-
-Mike
