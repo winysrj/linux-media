@@ -1,276 +1,388 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58266 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755417Ab1IQPeE (ORCPT
+Received: from impaqm1.telefonica.net ([213.4.138.17]:18369 "EHLO
+	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751429Ab1IRL7e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Sep 2011 11:34:04 -0400
-Received: from localhost.localdomain (unknown [91.178.181.94])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 846B435A9D
-	for <linux-media@vger.kernel.org>; Sat, 17 Sep 2011 15:34:02 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Sun, 18 Sep 2011 07:59:34 -0400
+From: Jose Alberto Reguero <jareguero@telefonica.net>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 2/5] uvcvideo: Remove deprecated UVCIOC ioctls
-Date: Sat, 17 Sep 2011 17:33:59 +0200
-Message-Id: <1316273642-3624-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1316273642-3624-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1316273642-3624-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] TT CT-3650 CI support
+Date: Sun, 18 Sep 2011 13:59:05 +0200
+Cc: Martin Dauskardt <martin.dauskardt@gmx.de>
+References: <201109010147.33030.jareguero@telefonica.net>
+In-Reply-To: <201109010147.33030.jareguero@telefonica.net>
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_K0ddOQ+TBXTqvMz"
+Message-Id: <201109181359.06501.jareguero@telefonica.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The UVCIOC_CTRL_ADD, UVCIOC_CTRL_MAP_OLD, UVCIOC_CTRL_GET and
-UVCIOC_CTRL_SET ioctls are deprecated and were scheduled for removal for
-v2.6.42. As v2.6.42 == v3.2, remove them.
+--Boundary-00=_K0ddOQ+TBXTqvMz
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/feature-removal-schedule.txt |   23 -------
- drivers/media/video/uvc/uvc_v4l2.c         |   54 +--------------
- drivers/media/video/uvc/uvcvideo.h         |  100 +--------------------------
- 3 files changed, 6 insertions(+), 171 deletions(-)
+On Jueves, 1 de Septiembre de 2011 01:47:32 Jose Alberto Reguero escribi=C3=
+=B3:
+> From:
+>=20
+> http://www.spinics.net/lists/linux-media/msg20440.html
+>=20
+> This patch add support for the CI of the TT CT-3650.
+>=20
+> Jose Alberto
+>=20
+> Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
 
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index 4dc4654..ead08f1 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -495,29 +495,6 @@ Who:	Jean Delvare <khali@linux-fr.org>
+Second version with changes suggested by Mauro in:
+
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/208=
+11
+
+Jose Alberto
+
+Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+
+--Boundary-00=_K0ddOQ+TBXTqvMz
+Content-Type: text/x-patch;
+  charset="UTF-8";
+  name="ttusb2-ci-2.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="ttusb2-ci-2.diff"
+
+diff -ur linux/drivers/media/dvb/dvb-usb/ttusb2.c linux.new/drivers/media/dvb/dvb-usb/ttusb2.c
+--- linux/drivers/media/dvb/dvb-usb/ttusb2.c	2011-08-28 05:45:24.000000000 +0200
++++ linux.new/drivers/media/dvb/dvb-usb/ttusb2.c	2011-09-18 02:06:00.211411451 +0200
+@@ -33,16 +33,40 @@
+ #include "tda10048.h"
+ #include "tda827x.h"
+ #include "lnbp21.h"
++/* CA */
++#include "dvb_ca_en50221.h"
  
- ----------------------------
+ /* debug */
+ static int dvb_usb_ttusb2_debug;
+ #define deb_info(args...)   dprintk(dvb_usb_ttusb2_debug,0x01,args)
+ module_param_named(debug,dvb_usb_ttusb2_debug, int, 0644);
+ MODULE_PARM_DESC(debug, "set debugging level (1=info (or-able))." DVB_USB_DEBUG_STATUS);
++static int dvb_usb_ttusb2_debug_ci;
++module_param_named(debug_ci,dvb_usb_ttusb2_debug_ci, int, 0644);
++MODULE_PARM_DESC(debug_ci, "set debugging ci." DVB_USB_DEBUG_STATUS);
  
--What:	Support for UVCIOC_CTRL_ADD in the uvcvideo driver
--When:	3.2
--Why:	The information passed to the driver by this ioctl is now queried
--	dynamically from the device.
--Who:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
--
------------------------------
--
--What:	Support for UVCIOC_CTRL_MAP_OLD in the uvcvideo driver
--When:	3.2
--Why:	Used only by applications compiled against older driver versions.
--	Superseded by UVCIOC_CTRL_MAP which supports V4L2 menu controls.
--Who:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
--
------------------------------
--
--What:	Support for UVCIOC_CTRL_GET and UVCIOC_CTRL_SET in the uvcvideo driver
--When:	3.2
--Why:	Superseded by the UVCIOC_CTRL_QUERY ioctl.
--Who:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
--
------------------------------
--
- What:	Support for driver specific ioctls in the pwc driver (everything
- 	defined in media/pwc-ioctl.h)
- When:	3.3
-diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
-index ea71d5f..dadf11f 100644
---- a/drivers/media/video/uvc/uvc_v4l2.c
-+++ b/drivers/media/video/uvc/uvc_v4l2.c
-@@ -32,7 +32,7 @@
-  * UVC ioctls
-  */
- static int uvc_ioctl_ctrl_map(struct uvc_video_chain *chain,
--	struct uvc_xu_control_mapping *xmap, int old)
-+	struct uvc_xu_control_mapping *xmap)
- {
- 	struct uvc_control_mapping *map;
- 	unsigned int size;
-@@ -58,13 +58,6 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain *chain,
- 		break;
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
  
- 	case V4L2_CTRL_TYPE_MENU:
--		if (old) {
--			uvc_trace(UVC_TRACE_CONTROL, "V4L2_CTRL_TYPE_MENU not "
--				  "supported for UVCIOC_CTRL_MAP_OLD.\n");
--			ret = -EINVAL;
--			goto done;
--		}
--
- 		size = xmap->menu_count * sizeof(*map->menu_info);
- 		map->menu_info = kmalloc(size, GFP_KERNEL);
- 		if (map->menu_info == NULL) {
-@@ -538,20 +531,6 @@ static int uvc_v4l2_release(struct file *file)
++#define ci_dbg(format, arg...)                \
++do {                                          \
++	if (dvb_usb_ttusb2_debug_ci)                                    \
++		printk(KERN_DEBUG DVB_USB_LOG_PREFIX \
++			": %s " format "\n" , __func__, ## arg);       \
++} while (0)
++
++enum {
++	TT3650_CMD_CI_TEST = 0x40,
++	TT3650_CMD_CI_RD_CTRL,
++	TT3650_CMD_CI_WR_CTRL,
++	TT3650_CMD_CI_RD_ATTR,
++	TT3650_CMD_CI_WR_ATTR,
++	TT3650_CMD_CI_RESET,
++	TT3650_CMD_CI_SET_VIDEO_PORT
++};
++
+ struct ttusb2_state {
++	struct dvb_ca_en50221 ca;
++	struct mutex ca_mutex;
+ 	u8 id;
+ 	u16 last_rc_key;
+ };
+@@ -79,6 +103,255 @@
  	return 0;
  }
  
--static void uvc_v4l2_ioctl_warn(void)
--{
--	static int warned;
--
--	if (warned)
--		return;
--
--	uvc_printk(KERN_INFO, "Deprecated UVCIOC_CTRL_{ADD,MAP_OLD,GET,SET} "
--		   "ioctls will be removed in 2.6.42.\n");
--	uvc_printk(KERN_INFO, "See http://www.ideasonboard.org/uvc/upgrade/ "
--		   "for upgrade instructions.\n");
--	warned = 1;
--}
--
- static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
++/* ci */
++static int tt3650_ci_msg(struct dvb_usb_device *d, u8 cmd, u8 *data, unsigned int write_len, unsigned int read_len)
++{
++	int ret;
++	u8 rx[60];/* (64 -4) */
++	ret = ttusb2_msg(d, cmd, data, write_len, rx, read_len);
++	if (!ret)
++		memcpy(data, rx, read_len);
++	return ret;
++}
++
++static int tt3650_ci_msg_locked(struct dvb_ca_en50221 *ca, u8 cmd, u8 *data, unsigned int write_len, unsigned int read_len)
++{
++	struct dvb_usb_device *d = ca->data;
++	struct ttusb2_state *state = d->priv;
++	int ret;
++
++	mutex_lock(&state->ca_mutex);
++	ret = tt3650_ci_msg(d, cmd, data, write_len, read_len);
++	mutex_unlock(&state->ca_mutex);
++
++	return ret;
++}
++
++static int tt3650_ci_read_attribute_mem(struct dvb_ca_en50221 *ca, int slot, int address)
++{
++	u8 buf[3];
++	int ret = 0;
++
++	if (slot)
++		return -EINVAL;
++
++	buf[0] = (address >> 8) & 0x0F;
++	buf[1] = address;
++
++
++	ret = tt3650_ci_msg_locked(ca, TT3650_CMD_CI_RD_ATTR, buf, 2, 3);
++
++	ci_dbg("%04x -> %d 0x%02x", address, ret, buf[2]);
++
++	if (ret < 0)
++		return ret;
++
++	return buf[2];
++}
++
++static int tt3650_ci_write_attribute_mem(struct dvb_ca_en50221 *ca, int slot, int address, u8 value)
++{
++	u8 buf[3];
++
++	ci_dbg("%d 0x%04x 0x%02x", slot, address, value);
++
++	if (slot)
++		return -EINVAL;
++
++	buf[0] = (address >> 8) & 0x0F;
++	buf[1] = address;
++	buf[2] = value;
++
++	return tt3650_ci_msg_locked(ca, TT3650_CMD_CI_WR_ATTR, buf, 3, 3);
++}
++
++static int tt3650_ci_read_cam_control(struct dvb_ca_en50221 *ca, int slot, u8 address)
++{
++	u8 buf[2];
++	int ret;
++
++	if (slot)
++		return -EINVAL;
++
++	buf[0] = address & 3;
++
++	ret = tt3650_ci_msg_locked(ca, TT3650_CMD_CI_RD_CTRL, buf, 1, 2);
++
++	ci_dbg("0x%02x -> %d 0x%02x", address, ret, buf[1]);
++
++	if (ret < 0)
++		return ret;
++
++	return buf[1];
++}
++
++static int tt3650_ci_write_cam_control(struct dvb_ca_en50221 *ca, int slot, u8 address, u8 value)
++{
++	u8 buf[2];
++
++	ci_dbg("%d 0x%02x 0x%02x", slot, address, value);
++
++	if (slot)
++		return -EINVAL;
++
++	buf[0] = address;
++	buf[1] = value;
++
++	return tt3650_ci_msg_locked(ca, TT3650_CMD_CI_WR_CTRL, buf, 2, 2);
++}
++
++static int tt3650_ci_set_video_port(struct dvb_ca_en50221 *ca, int slot, int enable)
++{
++	u8 buf[1];
++	int ret;
++
++	ci_dbg("%d %d", slot, enable);
++
++	if (slot)
++		return -EINVAL;
++
++	buf[0] = enable;
++
++	ret = tt3650_ci_msg_locked(ca, TT3650_CMD_CI_SET_VIDEO_PORT, buf, 1, 1);
++	if (ret < 0)
++		return ret;
++
++	if (enable != buf[0]) {
++		err("CI not %sabled.", enable ? "en" : "dis");
++		return -EIO;
++	}
++
++	return 0;
++}
++
++static int tt3650_ci_slot_shutdown(struct dvb_ca_en50221 *ca, int slot)
++{
++	return tt3650_ci_set_video_port(ca, slot, 0);
++}
++
++static int tt3650_ci_slot_ts_enable(struct dvb_ca_en50221 *ca, int slot)
++{
++	return tt3650_ci_set_video_port(ca, slot, 1);
++}
++
++static int tt3650_ci_slot_reset(struct dvb_ca_en50221 *ca, int slot)
++{
++	struct dvb_usb_device *d = ca->data;
++	struct ttusb2_state *state = d->priv;
++	u8 buf[1];
++	int ret;
++
++	ci_dbg("%d", slot);
++
++	if (slot)
++		return -EINVAL;
++
++	buf[0] = 0;
++
++	mutex_lock(&state->ca_mutex);
++
++	ret = tt3650_ci_msg(d, TT3650_CMD_CI_RESET, buf, 1, 1);
++	if (ret)
++		goto failed;
++
++	msleep(500);
++
++	buf[0] = 1;
++
++	ret = tt3650_ci_msg(d, TT3650_CMD_CI_RESET, buf, 1, 1);
++	if (ret)
++		goto failed;
++
++	msleep(500);
++
++	buf[0] = 0; /* FTA */
++
++	ret = tt3650_ci_msg(d, TT3650_CMD_CI_SET_VIDEO_PORT, buf, 1, 1);
++
++	msleep(1100);
++
++ failed:
++	mutex_unlock(&state->ca_mutex);
++
++	return ret;
++}
++
++static int tt3650_ci_poll_slot_status(struct dvb_ca_en50221 *ca, int slot, int open)
++{
++	u8 buf[1];
++	int ret;
++
++	if (slot)
++		return -EINVAL;
++
++	ret = tt3650_ci_msg_locked(ca, TT3650_CMD_CI_TEST, buf, 0, 1);
++	if (ret)
++		return ret;
++
++	if (1 == buf[0]) {
++		return DVB_CA_EN50221_POLL_CAM_PRESENT |
++			DVB_CA_EN50221_POLL_CAM_READY;
++	}
++	return 0;
++}
++
++static void tt3650_ci_uninit(struct dvb_usb_device *d)
++{
++	struct ttusb2_state *state;
++
++	ci_dbg("");
++
++	if (NULL == d)
++		return;
++
++	state = d->priv;
++	if (NULL == state)
++		return;
++
++	if (NULL == state->ca.data)
++		return;
++
++	dvb_ca_en50221_release(&state->ca);
++
++	memset(&state->ca, 0, sizeof(state->ca));
++}
++
++static int tt3650_ci_init(struct dvb_usb_adapter *a)
++{
++	struct dvb_usb_device *d = a->dev;
++	struct ttusb2_state *state = d->priv;
++	int ret;
++
++	ci_dbg("");
++
++	mutex_init(&state->ca_mutex);
++
++	state->ca.owner = THIS_MODULE;
++	state->ca.read_attribute_mem = tt3650_ci_read_attribute_mem;
++	state->ca.write_attribute_mem = tt3650_ci_write_attribute_mem;
++	state->ca.read_cam_control = tt3650_ci_read_cam_control;
++	state->ca.write_cam_control = tt3650_ci_write_cam_control;
++	state->ca.slot_reset = tt3650_ci_slot_reset;
++	state->ca.slot_shutdown = tt3650_ci_slot_shutdown;
++	state->ca.slot_ts_enable = tt3650_ci_slot_ts_enable;
++	state->ca.poll_slot_status = tt3650_ci_poll_slot_status;
++	state->ca.data = d;
++
++	ret = dvb_ca_en50221_init(&a->dvb_adap,
++				  &state->ca,
++				  /* flags */ 0,
++				  /* n_slots */ 1);
++	if (ret) {
++		err("Cannot initialize CI: Error %d.", ret);
++		memset(&state->ca, 0, sizeof(state->ca));
++		return ret;
++	}
++
++	info("CI initialized.");
++
++	return 0;
++}
++
+ static int ttusb2_i2c_xfer(struct i2c_adapter *adap,struct i2c_msg msg[],int num)
  {
- 	struct video_device *vdev = video_devdata(file);
-@@ -1032,37 +1011,8 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		uvc_trace(UVC_TRACE_IOCTL, "Unsupported ioctl 0x%08x\n", cmd);
- 		return -EINVAL;
+ 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
+@@ -251,6 +524,7 @@
+ 			deb_info("TDA10023 attach failed\n");
+ 			return -ENODEV;
+ 		}
++		tt3650_ci_init(adap);
+ 	} else {
+ 		adap->fe[1] = dvb_attach(tda10048_attach,
+ 			&tda10048_config, &adap->dev->i2c_adap);
+@@ -305,6 +579,14 @@
+ static struct dvb_usb_device_properties ttusb2_properties_s2400;
+ static struct dvb_usb_device_properties ttusb2_properties_ct3650;
  
--	/* Dynamic controls. UVCIOC_CTRL_ADD, UVCIOC_CTRL_MAP_OLD,
--	 * UVCIOC_CTRL_GET and UVCIOC_CTRL_SET are deprecated and scheduled for
--	 * removal in 2.6.42.
--	 */
--	case __UVCIOC_CTRL_ADD:
--		uvc_v4l2_ioctl_warn();
--		return -EEXIST;
--
--	case __UVCIOC_CTRL_MAP_OLD:
--		uvc_v4l2_ioctl_warn();
--	case __UVCIOC_CTRL_MAP:
- 	case UVCIOC_CTRL_MAP:
--		return uvc_ioctl_ctrl_map(chain, arg,
--					  cmd == __UVCIOC_CTRL_MAP_OLD);
--
--	case __UVCIOC_CTRL_GET:
--	case __UVCIOC_CTRL_SET:
--	{
--		struct uvc_xu_control *xctrl = arg;
--		struct uvc_xu_control_query xqry = {
--			.unit		= xctrl->unit,
--			.selector	= xctrl->selector,
--			.query		= cmd == __UVCIOC_CTRL_GET
--					? UVC_GET_CUR : UVC_SET_CUR,
--			.size		= xctrl->size,
--			.data		= xctrl->data,
--		};
--
--		uvc_v4l2_ioctl_warn();
--		return uvc_xu_ctrl_query(chain, &xqry);
--	}
-+		return uvc_ioctl_ctrl_map(chain, arg);
++static void ttusb2_usb_disconnect(struct usb_interface *intf)
++{
++	struct dvb_usb_device *d = usb_get_intfdata(intf);
++
++	tt3650_ci_uninit(d);
++	dvb_usb_device_exit(intf);
++}
++
+ static int ttusb2_probe(struct usb_interface *intf,
+ 		const struct usb_device_id *id)
+ {
+@@ -486,7 +768,7 @@
+ static struct usb_driver ttusb2_driver = {
+ 	.name		= "dvb_usb_ttusb2",
+ 	.probe		= ttusb2_probe,
+-	.disconnect = dvb_usb_device_exit,
++	.disconnect	= ttusb2_usb_disconnect,
+ 	.id_table	= ttusb2_table,
+ };
  
- 	case UVCIOC_CTRL_QUERY:
- 		return uvc_xu_ctrl_query(chain, arg);
-diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
-index cbdd49b..e3aec87 100644
---- a/drivers/media/video/uvc/uvcvideo.h
-+++ b/drivers/media/video/uvc/uvcvideo.h
-@@ -1,106 +1,16 @@
- #ifndef _USB_VIDEO_H_
- #define _USB_VIDEO_H_
- 
--#include <linux/kernel.h>
--#include <linux/videodev2.h>
--
--#ifndef __KERNEL__
--/*
-- * This header provides binary compatibility with applications using the private
-- * uvcvideo API. This API is deprecated and will be removed in 2.6.42.
-- * Applications should be recompiled against the public linux/uvcvideo.h header.
-- */
--#warn "The uvcvideo.h header is deprecated, use linux/uvcvideo.h instead."
--
--/*
-- * Dynamic controls
-- */
--
--/* Data types for UVC control data */
--#define UVC_CTRL_DATA_TYPE_RAW		0
--#define UVC_CTRL_DATA_TYPE_SIGNED	1
--#define UVC_CTRL_DATA_TYPE_UNSIGNED	2
--#define UVC_CTRL_DATA_TYPE_BOOLEAN	3
--#define UVC_CTRL_DATA_TYPE_ENUM		4
--#define UVC_CTRL_DATA_TYPE_BITMASK	5
--
--/* Control flags */
--#define UVC_CONTROL_SET_CUR	(1 << 0)
--#define UVC_CONTROL_GET_CUR	(1 << 1)
--#define UVC_CONTROL_GET_MIN	(1 << 2)
--#define UVC_CONTROL_GET_MAX	(1 << 3)
--#define UVC_CONTROL_GET_RES	(1 << 4)
--#define UVC_CONTROL_GET_DEF	(1 << 5)
--#define UVC_CONTROL_RESTORE	(1 << 6)
--#define UVC_CONTROL_AUTO_UPDATE	(1 << 7)
--
--#define UVC_CONTROL_GET_RANGE	(UVC_CONTROL_GET_CUR | UVC_CONTROL_GET_MIN | \
--				 UVC_CONTROL_GET_MAX | UVC_CONTROL_GET_RES | \
--				 UVC_CONTROL_GET_DEF)
--
--struct uvc_menu_info {
--	__u32 value;
--	__u8 name[32];
--};
--
--struct uvc_xu_control_mapping {
--	__u32 id;
--	__u8 name[32];
--	__u8 entity[16];
--	__u8 selector;
--
--	__u8 size;
--	__u8 offset;
--	__u32 v4l2_type;
--	__u32 data_type;
--
--	struct uvc_menu_info __user *menu_info;
--	__u32 menu_count;
--
--	__u32 reserved[4];
--};
--
--#endif
--
--struct uvc_xu_control_info {
--	__u8 entity[16];
--	__u8 index;
--	__u8 selector;
--	__u16 size;
--	__u32 flags;
--};
--
--struct uvc_xu_control_mapping_old {
--	__u8 reserved[64];
--};
--
--struct uvc_xu_control {
--	__u8 unit;
--	__u8 selector;
--	__u16 size;
--	__u8 __user *data;
--};
--
- #ifndef __KERNEL__
--#define UVCIOC_CTRL_ADD		_IOW('U', 1, struct uvc_xu_control_info)
--#define UVCIOC_CTRL_MAP_OLD	_IOWR('U', 2, struct uvc_xu_control_mapping_old)
--#define UVCIOC_CTRL_MAP		_IOWR('U', 2, struct uvc_xu_control_mapping)
--#define UVCIOC_CTRL_GET		_IOWR('U', 3, struct uvc_xu_control)
--#define UVCIOC_CTRL_SET		_IOW('U', 4, struct uvc_xu_control)
--#else
--#define __UVCIOC_CTRL_ADD	_IOW('U', 1, struct uvc_xu_control_info)
--#define __UVCIOC_CTRL_MAP_OLD	_IOWR('U', 2, struct uvc_xu_control_mapping_old)
--#define __UVCIOC_CTRL_MAP	_IOWR('U', 2, struct uvc_xu_control_mapping)
--#define __UVCIOC_CTRL_GET	_IOWR('U', 3, struct uvc_xu_control)
--#define __UVCIOC_CTRL_SET	_IOW('U', 4, struct uvc_xu_control)
--#endif
--
--#ifdef __KERNEL__
-+#error "The uvcvideo.h header is deprecated, use linux/uvcvideo.h instead."
-+#endif /* __KERNEL__ */
- 
-+#include <linux/kernel.h>
- #include <linux/poll.h>
- #include <linux/usb.h>
- #include <linux/usb/video.h>
- #include <linux/uvcvideo.h>
-+#include <linux/videodev2.h>
- #include <media/media-device.h>
- #include <media/v4l2-device.h>
- 
-@@ -698,6 +608,4 @@ extern struct usb_host_endpoint *uvc_find_endpoint(
- void uvc_video_decode_isight(struct urb *urb, struct uvc_streaming *stream,
- 		struct uvc_buffer *buf);
- 
--#endif /* __KERNEL__ */
--
- #endif
--- 
-1.7.3.4
 
+--Boundary-00=_K0ddOQ+TBXTqvMz--
