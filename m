@@ -1,42 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21344 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753096Ab1IYTpP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Sep 2011 15:45:15 -0400
-Message-ID: <4E7F84C8.6010505@redhat.com>
-Date: Sun, 25 Sep 2011 16:45:12 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.126.187]:50220 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753216Ab1IRQM0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Sep 2011 12:12:26 -0400
+Date: Sun, 18 Sep 2011 18:12:14 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Linux-V4L2 <linux-media@vger.kernel.org>,
+	Takashi.Namiki@renesas.com, Phil.Edworthy@renesas.com
+Subject: Re: [PATCH 2/3] soc-camera: mt9t112: modify delay time after initialize
+In-Reply-To: <4E76149D.5050102@redhat.com>
+Message-ID: <Pine.LNX.4.64.1109181808410.9975@axis700.grange>
+References: <uock8ky42.wl%morimoto.kuninori@renesas.com> <4E76149D.5050102@redhat.com>
 MIME-Version: 1.0
-To: Chris Rankin <rankincj@yahoo.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v3] EM28xx - fix deadlock when unplugging and replugging
- a DVB adapter
-References: <1316978885.75743.YahooMailClassic@web121708.mail.ne1.yahoo.com>
-In-Reply-To: <1316978885.75743.YahooMailClassic@web121708.mail.ne1.yahoo.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 25-09-2011 16:28, Chris Rankin escreveu:
-> --- On Sun, 25/9/11, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
->> Ok, I've applied it, but it doesn't sound a good idea to me
->> to do:
->>
->> +    mutex_unlock(&dev->lock);
->>      em28xx_init_extension(dev);
->> +    mutex_lock(&dev->lock);
->>
-> 
-> Yes, I suppose it's the logical equivalent of moving the em28xx_init_extension(dev) call from em28xx_init_dev(), and placing it immediately after the final mutex_unlock(&dev->lock) call in em28xx_usb_probe() instead. Which would be cleaner, quite frankly.
-> 
-> Which stage of the v4l2 initialisation triggers the race with udev? v4l2_device_register()? 
+On Sun, 18 Sep 2011, Mauro Carvalho Chehab wrote:
 
-Yes. Just after creating a device, udev tries to access it. This bug is more sensitive on
-multi-CPU machines, as udev may run on another CPU.
-
+> Em 02-02-2010 02:54, Kuninori Morimoto escreveu:
+> > mt9t112 camera needs 100 milliseconds for initializing
+> > Special thanks to Phil
+> > 
+> > Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> > Reported-by: Phil Edworthy <Phil.Edworthy@renesas.com>
+> > ---
+> >  drivers/media/video/mt9t112.c |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/mt9t112.c b/drivers/media/video/mt9t112.c
+> > index 7438f8d..e581d8a 100644
+> > --- a/drivers/media/video/mt9t112.c
+> > +++ b/drivers/media/video/mt9t112.c
+> > @@ -885,7 +885,7 @@ static int mt9t112_s_stream(struct v4l2_subdev *sd, int enable)
+> >  		/* Invert PCLK (Data sampled on falling edge of pixclk) */
+> >  		mt9t112_reg_write(ret, client, 0x3C20, param);
+> >  
+> > -		mdelay(5);
+> > +		mdelay(100);
+> >  
+> >  		priv->flags |= INIT_DONE;
+> >  	}
 > 
-> Cheers,
-> Chris
+> Hi Guennadi,
 > 
+> What's the status of this patch?
+> 
+> It applies ok for me, and I couldn't find any reference at the
+> ML why it was not applied yet.
 
+Hm, yeah... Looks like also this patch:
+
+> Subject: [PATCH 3/3] soc-camera: mt9t112: The flag which control camera-init is removed
+> 
+> mt9t112 should always be initialized when camera start.
+> Because current driver doesn't run this operation,
+> it will be un-stable if user side player run open/close several times.
+> Special thanks to Namiki-san
+> 
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> Reported-by: Takashi Namiki <Takashi.Namiki@renesas.com>
+
+has not been applied nor discussed on the list... For patches that old I 
+would tend to say: if the author / submitter didn't re-submit, then, 
+probably, patches aren't relevant anymore... Although it is quite 
+possible, that I failed to process them back then. Morimoto-san, do you 
+have any information on these patches? Have these problems been solved 
+somehow, so that the patches have become obsolete, or are the problems, 
+that they address, still there?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
