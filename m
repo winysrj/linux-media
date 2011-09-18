@@ -1,193 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2074 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751648Ab1I0I2S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 04:28:18 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 1/4] v4l: add support for selection api
-Date: Tue, 27 Sep 2011 10:28:07 +0200
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi
-References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com> <1314793703-32345-2-git-send-email-t.stanislaws@samsung.com>
-In-Reply-To: <1314793703-32345-2-git-send-email-t.stanislaws@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:45159 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754523Ab1IRPvU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Sep 2011 11:51:20 -0400
+Message-ID: <4E761374.2000804@redhat.com>
+Date: Sun, 18 Sep 2011 12:51:16 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109271028.07596.hverkuil@xs4all.nl>
+To: James <bjlockie@lockie.ca>
+CC: linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: can't find bt driver
+References: <4E7527BD.8040802@lockie.ca> <4E75D669.7040207@redhat.com> <4E76133A.5030508@lockie.ca>
+In-Reply-To: <4E76133A.5030508@lockie.ca>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here is my 'better late than never' review :-)
-
-On Wednesday, August 31, 2011 14:28:20 Tomasz Stanislawski wrote:
-> This patch introduces new api for a precise control of cropping and composing
-> features for video devices. The new ioctls are VIDIOC_S_SELECTION and
-> VIDIOC_G_SELECTION.
+Em 18-09-2011 12:50, James escreveu:
+> On 09/18/11 07:30, Mauro Carvalho Chehab wrote:
+>> Em 17-09-2011 20:05, James escreveu:
+>>> Where is the bt848 driver in kernel-3.0.4?
+>> It should be at the usual places:
+>>
+>> $ find drivers/media/ -name bt8x*
+>> drivers/media/video/bt8xx
+>> drivers/media/dvb/bt8xx
+>>
+>> $ find sound/ -name bt8*
+>> sound/pci/bt87x.c
+> I found it under dvd but there is no check box, just three stars.
+>   │ │    --- DVB/ATSC adapters                                            │ │
+>   │ │          *** Supported BT878 Adapters ***
 > 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/video/v4l2-compat-ioctl32.c |    2 +
->  drivers/media/video/v4l2-ioctl.c          |   28 +++++++++++++++++
->  include/linux/videodev2.h                 |   46 +++++++++++++++++++++++++++++
->  include/media/v4l2-ioctl.h                |    4 ++
->  4 files changed, 80 insertions(+), 0 deletions(-)
 > 
-> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-> index 61979b7..f3b9d15 100644
-> --- a/drivers/media/video/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
-> @@ -927,6 +927,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
->  	case VIDIOC_CROPCAP:
->  	case VIDIOC_G_CROP:
->  	case VIDIOC_S_CROP:
-> +	case VIDIOC_G_SELECTION:
-> +	case VIDIOC_S_SELECTION:
->  	case VIDIOC_G_JPEGCOMP:
->  	case VIDIOC_S_JPEGCOMP:
->  	case VIDIOC_QUERYSTD:
-> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> index 002ce13..6e02b45 100644
-> --- a/drivers/media/video/v4l2-ioctl.c
-> +++ b/drivers/media/video/v4l2-ioctl.c
-> @@ -225,6 +225,8 @@ static const char *v4l2_ioctls[] = {
->  	[_IOC_NR(VIDIOC_CROPCAP)]          = "VIDIOC_CROPCAP",
->  	[_IOC_NR(VIDIOC_G_CROP)]           = "VIDIOC_G_CROP",
->  	[_IOC_NR(VIDIOC_S_CROP)]           = "VIDIOC_S_CROP",
-> +	[_IOC_NR(VIDIOC_G_SELECTION)]      = "VIDIOC_G_SELECTION",
-> +	[_IOC_NR(VIDIOC_S_SELECTION)]      = "VIDIOC_S_SELECTION",
->  	[_IOC_NR(VIDIOC_G_JPEGCOMP)]       = "VIDIOC_G_JPEGCOMP",
->  	[_IOC_NR(VIDIOC_S_JPEGCOMP)]       = "VIDIOC_S_JPEGCOMP",
->  	[_IOC_NR(VIDIOC_QUERYSTD)]         = "VIDIOC_QUERYSTD",
-> @@ -1714,6 +1716,32 @@ static long __video_do_ioctl(struct file *file,
->  		ret = ops->vidioc_s_crop(file, fh, p);
->  		break;
->  	}
-> +	case VIDIOC_G_SELECTION:
-> +	{
-> +		struct v4l2_selection *p = arg;
-> +
-> +		if (!ops->vidioc_g_selection)
-> +			break;
-> +
-> +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
-> +
-> +		ret = ops->vidioc_g_selection(file, fh, p);
-> +		if (!ret)
-> +			dbgrect(vfd, "", &p->r);
-> +		break;
-> +	}
-> +	case VIDIOC_S_SELECTION:
-> +	{
-> +		struct v4l2_selection *p = arg;
-> +
-> +		if (!ops->vidioc_s_selection)
-> +			break;
+> I can't find it under video.
+> All I have is:
+>   │ │    --- Video capture adapters                                       │ │
+>   │ │    [ ]   Enable advanced debug functionality                        │ │
+>   │ │    [ ]   Enable old-style fixed minor ranges for video devices      │ │
+>   │ │    [*]   Autoselect pertinent encoders/decoders and other helper chi│ │
+>   │ │ < >   CPiA2 Video For Linux                                      │ │
+>   │ │ < >   Philips SAA7134 support                                    │ │
+>   │ │ < >   Siemens-Nixdorf 'Multimedia eXtension Board'               │ │
+>   │ │ < >   Hexium HV-PCI6 and Orion frame grabber                     │ │
+>   │ │ < >   Hexium Gemini frame grabber                                │ │
+>   │ │ < >   Marvell 88ALP01 (Cafe) CMOS Camera Controller support      │ │
+>   │ │ < >   SR030PC30 VGA camera sensor support                        │ │
+>   │ │ < >   NOON010PC30 CIF camera sensor support                      │ │
+>   │ │ < >   SoC camera support                                         │ │
+>   │ │    [*]   V4L USB devices  --->
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Here you should insert this code so that this ioctl handles the priority check
-correctly:
+Probably, You've disabled Remote Controller support or some
+other needed dependency.
 
-		if (ret_prio) {
-			ret = ret_prio;
-			break;
-		}
-
-> +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
-> +		dbgrect(vfd, "", &p->r);
-> +
-> +		ret = ops->vidioc_s_selection(file, fh, p);
-> +		break;
-> +	}
->  	case VIDIOC_CROPCAP:
->  	{
->  		struct v4l2_cropcap *p = arg;
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index fca24cc..b7471fe 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -738,6 +738,48 @@ struct v4l2_crop {
->  	struct v4l2_rect        c;
->  };
->  
-> +/* Hints for adjustments of selection rectangle */
-> +#define V4L2_SEL_SIZE_GE	0x00000001
-> +#define V4L2_SEL_SIZE_LE	0x00000002
-> +
-> +/* Selection targets */
-> +
-> +/* current cropping area */
-> +#define V4L2_SEL_CROP_ACTIVE		0
-> +/* default cropping area */
-> +#define V4L2_SEL_CROP_DEFAULT		1
-> +/* cropping bounds */
-> +#define V4L2_SEL_CROP_BOUNDS		2
-> +/* current composing area */
-> +#define V4L2_SEL_COMPOSE_ACTIVE		256
-> +/* default composing area */
-> +#define V4L2_SEL_COMPOSE_DEFAULT	257
-> +/* composing bounds */
-> +#define V4L2_SEL_COMPOSE_BOUNDS		258
-> +/* current composing area plus all padding pixels */
-> +#define V4L2_SEL_COMPOSE_PADDED		259
-> +
-> +/**
-> + * struct v4l2_selection - selection info
-> + * @type:	buffer type (do not use *_MPLANE types)
-
-Why can't I use MPLANE types?
-
-> + * @target:	selection target, used to choose one of possible rectangles
-> + * @flags:	constraints flags
-> + * @r:		coordinates of selection window
-> + * @reserved:	for future use, rounds structure size to 64 bytes, set to zero
-> + *
-> + * Hardware may use multiple helper window to process a video stream.
-> + * The structure is used to exchange this selection areas between
-> + * an application and a driver.
-> + */
-> +struct v4l2_selection {
-> +	__u32			type;
-> +	__u32			target;
-> +	__u32                   flags;
-> +	struct v4l2_rect        r;
-> +	__u32                   reserved[9];
-> +};
-> +
-> +
->  /*
->   *      A N A L O G   V I D E O   S T A N D A R D
->   */
-> @@ -2182,6 +2224,10 @@ struct v4l2_dbg_chip_ident {
->  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
->  #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
->  
-> +/* Experimental crop/compose API */
-> +#define VIDIOC_G_SELECTION	_IOWR('V', 92, struct v4l2_selection)
-> +#define VIDIOC_S_SELECTION	_IOWR('V', 93, struct v4l2_selection)
-
-So we decided not to implement a TRY_SELECTION yet? I'm fine with that, BTW.
-
-> +
->  /* Reminder: when adding new ioctls please add support for them to
->     drivers/media/video/v4l2-compat-ioctl32.c as well! */
->  
-> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> index dd9f1e7..9dd6e18 100644
-> --- a/include/media/v4l2-ioctl.h
-> +++ b/include/media/v4l2-ioctl.h
-> @@ -194,6 +194,10 @@ struct v4l2_ioctl_ops {
->  					struct v4l2_crop *a);
->  	int (*vidioc_s_crop)           (struct file *file, void *fh,
->  					struct v4l2_crop *a);
-> +	int (*vidioc_g_selection)      (struct file *file, void *fh,
-> +					struct v4l2_selection *s);
-> +	int (*vidioc_s_selection)      (struct file *file, void *fh,
-> +					struct v4l2_selection *s);
->  	/* Compression ioctls */
->  	int (*vidioc_g_jpegcomp)       (struct file *file, void *fh,
->  					struct v4l2_jpegcompression *a);
-> 
+Cheers,
+Mauro
