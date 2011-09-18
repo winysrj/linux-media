@@ -1,113 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60482 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45833 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752634Ab1IDJAd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Sep 2011 05:00:33 -0400
+	with ESMTP id S932255Ab1IRV6w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Sep 2011 17:58:52 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
-Date: Sun, 4 Sep 2011 11:01:04 +0200
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Ravi, Deepthy" <deepthy.ravi@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-References: <1313761725-6614-1-git-send-email-deepthy.ravi@ti.com> <201108241525.47332.laurent.pinchart@ideasonboard.com> <4E62A872.7070808@infradead.org>
-In-Reply-To: <4E62A872.7070808@infradead.org>
+To: Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: Re: [PATCH v2] arm: omap3evm: Add support for an MT9M032 based camera board.
+Date: Sun, 18 Sep 2011 23:58:55 +0200
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+References: <1316252097-4213-1-git-send-email-martin@neutronstar.dyndns.org>
+In-Reply-To: <1316252097-4213-1-git-send-email-martin@neutronstar.dyndns.org>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109041101.05028.laurent.pinchart@ideasonboard.com>
+Message-Id: <201109182358.55816.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Martin,
 
-On Sunday 04 September 2011 00:21:38 Mauro Carvalho Chehab wrote:
-> Em 24-08-2011 10:25, Laurent Pinchart escreveu:
-> > On Wednesday 24 August 2011 14:19:01 Hiremath, Vaibhav wrote:
-> >> On Wednesday, August 24, 2011 5:00 PM Laurent Pinchart wrote:
-> >>> On Wednesday 24 August 2011 13:21:27 Ravi, Deepthy wrote:
-> >>>> On Wed, Aug 24, 2011 at 4:47 PM, Laurent Pinchart wrote:
-> >>>>> On Friday 19 August 2011 15:48:45 Deepthy Ravi wrote:
-> >>>>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >>>>>> 
-> >>>>>> Fix the build break caused when CONFIG_MEDIA_CONTROLLER
-> >>>>>> option is disabled and if any sensor driver has to be used
-> >>>>>> between MC and non MC framework compatible devices.
-> >>>>>> 
-> >>>>>> For example,if tvp514x video decoder driver migrated to
-> >>>>>> MC framework is being built without CONFIG_MEDIA_CONTROLLER
-> >>>>>> option enabled, the following error messages will result.
-> >>>>>> drivers/built-in.o: In function `tvp514x_remove':
-> >>>>>> drivers/media/video/tvp514x.c:1285: undefined reference to
-> >>>>>> `media_entity_cleanup'
-> >>>>>> drivers/built-in.o: In function `tvp514x_probe':
-> >>>>>> drivers/media/video/tvp514x.c:1237: undefined reference to
-> >>>>>> `media_entity_init'
-> >>>>> 
-> >>>>> If the tvp514x is migrated to the MC framework, its Kconfig option
-> >>>>> should depend on MEDIA_CONTROLLER.
-> >>>> 
-> >>>> The same TVP514x driver is being used for both MC and non MC
-> >>>> compatible devices, for example OMAP3 and AM35x. So if it is made
-> >>>> dependent on MEDIA CONTROLLER, we cannot enable the driver for MC
-> >>>> independent devices.
-> >>> 
-> >>> Then you should use conditional compilation in the tvp514x driver
-> >>> itself. Or
-> >> 
-> >> No. I am not in favor of conditional compilation in driver code.
-> > 
-> > Actually, thinking some more about this, you should make the tvp514x
-> > driver depend on CONFIG_MEDIA_CONTROLLER unconditionally. This doesn't
-> > mean that the driver will become unusable by applications that are not
-> > MC-aware. Hosts/bridges don't have to export subdev nodes, they can just
-> > call subdev pad-level operations internally and let applications control
-> > the whole device through a single V4L2 video node.
-> > 
-> >>> better, port the AM35x driver to the MC API.
-> >> 
-> >> Why should we use MC if I have very simple device (like AM35x) which
-> >> only supports single path? I can very well use simple V4L2 sub-dev
-> >> based approach (master - slave), isn't it?
-> > 
-> > The AM35x driver should use the in-kernel MC and V4L2 subdev APIs, but it
-> > doesn't have to expose them to userspace.
+On Saturday 17 September 2011 11:34:57 Martin Hostettler wrote:
+> Adds board support for an MT9M032 based camera to omap3evm.
 > 
-> I don't agree. If AM35x doesn't expose the MC API to userspace,
-> CONFIG_MEDIA_CONTROLLER should not be required at all.
+> Sigend-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+> ---
+>  arch/arm/mach-omap2/Makefile                |    1 +
+>  arch/arm/mach-omap2/board-omap3evm-camera.c |  183
+> +++++++++++++++++++++++++++ 2 files changed, 184 insertions(+), 0
+> deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
 > 
-> Also, according with the Linux best practices, when  #if tests for config
-> symbols are required, developers should put it into the header files, and
-> not inside the code, as it helps to improve code readability. From
-> Documentation/SubmittingPatches:
+> Changes in V2:
+>  * ported to current mainline
+>  * Style fixes
+>  * Fix error handling
 > 
-> 	2) #ifdefs are ugly
-> 
-> 	Code cluttered with ifdefs is difficult to read and maintain.  Don't do
-> 	it.  Instead, put your ifdefs in a header, and conditionally define
-> 	'static inline' functions, or macros, which are used in the code.
-> 	Let the compiler optimize away the "no-op" case.
-> 
-> So, this patch is perfectly fine on my eyes.
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index f343365..8ae3d25 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -202,6 +202,7 @@ obj-$(CONFIG_MACH_OMAP3_TORPEDO)        +=
+> board-omap3logic.o \ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+>  					   hsmmc.o
+>  obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
+> +					   board-omap3evm-camera.o \
+>  					   hsmmc.o
+>  obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
+>  					   hsmmc.o
+> diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c
+> b/arch/arm/mach-omap2/board-omap3evm-camera.c new file mode 100644
+> index 0000000..be987d9
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
+> @@ -0,0 +1,183 @@
+> +/*
+> + * Copyright (C) 2010-2011 Lund Engineering
+> + * Contact: Gil Lund <gwlund@lundeng.com>
+> + * Author: Martin Hostettler <martin@neutronstar.dyndns.org>
+> + *
+> + * Board intregration for a MT9M032 camera connected to IMAGE_CONN and I2C
+> Bus 2 + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
+> +
+> +#include <linux/i2c.h>
+> +#include <linux/init.h>
+> +#include <linux/platform_device.h>
+> +
+> +#include <linux/gpio.h>
+> +#include <plat/mux.h>
+> +#include "mux.h"
+> +
+> +#include "../../../drivers/media/video/omap3isp/isp.h"
+> +#include "media/mt9m032.h"
+> +
+> +#include "devices.h"
+> +
+> +#define EVM_TWL_GPIO_BASE OMAP_MAX_GPIO_LINES
+> +#define GPIO98_VID_DEC_RES	98
+> +#define nCAM_VD_SEL		157
+> +
+> +#define MT9M032_I2C_BUS_NUM	2
+> +
+> +
+> +enum omap3evmdc_mux {
+> +	MUX_TVP5146,
+> +	MUX_CAMERA_SENSOR,
+> +	MUX_EXP_CAMERA_SENSOR,
+> +};
+> +
+> +/**
+> + * omap3evm_set_mux - Sets mux to enable signal routing to
+> + *                           different peripherals present on new EVM
+> board + * @mux_id: enum, mux id to enable
+> + *
+> + * Returns 0 for success or a negative error code
+> + */
+> +static int omap3evm_set_mux(enum omap3evmdc_mux mux_id)
+> +{
+> +	/* Set GPIO6 = 1 */
+> +	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 6, 1);
+> +	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
+> +
+> +	switch (mux_id) {
+> +	case MUX_TVP5146:
+> +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
+> +		gpio_set_value(nCAM_VD_SEL, 1);
+> +		break;
+> +
+> +	case MUX_CAMERA_SENSOR:
+> +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
+> +		gpio_set_value(nCAM_VD_SEL, 0);
+> +		break;
+> +
+> +	case MUX_EXP_CAMERA_SENSOR:
+> +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 1);
+> +		break;
+> +
+> +	default:
+> +		pr_err("omap3evm-camera: Invalid mux id #%d\n", mux_id);
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static struct mt9m032_platform_data mt9m032_platform_data = {
+> +	.ext_clock = 13500000,
+> +	.pll_pre_div = 6,
+> +	.pll_mul = 120,
+> +	.pll_out_div = 5,
+> +	.invert_pixclock = 1,
+> +};
+> +
+> +static struct i2c_board_info camera_i2c_devices[] = {
+> +	{
+> +		I2C_BOARD_INFO(MT9M032_NAME, MT9M032_I2C_ADDR),
+> +		.platform_data = &mt9m032_platform_data,
+> +	},
+> +};
+> +
+> +static struct isp_subdev_i2c_board_info camera_i2c_subdevs[] = {
+> +	{
+> +		.board_info = &camera_i2c_devices[0],
+> +		.i2c_adapter_id = MT9M032_I2C_BUS_NUM,
+> +	},
+> +	{},
+> +};
+> +
+> +static struct isp_v4l2_subdevs_group camera_subdevs[] = {
+> +	{
+> +		.subdevs = camera_i2c_subdevs,
+> +		.interface = ISP_INTERFACE_PARALLEL,
+> +		.bus = {
+> +			.parallel = {
+> +				.data_lane_shift = 1,
+> +				.clk_pol = 0,
+> +				.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
+> +			}
+> +		},
+> +	},
+> +	{},
+> +};
+> +
+> +static struct isp_platform_data isp_platform_data = {
+> +	.subdevs = camera_subdevs,
+> +};
+> +
+> +static int __init camera_init(void)
+> +{
+> +	int ret = -EINVAL;
+> +
+> +	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
+> +	if (gpio_request(nCAM_VD_SEL, "nCAM_VD_SEL") < 0) {
+> +		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_SEL(%d)\n",
+> +		       nCAM_VD_SEL);
+> +		goto err;
+> +	}
+> +	if (gpio_direction_output(nCAM_VD_SEL, 1) < 0) {
+> +		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_SEL(%d)
+> direction\n", +		       nCAM_VD_SEL);
+> +		goto err_vdsel;
+> +	}
+> +
+> +	if (gpio_request(EVM_TWL_GPIO_BASE + 2, "T2_GPIO2") < 0) {
+> +		pr_err("omap3evm-camera: Failed to get GPIO T2_GPIO2(%d)\n",
+> +		       EVM_TWL_GPIO_BASE + 2);
+> +		goto err_vdsel;
+> +	}
+> +	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 2, 0) < 0) {
+> +		pr_err("omap3evm-camera: Failed to set GPIO T2_GPIO2(%d) direction\n",
+> +		       EVM_TWL_GPIO_BASE + 2);
+> +		goto err_2;
+> +	}
+> +
+> +	if (gpio_request(EVM_TWL_GPIO_BASE + 8, "nCAM_VD_EN") < 0) {
+> +		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_EN(%d)\n",
+> +		       EVM_TWL_GPIO_BASE + 8);
+> +		goto err_2;
+> +	}
+> +	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 8, 0) < 0) {
+> +		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_EN(%d) direction\n",
+> +		       EVM_TWL_GPIO_BASE + 8);
+> +		goto err_8;
+> +	}
+> +
+> +	omap3evm_set_mux(MUX_CAMERA_SENSOR);
+> +
+> +
+> +	ret = omap3_init_camera(&isp_platform_data);
+> +	if (ret < 0)
+> +		goto err_8;
+> +	return 0;
+> +
+> +err_8:
+> +	gpio_free(EVM_TWL_GPIO_BASE + 8);
+> +err_2:
+> +	gpio_free(EVM_TWL_GPIO_BASE + 2);
+> +err_vdsel:
+> +	gpio_free(nCAM_VD_SEL);
+> +err:
+> +	return ret;
+> +}
+> +
+> +device_initcall(camera_init);
 
-I'm sorry, but I don't agree.
-
-Regarding the V4L2 subdev pad-level API, the goal is to convert all host and 
-subdev drivers to it, so that's definitely the way to go. This does *not* mean 
-that subdevs must expose a subdev device node. That's entirely optional. What 
-I'm talking about is switching from video::*_mbus_fmt operations to pad::*_fmt 
-operations. The pad-level format operations are very similar to video-level 
-format operations, and more generic. Drivers shouldn't implement both.
-
-Regarding the MC API, drivers are not required to register a media_device 
-instance. I have no issue with that. However, drivers should initialized the 
-subdev's embedded media_entity, as that's required by subdev pad-level 
-operations to get the number of pads for a subdev.
-
-This will result in no modification to the userspace.
+Please don't use device_initcall(), but call the function directly from the 
+OMAP3 EVM init handler. Otherwise camera_init() will be called if OMAP3 EVM 
+support is compiled in the kernel, regardless of the board the kernel runs on.
 
 -- 
 Regards,
