@@ -1,117 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:63463 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754833Ab1ILLs5 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55331 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755849Ab1IRXF0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Sep 2011 07:48:57 -0400
-Date: Mon, 12 Sep 2011 13:48:03 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] media: ov6650: Fix wrong register used for red control
-In-Reply-To: <201109121325.25986.jkrzyszt@tis.icnet.pl>
-Message-ID: <Pine.LNX.4.64.1109121343350.9638@axis700.grange>
-References: <201109121325.25986.jkrzyszt@tis.icnet.pl>
+	Sun, 18 Sep 2011 19:05:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Subject: Re: [PATCH/RFC 1/2] v4l2: Add the parallel bus HREF signal polarity flags
+Date: Mon, 19 Sep 2011 01:05:28 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+References: <1316194123-21185-1-git-send-email-s.nawrocki@samsung.com> <alpine.DEB.2.00.1109171423460.28766@axis700.grange> <4E74C57C.8030801@gmail.com>
+In-Reply-To: <4E74C57C.8030801@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109190105.29383.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Janusz
+Hi Sylwester,
 
-Thanks for the patch, but, since I anyway will have to re-roll my branch 
-on linuxtv, maybe I'll roll in your s/BLUE/RED/ hunk into the original 
-patch from Hans with a suitable
-
-[jkrzyszt@tis.icnet.pl: fix a typo in the register name]
-
-comment, and then add this your patch without that hunk and with an 
-amended description on top, would that be ok with you?
-
-Thanks
-Guennadi
-
-On Mon, 12 Sep 2011, Janusz Krzysztofik wrote:
-
-> REG_BLUE has been used by mistake instead of REG_RED. Fix it.
+On Saturday 17 September 2011 18:06:20 Sylwester Nawrocki wrote:
+> On 09/17/2011 02:34 PM, Guennadi Liakhovetski wrote:
+> > On Sat, 17 Sep 2011, Sylwester Nawrocki wrote:
+> >> On 09/17/2011 12:54 PM, Laurent Pinchart wrote:
+> >>> On Friday 16 September 2011 19:28:42 Sylwester Nawrocki wrote:
+> >>>> HREF is a signal indicating valid data during single line
+> >>>> transmission. Add corresponding flags for this signal to the set of
+> >>>> mediabus signal polarity flags.
+> >>> 
+> >>> So that's a data valid signal that gates the pixel data ? The OMAP3 ISP
+> >>> has a
+> >> 
+> >> Yes, it's "horizontal window reference" signal, it's well described in
+> >> this datasheet: http://www.morninghan.com/pdf/OV2640FSL_DS_(1_3).pdf
+> >> 
+> >> AFAICS there can be also its vertical counterpart - VREF.
+> >> 
+> >> Many devices seem to use this terminology. However, I realize, not all,
+> >> as you're pointing out. So perhaps it's time for some naming contest
+> >> now.. :-)
+> > 
+> > No objections in principle, just one question though: can these signals
+> > actually be used simultaneously with respective *SYNC signals or only as
+> > an alternative? If the latter, maybe we could reuse same names by just
+> > making them more generic?
 > 
-> While being at it, fix a few minor issues:
-> * with no "retrun ret;" at the end, there is no need to initialize ret
->   any longer,
-> * consequently use conditional expressions, not if...else constructs,
->   throughout ov6650_s_ctrl(),
-> * v4l2_ctrl_new_std_menu() max value of V4L2_EXPOSURE_MANUAL instead of
->   equivalent 1 looks more clear.
+> That's actually a good question. In my use cases only HREF is used as
+> horizontal synchronization signal, i.e. physical bus interface has this
+> signals:
 > 
-> Created on top of "Converting soc_camera to the control framework"
-> series.
+> ->| PCLK
+> ->| VSYNC
+> ->| HREF
+> ->| DATA[0:7]
+> ->| FIELD
 > 
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> ---
->  drivers/media/video/ov6650.c |   16 +++++++---------
->  1 files changed, 7 insertions(+), 9 deletions(-)
+> For interlaced mode FIELD can be connected to the horizontal
+> synchronization signal. For this case there is InvPolHSYNC bit in the host
+> interface registers to indicate the polarity. There are 5 bits actually:
 > 
-> diff --git a/drivers/media/video/ov6650.c b/drivers/media/video/ov6650.c
-> index 089a4aa..c0709ee 100644
-> --- a/drivers/media/video/ov6650.c
-> +++ b/drivers/media/video/ov6650.c
-> @@ -310,7 +310,7 @@ static int ov6550_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
->  	struct v4l2_subdev *sd = &priv->subdev;
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
->  	uint8_t reg, reg2;
-> -	int ret = 0;
-> +	int ret;
->  
->  	switch (ctrl->id) {
->  	case V4L2_CID_AUTOGAIN:
-> @@ -342,7 +342,7 @@ static int ov6550_s_ctrl(struct v4l2_ctrl *ctrl)
->  	struct ov6650 *priv = container_of(ctrl->handler, struct ov6650, hdl);
->  	struct v4l2_subdev *sd = &priv->subdev;
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> -	int ret = 0;
-> +	int ret;
->  
->  	switch (ctrl->id) {
->  	case V4L2_CID_AUTOGAIN:
-> @@ -357,7 +357,7 @@ static int ov6550_s_ctrl(struct v4l2_ctrl *ctrl)
->  		if (!ret && !ctrl->val) {
->  			ret = ov6650_reg_write(client, REG_BLUE, priv->blue->val);
->  			if (!ret)
-> -				ret = ov6650_reg_write(client, REG_BLUE,
-> +				ret = ov6650_reg_write(client, REG_RED,
->  							priv->red->val);
->  		}
->  		return ret;
-> @@ -370,10 +370,8 @@ static int ov6550_s_ctrl(struct v4l2_ctrl *ctrl)
->  	case V4L2_CID_BRIGHTNESS:
->  		return ov6650_reg_write(client, REG_BRT, ctrl->val);
->  	case V4L2_CID_EXPOSURE_AUTO:
-> -		if (ctrl->val == V4L2_EXPOSURE_AUTO)
-> -			ret = ov6650_reg_rmw(client, REG_COMB, COMB_AEC, 0);
-> -		else
-> -			ret = ov6650_reg_rmw(client, REG_COMB, 0, COMB_AEC);
-> +		ret = ov6650_reg_rmw(client, REG_COMB, ctrl->val ==
-> +				V4L2_EXPOSURE_AUTO ? COMB_AEC : 0, COMB_AEC);
->  		if (!ret && ctrl->val == V4L2_EXPOSURE_MANUAL)
->  			ret = ov6650_reg_write(client, REG_AECH,
->  						priv->exposure->val);
-> @@ -993,8 +991,8 @@ static int ov6650_probe(struct i2c_client *client,
->  	v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
->  			V4L2_CID_BRIGHTNESS, 0, 0xff, 1, 0x80);
->  	priv->autoexposure = v4l2_ctrl_new_std_menu(&priv->hdl,
-> -			&ov6550_ctrl_ops, V4L2_CID_EXPOSURE_AUTO, 1, 0,
-> -			V4L2_EXPOSURE_AUTO);
-> +			&ov6550_ctrl_ops, V4L2_CID_EXPOSURE_AUTO,
-> +			V4L2_EXPOSURE_MANUAL, 0, V4L2_EXPOSURE_AUTO);
->  	priv->exposure = v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
->  			V4L2_CID_EXPOSURE, 0, 0xff, 1, DEF_AECH);
->  	v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
-> -- 
-> 1.7.3.4
-> 
+> InvPolPCLK
+> InvPolVSYNC (vertical sychronization)
+> InvPolHREF  (horizontal synchronization)
+> InvPolHSYNC (for interlaced mode only, FIELD port = horizontal sync.
+> signal) InvPolFIELD (interlaced mode,  FIELD port = FIELD signal)
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Shouldn't this be handled through platform data only ?
+
+> IMHO keeping different names for synchronization and 'data valid' signals
+> is more clear.
+>
+> >>> similar signal called WEN, and I've seen other chips using DVAL. Your
+> >>> patch looks good to me, except maybe for the signal name that could be
+> >>> made a bit more explicit (I'm not sure what most chips use though).
+> >> 
+> >> I'm pretty OK with HREF/VREF. But I'm open to any better suggestions.
+> >> 
+> >> Maybe
+> >> 
+> >> V4L2_MBUS_LINE_VALID_ACTIVE_HIGH
+> >> V4L2_MBUS_LINE_VALID_ACTIVE_LOW
+> >> 
+> >> V4L2_MBUS_FRAME_VALID_ACTIVE_HIGH
+> >> V4L2_MBUS_FRAME_VALID_ACTIVE_LOW
+> >> 
+> >> ?
+> >> Some of Aptina sensor datasheets describes those signals as
+> >> LINE_VALID/FRAME_VALID,
+> >> (www.aptina.com/assets/downloadDocument.do?id=76).
+> >> 
+> >>>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+> >>>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+> >>>> ---
+> >>>> 
+> >>>>    include/media/v4l2-mediabus.h |   14 ++++++++------
+> >>>>    1 files changed, 8 insertions(+), 6 deletions(-)
+> >>>> 
+> >>>> diff --git a/include/media/v4l2-mediabus.h
+> >>>> b/include/media/v4l2-mediabus.h index 6114007..41d8771 100644
+> >>>> --- a/include/media/v4l2-mediabus.h
+> >>>> +++ b/include/media/v4l2-mediabus.h
+> >>>> @@ -26,12 +26,14 @@
+> >>>> 
+> >>>>    /* Note: in BT.656 mode HSYNC and VSYNC are unused */
+> >> 
+> >> I've forgotten to update this:
+> >> 
+> >> /* Note: in BT.656 mode HSYNC, HREF and VSYNC are unused */
+> >> 
+> >>>>    #define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1<<   2)
+> >>>>    #define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1<<   3)
+> >>>> 
+> >>>> -#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1<<   4)
+> >>>> -#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1<<   5)
+> >>>> -#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1<<   6)
+> >>>> -#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1<<   7)
+> >>>> -#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1<<   8)
+> >>>> -#define V4L2_MBUS_DATA_ACTIVE_LOW		(1<<   9)
+> >>>> +#define V4L2_MBUS_HREF_ACTIVE_HIGH		(1<<   4)
+> >>>> +#define V4L2_MBUS_HREF_ACTIVE_LOW		(1<<   5)
+> >>>> +#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1<<   6)
+> >>>> +#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1<<   7)
+> >>>> +#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1<<   8)
+> >>>> +#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1<<   9)
+> >>>> +#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1<<   10)
+> >>>> +#define V4L2_MBUS_DATA_ACTIVE_LOW		(1<<   11)
+
+-- 
+Regards,
+
+Laurent Pinchart
