@@ -1,38 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm3.bt.bullet.mail.ird.yahoo.com ([212.82.108.234]:22305 "HELO
-	nm3.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753570Ab1IEAe7 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:54733 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755689Ab1IRUNj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Sep 2011 20:34:59 -0400
-Message-ID: <4E64192E.7060505@yahoo.com>
-Date: Mon, 05 Sep 2011 01:34:54 +0100
-From: Chris Rankin <rankincj@yahoo.com>
+	Sun, 18 Sep 2011 16:13:39 -0400
+Date: Sun, 18 Sep 2011 22:13:36 +0200
+From: martin@neutronstar.dyndns.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sylwester Nawrocki <snjw23@gmail.com>,
+	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v2] arm: omap3evm: Add support for an MT9M032 based
+ camera board.
+References: <1316252097-4213-1-git-send-email-martin@neutronstar.dyndns.org>
+ <4E751870.5080605@gmail.com>
+ <201109180008.21254.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: ERROR: "em28xx_add_into_devlist" [drivers/media/video/em28xx/em28xx.ko]
- undefined!
-References: <4E640DBB.8010504@iki.fi> <4E64148A.3010704@yahoo.com> <4E6416D6.2060706@iki.fi>
-In-Reply-To: <4E6416D6.2060706@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201109180008.21254.laurent.pinchart@ideasonboard.com>
+Message-Id: <1316376816.669188.9350@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/09/11 01:24, Antti Palosaari wrote:
-> If you select em28xx-cards.c blob link you give you can see it is there still
-> for some reason.
+On Sun, Sep 18, 2011 at 12:08:20AM +0200, Laurent Pinchart wrote:
+> On Sunday 18 September 2011 00:00:16 Sylwester Nawrocki wrote:
+> > On 09/17/2011 11:34 AM, Martin Hostettler wrote:
+> > > Adds board support for an MT9M032 based camera to omap3evm.
+> > 
+> > ...
+> > 
+> > > +
+> > > +static int __init camera_init(void)
+> > > +{
+> > > +	int ret = -EINVAL;
+> > > +
+> > > +	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
+> > > +	if (gpio_request(nCAM_VD_SEL, "nCAM_VD_SEL")<  0) {
+> > > +		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_SEL(%d)\n",
+> > > +		       nCAM_VD_SEL);
+> > > +		goto err;
+> > > +	}
+> > > +	if (gpio_direction_output(nCAM_VD_SEL, 1)<  0) {
+> > > +		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_SEL(%d)
+> > > direction\n", +		       nCAM_VD_SEL);
+> > > +		goto err_vdsel;
+> > > +	}
+> > 
+> > How about replacing gpio_request + gpio_direction_output with:
+> > 
+> > 	gpio_request_one(nCAM_VD_SEL, GPIOF_OUT_INIT_HIGH, "nCAM_VD_SEL");
+> 
+> I'd even propose gpio_request_array().
+> 
 
-It's a merge issue. This lingering reference must have been added after I posted 
-my original patch. Fortunately, it's easily fixed: the
+Nice interface. Apart from a bit less detailed error reporting it nicely
+simplifies the code. I'll make a new patch using that soon.
 
-     list_add_tail(&dev->devlist, &em28xx_devlist);
-
-operation is now done by ex28xx_init_extension() instead, meaning we only take 
-the devlist mutex once. So that last em28xx_add_into_devlist() reference is 
-obsolete.
-
-Cheers,
-Chris
-
+ - Martin Hostettler
