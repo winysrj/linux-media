@@ -1,56 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f52.google.com ([209.85.212.52]:35787 "EHLO
-	mail-vw0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754528Ab1IMGZP convert rfc822-to-8bit (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.22]:47612 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932273Ab1IRTtV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Sep 2011 02:25:15 -0400
-Received: by vws16 with SMTP id 16so466381vws.11
-        for <linux-media@vger.kernel.org>; Mon, 12 Sep 2011 23:25:14 -0700 (PDT)
+	Sun, 18 Sep 2011 15:49:21 -0400
+Message-ID: <4E764B35.2090009@gmx.de>
+Date: Sun, 18 Sep 2011 19:49:09 +0000
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 MIME-Version: 1.0
-In-Reply-To: <20110912202822.GB1845@valkosipuli.localdomain>
-References: <CA+2YH7s-BH=4vN-DUZJXa9DKrwYsZORWq-YR9fK7JV9236ntMQ@mail.gmail.com>
-	<20110912202822.GB1845@valkosipuli.localdomain>
-Date: Tue, 13 Sep 2011 11:55:13 +0530
-Message-ID: <CAK7N6vpr8uJSHMgTnrd=FrnvYf_Oqy8D3ua__S63T3nEvqaKGw@mail.gmail.com>
-Subject: Re: omap3isp as a wakeup source
-From: anish singh <anish198519851985@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Enrico <ebutera@users.berlios.de>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com
+Subject: Re: [PATCH v3 0/3] fbdev: Add FOURCC-based format configuration API
+References: <1314789501-824-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1314789501-824-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 13, 2011 at 1:58 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> On Mon, Sep 12, 2011 at 04:50:42PM +0200, Enrico wrote:
->> Hi,
->
-> Hi Enrico,
->
->> While testing omap3isp+tvp5150 with latest Deepthy bt656 patches
->> (kernel 3.1rc4) i noticed that yavta hangs very often when grabbing
->> or, if not hanged, it grabs at max ~10fps.
->>
->> Then i noticed that tapping on the (serial) console made it "unblock"
->> for some frames, so i thought it doesn't prevent the cpu to go
->> idle/sleep. Using the boot arg "nohlt" the problem disappear and it
->> grabs at a steady 25fps.
->>
->> In the code i found a comment that says the camera can't be a wakeup
->> source but the camera powerdomain is instead used to decide to not go
->> idle, so at this point i think the camera powerdomain is not enabled
->> but i don't know how/where to enable it. Any ideas?
->
-> I can confirm this indeed is the case --- ISP can't wake up the system ---
-> but don't know how to prevent the system from going to sleep when using the
-> ISP.
-Had it been on android i think wakelock would have been very useful.
->
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     jabber/XMPP/Gmail: sailus@retiisi.org.uk
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Hi all,
+
+as there was no reaction to this patch series I am scheduling it for 3.3 merge
+window (3.2 seems too close to me as this is an API change). As the second patch
+has nothing to do with fbdev it should go mainline via V4L2. Any problems/comments?
+
+
+Best regards,
+
+Florian Tobias Schandinat
+
+
+On 08/31/2011 11:18 AM, Laurent Pinchart wrote:
+> Hi everybody,
+> 
+> Here's the third version of the fbdev FOURCC-based format configuration API.
+> 
+> Compared to the previous version, I've added an FB_TYPE_FOURCC in addition to
+> FB_VISUAL_FOURCC, fixed the documentation (thanks to Geert for reviewing it
+> and explaining how fbdev bitplanes work) and fixed bugs in the sh_mobile_lcdc
+> YUV support.
+> 
+> The sb_mobile_lcdc patch applies on top of the latest patches that I've sent
+> to the list. You can find a consolidated version that includes this patch set
+> at http://git.linuxtv.org/pinchartl/fbdev.git/shortlog/refs/heads/fbdev-yuv.
+> 
+> I've updated the fbdev-test tool to add FOURCC support. The code is available
+> in the fbdev-test yuv branch at
+> http://git.ideasonboard.org/?p=fbdev-test.git;a=shortlog;h=refs/heads/yuv.
+> 
+> Laurent Pinchart (3):
+>   fbdev: Add FOURCC-based format configuration API
+>   v4l: Add V4L2_PIX_FMT_NV24 and V4L2_PIX_FMT_NV42 formats
+>   fbdev: sh_mobile_lcdc: Support FOURCC-based format API
+> 
+>  Documentation/DocBook/media/v4l/pixfmt-nv24.xml |  129 ++++++++
+>  Documentation/DocBook/media/v4l/pixfmt.xml      |    1 +
+>  Documentation/fb/api.txt                        |  317 ++++++++++++++++++++
+>  arch/arm/mach-shmobile/board-ag5evm.c           |    2 +-
+>  arch/arm/mach-shmobile/board-ap4evb.c           |    4 +-
+>  arch/arm/mach-shmobile/board-mackerel.c         |    4 +-
+>  arch/sh/boards/mach-ap325rxa/setup.c            |    2 +-
+>  arch/sh/boards/mach-ecovec24/setup.c            |    2 +-
+>  arch/sh/boards/mach-kfr2r09/setup.c             |    2 +-
+>  arch/sh/boards/mach-migor/setup.c               |    4 +-
+>  arch/sh/boards/mach-se/7724/setup.c             |    2 +-
+>  drivers/video/sh_mobile_lcdcfb.c                |  362 +++++++++++++++--------
+>  include/linux/fb.h                              |   28 ++-
+>  include/linux/videodev2.h                       |    2 +
+>  include/video/sh_mobile_lcdc.h                  |    4 +-
+>  15 files changed, 726 insertions(+), 139 deletions(-)
+>  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+>  create mode 100644 Documentation/fb/api.txt
+> 
+
