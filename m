@@ -1,44 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:59132 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751612Ab1INGNr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Sep 2011 02:13:47 -0400
-Received: by ywb5 with SMTP id 5so1151113ywb.19
-        for <linux-media@vger.kernel.org>; Tue, 13 Sep 2011 23:13:33 -0700 (PDT)
+Received: from smtp.nexicom.net ([216.168.96.13]:53468 "EHLO smtp.nexicom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754523Ab1IRPsV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Sep 2011 11:48:21 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-118-207.nexicom.net [216.168.118.207])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id p8IFmJ5E029798
+	for <linux-media@vger.kernel.org>; Sun, 18 Sep 2011 11:48:20 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by mail.lockie.ca (Postfix) with ESMTP id D09671E0144
+	for <linux-media@vger.kernel.org>; Sun, 18 Sep 2011 11:48:18 -0400 (EDT)
+Message-ID: <4E76133A.5030508@lockie.ca>
+Date: Sun, 18 Sep 2011 11:50:18 -0400
+From: James <bjlockie@lockie.ca>
 MIME-Version: 1.0
-In-Reply-To: <CAFhB-RACaxtkBuXsch5-giTBqCHR+s5_SP-sGeR=E1HVeGfQLQ@mail.gmail.com>
-References: <CAFhB-RACaxtkBuXsch5-giTBqCHR+s5_SP-sGeR=E1HVeGfQLQ@mail.gmail.com>
-Date: Wed, 14 Sep 2011 14:13:32 +0800
-Message-ID: <CAFhB-RBLA410nRJ3w7qyEq2dD+96=eDTneVfmo5Bm6NwevW0Pw@mail.gmail.com>
-Subject: Asking advice for Camera/ISP driver framework design
-From: Cliff Cai <cliffcai.sh@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+CC: linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: can't find bt driver
+References: <4E7527BD.8040802@lockie.ca> <4E75D669.7040207@redhat.com>
+In-Reply-To: <4E75D669.7040207@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear guys,
+On 09/18/11 07:30, Mauro Carvalho Chehab wrote:
+> Em 17-09-2011 20:05, James escreveu:
+>> Where is the bt848 driver in kernel-3.0.4?
+> It should be at the usual places:
+>
+> $ find drivers/media/ -name bt8x*
+> drivers/media/video/bt8xx
+> drivers/media/dvb/bt8xx
+>
+> $ find sound/ -name bt8*
+> sound/pci/bt87x.c
+I found it under dvd but there is no check box, just three stars.
+   │ │    --- DVB/ATSC 
+adapters                                            │ │
+   │ │          *** Supported BT878 Adapters ***
 
-I'm currently working on a camera/ISP Linux driver project.Of course,I
-want it to be a V4L2 driver,but I got a problem about how to design
-the driver framework.
-let me introduce the background of this ISP(Image signal processor) a
-little bit.
-1.The ISP has two output paths,first one called main path which is
-used to transfer image data for taking picture and recording,the other
-one called preview path which is used to transfer image data for
-previewing.
-2.the two paths have the same image data input from sensor,but their
-outputs are different,the output of main path is high quality and
-larger image,while the output of preview path is smaller image.
-3.the two output paths have independent DMA engines used to move image
-data to system memory.
 
-The problem is currently, the V4L2 framework seems only support one
-buffer queue,and in my case,obviously,two buffer queues are required.
-Any idea/advice for implementing such kind of V4L2 driver? or any
-other better solutions?
-
-Thanks a lot!
-Cliff
+I can't find it under video.
+All I have is:
+   │ │    --- Video capture 
+adapters                                       │ │
+   │ │    [ ]   Enable advanced debug 
+functionality                        │ │
+   │ │    [ ]   Enable old-style fixed minor ranges for video 
+devices      │ │
+   │ │    [*]   Autoselect pertinent encoders/decoders and other helper 
+chi│ │
+   │ │ < >   CPiA2 Video For Linux                                      │ │
+   │ │ < >   Philips SAA7134 support                                    │ │
+   │ │ < >   Siemens-Nixdorf 'Multimedia eXtension Board'               │ │
+   │ │ < >   Hexium HV-PCI6 and Orion frame grabber                     │ │
+   │ │ < >   Hexium Gemini frame grabber                                │ │
+   │ │ < >   Marvell 88ALP01 (Cafe) CMOS Camera Controller support      │ │
+   │ │ < >   SR030PC30 VGA camera sensor support                        │ │
+   │ │ < >   NOON010PC30 CIF camera sensor support                      │ │
+   │ │ < >   SoC camera support                                         │ │
+   │ │    [*]   V4L USB devices  --->
