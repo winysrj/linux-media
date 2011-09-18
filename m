@@ -1,103 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nskntmtas04p.mx.bigpond.com ([61.9.168.146]:47069 "EHLO
-	nskntmtas04p.mx.bigpond.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753425Ab1IDNKG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Sep 2011 09:10:06 -0400
-Received: from nskntotgx02p.mx.bigpond.com ([121.214.104.126])
-          by nskntmtas04p.mx.bigpond.com with ESMTP
-          id <20110904131004.FNZN1385.nskntmtas04p.mx.bigpond.com@nskntotgx02p.mx.bigpond.com>
-          for <linux-media@vger.kernel.org>; Sun, 4 Sep 2011 13:10:04 +0000
-Received: from [192.168.0.204] (really [121.214.104.126])
-          by nskntotgx02p.mx.bigpond.com with ESMTP
-          id <20110904131003.BGAR17136.nskntotgx02p.mx.bigpond.com@[192.168.0.204]>
-          for <linux-media@vger.kernel.org>; Sun, 4 Sep 2011 13:10:03 +0000
-Message-ID: <4E6378AD.7040004@bigpond.com>
-Date: Sun, 04 Sep 2011 23:10:05 +1000
-From: Declan Mullen <declan.mullen@bigpond.com>
+Received: from mx1.redhat.com ([209.132.183.28]:26177 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751991Ab1IRMoM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Sep 2011 08:44:12 -0400
+Message-ID: <4E75E799.1010307@redhat.com>
+Date: Sun, 18 Sep 2011 09:44:09 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: Dmitri Belimov <d.belimov@gmail.com>
 CC: linux-media@vger.kernel.org
-Subject: Re: New Hauppauge HVR-2200 Revision?
-References: <1313434995.7350.26.camel@adrien-nb>
-In-Reply-To: <1313434995.7350.26.camel@adrien-nb>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Subject: Re: [PATCH] FM1216ME_MK3 AUX byte for FM mode
+References: <20090423154046.7b54f7cc@glory.loctelecom.ru>
+In-Reply-To: <20090423154046.7b54f7cc@glory.loctelecom.ru>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16/08/2011 5:03 AM, Adrien Dorsaz wrote:
-> Hi,
->
-> I've recently bought two cards HVR-2200 rev 0700:8940 and installed them
-> into one PC. Kernel module saa7164 was launched by linux (under Ubuntu
-> 11.04, with kernel 2.6.38-10-generic-pae), but it didn't recognize my
-> cards (so, it selected card 0 : unknown).
->
-> I've seen a new patch on your mailing list (see archive [1] and the
-> patch [2]), but it was apparently only applied on kernellabs.org and not
-> in the linuxtv.org archive.
->
-> So I've downloaded the Ubuntu linux source (with apt-get install
-> linux-source), I've patched it following the diff [2] and I've compiled
-> this new kernel.
->
-> Now when I reboot it, it works really well : I don't need any more to
-> say which cards I've in /etc/modprobe.d/saa-7164.conf and both were well
-> recognized (I've seen my four adapters in /dev/dvb/adapter[0,1,2,3]).
->
-> So, could you apply this patch also on your source please (and try it to
-> confirm my tests)?
->
-> Thank you very much,
-> Adrien Dorsaz
-> a.dorsaz@gmail.com
->
-> [1] :
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg14612.html ,
-> and the message which give a patch :
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg14626.html
->
-> [2] : the patch on kernellabs.org :
-> http://www.kernellabs.com/hg/saa7164-stable/rev/cf2d7530d676
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Hi Dmitri,
 
-I've just done something similar.
+Em 23-04-2009 02:40, Dmitri Belimov escreveu:
+> Hi All
+> 
+> Write AUX byte to FM1216ME_MK3 when FM mode, better sensitivity. It can be
+> usefull for other tuners.
 
-I installed the source code for my Ubuntu 10.10 x86 32bit kernel:
-    apt-get source linux-image-2.6.35-30-generic-pae
+Hmm... Found this patch. It were never applied, but it may make some sense
+to apply it.
 
-I got the source code of the version of the saa7164 driver that supports 
-the "0700:8940" revision of the 2200 card from Kernel Labs by:
-   git clone git://kernellabs.com/stoth/saa7164-stable.git
-   cd saa7164-stable
-   git checkout 87e0c0378bf2068df5d0c43acd66aea9ba71bd89
-   make clean
+Could you please double-check if this patch is still valid, and, if so, re-send it
+to me?
 
-Many thanks to Steven Toth (driver author) for telling me about the 
-"87e0c0378bf2068df5d0c43acd66aea9ba71bd89" commit.
+Thanks!
+Mauro
 
-I then replaced the Ubuntu kernal source's 
-"linux-2.6.35/drivers/media/video/saa7164/" directory with that from the 
-above "87e0c0378bf2068df5d0c43acd66aea9ba71bd89" commit and then 
-recompiled the ubuntu kernel source.
 
-I found the instructions at 
-"http://linuxtweaking.blogspot.com/2010/05/how-to-compile-kernel-on-ubuntu-1004.html<http://linuxtweaking.blogspot.com/2010/05/how-to-compile-kernel-on-ubuntu-1004.html>" 
-for getting the ubuntu kernel source code and recompiling it most helpfull.
-
-I got the following firmware from http://www.steventoth.net/linux/hvr22xx :
-   dvb-fe-tda10048-1.0.fw
-   NXP7164-2010-03-10.1.fw
-
-After putting the firmware files into place and doing a cold reboot, the 
-card's DVB-T functionality seems to be working fine within my Mythtv 0.24.
-
-Regards,
-Declan
+> 
+> diff -r 00a84f86671d linux/drivers/media/common/tuners/tuner-simple.c
+> --- a/linux/drivers/media/common/tuners/tuner-simple.c	Mon Apr 20 22:07:44 2009 +0000
+> +++ b/linux/drivers/media/common/tuners/tuner-simple.c	Thu Apr 23 10:26:54 2009 +1000
+> @@ -751,6 +751,17 @@
+>  	if (4 != rc)
+>  		tuner_warn("i2c i/o error: rc == %d (should be 4)\n", rc);
+>  
+> +	/* Write AUX byte */
+> +	switch (priv->type) {
+> +	case TUNER_PHILIPS_FM1216ME_MK3:
+> +		buffer[2] = 0x98;
+> +		buffer[3] = 0x20; /* set TOP AGC */
+> +		rc = tuner_i2c_xfer_send(&priv->i2c_props, buffer, 4);
+> +		if (4 != rc)
+> +			tuner_warn("i2c i/o error: rc == %d (should be 4)\n", rc);
+> +		break;
+> +	}
+> +
+>  	return 0;
+>  }
+>  
+> Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+> 
+> 
+> With my best regards, Dmitry.
 
