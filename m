@@ -1,68 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:53587 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753491Ab1I2WoY (ORCPT
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:39850 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752709Ab1IRP2i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Sep 2011 18:44:24 -0400
-Received: by yxl31 with SMTP id 31so1068358yxl.19
-        for <linux-media@vger.kernel.org>; Thu, 29 Sep 2011 15:44:23 -0700 (PDT)
-Date: Thu, 29 Sep 2011 14:44:18 -0800
-From: Roger <rogerx.oss@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: dvbscan output Channel Number into final stdout?
-Message-ID: <20110929224418.GD2824@localhost2.local>
+	Sun, 18 Sep 2011 11:28:38 -0400
+Date: Sun, 18 Sep 2011 08:28:35 -0700
+From: Greg KH <greg@kroah.com>
+To: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Arnd Bergmann <arnd@arndb.de>, Jean Delvare <khali@linux-fr.org>,
+	Luciano Coelho <coelho@ti.com>, matti.j.aaltonen@nokia.com,
+	johannes@sipsolutions.net, linux-kernel@vger.kernel.org,
+	sameo@linux.intel.com, mchehab@infradead.org,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	Tony Lindgren <tony@atomide.com>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 1/2] misc: remove CONFIG_MISC_DEVICES
+Message-ID: <20110918152835.GA30696@kroah.com>
+References: <20110829102732.03f0f05d.rdunlap@xenotime.net>
+ <201109021643.14275.arnd@arndb.de>
+ <20110905144134.2c80c4b9@endymion.delvare>
+ <201109051619.35553.arnd@arndb.de>
+ <4E760A31.8030807@xenotime.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <4E760A31.8030807@xenotime.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Can we get dvbscan to output the Channel Number into the final stdout somehow?
+On Sun, Sep 18, 2011 at 08:11:45AM -0700, Randy Dunlap wrote:
+> On 09/05/2011 07:19 AM, Arnd Bergmann wrote:
+> > I think it would simply be more consistent to have it enabled all
+> > the time. Well, even better would be to move the bulk of the misc
+> > drivers to a proper location sorted by their subsystems. A lot of them
+> > should never have been merged in their current state IMHO.
+> 
+> 
+> If it's clear where they belong, then sure, they should be somewhere
+> other than drivers/misc/, but I don't see that it's clear for several
+> of them.
+> 
+> 
+> > I think I should finally do what has been  talked about a few times and
+> > formally become the maintainer of drivers/char and drivers/misc ;-)
+> > 
+> > The problem is that I'm not actually a good maintainer, but maybe it's
+> > better to just have someone instead of falling back to Andrew or
+> > some random subsystem maintainer to send any patches for drivers/misc.
+> 
+> We have fallbacks to Andrew and/or GregKH currently, but GregKH is not
+> consistent or timely with applying drivers/misc/ patches.  It deserves better.
+> [added him to Cc: list]
 
-A likely format would be something such as the following.
+I do try to handle patches sent to me for misc/ in time for the
+different merge windows as that directory contains drivers that have
+moved out of the staging/ directory.
 
-Current output:
+But yes, I'm not the overall drivers/misc/ maintainer, do we really need
+one?  If so, I can easily start maintaining a development tree for it to
+keep it separate for the different driver authors to send me stuff and
+start tracking it more "for real" if Arnd doesn't want to do it.
 
-KATN-DT:497028615:8VSB:49:52:3
-KWFA-DT:497028615:8VSB:65:68:4
-...
+thanks,
 
-
-Suggested output:
-2.1:497028615:8VSB:49:52:3
-2.2:497028615:8VSB:65:68:4
-...
-
-The reason for this, the local ATSC broadcast over the air channels are not
-assigning unique channel names.  However, channel numbers seem to be consistent
-between the published TV Guide/TV Listings and are unique!  This seems to be
-the norm for the past several years now.
-
-There have been some minor changes with channel numbers within the past years,
-but if channel numbers are used such as in the above example, mplayer should be
-able to recognize mplayer dvb://2.1 or mplayer dvb://2.2, etc?
-
-One should also be able to do something like 'dvbscan | sort' instead of trying
-to test each channel to see which channel is really 2.1 or 2.2!
-
-
-Currently, dvbscan outputs the channel number only when the channel is first
-found and with a colon. (ie. 2:1, 2:2, ...)
-
-1) Get/Keep Channel Number found
-2) Convert/reassign the colon to a period (ie. 2:1 == 2.1, 2:2 == 2.2)
-3) Print Channel Number instead of Channel Name on final stdout.
-
-
-In the meantime, I should test whether mplayer has any issues with using
-"mplayer dvb://2.1" instead of the channel name.  It would be really nice to be
-able to schedule a cron job here with "dvbscan > .mplayer/channels.conf" to
-keep channels updated and have a decent channels.conf I can use within
-mplayer/mencoder scripts for playback/recording.  Currently, I have to go
-through and manually run mplayer on each station frequency to figure out which
-is 2.1 and which is 2.2, and so on.  Or am I barking up the wrong tree?
-
-
--- 
-Roger
-http://rogerx.freeshell.org/
+greg k-h
