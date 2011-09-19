@@ -1,61 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58268 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755443Ab1IQPeF (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:59597 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756176Ab1ISWRJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Sep 2011 11:34:05 -0400
-Received: from localhost.localdomain (unknown [91.178.181.94])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id D41C535AA1
-	for <linux-media@vger.kernel.org>; Sat, 17 Sep 2011 15:34:02 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 4/5] uvcvideo: Add a mapping for H.264 payloads
-Date: Sat, 17 Sep 2011 17:34:01 +0200
-Message-Id: <1316273642-3624-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1316273642-3624-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1316273642-3624-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 19 Sep 2011 18:17:09 -0400
+Date: Tue, 20 Sep 2011 00:17:03 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] v4l: Add driver for Micron MT9M032 camera sensor
+In-Reply-To: <201109200004.31617.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1109200014050.20916@axis700.grange>
+References: <1316251771-858-1-git-send-email-martin@neutronstar.dyndns.org>
+ <201109190048.25335.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1109192125000.20916@axis700.grange>
+ <201109200004.31617.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stephan Lachowsky <stephan.lachowsky@maxim-ic.com>
+On Tue, 20 Sep 2011, Laurent Pinchart wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Hi Guennadi,
+> 
+> On Monday 19 September 2011 21:28:09 Guennadi Liakhovetski wrote:
+> > Hi Laurent
+> > 
+> > just one question:
+> > 
+> > On Mon, 19 Sep 2011, Laurent Pinchart wrote:
+> > > > diff --git a/drivers/media/video/mt9m032.c
+> > > > b/drivers/media/video/mt9m032.c new file mode 100644
+> > > > index 0000000..8a64193
+> > > > --- /dev/null
+> > > > +++ b/drivers/media/video/mt9m032.c
+> > > > @@ -0,0 +1,814 @@
+> > 
+> > [snip]
+> > 
+> > > > +static int mt9m032_read_reg(struct mt9m032 *sensor, const u8 reg)
+> > > 
+> > > No need for the const keyword, this isn't a pointer :-)
+> > 
+> > I was actually wondering about these: of course it's not the same as using
+> > const for a pointer to tell the compiler, that this function will not
+> > change caller's data. But - doesn't using const for any local variable
+> > tell the compiler, that that _variable_ will not be modified in this
+> > function? Are there no optimisation possibilities, arising from that?
+> 
+> I would expect the compiler to be smart enough to notice that the variable is 
+> never assigned.
+
+Sure, but using "const" would allow the compiler to catch and complain 
+about uses like
+
+	foo(&reg);
+
+unless foo() is also declared as foo(const u8 *). But yes, for small 
+obvious functions it makes no difference.
+
+> In practice, for such a small function, the generated code is 
+> identical with and without the const keyword.
+
+Thanks
+Guennadi
 ---
- drivers/media/video/uvc/uvc_driver.c |    5 +++++
- drivers/media/video/uvc/uvcvideo.h   |    4 ++++
- 2 files changed, 9 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
-index a3c24dd..656d4c9 100644
---- a/drivers/media/video/uvc/uvc_driver.c
-+++ b/drivers/media/video/uvc/uvc_driver.c
-@@ -114,6 +114,11 @@ static struct uvc_format_desc uvc_fmts[] = {
- 		.guid		= UVC_GUID_FORMAT_RGBP,
- 		.fcc		= V4L2_PIX_FMT_RGB565,
- 	},
-+	{
-+		.name		= "H.264",
-+		.guid		= UVC_GUID_FORMAT_H264,
-+		.fcc		= V4L2_PIX_FMT_H264,
-+	},
- };
- 
- /* ------------------------------------------------------------------------
-diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
-index e3aec87..4c1392e 100644
---- a/drivers/media/video/uvc/uvcvideo.h
-+++ b/drivers/media/video/uvc/uvcvideo.h
-@@ -89,6 +89,10 @@
- 	{ 'M',  '4',  '2',  '0', 0x00, 0x00, 0x10, 0x00, \
- 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
- 
-+#define UVC_GUID_FORMAT_H264 \
-+	{ 'H',  '2',  '6',  '4', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+
- /* ------------------------------------------------------------------------
-  * Driver specific constants.
-  */
--- 
-1.7.3.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
