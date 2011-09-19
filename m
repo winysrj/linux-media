@@ -1,148 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:49244 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750835Ab1ILKzu (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:58868 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752862Ab1IST7l convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Sep 2011 06:55:50 -0400
-Date: Mon, 12 Sep 2011 12:55:46 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v3] V4L: dynamically allocate video_device nodes in subdevices
-In-Reply-To: <201109092332.59943.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1109121253270.9638@axis700.grange>
-References: <Pine.LNX.4.64.1109091701060.915@axis700.grange>
- <Pine.LNX.4.64.1109091943480.915@axis700.grange>
- <201109092332.59943.laurent.pinchart@ideasonboard.com>
+	Mon, 19 Sep 2011 15:59:41 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "martin@neutronstar.dyndns.org" <martin@neutronstar.dyndns.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tony Lindgren <tony@atomide.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>
+Date: Tue, 20 Sep 2011 01:29:26 +0530
+Subject: RE: [PATCH v2] arm: omap3evm: Add support for an MT9M032 based
+ camera board.
+Message-ID: <19F8576C6E063C45BE387C64729E739404EC811425@dbde02.ent.ti.com>
+References: <1316252097-4213-1-git-send-email-martin@neutronstar.dyndns.org>
+ <201109182358.55816.laurent.pinchart@ideasonboard.com>
+ <19F8576C6E063C45BE387C64729E739404EC8111DE@dbde02.ent.ti.com>
+ <20110919192442.GE9244@neutronstar.dyndns.org>
+In-Reply-To: <20110919192442.GE9244@neutronstar.dyndns.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently only very few drivers actually use video_device nodes, embedded
-in struct v4l2_subdev. Allocate these nodes dynamically for those drivers
-to save memory for the rest.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+> -----Original Message-----
+> From: martin@neutronstar.dyndns.org [mailto:martin@neutronstar.dyndns.org]
+> Sent: Tuesday, September 20, 2011 12:55 AM
+> To: Hiremath, Vaibhav
+> Cc: Laurent Pinchart; Tony Lindgren; linux-omap@vger.kernel.org; linux-
+> media@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: Re: [PATCH v2] arm: omap3evm: Add support for an MT9M032 based
+> camera board.
+> 
+> On Mon, Sep 19, 2011 at 11:37:37AM +0530, Hiremath, Vaibhav wrote:
+> >
+> > > -----Original Message-----
+> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > > owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+> > > Sent: Monday, September 19, 2011 3:29 AM
+> > > To: Martin Hostettler
+> > > Cc: Tony Lindgren; linux-omap@vger.kernel.org; linux-
+> > > media@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> > > Subject: Re: [PATCH v2] arm: omap3evm: Add support for an MT9M032
+> based
+> > > camera board.
+> > >
+> > > Hi Martin,
+> > >
+> > > On Saturday 17 September 2011 11:34:57 Martin Hostettler wrote:
+> > > > Adds board support for an MT9M032 based camera to omap3evm.
+> > > >
+> > > > Sigend-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+> > > > ---
+> > > >  arch/arm/mach-omap2/Makefile                |    1 +
+> > > >  arch/arm/mach-omap2/board-omap3evm-camera.c |  183
+> > > > +++++++++++++++++++++++++++ 2 files changed, 184 insertions(+), 0
+> > > > deletions(-)
+> > > >  create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
+> > > >
+> > > > Changes in V2:
+> > > >  * ported to current mainline
+> > > >  * Style fixes
+> > > >  * Fix error handling
+> > > >
+> > > > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-
+> omap2/Makefile
+> > > > index f343365..8ae3d25 100644
+> > > > --- a/arch/arm/mach-omap2/Makefile
+> > > > +++ b/arch/arm/mach-omap2/Makefile
+> > > > @@ -202,6 +202,7 @@ obj-$(CONFIG_MACH_OMAP3_TORPEDO)        +=
+> > > > board-omap3logic.o \ obj-$(CONFIG_MACH_OVERO)		+= board-
+> overo.o \
+> > > >  					   hsmmc.o
+> > > >  obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
+> > > > +					   board-omap3evm-camera.o \
+> > > >  					   hsmmc.o
+> > > >  obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
+> > > >  					   hsmmc.o
+> > > > diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c
+> > > > b/arch/arm/mach-omap2/board-omap3evm-camera.c new file mode 100644
+> > > > index 0000000..be987d9
+> > > > --- /dev/null
+> > > > +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
+> > > > @@ -0,0 +1,183 @@
+> > > > +/*
+> > > > + * Copyright (C) 2010-2011 Lund Engineering
+> > > > + * Contact: Gil Lund <gwlund@lundeng.com>
+> > > > + * Author: Martin Hostettler <martin@neutronstar.dyndns.org>
+> > > > + *
+> > [Hiremath, Vaibhav] The file below seems copied from (which is coming
+> from all older releases of TI)
+> >
+> > http://arago-project.org/git/projects/?p=linux-
+> omap3.git;a=blob;f=arch/arm/mach-omap2/board-omap3evm-
+> camera.c;h=2e6ccfef69027dee880d507b98b5a7998d4bbe7e;hb=adcd067326836777c04
+> 9e3cb32a5b7d9d401fc31
+> >
+> > So I would appreciate if you keep original copyright and authorship of
+> the file and add your sign-off to the patch.
+> >
+> 
+> First of all i don't have any problem Adding your name and the TI
+> copyright.
+> Maybe i should have been more careful when looking at and adeption
+> omap3evm_set_mux as i really took that from the TI code.
+> 
 
-v3: addressed comments from Laurent Pinchart - thanks
-
-1. switch to using a device-release method, instead of freeing directly in 
-v4l2_device_unregister_subdev()
-
-2. switch to using drvdata instead of a wrapper struct
-
- drivers/media/video/v4l2-device.c |   41 ++++++++++++++++++++++++++++++++----
- include/media/v4l2-subdev.h       |    4 +-
- 2 files changed, 38 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index c72856c..9bf3d70 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -21,6 +21,7 @@
- #include <linux/types.h>
- #include <linux/ioctl.h>
- #include <linux/i2c.h>
-+#include <linux/slab.h>
- #if defined(CONFIG_SPI)
- #include <linux/spi/spi.h>
- #endif
-@@ -191,6 +192,13 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- }
- EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+The best practice it to always keep copy-right of the file intact... I wouldn't mind if you use and modify any part of the code and also add your authorship. 
+I feel, Copy-right is important part.
  
-+void v4l2_device_release_subdev_node(struct video_device *vdev)
-+{
-+	struct v4l2_subdev *sd = video_get_drvdata(vdev);
-+	sd->devnode = NULL;
-+	kfree(vdev);
-+}
-+
- int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
- {
- 	struct video_device *vdev;
-@@ -204,22 +212,42 @@ int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
- 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
- 			continue;
- 
--		vdev = &sd->devnode;
-+		vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
-+		if (!vdev) {
-+			err = -ENOMEM;
-+			goto clean_up;
-+		}
-+
-+		video_set_drvdata(vdev, sd);
- 		strlcpy(vdev->name, sd->name, sizeof(vdev->name));
- 		vdev->v4l2_dev = v4l2_dev;
- 		vdev->fops = &v4l2_subdev_fops;
--		vdev->release = video_device_release_empty;
-+		vdev->release = v4l2_device_release_subdev_node;
- 		vdev->ctrl_handler = sd->ctrl_handler;
- 		err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
- 					      sd->owner);
--		if (err < 0)
--			return err;
-+		if (err < 0) {
-+			kfree(vdev);
-+			goto clean_up;
-+		}
-+		get_device(&vdev->dev);
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 		sd->entity.v4l.major = VIDEO_MAJOR;
- 		sd->entity.v4l.minor = vdev->minor;
- #endif
-+		sd->devnode = vdev;
- 	}
- 	return 0;
-+
-+clean_up:
-+	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
-+		if (!sd->devnode)
-+			break;
-+		video_unregister_device(sd->devnode);
-+		put_device(&sd->devnode->dev);
-+	}
-+
-+	return err;
- }
- EXPORT_SYMBOL_GPL(v4l2_device_register_subdev_nodes);
- 
-@@ -245,7 +273,10 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
- 	if (v4l2_dev->mdev)
- 		media_device_unregister_entity(&sd->entity);
- #endif
--	video_unregister_device(&sd->devnode);
-+	if (sd->devnode) {
-+		video_unregister_device(sd->devnode);
-+		put_device(&sd->devnode->dev);
-+	}
- 	module_put(sd->owner);
- }
- EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 257da1a..5dd049a 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -534,13 +534,13 @@ struct v4l2_subdev {
- 	void *dev_priv;
- 	void *host_priv;
- 	/* subdev device node */
--	struct video_device devnode;
-+	struct video_device *devnode;
- };
- 
- #define media_entity_to_v4l2_subdev(ent) \
- 	container_of(ent, struct v4l2_subdev, entity)
- #define vdev_to_v4l2_subdev(vdev) \
--	container_of(vdev, struct v4l2_subdev, devnode)
-+	video_get_drvdata(vdev)
- 
- /*
-  * Used for storing subdev information per file handle
--- 
-1.7.2.5
+> I honestly don't remember if i took any other code from that file or not.
+> It ends up doing what the hardware needs anyway. For me it doesn't matter
+> with such trival things, but i should have been more careful.
+> 
+> Do you consider it resolved if use the following at the start?
+> 
+> /*
+>  * Copyright (C) 2010 Texas Instruments Inc
 
+Change it to 2011.
+
+>  * Copyright (C) 2010-2011 Lund Engineering
+>  * Contact: Gil Lund <gwlund@lundeng.com>
+
+Not sure do you really need above line...
+
+>  * Authors:
+>  *    Vaibhav Hiremath <hvaibhav@ti.com>
+>  *    Martin Hostettler <martin@neutronstar.dyndns.org>
+>  */
+> 
+> 
+Looks ok to me.
+
+> But then again the copy on my harddisk has these too...
+> 
+>  * Contributors:
+>  *     Anuj Aggarwal <anuj.aggarwal@ti.com>
+>  *     Sivaraj R <sivaraj@ti.com>
+> 
+> Maybe i should add them too.
+> 
+> Not sure really...
+> 
+> 
+
+I think we should not pollute source file with all our names, so I would recommend to put copy rights and probably author.
+
+Thanks,
+Vaibhav
+>  - Martin Hostettler
