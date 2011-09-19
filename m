@@ -1,65 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2489 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751339Ab1IZLRB (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:53283 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755300Ab1ISPb2 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 07:17:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-Subject: Re: [PATCH RESEND 0/4] davinci vpbe: enable DM365 v4l2 display driver
-Date: Mon, 26 Sep 2011 13:16:52 +0200
-Cc: LMML <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-References: <1316410529-14744-1-git-send-email-manjunath.hadli@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593025729ADE3@dbde02.ent.ti.com>
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593025729ADE3@dbde02.ent.ti.com>
+	Mon, 19 Sep 2011 11:31:28 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Ravi, Deepthy" <deepthy.ravi@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"tony@atomide.com" <tony@atomide.com>,
+	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
+Date: Mon, 19 Sep 2011 21:01:02 +0530
+Subject: RE: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+Message-ID: <19F8576C6E063C45BE387C64729E739404EC8113E2@dbde02.ent.ti.com>
+References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com>
+ <201109081921.28051.laurent.pinchart@ideasonboard.com>
+ <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09083D@dbde03.ent.ti.com>
+ <201109161506.16505.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201109161506.16505.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109261316.52134.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday, September 19, 2011 07:49:18 Hadli, Manjunath wrote:
-> Sakari, Hans,
->  Can I request you to have a look at these patches too?
 
-It's on my TODO list for this week.
-
-Regards,
-
-	Hans
-
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Friday, September 16, 2011 6:36 PM
+> To: Ravi, Deepthy
+> Cc: linux-media@vger.kernel.org; tony@atomide.com; linux@arm.linux.org.uk;
+> linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
+> kernel@vger.kernel.org; mchehab@infradead.org; g.liakhovetski@gmx.de;
+> Hiremath, Vaibhav
+> Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
 > 
-> Thanks and Regards,
-> -Manju
+> Hi Deepthy,
 > 
-> On Mon, Sep 19, 2011 at 11:05:25, Hadli, Manjunath wrote:
-> > The patchset adds incremental changes necessary to enable dm365
-> > v4l2 display driver, which includes vpbe display driver changes, osd specific changes and venc changes. The changes are incremental in nature,addind a few HD modes, and taking care of register level changes.
-> > 
-> > The patch set does not include THS7303 amplifier driver which is planned to be sent seperately.
-> > 
-> > 
-> > Manjunath Hadli (4):
-> >   davinci vpbe: remove unused macro.
-> >   davinci vpbe: add dm365 VPBE display driver changes
-> >   davinci vpbe: add dm365 and dm355 specific OSD changes
-> >   davinci vpbe: add VENC block changes to enable dm365 and dm355
-> > 
-> >  drivers/media/video/davinci/vpbe.c         |   55 +++-
-> >  drivers/media/video/davinci/vpbe_display.c |    1 -
-> >  drivers/media/video/davinci/vpbe_osd.c     |  474 +++++++++++++++++++++++++---
-> >  drivers/media/video/davinci/vpbe_venc.c    |  205 +++++++++++--
-> >  include/media/davinci/vpbe.h               |   16 +
-> >  include/media/davinci/vpbe_venc.h          |    4 +
-> >  6 files changed, 686 insertions(+), 69 deletions(-)
-> > 
-> > 
+> On Friday 16 September 2011 15:00:53 Ravi, Deepthy wrote:
+> > On Thursday, September 08, 2011 10:51 PM Laurent Pinchart wrote:
+> > > On Thursday 08 September 2011 15:35:22 Deepthy Ravi wrote:
+> > >> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> > >>
+> > >> In order to support TVP5146 (for that matter any video decoder),
+> > >> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
+> > >> device node.
+> > >
+> > > Why so ? Shouldn't it be queried on the subdev output pad directly ?
+> >
+> > Because standard v4l2 application for analog devices will call these std
+> > ioctls on the streaming device node. So it's done on /dev/video to make
+> the
+> > existing apllication work.
 > 
+> Existing applications can't work with the OMAP3 ISP (and similar complex
+> embedded devices) without userspace support anyway, either in the form of
+> a
+> GStreamer element or a libv4l plugin. I still believe that analog video
+> standard operations should be added to the subdev pad operations and
+> exposed
+> through subdev device nodes, exactly as done with formats.
+> 
+[Hiremath, Vaibhav] Laurent,
+
+I completely agree with your point that, existing application will not work without setting links properly. But I believe the assumption here is, media-controller should set the links (along with pad formants) and all existing application should work as is. Isn't it?
+
+The way it is being done currently is, set the format at the pad level which is same as analog standard resolution and use existing application for streaming...
+
+I am ok, if we add s/g/enum_std api support at sub-dev level but this should also be supported on streaming device node.
+
+Thanks,
+Vaibhav
+
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards,
 > 
+> Laurent Pinchart
