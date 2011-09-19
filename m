@@ -1,121 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:61770 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756386Ab1IGQTL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2011 12:19:11 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id 56D1518B03B
-	for <linux-media@vger.kernel.org>; Wed,  7 Sep 2011 17:13:11 +0200 (CEST)
-Date: Wed, 7 Sep 2011 17:13:11 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] V4L: soc-camera: call subdevice .s_power() method, when
- powering up or down
-In-Reply-To: <Pine.LNX.4.64.1109071706550.14818@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1109071712290.14818@axis700.grange>
-References: <Pine.LNX.4.64.1109071706550.14818@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:64244 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750920Ab1ISRIC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Sep 2011 13:08:02 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LRS0012H4XCP070@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 19 Sep 2011 18:08:00 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LRS00DHY4XBW7@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 19 Sep 2011 18:08:00 +0100 (BST)
+Date: Mon, 19 Sep 2011 19:07:55 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 1/2] v4l2: Add the polarity flags for parallel camera bus
+ FIELD signal
+In-reply-to: <1316450497-6723-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1316452075-10700-1-git-send-email-s.nawrocki@samsung.com>
+References: <1316450497-6723-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently soc-camera can use power regulators and platform specific
-methods to power clients up and down. Additionally, client drivers can
-provide their own subdevice .s_power() methods, acting directly on the
-device. This patch adds calls to this method, when external power
-supplies are on.
+FIELD is an Even/Odd field selection signal, as specified in ITU-R BT.601
+standard. Add corresponding flag for configuring the FIELD signal polarity.
+Also add a comment about usage of V4L2_MBUS_[HV]SYNC* flags for the hardware
+that uses [HV]REF signals.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/soc_camera.c |   38 ++++++++++++++++++++++++++++++++++----
- 1 files changed, 34 insertions(+), 4 deletions(-)
+Resending with proper bit assignment.
 
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index de374da..5656b27 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -67,19 +67,36 @@ static int soc_camera_power_on(struct soc_camera_device *icd,
- 		if (ret < 0) {
- 			dev_err(icd->pdev,
- 				"Platform failed to power-on the camera.\n");
--
--			regulator_bulk_disable(icl->num_regulators,
--					       icl->regulators);
-+			goto elinkpwr;
- 		}
- 	}
+---
+ include/media/v4l2-mediabus.h |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 6114007..f3a61ab 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -22,8 +22,12 @@
+  */
+ #define V4L2_MBUS_MASTER			(1 << 0)
+ #define V4L2_MBUS_SLAVE				(1 << 1)
+-/* Which signal polarities it supports */
+-/* Note: in BT.656 mode HSYNC and VSYNC are unused */
++/*
++ * Signal polarity flags
++ * Note: in BT.656 mode HSYNC, FIELD, and VSYNC are unused
++ * V4L2_MBUS_[HV]SYNC_* flags should be also used for specifying
++ * configuration of hardware that uses [HV]REF signals
++ */
+ #define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
+ #define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
+ #define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
+@@ -32,6 +36,9 @@
+ #define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
+ #define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
+ #define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
++/* Field selection signal for interlaced scan mode */
++#define V4L2_MBUS_FIELD_ACTIVE_HIGH		(1 << 10)
++#define V4L2_MBUS_FIELD_ACTIVE_LOW		(1 << 11)
  
-+	if (!ret) {
-+		struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-+		ret = v4l2_subdev_call(sd, core, s_power, 1);
-+		if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
-+			goto esdpwr;
-+	}
-+
-+	return 0;
-+
-+esdpwr:
-+	if (icl->power)
-+		icl->power(icd->pdev, 0);
-+elinkpwr:
-+	regulator_bulk_disable(icl->num_regulators,
-+			       icl->regulators);
- 	return ret;
- }
- 
- static int soc_camera_power_off(struct soc_camera_device *icd,
- 				struct soc_camera_link *icl)
- {
--	int ret;
-+	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-+	int ret = v4l2_subdev_call(sd, core, s_power, 0);
-+
-+	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
-+		return ret;
- 
- 	if (icl->power) {
- 		ret = icl->power(icd->pdev, 0);
-@@ -1089,6 +1106,12 @@ static int soc_camera_probe(struct soc_camera_device *icd)
- 	if (ret < 0)
- 		goto ereg;
- 
-+	/*
-+	 * This will not yet call v4l2_subdev_core_ops::s_power(1), because the
-+	 * the subdevice has not yet been initialised. We'll have to call it
-+	 * once again after initialisation, even though it shouldn't be needed,
-+	 * we don't do any IO here.
-+	 */
- 	ret = soc_camera_power_on(icd, icl);
- 	if (ret < 0)
- 		goto epower;
-@@ -1156,6 +1179,10 @@ static int soc_camera_probe(struct soc_camera_device *icd)
- 	if (ret < 0)
- 		goto evidstart;
- 
-+	ret = v4l2_subdev_call(sd, core, s_power, 1);
-+	if (ret < 0 && ret != -ENOIOCTLCMD)
-+		goto esdpwr;
-+
- 	/* Try to improve our guess of a reasonable window format */
- 	if (!v4l2_subdev_call(sd, video, g_mbus_fmt, &mf)) {
- 		icd->user_width		= mf.width;
-@@ -1172,6 +1199,8 @@ static int soc_camera_probe(struct soc_camera_device *icd)
- 
- 	return 0;
- 
-+esdpwr:
-+	video_unregister_device(icd->vdev);
- evidstart:
- 	mutex_unlock(&icd->video_lock);
- 	soc_camera_free_user_formats(icd);
-@@ -1185,6 +1214,7 @@ eiufmt:
- enodrv:
- eadddev:
- 	video_device_release(icd->vdev);
-+	icd->vdev = NULL;
- evdc:
- 	ici->ops->remove(icd);
- eadd:
+ /* Serial flags */
+ /* How many lanes the client can use */
 -- 
-1.7.2.5
+1.7.6.3
 
