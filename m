@@ -1,425 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:52772 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753441Ab1IFJTL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 05:19:11 -0400
-Received: by fxh19 with SMTP id 19so4413365fxh.19
-        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2011 02:19:09 -0700 (PDT)
-Date: Tue, 6 Sep 2011 09:19:05 +0000 (UTC)
-From: Bastian Hecht <hechtb@googlemail.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:62957 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756727Ab1ISQlq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Sep 2011 12:41:46 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LRS000WZ3PJ8360@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 19 Sep 2011 17:41:43 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LRS00IJD3PJNL@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 19 Sep 2011 17:41:43 +0100 (BST)
+Date: Mon, 19 Sep 2011 18:41:36 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 1/2] v4l2: Add the polarity flags for parallel camera bus
+ FIELD signal
+In-reply-to: <1316450497-6723-1-git-send-email-s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 1/2 v5] media: Add support for arbitrary resolution
-Message-ID: <alpine.DEB.2.02.1109060914520.8391@ipanema>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
+	kyungmin.park@samsung.com, g.liakhovetski@gmx.de,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1316450497-6723-2-git-send-email-s.nawrocki@samsung.com>
+References: <alpine.DEB.2.00.1109171423460.28766@axis700.grange>
+ <1316450497-6723-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the ability to get arbitrary resolutions with a width
-up to 2592 and a height up to 720 pixels instead of the standard 1280x720
-only.
+FIELD is an Even/Odd field selection signal, as specified in ITU-R BT.601
+standard. Add corresponding flag for configuring the FIELD signal polarity.
+Also add a comment about usage of V4L2_MBUS_[HV]SYNC* flags for the hardware
+that uses [HV]REF signals.
 
-Signed-off-by: Bastian Hecht <hechtb@gmail.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
-diff --git a/drivers/media/video/ov5642.c b/drivers/media/video/ov5642.c
-index 6410bda..e52fdb1 100644
---- a/drivers/media/video/ov5642.c
-+++ b/drivers/media/video/ov5642.c
-@@ -14,8 +14,10 @@
-  * published by the Free Software Foundation.
+ include/media/v4l2-mediabus.h |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 6114007..586fc44 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -22,8 +22,12 @@
   */
- 
-+#include <linux/bitops.h>
- #include <linux/delay.h>
- #include <linux/i2c.h>
-+#include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/videodev2.h>
- 
-@@ -34,7 +36,7 @@
- #define REG_WINDOW_START_Y_LOW		0x3803
- #define REG_WINDOW_WIDTH_HIGH		0x3804
- #define REG_WINDOW_WIDTH_LOW		0x3805
--#define REG_WINDOW_HEIGHT_HIGH 		0x3806
-+#define REG_WINDOW_HEIGHT_HIGH		0x3806
- #define REG_WINDOW_HEIGHT_LOW		0x3807
- #define REG_OUT_WIDTH_HIGH		0x3808
- #define REG_OUT_WIDTH_LOW		0x3809
-@@ -44,19 +46,44 @@
- #define REG_OUT_TOTAL_WIDTH_LOW		0x380d
- #define REG_OUT_TOTAL_HEIGHT_HIGH	0x380e
- #define REG_OUT_TOTAL_HEIGHT_LOW	0x380f
-+#define REG_OUTPUT_FORMAT		0x4300
-+#define REG_ISP_CTRL_01			0x5001
-+#define REG_AVG_WINDOW_END_X_HIGH	0x5682
-+#define REG_AVG_WINDOW_END_X_LOW	0x5683
-+#define REG_AVG_WINDOW_END_Y_HIGH	0x5686
-+#define REG_AVG_WINDOW_END_Y_LOW	0x5687
-+
-+/* active pixel array size */
-+#define OV5642_SENSOR_SIZE_X	2592
-+#define OV5642_SENSOR_SIZE_Y	1944
- 
- /*
-- * define standard resolution.
-- * Works currently only for up to 720 lines
-- * eg. 320x240, 640x480, 800x600, 1280x720, 2048x720
-+ * About OV5642 resolution, cropping and binning:
-+ * This sensor supports it all, at least in the feature description.
-+ * Unfortunately, no combination of appropriate registers settings could make
-+ * the chip work the intended way. As it works with predefined register lists,
-+ * some undocumented registers are presumably changed there to achieve their
-+ * goals.
-+ * This driver currently only works for resolutions up to 720 lines with a
-+ * 1:1 scale. Hopefully these restrictions will be removed in the future.
-  */
-+#define OV5642_MAX_WIDTH	OV5642_SENSOR_SIZE_X
-+#define OV5642_MAX_HEIGHT	720
- 
--#define OV5642_WIDTH		1280
--#define OV5642_HEIGHT		720
--#define OV5642_TOTAL_WIDTH	3200
--#define OV5642_TOTAL_HEIGHT	2000
--#define OV5642_SENSOR_SIZE_X	2592
--#define OV5642_SENSOR_SIZE_Y	1944
-+/* default sizes */
-+#define OV5642_DEFAULT_WIDTH	1280
-+#define OV5642_DEFAULT_HEIGHT	OV5642_MAX_HEIGHT
-+
-+/* minimum extra blanking */
-+#define BLANKING_EXTRA_WIDTH		500
-+#define BLANKING_EXTRA_HEIGHT		20
-+
+ #define V4L2_MBUS_MASTER			(1 << 0)
+ #define V4L2_MBUS_SLAVE				(1 << 1)
+-/* Which signal polarities it supports */
+-/* Note: in BT.656 mode HSYNC and VSYNC are unused */
 +/*
-+ * the sensor's autoexposure is buggy when setting total_height low.
-+ * It tries to expose longer than 1 frame period without taking care of it
-+ * and this leads to weird output. So we set 1000 lines as minimum.
++ * Signal polarity flags
++ * Note: in BT.656 mode HSYNC, FIELD, and VSYNC are unused
++ * V4L2_MBUS_[HV]SYNC_* flags should be also used for specifying
++ * configuration of hardware that uses [HV]REF signals
 + */
-+#define BLANKING_MIN_HEIGHT		1000
+ #define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
+ #define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
+ #define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
+@@ -32,6 +36,9 @@
+ #define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
+ #define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
+ #define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
++/* Field selection signal for interlaced scan mode */
++#define V4L2_MBUS_FIELD_ACTIVE_HIGH		(1 << 12)
++#define V4L2_MBUS_FIELD_ACTIVE_LOW		(1 << 13)
  
- struct regval_list {
- 	u16 reg_num;
-@@ -581,6 +608,11 @@ struct ov5642_datafmt {
- struct ov5642 {
- 	struct v4l2_subdev		subdev;
- 	const struct ov5642_datafmt	*fmt;
-+	struct v4l2_rect                crop_rect;
-+
-+	/* blanking information */
-+	int total_width;
-+	int total_height;
- };
- 
- static const struct ov5642_datafmt ov5642_colour_fmts[] = {
-@@ -641,6 +673,21 @@ static int reg_write(struct i2c_client *client, u16 reg, u8 val)
- 
- 	return 0;
- }
-+
-+/*
-+ * convenience function to write 16 bit register values that are split up
-+ * into two consecutive high and low parts
-+ */
-+static int reg_write16(struct i2c_client *client, u16 reg, u16 val16)
-+{
-+	int ret;
-+
-+	ret = reg_write(client, reg, val16 >> 8);
-+	if (ret)
-+		return ret;
-+	return reg_write(client, reg + 1, val16 & 0x00ff);
-+}
-+
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int ov5642_get_register(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg)
- {
-@@ -684,58 +731,55 @@ static int ov5642_write_array(struct i2c_client *client,
- 	return 0;
- }
- 
--static int ov5642_set_resolution(struct i2c_client *client)
-+static int ov5642_set_resolution(struct v4l2_subdev *sd)
- {
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct ov5642 *priv = to_ov5642(client);
-+	int width = priv->crop_rect.width;
-+	int height = priv->crop_rect.height;
-+	int total_width = priv->total_width;
-+	int total_height = priv->total_height;
-+	int start_x = (OV5642_SENSOR_SIZE_X - width) / 2;
-+	int start_y = (OV5642_SENSOR_SIZE_Y - height) / 2;
- 	int ret;
--	u8 start_x_high = ((OV5642_SENSOR_SIZE_X - OV5642_WIDTH) / 2) >> 8;
--	u8 start_x_low  = ((OV5642_SENSOR_SIZE_X - OV5642_WIDTH) / 2) & 0xff;
--	u8 start_y_high = ((OV5642_SENSOR_SIZE_Y - OV5642_HEIGHT) / 2) >> 8;
--	u8 start_y_low  = ((OV5642_SENSOR_SIZE_Y - OV5642_HEIGHT) / 2) & 0xff;
--
--	u8 width_high	= OV5642_WIDTH  >> 8;
--	u8 width_low	= OV5642_WIDTH  & 0xff;
--	u8 height_high	= OV5642_HEIGHT >> 8;
--	u8 height_low	= OV5642_HEIGHT & 0xff;
--
--	u8 total_width_high  = OV5642_TOTAL_WIDTH  >> 8;
--	u8 total_width_low   = OV5642_TOTAL_WIDTH  & 0xff;
--	u8 total_height_high = OV5642_TOTAL_HEIGHT >> 8;
--	u8 total_height_low  = OV5642_TOTAL_HEIGHT & 0xff;
--
--	ret = reg_write(client, REG_WINDOW_START_X_HIGH, start_x_high);
--	if (!ret)
--		ret = reg_write(client, REG_WINDOW_START_X_LOW, start_x_low);
--	if (!ret)
--		ret = reg_write(client, REG_WINDOW_START_Y_HIGH, start_y_high);
--	if (!ret)
--		ret = reg_write(client, REG_WINDOW_START_Y_LOW, start_y_low);
- 
-+	/*
-+	 * This should set the starting point for cropping.
-+	 * Doesn't work so far.
-+	 */
-+	ret = reg_write16(client, REG_WINDOW_START_X_HIGH, start_x);
- 	if (!ret)
--		ret = reg_write(client, REG_WINDOW_WIDTH_HIGH, width_high);
--	if (!ret)
--		ret = reg_write(client, REG_WINDOW_WIDTH_LOW , width_low);
--	if (!ret)
--		ret = reg_write(client, REG_WINDOW_HEIGHT_HIGH, height_high);
--	if (!ret)
--		ret = reg_write(client, REG_WINDOW_HEIGHT_LOW,  height_low);
-+		ret = reg_write16(client, REG_WINDOW_START_Y_HIGH, start_y);
-+	if (!ret) {
-+		priv->crop_rect.left = start_x;
-+		priv->crop_rect.top = start_y;
-+	}
- 
- 	if (!ret)
--		ret = reg_write(client, REG_OUT_WIDTH_HIGH, width_high);
--	if (!ret)
--		ret = reg_write(client, REG_OUT_WIDTH_LOW , width_low);
-+		ret = reg_write16(client, REG_WINDOW_WIDTH_HIGH, width);
- 	if (!ret)
--		ret = reg_write(client, REG_OUT_HEIGHT_HIGH, height_high);
-+		ret = reg_write16(client, REG_WINDOW_HEIGHT_HIGH, height);
-+	if (ret)
-+		return ret;
-+	priv->crop_rect.width = width;
-+	priv->crop_rect.height = height;
-+
-+	/* Set the output window size. Only 1:1 scale is supported so far. */
-+	ret = reg_write16(client, REG_OUT_WIDTH_HIGH, width);
- 	if (!ret)
--		ret = reg_write(client, REG_OUT_HEIGHT_LOW,  height_low);
-+		ret = reg_write16(client, REG_OUT_HEIGHT_HIGH, height);
- 
-+	/* Total width = output size + blanking */
- 	if (!ret)
--		ret = reg_write(client, REG_OUT_TOTAL_WIDTH_HIGH, total_width_high);
-+		ret = reg_write16(client, REG_OUT_TOTAL_WIDTH_HIGH, total_width);
- 	if (!ret)
--		ret = reg_write(client, REG_OUT_TOTAL_WIDTH_LOW, total_width_low);
-+		ret = reg_write16(client, REG_OUT_TOTAL_HEIGHT_HIGH, total_height);
-+
-+	/* Sets the window for AWB calculations */
- 	if (!ret)
--		ret = reg_write(client, REG_OUT_TOTAL_HEIGHT_HIGH, total_height_high);
-+		ret = reg_write16(client, REG_AVG_WINDOW_END_X_HIGH, width);
- 	if (!ret)
--		ret = reg_write(client, REG_OUT_TOTAL_HEIGHT_LOW,  total_height_low);
-+		ret = reg_write16(client, REG_AVG_WINDOW_END_Y_HIGH, height);
- 
- 	return ret;
- }
-@@ -743,18 +787,18 @@ static int ov5642_set_resolution(struct i2c_client *client)
- static int ov5642_try_fmt(struct v4l2_subdev *sd,
- 			  struct v4l2_mbus_framefmt *mf)
- {
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct ov5642 *priv = to_ov5642(client);
- 	const struct ov5642_datafmt *fmt = ov5642_find_datafmt(mf->code);
- 
--	dev_dbg(sd->v4l2_dev->dev, "%s(%u) width: %u heigth: %u\n",
--			__func__, mf->code, mf->width, mf->height);
-+	mf->width = priv->crop_rect.width;
-+	mf->height = priv->crop_rect.height;
- 
- 	if (!fmt) {
- 		mf->code	= ov5642_colour_fmts[0].code;
- 		mf->colorspace	= ov5642_colour_fmts[0].colorspace;
- 	}
- 
--	mf->width	= OV5642_WIDTH;
--	mf->height	= OV5642_HEIGHT;
- 	mf->field	= V4L2_FIELD_NONE;
- 
- 	return 0;
-@@ -766,20 +810,13 @@ static int ov5642_s_fmt(struct v4l2_subdev *sd,
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct ov5642 *priv = to_ov5642(client);
- 
--	dev_dbg(sd->v4l2_dev->dev, "%s(%u)\n", __func__, mf->code);
--
- 	/* MIPI CSI could have changed the format, double-check */
- 	if (!ov5642_find_datafmt(mf->code))
- 		return -EINVAL;
- 
- 	ov5642_try_fmt(sd, mf);
--
- 	priv->fmt = ov5642_find_datafmt(mf->code);
- 
--	ov5642_write_array(client, ov5642_default_regs_init);
--	ov5642_set_resolution(client);
--	ov5642_write_array(client, ov5642_default_regs_finalise);
--
- 	return 0;
- }
- 
-@@ -793,8 +830,8 @@ static int ov5642_g_fmt(struct v4l2_subdev *sd,
- 
- 	mf->code	= fmt->code;
- 	mf->colorspace	= fmt->colorspace;
--	mf->width	= OV5642_WIDTH;
--	mf->height	= OV5642_HEIGHT;
-+	mf->width	= priv->crop_rect.width;
-+	mf->height	= priv->crop_rect.height;
- 	mf->field	= V4L2_FIELD_NONE;
- 
- 	return 0;
-@@ -827,15 +864,44 @@ static int ov5642_g_chip_ident(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static int ov5642_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct ov5642 *priv = to_ov5642(client);
-+	struct v4l2_rect *rect = &a->c;
-+	int ret;
-+
-+	v4l_bound_align_image(&rect->width, 48, OV5642_MAX_WIDTH, 1,
-+			      &rect->height, 32, OV5642_MAX_HEIGHT, 1, 0);
-+
-+	priv->crop_rect.width	= rect->width;
-+	priv->crop_rect.height	= rect->height;
-+	priv->total_width	= rect->width + BLANKING_EXTRA_WIDTH;
-+	priv->total_height	= max_t(int, rect->height +
-+							BLANKING_EXTRA_HEIGHT,
-+							BLANKING_MIN_HEIGHT);
-+	priv->crop_rect.width		= rect->width;
-+	priv->crop_rect.height		= rect->height;
-+
-+	ret = ov5642_write_array(client, ov5642_default_regs_init);
-+	if (!ret)
-+		ret = ov5642_set_resolution(sd);
-+	if (!ret)
-+		ret = ov5642_write_array(client, ov5642_default_regs_finalise);
-+
-+	return ret;
-+}
-+
- static int ov5642_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
- {
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct ov5642 *priv = to_ov5642(client);
- 	struct v4l2_rect *rect = &a->c;
- 
--	a->type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	rect->top	= 0;
--	rect->left	= 0;
--	rect->width	= OV5642_WIDTH;
--	rect->height	= OV5642_HEIGHT;
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	*rect = priv->crop_rect;
- 
- 	return 0;
- }
-@@ -844,8 +910,8 @@ static int ov5642_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
- {
- 	a->bounds.left			= 0;
- 	a->bounds.top			= 0;
--	a->bounds.width			= OV5642_WIDTH;
--	a->bounds.height		= OV5642_HEIGHT;
-+	a->bounds.width			= OV5642_MAX_WIDTH;
-+	a->bounds.height		= OV5642_MAX_HEIGHT;
- 	a->defrect			= a->bounds;
- 	a->type				= V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	a->pixelaspect.numerator	= 1;
-@@ -858,24 +924,37 @@ static int ov5642_g_mbus_config(struct v4l2_subdev *sd,
- 				struct v4l2_mbus_config *cfg)
- {
- 	cfg->type = V4L2_MBUS_CSI2;
--	cfg->flags = V4L2_MBUS_CSI2_2_LANE |
--		V4L2_MBUS_CSI2_CHANNEL_0 |
--		V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-+	cfg->flags = V4L2_MBUS_CSI2_2_LANE | V4L2_MBUS_CSI2_CHANNEL_0 |
-+					V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
- 
- 	return 0;
- }
- 
-+static int ov5642_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	int ret = ov5642_write_array(client, ov5642_default_regs_init);
-+	if (!ret)
-+		ret = ov5642_set_resolution(sd);
-+	if (!ret)
-+		ret = ov5642_write_array(client, ov5642_default_regs_finalise);
-+
-+	return ret;
-+}
-+
- static struct v4l2_subdev_video_ops ov5642_subdev_video_ops = {
- 	.s_mbus_fmt	= ov5642_s_fmt,
- 	.g_mbus_fmt	= ov5642_g_fmt,
- 	.try_mbus_fmt	= ov5642_try_fmt,
- 	.enum_mbus_fmt	= ov5642_enum_fmt,
-+	.s_crop		= ov5642_s_crop,
- 	.g_crop		= ov5642_g_crop,
- 	.cropcap	= ov5642_cropcap,
- 	.g_mbus_config	= ov5642_g_mbus_config,
- };
- 
- static struct v4l2_subdev_core_ops ov5642_subdev_core_ops = {
-+	.s_power	= ov5642_s_power,
- 	.g_chip_ident	= ov5642_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register	= ov5642_get_register,
-@@ -941,8 +1020,17 @@ static int ov5642_probe(struct i2c_client *client,
- 
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov5642_subdev_ops);
- 
--	icd->ops	= NULL;
--	priv->fmt	= &ov5642_colour_fmts[0];
-+	icd->ops		= NULL;
-+	priv->fmt		= &ov5642_colour_fmts[0];
-+
-+	priv->crop_rect.width	= OV5642_DEFAULT_WIDTH;
-+	priv->crop_rect.height	= OV5642_DEFAULT_HEIGHT;
-+	priv->crop_rect.left	= (OV5642_MAX_WIDTH - OV5642_DEFAULT_WIDTH) / 2;
-+	priv->crop_rect.top	= (OV5642_MAX_HEIGHT - OV5642_DEFAULT_HEIGHT) / 2;
-+	priv->crop_rect.width	= OV5642_DEFAULT_WIDTH;
-+	priv->crop_rect.height	= OV5642_DEFAULT_HEIGHT;
-+	priv->total_width = OV5642_DEFAULT_WIDTH + BLANKING_EXTRA_WIDTH;
-+	priv->total_height = BLANKING_MIN_HEIGHT;
- 
- 	ret = ov5642_video_probe(icd, client);
- 	if (ret < 0)
-@@ -951,6 +1039,7 @@ static int ov5642_probe(struct i2c_client *client,
- 	return 0;
- 
- error:
-+	icd->ops = NULL;
- 	kfree(priv);
- 	return ret;
- }
-@@ -961,6 +1050,7 @@ static int ov5642_remove(struct i2c_client *client)
- 	struct soc_camera_device *icd = client->dev.platform_data;
- 	struct soc_camera_link *icl = to_soc_camera_link(icd);
- 
-+	icd->ops = NULL;
- 	if (icl->free_bus)
- 		icl->free_bus(icl);
- 	kfree(priv);
+ /* Serial flags */
+ /* How many lanes the client can use */
+-- 
+1.7.6.3
+
