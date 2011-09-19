@@ -1,73 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53380 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755012Ab1ILOSf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Sep 2011 10:18:35 -0400
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Date: Mon, 12 Sep 2011 19:48:16 +0530
-Subject: RE: [PATCH v2 0/8] RFC for Media Controller capture driver for DM365
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930257509832@dbde02.ent.ti.com>
-References: <1314630439-1122-1-git-send-email-manjunath.hadli@ti.com>
- <20110831213032.GT12368@valkosipuli.localdomain>
- <B85A65D85D7EB246BE421B3FB0FBB593025743F3CE@dbde02.ent.ti.com>
- <20110909161940.GJ1724@valkosipuli.localdomain>
- <B85A65D85D7EB246BE421B3FB0FBB593025743F4CE@dbde02.ent.ti.com>
- <20110912115925.GC1716@valkosipuli.localdomain>
-In-Reply-To: <20110912115925.GC1716@valkosipuli.localdomain>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51070 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751125Ab1ISFfj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Sep 2011 01:35:39 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p8J5ZaSe027583
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 19 Sep 2011 00:35:38 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH RESEND 1/4] davinci vpbe: remove unused macro.
+Date: Mon, 19 Sep 2011 11:05:26 +0530
+Message-ID: <1316410529-14744-2-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1316410529-14744-1-git-send-email-manjunath.hadli@ti.com>
+References: <1316410529-14744-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thank you Sakari.
--Manju
+remove VPBE_DISPLAY_SD_BUF_SIZE as it is no longer used.
 
-On Mon, Sep 12, 2011 at 17:29:25, Sakari Ailus wrote:
-> On Sat, Sep 10, 2011 at 12:11:37PM +0530, Hadli, Manjunath wrote:
-> > Hi Sakari,
-> > On Fri, Sep 09, 2011 at 21:49:40, Sakari Ailus wrote:
-> > > On Fri, Sep 09, 2011 at 07:10:49PM +0530, Hadli, Manjunath wrote:
-> > > > Hi Sakari,
-> > > > 
-> > > > On Thu, Sep 01, 2011 at 03:00:32, Sakari Ailus wrote:
-> > > > > Hi Manju,
-> > > > > 
-> > > > > Do you have the media device grap that would be typical for this hardware produced by media-ctl? That can be converted to postscript using dotfile.
-> > > > > 
-> > > > > this would make it a little easier to understan this driver. Thanks.
-> > > > 
-> > > > Sure. But can you be a little more elaborate on how you need this 
-> > > > information? If you can tell me in little more detail about this 
-> > > > that will help me make the information in a way that everyone can understand.
-> > > 
-> > > Preferrably in PostScript format so it's easy to visualise the layout of the hardware that the driver supports, as the OMAP 3 ISP example was.
-> > Sure.
-> >  I was more looking for an example of the same so it could help me put 
-> > the data together in the way it has been done before. Can you send 
-> > across if you have one?
-> 
-> Ah. I think I misunderstood you first. :-)
-> 
-> On the device, run
-> 
-> 	$ media-ctl --print-dot > graph.dot
-> 
-> This will produce a graph of the media device in the dot format. This is then processed by program called dot:
-> 
-> 	$ dot -o graph.ps -T ps < graph.dot
-> 
-> dot is available at least in Debian in a package called graphviz.
-> 
-> Cheers,
-> 
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
-> 
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+---
+ drivers/media/video/davinci/vpbe_display.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/davinci/vpbe_display.c b/drivers/media/video/davinci/vpbe_display.c
+index ae7add1..09a659e 100644
+--- a/drivers/media/video/davinci/vpbe_display.c
++++ b/drivers/media/video/davinci/vpbe_display.c
+@@ -43,7 +43,6 @@
+ 
+ static int debug;
+ 
+-#define VPBE_DISPLAY_SD_BUF_SIZE (720*576*2)
+ #define VPBE_DEFAULT_NUM_BUFS 3
+ 
+ module_param(debug, int, 0644);
+-- 
+1.6.2.4
 
