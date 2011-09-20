@@ -1,101 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46605 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752965Ab1I0OIm convert rfc822-to-8bit (ORCPT
+Received: from mailout-eu.gmx.com ([213.165.64.43]:54569 "HELO
+	mailout-eu.gmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753351Ab1ITLtZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 10:08:42 -0400
-From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"tony@atomide.com" <tony@atomide.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
-	"Shilimkar, Santosh" <santosh.shilimkar@ti.com>,
-	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>,
-	"david.woodhouse@intel.com" <david.woodhouse@intel.com>,
-	"akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Date: Tue, 27 Sep 2011 19:37:35 +0530
-Subject: RE: [PATCH 2/5] [media] v4l: Add mt9t111 sensor driver
-Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09085F@dbde03.ent.ti.com>
-References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com>
- <1316530612-23075-3-git-send-email-deepthy.ravi@ti.com>,<Pine.LNX.4.64.1109201704190.11274@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1109201704190.11274@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Tue, 20 Sep 2011 07:49:25 -0400
+Message-ID: <4E787C1B.8050304@gmx.com>
+Date: Tue, 20 Sep 2011 21:42:19 +1000
+From: David Shepherd <daveshep@gmx.com>
 MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Leadtek DTV 2000DS Not Working in Mythbuntu 11.04
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-> ________________________________________
-> From: Gary Thomas [gary@mlbassoc.com]
-> Sent: Tuesday, September 27, 2011 7:21 PM
-> To: Ravi, Deepthy
-> Cc: laurent.pinchart@ideasonboard.com; mchehab@infradead.org; tony@atomide.com; Hiremath, Vaibhav; linux-media@vger.kernel.org; linux@arm.linux.org.uk; linux-arm-kernel@lists.infradead.org; kyungmin.park@samsung.com; hverkuil@xs4all.nl; m.szyprowski@samsung.com; g.liakhovetski@gmx.de; Shilimkar, Santosh; khilman@deeprootsystems.com; linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v2 0/5] OMAP3EVM: Add support for MT9T111 sensor
->
-> On 2011-09-27 07:40, Deepthy Ravi wrote:
->> This patchset
->>       -adds support for MT9T111 sensor on omap3evm.
->>       Currently the sensor driver supports only
->>       VGA resolution.
->>       -enables MT9T111 sensor in omap2plus_defconfig.
->>
->> This is dependent on the following patchset
->> http://www.spinics.net/lists/linux-media/msg37270.html
->> which adds YUYV input support for OMAP3ISP. And is
->> applied on top of rc1-for-3.2 of gliakhovetski/v4l-dvb.git
->
-> Why not use the same base as Lennart?
->   The set is based on
->   http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-omap3isp-next
->
-[Deepthy Ravi] Because the patches for making mt9t112 driver usable outside the soc-camera subsystem are present in that base only . Its not there in Laurent's.
->> ---
->> Changes in v2:
->>       As per the discussion here,
->>       https://lkml.org/lkml/2011/9/20/280
->>       the existing mt9t112 driver is reused for
->>       adding support for mt9t111 sensor.
->> Deepthy Ravi (3):
->>    [media] v4l: Add support for mt9t111 sensor driver
->>    ispccdc: Configure CCDC_SYN_MODE register
->>    omap2plus_defconfig: Enable omap3isp and MT9T111 sensor drivers
->>
->> Vaibhav Hiremath (2):
->>    omap3evm: Enable regulators for camera interface
->>    omap3evm: Add Camera board init/hookup file
->>
->>   arch/arm/configs/omap2plus_defconfig        |    9 +
->>   arch/arm/mach-omap2/Makefile                |    5 +
->>   arch/arm/mach-omap2/board-omap3evm-camera.c |  185 ++++
->>   arch/arm/mach-omap2/board-omap3evm.c        |   26 +
->>   drivers/media/video/Kconfig                 |    7 +
->>   drivers/media/video/Makefile                |    1 +
->>   drivers/media/video/mt9t111_reg.h           | 1367 +++++++++++++++++++++++++++
->>   drivers/media/video/mt9t112.c               |  320 ++++++-
->>   drivers/media/video/omap3isp/ispccdc.c      |   11 +-
->>   include/media/mt9t111.h                     |   45 +
->>   10 files changed, 1937 insertions(+), 39 deletions(-)
->>   create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
->>   create mode 100644 drivers/media/video/mt9t111_reg.h
->>   create mode 100644 include/media/mt9t111.h
->
-> --
-> ------------------------------------------------------------
-> Gary Thomas                 |  Consulting for the
-> MLB Associates              |    Embedded world
-> ------------------------------------------------------------
->
+I'm running Mythbuntu 11.04 (2.6.38-11 kernel) and recently bought a 
+Leadtek Winfast DTV2000DS PCI dual tuner card. It's supposed to work 
+out-of-the-box but mine just doesn't... I've tried the card in a Windows 
+7 Media PC and it worked sweet as, so I know there's nothing wrong with 
+the hardware...
 
+So the relevant section from lsusb is
+
+$lsusb
+/
+Bus 006 Device 002: ID 0413:6a04 Leadtek Research, Inc./
+
+and with more detail
+
+$sudo lsusb -v -s 006:002
+
+/Bus 006 Device 002: ID 0413:6a04 Leadtek Research, Inc.
+Device Descriptor:
+   bLength                18
+   bDescriptorType         1
+   bcdUSB               2.00
+   bDeviceClass            0 (Defined at Interface level)
+   bDeviceSubClass         0
+   bDeviceProtocol         0
+   bMaxPacketSize0        64
+   idVendor           0x0413 Leadtek Research, Inc.
+   idProduct          0x6a04
+   bcdDevice            2.00
+   iManufacturer           1
+   iProduct                2
+   iSerial                 0
+   bNumConfigurations      1
+   Configuration Descriptor:
+     bLength                 9
+     bDescriptorType         2
+     wTotalLength           46
+     bNumInterfaces          1
+     bConfigurationValue     1
+     iConfiguration          0
+     bmAttributes         0x80
+       (Bus Powered)
+     MaxPower              500mA
+     Interface Descriptor:
+       bLength                 9
+       bDescriptorType         4
+       bInterfaceNumber        0
+       bAlternateSetting       0
+       bNumEndpoints           4
+       bInterfaceClass       255 Vendor Specific Class
+       bInterfaceSubClass      0
+       bInterfaceProtocol      0
+       iInterface              0
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x81  EP 1 IN
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0040  1x 64 bytes
+         bInterval               0
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x02  EP 2 OUT
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0040  1x 64 bytes
+         bInterval               0
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x84  EP 4 IN
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0040  1x 64 bytes
+         bInterval               0
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x85  EP 5 IN
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0040  1x 64 bytes
+         bInterval               0
+Device Status:     0x0000
+   (Bus Powered)
+/
+The relevant section from dmesg is
+
+$dmesg
+
+/[   84.230061] usb 6-1: new full speed USB device using uhci_hcd and
+address 2
+[   99.085019] IR NEC protocol handler initialized
+[   99.100323] IR RC5(x) protocol handler initialized
+[   99.104296] IR RC6 protocol handler initialized
+[   99.107529] IR JVC protocol handler initialized
+[   99.110847] IR Sony protocol handler initialized
+[   99.119084] lirc_dev: IR Remote Control driver registered, major 250
+[   99.133810] IR LIRC bridge handler initialized
+[  104.704513] af9015: bulk message failed:-110 (8/0)
+[  104.704524] af9015: eeprom read failed:-110
+[  104.704547] dvb_usb_af9015: probe of 6-1:1.0 failed with error -110
+[  104.706480] usbcore: registered new interface driver dvb_usb_af9015
+/
+if i try and manually load the driver i get
+
+$sudo modprobe dvb-usb-af9015
+$ dmesg
+
+/[ 6163.061092] usb 6-1: usbfs: USBDEVFS_CONTROL failed cmd lsusb rqt 
+128 rq 6 len 255 ret -110/
+
+I've messed around a lot, different versions of the firmware etc, i 
+chucked in an empty HDD and tried a clean install of 11.04, and tried to 
+install 11.10 Beta 1 (that doesn't work - it freezes after the Remote 
+Control Setup page as someone reported here 
+https://bugs.launchpad.net/bugs/854426), and nothing has worked besides 
+using it in a Windows machine.
+
+Any ideas?
+
+cheers
+
+Shep
