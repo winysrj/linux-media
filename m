@@ -1,120 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:59795 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750713Ab1I0Pce (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:43700 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751182Ab1ITU5e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 11:32:34 -0400
-Received: from epcpsbgm1.samsung.com (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LS600IBGTU8QJC0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Wed, 28 Sep 2011 00:32:32 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0LS6003UXTU35N70@mmp1.samsung.com>
- for linux-media@vger.kernel.org; Wed, 28 Sep 2011 00:32:32 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl, sakari.ailus@iki.fi
-References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com>
- <201109231513.22342.laurent.pinchart@ideasonboard.com>
- <4E7CA433.1000402@samsung.com>
- <201109271317.07571.laurent.pinchart@ideasonboard.com>
- <4E81DAE7.60509@samsung.com>
-In-reply-to: <4E81DAE7.60509@samsung.com>
-Subject: RE: [PATCH 2/4] v4l: add documentation for selection API
-Date: Tue, 27 Sep 2011 17:32:26 +0200
-Message-id: <003401cc7d2a$abe23990$03a6acb0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: en-gb
+	Tue, 20 Sep 2011 16:57:34 -0400
+Date: Tue, 20 Sep 2011 23:57:30 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com
+Subject: Re: [PATCH v1 2/3] v4l: Add AUTO option for the
+ V4L2_CID_POWER_LINE_FREQUENCY control
+Message-ID: <20110920205730.GN1845@valkosipuli.localdomain>
+References: <1316519939-22540-1-git-send-email-s.nawrocki@samsung.com>
+ <1316519939-22540-3-git-send-email-s.nawrocki@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1316519939-22540-3-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz and Laurent,
+Hi Sylwester,
 
-I have commented on the MFC case below.
-
-> From: Tomasz Stanislawski [mailto:t.stanislaws@samsung.com]
+On Tue, Sep 20, 2011 at 01:58:58PM +0200, Sylwester Nawrocki wrote:
+> V4L2_CID_POWER_LINE_FREQUENCY control allows applications to instruct
+> a driver what is the power line frequency so an appropriate filter
+> can be used by the device to cancel flicker by compensating the light
+> intensity ripple and thus. Currently in the menu we have entries for
+> 50 and 60 Hz and for entirely disabling the anti-flicker filter.
+> However some devices are capable of automatically detecting the
+> frequency, so add V4L2_CID_POWER_LINE_FREQUENCY_AUTO entry for them.
 > 
-> Hi Laurent,
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  Documentation/DocBook/media/v4l/controls.xml |    5 +++--
+>  drivers/media/video/v4l2-ctrls.c             |    1 +
+>  include/linux/videodev2.h                    |    1 +
+>  3 files changed, 5 insertions(+), 2 deletions(-)
 > 
-> On 09/27/2011 01:17 PM, Laurent Pinchart wrote:
-> > Hi Tomasz,
-> >
-> > On Friday 23 September 2011 17:22:27 Tomasz Stanislawski wrote:
-> >> On 09/23/2011 03:13 PM, Laurent Pinchart wrote:
-> >
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index 2420e4a..c6b3c46 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -232,8 +232,9 @@ control is deprecated. New drivers and applications should use the
+>  	    <entry>Enables a power line frequency filter to avoid
+>  flicker. Possible values for <constant>enum v4l2_power_line_frequency</constant> are:
+>  <constant>V4L2_CID_POWER_LINE_FREQUENCY_DISABLED</constant> (0),
+> -<constant>V4L2_CID_POWER_LINE_FREQUENCY_50HZ</constant> (1) and
+> -<constant>V4L2_CID_POWER_LINE_FREQUENCY_60HZ</constant> (2).</entry>
+> +<constant>V4L2_CID_POWER_LINE_FREQUENCY_50HZ</constant> (1),
+> +<constant>V4L2_CID_POWER_LINE_FREQUENCY_60HZ</constant> (2) and
+> +<constant>V4L2_CID_POWER_LINE_FREQUENCY_AUTO</constant> (3).</entry>
+
+A stupid question: wouldn't this be a case for a new control for automatic
+power line frequency, in other words enabling or disabling it?
+
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_CID_HUE_AUTO</constant></entry>
+> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+> index 06b6014..20abe5d 100644
+> --- a/drivers/media/video/v4l2-ctrls.c
+> +++ b/drivers/media/video/v4l2-ctrls.c
+> @@ -210,6 +210,7 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>  		"Disabled",
+>  		"50 Hz",
+>  		"60 Hz",
+> +		"Auto",
+>  		NULL
+>  	};
+>  	static const char * const camera_exposure_auto[] = {
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index c33f462..87210f1 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -1125,6 +1125,7 @@ enum v4l2_power_line_frequency {
+>  	V4L2_CID_POWER_LINE_FREQUENCY_DISABLED	= 0,
+>  	V4L2_CID_POWER_LINE_FREQUENCY_50HZ	= 1,
+>  	V4L2_CID_POWER_LINE_FREQUENCY_60HZ	= 2,
+> +	V4L2_CID_POWER_LINE_FREQUENCY_AUTO	= 3,
+>  };
+>  #define V4L2_CID_HUE_AUTO			(V4L2_CID_BASE+25)
+>  #define V4L2_CID_WHITE_BALANCE_TEMPERATURE	(V4L2_CID_BASE+26)
+> -- 
+> 1.7.6.3
 > 
 
-[snip]
-> 
-> >>>>>
-> >>>>> How would an application remove them ?
-> >>>>
-> >>>> The application may use memset if it recognizes fourcc. The idea of
-> >>>> padding target was to provide information about artifacts introduced
-> the
-> >>>> hardware. If the image is decoded directly to framebuffer then the
-> >>>> application could remove artifacts. We could introduce some V4L2
-> >>>> control to inform if the padding are is filled with zeros to avoid
-> >>>> redundant memset.
-> >>>> What do you think?
-> >>>
-> >>> OK, I understand this better now. I'm still not sure how applications
-> >>> will be able to cope with that. memset'ing the garbage area won't look
-> >>> good on the screen.
-> >>
-> >> The memset is just a simple and usually fast solution. The application
-> >> could fill the padding area with any pattern or background color.
-> >>
-> >>> Does your hardware have different compose and padding rectangles ?
-> >>
-> >> I assume that you mean active and padded targets for composing, right?
-> >> The answer is yes. The MFC inserts data to the image that dimensions are
-> >> multiples of 128x32. The movie inside could be any size that fits to the
-> >> buffer. The area that contains the movie frame is the active rectangle.
-> >> The padded is filled with zeros. For MFC the bounds and padded rectangle
-> >> are the same.
-> >>
-> >> Hmm...
-> >>
-> >> Does it violate 'no margin requirement', doesn't it?
-> >
-> > Seems so :-)
-> >
-> 
-> For S5P MFC is it not possible to satisfy 'no margin' requirement in all
-> cases. The default rectangle is not equal to the bound rectangle in all
-> cases. BTW, the MFC is mem2mem device so its API may change.
-> To sum up for MFC following inequalities are satisfied:
-> 
-> active <= padded == bound
-> 
-> Do you think that 'no margin' requirement should be downgraded to a
-> recommendation status?
-
-In case of MFC it will be active == padded <= bound as MFC does not fill the
-region outside the active zone with zeroes. That pixels are not modified.
-
-The 'no margin requirement' as I understand should not be imposed. I can imagine
-other hardware than MFC that may have the default crop other than the full buffer
-size. This will be especially common in case of various tiled image formats.
-In MFC we have 128x32 tiles, but the movie size can be any number (If I remember
-correctly).
-
-
-[snip]
-
-
-Best wishes,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
-
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
