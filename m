@@ -1,96 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:54366 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754602Ab1ILL02 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Sep 2011 07:26:28 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] media: ov6650: Fix wrong register used for red control
-Date: Mon, 12 Sep 2011 13:25:25 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56491 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751319Ab1ITXMe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Sep 2011 19:12:34 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v3 1/2] v4l2: Add the polarity flags for parallel camera bus FIELD signal
+Date: Wed, 21 Sep 2011 01:12:38 +0200
+Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, g.liakhovetski@gmx.de,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com
+References: <1316450497-6723-1-git-send-email-s.nawrocki@samsung.com> <1316452075-10700-1-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1316452075-10700-1-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="us-ascii"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109121325.25986.jkrzyszt@tis.icnet.pl>
+Message-Id: <201109210112.39469.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-REG_BLUE has been used by mistake instead of REG_RED. Fix it.
+Hi Sylwester,
 
-While being at it, fix a few minor issues:
-* with no "retrun ret;" at the end, there is no need to initialize ret
-  any longer,
-* consequently use conditional expressions, not if...else constructs,
-  throughout ov6650_s_ctrl(),
-* v4l2_ctrl_new_std_menu() max value of V4L2_EXPOSURE_MANUAL instead of
-  equivalent 1 looks more clear.
+Thanks for the patch.
 
-Created on top of "Converting soc_camera to the control framework"
-series.
+On Monday 19 September 2011 19:07:55 Sylwester Nawrocki wrote:
+> FIELD is an Even/Odd field selection signal, as specified in ITU-R BT.601
+> standard. Add corresponding flag for configuring the FIELD signal polarity.
+> Also add a comment about usage of V4L2_MBUS_[HV]SYNC* flags for the
+> hardware that uses [HV]REF signals.
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
- drivers/media/video/ov6650.c |   16 +++++++---------
- 1 files changed, 7 insertions(+), 9 deletions(-)
+I like this approach better.
 
-diff --git a/drivers/media/video/ov6650.c b/drivers/media/video/ov6650.c
-index 089a4aa..c0709ee 100644
---- a/drivers/media/video/ov6650.c
-+++ b/drivers/media/video/ov6650.c
-@@ -310,7 +310,7 @@ static int ov6550_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- 	struct v4l2_subdev *sd = &priv->subdev;
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	uint8_t reg, reg2;
--	int ret = 0;
-+	int ret;
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUTOGAIN:
-@@ -342,7 +342,7 @@ static int ov6550_s_ctrl(struct v4l2_ctrl *ctrl)
- 	struct ov6650 *priv = container_of(ctrl->handler, struct ov6650, hdl);
- 	struct v4l2_subdev *sd = &priv->subdev;
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	int ret = 0;
-+	int ret;
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUTOGAIN:
-@@ -357,7 +357,7 @@ static int ov6550_s_ctrl(struct v4l2_ctrl *ctrl)
- 		if (!ret && !ctrl->val) {
- 			ret = ov6650_reg_write(client, REG_BLUE, priv->blue->val);
- 			if (!ret)
--				ret = ov6650_reg_write(client, REG_BLUE,
-+				ret = ov6650_reg_write(client, REG_RED,
- 							priv->red->val);
- 		}
- 		return ret;
-@@ -370,10 +370,8 @@ static int ov6550_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_BRIGHTNESS:
- 		return ov6650_reg_write(client, REG_BRT, ctrl->val);
- 	case V4L2_CID_EXPOSURE_AUTO:
--		if (ctrl->val == V4L2_EXPOSURE_AUTO)
--			ret = ov6650_reg_rmw(client, REG_COMB, COMB_AEC, 0);
--		else
--			ret = ov6650_reg_rmw(client, REG_COMB, 0, COMB_AEC);
-+		ret = ov6650_reg_rmw(client, REG_COMB, ctrl->val ==
-+				V4L2_EXPOSURE_AUTO ? COMB_AEC : 0, COMB_AEC);
- 		if (!ret && ctrl->val == V4L2_EXPOSURE_MANUAL)
- 			ret = ov6650_reg_write(client, REG_AECH,
- 						priv->exposure->val);
-@@ -993,8 +991,8 @@ static int ov6650_probe(struct i2c_client *client,
- 	v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
- 			V4L2_CID_BRIGHTNESS, 0, 0xff, 1, 0x80);
- 	priv->autoexposure = v4l2_ctrl_new_std_menu(&priv->hdl,
--			&ov6550_ctrl_ops, V4L2_CID_EXPOSURE_AUTO, 1, 0,
--			V4L2_EXPOSURE_AUTO);
-+			&ov6550_ctrl_ops, V4L2_CID_EXPOSURE_AUTO,
-+			V4L2_EXPOSURE_MANUAL, 0, V4L2_EXPOSURE_AUTO);
- 	priv->exposure = v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
- 			V4L2_CID_EXPOSURE, 0, 0xff, 1, DEF_AECH);
- 	v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+> Resending with proper bit assignment.
+> 
+> ---
+>  include/media/v4l2-mediabus.h |   11 +++++++++--
+>  1 files changed, 9 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+> index 6114007..f3a61ab 100644
+> --- a/include/media/v4l2-mediabus.h
+> +++ b/include/media/v4l2-mediabus.h
+> @@ -22,8 +22,12 @@
+>   */
+>  #define V4L2_MBUS_MASTER			(1 << 0)
+>  #define V4L2_MBUS_SLAVE				(1 << 1)
+> -/* Which signal polarities it supports */
+> -/* Note: in BT.656 mode HSYNC and VSYNC are unused */
+> +/*
+> + * Signal polarity flags
+> + * Note: in BT.656 mode HSYNC, FIELD, and VSYNC are unused
+> + * V4L2_MBUS_[HV]SYNC_* flags should be also used for specifying
+> + * configuration of hardware that uses [HV]REF signals
+> + */
+>  #define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
+>  #define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
+>  #define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
+> @@ -32,6 +36,9 @@
+>  #define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
+>  #define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
+>  #define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
+> +/* Field selection signal for interlaced scan mode */
+> +#define V4L2_MBUS_FIELD_ACTIVE_HIGH		(1 << 10)
+> +#define V4L2_MBUS_FIELD_ACTIVE_LOW		(1 << 11)
+
+What does this mean ? The FIELD signal is used to select between odd and even 
+fields. Does "active high" mean that the field is odd or even when the signal 
+has a high level ? The comment should make it explicit, or we could even 
+rename those two constants to FIELD_ODD_HIGH/FIELD_ODD_LOW (or 
+FIELD_EVEN_HIGH/FIELD_EVEN_LOW).
+
+>  /* Serial flags */
+>  /* How many lanes the client can use */
+
 -- 
-1.7.3.4
+Regards,
 
+Laurent Pinchart
