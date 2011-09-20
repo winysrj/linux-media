@@ -1,43 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:55939 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752643Ab1I0U6q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 16:58:46 -0400
-Date: Tue, 27 Sep 2011 23:58:43 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Subject: Re: [PATCH v2 2/2] v4l: Add v4l2 subdev driver for S5K6AAFX sensor
-Message-ID: <20110927205843.GB6180@valkosipuli.localdomain>
-References: <1316627107-18709-1-git-send-email-s.nawrocki@samsung.com>
- <1316627107-18709-3-git-send-email-s.nawrocki@samsung.com>
- <20110922220259.GS1845@valkosipuli.localdomain>
- <4E7C5BAA.9090900@samsung.com>
- <20110925100804.GU1845@valkosipuli.localdomain>
- <4E7F5DEC.8020808@gmail.com>
- <20110927205532.GA6180@valkosipuli.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20110927205532.GA6180@valkosipuli.localdomain>
+Received: from mr.siano-ms.com ([62.0.79.70]:6304 "EHLO
+	Siano-NV.ser.netvision.net.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932161Ab1ITKTV convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Sep 2011 06:19:21 -0400
+Subject: [PATCH  16/17]DVB:Siano drivers - extern function
+ smscore_send_last_fw_chunk to be used by other modules
+From: Doron Cohen <doronc@siano-ms.com>
+Reply-To: doronc@siano-ms.com
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Tue, 20 Sep 2011 13:32:03 +0300
+Message-ID: <1316514723.5199.94.camel@Doron-Ubuntu>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 27, 2011 at 11:55:32PM +0300, Sakari Ailus wrote:
-> Sylwester Nawrocki wrote:
-> > Hello Sakari,
-> 
-> Hi Sylwester,
+Hi,
+This patch step externs function smscore_send_last_fw_chunk to be used
+by other modules.
+Thanks,
+Doron Cohen
 
-What I forgot to ask was whether there is a public datasheet for this
-sensor?
+-----------------------
 
-Regards,
+>From 1e19b238fa7129396df7ddc89e8197669c72a3a4 Mon Sep 17 00:00:00 2001
+From: Doron Cohen <doronc@siano-ms.com>
+Date: Tue, 20 Sep 2011 09:38:10 +0300
+Subject: [PATCH 20/21] extern function smscore_send_last_fw_chunk to be
+used by other modules
 
+---
+ drivers/media/dvb/siano/smscoreapi.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/dvb/siano/smscoreapi.c
+b/drivers/media/dvb/siano/smscoreapi.c
+index 0555a38..10bd28c 100644
+--- a/drivers/media/dvb/siano/smscoreapi.c
++++ b/drivers/media/dvb/siano/smscoreapi.c
+@@ -964,6 +964,8 @@ exit_fw_download:
+ 
+ 	return rc;
+ }
++EXPORT_SYMBOL_GPL(smscore_send_last_fw_chunk);
++
+ 
+ /**
+  * notifies all clients registered with the device, notifies hotplugs,
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.4.1
+
