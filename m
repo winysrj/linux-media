@@ -1,64 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:31276 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750711Ab1IUNrN (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:65286 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751114Ab1ITNet (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 09:47:13 -0400
-Date: Wed, 21 Sep 2011 15:47:05 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 7/8] ARM: integrate CMA with DMA-mapping subsystem
-In-reply-to: <CAMjpGUch=ogFQwBLqOukKVnyh60600jw5tMq-KYeNGSZ2PLQpA@mail.gmail.com>
-To: 'Mike Frysinger' <vapier.adi@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Russell King' <linux@arm.linux.org.uk>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Mel Gorman' <mel@csn.ul.ie>, 'Arnd Bergmann' <arnd@arndb.de>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
-	'Chunsang Jeong' <chunsang.jeong@linaro.org>
-Message-id: <001a01cc7864$f2c98ea0$d85cabe0$%szyprowski@samsung.com>
+	Tue, 20 Sep 2011 09:34:49 -0400
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LRT00035PPZLX@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 20 Sep 2011 14:34:47 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LRT00EJYPPZNX@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 20 Sep 2011 14:34:47 +0100 (BST)
+Date: Tue, 20 Sep 2011 15:34:43 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] m5mols: Remove superfluous irq field from the platform data
+ struct
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, m.szyprowski@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1316525683-7648-1-git-send-email-s.nawrocki@samsung.com>
 MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-language: pl
+Content-type: TEXT/PLAIN
 Content-transfer-encoding: 7BIT
-References: <1313764064-9747-1-git-send-email-m.szyprowski@samsung.com>
- <1313764064-9747-8-git-send-email-m.szyprowski@samsung.com>
- <CAMjpGUch=ogFQwBLqOukKVnyh60600jw5tMq-KYeNGSZ2PLQpA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+There is no need to put the IRQ number in driver's private platform
+data structure as this can also be passed through struct i2c_lient.irq.
 
-On Thursday, September 08, 2011 7:27 PM Mike Frysinger wrote:
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/m5mols/m5mols_core.c |    6 +++---
+ include/media/m5mols.h                   |    4 +---
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
-> On Fri, Aug 19, 2011 at 10:27, Marek Szyprowski wrote:
-> >  arch/arm/include/asm/device.h         |    3 +
-> >  arch/arm/include/asm/dma-contiguous.h |   33 +++
-> 
-> seems like these would be good asm-generic/ additions rather than arm
-
-Only some of them can be really moved to asm-generic imho. The following
-lines are definitely architecture specific:
-
-void dma_contiguous_early_fixup(phys_addr_t base, unsigned long size);
-
-Some other archs might define empty fixup function. Right now only ARM 
-architecture is the real client of the CMA. IMHO if any other arch stats
-using CMA, some of the CMA definitions can be then moved to asm-generic.
-Right now I wanted to keep it as simple as possible.
-
-Best regards
+diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
+index fb8e4a7..5d21d05 100644
+--- a/drivers/media/video/m5mols/m5mols_core.c
++++ b/drivers/media/video/m5mols/m5mols_core.c
+@@ -936,7 +936,7 @@ static int __devinit m5mols_probe(struct i2c_client *client,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (!pdata->irq) {
++	if (!client->irq) {
+ 		dev_err(&client->dev, "Interrupt not assigned\n");
+ 		return -EINVAL;
+ 	}
+@@ -973,7 +973,7 @@ static int __devinit m5mols_probe(struct i2c_client *client,
+ 
+ 	init_waitqueue_head(&info->irq_waitq);
+ 	INIT_WORK(&info->work_irq, m5mols_irq_work);
+-	ret = request_irq(pdata->irq, m5mols_irq_handler,
++	ret = request_irq(client->irq, m5mols_irq_handler,
+ 			  IRQF_TRIGGER_RISING, MODULE_NAME, sd);
+ 	if (ret) {
+ 		dev_err(&client->dev, "Interrupt request failed: %d\n", ret);
+@@ -998,7 +998,7 @@ static int __devexit m5mols_remove(struct i2c_client *client)
+ 	struct m5mols_info *info = to_m5mols(sd);
+ 
+ 	v4l2_device_unregister_subdev(sd);
+-	free_irq(info->pdata->irq, sd);
++	free_irq(client->irq, sd);
+ 
+ 	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
+ 	gpio_free(info->pdata->gpio_reset);
+diff --git a/include/media/m5mols.h b/include/media/m5mols.h
+index aac2c0e..4a825ae 100644
+--- a/include/media/m5mols.h
++++ b/include/media/m5mols.h
+@@ -18,15 +18,13 @@
+ 
+ /**
+  * struct m5mols_platform_data - platform data for M-5MOLS driver
+- * @irq:	GPIO getting the irq pin of M-5MOLS
+  * @gpio_reset:	GPIO driving the reset pin of M-5MOLS
+- * @reset_polarity: active state for gpio_rst pin, 0 or 1
++ * @reset_polarity: active state for gpio_reset pin, 0 or 1
+  * @set_power:	an additional callback to the board setup code
+  *		to be called after enabling and before disabling
+  *		the sensor's supply regulators
+  */
+ struct m5mols_platform_data {
+-	int irq;
+ 	int gpio_reset;
+ 	u8 reset_polarity;
+ 	int (*set_power)(struct device *dev, int on);
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+1.7.6.3
 
