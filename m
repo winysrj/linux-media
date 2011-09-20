@@ -1,111 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44629 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751614Ab1ITXcp (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:42413 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751886Ab1ITWKh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Sep 2011 19:32:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Rob Clark <rob.clark@linaro.org>
-Subject: Re: Proposal for a low-level Linux display framework
-Date: Wed, 21 Sep 2011 01:32:48 +0200
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Keith Packard <keithp@keithp.com>, linaro-dev@lists.linaro.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org,
-	Alex Deucher <alexdeucher@gmail.com>,
-	linux-media@vger.kernel.org
-References: <1316088425.11294.78.camel@lappyti> <20110918232329.6ff05d56@lxorguk.ukuu.org.uk> <CAN_cFWNkdYEFaeCmJcsPnrt+hoiOZuZEQ6qbrcXWQT_3NSNoLw@mail.gmail.com>
-In-Reply-To: <CAN_cFWNkdYEFaeCmJcsPnrt+hoiOZuZEQ6qbrcXWQT_3NSNoLw@mail.gmail.com>
+	Tue, 20 Sep 2011 18:10:37 -0400
+Date: Wed, 21 Sep 2011 01:10:33 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com
+Subject: Re: [PATCH v1 3/3] v4l: Add v4l2 subdev driver for S5K6AAFX sensor
+Message-ID: <20110920221033.GO1845@valkosipuli.localdomain>
+References: <1316519939-22540-1-git-send-email-s.nawrocki@samsung.com>
+ <1316519939-22540-4-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109210132.48663.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1316519939-22540-4-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alan and Rob,
+On Tue, Sep 20, 2011 at 01:58:59PM +0200, Sylwester Nawrocki wrote:
+> This driver exposes preview mode operation of the S5K6AAFX sensor with
+> embedded SoC ISP. It uses one of the five user predefined configuration
+> register sets. There is yet no support for capture (snapshot) operation.
+> Following controls are supported:
+> manual/auto exposure and gain, power line frequency (anti-flicker),
+> saturation, sharpness, brightness, contrast, white balance temperature,
+> color effects. horizontal/vertical image flip, frame interval.
 
-On Monday 19 September 2011 02:09:36 Rob Clark wrote:
-> On Sun, Sep 18, 2011 at 5:23 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
-> >> This would leave us with the issue of controlling formats and other
-> >> parameters on the pipelines. We could keep separate DRM, KMS, FB and
-> >> V4L APIs for that,
-> > 
-> > There are some other differences that matter. The exact state and
-> > behaviour of memory, sequencing of accesses, cache control and management
-> > are a critical part of DRM for most GPUs, as is the ability to have them
-> > in swap backed objects and to do memory management of them. Fences and
-> > the like are a big part of the logic of many renderers and the same
-> > fencing has to be applied between capture and GPU, and also in some cases
-> > between playback accelerators (eg MP4 playback) and GPU.
+Thanks for the patch, Sylwester!
 
-That's why I believe the DRM API is our best solution to address all those 
-issues.
+[clip]
+> +	v4l2_ctrl_new_std_menu(hdl, ops, V4L2_CID_POWER_LINE_FREQUENCY,
+> +			       V4L2_CID_POWER_LINE_FREQUENCY_AUTO, 0,
+> +			       V4L2_CID_POWER_LINE_FREQUENCY_50HZ);
+> +
+> +	v4l2_ctrl_new_std_menu(hdl, ops, V4L2_CID_COLORFX,
+> +			       V4L2_COLORFX_SKETCH, 0x3D0, V4L2_COLORFX_NONE);
 
-I'm not advocating merging the DRM, FB and V4L APIs for memory management. 
-What I would like to investigate is whether we can use a common API for the 
-common needs, which are (in my opinion):
+New items may be added to standard menus so you should mask out also
+undefined bits. Say, ~0x42f (hope I got that right).
 
-- reporting the entities that make up the graphics pipeline (such as planes, 
-overlays, compositors, transmitters,  connectors, ...), especially when 
-pipelines get more complex than the plane->crtc->encoder->connector DRM model
+Youd also don't need to check for invalid menu ids; the control framework
+does this for you.
 
-- configuring data routing in those complex pipelines
+> +	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_WHITE_BALANCE_TEMPERATURE,
+> +			  0, 256, 1, 0);
+> +
+> +	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_SATURATION, -127, 127, 1, 0);
+> +	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_SHARPNESS, -127, 127, 1, 0);
+> +	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_BRIGHTNESS, -127, 127, 1, 0);
+> +	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_CONTRAST, -127, 127, 1, 0);
+> +
+> +	s5k6aa->sd.ctrl_handler = hdl;
 
-- and possibly configuring formats (pixel format, frame size, crop rectangle, 
-composition rectangle, ...) on those entities
+Shoudln't this assignment be done after checking for the error?
 
-> > To glue them together I think you'd need to support the use of GEM
-> > objects (maybe extended) in V4L. That may actually make life cleaner and
-> > simpler in some respects because GEM objects are refcounted nicely and
-> > have handles.
-> 
-> fwiw, I think the dmabuf proposal that linaro GWG is working on should
-> be sufficient for V4L to capture directly into a GEM buffer that can
-> be scanned out (overlay) or composited by GPU, etc, in cases where the
-> different dma initiators can all access some common memory:
-> 
-> http://lists.linaro.org/pipermail/linaro-mm-sig/2011-September/000616.html
-> 
-> The idea is that you could allocate a GEM buffer, export a dmabuf
-> handle for that buffer that could be passed to v4l2 camera device (ie.
-> V4L2_MEMORY_DMABUF), video encoder, etc..  the importing device should
-> bracket DMA to/from the buffer w/ get/put_scatterlist() so an unused
-> buffer could be unpinned if needed.
+> +	if (hdl->error) {
+> +		ret = hdl->error;
+> +		v4l2_ctrl_handler_free(hdl);
+> +	}
+> +	return ret;
 
-I second Rob here, I think that API should be enough to solve our memory 
-sharing problems between different devices. This is a bit out of scope though, 
-as neither the low-level Linux display framework proposal nor my comments 
-target that, but it's an important topic worth mentioning.
-
-> > DRM and KMS abstract out stuff into what is akin to V4L subdevices for
-> > the various objects the video card has that matter for display - from
-> > scanout buffers to the various video outputs, timings and the like.
-> > 
-> > I don't know what it's like with OMAP but for some of the x86 stuff
-> > particularly low speed/power stuff the capture devices, GPU and overlays
-> > tend to be fairly incestuous in order to do things like 1080i/p preview
-> > while recording from the camera.
-> 
-> We don't like extra memcpy's, but something like dmabuf fits us
-> nicely.. and I expect it would work well in any sort of UMA system
-> where camera, encoder, GPU, overlay, etc all can share the same memory
-> and formats.  I suspect the situation is similar in the x86 SoC
-> world.. but would be good to get some feedback on the proposal.  (I
-> guess next version of the RFC would go out to more mailing lists for
-> broader review.)
-> 
-> > GPU is also a bit weird in some ways because while its normally
-> > nonsensical to do things like use the capture facility one card to drive
-> > part of another, it's actually rather useful (although not supported
-> > really by DRM) to do exactly that with GPUs. A simple example is a dual
-> > headed box with a dumb frame buffer and an accelerated output both of
-> > which are using memory that can be hit by the accelerated card. Classic
-> > example being a USB plug in monitor.
+Cheers,
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
