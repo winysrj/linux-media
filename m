@@ -1,37 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:16870 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754406Ab1I2GKh (ORCPT
+Received: from fallback.mail.timico.net ([62.121.11.168]:45380 "EHLO
+	fallback.mail.timico.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752338Ab1ITGaO convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Sep 2011 02:10:37 -0400
-Date: Thu, 29 Sep 2011 09:10:06 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Patrick Boettcher <Patrick.Boettcher@dibcom.fr>,
-	Olivier Grenie <olivier.grenie@dibcom.fr>,
-	Jesper Juhl <jj@chaosbits.net>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [patch] [media] dib9000: release a lock on error
-Message-ID: <20110929061006.GB4104@elgon.mountain>
+	Tue, 20 Sep 2011 02:30:14 -0400
+Received: from [62.121.20.91] (helo=relay.timico.net)
+	by fallback.mail.timico.net with esmtp (Exim 4.69)
+	(envelope-from <Jon.Povey@racelogic.co.uk>)
+	id 1R5tWs-0003hH-Cy
+	for linux-media@vger.kernel.org; Tue, 20 Sep 2011 07:10:02 +0100
+From: Jon Povey <Jon.Povey@racelogic.co.uk>
+To: Manjunath Hadli <manjunath.hadli@ti.com>,
+	LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>
+Content-Class: urn:content-classes:message
+Date: Tue, 20 Sep 2011 07:09:54 +0100
+Subject: RE: [PATCH RESEND 2/4] davinci vpbe: add dm365 VPBE display driver
+ changes
+Message-ID: <70E876B0EA86DD4BAF101844BC814DFE0BF22415C3@Cloud.RL.local>
+In-Reply-To: <1316410529-14744-3-git-send-email-manjunath.hadli@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This lock should be released as well on the error path.
+davinci-linux-open-source-bounces@linux.davincidsp.com wrote:
+> This patch implements the core additions to the display driver,
+> mainly controlling the VENC and other encoders for dm365.
+> This patch also includes addition of amplifier subdevice to the
+> vpbe driver and interfacing with venc subdevice.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+One small nit.
+Sorry about the probably broken quoting to follow.
 
-diff --git a/drivers/media/dvb/frontends/dib9000.c b/drivers/media/dvb/frontends/dib9000.c
-index e276b11..660f806 100644
---- a/drivers/media/dvb/frontends/dib9000.c
-+++ b/drivers/media/dvb/frontends/dib9000.c
-@@ -2169,6 +2169,7 @@ static int dib9000_read_ber(struct dvb_frontend *fe, u32 * ber)
- 	DibAcquireLock(&state->demod_lock);
- 	DibAcquireLock(&state->platform.risc.mem_mbx_lock);
- 	if (dib9000_fw_memmbx_sync(state, FE_SYNC_CHANNEL) < 0) {
-+		DibReleaseLock(&state->platform.risc.mem_mbx_lock);
- 		ret = -EIO;
- 		goto error;
- 	}
+> @@ -704,6 +717,39 @@ static int vpbe_initialize(struct device
+> *dev, struct vpbe_device *vpbe_dev)
+> +                         v4l2_warn(&vpbe_dev->v4l2_dev, "non-i2c amplifiers"
+> +                         " currently not supported");
+> +             }
+> +     } else
+> +         vpbe_dev->amp = NULL;
+
+iirc this is not kernel style, if the "then" side of an if needs braces
+then the "else" side must have them too.
+
+--
+Jon Povey
+jon.povey@racelogic.co.uk
+
+Racelogic is a limited company registered in England. Registered number 2743719 .
+Registered Office Unit 10, Swan Business Centre, Osier Way, Buckingham, Bucks, MK18 1TB .
+
+The information contained in this electronic mail transmission is intended by Racelogic Ltd for the use of the named individual or entity to which it is directed and may contain information that is confidential or privileged. If you have received this electronic mail transmission in error, please delete it from your system without copying or forwarding it, and notify the sender of the error by reply email so that the sender's address records can be corrected. The views expressed by the sender of this communication do not necessarily represent those of Racelogic Ltd. Please note that Racelogic reserves the right to monitor e-mail communications passing through its network
+
+
