@@ -1,60 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44149 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751326Ab1ITO5l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Sep 2011 10:57:41 -0400
-From: Deepthy Ravi <deepthy.ravi@ti.com>
-To: <laurent.pinchart@ideasonboard.com>, <mchehab@infradead.org>,
-	<tony@atomide.com>, <hvaibhav@ti.com>,
-	<linux-media@vger.kernel.org>, <linux@arm.linux.org.uk>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<kyungmin.park@samsung.com>, <hverkuil@xs4all.nl>,
-	<m.szyprowski@samsung.com>, <g.liakhovetski@gmx.de>,
-	<santosh.shilimkar@ti.com>, <khilman@deeprootsystems.com>,
-	<david.woodhouse@intel.com>, <akpm@linux-foundation.org>,
-	<linux-kernel@vger.kernel.org>
-CC: <linux-omap@vger.kernel.org>, Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: [PATCH 5/5] omap2plus_defconfig: Enable omap3isp and MT9T111 sensor drivers
-Date: Tue, 20 Sep 2011 20:26:52 +0530
-Message-ID: <1316530612-23075-6-git-send-email-deepthy.ravi@ti.com>
-In-Reply-To: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com>
-References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mr.siano-ms.com ([62.0.79.70]:6301 "EHLO
+	Siano-NV.ser.netvision.net.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932161Ab1ITKTS convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Sep 2011 06:19:18 -0400
+Subject: [PATCH  15/17]DVB:Siano drivers - Bug fix - avoid (rare) dead
+ locks causing the driver to hang when module removed.
+From: Doron Cohen <doronc@siano-ms.com>
+Reply-To: doronc@siano-ms.com
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Tue, 20 Sep 2011 13:32:00 +0300
+Message-ID: <1316514720.5199.93.camel@Doron-Ubuntu>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enables multimedia driver, media controller api,
-v4l2-subdev-api, omap3isp and mt9t111 sensor
-drivers in omap2plus_defconfig.
+Hi,
+This patch step is a  Bug fix - avoid (rare) dead locks causing the
+driver to hang when module removed.
+Thanks,
+Doron Cohen
 
-Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+-----------------------
+
+>From ad75d9ce48d440c6db6c5147530f1e23de2fcb28 Mon Sep 17 00:00:00 2001
+From: Doron Cohen <doronc@siano-ms.com>
+Date: Tue, 20 Sep 2011 08:46:52 +0300
+Subject: [PATCH 19/21] Bug fix - waiting for free buffers might have
+caused dead locks. Mechanism changed so locks are released around each
+wait.
+
 ---
- arch/arm/configs/omap2plus_defconfig |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+ drivers/media/dvb/siano/smscoreapi.c |   53
++++++++++++++++++++++++++++------
+ 1 files changed, 43 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index d5f00d7..548823d 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -133,6 +133,16 @@ CONFIG_TWL4030_WATCHDOG=y
- CONFIG_REGULATOR_TWL4030=y
- CONFIG_REGULATOR_TPS65023=y
- CONFIG_REGULATOR_TPS6507X=y
-+CONFIG_MEDIA_SUPPORT=y
-+CONFIG_MEDIA_CONTROLLER=y
-+CONFIG_VIDEO_DEV=y
-+CONFIG_VIDEO_V4L2_COMMON=y
-+CONFIG_VIDEO_ALLOW_V4L1=y
-+CONFIG_VIDEO_V4L1_COMPAT=y
-+CONFIG_VIDEO_V4L2_SUBDEV_API=y
-+CONFIG_VIDEO_MEDIA=y
-+CONFIG_VIDEO_MT9T111=y
-+CONFIG_VIDEO_OMAP3=y
- CONFIG_FB=y
- CONFIG_FIRMWARE_EDID=y
- CONFIG_FB_MODE_HELPERS=y
+diff --git a/drivers/media/dvb/siano/smscoreapi.c
+b/drivers/media/dvb/siano/smscoreapi.c
+index bb92351..0555a38 100644
+--- a/drivers/media/dvb/siano/smscoreapi.c
++++ b/drivers/media/dvb/siano/smscoreapi.c
+@@ -1543,26 +1543,59 @@ EXPORT_SYMBOL_GPL(smscore_onresponse);
+  *
+  * @return pointer to descriptor on success, NULL on error.
+  */
+-
+-struct smscore_buffer_t *get_entry(struct smscore_device_t *coredev)
++struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t
+*coredev)
+ {
+ 	struct smscore_buffer_t *cb = NULL;
+ 	unsigned long flags;
+ 
++	DEFINE_WAIT(wait);
++
++	spin_lock_irqsave(&coredev->bufferslock, flags);
++
++	/* set the current process state to interruptible sleep
++	 * in case schedule() will be called, this process will go to sleep 
++	 * and woken up only when a new buffer is available (see
+smscore_putbuffer)
++	 */
++	prepare_to_wait(&coredev->buffer_mng_waitq, &wait,
+TASK_INTERRUPTIBLE);
++
++	if (list_empty(&coredev->buffers)) {
++		sms_debug("no avaliable common buffer, need to schedule");
++
++		/* 
++         * before going to sleep, release the lock 
++         */
++		spin_unlock_irqrestore(&coredev->bufferslock, flags);
++
++		schedule();
++
++		sms_debug("wake up after schedule()");
++
++		/* 
++         * acquire the lock again 
++         */
+ 	spin_lock_irqsave(&coredev->bufferslock, flags);
+-	if (!list_empty(&coredev->buffers)) {
+-		cb = (struct smscore_buffer_t *) coredev->buffers.next;
+-		list_del(&cb->entry);
+ 	}
++
++	/* 
++         * in case that schedule() was skipped, set the process state
+to running
++	 */
++	finish_wait(&coredev->buffer_mng_waitq, &wait);
++
++	/* 
++         * verify that the list is not empty, since it might have been 
++	 * emptied during the sleep
++	 * comment : this sitation can be avoided using
+spin_unlock_irqrestore_exclusive	
++	 */	
++	if (list_empty(&coredev->buffers)) {
++		sms_err("failed to allocate buffer, returning NULL");
+ 	spin_unlock_irqrestore(&coredev->bufferslock, flags);
+-	return cb;
++		return NULL;
+ }
+ 
+-struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t
+*coredev)
+-{
+-	struct smscore_buffer_t *cb = NULL;
++	cb = (struct smscore_buffer_t *) coredev->buffers.next;
++	list_del(&cb->entry);
+ 
+-	wait_event(coredev->buffer_mng_waitq, (cb = get_entry(coredev)));
++	spin_unlock_irqrestore(&coredev->bufferslock, flags);
+ 
+ 	return cb;
+ }
 -- 
-1.7.0.4
+1.7.4.1
 
