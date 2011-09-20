@@ -1,125 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:61924 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752905Ab1IPGs7 convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44629 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751614Ab1ITXcp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Sep 2011 02:48:59 -0400
-Date: Fri, 16 Sep 2011 08:48:47 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-cc: Sylwester Nawrocki <snjw23@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	uclinux-dist-devel@blackfin.uclinux.org
-Subject: Re: [PATCH 4/4] v4l2: add blackfin capture bridge driver
-In-Reply-To: <CAHG8p1D=Y0bD-QAtsqtRk2NmW8+tXNgUCr45Ho_Uayspn9=N9w@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1109160848020.28447@axis700.grange>
-References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com>
- <1315938892-20243-4-git-send-email-scott.jiang.linux@gmail.com>
- <4E6FC8E8.70008@gmail.com> <CAHG8p1C5F_HKX_GPHv_RdCRRNw9s3+ybK4giCjUXxgSUAUDRVw@mail.gmail.com>
- <4E70BA97.1090904@samsung.com> <CAHG8p1D1jnwRO0ie6xrXGL5Uhu+2YjoNdXzhnnBweZDPRyE1fw@mail.gmail.com>
- <4E726B66.2020808@gmail.com> <CAHG8p1D=Y0bD-QAtsqtRk2NmW8+tXNgUCr45Ho_Uayspn9=N9w@mail.gmail.com>
+	Tue, 20 Sep 2011 19:32:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Rob Clark <rob.clark@linaro.org>
+Subject: Re: Proposal for a low-level Linux display framework
+Date: Wed, 21 Sep 2011 01:32:48 +0200
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Keith Packard <keithp@keithp.com>, linaro-dev@lists.linaro.org,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Archit Taneja <archit@ti.com>, linux-fbdev@vger.kernel.org,
+	Alex Deucher <alexdeucher@gmail.com>,
+	linux-media@vger.kernel.org
+References: <1316088425.11294.78.camel@lappyti> <20110918232329.6ff05d56@lxorguk.ukuu.org.uk> <CAN_cFWNkdYEFaeCmJcsPnrt+hoiOZuZEQ6qbrcXWQT_3NSNoLw@mail.gmail.com>
+In-Reply-To: <CAN_cFWNkdYEFaeCmJcsPnrt+hoiOZuZEQ6qbrcXWQT_3NSNoLw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109210132.48663.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 16 Sep 2011, Scott Jiang wrote:
+Hi Alan and Rob,
 
-> 2011/9/16 Sylwester Nawrocki <snjw23@gmail.com>:
-> > On 09/15/2011 04:40 AM, Scott Jiang wrote:
-> >> 2011/9/14 Sylwester Nawrocki<s.nawrocki@samsung.com>:
-> >>> On 09/14/2011 09:10 AM, Scott Jiang wrote:
-> >>>>
-> >>>>>> +                     fmt =&bcap_formats[i];
-> >>>>>> +                     if (mbus_code)
-> >>>>>> +                             *mbus_code = fmt->mbus_code;
-> >>>>>> +                     if (bpp)
-> >>>>>> +                             *bpp = fmt->bpp;
-> >>>>>> +                     v4l2_fill_mbus_format(&mbus_fmt, pixfmt,
-> >>>>>> +                                             fmt->mbus_code);
-> >>>>>> +                     ret = v4l2_subdev_call(bcap->sd, video,
-> >>>>>> +                                             try_mbus_fmt,&mbus_fmt);
-> >>>>>> +                     if (ret<    0)
-> >>>>>> +                             return ret;
-> >>>>>> +                     v4l2_fill_pix_format(pixfmt,&mbus_fmt);
-> >>>>>> +                     pixfmt->bytesperline = pixfmt->width * fmt->bpp;
-> >>>>>> +                     pixfmt->sizeimage = pixfmt->bytesperline
-> >>>>>> +                                             * pixfmt->height;
-> >
-> > No need to clamp mbus_fmt.width and mbus_fmt.height to some maximum values
-> > to prevent allocating huge memory buffers ?
-> >
-> >>>>>
-> >>>>> Still pixfmt->pixelformat isn't filled.
-> >>>>>
-> >>>> no here pixfmt->pixelformat is passed in
-> >>>>
-> >>>>>> +                     return 0;
-> >>>>>> +             }
-> >>>>>> +     }
-> >>>>>> +     return -EINVAL;
-> >>>>>
-> >>>>> I think you should return some default format, rather than giving up
-> >>>>> when the fourcc doesn't match. However I'm not 100% sure this is
-> >>>>> the specification requirement.
-> >>>>>
-> >>>> no, there is no default format for bridge driver because it knows
-> >>>> nothing about this.
-> >>>> all the format info bridge needs ask subdevice.
-> >>>
-> >>> It's the bridge driver that exports a device node and is responsible for
-> >>> setting the default format. It should be possible to start streaming right
-> >>> after opening the device, without VIDIOC_S_FMT, with some reasonable defaults.
-> >>>
-> >>> If, as you say, the bridge knows nothing about formats what the bcap_formats[]
-> >>> array is here for ?
-> >>>
-> >> accually this array is to convert mbus to pixformat. ppi supports any formats.
-> >> Ideally it should contain all formats in v4l2, but it is enough at
-> >> present for our platform.
-> >> If I find someone needs more, I will add it.
-> >> So return -EINVAL means this format is out of range, it can't be supported now.
-> >
-> > Ok, fair enough. I guess you rely on subdev driver to return some supported
-> > value through mbus_try_fmt and then the bridge driver must be able to handle
-> > this. However it might make sense to validate the resolution in some places
-> > to prevent allocating insanely huge buffers, when the sensor subdev misbehaves.
-> >
-> all the format info is got from sensor, so it isn't out of control
+On Monday 19 September 2011 02:09:36 Rob Clark wrote:
+> On Sun, Sep 18, 2011 at 5:23 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+> >> This would leave us with the issue of controlling formats and other
+> >> parameters on the pipelines. We could keep separate DRM, KMS, FB and
+> >> V4L APIs for that,
+> > 
+> > There are some other differences that matter. The exact state and
+> > behaviour of memory, sequencing of accesses, cache control and management
+> > are a critical part of DRM for most GPUs, as is the ability to have them
+> > in swap backed objects and to do memory management of them. Fences and
+> > the like are a big part of the logic of many renderers and the same
+> > fencing has to be applied between capture and GPU, and also in some cases
+> > between playback accelerators (eg MP4 playback) and GPU.
+
+That's why I believe the DRM API is our best solution to address all those 
+issues.
+
+I'm not advocating merging the DRM, FB and V4L APIs for memory management. 
+What I would like to investigate is whether we can use a common API for the 
+common needs, which are (in my opinion):
+
+- reporting the entities that make up the graphics pipeline (such as planes, 
+overlays, compositors, transmitters,  connectors, ...), especially when 
+pipelines get more complex than the plane->crtc->encoder->connector DRM model
+
+- configuring data routing in those complex pipelines
+
+- and possibly configuring formats (pixel format, frame size, crop rectangle, 
+composition rectangle, ...) on those entities
+
+> > To glue them together I think you'd need to support the use of GEM
+> > objects (maybe extended) in V4L. That may actually make life cleaner and
+> > simpler in some respects because GEM objects are refcounted nicely and
+> > have handles.
 > 
-> >>
-> >> about default format, I think I can only call bcap_g_fmt_vid_cap in
-> >> probe to get this info.
-> >> Dose anybody have a better solution?
-> >
-> > How about doing that when device is opened for the first time ?
-> >
-> no, different input and std has different default format, so I think
-> there is no default format is a good choice.
-> app should negotiate format before use. I'm not sure all the v4l2 app
-> will do this step.
-> v4l2 spec only says driver must implement xx ioctl, but it doesn't say
-> app must call xx ioctl.
-> Anyone can tell me how many steps app must call?
+> fwiw, I think the dmabuf proposal that linaro GWG is working on should
+> be sufficient for V4L to capture directly into a GEM buffer that can
+> be scanned out (overlay) or composited by GPU, etc, in cases where the
+> different dma initiators can all access some common memory:
+> 
+> http://lists.linaro.org/pipermail/linaro-mm-sig/2011-September/000616.html
+> 
+> The idea is that you could allocate a GEM buffer, export a dmabuf
+> handle for that buffer that could be passed to v4l2 camera device (ie.
+> V4L2_MEMORY_DMABUF), video encoder, etc..  the importing device should
+> bracket DMA to/from the buffer w/ get/put_scatterlist() so an unused
+> buffer could be unpinned if needed.
 
-IIRC, the user shall be able to open a v4l2 device, queue buffers and 
-start streaming - without setting any format.
+I second Rob here, I think that API should be enough to solve our memory 
+sharing problems between different devices. This is a bit out of scope though, 
+as neither the low-level Linux display framework proposal nor my comments 
+target that, but it's an important topic worth mentioning.
 
-> > However it
-> > could make more sense to try to set format at the subdev and then check how
-> > it was adjusted. Not all subdevs might implement g_mbus_fmt op or some might
-> > not deliver sane default values.
-> >
-> in try_format and s_fmt I have implemented this in bridge driver and
-> all my sensor drivers have implemented relative callback.
+> > DRM and KMS abstract out stuff into what is akin to V4L subdevices for
+> > the various objects the video card has that matter for display - from
+> > scanout buffers to the various video outputs, timings and the like.
+> > 
+> > I don't know what it's like with OMAP but for some of the x86 stuff
+> > particularly low speed/power stuff the capture devices, GPU and overlays
+> > tend to be fairly incestuous in order to do things like 1080i/p preview
+> > while recording from the camera.
+> 
+> We don't like extra memcpy's, but something like dmabuf fits us
+> nicely.. and I expect it would work well in any sort of UMA system
+> where camera, encoder, GPU, overlay, etc all can share the same memory
+> and formats.  I suspect the situation is similar in the x86 SoC
+> world.. but would be good to get some feedback on the proposal.  (I
+> guess next version of the RFC would go out to more mailing lists for
+> broader review.)
+> 
+> > GPU is also a bit weird in some ways because while its normally
+> > nonsensical to do things like use the capture facility one card to drive
+> > part of another, it's actually rather useful (although not supported
+> > really by DRM) to do exactly that with GPUs. A simple example is a dual
+> > headed box with a dumb frame buffer and an accelerated output both of
+> > which are using memory that can be hit by the accelerated card. Classic
+> > example being a USB plug in monitor.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Regards,
+
+Laurent Pinchart
