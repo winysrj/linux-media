@@ -1,120 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:56570 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752503Ab1IQMe2 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37704 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752457Ab1ITWSK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Sep 2011 08:34:28 -0400
-Date: Sat, 17 Sep 2011 14:34:25 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	Tue, 20 Sep 2011 18:18:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v3 1/3] noon010pc30: Conversion to the media controller API
+Date: Wed, 21 Sep 2011 00:18:13 +0200
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
 	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
 	riverful.kim@samsung.com
-Subject: Re: [PATCH/RFC 1/2] v4l2: Add the parallel bus HREF signal polarity
- flags
-In-Reply-To: <4E748D82.8040006@gmail.com>
-Message-ID: <alpine.DEB.2.00.1109171423460.28766@axis700.grange>
-References: <1316194123-21185-1-git-send-email-s.nawrocki@samsung.com> <1316194123-21185-2-git-send-email-s.nawrocki@samsung.com> <201109171254.49003.laurent.pinchart@ideasonboard.com> <4E748D82.8040006@gmail.com>
+References: <1316188796-8374-1-git-send-email-s.nawrocki@samsung.com> <1316188796-8374-2-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1316188796-8374-2-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109210018.14185.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 17 Sep 2011, Sylwester Nawrocki wrote:
+Hi Sylwester,
 
-> Hi Laurent,
-> 
-> thanks for your comments.
-> 
-> On 09/17/2011 12:54 PM, Laurent Pinchart wrote:
-> > Hi Sylwester,
-> > 
-> > On Friday 16 September 2011 19:28:42 Sylwester Nawrocki wrote:
-> >> HREF is a signal indicating valid data during single line transmission.
-> >> Add corresponding flags for this signal to the set of mediabus signal
-> >> polarity flags.
-> > 
-> > So that's a data valid signal that gates the pixel data ? The OMAP3 ISP has a
-> 
-> Yes, it's "horizontal window reference" signal, it's well described in this datasheet:
-> http://www.morninghan.com/pdf/OV2640FSL_DS_(1_3).pdf
-> 
-> AFAICS there can be also its vertical counterpart - VREF.
-> 
-> Many devices seem to use this terminology. However, I realize, not all, as you're
-> pointing out. So perhaps it's time for some naming contest now.. :-)
+Thanks for the patch.
 
-Hi
+On Friday 16 September 2011 17:59:54 Sylwester Nawrocki wrote:
+> Replace g/s_mbus_fmt ops with the pad level get/set_fmt operations.
+> Add media entity initialization and set subdev flags so the host driver
+> creates a subdev device node for the driver.
+> A mutex was added for serializing the subdev operations. When setting
+> format is attempted during streaming an (EBUSY) error will be returned.
+> 
+> After the device is powered up it will now remain in "power sleep"
+> mode until s_stream(1) is called. The "power sleep" mode is used
+> to suspend/resume frame generation at the sensor's output through
+> s_stream op.
+> 
+> While at here simplify the colorspace parameter handling.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-No objections in principle, just one question though: can these signals 
-actually be used simultaneously with respective *SYNC signals or only as 
-an alternative? If the latter, maybe we could reuse same names by just 
-making them more generic?
+[snip]
 
-Thanks
-Guennadi
+> diff --git a/drivers/media/video/noon010pc30.c
+> b/drivers/media/video/noon010pc30.c index 35f722a..115d976 100644
+> --- a/drivers/media/video/noon010pc30.c
+> +++ b/drivers/media/video/noon010pc30.c
 
-> > similar signal called WEN, and I've seen other chips using DVAL. Your patch
-> > looks good to me, except maybe for the signal name that could be made a bit
-> > more explicit (I'm not sure what most chips use though).
-> 
-> I'm pretty OK with HREF/VREF. But I'm open to any better suggestions.
-> 
-> Maybe 
-> 
-> V4L2_MBUS_LINE_VALID_ACTIVE_HIGH
-> V4L2_MBUS_LINE_VALID_ACTIVE_LOW
-> 
-> V4L2_MBUS_FRAME_VALID_ACTIVE_HIGH
-> V4L2_MBUS_FRAME_VALID_ACTIVE_LOW
-> 	
-> ? 
-> Some of Aptina sensor datasheets describes those signals as LINE_VALID/FRAME_VALID,
-> (www.aptina.com/assets/downloadDocument.do?id=76).
-> 
-> > 
-> >> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
-> >> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
-> >> ---
-> >>   include/media/v4l2-mediabus.h |   14 ++++++++------
-> >>   1 files changed, 8 insertions(+), 6 deletions(-)
-> >>
-> >> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-> >> index 6114007..41d8771 100644
-> >> --- a/include/media/v4l2-mediabus.h
-> >> +++ b/include/media/v4l2-mediabus.h
-> >> @@ -26,12 +26,14 @@
-> >>   /* Note: in BT.656 mode HSYNC and VSYNC are unused */
-> 
-> I've forgotten to update this:
-> 
-> /* Note: in BT.656 mode HSYNC, HREF and VSYNC are unused */
-> 
-> >>   #define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1<<  2)
-> >>   #define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1<<  3)
-> >> -#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1<<  4)
-> >> -#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1<<  5)
-> >> -#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1<<  6)
-> >> -#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1<<  7)
-> >> -#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1<<  8)
-> >> -#define V4L2_MBUS_DATA_ACTIVE_LOW		(1<<  9)
-> >> +#define V4L2_MBUS_HREF_ACTIVE_HIGH		(1<<  4)
-> >> +#define V4L2_MBUS_HREF_ACTIVE_LOW		(1<<  5)
-> >> +#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1<<  6)
-> >> +#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1<<  7)
-> >> +#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1<<  8)
-> >> +#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1<<  9)
-> >> +#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1<<  10)
-> >> +#define V4L2_MBUS_DATA_ACTIVE_LOW		(1<<  11)
-> 
-> --
-> Thanks,
-> Sylwester
-> 
+[snip]
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> @@ -599,6 +641,22 @@ static int noon010_log_status(struct v4l2_subdev *sd)
+>  	return 0;
+>  }
+> 
+> +static int noon010_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> +{
+> +	struct v4l2_mbus_framefmt *mf = v4l2_subdev_get_try_format(fh, 0);
+> +	struct noon010_info *info = to_noon010(sd);
+> +
+> +	mutex_lock(&info->lock);
+> +	noon010_get_current_fmt(to_noon010(sd), mf);
+
+Should you initialize mf with a constant default format instead of retrieving 
+the current format from the sensor ? A non-constant default would probably 
+confuse userspace application.
+
+> +
+> +	mutex_unlock(&info->lock);
+> +	return 0;
+> +}
+
+-- 
+Regards,
+
+Laurent Pinchart
