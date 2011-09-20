@@ -1,155 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55723 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753552Ab1IFMMT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 08:12:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Dave Young <hidave.darkstar@gmail.com>
-Subject: Re: [PATCH] v4l2: uvcvideo use after free bug fix
-Date: Tue, 6 Sep 2011 14:12:14 +0200
-Cc: Sitsofe Wheeler <sitsofe@yahoo.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <20110906120808.GC2321@darkstar>
-In-Reply-To: <20110906120808.GC2321@darkstar>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109061412.16088.laurent.pinchart@ideasonboard.com>
+Received: from mr.siano-ms.com ([62.0.79.70]:6307 "EHLO
+	Siano-NV.ser.netvision.net.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932161Ab1ITKTY convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Sep 2011 06:19:24 -0400
+Subject: [PATCH  17/17]DVB:Siano drivers - Automatically load client
+ modules to make easier usage of device
+From: Doron Cohen <doronc@siano-ms.com>
+Reply-To: doronc@siano-ms.com
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Tue, 20 Sep 2011 13:32:07 +0300
+Message-ID: <1316514727.5199.95.camel@Doron-Ubuntu>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+Hi,
+This patch step makes Automatically load client modules to make easier
+usage of device
+Thanks,
+Doron Cohen
 
-On Tuesday 06 September 2011 14:08:08 Dave Young wrote:
-> Reported-by: Sitsofe Wheeler <sitsofe@yahoo.com>
-> Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-> Tested-by: Sitsofe Wheeler <sitsofe@yahoo.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Unplugging uvc video camera trigger following oops:
-> 
-> eeepc kernel: [ 1393.500719] usb 3-2: USB disconnect, device number 4
-> eeepc kernel: [ 1393.504351] uvcvideo: Failed to resubmit video URB (-19).
-> eeepc kernel: [ 1495.428853] BUG: unable to handle kernel paging request at
-> 6b6b6bcb eeepc kernel: [ 1495.429017] IP: [<b0358d37>]
-> dev_get_drvdata+0x17/0x20 eeepc kernel: [ 1495.429017] *pde = 00000000
-> eeepc kernel: [ 1495.429017] Oops: 0000 [#1] DEBUG_PAGEALLOC
-> eeepc kernel: [ 1495.429017]
-> eeepc kernel: [ 1495.429017] Pid: 3476, comm: cheese Not tainted
-> 3.1.0-rc3-00270-g7a54f5e-dirty #485 ASUSTeK Computer INC. 900/900 eeepc
-> kernel: [ 1495.429017] EIP: 0060:[<b0358d37>] EFLAGS: 00010202 CPU: 0
-> eeepc kernel: [ 1495.429017] EIP is at dev_get_drvdata+0x17/0x20
-> eeepc kernel: [ 1495.429017] EAX: 6b6b6b6b EBX: eb08d870 ECX: 00000000 EDX:
-> eb08d930 eeepc kernel: [ 1495.429017] ESI: eb08d870 EDI: eb08d870 EBP:
-> d3249cac ESP: d3249cac eeepc kernel: [ 1495.429017]  DS: 007b ES: 007b FS:
-> 0000 GS: 00e0 SS: 0068 eeepc kernel: [ 1495.429017] Process cheese (pid:
-> 3476, ti=d3248000 task=df46d870 task.ti=d3248000) eeepc kernel: [
-> 1495.429017] Stack:
-> eeepc kernel: [ 1495.429017]  d3249cb8 b03e77a1 d307b840 d3249ccc b03e77d1
-> d307b840 eb08d870 eb08d830 eeepc kernel: [ 1495.429017]  d3249ce4 b03ed3b7
-> 00000246 d307b840 eb08d870 d3021b80 d3249cec b03ed565 eeepc kernel: [
-> 1495.429017]  d3249cfc b03e044d e8323d10 b06e013c d3249d18 b0355fb9
-> fffffffe d3249d1c eeepc kernel: [ 1495.429017] Call Trace:
-> eeepc kernel: [ 1495.429017]  [<b03e77a1>] v4l2_device_disconnect+0x11/0x30
-> eeepc kernel: [ 1495.429017]  [<b03e77d1>] v4l2_device_unregister+0x11/0x50
-> eeepc kernel: [ 1495.429017]  [<b03ed3b7>] uvc_delete+0x37/0x110
-> eeepc kernel: [ 1495.429017]  [<b03ed565>] uvc_release+0x25/0x30
-> eeepc kernel: [ 1495.429017]  [<b03e044d>] v4l2_device_release+0x9d/0xc0
-> eeepc kernel: [ 1495.429017]  [<b0355fb9>] device_release+0x19/0x90
-> eeepc kernel: [ 1495.429017]  [<b03adfdc>] ? usb_hcd_unlink_urb+0x7c/0x90
-> eeepc kernel: [ 1495.429017]  [<b026b99c>] kobject_release+0x3c/0x90
-> eeepc kernel: [ 1495.429017]  [<b026b960>] ? kobject_del+0x30/0x30
-> eeepc kernel: [ 1495.429017]  [<b026ca4c>] kref_put+0x2c/0x60
-> eeepc kernel: [ 1495.429017]  [<b026b88d>] kobject_put+0x1d/0x50
-> eeepc kernel: [ 1495.429017]  [<b03b2385>] ?
-> usb_autopm_put_interface+0x25/0x30 eeepc kernel: [ 1495.429017] 
-> [<b03f0e5d>] ? uvc_v4l2_release+0x5d/0xd0 eeepc kernel: [ 1495.429017] 
-> [<b0355d2f>] put_device+0xf/0x20
-> eeepc kernel: [ 1495.429017]  [<b03dfa96>] v4l2_release+0x56/0x60
-> eeepc kernel: [ 1495.429017]  [<b019c8dc>] fput+0xcc/0x220
-> eeepc kernel: [ 1495.429017]  [<b01990f4>] filp_close+0x44/0x70
-> eeepc kernel: [ 1495.429017]  [<b012b238>] put_files_struct+0x158/0x180
-> eeepc kernel: [ 1495.429017]  [<b012b100>] ? put_files_struct+0x20/0x180
-> eeepc kernel: [ 1495.429017]  [<b012b2a0>] exit_files+0x40/0x50
-> eeepc kernel: [ 1495.429017]  [<b012b9e7>] do_exit+0x5a7/0x660
-> eeepc kernel: [ 1495.429017]  [<b0135f72>] ? __dequeue_signal+0x12/0x120
-> eeepc kernel: [ 1495.429017]  [<b055edf2>] ? _raw_spin_unlock_irq+0x22/0x30
-> eeepc kernel: [ 1495.429017]  [<b012badc>] do_group_exit+0x3c/0xb0
-> eeepc kernel: [ 1495.429017]  [<b015792b>] ? trace_hardirqs_on+0xb/0x10
-> eeepc kernel: [ 1495.429017]  [<b013755f>]
-> get_signal_to_deliver+0x18f/0x570 eeepc kernel: [ 1495.429017] 
-> [<b01020f7>] do_signal+0x47/0x9e0
-> eeepc kernel: [ 1495.429017]  [<b055edf2>] ? _raw_spin_unlock_irq+0x22/0x30
-> eeepc kernel: [ 1495.429017]  [<b015792b>] ? trace_hardirqs_on+0xb/0x10
-> eeepc kernel: [ 1495.429017]  [<b0123300>] ? T.1034+0x30/0xc0
-> eeepc kernel: [ 1495.429017]  [<b055c45f>] ? schedule+0x29f/0x640
-> eeepc kernel: [ 1495.429017]  [<b0102ac8>] do_notify_resume+0x38/0x40
-> eeepc kernel: [ 1495.429017]  [<b055f154>] work_notifysig+0x9/0x11
-> eeepc kernel: [ 1495.429017] Code: e5 5d 83 f8 01 19 c0 f7 d0 83 e0 f0 c3
-> 8d b4 26 00 00 00 00 55 85 c0 89 e5 75 09 31 c0 5d c3 90 8d 74 26 00 8b 40
-> 04 85 c0 74 f0 <8b> 40 60 5d c3 8d 74 26 00 55 89 e5 53 89 c3 83 ec 04 8b
-> 40 04 eeepc kernel: [ 1495.429017] EIP: [<b0358d37>]
-> dev_get_drvdata+0x17/0x20 SS:ESP 0068:d3249cac eeepc kernel: [
-> 1495.429017] CR2: 000000006b6b6bcb
-> eeepc kernel: [ 1495.466975] uvcvideo: Failed to resubmit video URB (-27).
-> eeepc kernel: [ 1495.467860] uvcvideo: Failed to resubmit video URB (-27).
-> eeepc kernel: last message repeated 3 times
-> eeepc kernel: [ 1495.512610] ---[ end trace 73ec16848794e5a5 ]---
-> 
-> For uvc device, dev->vdev.dev is the &intf->dev,
-> uvc_delete code is as below:
-> 	usb_put_intf(dev->intf);
-> 	usb_put_dev(dev->udev);
-> 
-> 	uvc_status_cleanup(dev);
-> 	uvc_ctrl_cleanup_device(dev);
-> 
-> ## the intf dev is released above, so below code will oops.
-> 
-> 	if (dev->vdev.dev)
-> 		v4l2_device_unregister(&dev->vdev);
-> 
-> Fix it by get_device in v4l2_device_register and put_device in
-> v4l2_device_disconnect ---
->  drivers/media/video/v4l2-device.c |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/video/v4l2-device.c
-> b/drivers/media/video/v4l2-device.c index c72856c..e6a2c3b 100644
-> --- a/drivers/media/video/v4l2-device.c
-> +++ b/drivers/media/video/v4l2-device.c
-> @@ -38,6 +38,7 @@ int v4l2_device_register(struct device *dev, struct
-> v4l2_device *v4l2_dev) mutex_init(&v4l2_dev->ioctl_lock);
->  	v4l2_prio_init(&v4l2_dev->prio);
->  	kref_init(&v4l2_dev->ref);
-> +	get_device(dev);
->  	v4l2_dev->dev = dev;
+-----------------------
+>From 82afa26fc1fb9db798e46de0c55b49fd1bda9580 Mon Sep 17 00:00:00 2001
+From: Doron Cohen <doronc@siano-ms.com>
+Date: Tue, 20 Sep 2011 09:39:02 +0300
+Subject: [PATCH 21/21] Automatically load client modules to make easier
+usage of device
 
-We store a reference to the device in v4l2_dev, and we use it later. We thus 
-need either get a reference to the device (like done by this patch), or 
-mandate drivers not to release their reference to the device before calling 
-v4l2_device_unregister and/or v4l2_device_disconnect (in this case that would 
-mean moving the usb_put_intf call after the v4l2_device_unregister call in the 
-uvcvideo driver).
+---
+ drivers/media/dvb/siano/sms-cards.c |   17 ++++-------------
+ 1 files changed, 4 insertions(+), 13 deletions(-)
 
-Do you have a preference ?
-
->  	if (dev == NULL) {
->  		/* If dev == NULL, then name must be filled in by the caller */
-> @@ -93,6 +94,7 @@ void v4l2_device_disconnect(struct v4l2_device *v4l2_dev)
-> 
->  	if (dev_get_drvdata(v4l2_dev->dev) == v4l2_dev)
->  		dev_set_drvdata(v4l2_dev->dev, NULL);
-> +	put_device(v4l2_dev->dev);
->  	v4l2_dev->dev = NULL;
->  }
->  EXPORT_SYMBOL_GPL(v4l2_device_disconnect);
-
+diff --git a/drivers/media/dvb/siano/sms-cards.c
+b/drivers/media/dvb/siano/sms-cards.c
+index 66b302e..378c25d 100644
+--- a/drivers/media/dvb/siano/sms-cards.c
++++ b/drivers/media/dvb/siano/sms-cards.c
+@@ -458,19 +458,10 @@ EXPORT_SYMBOL_GPL(sms_board_lna_control);
+ 
+ int sms_board_load_modules(int id)
+ {
+-	switch (id) {
+-	case SMS1XXX_BOARD_HAUPPAUGE_CATAMOUNT:
+-	case SMS1XXX_BOARD_HAUPPAUGE_OKEMO_A:
+-	case SMS1XXX_BOARD_HAUPPAUGE_OKEMO_B:
+-	case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+-	case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
+-	case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
+-		request_module("smsdvb");
+-		break;
+-	default:
+-		/* do nothing */
+-		break;
+-	}
++	/* Siano smsmdtv loads all other supported "client" modules*/
++	request_module("smsdvb");
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(sms_board_load_modules);
 -- 
-Regards,
+1.7.4.1
 
-Laurent Pinchart
