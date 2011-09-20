@@ -1,182 +1,333 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from newsmtp5.atmel.com ([204.2.163.5]:22866 "EHLO
-	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933421Ab1IBLIu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 07:08:50 -0400
-Content-class: urn:content-classes:message
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Subject: RE: [PATCH v3 RESEND] media: vb2: change queue initialization order
-Date: Fri, 2 Sep 2011 19:07:04 +0800
-Message-ID: <4C79549CB6F772498162A641D92D532802A0922F@penmb01.corp.atmel.com>
-In-Reply-To: <1314619082-17911-1-git-send-email-m.szyprowski@samsung.com>
-References: <1314618332-13262-1-git-send-email-m.szyprowski@samsung.com> <1314619082-17911-1-git-send-email-m.szyprowski@samsung.com>
-From: "Wu, Josh" <Josh.wu@atmel.com>
-To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	<linux-media@vger.kernel.org>
-Cc: "Kyungmin Park" <kyungmin.park@samsung.com>,
-	"Pawel Osciak" <pawel@osciak.com>,
-	"Jonathan Corbet" <corbet@lwn.net>,
-	=?iso-8859-1?Q?Uwe_Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>,
-	"Hans Verkuil" <hverkuil@xs4all.nl>,
-	"Marin Mitov" <mitov@issp.bas.bg>,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	"Tomasz Stanislawski" <t.stanislaws@samsung.com>,
-	"Sylwester Nawrocki" <s.nawrocki@samsung.com>,
-	"Kamil Debski" <k.debski@samsung.com>,
-	"Hans de Goede" <hdegoede@redhat.com>,
-	"Paul Mundt" <lethal@linux-sh.org>
+Received: from mr.siano-ms.com ([62.0.79.70]:6223 "EHLO
+	Siano-NV.ser.netvision.net.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752141Ab1ITKSR convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Sep 2011 06:18:17 -0400
+Subject: [PATCH  3/17]DVB:Siano drivers - Changing some field names and
+ debug messages.
+From: Doron Cohen <doronc@siano-ms.com>
+Reply-To: doronc@siano-ms.com
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Tue, 20 Sep 2011 13:30:59 +0300
+Message-ID: <1316514659.5199.81.camel@Doron-Ubuntu>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Marek
+Hi,
+This patch is changing field names and debug messages to be more clear.
 
-On Monday, August 29, 2011 7:58 PM, Marek Szyprowski wrote:
+>From 5b3525a0860992b3811dd9ebd4c797b79e14631a Mon Sep 17 00:00:00 2001
+From: Doron Cohen <doronc@siano-ms.com>
+Date: Thu, 15 Sep 2011 14:30:24 +0300
+Subject: [PATCH 06/21] Change debug prints and struct field names to be
+more clear.
 
-> 
-> 
-> This patch changes the order of operations during stream on call. Now the
-> buffers are first queued to the driver and then the start_streaming method
-> is called.
-> 
-> This resolves the most common case when the driver needs to know buffer
-> addresses to enable dma engine and start streaming. Additional parameter
-> to start_streaming method have been added to simplify drivers code. The
-> driver are now obliged to check if the number of queued buffers is high
-> enough to enable hardware streaming. If not - it can return an error. In
-> such case all the buffers that have been pre-queued are invalidated.
-> 
-> This patch also updates all videobuf2 clients to work properly with the
-> changed order of operations.
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> CC: Pawel Osciak <pawel@osciak.com>
-> CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> CC: Hans Verkuil <hverkuil@xs4all.nl>
-> CC: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> CC: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> CC: Kamil Debski <k.debski@samsung.com>
-> CC: Jonathan Corbet <corbet@lwn.net>
-> CC: Josh Wu <josh.wu@atmel.com>
-> CC: Hans de Goede <hdegoede@redhat.com>
-> CC: Paul Mundt <lethal@linux-sh.org>
-> ---
-> 
-> Hello,
-> 
-> This is yet another version of the patch that introduces significant
-> changes in the vb2 streamon operation. I've decided to remove the
-> additional parameter to buf_queue callback and added a few cleanups here
-> and there. This patch also includes an update for all vb2 clients.
-> Please check if my change didn't break anything.
-> 
-> (I'm sorry for spamming, but previous version had wrong code for
-> atmel-isi driver).
-> 
-> Best regards
-> --
-> Marek Szyprowski
-> Samsung Poland R&D Center
-> 
+Thanks,
+Doron Cohen
 
-For atmel-isi.c,
-Tested-by: Josh Wu <josh.wu@atmel.com>
+---
+ drivers/media/dvb/siano/Kconfig      |   17 +++-------
+ drivers/media/dvb/siano/Makefile     |   10 ++++++
+ drivers/media/dvb/siano/smscoreapi.c |   20 +++++++----
+ drivers/media/dvb/siano/smsir.c      |   60
+++++++++++++++++-----------------
+ drivers/media/dvb/siano/smsir.h      |    2 +-
+ 5 files changed, 57 insertions(+), 52 deletions(-)
 
-Best Regards,
-Josh Wu
+diff --git a/drivers/media/dvb/siano/Kconfig
+b/drivers/media/dvb/siano/Kconfig
+index aeca46f..bb91911 100644
+--- a/drivers/media/dvb/siano/Kconfig
++++ b/drivers/media/dvb/siano/Kconfig
+@@ -4,7 +4,7 @@
+ 
+ config SMS_SIANO_MDTV
+ 	tristate "Siano SMS1xxx based MDTV receiver"
+-	depends on DVB_CORE && RC_CORE && HAS_DMA
++	depends on DVB_CORE && HAS_DMA
+ 	---help---
+ 	  Choose Y or M here if you have MDTV receiver with a Siano chipset.
+ 
+@@ -19,18 +19,12 @@ menu "Siano module components"
+ 
+ # Kernel sub systems support
+ 
+-config SMS_DVB3_SUBSYS
+-	bool "DVB v.3 Subsystem support"
+-	depends on DVB_CORE
+-	default y if DVB_CORE
+-	---help---
+-	Choose if you would like to have DVB v.3 kernel sub-system support.
+-
+-config SMS_DVB5_S2API_SUBSYS
+-	bool "DVB v.5 (S2 API) Subsystem support"
++config SMS_RC_SUPPORT_SUBSYS
++	bool "Remote Control Subsystem support"
++	depends on RC_CORE
+ 	default n
+ 	---help---
+-	Choose if you would like to have DVB v.5 (S2 API) kernel sub-system
+support.
++	Choose if you would like to have Siano's ir remote control sub-system
+support.
+ 
+ config SMS_HOSTLIB_SUBSYS
+ 	bool "Host Library Subsystem support"
+@@ -39,7 +33,6 @@ config SMS_HOSTLIB_SUBSYS
+ 	Choose if you would like to have Siano's host library kernel
+sub-system support.
+ 
+ if SMS_HOSTLIB_SUBSYS
+-
+ config SMS_NET_SUBSYS
+ 	tristate "Siano Network Adapter"
+ 	depends on NET
+diff --git a/drivers/media/dvb/siano/Makefile
+b/drivers/media/dvb/siano/Makefile
+index affaf01..a5e52f5 100644
+--- a/drivers/media/dvb/siano/Makefile
++++ b/drivers/media/dvb/siano/Makefile
+@@ -11,3 +11,13 @@ EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+ 
+ EXTRA_CFLAGS += $(extra-cflags-y) $(extra-cflags-m)
+ 
++ifdef CONFIG_SMS_RC_SUPPORT_SUBSYS
++	EXTRA_CFLAGS += -DSMS_RC_SUPPORT_SUBSYS
++endif
++
++ifdef CONFIG_SMS_HOSTLIB_SUBSYS
++	EXTRA_CFLAGS += -DSMS_HOSTLIB_SUBSYS
++endif
++
++
++
+diff --git a/drivers/media/dvb/siano/smscoreapi.c
+b/drivers/media/dvb/siano/smscoreapi.c
+index 115604c..7c74544 100644
+--- a/drivers/media/dvb/siano/smscoreapi.c
++++ b/drivers/media/dvb/siano/smscoreapi.c
+@@ -426,27 +426,26 @@ static int smscore_sendrequest_and_wait(struct
+smscore_device_t *coredev,
+ 			msecs_to_jiffies(SMS_PROTOCOL_MAX_RAOUNDTRIP_MS)) ?
+ 			0 : -ETIME;
+ }
+-
++#ifdef SMS_RC_SUPPORT_SUBSYS
+ /**
+  * Starts & enables IR operations
+  *
+  * @return 0 on success, < 0 on error.
+  */
+ static int smscore_init_ir(struct smscore_device_t *coredev)
+-{
++{ 
+ 	int ir_io;
+ 	int rc;
+ 	void *buffer;
+-
+-	coredev->ir.dev = NULL;
++	coredev->ir.rc_dev = NULL;
+ 	ir_io = sms_get_board(smscore_get_board_id(coredev))->board_cfg.ir;
+ 	if (ir_io) {/* only if IR port exist we use IR sub-module */
+ 		sms_info("IR loading");
+ 		rc = sms_ir_init(coredev);
+-
+ 		if	(rc != 0)
+ 			sms_err("Error initialization DTV IR sub-module");
+-		else {
++		else 
++		{
+ 			buffer = kmalloc(sizeof(struct SmsMsgData_ST2) +
+ 						SMS_DMA_ALIGNMENT,
+ 						GFP_KERNEL | GFP_DMA);
+@@ -477,6 +476,7 @@ static int smscore_init_ir(struct smscore_device_t
+*coredev)
+ 
+ 	return 0;
+ }
++#endif /*SMS_RC_SUPPORT_SUBSYS*/
+ 
+ /**
+  * sets initial device mode and notifies client hotplugs that device is
+ready
+@@ -498,7 +498,9 @@ int smscore_start_device(struct smscore_device_t
+*coredev)
+ 	kmutex_lock(&g_smscore_deviceslock);
+ 
+ 	rc = smscore_notify_callbacks(coredev, coredev->device, 1);
++#ifdef SMS_RC_SUPPORT_SUBSYS
+ 	smscore_init_ir(coredev);
++#endif /*SMS_RC_SUPPORT_SUBSYS*/
+ 
+ 	sms_info("device %p started, rc %d", coredev, rc);
+ 
+@@ -688,8 +690,9 @@ void smscore_unregister_device(struct
+smscore_device_t *coredev)
+ 	kmutex_lock(&g_smscore_deviceslock);
+ 
+ 	/* Release input device (IR) resources */
++#ifdef SMS_RC_SUPPORT_SUBSYS
+ 	sms_ir_exit(coredev);
+-
++#endif /*SMS_RC_SUPPORT_SUBSYS*/
+ 	smscore_notify_clients(coredev);
+ 	smscore_notify_callbacks(coredev, NULL, 0);
+ 
+@@ -1073,6 +1076,7 @@ void smscore_onresponse(struct smscore_device_t
+*coredev,
+ 		case MSG_SMS_START_IR_RES:
+ 			complete(&coredev->ir_init_done);
+ 			break;
++#ifdef SMS_RC_SUPPORT_SUBSYS
+ 		case MSG_SMS_IR_SAMPLES_IND:
+ 			sms_ir_event(coredev,
+ 				(const char *)
+@@ -1081,7 +1085,7 @@ void smscore_onresponse(struct smscore_device_t
+*coredev,
+ 				(int)phdr->msgLength
+ 				- sizeof(struct SmsMsgHdr_ST));
+ 			break;
+-
++#endif /*SMS_RC_SUPPORT_SUBSYS*/
+ 		default:
+ 			break;
+ 		}
+diff --git a/drivers/media/dvb/siano/smsir.c
+b/drivers/media/dvb/siano/smsir.c
+index 37bc5c4..f9d065b 100644
+--- a/drivers/media/dvb/siano/smsir.c
++++ b/drivers/media/dvb/siano/smsir.c
+@@ -32,8 +32,11 @@
+ #include "smsir.h"
+ #include "sms-cards.h"
+ 
++#ifdef SMS_RC_SUPPORT_SUBSYS
+ #define MODULE_NAME "smsmdtv"
+ 
++extern int sms_dbg;
++
+ void sms_ir_event(struct smscore_device_t *coredev, const char *buf,
+int len)
+ {
+ 	int i;
+@@ -45,27 +48,28 @@ void sms_ir_event(struct smscore_device_t *coredev,
+const char *buf, int len)
+ 		ev.duration = abs(samples[i]) * 1000; /* Convert to ns */
+ 		ev.pulse = (samples[i] > 0) ? false : true;
+ 
+-		ir_raw_event_store(coredev->ir.dev, &ev);
++		ir_raw_event_store(coredev->ir.rc_dev, &ev);
+ 	}
+-	ir_raw_event_handle(coredev->ir.dev);
++	ir_raw_event_handle(coredev->ir.rc_dev);
++
+ }
+ 
+ int sms_ir_init(struct smscore_device_t *coredev)
+ {
+ 	int err;
+ 	int board_id = smscore_get_board_id(coredev);
+-	struct rc_dev *dev;
++	struct rc_dev *rc_dev;
+ 
+-	sms_log("Allocating rc device");
+-	dev = rc_allocate_device();
+-	if (!dev) {
++	sms_info("Allocating input device");
++	rc_dev = rc_allocate_device();
++	if (!rc_dev)	{
+ 		sms_err("Not enough memory");
+ 		return -ENOMEM;
+ 	}
+ 
+ 	coredev->ir.controller = 0;	/* Todo: vega/nova SPI number */
+ 	coredev->ir.timeout = IR_DEFAULT_TIMEOUT;
+-	sms_log("IR port %d, timeout %d ms",
++	sms_info("IR port %d, timeout %d ms",
+ 			coredev->ir.controller, coredev->ir.timeout);
+ 
+ 	snprintf(coredev->ir.name, sizeof(coredev->ir.name),
+@@ -74,41 +78,35 @@ int sms_ir_init(struct smscore_device_t *coredev)
+ 	strlcpy(coredev->ir.phys, coredev->devpath, sizeof(coredev->ir.phys));
+ 	strlcat(coredev->ir.phys, "/ir0", sizeof(coredev->ir.phys));
+ 
+-	dev->input_name = coredev->ir.name;
+-	dev->input_phys = coredev->ir.phys;
+-	dev->dev.parent = coredev->device;
+-
+-#if 0
+-	/* TODO: properly initialize the parameters bellow */
+-	dev->input_id.bustype = BUS_USB;
+-	dev->input_id.version = 1;
+-	dev->input_id.vendor = le16_to_cpu(dev->udev->descriptor.idVendor);
+-	dev->input_id.product = le16_to_cpu(dev->udev->descriptor.idProduct);
+-#endif
++	rc_dev->input_name = coredev->ir.name;
++	rc_dev->input_phys = coredev->ir.phys;
++	rc_dev->dev.parent = coredev->device;
++	rc_dev->priv = coredev;
++	rc_dev->driver_type = RC_DRIVER_IR_RAW;
++	rc_dev->allowed_protos = RC_TYPE_ALL;
++	rc_dev->map_name = sms_get_board(board_id)->rc_codes;
++	rc_dev->driver_name = MODULE_NAME;
+ 
+-	dev->priv = coredev;
+-	dev->driver_type = RC_DRIVER_IR_RAW;
+-	dev->allowed_protos = RC_TYPE_ALL;
+-	dev->map_name = sms_get_board(board_id)->rc_codes;
+-	dev->driver_name = MODULE_NAME;
++	sms_info("Input device (IR) %s is set for key events",
+rc_dev->input_name);
+ 
+-	sms_log("Input device (IR) %s is set for key events",
+dev->input_name);
+-
+-	err = rc_register_device(dev);
++	err = rc_register_device(rc_dev);
+ 	if (err < 0) {
+ 		sms_err("Failed to register device");
+-		rc_free_device(dev);
++		rc_free_device(rc_dev);
+ 		return err;
+ 	}
+ 
+-	coredev->ir.dev = dev;
++	coredev->ir.rc_dev = rc_dev;
+ 	return 0;
+ }
+ 
+ void sms_ir_exit(struct smscore_device_t *coredev)
+ {
+-	if (coredev->ir.dev)
+-		rc_unregister_device(coredev->ir.dev);
++	if (coredev->ir.rc_dev)
++		rc_unregister_device(coredev->ir.rc_dev);
+ 
+-	sms_log("");
++	sms_info("");
+ }
++#endif /*SMS_RC_SUPPORT_SUBSYS*/
++
++
+diff --git a/drivers/media/dvb/siano/smsir.h
+b/drivers/media/dvb/siano/smsir.h
+index ae92b3a..701fcfe 100644
+--- a/drivers/media/dvb/siano/smsir.h
++++ b/drivers/media/dvb/siano/smsir.h
+@@ -35,7 +35,7 @@ along with this program.  If not, see
+<http://www.gnu.org/licenses/>.
+ struct smscore_device_t;
+ 
+ struct ir_t {
+-	struct rc_dev *dev;
++	struct rc_dev *rc_dev;
+ 	char name[40];
+ 	char phys[32];
+ 
+-- 
+1.7.4.1
 
-> 
-> 
->  drivers/media/video/atmel-isi.c              |   20 ++++--
->  drivers/media/video/marvell-ccic/mcam-core.c |    6 +-
->  drivers/media/video/pwc/pwc-if.c             |    2 +-
->  drivers/media/video/s5p-fimc/fimc-capture.c  |   65 +++++++++++-------
->  drivers/media/video/s5p-mfc/s5p_mfc_dec.c    |    2 +-
->  drivers/media/video/s5p-mfc/s5p_mfc_enc.c    |    2 +-
->  drivers/media/video/s5p-tv/mixer.h           |    2 -
->  drivers/media/video/s5p-tv/mixer_video.c     |   22 +++---
->  drivers/media/video/videobuf2-core.c         |   97 ++++++++++++--------------
->  drivers/media/video/vivi.c                   |    2 +-
->  include/media/videobuf2-core.h               |   17 ++++-
->  11 files changed, 131 insertions(+), 106 deletions(-)
-> 
-> diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
-> index 7e1d789..774715d 100644
-> --- a/drivers/media/video/atmel-isi.c
-> +++ b/drivers/media/video/atmel-isi.c
-> @@ -404,12 +404,13 @@ static void buffer_queue(struct vb2_buffer *vb)
->  
->  	if (isi->active == NULL) {
->  		isi->active = buf;
-> -		start_dma(isi, buf);
-> +		if (vb2_is_streaming(vb->vb2_queue))
-> +			start_dma(isi, buf);
->  	}
->  	spin_unlock_irqrestore(&isi->lock, flags);
->  }
->  
-> -static int start_streaming(struct vb2_queue *vq)
-> +static int start_streaming(struct vb2_queue *vq, unsigned int count)
->  {
->  	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
->  	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> @@ -431,17 +432,26 @@ static int start_streaming(struct vb2_queue *vq)
->  	ret = wait_event_interruptible(isi->vsync_wq,
->  				       isi->state != ISI_STATE_IDLE);
->  	if (ret)
-> -		return ret;
-> +		goto err;
->  
-> -	if (isi->state != ISI_STATE_READY)
-> -		return -EIO;
-> +	if (isi->state != ISI_STATE_READY) {
-> +		ret = -EIO;
-> +		goto err;
-> +	}
->  
->  	spin_lock_irq(&isi->lock);
->  	isi->state = ISI_STATE_WAIT_SOF;
->  	isi_writel(isi, ISI_INTDIS, ISI_SR_VSYNC);
-> +	if (count)
-> +		start_dma(isi, isi->active);
->  	spin_unlock_irq(&isi->lock);
->  
->  	return 0;
-> +err:
-> +	isi->active = NULL;
-> +	isi->sequence = 0;
-> +	INIT_LIST_HEAD(&isi->video_buffer_list);
-> +	return ret;
->  }
->  
->  /* abort streaming and wait for last buffer */
-> diff --git a/drivers/media/video/marvell-ccic/mcam-core.c b/drivers/media/video/marvell-ccic/mcam-core.c
-> index 7abe503..1141b97 100644
-> --- a/drivers/media/video/marvell-ccic/mcam-core.c
-> +++ b/drivers/media/video/marvell-ccic/mcam-core.c
-> @@ -940,12 +940,14 @@ static void mcam_vb_wait_finish(struct vb2_queue *vq)
->  /*
->   * These need to be called with the mutex held from vb2
->   */
-
-> [snip]
-
->  struct vb2_ops {
->  	int (*queue_setup)(struct vb2_queue *q, unsigned int *num_buffers,
-> @@ -219,7 +228,7 @@ struct vb2_ops {
->  	int (*buf_finish)(struct vb2_buffer *vb);
->  	void (*buf_cleanup)(struct vb2_buffer *vb);
->  
-> -	int (*start_streaming)(struct vb2_queue *q);
-> +	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
->  	int (*stop_streaming)(struct vb2_queue *q);
->  
->  	void (*buf_queue)(struct vb2_buffer *vb);
-> -- 
-> 1.7.1.569.g6f426
-> 
->
