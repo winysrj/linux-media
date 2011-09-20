@@ -1,48 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56164 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751105Ab1IEWjT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Sep 2011 18:39:19 -0400
-Received: from [82.128.187.213] (helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1R0hox-0004ci-Mq
-	for linux-media@vger.kernel.org; Tue, 06 Sep 2011 01:39:15 +0300
-Message-ID: <4E654F93.9060506@iki.fi>
-Date: Tue, 06 Sep 2011 01:39:15 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:59633 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750765Ab1ITNds (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Sep 2011 09:33:48 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LRT00BRNPOAJW@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 20 Sep 2011 14:33:46 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LRT00H8YPOAZE@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 20 Sep 2011 14:33:46 +0100 (BST)
+Date: Tue, 20 Sep 2011 15:33:43 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] v4l: Move SR030PC30, NOON010PC30,
+ M5MOLS drivers to the right location
 To: linux-media@vger.kernel.org
-Subject: checkpatch.pl WARNING: Do not use whitespace before Signed-off-by:
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: kyungmin.park@samsung.com, m.szyprowski@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1316525623-7180-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am almost sure this have been working earlier, but now it seems like 
-nothing is acceptable for checkpatch.pl! I did surely about 20 --amend 
-and tried to remove everything, without luck. Could someone point out 
-whats new acceptable logging format for checkpatch.pl ?
+SR030PC30, NOON010PC30, M5MOLS are camera sensors so better place
+for them is under the "Camera sensors" Kconfig section.
 
-[crope@localhost linux]$ git show 
-1b19e42952963ae2a09a655f487de15b7c81c5b7 |./scripts/checkpatch.pl -
-WARNING: Do not use whitespace before Signed-off-by:
-#10:
-     Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/Kconfig |   28 ++++++++++++++--------------
+ 1 files changed, 14 insertions(+), 14 deletions(-)
 
-WARNING: Do not use whitespace before Signed-off-by:
-#11:
-     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-total: 0 errors, 2 warnings, 48 lines checked
-
-Your patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-
-Antti
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 9da6044..f41ae69 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -496,6 +496,20 @@ config VIDEO_TCM825X
+ 	  This is a driver for the Toshiba TCM825x VGA camera sensor.
+ 	  It is used for example in Nokia N800.
+ 
++config VIDEO_SR030PC30
++	tristate "Siliconfile SR030PC30 sensor support"
++	depends on I2C && VIDEO_V4L2
++	---help---
++	  This driver supports SR030PC30 VGA camera from Siliconfile
++
++config VIDEO_NOON010PC30
++	tristate "Siliconfile NOON010PC30 sensor support"
++	depends on I2C && VIDEO_V4L2 && EXPERIMENTAL && VIDEO_V4L2_SUBDEV_API
++	---help---
++	  This driver supports NOON010PC30 CIF camera from Siliconfile
++
++source "drivers/media/video/m5mols/Kconfig"
++
+ comment "Flash devices"
+ 
+ config VIDEO_ADP1653
+@@ -744,12 +758,6 @@ config VIDEO_M32R_AR_M64278
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called arv.
+ 
+-config VIDEO_SR030PC30
+-	tristate "SR030PC30 VGA camera sensor support"
+-	depends on I2C && VIDEO_V4L2
+-	---help---
+-	  This driver supports SR030PC30 VGA camera from Siliconfile
+-
+ config VIDEO_VIA_CAMERA
+ 	tristate "VIAFB camera controller support"
+ 	depends on FB_VIA
+@@ -760,14 +768,6 @@ config VIDEO_VIA_CAMERA
+ 	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
+ 	   with ov7670 sensors.
+ 
+-config VIDEO_NOON010PC30
+-	tristate "NOON010PC30 CIF camera sensor support"
+-	depends on I2C && VIDEO_V4L2
+-	---help---
+-	  This driver supports NOON010PC30 CIF camera from Siliconfile
+-
+-source "drivers/media/video/m5mols/Kconfig"
+-
+ config VIDEO_OMAP3
+ 	tristate "OMAP 3 Camera support (EXPERIMENTAL)"
+ 	select OMAP_IOMMU
 -- 
-http://palosaari.fi/
+1.7.6.3
+
