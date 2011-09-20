@@ -1,175 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:46860 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753551Ab1IFJBR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 05:01:17 -0400
-Received: by pzk37 with SMTP id 37so10002329pzk.1
-        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2011 02:01:16 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20110906082739.GC1393@valkosipuli.localdomain>
-References: <201108282006.09790.laurent.pinchart@ideasonboard.com>
-	<CABYn4sx5jQPyLC4d6OfVbX5SSuS4TiNsB_LPoCheaOSbwM9Pzw@mail.gmail.com>
-	<20110831212010.GS12368@valkosipuli.localdomain>
-	<Pine.LNX.4.64.1109010911550.21309@axis700.grange>
-	<20110901084722.GV12368@valkosipuli.localdomain>
-	<4E5F4CE0.8050909@samsung.com>
-	<20110901120801.GA12368@valkosipuli.localdomain>
-	<CABYn4sx8s0nX5iooKM4XHs1Ard_nLS4ppB848EpGLS4bQbemyw@mail.gmail.com>
-	<20110906065313.GB1393@valkosipuli.localdomain>
-	<CABYn4sxWHRWqNTtsisNvwUr+ZG5djLA-f5GNCf72i6q983tGNg@mail.gmail.com>
-	<20110906082739.GC1393@valkosipuli.localdomain>
-Date: Tue, 6 Sep 2011 09:01:15 +0000
-Message-ID: <CABYn4sxob_OXJ3cHF+CmOB+68C2T4XznjcXm7s1n_YwbXAwYwg@mail.gmail.com>
-Subject: Re: [PATCH] media: Add camera controls for the ov5642 driver
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mr.siano-ms.com ([62.0.79.70]:6238 "EHLO
+	Siano-NV.ser.netvision.net.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755070Ab1ITKSo convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Sep 2011 06:18:44 -0400
+Subject: [PATCH 8/17]DVB:Siano drivers -  Hide smscore structure from all
+ modules which are not the core device.
+From: Doron Cohen <doronc@siano-ms.com>
+Reply-To: doronc@siano-ms.com
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
+Date: Tue, 20 Sep 2011 13:31:24 +0300
+Message-ID: <1316514684.5199.86.camel@Doron-Ubuntu>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/9/6 Sakari Ailus <sakari.ailus@iki.fi>:
-> On Tue, Sep 06, 2011 at 07:56:40AM +0000, Bastian Hecht wrote:
->> Hello Sakari!
->
-> Hi Bastian,
->
->> 2011/9/6 Sakari Ailus <sakari.ailus@iki.fi>:
->> > Hi Bastian,
->> >
->> > On Mon, Sep 05, 2011 at 09:32:55AM +0000, Bastian Hecht wrote:
->> >> 2011/9/1 Sakari Ailus <sakari.ailus@iki.fi>:
->> >> > On Thu, Sep 01, 2011 at 11:14:08AM +0200, Sylwester Nawrocki wrote:
->> >> >> Hi Sakari,
->> >> >>
->> >> >> On 09/01/2011 10:47 AM, Sakari Ailus wrote:
->> >> >> > On Thu, Sep 01, 2011 at 09:15:20AM +0200, Guennadi Liakhovetski wrote:
->> >> >> >> On Thu, 1 Sep 2011, Sakari Ailus wrote:
->> >> >> >>
->> >> >> >>> On Wed, Aug 31, 2011 at 03:27:49PM +0000, Bastian Hecht wrote:
->> >> >> >>>> 2011/8/28 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> >> >> >>> [clip]
->> >> >> >>>>> If I'm not mistaken V4L2_CID_PRIVATE_BASE is deprecated.
->> >> >> >>>>
->> >> >> >>>> I checked at http://v4l2spec.bytesex.org/spec/x542.htm, googled
->> >> >> >>>> "V4L2_CID_PRIVATE_BASE deprecated" and read
->> >> >> >>>> Documentation/feature-removal-schedule.txt. I couldn't find anything.
->> >> >> >>>
->> >> >> >>> Hmm. Did you happen to check when that has been written? :)
->> >> >> >>>
->> >> >> >>> Please use this one instead:
->> >> >> >>>
->> >> >> >>> <URL:http://hverkuil.home.xs4all.nl/spec/media.html>
->> >> >> >>
->> >> >> >> "Drivers can also implement their own custom controls using
->> >> >> >> V4L2_CID_PRIVATE_BASE and higher values."
->> >> >> >>
->> >> >> >> Which specific location describes V4L2_CID_PRIVATE_BASE differently there?
->> >> >> >
->> >> >> > That was a general comment, not related to the private base. There's no
->> >> >> > use for a three-year-old spec as a reference!
->> >> >> >
->> >> >> > The control framework does not support private controls, for example. The
->> >> >> > controls should be put to their own class in videodev2.h nowadays, that's my
->> >> >> > understanding. Cc Hans.
->> >> >>
->> >> >> Is this really the case that we close the door for private controls in
->> >> >> the mainline kernel ? Or am I misunderstanding something ?
->> >> >> How about v4l2_ctrl_new_custom() ?
->> >> >>
->> >> >> What if there are controls applicable to single driver only ?
->> >> >> Do we really want to have plenty of such in videodev2.h ?
->> >> >
->> >> > We have some of those already in videodev2.h. I'm not certain if I'm happy
->> >> > with this myself, considering e.g. that we could get a few truckloads of
->> >> > only camera lens hardware specific controls in the near future.
->> >>
->> >> So in my case (as these are controls that might be used by others too)
->> >> I should add something like
->> >>
->> >> #define V4L2_CID_BLUE_SATURATION              (V4L2_CID_CAMERA_CLASS_BASE+19)
->> >> #define V4L2_CID_RED_SATURATION               (V4L2_CID_CAMERA_CLASS_BASE+20)
->> >
->> > What do these two controls do? Do they control gain or something else?
->>
->> Hmm. Maybe I named them a bit unsharp. It is the U Saturation and V
->> Saturation. To me it looks like turning up the saturation in HSV
->> space, but only for either the blue or the red channel. This would
->> correspond to V4L2_CID_{RED,BLUE}_BALANCE when I read the docs. They
->> say it is "{Red,Blue} chroma balance".
->>
->> I have other controls for that I used V4L2_CID_{RED,BLUE}_BALANCE.
->> These are gains. So in fact I should swap them in my code and the
->> remaining question is, how to name the red and blue gain controls.
->
-> I think Laurent had a similar issue in his Aptina sensor driver. In my
-> opinion we need a class for low level controls such as the gain ones. Do I
-> understand correctly they control the red and blue pixel gain in the sensor
-> pixel matrix? Do you also have gain controls for the two greens?
-
-Yes, I assume that this is done there. Either in the analog circuit by
-decreasing the preload or digitally then. Don't know exactly. There
-are registers for the green pixels as well. As I used the
-V4L2_CID_{RED,BLUE}_BALANCE controls and there was no
-V4L2_CID_GREEN_BALANCE, I just skipped green as one can
-increase/decrease the global gain and get an arbitrary mix as well.
-
-So for these gain settings we should add these?
-V4L2_CID_RED_GAIN
-V4L2_CID_BLUE_GAIN
-V4L2_CID_GREEN_GAIN
-
->> >> #define V4L2_CID_GRAY_SCALE_IMAGE             (V4L2_CID_CAMERA_CLASS_BASE+21)
->> >
->> > V4L2_CID_COLOR_KILLER looks like something which would fit for the purpose.
->>
->> Oh great! So I just take this.
->>
->> >> #define V4L2_CID_SOLARIZE_EFFECT              (V4L2_CID_CAMERA_CLASS_BASE+22)
->> >
->> > Sounds interesting for a sensor. I wonder if this would fall under a menu
->> > control, V4L2_CID_COLORFX.
->>
->> When I read the the possible enums for V4L2_CID_COLORFX, it indeed
->> sounds very much like my solarize effect should be added there too. I
->> found V4L2_COLORFX_BW there, too. Isn't that a duplicate of the color
->> killer control then?
->
-> In my opinion V4L2_CID_COLORFX should never be implemented in drivers for
-> which the hardware doesn't implement these effects in a non-parametrisable
-> way. This control was originally added for the OMAP 3 ISP driver but the
-> driver never implemented it.
-
-Your triple negation (never, doesn't, non-) is quite tricky xD
-If I get it right, you say that one should not use V4L2_CID_COLORFX
-for hardware with parametrisable effects.
-My BW and Solarize effects are non-parametrisable and they can be
-turned on together (which makes not so much sense though - but these
-fun-effects like "solarize" aren't here to make sense, I guess :-) ).
-
-> I think you have a valid case using this control. I think the main
-> difference between the two is that V4L2_COLORFX_BW is something that you
-> can't use with other effects while V4L2_CID_COLOR_KILLER can be used with
-> any of the effects.
-
-> Based on your original proposal the black/white should stay as a separate
-> control but the solarise should be configurable through V4L2_CID_COLORFX
-> menu control. So it boils down to the question whether you can use them at
-> the same time.
-
-I can - so it is still working to enable V4L2_COLORFX_BW and
-V4L2_CID_COLORFX with a new enum value, right? Is that the way to go
-now?
-
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     jabber/XMPP/Gmail: sailus@retiisi.org.uk
->
+Hi,
+This patch makes smscore structure hidden from all other module by
+making it's pointer NULL.
 
 Thanks,
+Doron Cohen
 
- Bastian
+--------------
+
+
+>From b003e8ec2893b7d6e68720abeb490fba38904e59 Mon Sep 17 00:00:00 2001
+From: Doron Cohen <doronc@siano-ms.com>
+Date: Mon, 19 Sep 2011 14:16:02 +0300
+Subject: [PATCH 11/21] Hide smscore data by making pointer NULL with
+unkniown fields.
+
+---
+ drivers/media/dvb/siano/smsdvb.c |   65
++++++++++++++++++++++-----------------
+ 1 files changed, 36 insertions(+), 29 deletions(-)
+
+diff --git a/drivers/media/dvb/siano/smsdvb.c
+b/drivers/media/dvb/siano/smsdvb.c
+index 62dd37c..2695d3a 100644
+--- a/drivers/media/dvb/siano/smsdvb.c
++++ b/drivers/media/dvb/siano/smsdvb.c
+@@ -37,7 +37,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ struct smsdvb_client_t {
+ 	struct list_head entry;
+ 
+-	struct smscore_device_t *coredev;
++	void *coredev;
+ 	struct smscore_client_t *smsclient;
+ 
+ 	struct dvb_adapter      adapter;
+@@ -73,15 +73,15 @@ enum SMS_DVB3_EVENTS {
+ static struct list_head g_smsdvb_clients;
+ static struct mutex g_smsdvb_clientslock;
+ 
+-static int sms_dbg;
+-module_param_named(debug, sms_dbg, int, 0644);
++int sms_debug;
++module_param_named(debug, sms_debug, int, 0644);
+ MODULE_PARM_DESC(debug, "set debug level (info=1, adv=2 (or-able))");
+ 
+ /* Events that may come from DVB v3 adapter */
+ static void sms_board_dvb3_event(struct smsdvb_client_t *client,
+ 		enum SMS_DVB3_EVENTS event) {
+ 
+-	struct smscore_device_t *coredev = client->coredev;
++	void *coredev = client->coredev;
+ 	switch (event) {
+ 	case DVB3_EVENT_INIT:
+ 		sms_debug("DVB3_EVENT_INIT");
+@@ -656,45 +656,43 @@ static int smsdvb_isdbt_set_frontend(struct
+dvb_frontend *fe,
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct smsdvb_client_t *client =
+ 		container_of(fe, struct smsdvb_client_t, frontend);
+-
+-	struct {
+-		struct SmsMsgHdr_S	Msg;
+-		u32		Data[4];
+-	} Msg;
++	struct SmsMsgData4Args_S Msg;
+ 
+ 	fe->dtv_property_cache.delivery_system = SYS_ISDBT;
+ 
+-	Msg.Msg.msgSrcId  = DVBT_BDA_CONTROL_MSG_ID;
+-	Msg.Msg.msgDstId  = HIF_TASK;
+-	Msg.Msg.msgFlags  = 0;
+-	Msg.Msg.msgType   = MSG_SMS_ISDBT_TUNE_REQ;
+-	Msg.Msg.msgLength = sizeof(Msg);
+-
++	Msg.xMsgHeader.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
++	Msg.xMsgHeader.msgDstId = HIF_TASK;
++	Msg.xMsgHeader.msgFlags = 0;
++	Msg.xMsgHeader.msgType   = MSG_SMS_ISDBT_TUNE_REQ;
++	Msg.xMsgHeader.msgLength = sizeof(Msg);
++	Msg.msgData[0] = p->frequency;
+ 	if (c->isdbt_sb_segment_idx == -1)
+ 		c->isdbt_sb_segment_idx = 0;
++	sms_info("freq %d band %d",
++		  p->frequency, p->u.ofdm.bandwidth);
+ 
+ 	switch (c->isdbt_sb_segment_count) {
+ 	case 3:
+-		Msg.Data[1] = BW_ISDBT_3SEG;
++		Msg.msgData[1] = BW_ISDBT_3SEG;
+ 		break;
+ 	case 1:
+-		Msg.Data[1] = BW_ISDBT_1SEG;
++		Msg.msgData[1] = BW_ISDBT_1SEG;
+ 		break;
+ 	case 0:	/* AUTO */
+ 		switch (c->bandwidth_hz / 1000000) {
+ 		case 8:
+ 		case 7:
+ 			c->isdbt_sb_segment_count = 3;
+-			Msg.Data[1] = BW_ISDBT_3SEG;
++			Msg.msgData[1] = BW_ISDBT_3SEG;
+ 			break;
+ 		case 6:
+ 			c->isdbt_sb_segment_count = 1;
+-			Msg.Data[1] = BW_ISDBT_1SEG;
++			Msg.msgData[1] = BW_ISDBT_1SEG;
+ 			break;
+ 		default: /* Assumes 6 MHZ bw */
+ 			c->isdbt_sb_segment_count = 1;
+ 			c->bandwidth_hz = 6000;
+-			Msg.Data[1] = BW_ISDBT_1SEG;
++			Msg.msgData[1] = BW_ISDBT_1SEG;
+ 			break;
+ 		}
+ 		break;
+@@ -702,10 +700,9 @@ static int smsdvb_isdbt_set_frontend(struct
+dvb_frontend *fe,
+ 		sms_info("Segment count %d not supported",
+c->isdbt_sb_segment_count);
+ 		return -EINVAL;
+ 	}
+-
+-	Msg.Data[0] = c->frequency;
+-	Msg.Data[2] = 12000000;
+-	Msg.Data[3] = c->isdbt_sb_segment_idx;
++        Msg.msgData[0] = c->frequency;
++	Msg.msgData[2] = 12000000;
++	Msg.msgData[3] = c->isdbt_sb_segment_idx;
+ 
+ 	sms_info("%s: freq %d segwidth %d segindex %d\n", __func__,
+ 		 c->frequency, c->isdbt_sb_segment_count,
+@@ -782,7 +779,7 @@ static struct dvb_frontend_ops smsdvb_fe_ops = {
+ 	.info = {
+ 		.name			= "Siano Mobile Digital MDTV Receiver",
+ 		.type			= FE_OFDM,
+-		.frequency_min		= 44250000,
++	        .frequency_min = 164000000,
+ 		.frequency_max		= 867250000,
+ 		.frequency_stepsize	= 250000,
+ 		.caps = FE_CAN_INVERSION_AUTO |
+@@ -811,16 +808,24 @@ static struct dvb_frontend_ops smsdvb_fe_ops = {
+ 	.sleep = smsdvb_sleep,
+ };
+ 
+-static int smsdvb_hotplug(void *coredev,
+-			  struct device *device, int arrival)
++static int smsdvb_hotplug(void *coredev, struct device *device, int
+arrival)
+ {
+ 	struct smsclient_params_t params;
+ 	struct smsdvb_client_t *client;
+ 	int rc;
++	int mode = smscore_get_device_mode(coredev);
+ 
+ 	/* device removal handled by onremove callback */
+ 	if (!arrival)
+ 		return 0;
++
++	if ( (mode != SMSHOSTLIB_DEVMD_DVBT_BDA) &&
++	     (mode != SMSHOSTLIB_DEVMD_ISDBT_BDA) ) {
++		sms_err("SMS Device mode is not set for "
++			"DVB operation.");
++		return 0;
++	}
++
+ 	client = kzalloc(sizeof(struct smsdvb_client_t), GFP_KERNEL);
+ 	if (!client) {
+ 		sms_err("kmalloc() failed");
+@@ -949,6 +954,8 @@ static void __exit smsdvb_module_exit(void)
+ module_init(smsdvb_module_init);
+ module_exit(smsdvb_module_exit);
+ 
+-MODULE_DESCRIPTION("SMS DVB subsystem adaptation module");
+-MODULE_AUTHOR("Siano Mobile Silicon, Inc. (uris@siano-ms.com)");
++#define MODULE_VERSION_STRING "Siano DVB module for LinuxTV interface
+"VERSION_STRING
++
++MODULE_DESCRIPTION(MODULE_VERSION_STRING);
++MODULE_AUTHOR(MODULE_AUTHOR_STRING);
+ MODULE_LICENSE("GPL");
+-- 
+1.7.4.1
+
