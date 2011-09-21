@@ -1,86 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:54543 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753557Ab1IPQAE (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:53552 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751336Ab1IUKZM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Sep 2011 12:00:04 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LRM006A0HS0C7@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2011 17:00:00 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRM00K78HS0OD@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2011 17:00:00 +0100 (BST)
-Date: Fri, 16 Sep 2011 17:59:56 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 3/3 (resend)] noon010pc30: Remove g_chip_ident operation handler
-In-reply-to: <1316188796-8374-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Message-id: <1316188796-8374-4-git-send-email-s.nawrocki@samsung.com>
+	Wed, 21 Sep 2011 06:25:12 -0400
 MIME-version: 1.0
-Content-type: TEXT/PLAIN
 Content-transfer-encoding: 7BIT
-References: <1316188796-8374-1-git-send-email-s.nawrocki@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LRV0095DBLYMZ20@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Sep 2011 11:25:10 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LRV004EBBLXZF@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Sep 2011 11:25:10 +0100 (BST)
+Date: Wed, 21 Sep 2011 12:25:09 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v1 3/3] v4l: Add v4l2 subdev driver for S5K6AAFX sensor
+In-reply-to: <20110920221033.GO1845@valkosipuli.localdomain>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com
+Message-id: <4E79BB85.50306@samsung.com>
+References: <1316519939-22540-1-git-send-email-s.nawrocki@samsung.com>
+ <1316519939-22540-4-git-send-email-s.nawrocki@samsung.com>
+ <20110920221033.GO1845@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is now not needed as the sensor identification is done
-through the media controller API.
+Hi Sakari,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/noon010pc30.c |   10 ----------
- include/media/v4l2-chip-ident.h   |    3 ---
- 2 files changed, 0 insertions(+), 13 deletions(-)
+On 09/21/2011 12:10 AM, Sakari Ailus wrote:
+> On Tue, Sep 20, 2011 at 01:58:59PM +0200, Sylwester Nawrocki wrote:
+>> This driver exposes preview mode operation of the S5K6AAFX sensor with
+>> embedded SoC ISP. It uses one of the five user predefined configuration
+>> register sets. There is yet no support for capture (snapshot) operation.
+>> Following controls are supported:
+>> manual/auto exposure and gain, power line frequency (anti-flicker),
+>> saturation, sharpness, brightness, contrast, white balance temperature,
+>> color effects. horizontal/vertical image flip, frame interval.
+> 
+> Thanks for the patch, Sylwester!
+> 
+> [clip]
+>> +	v4l2_ctrl_new_std_menu(hdl, ops, V4L2_CID_POWER_LINE_FREQUENCY,
+>> +			       V4L2_CID_POWER_LINE_FREQUENCY_AUTO, 0,
+>> +			       V4L2_CID_POWER_LINE_FREQUENCY_50HZ);
+>> +
+>> +	v4l2_ctrl_new_std_menu(hdl, ops, V4L2_CID_COLORFX,
+>> +			       V4L2_COLORFX_SKETCH, 0x3D0, V4L2_COLORFX_NONE);
+> 
+> New items may be added to standard menus so you should mask out also
+> undefined bits. Say, ~0x42f (hope I got that right).
 
-diff --git a/drivers/media/video/noon010pc30.c b/drivers/media/video/noon010pc30.c
-index 436b1ee..d38b4d4 100644
---- a/drivers/media/video/noon010pc30.c
-+++ b/drivers/media/video/noon010pc30.c
-@@ -617,15 +617,6 @@ static int noon010_s_stream(struct v4l2_subdev *sd, int on)
- 	return ret;
- }
- 
--static int noon010_g_chip_ident(struct v4l2_subdev *sd,
--				struct v4l2_dbg_chip_ident *chip)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--
--	return v4l2_chip_ident_i2c_client(client, chip,
--					  V4L2_IDENT_NOON010PC30, 0);
--}
--
- static int noon010_log_status(struct v4l2_subdev *sd)
- {
- 	struct noon010_info *info = to_noon010(sd);
-@@ -655,7 +646,6 @@ static const struct v4l2_ctrl_ops noon010_ctrl_ops = {
- };
- 
- static const struct v4l2_subdev_core_ops noon010_core_ops = {
--	.g_chip_ident	= noon010_g_chip_ident,
- 	.s_power	= noon010_s_power,
- 	.g_ctrl		= v4l2_subdev_g_ctrl,
- 	.s_ctrl		= v4l2_subdev_s_ctrl,
-diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
-index 63fd9d3..810a209 100644
---- a/include/media/v4l2-chip-ident.h
-+++ b/include/media/v4l2-chip-ident.h
-@@ -212,9 +212,6 @@ enum {
- 	/* module sn9c20x: just ident 10000 */
- 	V4L2_IDENT_SN9C20X = 10000,
- 
--	/* Siliconfile sensors: reserved range 10100 - 10199 */
--	V4L2_IDENT_NOON010PC30	= 10100,
--
- 	/* module cx231xx and cx25840 */
- 	V4L2_IDENT_CX2310X_AV = 23099, /* Integrated A/V decoder; not in '100 */
- 	V4L2_IDENT_CX23100    = 23100,
+Sure, that's an important detail. ~0x42 look like the right value. Thanks for
+pointing this out.
+
+> 
+> Youd also don't need to check for invalid menu ids; the control framework
+> does this for you.
+
+Right, good catch. I'll modify accordingly.
+
+> 
+>> +	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_WHITE_BALANCE_TEMPERATURE,
+>> +			  0, 256, 1, 0);
+>> +
+>> +	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_SATURATION, -127, 127, 1, 0);
+>> +	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_SHARPNESS, -127, 127, 1, 0);
+>> +	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_BRIGHTNESS, -127, 127, 1, 0);
+>> +	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_CONTRAST, -127, 127, 1, 0);
+>> +
+>> +	s5k6aa->sd.ctrl_handler = hdl;
+> 
+> Shoudln't this assignment be done after checking for the error?
+
+Indeed, seems much more appropriate.
+
+> 
+>> +	if (hdl->error) {
+>> +		ret = hdl->error;
+>> +		v4l2_ctrl_handler_free(hdl);
+>> +	}
+>> +	return ret;
+
+--
+Thanks!
+Sylwester
 -- 
-1.7.6
-
+Sylwester Nawrocki
+Samsung Poland R&D Center
