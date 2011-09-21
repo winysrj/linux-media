@@ -1,88 +1,61 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52856 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751525Ab1ITX0P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Sep 2011 19:26:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: Re: [PATCH 4/5] ispccdc: Configure CCDC_SYN_MODE register for UYVY8_2X8 and YUYV8_2X8 formats
-Date: Wed, 21 Sep 2011 01:26:19 +0200
-Cc: mchehab@infradead.org, tony@atomide.com, hvaibhav@ti.com,
-	linux-media@vger.kernel.org, linux@arm.linux.org.uk,
-	linux-arm-kernel@lists.infradead.org, kyungmin.park@samsung.com,
-	hverkuil@xs4all.nl, m.szyprowski@samsung.com,
-	g.liakhovetski@gmx.de, santosh.shilimkar@ti.com,
-	khilman@deeprootsystems.com, david.woodhouse@intel.com,
-	akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com> <1316530612-23075-5-git-send-email-deepthy.ravi@ti.com>
-In-Reply-To: <1316530612-23075-5-git-send-email-deepthy.ravi@ti.com>
+Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.72)
+	(envelope-from <sanweidaying@gmail.com>) id 1R6HAh-0007d3-Dr
+	for linux-dvb@linuxtv.org; Wed, 21 Sep 2011 09:24:43 +0200
+Received: from mail-fx0-f54.google.com ([209.85.161.54])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-1) with esmtps
+	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
+	id 1R6HAh-00003e-Jh; Wed, 21 Sep 2011 09:24:43 +0200
+Received: by fxg9 with SMTP id 9so1694681fxg.41
+	for <linux-dvb@linuxtv.org>; Wed, 21 Sep 2011 00:24:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109210126.20436.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Date: Wed, 21 Sep 2011 15:24:42 +0800
+Message-ID: <CAOc6HJ6deLSaX0xt=r1v4HZp+FUckeg31vyy6J3LzKYAPuwT6Q@mail.gmail.com>
+From: Zhouping Liu <sanweidaying@gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] The USB device VID in Linux is difference with in
+	Windows
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-Hi Deepthy,
-
-Thanks for the patch.
-
-On Tuesday 20 September 2011 16:56:51 Deepthy Ravi wrote:
-> Configure INPMOD and PACK8 fileds of CCDC_SYN_MODE
-> register for UYVY8_2X8 and YUYV8_2X8 formats.
-> 
-> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
-> ---
->  drivers/media/video/omap3isp/ispccdc.c |   11 ++++++++---
->  1 files changed, 8 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/ispccdc.c
-> b/drivers/media/video/omap3isp/ispccdc.c index 418ba65..1dcf180 100644
-> --- a/drivers/media/video/omap3isp/ispccdc.c
-> +++ b/drivers/media/video/omap3isp/ispccdc.c
-> @@ -985,8 +985,12 @@ static void ccdc_config_sync_if(struct isp_ccdc_device
-> *ccdc,
-> 
->  	syn_mode &= ~ISPCCDC_SYN_MODE_INPMOD_MASK;
->  	if (format->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
-> -	    format->code == V4L2_MBUS_FMT_UYVY8_2X8)
-> -		syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
-> +	    format->code == V4L2_MBUS_FMT_UYVY8_2X8){
-> +		if (pdata && pdata->bt656)
-> +			syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
-> +		else
-> +			syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
-> +	}
->  	else if (format->code == V4L2_MBUS_FMT_YUYV8_1X16 ||
->  		 format->code == V4L2_MBUS_FMT_UYVY8_1X16)
->  		syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
-> @@ -1172,7 +1176,8 @@ static void ccdc_configure(struct isp_ccdc_device
-> *ccdc) syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
-> 
->  	/* Use PACK8 mode for 1byte per pixel formats. */
-> -	if (omap3isp_video_format_info(format->code)->width <= 8)
-> +	if ((omap3isp_video_format_info(format->code)->width <= 8) &&
-> +			(omap3isp_video_format_info(format->code)->bpp <= 8))
-
-I'm not sure to follow you. This will clear the PACK8 bit for the YUYV8_2X8 
-formats. Those formats are 8 bits wide, shouldn't PACK8 be set to store 
-samples on 8 bits instead of 16 bits ?
-
-Is this patch intended to support YUYV8_2X8 sensors in non BT.656 mode with 
-the bridge enabled ? In that case, what would you think about setting the CCDC 
-input format to YUYV8_1X16 instead ? This would better reflect the reality, as 
-the bridge converts YUYV8_2X8 to YUYV8_1X16, and the CCDC is then fed with 
-YUYV8_1X16.
-
->  		syn_mode |= ISPCCDC_SYN_MODE_PACK8;
->  	else
->  		syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
-
--- 
-Regards,
-
-Laurent Pinchart
+aGksIGd1eXMsCkkgaGF2ZSBhIEhhdXBwYXVnZSBwcm9kdWN0LCBidXQgaXQgY2FuJ3Qgc3VwcG9y
+dCBvbiBMaW51eCwgYW5kIEknZApsaWtlIGhhdmUgYSB0cnkKdG8gY29tcG9zZSBhIG5ldyBkcml2
+ZXIgZm9yIGl0Lgp0aGUgcHJvZHVjdCBkZXRhaWxzIGluZm86CiAtIG5hbWU6IEhhdXBwYXVnZSBE
+TUItVCBNaW5pU3RpY2soaXQgb25seSB1c2Ugb24gSG9uZ0tvbmcgYW5kIENoaW5hKQogLSBWSUQ6
+IDIwNDAKIC0gUElEOiA1MDIwCi4uLgpJIGdvdCB0aGUgYWJvdmUgaW5mbyBmcm9tIFdpbiA3LCBi
+dXQgd2hlbiBJIGhvdCBwbHVnIGl0IGludG8gTGludXgsIGl0CmNhbid0IGVuYWJsZSBidXQgd2l0
+aAp0aGVzZSBpbmZvOgokIGRtZXNnCi4uLgouLi4KWzQwNjYwMC4zOTMxNjRdIHVzYiAxLTg6IG5l
+dyBoaWdoIHNwZWVkIFVTQiBkZXZpY2UgdXNpbmcgZWhjaV9oY2QgYW5kIGFkZHJlc3MgMTMKWzQw
+NjYwMC41MDc0NDZdIHVzYiAxLTg6IGNvbmZpZyAxIGludGVyZmFjZSAwIGFsdHNldHRpbmcgMSBi
+dWxrCmVuZHBvaW50IDB4ODEgaGFzIGludmFsaWQgbWF4cGFja2V0IDY0Cls0MDY2MDAuNTA3NDU0
+XSB1c2IgMS04OiBjb25maWcgMSBpbnRlcmZhY2UgMCBhbHRzZXR0aW5nIDEgYnVsawplbmRwb2lu
+dCAweDEgaGFzIGludmFsaWQgbWF4cGFja2V0IDY0Cls0MDY2MDAuNTA3NDU5XSB1c2IgMS04OiBj
+b25maWcgMSBpbnRlcmZhY2UgMCBhbHRzZXR0aW5nIDEgYnVsawplbmRwb2ludCAweDIgaGFzIGlu
+dmFsaWQgbWF4cGFja2V0IDY0Cls0MDY2MDAuNTA3NDY0XSB1c2IgMS04OiBjb25maWcgMSBpbnRl
+cmZhY2UgMCBhbHRzZXR0aW5nIDEgYnVsawplbmRwb2ludCAweDhBIGhhcyBpbnZhbGlkIG1heHBh
+Y2tldCA2NApbNDA2NjAwLjUwNzY4N10gdXNiIDEtODogTmV3IFVTQiBkZXZpY2UgZm91bmQsIGlk
+VmVuZG9yPTMzNDQsIGlkUHJvZHVjdD01MDIwCls0MDY2MDAuNTA3NjkyXSB1c2IgMS04OiBOZXcg
+VVNCIGRldmljZSBzdHJpbmdzOiBNZnI9MCwgUHJvZHVjdD0wLApTZXJpYWxOdW1iZXI9MwpbNDA2
+NjAwLjUwNzY5NV0gdXNiIDEtODogU2VyaWFsTnVtYmVyOiDkpYjlhZAKCnllcywgdGhlIGlkVmVu
+ZG9yIGlzIDMzNDQsIG5vdCAyMDQwLCBidXQgSSdtIHN1cmUgaXQncyAyMDQwIGluCldpbmRvd3Ms
+IGFuZCB0aGUgSGF1cHBhdWdlJ3MgdmVuZG9yIGlkIGlzIDIwNDAsCmFuZCBpdCBjYW4ndCByZWFk
+IG91dCB0aGUgU2VyaWFsTnVtYmVyLgpzbyBJJ20gZG91YnQgdGhlIGZpcm13YXJlIGluIHRoZSBw
+cm9kdWN0IGhhcyBzb21lIHNwZWNpYWwgZGF0YS4gSSdtIGEKbmV3ZXIgdG8gdXNiLCBjYW4gYW55
+b25lIGtub3cgd2h5PwpvciB3aGF0J3MgdGhlIHRyb3VibGUgd2l0aCBpdD8KYW55IGNvbW1lbnRz
+IGFyZSB3ZWxjb21lLgoKdGhhbmtzLApiZXN0IFJlZ2FyZHMuClpob3VwaW5nCgpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgdXNlcnMgbWFp
+bGluZyBsaXN0CkZvciBWNEwvRFZCIGRldmVsb3BtZW50LCBwbGVhc2UgdXNlIGluc3RlYWQgbGlu
+dXgtbWVkaWFAdmdlci5rZXJuZWwub3JnCmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3
+LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
