@@ -1,116 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:41183 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752561Ab1IDSi5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Sep 2011 14:38:57 -0400
-Received: by pzk37 with SMTP id 37so7602484pzk.1
-        for <linux-media@vger.kernel.org>; Sun, 04 Sep 2011 11:38:56 -0700 (PDT)
-Message-ID: <4E63D3F2.8090500@gmail.com>
-Date: Sun, 04 Sep 2011 15:39:30 -0400
-From: Mauricio Henriquez <buhochileno@gmail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: spca1528 device (Device 015: ID 04fc:1528 Sunplus Technology)..libv4l2:
- error turning on	stream: Timer expired issue
-Content-Type: multipart/mixed;
- boundary="------------080904000104060900060008"
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:8626 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750757Ab1IUPbd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Sep 2011 11:31:33 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=UTF-8
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LRV003NWPSJFV50@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Sep 2011 16:31:31 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LRV00K0SPSJ0C@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Sep 2011 16:31:31 +0100 (BST)
+Date: Wed, 21 Sep 2011 17:31:30 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 1/3] sr030pc30: Remove empty s_stream op
+In-reply-to: <4E7A014F.5040602@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, Kyungmin Park <kyungin.park@samsung.com>
+Message-id: <4E7A0352.104@samsung.com>
+References: <1295487842-23410-1-git-send-email-s.nawrocki@samsung.com>
+ <1295487842-23410-2-git-send-email-s.nawrocki@samsung.com>
+ <4E7A014F.5040602@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------080904000104060900060008
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+On 09/21/2011 05:22 PM, Mauro Carvalho Chehab wrote:
+> Em 19-01-2011 23:44, Sylwester Nawrocki escreveu:
+>> s_stream does nothing in current form so remove it.
+>>
+>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungin.park@samsung.com>
+>> ---
+>>  drivers/media/video/sr030pc30.c |    6 ------
+>>  1 files changed, 0 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/media/video/sr030pc30.c b/drivers/media/video/sr030pc30.c
+>> index c901721..e1eced1 100644
+>> --- a/drivers/media/video/sr030pc30.c
+>> +++ b/drivers/media/video/sr030pc30.c
+>> @@ -714,11 +714,6 @@ static int sr030pc30_base_config(struct v4l2_subdev *sd)
+>>  	return ret;
+>>  }
+>>  
+>> -static int sr030pc30_s_stream(struct v4l2_subdev *sd, int enable)
+>> -{
+>> -	return 0;
+>> -}
+>> -
+>>  static int sr030pc30_s_power(struct v4l2_subdev *sd, int on)
+>>  {
+>>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>> @@ -761,7 +756,6 @@ static const struct v4l2_subdev_core_ops sr030pc30_core_ops = {
+>>  };
+>>  
+>>  static const struct v4l2_subdev_video_ops sr030pc30_video_ops = {
+>> -	.s_stream	= sr030pc30_s_stream,
+>>  	.g_mbus_fmt	= sr030pc30_g_fmt,
+>>  	.s_mbus_fmt	= sr030pc30_s_fmt,
+>>  	.try_mbus_fmt	= sr030pc30_try_fmt,
+> 
+> Hmm...
+> this patch[1] were never merged. It seems a cleanup, though.
+> 
+> Care to review it?
 
-Hi guys,
+Indeed, it is still worth to apply. There was some ongoing work
+at the control framework and other patches form this series need some
+more modifications. But this one alone can be merged.
 
-Not sure if is the right place to ask since this device use a gspca driver
-and not sure if that driver is related to uvc or not, if not please point
-me to the right place...
+> 
+> Thanks!
+> Mauro
+> 
+> [1] http://patchwork.linuxtv.org/patch/5631/
+> 
+> 
 
-Recently I'm trying to make work a Sunplus crappy mini HD USB camera, lsusb
-list this info related to the device:
-
-Picture Transfer Protocol (PIMA 15470)
-Bus 001 Device 015: ID 04fc:1528 Sunplus Technology Co., Ltd
-
-  idVendor           0x04fc Sunplus Technology Co., Ltd
-   idProduct          0x1528
-   bcdDevice            1.00
-   iManufacturer           1 Sunplus Co Ltd
-   iProduct                2 General Image Devic
-   iSerial                 0
-...
-
-Using the gspca-2.13.6 on my Fed12 (2.6.31.6-166.fc12.i686.PAE kernel), the
-device is listed as /dev/video1 and no error doing a dmesg...but trying to
-make it work, let say with xawtv, I get:
-
-This is xawtv-3.95, running on Linux/i686 (2.6.31.6-166.fc12.i686.PAE)
-xinerama 0: 1600x900+0+0
-WARNING: No DGA direct video mode for this display.
-/dev/video1 [v4l2]: no overlay support
-v4l-conf had some trouble, trying to continue anyway
-Warning: Missing charsets in String to FontSet conversion
-Warning: Missing charsets in String to FontSet conversion
-libv4l2: error turning on stream: Timer expired
-ioctl: VIDIOC_STREAMON(int=1): Timer expired
-ioctl: VIDIOC_S_STD(std=0x0 []): Invalid argument
-v4l2: oops: select timeout
-
-..or doing:
-xawtv -c /dev/video1 -nodga -novm -norandr -noxv -noxv-video
-
-I get:
-ioctl: VIDIOC_STREAMON(int=1): Timer expired
-ioctl: VIDIOC_S_STD(std=0x0 []): Invalid argument
-v4l2: oops: select timeout
-libv4l2: error turning on stream: Timer expired
-libv4l2: error reading: Invalid argument
-
-
-vlc, cheese, etc give me similar "Timeout" related messages...
-
-I read some post about similar devices (but ID 12 or 14) that successfully
-works with gspca, so it seems that this one is close to work but may be need
-a fix on some timeout or something similar on the driver...
-
-Any clue of what can be done?..any suggestions or right place to ask?, do
-you need any other info to help to dig into the problem?
-
-Thanks a lot.
-
-Mauricio
-
+Thank you,
 -- 
-Mauricio R. Henriquez Schott
-Escuela de Ingeniería en Computación
-Universidad Austral de Chile - Sede Puerto Montt
-Los Pinos S/N, Balneario de Pelluco, Puerto Montt - Chile
-Tel: 65-487440
-Fax: 65-277156
-mail: mauriciohenriquez@uach.cl
-
-
---------------080904000104060900060008
-Content-Type: text/x-vcard; charset=utf-8;
- name="buhochileno.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="buhochileno.vcf"
-
-begin:vcard
-fn:Mauricio Henriquez
-n:Henriquez;Mauricio
-org;quoted-printable:Universidad Austral de Chile - Sede Puerto Montt;Escuela de Computaci=C3=B3n
-adr:;;Los Pinos S/N Balneario de Pelluco;Puerto Montt;Llanquihue;5480000;Chile
-email;internet:mauriciohenriquez@uach.cl
-title:Docente
-tel;work:65-487440
-tel;fax:65-277156
-url:http://www.monobotics.ic.uach.cl
-version:2.1
-end:vcard
-
-
---------------080904000104060900060008--
+Sylwester Nawrocki
+Samsung Poland R&D Center
