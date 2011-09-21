@@ -1,114 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1181 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751550Ab1I0LGj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 07:06:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 2/9 v7] V4L: add two new ioctl()s for multi-size videobuffer management
-Date: Tue, 27 Sep 2011 13:06:20 +0200
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de> <201109271234.20485.hverkuil@xs4all.nl> <Pine.LNX.4.64.1109271256500.5359@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1109271256500.5359@axis700.grange>
+Received: from [147.213.65.210] ([147.213.65.210]:60246 "EHLO magor.savba.sk"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752416Ab1IUJzX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Sep 2011 05:55:23 -0400
+Date: Wed, 21 Sep 2011 11:32:42 +0200
+From: Pavel Andris <utrrandr@savba.sk>
+To: linux-media@vger.kernel.org
+Subject: frame grabber INT-1461 under Linux
+Message-ID: <20110921093242.GA6210@magor.savba.sk>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109271306.21095.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday, September 27, 2011 13:00:24 Guennadi Liakhovetski wrote:
-> Hi Hans
-> 
-> On Tue, 27 Sep 2011, Hans Verkuil wrote:
-> 
-> > On Thursday, September 08, 2011 09:45:15 Guennadi Liakhovetski wrote:
-> > > A possibility to preallocate and initialise buffers of different sizes
-> > > in V4L2 is required for an efficient implementation of a snapshot
-> > > mode. This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
-> > > VIDIOC_PREPARE_BUF and defines respective data structures.
-> > > 
-> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > ---
-> > > 
-> > > v7: added the "experimental" comment, as suggested by Sakari - thanks.
-> > > 
-> > >  drivers/media/video/v4l2-compat-ioctl32.c |   67 +++++++++++++++++++++++++---
-> > >  drivers/media/video/v4l2-ioctl.c          |   29 ++++++++++++
-> > >  include/linux/videodev2.h                 |   17 +++++++
-> > >  include/media/v4l2-ioctl.h                |    2 +
-> > >  4 files changed, 107 insertions(+), 8 deletions(-)
-> 
-> [snip]
-> 
-> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > > index a5359c6..6e87ea9 100644
-> > > --- a/include/linux/videodev2.h
-> > > +++ b/include/linux/videodev2.h
-> > > @@ -653,6 +653,9 @@ struct v4l2_buffer {
-> > >  #define V4L2_BUF_FLAG_ERROR	0x0040
-> > >  #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
-> > >  #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
-> > > +/* Cache handling flags */
-> > > +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
-> > > +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
-> > >  
-> > >  /*
-> > >   *	O V E R L A Y   P R E V I E W
-> > > @@ -2098,6 +2101,15 @@ struct v4l2_dbg_chip_ident {
-> > >  	__u32 revision;    /* chip revision, chip specific */
-> > >  } __attribute__ ((packed));
-> > >  
-> > > +/* VIDIOC_CREATE_BUFS */
-> > > +struct v4l2_create_buffers {
-> > > +	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-> > > +	__u32			count;
-> > > +	enum v4l2_memory        memory;
-> > > +	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
-> > > +	__u32			reserved[8];
-> > > +};
-> > > +
-> > >  /*
-> > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-> > >   *
-> > > @@ -2188,6 +2200,11 @@ struct v4l2_dbg_chip_ident {
-> > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
-> > >  #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
-> > >  
-> > > +/* Experimental, the below two ioctls may change over the next couple of kernel
-> > > +   versions */
-> > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
-> > > +#define VIDIOC_PREPARE_BUF	 _IOW('V', 93, struct v4l2_buffer)
-> > 
-> > I think I would prefer _IOWR here. QBUF etc. also use IOWR and you never know
-> > what you might return in the future. At the very least using IOWR allows us
-> > to update the state field, which would be a perfectly reasonable thing to do.
-> 
-> Sorry, which state field do you mean? We have already marked these ioctl() 
-> as experimental, isn't this enough?
+Hi,
 
-The state field in the v4l2_buffer argument.
+dmesg has asked me to mail you. Here's the essential part of the message:
 
-The experimental tag allows for changes, that's true. So this is my proposed
-change :-)
+[    1.806495] Linux video capture interface: v2.00
+[    1.806607] bttv: driver version 0.9.18 loaded
+[    1.806613] bttv: using 8 buffers with 2080k (520 pages) each for capture
+[    1.806669] bttv: Bt8xx card found (0).
+[    1.806692] bttv 0000:01:01.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
+[    1.806710] bttv0: Bt878 (rev 17) at 0000:01:01.0, irq: 17, latency: 64, mmio: 0xfdfff000
+[    1.806753] bttv0: subsystem: 1766:ffff (UNKNOWN)
+[    1.806758] please mail id, board name and the correct card= insmod option to linux-media@vger.kernel.org
+[    1.806766] bttv0: using: GrandTec Multi Capture Card (Bt878) [card=77,insmod option]
+[    1.806839] bttv0: gpio: en=00000000, out=00000000 in=00e31fff [init]
+[    1.807003] bttv0: tuner absent
+[    1.807086] bttv0: registered device video0
+[    1.807179] bttv0: registered device vbi0
+[    1.807204] bttv0: PLL: 28636363 => 35468950 .. ok
+[    1.847974] bt878: AUDIO driver version 0.0.0 loaded
+
+I use bttv.card=77 kernel parameter. With no parameter, the frame
+grabber works, but in a strange way.
+
+Info about my frame grabber:
+
+INT-1461
+PC/104-Plus Frame Grabber w/ 4 CVBS Inputs & 24 DIO
+
+The INT-1461 video frame grabber is a low-cost, high-performance
+solution for capturing analog broadcast signals across the PCI
+bus. Based around the Conexant FusionTM 878A video decoder, this
+compact PC/104-Plus form factor board supports NTSC, PAL, and SECAM
+video formats at capture resolutions of up to 768 x 576 pixels and 30
+frames per second. It can also sub-sample, scale, crop, and clip
+images at various resolutions and frame rates.
+
+You can easily find more info on the net.
+
+Thank you for writing and supporting media drivers.
 
 Regards,
+ 
+-- 
+..........................................................................
+Pavel Andris                               | tel: +421 2 5941 1167
+Institute of Informatics                   | fax: +421 2 5477 3271
+Slovak Academy of Sciences                 | 
+Dubravska cesta 9                          | e-mail: utrrandr@savba.sk
+SK - 845 07 Bratislava                     |
+Slovak republic                            |
+..........................................................................
 
-	Hans
-
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> 
+"One hundred thousand lemmings cannot be wrong." 
+                                                       Graffiti
+..........................................................................
