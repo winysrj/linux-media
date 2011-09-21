@@ -1,50 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36743 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752017Ab1IBNdC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Sep 2011 09:33:02 -0400
-Message-ID: <4E60DB09.1060304@iki.fi>
-Date: Fri, 02 Sep 2011 16:32:57 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:45421 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752832Ab1IUR3n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Sep 2011 13:29:43 -0400
+Received: by qyk7 with SMTP id 7so1952494qyk.19
+        for <linux-media@vger.kernel.org>; Wed, 21 Sep 2011 10:29:42 -0700 (PDT)
 MIME-Version: 1.0
-To: =?UTF-8?B?QmrDuHJuIE1vcms=?= <bjorn@mork.no>
-CC: =?UTF-8?B?SXN0dsOhbiBWw6FyYWRp?= <ivaradi@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Smart card reader support for Anysee DVB devices
-References: <CAFk-VPxQvGiEUdd+X4jjUqcygPO-JsT0gTFvrX-q4cGAW6tq_Q@mail.gmail.com>	<4E485F81.9020700@iki.fi> <4E48FF99.7030006@iki.fi>	<4E4C2784.2020003@iki.fi>	<CAFk-VPzKa4bNLCMMCagFi1LLK6PnY245YJqP5yisQH77nJ0Org@mail.gmail.com>	<4E5BA751.6090709@iki.fi>	<CAFk-VPypTuaKgAHPxyvKg7GHYM358rZ2kypabfvxG-x7GjmFpw@mail.gmail.com>	<4E5BAF03.503@iki.fi> <87wrdri4sp.fsf@nemi.mork.no>
-In-Reply-To: <87wrdri4sp.fsf@nemi.mork.no>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAFXTvn7otkiKw90aA8Yh4o7z87uarbtj3C8OdNYyKbywdMHdiQ@mail.gmail.com>
+References: <CAFXTvn7otkiKw90aA8Yh4o7z87uarbtj3C8OdNYyKbywdMHdiQ@mail.gmail.com>
+Date: Wed, 21 Sep 2011 18:29:42 +0100
+Message-ID: <CAFXTvn52-5rzY6EN7xq61Xr2evYY9BkBMSsW=DUfeWANq_v+MA@mail.gmail.com>
+Subject: uk-EmleyMoor update
+From: Andii Hughes <gnu_andrew@member.fsf.org>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=001636427485e5e83704ad76eb3b
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/02/2011 02:04 PM, Bjørn Mork wrote:
-> Antti Palosaari<crope@iki.fi>  writes:
->
->> Since Anysee device itself does not have CCID interface it is needed
->> to make virtual USB device in order to get CCID support. I have never
->> seen virtual USB devices like that, but there is VHCI in current
->> kernel staging that actually does something like that over IP.
->
-> Don't know if you have seen this already, but there's a virtual CCID
-> device implementation in QEMU.  See http://wiki.qemu.org/Features/Smartcard
-> Should be a good starting point.  Combine it withe the VHCI driver from
-> USBIP and you have your CCID device.
+--001636427485e5e83704ad76eb3b
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-It is first time I hear about QEMU virtual CCID. Now we have all parts 
-needed for USBIP VHCI and QEMU virtual CCID, just glue those together.
+The Emley Moor transmitter in the UK completed digital switchover
+today, making the existing transmitter file:
 
-I wonder if it is wise to even create virtual CCID "core" to Kernel. 
-There is few other readers that can use that too, actually I think all 
-USB readers that have unique USB ID (blocking out those which uses 
-USB-serial converters with common IDs).
+http://linuxtv.org/hg/dvb-apps/file/tip/util/scan/dvb-t/uk-EmleyMoor
 
-As I see that CCID still more complex as serial device I will still look 
-implementing it as serial as now.
+obsolete. =C2=A0Attached is a patch which I've just successfully used with
+dvbscan to obtain a new channels.conf.
 
-regards
-Antti
+Thanks,
+--
+Andii :-)
 
+--001636427485e5e83704ad76eb3b
+Content-Type: text/x-patch; charset=US-ASCII; name="emley.patch"
+Content-Disposition: attachment; filename="emley.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gsul1hc30
 
--- 
-http://palosaari.fi/
+LS0tIC91c3Ivc2hhcmUvZHZiL2R2Yi10L3VrLUVtbGV5TW9vcgkyMDEwLTA4LTAyIDE5OjE3OjA0
+LjMwMjQxNjQwMiArMDEwMAorKysgL2hvbWUvYW5kcmV3Ly50emFwL3VrLUVtbGV5TW9vcgkyMDEx
+LTA5LTIxIDE4OjExOjAyLjkzNjEwNjA5MCArMDEwMApAQCAtMSwxMCArMSw3IEBACiAjIFVLLCBF
+bWxleSBNb29yCi0jIEF1dG8tZ2VuZXJhdGVkIGZyb20gaHR0cDovL3d3dy5kdGcub3JnLnVrL3Jl
+dGFpbGVyL2R0dF9jaGFubmVscy5odG1sCi0jIGFuZCBodHRwOi8vd3d3Lm9mY29tLm9yZy51ay9z
+dGF0aWMvcmVjZXB0aW9uX2FkdmljZS9pbmRleC5hc3AuaHRtbAogIyBUIGZyZXEgYncgZmVjX2hp
+IGZlY19sbyBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFyY2h5Ci1U
+IDcyMjE2NzAwMCA4TUh6IDMvNCBOT05FIFFBTTE2IDJrIDEvMzIgTk9ORQotVCA2MjU4MzMwMDAg
+OE1IeiAyLzMgTk9ORSBRQU02NCAyayAxLzMyIE5PTkUKLVQgNjQ5ODMzMDAwIDhNSHogMi8zIE5P
+TkUgUUFNNjQgMmsgMS8zMiBOT05FCi1UIDY3MzgzMzAwMCA4TUh6IDMvNCBOT05FIFFBTTE2IDJr
+IDEvMzIgTk9ORQotVCA3MDU4MzMwMDAgOE1IeiAzLzQgTk9ORSBRQU0xNiAyayAxLzMyIE5PTkUK
+LVQgNjk3ODMzMDAwIDhNSHogMy80IE5PTkUgUUFNMTYgMmsgMS8zMiBOT05FCitUIDY4MjAwMDAw
+MCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS8zMiBOT05FICMgUFNCMS9CQkNBCitUIDY1ODAwMDAw
+MCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS8zMiBOT05FICMgUFNCMi9EMyY0CitUIDcxNDAwMDAw
+MCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS8zMiBOT05FICMgQ09NNC9TRE4KK1QgNzIyMDAwMDAw
+IDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzMyIE5PTkUgIyBDT001L0FSUUEKK1QgNjkwMDAwMDAw
+IDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzMyIE5PTkUgIyBDT002L0FSUUIK
+--001636427485e5e83704ad76eb3b--
