@@ -1,69 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56546 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754772Ab1I3SHX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 14:07:23 -0400
-Message-ID: <4E85F769.3040201@redhat.com>
-Date: Fri, 30 Sep 2011 14:07:53 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:62336 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751228Ab1IUQqJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Sep 2011 12:46:09 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id BF20E18B063
+	for <linux-media@vger.kernel.org>; Wed, 21 Sep 2011 18:46:07 +0200 (CEST)
+Date: Wed, 21 Sep 2011 18:46:07 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 0/2] soc-camera: prepare sh_mobile_ceu_camera for MC
+Message-ID: <Pine.LNX.4.64.1109211816380.24024@axis700.grange>
 MIME-Version: 1.0
-To: Lutz Sammer <johns98@gmx.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] stb0899: Fix slow and not locking DVB-S transponder(s)
-References: <4E84E010.5020602@gmx.net> <4E84E1A5.3040903@gmx.net>
-In-Reply-To: <4E84E1A5.3040903@gmx.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 29-09-2011 18:22, Lutz Sammer escreveu:
-> Another version of
-> http://patchwork.linuxtv.org/patch/6307
-> http://patchwork.linuxtv.org/patch/6510
-> which was superseded or rejected, but I don't know why.
+Hi all
 
-Probably because of the same reason of this patch [1]:
+Of the following 2 patches the first one just adds a helper function to 
+soc-camera core, and the second one removes the worst cases of 
+"coffee-ground reading" from the driver. By this I mean optimisation 
+attempts, trying to combine client (e.g., camera sensor driver) and host 
+(CEU, bridge) cropping and scaling to achieve best results. Where "best 
+results" meant as close to user-requesed configuration as possible with 
+minimum bandwidth waste. Even though the results were pretty good, the 
+implementation made the driver very complex, hard to maintain and loaded 
+with calculations less trivial, than what we like to have in the kernel.
 
-patch -p1 -i patches/lmml_8023_v2_stb0899_fix_slow_and_not_locking_dvb_s_transponder_s.patch --dry-run -t -N
-patching file drivers/media/dvb/frontends/stb0899_algo.c
-Hunk #1 FAILED at 358.
-1 out of 1 hunk FAILED -- saving rejects to file drivers/media/dvb/frontends/stb0899_algo.c.rej
- drivers/media/dvb/frontends/stb0899_algo.c |    1 +
- 1 file changed, 1 insertion(+)
+With the move to the Media Controller these optimisations can and shall be 
+carried out in the user-space with each driver being configured separately 
+for its specific cropping and scaling tasks. Even though we want to 
+preserve the ability to work with standard V4L2 applications even without 
+the need for an initial set up, we can now remove all those optimisations 
+and only keep a couple of simple cases for backwards compatibility. These 
+"simple" cases include situations, where the CEU driver forwards an S_CROP 
+or an S_FMT to the subdevice driver(s), then checks the result and if 
+there is a _simple_ way to improve it, then it does that. Most importantly 
+all cases of cropping (on CEU / bridge) on top of scaling (subdevice), 
+which lead to the need to calculate subdevice scaling factors and use them 
+to calculate host cropping and its projection on the sensor plane...
 
-I'll mark this one as rejected, as it doesn't apply upstream[2].
+I don't think we manage to get these patches in 3.2, especially, since 
+they mostly make sense in conmbination with the soc-camera Media 
+Controller patches, which also are not quite finished yet. So, these 
+patches are an early preview. They should be applied on top of what will 
+become the soc-camera 3.2 pull, an almost final version of which is 
+available at
 
-[1] http://patchwork.linuxtv.org/patch/8023/
-[2] at tree/branch: git://linuxtv.org/media_tree.git staging/for_v3.2
+git://linuxtv.org/gliakhovetski/v4l-dvb.git rc1-for-3.2
 
-Please test if the changes made upstream to solve a similar trouble fixes your issue. 
-If not, please rebase your patch on the top of it and resend.
-
-Thanks,
-Mauro
-> 
-> In stb0899_status stb0899_check_data the first read of STB0899_VSTATUS
-> could read old (from previous search) status bits and the search fails
-> on a good frequency.
-> 
-> With the patch more transponder could be locked and locks about 2* faster.
-> 
-> Signed-off-by: Lutz Sammer <johns98@gmx.net>
-> ---
->  drivers/media/dvb/frontends/stb0899_algo.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/frontends/stb0899_algo.c b/drivers/media/dvb/frontends/stb0899_algo.c
-> index d70eee0..8eca419 100644
-> --- a/drivers/media/dvb/frontends/stb0899_algo.c
-> +++ b/drivers/media/dvb/frontends/stb0899_algo.c
-> @@ -358,6 +358,7 @@ static enum stb0899_status stb0899_check_data(struct stb0899_state *state)
->         else
->                 dataTime = 500;
->  
-> +       stb0899_read_reg(state, STB0899_VSTATUS); /* clear old status bits */
->         stb0899_write_reg(state, STB0899_DSTATUS2, 0x00); /* force search loop */
->         while (1) {
->                 /* WARNING! VIT LOCKED has to be tested before VIT_END_LOOOP   */
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
