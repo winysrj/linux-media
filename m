@@ -1,119 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:37965 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932475Ab1IAPac (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 11:30:32 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Thu, 01 Sep 2011 17:30:07 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 03/19 v4] s5p-fimc: Limit number of available inputs to one
-In-reply-to: <1314891023-14227-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: mchehab@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Message-id: <1314891023-14227-4-git-send-email-s.nawrocki@samsung.com>
-References: <1314891023-14227-1-git-send-email-s.nawrocki@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47056 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750724Ab1IUWFB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Sep 2011 18:05:01 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: Patches at patchwork.linuxtv.org (127 patches)
+Date: Wed, 21 Sep 2011 23:58:20 +0200
+Cc: LMML <linux-media@vger.kernel.org>,
+	Morimoto Kuninori <morimoto.kuninori@renesas.com>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Dmitri Belimov <d.belimov@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Pawel Osiak <pawel@osciak.co>
+References: <4E7A4BA7.5050505@redhat.com> <4E7A4CA4.8040205@redhat.com>
+In-Reply-To: <4E7A4CA4.8040205@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109212358.22601.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current driver allowed camera sensors to be used only with single
-FIMC H/W instance, FIMC0..FIMC2/3, designated at compile time. Remaining FIMC
-entities could be used for video processing only, as mem-to-mem devices.
-Required camera could be selected with S_INPUT ioctl at one devnode only.
+Hi Mauro,
 
-However in that case it was not possible to use both cameras independently
-at the same time, as all sensors were registered to single FIMC capture
-driver. In most recent S5P SoC version there is enough FIMC H/W instances
-to cover all physical camera interfaces.
-Each FIMC instance exports its own video devnode. Thus we distribute
-the camera sensors one per each /dev/video? by default. It will allow to
-use both camera simultaneously by opening different video node.
+On Wednesday 21 September 2011 22:44:20 Mauro Carvalho Chehab wrote:
+> Em 21-09-2011 17:40, Mauro Carvalho Chehab escreveu:
+> > As announced on Sept, 18, we moved our patch queue to
+> > patchwork.linuxtv.org.
 
-The camera sensors at FIMC are now not selected with S_INPUT ioctl, there
-is one input only available per /dev/video?.
+Thank you for working on that.
 
-By default a single sensor is connected at FIMC input as specified by the
-media device platform data subdev description table. This assignment
-can be changed at runtime through the pipeline reconfiguration at the media
-device level.
+[snip]
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |   43 ++++-----------------------
- 1 files changed, 6 insertions(+), 37 deletions(-)
+> Aug,19 2011: v4l: Add V4L2_PIX_FMT_NV24 and V4L2_PIX_FMT_NV42 formats
+> http://patchwork.linuxtv.org/patch/7630
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 6efd952..b786c2c 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -577,57 +577,26 @@ static int fimc_cap_s_fmt_mplane(struct file *file, void *priv,
- }
+This one has been superseeded. Speaking of this, the next version of the patch 
+will be needed for an fbdev driver that should make it to v3.3. Should I push 
+NV24 support through your tree for v3.2 to make sure compilation won't break 
+during the v3.3 merge window ?
+
+> Sep, 5 2011: BUG: unable to handle kernel paging request at 6b6b6bcb
+> (v4l2_device_d
+> http://patchwork.linuxtv.org/patch/7779
+
+Superseeded as well.
+
+> Sep,12 2011: [GIT,PULL,FOR,v3.1] v4l and uvcvideo fixes
+> http://patchwork.linuxtv.org/patch/7835
+
+Please pull that :-) It's for v3.1, there's not much time left.
+
+> 		== Patches waiting for Laurent Pinchart review ==
+
+[snip]
  
- static int fimc_cap_enum_input(struct file *file, void *priv,
--				     struct v4l2_input *i)
-+			       struct v4l2_input *i)
- {
- 	struct fimc_ctx *ctx = priv;
--	struct s5p_platform_fimc *pldata = ctx->fimc_dev->pdata;
--	struct s5p_fimc_isp_info *isp_info;
- 
--	if (i->index >= pldata->num_clients)
-+	if (i->index != 0)
- 		return -EINVAL;
- 
--	isp_info = &pldata->isp_info[i->index];
- 
- 	i->type = V4L2_INPUT_TYPE_CAMERA;
--	strncpy(i->name, isp_info->board_info->type, 32);
- 	return 0;
- }
- 
--static int fimc_cap_s_input(struct file *file, void *priv,
--				  unsigned int i)
-+static int fimc_cap_s_input(struct file *file, void *priv, unsigned int i)
- {
--	struct fimc_ctx *ctx = priv;
--	struct fimc_dev *fimc = ctx->fimc_dev;
--	struct s5p_platform_fimc *pdata = fimc->pdata;
--
--	if (fimc_capture_active(ctx->fimc_dev))
--		return -EBUSY;
--
--	if (i >= pdata->num_clients)
--		return -EINVAL;
--
--
--	if (fimc->vid_cap.sd) {
--		int ret = v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 0);
--		if (ret)
--			err("s_power failed: %d", ret);
--
--		clk_disable(fimc->clock[CLK_CAM]);
--	}
--
--	/* Release the attached sensor subdevice. */
--	fimc_subdev_unregister(fimc);
--
--	return fimc_isp_subdev_init(fimc, i);
-+	return i == 0 ? i : -EINVAL;
- }
- 
--static int fimc_cap_g_input(struct file *file, void *priv,
--				       unsigned int *i)
-+static int fimc_cap_g_input(struct file *file, void *priv, unsigned int *i)
- {
--	struct fimc_ctx *ctx = priv;
--	struct fimc_vid_cap *cap = &ctx->fimc_dev->vid_cap;
--
--	*i = cap->input_index;
-+	*i = 0;
- 	return 0;
- }
- 
+> Jul,12 2011: v4l: mem2mem: add wait_{prepare,finish} ops to m2m_testdev
+> http://patchwork.linuxtv.org/patch/7431
+
+I don't think that one is for me.
+
+> Jul,10 2011: [3/3] Make use of 8-bit and 16-bit YCrCb media bus pixel
+> codes in adv7
+> http://patchwork.linuxtv.org/patch/7425
+
+I don't think this one is for me either.
+
 -- 
-1.7.6
+Regards,
 
+Laurent Pinchart
