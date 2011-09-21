@@ -1,126 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4980 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754257Ab1I2HpA (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42061 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750873Ab1IUJGf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Sep 2011 03:45:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	viro@zeniv.linux.org.uk, Jonathan Corbet <corbet@lwn.net>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv4 PATCH 5/6] videobuf2-core: also test for pending events.
-Date: Thu, 29 Sep 2011 09:44:11 +0200
-Message-Id: <9b0edab8ffab74f2ead0914c8aef09fd3079d54a.1317281827.git.hans.verkuil@cisco.com>
-In-Reply-To: <1317282252-8290-1-git-send-email-hverkuil@xs4all.nl>
-References: <1317282252-8290-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <8488cb7deae3c3da6b079c8ebdcacce1f86dd433.1317281827.git.hans.verkuil@cisco.com>
-References: <8488cb7deae3c3da6b079c8ebdcacce1f86dd433.1317281827.git.hans.verkuil@cisco.com>
+	Wed, 21 Sep 2011 05:06:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+Subject: Re: [PATCH 4/5] ispccdc: Configure CCDC_SYN_MODE register for UYVY8_2X8 and YUYV8_2X8 formats
+Date: Wed, 21 Sep 2011 11:06:41 +0200
+Cc: "mchehab@infradead.org" <mchehab@infradead.org>,
+	"tony@atomide.com" <tony@atomide.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"Shilimkar, Santosh" <santosh.shilimkar@ti.com>,
+	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>,
+	"david.woodhouse@intel.com" <david.woodhouse@intel.com>,
+	"akpm@linux-foundation.org" <akpm@linux-foundation.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com> <201109210126.20436.laurent.pinchart@ideasonboard.com> <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090847@dbde03.ent.ti.com>
+In-Reply-To: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090847@dbde03.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109211106.41677.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Deepthy,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/videobuf2-core.c |   41 +++++++++++++++++++++++----------
- 1 files changed, 28 insertions(+), 13 deletions(-)
+On Wednesday 21 September 2011 07:32:44 Ravi, Deepthy wrote:
+> On Wednesday, September 21, 2011 4:56 AM Laurent Pinchart wrote:
+> > On Tuesday 20 September 2011 16:56:51 Deepthy Ravi wrote:
+> >> Configure INPMOD and PACK8 fileds of CCDC_SYN_MODE
+> >> register for UYVY8_2X8 and YUYV8_2X8 formats.
+> >> 
+> >> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+> >> ---
+> >> 
+> >>  drivers/media/video/omap3isp/ispccdc.c |   11 ++++++++---
+> >>  1 files changed, 8 insertions(+), 3 deletions(-)
+> >> 
+> >> diff --git a/drivers/media/video/omap3isp/ispccdc.c
+> >> b/drivers/media/video/omap3isp/ispccdc.c index 418ba65..1dcf180 100644
+> >> --- a/drivers/media/video/omap3isp/ispccdc.c
+> >> +++ b/drivers/media/video/omap3isp/ispccdc.c
+> >> @@ -985,8 +985,12 @@ static void ccdc_config_sync_if(struct
+> >> isp_ccdc_device
+> >> *ccdc,
+> >> 
+> >>       syn_mode &= ~ISPCCDC_SYN_MODE_INPMOD_MASK;
+> >>       if (format->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
+> >> 
+> >> -         format->code == V4L2_MBUS_FMT_UYVY8_2X8)
+> >> -             syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
+> >> +         format->code == V4L2_MBUS_FMT_UYVY8_2X8){
+> >> +             if (pdata && pdata->bt656)
+> >> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
+> >> +             else
+> >> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
+> >> +     }
+> >> 
+> >>       else if (format->code == V4L2_MBUS_FMT_YUYV8_1X16 ||
+> >>       
+> >>                format->code == V4L2_MBUS_FMT_UYVY8_1X16)
+> >>               
+> >>               syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
+> >> 
+> >> @@ -1172,7 +1176,8 @@ static void ccdc_configure(struct isp_ccdc_device
+> >> *ccdc) syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
+> >> 
+> >>       /* Use PACK8 mode for 1byte per pixel formats. */
+> >> 
+> >> -     if (omap3isp_video_format_info(format->code)->width <= 8)
+> >> +     if ((omap3isp_video_format_info(format->code)->width <= 8) &&
+> >> +                     (omap3isp_video_format_info(format->code)->bpp <=
+> >> 8))
+> > 
+> > I'm not sure to follow you. This will clear the PACK8 bit for the
+> > YUYV8_2X8 formats. Those formats are 8 bits wide, shouldn't PACK8 be set
+> > to store samples on 8 bits instead of 16 bits ?
+> > 
+> > Is this patch intended to support YUYV8_2X8 sensors in non BT.656 mode
+> > with the bridge enabled ? In that case, what would you think about setting
+> > the CCDC input format to YUYV8_1X16 instead ? This would better reflect
+> > the reality, as the bridge converts YUYV8_2X8 to YUYV8_1X16, and the CCDC
+> > is then fed with YUYV8_1X16.
+> 
+> Yes this is intended for  YUYV8_2X8 sensors in non BT.656 with 8 to 16 bit
+> bridge enabled. So the data has to be stored as 16 bits per sample. Thats
+> why PACK8 is cleared . I am not sure about using YUYV8_1X16.
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index a921638..7674220 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -19,6 +19,9 @@
- #include <linux/slab.h>
- #include <linux/sched.h>
- 
-+#include <media/v4l2-dev.h>
-+#include <media/v4l2-fh.h>
-+#include <media/v4l2-event.h>
- #include <media/videobuf2-core.h>
- 
- static int debug;
-@@ -1363,15 +1366,28 @@ static int __vb2_cleanup_fileio(struct vb2_queue *q);
-  * For OUTPUT queues, if a buffer is ready to be dequeued, the file descriptor
-  * will be reported as available for writing.
-  *
-+ * If the driver uses struct v4l2_fh, then vb2_poll() will also check for any
-+ * pending events.
-+ *
-  * The return values from this function are intended to be directly returned
-  * from poll handler in driver.
-  */
- unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- {
-+	struct video_device *vfd = video_devdata(file);
- 	unsigned long req_events = poll_requested_events(wait);
--	unsigned long flags;
--	unsigned int ret;
- 	struct vb2_buffer *vb = NULL;
-+	unsigned int res = 0;
-+	unsigned long flags;
-+
-+	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
-+		struct v4l2_fh *fh = file->private_data;
-+
-+		if (v4l2_event_pending(fh))
-+			res = POLLPRI;
-+		else if (req_events & POLLPRI)
-+			poll_wait(file, &fh->wait, wait);
-+	}
- 
- 	/*
- 	 * Start file I/O emulator only if streaming API has not been used yet.
-@@ -1379,19 +1395,17 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	if (q->num_buffers == 0 && q->fileio == NULL) {
- 		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ) &&
- 				(req_events & (POLLIN | POLLRDNORM))) {
--			ret = __vb2_init_fileio(q, 1);
--			if (ret)
--				return POLLERR;
-+			if (__vb2_init_fileio(q, 1))
-+				return res | POLLERR;
- 		}
- 		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE) &&
- 				(req_events & (POLLOUT | POLLWRNORM))) {
--			ret = __vb2_init_fileio(q, 0);
--			if (ret)
--				return POLLERR;
-+			if (__vb2_init_fileio(q, 0))
-+				return res | POLLERR;
- 			/*
- 			 * Write to OUTPUT queue can be done immediately.
- 			 */
--			return POLLOUT | POLLWRNORM;
-+			return res | POLLOUT | POLLWRNORM;
- 		}
- 	}
- 
-@@ -1399,7 +1413,7 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	 * There is nothing to wait for if no buffers have already been queued.
- 	 */
- 	if (list_empty(&q->queued_list))
--		return POLLERR;
-+		return res | POLLERR;
- 
- 	poll_wait(file, &q->done_wq, wait);
- 
-@@ -1414,10 +1428,11 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 
- 	if (vb && (vb->state == VB2_BUF_STATE_DONE
- 			|| vb->state == VB2_BUF_STATE_ERROR)) {
--		return (V4L2_TYPE_IS_OUTPUT(q->type)) ? POLLOUT | POLLWRNORM :
--			POLLIN | POLLRDNORM;
-+		return (V4L2_TYPE_IS_OUTPUT(q->type)) ?
-+				res | POLLOUT | POLLWRNORM :
-+				res | POLLIN | POLLRDNORM;
- 	}
--	return 0;
-+	return res;
- }
- EXPORT_SYMBOL_GPL(vb2_poll);
- 
+My original idea when I wrote the YV support patches was to implement this use 
+case with YUYV8_2X8 at the sensor output and YUYV8_1X16 at the CCDC input. The 
+ISP driver could then enable the bridge automatically. I'm not sure if that's 
+the best solution though, it might be confusing for the users. What I would 
+like to keep, however, is the idea of enabling the bridge automatically.
+
+Sakari, any opinion on this ?
+
+> >>               syn_mode |= ISPCCDC_SYN_MODE_PACK8;
+> >>       else
+> >>               syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
+
 -- 
-1.7.5.4
+Regards,
 
+Laurent Pinchart
