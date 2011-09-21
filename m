@@ -1,66 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:52455 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753185Ab1IQSZn (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:39876 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750725Ab1IUHJx convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Sep 2011 14:25:43 -0400
-Received: by iaqq3 with SMTP id q3so3473126iaq.19
-        for <linux-media@vger.kernel.org>; Sat, 17 Sep 2011 11:25:43 -0700 (PDT)
+	Wed, 21 Sep 2011 03:09:53 -0400
+Received: by fxe4 with SMTP id 4so1321450fxe.19
+        for <linux-media@vger.kernel.org>; Wed, 21 Sep 2011 00:09:52 -0700 (PDT)
 MIME-Version: 1.0
-Date: Sat, 17 Sep 2011 14:25:41 -0400
-Message-ID: <CAOcJUbzW=a+JoYc8+oZHDpHvBg0bpsLEOu=6Hv=y3qchmujVuw@mail.gmail.com>
-Subject: [PULL] dvb-usb-mfe cleanups
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Date: Wed, 21 Sep 2011 15:09:52 +0800
+Message-ID: <CAOc6HJ4GkT=Qdx11v-sJZnO_AjzhUpNm1VgRN1AVSDqBuauhiA@mail.gmail.com>
+Subject: The USB device VID in Linux is difference with in Windows
+From: Zhouping Liu <sanweidaying@gmail.com>
+To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+hi, guys,
+I have a Hauppauge product, but it can't support on Linux, and I'd
+like have a try
+to compose a new driver for it.
+the product details info:
+ - name: Hauppauge DMB-T MiniStick(it only use on HongKong and China)
+ - VID: 2040
+ - PID: 5020
+...
+I got the above info from Win 7, but when I hot plug it into Linux, it
+can't enable but with
+these info:
+$ dmesg
+...
+...
+[406600.393164] usb 1-8: new high speed USB device using ehci_hcd and address 13
+[406600.507446] usb 1-8: config 1 interface 0 altsetting 1 bulk
+endpoint 0x81 has invalid maxpacket 64
+[406600.507454] usb 1-8: config 1 interface 0 altsetting 1 bulk
+endpoint 0x1 has invalid maxpacket 64
+[406600.507459] usb 1-8: config 1 interface 0 altsetting 1 bulk
+endpoint 0x2 has invalid maxpacket 64
+[406600.507464] usb 1-8: config 1 interface 0 altsetting 1 bulk
+endpoint 0x8A has invalid maxpacket 64
+[406600.507687] usb 1-8: New USB device found, idVendor=3344, idProduct=5020
+[406600.507692] usb 1-8: New USB device strings: Mfr=0, Product=0,
+SerialNumber=3
+[406600.507695] usb 1-8: SerialNumber: 䥈児
 
-Please pull the following cleanups from my dvb-usb branch into your
-for_v3.2 branch.
+yes, the idVendor is 3344, not 2040, but I'm sure it's 2040 in
+Windows, and the Hauppauge's vendor id is 2040,
+and it can't read out the SerialNumber.
+so I'm doubt the firmware in the product has some special data. I'm a
+newer to usb, can anyone know why?
+or what's the trouble with it?
+any comments are welcome.
 
-The following changes since commit 2d04c13a507f5a01daa7422cd52250809573cfdb:
-  Michael Krufky (1):
-        [media] dvb-usb: improve sanity check of adap->active_fe in
-dvb_usb_ctrl_feed
-
-are available in the git repository at:
-
-  git://git.linuxtv.org/mkrufky/mxl111sf.git dvb-usb
-
-Michael Krufky (15):
-      mxl111sf: use adap->num_frontends_initialized to determine which
-frontend is being attached
-      dib0700: fix WARNING: please, no spaces at the start of a line
-      dib0700: fix WARNING: suspect code indent for conditional statements
-      dib0700: fix ERROR: space required before that '&'
-      dib0700: fix ERROR: space required after that ','
-      dibusb-common: fix ERROR: space required after that ','
-      dibusb-mb: fix ERROR: space required after that ','
-      ttusb2: fix ERROR: space required after that ','
-      dvb-usb-dvb: ERROR: space required after that ','
-      cxusb: fix ERROR: do not use assignment in if condition
-      dibusb-common: fix ERROR: do not use assignment in if condition
-      dibusb-mb: fix ERROR: do not use assignment in if condition
-      digitv: fix ERROR: do not use assignment in if condition
-      m920x: fix ERROR: do not use assignment in if condition
-      opera1: fix ERROR: do not use assignment in if condition
-
- drivers/media/dvb/dvb-usb/cxusb.c           |   52 ++++++++++++++++----------
- drivers/media/dvb/dvb-usb/dib0700_devices.c |   23 +++++++-----
- drivers/media/dvb/dvb-usb/dibusb-common.c   |   19 +++++++---
- drivers/media/dvb/dvb-usb/dibusb-mb.c       |    9 +++--
- drivers/media/dvb/dvb-usb/digitv.c          |    9 ++++-
- drivers/media/dvb/dvb-usb/dvb-usb-dvb.c     |    7 ++--
- drivers/media/dvb/dvb-usb/m920x.c           |   21 ++++++-----
- drivers/media/dvb/dvb-usb/mxl111sf.c        |   19 ++++++----
- drivers/media/dvb/dvb-usb/opera1.c          |    6 ++--
- drivers/media/dvb/dvb-usb/ttusb2.c          |    2 +-
- 10 files changed, 103 insertions(+), 64 deletions(-)
-
-Cheers,
-
-Mike Krufky
+thanks,
+best Regards.
+Zhouping
