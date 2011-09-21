@@ -1,118 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:41933 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751565Ab1IPCez convert rfc822-to-8bit (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:56985 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750852Ab1IUNyJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Sep 2011 22:34:55 -0400
-Received: by qyk30 with SMTP id 30so3161qyk.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2011 19:34:55 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4E726B66.2020808@gmail.com>
-References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com>
-	<1315938892-20243-4-git-send-email-scott.jiang.linux@gmail.com>
-	<4E6FC8E8.70008@gmail.com>
-	<CAHG8p1C5F_HKX_GPHv_RdCRRNw9s3+ybK4giCjUXxgSUAUDRVw@mail.gmail.com>
-	<4E70BA97.1090904@samsung.com>
-	<CAHG8p1D1jnwRO0ie6xrXGL5Uhu+2YjoNdXzhnnBweZDPRyE1fw@mail.gmail.com>
-	<4E726B66.2020808@gmail.com>
-Date: Fri, 16 Sep 2011 10:34:54 +0800
-Message-ID: <CAHG8p1D=Y0bD-QAtsqtRk2NmW8+tXNgUCr45Ho_Uayspn9=N9w@mail.gmail.com>
-Subject: Re: [PATCH 4/4] v4l2: add blackfin capture bridge driver
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	uclinux-dist-devel@blackfin.uclinux.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 21 Sep 2011 09:54:09 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-15
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LRV003M4LA7FV40@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Sep 2011 14:54:07 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LRV00M41LA7PW@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Sep 2011 14:54:07 +0100 (BST)
+Date: Wed, 21 Sep 2011 15:54:07 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v3 1/3] noon010pc30: Conversion to the media controller API
+In-reply-to: <201109210018.14185.laurent.pinchart@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <4E79EC7F.2050003@samsung.com>
+References: <1316188796-8374-1-git-send-email-s.nawrocki@samsung.com>
+ <1316188796-8374-2-git-send-email-s.nawrocki@samsung.com>
+ <201109210018.14185.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/9/16 Sylwester Nawrocki <snjw23@gmail.com>:
-> On 09/15/2011 04:40 AM, Scott Jiang wrote:
->> 2011/9/14 Sylwester Nawrocki<s.nawrocki@samsung.com>:
->>> On 09/14/2011 09:10 AM, Scott Jiang wrote:
->>>>
->>>>>> +                     fmt =&bcap_formats[i];
->>>>>> +                     if (mbus_code)
->>>>>> +                             *mbus_code = fmt->mbus_code;
->>>>>> +                     if (bpp)
->>>>>> +                             *bpp = fmt->bpp;
->>>>>> +                     v4l2_fill_mbus_format(&mbus_fmt, pixfmt,
->>>>>> +                                             fmt->mbus_code);
->>>>>> +                     ret = v4l2_subdev_call(bcap->sd, video,
->>>>>> +                                             try_mbus_fmt,&mbus_fmt);
->>>>>> +                     if (ret<    0)
->>>>>> +                             return ret;
->>>>>> +                     v4l2_fill_pix_format(pixfmt,&mbus_fmt);
->>>>>> +                     pixfmt->bytesperline = pixfmt->width * fmt->bpp;
->>>>>> +                     pixfmt->sizeimage = pixfmt->bytesperline
->>>>>> +                                             * pixfmt->height;
->
-> No need to clamp mbus_fmt.width and mbus_fmt.height to some maximum values
-> to prevent allocating huge memory buffers ?
->
->>>>>
->>>>> Still pixfmt->pixelformat isn't filled.
->>>>>
->>>> no here pixfmt->pixelformat is passed in
->>>>
->>>>>> +                     return 0;
->>>>>> +             }
->>>>>> +     }
->>>>>> +     return -EINVAL;
->>>>>
->>>>> I think you should return some default format, rather than giving up
->>>>> when the fourcc doesn't match. However I'm not 100% sure this is
->>>>> the specification requirement.
->>>>>
->>>> no, there is no default format for bridge driver because it knows
->>>> nothing about this.
->>>> all the format info bridge needs ask subdevice.
->>>
->>> It's the bridge driver that exports a device node and is responsible for
->>> setting the default format. It should be possible to start streaming right
->>> after opening the device, without VIDIOC_S_FMT, with some reasonable defaults.
->>>
->>> If, as you say, the bridge knows nothing about formats what the bcap_formats[]
->>> array is here for ?
->>>
->> accually this array is to convert mbus to pixformat. ppi supports any formats.
->> Ideally it should contain all formats in v4l2, but it is enough at
->> present for our platform.
->> If I find someone needs more, I will add it.
->> So return -EINVAL means this format is out of range, it can't be supported now.
->
-> Ok, fair enough. I guess you rely on subdev driver to return some supported
-> value through mbus_try_fmt and then the bridge driver must be able to handle
-> this. However it might make sense to validate the resolution in some places
-> to prevent allocating insanely huge buffers, when the sensor subdev misbehaves.
->
-all the format info is got from sensor, so it isn't out of control
+Hi Laurent,
 
+thanks for the review.
+
+On 09/21/2011 12:18 AM, Laurent Pinchart wrote:
+> Hi Sylwester,
+> 
+> Thanks for the patch.
+> 
+> On Friday 16 September 2011 17:59:54 Sylwester Nawrocki wrote:
+>> Replace g/s_mbus_fmt ops with the pad level get/set_fmt operations.
+>> Add media entity initialization and set subdev flags so the host driver
+>> creates a subdev device node for the driver.
+>> A mutex was added for serializing the subdev operations. When setting
+>> format is attempted during streaming an (EBUSY) error will be returned.
 >>
->> about default format, I think I can only call bcap_g_fmt_vid_cap in
->> probe to get this info.
->> Dose anybody have a better solution?
->
-> How about doing that when device is opened for the first time ?
->
-no, different input and std has different default format, so I think
-there is no default format is a good choice.
-app should negotiate format before use. I'm not sure all the v4l2 app
-will do this step.
-v4l2 spec only says driver must implement xx ioctl, but it doesn't say
-app must call xx ioctl.
-Anyone can tell me how many steps app must call?
+>> After the device is powered up it will now remain in "power sleep"
+>> mode until s_stream(1) is called. The "power sleep" mode is used
+>> to suspend/resume frame generation at the sensor's output through
+>> s_stream op.
+>>
+>> While at here simplify the colorspace parameter handling.
+>>
+>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> 
+> [snip]
+> 
+>> diff --git a/drivers/media/video/noon010pc30.c
+>> b/drivers/media/video/noon010pc30.c index 35f722a..115d976 100644
+>> --- a/drivers/media/video/noon010pc30.c
+>> +++ b/drivers/media/video/noon010pc30.c
+> 
+> [snip]
+> 
+>> @@ -599,6 +641,22 @@ static int noon010_log_status(struct v4l2_subdev *sd)
+>>  	return 0;
+>>  }
+>>
+>> +static int noon010_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+>> +{
+>> +	struct v4l2_mbus_framefmt *mf = v4l2_subdev_get_try_format(fh, 0);
+>> +	struct noon010_info *info = to_noon010(sd);
+>> +
+>> +	mutex_lock(&info->lock);
+>> +	noon010_get_current_fmt(to_noon010(sd), mf);
+> 
+> Should you initialize mf with a constant default format instead of retrieving 
+> the current format from the sensor ? A non-constant default would probably 
+> confuse userspace application.
 
-> However it
-> could make more sense to try to set format at the subdev and then check how
-> it was adjusted. Not all subdevs might implement g_mbus_fmt op or some might
-> not deliver sane default values.
->
-in try_format and s_fmt I have implemented this in bridge driver and
-all my sensor drivers have implemented relative callback.
+Sure, I could change to it. But I don't quite see the problem, the applications
+should call set_fmt(TRY) anyway, rather than relying on the format gotten right
+after opening the device, shouldn't they ? Anyway I guess it's better to have
+all drivers behaving consistently.
+
+
+Regards,
+-- 
+Sylwester Nawrocki
+Samsung Poland R&D Center
