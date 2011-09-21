@@ -1,144 +1,471 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:60449 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751220Ab1I1IeN (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:40673 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751189Ab1IUO0I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Sep 2011 04:34:13 -0400
-Date: Wed, 28 Sep 2011 10:34:00 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 2/9 v8] V4L: add two new ioctl()s for multi-size videobuffer
- management
-In-Reply-To: <201109281006.28387.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1109281026450.30317@axis700.grange>
-References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
- <201109271540.52649.hverkuil@xs4all.nl> <Pine.LNX.4.64.1109271847310.7004@axis700.grange>
- <201109281006.28387.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Wed, 21 Sep 2011 10:26:08 -0400
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LRV0024HMRIAW@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Sep 2011 15:26:06 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LRV00K9VMRH0C@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Sep 2011 15:26:06 +0100 (BST)
+Date: Wed, 21 Sep 2011 16:26:00 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v4] noon010pc30: Conversion to the media controller API
+In-reply-to: <201109210018.14185.laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1316615160-15580-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <201109210018.14185.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans
+Replace g/s_mbus_fmt ops with the pad level get/set_fmt operations.
+Add media entity initialization and set subdev flags so the host driver
+creates a subdev device node for the driver.
+A mutex was added for serializing the subdev operations. When setting
+format is attempted during streaming an (EBUSY) error will be returned.
 
-On Wed, 28 Sep 2011, Hans Verkuil wrote:
+After the device is powered up it will now remain in "power sleep"
+mode until s_stream(1) is called. The "power sleep" mode is used
+to suspend/resume frame generation at the sensor's output through
+s_stream op.
 
-> On Tuesday, September 27, 2011 18:54:53 Guennadi Liakhovetski wrote:
-> > A possibility to preallocate and initialise buffers of different sizes
-> > in V4L2 is required for an efficient implementation of a snapshot
-> > mode. This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
-> > VIDIOC_PREPARE_BUF and defines respective data structures.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> > 
-> > v8: addressed comments from Hans - thanks:
-> > 
-> >     1. added checks in ioctl() preprocessing
-> >     2. changed VIDIOC_PREPARE_BUF to _IOWR
-> > 
-> >  drivers/media/video/v4l2-compat-ioctl32.c |   67 +++++++++++++++++++++++++---
-> >  drivers/media/video/v4l2-ioctl.c          |   36 +++++++++++++++
-> >  include/linux/videodev2.h                 |   17 +++++++
-> >  include/media/v4l2-ioctl.h                |    2 +
-> >  4 files changed, 114 insertions(+), 8 deletions(-)
-> > 
-> 
-> Almost:
-> 
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index 9d14523..7d75dd1 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -653,6 +653,9 @@ struct v4l2_buffer {
-> >  #define V4L2_BUF_FLAG_ERROR	0x0040
-> >  #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
-> >  #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
-> > +/* Cache handling flags */
-> > +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
-> > +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
-> >  
-> >  /*
-> >   *	O V E R L A Y   P R E V I E W
-> > @@ -2099,6 +2102,15 @@ struct v4l2_dbg_chip_ident {
-> >  	__u32 revision;    /* chip revision, chip specific */
-> >  } __attribute__ ((packed));
-> >  
-> > +/* VIDIOC_CREATE_BUFS */
-> > +struct v4l2_create_buffers {
-> > +	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-> > +	__u32			count;
-> > +	enum v4l2_memory        memory;
-> > +	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
-> > +	__u32			reserved[8];
-> > +};
-> > +
-> >  /*
-> >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-> >   *
-> > @@ -2189,6 +2201,11 @@ struct v4l2_dbg_chip_ident {
-> >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
-> >  #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
-> >  
-> > +/* Experimental, the below two ioctls may change over the next couple of kernel
-> > +   versions */
-> > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
-> > +#define VIDIOC_PREPARE_BUF	_IOWR('V', 93, struct v4l2_buffer)
-> > +
-> >  /* Reminder: when adding new ioctls please add support for them to
-> >     drivers/media/video/v4l2-compat-ioctl32.c as well! */
-> >  
-> > diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> > index dd9f1e7..55cf8ae 100644
-> > --- a/include/media/v4l2-ioctl.h
-> > +++ b/include/media/v4l2-ioctl.h
-> > @@ -122,6 +122,8 @@ struct v4l2_ioctl_ops {
-> >  	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
-> >  	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
-> >  
-> > +	int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
-> > +	int (*vidioc_prepare_buf)(struct file *file, void *fh, const struct v4l2_buffer *b);
-> 
-> If this is IOWR, then there shouldn't be a const here.
-
-hrm... Sure.
-
-> I have been thinking about this a bit more. Currently we only have a V4L2_BUF_FLAG_QUEUED
-> flag and no V4L2_BUF_FLAG_PREPARED flag. I do think we need this after all. The QUEUED flag
-> can't be used here as the buffer isn't queued yet, it's only prepared.
-
-Ok, I can add it to this patch together with the other two cache-handling 
-flags. I presume, I shall also add it to
-
-V4L2_BUFFER_STATE_FLAGS
-
-in videobuf2-core.c, otherwise just let drivers and apps go figure?... We 
-could set that flag centrally in __buf_prepare(), but since 
-V4L2_BUF_FLAG_QUEUED is managed by individual drivers, we probably want to 
-leave V4L2_BUF_FLAG_PREPARED like that too?
-
-Thanks
-Guennadi
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> >  
-> >  	int (*vidioc_overlay) (struct file *file, void *fh, unsigned int i);
-> >  	int (*vidioc_g_fbuf)   (struct file *file, void *fh,
-> > 
-> 
-
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Addresing Laurent's comments, changes since v3:
+ - set constant default TRY format in subdev open() internal op
+   rather than the currently set format
+---
+ drivers/media/video/Kconfig       |    2 +-
+ drivers/media/video/noon010pc30.c |  221 +++++++++++++++++++++++++-----------
+ 2 files changed, 154 insertions(+), 69 deletions(-)
+
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 6279663..75bb46f 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -755,7 +755,7 @@ config VIDEO_VIA_CAMERA
+ 
+ config VIDEO_NOON010PC30
+ 	tristate "NOON010PC30 CIF camera sensor support"
+-	depends on I2C && VIDEO_V4L2
++	depends on I2C && VIDEO_V4L2 && EXPERIMENTAL && VIDEO_V4L2_SUBDEV_API
+ 	---help---
+ 	  This driver supports NOON010PC30 CIF camera from Siliconfile
+ 
+diff --git a/drivers/media/video/noon010pc30.c b/drivers/media/video/noon010pc30.c
+index 35f722a..1a874ec 100644
+--- a/drivers/media/video/noon010pc30.c
++++ b/drivers/media/video/noon010pc30.c
+@@ -1,7 +1,7 @@
+ /*
+  * Driver for SiliconFile NOON010PC30 CIF (1/11") Image Sensor with ISP
+  *
+- * Copyright (C) 2010 Samsung Electronics
++ * Copyright (C) 2010 - 2011 Samsung Electronics Co., Ltd.
+  * Contact: Sylwester Nawrocki, <s.nawrocki@samsung.com>
+  *
+  * Initial register configuration based on a driver authored by
+@@ -10,7 +10,7 @@
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later vergsion.
++ * (at your option) any later version.
+  */
+ 
+ #include <linux/delay.h>
+@@ -131,17 +131,24 @@ static const char * const noon010_supply_name[] = {
+ 
+ struct noon010_info {
+ 	struct v4l2_subdev sd;
++	struct media_pad pad;
+ 	struct v4l2_ctrl_handler hdl;
+ 	const struct noon010pc30_platform_data *pdata;
++	struct regulator_bulk_data supply[NOON010_NUM_SUPPLIES];
++	u32 gpio_nreset;
++	u32 gpio_nstby;
++
++	/* Protects the struct members below */
++	struct mutex lock;
++
+ 	const struct noon010_format *curr_fmt;
+ 	const struct noon010_frmsize *curr_win;
++	unsigned int apply_new_cfg:1;
++	unsigned int streaming:1;
+ 	unsigned int hflip:1;
+ 	unsigned int vflip:1;
+ 	unsigned int power:1;
+ 	u8 i2c_reg_page;
+-	struct regulator_bulk_data supply[NOON010_NUM_SUPPLIES];
+-	u32 gpio_nreset;
+-	u32 gpio_nstby;
+ };
+ 
+ struct i2c_regval {
+@@ -313,6 +320,7 @@ static int noon010_enable_autowhitebalance(struct v4l2_subdev *sd, int on)
+ 	return ret;
+ }
+ 
++/* Called with struct noon010_info.lock mutex held */
+ static int noon010_set_flip(struct v4l2_subdev *sd, int hflip, int vflip)
+ {
+ 	struct noon010_info *info = to_noon010(sd);
+@@ -340,21 +348,18 @@ static int noon010_set_flip(struct v4l2_subdev *sd, int hflip, int vflip)
+ static int noon010_set_params(struct v4l2_subdev *sd)
+ {
+ 	struct noon010_info *info = to_noon010(sd);
+-	int ret;
+ 
+-	if (!info->curr_win)
+-		return -EINVAL;
+-
+-	ret = cam_i2c_write(sd, VDO_CTL_REG(0), info->curr_win->vid_ctl1);
+-
+-	if (!ret && info->curr_fmt)
+-		ret = cam_i2c_write(sd, ISP_CTL_REG(0),
+-				info->curr_fmt->ispctl1_reg);
+-	return ret;
++	int ret = cam_i2c_write(sd, VDO_CTL_REG(0),
++				info->curr_win->vid_ctl1);
++	if (ret)
++		return ret;
++	return cam_i2c_write(sd, ISP_CTL_REG(0),
++			     info->curr_fmt->ispctl1_reg);
+ }
+ 
+ /* Find nearest matching image pixel size. */
+-static int noon010_try_frame_size(struct v4l2_mbus_framefmt *mf)
++static int noon010_try_frame_size(struct v4l2_mbus_framefmt *mf,
++				  const struct noon010_frmsize **size)
+ {
+ 	unsigned int min_err = ~0;
+ 	int i = ARRAY_SIZE(noon010_sizes);
+@@ -374,11 +379,14 @@ static int noon010_try_frame_size(struct v4l2_mbus_framefmt *mf)
+ 	if (match) {
+ 		mf->width  = match->width;
+ 		mf->height = match->height;
++		if (size)
++			*size = match;
+ 		return 0;
+ 	}
+ 	return -EINVAL;
+ }
+ 
++/* Called with info.lock mutex held */
+ static int power_enable(struct noon010_info *info)
+ {
+ 	int ret;
+@@ -419,6 +427,7 @@ static int power_enable(struct noon010_info *info)
+ 	return 0;
+ }
+ 
++/* Called with info.lock mutex held */
+ static int power_disable(struct noon010_info *info)
+ {
+ 	int ret;
+@@ -448,93 +457,120 @@ static int power_disable(struct noon010_info *info)
+ static int noon010_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct v4l2_subdev *sd = to_sd(ctrl);
++	struct noon010_info *info = to_noon010(sd);
++	int ret = 0;
+ 
+ 	v4l2_dbg(1, debug, sd, "%s: ctrl_id: %d, value: %d\n",
+ 		 __func__, ctrl->id, ctrl->val);
+ 
++	mutex_lock(&info->lock);
++	/*
++	 * If the device is not powered up by the host driver do
++	 * not apply any controls to H/W at this time. Instead
++	 * the controls will be restored right after power-up.
++	 */
++	if (!info->power)
++		goto unlock;
++
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUTO_WHITE_BALANCE:
+-		return noon010_enable_autowhitebalance(sd, ctrl->val);
++		ret = noon010_enable_autowhitebalance(sd, ctrl->val);
++		break;
+ 	case V4L2_CID_BLUE_BALANCE:
+-		return cam_i2c_write(sd, MWB_BGAIN_REG, ctrl->val);
++		ret = cam_i2c_write(sd, MWB_BGAIN_REG, ctrl->val);
++		break;
+ 	case V4L2_CID_RED_BALANCE:
+-		return cam_i2c_write(sd, MWB_RGAIN_REG, ctrl->val);
++		ret =  cam_i2c_write(sd, MWB_RGAIN_REG, ctrl->val);
++		break;
+ 	default:
+-		return -EINVAL;
++		ret = -EINVAL;
+ 	}
++unlock:
++	mutex_unlock(&info->lock);
++	return ret;
+ }
+ 
+-static int noon010_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
+-			    enum v4l2_mbus_pixelcode *code)
++static int noon010_enum_mbus_code(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_fh *fh,
++				  struct v4l2_subdev_mbus_code_enum *code)
+ {
+-	if (!code || index >= ARRAY_SIZE(noon010_formats))
++	if (code->index >= ARRAY_SIZE(noon010_formats))
+ 		return -EINVAL;
+ 
+-	*code = noon010_formats[index].code;
++	code->code = noon010_formats[code->index].code;
+ 	return 0;
+ }
+ 
+-static int noon010_g_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
++static int noon010_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++			   struct v4l2_subdev_format *fmt)
+ {
+ 	struct noon010_info *info = to_noon010(sd);
+-	int ret;
+-
+-	if (!mf)
+-		return -EINVAL;
++	struct v4l2_mbus_framefmt *mf;
+ 
+-	if (!info->curr_win || !info->curr_fmt) {
+-		ret = noon010_set_params(sd);
+-		if (ret)
+-			return ret;
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
++		if (fh) {
++			mf = v4l2_subdev_get_try_format(fh, 0);
++			fmt->format = *mf;
++		}
++		return 0;
+ 	}
++	mf = &fmt->format;
+ 
+-	mf->width	= info->curr_win->width;
+-	mf->height	= info->curr_win->height;
+-	mf->code	= info->curr_fmt->code;
+-	mf->colorspace	= info->curr_fmt->colorspace;
+-	mf->field	= V4L2_FIELD_NONE;
++	mutex_lock(&info->lock);
++	mf->width = info->curr_win->width;
++	mf->height = info->curr_win->height;
++	mf->code = info->curr_fmt->code;
++	mf->colorspace = info->curr_fmt->colorspace;
++	mf->field = V4L2_FIELD_NONE;
+ 
++	mutex_unlock(&info->lock);
+ 	return 0;
+ }
+ 
+ /* Return nearest media bus frame format. */
+-static const struct noon010_format *try_fmt(struct v4l2_subdev *sd,
++static const struct noon010_format *noon010_try_fmt(struct v4l2_subdev *sd,
+ 					    struct v4l2_mbus_framefmt *mf)
+ {
+ 	int i = ARRAY_SIZE(noon010_formats);
+ 
+-	noon010_try_frame_size(mf);
+-
+-	while (i--)
++	while (--i)
+ 		if (mf->code == noon010_formats[i].code)
+ 			break;
+-
+ 	mf->code = noon010_formats[i].code;
+ 
+ 	return &noon010_formats[i];
+ }
+ 
+-static int noon010_try_fmt(struct v4l2_subdev *sd,
+-			   struct v4l2_mbus_framefmt *mf)
+-{
+-	if (!sd || !mf)
+-		return -EINVAL;
+-
+-	try_fmt(sd, mf);
+-	return 0;
+-}
+-
+-static int noon010_s_fmt(struct v4l2_subdev *sd,
+-			 struct v4l2_mbus_framefmt *mf)
++static int noon010_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++			   struct v4l2_subdev_format *fmt)
+ {
+ 	struct noon010_info *info = to_noon010(sd);
++	const struct noon010_frmsize *size = NULL;
++	const struct noon010_format *nf;
++	struct v4l2_mbus_framefmt *mf;
++	int ret = 0;
+ 
+-	if (!sd || !mf)
+-		return -EINVAL;
+-
+-	info->curr_fmt = try_fmt(sd, mf);
++	nf = noon010_try_fmt(sd, &fmt->format);
++	noon010_try_frame_size(&fmt->format, &size);
++	fmt->format.colorspace = V4L2_COLORSPACE_JPEG;
+ 
+-	return noon010_set_params(sd);
++	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
++		if (fh) {
++			mf = v4l2_subdev_get_try_format(fh, 0);
++			*mf = fmt->format;
++		}
++		return 0;
++	}
++	mutex_lock(&info->lock);
++	if (!info->streaming) {
++		info->apply_new_cfg = 1;
++		info->curr_fmt = nf;
++		info->curr_win = size;
++	} else {
++		ret = -EBUSY;
++	}
++	mutex_unlock(&info->lock);
++	return ret;
+ }
+ 
+ static int noon010_base_config(struct v4l2_subdev *sd)
+@@ -550,8 +586,6 @@ static int noon010_base_config(struct v4l2_subdev *sd)
+ 	}
+ 	if (!ret)
+ 		ret = noon010_set_flip(sd, 1, 0);
+-	if (!ret)
+-		ret = noon010_power_ctrl(sd, false, false);
+ 
+ 	/* sync the handler and the registers state */
+ 	v4l2_ctrl_handler_setup(&to_noon010(sd)->hdl);
+@@ -582,6 +616,26 @@ static int noon010_s_power(struct v4l2_subdev *sd, int on)
+ 	return ret;
+ }
+ 
++static int noon010_s_stream(struct v4l2_subdev *sd, int on)
++{
++	struct noon010_info *info = to_noon010(sd);
++	int ret = 0;
++
++	mutex_lock(&info->lock);
++	if (!info->streaming != !on) {
++		ret = noon010_power_ctrl(sd, false, !on);
++		if (!ret)
++			info->streaming = on;
++	}
++	if (!ret && on && info->apply_new_cfg) {
++		ret = noon010_set_params(sd);
++		if (!ret)
++			info->apply_new_cfg = 0;
++	}
++	mutex_unlock(&info->lock);
++	return ret;
++}
++
+ static int noon010_g_chip_ident(struct v4l2_subdev *sd,
+ 				struct v4l2_dbg_chip_ident *chip)
+ {
+@@ -599,6 +653,22 @@ static int noon010_log_status(struct v4l2_subdev *sd)
+ 	return 0;
+ }
+ 
++static int noon010_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct v4l2_mbus_framefmt *mf = v4l2_subdev_get_try_format(fh, 0);
++
++	mf->width = noon010_sizes[0].width;
++	mf->height = noon010_sizes[0].height;
++	mf->code = noon010_formats[0].code;
++	mf->colorspace = V4L2_COLORSPACE_JPEG;
++	mf->field = V4L2_FIELD_NONE;
++	return 0;
++}
++
++static const struct v4l2_subdev_internal_ops noon010_subdev_internal_ops = {
++	.open = noon010_open,
++};
++
+ static const struct v4l2_ctrl_ops noon010_ctrl_ops = {
+ 	.s_ctrl = noon010_s_ctrl,
+ };
+@@ -616,15 +686,19 @@ static const struct v4l2_subdev_core_ops noon010_core_ops = {
+ 	.log_status	= noon010_log_status,
+ };
+ 
+-static const struct v4l2_subdev_video_ops noon010_video_ops = {
+-	.g_mbus_fmt	= noon010_g_fmt,
+-	.s_mbus_fmt	= noon010_s_fmt,
+-	.try_mbus_fmt	= noon010_try_fmt,
+-	.enum_mbus_fmt	= noon010_enum_fmt,
++static struct v4l2_subdev_pad_ops noon010_pad_ops = {
++	.enum_mbus_code	= noon010_enum_mbus_code,
++	.get_fmt	= noon010_get_fmt,
++	.set_fmt	= noon010_set_fmt,
++};
++
++static struct v4l2_subdev_video_ops noon010_video_ops = {
++	.s_stream	= noon010_s_stream,
+ };
+ 
+ static const struct v4l2_subdev_ops noon010_ops = {
+ 	.core	= &noon010_core_ops,
++	.pad	= &noon010_pad_ops,
+ 	.video	= &noon010_video_ops,
+ };
+ 
+@@ -665,10 +739,14 @@ static int noon010_probe(struct i2c_client *client,
+ 	if (!info)
+ 		return -ENOMEM;
+ 
++	mutex_init(&info->lock);
+ 	sd = &info->sd;
+ 	strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
+ 	v4l2_i2c_subdev_init(sd, client, &noon010_ops);
+ 
++	sd->internal_ops = &noon010_subdev_internal_ops;
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++
+ 	v4l2_ctrl_handler_init(&info->hdl, 3);
+ 
+ 	v4l2_ctrl_new_std(&info->hdl, &noon010_ctrl_ops,
+@@ -719,11 +797,17 @@ static int noon010_probe(struct i2c_client *client,
+ 	if (ret)
+ 		goto np_reg_err;
+ 
++	info->pad.flags = MEDIA_PAD_FL_SOURCE;
++	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
++	ret = media_entity_init(&sd->entity, 1, &info->pad, 0);
++	if (ret < 0)
++		goto np_me_err;
++
+ 	ret = noon010_detect(client, info);
+ 	if (!ret)
+ 		return 0;
+ 
+-	/* the sensor detection failed */
++np_me_err:
+ 	regulator_bulk_free(NOON010_NUM_SUPPLIES, info->supply);
+ np_reg_err:
+ 	if (gpio_is_valid(info->gpio_nstby))
+@@ -754,6 +838,7 @@ static int noon010_remove(struct i2c_client *client)
+ 	if (gpio_is_valid(info->gpio_nstby))
+ 		gpio_free(info->gpio_nstby);
+ 
++	media_entity_cleanup(&sd->entity);
+ 	kfree(info);
+ 	return 0;
+ }
+-- 
+1.7.6.3
+
