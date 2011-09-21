@@ -1,141 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:54543 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752964Ab1IPQAC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Sep 2011 12:00:02 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LRM006A0HS0C7@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2011 17:00:00 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRM000FUHRZZ2@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2011 17:00:00 +0100 (BST)
-Date: Fri, 16 Sep 2011 17:59:55 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v3 2/3] noon010pc30: Improve s_power operation handling
-In-reply-to: <1316188796-8374-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Message-id: <1316188796-8374-3-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1316188796-8374-1-git-send-email-s.nawrocki@samsung.com>
+Received: from e4.ny.us.ibm.com ([32.97.182.144]:35530 "EHLO e4.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750783Ab1IUPqF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Sep 2011 11:46:05 -0400
+Subject: Re: [PATCH 1/3] fixup! mm: alloc_contig_freed_pages() added
+From: Dave Hansen <dave@linux.vnet.ibm.com>
+To: Michal Nazarewicz <mnazarewicz@google.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>
+In-Reply-To: <ea1bc31120e0670a044de6af7b3c67203c178065.1316617681.git.mina86@mina86.com>
+References: <1315505152.3114.9.camel@nimitz>
+	 <ea1bc31120e0670a044de6af7b3c67203c178065.1316617681.git.mina86@mina86.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 21 Sep 2011 08:45:59 -0700
+Message-ID: <1316619959.16137.308.camel@nimitz>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the now unneeded check for the platform data in s_power
-handler and the platform data pointer in struct noon010_info.
-Also do not reset the configured output resolution and pixel
-format when cycling sensor's power.
-Add small delay for proper reset signal shape.
+On Wed, 2011-09-21 at 17:19 +0200, Michal Nazarewicz wrote:
+> Do the attached changes seem to make sense?
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/noon010pc30.c |   40 +++++++++++++++---------------------
- 1 files changed, 17 insertions(+), 23 deletions(-)
+The logic looks OK.
 
-diff --git a/drivers/media/video/noon010pc30.c b/drivers/media/video/noon010pc30.c
-index 115d976..436b1ee 100644
---- a/drivers/media/video/noon010pc30.c
-+++ b/drivers/media/video/noon010pc30.c
-@@ -132,7 +132,6 @@ struct noon010_info {
- 	struct v4l2_subdev sd;
- 	struct media_pad pad;
- 	struct v4l2_ctrl_handler hdl;
--	const struct noon010pc30_platform_data *pdata;
- 	struct regulator_bulk_data supply[NOON010_NUM_SUPPLIES];
- 	u32 gpio_nreset;
- 	u32 gpio_nstby;
-@@ -282,8 +281,10 @@ static int noon010_power_ctrl(struct v4l2_subdev *sd, bool reset, bool sleep)
- 	u8 reg = sleep ? 0xF1 : 0xF0;
- 	int ret = 0;
- 
--	if (reset)
-+	if (reset) {
- 		ret = cam_i2c_write(sd, POWER_CTRL_REG, reg | 0x02);
-+		udelay(20);
-+	}
- 	if (!ret) {
- 		ret = cam_i2c_write(sd, POWER_CTRL_REG, reg);
- 		if (reset && !ret)
-@@ -561,45 +562,37 @@ static int noon010_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 	return ret;
- }
- 
-+/* Called with struct noon010_info.lock mutex held */
- static int noon010_base_config(struct v4l2_subdev *sd)
- {
--	struct noon010_info *info = to_noon010(sd);
--	int ret;
--
--	ret = noon010_bulk_write_reg(sd, noon010_base_regs);
--	if (!ret) {
--		info->curr_fmt = &noon010_formats[0];
--		info->curr_win = &noon010_sizes[0];
-+	int ret = noon010_bulk_write_reg(sd, noon010_base_regs);
-+	if (!ret)
- 		ret = noon010_set_params(sd);
--	}
- 	if (!ret)
- 		ret = noon010_set_flip(sd, 1, 0);
- 
--	/* sync the handler and the registers state */
--	v4l2_ctrl_handler_setup(&to_noon010(sd)->hdl);
- 	return ret;
- }
- 
- static int noon010_s_power(struct v4l2_subdev *sd, int on)
- {
- 	struct noon010_info *info = to_noon010(sd);
--	const struct noon010pc30_platform_data *pdata = info->pdata;
--	int ret = 0;
--
--	if (WARN(pdata == NULL, "No platform data!\n"))
--		return -ENOMEM;
-+	int ret;
- 
-+	mutex_lock(&info->lock);
- 	if (on) {
- 		ret = power_enable(info);
--		if (ret)
--			return ret;
--		ret = noon010_base_config(sd);
-+		if (!ret)
-+			ret = noon010_base_config(sd);
- 	} else {
- 		noon010_power_ctrl(sd, false, true);
- 		ret = power_disable(info);
--		info->curr_win = NULL;
--		info->curr_fmt = NULL;
- 	}
-+	mutex_unlock(&info->lock);
-+
-+	/* Restore the controls state */
-+	if (!ret && on)
-+		ret = v4l2_ctrl_handler_setup(&info->hdl);
- 
- 	return ret;
- }
-@@ -750,10 +743,11 @@ static int noon010_probe(struct i2c_client *client,
- 	if (ret)
- 		goto np_err;
- 
--	info->pdata		= client->dev.platform_data;
- 	info->i2c_reg_page	= -1;
- 	info->gpio_nreset	= -EINVAL;
- 	info->gpio_nstby	= -EINVAL;
-+	info->curr_fmt		= &noon010_formats[0];
-+	info->curr_win		= &noon010_sizes[0];
- 
- 	if (gpio_is_valid(pdata->gpio_nreset)) {
- 		ret = gpio_request(pdata->gpio_nreset, "NOON010PC30 NRST");
--- 
-1.7.6
+> I wanted to avoid calling pfn_to_page() each time as it seem fairly
+> expensive in sparsemem and disctontig modes.  At the same time, the
+> macro trickery is so that users of sparsemem-vmemmap and flatmem won't
+> have to pay the price.
+
+Personally, I'd say the (incredibly minuscule) runtime cost is worth the
+cost of making folks' eyes bleed when they see those macros.  I think
+there are some nicer ways to do it.
+
+Is there a reason you can't logically do?
+
+	page = pfn_to_page(pfn);
+	for (;;) {
+		if (pfn_to_section_nr(pfn) == pfn_to_section_nr(pfn+1))
+			page++;
+		else
+			page = pfn_to_page(pfn+1);
+	}
+
+pfn_to_section_nr() is a register shift.  Our smallest section size on
+x86 is 128MB and on ppc64 16MB.  So, at *WORST* (64k pages on ppc64),
+you're doing pfn_to_page() one of every 256 loops.
+
+My suggestion would be put put a macro up in the sparsemem headers that
+does something like:
+
+#ifdef VMEMMAP
+#define zone_pfn_same_memmap(pfn1, pfn2) (1)
+#elif SPARSEMEM_OTHER
+static inline int zone_pfn_same_memmap(unsigned long pfn1, unsigned long pfn2)
+{
+	return (pfn_to_section_nr(pfn1) == pfn_to_section_nr(pfn2));
+}
+#else
+#define zone_pfn_same_memmap(pfn1, pfn2) (1)
+#endif
+
+The zone_ bit is necessary in the naming because DISCONTIGMEM's pfns are
+at least contiguous within a zone.  Only the non-VMEMMAP sparsemem case
+isn't.
+
+Other folks would probably have a use for something like that.  Although
+most of the previous users have gotten to this point, given up, and just
+done pfn_to_page() on each loop. :)
+
+> +#if defined(CONFIG_FLATMEM) || defined(CONFIG_SPARSEMEM_VMEMMAP)
+> +
+> +/*
+> + * In FLATMEM and CONFIG_SPARSEMEM_VMEMMAP we can safely increment the page
+> + * pointer and get the same value as if we were to get by calling
+> + * pfn_to_page() on incremented pfn counter.
+> + */
+> +#define __contig_next_page(page, pageblock_left, pfn, increment) \
+> +	((page) + (increment))
+> +
+> +#define __contig_first_page(pageblock_left, pfn) pfn_to_page(pfn)
+> +
+> +#else
+> +
+> +/*
+> + * If we cross pageblock boundary, make sure we get a valid page pointer.  If
+> + * we are within pageblock, incrementing the pointer is good enough, and is
+> + * a bit of an optimisation.
+> + */
+> +#define __contig_next_page(page, pageblock_left, pfn, increment)	\
+> +	(likely((pageblock_left) -= (increment)) ? (page) + (increment)	\
+> +	 : (((pageblock_left) = pageblock_nr_pages), pfn_to_page(pfn)))
+> +
+> +#define __contig_first_page(pageblock_left, pfn) (			\
+> +	((pageblock_left) = pageblock_nr_pages -			\
+> +		 ((pfn) & (pageblock_nr_pages - 1))),			\
+> +	pfn_to_page(pfn))
+> +
+> +
+> +#endif
+
+For the love of Pete, please make those in to functions if you're going
+to keep them.  They're really unreadable like that.
+
+You might also want to look at mm/internal.h's mem_map_offset() and
+mem_map_next().  They're not _quite_ what you need, but they're close.
+
+-- Dave
 
