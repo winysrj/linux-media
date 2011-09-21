@@ -1,40 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37712 "EHLO mx1.redhat.com"
+Received: from tex.lwn.net ([70.33.254.29]:38997 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752363Ab1IYMtb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Sep 2011 08:49:31 -0400
-Message-ID: <4E7F2358.7090906@redhat.com>
-Date: Sun, 25 Sep 2011 09:49:28 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Chris Rankin <rankincj@yahoo.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v3] EM28xx - fix deadlock when unplugging and replugging
- a DVB adapter
-References: <4E7E43A2.3020905@yahoo.com>
-In-Reply-To: <4E7E43A2.3020905@yahoo.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	id S1750857Ab1IURjE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Sep 2011 13:39:04 -0400
+Date: Wed, 21 Sep 2011 11:39:02 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Kassey Lee <ygli@marvell.com>, linux-media@vger.kernel.org,
+	ytang5@marvell.com, leiwen@marvell.com, jwan@marvell.com,
+	qingx@marvell.com
+Subject: Re: [PATCH V3] V4L/DVB: v4l: Add driver for Marvell PXA910 CCIC
+Message-ID: <20110921113902.1ea85b06@bike.lwn.net>
+In-Reply-To: <Pine.LNX.4.64.1109211928500.24024@axis700.grange>
+References: <1307528966-8233-1-git-send-email-ygli@marvell.com>
+	<4E7A1CD8.8070401@redhat.com>
+	<Pine.LNX.4.64.1109211928500.24024@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 24-09-2011 17:54, Chris Rankin escreveu:
-> This fixes the deadlock that occurs with either multiple PCTV 290e adapters or when a single PCTV 290e adapter is replugged.
-> 
-> For DVB devices, the device lock must now *not* be held when adding/removing either a device or an extension to the respective lists. (Because em28xx_init_dvb() will want to take the lock instead).
-> 
-> Conversely, for Audio-Only devices, the device lock *must* be held when adding/removing either a device or an extension to the respective lists.
-> 
-> Signed-off-by: Chris Rankin <ranki...@yahoo.com>
+On Wed, 21 Sep 2011 19:31:21 +0200 (CEST)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 
-Ok, I've applied it, but it doesn't sound a good idea to me to do:
+> Indeed I would (mind);-) AFAIU, Jon has converted the cafe-ccic driver to 
+> be usable for other implementations, using the same core, this driver has 
+> to be converted to re-use the common code, and so far this has not been 
+> done, or am I missing something?
 
-+	mutex_unlock(&dev->lock);
- 	em28xx_init_extension(dev);
-+	mutex_lock(&dev->lock);
-
-I'll later test it with some hardware and see how well this behaves
-in practice.
+That is, indeed, how I think it should be done.  I'm fully aware that I've
+not quite finished my part of that - in particular, I've not fixed the
+ov7670-only problem.  That would move up on my tragically long priority
+list if I knew that there would be a need for it in the near future.
 
 Thanks,
-Mauro
+
+jon
