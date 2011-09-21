@@ -1,104 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:26841 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932397Ab1IAPa3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 11:30:29 -0400
-Date: Thu, 01 Sep 2011 17:30:06 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 02/19 v4] s5p-fimc: Remove sclk_cam clock handling
-In-reply-to: <1314891023-14227-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: mchehab@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Message-id: <1314891023-14227-3-git-send-email-s.nawrocki@samsung.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:31276 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750711Ab1IUNrN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Sep 2011 09:47:13 -0400
+Date: Wed, 21 Sep 2011 15:47:05 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 7/8] ARM: integrate CMA with DMA-mapping subsystem
+In-reply-to: <CAMjpGUch=ogFQwBLqOukKVnyh60600jw5tMq-KYeNGSZ2PLQpA@mail.gmail.com>
+To: 'Mike Frysinger' <vapier.adi@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Russell King' <linux@arm.linux.org.uk>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Mel Gorman' <mel@csn.ul.ie>, 'Arnd Bergmann' <arnd@arndb.de>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>
+Message-id: <001a01cc7864$f2c98ea0$d85cabe0$%szyprowski@samsung.com>
 MIME-version: 1.0
-Content-type: TEXT/PLAIN
+Content-type: text/plain; charset=utf-8
+Content-language: pl
 Content-transfer-encoding: 7BIT
-References: <1314891023-14227-1-git-send-email-s.nawrocki@samsung.com>
+References: <1313764064-9747-1-git-send-email-m.szyprowski@samsung.com>
+ <1313764064-9747-8-git-send-email-m.szyprowski@samsung.com>
+ <CAMjpGUch=ogFQwBLqOukKVnyh60600jw5tMq-KYeNGSZ2PLQpA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are 2 separate clock outputs available in the SoC for external sensors.
-These two clocks can be shared among all FIMC entities and there is
-currently no any arbitration of the clocks in the driver.
+Hello,
 
-So make the capture driver not touching these clocks and let them be
-be properly handled at the media device driver level, enabling proper
-arbitration between FIMC entities.
+On Thursday, September 08, 2011 7:27 PM Mike Frysinger wrote:
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-core.c |   12 ++----------
- drivers/media/video/s5p-fimc/fimc-core.h |    3 +--
- 2 files changed, 3 insertions(+), 12 deletions(-)
+> On Fri, Aug 19, 2011 at 10:27, Marek Szyprowski wrote:
+> >  arch/arm/include/asm/device.h         |    3 +
+> >  arch/arm/include/asm/dma-contiguous.h |   33 +++
+> 
+> seems like these would be good asm-generic/ additions rather than arm
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index e042fdc..1d8d655 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -30,7 +30,7 @@
- #include "fimc-core.h"
- 
- static char *fimc_clocks[MAX_FIMC_CLOCKS] = {
--	"sclk_fimc", "fimc", "sclk_cam"
-+	"sclk_fimc", "fimc"
- };
- 
- static struct fimc_fmt fimc_formats[] = {
-@@ -1636,7 +1636,6 @@ static int fimc_probe(struct platform_device *pdev)
- 	struct samsung_fimc_driverdata *drv_data;
- 	struct s5p_platform_fimc *pdata;
- 	int ret = 0;
--	int cap_input_index = -1;
- 
- 	dev_dbg(&pdev->dev, "%s():\n", __func__);
- 
-@@ -1689,14 +1688,6 @@ static int fimc_probe(struct platform_device *pdev)
- 		goto err_req_region;
- 	}
- 
--	fimc->num_clocks = MAX_FIMC_CLOCKS - 1;
--
--	/* Check if a video capture node needs to be registered. */
--	if (pdata && pdata->num_clients > 0) {
--		cap_input_index = 0;
--		fimc->num_clocks++;
--	}
--
- 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
- 	if (!res) {
- 		dev_err(&pdev->dev, "failed to get IRQ resource\n");
-@@ -1705,6 +1696,7 @@ static int fimc_probe(struct platform_device *pdev)
- 	}
- 	fimc->irq = res->start;
- 
-+	fimc->num_clocks = MAX_FIMC_CLOCKS;
- 	ret = fimc_clk_get(fimc);
- 	if (ret)
- 		goto err_regs_unmap;
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index c8a2bab..d82bff8 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -34,7 +34,7 @@
- 
- /* Time to wait for next frame VSYNC interrupt while stopping operation. */
- #define FIMC_SHUTDOWN_TIMEOUT	((100*HZ)/1000)
--#define MAX_FIMC_CLOCKS		3
-+#define MAX_FIMC_CLOCKS		2
- #define MODULE_NAME		"s5p-fimc"
- #define FIMC_MAX_DEVS		4
- #define FIMC_MAX_OUT_BUFS	4
-@@ -46,7 +46,6 @@
- enum {
- 	CLK_BUS,
- 	CLK_GATE,
--	CLK_CAM,
- };
- 
- enum fimc_dev_flags {
+Only some of them can be really moved to asm-generic imho. The following
+lines are definitely architecture specific:
+
+void dma_contiguous_early_fixup(phys_addr_t base, unsigned long size);
+
+Some other archs might define empty fixup function. Right now only ARM 
+architecture is the real client of the CMA. IMHO if any other arch stats
+using CMA, some of the CMA definitions can be then moved to asm-generic.
+Right now I wanted to keep it as simple as possible.
+
+Best regards
 -- 
-1.7.6
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
 
