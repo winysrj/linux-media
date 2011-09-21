@@ -1,36 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:57776 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753745Ab1IFJKY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 05:10:24 -0400
-Received: by yie30 with SMTP id 30so3843064yie.19
-        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2011 02:10:24 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201109061049.32114.laurent.pinchart@ideasonboard.com>
-References: <4E56734A.3080001@mlbassoc.com>
-	<201109021327.59221.laurent.pinchart@ideasonboard.com>
-	<CA+2YH7vEWijtbwuX_JsDwLtkGNLEbUBDBFadqT3wWtQWTJnfzA@mail.gmail.com>
-	<201109061049.32114.laurent.pinchart@ideasonboard.com>
-Date: Tue, 6 Sep 2011 11:10:23 +0200
-Message-ID: <CA+2YH7uS4cvyCFj+uL-W-SCpSCcZBt0R-EVYHow2xXt1zEiJHg@mail.gmail.com>
-Subject: Re: Getting started with OMAP3 ISP
-From: Enrico <ebutera@users.berlios.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:16420 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103Ab1IURpN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Sep 2011 13:45:13 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LRV004MWVZABF60@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Sep 2011 18:45:11 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LRV00DTPVZALN@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Sep 2011 18:45:10 +0100 (BST)
+Date: Wed, 21 Sep 2011 19:45:06 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 1/2] v4l: Add AUTO option for the
+ V4L2_CID_POWER_LINE_FREQUENCY control
+In-reply-to: <1316627107-18709-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1316627107-18709-2-git-send-email-s.nawrocki@samsung.com>
+References: <1316627107-18709-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 6, 2011 at 10:49 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Monday 05 September 2011 18:37:04 you wrote:
->> Yes that was the first thing i tried, anyway now i have it finally
->> working. Well at least yavta doesn't hang, do you know some
->> application to see raw yuv images?
+V4L2_CID_POWER_LINE_FREQUENCY control allows applications to instruct
+a driver what is the power line frequency so an appropriate filter
+can be used by the device to cancel flicker by compensating the light
+intensity ripple. Currently in the menu we have entries for 50 Hz and
+60 Hz and for entirely disabling the anti-flicker filter.
+However some devices are capable of automatically detecting the
+frequency, so add V4L2_CID_POWER_LINE_FREQUENCY_AUTO entry for them.
 
-I made a typo since in fact it's uyvy ( so a tool to covert from yuv
-will not work ;) ), but if someone will ever need it:
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |    5 +++--
+ drivers/media/video/v4l2-ctrls.c             |    1 +
+ include/linux/videodev2.h                    |    1 +
+ 3 files changed, 5 insertions(+), 2 deletions(-)
 
-ffmpeg -f rawvideo -pix_fmt uyvy422 -s 720x628 -i frame-000001.bin frame-1.png
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 23fdf79..3bc5ee8 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -232,8 +232,9 @@ control is deprecated. New drivers and applications should use the
+ 	    <entry>Enables a power line frequency filter to avoid
+ flicker. Possible values for <constant>enum v4l2_power_line_frequency</constant> are:
+ <constant>V4L2_CID_POWER_LINE_FREQUENCY_DISABLED</constant> (0),
+-<constant>V4L2_CID_POWER_LINE_FREQUENCY_50HZ</constant> (1) and
+-<constant>V4L2_CID_POWER_LINE_FREQUENCY_60HZ</constant> (2).</entry>
++<constant>V4L2_CID_POWER_LINE_FREQUENCY_50HZ</constant> (1),
++<constant>V4L2_CID_POWER_LINE_FREQUENCY_60HZ</constant> (2) and
++<constant>V4L2_CID_POWER_LINE_FREQUENCY_AUTO</constant> (3).</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_CID_HUE_AUTO</constant></entry>
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 06b6014..20abe5d 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -210,6 +210,7 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Disabled",
+ 		"50 Hz",
+ 		"60 Hz",
++		"Auto",
+ 		NULL
+ 	};
+ 	static const char * const camera_exposure_auto[] = {
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index a5359c6..b433968 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1125,6 +1125,7 @@ enum v4l2_power_line_frequency {
+ 	V4L2_CID_POWER_LINE_FREQUENCY_DISABLED	= 0,
+ 	V4L2_CID_POWER_LINE_FREQUENCY_50HZ	= 1,
+ 	V4L2_CID_POWER_LINE_FREQUENCY_60HZ	= 2,
++	V4L2_CID_POWER_LINE_FREQUENCY_AUTO	= 3,
+ };
+ #define V4L2_CID_HUE_AUTO			(V4L2_CID_BASE+25)
+ #define V4L2_CID_WHITE_BALANCE_TEMPERATURE	(V4L2_CID_BASE+26)
+-- 
+1.7.6.3
 
-Enrico
