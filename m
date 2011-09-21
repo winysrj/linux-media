@@ -1,101 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qw0-f42.google.com ([209.85.216.42]:64527 "EHLO
-	mail-qw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755509Ab1INHKd convert rfc822-to-8bit (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:55990 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753673Ab1IUNRz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Sep 2011 03:10:33 -0400
-Received: by qwi4 with SMTP id 4so1800663qwi.1
-        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2011 00:10:32 -0700 (PDT)
+	Wed, 21 Sep 2011 09:17:55 -0400
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Russell King" <linux@arm.linux.org.uk>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"Ankita Garg" <ankita@in.ibm.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Mel Gorman" <mel@csn.ul.ie>, "Arnd Bergmann" <arnd@arndb.de>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Jonathan Corbet" <corbet@lwn.net>,
+	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
+	"Chunsang Jeong" <chunsang.jeong@linaro.org>
+Subject: Re: [PATCH 2/8] mm: alloc_contig_freed_pages() added
+References: <1313764064-9747-1-git-send-email-m.szyprowski@samsung.com>
+ <1313764064-9747-3-git-send-email-m.szyprowski@samsung.com>
+ <1315505152.3114.9.camel@nimitz>
+Date: Wed, 21 Sep 2011 15:17:50 +0200
 MIME-Version: 1.0
-In-Reply-To: <4E6FC8E8.70008@gmail.com>
-References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com>
-	<1315938892-20243-4-git-send-email-scott.jiang.linux@gmail.com>
-	<4E6FC8E8.70008@gmail.com>
-Date: Wed, 14 Sep 2011 15:10:32 +0800
-Message-ID: <CAHG8p1C5F_HKX_GPHv_RdCRRNw9s3+ybK4giCjUXxgSUAUDRVw@mail.gmail.com>
-Subject: Re: [PATCH 4/4] v4l2: add blackfin capture bridge driver
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	uclinux-dist-devel@blackfin.uclinux.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.v15tv0183l0zgt@mnazarewicz-glaptop>
+In-Reply-To: <1315505152.3114.9.camel@nimitz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> +static int bcap_qbuf(struct file *file, void *priv,
->> +                     struct v4l2_buffer *buf)
+On Thu, 08 Sep 2011 20:05:52 +0200, Dave Hansen <dave@linux.vnet.ibm.com>  
+wrote:
+
+> On Fri, 2011-08-19 at 16:27 +0200, Marek Szyprowski wrote:
+>> +unsigned long alloc_contig_freed_pages(unsigned long start, unsigned  
+>> long end,
+>> +				       gfp_t flag)
 >> +{
->> +     struct bcap_device *bcap_dev = video_drvdata(file);
->> +     struct v4l2_fh *fh = file->private_data;
->> +     struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
+>> +	unsigned long pfn = start, count;
+>> +	struct page *page;
+>> +	struct zone *zone;
+>> +	int order;
 >> +
->> +     if (!bcap_fh->io_allowed)
->> +             return -EACCES;
+>> +	VM_BUG_ON(!pfn_valid(start));
+>> +	zone = page_zone(pfn_to_page(start));
 >
-> I suppose -EBUSY would be more appropriate here.
->
-no, io_allowed is to control which file instance has the right to do I/O.
+> This implies that start->end are entirely contained in a single zone.
+> What enforces that?
 
->> +                     fmt =&bcap_formats[i];
->> +                     if (mbus_code)
->> +                             *mbus_code = fmt->mbus_code;
->> +                     if (bpp)
->> +                             *bpp = fmt->bpp;
->> +                     v4l2_fill_mbus_format(&mbus_fmt, pixfmt,
->> +                                             fmt->mbus_code);
->> +                     ret = v4l2_subdev_call(bcap->sd, video,
->> +                                             try_mbus_fmt,&mbus_fmt);
->> +                     if (ret<  0)
->> +                             return ret;
->> +                     v4l2_fill_pix_format(pixfmt,&mbus_fmt);
->> +                     pixfmt->bytesperline = pixfmt->width * fmt->bpp;
->> +                     pixfmt->sizeimage = pixfmt->bytesperline
->> +                                             * pixfmt->height;
->
-> Still pixfmt->pixelformat isn't filled.
->
-no here pixfmt->pixelformat is passed in
+In case of CMA, the __cma_activate_area() function from 6/8 has the check:
 
->> +                     return 0;
->> +             }
->> +     }
->> +     return -EINVAL;
->
-> I think you should return some default format, rather than giving up
-> when the fourcc doesn't match. However I'm not 100% sure this is
-> the specification requirement.
->
-no, there is no default format for bridge driver because it knows
-nothing about this.
-all the format info bridge needs ask subdevice.
+  151                         VM_BUG_ON(!pfn_valid(pfn));
+  152                         VM_BUG_ON(page_zone(pfn_to_page(pfn)) !=  
+zone);
 
->> +static const struct ppi_ops ppi_ops = {
->> +     .attach_irq = ppi_attach_irq,
->> +     .detach_irq = ppi_detach_irq,
->> +     .start = ppi_start,
->> +     .stop = ppi_stop,
->> +     .set_params = ppi_set_params,
->> +     .update_addr = ppi_update_addr,
->> +};
->
-> How about moving this struct to the bottom of the file and getting rid of
-> all the above forward declarations ?
->
-I'd like to put global varible before function in a file.
+This guarantees that CMA will never try to call alloc_contig_freed_pages()
+on a region that spans multiple regions.
 
+> If some higher layer enforces that, I think we probably need at least
+> a VM_BUG_ON() in here and a comment about who enforces it.
+
+Agreed.
+
+>> +	spin_lock_irq(&zone->lock);
 >> +
->> +void delete_ppi_instance(struct ppi_if *ppi)
->> +{
->> +     peripheral_free_list(ppi->info->pin_req);
->> +     kfree(ppi);
->> +}
->
-> As a side note, I was not sure if this is just a resend of your original
-> patches or a second version. It would be good to indicate that in the message
-> subject. I think it's not a big deal and makes the reviewers' life easier.
-if I don't add a version number in subject, it means it is the first version.
+>> +	page = pfn_to_page(pfn);
+>> +	for (;;) {
+>> +		VM_BUG_ON(page_count(page) || !PageBuddy(page));
+>> +		list_del(&page->lru);
+>> +		order = page_order(page);
+>> +		zone->free_area[order].nr_free--;
+>> +		rmv_page_order(page);
+>> +		__mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
+>> +		pfn  += 1 << order;
+>> +		if (pfn >= end)
+>> +			break;
+>> +		VM_BUG_ON(!pfn_valid(pfn));
+>> +		page += 1 << order;
+>> +	}
+
+> This 'struct page *'++ stuff is OK, but only for small, aligned areas.
+> For at least some of the sparsemem modes (non-VMEMMAP), you could walk
+> off of the end of the section_mem_map[] when you cross a MAX_ORDER
+> boundary.  I'd feel a little bit more comfortable if pfn_to_page() was
+> being done each time, or only occasionally when you cross a section
+> boundary.
+
+I'm fine with that.  I've used pointer arithmetic for performance reasons
+but if that may potentially lead to bugs then obviously pfn_to_page()  
+should
+be used.
+
+-- 
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
+ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
