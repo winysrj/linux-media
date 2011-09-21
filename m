@@ -1,21 +1,21 @@
-Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
+Return-Path: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <sanweidaying@gmail.com>) id 1R6HAh-0007d3-Dr
-	for linux-dvb@linuxtv.org; Wed, 21 Sep 2011 09:24:43 +0200
-Received: from mail-fx0-f54.google.com ([209.85.161.54])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-1) with esmtps
+	(envelope-from <gnu.andrew.rocks@gmail.com>) id 1R6QXu-0006w8-8H
+	for linux-dvb@linuxtv.org; Wed, 21 Sep 2011 19:25:18 +0200
+Received: from mail-qw0-f42.google.com ([209.85.216.42])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-2) with esmtps
 	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
-	id 1R6HAh-00003e-Jh; Wed, 21 Sep 2011 09:24:43 +0200
-Received: by fxg9 with SMTP id 9so1694681fxg.41
-	for <linux-dvb@linuxtv.org>; Wed, 21 Sep 2011 00:24:42 -0700 (PDT)
+	id 1R6QXt-0002LT-J9; Wed, 21 Sep 2011 19:25:18 +0200
+Received: by qwm42 with SMTP id 42so3055750qwm.1
+	for <linux-dvb@linuxtv.org>; Wed, 21 Sep 2011 10:25:16 -0700 (PDT)
 MIME-Version: 1.0
-Date: Wed, 21 Sep 2011 15:24:42 +0800
-Message-ID: <CAOc6HJ6deLSaX0xt=r1v4HZp+FUckeg31vyy6J3LzKYAPuwT6Q@mail.gmail.com>
-From: Zhouping Liu <sanweidaying@gmail.com>
+Date: Wed, 21 Sep 2011 18:25:14 +0100
+Message-ID: <CAFXTvn7otkiKw90aA8Yh4o7z87uarbtj3C8OdNYyKbywdMHdiQ@mail.gmail.com>
+From: Andii Hughes <gnu_andrew@member.fsf.org>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] The USB device VID in Linux is difference with in
-	Windows
+Content-Type: multipart/mixed; boundary=001485f87b2cf0247004ad76db55
+Subject: [linux-dvb] uk-EmleyMoor update
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -24,38 +24,57 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-aGksIGd1eXMsCkkgaGF2ZSBhIEhhdXBwYXVnZSBwcm9kdWN0LCBidXQgaXQgY2FuJ3Qgc3VwcG9y
-dCBvbiBMaW51eCwgYW5kIEknZApsaWtlIGhhdmUgYSB0cnkKdG8gY29tcG9zZSBhIG5ldyBkcml2
-ZXIgZm9yIGl0Lgp0aGUgcHJvZHVjdCBkZXRhaWxzIGluZm86CiAtIG5hbWU6IEhhdXBwYXVnZSBE
-TUItVCBNaW5pU3RpY2soaXQgb25seSB1c2Ugb24gSG9uZ0tvbmcgYW5kIENoaW5hKQogLSBWSUQ6
-IDIwNDAKIC0gUElEOiA1MDIwCi4uLgpJIGdvdCB0aGUgYWJvdmUgaW5mbyBmcm9tIFdpbiA3LCBi
-dXQgd2hlbiBJIGhvdCBwbHVnIGl0IGludG8gTGludXgsIGl0CmNhbid0IGVuYWJsZSBidXQgd2l0
-aAp0aGVzZSBpbmZvOgokIGRtZXNnCi4uLgouLi4KWzQwNjYwMC4zOTMxNjRdIHVzYiAxLTg6IG5l
-dyBoaWdoIHNwZWVkIFVTQiBkZXZpY2UgdXNpbmcgZWhjaV9oY2QgYW5kIGFkZHJlc3MgMTMKWzQw
-NjYwMC41MDc0NDZdIHVzYiAxLTg6IGNvbmZpZyAxIGludGVyZmFjZSAwIGFsdHNldHRpbmcgMSBi
-dWxrCmVuZHBvaW50IDB4ODEgaGFzIGludmFsaWQgbWF4cGFja2V0IDY0Cls0MDY2MDAuNTA3NDU0
-XSB1c2IgMS04OiBjb25maWcgMSBpbnRlcmZhY2UgMCBhbHRzZXR0aW5nIDEgYnVsawplbmRwb2lu
-dCAweDEgaGFzIGludmFsaWQgbWF4cGFja2V0IDY0Cls0MDY2MDAuNTA3NDU5XSB1c2IgMS04OiBj
-b25maWcgMSBpbnRlcmZhY2UgMCBhbHRzZXR0aW5nIDEgYnVsawplbmRwb2ludCAweDIgaGFzIGlu
-dmFsaWQgbWF4cGFja2V0IDY0Cls0MDY2MDAuNTA3NDY0XSB1c2IgMS04OiBjb25maWcgMSBpbnRl
-cmZhY2UgMCBhbHRzZXR0aW5nIDEgYnVsawplbmRwb2ludCAweDhBIGhhcyBpbnZhbGlkIG1heHBh
-Y2tldCA2NApbNDA2NjAwLjUwNzY4N10gdXNiIDEtODogTmV3IFVTQiBkZXZpY2UgZm91bmQsIGlk
-VmVuZG9yPTMzNDQsIGlkUHJvZHVjdD01MDIwCls0MDY2MDAuNTA3NjkyXSB1c2IgMS04OiBOZXcg
-VVNCIGRldmljZSBzdHJpbmdzOiBNZnI9MCwgUHJvZHVjdD0wLApTZXJpYWxOdW1iZXI9MwpbNDA2
-NjAwLjUwNzY5NV0gdXNiIDEtODogU2VyaWFsTnVtYmVyOiDkpYjlhZAKCnllcywgdGhlIGlkVmVu
-ZG9yIGlzIDMzNDQsIG5vdCAyMDQwLCBidXQgSSdtIHN1cmUgaXQncyAyMDQwIGluCldpbmRvd3Ms
-IGFuZCB0aGUgSGF1cHBhdWdlJ3MgdmVuZG9yIGlkIGlzIDIwNDAsCmFuZCBpdCBjYW4ndCByZWFk
-IG91dCB0aGUgU2VyaWFsTnVtYmVyLgpzbyBJJ20gZG91YnQgdGhlIGZpcm13YXJlIGluIHRoZSBw
-cm9kdWN0IGhhcyBzb21lIHNwZWNpYWwgZGF0YS4gSSdtIGEKbmV3ZXIgdG8gdXNiLCBjYW4gYW55
-b25lIGtub3cgd2h5PwpvciB3aGF0J3MgdGhlIHRyb3VibGUgd2l0aCBpdD8KYW55IGNvbW1lbnRz
-IGFyZSB3ZWxjb21lLgoKdGhhbmtzLApiZXN0IFJlZ2FyZHMuClpob3VwaW5nCgpfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgdXNlcnMgbWFp
-bGluZyBsaXN0CkZvciBWNEwvRFZCIGRldmVsb3BtZW50LCBwbGVhc2UgdXNlIGluc3RlYWQgbGlu
-dXgtbWVkaWFAdmdlci5rZXJuZWwub3JnCmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3
-LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+--001485f87b2cf0247004ad76db55
+Content-Type: text/plain; charset=UTF-8
+
+The Emley Moor transmitter in the UK completed digital switchover
+today, making the existing transmitter file:
+
+http://linuxtv.org/hg/dvb-apps/file/tip/util/scan/dvb-t/uk-EmleyMoor
+
+obsolete.  Attached is a patch which I've just successfully used with
+dvbscan to obtain a new channels.conf.
+
+Thanks,
+-- 
+Andii :-)
+
+--001485f87b2cf0247004ad76db55
+Content-Type: text/x-patch; charset=US-ASCII; name="emley.patch"
+Content-Disposition: attachment; filename="emley.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gsul1hc30
+
+LS0tIC91c3Ivc2hhcmUvZHZiL2R2Yi10L3VrLUVtbGV5TW9vcgkyMDEwLTA4LTAyIDE5OjE3OjA0
+LjMwMjQxNjQwMiArMDEwMAorKysgL2hvbWUvYW5kcmV3Ly50emFwL3VrLUVtbGV5TW9vcgkyMDEx
+LTA5LTIxIDE4OjExOjAyLjkzNjEwNjA5MCArMDEwMApAQCAtMSwxMCArMSw3IEBACiAjIFVLLCBF
+bWxleSBNb29yCi0jIEF1dG8tZ2VuZXJhdGVkIGZyb20gaHR0cDovL3d3dy5kdGcub3JnLnVrL3Jl
+dGFpbGVyL2R0dF9jaGFubmVscy5odG1sCi0jIGFuZCBodHRwOi8vd3d3Lm9mY29tLm9yZy51ay9z
+dGF0aWMvcmVjZXB0aW9uX2FkdmljZS9pbmRleC5hc3AuaHRtbAogIyBUIGZyZXEgYncgZmVjX2hp
+IGZlY19sbyBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFyY2h5Ci1U
+IDcyMjE2NzAwMCA4TUh6IDMvNCBOT05FIFFBTTE2IDJrIDEvMzIgTk9ORQotVCA2MjU4MzMwMDAg
+OE1IeiAyLzMgTk9ORSBRQU02NCAyayAxLzMyIE5PTkUKLVQgNjQ5ODMzMDAwIDhNSHogMi8zIE5P
+TkUgUUFNNjQgMmsgMS8zMiBOT05FCi1UIDY3MzgzMzAwMCA4TUh6IDMvNCBOT05FIFFBTTE2IDJr
+IDEvMzIgTk9ORQotVCA3MDU4MzMwMDAgOE1IeiAzLzQgTk9ORSBRQU0xNiAyayAxLzMyIE5PTkUK
+LVQgNjk3ODMzMDAwIDhNSHogMy80IE5PTkUgUUFNMTYgMmsgMS8zMiBOT05FCitUIDY4MjAwMDAw
+MCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS8zMiBOT05FICMgUFNCMS9CQkNBCitUIDY1ODAwMDAw
+MCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS8zMiBOT05FICMgUFNCMi9EMyY0CitUIDcxNDAwMDAw
+MCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS8zMiBOT05FICMgQ09NNC9TRE4KK1QgNzIyMDAwMDAw
+IDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzMyIE5PTkUgIyBDT001L0FSUUEKK1QgNjkwMDAwMDAw
+IDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzMyIE5PTkUgIyBDT002L0FSUUIK
+--001485f87b2cf0247004ad76db55
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--001485f87b2cf0247004ad76db55--
