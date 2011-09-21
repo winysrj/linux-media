@@ -1,122 +1,273 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33647 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751952Ab1IMK3n convert rfc822-to-8bit (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:34867 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751336Ab1IUKGF convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Sep 2011 06:29:43 -0400
-Content-Class: urn:content-classes:message
-Subject: Re: omap3isp as a wakeup source
-From: Tero Kristo <t-kristo@ti.com>
-Reply-To: <t-kristo@ti.com>
-To: Enrico <ebutera@users.berlios.de>
-CC: "Sakari Ailus" <sakari.ailus@iki.fi>,
-	"anish singh" <anish198519851985@gmail.com>,
-	<linux-media@vger.kernel.org>,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-In-Reply-To: <CA+2YH7tEfmXnfgyFwbCEi4u5viRESM_Qckbc4MceSwsn151q6A@mail.gmail.com>
-References: <CA+2YH7s-BH=4vN-DUZJXa9DKrwYsZORWq-YR9fK7JV9236ntMQ@mail.gmail.com> <20110912202822.GB1845@valkosipuli.localdomain> <CAK7N6vpr8uJSHMgTnrd=FrnvYf_Oqy8D3ua__S63T3nEvqaKGw@mail.gmail.com> <4E6EFCFC.5030803@iki.fi>	<1315907297.2355.9.camel@sokoban> <CA+2YH7tEfmXnfgyFwbCEi4u5viRESM_Qckbc4MceSwsn151q6A@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 13 Sep 2011 13:29:26 +0300
-Message-ID: <1315909766.2355.13.camel@sokoban>
-MIME-Version: 1.0
+	Wed, 21 Sep 2011 06:06:05 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Taneja, Archit" <archit@ti.com>
+CC: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Semwal, Sumit" <sumit.semwal@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 21 Sep 2011 15:35:56 +0530
+Subject: RE: [PATCH 2/5] [media]: OMAP_VOUT: CLEANUP: Remove redundant code
+ from omap_vout_isr
+Message-ID: <19F8576C6E063C45BE387C64729E739404EC941E8B@dbde02.ent.ti.com>
+References: <1316167233-1437-1-git-send-email-archit@ti.com>
+ <1316167233-1437-3-git-send-email-archit@ti.com>
+In-Reply-To: <1316167233-1437-3-git-send-email-archit@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2011-09-13 at 12:08 +0200, Enrico wrote:
-> On Tue, Sep 13, 2011 at 11:48 AM, Tero Kristo <t-kristo@ti.com> wrote:
-> > On Tue, 2011-09-13 at 08:49 +0200, Sakari Ailus wrote:
-> >> anish singh wrote:
-> >> > On Tue, Sep 13, 2011 at 1:58 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> >> >> On Mon, Sep 12, 2011 at 04:50:42PM +0200, Enrico wrote:
-> >> >>> Hi,
-> >> >>
-> >> >> Hi Enrico,
-> >> >>
-> >> >>> While testing omap3isp+tvp5150 with latest Deepthy bt656 patches
-> >> >>> (kernel 3.1rc4) i noticed that yavta hangs very often when grabbing
-> >> >>> or, if not hanged, it grabs at max ~10fps.
-> >> >>>
-> >> >>> Then i noticed that tapping on the (serial) console made it "unblock"
-> >> >>> for some frames, so i thought it doesn't prevent the cpu to go
-> >> >>> idle/sleep. Using the boot arg "nohlt" the problem disappear and it
-> >> >>> grabs at a steady 25fps.
-> >> >>>
-> >> >>> In the code i found a comment that says the camera can't be a wakeup
-> >> >>> source but the camera powerdomain is instead used to decide to not go
-> >> >>> idle, so at this point i think the camera powerdomain is not enabled
-> >> >>> but i don't know how/where to enable it. Any ideas?
-> >> >>
-> >> >> I can confirm this indeed is the case --- ISP can't wake up the system ---
-> >> >> but don't know how to prevent the system from going to sleep when using the
-> >> >> ISP.
-> >> > Had it been on android i think wakelock would have been very useful.
-> >>
-> >> I believe there are proper means to do this using more standard methods
-> >> as well. Not being a PM expert, I don't know how.
-> >>
-> >> Cc Tero.
-> >>
-> >
-> > Hi,
-> >
-> > I don't think there are proper means yet to do this, as camera is
-> > somewhat a special case in omap3, it is apparently the only module that
-> > is causing this kind of problem. However, you can prevent idle when
-> > camera is active with something like this:
-> >
-> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> > index 2789e0a..7fdf6e2 100644
-> > --- a/arch/arm/mach-omap2/pm34xx.c
-> > +++ b/arch/arm/mach-omap2/pm34xx.c
-> > @@ -358,6 +358,9 @@ void omap_sram_idle(void)
-> >                                omap3_per_save_context();
-> >        }
-> >
-> > +       if (pwrdm_read_pwrst(cam_pwrdm) == PWRDM_POWER_ON)
-> > +               clkdm_deny_idle(mpu_pwrdm->pwrdm_clkdms[0]);
-> > +
-> >        /* CORE */
-> >        if (core_next_state < PWRDM_POWER_ON) {
-> >                omap_uart_prepare_idle(0);
-> >
-> >
-> >
-> > -Tero
+
+> -----Original Message-----
+> From: Taneja, Archit
+> Sent: Friday, September 16, 2011 3:31 PM
+> To: Hiremath, Vaibhav
+> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
+> media@vger.kernel.org; Taneja, Archit
+> Subject: [PATCH 2/5] [media]: OMAP_VOUT: CLEANUP: Remove redundant code
+> from omap_vout_isr
 > 
-> i think something related is already in
-> arch/arm/mach-omap2/cpuidle34xx.c omap3_enter_idle_bm(...):
+> Currently, there is a lot of redundant code is between DPI and VENC panels,
+> this
+> can be made common by moving out field/interlace specific code to a
+> separate
+> function called omapvid_handle_interlace_display(). There is no functional
+> change made.
 > 
-> /*
->  * Prevent idle completely if CAM is active.
->  * CAM does not have wakeup capability in OMAP3.
->  */
-> cam_state = pwrdm_read_pwrst(cam_pd);
-> if (cam_state == PWRDM_POWER_ON) {
->         new_state = dev->safe_state;
->         goto select_state;
-> }
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+>  drivers/media/video/omap/omap_vout.c |  172 ++++++++++++++++-------------
+> -----
+>  1 files changed, 82 insertions(+), 90 deletions(-)
 > 
+> diff --git a/drivers/media/video/omap/omap_vout.c
+> b/drivers/media/video/omap/omap_vout.c
+> index e14c82b..c5f2ea0 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -524,10 +524,50 @@ static int omapvid_apply_changes(struct
+> omap_vout_device *vout)
+>  	return 0;
+>  }
 > 
+> +static int omapvid_handle_interlace_display(struct omap_vout_device *vout,
+> +		unsigned int irqstatus, struct timeval timevalue)
+> +{
+> +	u32 fid;
+> +
+> +	if (vout->first_int) {
+> +		vout->first_int = 0;
+> +		goto err;
+> +	}
+> +
+> +	if (irqstatus & DISPC_IRQ_EVSYNC_ODD)
+> +		fid = 1;
+> +	else if (irqstatus & DISPC_IRQ_EVSYNC_EVEN)
+> +		fid = 0;
+> +	else
+> +		goto err;
+> +
+> +	vout->field_id ^= 1;
+> +	if (fid != vout->field_id) {
+> +		/* reset field ID */
+> +		vout->field_id = 0;
+[Hiremath, Vaibhav] You should check whether fid == 0 before resetting it.
 
-Yea, this should take care of it already.
-
-> But probably the power domain is not set to ON, and i don't know where
-> it should be set. Maybe, as Laurent suggested, adding runtime PM
-> support will fix it?
-
-Powerdomain is automatically on if there are any clocks enabled on it.
-If you make sure that ISP has some activity ongoing, then it should be
-on. You can check the state of the camera powerdomain
-from /sys/kernel/debug/pm_debug/count file, if you have mounted debugfs.
-
-But yea, there might be some conflict also ongoing with lack of runtime
-PM here, I haven't been looking at ISP related issues for a long time.
-
--Tero
+> +	} else if (0 == fid) {
+[Hiremath, Vaibhav] This is not matching with the original code, probably I have to be more careful here. I need to spend more time here...
 
 
+> +		if (vout->cur_frm == vout->next_frm)
+> +			goto err;
+> +
+> +		vout->cur_frm->ts = timevalue;
+> +		vout->cur_frm->state = VIDEOBUF_DONE;
+> +		wake_up_interruptible(&vout->cur_frm->done);
+> +		vout->cur_frm = vout->next_frm;
+> +	} else {
+> +		if (list_empty(&vout->dma_queue) ||
+> +				(vout->cur_frm != vout->next_frm))
+> +			goto err;
+> +	}
+> +
+> +	return vout->field_id;
+> +err:
+> +	return 0;
+> +}
+> +
+>  static void omap_vout_isr(void *arg, unsigned int irqstatus)
+>  {
+> -	int ret;
+> -	u32 addr, fid;
+> +	int ret, fid;
+> +	u32 addr;
+>  	struct omap_overlay *ovl;
+>  	struct timeval timevalue;
+>  	struct omapvideo_info *ovid;
+> @@ -548,107 +588,59 @@ static void omap_vout_isr(void *arg, unsigned int
+> irqstatus)
+>  	spin_lock(&vout->vbq_lock);
+>  	do_gettimeofday(&timevalue);
+> 
+> -	if (cur_display->type != OMAP_DISPLAY_TYPE_VENC) {
+> -		switch (cur_display->type) {
+> -		case OMAP_DISPLAY_TYPE_DPI:
+> -			if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+> -				goto vout_isr_err;
+> -			break;
+> -		case OMAP_DISPLAY_TYPE_HDMI:
+> -			if (!(irqstatus & DISPC_IRQ_EVSYNC_EVEN))
+> -				goto vout_isr_err;
+> -			break;
+> -		default:
+> +	switch (cur_display->type) {
+> +	case OMAP_DISPLAY_TYPE_DPI:
+> +		if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+>  			goto vout_isr_err;
+> -		}
+> -		if (!vout->first_int && (vout->cur_frm != vout->next_frm)) {
+> -			vout->cur_frm->ts = timevalue;
+> -			vout->cur_frm->state = VIDEOBUF_DONE;
+> -			wake_up_interruptible(&vout->cur_frm->done);
+> -			vout->cur_frm = vout->next_frm;
+> -		}
+> -		vout->first_int = 0;
+> -		if (list_empty(&vout->dma_queue))
+> +		break;
+> +	case OMAP_DISPLAY_TYPE_VENC:
+> +		fid = omapvid_handle_interlace_display(vout, irqstatus,
+> +				timevalue);
+> +		if (!fid)
+>  			goto vout_isr_err;
+[Hiremath, Vaibhav] 
+Have you tested TV out functionality? 
 
-Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
+> +		break;
+> +	case OMAP_DISPLAY_TYPE_HDMI:
+> +		if (!(irqstatus & DISPC_IRQ_EVSYNC_EVEN))
+> +			goto vout_isr_err;
+> +		break;
+> +	default:
+> +		goto vout_isr_err;
+> +	}
+> 
+> -		vout->next_frm = list_entry(vout->dma_queue.next,
+> -				struct videobuf_buffer, queue);
+> -		list_del(&vout->next_frm->queue);
+> -
+> -		vout->next_frm->state = VIDEOBUF_ACTIVE;
+> -
+> -		addr = (unsigned long) vout->queued_buf_addr[vout->next_frm-
+> >i]
+> -			+ vout->cropped_offset;
+> +	if (!vout->first_int && (vout->cur_frm != vout->next_frm)) {
+> +		vout->cur_frm->ts = timevalue;
+> +		vout->cur_frm->state = VIDEOBUF_DONE;
+> +		wake_up_interruptible(&vout->cur_frm->done);
+> +		vout->cur_frm = vout->next_frm;
+> +	}
+> 
+> -		/* First save the configuration in ovelray structure */
+> -		ret = omapvid_init(vout, addr);
+> -		if (ret)
+> -			printk(KERN_ERR VOUT_NAME
+> -				"failed to set overlay info\n");
+> -		/* Enable the pipeline and set the Go bit */
+> -		ret = omapvid_apply_changes(vout);
+> -		if (ret)
+> -			printk(KERN_ERR VOUT_NAME "failed to change mode\n");
+> -	} else {
+> +	vout->first_int = 0;
+> +	if (list_empty(&vout->dma_queue))
+> +		goto vout_isr_err;
+> 
+> -		if (vout->first_int) {
+> -			vout->first_int = 0;
+> -			goto vout_isr_err;
+> -		}
+> -		if (irqstatus & DISPC_IRQ_EVSYNC_ODD)
+> -			fid = 1;
+> -		else if (irqstatus & DISPC_IRQ_EVSYNC_EVEN)
+> -			fid = 0;
+> -		else
+> -			goto vout_isr_err;
+> +	vout->next_frm = list_entry(vout->dma_queue.next,
+> +			struct videobuf_buffer, queue);
+> +	list_del(&vout->next_frm->queue);
+> 
+> -		vout->field_id ^= 1;
+> -		if (fid != vout->field_id) {
+> -			if (0 == fid)
+> -				vout->field_id = fid;
+> +	vout->next_frm->state = VIDEOBUF_ACTIVE;
+> 
+> -			goto vout_isr_err;
+> -		}
+> -		if (0 == fid) {
+> -			if (vout->cur_frm == vout->next_frm)
+> -				goto vout_isr_err;
+> -
+> -			vout->cur_frm->ts = timevalue;
+> -			vout->cur_frm->state = VIDEOBUF_DONE;
+> -			wake_up_interruptible(&vout->cur_frm->done);
+> -			vout->cur_frm = vout->next_frm;
+> -		} else if (1 == fid) {
+> -			if (list_empty(&vout->dma_queue) ||
+> -					(vout->cur_frm != vout->next_frm))
+> -				goto vout_isr_err;
+> -
+> -			vout->next_frm = list_entry(vout->dma_queue.next,
+> -					struct videobuf_buffer, queue);
+> -			list_del(&vout->next_frm->queue);
+> -
+> -			vout->next_frm->state = VIDEOBUF_ACTIVE;
+> -			addr = (unsigned long)
+> -				vout->queued_buf_addr[vout->next_frm->i] +
+> -				vout->cropped_offset;
+> -			/* First save the configuration in ovelray structure */
+> -			ret = omapvid_init(vout, addr);
+> -			if (ret)
+> -				printk(KERN_ERR VOUT_NAME
+> -						"failed to set overlay info\n");
+> -			/* Enable the pipeline and set the Go bit */
+> -			ret = omapvid_apply_changes(vout);
+> -			if (ret)
+> -				printk(KERN_ERR VOUT_NAME
+> -						"failed to change mode\n");
+> -		}
+> +	addr = (unsigned long) vout->queued_buf_addr[vout->next_frm->i]
+> +		+ vout->cropped_offset;
+> 
+> -	}
+> +	/* First save the configuration in ovelray structure */
+> +	ret = omapvid_init(vout, addr);
+> +	if (ret)
+> +		printk(KERN_ERR VOUT_NAME
+> +			"failed to set overlay info\n");
+> +	/* Enable the pipeline and set the Go bit */
+> +	ret = omapvid_apply_changes(vout);
+> +	if (ret)
+> +		printk(KERN_ERR VOUT_NAME "failed to change mode\n");
+> 
+>  vout_isr_err:
+>  	spin_unlock(&vout->vbq_lock);
+>  }
+[Hiremath, Vaibhav] Overall this clean-up was required, thanks for working on this patch.
+
+Thanks,
+Vaibhav
+> 
+> -
+>  /* Video buffer call backs */
+> 
+>  /*
+> --
+> 1.7.1
 
