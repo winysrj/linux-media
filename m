@@ -1,67 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60917 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:18143 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753969Ab1IGQwD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Sep 2011 12:52:03 -0400
-Message-ID: <4E67A12B.8020908@iki.fi>
-Date: Wed, 07 Sep 2011 19:51:55 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1750873Ab1IUWJY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Sep 2011 18:09:24 -0400
+Message-ID: <4E7A6081.50603@redhat.com>
+Date: Wed, 21 Sep 2011 19:09:05 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Michael Krufky <mkrufky@kernellabs.com>
-CC: linux-media@vger.kernel.org,
-	Jose Alberto Reguero <jareguero@telefonica.net>
-Subject: Re: [PATCH 2/3] dvb-usb: multi-frontend support (MFE)
-References: <4E2E0788.3010507@iki.fi> <4E3061CF.2080009@redhat.com> <4E306BAE.1020302@iki.fi> <4E35F773.3060807@redhat.com> <4E35FFBF.9010408@iki.fi> <4E360E53.80107@redhat.com>
-In-Reply-To: <4E360E53.80107@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Morimoto Kuninori <morimoto.kuninori@renesas.com>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Dmitri Belimov <d.belimov@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: Re: Patches at patchwork.linuxtv.org (127 patches)
+References: <4E7A4BA7.5050505@redhat.com> <4E7A4CA4.8040205@redhat.com> <4E7A5296.3060900@gmail.com>
+In-Reply-To: <4E7A5296.3060900@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/01/2011 05:24 AM, Mauro Carvalho Chehab wrote:
-> Em 31-07-2011 22:22, Antti Palosaari escreveu:
->> On 08/01/2011 03:46 AM, Mauro Carvalho Chehab wrote:
->>> One bad thing I noticed with the API is that it calls adap->props.frontend_attach(adap)
->>> several times, instead of just one, without even passing an argument for the driver to
->>> know that it was called twice.
->>>
->>> IMO, there are two ways of doing the attach:
->>>
->>> 1) call it only once, and, inside the driver, it will loop to add the other FE's;
->>> 2) add a parameter, at the call, to say what FE needs to be initialized.
->>>
->>> I think (1) is preferred, as it is more flexible, allowing the driver to test for
->>> several types of frontends.
+Em 21-09-2011 18:09, Sylwester Nawrocki escreveu:
+> Hi Mauro,
+> 
 
-I am planning to change DVB USB MFE call .frontend_attach() only once. 
-Is there any comments about that?
+Updated accordingly, thanks!
 
-Currently there is anysee, ttusb2 and cx88 drivers which uses MFE and 
-change is needed ASAP before more MFE devices are coming.
+>> Sep,19 2011: [GIT,PATCHES,FOR,3.2] noon010pc30 conversion to the pad level ops      http://patchwork.linuxtv.org/patch/7877   Sylwester Nawrocki<s.nawrocki@samsung.com>
+> not really a patch
 
-Also .num_frontends can be removed after that, since DVB USB will just 
-loop through 0 to MAX FEs and register all FEs found (fe pointer !NULL).
+This patchwork version is capable of getting git pull requests, when
+generated with git request-pull.
 
-CURRENTLY:
-==========
-.frontend_attach()
-	if (adap->fe_adap[0].fe == NULL)
-		adap->fe_adap[0].fe = dvb_attach(DVB-T)
-	else if (adap->fe_adap[1].fe == NULL)
-		adap->fe_adap[1].fe = dvb_attach(DVB-C)
-	else if (adap->fe_adap[2].fe == NULL)
-		adap->fe_adap[2].fe = dvb_attach(DVB-S)
+I'm planning to change my scripts to recognize those requests and use it.
+An unique queue helps me to apply patches at the arrival order.
 
-PLANNED:
-========
-.frontend_attach()
-	adap->fe_adap[0].fe = dvb_attach(DVB-T)
-	adap->fe_adap[1].fe = dvb_attach(DVB-C)
-	adap->fe_adap[2].fe = dvb_attach(DVB-S)
-
-
-regards
-Antti
--- 
-http://palosaari.fi/
+Thanks,
+Mauro
