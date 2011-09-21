@@ -1,80 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:50220 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753216Ab1IRQM0 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33487 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751189Ab1IUO2K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Sep 2011 12:12:26 -0400
-Date: Sun, 18 Sep 2011 18:12:14 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Linux-V4L2 <linux-media@vger.kernel.org>,
-	Takashi.Namiki@renesas.com, Phil.Edworthy@renesas.com
-Subject: Re: [PATCH 2/3] soc-camera: mt9t112: modify delay time after initialize
-In-Reply-To: <4E76149D.5050102@redhat.com>
-Message-ID: <Pine.LNX.4.64.1109181808410.9975@axis700.grange>
-References: <uock8ky42.wl%morimoto.kuninori@renesas.com> <4E76149D.5050102@redhat.com>
+	Wed, 21 Sep 2011 10:28:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v4] noon010pc30: Conversion to the media controller API
+Date: Wed, 21 Sep 2011 16:28:08 +0200
+Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com
+References: <201109210018.14185.laurent.pinchart@ideasonboard.com> <1316615160-15580-1-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1316615160-15580-1-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109211628.08482.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 18 Sep 2011, Mauro Carvalho Chehab wrote:
+Hi Sylwester,
 
-> Em 02-02-2010 02:54, Kuninori Morimoto escreveu:
-> > mt9t112 camera needs 100 milliseconds for initializing
-> > Special thanks to Phil
-> > 
-> > Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-> > Reported-by: Phil Edworthy <Phil.Edworthy@renesas.com>
-> > ---
-> >  drivers/media/video/mt9t112.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/mt9t112.c b/drivers/media/video/mt9t112.c
-> > index 7438f8d..e581d8a 100644
-> > --- a/drivers/media/video/mt9t112.c
-> > +++ b/drivers/media/video/mt9t112.c
-> > @@ -885,7 +885,7 @@ static int mt9t112_s_stream(struct v4l2_subdev *sd, int enable)
-> >  		/* Invert PCLK (Data sampled on falling edge of pixclk) */
-> >  		mt9t112_reg_write(ret, client, 0x3C20, param);
-> >  
-> > -		mdelay(5);
-> > +		mdelay(100);
-> >  
-> >  		priv->flags |= INIT_DONE;
-> >  	}
-> 
-> Hi Guennadi,
-> 
-> What's the status of this patch?
-> 
-> It applies ok for me, and I couldn't find any reference at the
-> ML why it was not applied yet.
+Thanks for the patch.
 
-Hm, yeah... Looks like also this patch:
-
-> Subject: [PATCH 3/3] soc-camera: mt9t112: The flag which control camera-init is removed
+On Wednesday 21 September 2011 16:26:00 Sylwester Nawrocki wrote:
+> Replace g/s_mbus_fmt ops with the pad level get/set_fmt operations.
+> Add media entity initialization and set subdev flags so the host driver
+> creates a subdev device node for the driver.
+> A mutex was added for serializing the subdev operations. When setting
+> format is attempted during streaming an (EBUSY) error will be returned.
 > 
-> mt9t112 should always be initialized when camera start.
-> Because current driver doesn't run this operation,
-> it will be un-stable if user side player run open/close several times.
-> Special thanks to Namiki-san
+> After the device is powered up it will now remain in "power sleep"
+> mode until s_stream(1) is called. The "power sleep" mode is used
+> to suspend/resume frame generation at the sensor's output through
+> s_stream op.
 > 
-> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-> Reported-by: Takashi Namiki <Takashi.Namiki@renesas.com>
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-has not been applied nor discussed on the list... For patches that old I 
-would tend to say: if the author / submitter didn't re-submit, then, 
-probably, patches aren't relevant anymore... Although it is quite 
-possible, that I failed to process them back then. Morimoto-san, do you 
-have any information on these patches? Have these problems been solved 
-somehow, so that the patches have become obsolete, or are the problems, 
-that they address, still there?
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Regards,
+
+Laurent Pinchart
