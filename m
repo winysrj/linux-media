@@ -1,70 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:58982 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935160Ab1IOVq7 (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:57482 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752640Ab1IURUL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Sep 2011 17:46:59 -0400
-Received: by fxe4 with SMTP id 4so1043833fxe.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2011 14:46:58 -0700 (PDT)
-Message-ID: <4E727251.9030308@googlemail.com>
-Date: Thu, 15 Sep 2011 23:46:57 +0200
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+	Wed, 21 Sep 2011 13:20:11 -0400
+Date: Wed, 21 Sep 2011 20:20:07 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Subject: Re: [PATCH v1 2/3] v4l: Add AUTO option for the
+ V4L2_CID_POWER_LINE_FREQUENCY control
+Message-ID: <20110921172006.GQ1845@valkosipuli.localdomain>
+References: <1316519939-22540-1-git-send-email-s.nawrocki@samsung.com>
+ <20110920221730.GP1845@valkosipuli.localdomain>
+ <4E79D869.80708@samsung.com>
+ <201109211447.30114.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: moinejf@free.fr
-Subject: Re: Question about USB interface index restriction in gspca
-References: <4E6FAB94.2010007@googlemail.com> <20110914082513.574baac2@tele>
-In-Reply-To: <20110914082513.574baac2@tele>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201109211447.30114.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 14.09.2011 08:25, schrieb Jean-Francois Moine:
-> On Tue, 13 Sep 2011 21:14:28 +0200
-> Frank Schäfer<fschaefer.oss@googlemail.com>  wrote:
->
->> I have a question about the following code in gspca.c:
->>
->> in function gspca_dev_probe(...):
->>       ...
->>       /* the USB video interface must be the first one */
->>       if (dev->config->desc.bNumInterfaces != 1
->> &&  intf->cur_altsetting->desc.bInterfaceNumber != 0)
->>               return -ENODEV;
->>       ...
->>
->> Is there a special reason for not allowing devices with USB interface
->> index>  0 for video ?
->> I'm experimenting with a device that has the video interface at index 3
->> and two audio interfaces at index 0 and 1 (index two is missing !).
->> And the follow-up question: can we assume that all device handled by the
->> gspca-driver have vendor specific video interfaces ?
->> Then we could change the code to
->>
->>       ...
->>       /* the USB video interface must be of class vendor */
->>       if (intf->cur_altsetting->desc.bInterfaceClass !=
->> USB_CLASS_VENDOR_SPEC)
->>               return -ENODEV;
->>        ...
-> Hi Frank,
->
-> For webcam devices, the interface class is meaningful only when set to
-> USB_CLASS_VIDEO (UVC). Otherwise, I saw many different values.
-Does that mean that there are devices out in the wild that report for 
-example USB_CLASS_WIRELESS_CONTROLLER for the video interface ???
+On Wed, Sep 21, 2011 at 02:47:29PM +0200, Laurent Pinchart wrote:
+> Hi Sylwester,
 
-> For video on a particular interface, the subdriver must call the
-> function gspca_dev_probe2() as this is done in spca1528 and xirlink_cit.
->
-> Regards.
-Hmm, sure, that would work...
-But wouldn't it be better to improve the interface check and merge the 
-two probing functions ?
-The subdrivers can decide which interfaces are (not) probed and the 
-gspca core does plausability checks (e.g. bulk/isoc endpoint ? usb class ?).
+Hi Laurent and Sylwester,
 
-Regards,
-Frank
+> On Wednesday 21 September 2011 14:28:25 Sylwester Nawrocki wrote:
+> > On 09/21/2011 12:17 AM, Sakari Ailus wrote:
+> > > On Tue, Sep 20, 2011 at 11:25:31PM +0200, Sylwester Nawrocki wrote:
+> > >> On 09/20/2011 10:57 PM, Sakari Ailus wrote:
+> > >>> On Tue, Sep 20, 2011 at 01:58:58PM +0200, Sylwester Nawrocki wrote:
+> > >>>> V4L2_CID_POWER_LINE_FREQUENCY control allows applications to instruct
+> > >>>> a driver what is the power line frequency so an appropriate filter
+> > >>>> can be used by the device to cancel flicker by compensating the light
+> > >>>> intensity ripple and thus. Currently in the menu we have entries for
+> > >>>> 50 and 60 Hz and for entirely disabling the anti-flicker filter.
+> > >>>> However some devices are capable of automatically detecting the
+> > >>>> frequency, so add V4L2_CID_POWER_LINE_FREQUENCY_AUTO entry for them.
+> > >>>> 
+> > >>>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+> > >>>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+> > >>>> Acked-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+> > >>>> ---
+> > >>>> 
+> > >>>>   Documentation/DocBook/media/v4l/controls.xml |    5 +++--
+> > >>>>   drivers/media/video/v4l2-ctrls.c             |    1 +
+> > >>>>   include/linux/videodev2.h                    |    1 +
+> > >>>>   3 files changed, 5 insertions(+), 2 deletions(-)
+> > >>>> 
+> > >>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> > >>>> b/Documentation/DocBook/media/v4l/controls.xml index 2420e4a..c6b3c46
+> > >>>> 100644
+> > >>>> --- a/Documentation/DocBook/media/v4l/controls.xml
+> > >>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> > >>>> @@ -232,8 +232,9 @@ control is deprecated. New drivers and
+> > >>>> applications should use the
+> > >>>> 
+> > >>>>   	<entry>Enables a power line frequency filter to avoid
+> > >>>>   
+> > >>>>   flicker. Possible values for<constant>enum
+> > >>>>   v4l2_power_line_frequency</constant>  are:
+> > >>>>   <constant>V4L2_CID_POWER_LINE_FREQUENCY_DISABLED</constant>  (0),
+> > >>>> 
+> > >>>> -<constant>V4L2_CID_POWER_LINE_FREQUENCY_50HZ</constant>  (1) and
+> > >>>> -<constant>V4L2_CID_POWER_LINE_FREQUENCY_60HZ</constant>  (2).</entry>
+> > >>>> +<constant>V4L2_CID_POWER_LINE_FREQUENCY_50HZ</constant>  (1),
+> > >>>> +<constant>V4L2_CID_POWER_LINE_FREQUENCY_60HZ</constant>  (2) and
+> > >>>> +<constant>V4L2_CID_POWER_LINE_FREQUENCY_AUTO</constant>  (3).</entry>
+> > >>> 
+> > >>> A stupid question: wouldn't this be a case for a new control for
+> > >>> automatic power line frequency, in other words enabling or disabling
+> > >>> it?
+> > >> 
+> > >> IMO this would complicate things in kernel and user land, without any
+> > >> reasonable positive effects. AUTO seems to fit well here, it's just
+> > >> another mode of operation of a power line noise filter. Why make things
+> > >> more complicated than they need to be ?
+> > > 
+> > > The advantage would be to be able to get the power line frquency if
+> > > that's supported by the hardware. This implementation excludes that.
+> > > Such information might be interesting to add e.g. to the image's exif
+> > > data.
+> > 
+> > AFAIU, the power line frequency filter just modifies frame exposure time to
+> > be multiple of half of the mains frequency period. So it's the exposure
+> > time that gets finally affected. Maybe there is some hardware that
+> > supports retrieving of the detected frequency, however I'm not aware of
+> > it. And it doesn't seem useful unless you want to use camera as some
+> > non-standard measurement tool. It also takes some time until the detection
+> > algorithm locks, during this time an undefined frequency value would be
+> > read.
+> > 
+> > I believe the filter settings do not really apply to still capture as it
+> > involves periodic operation, like preview. Even if we had this as meta
+> > data tag, there are more direct raw image parameters than the PL noise
+> > filter frequency.
+> > 
+> > I feel uncomfortable with having 2 controls, where one can disable the
+> > filter and the other enable it with AUTO setting.
+> > Let's say the sensor supports 4 distinct settings of the filter: OFF, 50HZ,
+> > 60HZ, AUTO. (there is already one sensor driver in mainline that support
+> > it - ov519). How do we map this onto 2 controls ?
+> > 
+> > What do we return from the menu control that covers { OFF, 50HZ, 60HZ }
+> > when AUTO mode is enabled through the other control and H/W doesn't allow
+> > to read the detected frequency ?
+> > 
+> > I think, for the 2 controls we would need the DISABLED entry not to belong
+> > to V4L2_CID_POWER_LINE_FREQUENCY at first place.
+> > 
+> > > Not sure if that's important, though.
+> > 
+> > I would say no, but someone can prove me wrong. And who knows what kind of
+> > strange H/W future brings.
+> 
+> I think it all boils down to whether V4L2_CID_POWER_LINE_FREQUENCY is the 
+> power line frequency filter control or the power line frequency control. In 
+> the first case it doesn't make sense to use two separate controls. In the 
+> second case it could.
+> 
+> I don't think we need two controls for this, but that's just a personal 
+> opinion of the "I don't think we need to bother" type :-)
 
+I'm fine with the auto option being part of the same control.
+
+Cheers,
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
