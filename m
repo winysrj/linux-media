@@ -1,78 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53832 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:41152 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754149Ab1I3N1G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 09:27:06 -0400
-Message-ID: <4E85C3A7.5040403@redhat.com>
-Date: Fri, 30 Sep 2011 10:27:03 -0300
+	id S1752222Ab1IVN0b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Sep 2011 09:26:31 -0400
+Message-ID: <4E7B3769.4070007@redhat.com>
+Date: Thu, 22 Sep 2011 10:26:01 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [RFCv2 PATCH 0/7] V4L menu reorganization
-References: <1317373276-5818-1-git-send-email-hverkuil@xs4all.nl> <4E85A7DC.50708@redhat.com> <201109301334.12300.hverkuil@xs4all.nl>
-In-Reply-To: <201109301334.12300.hverkuil@xs4all.nl>
+CC: LMML <linux-media@vger.kernel.org>,
+	Morimoto Kuninori <morimoto.kuninori@renesas.com>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Dmitri Belimov <d.belimov@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Pawel Osiak <pawel@osciak.co>
+Subject: Re: Patches at patchwork.linuxtv.org (127 patches)
+References: <4E7A4BA7.5050505@redhat.com> <4E7A4CA4.8040205@redhat.com> <201109220817.39634.hverkuil@xs4all.nl>
+In-Reply-To: <201109220817.39634.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 30-09-2011 08:34, Hans Verkuil escreveu:
-> On Friday, September 30, 2011 13:28:28 Mauro Carvalho Chehab wrote:
->> Em 30-09-2011 06:01, Hans Verkuil escreveu:
->>> Hi all,
+Em 22-09-2011 03:17, Hans Verkuil escreveu:
+> On Wednesday, September 21, 2011 22:44:20 Mauro Carvalho Chehab wrote:
+>> Em 21-09-2011 17:40, Mauro Carvalho Chehab escreveu:
+>>> As announced on Sept, 18, we moved our patch queue to patchwork.linuxtv.org.
 >>>
->>> This is the second version of my patch series reorganizing the V4L menu.
->>> It's based on the latest v3.2 staging tree.
+>>> As we were without access to the old patchwork instance, I simply sent all
+>>> emails I had locally stored on my local mahine to the new instance and reviewed
+>>> all patches again. Basically, for old patches, I basically did some scripting
+>>> that were marking old patches as "superseded", if they didn't apply anymore.
+>>> I also preserved the patches that were marked as "under review" from patchwork
+>>> time, using some scripting and a local control file.
 >>>
->>> Changes to v1:
+>>> So, we're basically close to what we had before kernel.org troubles (except for
+>>> a series of patches that I've already applied today).
 >>>
->>> - Remove unnecessary USB dependency.
->>> - Reorganize the radio menu as well.
+>>> My intention is to finish review all patches marked as "new" until the end of this
+>>> week, and set a new tree for linux-next with our stuff (as the old one were at
+>>> git.kernel.org).
 >>>
->>> I did not sort the drivers alphabetically (yet). I'm not quite sure whether
->>> that's really a good idea, and we can always do that later.
+>>> Please let me know if something is missed or if some patch from the list bellow
+>>> is obsolete and can be marked with a different status.
+>>>
+>>> Thanks!
+>>> Mauro
+>>>
+>>>
+>>> 		== New patches == 
 >>
->> I still think that we need to sort things alphabetically, or to not sort
->> things at all, as any other sort criteria would be just a random criteria.
+>> Gah! forgot to update the URL on my script. the patch list with the right URL is:
 >>
->> E. g. on a non-alphabetical criteria, what should come first between bttv,
->> saa7134, ivtv and cx88? Except by the alphabetical order, any order between 
->> them will be just a random criteria, as people will argue that driver "foo"
->> should be the first one, probably because they have more hardware of that
->> type ;)
 > 
-> Sort by what, BTW? The driver module name?
-
-I think so.
-
 > 
-> I'd like to get a concensus on that before I do this.
-
-Sure.
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
->> In my case, I would vote for saa7134 as I currently have more hardware of
->> that type. A few years ago, my vote would be for cx88. I bet you'll vote
->> for ivtv ;)
+>> 		== Patches for Hans Verkuil <hans.verkuil@cisco.com> check == 
 >>
->>> This series is meant for v3.2, but I won't make a pull request until
->>> Guennadi's pull request is merged first. I'm sure I will have to redo my
->>> patches once his series is in.
->>
->> Ok.
->>>
->>> Regards,
->>>
->>> 	Hans
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+>> Aug, 3 2010: [1/2] TVP7002: Return V4L2_DV_INVALID if any of the errors occur.      http://patchwork.linuxtv.org/patch/4064   Mats Randgaard <mats.randgaard@tandberg.com>
+>> Aug, 3 2010: [2/2] TVP7002: Changed register values.                                http://patchwork.linuxtv.org/patch/4063   Mats Randgaard <mats.randgaard@tandberg.com>
+> 
+> As already mentioned earlier in an email, these two can be merged. So:
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
+Applied, thanks!
+
+Mauro
