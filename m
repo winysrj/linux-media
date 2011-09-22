@@ -1,56 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33326 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750860Ab1IBLle convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 07:41:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: Re: Using atmel-isi for direct output on framebuffer ?
-Date: Fri, 2 Sep 2011 13:42:03 +0200
-Cc: "Wu, Josh" <Josh.wu@atmel.com>, linux-media@vger.kernel.org
-References: <20110901170555.568af6ea@skate> <4C79549CB6F772498162A641D92D532802A09156@penmb01.corp.atmel.com> <20110902111853.292d7f26@skate>
-In-Reply-To: <20110902111853.292d7f26@skate>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Received: from mail.free-electrons.com ([88.190.12.23]:33595 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751131Ab1IVP3h convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Sep 2011 11:29:37 -0400
+Date: Thu, 22 Sep 2011 17:29:29 +0200
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org, srinivasa.deevi@conexant.com,
+	Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: Re: cx231xx: DMA problem on ARM
+Message-ID: <20110922172929.16df967f@skate>
+In-Reply-To: <CAGoCfiy_RVbgq+3WTsC=ZrJsOfDYEWUov6meOU8=ShACBM7J2g@mail.gmail.com>
+References: <20110921135604.64363a2e@skate>
+	<CAGoCfiyFbHcZO-Rz2VFr249NprqvhQhcSPBLHRj_Txs9gimYqA@mail.gmail.com>
+	<20110922164508.395c2900@skate>
+	<CAGoCfiy_RVbgq+3WTsC=ZrJsOfDYEWUov6meOU8=ShACBM7J2g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
-Message-Id: <201109021342.03721.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thomas,
+Le Thu, 22 Sep 2011 11:09:22 -0400,
+Devin Heitmueller <dheitmueller@kernellabs.com> a écrit :
 
-On Friday 02 September 2011 11:18:53 Thomas Petazzoni wrote:
-> Le Fri, 2 Sep 2011 17:08:32 +0800, "Wu, Josh" a écrit :
-> > My understanding is that you want to use Atmel ISI to output RGB data
-> > then work with framebuffer. So yes, it is possible.
-> 
-> Good.
-> 
-> > Since current atmel_isi.c only uses its codec path to output YUV
-> > data. So first need add RGB format support in
-> > isi_camera_get_formats(). Then you have two choices to enable RGB
-> > output of ISI: 1. Enable isi's preview path(DMA, interrupts) to
-> > convert YUV to RGB. 2. Or still use codec path but don't need add
-> > much ISI code, just set camera sensor(if it support RGB565 output) to
-> > output RGB565 data for ISI, then what the data ISI output now should
-> > be RGB565 format. But in this way you cannot do any scale.
-> 
-> Doing the YUV -> RGB within the V4L2 driver is something I understand
-> quite well. The part I miss is how the V4L2 driver interacts with the
-> framebuffer driver to output the camera image into the framebuffer.
-> 
-> > For V4L2_CAP_VIDEO_OVERLAY type driver, I don't know much about that.
-> 
-> Hum, ok, found http://v4l2spec.bytesex.org/spec/x6570.htm which seems
-> to explain a bit the userspace interface for this.
+> Ok, that is a good start.  I would definitely submit that as a patch
+> (including your Signed-off-by line).
 
-I'm not sure if V4L2_CAP_VIDEO_OVERLAY is a good solution for this. This 
-driver type (or rather buffer type) was used on old systems to capture 
-directly to the PCI graphics card memory. Nowadays I would advice using 
-USERPTR with framebuffer memory.
+Sure, we will definitely do this.
 
+> Regarding the outstanding issue, I believe I did see that and fixed
+> it.  Please look the history for the various cx231xx files surrounding
+> the time of the ".dont_use_port_3 = 1" fix.  If I recall, that patch
+> was actually part of a series of two or three patches which were
+> required for that device to work properly.  I believe the other patch
+> needed included an extra 10ms msleep call to ensure the hardware is
+> powered up fully before issuing certain i2c commands (which are what
+> are causing the -71 errors).
+
+I guess you're talking about 44ecf1df9493e6684cd1bb34abb107a0ffe1078a,
+which ensures a 10ms msleep call. We don't have this patch, but as with
+CONFIG_HZ=100, msleep() calls are anyway rounded up to 10ms, so I'm not
+sure this patch will have a huge impact. But we will try.
+
+Then, there is also de99d5328c6d54694471da28711a05adec708c3b, but it
+doesn't seem to be related to our problem. But we will also try with
+that one.
+
+> If you cannot find it, let me know and I will dig around my archives
+> and find it for you (I'm actually at work right now so it would be
+> inopportune for me to do it right this minute).
+
+ :-)
+
+Thanks for your very quick feedback!
+
+Thomas
 -- 
-Regards,
-
-Laurent Pinchart
+Thomas Petazzoni, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
