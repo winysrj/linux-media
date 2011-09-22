@@ -1,138 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:35651 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753252Ab1IDNcg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Sep 2011 09:32:36 -0400
-Message-ID: <4E637DEC.5080507@infradead.org>
-Date: Sun, 04 Sep 2011 10:32:28 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Ravi, Deepthy" <deepthy.ravi@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: Re: [PATCHv2] ISP:BUILD:FIX: Move media_entity_init() and
-References: <1313761725-6614-1-git-send-email-deepthy.ravi@ti.com> <201108241525.47332.laurent.pinchart@ideasonboard.com> <4E62A872.7070808@infradead.org> <201109041101.05028.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201109041101.05028.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:15135 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752570Ab1IVQmi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Sep 2011 12:42:38 -0400
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LRX00LQ4NR0SF@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 22 Sep 2011 17:42:36 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LRX0074GNQZNM@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 22 Sep 2011 17:42:36 +0100 (BST)
+Date: Thu, 22 Sep 2011 18:42:30 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v4 1/2] v4l2: Add polarity flag definitons for parallel bus
+ FIELD signal
+In-reply-to: <1316709751-29922-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
+	kyungmin.park@samsung.com, g.liakhovetski@gmx.de,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1316709751-29922-2-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1316709751-29922-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 04-09-2011 06:01, Laurent Pinchart escreveu:
-> Hi Mauro,
-> 
-> On Sunday 04 September 2011 00:21:38 Mauro Carvalho Chehab wrote:
->> Em 24-08-2011 10:25, Laurent Pinchart escreveu:
->>> On Wednesday 24 August 2011 14:19:01 Hiremath, Vaibhav wrote:
->>>> On Wednesday, August 24, 2011 5:00 PM Laurent Pinchart wrote:
->>>>> On Wednesday 24 August 2011 13:21:27 Ravi, Deepthy wrote:
->>>>>> On Wed, Aug 24, 2011 at 4:47 PM, Laurent Pinchart wrote:
->>>>>>> On Friday 19 August 2011 15:48:45 Deepthy Ravi wrote:
->>>>>>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
->>>>>>>>
->>>>>>>> Fix the build break caused when CONFIG_MEDIA_CONTROLLER
->>>>>>>> option is disabled and if any sensor driver has to be used
->>>>>>>> between MC and non MC framework compatible devices.
->>>>>>>>
->>>>>>>> For example,if tvp514x video decoder driver migrated to
->>>>>>>> MC framework is being built without CONFIG_MEDIA_CONTROLLER
->>>>>>>> option enabled, the following error messages will result.
->>>>>>>> drivers/built-in.o: In function `tvp514x_remove':
->>>>>>>> drivers/media/video/tvp514x.c:1285: undefined reference to
->>>>>>>> `media_entity_cleanup'
->>>>>>>> drivers/built-in.o: In function `tvp514x_probe':
->>>>>>>> drivers/media/video/tvp514x.c:1237: undefined reference to
->>>>>>>> `media_entity_init'
->>>>>>>
->>>>>>> If the tvp514x is migrated to the MC framework, its Kconfig option
->>>>>>> should depend on MEDIA_CONTROLLER.
->>>>>>
->>>>>> The same TVP514x driver is being used for both MC and non MC
->>>>>> compatible devices, for example OMAP3 and AM35x. So if it is made
->>>>>> dependent on MEDIA CONTROLLER, we cannot enable the driver for MC
->>>>>> independent devices.
->>>>>
->>>>> Then you should use conditional compilation in the tvp514x driver
->>>>> itself. Or
->>>>
->>>> No. I am not in favor of conditional compilation in driver code.
->>>
->>> Actually, thinking some more about this, you should make the tvp514x
->>> driver depend on CONFIG_MEDIA_CONTROLLER unconditionally. This doesn't
->>> mean that the driver will become unusable by applications that are not
->>> MC-aware. Hosts/bridges don't have to export subdev nodes, they can just
->>> call subdev pad-level operations internally and let applications control
->>> the whole device through a single V4L2 video node.
->>>
->>>>> better, port the AM35x driver to the MC API.
->>>>
->>>> Why should we use MC if I have very simple device (like AM35x) which
->>>> only supports single path? I can very well use simple V4L2 sub-dev
->>>> based approach (master - slave), isn't it?
->>>
->>> The AM35x driver should use the in-kernel MC and V4L2 subdev APIs, but it
->>> doesn't have to expose them to userspace.
->>
->> I don't agree. If AM35x doesn't expose the MC API to userspace,
->> CONFIG_MEDIA_CONTROLLER should not be required at all.
->>
->> Also, according with the Linux best practices, when  #if tests for config
->> symbols are required, developers should put it into the header files, and
->> not inside the code, as it helps to improve code readability. From
->> Documentation/SubmittingPatches:
->>
->> 	2) #ifdefs are ugly
->>
->> 	Code cluttered with ifdefs is difficult to read and maintain.  Don't do
->> 	it.  Instead, put your ifdefs in a header, and conditionally define
->> 	'static inline' functions, or macros, which are used in the code.
->> 	Let the compiler optimize away the "no-op" case.
->>
->> So, this patch is perfectly fine on my eyes.
-> 
-> I'm sorry, but I don't agree.
-> 
-> Regarding the V4L2 subdev pad-level API, the goal is to convert all host and 
-> subdev drivers to it, so that's definitely the way to go. This does *not* mean 
-> that subdevs must expose a subdev device node. That's entirely optional. What 
-> I'm talking about is switching from video::*_mbus_fmt operations to pad::*_fmt 
-> operations. The pad-level format operations are very similar to video-level 
-> format operations, and more generic. Drivers shouldn't implement both.
+FIELD signal is used for indicating frame field type to the frame grabber
+in interlaced scan mode, as specified in ITU-R BT.601 standard.
+In normal operation mode FIELD = 0 selects Field1 (odd) and FIELD = 1
+selects Field2 (even). When the FIELD signal is inverted it's the other
+way around.
 
-I agree that implementing two ways for doing the same thing is a bad idea, 
-but especially since your idea is to convert all subdevs to it, this type 
-of conversion should not require enabling CONFIG_MEDIA_CONTROLLER, as this
-feature is used to enable the MC userspace API.
+Add corresponding flags for configuring the FIELD signal polarity,
+V4L2_MBUS_FIELD_EVEN_HIGH for the standard (non-inverted) case and
+V4L2_MBUS_FIELD_EVEN_LOW for inverted case.
 
-> Regarding the MC API, drivers are not required to register a media_device 
-> instance. I have no issue with that. However, drivers should initialized the 
-> subdev's embedded media_entity, as that's required by subdev pad-level 
-> operations to get the number of pads for a subdev.
+Also add a comment about usage of V4L2_MBUS_[HV]SYNC* flags for
+the hardware that uses [HV]REF signals.
 
-There are two solutions:
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ include/media/v4l2-mediabus.h |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
 
-1) add some "fallback" method at the core to use the video::*_mbus_fmt way, when
-MC is disabled;
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 6114007..83ae07e 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -22,8 +22,12 @@
+  */
+ #define V4L2_MBUS_MASTER			(1 << 0)
+ #define V4L2_MBUS_SLAVE				(1 << 1)
+-/* Which signal polarities it supports */
+-/* Note: in BT.656 mode HSYNC and VSYNC are unused */
++/*
++ * Signal polarity flags
++ * Note: in BT.656 mode HSYNC, FIELD, and VSYNC are unused
++ * V4L2_MBUS_[HV]SYNC* flags should be also used for specifying
++ * configuration of hardware that uses [HV]REF signals
++ */
+ #define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
+ #define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
+ #define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
+@@ -32,6 +36,10 @@
+ #define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
+ #define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
+ #define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
++/* FIELD = 0/1 - Field1 (odd)/Field2 (even) */
++#define V4L2_MBUS_FIELD_EVEN_HIGH		(1 << 10)
++/* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
++#define V4L2_MBUS_FIELD_EVEN_LOW		(1 << 11)
+ 
+ /* Serial flags */
+ /* How many lanes the client can use */
+-- 
+1.7.6.3
 
-2) split the config options into two: one configurable by the user to enable
-the userspace MC API, and another, used internally that would select the MC
-internal API when drivers need it.
-
-As your plan is to convert all drivers to the new way, (2) doesn't make much
-sense in long term, as, at the end, all drivers will be selecting it.
-
-Also, I don't like the idea of increasing drivers complexity for the existing
-drivers that work properly without MC. All those core conversions that were
-done in the last two years caused already too much instability to them.
-
-We should really avoid touching on them again for something that won't be
-adding any new feature nor fixing any known bug.
-> 
-> This will result in no modification to the userspace.
-> 
-
-Regards,
-Mauro
