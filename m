@@ -1,120 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3934 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751871Ab1IEKRT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 06:17:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: BUG: unable to handle kernel paging request at 6b6b6bcb (v4l2_device_disconnect+0x11/0x30)
-Date: Mon, 5 Sep 2011 12:16:42 +0200
-Cc: Sitsofe Wheeler <sitsofe@yahoo.com>,
-	Dave Young <hidave.darkstar@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <20110829204846.GA14699@sucs.org> <201109051159.08268.laurent.pinchart@ideasonboard.com> <201109051213.26482.hverkuil@xs4all.nl>
-In-Reply-To: <201109051213.26482.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109051216.42579.hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42563 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753663Ab1IVUPo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Sep 2011 16:15:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi, g.liakhovetski@gmx.de
+Subject: [PATCH 3/4] omap3isp: Add missing mutex_destroy() calls
+Date: Thu, 22 Sep 2011 22:15:38 +0200
+Message-Id: <1316722539-7372-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1316722539-7372-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1316722539-7372-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday, September 05, 2011 12:13:26 Hans Verkuil wrote:
-> On Monday, September 05, 2011 11:59:03 Laurent Pinchart wrote:
-> > Hi Hans,
-> > 
-> > On Friday 02 September 2011 09:29:08 Sitsofe Wheeler wrote:
-> > > On Fri, Sep 02, 2011 at 01:35:49PM +0800, Dave Young wrote:
-> > > > On Fri, Sep 2, 2011 at 12:59 PM, Dave Young wrote:
-> > > > > On Fri, Sep 2, 2011 at 3:10 AM, Sitsofe Wheeler wrote:
-> > > > >> On Thu, Sep 01, 2011 at 05:02:51PM +0800, Dave Young wrote:
-> > > > >>> On Tue, Aug 30, 2011 at 4:48 AM, Sitsofe Wheeler wrote:
-> > > > >>> > I managed to produce an oops in 3.1.0-rc3-00270-g7a54f5e by
-> > > > >>> > unplugging a
-> > > > >>> 
-> > > > >>> > USB webcam. See below:
-> > > > >>> Could you try the attached patch?
-> > > > >> 
-> > > > >> This patch fixed the oops but extending the sequence (enable camera,
-> > > > >> start cheese, disable camera, watch cheese pause, enable camera, quit
-> > > > >> cheese, start cheese) causes the following "poison overwritten"
-> > > > >> warning
-> > > > > 
-> > > > >> to appear:
-> > > > > It seems another bug, I can reproduce this as well.
-> > > > > 
-> > > > > uvc_device is freed in uvc_delete,
-> > > > > 
-> > > > > struct v4l2_device vdev is the member of struct uvc_device, so vdev is
-> > > > > also freed. Later v4l2_device operations on vdev will overwrite the
-> > > > > poison memory area.
-> > > > 
-> > > > Please try attached patch on top of previous one,  in this patch I
-> > > > move v4l2_device_put after vdev->release in function
-> > > > v4l2_device_release
-> > > > 
-> > > > Not sure if this is a right fix, comments?
-> > 
-> > (inlining the patch's contents)
-> > 
-> > > > diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-
-> > > > dev.c
-> > > > index 98cee19..541dba3 100644
-> > > > --- a/drivers/media/video/v4l2-dev.c
-> > > > +++ b/drivers/media/video/v4l2-dev.c
-> > > > @@ -172,13 +172,14 @@ static void v4l2_device_release(struct device *cd)
-> > > >  		media_device_unregister_entity(&vdev->entity);
-> > > >  #endif
-> > > >  
-> > > > +	/* Decrease v4l2_device refcount */
-> > > > +	if (vdev->v4l2_dev)
-> > > > +		v4l2_device_put(vdev->v4l2_dev);
-> > > > +
-> > > >  	/* Release video_device and perform other
-> > > >  	   cleanups as needed. */
-> > > >  	vdev->release(vdev);
-> > > >  
-> > > > -	/* Decrease v4l2_device refcount */
-> > > > -	if (vdev->v4l2_dev)
-> > > > -		v4l2_device_put(vdev->v4l2_dev);
-> > > >  }
-> > > >  
-> > > >  static struct class video_class = {
-> > 
-> > v4l2_device_put() got introduced in commit 
-> > bedf8bcf6b4f90a6e31add3721a2e71877289381 ("v4l2-device: add kref and a release 
-> > function"). If I understand its purpose correctly, drivers that use a 
-> > v4l2_device instance should use the v4l2_device release callback to release 
-> > device structures instead of counting video_device release callbacks manually. 
-> > In that case I think the v4l2-dev.c code is correct, and all drivers that use 
-> > v4l2_device should be fixed.
-> > 
-> > The above patch fixes the problem in a central location, but seems to defeat 
-> > the original purpose of v4l2_device_get/put().
-> > 
-> > Hans, could you please comment on that ?
-> 
-> The original order is correct, but what I missed is that for drivers that release
-> (free) everything in the videodev release callback the v4l2_device struct is
-> also freed and v4l2_device_put will fail.
-> 
-> To fix this, add this code just before the vdev->release call:
-> 
-> 	/* Do not call v4l2_device_put if there is no release callback set. */
-> 	if (v4l2_dev->release == NULL)
-> 		v4l2_dev = NULL;
-> 
-> If there is no release callback, then the refcounting is pointless anyway.
-> 
-> This should work.
+Mutexes must be destroyed with mutex_destroy(). Add missing calls in the
+modules cleanup handlers.
 
-Note that in the long run using the v4l2_device release callback instead of the
-videodev release is better. But it's a lot of work to convert everything so that's
-long term. I'm quite surprised BTW that this bug wasn't found much earlier.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/isp.c      |    2 ++
+ drivers/media/video/omap3isp/ispccdc.c  |    2 ++
+ drivers/media/video/omap3isp/ispstat.c  |    1 +
+ drivers/media/video/omap3isp/ispvideo.c |    2 ++
+ 4 files changed, 7 insertions(+), 0 deletions(-)
 
-Regards,
+diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+index fda4be0..7b5ab42 100644
+--- a/drivers/media/video/omap3isp/isp.c
++++ b/drivers/media/video/omap3isp/isp.c
+@@ -2183,6 +2183,8 @@ error:
+ 	regulator_put(isp->isp_csiphy2.vdd);
+ 	regulator_put(isp->isp_csiphy1.vdd);
+ 	platform_set_drvdata(pdev, NULL);
++
++	mutex_destroy(&isp->isp_mutex);
+ 	kfree(isp);
+ 
+ 	return ret;
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 9ed4d8a..0a68207 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -2295,4 +2295,6 @@ void omap3isp_ccdc_cleanup(struct isp_device *isp)
+ 
+ 	if (ccdc->fpc.fpcaddr != 0)
+ 		iommu_vfree(isp->iommu, ccdc->fpc.fpcaddr);
++
++	mutex_destroy(&ccdc->ioctl_lock);
+ }
+diff --git a/drivers/media/video/omap3isp/ispstat.c b/drivers/media/video/omap3isp/ispstat.c
+index 253b32f..786f9b0 100644
+--- a/drivers/media/video/omap3isp/ispstat.c
++++ b/drivers/media/video/omap3isp/ispstat.c
+@@ -1086,6 +1086,7 @@ int omap3isp_stat_init(struct ispstat *stat, const char *name,
+ void omap3isp_stat_cleanup(struct ispstat *stat)
+ {
+ 	media_entity_cleanup(&stat->subdev.entity);
++	mutex_destroy(&stat->ioctl_lock);
+ 	isp_stat_bufs_free(stat);
+ 	kfree(stat->buf);
+ }
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index 910c745..927d496 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -1328,6 +1328,8 @@ int omap3isp_video_init(struct isp_video *video, const char *name)
+ void omap3isp_video_cleanup(struct isp_video *video)
+ {
+ 	media_entity_cleanup(&video->video.entity);
++	mutex_destroy(&video->stream_lock);
++	mutex_destroy(&video->mutex);
+ }
+ 
+ int omap3isp_video_register(struct isp_video *video, struct v4l2_device *vdev)
+-- 
+1.7.3.4
 
-	Hans
