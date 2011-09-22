@@ -1,125 +1,274 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19986 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753729Ab1IFSkw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Sep 2011 14:40:52 -0400
-Message-ID: <4E666930.1050605@redhat.com>
-Date: Tue, 06 Sep 2011 15:40:48 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 01/10] alsa_stream: port changes made on xawtv3
-References: <1315322996-10576-1-git-send-email-mchehab@redhat.com> <4E663EE2.3050403@redhat.com> <CAGoCfiz9YAHYNJdEAT51fyfLY8RS_TcRpzKzLYCdNFCc3JcbEA@mail.gmail.com>
-In-Reply-To: <CAGoCfiz9YAHYNJdEAT51fyfLY8RS_TcRpzKzLYCdNFCc3JcbEA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42558 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751510Ab1IVUPn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Sep 2011 16:15:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi, g.liakhovetski@gmx.de
+Subject: [PATCH 1/4] omap3isp: Move media_entity_cleanup() from unregister() to cleanup()
+Date: Thu, 22 Sep 2011 22:15:36 +0200
+Message-Id: <1316722539-7372-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1316722539-7372-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1316722539-7372-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 06-09-2011 13:24, Devin Heitmueller escreveu:
-> On Tue, Sep 6, 2011 at 11:40 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com>  wrote:
->> Hi Devin,
->>
->> Em 06-09-2011 12:29, Mauro Carvalho Chehab escreveu:
->>> There are several issues with the original alsa_stream code that got
->>> fixed on xawtv3, made by me and by Hans de Goede. Basically, the
->>> code were re-written, in order to follow the alsa best practises.
->>>
->>> Backport the changes from xawtv, in order to make it to work on a
->>> wider range of V4L and sound adapters.
->>
->> FYI, just flooded your mailbox with 10 patches for tvtime. ;)
->>
->> I'm wanting to test some things with tvtime on one of my testboxes, but some
->> of my cards weren't working with the alsa streaming, due to a few bugs that
->> were solved on xawtv fork.
->>
->> So, I decided to backport it to tvtime and recompile the Fedora package for it.
->> That's where the other 9 patches come ;)
->>
->> Basically, after applying this series of 10 patches, we can just remove all
->> patches from Fedora, making life easier for distro maintainers (as the same
->> thing is probably true on other distros - at least one of the Fedora patches
->> came from Debian, from the fedora git logs).
->>
->> One important thing for distros is to have a tarball with the latest version
->> hosted on a public site, so I've increased the version to 1.0.3 and I'm
->> thinking on storing a copy of it at linuxtv, just like we do with xawtv3.
->>
->> If you prefer, all patches are also on my tvtime git tree, at:
->>         http://git.linuxtv.org/mchehab/tvtime.git
->>
->> Thanks,
->> Mauro
-> 
-> Hi Mauro,
-> 
-> Funny you should send these along today.  Last Friday I was actually
-> poking around at the Fedora tvtime repo because I was curious how they
-> had dealt with the V4L1 support issue (whether they were using my
-> patch removing v4l1 or some variant).
+The media_entity_cleanup() function belong to the module cleanup
+handlers, not the entity registration handlers. Move it there.
 
-Well, right time then ;)
-> 
-> I've actually pulled in Fedora patches in the past (as you can see
-> from the hg repo),
+Create a omap3isp_video_cleanup() function to cleanup the video node
+entity, and call it from the module cleanup handlers.
 
-Yes, I saw it. Nice work!
+Rename omap3isp_stat_free() to omap3isp_stat_cleanup().
 
-> and it has always been my intention to do it for
-> the other distros as well (e.g. debian/Ubuntu).  So I appreciate your
-> having sent these along.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/ispccdc.c     |    5 +++--
+ drivers/media/video/omap3isp/ispccp2.c     |    5 +++--
+ drivers/media/video/omap3isp/ispcsi2.c     |    6 ++++--
+ drivers/media/video/omap3isp/isph3a_aewb.c |    2 +-
+ drivers/media/video/omap3isp/isph3a_af.c   |    2 +-
+ drivers/media/video/omap3isp/isphist.c     |    2 +-
+ drivers/media/video/omap3isp/isppreview.c  |    9 ++++++---
+ drivers/media/video/omap3isp/ispresizer.c  |    7 +++++--
+ drivers/media/video/omap3isp/ispstat.c     |    4 ++--
+ drivers/media/video/omap3isp/ispstat.h     |    2 +-
+ drivers/media/video/omap3isp/ispvideo.c    |    9 ++++++---
+ drivers/media/video/omap3isp/ispvideo.h    |    1 +
+ 12 files changed, 34 insertions(+), 20 deletions(-)
 
-It is a good idea to take a look at them. I looked into their repositories
-for the xawtv patches and I found some good stuff there.
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 40b141c..4e4bf48 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -2204,8 +2204,6 @@ static int ccdc_init_entities(struct isp_ccdc_device *ccdc)
+ 
+ void omap3isp_ccdc_unregister_entities(struct isp_ccdc_device *ccdc)
+ {
+-	media_entity_cleanup(&ccdc->subdev.entity);
+-
+ 	v4l2_device_unregister_subdev(&ccdc->subdev);
+ 	omap3isp_video_unregister(&ccdc->video_out);
+ }
+@@ -2285,6 +2283,9 @@ void omap3isp_ccdc_cleanup(struct isp_device *isp)
+ {
+ 	struct isp_ccdc_device *ccdc = &isp->isp_ccdc;
+ 
++	omap3isp_video_cleanup(&ccdc->video_out);
++	media_entity_cleanup(&ccdc->subdev.entity);
++
+ 	/* Free LSC requests. As the CCDC is stopped there's no active request,
+ 	 * so only the pending request and the free queue need to be handled.
+ 	 */
+diff --git a/drivers/media/video/omap3isp/ispccp2.c b/drivers/media/video/omap3isp/ispccp2.c
+index fa1d09b..b8e0863 100644
+--- a/drivers/media/video/omap3isp/ispccp2.c
++++ b/drivers/media/video/omap3isp/ispccp2.c
+@@ -1100,8 +1100,6 @@ static int ccp2_init_entities(struct isp_ccp2_device *ccp2)
+  */
+ void omap3isp_ccp2_unregister_entities(struct isp_ccp2_device *ccp2)
+ {
+-	media_entity_cleanup(&ccp2->subdev.entity);
+-
+ 	v4l2_device_unregister_subdev(&ccp2->subdev);
+ 	omap3isp_video_unregister(&ccp2->video_in);
+ }
+@@ -1146,6 +1144,9 @@ void omap3isp_ccp2_cleanup(struct isp_device *isp)
+ {
+ 	struct isp_ccp2_device *ccp2 = &isp->isp_ccp2;
+ 
++	omap3isp_video_cleanup(&ccp2->video_in);
++	media_entity_cleanup(&ccp2->subdev.entity);
++
+ 	regulator_put(ccp2->vdds_csib);
+ }
+ 
+diff --git a/drivers/media/video/omap3isp/ispcsi2.c b/drivers/media/video/omap3isp/ispcsi2.c
+index 69161a6..5612e95 100644
+--- a/drivers/media/video/omap3isp/ispcsi2.c
++++ b/drivers/media/video/omap3isp/ispcsi2.c
+@@ -1241,8 +1241,6 @@ static int csi2_init_entities(struct isp_csi2_device *csi2)
+ 
+ void omap3isp_csi2_unregister_entities(struct isp_csi2_device *csi2)
+ {
+-	media_entity_cleanup(&csi2->subdev.entity);
+-
+ 	v4l2_device_unregister_subdev(&csi2->subdev);
+ 	omap3isp_video_unregister(&csi2->video_out);
+ }
+@@ -1277,6 +1275,10 @@ error:
+  */
+ void omap3isp_csi2_cleanup(struct isp_device *isp)
+ {
++	struct isp_csi2_device *csi2a = &isp->isp_csi2a;
++
++	omap3isp_video_cleanup(&csi2a->video_out);
++	media_entity_cleanup(&csi2a->subdev.entity);
+ }
+ 
+ /*
+diff --git a/drivers/media/video/omap3isp/isph3a_aewb.c b/drivers/media/video/omap3isp/isph3a_aewb.c
+index 8068cef..a3c76bf 100644
+--- a/drivers/media/video/omap3isp/isph3a_aewb.c
++++ b/drivers/media/video/omap3isp/isph3a_aewb.c
+@@ -370,5 +370,5 @@ void omap3isp_h3a_aewb_cleanup(struct isp_device *isp)
+ {
+ 	kfree(isp->isp_aewb.priv);
+ 	kfree(isp->isp_aewb.recover_priv);
+-	omap3isp_stat_free(&isp->isp_aewb);
++	omap3isp_stat_cleanup(&isp->isp_aewb);
+ }
+diff --git a/drivers/media/video/omap3isp/isph3a_af.c b/drivers/media/video/omap3isp/isph3a_af.c
+index ba54d0a..58e0bc4 100644
+--- a/drivers/media/video/omap3isp/isph3a_af.c
++++ b/drivers/media/video/omap3isp/isph3a_af.c
+@@ -425,5 +425,5 @@ void omap3isp_h3a_af_cleanup(struct isp_device *isp)
+ {
+ 	kfree(isp->isp_af.priv);
+ 	kfree(isp->isp_af.recover_priv);
+-	omap3isp_stat_free(&isp->isp_af);
++	omap3isp_stat_cleanup(&isp->isp_af);
+ }
+diff --git a/drivers/media/video/omap3isp/isphist.c b/drivers/media/video/omap3isp/isphist.c
+index 1743856..1163907 100644
+--- a/drivers/media/video/omap3isp/isphist.c
++++ b/drivers/media/video/omap3isp/isphist.c
+@@ -516,5 +516,5 @@ void omap3isp_hist_cleanup(struct isp_device *isp)
+ 	if (HIST_USING_DMA(&isp->isp_hist))
+ 		omap_free_dma(isp->isp_hist.dma_ch);
+ 	kfree(isp->isp_hist.priv);
+-	omap3isp_stat_free(&isp->isp_hist);
++	omap3isp_stat_cleanup(&isp->isp_hist);
+ }
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index aba537a..84a18b6 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -2046,10 +2046,7 @@ static int preview_init_entities(struct isp_prev_device *prev)
+ 
+ void omap3isp_preview_unregister_entities(struct isp_prev_device *prev)
+ {
+-	media_entity_cleanup(&prev->subdev.entity);
+-
+ 	v4l2_device_unregister_subdev(&prev->subdev);
+-	v4l2_ctrl_handler_free(&prev->ctrls);
+ 	omap3isp_video_unregister(&prev->video_in);
+ 	omap3isp_video_unregister(&prev->video_out);
+ }
+@@ -2085,6 +2082,12 @@ error:
+ 
+ void omap3isp_preview_cleanup(struct isp_device *isp)
+ {
++	struct isp_prev_device *prev = &isp->isp_prev;
++
++	v4l2_ctrl_handler_free(&prev->ctrls);
++	omap3isp_video_cleanup(&prev->video_in);
++	omap3isp_video_cleanup(&prev->video_out);
++	media_entity_cleanup(&prev->subdev.entity);
+ }
+ 
+ /*
+diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
+index 0bb0f8c..78ce040 100644
+--- a/drivers/media/video/omap3isp/ispresizer.c
++++ b/drivers/media/video/omap3isp/ispresizer.c
+@@ -1674,8 +1674,6 @@ static int resizer_init_entities(struct isp_res_device *res)
+ 
+ void omap3isp_resizer_unregister_entities(struct isp_res_device *res)
+ {
+-	media_entity_cleanup(&res->subdev.entity);
+-
+ 	v4l2_device_unregister_subdev(&res->subdev);
+ 	omap3isp_video_unregister(&res->video_in);
+ 	omap3isp_video_unregister(&res->video_out);
+@@ -1712,6 +1710,11 @@ error:
+ 
+ void omap3isp_resizer_cleanup(struct isp_device *isp)
+ {
++	struct isp_res_device *res = &isp->isp_res;
++
++	omap3isp_video_cleanup(&res->video_in);
++	omap3isp_video_cleanup(&res->video_out);
++	media_entity_cleanup(&res->subdev.entity);
+ }
+ 
+ /*
+diff --git a/drivers/media/video/omap3isp/ispstat.c b/drivers/media/video/omap3isp/ispstat.c
+index 8080659..4ffddd2 100644
+--- a/drivers/media/video/omap3isp/ispstat.c
++++ b/drivers/media/video/omap3isp/ispstat.c
+@@ -1061,7 +1061,6 @@ int omap3isp_stat_unsubscribe_event(struct v4l2_subdev *subdev,
+ 
+ void omap3isp_stat_unregister_entities(struct ispstat *stat)
+ {
+-	media_entity_cleanup(&stat->subdev.entity);
+ 	v4l2_device_unregister_subdev(&stat->subdev);
+ }
+ 
+@@ -1084,8 +1083,9 @@ int omap3isp_stat_init(struct ispstat *stat, const char *name,
+ 	return isp_stat_init_entities(stat, name, sd_ops);
+ }
+ 
+-void omap3isp_stat_free(struct ispstat *stat)
++void omap3isp_stat_cleanup(struct ispstat *stat)
+ {
++	media_entity_cleanup(&stat->subdev.entity);
+ 	isp_stat_bufs_free(stat);
+ 	kfree(stat->buf);
+ }
+diff --git a/drivers/media/video/omap3isp/ispstat.h b/drivers/media/video/omap3isp/ispstat.h
+index d86da94..9b7c865 100644
+--- a/drivers/media/video/omap3isp/ispstat.h
++++ b/drivers/media/video/omap3isp/ispstat.h
+@@ -144,7 +144,7 @@ int omap3isp_stat_request_statistics(struct ispstat *stat,
+ 				     struct omap3isp_stat_data *data);
+ int omap3isp_stat_init(struct ispstat *stat, const char *name,
+ 		       const struct v4l2_subdev_ops *sd_ops);
+-void omap3isp_stat_free(struct ispstat *stat);
++void omap3isp_stat_cleanup(struct ispstat *stat);
+ int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
+ 				  struct v4l2_fh *fh,
+ 				  struct v4l2_event_subscription *sub);
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index ba86f11..910c745 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -1325,6 +1325,11 @@ int omap3isp_video_init(struct isp_video *video, const char *name)
+ 	return 0;
+ }
+ 
++void omap3isp_video_cleanup(struct isp_video *video)
++{
++	media_entity_cleanup(&video->video.entity);
++}
++
+ int omap3isp_video_register(struct isp_video *video, struct v4l2_device *vdev)
+ {
+ 	int ret;
+@@ -1341,8 +1346,6 @@ int omap3isp_video_register(struct isp_video *video, struct v4l2_device *vdev)
+ 
+ void omap3isp_video_unregister(struct isp_video *video)
+ {
+-	if (video_is_registered(&video->video)) {
+-		media_entity_cleanup(&video->video.entity);
++	if (video_is_registered(&video->video))
+ 		video_unregister_device(&video->video);
+-	}
+ }
+diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
+index 53160aa..08cbfa1 100644
+--- a/drivers/media/video/omap3isp/ispvideo.h
++++ b/drivers/media/video/omap3isp/ispvideo.h
+@@ -190,6 +190,7 @@ struct isp_video_fh {
+ 				container_of(q, struct isp_video_fh, queue)
+ 
+ int omap3isp_video_init(struct isp_video *video, const char *name);
++void omap3isp_video_cleanup(struct isp_video *video);
+ int omap3isp_video_register(struct isp_video *video,
+ 			    struct v4l2_device *vdev);
+ void omap3isp_video_unregister(struct isp_video *video);
+-- 
+1.7.3.4
 
-> I'll pull these in this week, do some testing to make sure nothing
-> serious got broken, and work to spin a 1.0.3 toward the end of the
-> week.
-
-Great!
-> Given the number of features/changes, and how long it's been
-> since the last formal release, I was considering calling it 1.1.0
-> instead though.
-
-Seems fine for me.
-
-> I've been thinking for a while that perhaps the project should be
-> renamed (or I considered prepending "kl" onto the front resulting in
-> it being called "kl-tvtime").  This isn't out of vanity but rather my
-> concern that the fork will get confused with the original project (for
-> example, I believe Ubuntu actually already calls their modified tree
-> tvtime 1.0.3).  I'm open to suggestions in this regards.
-
-IMO, I won't rename it. It is a well-known tool, and it is not a new
-version, but somebody's else took over its maintainership. I think
-you should touch the readme files in order to point to kl.com and to
-the places where the tree will be stored.
-
-Em 06-09-2011 15:19, Hans de Goede escreveu:
-> Hi,
-<snip>
-> I think that what should be done is contact the debian / ubuntu maintainers,
-> get any interesting fixes they have which the kl version misses merged,
-> and then just declare the kl version as being the new official upstream
-> (with the blessing of the debian / ubuntu guys, and if possible also
-> with the blessing of the original authors).
-
-Agree. I think Devin already tried to contact vektor about that.
-
-> This would require kl git to be open to others for pushing, or we
-> could move the tree to git.linuxtv.org (which I assume may be
-> easier then for you to make the necessary changes to give
-> others push rights on kl.org).
-
-I like this idea too. From my side, it proved to be very useful to be
-able to write on both Fedora and upstream repositories on xawtv3. 
-
-I've made already the Fedora changes for tvtime 1.0.3 (in order to test
-it on my test boxes), so being able of adding a new release at both
-repos at the same time is a good idea.
-
-Thanks,
-Mauro
