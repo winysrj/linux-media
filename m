@@ -1,433 +1,636 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:63227 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753590Ab1IFJOr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 05:14:47 -0400
-Received: by yxj19 with SMTP id 19so2811563yxj.19
-        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2011 02:14:47 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.02.1109060904020.7974@ipanema>
-References: <alpine.DEB.2.02.1109060904020.7974@ipanema>
-Date: Tue, 6 Sep 2011 09:14:46 +0000
-Message-ID: <CABYn4swh+dfCKSdy8qGXNL0W0pjom50w+8uvBWrYEOF1yHzGQQ@mail.gmail.com>
-Subject: Re: [PATCH 1/2 v4] media: Add support for arbitrary resolution for
- the ov5642 camera driver
-From: Bastian Hecht <hechtb@googlemail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42562 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753647Ab1IVUPo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Sep 2011 16:15:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Cc: sakari.ailus@iki.fi, g.liakhovetski@gmx.de
+Subject: [PATCH 2/4] omap3isp: Move *_init_entities() functions to the init/cleanup section
+Date: Thu, 22 Sep 2011 22:15:37 +0200
+Message-Id: <1316722539-7372-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1316722539-7372-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1316722539-7372-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I forgot the sign-off and just discovered checkpatch errors. I'll
-repost the fixed version. Sorry for spam.
+Group all init/cleanup functions together to make the code more
+readable.
 
-2011/9/6 Bastian Hecht <hechtb@googlemail.com>:
-> This patch adds the ability to get arbitrary resolutions with a width
-> up to 2592 and a height up to 720 pixels instead of the standard 1280x720
-> only.
->
-> ---
-> diff --git a/drivers/media/video/ov5642.c b/drivers/media/video/ov5642.c
-> index 6410bda..3d7038c 100644
-> --- a/drivers/media/video/ov5642.c
-> +++ b/drivers/media/video/ov5642.c
-> @@ -14,8 +14,10 @@
->  * published by the Free Software Foundation.
->  */
->
-> +#include <linux/bitops.h>
->  #include <linux/delay.h>
->  #include <linux/i2c.h>
-> +#include <linux/kernel.h>
->  #include <linux/slab.h>
->  #include <linux/videodev2.h>
->
-> @@ -34,7 +36,7 @@
->  #define REG_WINDOW_START_Y_LOW         0x3803
->  #define REG_WINDOW_WIDTH_HIGH          0x3804
->  #define REG_WINDOW_WIDTH_LOW           0x3805
-> -#define REG_WINDOW_HEIGHT_HIGH                 0x3806
-> +#define REG_WINDOW_HEIGHT_HIGH         0x3806
->  #define REG_WINDOW_HEIGHT_LOW          0x3807
->  #define REG_OUT_WIDTH_HIGH             0x3808
->  #define REG_OUT_WIDTH_LOW              0x3809
-> @@ -44,19 +46,44 @@
->  #define REG_OUT_TOTAL_WIDTH_LOW                0x380d
->  #define REG_OUT_TOTAL_HEIGHT_HIGH      0x380e
->  #define REG_OUT_TOTAL_HEIGHT_LOW       0x380f
-> +#define REG_OUTPUT_FORMAT              0x4300
-> +#define REG_ISP_CTRL_01                        0x5001
-> +#define REG_AVG_WINDOW_END_X_HIGH      0x5682
-> +#define REG_AVG_WINDOW_END_X_LOW       0x5683
-> +#define REG_AVG_WINDOW_END_Y_HIGH      0x5686
-> +#define REG_AVG_WINDOW_END_Y_LOW       0x5687
-> +
-> +/* active pixel array size */
-> +#define OV5642_SENSOR_SIZE_X   2592
-> +#define OV5642_SENSOR_SIZE_Y   1944
->
->  /*
-> - * define standard resolution.
-> - * Works currently only for up to 720 lines
-> - * eg. 320x240, 640x480, 800x600, 1280x720, 2048x720
-> + * About OV5642 resolution, cropping and binning:
-> + * This sensor supports it all, at least in the feature description.
-> + * Unfortunately, no combination of appropriate registers settings could make
-> + * the chip work the intended way. As it works with predefined register lists,
-> + * some undocumented registers are presumably changed there to achieve their
-> + * goals.
-> + * This driver currently only works for resolutions up to 720 lines with a
-> + * 1:1 scale. Hopefully these restrictions will be removed in the future.
->  */
-> +#define OV5642_MAX_WIDTH       OV5642_SENSOR_SIZE_X
-> +#define OV5642_MAX_HEIGHT      720
->
-> -#define OV5642_WIDTH           1280
-> -#define OV5642_HEIGHT          720
-> -#define OV5642_TOTAL_WIDTH     3200
-> -#define OV5642_TOTAL_HEIGHT    2000
-> -#define OV5642_SENSOR_SIZE_X   2592
-> -#define OV5642_SENSOR_SIZE_Y   1944
-> +/* default sizes */
-> +#define OV5642_DEFAULT_WIDTH   1280
-> +#define OV5642_DEFAULT_HEIGHT  OV5642_MAX_HEIGHT
-> +
-> +/* minimum extra blanking */
-> +#define BLANKING_EXTRA_WIDTH           500
-> +#define BLANKING_EXTRA_HEIGHT          20
-> +
-> +/*
-> + * the sensor's autoexposure is buggy when setting total_height low.
-> + * It tries to expose longer than 1 frame period without taking care of it
-> + * and this leads to weird output. So we set 1000 lines as minimum.
-> + */
-> +#define BLANKING_MIN_HEIGHT            1000
->
->  struct regval_list {
->        u16 reg_num;
-> @@ -581,6 +608,11 @@ struct ov5642_datafmt {
->  struct ov5642 {
->        struct v4l2_subdev              subdev;
->        const struct ov5642_datafmt     *fmt;
-> +       struct v4l2_rect                crop_rect;
-> +
-> +       /* blanking information */
-> +       int total_width;
-> +       int total_height;
->  };
->
->  static const struct ov5642_datafmt ov5642_colour_fmts[] = {
-> @@ -641,6 +673,21 @@ static int reg_write(struct i2c_client *client, u16 reg, u8 val)
->
->        return 0;
->  }
-> +
-> +/*
-> + * convenience function to write 16 bit register values that are split up
-> + * into two consecutive high and low parts
-> + */
-> +static int reg_write16(struct i2c_client *client, u16 reg, u16 val16)
-> +{
-> +       int ret;
-> +
-> +       ret = reg_write(client, reg, val16 >> 8);
-> +       if (ret)
-> +               return ret;
-> +       return reg_write(client, reg + 1, val16 & 0x00ff);
-> +}
-> +
->  #ifdef CONFIG_VIDEO_ADV_DEBUG
->  static int ov5642_get_register(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg)
->  {
-> @@ -684,58 +731,55 @@ static int ov5642_write_array(struct i2c_client *client,
->        return 0;
->  }
->
-> -static int ov5642_set_resolution(struct i2c_client *client)
-> +static int ov5642_set_resolution(struct v4l2_subdev *sd)
->  {
-> +       struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +       struct ov5642 *priv = to_ov5642(client);
-> +       int width = priv->crop_rect.width;
-> +       int height = priv->crop_rect.height;
-> +       int total_width = priv->total_width;
-> +       int total_height = priv->total_height;
-> +       int start_x = (OV5642_SENSOR_SIZE_X - width) / 2;
-> +       int start_y = (OV5642_SENSOR_SIZE_Y - height) / 2;
->        int ret;
-> -       u8 start_x_high = ((OV5642_SENSOR_SIZE_X - OV5642_WIDTH) / 2) >> 8;
-> -       u8 start_x_low  = ((OV5642_SENSOR_SIZE_X - OV5642_WIDTH) / 2) & 0xff;
-> -       u8 start_y_high = ((OV5642_SENSOR_SIZE_Y - OV5642_HEIGHT) / 2) >> 8;
-> -       u8 start_y_low  = ((OV5642_SENSOR_SIZE_Y - OV5642_HEIGHT) / 2) & 0xff;
-> -
-> -       u8 width_high   = OV5642_WIDTH  >> 8;
-> -       u8 width_low    = OV5642_WIDTH  & 0xff;
-> -       u8 height_high  = OV5642_HEIGHT >> 8;
-> -       u8 height_low   = OV5642_HEIGHT & 0xff;
-> -
-> -       u8 total_width_high  = OV5642_TOTAL_WIDTH  >> 8;
-> -       u8 total_width_low   = OV5642_TOTAL_WIDTH  & 0xff;
-> -       u8 total_height_high = OV5642_TOTAL_HEIGHT >> 8;
-> -       u8 total_height_low  = OV5642_TOTAL_HEIGHT & 0xff;
-> -
-> -       ret = reg_write(client, REG_WINDOW_START_X_HIGH, start_x_high);
-> -       if (!ret)
-> -               ret = reg_write(client, REG_WINDOW_START_X_LOW, start_x_low);
-> -       if (!ret)
-> -               ret = reg_write(client, REG_WINDOW_START_Y_HIGH, start_y_high);
-> -       if (!ret)
-> -               ret = reg_write(client, REG_WINDOW_START_Y_LOW, start_y_low);
->
-> +       /*
-> +        * This should set the starting point for cropping.
-> +        * Doesn't work so far.
-> +        */
-> +       ret = reg_write16(client, REG_WINDOW_START_X_HIGH, start_x);
->        if (!ret)
-> -               ret = reg_write(client, REG_WINDOW_WIDTH_HIGH, width_high);
-> -       if (!ret)
-> -               ret = reg_write(client, REG_WINDOW_WIDTH_LOW , width_low);
-> -       if (!ret)
-> -               ret = reg_write(client, REG_WINDOW_HEIGHT_HIGH, height_high);
-> -       if (!ret)
-> -               ret = reg_write(client, REG_WINDOW_HEIGHT_LOW,  height_low);
-> +               ret = reg_write16(client, REG_WINDOW_START_Y_HIGH, start_y);
-> +       if (!ret) {
-> +               priv->crop_rect.left = start_x;
-> +               priv->crop_rect.top = start_y;
-> +       }
->
->        if (!ret)
-> -               ret = reg_write(client, REG_OUT_WIDTH_HIGH, width_high);
-> +               ret = reg_write16(client, REG_WINDOW_WIDTH_HIGH, width);
->        if (!ret)
-> -               ret = reg_write(client, REG_OUT_WIDTH_LOW , width_low);
-> -       if (!ret)
-> -               ret = reg_write(client, REG_OUT_HEIGHT_HIGH, height_high);
-> +               ret = reg_write16(client, REG_WINDOW_HEIGHT_HIGH, height);
-> +       if (ret)
-> +               return ret;
-> +       priv->crop_rect.width = width;
-> +       priv->crop_rect.height = height;
-> +
-> +       /* Set the output window size. Only 1:1 scale is supported so far. */
-> +       ret = reg_write16(client, REG_OUT_WIDTH_HIGH, width);
->        if (!ret)
-> -               ret = reg_write(client, REG_OUT_HEIGHT_LOW,  height_low);
-> +               ret = reg_write16(client, REG_OUT_HEIGHT_HIGH, height);
->
-> +       /* Total width = output size + blanking */
->        if (!ret)
-> -               ret = reg_write(client, REG_OUT_TOTAL_WIDTH_HIGH, total_width_high);
-> +               ret = reg_write16(client, REG_OUT_TOTAL_WIDTH_HIGH, total_width);
->        if (!ret)
-> -               ret = reg_write(client, REG_OUT_TOTAL_WIDTH_LOW, total_width_low);
-> +               ret = reg_write16(client, REG_OUT_TOTAL_HEIGHT_HIGH, total_height);
-> +
-> +       /* Sets the window for AWB calculations */
->        if (!ret)
-> -               ret = reg_write(client, REG_OUT_TOTAL_HEIGHT_HIGH, total_height_high);
-> +               ret = reg_write16(client, REG_AVG_WINDOW_END_X_HIGH, width);
->        if (!ret)
-> -               ret = reg_write(client, REG_OUT_TOTAL_HEIGHT_LOW,  total_height_low);
-> +               ret = reg_write16(client, REG_AVG_WINDOW_END_Y_HIGH, height);
->
->        return ret;
->  }
-> @@ -743,18 +787,18 @@ static int ov5642_set_resolution(struct i2c_client *client)
->  static int ov5642_try_fmt(struct v4l2_subdev *sd,
->                          struct v4l2_mbus_framefmt *mf)
->  {
-> +       struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +       struct ov5642 *priv = to_ov5642(client);
->        const struct ov5642_datafmt *fmt = ov5642_find_datafmt(mf->code);
->
-> -       dev_dbg(sd->v4l2_dev->dev, "%s(%u) width: %u heigth: %u\n",
-> -                       __func__, mf->code, mf->width, mf->height);
-> +       mf->width = priv->crop_rect.width;
-> +       mf->height = priv->crop_rect.height;
->
->        if (!fmt) {
->                mf->code        = ov5642_colour_fmts[0].code;
->                mf->colorspace  = ov5642_colour_fmts[0].colorspace;
->        }
->
-> -       mf->width       = OV5642_WIDTH;
-> -       mf->height      = OV5642_HEIGHT;
->        mf->field       = V4L2_FIELD_NONE;
->
->        return 0;
-> @@ -766,20 +810,13 @@ static int ov5642_s_fmt(struct v4l2_subdev *sd,
->        struct i2c_client *client = v4l2_get_subdevdata(sd);
->        struct ov5642 *priv = to_ov5642(client);
->
-> -       dev_dbg(sd->v4l2_dev->dev, "%s(%u)\n", __func__, mf->code);
-> -
->        /* MIPI CSI could have changed the format, double-check */
->        if (!ov5642_find_datafmt(mf->code))
->                return -EINVAL;
->
->        ov5642_try_fmt(sd, mf);
-> -
->        priv->fmt = ov5642_find_datafmt(mf->code);
->
-> -       ov5642_write_array(client, ov5642_default_regs_init);
-> -       ov5642_set_resolution(client);
-> -       ov5642_write_array(client, ov5642_default_regs_finalise);
-> -
->        return 0;
->  }
->
-> @@ -793,8 +830,8 @@ static int ov5642_g_fmt(struct v4l2_subdev *sd,
->
->        mf->code        = fmt->code;
->        mf->colorspace  = fmt->colorspace;
-> -       mf->width       = OV5642_WIDTH;
-> -       mf->height      = OV5642_HEIGHT;
-> +       mf->width       = priv->crop_rect.width;
-> +       mf->height      = priv->crop_rect.height;
->        mf->field       = V4L2_FIELD_NONE;
->
->        return 0;
-> @@ -827,15 +864,44 @@ static int ov5642_g_chip_ident(struct v4l2_subdev *sd,
->        return 0;
->  }
->
-> +static int ov5642_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
-> +{
-> +       struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +       struct ov5642 *priv = to_ov5642(client);
-> +       struct v4l2_rect *rect = &a->c;
-> +       int ret;
-> +
-> +       v4l_bound_align_image(&rect->width, 48, OV5642_MAX_WIDTH, 1,
-> +                             &rect->height, 32, OV5642_MAX_HEIGHT, 1, 0);
-> +
-> +       priv->crop_rect.width   = rect->width;
-> +       priv->crop_rect.height  = rect->height;
-> +       priv->total_width       = rect->width + BLANKING_EXTRA_WIDTH;
-> +       priv->total_height      = max_t(int, rect->height +
-> +                                                       BLANKING_EXTRA_HEIGHT,
-> +                                                       BLANKING_MIN_HEIGHT);
-> +       priv->crop_rect.width           = rect->width;
-> +       priv->crop_rect.height          = rect->height;
-> +
-> +       ret = ov5642_write_array(client, ov5642_default_regs_init);
-> +       if (!ret)
-> +               ret = ov5642_set_resolution(sd);
-> +       if (!ret)
-> +               ret = ov5642_write_array(client, ov5642_default_regs_finalise);
-> +
-> +       return ret;
-> +}
-> +
->  static int ov5642_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
->  {
-> +       struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +       struct ov5642 *priv = to_ov5642(client);
->        struct v4l2_rect *rect = &a->c;
-> +
-> +       if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +               return -EINVAL;
->
-> -       a->type         = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> -       rect->top       = 0;
-> -       rect->left      = 0;
-> -       rect->width     = OV5642_WIDTH;
-> -       rect->height    = OV5642_HEIGHT;
-> +       *rect = priv->crop_rect;
->
->        return 0;
->  }
-> @@ -844,8 +910,8 @@ static int ov5642_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
->  {
->        a->bounds.left                  = 0;
->        a->bounds.top                   = 0;
-> -       a->bounds.width                 = OV5642_WIDTH;
-> -       a->bounds.height                = OV5642_HEIGHT;
-> +       a->bounds.width                 = OV5642_MAX_WIDTH;
-> +       a->bounds.height                = OV5642_MAX_HEIGHT;
->        a->defrect                      = a->bounds;
->        a->type                         = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->        a->pixelaspect.numerator        = 1;
-> @@ -858,24 +924,37 @@ static int ov5642_g_mbus_config(struct v4l2_subdev *sd,
->                                struct v4l2_mbus_config *cfg)
->  {
->        cfg->type = V4L2_MBUS_CSI2;
-> -       cfg->flags = V4L2_MBUS_CSI2_2_LANE |
-> -               V4L2_MBUS_CSI2_CHANNEL_0 |
-> -               V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-> +       cfg->flags = V4L2_MBUS_CSI2_2_LANE | V4L2_MBUS_CSI2_CHANNEL_0 |
-> +                                       V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
->
->        return 0;
->  }
->
-> +static int ov5642_s_power(struct v4l2_subdev *sd, int on)
-> +{
-> +       struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +       int ret = ov5642_write_array(client, ov5642_default_regs_init);
-> +       if (!ret)
-> +               ret = ov5642_set_resolution(sd);
-> +       if (!ret)
-> +               ret = ov5642_write_array(client, ov5642_default_regs_finalise);
-> +
-> +       return ret;
-> +}
-> +
->  static struct v4l2_subdev_video_ops ov5642_subdev_video_ops = {
->        .s_mbus_fmt     = ov5642_s_fmt,
->        .g_mbus_fmt     = ov5642_g_fmt,
->        .try_mbus_fmt   = ov5642_try_fmt,
->        .enum_mbus_fmt  = ov5642_enum_fmt,
-> +       .s_crop         = ov5642_s_crop,
->        .g_crop         = ov5642_g_crop,
->        .cropcap        = ov5642_cropcap,
->        .g_mbus_config  = ov5642_g_mbus_config,
->  };
->
->  static struct v4l2_subdev_core_ops ov5642_subdev_core_ops = {
-> +       .s_power        = ov5642_s_power,
->        .g_chip_ident   = ov5642_g_chip_ident,
->  #ifdef CONFIG_VIDEO_ADV_DEBUG
->        .g_register     = ov5642_get_register,
-> @@ -941,8 +1020,17 @@ static int ov5642_probe(struct i2c_client *client,
->
->        v4l2_i2c_subdev_init(&priv->subdev, client, &ov5642_subdev_ops);
->
-> -       icd->ops        = NULL;
-> -       priv->fmt       = &ov5642_colour_fmts[0];
-> +       icd->ops                = NULL;
-> +       priv->fmt               = &ov5642_colour_fmts[0];
-> +
-> +       priv->crop_rect.width   = OV5642_DEFAULT_WIDTH;
-> +       priv->crop_rect.height  = OV5642_DEFAULT_HEIGHT;
-> +       priv->crop_rect.left    = (OV5642_MAX_WIDTH - OV5642_DEFAULT_WIDTH) / 2;
-> +       priv->crop_rect.top     = (OV5642_MAX_HEIGHT - OV5642_DEFAULT_HEIGHT) / 2;
-> +       priv->crop_rect.width   = OV5642_DEFAULT_WIDTH;
-> +       priv->crop_rect.height  = OV5642_DEFAULT_HEIGHT;
-> +       priv->total_width = OV5642_DEFAULT_WIDTH + BLANKING_EXTRA_WIDTH;
-> +       priv->total_height = BLANKING_MIN_HEIGHT;
->
->        ret = ov5642_video_probe(icd, client);
->        if (ret < 0)
-> @@ -951,6 +1039,7 @@ static int ov5642_probe(struct i2c_client *client,
->        return 0;
->
->  error:
-> +       icd->ops = NULL;
->        kfree(priv);
->        return ret;
->  }
-> @@ -961,6 +1050,7 @@ static int ov5642_remove(struct i2c_client *client)
->        struct soc_camera_device *icd = client->dev.platform_data;
->        struct soc_camera_link *icl = to_soc_camera_link(icd);
->
-> +       icd->ops = NULL;
->        if (icl->free_bus)
->                icl->free_bus(icl);
->        kfree(priv);
->
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/ispccdc.c    |   62 ++++++++--------
+ drivers/media/video/omap3isp/ispccp2.c    |  112 ++++++++++++++--------------
+ drivers/media/video/omap3isp/ispcsi2.c    |   84 +++++++++++-----------
+ drivers/media/video/omap3isp/isppreview.c |   94 ++++++++++++------------
+ drivers/media/video/omap3isp/ispresizer.c |   90 ++++++++++++------------
+ drivers/media/video/omap3isp/ispstat.c    |   36 +++++-----
+ 6 files changed, 239 insertions(+), 239 deletions(-)
+
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 4e4bf48..9ed4d8a 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -2150,6 +2150,37 @@ static const struct media_entity_operations ccdc_media_ops = {
+ 	.link_setup = ccdc_link_setup,
+ };
+ 
++void omap3isp_ccdc_unregister_entities(struct isp_ccdc_device *ccdc)
++{
++	v4l2_device_unregister_subdev(&ccdc->subdev);
++	omap3isp_video_unregister(&ccdc->video_out);
++}
++
++int omap3isp_ccdc_register_entities(struct isp_ccdc_device *ccdc,
++	struct v4l2_device *vdev)
++{
++	int ret;
++
++	/* Register the subdev and video node. */
++	ret = v4l2_device_register_subdev(vdev, &ccdc->subdev);
++	if (ret < 0)
++		goto error;
++
++	ret = omap3isp_video_register(&ccdc->video_out, vdev);
++	if (ret < 0)
++		goto error;
++
++	return 0;
++
++error:
++	omap3isp_ccdc_unregister_entities(ccdc);
++	return ret;
++}
++
++/* -----------------------------------------------------------------------------
++ * ISP CCDC initialisation and cleanup
++ */
++
+ /*
+  * ccdc_init_entities - Initialize V4L2 subdev and media entity
+  * @ccdc: ISP CCDC module
+@@ -2202,37 +2233,6 @@ static int ccdc_init_entities(struct isp_ccdc_device *ccdc)
+ 	return 0;
+ }
+ 
+-void omap3isp_ccdc_unregister_entities(struct isp_ccdc_device *ccdc)
+-{
+-	v4l2_device_unregister_subdev(&ccdc->subdev);
+-	omap3isp_video_unregister(&ccdc->video_out);
+-}
+-
+-int omap3isp_ccdc_register_entities(struct isp_ccdc_device *ccdc,
+-	struct v4l2_device *vdev)
+-{
+-	int ret;
+-
+-	/* Register the subdev and video node. */
+-	ret = v4l2_device_register_subdev(vdev, &ccdc->subdev);
+-	if (ret < 0)
+-		goto error;
+-
+-	ret = omap3isp_video_register(&ccdc->video_out, vdev);
+-	if (ret < 0)
+-		goto error;
+-
+-	return 0;
+-
+-error:
+-	omap3isp_ccdc_unregister_entities(ccdc);
+-	return ret;
+-}
+-
+-/* -----------------------------------------------------------------------------
+- * ISP CCDC initialisation and cleanup
+- */
+-
+ /*
+  * omap3isp_ccdc_init - CCDC module initialization.
+  * @dev: Device pointer specific to the OMAP3 ISP.
+diff --git a/drivers/media/video/omap3isp/ispccp2.c b/drivers/media/video/omap3isp/ispccp2.c
+index b8e0863..883a282 100644
+--- a/drivers/media/video/omap3isp/ispccp2.c
++++ b/drivers/media/video/omap3isp/ispccp2.c
+@@ -1032,6 +1032,48 @@ static const struct media_entity_operations ccp2_media_ops = {
+ };
+ 
+ /*
++ * omap3isp_ccp2_unregister_entities - Unregister media entities: subdev
++ * @ccp2: Pointer to ISP CCP2 device
++ */
++void omap3isp_ccp2_unregister_entities(struct isp_ccp2_device *ccp2)
++{
++	v4l2_device_unregister_subdev(&ccp2->subdev);
++	omap3isp_video_unregister(&ccp2->video_in);
++}
++
++/*
++ * omap3isp_ccp2_register_entities - Register the subdev media entity
++ * @ccp2: Pointer to ISP CCP2 device
++ * @vdev: Pointer to v4l device
++ * return negative error code or zero on success
++ */
++
++int omap3isp_ccp2_register_entities(struct isp_ccp2_device *ccp2,
++				    struct v4l2_device *vdev)
++{
++	int ret;
++
++	/* Register the subdev and video nodes. */
++	ret = v4l2_device_register_subdev(vdev, &ccp2->subdev);
++	if (ret < 0)
++		goto error;
++
++	ret = omap3isp_video_register(&ccp2->video_in, vdev);
++	if (ret < 0)
++		goto error;
++
++	return 0;
++
++error:
++	omap3isp_ccp2_unregister_entities(ccp2);
++	return ret;
++}
++
++/* -----------------------------------------------------------------------------
++ * ISP ccp2 initialisation and cleanup
++ */
++
++/*
+  * ccp2_init_entities - Initialize ccp2 subdev and media entity.
+  * @ccp2: Pointer to ISP CCP2 device
+  * return negative error code or zero on success
+@@ -1095,62 +1137,6 @@ static int ccp2_init_entities(struct isp_ccp2_device *ccp2)
+ }
+ 
+ /*
+- * omap3isp_ccp2_unregister_entities - Unregister media entities: subdev
+- * @ccp2: Pointer to ISP CCP2 device
+- */
+-void omap3isp_ccp2_unregister_entities(struct isp_ccp2_device *ccp2)
+-{
+-	v4l2_device_unregister_subdev(&ccp2->subdev);
+-	omap3isp_video_unregister(&ccp2->video_in);
+-}
+-
+-/*
+- * omap3isp_ccp2_register_entities - Register the subdev media entity
+- * @ccp2: Pointer to ISP CCP2 device
+- * @vdev: Pointer to v4l device
+- * return negative error code or zero on success
+- */
+-
+-int omap3isp_ccp2_register_entities(struct isp_ccp2_device *ccp2,
+-				    struct v4l2_device *vdev)
+-{
+-	int ret;
+-
+-	/* Register the subdev and video nodes. */
+-	ret = v4l2_device_register_subdev(vdev, &ccp2->subdev);
+-	if (ret < 0)
+-		goto error;
+-
+-	ret = omap3isp_video_register(&ccp2->video_in, vdev);
+-	if (ret < 0)
+-		goto error;
+-
+-	return 0;
+-
+-error:
+-	omap3isp_ccp2_unregister_entities(ccp2);
+-	return ret;
+-}
+-
+-/* -----------------------------------------------------------------------------
+- * ISP ccp2 initialisation and cleanup
+- */
+-
+-/*
+- * omap3isp_ccp2_cleanup - CCP2 un-initialization
+- * @isp : Pointer to ISP device
+- */
+-void omap3isp_ccp2_cleanup(struct isp_device *isp)
+-{
+-	struct isp_ccp2_device *ccp2 = &isp->isp_ccp2;
+-
+-	omap3isp_video_cleanup(&ccp2->video_in);
+-	media_entity_cleanup(&ccp2->subdev.entity);
+-
+-	regulator_put(ccp2->vdds_csib);
+-}
+-
+-/*
+  * omap3isp_ccp2_init - CCP2 initialization.
+  * @isp : Pointer to ISP device
+  * return negative error code or zero on success
+@@ -1195,3 +1181,17 @@ out:
+ 
+ 	return ret;
+ }
++
++/*
++ * omap3isp_ccp2_cleanup - CCP2 un-initialization
++ * @isp : Pointer to ISP device
++ */
++void omap3isp_ccp2_cleanup(struct isp_device *isp)
++{
++	struct isp_ccp2_device *ccp2 = &isp->isp_ccp2;
++
++	omap3isp_video_cleanup(&ccp2->video_in);
++	media_entity_cleanup(&ccp2->subdev.entity);
++
++	regulator_put(ccp2->vdds_csib);
++}
+diff --git a/drivers/media/video/omap3isp/ispcsi2.c b/drivers/media/video/omap3isp/ispcsi2.c
+index 5612e95..2c9bffc 100644
+--- a/drivers/media/video/omap3isp/ispcsi2.c
++++ b/drivers/media/video/omap3isp/ispcsi2.c
+@@ -1187,6 +1187,37 @@ static const struct media_entity_operations csi2_media_ops = {
+ 	.link_setup = csi2_link_setup,
+ };
+ 
++void omap3isp_csi2_unregister_entities(struct isp_csi2_device *csi2)
++{
++	v4l2_device_unregister_subdev(&csi2->subdev);
++	omap3isp_video_unregister(&csi2->video_out);
++}
++
++int omap3isp_csi2_register_entities(struct isp_csi2_device *csi2,
++				    struct v4l2_device *vdev)
++{
++	int ret;
++
++	/* Register the subdev and video nodes. */
++	ret = v4l2_device_register_subdev(vdev, &csi2->subdev);
++	if (ret < 0)
++		goto error;
++
++	ret = omap3isp_video_register(&csi2->video_out, vdev);
++	if (ret < 0)
++		goto error;
++
++	return 0;
++
++error:
++	omap3isp_csi2_unregister_entities(csi2);
++	return ret;
++}
++
++/* -----------------------------------------------------------------------------
++ * ISP CSI2 initialisation and cleanup
++ */
++
+ /*
+  * csi2_init_entities - Initialize subdev and media entity.
+  * @csi2: Pointer to csi2 structure.
+@@ -1239,48 +1270,6 @@ static int csi2_init_entities(struct isp_csi2_device *csi2)
+ 	return 0;
+ }
+ 
+-void omap3isp_csi2_unregister_entities(struct isp_csi2_device *csi2)
+-{
+-	v4l2_device_unregister_subdev(&csi2->subdev);
+-	omap3isp_video_unregister(&csi2->video_out);
+-}
+-
+-int omap3isp_csi2_register_entities(struct isp_csi2_device *csi2,
+-				    struct v4l2_device *vdev)
+-{
+-	int ret;
+-
+-	/* Register the subdev and video nodes. */
+-	ret = v4l2_device_register_subdev(vdev, &csi2->subdev);
+-	if (ret < 0)
+-		goto error;
+-
+-	ret = omap3isp_video_register(&csi2->video_out, vdev);
+-	if (ret < 0)
+-		goto error;
+-
+-	return 0;
+-
+-error:
+-	omap3isp_csi2_unregister_entities(csi2);
+-	return ret;
+-}
+-
+-/* -----------------------------------------------------------------------------
+- * ISP CSI2 initialisation and cleanup
+- */
+-
+-/*
+- * omap3isp_csi2_cleanup - Routine for module driver cleanup
+- */
+-void omap3isp_csi2_cleanup(struct isp_device *isp)
+-{
+-	struct isp_csi2_device *csi2a = &isp->isp_csi2a;
+-
+-	omap3isp_video_cleanup(&csi2a->video_out);
+-	media_entity_cleanup(&csi2a->subdev.entity);
+-}
+-
+ /*
+  * omap3isp_csi2_init - Routine for module driver init
+  */
+@@ -1317,3 +1306,14 @@ fail:
+ 	omap3isp_csi2_cleanup(isp);
+ 	return ret;
+ }
++
++/*
++ * omap3isp_csi2_cleanup - Routine for module driver cleanup
++ */
++void omap3isp_csi2_cleanup(struct isp_device *isp)
++{
++	struct isp_csi2_device *csi2a = &isp->isp_csi2a;
++
++	omap3isp_video_cleanup(&csi2a->video_out);
++	media_entity_cleanup(&csi2a->subdev.entity);
++}
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index 84a18b6..b926ebb 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -1966,8 +1966,44 @@ static const struct media_entity_operations preview_media_ops = {
+ 	.link_setup = preview_link_setup,
+ };
+ 
++void omap3isp_preview_unregister_entities(struct isp_prev_device *prev)
++{
++	v4l2_device_unregister_subdev(&prev->subdev);
++	omap3isp_video_unregister(&prev->video_in);
++	omap3isp_video_unregister(&prev->video_out);
++}
++
++int omap3isp_preview_register_entities(struct isp_prev_device *prev,
++	struct v4l2_device *vdev)
++{
++	int ret;
++
++	/* Register the subdev and video nodes. */
++	ret = v4l2_device_register_subdev(vdev, &prev->subdev);
++	if (ret < 0)
++		goto error;
++
++	ret = omap3isp_video_register(&prev->video_in, vdev);
++	if (ret < 0)
++		goto error;
++
++	ret = omap3isp_video_register(&prev->video_out, vdev);
++	if (ret < 0)
++		goto error;
++
++	return 0;
++
++error:
++	omap3isp_preview_unregister_entities(prev);
++	return ret;
++}
++
++/* -----------------------------------------------------------------------------
++ * ISP previewer initialisation and cleanup
++ */
++
+ /*
+- * review_init_entities - Initialize subdev and media entity.
++ * preview_init_entities - Initialize subdev and media entity.
+  * @prev : Pointer to preview structure
+  * return -ENOMEM or zero on success
+  */
+@@ -2044,52 +2080,6 @@ static int preview_init_entities(struct isp_prev_device *prev)
+ 	return 0;
+ }
+ 
+-void omap3isp_preview_unregister_entities(struct isp_prev_device *prev)
+-{
+-	v4l2_device_unregister_subdev(&prev->subdev);
+-	omap3isp_video_unregister(&prev->video_in);
+-	omap3isp_video_unregister(&prev->video_out);
+-}
+-
+-int omap3isp_preview_register_entities(struct isp_prev_device *prev,
+-	struct v4l2_device *vdev)
+-{
+-	int ret;
+-
+-	/* Register the subdev and video nodes. */
+-	ret = v4l2_device_register_subdev(vdev, &prev->subdev);
+-	if (ret < 0)
+-		goto error;
+-
+-	ret = omap3isp_video_register(&prev->video_in, vdev);
+-	if (ret < 0)
+-		goto error;
+-
+-	ret = omap3isp_video_register(&prev->video_out, vdev);
+-	if (ret < 0)
+-		goto error;
+-
+-	return 0;
+-
+-error:
+-	omap3isp_preview_unregister_entities(prev);
+-	return ret;
+-}
+-
+-/* -----------------------------------------------------------------------------
+- * ISP previewer initialisation and cleanup
+- */
+-
+-void omap3isp_preview_cleanup(struct isp_device *isp)
+-{
+-	struct isp_prev_device *prev = &isp->isp_prev;
+-
+-	v4l2_ctrl_handler_free(&prev->ctrls);
+-	omap3isp_video_cleanup(&prev->video_in);
+-	omap3isp_video_cleanup(&prev->video_out);
+-	media_entity_cleanup(&prev->subdev.entity);
+-}
+-
+ /*
+  * isp_preview_init - Previewer initialization.
+  * @dev : Pointer to ISP device
+@@ -2114,3 +2104,13 @@ out:
+ 
+ 	return ret;
+ }
++
++void omap3isp_preview_cleanup(struct isp_device *isp)
++{
++	struct isp_prev_device *prev = &isp->isp_prev;
++
++	v4l2_ctrl_handler_free(&prev->ctrls);
++	omap3isp_video_cleanup(&prev->video_in);
++	omap3isp_video_cleanup(&prev->video_out);
++	media_entity_cleanup(&prev->subdev.entity);
++}
+diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
+index 78ce040..224b0b9 100644
+--- a/drivers/media/video/omap3isp/ispresizer.c
++++ b/drivers/media/video/omap3isp/ispresizer.c
+@@ -1608,6 +1608,42 @@ static const struct media_entity_operations resizer_media_ops = {
+ 	.link_setup = resizer_link_setup,
+ };
+ 
++void omap3isp_resizer_unregister_entities(struct isp_res_device *res)
++{
++	v4l2_device_unregister_subdev(&res->subdev);
++	omap3isp_video_unregister(&res->video_in);
++	omap3isp_video_unregister(&res->video_out);
++}
++
++int omap3isp_resizer_register_entities(struct isp_res_device *res,
++				       struct v4l2_device *vdev)
++{
++	int ret;
++
++	/* Register the subdev and video nodes. */
++	ret = v4l2_device_register_subdev(vdev, &res->subdev);
++	if (ret < 0)
++		goto error;
++
++	ret = omap3isp_video_register(&res->video_in, vdev);
++	if (ret < 0)
++		goto error;
++
++	ret = omap3isp_video_register(&res->video_out, vdev);
++	if (ret < 0)
++		goto error;
++
++	return 0;
++
++error:
++	omap3isp_resizer_unregister_entities(res);
++	return ret;
++}
++
++/* -----------------------------------------------------------------------------
++ * ISP resizer initialization and cleanup
++ */
++
+ /*
+  * resizer_init_entities - Initialize resizer subdev and media entity.
+  * @res : Pointer to resizer device structure
+@@ -1672,51 +1708,6 @@ static int resizer_init_entities(struct isp_res_device *res)
+ 	return 0;
+ }
+ 
+-void omap3isp_resizer_unregister_entities(struct isp_res_device *res)
+-{
+-	v4l2_device_unregister_subdev(&res->subdev);
+-	omap3isp_video_unregister(&res->video_in);
+-	omap3isp_video_unregister(&res->video_out);
+-}
+-
+-int omap3isp_resizer_register_entities(struct isp_res_device *res,
+-				       struct v4l2_device *vdev)
+-{
+-	int ret;
+-
+-	/* Register the subdev and video nodes. */
+-	ret = v4l2_device_register_subdev(vdev, &res->subdev);
+-	if (ret < 0)
+-		goto error;
+-
+-	ret = omap3isp_video_register(&res->video_in, vdev);
+-	if (ret < 0)
+-		goto error;
+-
+-	ret = omap3isp_video_register(&res->video_out, vdev);
+-	if (ret < 0)
+-		goto error;
+-
+-	return 0;
+-
+-error:
+-	omap3isp_resizer_unregister_entities(res);
+-	return ret;
+-}
+-
+-/* -----------------------------------------------------------------------------
+- * ISP resizer initialization and cleanup
+- */
+-
+-void omap3isp_resizer_cleanup(struct isp_device *isp)
+-{
+-	struct isp_res_device *res = &isp->isp_res;
+-
+-	omap3isp_video_cleanup(&res->video_in);
+-	omap3isp_video_cleanup(&res->video_out);
+-	media_entity_cleanup(&res->subdev.entity);
+-}
+-
+ /*
+  * isp_resizer_init - Resizer initialization.
+  * @isp : Pointer to ISP device
+@@ -1739,3 +1730,12 @@ out:
+ 
+ 	return ret;
+ }
++
++void omap3isp_resizer_cleanup(struct isp_device *isp)
++{
++	struct isp_res_device *res = &isp->isp_res;
++
++	omap3isp_video_cleanup(&res->video_in);
++	omap3isp_video_cleanup(&res->video_out);
++	media_entity_cleanup(&res->subdev.entity);
++}
+diff --git a/drivers/media/video/omap3isp/ispstat.c b/drivers/media/video/omap3isp/ispstat.c
+index 4ffddd2..253b32f 100644
+--- a/drivers/media/video/omap3isp/ispstat.c
++++ b/drivers/media/video/omap3isp/ispstat.c
+@@ -1022,24 +1022,6 @@ void omap3isp_stat_dma_isr(struct ispstat *stat)
+ 	__stat_isr(stat, 1);
+ }
+ 
+-static int isp_stat_init_entities(struct ispstat *stat, const char *name,
+-				  const struct v4l2_subdev_ops *sd_ops)
+-{
+-	struct v4l2_subdev *subdev = &stat->subdev;
+-	struct media_entity *me = &subdev->entity;
+-
+-	v4l2_subdev_init(subdev, sd_ops);
+-	snprintf(subdev->name, V4L2_SUBDEV_NAME_SIZE, "OMAP3 ISP %s", name);
+-	subdev->grp_id = 1 << 16;	/* group ID for isp subdevs */
+-	subdev->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
+-	v4l2_set_subdevdata(subdev, stat);
+-
+-	stat->pad.flags = MEDIA_PAD_FL_SINK;
+-	me->ops = NULL;
+-
+-	return media_entity_init(me, 1, &stat->pad, 0);
+-}
+-
+ int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
+ 				  struct v4l2_fh *fh,
+ 				  struct v4l2_event_subscription *sub)
+@@ -1070,6 +1052,24 @@ int omap3isp_stat_register_entities(struct ispstat *stat,
+ 	return v4l2_device_register_subdev(vdev, &stat->subdev);
+ }
+ 
++static int isp_stat_init_entities(struct ispstat *stat, const char *name,
++				  const struct v4l2_subdev_ops *sd_ops)
++{
++	struct v4l2_subdev *subdev = &stat->subdev;
++	struct media_entity *me = &subdev->entity;
++
++	v4l2_subdev_init(subdev, sd_ops);
++	snprintf(subdev->name, V4L2_SUBDEV_NAME_SIZE, "OMAP3 ISP %s", name);
++	subdev->grp_id = 1 << 16;	/* group ID for isp subdevs */
++	subdev->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
++	v4l2_set_subdevdata(subdev, stat);
++
++	stat->pad.flags = MEDIA_PAD_FL_SINK;
++	me->ops = NULL;
++
++	return media_entity_init(me, 1, &stat->pad, 0);
++}
++
+ int omap3isp_stat_init(struct ispstat *stat, const char *name,
+ 		       const struct v4l2_subdev_ops *sd_ops)
+ {
+-- 
+1.7.3.4
+
