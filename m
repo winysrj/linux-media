@@ -1,66 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43469 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757588Ab1IAOb1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Sep 2011 10:31:27 -0400
-Message-ID: <4E5F9738.3080604@redhat.com>
-Date: Thu, 01 Sep 2011 11:31:20 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: goffa72@gmail.com
-CC: Thierry Reding <thierry.reding@avionic-design.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 02/21] [media] tuner/xc2028: Fix frequency offset for
- radio mode.
-References: <1312442059-23935-1-git-send-email-thierry.reding@avionic-design.de> <1312442059-23935-3-git-send-email-thierry.reding@avionic-design.de> <4E5E7E2B.90603@redhat.com> <20110901051037.GB18473@avionic-0098.mockup.avionic-design.de> <4E5F7E71.5010209@aapt.net.au>
-In-Reply-To: <4E5F7E71.5010209@aapt.net.au>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:22174 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754765Ab1IWP4f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Sep 2011 11:56:35 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LRZ009G6GA9J050@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 23 Sep 2011 16:56:33 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LRZ00A59GA9J0@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 23 Sep 2011 16:56:33 +0100 (BST)
+Date: Fri, 23 Sep 2011 17:56:33 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PATCHES FOR 3.2] Media bus configuration flags
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Message-id: <4E7CAC31.3090007@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 01-09-2011 09:45, Andrew Goff escreveu:
-> Hi Thierry,
-> 
-> I have been having problems with the radio tuner in my leadtek 1800h card. This card has the xc2028 tuner. Using fmtools i would get an error message similar to - frequency out of range 0.0 - 0.0.
+Hi Mauro,
 
-This is due to a bug at the tuner core.
+Please pull from git://git.infradead.org/users/kmpark/linux-2.6-samsung v4l_mbus_config
+for a small addition to the media bus configuration flags, a patch converting s5p-fimc
+driver to use generic flags and an optimization patch for m5mols driver.
 
-> After seeing you patches at the beginning of last month I installed the recent drivers at the time and applied your patches. The frequency out of range error went away but the only sound I got was static. I then discovered the frequency is out by 2.7MHz, so if I want to listen to 104.9 I need to tune the radio to 107.6.
+I have added the m5mols patch which has also been included in recent pull request from
+Marek, as I wasn't sure if you're going to pull it due to some further ongoing discussion
+on the selection API.
 
-Try to remove Thierry xc3028 patch. His patches were applied already at the main tree
-(I applied them very early today).
+The following changes since commit 3a7a62378be538944ff00904b8e0b795fe16609a:
 
-> 
-> On Ubuntu 10.04 the card works fine, the errors started when applying the recent V4L drivers that I require for another card.
-> 
-> Are you able to help resolve this problem and get this card working properly again.
-> 
-> Thanks
-> 
-> Andrew
-> 
-> 
-> 
-> On 1/09/2011 3:10 PM, Thierry Reding wrote:
->> * Mauro Carvalho Chehab wrote:
->>> Em 04-08-2011 04:14, Thierry Reding escreveu:
->>>> In radio mode, no frequency offset is needed. While at it, split off the
->>>> frequency offset computation for digital TV into a separate function.
->>>
->>> Nah, it is better to keep the offset calculation there. there is already
->>> a set_freq for DVB. breaking the frequency logic even further seems to
->>> increase the driver's logic. Also, patch is simpler and easier to review.
->>
->> Okay, no problem. Feel free to replace the patch with yours.
->>
->>> The patch bellow seems to be better. On a quick review, I think that the
->>>     send_seq(priv, {0x00, 0x00})
->>> sequence may be wrong. I suspect that the device is just discarding that,
->>> but changing it needs more testing.
->>
->> I ran across that as well, but I didn't dare touch it because I wasn't sure
->> what the broader impact would be.
->>
->> Thierry
+  [media] ati_remote: update Kconfig description (2011-09-22 10:55:10 -0300)
 
+are available in the git repository at:
+  git://git.infradead.org/users/kmpark/linux-2.6-samsung v4l_mbus_config
+
+Sylwester Nawrocki (3):
+      v4l2: Add polarity flag definitions for the parallel bus FIELD signal
+      s5p-fimc: Convert to use generic media bus polarity flags
+      m5mols: Remove superfluous irq field from the platform data struct
+
+ drivers/media/video/m5mols/m5mols_core.c |    6 +++---
+ drivers/media/video/s5p-fimc/fimc-reg.c  |   14 +++++++++-----
+ drivers/media/video/s5p-fimc/regs-fimc.h |    1 +
+ include/media/m5mols.h                   |    4 +---
+ include/media/s5p_fimc.h                 |    7 +------
+ include/media/v4l2-mediabus.h            |   12 ++++++++++--
+ 6 files changed, 25 insertions(+), 19 deletions(-)
+
+Best regards,
+-- 
+Sylwester Nawrocki
+Samsung Poland R&D Center
