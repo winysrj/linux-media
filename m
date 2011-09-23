@@ -1,49 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from denali.acsalaska.net ([209.112.173.242]:54672 "EHLO
-	denali.acsalaska.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754249Ab1I3UxU (ORCPT
+Received: from nm4.bt.bullet.mail.ird.yahoo.com ([212.82.108.235]:24595 "HELO
+	nm4.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752231Ab1IWJaU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 16:53:20 -0400
-Received: from localhost2.local (66-230-86-166-rb1.fai.dsl.dynamic.acsalaska.net [66.230.86.166])
-	by denali.acsalaska.net (8.14.4/8.14.4) with ESMTP id p8UKrIE5019338
-	for <linux-media@vger.kernel.org>; Fri, 30 Sep 2011 12:53:18 -0800 (AKDT)
-	(envelope-from rogerx.oss@gmail.com)
-Date: Fri, 30 Sep 2011 12:53:17 -0800
-From: Roger <rogerx.oss@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: dvbscan output Channel Number into final stdout?
-Message-ID: <20110930205317.GA2287@localhost2.local>
-References: <20110929224418.GD2824@localhost2.local>
- <4e856d27.92d1e30a.6587.13f8@mx.google.com>
- <20110930080609.GD2284@localhost2.local>
- <e9f9d962fccf0ef7c4bddd24ed065c8c.squirrel@localhost>
+	Fri, 23 Sep 2011 05:30:20 -0400
+Message-ID: <4E7C51A7.9020209@yahoo.com>
+Date: Fri, 23 Sep 2011 10:30:15 +0100
+From: Chris Rankin <rankincj@yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <e9f9d962fccf0ef7c4bddd24ed065c8c.squirrel@localhost>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+To: Stuart Morris <stuart_morris@talk21.com>,
+	linux-media@vger.kernel.org
+Subject: Re: em28xx PCTV 290e patches
+References: <1316767965.1148.YahooMailClassic@web86705.mail.ird.yahoo.com>
+In-Reply-To: <1316767965.1148.YahooMailClassic@web86705.mail.ird.yahoo.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On Fri, Sep 30, 2011 at 12:34:41PM -0500, david.hagood@gmail.com wrote:
->Even that won't always save you. In my area, we have 2 distinct signals,
->both identifying themselves as "KAKE-DT" on virtual channel 10.1, so even
->that isn't guaranteed to be unique.
+Hi Stuart,
 
-Eh, what fun.
+On 23/09/11 09:52, Stuart Morris wrote:
+> I have a PCTV 290e and have been watching closely the updates to the Linux media
+> tree for this device. Thanks for addressing the issues with the 290e driver, I am
+> now able to use my 290e for watching UK FreeviewHD with a good degree of success.
 
-Technically, should just output both, the channel_name and channel_num.
+No problems, although I think Mauro has been working on the locking problem as 
+well :-).
 
-ie. For my channel 2:1 here (using chicken scratch):
+> I have a question regarding some patches you requested a while back that have
+> yet to be applied to the media tree.
+> These patches are:
+> http://www.spinics.net/lists/linux-media/msg36799.html
+> http://www.spinics.net/lists/linux-media/msg36818.html
 
--- KATN-DT:497028615:8VSB:49:52:3
-++ KATN-DT:2.1:497028615:8VSB:49:52:3
+Yes, I have noticed this. My advice would be to apply the first patch that 
+remove the em28xx_remove_from_devlist() function (and the race condition that it 
+creates), but not the second patch because I don't think it's compatible with 
+Mauro's work.
 
-or
+My other patches have *slowly* been added to the queue for 3.2; I am still 
+waiting to see if this patch will join the others before resubmitting it.
 
-++ 2.1:KATN-DT:497028615:8VSB:49:52:3
-
-
--- 
-Roger
-http://rogerx.freeshell.org/
+Cheers,
+Chris
