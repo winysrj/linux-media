@@ -1,167 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:62309 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752391Ab1IBOoL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 10:44:11 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Jean Delvare <khali@linux-fr.org>
-Subject: [PATCH 1/2] misc: remove CONFIG_MISC_DEVICES
-Date: Fri, 2 Sep 2011 16:43:14 +0200
-Cc: Luciano Coelho <coelho@ti.com>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	matti.j.aaltonen@nokia.com, johannes@sipsolutions.net,
-	linux-kernel@vger.kernel.org, sameo@linux.intel.com,
-	mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
-	Grant Likely <grant.likely@secretlab.ca>
-References: <20110829102732.03f0f05d.rdunlap@xenotime.net> <201108311849.37273.arnd@arndb.de> <20110902143713.307bbebe@endymion.delvare>
-In-Reply-To: <20110902143713.307bbebe@endymion.delvare>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40377 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753945Ab1IWNN0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Sep 2011 09:13:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH 2/4] v4l: add documentation for selection API
+Date: Fri, 23 Sep 2011 15:13:18 +0200
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl, sakari.ailus@iki.fi
+References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com> <201109230041.27712.laurent.pinchart@ideasonboard.com> <4E7C7D63.7070504@samsung.com>
+In-Reply-To: <4E7C7D63.7070504@samsung.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109021643.14275.arnd@arndb.de>
+Message-Id: <201109231513.22342.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since misc devices have nothing in common besides fitting in no
-other category, there is no need to group them in one Kconfig
-symbol. Simply removing the symbol gets rid of all sorts of
-Kconfig warnings about missing dependencies when another driver
-selects a misc driver without also selecting MISC_DEVICES.
+Hi Tomasz,
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/arm/mach-davinci/Kconfig |    6 ------
- arch/unicore32/Kconfig        |    1 -
- drivers/misc/Kconfig          |   26 ++++++++------------------
- drivers/mmc/host/Kconfig      |    1 -
- 4 files changed, 8 insertions(+), 26 deletions(-)
+On Friday 23 September 2011 14:36:51 Tomasz Stanislawski wrote:
+> On 09/23/2011 12:41 AM, Laurent Pinchart wrote:
+> 
+> Hi Laurent,
+> Thank you for the review.
 
-diff --git a/arch/arm/mach-davinci/Kconfig b/arch/arm/mach-davinci/Kconfig
-index c0deaca..3755cec 100644
---- a/arch/arm/mach-davinci/Kconfig
-+++ b/arch/arm/mach-davinci/Kconfig
-@@ -61,7 +61,6 @@ config MACH_DAVINCI_EVM
- 	bool "TI DM644x EVM"
- 	default ARCH_DAVINCI_DM644x
- 	depends on ARCH_DAVINCI_DM644x
--	select MISC_DEVICES
- 	select EEPROM_AT24
- 	select I2C
- 	help
-@@ -71,7 +70,6 @@ config MACH_DAVINCI_EVM
- config MACH_SFFSDR
- 	bool "Lyrtech SFFSDR"
- 	depends on ARCH_DAVINCI_DM644x
--	select MISC_DEVICES
- 	select EEPROM_AT24
- 	select I2C
- 	help
-@@ -105,7 +103,6 @@ config MACH_DAVINCI_DM6467_EVM
- 	default ARCH_DAVINCI_DM646x
- 	depends on ARCH_DAVINCI_DM646x
- 	select MACH_DAVINCI_DM6467TEVM
--	select MISC_DEVICES
- 	select EEPROM_AT24
- 	select I2C
- 	help
-@@ -119,7 +116,6 @@ config MACH_DAVINCI_DM365_EVM
- 	bool "TI DM365 EVM"
- 	default ARCH_DAVINCI_DM365
- 	depends on ARCH_DAVINCI_DM365
--	select MISC_DEVICES
- 	select EEPROM_AT24
- 	select I2C
- 	help
-@@ -131,7 +127,6 @@ config MACH_DAVINCI_DA830_EVM
- 	default ARCH_DAVINCI_DA830
- 	depends on ARCH_DAVINCI_DA830
- 	select GPIO_PCF857X
--	select MISC_DEVICES
- 	select EEPROM_AT24
- 	select I2C
- 	help
-@@ -208,7 +203,6 @@ config MACH_TNETV107X
- config MACH_MITYOMAPL138
- 	bool "Critical Link MityDSP-L138/MityARM-1808 SoM"
- 	depends on ARCH_DAVINCI_DA850
--	select MISC_DEVICES
- 	select EEPROM_AT24
- 	select I2C
- 	help
-diff --git a/arch/unicore32/Kconfig b/arch/unicore32/Kconfig
-index e57dcce..5fb023a 100644
---- a/arch/unicore32/Kconfig
-+++ b/arch/unicore32/Kconfig
-@@ -244,7 +244,6 @@ config I2C_BATTERY_BQ27200
- config I2C_EEPROM_AT24
- 	tristate "I2C EEPROMs AT24 support"
- 	select PUV3_I2C
--	select MISC_DEVICES
- 	select EEPROM_AT24
- 
- config LCD_BACKLIGHT
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index 2d6423c..c11e5ba 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -2,23 +2,7 @@
- # Misc strange devices
- #
- 
--# This one has to live outside of the MISC_DEVICES conditional,
--# because it may be selected by drivers/platform/x86/hp_accel.
--config SENSORS_LIS3LV02D
--	tristate
--	depends on INPUT
--	select INPUT_POLLDEV
--	default n
--
--menuconfig MISC_DEVICES
--	bool "Misc devices"
--	---help---
--	  Say Y here to get to see options for device drivers from various
--	  different categories. This option alone does not add any kernel code.
--
--	  If you say N, all options in this submenu will be skipped and disabled.
--
--if MISC_DEVICES
-+menu "Misc devices"
- 
- config AD525X_DPOT
- 	tristate "Analog Devices Digital Potentiometers"
-@@ -344,6 +328,12 @@ config ISL29020
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called isl29020.
- 
-+config SENSORS_LIS3LV02D
-+	tristate
-+	depends on INPUT
-+	select INPUT_POLLDEV
-+	default n
-+
- config SENSORS_TSL2550
- 	tristate "Taos TSL2550 ambient light sensor"
- 	depends on I2C && SYSFS
-@@ -507,4 +497,4 @@ source "drivers/misc/ti-st/Kconfig"
- source "drivers/misc/lis3lv02d/Kconfig"
- source "drivers/misc/carma/Kconfig"
- 
--endif # MISC_DEVICES
-+endmenu
-diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
-index 8c87096..4fb03d4 100644
---- a/drivers/mmc/host/Kconfig
-+++ b/drivers/mmc/host/Kconfig
-@@ -477,7 +477,6 @@ config MMC_SDHI
- config MMC_CB710
- 	tristate "ENE CB710 MMC/SD Interface support"
- 	depends on PCI
--	select MISC_DEVICES
- 	select CB710_CORE
- 	help
- 	  This option enables support for MMC/SD part of ENE CB710/720 Flash
+Your welcome. Sorry once again for the delay.
+
+> It looks that spelling highlighting is not enough :).
+
+That's what review is for :-)
+
+> I discussed some of your comments. There are still some open issues.
+> 
+> > On Wednesday 31 August 2011 14:28:21 Tomasz Stanislawski wrote:
+
+[snip]
+
+> >> +<section>
+> >> +
+> >> +<title>Configuration of video capture</title>
+> >> +
+> >> +<para>See the figure<xref linkend="sel-targets-capture" />  for
+> >> examples of the
+> > 
+> > s/the figure/figure/
+> > 
+> >> +selection targets available for a video capture device. The targets
+> >> should be +configured according to the pipeline configuration rules for
+> >> a capture device.
+> > 
+> > Do we have such rules written somewhere ?
+> 
+> The pipeline configuration rules are not a part of V4L2 doc yet. It was
+> discussed at IRC meeting.
+> Do you think that the RFC should be posted in separate patch to V4L2 doc?
+
+As this document refers to them, I think that would be useful. We're talking 
+about pipeline configuration using the video nodes API, right ?
+
+[snip]
+
+> >> +<para>The composing targets refer to a memory buffer. The limits of
+> >> composing +coordinates are obtained using<constant> 
+> >> V4L2_SEL_COMPOSE_BOUNDS</constant>. +All coordinates are expressed in
+> >> pixels. The top/left corner is always point +<constant> 
+> >> {0,0}</constant>. The width and height is equal to the image size
+> >> +specified using<constant>  VIDIOC_S_FMT</constant>.</para>
+> > 
+> > We support sub-pixel cropping, but not sub-pixel composition. Can you
+> > remind me of the rationale for that ?
+> 
+> Do you mean that OMAP3 ISP supports cropping with sub-pixel resolution?
+
+No, sorry. By "we" I meant the selection API.
+
+> I thought that pixels are natural units for images stored in memory
+> buffers. But I would not be surprised if there was some weird fractal-like
+> format providing images with infinite resolution. Do you think that the
+> sentence "All coordinates are expressed in pixel" should be dropped from
+> spec?
+
+I don't know to be honest. What bothers me is that the spec allows sub-pixel 
+resolution for cropping but not for composing. I'm not sure if there's any 
+hardware supported by our current drivers that could make use of sub-pixel 
+selections, but I don't see a reason to allow sub-pixel cropping and not sub-
+pixel composing. The solution might be to disallow sub-pixel cropping for now 
+though. If we do that, can we later extend it in a clean way ?
+
+[snip]
+
+> >> +<para>For capture devices the default composing rectangle is queried
+> >> using +<constant>  V4L2_SEL_COMPOSE_DEFAULT</constant>  and it is
+> >> always equal to +bounding rectangle.</para>
+> > 
+> > If they're always equal, why do we have two different targets ? :-) Maybe
+> > "is usually identical to" or "is most of the time identical to" would be
+> > better ?
+> 
+> Good question. I remember that once Hans has said that there should be
+> no margins in an image if no selection ioctl was used. Therefore I decided
+> that default and bounds rectangles should be equal for video capture.
+> I am interested what is Hans' opinion about proposal of softening this
+> requirement.
+
+I think it's a good requirement for now, but we might find use cases later 
+that would conflict with the requirement. If we just say that the rectangles 
+must be identical, applications might use the BOUNDS target instead of the 
+DEFAULT target to retrieve the default rectangle (if they're identical, why 
+should they bother ?). I'd like to reword the spec to make it clear that that 
+drivers must (at least for now) have identical defaults and bounds, and that 
+application must use the DEFAULT target to retrieve the default rectangle in 
+case the driver-side requirement gets lifted later.
+
+> >> +<para>The part of a buffer that is modified by the hardware is given by
+> >> +<constant>  V4L2_SEL_COMPOSE_PADDED</constant>. It contains all pixels
+> >> defined +using<constant>  V4L2_SEL_COMPOSE_ACTIVE</constant>  plus all
+> >> padding data +modified by hardware during insertion process. All pixel
+> >> outside this rectangle
+> > 
+> > s/All pixel/All pixels/
+> > 
+> >> +<emphasis>must not</emphasis>  be changed by the hardware. The content
+> >> of pixels +that lie inside the padded area but outside active area is
+> >> undefined. The +application can use the padded and active rectangles to
+> >> detect where the +rubbish pixels are located and remove them if
+> >> needed.</para>
+> > 
+> > How would an application remove them ?
+> 
+> The application may use memset if it recognizes fourcc. The idea of
+> padding target was to provide information about artifacts introduced the
+> hardware. If the image is decoded directly to framebuffer then the
+> application could remove artifacts. We could introduce some V4L2
+> control to inform if the padding are is filled with zeros to avoid
+> redundant memset.
+> What do you think?
+
+OK, I understand this better now. I'm still not sure how applications will be 
+able to cope with that. memset'ing the garbage area won't look good on the 
+screen.
+
+Does your hardware have different compose and padding rectangles ?
+
+[snip]
+
+> >> +<para>  The driver may have to adjusts the requested dimensions against
+> >> hardware +limits and other parts as the pipeline, i.e. the bounds given
+> >> by the +capture/output window or TV display.  If constraints flags have
+> >> to be violated +at any stage then ERANGE is returned.
+> > 
+> > You know that I still think that hints should be hints, and that ERANGE
+> > should not be returned, right ? :-)
+> 
+> Yes.. :). There are pros and cons for hints, too.
+> (+) hint can be ignored therefore is easier to implement them in drivers.
+> It may speed up adoption of the selection api.
+> (-) It is not possible to prevent hardware from applying the configuration
+> that is not acceptable by the application. Such an unfortunate operation
+> could mess up the whole pipeline.
+
+Interesting point, I hadn't thought about it.
+
+> I found two ways to solve the cons. The new ioctl TRY_SELECTION should be
+> introduced now or in the future version of selection api. Second, the
+> pipeline configuration rules may help in this case. An application should
+> configure pipeline according to the rules. The setup of stages before the
+> current stage is guaranteed to not modified. Therefore the unfortunate
+> selection call could only mess up the stages lower in the pipeline.
+> 
+> The constraints idea was OK, until I found that the content of ioctl
+> parameters is not copied to the userspace when the ioctl fails. Therefore
+> the application receives no feedback other than ERANGE. Moreover I found out
+> that is not easy to calculate the best-hit rectangle that could be returned.
+> A lot of code must be added to driver to support it.
+> 
+> There is still one more problem with the hints. Examine following scenario.
+> One tries to setup 20x20 rectangle using SEL_SIZE_LE hint. The ioctl
+> succeeds but the driver returns 32x32. Does it mean?
+> 
+> (A) it is not possible to set a rectangle smaller than 20x20
+> (B) it is not possible to set a rectangle smaller than 32x32
+> (C) driver failed to configuration consistent with 20x20 (or smaller)
+> rectangle.
+>        It is not known if such a configuration exists.
+>        Should the application continue the negotiations?
+>        Size 16x16 might be good, if the driver did not implement hint
+> [ignored them]
+>        and rounded 20x20 to 32x32.
+> 
+> The solution using constraints was consistent. The ERANGE is returned and
+> case (A) is valid. If constraints were transformed to hints then we should
+> allow to violate hints only if there is no configuration that satisfy the
+> hints.
+
+I agree with that, drivers must not violate hints if they can be satisfied, 
+otherwise they're completely pointless.
+
+> What is your opinion about it?
+
+I won't fight too much against a constraint-based approach :-) Not that you 
+convinced me that constraints are better, but I can live with them.
+
 -- 
-1.7.1
+Regards,
 
+Laurent Pinchart
