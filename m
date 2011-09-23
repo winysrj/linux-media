@@ -1,91 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:54408 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757145Ab1IGVcO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2011 17:32:14 -0400
-Received: by ywf7 with SMTP id 7so87645ywf.19
-        for <linux-media@vger.kernel.org>; Wed, 07 Sep 2011 14:32:14 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4E67DDCA.8000908@iki.fi>
-References: <4E2E0788.3010507@iki.fi>
-	<4E3061CF.2080009@redhat.com>
-	<4E306BAE.1020302@iki.fi>
-	<4E35F773.3060807@redhat.com>
-	<4E35FFBF.9010408@iki.fi>
-	<4E360E53.80107@redhat.com>
-	<4E67A12B.8020908@iki.fi>
-	<CAOcJUbz-hTf+xi=9JfJVGYsPSs7Cay6uwuwRdK7aiJeQrCtrGQ@mail.gmail.com>
-	<CAOcJUbzDNXw8j6seVuM1ZkYzV5WRV0nv6Np620hKq5sHe0Bk=g@mail.gmail.com>
-	<4E67B5E2.4040006@iki.fi>
-	<CAHAyoxyc6EyZdUueiF9VpssX8i0LazzL_BgJKczi=MOsfO1fKg@mail.gmail.com>
-	<4E67DDCA.8000908@iki.fi>
-Date: Wed, 7 Sep 2011 17:32:14 -0400
-Message-ID: <CAOcJUbz9HrfPC1bnihb2gjPSE7iM8H64J=kGGSPw6NfYoBog4w@mail.gmail.com>
-Subject: Re: [PATCH 2/3] dvb-usb: multi-frontend support (MFE)
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:33301 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752234Ab1IWVLT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Sep 2011 17:11:19 -0400
+Received: by fxe4 with SMTP id 4so4211625fxe.19
+        for <linux-media@vger.kernel.org>; Fri, 23 Sep 2011 14:11:18 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Oliver Freyermuth <o.freyermuth@googlemail.com>
+Subject: Re: [PATCH] Add support for PCTV452E.
+Date: Sat, 24 Sep 2011 00:11:21 +0300
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Jose Alberto Reguero <jareguero@telefonica.net>
-Content-Type: text/plain; charset=ISO-8859-1
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Doychin Dokov <root@net1.cc>,
+	Steffen Barszus <steffenbpunkt@googlemail.com>,
+	Dominik Kuhlen <dkuhlen@gmx.net>,
+	Andre Weidemann <Andre.Weidemann@web.de>,
+	"Michael H. Schimek" <mschimek@gmx.at>
+References: <201105242151.22826.hselasky@c2i.net> <4E7CE5F8.1050900@redhat.com> <4E7CF2E7.8090100@googlemail.com>
+In-Reply-To: <4E7CF2E7.8090100@googlemail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 8BIT
+Message-Id: <201109240011.21970.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 7, 2011 at 5:10 PM, Antti Palosaari <crope@iki.fi> wrote:
-> On 09/07/2011 09:36 PM, Michael Krufky wrote:
->>
->> On Wed, Sep 7, 2011 at 2:20 PM, Antti Palosaari<crope@iki.fi> �wrote:
+В сообщении от 23 сентября 2011 23:58:15 автор Oliver Freyermuth написал:
+> Thanks for the review!
+> 
+> As this is the first time I touched module- / kernel-code and I am not
+> really familiar with the structures of the rc-system, I do not really
+> feel up to porting to non-legacy rc-support (Igors version also appears
+> to use rc-legacy), and up to now, it was only combining patches and
+> fixing small glitches for me.
+> However, feel free to use me as a tester (I have the hardware available,
+> after all) or flood me with links to guidelines or further instructions.
+> 
+> Thanks again,
+>      Oliver Freyermuth
 >
->>> Yes, I now saw when looked latest anysee driver that you moved
->>> .streaming_ctrl(), .frontend_attach() and .tuner_attach() to frontend
->>> property. OK, it is not then relevant anymore to change register all as
->>> once.
->>>
->>> What is size_of_priv used?
->>
->> size_of_priv is a signal to the dvb-usb framework to allocate memory
->> of size, size_of_priv to track device state at a given context. �If
->> you look in dvb-usb.h, there was always a size_of_priv / void *priv at
->> the dvb_usb_device context level, and there was always a size_of_priv
->> / void *priv at the dvb_usb_adapter context level. � After my MFE
->> patch, there is now a size_of_priv / void *priv at the
->> dvb_usb_fe_adapter context level. �This private state structure is
->> used to track state at the context of each dvb_usb_fe_adap, to manage
->> the environment needed to switch between the various attached
->> frontends. �You may take a look in mxl111sf.c to see how this is used
->> (ie, struct mxl111sf_adap_state *adap_state =
->> adap->fe_adap[fe->id].priv;)
->>
->> If size_of_priv is left undefined, it is initialized to 0, and the
->> void *priv pointer remains null.
->
-> I marvel at there was 3 states, one for device, one for each adapter and now
-> even one for each frontend. Surely enough, generally only device state is
-> used. And your new driver seems to even use that new FE priv added.
 
-My new driver requires state tracking at the dvb_usb_fe_adapter
-context level, but it does *not* require state tracking at the
-dvb_usb_adapter level.  The driver also has state tracking at the
-dvb_usb_device context level.  It needs this tracking at both levels,
-but not at the middle adapter level.
+Note, this patch is good for testing with media_build system. Just in case 
+someone want not to load ~500 Mb kernel git tree, then configure, compile, 
+install vmlinuz and so on, so on.
 
-dib0700, however, requires state tracking at the dvb_usb_adapter
-context level and it also requires state tracking at the
-dvb_usb_device context level.  Most devices that have multiple
-adapters follow this same schema for tracking state within various
-context levels.
-
-The private state tracking structures are allocated dynamically as
-needed, and only if size_of_priv is defined.  Device property contexts
-that do not define size_of_priv simply do not allocate any additional
-memory for state tracking.
-
-Having the ability to track private state within each context level
-gives the dvb-usb framework the maximum flexibility to work with
-various styles of both simple and complex digital media receiver
-devices.
-
-Regards,
-
-Mike Krufky
+-- 
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
