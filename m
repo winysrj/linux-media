@@ -1,239 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4797 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756322Ab1I3JBi (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53084 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751901Ab1IWIdt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 05:01:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 2/7] V4L menu: move legacy drivers into their own submenu.
-Date: Fri, 30 Sep 2011 11:01:11 +0200
-Message-Id: <eb58a802b520329b54aebfeb2a1400870d61b127.1317372990.git.hans.verkuil@cisco.com>
-In-Reply-To: <1317373276-5818-1-git-send-email-hverkuil@xs4all.nl>
-References: <1317373276-5818-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <9198dc44ea6f7b8e481c8e6bb24c80fc1b2429ed.1317372990.git.hans.verkuil@cisco.com>
-References: <9198dc44ea6f7b8e481c8e6bb24c80fc1b2429ed.1317372990.git.hans.verkuil@cisco.com>
+	Fri, 23 Sep 2011 04:33:49 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH 1/4] v4l: add support for selection api
+Date: Fri, 23 Sep 2011 10:33:49 +0200
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl, sakari.ailus@iki.fi
+References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com> <1314793703-32345-2-git-send-email-t.stanislaws@samsung.com>
+In-Reply-To: <1314793703-32345-2-git-send-email-t.stanislaws@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109231033.49757.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Tomasz,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/Kconfig |  185 +++++++++++++++++++++++-------------------
- 1 files changed, 101 insertions(+), 84 deletions(-)
+Thanks for the patch, and sorry for the late reply.
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 0f8ccb4..86fdd7d 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -685,51 +685,6 @@ source "drivers/media/video/omap/Kconfig"
- 
- source "drivers/media/video/bt8xx/Kconfig"
- 
--config VIDEO_PMS
--	tristate "Mediavision Pro Movie Studio Video For Linux"
--	depends on ISA && VIDEO_V4L2
--	help
--	  Say Y if you have such a thing.
--
--	  To compile this driver as a module, choose M here: the
--	  module will be called pms.
--
--config VIDEO_BWQCAM
--	tristate "Quickcam BW Video For Linux"
--	depends on PARPORT && VIDEO_V4L2
--	help
--	  Say Y have if you the black and white version of the QuickCam
--	  camera. See the next option for the color version.
--
--	  To compile this driver as a module, choose M here: the
--	  module will be called bw-qcam.
--
--config VIDEO_CQCAM
--	tristate "QuickCam Colour Video For Linux (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && PARPORT && VIDEO_V4L2
--	help
--	  This is the video4linux driver for the colour version of the
--	  Connectix QuickCam.  If you have one of these cameras, say Y here,
--	  otherwise say N.  This driver does not work with the original
--	  monochrome QuickCam, QuickCam VC or QuickClip.  It is also available
--	  as a module (c-qcam).
--	  Read <file:Documentation/video4linux/CQcam.txt> for more information.
--
--config VIDEO_W9966
--	tristate "W9966CF Webcam (FlyCam Supra and others) Video For Linux"
--	depends on PARPORT_1284 && PARPORT && VIDEO_V4L2
--	help
--	  Video4linux driver for Winbond's w9966 based Webcams.
--	  Currently tested with the LifeView FlyCam Supra.
--	  If you have one of these cameras, say Y here
--	  otherwise say N.
--	  This driver is also available as a module (w9966).
--
--	  Check out <file:Documentation/video4linux/w9966.txt> for more
--	  information.
--
--source "drivers/media/video/cpia2/Kconfig"
--
- config VIDEO_VINO
- 	tristate "SGI Vino Video For Linux (EXPERIMENTAL)"
- 	depends on I2C && SGI_IP22 && EXPERIMENTAL && VIDEO_V4L2
-@@ -756,45 +711,6 @@ config VIDEO_MEYE
- 
- source "drivers/media/video/saa7134/Kconfig"
- 
--config VIDEO_MXB
--	tristate "Siemens-Nixdorf 'Multimedia eXtension Board'"
--	depends on PCI && VIDEO_V4L2 && I2C
--	select VIDEO_SAA7146_VV
--	select VIDEO_TUNER
--	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
--	select VIDEO_TDA9840 if VIDEO_HELPER_CHIPS_AUTO
--	select VIDEO_TEA6415C if VIDEO_HELPER_CHIPS_AUTO
--	select VIDEO_TEA6420 if VIDEO_HELPER_CHIPS_AUTO
--	---help---
--	  This is a video4linux driver for the 'Multimedia eXtension Board'
--	  TV card by Siemens-Nixdorf.
--
--	  To compile this driver as a module, choose M here: the
--	  module will be called mxb.
--
--config VIDEO_HEXIUM_ORION
--	tristate "Hexium HV-PCI6 and Orion frame grabber"
--	depends on PCI && VIDEO_V4L2 && I2C
--	select VIDEO_SAA7146_VV
--	---help---
--	  This is a video4linux driver for the Hexium HV-PCI6 and
--	  Orion frame grabber cards by Hexium.
--
--	  To compile this driver as a module, choose M here: the
--	  module will be called hexium_orion.
--
--config VIDEO_HEXIUM_GEMINI
--	tristate "Hexium Gemini frame grabber"
--	depends on PCI && VIDEO_V4L2 && I2C
--	select VIDEO_SAA7146_VV
--	---help---
--	  This is a video4linux driver for the Hexium Gemini frame
--	  grabber card by Hexium. Please note that the Gemini Dual
--	  card is *not* fully supported.
--
--	  To compile this driver as a module, choose M here: the
--	  module will be called hexium_gemini.
--
- config VIDEO_TIMBERDALE
- 	tristate "Support for timberdale Video In/LogiWIN"
- 	depends on VIDEO_V4L2 && I2C && DMADEVICES
-@@ -1067,6 +983,107 @@ config VIDEO_S5P_MIPI_CSIS
- 
- source "drivers/media/video/s5p-tv/Kconfig"
- 
-+#
-+# Legacy drivers configuration
-+#
-+
-+menuconfig V4L_LEGACY_DRIVERS
-+	bool "V4L legacy devices"
-+	default n
-+	---help---
-+	  Say Y here to enable support for these legacy drivers. These drivers
-+	  are for old and obsure hardware (e.g. parallel port webcams, ISA
-+	  drivers, niche hardware).
-+
-+if V4L_LEGACY_DRIVERS
-+
-+config VIDEO_PMS
-+	tristate "Mediavision Pro Movie Studio Video For Linux"
-+	depends on ISA && VIDEO_V4L2
-+	help
-+	  Say Y if you have the ISA Mediavision Pro Movie Studio
-+	  capture card.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called pms.
-+
-+config VIDEO_BWQCAM
-+	tristate "Quickcam BW Video For Linux"
-+	depends on PARPORT && VIDEO_V4L2
-+	help
-+	  Say Y have if you the black and white version of the QuickCam
-+	  camera. See the next option for the color version.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called bw-qcam.
-+
-+config VIDEO_CQCAM
-+	tristate "QuickCam Colour Video For Linux (EXPERIMENTAL)"
-+	depends on EXPERIMENTAL && PARPORT && VIDEO_V4L2
-+	help
-+	  This is the video4linux driver for the colour version of the
-+	  Connectix QuickCam.  If you have one of these cameras, say Y here,
-+	  otherwise say N.  This driver does not work with the original
-+	  monochrome QuickCam, QuickCam VC or QuickClip.  It is also available
-+	  as a module (c-qcam).
-+	  Read <file:Documentation/video4linux/CQcam.txt> for more information.
-+
-+config VIDEO_W9966
-+	tristate "W9966CF Webcam (FlyCam Supra and others) Video For Linux"
-+	depends on PARPORT_1284 && PARPORT && VIDEO_V4L2
-+	help
-+	  Video4linux driver for Winbond's w9966 based Webcams.
-+	  Currently tested with the LifeView FlyCam Supra.
-+	  If you have one of these cameras, say Y here
-+	  otherwise say N.
-+	  This driver is also available as a module (w9966).
-+
-+	  Check out <file:Documentation/video4linux/w9966.txt> for more
-+	  information.
-+
-+source "drivers/media/video/cpia2/Kconfig"
-+
-+config VIDEO_MXB
-+	tristate "Siemens-Nixdorf 'Multimedia eXtension Board'"
-+	depends on PCI && VIDEO_V4L2 && I2C
-+	select VIDEO_SAA7146_VV
-+	select VIDEO_TUNER
-+	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
-+	select VIDEO_TDA9840 if VIDEO_HELPER_CHIPS_AUTO
-+	select VIDEO_TEA6415C if VIDEO_HELPER_CHIPS_AUTO
-+	select VIDEO_TEA6420 if VIDEO_HELPER_CHIPS_AUTO
-+	---help---
-+	  This is a video4linux driver for the 'Multimedia eXtension Board'
-+	  TV card by Siemens-Nixdorf.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called mxb.
-+
-+config VIDEO_HEXIUM_ORION
-+	tristate "Hexium HV-PCI6 and Orion frame grabber"
-+	depends on PCI && VIDEO_V4L2 && I2C
-+	select VIDEO_SAA7146_VV
-+	---help---
-+	  This is a video4linux driver for the Hexium HV-PCI6 and
-+	  Orion frame grabber cards by Hexium.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called hexium_orion.
-+
-+config VIDEO_HEXIUM_GEMINI
-+	tristate "Hexium Gemini frame grabber"
-+	depends on PCI && VIDEO_V4L2 && I2C
-+	select VIDEO_SAA7146_VV
-+	---help---
-+	  This is a video4linux driver for the Hexium Gemini frame
-+	  grabber card by Hexium. Please note that the Gemini Dual
-+	  card is *not* fully supported.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called hexium_gemini.
-+
-+endif # V4L_LEGACY_DRIVERS
-+
- endif # VIDEO_CAPTURE_DRIVERS
- 
- menuconfig V4L_MEM2MEM_DRIVERS
+On Wednesday 31 August 2011 14:28:20 Tomasz Stanislawski wrote:
+> This patch introduces new api for a precise control of cropping and
+> composing features for video devices. The new ioctls are
+> VIDIOC_S_SELECTION and VIDIOC_G_SELECTION.
+> 
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/video/v4l2-compat-ioctl32.c |    2 +
+>  drivers/media/video/v4l2-ioctl.c          |   28 +++++++++++++++++
+>  include/linux/videodev2.h                 |   46
+> +++++++++++++++++++++++++++++ include/media/v4l2-ioctl.h                | 
+>   4 ++
+>  4 files changed, 80 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c
+> b/drivers/media/video/v4l2-compat-ioctl32.c index 61979b7..f3b9d15 100644
+> --- a/drivers/media/video/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
+> @@ -927,6 +927,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned
+> int cmd, unsigned long arg) case VIDIOC_CROPCAP:
+>  	case VIDIOC_G_CROP:
+>  	case VIDIOC_S_CROP:
+> +	case VIDIOC_G_SELECTION:
+> +	case VIDIOC_S_SELECTION:
+>  	case VIDIOC_G_JPEGCOMP:
+>  	case VIDIOC_S_JPEGCOMP:
+>  	case VIDIOC_QUERYSTD:
+> diff --git a/drivers/media/video/v4l2-ioctl.c
+> b/drivers/media/video/v4l2-ioctl.c index 002ce13..6e02b45 100644
+> --- a/drivers/media/video/v4l2-ioctl.c
+> +++ b/drivers/media/video/v4l2-ioctl.c
+> @@ -225,6 +225,8 @@ static const char *v4l2_ioctls[] = {
+>  	[_IOC_NR(VIDIOC_CROPCAP)]          = "VIDIOC_CROPCAP",
+>  	[_IOC_NR(VIDIOC_G_CROP)]           = "VIDIOC_G_CROP",
+>  	[_IOC_NR(VIDIOC_S_CROP)]           = "VIDIOC_S_CROP",
+> +	[_IOC_NR(VIDIOC_G_SELECTION)]      = "VIDIOC_G_SELECTION",
+> +	[_IOC_NR(VIDIOC_S_SELECTION)]      = "VIDIOC_S_SELECTION",
+>  	[_IOC_NR(VIDIOC_G_JPEGCOMP)]       = "VIDIOC_G_JPEGCOMP",
+>  	[_IOC_NR(VIDIOC_S_JPEGCOMP)]       = "VIDIOC_S_JPEGCOMP",
+>  	[_IOC_NR(VIDIOC_QUERYSTD)]         = "VIDIOC_QUERYSTD",
+> @@ -1714,6 +1716,32 @@ static long __video_do_ioctl(struct file *file,
+>  		ret = ops->vidioc_s_crop(file, fh, p);
+>  		break;
+>  	}
+> +	case VIDIOC_G_SELECTION:
+> +	{
+> +		struct v4l2_selection *p = arg;
+> +
+> +		if (!ops->vidioc_g_selection)
+> +			break;
+> +
+> +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+> +
+> +		ret = ops->vidioc_g_selection(file, fh, p);
+> +		if (!ret)
+> +			dbgrect(vfd, "", &p->r);
+> +		break;
+> +	}
+> +	case VIDIOC_S_SELECTION:
+> +	{
+> +		struct v4l2_selection *p = arg;
+> +
+> +		if (!ops->vidioc_s_selection)
+> +			break;
+> +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+> +		dbgrect(vfd, "", &p->r);
+> +
+> +		ret = ops->vidioc_s_selection(file, fh, p);
+> +		break;
+> +	}
+>  	case VIDIOC_CROPCAP:
+>  	{
+>  		struct v4l2_cropcap *p = arg;
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index fca24cc..b7471fe 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -738,6 +738,48 @@ struct v4l2_crop {
+>  	struct v4l2_rect        c;
+>  };
+> 
+> +/* Hints for adjustments of selection rectangle */
+> +#define V4L2_SEL_SIZE_GE	0x00000001
+> +#define V4L2_SEL_SIZE_LE	0x00000002
+> +
+> +/* Selection targets */
+> +
+> +/* current cropping area */
+> +#define V4L2_SEL_CROP_ACTIVE		0
+> +/* default cropping area */
+> +#define V4L2_SEL_CROP_DEFAULT		1
+> +/* cropping bounds */
+> +#define V4L2_SEL_CROP_BOUNDS		2
+> +/* current composing area */
+> +#define V4L2_SEL_COMPOSE_ACTIVE		256
+> +/* default composing area */
+> +#define V4L2_SEL_COMPOSE_DEFAULT	257
+> +/* composing bounds */
+> +#define V4L2_SEL_COMPOSE_BOUNDS		258
+> +/* current composing area plus all padding pixels */
+> +#define V4L2_SEL_COMPOSE_PADDED		259
+> +
+> +/**
+> + * struct v4l2_selection - selection info
+> + * @type:	buffer type (do not use *_MPLANE types)
+> + * @target:	selection target, used to choose one of possible rectangles
+> + * @flags:	constraints flags
+> + * @r:		coordinates of selection window
+> + * @reserved:	for future use, rounds structure size to 64 bytes, set to
+> zero + *
+> + * Hardware may use multiple helper window to process a video stream.
+> + * The structure is used to exchange this selection areas between
+> + * an application and a driver.
+> + */
+> +struct v4l2_selection {
+> +	__u32			type;
+> +	__u32			target;
+> +	__u32                   flags;
+> +	struct v4l2_rect        r;
+> +	__u32                   reserved[9];
+> +};
+> +
+> +
+>  /*
+>   *      A N A L O G   V I D E O   S T A N D A R D
+>   */
+> @@ -2182,6 +2224,10 @@ struct v4l2_dbg_chip_ident {
+>  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct
+> v4l2_event_subscription) #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91,
+> struct v4l2_event_subscription)
+> 
+> +/* Experimental crop/compose API */
+> +#define VIDIOC_G_SELECTION	_IOWR('V', 92, struct v4l2_selection)
+> +#define VIDIOC_S_SELECTION	_IOWR('V', 93, struct v4l2_selection)
+> +
+>  /* Reminder: when adding new ioctls please add support for them to
+>     drivers/media/video/v4l2-compat-ioctl32.c as well! */
+> 
+> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> index dd9f1e7..9dd6e18 100644
+> --- a/include/media/v4l2-ioctl.h
+> +++ b/include/media/v4l2-ioctl.h
+> @@ -194,6 +194,10 @@ struct v4l2_ioctl_ops {
+>  					struct v4l2_crop *a);
+>  	int (*vidioc_s_crop)           (struct file *file, void *fh,
+>  					struct v4l2_crop *a);
+> +	int (*vidioc_g_selection)      (struct file *file, void *fh,
+> +					struct v4l2_selection *s);
+> +	int (*vidioc_s_selection)      (struct file *file, void *fh,
+> +					struct v4l2_selection *s);
+>  	/* Compression ioctls */
+>  	int (*vidioc_g_jpegcomp)       (struct file *file, void *fh,
+>  					struct v4l2_jpegcompression *a);
+
 -- 
-1.7.6.3
+Regards,
 
+Laurent Pinchart
