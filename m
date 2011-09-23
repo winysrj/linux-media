@@ -1,86 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45155 "EHLO comal.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:17820 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752487Ab1IPJ7G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Sep 2011 05:59:06 -0400
-From: Archit Taneja <archit@ti.com>
-To: <hvaibhav@ti.com>
-CC: <tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>,
-	<sumit.semwal@ti.com>, <linux-media@vger.kernel.org>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH 1/5] [media]: OMAP_VOUT: Fix check in reqbuf & mmap for buf_size allocation
-Date: Fri, 16 Sep 2011 15:30:29 +0530
-Message-ID: <1316167233-1437-2-git-send-email-archit@ti.com>
-In-Reply-To: <1316167233-1437-1-git-send-email-archit@ti.com>
-References: <1316167233-1437-1-git-send-email-archit@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	id S1752918Ab1IWRD5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Sep 2011 13:03:57 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: eddi@depieri.net
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] [v2] xc5000: Add support for get_if_frequency
+Date: Fri, 23 Sep 2011 14:03:42 -0300
+Message-Id: <1316797422-23132-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1316797055-22749-1-git-send-email-mchehab@redhat.com>
+References: <1316797055-22749-1-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The commit 383e4f69879d11c86ebdd38b3356f6d0690fb4cc makes reqbuf and mmap prevent
-requesting a larger size buffer than what is allocated at kernel boot during
-omap_vout_probe.
+This is needed for devices with DRX-K and xc5000.
 
-The requested size is compared with vout->buffer_size, this isn't correct as
-vout->buffer_size is later set to the size requested in reqbuf. When the video
-device is opened the next time, this check will prevent us to allocate a buffer
-which is larger than what we requested the last time.
+Compiled-test only. Please test with a HVR 930C hardware.
 
-Don't use vout->buffer_size, always check with the parameters video1_bufsize
-or video2_bufsize.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/media/video/omap/omap_vout.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index 95daf98..e14c82b 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -664,10 +664,14 @@ static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int *count,
- 	u32 phy_addr = 0, virt_addr = 0;
- 	struct omap_vout_device *vout = q->priv_data;
- 	struct omapvideo_info *ovid = &vout->vid_info;
-+	int vid_max_buf_size;
+v2: Frequency should be in Hz
+---
+ drivers/media/common/tuners/xc5000.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
+index aa1b2e8..e3e4fb7 100644
+--- a/drivers/media/common/tuners/xc5000.c
++++ b/drivers/media/common/tuners/xc5000.c
+@@ -968,6 +968,14 @@ static int xc5000_get_frequency(struct dvb_frontend *fe, u32 *freq)
+ 	return 0;
+ }
  
- 	if (!vout)
- 		return -EINVAL;
- 
-+	vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
-+		video2_bufsize;
++static int xc5000_get_if_frequency(struct dvb_frontend *fe, u32 *freq)
++{
++	struct xc5000_priv *priv = fe->tuner_priv;
++	dprintk(1, "%s()\n", __func__);
++	*freq = priv->if_khz * 1000;
++	return 0;
++}
 +
- 	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != q->type)
- 		return -EINVAL;
- 
-@@ -690,7 +694,7 @@ static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int *count,
- 		video1_numbuffers : video2_numbuffers;
- 
- 	/* Check the size of the buffer */
--	if (*size > vout->buffer_size) {
-+	if (*size > vid_max_buf_size) {
- 		v4l2_err(&vout->vid_dev->v4l2_dev,
- 				"buffer allocation mismatch [%u] [%u]\n",
- 				*size, vout->buffer_size);
-@@ -865,6 +869,8 @@ static int omap_vout_mmap(struct file *file, struct vm_area_struct *vma)
- 	unsigned long size = (vma->vm_end - vma->vm_start);
- 	struct omap_vout_device *vout = file->private_data;
- 	struct videobuf_queue *q = &vout->vbq;
-+	int vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
-+		video2_bufsize;
- 
- 	v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev,
- 			" %s pgoff=0x%lx, start=0x%lx, end=0x%lx\n", __func__,
-@@ -887,7 +893,7 @@ static int omap_vout_mmap(struct file *file, struct vm_area_struct *vma)
- 		return -EINVAL;
- 	}
- 	/* Check the size of the buffer */
--	if (size > vout->buffer_size) {
-+	if (size > vid_max_buf_size) {
- 		v4l2_err(&vout->vid_dev->v4l2_dev,
- 				"insufficient memory [%lu] [%u]\n",
- 				size, vout->buffer_size);
+ static int xc5000_get_bandwidth(struct dvb_frontend *fe, u32 *bw)
+ {
+ 	struct xc5000_priv *priv = fe->tuner_priv;
+@@ -1108,6 +1116,7 @@ static const struct dvb_tuner_ops xc5000_tuner_ops = {
+ 	.set_params	   = xc5000_set_params,
+ 	.set_analog_params = xc5000_set_analog_params,
+ 	.get_frequency	   = xc5000_get_frequency,
++	.get_if_frequency  = xc5000_get_if_frequency,
+ 	.get_bandwidth	   = xc5000_get_bandwidth,
+ 	.get_status	   = xc5000_get_status
+ };
 -- 
-1.7.1
+1.7.6.2
 
