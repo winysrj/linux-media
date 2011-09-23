@@ -1,91 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:57743 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755467Ab1IPRFi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Sep 2011 13:05:38 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LRM003O9KTAZP@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2011 18:05:34 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRM0032CKTAM0@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2011 18:05:34 +0100 (BST)
-Date: Fri, 16 Sep 2011 19:05:29 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 2/3] v4l: Add AUTO option for the V4L2_CID_POWER_LINE_FREQUENCY
- control
-In-reply-to: <1316192730-18099-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Message-id: <1316192730-18099-3-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1316192730-18099-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:8490 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752413Ab1IWWvu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Sep 2011 18:51:50 -0400
+Message-ID: <4E7D0D81.9020106@redhat.com>
+Date: Fri, 23 Sep 2011 19:51:45 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: doronc@siano-ms.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH  17/17]DVB:Siano drivers - Automatically load client modules
+ to make easier usage of device
+References: <1316514727.5199.95.camel@Doron-Ubuntu>
+In-Reply-To: <1316514727.5199.95.camel@Doron-Ubuntu>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2_CID_POWER_LINE_FREQUENCY control allows applications to instruct
-a driver what is the power line frequency so an appropriate filter
-can be used by the device to cancel flicker by compensating the light
-intensity ripple. Currently in the menu we have entries for
-50 and 60 Hz and for entirely disabling the anti-flicker filter.
-However some devices are capable of automatically detecting the
-frequency, so add V4L2_CID_POWER_LINE_FREQUENCY_AUTO entry for them.
+Em 20-09-2011 07:32, Doron Cohen escreveu:
+> Hi,
+> This patch step makes Automatically load client modules to make easier
+> usage of device
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/controls.xml |    5 +++--
- drivers/media/video/v4l2-ctrls.c             |    1 +
- include/linux/videodev2.h                    |    1 +
- 3 files changed, 5 insertions(+), 2 deletions(-)
+Ok.
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index f3c6457..aff7989 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -232,8 +232,9 @@ control is deprecated. New drivers and applications should use the
- 	    <entry>Enables a power line frequency filter to avoid
- flicker. Possible values for <constant>enum v4l2_power_line_frequency</constant> are:
- <constant>V4L2_CID_POWER_LINE_FREQUENCY_DISABLED</constant> (0),
--<constant>V4L2_CID_POWER_LINE_FREQUENCY_50HZ</constant> (1) and
--<constant>V4L2_CID_POWER_LINE_FREQUENCY_60HZ</constant> (2).</entry>
-+<constant>V4L2_CID_POWER_LINE_FREQUENCY_50HZ</constant> (1),
-+<constant>V4L2_CID_POWER_LINE_FREQUENCY_60HZ</constant> (2) and
-+<constant>V4L2_CID_POWER_LINE_FREQUENCY_AUTO</constant> (3).</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_CID_HUE_AUTO</constant></entry>
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 06b6014..20abe5d 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -210,6 +210,7 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Disabled",
- 		"50 Hz",
- 		"60 Hz",
-+		"Auto",
- 		NULL
- 	};
- 	static const char * const camera_exposure_auto[] = {
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 5032226..ec858e7 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1125,6 +1125,7 @@ enum v4l2_power_line_frequency {
- 	V4L2_CID_POWER_LINE_FREQUENCY_DISABLED	= 0,
- 	V4L2_CID_POWER_LINE_FREQUENCY_50HZ	= 1,
- 	V4L2_CID_POWER_LINE_FREQUENCY_60HZ	= 2,
-+	V4L2_CID_POWER_LINE_FREQUENCY_AUTO	= 3,
- };
- #define V4L2_CID_HUE_AUTO			(V4L2_CID_BASE+25)
- #define V4L2_CID_WHITE_BALANCE_TEMPERATURE	(V4L2_CID_BASE+26)
--- 
-1.7.6
+> Thanks,
+> Doron Cohen
+> 
+> -----------------------
+>>From 82afa26fc1fb9db798e46de0c55b49fd1bda9580 Mon Sep 17 00:00:00 2001
+> From: Doron Cohen <doronc@siano-ms.com>
+> Date: Tue, 20 Sep 2011 09:39:02 +0300
+> Subject: [PATCH 21/21] Automatically load client modules to make easier
+> usage of device
+> 
+> ---
+>  drivers/media/dvb/siano/sms-cards.c |   17 ++++-------------
+>  1 files changed, 4 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/dvb/siano/sms-cards.c
+> b/drivers/media/dvb/siano/sms-cards.c
+> index 66b302e..378c25d 100644
+> --- a/drivers/media/dvb/siano/sms-cards.c
+> +++ b/drivers/media/dvb/siano/sms-cards.c
+> @@ -458,19 +458,10 @@ EXPORT_SYMBOL_GPL(sms_board_lna_control);
+>  
+>  int sms_board_load_modules(int id)
+>  {
+> -	switch (id) {
+> -	case SMS1XXX_BOARD_HAUPPAUGE_CATAMOUNT:
+> -	case SMS1XXX_BOARD_HAUPPAUGE_OKEMO_A:
+> -	case SMS1XXX_BOARD_HAUPPAUGE_OKEMO_B:
+> -	case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+> -	case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
+> -	case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
+> -		request_module("smsdvb");
+> -		break;
+> -	default:
+> -		/* do nothing */
+> -		break;
+> -	}
+> +	/* Siano smsmdtv loads all other supported "client" modules*/
+> +	request_module("smsdvb");
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL_GPL(sms_board_load_modules);
 
