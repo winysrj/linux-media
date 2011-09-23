@@ -1,197 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from silver.sucs.swan.ac.uk ([137.44.10.1]:40555 "EHLO
-	silver.sucs.swan.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752498Ab1IBH3L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 03:29:11 -0400
-Date: Fri, 2 Sep 2011 08:29:08 +0100
-From: Sitsofe Wheeler <sitsofe@yahoo.com>
-To: Dave Young <hidave.darkstar@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: BUG: unable to handle kernel paging request at 6b6b6bcb
- (v4l2_device_disconnect+0x11/0x30)
-Message-ID: <20110902072908.GA523@sucs.org>
-References: <20110829204846.GA14699@sucs.org>
- <CABqxG0cUx4W5JH-gX-rUe=mZ8SY0uxkrCyofPsfUDBojwWKTvQ@mail.gmail.com>
- <20110901191028.GA30301@sucs.org>
- <CABqxG0c-k0PfUEC5YDyj3G6n1iXZqSxavAMVx9rDD6PjT5wWnA@mail.gmail.com>
- <CABqxG0cf-Uk7C=XkNJtLxdWR0ROYmc-E82c-wuE2BSqhwDK3-g@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:58420 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752576Ab1IWWd0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Sep 2011 18:33:26 -0400
+Message-ID: <4E7D0931.30509@redhat.com>
+Date: Fri, 23 Sep 2011 19:33:21 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CABqxG0cf-Uk7C=XkNJtLxdWR0ROYmc-E82c-wuE2BSqhwDK3-g@mail.gmail.com>
+To: doronc@siano-ms.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 10/17]DVB:Siano drivers - Improve signal reception parameters
+ monitoring using siano statistic functions
+References: <1316514691.5199.88.camel@Doron-Ubuntu>
+In-Reply-To: <1316514691.5199.88.camel@Doron-Ubuntu>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CC'ing Hans Verkuil.
+Em 20-09-2011 07:31, Doron Cohen escreveu:
+> 
+> Hi,
+> This patch Improve signal reception parameters monitoring using siano
+> statistic functions.
+> Thanks,
+> Doron Cohen
+> 
+> --------------
+> 
+> 
+>>From 0325e0559d99ccb5ac04e9edef8eb0281a410c52 Mon Sep 17 00:00:00 2001
+> From: Doron Cohen <doronc@siano-ms.com>
+> Date: Mon, 19 Sep 2011 14:43:01 +0300
+> Subject: [PATCH 13/21] Use get_statistics_ex instead of depracated
+> get_statistics
 
-On Fri, Sep 02, 2011 at 01:35:49PM +0800, Dave Young wrote:
-> On Fri, Sep 2, 2011 at 12:59 PM, Dave Young <hidave.darkstar@gmail.com> wrote:
-> > On Fri, Sep 2, 2011 at 3:10 AM, Sitsofe Wheeler <sitsofe@yahoo.com> wrote:
-> >> On Thu, Sep 01, 2011 at 05:02:51PM +0800, Dave Young wrote:
-> >>> On Tue, Aug 30, 2011 at 4:48 AM, Sitsofe Wheeler <sitsofe@yahoo.com> wrote:
-> >>> >
-> >>> > I managed to produce an oops in 3.1.0-rc3-00270-g7a54f5e by unplugging a
-> >>> > USB webcam. See below:
-> >>>
-> >>> Could you try the attached patch?
-> >>
-> >> This patch fixed the oops but extending the sequence (enable camera,
-> >> start cheese, disable camera, watch cheese pause, enable camera, quit
-> >> cheese, start cheese) causes the following "poison overwritten" warning
-> >> to appear:
-> >
-> > It seems another bug, I can reproduce this as well.
-> >
-> > uvc_device is freed in uvc_delete,
-> >
-> > struct v4l2_device vdev is the member of struct uvc_device, so vdev is
-> > also freed. Later v4l2_device operations on vdev will overwrite the
-> > poison memory area.
-> >
-> 
-> Please try attached patch on top of previous one,  in this patch I
-> move v4l2_device_put after vdev->release in function
-> v4l2_device_release
-> 
-> Not sure if this is a right fix, comments?
-> 
-> >>
-> >>
-> >> [  191.240695] uvcvideo: Found UVC 1.00 device CNF7129 (04f2:b071)
-> >> [  191.277965] input: CNF7129 as /devices/pci0000:00/0000:00:1d.7/usb1/1-8/1-8:1.0/input/input9
-> >> [  220.287366] =============================================================================
-> >> [  220.287379] BUG kmalloc-512: Poison overwritten
-> >> [  220.287384] -----------------------------------------------------------------------------
-> >> [  220.287387]
-> >> [  220.287394] INFO: 0xec90f150-0xec90f150. First byte 0x6a instead of 0x6b
-> >> [  220.287410] INFO: Allocated in uvc_probe+0x54/0xd50 age=210617 cpu=0 pid=16
-> >> [  220.287421]  T.974+0x29d/0x5e0
-> >> [  220.287427]  kmem_cache_alloc+0x167/0x180
-> >> [  220.287433]  uvc_probe+0x54/0xd50
-> >> [  220.287441]  usb_probe_interface+0xd5/0x1d0
-> >> [  220.287448]  driver_probe_device+0x80/0x1a0
-> >> [  220.287455]  __device_attach+0x41/0x50
-> >> [  220.287460]  bus_for_each_drv+0x53/0x80
-> >> [  220.287466]  device_attach+0x89/0xa0
-> >> [  220.287472]  bus_probe_device+0x25/0x40
-> >> [  220.287478]  device_add+0x5a9/0x660
-> >> [  220.287484]  usb_set_configuration+0x562/0x670
-> >> [  220.287491]  generic_probe+0x36/0x90
-> >> [  220.287497]  usb_probe_device+0x24/0x50
-> >> [  220.287503]  driver_probe_device+0x80/0x1a0
-> >> [  220.287509]  __device_attach+0x41/0x50
-> >> [  220.287515]  bus_for_each_drv+0x53/0x80
-> >> [  220.287522] INFO: Freed in uvc_delete+0xfe/0x110 age=22 cpu=0 pid=1645
-> >> [  220.287530]  __slab_free+0x1f8/0x300
-> >> [  220.287536]  kfree+0x100/0x140
-> >> [  220.287541]  uvc_delete+0xfe/0x110
-> >> [  220.287547]  uvc_release+0x25/0x30
-> >> [  220.287555]  v4l2_device_release+0x9d/0xc0
-> >> [  220.287560]  device_release+0x19/0x90
-> >> [  220.287567]  kobject_release+0x3c/0x90
-> >> [  220.287573]  kref_put+0x2c/0x60
-> >> [  220.287578]  kobject_put+0x1d/0x50
-> >> [  220.287587]  put_device+0xf/0x20
-> >> [  220.287593]  v4l2_release+0x56/0x60
-> >> [  220.287599]  fput+0xcc/0x220
-> >> [  220.287605]  filp_close+0x44/0x70
-> >> [  220.287613]  put_files_struct+0x158/0x180
-> >> [  220.287619]  exit_files+0x40/0x50
-> >> [  220.287626]  do_exit+0xec/0x660
-> >> [  220.287632] INFO: Slab 0xef722180 objects=23 used=23 fp=0x  (null) flags=0x4080
-> >> [  220.287639] INFO: Object 0xec90f060 @offset=12384 fp=0xec90cac0
-> >> [  220.287642]
-> >> [  220.287647] Bytes b4 0xec90f050:  6d 06 00 00 88 c8 fe ff 5a 5a 5a 5a 5a 5a 5a 5a m....ÈþÿZZZZZZZZ
-> >> [  220.287681]   Object 0xec90f060:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.287713]   Object 0xec90f070:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.287746]   Object 0xec90f080:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.287778]   Object 0xec90f090:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.287811]   Object 0xec90f0a0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.287843]   Object 0xec90f0b0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.287876]   Object 0xec90f0c0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.287908]   Object 0xec90f0d0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.287941]   Object 0xec90f0e0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.287973]   Object 0xec90f0f0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288006]   Object 0xec90f100:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f110:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f120:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f130:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f140:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f150:  6a 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b jkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f160:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f170:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f180:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f190:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f1a0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f1b0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f1c0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f1d0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f1e0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f1f0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f200:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f210:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f220:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f230:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f240:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> >> [  220.288012]   Object 0xec90f250:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b a5 kkkkkkkkkkkkkkk¥
-> >> [  220.288012]  Redzone 0xec90f260:  bb bb bb bb                                     »»»»
-> >> [  220.288012]  Padding 0xec90f308:  5a 5a 5a 5a 5a 5a 5a 5a                         ZZZZZZZZ
-> >> [  220.288012] Pid: 1450, comm: metacity Not tainted 3.1.0-rc4-00131-g9e79e3e-dirty #488
-> >> [  220.288012] Call Trace:
-> >> [  220.288012]  [<b0192c3e>] print_trailer+0xee/0x140
-> >> [  220.288012]  [<b0193157>] check_bytes_and_report+0xd7/0x160
-> >> [  220.288012]  [<b0194a98>] check_object+0x1d8/0x220
-> >> [  220.288012]  [<b0192fe3>] ? check_slab+0x63/0x100
-> >> [  220.288012]  [<b0194f67>] alloc_debug_processing+0xb7/0x130
-> >> [  220.288012]  [<b019602d>] T.974+0x29d/0x5e0
-> >> [  220.288012]  [<b044c466>] ? sock_alloc_send_pskb+0x176/0x290
-> >> [  220.288012]  [<b044c466>] ? sock_alloc_send_pskb+0x176/0x290
-> >> [  220.288012]  [<b0198551>] ? create_object+0x191/0x240
-> >> [  220.288012]  [<b01979f5>] __kmalloc_track_caller+0x1d5/0x1f0
-> >> [  220.288012]  [<b044c466>] ? sock_alloc_send_pskb+0x176/0x290
-> >> [  220.288012]  [<b044ff2d>] __alloc_skb+0x4d/0x140
-> >> [  220.288012]  [<b044c466>] sock_alloc_send_pskb+0x176/0x290
-> >> [  220.288012]  [<b055d98a>] ? __mutex_unlock_slowpath+0x9a/0x110
-> >> [  220.288012]  [<b044c598>] sock_alloc_send_skb+0x18/0x20
-> >> [  220.288012]  [<b04b7957>] unix_stream_sendmsg+0x2b7/0x3d0
-> >> [  220.288012]  [<b0448913>] sock_aio_write+0x133/0x170
-> >> [  220.288012]  [<b019b285>] do_sync_readv_writev+0x95/0xc0
-> >> [  220.288012]  [<b0274328>] ? _copy_from_user+0x38/0x180
-> >> [  220.288012]  [<b019b133>] ? rw_copy_check_uvector+0x73/0xf0
-> >> [  220.288012]  [<b019bf1b>] do_readv_writev+0x9b/0x180
-> >> [  220.288012]  [<b04487e0>] ? sock_destroy_inode+0x30/0x30
-> >> [  220.288012]  [<b019c562>] ? fget_light+0xb2/0x130
-> >> [  220.288012]  [<b019c576>] ? fget_light+0xc6/0x130
-> >> [  220.288012]  [<b019c045>] vfs_writev+0x45/0x60
-> >> [  220.288012]  [<b019c131>] sys_writev+0x41/0x80
-> >> [  220.288012]  [<b055ff57>] sysenter_do_call+0x12/0x36
-> >> [  220.288012]  [<b0550000>] ? rfkill_alloc+0xe0/0x110
-> >> [  220.288012] FIX kmalloc-512: Restoring 0xec90f150-0xec90f150=0x6b
-> >> [  220.288012]
-> >> [  220.288012] FIX kmalloc-512: Marking all objects used
-> >>
-> >> --
-> >> Sitsofe | http://sucs.org/~sits/
-> >>
-> >
-> >
-> >
-> > --
-> > Regards
-> > Yang RuiRui
-> >
-> 
-> 
-> 
-> -- 
-> Regards
-> Yang RuiRui
+Does that mean that the old firmwares won't work?
 
+> 
+> ---
+>  drivers/media/dvb/siano/smsdvb.c |   73
+> +++++++++++++++++++++-----------------
+>  1 files changed, 40 insertions(+), 33 deletions(-)
+> 
+> diff --git a/drivers/media/dvb/siano/smsdvb.c
+> b/drivers/media/dvb/siano/smsdvb.c
+> index b80868c..aa345ed 100644
+> --- a/drivers/media/dvb/siano/smsdvb.c
+> +++ b/drivers/media/dvb/siano/smsdvb.c
+> @@ -48,6 +48,7 @@ struct smsdvb_client_t {
+>  	fe_status_t             fe_status;
+>  
+>  	struct completion       tune_done;
+> +	struct completion get_stats_done;
+>  
+>  	/* todo: save freq/band instead whole struct */
+>  	struct dvb_frontend_parameters fe_params;
+> @@ -330,7 +331,7 @@ static int smsdvb_onresponse(void *context, struct
+> smscore_buffer_t *cb)
+>  		is_status_update = true;
+>  		break;
+>  	}
+> -	case MSG_SMS_GET_STATISTICS_RES: {
+> +	case MSG_SMS_GET_STATISTICS_EX_RES: {
+>  		union {
+>  			struct SMSHOSTLIB_STATISTICS_ISDBT_S  isdbt;
+>  			struct SMSHOSTLIB_STATISTICS_DVB_S    dvb;
+> @@ -343,22 +344,20 @@ static int smsdvb_onresponse(void *context, struct
+> smscore_buffer_t *cb)
+>  		is_status_update = true;
+>  
+>  		switch (smscore_get_device_mode(client->coredev)) {
+> +		case SMSHOSTLIB_DEVMD_DVBT:
+> +		case SMSHOSTLIB_DEVMD_DVBH:
+> +		case SMSHOSTLIB_DEVMD_DVBT_BDA:
+> +			smsdvb_update_dvb_stats(pReceptionData, &p->dvb);
+> +			break;
+>  		case SMSHOSTLIB_DEVMD_ISDBT:
+>  		case SMSHOSTLIB_DEVMD_ISDBT_BDA:
+>  			smsdvb_update_isdbt_stats(pReceptionData, &p->isdbt);
+>  			break;
+>  		default:
+> -			smsdvb_update_dvb_stats(pReceptionData, &p->dvb);
+> -		}
+> -		if (!pReceptionData->IsDemodLocked) {
+> -			pReceptionData->SNR = 0;
+> -			pReceptionData->BER = 0;
+> -			pReceptionData->BERErrorCount = 0;
+> -			pReceptionData->InBandPwr = 0;
+> -			pReceptionData->ErrorTSPackets = 0;
+> +			break;
+>  		}
+> -
+> -		complete(&client->tune_done);
+> +		is_status_update = true;
+> +		complete(&client->get_stats_done);
+>  		break;
+>  	}
+>  	default:
+> @@ -470,18 +469,22 @@ static int smsdvb_sendrequest_and_wait(struct
+> smsdvb_client_t *client,
+>  						0 : -ETIME;
+>  }
+>  
+> -static int smsdvb_send_statistics_request(struct smsdvb_client_t
+> *client)
+> -{
+> -	int rc;
+> -	struct SmsMsgHdr_S Msg = { MSG_SMS_GET_STATISTICS_REQ,
+> -				    DVBT_BDA_CONTROL_MSG_ID,
+> -				    HIF_TASK,
+> -				    sizeof(struct SmsMsgHdr_S), 0 };
+> +static int smsdvb_get_statistics_ex(struct dvb_frontend *fe) {
+>  
+> -	rc = smsdvb_sendrequest_and_wait(client, &Msg, sizeof(Msg),
+> -					  &client->tune_done);
+> +	struct smsdvb_client_t *client =
+> +	    container_of(fe, struct smsdvb_client_t, frontend);
+> +	struct SmsMsgHdr_S Msg;
+> +
+> +	Msg.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
+> +	Msg.msgDstId = HIF_TASK;
+> +	Msg.msgFlags = 0;
+> +	Msg.msgType = MSG_SMS_GET_STATISTICS_EX_REQ;
+> +	Msg.msgLength = sizeof(Msg);
+> +
+> +	smsendian_handle_tx_message((struct SmsMsgHdr_S *)&Msg);
+> +	return smsdvb_sendrequest_and_wait(client, &Msg, sizeof(Msg),
+> +					   &client->get_stats_done);
+>  
+> -	return rc;
+>  }
+>  
+>  static inline int led_feedback(struct smsdvb_client_t *client)
+> @@ -500,7 +503,7 @@ static int smsdvb_read_status(struct dvb_frontend
+> *fe, fe_status_t *stat)
+>  	struct smsdvb_client_t *client;
+>  	client = container_of(fe, struct smsdvb_client_t, frontend);
+>  
+> -	rc = smsdvb_send_statistics_request(client);
+> +	rc = smsdvb_get_statistics_ex(fe);
+>  
+>  	*stat = client->fe_status;
+>  
+> @@ -515,7 +518,7 @@ static int smsdvb_read_ber(struct dvb_frontend *fe,
+> u32 *ber)
+>  	struct smsdvb_client_t *client;
+>  	client = container_of(fe, struct smsdvb_client_t, frontend);
+>  
+> -	rc = smsdvb_send_statistics_request(client);
+> +	rc = smsdvb_get_statistics_ex(fe);
+>  
+>  	*ber = client->reception_data.BER;
+>  
+> @@ -531,7 +534,7 @@ static int smsdvb_read_signal_strength(struct
+> dvb_frontend *fe, u16 *strength)
+>  	struct smsdvb_client_t *client;
+>  	client = container_of(fe, struct smsdvb_client_t, frontend);
+>  
+> -	rc = smsdvb_send_statistics_request(client);
+> +	rc = smsdvb_get_statistics_ex(fe);
+>  
+>  	if (client->reception_data.InBandPwr < -95)
+>  		*strength = 0;
+> @@ -553,7 +556,7 @@ static int smsdvb_read_snr(struct dvb_frontend *fe,
+> u16 *snr)
+>  	struct smsdvb_client_t *client;
+>  	client = container_of(fe, struct smsdvb_client_t, frontend);
+>  
+> -	rc = smsdvb_send_statistics_request(client);
+> +	rc = smsdvb_get_statistics_ex(fe);
+>  
+>  	*snr = client->reception_data.SNR;
+>  
+> @@ -568,7 +571,7 @@ static int smsdvb_read_ucblocks(struct dvb_frontend
+> *fe, u32 *ucblocks)
+>  	struct smsdvb_client_t *client;
+>  	client = container_of(fe, struct smsdvb_client_t, frontend);
+>  
+> -	rc = smsdvb_send_statistics_request(client);
+> +	rc = smsdvb_get_statistics_ex(fe);
+>  
+>  	*ucblocks = client->reception_data.ErrorTSPackets;
+>  
+> @@ -595,10 +598,11 @@ static int smsdvb_dvbt_set_frontend(struct
+> dvb_frontend *fe,
+>  	struct smsdvb_client_t *client =
+>  		container_of(fe, struct smsdvb_client_t, frontend);
+>  
+> -	struct 	SmsMsgData3Args_S Msg;
+> -
+> +	struct SmsMsgData4Args_S Msg;
+>  	int ret;
+>  
+> +	sms_info("setting DVB freq to %d", p->frequency);
+> +
+>  	client->fe_status = FE_HAS_SIGNAL;
+>  	client->event_fe_state = -1;
+>  	client->event_unc_state = -1;
+> @@ -611,9 +615,7 @@ static int smsdvb_dvbt_set_frontend(struct
+> dvb_frontend *fe,
+>  	Msg.xMsgHeader.msgLength = sizeof(Msg);
+>  	Msg.msgData[0] = c->frequency;
+>  	Msg.msgData[2] = 12000000;
+> -
+> -	sms_info("%s: freq %d band %d", __func__, c->frequency,
+> -		 c->bandwidth_hz);
+> +	Msg.msgData[3] = 0;
+>  
+>  	switch (c->bandwidth_hz / 1000000) {
+>  	case 8:
+> @@ -723,9 +725,14 @@ static int smsdvb_set_frontend(struct dvb_frontend
+> *fe,
+>  {
+>  	struct smsdvb_client_t *client =
+>  		container_of(fe, struct smsdvb_client_t, frontend);
+> -	struct smscore_device_t *coredev = client->coredev;
+> +	sms_info("setting the front end");
+> +
+> +	client->fe_status = FE_HAS_SIGNAL;
+> +	client->event_fe_state = -1;
+> +	client->event_unc_state = -1;
+> +
+>  
+> -	switch (smscore_get_device_mode(coredev)) {
+> +	switch (smscore_get_device_mode(client->coredev)) {
+>  	case SMSHOSTLIB_DEVMD_DVBT:
+>  	case SMSHOSTLIB_DEVMD_DVBT_BDA:
+>  		return smsdvb_dvbt_set_frontend(fe, fep);
 
-
--- 
-Sitsofe | http://sucs.org/~sits/
