@@ -1,50 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:57063 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417Ab1I1K6b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Sep 2011 06:58:31 -0400
-Date: Wed, 28 Sep 2011 12:58:29 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH] V4L: mt9p031 and mt9t001 drivers depend on MEDIA_CONTROLLER
-Message-ID: <Pine.LNX.4.64.1109281257510.30317@axis700.grange>
+Received: from mx1.redhat.com ([209.132.183.28]:62141 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752623Ab1IWXeb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Sep 2011 19:34:31 -0400
+Message-ID: <4E7D1782.30209@redhat.com>
+Date: Fri, 23 Sep 2011 20:34:26 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Subject: Re: [PATCH RESEND 1/4] davinci vpbe: remove unused macro.
+References: <1316410529-14744-1-git-send-email-manjunath.hadli@ti.com> <1316410529-14744-2-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1316410529-14744-2-git-send-email-manjunath.hadli@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Without this patch it is possible to select mt9p031 and mt9t001 camera
-sensor drivers, but their compilation fails if MEDIA_CONTROLLER is not
-set.
+Em 19-09-2011 02:35, Manjunath Hadli escreveu:
+> remove VPBE_DISPLAY_SD_BUF_SIZE as it is no longer used.
+> 
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> ---
+>  drivers/media/video/davinci/vpbe_display.c |    1 -
+>  1 files changed, 0 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/davinci/vpbe_display.c b/drivers/media/video/davinci/vpbe_display.c
+> index ae7add1..09a659e 100644
+> --- a/drivers/media/video/davinci/vpbe_display.c
+> +++ b/drivers/media/video/davinci/vpbe_display.c
+> @@ -43,7 +43,6 @@
+>  
+>  static int debug;
+>  
+> -#define VPBE_DISPLAY_SD_BUF_SIZE (720*576*2)
+>  #define VPBE_DEFAULT_NUM_BUFS 3
+>  
+>  module_param(debug, int, 0644);
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/Kconfig |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+This is really trivial. I won't wait for your pull request to
+merge this one ;)
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index aed5b3d..d2b39e1 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -469,14 +469,14 @@ config VIDEO_OV7670
- 
- config VIDEO_MT9P031
- 	tristate "Aptina MT9P031 support"
--	depends on I2C && VIDEO_V4L2
-+	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
- 	---help---
- 	  This is a Video4Linux2 sensor-level driver for the Aptina
- 	  (Micron) mt9p031 5 Mpixel camera.
- 
- config VIDEO_MT9T001
- 	tristate "Aptina MT9T001 support"
--	depends on I2C && VIDEO_V4L2
-+	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
- 	---help---
- 	  This is a Video4Linux2 sensor-level driver for the Aptina
- 	  (Micron) mt0t001 3 Mpixel camera.
--- 
-1.7.2.5
-
+Thanks,
+Mauro
