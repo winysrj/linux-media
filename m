@@ -1,52 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3.mail.ru ([94.100.176.131]:55381 "EHLO smtp3.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750727Ab1IXLNH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Sep 2011 07:13:07 -0400
-Message-ID: <4E7DBB1C.1090407@list.ru>
-Date: Sat, 24 Sep 2011 15:12:28 +0400
-From: Stas Sergeev <stsp@list.ru>
+Received: from casper.infradead.org ([85.118.1.10]:37328 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750776Ab1IWSFS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Sep 2011 14:05:18 -0400
+Message-ID: <4E7CCA59.1040806@infradead.org>
+Date: Fri, 23 Sep 2011 15:05:13 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org,
-	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
-	Lennart Poettering <lpoetter@redhat.com>,
-	ALSA devel <alsa-devel@alsa-project.org>
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru> <4E2A23C7.3040209@infradead.org> <4E2A7BF0.8080606@list.ru> <4E2AC742.8020407@infradead.org> <4E2ACAAD.4050602@list.ru> <4E2AE40F.7030108@infradead.org> <4E2C5A35.9030404@list.ru> <4E2C6638.2040707@infrade ad.org> <4E760BCA.6080900@list.ru> <4E7DB798.4060201@infradead.org>
-In-Reply-To: <4E7DB798.4060201@infradead.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: "Igor M. Liplianin" <liplianin@me.by>
+CC: linux-media@vger.kernel.org, Abylai Ospan <aospan@netup.ru>
+Subject: Re: [GIT PATCHES FOR 3.2] fix type error in cx23885 and  altera-stapl
+ move out from staging
+References: <201109232026.31162.liplianin@me.by>
+In-Reply-To: <201109232026.31162.liplianin@me.by>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-24.09.2011 14:57, Mauro Carvalho Chehab wrote:
-> Please, one patch per email. Patchwork (or any kernel maintainer script)
-> won't catch more than one patch per email. See:
-Sorry about that.
+Em 23-09-2011 14:26, Igor M. Liplianin escreveu:
+> The following changes since commit 3a7a62378be538944ff00904b8e0b795fe16609a:
+> 
+>   [media] ati_remote: update Kconfig description (2011-09-22 10:55:10 -0300)
+> 
+> are available in the git repository at:
+>   http://linuxtv.org/git/liplianin/media_tree.git netup_patches
+> 
+> Igor M. Liplianin (2):
+>       cx23885: fix type error
+>       altera-stapl: it is time to move out from staging
 
-> With respect to this patch:
-> http://patchwork.linuxtv.org/patch/7941/
->
-> I don't see any sense on it. Video standard selection is done by software,
-> when a standards mask is passed via VIDIOC_S_STD ioctl. Drivers should not
-> mess it with modprobe hacks.
-Yes, but we already have "secam=" option, and
-also the first scan, that is being done on driver
-init, scans too much without that option, and
-sometimes, unfortunately, detects the PAL carrier
-for me.
-By limiting it to secam, I avoid the problem and
-shorten the scan time.
-But this patch is not very important, so do whatever
-you think necessary with it.
+Applied, thanks!
 
-> I'll comment later http://patchwork.linuxtv.org/patch/7940/. It seems to be
-> going into the right direction, but I need to take a deeper code inspection
-> and maybe do some tests here.
-Thanks!
-Of course, in my view, the _only_ right direction is
-to export the mute control to the alsa mixer and then
-fix mplayer. But at least I'm glad I've managed to
-find the hack that satisfies your opinion and works
-around the problem at the same time.
+There was a merge conflict with some patch(es) that were fixing the memory
+leak on some errors conditions, so, I've reverted the changes bellow.
+
+Thanks,
+Mauro.
+
+--- a/drivers/staging/altera-stapl/altera.c
++++ b/drivers/misc/altera-stapl/altera.c
+@@ -2430,23 +2430,16 @@ int altera_init(struct altera_config *config, const struct firmware *fw)
+ 	int index = 0;
+ 	s32 offset = 0L;
+ 	s32 error_address = 0L;
+-	int retval = 0;
+ 
+-	key = kzalloc(33, GFP_KERNEL);
+-	if (!key) {
+-		retval = -ENOMEM;
+-		goto out;
+-	}
+-	value = kzalloc(257, GFP_KERNEL);
+-	if (!value) {
+-		retval = -ENOMEM;
+-		goto free_key;
+-	}
++	key = kzalloc(33 * sizeof(char), GFP_KERNEL);
++	if (!key)
++		return -ENOMEM;
++	value = kzalloc(257 * sizeof(char), GFP_KERNEL);
++	if (!value)
++		return -ENOMEM;
+ 	astate = kzalloc(sizeof(struct altera_state), GFP_KERNEL);
+-	if (!astate) {
+-		retval = -ENOMEM;
+-		goto free_value;
+-	}
++	if (!astate)
++		return -ENOMEM;
+ 
+ 	astate->config = config;
+ 	if (!astate->config->jtag_io) {
+@@ -2525,12 +2518,10 @@ int altera_init(struct altera_config *config, const struct firmware *fw)
+ 	} else if (exec_result)
+ 		printk(KERN_ERR "%s: error %d\n", __func__, exec_result);
+ 
+-	kfree(astate);
+-free_value:
+-	kfree(value);
+-free_key:
+ 	kfree(key);
+-out:
+-	return retval;
++	kfree(value);
++	kfree(astate);
++
++	return 0;
+ }
+ EXPORT_SYMBOL(altera_init);
