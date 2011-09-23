@@ -1,71 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49688 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:60618 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751077Ab1IUUOc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 16:14:32 -0400
-Message-ID: <4E7A45A4.7000001@redhat.com>
-Date: Wed, 21 Sep 2011 17:14:28 -0300
+	id S1751290Ab1IWWbh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Sep 2011 18:31:37 -0400
+Message-ID: <4E7D08C4.5040203@redhat.com>
+Date: Fri, 23 Sep 2011 19:31:32 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
+To: doronc@siano-ms.com
 CC: linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 3.2] gspca for_v3.2
-References: <20110812103749.0ba22d60@tele>
-In-Reply-To: <20110812103749.0ba22d60@tele>
+Subject: Re: [PATCH 9/17]DVB:Siano drivers - Improve debug capabilities by
+ separating debug and info messages.
+References: <1316514688.5199.87.camel@Doron-Ubuntu>
+In-Reply-To: <1316514688.5199.87.camel@Doron-Ubuntu>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 12-08-2011 05:37, Jean-Francois Moine escreveu:
-> The following changes since commit
-> 9bed77ee2fb46b74782d0d9d14b92e9d07f3df6e:
-> 
->   [media] tuner_xc2028: Allow selection of the frequency adjustment code for XC3028 (2011-08-06 09:52:47 -0300)
-> 
-> are available in the git repository at:
->   git://linuxtv.org/jfrancois/gspca.git for_v3.2
+Em 20-09-2011 07:31, Doron Cohen escreveu:
+> Hi,
+> This patch Improves debug capabilities by changing debug messages.
 
-Jean-François,
+seems ok.
 
-The last 3 patches didn't apply. Could you please re-base them over the
-current tree?
+Ah, please, when submitting a patch, don't add a comment like that before
+the patch, as my scripts and patchwork.linuxtv.org will do the wrong thing
+with it.
 
-Thanks!
-Mauro
+> Thanks,
+> Doron Cohen
 > 
-> Jean-François Moine (15):
->       gspca - ov519: Fix LED inversion of some ov519 webcams
->       gspca - sonixj: Fix the darkness of sensor om6802 in 320x240
->       gspca - jeilinj: Cleanup code
->       gspca - sonixj: Adjust the contrast control
->       gspca - sonixj: Increase the exposure for sensor soi768
->       gspca - sonixj: Cleanup source and remove useless instructions
->       gspca - benq: Remove the useless function sd_isoc_init
->       gspca - kinect: Remove the gspca_debug definition
->       gspca - ov534_9: Use the new control mechanism
->       gspca - ov534_9: New sensor ov9712 and new webcam 05a9:8065
->       gspca - main: Fix the isochronous transfer interval
->       gspca - main: Better values for V4L2_FMT_FLAG_COMPRESSED
->       gspca - main: Use a better altsetting for image transfer
->       gspca - main: Handle the xHCI error on usb_set_interface()
->       gspca - tp6800: New subdriver for Topro webcams
+> --------------
 > 
-> Luiz Carlos Ramos (1):
->       gspca - sonixj: Fix wrong register mask for sensor om6802
 > 
->  Documentation/video4linux/gspca.txt |    3 +
->  drivers/media/video/gspca/Kconfig   |    9 +
->  drivers/media/video/gspca/Makefile  |    2 +
->  drivers/media/video/gspca/benq.c    |   15 -
->  drivers/media/video/gspca/gspca.c   |  234 ++-
->  drivers/media/video/gspca/jeilinj.c |   10 +-
->  drivers/media/video/gspca/kinect.c  |    5 -
->  drivers/media/video/gspca/ov519.c   |   22 +-
->  drivers/media/video/gspca/ov534_9.c |  504 ++--
->  drivers/media/video/gspca/sonixj.c  |   29 +-
->  drivers/media/video/gspca/tp6800.c  | 4989 +++++++++++++++++++++++++++++++++++
->  11 files changed, 5430 insertions(+), 392 deletions(-)
->  create mode 100644 drivers/media/video/gspca/tp6800.c
+>>From 1adbdde1dc186b23eb772f0c647d7175dc3f7418 Mon Sep 17 00:00:00 2001
+> From: Doron Cohen <doronc@siano-ms.com>
+> Date: Mon, 19 Sep 2011 14:24:29 +0300
+> Subject: [PATCH 12/21] Improve debug capabilities by separating debug
+> and info messages
 > 
+> ---
+>  drivers/media/dvb/siano/smsdvb.c |   39
+> ++++++++++++++++++++++---------------
+>  1 files changed, 23 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/media/dvb/siano/smsdvb.c
+> b/drivers/media/dvb/siano/smsdvb.c
+> index 2695d3a..b80868c 100644
+> --- a/drivers/media/dvb/siano/smsdvb.c
+> +++ b/drivers/media/dvb/siano/smsdvb.c
+> @@ -84,42 +84,42 @@ static void sms_board_dvb3_event(struct
+> smsdvb_client_t *client,
+>  	void *coredev = client->coredev;
+>  	switch (event) {
+>  	case DVB3_EVENT_INIT:
+> -		sms_debug("DVB3_EVENT_INIT");
+> +		sms_info("DVB3_EVENT_INIT");
+>  		sms_board_event(coredev, BOARD_EVENT_BIND);
+>  		break;
+>  	case DVB3_EVENT_SLEEP:
+> -		sms_debug("DVB3_EVENT_SLEEP");
+> +		sms_info("DVB3_EVENT_SLEEP");
+>  		sms_board_event(coredev, BOARD_EVENT_POWER_SUSPEND);
+>  		break;
+>  	case DVB3_EVENT_HOTPLUG:
+> -		sms_debug("DVB3_EVENT_HOTPLUG");
+> +		sms_info("DVB3_EVENT_HOTPLUG");
+>  		sms_board_event(coredev, BOARD_EVENT_POWER_INIT);
+>  		break;
+>  	case DVB3_EVENT_FE_LOCK:
+>  		if (client->event_fe_state != DVB3_EVENT_FE_LOCK) {
+>  			client->event_fe_state = DVB3_EVENT_FE_LOCK;
+> -			sms_debug("DVB3_EVENT_FE_LOCK");
+> +			sms_info("DVB3_EVENT_FE_LOCK");
+>  			sms_board_event(coredev, BOARD_EVENT_FE_LOCK);
+>  		}
+>  		break;
+>  	case DVB3_EVENT_FE_UNLOCK:
+>  		if (client->event_fe_state != DVB3_EVENT_FE_UNLOCK) {
+>  			client->event_fe_state = DVB3_EVENT_FE_UNLOCK;
+> -			sms_debug("DVB3_EVENT_FE_UNLOCK");
+> +			sms_info("DVB3_EVENT_FE_UNLOCK");
+>  			sms_board_event(coredev, BOARD_EVENT_FE_UNLOCK);
+>  		}
+>  		break;
+>  	case DVB3_EVENT_UNC_OK:
+>  		if (client->event_unc_state != DVB3_EVENT_UNC_OK) {
+>  			client->event_unc_state = DVB3_EVENT_UNC_OK;
+> -			sms_debug("DVB3_EVENT_UNC_OK");
+> +			sms_info("DVB3_EVENT_UNC_OK");
+>  			sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_OK);
+>  		}
+>  		break;
+>  	case DVB3_EVENT_UNC_ERR:
+>  		if (client->event_unc_state != DVB3_EVENT_UNC_ERR) {
+>  			client->event_unc_state = DVB3_EVENT_UNC_ERR;
+> -			sms_debug("DVB3_EVENT_UNC_ERR");
+> +			sms_info("DVB3_EVENT_UNC_ERR");
+>  			sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_ERRORS);
+>  		}
+>  		break;
+> @@ -249,20 +249,24 @@ static int smsdvb_onresponse(void *context, struct
+> smscore_buffer_t *cb)
+>  	struct smsdvb_client_t *client = (struct smsdvb_client_t *) context;
+>  	struct SmsMsgHdr_S *phdr = (struct SmsMsgHdr_S *) (((u8 *) cb->p)
+>  			+ cb->offset);
+> -	u32 *pMsgData = (u32 *) phdr + 1;
+> -	/*u32 MsgDataLen = phdr->msgLength - sizeof(struct SmsMsgHdr_S);*/
+> +	u32 *pMsgData = (u32 *) (phdr + 1);
+>  	bool is_status_update = false;
+> +	static int data_packets = 0;
+>  
+>  	smsendian_handle_rx_message((struct SmsMsgData_S *) phdr);
+>  
+>  	switch (phdr->msgType) {
+>  	case MSG_SMS_DVBT_BDA_DATA:
+> +		if (!(data_packets & 0xf));
+> +			sms_info("Got %d data packets so far.", data_packets);
+> +		data_packets++;
+>  		dvb_dmx_swfilter(&client->demux, (u8 *)(phdr + 1),
+>  				 cb->size - sizeof(struct SmsMsgHdr_S));
+>  		break;
+>  
+>  	case MSG_SMS_RF_TUNE_RES:
+>  	case MSG_SMS_ISDBT_TUNE_RES:
+> +		sms_info("MSG_SMS_RF_TUNE_RES");
+>  		complete(&client->tune_done);
+>  		break;
+>  
+> @@ -416,8 +420,7 @@ static int smsdvb_start_feed(struct dvb_demux_feed
+> *feed)
+>  		container_of(feed->demux, struct smsdvb_client_t, demux);
+>  	struct SmsMsgData_S PidMsg;
+>  
+> -	sms_debug("add pid %d(%x)",
+> -		  feed->pid, feed->pid);
+> +	sms_info("add pid %d(%x)", feed->pid, feed->pid);
+>  
+>  	PidMsg.xMsgHeader.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
+>  	PidMsg.xMsgHeader.msgDstId = HIF_TASK;
+> @@ -437,8 +440,7 @@ static int smsdvb_stop_feed(struct dvb_demux_feed
+> *feed)
+>  		container_of(feed->demux, struct smsdvb_client_t, demux);
+>  	struct SmsMsgData_S PidMsg;
+>  
+> -	sms_debug("remove pid %d(%x)",
+> -		  feed->pid, feed->pid);
+> +	sms_info("remove pid %d(%x)", feed->pid, feed->pid);
+>  
+>  	PidMsg.xMsgHeader.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
+>  	PidMsg.xMsgHeader.msgDstId = HIF_TASK;
+> @@ -578,7 +580,7 @@ static int smsdvb_read_ucblocks(struct dvb_frontend
+> *fe, u32 *ucblocks)
+>  static int smsdvb_get_tune_settings(struct dvb_frontend *fe,
+>  				    struct dvb_frontend_tune_settings *tune)
+>  {
+> -	sms_debug("");
+> +	sms_info("");
+>  
+>  	tune->min_delay_ms = 400;
+>  	tune->step_size = 250000;
+> @@ -629,6 +631,8 @@ static int smsdvb_dvbt_set_frontend(struct
+> dvb_frontend *fe,
+>  		return -EINVAL;
+>  	}
+>  	/* Disable LNA, if any. An error is returned if no LNA is present */
+> +	sms_info("setting LNA");
+> +
+>  	ret = sms_board_lna_control(client->coredev, 0);
+>  	if (ret == 0) {
+>  		fe_status_t status;
+> @@ -645,9 +649,11 @@ static int smsdvb_dvbt_set_frontend(struct
+> dvb_frontend *fe,
+>  		/* previous tune didn't lock - enable LNA and tune again */
+>  		sms_board_lna_control(client->coredev, 1);
+>  	}
+> +	sms_info("Sending message");
+>  
+>  	return smsdvb_sendrequest_and_wait(client, &Msg, sizeof(Msg),
+>  					   &client->tune_done);
+> +	sms_info("Tune Done.");
+>  }
+>  
+>  static int smsdvb_isdbt_set_frontend(struct dvb_frontend *fe,
+> @@ -727,6 +733,7 @@ static int smsdvb_set_frontend(struct dvb_frontend
+> *fe,
+>  	case SMSHOSTLIB_DEVMD_ISDBT_BDA:
+>  		return smsdvb_isdbt_set_frontend(fe, fep);
+>  	default:
+> +		sms_err("SMS Device mode is not set for DVB operation.");
+>  		return -EINVAL;
+>  	}
+>  }
+> @@ -737,9 +744,9 @@ static int smsdvb_get_frontend(struct dvb_frontend
+> *fe,
+>  	struct smsdvb_client_t *client =
+>  		container_of(fe, struct smsdvb_client_t, frontend);
+>  
+> -	sms_debug("");
+> +	sms_info("");
+> +
+>  
+> -	/* todo: */
+>  	memcpy(fep, &client->fe_params,
+>  	       sizeof(struct dvb_frontend_parameters));
+>  
 
