@@ -1,52 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bar.sig21.net ([80.81.252.164]:46995 "EHLO bar.sig21.net"
+Received: from bear.ext.ti.com ([192.94.94.41]:49124 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751348Ab1IZTYp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 15:24:45 -0400
-Date: Mon, 26 Sep 2011 21:24:39 +0200
-From: Johannes Stezenbach <js@linuxtv.org>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: Mauro Carvalho Chehab <maurochehab@gmail.com>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: Problems cloning the git repostories
-Message-ID: <20110926192439.GA4848@linuxtv.org>
-References: <4E7F1FB5.5030803@gmail.com>
- <20110925180340.GB23820@linuxtv.org>
- <4E7FE9E8.3010404@gmail.com>
- <CAHG8p1Dk=wtM7vpZNhYyw7GUvWpB3jK_6pghxpDHpjMWk6W56w@mail.gmail.com>
+	id S1752240Ab1IWL55 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Sep 2011 07:57:57 -0400
+From: "Ravi, Deepthy" <deepthy.ravi@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "mchehab@infradead.org" <mchehab@infradead.org>,
+	"tony@atomide.com" <tony@atomide.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"Shilimkar, Santosh" <santosh.shilimkar@ti.com>,
+	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>,
+	"david.woodhouse@intel.com" <david.woodhouse@intel.com>,
+	"akpm@linux-foundation.org" <akpm@linux-foundation.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Date: Fri, 23 Sep 2011 17:23:39 +0530
+Subject: RE: [PATCH 4/5] ispccdc: Configure CCDC_SYN_MODE register for
+ UYVY8_2X8 and YUYV8_2X8 formats
+Message-ID: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09084F@dbde03.ent.ti.com>
+References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com>
+ <201109210126.20436.laurent.pinchart@ideasonboard.com>
+ <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090847@dbde03.ent.ti.com>,<201109211106.41677.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201109211106.41677.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHG8p1Dk=wtM7vpZNhYyw7GUvWpB3jK_6pghxpDHpjMWk6W56w@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 26, 2011 at 06:15:07PM +0800, Scott Jiang wrote:
-> 2011/9/26 Mauro Carvalho Chehab <maurochehab@gmail.com>:
-> > Em 25-09-2011 15:03, Johannes Stezenbach escreveu:
-> >>
-> >> But please don't clone from linuxtv.org, intead use
-> >> git clone git://github.com/torvalds/linux.git
-> >> and then add linuxtv to your repo like described on
-> >> http://git.linuxtv.org/media_tree.git
-> >
-> > I've updated the instructions together with the git tree to point to the
-> > github tree.
-> >
-> I followed your instructions using http instead, but I found it's not
-> up to date.
 
-What I meant is the follow the instructions on the
-http://git.linuxtv.org/media_tree.git web page,
-to use git:// protocol:
+> ________________________________________
+> From: Laurent Pinchart [laurent.pinchart@ideasonboard.com]
+> Sent: Wednesday, September 21, 2011 2:36 PM
+> To: Ravi, Deepthy
+> Cc: mchehab@infradead.org; tony@atomide.com; Hiremath, Vaibhav; linux-media@vger.kernel.org; linux@arm.linux.org.uk; linux-arm-kernel@lists.infradead.org; kyungmin.park@samsung.com; hverkuil@xs4all.nl; m.szyprowski@samsung.com; g.liakhovetski@gmx.de; Shilimkar, Santosh; khilman@deeprootsystems.com; david.woodhouse@intel.com; akpm@linux-foundation.org; linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org; Sakari Ailus
+> Subject: Re: [PATCH 4/5] ispccdc: Configure CCDC_SYN_MODE register for UYVY8_2X8 and YUYV8_2X8 formats
+>
+> Hi Deepthy,
+>
+> On Wednesday 21 September 2011 07:32:44 Ravi, Deepthy wrote:
+>> On Wednesday, September 21, 2011 4:56 AM Laurent Pinchart wrote:
+>> > On Tuesday 20 September 2011 16:56:51 Deepthy Ravi wrote:
+>> >> Configure INPMOD and PACK8 fileds of CCDC_SYN_MODE
+>> >> register for UYVY8_2X8 and YUYV8_2X8 formats.
+>> >>
+>> >> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+>> >> ---
+>> >>
+>> >>  drivers/media/video/omap3isp/ispccdc.c |   11 ++++++++---
+>> >>  1 files changed, 8 insertions(+), 3 deletions(-)
+>> >>
+>> >> diff --git a/drivers/media/video/omap3isp/ispccdc.c
+>> >> b/drivers/media/video/omap3isp/ispccdc.c index 418ba65..1dcf180 100644
+>> >> --- a/drivers/media/video/omap3isp/ispccdc.c
+>> >> +++ b/drivers/media/video/omap3isp/ispccdc.c
+>> >> @@ -985,8 +985,12 @@ static void ccdc_config_sync_if(struct
+>> >> isp_ccdc_device
+>> >> *ccdc,
+>> >>
+>> >>       syn_mode &= ~ISPCCDC_SYN_MODE_INPMOD_MASK;
+>> >>       if (format->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
+>> >>
+>> >> -         format->code == V4L2_MBUS_FMT_UYVY8_2X8)
+>> >> -             syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
+>> >> +         format->code == V4L2_MBUS_FMT_UYVY8_2X8){
+>> >> +             if (pdata && pdata->bt656)
+>> >> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
+>> >> +             else
+>> >> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
+>> >> +     }
+>> >>
+>> >>       else if (format->code == V4L2_MBUS_FMT_YUYV8_1X16 ||
+>> >>
+>> >>                format->code == V4L2_MBUS_FMT_UYVY8_1X16)
+>> >>
+>> >>               syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
+>> >>
+>> >> @@ -1172,7 +1176,8 @@ static void ccdc_configure(struct isp_ccdc_device
+>> >> *ccdc) syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
+>> >>
+>> >>       /* Use PACK8 mode for 1byte per pixel formats. */
+>> >>
+>> >> -     if (omap3isp_video_format_info(format->code)->width <= 8)
+>> >> +     if ((omap3isp_video_format_info(format->code)->width <= 8) &&
+>> >> +                     (omap3isp_video_format_info(format->code)->bpp <=
+>> >> 8))
+>> >
+>> > I'm not sure to follow you. This will clear the PACK8 bit for the
+>> > YUYV8_2X8 formats. Those formats are 8 bits wide, shouldn't PACK8 be set
+>> > to store samples on 8 bits instead of 16 bits ?
+>> >
+>> > Is this patch intended to support YUYV8_2X8 sensors in non BT.656 mode
+>> > with the bridge enabled ? In that case, what would you think about setting
+>> > the CCDC input format to YUYV8_1X16 instead ? This would better reflect
+>> > the reality, as the bridge converts YUYV8_2X8 to YUYV8_1X16, and the CCDC
+>> > is then fed with YUYV8_1X16.
+>>
+>> Yes this is intended for  YUYV8_2X8 sensors in non BT.656 with 8 to 16 bit
+>> bridge enabled. So the data has to be stored as 16 bits per sample. Thats
+>> why PACK8 is cleared . I am not sure about using YUYV8_1X16.
+>
+> My original idea when I wrote the YV support patches was to implement this use
+> case with YUYV8_2X8 at the sensor output and YUYV8_1X16 at the CCDC input. The
+> ISP driver could then enable the bridge automatically. I'm not sure if that's
+> the best solution though, it might be confusing for the users. What I would
+> like to keep, however, is the idea of enabling the bridge automatically.
+>
+[Deepthy Ravi] But for streaming to start, the formats on both ends of the link should match. I believe setting different formats at sensor output and ccdc input will give a broken pipe error. Is my understanding correct ? If so, how do you propose to handle the situation ? 
 
-  git remote add linuxtv git://linuxtv.org/media_tree.git
-  git remote update
-  git checkout -b media-master remotes/linuxtv/staging/for_v3.2
+> Sakari, any opinion on this ?
+>
+>> >>               syn_mode |= ISPCCDC_SYN_MODE_PACK8;
+>> >>       else
+>> >>               syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
 
-Anyway, I did the git update-server-info thing so http should
-work, too.  But git over http sucks, if you can then use git protocol.
-
-
-Johannes		    
