@@ -1,61 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:49050 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755414Ab1I3Thb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 15:37:31 -0400
-Received: by wyg34 with SMTP id 34so1411797wyg.19
-        for <linux-media@vger.kernel.org>; Fri, 30 Sep 2011 12:37:30 -0700 (PDT)
+Received: from moh2-ve3.go2.pl ([193.17.41.208]:40039 "EHLO moh2-ve3.go2.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752104Ab1IWVPz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Sep 2011 17:15:55 -0400
+Received: from moh2-ve3.go2.pl (unknown [10.0.0.208])
+	by moh2-ve3.go2.pl (Postfix) with ESMTP id 01962373FB6
+	for <linux-media@vger.kernel.org>; Fri, 23 Sep 2011 23:15:54 +0200 (CEST)
+Received: from unknown (unknown [10.0.0.42])
+	by moh2-ve3.go2.pl (Postfix) with SMTP
+	for <linux-media@vger.kernel.org>; Fri, 23 Sep 2011 23:15:53 +0200 (CEST)
+Message-ID: <4E7CF707.7060800@o2.pl>
+Date: Fri, 23 Sep 2011 23:15:51 +0200
+From: Maciej Szmigiero <mhej@o2.pl>
 MIME-Version: 1.0
-In-Reply-To: <201109281350.52099.simon.farnsworth@onelan.com>
-References: <201109281350.52099.simon.farnsworth@onelan.com>
-Date: Fri, 30 Sep 2011 15:37:30 -0400
-Message-ID: <CALzAhNW3DGtMqqhWiC2WwYiw5a4D5bc7B-P5g8mkKmGOfV1QRg@mail.gmail.com>
-Subject: Re: Problems tuning PAL-D with a Hauppauge HVR-1110 (TDA18271 tuner)
- - workaround hack included
-From: Steven Toth <stoth@kernellabs.com>
-To: Simon Farnsworth <simon.farnsworth@onelan.com>
-Cc: LMML <linux-media@vger.kernel.org>,
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Michael Krufky <mkrufky@linuxtv.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Antti Palosaari <crope@iki.fi>,
+	Malcolm Priestley <tvboxspy@gmail.com>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Martin Wilks <m.wilks@technisat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Arnaud Lacombe <lacombar@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sven Barth <pascaldragon@googlemail.com>,
+	Lucas De Marchi <lucas.demarchi@profusion.mobi>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH]Medion 95700 analog video support
+References: <4E63C8A0.7030702@o2.pl> <CAOcJUbzXKVoOsfLA+YewyfDKmxuX0PgB8mWdfG49ArdS1fpyfA@mail.gmail.com> <4E7CDEB1.9090901@infradead.org> <CAOcJUby0dK_sjhTB3HEfdxkc9rsWU9KkZ=2B4O=Tcn4E90AE2w@mail.gmail.com> <c651371a-b2c4-4e95-bbb3-5b97a8b7281e@email.android.com>
+In-Reply-To: <c651371a-b2c4-4e95-bbb3-5b97a8b7281e@email.android.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->                map = &std_map->atv_dk;
+W dniu 23.09.2011 23:06, Andy Walls pisze:
+> Michael Krufky <mkrufky@linuxtv.org> wrote:
+> 
+> The cx25840 part of the patch breaks ivtv, IIRC.  The patch really need to add board specific configuration and behavior to cx25840.  I'll have time tomorrow late afternoon to properly reviw and comment.
+> 
+> Regards,
+> Andy
 
-Simon,
+Have you already narrowed it down which part of the cx25840 patch breaks ivtv -
+maybe it is setting the defaults at init or change to check for plain I2C instead of SMBus?
 
-I've been chewing on this for a day or so and it reminded me partly
-why I stopped working on combined PAL/NTSC support for the saa7164
-hardware family, it's been bugging me for a reason - now I understand
-why.
-
-Essentially, I had a long discussion with Mike Krufky about a year ago
-related to I/F's for analog TV output. The SAA7164 analog demod IF (as
-best as I can tell) are not configurable. I have no good set_if()
-interface I can call on the tuner to select a different I/F as the
-bridge driver needs. I was fairly unhappy about that..... bah, such is
-life.
-
-The TDA18271 driver on linux DOES NOT use the same I/F's that the
-windows driver uses. Reason? Mike Decided to follow the data sheet and
-NOT use the Hauppauge specifically select IFs.
-
-His advise to me, at the time, which I think will work nicely for you
-and probably a better patch, is to have the HVR-1110 define a better
-I/F map for the atv_dk case. This way at least you would not pollute
-the 18271 driver in it's core and effect other DK users (potentially),
-instead, for the HVR1110 18271 attach, define the I/F maps for each
-country/modulation and simple change the DK version by your desired
-offset.
-
-That may be a cleaner fix and accepted for merge.
-
-(Note to self: Now that I recall the conversation with Mike I may
-actually go ahead and fix my saa7164 Pal issue.)
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Best regards,
+Maciej Szmigiero
