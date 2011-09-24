@@ -1,63 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:40890 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752924Ab1IMMAl (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:55742 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751759Ab1IXQjT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Sep 2011 08:00:41 -0400
-Date: Tue, 13 Sep 2011 15:00:36 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Subash Patel <subashrp@gmail.com>, linux-media@vger.kernel.org,
-	s.nawrocki@samsung.com, hechtb@googlemail.com,
-	g.liakhovetski@gmx.de
-Subject: Re: [RFC] New class for low level sensors controls?
-Message-ID: <20110913120036.GD1845@valkosipuli.localdomain>
-References: <20110906113653.GF1393@valkosipuli.localdomain>
- <4E68A5E7.8070800@gmail.com>
- <20110908114428.GC1724@valkosipuli.localdomain>
- <201109131233.59003.laurent.pinchart@ideasonboard.com>
+	Sat, 24 Sep 2011 12:39:19 -0400
+Received: by fxe4 with SMTP id 4so4751340fxe.19
+        for <linux-media@vger.kernel.org>; Sat, 24 Sep 2011 09:39:18 -0700 (PDT)
+Message-ID: <4E7E07B3.6050805@gmail.com>
+Date: Sat, 24 Sep 2011 18:39:15 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201109131233.59003.laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Morimoto Kuninori <morimoto.kuninori@renesas.com>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Dmitri Belimov <d.belimov@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: Re: Patches at patchwork.linuxtv.org (127 patches)
+References: <4E7A4BA7.5050505@redhat.com> <4E7A4CA4.8040205@redhat.com> <4E7A5296.3060900@gmail.com> <4E7A6081.50603@redhat.com>
+In-Reply-To: <4E7A6081.50603@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 13, 2011 at 12:33:58PM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
+On 09/22/2011 12:09 AM, Mauro Carvalho Chehab wrote:
+> Em 21-09-2011 18:09, Sylwester Nawrocki escreveu:
+>> Hi Mauro,
+>>
 > 
-> On Thursday 08 September 2011 13:44:28 Sakari Ailus wrote:
-> > On Thu, Sep 08, 2011 at 04:54:23PM +0530, Subash Patel wrote:
-> > > On 09/06/2011 05:52 PM, Sakari Ailus wrote:
-> > > > On Tue, Sep 06, 2011 at 01:41:11PM +0200, Laurent Pinchart wrote:
-> > > > >
-> > > > > Other controls often found in bayer sensors are black level
-> > > > > compensation and test pattern.
-> > > 
-> > > Does all BAYER sensor allow the dark level compensation programming?
-> > 
-> > I'm not sure. I have always seen ISPs being used for that, not sensors.
-> > 
-> > > I thought it must be auto dark level compensation, which is done by
-> > > the sensor. The sensor detects the optical black value at start of
-> > > each frame, and analog-to-digital conversion is shifted to
-> > > compensate the dark level for that frame. Hence I am thinking if
-> > > this should be a controllable feature.
-> > 
-> > This is probably what smart sensors could do. If we have a raw bayer sensor
-> > the computation of the optimal black level compensation could be done by
-> > some of the controls algorithms run in the user space. Automatic exposure
-> > probably?
+> Updated accordingly, thanks!
 > 
-> Many "non-smart" raw bayer sensors implement both manual and automatic black 
-> level compensation. In the first case the user programs a value to be 
-> subtracted from the pixels (whether that's done in the analog or digital 
-> domain might be sensor-specific), and in the second case the sensor computes a 
-> mean black level value based on black lines (optically unexposed) at the top 
-> of the image.
+>>> Sep,19 2011: [GIT,PATCHES,FOR,3.2] noon010pc30 conversion to the pad level ops      http://patchwork.linuxtv.org/patch/7877   Sylwester Nawrocki<s.nawrocki@samsung.com>
+>> not really a patch
+> 
+> This patchwork version is capable of getting git pull requests, when
+> generated with git request-pull.
+> 
+> I'm planning to change my scripts to recognize those requests and use it.
+> An unique queue helps me to apply patches at the arrival order.
 
-Sounds like two controls to me, right?
+All right, that's a cool improvement. Everything is on the (public) record now,
+in easy searchable database. I'd like to thank you for the huge effort on
+your side to create the backup process and re-reviewing all the patches again.
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Regards,
+Sylwester
