@@ -1,126 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:49720 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751334Ab1IVIVT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Sep 2011 04:21:19 -0400
-Date: Thu, 22 Sep 2011 10:21:15 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: LMML <linux-media@vger.kernel.org>,
-	Morimoto Kuninori <morimoto.kuninori@renesas.com>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Jarod Wilson <jarod@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Dmitri Belimov <d.belimov@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Pawel Osiak <pawel@osciak.co>
-Subject: Re: Patches at patchwork.linuxtv.org (127 patches)
-In-Reply-To: <4E7A4CA4.8040205@redhat.com>
-Message-ID: <Pine.LNX.4.64.1109220022240.24024@axis700.grange>
-References: <4E7A4BA7.5050505@redhat.com> <4E7A4CA4.8040205@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:63917 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753162Ab1IXD6a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Sep 2011 23:58:30 -0400
+Message-ID: <4E7D5561.6080303@redhat.com>
+Date: Sat, 24 Sep 2011 00:58:25 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL] Selection API and fixes for v3.2
+References: <1316704391-13596-1-git-send-email-m.szyprowski@samsung.com>
+In-Reply-To: <1316704391-13596-1-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 21 Sep 2011, Mauro Carvalho Chehab wrote:
-
-> Em 21-09-2011 17:40, Mauro Carvalho Chehab escreveu:
-> > As announced on Sept, 18, we moved our patch queue to patchwork.linuxtv.org.
-> > 
-> > As we were without access to the old patchwork instance, I simply sent all
-> > emails I had locally stored on my local mahine to the new instance and reviewed
-> > all patches again. Basically, for old patches, I basically did some scripting
-> > that were marking old patches as "superseded", if they didn't apply anymore.
-> > I also preserved the patches that were marked as "under review" from patchwork
-> > time, using some scripting and a local control file.
-> > 
-> > So, we're basically close to what we had before kernel.org troubles (except for
-> > a series of patches that I've already applied today).
-> > 
-> > My intention is to finish review all patches marked as "new" until the end of this
-> > week, and set a new tree for linux-next with our stuff (as the old one were at
-> > git.kernel.org).
-> > 
-> > Please let me know if something is missed or if some patch from the list bellow
-> > is obsolete and can be marked with a different status.
-> > 
-> > Thanks!
-> > Mauro
-> > 
-> > 
-> > 		== New patches == 
+Em 22-09-2011 12:13, Marek Szyprowski escreveu:
+> Hello Mauro,
 > 
-> Gah! forgot to update the URL on my script. the patch list with the right URL is:
+> I've collected pending selection API patches together with pending
+> videobuf2 and Samsung driver fixes to a single git branch. Please pull
+> them to your media tree.
 > 
-> 		== New patches == 
 
+> Marek Szyprowski (1):
+>       staging: dt3155v4l: fix build break
 
+I've applied this one previously, from the patch you sent me.
 
-> Sep, 6 2011: [v2] at91: add code to initialize and manage the ISI_MCK for Atmel ISI http://patchwork.linuxtv.org/patch/7780   Josh Wu <josh.wu@atmel.com>
+ 
+> Tomasz Stanislawski (6):
+>       v4l: add support for selection api
+>       v4l: add documentation for selection API
 
-More work is needed on this one
+I need more time to review those two patches. I'll probably do it at the next week.
+I generally start analyzing API changes based on the DocBook, so, let me point a few
+things I've noticed on a quick read, at the vidioc-g-selection.html DocBook-generated page:
 
-> Sep, 6 2011: [1/2,v5] media: Add support for arbitrary resolution                   http://patchwork.linuxtv.org/patch/7782   Bastian Hecht <hechtb@googlemail.com>
+1) "The coordinates are expressed in driver-dependant units"
 
-I'll push the newest version of this one
+Why? coordinates should be expressed in pixels, as otherwise there's no way to
+use this API on a hardware-independent way.
 
-> Sep,21 2011: [1/2] V4L: soc-camera: add a function to lookup xlate by mediabus code http://patchwork.linuxtv.org/patch/7909   Guennadi Liakhovetski <Guennadi Liakhovetski <g.liakhovetski@gmx.de>>
-> Sep,21 2011: [2/2] V4L: sh_mobile_ceu_camera: simplify scaling and cropping algorit http://patchwork.linuxtv.org/patch/7910   Guennadi Liakhovetski <Guennadi Liakhovetski <g.liakhovetski@gmx.de>>
+2)
+    0 - driver is free to adjust size, it is recommended to choose the crop/compose rectangle as close as possible to the original one
 
-I think, these are for 3.3, unless 3.2 is sufficiently delayed
+    SEL_SIZE_GE - driver is not allowed to shrink the rectangle. The original rectangle must lay inside the adjusted one
 
-> 		== Patches waiting for Guennadi Liakhovetski <g.liakhovetski@gmx.de> review == 
-> 
-> Jul,10 2011: [1/3] Add 8-bit and 16-bit YCrCb media bus pixel codes                 http://patchwork.linuxtv.org/patch/7423   Christian Gmeiner <christian.gmeiner@gmail.com>
+    SEL_SIZE_LE - drive is not allowed to grow the rectangle. The adjusted rectangle must lay inside the original one
 
-I didn't recognise this one as needing my review, but I agree with Laurent 
-in his reply to patch 2/3, that these new formats are not needed.
+    SEL_SIZE_GE | SEL_SIZE_LE - choose size exactly the same as in desired rectangle.
 
-> Jul,12 2011: [1/5] mt9m111: set inital return values to zero                        http://patchwork.linuxtv.org/patch/7433   Michael Grzeschik <m.grzeschik@pengutronix.de>
+The macro names above don't match the definition, as they aren't prefixed by V4L2_.
 
-Is dropped as per my comment
+3) There was no hyperlink for the struct v4l2_selection, as on other API definitions.
 
-> Jul,12 2011: [3/5] mt9m111: move lastpage to struct mt9m111 for multi instances     http://patchwork.linuxtv.org/patch/7435   Michael Grzeschik <m.grzeschik@pengutronix.de>
+4) the language doesn't seem too consistent with the way other ioctl's are defined. For example,
+you're using struct::field for a field at the struct. Other parts of the API just say "field foo of struct bar".
 
-Will be in my pull request
+5) There's not a single mention at the git commit or at the DocBook about why the old crop API
+is being deprecated. You need to convince me about such need (ok, I followed a few discussions in
+the past, but, my brain patch buffer is shorter than the 7000 patchwork patches I reviewed just on
+this week). Besides that: do we really need to obsolete the crop API for TV cards? If so, why? If not,
+you need to explain why a developer should opt between one ioctl set of the other.
 
-> Jul,12 2011: [5/5] mt9m111: make use of testpattern                                 http://patchwork.linuxtv.org/patch/7434   Michael Grzeschik <m.grzeschik@pengutronix.de>
+6) You should add a note about it at hist-v4l2.html page, stating what happened, and why a new crop
+ioctl set is needed.
 
-is rejested in its present form
+7) You didn't update the Experimental API Elements or the Obsolete API Elements at the hist-v4l2.html
 
-> Jun,24 2011: media: initial driver for ov5642 CMOS sensor                           http://patchwork.linuxtv.org/patch/7327   Bastian Hecht <hechtb@googlemail.com>
-
-is in the mainline as of 3.1-rc1
-
-> Jul, 6 2011: [REVIEW] adv7175 mbus support                                          http://patchwork.linuxtv.org/patch/7410   Christian Gmeiner <christian.gmeiner@gmail.com>
-
-that wasn't even marked as "[PATCH]," was more of an RFC
-
-> Jul,10 2011: [1/9] stringify: add HEX_STRING()                                      http://patchwork.linuxtv.org/patch/160    Randy Dunlap <rdunlap@xenotime.net>
-
-wow, that's a weird one;-) no idea how it ended up on your list at all
-
-> Jul,12 2011: [2/5] mt9m111: fix missing return value check mt9m111_reg_clear        http://patchwork.linuxtv.org/patch/7432   Michael Grzeschik <m.grzeschik@pengutronix.de>
-
-in 3.1-rc1
-
-> Jul,12 2011: [v4,4/5] mt9m111: rewrite set_pixfmt                                   http://patchwork.linuxtv.org/patch/7436   Michael Grzeschik <m.grzeschik@pengutronix.de>
-
-ditto
-
-> Aug,24 2011: media i.MX27 camera: remove legacy dma support                         http://patchwork.linuxtv.org/patch/298    Sascha Hauer <s.hauer@pengutronix.de>
-
-Expecting v2.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Thanks,
+Mauro
