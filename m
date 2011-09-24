@@ -1,117 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56485 "EHLO mx1.redhat.com"
+Received: from smtp2.mail.ru ([94.100.176.130]:33630 "EHLO smtp2.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751507Ab1IFVuH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Sep 2011 17:50:07 -0400
-Message-ID: <4E66958B.7060403@redhat.com>
-Date: Tue, 06 Sep 2011 18:50:03 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1750762Ab1IXNVT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Sep 2011 09:21:19 -0400
+Message-ID: <4E7DD92A.8030300@list.ru>
+Date: Sat, 24 Sep 2011 17:20:42 +0400
+From: Stas Sergeev <stsp@list.ru>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 01/10] alsa_stream: port changes made on xawtv3
-References: <1315322996-10576-1-git-send-email-mchehab@redhat.com> <4E663EE2.3050403@redhat.com> <CAGoCfiz9YAHYNJdEAT51fyfLY8RS_TcRpzKzLYCdNFCc3JcbEA@mail.gmail.com> <4E666417.9090706@redhat.com> <CAGoCfiy9QK1vcrDSBw7J382LXAdE+YzN3SdAu+fCkD-6-8M8=g@mail.gmail.com> <4E667094.6010508@redhat.com> <CAGoCfiyFTwHRLvct_Rf7Mmiua4MZ7Mtq_G4ka+F6sYEjAQ-aow@mail.gmail.com>
-In-Reply-To: <CAGoCfiyFTwHRLvct_Rf7Mmiua4MZ7Mtq_G4ka+F6sYEjAQ-aow@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org,
+	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
+	Lennart Poettering <lpoetter@redhat.com>,
+	ALSA devel <alsa-devel@alsa-project.org>
+Subject: Re: [patch][saa7134] do not change mute state for capturing audio
+References: <4E19D2F7.6060803@list.ru> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru> <4E2A23C7.3040209@infradead.org> <4E2A7BF0.8080606@list.ru> <4E2AC742.8020407@infradead.org> <4E2ACAAD.4050602@list.ru> <4E2AE40F.7030108@infradead.org> <4E2C5A35.9030404@list.ru> <4E2C6638.2040707@infrade ad.org> <4E760BCA.6080900@list.ru> <4E7DB798.4060201@infradead.org> <4E7DBB1C.1090407@list.ru> <4E7DC93C.9080101@infradead.org> <4E7DCEC1.6010405@list.ru> <4E7DD1A5.5080204@infradead.org>
+In-Reply-To: <4E7DD1A5.5080204@infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 06-09-2011 18:18, Devin Heitmueller escreveu:
-> On Tue, Sep 6, 2011 at 3:12 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->>> From a practical standpoint, the Ubuntu folks have the original tvtime
->>> tarball and all their changes in one patch, which is clearly a bunch
->>> of patches that are mashed together probably in their build system. I
->>> need to reach out to them to find where they have an actual SCM tree
->>> or the individual patches.  They've got a bunch of patches which would
->>> be good to get into a single tree (autobuild fixes, cross-compilation,
->>> locale updates, etc).
->>
->> Yeah, it seems interesting. Maybe we can get something from this place:
->>        http://packages.qa.debian.org/t/tvtime.html
->>
->> The maintainer there seems to be:
->>        http://qa.debian.org/developer.php?login=bartm@debian.org
-> 
-> I reached out to the Ubuntu maintainer; we'll see if he gets back to
-> me.  From what I can tell it seems like Debian is actually taking the
-> patches from Ubuntu (yes, I realize this is backwards from their
-> typical process where Ubuntu bases their stuff on Debian).
+24.09.2011 16:48, Mauro Carvalho Chehab wrote:
+> A first scan at driver's init can be removed, IMO.
+OK, that's the great news.
+Will write a new patch then.
 
-Good!
+ > There's nothing the driver can do if the hardware
+ > missdetects a carrier. Dirty tricks to try solving it
+ > are not good, as they'll do the wrong thing on some situations.
+Well, if we assume the first scan can be removed,
+then we also assume the previous "dirty trick" is
+harmless, as it affects only the first scan. But I'll
+better remove both the trick and the first scan then,
+as the fewer the hacks, the better the code.
 
->>> In the long term I have no real issue with the LinuxTV group being the
->>> official maintainer of record.  I've got lots of ideas and things I
->>> would like to do to improve tvtime, but in practice I've done a pretty
->>> crappy job of maintaining the source (merging patches, etc) at this
->>> point.
->>
->> Putting it on a common place and giving permissions to a group of people
->> is interesting, as none of us are focused on userspace, so we all
->> have a very limited amount of time for dealing with userspace applications.
->>
->> By giving commit rights to a group of developers, it ends that more
->> developers will contribute, speeding up the development.
->>
->> That was what happened with v4l-utils and, on a minor scale, with xawtv3.
->>
->> If you're ok with that, I can set a tvtime git repository at LinuxTV,
->> cloning the tree I've created there already (it is a pure conversion
->> of your tree from mercurial into git, if I remove the patches I've
->> done so far from your clone), giving you the ownership of the new tree,
->> and marking it as a shared repository.
-> 
-> I have no problem with this.  Let's set it up.
+ > If someone is using the board on an environment
+ > without udev and pulseaudio, this trick will break the first tuning.
+I feel this somehow contradicts with your suggestion
+to remove the first scan, so could you clarify?
 
-Ok. The repository is here:
-	http://git.linuxtv.org/tvtime.git
+ > Well, if you think that this would solve, then just write a patch
+ > exporting the mute control via ALSA. I have no problems with that.
+That would solve all the problems, but only if:
+1. The mplayer is then moved to the use of that new
+control to not depend on the autounmute hack.
+I can write the patch for that too.
+2. Make sure all the other apps are fixed the same way
+(I hope there are none though)
+3. The autounmute hack is then removed. (no
+regressions if steps 1 and 2 are carefully done)
 
-In thesis, everything is set for group usage. Please let me know if
-you experience any troubles with it.
-
->> I have already all set there to allow shared access to the repository
->> (in opposite to -hg, git works really cool with shared repositories).
-> 
-> I actually haven't hosted any git repos on linuxtv.org before.  I'm
-> assuming my ssh public key got copied over from when I was hosting hg
-> repos there?
-
-The same key is used, whatever you're committing to cvs, hg or git. The
-maintenance application for git is called git-menu.
-
->> We can later add permissions to the developers interested on helping
->> the tvtime maintenance that you agree to add.
-> 
-> Sounds good.
-
->From my side, I'm interested on helping with it.
-
-When I have some time, I'd like to fix a few issues with it. 
-
-For example, there's a local cable operator that broadcasts some channels 
-with PAL/M and others with NTSC/M (not a big deal for STBs and TV sets, as
-almost all support both standards here).
-
-However, tvtime, needs to be restarted every time it changes from one to 
-the other, and it is not possible to set a per-channel standard. To be 
-worse, when tvtime is restarted, it doesn't honor the "-d" option, with
-means that it will open my laptop's webcam instead of the TV card.
-> 
-> As said earlier, Kernel Labs never really wanted to be the maintainer
-> for tvtime - we did it because nobody else wanted to (and vektor never
-> responded to emails I sent him offering to help).  That said, a
-> community oriented approach is probably the best for everybody
-> involved.
-> 
-> I'll probably be looking in the next couple of weeks to write some
-> fresh content for a tvtime website.  The stuff on
-> tvtime.sourceforge.net is so dated almost none of it still applies.
-
-Yeah, that makes sense.
-> Thanks,
-> 
-> Devin
-> 
-
+If you are fine with that plan, then I'll try to find
+the time and do the things that way. Otherwise,
+I'll remove the first scan, and that will do the trick
+in a simpler, though less cleaner way.
