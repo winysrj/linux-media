@@ -1,81 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37351 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752570Ab1I0MDV (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:44329 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750762Ab1IXNhd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 08:03:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Sat, 24 Sep 2011 09:37:33 -0400
+Subject: Re: RC6 decoding
+From: Andy Walls <awalls@md.metrocast.net>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: Status of the patches under review at LMML (28 patches)
-Date: Tue, 27 Sep 2011 14:03:17 +0200
-Cc: LMML <linux-media@vger.kernel.org>, Pawel Osiak <pawel@osciak.com>,
-	Morimoto Kuninori <morimoto.kuninori@renesas.com>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Jarod Wilson <jarod@redhat.com>,
-	Eddi De Pieri <eddi@depieri.net>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Dmitri Belimov <d.belimov@gmail.com>,
-	Michael Krufky <mkrufky@linuxtv.org>
-References: <4E7DCE71.4030200@redhat.com>
-In-Reply-To: <4E7DCE71.4030200@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Cc: Lawrence Rust <lawrence@softsystem.co.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jarod Wilson <jarod@redhat.com>
+Date: Sat, 24 Sep 2011 09:39:05 -0400
+In-Reply-To: <1316870206.2234.7.camel@palomino.walls.org>
+References: <1316430722.1656.16.camel@gagarin> <4E7D199F.1000908@redhat.com>
+	 <1316870206.2234.7.camel@palomino.walls.org>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109271403.19207.laurent.pinchart@ideasonboard.com>
+Message-ID: <1316871545.2234.8.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-On Saturday 24 September 2011 14:34:57 Mauro Carvalho Chehab wrote:
-> Everything at patchwork were reviewed by me, and I've applied all patches
-> that I didn't notice any review by the drivers maintainers.
+On Sat, 2011-09-24 at 09:16 -0400, Andy Walls wrote:
+> On Fri, 2011-09-23 at 20:43 -0300, Mauro Carvalho Chehab wrote:
+> > Em 19-09-2011 08:12, Lawrence Rust escreveu:
+> > > The current decoder for the RC6 IR protocol supports mode 0 (16 bit) and
+> > > mode 6A.  In mode 6A the decoder supports either 32-bit data (for
+> > > Microsoft's MCE RC) or 24 bit.
+> > > 
+> > > I would like to support a Sky/Sky+ standard RC which transmits RC6-6-20
+> > > i.e. 20 bit data.  The transmitted frame format is identical to the 24
+> > > bit form so I'm curious as to what remotes transmit 24 bit data or was
+> > > this an error and it should be 20?
+> > > 
+> > > RC6-6-20 is explained here:
+> > > http://www.guiott.com/wrc/RC6-6.html
+> > > 
+> > > If 24-bit mode is in use, is there a way to select between 20 and 24 bit
+> > > operation?
+> > 
+> > You'll need to figure out a way to detect between them. It is probably not
+> > hard to detect, and add support for both at the decider.
+> > Maybe you can find something useful here:
+> > 	http://www.sbprojects.com/knowledge/ir/rc6.php
 > 
-> Driver maintainers:
-> Please review the remaining patches.
+> Lawrence:
 > 
-> 		== Patches waiting for Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> review ==
+> Some RC-6 explanations with more detail could be found here:
+>  
+> http://slycontrol.ru/scr/kb/rc6.htm (dead; not in the Wayback machine :( )
+
+I found where the above website moved: :)
+
+http://slydiman.narod.ru/scr/kb/rc6.htm
+
+-Andy
+
+> http://www.picbasic.nl/info_rc6_uk.htm
 > 
-> Jun,22 2011: Improve UVC buffering with regard to USB. Add checks to avoid
-> division
-> http://patchwork.linuxtv.org/patch/7290
-> Hans Petter Selasky <hselasky@c2i.net>
+> You might also find this thread of interest for some history:
+> http://www.spinics.net/lists/linux-input/msg07983.html
+> 
+> The take away is that the data length is, in theory, OEM dependent for
+> RC-6 Mode 6A, limited to a max of 24 bits (3 bytes) after a short
+> customer code and 128 bits (16 bytes) after a long customer code.
+> 
+> In that previous thread, I suggested it might be better to look for the
+> signal free time of 6 RC6_UNITs to declare the end of reception, instead
+> of a bit count.  Maybe that is a way to deal with the current problem.
+> 
+> Regards,
+> Andy
+> 
 
-On my TODO list.
 
-> Jul,11 2011: Error routes through omap3isp ccdc.
-> http://patchwork.linuxtv.org/patch/7428
-> Jonathan Cameron <jic23@cam.ac.uk>
-
-This has been superseded by "[media] omap3isp: Don't accept pipelines with no 
-video source as valid" which is already in your tree.
-
-> Jul,14 2011: uvcvideo: add fix suspend/resume quirk for Microdia camera
-> http://patchwork.linuxtv.org/patch/186
-> Ming Lei <tom.leiming@gmail.com>
-
-This has been superseded by "uvcvideo: Set alternate setting 0 on resume if 
-the bus has been reset" which is hopefully in your tree on its way to v3.1 :-)
-
-> Jul,13 2011: [RFC, v1] mt9v113: VGA camera sensor driver and support for
-> BeagleBoar
-> http://patchwork.linuxtv.org/patch/184
-> Joel A Fernandes <agnel.joel@gmail.com>
-
-I've reviewed the patch, waiting for the next version.
-
-> Sep, 6 2011: mt9p031: Do not use PLL if external frequency is the same as
-> target fr
-> http://patchwork.linuxtv.org/patch/7783
-> Javier Martin <javier.martin@vista-silicon.com>
-
-I've reviewed the patch, I think we should implement proper PLL support.
-
--- 
-Regards,
-
-Laurent Pinchart
