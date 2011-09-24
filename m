@@ -1,72 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4399 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758279Ab1I3LeW (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:53031 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752248Ab1IXSbH convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 07:34:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv2 PATCH 0/7] V4L menu reorganization
-Date: Fri, 30 Sep 2011 13:34:12 +0200
-Cc: linux-media@vger.kernel.org
-References: <1317373276-5818-1-git-send-email-hverkuil@xs4all.nl> <4E85A7DC.50708@redhat.com>
-In-Reply-To: <4E85A7DC.50708@redhat.com>
+	Sat, 24 Sep 2011 14:31:07 -0400
+Received: by wwf22 with SMTP id 22so4991039wwf.1
+        for <linux-media@vger.kernel.org>; Sat, 24 Sep 2011 11:31:06 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109301334.12300.hverkuil@xs4all.nl>
+In-Reply-To: <4E7DCE71.4030200@redhat.com>
+References: <4E7DCE71.4030200@redhat.com>
+Date: Sun, 25 Sep 2011 00:01:05 +0530
+Message-ID: <CAHFNz9Lb_Vy9FhOMbhVuNq+1ZOS2H6tYcHVP6rMECbc78Qe3Yg@mail.gmail.com>
+Subject: Re: Status of the patches under review at LMML (28 patches)
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, September 30, 2011 13:28:28 Mauro Carvalho Chehab wrote:
-> Em 30-09-2011 06:01, Hans Verkuil escreveu:
-> > Hi all,
-> > 
-> > This is the second version of my patch series reorganizing the V4L menu.
-> > It's based on the latest v3.2 staging tree.
-> > 
-> > Changes to v1:
-> > 
-> > - Remove unnecessary USB dependency.
-> > - Reorganize the radio menu as well.
-> > 
-> > I did not sort the drivers alphabetically (yet). I'm not quite sure whether
-> > that's really a good idea, and we can always do that later.
-> 
-> I still think that we need to sort things alphabetically, or to not sort
-> things at all, as any other sort criteria would be just a random criteria.
-> 
-> E. g. on a non-alphabetical criteria, what should come first between bttv,
-> saa7134, ivtv and cx88? Except by the alphabetical order, any order between 
-> them will be just a random criteria, as people will argue that driver "foo"
-> should be the first one, probably because they have more hardware of that
-> type ;)
+On Sat, Sep 24, 2011 at 6:04 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Everything at patchwork were reviewed by me, and I've applied all patches
+> that I didn't notice any review by the drivers maintainers.
+>
+> Driver maintainers:
+> Please review the remaining patches.
+>
+>                == Patches for Manu Abraham <abraham.manu@gmail.com> review ==
+>
 
-Sort by what, BTW? The driver module name?
+> May,24 2011: Fix the derot zig-zag to work with TT-USB2.0 TechnoTrend.              http://patchwork.linuxtv.org/patch/6777   Hans Petter Selasky <hselasky@c2i.net>
 
-I'd like to get a concensus on that before I do this.
-
-Regards,
-
-	Hans
-
-> In my case, I would vote for saa7134 as I currently have more hardware of
-> that type. A few years ago, my vote would be for cx88. I bet you'll vote
-> for ivtv ;)
-> 
-> > This series is meant for v3.2, but I won't make a pull request until
-> > Guennadi's pull request is merged first. I'm sure I will have to redo my
-> > patches once his series is in.
-> 
-> Ok.
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Patch doesn't make any sense.
