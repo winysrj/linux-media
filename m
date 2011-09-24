@@ -1,154 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:30049 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750787Ab1IAKTf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Sep 2011 06:19:35 -0400
-Message-ID: <4E5F5C16.9050202@maxwell.research.nokia.com>
-Date: Thu, 01 Sep 2011 13:19:02 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from casper.infradead.org ([85.118.1.10]:45438 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750805Ab1IXK5g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Sep 2011 06:57:36 -0400
+Message-ID: <4E7DB798.4060201@infradead.org>
+Date: Sat, 24 Sep 2011 07:57:28 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 2/9 v6] V4L: add two new ioctl()s for multi-size videobuffer
- management
-References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de> <1314813768-27752-3-git-send-email-g.liakhovetski@gmx.de> <20110831210615.GQ12368@valkosipuli.localdomain> <Pine.LNX.4.64.1109010850560.21309@axis700.grange> <20110901084229.GU12368@valkosipuli.localdomain> <Pine.LNX.4.64.1109011118020.6316@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1109011118020.6316@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Stas Sergeev <stsp@list.ru>
+CC: linux-media@vger.kernel.org,
+	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
+	Lennart Poettering <lpoetter@redhat.com>,
+	ALSA devel <alsa-devel@alsa-project.org>
+Subject: Re: [patch][saa7134] do not change mute state for capturing audio
+References: <4E19D2F7.6060803@list.ru> <4E24BEB8.4060501@redhat.com> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru> <4E2A23C7.3040209@infradead.org> <4E2A7BF0.8080606@list.ru> <4E2AC742.8020407@infradead.org> <4E2ACAAD.4050602@list.ru> <4E2AE40F.7030108@infradead.org> <4E2C5A35.9030404@list.ru> <4E2C6638.2040707@infrade ad.org> <4E760BCA.6080900@list.ru>
+In-Reply-To: <4E760BCA.6080900@list.ru>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski wrote:
-> On Thu, 1 Sep 2011, Sakari Ailus wrote:
-> 
->> On Thu, Sep 01, 2011 at 09:03:52AM +0200, Guennadi Liakhovetski wrote:
->>> Hi Sakari
->>
->> Hi Guennadi,
->>
->>> On Thu, 1 Sep 2011, Sakari Ailus wrote:
->> [clip]
->>>>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
->>>>> index fca24cc..988e1be 100644
->>>>> --- a/include/linux/videodev2.h
->>>>> +++ b/include/linux/videodev2.h
->>>>> @@ -653,6 +653,9 @@ struct v4l2_buffer {
->>>>>  #define V4L2_BUF_FLAG_ERROR	0x0040
->>>>>  #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
->>>>>  #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
->>>>> +/* Cache handling flags */
->>>>> +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
->>>>> +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
->>>>>  
->>>>>  /*
->>>>>   *	O V E R L A Y   P R E V I E W
->>>>> @@ -2092,6 +2095,15 @@ struct v4l2_dbg_chip_ident {
->>>>>  	__u32 revision;    /* chip revision, chip specific */
->>>>>  } __attribute__ ((packed));
->>>>>  
->>>>> +/* VIDIOC_CREATE_BUFS */
->>>>> +struct v4l2_create_buffers {
->>>>> +	__u32			index;		/* output: buffers index...index + count - 1 have been created */
->>>>> +	__u32			count;
->>>>> +	enum v4l2_memory        memory;
->>>>> +	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
->>>>> +	__u32			reserved[8];
->>>>> +};
->>>>
->>>> How about splitting the above comments? These lines are really long.
->>>> Kerneldoc could also be used, I think.
->>>
->>> Sure, how about this incremental patch:
->>>
->>> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->>> Subject: V4L: improve struct v4l2_create_buffers documentation
->>>
->>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->>> ---
->>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
->>> index 988e1be..64e0bf2 100644
->>> --- a/include/linux/videodev2.h
->>> +++ b/include/linux/videodev2.h
->>> @@ -2095,12 +2095,20 @@ struct v4l2_dbg_chip_ident {
->>>  	__u32 revision;    /* chip revision, chip specific */
->>>  } __attribute__ ((packed));
->>>  
->>> -/* VIDIOC_CREATE_BUFS */
->>> +/**
->>> + * struct v4l2_create_buffers - VIDIOC_CREATE_BUFS argument
->>> + * @index:	on return, index of the first created buffer
->>> + * @count:	entry: number of requested buffers,
->>> + *		return: number of created buffers
->>> + * @memory:	buffer memory type
->>> + * @format:	frame format, for which buffers are requested
->>> + * @reserved:	future extensions
->>> + */
->>>  struct v4l2_create_buffers {
->>> -	__u32			index;		/* output: buffers index...index + count - 1 have been created */
->>> +	__u32			index;
->>>  	__u32			count;
->>>  	enum v4l2_memory        memory;
->>> -	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
->>> +	struct v4l2_format	format;
->>>  	__u32			reserved[8];
->>>  };
->>
->> Thanks! This looks good to me. Could you do a similar change to the
->> compat-IOCTL version of this struct (v4l2_create_buffers32)?
-> 
-> Of course, I'll submit an incremental patch as soon as this is accepted 
-> for upstream, unless there are other important changes to this patch and a 
-> new revision is anyway unavoidable.
+Em 18-09-2011 12:18, Stas Sergeev escreveu:
+> Hi Mauro, I've finally found the time (and an energy)
+> to go look into the automute breakage.
+> With the attached automute fix I no longer have
+> any problems with pulseaudio.
+> I also attached the patch that introduces an "std"
+> option to limit the scan list, resulting in a faster scan.
+> It is completely unrelated to the automute one, it is
+> here just in case.
+> What do you think?
 
-Ok. I'll send a small patch to the documentation as well then.
+Please, one patch per email. Patchwork (or any kernel maintainer script)
+won't catch more than one patch per email. See:
 
->>>>> +
->>>>>  /*
->>>>>   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
->>>>>   *
->>>>> @@ -2182,6 +2194,9 @@ struct v4l2_dbg_chip_ident {
->>>>>  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
->>>>>  #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
->>>>>  
->>>>> +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
->>>>> +#define VIDIOC_PREPARE_BUF	 _IOW('V', 93, struct v4l2_buffer)
->>>>
->>>> Does prepare_buf ever do anything that would need to return anything to the
->>>> user? I guess the answer is "no"?
->>>
->>> Exactly, that's why it's an "_IOW" ioctl(), not an "_IOWR", or have I 
->>> misunderstood you?
->>
->> I was thinking if this will be the case now and in the foreseeable future as
->> this can't be changed after once defined. I just wanted to bring this up
->> even though I don't see myself that any of the fields would need to be
->> returned to the user. But there are reserved fields...
->>
->> So unless someone comes up with something quick, I think this should stay
->> as-is.
-> 
-> Agree. I understand, it is important to try to design the user-space API 
-> as clever as possible, so, I'm relying on our combined wisdom for it. But 
-> even that is probably limited, so, mistakes are still possible. Therefore, 
-> unless someone comes up with a realistic reason, why this has to be _IOWR, 
-> we shall keep it _IOW and be prepared to delight our user-space colleagues 
-> with more shiny new ioctl()s in the somewhat near future;-)
+http://patchwork.linuxtv.org/patch/7862/
 
-What we could also do is to mark the new IOCTLs experimental, and remove
-the note after one or two more kernel releases. This would allow
-postponing the decision.
+As those are the two last patches marked as new at patchwork, I've manually
+uploaded it as two separate emails, in order to allow me to queue them:
+	http://patchwork.linuxtv.org/patch/7940/
+	http://patchwork.linuxtv.org/patch/7941/
 
-We also don't have anyone using these ioctls from user space as far as I
-understand, so we might get important input later on as well.
 
-Cheers,
+With respect to this patch:
+http://patchwork.linuxtv.org/patch/7941/
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+I don't see any sense on it. Video standard selection is done by software,
+when a standards mask is passed via VIDIOC_S_STD ioctl. Drivers should not
+mess it with modprobe hacks.
+
+I'll comment later http://patchwork.linuxtv.org/patch/7940/. It seems to be
+going into the right direction, but I need to take a deeper code inspection
+and maybe do some tests here.
+
+Regards,
+Mauro
+
+
