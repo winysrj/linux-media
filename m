@@ -1,49 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:44154 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751385Ab1IZUAD convert rfc822-to-8bit (ORCPT
+Received: from scan.ji-net.com ([203.130.156.6]:49801 "EHLO scan.ji-net.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751112Ab1IYIXj convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 16:00:03 -0400
-Date: Mon, 26 Sep 2011 21:59:54 +0200
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org, srinivasa.deevi@conexant.com,
-	Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: Re: cx231xx: DMA problem on ARM
-Message-ID: <20110926215954.5ab059e4@skate>
-In-Reply-To: <201109262102.49056.laurent.pinchart@ideasonboard.com>
-References: <20110921135604.64363a2e@skate>
-	<20110926101323.41708d64@skate>
-	<4E80B73F.5020804@redhat.com>
-	<201109262102.49056.laurent.pinchart@ideasonboard.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+	Sun, 25 Sep 2011 04:23:39 -0400
+Date: Sat, 24 Sep 2011 20:37:51 +0100
+From: Tong Hao <kfcbpn@crg.co.th>
+Subject: Re
+Message-ID: <5d6f16522fcbeb0d1053405f4355b8b7@crg.co.th>
+Reply-To: tong_h@yahoo.cn
+MIME-Version: 1.0
 Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Laurent,
 
-Le Mon, 26 Sep 2011 21:02:48 +0200,
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> a écrit :
+Hello Friend', I have a transaction which is of mutual benefits and I would like to share with you. if interested for more information please get back to me via email.Thank you.Yours sincerely,Mr.Tong Hao.
 
-> Are you using the MMAP or USERPTR capture method ? If using MMAP, can
-> you try (as a test only) to unmap the buffer before queueing it and
-> to remap it after dequeuing it ?
 
-So far, we have used VLC, Cheese, or a simple OpenCV based application
-to test the V4L2 device on our ARM platform, and I have no idea which
-capture method those are using. Is there a very simple V4L test
-application that we could use to hack the buffer unmap/remap trick
-you're suggesting as a test ?
+**********************************************************************************************************
+ Disclaimer: This e-mail and any files transmitted with it are confidential
+ and are intended solely for the use of the individual or entity to whom
+ they are addressed. Unauthorized use, disclosure, copying or alteration
+ of this message is strictly forbidden. If you have received this e-mail in
+ error, please notify the sender and delete the e-mail and any copies of
+ it.Please note that Central Restaurants Group Co.,Ltd,is able to,
+ and reserves the right to, monitor e-mail communications passing through its network. 
+**********************************************************************************************************
 
-Regards,
 
-Thomas
--- 
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+
