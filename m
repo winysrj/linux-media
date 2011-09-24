@@ -1,95 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:43700 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751182Ab1ITU5e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Sep 2011 16:57:34 -0400
-Date: Tue, 20 Sep 2011 23:57:30 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Subject: Re: [PATCH v1 2/3] v4l: Add AUTO option for the
- V4L2_CID_POWER_LINE_FREQUENCY control
-Message-ID: <20110920205730.GN1845@valkosipuli.localdomain>
-References: <1316519939-22540-1-git-send-email-s.nawrocki@samsung.com>
- <1316519939-22540-3-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:31999 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753331Ab1IXDSQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Sep 2011 23:18:16 -0400
+Message-ID: <4E7D4BF4.9080901@redhat.com>
+Date: Sat, 24 Sep 2011 00:18:12 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1316519939-22540-3-git-send-email-s.nawrocki@samsung.com>
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES FOR 3.2] gspca for_v3.2
+References: <20110923103709.46363e45@tele>
+In-Reply-To: <20110923103709.46363e45@tele>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
-
-On Tue, Sep 20, 2011 at 01:58:58PM +0200, Sylwester Nawrocki wrote:
-> V4L2_CID_POWER_LINE_FREQUENCY control allows applications to instruct
-> a driver what is the power line frequency so an appropriate filter
-> can be used by the device to cancel flicker by compensating the light
-> intensity ripple and thus. Currently in the menu we have entries for
-> 50 and 60 Hz and for entirely disabling the anti-flicker filter.
-> However some devices are capable of automatically detecting the
-> frequency, so add V4L2_CID_POWER_LINE_FREQUENCY_AUTO entry for them.
+Em 23-09-2011 05:37, Jean-Francois Moine escreveu:
+> Hi Mauro,
 > 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  Documentation/DocBook/media/v4l/controls.xml |    5 +++--
->  drivers/media/video/v4l2-ctrls.c             |    1 +
->  include/linux/videodev2.h                    |    1 +
->  3 files changed, 5 insertions(+), 2 deletions(-)
+> This set includes the patches:
+> 	http://patchwork.linuxtv.org/patch/7358
+> 	http://patchwork.linuxtv.org/patch/114
+
+Thanks for doing that!
+
+Applied, thanks!
+ 
+> Cheers.
 > 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index 2420e4a..c6b3c46 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -232,8 +232,9 @@ control is deprecated. New drivers and applications should use the
->  	    <entry>Enables a power line frequency filter to avoid
->  flicker. Possible values for <constant>enum v4l2_power_line_frequency</constant> are:
->  <constant>V4L2_CID_POWER_LINE_FREQUENCY_DISABLED</constant> (0),
-> -<constant>V4L2_CID_POWER_LINE_FREQUENCY_50HZ</constant> (1) and
-> -<constant>V4L2_CID_POWER_LINE_FREQUENCY_60HZ</constant> (2).</entry>
-> +<constant>V4L2_CID_POWER_LINE_FREQUENCY_50HZ</constant> (1),
-> +<constant>V4L2_CID_POWER_LINE_FREQUENCY_60HZ</constant> (2) and
-> +<constant>V4L2_CID_POWER_LINE_FREQUENCY_AUTO</constant> (3).</entry>
-
-A stupid question: wouldn't this be a case for a new control for automatic
-power line frequency, in other words enabling or disabling it?
-
->  	  </row>
->  	  <row>
->  	    <entry><constant>V4L2_CID_HUE_AUTO</constant></entry>
-> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> index 06b6014..20abe5d 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -210,6 +210,7 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		"Disabled",
->  		"50 Hz",
->  		"60 Hz",
-> +		"Auto",
->  		NULL
->  	};
->  	static const char * const camera_exposure_auto[] = {
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index c33f462..87210f1 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -1125,6 +1125,7 @@ enum v4l2_power_line_frequency {
->  	V4L2_CID_POWER_LINE_FREQUENCY_DISABLED	= 0,
->  	V4L2_CID_POWER_LINE_FREQUENCY_50HZ	= 1,
->  	V4L2_CID_POWER_LINE_FREQUENCY_60HZ	= 2,
-> +	V4L2_CID_POWER_LINE_FREQUENCY_AUTO	= 3,
->  };
->  #define V4L2_CID_HUE_AUTO			(V4L2_CID_BASE+25)
->  #define V4L2_CID_WHITE_BALANCE_TEMPERATURE	(V4L2_CID_BASE+26)
-> -- 
-> 1.7.6.3
+> The following changes since commit e553000a14ead0e265a8aa4d241c7b3221e233e3:
+> 
+>   [media] sr030pc30: Remove empty s_stream op (2011-09-21 12:48:45 -0300)
+> 
+> are available in the git repository at:
+>   git://linuxtv.org/jfrancois/gspca.git for_v3.2
+> 
+> Frank Schaefer (1):
+>       gspca - sn9c20x: Fix status LED device 0c45:62b3.
+> 
+> Jean-François Moine (10):
+>       gspca - benq: Remove the useless function sd_isoc_init
+>       gspca - main: Use a better altsetting for image transfer
+>       gspca - main: Handle the xHCI error on usb_set_interface()
+>       gspca - topro: New subdriver for Topro webcams
+>       gspca - spca1528: Increase the status waiting time
+>       gspca - spca1528: Add some comments and update copyright
+>       gspca - spca1528: Change the JPEG quality of the images
+>       gspca - spca1528: Don't force the USB transfer alternate setting
+>       gspca - main: Version change to 2.14.0
+>       gspca - main: Display the subdriver name and version at probe time
+> 
+> Wolfram Sang (1):
+>       gspca - zc3xx: New webcam 03f0:1b07 HP Premium Starter Cam
+> 
+>  Documentation/video4linux/gspca.txt  |    3 +
+>  drivers/media/video/gspca/Kconfig    |   10 +
+>  drivers/media/video/gspca/Makefile   |    2 +
+>  drivers/media/video/gspca/benq.c     |   15 -
+>  drivers/media/video/gspca/gspca.c    |  225 ++-
+>  drivers/media/video/gspca/sn9c20x.c  |    2 +-
+>  drivers/media/video/gspca/spca1528.c |   26 +-
+>  drivers/media/video/gspca/topro.c    | 4989 ++++++++++++++++++++++++++++++++++
+>  drivers/media/video/gspca/zc3xx.c    |    1 +
+>  9 files changed, 5180 insertions(+), 93 deletions(-)
+>  create mode 100644 drivers/media/video/gspca/topro.c
 > 
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
