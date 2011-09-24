@@ -1,52 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45224 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755579Ab1IHHi6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 03:38:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Josh Boyer <jwboyer@redhat.com>
-Subject: Re: [PATCH] uvcvideo: Fix crash when linking entities
-Date: Thu, 8 Sep 2011 09:38:54 +0200
-Cc: linux-media@vger.kernel.org, Dave Jones <davej@redhat.com>,
-	Jonathan Nieder <jrnieder@gmail.com>,
-	Daniel Dickinson <libre@cshore.neomailbox.net>
-References: <1315348148-7207-1-git-send-email-laurent.pinchart@ideasonboard.com> <20110907153240.GI10700@zod.bos.redhat.com>
-In-Reply-To: <20110907153240.GI10700@zod.bos.redhat.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:54599 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752110Ab1IXS1N convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Sep 2011 14:27:13 -0400
+Received: by wyg34 with SMTP id 34so4845432wyg.19
+        for <linux-media@vger.kernel.org>; Sat, 24 Sep 2011 11:27:12 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109080938.54655.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4E7DCE71.4030200@redhat.com>
+References: <4E7DCE71.4030200@redhat.com>
+Date: Sat, 24 Sep 2011 23:57:11 +0530
+Message-ID: <CAHFNz9KM9q9bR17Auj5ieezWX2uyMBWcxAyhZ4pfaMvz4fWf6A@mail.gmail.com>
+Subject: Re: Status of the patches under review at LMML (28 patches)
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh,
+On Sat, Sep 24, 2011 at 6:04 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Everything at patchwork were reviewed by me, and I've applied all patches
+> that I didn't notice any review by the drivers maintainers.
+>
+> Driver maintainers:
+> Please review the remaining patches.
+>
+>                == Patches for Manu Abraham <abraham.manu@gmail.com> review ==
+>
 
-On Wednesday 07 September 2011 17:32:41 Josh Boyer wrote:
-> On Wed, Sep 07, 2011 at 12:29:08AM +0200, Laurent Pinchart wrote:
-> > The uvc_mc_register_entity() function wrongfully selects the
-> > media_entity associated with a UVC entity when creating links. This
-> > results in access to uninitialized media_entity structures and can hit a
-> > BUG_ON statement in media_entity_create_link(). Fix it.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/video/uvc/uvc_entity.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > This patch should fix a v3.0 regression that results in a kernel crash as
-> > reported in http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=637740 and
-> > https://bugzilla.redhat.com/show_bug.cgi?id=735437.
-> > 
-> > Test results will be welcome.
-> 
-> I built a test kernel for Fedora with the patch and the submitter of the
-> above bug has reported that the issue seems to be fixed.
+> May,23 2011: Increase a timeout, so that bad scheduling does not accidentially caus http://patchwork.linuxtv.org/patch/7178   Hans Petter Selasky <hselasky@c2i.net>
 
-Thank you. I will push the patch upstream.
-
--- 
-Regards,
-
-Laurent Pinchart
+Haven't heard timeout issues recently though ... but still;
+Acked-by: Manu Abraham <manu@linuxtv.org>
