@@ -1,119 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:48398 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752778Ab1IUM22 (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:57589 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751444Ab1IXOvI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 08:28:28 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LRV000Q0HBESD30@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 Sep 2011 13:28:26 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRV00IAJHBE2P@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 Sep 2011 13:28:26 +0100 (BST)
-Date: Wed, 21 Sep 2011 14:28:25 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v1 2/3] v4l: Add AUTO option for the
- V4L2_CID_POWER_LINE_FREQUENCY control
-In-reply-to: <20110920221730.GP1845@valkosipuli.localdomain>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>, linux-media@vger.kernel.org,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-Message-id: <4E79D869.80708@samsung.com>
-References: <1316519939-22540-1-git-send-email-s.nawrocki@samsung.com>
- <1316519939-22540-3-git-send-email-s.nawrocki@samsung.com>
- <20110920205730.GN1845@valkosipuli.localdomain> <4E7904CB.3000006@gmail.com>
- <20110920221730.GP1845@valkosipuli.localdomain>
+	Sat, 24 Sep 2011 10:51:08 -0400
+Subject: Re: Status of the patches under review at LMML (28 patches)
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: LMML <linux-media@vger.kernel.org>, Pawel Osiak <pawel@osciak.com>,
+	Morimoto Kuninori <morimoto.kuninori@renesas.com>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	Eddi De Pieri <eddi@depieri.net>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Dmitri Belimov <d.belimov@gmail.com>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Date: Sat, 24 Sep 2011 10:52:25 -0400
+In-Reply-To: <4E7DCE71.4030200@redhat.com>
+References: <4E7DCE71.4030200@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1316875947.12899.8.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-On 09/21/2011 12:17 AM, Sakari Ailus wrote:
-> On Tue, Sep 20, 2011 at 11:25:31PM +0200, Sylwester Nawrocki wrote:
->> On 09/20/2011 10:57 PM, Sakari Ailus wrote:
->>> On Tue, Sep 20, 2011 at 01:58:58PM +0200, Sylwester Nawrocki wrote:
->>>> V4L2_CID_POWER_LINE_FREQUENCY control allows applications to instruct
->>>> a driver what is the power line frequency so an appropriate filter
->>>> can be used by the device to cancel flicker by compensating the light
->>>> intensity ripple and thus. Currently in the menu we have entries for
->>>> 50 and 60 Hz and for entirely disabling the anti-flicker filter.
->>>> However some devices are capable of automatically detecting the
->>>> frequency, so add V4L2_CID_POWER_LINE_FREQUENCY_AUTO entry for them.
->>>>
->>>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
->>>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->>>> Acked-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
->>>> ---
->>>>   Documentation/DocBook/media/v4l/controls.xml |    5 +++--
->>>>   drivers/media/video/v4l2-ctrls.c             |    1 +
->>>>   include/linux/videodev2.h                    |    1 +
->>>>   3 files changed, 5 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
->>>> index 2420e4a..c6b3c46 100644
->>>> --- a/Documentation/DocBook/media/v4l/controls.xml
->>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
->>>> @@ -232,8 +232,9 @@ control is deprecated. New drivers and applications should use the
->>>>   	<entry>Enables a power line frequency filter to avoid
->>>>   flicker. Possible values for<constant>enum v4l2_power_line_frequency</constant>  are:
->>>>   <constant>V4L2_CID_POWER_LINE_FREQUENCY_DISABLED</constant>  (0),
->>>> -<constant>V4L2_CID_POWER_LINE_FREQUENCY_50HZ</constant>  (1) and
->>>> -<constant>V4L2_CID_POWER_LINE_FREQUENCY_60HZ</constant>  (2).</entry>
->>>> +<constant>V4L2_CID_POWER_LINE_FREQUENCY_50HZ</constant>  (1),
->>>> +<constant>V4L2_CID_POWER_LINE_FREQUENCY_60HZ</constant>  (2) and
->>>> +<constant>V4L2_CID_POWER_LINE_FREQUENCY_AUTO</constant>  (3).</entry>
->>>
->>> A stupid question: wouldn't this be a case for a new control for automatic
->>> power line frequency, in other words enabling or disabling it?
->>
->> IMO this would complicate things in kernel and user land, without any reasonable
->> positive effects. AUTO seems to fit well here, it's just another mode of operation
->> of a power line noise filter. Why make things more complicated than they need to be ? 
+On Sat, 2011-09-24 at 09:34 -0300, Mauro Carvalho Chehab wrote:
+> Everything at patchwork were reviewed by me, and I've applied all patches
+> that I didn't notice any review by the drivers maintainers.
 > 
-> The advantage would be to be able to get the power line frquency if that's
-> supported by the hardware. This implementation excludes that. Such
-> information might be interesting to add e.g. to the image's exif data.
+> Driver maintainers:
+> Please review the remaining patches.
 
-AFAIU, the power line frequency filter just modifies frame exposure time to be
-multiple of half of the mains frequency period. So it's the exposure time that gets
-finally affected. Maybe there is some hardware that supports retrieving of the detected
-frequency, however I'm not aware of it. And it doesn't seem useful unless you want
-to use camera as some non-standard measurement tool. It also takes some time until
-the detection algorithm locks, during this time an undefined frequency value would
-be read. 
-
-I believe the filter settings do not really apply to still capture as it involves
-periodic operation, like preview. Even if we had this as meta data tag, there are
-more direct raw image parameters than the PL noise filter frequency.
-
-I feel uncomfortable with having 2 controls, where one can disable the filter and
-the other enable it with AUTO setting. 
-Let's say the sensor supports 4 distinct settings of the filter: OFF, 50HZ, 60HZ, AUTO.
-(there is already one sensor driver in mainline that support it - ov519).
-How do we map this onto 2 controls ?
-
-What do we return from the menu control that covers { OFF, 50HZ, 60HZ } when AUTO
-mode is enabled through the other control and H/W doesn't allow to read the detected
-frequency ?
-
-I think, for the 2 controls we would need the DISABLED entry not to belong to
-V4L2_CID_POWER_LINE_FREQUENCY at first place.
-
+> 		== Patches for Andy Walls <Andy Walls <awalls@md.metrocast.net>> review == 
 > 
-> Not sure if that's important, though.
+> May,25 2011: ivtv: use display information in info not in var for panning           http://patchwork.linuxtv.org/patch/6706   Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-I would say no, but someone can prove me wrong. And who knows what kind of strange
-H/W future brings.
+You committed this one from one of my pull requests.  The subject line
+changed a little (ivtv: -> ivtvfb:)
+
+http://www.gossamer-threads.com/lists/ivtv/devel/41425
+http://git.linuxtv.org/media_tree.git?a=commitdiff;h=5d9c08dea0c13c09408f97fe61d34c198c4f3277
+http://lkml.org/lkml/2011/6/7/311
+
+> 		== Waiting for Andy Walls <awalls@md.metrocast.net> double-check == 
+> 
+> Dec,19 2010: [RESEND, for, 2.6.37] cx23885, cx25840: Provide IR Rx timeout event re http://patchwork.linuxtv.org/patch/5133   Andy Walls <awalls@md.metrocast.net>
+
+By inspection, this one is still OK.  It is still relevant and looks
+like it still should apply cleanly.  I have not compile tested it
+recently.
+
+
+> 		== waiting for Michael Krufky <mkrufky@linuxtv.org> review == 
+> 
+> Sep, 4 2011: Medion 95700 analog video support                                      http://patchwork.linuxtv.org/patch/7767   Maciej Szmigiero <mhej@o2.pl>
+
+I need to comment on the cx25840 portion of this patch.  I plan to make
+time to do that in a few hours. 
 
 
 Regards,
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+Andy
+
