@@ -1,82 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:46601 "EHLO mgw-sa01.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:53146 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756479Ab1IORJ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Sep 2011 13:09:58 -0400
-Message-ID: <4E72319C.4030904@iki.fi>
-Date: Thu, 15 Sep 2011 20:10:52 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	id S1750713Ab1IXPPV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Sep 2011 11:15:21 -0400
+Message-ID: <4E7DF406.90101@redhat.com>
+Date: Sat, 24 Sep 2011 12:15:18 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Cliff Cai <cliffcai.sh@gmail.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Asking advice for Camera/ISP driver framework design
-References: <CAFhB-RACaxtkBuXsch5-giTBqCHR+s5_SP-sGeR=E1HVeGfQLQ@mail.gmail.com> <CAFhB-RBLA410nRJ3w7qyEq2dD+96=eDTneVfmo5Bm6NwevW0Pw@mail.gmail.com> <201109151220.54131.laurent.pinchart@ideasonboard.com> <CAFhB-RB8Pm--H5__kjKN=v=7pF0xtt_VKJw0Dh3YfQ6GE+4KVg@mail.gmail.com>
-In-Reply-To: <CAFhB-RB8Pm--H5__kjKN=v=7pF0xtt_VKJw0Dh3YfQ6GE+4KVg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Chris Rankin <rankincj@yahoo.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/2] EM28xx patches for 3.2
+References: <4E7DEF16.6070209@yahoo.com>
+In-Reply-To: <4E7DEF16.6070209@yahoo.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cliff Cai wrote:
-> On Thu, Sep 15, 2011 at 6:20 PM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
->> Hi Cliff,
->>
->> On Wednesday 14 September 2011 08:13:32 Cliff Cai wrote:
->>> Dear guys,
->>>
->>> I'm currently working on a camera/ISP Linux driver project.Of course,I
->>> want it to be a V4L2 driver,but I got a problem about how to design
->>> the driver framework.
->>> let me introduce the background of this ISP(Image signal processor) a
->>> little bit.
->>> 1.The ISP has two output paths,first one called main path which is
->>> used to transfer image data for taking picture and recording,the other
->>> one called preview path which is used to transfer image data for
->>> previewing.
->>> 2.the two paths have the same image data input from sensor,but their
->>> outputs are different,the output of main path is high quality and
->>> larger image,while the output of preview path is smaller image.
->>> 3.the two output paths have independent DMA engines used to move image
->>> data to system memory.
->>>
->>> The problem is currently, the V4L2 framework seems only support one
->>> buffer queue,and in my case,obviously,two buffer queues are required.
->>> Any idea/advice for implementing such kind of V4L2 driver? or any
->>> other better solutions?
->>
->> Your driver should create two video nodes, one for each stream. They will each
->> have their own buffers queue.
->>
->> The driver should also implement the media controller API to let applications
->> discover that the video nodes are related and how they interact with the ISP.
+Em 24-09-2011 11:54, Chris Rankin escreveu:
+> Mauro,
 > 
-> Hi Laurent,
+> I am resending the two patches for the em28xx driver which seem to have been missed for 3.2. The first one simply removes a stray bit
+> operation on em28xx_devused, whereas the second tidies up the device/extension list handling.
+
+This one were already applied. Just applied the second one.
 > 
-> As "Documentation/media-framework" says, one of the goals of media
-> device model is "Discovering a device internal topology,and
-> configuring it at runtime".I'm just a bit confused about how
-> applications can discover the related video notes? Could you explain
-> it a little more?
+> It is possible that the first patch has been applied already. However, I cannot be sure because I cannot find a URL anywhere that will show me the current "HEAD" of the "pending for 3.2" tree.
 
-Hi Cliff,
+http://git.linuxtv.org/media_tree.git/shortlog/refs/heads/staging/for_v3.2
 
-The major and minor numbers of video nodes are provided to the user
-space in struct media_entity_desc (defined in include/linux/media.h)
-using MEDIA_IOC_ENUM_ENTITIES IOCTL. The major and minor numbers define
-which device node corresponds to the video device; this isn't trivial
-for an application to do so there's a library which makes it easier:
+> BTW, did you implement a different solution for the DVB module trying to retake the dev->lock mutex? Because it looks as if both em28xx_dvb_init() and em28xx_usb_probe() are still calling mutex_lock().
 
-<URL:http://git.ideasonboard.org/?p=media-ctl.git;a=summary>
-
-See src/media.h for the interface. An example how to use this is
-available in src/main.c.
-
-Entities the type of which is MEDIA_ENT_T_DEVNODE_V4L are V4L2 device nodes.
+No, I didn't find any time to look into it. Too much work here...
 
 Regards,
+Mauro
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+> 
+> Cheers,
+> Chris
+
