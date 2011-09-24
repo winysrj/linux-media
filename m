@@ -1,193 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2991 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756322Ab1I3JBc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 05:01:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 1/7] V4L menu: move USB drivers section to the top.
-Date: Fri, 30 Sep 2011 11:01:10 +0200
-Message-Id: <9198dc44ea6f7b8e481c8e6bb24c80fc1b2429ed.1317372990.git.hans.verkuil@cisco.com>
-In-Reply-To: <1317373276-5818-1-git-send-email-hverkuil@xs4all.nl>
-References: <1317373276-5818-1-git-send-email-hverkuil@xs4all.nl>
+Received: from smtp3.mail.ru ([94.100.176.131]:55381 "EHLO smtp3.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750727Ab1IXLNH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Sep 2011 07:13:07 -0400
+Message-ID: <4E7DBB1C.1090407@list.ru>
+Date: Sat, 24 Sep 2011 15:12:28 +0400
+From: Stas Sergeev <stsp@list.ru>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org,
+	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
+	Lennart Poettering <lpoetter@redhat.com>,
+	ALSA devel <alsa-devel@alsa-project.org>
+Subject: Re: [patch][saa7134] do not change mute state for capturing audio
+References: <4E19D2F7.6060803@list.ru> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru> <4E2A23C7.3040209@infradead.org> <4E2A7BF0.8080606@list.ru> <4E2AC742.8020407@infradead.org> <4E2ACAAD.4050602@list.ru> <4E2AE40F.7030108@infradead.org> <4E2C5A35.9030404@list.ru> <4E2C6638.2040707@infrade ad.org> <4E760BCA.6080900@list.ru> <4E7DB798.4060201@infradead.org>
+In-Reply-To: <4E7DB798.4060201@infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+24.09.2011 14:57, Mauro Carvalho Chehab wrote:
+> Please, one patch per email. Patchwork (or any kernel maintainer script)
+> won't catch more than one patch per email. See:
+Sorry about that.
 
-USB webcams are some of the most used V4L devices, so move it to a more
-prominent place in the menu instead of being at the end.
+> With respect to this patch:
+> http://patchwork.linuxtv.org/patch/7941/
+>
+> I don't see any sense on it. Video standard selection is done by software,
+> when a standards mask is passed via VIDIOC_S_STD ioctl. Drivers should not
+> mess it with modprobe hacks.
+Yes, but we already have "secam=" option, and
+also the first scan, that is being done on driver
+init, scans too much without that option, and
+sometimes, unfortunately, detects the PAL carrier
+for me.
+By limiting it to secam, I avoid the problem and
+shorten the scan time.
+But this patch is not very important, so do whatever
+you think necessary with it.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/Kconfig |  145 ++++++++++++++++++++++---------------------
- 1 files changed, 73 insertions(+), 72 deletions(-)
-
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index aed5b3d..0f8ccb4 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -573,6 +573,79 @@ config VIDEO_M52790
- 
- endmenu # encoder / decoder chips
- 
-+#
-+# USB Multimedia device configuration
-+#
-+
-+menuconfig V4L_USB_DRIVERS
-+	bool "V4L USB devices"
-+	depends on USB
-+	default y
-+
-+if V4L_USB_DRIVERS && USB
-+
-+source "drivers/media/video/uvc/Kconfig"
-+
-+source "drivers/media/video/gspca/Kconfig"
-+
-+source "drivers/media/video/pvrusb2/Kconfig"
-+
-+source "drivers/media/video/hdpvr/Kconfig"
-+
-+source "drivers/media/video/em28xx/Kconfig"
-+
-+source "drivers/media/video/tlg2300/Kconfig"
-+
-+source "drivers/media/video/cx231xx/Kconfig"
-+
-+source "drivers/media/video/tm6000/Kconfig"
-+
-+source "drivers/media/video/usbvision/Kconfig"
-+
-+source "drivers/media/video/et61x251/Kconfig"
-+
-+source "drivers/media/video/sn9c102/Kconfig"
-+
-+source "drivers/media/video/pwc/Kconfig"
-+
-+config USB_ZR364XX
-+	tristate "USB ZR364XX Camera support"
-+	depends on VIDEO_V4L2
-+	select VIDEOBUF_GEN
-+	select VIDEOBUF_VMALLOC
-+	---help---
-+	  Say Y here if you want to connect this type of camera to your
-+	  computer's USB port.
-+	  See <file:Documentation/video4linux/zr364xx.txt> for more info
-+	  and list of supported cameras.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called zr364xx.
-+
-+config USB_STKWEBCAM
-+	tristate "USB Syntek DC1125 Camera support"
-+	depends on VIDEO_V4L2 && EXPERIMENTAL
-+	---help---
-+	  Say Y here if you want to use this type of camera.
-+	  Supported devices are typically found in some Asus laptops,
-+	  with USB id 174f:a311 and 05e1:0501. Other Syntek cameras
-+	  may be supported by the stk11xx driver, from which this is
-+	  derived, see <http://sourceforge.net/projects/syntekdriver/>
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called stkwebcam.
-+
-+config USB_S2255
-+	tristate "USB Sensoray 2255 video capture device"
-+	depends on VIDEO_V4L2
-+	select VIDEOBUF_VMALLOC
-+	default n
-+	help
-+	  Say Y here if you want support for the Sensoray 2255 USB device.
-+	  This driver can be compiled as a module, called s2255drv.
-+
-+endif # V4L_USB_DRIVERS
-+
- config VIDEO_SH_VOU
- 	tristate "SuperH VOU video output driver"
- 	depends on VIDEO_DEV && ARCH_SHMOBILE
-@@ -994,78 +1067,6 @@ config VIDEO_S5P_MIPI_CSIS
- 
- source "drivers/media/video/s5p-tv/Kconfig"
- 
--#
--# USB Multimedia device configuration
--#
--
--menuconfig V4L_USB_DRIVERS
--	bool "V4L USB devices"
--	depends on USB
--	default y
--
--if V4L_USB_DRIVERS && USB
--
--source "drivers/media/video/uvc/Kconfig"
--
--source "drivers/media/video/gspca/Kconfig"
--
--source "drivers/media/video/pvrusb2/Kconfig"
--
--source "drivers/media/video/hdpvr/Kconfig"
--
--source "drivers/media/video/em28xx/Kconfig"
--
--source "drivers/media/video/tlg2300/Kconfig"
--
--source "drivers/media/video/cx231xx/Kconfig"
--
--source "drivers/media/video/tm6000/Kconfig"
--
--source "drivers/media/video/usbvision/Kconfig"
--
--source "drivers/media/video/et61x251/Kconfig"
--
--source "drivers/media/video/sn9c102/Kconfig"
--
--source "drivers/media/video/pwc/Kconfig"
--
--config USB_ZR364XX
--	tristate "USB ZR364XX Camera support"
--	depends on VIDEO_V4L2
--	select VIDEOBUF_GEN
--	select VIDEOBUF_VMALLOC
--	---help---
--	  Say Y here if you want to connect this type of camera to your
--	  computer's USB port.
--	  See <file:Documentation/video4linux/zr364xx.txt> for more info
--	  and list of supported cameras.
--
--	  To compile this driver as a module, choose M here: the
--	  module will be called zr364xx.
--
--config USB_STKWEBCAM
--	tristate "USB Syntek DC1125 Camera support"
--	depends on VIDEO_V4L2 && EXPERIMENTAL
--	---help---
--	  Say Y here if you want to use this type of camera.
--	  Supported devices are typically found in some Asus laptops,
--	  with USB id 174f:a311 and 05e1:0501. Other Syntek cameras
--	  may be supported by the stk11xx driver, from which this is
--	  derived, see <http://sourceforge.net/projects/syntekdriver/>
--
--	  To compile this driver as a module, choose M here: the
--	  module will be called stkwebcam.
--
--config USB_S2255
--	tristate "USB Sensoray 2255 video capture device"
--	depends on VIDEO_V4L2
--	select VIDEOBUF_VMALLOC
--	default n
--	help
--	  Say Y here if you want support for the Sensoray 2255 USB device.
--	  This driver can be compiled as a module, called s2255drv.
--
--endif # V4L_USB_DRIVERS
- endif # VIDEO_CAPTURE_DRIVERS
- 
- menuconfig V4L_MEM2MEM_DRIVERS
--- 
-1.7.6.3
-
+> I'll comment later http://patchwork.linuxtv.org/patch/7940/. It seems to be
+> going into the right direction, but I need to take a deeper code inspection
+> and maybe do some tests here.
+Thanks!
+Of course, in my view, the _only_ right direction is
+to export the mute control to the alsa mixer and then
+fix mplayer. But at least I'm glad I've managed to
+find the hack that satisfies your opinion and works
+around the problem at the same time.
