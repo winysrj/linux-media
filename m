@@ -1,71 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:57743 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755470Ab1IPRFh (ORCPT
+Received: from nm2.bt.bullet.mail.ukl.yahoo.com ([217.146.183.200]:43625 "HELO
+	nm2.bt.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752694Ab1IYNx3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Sep 2011 13:05:37 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LRM003O9KTAZP@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2011 18:05:34 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRM00K6UKTAOD@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Sep 2011 18:05:34 +0100 (BST)
-Date: Fri, 16 Sep 2011 19:05:28 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 1/3] v4l: Extend V4L2_CID_COLORFX control with AQUA effect
-In-reply-to: <1316192730-18099-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Message-id: <1316192730-18099-2-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1316192730-18099-1-git-send-email-s.nawrocki@samsung.com>
+	Sun, 25 Sep 2011 09:53:29 -0400
+Message-ID: <4E7F3255.5060209@yahoo.com>
+Date: Sun, 25 Sep 2011 14:53:25 +0100
+From: Chris Rankin <rankincj@yahoo.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: [PATCH] EM28xx - remove unused prototypes
+Content-Type: multipart/mixed;
+ boundary="------------020607060508040004050300"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add V4L2_COLORFX_AQUA image effect in the V4L2_CID_COLORFX menu.
+This is a multi-part message in MIME format.
+--------------020607060508040004050300
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/controls.xml |    5 +++--
- include/linux/videodev2.h                    |    1 +
- 2 files changed, 4 insertions(+), 2 deletions(-)
+Mauro,
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 8516401..f3c6457 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -294,8 +294,9 @@ minimum value disables backlight compensation.</entry>
- <constant>V4L2_COLORFX_SKETCH</constant> (5),
- <constant>V4L2_COLORFX_SKY_BLUE</constant> (6),
- <constant>V4L2_COLORFX_GRASS_GREEN</constant> (7),
--<constant>V4L2_COLORFX_SKIN_WHITEN</constant> (8) and
--<constant>V4L2_COLORFX_VIVID</constant> (9).</entry>
-+<constant>V4L2_COLORFX_SKIN_WHITEN</constant> (8),
-+<constant>V4L2_COLORFX_VIVID</constant> (9) and
-+<constant>V4L2_COLORFX_AQUA</constant> (10).</entry>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_CID_ROTATE</constant></entry>
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index fca24cc..5032226 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1144,6 +1144,7 @@ enum v4l2_colorfx {
- 	V4L2_COLORFX_GRASS_GREEN = 7,
- 	V4L2_COLORFX_SKIN_WHITEN = 8,
- 	V4L2_COLORFX_VIVID = 9,
-+	V4L2_COLORFX_AQUA = 10,
- };
- #define V4L2_CID_AUTOBRIGHTNESS			(V4L2_CID_BASE+32)
- #define V4L2_CID_BAND_STOP_FILTER		(V4L2_CID_BASE+33)
--- 
-1.7.6
+This patch just removes the prototypes for the two functions that I've already 
+deleted in my previous patches.
 
+Cheers,
+Chris
+
+Signed-off-by: Chris Rankin <rankincj@yahoo.com>
+
+--------------020607060508040004050300
+Content-Type: text/x-patch;
+ name="EM28xx-remove-unused-prototypes.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="EM28xx-remove-unused-prototypes.diff"
+
+--- linux/drivers/media/video/em28xx/em28xx.h.orig	2011-09-25 14:46:02.000000000 +0100
++++ linux/drivers/media/video/em28xx/em28xx.h	2011-09-25 14:46:10.000000000 +0100
+@@ -678,8 +678,6 @@
+ int em28xx_set_mode(struct em28xx *dev, enum em28xx_mode set_mode);
+ int em28xx_gpio_set(struct em28xx *dev, struct em28xx_reg_seq *gpio);
+ void em28xx_wake_i2c(struct em28xx *dev);
+-void em28xx_remove_from_devlist(struct em28xx *dev);
+-void em28xx_add_into_devlist(struct em28xx *dev);
+ int em28xx_register_extension(struct em28xx_ops *dev);
+ void em28xx_unregister_extension(struct em28xx_ops *dev);
+ void em28xx_init_extension(struct em28xx *dev);
+
+--------------020607060508040004050300--
