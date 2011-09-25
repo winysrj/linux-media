@@ -1,62 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53050 "EHLO bear.ext.ti.com"
+Received: from mail.kaapeli.fi ([84.20.139.148]:58201 "EHLO mail.kaapeli.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752101Ab1I0Nll (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 09:41:41 -0400
-From: Deepthy Ravi <deepthy.ravi@ti.com>
-To: <laurent.pinchart@ideasonboard.com>, <mchehab@infradead.org>,
-	<tony@atomide.com>, <hvaibhav@ti.com>,
-	<linux-media@vger.kernel.org>, <linux@arm.linux.org.uk>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<kyungmin.park@samsung.com>, <hverkuil@xs4all.nl>,
-	<m.szyprowski@samsung.com>, <g.liakhovetski@gmx.de>,
-	<santosh.shilimkar@ti.com>, <khilman@deeprootsystems.com>,
-	<linux-kernel@vger.kernel.org>
-CC: <linux-omap@vger.kernel.org>, Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: [PATCH v2 5/5] omap2plus_defconfig: Enable omap3isp and MT9T111 sensor drivers
-Date: Tue, 27 Sep 2011 19:10:48 +0530
-Message-ID: <1317130848-21136-6-git-send-email-deepthy.ravi@ti.com>
-In-Reply-To: <1317130848-21136-1-git-send-email-deepthy.ravi@ti.com>
-References: <1317130848-21136-1-git-send-email-deepthy.ravi@ti.com>
+	id S1752960Ab1IYQhi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Sep 2011 12:37:38 -0400
+Message-ID: <4E7F58BB.5080803@iki.fi>
+Date: Sun, 25 Sep 2011 19:37:15 +0300
+From: Jyrki Kuoppala <jkp@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] Fix to qt1010 tuner frequency selection (media/dvb)
+References: <4E528FAE.5060801@iki.fi> <5010154.A6jI82beuA@valkyrie>
+In-Reply-To: <5010154.A6jI82beuA@valkyrie>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enables multimedia driver, media controller api,
-v4l2-subdev-api, omap3isp and mt9t111 sensor
-drivers in omap2plus_defconfig. Also enables
-soc-camera and mt9t112 support since mt9t111
-sensor is using mt9t112 driver which is based
-on soc-camera subsystem.
-Loading soc_camera.ko fails. Hence built into
-the kernel.
+I haven't gotten any feedback, and didn't see any comments on the lists 
+(though I've checked them only occasionally), so I think you're probably 
+right it fell between the cracks.
 
-Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
----
- arch/arm/configs/omap2plus_defconfig |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+Jyrki
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index d5f00d7..48032b6 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -133,6 +133,15 @@ CONFIG_TWL4030_WATCHDOG=y
- CONFIG_REGULATOR_TWL4030=y
- CONFIG_REGULATOR_TPS65023=y
- CONFIG_REGULATOR_TPS6507X=y
-+CONFIG_MEDIA_SUPPORT=y
-+CONFIG_MEDIA_CONTROLLER=y
-+CONFIG_VIDEO_DEV=y
-+CONFIG_VIDEO_V4L2_SUBDEV_API=y
-+CONFIG_VIDEO_MEDIA=y
-+CONFIG_VIDEO_MT9T111=m
-+CONFIG_VIDEO_OMAP3=m
-+CONFIG_SOC_CAMERA=y
-+CONFIG_SOC_CAMERA_MT9T112=m
- CONFIG_FB=y
- CONFIG_FIRMWARE_EDID=y
- CONFIG_FB_MODE_HELPERS=y
--- 
-1.7.0.4
+
+25.09.2011 19:13, Carlos Corbacho kirjoitti:
+> On Monday 22 Aug 2011 20:19:42 Jyrki Kuoppala wrote:
+>> The patch fixes frequency selection for some UHF frequencies e.g.
+>> channel 32 (562 MHz) on the qt1010 tuner. The tuner is used e.g. in the
+>> MSI Mega Sky dvb-t stick ("MSI Mega Sky 55801 DVB-T USB2.0")
+>>
+>> One example of problem reports of the bug this fixes can be read at
+>> http://www.freak-search.com/de/thread/330303/linux-dvb_tuning_problem_with_s
+>> ome_frequencies_qt1010,_dvb
+>>
+>> Applies to kernel versions 2.6.38.8, 2.6.39.4, 3.0.3 and 3.1-rc2.
+>>
+>> Signed-off-by: Jyrki Kuoppala<jkp@iki.fi>
+> Cc: stable@kernel.org
+> Tested-by: Carlos Corbacho<carlos@strangeworlds.co.uk>
+>
+> This patch means I can now finally tune to all the BBC channels (which are on
+> channel 31 (554 MHz) in my area). This should definitely go to stable, as I've
+> also seen other similar reports for users who can't tune to various channels
+> in the affected ranges here using qt1010.
+>
+> Mauro - I don't see this one in your git tree in the 3.2 branch, or in the
+> temporary linuxtv patchwork, so I'm assuming this one fell between the cracks?
+>
+> -Carlos
+>
+>> diff -upr linux-source-2.6.38.orig/drivers/media/common/tuners/qt1010.c
+>> linux-source-2.6.38/drivers/media/common/tuners/qt1010.c
+>> --- linux-source-2.6.38.orig/drivers/media/common/tuners/qt1010.c
+>> 2011-03-15 03:20:32.000000000 +0200
+>> +++ linux-source-2.6.38/drivers/media/common/tuners/qt1010.c
+>> 2011-08-21 23:16:38.209580365 +0300
+>> @@ -198,9 +198,10 @@ static int qt1010_set_params(struct dvb_
+>>
+>>        /* 22 */
+>>        if      (freq<  450000000) rd[15].val = 0xd0; /* 450 MHz */
+>> -    else if (freq<  482000000) rd[15].val = 0xd1; /* 482 MHz */
+>> +    else if (freq<  482000000) rd[15].val = 0xd2; /* 482 MHz */
+>>        else if (freq<  514000000) rd[15].val = 0xd4; /* 514 MHz */
+>> -    else if (freq<  546000000) rd[15].val = 0xd7; /* 546 MHz */
+>> +    else if (freq<  546000000) rd[15].val = 0xd6; /* 546 MHz */
+>> +    else if (freq<  578000000) rd[15].val = 0xd8; /* 578 MHz */
+>>        else if (freq<  610000000) rd[15].val = 0xda; /* 610 MHz */
+>>        else                       rd[15].val = 0xd0;
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at  http://www.tux.org/lkml/
 
