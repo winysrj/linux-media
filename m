@@ -1,50 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:54453 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752859Ab1IEOtD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 10:49:03 -0400
-Subject: Re: [media-ctl][PATCHv4 3/3] libmediactl: get the device name via
- udev
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Date: Mon, 05 Sep 2011 17:48:34 +0300
-In-Reply-To: <201109051231.24430.laurent.pinchart@ideasonboard.com>
-References: <201109021326.14340.laurent.pinchart@ideasonboard.com>
-	 <6075971b959c2e808cd4ceec6540dc09b101346f.1314968925.git.andriy.shevchenko@linux.intel.com>
-	 <62c72745987f6490497a54512d1569490c173af3.1314968925.git.andriy.shevchenko@linux.intel.com>
-	 <201109051231.24430.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Message-ID: <1315234114.28628.7.camel@smile>
-Mime-Version: 1.0
+Received: from nm2-vm0.bt.bullet.mail.ukl.yahoo.com ([217.146.182.242]:29080
+	"HELO nm2-vm0.bt.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752649Ab1IYNcc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Sep 2011 09:32:32 -0400
+Message-ID: <4E7F2D6B.5000603@yahoo.com>
+Date: Sun, 25 Sep 2011 14:32:27 +0100
+From: Chris Rankin <rankincj@yahoo.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v3] EM28xx - fix deadlock when unplugging and replugging
+ a DVB adapter
+References: <4E7E43A2.3020905@yahoo.com> <4E7F25D4.2080504@redhat.com>
+In-Reply-To: <4E7F25D4.2080504@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2011-09-05 at 12:31 +0200, Laurent Pinchart wrote: 
-> Hi Andy,
-> 
-> On Friday 02 September 2011 15:09:28 Andy Shevchenko wrote:
-> > If configured with --with-libudev, the libmediactl is built with libudev
-> > support. It allows to get the device name in right way in the modern linux
-> > systems.
-> 
-> Thanks for the patch. We're nearly there :-)
-I see.
+On 25/09/11 14:00, Mauro Carvalho Chehab wrote:
+> Hmm... This would probably work better (not tested). Could you please test it
+> on your hardware?
 
-> This will break binary compatibility if an application creates a struct 
-> media_device instances itself. On the other hand applications are not supposed 
-> to do that.
-> 
-> As the struct udev pointer is only used internally, what about passing it 
-> around between functions explicitly instead ?
-That we will break the API in media_close().
-Might be I am a blind, but I can't see the way how to do both 1) don't
-provide static global variable and 2) don't break the API/ABI.
+Hmm, I don't understand this. The deadlock isn't about taking 
+em28xx_devlist_mutex, but happens because em28xx_dvb_init() tries to retake 
+dev->lock when em28xx_usb_probe() is already holding it. That's why I unlocked 
+dev->lock before calling em28xx_init_extension().
 
-So, I'll send 5th version of the patchset with API breakage.
-Hope that what you could accept as a final version.
+So why are you avoiding locking em28xx_devlist_mutex?
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Cheers,
+Chris
+
+> diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+> index 7297d90..c92c177 100644
+> --- a/drivers/media/video/em28xx/em28xx-cards.c
+> +++ b/drivers/media/video/em28xx/em28xx-cards.c
+> @@ -3005,7 +3005,8 @@ static int em28xx_init_dev(struct em28xx **devhandle, struct usb_device *udev,
+>   		goto fail;
+>   	}
+>
+> -	em28xx_init_extension(dev);
+> +	/* dev->lock needs to be holded */
+> +	__em28xx_init_extension(dev);
+>
+>   	/* Save some power by putting tuner to sleep */
+>   	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+> @@ -3301,10 +3302,10 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+>   		em28xx_release_resources(dev);
+>   	}
+>
+> -	em28xx_close_extension(dev);
+> -
+>   	mutex_unlock(&dev->lock);
+>
+> +	em28xx_close_extension(dev);
+> +
+>   	if (!dev->users) {
+>   		kfree(dev->alt_max_pkt_size);
+>   		kfree(dev);
+> diff --git a/drivers/media/video/em28xx/em28xx-core.c b/drivers/media/video/em28xx/em28xx-core.c
+> index 804a4ab..afddfea 100644
+> --- a/drivers/media/video/em28xx/em28xx-core.c
+> +++ b/drivers/media/video/em28xx/em28xx-core.c
+> @@ -1218,16 +1218,22 @@ void em28xx_unregister_extension(struct em28xx_ops *ops)
+>   }
+>   EXPORT_SYMBOL(em28xx_unregister_extension);
+>
+> -void em28xx_init_extension(struct em28xx *dev)
+> +/* Need to take the mutex lock before calling it */
+> +void __em28xx_init_extension(struct em28xx *dev)
+>   {
+>   	const struct em28xx_ops *ops = NULL;
+>
+> -	mutex_lock(&em28xx_devlist_mutex);
+>   	list_add_tail(&dev->devlist,&em28xx_devlist);
+>   	list_for_each_entry(ops,&em28xx_extension_devlist, next) {
+>   		if (ops->init)
+>   			ops->init(dev);
+>   	}
+> +}
+> +
+> +void em28xx_init_extension(struct em28xx *dev)
+> +{
+> +	mutex_lock(&em28xx_devlist_mutex);
+> +	__em28xx_init_extension(dev);
+>   	mutex_unlock(&em28xx_devlist_mutex);
+>   }
+>
+> diff --git a/drivers/media/video/em28xx/em28xx.h b/drivers/media/video/em28xx/em28xx.h
+> index 1626e4a..a5c1ba2 100644
+> --- a/drivers/media/video/em28xx/em28xx.h
+> +++ b/drivers/media/video/em28xx/em28xx.h
+> @@ -682,6 +682,7 @@ void em28xx_remove_from_devlist(struct em28xx *dev);
+>   void em28xx_add_into_devlist(struct em28xx *dev);
+>   int em28xx_register_extension(struct em28xx_ops *dev);
+>   void em28xx_unregister_extension(struct em28xx_ops *dev);
+> +void __em28xx_init_extension(struct em28xx *dev);
+>   void em28xx_init_extension(struct em28xx *dev);
+>   void em28xx_close_extension(struct em28xx *dev);
+>
+
