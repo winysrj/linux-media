@@ -1,33 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nschwmtas06p.mx.bigpond.com ([61.9.189.152]:19065 "EHLO
-	nschwmtas06p.mx.bigpond.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752985Ab1IDLld (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Sep 2011 07:41:33 -0400
-Message-ID: <4E6363E9.407@bigpond.com>
-Date: Sun, 04 Sep 2011 21:41:29 +1000
-From: Declan Mullen <declan.mullen@bigpond.com>
+Received: from mx1.redhat.com ([209.132.183.28]:37712 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752363Ab1IYMtb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Sep 2011 08:49:31 -0400
+Message-ID: <4E7F2358.7090906@redhat.com>
+Date: Sun, 25 Sep 2011 09:49:28 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Steven Toth <stoth@kernellabs.com>
-CC: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: How to git and build HVR-2200 drivers from Kernel labs ?
-References: <201108150923.44824.declan.mullen@bigpond.com> <201108152232.46744.declan.mullen@bigpond.com> <CALzAhNW2iZA7f=hj+Kao055T-z5C-z4sArX7OE=JHU1DiyRx2Q@mail.gmail.com> <201108172233.53829.declan.mullen@bigpond.com> <CALzAhNUsACrYnSYbMj2wQN1GgBNMExLPWcnJPX0XwHiLEB2Qpw@mail.gmail.com>
-In-Reply-To: <CALzAhNUsACrYnSYbMj2wQN1GgBNMExLPWcnJPX0XwHiLEB2Qpw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Chris Rankin <rankincj@yahoo.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v3] EM28xx - fix deadlock when unplugging and replugging
+ a DVB adapter
+References: <4E7E43A2.3020905@yahoo.com>
+In-Reply-To: <4E7E43A2.3020905@yahoo.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18/08/2011 2:20 AM, Steven Toth wrote:
->> Eg should I use the source from "git clone git://kernellabs.com/stoth/saa7164-
->> dev.git" or do you recommend something else that might be more stable ?
-> pull a snapshot:
->
-> http://www.kernellabs.com/gitweb/?p=stoth/saa7164-stable.git;a=snapshot;h=87e0c0378bf2068df5d0c43acd66aea9ba71bd89;sf=tgz
->
+Em 24-09-2011 17:54, Chris Rankin escreveu:
+> This fixes the deadlock that occurs with either multiple PCTV 290e adapters or when a single PCTV 290e adapter is replugged.
+> 
+> For DVB devices, the device lock must now *not* be held when adding/removing either a device or an extension to the respective lists. (Because em28xx_init_dvb() will want to take the lock instead).
+> 
+> Conversely, for Audio-Only devices, the device lock *must* be held when adding/removing either a device or an extension to the respective lists.
+> 
+> Signed-off-by: Chris Rankin <ranki...@yahoo.com>
 
-I've now got my card working with the saa7164 driver from the 
-"87e0c0378bf2068df5d0c43acd66aea9ba71bd89" commit. Many thanks for your 
-help.
+Ok, I've applied it, but it doesn't sound a good idea to me to do:
 
++	mutex_unlock(&dev->lock);
+ 	em28xx_init_extension(dev);
++	mutex_lock(&dev->lock);
+
+I'll later test it with some hardware and see how well this behaves
+in practice.
+
+Thanks,
+Mauro
