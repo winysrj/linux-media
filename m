@@ -1,47 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from e8.ny.us.ibm.com ([32.97.182.138]:47505 "EHLO e8.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753097Ab1IUQbL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 12:31:11 -0400
-Subject: Re: [PATCH 1/3] fixup! mm: alloc_contig_freed_pages() added
-From: Dave Hansen <dave@linux.vnet.ibm.com>
-To: Michal Nazarewicz <mnazarewicz@google.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-In-Reply-To: <f57b57f83bc5980e3db7d9d42f91c7e1765b4766.1316622205.git.mina86@mina86.com>
-References: <1316619959.16137.308.camel@nimitz>
-	 <f57b57f83bc5980e3db7d9d42f91c7e1765b4766.1316622205.git.mina86@mina86.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 21 Sep 2011 09:30:51 -0700
-Message-ID: <1316622651.16137.311.camel@nimitz>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:58198 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752928Ab1IYOxd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Sep 2011 10:53:33 -0400
+Received: by gwb15 with SMTP id 15so4743886gwb.19
+        for <linux-media@vger.kernel.org>; Sun, 25 Sep 2011 07:53:32 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4E7F1FB5.5030803@gmail.com>
+References: <4E7F1FB5.5030803@gmail.com>
+Date: Sun, 25 Sep 2011 17:53:30 +0300
+Message-ID: <CAJL_dMtcYegWvh3fKn7SH6F_7th7aRNTUu+y9N0hkwFdspYvqg@mail.gmail.com>
+Subject: Re: Problems cloning the git repostories
+From: Anca Emanuel <anca.emanuel@gmail.com>
+To: Patrick Dickey <pdickeybeta@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2011-09-21 at 18:26 +0200, Michal Nazarewicz wrote:
-> -               page += 1 << order;
-> +
-> +               if (zone_pfn_same_memmap(pfn - count, pfn))
-> +                       page += count;
-> +               else
-> +                       page = pfn_to_page(pfn);
->         }
+On Sun, Sep 25, 2011 at 3:33 PM, Patrick Dickey <pdickeybeta@gmail.com> wrote:
+> Hello there,
+>
+> I tried to follow the steps for cloning both the "media_tree.git" and
+> "media_build.git" repositories, and received errors for both.  The
+> media_tree repository failed on the first line
+>
+>> git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git v4l-dvb
+>
+> which I'm assuming is because kernel.org is down.
+>
+> The media_build.git repository fails on the first line also
+>
+>> git clone git://linuxtv.org/media_build.git
+>
+> with a fatal: read error: Connection reset by peer.
+>
 
-That all looks sane to me and should fix the bug I brought up.
+The linux tree is at: https://github.com/torvalds/linux
+git clone git://github.com/torvalds/linux.git
 
--- Dave
-
+The Mauro's media tree is at: http://git.linuxtv.org/mchehab/media-next.git
