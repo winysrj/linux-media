@@ -1,53 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 4.mo1.mail-out.ovh.net ([46.105.76.26]:54042 "EHLO
-	mo1.mail-out.ovh.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751307Ab1IXGGM (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:48026 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753111Ab1IZKEB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Sep 2011 02:06:12 -0400
-Received: from mail615.ha.ovh.net (b9.ovh.net [213.186.33.59])
-	by mo1.mail-out.ovh.net (Postfix) with SMTP id 61C8A1008FB5
-	for <linux-media@vger.kernel.org>; Sat, 24 Sep 2011 07:49:45 +0200 (CEST)
-Date: Sat, 24 Sep 2011 07:26:09 +0200
-From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Josh Wu <josh.wu@atmel.com>, nicolas.ferre@atmel.com,
-	linux-kernel@vger.kernel.org, s.nawrocki@samsung.com,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 2/2] at91: add Atmel ISI and ov2640 support on
- sam9m10/sam9g45 board.
-Message-ID: <20110924052609.GI29998@game.jcrosoft.org>
-References: <1316664661-11383-1-git-send-email-josh.wu@atmel.com>
- <1316664661-11383-2-git-send-email-josh.wu@atmel.com>
- <Pine.LNX.4.64.1109220911500.11164@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1109220911500.11164@axis700.grange>
+	Mon, 26 Sep 2011 06:04:01 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=UTF-8
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LS400E06JYMO920@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 26 Sep 2011 11:03:58 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LS400JFOJYM3D@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 26 Sep 2011 11:03:58 +0100 (BST)
+Date: Mon, 26 Sep 2011 12:03:53 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [GIT PULL] Selection API and fixes for v3.2
+In-reply-to: <4E7D5561.6080303@redhat.com>
+To: 'Mauro Carvalho Chehab' <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Message-id: <010b01cc7c33$98a99a50$c9fccef0$%szyprowski@samsung.com>
+Content-language: pl
+References: <1316704391-13596-1-git-send-email-m.szyprowski@samsung.com>
+ <4E7D5561.6080303@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09:35 Thu 22 Sep     , Guennadi Liakhovetski wrote:
-> On Thu, 22 Sep 2011, Josh Wu wrote:
-> 
-> > This patch
-> > 1. add ISI_MCK parent setting code when add ISI device.
-> > 2. add ov2640 support on board file.
-> > 3. define isi_mck clock in sam9g45 chip file.
-> > 
-> > Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> > ---
-> >  arch/arm/mach-at91/at91sam9g45.c         |    3 +
-> >  arch/arm/mach-at91/at91sam9g45_devices.c |  105 +++++++++++++++++++++++++++++-
-> >  arch/arm/mach-at91/board-sam9m10g45ek.c  |   85 ++++++++++++++++++++++++-
-> >  arch/arm/mach-at91/include/mach/board.h  |    3 +-
-> 
-> Personally, I think, it would be better to separate this into two patches 
-> at least: one for at91 core and one for the specific board, but that's up 
-> to arch maintainers to decide.
-> 
-> You also want to patch arch/arm/mach-at91/at91sam9263_devices.c, don't 
-> you?
-agreed
+Hello Mauro,
 
-Best Regards,
-J.
+Ok, I agree that s5p-tv patches need some more work. What about
+the other patches, especially these two:
+"vb2: add vb2_get_unmapped_area in vb2 core"
+"v4l: mem2mem: add wait_{prepare,finish} ops to m2m_testdev"? 
+
+I cannot find them in your staging/for_v3.2 branch yet - should
+I include them in the next pull request?
+
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
+
