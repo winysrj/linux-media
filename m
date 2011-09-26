@@ -1,36 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:48184 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932278Ab1IHJRx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 05:17:53 -0400
-Received: by gyg10 with SMTP id 10so154554gyg.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Sep 2011 02:17:53 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:47173 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751189Ab1IZGm0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Sep 2011 02:42:26 -0400
+From: Archit Taneja <archit@ti.com>
+To: <hvaibhav@ti.com>
+CC: <tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>,
+	<sumit.semwal@ti.com>, <linux-media@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v2 5/5] OMAP_VOUT: Don't trigger updates in omap_vout_probe
+Date: Mon, 26 Sep 2011 12:12:10 +0530
+Message-ID: <1317019330-4090-6-git-send-email-archit@ti.com>
+In-Reply-To: <1317019330-4090-1-git-send-email-archit@ti.com>
+References: <1317019330-4090-1-git-send-email-archit@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <op.v0e6qhil31sqp4@2487aa0235.dummy.porta.siemens.net>
-References: <op.v0e6qhil31sqp4@2487aa0235.dummy.porta.siemens.net>
-Date: Thu, 8 Sep 2011 11:17:52 +0200
-Message-ID: <CAL7owaB5cXRfaKfyyCOP3DZTztzHUyWGecU-Uf-NrxZUMQgfeA@mail.gmail.com>
-Subject: Re: dvb-apps: update hr-All
-From: Christoph Pfister <christophpfister@gmail.com>
-To: =?UTF-8?Q?Samuel_Rakitni=C4=8Dan?= <samuel.rakitnican@gmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Updated, thanks.
+Remove the code in omap_vout_probe() which calls display->driver->update() for
+all the displays. This isn't correct because:
 
-Christoph
+- An update in probe doesn't make sense, because we don't have any valid content
+  to show at this time.
+- Calling update for a panel which isn't enabled is not supported by DSS2. This
+  leads to a crash at probe.
 
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/video/omap/omap_vout.c |    8 --------
+ 1 files changed, 0 insertions(+), 8 deletions(-)
 
-2011/8/18 Samuel Rakitničan <samuel.rakitnican@gmail.com>:
-> Hi,
->
-> Attached updated patch for Croatia. Most of the updates are for MUX D as
-> it's in phase of implementation. Removed MUX C (experimental HD mux) as it's
-> no longer emitted.
->
->
-> Best regards,
-> Samuel
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index df0713c..5473601 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -2221,14 +2221,6 @@ static int __init omap_vout_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto probe_err2;
+ 
+-	for (i = 0; i < vid_dev->num_displays; i++) {
+-		struct omap_dss_device *display = vid_dev->displays[i];
+-
+-		if (display->driver->update)
+-			display->driver->update(display, 0, 0,
+-					display->panel.timings.x_res,
+-					display->panel.timings.y_res);
+-	}
+ 	return 0;
+ 
+ probe_err2:
+-- 
+1.7.1
+
