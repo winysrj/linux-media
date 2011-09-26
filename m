@@ -1,54 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ist.d-labs.de ([213.239.218.44]:47499 "EHLO mx01.d-labs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753439Ab1IDVMs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Sep 2011 17:12:48 -0400
-Date: Sun, 4 Sep 2011 23:12:18 +0200
-From: Florian Mickler <florian@mickler.org>
-To: Florian Mickler <florian@mickler.org>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	error27@gmail.com, pboettcher@kernellabs.com,
-	Markus_Stephan@freenet.de, jirislaby@gmail.com
-Subject: Re: [PATCH v2] [media] vp702x: fix buffer handling
-Message-ID: <20110904231218.7469551d@schatten.dmk.lab>
-In-Reply-To: <1314310275-30960-1-git-send-email-florian@mickler.org>
-References: <1312300213-29099-1-git-send-email-florian@mickler.org>
-	<1314310275-30960-1-git-send-email-florian@mickler.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from devils.ext.ti.com ([198.47.26.153]:42806 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750933Ab1IZGmH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Sep 2011 02:42:07 -0400
+From: Archit Taneja <archit@ti.com>
+To: <hvaibhav@ti.com>
+CC: <tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>,
+	<sumit.semwal@ti.com>, <linux-media@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v2 1/5] OMAP_VOUT: Fix check in reqbuf for buf_size allocation
+Date: Mon, 26 Sep 2011 12:12:06 +0530
+Message-ID: <1317019330-4090-2-git-send-email-archit@ti.com>
+In-Reply-To: <1317019330-4090-1-git-send-email-archit@ti.com>
+References: <1317019330-4090-1-git-send-email-archit@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 26 Aug 2011 00:11:15 +0200
-Florian Mickler <florian@mickler.org> wrote:
+The commit 383e4f69879d11c86ebdd38b3356f6d0690fb4cc makes reqbuf prevent
+requesting a larger size buffer than what is allocated at kernel boot during
+omap_vout_probe.
 
-> In my previous change to this driver, I was not aware, that dvb_usb_device_init
-> calls the frontend_attach routine which needs a transfer
-> buffer. So we can not setup anything private in the probe routine beforehand but
-> have to allocate when needed. This means also that we cannot use a private
-> buffer mutex to serialize that buffer but instead need to use the
-> dvb_usb_device's usb_mutex.
-> 
-> Fixes: https://bugzilla.novell.com/show_bug.cgi?id=709440
-> 
-> Tested-by: Markus Stephan <Markus_Stephan@freenet.de>
-> Signed-off-by: Florian Mickler <florian@mickler.org>
-> ---
-> 
-> So, someone who could test that driver found me after all.
-> 
-> I renamed the functions to get rid of that ugly and pointless _unlocked suffix I
-> deliriously added earlier. Markus tested this patch modulo function renaming. I am
-> so shure that this version will still work for him, that I already added his
-> Tested-by. *fingerscrossed*
+The requested size is compared with vout->buffer_size, this isn't correct as
+vout->buffer_size is later set to the size requested in reqbuf. When the video
+device is opened the next time, this check will prevent us to allocate a buffer
+which is larger than what we requested the last time.
 
+Don't use vout->buffer_size, always check with the parameters video1_bufsize
+or video2_bufsize.
 
-Hi Mauro!
-I just checked patchwork and in case you hold off on this because of my
-*fingerscrossed* remark above: Markus reported off-list that this
-version still works for him. 
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/video/omap/omap_vout.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
-Regards,
-Flo
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index d9e64f3..16ebff6 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -664,10 +664,14 @@ static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int *count,
+ 	u32 phy_addr = 0, virt_addr = 0;
+ 	struct omap_vout_device *vout = q->priv_data;
+ 	struct omapvideo_info *ovid = &vout->vid_info;
++	int vid_max_buf_size;
+ 
+ 	if (!vout)
+ 		return -EINVAL;
+ 
++	vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
++		video2_bufsize;
++
+ 	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != q->type)
+ 		return -EINVAL;
+ 
+@@ -690,7 +694,7 @@ static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int *count,
+ 		video1_numbuffers : video2_numbuffers;
+ 
+ 	/* Check the size of the buffer */
+-	if (*size > vout->buffer_size) {
++	if (*size > vid_max_buf_size) {
+ 		v4l2_err(&vout->vid_dev->v4l2_dev,
+ 				"buffer allocation mismatch [%u] [%u]\n",
+ 				*size, vout->buffer_size);
+@@ -865,6 +869,8 @@ static int omap_vout_mmap(struct file *file, struct vm_area_struct *vma)
+ 	unsigned long size = (vma->vm_end - vma->vm_start);
+ 	struct omap_vout_device *vout = file->private_data;
+ 	struct videobuf_queue *q = &vout->vbq;
++	int vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
++		video2_bufsize;
+ 
+ 	v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev,
+ 			" %s pgoff=0x%lx, start=0x%lx, end=0x%lx\n", __func__,
+@@ -887,7 +893,7 @@ static int omap_vout_mmap(struct file *file, struct vm_area_struct *vma)
+ 		return -EINVAL;
+ 	}
+ 	/* Check the size of the buffer */
+-	if (size > vout->buffer_size) {
++	if (size > vid_max_buf_size) {
+ 		v4l2_err(&vout->vid_dev->v4l2_dev,
+ 				"insufficient memory [%lu] [%u]\n",
+ 				size, vout->buffer_size);
+-- 
+1.7.1
 
