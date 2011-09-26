@@ -1,46 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41073 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33252 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750933Ab1IZGmD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 02:42:03 -0400
-From: Archit Taneja <archit@ti.com>
-To: <hvaibhav@ti.com>
-CC: <tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>,
-	<sumit.semwal@ti.com>, <linux-media@vger.kernel.org>,
-	Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 0/5] [media]: OMAP_VOUT: Misc fixes and cleanup patches for 3.2
-Date: Mon, 26 Sep 2011 12:12:05 +0530
-Message-ID: <1317019330-4090-1-git-send-email-archit@ti.com>
+	id S1752832Ab1IZLZf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Sep 2011 07:25:35 -0400
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Date: Mon, 26 Sep 2011 16:55:22 +0530
+Subject: RE: [PATCH RESEND 1/4] davinci vpbe: remove unused macro.
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593025729ADE5@dbde02.ent.ti.com>
+References: <1316410529-14744-1-git-send-email-manjunath.hadli@ti.com>
+ <1316410529-14744-2-git-send-email-manjunath.hadli@ti.com>
+ <4E7D1782.30209@redhat.com>
+In-Reply-To: <4E7D1782.30209@redhat.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This set includes patches which do the following:
-- Fix crash if a we call dssdev->driver->update for a disabled panel.
-- Fix the issue of not being able to request for a buffer which is larger than
-  what we did the last time.
-- Fix a small bug in omap_vout_isr()
-- Remove some redundant code in omap_vout_isr()
-- Add basic support for DSI panels
+On Sat, Sep 24, 2011 at 05:04:26, Mauro Carvalho Chehab wrote:
+> Em 19-09-2011 02:35, Manjunath Hadli escreveu:
+> > remove VPBE_DISPLAY_SD_BUF_SIZE as it is no longer used.
+> > 
+> > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > ---
+> >  drivers/media/video/davinci/vpbe_display.c |    1 -
+> >  1 files changed, 0 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/davinci/vpbe_display.c 
+> > b/drivers/media/video/davinci/vpbe_display.c
+> > index ae7add1..09a659e 100644
+> > --- a/drivers/media/video/davinci/vpbe_display.c
+> > +++ b/drivers/media/video/davinci/vpbe_display.c
+> > @@ -43,7 +43,6 @@
+> >  
+> >  static int debug;
+> >  
+> > -#define VPBE_DISPLAY_SD_BUF_SIZE (720*576*2)  #define 
+> > VPBE_DEFAULT_NUM_BUFS 3
+> >  
+> >  module_param(debug, int, 0644);
+> 
+> This is really trivial. I won't wait for your pull request to merge this one ;)
 
-Changes in v2:
-- Add fid == 0 check in "CLEANUP: Remove redundant code from omap_vout_isr" for
-  more clarity.
-- Use vout->buffer_size as done originally for mmap in "Fix check in reqbuf for
-  buf_size allocation"
+Thank you Mauro.
 
-Refernce base:
+> 
+> Thanks,
+> Mauro
+> 
 
-git@gitorious.org:~boddob/linux-omap-dss2/archit-dss2-clone.git 'for_omap_vout2'
-
-Archit Taneja (5):
-  OMAP_VOUT: Fix check in reqbuf for buf_size allocation
-  OMAP_VOUT: CLEANUP: Remove redundant code from omap_vout_isr
-  OMAP_VOUT: Fix VSYNC IRQ handling in omap_vout_isr
-  OMAP_VOUT: Add support for DSI panels
-  OMAP_VOUT: Don't trigger updates in omap_vout_probe
-
- drivers/media/video/omap/omap_vout.c |  199 +++++++++++++++++-----------------
- 1 files changed, 99 insertions(+), 100 deletions(-)
-
+Thx,
+-Manju
