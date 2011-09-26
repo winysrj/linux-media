@@ -1,118 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42061 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750873Ab1IUJGf (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:41772 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752682Ab1IZXwt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 05:06:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Ravi, Deepthy" <deepthy.ravi@ti.com>
-Subject: Re: [PATCH 4/5] ispccdc: Configure CCDC_SYN_MODE register for UYVY8_2X8 and YUYV8_2X8 formats
-Date: Wed, 21 Sep 2011 11:06:41 +0200
-Cc: "mchehab@infradead.org" <mchehab@infradead.org>,
-	"tony@atomide.com" <tony@atomide.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"Shilimkar, Santosh" <santosh.shilimkar@ti.com>,
-	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>,
-	"david.woodhouse@intel.com" <david.woodhouse@intel.com>,
-	"akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com> <201109210126.20436.laurent.pinchart@ideasonboard.com> <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090847@dbde03.ent.ti.com>
-In-Reply-To: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D090847@dbde03.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Mon, 26 Sep 2011 19:52:49 -0400
+Subject: Re: [PATCH]Medion 95700 analog video support
+From: Andy Walls <awalls@md.metrocast.net>
+To: Maciej Szmigiero <mhej@o2.pl>
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Malcolm Priestley <tvboxspy@gmail.com>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Martin Wilks <m.wilks@technisat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Arnaud Lacombe <lacombar@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sven Barth <pascaldragon@googlemail.com>,
+	Lucas De Marchi <lucas.demarchi@profusion.mobi>,
+	linux-media@vger.kernel.org
+Date: Mon, 26 Sep 2011 19:53:31 -0400
+In-Reply-To: <4E80F080.7030500@o2.pl>
+References: <4E63C8A0.7030702@o2.pl>
+	 <CAOcJUbzXKVoOsfLA+YewyfDKmxuX0PgB8mWdfG49ArdS1fpyfA@mail.gmail.com>
+	 <4E7CDEB1.9090901@infradead.org>
+	 <CAOcJUby0dK_sjhTB3HEfdxkc9rsWU9KkZ=2B4O=Tcn4E90AE2w@mail.gmail.com>
+	 <c651371a-b2c4-4e95-bbb3-5b97a8b7281e@email.android.com>
+	 <4E7CF707.7060800@o2.pl> <1316895712.12899.84.camel@palomino.walls.org>
+	 <4E80F080.7030500@o2.pl>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109211106.41677.laurent.pinchart@ideasonboard.com>
+Message-ID: <1317081213.2345.13.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Deepthy,
-
-On Wednesday 21 September 2011 07:32:44 Ravi, Deepthy wrote:
-> On Wednesday, September 21, 2011 4:56 AM Laurent Pinchart wrote:
-> > On Tuesday 20 September 2011 16:56:51 Deepthy Ravi wrote:
-> >> Configure INPMOD and PACK8 fileds of CCDC_SYN_MODE
-> >> register for UYVY8_2X8 and YUYV8_2X8 formats.
-> >> 
-> >> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
-> >> ---
-> >> 
-> >>  drivers/media/video/omap3isp/ispccdc.c |   11 ++++++++---
-> >>  1 files changed, 8 insertions(+), 3 deletions(-)
-> >> 
-> >> diff --git a/drivers/media/video/omap3isp/ispccdc.c
-> >> b/drivers/media/video/omap3isp/ispccdc.c index 418ba65..1dcf180 100644
-> >> --- a/drivers/media/video/omap3isp/ispccdc.c
-> >> +++ b/drivers/media/video/omap3isp/ispccdc.c
-> >> @@ -985,8 +985,12 @@ static void ccdc_config_sync_if(struct
-> >> isp_ccdc_device
-> >> *ccdc,
-> >> 
-> >>       syn_mode &= ~ISPCCDC_SYN_MODE_INPMOD_MASK;
-> >>       if (format->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
-> >> 
-> >> -         format->code == V4L2_MBUS_FMT_UYVY8_2X8)
-> >> -             syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
-> >> +         format->code == V4L2_MBUS_FMT_UYVY8_2X8){
-> >> +             if (pdata && pdata->bt656)
-> >> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
-> >> +             else
-> >> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
-> >> +     }
-> >> 
-> >>       else if (format->code == V4L2_MBUS_FMT_YUYV8_1X16 ||
-> >>       
-> >>                format->code == V4L2_MBUS_FMT_UYVY8_1X16)
-> >>               
-> >>               syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
-> >> 
-> >> @@ -1172,7 +1176,8 @@ static void ccdc_configure(struct isp_ccdc_device
-> >> *ccdc) syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
-> >> 
-> >>       /* Use PACK8 mode for 1byte per pixel formats. */
-> >> 
-> >> -     if (omap3isp_video_format_info(format->code)->width <= 8)
-> >> +     if ((omap3isp_video_format_info(format->code)->width <= 8) &&
-> >> +                     (omap3isp_video_format_info(format->code)->bpp <=
-> >> 8))
+On Mon, 2011-09-26 at 23:37 +0200, Maciej Szmigiero wrote:
+> W dniu 24.09.2011 22:21, Andy Walls pisze:
+> > Hi Maciej,
 > > 
-> > I'm not sure to follow you. This will clear the PACK8 bit for the
-> > YUYV8_2X8 formats. Those formats are 8 bits wide, shouldn't PACK8 be set
-> > to store samples on 8 bits instead of 16 bits ?
+> > I'll try and comment on the specific areas below, but overall the
+> > problem is this:
 > > 
-> > Is this patch intended to support YUYV8_2X8 sensors in non BT.656 mode
-> > with the bridge enabled ? In that case, what would you think about setting
-> > the CCDC input format to YUYV8_1X16 instead ? This would better reflect
-> > the reality, as the bridge converts YUYV8_2X8 to YUYV8_1X16, and the CCDC
-> > is then fed with YUYV8_1X16.
+> > 1. The default setup and behavior of the cx25840 module was written
+> > around hardware designs supported by the ivtv driver: i.e. interfacing
+> > to a CX23416 MPEG encoder.
+> > 
+> > 2. The ivtv and pvrusb2 drivers rely on that default setup and behavior
+> > of the cx25840 module.
+> > 
+> > 3. The PVR-150 and PVR-500 are very popular cards supported by ivtv that
+> > use a CX25843 and CX23416.  Many MythTV users still have these cards in
+> > service.
+> > 
+> > 4. The ivtv driver also supports other hardware designs that use
+> > different encoders, so trying fix ivtv to match new changes in the
+> > cx25840 will ripples along to other analog video decoder drivers.  This
+> > would result in a lot of time to perform regression testing with as many
+> > different ivtv supported capture cards as possible. 
+> > 
+> > 
+> > What I recommend is that you rework your changes so that the cx25840
+> > module is provided information by the bridge driver as to the board
+> > model, and then have the cx25840 module behave appropriately based on
+> > the board information passed in by the bridge driver.
+> > 
+> > 1. Add whatever data fields you think you need to the "struct
+> > cx25840_platform_data" structure in include/media/cx25840.h.  Maybe
+> > something as simple as "bool is_medion95700"
+> > 
+> > 2. In cxusb-analog.c you instantiate the cx25840 sub-device with
+> > v4l2_i2c_new_subdev_board() with the cx25840 platform data filled in as
+> > needed for the Medion 95700.  Look at
+> > drivers/media/video/ivtv/ivtv-i2c.c:ivtv_i2c_register() for an example
+> > of how this is done for the cx25840 module.
+> > 
+> > 3. Modify the cx25840 module to behave as you need it if the platform
+> > data indicates a Medion 95700; otherwise, leave the default cx25840
+> > setup and behavior.
+> > 
 > 
-> Yes this is intended for  YUYV8_2X8 sensors in non BT.656 with 8 to 16 bit
-> bridge enabled. So the data has to be stored as 16 bits per sample. Thats
-> why PACK8 is cleared . I am not sure about using YUYV8_1X16.
+> Hi Andy,
+> 
+> Thanks for you detailed explanation, I did not know that ivtv boards are that
+> quirky with regard to VBI capture.
+> I will do as you wrote above, make my changes to cx25840 driver conditional, 
+> so ivtv won't be affected.
 
-My original idea when I wrote the YV support patches was to implement this use 
-case with YUYV8_2X8 at the sensor output and YUYV8_1X16 at the CCDC input. The 
-ISP driver could then enable the bridge automatically. I'm not sure if that's 
-the best solution though, it might be confusing for the users. What I would 
-like to keep, however, is the idea of enabling the bridge automatically.
+Thanks!
 
-Sakari, any opinion on this ?
 
-> >>               syn_mode |= ISPCCDC_SYN_MODE_PACK8;
-> >>       else
-> >>               syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
+> > Any specific comments I have are in-line below:
+> > 
+> >> @@ -18,6 +18,9 @@
+> >>   * CX2388[578] IRQ handling, IO Pin mux configuration and other small fixes are
+> >>   * Copyright (C) 2010 Andy Walls <awalls@md.metrocast.net>
+> >>   *
+> >> + * CX2384x pin to pad mapping and output format configuration support are
+> >       ^^^^^^^
+> > CX2584x?
+> >>  	if ((fmt->width * 16 < Hsrc) || (Hsrc < fmt->width) ||
+> >>  			(Vlines * 8 < Vsrc) || (Vsrc < Vlines)) {
+> >> @@ -1403,6 +1695,112 @@ static void log_audio_status(struct i2c_client *client)
+> >>  	}
+> >>  }
+> >>  
+> >> +#define CX25480_VCONFIG_OPTION(option_mask) \
+> >            ^^^^^^
+> > CX25840?
+> > 
+> >> +	if (config_in & option_mask) { \
+> >> +		state->vid_config &= ~(option_mask); \
+> >> +		state->vid_config |= config_in & option_mask; \
+> >> +	} \
+> >> +
+> >> +#define CX25480_VCONFIG_SET_BIT(optionmask, reg, bit, oneval) \
+> >            ^^^^^^
+> > CX25840?
+> > 
+> 
+> You mean here that it should be named consistently either as CX2584x or CX25840?
 
--- 
+No.  You simply appear to have transposed the 8 with the 4.
+
+
+> >>  	return set_input(client, input, state->aud_input);
+> >>  }
+> >>  
+> >> @@ -1877,7 +2278,7 @@ static int cx25840_probe(struct i2c_client *client,
+> >>  	u16 device_id;
+> >>  
+> >>  	/* Check if the adapter supports the needed features */
+> >> -	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+> >> +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+> >>  		return -EIO;
+> > 
+> > On the surface, this change doesn't appear to adversely affect the ivtv,
+> > pvrusb2, cx23885, and cx231xx bridge drivers.  
+> > 
+> > I would need to take a hard look at the CX2584[0123], CX2583[67],
+> > CX2388[578], and CX2310[12] datasheets to see why, and if, all the Mako
+> > core variants require I2C_FUNC_SMBUS_BYTE_DATA.
+> > 
+> > However, if the cxusb bridge has a full I2C master, shouldn't the cxusb
+> > driver be specifying (I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL) as its
+> > functionality?  See Documentation/i2c/functionality.
+> 
+> Adding I2C_FUNC_SMBUS_EMUL flag to cxusb i2c host seems to be a right thing to do for now,
+> but I would be very surprised if any of Conexant video decoders actually used SMBus instead
+> of plain I2C.
+
+I'm confident they use plain I2C as well.
+
+Hans added this particular i2c_check_functionality() call to the cx25840
+module in 2007.  It appears to be a cut and paste of what many I2C chip
+drivers in drivers/media/video do.
+
+The check might have its origin in some example code from Greg K-H in
+2003 for a Tiny I2C chip driver:
+http://www.linuxjournal.com/article/7252?page=0,0
+ftp://ftp.linuxjournal.com/pub/lj/listings/issue118/7252.tgz
+
 Regards,
+Andy
 
-Laurent Pinchart
+
+
+
