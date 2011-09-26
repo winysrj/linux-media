@@ -1,165 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:59010 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751355Ab1I3JRP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 05:17:15 -0400
-Date: Fri, 30 Sep 2011 11:14:31 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Josh Wu <josh.wu@atmel.com>
-cc: linux-media@vger.kernel.org, plagnioj@jcrosoft.com,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	nicolas.ferre@atmel.com, s.nawrocki@samsung.com
-Subject: Re: [PATCH v3 1/2][media] Add code to enable/disable ISI_MCK clock.
-In-Reply-To: <1316664661-11383-1-git-send-email-josh.wu@atmel.com>
-Message-ID: <Pine.LNX.4.64.1109301105480.1888@axis700.grange>
-References: <1316664661-11383-1-git-send-email-josh.wu@atmel.com>
+Received: from mx1.redhat.com ([209.132.183.28]:26645 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750846Ab1IZNaX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Sep 2011 09:30:23 -0400
+Message-ID: <4E807E67.3000508@redhat.com>
+Date: Mon, 26 Sep 2011 10:30:15 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: linux-media@vger.kernel.org, pawel@osciak.com
+Subject: Re: [GIT PULL] Selection API and fixes for v3.2
+References: <1316704391-13596-1-git-send-email-m.szyprowski@samsung.com> <4E805E6E.3080007@redhat.com> <011201cc7c3e$798c5bc0$6ca51340$%szyprowski@samsung.com>
+In-Reply-To: <011201cc7c3e$798c5bc0$6ca51340$%szyprowski@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 22 Sep 2011, Josh Wu wrote:
+Em 26-09-2011 08:21, Marek Szyprowski escreveu:
+> Hello,
+> 
+> On Monday, September 26, 2011 1:14 PM Mauro Carvalho Chehab wrote:
+> 
+>>> Scott Jiang (1):
+>>>       vb2: add vb2_get_unmapped_area in vb2 core
+>>
+>>> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+>>> index ea55c08..977410b 100644
+>>> --- a/include/media/videobuf2-core.h
+>>> +++ b/include/media/videobuf2-core.h
+>>> @@ -309,6 +309,13 @@ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
+>>>  int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type);
+>>>
+>>>  int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma);
+>>> +#ifndef CONFIG_MMU
+>>> +unsigned long vb2_get_unmapped_area(struct vb2_queue *q,
+>>> +				    unsigned long addr,
+>>> +				    unsigned long len,
+>>> +				    unsigned long pgoff,
+>>> +				    unsigned long flags);
+>>> +#endif
+>>>  unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait);
+>>>  size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
+>>>  		loff_t *ppos, int nonblock);
+>>
+>> This sounds me like a hack, as it is passing the problem of working with a non-mmu
+>> capable hardware to the driver, inserting architecture-dependent bits on them.
+>>
+>> The proper way to do it is to provide a vb2 core support to handle the non-mmu case
+>> inside it.
+> 
+> This is exactly what this patch does - it provides generic vb2 implementation for 
+> fops->get_unmapped_area callback which any vb2 ready driver can use. This operation
+> is used only on NON-MMU systems. Please check drivers/media/video/v4l2-dev.c file and
+> the implementation of get_unmapped_area there. Similar code is used by uvc driver.
 
-> This patch add code to enable/disable ISI_MCK clock when add/remove soc 
-> camera device.it also set ISI_MCK frequence before using it.
+At least there, there is a:
+#ifdef CONFIG_MMU
+#define v4l2_get_unmapped_area NULL
+#else
+...
+#endif
 
-Ok, the fact, that noone more comments on the clk API use in this patch 
-confirms my impression, that it's now mostly done right:-) But, as I 
-mentioned in my reply to patch 2/2, I think, you shouldn't be getting and 
-manipulating isi_mck unconditionally in this driver.
+block, so, in thesis, a driver can be written to support both cases without inserting
+#ifdefs inside it.
 
-Actually, I think, this code
+Ideally, I would prefer if all those iommu-specific calls would be inside the core.
+A driver should not need to do anything special in order to support a different
+(sub)architecture.
 
-+	/* ISI_MCK, which is provided by programmable clock(PCK1) */
-+	CLKDEV_CON_DEV_ID("isi_mck", "atmel_isi.0", &pck1),
-
-in your other patch (sorry for cross-referencing), isn't quite correct. 
-This is not an ISI specific clock, this is a PCK1 clock, which might as 
-well be used for ISI, but can also be used for a different purpose. At 
-least this doesn't seem a generic sam9g45 feature to me. You, probably, 
-want to move this clock lookup registration to your board (sam9g45ek) 
-file, which does indeed wire PCK1 to the camera sensor, installed on it.
-
-Thanks
-Guennadi
 
 > 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
->  drivers/media/video/atmel-isi.c |   30 ++++++++++++++++++++++++++++--
->  include/media/atmel-isi.h       |    2 ++
->  2 files changed, 30 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
-> index 7b89f00..888234a 100644
-> --- a/drivers/media/video/atmel-isi.c
-> +++ b/drivers/media/video/atmel-isi.c
-> @@ -90,7 +90,10 @@ struct atmel_isi {
->  	struct isi_dma_desc		dma_desc[MAX_BUFFER_NUM];
->  
->  	struct completion		complete;
-> +	/* ISI peripherial clock */
->  	struct clk			*pclk;
-> +	/* ISI_MCK, provided by Programmable clock */
-> +	struct clk			*mck;
->  	unsigned int			irq;
->  
->  	struct isi_platform_data	*pdata;
-> @@ -763,6 +766,12 @@ static int isi_camera_add_device(struct soc_camera_device *icd)
->  	if (ret)
->  		return ret;
->  
-> +	ret = clk_enable(isi->mck);
-> +	if (ret) {
-> +		clk_disable(isi->pclk);
-> +		return ret;
-> +	}
-> +
->  	isi->icd = icd;
->  	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
->  		 icd->devnum);
-> @@ -776,6 +785,7 @@ static void isi_camera_remove_device(struct soc_camera_device *icd)
->  
->  	BUG_ON(icd != isi->icd);
->  
-> +	clk_disable(isi->mck);
->  	clk_disable(isi->pclk);
->  	isi->icd = NULL;
->  
-> @@ -897,6 +907,7 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
->  			isi->fb_descriptors_phys);
->  
->  	iounmap(isi->regs);
-> +	clk_put(isi->mck);
->  	clk_put(isi->pclk);
->  	kfree(isi);
->  
-> @@ -915,7 +926,7 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
->  	struct isi_platform_data *pdata;
->  
->  	pdata = dev->platform_data;
-> -	if (!pdata || !pdata->data_width_flags) {
-> +	if (!pdata || !pdata->data_width_flags || !pdata->isi_mck_hz) {
->  		dev_err(&pdev->dev,
->  			"No config available for Atmel ISI\n");
->  		return -EINVAL;
-> @@ -944,6 +955,19 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
->  	INIT_LIST_HEAD(&isi->video_buffer_list);
->  	INIT_LIST_HEAD(&isi->dma_desc_head);
->  
-> +	/* Get ISI_MCK, which is provided by Programmable clock */
-> +	isi->mck = clk_get(dev, "isi_mck");
-> +	if (IS_ERR(isi->mck)) {
-> +		dev_err(dev, "Failed to get isi_mck\n");
-> +		ret = PTR_ERR(isi->mck);
-> +		goto err_alloc_descriptors;
-> +	}
-> +
-> +	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
-> +	ret = clk_set_rate(isi->mck, pdata->isi_mck_hz);
-> +	if (ret < 0)
-> +		goto err_set_mck_rate;
-> +
->  	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
->  				sizeof(struct fbd) * MAX_BUFFER_NUM,
->  				&isi->fb_descriptors_phys,
-> @@ -951,7 +975,7 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
->  	if (!isi->p_fb_descriptors) {
->  		ret = -ENOMEM;
->  		dev_err(&pdev->dev, "Can't allocate descriptors!\n");
-> -		goto err_alloc_descriptors;
-> +		goto err_set_mck_rate;
->  	}
->  
->  	for (i = 0; i < MAX_BUFFER_NUM; i++) {
-> @@ -1013,6 +1037,8 @@ err_alloc_ctx:
->  			sizeof(struct fbd) * MAX_BUFFER_NUM,
->  			isi->p_fb_descriptors,
->  			isi->fb_descriptors_phys);
-> +err_set_mck_rate:
-> +	clk_put(isi->mck);
->  err_alloc_descriptors:
->  	kfree(isi);
->  err_alloc_isi:
-> diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
-> index 26cece5..a0229a6 100644
-> --- a/include/media/atmel-isi.h
-> +++ b/include/media/atmel-isi.h
-> @@ -114,6 +114,8 @@ struct isi_platform_data {
->  	u32 data_width_flags;
->  	/* Using for ISI_CFG1 */
->  	u32 frate;
-> +	/* Using for ISI_MCK, provided by Programmable clock */
-> +	u32 isi_mck_hz;
->  };
->  
->  #endif /* __ATMEL_ISI_H__ */
-> -- 
-> 1.6.3.3
-> 
+> Best regards
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
