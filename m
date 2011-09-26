@@ -1,54 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:38056 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752376Ab1IYMeA (ORCPT
+Received: from newsmtp5.atmel.com ([204.2.163.5]:28924 "EHLO
+	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752333Ab1IZJWj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Sep 2011 08:34:00 -0400
-Received: by yxl31 with SMTP id 31so3659307yxl.19
-        for <linux-media@vger.kernel.org>; Sun, 25 Sep 2011 05:33:59 -0700 (PDT)
-Message-ID: <4E7F1FB5.5030803@gmail.com>
-Date: Sun, 25 Sep 2011 07:33:57 -0500
-From: Patrick Dickey <pdickeybeta@gmail.com>
+	Mon, 26 Sep 2011 05:22:39 -0400
+Message-ID: <4E804440.7030709@atmel.com>
+Date: Mon, 26 Sep 2011 11:22:08 +0200
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: Problems cloning the git repostories
+To: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Josh Wu <josh.wu@atmel.com>, linux-kernel@vger.kernel.org,
+	s.nawrocki@samsung.com, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 2/2] at91: add Atmel ISI and ov2640 support on sam9m10/sam9g45
+ board.
+References: <1316664661-11383-1-git-send-email-josh.wu@atmel.com> <1316664661-11383-2-git-send-email-josh.wu@atmel.com> <Pine.LNX.4.64.1109220911500.11164@axis700.grange> <20110924052609.GI29998@game.jcrosoft.org>
+In-Reply-To: <20110924052609.GI29998@game.jcrosoft.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello there,
+Le 24/09/2011 07:26, Jean-Christophe PLAGNIOL-VILLARD :
+> On 09:35 Thu 22 Sep     , Guennadi Liakhovetski wrote:
+>> On Thu, 22 Sep 2011, Josh Wu wrote:
+>>
+>>> This patch
+>>> 1. add ISI_MCK parent setting code when add ISI device.
+>>> 2. add ov2640 support on board file.
+>>> 3. define isi_mck clock in sam9g45 chip file.
+>>>
+>>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>>> ---
+>>>  arch/arm/mach-at91/at91sam9g45.c         |    3 +
+>>>  arch/arm/mach-at91/at91sam9g45_devices.c |  105 +++++++++++++++++++++++++++++-
+>>>  arch/arm/mach-at91/board-sam9m10g45ek.c  |   85 ++++++++++++++++++++++++-
+>>>  arch/arm/mach-at91/include/mach/board.h  |    3 +-
+>>
+>> Personally, I think, it would be better to separate this into two patches 
+>> at least: one for at91 core and one for the specific board, but that's up 
+>> to arch maintainers to decide.
+>>
+>> You also want to patch arch/arm/mach-at91/at91sam9263_devices.c, don't 
+>> you?
+> agreed
 
-I tried to follow the steps for cloning both the "media_tree.git" and
-"media_build.git" repositories, and received errors for both.  The
-media_tree repository failed on the first line
+No, I am not sure. The IP is not the same between 9263 and 9g45/9m10. So
+this inclusion will not apply.
 
-> git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git v4l-dvb 
-
-which I'm assuming is because kernel.org is down.
-
-The media_build.git repository fails on the first line also
-
-> git clone git://linuxtv.org/media_build.git 
-
-with a fatal: read error: Connection reset by peer.
-
-Is it possible to clone either (or both) repositories at this time, or
-are they down?  And in the absence of cloning the kernel for the
-media_tree.git repository, is it possible to simply clone the
-git://linuxtv.org/media_tree.git repository and work from that?
-
-My interest in this is to install some patches created by Devin
-Heitmueller for the Pinnacle PCTV 80e USB tuner (at least the ATSC
-portion of the tuner). Once I'm able to determine exactly what changes
-are made, I would like to either submit the patches to the repository,
-or send them to someone who has more experience in patching the files
-for submission.
-
-One other question (totally unrelated to this post though): When I send
-emails, normally they are GPG signed. Should I disable that for this
-list, or is it acceptable?
-
-Thank you for any information, and have a great day:)
-Patrick.
+Best regards,
+-- 
+Nicolas Ferre
 
