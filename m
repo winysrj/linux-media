@@ -1,107 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58265 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754840Ab1IQWIg (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:9493 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752671Ab1IZMGw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Sep 2011 18:08:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [PATCH v2] arm: omap3evm: Add support for an MT9M032 based camera board.
-Date: Sun, 18 Sep 2011 00:08:20 +0200
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-References: <1316252097-4213-1-git-send-email-martin@neutronstar.dyndns.org> <4E751870.5080605@gmail.com>
-In-Reply-To: <4E751870.5080605@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109180008.21254.laurent.pinchart@ideasonboard.com>
+	Mon, 26 Sep 2011 08:06:52 -0400
+Date: Mon, 26 Sep 2011 14:06:43 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 6/8] drivers: add Contiguous Memory Allocator
+In-reply-to: <1312393430.2855.51.camel@mulgrave>
+To: 'James Bottomley' <James.Bottomley@HansenPartnership.com>,
+	'Arnd Bergmann' <arnd@arndb.de>
+Cc: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	ksummit-2011-discuss@lists.linux-foundation.org
+Message-id: <011c01cc7c44$c1aea3d0$450beb70$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1309851710-3828-1-git-send-email-m.szyprowski@samsung.com>
+ <1309851710-3828-7-git-send-email-m.szyprowski@samsung.com>
+ <20110705113345.GA8286@n2100.arm.linux.org.uk>
+ <201107051427.44899.arnd@arndb.de> <1312393430.2855.51.camel@mulgrave>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 18 September 2011 00:00:16 Sylwester Nawrocki wrote:
-> On 09/17/2011 11:34 AM, Martin Hostettler wrote:
-> > Adds board support for an MT9M032 based camera to omap3evm.
-> 
-> ...
-> 
-> > +
-> > +static int __init camera_init(void)
-> > +{
-> > +	int ret = -EINVAL;
-> > +
-> > +	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
-> > +	if (gpio_request(nCAM_VD_SEL, "nCAM_VD_SEL")<  0) {
-> > +		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_SEL(%d)\n",
-> > +		       nCAM_VD_SEL);
-> > +		goto err;
-> > +	}
-> > +	if (gpio_direction_output(nCAM_VD_SEL, 1)<  0) {
-> > +		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_SEL(%d)
-> > direction\n", +		       nCAM_VD_SEL);
-> > +		goto err_vdsel;
-> > +	}
-> 
-> How about replacing gpio_request + gpio_direction_output with:
-> 
-> 	gpio_request_one(nCAM_VD_SEL, GPIOF_OUT_INIT_HIGH, "nCAM_VD_SEL");
+Hello,
 
-I'd even propose gpio_request_array().
+I'm sorry for the late reply. I must have missed this mail...
 
-> > +
-> > +	if (gpio_request(EVM_TWL_GPIO_BASE + 2, "T2_GPIO2")<  0) {
-> > +		pr_err("omap3evm-camera: Failed to get GPIO T2_GPIO2(%d)\n",
-> > +		       EVM_TWL_GPIO_BASE + 2);
-> > +		goto err_vdsel;
-> > +	}
-> > +	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 2, 0)<  0) {
-> > +		pr_err("omap3evm-camera: Failed to set GPIO T2_GPIO2(%d) 
-direction\n",
-> > +		       EVM_TWL_GPIO_BASE + 2);
-> > +		goto err_2;
-> > +	}
-> 
->  	gpio_request_one(EVM_TWL_GPIO_BASE + 2, GPIOF_OUT_INIT_LOW, "T2_GPIO2");
-> 
-> > +
-> > +	if (gpio_request(EVM_TWL_GPIO_BASE + 8, "nCAM_VD_EN")<  0) {
-> > +		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_EN(%d)\n",
-> > +		       EVM_TWL_GPIO_BASE + 8);
-> > +		goto err_2;
-> > +	}
-> > +	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 8, 0)<  0) {
-> > +		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_EN(%d)
-> > direction\n", +		       EVM_TWL_GPIO_BASE + 8);
-> > +		goto err_8;
-> > +	}
-> 
-> ...and	gpio_request_one(EVM_TWL_GPIO_BASE + 8, GPIOF_OUT_INIT_LOW,
-> "nCAM_VD_EN") ?
-> 
-> > +
-> > +	omap3evm_set_mux(MUX_CAMERA_SENSOR);
-> > +
-> > +
-> > +	ret = omap3_init_camera(&isp_platform_data);
-> > +	if (ret<  0)
-> > +		goto err_8;
-> > +	return 0;
-> > +
-> > +err_8:
-> > +	gpio_free(EVM_TWL_GPIO_BASE + 8);
-> > +err_2:
-> > +	gpio_free(EVM_TWL_GPIO_BASE + 2);
-> > +err_vdsel:
-> > +	gpio_free(nCAM_VD_SEL);
-> > +err:
-> > +	return ret;
-> > +}
-> > +
-> > +device_initcall(camera_init);
+On Wednesday, August 03, 2011 7:44 PM James Bottomley wrote:
 
+> [cc to ks-discuss added, since this may be a relevant topic]
+> 
+> On Tue, 2011-07-05 at 14:27 +0200, Arnd Bergmann wrote:
+> > On Tuesday 05 July 2011, Russell King - ARM Linux wrote:
+> > > On Tue, Jul 05, 2011 at 09:41:48AM +0200, Marek Szyprowski wrote:
+> > > > The Contiguous Memory Allocator is a set of helper functions for DMA
+> > > > mapping framework that improves allocations of contiguous memory chunks.
+> > > >
+> > > > CMA grabs memory on system boot, marks it with CMA_MIGRATE_TYPE and
+> > > > gives back to the system. Kernel is allowed to allocate movable pages
+> > > > within CMA's managed memory so that it can be used for example for page
+> > > > cache when DMA mapping do not use it. On dma_alloc_from_contiguous()
+> > > > request such pages are migrated out of CMA area to free required
+> > > > contiguous block and fulfill the request. This allows to allocate large
+> > > > contiguous chunks of memory at any time assuming that there is enough
+> > > > free memory available in the system.
+> > > >
+> > > > This code is heavily based on earlier works by Michal Nazarewicz.
+> > >
+> > > And how are you addressing the technical concerns about aliasing of
+> > > cache attributes which I keep bringing up with this and you keep
+> > > ignoring and telling me that I'm standing in your way.
+> 
+> Just to chime in here, parisc has an identical issue.  If the CPU ever
+> sees an alias with different attributes for the same page, it will HPMC
+> the box (that's basically the bios will kill the system as being
+> architecturally inconsistent), so an architecture neutral solution on
+> this point is essential to us as well.
+>
+> > This is of course an important issue, and it's the one item listed as
+> > TODO in the introductory mail that sent.
+> >
+> > It's also a preexisting problem as far as I can tell, and it needs
+> > to be solved in __dma_alloc for both cases, dma_alloc_from_contiguous
+> > and __alloc_system_pages as introduced in patch 7.
+> >
+> > We've discussed this back and forth, and it always comes down to
+> > one of two ugly solutions:
+> >
+> > 1. Put all of the MIGRATE_CMA and pages into highmem and change
+> > __alloc_system_pages so it also allocates only from highmem pages.
+> > The consequences of this are that we always need to build kernels
+> > with highmem enabled and that we have less lowmem on systems that
+> > are already small, both of which can be fairly expensive unless
+> > you have lots of highmem already.
+> 
+> So this would require that systems using the API have a highmem? (parisc
+> doesn't today).
+
+Yes, such solution will require highmem. It will introduce the highmem 
+issues to systems that typically don't use highmem, that's why I searched
+for other solutions.
+ 
+> > 2. Add logic to unmap pages from the linear mapping, which is
+> > very expensive because it forces the use of small pages in the
+> > linear mapping (or in parts of it), and possibly means walking
+> > all page tables to remove the PTEs on alloc and put them back
+> > in on free.
+> >
+> > I believe that Chunsang Jeong from Linaro is planning to
+> > implement both variants and post them for review, so we can
+> > decide which one to merge, or even to merge both and make
+> > it a configuration option. See also
+> > https://blueprints.launchpad.net/linaro-mm-sig/+spec/engr-mm-dma-mapping-2011.07
+> >
+> > I don't think we need to make merging the CMA patches depending on
+> > the other patches, it's clear that both need to be solved, and
+> > they are independent enough.
+> 
+> I assume from the above that ARM has a hardware page walker?
+
+Right.
+
+> The way I'd fix this on parisc, because we have a software based TLB, is
+> to rely on the fact that a page may only be used either for DMA or for
+> Page Cache, so the aliases should never be interleaved.  Since you know
+> the point at which the page flips from DMA to Cache (and vice versa),
+> I'd purge the TLB entry and flush the page at that point and rely on the
+> usage guarantees to ensure that the alias TLB entry doesn't reappear.
+> This isn't inexpensive but the majority of the cost is the cache flush
+> which is a requirement to clean the aliases anyway (a TLB entry purge is
+> pretty cheap).
+> 
+> Would this work for the ARM hardware walker as well?  It would require
+> you to have a TLB entry purge instruction as well as some architectural
+> guarantees about not speculating the TLB.
+
+The main problem with ARM linear mapping is the fact that it is created 
+using 2MiB sections, so entries for kernel linear mapping fits entirely in
+first lever of process page table. This implies that direct changing this
+linear mapping is not easy task and must be performed for all tasks in the
+system. In my CMA v12+ patches I decided to use simpler way of solving this
+issue. I rely on the fact that DMA memory is allocated only from CMA regions,
+so during early boot I change the kernel linear mappings for these regions.
+Instead of 2MiB sections, I use regular 4KiB pages which create 2 level of
+page tables. Second level of page table for these regions can be easily
+shared for all processes in the system.
+
+This way I can easily update cache attributes for any single 4KiB page that
+is used for DMA and avoid any aliasing at all. The only drawback of this
+method is larger TLB pressure what might result in some slowdown during
+heavy IO if pages with 4KiB linear mapping are used. However with my 
+hardware has only slow io (with eMMC I get only about 30MiB/s) so I cannot
+notice any impact of the mapping method on the io speed.
+
+Best regards
 -- 
-Regards,
+Marek Szyprowski
+Samsung Poland R&D Center
 
-Laurent Pinchart
+
+
