@@ -1,81 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54184 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751154Ab1ISIBK (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:51625 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753305Ab1IZKUG convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Sep 2011 04:01:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: martin@neutronstar.dyndns.org
-Subject: Re: [PATCH v2] arm: omap3evm: Add support for an MT9M032 based camera board.
-Date: Mon, 19 Sep 2011 10:01:12 +0200
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-References: <1316252097-4213-1-git-send-email-martin@neutronstar.dyndns.org> <201109182358.55816.laurent.pinchart@ideasonboard.com> <20110919061019.GD9244@neutronstar.dyndns.org>
-In-Reply-To: <20110919061019.GD9244@neutronstar.dyndns.org>
+	Mon, 26 Sep 2011 06:20:06 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Taneja, Archit" <archit@ti.com>
+CC: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Semwal, Sumit" <sumit.semwal@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 26 Sep 2011 15:49:56 +0530
+Subject: RE: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
+ omap_vout_isr
+Message-ID: <19F8576C6E063C45BE387C64729E739404ECA54614@dbde02.ent.ti.com>
+References: <1316167233-1437-1-git-send-email-archit@ti.com>
+ <1316167233-1437-4-git-send-email-archit@ti.com>
+ <19F8576C6E063C45BE387C64729E739404EC941F86@dbde02.ent.ti.com>
+ <4E7AD29C.4070804@ti.com>
+In-Reply-To: <4E7AD29C.4070804@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109191001.12364.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Martin,
-
-On Monday 19 September 2011 08:10:19 martin@neutronstar.dyndns.org wrote:
-> On Sun, Sep 18, 2011 at 11:58:55PM +0200, Laurent Pinchart wrote:
-> > On Saturday 17 September 2011 11:34:57 Martin Hostettler wrote:
-> > > Adds board support for an MT9M032 based camera to omap3evm.
-> > > 
-> > > Sigend-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
-> > > ---
-> > > 
-> > >  arch/arm/mach-omap2/Makefile                |    1 +
-> > >  arch/arm/mach-omap2/board-omap3evm-camera.c |  183
-> > > 
-> > > +++++++++++++++++++++++++++ 2 files changed, 184 insertions(+), 0
-> > > deletions(-)
-> > > 
-> > >  create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
-> > > 
-> > > Changes in V2:
-> > >  * ported to current mainline
-> > >  * Style fixes
-> > >  * Fix error handling
-> > > 
-> > > diff --git a/arch/arm/mach-omap2/Makefile
-> > > b/arch/arm/mach-omap2/Makefile index f343365..8ae3d25 100644
-> > > --- a/arch/arm/mach-omap2/Makefile
-> > > +++ b/arch/arm/mach-omap2/Makefile
-> > > +	return 0;
-> > > +
-> > > +err_8:
-> > > +	gpio_free(EVM_TWL_GPIO_BASE + 8);
-> > > +err_2:
-> > > +	gpio_free(EVM_TWL_GPIO_BASE + 2);
-> > > +err_vdsel:
-> > > +	gpio_free(nCAM_VD_SEL);
-> > > +err:
-> > > +	return ret;
-> > > +}
-> > > +
-> > > +device_initcall(camera_init);
-> > 
-> > Please don't use device_initcall(), but call the function directly from
-> > the OMAP3 EVM init handler. Otherwise camera_init() will be called if
-> > OMAP3 EVM support is compiled in the kernel, regardless of the board the
-> > kernel runs on.
+> -----Original Message-----
+> From: Taneja, Archit
+> Sent: Thursday, September 22, 2011 11:46 AM
+> To: Hiremath, Vaibhav
+> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
+> media@vger.kernel.org
+> Subject: Re: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
+> omap_vout_isr
 > 
-> Ok, will do.
-> In which header should the prototyp of that function go? Or can i just
-> add a prototyp to board-omap3evm.c directly?
-> I couldn't find anything that looked right, this is rather board specific
-> after all.
+> Hi,
+> 
+> On Wednesday 21 September 2011 07:04 PM, Hiremath, Vaibhav wrote:
+> >> -----Original Message-----
+> >> From: Taneja, Archit
+> >> Sent: Friday, September 16, 2011 3:31 PM
+> >> To: Hiremath, Vaibhav
+> >> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
+> >> media@vger.kernel.org; Taneja, Archit
+> >> Subject: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
+> >> omap_vout_isr
+> >>
+> >> Currently, in omap_vout_isr(), if the panel type is DPI, and if we
+> >> get either VSYNC or VSYNC2 interrupts, we proceed ahead to set the
+> >> current buffers state to VIDEOBUF_DONE and prepare to display the
+> >> next frame in the queue.
+> >>
+> >> On OMAP4, because we have 2 LCD managers, the panel type itself is not
+> >> sufficient to tell if we have received the correct irq, i.e, we
+> shouldn't
+> >> proceed ahead if we get a VSYNC interrupt for LCD2 manager, or a VSYNC2
+> >> interrupt for LCD manager.
+> >>
+> >> Fix this by correlating LCD manager to VSYNC interrupt and LCD2 manager
+> >> to VSYNC2 interrupt.
+> >>
+> >> Signed-off-by: Archit Taneja<archit@ti.com>
+> >> ---
+> >>   drivers/media/video/omap/omap_vout.c |   14 +++++++++++---
+> >>   1 files changed, 11 insertions(+), 3 deletions(-)
+> >>
+> >> diff --git a/drivers/media/video/omap/omap_vout.c
+> >> b/drivers/media/video/omap/omap_vout.c
+> >> index c5f2ea0..20638c3 100644
+> >> --- a/drivers/media/video/omap/omap_vout.c
+> >> +++ b/drivers/media/video/omap/omap_vout.c
+> >> @@ -566,8 +566,8 @@ err:
+> >>
+> >>   static void omap_vout_isr(void *arg, unsigned int irqstatus)
+> >>   {
+> >> -	int ret, fid;
+> >> -	u32 addr;
+> >> +	int ret, fid, mgr_id;
+> >> +	u32 addr, irq;
+> >>   	struct omap_overlay *ovl;
+> >>   	struct timeval timevalue;
+> >>   	struct omapvideo_info *ovid;
+> >> @@ -583,6 +583,7 @@ static void omap_vout_isr(void *arg, unsigned int
+> >> irqstatus)
+> >>   	if (!ovl->manager || !ovl->manager->device)
+> >>   		return;
+> >>
+> >> +	mgr_id = ovl->manager->id;
+> >>   	cur_display = ovl->manager->device;
+> >>
+> >>   	spin_lock(&vout->vbq_lock);
+> >> @@ -590,7 +591,14 @@ static void omap_vout_isr(void *arg, unsigned int
+> >> irqstatus)
+> >>
+> >>   	switch (cur_display->type) {
+> >>   	case OMAP_DISPLAY_TYPE_DPI:
+> >> -		if (!(irqstatus&  (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+> >> +		if (mgr_id == OMAP_DSS_CHANNEL_LCD)
+> >> +			irq = DISPC_IRQ_VSYNC;
+> >> +		else if (mgr_id == OMAP_DSS_CHANNEL_LCD2)
+> >> +			irq = DISPC_IRQ_VSYNC2;
+> >> +		else
+> >> +			goto vout_isr_err;
+> >> +
+> >> +		if (!(irqstatus&  irq))
+> >>   			goto vout_isr_err;
+> >>   		break;
+> > I understand what this patch meant for, but I am more curious to know
+> > What is value addition of this patch?
+> >
+> > if (!(irqstatus&  (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+> >
+> > Vs
+> >
+> > if (mgr_id == OMAP_DSS_CHANNEL_LCD)
+> > 	irq = DISPC_IRQ_VSYNC;
+> > else if (mgr_id == OMAP_DSS_CHANNEL_LCD2)
+> > 	irq = DISPC_IRQ_VSYNC2;
+> >
+> > Isn't this same, because we are not doing anything separate and special
+> > for VSYNC and VSYNC2?
+> 
+> Consider a use case where the primary LCD panel(connected to LCD
+> manager) is configured at a 60 Hz refresh rate, and the secondary
+> panel(connected to LCD2) refreshes at 30 Hz. Let the overlay
+> configuration be something like this:
+> 
+> /dev/video1----->overlay1----->LCD manager----->Primary panel(60 Hz)
+> 
+> 
+> /dev/video2----->overlay2----->LCD2 manager----->Secondary Panel(30 Hz)
+> 
+> 
+> Now if we are doing streaming on both video1 and video2, since we deque
+> on either VSYNC or VSYNC2, video2 buffers will deque faster than the
+> panels refresh, which is incorrect. So for video2, we should only deque
+> when we get a VSYNC2 interrupt. Thats why there is a need to correlate
+> the interrupt and the overlay manager.
+> 
 
-You can either create arch/arm/mach-omap2/board-omap3evm.h or add the 
-prototype to board-omap3evm.c.
+Archit,
 
--- 
-Regards,
+I think I am still not understood or convinced with your description above,
 
-Laurent Pinchart
+The code snippet which we are referring here, does check whether the 
+interrupt is either VSYNC or VSYNC2, else fall back to "vout_isr_err".
+
+For me both are doing same thing, the original code is optimized way of implementation. Can you please review it again?
+
+Thanks,
+Vaibhav
+
+
+
+> Regards,
+> Archit
+> 
+> >
+> > Thanks,
+> > Vaibhav
+> >
+> >
+> >>   	case OMAP_DISPLAY_TYPE_VENC:
+> >> --
+> >> 1.7.1
+> >
+> >
+
