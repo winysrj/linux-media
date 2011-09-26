@@ -1,73 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:2281 "EHLO mx1.redhat.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33408 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752099Ab1IVNWm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Sep 2011 09:22:42 -0400
-Message-ID: <4E7B3675.8050601@redhat.com>
-Date: Thu, 22 Sep 2011 10:21:57 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+	id S1752422Ab1IZL0t convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Sep 2011 07:26:49 -0400
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
 CC: LMML <linux-media@vger.kernel.org>,
-	Morimoto Kuninori <morimoto.kuninori@renesas.com>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Jarod Wilson <jarod@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Dmitri Belimov <d.belimov@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Pawel Osiak <pawel@osciak.co>
-Subject: Re: Patches at patchwork.linuxtv.org (127 patches)
-References: <4E7A4BA7.5050505@redhat.com> <4E7A4CA4.8040205@redhat.com> <Pine.LNX.4.64.1109220022240.24024@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1109220022240.24024@axis700.grange>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Date: Mon, 26 Sep 2011 16:56:37 +0530
+Subject: RE: [PATCH RESEND 0/4] davinci vpbe: enable DM365 v4l2 display
+ driver
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593025729ADE6@dbde02.ent.ti.com>
+References: <1316410529-14744-1-git-send-email-manjunath.hadli@ti.com>
+ <4E7D187A.8060005@redhat.com>
+In-Reply-To: <4E7D187A.8060005@redhat.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 22-09-2011 05:21, Guennadi Liakhovetski escreveu:
-> On Wed, 21 Sep 2011, Mauro Carvalho Chehab wrote:
-> 
->> Em 21-09-2011 17:40, Mauro Carvalho Chehab escreveu:
->>> As announced on Sept, 18, we moved our patch queue to patchwork.linuxtv.org.
->>>
->>> As we were without access to the old patchwork instance, I simply sent all
->>> emails I had locally stored on my local mahine to the new instance and reviewed
->>> all patches again. Basically, for old patches, I basically did some scripting
->>> that were marking old patches as "superseded", if they didn't apply anymore.
->>> I also preserved the patches that were marked as "under review" from patchwork
->>> time, using some scripting and a local control file.
->>>
->>> So, we're basically close to what we had before kernel.org troubles (except for
->>> a series of patches that I've already applied today).
->>>
->>> My intention is to finish review all patches marked as "new" until the end of this
->>> week, and set a new tree for linux-next with our stuff (as the old one were at
->>> git.kernel.org).
->>>
->>> Please let me know if something is missed or if some patch from the list bellow
->>> is obsolete and can be marked with a different status.
->>>
->>> Thanks!
->>> Mauro
->>>
->>>
->>> 		== New patches == 
->>
->> Gah! forgot to update the URL on my script. the patch list with the right URL is:
->>
->> 		== New patches == 
+On Sat, Sep 24, 2011 at 05:08:34, Mauro Carvalho Chehab wrote:
+> Em 19-09-2011 02:35, Manjunath Hadli escreveu:
+> > The patchset adds incremental changes necessary to enable dm365
+> > v4l2 display driver, which includes vpbe display driver changes, osd 
+> > specific changes and venc changes. The changes are incremental in 
+> > nature,addind a few HD modes, and taking care of register level 
+> > changes.
+> > 
+> > The patch set does not include THS7303 amplifier driver which is 
+> > planned to be sent seperately.
+> > 
+> > 
+> > Manjunath Hadli (4):
+> >   davinci vpbe: remove unused macro.
+> >   davinci vpbe: add dm365 VPBE display driver changes
+> >   davinci vpbe: add dm365 and dm355 specific OSD changes
+> >   davinci vpbe: add VENC block changes to enable dm365 and dm355
+> > 
+> >  drivers/media/video/davinci/vpbe.c         |   55 +++-
+> >  drivers/media/video/davinci/vpbe_display.c |    1 -
+> >  drivers/media/video/davinci/vpbe_osd.c     |  474 +++++++++++++++++++++++++---
+> >  drivers/media/video/davinci/vpbe_venc.c    |  205 +++++++++++--
+> >  include/media/davinci/vpbe.h               |   16 +
+> >  include/media/davinci/vpbe_venc.h          |    4 +
+> >  6 files changed, 686 insertions(+), 69 deletions(-)
 > 
 > 
-> 
->> Sep, 6 2011: [v2] at91: add code to initialize and manage the ISI_MCK for Atmel ISI http://patchwork.linuxtv.org/patch/7780   Josh Wu <josh.wu@atmel.com>
-> 
-> More work is needed on this one
-<snip>
+> Not sure why are you re-sending this patch series. To whom are you re-sending it? You have your git access at linuxtv.org. So, if the patches are ready for merge, just send me a pull request. Otherwise, please mark the patches as RFC or send to the one that will maintain the driver, c/c the mailing list.
 
-Patches updated,
-Thanks!
-Mauro
+Thank you Mauro. I will send you a pull request for the rest of the 
+three patches.
+
+-Manju
+> 
+> In any case, I'll mark the patches 2-4 as RFC (patch 1 is too trivial, I'll just apply it, to never see it again ;) ).
+> 
+> Thanks,
+> Mauro
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" 
+> > in the body of a message to majordomo@vger.kernel.org More majordomo 
+> > info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+
