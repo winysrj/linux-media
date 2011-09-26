@@ -1,104 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:51390 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933345Ab1IIVBV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2011 17:01:21 -0400
-Date: Fri, 9 Sep 2011 23:00:33 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 08/13 v3] ov6650: convert to the control framework.
-In-Reply-To: <201109092239.53733.jkrzyszt@tis.icnet.pl>
-Message-ID: <Pine.LNX.4.64.1109092259500.25219@axis700.grange>
-References: <1315471446-17890-1-git-send-email-g.liakhovetski@gmx.de>
- <201109091907.05823.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1109091947540.915@axis700.grange>
- <201109092239.53733.jkrzyszt@tis.icnet.pl>
+Received: from bar.sig21.net ([80.81.252.164]:46995 "EHLO bar.sig21.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751348Ab1IZTYp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Sep 2011 15:24:45 -0400
+Date: Mon, 26 Sep 2011 21:24:39 +0200
+From: Johannes Stezenbach <js@linuxtv.org>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+Cc: Mauro Carvalho Chehab <maurochehab@gmail.com>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: Problems cloning the git repostories
+Message-ID: <20110926192439.GA4848@linuxtv.org>
+References: <4E7F1FB5.5030803@gmail.com>
+ <20110925180340.GB23820@linuxtv.org>
+ <4E7FE9E8.3010404@gmail.com>
+ <CAHG8p1Dk=wtM7vpZNhYyw7GUvWpB3jK_6pghxpDHpjMWk6W56w@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHG8p1Dk=wtM7vpZNhYyw7GUvWpB3jK_6pghxpDHpjMWk6W56w@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 9 Sep 2011, Janusz Krzysztofik wrote:
+On Mon, Sep 26, 2011 at 06:15:07PM +0800, Scott Jiang wrote:
+> 2011/9/26 Mauro Carvalho Chehab <maurochehab@gmail.com>:
+> > Em 25-09-2011 15:03, Johannes Stezenbach escreveu:
+> >>
+> >> But please don't clone from linuxtv.org, intead use
+> >> git clone git://github.com/torvalds/linux.git
+> >> and then add linuxtv to your repo like described on
+> >> http://git.linuxtv.org/media_tree.git
+> >
+> > I've updated the instructions together with the git tree to point to the
+> > github tree.
+> >
+> I followed your instructions using http instead, but I found it's not
+> up to date.
 
-> On Fri, 9 Sep 2011 at 20:01:14 Guennadi Liakhovetski wrote:
-> > Hi Janusz
-> > 
-> > On Fri, 9 Sep 2011, Janusz Krzysztofik wrote:
-> > 
-> > > On Thu, 8 Sep 2011 at 10:44:01 Guennadi Liakhovetski wrote:
-> > > > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > > > 
-> > > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > > > [g.liakhovetski@gmx.de: simplified pointer arithmetic]
-> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > 
-> > > Hi,
-> > > I've successfully tested this one for you, to the extent possible using 
-> > > mplayer, i.e., only saturation, hue and brightness controls, and an 
-> > > overall functionality.
-> > 
-> > Thanks for testing and reviewing!
-> > 
-> > > Modifications to other (not runtime tested) controls look good to me, 
-> > > except for one copy-paste mistake, see below. With that erratic REG_BLUE 
-> > > corrected:
-> > > 
-> > > Acked-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> > > 
-> > > There are also a few minor comments for you to consider.
-> > 
-> > Well, some of them are not so minor, I would say;-) But I personally would 
-> > be happy to have this just as an incremental patch. Would you like to 
-> > prepare one or should I do it?
-> 
-> OK, I can do it.
-> 
-> Do you want them all (except the one below) go into the incremental 
-> patch, or would you rather fix that REG_RED bug still before applying?
+What I meant is the follow the instructions on the
+http://git.linuxtv.org/media_tree.git web page,
+to use git:// protocol:
 
-Just put them all in one.
+  git remote add linuxtv git://linuxtv.org/media_tree.git
+  git remote update
+  git checkout -b media-master remotes/linuxtv/staging/for_v3.2
 
-Thanks
-Guennadi
+Anyway, I did the git update-server-info thing so http should
+work, too.  But git over http sucks, if you can then use git protocol.
 
-> 
-> Thanks,
-> Janusz
-> 
-> > 
-> > I basically agree with all your comments apart from maybe
-> > 
-> > [snip]
-> > 
-> > > > @@ -1176,9 +1021,11 @@ static int ov6650_probe(struct i2c_client *client,
-> > > >  	priv->colorspace  = V4L2_COLORSPACE_JPEG;
-> > > >  
-> > > >  	ret = ov6650_video_probe(icd, client);
-> > > > +	if (!ret)
-> > > > +		ret = v4l2_ctrl_handler_setup(&priv->hdl);
-> > > 
-> > > Are you sure the probe function should fail if v4l2_ctrl_handler_setup() 
-> > > fails? Its usage is documented as optional.
-> > 
-> > Not sure what the standard really meant, but it looks like this is done in 
-> > all patches in this series. So, we'd have to change this everywhere. Most 
-> > other drivers indeed do not care.
-> > 
-> > Thanks
-> > Guennadi
-> > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > http://www.open-technology.de/
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Johannes		    
