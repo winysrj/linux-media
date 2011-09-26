@@ -1,148 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:52680 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753603Ab1IAJZD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 05:25:03 -0400
-Date: Thu, 1 Sep 2011 11:24:58 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 2/9 v6] V4L: add two new ioctl()s for multi-size videobuffer
- management
-In-Reply-To: <20110901084229.GU12368@valkosipuli.localdomain>
-Message-ID: <Pine.LNX.4.64.1109011118020.6316@axis700.grange>
-References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
- <1314813768-27752-3-git-send-email-g.liakhovetski@gmx.de>
- <20110831210615.GQ12368@valkosipuli.localdomain> <Pine.LNX.4.64.1109010850560.21309@axis700.grange>
- <20110901084229.GU12368@valkosipuli.localdomain>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:38148 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751047Ab1IZDZb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Sep 2011 23:25:31 -0400
+Received: by wwf22 with SMTP id 22so6128816wwf.1
+        for <linux-media@vger.kernel.org>; Sun, 25 Sep 2011 20:25:29 -0700 (PDT)
+Message-ID: <4E7FF0A0.7060004@gmail.com>
+Date: Mon, 26 Sep 2011 00:25:20 -0300
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: Problems cloning the git repostories
+References: <4E7F1FB5.5030803@gmail.com> <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
+In-Reply-To: <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 1 Sep 2011, Sakari Ailus wrote:
+Em 25-09-2011 10:55, Devin Heitmueller escreveu:
+> On Sun, Sep 25, 2011 at 8:33 AM, Patrick Dickey <pdickeybeta@gmail.com> wrote:
+>> Hello there,
+>>
+>> I tried to follow the steps for cloning both the "media_tree.git" and
+>> "media_build.git" repositories, and received errors for both.  The
+>> media_tree repository failed on the first line
+>>
+>>> git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git v4l-dvb
+>>
+>> which I'm assuming is because kernel.org is down.
+>>
+>> The media_build.git repository fails on the first line also
+>>
+>>> git clone git://linuxtv.org/media_build.git
+>>
+>> with a fatal: read error: Connection reset by peer.
+>>
+>> Is it possible to clone either (or both) repositories at this time, or
+>> are they down?  And in the absence of cloning the kernel for the
+>> media_tree.git repository, is it possible to simply clone the
+>> git://linuxtv.org/media_tree.git repository and work from that?
+>>
+>> My interest in this is to install some patches created by Devin
+>> Heitmueller for the Pinnacle PCTV 80e USB tuner (at least the ATSC
+>> portion of the tuner). Once I'm able to determine exactly what changes
+>> are made, I would like to either submit the patches to the repository,
+>> or send them to someone who has more experience in patching the files
+>> for submission.
+>>
+>> One other question (totally unrelated to this post though): When I send
+>> emails, normally they are GPG signed. Should I disable that for this
+>> list, or is it acceptable?
+>>
+>> Thank you for any information, and have a great day:)
+>> Patrick.
+> 
+> Hi Patrick,
+> 
+> As I said on the blog, the issue isn't getting the driver to work
+> against current kernels.  Merging the driver against the current tree
+> is a trivial exercise (the patch series should apply trivially against
+> the current code, with only a few minor conflicts related to board
+> numbers, etc).
+> 
+> The bigger issue though is once you do that and have the driver
+> running, you now have a body of code > 10,000 lines which doesn't meet
+> the "coding standards".  Doing such a refactoring is a relatively
+> straightforward exercise but very time consuming (you already have a
+> working driver, so you just have to make sure you don't break
+> anything).
+> 
+> The more I think about this, the more it annoys me.  I did all the hard parts:
+> 
+> * I worked with the product vendor to get the details for the design
+> * I got Hauppauge/PCTV to compel the chipset vendor to release the
+> reference code under a GPL compatible license
+> * I worked out redistribution terms on the firmware
+> * I ported the driver to Linux
+> * I integrated the driver and debugged it to achieve signal lock
+> 
+> And why is it not in the mainline?  Because none of the above matters
+> if I didn't waste a bunch of my time removing a bunch of "#ifdef
+> WINDOWS" lines and converting whitespace from tabs to spaces.
 
-> On Thu, Sep 01, 2011 at 09:03:52AM +0200, Guennadi Liakhovetski wrote:
-> > Hi Sakari
+> It's crap like this that's the reason why some of the best LinuxTV
+> driver authors still have a bunch of stuff that isn't merged upstream.
+>  We just don't have time for this sort of bullshit that any monkey
+> could do if he/she was willing to invest the effort.  We're just too
+> busy doing *actual* driver work.
 > 
-> Hi Guennadi,
+> Five years ago the hard part was finding competent developers, getting
+> access to datasheets, getting access to reference driver code, and
+> getting access to the details for a hardware design.  Now most of
+> those problems are not the issue - we have access to all the data but
+> we want to waste the time of the few competent developers out there
+> making them do "coding style cleanup" before perfectly good code gets
+> merged upstream.  There has been more than one case where I've
+> considered doing a driver for a new board and decided against it
+> because the barrier to getting it upstream is not worth my time.
 > 
-> > On Thu, 1 Sep 2011, Sakari Ailus wrote:
-> [clip]
-> > > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > > > index fca24cc..988e1be 100644
-> > > > --- a/include/linux/videodev2.h
-> > > > +++ b/include/linux/videodev2.h
-> > > > @@ -653,6 +653,9 @@ struct v4l2_buffer {
-> > > >  #define V4L2_BUF_FLAG_ERROR	0x0040
-> > > >  #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
-> > > >  #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
-> > > > +/* Cache handling flags */
-> > > > +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
-> > > > +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
-> > > >  
-> > > >  /*
-> > > >   *	O V E R L A Y   P R E V I E W
-> > > > @@ -2092,6 +2095,15 @@ struct v4l2_dbg_chip_ident {
-> > > >  	__u32 revision;    /* chip revision, chip specific */
-> > > >  } __attribute__ ((packed));
-> > > >  
-> > > > +/* VIDIOC_CREATE_BUFS */
-> > > > +struct v4l2_create_buffers {
-> > > > +	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-> > > > +	__u32			count;
-> > > > +	enum v4l2_memory        memory;
-> > > > +	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
-> > > > +	__u32			reserved[8];
-> > > > +};
-> > > 
-> > > How about splitting the above comments? These lines are really long.
-> > > Kerneldoc could also be used, I think.
-> > 
-> > Sure, how about this incremental patch:
-> > 
-> > From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > Subject: V4L: improve struct v4l2_create_buffers documentation
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index 988e1be..64e0bf2 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -2095,12 +2095,20 @@ struct v4l2_dbg_chip_ident {
-> >  	__u32 revision;    /* chip revision, chip specific */
-> >  } __attribute__ ((packed));
-> >  
-> > -/* VIDIOC_CREATE_BUFS */
-> > +/**
-> > + * struct v4l2_create_buffers - VIDIOC_CREATE_BUFS argument
-> > + * @index:	on return, index of the first created buffer
-> > + * @count:	entry: number of requested buffers,
-> > + *		return: number of created buffers
-> > + * @memory:	buffer memory type
-> > + * @format:	frame format, for which buffers are requested
-> > + * @reserved:	future extensions
-> > + */
-> >  struct v4l2_create_buffers {
-> > -	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-> > +	__u32			index;
-> >  	__u32			count;
-> >  	enum v4l2_memory        memory;
-> > -	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
-> > +	struct v4l2_format	format;
-> >  	__u32			reserved[8];
-> >  };
-> 
-> Thanks! This looks good to me. Could you do a similar change to the
-> compat-IOCTL version of this struct (v4l2_create_buffers32)?
 
-Of course, I'll submit an incremental patch as soon as this is accepted 
-for upstream, unless there are other important changes to this patch and a 
-new revision is anyway unavoidable.
+I fail to see any trial from your side to send the patches upstream:
+no pull requests and no patches for this driver were _ever_ sent to
+the ML. I can only guess that maybe submitting it upstream were not
+part of your contract with the vendor.
 
-> 
-> > > > +
-> > > >  /*
-> > > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-> > > >   *
-> > > > @@ -2182,6 +2194,9 @@ struct v4l2_dbg_chip_ident {
-> > > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
-> > > >  #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
-> > > >  
-> > > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
-> > > > +#define VIDIOC_PREPARE_BUF	 _IOW('V', 93, struct v4l2_buffer)
-> > > 
-> > > Does prepare_buf ever do anything that would need to return anything to the
-> > > user? I guess the answer is "no"?
-> > 
-> > Exactly, that's why it's an "_IOW" ioctl(), not an "_IOWR", or have I 
-> > misunderstood you?
-> 
-> I was thinking if this will be the case now and in the foreseeable future as
-> this can't be changed after once defined. I just wanted to bring this up
-> even though I don't see myself that any of the fields would need to be
-> returned to the user. But there are reserved fields...
-> 
-> So unless someone comes up with something quick, I think this should stay
-> as-is.
+Coding Style fixes are generally trivial, and they can be done very quickly
+with some scripting. I took only a few hours to convert drx-d and drx-k
+to the Linux Coding Style, on my spare time. The scripts I wrote for that
+are together with the commits (they're generally a few lines perl scripting
+doing some replacements). I usually do this with other drivers, when people
+submit me them with those troubles and I have some time, and never asked
+or earned a single penny for doing that.
 
-Agree. I understand, it is important to try to design the user-space API 
-as clever as possible, so, I'm relying on our combined wisdom for it. But 
-even that is probably limited, so, mistakes are still possible. Therefore, 
-unless someone comes up with a realistic reason, why this has to be _IOWR, 
-we shall keep it _IOW and be prepared to delight our user-space colleagues 
-with more shiny new ioctl()s in the somewhat near future;-)
+Also, as I've told you several times before, code with broken coding styles
+can be submitted as-is, without any changes to drivers/staging, where they're
+fixed by kernel newbies with more time to work on that.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+So, please don't use weak arguments like that as an excuse for you to not 
+submit your drivers.
+
+> Want to see more device support upstream?  Optimize the process to
+> make it easy for the people who know the hardware and how to write the
+> drivers to get code upstream, and leave it to the "janitors" to work
+> out the codingstyle issues.
+
+The process you've just described exists already since Sept, 2008.
+It is called: 
+	/drivers/staging
+
+In summary, if you don't have a couple hours to make your driver to
+match Kernel Coding Style, just send it as is to /drivers/staging, c/c
+me and Greg KH, and that's it.
+
+Regards,
+Mauro
