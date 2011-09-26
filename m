@@ -1,134 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42848 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753812Ab1I0MWr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 08:22:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 4/5] ispccdc: Configure CCDC_SYN_MODE register for UYVY8_2X8 and YUYV8_2X8 formats
-Date: Tue, 27 Sep 2011 14:22:39 +0200
-Cc: "Ravi, Deepthy" <deepthy.ravi@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"Shilimkar, Santosh" <santosh.shilimkar@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com> <201109211106.41677.laurent.pinchart@ideasonboard.com> <20110925111717.GV1845@valkosipuli.localdomain>
-In-Reply-To: <20110925111717.GV1845@valkosipuli.localdomain>
+Received: from comal.ext.ti.com ([198.47.26.152]:47168 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751182Ab1IZGmM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Sep 2011 02:42:12 -0400
+From: Archit Taneja <archit@ti.com>
+To: <hvaibhav@ti.com>
+CC: <tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>,
+	<sumit.semwal@ti.com>, <linux-media@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v2 2/5] OMAP_VOUT: CLEANUP: Remove redundant code from omap_vout_isr
+Date: Mon, 26 Sep 2011 12:12:07 +0530
+Message-ID: <1317019330-4090-3-git-send-email-archit@ti.com>
+In-Reply-To: <1317019330-4090-1-git-send-email-archit@ti.com>
+References: <1317019330-4090-1-git-send-email-archit@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109271422.41352.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Currently, there is a lot of redundant code is between DPI and VENC panels, this
+can be made common by moving out field/interlace specific code to a separate
+function called omapvid_handle_interlace_display(). There is no functional
+change made.
 
-On Sunday 25 September 2011 13:17:17 Sakari Ailus wrote:
-> On Wed, Sep 21, 2011 at 11:06:41AM +0200, Laurent Pinchart wrote:
-> > On Wednesday 21 September 2011 07:32:44 Ravi, Deepthy wrote:
-> > > On Wednesday, September 21, 2011 4:56 AM Laurent Pinchart wrote:
-> > > > On Tuesday 20 September 2011 16:56:51 Deepthy Ravi wrote:
-> > > >> Configure INPMOD and PACK8 fileds of CCDC_SYN_MODE
-> > > >> register for UYVY8_2X8 and YUYV8_2X8 formats.
-> > > >> 
-> > > >> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
-> > > >> ---
-> > > >> 
-> > > >>  drivers/media/video/omap3isp/ispccdc.c |   11 ++++++++---
-> > > >>  1 files changed, 8 insertions(+), 3 deletions(-)
-> > > >> 
-> > > >> diff --git a/drivers/media/video/omap3isp/ispccdc.c
-> > > >> b/drivers/media/video/omap3isp/ispccdc.c index 418ba65..1dcf180
-> > > >> 100644 --- a/drivers/media/video/omap3isp/ispccdc.c
-> > > >> +++ b/drivers/media/video/omap3isp/ispccdc.c
-> > > >> @@ -985,8 +985,12 @@ static void ccdc_config_sync_if(struct
-> > > >> isp_ccdc_device
-> > > >> *ccdc,
-> > > >> 
-> > > >>       syn_mode &= ~ISPCCDC_SYN_MODE_INPMOD_MASK;
-> > > >>       if (format->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
-> > > >> 
-> > > >> -         format->code == V4L2_MBUS_FMT_UYVY8_2X8)
-> > > >> -             syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
-> > > >> +         format->code == V4L2_MBUS_FMT_UYVY8_2X8){
-> > > >> +             if (pdata && pdata->bt656)
-> > > >> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
-> > > >> +             else
-> > > >> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
-> > > >> +     }
-> > > >> 
-> > > >>       else if (format->code == V4L2_MBUS_FMT_YUYV8_1X16 ||
-> > > >>       
-> > > >>                format->code == V4L2_MBUS_FMT_UYVY8_1X16)
-> > > >>               
-> > > >>               syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
-> > > >> 
-> > > >> @@ -1172,7 +1176,8 @@ static void ccdc_configure(struct
-> > > >> isp_ccdc_device *ccdc) syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
-> > > >> 
-> > > >>       /* Use PACK8 mode for 1byte per pixel formats. */
-> > > >> 
-> > > >> -     if (omap3isp_video_format_info(format->code)->width <= 8)
-> > > >> +     if ((omap3isp_video_format_info(format->code)->width <= 8) &&
-> > > >> +                     (omap3isp_video_format_info(format->code)->bpp
-> > > >> <= 8))
-> > > > 
-> > > > I'm not sure to follow you. This will clear the PACK8 bit for the
-> > > > YUYV8_2X8 formats. Those formats are 8 bits wide, shouldn't PACK8 be
-> > > > set to store samples on 8 bits instead of 16 bits ?
-> > > > 
-> > > > Is this patch intended to support YUYV8_2X8 sensors in non BT.656
-> > > > mode with the bridge enabled ? In that case, what would you think
-> > > > about setting the CCDC input format to YUYV8_1X16 instead ? This
-> > > > would better reflect the reality, as the bridge converts YUYV8_2X8
-> > > > to YUYV8_1X16, and the CCDC is then fed with YUYV8_1X16.
-> > > 
-> > > Yes this is intended for  YUYV8_2X8 sensors in non BT.656 with 8 to 16
-> > > bit bridge enabled. So the data has to be stored as 16 bits per
-> > > sample. Thats why PACK8 is cleared . I am not sure about using
-> > > YUYV8_1X16.
-> > 
-> > My original idea when I wrote the YV support patches was to implement
-> > this use case with YUYV8_2X8 at the sensor output and YUYV8_1X16 at the
-> > CCDC input. The ISP driver could then enable the bridge automatically.
-> > I'm not sure if that's the best solution though, it might be confusing
-> > for the users. What I would like to keep, however, is the idea of
-> > enabling the bridge automatically.
-> > 
-> > Sakari, any opinion on this ?
-> 
-> Are there any complications from the CCDC also listing the 2X8 formats as
-> supported in its sink pad?
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/video/omap/omap_vout.c |  172 ++++++++++++++++------------------
+ 1 files changed, 82 insertions(+), 90 deletions(-)
 
-No, and the 2X8 formats need to be supported at the CCDC input, as BT.656 mode 
-is not compatible with the bridge.
-
-> I'd rather support them since doing it the other way might be somewhat
-> confusing to the users.
-
-It can be confusing indeed, but it reflects reality :-) It's also how we 
-currently handle the lane shifter.
-
-If we incorporate the bridge inside the CCDC, only YUV 2X8 formats will be 
-supported at the CCDC input. Whether to enable the bridge will then be a 
-platform decision and hardcoded in board code instead of being configurable by 
-the user. Couldn't that be an issue ?
-
-> This would also mean media-ctl users would have to set both sink and source
-> formats rather than just the source format when configuring the format for
-> the link.
-> 
-> > > >>               syn_mode |= ISPCCDC_SYN_MODE_PACK8;
-> > > >>       
-> > > >>       else
-> > > >>       
-> > > >>               syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
-
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 16ebff6..01c24a4 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -524,10 +524,50 @@ static int omapvid_apply_changes(struct omap_vout_device *vout)
+ 	return 0;
+ }
+ 
++static int omapvid_handle_interlace_display(struct omap_vout_device *vout,
++		unsigned int irqstatus, struct timeval timevalue)
++{
++	u32 fid;
++
++	if (vout->first_int) {
++		vout->first_int = 0;
++		goto err;
++	}
++
++	if (irqstatus & DISPC_IRQ_EVSYNC_ODD)
++		fid = 1;
++	else if (irqstatus & DISPC_IRQ_EVSYNC_EVEN)
++		fid = 0;
++	else
++		goto err;
++
++	vout->field_id ^= 1;
++	if (fid != vout->field_id) {
++		if (fid == 0)
++			vout->field_id = fid;
++	} else if (0 == fid) {
++		if (vout->cur_frm == vout->next_frm)
++			goto err;
++
++		vout->cur_frm->ts = timevalue;
++		vout->cur_frm->state = VIDEOBUF_DONE;
++		wake_up_interruptible(&vout->cur_frm->done);
++		vout->cur_frm = vout->next_frm;
++	} else {
++		if (list_empty(&vout->dma_queue) ||
++				(vout->cur_frm != vout->next_frm))
++			goto err;
++	}
++
++	return vout->field_id;
++err:
++	return 0;
++}
++
+ static void omap_vout_isr(void *arg, unsigned int irqstatus)
+ {
+-	int ret;
+-	u32 addr, fid;
++	int ret, fid;
++	u32 addr;
+ 	struct omap_overlay *ovl;
+ 	struct timeval timevalue;
+ 	struct omapvideo_info *ovid;
+@@ -548,107 +588,59 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
+ 	spin_lock(&vout->vbq_lock);
+ 	do_gettimeofday(&timevalue);
+ 
+-	if (cur_display->type != OMAP_DISPLAY_TYPE_VENC) {
+-		switch (cur_display->type) {
+-		case OMAP_DISPLAY_TYPE_DPI:
+-			if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+-				goto vout_isr_err;
+-			break;
+-		case OMAP_DISPLAY_TYPE_HDMI:
+-			if (!(irqstatus & DISPC_IRQ_EVSYNC_EVEN))
+-				goto vout_isr_err;
+-			break;
+-		default:
++	switch (cur_display->type) {
++	case OMAP_DISPLAY_TYPE_DPI:
++		if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+ 			goto vout_isr_err;
+-		}
+-		if (!vout->first_int && (vout->cur_frm != vout->next_frm)) {
+-			vout->cur_frm->ts = timevalue;
+-			vout->cur_frm->state = VIDEOBUF_DONE;
+-			wake_up_interruptible(&vout->cur_frm->done);
+-			vout->cur_frm = vout->next_frm;
+-		}
+-		vout->first_int = 0;
+-		if (list_empty(&vout->dma_queue))
++		break;
++	case OMAP_DISPLAY_TYPE_VENC:
++		fid = omapvid_handle_interlace_display(vout, irqstatus,
++				timevalue);
++		if (!fid)
+ 			goto vout_isr_err;
++		break;
++	case OMAP_DISPLAY_TYPE_HDMI:
++		if (!(irqstatus & DISPC_IRQ_EVSYNC_EVEN))
++			goto vout_isr_err;
++		break;
++	default:
++		goto vout_isr_err;
++	}
+ 
+-		vout->next_frm = list_entry(vout->dma_queue.next,
+-				struct videobuf_buffer, queue);
+-		list_del(&vout->next_frm->queue);
+-
+-		vout->next_frm->state = VIDEOBUF_ACTIVE;
+-
+-		addr = (unsigned long) vout->queued_buf_addr[vout->next_frm->i]
+-			+ vout->cropped_offset;
++	if (!vout->first_int && (vout->cur_frm != vout->next_frm)) {
++		vout->cur_frm->ts = timevalue;
++		vout->cur_frm->state = VIDEOBUF_DONE;
++		wake_up_interruptible(&vout->cur_frm->done);
++		vout->cur_frm = vout->next_frm;
++	}
+ 
+-		/* First save the configuration in ovelray structure */
+-		ret = omapvid_init(vout, addr);
+-		if (ret)
+-			printk(KERN_ERR VOUT_NAME
+-				"failed to set overlay info\n");
+-		/* Enable the pipeline and set the Go bit */
+-		ret = omapvid_apply_changes(vout);
+-		if (ret)
+-			printk(KERN_ERR VOUT_NAME "failed to change mode\n");
+-	} else {
++	vout->first_int = 0;
++	if (list_empty(&vout->dma_queue))
++		goto vout_isr_err;
+ 
+-		if (vout->first_int) {
+-			vout->first_int = 0;
+-			goto vout_isr_err;
+-		}
+-		if (irqstatus & DISPC_IRQ_EVSYNC_ODD)
+-			fid = 1;
+-		else if (irqstatus & DISPC_IRQ_EVSYNC_EVEN)
+-			fid = 0;
+-		else
+-			goto vout_isr_err;
++	vout->next_frm = list_entry(vout->dma_queue.next,
++			struct videobuf_buffer, queue);
++	list_del(&vout->next_frm->queue);
+ 
+-		vout->field_id ^= 1;
+-		if (fid != vout->field_id) {
+-			if (0 == fid)
+-				vout->field_id = fid;
++	vout->next_frm->state = VIDEOBUF_ACTIVE;
+ 
+-			goto vout_isr_err;
+-		}
+-		if (0 == fid) {
+-			if (vout->cur_frm == vout->next_frm)
+-				goto vout_isr_err;
+-
+-			vout->cur_frm->ts = timevalue;
+-			vout->cur_frm->state = VIDEOBUF_DONE;
+-			wake_up_interruptible(&vout->cur_frm->done);
+-			vout->cur_frm = vout->next_frm;
+-		} else if (1 == fid) {
+-			if (list_empty(&vout->dma_queue) ||
+-					(vout->cur_frm != vout->next_frm))
+-				goto vout_isr_err;
+-
+-			vout->next_frm = list_entry(vout->dma_queue.next,
+-					struct videobuf_buffer, queue);
+-			list_del(&vout->next_frm->queue);
+-
+-			vout->next_frm->state = VIDEOBUF_ACTIVE;
+-			addr = (unsigned long)
+-				vout->queued_buf_addr[vout->next_frm->i] +
+-				vout->cropped_offset;
+-			/* First save the configuration in ovelray structure */
+-			ret = omapvid_init(vout, addr);
+-			if (ret)
+-				printk(KERN_ERR VOUT_NAME
+-						"failed to set overlay info\n");
+-			/* Enable the pipeline and set the Go bit */
+-			ret = omapvid_apply_changes(vout);
+-			if (ret)
+-				printk(KERN_ERR VOUT_NAME
+-						"failed to change mode\n");
+-		}
++	addr = (unsigned long) vout->queued_buf_addr[vout->next_frm->i]
++		+ vout->cropped_offset;
+ 
+-	}
++	/* First save the configuration in ovelray structure */
++	ret = omapvid_init(vout, addr);
++	if (ret)
++		printk(KERN_ERR VOUT_NAME
++			"failed to set overlay info\n");
++	/* Enable the pipeline and set the Go bit */
++	ret = omapvid_apply_changes(vout);
++	if (ret)
++		printk(KERN_ERR VOUT_NAME "failed to change mode\n");
+ 
+ vout_isr_err:
+ 	spin_unlock(&vout->vbq_lock);
+ }
+ 
+-
+ /* Video buffer call backs */
+ 
+ /*
 -- 
-Regards,
+1.7.1
 
-Laurent Pinchart
