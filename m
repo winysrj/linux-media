@@ -1,40 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39863 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753411Ab1IFIMM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 04:12:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "LBM" <lbm9527@qq.com>
-Subject: Re: use soc-camera mt9m111 with omap3isp
-Date: Tue, 6 Sep 2011 10:12:11 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <tencent_3AABBD0600E40EFF5735DBE0@qq.com>
-In-Reply-To: <tencent_3AABBD0600E40EFF5735DBE0@qq.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52479 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752943Ab1IZL7b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Sep 2011 07:59:31 -0400
+From: Archit Taneja <archit@ti.com>
+To: <hvaibhav@ti.com>
+CC: <tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>,
+	<sumit.semwal@ti.com>, <linux-media@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v3 3/4] OMAP_VOUT: Add support for DSI panels
+Date: Mon, 26 Sep 2011 17:29:24 +0530
+Message-ID: <1317038365-30650-4-git-send-email-archit@ti.com>
+In-Reply-To: <1317038365-30650-1-git-send-email-archit@ti.com>
+References: <1317038365-30650-1-git-send-email-archit@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109061012.12254.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Lee,
+Add support for DSI panels. DSI video mode panels will work directly. For
+command mode panels, we will need to trigger updates regularly. This isn't done
+by the omap_vout driver currently. It can still be supported if we connect a
+framebuffer device to the panel and configure it in auto update mode.
 
-On Tuesday 06 September 2011 07:07:34 LBM wrote:
-> hi my friend
-> i use the omap3530 board from "ema-tech",which is the third of TI.
-> Now i use the mt9m111,it's very difficulty for me to get the images
-> from this sensor ,becaus it just a soc-camera. can you tell me how to use
-> this sensor with our omap3isp?
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/video/omap/omap_vout.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-You will need to implement the subdev pad-level operation in the mt9m111 
-driver and make the soc-camera dependencies optional.
-
-> if you  did something about it,can you give me the codes?
-
-I'm not aware of any patch that implements this.
-
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 01c24a4..7b8e87a 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -589,6 +589,7 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
+ 	do_gettimeofday(&timevalue);
+ 
+ 	switch (cur_display->type) {
++	case OMAP_DISPLAY_TYPE_DSI:
+ 	case OMAP_DISPLAY_TYPE_DPI:
+ 		if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+ 			goto vout_isr_err;
 -- 
-Regards,
+1.7.1
 
-Laurent Pinchart
