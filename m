@@ -1,336 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42563 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753822Ab1IVUPp (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1818 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751800Ab1IZKzL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Sep 2011 16:15:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi, g.liakhovetski@gmx.de
-Subject: [PATCH 4/4] omap3isp: Fix memory leaks in initialization error paths
-Date: Thu, 22 Sep 2011 22:15:39 +0200
-Message-Id: <1316722539-7372-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1316722539-7372-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1316722539-7372-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 26 Sep 2011 06:55:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Asking advice for Camera/ISP driver framework design
+Date: Mon, 26 Sep 2011 12:55:05 +0200
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Cliff Cai <cliffcai.sh@gmail.com>, linux-media@vger.kernel.org
+References: <CAFhB-RACaxtkBuXsch5-giTBqCHR+s5_SP-sGeR=E1HVeGfQLQ@mail.gmail.com> <CAFhB-RB8Pm--H5__kjKN=v=7pF0xtt_VKJw0Dh3YfQ6GE+4KVg@mail.gmail.com> <4E72319C.4030904@iki.fi>
+In-Reply-To: <4E72319C.4030904@iki.fi>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109261255.05783.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make sure all modules init functions clean up after themselves in case
-of error.
+On Thursday, September 15, 2011 19:10:52 Sakari Ailus wrote:
+> Cliff Cai wrote:
+> > On Thu, Sep 15, 2011 at 6:20 PM, Laurent Pinchart
+> > <laurent.pinchart@ideasonboard.com> wrote:
+> >> Hi Cliff,
+> >>
+> >> On Wednesday 14 September 2011 08:13:32 Cliff Cai wrote:
+> >>> Dear guys,
+> >>>
+> >>> I'm currently working on a camera/ISP Linux driver project.Of course,I
+> >>> want it to be a V4L2 driver,but I got a problem about how to design
+> >>> the driver framework.
+> >>> let me introduce the background of this ISP(Image signal processor) a
+> >>> little bit.
+> >>> 1.The ISP has two output paths,first one called main path which is
+> >>> used to transfer image data for taking picture and recording,the other
+> >>> one called preview path which is used to transfer image data for
+> >>> previewing.
+> >>> 2.the two paths have the same image data input from sensor,but their
+> >>> outputs are different,the output of main path is high quality and
+> >>> larger image,while the output of preview path is smaller image.
+> >>> 3.the two output paths have independent DMA engines used to move image
+> >>> data to system memory.
+> >>>
+> >>> The problem is currently, the V4L2 framework seems only support one
+> >>> buffer queue,and in my case,obviously,two buffer queues are required.
+> >>> Any idea/advice for implementing such kind of V4L2 driver? or any
+> >>> other better solutions?
+> >>
+> >> Your driver should create two video nodes, one for each stream. They will each
+> >> have their own buffers queue.
+> >>
+> >> The driver should also implement the media controller API to let applications
+> >> discover that the video nodes are related and how they interact with the ISP.
+> > 
+> > Hi Laurent,
+> > 
+> > As "Documentation/media-framework" says, one of the goals of media
+> > device model is "Discovering a device internal topology,and
+> > configuring it at runtime".I'm just a bit confused about how
+> > applications can discover the related video notes? Could you explain
+> > it a little more?
+> 
+> Hi Cliff,
+> 
+> The major and minor numbers of video nodes are provided to the user
+> space in struct media_entity_desc (defined in include/linux/media.h)
+> using MEDIA_IOC_ENUM_ENTITIES IOCTL. The major and minor numbers define
+> which device node corresponds to the video device; this isn't trivial
+> for an application to do so there's a library which makes it easier:
+> 
+> <URL:http://git.ideasonboard.org/?p=media-ctl.git;a=summary>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/omap3isp/ispccdc.c    |   19 ++++++++++++++++---
- drivers/media/video/omap3isp/ispccp2.c    |   22 +++++++++++++---------
- drivers/media/video/omap3isp/ispcsi2.c    |   15 +++++++++------
- drivers/media/video/omap3isp/isppreview.c |   27 +++++++++++++--------------
- drivers/media/video/omap3isp/ispresizer.c |   27 +++++++++++++--------------
- drivers/media/video/omap3isp/ispstat.c    |   11 ++++++++++-
- 6 files changed, 74 insertions(+), 47 deletions(-)
+That reminds me: Laurent, this should really be moved to v4l-utils.git.
+Any progress on that?
 
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index 0a68207..329085c 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -2222,15 +2222,21 @@ static int ccdc_init_entities(struct isp_ccdc_device *ccdc)
- 
- 	ret = omap3isp_video_init(&ccdc->video_out, "CCDC");
- 	if (ret < 0)
--		return ret;
-+		goto error_video;
- 
- 	/* Connect the CCDC subdev to the video node. */
- 	ret = media_entity_create_link(&ccdc->subdev.entity, CCDC_PAD_SOURCE_OF,
- 			&ccdc->video_out.video.entity, 0, 0);
- 	if (ret < 0)
--		return ret;
-+		goto error_link;
- 
- 	return 0;
-+
-+error_link:
-+	omap3isp_video_cleanup(&ccdc->video_out);
-+error_video:
-+	media_entity_cleanup(me);
-+	return ret;
- }
- 
- /*
-@@ -2244,6 +2250,7 @@ static int ccdc_init_entities(struct isp_ccdc_device *ccdc)
- int omap3isp_ccdc_init(struct isp_device *isp)
- {
- 	struct isp_ccdc_device *ccdc = &isp->isp_ccdc;
-+	int ret;
- 
- 	spin_lock_init(&ccdc->lock);
- 	init_waitqueue_head(&ccdc->wait);
-@@ -2272,7 +2279,13 @@ int omap3isp_ccdc_init(struct isp_device *isp)
- 	ccdc->update = OMAP3ISP_CCDC_BLCLAMP;
- 	ccdc_apply_controls(ccdc);
- 
--	return ccdc_init_entities(ccdc);
-+	ret = ccdc_init_entities(ccdc);
-+	if (ret < 0) {
-+		mutex_destroy(&ccdc->ioctl_lock);
-+		return ret;
-+	}
-+
-+	return 0;
- }
- 
- /*
-diff --git a/drivers/media/video/omap3isp/ispccp2.c b/drivers/media/video/omap3isp/ispccp2.c
-index 883a282..904ca8c 100644
---- a/drivers/media/video/omap3isp/ispccp2.c
-+++ b/drivers/media/video/omap3isp/ispccp2.c
-@@ -1125,15 +1125,21 @@ static int ccp2_init_entities(struct isp_ccp2_device *ccp2)
- 
- 	ret = omap3isp_video_init(&ccp2->video_in, "CCP2");
- 	if (ret < 0)
--		return ret;
-+		goto error_video;
- 
- 	/* Connect the video node to the ccp2 subdev. */
- 	ret = media_entity_create_link(&ccp2->video_in.video.entity, 0,
- 				       &ccp2->subdev.entity, CCP2_PAD_SINK, 0);
- 	if (ret < 0)
--		return ret;
-+		goto error_link;
- 
- 	return 0;
-+
-+error_link:
-+	omap3isp_video_cleanup(&ccp2->video_in);
-+error_video:
-+	media_entity_cleanup(&ccp2->subdev.entity);
-+	return ret;
- }
- 
- /*
-@@ -1171,15 +1177,13 @@ int omap3isp_ccp2_init(struct isp_device *isp)
- 	}
- 
- 	ret = ccp2_init_entities(ccp2);
--	if (ret < 0)
--		goto out;
-+	if (ret < 0) {
-+		regulator_put(ccp2->vdds_csib);
-+		return ret;
-+	}
- 
- 	ccp2_reset(ccp2);
--out:
--	if (ret)
--		omap3isp_ccp2_cleanup(isp);
--
--	return ret;
-+	return 0;
- }
- 
- /*
-diff --git a/drivers/media/video/omap3isp/ispcsi2.c b/drivers/media/video/omap3isp/ispcsi2.c
-index 2c9bffc..0c5f1cb 100644
---- a/drivers/media/video/omap3isp/ispcsi2.c
-+++ b/drivers/media/video/omap3isp/ispcsi2.c
-@@ -1259,15 +1259,21 @@ static int csi2_init_entities(struct isp_csi2_device *csi2)
- 
- 	ret = omap3isp_video_init(&csi2->video_out, "CSI2a");
- 	if (ret < 0)
--		return ret;
-+		goto error_video;
- 
- 	/* Connect the CSI2 subdev to the video node. */
- 	ret = media_entity_create_link(&csi2->subdev.entity, CSI2_PAD_SOURCE,
- 				       &csi2->video_out.video.entity, 0, 0);
- 	if (ret < 0)
--		return ret;
-+		goto error_link;
- 
- 	return 0;
-+
-+error_link:
-+	omap3isp_video_cleanup(&csi2->video_out);
-+error_video:
-+	media_entity_cleanup(&csi2->subdev.entity);
-+	return ret;
- }
- 
- /*
-@@ -1289,7 +1295,7 @@ int omap3isp_csi2_init(struct isp_device *isp)
- 
- 	ret = csi2_init_entities(csi2a);
- 	if (ret < 0)
--		goto fail;
-+		return ret;
- 
- 	if (isp->revision == ISP_REVISION_15_0) {
- 		csi2c->isp = isp;
-@@ -1302,9 +1308,6 @@ int omap3isp_csi2_init(struct isp_device *isp)
- 	}
- 
- 	return 0;
--fail:
--	omap3isp_csi2_cleanup(isp);
--	return ret;
- }
- 
- /*
-diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
-index b926ebb..b381835 100644
---- a/drivers/media/video/omap3isp/isppreview.c
-+++ b/drivers/media/video/omap3isp/isppreview.c
-@@ -2060,24 +2060,32 @@ static int preview_init_entities(struct isp_prev_device *prev)
- 
- 	ret = omap3isp_video_init(&prev->video_in, "preview");
- 	if (ret < 0)
--		return ret;
-+		goto error_video_in;
- 
- 	ret = omap3isp_video_init(&prev->video_out, "preview");
- 	if (ret < 0)
--		return ret;
-+		goto error_video_out;
- 
- 	/* Connect the video nodes to the previewer subdev. */
- 	ret = media_entity_create_link(&prev->video_in.video.entity, 0,
- 			&prev->subdev.entity, PREV_PAD_SINK, 0);
- 	if (ret < 0)
--		return ret;
-+		goto error_link;
- 
- 	ret = media_entity_create_link(&prev->subdev.entity, PREV_PAD_SOURCE,
- 			&prev->video_out.video.entity, 0, 0);
- 	if (ret < 0)
--		return ret;
-+		goto error_link;
- 
- 	return 0;
-+
-+error_link:
-+	omap3isp_video_cleanup(&prev->video_out);
-+error_video_out:
-+	omap3isp_video_cleanup(&prev->video_in);
-+error_video_in:
-+	media_entity_cleanup(&prev->subdev.entity);
-+	return ret;
- }
- 
- /*
-@@ -2088,21 +2096,12 @@ static int preview_init_entities(struct isp_prev_device *prev)
- int omap3isp_preview_init(struct isp_device *isp)
- {
- 	struct isp_prev_device *prev = &isp->isp_prev;
--	int ret;
- 
- 	spin_lock_init(&prev->lock);
- 	init_waitqueue_head(&prev->wait);
- 	preview_init_params(prev);
- 
--	ret = preview_init_entities(prev);
--	if (ret < 0)
--		goto out;
--
--out:
--	if (ret)
--		omap3isp_preview_cleanup(isp);
--
--	return ret;
-+	return preview_init_entities(prev);
- }
- 
- void omap3isp_preview_cleanup(struct isp_device *isp)
-diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
-index 224b0b9..50e593b 100644
---- a/drivers/media/video/omap3isp/ispresizer.c
-+++ b/drivers/media/video/omap3isp/ispresizer.c
-@@ -1688,24 +1688,32 @@ static int resizer_init_entities(struct isp_res_device *res)
- 
- 	ret = omap3isp_video_init(&res->video_in, "resizer");
- 	if (ret < 0)
--		return ret;
-+		goto error_video_in;
- 
- 	ret = omap3isp_video_init(&res->video_out, "resizer");
- 	if (ret < 0)
--		return ret;
-+		goto error_video_out;
- 
- 	/* Connect the video nodes to the resizer subdev. */
- 	ret = media_entity_create_link(&res->video_in.video.entity, 0,
- 			&res->subdev.entity, RESZ_PAD_SINK, 0);
- 	if (ret < 0)
--		return ret;
-+		goto error_link;
- 
- 	ret = media_entity_create_link(&res->subdev.entity, RESZ_PAD_SOURCE,
- 			&res->video_out.video.entity, 0, 0);
- 	if (ret < 0)
--		return ret;
-+		goto error_link;
- 
- 	return 0;
-+
-+error_link:
-+	omap3isp_video_cleanup(&res->video_out);
-+error_video_out:
-+	omap3isp_video_cleanup(&res->video_in);
-+error_video_in:
-+	media_entity_cleanup(&res->subdev.entity);
-+	return ret;
- }
- 
- /*
-@@ -1716,19 +1724,10 @@ static int resizer_init_entities(struct isp_res_device *res)
- int omap3isp_resizer_init(struct isp_device *isp)
- {
- 	struct isp_res_device *res = &isp->isp_res;
--	int ret;
- 
- 	init_waitqueue_head(&res->wait);
- 	atomic_set(&res->stopping, 0);
--	ret = resizer_init_entities(res);
--	if (ret < 0)
--		goto out;
--
--out:
--	if (ret)
--		omap3isp_resizer_cleanup(isp);
--
--	return ret;
-+	return resizer_init_entities(res);
- }
- 
- void omap3isp_resizer_cleanup(struct isp_device *isp)
-diff --git a/drivers/media/video/omap3isp/ispstat.c b/drivers/media/video/omap3isp/ispstat.c
-index 786f9b0..2466cab 100644
---- a/drivers/media/video/omap3isp/ispstat.c
-+++ b/drivers/media/video/omap3isp/ispstat.c
-@@ -1073,14 +1073,23 @@ static int isp_stat_init_entities(struct ispstat *stat, const char *name,
- int omap3isp_stat_init(struct ispstat *stat, const char *name,
- 		       const struct v4l2_subdev_ops *sd_ops)
- {
-+	int ret;
-+
- 	stat->buf = kcalloc(STAT_MAX_BUFS, sizeof(*stat->buf), GFP_KERNEL);
- 	if (!stat->buf)
- 		return -ENOMEM;
-+
- 	isp_stat_buf_clear(stat);
- 	mutex_init(&stat->ioctl_lock);
- 	atomic_set(&stat->buf_err, 0);
- 
--	return isp_stat_init_entities(stat, name, sd_ops);
-+	ret = isp_stat_init_entities(stat, name, sd_ops);
-+	if (ret < 0) {
-+		mutex_destroy(&stat->ioctl_lock);
-+		kfree(stat->buf);
-+	}
-+
-+	return ret;
- }
- 
- void omap3isp_stat_cleanup(struct ispstat *stat)
--- 
-1.7.3.4
+Regards,
 
+	Hans
+
+> 
+> See src/media.h for the interface. An example how to use this is
+> available in src/main.c.
+> 
+> Entities the type of which is MEDIA_ENT_T_DEVNODE_V4L are V4L2 device nodes.
+> 
+> Regards,
+> 
+> 
