@@ -1,178 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:57860 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751665Ab1IEJwL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 05:52:11 -0400
-Date: Mon, 5 Sep 2011 11:51:57 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Bastian Hecht <hechtb@googlemail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2 v2] media: Add support for arbitrary resolution for
- the ov5642 camera driver
-In-Reply-To: <201109051125.33829.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1109051130590.1112@axis700.grange>
-References: <alpine.DEB.2.02.1108311420540.2154@ipanema>
- <201108311932.08252.laurent.pinchart@ideasonboard.com>
- <CABYn4sx25RbeKFDn8=cPuJETpornXW+osstrMEi9AjrtQAfSeA@mail.gmail.com>
- <201109051125.33829.laurent.pinchart@ideasonboard.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58289 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752736Ab1IZL7V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Sep 2011 07:59:21 -0400
+From: Archit Taneja <archit@ti.com>
+To: <hvaibhav@ti.com>
+CC: <tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>,
+	<sumit.semwal@ti.com>, <linux-media@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v3 1/4] OMAP_VOUT: Fix check in reqbuf for buf_size allocation
+Date: Mon, 26 Sep 2011 17:29:22 +0530
+Message-ID: <1317038365-30650-2-git-send-email-archit@ti.com>
+In-Reply-To: <1317038365-30650-1-git-send-email-archit@ti.com>
+References: <1317038365-30650-1-git-send-email-archit@ti.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 5 Sep 2011, Laurent Pinchart wrote:
+The commit 383e4f69879d11c86ebdd38b3356f6d0690fb4cc makes reqbuf prevent
+requesting a larger size buffer than what is allocated at kernel boot during
+omap_vout_probe.
 
-> Hi Bastian,
-> 
-> On Monday 05 September 2011 11:10:48 Bastian Hecht wrote:
-> > 2011/8/31 Laurent Pinchart:
-> > > Hi Bastian,
-> > > 
-> > > Guennadi pointed out that "should" can sound a bit harsh, so please read
-> > > my reviews as if
-> > > 
-> > > #define "you should" "I think you should"
-> > 
-> > I think that you think I should do the right thing. I removed out_sizes and
-> > repost v3 in a moment :)
-> 
-> Thanks :-)
-> 
-> > > was prepended to all of them :-)
-> > > 
-> > > On Wednesday 31 August 2011 19:06:25 Laurent Pinchart wrote:
-> > >> On Wednesday 31 August 2011 17:05:52 Bastian Hecht wrote:
-> > >> > This patch adds the ability to get arbitrary resolutions with a width
-> > >> > up to 2592 and a height up to 720 pixels instead of the standard
-> > >> > 1280x720 only.
-> > >> > 
-> > >> > Signed-off-by: Bastian Hecht <hechtb@gmail.com>
-> > >> > ---
-> > >> > diff --git a/drivers/media/video/ov5642.c
-> > >> > b/drivers/media/video/ov5642.c index 6410bda..87b432e 100644
-> > >> > --- a/drivers/media/video/ov5642.c
-> > >> > +++ b/drivers/media/video/ov5642.c
-> > >> 
-> > >> [snip]
-> > >> 
-> > >> > @@ -684,107 +737,101 @@ static int ov5642_write_array(struct
-> > >> > i2c_client
-> > >> 
-> > >> [snip]
-> > >> 
-> > >> > -static int ov5642_s_fmt(struct v4l2_subdev *sd,
-> > >> > -                   struct v4l2_mbus_framefmt *mf)
-> > >> > +static int ov5642_s_fmt(struct v4l2_subdev *sd, struct
-> > >> > v4l2_mbus_framefmt *mf) {
-> > >> > 
-> > >> >     struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > >> >     struct ov5642 *priv = to_ov5642(client);
-> > >> > 
-> > >> > -
-> > >> > -   dev_dbg(sd->v4l2_dev->dev, "%s(%u)\n", __func__, mf->code);
-> > >> > +   int ret;
-> > >> > 
-> > >> >     /* MIPI CSI could have changed the format, double-check */
-> > >> >     if (!ov5642_find_datafmt(mf->code))
-> > >> > 
-> > >> >             return -EINVAL;
-> > >> > 
-> > >> >     ov5642_try_fmt(sd, mf);
-> > >> > 
-> > >> > -
-> > >> > 
-> > >> >     priv->fmt = ov5642_find_datafmt(mf->code);
-> > >> > 
-> > >> > -   ov5642_write_array(client, ov5642_default_regs_init);
-> > >> > -   ov5642_set_resolution(client);
-> > >> > -   ov5642_write_array(client, ov5642_default_regs_finalise);
-> > >> > +   ret = ov5642_write_array(client, ov5642_default_regs_init);
-> > >> > +   if (!ret)
-> > >> > +           ret = ov5642_set_resolution(sd);
-> > >> > +   if (!ret)
-> > >> > +           ret = ov5642_write_array(client,
-> > >> > ov5642_default_regs_finalise);
-> > >> 
-> > >> You shouldn't write anything to the sensor here. As only .s_crop can
-> > >> currently change the format, .s_fmt should just return the current
-> > >> format without performing any change or writing anything to the device.
-> > 
-> > We talked about it in the ov5642 controls thread. I need to initialize
-> > the sensor at some point and it doesn't work to divide the calls
-> > between different locations.
-> 
-> Sure, but calling s_fmt isn't mandatory for hosts/bridges. What about moving 
-> sensor initialization to s_stream() ?
+The requested size is compared with vout->buffer_size, this isn't correct as
+vout->buffer_size is later set to the size requested in reqbuf. When the video
+device is opened the next time, this check will prevent us to allocate a buffer
+which is larger than what we requested the last time.
 
-Throughout the development of this driver, I was opposing the "delayed 
-configuration" approach. I.e., the approach, in which all the ioctl()s, 
-like S_FMT, S_CROP, etc. only store user values internally, and the actual 
-hardware configuration is only performed at STREAMON time. There are 
-several reasons to this: the spec says "the driver may program the 
-hardware, allocate resources and generally prepare for data exchange" 
-(yes, "may" != "must"), most drivers seem to do the same, the possibility 
-to check and return any hardware errors, returned by this operation, I 
-probably have forgotten something. But if we ignore all these reasons as 
-insufficiently important, then yes, doing the actualy hardware 
-configuration in .s_stream() brings a couple of advantages with it, 
-especially for drivers / devices like this one.
+Don't use vout->buffer_size, always check with the parameters video1_bufsize
+or video2_bufsize.
 
-So, if there are no strong objections, maybe indeed move this back to 
-.s_stream() would be the better solution here.
-
-Thanks
-Guennadi
-
-> 
-> > >> > -   return 0;
-> > >> > +   return ret;
-> > >> > 
-> > >> >  }
-> > >> 
-> > >> [snip]
-> > >> 
-> > >> > @@ -827,15 +874,42 @@ static int ov5642_g_chip_ident(struct
-> > >> > v4l2_subdev
-> > >> 
-> > >> [snip]
-> > >> 
-> > >> >  static int ov5642_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
-> > >> >  {
-> > >> > 
-> > >> > +   struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > >> > +   struct ov5642 *priv = to_ov5642(client);
-> > >> > 
-> > >> >     struct v4l2_rect *rect = &a->c;
-> > >> > 
-> > >> > -   a->type         = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> > >> > -   rect->top       = 0;
-> > >> > -   rect->left      = 0;
-> > >> > -   rect->width     = OV5642_WIDTH;
-> > >> > -   rect->height    = OV5642_HEIGHT;
-> > >> > +   a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> > >> 
-> > >> Shouldn't you return an error instead when a->type is not
-> > >> V4L2_BUF_TYPE_VIDEO_CAPTURE ?
-> > 
-> > No idea, but if you say so, I'll change it.
-> 
-> VIDIOC_G_FMT documentation states that
-> 
-> "When the requested buffer type is not supported drivers return an EINVAL 
-> error code."
-> 
-> I thought VIDIOC_G_CROP documentation did as well, but it doesn't. However I 
-> believe the above should apply to VIDIOC_G_CROP as well. There is no explicit 
-> documentation about error codes for subdev operations, but I think it makes 
-> sense to follow what the V4L2 ioctls do.
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-
+Signed-off-by: Archit Taneja <archit@ti.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/omap/omap_vout.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index d9e64f3..16ebff6 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -664,10 +664,14 @@ static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int *count,
+ 	u32 phy_addr = 0, virt_addr = 0;
+ 	struct omap_vout_device *vout = q->priv_data;
+ 	struct omapvideo_info *ovid = &vout->vid_info;
++	int vid_max_buf_size;
+ 
+ 	if (!vout)
+ 		return -EINVAL;
+ 
++	vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
++		video2_bufsize;
++
+ 	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != q->type)
+ 		return -EINVAL;
+ 
+@@ -690,7 +694,7 @@ static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int *count,
+ 		video1_numbuffers : video2_numbuffers;
+ 
+ 	/* Check the size of the buffer */
+-	if (*size > vout->buffer_size) {
++	if (*size > vid_max_buf_size) {
+ 		v4l2_err(&vout->vid_dev->v4l2_dev,
+ 				"buffer allocation mismatch [%u] [%u]\n",
+ 				*size, vout->buffer_size);
+@@ -865,6 +869,8 @@ static int omap_vout_mmap(struct file *file, struct vm_area_struct *vma)
+ 	unsigned long size = (vma->vm_end - vma->vm_start);
+ 	struct omap_vout_device *vout = file->private_data;
+ 	struct videobuf_queue *q = &vout->vbq;
++	int vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
++		video2_bufsize;
+ 
+ 	v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev,
+ 			" %s pgoff=0x%lx, start=0x%lx, end=0x%lx\n", __func__,
+@@ -887,7 +893,7 @@ static int omap_vout_mmap(struct file *file, struct vm_area_struct *vma)
+ 		return -EINVAL;
+ 	}
+ 	/* Check the size of the buffer */
+-	if (size > vout->buffer_size) {
++	if (size > vid_max_buf_size) {
+ 		v4l2_err(&vout->vid_dev->v4l2_dev,
+ 				"insufficient memory [%lu] [%u]\n",
+ 				size, vout->buffer_size);
+-- 
+1.7.1
+
