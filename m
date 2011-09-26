@@ -1,156 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from newsmtp5.atmel.com ([204.2.163.5]:30690 "EHLO
-	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752031Ab1IFF5F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 01:57:05 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	plagnioj@jcrosoft.com
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH v2] [media] at91: add code to initialize and manage the ISI_MCK for Atmel ISI driver.
-Date: Tue,  6 Sep 2011 13:56:41 +0800
-Message-Id: <1315288601-22384-1-git-send-email-josh.wu@atmel.com>
+Received: from moutng.kundenserver.de ([212.227.126.186]:62337 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752543Ab1IZJdH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Sep 2011 05:33:07 -0400
+Date: Mon, 26 Sep 2011 11:32:53 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Nicolas Ferre <nicolas.ferre@atmel.com>
+cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>,
+	Josh Wu <josh.wu@atmel.com>, linux-kernel@vger.kernel.org,
+	s.nawrocki@samsung.com, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 2/2] at91: add Atmel ISI and ov2640 support on
+ sam9m10/sam9g45 board.
+In-Reply-To: <4E804440.7030709@atmel.com>
+Message-ID: <Pine.LNX.4.64.1109261130270.9168@axis700.grange>
+References: <1316664661-11383-1-git-send-email-josh.wu@atmel.com>
+ <1316664661-11383-2-git-send-email-josh.wu@atmel.com>
+ <Pine.LNX.4.64.1109220911500.11164@axis700.grange> <20110924052609.GI29998@game.jcrosoft.org>
+ <4E804440.7030709@atmel.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch enable the configuration for ISI_MCK, which is provided by programmable clock.
+Hi Nicolas
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
+On Mon, 26 Sep 2011, Nicolas Ferre wrote:
+
+> Le 24/09/2011 07:26, Jean-Christophe PLAGNIOL-VILLARD :
+> > On 09:35 Thu 22 Sep     , Guennadi Liakhovetski wrote:
+> >> On Thu, 22 Sep 2011, Josh Wu wrote:
+> >>
+> >>> This patch
+> >>> 1. add ISI_MCK parent setting code when add ISI device.
+> >>> 2. add ov2640 support on board file.
+> >>> 3. define isi_mck clock in sam9g45 chip file.
+> >>>
+> >>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> >>> ---
+> >>>  arch/arm/mach-at91/at91sam9g45.c         |    3 +
+> >>>  arch/arm/mach-at91/at91sam9g45_devices.c |  105 +++++++++++++++++++++++++++++-
+> >>>  arch/arm/mach-at91/board-sam9m10g45ek.c  |   85 ++++++++++++++++++++++++-
+> >>>  arch/arm/mach-at91/include/mach/board.h  |    3 +-
+> >>
+> >> Personally, I think, it would be better to separate this into two patches 
+> >> at least: one for at91 core and one for the specific board, but that's up 
+> >> to arch maintainers to decide.
+> >>
+> >> You also want to patch arch/arm/mach-at91/at91sam9263_devices.c, don't 
+> >> you?
+> > agreed
+> 
+> No, I am not sure. The IP is not the same between 9263 and 9g45/9m10. So
+> this inclusion will not apply.
+
+Sorry, that's not what I meant. This patch changes a function declaration:
+
+diff --git a/arch/arm/mach-at91/include/mach/board.h b/arch/arm/mach-at91/include/mach/board.h
+index ed544a0..276d63a 100644
+--- a/arch/arm/mach-at91/include/mach/board.h
++++ b/arch/arm/mach-at91/include/mach/board.h
+@@ -183,7 +183,8 @@ extern void __init at91_add_device_lcdc(struct 
+atmel_lcdfb_info *data);
+ extern void __init at91_add_device_ac97(struct ac97c_platform_data 
+*data);
+ 
+  /* ISI */
+-extern void __init at91_add_device_isi(void);
++struct isi_platform_data;
++extern void __init at91_add_device_isi(struct isi_platform_data *data);
+ 
+  /* Touchscreen Controller */
+ struct at91_tsadcc_data {
+
+but doesn't change that function implementation in at91sam9263_devices.c, 
+which will break compilation, AFAICS.
+
+Thanks
+Guennadi
 ---
- drivers/media/video/atmel-isi.c |   60 ++++++++++++++++++++++++++++++++++++++-
- include/media/atmel-isi.h       |    4 ++
- 2 files changed, 63 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
-index 7b89f00..768bf59 100644
---- a/drivers/media/video/atmel-isi.c
-+++ b/drivers/media/video/atmel-isi.c
-@@ -90,7 +90,10 @@ struct atmel_isi {
- 	struct isi_dma_desc		dma_desc[MAX_BUFFER_NUM];
- 
- 	struct completion		complete;
-+	/* ISI peripherial clock */
- 	struct clk			*pclk;
-+	/* ISI_MCK, provided by PCK */
-+	struct clk			*mck;
- 	unsigned int			irq;
- 
- 	struct isi_platform_data	*pdata;
-@@ -763,6 +766,10 @@ static int isi_camera_add_device(struct soc_camera_device *icd)
- 	if (ret)
- 		return ret;
- 
-+	ret = clk_enable(isi->mck);
-+	if (ret)
-+		return ret;
-+
- 	isi->icd = icd;
- 	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
- 		 icd->devnum);
-@@ -776,6 +783,7 @@ static void isi_camera_remove_device(struct soc_camera_device *icd)
- 
- 	BUG_ON(icd != isi->icd);
- 
-+	clk_disable(isi->mck);
- 	clk_disable(isi->pclk);
- 	isi->icd = NULL;
- 
-@@ -882,6 +890,49 @@ static struct soc_camera_host_ops isi_soc_camera_host_ops = {
- };
- 
- /* -----------------------------------------------------------------------*/
-+/* Initialize ISI_MCK clock, called by atmel_isi_probe() function */
-+static int initialize_mck(struct platform_device *pdev,
-+			struct atmel_isi *isi)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct isi_platform_data *pdata = dev->platform_data;
-+	struct clk *pck_parent;
-+	int ret;
-+
-+	if (!strlen(pdata->pck_name) || !strlen(pdata->pck_parent_name))
-+		return -EINVAL;
-+
-+	/* ISI_MCK is provided by PCK clock */
-+	isi->mck = clk_get(dev, pdata->pck_name);
-+	if (IS_ERR(isi->mck)) {
-+		dev_err(dev, "Failed to get PCK: %s\n", pdata->pck_name);
-+		return PTR_ERR(isi->mck);
-+	}
-+
-+	pck_parent = clk_get(dev, pdata->pck_parent_name);
-+	if (IS_ERR(pck_parent)) {
-+		ret = PTR_ERR(pck_parent);
-+		dev_err(dev, "Failed to get PCK parent: %s\n",
-+				pdata->pck_parent_name);
-+		goto err_init_mck;
-+	}
-+
-+	ret = clk_set_parent(isi->mck, pck_parent);
-+	clk_put(pck_parent);
-+	if (ret)
-+		goto err_init_mck;
-+
-+	ret = clk_set_rate(isi->mck, pdata->isi_mck_hz);
-+	if (ret < 0)
-+		goto err_init_mck;
-+
-+	return 0;
-+
-+err_init_mck:
-+	clk_put(isi->mck);
-+	return ret;
-+}
-+
- static int __devexit atmel_isi_remove(struct platform_device *pdev)
- {
- 	struct soc_camera_host *soc_host = to_soc_camera_host(&pdev->dev);
-@@ -897,6 +948,7 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
- 			isi->fb_descriptors_phys);
- 
- 	iounmap(isi->regs);
-+	clk_put(isi->mck);
- 	clk_put(isi->pclk);
- 	kfree(isi);
- 
-@@ -915,7 +967,8 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
- 	struct isi_platform_data *pdata;
- 
- 	pdata = dev->platform_data;
--	if (!pdata || !pdata->data_width_flags) {
-+	if (!pdata || !pdata->data_width_flags || !pdata->isi_mck_hz
-+			|| !pdata->pck_name || !pdata->pck_parent_name) {
- 		dev_err(&pdev->dev,
- 			"No config available for Atmel ISI\n");
- 		return -EINVAL;
-@@ -944,6 +997,11 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&isi->video_buffer_list);
- 	INIT_LIST_HEAD(&isi->dma_desc_head);
- 
-+	/* Initialize ISI_MCK clock */
-+	ret = initialize_mck(pdev, isi);
-+	if (ret)
-+		goto err_alloc_descriptors;
-+
- 	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
- 				sizeof(struct fbd) * MAX_BUFFER_NUM,
- 				&isi->fb_descriptors_phys,
-diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
-index 26cece5..dcbb822 100644
---- a/include/media/atmel-isi.h
-+++ b/include/media/atmel-isi.h
-@@ -114,6 +114,10 @@ struct isi_platform_data {
- 	u32 data_width_flags;
- 	/* Using for ISI_CFG1 */
- 	u32 frate;
-+	/* Using for ISI_MCK, provided by PCK */
-+	u32 isi_mck_hz;
-+	const char *pck_name;
-+	const char *pck_parent_name;
- };
- 
- #endif /* __ATMEL_ISI_H__ */
--- 
-1.6.3.3
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
