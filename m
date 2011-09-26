@@ -1,85 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37897 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752189Ab1IVR3h (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:61509 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751528Ab1IZLRC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Sep 2011 13:29:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v4 1/2] v4l2: Add polarity flag definitons for parallel bus FIELD signal
-Date: Thu, 22 Sep 2011 19:29:32 +0200
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, g.liakhovetski@gmx.de,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-References: <1316709751-29922-1-git-send-email-s.nawrocki@samsung.com> <1316709751-29922-2-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1316709751-29922-2-git-send-email-s.nawrocki@samsung.com>
+	Mon, 26 Sep 2011 07:17:02 -0400
+Date: Mon, 26 Sep 2011 13:17:00 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC] Restructure video_device
+In-Reply-To: <200911051519.06843.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1109261306500.9168@axis700.grange>
+References: <200910231625.40822.laurent.pinchart@ideasonboard.com>
+ <200911051519.06843.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109221929.33535.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Hans
 
-Thanks for the patch.
+Sorry for reviving an almost 2 year old thread, but the topic, discussed 
+back then is still relevant (I'll include a complete quote to refresh the 
+old discussion):
 
-On Thursday 22 September 2011 18:42:30 Sylwester Nawrocki wrote:
-> FIELD signal is used for indicating frame field type to the frame grabber
-> in interlaced scan mode, as specified in ITU-R BT.601 standard.
-> In normal operation mode FIELD = 0 selects Field1 (odd) and FIELD = 1
-> selects Field2 (even). When the FIELD signal is inverted it's the other
-> way around.
+On Thu, 5 Nov 2009, Hans Verkuil wrote:
+
+> On Friday 23 October 2009 16:25:40 Laurent Pinchart wrote:
+> > Hi everybody,
+> > 
+> > while working on device node support for subdevs I ran into an issue with the 
+> > way v4l2 objects are structured.
+> > 
+> > We currently have the following structure:
+> > 
+> > - video_device represents a device that complies with the V4L1 or V4L2 API. 
+> > Every video_device has a corresponding device node.
+> > 
+> > - v4l2_device represents a high-level media device that handles sub-devices. 
+> > With the new media controller infrastructure a v4l2_device will have a device 
+> > node as well.
+> > 
+> > - v4l2_subdev represents a sub-device. As for v4l2_device's, the new media 
+> > controller infrastructure will give a device node for every sub-device.
+> > 
+> > - v4l2_entity is the structure that both v4l2_subdev and video_device derive 
+> > from. Most of the media controller code will deal with entities rather than 
+> > sub-devices or video devices, as most operations (such as discovering the 
+> > topology and create links) do not depend on the exact nature of the entity. 
+> > New types of entities could be introduced later.
+> > 
+> > Both the video_device and v4l2_subdev structure inherit from v4l2_entity, so 
+> > both of them have a v4l2_entity field. With v4l2_device and v4l2_subdev now 
+> > needing to devices to have device nodes created, the v4l2_device and 
+> > v4l2_subdev structure both have a video_device field.
+> > 
+> > This isn't clean for two reasons:
+> > 
+> > - v4l2_device isn't a v4l2_entity, so it should inherit from a structure 
+> > (video_device) that itself inherits from v4l2_entity. 
+> > 
+> > - v4l2_subdev shouldn't inherit twice from v4l2_entity, once directly and once 
+> > through video_device.
 > 
-> Add corresponding flags for configuring the FIELD signal polarity,
-> V4L2_MBUS_FIELD_EVEN_HIGH for the standard (non-inverted) case and
-> V4L2_MBUS_FIELD_EVEN_LOW for inverted case.
+> I agree.
 > 
-> Also add a comment about usage of V4L2_MBUS_[HV]SYNC* flags for
-> the hardware that uses [HV]REF signals.
+> > To fix this I would like to refactor the video_device structure and cut it in 
+> > two pieces. One of them will deal with device node related tasks, being mostly 
+> > V4L1/V4L2 agnostic, and the other will inherit from the first and add 
+> > V4L1/V4L2 support (tvnorms/current_norm/ioctl_ops fields from the current 
+> > video_device structure), as well as media controller support (inheriting from 
+> > v4l2_entity).
+> > 
+> > My plan was to create a video_devnode structure for the low-level device node 
 > 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  include/media/v4l2-mediabus.h |   12 ++++++++++--
->  1 files changed, 10 insertions(+), 2 deletions(-)
+> Let's call it v4l2_devnode to be consistent with the current naming convention.
 > 
-> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-> index 6114007..83ae07e 100644
-> --- a/include/media/v4l2-mediabus.h
-> +++ b/include/media/v4l2-mediabus.h
-> @@ -22,8 +22,12 @@
->   */
->  #define V4L2_MBUS_MASTER			(1 << 0)
->  #define V4L2_MBUS_SLAVE				(1 << 1)
-> -/* Which signal polarities it supports */
-> -/* Note: in BT.656 mode HSYNC and VSYNC are unused */
-> +/*
-> + * Signal polarity flags
-> + * Note: in BT.656 mode HSYNC, FIELD, and VSYNC are unused
-> + * V4L2_MBUS_[HV]SYNC* flags should be also used for specifying
-> + * configuration of hardware that uses [HV]REF signals
-> + */
->  #define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
->  #define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
->  #define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
-> @@ -32,6 +36,10 @@
->  #define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
->  #define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
->  #define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
-> +/* FIELD = 0/1 - Field1 (odd)/Field2 (even) */
-> +#define V4L2_MBUS_FIELD_EVEN_HIGH		(1 << 10)
-> +/* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
-> +#define V4L2_MBUS_FIELD_EVEN_LOW		(1 << 11)
+> > related structure, and keeping the video_device name for the higher level 
+> > structure. v4l2_device, v4l2_subdev and video_device would then all have a 
+> > video_devnode field.
+> > 
+> > While this isn't exactly difficult, it would require changing a lot of 
+> > drivers, as some field will be moved from video_device to 
+> > video_device::video_devnode. Some of those fields are internal, some of them 
+> > are accessed by drivers while they shouldn't in most cases (the minor field 
+> > for instance), and some are public (name, parent).
+> > 
+> > I would like to have your opinion on whether you think this proposal is 
+> > acceptable or whether you see a better and cleaner way to restructure the 
+> > video device code structures.
+> > 
 > 
->  /* Serial flags */
->  /* How many lanes the client can use */
+> I have two issues with this:
+> 
+> 1) Is it really necessary to do this now? We are still in the prototyping
+> phase and I think it is probably more efficient right now to hack around this
+> and postpone the real fix (as described above) until we are sure that the mc
+> concept is working correctly.
 
--- 
-Regards,
+Here comes my question: is it the right time for this now?;-) I've relaxed 
+the problem a bit with this my patch:
 
-Laurent Pinchart
+http://patchwork.linuxtv.org/patch/7817/
+
+But the problem, described above, when MC _is_ used - that of double 
+inheritance - still remains. I really think it should be fixed now.
+
+Thanks
+Guennadi
+
+> 
+> 2) I'm not sure whether the final media controller will and should be part
+> of the v4l framework at all. I think that this is something that can be used
+> separately from the v4l subsystem. So we should be very careful about
+> integrating this too closely in v4l. Again, this is not much of an issue
+> while prototyping, but it definitely will need some careful thinking when we
+> do the final implementation.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
