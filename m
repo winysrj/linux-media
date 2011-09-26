@@ -1,59 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60873 "EHLO
-	retiisi.dyndns.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756351Ab1IBWfA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 18:35:00 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] v4l: Remove experimental note from ENUM_FRAMESIZES and ENUM_FRAMEINTERVALS
-Date: Sat,  3 Sep 2011 01:28:28 +0300
-Message-Id: <1315002508-11651-1-git-send-email-sakari.ailus@iki.fi>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2439 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751380Ab1IZOZN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Sep 2011 10:25:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 4/4] v4l2: add blackfin capture bridge driver
+Date: Mon, 26 Sep 2011 16:25:03 +0200
+Cc: Scott Jiang <scott.jiang.linux@gmail.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org
+References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com> <CAHG8p1C5F_HKX_GPHv_RdCRRNw9s3+ybK4giCjUXxgSUAUDRVw@mail.gmail.com> <4E70BA97.1090904@samsung.com>
+In-Reply-To: <4E70BA97.1090904@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109261625.03748.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VIDIOC_ENUM_FRAMESIZES and VIDIOC_FRAME_INTERVALS have existed for quite
-some time, are widely supported by various drivers and are being used by
-applications. Thus they no longer can be considered experimental.
+On Wednesday, September 14, 2011 16:30:47 Sylwester Nawrocki wrote:
+> On 09/14/2011 09:10 AM, Scott Jiang wrote:
+> >>> +static int bcap_qbuf(struct file *file, void *priv,
+> >>> +                     struct v4l2_buffer *buf)
+> >>> +{
+> >>> +     struct bcap_device *bcap_dev = video_drvdata(file);
+> >>> +     struct v4l2_fh *fh = file->private_data;
+> >>> +     struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
+> >>> +
+> >>> +     if (!bcap_fh->io_allowed)
+> >>> +             return -EACCES;
+> >>
+> >> I suppose -EBUSY would be more appropriate here.
+> >>
+> > no, io_allowed is to control which file instance has the right to do I/O.
+> 
+> Looks like you are doing here what the v4l2 priority mechanism is meant for.
+> Have you considered the access priority (VIDIOC_G_PRIORITY/VIDIOC_S_PRIORITY
+> and friends)? Does it have any shortcomings?
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/DocBook/media/v4l/compat.xml         |    4 ----
- .../DocBook/media/v4l/vidioc-enum-framesizes.xml   |    7 -------
- 2 files changed, 0 insertions(+), 11 deletions(-)
+Sylwester, the priority handling doesn't take care of this particular case.
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index ce1004a..a6261c1 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2458,10 +2458,6 @@ and may change in the future.</para>
- &VIDIOC-QUERYCAP; ioctl, <xref linkend="device-capabilities" />.</para>
-         </listitem>
-         <listitem>
--	  <para>&VIDIOC-ENUM-FRAMESIZES; and
--&VIDIOC-ENUM-FRAMEINTERVALS; ioctls.</para>
--        </listitem>
--        <listitem>
- 	  <para>&VIDIOC-G-ENC-INDEX; ioctl.</para>
-         </listitem>
-         <listitem>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml b/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
-index f77a13f..a78454b 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
-@@ -50,13 +50,6 @@ and pixel format and receives a frame width and height.</para>
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--
--      <para>This is an <link linkend="experimental">experimental</link>
--interface and may change in the future.</para>
--    </note>
--
-     <para>This ioctl allows applications to enumerate all frame sizes
- (&ie; width and height in pixels) that the device supports for the
- given pixel format.</para>
--- 
-1.7.2.5
+When it comes to streaming you need to administrate which filehandle started
+the streaming and block any other filehandle from interfering with that.
 
+This check should really be done in vb2.
+
+Regards,
+
+	Hans
