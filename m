@@ -1,112 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:47381 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752694Ab1IYNzb convert rfc822-to-8bit (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:39966 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751099Ab1IZFe2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Sep 2011 09:55:31 -0400
-Received: by bkbzt4 with SMTP id zt4so4895036bkb.19
-        for <linux-media@vger.kernel.org>; Sun, 25 Sep 2011 06:55:29 -0700 (PDT)
+	Mon, 26 Sep 2011 01:34:28 -0400
+Message-ID: <4E800EEC.8080905@ti.com>
+Date: Mon, 26 Sep 2011 11:04:36 +0530
+From: Archit Taneja <archit@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <4E7F1FB5.5030803@gmail.com>
-References: <4E7F1FB5.5030803@gmail.com>
-Date: Sun, 25 Sep 2011 09:55:28 -0400
-Message-ID: <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
-Subject: Re: Problems cloning the git repostories
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Patrick Dickey <pdickeybeta@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: "Taneja, Archit" <archit@ti.com>
+CC: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Semwal, Sumit" <sumit.semwal@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/5] [media]: OMAP_VOUT: CLEANUP: Remove redundant code
+ from omap_vout_isr
+References: <1316167233-1437-1-git-send-email-archit@ti.com> <1316167233-1437-3-git-send-email-archit@ti.com> <19F8576C6E063C45BE387C64729E739404EC941E8B@dbde02.ent.ti.com> <4E79C053.903@ti.com>
+In-Reply-To: <4E79C053.903@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Sep 25, 2011 at 8:33 AM, Patrick Dickey <pdickeybeta@gmail.com> wrote:
-> Hello there,
+Hi,
+
+On Wednesday 21 September 2011 04:15 PM, Taneja, Archit wrote:
+> Hi,
 >
-> I tried to follow the steps for cloning both the "media_tree.git" and
-> "media_build.git" repositories, and received errors for both.  The
-> media_tree repository failed on the first line
+> On Wednesday 21 September 2011 03:35 PM, Hiremath, Vaibhav wrote:
+>>
+>>> -----Original Message-----
+>>> From: Taneja, Archit
+>>> Sent: Friday, September 16, 2011 3:31 PM
+>>> To: Hiremath, Vaibhav
+>>> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
+>>> media@vger.kernel.org; Taneja, Archit
+>>> Subject: [PATCH 2/5] [media]: OMAP_VOUT: CLEANUP: Remove redundant code
+>>> from omap_vout_isr
+>>>
+>>> Currently, there is a lot of redundant code is between DPI and VENC panels,
+>>> this
+>>> can be made common by moving out field/interlace specific code to a
+>>> separate
+>>> function called omapvid_handle_interlace_display(). There is no functional
+>>> change made.
+>>>
+>>> Signed-off-by: Archit Taneja<archit@ti.com>
+>>> ---
+>>>    drivers/media/video/omap/omap_vout.c |  172 ++++++++++++++++-------------
+>>> -----
+
+
+>> [Hiremath, Vaibhav]
+>> Have you tested TV out functionality?
 >
->> git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git v4l-dvb
->
-> which I'm assuming is because kernel.org is down.
->
-> The media_build.git repository fails on the first line also
->
->> git clone git://linuxtv.org/media_build.git
->
-> with a fatal: read error: Connection reset by peer.
->
-> Is it possible to clone either (or both) repositories at this time, or
-> are they down?  And in the absence of cloning the kernel for the
-> media_tree.git repository, is it possible to simply clone the
-> git://linuxtv.org/media_tree.git repository and work from that?
->
-> My interest in this is to install some patches created by Devin
-> Heitmueller for the Pinnacle PCTV 80e USB tuner (at least the ATSC
-> portion of the tuner). Once I'm able to determine exactly what changes
-> are made, I would like to either submit the patches to the repository,
-> or send them to someone who has more experience in patching the files
-> for submission.
->
-> One other question (totally unrelated to this post though): When I send
-> emails, normally they are GPG signed. Should I disable that for this
-> list, or is it acceptable?
->
-> Thank you for any information, and have a great day:)
-> Patrick.
+> I haven't checked it yet to be totally honest. Its hard to find a VENC
+> TV! I wanted to anyway get some kind of Ack from you before starting to
+> test this. Since you also feel that this clean up is needed, I'll start
+> testing this out :)
 
-Hi Patrick,
+I tested the TV out functionality. It works fine. I have left the extra 
+fid == 0 check so that the code is more clear. Will post out the new 
+patch soon.
 
-As I said on the blog, the issue isn't getting the driver to work
-against current kernels.  Merging the driver against the current tree
-is a trivial exercise (the patch series should apply trivially against
-the current code, with only a few minor conflicts related to board
-numbers, etc).
-
-The bigger issue though is once you do that and have the driver
-running, you now have a body of code > 10,000 lines which doesn't meet
-the "coding standards".  Doing such a refactoring is a relatively
-straightforward exercise but very time consuming (you already have a
-working driver, so you just have to make sure you don't break
-anything).
-
-The more I think about this, the more it annoys me.  I did all the hard parts:
-
-* I worked with the product vendor to get the details for the design
-* I got Hauppauge/PCTV to compel the chipset vendor to release the
-reference code under a GPL compatible license
-* I worked out redistribution terms on the firmware
-* I ported the driver to Linux
-* I integrated the driver and debugged it to achieve signal lock
-
-And why is it not in the mainline?  Because none of the above matters
-if I didn't waste a bunch of my time removing a bunch of "#ifdef
-WINDOWS" lines and converting whitespace from tabs to spaces.
-
-It's crap like this that's the reason why some of the best LinuxTV
-driver authors still have a bunch of stuff that isn't merged upstream.
- We just don't have time for this sort of bullshit that any monkey
-could do if he/she was willing to invest the effort.  We're just too
-busy doing *actual* driver work.
-
-Five years ago the hard part was finding competent developers, getting
-access to datasheets, getting access to reference driver code, and
-getting access to the details for a hardware design.  Now most of
-those problems are not the issue - we have access to all the data but
-we want to waste the time of the few competent developers out there
-making them do "coding style cleanup" before perfectly good code gets
-merged upstream.  There has been more than one case where I've
-considered doing a driver for a new board and decided against it
-because the barrier to getting it upstream is not worth my time.
-
-Want to see more device support upstream?  Optimize the process to
-make it easy for the people who know the hardware and how to write the
-drivers to get code upstream, and leave it to the "janitors" to work
-out the codingstyle issues.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Archit
