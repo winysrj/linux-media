@@ -1,60 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:45421 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752832Ab1IUR3n (ORCPT
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:4921 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753240Ab1IZK0U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 13:29:43 -0400
-Received: by qyk7 with SMTP id 7so1952494qyk.19
-        for <linux-media@vger.kernel.org>; Wed, 21 Sep 2011 10:29:42 -0700 (PDT)
+	Mon, 26 Sep 2011 06:26:20 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 3/4] V4L: soc-camera: make (almost) all client drivers re-usable outside of the framework
+Date: Mon, 26 Sep 2011 12:26:15 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <Pine.LNX.4.64.1109091917260.915@axis700.grange> <Pine.LNX.4.64.1109091921590.915@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1109091921590.915@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <CAFXTvn7otkiKw90aA8Yh4o7z87uarbtj3C8OdNYyKbywdMHdiQ@mail.gmail.com>
-References: <CAFXTvn7otkiKw90aA8Yh4o7z87uarbtj3C8OdNYyKbywdMHdiQ@mail.gmail.com>
-Date: Wed, 21 Sep 2011 18:29:42 +0100
-Message-ID: <CAFXTvn52-5rzY6EN7xq61Xr2evYY9BkBMSsW=DUfeWANq_v+MA@mail.gmail.com>
-Subject: uk-EmleyMoor update
-From: Andii Hughes <gnu_andrew@member.fsf.org>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=001636427485e5e83704ad76eb3b
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109261226.15796.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---001636427485e5e83704ad76eb3b
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On Friday, September 09, 2011 19:43:35 Guennadi Liakhovetski wrote:
+> The most important change in this patch is direct linking to struct
+> soc_camera_link via the client->dev.platform_data pointer. This makes most
+> of the soc-camera client drivers also usable outside of the soc-camera
+> framework. After this change all what is needed for these drivers to
+> function are inclusions of soc-camera headers for some convenience macros,
+> suitably configured platform data, which is anyway always required, and
+> loaded soc-camera core module for library functions. If desired, these
+> library functions can be made generic in the future and moved to a more
+> neutral location.
+> 
+> The only two client drivers, that still depend on soc-camera are:
+> 
+> mt9t031: it uses struct video_device for its PM. Since no hardware is
+> available, alternative methods cannot be tested.
+> 
+> ov6650: it uses struct soc_camera_device to pass its sense data back to
+> the bridge driver. A generic v4l2-subdevice approach should be developed
+> to perform this.
 
-The Emley Moor transmitter in the UK completed digital switchover
-today, making the existing transmitter file:
+Subdevs can call a notify function in struct v4l2_device to pass information
+to the bridge. Can that be used here?
 
-http://linuxtv.org/hg/dvb-apps/file/tip/util/scan/dvb-t/uk-EmleyMoor
+Regards,
 
-obsolete. =C2=A0Attached is a patch which I've just successfully used with
-dvbscan to obtain a new channels.conf.
-
-Thanks,
---
-Andii :-)
-
---001636427485e5e83704ad76eb3b
-Content-Type: text/x-patch; charset=US-ASCII; name="emley.patch"
-Content-Disposition: attachment; filename="emley.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gsul1hc30
-
-LS0tIC91c3Ivc2hhcmUvZHZiL2R2Yi10L3VrLUVtbGV5TW9vcgkyMDEwLTA4LTAyIDE5OjE3OjA0
-LjMwMjQxNjQwMiArMDEwMAorKysgL2hvbWUvYW5kcmV3Ly50emFwL3VrLUVtbGV5TW9vcgkyMDEx
-LTA5LTIxIDE4OjExOjAyLjkzNjEwNjA5MCArMDEwMApAQCAtMSwxMCArMSw3IEBACiAjIFVLLCBF
-bWxleSBNb29yCi0jIEF1dG8tZ2VuZXJhdGVkIGZyb20gaHR0cDovL3d3dy5kdGcub3JnLnVrL3Jl
-dGFpbGVyL2R0dF9jaGFubmVscy5odG1sCi0jIGFuZCBodHRwOi8vd3d3Lm9mY29tLm9yZy51ay9z
-dGF0aWMvcmVjZXB0aW9uX2FkdmljZS9pbmRleC5hc3AuaHRtbAogIyBUIGZyZXEgYncgZmVjX2hp
-IGZlY19sbyBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFyY2h5Ci1U
-IDcyMjE2NzAwMCA4TUh6IDMvNCBOT05FIFFBTTE2IDJrIDEvMzIgTk9ORQotVCA2MjU4MzMwMDAg
-OE1IeiAyLzMgTk9ORSBRQU02NCAyayAxLzMyIE5PTkUKLVQgNjQ5ODMzMDAwIDhNSHogMi8zIE5P
-TkUgUUFNNjQgMmsgMS8zMiBOT05FCi1UIDY3MzgzMzAwMCA4TUh6IDMvNCBOT05FIFFBTTE2IDJr
-IDEvMzIgTk9ORQotVCA3MDU4MzMwMDAgOE1IeiAzLzQgTk9ORSBRQU0xNiAyayAxLzMyIE5PTkUK
-LVQgNjk3ODMzMDAwIDhNSHogMy80IE5PTkUgUUFNMTYgMmsgMS8zMiBOT05FCitUIDY4MjAwMDAw
-MCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS8zMiBOT05FICMgUFNCMS9CQkNBCitUIDY1ODAwMDAw
-MCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS8zMiBOT05FICMgUFNCMi9EMyY0CitUIDcxNDAwMDAw
-MCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS8zMiBOT05FICMgQ09NNC9TRE4KK1QgNzIyMDAwMDAw
-IDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzMyIE5PTkUgIyBDT001L0FSUUEKK1QgNjkwMDAwMDAw
-IDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzMyIE5PTkUgIyBDT002L0FSUUIK
---001636427485e5e83704ad76eb3b--
+	Hans
