@@ -1,91 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57276 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:10085 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751701Ab1I1WDt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Sep 2011 18:03:49 -0400
-Message-ID: <4E8399C0.8020805@redhat.com>
-Date: Wed, 28 Sep 2011 19:03:44 -0300
+	id S1751385Ab1IZRcy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Sep 2011 13:32:54 -0400
+Message-ID: <4E80B73F.5020804@redhat.com>
+Date: Mon, 26 Sep 2011 14:32:47 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v3.1-rc9] media fixes - was: Re: [GIT PULL for v3.2]
- media fixes
-References: <4E837CF8.3060605@redhat.com>
-In-Reply-To: <4E837CF8.3060605@redhat.com>
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org, srinivasa.deevi@conexant.com,
+	Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: Re: cx231xx: DMA problem on ARM
+References: <20110921135604.64363a2e@skate> <CAGoCfiyFbHcZO-Rz2VFr249NprqvhQhcSPBLHRj_Txs9gimYqA@mail.gmail.com> <20110922164508.395c2900@skate> <CAGoCfiy_RVbgq+3WTsC=ZrJsOfDYEWUov6meOU8=ShACBM7J2g@mail.gmail.com> <20110922172929.16df967f@skate> <20110923140404.5816c056@skate> <4E7D3D5A.6030008@redhat.com> <20110926101323.41708d64@skate>
+In-Reply-To: <20110926101323.41708d64@skate>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 28-09-2011 17:00, Mauro Carvalho Chehab escreveu:
-> Linus,
+Em 26-09-2011 05:13, Thomas Petazzoni escreveu:
+> Hello Mauro,
 > 
-> Please pull from:
-> 	git://linuxtv.org/mchehab/for_linus.git v4l_for_linus
+> Le Fri, 23 Sep 2011 23:15:54 -0300,
+> Mauro Carvalho Chehab <mchehab@redhat.com> a écrit :
+> 
+>>> And still the result is the same: we get a first frame, and then
+>>> nothing more, and we have a large number of error messages in the
+>>> kernel logs.
+>>
+>> I don't think that this is related to the power manager anymore. It can
+>> be related to cache coherency and/or to iommu support.
+> 
+> As you suspected, increasing PWR_SLEEP_INTERVAL didn't change anything.
+> What do you suggest to track down the potential cache coherency issues ?
 
-As shown at the above subject, I'm obviously skipping one kernel version number ;)
+Take a look at the ML. The SoC people discussed a lot about cache
+coherency problems and how to solve it. Videobuf2 has a better support
+on embedded world. I would take a look on it and see what it does different
+than other drivers. Maybe Jonathan Corbet patches for the ccic driver may
+help you.
 
-The previous pull request is for the -rc series, and not for the next
-merge window. Let me try again...
+It is probably a good idea to change cx231xx to use videobuf2, in order to
+fix this issue.
 
-Linus,
-
-Please pull for the next 3.1-rc from:
-	git://linuxtv.org/mchehab/for_linus.git v4l_for_linus
-
-Thank you!
+Thanks,
 Mauro
-
 > 
-> For a few fixes at the omap3 and UVC video drivers.
+> Best regards,
 > 
-> Thanks!
-> Mauro
-> 
-> -
-> 
-> Last commit at the branch: e74d83aad3709a17d68f01481f2b5f240250b1c3 [media] omap3isp: Fix build error in ispccdc.c
-> 
-> The following changes since commit b6fd41e29dea9c6753b1843a77e50433e6123bcb:
-> 
->   Linux 3.1-rc6 (2011-09-12 14:02:02 -0700)
-> 
-> are available in the git repository at:
->   git://linuxtv.org/mchehab/for_linus.git v4l_for_linus
-> 
-> Archit Taneja (1):
->       [media] OMAP_VOUT: Fix build break caused by update_mode removal in DSS2
-> 
-> Dave Young (1):
->       [media] v4l: Make sure we hold a reference to the v4l2_device before using it
-> 
-> Hans Verkuil (1):
->       [media] v4l: Fix use-after-free case in v4l2_device_release
-> 
-> Joerg Roedel (1):
->       [media] omap3isp: Fix build error in ispccdc.c
-> 
-> Laurent Pinchart (1):
->       [media] uvcvideo: Fix crash when linking entities
-> 
-> Ming Lei (1):
->       [media] uvcvideo: Set alternate setting 0 on resume if the bus has been reset
-> 
->  drivers/media/video/omap/omap_vout.c   |   13 -------------
->  drivers/media/video/omap3isp/ispccdc.c |    1 +
->  drivers/media/video/uvc/uvc_driver.c   |    2 +-
->  drivers/media/video/uvc/uvc_entity.c   |    2 +-
->  drivers/media/video/uvc/uvc_video.c    |   10 +++++++++-
->  drivers/media/video/uvc/uvcvideo.h     |    2 +-
->  drivers/media/video/v4l2-dev.c         |   11 +++++++++++
->  drivers/media/video/v4l2-device.c      |    2 ++
->  8 files changed, 26 insertions(+), 17 deletions(-)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Thomas
 
