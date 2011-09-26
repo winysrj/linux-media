@@ -1,104 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bonnie-vm4.ifh.de ([141.34.50.21]:35595 "EHLO smtp.ifh.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753802Ab1IENse (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Sep 2011 09:48:34 -0400
-Date: Mon, 5 Sep 2011 15:48:29 +0200 (CEST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Olivier Grenie <Olivier.Grenie@dibcom.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: DiBxxxx: fixes for 3.1/3.0
-In-Reply-To: <4E64CBA5.5090808@infradead.org>
-Message-ID: <alpine.LRH.2.00.1109051538150.13873@pub6.ifh.de>
-References: <alpine.LRH.2.00.1108031728090.30199@pub2.ifh.de>,<4E62CA12.8020805@infradead.org> <57C38DA176A0A34A9B9F3CCCE33D3C4A0160DC65B0D7@FRPAR1CL009.coe.adi.dibcom.com> <4E64CBA5.5090808@infradead.org>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3456 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751156Ab1IZNCE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Sep 2011 09:02:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: Re: [PATCH RESEND 2/4] davinci vpbe: add dm365 VPBE display driver changes
+Date: Mon, 26 Sep 2011 15:01:48 +0200
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+References: <1316410529-14744-1-git-send-email-manjunath.hadli@ti.com> <1316410529-14744-3-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1316410529-14744-3-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109261501.49077.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 5 Sep 2011, Mauro Carvalho Chehab wrote:
+On Monday, September 19, 2011 07:35:27 Manjunath Hadli wrote:
+> This patch implements the core additions to the display driver,
+> mainly controlling the VENC and other encoders for dm365.
+> This patch also includes addition of amplifier subdevice to the
+> vpbe driver and interfacing with venc subdevice.
+> 
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> ---
+>  drivers/media/video/davinci/vpbe.c |   55 ++++++++++++++++++++++++++++++++++--
+>  include/media/davinci/vpbe.h       |   16 ++++++++++
+>  2 files changed, 68 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/davinci/vpbe.c b/drivers/media/video/davinci/vpbe.c
+> index d773d30..21a8645 100644
+> --- a/drivers/media/video/davinci/vpbe.c
+> +++ b/drivers/media/video/davinci/vpbe.c
+> @@ -141,11 +141,12 @@ static int vpbe_enum_outputs(struct vpbe_device *vpbe_dev,
+>  	return 0;
+>  }
+>  
+> -static int vpbe_get_mode_info(struct vpbe_device *vpbe_dev, char *mode)
+> +static int vpbe_get_mode_info(struct vpbe_device *vpbe_dev, char *mode,
+> +			      int output_index)
+>  {
+>  	struct vpbe_config *cfg = vpbe_dev->cfg;
+>  	struct vpbe_enc_mode_info var;
+> -	int curr_output = vpbe_dev->current_out_index;
+> +	int curr_output = output_index;
+>  	int i;
+>  
+>  	if (NULL == mode)
+> @@ -245,6 +246,8 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
+>  	struct encoder_config_info *curr_enc_info =
+>  			vpbe_current_encoder_info(vpbe_dev);
+>  	struct vpbe_config *cfg = vpbe_dev->cfg;
+> +	struct venc_platform_data *venc_device = vpbe_dev->venc_device;
+> +	enum v4l2_mbus_pixelcode if_params;
+>  	int enc_out_index;
+>  	int sd_index;
+>  	int ret = 0;
+> @@ -274,6 +277,8 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
+>  			goto out;
+>  		}
+>  
+> +		if_params = cfg->outputs[index].if_params;
+> +		venc_device->setup_if_config(if_params);
+>  		if (ret)
+>  			goto out;
+>  	}
+> @@ -293,7 +298,7 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
+>  	 * encoder.
+>  	 */
+>  	ret = vpbe_get_mode_info(vpbe_dev,
+> -				 cfg->outputs[index].default_mode);
+> +				 cfg->outputs[index].default_mode, index);
+>  	if (!ret) {
+>  		struct osd_state *osd_device = vpbe_dev->osd_device;
+>  
+> @@ -367,6 +372,11 @@ static int vpbe_s_dv_preset(struct vpbe_device *vpbe_dev,
+>  
+>  	ret = v4l2_subdev_call(vpbe_dev->encoders[sd_index], video,
+>  					s_dv_preset, dv_preset);
+> +	if (!ret && (vpbe_dev->amp != NULL)) {
+> +		/* Call amplifier subdevice */
+> +		ret = v4l2_subdev_call(vpbe_dev->amp, video,
+> +				s_dv_preset, dv_preset);
+> +	}
+>  	/* set the lcd controller output for the given mode */
+>  	if (!ret) {
+>  		struct osd_state *osd_device = vpbe_dev->osd_device;
+> @@ -566,6 +576,8 @@ static int platform_device_get(struct device *dev, void *data)
+>  
+>  	if (strcmp("vpbe-osd", pdev->name) == 0)
+>  		vpbe_dev->osd_device = platform_get_drvdata(pdev);
+> +	if (strcmp("vpbe-venc", pdev->name) == 0)
+> +		vpbe_dev->venc_device = dev_get_platdata(&pdev->dev);
+>  
+>  	return 0;
+>  }
+> @@ -584,6 +596,7 @@ static int platform_device_get(struct device *dev, void *data)
+>  static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+>  {
+>  	struct encoder_config_info *enc_info;
+> +	struct amp_config_info *amp_info;
+>  	struct v4l2_subdev **enc_subdev;
+>  	struct osd_state *osd_device;
+>  	struct i2c_adapter *i2c_adap;
+> @@ -704,6 +717,39 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+>  			v4l2_warn(&vpbe_dev->v4l2_dev, "non-i2c encoders"
+>  				 " currently not supported");
+>  	}
+> +	/* Add amplifier subdevice for dm365 */
+> +	if ((strcmp(vpbe_dev->cfg->module_name, "dm365-vpbe-display") == 0) &&
+> +			vpbe_dev->cfg->amp != NULL) {
+> +		vpbe_dev->amp = kmalloc(sizeof(struct v4l2_subdev *),
+> +					GFP_KERNEL);
 
-> Em 05-09-2011 05:11, Olivier Grenie escreveu:
->> Hello Mauro,
->> I agree with you but when I wrote this patch, my concern was  that the read register function (dib0070_read_reg)
->> returns a u16 and so I could not propagate the error. That's why I decided to return 0 and not change the API.
->> But if you have a better idea, I will have no problem to implement it.
->
-> Ok, I'll pull from it for 3.0/3.1. For 3.2, the better is to fix it.
->
-> What other drivers do when they need to read a 16 bit register is to declare the function as
-> returning an 'int'. As you know, on Linux, int has 32 bits, so it returns an u16 properly.
-> It will also return properly the errors.
->
-> So, all you need to do is to convert it to something like:
->
-> static int dib0070_read_reg(struct dib0070_state *state, u8 reg)
-> {
-> 	int ret;
->
-> 	ret = mutex_lock_interruptible(...);
-> 	if (ret < 0)
-> 		return ret;
-> ...
-> 	ret = i2c_transfer(state->i2c, state->msg, 2);
-> 	if (ret < 0)
-> 		goto error;
-> 	if (ret != 2) {
-> 		ret = -EIO;
-> 		goto error;
-> 	}
-> 	ret = (state->i2c_read_buffer[0] << 8)
-> 			| state->i2c_read_buffer[1];
->
-> error:
-> 	mutex_unlock(...);
-> 	return ret;
-> }
->
-> You'll need to add a check on all places that calls dib0070_read_reg() (and dib070_write_reg) to do
-> the right thing when a negative number is returned, like:
->
-> static int dib0070_set_bandwidth(struct dvb_frontend *fe, struct dvb_frontend_parameters *ch)
-> {
-> 	struct dib0070_state *state = fe->tuner_priv;
-> 	int tmp = dib0070_read_reg(state, 0x02);
-> 	if (tmp < 0)
-> 		return tmp;
-> 	tmp |& = 0x3fff;
->
-> ...
-> }
->
->> For the write register function (dib0070_write_reg), in case of problem with the mutex lock, an error code is returned.
->
-> Userspace applications in general handle EAGAIN on a different way, especially if the application
-> is opening the device on non-blocking mode, as POSIX require that applications should re-try
-> the ioctl, if EAGAIN is returned, on non-blocking mode. They might also handle EINTR case as well.
-> So, using it instead of EINVAL is better.
+Huh? Why alloc a struct v4l2_subdev pointer here?
 
-While I agree with you in principle I think the time we would need and the 
-risk we would take to do what you're asking here is too high.
+> +		if (vpbe_dev->amp == NULL) {
+> +			v4l2_err(&vpbe_dev->v4l2_dev,
+> +				"unable to allocate memory for sub device");
+> +			ret = -ENOMEM;
+> +			goto vpbe_fail_v4l2_device;
+> +		}
+> +		amp_info = vpbe_dev->cfg->amp;
+> +		if (amp_info->is_i2c) {
+> +			vpbe_dev->amp = v4l2_i2c_new_subdev_board(
+> +			&vpbe_dev->v4l2_dev, i2c_adap,
+> +			&amp_info->board_info, NULL);
 
-I agree the drivers are quite huge and ugly but now adding hundreds of 
-if's and returns won't make them better.
+Especially since it is overwritten here! And so causes a memory leak.
+The kmalloc above (and the kfree below) feels like old code that should have
+been removed.
 
-Right now if a read fails it returns 0 which in some cases might be even 
-correct.
+> +			if (!vpbe_dev->amp) {
+> +				v4l2_err(&vpbe_dev->v4l2_dev,
+> +					 "amplifier %s failed to register",
+> +					 amp_info->module_name);
+> +				ret = -ENODEV;
+> +				goto vpbe_fail_amp_register;
+> +			}
+> +			v4l2_info(&vpbe_dev->v4l2_dev,
+> +					  "v4l2 sub device %s registered\n",
+> +					  amp_info->module_name);
+> +		} else {
+> +			    vpbe_dev->amp = NULL;
+> +			    v4l2_warn(&vpbe_dev->v4l2_dev, "non-i2c amplifiers"
+> +			    " currently not supported");
+> +		}
+> +	} else
+> +	    vpbe_dev->amp = NULL;
+>  
+>  	/* set the current encoder and output to that of venc by default */
+>  	vpbe_dev->current_sd_index = 0;
+> @@ -731,6 +777,8 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+>  	/* TBD handling of bootargs for default output and mode */
+>  	return 0;
+>  
+> +vpbe_fail_amp_register:
+> +	kfree(vpbe_dev->amp);
+>  vpbe_fail_sd_register:
+>  	kfree(vpbe_dev->encoders);
+>  vpbe_fail_v4l2_device:
+> @@ -757,6 +805,7 @@ static void vpbe_deinitialize(struct device *dev, struct vpbe_device *vpbe_dev)
+>  	if (strcmp(vpbe_dev->cfg->module_name, "dm644x-vpbe-display") != 0)
+>  		clk_put(vpbe_dev->dac_clk);
+>  
+> +	kfree(vpbe_dev->amp);
+>  	kfree(vpbe_dev->encoders);
+>  	vpbe_dev->initialized = 0;
+>  	/* disable vpss clocks */
+> diff --git a/include/media/davinci/vpbe.h b/include/media/davinci/vpbe.h
+> index 8b11fb0..8bc1b3c 100644
+> --- a/include/media/davinci/vpbe.h
+> +++ b/include/media/davinci/vpbe.h
+> @@ -63,6 +63,7 @@ struct vpbe_output {
+>  	 * output basis. If per mode is needed, we may have to move this to
+>  	 * mode_info structure
+>  	 */
+> +	enum v4l2_mbus_pixelcode if_params;
+>  };
+>  
+>  /* encoder configuration info */
+> @@ -74,6 +75,15 @@ struct encoder_config_info {
+>  	struct i2c_board_info board_info;
+>  };
+>  
+> +/*amplifier configuration info */
+> +struct amp_config_info {
+> +	char module_name[32];
+> +	/* Is this an i2c device ? */
+> +	unsigned int is_i2c:1;
+> +	/* i2c subdevice board info */
+> +	struct i2c_board_info board_info;
+> +};
+> +
+>  /* structure for defining vpbe display subsystem components */
+>  struct vpbe_config {
+>  	char module_name[32];
+> @@ -84,6 +94,8 @@ struct vpbe_config {
+>  	/* external encoder information goes here */
+>  	int num_ext_encoders;
+>  	struct encoder_config_info *ext_encoders;
+> +	/* amplifier information goes here */
+> +	struct amp_config_info *amp;
+>  	int num_outputs;
+>  	/* Order is venc outputs followed by LCD and then external encoders */
+>  	struct vpbe_output *outputs;
+> @@ -158,6 +170,8 @@ struct vpbe_device {
+>  	struct v4l2_subdev **encoders;
+>  	/* current encoder index */
+>  	int current_sd_index;
+> +	/* external amplifier v4l2 subdevice */
+> +	struct v4l2_subdev *amp;
+>  	struct mutex lock;
+>  	/* device initialized */
+>  	int initialized;
+> @@ -165,6 +179,8 @@ struct vpbe_device {
+>  	struct clk *dac_clk;
+>  	/* osd_device pointer */
+>  	struct osd_state *osd_device;
+> +	/* venc device pointer */
+> +	struct venc_platform_data *venc_device;
+>  	/*
+>  	 * fields below are accessed by users of vpbe_device. Not the
+>  	 * ones above
+> 
 
-Fixing the error-handling in the drivers will most likely break things 
-unless it is not done automagically - IOW not by a human being.
+Regards,
 
-I quickly checked some other sources in dvb/frontends/ and the Dibbies are 
-not the only ones where the error-path would need to be fixed.
-
-I'd appreciate if we could restrict this requirement to new drivers which 
-certainly will arrive. Of course, if there is a volunteer I'm ready to 
-have a look.
-
-What do you think?
-
-regards,
-
---
-Patrick
+	Hans
