@@ -1,40 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:57186 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752770Ab1I2K5C (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Sep 2011 06:57:02 -0400
-Date: Thu, 29 Sep 2011 12:57:00 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH] V4L: omap3isp: remove redundant operation
-Message-ID: <Pine.LNX.4.64.1109291255590.31659@axis700.grange>
+Received: from bear.ext.ti.com ([192.94.94.41]:53050 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752101Ab1I0Nll (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Sep 2011 09:41:41 -0400
+From: Deepthy Ravi <deepthy.ravi@ti.com>
+To: <laurent.pinchart@ideasonboard.com>, <mchehab@infradead.org>,
+	<tony@atomide.com>, <hvaibhav@ti.com>,
+	<linux-media@vger.kernel.org>, <linux@arm.linux.org.uk>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<kyungmin.park@samsung.com>, <hverkuil@xs4all.nl>,
+	<m.szyprowski@samsung.com>, <g.liakhovetski@gmx.de>,
+	<santosh.shilimkar@ti.com>, <khilman@deeprootsystems.com>,
+	<linux-kernel@vger.kernel.org>
+CC: <linux-omap@vger.kernel.org>, Deepthy Ravi <deepthy.ravi@ti.com>
+Subject: [PATCH v2 5/5] omap2plus_defconfig: Enable omap3isp and MT9T111 sensor drivers
+Date: Tue, 27 Sep 2011 19:10:48 +0530
+Message-ID: <1317130848-21136-6-git-send-email-deepthy.ravi@ti.com>
+In-Reply-To: <1317130848-21136-1-git-send-email-deepthy.ravi@ti.com>
+References: <1317130848-21136-1-git-send-email-deepthy.ravi@ti.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Trivial arithmetics clean up.
+Enables multimedia driver, media controller api,
+v4l2-subdev-api, omap3isp and mt9t111 sensor
+drivers in omap2plus_defconfig. Also enables
+soc-camera and mt9t112 support since mt9t111
+sensor is using mt9t112 driver which is based
+on soc-camera subsystem.
+Loading soc_camera.ko fails. Hence built into
+the kernel.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
 ---
- drivers/media/video/omap3isp/ispccdc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/configs/omap2plus_defconfig |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index 40b141c..65ae267 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -1834,7 +1834,7 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
- 		 * callers to request an output size bigger than the input size
- 		 * up to the nearest multiple of 16.
- 		 */
--		fmt->width = clamp_t(u32, width, 32, (fmt->width + 15) & ~15);
-+		fmt->width = clamp_t(u32, width, 32, fmt->width + 15);
- 		fmt->width &= ~15;
- 		fmt->height = clamp_t(u32, height, 32, fmt->height);
- 		break;
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index d5f00d7..48032b6 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -133,6 +133,15 @@ CONFIG_TWL4030_WATCHDOG=y
+ CONFIG_REGULATOR_TWL4030=y
+ CONFIG_REGULATOR_TPS65023=y
+ CONFIG_REGULATOR_TPS6507X=y
++CONFIG_MEDIA_SUPPORT=y
++CONFIG_MEDIA_CONTROLLER=y
++CONFIG_VIDEO_DEV=y
++CONFIG_VIDEO_V4L2_SUBDEV_API=y
++CONFIG_VIDEO_MEDIA=y
++CONFIG_VIDEO_MT9T111=m
++CONFIG_VIDEO_OMAP3=m
++CONFIG_SOC_CAMERA=y
++CONFIG_SOC_CAMERA_MT9T112=m
+ CONFIG_FB=y
+ CONFIG_FIRMWARE_EDID=y
+ CONFIG_FB_MODE_HELPERS=y
 -- 
-1.7.2.5
+1.7.0.4
 
