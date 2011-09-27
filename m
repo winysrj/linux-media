@@ -1,74 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37878 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752315Ab1I2IcM (ORCPT
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:54225 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751960Ab1I0GKj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Sep 2011 04:32:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] V4L: add convenience macros to the subdevice / Media Controller API
-Date: Thu, 29 Sep 2011 10:31:58 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <Pine.LNX.4.64.1109291016250.30865@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1109291016250.30865@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Tue, 27 Sep 2011 02:10:39 -0400
+Subject: Re: [PATCH v3 4/4] OMAP_VOUT: Don't trigger updates in
+ omap_vout_probe
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Archit Taneja <archit@ti.com>
+Cc: hvaibhav@ti.com, linux-omap@vger.kernel.org, sumit.semwal@ti.com,
+	linux-media@vger.kernel.org
+In-Reply-To: <1317038365-30650-5-git-send-email-archit@ti.com>
+References: <1317038365-30650-1-git-send-email-archit@ti.com>
+	 <1317038365-30650-5-git-send-email-archit@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 27 Sep 2011 09:10:33 +0300
+Message-ID: <1317103833.1991.6.camel@deskari>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109291032.00328.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
-
-Thanks for the patch.
-
-On Thursday 29 September 2011 10:18:31 Guennadi Liakhovetski wrote:
-> Drivers, that can be built and work with and without
-> CONFIG_VIDEO_V4L2_SUBDEV_API, need the v4l2_subdev_get_try_format() and
-> v4l2_subdev_get_try_crop() functions, even though their return value
-> should never be dereferenced. Also add convenience macros to init and
-> clean up subdevice internal media entities.
-
-Why don't you just make the drivers depend on CONFIG_VIDEO_V4L2_SUBDEV_API ? 
-They don't need to actually export a device node to userspace, but they 
-require the in-kernel API.
-
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  include/media/v4l2-subdev.h |   11 +++++++++++
->  1 files changed, 11 insertions(+), 0 deletions(-)
+On Mon, 2011-09-26 at 17:29 +0530, Archit Taneja wrote:
+> Remove the code in omap_vout_probe() which calls display->driver->update() for
+> all the displays. This isn't correct because:
 > 
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index f0f3358..4670506 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -569,6 +569,9 @@ v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh,
-> unsigned int pad) {
->  	return &fh->try_crop[pad];
->  }
-> +#else
-> +#define v4l2_subdev_get_try_format(arg...)	NULL
-> +#define v4l2_subdev_get_try_crop(arg...)	NULL
->  #endif
-> 
->  extern const struct v4l2_file_operations v4l2_subdev_fops;
-> @@ -610,4 +613,12 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
->  	((!(sd) || !(sd)->v4l2_dev || !(sd)->v4l2_dev->notify) ? -ENODEV : \
->  	 (sd)->v4l2_dev->notify((sd), (notification), (arg)))
-> 
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +#define subdev_media_entity_init(sd, n, p,
-> e)	media_entity_init(&(sd)->entity, n, p, e) +#define
-> subdev_media_entity_cleanup(sd)		media_entity_cleanup(&(sd)->entity)
-> +#else
-> +#define subdev_media_entity_init(sd, n, p, e)	0
-> +#define subdev_media_entity_cleanup(sd)		do {} while (0)
-> +#endif
-> +
->  #endif
+> - An update in probe doesn't make sense, because we don't have any valid content
+>   to show at this time.
+> - Calling update for a panel which isn't enabled is not supported by DSS2. This
+>   leads to a crash at probe.
 
--- 
-Regards,
+Calling update() on a disabled panel should not crash... Where is the
+crash coming from?
 
-Laurent Pinchart
+ Tomi
+
+
