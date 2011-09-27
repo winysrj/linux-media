@@ -1,169 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:33707 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904Ab1IBE7I convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2011 00:59:08 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:32878 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751468Ab1I0LlE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Sep 2011 07:41:04 -0400
+Message-ID: <4E81B646.2010400@redhat.com>
+Date: Tue, 27 Sep 2011 08:40:54 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20110901191028.GA30301@sucs.org>
-References: <20110829204846.GA14699@sucs.org>
-	<CABqxG0cUx4W5JH-gX-rUe=mZ8SY0uxkrCyofPsfUDBojwWKTvQ@mail.gmail.com>
-	<20110901191028.GA30301@sucs.org>
-Date: Fri, 2 Sep 2011 12:59:05 +0800
-Message-ID: <CABqxG0c-k0PfUEC5YDyj3G6n1iXZqSxavAMVx9rDD6PjT5wWnA@mail.gmail.com>
-Subject: Re: BUG: unable to handle kernel paging request at 6b6b6bcb (v4l2_device_disconnect+0x11/0x30)
-From: Dave Young <hidave.darkstar@gmail.com>
-To: Sitsofe Wheeler <sitsofe@yahoo.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: linux-media@vger.kernel.org, pawel@osciak.com,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [GIT PULL] Selection API and fixes for v3.2
+References: <1316704391-13596-1-git-send-email-m.szyprowski@samsung.com> <4E805E6E.3080007@redhat.com> <011201cc7c3e$798c5bc0$6ca51340$%szyprowski@samsung.com> <4E807E67.3000508@redhat.com> <000001cc7cee$c465d350$4d3179f0$%szyprowski@samsung.com>
+In-Reply-To: <000001cc7cee$c465d350$4d3179f0$%szyprowski@samsung.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 2, 2011 at 3:10 AM, Sitsofe Wheeler <sitsofe@yahoo.com> wrote:
-> On Thu, Sep 01, 2011 at 05:02:51PM +0800, Dave Young wrote:
->> On Tue, Aug 30, 2011 at 4:48 AM, Sitsofe Wheeler <sitsofe@yahoo.com> wrote:
->> >
->> > I managed to produce an oops in 3.1.0-rc3-00270-g7a54f5e by unplugging a
->> > USB webcam. See below:
+Em 27-09-2011 05:23, Marek Szyprowski escreveu:
+> Hello,
+> 
+> On Monday, September 26, 2011 3:30 PM Mauro Carvalho Chehab wrote:
+> 
+>> Em 26-09-2011 08:21, Marek Szyprowski escreveu:
+>>> Hello,
+>>>
+>>> On Monday, September 26, 2011 1:14 PM Mauro Carvalho Chehab wrote:
+>>>
+>>>>> Scott Jiang (1):
+>>>>>       vb2: add vb2_get_unmapped_area in vb2 core
+>>>>
+>>>>> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+>>>>> index ea55c08..977410b 100644
+>>>>> --- a/include/media/videobuf2-core.h
+>>>>> +++ b/include/media/videobuf2-core.h
+>>>>> @@ -309,6 +309,13 @@ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
+>>>>>  int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type);
+>>>>>
+>>>>>  int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma);
+>>>>> +#ifndef CONFIG_MMU
+>>>>> +unsigned long vb2_get_unmapped_area(struct vb2_queue *q,
+>>>>> +				    unsigned long addr,
+>>>>> +				    unsigned long len,
+>>>>> +				    unsigned long pgoff,
+>>>>> +				    unsigned long flags);
+>>>>> +#endif
+>>>>>  unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait);
+>>>>>  size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
+>>>>>  		loff_t *ppos, int nonblock);
+>>>>
+>>>> This sounds me like a hack, as it is passing the problem of working with a non-mmu
+>>>> capable hardware to the driver, inserting architecture-dependent bits on them.
+>>>>
+>>>> The proper way to do it is to provide a vb2 core support to handle the non-mmu case
+>>>> inside it.
+>>>
+>>> This is exactly what this patch does - it provides generic vb2 implementation for
+>>> fops->get_unmapped_area callback which any vb2 ready driver can use. This operation
+>>> is used only on NON-MMU systems. Please check drivers/media/video/v4l2-dev.c file and
+>>> the implementation of get_unmapped_area there. Similar code is used by uvc driver.
 >>
->> Could you try the attached patch?
->
-> This patch fixed the oops but extending the sequence (enable camera,
-> start cheese, disable camera, watch cheese pause, enable camera, quit
-> cheese, start cheese) causes the following "poison overwritten" warning
-> to appear:
+>> At least there, there is a:
+>> #ifdef CONFIG_MMU
+>> #define v4l2_get_unmapped_area NULL
+>> #else
+>> ...
+>> #endif
+>>
+>> block, so, in thesis, a driver can be written to support both cases without inserting
+>> #ifdefs inside it.
+> 
+> videobuf2 functions are not meant to be used as direct callbacks in fops so defining it
+> as NULL makes no sense at all.
+> 
+>> Ideally, I would prefer if all those iommu-specific calls would be inside the core.
+>> A driver should not need to do anything special in order to support a different
+>> (sub)architecture.
+> 
+> It is not about IOMMU at all. Some (embedded) systems don't have MMU at all. Drivers on
+> such systems cannot do regular mmap operation. Instead it is emulated with 
+> get_unmapped_area fops callback and some (u)libC magic. This patch just provides
+> vb2_get_unmapped_area function. Drivers have to call it from their respective
+> my_driver_get_unmapped_area() function provided in its fops. Implementing it makes
+> sense only on NO-MMU systems. I really see no other way of dealing with this.
 
-It seems another bug, I can reproduce this as well.
+Ok. Feel free to add this patch again on a next request.
 
-uvc_device is freed in uvc_delete,
+Thanks,
+Mauro
+> 
+> Best regards
 
-struct v4l2_device vdev is the member of struct uvc_device, so vdev is
-also freed. Later v4l2_device operations on vdev will overwrite the
-poison memory area.
-
->
->
-> [  191.240695] uvcvideo: Found UVC 1.00 device CNF7129 (04f2:b071)
-> [  191.277965] input: CNF7129 as /devices/pci0000:00/0000:00:1d.7/usb1/1-8/1-8:1.0/input/input9
-> [  220.287366] =============================================================================
-> [  220.287379] BUG kmalloc-512: Poison overwritten
-> [  220.287384] -----------------------------------------------------------------------------
-> [  220.287387]
-> [  220.287394] INFO: 0xec90f150-0xec90f150. First byte 0x6a instead of 0x6b
-> [  220.287410] INFO: Allocated in uvc_probe+0x54/0xd50 age=210617 cpu=0 pid=16
-> [  220.287421]  T.974+0x29d/0x5e0
-> [  220.287427]  kmem_cache_alloc+0x167/0x180
-> [  220.287433]  uvc_probe+0x54/0xd50
-> [  220.287441]  usb_probe_interface+0xd5/0x1d0
-> [  220.287448]  driver_probe_device+0x80/0x1a0
-> [  220.287455]  __device_attach+0x41/0x50
-> [  220.287460]  bus_for_each_drv+0x53/0x80
-> [  220.287466]  device_attach+0x89/0xa0
-> [  220.287472]  bus_probe_device+0x25/0x40
-> [  220.287478]  device_add+0x5a9/0x660
-> [  220.287484]  usb_set_configuration+0x562/0x670
-> [  220.287491]  generic_probe+0x36/0x90
-> [  220.287497]  usb_probe_device+0x24/0x50
-> [  220.287503]  driver_probe_device+0x80/0x1a0
-> [  220.287509]  __device_attach+0x41/0x50
-> [  220.287515]  bus_for_each_drv+0x53/0x80
-> [  220.287522] INFO: Freed in uvc_delete+0xfe/0x110 age=22 cpu=0 pid=1645
-> [  220.287530]  __slab_free+0x1f8/0x300
-> [  220.287536]  kfree+0x100/0x140
-> [  220.287541]  uvc_delete+0xfe/0x110
-> [  220.287547]  uvc_release+0x25/0x30
-> [  220.287555]  v4l2_device_release+0x9d/0xc0
-> [  220.287560]  device_release+0x19/0x90
-> [  220.287567]  kobject_release+0x3c/0x90
-> [  220.287573]  kref_put+0x2c/0x60
-> [  220.287578]  kobject_put+0x1d/0x50
-> [  220.287587]  put_device+0xf/0x20
-> [  220.287593]  v4l2_release+0x56/0x60
-> [  220.287599]  fput+0xcc/0x220
-> [  220.287605]  filp_close+0x44/0x70
-> [  220.287613]  put_files_struct+0x158/0x180
-> [  220.287619]  exit_files+0x40/0x50
-> [  220.287626]  do_exit+0xec/0x660
-> [  220.287632] INFO: Slab 0xef722180 objects=23 used=23 fp=0x  (null) flags=0x4080
-> [  220.287639] INFO: Object 0xec90f060 @offset=12384 fp=0xec90cac0
-> [  220.287642]
-> [  220.287647] Bytes b4 0xec90f050:  6d 06 00 00 88 c8 fe ff 5a 5a 5a 5a 5a 5a 5a 5a m....ÈþÿZZZZZZZZ
-> [  220.287681]   Object 0xec90f060:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.287713]   Object 0xec90f070:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.287746]   Object 0xec90f080:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.287778]   Object 0xec90f090:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.287811]   Object 0xec90f0a0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.287843]   Object 0xec90f0b0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.287876]   Object 0xec90f0c0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.287908]   Object 0xec90f0d0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.287941]   Object 0xec90f0e0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.287973]   Object 0xec90f0f0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288006]   Object 0xec90f100:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f110:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f120:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f130:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f140:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f150:  6a 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b jkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f160:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f170:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f180:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f190:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f1a0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f1b0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f1c0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f1d0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f1e0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f1f0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f200:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f210:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f220:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f230:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f240:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-> [  220.288012]   Object 0xec90f250:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b a5 kkkkkkkkkkkkkkk¥
-> [  220.288012]  Redzone 0xec90f260:  bb bb bb bb                                     »»»»
-> [  220.288012]  Padding 0xec90f308:  5a 5a 5a 5a 5a 5a 5a 5a                         ZZZZZZZZ
-> [  220.288012] Pid: 1450, comm: metacity Not tainted 3.1.0-rc4-00131-g9e79e3e-dirty #488
-> [  220.288012] Call Trace:
-> [  220.288012]  [<b0192c3e>] print_trailer+0xee/0x140
-> [  220.288012]  [<b0193157>] check_bytes_and_report+0xd7/0x160
-> [  220.288012]  [<b0194a98>] check_object+0x1d8/0x220
-> [  220.288012]  [<b0192fe3>] ? check_slab+0x63/0x100
-> [  220.288012]  [<b0194f67>] alloc_debug_processing+0xb7/0x130
-> [  220.288012]  [<b019602d>] T.974+0x29d/0x5e0
-> [  220.288012]  [<b044c466>] ? sock_alloc_send_pskb+0x176/0x290
-> [  220.288012]  [<b044c466>] ? sock_alloc_send_pskb+0x176/0x290
-> [  220.288012]  [<b0198551>] ? create_object+0x191/0x240
-> [  220.288012]  [<b01979f5>] __kmalloc_track_caller+0x1d5/0x1f0
-> [  220.288012]  [<b044c466>] ? sock_alloc_send_pskb+0x176/0x290
-> [  220.288012]  [<b044ff2d>] __alloc_skb+0x4d/0x140
-> [  220.288012]  [<b044c466>] sock_alloc_send_pskb+0x176/0x290
-> [  220.288012]  [<b055d98a>] ? __mutex_unlock_slowpath+0x9a/0x110
-> [  220.288012]  [<b044c598>] sock_alloc_send_skb+0x18/0x20
-> [  220.288012]  [<b04b7957>] unix_stream_sendmsg+0x2b7/0x3d0
-> [  220.288012]  [<b0448913>] sock_aio_write+0x133/0x170
-> [  220.288012]  [<b019b285>] do_sync_readv_writev+0x95/0xc0
-> [  220.288012]  [<b0274328>] ? _copy_from_user+0x38/0x180
-> [  220.288012]  [<b019b133>] ? rw_copy_check_uvector+0x73/0xf0
-> [  220.288012]  [<b019bf1b>] do_readv_writev+0x9b/0x180
-> [  220.288012]  [<b04487e0>] ? sock_destroy_inode+0x30/0x30
-> [  220.288012]  [<b019c562>] ? fget_light+0xb2/0x130
-> [  220.288012]  [<b019c576>] ? fget_light+0xc6/0x130
-> [  220.288012]  [<b019c045>] vfs_writev+0x45/0x60
-> [  220.288012]  [<b019c131>] sys_writev+0x41/0x80
-> [  220.288012]  [<b055ff57>] sysenter_do_call+0x12/0x36
-> [  220.288012]  [<b0550000>] ? rfkill_alloc+0xe0/0x110
-> [  220.288012] FIX kmalloc-512: Restoring 0xec90f150-0xec90f150=0x6b
-> [  220.288012]
-> [  220.288012] FIX kmalloc-512: Marking all objects used
->
-> --
-> Sitsofe | http://sucs.org/~sits/
->
-
-
-
--- 
-Regards
-Yang RuiRui
