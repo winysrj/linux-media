@@ -1,61 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40274 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751390Ab1I3L2a (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 07:28:30 -0400
-Message-ID: <4E85A7DC.50708@redhat.com>
-Date: Fri, 30 Sep 2011 08:28:28 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [RFCv2 PATCH 0/7] V4L menu reorganization
-References: <1317373276-5818-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1317373276-5818-1-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:40781 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750973Ab1I0HHt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Sep 2011 03:07:49 -0400
+Subject: Re: [PATCH v3 4/4] OMAP_VOUT: Don't trigger updates in
+ omap_vout_probe
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Archit Taneja <archit@ti.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Semwal, Sumit" <sumit.semwal@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <4E81750F.7060200@ti.com>
+References: <1317038365-30650-1-git-send-email-archit@ti.com>
+	 <1317038365-30650-5-git-send-email-archit@ti.com>
+	 <1317103833.1991.6.camel@deskari>  <4E81750F.7060200@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 27 Sep 2011 10:07:41 +0300
+Message-ID: <1317107261.1991.18.camel@deskari>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 30-09-2011 06:01, Hans Verkuil escreveu:
-> Hi all,
+On Tue, 2011-09-27 at 12:32 +0530, Archit Taneja wrote:
+> On Tuesday 27 September 2011 11:40 AM, Valkeinen, Tomi wrote:
+> > On Mon, 2011-09-26 at 17:29 +0530, Archit Taneja wrote:
+> >> Remove the code in omap_vout_probe() which calls display->driver->update() for
+> >> all the displays. This isn't correct because:
+> >>
+> >> - An update in probe doesn't make sense, because we don't have any valid content
+> >>    to show at this time.
+> >> - Calling update for a panel which isn't enabled is not supported by DSS2. This
+> >>    leads to a crash at probe.
+> >
+> > Calling update() on a disabled panel should not crash... Where is the
+> > crash coming from?
 > 
-> This is the second version of my patch series reorganizing the V4L menu.
-> It's based on the latest v3.2 staging tree.
-> 
-> Changes to v1:
-> 
-> - Remove unnecessary USB dependency.
-> - Reorganize the radio menu as well.
-> 
-> I did not sort the drivers alphabetically (yet). I'm not quite sure whether
-> that's really a good idea, and we can always do that later.
+> you are right, the crash isn't coming from the updates. I see the crash 
+> when we have 4 dss devices in our board file. The last display pointer 
+> is corrupted in that case. I'm trying to figure out why.
 
-I still think that we need to sort things alphabetically, or to not sort
-things at all, as any other sort criteria would be just a random criteria.
+Could be totally unrelated, but does the V4L2 driver make sure that the
+used dss devices have a driver loaded?
 
-E. g. on a non-alphabetical criteria, what should come first between bttv,
-saa7134, ivtv and cx88? Except by the alphabetical order, any order between 
-them will be just a random criteria, as people will argue that driver "foo"
-should be the first one, probably because they have more hardware of that
-type ;)
+OMAPFB previously refused to start if all the devices do not have a
+driver, but nowadays it starts fine by skipping the devices without a
+driver.
 
-In my case, I would vote for saa7134 as I currently have more hardware of
-that type. A few years ago, my vote would be for cx88. I bet you'll vote
-for ivtv ;)
+ Tomi
 
-> This series is meant for v3.2, but I won't make a pull request until
-> Guennadi's pull request is merged first. I'm sure I will have to redo my
-> patches once his series is in.
-
-Ok.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
