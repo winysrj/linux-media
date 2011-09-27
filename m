@@ -1,146 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:42447 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753000Ab1IEOdS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 10:33:18 -0400
-Received: by gxk21 with SMTP id 21so3368496gxk.19
-        for <linux-media@vger.kernel.org>; Mon, 05 Sep 2011 07:33:17 -0700 (PDT)
-Message-ID: <4E64EBDD.9050807@gmail.com>
-Date: Mon, 05 Sep 2011 11:33:49 -0400
-From: Mauricio Henriquez <buhochileno@gmail.com>
+Received: from cantor2.suse.de ([195.135.220.15]:36709 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750965Ab1I0RpN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Sep 2011 13:45:13 -0400
+Date: Tue, 27 Sep 2011 10:43:07 -0700
+From: Greg KH <gregkh@suse.de>
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Mauro Carvalho Chehab <maurochehab@gmail.com>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
+Subject: Re: Staging submission: PCTV 80e and PCTV 74e drivers (was Re:
+ Problems cloning the git repostories)
+Message-ID: <20110927174307.GD24197@suse.de>
+References: <4E7F1FB5.5030803@gmail.com>
+ <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
+ <4E7FF0A0.7060004@gmail.com>
+ <CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
+ <20110927094409.7a5fcd5a@stein>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: spca1528 device (Device 015: ID 04fc:1528 Sunplus Technology)..libv4l2:
- error turning on	stream: Timer expired issue
-References: <4E63D3F2.8090500@gmail.com> <20110905091959.727346d5@tele>
-In-Reply-To: <20110905091959.727346d5@tele>
-Content-Type: multipart/mixed;
- boundary="------------070704040706050609090505"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20110927094409.7a5fcd5a@stein>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------070704040706050609090505
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+On Tue, Sep 27, 2011 at 09:44:09AM +0200, Stefan Richter wrote:
+> Adding Cc: staging maintainer and mailinglist.
+> 
+> On Sep 26 Devin Heitmueller wrote:
+> > On Sun, Sep 25, 2011 at 11:25 PM, Mauro Carvalho Chehab
+> > <maurochehab@gmail.com> wrote:
+> > >> Want to see more device support upstream? †Optimize the process to
+> > >> make it easy for the people who know the hardware and how to write the
+> > >> drivers to get code upstream, and leave it to the "janitors" to work
+> > >> out the codingstyle issues.
+> > >
+> > > The process you've just described exists already since Sept, 2008.
+> > > It is called:
+> > > † † † †/drivers/staging
+> > >
+> > > In summary, if you don't have a couple hours to make your driver to
+> > > match Kernel Coding Style, just send it as is to /drivers/staging, c/c
+> > > me and Greg KH, and that's it.
+> > 
+> > PULL http://kernellabs.com/hg/~dheitmueller/v4l-dvb-80e/
+> > PULL http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
 
-On 09/05/2011 03:19 AM, Jean-Francois Moine wrote:
-> On Sun, 04 Sep 2011 15:39:30 -0400
-> Mauricio Henriquez<buhochileno@gmail.com>  wrote:
->
->    
->> Recently I'm trying to make work a Sunplus crappy mini HD USB camera, lsusb
->> list this info related to the device:
->>
->> Picture Transfer Protocol (PIMA 15470)
->> Bus 001 Device 015: ID 04fc:1528 Sunplus Technology Co., Ltd
->>
->>    idVendor           0x04fc Sunplus Technology Co., Ltd
->>     idProduct          0x1528
->>     bcdDevice            1.00
->>     iManufacturer           1 Sunplus Co Ltd
->>     iProduct                2 General Image Devic
->>     iSerial                 0
->> ...
->>
->> Using the gspca-2.13.6 on my Fed12 (2.6.31.6-166.fc12.i686.PAE kernel), the
->> device is listed as /dev/video1 and no error doing a dmesg...but trying to
->> make it work, let say with xawtv, I get:
->>      
-> 	[snip]
->
-> Hi Mauricio,
->
-> The problem seems tied to the alternate setting. It must be the #3
-> while the lastest versions of gspca compute a "best" one. May you apply
-> the following patch to gspca-2.13.6?
->    
-Thanks Jean, yeap I apply the patch, but still the same kind of messages 
-about timeout sing xawtv or svv:
+I can't do that as I need some commit messages in a format we can accept
+(i.e. your directory structure doesn't match what we need in the kernel
+tree from what I can tell.)
 
-xawtv:
-ioctl: VIDIOC_S_STD(std=0x0 []): Invalid argument
-libv4l2: error turning on stream: Timer expired
-libv4l2: error reading: Invalid argument
-v4l2: read: Invalid argument
-libv4l2: error turning on stream: Timer expired
-ioctl: VIDIOC_STREAMON(int=1): Timer expired
-v4l2: oops: select timeout
-ioctl: VIDIOC_REQBUFS(count=0;type=VIDEO_CAPTURE;memory=MMAP): Device or 
-resource busy
-libv4l2: error reading: Invalid argument
-v4l2: read: Invalid argument
+> > Have fun.
+> > 
+> > The harder you make it to get code upstream, the more developers who
+> > will just say "to hell with this".  And *that* is why there are
+> > thousands of lines of working drivers which various developers have in
+> > out-of-tree drivers.
 
-svv:
-raw pixfmt: JPEG 640x480
-pixfmt: RGB3 640x480
-mmap method
-VIDIOC_STREAMON error 62, Timer expired
+The Linux patch process is one of the easiest, and most well-documented
+for any open source project that I have ever seen.
 
-this camera in mass storage mode works ok...
+If you don't agree (and that's fine if you don't), any ideas on what we
+can do to make it better would be glady appreciated.
 
-Cheers
+> perhaps a kind developer over at devel@driverdev could extract patches for
+> staging out of the above mercurial repositories, and then folks can work
+> on mainline inclusion.  (Somebody who actually has such a device might be
+> most motivated to do it.)
 
-Mauricio
+As the drivers don't seem to be touched in way over a year, odds are the
+code isn't going to be able to build as-is, so it will require some
+changes for basic issues.
 
-> ----------------------8<----------------------
-> --- build/spca1528.c.orig	2011-09-05 08:41:54.000000000 +0200
-> +++ build/spca1528.c	2011-09-05 08:53:51.000000000 +0200
-> @@ -307,8 +307,6 @@
->   	sd->color = COLOR_DEF;
->   	sd->sharpness = SHARPNESS_DEF;
->
-> -	gspca_dev->nbalt = 4;		/* use alternate setting 3 */
-> -
->   	return 0;
->   }
->
-> @@ -349,6 +347,9 @@
->   	reg_r(gspca_dev, 0x25, 0x0004, 1);
->   	reg_wb(gspca_dev, 0x27, 0x0000, 0x0000, 0x06);
->   	reg_r(gspca_dev, 0x27, 0x0000, 1);
-> +
-> +	gspca_dev->alt = 4;		/* use alternate setting 3 */
-> +
->   	return gspca_dev->usb_err;
->   }
->
-> ----------------------8<----------------------
->
-> (Theodore, this webcam may work in mass storage mode with ID 04fc:0171.
-> In webcam mode with ID 04fc:1528, it offers 3 interfaces: interface 0
-> contains only an interrupt endpoint, interface 1 is the webcam with
-> only isochronous endpoints and interface 2 contains bulk in, bulk out
-> and interrupt in endpoints - I don't know how to use the interfaces 0
-> and 2, but sure the interface 2 could be used to access the camera
-> images)
->
->    
+And I'll glady accept patches for the staging tree.  Also note that
+we've just created a drivers/staging/media/ tree to house lots of
+different v4l drivers that are being worked on in the staging tree to
+help coordinate this type of work better.
 
+thanks,
 
--- 
-Mauricio R. Henriquez Schott
-Escuela de Ingenier√≠a en Computaci√≥n
-Universidad Austral de Chile - Sede Puerto Montt
-Los Pinos S/N, Balneario de Pelluco, Puerto Montt - Chile
-Tel: 65-487440
-Fax: 65-277156
-mail: mauriciohenriquez@uach.cl
-
-
---------------070704040706050609090505
-Content-Type: text/x-vcard; charset=utf-8;
- name="buhochileno.vcf"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="buhochileno.vcf"
-
-YmVnaW46dmNhcmQNCmZuOk1hdXJpY2lvIEhlbnJpcXVleg0KbjpIZW5yaXF1ZXo7TWF1cmlj
-aW8NCm9yZztxdW90ZWQtcHJpbnRhYmxlOlVuaXZlcnNpZGFkIEF1c3RyYWwgZGUgQ2hpbGUg
-LSBTZWRlIFB1ZXJ0byBNb250dDtFc2N1ZWxhIGRlIENvbXB1dGFjaT1DMz1CM24NCmFkcjo7
-O0xvcyBQaW5vcyBTL04gQmFsbmVhcmlvIGRlIFBlbGx1Y287UHVlcnRvIE1vbnR0O0xsYW5x
-dWlodWU7NTQ4MDAwMDtDaGlsZQ0KZW1haWw7aW50ZXJuZXQ6bWF1cmljaW9oZW5yaXF1ZXpA
-dWFjaC5jbA0KdGl0bGU6RG9jZW50ZQ0KdGVsO3dvcms6NjUtNDg3NDQwDQp0ZWw7ZmF4OjY1
-LTI3NzE1Ng0KdXJsOmh0dHA6Ly93d3cubW9ub2JvdGljcy5pYy51YWNoLmNsDQp2ZXJzaW9u
-OjIuMQ0KZW5kOnZjYXJkDQoNCg==
---------------070704040706050609090505--
+greg k-h
