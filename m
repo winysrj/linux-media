@@ -1,205 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:44262 "EHLO
+Received: from smtp-68.nebula.fi ([83.145.220.68]:46978 "EHLO
 	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752507Ab1IHXOE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 19:14:04 -0400
-Date: Fri, 9 Sep 2011 00:38:43 +0300
+	with ESMTP id S1751195Ab1I0HyL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Sep 2011 03:54:11 -0400
+Date: Tue, 27 Sep 2011 10:54:06 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Deepthy Ravi <deepthy.ravi@ti.com>
-Cc: linux-media@vger.kernel.org, tony@atomide.com,
-	linux@arm.linux.org.uk, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	mchehab@infradead.org, laurent.pinchart@ideasonboard.com,
-	g.liakhovetski@gmx.de, Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
-Message-ID: <20110908213843.GE1724@valkosipuli.localdomain>
-References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com>
+To: Alain VOLMAT <alain.volmat@st.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Questions regarding Devices/Subdevices/MediaController usage
+ in case of a SoC
+Message-ID: <20110927075214.GB5599@valkosipuli.localdomain>
+References: <E27519AE45311C49887BE8C438E68FAA0100DBB53E71@SAFEX1MAIL1.st.com>
+ <20110902213010.GF13242@valkosipuli.localdomain>
+ <201109051210.19288.laurent.pinchart@ideasonboard.com>
+ <E27519AE45311C49887BE8C438E68FAA0100DBC9948B@SAFEX1MAIL1.st.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com>
+In-Reply-To: <E27519AE45311C49887BE8C438E68FAA0100DBC9948B@SAFEX1MAIL1.st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Deepathy,
+Alain VOLMAT wrote:
+> Hi Sakari, Hi Laurent,
 
-Thanks for the patches.
+Hi Alain,
 
-On Thu, Sep 08, 2011 at 07:05:22PM +0530, Deepthy Ravi wrote:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> Thanks for your replies. Sorry for taking so much time.
+
+The same on my side. I finally had time to take a look again.
+
+> I don't have perfect graphs to explain our device but the following
+> links helps a little. Device as this one are targeted:
+> http://www.st.com/internet/imag_video/product/251021.jsp 
+> Corresponding circuit diagram:
+> http://www.st.com/internet/com/TECHNICAL_RESOURCES/TECHNICAL_DIAGRAM/CIRCUIT_DIAGRAM/circuit_diagram_17848.pdf
+
+This looks like a complex device indeed which makes it perfect to be
+supported on the Media controller interface. :-)
+
+>  Although the audio part will have to be addressed also at some
+> point, I'm now focusing on the video part so it is the area above the
+> ST-Bus INTERCONNECT. Basically we have several kind of inputs
+> (memory, HDMI, analog, frontends) and several kind of outputs
+> (memory, graphic plane, video plane, dual ..)
+
+I agree that's a good approach. One problem at a time.
+
+> Currently those kind of devices are already supported at some level
+> via LinuxDVB/V4L2 drivers (those drivers are actually already
+> available on the web) but they do not offer enough flexibility. As
+> you know those kind of devices can have several data path which were
+> not easily configurable via LinuxDVB/V4L2 and that's the reason why
+> we are now trying to move to a Subdev/Media Controller based
+> implementation. I actually discovered recently the presentation about
+> the OMAP2+ Display Subsystem (DSS)
+> (http://elinux.org/images/8/83/Elc2011_semwal.pdf). It is quite
+> similar to what we have to do except that in case of the DSS, as the
+> name says, it is about the display part only. One difference with the
+> DSS is that in our case, we do not feed directly the GFX/OVLs from
+> the userspace (as framebuffer or video device) but they can ALSO be
+> feed via data decoded by the hardware, coming from data pushed via
+> LinuxDVB. To give you an example, we can pushed streams to be decoded
+> via LinuxDVB, they are decoded, will receive all the necessary
+> processing before "going out" as V4L2 capture devices (all this is
+> done within the kernel and in some cases might never even come back
+> to user space before being displayed on the display panel). So going
+> back to the graph of the DSS, in our case, in front of the GFX/OVLs,
+> we'll have another set of subdevices that correspond to our decoders
+> "capture device". And even before that (but not available as a
+> subdevice/media controller entity), we have LinuxDVB inputs.
+
+The media device should include all the hardware devices which may transfer
+the image data between them, without going through memory in between. Based
+on the graph, it seems that most would belong under a single device.
+
+It might make sense to implement a driver that just handles the pipeline
+configuration and interacting with the hardware devices. Laurent might
+actually have a better idea on this.
+
+All the actual hardware drivers providing the V4L2 intereface could then
+provide the V4L2 subdev to the main driver. Beyond that, it needs to be
+defined what kind of interfaces are provided to user space by media
+entities that are not V4L2 subdevs. This depends on what kind of user
+space APIs, what kind of entity level configuration and what streaming
+configuration must be supported.
+
+W2ht else is needed than LinuxDVB besides the V4L2?
+
+> I will post you a graph to explain that more easily but need to have
+> a bit more of internal paper work for that.
 > 
-> In order to support TVP5146 (for that matter any video decoder),
-> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
-> device node.
-
-Why on video nodes rather than the subdev node?
-
-I don't think *_STD ioctls should be handled differently from any others,
-i.e. this is directly related to that subdev, so the control should go
-through the subdev node.
-
-That said, generic applications aren't necessarily aware of the subdev nodes
-and I think this is something that should be handled in a libv4l plugin.
-This appears quite generic to me; walking the graph and accessing the right
-subdev node can be done in user space.
-
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
-> ---
->  drivers/media/video/omap3isp/ispvideo.c |   98 ++++++++++++++++++++++++++++++-
->  drivers/media/video/omap3isp/ispvideo.h |    1 +
->  2 files changed, 98 insertions(+), 1 deletions(-)
+>> In general, V4L2 device nodes should represent memory input /
+>> output for the device, or a DMA engine. The devices you are
+>> referring to above offer possibilities to write the data to memory
+>> in several points in the pipeline. Based on what you're writing
+>> above, it sounds like to me that your device should likely expose
+>> several V4L2 device nodes.
 > 
-> diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-> index d5b8236..ff0ffed 100644
-> --- a/drivers/media/video/omap3isp/ispvideo.c
-> +++ b/drivers/media/video/omap3isp/ispvideo.c
-> @@ -37,6 +37,7 @@
->  #include <plat/iovmm.h>
->  #include <plat/omap-pm.h>
->  
-> +#include <media/tvp514x.h>
->  #include "ispvideo.h"
->  #include "isp.h"
->  
-> @@ -1136,7 +1137,97 @@ isp_video_g_input(struct file *file, void *fh, unsigned int *input)
->  static int
->  isp_video_s_input(struct file *file, void *fh, unsigned int input)
->  {
-> -	return input == 0 ? 0 : -EINVAL;
-> +	struct isp_video *video = video_drvdata(file);
-> +	struct media_entity *entity = &video->video.entity;
-> +	struct media_entity_graph graph;
-> +	struct v4l2_subdev *subdev;
-> +	struct v4l2_routing route;
-> +	int ret = 0;
-> +
-> +	media_entity_graph_walk_start(&graph, entity);
-> +	while ((entity = media_entity_graph_walk_next(&graph))) {
-> +		if (media_entity_type(entity) ==
-> +				MEDIA_ENT_T_V4L2_SUBDEV) {
-> +			subdev = media_entity_to_v4l2_subdev(entity);
-> +			if (subdev != NULL) {
-> +				if (input == 0)
-> +					route.input = INPUT_CVBS_VI4A;
-> +				else
-> +					route.input = INPUT_SVIDEO_VI2C_VI1C;
-> +				route.output = 0;
-> +				ret = v4l2_subdev_call(subdev, video, s_routing,
-> +						route.input, route.output, 0);
-> +				if (ret < 0 && ret != -ENOIOCTLCMD)
-> +					return ret;
-> +			}
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int isp_video_querystd(struct file *file, void *fh, v4l2_std_id *a)
-> +{
-> +	struct isp_video_fh *vfh = to_isp_video_fh(fh);
-> +	struct isp_video *video = video_drvdata(file);
-> +	struct media_entity *entity = &video->video.entity;
-> +	struct media_entity_graph graph;
-> +	struct v4l2_subdev *subdev;
-> +	int ret = 0;
-> +
-> +	media_entity_graph_walk_start(&graph, entity);
-> +	while ((entity = media_entity_graph_walk_next(&graph))) {
-> +		if (media_entity_type(entity) ==
-> +				MEDIA_ENT_T_V4L2_SUBDEV) {
-> +			subdev = media_entity_to_v4l2_subdev(entity);
-> +			if (subdev != NULL) {
-> +				ret = v4l2_subdev_call(subdev, video, querystd,
-> +						a);
-> +				if (ret < 0 && ret != -ENOIOCTLCMD)
-> +					return ret;
-> +			}
-> +		}
-> +	}
-> +
-> +	vfh->standard.id = *a;
-> +	return 0;
-> +}
-> +
-> +static int isp_video_g_std(struct file *file, void *fh, v4l2_std_id *norm)
-> +{
-> +	struct isp_video_fh *vfh = to_isp_video_fh(fh);
-> +	struct isp_video *video = video_drvdata(file);
-> +
-> +	mutex_lock(&video->mutex);
-> +	*norm = vfh->standard.id;
-> +	mutex_unlock(&video->mutex);
-> +
-> +	return 0;
-> +}
-> +
-> +static int isp_video_s_std(struct file *file, void *fh, v4l2_std_id *norm)
-> +{
-> +	struct isp_video *video = video_drvdata(file);
-> +	struct media_entity *entity = &video->video.entity;
-> +	struct media_entity_graph graph;
-> +	struct v4l2_subdev *subdev;
-> +	int ret = 0;
-> +
-> +	media_entity_graph_walk_start(&graph, entity);
-> +	while ((entity = media_entity_graph_walk_next(&graph))) {
-> +		if (media_entity_type(entity) ==
-> +				MEDIA_ENT_T_V4L2_SUBDEV) {
-> +			subdev = media_entity_to_v4l2_subdev(entity);
-> +			if (subdev != NULL) {
-> +				ret = v4l2_subdev_call(subdev, core, s_std,
-> +						*norm);
-> +				if (ret < 0 && ret != -ENOIOCTLCMD)
-> +					return ret;
-> +			}
-> +		}
-> +	}
-> +
-> +	return 0;
->  }
->  
->  static const struct v4l2_ioctl_ops isp_video_ioctl_ops = {
-> @@ -1161,6 +1252,9 @@ static const struct v4l2_ioctl_ops isp_video_ioctl_ops = {
->  	.vidioc_enum_input		= isp_video_enum_input,
->  	.vidioc_g_input			= isp_video_g_input,
->  	.vidioc_s_input			= isp_video_s_input,
-> +	.vidioc_querystd		= isp_video_querystd,
-> +	.vidioc_g_std			= isp_video_g_std,
-> +	.vidioc_s_std			= isp_video_s_std,
->  };
->  
->  /* -----------------------------------------------------------------------------
-> @@ -1325,6 +1419,8 @@ int omap3isp_video_register(struct isp_video *video, struct v4l2_device *vdev)
->  		printk(KERN_ERR "%s: could not register video device (%d)\n",
->  			__func__, ret);
->  
-> +	video->video.tvnorms		= V4L2_STD_NTSC | V4L2_STD_PAL;
-> +	video->video.current_norm	= V4L2_STD_NTSC;
->  	return ret;
->  }
->  
-> diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
-> index 53160aa..bb8feb6 100644
-> --- a/drivers/media/video/omap3isp/ispvideo.h
-> +++ b/drivers/media/video/omap3isp/ispvideo.h
-> @@ -182,6 +182,7 @@ struct isp_video_fh {
->  	struct isp_video *video;
->  	struct isp_video_queue queue;
->  	struct v4l2_format format;
-> +	struct v4l2_standard standard;
->  	struct v4l2_fract timeperframe;
->  };
->  
-> -- 
-> 1.7.0.4
+> Ok, yes, since we can output / input data at various part of the
+> device, we will have several device nodes.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Concerning the media controller, since we have 1 entity for each
+> resource we can use, we should be able to have a whole bunch of
+> entities(sub devices), attached to several video devices and to a
+> single media device.
+> 
+> Talking now a bit more about legacy applications (application that
+> are using V4L2 and thus need to have some "default" data path but do
+> not know anything about the media controller), what is the intended
+> way to handle them ? Should we have a "platform configuration"
+> application that configure data path via the media controller in
+> order to make those application happy ? I kind of understood that
+> there were some idea of plugin for libv4l in order to configure the
+> media controller. Are there any useful document about this plugin
+> thing are should I just dig into libv4l source code to have a better
+> understanding of that ?
+
+Such plugin does not exist yet, but a few pieces exist already: libmediactl,
+libv4l2subdev and the libv4l plugin patches:
+
+<URL:http://www.mail-archive.com/linux-media@vger.kernel.org/msg31596.html>
+
+Essentially the configuration parsing should be part of the libraries rather
+than the media-ctl test program. I'm working on patches to fix that.
+
+Regards,
 
 -- 
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+sakari.ailus@iki.fi
