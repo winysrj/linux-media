@@ -1,75 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:51086 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759549Ab1IISBQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2011 14:01:16 -0400
-Date: Fri, 9 Sep 2011 20:01:14 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 08/13 v3] ov6650: convert to the control framework.
-In-Reply-To: <201109091907.05823.jkrzyszt@tis.icnet.pl>
-Message-ID: <Pine.LNX.4.64.1109091947540.915@axis700.grange>
-References: <1315471446-17890-1-git-send-email-g.liakhovetski@gmx.de>
- <1315471446-17890-9-git-send-email-g.liakhovetski@gmx.de>
- <201109091907.05823.jkrzyszt@tis.icnet.pl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37351 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752570Ab1I0MDV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Sep 2011 08:03:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: Status of the patches under review at LMML (28 patches)
+Date: Tue, 27 Sep 2011 14:03:17 +0200
+Cc: LMML <linux-media@vger.kernel.org>, Pawel Osiak <pawel@osciak.com>,
+	Morimoto Kuninori <morimoto.kuninori@renesas.com>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	Eddi De Pieri <eddi@depieri.net>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Dmitri Belimov <d.belimov@gmail.com>,
+	Michael Krufky <mkrufky@linuxtv.org>
+References: <4E7DCE71.4030200@redhat.com>
+In-Reply-To: <4E7DCE71.4030200@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109271403.19207.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Janusz
+Hi Mauro,
 
-On Fri, 9 Sep 2011, Janusz Krzysztofik wrote:
-
-> On Thu, 8 Sep 2011 at 10:44:01 Guennadi Liakhovetski wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > [g.liakhovetski@gmx.de: simplified pointer arithmetic]
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+On Saturday 24 September 2011 14:34:57 Mauro Carvalho Chehab wrote:
+> Everything at patchwork were reviewed by me, and I've applied all patches
+> that I didn't notice any review by the drivers maintainers.
 > 
-> Hi,
-> I've successfully tested this one for you, to the extent possible using 
-> mplayer, i.e., only saturation, hue and brightness controls, and an 
-> overall functionality.
-
-Thanks for testing and reviewing!
-
-> Modifications to other (not runtime tested) controls look good to me, 
-> except for one copy-paste mistake, see below. With that erratic REG_BLUE 
-> corrected:
+> Driver maintainers:
+> Please review the remaining patches.
 > 
-> Acked-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> 		== Patches waiting for Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> review ==
 > 
-> There are also a few minor comments for you to consider.
+> Jun,22 2011: Improve UVC buffering with regard to USB. Add checks to avoid
+> division
+> http://patchwork.linuxtv.org/patch/7290
+> Hans Petter Selasky <hselasky@c2i.net>
 
-Well, some of them are not so minor, I would say;-) But I personally would 
-be happy to have this just as an incremental patch. Would you like to 
-prepare one or should I do it?
+On my TODO list.
 
-I basically agree with all your comments apart from maybe
+> Jul,11 2011: Error routes through omap3isp ccdc.
+> http://patchwork.linuxtv.org/patch/7428
+> Jonathan Cameron <jic23@cam.ac.uk>
 
-[snip]
+This has been superseded by "[media] omap3isp: Don't accept pipelines with no 
+video source as valid" which is already in your tree.
 
-> > @@ -1176,9 +1021,11 @@ static int ov6650_probe(struct i2c_client *client,
-> >  	priv->colorspace  = V4L2_COLORSPACE_JPEG;
-> >  
-> >  	ret = ov6650_video_probe(icd, client);
-> > +	if (!ret)
-> > +		ret = v4l2_ctrl_handler_setup(&priv->hdl);
-> 
-> Are you sure the probe function should fail if v4l2_ctrl_handler_setup() 
-> fails? Its usage is documented as optional.
+> Jul,14 2011: uvcvideo: add fix suspend/resume quirk for Microdia camera
+> http://patchwork.linuxtv.org/patch/186
+> Ming Lei <tom.leiming@gmail.com>
 
-Not sure what the standard really meant, but it looks like this is done in 
-all patches in this series. So, we'd have to change this everywhere. Most 
-other drivers indeed do not care.
+This has been superseded by "uvcvideo: Set alternate setting 0 on resume if 
+the bus has been reset" which is hopefully in your tree on its way to v3.1 :-)
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> Jul,13 2011: [RFC, v1] mt9v113: VGA camera sensor driver and support for
+> BeagleBoar
+> http://patchwork.linuxtv.org/patch/184
+> Joel A Fernandes <agnel.joel@gmail.com>
+
+I've reviewed the patch, waiting for the next version.
+
+> Sep, 6 2011: mt9p031: Do not use PLL if external frequency is the same as
+> target fr
+> http://patchwork.linuxtv.org/patch/7783
+> Javier Martin <javier.martin@vista-silicon.com>
+
+I've reviewed the patch, I think we should implement proper PLL support.
+
+-- 
+Regards,
+
+Laurent Pinchart
