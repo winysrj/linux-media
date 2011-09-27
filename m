@@ -1,92 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ch1ehsobe004.messaging.microsoft.com ([216.32.181.184]:15489
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758189Ab1IHKNG (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:52253 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752101Ab1I0TvD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 Sep 2011 06:13:06 -0400
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Tue, 27 Sep 2011 15:51:03 -0400
+Date: Tue, 27 Sep 2011 22:50:58 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Marek Szyprowski <m.szyprowski@samsung.com>
-CC: <linux-media@vger.kernel.org>,
-	<uclinux-dist-devel@blackfin.uclinux.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>
-Subject: [PATCH] v4l2: add vb2_get_unmapped_area in vb2 core
-Date: Thu, 8 Sep 2011 18:11:32 -0400
-Message-ID: <1315519892-15641-1-git-send-email-scott.jiang.linux@gmail.com>
+Subject: Re: [PATCH 3/9 v7] V4L: document the new VIDIOC_CREATE_BUFS and
+ VIDIOC_PREPARE_BUF ioctl()s
+Message-ID: <20110927195057.GD5599@valkosipuli.localdomain>
+References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
+ <Pine.LNX.4.64.1109080942172.31156@axis700.grange>
+ <Pine.LNX.4.64.1109080945290.31156@axis700.grange>
+ <201109271251.01367.hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.1109271747160.7004@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1109271747160.7004@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-no mmu system needs get_unmapped_area file operations to do mmap
+Hi Guennadi,
 
-Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
----
- drivers/media/video/videobuf2-core.c |   31 +++++++++++++++++++++++++++++++
- include/media/videobuf2-core.h       |    7 +++++++
- 2 files changed, 38 insertions(+), 0 deletions(-)
+On Tue, Sep 27, 2011 at 05:49:52PM +0200, Guennadi Liakhovetski wrote:
+> On Tue, 27 Sep 2011, Hans Verkuil wrote:
+> 
+> > On Thursday, September 08, 2011 09:46:26 Guennadi Liakhovetski wrote:
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > ---
+> 
+> [snip]
+> 
+> > > +    <para>When the ioctl is called with a pointer to this structure the driver
+> > > +will attempt to allocate up to the requested number of buffers and store the
+> > > +actual number allocated and the starting index in the
+> > > +<structfield>count</structfield> and the <structfield>index</structfield> fields
+> > > +respectively. On return <structfield>count</structfield> can be smaller than
+> > > +the number requested. The driver may also adjust buffer sizes as it sees fit,
+> > 
+> > Add: 'provided the size is greater than or equal to sizeimage'.
+> 
+> How about:
+> 
+> The driver may also increase buffer sizes if required, however, it will 
+> not update <structfield>sizeimage</structfield> field values. The
+> user has to use <constant>VIDIOC_QUERYBUF</constant> to retrieve that
+> information.</para>
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 3015e60..02a0ec6 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -1344,6 +1344,37 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
- }
- EXPORT_SYMBOL_GPL(vb2_mmap);
- 
-+#ifndef CONFIG_MMU
-+unsigned long vb2_get_unmapped_area(struct vb2_queue *q,
-+				    unsigned long addr,
-+				    unsigned long len,
-+				    unsigned long pgoff,
-+				    unsigned long flags)
-+{
-+	unsigned long off = pgoff << PAGE_SHIFT;
-+	struct vb2_buffer *vb;
-+	unsigned int buffer, plane;
-+	int ret;
-+
-+	if (q->memory != V4L2_MEMORY_MMAP) {
-+		dprintk(1, "Queue is not currently set up for mmap\n");
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Find the plane corresponding to the offset passed by userspace.
-+	 */
-+	ret = __find_plane_by_offset(q, off, &buffer, &plane);
-+	if (ret)
-+		return ret;
-+
-+	vb = q->bufs[buffer];
-+
-+	return (unsigned long)vb2_plane_vaddr(vb, plane);
-+}
-+EXPORT_SYMBOL_GPL(vb2_get_unmapped_area);
-+#endif
-+
- static int __vb2_init_fileio(struct vb2_queue *q, int read);
- static int __vb2_cleanup_fileio(struct vb2_queue *q);
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index f87472a..5c7b5b4 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -302,6 +302,13 @@ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
- int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type);
- 
- int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma);
-+#ifndef CONFIG_MMU
-+unsigned long vb2_get_unmapped_area(struct vb2_queue *q,
-+				    unsigned long addr,
-+				    unsigned long len,
-+				    unsigned long pgoff,
-+				    unsigned long flags);
-+#endif
- unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait);
- size_t vb2_read(struct vb2_queue *q, char __user *data, size_t count,
- 		loff_t *ppos, int nonblock);
+This may be a stupid question but would there be adverse effects from
+updating it?
+
 -- 
-1.7.0.4
-
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
