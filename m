@@ -1,150 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:62009 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754080Ab1IMOPz (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:34111 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751554Ab1I0HJd convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Sep 2011 10:15:55 -0400
-Date: Tue, 13 Sep 2011 16:15:50 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v3] V4L: dynamically allocate video_device nodes in
- subdevices
-In-Reply-To: <201109131145.43199.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1109131608440.17902@axis700.grange>
-References: <Pine.LNX.4.64.1109091701060.915@axis700.grange>
- <201109131116.35408.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1109131124590.17902@axis700.grange>
- <201109131145.43199.laurent.pinchart@ideasonboard.com>
+	Tue, 27 Sep 2011 03:09:33 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Taneja, Archit" <archit@ti.com>
+CC: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	"Semwal, Sumit" <sumit.semwal@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 27 Sep 2011 12:39:24 +0530
+Subject: RE: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
+ omap_vout_isr
+Message-ID: <19F8576C6E063C45BE387C64729E739404ECA548EE@dbde02.ent.ti.com>
+References: <1316167233-1437-1-git-send-email-archit@ti.com>
+	 <1316167233-1437-4-git-send-email-archit@ti.com>
+	 <19F8576C6E063C45BE387C64729E739404EC941F86@dbde02.ent.ti.com>
+	 <4E7AD29C.4070804@ti.com>
+	 <19F8576C6E063C45BE387C64729E739404ECA54614@dbde02.ent.ti.com>
+	 <CAB2ybb8ab9jSFB1J_CQfObB11QcdtQ=6Kf9zdbg0v5Jckf09sw@mail.gmail.com>
+	 <CAB2ybb-rZgDvS9Bo6AJF=KVd0irXHa0S0LrPJ=SWr0daJ6gX1w@mail.gmail.com>
+	 <CAB2ybb8UGC=HK7jpYaDym8Y8iy=omwWiXrV7cdRw3k20e0NiZw@mail.gmail.com>
+	 <19F8576C6E063C45BE387C64729E739404ECA548CF@dbde02.ent.ti.com>
+ <1317106147.1991.10.camel@deskari>
+ <19F8576C6E063C45BE387C64729E739404ECA548E1@dbde02.ent.ti.com>
+ <4E8174D8.6060001@ti.com>
+In-Reply-To: <4E8174D8.6060001@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 13 Sep 2011, Laurent Pinchart wrote:
 
-> Hi Guennadi,
+> -----Original Message-----
+> From: Taneja, Archit
+> Sent: Tuesday, September 27, 2011 12:32 PM
+> To: Hiremath, Vaibhav
+> Cc: Valkeinen, Tomi; Semwal, Sumit; linux-omap@vger.kernel.org; linux-
+> media@vger.kernel.org
+> Subject: Re: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
+> omap_vout_isr
 > 
-> On Tuesday 13 September 2011 11:26:23 Guennadi Liakhovetski wrote:
-> > On Tue, 13 Sep 2011, Laurent Pinchart wrote:
-> > > On Monday 12 September 2011 12:55:46 Guennadi Liakhovetski wrote:
-> > > > Currently only very few drivers actually use video_device nodes,
-> > > > embedded in struct v4l2_subdev. Allocate these nodes dynamically for
-> > > > those drivers to save memory for the rest.
-> > > > 
-> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > > ---
-> > > > 
-> > > > v3: addressed comments from Laurent Pinchart - thanks
-> > > 
-> > > Thanks for the patch. Just one small comment below.
-> > > 
-> > > > 1. switch to using a device-release method, instead of freeing directly
-> > > > in v4l2_device_unregister_subdev()
-> > > > 
-> > > > 2. switch to using drvdata instead of a wrapper struct
-> > > > 
-> > > >  drivers/media/video/v4l2-device.c |   41
-> > > > 
-> > > > ++++++++++++++++++++++++++++++++---- include/media/v4l2-subdev.h      
-> > > > |
-> > > > 
-> > > >  4 +-
-> > > >  2 files changed, 38 insertions(+), 7 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/media/video/v4l2-device.c
-> > > > b/drivers/media/video/v4l2-device.c index c72856c..9bf3d70 100644
-> > > > --- a/drivers/media/video/v4l2-device.c
-> > > > +++ b/drivers/media/video/v4l2-device.c
-> > > > @@ -21,6 +21,7 @@
-> > > > 
-> > > >  #include <linux/types.h>
-> > > >  #include <linux/ioctl.h>
-> > > >  #include <linux/i2c.h>
-> > > > 
-> > > > +#include <linux/slab.h>
-> > > > 
-> > > >  #if defined(CONFIG_SPI)
-> > > >  #include <linux/spi/spi.h>
-> > > >  #endif
-> > > > 
-> > > > @@ -191,6 +192,13 @@ int v4l2_device_register_subdev(struct v4l2_device
-> > > > *v4l2_dev, }
-> > > > 
-> > > >  EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
-> > > > 
-> > > > +void v4l2_device_release_subdev_node(struct video_device *vdev)
-> > > > +{
-> > > > +	struct v4l2_subdev *sd = video_get_drvdata(vdev);
-> > > > +	sd->devnode = NULL;
-> > > > +	kfree(vdev);
-> > > > +}
-> > > > +
-> > > > 
-> > > >  int v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev)
-> > > >  {
-> > > >  
-> > > >  	struct video_device *vdev;
-> > > > 
-> > > > @@ -204,22 +212,42 @@ int v4l2_device_register_subdev_nodes(struct
-> > > > v4l2_device *v4l2_dev) if (!(sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE))
-> > > > 
-> > > >  			continue;
-> > > > 
-> > > > -		vdev = &sd->devnode;
-> > > > +		vdev = kzalloc(sizeof(*vdev), GFP_KERNEL);
-> > > > +		if (!vdev) {
-> > > > +			err = -ENOMEM;
-> > > > +			goto clean_up;
-> > > > +		}
-> > > > +
-> > > > +		video_set_drvdata(vdev, sd);
-> > > > 
-> > > >  		strlcpy(vdev->name, sd->name, sizeof(vdev->name));
-> > > >  		vdev->v4l2_dev = v4l2_dev;
-> > > >  		vdev->fops = &v4l2_subdev_fops;
-> > > > 
-> > > > -		vdev->release = video_device_release_empty;
-> > > > +		vdev->release = v4l2_device_release_subdev_node;
-> > > > 
-> > > >  		vdev->ctrl_handler = sd->ctrl_handler;
-> > > >  		err = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
-> > > >  		
-> > > >  					      sd->owner);
-> > > > 
-> > > > -		if (err < 0)
-> > > > -			return err;
-> > > > +		if (err < 0) {
-> > > > +			kfree(vdev);
-> > > > +			goto clean_up;
-> > > > +		}
-> > > > +		get_device(&vdev->dev);
-> > > 
-> > > Is get_device() (and the corresponding put_device() calls below) required
-> > > ? I thought device_register() initialized the reference count to 1
-> > > (don't take my word for it though).
-> > 
-> > Indeed, I think, you're right. Will update.
+> On Tuesday 27 September 2011 12:24 PM, Hiremath, Vaibhav wrote:
+> >> -----Original Message-----
+> >> From: Valkeinen, Tomi
+> >> Sent: Tuesday, September 27, 2011 12:19 PM
+> >> To: Hiremath, Vaibhav
+> >> Cc: Semwal, Sumit; Taneja, Archit; linux-omap@vger.kernel.org; linux-
+> >> media@vger.kernel.org
+> >> Subject: RE: [PATCH 3/5] [media]: OMAP_VOUT: Fix VSYNC IRQ handling in
+> >> omap_vout_isr
+> >>
+> >> On Tue, 2011-09-27 at 12:09 +0530, Hiremath, Vaibhav wrote:
+> >>> Please look at the patch carefully, it does exactly same thing. I
+> >>> understand the use-case what Archit explained in the last email but in
+> >>> this patch context, the use-case change anything here in this patch.
+> >>
+> >> With the current code, the ISR code will be ran for a panel connected
+> to
+> >> LCD1 output when VSYNC for LCD2 happens.
+> >>
+> >> After Archit's patch, this no longer happens.
+> >>
+> >> I don't know what the ISR code does, so it may not cause any problems,
+> >> but it sure doesn't sound right running the code when a wrong interrupt
+> >> happens.
+> >>
+> >
+> > If you look at the patch, the patch barely checks for the condition and
+> > makes sure that the interrupt is either of VSYNC or VSYNC2, else return.
+> Rest everything is same.
 > 
-> Please test it as well :-)
+> It doesn't only make sure that the interrupt it one of them, it uses it
+> later too in the check:
+> 
+> if (!(irqstatus & irq))
+> 	goto vout_isr_err;
+> ...
+> ...
+> 
+> >
+> > The right fix is in streamon api, where you mask the interrupt before
+> > registering it.
+> 
+> If this is the right fix, we should have a purely selective method of
+> selecting the interrupts. Even for OMAP3, we register interrupts for LCD
+> and TV, and then check the interrupt in the handler using panel type.
+> Now, since have 2 different interrupts for the same panel type, we have
+> to further distinguish using the manager id.
+> 
+I have to agree here with you that we do not have this available now.
 
-I'm afraid, testing it wouldn't be very easy for me: I only have one 
-system here, on which MC is used - the beagle-board. And it is not an easy 
-nor a quick exersize to bring it up and run a test on it;-) But if noone 
-else finds time to test it and if we're not confident enough in its 
-correctness, well, we'll have to wait until I find time to do that...
+Also I had reviewed the patch again, and I think I now understand what usecase you are referring here. My bad, I concluded early on this....
 
-BTW, there's one more improvement to be made for this patch:
+Thanks,
+Vaibhav
 
--void v4l2_device_release_subdev_node(struct video_device *vdev)
-+static void v4l2_device_release_subdev_node(struct video_device *vdev)
+> Archit
+> 
+> >
+> > Thanks,
+> > Vaibhav
+> >
+> >>   Tomi
+> >>
+> >
+> >
 
-My copy-paste from video_device_release_empty() was too precise:-(
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
