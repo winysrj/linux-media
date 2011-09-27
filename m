@@ -1,62 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:40476 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752712Ab1IPGdF convert rfc822-to-8bit (ORCPT
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:42054 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751979Ab1I0Ddm convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Sep 2011 02:33:05 -0400
-Date: Fri, 16 Sep 2011 08:33:02 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Subject: Re: Question about USB interface index restriction in gspca
-Message-ID: <20110916083302.1deb338e@tele>
-In-Reply-To: <4E727251.9030308@googlemail.com>
-References: <4E6FAB94.2010007@googlemail.com>
-	<20110914082513.574baac2@tele>
-	<4E727251.9030308@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 26 Sep 2011 23:33:42 -0400
+Received: by qyk30 with SMTP id 30so475884qyk.19
+        for <linux-media@vger.kernel.org>; Mon, 26 Sep 2011 20:33:41 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <F63697F7-FEE5-439D-A014-3CC33A89C7CA@gigadevices.com>
+References: <fe2a004a676834efbb488b985de0370b@www.tabletspain.net>
+	<A731A584-CEE7-4F51-9483-9989E7495562@gigadevices.com>
+	<CAHG8p1CK5-BbDSdX5qGsGxfsvCZPc6S76ehE-2O1YORF4wM31A@mail.gmail.com>
+	<F63697F7-FEE5-439D-A014-3CC33A89C7CA@gigadevices.com>
+Date: Tue, 27 Sep 2011 11:33:41 +0800
+Message-ID: <CAHG8p1BuxD=yANOOQcWQvFZYDunFddt+vH4kKYyW8gU=ULb57g@mail.gmail.com>
+Subject: Re: New SOC Camera hardware
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Gilles <gilles@gigadevices.com>
+Cc: linux-media@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 15 Sep 2011 23:46:57 +0200
-Frank Schäfer <fschaefer.oss@googlemail.com> wrote:
-
-> > For webcam devices, the interface class is meaningful only when set to
-> > USB_CLASS_VIDEO (UVC). Otherwise, I saw many different values.
-> 
-> Does that mean that there are devices out in the wild that report for 
-> example USB_CLASS_WIRELESS_CONTROLLER for the video interface ???
-> 
-> > For video on a particular interface, the subdriver must call the
-> > function gspca_dev_probe2() as this is done in spca1528 and xirlink_cit.
+2011/9/27 Gilles <gilles@gigadevices.com>:
+> Scott,
 >
-> Hmm, sure, that would work...
-> But wouldn't it be better to improve the interface check and merge the 
-> two probing functions ?
-> The subdrivers can decide which interfaces are (not) probed and the 
-> gspca core does plausability checks (e.g. bulk/isoc endpoint ? usb class ?).
+> A late echo. I am just now getting into the heart of this project and realize I missed your answer here from back in August. Just grabbed the trunk from the repo and trying to compile it.
+>
+> I'm not sure I understand why it would work with one sensor driver and not another. I thought the whole point of an adapter driver was to separate the camera sensor functions from the hardware. I guess the reason why I ask is because I currently need to get it to work with the Micron MT9V022 (which has a sensor driver).
+>
 
-Generally, the first interface is the video device, and the function
-gspca_dev_probe() works well enough.
-
-The function gspca_dev_probe2() is used by only 2 subdrivers and the
-way to find the correct interface is not easy. For example, the webcam
-047d:5003 (subdriver spca1528) has 3 interfaces (class vendor specific).
-The 1st one has only one altsetting with only one interrupt endpoint,
-the 2nd one has 8 altsettings, each with only one isochronous endpoint,
-and the last one has one altsetting with 3 endpoints (bulk in, bulk out
-and interrupt). At the first glance, it is easy to know the right
-interface, but writing generic code to handle such webcams seems rather
-complicated.
-
-So, if your webcam is in the 99.99% which use the interface 0, use
-gspca_dev_probe(), otherwise, YOU know the right interface, so, call
-gspca_dev_probe2().
-
-Regards.
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+If you prefer soc, you can convert my bridge driver to soc framework,
+but you need add some patches to soc if you want soc support decoder
+well. Guennadi Liakhovetski can give you more advice on this.
+If not, my bridge driver already supports sensor driver, vs6624 is an
+example. You just need care about the ops sensor driver must
+implement.
