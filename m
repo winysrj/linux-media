@@ -1,118 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59359 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757201Ab1IGVpr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Sep 2011 17:45:47 -0400
-Message-ID: <4E67E605.90202@iki.fi>
-Date: Thu, 08 Sep 2011 00:45:41 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mailout-de.gmx.net ([213.165.64.23]:58249 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751195Ab1I0HzS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Sep 2011 03:55:18 -0400
+From: Dominik Kuhlen <dkuhlen@gmx.net>
+To: Steffen Barszus <steffenbpunkt@googlemail.com>
+Subject: Re: [PATCH] Add support for PCTV452E.
+Date: Tue, 27 Sep 2011 09:55:11 +0200
+Cc: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
+	Doychin Dokov <root@net1.cc>,
+	Konstantin Dimitrov <kosio.dimitrov@gmail.com>,
+	Hans Petter Selasky <hselasky@c2i.net>,
+	"Michael H. Schimek" <mschimek@gmx.at>,
+	Mauro Chehab <mchehab@infradead.org>
+References: <201105242151.22826.hselasky@c2i.net> <201106151844.35343.liplianin@me.by> <20110913080451.55b721b2@grobi>
+In-Reply-To: <20110913080451.55b721b2@grobi>
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [git:v4l-dvb/for_v3.2] [media] dvb-usb: refactor MFE code for
- individual streaming config per frontend
-References: <E1R0zZM-0008EU-2T@www.linuxtv.org>	<4E67DF8C.603@iki.fi>	<4E67E046.9060808@iki.fi>	<CAOcJUbzuKB5aXbfo9Ao5abuR_LvG3L17EhhOX-sKUVoVkURHmg@mail.gmail.com> <CAOcJUbzrc2AM7VnWYaqt0Pfb4x_HmjWBJUKc1D0OFxs_SVm_0Q@mail.gmail.com>
-In-Reply-To: <CAOcJUbzrc2AM7VnWYaqt0Pfb4x_HmjWBJUKc1D0OFxs_SVm_0Q@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201109270955.12700.dkuhlen@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/08/2011 12:39 AM, Michael Krufky wrote:
-> On Wed, Sep 7, 2011 at 5:35 PM, Michael Krufky<mkrufky@kernellabs.com>  wrote:
->>> On 09/08/2011 12:18 AM, Antti Palosaari wrote:
->>>>
->>>> This patch seems to break all DVB USB devices we have. Michael, could
->>>> you check and fix it asap.
->>>>
->>>> On 09/06/2011 08:21 PM, Mauro Carvalho Chehab wrote:
->>>>>
->>>>> This is an automatic generated email to let you know that the
->>>>> following patch were queued at the
->>>>> http://git.linuxtv.org/media_tree.git tree:
->>>>>
->>>>> Subject: [media] dvb-usb: refactor MFE code for individual streaming
->>>>> config per frontend
->>>>> Author: Michael Krufky<mkrufky@kernellabs.com>
->>>>> Date: Tue Sep 6 09:31:57 2011 -0300
->>>>>
->>>>> refactor MFE code to allow for individual streaming configuration
->>>>> for each frontend
->>>>>
->>>>> Signed-off-by: Michael Krufky<mkrufky@kernellabs.com>
->>>>> Reviewed-by: Antti Palosaari<crope@iki.fi>
->>>>> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
->>>>
->>>>> drivers/media/dvb/dvb-usb/dvb-usb-dvb.c | 141 ++++++-----
->>>>
->>>> dvb_usb_ctrl_feed()
->>>> if ((adap->feedcount == onoff)&&  (!onoff))
->>>> adap->active_fe = -1;
->>>>
->>>>
->>>>
->>>>>
->>>>> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=77eed219fed5a913f59329cc846420fdeab0150f
->>>>>
->>>>> <diff discarded since it is too big>
->>>>
->>>>
->>
->> On Wed, Sep 7, 2011 at 5:21 PM, Antti Palosaari<crope@iki.fi>  wrote:
->>> This error is shown by VLC when channel changed:
->>>
->>> [0x7f1bbc000cd0] dvb access error: DMXSetFilter: failed with -1 (Invalid
->>> argument)
->>> [0x7f1bbc000cd0] dvb access error: DMXSetFilter failed
->>> [0x7f1bbc32f910] main stream error: cannot pre fill buffer
->>>
->>>
->>> but it seems to be related dvb_usb_ctrl_feed() I pointed earlier mail.
->>>
->>> Antti
->>>
->>>
->>
->>
->> I will take a look at this tonight and give it a test with vlc.
->> Thanks for reporting the problem.
->
->
-> Antti,
->
-> Just to be sure -- which device driver did you use for your testing,
-> and are you using the exact code in Mauro's for_v3.2 branch, or
-> modified code?
+Hi all,
 
-Few hours since updated linux-media remote.
-remotes/media/staging/for_v3.2
+sorry for being quiet such a long time....
 
-last commit:
+On Tuesday 13 September 2011 08:04:51 Steffen Barszus wrote:
+> On Wed, 15 Jun 2011 18:44:35 +0300
+> "Igor M. Liplianin" <liplianin@me.by> wrote:
+> 
+> > From my point of view we can count the beginning was here:
+> > 
+> > http://www.spinics.net/lists/linux-dvb/msg26431.html
+> > 
+> > The later history is difficult to restore, but possible.
+> >
+> 
+> After some searching it looks like this is the first occurrence of the
+> driver:
+> http://www.linuxtv.org/pipermail/linux-dvb/2007-October/021403.html
+> 
+> Further it looks like Dominik Kuhlen is not responding at that mail (as
+> he has been on copy on one of the last mails. 
+> 
+> So looks like we cant get the signed-off-by from him. 
+Where do you want me to put that line?
+Although I cannot test the current code atm I trust the other testers and 
+I'd like to see it included in the main tree. Improvements can still be added later...
 
-commit d4d4e3c97211f20d4fde5d82878561adaa42b578
-Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Date:   Thu Jul 7 12:13:25 2011 -0300
-
-     [media] s5p-csis: Rework the system suspend/resume helpers
-
-     Do not resume the device during system resume if it was idle
-     before system suspend, as this causes resume from suspend
-     to RAM failures on Exynos4. For this purpose runtime PM and
-     system sleep helpers are separated.
-
-     Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-     Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-I tested using one Anysee DVB-C model and one AF9015 DVB-T device.
-
-Commenting out that
- >>>> if ((adap->feedcount == onoff)&&  (!onoff))
- >>>> adap->active_fe = -1;
-
-resolves problem.
-
-regards
-Antti
--- 
-http://palosaari.fi/
+Dominik
