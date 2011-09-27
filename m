@@ -1,1235 +1,1912 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28917 "EHLO mx1.redhat.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53080 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750945Ab1IURkf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 13:40:35 -0400
-Message-ID: <4E7A2182.7050909@redhat.com>
-Date: Wed, 21 Sep 2011 14:40:18 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1753063Ab1I0Nl7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Sep 2011 09:41:59 -0400
+From: Deepthy Ravi <deepthy.ravi@ti.com>
+To: <laurent.pinchart@ideasonboard.com>, <mchehab@infradead.org>,
+	<tony@atomide.com>, <hvaibhav@ti.com>,
+	<linux-media@vger.kernel.org>, <linux@arm.linux.org.uk>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<kyungmin.park@samsung.com>, <hverkuil@xs4all.nl>,
+	<m.szyprowski@samsung.com>, <g.liakhovetski@gmx.de>,
+	<santosh.shilimkar@ti.com>, <khilman@deeprootsystems.com>,
+	<linux-kernel@vger.kernel.org>
+CC: <linux-omap@vger.kernel.org>, Deepthy Ravi <deepthy.ravi@ti.com>
+Subject: [PATCH v2 2/5] [media] v4l: Add support for mt9t111 sensor driver
+Date: Tue, 27 Sep 2011 19:10:45 +0530
+Message-ID: <1317130848-21136-3-git-send-email-deepthy.ravi@ti.com>
+In-Reply-To: <1317130848-21136-1-git-send-email-deepthy.ravi@ti.com>
+References: <1317130848-21136-1-git-send-email-deepthy.ravi@ti.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Kassey Lee <ygli@marvell.com>, linux-media@vger.kernel.org,
-	ytang5@marvell.com, corbet@lwn.net, leiwen@marvell.com,
-	jwan@marvell.com, qingx@marvell.com
-Subject: Re: [PATCH V3] V4L/DVB: v4l: Add driver for Marvell PXA910 CCIC
-References: <1307528966-8233-1-git-send-email-ygli@marvell.com> <4E7A1CD8.8070401@redhat.com> <Pine.LNX.4.64.1109211928500.24024@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1109211928500.24024@axis700.grange>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 21-09-2011 14:31, Guennadi Liakhovetski escreveu:
-> Hi Mauro
-> 
-> On Wed, 21 Sep 2011, Mauro Carvalho Chehab wrote:
-> 
->> Em 08-06-2011 07:29, Kassey Lee escreveu:
->>> This driver exports a video device node per each CCIC
->>> (CMOS Camera Interface Controller)
->>> device contained in Marvell Mobile PXA910 SoC
->>> The driver is based on soc-camera + videobuf2 frame
->>> work, and only USERPTR is supported.
->>
->> Hi Guennadi,
->>
->> Would you mind reviewing this patch[1]? 
-> 
-> Indeed I would (mind);-) AFAIU, Jon has converted the cafe-ccic driver to 
-> be usable for other implementations, using the same core, this driver has 
-> to be converted to re-use the common code, and so far this has not been 
-> done, or am I missing something?
+Added support for mt9t111 sensor in the existing
+mt9t112 driver. Also added support for media controller
+framework. The sensor driver currently supports only
+VGA resolution.
 
-Ah, yes. Ok, I've marked it as superseded at patchwork.
+Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+---
+ drivers/media/video/Kconfig       |    7 +
+ drivers/media/video/Makefile      |    1 +
+ drivers/media/video/mt9t111_reg.h | 1367 +++++++++++++++++++++++++++++++++++++
+ drivers/media/video/mt9t112.c     |  320 ++++++++-
+ include/media/mt9t111.h           |   45 ++
+ 5 files changed, 1704 insertions(+), 36 deletions(-)
+ create mode 100644 drivers/media/video/mt9t111_reg.h
+ create mode 100644 include/media/mt9t111.h
 
-As you know, I've migrated all patches to Linuxtv patchwork,
-and taking the opportunity to double-check if something got
-missed by all those troubles at kernel.org.
-
-It is hard to recover the history of some patches, like this one ;)
-
-Thanks!
-Mauro
-
-> 
-> Thanks
-> Guennadi
-> 
->>
->> [1] http://patchwork.linuxtv.org/patch/7210/
->>
->> Thanks,
->> Mauro.
->>
->>>
->>> Signed-off-by: Kassey Lee <ygli@marvell.com>
->>> ---
->>>  arch/arm/mach-mmp/include/mach/camera.h |   37 ++
->>>  drivers/media/video/Kconfig             |    7 +
->>>  drivers/media/video/Makefile            |    1 +
->>>  drivers/media/video/mv_camera.c         | 1071 +++++++++++++++++++++++++++++++
->>>  4 files changed, 1116 insertions(+), 0 deletions(-)
->>>  create mode 100644 arch/arm/mach-mmp/include/mach/camera.h
->>>  create mode 100644 drivers/media/video/mv_camera.c
->>>
->>> diff --git a/arch/arm/mach-mmp/include/mach/camera.h b/arch/arm/mach-mmp/include/mach/camera.h
->>> new file mode 100644
->>> index 0000000..ff8cde1
->>> --- /dev/null
->>> +++ b/arch/arm/mach-mmp/include/mach/camera.h
->>> @@ -0,0 +1,37 @@
->>> +/*
->>> + * Copyright (C) 2011, Marvell International Ltd.
->>> + *	Kassey Lee <ygli@marvell.com>
->>> + *	Angela Wan <jwan@marvell.com>
->>> + *	Lei Wen <leiwen@marvell.com>
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License as published by
->>> + * the Free Software Foundation; either version 2 of the License, or
->>> + * (at your option) any later version.
->>> + *
->>> + */
->>> +
->>> +#ifndef __ASM_ARCH_CAMERA_H__
->>> +#define __ASM_ARCH_CAMERA_H__
->>> +
->>> +#define MV_CAMERA_MASTER       1
->>> +#define MV_CAMERA_DATAWIDTH_8  8
->>> +#define MV_CAMERA_DATAWIDTH_10 0x20
->>> +#define MV_CAMERA_PCLK_EN      0x40
->>> +#define MV_CAMERA_MCLK_EN      0x80
->>> +#define MV_CAMERA_PCP          0x100
->>> +#define MV_CAMERA_HSP          0x200
->>> +#define MV_CAMERA_VSP          0x400
->>> +
->>> +struct mv_cam_pdata {
->>> +	int dphy[3];
->>> +	unsigned long flags;
->>> +	int dma_burst;
->>> +	int mclk_min;
->>> +	int mclk_src;
->>> +	int (*init_clk) (struct device *dev, int init);
->>> +	void (*enable_clk) (struct device *dev, int on);
->>> +	int (*get_mclk_src) (int src);
->>> +};
->>> +
->>> +#endif
->>> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
->>> index 3be180b..18ab3a5 100644
->>> --- a/drivers/media/video/Kconfig
->>> +++ b/drivers/media/video/Kconfig
->>> @@ -891,6 +891,13 @@ config VIDEO_MX3
->>>  	---help---
->>>  	  This is a v4l2 driver for the i.MX3x Camera Sensor Interface
->>>  
->>> +config VIDEO_MV_CCIC
->>> +	tristate "Marvell CMOS Camera Interface Controller driver"
->>> +	depends on VIDEO_DEV && CPU_PXA910 && SOC_CAMERA
->>> +	select VIDEOBUF2_DMA_CONTIG
->>> +	---help---
->>> +	  This is a v4l2 driver for the Marvell CCIC Interface
->>> +
->>>  config VIDEO_PXA27x
->>>  	tristate "PXA27x Quick Capture Interface driver"
->>>  	depends on VIDEO_DEV && PXA27x && SOC_CAMERA
->>> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
->>> index 9519160..e3251c3 100644
->>> --- a/drivers/media/video/Makefile
->>> +++ b/drivers/media/video/Makefile
->>> @@ -161,6 +161,7 @@ obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
->>>  obj-$(CONFIG_VIDEO_MX1)			+= mx1_camera.o
->>>  obj-$(CONFIG_VIDEO_MX2)			+= mx2_camera.o
->>>  obj-$(CONFIG_VIDEO_MX3)			+= mx3_camera.o
->>> +obj-$(CONFIG_VIDEO_MV_CCIC)		+= mv_camera.o
->>>  obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
->>>  obj-$(CONFIG_VIDEO_SH_MOBILE_CSI2)	+= sh_mobile_csi2.o
->>>  obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
->>> diff --git a/drivers/media/video/mv_camera.c b/drivers/media/video/mv_camera.c
->>> new file mode 100644
->>> index 0000000..ed2397f
->>> --- /dev/null
->>> +++ b/drivers/media/video/mv_camera.c
->>> @@ -0,0 +1,1071 @@
->>> +/*
->>> + * V4L2 Driver for Marvell Mobile SoC PXA910 CCIC
->>> + * (CMOS Capture Interface Controller)
->>> + *
->>> + * This driver is based on soc_camera and videobuf2
->>> + * framework, but part of the low level register function
->>> + * is base on cafe_ccic.c
->>> + *
->>> + * Copyright (C) 2011, Marvell International Ltd.
->>> + *	Kassey Lee <ygli@marvell.com>
->>> + *	Angela Wan <jwan@marvell.com>
->>> + *	Lei Wen <leiwen@marvell.com>
->>> + *
->>> + * Copyright 2006 One Laptop Per Child Association, Inc.
->>> + * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License as published by
->>> + * the Free Software Foundation; either version 2 of the License, or
->>> + * (at your option) any later version.
->>> + *
->>> + */
->>> +
->>> +#include <linux/clk.h>
->>> +#include <linux/delay.h>
->>> +#include <linux/device.h>
->>> +#include <linux/dma-mapping.h>
->>> +#include <linux/errno.h>
->>> +#include <linux/fs.h>
->>> +#include <linux/init.h>
->>> +#include <linux/interrupt.h>
->>> +#include <linux/io.h>
->>> +#include <linux/kernel.h>
->>> +#include <linux/mm.h>
->>> +#include <linux/module.h>
->>> +#include <linux/platform_device.h>
->>> +#include <linux/slab.h>
->>> +#include <linux/time.h>
->>> +#include <linux/videodev2.h>
->>> +
->>> +#include <media/soc_camera.h>
->>> +#include <media/soc_mediabus.h>
->>> +#include <media/v4l2-common.h>
->>> +#include <media/v4l2-dev.h>
->>> +#include <media/videobuf2-dma-contig.h>
->>> +
->>> +#include <mach/camera.h>
->>> +#include "cafe_ccic-regs.h"
->>> +
->>> +/* Register definition for PXA910 */
->>> +
->>> +#define REG_U0BAR       0x0c
->>> +#define REG_U1BAR       0x10
->>> +#define REG_U2BAR       0x14
->>> +#define REG_V0BAR       0x18
->>> +#define REG_V1BAR       0x1C
->>> +#define REG_V2BAR       0x20
->>> +
->>> +/* for MIPI enable */
->>> +#define REG_CSI2_CTRL0  0x100
->>> +#define REG_CSI2_DPHY0  0x120
->>> +#define REG_CSI2_DPHY1  0x124
->>> +#define REG_CSI2_DPHY2  0x128
->>> +#define REG_CSI2_DPHY3  0x12c
->>> +#define REG_CSI2_DPHY4  0x130
->>> +#define REG_CSI2_DPHY5  0x134
->>> +#define REG_CSI2_DPHY6  0x138
->>> +/* REG_CTRL0 */
->>> +#define CO_EOF_VSYNC	(1 << 22)	/* generate eof by VSYNC */
->>> +#define C0_VEDGE_CTRL	(1 << 23)	/* VYSNC polarity */
->>> +#define C0_HSYNC_LOW	(1 << 24)	/* HSYNC polarity */
->>> +#define C0_PCLK_F	(1 << 26)	/* PCLK falling edge */
->>> +/* hidden register ? */
->>> +#define REG_CTRL3	0x1EC
->>> +
->>> +/* IRQ FLAG */
->>> +#define   FRAMEIRQS_EOF	  (IRQ_EOF0 | IRQ_EOF1 | IRQ_EOF2 | IRQ_OVERFLOW)
->>> +
->>> +#define MV_CAM_DRV_NAME "mv-camera"
->>> +
->>> +#define pixfmtstr(x) (x) & 0xff, ((x) >> 8) & 0xff, ((x) >> 16) & 0xff, \
->>> +	((x) >> 24) & 0xff
->>> +
->>> +#define MAX_DMABUF_SIZE   (480 * 720 * 2)	/* D1 size */
->>> +
->>> +struct yuv_pointer_t {
->>> +	dma_addr_t y;
->>> +	dma_addr_t u;
->>> +	dma_addr_t v;
->>> +};
->>> +
->>> +/* buffer for one video frame */
->>> +struct mv_buffer {
->>> +	/* common v4l buffer stuff -- must be first */
->>> +	struct vb2_buffer vb;
->>> +	struct yuv_pointer_t yuv_p;
->>> +	struct list_head queue;
->>> +	size_t bsize;
->>> +};
->>> +
->>> +struct mv_camera_dev {
->>> +	struct soc_camera_host soc_host;
->>> +
->>> +	struct soc_camera_device *icd;
->>> +	unsigned int irq;
->>> +	void __iomem *base;
->>> +
->>> +	struct platform_device *pdev;
->>> +	struct resource *res;
->>> +
->>> +	struct list_head capture;
->>> +	/* buf in DMA list  */
->>> +	struct list_head sb_dma;
->>> +	/* protect list capture and sb_dma */
->>> +	spinlock_t list_lock;
->>> +	struct v4l2_pix_format pix_format;
->>> +	/*
->>> +	 * internal use only
->>> +	 * dummy buffer is used when available
->>> +	 * buffer for DMA is fewer than 3
->>> +	 */
->>> +	dma_addr_t dummy_buf_phy;
->>> +	void *dummy_buf_virt;
->>> +	unsigned long platform_flags;
->>> +};
->>> +
->>> +/*
->>> + * Device register I/O
->>> + */
->>> +static void ccic_reg_write(struct mv_camera_dev *pcdev,
->>> +		 unsigned int reg, u32 val)
->>> +{
->>> +	iowrite32(val, pcdev->base + reg);
->>> +}
->>> +
->>> +static u32 ccic_reg_read(struct mv_camera_dev *pcdev, unsigned int reg)
->>> +{
->>> +	return ioread32(pcdev->base + reg);
->>> +}
->>> +
->>> +static void ccic_reg_write_mask(struct mv_camera_dev *pcdev,
->>> +		unsigned int reg, u32 val, u32 mask)
->>> +{
->>> +	u32 v = ccic_reg_read(pcdev, reg);
->>> +
->>> +	v = (v & ~mask) | (val & mask);
->>> +	ccic_reg_write(pcdev, reg, v);
->>> +}
->>> +
->>> +static void ccic_reg_clear_bit(struct mv_camera_dev *pcdev,
->>> +		unsigned int reg, u32 val)
->>> +{
->>> +	ccic_reg_write_mask(pcdev, reg, 0, val);
->>> +}
->>> +
->>> +static void ccic_reg_set_bit(struct mv_camera_dev *pcdev,
->>> +		unsigned int reg, u32 val)
->>> +{
->>> +	ccic_reg_write_mask(pcdev, reg, val, val);
->>> +}
->>> +
->>> +static void ccic_enable_clk(struct mv_camera_dev *pcdev)
->>> +{
->>> +	struct mv_cam_pdata *mcam = pcdev->pdev->dev.platform_data;
->>> +	int div, ctrl1;
->>> +
->>> +	mcam->enable_clk(&pcdev->pdev->dev, 1);
->>> +	div = mcam->get_mclk_src(mcam->mclk_src) / mcam->mclk_min;
->>> +	ccic_reg_write(pcdev, REG_CLKCTRL, (mcam->mclk_src << 29) | div);
->>> +	ctrl1 = 0x800003c;
->>> +	switch (mcam->dma_burst) {
->>> +	case 128:
->>> +		ctrl1 |= 1 << 25;
->>> +		break;
->>> +	case 256:
->>> +		ctrl1 |= 2 << 25;
->>> +		break;
->>> +	}
->>> +	ccic_reg_write(pcdev, REG_CTRL1, ctrl1);
->>> +	if (!(mcam->flags & SOCAM_MIPI))
->>> +		ccic_reg_write(pcdev, REG_CTRL3, 0x00004);
->>> +}
->>> +
->>> +static void ccic_disable_clk(struct mv_camera_dev *pcdev)
->>> +{
->>> +	struct mv_cam_pdata *mcam = pcdev->pdev->dev.platform_data;
->>> +
->>> +	mcam->enable_clk(&pcdev->pdev->dev, 0);
->>> +	ccic_reg_write(pcdev, REG_CLKCTRL, 0x0);
->>> +	ccic_reg_write(pcdev, REG_CTRL1, 0x0);
->>> +}
->>> +
->>> +static void ccic_config_image(struct mv_camera_dev *pcdev)
->>> +{
->>> +	u32 imgsz_h;
->>> +	u32 imgsz_w;
->>> +	struct v4l2_pix_format *fmt = &pcdev->pix_format;
->>> +	u32 widthy, widthuv;
->>> +	struct mv_cam_pdata *mcam = pcdev->pdev->dev.platform_data;
->>> +	struct device *dev = &pcdev->icd->dev;
->>> +
->>> +	dev_dbg(dev, " %s %d bytesperline %d height %d\n", __func__, __LINE__,
->>> +		fmt->bytesperline, fmt->sizeimage / fmt->bytesperline);
->>> +	imgsz_h = (fmt->height << IMGSZ_V_SHIFT) & IMGSZ_V_MASK;
->>> +
->>> +	if (fmt->pixelformat == V4L2_PIX_FMT_YUV420)
->>> +		imgsz_w = (fmt->bytesperline * 4 / 3) & IMGSZ_H_MASK;
->>> +	else
->>> +		imgsz_w = fmt->bytesperline & IMGSZ_H_MASK;
->>> +
->>> +	switch (fmt->pixelformat) {
->>> +	case V4L2_PIX_FMT_YUYV:
->>> +	case V4L2_PIX_FMT_UYVY:
->>> +		widthy = fmt->width * 2;
->>> +		widthuv = fmt->width * 2;
->>> +		break;
->>> +	case V4L2_PIX_FMT_RGB565:
->>> +		widthy = fmt->width * 2;
->>> +		widthuv = 0;
->>> +		break;
->>> +	case V4L2_PIX_FMT_JPEG:
->>> +		widthy = fmt->bytesperline;
->>> +		widthuv = fmt->bytesperline;
->>> +		break;
->>> +	case V4L2_PIX_FMT_YUV422P:
->>> +		widthy = fmt->width;
->>> +		widthuv = fmt->width / 2;
->>> +		break;
->>> +	case V4L2_PIX_FMT_YUV420:
->>> +		widthy = fmt->width;
->>> +		widthuv = fmt->width / 2;
->>> +		break;
->>> +	default:
->>> +		break;
->>> +	}
->>> +
->>> +	ccic_reg_write(pcdev, REG_IMGPITCH, widthuv << 16 | widthy);
->>> +	ccic_reg_write(pcdev, REG_IMGSIZE, imgsz_h | imgsz_w);
->>> +	ccic_reg_write(pcdev, REG_IMGOFFSET, 0x0);
->>> +	/*
->>> +	 * Tell the controller about the image format we are using.
->>> +	 */
->>> +	switch (fmt->pixelformat) {
->>> +	case V4L2_PIX_FMT_YUV422P:
->>> +		ccic_reg_write_mask(pcdev, REG_CTRL0,
->>> +			C0_DF_YUV | C0_YUV_PLANAR |
->>> +			C0_YUVE_YVYU, C0_DF_MASK);
->>> +		break;
->>> +	case V4L2_PIX_FMT_YUV420:
->>> +		ccic_reg_write_mask(pcdev, REG_CTRL0,
->>> +			C0_DF_YUV | C0_YUV_420PL |
->>> +			C0_YUVE_YVYU, C0_DF_MASK);
->>> +		break;
->>> +	case V4L2_PIX_FMT_YUYV:
->>> +		ccic_reg_write_mask(pcdev, REG_CTRL0,
->>> +			C0_DF_YUV | C0_YUV_PACKED |
->>> +			C0_YUVE_YUYV, C0_DF_MASK);
->>> +		break;
->>> +	case V4L2_PIX_FMT_UYVY:
->>> +		ccic_reg_write_mask(pcdev, REG_CTRL0,
->>> +			C0_DF_YUV | C0_YUV_PACKED |
->>> +			C0_YUVE_UYVY, C0_DF_MASK);
->>> +		break;
->>> +	case V4L2_PIX_FMT_JPEG:
->>> +		if (mcam->flags & SOCAM_MIPI)
->>> +			ccic_reg_write_mask(pcdev, REG_CTRL0,
->>> +				C0_DF_RGB | C0_RGB_BGR |
->>> +				C0_RGB4_BGRX, C0_DF_MASK);
->>> +		else
->>> +			ccic_reg_write_mask(pcdev, REG_CTRL0,
->>> +				C0_DF_YUV | C0_YUV_PACKED |
->>> +				C0_YUVE_YUYV, C0_DF_MASK);
->>> +		break;
->>> +	case V4L2_PIX_FMT_RGB444:
->>> +		ccic_reg_write_mask(pcdev, REG_CTRL0,
->>> +			C0_DF_RGB | C0_RGBF_444 |
->>> +			C0_RGB4_XRGB, C0_DF_MASK);
->>> +		break;
->>> +	case V4L2_PIX_FMT_RGB565:
->>> +		ccic_reg_write_mask(pcdev, REG_CTRL0,
->>> +			C0_DF_RGB | C0_RGBF_565 |
->>> +			C0_RGB5_BGGR, C0_DF_MASK);
->>> +		break;
->>> +	default:
->>> +		dev_err(dev, "Unknown format %c%c%c%c\n",
->>> +			 pixfmtstr(fmt->pixelformat));
->>> +		break;
->>> +	}
->>> +}
->>> +
->>> +static void ccic_irq_enable(struct mv_camera_dev *pcdev)
->>> +{
->>> +	ccic_reg_write(pcdev, REG_IRQSTAT, FRAMEIRQS_EOF);
->>> +	ccic_reg_set_bit(pcdev, REG_IRQMASK, FRAMEIRQS_EOF);
->>> +}
->>> +
->>> +static void ccic_irq_disable(struct mv_camera_dev *pcdev)
->>> +{
->>> +	ccic_reg_clear_bit(pcdev, REG_IRQMASK, FRAMEIRQS_EOF);
->>> +}
->>> +
->>> +static void ccic_start(struct mv_camera_dev *pcdev)
->>> +{
->>> +	ccic_reg_set_bit(pcdev, REG_CTRL0, C0_ENABLE);
->>> +}
->>> +
->>> +static void ccic_stop(struct mv_camera_dev *pcdev)
->>> +{
->>> +	ccic_reg_clear_bit(pcdev, REG_CTRL0, C0_ENABLE);
->>> +}
->>> +
->>> +static void ccic_init(struct mv_camera_dev *pcdev)
->>> +{
->>> +	/*
->>> +	 * Make sure it's not powered down.
->>> +	 */
->>> +	ccic_reg_clear_bit(pcdev, REG_CTRL1, C1_PWRDWN);
->>> +	/*
->>> +	 * Turn off the enable bit.  It sure should be off anyway,
->>> +	 * but it's good to be sure.
->>> +	 */
->>> +	ccic_reg_clear_bit(pcdev, REG_CTRL0, C0_ENABLE);
->>> +	/*
->>> +	 * Mask all interrupts.
->>> +	 */
->>> +	ccic_reg_write(pcdev, REG_IRQMASK, 0);
->>> +}
->>> +
->>> +static void ccic_stop_dma(struct mv_camera_dev *pcdev)
->>> +{
->>> +	ccic_stop(pcdev);
->>> +	/*
->>> +	 * CSI2/DPHY need to be cleared, or no EOF will be received
->>> +	 */
->>> +	ccic_reg_write(pcdev, REG_CSI2_DPHY3, 0x0);
->>> +	ccic_reg_write(pcdev, REG_CSI2_DPHY6, 0x0);
->>> +	ccic_reg_write(pcdev, REG_CSI2_DPHY5, 0x0);
->>> +	ccic_reg_write(pcdev, REG_CSI2_CTRL0, 0x0);
->>> +	/*
->>> +	 * workaround when stop DMA controller!!!
->>> +	 * 1) ccic controller must be stopped first,
->>> +	 * and it shoud delay for one frame transfer time at least
->>> +	 * 2)and then stop the camera sensor's output
->>> +	 *
->>> +	 * FIXME! need sillcion to add DMA stop/start bit
->>> +	 */
->>> +	ccic_irq_disable(pcdev);
->>> +	mdelay(200);
->>> +}
->>> +
->>> +static void ccic_power_up(struct mv_camera_dev *pcdev)
->>> +{
->>> +	ccic_reg_clear_bit(pcdev, REG_CTRL1, C1_PWRDWN);
->>> +}
->>> +
->>> +static void ccic_power_down(struct mv_camera_dev *pcdev)
->>> +{
->>> +	ccic_reg_set_bit(pcdev, REG_CTRL1, C1_PWRDWN);
->>> +}
->>> +
->>> +static void ccic_config_phy(struct mv_camera_dev *pcdev)
->>> +{
->>> +	struct mv_cam_pdata *mcam = pcdev->pdev->dev.platform_data;
->>> +
->>> +	if (SOCAM_MIPI & mcam->flags) {
->>> +		ccic_reg_write(pcdev, REG_CSI2_DPHY3, mcam->dphy[0]);
->>> +		ccic_reg_write(pcdev, REG_CSI2_DPHY6, mcam->dphy[2]);
->>> +		ccic_reg_write(pcdev, REG_CSI2_DPHY5, mcam->dphy[1]);
->>> +		ccic_reg_write(pcdev, REG_CSI2_CTRL0, 0x43);
->>> +	} else {
->>> +		ccic_reg_write(pcdev, REG_CSI2_DPHY3, 0x0);
->>> +		ccic_reg_write(pcdev, REG_CSI2_DPHY6, 0x0);
->>> +		ccic_reg_write(pcdev, REG_CSI2_DPHY5, 0x0);
->>> +		ccic_reg_write(pcdev, REG_CSI2_CTRL0, 0x0);
->>> +	}
->>> +}
->>> +
->>> +static int mv_videobuf_setup(struct vb2_queue *vq,
->>> +			     u32 *count, u32 *num_planes,
->>> +			     unsigned long sizes[], void *alloc_ctxs[])
->>> +{
->>> +	struct soc_camera_device *icd = container_of(vq,
->>> +		struct soc_camera_device, vb2_vidq);
->>> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
->>> +	struct mv_camera_dev *pcdev = ici->priv;
->>> +	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
->>> +		icd->current_fmt->host_fmt);
->>> +
->>> +	if (bytes_per_line < 0)
->>> +		return bytes_per_line;
->>> +
->>> +	*num_planes = 1;
->>> +	sizes[0] = pcdev->pix_format.sizeimage;
->>> +
->>> +	dev_dbg(icd->dev.parent, "count=%d, size=%lu\n", *count, sizes[0]);
->>> +	return 0;
->>> +}
->>> +
->>> +static int mv_videobuf_prepare(struct vb2_buffer *vb)
->>> +{
->>> +	struct soc_camera_device *icd = container_of(vb->vb2_queue,
->>> +		struct soc_camera_device, vb2_vidq);
->>> +	struct mv_buffer *buf = container_of(vb, struct mv_buffer, vb);
->>> +	unsigned long size;
->>> +	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
->>> +		icd->current_fmt->host_fmt);
->>> +	if (bytes_per_line < 0)
->>> +		return bytes_per_line;
->>> +
->>> +	dev_dbg(icd->dev.parent, "%s (vb=0x%p) 0x%p %lu\n", __func__, vb,
->>> +		vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
->>> +
->>> +	/* Added list head initialization on alloc */
->>> +	WARN(!list_empty(&buf->queue), "Buffer %p on queue!\n", vb);
->>> +
->>> +	BUG_ON(NULL == icd->current_fmt);
->>> +	size = icd->user_height * bytes_per_line;
->>> +	if (vb2_plane_size(vb, 0) < size) {
->>> +		dev_err(icd->dev.parent, "Buffer too small (%lu < %lu)\n",
->>> +			vb2_plane_size(vb, 0), size);
->>> +		return -ENOBUFS;
->>> +	}
->>> +
->>> +	vb2_set_plane_payload(vb, 0, size);
->>> +	return 0;
->>> +}
->>> +
->>> +static void mv_videobuf_queue(struct vb2_buffer *vb)
->>> +{
->>> +	struct soc_camera_device *icd = container_of(vb->vb2_queue,
->>> +		struct soc_camera_device, vb2_vidq);
->>> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
->>> +	struct mv_camera_dev *pcdev = ici->priv;
->>> +	struct mv_buffer *buf = container_of(vb, struct mv_buffer, vb);
->>> +	unsigned long flags;
->>> +	dma_addr_t dma_handle;
->>> +	u32 base_size = icd->user_width * icd->user_height;
->>> +
->>> +	dev_dbg(icd->dev.parent, "%s (vb=0x%p) 0x%p %lu\n", __func__,
->>> +		vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
->>> +	dma_handle = vb2_dma_contig_plane_paddr(vb, 0);
->>> +	BUG_ON(!dma_handle);
->>> +	if (pcdev->pix_format.pixelformat == V4L2_PIX_FMT_YUV422P) {
->>> +		buf->yuv_p.y = dma_handle;
->>> +		buf->yuv_p.u = buf->yuv_p.y + base_size;
->>> +		buf->yuv_p.v = buf->yuv_p.u + base_size / 2;
->>> +	} else if (pcdev->pix_format.pixelformat == V4L2_PIX_FMT_YUV420) {
->>> +		buf->yuv_p.y = dma_handle;
->>> +		buf->yuv_p.u = buf->yuv_p.y + base_size;
->>> +		buf->yuv_p.v = buf->yuv_p.u + base_size / 4;
->>> +	} else {
->>> +		buf->yuv_p.y = dma_handle;
->>> +		buf->yuv_p.u = pcdev->dummy_buf_phy;
->>> +		buf->yuv_p.v = pcdev->dummy_buf_phy;
->>> +	}
->>> +
->>> +	spin_lock_irqsave(&pcdev->list_lock, flags);
->>> +	list_add_tail(&buf->queue, &pcdev->capture);
->>> +	spin_unlock_irqrestore(&pcdev->list_lock, flags);
->>> +}
->>> +
->>> +static void mv_videobuf_cleanup(struct vb2_buffer *vb)
->>> +{
->>> +	struct mv_buffer *buf = container_of(vb, struct mv_buffer, vb);
->>> +	struct soc_camera_device *icd = container_of(vb->vb2_queue,
->>> +		struct soc_camera_device, vb2_vidq);
->>> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
->>> +	struct mv_camera_dev *pcdev = ici->priv;
->>> +	unsigned long flags;
->>> +
->>> +	spin_lock_irqsave(&pcdev->list_lock, flags);
->>> +	list_del_init(&buf->queue);
->>> +	spin_unlock_irqrestore(&pcdev->list_lock, flags);
->>> +}
->>> +
->>> +static int mv_videobuf_init(struct vb2_buffer *vb)
->>> +{
->>> +	struct mv_buffer *buf = container_of(vb, struct mv_buffer, vb);
->>> +	INIT_LIST_HEAD(&buf->queue);
->>> +	return 0;
->>> +}
->>> +
->>> +static int mv_start_streaming(struct vb2_queue *vq)
->>> +{
->>> +	struct soc_camera_device *icd = container_of(vq,
->>> +		struct soc_camera_device, vb2_vidq);
->>> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
->>> +	struct mv_camera_dev *pcdev = ici->priv;
->>> +
->>> +	ccic_config_phy(pcdev);
->>> +	ccic_irq_enable(pcdev);
->>> +	ccic_start(pcdev);
->>> +	return 0;
->>> +}
->>> +
->>> +static int mv_stop_streaming(struct vb2_queue *vq)
->>> +{
->>> +	struct soc_camera_device *icd = container_of(vq,
->>> +		struct soc_camera_device, vb2_vidq);
->>> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
->>> +	struct mv_camera_dev *pcdev = ici->priv;
->>> +
->>> +	ccic_stop_dma(pcdev);
->>> +	return 0;
->>> +}
->>> +
->>> +static struct vb2_ops mv_videobuf_ops = {
->>> +	.queue_setup = mv_videobuf_setup,
->>> +	.buf_prepare = mv_videobuf_prepare,
->>> +	.buf_queue = mv_videobuf_queue,
->>> +	.buf_cleanup = mv_videobuf_cleanup,
->>> +	.buf_init = mv_videobuf_init,
->>> +	.start_streaming = mv_start_streaming,
->>> +	.stop_streaming = mv_stop_streaming,
->>> +	.wait_prepare = soc_camera_unlock,
->>> +	.wait_finish = soc_camera_lock,
->>> +};
->>> +
->>> +static int mv_camera_init_videobuf(struct vb2_queue *q,
->>> +				   struct soc_camera_device *icd)
->>> +{
->>> +	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->>> +	q->io_modes = VB2_USERPTR;
->>> +	q->drv_priv = icd;
->>> +	q->ops = &mv_videobuf_ops;
->>> +	q->mem_ops = &vb2_dma_contig_memops;
->>> +	q->buf_struct_size = sizeof(struct mv_buffer);
->>> +
->>> +	return vb2_queue_init(q);
->>> +}
->>> +
->>> +static inline void ccic_dma_done(struct mv_camera_dev *pcdev, u32 frame)
->>> +{
->>> +	unsigned long flags;
->>> +	dma_addr_t dma_base_reg;
->>> +	unsigned long y, u, v;
->>> +
->>> +	spin_lock_irqsave(&pcdev->list_lock, flags);
->>> +	dma_base_reg = ccic_reg_read(pcdev, REG_Y0BAR + (frame << 2));
->>> +
->>> +	/* video buffer done */
->>> +	if (dma_base_reg != pcdev->dummy_buf_phy) {
->>> +		struct mv_buffer *buf;
->>> +
->>> +		list_for_each_entry(buf, &pcdev->sb_dma, queue) {
->>> +			if (dma_base_reg == buf->yuv_p.y) {
->>> +				list_del_init(&buf->queue);
->>> +				vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
->>> +				break;
->>> +			}
->>> +		}
->>> +	}
->>> +
->>> +	if (list_empty(&pcdev->capture)) {
->>> +		/* use dummy buffer when no video buffer available */
->>> +		y = u = v = pcdev->dummy_buf_phy;
->>> +	} else {
->>> +		struct mv_buffer *newbuf = list_entry(pcdev->capture.next,
->>> +						      struct mv_buffer, queue);
->>> +
->>> +		list_move_tail(&newbuf->queue, &pcdev->sb_dma);
->>> +
->>> +		y = newbuf->yuv_p.y;
->>> +		u = newbuf->yuv_p.u;
->>> +		v = newbuf->yuv_p.v;
->>> +	}
->>> +
->>> +	/* Setup DMA */
->>> +	ccic_reg_write(pcdev, REG_Y0BAR + (frame << 2), y);
->>> +	ccic_reg_write(pcdev, REG_U0BAR + (frame << 2), u);
->>> +	ccic_reg_write(pcdev, REG_V0BAR + (frame << 2), v);
->>> +
->>> +	spin_unlock_irqrestore(&pcdev->list_lock, flags);
->>> +}
->>> +
->>> +static irqreturn_t mv_camera_irq(int irq, void *data)
->>> +{
->>> +	struct mv_camera_dev *pcdev = data;
->>> +	u32 irqs;
->>> +	u32 frame;
->>> +
->>> +	irqs = ccic_reg_read(pcdev, REG_IRQSTAT);
->>> +	ccic_reg_write(pcdev, REG_IRQSTAT, irqs);
->>> +
->>> +	if (irqs & IRQ_EOF0)
->>> +		frame = 0;
->>> +	else if (irqs & IRQ_EOF1)
->>> +		frame = 1;
->>> +	else if (irqs & IRQ_EOF2)
->>> +		frame = 2;
->>> +	else
->>> +		frame = 0x0f;
->>> +	if (0x0f != frame)
->>> +		ccic_dma_done(pcdev, frame);
->>> +	return IRQ_HANDLED;
->>> +}
->>> +
->>> +static int mv_camera_add_device(struct soc_camera_device *icd)
->>> +{
->>> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
->>> +	struct mv_camera_dev *pcdev = ici->priv;
->>> +
->>> +	if (pcdev->icd)
->>> +		return -EBUSY;
->>> +
->>> +	pcdev->icd = icd;
->>> +	ccic_enable_clk(pcdev);
->>> +	ccic_init(pcdev);
->>> +	ccic_power_up(pcdev);
->>> +	return 0;
->>> +}
->>> +
->>> +static void mv_camera_remove_device(struct soc_camera_device
->>> +				    *icd)
->>> +{
->>> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
->>> +	struct mv_camera_dev *pcdev = ici->priv;
->>> +
->>> +	BUG_ON(icd != pcdev->icd);
->>> +
->>> +	ccic_disable_clk(pcdev);
->>> +	pcdev->icd = NULL;
->>> +}
->>> +
->>> +static unsigned long make_bus_param(struct mv_camera_dev *pcdev)
->>> +{
->>> +	unsigned long flags;
->>> +	struct mv_cam_pdata *mcam = pcdev->pdev->dev.platform_data;
->>> +
->>> +	flags = SOCAM_MASTER |
->>> +	    SOCAM_PCLK_SAMPLE_RISING |
->>> +	    SOCAM_PCLK_SAMPLE_FALLING |
->>> +	    SOCAM_HSYNC_ACTIVE_HIGH |
->>> +	    SOCAM_HSYNC_ACTIVE_LOW |
->>> +	    SOCAM_VSYNC_ACTIVE_HIGH |
->>> +	    SOCAM_VSYNC_ACTIVE_LOW | SOCAM_DATA_ACTIVE_HIGH;
->>> +
->>> +	if (mcam->flags & MV_CAMERA_DATAWIDTH_8)
->>> +		flags |= SOCAM_DATAWIDTH_8;
->>> +
->>> +	if (mcam->flags & MV_CAMERA_DATAWIDTH_10)
->>> +		flags |= SOCAM_DATAWIDTH_10;
->>> +
->>> +	if (flags & SOCAM_DATAWIDTH_MASK)
->>> +		return flags;
->>> +
->>> +	return 0;
->>> +}
->>> +
->>> +static int mv_camera_set_bus_param(struct soc_camera_device
->>> +				   *icd, __u32 pixfmt)
->>> +{
->>> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
->>> +	struct mv_camera_dev *pcdev = ici->priv;
->>> +	int ret;
->>> +	unsigned long camera_flags, common_flags;
->>> +	u32 value;
->>> +
->>> +	camera_flags = icd->ops->query_bus_param(icd);
->>> +	common_flags = soc_camera_bus_param_compatible(camera_flags,
->>> +						       make_bus_param(pcdev));
->>> +
->>> +	if (!common_flags)
->>> +		return -EINVAL;
->>> +
->>> +	/* Make choices, based on platform preferences */
->>> +	if ((common_flags & SOCAM_HSYNC_ACTIVE_HIGH) &&
->>> +	    (common_flags & SOCAM_HSYNC_ACTIVE_LOW)) {
->>> +		if (pcdev->platform_flags & MV_CAMERA_HSP)
->>> +			common_flags &= ~SOCAM_HSYNC_ACTIVE_HIGH;
->>> +		else
->>> +			common_flags &= ~SOCAM_HSYNC_ACTIVE_LOW;
->>> +	}
->>> +
->>> +	if ((common_flags & SOCAM_VSYNC_ACTIVE_HIGH) &&
->>> +	    (common_flags & SOCAM_VSYNC_ACTIVE_LOW)) {
->>> +		if (pcdev->platform_flags & MV_CAMERA_VSP)
->>> +			common_flags &= ~SOCAM_VSYNC_ACTIVE_HIGH;
->>> +		else
->>> +			common_flags &= ~SOCAM_VSYNC_ACTIVE_LOW;
->>> +	}
->>> +
->>> +	if ((common_flags & SOCAM_PCLK_SAMPLE_RISING) &&
->>> +	    (common_flags & SOCAM_PCLK_SAMPLE_FALLING)) {
->>> +		if (pcdev->platform_flags & MV_CAMERA_PCP)
->>> +			common_flags &= ~SOCAM_PCLK_SAMPLE_RISING;
->>> +		else
->>> +			common_flags &= ~SOCAM_PCLK_SAMPLE_FALLING;
->>> +	}
->>> +
->>> +	value = ccic_reg_read(pcdev, REG_CTRL0);
->>> +	if (common_flags & SOCAM_HSYNC_ACTIVE_LOW)
->>> +		value |= C0_HSYNC_LOW;
->>> +	if (common_flags & SOCAM_VSYNC_ACTIVE_LOW)
->>> +		value |= CO_EOF_VSYNC | C0_VEDGE_CTRL;
->>> +	if (common_flags & SOCAM_PCLK_SAMPLE_FALLING)
->>> +		value |= C0_PCLK_F;
->>> +
->>> +	ret = icd->ops->set_bus_param(icd, common_flags);
->>> +	return ret;
->>> +}
->>> +
->>> +static int mv_camera_set_fmt(struct soc_camera_device *icd,
->>> +			     struct v4l2_format *f)
->>> +{
->>> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
->>> +	struct mv_camera_dev *pcdev = ici->priv;
->>> +	struct device *dev = icd->dev.parent;
->>> +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
->>> +	const struct soc_camera_format_xlate *xlate = NULL;
->>> +	struct v4l2_mbus_framefmt mf;
->>> +	int ret;
->>> +	struct v4l2_pix_format *pix = &f->fmt.pix;
->>> +
->>> +	dev_dbg(dev, "S_FMT %c%c%c%c, %ux%u\n",
->>> +		pixfmtstr(pix->pixelformat), pix->width, pix->height);
->>> +	xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
->>> +	if (!xlate) {
->>> +		dev_err(dev, "Format %c%c%c%c not found\n",
->>> +			pixfmtstr(pix->pixelformat));
->>> +		return -EINVAL;
->>> +	}
->>> +
->>> +	mf.width = pix->width;
->>> +	mf.height = pix->height;
->>> +	mf.field = V4L2_FIELD_NONE;
->>> +	mf.colorspace = pix->colorspace;
->>> +	mf.code = xlate->code;
->>> +
->>> +	ret = v4l2_subdev_call(sd, video, s_mbus_fmt, &mf);
->>> +	if (ret < 0) {
->>> +		dev_err(dev, "s_mbus_fmt failed %s %d\n", __func__, __LINE__);
->>> +		return ret;
->>> +	}
->>> +	if (mf.code != xlate->code) {
->>> +		dev_err(dev, "wrong code %s %d\n", __func__, __LINE__);
->>> +		return -EINVAL;
->>> +	}
->>> +
->>> +	pix->width = mf.width;
->>> +	pix->height = mf.height;
->>> +	pix->field = mf.field;
->>> +	pix->colorspace = mf.colorspace;
->>> +	icd->current_fmt = xlate;
->>> +
->>> +	memcpy(&(pcdev->pix_format), pix, sizeof(struct v4l2_pix_format));
->>> +	ccic_config_image(pcdev);
->>> +
->>> +	return ret;
->>> +}
->>> +
->>> +static int mv_camera_try_fmt(struct soc_camera_device *icd,
->>> +			     struct v4l2_format *f)
->>> +{
->>> +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
->>> +	struct device *dev = icd->dev.parent;
->>> +	const struct soc_camera_format_xlate *xlate;
->>> +	struct v4l2_pix_format *pix = &f->fmt.pix;
->>> +	struct v4l2_mbus_framefmt mf;
->>> +	__u32 pixfmt = pix->pixelformat;
->>> +	int ret;
->>> +
->>> +	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
->>> +	if (!xlate) {
->>> +		dev_err(dev, "Format %c%c%c%c not found\n",
->>> +			pixfmtstr(pix->pixelformat));
->>> +		return -EINVAL;
->>> +	}
->>> +
->>> +	/* limit to sensor capabilities */
->>> +	mf.width = pix->width;
->>> +	mf.height = pix->height;
->>> +	mf.field = V4L2_FIELD_NONE;
->>> +	mf.colorspace = pix->colorspace;
->>> +	mf.code = xlate->code;
->>> +
->>> +	ret = v4l2_subdev_call(sd, video, try_mbus_fmt, &mf);
->>> +	if (ret < 0)
->>> +		return ret;
->>> +
->>> +	pix->width = mf.width;
->>> +	pix->height = mf.height;
->>> +	pix->colorspace = mf.colorspace;
->>> +
->>> +	switch (mf.field) {
->>> +	case V4L2_FIELD_ANY:
->>> +	case V4L2_FIELD_NONE:
->>> +		pix->field = V4L2_FIELD_NONE;
->>> +		break;
->>> +	default:
->>> +		dev_err(icd->dev.parent, "Field type %d unsupported.\n",
->>> +			mf.field);
->>> +		return -EINVAL;
->>> +	}
->>> +
->>> +	return ret;
->>> +}
->>> +
->>> +static unsigned int mv_camera_poll(struct file *file, poll_table * pt)
->>> +{
->>> +	struct soc_camera_device *icd = file->private_data;
->>> +
->>> +	return vb2_poll(&icd->vb2_vidq, file, pt);
->>> +}
->>> +
->>> +static int mv_camera_querycap(struct soc_camera_host *ici,
->>> +			      struct v4l2_capability *cap)
->>> +{
->>> +	cap->version = KERNEL_VERSION(0, 2, 2);
->>> +	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
->>> +	strlcpy(cap->card, "Marvell.CCIC", sizeof(cap->card));
->>> +	return 0;
->>> +}
->>> +
->>> +static const struct soc_mbus_pixelfmt ccic_formats[] = {
->>> +	{
->>> +		.fourcc = V4L2_PIX_FMT_YUV422P,
->>> +		.name = "YUV422PLANAR",
->>> +		.bits_per_sample = 8,
->>> +		.packing = SOC_MBUS_PACKING_2X8_PADLO,
->>> +		.order = SOC_MBUS_ORDER_LE,
->>> +	},
->>> +	{
->>> +		.fourcc = V4L2_PIX_FMT_YUV420,
->>> +		.name = "YUV420PLANAR",
->>> +		.bits_per_sample = 12,
->>> +		.packing = SOC_MBUS_PACKING_NONE,
->>> +		.order = SOC_MBUS_ORDER_LE,
->>> +	},
->>> +	{
->>> +		.fourcc = V4L2_PIX_FMT_UYVY,
->>> +		.name = "YUV422PACKED",
->>> +		.bits_per_sample = 8,
->>> +		.packing = SOC_MBUS_PACKING_2X8_PADLO,
->>> +		.order = SOC_MBUS_ORDER_LE,
->>> +	},
->>> +};
->>> +
->>> +static int mv_camera_get_formats(struct soc_camera_device *icd, u32 idx,
->>> +		struct soc_camera_format_xlate  *xlate)
->>> +{
->>> +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
->>> +	struct device *dev = icd->dev.parent;
->>> +	int formats, ret;
->>> +	enum v4l2_mbus_pixelcode code;
->>> +	const struct soc_mbus_pixelfmt *fmt;
->>> +
->>> +	ret = v4l2_subdev_call(sd, video, enum_mbus_fmt, idx, &code);
->>> +	if (ret < 0)
->>> +		/* No more formats */
->>> +		return 0;
->>> +
->>> +	fmt = soc_mbus_get_fmtdesc(code);
->>> +	if (!fmt) {
->>> +		dev_err(dev, "Invalid format code #%u: %d\n", idx, code);
->>> +		return 0;
->>> +	}
->>> +
->>> +	switch (code) {
->>> +		/* refer to mbus_fmt struct */
->>> +	case V4L2_MBUS_FMT_YUYV8_2X8:
->>> +		/* TODO: add support for YUV420 and YUV422P */
->>> +		formats = ARRAY_SIZE(ccic_formats);
->>> +
->>> +		if (xlate) {
->>> +			int i;
->>> +			for (i = 0; i < ARRAY_SIZE(ccic_formats); i++) {
->>> +				xlate->host_fmt = &ccic_formats[i];
->>> +				xlate->code = code;
->>> +				xlate++;
->>> +			}
->>> +		}
->>> +
->>> +		break;
->>> +	default:
->>> +		/*
->>> +		 * camera controller can not support
->>> +		 * this format, which might supported by the sensor
->>> +		 */
->>> +		dev_warn(dev, "Not support fmt %s\n", fmt->name);
->>> +		return 0;
->>> +	}
->>> +
->>> +	formats++;
->>> +	if (xlate) {
->>> +		xlate->host_fmt = fmt;
->>> +		xlate->code = code;
->>> +		xlate++;
->>> +	}
->>> +
->>> +	return formats;
->>> +}
->>> +
->>> +static struct soc_camera_host_ops mv_soc_camera_host_ops = {
->>> +	.owner = THIS_MODULE,
->>> +	.add = mv_camera_add_device,
->>> +	.remove = mv_camera_remove_device,
->>> +	.set_fmt = mv_camera_set_fmt,
->>> +	.try_fmt = mv_camera_try_fmt,
->>> +	.init_videobuf2 = mv_camera_init_videobuf,
->>> +	.poll = mv_camera_poll,
->>> +	.querycap = mv_camera_querycap,
->>> +	.set_bus_param = mv_camera_set_bus_param,
->>> +	.get_formats = mv_camera_get_formats,
->>> +};
->>> +
->>> +static int __devinit mv_camera_probe(struct platform_device *pdev)
->>> +{
->>> +	struct mv_camera_dev *pcdev;
->>> +	struct mv_cam_pdata *mcam;
->>> +	struct resource *res;
->>> +	void __iomem *base;
->>> +	int irq, i;
->>> +	int err = 0;
->>> +
->>> +	mcam = pdev->dev.platform_data;
->>> +	if (!mcam || !mcam->init_clk || !mcam->enable_clk
->>> +	    || !mcam->get_mclk_src)
->>> +		return -EINVAL;
->>> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->>> +	irq = platform_get_irq(pdev, 0);
->>> +	if (!res || irq < 0)
->>> +		return -ENODEV;
->>> +
->>> +	pcdev = kzalloc(sizeof(*pcdev), GFP_KERNEL);
->>> +	if (!pcdev) {
->>> +		dev_err(&pdev->dev, "Could not allocate pcdev\n");
->>> +		return -ENOMEM;
->>> +	}
->>> +
->>> +	pcdev->res = res;
->>> +	pcdev->pdev = pdev;
->>> +
->>> +	/* allocate dummy buffer */
->>> +	pcdev->dummy_buf_virt = dma_alloc_coherent(&pdev->dev,
->>> +		MAX_DMABUF_SIZE, &pcdev->dummy_buf_phy, GFP_KERNEL);
->>> +	if (!pcdev->dummy_buf_virt) {
->>> +		dev_err(&pdev->dev, "Can't get memory for dummy buffer\n");
->>> +		err = -ENOMEM;
->>> +		goto exit_kfree;
->>> +	}
->>> +
->>> +	err = mcam->init_clk(&pdev->dev, 1);
->>> +	if (err)
->>> +		goto exit_clk;
->>> +
->>> +	INIT_LIST_HEAD(&pcdev->capture);
->>> +	INIT_LIST_HEAD(&pcdev->sb_dma);
->>> +
->>> +	spin_lock_init(&pcdev->list_lock);
->>> +
->>> +	/*
->>> +	 * Request the regions.
->>> +	 */
->>> +	if (!request_mem_region(res->start, resource_size(res),
->>> +				MV_CAM_DRV_NAME)) {
->>> +		err = -EBUSY;
->>> +		dev_err(&pdev->dev, "request_mem_region resource failed\n");
->>> +		goto exit_release;
->>> +	}
->>> +
->>> +	base = ioremap(res->start, resource_size(res));
->>> +	if (!base) {
->>> +		err = -ENOMEM;
->>> +		dev_err(&pdev->dev, "ioremap resource failed\n");
->>> +		goto exit_iounmap;
->>> +	}
->>> +	pcdev->irq = irq;
->>> +	pcdev->base = base;
->>> +	/* request irq */
->>> +	err = request_irq(pcdev->irq, mv_camera_irq, 0, MV_CAM_DRV_NAME, pcdev);
->>> +	if (err) {
->>> +		dev_err(&pdev->dev, "Camera interrupt register failed\n");
->>> +		goto exit_free_irq;
->>> +	}
->>> +
->>> +	/* setup dma with dummy_buf_phy firstly */
->>> +	for (i = 0; i < 3; i++) {
->>> +		ccic_reg_write(pcdev, REG_Y0BAR + (i << 2),
->>> +			       pcdev->dummy_buf_phy);
->>> +		ccic_reg_write(pcdev, REG_U0BAR + (i << 2),
->>> +			       pcdev->dummy_buf_phy);
->>> +		ccic_reg_write(pcdev, REG_V0BAR + (i << 2),
->>> +			       pcdev->dummy_buf_phy);
->>> +	}
->>> +
->>> +	pcdev->soc_host.drv_name = MV_CAM_DRV_NAME;
->>> +	pcdev->soc_host.ops = &mv_soc_camera_host_ops;
->>> +	pcdev->soc_host.priv = pcdev;
->>> +	pcdev->soc_host.v4l2_dev.dev = &pdev->dev;
->>> +	pcdev->soc_host.nr = pdev->id;
->>> +	err = soc_camera_host_register(&pcdev->soc_host);
->>> +	if (err)
->>> +		goto exit_free_irq;
->>> +	return 0;
->>> +
->>> +exit_free_irq:
->>> +	free_irq(pcdev->irq, pcdev);
->>> +	ccic_power_down(pcdev);
->>> +exit_iounmap:
->>> +	iounmap(base);
->>> +exit_release:
->>> +	release_mem_region(res->start, resource_size(res));
->>> +exit_clk:
->>> +	mcam->init_clk(&pdev->dev, 0);
->>> +exit_kfree:
->>> +	/* free dummy buffer */
->>> +	if (pcdev->dummy_buf_virt)
->>> +		dma_free_coherent(&pdev->dev, MAX_DMABUF_SIZE,
->>> +			  pcdev->dummy_buf_virt, pcdev->dummy_buf_phy);
->>> +	kfree(pcdev);
->>> +
->>> +	return err;
->>> +}
->>> +
->>> +static int __devexit mv_camera_remove(struct platform_device *pdev)
->>> +{
->>> +
->>> +	struct soc_camera_host *soc_host = to_soc_camera_host(&pdev->dev);
->>> +	struct mv_camera_dev *pcdev = container_of(soc_host,
->>> +		struct mv_camera_dev, soc_host);
->>> +	struct mv_cam_pdata *mcam = pcdev->pdev->dev.platform_data;
->>> +	struct resource *res;
->>> +
->>> +	mcam->init_clk(&pdev->dev, 0);
->>> +	ccic_power_down(pcdev);
->>> +	free_irq(pcdev->irq, pcdev);
->>> +
->>> +	soc_camera_host_unregister(soc_host);
->>> +
->>> +	iounmap(pcdev->base);
->>> +
->>> +	res = pcdev->res;
->>> +	release_mem_region(res->start, resource_size(res));
->>> +
->>> +	kfree(pcdev);
->>> +
->>> +	/* free dummy buffer */
->>> +	if (pcdev->dummy_buf_virt)
->>> +		dma_free_coherent(&pdev->dev, MAX_DMABUF_SIZE,
->>> +				  pcdev->dummy_buf_virt, pcdev->dummy_buf_phy);
->>> +
->>> +	dev_info(&pdev->dev, "MV Camera driver unloaded\n");
->>> +
->>> +	return 0;
->>> +}
->>> +
->>> +static struct platform_driver mv_camera_driver = {
->>> +	.driver = {
->>> +		.name = MV_CAM_DRV_NAME,
->>> +	},
->>> +	.probe = mv_camera_probe,
->>> +	.remove = __devexit_p(mv_camera_remove),
->>> +};
->>> +
->>> +static int __init mv_camera_init(void)
->>> +{
->>> +	return platform_driver_register(&mv_camera_driver);
->>> +}
->>> +
->>> +static void __exit mv_camera_exit(void)
->>> +{
->>> +	platform_driver_unregister(&mv_camera_driver);
->>> +}
->>> +
->>> +module_init(mv_camera_init);
->>> +module_exit(mv_camera_exit);
->>> +
->>> +MODULE_DESCRIPTION("Marvell CCIC driver");
->>> +MODULE_AUTHOR("Kassey Lee <ygli@marvell.com>");
->>> +MODULE_LICENSE("GPL");
->>
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 14326d7..b5806e8 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -482,6 +482,13 @@ config VIDEO_MT9V032
+ 	  This is a Video4Linux2 sensor-level driver for the Micron
+ 	  MT9V032 752x480 CMOS sensor.
+ 
++config VIDEO_MT9T111
++	tristate "Aptina MT9T111 VGA CMOS IMAGE SENSOR"
++	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
++	---help---
++	 This is a Video4Linux2 sensor-level driver for the Aptina MT9T111
++	 image sensor.
++
+ config VIDEO_TCM825X
+ 	tristate "TCM825x camera sensor support"
+ 	depends on I2C && VIDEO_V4L2
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index c06f515..02a8b70 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -68,6 +68,7 @@ obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
+ obj-$(CONFIG_VIDEO_MT9V011) += mt9v011.o
+ obj-$(CONFIG_VIDEO_MT9V032) += mt9v032.o
+ obj-$(CONFIG_VIDEO_SR030PC30)	+= sr030pc30.o
++obj-$(CONFIG_VIDEO_MT9T111) += mt9t112.o
+ obj-$(CONFIG_VIDEO_NOON010PC30)	+= noon010pc30.o
+ obj-$(CONFIG_VIDEO_M5MOLS)	+= m5mols/
+ obj-$(CONFIG_VIDEO_ADP1653)	+= adp1653.o
+diff --git a/drivers/media/video/mt9t111_reg.h b/drivers/media/video/mt9t111_reg.h
+new file mode 100644
+index 0000000..2f610d4
+--- /dev/null
++++ b/drivers/media/video/mt9t111_reg.h
+@@ -0,0 +1,1367 @@
++/*
++ * drivers/media/video/mt9t111_reg.h
++ *
++ * mt9t111 sensor driver header file
++ *
++ * Copyright (C) 2009 Leopard Imaging
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2. This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ */
++
++#ifndef MT9T111_REG_H
++#define MT9T111_REG_H
++
++/* register addr */
++#define MT9T111_CHIP_ID		(0x0000)
++
++/* register value */
++#define MT9T111_CHIP_ID_VALUE	(0x2680)
++
++#define MT9T111_IMAGE_WIDTH		(640)
++#define MT9T111_IMAGE_HEIGHT		(480)
++
++typedef struct {
++	u16 delay_time;
++	u16 addr;
++	u16 data;
++} mt9t111_regs;
++
++mt9t111_regs patch_rev6[] = {
++	{0, 0x0982, 0x0},
++	{0, 0x098A, 0xCE7},
++	{0, 0x0990, 0x3C3C},
++	{0, 0x0992, 0x3C3C},
++	{0, 0x0994, 0x3C5F},
++	{0, 0x0996, 0x4F30},
++	{0, 0x0998, 0xED08},
++	{0, 0x099a, 0xBD61},
++	{0, 0x099c, 0xD5CE},
++	{0, 0x099e, 0x4CD},
++	{0, 0x098A, 0xCF7},
++	{0, 0x0990, 0x1F17},
++	{0, 0x0992, 0x211},
++	{0, 0x0994, 0xCC33},
++	{0, 0x0996, 0x2E30},
++	{0, 0x0998, 0xED02},
++	{0, 0x099a, 0xCCFF},
++	{0, 0x099c, 0xFDED},
++	{0, 0x099e, 0xCC},
++	{0, 0x098A, 0xD07},
++	{0, 0x0990, 0x2},
++	{0, 0x0992, 0xBD70},
++	{0, 0x0994, 0x6D18},
++	{0, 0x0996, 0xDE1F},
++	{0, 0x0998, 0x181F},
++	{0, 0x099a, 0x8E01},
++	{0, 0x099c, 0x10CC},
++	{0, 0x099e, 0x3C52},
++	{0, 0x098A, 0xD17},
++	{0, 0x0990, 0x30ED},
++	{0, 0x0992, 0x18},
++	{0, 0x0994, 0xECA0},
++	{0, 0x0996, 0xC4FD},
++	{0, 0x0998, 0xBD70},
++	{0, 0x099a, 0x2120},
++	{0, 0x099c, 0x1ECC},
++	{0, 0x099e, 0x3C52},
++	{0, 0x098A, 0xD27},
++	{0, 0x0990, 0x30ED},
++	{0, 0x0992, 0xDE},
++	{0, 0x0994, 0x1FEC},
++	{0, 0x0996, 0xA0BD},
++	{0, 0x0998, 0x7021},
++	{0, 0x099a, 0xCC3C},
++	{0, 0x099c, 0x5230},
++	{0, 0x099e, 0xED02},
++	{0, 0x098A, 0xD37},
++	{0, 0x0990, 0xCCFF},
++	{0, 0x0992, 0xFCED},
++	{0, 0x0994, 0xCC},
++	{0, 0x0996, 0x2},
++	{0, 0x0998, 0xBD70},
++	{0, 0x099a, 0x6DFC},
++	{0, 0x099c, 0x4E1},
++	{0, 0x099e, 0x1A83},
++	{0, 0x098A, 0xD47},
++	{0, 0x0990, 0x1},
++	{0, 0x0992, 0x2720},
++	{0, 0x0994, 0x1A83},
++	{0, 0x0996, 0x4},
++	{0, 0x0998, 0x271E},
++	{0, 0x099a, 0x1A83},
++	{0, 0x099c, 0x8},
++	{0, 0x099e, 0x271C},
++	{0, 0x098A, 0xD57},
++	{0, 0x0990, 0x1A83},
++	{0, 0x0992, 0x10},
++	{0, 0x0994, 0x271A},
++	{0, 0x0996, 0x1A83},
++	{0, 0x0998, 0x20},
++	{0, 0x099a, 0x2718},
++	{0, 0x099c, 0x1A83},
++	{0, 0x099e, 0x40},
++	{0, 0x098A, 0xD67},
++	{0, 0x0990, 0x2716},
++	{0, 0x0992, 0x2019},
++	{0, 0x0994, 0xC61E},
++	{0, 0x0996, 0x2012},
++	{0, 0x0998, 0xC622},
++	{0, 0x099a, 0x200E},
++	{0, 0x099c, 0xC621},
++	{0, 0x099e, 0x200A},
++	{0, 0x098A, 0xD77},
++	{0, 0x0990, 0xC620},
++	{0, 0x0992, 0x2006},
++	{0, 0x0994, 0xC62A},
++	{0, 0x0996, 0x2002},
++	{0, 0x0998, 0xC62B},
++	{0, 0x099a, 0x30ED},
++	{0, 0x099c, 0x8CC},
++	{0, 0x099e, 0x3400},
++	{0, 0x098A, 0xD87},
++	{0, 0x0990, 0x30ED},
++	{0, 0x0992, 0x34},
++	{0, 0x0994, 0xBD6F},
++	{0, 0x0996, 0xD184},
++	{0, 0x0998, 0x330},
++	{0, 0x099a, 0xED07},
++	{0, 0x099c, 0xA60A},
++	{0, 0x099e, 0x4848},
++	{0, 0x098A, 0xD97},
++	{0, 0x0990, 0x5FED},
++	{0, 0x0992, 0x5EA},
++	{0, 0x0994, 0x8AA},
++	{0, 0x0996, 0x731},
++	{0, 0x0998, 0xBD70},
++	{0, 0x099a, 0x2130},
++	{0, 0x099c, 0xC60A},
++	{0, 0x099e, 0x3A35},
++	{0, 0x098A, 0xDA7},
++	{0, 0x0990, 0x3937},
++	{0, 0x0992, 0x3C3C},
++	{0, 0x0994, 0x3C34},
++	{0, 0x0996, 0xDE2F},
++	{0, 0x0998, 0xEE0E},
++	{0, 0x099a, 0xAD00},
++	{0, 0x099c, 0x7D13},
++	{0, 0x099e, 0xEF27},
++	{0, 0x098A, 0xDB7},
++	{0, 0x0990, 0x7CCE},
++	{0, 0x0992, 0x13E0},
++	{0, 0x0994, 0x1E05},
++	{0, 0x0996, 0x1060},
++	{0, 0x0998, 0xE60E},
++	{0, 0x099a, 0x4FC3},
++	{0, 0x099c, 0x13F0},
++	{0, 0x099e, 0x8FE6},
++	{0, 0x098A, 0xDC7},
++	{0, 0x0990, 0x30},
++	{0, 0x0992, 0xE107},
++	{0, 0x0994, 0x2216},
++	{0, 0x0996, 0xF613},
++	{0, 0x0998, 0xEE4F},
++	{0, 0x099a, 0xC313},
++	{0, 0x099c, 0xF38F},
++	{0, 0x099e, 0xE600},
++	{0, 0x098A, 0xDD7},
++	{0, 0x0990, 0x30E1},
++	{0, 0x0992, 0x725},
++	{0, 0x0994, 0x7F6},
++	{0, 0x0996, 0x13EE},
++	{0, 0x0998, 0xC103},
++	{0, 0x099a, 0x253C},
++	{0, 0x099c, 0x7F13},
++	{0, 0x099e, 0xEEF6},
++	{0, 0x098A, 0xDE7},
++	{0, 0x0990, 0x13EF},
++	{0, 0x0992, 0xE706},
++	{0, 0x0994, 0xCC13},
++	{0, 0x0996, 0xF0ED},
++	{0, 0x0998, 0x4CC},
++	{0, 0x099a, 0x13F3},
++	{0, 0x099c, 0x200F},
++	{0, 0x099e, 0x7C13},
++	{0, 0x098A, 0xDF7},
++	{0, 0x0990, 0xEEEC},
++	{0, 0x0992, 0x4C3},
++	{0, 0x0994, 0x1},
++	{0, 0x0996, 0xED04},
++	{0, 0x0998, 0xEC02},
++	{0, 0x099a, 0xC300},
++	{0, 0x099c, 0x1ED},
++	{0, 0x099e, 0x2F6},
++	{0, 0x098A, 0xE07},
++	{0, 0x0990, 0x13EE},
++	{0, 0x0992, 0xE106},
++	{0, 0x0994, 0x2412},
++	{0, 0x0996, 0xEE04},
++	{0, 0x0998, 0xE600},
++	{0, 0x099a, 0x30E1},
++	{0, 0x099c, 0x722},
++	{0, 0x099e, 0xDFEE},
++	{0, 0x098A, 0xE17},
++	{0, 0x0990, 0x2E6},
++	{0, 0x0992, 0x30},
++	{0, 0x0994, 0xE107},
++	{0, 0x0996, 0x25D6},
++	{0, 0x0998, 0xDE49},
++	{0, 0x099a, 0xEE08},
++	{0, 0x099c, 0xAD00},
++	{0, 0x099e, 0xCC13},
++	{0, 0x098A, 0xE27},
++	{0, 0x0990, 0xF630},
++	{0, 0x0992, 0xED00},
++	{0, 0x0994, 0xDE2F},
++	{0, 0x0996, 0xEE10},
++	{0, 0x0998, 0xCC13},
++	{0, 0x099a, 0xFAAD},
++	{0, 0x099c, 0x38},
++	{0, 0x099e, 0x3838},
++	{0, 0x098A, 0xE37},
++	{0, 0x0990, 0x3839},
++	{0, 0x098A, 0x1000},
++	{0, 0x0990, 0xCC10},
++	{0, 0x0992, 0x9BD},
++	{0, 0x0994, 0x4224},
++	{0, 0x0996, 0x7E10},
++	{0, 0x0998, 0x9C6},
++	{0, 0x099a, 0x1F7},
++	{0, 0x099c, 0x18A},
++	{0, 0x099e, 0xC606},
++	{0, 0x098A, 0x1010},
++	{0, 0x0990, 0xF701},
++	{0, 0x0992, 0x8BDE},
++	{0, 0x0994, 0x3F18},
++	{0, 0x0996, 0xCE0B},
++	{0, 0x0998, 0xF1CC},
++	{0, 0x099a, 0x11},
++	{0, 0x099c, 0xBDD7},
++	{0, 0x099e, 0xCC},
++	{0, 0x098A, 0x1020},
++	{0, 0x0990, 0xBF1},
++	{0, 0x0992, 0xDD3F},
++	{0, 0x0994, 0xDE35},
++	{0, 0x0996, 0x18CE},
++	{0, 0x0998, 0xC03},
++	{0, 0x099a, 0xCC00},
++	{0, 0x099c, 0x3FBD},
++	{0, 0x099e, 0xD700},
++	{0, 0x098A, 0x1030},
++	{0, 0x0990, 0xCC0C},
++	{0, 0x0992, 0x3DD},
++	{0, 0x0994, 0x35DE},
++	{0, 0x0996, 0x4718},
++	{0, 0x0998, 0xCE0C},
++	{0, 0x099a, 0x43CC},
++	{0, 0x099c, 0x15},
++	{0, 0x099e, 0xBDD7},
++	{0, 0x098A, 0x1040},
++	{0, 0x0990, 0xCC},
++	{0, 0x0992, 0xC43},
++	{0, 0x0994, 0xDD47},
++	{0, 0x0996, 0xFE00},
++	{0, 0x0998, 0x3318},
++	{0, 0x099a, 0xCE0C},
++	{0, 0x099c, 0x59CC},
++	{0, 0x099e, 0x9},
++	{0, 0x098A, 0x1050},
++	{0, 0x0990, 0xBDD7},
++	{0, 0x0992, 0xCC},
++	{0, 0x0994, 0xC59},
++	{0, 0x0996, 0xFD00},
++	{0, 0x0998, 0x33DE},
++	{0, 0x099a, 0x4118},
++	{0, 0x099c, 0xCE0C},
++	{0, 0x099e, 0x63CC},
++	{0, 0x098A, 0x1060},
++	{0, 0x0990, 0xD},
++	{0, 0x0992, 0xBDD7},
++	{0, 0x0994, 0xCC},
++	{0, 0x0996, 0xC63},
++	{0, 0x0998, 0xDD41},
++	{0, 0x099a, 0xFE00},
++	{0, 0x099c, 0x3118},
++	{0, 0x099e, 0xCE0C},
++	{0, 0x098A, 0x1070},
++	{0, 0x0990, 0x71CC},
++	{0, 0x0992, 0x29},
++	{0, 0x0994, 0xBDD7},
++	{0, 0x0996, 0xCC},
++	{0, 0x0998, 0xC71},
++	{0, 0x099a, 0xFD00},
++	{0, 0x099c, 0x31DE},
++	{0, 0x099e, 0x3918},
++	{0, 0x098A, 0x1080},
++	{0, 0x0990, 0xCE0C},
++	{0, 0x0992, 0x9BCC},
++	{0, 0x0994, 0x23},
++	{0, 0x0996, 0xBDD7},
++	{0, 0x0998, 0xCC},
++	{0, 0x099a, 0xC9B},
++	{0, 0x099c, 0xDD39},
++	{0, 0x099e, 0xDE49},
++	{0, 0x098A, 0x1090},
++	{0, 0x0990, 0x18CE},
++	{0, 0x0992, 0xCBF},
++	{0, 0x0994, 0xCC00},
++	{0, 0x0996, 0xDBD},
++	{0, 0x0998, 0xD700},
++	{0, 0x099a, 0xCC0C},
++	{0, 0x099c, 0xBFDD},
++	{0, 0x099e, 0x49CC},
++	{0, 0x098A, 0x10A0},
++	{0, 0x0990, 0x1162},
++	{0, 0x0992, 0xFD0B},
++	{0, 0x0994, 0xFDCC},
++	{0, 0x0996, 0xCE7},
++	{0, 0x0998, 0xFD0C},
++	{0, 0x099a, 0x1FCC},
++	{0, 0x099c, 0x1245},
++	{0, 0x099e, 0xFD0C},
++	{0, 0x098A, 0x10B0},
++	{0, 0x0990, 0x51CC},
++	{0, 0x0992, 0x110B},
++	{0, 0x0994, 0xFD0C},
++	{0, 0x0996, 0x5BCC},
++	{0, 0x0998, 0x1108},
++	{0, 0x099a, 0xFD0C},
++	{0, 0x099c, 0x65CC},
++	{0, 0x099e, 0x10D0},
++	{0, 0x098A, 0x10C0},
++	{0, 0x0990, 0xFD0C},
++	{0, 0x0992, 0x7BCC},
++	{0, 0x0994, 0x12DE},
++	{0, 0x0996, 0xFD0C},
++	{0, 0x0998, 0xA7CC},
++	{0, 0x099a, 0xDA8},
++	{0, 0x099c, 0xFD0C},
++	{0, 0x099e, 0xCB39},
++	{0, 0x098A, 0x10D0},
++	{0, 0x0990, 0x37DE},
++	{0, 0x0992, 0x1DEC},
++	{0, 0x0994, 0xC5F},
++	{0, 0x0996, 0x8402},
++	{0, 0x0998, 0x4416},
++	{0, 0x099a, 0x4FF7},
++	{0, 0x099c, 0xCCD},
++	{0, 0x099e, 0xE60B},
++	{0, 0x098A, 0x10E0},
++	{0, 0x0990, 0xC407},
++	{0, 0x0992, 0xF70C},
++	{0, 0x0994, 0xCE7F},
++	{0, 0x0996, 0x30C4},
++	{0, 0x0998, 0xEC25},
++	{0, 0x099a, 0xFD30},
++	{0, 0x099c, 0xC5FC},
++	{0, 0x099e, 0x6D6},
++	{0, 0x098A, 0x10F0},
++	{0, 0x0990, 0xFD30},
++	{0, 0x0992, 0xC701},
++	{0, 0x0994, 0xFC30},
++	{0, 0x0996, 0xC0FD},
++	{0, 0x0998, 0xBED},
++	{0, 0x099a, 0xFC30},
++	{0, 0x099c, 0xC2FD},
++	{0, 0x099e, 0xBEF},
++	{0, 0x098A, 0x1100},
++	{0, 0x0990, 0x30E6},
++	{0, 0x0992, 0xBD},
++	{0, 0x0994, 0x5203},
++	{0, 0x0996, 0x3139},
++	{0, 0x0998, 0x7E9E},
++	{0, 0x099a, 0x143C},
++	{0, 0x099c, 0x3C3C},
++	{0, 0x099e, 0x2101},
++	{0, 0x098A, 0x1110},
++	{0, 0x0990, 0xCC00},
++	{0, 0x0992, 0x18BD},
++	{0, 0x0994, 0x6FD1},
++	{0, 0x0996, 0xC504},
++	{0, 0x0998, 0x26F5},
++	{0, 0x099a, 0xDC25},
++	{0, 0x099c, 0x30ED},
++	{0, 0x099e, 0x420},
++	{0, 0x098A, 0x1120},
++	{0, 0x0990, 0x12EE},
++	{0, 0x0992, 0x43C},
++	{0, 0x0994, 0x1838},
++	{0, 0x0996, 0xE621},
++	{0, 0x0998, 0x18E7},
++	{0, 0x099a, 0xBE30},
++	{0, 0x099c, 0xEE04},
++	{0, 0x099e, 0xEC1D},
++	{0, 0x098A, 0x1130},
++	{0, 0x0990, 0x30ED},
++	{0, 0x0992, 0x4EC},
++	{0, 0x0994, 0x426},
++	{0, 0x0996, 0xEACC},
++	{0, 0x0998, 0x1A},
++	{0, 0x099a, 0xED02},
++	{0, 0x099c, 0xCCFB},
++	{0, 0x099e, 0xFFED},
++	{0, 0x098A, 0x1140},
++	{0, 0x0990, 0xCC},
++	{0, 0x0992, 0x400},
++	{0, 0x0994, 0xBD70},
++	{0, 0x0996, 0x6DCC},
++	{0, 0x0998, 0x1A},
++	{0, 0x099a, 0x30ED},
++	{0, 0x099c, 0x2CC},
++	{0, 0x099e, 0xFBFF},
++	{0, 0x098A, 0x1150},
++	{0, 0x0990, 0xED00},
++	{0, 0x0992, 0x5F4F},
++	{0, 0x0994, 0xBD70},
++	{0, 0x0996, 0x6D5F},
++	{0, 0x0998, 0xBD5B},
++	{0, 0x099a, 0x17BD},
++	{0, 0x099c, 0x558B},
++	{0, 0x099e, 0x3838},
++	{0, 0x098A, 0x1160},
++	{0, 0x0990, 0x3839},
++	{0, 0x0992, 0x3C3C},
++	{0, 0x0994, 0xC640},
++	{0, 0x0996, 0xF730},
++	{0, 0x0998, 0xC4FC},
++	{0, 0x099a, 0xBED},
++	{0, 0x099c, 0xFD30},
++	{0, 0x099e, 0xC0FC},
++	{0, 0x098A, 0x1170},
++	{0, 0x0990, 0xBEF},
++	{0, 0x0992, 0xFD30},
++	{0, 0x0994, 0xC2DE},
++	{0, 0x0996, 0x1DEC},
++	{0, 0x0998, 0x25FD},
++	{0, 0x099a, 0x30C5},
++	{0, 0x099c, 0x101},
++	{0, 0x099e, 0x1FC},
++	{0, 0x098A, 0x1180},
++	{0, 0x0990, 0x30C2},
++	{0, 0x0992, 0xFD06},
++	{0, 0x0994, 0xD6EC},
++	{0, 0x0996, 0xC5F},
++	{0, 0x0998, 0x8402},
++	{0, 0x099a, 0x4416},
++	{0, 0x099c, 0x4F30},
++	{0, 0x099e, 0xE703},
++	{0, 0x098A, 0x1190},
++	{0, 0x0990, 0xF10C},
++	{0, 0x0992, 0xCD27},
++	{0, 0x0994, 0x15F1},
++	{0, 0x0996, 0xCCD},
++	{0, 0x0998, 0x2309},
++	{0, 0x099a, 0xFC06},
++	{0, 0x099c, 0xD604},
++	{0, 0x099e, 0xFD06},
++	{0, 0x098A, 0x11A0},
++	{0, 0x0990, 0xD620},
++	{0, 0x0992, 0x7FC},
++	{0, 0x0994, 0x6D6},
++	{0, 0x0996, 0x5FD},
++	{0, 0x0998, 0x6D6},
++	{0, 0x099a, 0xDE1D},
++	{0, 0x099c, 0xE60B},
++	{0, 0x099e, 0xC407},
++	{0, 0x098A, 0x11B0},
++	{0, 0x0990, 0x30E7},
++	{0, 0x0992, 0x2F1},
++	{0, 0x0994, 0xCCE},
++	{0, 0x0996, 0x272C},
++	{0, 0x0998, 0x7D0C},
++	{0, 0x099a, 0xCE27},
++	{0, 0x099c, 0x275D},
++	{0, 0x099e, 0x2724},
++	{0, 0x098A, 0x11C0},
++	{0, 0x0990, 0x7F30},
++	{0, 0x0992, 0xC4FC},
++	{0, 0x0994, 0x6D6},
++	{0, 0x0996, 0xFD30},
++	{0, 0x0998, 0xC5F6},
++	{0, 0x099a, 0xCCE},
++	{0, 0x099c, 0x4FFD},
++	{0, 0x099e, 0x30C7},
++	{0, 0x098A, 0x11D0},
++	{0, 0x0990, 0xC640},
++	{0, 0x0992, 0xF730},
++	{0, 0x0994, 0xC4E6},
++	{0, 0x0996, 0x24F},
++	{0, 0x0998, 0xFD30},
++	{0, 0x099a, 0xC501},
++	{0, 0x099c, 0x101},
++	{0, 0x099e, 0xFC30},
++	{0, 0x098A, 0x11E0},
++	{0, 0x0990, 0xC2FD},
++	{0, 0x0992, 0x6D6},
++	{0, 0x0994, 0x7D06},
++	{0, 0x0996, 0xCB27},
++	{0, 0x0998, 0x2EC6},
++	{0, 0x099a, 0x40F7},
++	{0, 0x099c, 0x30C4},
++	{0, 0x099e, 0xFC06},
++	{0, 0x098A, 0x11F0},
++	{0, 0x0990, 0xC104},
++	{0, 0x0992, 0xF306},
++	{0, 0x0994, 0xD6ED},
++	{0, 0x0996, 0x5F},
++	{0, 0x0998, 0x6D00},
++	{0, 0x099a, 0x2A01},
++	{0, 0x099c, 0x5317},
++	{0, 0x099e, 0xFD30},
++	{0, 0x098A, 0x1200},
++	{0, 0x0990, 0xC0EC},
++	{0, 0x0992, 0xFD},
++	{0, 0x0994, 0x30C2},
++	{0, 0x0996, 0xFC06},
++	{0, 0x0998, 0xC1FD},
++	{0, 0x099a, 0x30C5},
++	{0, 0x099c, 0x101},
++	{0, 0x099e, 0x1FC},
++	{0, 0x098A, 0x1210},
++	{0, 0x0990, 0x30C2},
++	{0, 0x0992, 0xFD06},
++	{0, 0x0994, 0xC720},
++	{0, 0x0996, 0x227F},
++	{0, 0x0998, 0x30C4},
++	{0, 0x099a, 0xDE1D},
++	{0, 0x099c, 0xEC25},
++	{0, 0x099e, 0xFD30},
++	{0, 0x098A, 0x1220},
++	{0, 0x0990, 0xC5FC},
++	{0, 0x0992, 0x6D6},
++	{0, 0x0994, 0xFD30},
++	{0, 0x0996, 0xC701},
++	{0, 0x0998, 0xFC30},
++	{0, 0x099a, 0xC0FD},
++	{0, 0x099c, 0x6D0},
++	{0, 0x099e, 0xFC30},
++	{0, 0x098A, 0x1230},
++	{0, 0x0990, 0xC2FD},
++	{0, 0x0992, 0x6D2},
++	{0, 0x0994, 0xEC25},
++	{0, 0x0996, 0xFD06},
++	{0, 0x0998, 0xC3BD},
++	{0, 0x099a, 0x953C},
++	{0, 0x099c, 0xDE3F},
++	{0, 0x099e, 0xEE10},
++	{0, 0x098A, 0x1240},
++	{0, 0x0990, 0xAD00},
++	{0, 0x0992, 0x3838},
++	{0, 0x0994, 0x3930},
++	{0, 0x0996, 0x8FC3},
++	{0, 0x0998, 0xFFE9},
++	{0, 0x099a, 0x8F35},
++	{0, 0x099c, 0xBDAD},
++	{0, 0x099e, 0x1530},
++	{0, 0x098A, 0x1250},
++	{0, 0x0990, 0x6F16},
++	{0, 0x0992, 0x18DE},
++	{0, 0x0994, 0x1918},
++	{0, 0x0996, 0x8FC3},
++	{0, 0x0998, 0x14B},
++	{0, 0x099a, 0x188F},
++	{0, 0x099c, 0x18EC},
++	{0, 0x099e, 0xFD},
++	{0, 0x098A, 0x1260},
++	{0, 0x0990, 0x50E},
++	{0, 0x0992, 0x18EC},
++	{0, 0x0994, 0x2FD},
++	{0, 0x0996, 0x510},
++	{0, 0x0998, 0xE616},
++	{0, 0x099a, 0x4FED},
++	{0, 0x099c, 0x418},
++	{0, 0x099e, 0x8FC3},
++	{0, 0x098A, 0x1270},
++	{0, 0x0990, 0xFFCB},
++	{0, 0x0992, 0xE304},
++	{0, 0x0994, 0x8FE6},
++	{0, 0x0996, 0xF7},
++	{0, 0x0998, 0x514},
++	{0, 0x099a, 0x18DE},
++	{0, 0x099c, 0x1930},
++	{0, 0x099e, 0xE616},
++	{0, 0x098A, 0x1280},
++	{0, 0x0990, 0x4FED},
++	{0, 0x0992, 0x418},
++	{0, 0x0994, 0x8FC3},
++	{0, 0x0996, 0x119},
++	{0, 0x0998, 0xE304},
++	{0, 0x099a, 0x8FE6},
++	{0, 0x099c, 0xF7},
++	{0, 0x099e, 0x515},
++	{0, 0x098A, 0x1290},
++	{0, 0x0990, 0xFC05},
++	{0, 0x0992, 0x5BFD},
++	{0, 0x0994, 0x512},
++	{0, 0x0996, 0xDE37},
++	{0, 0x0998, 0xEE08},
++	{0, 0x099a, 0xAD00},
++	{0, 0x099c, 0x30E6},
++	{0, 0x099e, 0x164F},
++	{0, 0x098A, 0x12A0},
++	{0, 0x0990, 0x5ED},
++	{0, 0x0992, 0x48F},
++	{0, 0x0994, 0xC300},
++	{0, 0x0996, 0x630},
++	{0, 0x0998, 0xE304},
++	{0, 0x099a, 0x8FF6},
++	{0, 0x099c, 0x516},
++	{0, 0x099e, 0x4FED},
++	{0, 0x098A, 0x12B0},
++	{0, 0x0990, 0x30},
++	{0, 0x0992, 0x6C16},
++	{0, 0x0994, 0xE616},
++	{0, 0x0996, 0xC103},
++	{0, 0x0998, 0x2598},
++	{0, 0x099a, 0xCC32},
++	{0, 0x099c, 0x8EED},
++	{0, 0x099e, 0xEC},
++	{0, 0x098A, 0x12C0},
++	{0, 0x0990, 0x6BD},
++	{0, 0x0992, 0x7021},
++	{0, 0x0994, 0xCC32},
++	{0, 0x0996, 0x6C30},
++	{0, 0x0998, 0xED02},
++	{0, 0x099a, 0xCCF8},
++	{0, 0x099c, 0xED},
++	{0, 0x099e, 0xA6},
++	{0, 0x098A, 0x12D0},
++	{0, 0x0990, 0x9E3},
++	{0, 0x0992, 0xA84},
++	{0, 0x0994, 0x7BD},
++	{0, 0x0996, 0x706D},
++	{0, 0x0998, 0x30C6},
++	{0, 0x099a, 0x173A},
++	{0, 0x099c, 0x3539},
++	{0, 0x099e, 0x3CBD},
++	{0, 0x098A, 0x12E0},
++	{0, 0x0990, 0x776D},
++	{0, 0x0992, 0xCC32},
++	{0, 0x0994, 0x5C30},
++	{0, 0x0996, 0xED00},
++	{0, 0x0998, 0xFC13},
++	{0, 0x099a, 0x8683},
++	{0, 0x099c, 0x1},
++	{0, 0x099e, 0xBD70},
++	{0, 0x098A, 0x12F0},
++	{0, 0x0990, 0x21CC},
++	{0, 0x0992, 0x325E},
++	{0, 0x0994, 0x30ED},
++	{0, 0x0996, 0xFC},
++	{0, 0x0998, 0x1388},
++	{0, 0x099a, 0x8300},
++	{0, 0x099c, 0x1BD},
++	{0, 0x099e, 0x7021},
++	{0, 0x098A, 0x1300},
++	{0, 0x0990, 0x3839},
++	{0, 0x098E, 0x0010},
++	{0, 0x0990, 0x1000},
++	{0, 0x098E, 0x0003},
++	{100, 0x0990, 0x0004}
++};
++
++mt9t111_regs def_regs1[] = {
++	{0, 0x001A, 0x0218},
++	{0, 0x001E, 0x0777},
++	{0, 0x3084, 0x2409},
++	{0, 0x3092, 0x0A49},
++	{0, 0x3094, 0x4949},
++	{0, 0x3096, 0x4950},
++	{0, 0x0018, 0x402D},
++	{100, 0x0018, 0x402C},
++	{0, 0x098E, 0x6800},
++	{0, 0x0990, 0x0280},
++	{0, 0x098E, 0x6802},
++	{0, 0x0990, 0x01E0},
++	{0, 0x098E, 0xE88E},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0x68A0},
++	{0, 0x0990, 0x082D},
++	{0, 0x098E, 0x4802},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0x4804},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0x4806},
++	{0, 0x0990, 0x060D},
++	{0, 0x098E, 0x4808},
++	{0, 0x0990, 0x080D},
++	{0, 0x098E, 0x480A},
++	{0, 0x0990, 0x0111},
++	{0, 0x098E, 0x480C},
++	{0, 0x0990, 0x046C},
++	{0, 0x098E, 0x480F},
++	{0, 0x0990, 0x00CC},
++	{0, 0x098E, 0x4811},
++	{0, 0x0990, 0x0381},
++	{0, 0x098E, 0x4813},
++	{0, 0x0990, 0x024F},
++	{0, 0x098E, 0x481D},
++	{0, 0x0990, 0x05AE},
++	{0, 0x098E, 0x481F},
++	{0, 0x0990, 0x05D0},
++	{0, 0x098E, 0x4825},
++	{0, 0x0990, 0x07AC},
++	{0, 0x098E, 0x6C00},
++	{0, 0x0990, 0x0800},
++	{0, 0x098E, 0x6C02},
++	{0, 0x0990, 0x0600},
++	{0, 0x098E, 0xEC8E},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0x6CA0},
++	{0, 0x0990, 0x082D},
++	{0, 0x098E, 0x484A},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0x484C},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0x484E},
++	{0, 0x0990, 0x060D},
++	{0, 0x098E, 0x4850},
++	{0, 0x0990, 0x080D},
++	{0, 0x098E, 0x4852},
++	{0, 0x0990, 0x0111},
++	{0, 0x098E, 0x4854},
++	{0, 0x0990, 0x146C},
++	{0, 0x098E, 0x4857},
++	{0, 0x0990, 0x00CC},
++	{0, 0x098E, 0x4859},
++	{0, 0x0990, 0x0381},
++	{0, 0x098E, 0x485B},
++	{0, 0x0990, 0x024F},
++	{0, 0x098E, 0x4865},
++	{0, 0x0990, 0x05AE},
++	{0, 0x098E, 0x4867},
++	{0, 0x0990, 0x05D0},
++	{0, 0x098E, 0x486D},
++	{0, 0x0990, 0x07AC},
++	{0, 0x098E, 0xC8A5},
++	{0, 0x0990, 0x001D},
++	{0, 0x098E, 0xC8A6},
++	{0, 0x0990, 0x0020},
++	{0, 0x098E, 0xC8A7},
++	{0, 0x0990, 0x0023},
++	{0, 0x098E, 0xC8A8},
++	{0, 0x0990, 0x0026},
++	{0, 0x098E, 0xC844},
++	{0, 0x0990, 0x0091},
++	{0, 0x098E, 0xC92F},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0xC845},
++	{0, 0x0990, 0x0079},
++	{0, 0x098E, 0xC92D},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0xC88C},
++	{0, 0x0990, 0x0091},
++	{0, 0x098E, 0xC930},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0xC88D},
++	{0, 0x0990, 0x0079},
++	{0, 0x098E, 0xC92E},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0xA002},
++	{0, 0x0990, 0x0010},
++	{0, 0x098E, 0xA009},
++	{0, 0x0990, 0x0002},
++	{0, 0x098E, 0xA00A},
++	{0, 0x0990, 0x0003},
++	{0, 0x098E, 0xA00C},
++	{0, 0x0990, 0x000A},
++	{0, 0x098E, 0x4846},
++	{0, 0x0990, 0x0014},
++	{0, 0x098E, 0x68AA},
++	{0, 0x0990, 0x0278},
++	{0, 0x098E, 0x488E},
++	{0, 0x0990, 0x0014},
++	{0, 0x098E, 0x6CAA},
++	{0, 0x0990, 0x0218},
++	{0, 0x098E, 0x8400},
++	{0, 0x0990, 0x0006},
++	{0, 0x098E, 0x8400},
++	{0, 0x0990, 0x0005},
++	{0, 0x3C20, 0x0001},
++	{0, 0x364A, 0x7D2F},
++	{0, 0x364C, 0x79EB},
++	{0, 0x364E, 0x18D2},
++	{0, 0x3650, 0x9F8F},
++	{0, 0x3652, 0xA7D2},
++	{0, 0x368A, 0x460C},
++	{0, 0x368C, 0x14F0},
++	{0, 0x368E, 0x946F},
++	{0, 0x3690, 0xC471},
++	{0, 0x3692, 0x04B1},
++	{0, 0x36CA, 0x0433},
++	{0, 0x36CC, 0x680D},
++	{0, 0x36CE, 0xEEF3},
++	{0, 0x36D0, 0x4850},
++	{0, 0x36D2, 0xF233},
++	{0, 0x370A, 0xB2AF},
++	{0, 0x370C, 0x2CF0},
++	{0, 0x370E, 0x3F10},
++	{0, 0x3710, 0xC673},
++	{0, 0x3712, 0xA972},
++	{0, 0x374A, 0x0590},
++	{0, 0x374C, 0xAFB3},
++	{0, 0x374E, 0x93D7},
++	{0, 0x3750, 0x8D12},
++	{0, 0x3752, 0x2539},
++	{0, 0x3640, 0x0350},
++	{0, 0x3642, 0x322C},
++	{0, 0x3644, 0x77D1},
++	{0, 0x3646, 0xA26F},
++	{0, 0x3648, 0xC872},
++	{0, 0x3680, 0x0C4C},
++	{0, 0x3682, 0x9510},
++	{0, 0x3684, 0x110E},
++	{0, 0x3686, 0x4331},
++	{0, 0x3688, 0xC1CF},
++	{0, 0x36C0, 0x6152},
++	{0, 0x36C2, 0x038E},
++	{0, 0x36C4, 0x9AF4},
++	{0, 0x36C6, 0xE12F},
++	{0, 0x36C8, 0x09F3},
++	{0, 0x3700, 0xC5AF},
++	{0, 0x3702, 0xCA90},
++	{0, 0x3704, 0x5D0F},
++	{0, 0x3706, 0x3293},
++	{0, 0x3708, 0x2B92},
++	{0, 0x3740, 0xC590},
++	{0, 0x3742, 0x8133},
++	{0, 0x3744, 0xE0F6},
++	{0, 0x3746, 0x0254},
++	{0, 0x3748, 0x10B9},
++	{0, 0x3654, 0x7F8F},
++	{0, 0x3656, 0x6F6C},
++	{0, 0x3658, 0x5971},
++	{0, 0x365A, 0x9A0F},
++	{0, 0x365C, 0xA1B2},
++	{0, 0x3694, 0xB00C},
++	{0, 0x3696, 0xEBCF},
++	{0, 0x3698, 0x06AD},
++	{0, 0x369A, 0x4D31},
++	{0, 0x369C, 0x2A4E},
++	{0, 0x36D4, 0x4752},
++	{0, 0x36D6, 0x724D},
++	{0, 0x36D8, 0xAD34},
++	{0, 0x36DA, 0x1350},
++	{0, 0x36DC, 0x4E94},
++	{0, 0x3714, 0xA06E},
++	{0, 0x3716, 0x9152},
++	{0, 0x3718, 0x1F53},
++	{0, 0x371A, 0x3933},
++	{0, 0x371C, 0xBA94},
++	{0, 0x3754, 0x1233},
++	{0, 0x3756, 0xA032},
++	{0, 0x3758, 0xE936},
++	{0, 0x375A, 0xBE34},
++	{0, 0x375C, 0x02D9},
++	{0, 0x365E, 0x7DEF},
++	{0, 0x3660, 0x434B},
++	{0, 0x3662, 0x69F1},
++	{0, 0x3664, 0x8A0F},
++	{0, 0x3666, 0xBDB2},
++	{0, 0x369E, 0x290D},
++	{0, 0x36A0, 0x42CF},
++	{0, 0x36A2, 0xDC6D},
++	{0, 0x36A4, 0x91B1},
++	{0, 0x36A6, 0x9DE9},
++	{0, 0x36DE, 0x70B2},
++	{0, 0x36E0, 0x02AC},
++	{0, 0x36E2, 0x9714},
++	{0, 0x36E4, 0xF3CF},
++	{0, 0x36E6, 0x6BD1},
++	{0, 0x371E, 0xE42E},
++	{0, 0x3720, 0x1D32},
++	{0, 0x3722, 0xCC31},
++	{0, 0x3724, 0xAE94},
++	{0, 0x3726, 0x6413},
++	{0, 0x375E, 0xE290},
++	{0, 0x3760, 0x8F53},
++	{0, 0x3762, 0xF936},
++	{0, 0x3764, 0x4614},
++	{0, 0x3766, 0x1B59},
++	{0, 0x3784, 0x0404},
++	{0, 0x3782, 0x0304},
++	{0, 0x3210, 0x01B8},
++	{0, 0x098E, 0xC913},
++	{0, 0x0990, 0x000A},
++	{0, 0x098E, 0x686B},
++	{0, 0x0990, 0x05DC},
++	{0, 0x098E, 0x686D},
++	{0, 0x0990, 0x0BB8},
++	{0, 0x098E, 0x6C6B},
++	{0, 0x0990, 0x05DC},
++	{0, 0x098E, 0x6C6D},
++	{0, 0x0990, 0x0BB8},
++	{0, 0x098E, 0x3439},
++	{0, 0x0990, 0x05DC},
++	{0, 0x098E, 0x343B},
++	{0, 0x0990, 0x0BB8},
++	{0, 0x098E, 0x4926},
++	{0, 0x0990, 0x0001},
++	{0, 0x098E, 0x4928},
++	{0, 0x0990, 0x0002},
++	{0, 0x098E, 0x492A},
++	{0, 0x0990, 0x0656},
++	{0, 0x098E, 0x4D26},
++	{0, 0x0990, 0x0001},
++	{0, 0x098E, 0x4D28},
++	{0, 0x0990, 0x0002},
++	{0, 0x098E, 0x4D2A},
++	{0, 0x0990, 0x0656},
++	{0, 0x33F4, 0x040B},
++	{0, 0x098E, 0xC916},
++	{0, 0x0990, 0x0014},
++	{0, 0x098E, 0xC919},
++	{0, 0x0990, 0x0028},
++	{0, 0x098E, 0xC917},
++	{0, 0x0990, 0x0004},
++	{0, 0x098E, 0xC918},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0xC91A},
++	{0, 0x0990, 0x0001},
++	{0, 0x098E, 0xC91B},
++	{0, 0x0990, 0x0009},
++	{0, 0x326C, 0x0C00},
++	{0, 0x098E, 0x494B},
++	{0, 0x0990, 0x0042},
++	{0, 0x098E, 0x494D},
++	{0, 0x0990, 0x012C},
++	{0, 0x098E, 0xC91E},
++	{0, 0x0990, 0x0012},
++	{0, 0x098E, 0xC91F},
++	{0, 0x0990, 0x000A},
++	{0, 0x098E, 0xC920},
++	{0, 0x0990, 0x0012},
++	{0, 0x098E, 0xC921},
++	{0, 0x0990, 0x000A},
++	{0, 0x098E, 0xC922},
++	{0, 0x0990, 0x0026},
++	{0, 0x098E, 0xC923},
++	{0, 0x0990, 0x001E},
++	{0, 0x098E, 0xC924},
++	{0, 0x0990, 0x0026},
++	{0, 0x098E, 0xC925},
++	{0, 0x0990, 0x0026},
++	{0, 0x098E, 0xBC02},
++	{0, 0x0990, 0x0003},
++	{0, 0x098E, 0xBC05},
++	{0, 0x0990, 0x000E},
++	{0, 0x098E, 0xC950},
++	{0, 0x0990, 0x0064},
++	{0, 0x098E, 0xC94F},
++	{0, 0x0990, 0x0038},
++	{0, 0x098E, 0xC952},
++	{0, 0x0990, 0x0064},
++	{0, 0x098E, 0xC951},
++	{0, 0x0990, 0x0051},
++	{0, 0x098E, 0xC954},
++	{0, 0x0990, 0x0010},
++	{0, 0x098E, 0xC953},
++	{0, 0x0990, 0x0020},
++	{0, 0x098E, 0xC956},
++	{0, 0x0990, 0x0010},
++	{0, 0x098E, 0xC955},
++	{0, 0x0990, 0x0020},
++	{0, 0x098E, 0xC958},
++	{0, 0x0990, 0x0020},
++	{0, 0x098E, 0xC957},
++	{0, 0x0990, 0x0014},
++	{0, 0x098E, 0xC95A},
++	{0, 0x0990, 0x001D},
++	{0, 0x098E, 0xC959},
++	{0, 0x0990, 0x0020},
++	{0, 0x098E, 0xC95C},
++	{0, 0x0990, 0x000C},
++	{0, 0x098E, 0xC95B},
++	{0, 0x0990, 0x0008},
++	{0, 0x098E, 0xC95E},
++	{0, 0x0990, 0x000C},
++	{0, 0x098E, 0xC95D},
++	{0, 0x0990, 0x0008},
++	{0, 0x098E, 0xC95F},
++	{0, 0x0990, 0x0064},
++	{0, 0x098E, 0x48DC},
++	{0, 0x0990, 0x004D},
++	{0, 0x098E, 0x48DE},
++	{0, 0x0990, 0x0096},
++	{0, 0x098E, 0x48E0},
++	{0, 0x0990, 0x001D},
++	{0, 0x098E, 0x48E2},
++	{0, 0x0990, 0x004D},
++	{0, 0x098E, 0x48E4},
++	{0, 0x0990, 0x0096},
++	{0, 0x098E, 0x48E6},
++	{0, 0x0990, 0x001D},
++	{0, 0x098E, 0x48E8},
++	{0, 0x0990, 0x004D},
++	{0, 0x098E, 0x48EA},
++	{0, 0x0990, 0x0096},
++	{0, 0x098E, 0x48EC},
++	{0, 0x0990, 0x001D},
++	{0, 0x098E, 0xDC2A},
++	{0, 0x0990, 0x000B},
++	{0, 0x098E, 0xDC2B},
++	{0, 0x0990, 0x0017},
++	{0, 0x098E, 0xBC0B},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0xBC0C},
++	{0, 0x0990, 0x001B},
++	{0, 0x098E, 0xBC0D},
++	{0, 0x0990, 0x002A},
++	{0, 0x098E, 0xBC0E},
++	{0, 0x0990, 0x003E},
++	{0, 0x098E, 0xBC0F},
++	{0, 0x0990, 0x005A},
++	{0, 0x098E, 0xBC10},
++	{0, 0x0990, 0x0070},
++	{0, 0x098E, 0xBC11},
++	{0, 0x0990, 0x0081},
++	{0, 0x098E, 0xBC12},
++	{0, 0x0990, 0x0090},
++	{0, 0x098E, 0xBC13},
++	{0, 0x0990, 0x009E},
++	{0, 0x098E, 0xBC14},
++	{0, 0x0990, 0x00AB},
++	{0, 0x098E, 0xBC15},
++	{0, 0x0990, 0x00B6},
++	{0, 0x098E, 0xBC16},
++	{0, 0x0990, 0x00C1},
++	{0, 0x098E, 0xBC17},
++	{0, 0x0990, 0x00CB},
++	{0, 0x098E, 0xBC18},
++	{0, 0x0990, 0x00D5},
++	{0, 0x098E, 0xBC19},
++	{0, 0x0990, 0x00DE},
++	{0, 0x098E, 0xBC1A},
++	{0, 0x0990, 0x00E7},
++	{0, 0x098E, 0xBC1B},
++	{0, 0x0990, 0x00EF},
++	{0, 0x098E, 0xBC1C},
++	{0, 0x0990, 0x00F7},
++	{0, 0x098E, 0xBC1D},
++	{0, 0x0990, 0x00FF},
++	{0, 0x098E, 0xBC1E},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0xBC1F},
++	{0, 0x0990, 0x001B},
++	{0, 0x098E, 0xBC20},
++	{0, 0x0990, 0x002A},
++	{0, 0x098E, 0xBC21},
++	{0, 0x0990, 0x003E},
++	{0, 0x098E, 0xBC22},
++	{0, 0x0990, 0x005A},
++	{0, 0x098E, 0xBC23},
++	{0, 0x0990, 0x0070},
++	{0, 0x098E, 0xBC24},
++	{0, 0x0990, 0x0081},
++	{0, 0x098E, 0xBC25},
++	{0, 0x0990, 0x0090},
++	{0, 0x098E, 0xBC26},
++	{0, 0x0990, 0x009E},
++	{0, 0x098E, 0xBC27},
++	{0, 0x0990, 0x00AB},
++	{0, 0x098E, 0xBC28},
++	{0, 0x0990, 0x00B6},
++	{0, 0x098E, 0xBC29},
++	{0, 0x0990, 0x00C1},
++	{0, 0x098E, 0xBC2A},
++	{0, 0x0990, 0x00CB},
++	{0, 0x098E, 0xBC2B},
++	{0, 0x0990, 0x00D5},
++	{0, 0x098E, 0xBC2C},
++	{0, 0x0990, 0x00DE},
++	{0, 0x098E, 0xBC2D},
++	{0, 0x0990, 0x00E7},
++	{0, 0x098E, 0xBC2E},
++	{0, 0x0990, 0x00EF},
++	{0, 0x098E, 0xBC2F},
++	{0, 0x0990, 0x00F7},
++	{0, 0x098E, 0xBC30},
++	{0, 0x0990, 0x00FF},
++	{0, 0x098E, 0xBC31},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0xBC32},
++	{0, 0x0990, 0x000D},
++	{0, 0x098E, 0xBC33},
++	{0, 0x0990, 0x0019},
++	{0, 0x098E, 0xBC34},
++	{0, 0x0990, 0x0030},
++	{0, 0x098E, 0xBC35},
++	{0, 0x0990, 0x0056},
++	{0, 0x098E, 0xBC36},
++	{0, 0x0990, 0x0070},
++	{0, 0x098E, 0xBC37},
++	{0, 0x0990, 0x0081},
++	{0, 0x098E, 0xBC38},
++	{0, 0x0990, 0x0090},
++	{0, 0x098E, 0xBC39},
++	{0, 0x0990, 0x009E},
++	{0, 0x098E, 0xBC3A},
++	{0, 0x0990, 0x00AB},
++	{0, 0x098E, 0xBC3B},
++	{0, 0x0990, 0x00B6},
++	{0, 0x098E, 0xBC3C},
++	{0, 0x0990, 0x00C1},
++	{0, 0x098E, 0xBC3D},
++	{0, 0x0990, 0x00CB},
++	{0, 0x098E, 0xBC3E},
++	{0, 0x0990, 0x00D5},
++	{0, 0x098E, 0xBC3F},
++	{0, 0x0990, 0x00DE},
++	{0, 0x098E, 0xBC40},
++	{0, 0x0990, 0x00E7},
++	{0, 0x098E, 0xBC41},
++	{0, 0x0990, 0x00EF},
++	{0, 0x098E, 0xBC42},
++	{0, 0x0990, 0x00F7},
++	{0, 0x098E, 0xBC43},
++	{0, 0x0990, 0x00FF},
++	{0, 0x098E, 0x6865},
++	{0, 0x0990, 0x00E0},
++	{0, 0x098E, 0x6867},
++	{0, 0x0990, 0x00F4},
++	{0, 0x098E, 0x8400},
++	{0, 0x0990, 0x0006},
++	{0, 0x098E, 0xBC4A},
++	{0, 0x0990, 0x007F},
++	{0, 0x098E, 0xBC4B},
++	{0, 0x0990, 0x007F},
++	{0, 0x098E, 0xBC4C},
++	{0, 0x0990, 0x007F},
++	{0, 0x3542, 0x0010},
++	{0, 0x3544, 0x0030},
++	{0, 0x3546, 0x0040},
++	{0, 0x3548, 0x0080},
++	{0, 0x354A, 0x0100},
++	{0, 0x354C, 0x0200},
++	{0, 0x354E, 0x0300},
++	{0, 0x3550, 0x0010},
++	{0, 0x3552, 0x0030},
++	{0, 0x3554, 0x0040},
++	{0, 0x3556, 0x0080},
++	{0, 0x3558, 0x012C},
++	{0, 0x355A, 0x0320},
++	{0, 0x355C, 0x03E8},
++	{0, 0x3560, 0x0040},
++	{0, 0x3562, 0x0020},
++	{0, 0x3564, 0x0040},
++	{0, 0x3566, 0x0010},
++	{0, 0x3568, 0x0008},
++	{0, 0x356A, 0x0004},
++	{0, 0x356C, 0x0004},
++	{0, 0x356E, 0x0004},
++	{0, 0x098E, 0x3C4D},
++	{0, 0x0990, 0x0DAC},
++	{0, 0x098E, 0x3C4F},
++	{0, 0x0990, 0x148A},
++	{0, 0x098E, 0xC911},
++	{0, 0x0990, 0x00C8},
++	{0, 0x098E, 0xC8F4},
++	{0, 0x0990, 0x0004},
++	{0, 0x098E, 0xC8F5},
++	{0, 0x0990, 0x0002},
++	{0, 0x098E, 0x48F6},
++	{0, 0x0990, 0x3B4D},
++	{0, 0x098E, 0x48F8},
++	{0, 0x0990, 0x6380},
++	{0, 0x098E, 0x48FA},
++	{0, 0x0990, 0x9B18},
++	{0, 0x098E, 0x48FC},
++	{0, 0x0990, 0x5D51},
++	{0, 0x098E, 0x48FE},
++	{0, 0x0990, 0xEDE8},
++	{0, 0x098E, 0x4900},
++	{0, 0x0990, 0xE515},
++	{0, 0x098E, 0x4902},
++	{0, 0x0990, 0xBFF4},
++	{0, 0x098E, 0x4904},
++	{0, 0x0990, 0x001E},
++	{0, 0x098E, 0x4906},
++	{0, 0x0990, 0x0026},
++	{0, 0x098E, 0x4908},
++	{0, 0x0990, 0x0033},
++	{0, 0x098E, 0xE84A},
++	{0, 0x0990, 0x0083},
++	{0, 0x098E, 0xE84D},
++	{0, 0x0990, 0x0083},
++	{0, 0x098E, 0xE84C},
++	{0, 0x0990, 0x0080},
++	{0, 0x098E, 0xE84F},
++	{0, 0x0990, 0x0080},
++	{0, 0x098E, 0x8400},
++	{0, 0x0990, 0x0006},
++	{0, 0x098E, 0x48B0},
++	{0, 0x0990, 0x0180},
++	{0, 0x098E, 0x48B2},
++	{0, 0x0990, 0xFF7A},
++	{0, 0x098E, 0x48B4},
++	{0, 0x0990, 0x0018},
++	{0, 0x098E, 0x48B6},
++	{0, 0x0990, 0xFFCA},
++	{0, 0x098E, 0x48B8},
++	{0, 0x0990, 0x017C},
++	{0, 0x098E, 0x48BA},
++	{0, 0x0990, 0xFFCC},
++	{0, 0x098E, 0x48BC},
++	{0, 0x0990, 0x000C},
++	{0, 0x098E, 0x48BE},
++	{0, 0x0990, 0xFF1F},
++	{0, 0x098E, 0x48C0},
++	{0, 0x0990, 0x01E8},
++	{0, 0x098E, 0x48C2},
++	{0, 0x0990, 0x0020},
++	{0, 0x098E, 0x48C4},
++	{0, 0x0990, 0x0044},
++	{0, 0x098E, 0x48C6},
++	{0, 0x0990, 0x0079},
++	{0, 0x098E, 0x48C8},
++	{0, 0x0990, 0xFFAD},
++	{0, 0x098E, 0x48CA},
++	{0, 0x0990, 0xFFE2},
++	{0, 0x098E, 0x48CC},
++	{0, 0x0990, 0x0033},
++	{0, 0x098E, 0x48CE},
++	{0, 0x0990, 0x002A},
++	{0, 0x098E, 0x48D0},
++	{0, 0x0990, 0xFFAA},
++	{0, 0x098E, 0x48D2},
++	{0, 0x0990, 0x0017},
++	{0, 0x098E, 0x48D4},
++	{0, 0x0990, 0x004B},
++	{0, 0x098E, 0x48D6},
++	{0, 0x0990, 0xFFA5},
++	{0, 0x098E, 0x48D8},
++	{0, 0x0990, 0x0015},
++	{0, 0x098E, 0x48DA},
++	{0, 0x0990, 0xFFE2},
++	{0, 0x35A2, 0x0014},
++	{0, 0x098E, 0xC949},
++	{0, 0x0990, 0x0024},
++	{0, 0x35A4, 0x0596},
++	{0, 0x098E, 0xC94A},
++	{0, 0x0990, 0x0062},
++	{0, 0x098E, 0xC948},
++	{0, 0x0990, 0x0006},
++	{0, 0x098E, 0xC914},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0xC915},
++	{0, 0x0990, 0x00FF},
++	{0, 0x098E, 0xE86F},
++	{0, 0x0990, 0x0060},
++	{0, 0x098E, 0xE870},
++	{0, 0x0990, 0x003C},
++	{0, 0x098E, 0xEC6F},
++	{0, 0x0990, 0x0060},
++	{0, 0x098E, 0xEC70},
++	{0, 0x0990, 0x003C},
++	{0, 0x098E, 0xE883},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0xEC83},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0x8400},
++	{0, 0x0990, 0x0006},
++	{0, 0x098E, 0xE885},
++	{0, 0x0990, 0x001E},
++	{0, 0x098E, 0xE886},
++	{0, 0x0990, 0x00D8},
++	{0, 0x098E, 0xEC85},
++	{0, 0x0990, 0x001E},
++	{0, 0x098E, 0xEC86},
++	{0, 0x0990, 0x00D8},
++	{0, 0x098E, 0xE884},
++	{0, 0x0990, 0x005C},
++	{0, 0x098E, 0xEC84},
++	{0, 0x0990, 0x005C},
++	{0, 0x098E, 0x490A},
++	{0, 0x0990, 0x0666},
++	{0, 0x098E, 0x490C},
++	{0, 0x0990, 0x0140},
++	{0, 0x098E, 0x6857},
++	{0, 0x0990, 0x0014},
++	{0, 0x098E, 0x685C},
++	{0, 0x0990, 0x0005},
++	{0, 0x098E, 0x490E},
++	{0, 0x0990, 0x00A4},
++	{0, 0x098E, 0xB43D},
++	{0, 0x0990, 0x0031},
++	{0, 0x098E, 0xB43E},
++	{0, 0x0990, 0x001B},
++	{0, 0x098E, 0xB43F},
++	{0, 0x0990, 0x0028},
++	{0, 0x098E, 0xB440},
++	{0, 0x0990, 0x0003},
++	{0, 0x098E, 0xB441},
++	{0, 0x0990, 0x00CD},
++	{0, 0x098E, 0xB442},
++	{0, 0x0990, 0x0064},
++	{0, 0x098E, 0xB443},
++	{0, 0x0990, 0x000F},
++	{0, 0x098E, 0xB444},
++	{0, 0x0990, 0x0007},
++	{0, 0x098E, 0x300D},
++	{0, 0x0990, 0x000F},
++	{0, 0x098E, 0x3017},
++	{0, 0x0990, 0x0F0F},
++	{0, 0x098E, 0x8400},
++	{0, 0x0990, 0x0006},
++	{0, 0x098E, 0xE81F},
++	{0, 0x0990, 0x0020},
++	{0, 0x098E, 0x68A0},
++	{0, 0x0990, 0x082E},
++	{0, 0x098E, 0x6CA0},
++	{0, 0x0990, 0x082E},
++	{0, 0x098E, 0x70A0},
++	{0, 0x0990, 0x082E},
++	{0, 0x098E, 0x74A0},
++	{0, 0x0990, 0x082E},
++	{0, 0x3C52, 0x082E},
++	{0, 0x098E, 0x488E},
++	{0, 0x0990, 0x0020},
++	{0, 0x098E, 0xECAC},
++	{0, 0x0990, 0x0000}
++};
++
++mt9t111_regs def_regs2[] = {
++	{100, 0x0018, 0x0028},
++	{0, 0x316C, 0x350F},
++	{0, 0x098E, 0x6817},
++	{0, 0x0990, 0x000C},
++	{0, 0x0034, 0x0000}
++};
++
++mt9t111_regs pll_regs1[] = {
++	{0, 0x0014, 0x2425},
++	{0, 0x0014, 0x2425},
++	{0, 0x0014, 0x2145},
++	{0, 0x0010, 0x0219},
++	{0, 0x0012, 0x0090},
++	{0, 0x002A, 0x79DD},
++	{0, 0x0014, 0x2545},
++	{0, 0x0014, 0x2547},
++	{0, 0x0014, 0x3447},
++	{0, 0x0014, 0x3047}
++};
++
++mt9t111_regs pll_regs2[] = {
++	{0, 0x0014, 0x3046},
++	{0, 0x0022, 0x01E0},
++	{0, 0x001E, 0x0707},
++	{0, 0x3B84, 0x011D}
++};
++
++mt9t111_regs bayer_pattern_regs[] = {
++	{0, 0x098E, 0x6807},
++	{0, 0x0990, 0x0100},
++	{0, 0x098E, 0x6809},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0xE88E},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0x6C07},
++	{0, 0x0990, 0x0100},
++	{0, 0x098E, 0x6C09},
++	{0, 0x0990, 0x0000},
++	{0, 0x098E, 0xEC8E},
++	{0, 0x0990, 0x0000}
++};
++
++#endif
+diff --git a/drivers/media/video/mt9t112.c b/drivers/media/video/mt9t112.c
+index 32114a3..aba49e2 100644
+--- a/drivers/media/video/mt9t112.c
++++ b/drivers/media/video/mt9t112.c
+@@ -24,12 +24,16 @@
+ #include <linux/slab.h>
+ #include <linux/v4l2-mediabus.h>
+ #include <linux/videodev2.h>
++#include <linux/regulator/consumer.h>
+ 
+ #include <media/mt9t112.h>
++#include <media/mt9t111.h>
+ #include <media/soc_camera.h>
+ #include <media/v4l2-chip-ident.h>
+ #include <media/v4l2-common.h>
+ 
++#include "mt9t111_reg.h"
++
+ /* you can check PLL/clock info */
+ /* #define EXT_CLOCK 24000000 */
+ 
+@@ -88,11 +92,15 @@ struct mt9t112_format {
+ struct mt9t112_priv {
+ 	struct v4l2_subdev		 subdev;
+ 	struct mt9t112_camera_info	*info;
++	struct media_pad		pad;
+ 	struct i2c_client		*client;
+ 	struct v4l2_rect		 frame;
+ 	const struct mt9t112_format	*format;
++	struct v4l2_mbus_framefmt	fmt;
+ 	int				 model;
+ 	u32				 flags;
++	struct regulator		*omap3evm_1v8;
++	struct regulator		*omap3evm_2v8;
+ /* for flags */
+ #define INIT_DONE	(1 << 0)
+ #define PCLK_RISING	(1 << 1)
+@@ -206,6 +214,33 @@ static int __mt9t112_reg_write(const struct i2c_client *client,
+ 	return ret;
+ }
+ 
++static int mt9t111_write_regs(struct i2c_client *client,
++				mt9t111_regs *reg_in, int cnt)
++{
++	int err = 0, i;
++	mt9t111_regs *reg = reg_in;
++
++	for (i = 0; i < cnt; i++) {
++		if (reg->delay_time == 0) {
++			mt9t112_reg_write(err, client, reg->addr, reg->data);
++		} else if (reg->addr != 0 || reg->data != 0) {
++			mt9t112_reg_write(err, client, reg->addr, reg->data);
++			mdelay(reg->delay_time);
++		} else {
++			mdelay(reg->delay_time);
++		}
++		if (err < 0) {
++			dev_warn(&client->dev, "write reg error, addr = 0x%x,"
++					"data = 0x%x\n",
++					reg->addr, reg->data);
++			return err;
++		}
++		reg++;
++	}
++
++	return err;
++}
++
+ static int __mt9t112_reg_mask_set(const struct i2c_client *client,
+ 				  u16  command,
+ 				  u16  mask,
+@@ -733,6 +768,82 @@ static int mt9t112_init_camera(const struct i2c_client *client)
+ 	return ret;
+ }
+ 
++static int mt9t111_configure(struct v4l2_subdev *subdev)
++{
++	int i, ret = 0;
++	unsigned short value;
++	struct i2c_client *client = v4l2_get_subdevdata(subdev);
++
++	mt9t112_reg_write(ret, client, 0x001A, 0x001D);
++	if (ret)
++		goto out;
++
++	msleep(1);
++
++	mt9t112_reg_write(ret, client, 0x001A, 0x0018);
++	if (ret)
++		goto out;
++
++	ret = mt9t111_write_regs(client, pll_regs1,
++			sizeof(pll_regs1) / sizeof(mt9t111_regs));
++	if (ret)
++		goto out;
++
++	for (i = 0; i < 100; i++) {
++		mt9t112_reg_read(value, client, 0x0014);
++		if ((value & 0x8000) != 0)
++			break;
++		mdelay(2);
++	}
++
++	ret = mt9t111_write_regs(client, pll_regs2,
++			sizeof(pll_regs2) / sizeof(mt9t111_regs));
++	if (ret)
++		goto out;
++
++	ret = mt9t111_write_regs(client, def_regs1,
++			sizeof(def_regs1) / sizeof(mt9t111_regs));
++	if (ret)
++		goto out;
++
++	ret = mt9t111_write_regs(client, patch_rev6,
++			sizeof(patch_rev6) / sizeof(mt9t111_regs));
++	if (ret)
++		goto out;
++
++	ret = mt9t111_write_regs(client, def_regs2,
++			sizeof(def_regs2) / sizeof(mt9t111_regs));
++	if (ret)
++		goto out;
++
++	/* MCU_ADDRESS [SEQ_CMD] -- refresh mode */
++	mt9t112_reg_write(ret, client, 0x098E, 0x8400);
++	if (ret)
++		goto out;
++	mt9t112_reg_write(ret, client, 0x0990, 0x0006);
++	if (ret)
++		goto out;
++
++	/* refresh command */
++	mt9t112_reg_write(ret, client, 0x098E, 0x8400);
++	if (ret)
++		goto out;
++	mt9t112_reg_write(ret, client, 0x0990, 0x0005);
++	if (ret)
++		goto out;
++	for (i = 0; i < 100; i++) {
++		mt9t112_reg_write(ret, client, 0x098E, 0x8400);
++		if (ret)
++			break;
++		mt9t112_reg_read(value , client, 0x0990);
++		if (value == 0)
++			break;
++		mdelay(5);
++	}
++out:
++	return ret;
++}
++
+ /************************************************************************
+ 			v4l2_subdev_core_ops
+ ************************************************************************/
+@@ -775,15 +886,72 @@ static int mt9t112_s_register(struct v4l2_subdev *sd,
+ }
+ #endif
+ 
++static int omap3evm_regulator_ctrl(struct mt9t112_priv *priv, u32 on)
++{
++	if (!(priv->omap3evm_1v8) || !(priv->omap3evm_2v8)) {
++		printk(KERN_ERR "No regulator available\n");
++		return -ENODEV;
++	}
++	if (on) {
++		regulator_enable(priv->omap3evm_1v8);
++		mdelay(1);
++		regulator_enable(priv->omap3evm_2v8);
++		mdelay(50);
++	} else {
++		if (regulator_is_enabled(priv->omap3evm_1v8))
++			regulator_disable(priv->omap3evm_1v8);
++		if (regulator_is_enabled(priv->omap3evm_2v8))
++			regulator_disable(priv->omap3evm_2v8);
++	}
++	return 0;
++}
++
++static int mt9t111_s_power(struct v4l2_subdev *subdev, int on)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(subdev);
++	struct soc_camera_link *icl = soc_camera_i2c_to_link(client);
++	struct mt9t112_priv *priv = to_mt9t112(client);
++	struct mt9t111_platform_data  *pdata;
++	int rval;
++
++	pdata = (struct mt9t111_platform_data *) icl;
++	if (on) {
++		rval = omap3evm_regulator_ctrl(priv, on);
++		if (rval)
++			goto out;
++
++		rval = pdata->s_power(subdev, 1);
++		if (rval)
++			goto out;
++
++		rval = mt9t111_configure(subdev);
++		if (rval) {
++			pdata->s_power(subdev, 0);
++			goto out;
++	}
++
++	} else {
++		rval = pdata->s_power(subdev, 0);
++		if (rval)
++			goto out;
++	}
++
++out:
++	if (rval)
++		v4l_err(client, "Unable to set target power state\n");
++
++	return rval;
++}
++
+ static struct v4l2_subdev_core_ops mt9t112_subdev_core_ops = {
+ 	.g_chip_ident	= mt9t112_g_chip_ident,
++	.s_power	= mt9t111_s_power,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+-	.g_register	= mt9t112_g_register,
+-	.s_register	= mt9t112_s_register,
++	.g_register     = mt9t112_g_register,
++	.s_register     = mt9t112_s_register,
+ #endif
+ };
+ 
+-
+ /************************************************************************
+ 			v4l2_subdev_video_ops
+ ************************************************************************/
+@@ -793,51 +961,56 @@ static int mt9t112_s_stream(struct v4l2_subdev *sd, int enable)
+ 	struct mt9t112_priv *priv = to_mt9t112(client);
+ 	int ret = 0;
+ 
+-	if (!enable) {
+-		/* FIXME
+-		 *
+-		 * If user selected large output size,
+-		 * and used it long time,
+-		 * mt9t112 camera will be very warm.
+-		 *
+-		 * But current driver can not stop mt9t112 camera.
+-		 * So, set small size here to solve this problem.
+-		 */
+-		mt9t112_set_a_frame_size(client, VGA_WIDTH, VGA_HEIGHT);
++	if (priv->model == V4L2_IDENT_MT9T111) {
+ 		return ret;
+-	}
+ 
+-	if (!(priv->flags & INIT_DONE)) {
+-		u16 param = PCLK_RISING & priv->flags ? 0x0001 : 0x0000;
++	} else {
++		if (!enable) {
++			/* FIXME
++			 *
++			 * If user selected large output size,
++			 * and used it long time,
++			 * mt9t112 camera will be very warm.
++			 *
++			 * But current driver can not stop mt9t112 camera.
++			 * So, set small size here to solve this problem.
++			 */
++			mt9t112_set_a_frame_size(client, VGA_WIDTH, VGA_HEIGHT);
++			return ret;
++		}
+ 
+-		ECHECKER(ret, mt9t112_init_camera(client));
++		if (!(priv->flags & INIT_DONE)) {
++			u16 param = PCLK_RISING & priv->flags ? 0x0001 : 0x0000;
+ 
+-		/* Invert PCLK (Data sampled on falling edge of pixclk) */
+-		mt9t112_reg_write(ret, client, 0x3C20, param);
++			ECHECKER(ret, mt9t112_init_camera(client));
+ 
+-		mdelay(5);
++			/* Invert PCLK (Data sampled on falling edge of pixclk) */
++			mt9t112_reg_write(ret, client, 0x3C20, param);
+ 
+-		priv->flags |= INIT_DONE;
+-	}
++			mdelay(5);
+ 
+-	mt9t112_mcu_write(ret, client, VAR(26, 7), priv->format->fmt);
+-	mt9t112_mcu_write(ret, client, VAR(26, 9), priv->format->order);
+-	mt9t112_mcu_write(ret, client, VAR8(1, 0), 0x06);
++			priv->flags |= INIT_DONE;
++		}
+ 
+-	mt9t112_set_a_frame_size(client,
+-				 priv->frame.width,
+-				 priv->frame.height);
++		mt9t112_mcu_write(ret, client, VAR(26, 7), priv->format->fmt);
++		mt9t112_mcu_write(ret, client, VAR(26, 9), priv->format->order);
++		mt9t112_mcu_write(ret, client, VAR8(1, 0), 0x06);
+ 
+-	ECHECKER(ret, mt9t112_auto_focus_trigger(client));
++		mt9t112_set_a_frame_size(client,
++					priv->frame.width,
++					priv->frame.height);
+ 
+-	dev_dbg(&client->dev, "format : %d\n", priv->format->code);
+-	dev_dbg(&client->dev, "size   : %d x %d\n",
+-		priv->frame.width,
+-		priv->frame.height);
++		ECHECKER(ret, mt9t112_auto_focus_trigger(client));
+ 
+-	CLOCK_INFO(client, EXT_CLOCK);
++		dev_dbg(&client->dev, "format : %d\n", priv->format->code);
++		dev_dbg(&client->dev, "size   : %d x %d\n",
++			priv->frame.width,
++			priv->frame.height);
+ 
+-	return ret;
++		CLOCK_INFO(client, EXT_CLOCK);
++
++		return ret;
++	}
+ }
+ 
+ static int mt9t112_set_params(struct mt9t112_priv *priv,
+@@ -1019,11 +1192,60 @@ static struct v4l2_subdev_video_ops mt9t112_subdev_video_ops = {
+ };
+ 
+ /************************************************************************
++		v4l2_subdev_pad_ops
++************************************************************************/
++static int mt9t111_get_pad_format(struct v4l2_subdev *subdev,
++		struct v4l2_subdev_fh *fh,
++		struct v4l2_subdev_format *fmt)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(subdev);
++	struct mt9t112_priv *priv = to_mt9t112(client);
++
++	fmt->format = priv->fmt;
++	return 0;
++}
++
++static int mt9t111_set_pad_format(struct v4l2_subdev *subdev,
++				struct v4l2_subdev_fh *fh,
++				struct v4l2_subdev_format *fmt)
++{
++	int i;
++	struct i2c_client *client = v4l2_get_subdevdata(subdev);
++	struct mt9t112_priv *priv = to_mt9t112(client);
++
++	for (i = 0; i < ARRAY_SIZE(mt9t112_cfmts); i++) {
++		if (fmt->format.code == mt9t112_cfmts[i].code)
++			goto fmt_found;
++	}
++	if (i >= ARRAY_SIZE(mt9t112_cfmts))
++		return -EINVAL;
++
++fmt_found:
++	/*
++	 * Only VGA resolution supported
++	 */
++	fmt->format.width = VGA_WIDTH;
++	fmt->format.height = VGA_HEIGHT;
++	fmt->format.field = V4L2_FIELD_NONE;
++	fmt->format.colorspace = V4L2_COLORSPACE_JPEG;
++
++	priv->fmt = fmt->format;
++
++	return 0;
++}
++
++static const struct v4l2_subdev_pad_ops mt9t111_pad_ops = {
++	.get_fmt        = mt9t111_get_pad_format,
++	.set_fmt        = mt9t111_set_pad_format,
++};
++
++/************************************************************************
+ 			i2c driver
+ ************************************************************************/
+ static struct v4l2_subdev_ops mt9t112_subdev_ops = {
+ 	.core	= &mt9t112_subdev_core_ops,
+ 	.video	= &mt9t112_subdev_video_ops,
++	.pad    = &mt9t111_pad_ops,
+ };
+ 
+ static int mt9t112_camera_probe(struct i2c_client *client)
+@@ -1089,6 +1311,32 @@ static int mt9t112_probe(struct i2c_client *client,
+ 	/* Cannot fail: using the default supported pixel code */
+ 	mt9t112_set_params(priv, &rect, V4L2_MBUS_FMT_UYVY8_2X8);
+ 
++	if (priv->model == V4L2_IDENT_MT9T111) {
++		priv->omap3evm_1v8 = regulator_get(NULL, "vio_1v8");
++		if (IS_ERR(priv->omap3evm_1v8)) {
++			printk(KERN_ERR "vio_1v8 regulator missing\n");
++			ret =  PTR_ERR(priv->omap3evm_1v8);
++			goto err_1;
++		}
++		priv->omap3evm_2v8 = regulator_get(NULL, "cam_2v8");
++		if (IS_ERR(priv->omap3evm_2v8)) {
++			printk(KERN_ERR "cam_2v8 regulator missing\n");
++			ret = PTR_ERR(priv->omap3evm_2v8);
++			goto err_2;
++		}
++
++		priv->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++		priv->pad.flags = MEDIA_PAD_FL_SOURCE;
++		ret = media_entity_init(&priv->subdev.entity, 1, &priv->pad, 0);
++		if (!ret)
++			return 0;
++		kfree(priv);
++err_2:
++		regulator_put(priv->omap3evm_2v8);
++err_1:
++		regulator_put(priv->omap3evm_1v8);
++	}
++
+ 	return ret;
+ }
+ 
+diff --git a/include/media/mt9t111.h b/include/media/mt9t111.h
+new file mode 100644
+index 0000000..372dc0d
+--- /dev/null
++++ b/include/media/mt9t111.h
+@@ -0,0 +1,45 @@
++/*
++ * include/media/mt9t111.h
++ *
++ * mt9t111 sensor driver
++ *
++ * Copyright (C) 2009 Leopard Imaging
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2. This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ */
++
++#ifndef	MT9T111_H
++#define	MT9T111_H
++
++struct v4l2_subdev;
++
++/*
++ * Defines and Macros and globals
++ */
++#define MT9T111_MODULE_NAME		"mt9t112"
++
++/*i2c adress for MT9T111*/
++#define MT9T111_I2C_ADDR		(0x78 >> 1)
++
++#define MT9T111_CLK_MAX			(96000000) /* 96MHz */
++#define MT9T111_CLK_MIN			(6000000)  /* 6Mhz */
++
++#define MT9T111_I2C_CONFIG		(1)
++#define I2C_ONE_BYTE_TRANSFER		(1)
++#define I2C_TWO_BYTE_TRANSFER		(2)
++#define I2C_THREE_BYTE_TRANSFER		(3)
++#define I2C_FOUR_BYTE_TRANSFER		(4)
++#define I2C_TXRX_DATA_MASK		(0x00FF)
++#define I2C_TXRX_DATA_MASK_UPPER	(0xFF00)
++#define I2C_TXRX_DATA_SHIFT		(8)
++
++struct mt9t111_platform_data {
++	int (*s_power) (struct v4l2_subdev *subdev, u32 on);
++	int (*set_xclk) (struct v4l2_subdev *subdev, u32 hz);
++	int (*configure_interface) (struct v4l2_subdev *subdev, u32 pixclk);
++};
++
++#endif	/* ifndef MT9T111 */
++
+-- 
+1.7.0.4
 
