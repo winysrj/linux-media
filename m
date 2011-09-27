@@ -1,179 +1,464 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:63275 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932424Ab1IHIoR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 04:44:17 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 02/13 v3] sh_mobile_ceu_camera: implement the control handler.
-Date: Thu,  8 Sep 2011 10:43:55 +0200
-Message-Id: <1315471446-17890-3-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1315471446-17890-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1315471446-17890-1-git-send-email-g.liakhovetski@gmx.de>
+Received: from comal.ext.ti.com ([198.47.26.152]:41846 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751154Ab1I0HBq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Sep 2011 03:01:46 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Taneja, Archit" <archit@ti.com>
+CC: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Semwal, Sumit" <sumit.semwal@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Molnar, Lajos" <molnar@ti.com>
+Date: Tue, 27 Sep 2011 12:31:38 +0530
+Subject: RE: [PATCH v3 3/3] OMAPDSS/OMAP_VOUT: Fix incorrect OMAP3-alpha
+ compatibility setting
+Message-ID: <19F8576C6E063C45BE387C64729E739404ECA548E6@dbde02.ent.ti.com>
+References: <1317018820-3653-1-git-send-email-archit@ti.com>
+In-Reply-To: <1317018820-3653-1-git-send-email-archit@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-And since this is the last and only host driver that uses controls, also
-remove the now obsolete control fields from soc_camera.h.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-[g.liakhovetski@gmx.de: moved code around, fixed problems]
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/sh_mobile_ceu_camera.c |   91 ++++++++++++----------------
- include/media/soc_camera.h                 |    4 -
- 2 files changed, 38 insertions(+), 57 deletions(-)
+Thanks,
+Vaibhav
 
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 8711aa8..955947a 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -997,6 +997,38 @@ static bool sh_mobile_ceu_packing_supported(const struct soc_mbus_pixelfmt *fmt)
- 
- static int client_g_rect(struct v4l2_subdev *sd, struct v4l2_rect *rect);
- 
-+static struct soc_camera_device *ctrl_to_icd(struct v4l2_ctrl *ctrl)
-+{
-+	return container_of(ctrl->handler, struct soc_camera_device,
-+							ctrl_handler);
-+}
-+
-+static int sh_mobile_ceu_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct soc_camera_device *icd = ctrl_to_icd(ctrl);
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_SHARPNESS:
-+		switch (icd->current_fmt->host_fmt->fourcc) {
-+		case V4L2_PIX_FMT_NV12:
-+		case V4L2_PIX_FMT_NV21:
-+		case V4L2_PIX_FMT_NV16:
-+		case V4L2_PIX_FMT_NV61:
-+			ceu_write(pcdev, CLFCR, !ctrl->val);
-+			return 0;
-+		}
-+		break;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static const struct v4l2_ctrl_ops sh_mobile_ceu_ctrl_ops = {
-+	.s_ctrl = sh_mobile_ceu_s_ctrl,
-+};
-+
- static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, unsigned int idx,
- 				     struct soc_camera_format_xlate *xlate)
- {
-@@ -1033,6 +1065,12 @@ static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, unsigned int
- 		struct v4l2_rect rect;
- 		int shift = 0;
- 
-+		/* Add our control */
-+		v4l2_ctrl_new_std(&icd->ctrl_handler, &sh_mobile_ceu_ctrl_ops,
-+				  V4L2_CID_SHARPNESS, 0, 1, 1, 0);
-+		if (icd->ctrl_handler.error)
-+			return icd->ctrl_handler.error;
-+
- 		/* FIXME: subwindow is lost between close / open */
- 
- 		/* Cache current client geometry */
-@@ -1961,55 +1999,6 @@ static int sh_mobile_ceu_init_videobuf(struct vb2_queue *q,
- 	return vb2_queue_init(q);
- }
- 
--static int sh_mobile_ceu_get_ctrl(struct soc_camera_device *icd,
--				  struct v4l2_control *ctrl)
--{
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
--	struct sh_mobile_ceu_dev *pcdev = ici->priv;
--	u32 val;
--
--	switch (ctrl->id) {
--	case V4L2_CID_SHARPNESS:
--		val = ceu_read(pcdev, CLFCR);
--		ctrl->value = val ^ 1;
--		return 0;
--	}
--	return -ENOIOCTLCMD;
--}
--
--static int sh_mobile_ceu_set_ctrl(struct soc_camera_device *icd,
--				  struct v4l2_control *ctrl)
--{
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
--	struct sh_mobile_ceu_dev *pcdev = ici->priv;
--
--	switch (ctrl->id) {
--	case V4L2_CID_SHARPNESS:
--		switch (icd->current_fmt->host_fmt->fourcc) {
--		case V4L2_PIX_FMT_NV12:
--		case V4L2_PIX_FMT_NV21:
--		case V4L2_PIX_FMT_NV16:
--		case V4L2_PIX_FMT_NV61:
--			ceu_write(pcdev, CLFCR, !ctrl->value);
--			return 0;
--		}
--		return -EINVAL;
--	}
--	return -ENOIOCTLCMD;
--}
--
--static const struct v4l2_queryctrl sh_mobile_ceu_controls[] = {
--	{
--		.id		= V4L2_CID_SHARPNESS,
--		.type		= V4L2_CTRL_TYPE_BOOLEAN,
--		.name		= "Low-pass filter",
--		.minimum	= 0,
--		.maximum	= 1,
--		.step		= 1,
--		.default_value	= 0,
--	},
--};
--
- static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
- 	.owner		= THIS_MODULE,
- 	.add		= sh_mobile_ceu_add_device,
-@@ -2021,14 +2010,10 @@ static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
- 	.set_livecrop	= sh_mobile_ceu_set_livecrop,
- 	.set_fmt	= sh_mobile_ceu_set_fmt,
- 	.try_fmt	= sh_mobile_ceu_try_fmt,
--	.set_ctrl	= sh_mobile_ceu_set_ctrl,
--	.get_ctrl	= sh_mobile_ceu_get_ctrl,
- 	.poll		= sh_mobile_ceu_poll,
- 	.querycap	= sh_mobile_ceu_querycap,
- 	.set_bus_param	= sh_mobile_ceu_set_bus_param,
- 	.init_videobuf2	= sh_mobile_ceu_init_videobuf,
--	.controls	= sh_mobile_ceu_controls,
--	.num_controls	= ARRAY_SIZE(sh_mobile_ceu_controls),
- };
- 
- struct bus_wait {
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 2e15e17..d41b8bd 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -96,14 +96,10 @@ struct soc_camera_host_ops {
- 	int (*reqbufs)(struct soc_camera_device *, struct v4l2_requestbuffers *);
- 	int (*querycap)(struct soc_camera_host *, struct v4l2_capability *);
- 	int (*set_bus_param)(struct soc_camera_device *, __u32);
--	int (*get_ctrl)(struct soc_camera_device *, struct v4l2_control *);
--	int (*set_ctrl)(struct soc_camera_device *, struct v4l2_control *);
- 	int (*get_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
- 	int (*set_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
- 	int (*enum_fsizes)(struct soc_camera_device *, struct v4l2_frmsizeenum *);
- 	unsigned int (*poll)(struct file *, poll_table *);
--	const struct v4l2_queryctrl *controls;
--	int num_controls;
- };
- 
- #define SOCAM_SENSOR_INVERT_PCLK	(1 << 0)
--- 
-1.7.2.5
+> -----Original Message-----
+> From: Taneja, Archit
+> Sent: Monday, September 26, 2011 12:04 PM
+> To: Hiremath, Vaibhav
+> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; Taneja,
+> Archit; linux-media@vger.kernel.org; Molnar, Lajos
+> Subject: [PATCH v3 3/3] OMAPDSS/OMAP_VOUT: Fix incorrect OMAP3-alpha
+> compatibility setting
+>
+> On OMAP3, in order to enable alpha blending for LCD and TV managers, we
+> needed
+> to set LCDALPHABLENDERENABLE/TVALPHABLENDERENABLE bits in DISPC_CONFIG. On
+> OMAP4, alpha blending is always enabled by default, if the above bits are
+> set,
+> we switch to an OMAP3 compatibility mode where the zorder values in the
+> pipeline
+> attribute registers are ignored and a fixed priority is configured.
+>
+> Rename the manager_info member "alpha_enabled" to "partial_alpha_enabled"
+> for
+> more clarity. Introduce two dss_features FEAT_ALPHA_FIXED_ZORDER and
+> FEAT_ALPHA_FREE_ZORDER which represent OMAP3-alpha compatibility mode and
+> OMAP4
+> alpha mode respectively. Introduce an overlay cap for ZORDER. The DSS2
+> user is
+> expected to check for the ZORDER cap, if an overlay doesn't have this cap,
+> the
+> user is expected to set the parameter partial_alpha_enabled. If the
+> overlay has
+> ZORDER cap, the DSS2 user can assume that alpha blending is already
+> enabled.
+>
+> Don't support OMAP3 compatibility mode for now. Trying to read/write to
+> alpha_blending_enabled sysfs attribute issues a warning for OMAP4 and does
+> not
+> set the LCDALPHABLENDERENABLE/TVALPHABLENDERENABLE bits.
+>
+> Change alpha_enabled to partial_alpha_enabled in the omap_vout driver. Use
+> overlay cap "OMAP_DSS_OVL_CAP_GLOBAL_ALPHA" to check if overlay supports
+> alpha
+> blending or not. Replace this with checks for VIDEO1 pipeline.
+>
+> Cc: linux-media@vger.kernel.org
+> Cc: Lajos Molnar <molnar@ti.com>
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+> Changes in v3:
+> - Fix some spelling mistakes in commit message.
+> - Add comment about video1 limitation in omap_vout .
+>
+>  drivers/media/video/omap/omap_vout.c   |   17 ++++++++++++-----
+>  drivers/video/omap2/dss/dispc.c        |   24 ++++++++++++------------
+>  drivers/video/omap2/dss/dss.h          |    4 ++--
+>  drivers/video/omap2/dss/dss_features.c |   22 +++++++++++-----------
+>  drivers/video/omap2/dss/dss_features.h |    3 ++-
+>  drivers/video/omap2/dss/manager.c      |   28 +++++++++++++++++++--------
+> -
+>  include/video/omapdss.h                |    3 ++-
+>  7 files changed, 60 insertions(+), 41 deletions(-)
+>
+Accked-by: Vaibhav Hiremath <hvaibhav@ti.com>
+
+
+Thanks,
+Vaibhav
+
+> diff --git a/drivers/media/video/omap/omap_vout.c
+> b/drivers/media/video/omap/omap_vout.c
+> index b3a5ecd..d9e64f3 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -1165,12 +1165,17 @@ static int vidioc_try_fmt_vid_overlay(struct file
+> *file, void *fh,
+>  {
+>       int ret = 0;
+>       struct omap_vout_device *vout = fh;
+> +     struct omap_overlay *ovl;
+> +     struct omapvideo_info *ovid;
+>       struct v4l2_window *win = &f->fmt.win;
+>
+> +     ovid = &vout->vid_info;
+> +     ovl = ovid->overlays[0];
+> +
+>       ret = omap_vout_try_window(&vout->fbuf, win);
+>
+>       if (!ret) {
+> -             if (vout->vid == OMAP_VIDEO1)
+> +             if ((ovl->caps & OMAP_DSS_OVL_CAP_GLOBAL_ALPHA) == 0)
+>                       win->global_alpha = 255;
+>               else
+>                       win->global_alpha = f->fmt.win.global_alpha;
+> @@ -1194,8 +1199,8 @@ static int vidioc_s_fmt_vid_overlay(struct file
+> *file, void *fh,
+>
+>       ret = omap_vout_new_window(&vout->crop, &vout->win, &vout->fbuf,
+> win);
+>       if (!ret) {
+> -             /* Video1 plane does not support global alpha */
+> -             if (ovl->id == OMAP_DSS_VIDEO1)
+> +             /* Video1 plane does not support global alpha on OMAP3 */
+> +             if ((ovl->caps & OMAP_DSS_OVL_CAP_GLOBAL_ALPHA) == 0)
+>                       vout->win.global_alpha = 255;
+>               else
+>                       vout->win.global_alpha = f->fmt.win.global_alpha;
+> @@ -1788,7 +1793,9 @@ static int vidioc_s_fbuf(struct file *file, void *fh,
+>       if (ovl->manager && ovl->manager->get_manager_info &&
+>                       ovl->manager->set_manager_info) {
+>               ovl->manager->get_manager_info(ovl->manager, &info);
+> -             info.alpha_enabled = enable;
+> +             /* enable this only if there is no zorder cap */
+> +             if ((ovl->caps & OMAP_DSS_OVL_CAP_ZORDER) == 0)
+> +                     info.partial_alpha_enabled = enable;
+>               if (ovl->manager->set_manager_info(ovl->manager, &info))
+>                       return -EINVAL;
+>       }
+> @@ -1820,7 +1827,7 @@ static int vidioc_g_fbuf(struct file *file, void *fh,
+>       }
+>       if (ovl->manager && ovl->manager->get_manager_info) {
+>               ovl->manager->get_manager_info(ovl->manager, &info);
+> -             if (info.alpha_enabled)
+> +             if (info.partial_alpha_enabled)
+>                       a->flags |= V4L2_FBUF_FLAG_LOCAL_ALPHA;
+>       }
+>
+> diff --git a/drivers/video/omap2/dss/dispc.c
+> b/drivers/video/omap2/dss/dispc.c
+> index 5e6849e..e0639d3 100644
+> --- a/drivers/video/omap2/dss/dispc.c
+> +++ b/drivers/video/omap2/dss/dispc.c
+> @@ -179,7 +179,8 @@ static void dispc_save_context(void)
+>       SR(CONTROL);
+>       SR(CONFIG);
+>       SR(LINE_NUMBER);
+> -     if (dss_has_feature(FEAT_GLOBAL_ALPHA))
+> +     if (dss_has_feature(FEAT_ALPHA_FIXED_ZORDER) ||
+> +                     dss_has_feature(FEAT_ALPHA_FREE_ZORDER))
+>               SR(GLOBAL_ALPHA);
+>       if (dss_has_feature(FEAT_MGR_LCD2)) {
+>               SR(CONTROL2);
+> @@ -293,7 +294,8 @@ static void dispc_restore_context(void)
+>       /*RR(CONTROL);*/
+>       RR(CONFIG);
+>       RR(LINE_NUMBER);
+> -     if (dss_has_feature(FEAT_GLOBAL_ALPHA))
+> +     if (dss_has_feature(FEAT_ALPHA_FIXED_ZORDER) ||
+> +                     dss_has_feature(FEAT_ALPHA_FREE_ZORDER))
+>               RR(GLOBAL_ALPHA);
+>       if (dss_has_feature(FEAT_MGR_LCD2))
+>               RR(CONFIG2);
+> @@ -2159,38 +2161,35 @@ void dispc_mgr_enable_trans_key(enum omap_channel
+> ch, bool enable)
+>       else /* OMAP_DSS_CHANNEL_LCD2 */
+>               REG_FLD_MOD(DISPC_CONFIG2, enable, 10, 10);
+>  }
+> -void dispc_mgr_enable_alpha_blending(enum omap_channel ch, bool enable)
+> +
+> +void dispc_mgr_enable_alpha_fixed_zorder(enum omap_channel ch, bool
+> enable)
+>  {
+> -     if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
+> +     if (!dss_has_feature(FEAT_ALPHA_FIXED_ZORDER))
+>               return;
+>
+>       if (ch == OMAP_DSS_CHANNEL_LCD)
+>               REG_FLD_MOD(DISPC_CONFIG, enable, 18, 18);
+>       else if (ch == OMAP_DSS_CHANNEL_DIGIT)
+>               REG_FLD_MOD(DISPC_CONFIG, enable, 19, 19);
+> -     else /* OMAP_DSS_CHANNEL_LCD2 */
+> -             REG_FLD_MOD(DISPC_CONFIG2, enable, 18, 18);
+>  }
+> -bool dispc_mgr_alpha_blending_enabled(enum omap_channel ch)
+> +
+> +bool dispc_mgr_alpha_fixed_zorder_enabled(enum omap_channel ch)
+>  {
+>       bool enabled;
+>
+> -     if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
+> +     if (!dss_has_feature(FEAT_ALPHA_FIXED_ZORDER))
+>               return false;
+>
+>       if (ch == OMAP_DSS_CHANNEL_LCD)
+>               enabled = REG_GET(DISPC_CONFIG, 18, 18);
+>       else if (ch == OMAP_DSS_CHANNEL_DIGIT)
+>               enabled = REG_GET(DISPC_CONFIG, 19, 19);
+> -     else if (ch == OMAP_DSS_CHANNEL_LCD2)
+> -             enabled = REG_GET(DISPC_CONFIG2, 18, 18);
+>       else
+>               BUG();
+>
+>       return enabled;
+>  }
+>
+> -
+>  bool dispc_mgr_trans_key_enabled(enum omap_channel ch)
+>  {
+>       bool enabled;
+> @@ -2603,7 +2602,8 @@ void dispc_dump_regs(struct seq_file *s)
+>       DUMPREG(DISPC_CAPABLE);
+>       DUMPREG(DISPC_LINE_STATUS);
+>       DUMPREG(DISPC_LINE_NUMBER);
+> -     if (dss_has_feature(FEAT_GLOBAL_ALPHA))
+> +     if (dss_has_feature(FEAT_ALPHA_FIXED_ZORDER) ||
+> +                     dss_has_feature(FEAT_ALPHA_FREE_ZORDER))
+>               DUMPREG(DISPC_GLOBAL_ALPHA);
+>       if (dss_has_feature(FEAT_MGR_LCD2)) {
+>               DUMPREG(DISPC_CONTROL2);
+> diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+> index 47eebd8..a37aef2 100644
+> --- a/drivers/video/omap2/dss/dss.h
+> +++ b/drivers/video/omap2/dss/dss.h
+> @@ -430,9 +430,9 @@ void dispc_mgr_get_trans_key(enum omap_channel ch,
+>               enum omap_dss_trans_key_type *type,
+>               u32 *trans_key);
+>  void dispc_mgr_enable_trans_key(enum omap_channel ch, bool enable);
+> -void dispc_mgr_enable_alpha_blending(enum omap_channel ch, bool enable);
+> +void dispc_mgr_enable_alpha_fixed_zorder(enum omap_channel ch, bool
+> enable);
+>  bool dispc_mgr_trans_key_enabled(enum omap_channel ch);
+> -bool dispc_mgr_alpha_blending_enabled(enum omap_channel ch);
+> +bool dispc_mgr_alpha_fixed_zorder_enabled(enum omap_channel ch);
+>  void dispc_mgr_set_lcd_timings(enum omap_channel channel,
+>               struct omap_video_timings *timings);
+>  void dispc_mgr_set_pol_freq(enum omap_channel channel,
+> diff --git a/drivers/video/omap2/dss/dss_features.c
+> b/drivers/video/omap2/dss/dss_features.c
+> index 47e66d8..70d5b9e 100644
+> --- a/drivers/video/omap2/dss/dss_features.c
+> +++ b/drivers/video/omap2/dss/dss_features.c
+> @@ -248,15 +248,16 @@ static const enum omap_overlay_caps
+> omap3630_dss_overlay_caps[] = {
+>
+>  static const enum omap_overlay_caps omap4_dss_overlay_caps[] = {
+>       /* OMAP_DSS_GFX */
+> -     OMAP_DSS_OVL_CAP_GLOBAL_ALPHA | OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA,
+> +     OMAP_DSS_OVL_CAP_GLOBAL_ALPHA | OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA |
+> +             OMAP_DSS_OVL_CAP_ZORDER,
+>
+>       /* OMAP_DSS_VIDEO1 */
+>       OMAP_DSS_OVL_CAP_SCALE | OMAP_DSS_OVL_CAP_GLOBAL_ALPHA |
+> -             OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA,
+> +             OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA | OMAP_DSS_OVL_CAP_ZORDER,
+>
+>       /* OMAP_DSS_VIDEO2 */
+>       OMAP_DSS_OVL_CAP_SCALE | OMAP_DSS_OVL_CAP_GLOBAL_ALPHA |
+> -             OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA,
+> +             OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA | OMAP_DSS_OVL_CAP_ZORDER,
+>  };
+>
+>  static const char * const omap2_dss_clk_source_names[] = {
+> @@ -342,13 +343,13 @@ static const struct omap_dss_features
+> omap3430_dss_features = {
+>       .num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields),
+>
+>       .has_feature    =
+> -             FEAT_GLOBAL_ALPHA | FEAT_LCDENABLEPOL |
+> +             FEAT_LCDENABLEPOL |
+>               FEAT_LCDENABLESIGNAL | FEAT_PCKFREEENABLE |
+>               FEAT_FUNCGATED | FEAT_ROWREPEATENABLE |
+>               FEAT_LINEBUFFERSPLIT | FEAT_RESIZECONF |
+>               FEAT_DSI_PLL_FREQSEL | FEAT_DSI_REVERSE_TXCLKESC |
+>               FEAT_VENC_REQUIRES_TV_DAC_CLK | FEAT_CPR | FEAT_PRELOAD |
+> -             FEAT_FIR_COEF_V,
+> +             FEAT_FIR_COEF_V | FEAT_ALPHA_FIXED_ZORDER,
+>
+>       .num_mgrs = 2,
+>       .num_ovls = 3,
+> @@ -366,13 +367,13 @@ static const struct omap_dss_features
+> omap3630_dss_features = {
+>       .num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields),
+>
+>       .has_feature    =
+> -             FEAT_GLOBAL_ALPHA | FEAT_LCDENABLEPOL |
+> +             FEAT_LCDENABLEPOL |
+>               FEAT_LCDENABLESIGNAL | FEAT_PCKFREEENABLE |
+>               FEAT_FUNCGATED |
+>               FEAT_ROWREPEATENABLE | FEAT_LINEBUFFERSPLIT |
+>               FEAT_RESIZECONF | FEAT_DSI_PLL_PWR_BUG |
+>               FEAT_DSI_PLL_FREQSEL | FEAT_CPR | FEAT_PRELOAD |
+> -             FEAT_FIR_COEF_V,
+> +             FEAT_FIR_COEF_V | FEAT_ALPHA_FIXED_ZORDER,
+>
+>       .num_mgrs = 2,
+>       .num_ovls = 3,
+> @@ -392,12 +393,12 @@ static const struct omap_dss_features
+> omap4430_es1_0_dss_features  = {
+>       .num_reg_fields = ARRAY_SIZE(omap4_dss_reg_fields),
+>
+>       .has_feature    =
+> -             FEAT_GLOBAL_ALPHA |
+>               FEAT_MGR_LCD2 |
+>               FEAT_CORE_CLK_DIV | FEAT_LCD_CLK_SRC |
+>               FEAT_DSI_DCS_CMD_CONFIG_VC | FEAT_DSI_VC_OCP_WIDTH |
+>               FEAT_DSI_GNQ | FEAT_HANDLE_UV_SEPARATE | FEAT_ATTR2 |
+> -             FEAT_CPR | FEAT_PRELOAD | FEAT_FIR_COEF_V,
+> +             FEAT_CPR | FEAT_PRELOAD | FEAT_FIR_COEF_V |
+> +             FEAT_ALPHA_FREE_ZORDER,
+>
+>       .num_mgrs = 3,
+>       .num_ovls = 3,
+> @@ -416,13 +417,12 @@ static const struct omap_dss_features
+> omap4_dss_features = {
+>       .num_reg_fields = ARRAY_SIZE(omap4_dss_reg_fields),
+>
+>       .has_feature    =
+> -             FEAT_GLOBAL_ALPHA |
+>               FEAT_MGR_LCD2 |
+>               FEAT_CORE_CLK_DIV | FEAT_LCD_CLK_SRC |
+>               FEAT_DSI_DCS_CMD_CONFIG_VC | FEAT_DSI_VC_OCP_WIDTH |
+>               FEAT_DSI_GNQ | FEAT_HDMI_CTS_SWMODE |
+>               FEAT_HANDLE_UV_SEPARATE | FEAT_ATTR2 | FEAT_CPR |
+> -             FEAT_PRELOAD | FEAT_FIR_COEF_V,
+> +             FEAT_PRELOAD | FEAT_FIR_COEF_V | FEAT_ALPHA_FREE_ZORDER,
+>
+>       .num_mgrs = 3,
+>       .num_ovls = 3,
+> diff --git a/drivers/video/omap2/dss/dss_features.h
+> b/drivers/video/omap2/dss/dss_features.h
+> index cd60644..e81271a 100644
+> --- a/drivers/video/omap2/dss/dss_features.h
+> +++ b/drivers/video/omap2/dss/dss_features.h
+> @@ -31,7 +31,6 @@
+>
+>  /* DSS has feature id */
+>  enum dss_feat_id {
+> -     FEAT_GLOBAL_ALPHA               = 1 << 0,
+>       FEAT_LCDENABLEPOL               = 1 << 3,
+>       FEAT_LCDENABLESIGNAL            = 1 << 4,
+>       FEAT_PCKFREEENABLE              = 1 << 5,
+> @@ -57,6 +56,8 @@ enum dss_feat_id {
+>       FEAT_CPR                        = 1 << 23,
+>       FEAT_PRELOAD                    = 1 << 24,
+>       FEAT_FIR_COEF_V                 = 1 << 25,
+> +     FEAT_ALPHA_FIXED_ZORDER         = 1 << 26,
+> +     FEAT_ALPHA_FREE_ZORDER          = 1 << 27,
+>  };
+>
+>  /* DSS register field id */
+> diff --git a/drivers/video/omap2/dss/manager.c
+> b/drivers/video/omap2/dss/manager.c
+> index fdbbeeb..6e63845 100644
+> --- a/drivers/video/omap2/dss/manager.c
+> +++ b/drivers/video/omap2/dss/manager.c
+> @@ -249,7 +249,10 @@ static ssize_t manager_trans_key_enabled_store(struct
+> omap_overlay_manager *mgr,
+>  static ssize_t manager_alpha_blending_enabled_show(
+>               struct omap_overlay_manager *mgr, char *buf)
+>  {
+> -     return snprintf(buf, PAGE_SIZE, "%d\n", mgr->info.alpha_enabled);
+> +     WARN_ON(!dss_has_feature(FEAT_ALPHA_FIXED_ZORDER));
+> +
+> +     return snprintf(buf, PAGE_SIZE, "%d\n",
+> +             mgr->info.partial_alpha_enabled);
+>  }
+>
+>  static ssize_t manager_alpha_blending_enabled_store(
+> @@ -260,13 +263,15 @@ static ssize_t manager_alpha_blending_enabled_store(
+>       bool enable;
+>       int r;
+>
+> +     WARN_ON(!dss_has_feature(FEAT_ALPHA_FIXED_ZORDER));
+> +
+>       r = strtobool(buf, &enable);
+>       if (r)
+>               return r;
+>
+>       mgr->get_manager_info(mgr, &info);
+>
+> -     info.alpha_enabled = enable;
+> +     info.partial_alpha_enabled = enable;
+>
+>       r = mgr->set_manager_info(mgr, &info);
+>       if (r)
+> @@ -966,7 +971,7 @@ static void configure_manager(enum omap_channel
+> channel)
+>       dispc_mgr_set_default_color(channel, mi->default_color);
+>       dispc_mgr_set_trans_key(channel, mi->trans_key_type, mi->trans_key);
+>       dispc_mgr_enable_trans_key(channel, mi->trans_enabled);
+> -     dispc_mgr_enable_alpha_blending(channel, mi->alpha_enabled);
+> +     dispc_mgr_enable_alpha_fixed_zorder(channel, mi-
+> >partial_alpha_enabled);
+>       if (dss_has_feature(FEAT_CPR)) {
+>               dispc_mgr_enable_cpr(channel, mi->cpr_enable);
+>               dispc_mgr_set_cpr_coef(channel, &mi->cpr_coefs);
+> @@ -1481,12 +1486,17 @@ static int omap_dss_mgr_apply(struct
+> omap_overlay_manager *mgr)
+>
+>  static int dss_check_manager(struct omap_overlay_manager *mgr)
+>  {
+> -     /* OMAP supports only graphics source transparency color key and
+> alpha
+> -      * blending simultaneously. See TRM 15.4.2.4.2.2 Alpha Mode */
+> -
+> -     if (mgr->info.alpha_enabled && mgr->info.trans_enabled &&
+> -                     mgr->info.trans_key_type != OMAP_DSS_COLOR_KEY_GFX_DST)
+> -             return -EINVAL;
+> +     if (dss_has_feature(FEAT_ALPHA_FIXED_ZORDER)) {
+> +             /*
+> +              * OMAP3 supports only graphics source transparency color key
+> +              * and alpha blending simultaneously. See TRM 15.4.2.4.2.2
+> +              * Alpha Mode
+> +              */
+> +             if (mgr->info.partial_alpha_enabled && mgr->info.trans_enabled
+> +                     && mgr->info.trans_key_type !=
+> +                             OMAP_DSS_COLOR_KEY_GFX_DST)
+> +                     return -EINVAL;
+> +     }
+>
+>       return 0;
+>  }
+> diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+> index c62b9a4..5f0ce5e 100644
+> --- a/include/video/omapdss.h
+> +++ b/include/video/omapdss.h
+> @@ -179,6 +179,7 @@ enum omap_overlay_caps {
+>       OMAP_DSS_OVL_CAP_SCALE = 1 << 0,
+>       OMAP_DSS_OVL_CAP_GLOBAL_ALPHA = 1 << 1,
+>       OMAP_DSS_OVL_CAP_PRE_MULT_ALPHA = 1 << 2,
+> +     OMAP_DSS_OVL_CAP_ZORDER = 1 << 3,
+>  };
+>
+>  enum omap_overlay_manager_caps {
+> @@ -406,7 +407,7 @@ struct omap_overlay_manager_info {
+>       u32 trans_key;
+>       bool trans_enabled;
+>
+> -     bool alpha_enabled;
+> +     bool partial_alpha_enabled;
+>
+>       bool cpr_enable;
+>       struct omap_dss_cpr_coefs cpr_coefs;
+> --
+> 1.7.1
 
