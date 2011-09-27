@@ -1,80 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:33805 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752590Ab1I1RGm (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:39544 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751794Ab1I0CU4 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Sep 2011 13:06:42 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LS800KIVSV4ED60@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 28 Sep 2011 18:06:40 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LS800B9RSV4CA@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 28 Sep 2011 18:06:40 +0100 (BST)
-Date: Wed, 28 Sep 2011 19:06:34 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v3 0/2] Add v4l2 subdev driver for S5K6AAFX sensor
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1317229596-8140-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 26 Sep 2011 22:20:56 -0400
+Received: by bkbzt4 with SMTP id zt4so6425673bkb.19
+        for <linux-media@vger.kernel.org>; Mon, 26 Sep 2011 19:20:55 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4E7FF0A0.7060004@gmail.com>
+References: <4E7F1FB5.5030803@gmail.com>
+	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
+	<4E7FF0A0.7060004@gmail.com>
+Date: Mon, 26 Sep 2011 22:20:55 -0400
+Message-ID: <CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
+Subject: Re: Problems cloning the git repostories
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <maurochehab@gmail.com>
+Cc: Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+On Sun, Sep 25, 2011 at 11:25 PM, Mauro Carvalho Chehab
+<maurochehab@gmail.com> wrote:
+> I fail to see any trial from your side to send the patches upstream:
+> no pull requests and no patches for this driver were _ever_ sent to
+> the ML.
 
-The following change set is a third version of the subdev driver for S5K6AAFX sensor.
+You and I have discussed this issue multiple times with these drivers,
+including the drx-j (which is the basis for the 80e device in
+question).  All the code is publicly available, and I in fact invited
+you personally to pull whatever you want (as a policy we don't publish
+public trees that have outstanding licensing issues).
 
-Changes since v2:
- - addressed Sakari's comments:
-    use lower case used for all hexadecimal numbers,
-    use usleep_range instead of udelay,
-    move mirror flags to s5k6aa struct,
-    remove static data from s5k6aa_preset struct
- - minimize I2C access in S_CTRL handler
- - return constant TRY format in subdev open()
- - added set_crop/get_crop ops 
- - fixed bugs in the internal PLL/clocks setup functions resulting
-   in the firmware rejecting whole user configuration in some cases
- - added driver's private controls for RGB component gains
- - corrections per Hans' suggestions:
-    removed unneeded v4l2_* subdev controls ops
- - patch 2/2 - no changes  	
+Look how long it took to get xc4000 upstream.  Look how long it took
+drx-d to get upstream.  Those trees sat there for *years* with your
+full knowledge of their existence and that the only reason they
+weren't merged was because of codingstyle issues.
 
-Changes since v1:
- - improved s5k6aa_initialize_ctrls()
- - fixed pixel resolution update issue which resulted in cropping
-   where scaling was expected
- - used V4L2_COLORFX_SKY_BLUE instead of V4L2_COLORFX_ALPHA   
- - dropped patch adding V4L2_COLORFX_AQUA entry for V4L2_CID_COLORFX control
- - patch 2/2 - no changes  	
+Oh, and I did spend a bunch of hours doing cleanup work on the as102
+driver, and it was still not good enough.  I decided it wasn't worth
+the additional time.  That tree has only been rotting for 19 months.
 
+> I can only guess that maybe submitting it upstream were not
+> part of your contract with the vendor.
 
-Thanks again for all the review comments.
+I don't even know what this means.  Commercial customers who I've done
+work for almost never are willing to pay for me to merge code
+upstream.  And yet code does get upstream.  Why?  Because I do it in
+my free time as a courtesy to the community.
 
-Sylwester Nawrocki (2):
-  v4l: Add AUTO option for the V4L2_CID_POWER_LINE_FREQUENCY control
-  v4l: Add v4l2 subdev driver for S5K6AAFX sensor
+Probably also worth noting that the project in question - the 80e -
+was not done for any customer.  I just did the work because I wanted
+to see the device supported under Linux.
 
- Documentation/DocBook/media/v4l/controls.xml |    5 +-
- drivers/media/video/Kconfig                  |    7 +
- drivers/media/video/Makefile                 |    1 +
- drivers/media/video/s5k6aa.c                 | 1690 ++++++++++++++++++++++++++
- drivers/media/video/v4l2-ctrls.c             |    1 +
- include/linux/videodev2.h                    |    1 +
- include/media/s5k6aa.h                       |   51 +
- 7 files changed, 1754 insertions(+), 2 deletions(-)
- create mode 100644 drivers/media/video/s5k6aa.c
- create mode 100644 include/media/s5k6aa.h
+> Coding Style fixes are generally trivial, and they can be done very quickly
+> with some scripting. I took only a few hours to convert drx-d and drx-k
+> to the Linux Coding Style, on my spare time. The scripts I wrote for that
+> are together with the commits (they're generally a few lines perl scripting
+> doing some replacements). I usually do this with other drivers, when people
+> submit me them with those troubles and I have some time, and never asked
+> or earned a single penny for doing that.
 
+Hey, feel free to grab the drx-j driver then.  This is like the fourth
+time I'm invited you to pull the sources and do such a cleanup.  And
+like I said above, I don't earn any money for such cleanups either.  I
+just believe it's a colossal waste of my time that would be better
+spent doing real driver development.
 
-Regards,
---
-Sylwester Nawrocki
-Samsung Poland R&D Center
+> Also, as I've told you several times before, code with broken coding styles
+> can be submitted as-is, without any changes to drivers/staging, where they're
+> fixed by kernel newbies with more time to work on that.
+
+Last I checked you can't put demod or tuners drivers into staging
+because they are a dependency of the bridge driver.  I guess maybe you
+can accomplish that if you litter the bridge driver source and
+makefiles with #ifdef lines.  If that situation has changed, then
+great.
+
+> So, please don't use weak arguments like that as an excuse for you to not
+> submit your drivers.
+
+Suggesting that the developers who are trying to give you working code
+at zero cost is a pretty crappy way to treat them.
+
+>> Want to see more device support upstream?  Optimize the process to
+>> make it easy for the people who know the hardware and how to write the
+>> drivers to get code upstream, and leave it to the "janitors" to work
+>> out the codingstyle issues.
+>
+> The process you've just described exists already since Sept, 2008.
+> It is called:
+>        /drivers/staging
+>
+> In summary, if you don't have a couple hours to make your driver to
+> match Kernel Coding Style, just send it as is to /drivers/staging, c/c
+> me and Greg KH, and that's it.
+
+PULL http://kernellabs.com/hg/~dheitmueller/v4l-dvb-80e/
+PULL http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+
+Have fun.
+
+The harder you make it to get code upstream, the more developers who
+will just say "to hell with this".  And *that* is why there are
+thousands of lines of working drivers which various developers have in
+out-of-tree drivers.
+
+You can sit in denial that there is a fundamental problem with the
+management of this project and blame the developers for being lazy, or
+you can take some concrete action to get the code merged upstream.
+
+Your call.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
