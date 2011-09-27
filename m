@@ -1,38 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:55920 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752619Ab1IQVf3 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34654 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752778Ab1I0R7z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Sep 2011 17:35:29 -0400
-Received: by wwn22 with SMTP id 22so2115683wwn.1
-        for <linux-media@vger.kernel.org>; Sat, 17 Sep 2011 14:35:28 -0700 (PDT)
+	Tue, 27 Sep 2011 13:59:55 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 2/2] as3645a: Add driver for LED flash controller
+Date: Tue, 27 Sep 2011 19:59:47 +0200
+Cc: linux-media@vger.kernel.org,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Nayden Kanchev <nkanchev@mm-sol.com>,
+	Tuukka Toivonen <tuukkat76@gmail.com>,
+	Antti Koskipaa <antti.koskipaa@gmail.com>,
+	Stanimir Varbanov <svarbanov@mm-sol.com>,
+	Vimarsh Zutshi <vimarsh.zutshi@gmail.com>,
+	"Ivan T. Ivanov" <iivanov@mm-sol.com>,
+	Mika Westerberg <ext-mika.1.westerberg@nokia.com>,
+	David Cohen <dacohen@gmail.com>
+References: <1315583569-22727-1-git-send-email-laurent.pinchart@ideasonboard.com> <1315583569-22727-3-git-send-email-laurent.pinchart@ideasonboard.com> <201109261221.12068.hverkuil@xs4all.nl>
+In-Reply-To: <201109261221.12068.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Date: Sat, 17 Sep 2011 17:35:27 -0400
-Message-ID: <CALzAhNUObL0WB2wfsVEKdNP_qddHtQyygz730AfNfPFNbJfbJg@mail.gmail.com>
-Subject: [GIT PULL for v3.2] [media] saa7164: Adding support for HVR2200 card
- id 0x8953
-From: Steven Toth <stoth@kernellabs.com>
-To: Linux-Media <linux-media@vger.kernel.org>
-Cc: Mauro Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109271959.48499.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Hans,
 
-Please pull 92aa36f8f9d19b7c47ad3daca15aa0932254246b from
-git://git.kernellabs.com/stoth/saa7164-dev.git
+Thanks for the review.
 
-Another SAA7164 HVR220 card profile.
+On Monday 26 September 2011 12:21:11 Hans Verkuil wrote:
+> On Friday, September 09, 2011 17:52:49 Laurent Pinchart wrote:
 
-http://git.kernellabs.com/?p=stoth/saa7164-dev.git;a=commit;h=92aa36f8f9d19b7c47ad3daca15aa0932254246b
+[snip]
 
-drivers/media/video/saa7164/saa7164-cards.c |   62 +++++++++++++++++++++++++++
-drivers/media/video/saa7164/saa7164-dvb.c   |    1 +
-drivers/media/video/saa7164/saa7164.h       |    1 +
+> > +/* Register definitions */
+> > +
+> > +/* Read-only Design info register: Reset state: xxxx 0001 - for Senna */
+> 
+> What's 'Senna'? I see this at several places in this driver. It's probably
+> a code name of some sort, but this needs some explanation.
+> 
+> <...cut...>
 
-Thanks,
+My bad. I'll fix it.
+
+> > +
+> > +	/* V4L2_CID_FLASH_INDICATOR_INTENSITY */
+> > +	v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
+> > +			  V4L2_CID_FLASH_INDICATOR_INTENSITY,
+> > +			  AS3645A_INDICATOR_INTENSITY_MIN,
+> > +			  AS3645A_INDICATOR_INTENSITY_MAX,
+> > +			  AS3645A_INDICATOR_INTENSITY_STEP,
+> > +			  AS3645A_INDICATOR_INTENSITY_MIN);
+> > +
+> > +	flash->indicator_current = 0;
+> > +
+> > +	/* V4L2_CID_FLASH_FAULT */
+> > +	ctrl = v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
+> > +				 V4L2_CID_FLASH_FAULT, 0,
+> > +				 V4L2_FLASH_FAULT_OVER_VOLTAGE |
+> > +				 V4L2_FLASH_FAULT_TIMEOUT |
+> > +				 V4L2_FLASH_FAULT_OVER_TEMPERATURE |
+> > +				 V4L2_FLASH_FAULT_SHORT_CIRCUIT, 0, 0);
+> > +	if (ctrl != NULL)
+> > +		ctrl->is_volatile = 1;
+> > +
+> > +	/* V4L2_CID_FLASH_READY */
+> > +	ctrl = v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
+> > +				 V4L2_CID_FLASH_READY, 0, 1, 1, 1);
+> > +	if (ctrl != NULL)
+> > +		ctrl->is_volatile = 1;
+> 
+> Note that 'is_volatile' is now replaced by the new V4L2_CTRL_FLAG_VOLATILE
+> flag for ctrl->flags. You'll need to redo your patch.
+
+In which kernel version will that be included ?
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
