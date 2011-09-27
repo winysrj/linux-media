@@ -1,63 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:49747 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751802Ab1INGZT convert rfc822-to-8bit (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:55939 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752643Ab1I0U6q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Sep 2011 02:25:19 -0400
-Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:8db5])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id D9E569400F2
-	for <linux-media@vger.kernel.org>; Wed, 14 Sep 2011 08:25:11 +0200 (CEST)
-Date: Wed, 14 Sep 2011 08:25:13 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Question about USB interface index restriction in gspca
-Message-ID: <20110914082513.574baac2@tele>
-In-Reply-To: <4E6FAB94.2010007@googlemail.com>
-References: <4E6FAB94.2010007@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Tue, 27 Sep 2011 16:58:46 -0400
+Date: Tue, 27 Sep 2011 23:58:43 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com
+Subject: Re: [PATCH v2 2/2] v4l: Add v4l2 subdev driver for S5K6AAFX sensor
+Message-ID: <20110927205843.GB6180@valkosipuli.localdomain>
+References: <1316627107-18709-1-git-send-email-s.nawrocki@samsung.com>
+ <1316627107-18709-3-git-send-email-s.nawrocki@samsung.com>
+ <20110922220259.GS1845@valkosipuli.localdomain>
+ <4E7C5BAA.9090900@samsung.com>
+ <20110925100804.GU1845@valkosipuli.localdomain>
+ <4E7F5DEC.8020808@gmail.com>
+ <20110927205532.GA6180@valkosipuli.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20110927205532.GA6180@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 13 Sep 2011 21:14:28 +0200
-Frank Schäfer <fschaefer.oss@googlemail.com> wrote:
-
-> I have a question about the following code in gspca.c:
+On Tue, Sep 27, 2011 at 11:55:32PM +0300, Sakari Ailus wrote:
+> Sylwester Nawrocki wrote:
+> > Hello Sakari,
 > 
-> in function gspca_dev_probe(...):
->      ...
->      /* the USB video interface must be the first one */
->      if (dev->config->desc.bNumInterfaces != 1
-> && intf->cur_altsetting->desc.bInterfaceNumber != 0)
->              return -ENODEV;
->      ...
-> 
-> Is there a special reason for not allowing devices with USB interface 
-> index > 0 for video ?
-> I'm experimenting with a device that has the video interface at index 3 
-> and two audio interfaces at index 0 and 1 (index two is missing !).
-> And the follow-up question: can we assume that all device handled by the 
-> gspca-driver have vendor specific video interfaces ?
-> Then we could change the code to
-> 
->      ...
->      /* the USB video interface must be of class vendor */
->      if (intf->cur_altsetting->desc.bInterfaceClass != 
-> USB_CLASS_VENDOR_SPEC)
->              return -ENODEV;
->       ...
+> Hi Sylwester,
 
-Hi Frank,
+What I forgot to ask was whether there is a public datasheet for this
+sensor?
 
-For webcam devices, the interface class is meaningful only when set to
-USB_CLASS_VIDEO (UVC). Otherwise, I saw many different values.
-
-For video on a particular interface, the subdriver must call the
-function gspca_dev_probe2() as this is done in spca1528 and xirlink_cit.
-
-Regards.
+Regards,
 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
