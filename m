@@ -1,87 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34654 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752778Ab1I0R7z (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:47911 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753292Ab1I0ORP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 13:59:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 2/2] as3645a: Add driver for LED flash controller
-Date: Tue, 27 Sep 2011 19:59:47 +0200
-Cc: linux-media@vger.kernel.org,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Nayden Kanchev <nkanchev@mm-sol.com>,
-	Tuukka Toivonen <tuukkat76@gmail.com>,
-	Antti Koskipaa <antti.koskipaa@gmail.com>,
-	Stanimir Varbanov <svarbanov@mm-sol.com>,
-	Vimarsh Zutshi <vimarsh.zutshi@gmail.com>,
-	"Ivan T. Ivanov" <iivanov@mm-sol.com>,
-	Mika Westerberg <ext-mika.1.westerberg@nokia.com>,
-	David Cohen <dacohen@gmail.com>
-References: <1315583569-22727-1-git-send-email-laurent.pinchart@ideasonboard.com> <1315583569-22727-3-git-send-email-laurent.pinchart@ideasonboard.com> <201109261221.12068.hverkuil@xs4all.nl>
-In-Reply-To: <201109261221.12068.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109271959.48499.laurent.pinchart@ideasonboard.com>
+	Tue, 27 Sep 2011 10:17:15 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-15; format=flowed
+Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LS6004BNQCP4350@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 27 Sep 2011 15:17:13 +0100 (BST)
+Received: from [106.116.48.223] by spt1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LS600GMYQCOLE@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 27 Sep 2011 15:17:13 +0100 (BST)
+Date: Tue, 27 Sep 2011 16:17:11 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH 2/4] v4l: add documentation for selection API
+In-reply-to: <201109271317.07571.laurent.pinchart@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl, sakari.ailus@iki.fi,
+	'Kamil Debski' <k.debski@samsung.com>
+Message-id: <4E81DAE7.60509@samsung.com>
+References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com>
+ <201109231513.22342.laurent.pinchart@ideasonboard.com>
+ <4E7CA433.1000402@samsung.com>
+ <201109271317.07571.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Laurent,
 
-Thanks for the review.
-
-On Monday 26 September 2011 12:21:11 Hans Verkuil wrote:
-> On Friday, September 09, 2011 17:52:49 Laurent Pinchart wrote:
+On 09/27/2011 01:17 PM, Laurent Pinchart wrote:
+> Hi Tomasz,
+>
+> On Friday 23 September 2011 17:22:27 Tomasz Stanislawski wrote:
+>> On 09/23/2011 03:13 PM, Laurent Pinchart wrote:
+>
 
 [snip]
 
-> > +/* Register definitions */
-> > +
-> > +/* Read-only Design info register: Reset state: xxxx 0001 - for Senna */
-> 
-> What's 'Senna'? I see this at several places in this driver. It's probably
-> a code name of some sort, but this needs some explanation.
-> 
-> <...cut...>
+>>
+>> I have to ideas to add subpixels to selection API.
+>>
+>> 1. Introduce struct v4l2_frect similar to struct v4l2_rect. All its
+>> fields' type would be struct v4l2_fract.
+>> 2. Add field denominator to v4l2_selection as one of reserved fields.
+>> All selection coordinates would be divided by this number.
+>>
+>> The 2nd proposal could added in the future update to selection API.
+>
+> The second solution seems the simplest. Drivers will likely not support
+> arbitrary denominators, so we also need a way to report the acceptable
+> value(s) to userspace.
+>
 
-My bad. I'll fix it.
+The driver could set denominator to zero for G_SELECTION to indicate 
+that no subpixel resolutions are supported. Moreover it is easy to 
+convert fractional value to integers because rounding would be 
+controlled by the constraints flags. This operation could be done by new 
+helper function from V4L2 kernel API.
 
-> > +
-> > +	/* V4L2_CID_FLASH_INDICATOR_INTENSITY */
-> > +	v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
-> > +			  V4L2_CID_FLASH_INDICATOR_INTENSITY,
-> > +			  AS3645A_INDICATOR_INTENSITY_MIN,
-> > +			  AS3645A_INDICATOR_INTENSITY_MAX,
-> > +			  AS3645A_INDICATOR_INTENSITY_STEP,
-> > +			  AS3645A_INDICATOR_INTENSITY_MIN);
-> > +
-> > +	flash->indicator_current = 0;
-> > +
-> > +	/* V4L2_CID_FLASH_FAULT */
-> > +	ctrl = v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
-> > +				 V4L2_CID_FLASH_FAULT, 0,
-> > +				 V4L2_FLASH_FAULT_OVER_VOLTAGE |
-> > +				 V4L2_FLASH_FAULT_TIMEOUT |
-> > +				 V4L2_FLASH_FAULT_OVER_TEMPERATURE |
-> > +				 V4L2_FLASH_FAULT_SHORT_CIRCUIT, 0, 0);
-> > +	if (ctrl != NULL)
-> > +		ctrl->is_volatile = 1;
-> > +
-> > +	/* V4L2_CID_FLASH_READY */
-> > +	ctrl = v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
-> > +				 V4L2_CID_FLASH_READY, 0, 1, 1, 1);
-> > +	if (ctrl != NULL)
-> > +		ctrl->is_volatile = 1;
-> 
-> Note that 'is_volatile' is now replaced by the new V4L2_CTRL_FLAG_VOLATILE
-> flag for ctrl->flags. You'll need to redo your patch.
+[snip]
 
-In which kernel version will that be included ?
+>>>>>
+>>>>> How would an application remove them ?
+>>>>
+>>>> The application may use memset if it recognizes fourcc. The idea of
+>>>> padding target was to provide information about artifacts introduced the
+>>>> hardware. If the image is decoded directly to framebuffer then the
+>>>> application could remove artifacts. We could introduce some V4L2
+>>>> control to inform if the padding are is filled with zeros to avoid
+>>>> redundant memset.
+>>>> What do you think?
+>>>
+>>> OK, I understand this better now. I'm still not sure how applications
+>>> will be able to cope with that. memset'ing the garbage area won't look
+>>> good on the screen.
+>>
+>> The memset is just a simple and usually fast solution. The application
+>> could fill the padding area with any pattern or background color.
+>>
+>>> Does your hardware have different compose and padding rectangles ?
+>>
+>> I assume that you mean active and padded targets for composing, right?
+>> The answer is yes. The MFC inserts data to the image that dimensions are
+>> multiples of 128x32. The movie inside could be any size that fits to the
+>> buffer. The area that contains the movie frame is the active rectangle.
+>> The padded is filled with zeros. For MFC the bounds and padded rectangle
+>> are the same.
+>>
+>> Hmm...
+>>
+>> Does it violate 'no margin requirement', doesn't it?
+>
+> Seems so :-)
+>
 
--- 
-Regards,
+For S5P MFC is it not possible to satisfy 'no margin' requirement in all 
+cases. The default rectangle is not equal to the bound rectangle in all 
+cases. BTW, the MFC is mem2mem device so its API may change.
+To sum up for MFC following inequalities are satisfied:
 
-Laurent Pinchart
+active <= padded == bound
+
+Do you think that 'no margin' requirement should be downgraded to a 
+recommendation status?
+
+[snip]
+
+>
+> I think the driver should always return the best-hit rectangle, regardless of
+> whether we use hints or not.
+>
+
+The problem is that when the VIDIOC_S_SELECTION fails (could not satisfy 
+constraints) then the ioctl'a parameters are not copied to the 
+userspace. So no best-hit rectangle can be returned. On the other hand, 
+if the ioctl would not fail in this case then the configuration is 
+applied, causing pipeline messing. We have no-win situation.
+
+If the application accepts all rectangles then it should never use the 
+constraint flags in the first place. Moreover, the application can 
+always remove the constraints flags and try again. At least, the fall 
+back is done explicitly in that case.
+
+The VIDIOC_TRY_SELECTION could be added to cope with more complex 
+negotiations.
+
+Best regards,
+Tomasz Stanislawski
