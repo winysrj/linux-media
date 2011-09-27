@@ -1,78 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37704 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752457Ab1ITWSK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Sep 2011 18:18:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v3 1/3] noon010pc30: Conversion to the media controller API
-Date: Wed, 21 Sep 2011 00:18:13 +0200
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	riverful.kim@samsung.com
-References: <1316188796-8374-1-git-send-email-s.nawrocki@samsung.com> <1316188796-8374-2-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1316188796-8374-2-git-send-email-s.nawrocki@samsung.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:34255 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751052Ab1I0HPW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Sep 2011 03:15:22 -0400
+Message-ID: <4E81781B.7090602@ti.com>
+Date: Tue, 27 Sep 2011 12:45:39 +0530
+From: Archit Taneja <archit@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+CC: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Semwal, Sumit" <sumit.semwal@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3 4/4] OMAP_VOUT: Don't trigger updates in omap_vout_probe
+References: <1317038365-30650-1-git-send-email-archit@ti.com>	 <1317038365-30650-5-git-send-email-archit@ti.com>	 <1317103833.1991.6.camel@deskari>  <4E81750F.7060200@ti.com> <1317107261.1991.18.camel@deskari>
+In-Reply-To: <1317107261.1991.18.camel@deskari>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109210018.14185.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On Tuesday 27 September 2011 12:37 PM, Valkeinen, Tomi wrote:
+> On Tue, 2011-09-27 at 12:32 +0530, Archit Taneja wrote:
+>> On Tuesday 27 September 2011 11:40 AM, Valkeinen, Tomi wrote:
+>>> On Mon, 2011-09-26 at 17:29 +0530, Archit Taneja wrote:
+>>>> Remove the code in omap_vout_probe() which calls display->driver->update() for
+>>>> all the displays. This isn't correct because:
+>>>>
+>>>> - An update in probe doesn't make sense, because we don't have any valid content
+>>>>     to show at this time.
+>>>> - Calling update for a panel which isn't enabled is not supported by DSS2. This
+>>>>     leads to a crash at probe.
+>>>
+>>> Calling update() on a disabled panel should not crash... Where is the
+>>> crash coming from?
+>>
+>> you are right, the crash isn't coming from the updates. I see the crash
+>> when we have 4 dss devices in our board file. The last display pointer
+>> is corrupted in that case. I'm trying to figure out why.
+>
+> Could be totally unrelated, but does the V4L2 driver make sure that the
+> used dss devices have a driver loaded?
+>
+> OMAPFB previously refused to start if all the devices do not have a
+> driver, but nowadays it starts fine by skipping the devices without a
+> driver.
 
-Thanks for the patch.
+The drivers were loaded in. The issue was something else totally. I 
+assumed it was something related to update call.
 
-On Friday 16 September 2011 17:59:54 Sylwester Nawrocki wrote:
-> Replace g/s_mbus_fmt ops with the pad level get/set_fmt operations.
-> Add media entity initialization and set subdev flags so the host driver
-> creates a subdev device node for the driver.
-> A mutex was added for serializing the subdev operations. When setting
-> format is attempted during streaming an (EBUSY) error will be returned.
-> 
-> After the device is powered up it will now remain in "power sleep"
-> mode until s_stream(1) is called. The "power sleep" mode is used
-> to suspend/resume frame generation at the sensor's output through
-> s_stream op.
-> 
-> While at here simplify the colorspace parameter handling.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+In drivers/media/video/omap/omap_voutdef.h:
 
-[snip]
+struct omap2video_device {
+...
+...
+struct omap_dss_device *displays[MAX_DISPLAYS];
+...
+...
+};
 
-> diff --git a/drivers/media/video/noon010pc30.c
-> b/drivers/media/video/noon010pc30.c index 35f722a..115d976 100644
-> --- a/drivers/media/video/noon010pc30.c
-> +++ b/drivers/media/video/noon010pc30.c
+MAX_DISPLAYS is 3, so the 4th display pointer was getting messed up 
+wherever we used it.
 
-[snip]
+I guess we don't need this patch. We may want to set MAX_DISPLAYS to a 
+higher number i guess, because we could theoretically register as many 
+panels as we want, and set/unset them.
 
-> @@ -599,6 +641,22 @@ static int noon010_log_status(struct v4l2_subdev *sd)
->  	return 0;
->  }
-> 
-> +static int noon010_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-> +{
-> +	struct v4l2_mbus_framefmt *mf = v4l2_subdev_get_try_format(fh, 0);
-> +	struct noon010_info *info = to_noon010(sd);
-> +
-> +	mutex_lock(&info->lock);
-> +	noon010_get_current_fmt(to_noon010(sd), mf);
+Thanks,
+Archit
 
-Should you initialize mf with a constant default format instead of retrieving 
-the current format from the sensor ? A non-constant default would probably 
-confuse userspace application.
+>
+>   Tomi
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> +
-> +	mutex_unlock(&info->lock);
-> +	return 0;
-> +}
-
--- 
-Regards,
-
-Laurent Pinchart
