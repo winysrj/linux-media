@@ -1,49 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:49520 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932570Ab1IAQOY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 12:14:24 -0400
-Received: by ywf7 with SMTP id 7so1505937ywf.19
-        for <linux-media@vger.kernel.org>; Thu, 01 Sep 2011 09:14:24 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4E5FA1B3.9050005@mlbassoc.com>
-References: <4E56734A.3080001@mlbassoc.com>
-	<CA+2YH7t9K6PFW-4YvLUx-BfteJ8ORujHppM+iesn4u2qP-Of=w@mail.gmail.com>
-	<4E5F7FB3.8020405@mlbassoc.com>
-	<201109011526.29507.laurent.pinchart@ideasonboard.com>
-	<4E5FA1B3.9050005@mlbassoc.com>
-Date: Thu, 1 Sep 2011 18:14:20 +0200
-Message-ID: <CA+2YH7uT0ZGV9Drc-8V1vRB0o3gyKhyX8=f+Crsn7vtDGpem=Q@mail.gmail.com>
-Subject: Re: Getting started with OMAP3 ISP
-From: Enrico <ebutera@users.berlios.de>
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Enric Balletbo i Serra <eballetbo@iseebcn.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:30256 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752973Ab1I0KBP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Sep 2011 06:01:15 -0400
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LS6002OIEI104@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 27 Sep 2011 11:01:13 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LS600AA9EHX50@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 27 Sep 2011 11:01:13 +0100 (BST)
+Date: Tue, 27 Sep 2011 10:57:48 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH] MAINTAINERS: add entries for s5p-mfc and s5p-tv drivers
+In-reply-to: <000001cc751c$8b0ad9e0$a1208da0$%park@samsung.com>
+To: jtp.park@samsung.com, linux-media@vger.kernel.org
+Cc: kgene.kim@samsung.com, 'Kamil Debski' <k.debski@samsung.com>,
+	kyungmin.park@samsung.com
+Message-id: <000101cc7cf3$87df7e90$979e7bb0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1312968749-15988-1-git-send-email-m.szyprowski@samsung.com>
+ <005a01cc67b9$02315560$06940020$%park@samsung.com>
+ <012401cc67c4$33acdf00$9b069d00$%szyprowski@samsung.com>
+ <000001cc751c$8b0ad9e0$a1208da0$%park@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 1, 2011 at 5:16 PM, Gary Thomas <gary@mlbassoc.com> wrote:
->
-> - entity 16: tvp5150m1 2-005c (1 pad, 1 link)
->             type V4L2 subdev subtype Unknown
->             device node name /dev/v4l-subdev8
->        pad0: Output [unknown 720x480 (1,1)/720x480]
->                -> 'OMAP3 ISP CCDC':pad0 [ACTIVE]
->
-> Ideas where to look for the 'unknown' mode?
+Hello,
 
-I didn't notice that, if you are using UYVY8_2X8 the reason is in
-media-ctl main.c:
+On Saturday, September 17, 2011 11:31 AM Jeongtae Park wrote:
 
-{ "UYVY", V4L2_MBUS_FMT_UYVY8_1X16 },
+> Hi,
+> 
+> How is it going?
 
-You can add a line like:
+I'm sorry for the delay, I was on holidays for over 2 weeks and got back last week.
+Sadly I didn't manage to send updated version. Now it looks that the initial patch
+has been already merged to linuxtv/staging/for_v3.2. IMHO the best solution now is
+to create another patch for MAINTAINERS file. Please send your separate patch to the
+ml, so Mauro can pickup it for the next kernel release. 
 
-{ "UYVY2X8", V4L2_MBUS_FMT_UYVY8_2X8 },
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
-recompile and it should work, i'll try it now.
 
-Enrico
