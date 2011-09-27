@@ -1,230 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:37965 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932480Ab1IAPae (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 11:30:34 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Thu, 01 Sep 2011 17:30:08 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 04/19 v4] s5p-fimc: Remove sensor management code from FIMC
- capture driver
-In-reply-to: <1314891023-14227-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: mchehab@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Message-id: <1314891023-14227-5-git-send-email-s.nawrocki@samsung.com>
-References: <1314891023-14227-1-git-send-email-s.nawrocki@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45684 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753852Ab1I0XUN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Sep 2011 19:20:13 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Deepthy Ravi <deepthy.ravi@ti.com>
+Subject: Re: [PATCH v2 2/5] [media] v4l: Add support for mt9t111 sensor driver
+Date: Wed, 28 Sep 2011 01:20:08 +0200
+Cc: hvaibhav@ti.com, linux-media@vger.kernel.org, g.liakhovetski@gmx.de
+References: <1317130848-21136-1-git-send-email-deepthy.ravi@ti.com> <1317130848-21136-3-git-send-email-deepthy.ravi@ti.com>
+In-Reply-To: <1317130848-21136-3-git-send-email-deepthy.ravi@ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109280120.09228.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sensor subdevs need to be shared between all available FIMC instances.
-Remove their registration from FIMC capture driver so they can then be
-registered to the media device driver.
+Hi Deepthy,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |  139 +--------------------------
- drivers/media/video/s5p-fimc/fimc-core.h    |    2 +-
- 2 files changed, 2 insertions(+), 139 deletions(-)
+Thanks for the patch.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index b786c2c..40f3330 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -16,12 +16,9 @@
- #include <linux/bug.h>
- #include <linux/interrupt.h>
- #include <linux/device.h>
--#include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/list.h>
- #include <linux/slab.h>
--#include <linux/clk.h>
--#include <linux/i2c.h>
- 
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
-@@ -32,126 +29,6 @@
- 
- #include "fimc-core.h"
- 
--static struct v4l2_subdev *fimc_subdev_register(struct fimc_dev *fimc,
--					    struct s5p_fimc_isp_info *isp_info)
--{
--	struct i2c_adapter *i2c_adap;
--	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
--	struct v4l2_subdev *sd = NULL;
--
--	i2c_adap = i2c_get_adapter(isp_info->i2c_bus_num);
--	if (!i2c_adap)
--		return ERR_PTR(-ENOMEM);
--
--	sd = v4l2_i2c_new_subdev_board(&vid_cap->v4l2_dev, i2c_adap,
--				       isp_info->board_info, NULL);
--	if (!sd) {
--		v4l2_err(&vid_cap->v4l2_dev, "failed to acquire subdev\n");
--		return NULL;
--	}
--
--	v4l2_info(&vid_cap->v4l2_dev, "subdevice %s registered successfuly\n",
--		isp_info->board_info->type);
--
--	return sd;
--}
--
--static void fimc_subdev_unregister(struct fimc_dev *fimc)
--{
--	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
--	struct i2c_client *client;
--
--	if (vid_cap->input_index < 0)
--		return;	/* Subdevice already released or not registered. */
--
--	if (vid_cap->sd) {
--		v4l2_device_unregister_subdev(vid_cap->sd);
--		client = v4l2_get_subdevdata(vid_cap->sd);
--		i2c_unregister_device(client);
--		i2c_put_adapter(client->adapter);
--		vid_cap->sd = NULL;
--	}
--
--	vid_cap->input_index = -1;
--}
--
--/**
-- * fimc_subdev_attach - attach v4l2_subdev to camera host interface
-- *
-- * @fimc: FIMC device information
-- * @index: index to the array of available subdevices,
-- *	   -1 for full array search or non negative value
-- *	   to select specific subdevice
-- */
--static int fimc_subdev_attach(struct fimc_dev *fimc, int index)
--{
--	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
--	struct s5p_platform_fimc *pdata = fimc->pdata;
--	struct s5p_fimc_isp_info *isp_info;
--	struct v4l2_subdev *sd;
--	int i;
--
--	for (i = 0; i < pdata->num_clients; ++i) {
--		isp_info = &pdata->isp_info[i];
--
--		if (index >= 0 && i != index)
--			continue;
--
--		sd = fimc_subdev_register(fimc, isp_info);
--		if (!IS_ERR_OR_NULL(sd)) {
--			vid_cap->sd = sd;
--			vid_cap->input_index = i;
--
--			return 0;
--		}
--	}
--
--	vid_cap->input_index = -1;
--	vid_cap->sd = NULL;
--	v4l2_err(&vid_cap->v4l2_dev, "fimc%d: sensor attach failed\n",
--		 fimc->id);
--	return -ENODEV;
--}
--
--static int fimc_isp_subdev_init(struct fimc_dev *fimc, unsigned int index)
--{
--	struct s5p_fimc_isp_info *isp_info;
--	struct s5p_platform_fimc *pdata = fimc->pdata;
--	int ret;
--
--	if (index >= pdata->num_clients)
--		return -EINVAL;
--
--	isp_info = &pdata->isp_info[index];
--
--	if (isp_info->clk_frequency)
--		clk_set_rate(fimc->clock[CLK_CAM], isp_info->clk_frequency);
--
--	ret = clk_enable(fimc->clock[CLK_CAM]);
--	if (ret)
--		return ret;
--
--	ret = fimc_subdev_attach(fimc, index);
--	if (ret)
--		return ret;
--
--	ret = fimc_hw_set_camera_polarity(fimc, isp_info);
--	if (ret)
--		return ret;
--
--	ret = v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 1);
--	if (!ret)
--		return ret;
--
--	/* enabling power failed so unregister subdev */
--	fimc_subdev_unregister(fimc);
--
--	v4l2_err(&fimc->vid_cap.v4l2_dev, "ISP initialization failed: %d\n",
--		 ret);
--
--	return ret;
--}
--
- static void fimc_capture_state_cleanup(struct fimc_dev *fimc)
- {
- 	struct fimc_vid_cap *cap = &fimc->vid_cap;
-@@ -411,15 +288,7 @@ static int fimc_capture_open(struct file *file)
- 	if (ret)
- 		return ret;
- 
--	if (++fimc->vid_cap.refcnt == 1) {
--		ret = fimc_isp_subdev_init(fimc, 0);
--		if (ret) {
--			pm_runtime_put_sync(&fimc->pdev->dev);
--			fimc->vid_cap.refcnt--;
--			return -EIO;
--		}
--	}
--
-+	++fimc->vid_cap.refcnt;
- 	file->private_data = fimc->vid_cap.ctx;
- 
- 	return 0;
-@@ -434,12 +303,6 @@ static int fimc_capture_close(struct file *file)
- 	if (--fimc->vid_cap.refcnt == 0) {
- 		fimc_stop_capture(fimc);
- 		vb2_queue_release(&fimc->vid_cap.vbq);
--
--		v4l2_err(&fimc->vid_cap.v4l2_dev, "releasing ISP\n");
--
--		v4l2_subdev_call(fimc->vid_cap.sd, core, s_power, 0);
--		clk_disable(fimc->clock[CLK_CAM]);
--		fimc_subdev_unregister(fimc);
- 	}
- 
- 	pm_runtime_put(&fimc->pdev->dev);
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index d82bff8..a0d6f81 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -11,6 +11,7 @@
- 
- /*#define DEBUG*/
- 
-+#include <linux/platform_device.h>
- #include <linux/sched.h>
- #include <linux/spinlock.h>
- #include <linux/types.h>
-@@ -649,7 +650,6 @@ int fimc_register_m2m_device(struct fimc_dev *fimc);
- /* fimc-capture.c					*/
- int fimc_register_capture_device(struct fimc_dev *fimc);
- void fimc_unregister_capture_device(struct fimc_dev *fimc);
--int fimc_sensor_sd_init(struct fimc_dev *fimc, int index);
- int fimc_vid_cap_buf_queue(struct fimc_dev *fimc,
- 			     struct fimc_vid_buffer *fimc_vb);
- int fimc_capture_suspend(struct fimc_dev *fimc);
+Please try to avoid adding too many people (and mailing lists) to the CC list. 
+I've pruned it down as most of them are not directly concerned by this patch.
+
+On Tuesday 27 September 2011 15:40:45 Deepthy Ravi wrote:
+> Added support for mt9t111 sensor in the existing
+> mt9t112 driver. Also added support for media controller
+> framework. The sensor driver currently supports only
+> VGA resolution.
+> 
+> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+
+[snip]
+
+> +mt9t111_regs patch_rev6[] = {
+> +	{0, 0x0982, 0x0},
+> +	{0, 0x098A, 0xCE7},
+> +	{0, 0x0990, 0x3C3C},
+> +	{0, 0x0992, 0x3C3C},
+> +	{0, 0x0994, 0x3C5F},
+> +	{0, 0x0996, 0x4F30},
+> +	{0, 0x0998, 0xED08},
+> +	{0, 0x099a, 0xBD61},
+> +	{0, 0x099c, 0xD5CE},
+
+[snip]
+
+I'm afraid register lists are not an option. You will need to follow the 
+mt9t112 driver practice and program the registers based on formats, crop 
+rectangles and other settings.
+
 -- 
-1.7.6
+Regards,
 
+Laurent Pinchart
