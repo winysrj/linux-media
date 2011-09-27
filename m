@@ -1,54 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47502 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753296Ab1IFIsG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 04:48:06 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Enrico <ebutera@users.berlios.de>
-Subject: Re: Getting started with OMAP3 ISP
-Date: Tue, 6 Sep 2011 10:48:03 +0200
-Cc: Gary Thomas <gary@mlbassoc.com>, linux-media@vger.kernel.org,
-	Enric Balletbo i Serra <eballetbo@iseebcn.com>,
-	Hans de Goede <hdegoede@redhat.com>
-References: <4E56734A.3080001@mlbassoc.com> <201109021327.59221.laurent.pinchart@ideasonboard.com> <CA+2YH7vEWijtbwuX_JsDwLtkGNLEbUBDBFadqT3wWtQWTJnfzA@mail.gmail.com>
-In-Reply-To: <CA+2YH7vEWijtbwuX_JsDwLtkGNLEbUBDBFadqT3wWtQWTJnfzA@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:53048 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752133Ab1I0Nlk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Sep 2011 09:41:40 -0400
+From: Deepthy Ravi <deepthy.ravi@ti.com>
+To: <laurent.pinchart@ideasonboard.com>, <mchehab@infradead.org>,
+	<tony@atomide.com>, <hvaibhav@ti.com>,
+	<linux-media@vger.kernel.org>, <linux@arm.linux.org.uk>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<kyungmin.park@samsung.com>, <hverkuil@xs4all.nl>,
+	<m.szyprowski@samsung.com>, <g.liakhovetski@gmx.de>,
+	<santosh.shilimkar@ti.com>, <khilman@deeprootsystems.com>,
+	<linux-kernel@vger.kernel.org>
+CC: <linux-omap@vger.kernel.org>, Deepthy Ravi <deepthy.ravi@ti.com>
+Subject: [PATCH v2 0/5] OMAP3EVM: Add support for MT9T111 sensor
+Date: Tue, 27 Sep 2011 19:10:43 +0530
+Message-ID: <1317130848-21136-1-git-send-email-deepthy.ravi@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109061048.03550.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enrico,
+This patchset
+	-adds support for MT9T111 sensor on omap3evm.
+	Currently the sensor driver supports only
+	VGA resolution.
+	-enables MT9T111 sensor in omap2plus_defconfig.
 
-(CC'ing Hans de Goede)
+This is dependent on the following patchset
+http://www.spinics.net/lists/linux-media/msg37270.html 
+which adds YUYV input support for OMAP3ISP. And is 
+applied on top of rc1-for-3.2 of gliakhovetski/v4l-dvb.git
+---
+Changes in v2:
+	As per the discussion here,
+	https://lkml.org/lkml/2011/9/20/280
+	the existing mt9t112 driver is reused for
+	adding support for mt9t111 sensor.
+Deepthy Ravi (3):
+  [media] v4l: Add support for mt9t111 sensor driver
+  ispccdc: Configure CCDC_SYN_MODE register
+  omap2plus_defconfig: Enable omap3isp and MT9T111 sensor drivers
 
-On Monday 05 September 2011 18:37:04 Enrico wrote:
-> On Fri, Sep 2, 2011 at 1:27 PM, Laurent Pinchart wrote:
-> > On Friday 02 September 2011 11:02:23 Enrico wrote:
-> >> Right now my problem is that i can't get the isp to generate
-> >> interrupts, i think there is some isp configuration error.
-> > 
-> > If your device generates interlaced images that's not surprising, as the
-> > CCDC will only receive half the number of lines it expects.
-> 
-> Yes that was the first thing i tried, anyway now i have it finally
-> working. Well at least yavta doesn't hang, do you know some
-> application to see raw yuv images?
+Vaibhav Hiremath (2):
+  omap3evm: Enable regulators for camera interface
+  omap3evm: Add Camera board init/hookup file
 
-Hans, could libv4lconvert be used to implement a command line format 
-conversion tool ? From a quick look at it it requires a V4L2 device, could 
-that limitation be easily lifted ?
+ arch/arm/configs/omap2plus_defconfig        |    9 +
+ arch/arm/mach-omap2/Makefile                |    5 +
+ arch/arm/mach-omap2/board-omap3evm-camera.c |  185 ++++
+ arch/arm/mach-omap2/board-omap3evm.c        |   26 +
+ drivers/media/video/Kconfig                 |    7 +
+ drivers/media/video/Makefile                |    1 +
+ drivers/media/video/mt9t111_reg.h           | 1367 +++++++++++++++++++++++++++
+ drivers/media/video/mt9t112.c               |  320 ++++++-
+ drivers/media/video/omap3isp/ispccdc.c      |   11 +-
+ include/media/mt9t111.h                     |   45 +
+ 10 files changed, 1937 insertions(+), 39 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
+ create mode 100644 drivers/media/video/mt9t111_reg.h
+ create mode 100644 include/media/mt9t111.h
 
-> Now the problem is that the fix is weird...as you suggested you must
-> use half height values for VD0 and VD1 (2/3) interrupts, problem is
-> that it only works if you DISABLE vd1 interrupt.
-> If it is enabled the vd1_isr is run (once) and nothing else happens.
-
-Have you set VD0 at half height and VD1 at 1/3 height ?
-
--- 
-Regards,
-
-Laurent Pinchart
