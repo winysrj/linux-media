@@ -1,118 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42674 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751363Ab1I0HT4 convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54425 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753812Ab1I0M1Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 03:19:56 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Taneja, Archit" <archit@ti.com>
-CC: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Semwal, Sumit" <sumit.semwal@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 27 Sep 2011 12:49:47 +0530
-Subject: RE: [PATCH v3 1/4] OMAP_VOUT: Fix check in reqbuf for buf_size
- allocation
-Message-ID: <19F8576C6E063C45BE387C64729E739404ECA548F8@dbde02.ent.ti.com>
-References: <1317038365-30650-1-git-send-email-archit@ti.com>
- <1317038365-30650-2-git-send-email-archit@ti.com>
-In-Reply-To: <1317038365-30650-2-git-send-email-archit@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Tue, 27 Sep 2011 08:27:16 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Ravi, Deepthy" <deepthy.ravi@ti.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH 4/5] ispccdc: Configure CCDC_SYN_MODE register for UYVY8_2X8 and YUYV8_2X8 formats
+Date: Tue, 27 Sep 2011 14:27:12 +0200
+Cc: "mchehab@infradead.org" <mchehab@infradead.org>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+References: <1316530612-23075-1-git-send-email-deepthy.ravi@ti.com> <201109211106.41677.laurent.pinchart@ideasonboard.com> <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09084F@dbde03.ent.ti.com>
+In-Reply-To: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09084F@dbde03.ent.ti.com>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109271427.13993.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Deepthy,
 
-> -----Original Message-----
-> From: Taneja, Archit
-> Sent: Monday, September 26, 2011 5:29 PM
-> To: Hiremath, Vaibhav
-> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
-> media@vger.kernel.org; Taneja, Archit
-> Subject: [PATCH v3 1/4] OMAP_VOUT: Fix check in reqbuf for buf_size
-> allocation
+On Friday 23 September 2011 13:53:39 Ravi, Deepthy wrote:
+> On Wednesday, September 21, 2011 2:36 PM Laurent Pinchart wrote:
+> > On Wednesday 21 September 2011 07:32:44 Ravi, Deepthy wrote:
+> >> On Wednesday, September 21, 2011 4:56 AM Laurent Pinchart wrote:
+> >> > On Tuesday 20 September 2011 16:56:51 Deepthy Ravi wrote:
+> >> >> Configure INPMOD and PACK8 fileds of CCDC_SYN_MODE
+> >> >> register for UYVY8_2X8 and YUYV8_2X8 formats.
+> >> >> 
+> >> >> Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+> >> >> ---
+> >> >> 
+> >> >>  drivers/media/video/omap3isp/ispccdc.c |   11 ++++++++---
+> >> >>  1 files changed, 8 insertions(+), 3 deletions(-)
+> >> >> 
+> >> >> diff --git a/drivers/media/video/omap3isp/ispccdc.c
+> >> >> b/drivers/media/video/omap3isp/ispccdc.c index 418ba65..1dcf180
+> >> >> 100644 --- a/drivers/media/video/omap3isp/ispccdc.c
+> >> >> +++ b/drivers/media/video/omap3isp/ispccdc.c
+> >> >> @@ -985,8 +985,12 @@ static void ccdc_config_sync_if(struct
+> >> >> isp_ccdc_device
+> >> >> *ccdc,
+> >> >> 
+> >> >>       syn_mode &= ~ISPCCDC_SYN_MODE_INPMOD_MASK;
+> >> >>       if (format->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
+> >> >> 
+> >> >> -         format->code == V4L2_MBUS_FMT_UYVY8_2X8)
+> >> >> -             syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
+> >> >> +         format->code == V4L2_MBUS_FMT_UYVY8_2X8){
+> >> >> +             if (pdata && pdata->bt656)
+> >> >> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
+> >> >> +             else
+> >> >> +                     syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
+> >> >> +     }
+> >> >> 
+> >> >>       else if (format->code == V4L2_MBUS_FMT_YUYV8_1X16 ||
+> >> >>       
+> >> >>                format->code == V4L2_MBUS_FMT_UYVY8_1X16)
+> >> >>               
+> >> >>               syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
+> >> >> 
+> >> >> @@ -1172,7 +1176,8 @@ static void ccdc_configure(struct
+> >> >> isp_ccdc_device *ccdc) syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
+> >> >> 
+> >> >>       /* Use PACK8 mode for 1byte per pixel formats. */
+> >> >> 
+> >> >> -     if (omap3isp_video_format_info(format->code)->width <= 8)
+> >> >> +     if ((omap3isp_video_format_info(format->code)->width <= 8) &&
+> >> >> +                     (omap3isp_video_format_info(format->code)->bpp
+> >> >> <= 8))
+> >> > 
+> >> > I'm not sure to follow you. This will clear the PACK8 bit for the
+> >> > YUYV8_2X8 formats. Those formats are 8 bits wide, shouldn't PACK8 be
+> >> > set to store samples on 8 bits instead of 16 bits ?
+> >> > 
+> >> > Is this patch intended to support YUYV8_2X8 sensors in non BT.656 mode
+> >> > with the bridge enabled ? In that case, what would you think about
+> >> > setting the CCDC input format to YUYV8_1X16 instead ? This would
+> >> > better reflect the reality, as the bridge converts YUYV8_2X8 to
+> >> > YUYV8_1X16, and the CCDC is then fed with YUYV8_1X16.
+> >> 
+> >> Yes this is intended for  YUYV8_2X8 sensors in non BT.656 with 8 to 16
+> >> bit bridge enabled. So the data has to be stored as 16 bits per sample.
+> >> Thats why PACK8 is cleared . I am not sure about using YUYV8_1X16.
+> > 
+> > My original idea when I wrote the YV support patches was to implement
+> > this use case with YUYV8_2X8 at the sensor output and YUYV8_1X16 at the
+> > CCDC input. The ISP driver could then enable the bridge automatically.
+> > I'm not sure if that's the best solution though, it might be confusing
+> > for the users. What I would like to keep, however, is the idea of
+> > enabling the bridge automatically.
 > 
-> The commit 383e4f69879d11c86ebdd38b3356f6d0690fb4cc makes reqbuf prevent
-> requesting a larger size buffer than what is allocated at kernel boot
-> during
-> omap_vout_probe.
-> 
-> The requested size is compared with vout->buffer_size, this isn't correct
-> as
-> vout->buffer_size is later set to the size requested in reqbuf. When the
-> video
-> device is opened the next time, this check will prevent us to allocate a
-> buffer
-> which is larger than what we requested the last time.
-> 
-> Don't use vout->buffer_size, always check with the parameters
-> video1_bufsize
-> or video2_bufsize.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  drivers/media/video/omap/omap_vout.c |   10 ++++++++--
->  1 files changed, 8 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c
-> index d9e64f3..16ebff6 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -664,10 +664,14 @@ static int omap_vout_buffer_setup(struct
-> videobuf_queue *q, unsigned int *count,
->  	u32 phy_addr = 0, virt_addr = 0;
->  	struct omap_vout_device *vout = q->priv_data;
->  	struct omapvideo_info *ovid = &vout->vid_info;
-> +	int vid_max_buf_size;
-> 
->  	if (!vout)
->  		return -EINVAL;
-> 
-> +	vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
-> +		video2_bufsize;
-> +
->  	if (V4L2_BUF_TYPE_VIDEO_OUTPUT != q->type)
->  		return -EINVAL;
-> 
-> @@ -690,7 +694,7 @@ static int omap_vout_buffer_setup(struct
-> videobuf_queue *q, unsigned int *count,
->  		video1_numbuffers : video2_numbuffers;
-> 
->  	/* Check the size of the buffer */
-> -	if (*size > vout->buffer_size) {
-> +	if (*size > vid_max_buf_size) {
->  		v4l2_err(&vout->vid_dev->v4l2_dev,
->  				"buffer allocation mismatch [%u] [%u]\n",
->  				*size, vout->buffer_size);
-> @@ -865,6 +869,8 @@ static int omap_vout_mmap(struct file *file, struct
-> vm_area_struct *vma)
->  	unsigned long size = (vma->vm_end - vma->vm_start);
->  	struct omap_vout_device *vout = file->private_data;
->  	struct videobuf_queue *q = &vout->vbq;
-> +	int vid_max_buf_size = vout->vid == OMAP_VIDEO1 ? video1_bufsize :
-> +		video2_bufsize;
-> 
->  	v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev,
->  			" %s pgoff=0x%lx, start=0x%lx, end=0x%lx\n", __func__,
-> @@ -887,7 +893,7 @@ static int omap_vout_mmap(struct file *file, struct
-> vm_area_struct *vma)
->  		return -EINVAL;
->  	}
->  	/* Check the size of the buffer */
-> -	if (size > vout->buffer_size) {
-> +	if (size > vid_max_buf_size) {
+> But for streaming to start, the formats on both ends of the link should
+> match. I believe setting different formats at sensor output and ccdc input
+> will give a broken pipe error. Is my understanding correct ? If so, how do
+> you propose to handle the situation ?
 
-I think we agreed in your last version patch patch-series that, the check in mmap should be against vout->buffer_size. Am I missing something here?
+We already handle that situation for the lane shifter in ispvideo.c. The code 
+could be extended.
 
-Thanks,
-Vaibhav
+-- 
+Regards,
 
->  		v4l2_err(&vout->vid_dev->v4l2_dev,
->  				"insufficient memory [%lu] [%u]\n",
->  				size, vout->buffer_size);
-> --
-> 1.7.1
-
+Laurent Pinchart
