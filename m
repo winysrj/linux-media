@@ -1,67 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4678 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753940Ab1IFM4U convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2011 08:56:20 -0400
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3765 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752707Ab1I0JbK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Sep 2011 05:31:10 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC/PATCH 0/1] Ignore ctrl_class
-Date: Tue, 6 Sep 2011 14:55:39 +0200
-Cc: linux-media@vger.kernel.org
-References: <20110906110742.GE1393@valkosipuli.localdomain> <201109061320.27093.hverkuil@xs4all.nl> <20110906114548.GG1393@valkosipuli.localdomain>
-In-Reply-To: <20110906114548.GG1393@valkosipuli.localdomain>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH 3/5] [media] v4l: simulate old crop API using extended crop/compose API
+Date: Tue, 27 Sep 2011 11:30:55 +0200
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com
+References: <1314363967-6448-1-git-send-email-t.stanislaws@samsung.com> <1314363967-6448-4-git-send-email-t.stanislaws@samsung.com>
+In-Reply-To: <1314363967-6448-4-git-send-email-t.stanislaws@samsung.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Message-Id: <201109061455.39177.hverkuil@xs4all.nl>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109271130.55602.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday, September 06, 2011 13:45:48 Sakari Ailus wrote:
-> Hi Hans,
+On Friday, August 26, 2011 15:06:05 Tomasz Stanislawski wrote:
+> This patch allows new video drivers to work correctly with applications that
+> use the old-style crop API.  The old crop ioctl is simulated by using selection
+> callbacks.
 > 
-> On Tue, Sep 06, 2011 at 01:20:26PM +0200, Hans Verkuil wrote:
-> > On Tuesday, September 06, 2011 13:07:42 Sakari Ailus wrote:
-> > > Hi,
-> > > 
-> > > I remember being in a discussion a while ago regarding the requirement of
-> > > having all the controls belonging to the same class in
-> > > VIDIOC_{TRY,S,G}_EXT_CTRLS. The answer I remember was that there was a
-> > > historical reason for this and it no longer exists.
-> > 
-> > The original rule was that all controls have to belong to the same class. This was
-> > done to simplify drivers. Drivers that use the control framework can handle a class
-> > of 0, which means that the controls can be of any class.
-> > 
-> > But we still have drivers that implement S_EXT_CTRLS but do not use the control
-> > framework, and for those this restriction is still valid. Usually such drivers will only
-> > handle MPEG class controls through that API.
-> > 
-> > So I don't think this restriction can be lifted as long as there are drivers that do not
-> > use the control framework.
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/video/v4l2-ioctl.c |   86 +++++++++++++++++++++++++++++++++----
+>  1 files changed, 76 insertions(+), 10 deletions(-)
 > 
-> All the drivers which implement *_EXT_CTRLS and check for ctrl_class do the
-> check for a single class. All the references for ctrl_class in individual
-> drivers (which actually were only checks that the user has set the field
-> correctly) are removed by the patch I posted.
-> 
-> So I don't see a reason why we couldn't just say "please set this to zero
-> from now on".
-> 
+> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> index 6e02b45..543405b 100644
+> --- a/drivers/media/video/v4l2-ioctl.c
+> +++ b/drivers/media/video/v4l2-ioctl.c
+> @@ -1696,11 +1696,31 @@ static long __video_do_ioctl(struct file *file,
+>  	{
+>  		struct v4l2_crop *p = arg;
+>  
+> -		if (!ops->vidioc_g_crop)
+> +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+> +
+> +		if (ops->vidioc_g_crop) {
+> +			ret = ops->vidioc_g_crop(file, fh, p);
+> +		} else
+> +		if (ops->vidioc_g_selection) {
+> +			/* simulate capture crop using selection api */
+> +			struct v4l2_selection s = {
+> +				.type = p->type,
+> +				.target = V4L2_SEL_CROP_ACTIVE,
+> +			};
+> +
+> +			/* crop means compose for output devices */
+> +			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +				s.target = V4L2_SEL_COMPOSE_ACTIVE;
+> +
+> +			ret = ops->vidioc_g_selection(file, fh, &s);
+> +
+> +			/* copying results to old structure on success */
+> +			if (!ret)
+> +				p->c = s.r;
+> +		} else {
+>  			break;
+> +		}
+>  
+> -		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+> -		ret = ops->vidioc_g_crop(file, fh, p);
+>  		if (!ret)
+>  			dbgrect(vfd, "", &p->c);
+>  		break;
+> @@ -1709,11 +1729,26 @@ static long __video_do_ioctl(struct file *file,
+>  	{
+>  		struct v4l2_crop *p = arg;
+>  
+> -		if (!ops->vidioc_s_crop)
+> -			break;
+>  		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+>  		dbgrect(vfd, "", &p->c);
+> -		ret = ops->vidioc_s_crop(file, fh, p);
+> +
+> +		if (ops->vidioc_s_crop) {
+> +			ret = ops->vidioc_s_crop(file, fh, p);
+> +		} else
+> +		if (ops->vidioc_s_selection) {
+> +			/* simulate capture crop using selection api */
+> +			struct v4l2_selection s = {
+> +				.type = p->type,
+> +				.target = V4L2_SEL_CROP_ACTIVE,
+> +				.r = p->c,
+> +			};
+> +
+> +			/* crop means compose for output devices */
+> +			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +				s.target = V4L2_SEL_COMPOSE_ACTIVE;
+> +
+> +			ret = ops->vidioc_s_selection(file, fh, &s);
+> +		}
+>  		break;
+>  	}
+>  	case VIDIOC_G_SELECTION:
+> @@ -1746,12 +1781,43 @@ static long __video_do_ioctl(struct file *file,
+>  	{
+>  		struct v4l2_cropcap *p = arg;
+>  
+> -		/*FIXME: Should also show v4l2_fract pixelaspect */
+> -		if (!ops->vidioc_cropcap)
+> +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+> +		if (ops->vidioc_cropcap) {
+> +			ret = ops->vidioc_cropcap(file, fh, p);
+> +		} else
+> +		if (ops->vidioc_g_selection) {
+> +			struct v4l2_selection s = { .type = p->type };
+> +			struct v4l2_rect bounds;
+> +
+> +			/* obtaining bounds */
+> +			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +				s.target = V4L2_SEL_COMPOSE_BOUNDS;
+> +			else
+> +				s.target = V4L2_SEL_CROP_BOUNDS;
+> +			ret = ops->vidioc_g_selection(file, fh, &s);
+> +			if (ret)
+> +				break;
+> +			bounds = s.r;
+> +
+> +			/* obtaining defrect */
+> +			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +				s.target = V4L2_SEL_COMPOSE_DEFAULT;
+> +			else
+> +				s.target = V4L2_SEL_CROP_DEFAULT;
+> +			ret = ops->vidioc_g_selection(file, fh, &s);
+> +			if (ret)
+> +				break;
+> +
+> +			/* storing results */
+> +			p->bounds = bounds;
+> +			p->defrect = s.r;
+> +			p->pixelaspect.numerator = 1;
+> +			p->pixelaspect.denominator = 1;
+> +		} else {
+>  			break;
+> +		}
+>  
+> -		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+> -		ret = ops->vidioc_cropcap(file, fh, p);
+> +		/*FIXME: Should also show v4l2_fract pixelaspect */
+
+We really need a solution for this. I'm not happy that this hasn't been
+resolved yet.
+
+What about this: if ops->vidioc_g_selection is non-NULL, then fill in bounds
+and defrect as above. But also call ops->vidioc_cropcap at the end if non-NULL,
+so that the driver can fill in the pixelaspect.
+
+So the code would look like this:
+
+	if (ops->vidioc_g_selection) {
+		fill in bounds and defrect and set pixelaspect to 1, 1
+	}
+	if (ops->vidioc_cropcap)
+		ops->vidioc_cropcap();
+
+If a driver supports g_selection, then cropcap only needs to fill in the
+pixelaspect.
+
+>  		if (!ret) {
+>  			dbgrect(vfd, "bounds ", &p->bounds);
+>  			dbgrect(vfd, "defrect ", &p->defrect);
 > 
 
->From what I remember (and I may be wrong by now) the drivers that implement S_EXT_CTRLS
-by themselves typically only support ext_ctrls for controls of a specific class (MPEG usually).
+And let's show the pixelaspect here as well.
 
-Dropping the check means that: 1) applications may think they can use any control when they
-can't for a certain group of drivers, and 2) applications can no longer detect up front whether
-a driver supports mixing of control classes or not.
-
-The way you can do 2) is by setting the control class to 0 and calling G/S/TRY_EXT_CTRLS with
-0 controls.
-
-Once everything is converted I don't mind dropping this check, but until then I believe it should
-stay.
+Does this sounds reasonable?
 
 Regards,
 
