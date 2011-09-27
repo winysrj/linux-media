@@ -1,110 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18188 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755310Ab1IGD35 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Sep 2011 23:29:57 -0400
-Message-ID: <4E66E532.4050402@redhat.com>
-Date: Wed, 07 Sep 2011 00:29:54 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:45467 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751861Ab1I0IXg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Sep 2011 04:23:36 -0400
+Received: by vcbfk10 with SMTP id fk10so3439763vcb.19
+        for <linux-media@vger.kernel.org>; Tue, 27 Sep 2011 01:23:35 -0700 (PDT)
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 01/10] alsa_stream: port changes made on xawtv3
-References: <1315322996-10576-1-git-send-email-mchehab@redhat.com> <CAGoCfiy2hnH0Xoz_+Q8JgcB-tzuTGbfv8QdK0kv+ttP7t+EZKg@mail.gmail.com> <CAGoCfixa0pr048=-P3OUkZ2HMaY471eNO79BON0vjSVa1eRcTw@mail.gmail.com>
-In-Reply-To: <CAGoCfixa0pr048=-P3OUkZ2HMaY471eNO79BON0vjSVa1eRcTw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <201109261609.32349.hverkuil@xs4all.nl>
+References: <1316465981-28469-1-git-send-email-scott.jiang.linux@gmail.com>
+	<1316465981-28469-4-git-send-email-scott.jiang.linux@gmail.com>
+	<201109261609.32349.hverkuil@xs4all.nl>
+Date: Tue, 27 Sep 2011 16:23:35 +0800
+Message-ID: <CAHG8p1BiKzS8sJ+qxWSFw0Uk+0gC0e7ABmJaT8igaSeYttOtLw@mail.gmail.com>
+Subject: Re: [PATCH 4/4 v2][FOR 3.1] v4l2: add blackfin capture bridge driver
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 07-09-2011 00:20, Devin Heitmueller escreveu:
-> On Tue, Sep 6, 2011 at 10:58 PM, Devin Heitmueller
-> <dheitmueller@kernellabs.com> wrote:
->> On Tue, Sep 6, 2011 at 11:29 AM, Mauro Carvalho Chehab
->> <mchehab@redhat.com> wrote:
->>> There are several issues with the original alsa_stream code that got
->>> fixed on xawtv3, made by me and by Hans de Goede. Basically, the
->>> code were re-written, in order to follow the alsa best practises.
->>>
->>> Backport the changes from xawtv, in order to make it to work on a
->>> wider range of V4L and sound adapters.
->>>
->>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->> Mauro,
->>
->> What tuners did you test this patch with?  I went ahead and did a git
->> pull of your patch series into my local git tree, and now my DVC-90
->> (an em28xx device) is capturing at 32 KHz instead of 48 (this is one
->> of the snd-usb-audio based devices, not em28xx-alsa).
->>
->> Note I tested immediately before pulling your patch series and the
->> audio capture was working fine.
->>
->> I think this patch series is going in the right direction in general,
->> but this patch in particular seems to cause a regression.  Is this
->> something you want to investigate?  I think we need to hold off on
->> pulling this series into the new tvtime master until this problem is
->> resolved.
->>
->> Devin
->>
->> --
->> Devin J. Heitmueller - Kernel Labs
->> http://www.kernellabs.com
->>
-> 
-> Spent a few minutes digging into this.  Looks like the snd-usb-audio
-> driver advertises 8-48KHz.  However, it seems that it only captures
-> successfully at 48 KHz.
-> 
-> I made the following hack and it started working:
-> 
-> diff --git a/src/alsa_stream.c b/src/alsa_stream.c
-> index b6a41a5..57e3c3d 100644
-> --- a/src/alsa_stream.c
-> +++ b/src/alsa_stream.c
-> @@ -261,7 +261,7 @@ static int setparams(snd_pcm_t *phandle, snd_pcm_t *chandle,
->         fprintf(error_fp, "alsa: Will search a common rate between %u and %u\n",
->                 ratemin, ratemax);
-> 
-> -    for (i = ratemin; i <= ratemax; i+= 100) {
-> +    for (i = ratemax; i >= ratemin; i-= 100) {
->         err = snd_pcm_hw_params_set_rate_near(chandle, c_hwparams, &i, 0);
->         if (err)
->             continue;
-> 
-> Basically the above starts at the *maximum* capture resolution and
-> works its way down.  One might argue that this heuristic makes more
-> sense anyway - why *wouldn't* you want the highest quality audio
-> possible by default (rather than the lowest)?
-
-That change makes sense to me. Yet, you should try to disable pulseaudio
-and see what's the _real_ speed that the audio announces. On Fedora,
-just removing pulsaudio-oss-plugin (or something like that) is enough.
-
-It seems doubtful that my em2820 WinTV USB2 is different than yours.
-I suspect that pulseaudio is passing the "extra" range, offering to
-interpolate the data.
-
-> Even with that patch though, I hit severe underrun/overrun conditions
-> at 30ms of latency (to the point where the audio is interrupted dozens
-> of times per second).
-
-Yes, it is the same here: 30ms on my notebook is not enough for WinTV
-USB2 (it is OK with HVR-950).
-
-> Turned it up to 50ms and it's much better.
-> That said, of course such a change would impact lipsync, so perhaps we
-> need to be adjusting the periods instead.
-
-We've added a parameter for that on xawtv3 (--alsa-latency). We've parametrized
-it at the alsa stream function call. So, all it needs is to add a new parameter
-at tvtime config file.
-
-> ALSA has never been my area of expertise, so I look to you and Hans to
-> offer some suggestions.
-> 
-> Devin
-> 
-
+>
+>> +             ret = v4l2_subdev_call(bcap_dev->sd, video,
+>> +                                     g_mbus_fmt, &mbus_fmt);
+>> +             if (ret < 0)
+>> +                     return ret;
+>> +
+>> +             for (i = 0; i < BCAP_MAX_FMTS; i++) {
+>> +                     if (mbus_fmt.code != bcap_formats[i].mbus_code)
+>> +                             continue;
+>> +                     bcap_fmt = &bcap_formats[i];
+>> +                     v4l2_fill_pix_format(pixfmt, &mbus_fmt);
+>> +                     pixfmt->pixelformat = bcap_fmt->pixelformat;
+>> +                     pixfmt->bytesperline = pixfmt->width * bcap_fmt->bpp / 8;
+>> +                     pixfmt->sizeimage = pixfmt->bytesperline * pixfmt->height;
+>> +                     break;
+>> +             }
+>> +             if (i == BCAP_MAX_FMTS) {
+>> +                     v4l2_err(&bcap_dev->v4l2_dev,
+>> +                                     "subdev fmt is not supported by bcap\n");
+>> +                     return -EINVAL;
+>> +             }
+>
+> Why do this on first open? Shouldn't it be better to do this after the subdev
+> was loaded?
+>
+Hi Hans, thank you for your comments.
+This point I haven't had a good solution. PPI is only a parallel port,
+it has no default std or format.
+That's why you always found I have no default std and format.
+Sylwester Nawrocki recommend me add this code here, but different
+input can has different std and format according to v4l2 spec.
+That means if app only set input, or set input and std without setting
+format, the default format getting here may be invalid.
+Do you have any better solution for this?
