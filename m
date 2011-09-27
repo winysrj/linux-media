@@ -1,75 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:57039 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754623Ab1IOHPu (ORCPT
+Received: from einhorn.in-berlin.de ([192.109.42.8]:59769 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751052Ab1I0Ho7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Sep 2011 03:15:50 -0400
-Date: Thu, 15 Sep 2011 09:14:40 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	uclinux-dist-devel@blackfin.uclinux.org
-Subject: Re: [PATCH 4/4] v4l2: add blackfin capture bridge driver
-In-Reply-To: <CAHG8p1CDQ-nFwTCXzJBBp76n+16Pz=mDat=dpdNy5N3jjNNvbQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1109150912570.11565@axis700.grange>
-References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com>
- <1315938892-20243-4-git-send-email-scott.jiang.linux@gmail.com>
- <4E6FC8E8.70008@gmail.com> <CAHG8p1C5F_HKX_GPHv_RdCRRNw9s3+ybK4giCjUXxgSUAUDRVw@mail.gmail.com>
- <4E70BA97.1090904@samsung.com> <CAHG8p1D1jnwRO0ie6xrXGL5Uhu+2YjoNdXzhnnBweZDPRyE1fw@mail.gmail.com>
- <Pine.LNX.4.64.1109150826560.11565@axis700.grange>
- <CAHG8p1CDQ-nFwTCXzJBBp76n+16Pz=mDat=dpdNy5N3jjNNvbQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Tue, 27 Sep 2011 03:44:59 -0400
+Date: Tue, 27 Sep 2011 09:44:09 +0200
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Mauro Carvalho Chehab <maurochehab@gmail.com>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@suse.de>, devel@driverdev.osuosl.org
+Subject: Staging submission: PCTV 80e and PCTV 74e drivers (was Re: Problems
+ cloning the git repostories)
+Message-ID: <20110927094409.7a5fcd5a@stein>
+In-Reply-To: <CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
+References: <4E7F1FB5.5030803@gmail.com>
+	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
+	<4E7FF0A0.7060004@gmail.com>
+	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 15 Sep 2011, Scott Jiang wrote:
+Adding Cc: staging maintainer and mailinglist.
 
-> 2011/9/15 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> > On Thu, 15 Sep 2011, Scott Jiang wrote:
+On Sep 26 Devin Heitmueller wrote:
+> On Sun, Sep 25, 2011 at 11:25 PM, Mauro Carvalho Chehab
+> <maurochehab@gmail.com> wrote:
+> >> Want to see more device support upstream?  Optimize the process to
+> >> make it easy for the people who know the hardware and how to write the
+> >> drivers to get code upstream, and leave it to the "janitors" to work
+> >> out the codingstyle issues.
 > >
-> >> accually this array is to convert mbus to pixformat. ppi supports any formats.
+> > The process you've just described exists already since Sept, 2008.
+> > It is called:
+> >        /drivers/staging
 > >
-> > You mean, it doesn't distinguish formats? It just packs bytes in RAM
-> > exactly as it ready them from the bus, and doesn't support any formats
-> > natively, i.e., doesn't offer any data processing?
-> >
-> yes, ppi means Parallel Peripheral Interface.
+> > In summary, if you don't have a couple hours to make your driver to
+> > match Kernel Coding Style, just send it as is to /drivers/staging, c/c
+> > me and Greg KH, and that's it.
 > 
-> >> Ideally it should contain all formats in v4l2, but it is enough at
-> >> present for our platform.
-> >> If I find someone needs more, I will add it.
-> >> So return -EINVAL means this format is out of range, it can't be supported now.
-> >
-> > You might consider using
-> >
-> > drivers/media/video/soc_mediabus.c
-> >
-> > If your driver were using soc-camera, it could benefit from the
-> > dynamically built pixel translation table, see
-> >
-> > drivers/media/video/soc_camera.c::soc_camera_init_user_formats()
-> >
-> > and simpler examples like mx1_camera.c or more complex ones like
-> > sh_mobile_ceu_camera.c, pxa_camera.c or mx3_camera.c and the use of the
-> > soc_camera_xlate_by_fourcc() function in them.
-> >
-> I have considered using soc, but it can't support decoder when I began
-> to write this driver in 2.6.38.
+> PULL http://kernellabs.com/hg/~dheitmueller/v4l-dvb-80e/
+> PULL http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+> 
+> Have fun.
+> 
+> The harder you make it to get code upstream, the more developers who
+> will just say "to hell with this".  And *that* is why there are
+> thousands of lines of working drivers which various developers have in
+> out-of-tree drivers.
 
-soc_mediabus.c is a stand-alone module, it has no dependencies on 
-soc-camera.
+Hi,
 
-Out of interest - what kind of decoder you mean? A tv-decoder? We do have 
-a tv-decoder driver tw9910 under soc-camera.
+perhaps a kind developer over at devel@driverdev could extract patches for
+staging out of the above mercurial repositories, and then folks can work
+on mainline inclusion.  (Somebody who actually has such a device might be
+most motivated to do it.)
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+No need to get angry that it hasn't happened yet. :-)  It's just a matter
+of the right people joining the effort at the right time.
+
+Thanks Devin for the offer,
+-- 
+Stefan Richter
+-=====-==-== =--= ==-==
+http://arcgraph.de/sr/
