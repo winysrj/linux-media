@@ -1,153 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from silver.sucs.swan.ac.uk ([137.44.10.1]:42173 "EHLO
-	silver.sucs.swan.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755404Ab1IATKc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 15:10:32 -0400
-Date: Thu, 1 Sep 2011 20:10:28 +0100
-From: Sitsofe Wheeler <sitsofe@yahoo.com>
-To: Dave Young <hidave.darkstar@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: BUG: unable to handle kernel paging request at 6b6b6bcb
- (v4l2_device_disconnect+0x11/0x30)
-Message-ID: <20110901191028.GA30301@sucs.org>
-References: <20110829204846.GA14699@sucs.org>
- <CABqxG0cUx4W5JH-gX-rUe=mZ8SY0uxkrCyofPsfUDBojwWKTvQ@mail.gmail.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:39320 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752278Ab1I0Uzg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Sep 2011 16:55:36 -0400
+Date: Tue, 27 Sep 2011 23:55:32 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com
+Subject: Re: [PATCH v2 2/2] v4l: Add v4l2 subdev driver for S5K6AAFX sensor
+Message-ID: <20110927205532.GA6180@valkosipuli.localdomain>
+References: <1316627107-18709-1-git-send-email-s.nawrocki@samsung.com>
+ <1316627107-18709-3-git-send-email-s.nawrocki@samsung.com>
+ <20110922220259.GS1845@valkosipuli.localdomain>
+ <4E7C5BAA.9090900@samsung.com>
+ <20110925100804.GU1845@valkosipuli.localdomain>
+ <4E7F5DEC.8020808@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CABqxG0cUx4W5JH-gX-rUe=mZ8SY0uxkrCyofPsfUDBojwWKTvQ@mail.gmail.com>
+In-Reply-To: <4E7F5DEC.8020808@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 01, 2011 at 05:02:51PM +0800, Dave Young wrote:
-> On Tue, Aug 30, 2011 at 4:48 AM, Sitsofe Wheeler <sitsofe@yahoo.com> wrote:
-> >
-> > I managed to produce an oops in 3.1.0-rc3-00270-g7a54f5e by unplugging a
-> > USB webcam. See below:
+Sylwester Nawrocki wrote:
+> Hello Sakari,
+
+Hi Sylwester,
+
+> On 09/25/2011 12:08 PM, Sakari Ailus wrote:
+>> On Fri, Sep 23, 2011 at 12:12:58PM +0200, Sylwester Nawrocki wrote:
+>>> On 09/23/2011 12:02 AM, Sakari Ailus wrote:
+>>>> Hi Sylwester,
+>>>>
+>>>> I have a few additional comments below, they don't depend on my earlier
+>>>> ones.
+>>>
+>>> Thanks a lot for your follow up review!
+>>>>
+>>>> On Wed, Sep 21, 2011 at 07:45:07PM +0200, Sylwester Nawrocki wrote:
+>>>>> This driver exposes preview mode operation of the S5K6AAFX sensor with
+>>>>> embedded SoC ISP. It uses one of the five user predefined configuration
+>>>>> register sets. There is yet no support for capture (snapshot) operation.
+>>>>> Following controls are supported:
+>>>>> manual/auto exposure and gain, power line frequency (anti-flicker),
+>>>>> saturation, sharpness, brightness, contrast, white balance temperature,
+>>>>> color effects, horizontal/vertical image flip, frame interval.
+>>>>>
+>>>>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>>>>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>>>>> ---
+>>> ...
+>>>>> +
+>>>>> +struct s5k6aa_pixfmt {
+>>>>> +	enum v4l2_mbus_pixelcode code;
+>>>>> +	u32 colorspace;
+>>>>> +	/* REG_P_FMT(x) register value */
+>>>>> +	u16 reg_p_fmt;
+>>>>> +};
+>>>>> +
+>>>>> +struct s5k6aa_preset {
+>>>>> +	struct v4l2_frmsize_discrete out_size;
+>>>>> +	struct v4l2_rect in_win;
+>>>>> +	const struct s5k6aa_pixfmt *pixfmt;
+>>>>> +	unsigned int inv_hflip:1;
+>>>>> +	unsigned int inv_vflip:1;
+>>>>> +	u8 frame_rate_type;
+>>>>> +	u8 index;
+>>>>> +};
+>>>>> +
+>>
+>> [clip]
+>>
+>>>>> +/* Set initial values for all preview presets */
+>>>>> +static void s5k6aa_presets_data_init(struct s5k6aa *s5k6aa,
+>>>>> +				     int hflip, int vflip)
+>>>>> +{
+>>>>> +	struct s5k6aa_preset *preset =&s5k6aa->presets[0];
+>>>>> +	int i;
+>>>>> +
+>>>>> +	for (i = 0; i<  S5K6AA_MAX_PRESETS; i++) {
+>>>>> +		preset->pixfmt		=&s5k6aa_formats[0];
+>>>>> +		preset->frame_rate_type	= FR_RATE_DYNAMIC;
+>>>>> +		preset->inv_hflip	= hflip;
+>>>>> +		preset->inv_vflip	= vflip;
+>>>>> +		preset->out_size.width	= S5K6AA_OUT_WIDTH_DEF;
+>>>>> +		preset->out_size.height	= S5K6AA_OUT_HEIGHT_DEF;
+>>>>> +		preset->in_win.width	= S5K6AA_WIN_WIDTH_MAX;
+>>>>> +		preset->in_win.height	= S5K6AA_WIN_HEIGHT_MAX;
+>>>>> +		preset->in_win.left	= 0;
+>>>>> +		preset->in_win.top	= 0;
+>>>>
+>>>> Much of this data is static, why is it copied to the presets struct?
+>>>>
+>>>> What is the intended purpose of these presets?
+>>>
+>>> I agree there is no need to keep inv_hflip/inv_vflip there. It's more a
+>>> leftover from previous driver version. I'll move it to struct s5k6aa.
+>>> And I try to keep copy of each platform_data attribute in driver's
+>>> private struct to make future transition to DT driver probing easier.
+>>>
+>>> inv_[hv]flip variables are used to indicate physical layout of the sensor,
+>>> as it varies across multiple machines. So indeed they're global, not per
+>>> the configuration set.
+>>>
+>>> Preset are there in the s5k6aafx register interface to allow fast transition
+>>> between, for instance, low resolution preview and high resolution snapshot.
+>>> I'm planning to use this driver as an experimental rabbit for the future
+>>> snapshot mode API.
+>>
+>> It sounds like that a "snapshot mode" would be an use case that presets
+>> could support in a way, but what I'd really like to ask is how much
+>> advantage one can get by using this mode, say, vs. re-programming the same
+>> settings over the I2C bus? The bus transfers (I assume) roughly 40 kB/s, so
+>> I imagine a few tens of register writes can be avoided by most, taking
+>> somewhere in the range of a few milliseconds.
 > 
-> Could you try the attached patch?
+> As far as the timings are concerned, for this particular device, the
+> advantage is not really meaningful. We are talking about appr. 20
+> registers (~50 bytes on I2C bus), which is a ridiculously low number.
+> However, even if the interface isn't exposed to user space, in the
+> hardware there exist separate registers for preview and (still) capture
+> and it makes much sense in the driver to model this, for easier device
+> control.
 
-This patch fixed the oops but extending the sequence (enable camera,
-start cheese, disable camera, watch cheese pause, enable camera, quit
-cheese, start cheese) causes the following "poison overwritten" warning
-to appear:
+How do you know when to switch the preset if you don't expose this to the
+user space?
 
+I'm not sure if this makes it easier for the user space. The user space must
+know about such a think and aslo which parameters it applies to. I don't
+think this ocnforms to V4L2 either, but I might have misunderstood
+something.
 
-[  191.240695] uvcvideo: Found UVC 1.00 device CNF7129 (04f2:b071)
-[  191.277965] input: CNF7129 as /devices/pci0000:00/0000:00:1d.7/usb1/1-8/1-8:1.0/input/input9
-[  220.287366] =============================================================================
-[  220.287379] BUG kmalloc-512: Poison overwritten
-[  220.287384] -----------------------------------------------------------------------------
-[  220.287387] 
-[  220.287394] INFO: 0xec90f150-0xec90f150. First byte 0x6a instead of 0x6b
-[  220.287410] INFO: Allocated in uvc_probe+0x54/0xd50 age=210617 cpu=0 pid=16
-[  220.287421] 	T.974+0x29d/0x5e0
-[  220.287427] 	kmem_cache_alloc+0x167/0x180
-[  220.287433] 	uvc_probe+0x54/0xd50
-[  220.287441] 	usb_probe_interface+0xd5/0x1d0
-[  220.287448] 	driver_probe_device+0x80/0x1a0
-[  220.287455] 	__device_attach+0x41/0x50
-[  220.287460] 	bus_for_each_drv+0x53/0x80
-[  220.287466] 	device_attach+0x89/0xa0
-[  220.287472] 	bus_probe_device+0x25/0x40
-[  220.287478] 	device_add+0x5a9/0x660
-[  220.287484] 	usb_set_configuration+0x562/0x670
-[  220.287491] 	generic_probe+0x36/0x90
-[  220.287497] 	usb_probe_device+0x24/0x50
-[  220.287503] 	driver_probe_device+0x80/0x1a0
-[  220.287509] 	__device_attach+0x41/0x50
-[  220.287515] 	bus_for_each_drv+0x53/0x80
-[  220.287522] INFO: Freed in uvc_delete+0xfe/0x110 age=22 cpu=0 pid=1645
-[  220.287530] 	__slab_free+0x1f8/0x300
-[  220.287536] 	kfree+0x100/0x140
-[  220.287541] 	uvc_delete+0xfe/0x110
-[  220.287547] 	uvc_release+0x25/0x30
-[  220.287555] 	v4l2_device_release+0x9d/0xc0
-[  220.287560] 	device_release+0x19/0x90
-[  220.287567] 	kobject_release+0x3c/0x90
-[  220.287573] 	kref_put+0x2c/0x60
-[  220.287578] 	kobject_put+0x1d/0x50
-[  220.287587] 	put_device+0xf/0x20
-[  220.287593] 	v4l2_release+0x56/0x60
-[  220.287599] 	fput+0xcc/0x220
-[  220.287605] 	filp_close+0x44/0x70
-[  220.287613] 	put_files_struct+0x158/0x180
-[  220.287619] 	exit_files+0x40/0x50
-[  220.287626] 	do_exit+0xec/0x660
-[  220.287632] INFO: Slab 0xef722180 objects=23 used=23 fp=0x  (null) flags=0x4080
-[  220.287639] INFO: Object 0xec90f060 @offset=12384 fp=0xec90cac0
-[  220.287642] 
-[  220.287647] Bytes b4 0xec90f050:  6d 06 00 00 88 c8 fe ff 5a 5a 5a 5a 5a 5a 5a 5a m....ÈþÿZZZZZZZZ
-[  220.287681]   Object 0xec90f060:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.287713]   Object 0xec90f070:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.287746]   Object 0xec90f080:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.287778]   Object 0xec90f090:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.287811]   Object 0xec90f0a0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.287843]   Object 0xec90f0b0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.287876]   Object 0xec90f0c0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.287908]   Object 0xec90f0d0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.287941]   Object 0xec90f0e0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.287973]   Object 0xec90f0f0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288006]   Object 0xec90f100:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f110:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f120:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f130:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f140:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f150:  6a 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b jkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f160:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f170:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f180:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f190:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f1a0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f1b0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f1c0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f1d0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f1e0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f1f0:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f200:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f210:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f220:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f230:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f240:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b kkkkkkkkkkkkkkkk
-[  220.288012]   Object 0xec90f250:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b a5 kkkkkkkkkkkkkkk¥
-[  220.288012]  Redzone 0xec90f260:  bb bb bb bb                                     »»»»            
-[  220.288012]  Padding 0xec90f308:  5a 5a 5a 5a 5a 5a 5a 5a                         ZZZZZZZZ        
-[  220.288012] Pid: 1450, comm: metacity Not tainted 3.1.0-rc4-00131-g9e79e3e-dirty #488
-[  220.288012] Call Trace:
-[  220.288012]  [<b0192c3e>] print_trailer+0xee/0x140
-[  220.288012]  [<b0193157>] check_bytes_and_report+0xd7/0x160
-[  220.288012]  [<b0194a98>] check_object+0x1d8/0x220
-[  220.288012]  [<b0192fe3>] ? check_slab+0x63/0x100
-[  220.288012]  [<b0194f67>] alloc_debug_processing+0xb7/0x130
-[  220.288012]  [<b019602d>] T.974+0x29d/0x5e0
-[  220.288012]  [<b044c466>] ? sock_alloc_send_pskb+0x176/0x290
-[  220.288012]  [<b044c466>] ? sock_alloc_send_pskb+0x176/0x290
-[  220.288012]  [<b0198551>] ? create_object+0x191/0x240
-[  220.288012]  [<b01979f5>] __kmalloc_track_caller+0x1d5/0x1f0
-[  220.288012]  [<b044c466>] ? sock_alloc_send_pskb+0x176/0x290
-[  220.288012]  [<b044ff2d>] __alloc_skb+0x4d/0x140
-[  220.288012]  [<b044c466>] sock_alloc_send_pskb+0x176/0x290
-[  220.288012]  [<b055d98a>] ? __mutex_unlock_slowpath+0x9a/0x110
-[  220.288012]  [<b044c598>] sock_alloc_send_skb+0x18/0x20
-[  220.288012]  [<b04b7957>] unix_stream_sendmsg+0x2b7/0x3d0
-[  220.288012]  [<b0448913>] sock_aio_write+0x133/0x170
-[  220.288012]  [<b019b285>] do_sync_readv_writev+0x95/0xc0
-[  220.288012]  [<b0274328>] ? _copy_from_user+0x38/0x180
-[  220.288012]  [<b019b133>] ? rw_copy_check_uvector+0x73/0xf0
-[  220.288012]  [<b019bf1b>] do_readv_writev+0x9b/0x180
-[  220.288012]  [<b04487e0>] ? sock_destroy_inode+0x30/0x30
-[  220.288012]  [<b019c562>] ? fget_light+0xb2/0x130
-[  220.288012]  [<b019c576>] ? fget_light+0xc6/0x130
-[  220.288012]  [<b019c045>] vfs_writev+0x45/0x60
-[  220.288012]  [<b019c131>] sys_writev+0x41/0x80
-[  220.288012]  [<b055ff57>] sysenter_do_call+0x12/0x36
-[  220.288012]  [<b0550000>] ? rfkill_alloc+0xe0/0x110
-[  220.288012] FIX kmalloc-512: Restoring 0xec90f150-0xec90f150=0x6b
-[  220.288012] 
-[  220.288012] FIX kmalloc-512: Marking all objects used
+> Anyway, I've taken a closer look at what I need in the single user
+> configuration set data structure and reworked the driver quite
+> extensively. Should post that in the coming week, unless some unexpected
+> disasters occur;)
+> 
+> Do you see any problem in defining real still capture interface in V4L ?
+> It's probably just a small set of new controls, new capability, plus
+> multi-size buffer queue Guennadi has been working on. Some devices will
+> require explicitly switching between preview and capture mode, and it may
+> make difference if they are programmed in advance or on demand.
+
+I don't think V4L2 should have a still capture interface. Still capture is
+just one use case as viewfinder and video. V4L2 deals with frames, formats
+and parameters that are all generic and use case independent. Instead of use
+cases, we have independent configurable settings and that's the way I think
+it should stay.
+
+If your hardware requires switching mode to "still" before taking a still
+image, then the driver should expose this functionality as such. I'd be
+really wary of e.g. exposing register configuration flipping to user space
+even if the driver can do that.
+
+> If the hardware (or it's firmware) supports something natively why should
+> we go for a less efficient SW emulated replacement? After all, preview and
+> capture mode seem pretty basic features that applications will want to
+> use.
+
+I think it depends on an application. If your application only knows it
+wants to do "viewfinder" or "capture" then it might be V4L2 could be a too
+low level interface for that job.
+
+I might suggest GSTphotography instead.
+
+>> I would rather measure and attempt to optimise the register writes in the
+>> driver first before adding complexity to user space interface.
+> 
+> Yeah, I'm not planning to use the presets plainly for different user
+> configurations, just trying to design the driver so those may be utilised
+> for the device various operation modes.
+> 
+>>
+>> Or do the presets provide other advantages than just storing configurations?
+> 
+> The H/W requires different register sets for preview and capture. For
+> instance only in the capture mode the flash control is performed. So it's
+> important to know whether we start in preview or capture mode, and these
+> modes have distinct registers for resolution setup, etc. As a side note,
+> I'm not highly interested in supporting snapshot mode with S5K6AAFX. The
+> M-5MOLS sensor is a better target for this, for instance.
+
+As far as I understand, the M-5MOLS indeed needs to know it's capturing a
+still image. Raw non-smart sensors, however, don't even recognise such a
+concept.
+
+>> [clip]
+>>
+>>>>> +
+>>>>> +/* Set horizontal and vertical image flipping */
+>>>>> +static int s5k6aa_set_mirror(struct s5k6aa *s5k6aa, int horiz_flip)
+>>>>> +{
+>>>>> +	struct i2c_client *client = v4l2_get_subdevdata(&s5k6aa->sd);
+>>>>> +	struct s5k6aa_preset *preset = s5k6aa->preset;
+>>>>> +
+>>>>> +	unsigned int vflip = s5k6aa->ctrls.vflip->val ^ preset->inv_vflip;
+>>>>> +	unsigned int hflip = horiz_flip ^ preset->inv_hflip;
+>>>>
+>>>> I don't see a need to store inv_hflip to presets. Instead, you might just
+>>>> have a mirror bit in the platform data.
+>>>
+>>> Agreed, except I'd like to keep that in driver's private data structure,
+>>> not to rely on the platform data after the driver probing.
+>>
+>> There's no reason to avoid using platform data after probing that I am aware
+>> of.
+> 
+> What I meant was that for DT enabled systems you won't have the platform
+> data at all. Instead you parse the properties, that were so far being
+> passed in platform data struct, from struct device_node (dev.of_node) in
+> driver's probe(). So, in order to make things less complicated for DT
+> probing case, I just put all the properties in driver's private struct,
+> not relying on any dereferencing of the platform data. Which I know in
+> advance may not exist in some cases. For non-DT systems the attributes are
+> copied from platform data and for DT-enabled ones they will be retrieved
+> from DT in probe(). Except that the driver behaves identical regardless of
+> the way the device was created. This is really just a prerequisite, still
+> there is quite a few unresolved issues, like set_power/ clock callbacks
+> into platform code.
+
+Thanks for reminding me. I'd almost forgotten the device tree for a moment.
+;)
+
+> Different topic is the design of the v4l2/media devices bindings. As it has been
+> already roughly discussed, we probably need a root DT node at the level of
+> nowadays media device. So various initialization dependencies between media
+> entities (host dev./subdevs) can be satisfied. This, at least, was my
+> understanding.
+
+Sounds good to me.
 
 -- 
-Sitsofe | http://sucs.org/~sits/
+Sakari Ailus
+sakari.ailus@iki.fi
