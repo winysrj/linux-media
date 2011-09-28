@@ -1,59 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:48629 "EHLO
-	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932435Ab1IHIwx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 04:52:53 -0400
-Received: from ALA-HCA.corp.ad.wrs.com (ala-hca [147.11.189.40])
-	by mail.windriver.com (8.14.3/8.14.3) with ESMTP id p888qqDq021566
-	(version=TLSv1/SSLv3 cipher=AES128-SHA bits=128 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 8 Sep 2011 01:52:52 -0700 (PDT)
-Message-ID: <4E6883AC.9010900@windriver.com>
-Date: Thu, 8 Sep 2011 16:58:20 +0800
-From: "corp\\KChen" <keqiang.chen@windriver.com>
+Received: from mx1.redhat.com ([209.132.183.28]:23397 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753790Ab1I1UBA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Sep 2011 16:01:00 -0400
+Message-ID: <4E837CF8.3060605@redhat.com>
+Date: Wed, 28 Sep 2011 17:00:56 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: <linux-media@vger.kernel.org>
-Subject: SI470X Radio /  ADS Instant FM Music in linux
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v3.2] media fixes
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Manager,
+Linus,
 
-I am debugging a platform with SI470x FM radio module(Usb interface).
-The linux kernel version is 2.6.35.7.
-I have configured the linux kernel and it can recognize this module.
-But there are some abnormal log and I cant scan the FM channel normally.
+Please pull from:
+	git://linuxtv.org/mchehab/for_linus.git v4l_for_linus
 
-The log list as below, Would you like help me?
+For a few fixes at the omap3 and UVC video drivers.
 
-//--------------Log start 
-----------------------\|/-------------------------------------
-usb 1-1.3: new full speed USB device using ehci-omap and address 4
-usb 1-1.3: New USB device found, idVendor=06e1, idProduct=a155
-usb 1-1.3: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-usb 1-1.3: Product: ADS InstantFM Music
-usb 1-1.3: Manufacturer: ADS TECH
+Thanks!
+Mauro
 
-4:1:1: endpoint lacks sample rate attribute bit, cannot 
-set.                       // This is the first abnormal point.
+-
 
-radio-si470x 1-1.3:1.2: DeviceID=0x1242 ChipID=0x0a0f
-radio-si470x 1-1.3:1.2: software version 0, hardware version 7
-radio-si470x 1-1.3:1.2: This driver is known to work with software 
-version 7,       //
-radio-si470x 1-1.3:1.2: but the device has software version 
-0.                              //This is the second abnormal point.
-radio-si470x 1-1.3:1.2: If you have some trouble using this driver,
-radio-si470x 1-1.3:1.2: please report to V4L ML at 
-linux-media@vger.kernel.org
+Last commit at the branch: e74d83aad3709a17d68f01481f2b5f240250b1c3 [media] omap3isp: Fix build error in ispccdc.c
 
-//-----------------Log end 
----------------------/|\----------------------------------------
-Note:
-The device is bought from US but it is marked "Made in China".
-It is bought in one month.
+The following changes since commit b6fd41e29dea9c6753b1843a77e50433e6123bcb:
 
-Thanks
+  Linux 3.1-rc6 (2011-09-12 14:02:02 -0700)
 
-KeQiang.Chen.
+are available in the git repository at:
+  git://linuxtv.org/mchehab/for_linus.git v4l_for_linus
+
+Archit Taneja (1):
+      [media] OMAP_VOUT: Fix build break caused by update_mode removal in DSS2
+
+Dave Young (1):
+      [media] v4l: Make sure we hold a reference to the v4l2_device before using it
+
+Hans Verkuil (1):
+      [media] v4l: Fix use-after-free case in v4l2_device_release
+
+Joerg Roedel (1):
+      [media] omap3isp: Fix build error in ispccdc.c
+
+Laurent Pinchart (1):
+      [media] uvcvideo: Fix crash when linking entities
+
+Ming Lei (1):
+      [media] uvcvideo: Set alternate setting 0 on resume if the bus has been reset
+
+ drivers/media/video/omap/omap_vout.c   |   13 -------------
+ drivers/media/video/omap3isp/ispccdc.c |    1 +
+ drivers/media/video/uvc/uvc_driver.c   |    2 +-
+ drivers/media/video/uvc/uvc_entity.c   |    2 +-
+ drivers/media/video/uvc/uvc_video.c    |   10 +++++++++-
+ drivers/media/video/uvc/uvcvideo.h     |    2 +-
+ drivers/media/video/v4l2-dev.c         |   11 +++++++++++
+ drivers/media/video/v4l2-device.c      |    2 ++
+ 8 files changed, 26 insertions(+), 17 deletions(-)
+
