@@ -1,133 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:61993 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752628Ab1IEMgz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 08:36:55 -0400
-Received: by yxj19 with SMTP id 19so2302864yxj.19
-        for <linux-media@vger.kernel.org>; Mon, 05 Sep 2011 05:36:55 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:55804 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754554Ab1I1OtH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Sep 2011 10:49:07 -0400
+From: Archit Taneja <archit@ti.com>
+To: <hvaibhav@ti.com>
+CC: <tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>,
+	<sumit.semwal@ti.com>, <linux-media@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: [PATCH v4 2/5] OMAP_VOUT: CLEANUP: Remove redundant code from omap_vout_isr
+Date: Wed, 28 Sep 2011 20:19:25 +0530
+Message-ID: <1317221368-3301-3-git-send-email-archit@ti.com>
+In-Reply-To: <1317221368-3301-1-git-send-email-archit@ti.com>
+References: <1317221368-3301-1-git-send-email-archit@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <201109051207.42195.laurent.pinchart@ideasonboard.com>
-References: <alpine.DEB.2.02.1108311420540.2154@ipanema>
-	<201109051125.33829.laurent.pinchart@ideasonboard.com>
-	<Pine.LNX.4.64.1109051130590.1112@axis700.grange>
-	<201109051207.42195.laurent.pinchart@ideasonboard.com>
-Date: Mon, 5 Sep 2011 12:36:54 +0000
-Message-ID: <CABYn4sw9Vbk9k7Xm8up7+p1nO6V-1hYJ42Y7=-mZ6JRQ=wxUpw@mail.gmail.com>
-Subject: Re: [PATCH 1/2 v2] media: Add support for arbitrary resolution for
- the ov5642 camera driver
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/9/5 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Guennadi,
->
-> On Monday 05 September 2011 11:51:57 Guennadi Liakhovetski wrote:
->> On Mon, 5 Sep 2011, Laurent Pinchart wrote:
->> > On Monday 05 September 2011 11:10:48 Bastian Hecht wrote:
->> > > 2011/8/31 Laurent Pinchart:
->> > > > On Wednesday 31 August 2011 19:06:25 Laurent Pinchart wrote:
->> > > >> On Wednesday 31 August 2011 17:05:52 Bastian Hecht wrote:
->> > > >> > This patch adds the ability to get arbitrary resolutions with a
->> > > >> > width up to 2592 and a height up to 720 pixels instead of the
->> > > >> > standard 1280x720 only.
->> > > >> >
->> > > >> > Signed-off-by: Bastian Hecht <hechtb@gmail.com>
->> > > >> > ---
->> > > >> > diff --git a/drivers/media/video/ov5642.c
->> > > >> > b/drivers/media/video/ov5642.c index 6410bda..87b432e 100644
->> > > >> > --- a/drivers/media/video/ov5642.c
->> > > >> > +++ b/drivers/media/video/ov5642.c
->> > > >>
->> > > >> [snip]
->> > > >>
->> > > >> > @@ -684,107 +737,101 @@ static int ov5642_write_array(struct
->> > > >> > i2c_client
->> > > >>
->> > > >> [snip]
->> > > >>
->> > > >> > -static int ov5642_s_fmt(struct v4l2_subdev *sd,
->> > > >> > -                   struct v4l2_mbus_framefmt *mf)
->> > > >> > +static int ov5642_s_fmt(struct v4l2_subdev *sd, struct
->> > > >> > v4l2_mbus_framefmt *mf) {
->> > > >> >
->> > > >> >     struct i2c_client *client = v4l2_get_subdevdata(sd);
->> > > >> >     struct ov5642 *priv = to_ov5642(client);
->> > > >> >
->> > > >> > -
->> > > >> > -   dev_dbg(sd->v4l2_dev->dev, "%s(%u)\n", __func__, mf->code);
->> > > >> > +   int ret;
->> > > >> >
->> > > >> >     /* MIPI CSI could have changed the format, double-check */
->> > > >> >     if (!ov5642_find_datafmt(mf->code))
->> > > >> >
->> > > >> >             return -EINVAL;
->> > > >> >
->> > > >> >     ov5642_try_fmt(sd, mf);
->> > > >> >
->> > > >> > -
->> > > >> >
->> > > >> >     priv->fmt = ov5642_find_datafmt(mf->code);
->> > > >> >
->> > > >> > -   ov5642_write_array(client, ov5642_default_regs_init);
->> > > >> > -   ov5642_set_resolution(client);
->> > > >> > -   ov5642_write_array(client, ov5642_default_regs_finalise);
->> > > >> > +   ret = ov5642_write_array(client, ov5642_default_regs_init);
->> > > >> > +   if (!ret)
->> > > >> > +           ret = ov5642_set_resolution(sd);
->> > > >> > +   if (!ret)
->> > > >> > +           ret = ov5642_write_array(client,
->> > > >> > ov5642_default_regs_finalise);
->> > > >>
->> > > >> You shouldn't write anything to the sensor here. As only .s_crop can
->> > > >> currently change the format, .s_fmt should just return the current
->> > > >> format without performing any change or writing anything to the
->> > > >> device.
->> > >
->> > > We talked about it in the ov5642 controls thread. I need to initialize
->> > > the sensor at some point and it doesn't work to divide the calls
->> > > between different locations.
->> >
->> > Sure, but calling s_fmt isn't mandatory for hosts/bridges. What about
->> > moving sensor initialization to s_stream() ?
->>
->> Throughout the development of this driver, I was opposing the "delayed
->> configuration" approach. I.e., the approach, in which all the ioctl()s,
->> like S_FMT, S_CROP, etc. only store user values internally, and the actual
->> hardware configuration is only performed at STREAMON time. There are
->> several reasons to this: the spec says "the driver may program the
->> hardware, allocate resources and generally prepare for data exchange"
->> (yes, "may" != "must"), most drivers seem to do the same, the possibility
->> to check and return any hardware errors, returned by this operation, I
->> probably have forgotten something. But if we ignore all these reasons as
->> insufficiently important, then yes, doing the actualy hardware
->> configuration in .s_stream() brings a couple of advantages with it,
->> especially for drivers / devices like this one.
->>
->> So, if there are no strong objections, maybe indeed move this back to
->> .s_stream() would be the better solution here.
->
-> I have no strong opinion here. Your points are certainly valid. I'm fine with
-> performing direct hardware setup in .s_crop(), but doing it in .s_fmt() looks
-> weird to me as .s_fmt() doesn't perform any operation now that the driver
-> moved to using .s_crop(). Without delayed initialization I believe the device
-> should be initialized when powered up, and have its crop rectangle altered in
-> .s_crop().
+Currently, there is a lot of redundant code is between DPI and VENC panels, this
+can be made common by moving out field/interlace specific code to a separate
+function called omapvid_handle_interlace_display(). There is no functional
+change made.
 
-Ok, it is moved to s_power and s_crop now. This approach sounds clean indeed.
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/video/omap/omap_vout.c |  172 ++++++++++++++++------------------
+ 1 files changed, 82 insertions(+), 90 deletions(-)
 
-best,
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index e64a83c..247ea31 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -524,10 +524,50 @@ static int omapvid_apply_changes(struct omap_vout_device *vout)
+ 	return 0;
+ }
+ 
++static int omapvid_handle_interlace_display(struct omap_vout_device *vout,
++		unsigned int irqstatus, struct timeval timevalue)
++{
++	u32 fid;
++
++	if (vout->first_int) {
++		vout->first_int = 0;
++		goto err;
++	}
++
++	if (irqstatus & DISPC_IRQ_EVSYNC_ODD)
++		fid = 1;
++	else if (irqstatus & DISPC_IRQ_EVSYNC_EVEN)
++		fid = 0;
++	else
++		goto err;
++
++	vout->field_id ^= 1;
++	if (fid != vout->field_id) {
++		if (fid == 0)
++			vout->field_id = fid;
++	} else if (0 == fid) {
++		if (vout->cur_frm == vout->next_frm)
++			goto err;
++
++		vout->cur_frm->ts = timevalue;
++		vout->cur_frm->state = VIDEOBUF_DONE;
++		wake_up_interruptible(&vout->cur_frm->done);
++		vout->cur_frm = vout->next_frm;
++	} else {
++		if (list_empty(&vout->dma_queue) ||
++				(vout->cur_frm != vout->next_frm))
++			goto err;
++	}
++
++	return vout->field_id;
++err:
++	return 0;
++}
++
+ static void omap_vout_isr(void *arg, unsigned int irqstatus)
+ {
+-	int ret;
+-	u32 addr, fid;
++	int ret, fid;
++	u32 addr;
+ 	struct omap_overlay *ovl;
+ 	struct timeval timevalue;
+ 	struct omapvideo_info *ovid;
+@@ -548,107 +588,59 @@ static void omap_vout_isr(void *arg, unsigned int irqstatus)
+ 	spin_lock(&vout->vbq_lock);
+ 	do_gettimeofday(&timevalue);
+ 
+-	if (cur_display->type != OMAP_DISPLAY_TYPE_VENC) {
+-		switch (cur_display->type) {
+-		case OMAP_DISPLAY_TYPE_DPI:
+-			if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+-				goto vout_isr_err;
+-			break;
+-		case OMAP_DISPLAY_TYPE_HDMI:
+-			if (!(irqstatus & DISPC_IRQ_EVSYNC_EVEN))
+-				goto vout_isr_err;
+-			break;
+-		default:
++	switch (cur_display->type) {
++	case OMAP_DISPLAY_TYPE_DPI:
++		if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+ 			goto vout_isr_err;
+-		}
+-		if (!vout->first_int && (vout->cur_frm != vout->next_frm)) {
+-			vout->cur_frm->ts = timevalue;
+-			vout->cur_frm->state = VIDEOBUF_DONE;
+-			wake_up_interruptible(&vout->cur_frm->done);
+-			vout->cur_frm = vout->next_frm;
+-		}
+-		vout->first_int = 0;
+-		if (list_empty(&vout->dma_queue))
++		break;
++	case OMAP_DISPLAY_TYPE_VENC:
++		fid = omapvid_handle_interlace_display(vout, irqstatus,
++				timevalue);
++		if (!fid)
+ 			goto vout_isr_err;
++		break;
++	case OMAP_DISPLAY_TYPE_HDMI:
++		if (!(irqstatus & DISPC_IRQ_EVSYNC_EVEN))
++			goto vout_isr_err;
++		break;
++	default:
++		goto vout_isr_err;
++	}
+ 
+-		vout->next_frm = list_entry(vout->dma_queue.next,
+-				struct videobuf_buffer, queue);
+-		list_del(&vout->next_frm->queue);
+-
+-		vout->next_frm->state = VIDEOBUF_ACTIVE;
+-
+-		addr = (unsigned long) vout->queued_buf_addr[vout->next_frm->i]
+-			+ vout->cropped_offset;
++	if (!vout->first_int && (vout->cur_frm != vout->next_frm)) {
++		vout->cur_frm->ts = timevalue;
++		vout->cur_frm->state = VIDEOBUF_DONE;
++		wake_up_interruptible(&vout->cur_frm->done);
++		vout->cur_frm = vout->next_frm;
++	}
+ 
+-		/* First save the configuration in ovelray structure */
+-		ret = omapvid_init(vout, addr);
+-		if (ret)
+-			printk(KERN_ERR VOUT_NAME
+-				"failed to set overlay info\n");
+-		/* Enable the pipeline and set the Go bit */
+-		ret = omapvid_apply_changes(vout);
+-		if (ret)
+-			printk(KERN_ERR VOUT_NAME "failed to change mode\n");
+-	} else {
++	vout->first_int = 0;
++	if (list_empty(&vout->dma_queue))
++		goto vout_isr_err;
+ 
+-		if (vout->first_int) {
+-			vout->first_int = 0;
+-			goto vout_isr_err;
+-		}
+-		if (irqstatus & DISPC_IRQ_EVSYNC_ODD)
+-			fid = 1;
+-		else if (irqstatus & DISPC_IRQ_EVSYNC_EVEN)
+-			fid = 0;
+-		else
+-			goto vout_isr_err;
++	vout->next_frm = list_entry(vout->dma_queue.next,
++			struct videobuf_buffer, queue);
++	list_del(&vout->next_frm->queue);
+ 
+-		vout->field_id ^= 1;
+-		if (fid != vout->field_id) {
+-			if (0 == fid)
+-				vout->field_id = fid;
++	vout->next_frm->state = VIDEOBUF_ACTIVE;
+ 
+-			goto vout_isr_err;
+-		}
+-		if (0 == fid) {
+-			if (vout->cur_frm == vout->next_frm)
+-				goto vout_isr_err;
+-
+-			vout->cur_frm->ts = timevalue;
+-			vout->cur_frm->state = VIDEOBUF_DONE;
+-			wake_up_interruptible(&vout->cur_frm->done);
+-			vout->cur_frm = vout->next_frm;
+-		} else if (1 == fid) {
+-			if (list_empty(&vout->dma_queue) ||
+-					(vout->cur_frm != vout->next_frm))
+-				goto vout_isr_err;
+-
+-			vout->next_frm = list_entry(vout->dma_queue.next,
+-					struct videobuf_buffer, queue);
+-			list_del(&vout->next_frm->queue);
+-
+-			vout->next_frm->state = VIDEOBUF_ACTIVE;
+-			addr = (unsigned long)
+-				vout->queued_buf_addr[vout->next_frm->i] +
+-				vout->cropped_offset;
+-			/* First save the configuration in ovelray structure */
+-			ret = omapvid_init(vout, addr);
+-			if (ret)
+-				printk(KERN_ERR VOUT_NAME
+-						"failed to set overlay info\n");
+-			/* Enable the pipeline and set the Go bit */
+-			ret = omapvid_apply_changes(vout);
+-			if (ret)
+-				printk(KERN_ERR VOUT_NAME
+-						"failed to change mode\n");
+-		}
++	addr = (unsigned long) vout->queued_buf_addr[vout->next_frm->i]
++		+ vout->cropped_offset;
+ 
+-	}
++	/* First save the configuration in ovelray structure */
++	ret = omapvid_init(vout, addr);
++	if (ret)
++		printk(KERN_ERR VOUT_NAME
++			"failed to set overlay info\n");
++	/* Enable the pipeline and set the Go bit */
++	ret = omapvid_apply_changes(vout);
++	if (ret)
++		printk(KERN_ERR VOUT_NAME "failed to change mode\n");
+ 
+ vout_isr_err:
+ 	spin_unlock(&vout->vbq_lock);
+ }
+ 
+-
+ /* Video buffer call backs */
+ 
+ /*
+-- 
+1.7.1
 
- Bastian
-
-
-> --
-> Regards,
->
-> Laurent Pinchart
->
