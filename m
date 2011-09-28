@@ -1,75 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.mail.ru ([94.100.176.129]:47965 "EHLO smtp1.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751187Ab1IXMeB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Sep 2011 08:34:01 -0400
-Message-ID: <4E7DCE13.5030009@list.ru>
-Date: Sat, 24 Sep 2011 16:33:23 +0400
-From: Stas Sergeev <stsp@list.ru>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org,
-	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
-	Lennart Poettering <lpoetter@redhat.com>,
-	ALSA devel <alsa-devel@alsa-project.org>
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E257FF5.4040401@infradead.org> <4E258B60.6010007@list.ru> <4E25906D.3020200@infradead.org> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru> <4E2A23C7.3040209@infradead.org> <4E2A7BF0.8080606@list.ru> <4E2AC742.8020407@infradead.org> <4E2ACAAD.4050602@list.ru> <4E2AE40F.7030108@infradead.org> <4E2C5A35.9030404@list.ru> <4E2C6638.2040707@infrade ad.org> <4E760BCA.6080900@list.ru> <4E7DC7A6.7030000@infradead.org>
-In-Reply-To: <4E7DC7A6.7030000@infradead.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:10133 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752519Ab1I1K1Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Sep 2011 06:27:25 -0400
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LS800EKUADN5K@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Sep 2011 11:27:23 +0100 (BST)
+Received: from [106.116.48.223] by spt1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LS800ACUADNPL@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Sep 2011 11:27:23 +0100 (BST)
+Date: Wed, 28 Sep 2011 12:27:19 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH 3/5] [media] v4l: simulate old crop API using extended
+ crop/compose API
+In-reply-to: <201109271130.55602.hverkuil@xs4all.nl>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com
+Message-id: <4E82F687.3050200@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-15; format=flowed
+Content-transfer-encoding: 7BIT
+References: <1314363967-6448-1-git-send-email-t.stanislaws@samsung.com>
+ <1314363967-6448-4-git-send-email-t.stanislaws@samsung.com>
+ <201109271130.55602.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-24.09.2011 16:05, Mauro Carvalho Chehab wrote:
->
-> Better to post it as a separate patch, and to simplify the code with:
->
-> diff --git a/drivers/media/video/saa7134/saa7134-tvaudio.c b/drivers/media/video/saa7134/saa7134-tvaudio.c
-> index 57e646b..a61ed1e 100644
-> --- a/drivers/media/video/saa7134/saa7134-tvaudio.c
-> +++ b/drivers/media/video/saa7134/saa7134-tvaudio.c
-> @@ -332,6 +332,12 @@ static int tvaudio_checkcarrier(struct saa7134_dev *dev, struct mainscan *scan)
->   {
->   	__s32 left,right,value;
->
-> +	if (!dev->tvnorm->id&  scan->std)) {
-Missing open bracket?
+Hi Hans,
 
->> @@ -546,6 +546,7 @@ static int tvaudio_thread(void *data)
->>   				dev->tvnorm->name, carrier/1000, carrier%1000,
->>   				max1, max2);
->>   			dev->last_carrier = carrier;
->> +			dev->automute = !(dev->thread.scan1>  1);
-> Why?
-Unfortunately, that's the trick. :(
+On 09/27/2011 11:30 AM, Hans Verkuil wrote:
+> On Friday, August 26, 2011 15:06:05 Tomasz Stanislawski wrote:
+>> This patch allows new video drivers to work correctly with applications that
+>> use the old-style crop API.  The old crop ioctl is simulated by using selection
+>> callbacks.
+>>
+>> Signed-off-by: Tomasz Stanislawski<t.stanislaws@samsung.com>
+>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>> ---
+>>   drivers/media/video/v4l2-ioctl.c |   86 +++++++++++++++++++++++++++++++++----
+>>   1 files changed, 76 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+>> index 6e02b45..543405b 100644
+>> --- a/drivers/media/video/v4l2-ioctl.c
+>> +++ b/drivers/media/video/v4l2-ioctl.c
+>> @@ -1696,11 +1696,31 @@ static long __video_do_ioctl(struct file *file,
+>>   	{
+>>   		struct v4l2_crop *p = arg;
+>>
+>> -		if (!ops->vidioc_g_crop)
+>> +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+>> +
+>> +		if (ops->vidioc_g_crop) {
+>> +			ret = ops->vidioc_g_crop(file, fh, p);
+>> +		} else
+>> +		if (ops->vidioc_g_selection) {
+>> +			/* simulate capture crop using selection api */
+>> +			struct v4l2_selection s = {
+>> +				.type = p->type,
+>> +				.target = V4L2_SEL_CROP_ACTIVE,
+>> +			};
+>> +
+>> +			/* crop means compose for output devices */
+>> +			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+>> +				s.target = V4L2_SEL_COMPOSE_ACTIVE;
+>> +
+>> +			ret = ops->vidioc_g_selection(file, fh,&s);
+>> +
+>> +			/* copying results to old structure on success */
+>> +			if (!ret)
+>> +				p->c = s.r;
+>> +		} else {
+>>   			break;
+>> +		}
+>>
+>> -		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+>> -		ret = ops->vidioc_g_crop(file, fh, p);
+>>   		if (!ret)
+>>   			dbgrect(vfd, "",&p->c);
+>>   		break;
+>> @@ -1709,11 +1729,26 @@ static long __video_do_ioctl(struct file *file,
+>>   	{
+>>   		struct v4l2_crop *p = arg;
+>>
+>> -		if (!ops->vidioc_s_crop)
+>> -			break;
+>>   		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+>>   		dbgrect(vfd, "",&p->c);
+>> -		ret = ops->vidioc_s_crop(file, fh, p);
+>> +
+>> +		if (ops->vidioc_s_crop) {
+>> +			ret = ops->vidioc_s_crop(file, fh, p);
+>> +		} else
+>> +		if (ops->vidioc_s_selection) {
+>> +			/* simulate capture crop using selection api */
+>> +			struct v4l2_selection s = {
+>> +				.type = p->type,
+>> +				.target = V4L2_SEL_CROP_ACTIVE,
+>> +				.r = p->c,
+>> +			};
+>> +
+>> +			/* crop means compose for output devices */
+>> +			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+>> +				s.target = V4L2_SEL_COMPOSE_ACTIVE;
+>> +
+>> +			ret = ops->vidioc_s_selection(file, fh,&s);
+>> +		}
+>>   		break;
+>>   	}
+>>   	case VIDIOC_G_SELECTION:
+>> @@ -1746,12 +1781,43 @@ static long __video_do_ioctl(struct file *file,
+>>   	{
+>>   		struct v4l2_cropcap *p = arg;
+>>
+>> -		/*FIXME: Should also show v4l2_fract pixelaspect */
+>> -		if (!ops->vidioc_cropcap)
+>> +		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+>> +		if (ops->vidioc_cropcap) {
+>> +			ret = ops->vidioc_cropcap(file, fh, p);
+>> +		} else
+>> +		if (ops->vidioc_g_selection) {
+>> +			struct v4l2_selection s = { .type = p->type };
+>> +			struct v4l2_rect bounds;
+>> +
+>> +			/* obtaining bounds */
+>> +			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+>> +				s.target = V4L2_SEL_COMPOSE_BOUNDS;
+>> +			else
+>> +				s.target = V4L2_SEL_CROP_BOUNDS;
+>> +			ret = ops->vidioc_g_selection(file, fh,&s);
+>> +			if (ret)
+>> +				break;
+>> +			bounds = s.r;
+>> +
+>> +			/* obtaining defrect */
+>> +			if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+>> +				s.target = V4L2_SEL_COMPOSE_DEFAULT;
+>> +			else
+>> +				s.target = V4L2_SEL_CROP_DEFAULT;
+>> +			ret = ops->vidioc_g_selection(file, fh,&s);
+>> +			if (ret)
+>> +				break;
+>> +
+>> +			/* storing results */
+>> +			p->bounds = bounds;
+>> +			p->defrect = s.r;
+>> +			p->pixelaspect.numerator = 1;
+>> +			p->pixelaspect.denominator = 1;
+>> +		} else {
+>>   			break;
+>> +		}
+>>
+>> -		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
+>> -		ret = ops->vidioc_cropcap(file, fh, p);
+>> +		/*FIXME: Should also show v4l2_fract pixelaspect */
+>
+> We really need a solution for this. I'm not happy that this hasn't been
+> resolved yet.
+>
+> What about this: if ops->vidioc_g_selection is non-NULL, then fill in bounds
+> and defrect as above. But also call ops->vidioc_cropcap at the end if non-NULL,
+> so that the driver can fill in the pixelaspect.
+>
+> So the code would look like this:
+>
+> 	if (ops->vidioc_g_selection) {
+> 		fill in bounds and defrect and set pixelaspect to 1, 1
+> 	}
+> 	if (ops->vidioc_cropcap)
+> 		ops->vidioc_cropcap();
+>
+> If a driver supports g_selection, then cropcap only needs to fill in the
+> pixelaspect.
+
+If cropcap ioctl is missing there is no way to obtain pixelaspect from 
+the driver, so 1/1 value is used. On the other hand, if cropcap is 
+present there is no need to call g_selection calls to get defrect and 
+bounds.
+
+I think that there is a problem with pixel aspect field. Please refer to 
+post:
+
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/38440/focus=38730
+
+The idea was to move pixelaspect to v4l2_standard. The value would be 
+selected from look-up table using standard returned by vidioc_g_std or 
+using 1/1 is no analog TV is used. It should work well because majority 
+of drivers use 1/1 value. Only some TV drivers behaves differently 
+returning values depending on refresh rate that depends only on TV standard.
+
+What do think about this idea?
+
+Best regards,
+Tomasz Stanislawski
 
 >
-> If the carrier is good, this should be enough:
+>>   		if (!ret) {
+>>   			dbgrect(vfd, "bounds ",&p->bounds);
+>>   			dbgrect(vfd, "defrect ",&p->defrect);
+>>
 >
-> 			dev->automute = 0;
-Unfortunately, sometimes it misdetects.
-Testing dev->thread.scan1 means that at least
-the first scan, done on the driver init, won't
-unmute.
-So either that, or this whole patch is unhelpful.
-I realize that this is a dirty hack, yes.
+> And let's show the pixelaspect here as well.
+>
+> Does this sounds reasonable?
+>
+> Regards,
+>
+> 	Hans
 
-> The rest looked sane on my eyes, but I didn't double-checked it by 
-> running on my cards. Had you test calling it with just a single 
-> standard, and with a multiple standards mask? 
-With just a single standard. That's the problem too.
-There are the fallbacks, like last_carrier etc, and do we
-need to unmute there or not? :(
-
- > The right fix that pulseaudio should not touch at the audio mixers 
-for the video boards.
-That's where we disagree.
-I wonder what other people think.
-I don't see the compelling reason for making the
-alsa interface to the v4l devs a special case. If there
-is just a mute control exported, there is no more a special
-case, and no more hacks and problems.
-
- > Not all boards have an audio carrier detection like saa7134.
-Having the mute control exported would make this
-not a problem.
