@@ -1,54 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40621 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752147Ab1IWQ5v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Sep 2011 12:57:51 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: eddi@depieri.net
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH] xc5000: Add support for get_if_frequency
-Date: Fri, 23 Sep 2011 13:57:35 -0300
-Message-Id: <1316797055-22749-1-git-send-email-mchehab@redhat.com>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4160 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753896Ab1I1JAU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Sep 2011 05:00:20 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [GIT PULL] Selection API and fixes for v3.2
+Date: Wed, 28 Sep 2011 11:00:07 +0200
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org
+References: <1316704391-13596-1-git-send-email-m.szyprowski@samsung.com> <201109281001.03564.hverkuil@xs4all.nl> <201109281029.38009.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201109281029.38009.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109281100.07662.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is needed for devices with DRX-K and xc5000.
+On Wednesday, September 28, 2011 10:29:37 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Wednesday 28 September 2011 10:01:03 Hans Verkuil wrote:
+> > On Tuesday, September 27, 2011 18:46:10 Tomasz Stanislawski wrote:
+> > > On 09/27/2011 04:10 PM, Mauro Carvalho Chehab wrote:
+> > > > Em 27-09-2011 10:02, Tomasz Stanislawski escreveu:
+> > > >> On 09/26/2011 02:10 PM, Mauro Carvalho Chehab wrote:
+> > > >>> Em 26-09-2011 05:42, Tomasz Stanislawski escreveu:
+> > > >>>> On 09/24/2011 05:58 AM, Mauro Carvalho Chehab wrote:
+> > > >>>>> Em 22-09-2011 12:13, Marek Szyprowski escreveu:
+> 
+> [snip]
+> 
+> > > The legacy applications would be supported by simulation of old API
+> > > using selection API.
+> > 
+> > As I said before, G/S_CROP is perfectly valid and will not go away or be
+> > deprecated. Just as S_CTRL is not replaced by S_EXT_CTRLS. There is no need
+> > to force apps to move to the selection API. The selection API extends the
+> > old crop API for good reasons, but for simple cropping S_CROP remains
+> > perfectly fine.
+> 
+> Now, of course. In a couple years time, the story will likely be different, 
+> and we might want to deprecate the G/S_CROP API. Shouldn't this message be 
+> conveyed to userspace developers ? I like the idea of asking them to favor the 
+> selection API over the crop API for new applications.
 
-Compiled-test only. Please test with a HVR 930C hardware.
+Why? It's like asking them not to use G_CTRL. Never going to happen.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/xc5000.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+For one thing even if the new API arrives in, say, kernel 3.2 it will take
+at least 3 years before applications can even start to assume that most users
+will have upgraded to a selection-aware kernel.
 
-diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
-index aa1b2e8..e689b72 100644
---- a/drivers/media/common/tuners/xc5000.c
-+++ b/drivers/media/common/tuners/xc5000.c
-@@ -968,6 +968,14 @@ static int xc5000_get_frequency(struct dvb_frontend *fe, u32 *freq)
- 	return 0;
- }
- 
-+static int xc5000_get_if_frequency(struct dvb_frontend *fe, u32 *freq)
-+{
-+	struct xc5000_priv *priv = fe->tuner_priv;
-+	dprintk(1, "%s()\n", __func__);
-+	*freq = priv->if_khz;
-+	return 0;
-+}
-+
- static int xc5000_get_bandwidth(struct dvb_frontend *fe, u32 *bw)
- {
- 	struct xc5000_priv *priv = fe->tuner_priv;
-@@ -1108,6 +1116,7 @@ static const struct dvb_tuner_ops xc5000_tuner_ops = {
- 	.set_params	   = xc5000_set_params,
- 	.set_analog_params = xc5000_set_analog_params,
- 	.get_frequency	   = xc5000_get_frequency,
-+	.get_if_frequency  = xc5000_get_if_frequency,
- 	.get_bandwidth	   = xc5000_get_bandwidth,
- 	.get_status	   = xc5000_get_status
- };
--- 
-1.7.6.2
+It's fine of course to refer to the selection API in the current crop documentation,
+particularly when using the crop API for output devices (since the old API is
+very confusing in that particular use-case).
 
+But you just can't deprecate it, nor is there IMHO any reason to do so.
+
+I'm not sure if we ever deprecated any V4L2 API in the past. If we have it
+was probably for either unused or ambiguous features that apps couldn't rely
+on anyway.
+
+Regards,
+
+	Hans
+
+> > What would be nice is to deprecate the old crop ops for new drivers and
+> > (ideally) convert existing drivers that use vidioc_g/s_crop to the new
+> > vidioc_g/s_selection (with the final goal of removing vidioc_g/s_crop).
+> > 
+> > And also note that cropcap is still needed to get the pixelaspect.
+> 
+> 
