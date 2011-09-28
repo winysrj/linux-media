@@ -1,79 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kaapeli.fi ([84.20.139.148]:58201 "EHLO mail.kaapeli.fi"
+Received: from smtp.nokia.com ([147.243.128.24]:33001 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752960Ab1IYQhi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Sep 2011 12:37:38 -0400
-Message-ID: <4E7F58BB.5080803@iki.fi>
-Date: Sun, 25 Sep 2011 19:37:15 +0300
-From: Jyrki Kuoppala <jkp@iki.fi>
+	id S1751623Ab1I1J2m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Sep 2011 05:28:42 -0400
+Message-ID: <4E82E8AF.8080609@iki.fi>
+Date: Wed, 28 Sep 2011 12:28:15 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] Fix to qt1010 tuner frequency selection (media/dvb)
-References: <4E528FAE.5060801@iki.fi> <5010154.A6jI82beuA@valkyrie>
-In-Reply-To: <5010154.A6jI82beuA@valkyrie>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Ravi, Deepthy" <deepthy.ravi@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"tony@atomide.com" <tony@atomide.com>,
+	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com> <201109161506.16505.laurent.pinchart@ideasonboard.com> <19F8576C6E063C45BE387C64729E739404EC8113E2@dbde02.ent.ti.com> <201109272006.30130.laurent.pinchart@ideasonboard.com> <19F8576C6E063C45BE387C64729E739404ECA54C58@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404ECA54C58@dbde02.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I haven't gotten any feedback, and didn't see any comments on the lists 
-(though I've checked them only occasionally), so I think you're probably 
-right it fell between the cracks.
+Hi Hiremath,
 
-Jyrki
+Hiremath, Vaibhav wrote:
+>> -----Original Message----- From: Laurent Pinchart
+>> [mailto:laurent.pinchart@ideasonboard.com] Sent: Tuesday, September
+>> 27, 2011 11:36 PM To: Hiremath, Vaibhav Cc: Ravi, Deepthy;
+>> linux-media@vger.kernel.org; tony@atomide.com; 
+>> linux@arm.linux.org.uk; linux-omap@vger.kernel.org; linux-arm- 
+>> kernel@lists.infradead.org; linux-kernel@vger.kernel.org; 
+>> mchehab@infradead.org; g.liakhovetski@gmx.de Subject: Re: [PATCH
+>> 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+>> 
+>> Hi Vaibhav,
+>> 
+>> On Monday 19 September 2011 17:31:02 Hiremath, Vaibhav wrote:
+>>> On Friday, September 16, 2011 6:36 PM Laurent Pinchart wrote:
+>>>> On Friday 16 September 2011 15:00:53 Ravi, Deepthy wrote:
+>>>>> On Thursday, September 08, 2011 10:51 PM Laurent Pinchart
+>>>>> wrote:
+>>>>>> On Thursday 08 September 2011 15:35:22 Deepthy Ravi wrote:
+>>>>>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>>>>>>> 
+>>>>>>> In order to support TVP5146 (for that matter any video
+>>>>>>> decoder), it is important to support G/S/ENUM_STD ioctl
+>>>>>>> on /dev/videoX device node.
+>>>>>> 
+>>>>>> Why so ? Shouldn't it be queried on the subdev output pad
+>> directly ?
+>>>>> 
+>>>>> Because standard v4l2 application for analog devices will
+>>>>> call these std ioctls on the streaming device node. So it's
+>>>>> done on /dev/video
+>> to
+>>>>> make the existing apllication work.
+>>>> 
+>>>> Existing applications can't work with the OMAP3 ISP (and
+>>>> similar
+>> complex
+>>>> embedded devices) without userspace support anyway, either in
+>>>> the form
+>> of
+>>>> a GStreamer element or a libv4l plugin. I still believe that
+>>>> analog
+>> video
+>>>> standard operations should be added to the subdev pad
+>>>> operations and exposed through subdev device nodes, exactly as
+>>>> done with formats.
+>>> 
+>>> I completely agree with your point that, existing application
+>>> will not
+>> work
+>>> without setting links properly. But I believe the assumption here
+>>> is, media-controller should set the links (along with pad
+>>> formants) and all existing application should work as is. Isn't
+>>> it?
+>> 
+>> The media controller is an API used (among other things) to set the
+>> links. You still need to call it from userspace. That won't happen
+>> magically. The userspace component that sets up the links and
+>> configures the formats, be it a GStreamer element, a libv4l plugin,
+>> or something else, can as well setup the standard on the TVP5146
+>> subdev.
+>> 
+> Please look at from analog device point of view which is interfaced
+> to ISP.
+> 
+> OMAP3 ISP => TVP5146 (video decoder)
+> 
+> As a user I would want to expect the standard to be supported on
+> streaming device node, since all standard streaming applications (for
+> analog devices/interfaces) does this.
+> 
+> Setting up the links and format is still something got added with MC
+> framework, and I would consider it as a separate plug-in along with
+> existing applications.
+> 
+> Why do I need to write/use two different streaming application one
+> for MC compatible device and another for non-MC?
 
+You musn't need to.
 
-25.09.2011 19:13, Carlos Corbacho kirjoitti:
-> On Monday 22 Aug 2011 20:19:42 Jyrki Kuoppala wrote:
->> The patch fixes frequency selection for some UHF frequencies e.g.
->> channel 32 (562 MHz) on the qt1010 tuner. The tuner is used e.g. in the
->> MSI Mega Sky dvb-t stick ("MSI Mega Sky 55801 DVB-T USB2.0")
->>
->> One example of problem reports of the bug this fixes can be read at
->> http://www.freak-search.com/de/thread/330303/linux-dvb_tuning_problem_with_s
->> ome_frequencies_qt1010,_dvb
->>
->> Applies to kernel versions 2.6.38.8, 2.6.39.4, 3.0.3 and 3.1-rc2.
->>
->> Signed-off-by: Jyrki Kuoppala<jkp@iki.fi>
-> Cc: stable@kernel.org
-> Tested-by: Carlos Corbacho<carlos@strangeworlds.co.uk>
->
-> This patch means I can now finally tune to all the BBC channels (which are on
-> channel 31 (554 MHz) in my area). This should definitely go to stable, as I've
-> also seen other similar reports for users who can't tune to various channels
-> in the affected ranges here using qt1010.
->
-> Mauro - I don't see this one in your git tree in the 3.2 branch, or in the
-> temporary linuxtv patchwork, so I'm assuming this one fell between the cracks?
->
-> -Carlos
->
->> diff -upr linux-source-2.6.38.orig/drivers/media/common/tuners/qt1010.c
->> linux-source-2.6.38/drivers/media/common/tuners/qt1010.c
->> --- linux-source-2.6.38.orig/drivers/media/common/tuners/qt1010.c
->> 2011-03-15 03:20:32.000000000 +0200
->> +++ linux-source-2.6.38/drivers/media/common/tuners/qt1010.c
->> 2011-08-21 23:16:38.209580365 +0300
->> @@ -198,9 +198,10 @@ static int qt1010_set_params(struct dvb_
->>
->>        /* 22 */
->>        if      (freq<  450000000) rd[15].val = 0xd0; /* 450 MHz */
->> -    else if (freq<  482000000) rd[15].val = 0xd1; /* 482 MHz */
->> +    else if (freq<  482000000) rd[15].val = 0xd2; /* 482 MHz */
->>        else if (freq<  514000000) rd[15].val = 0xd4; /* 514 MHz */
->> -    else if (freq<  546000000) rd[15].val = 0xd7; /* 546 MHz */
->> +    else if (freq<  546000000) rd[15].val = 0xd6; /* 546 MHz */
->> +    else if (freq<  578000000) rd[15].val = 0xd8; /* 578 MHz */
->>        else if (freq<  610000000) rd[15].val = 0xda; /* 610 MHz */
->>        else                       rd[15].val = 0xd0;
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
+This is something that will have to be handled by the libv4l plugin, as
+the rest of controlling the device. Controls related ioctls will be
+passed from the source to downstream once they apply, and I don't see
+why the same shouldn't be done to the {G,S,ENUM}_STD.
 
+Regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
