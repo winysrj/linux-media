@@ -1,47 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:48026 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753111Ab1IZKEB (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:43869 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751878Ab1I1J6R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 06:04:01 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=UTF-8
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LS400E06JYMO920@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 26 Sep 2011 11:03:58 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LS400JFOJYM3D@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 26 Sep 2011 11:03:58 +0100 (BST)
-Date: Mon, 26 Sep 2011 12:03:53 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [GIT PULL] Selection API and fixes for v3.2
-In-reply-to: <4E7D5561.6080303@redhat.com>
-To: 'Mauro Carvalho Chehab' <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Message-id: <010b01cc7c33$98a99a50$c9fccef0$%szyprowski@samsung.com>
-Content-language: pl
-References: <1316704391-13596-1-git-send-email-m.szyprowski@samsung.com>
- <4E7D5561.6080303@redhat.com>
+	Wed, 28 Sep 2011 05:58:17 -0400
+Message-ID: <4E82EFAD.5060108@infradead.org>
+Date: Wed, 28 Sep 2011 06:58:05 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Gary Thomas <gary@mlbassoc.com>
+CC: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Ravi, Deepthy" <deepthy.ravi@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"tony@atomide.com" <tony@atomide.com>,
+	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com> <201109081921.28051.laurent.pinchart@ideasonboard.com> <ADF30F4D7BDE934D9B632CE7D5C7ACA4047C4D09083D@dbde03.ent.ti.com> <201109161506.16505.laurent.pinchart@ideasonboard.com> <19F8576C6E063C45BE387C64729E739404EC8113E2@dbde02.ent.ti.com> <4E824EC4.20305@infradead.org> <4E8252F1.9@mlbassoc.com>
+In-Reply-To: <4E8252F1.9@mlbassoc.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+Em 27-09-2011 19:49, Gary Thomas escreveu:
+> On 2011-09-27 16:31, Mauro Carvalho Chehab wrote:
+>> Em 19-09-2011 12:31, Hiremath, Vaibhav escreveu:
+>>>
+>>>> -----Original Message-----
+>>>> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+>>>> Sent: Friday, September 16, 2011 6:36 PM
+>>>> To: Ravi, Deepthy
+>>>> Cc: linux-media@vger.kernel.org; tony@atomide.com; linux@arm.linux.org.uk;
+>>>> linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
+>>>> kernel@vger.kernel.org; mchehab@infradead.org; g.liakhovetski@gmx.de;
+>>>> Hiremath, Vaibhav
+>>>> Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+>>>>
+>>>> Hi Deepthy,
+>>>>
+>>>> On Friday 16 September 2011 15:00:53 Ravi, Deepthy wrote:
+>>>>> On Thursday, September 08, 2011 10:51 PM Laurent Pinchart wrote:
+>>>>>> On Thursday 08 September 2011 15:35:22 Deepthy Ravi wrote:
+>>>>>>> From: Vaibhav Hiremath<hvaibhav@ti.com>
+>>>>>>>
+>>>>>>> In order to support TVP5146 (for that matter any video decoder),
+>>>>>>> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
+>>>>>>> device node.
+>>>>>>
+>>>>>> Why so ? Shouldn't it be queried on the subdev output pad directly ?
+>>>>>
+>>>>> Because standard v4l2 application for analog devices will call these std
+>>>>> ioctls on the streaming device node. So it's done on /dev/video to make
+>>>> the
+>>>>> existing apllication work.
+>>>>
+>>>> Existing applications can't work with the OMAP3 ISP (and similar complex
+>>>> embedded devices) without userspace support anyway, either in the form of
+>>>> a
+>>>> GStreamer element or a libv4l plugin. I still believe that analog video
+>>>> standard operations should be added to the subdev pad operations and
+>>>> exposed
+>>>> through subdev device nodes, exactly as done with formats.
+>>>>
+>>> [Hiremath, Vaibhav] Laurent,
+>>>
+>>> I completely agree with your point that, existing application will not work without setting links properly.
+>>> But I believe the assumption here is, media-controller should set the links (along with pad formants) and
+>>> all existing application should work as is. Isn't it?
+>>
+>> Yes.
+>>
+>>> The way it is being done currently is, set the format at the pad level which is same as analog standard resolution and use existing application for streaming...
+>>
+>> Yes.
+>>
+>>> I am ok, if we add s/g/enum_std api support at sub-dev level but this should also be supported on streaming device node.
+>>
+>> Agreed. Standards selection should be done at device node, just like any other
+>> device.
+> 
+> So how do you handle a part like the TVP5150 that is standard agnostic?
+> That device can sense the standard from the input signal and sets the
+> result appropriately.
+> 
+See the em28xx driver. It uses tvp5150 at the device node, and works properly.
 
-Ok, I agree that s5p-tv patches need some more work. What about
-the other patches, especially these two:
-"vb2: add vb2_get_unmapped_area in vb2 core"
-"v4l: mem2mem: add wait_{prepare,finish} ops to m2m_testdev"? 
+It should be noticed, however, that the implementation at tvp5150 doesn't
+implement standards detection properly, due to hardware limitation.
 
-I cannot find them in your staging/for_v3.2 branch yet - should
-I include them in the next pull request?
+A proper implementation of standards detection is to get the standards mask from
+userspace and let the driver detect between the standards that the userspace is
+expecting.
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+So, userspace could, for example, do things like:
 
+	v4l2_std_id std = V4L2_STD_PAL_M | V4L2_STD_NTSC_M | V4L2_STD_PAL_DK;
 
+	ioctl (fd, VIDIOC_S_STD, &std);
+	msleep (100);
+	ioctl (fd, VIDIOC_G_STD, &std);
+	if (std & V4L2_STD_625_50)
+		height = 576;
+	else
+		height = 480;
 
+The above code won't work with the current tvp5150 driver, due to two reasons:
+
+1) The tvp5150 register 0x28 doesn't allow an arbitrary standards mask like the above.
+The driver does support standards detection, if V4L2_STD_ALL is passed into it.
+
+2) even if V4L2_STD_ALL is used, the driver currently doesn't implement a
+vidioc_g_std callback. So, the driver cannot return back to userspace and to
+the bridge driver what standard were detected. Without this information, userspace
+might use the wrong number of lines when allocating the buffer, and this won't
+work.
+
+Of course, patches for fixing this are welcome.
+
+Thanks,
+Mauro
