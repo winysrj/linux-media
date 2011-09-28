@@ -1,148 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:34193 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757571Ab1IAO2Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 10:28:16 -0400
-Date: Thu, 1 Sep 2011 17:28:11 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] mt9t001: Aptina (Micron) MT9T001 3MP sensor driver
-Message-ID: <20110901142811.GB12368@valkosipuli.localdomain>
-References: <1314793452-23641-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <201109011105.06121.laurent.pinchart@ideasonboard.com>
- <20110901103310.GX12368@valkosipuli.localdomain>
- <201109011548.22376.laurent.pinchart@ideasonboard.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51613 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752818Ab1I1N3U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Sep 2011 09:29:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 4/8] ispvideo: Add support for G/S/ENUM_STD ioctl
+Date: Wed, 28 Sep 2011 15:29:16 +0200
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Ravi, Deepthy" <deepthy.ravi@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+References: <1315488922-16152-1-git-send-email-deepthy.ravi@ti.com> <201109280041.29952.laurent.pinchart@ideasonboard.com> <4E82F002.4040401@infradead.org>
+In-Reply-To: <4E82F002.4040401@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201109011548.22376.laurent.pinchart@ideasonboard.com>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109281529.17387.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 01, 2011 at 03:48:22PM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Thursday 01 September 2011 12:33:11 Sakari Ailus wrote:
-> > On Thu, Sep 01, 2011 at 11:05:05AM +0200, Laurent Pinchart wrote:
-> > > On Wednesday 31 August 2011 20:23:33 Sakari Ailus wrote:
-> > > > On Wed, Aug 31, 2011 at 02:24:12PM +0200, Laurent Pinchart wrote:
-> > > > > The MT9T001 is a parallel 3MP sensor from Aptina (formerly Micron)
-> > > > > controlled through I2C.
-> > > > > 
-> > > > > The driver creates a V4L2 subdevice. It currently supports binning
-> > > > > and cropping, and the gain, exposure, test pattern and black level
-> > > > > controls.
-> > > > > 
-> > > > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> [snip]
-> 
-> > > > > +#define V4L2_CID_TEST_PATTERN		(V4L2_CID_USER_BASE | 0x1001)
-> > > > 
-> > > > Thest pattern is something that almost every sensor have.
-> > > > 
-> > > > > +#define V4L2_CID_GAIN_RED		(V4L2_CTRL_CLASS_CAMERA | 0x1001)
-> > > > > +#define V4L2_CID_GAIN_GREEN1		(V4L2_CTRL_CLASS_CAMERA | 0x1002)
-> > > > > +#define V4L2_CID_GAIN_GREEN2		(V4L2_CTRL_CLASS_CAMERA | 0x1003)
-> 
-> [snip]
-> 
-> > > > Also these are quite low level controls as opposed to the other higher
-> > > > level controls in this class. I wonder if creating a separate class for
-> > > > them would make sense. We'll need a new class for the hblank/vblank
-> > > > controls anyway. I might call it "sensor".
-> > > > 
-> > > > These controls could be also standardised.
-> > > 
-> > > I agree.
-> > > 
-> > > A "sensor" control class might make sense for these 5 controls, but they
-> > > can also be useful for non-sensor hardware (for instance with an analog
-> > > pixel decoder).
+Hi Mauro,
+
+On Wednesday 28 September 2011 11:59:30 Mauro Carvalho Chehab wrote:
+> Em 27-09-2011 19:41, Laurent Pinchart escreveu:
+> > On Wednesday 28 September 2011 00:31:32 Mauro Carvalho Chehab wrote:
+> >> Em 19-09-2011 12:31, Hiremath, Vaibhav escreveu:
+> >>> On Friday, September 16, 2011 6:36 PM Laurent Pinchart wrote:
+> >>>> On Friday 16 September 2011 15:00:53 Ravi, Deepthy wrote:
+> >>>>> On Thursday, September 08, 2011 10:51 PM Laurent Pinchart wrote:
+> >>>>>> On Thursday 08 September 2011 15:35:22 Deepthy Ravi wrote:
+> >>>>>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> >>>>>>> 
+> >>>>>>> In order to support TVP5146 (for that matter any video decoder),
+> >>>>>>> it is important to support G/S/ENUM_STD ioctl on /dev/videoX
+> >>>>>>> device node.
+> >>>>>> 
+> >>>>>> Why so ? Shouldn't it be queried on the subdev output pad directly ?
+> >>>>> 
+> >>>>> Because standard v4l2 application for analog devices will call these
+> >>>>> std ioctls on the streaming device node. So it's done on /dev/video
+> >>>>> to make the existing apllication work.
+> >>>> 
+> >>>> Existing applications can't work with the OMAP3 ISP (and similar
+> >>>> complex embedded devices) without userspace support anyway, either in
+> >>>> the form of a GStreamer element or a libv4l plugin. I still believe
+> >>>> that analog video standard operations should be added to the subdev
+> >>>> pad operations and exposed through subdev device nodes, exactly as
+> >>>> done with formats.
+> >>> 
+> >>> I completely agree with your point that, existing application will not
+> >>> work without setting links properly. But I believe the assumption here
+> >>> is, media-controller should set the links (along with pad formants) and
+> >>> all existing application should work as is. Isn't it?
+> >> 
+> >> Yes.
+> >> 
+> >>> The way it is being done currently is, set the format at the pad level
+> >>> which is same as analog standard resolution and use existing
+> >>> application for streaming...
+> >> 
+> >> Yes.
+> >> 
+> >>> I am ok, if we add s/g/enum_std api support at sub-dev level but this
+> >>> should also be supported on streaming device node.
+> >> 
+> >> Agreed. Standards selection should be done at device node, just like any
+> >> other device.
 > > 
-> > What about calling it differently then?
-> > 
-> > V4L2_CTRL_CLASS_SOURCE
-> > V4L2_CTRL_CLASS_IMAGE_SOURCE
-> > V4L2_CTRL_CLASS_MBUS_SOURCE
+> > No. Please see my reply to Vaibhav's e-mail. Standard selection should be
+> > done on the subdev pads, for the exact same reason why formats and
+> > selection rectangles are configured on subdev pads.
 > 
-> Calling differently is probably a good idea. I'm not sure which name is the 
-> best though. I need to sleep on that.
-> 
-> Gain is an issue, as it can be applied at any stage in the pipeline. As such 
-> it doesn't really belong to a "source" class.
+> NACK. Let's not reinvent the wheel. the MC should not replace the V4L2 API.
 
-True. Analog gain does still belong there.
+I will NACK any patch that implements G/S/ENUM_STD in the OMAP3 ISP driver 
+itself, so we got a deadlock here :-)
 
-We might need more than one new class.
-
-> > > > > +#define V4L2_CID_GAIN_BLUE		(V4L2_CTRL_CLASS_CAMERA | 0x1004)
-> > > > > +
-> > > > > +static int mt9t001_gain_data(s32 *gain)
-> > > > > +{
-> > > > > +	/* Gain is controlled by 2 analog stages and a digital stage. Valid
-> > > > > +	 * values for the 3 stages are
-> > > > > +	 *
-> > > > > +	 * Stage		Min	Max	Step
-> > > > > +	 * ------------------------------------------
-> > > > > +	 * First analog stage	x1	x2	1
-> > > > > +	 * Second analog stage	x1	x4	0.125
-> > > > > +	 * Digital stage	x1	x16	0.125
-> > > > > +	 *
-> > > > > +	 * To minimize noise, the gain stages should be used in the second
-> > > > > +	 * analog stage, first analog stage, digital stage order. Gain from
-> > > > > a +	 * previous stage should be pushed to its maximum value before
-> > > > > the next +	 * stage is used.
-> > > > > +	 */
-> > > > > +	if (*gain <= 32)
-> > > > > +		return *gain;
-> > > > > +
-> > > > > +	if (*gain <= 64) {
-> > > > > +		*gain &= ~1;
-> > > > > +		return (1 << 6) | (*gain >> 1);
-> > > > > +	}
-> > > > > +
-> > > > > +	*gain &= ~7;
-> > > > > +	return ((*gain - 64) << 5) | (1 << 6) | 32;
-> > > > > +}
-> > > > 
-> > > > This one looks very similar to another Aptina sensor driver. My comment
-> > > > back then was that the analog and digital gain should be separate
-> > > > controls as the user typically would e.g. want to know (s)he's using
-> > > > digital gain instead of analog one.
-> > > > 
-> > > > What about implementing this?
-> > > > 
-> > > > It's a good question whether we need one or two new controls. If the
-> > > > answer is two, then how do they relate to the existing control?
-> > > 
-> > > I'm not too sure about this. If an application needs that much control
-> > > over the hardware, wouldn't it be hardware-specific anyway, and know
-> > > about control ranges ? The mt9t001 actually has 3 gain stages, so one
-> > > might even argue that we should expose 3 gain controls :-)
-> > 
-> > At least we should have two different ones. The driver might implement a
-> > policy for the single exposure control which would be combination of the
-> > two, but I'd rather see this done more genericly in libv4l: the algorithm
-> > is trivial and the same, and I also think this is relatively generic.
-> 
-> The algorithm isn't that generic, it depends on the hardware and how the gain 
-> stages are implemented.
-
-At least the et8ek8 prefers the same. There may be some parameters that
-might be needed for the algorithm which might need to be a little more
-complex than that.
-
-> > I don't think there's a need to show the secondary analog gain stage to the
-> > user, especially if the relation of the two stages is so simple. Are the
-> > units also the same?
-> 
-> I'm not sure what you mean here. Gains have no units :-)
-
-Uh, well, at least the granularity of the gain steps can be different in
-different gain stages.
+Maybe it would be easier to discuss this face to face in Prague ?
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Regards,
+
+Laurent Pinchart
