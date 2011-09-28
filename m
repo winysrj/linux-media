@@ -1,42 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39439 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752362Ab1IEKdw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 06:33:52 -0400
-Date: Mon, 5 Sep 2011 11:33:39 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Josh Wu <josh.wu@atmel.com>
-Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	plagnioj@jcrosoft.com, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] [media] at91: add code to initialize and manage the
-	ISI_MCK for Atmel ISI driver.
-Message-ID: <20110905103339.GG6619@n2100.arm.linux.org.uk>
-References: <1315218593-10822-1-git-send-email-josh.wu@atmel.com>
+Received: from moutng.kundenserver.de ([212.227.126.186]:59920 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753644Ab1I1Ubl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Sep 2011 16:31:41 -0400
+Date: Wed, 28 Sep 2011 22:31:25 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, pawel@osciak.com,
+	mchehab@infradead.org, m.szyprowski@samsung.com
+Subject: Re: [PATCH 1/1] v4l: Add note on buffer locking to memory and DMA
+ mapping to PREPARE_BUF
+In-Reply-To: <20110928202035.GE6180@valkosipuli.localdomain>
+Message-ID: <Pine.LNX.4.64.1109282227300.21237@axis700.grange>
+References: <Pine.LNX.4.64.1109010904300.21309@axis700.grange>
+ <1314875336-21811-1-git-send-email-sakari.ailus@iki.fi>
+ <20110928202035.GE6180@valkosipuli.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1315218593-10822-1-git-send-email-josh.wu@atmel.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 05, 2011 at 06:29:53PM +0800, Josh Wu wrote:
-> +static int initialize_mck(struct atmel_isi *isi,
-> +			struct isi_platform_data *pdata)
-> +{
-> +	int ret;
-> +	struct clk *pck_parent;
-> +
-> +	if (!strlen(pdata->pck_name) || !strlen(pdata->pck_parent_name))
-> +		return -EINVAL;
-> +
-> +	/* ISI_MCK is provided by PCK clock */
-> +	isi->mck = clk_get(NULL, pdata->pck_name);
+On Wed, 28 Sep 2011, Sakari Ailus wrote:
 
-No, this is not how you use the clk API.  You do not pass clock names via
-platform data.
+> Hi Guennadi,
+> 
+> What's your opinion on this? I was intended to complement the PREPARE_BUF
+> documentation.
 
-You pass clk_get() the struct device.  You then pass clk_get() a
-_connection id_ on that _device_ if you have more than one struct clk
-associated with the _device_.  You then use clkdev to associate the
-struct device plus the connection id with the appropriate struct clk.
+I don't think I have a very strong opinion about this. AFAIU this is so 
+far just a (yet another) speculation about what the driver might want or 
+need to do in PREPARE_BUF. Let's wait until the author of these patches 
+manages to get them straight (...) and until all the reviewers are 
+satisfied:-) Then you're certainly welcome to submit any improvement you 
+see fit, then the usual suspects will express their opinions on them. So, 
+business as usual, I would say;-)
+
+Thanks
+Guennadi
+
+> 
+> On Thu, Sep 01, 2011 at 02:08:56PM +0300, Sakari Ailus wrote:
+> > Add note to documentation of VIDIOC_PREPARE_BUF that the preparation done by
+> > the IOCTL may include locking buffers to system memory and creating DMA
+> > mappings for them.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> >  .../DocBook/media/v4l/vidioc-prepare-buf.xml       |    8 +++++---
+> >  1 files changed, 5 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+> > index 509e752..7177c2f 100644
+> > --- a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+> > +++ b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+> > @@ -52,9 +52,11 @@
+> >  <constant>VIDIOC_PREPARE_BUF</constant> ioctl to pass ownership of the buffer
+> >  to the driver before actually enqueuing it, using the
+> >  <constant>VIDIOC_QBUF</constant> ioctl, and to prepare it for future I/O.
+> > -Such preparations may include cache invalidation or cleaning. Performing them
+> > -in advance saves time during the actual I/O. In case such cache operations are
+> > -not required, the application can use one of
+> > +Such preparations may include locking the buffer to system memory and
+> > +creating DMA mapping for it (on the first time
+> > +<constant>VIDIOC_PREPARE_BUF</constant> is called), cache invalidation or
+> > +cleaning. Performing them in advance saves time during the actual I/O. In
+> > +case such cache operations are not required, the application can use one of
+> >  <constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant> and
+> >  <constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant> flags to skip the respective
+> >  step.</para>
+> > -- 
+> > 1.7.2.5
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> -- 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
