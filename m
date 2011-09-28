@@ -1,63 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:41233 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935182Ab1IOW0D convert rfc822-to-8bit (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:49287 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752221Ab1I1UUj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Sep 2011 18:26:03 -0400
-Received: by fxe4 with SMTP id 4so1083494fxe.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2011 15:26:02 -0700 (PDT)
-From: Krzysztof =?utf-8?B?R2xvd2nFhHNraQ==?= <goviczek@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: ARDATA My Vision Hybrid TV support
-Date: Fri, 16 Sep 2011 00:25:58 +0200
-Message-ID: <11546653.u4LCKO9akC@czarny.dom>
+	Wed, 28 Sep 2011 16:20:39 -0400
+Date: Wed, 28 Sep 2011 23:20:35 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, pawel@osciak.com,
+	mchehab@infradead.org, m.szyprowski@samsung.com
+Subject: Re: [PATCH 1/1] v4l: Add note on buffer locking to memory and DMA
+ mapping to PREPARE_BUF
+Message-ID: <20110928202035.GE6180@valkosipuli.localdomain>
+References: <Pine.LNX.4.64.1109010904300.21309@axis700.grange>
+ <1314875336-21811-1-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1314875336-21811-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've got "My Vision Hybrid TV" DVB-T tuner.
+Hi Guennadi,
 
-lsub shows:
-Bus 002 Device 002: ID 1b80:d412 Afatech 
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass          239 Miscellaneous Device
-  bDeviceSubClass         2 ?
-  bDeviceProtocol         1 Interface Association
-  bMaxPacketSize0        64
-  idVendor           0x1b80 Afatech
-  idProduct          0xd412 
-  bcdDevice           40.01
-  iManufacturer           1 Conexant Corporation
-  iProduct                2 Polaris AV Capture
-  iSerial                 3 0000000000
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          344
-    bNumInterfaces          7
-    bConfigurationValue     1
-    iConfiguration          4 Polaris AV Capture
-    bmAttributes         0xa0
-      (Bus Powered)
-      Remote Wakeup
-    MaxPower              500mA
+What's your opinion on this? I was intended to complement the PREPARE_BUF
+documentation.
 
+On Thu, Sep 01, 2011 at 02:08:56PM +0300, Sakari Ailus wrote:
+> Add note to documentation of VIDIOC_PREPARE_BUF that the preparation done by
+> the IOCTL may include locking buffers to system memory and creating DMA
+> mappings for them.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  .../DocBook/media/v4l/vidioc-prepare-buf.xml       |    8 +++++---
+>  1 files changed, 5 insertions(+), 3 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+> index 509e752..7177c2f 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+> @@ -52,9 +52,11 @@
+>  <constant>VIDIOC_PREPARE_BUF</constant> ioctl to pass ownership of the buffer
+>  to the driver before actually enqueuing it, using the
+>  <constant>VIDIOC_QBUF</constant> ioctl, and to prepare it for future I/O.
+> -Such preparations may include cache invalidation or cleaning. Performing them
+> -in advance saves time during the actual I/O. In case such cache operations are
+> -not required, the application can use one of
+> +Such preparations may include locking the buffer to system memory and
+> +creating DMA mapping for it (on the first time
+> +<constant>VIDIOC_PREPARE_BUF</constant> is called), cache invalidation or
+> +cleaning. Performing them in advance saves time during the actual I/O. In
+> +case such cache operations are not required, the application can use one of
+>  <constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant> and
+>  <constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant> flags to skip the respective
+>  step.</para>
+> -- 
+> 1.7.2.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-There are 3 chips inside:
-cx3102-11z NOK770.25 
-cx24232-11z (or14z) 
-tda18271HDC2
-
-Any chance to be it supported.  Is it any well-known device with just strange 
-bus-id and need just add it to the driver or it is some exotic device?
-
-Greetings
-
-Krzysztof Głowiński
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
