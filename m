@@ -1,308 +1,374 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58951 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932878Ab1IHNgu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 09:36:50 -0400
-From: Deepthy Ravi <deepthy.ravi@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <tony@atomide.com>, <linux@arm.linux.org.uk>,
-	<linux-omap@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-kernel@vger.kernel.org>, <mchehab@infradead.org>,
-	<laurent.pinchart@ideasonboard.com>, <g.liakhovetski@gmx.de>,
-	Vaibhav Hiremath <hvaibhav@ti.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: [PATCH 6/8] ispccdc: Add support for BT656 interface
-Date: Thu, 8 Sep 2011 19:06:29 +0530
-Message-ID: <1315488989-16240-1-git-send-email-deepthy.ravi@ti.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:51091 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754415Ab1I1O6F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Sep 2011 10:58:05 -0400
+Date: Wed, 28 Sep 2011 16:58:02 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 3/9 v10] V4L: document the new VIDIOC_CREATE_BUFS and
+ VIDIOC_PREPARE_BUF ioctl()s
+In-Reply-To: <Pine.LNX.4.64.1109281506520.30317@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1109281656280.19957@axis700.grange>
+References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
+ <Pine.LNX.4.64.1109080942172.31156@axis700.grange>
+ <Pine.LNX.4.64.1109080945290.31156@axis700.grange> <201109271251.01367.hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.1109271855050.7004@axis700.grange>
+ <Pine.LNX.4.64.1109281506520.30317@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-
-Add support for BT656 interface in omap3isp ccdc driver.
-In addition, this corrects some build errors associated
-with isp_video_mbus_to_pix(). The function was declared
-as static. Made it extern.
-
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Deepthy Ravi <deepthy.ravi@ti.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/video/omap3isp/ispccdc.c  |  119 +++++++++++++++++++++++++------
- drivers/media/video/omap3isp/ispvideo.c |    2 +-
- drivers/media/video/omap3isp/ispvideo.h |    4 +-
- include/media/omap3isp.h                |    7 ++
- 4 files changed, 109 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index c583384..e462034 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -1018,6 +1018,9 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
- 	if (syncif->vdpol)
- 		syn_mode |= ISPCCDC_SYN_MODE_VDPOL;
+v10: merge v8 and v9
+
+ Documentation/DocBook/media/v4l/compat.xml         |    3 +
+ Documentation/DocBook/media/v4l/io.xml             |   27 ++++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    2 +
+ .../DocBook/media/v4l/vidioc-create-bufs.xml       |  147 ++++++++++++++++++++
+ .../DocBook/media/v4l/vidioc-prepare-buf.xml       |   96 +++++++++++++
+ 5 files changed, 275 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 91410b6..b68698f 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2486,6 +2486,9 @@ ioctls.</para>
+         <listitem>
+ 	  <para>Flash API. <xref linkend="flash-controls" /></para>
+         </listitem>
++        <listitem>
++	  <para>&VIDIOC-CREATE-BUFS; and &VIDIOC-PREPARE-BUF; ioctls.</para>
++        </listitem>
+       </itemizedlist>
+     </section>
  
-+	if (syncif->bt_r656_en)
-+		syn_mode |= ISPCCDC_SYN_MODE_PACK8;
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index c57d1ec..3f47df1 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -927,6 +927,33 @@ ioctl is called.</entry>
+ Applications set or clear this flag before calling the
+ <constant>VIDIOC_QBUF</constant> ioctl.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_FLAG_PREPARED</constant></entry>
++	    <entry>0x0400</entry>
++	    <entry>The buffer has been prepared for I/O and can be queued by the
++application. Drivers set or clear this flag when the
++<link linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link>, <link
++	  linkend="vidioc-qbuf">VIDIOC_PREPARE_BUF</link>, <link
++	  linkend="vidioc-qbuf">VIDIOC_QBUF</link> or <link
++	  linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl is called.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
++	    <entry>0x0400</entry>
++	    <entry>Caches do not have to be invalidated for this buffer.
++Typically applications shall use this flag if the data captured in the buffer
++is not going to be touched by the CPU, instead the buffer will, probably, be
++passed on to a DMA-capable hardware unit for further processing or output.
++</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
++	    <entry>0x0800</entry>
++	    <entry>Caches do not have to be cleaned for this buffer.
++Typically applications shall use this flag for output buffers if the data
++in this buffer has not been created by the CPU but by some DMA-capable unit,
++in which case caches have not been used.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 40132c2..2ab365c 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -469,6 +469,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-close;
+     &sub-ioctl;
+     <!-- All ioctls go here. -->
++    &sub-create-bufs;
+     &sub-cropcap;
+     &sub-dbg-g-chip-ident;
+     &sub-dbg-g-register;
+@@ -511,6 +512,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-queryctrl;
+     &sub-query-dv-preset;
+     &sub-querystd;
++    &sub-prepare-buf;
+     &sub-reqbufs;
+     &sub-s-hw-freq-seek;
+     &sub-streamon;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+new file mode 100644
+index 0000000..27d694d
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+@@ -0,0 +1,147 @@
++<refentry id="vidioc-create-bufs">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_CREATE_BUFS</refentrytitle>
++    &manvol;
++  </refmeta>
 +
- 	if (syncif->ccdc_mastermode) {
- 		syn_mode |= ISPCCDC_SYN_MODE_FLDOUT | ISPCCDC_SYN_MODE_VDHDOUT;
- 		isp_reg_writel(isp,
-@@ -1035,9 +1038,12 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
- 
- 	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
- 
--	if (!syncif->bt_r656_en)
-+	if (syncif->bt_r656_en)
-+		isp_reg_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_REC656IF,
-+			    ISPCCDC_REC656IF_R656ON | ISPCCDC_REC656IF_ECCFVH);
-+	else
- 		isp_reg_clr(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_REC656IF,
--			    ISPCCDC_REC656IF_R656ON);
-+			    ISPCCDC_REC656IF_R656ON | ISPCCDC_REC656IF_ECCFVH);
- }
- 
- /* CCDC formats descriptions */
-@@ -1119,6 +1125,7 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	struct isp_parallel_platform_data *pdata = NULL;
- 	struct v4l2_subdev *sensor;
- 	struct v4l2_mbus_framefmt *format;
-+	struct v4l2_pix_format pix;
- 	const struct isp_format_info *fmt_info;
- 	struct v4l2_subdev_format fmt_src;
- 	unsigned int depth_out;
-@@ -1150,9 +1157,18 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	shift = depth_in - depth_out;
- 	omap3isp_configure_bridge(isp, ccdc->input, pdata, shift);
- 
--	ccdc->syncif.datsz = depth_out;
--	ccdc->syncif.hdpol = pdata ? pdata->hs_pol : 0;
--	ccdc->syncif.vdpol = pdata ? pdata->vs_pol : 0;
-+	if (pdata) {
-+		ccdc->syncif.datsz = pdata->width;
-+		ccdc->syncif.fldmode = pdata->fldmode;
-+		ccdc->syncif.hdpol = pdata->hs_pol;
-+		ccdc->syncif.vdpol = pdata->vs_pol;
-+		ccdc->syncif.bt_r656_en = pdata->is_bt656;
-+	} else {
-+		ccdc->syncif.datsz = depth_out;
-+		ccdc->syncif.hdpol = 0;
-+		ccdc->syncif.vdpol = 0;
-+	}
++  <refnamediv>
++    <refname>VIDIOC_CREATE_BUFS</refname>
++    <refpurpose>Create buffers for Memory Mapped or User Pointer I/O</refpurpose>
++  </refnamediv>
 +
- 	ccdc_config_sync_if(ccdc, &ccdc->syncif);
- 
- 	/* CCDC_PAD_SINK */
-@@ -1178,8 +1194,14 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	/* Use PACK8 mode for 1byte per pixel formats. */
- 	if (omap3isp_video_format_info(format->code)->bpp <= 8)
- 		syn_mode |= ISPCCDC_SYN_MODE_PACK8;
--	else
--		syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_create_buffers *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
 +
-+	if ((format->code == V4L2_MBUS_FMT_YUYV8_2X8) ||
-+		(format->code == V4L2_MBUS_FMT_UYVY8_2X8)) {
-+		if (pdata->is_bt656)
-+			syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
-+		else
-+			syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
-+	}
- 
- 	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
- 
-@@ -1210,22 +1232,42 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 			(format->code != V4L2_MBUS_FMT_UYVY8_2X8))
- 		ccdc_config_imgattr(ccdc, ccdc_pattern);
- 
--	/* Generate VD0 on the last line of the image and VD1 on the
--	 * 2/3 height line.
--	 */
--	isp_reg_writel(isp, ((format->height - 2) << ISPCCDC_VDINT_0_SHIFT) |
--		       ((format->height * 2 / 3) << ISPCCDC_VDINT_1_SHIFT),
--		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VDINT);
-+	/* BT656: Generate VD0 on the last line of each field, and we
-+	* don't use VD1.
-+	* Non BT656: Generate VD0 on the last line of the image and VD1 on the
-+	* 2/3 height line.
-+	*/
-+	if (pdata->is_bt656)
-+		isp_reg_writel(isp,
-+			(format->height/2 - 2) << ISPCCDC_VDINT_0_SHIFT,
-+		    OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VDINT);
-+	else
-+		isp_reg_writel(isp,
-+			((format->height - 2) << ISPCCDC_VDINT_0_SHIFT) |
-+		      ((format->height * 2 / 3) << ISPCCDC_VDINT_1_SHIFT),
-+		     OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VDINT);
- 
- 	/* CCDC_PAD_SOURCE_OF */
- 	format = &ccdc->formats[CCDC_PAD_SOURCE_OF];
- 
--	isp_reg_writel(isp, (0 << ISPCCDC_HORZ_INFO_SPH_SHIFT) |
-+	isp_video_mbus_to_pix(&ccdc->video_out, format, &pix);
-+	/* For BT656 the number of bytes would be width*2 */
-+	if (pdata->is_bt656)
-+		isp_reg_writel(isp, (0 << ISPCCDC_HORZ_INFO_SPH_SHIFT) |
-+			((pix.bytesperline - 1) << ISPCCDC_HORZ_INFO_NPH_SHIFT),
-+			OMAP3_ISP_IOMEM_CCDC, ISPCCDC_HORZ_INFO);
-+	else
-+		isp_reg_writel(isp, (0 << ISPCCDC_HORZ_INFO_SPH_SHIFT) |
- 		       ((format->width - 1) << ISPCCDC_HORZ_INFO_NPH_SHIFT),
- 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_HORZ_INFO);
- 	isp_reg_writel(isp, 0 << ISPCCDC_VERT_START_SLV0_SHIFT,
- 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_START);
--	isp_reg_writel(isp, (format->height - 1)
-+	if (pdata->is_bt656)
-+		isp_reg_writel(isp, ((format->height >> 1) - 1)
-+				<< ISPCCDC_VERT_LINES_NLV_SHIFT,
-+				OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_LINES);
-+	else
-+		isp_reg_writel(isp, (format->height - 1)
- 			<< ISPCCDC_VERT_LINES_NLV_SHIFT,
- 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_LINES);
- 
-@@ -1238,7 +1280,16 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	isp_reg_clr(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST,
- 		    ISPCCDC_SDOFST_LOFST_MASK << ISPCCDC_SDOFST_LOFST3_SHIFT);
- 
--	ccdc_config_outlineoffset(ccdc, ccdc->video_out.bpl_value, 0, 0);
-+	/* In case of BT656 each alternate line must be stored into memory */
-+	if (pdata->is_bt656) {
-+		ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENEVEN, 1);
-+		ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENODD, 1);
-+		ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDEVEN, 1);
-+		ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDODD, 1);
-+	} else {
-+		ccdc_config_outlineoffset(ccdc, ccdc->video_out.bpl_value,
-+									 0, 0);
-+	}
- 
- 	/* CCDC_PAD_SOURCE_VP */
- 	format = &ccdc->formats[CCDC_PAD_SOURCE_VP];
-@@ -1276,6 +1327,11 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- unlock:
- 	spin_unlock_irqrestore(&ccdc->lsc.req_lock, flags);
- 
-+	if (pdata->is_bt656)
-+		ccdc->update = OMAP3ISP_CCDC_BLCLAMP;
-+	else
-+		ccdc->update = 0;
++  <refsect1>
++    <title>Arguments</title>
 +
- 	ccdc_apply_controls(ccdc);
- }
- 
-@@ -1551,10 +1607,29 @@ static void ccdc_vd0_isr(struct isp_ccdc_device *ccdc)
- {
- 	unsigned long flags;
- 	int restart = 0;
-+	struct isp_device *isp = to_isp_device(ccdc);
- 
--	if (ccdc->output & CCDC_OUTPUT_MEMORY)
--		restart = ccdc_isr_buffer(ccdc);
--
-+	if (ccdc->output & CCDC_OUTPUT_MEMORY) {
-+		if (ccdc->syncif.bt_r656_en) {
-+			u32 fid;
-+			u32 syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC,
-+					ISPCCDC_SYN_MODE);
-+			fid = syn_mode & ISPCCDC_SYN_MODE_FLDSTAT;
-+			/* toggle the software maintained fid */
-+			ccdc->syncif.fldstat ^= 1;
-+			if (fid == ccdc->syncif.fldstat) {
-+				if (fid == 0) {
-+					restart = ccdc_isr_buffer(ccdc);
-+					goto done;
-+				}
-+			} else if (fid == 0) {
-+				ccdc->syncif.fldstat = fid;
-+			}
-+		} else {
-+			restart = ccdc_isr_buffer(ccdc);
-+		}
-+	}
-+done:
- 	spin_lock_irqsave(&ccdc->lock, flags);
- 	if (__ccdc_handle_stopping(ccdc, CCDC_EVENT_VD0)) {
- 		spin_unlock_irqrestore(&ccdc->lock, flags);
-@@ -1640,7 +1715,8 @@ int omap3isp_ccdc_isr(struct isp_ccdc_device *ccdc, u32 events)
- 	if (ccdc->state == ISP_PIPELINE_STREAM_STOPPED)
- 		return 0;
- 
--	if (events & IRQ0STATUS_CCDC_VD1_IRQ)
-+	if (!ccdc->syncif.bt_r656_en &&
-+			(events & IRQ0STATUS_CCDC_VD1_IRQ))
- 		ccdc_vd1_isr(ccdc);
- 
- 	ccdc_lsc_isr(ccdc, events);
-@@ -1648,7 +1724,8 @@ int omap3isp_ccdc_isr(struct isp_ccdc_device *ccdc, u32 events)
- 	if (events & IRQ0STATUS_CCDC_VD0_IRQ)
- 		ccdc_vd0_isr(ccdc);
- 
--	if (events & IRQ0STATUS_HS_VS_IRQ)
-+	if (!ccdc->syncif.bt_r656_en &&
-+			(events & IRQ0STATUS_HS_VS_IRQ))
- 		ccdc_hs_vs_isr(ccdc);
- 
- 	return 0;
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index d595d01..445143b 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -165,7 +165,7 @@ static bool isp_video_is_shiftable(enum v4l2_mbus_pixelcode in,
-  *
-  * Return the number of padding bytes at end of line.
-  */
--static unsigned int isp_video_mbus_to_pix(const struct isp_video *video,
-+unsigned int isp_video_mbus_to_pix(const struct isp_video *video,
- 					  const struct v4l2_mbus_framefmt *mbus,
- 					  struct v4l2_pix_format *pix)
- {
-diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
-index bb8feb6..01d8728 100644
---- a/drivers/media/video/omap3isp/ispvideo.h
-+++ b/drivers/media/video/omap3isp/ispvideo.h
-@@ -198,7 +198,9 @@ struct isp_buffer *omap3isp_video_buffer_next(struct isp_video *video,
- 					      unsigned int error);
- void omap3isp_video_resume(struct isp_video *video, int continuous);
- struct media_pad *omap3isp_video_remote_pad(struct isp_video *video);
--
-+extern unsigned int isp_video_mbus_to_pix(const struct isp_video *video,
-+				  const struct v4l2_mbus_framefmt *mbus,
-+				  struct v4l2_pix_format *pix);
- const struct isp_format_info *
- omap3isp_video_format_info(enum v4l2_mbus_pixelcode code);
- 
-diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-index e917b1d..f8d08e4 100644
---- a/include/media/omap3isp.h
-+++ b/include/media/omap3isp.h
-@@ -63,17 +63,24 @@ enum {
-  *		0 - Active high, 1 - Active low
-  * @vs_pol: Vertical synchronization polarity
-  *		0 - Active high, 1 - Active low
-+ * @fldmode: Field mode
-+ *             0 - progressive, 1 - Interlaced
-  * @bridge: CCDC Bridge input control
-  *		ISP_BRIDGE_DISABLE - Disable
-  *		ISP_BRIDGE_LITTLE_ENDIAN - Little endian
-  *		ISP_BRIDGE_BIG_ENDIAN - Big endian
-+ * @is_bt656: Is BT656
-+ *             0 - non BT656, 1 - BT656
-  */
- struct isp_parallel_platform_data {
-+	unsigned int width;
- 	unsigned int data_lane_shift:2;
- 	unsigned int clk_pol:1;
- 	unsigned int hs_pol:1;
- 	unsigned int vs_pol:1;
-+	unsigned int fldmode:1;
- 	unsigned int bridge:2;
-+	unsigned int is_bt656:1;
- };
- 
- enum {
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_CREATE_BUFS</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>This ioctl is used to create buffers for <link linkend="mmap">memory
++mapped</link> or <link linkend="userp">user pointer</link>
++I/O. It can be used as an alternative or in addition to the
++<constant>VIDIOC_REQBUFS</constant> ioctl, when a tighter control over buffers
++is required. This ioctl can be called multiple times to create buffers of
++different sizes.</para>
++
++    <para>To allocate device buffers applications initialize relevant fields of
++the <structname>v4l2_create_buffers</structname> structure. They set the
++<structfield>type</structfield> field in the
++<structname>v4l2_format</structname> structure, embedded in this
++structure, to the respective stream or buffer type.
++<structfield>count</structfield> must be set to the number of required buffers.
++<structfield>memory</structfield> specifies the required I/O method. The
++<structfield>format</structfield> field shall typically be filled in using
++either the <constant>VIDIOC_TRY_FMT</constant> or
++<constant>VIDIOC_G_FMT</constant> ioctl(). Additionally, applications can adjust
++<structfield>sizeimage</structfield> fields to fit their specific needs. The
++<structfield>reserved</structfield> array must be zeroed.</para>
++
++    <para>When the ioctl is called with a pointer to this structure the driver
++will attempt to allocate up to the requested number of buffers and store the
++actual number allocated and the starting index in the
++<structfield>count</structfield> and the <structfield>index</structfield> fields
++respectively. On return <structfield>count</structfield> can be smaller than
++the number requested. The driver may also increase buffer sizes if required,
++however, it will not update <structfield>sizeimage</structfield> field values.
++The user has to use <constant>VIDIOC_QUERYBUF</constant> to retrieve that
++information.</para>
++
++    <table pgwide="1" frame="none" id="v4l2-create-buffers">
++      <title>struct <structname>v4l2_create_buffers</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>index</structfield></entry>
++	    <entry>The starting buffer index, returned by the driver.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>count</structfield></entry>
++	    <entry>The number of buffers requested or granted.</entry>
++	  </row>
++	  <row>
++	    <entry>&v4l2-memory;</entry>
++	    <entry><structfield>memory</structfield></entry>
++	    <entry>Applications set this field to
++<constant>V4L2_MEMORY_MMAP</constant> or
++<constant>V4L2_MEMORY_USERPTR</constant>.</entry>
++	  </row>
++	  <row>
++	    <entry>&v4l2-format;</entry>
++	    <entry><structfield>format</structfield></entry>
++	    <entry>Filled in by the application, preserved by the driver.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[8]</entry>
++	    <entry>A place holder for future extensions.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>ENOMEM</errorcode></term>
++	<listitem>
++	  <para>No memory to allocate buffers for <link linkend="mmap">memory
++mapped</link> I/O.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>The buffer type (<structfield>type</structfield> field) or the
++requested I/O method (<structfield>memory</structfield>) is not
++supported.</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
++
++<!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "v4l2.sgml"
++indent-tabs-mode: nil
++End:
++-->
+diff --git a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+new file mode 100644
+index 0000000..509e752
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+@@ -0,0 +1,96 @@
++<refentry id="vidioc-prepare-buf">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_PREPARE_BUF</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_PREPARE_BUF</refname>
++    <refpurpose>Prepare a buffer for I/O</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_buffer *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_PREPARE_BUF</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>Applications can optionally call the
++<constant>VIDIOC_PREPARE_BUF</constant> ioctl to pass ownership of the buffer
++to the driver before actually enqueuing it, using the
++<constant>VIDIOC_QBUF</constant> ioctl, and to prepare it for future I/O.
++Such preparations may include cache invalidation or cleaning. Performing them
++in advance saves time during the actual I/O. In case such cache operations are
++not required, the application can use one of
++<constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant> and
++<constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant> flags to skip the respective
++step.</para>
++
++    <para>The <structname>v4l2_buffer</structname> structure is
++specified in <xref linkend="buffer" />.</para>
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>EBUSY</errorcode></term>
++	<listitem>
++	  <para>File I/O is in progress.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>The buffer <structfield>type</structfield> is not
++supported, or the <structfield>index</structfield> is out of bounds,
++or no buffers have been allocated yet, or the
++<structfield>userptr</structfield> or
++<structfield>length</structfield> are invalid.</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
++
++<!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "v4l2.sgml"
++indent-tabs-mode: nil
++End:
++-->
 -- 
-1.7.0.4
+1.7.2.5
 
