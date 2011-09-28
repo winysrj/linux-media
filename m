@@ -1,131 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4508 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751947Ab1I0NlO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 09:41:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 2/9 v7] V4L: add two new ioctl()s for multi-size videobuffer management
-Date: Tue, 27 Sep 2011 15:40:52 +0200
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de> <201109271306.21095.hverkuil@xs4all.nl> <Pine.LNX.4.64.1109271417280.5816@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1109271417280.5816@axis700.grange>
+Received: from mail.kapsi.fi ([217.30.184.167]:53536 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753251Ab1I1OcK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Sep 2011 10:32:10 -0400
+Message-ID: <4E832FE6.7020103@iki.fi>
+Date: Wed, 28 Sep 2011 17:32:06 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109271540.52649.hverkuil@xs4all.nl>
+To: =?UTF-8?B?QmrDuHJuIE1vcms=?= <bjorn@mork.no>,
+	=?UTF-8?B?SXN0dsOhbiBWw6E=?= =?UTF-8?B?cmFkaQ==?=
+	<ivaradi@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Smart card reader support for Anysee DVB devices
+References: <CAFk-VPxQvGiEUdd+X4jjUqcygPO-JsT0gTFvrX-q4cGAW6tq_Q@mail.gmail.com>	<4E485F81.9020700@iki.fi> <4E48FF99.7030006@iki.fi>	<4E4C2784.2020003@iki.fi>	<CAFk-VPzKa4bNLCMMCagFi1LLK6PnY245YJqP5yisQH77nJ0Org@mail.gmail.com>	<4E5BA751.6090709@iki.fi>	<CAFk-VPypTuaKgAHPxyvKg7GHYM358rZ2kypabfvxG-x7GjmFpw@mail.gmail.com>	<4E5BAF03.503@iki.fi> <87wrdri4sp.fsf@nemi.mork.no> <4E60DB09.1060304@iki.fi>
+In-Reply-To: <4E60DB09.1060304@iki.fi>
+Content-Type: multipart/mixed;
+ boundary="------------040305030300060708070309"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday, September 27, 2011 14:19:54 Guennadi Liakhovetski wrote:
-> On Tue, 27 Sep 2011, Hans Verkuil wrote:
-> 
-> > On Tuesday, September 27, 2011 13:00:24 Guennadi Liakhovetski wrote:
-> > > Hi Hans
-> > > 
-> > > On Tue, 27 Sep 2011, Hans Verkuil wrote:
-> > > 
-> > > > On Thursday, September 08, 2011 09:45:15 Guennadi Liakhovetski wrote:
-> > > > > A possibility to preallocate and initialise buffers of different sizes
-> > > > > in V4L2 is required for an efficient implementation of a snapshot
-> > > > > mode. This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
-> > > > > VIDIOC_PREPARE_BUF and defines respective data structures.
-> > > > > 
-> > > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > > > ---
-> > > > > 
-> > > > > v7: added the "experimental" comment, as suggested by Sakari - thanks.
-> > > > > 
-> > > > >  drivers/media/video/v4l2-compat-ioctl32.c |   67 +++++++++++++++++++++++++---
-> > > > >  drivers/media/video/v4l2-ioctl.c          |   29 ++++++++++++
-> > > > >  include/linux/videodev2.h                 |   17 +++++++
-> > > > >  include/media/v4l2-ioctl.h                |    2 +
-> > > > >  4 files changed, 107 insertions(+), 8 deletions(-)
-> > > 
-> > > [snip]
-> > > 
-> > > > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > > > > index a5359c6..6e87ea9 100644
-> > > > > --- a/include/linux/videodev2.h
-> > > > > +++ b/include/linux/videodev2.h
-> > > > > @@ -653,6 +653,9 @@ struct v4l2_buffer {
-> > > > >  #define V4L2_BUF_FLAG_ERROR	0x0040
-> > > > >  #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
-> > > > >  #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
-> > > > > +/* Cache handling flags */
-> > > > > +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
-> > > > > +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
-> > > > >  
-> > > > >  /*
-> > > > >   *	O V E R L A Y   P R E V I E W
-> > > > > @@ -2098,6 +2101,15 @@ struct v4l2_dbg_chip_ident {
-> > > > >  	__u32 revision;    /* chip revision, chip specific */
-> > > > >  } __attribute__ ((packed));
-> > > > >  
-> > > > > +/* VIDIOC_CREATE_BUFS */
-> > > > > +struct v4l2_create_buffers {
-> > > > > +	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-> > > > > +	__u32			count;
-> > > > > +	enum v4l2_memory        memory;
-> > > > > +	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
-> > > > > +	__u32			reserved[8];
-> > > > > +};
-> > > > > +
-> > > > >  /*
-> > > > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-> > > > >   *
-> > > > > @@ -2188,6 +2200,11 @@ struct v4l2_dbg_chip_ident {
-> > > > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
-> > > > >  #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
-> > > > >  
-> > > > > +/* Experimental, the below two ioctls may change over the next couple of kernel
-> > > > > +   versions */
-> > > > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
-> > > > > +#define VIDIOC_PREPARE_BUF	 _IOW('V', 93, struct v4l2_buffer)
-> > > > 
-> > > > I think I would prefer _IOWR here. QBUF etc. also use IOWR and you never know
-> > > > what you might return in the future. At the very least using IOWR allows us
-> > > > to update the state field, which would be a perfectly reasonable thing to do.
-> > > 
-> > > Sorry, which state field do you mean? We have already marked these ioctl() 
-> > > as experimental, isn't this enough?
-> > 
-> > The state field in the v4l2_buffer argument.
-> 
-> Is this a new field? I seem to remember some discussion to replace one of 
-> existing unused fields in a user-exposed struct (ioctl() argument) with a 
-> different one. Is this what you're referring to? Can you point me out to 
-> the patch?
+This is a multi-part message in MIME format.
+--------------040305030300060708070309
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-Sorry, my fault. I confused vb2_buffer 'state' with v4l2_buffer 'flags'.
-What happens in the case of QBUF is that v4l2_buffer is returned and the flags
-field is set to FLAG_QUEUED. Something similar can be done if you have a IOWR
-PREPARE_BUF: let it set FLAG_QUEUED. That makes it consistent with the QBUF
-behavior as well (I always like consistent APIs).
+On 09/02/2011 04:32 PM, Antti Palosaari wrote:
+> On 09/02/2011 02:04 PM, Bjørn Mork wrote:
+>> Antti Palosaari<crope@iki.fi> writes:
+>>
+>>> Since Anysee device itself does not have CCID interface it is needed
+>>> to make virtual USB device in order to get CCID support. I have never
+>>> seen virtual USB devices like that, but there is VHCI in current
+>>> kernel staging that actually does something like that over IP.
+>>
+>> Don't know if you have seen this already, but there's a virtual CCID
+>> device implementation in QEMU. See
+>> http://wiki.qemu.org/Features/Smartcard
+>> Should be a good starting point. Combine it withe the VHCI driver from
+>> USBIP and you have your CCID device.
+>
+> It is first time I hear about QEMU virtual CCID. Now we have all parts
+> needed for USBIP VHCI and QEMU virtual CCID, just glue those together.
+>
+> I wonder if it is wise to even create virtual CCID "core" to Kernel.
+> There is few other readers that can use that too, actually I think all
+> USB readers that have unique USB ID (blocking out those which uses
+> USB-serial converters with common IDs).
+>
+> As I see that CCID still more complex as serial device I will still look
+> implementing it as serial as now.
 
-I'm not sure whether we want to add a FLAG_PREPARED as well. I don't think it
-has much value, although it would be a trivial addition.
+Here it is, patch attached. Implemented as serial device. Anysee uses 
+two different smart card interfaces, CST56I01 and TDA8024. That one is 
+old CST56I01, I will try to add TDA8024 later, maybe even tonight.
 
-Regards,
+Anyhow, it is something like proof-of-concept currently, missing locks 
+and abusing ttyUSB. Have you any idea if I should reserve own major 
+device numbers for Anysee or should I reserve one like DVB common?
 
-	Hans
+Any other ideas?
 
-> 
-> > The experimental tag allows for changes, that's true. So this is my proposed
-> > change :-)
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> 
+Antti
+-- 
+http://palosaari.fi/
+
+--------------040305030300060708070309
+Content-Type: text/plain;
+ name="anysee_smartcard_sniper2.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="anysee_smartcard_sniper2.patch"
+
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvYW55c2VlLmMgYi9kcml2
+ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2FueXNlZS5jCmluZGV4IDBiYzEzNzIuLjc5NDk3ZjMg
+MTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvYW55c2VlLmMKKysrIGIv
+ZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9hbnlzZWUuYwpAQCAtNDQsNyArNDQsNyBAQAog
+I2luY2x1ZGUgImN4ZDI4MjByLmgiCiAKIC8qIGRlYnVnICovCi1zdGF0aWMgaW50IGR2Yl91
+c2JfYW55c2VlX2RlYnVnOworc3RhdGljIGludCBkdmJfdXNiX2FueXNlZV9kZWJ1ZyA9IC0x
+OwogbW9kdWxlX3BhcmFtX25hbWVkKGRlYnVnLCBkdmJfdXNiX2FueXNlZV9kZWJ1ZywgaW50
+LCAwNjQ0KTsKIE1PRFVMRV9QQVJNX0RFU0MoZGVidWcsICJzZXQgZGVidWdnaW5nIGxldmVs
+IiBEVkJfVVNCX0RFQlVHX1NUQVRVUyk7CiBzdGF0aWMgaW50IGR2Yl91c2JfYW55c2VlX2Rl
+bHN5czsKQEAgLTY3LDYgKzY3LDExIEBAIHN0YXRpYyBpbnQgYW55c2VlX2N0cmxfbXNnKHN0
+cnVjdCBkdmJfdXNiX2RldmljZSAqZCwgdTggKnNidWYsIHU4IHNsZW4sCiAJaWYgKG11dGV4
+X2xvY2tfaW50ZXJydXB0aWJsZSgmYW55c2VlX3VzYl9tdXRleCkgPCAwKQogCQlyZXR1cm4g
+LUVBR0FJTjsKIAorCWlmIChzYnVmWzBdID09IENNRF9TTUFSVENBUkQpIHsKKwkJZGViX3hm
+ZXIoIj4+PiAiKTsKKwkJZGVidWdfZHVtcChidWYsIHNsZW4sIGRlYl94ZmVyKTsKKwl9CisK
+IAkvKiBXZSBuZWVkIHJlY2VpdmUgb25lIG1lc3NhZ2UgbW9yZSBhZnRlciBkdmJfdXNiX2dl
+bmVyaWNfcncgZHVlCiAJICAgdG8gd2VpcmQgdHJhbnNhY3Rpb24gZmxvdywgd2hpY2ggaXMg
+MSB4IHNlbmQgKyAyIHggcmVjZWl2ZS4gKi8KIAlyZXQgPSBkdmJfdXNiX2dlbmVyaWNfcnco
+ZCwgYnVmLCBzaXplb2YoYnVmKSwgYnVmLCBzaXplb2YoYnVmKSwgMCk7CkBAIC03OSw4ICs4
+NCwxNSBAQCBzdGF0aWMgaW50IGFueXNlZV9jdHJsX21zZyhzdHJ1Y3QgZHZiX3VzYl9kZXZp
+Y2UgKmQsIHU4ICpzYnVmLCB1OCBzbGVuLAogCQlpZiAocmV0KQogCQkJZXJyKCIlczogcmVj
+diBidWxrIG1lc3NhZ2UgZmFpbGVkOiAlZCIsIF9fZnVuY19fLCByZXQpOwogCQllbHNlIHsK
+LQkJCWRlYl94ZmVyKCI8PDwgIik7Ci0JCQlkZWJ1Z19kdW1wKGJ1ZiwgYWN0X2xlbiwgZGVi
+X3hmZXIpOworLy8JCQlkZWJfeGZlcigiPDw8ICIpOworLy8JCQlkZWJ1Z19kdW1wKGJ1Ziwg
+YWN0X2xlbiwgZGViX3hmZXIpOworCQkJaWYgKHNidWZbMF0gPT0gQ01EX1NNQVJUQ0FSRCkg
+eworCQkJCWlmIChidWZbNjNdICE9IDB4NGYpCisJCQkJCWRlYl9pbmZvKCIlczogcGFja2V0
+IE5PSzogJTAyeFxuIiwgX19mdW5jX18sIGJ1Zls2M10pOworCisJCQkJZGViX3hmZXIoIjw8
+PCAiKTsKKwkJCQlkZWJ1Z19kdW1wKGJ1ZiwgNDAsIGRlYl94ZmVyKTsKKwkJCX0KIAkJfQog
+CX0KIApAQCAtNzAxLDYgKzcxMyw4IEBAIHN0YXRpYyBpbnQgYW55c2VlX2Zyb250ZW5kX2F0
+dGFjaChzdHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICphZGFwKQogCQlhZGFwLT5mZV9hZGFwWzBd
+LmZlID0gZHZiX2F0dGFjaCh0ZGExMDAyM19hdHRhY2gsCiAJCQkmYW55c2VlX3RkYTEwMDIz
+X2NvbmZpZywgJmFkYXAtPmRldi0+aTJjX2FkYXAsIDB4NDgpOwogCisJCXN0YXRlLT5oYXNf
+c2MgPSB0cnVlOworCiAJCWJyZWFrOwogCWNhc2UgQU5ZU0VFX0hXXzUwN1NJOiAvKiAxMSAq
+LwogCQkvKiBFMzAgUzIgUGx1cyAqLwpAQCAtMTAxNCw2ICsxMDI4LDcgQEAgc3RhdGljIGlu
+dCBhbnlzZWVfdHVuZXJfYXR0YWNoKHN0cnVjdCBkdmJfdXNiX2FkYXB0ZXIgKmFkYXApCiAJ
+cmV0dXJuIHJldDsKIH0KIAorI2lmIDAKIHN0YXRpYyBpbnQgYW55c2VlX3JjX3F1ZXJ5KHN0
+cnVjdCBkdmJfdXNiX2RldmljZSAqZCkKIHsKIAl1OCBidWZbXSA9IHtDTURfR0VUX0lSX0NP
+REV9OwpAQCAtMTAzOSw2ICsxMDU0LDcgQEAgc3RhdGljIGludCBhbnlzZWVfcmNfcXVlcnko
+c3RydWN0IGR2Yl91c2JfZGV2aWNlICpkKQogCiAJcmV0dXJuIDA7CiB9CisjZW5kaWYKIAog
+c3RhdGljIGludCBhbnlzZWVfY2lfcmVhZF9hdHRyaWJ1dGVfbWVtKHN0cnVjdCBkdmJfY2Ff
+ZW41MDIyMSAqY2ksIGludCBzbG90LAogCWludCBhZGRyKQpAQCAtMTIwOCw2ICsxMjI0LDI5
+MiBAQCBzdGF0aWMgdm9pZCBhbnlzZWVfY2lfcmVsZWFzZShzdHJ1Y3QgZHZiX3VzYl9kZXZp
+Y2UgKmQpCiAJcmV0dXJuOwogfQogCisvLyBzdHR5IC1hRiAvZGV2L3R0eVVTQjAKKy8vIHNl
+dHNlcmlhbCAvZGV2L3R0eVVTQjAKKy8vIHN0YXRzZXJpYWwgL2Rldi90dHlVU0IwCisvLyBt
+b3JlIC9wcm9jL3R0eS9kcml2ZXJzCisvLyB3YXRjaCBoZWFkIC9wcm9jL3R0eS9kcml2ZXIv
+c2VyaWFsCisvLyBodHRwOi8vd3d3LmliaWJsaW8ub3JnL3B1Yi9MaW51eC9kb2NzL0hPV1RP
+L290aGVyLWZvcm1hdHMvaHRtbF9zaW5nbGUvU2VyaWFsLUhPV1RPLmh0bWwKKworCitzdGF0
+aWMgaW50IGFueXNlZV9yY19xdWVyeShzdHJ1Y3QgZHZiX3VzYl9kZXZpY2UgKmQpCit7CisJ
+dTggc2J1ZltdID0ge0NNRF9TTUFSVENBUkQsIDB4MDYsIDB4MjB9OworCXU4IHJidWZbNjBd
+OworCWludCByZXQ7CisJdTggKnB0cjsKKwlzdHJ1Y3QgYW55c2VlX3N0YXRlICpzdGF0ZSA9
+IGQtPnByaXY7CisJc3RydWN0IHR0eV9zdHJ1Y3QgKnR0eSA9IHN0YXRlLT5zY190dHlfZHJp
+dmVyLT50dHlzWzBdOworCisJaWYgKHN0YXRlLT5zY19wb2xsX2NvdW50LS0gPD0gMCkKKwkJ
+cmV0dXJuIDA7CisKKwlkZWJfaW5mbygiJXM6XG4iLCBfX2Z1bmNfXyk7CisKKwlyZXQgPSBh
+bnlzZWVfY3RybF9tc2coZCwgc2J1Ziwgc2l6ZW9mKHNidWYpLCByYnVmLCBzaXplb2YocmJ1
+ZikpOworCWlmIChyZXQpCisJCXJldHVybiAtRUlPOworCisJaWYgKHJidWZbMF0gIT0gMCkg
+eworCQlwdHIgPSAmcmJ1ZlsyXTsKKwkJZGViX2luZm8oInJlY2UgZGF0YTogIik7CisJCWRl
+YnVnX2R1bXAocHRyLCByYnVmWzBdLCBkZWJfaW5mbyk7CisKKwkJdHR5X2luc2VydF9mbGlw
+X3N0cmluZyh0dHksICZyYnVmWzJdLCByYnVmWzBdKTsKKwkJdHR5X2ZsaXBfYnVmZmVyX3B1
+c2godHR5KTsKKwl9CisKKwlyZXR1cm4gMDsKK30KKworc3RhdGljIGludCBhbnlzZWVfc2Nf
+b3BlbihzdHJ1Y3QgdHR5X3N0cnVjdCAqdHR5LCBzdHJ1Y3QgZmlsZSAqZmlscCkKK3sKKwlz
+dHJ1Y3QgZHZiX3VzYl9kZXZpY2UgKmQgPSB0dHktPmRyaXZlcl9kYXRhOworCXN0cnVjdCBh
+bnlzZWVfc3RhdGUgKnN0YXRlID0gZC0+cHJpdjsKKwlpbnQgcmV0LCBpOworCXU4IHNidWZb
+NV0gPSB7Q01EX1NNQVJUQ0FSRCwgMHgwMywgMX07CisJdTggdGFiW11bMl0gPSB7CisJCXsw
+eDAwLCAweGFmfSwKKwkJezB4MTAsIDB4MDh9LAorCQl7MHgxMSwgMHg0Y30sCisJfTsKKwor
+CWRlYl9pbmZvKCIlczpcbiIsIF9fZnVuY19fKTsKKworCWZvciAoaSA9IDA7IGkgPCBBUlJB
+WV9TSVpFKHRhYik7IGkrKykgeworCQlzYnVmWzNdID0gdGFiW2ldWzBdOworCQlzYnVmWzRd
+ID0gdGFiW2ldWzFdOworCQlyZXQgPSBhbnlzZWVfY3RybF9tc2coZCwgc2J1Ziwgc2l6ZW9m
+KHNidWYpLCBOVUxMLCAwKTsKKwkJaWYgKHJldCkKKwkJCWdvdG8gZXJyOworCX0KKworCXN0
+YXRlLT5zY19wb2xsX2NvdW50ID0gMDsKKworCXJldHVybiAwOworZXJyOgorCXJldHVybiBy
+ZXQ7Cit9CisKK3N0YXRpYyB2b2lkIGFueXNlZV9zY19jbG9zZShzdHJ1Y3QgdHR5X3N0cnVj
+dCAqdHR5LCBzdHJ1Y3QgZmlsZSAqZmlscCkKK3sKKwlzdHJ1Y3QgZHZiX3VzYl9kZXZpY2Ug
+KmQgPSB0dHktPmRyaXZlcl9kYXRhOworCXN0cnVjdCBhbnlzZWVfc3RhdGUgKnN0YXRlID0g
+ZC0+cHJpdjsKKworCWRlYl9pbmZvKCIlczpcbiIsIF9fZnVuY19fKTsKKworCXN0YXRlLT5z
+Y19wb2xsX2NvdW50ID0gMDsKKworCW1zbGVlcCgxMDAwKTsKKworCXJldHVybjsKK30KKwor
+c3RhdGljIGludCBhbnlzZWVfc2NfdGlvY21zZXQoc3RydWN0IHR0eV9zdHJ1Y3QgKnR0eSwg
+dW5zaWduZWQgaW50IHNldCwgdW5zaWduZWQgaW50IGNsZWFyKQoreworCWludCByZXQ7CisJ
+c3RydWN0IGR2Yl91c2JfZGV2aWNlICpkID0gdHR5LT5kcml2ZXJfZGF0YTsKKwlzdHJ1Y3Qg
+YW55c2VlX3N0YXRlICpzdGF0ZSA9IGQtPnByaXY7CisJdTggc2J1ZltdID0ge0NNRF9TTUFS
+VENBUkQsIDB4MDgsIDB4MDEsIDB4MDJ9OworCisJZGViX2luZm8oIiVzOiBzZXQ9JXggY2xl
+YXI9JXggc2V0X1JUUz0lZCBjbGVhcl9SVFM9JWQgc2NfY2FyZF9wcmVzZW50PSVkXG4iLCBf
+X2Z1bmNfXywgc2V0LCBjbGVhciwgKHNldCAmIFRJT0NNX1JUUyksIChjbGVhciAmIFRJT0NN
+X1JUUyksICBzdGF0ZS0+c2NfY2FyZF9wcmVzZW50KTsKKworCWlmICgoc2V0ICYgVElPQ01f
+UlRTKSAmJiBzdGF0ZS0+c2NfY2FyZF9wcmVzZW50KSB7CisJCWRlYl9pbmZvKCIlczogUkVT
+RVQgQ0FSRFxuIiwgX19mdW5jX18pOworCQlyZXQgPSBhbnlzZWVfY3RybF9tc2coZCwgc2J1
+Ziwgc2l6ZW9mKHNidWYpLCBOVUxMLCAwKTsKKwkJaWYgKHJldCkKKwkJCWdvdG8gZXJyOwor
+CisJCXN0YXRlLT5zY19wb2xsX2NvdW50ID0gNTA7CisJfQorCisJcmV0dXJuIDA7CitlcnI6
+CisJcmV0dXJuIHJldDsKK30KKworc3RhdGljIGludCBhbnlzZWVfc2NfdGlvY21nZXQoc3Ry
+dWN0IHR0eV9zdHJ1Y3QgKnR0eSkKK3sKKwlzdHJ1Y3QgZHZiX3VzYl9kZXZpY2UgKmQgPSB0
+dHktPmRyaXZlcl9kYXRhOworCXN0cnVjdCBhbnlzZWVfc3RhdGUgKnN0YXRlID0gZC0+cHJp
+djsKKwlpbnQgcmV0OworCXU4IHNidWZbXSA9IHtDTURfU01BUlRDQVJELCAweDAyLCAweDAx
+LCAweDEwfTsKKwl1OCByYnVmWzFdOworCWludCB0aW8gPSAwOworCisJZGViX2luZm8oIiVz
+OlxuIiwgX19mdW5jX18pOworCXJldCA9IGFueXNlZV9jdHJsX21zZyhkLCBzYnVmLCBzaXpl
+b2Yoc2J1ZiksIHJidWYsIHNpemVvZihyYnVmKSk7CisJaWYgKHJldCkKKwkJZ290byBlcnI7
+CisKKwlpZiAocmJ1ZlswXSAmICgxIDw8IDcpKSB7CisJCXRpbyB8PSBUSU9DTV9DRDsKKwkJ
+c3RhdGUtPnNjX2NhcmRfcHJlc2VudCA9IGZhbHNlOworCX0gZWxzZSB7CisJCXRpbyAmPSB+
+VElPQ01fQ0Q7CisJCXN0YXRlLT5zY19jYXJkX3ByZXNlbnQgPSB0cnVlOworCX0KKworCWRl
+Yl9pbmZvKCIlczogVElPPSV4IHJkOiIsIF9fZnVuY19fLCB0aW8pOworCWRlYnVnX2R1bXAo
+cmJ1ZiwgMSwgZGViX2luZm8pOworCisJcmV0dXJuIHRpbzsKK2VycjoKKwlyZXR1cm4gcmV0
+OworfQorCitzdGF0aWMgaW50IGFueXNlZV9zY193cml0ZShzdHJ1Y3QgdHR5X3N0cnVjdCAq
+dHR5LCBjb25zdCB1OCAqYnVmLCBpbnQgY291bnQpCit7CisJc3RydWN0IGR2Yl91c2JfZGV2
+aWNlICpkID0gdHR5LT5kcml2ZXJfZGF0YTsKKwlzdHJ1Y3QgYW55c2VlX3N0YXRlICpzdGF0
+ZSA9IGQtPnByaXY7CisJaW50IHJldDsKKwl1OCByYnVmWzYwXTsKKwl1OCBzYnVmWzYwXSA9
+IHtDTURfU01BUlRDQVJELCAweDA4LCAweDAxLCAweDAxLCAweDAwLCBjb3VudH07CisKKwlk
+ZWJfaW5mbygic2VuZCBkYXRhOiAiKTsKKwlkZWJ1Z19kdW1wKGJ1ZiwgY291bnQsIGRlYl9p
+bmZvKTsKKworCXJldCA9IGFueXNlZV9jdHJsX21zZyhkLCBzYnVmLCA3LCBOVUxMLCAwKTsK
+KwlpZiAocmV0KQorCQlnb3RvIGVycjsKKworCXNidWZbMV0gPSAweDA3OworCXNidWZbMl0g
+PSBjb3VudDsKKwltZW1jcHkoJnNidWZbM10sIGJ1ZiwgY291bnQpOworCisJcmV0ID0gYW55
+c2VlX2N0cmxfbXNnKGQsIHNidWYsIGNvdW50KzMsIHJidWYsIHNpemVvZihyYnVmKSk7CisJ
+aWYgKHJldCkKKwkJZ290byBlcnI7CisKKwlpZiAocmJ1ZlswXSkgeworCQkvKiBUT0RPOiBj
+YW4gdGhhdCBlY2hvIHJlbW92ZWQgPyAqLworCQl0dHlfaW5zZXJ0X2ZsaXBfc3RyaW5nKHR0
+eSwgJnNidWZbM10sIHJidWZbMF0pOworCQl0dHlfZmxpcF9idWZmZXJfcHVzaCh0dHkpOwor
+CX0KKworCXN0YXRlLT5zY19wb2xsX2NvdW50ID0gNTA7CisKKwlyZXR1cm4gY291bnQ7CisK
+K2VycjoKKwlyZXR1cm4gcmV0OworfQorCitzdGF0aWMgaW50IGFueXNlZV9zY193cml0ZV9y
+b29tKHN0cnVjdCB0dHlfc3RydWN0ICp0dHkpCit7CisJZGViX2luZm8oIiVzOlxuIiwgX19m
+dW5jX18pOworCXJldHVybiAzMjsKK30KKworc3RhdGljIHZvaWQgYW55c2VlX3NjX3NldF90
+ZXJtaW9zKHN0cnVjdCB0dHlfc3RydWN0ICp0dHksIHN0cnVjdCBrdGVybWlvcyAqb2xkKQor
+eworCXR0eV90ZXJtaW9zX2NvcHlfaHcodHR5LT50ZXJtaW9zLCBvbGQpOworCWRlYl9pbmZv
+KCIlczpcbiIsIF9fZnVuY19fKTsKKwlyZXR1cm47Cit9CisKK3N0YXRpYyBpbnQgYW55c2Vl
+X3NjX2luc3RhbGwoc3RydWN0IHR0eV9kcml2ZXIgKmRyaXZlciwgc3RydWN0IHR0eV9zdHJ1
+Y3QgKnR0eSkKK3sKKwlpbnQgaWR4ID0gdHR5LT5pbmRleDsKKworCWRlYl9pbmZvKCIlczpc
+biIsIF9fZnVuY19fKTsKKworCWlmICh0dHlfaW5pdF90ZXJtaW9zKHR0eSkgPT0gMCkgewor
+CQl0dHlfZHJpdmVyX2tyZWZfZ2V0KGRyaXZlcik7CisJCXR0eS0+Y291bnQrKzsKKwkJZHJp
+dmVyLT50dHlzW2lkeF0gPSB0dHk7CisJCXR0eS0+ZHJpdmVyX2RhdGEgPSBkcml2ZXItPmRy
+aXZlcl9zdGF0ZTsKKwkJcmV0dXJuIDA7CisJfQorCXJldHVybiAtRU5PTUVNOworfQorCitz
+dGF0aWMgY29uc3Qgc3RydWN0IHR0eV9vcGVyYXRpb25zIHNlcmlhbF9vcHMgPSB7CisJLm9w
+ZW4gPQkJCWFueXNlZV9zY19vcGVuLAorCS5jbG9zZSA9CQlhbnlzZWVfc2NfY2xvc2UsCisJ
+LndyaXRlID0JCWFueXNlZV9zY193cml0ZSwKKy8vCS5oYW5ndXAgPSAJCWFueXNlZV9zY19o
+YW5ndXAsCisJLndyaXRlX3Jvb20gPQkJYW55c2VlX3NjX3dyaXRlX3Jvb20sCisvLwkuaW9j
+dGwgPQkJYW55c2VlX3NjX2lvY3RsLAorCS5zZXRfdGVybWlvcyA9CQlhbnlzZWVfc2Nfc2V0
+X3Rlcm1pb3MsCisvLwkudGhyb3R0bGUgPQkJYW55c2VlX3NjX3Rocm90dGxlLAorLy8JLnVu
+dGhyb3R0bGUgPQkJYW55c2VlX3NjX3VudGhyb3R0bGUsCisvLwkuYnJlYWtfY3RsID0JCWFu
+eXNlZV9zY19icmVhaywKKy8vCS5jaGFyc19pbl9idWZmZXIgPQlhbnlzZWVfc2NfY2hhcnNf
+aW5fYnVmZmVyLAorCS50aW9jbWdldCA9CQlhbnlzZWVfc2NfdGlvY21nZXQsCisJLnRpb2Nt
+c2V0ID0JCWFueXNlZV9zY190aW9jbXNldCwKKy8vCS5nZXRfaWNvdW50ID0gCQlhbnlzZWVf
+c2NfZ2V0X2ljb3VudCwKKy8vCS5jbGVhbnVwID0gCQlhbnlzZWVfc2NfY2xlYW51cCwKKwku
+aW5zdGFsbCA9IAkJYW55c2VlX3NjX2luc3RhbGwsCisvLwkucHJvY19mb3BzID0JCSZhbnlz
+ZWVfc2NfcHJvY19mb3BzLAorfTsKKworI2RlZmluZSBTRVJJQUxfVFRZX01BSk9SIDE4OCAg
+LyogYWJ1c2UgdXNiLXNlcmlhbC4uLiAqLworc3RhdGljIGludCBhbnlzZWVfc2NfaW5pdChz
+dHJ1Y3QgZHZiX3VzYl9kZXZpY2UgKmQpCit7CisJc3RydWN0IGFueXNlZV9zdGF0ZSAqc3Rh
+dGUgPSBkLT5wcml2OworCWludCByZXQ7CisKKwlkZWJfaW5mbygiJXM6XG4iLCBfX2Z1bmNf
+Xyk7CisKKwlzdGF0ZS0+c2NfdHR5X2RyaXZlciA9IGFsbG9jX3R0eV9kcml2ZXIoMSk7CisJ
+aWYgKCFzdGF0ZS0+c2NfdHR5X2RyaXZlcikgeworCQlyZXQgPSAtRU5PTUVNOworCQlnb3Rv
+IGVycl9hbGxvY190dHlfZHJpdmVyOworCX0KKworCXN0YXRlLT5zY190dHlfZHJpdmVyLT5v
+d25lciA9IFRISVNfTU9EVUxFOworCXN0YXRlLT5zY190dHlfZHJpdmVyLT5kcml2ZXJfbmFt
+ZSA9ICJhbnlzZWUiOworCXN0YXRlLT5zY190dHlfZHJpdmVyLT5uYW1lID0gInR0eVVTQiI7
+CisJc3RhdGUtPnNjX3R0eV9kcml2ZXItPm1ham9yID0gU0VSSUFMX1RUWV9NQUpPUjsKKwlz
+dGF0ZS0+c2NfdHR5X2RyaXZlci0+bWlub3Jfc3RhcnQgPSAwOworCXN0YXRlLT5zY190dHlf
+ZHJpdmVyLT50eXBlID0gVFRZX0RSSVZFUl9UWVBFX1NFUklBTDsKKwlzdGF0ZS0+c2NfdHR5
+X2RyaXZlci0+c3VidHlwZSA9IFNFUklBTF9UWVBFX05PUk1BTDsKKwlzdGF0ZS0+c2NfdHR5
+X2RyaXZlci0+ZmxhZ3MgPSBUVFlfRFJJVkVSX1JFQUxfUkFXIHwgVFRZX0RSSVZFUl9EWU5B
+TUlDX0RFVjsKKwlzdGF0ZS0+c2NfdHR5X2RyaXZlci0+aW5pdF90ZXJtaW9zID0gdHR5X3N0
+ZF90ZXJtaW9zOworCXN0YXRlLT5zY190dHlfZHJpdmVyLT5pbml0X3Rlcm1pb3MuY19jZmxh
+ZyA9IEI5NjAwIHwgQ1M4IHwgQ1JFQUQgfCBIVVBDTCB8IENMT0NBTDsKKwlzdGF0ZS0+c2Nf
+dHR5X2RyaXZlci0+aW5pdF90ZXJtaW9zLmNfaXNwZWVkID0gOTYwMDsKKwlzdGF0ZS0+c2Nf
+dHR5X2RyaXZlci0+aW5pdF90ZXJtaW9zLmNfb3NwZWVkID0gOTYwMDsKKwlzdGF0ZS0+c2Nf
+dHR5X2RyaXZlci0+ZHJpdmVyX3N0YXRlID0gZDsKKwl0dHlfc2V0X29wZXJhdGlvbnMoc3Rh
+dGUtPnNjX3R0eV9kcml2ZXIsICZzZXJpYWxfb3BzKTsKKwlyZXQgPSB0dHlfcmVnaXN0ZXJf
+ZHJpdmVyKHN0YXRlLT5zY190dHlfZHJpdmVyKTsKKwlpZiAocmV0KQorCQlnb3RvIGVycl90
+dHlfcmVnaXN0ZXJfZHJpdmVyOworCisJaWYgKCF0dHlfcmVnaXN0ZXJfZGV2aWNlKHN0YXRl
+LT5zY190dHlfZHJpdmVyLCAwLCBOVUxMKSkKKwkJZ290byBlcnJfdHR5X3JlZ2lzdGVyX2Rl
+dmljZTsKKworCWluZm8oInNlcmlhbCBkZXZpY2UgcmVnaXN0ZXJlZCIpOworCisJcmV0dXJu
+IDA7CisKK2Vycl90dHlfcmVnaXN0ZXJfZGV2aWNlOgorCXR0eV91bnJlZ2lzdGVyX2RyaXZl
+cihzdGF0ZS0+c2NfdHR5X2RyaXZlcik7CisKK2Vycl90dHlfcmVnaXN0ZXJfZHJpdmVyOgor
+CXB1dF90dHlfZHJpdmVyKHN0YXRlLT5zY190dHlfZHJpdmVyKTsKKworZXJyX2FsbG9jX3R0
+eV9kcml2ZXI6CisJc3RhdGUtPmhhc19zYyA9IGZhbHNlOworCWVycigiJXM6IGZhaWxlZD0l
+ZCIsIF9fZnVuY19fLCByZXQpOworCisJcmV0dXJuIHJldDsKK30KKworCitzdGF0aWMgdm9p
+ZCBhbnlzZWVfc2NfcmVsZWFzZShzdHJ1Y3QgZHZiX3VzYl9kZXZpY2UgKmQpCit7CisJc3Ry
+dWN0IGFueXNlZV9zdGF0ZSAqc3RhdGUgPSBkLT5wcml2OworCisJLyogZGV0YWNoIFNtYXJ0
+Q2FyZCAqLworCWlmIChzdGF0ZS0+aGFzX3NjKSB7CisJCXR0eV91bnJlZ2lzdGVyX2Rldmlj
+ZShzdGF0ZS0+c2NfdHR5X2RyaXZlciwgMCk7CisJCXR0eV91bnJlZ2lzdGVyX2RyaXZlcihz
+dGF0ZS0+c2NfdHR5X2RyaXZlcik7CisJfQorCisJcmV0dXJuOworfQorCiBzdGF0aWMgaW50
+IGFueXNlZV9pbml0KHN0cnVjdCBkdmJfdXNiX2RldmljZSAqZCkKIHsKIAlzdHJ1Y3QgYW55
+c2VlX3N0YXRlICpzdGF0ZSA9IGQtPnByaXY7CkBAIC0xMjMyLDYgKzE1MzQsMTUgQEAgc3Rh
+dGljIGludCBhbnlzZWVfaW5pdChzdHJ1Y3QgZHZiX3VzYl9kZXZpY2UgKmQpCiAJCX0KIAl9
+CiAKKwkvKiBhdHRhY2ggU21hcnRDYXJkICovCisJaWYgKHN0YXRlLT5oYXNfc2MpIHsKKwkJ
+cmV0ID0gYW55c2VlX3NjX2luaXQoZCk7CisJCWlmIChyZXQpIHsKKwkJCXN0YXRlLT5oYXNf
+c2MgPSBmYWxzZTsKKwkJCXJldHVybiByZXQ7CisJCX0KKwl9CisKIAlyZXR1cm4gMDsKIH0K
+IApAQCAtMTI4MCw2ICsxNTkxLDcgQEAgc3RhdGljIHZvaWQgYW55c2VlX2Rpc2Nvbm5lY3Qo
+c3RydWN0IHVzYl9pbnRlcmZhY2UgKmludGYpCiB7CiAJc3RydWN0IGR2Yl91c2JfZGV2aWNl
+ICpkID0gdXNiX2dldF9pbnRmZGF0YShpbnRmKTsKIAorCWFueXNlZV9zY19yZWxlYXNlKGQp
+OwogCWFueXNlZV9jaV9yZWxlYXNlKGQpOwogCWR2Yl91c2JfZGV2aWNlX2V4aXQoaW50Zik7
+CiAKQEAgLTEzNDIsNyArMTY1NCw3IEBAIHN0YXRpYyBzdHJ1Y3QgZHZiX3VzYl9kZXZpY2Vf
+cHJvcGVydGllcyBhbnlzZWVfcHJvcGVydGllcyA9IHsKIAkJLnByb3RvY29sICAgICAgICAg
+PSBSQ19UWVBFX09USEVSLAogCQkubW9kdWxlX25hbWUgICAgICA9ICJhbnlzZWUiLAogCQku
+cmNfcXVlcnkgICAgICAgICA9IGFueXNlZV9yY19xdWVyeSwKLQkJLnJjX2ludGVydmFsICAg
+ICAgPSAyNTAsICAvKiB3aW5kb3dzIGRyaXZlciB1c2VzIDUwMG1zICovCisJCS5yY19pbnRl
+cnZhbCAgICAgID0gMTUwLCAgLyogd2luZG93cyBkcml2ZXIgdXNlcyA1MDBtcyAqLwogCX0s
+CiAKIAkuaTJjX2FsZ28gICAgICAgICA9ICZhbnlzZWVfaTJjX2FsZ28sCmRpZmYgLS1naXQg
+YS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2FueXNlZS5oIGIvZHJpdmVycy9tZWRpYS9k
+dmIvZHZiLXVzYi9hbnlzZWUuaAppbmRleCA4YWM4Nzk0Li4xMDI2NzE3IDEwMDY0NAotLS0g
+YS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2FueXNlZS5oCisrKyBiL2RyaXZlcnMvbWVk
+aWEvZHZiL2R2Yi11c2IvYW55c2VlLmgKQEAgLTM4LDYgKzM4LDkgQEAKICNpbmNsdWRlICJk
+dmItdXNiLmgiCiAjaW5jbHVkZSAiZHZiX2NhX2VuNTAyMjEuaCIKIAorI2luY2x1ZGUgPGxp
+bnV4L3R0eS5oPgorI2luY2x1ZGUgPGxpbnV4L3R0eV9mbGlwLmg+CisKICNkZWZpbmUgZGVi
+X2luZm8oYXJncy4uLikgZHByaW50ayhkdmJfdXNiX2FueXNlZV9kZWJ1ZywgMHgwMSwgYXJn
+cykKICNkZWZpbmUgZGViX3hmZXIoYXJncy4uLikgZHByaW50ayhkdmJfdXNiX2FueXNlZV9k
+ZWJ1ZywgMHgwMiwgYXJncykKICNkZWZpbmUgZGViX3JjKGFyZ3MuLi4pICAgZHByaW50ayhk
+dmJfdXNiX2FueXNlZV9kZWJ1ZywgMHgwNCwgYXJncykKQEAgLTYzLDggKzY2LDE0IEBAIHN0
+cnVjdCBhbnlzZWVfc3RhdGUgewogCXU4IHNlcTsKIAl1OCBmZV9pZDoxOyAvKiBmcm9uZGVu
+ZCBJRCAqLwogCXU4IGhhc19jaToxOworCXU4IGhhc19zYzoxOworCiAJc3RydWN0IGR2Yl9j
+YV9lbjUwMjIxIGNpOwogCXVuc2lnbmVkIGxvbmcgY2lfY2FtX3JlYWR5OyAvKiBqaWZmaWVz
+ICovCisKKwlzdHJ1Y3QgdHR5X2RyaXZlciAqc2NfdHR5X2RyaXZlcjsKKwl1OCBzY19jYXJk
+X3ByZXNlbnQ6MTsKKwlpbnQgc2NfcG9sbF9jb3VudDsKIH07CiAKICNkZWZpbmUgQU5ZU0VF
+X0hXXzUwN1QgICAgMiAvKiBFMzAgKi8K
+--------------040305030300060708070309--
