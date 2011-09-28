@@ -1,84 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56491 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751319Ab1ITXMe (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:50420 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751220Ab1I1HuI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Sep 2011 19:12:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v3 1/2] v4l2: Add the polarity flags for parallel camera bus FIELD signal
-Date: Wed, 21 Sep 2011 01:12:38 +0200
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, g.liakhovetski@gmx.de,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-References: <1316450497-6723-1-git-send-email-s.nawrocki@samsung.com> <1316452075-10700-1-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1316452075-10700-1-git-send-email-s.nawrocki@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201109210112.39469.laurent.pinchart@ideasonboard.com>
+	Wed, 28 Sep 2011 03:50:08 -0400
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LS800E2G33I42@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Sep 2011 08:50:06 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LS800JUY33IUG@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Sep 2011 08:50:06 +0100 (BST)
+Date: Wed, 28 Sep 2011 09:50:05 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v2 2/2] v4l: Add v4l2 subdev driver for S5K6AAFX sensor
+In-reply-to: <20110927205843.GB6180@valkosipuli.localdomain>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sylwester Nawrocki <snjw23@gmail.com>, linux-media@vger.kernel.org,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sw0312.kim@samsung.com,
+	riverful.kim@samsung.com
+Message-id: <4E82D1AD.60804@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7BIT
+References: <1316627107-18709-1-git-send-email-s.nawrocki@samsung.com>
+ <1316627107-18709-3-git-send-email-s.nawrocki@samsung.com>
+ <20110922220259.GS1845@valkosipuli.localdomain> <4E7C5BAA.9090900@samsung.com>
+ <20110925100804.GU1845@valkosipuli.localdomain> <4E7F5DEC.8020808@gmail.com>
+ <20110927205532.GA6180@valkosipuli.localdomain>
+ <20110927205843.GB6180@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Sakari,
 
-Thanks for the patch.
-
-On Monday 19 September 2011 19:07:55 Sylwester Nawrocki wrote:
-> FIELD is an Even/Odd field selection signal, as specified in ITU-R BT.601
-> standard. Add corresponding flag for configuring the FIELD signal polarity.
-> Also add a comment about usage of V4L2_MBUS_[HV]SYNC* flags for the
-> hardware that uses [HV]REF signals.
-
-I like this approach better.
-
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
-> Resending with proper bit assignment.
+On 09/27/2011 10:58 PM, Sakari Ailus wrote:
+> On Tue, Sep 27, 2011 at 11:55:32PM +0300, Sakari Ailus wrote:
+>> Sylwester Nawrocki wrote:
+>>> Hello Sakari,
+>>
+>> Hi Sylwester,
 > 
-> ---
->  include/media/v4l2-mediabus.h |   11 +++++++++--
->  1 files changed, 9 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-> index 6114007..f3a61ab 100644
-> --- a/include/media/v4l2-mediabus.h
-> +++ b/include/media/v4l2-mediabus.h
-> @@ -22,8 +22,12 @@
->   */
->  #define V4L2_MBUS_MASTER			(1 << 0)
->  #define V4L2_MBUS_SLAVE				(1 << 1)
-> -/* Which signal polarities it supports */
-> -/* Note: in BT.656 mode HSYNC and VSYNC are unused */
-> +/*
-> + * Signal polarity flags
-> + * Note: in BT.656 mode HSYNC, FIELD, and VSYNC are unused
-> + * V4L2_MBUS_[HV]SYNC_* flags should be also used for specifying
-> + * configuration of hardware that uses [HV]REF signals
-> + */
->  #define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
->  #define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
->  #define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
-> @@ -32,6 +36,9 @@
->  #define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
->  #define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
->  #define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
-> +/* Field selection signal for interlaced scan mode */
-> +#define V4L2_MBUS_FIELD_ACTIVE_HIGH		(1 << 10)
-> +#define V4L2_MBUS_FIELD_ACTIVE_LOW		(1 << 11)
+> What I forgot to ask was whether there is a public datasheet for this
+> sensor?
 
-What does this mean ? The FIELD signal is used to select between odd and even 
-fields. Does "active high" mean that the field is odd or even when the signal 
-has a high level ? The comment should make it explicit, or we could even 
-rename those two constants to FIELD_ODD_HIGH/FIELD_ODD_LOW (or 
-FIELD_EVEN_HIGH/FIELD_EVEN_LOW).
+Unfortunately I'm not aware of any official website where you could get it.
+AFAIK some related materials are available on http://www.aesop.or.kr
+And, Google should have something to tell you about that too;)
+>From what I can see all the now publicly available documentation is slightly
+outdated and less complete.
 
->  /* Serial flags */
->  /* How many lanes the client can use */
-
--- 
 Regards,
-
-Laurent Pinchart
+-- 
+Sylwester Nawrocki
+Samsung Poland R&D Center
