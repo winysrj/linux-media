@@ -1,45 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39959 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755185Ab1IMQG7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Sep 2011 12:06:59 -0400
-Message-ID: <4E6F7FA0.6030106@redhat.com>
-Date: Tue, 13 Sep 2011 13:06:56 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:62560 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752322Ab1I1OUx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Sep 2011 10:20:53 -0400
+Received: by bkbzt4 with SMTP id zt4so8073217bkb.19
+        for <linux-media@vger.kernel.org>; Wed, 28 Sep 2011 07:20:52 -0700 (PDT)
 MIME-Version: 1.0
-To: Lukas Sukdol <lukas.sukdol@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Fwd: V4L2 driver EM28xx
-References: <CAJ+hA-xLWGZN7CQOv6=NrXw5pVU1HUmeXXfXkLtb54hbK6-jHQ@mail.gmail.com> <CAJ+hA-xw2RzgwSz-9CbgyXYYJLPVJYWCjRDVAT0MQNuAbxzTng@mail.gmail.com> <CAJ+hA-zM00RDSSFW++kSqN5HRsTMfZFXqDNYxDv=QSxe+hoOJw@mail.gmail.com>
-In-Reply-To: <CAJ+hA-zM00RDSSFW++kSqN5HRsTMfZFXqDNYxDv=QSxe+hoOJw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <201109281350.52099.simon.farnsworth@onelan.com>
+References: <201109281350.52099.simon.farnsworth@onelan.com>
+Date: Wed, 28 Sep 2011 10:20:51 -0400
+Message-ID: <CAGoCfiwUm268x3JF-YS5DLLmtPr-A4EADP+oFaZNErB=kHsC9A@mail.gmail.com>
+Subject: Re: Problems tuning PAL-D with a Hauppauge HVR-1110 (TDA18271 tuner)
+ - workaround hack included
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Simon Farnsworth <simon.farnsworth@onelan.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michael Krufky <mkrufky@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 12-09-2011 18:56, Lukas Sukdol escreveu:
-> Hello,
-> I can't get working USB DVR Box (4 video channels / 2 audio) with the
-> EM2860 chip.
-> The USB device is recognized, but it doesn't work with any of 77 cards
-> in the list...
-> I'm using Fedora 14 (2.6.35.14-96.fc14.i686).
-> 
-> See details in attached dmesg log file.
-> 
-> Link to card (TE-3104AE): http://www.tungson.cn/en/product_info.asp?InfoID=164
-> 
-> Is this card (or will be) supported by EM28xx driver?
+Hi Simon,
 
-Only if someone with the hardware adds support for it ;)
+On Wed, Sep 28, 2011 at 8:50 AM, Simon Farnsworth
+<simon.farnsworth@onelan.com> wrote:
+> (note - the CC list is everyone over 50% certainty from get_maintainer.pl)
+>
+> I'm having problems getting a Hauppauge HVR-1110 card to successfully
+> tune PAL-D at 85.250 MHz vision frequency; by experimentation, I've
+> determined that the tda18271 is tuning to a frequency 1.25 MHz lower
+> than the vision frequency I've requested, so the following workaround
+> "fixes" it for me.
+>
+> diff --git a/drivers/media/common/tuners/tda18271-fe.c
+> b/drivers/media/common/tuners/tda18271-fe.c
+> index 63cc400..1a94e1a 100644
+> --- a/drivers/media/common/tuners/tda18271-fe.c
+> +++ b/drivers/media/common/tuners/tda18271-fe.c
+> @@ -1031,6 +1031,7 @@ static int tda18271_set_analog_params(struct
+> dvb_frontend *fe,
+>                mode = "I";
+>        } else if (params->std & V4L2_STD_DK) {
+>                map = &std_map->atv_dk;
+> +                freq += 1250000;
+>                mode = "DK";
+>        } else if (params->std & V4L2_STD_SECAM_L) {
+>                map = &std_map->atv_l;
+>
+> I've checked with a signal analyser, and confirmed that my signal
+> generator is getting the spectrum right - I am seeing vision peaking
+> at 85.25 MHz, with one sideband going down to 84.5 MHz, and the other
+> going up to 90.5MHz. I also see an audio carrier at 91.75 MHz.
+>
+> I'm going to run with this hack in place, but I'd appreciate it if
+> someone who knew more about the TDA18271 looked at this, and either
+> gave me a proper fix for testing, or confirmed that what I'm doing is
+> right.
 
-It shouldn't be that hard to add support for it: all you need to do is to
-capture the USB logs from the original driver and use the existing parsers
-for em28xx to discover what it does to select between the 4 video inputs
-and the 2 audio inputs. It probably uses some GPIO's to select them.
+Hi Simon,
 
-Linuxtv wiki pages explain how to do it at the developer's section. You should
-search there for the USB sniffing pages.
+This is interesting.  I did some testing with an 18271 based device a
+few months back (a Hauppauge cx231xx based tuner), and I believe
+PAL-DK was working (although I did have unrelated issues with the DIF
+configuration).
 
-Good luck,
-Mauro
+When you are doing the tuning request, are you explicitly stating
+PAL-D in your calling application?  Or are you passing "PAL" to the
+V4L layer and expecting it to work with a PAL-D feed?
+
+I'm not doubting your findings, and clearly you've done a good bit of
+research/analysis, but I did want to raise it as a data point to
+consider....
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
