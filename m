@@ -1,57 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.ispras.ru ([83.149.198.202]:38067 "EHLO smtp.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753549Ab1IPV4v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Sep 2011 17:56:51 -0400
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ldv-project@ispras.ru
-Subject: [PATCH] [media] hdpvr: fix null pointer dereference on error path in hdpvr_probe()
-Date: Sat, 17 Sep 2011 01:26:14 +0400
-Message-Id: <1316208374-4923-1-git-send-email-khoroshilov@ispras.ru>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54345 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751105Ab1I1LiR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Sep 2011 07:38:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2] V4L: mt9p031 and mt9t001 drivers depend on VIDEO_V4L2_SUBDEV_API
+Date: Wed, 28 Sep 2011 13:38:13 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <Pine.LNX.4.64.1109281257510.30317@axis700.grange> <Pine.LNX.4.64.1109281301580.30317@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1109281301580.30317@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109281338.14375.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dev->free_buff_list and dev->rec_buff_list are zero initialized after
-kzalloc of dev. If something goes wrong before INIT_LIST_HEAD for them,
-goto error leads to call hdpvr_delete() and then to hdpvr_free_buffers(),
-where the lists are dereferenced.
+On Wednesday 28 September 2011 13:03:42 Guennadi Liakhovetski wrote:
+> Without this patch it is possible to select mt9p031 and mt9t001 camera
+> sensor drivers, but their compilation fails if VIDEO_V4L2_SUBDEV_API is
+> not set.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-The patch moves INIT_LIST_HEAD before the first possible fail.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
----
- drivers/media/video/hdpvr/hdpvr-core.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+> ---
+> 
+> v2: better yet depend on VIDEO_V4L2_SUBDEV_API
+> 
+>  drivers/media/video/Kconfig |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> index aed5b3d..d2b39e1 100644
+> --- a/drivers/media/video/Kconfig
+> +++ b/drivers/media/video/Kconfig
+> @@ -469,14 +469,14 @@ config VIDEO_OV7670
+> 
+>  config VIDEO_MT9P031
+>  	tristate "Aptina MT9P031 support"
+> -	depends on I2C && VIDEO_V4L2
+> +	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+>  	---help---
+>  	  This is a Video4Linux2 sensor-level driver for the Aptina
+>  	  (Micron) mt9p031 5 Mpixel camera.
+> 
+>  config VIDEO_MT9T001
+>  	tristate "Aptina MT9T001 support"
+> -	depends on I2C && VIDEO_V4L2
+> +	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+>  	---help---
+>  	  This is a Video4Linux2 sensor-level driver for the Aptina
+>  	  (Micron) mt0t001 3 Mpixel camera.
 
-diff --git a/drivers/media/video/hdpvr/hdpvr-core.c b/drivers/media/video/hdpvr/hdpvr-core.c
-index 441dacf..fe0a088 100644
---- a/drivers/media/video/hdpvr/hdpvr-core.c
-+++ b/drivers/media/video/hdpvr/hdpvr-core.c
-@@ -295,6 +295,10 @@ static int hdpvr_probe(struct usb_interface *interface,
- 		goto error;
- 	}
- 
-+	/* init video transfer queues */
-+	INIT_LIST_HEAD(&dev->free_buff_list);
-+	INIT_LIST_HEAD(&dev->rec_buff_list);
-+
- 	dev->workqueue = 0;
- 
- 	/* register v4l2_device early so it can be used for printks */
-@@ -319,10 +323,6 @@ static int hdpvr_probe(struct usb_interface *interface,
- 	if (!dev->workqueue)
- 		goto error;
- 
--	/* init video transfer queues */
--	INIT_LIST_HEAD(&dev->free_buff_list);
--	INIT_LIST_HEAD(&dev->rec_buff_list);
--
- 	dev->options = hdpvr_default_options;
- 
- 	if (default_video_input < HDPVR_VIDEO_INPUTS)
 -- 
-1.7.4.1
+Regards,
 
+Laurent Pinchart
