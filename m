@@ -1,95 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:61128 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751522Ab1IMLRP (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33546 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752298Ab1I1I3j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Sep 2011 07:17:15 -0400
-From: Arvydas Sidorenko <asido4@gmail.com>
-To: mchehab@infradead.org
-Cc: asido4@gmail.com, hverkuil@xs4all.nl, arnd@arndb.de,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 2/2] drivers/media/video/stk-webcam.c: coding style issue
-Date: Tue, 13 Sep 2011 13:18:11 +0200
-Message-Id: <1315912691-11227-2-git-send-email-asido4@gmail.com>
-In-Reply-To: <1315912691-11227-1-git-send-email-asido4@gmail.com>
-References: <1315912691-11227-1-git-send-email-asido4@gmail.com>
+	Wed, 28 Sep 2011 04:29:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [GIT PULL] Selection API and fixes for v3.2
+Date: Wed, 28 Sep 2011 10:29:37 +0200
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org
+References: <1316704391-13596-1-git-send-email-m.szyprowski@samsung.com> <4E81FDD2.3090501@samsung.com> <201109281001.03564.hverkuil@xs4all.nl>
+In-Reply-To: <201109281001.03564.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109281029.38009.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-checkpatch.pl gave some coding style errors, so on the way to the first
-patch I added the fix to them.
+Hi Hans,
 
-Signed-off-by: Arvydas Sidorenko <asido4@gmail.com>
----
- drivers/media/video/stk-webcam.c |   18 ++++++++----------
- 1 files changed, 8 insertions(+), 10 deletions(-)
+On Wednesday 28 September 2011 10:01:03 Hans Verkuil wrote:
+> On Tuesday, September 27, 2011 18:46:10 Tomasz Stanislawski wrote:
+> > On 09/27/2011 04:10 PM, Mauro Carvalho Chehab wrote:
+> > > Em 27-09-2011 10:02, Tomasz Stanislawski escreveu:
+> > >> On 09/26/2011 02:10 PM, Mauro Carvalho Chehab wrote:
+> > >>> Em 26-09-2011 05:42, Tomasz Stanislawski escreveu:
+> > >>>> On 09/24/2011 05:58 AM, Mauro Carvalho Chehab wrote:
+> > >>>>> Em 22-09-2011 12:13, Marek Szyprowski escreveu:
 
-diff --git a/drivers/media/video/stk-webcam.c b/drivers/media/video/stk-webcam.c
-index 859e78f..5fc6bbc 100644
---- a/drivers/media/video/stk-webcam.c
-+++ b/drivers/media/video/stk-webcam.c
-@@ -518,7 +518,7 @@ static int stk_prepare_sio_buffers(struct stk_camera *dev, unsigned n_sbufs)
- 			return -ENOMEM;
- 		for (i = 0; i < n_sbufs; i++) {
- 			if (stk_setup_siobuf(dev, i))
--				return (dev->n_sbufs > 1)? 0 : -ENOMEM;
-+				return (dev->n_sbufs > 1 ? 0 : -ENOMEM);
- 			dev->n_sbufs = i+1;
- 		}
- 	}
-@@ -558,9 +558,8 @@ static int v4l_stk_open(struct file *fp)
- 	vdev = video_devdata(fp);
- 	dev = vdev_to_camera(vdev);
- 
--	if (dev == NULL || !is_present(dev)) {
-+	if (dev == NULL || !is_present(dev))
- 		return -ENXIO;
--	}
- 	fp->private_data = dev;
- 	usb_autopm_get_interface(dev->interface);
- 
-@@ -579,7 +578,7 @@ static int v4l_stk_release(struct file *fp)
- 		dev->owner = NULL;
- 	}
- 
--	if(is_present(dev))
-+	if (is_present(dev))
- 		usb_autopm_put_interface(dev->interface);
- 
- 	return 0;
-@@ -656,7 +655,7 @@ static unsigned int v4l_stk_poll(struct file *fp, poll_table *wait)
- 		return POLLERR;
- 
- 	if (!list_empty(&dev->sio_full))
--		return (POLLIN | POLLRDNORM);
-+		return POLLIN | POLLRDNORM;
- 
- 	return 0;
- }
-@@ -893,9 +892,9 @@ static int stk_vidioc_g_fmt_vid_cap(struct file *filp,
- 	struct stk_camera *dev = priv;
- 	int i;
- 
--	for (i = 0; i < ARRAY_SIZE(stk_sizes)
--			&& stk_sizes[i].m != dev->vsettings.mode;
--		i++);
-+	for (i = 0; i < ARRAY_SIZE(stk_sizes) &&
-+			stk_sizes[i].m != dev->vsettings.mode; i++)
-+		;
- 	if (i == ARRAY_SIZE(stk_sizes)) {
- 		STK_ERROR("ERROR: mode invalid\n");
- 		return -EINVAL;
-@@ -1307,9 +1306,8 @@ static int stk_camera_probe(struct usb_interface *interface,
- 	usb_set_intfdata(interface, dev);
- 
- 	err = stk_register_video_device(dev);
--	if (err) {
-+	if (err)
- 		goto error;
--	}
- 
- 	return 0;
- 
+[snip]
+
+> > The legacy applications would be supported by simulation of old API
+> > using selection API.
+> 
+> As I said before, G/S_CROP is perfectly valid and will not go away or be
+> deprecated. Just as S_CTRL is not replaced by S_EXT_CTRLS. There is no need
+> to force apps to move to the selection API. The selection API extends the
+> old crop API for good reasons, but for simple cropping S_CROP remains
+> perfectly fine.
+
+Now, of course. In a couple years time, the story will likely be different, 
+and we might want to deprecate the G/S_CROP API. Shouldn't this message be 
+conveyed to userspace developers ? I like the idea of asking them to favor the 
+selection API over the crop API for new applications.
+
+> What would be nice is to deprecate the old crop ops for new drivers and
+> (ideally) convert existing drivers that use vidioc_g/s_crop to the new
+> vidioc_g/s_selection (with the final goal of removing vidioc_g/s_crop).
+> 
+> And also note that cropcap is still needed to get the pixelaspect.
+
 -- 
-1.7.4.4
+Regards,
 
+Laurent Pinchart
