@@ -1,289 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:60713 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752818Ab1I1NUL (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1416 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751260Ab1I1JeT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Sep 2011 09:20:11 -0400
-Date: Wed, 28 Sep 2011 15:19:59 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 2/9 v9] V4L: add two new ioctl()s for multi-size videobuffer
- management
-In-Reply-To: <Pine.LNX.4.64.1109271847310.7004@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1109281502380.30317@axis700.grange>
-References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
- <201109271306.21095.hverkuil@xs4all.nl> <Pine.LNX.4.64.1109271417280.5816@axis700.grange>
- <201109271540.52649.hverkuil@xs4all.nl> <Pine.LNX.4.64.1109271847310.7004@axis700.grange>
+	Wed, 28 Sep 2011 05:34:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC] Restructure video_device
+Date: Wed, 28 Sep 2011 11:34:11 +0200
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+References: <200910231625.40822.laurent.pinchart@ideasonboard.com> <200911051519.06843.hverkuil@xs4all.nl> <Pine.LNX.4.64.1109261306500.9168@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1109261306500.9168@axis700.grange>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109281134.11710.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A possibility to preallocate and initialise buffers of different sizes
-in V4L2 is required for an efficient implementation of a snapshot
-mode. This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
-VIDIOC_PREPARE_BUF and defines respective data structures.
+On Monday, September 26, 2011 13:17:00 Guennadi Liakhovetski wrote:
+> Hi Hans
+> 
+> Sorry for reviving an almost 2 year old thread, but the topic, discussed 
+> back then is still relevant (I'll include a complete quote to refresh the 
+> old discussion):
+> 
+> On Thu, 5 Nov 2009, Hans Verkuil wrote:
+> 
+> > On Friday 23 October 2009 16:25:40 Laurent Pinchart wrote:
+> > > Hi everybody,
+> > > 
+> > > while working on device node support for subdevs I ran into an issue with the 
+> > > way v4l2 objects are structured.
+> > > 
+> > > We currently have the following structure:
+> > > 
+> > > - video_device represents a device that complies with the V4L1 or V4L2 API. 
+> > > Every video_device has a corresponding device node.
+> > > 
+> > > - v4l2_device represents a high-level media device that handles sub-devices. 
+> > > With the new media controller infrastructure a v4l2_device will have a device 
+> > > node as well.
+> > > 
+> > > - v4l2_subdev represents a sub-device. As for v4l2_device's, the new media 
+> > > controller infrastructure will give a device node for every sub-device.
+> > > 
+> > > - v4l2_entity is the structure that both v4l2_subdev and video_device derive 
+> > > from. Most of the media controller code will deal with entities rather than 
+> > > sub-devices or video devices, as most operations (such as discovering the 
+> > > topology and create links) do not depend on the exact nature of the entity. 
+> > > New types of entities could be introduced later.
+> > > 
+> > > Both the video_device and v4l2_subdev structure inherit from v4l2_entity, so 
+> > > both of them have a v4l2_entity field. With v4l2_device and v4l2_subdev now 
+> > > needing to devices to have device nodes created, the v4l2_device and 
+> > > v4l2_subdev structure both have a video_device field.
+> > > 
+> > > This isn't clean for two reasons:
+> > > 
+> > > - v4l2_device isn't a v4l2_entity, so it should inherit from a structure 
+> > > (video_device) that itself inherits from v4l2_entity. 
+> > > 
+> > > - v4l2_subdev shouldn't inherit twice from v4l2_entity, once directly and once 
+> > > through video_device.
+> > 
+> > I agree.
+> > 
+> > > To fix this I would like to refactor the video_device structure and cut it in 
+> > > two pieces. One of them will deal with device node related tasks, being mostly 
+> > > V4L1/V4L2 agnostic, and the other will inherit from the first and add 
+> > > V4L1/V4L2 support (tvnorms/current_norm/ioctl_ops fields from the current 
+> > > video_device structure), as well as media controller support (inheriting from 
+> > > v4l2_entity).
+> > > 
+> > > My plan was to create a video_devnode structure for the low-level device node 
+> > 
+> > Let's call it v4l2_devnode to be consistent with the current naming convention.
+> > 
+> > > related structure, and keeping the video_device name for the higher level 
+> > > structure. v4l2_device, v4l2_subdev and video_device would then all have a 
+> > > video_devnode field.
+> > > 
+> > > While this isn't exactly difficult, it would require changing a lot of 
+> > > drivers, as some field will be moved from video_device to 
+> > > video_device::video_devnode. Some of those fields are internal, some of them 
+> > > are accessed by drivers while they shouldn't in most cases (the minor field 
+> > > for instance), and some are public (name, parent).
+> > > 
+> > > I would like to have your opinion on whether you think this proposal is 
+> > > acceptable or whether you see a better and cleaner way to restructure the 
+> > > video device code structures.
+> > > 
+> > 
+> > I have two issues with this:
+> > 
+> > 1) Is it really necessary to do this now? We are still in the prototyping
+> > phase and I think it is probably more efficient right now to hack around this
+> > and postpone the real fix (as described above) until we are sure that the mc
+> > concept is working correctly.
+> 
+> Here comes my question: is it the right time for this now?;-) I've relaxed 
+> the problem a bit with this my patch:
+> 
+> http://patchwork.linuxtv.org/patch/7817/
+> 
+> But the problem, described above, when MC _is_ used - that of double 
+> inheritance - still remains. I really think it should be fixed now.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+I'd say, make a proposal for this. I'm not against it and we have enough
+experience now to have a good feel for this issue.
 
-v9:
+I think I would like to put this perhaps in a slightly bigger picture
+as well. There are some naming problems as well that I would like to address:
 
-1. added the V4L2_BUF_FLAG_PREPARED videobuffer flag
-2. removed "const" from the .vidioc_prepare_buf() method argument
+1) v4l2_device is very poorly named. It really represents a root structure from
+which to find all other pieces. It does not really represent a device. My proposal
+would be to rename it v4l2_root (alternatives are: v4l2_core, v4l2_top, v4l2_sys).
 
- drivers/media/video/v4l2-compat-ioctl32.c |   67 +++++++++++++++++++++++++---
- drivers/media/video/v4l2-ioctl.c          |   29 ++++++++++++
- include/linux/videodev2.h                 |   18 ++++++++
- include/media/v4l2-ioctl.h                |    2 +
- 4 files changed, 108 insertions(+), 8 deletions(-)
+Comments?
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index 61979b7..85758d2 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -159,11 +159,16 @@ struct v4l2_format32 {
- 	} fmt;
- };
- 
--static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-+struct v4l2_create_buffers32 {
-+	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-+	__u32			count;
-+	enum v4l2_memory        memory;
-+	struct v4l2_format32	format;		/* filled in by the user, plane sizes calculated by the driver */
-+	__u32			reserved[8];
-+};
-+
-+static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
- {
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_format32)) ||
--			get_user(kp->type, &up->type))
--			return -EFAULT;
- 	switch (kp->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-@@ -192,11 +197,24 @@ static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user
- 	}
- }
- 
--static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-+static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-+{
-+	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_format32)) ||
-+			get_user(kp->type, &up->type))
-+			return -EFAULT;
-+	return __get_v4l2_format32(kp, up);
-+}
-+
-+static int get_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
-+{
-+	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_create_buffers32)) ||
-+	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32, format.fmt)))
-+			return -EFAULT;
-+	return __get_v4l2_format32(&kp->format, &up->format);
-+}
-+
-+static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
- {
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)) ||
--		put_user(kp->type, &up->type))
--		return -EFAULT;
- 	switch (kp->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-@@ -225,6 +243,22 @@ static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user
- 	}
- }
- 
-+static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-+{
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)) ||
-+		put_user(kp->type, &up->type))
-+		return -EFAULT;
-+	return __put_v4l2_format32(kp, up);
-+}
-+
-+static int put_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
-+{
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_create_buffers32)) ||
-+	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32, format.fmt)))
-+			return -EFAULT;
-+	return __put_v4l2_format32(&kp->format, &up->format);
-+}
-+
- struct v4l2_standard32 {
- 	__u32		     index;
- 	__u32		     id[2]; /* __u64 would get the alignment wrong */
-@@ -702,6 +736,8 @@ static int put_v4l2_event32(struct v4l2_event *kp, struct v4l2_event32 __user *u
- #define VIDIOC_S_EXT_CTRLS32    _IOWR('V', 72, struct v4l2_ext_controls32)
- #define VIDIOC_TRY_EXT_CTRLS32  _IOWR('V', 73, struct v4l2_ext_controls32)
- #define	VIDIOC_DQEVENT32	_IOR ('V', 89, struct v4l2_event32)
-+#define VIDIOC_CREATE_BUFS32	_IOWR('V', 92, struct v4l2_create_buffers32)
-+#define VIDIOC_PREPARE_BUF32	_IOW ('V', 93, struct v4l2_buffer32)
- 
- #define VIDIOC_OVERLAY32	_IOW ('V', 14, s32)
- #define VIDIOC_STREAMON32	_IOW ('V', 18, s32)
-@@ -721,6 +757,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 		struct v4l2_standard v2s;
- 		struct v4l2_ext_controls v2ecs;
- 		struct v4l2_event v2ev;
-+		struct v4l2_create_buffers v2crt;
- 		unsigned long vx;
- 		int vi;
- 	} karg;
-@@ -751,6 +788,8 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 	case VIDIOC_S_INPUT32: cmd = VIDIOC_S_INPUT; break;
- 	case VIDIOC_G_OUTPUT32: cmd = VIDIOC_G_OUTPUT; break;
- 	case VIDIOC_S_OUTPUT32: cmd = VIDIOC_S_OUTPUT; break;
-+	case VIDIOC_CREATE_BUFS32: cmd = VIDIOC_CREATE_BUFS; break;
-+	case VIDIOC_PREPARE_BUF32: cmd = VIDIOC_PREPARE_BUF; break;
- 	}
- 
- 	switch (cmd) {
-@@ -775,6 +814,12 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 		compatible_arg = 0;
- 		break;
- 
-+	case VIDIOC_CREATE_BUFS:
-+		err = get_v4l2_create32(&karg.v2crt, up);
-+		compatible_arg = 0;
-+		break;
-+
-+	case VIDIOC_PREPARE_BUF:
- 	case VIDIOC_QUERYBUF:
- 	case VIDIOC_QBUF:
- 	case VIDIOC_DQBUF:
-@@ -860,6 +905,10 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 		err = put_v4l2_format32(&karg.v2f, up);
- 		break;
- 
-+	case VIDIOC_CREATE_BUFS:
-+		err = put_v4l2_create32(&karg.v2crt, up);
-+		break;
-+
- 	case VIDIOC_QUERYBUF:
- 	case VIDIOC_QBUF:
- 	case VIDIOC_DQBUF:
-@@ -959,6 +1008,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	case VIDIOC_DQEVENT32:
- 	case VIDIOC_SUBSCRIBE_EVENT:
- 	case VIDIOC_UNSUBSCRIBE_EVENT:
-+	case VIDIOC_CREATE_BUFS32:
-+	case VIDIOC_PREPARE_BUF32:
- 		ret = do_video_ioctl(file, cmd, arg);
- 		break;
- 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 21c49dc..3c2295b 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -273,6 +273,8 @@ static const char *v4l2_ioctls[] = {
- 	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
- 	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
- 	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
-+	[_IOC_NR(VIDIOC_CREATE_BUFS)]      = "VIDIOC_CREATE_BUFS",
-+	[_IOC_NR(VIDIOC_PREPARE_BUF)]      = "VIDIOC_PREPARE_BUF",
- };
- #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
- 
-@@ -2096,6 +2098,33 @@ static long __video_do_ioctl(struct file *file,
- 		dbgarg(cmd, "type=0x%8.8x", sub->type);
- 		break;
- 	}
-+	case VIDIOC_CREATE_BUFS:
-+	{
-+		struct v4l2_create_buffers *create = arg;
-+
-+		if (!ops->vidioc_create_bufs)
-+			break;
-+		ret = check_fmt(ops, create->format.type);
-+		if (ret)
-+			break;
-+
-+		ret = ops->vidioc_create_bufs(file, fh, create);
-+
-+		dbgarg(cmd, "count=%d @ %d\n", create->count, create->index);
-+		break;
-+	}
-+	case VIDIOC_PREPARE_BUF:
-+	{
-+		struct v4l2_buffer *b = arg;
-+
-+		if (!ops->vidioc_prepare_buf)
-+			break;
-+
-+		ret = ops->vidioc_prepare_buf(file, fh, b);
-+
-+		dbgarg(cmd, "index=%d", b->index);
-+		break;
-+	}
- 	default:
- 		if (!ops->vidioc_default)
- 			break;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 9d14523..a552946 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -653,6 +653,10 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_ERROR	0x0040
- #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
- #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
-+#define V4L2_BUF_FLAG_PREPARED	0x0400	/* Buffer is prepared for queuing */
-+/* Cache handling flags */
-+#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
-+#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
- 
- /*
-  *	O V E R L A Y   P R E V I E W
-@@ -2099,6 +2103,15 @@ struct v4l2_dbg_chip_ident {
- 	__u32 revision;    /* chip revision, chip specific */
- } __attribute__ ((packed));
- 
-+/* VIDIOC_CREATE_BUFS */
-+struct v4l2_create_buffers {
-+	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-+	__u32			count;
-+	enum v4l2_memory        memory;
-+	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
-+	__u32			reserved[8];
-+};
-+
- /*
-  *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-  *
-@@ -2189,6 +2202,11 @@ struct v4l2_dbg_chip_ident {
- #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
- #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
- 
-+/* Experimental, the below two ioctls may change over the next couple of kernel
-+   versions */
-+#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
-+#define VIDIOC_PREPARE_BUF	 _IOW('V', 93, struct v4l2_buffer)
-+
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
- 
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index dd9f1e7..4d1c74a 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -122,6 +122,8 @@ struct v4l2_ioctl_ops {
- 	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
- 	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
- 
-+	int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
-+	int (*vidioc_prepare_buf)(struct file *file, void *fh, struct v4l2_buffer *b);
- 
- 	int (*vidioc_overlay) (struct file *file, void *fh, unsigned int i);
- 	int (*vidioc_g_fbuf)   (struct file *file, void *fh,
--- 
-1.7.2.5
+2) If v4l2_device becomes available as a name, then I would like to rename
+video_device to v4l2_device. Originally I attempted to rename video_device to
+v4l2_devnode, but that was opposed by Mauro. I gathered from him that he thinks
+v4l2_device would be a proper name for this, but of course it is currently in
+use.
 
+Comments?
+
+Regards,
+
+	Hans
