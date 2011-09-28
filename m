@@ -1,178 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4368 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758518Ab1I3MUH (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3610 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751503Ab1I1JCO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 08:20:07 -0400
+	Wed, 28 Sep 2011 05:02:14 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 4/7] V4L menu: move all platform drivers to the bottom of the menu.
-Date: Fri, 30 Sep 2011 14:18:31 +0200
-Message-Id: <b2a43df447efa4b6a1431bfc0a0d2371780e6959.1317384926.git.hans.verkuil@cisco.com>
-In-Reply-To: <1317385114-7475-1-git-send-email-hverkuil@xs4all.nl>
-References: <1317385114-7475-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <9198dc44ea6f7b8e481c8e6bb24c80fc1b2429ed.1317384926.git.hans.verkuil@cisco.com>
-References: <9198dc44ea6f7b8e481c8e6bb24c80fc1b2429ed.1317384926.git.hans.verkuil@cisco.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 2/9 v8] V4L: add two new ioctl()s for multi-size videobuffer management
+Date: Wed, 28 Sep 2011 11:01:58 +0200
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1109281026450.30317@axis700.grange> <Pine.LNX.4.64.1109281046230.30317@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1109281046230.30317@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109281101.58799.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wednesday, September 28, 2011 10:48:33 Guennadi Liakhovetski wrote:
+> On Wed, 28 Sep 2011, Guennadi Liakhovetski wrote:
+> 
+> > Hi Hans
+> > 
+> > On Wed, 28 Sep 2011, Hans Verkuil wrote:
+> > 
+> > > On Tuesday, September 27, 2011 18:54:53 Guennadi Liakhovetski wrote:
+> > > > A possibility to preallocate and initialise buffers of different sizes
+> > > > in V4L2 is required for an efficient implementation of a snapshot
+> > > > mode. This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
+> > > > VIDIOC_PREPARE_BUF and defines respective data structures.
+> > > > 
+> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > > ---
+> > > > 
+> > > > v8: addressed comments from Hans - thanks:
+> > > > 
+> > > >     1. added checks in ioctl() preprocessing
+> > > >     2. changed VIDIOC_PREPARE_BUF to _IOWR
+> > > > 
+> > > >  drivers/media/video/v4l2-compat-ioctl32.c |   67 +++++++++++++++++++++++++---
+> > > >  drivers/media/video/v4l2-ioctl.c          |   36 +++++++++++++++
+> > > >  include/linux/videodev2.h                 |   17 +++++++
+> > > >  include/media/v4l2-ioctl.h                |    2 +
+> > > >  4 files changed, 114 insertions(+), 8 deletions(-)
+> > > > 
+> > > 
+> > > Almost:
+> > > 
+> > > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > > > index 9d14523..7d75dd1 100644
+> > > > --- a/include/linux/videodev2.h
+> > > > +++ b/include/linux/videodev2.h
+> > > > @@ -653,6 +653,9 @@ struct v4l2_buffer {
+> > > >  #define V4L2_BUF_FLAG_ERROR	0x0040
+> > > >  #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
+> > > >  #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
+> > > > +/* Cache handling flags */
+> > > > +#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
+> > > > +#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
+> > > >  
+> > > >  /*
+> > > >   *	O V E R L A Y   P R E V I E W
+> > > > @@ -2099,6 +2102,15 @@ struct v4l2_dbg_chip_ident {
+> > > >  	__u32 revision;    /* chip revision, chip specific */
+> > > >  } __attribute__ ((packed));
+> > > >  
+> > > > +/* VIDIOC_CREATE_BUFS */
+> > > > +struct v4l2_create_buffers {
+> > > > +	__u32			index;		/* output: buffers index...index + count - 1 have been created */
+> > > > +	__u32			count;
+> > > > +	enum v4l2_memory        memory;
+> > > > +	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
+> > > > +	__u32			reserved[8];
+> > > > +};
+> > > > +
+> > > >  /*
+> > > >   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+> > > >   *
+> > > > @@ -2189,6 +2201,11 @@ struct v4l2_dbg_chip_ident {
+> > > >  #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
+> > > >  #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
+> > > >  
+> > > > +/* Experimental, the below two ioctls may change over the next couple of kernel
+> > > > +   versions */
+> > > > +#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
+> > > > +#define VIDIOC_PREPARE_BUF	_IOWR('V', 93, struct v4l2_buffer)
+> > > > +
+> > > >  /* Reminder: when adding new ioctls please add support for them to
+> > > >     drivers/media/video/v4l2-compat-ioctl32.c as well! */
+> > > >  
+> > > > diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> > > > index dd9f1e7..55cf8ae 100644
+> > > > --- a/include/media/v4l2-ioctl.h
+> > > > +++ b/include/media/v4l2-ioctl.h
+> > > > @@ -122,6 +122,8 @@ struct v4l2_ioctl_ops {
+> > > >  	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
+> > > >  	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
+> > > >  
+> > > > +	int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
+> > > > +	int (*vidioc_prepare_buf)(struct file *file, void *fh, const struct v4l2_buffer *b);
+> > > 
+> > > If this is IOWR, then there shouldn't be a const here.
+> > 
+> > hrm... Sure.
+> > 
+> > > I have been thinking about this a bit more. Currently we only have a V4L2_BUF_FLAG_QUEUED
+> > > flag and no V4L2_BUF_FLAG_PREPARED flag. I do think we need this after all. The QUEUED flag
+> > > can't be used here as the buffer isn't queued yet, it's only prepared.
+> > 
+> > Ok, I can add it to this patch together with the other two cache-handling 
+> > flags. I presume, I shall also add it to
+> > 
+> > V4L2_BUFFER_STATE_FLAGS
+> > 
+> > in videobuf2-core.c, otherwise just let drivers and apps go figure?... We 
+> > could set that flag centrally in __buf_prepare(), but since 
+> > V4L2_BUF_FLAG_QUEUED is managed by individual drivers, we probably want to 
+> > leave V4L2_BUF_FLAG_PREPARED like that too?
+> 
+> Good, time to wake up. 
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/Kconfig |  106 ++++++++++++++++++++++---------------------
- 1 files changed, 55 insertions(+), 51 deletions(-)
+Good morning, Guennadi! :-)
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 8d1c6cb..f059eed 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -646,25 +646,6 @@ config USB_S2255
- 
- endif # V4L_USB_DRIVERS
- 
--config VIDEO_SH_VOU
--	tristate "SuperH VOU video output driver"
--	depends on VIDEO_DEV && ARCH_SHMOBILE
--	select VIDEOBUF_DMA_CONTIG
--	help
--	  Support for the Video Output Unit (VOU) on SuperH SoCs.
--
--config VIDEO_VIU
--	tristate "Freescale VIU Video Driver"
--	depends on VIDEO_V4L2 && PPC_MPC512x
--	select VIDEOBUF_DMA_CONTIG
--	default y
--	---help---
--	  Support for Freescale VIU video driver. This device captures
--	  video data, or overlays video on DIU frame buffer.
--
--	  Say Y here if you want to enable VIU device on MPC5121e Rev2+.
--	  In doubt, say N.
--
- config VIDEO_VIVI
- 	tristate "Virtual Video Driver"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
-@@ -679,22 +660,10 @@ config VIDEO_VIVI
- 	  Say Y here if you want to test video apps or debug V4L devices.
- 	  In doubt, say N.
- 
--source "drivers/media/video/davinci/Kconfig"
--
--source "drivers/media/video/omap/Kconfig"
--
- source "drivers/media/video/bt8xx/Kconfig"
- 
- source "drivers/media/video/cpia2/Kconfig"
- 
--config VIDEO_VINO
--	tristate "SGI Vino Video For Linux"
--	depends on I2C && SGI_IP22 && VIDEO_V4L2
--	select VIDEO_SAA7191 if VIDEO_HELPER_CHIPS_AUTO
--	help
--	  Say Y here to build in support for the Vino video input system found
--	  on SGI Indy machines.
--
- source "drivers/media/video/zoran/Kconfig"
- 
- config VIDEO_MEYE
-@@ -752,16 +721,6 @@ config VIDEO_HEXIUM_GEMINI
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called hexium_gemini.
- 
--config VIDEO_TIMBERDALE
--	tristate "Support for timberdale Video In/LogiWIN"
--	depends on VIDEO_V4L2 && I2C && DMADEVICES
--	select DMA_ENGINE
--	select TIMB_DMA
--	select VIDEO_ADV7180
--	select VIDEOBUF_DMA_CONTIG
--	---help---
--	  Add support for the Video In peripherial of the timberdale FPGA.
--
- source "drivers/media/video/cx88/Kconfig"
- 
- source "drivers/media/video/cx23885/Kconfig"
-@@ -835,6 +794,61 @@ endif # V4L_ISA_PARPORT_DRIVERS
- 
- source "drivers/media/video/marvell-ccic/Kconfig"
- 
-+config VIDEO_VIA_CAMERA
-+	tristate "VIAFB camera controller support"
-+	depends on FB_VIA
-+	select VIDEOBUF_DMA_SG
-+	select VIDEO_OV7670
-+	help
-+	   Driver support for the integrated camera controller in VIA
-+	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
-+	   with ov7670 sensors.
-+
-+#
-+# Platform multimedia device configuration
-+#
-+
-+source "drivers/media/video/davinci/Kconfig"
-+
-+source "drivers/media/video/omap/Kconfig"
-+
-+config VIDEO_SH_VOU
-+	tristate "SuperH VOU video output driver"
-+	depends on VIDEO_DEV && ARCH_SHMOBILE
-+	select VIDEOBUF_DMA_CONTIG
-+	help
-+	  Support for the Video Output Unit (VOU) on SuperH SoCs.
-+
-+config VIDEO_VIU
-+	tristate "Freescale VIU Video Driver"
-+	depends on VIDEO_V4L2 && PPC_MPC512x
-+	select VIDEOBUF_DMA_CONTIG
-+	default y
-+	---help---
-+	  Support for Freescale VIU video driver. This device captures
-+	  video data, or overlays video on DIU frame buffer.
-+
-+	  Say Y here if you want to enable VIU device on MPC5121e Rev2+.
-+	  In doubt, say N.
-+
-+config VIDEO_TIMBERDALE
-+	tristate "Support for timberdale Video In/LogiWIN"
-+	depends on VIDEO_V4L2 && I2C && DMADEVICES
-+	select DMA_ENGINE
-+	select TIMB_DMA
-+	select VIDEO_ADV7180
-+	select VIDEOBUF_DMA_CONTIG
-+	---help---
-+	  Add support for the Video In peripherial of the timberdale FPGA.
-+
-+config VIDEO_VINO
-+	tristate "SGI Vino Video For Linux"
-+	depends on I2C && SGI_IP22 && VIDEO_V4L2
-+	select VIDEO_SAA7191 if VIDEO_HELPER_CHIPS_AUTO
-+	help
-+	  Say Y here to build in support for the Vino video input system found
-+	  on SGI Indy machines.
-+
- config VIDEO_M32R_AR
- 	tristate "AR devices"
- 	depends on M32R && VIDEO_V4L2
-@@ -854,16 +868,6 @@ config VIDEO_M32R_AR_M64278
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called arv.
- 
--config VIDEO_VIA_CAMERA
--	tristate "VIAFB camera controller support"
--	depends on FB_VIA
--	select VIDEOBUF_DMA_SG
--	select VIDEO_OV7670
--	help
--	   Driver support for the integrated camera controller in VIA
--	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
--	   with ov7670 sensors.
--
- config VIDEO_OMAP3
- 	tristate "OMAP 3 Camera support (EXPERIMENTAL)"
- 	select OMAP_IOMMU
--- 
-1.7.6.3
+> V4L2_BUF_FLAG_QUEUED is indeed set in 
+> videobuf2-core.c, so, I guess, the same should be done with 
+> V4L2_BUF_FLAG_PREPARED in __fill_v4l2_buffer().
 
+Yup. Seems sensible to me.
+
+Regards,
+
+	Hans
+
+> 
+> Thanks
+> Guennadi
+> 
+> > > Regards,
+> > > 
+> > > 	Hans
+> > > 
+> > > >  
+> > > >  	int (*vidioc_overlay) (struct file *file, void *fh, unsigned int i);
+> > > >  	int (*vidioc_g_fbuf)   (struct file *file, void *fh,
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
