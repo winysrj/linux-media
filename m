@@ -1,32 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:16420 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751103Ab1IURpN (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:45321 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751327Ab1I1RGm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 13:45:13 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LRV004MWVZABF60@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 Sep 2011 18:45:11 +0100 (BST)
+	Wed, 28 Sep 2011 13:06:42 -0400
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LS800AOUSV4JU@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Sep 2011 18:06:40 +0100 (BST)
 Received: from linux.samsung.com ([106.116.38.10])
  by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRV00DTPVZALN@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 Sep 2011 18:45:10 +0100 (BST)
-Date: Wed, 21 Sep 2011 19:45:06 +0200
+ 2004)) with ESMTPA id <0LS80084ZSV491@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Sep 2011 18:06:40 +0100 (BST)
+Date: Wed, 28 Sep 2011 19:06:35 +0200
 From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 1/2] v4l: Add AUTO option for the
+Subject: [PATCH v3 1/2] v4l: Add AUTO option for the
  V4L2_CID_POWER_LINE_FREQUENCY control
-In-reply-to: <1316627107-18709-1-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1317229596-8140-1-git-send-email-s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
 Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
 	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
 	sw0312.kim@samsung.com, riverful.kim@samsung.com,
 	s.nawrocki@samsung.com
-Message-id: <1316627107-18709-2-git-send-email-s.nawrocki@samsung.com>
-References: <1316627107-18709-1-git-send-email-s.nawrocki@samsung.com>
+Message-id: <1317229596-8140-2-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1317229596-8140-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -64,7 +65,7 @@ index 23fdf79..3bc5ee8 100644
  	  <row>
  	    <entry><constant>V4L2_CID_HUE_AUTO</constant></entry>
 diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 06b6014..20abe5d 100644
+index fc8666a..5552f81 100644
 --- a/drivers/media/video/v4l2-ctrls.c
 +++ b/drivers/media/video/v4l2-ctrls.c
 @@ -210,6 +210,7 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
@@ -76,10 +77,10 @@ index 06b6014..20abe5d 100644
  	};
  	static const char * const camera_exposure_auto[] = {
 diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index a5359c6..b433968 100644
+index 9d14523..84317ce 100644
 --- a/include/linux/videodev2.h
 +++ b/include/linux/videodev2.h
-@@ -1125,6 +1125,7 @@ enum v4l2_power_line_frequency {
+@@ -1126,6 +1126,7 @@ enum v4l2_power_line_frequency {
  	V4L2_CID_POWER_LINE_FREQUENCY_DISABLED	= 0,
  	V4L2_CID_POWER_LINE_FREQUENCY_50HZ	= 1,
  	V4L2_CID_POWER_LINE_FREQUENCY_60HZ	= 2,
