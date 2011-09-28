@@ -1,49 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:57788 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753666Ab1IAG1X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 02:27:23 -0400
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 2/2] [media] tm6000: Enable fast USB quirk on Cinergy Hybrid
-Date: Thu,  1 Sep 2011 08:27:21 +0200
-Message-Id: <1314858441-30813-2-git-send-email-thierry.reding@avionic-design.de>
-In-Reply-To: <1314858441-30813-1-git-send-email-thierry.reding@avionic-design.de>
-References: <4E5F1C87.9050207@redhat.com>
- <1314858441-30813-1-git-send-email-thierry.reding@avionic-design.de>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4553 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751856Ab1I1HfJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Sep 2011 03:35:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 3/9 v7] V4L: document the new VIDIOC_CREATE_BUFS and VIDIOC_PREPARE_BUF ioctl()s
+Date: Wed, 28 Sep 2011 09:34:58 +0200
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de> <201109271251.01367.hverkuil@xs4all.nl> <Pine.LNX.4.64.1109271747160.7004@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1109271747160.7004@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109280934.58154.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Cinergy Hybrid cards are known not to need an artificial delay after
-USB accesses so the quirk can safely be enabled.
+On Tuesday, September 27, 2011 17:49:52 Guennadi Liakhovetski wrote:
+> On Tue, 27 Sep 2011, Hans Verkuil wrote:
+> 
+> > On Thursday, September 08, 2011 09:46:26 Guennadi Liakhovetski wrote:
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > ---
+> 
+> [snip]
+> 
+> > > +    <para>When the ioctl is called with a pointer to this structure the driver
+> > > +will attempt to allocate up to the requested number of buffers and store the
+> > > +actual number allocated and the starting index in the
+> > > +<structfield>count</structfield> and the <structfield>index</structfield> fields
+> > > +respectively. On return <structfield>count</structfield> can be smaller than
+> > > +the number requested. The driver may also adjust buffer sizes as it sees fit,
+> > 
+> > Add: 'provided the size is greater than or equal to sizeimage'.
+> 
+> How about:
+> 
+> The driver may also increase buffer sizes if required, however, it will 
+> not update <structfield>sizeimage</structfield> field values. The
+> user has to use <constant>VIDIOC_QUERYBUF</constant> to retrieve that
+> information.</para>
 
-Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
----
- drivers/staging/tm6000/tm6000-cards.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+Looks good.
 
-diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-index 5393976..aa18173 100644
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -1002,6 +1002,16 @@ static int fill_board_specific_data(struct tm6000_core *dev)
- 	dev->vinput[2] = tm6000_boards[dev->model].vinput[2];
- 	dev->rinput = tm6000_boards[dev->model].rinput;
- 
-+	/* setup per-model quirks */
-+	switch (dev->model) {
-+	case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
-+		dev->quirks |= TM6000_QUIRK_NO_USB_DELAY;
-+		break;
-+
-+	default:
-+		break;
-+	}
-+
- 	/* initialize hardware */
- 	rc = tm6000_init(dev);
- 	if (rc < 0)
--- 
-1.7.6.1
+Regards,
 
+	Hans
