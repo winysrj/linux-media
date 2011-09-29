@@ -1,35 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:50813 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751877Ab1IRAyN (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:57186 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752770Ab1I2K5C (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Sep 2011 20:54:13 -0400
-Received: by iaqq3 with SMTP id q3so3736958iaq.19
-        for <linux-media@vger.kernel.org>; Sat, 17 Sep 2011 17:54:12 -0700 (PDT)
-Message-ID: <4E754128.6060803@gmail.com>
-Date: Sat, 17 Sep 2011 18:54:00 -0600
-From: Stephen Atkins <stephen.atkins@gmail.com>
+	Thu, 29 Sep 2011 06:57:02 -0400
+Date: Thu, 29 Sep 2011 12:57:00 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] V4L: omap3isp: remove redundant operation
+Message-ID: <Pine.LNX.4.64.1109291255590.31659@axis700.grange>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: HVR-1600 and HVR-1250
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm not sure if this is the right list or not but I thought I would give 
-it a try.
+Trivial arithmetics clean up.
 
-I've got a HVR-1600 which works great and I can get MythTV to record an 
-analog and digital at the same time.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/omap3isp/ispccdc.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I decided that I needed a second tuner to record another digital signal. 
-  I picked up an HVR-1250 (Linux sees it as a HVR-1255).  It's one of 
-the newer cards in the 22xxx model.
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 40b141c..65ae267 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -1834,7 +1834,7 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
+ 		 * callers to request an output size bigger than the input size
+ 		 * up to the nearest multiple of 16.
+ 		 */
+-		fmt->width = clamp_t(u32, width, 32, (fmt->width + 15) & ~15);
++		fmt->width = clamp_t(u32, width, 32, fmt->width + 15);
+ 		fmt->width &= ~15;
+ 		fmt->height = clamp_t(u32, height, 32, fmt->height);
+ 		break;
+-- 
+1.7.2.5
 
-Once I got it setup I could record two digtal's no problem but my analog 
-on the 1600 lost audio.  It also won't tune above ch 13. I'm wondering 
-if there is anything I can do to get these cards to play nicely.
-
-Thanks
-Stephen
