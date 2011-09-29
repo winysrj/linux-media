@@ -1,47 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33798 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751327Ab1I0HCW (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:49464 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757193Ab1I2QTD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 03:02:22 -0400
-Message-ID: <4E81750F.7060200@ti.com>
-Date: Tue, 27 Sep 2011 12:32:39 +0530
-From: Archit Taneja <archit@ti.com>
-MIME-Version: 1.0
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-CC: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Semwal, Sumit" <sumit.semwal@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v3 4/4] OMAP_VOUT: Don't trigger updates in omap_vout_probe
-References: <1317038365-30650-1-git-send-email-archit@ti.com>	 <1317038365-30650-5-git-send-email-archit@ti.com> <1317103833.1991.6.camel@deskari>
-In-Reply-To: <1317103833.1991.6.camel@deskari>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 29 Sep 2011 12:19:03 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>
+Subject: [PATCH 4/9] V4L: add convenience macros to the subdevice / Media Controller API
+Date: Thu, 29 Sep 2011 18:18:52 +0200
+Message-Id: <1317313137-4403-5-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1317313137-4403-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1317313137-4403-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 27 September 2011 11:40 AM, Valkeinen, Tomi wrote:
-> On Mon, 2011-09-26 at 17:29 +0530, Archit Taneja wrote:
->> Remove the code in omap_vout_probe() which calls display->driver->update() for
->> all the displays. This isn't correct because:
->>
->> - An update in probe doesn't make sense, because we don't have any valid content
->>    to show at this time.
->> - Calling update for a panel which isn't enabled is not supported by DSS2. This
->>    leads to a crash at probe.
->
-> Calling update() on a disabled panel should not crash... Where is the
-> crash coming from?
+Drivers, that can be built and work with and without
+CONFIG_VIDEO_V4L2_SUBDEV_API, need the v4l2_subdev_get_try_format() and
+v4l2_subdev_get_try_crop() functions, even though their return value
+should never be dereferenced. Also add convenience macros to init and
+clean up subdevice internal media entities.
 
-you are right, the crash isn't coming from the updates. I see the crash 
-when we have 4 dss devices in our board file. The last display pointer 
-is corrupted in that case. I'm trying to figure out why.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ include/media/v4l2-subdev.h |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-Archit
-
->
->   Tomi
->
->
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index f0f3358..4670506 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -569,6 +569,9 @@ v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh, unsigned int pad)
+ {
+ 	return &fh->try_crop[pad];
+ }
++#else
++#define v4l2_subdev_get_try_format(arg...)	NULL
++#define v4l2_subdev_get_try_crop(arg...)	NULL
+ #endif
+ 
+ extern const struct v4l2_file_operations v4l2_subdev_fops;
+@@ -610,4 +613,12 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 	((!(sd) || !(sd)->v4l2_dev || !(sd)->v4l2_dev->notify) ? -ENODEV : \
+ 	 (sd)->v4l2_dev->notify((sd), (notification), (arg)))
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++#define subdev_media_entity_init(sd, n, p, e)	media_entity_init(&(sd)->entity, n, p, e)
++#define subdev_media_entity_cleanup(sd)		media_entity_cleanup(&(sd)->entity)
++#else
++#define subdev_media_entity_init(sd, n, p, e)	0
++#define subdev_media_entity_cleanup(sd)		do {} while (0)
++#endif
++
+ #endif
+-- 
+1.7.2.5
 
