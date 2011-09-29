@@ -1,85 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:62337 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752543Ab1IZJdH (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:53587 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753491Ab1I2WoY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Sep 2011 05:33:07 -0400
-Date: Mon, 26 Sep 2011 11:32:53 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Nicolas Ferre <nicolas.ferre@atmel.com>
-cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>,
-	Josh Wu <josh.wu@atmel.com>, linux-kernel@vger.kernel.org,
-	s.nawrocki@samsung.com, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 2/2] at91: add Atmel ISI and ov2640 support on
- sam9m10/sam9g45 board.
-In-Reply-To: <4E804440.7030709@atmel.com>
-Message-ID: <Pine.LNX.4.64.1109261130270.9168@axis700.grange>
-References: <1316664661-11383-1-git-send-email-josh.wu@atmel.com>
- <1316664661-11383-2-git-send-email-josh.wu@atmel.com>
- <Pine.LNX.4.64.1109220911500.11164@axis700.grange> <20110924052609.GI29998@game.jcrosoft.org>
- <4E804440.7030709@atmel.com>
+	Thu, 29 Sep 2011 18:44:24 -0400
+Received: by yxl31 with SMTP id 31so1068358yxl.19
+        for <linux-media@vger.kernel.org>; Thu, 29 Sep 2011 15:44:23 -0700 (PDT)
+Date: Thu, 29 Sep 2011 14:44:18 -0800
+From: Roger <rogerx.oss@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: dvbscan output Channel Number into final stdout?
+Message-ID: <20110929224418.GD2824@localhost2.local>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas
+Can we get dvbscan to output the Channel Number into the final stdout somehow?
 
-On Mon, 26 Sep 2011, Nicolas Ferre wrote:
+A likely format would be something such as the following.
 
-> Le 24/09/2011 07:26, Jean-Christophe PLAGNIOL-VILLARD :
-> > On 09:35 Thu 22 Sep     , Guennadi Liakhovetski wrote:
-> >> On Thu, 22 Sep 2011, Josh Wu wrote:
-> >>
-> >>> This patch
-> >>> 1. add ISI_MCK parent setting code when add ISI device.
-> >>> 2. add ov2640 support on board file.
-> >>> 3. define isi_mck clock in sam9g45 chip file.
-> >>>
-> >>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> >>> ---
-> >>>  arch/arm/mach-at91/at91sam9g45.c         |    3 +
-> >>>  arch/arm/mach-at91/at91sam9g45_devices.c |  105 +++++++++++++++++++++++++++++-
-> >>>  arch/arm/mach-at91/board-sam9m10g45ek.c  |   85 ++++++++++++++++++++++++-
-> >>>  arch/arm/mach-at91/include/mach/board.h  |    3 +-
-> >>
-> >> Personally, I think, it would be better to separate this into two patches 
-> >> at least: one for at91 core and one for the specific board, but that's up 
-> >> to arch maintainers to decide.
-> >>
-> >> You also want to patch arch/arm/mach-at91/at91sam9263_devices.c, don't 
-> >> you?
-> > agreed
-> 
-> No, I am not sure. The IP is not the same between 9263 and 9g45/9m10. So
-> this inclusion will not apply.
+Current output:
 
-Sorry, that's not what I meant. This patch changes a function declaration:
+KATN-DT:497028615:8VSB:49:52:3
+KWFA-DT:497028615:8VSB:65:68:4
+...
 
-diff --git a/arch/arm/mach-at91/include/mach/board.h b/arch/arm/mach-at91/include/mach/board.h
-index ed544a0..276d63a 100644
---- a/arch/arm/mach-at91/include/mach/board.h
-+++ b/arch/arm/mach-at91/include/mach/board.h
-@@ -183,7 +183,8 @@ extern void __init at91_add_device_lcdc(struct 
-atmel_lcdfb_info *data);
- extern void __init at91_add_device_ac97(struct ac97c_platform_data 
-*data);
- 
-  /* ISI */
--extern void __init at91_add_device_isi(void);
-+struct isi_platform_data;
-+extern void __init at91_add_device_isi(struct isi_platform_data *data);
- 
-  /* Touchscreen Controller */
- struct at91_tsadcc_data {
 
-but doesn't change that function implementation in at91sam9263_devices.c, 
-which will break compilation, AFAICS.
+Suggested output:
+2.1:497028615:8VSB:49:52:3
+2.2:497028615:8VSB:65:68:4
+...
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+The reason for this, the local ATSC broadcast over the air channels are not
+assigning unique channel names.  However, channel numbers seem to be consistent
+between the published TV Guide/TV Listings and are unique!  This seems to be
+the norm for the past several years now.
+
+There have been some minor changes with channel numbers within the past years,
+but if channel numbers are used such as in the above example, mplayer should be
+able to recognize mplayer dvb://2.1 or mplayer dvb://2.2, etc?
+
+One should also be able to do something like 'dvbscan | sort' instead of trying
+to test each channel to see which channel is really 2.1 or 2.2!
+
+
+Currently, dvbscan outputs the channel number only when the channel is first
+found and with a colon. (ie. 2:1, 2:2, ...)
+
+1) Get/Keep Channel Number found
+2) Convert/reassign the colon to a period (ie. 2:1 == 2.1, 2:2 == 2.2)
+3) Print Channel Number instead of Channel Name on final stdout.
+
+
+In the meantime, I should test whether mplayer has any issues with using
+"mplayer dvb://2.1" instead of the channel name.  It would be really nice to be
+able to schedule a cron job here with "dvbscan > .mplayer/channels.conf" to
+keep channels updated and have a decent channels.conf I can use within
+mplayer/mencoder scripts for playback/recording.  Currently, I have to go
+through and manually run mplayer on each station frequency to figure out which
+is 2.1 and which is 2.2, and so on.  Or am I barking up the wrong tree?
+
+
+-- 
+Roger
+http://rogerx.freeshell.org/
