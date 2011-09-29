@@ -1,295 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:54402 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.187]:58149 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751733Ab1I0QzQ (ORCPT
+	with ESMTP id S1757197Ab1I2QTD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 12:55:16 -0400
-Date: Tue, 27 Sep 2011 18:54:53 +0200 (CEST)
+	Thu, 29 Sep 2011 12:19:03 -0400
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 2/9 v8] V4L: add two new ioctl()s for multi-size videobuffer
- management
-In-Reply-To: <201109271540.52649.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1109271847310.7004@axis700.grange>
-References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
- <201109271306.21095.hverkuil@xs4all.nl> <Pine.LNX.4.64.1109271417280.5816@axis700.grange>
- <201109271540.52649.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>
+Subject: [PATCH 3/9] V4L: soc-camera: remove redundant parameter from the .set_bus_param() method
+Date: Thu, 29 Sep 2011 18:18:51 +0200
+Message-Id: <1317313137-4403-4-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1317313137-4403-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1317313137-4403-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A possibility to preallocate and initialise buffers of different sizes
-in V4L2 is required for an efficient implementation of a snapshot
-mode. This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
-VIDIOC_PREPARE_BUF and defines respective data structures.
+The "pixfmt" parameter of the struct soc_camera_host_ops::set_bus_param()
+method is redundant, because at the time, when this method is called,
+pixfmt is guaranteed to be equal to icd->current_fmt->host_fmt->fourcc.
+Remove this parameter and update all drivers accordingly.
 
 Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
+ drivers/media/video/atmel-isi.c            |    2 +-
+ drivers/media/video/mx1_camera.c           |    2 +-
+ drivers/media/video/mx2_camera.c           |    3 +--
+ drivers/media/video/mx3_camera.c           |    3 ++-
+ drivers/media/video/omap1_camera.c         |    4 ++--
+ drivers/media/video/pxa_camera.c           |    3 ++-
+ drivers/media/video/sh_mobile_ceu_camera.c |   11 ++---------
+ drivers/media/video/soc_camera.c           |    2 +-
+ include/media/soc_camera.h                 |    2 +-
+ 9 files changed, 13 insertions(+), 19 deletions(-)
 
-v8: addressed comments from Hans - thanks:
-
-    1. added checks in ioctl() preprocessing
-    2. changed VIDIOC_PREPARE_BUF to _IOWR
-
- drivers/media/video/v4l2-compat-ioctl32.c |   67 +++++++++++++++++++++++++---
- drivers/media/video/v4l2-ioctl.c          |   36 +++++++++++++++
- include/linux/videodev2.h                 |   17 +++++++
- include/media/v4l2-ioctl.h                |    2 +
- 4 files changed, 114 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index 61979b7..85758d2 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -159,11 +159,16 @@ struct v4l2_format32 {
- 	} fmt;
- };
- 
--static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-+struct v4l2_create_buffers32 {
-+	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-+	__u32			count;
-+	enum v4l2_memory        memory;
-+	struct v4l2_format32	format;		/* filled in by the user, plane sizes calculated by the driver */
-+	__u32			reserved[8];
-+};
-+
-+static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
- {
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_format32)) ||
--			get_user(kp->type, &up->type))
--			return -EFAULT;
- 	switch (kp->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-@@ -192,11 +197,24 @@ static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user
- 	}
+diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
+index 8c775c5..84d7a85 100644
+--- a/drivers/media/video/atmel-isi.c
++++ b/drivers/media/video/atmel-isi.c
+@@ -803,7 +803,7 @@ static int isi_camera_querycap(struct soc_camera_host *ici,
+ 	return 0;
  }
  
--static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-+static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-+{
-+	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_format32)) ||
-+			get_user(kp->type, &up->type))
-+			return -EFAULT;
-+	return __get_v4l2_format32(kp, up);
-+}
-+
-+static int get_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
-+{
-+	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_create_buffers32)) ||
-+	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32, format.fmt)))
-+			return -EFAULT;
-+	return __get_v4l2_format32(&kp->format, &up->format);
-+}
-+
-+static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
+-static int isi_camera_set_bus_param(struct soc_camera_device *icd, u32 pixfmt)
++static int isi_camera_set_bus_param(struct soc_camera_device *icd)
  {
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)) ||
--		put_user(kp->type, &up->type))
--		return -EFAULT;
- 	switch (kp->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-@@ -225,6 +243,22 @@ static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user
- 	}
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+diff --git a/drivers/media/video/mx1_camera.c b/drivers/media/video/mx1_camera.c
+index 18e94c7..055d11d 100644
+--- a/drivers/media/video/mx1_camera.c
++++ b/drivers/media/video/mx1_camera.c
+@@ -487,7 +487,7 @@ static int mx1_camera_set_crop(struct soc_camera_device *icd,
+ 	return v4l2_subdev_call(sd, video, s_crop, a);
  }
  
-+static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
-+{
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)) ||
-+		put_user(kp->type, &up->type))
-+		return -EFAULT;
-+	return __put_v4l2_format32(kp, up);
-+}
-+
-+static int put_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
-+{
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_create_buffers32)) ||
-+	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32, format.fmt)))
-+			return -EFAULT;
-+	return __put_v4l2_format32(&kp->format, &up->format);
-+}
-+
- struct v4l2_standard32 {
- 	__u32		     index;
- 	__u32		     id[2]; /* __u64 would get the alignment wrong */
-@@ -702,6 +736,8 @@ static int put_v4l2_event32(struct v4l2_event *kp, struct v4l2_event32 __user *u
- #define VIDIOC_S_EXT_CTRLS32    _IOWR('V', 72, struct v4l2_ext_controls32)
- #define VIDIOC_TRY_EXT_CTRLS32  _IOWR('V', 73, struct v4l2_ext_controls32)
- #define	VIDIOC_DQEVENT32	_IOR ('V', 89, struct v4l2_event32)
-+#define VIDIOC_CREATE_BUFS32	_IOWR('V', 92, struct v4l2_create_buffers32)
-+#define VIDIOC_PREPARE_BUF32	_IOWR('V', 93, struct v4l2_buffer32)
+-static int mx1_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
++static int mx1_camera_set_bus_param(struct soc_camera_device *icd)
+ {
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index a803d9e..ffbfbfe 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -766,8 +766,7 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+ 			pcdev->base_emma + PRP_INTR_CNTL);
+ }
  
- #define VIDIOC_OVERLAY32	_IOW ('V', 14, s32)
- #define VIDIOC_STREAMON32	_IOW ('V', 18, s32)
-@@ -721,6 +757,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 		struct v4l2_standard v2s;
- 		struct v4l2_ext_controls v2ecs;
- 		struct v4l2_event v2ev;
-+		struct v4l2_create_buffers v2crt;
- 		unsigned long vx;
- 		int vi;
- 	} karg;
-@@ -751,6 +788,8 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 	case VIDIOC_S_INPUT32: cmd = VIDIOC_S_INPUT; break;
- 	case VIDIOC_G_OUTPUT32: cmd = VIDIOC_G_OUTPUT; break;
- 	case VIDIOC_S_OUTPUT32: cmd = VIDIOC_S_OUTPUT; break;
-+	case VIDIOC_CREATE_BUFS32: cmd = VIDIOC_CREATE_BUFS; break;
-+	case VIDIOC_PREPARE_BUF32: cmd = VIDIOC_PREPARE_BUF; break;
+-static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
+-		__u32 pixfmt)
++static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
+ {
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+index fb38e22..6020061 100644
+--- a/drivers/media/video/mx3_camera.c
++++ b/drivers/media/video/mx3_camera.c
+@@ -980,12 +980,13 @@ static int mx3_camera_querycap(struct soc_camera_host *ici,
+ 	return 0;
+ }
+ 
+-static int mx3_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
++static int mx3_camera_set_bus_param(struct soc_camera_device *icd)
+ {
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct mx3_camera_dev *mx3_cam = ici->priv;
+ 	struct v4l2_mbus_config cfg = {.type = V4L2_MBUS_PARALLEL,};
++	u32 pixfmt = icd->current_fmt->host_fmt->fourcc;
+ 	unsigned long bus_flags, common_flags;
+ 	u32 dw, sens_conf;
+ 	const struct soc_mbus_pixelfmt *fmt;
+diff --git a/drivers/media/video/omap1_camera.c b/drivers/media/video/omap1_camera.c
+index e87ae2f..e73a23e 100644
+--- a/drivers/media/video/omap1_camera.c
++++ b/drivers/media/video/omap1_camera.c
+@@ -1435,13 +1435,13 @@ static int omap1_cam_querycap(struct soc_camera_host *ici,
+ 	return 0;
+ }
+ 
+-static int omap1_cam_set_bus_param(struct soc_camera_device *icd,
+-		__u32 pixfmt)
++static int omap1_cam_set_bus_param(struct soc_camera_device *icd)
+ {
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	struct device *dev = icd->parent;
+ 	struct soc_camera_host *ici = to_soc_camera_host(dev);
+ 	struct omap1_cam_dev *pcdev = ici->priv;
++	u32 pixfmt = icd->current_fmt->host_fmt->fourcc;
+ 	const struct soc_camera_format_xlate *xlate;
+ 	const struct soc_mbus_pixelfmt *fmt;
+ 	struct v4l2_mbus_config cfg = {.type = V4L2_MBUS_PARALLEL,};
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 79fb22c..2f9ae63 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -1133,12 +1133,13 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
+ 	__raw_writel(cicr0, pcdev->base + CICR0);
+ }
+ 
+-static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
++static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
+ {
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct pxa_camera_dev *pcdev = ici->priv;
+ 	struct v4l2_mbus_config cfg = {.type = V4L2_MBUS_PARALLEL,};
++	u32 pixfmt = icd->current_fmt->host_fmt->fourcc;
+ 	unsigned long bus_flags, common_flags;
+ 	int ret;
+ 	struct pxa_cam *cam = icd->host_priv;
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 33ffc35..367dd43 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -782,8 +782,7 @@ static struct v4l2_subdev *find_bus_subdev(struct sh_mobile_ceu_dev *pcdev,
+ 		V4L2_MBUS_DATA_ACTIVE_HIGH)
+ 
+ /* Capture is not running, no interrupts, no locking needed */
+-static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd,
+-				       __u32 pixfmt)
++static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd)
+ {
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
+@@ -921,11 +920,6 @@ static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd,
+ 	ceu_write(pcdev, CDOCR, value);
+ 	ceu_write(pcdev, CFWCR, 0); /* keep "datafetch firewall" disabled */
+ 
+-	dev_dbg(icd->parent, "S_FMT successful for %c%c%c%c %ux%u\n",
+-		pixfmt & 0xff, (pixfmt >> 8) & 0xff,
+-		(pixfmt >> 16) & 0xff, (pixfmt >> 24) & 0xff,
+-		icd->user_width, icd->user_height);
+-
+ 	capture_restore(pcdev, capsr);
+ 
+ 	/* not in bundle mode: skip CBDSR, CDAYR2, CDACR2, CDBYR2, CDBCR2 */
+@@ -1785,8 +1779,7 @@ static int sh_mobile_ceu_set_livecrop(struct soc_camera_device *icd,
+ 		if (!ret) {
+ 			icd->user_width		= out_width & ~3;
+ 			icd->user_height	= out_height & ~3;
+-			ret = sh_mobile_ceu_set_bus_param(icd,
+-					icd->current_fmt->host_fmt->fourcc);
++			ret = sh_mobile_ceu_set_bus_param(icd);
+ 		}
  	}
  
- 	switch (cmd) {
-@@ -775,6 +814,12 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 		compatible_arg = 0;
- 		break;
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index ba409ac..5596688 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -510,7 +510,7 @@ static int soc_camera_set_fmt(struct soc_camera_device *icd,
+ 		icd->user_width, icd->user_height);
  
-+	case VIDIOC_CREATE_BUFS:
-+		err = get_v4l2_create32(&karg.v2crt, up);
-+		compatible_arg = 0;
-+		break;
-+
-+	case VIDIOC_PREPARE_BUF:
- 	case VIDIOC_QUERYBUF:
- 	case VIDIOC_QBUF:
- 	case VIDIOC_DQBUF:
-@@ -860,6 +905,10 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 		err = put_v4l2_format32(&karg.v2f, up);
- 		break;
+ 	/* set physical bus parameters */
+-	return ici->ops->set_bus_param(icd, pix->pixelformat);
++	return ici->ops->set_bus_param(icd);
+ }
  
-+	case VIDIOC_CREATE_BUFS:
-+		err = put_v4l2_create32(&karg.v2crt, up);
-+		break;
-+
- 	case VIDIOC_QUERYBUF:
- 	case VIDIOC_QBUF:
- 	case VIDIOC_DQBUF:
-@@ -959,6 +1008,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	case VIDIOC_DQEVENT32:
- 	case VIDIOC_SUBSCRIBE_EVENT:
- 	case VIDIOC_UNSUBSCRIBE_EVENT:
-+	case VIDIOC_CREATE_BUFS32:
-+	case VIDIOC_PREPARE_BUF32:
- 		ret = do_video_ioctl(file, cmd, arg);
- 		break;
- 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 21c49dc..ff378eb 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -273,6 +273,8 @@ static const char *v4l2_ioctls[] = {
- 	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
- 	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
- 	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
-+	[_IOC_NR(VIDIOC_CREATE_BUFS)]      = "VIDIOC_CREATE_BUFS",
-+	[_IOC_NR(VIDIOC_PREPARE_BUF)]      = "VIDIOC_PREPARE_BUF",
- };
- #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
- 
-@@ -2096,6 +2098,40 @@ static long __video_do_ioctl(struct file *file,
- 		dbgarg(cmd, "type=0x%8.8x", sub->type);
- 		break;
- 	}
-+	case VIDIOC_CREATE_BUFS:
-+	{
-+		struct v4l2_create_buffers *create = arg;
-+
-+		if (!ops->vidioc_create_bufs)
-+			break;
-+		if (ret_prio) {
-+			ret = ret_prio;
-+			break;
-+		}
-+		ret = check_fmt(ops, create->format.type);
-+		if (ret)
-+			break;
-+
-+		ret = ops->vidioc_create_bufs(file, fh, create);
-+
-+		dbgarg(cmd, "count=%d @ %d\n", create->count, create->index);
-+		break;
-+	}
-+	case VIDIOC_PREPARE_BUF:
-+	{
-+		struct v4l2_buffer *b = arg;
-+
-+		if (!ops->vidioc_prepare_buf)
-+			break;
-+		ret = check_fmt(ops, b->type);
-+		if (ret)
-+			break;
-+
-+		ret = ops->vidioc_prepare_buf(file, fh, b);
-+
-+		dbgarg(cmd, "index=%d", b->index);
-+		break;
-+	}
- 	default:
- 		if (!ops->vidioc_default)
- 			break;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 9d14523..7d75dd1 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -653,6 +653,9 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_ERROR	0x0040
- #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
- #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
-+/* Cache handling flags */
-+#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0400
-+#define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x0800
- 
- /*
-  *	O V E R L A Y   P R E V I E W
-@@ -2099,6 +2102,15 @@ struct v4l2_dbg_chip_ident {
- 	__u32 revision;    /* chip revision, chip specific */
- } __attribute__ ((packed));
- 
-+/* VIDIOC_CREATE_BUFS */
-+struct v4l2_create_buffers {
-+	__u32			index;		/* output: buffers index...index + count - 1 have been created */
-+	__u32			count;
-+	enum v4l2_memory        memory;
-+	struct v4l2_format	format;		/* "type" is used always, the rest if sizeimage == 0 */
-+	__u32			reserved[8];
-+};
-+
- /*
-  *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-  *
-@@ -2189,6 +2201,11 @@ struct v4l2_dbg_chip_ident {
- #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
- #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
- 
-+/* Experimental, the below two ioctls may change over the next couple of kernel
-+   versions */
-+#define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
-+#define VIDIOC_PREPARE_BUF	_IOWR('V', 93, struct v4l2_buffer)
-+
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
- 
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index dd9f1e7..55cf8ae 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -122,6 +122,8 @@ struct v4l2_ioctl_ops {
- 	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
- 	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
- 
-+	int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
-+	int (*vidioc_prepare_buf)(struct file *file, void *fh, const struct v4l2_buffer *b);
- 
- 	int (*vidioc_overlay) (struct file *file, void *fh, unsigned int i);
- 	int (*vidioc_g_fbuf)   (struct file *file, void *fh,
+ static int soc_camera_open(struct file *file)
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 22e4bee..d60bad4 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -94,7 +94,7 @@ struct soc_camera_host_ops {
+ 			      struct soc_camera_device *);
+ 	int (*reqbufs)(struct soc_camera_device *, struct v4l2_requestbuffers *);
+ 	int (*querycap)(struct soc_camera_host *, struct v4l2_capability *);
+-	int (*set_bus_param)(struct soc_camera_device *, __u32);
++	int (*set_bus_param)(struct soc_camera_device *);
+ 	int (*get_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
+ 	int (*set_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
+ 	int (*enum_fsizes)(struct soc_camera_device *, struct v4l2_frmsizeenum *);
 -- 
 1.7.2.5
 
