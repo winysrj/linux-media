@@ -1,66 +1,267 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36655 "EHLO mx1.redhat.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51170 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752282Ab1IGQch (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Sep 2011 12:32:37 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p87GWZUJ010515
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 7 Sep 2011 12:32:37 -0400
-Date: Wed, 7 Sep 2011 11:32:41 -0400
-From: Josh Boyer <jwboyer@redhat.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Dave Jones <davej@redhat.com>,
-	Jonathan Nieder <jrnieder@gmail.com>,
-	Daniel Dickinson <libre@cshore.neomailbox.net>,
-	637740@bugs.debian.org
-Subject: Re: [PATCH] uvcvideo: Fix crash when linking entities
-Message-ID: <20110907153240.GI10700@zod.bos.redhat.com>
-References: <1315348148-7207-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	id S1754095Ab1I2L3E convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Sep 2011 07:29:04 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Taneja, Archit" <archit@ti.com>
+CC: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Semwal, Sumit" <sumit.semwal@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 29 Sep 2011 16:58:54 +0530
+Subject: RE: [PATCH v4 2/5] OMAP_VOUT: CLEANUP: Remove redundant code from
+ omap_vout_isr
+Message-ID: <19F8576C6E063C45BE387C64729E739404ECA5512B@dbde02.ent.ti.com>
+References: <1317221368-3301-1-git-send-email-archit@ti.com>
+ <1317221368-3301-3-git-send-email-archit@ti.com>
+In-Reply-To: <1317221368-3301-3-git-send-email-archit@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1315348148-7207-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 07, 2011 at 12:29:08AM +0200, Laurent Pinchart wrote:
-> The uvc_mc_register_entity() function wrongfully selects the
-> media_entity associated with a UVC entity when creating links. This
-> results in access to uninitialized media_entity structures and can hit a
-> BUG_ON statement in media_entity_create_link(). Fix it.
+
+> -----Original Message-----
+> From: Taneja, Archit
+> Sent: Wednesday, September 28, 2011 8:19 PM
+> To: Hiremath, Vaibhav
+> Cc: Valkeinen, Tomi; linux-omap@vger.kernel.org; Semwal, Sumit; linux-
+> media@vger.kernel.org; Taneja, Archit
+> Subject: [PATCH v4 2/5] OMAP_VOUT: CLEANUP: Remove redundant code from
+> omap_vout_isr
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Currently, there is a lot of redundant code is between DPI and VENC panels,
+> this
+> can be made common by moving out field/interlace specific code to a
+> separate
+> function called omapvid_handle_interlace_display(). There is no functional
+> change made.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
 > ---
->  drivers/media/video/uvc/uvc_entity.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+>  drivers/media/video/omap/omap_vout.c |  172 ++++++++++++++++-------------
+> -----
+>  1 files changed, 82 insertions(+), 90 deletions(-)
 > 
-> This patch should fix a v3.0 regression that results in a kernel crash as
-> reported in http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=637740 and
-> https://bugzilla.redhat.com/show_bug.cgi?id=735437.
+> diff --git a/drivers/media/video/omap/omap_vout.c
+> b/drivers/media/video/omap/omap_vout.c
+> index e64a83c..247ea31 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -524,10 +524,50 @@ static int omapvid_apply_changes(struct
+> omap_vout_device *vout)
+>  	return 0;
+>  }
 > 
-> Test results will be welcome.
+> +static int omapvid_handle_interlace_display(struct omap_vout_device *vout,
+> +		unsigned int irqstatus, struct timeval timevalue)
+> +{
+> +	u32 fid;
+> +
+> +	if (vout->first_int) {
+> +		vout->first_int = 0;
+> +		goto err;
+> +	}
+> +
+> +	if (irqstatus & DISPC_IRQ_EVSYNC_ODD)
+> +		fid = 1;
+> +	else if (irqstatus & DISPC_IRQ_EVSYNC_EVEN)
+> +		fid = 0;
+> +	else
+> +		goto err;
+> +
+> +	vout->field_id ^= 1;
+> +	if (fid != vout->field_id) {
+> +		if (fid == 0)
+> +			vout->field_id = fid;
+> +	} else if (0 == fid) {
+> +		if (vout->cur_frm == vout->next_frm)
+> +			goto err;
+> +
+> +		vout->cur_frm->ts = timevalue;
+> +		vout->cur_frm->state = VIDEOBUF_DONE;
+> +		wake_up_interruptible(&vout->cur_frm->done);
+> +		vout->cur_frm = vout->next_frm;
+> +	} else {
+> +		if (list_empty(&vout->dma_queue) ||
+> +				(vout->cur_frm != vout->next_frm))
+> +			goto err;
+> +	}
+> +
+> +	return vout->field_id;
+> +err:
+> +	return 0;
+> +}
+> +
+>  static void omap_vout_isr(void *arg, unsigned int irqstatus)
+>  {
+> -	int ret;
+> -	u32 addr, fid;
+> +	int ret, fid;
+> +	u32 addr;
+>  	struct omap_overlay *ovl;
+>  	struct timeval timevalue;
+>  	struct omapvideo_info *ovid;
+> @@ -548,107 +588,59 @@ static void omap_vout_isr(void *arg, unsigned int
+> irqstatus)
+>  	spin_lock(&vout->vbq_lock);
+>  	do_gettimeofday(&timevalue);
+> 
+> -	if (cur_display->type != OMAP_DISPLAY_TYPE_VENC) {
+> -		switch (cur_display->type) {
+> -		case OMAP_DISPLAY_TYPE_DPI:
+> -			if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+> -				goto vout_isr_err;
+> -			break;
+> -		case OMAP_DISPLAY_TYPE_HDMI:
+> -			if (!(irqstatus & DISPC_IRQ_EVSYNC_EVEN))
+> -				goto vout_isr_err;
+> -			break;
+> -		default:
+> +	switch (cur_display->type) {
+> +	case OMAP_DISPLAY_TYPE_DPI:
+> +		if (!(irqstatus & (DISPC_IRQ_VSYNC | DISPC_IRQ_VSYNC2)))
+>  			goto vout_isr_err;
+> -		}
+> -		if (!vout->first_int && (vout->cur_frm != vout->next_frm)) {
+> -			vout->cur_frm->ts = timevalue;
+> -			vout->cur_frm->state = VIDEOBUF_DONE;
+> -			wake_up_interruptible(&vout->cur_frm->done);
+> -			vout->cur_frm = vout->next_frm;
+> -		}
+> -		vout->first_int = 0;
+> -		if (list_empty(&vout->dma_queue))
+> +		break;
+> +	case OMAP_DISPLAY_TYPE_VENC:
+> +		fid = omapvid_handle_interlace_display(vout, irqstatus,
+> +				timevalue);
+> +		if (!fid)
+>  			goto vout_isr_err;
+> +		break;
+> +	case OMAP_DISPLAY_TYPE_HDMI:
+> +		if (!(irqstatus & DISPC_IRQ_EVSYNC_EVEN))
+> +			goto vout_isr_err;
+> +		break;
+> +	default:
+> +		goto vout_isr_err;
+> +	}
+> 
+> -		vout->next_frm = list_entry(vout->dma_queue.next,
+> -				struct videobuf_buffer, queue);
+> -		list_del(&vout->next_frm->queue);
+> -
+> -		vout->next_frm->state = VIDEOBUF_ACTIVE;
+> -
+> -		addr = (unsigned long) vout->queued_buf_addr[vout->next_frm-
+> >i]
+> -			+ vout->cropped_offset;
+> +	if (!vout->first_int && (vout->cur_frm != vout->next_frm)) {
+> +		vout->cur_frm->ts = timevalue;
+> +		vout->cur_frm->state = VIDEOBUF_DONE;
+> +		wake_up_interruptible(&vout->cur_frm->done);
+> +		vout->cur_frm = vout->next_frm;
+> +	}
+> 
+> -		/* First save the configuration in ovelray structure */
+> -		ret = omapvid_init(vout, addr);
+> -		if (ret)
+> -			printk(KERN_ERR VOUT_NAME
+> -				"failed to set overlay info\n");
+> -		/* Enable the pipeline and set the Go bit */
+> -		ret = omapvid_apply_changes(vout);
+> -		if (ret)
+> -			printk(KERN_ERR VOUT_NAME "failed to change mode\n");
+> -	} else {
+> +	vout->first_int = 0;
+> +	if (list_empty(&vout->dma_queue))
+> +		goto vout_isr_err;
+> 
+> -		if (vout->first_int) {
+> -			vout->first_int = 0;
+> -			goto vout_isr_err;
+> -		}
+> -		if (irqstatus & DISPC_IRQ_EVSYNC_ODD)
+> -			fid = 1;
+> -		else if (irqstatus & DISPC_IRQ_EVSYNC_EVEN)
+> -			fid = 0;
+> -		else
+> -			goto vout_isr_err;
+> +	vout->next_frm = list_entry(vout->dma_queue.next,
+> +			struct videobuf_buffer, queue);
+> +	list_del(&vout->next_frm->queue);
+> 
+> -		vout->field_id ^= 1;
+> -		if (fid != vout->field_id) {
+> -			if (0 == fid)
+> -				vout->field_id = fid;
+> +	vout->next_frm->state = VIDEOBUF_ACTIVE;
+> 
+> -			goto vout_isr_err;
+> -		}
+> -		if (0 == fid) {
+> -			if (vout->cur_frm == vout->next_frm)
+> -				goto vout_isr_err;
+> -
+> -			vout->cur_frm->ts = timevalue;
+> -			vout->cur_frm->state = VIDEOBUF_DONE;
+> -			wake_up_interruptible(&vout->cur_frm->done);
+> -			vout->cur_frm = vout->next_frm;
+> -		} else if (1 == fid) {
+> -			if (list_empty(&vout->dma_queue) ||
+> -					(vout->cur_frm != vout->next_frm))
+> -				goto vout_isr_err;
+> -
+> -			vout->next_frm = list_entry(vout->dma_queue.next,
+> -					struct videobuf_buffer, queue);
+> -			list_del(&vout->next_frm->queue);
+> -
+> -			vout->next_frm->state = VIDEOBUF_ACTIVE;
+> -			addr = (unsigned long)
+> -				vout->queued_buf_addr[vout->next_frm->i] +
+> -				vout->cropped_offset;
+> -			/* First save the configuration in ovelray structure */
+> -			ret = omapvid_init(vout, addr);
+> -			if (ret)
+> -				printk(KERN_ERR VOUT_NAME
+> -						"failed to set overlay info\n");
+> -			/* Enable the pipeline and set the Go bit */
+> -			ret = omapvid_apply_changes(vout);
+> -			if (ret)
+> -				printk(KERN_ERR VOUT_NAME
+> -						"failed to change mode\n");
+> -		}
+> +	addr = (unsigned long) vout->queued_buf_addr[vout->next_frm->i]
+> +		+ vout->cropped_offset;
+> 
+> -	}
+> +	/* First save the configuration in ovelray structure */
+> +	ret = omapvid_init(vout, addr);
+> +	if (ret)
+> +		printk(KERN_ERR VOUT_NAME
+> +			"failed to set overlay info\n");
+> +	/* Enable the pipeline and set the Go bit */
+> +	ret = omapvid_apply_changes(vout);
+> +	if (ret)
+> +		printk(KERN_ERR VOUT_NAME "failed to change mode\n");
+> 
+>  vout_isr_err:
+>  	spin_unlock(&vout->vbq_lock);
+>  }
+> 
+> -
+>  /* Video buffer call backs */
+> 
 
-I built a test kernel for Fedora with the patch and the submitter of the
-above bug has reported that the issue seems to be fixed.
+Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
-josh
+Thanks,
+Vaibhav
 
-> diff --git a/drivers/media/video/uvc/uvc_entity.c b/drivers/media/video/uvc/uvc_entity.c
-> index 48fea37..29e2399 100644
-> --- a/drivers/media/video/uvc/uvc_entity.c
-> +++ b/drivers/media/video/uvc/uvc_entity.c
-> @@ -49,7 +49,7 @@ static int uvc_mc_register_entity(struct uvc_video_chain *chain,
->  		if (remote == NULL)
->  			return -EINVAL;
->  
-> -		source = (UVC_ENTITY_TYPE(remote) != UVC_TT_STREAMING)
-> +		source = (UVC_ENTITY_TYPE(remote) == UVC_TT_STREAMING)
->  		       ? (remote->vdev ? &remote->vdev->entity : NULL)
->  		       : &remote->subdev.entity;
->  		if (source == NULL)
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+>  /*
+> --
+> 1.7.1
+
