@@ -1,94 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:65286 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751114Ab1ITNet (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4599 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754256Ab1I2HpA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Sep 2011 09:34:49 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LRT00035PPZLX@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 20 Sep 2011 14:34:47 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LRT00EJYPPZNX@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 20 Sep 2011 14:34:47 +0100 (BST)
-Date: Tue, 20 Sep 2011 15:34:43 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH] m5mols: Remove superfluous irq field from the platform data
- struct
+	Thu, 29 Sep 2011 03:45:00 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, m.szyprowski@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <1316525683-7648-1-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	viro@zeniv.linux.org.uk, Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv4 PATCH 2/6] ivtv: only start streaming in poll() if polling for input.
+Date: Thu, 29 Sep 2011 09:44:08 +0200
+Message-Id: <32566dbc40ed36da1ef324afd8a09813c1bc080c.1317281827.git.hans.verkuil@cisco.com>
+In-Reply-To: <1317282252-8290-1-git-send-email-hverkuil@xs4all.nl>
+References: <1317282252-8290-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <8488cb7deae3c3da6b079c8ebdcacce1f86dd433.1317281827.git.hans.verkuil@cisco.com>
+References: <8488cb7deae3c3da6b079c8ebdcacce1f86dd433.1317281827.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no need to put the IRQ number in driver's private platform
-data structure as this can also be passed through struct i2c_lient.irq.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/m5mols/m5mols_core.c |    6 +++---
- include/media/m5mols.h                   |    4 +---
- 2 files changed, 4 insertions(+), 6 deletions(-)
+ drivers/media/video/ivtv/ivtv-fileops.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
-index fb8e4a7..5d21d05 100644
---- a/drivers/media/video/m5mols/m5mols_core.c
-+++ b/drivers/media/video/m5mols/m5mols_core.c
-@@ -936,7 +936,7 @@ static int __devinit m5mols_probe(struct i2c_client *client,
- 		return -EINVAL;
- 	}
+diff --git a/drivers/media/video/ivtv/ivtv-fileops.c b/drivers/media/video/ivtv/ivtv-fileops.c
+index 38f0522..a931ecf 100644
+--- a/drivers/media/video/ivtv/ivtv-fileops.c
++++ b/drivers/media/video/ivtv/ivtv-fileops.c
+@@ -744,8 +744,9 @@ unsigned int ivtv_v4l2_dec_poll(struct file *filp, poll_table *wait)
+ 	return res;
+ }
  
--	if (!pdata->irq) {
-+	if (!client->irq) {
- 		dev_err(&client->dev, "Interrupt not assigned\n");
- 		return -EINVAL;
- 	}
-@@ -973,7 +973,7 @@ static int __devinit m5mols_probe(struct i2c_client *client,
+-unsigned int ivtv_v4l2_enc_poll(struct file *filp, poll_table * wait)
++unsigned int ivtv_v4l2_enc_poll(struct file *filp, poll_table *wait)
+ {
++	unsigned long req_events = poll_requested_events(wait);
+ 	struct ivtv_open_id *id = fh2id(filp->private_data);
+ 	struct ivtv *itv = id->itv;
+ 	struct ivtv_stream *s = &itv->streams[id->type];
+@@ -753,7 +754,8 @@ unsigned int ivtv_v4l2_enc_poll(struct file *filp, poll_table * wait)
+ 	unsigned res = 0;
  
- 	init_waitqueue_head(&info->irq_waitq);
- 	INIT_WORK(&info->work_irq, m5mols_irq_work);
--	ret = request_irq(pdata->irq, m5mols_irq_handler,
-+	ret = request_irq(client->irq, m5mols_irq_handler,
- 			  IRQF_TRIGGER_RISING, MODULE_NAME, sd);
- 	if (ret) {
- 		dev_err(&client->dev, "Interrupt request failed: %d\n", ret);
-@@ -998,7 +998,7 @@ static int __devexit m5mols_remove(struct i2c_client *client)
- 	struct m5mols_info *info = to_m5mols(sd);
+ 	/* Start a capture if there is none */
+-	if (!eof && !test_bit(IVTV_F_S_STREAMING, &s->s_flags)) {
++	if (!eof && !test_bit(IVTV_F_S_STREAMING, &s->s_flags) &&
++			(req_events & (POLLIN | POLLRDNORM))) {
+ 		int rc;
  
- 	v4l2_device_unregister_subdev(sd);
--	free_irq(info->pdata->irq, sd);
-+	free_irq(client->irq, sd);
- 
- 	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
- 	gpio_free(info->pdata->gpio_reset);
-diff --git a/include/media/m5mols.h b/include/media/m5mols.h
-index aac2c0e..4a825ae 100644
---- a/include/media/m5mols.h
-+++ b/include/media/m5mols.h
-@@ -18,15 +18,13 @@
- 
- /**
-  * struct m5mols_platform_data - platform data for M-5MOLS driver
-- * @irq:	GPIO getting the irq pin of M-5MOLS
-  * @gpio_reset:	GPIO driving the reset pin of M-5MOLS
-- * @reset_polarity: active state for gpio_rst pin, 0 or 1
-+ * @reset_polarity: active state for gpio_reset pin, 0 or 1
-  * @set_power:	an additional callback to the board setup code
-  *		to be called after enabling and before disabling
-  *		the sensor's supply regulators
-  */
- struct m5mols_platform_data {
--	int irq;
- 	int gpio_reset;
- 	u8 reset_polarity;
- 	int (*set_power)(struct device *dev, int on);
+ 		mutex_lock(&itv->serialize_lock);
 -- 
-1.7.6.3
+1.7.5.4
 
