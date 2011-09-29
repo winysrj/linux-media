@@ -1,61 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:37965 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932499Ab1IAPam (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 11:30:42 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Thu, 01 Sep 2011 17:30:23 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 19/19 v4] s5p-fimc: Remove single-planar capability flags
-In-reply-to: <1314891023-14227-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: mchehab@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Message-id: <1314891023-14227-20-git-send-email-s.nawrocki@samsung.com>
-References: <1314891023-14227-1-git-send-email-s.nawrocki@samsung.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:62035 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754732Ab1I2IMP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Sep 2011 04:12:15 -0400
+Date: Thu, 29 Sep 2011 10:12:11 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH 2/9 v10] V4L: add two new ioctl()s for multi-size
+ videobuffer management
+In-Reply-To: <4E84176B.9040003@iki.fi>
+Message-ID: <Pine.LNX.4.64.1109291011390.30865@axis700.grange>
+References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de>
+ <201109271306.21095.hverkuil@xs4all.nl> <Pine.LNX.4.64.1109271417280.5816@axis700.grange>
+ <201109271540.52649.hverkuil@xs4all.nl> <Pine.LNX.4.64.1109271847310.7004@axis700.grange>
+ <Pine.LNX.4.64.1109281502380.30317@axis700.grange>
+ <Pine.LNX.4.64.1109281653580.19957@axis700.grange>
+ <20110928201514.GD6180@valkosipuli.localdomain> <Pine.LNX.4.64.1109282235580.21237@axis700.grange>
+ <4E84176B.9040003@iki.fi>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver supports only multi-planar API and conversion to single-planar
-API should be done in libv4l2. Remove misleading single planar capability
-flags to avoid problems in applications and libv4l2.
+On Thu, 29 Sep 2011, Sakari Ailus wrote:
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Guennadi Liakhovetski wrote:
+> > On Wed, 28 Sep 2011, Sakari Ailus wrote:
+> > 
+> > > Hi Guennadi,
+> > > 
+> > > On Wed, Sep 28, 2011 at 04:56:11PM +0200, Guennadi Liakhovetski wrote:
+> > > > @@ -2099,6 +2103,15 @@ struct v4l2_dbg_chip_ident {
+> > > >   	__u32 revision;    /* chip revision, chip specific */
+> > > >   } __attribute__ ((packed));
+> > > > 
+> > > > +/* VIDIOC_CREATE_BUFS */
+> > > > +struct v4l2_create_buffers {
+> > > > +	__u32			index;		/* output: buffers
+> > > > index...index + count - 1 have been created */
+> > > > +	__u32			count;
+> > > > +	enum v4l2_memory        memory;
+> > > > +	struct v4l2_format	format;		/* "type" is used always, the
+> > > > rest if sizeimage == 0 */
+> > > > +	__u32			reserved[8];
+> > > > +};
+> > > 
+> > > What about the kerneldoc comments you wrote right after v6 on 1st
+> > > September
+> > > for v4l2_create_buffers and the same for the compat32 version?
+> > 
+> > Looks like someone is trying very hard to cause me a heart failure;-) They
+> > are in a separate patch:
+> 
+> No, I don't! :-) I'm just interested all the appropriate changes are in the
+> patchset. My understanding was you intended to add these changes to the
+> original patches.
+> 
+> Are you planning to put them to the same patchset still, or a different one?
+
+The same.
+
+Thanks
+Guennadi
 ---
- drivers/media/video/s5p-fimc/fimc-capture.c |    3 +--
- drivers/media/video/s5p-fimc/fimc-core.c    |    1 -
- 2 files changed, 1 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 9ca9462..de885db 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -615,8 +615,7 @@ static int fimc_vidioc_querycap_capture(struct file *file, void *priv,
- 	strncpy(cap->driver, fimc->pdev->name, sizeof(cap->driver) - 1);
- 	strncpy(cap->card, fimc->pdev->name, sizeof(cap->card) - 1);
- 	cap->bus_info[0] = 0;
--	cap->capabilities = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_CAPTURE |
--			    V4L2_CAP_VIDEO_CAPTURE_MPLANE;
-+	cap->capabilities = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_CAPTURE_MPLANE;
- 
- 	return 0;
- }
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 8978360..4158cb3 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -864,7 +864,6 @@ static int fimc_m2m_querycap(struct file *file, void *fh,
- 	strncpy(cap->card, fimc->pdev->name, sizeof(cap->card) - 1);
- 	cap->bus_info[0] = 0;
- 	cap->capabilities = V4L2_CAP_STREAMING |
--		V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT |
- 		V4L2_CAP_VIDEO_CAPTURE_MPLANE | V4L2_CAP_VIDEO_OUTPUT_MPLANE;
- 
- 	return 0;
--- 
-1.7.6
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
