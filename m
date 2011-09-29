@@ -1,102 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:37965 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932396Ab1IAPa3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2011 11:30:29 -0400
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:56847 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754721Ab1I2OWt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Sep 2011 10:22:49 -0400
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LSA009MVFXZ6F@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 29 Sep 2011 15:22:47 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LSA007HAFXYS6@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 29 Sep 2011 15:22:47 +0100 (BST)
+Date: Thu, 29 Sep 2011 16:22:36 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH v5 0/5] v4l: extended crop/compose api
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	mchehab@redhat.com
+Message-id: <1317306161-23696-1-git-send-email-t.stanislaws@samsung.com>
 MIME-version: 1.0
-Content-transfer-encoding: 7BIT
 Content-type: TEXT/PLAIN
-Date: Thu, 01 Sep 2011 17:30:04 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 0/19 v4] s5p-fimc driver conversion to media controller and
- control framework
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: mchehab@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-Message-id: <1314891023-14227-1-git-send-email-s.nawrocki@samsung.com>
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hello Everyone,
 
-following is a fourth version of the patchset converting s5p-fimc driver
-to the media controller API and the new control framework.
+This is the fifth version of extended crop/compose RFC.  The patch-set
+introduces new ioctls to V4L2 API for the configuration of the selection
+rectangles like crop and compose areas. Please refer to the link below for more
+details about the API development.
 
-Mauro, could you please have a look at the patches and let me know of any doubts?
-I tried to provide possibly detailed description of what each patch does and why.
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/32152
 
-The changeset is available at:
-  http://git.infradead.org/users/kmpark/linux-2.6-samsung
-  branch: v4l_fimc_for_mauro
+Changelog:
 
-on top of patches from Marek's 'Videobuf2 & FIMC fixes" pull request
-which this series depends on.
+v4:
+- typos, style fixes
+- added piorority support to VIDIOC_S_SELECTION
+- removed deprecation of current crop API
+- marked selection as experimental API
+- removed references to pipeline configuration rules
+- added subsection about deficiencies of current cropping API
+- moved patches to binaries to separate patch
+- updated V4L2 changelog
 
-Changes since v3:
- - more detailed commit descriptions
- - add missing dependency on EXPERIMENTAL and mark the driver as experimental
-   in the config menu
- - removed the first patch as of v3 series, it has been posted separately
- - added 2 new patches: 18/19, 19/19
- - moved the link_setup capture video node media entity operation to the capture
-   subdev entity; the link_setup op prevented having 2 active source attached to
-   single data sink, there is no need for this at the video node entity as it
-   has only an immutable link; Instead we guard the number of sources being 
-   connected to the FIMC capture subdev
- - rebased onto recent vb2 modifications changing the queue initialization order
- - s/fimc_start_capture/fimc_init_capture, 
-   s/fimc_capture_apply_cfg/fimc_capture_config_update
- - slightly improved the comments and fixed typos 
+v3:
+- added target for padded buffer
+- reduced number of constraint flags to SIZE_LE and SIZE_GE
+- removed try flag
+- added documentation for selection ioctls
+- added documentation for new model of cropping, composing and scaling
+- support of selection api for s5p-tv
+- fixed returning ioctl's structures on failure
 
-Changes since v2:
-- reworked (runtime) power management;
-- added pm_runtime_get_sync/pm_runtime_put around sensor registration
-  code so the clock for sensors is enabled during host driver's probe();
-- reworked try_crop operation handler to support multiple of the prescaler
-  ratio relationship constraint for format at the sink pad;
-- corrected fimc_md_unregister_entities() function
+v2:
+- reduced number of hints and its semantics to be more practical and less
+  restrictive
+- combined EXTCROP and COMPOSE ioctls into VIDIOC_{S/G}_SELECTION
+- introduced crop and compose targets
+- introduced try flag that prevents passing configuration to a hardware
+- added usage examples
 
+Tomasz Stanislawski (5):
+  v4l: add support for selection api
+  doc: v4l: add binary images for selection API
+  doc: v4l: add documentation for selection API
+  v4l: emulate old crop API using extended crop/compose API
+  v4l: s5p-tv: mixer: add support for selection API
 
-Sylwester Nawrocki (19):
-  s5p-fimc: Remove registration of video nodes from probe()
-  s5p-fimc: Remove sclk_cam clock handling
-  s5p-fimc: Limit number of available inputs to one
-  s5p-fimc: Remove sensor management code from FIMC capture driver
-  s5p-fimc: Remove v4l2_device from video capture and m2m driver
-  s5p-fimc: Add the media device driver
-  s5p-fimc: Conversion to use struct v4l2_fh
-  s5p-fimc: Convert to the new control framework
-  s5p-fimc: Add media operations in the capture entity driver
-  s5p-fimc: Add PM helper function for streaming control
-  s5p-fimc: Correct color format enumeration
-  s5p-fimc: Convert to use media pipeline operations
-  s5p-fimc: Add subdev for the FIMC processing block
-  s5p-fimc: Add support for JPEG capture
-  s5p-fimc: Add v4l2_device notification support for single frame
-    capture
-  s5p-fimc: Use consistent names for the buffer list functions
-  s5p-fimc: Add runtime PM support in the camera capture driver
-  s5p-fimc: Correct crop offset alignment on exynos4
-  s5p-fimc: Remove single-planar capability flags
+ Documentation/DocBook/media/constraints.png.b64    |  134 +
+ Documentation/DocBook/media/selection.png.b64      | 2937 ++++++++++++++++++++
+ Documentation/DocBook/media/v4l/common.xml         |    2 +
+ Documentation/DocBook/media/v4l/compat.xml         |    9 +
+ Documentation/DocBook/media/v4l/selection-api.xml  |  327 +++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    1 +
+ .../DocBook/media/v4l/vidioc-g-selection.xml       |  303 ++
+ drivers/media/video/s5p-tv/mixer.h                 |   14 +-
+ drivers/media/video/s5p-tv/mixer_grp_layer.c       |  157 +-
+ drivers/media/video/s5p-tv/mixer_video.c           |  339 ++-
+ drivers/media/video/s5p-tv/mixer_vp_layer.c        |  108 +-
+ drivers/media/video/v4l2-compat-ioctl32.c          |    2 +
+ drivers/media/video/v4l2-ioctl.c                   |  120 +-
+ include/linux/videodev2.h                          |   46 +
+ include/media/v4l2-ioctl.h                         |    4 +
+ 15 files changed, 4295 insertions(+), 208 deletions(-)
+ create mode 100644 Documentation/DocBook/media/constraints.png.b64
+ create mode 100644 Documentation/DocBook/media/selection.png.b64
+ create mode 100644 Documentation/DocBook/media/v4l/selection-api.xml
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-g-selection.xml
 
- drivers/media/video/Kconfig                 |    5 +-
- drivers/media/video/s5p-fimc/Makefile       |    2 +-
- drivers/media/video/s5p-fimc/fimc-capture.c | 1416 ++++++++++++++++++--------
- drivers/media/video/s5p-fimc/fimc-core.c    |  884 ++++++++---------
- drivers/media/video/s5p-fimc/fimc-core.h    |  201 +++--
- drivers/media/video/s5p-fimc/fimc-mdevice.c |  857 ++++++++++++++++
- drivers/media/video/s5p-fimc/fimc-mdevice.h |  118 +++
- drivers/media/video/s5p-fimc/fimc-reg.c     |   74 +-
- drivers/media/video/s5p-fimc/regs-fimc.h    |    8 +-
- include/media/s5p_fimc.h                    |   11 +
- 10 files changed, 2551 insertions(+), 1025 deletions(-)
- create mode 100644 drivers/media/video/s5p-fimc/fimc-mdevice.c
- create mode 100644 drivers/media/video/s5p-fimc/fimc-mdevice.h
-
-
-Regards,
---
-Sylwester Nawrocki
-Samsung Poland R&D Center
+-- 
+1.7.6
 
