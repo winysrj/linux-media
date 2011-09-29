@@ -1,75 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:13266 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752725Ab1IEPZQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Sep 2011 11:25:16 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [media-ctl][PATCHv5 4/5] libmediactl: simplify code by introducing close_and_free inliner
-Date: Mon,  5 Sep 2011 18:24:06 +0300
-Message-Id: <cbb103fda42ba7212fb45d72177599615c73d122.1315236211.git.andriy.shevchenko@linux.intel.com>
-In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1315236211.git.andriy.shevchenko@linux.intel.com>
-References: <201109051657.21646.laurent.pinchart@ideasonboard.com>
- <6075971b959c2e808cd4ceec6540dc09b101346f.1315236211.git.andriy.shevchenko@linux.intel.com>
-In-Reply-To: <6075971b959c2e808cd4ceec6540dc09b101346f.1315236211.git.andriy.shevchenko@linux.intel.com>
-References: <6075971b959c2e808cd4ceec6540dc09b101346f.1315236211.git.andriy.shevchenko@linux.intel.com>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3118 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754188Ab1I2Hoy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Sep 2011 03:44:54 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	viro@zeniv.linux.org.uk, Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: [RFCv4 PATCH 0/6]: add poll_requested_events() function
+Date: Thu, 29 Sep 2011 09:44:06 +0200
+Message-Id: <1317282252-8290-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- src/media.c |   15 +++++++++------
- 1 files changed, 9 insertions(+), 6 deletions(-)
+This is the fourth version of this patch series, incorporating the comments
+from Andrew Morton: I've split up the multiple-assignment line and added a
+comment explaining the purpose of the new function in poll.h.
 
-diff --git a/src/media.c b/src/media.c
-index 657b6c4..6c03369 100644
---- a/src/media.c
-+++ b/src/media.c
-@@ -403,6 +403,12 @@ static int media_enum_entities(struct media_private *priv)
- 	return ret;
- }
- 
-+static inline void close_and_free(struct media_private *priv)
-+{
-+	free(priv);
-+	media_close(priv->media);
-+}
-+
- struct media_device *media_open(const char *name, int verbose)
- {
- 	struct media_device *media;
-@@ -440,8 +446,7 @@ struct media_device *media_open(const char *name, int verbose)
- 	ret = media_udev_open(priv);
- 	if (ret < 0) {
- 		printf("%s: Can't get udev context\n", __func__);
--		free(priv);
--		media_close(media);
-+		close_and_free(priv);
- 		return NULL;
- 	}
- 
-@@ -457,8 +462,7 @@ struct media_device *media_open(const char *name, int verbose)
- 	if (ret < 0) {
- 		printf("%s: Unable to enumerate entities for device %s (%s)\n",
- 			__func__, name, strerror(-ret));
--		free(priv);
--		media_close(media);
-+		close_and_free(priv);
- 		return NULL;
- 	}
- 
-@@ -471,8 +475,7 @@ struct media_device *media_open(const char *name, int verbose)
- 	if (ret < 0) {
- 		printf("%s: Unable to enumerate pads and linksfor device %s\n",
- 			__func__, name);
--		free(priv);
--		media_close(media);
-+		close_and_free(priv);
- 		return NULL;
- 	}
- 
--- 
-1.7.5.4
+It's also rebased to the current staging/for_v3.2 branch of the linux-media
+tree.
+
+There are no other changes compared to the RFCv3 patches.
+
+I'd very much like to get an Acked-by (or additional comments) from Al or
+Andrew! This patch series really should go into v3.2 which is getting close.
+
+Normally I would have posted this v4 3 weeks ago, but due to Real Life
+interference in the past few weeks I was unable to. But I'm back, and this is
+currently the highest priority for me.
+
+Regards,
+
+	Hans
 
