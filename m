@@ -1,67 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:39186 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750958Ab1IIQTo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2011 12:19:44 -0400
-Date: Fri, 9 Sep 2011 19:19:40 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Subject: Re: [PATCH v2 0/8] RFC for Media Controller capture driver for
- DM365
-Message-ID: <20110909161940.GJ1724@valkosipuli.localdomain>
-References: <1314630439-1122-1-git-send-email-manjunath.hadli@ti.com>
- <20110831213032.GT12368@valkosipuli.localdomain>
- <B85A65D85D7EB246BE421B3FB0FBB593025743F3CE@dbde02.ent.ti.com>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:35173 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754636Ab1I2GKm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Sep 2011 02:10:42 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593025743F3CE@dbde02.ent.ti.com>
+In-Reply-To: <1317221368-3301-3-git-send-email-archit@ti.com>
+References: <1317221368-3301-1-git-send-email-archit@ti.com> <1317221368-3301-3-git-send-email-archit@ti.com>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Date: Thu, 29 Sep 2011 11:40:21 +0530
+Message-ID: <CAB2ybb-XPK-v4DqhjrNirqK+2osRSHSr5DRPAi_djsNG3XBYwg@mail.gmail.com>
+Subject: Re: [PATCH v4 2/5] OMAP_VOUT: CLEANUP: Remove redundant code from omap_vout_isr
+To: Archit Taneja <archit@ti.com>
+Cc: hvaibhav@ti.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 09, 2011 at 07:10:49PM +0530, Hadli, Manjunath wrote:
-> Hi Sakari,
-> 
-> On Thu, Sep 01, 2011 at 03:00:32, Sakari Ailus wrote:
-> > Hi Manju,
-> > 
-> > Do you have the media device grap that would be typical for this hardware produced by media-ctl? That can be converted to postscript using dotfile.
-> > 
-> > this would make it a little easier to understan this driver. Thanks.
-> 
-> Sure. But can you be a little more elaborate on how you need this
-> information? If you can tell me in little more detail about this that will
-> help me make the information in a way that everyone can understand.
-
-Preferrably in PostScript format so it's easy to visualise the layout of the
-hardware that the driver supports, as the OMAP 3 ISP example was.
-
-> Thanks and Regards,
-> -Manju
-> 
-> 
-> > 
-> > On Mon, Aug 29, 2011 at 08:37:11PM +0530, Manjunath Hadli wrote:
-> > > changes from last patch set:
-> > > 1. Made changes based on Sakari's feedback mainly:
-> > >         a. returned early to allow unindenting
-> > >         b. reformatting to shift the code to left where possible
-> > >         c. changed hex numbers to lower case
-> > >         d. corrected the defines according to module names.
-> > >         e. magic numbers removed.
-> > >         f. changed non-integer returning functions to void
-> > >         g. removed unwanted paranthses.
-> > >         h. fixed error codes.
-> > >         i. fixed some RESET_BIt code to what it was intended for.
-> > > 2. reorganized the header files to move the kernel-only headers along 
-> > > with the c files and interface headers in the include folder.
-> > > 
-> ...
-> 
-> 
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+On Wed, Sep 28, 2011 at 8:19 PM, Archit Taneja <archit@ti.com> wrote:
+> Currently, there is a lot of redundant code is between DPI and VENC panels, this
+> can be made common by moving out field/interlace specific code to a separate
+> function called omapvid_handle_interlace_display(). There is no functional
+> change made.
+>
+> Signed-off-by: Archit Taneja <archit@ti.com>
+Reviewed-by: Sumit Semwal <sumit.semwal@ti.com>
+<snip>
