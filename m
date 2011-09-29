@@ -1,67 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm10-vm2.bullet.mail.ne1.yahoo.com ([98.138.90.158]:48793 "HELO
-	nm10-vm2.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755050Ab1IGErm convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Sep 2011 00:47:42 -0400
-Message-ID: <1315370468.62946.YahooMailNeo@web31707.mail.mud.yahoo.com>
-Date: Tue, 6 Sep 2011 21:41:08 -0700 (PDT)
-From: Lothsahn <lothsahn@yahoo.com>
-Reply-To: Lothsahn <lothsahn@yahoo.com>
-Subject: Compiling on 2.6.32-31-generic fails (nightly build server has same problem)
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3740 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754609Ab1I2HpA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Sep 2011 03:45:00 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	viro@zeniv.linux.org.uk, Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv4 PATCH 4/6] videobuf: only start streaming in poll() if so requested by the poll mask.
+Date: Thu, 29 Sep 2011 09:44:10 +0200
+Message-Id: <0ff6a902e6c8cf127bd60e813996d155fb2578a3.1317281827.git.hans.verkuil@cisco.com>
+In-Reply-To: <1317282252-8290-1-git-send-email-hverkuil@xs4all.nl>
+References: <1317282252-8290-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <8488cb7deae3c3da6b079c8ebdcacce1f86dd433.1317281827.git.hans.verkuil@cisco.com>
+References: <8488cb7deae3c3da6b079c8ebdcacce1f86dd433.1317281827.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm using Mythbuntu 10.04 LTS with the 2.6.32-31-generic kernel.  I 
-tried to compile the latest v4l code, and I'm getting the following 
-compile error:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-/home/lowmanator/media_build/v4l/tda18271-common.c: In function '_tda_printk':
-/home/lowmanator/media_build/v4l/tda18271-common.c:682: error: storage size of 'vaf' isn't known
-/home/lowmanator/media_build/v4l/tda18271-common.c:682: warning: unused variable 'vaf'
-make[3]: *** [/home/lowmanator/media_build/v4l/tda18271-common.o] Error 1
-make[2]: ***
-[_module_/home/lowmanator/media_build/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.32-31-generic'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/lowmanator/media_build/v4l'
-make: *** [all] Error
-2
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/videobuf-core.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+index de4fa4e..ffdf59c 100644
+--- a/drivers/media/video/videobuf-core.c
++++ b/drivers/media/video/videobuf-core.c
+@@ -1129,6 +1129,7 @@ unsigned int videobuf_poll_stream(struct file *file,
+ 				  struct videobuf_queue *q,
+ 				  poll_table *wait)
+ {
++	unsigned long req_events = poll_requested_events(wait);
+ 	struct videobuf_buffer *buf = NULL;
+ 	unsigned int rc = 0;
+ 
+@@ -1137,7 +1138,7 @@ unsigned int videobuf_poll_stream(struct file *file,
+ 		if (!list_empty(&q->stream))
+ 			buf = list_entry(q->stream.next,
+ 					 struct videobuf_buffer, stream);
+-	} else {
++	} else if (req_events & (POLLIN | POLLRDNORM)) {
+ 		if (!q->reading)
+ 			__videobuf_read_start(q);
+ 		if (!q->reading) {
+-- 
+1.7.5.4
 
-
-Just to try to workaround the error for now (and just because I'm a sadist for failure), I've 
-removed the entire tda_printk method from that module, hoping that my 
-hd-pvr isn't using the tda18271 chip :)  When I do this and recontinue 
-the make, I then fail on the following error:
-  CC [M]  /home/lowmanator/media_build/v4l/imon.o
-/home/lowmanator/media_build/v4l/imon.c: In function 'send_packet':
-/home/lowmanator/media_build/v4l/imon.c:521: error: implicit declaration of function 'pr_err_ratelimited'
-make[3]: *** [/home/lowmanator/media_build/v4l/imon.o] Error 1
-make[2]: *** [_module_/home/lowmanator/media_build/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.32-31-generic'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/lowmanator/media_build/v4l'
-make: *** [all] Error
-2
-
-
-imon.c sounds a little more 
-centralized than tda18271, so I didn't feel like ripping out the 
-"send_packet" method :)  I've stopped for now.
-
-I've also noticed that these errors are reported in the nightly builds 
-for the last week or so (I don't have nightly logs from before that).
-
-
-
-Any idea how I can workaround these two errors (without changing out my 
-entire kernel)?  I have a brand new shiny F2 revision HD-PVR and I'd 
-really like to use it...
-
-Thanks,
-Lothsahn
