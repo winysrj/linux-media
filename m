@@ -1,70 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54974 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932424Ab1IMUEK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Sep 2011 16:04:10 -0400
-Message-ID: <4E6FB736.4080202@iki.fi>
-Date: Tue, 13 Sep 2011 23:04:06 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from oproxy8-pub.bluehost.com ([69.89.22.20]:44067 "HELO
+	oproxy8-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750816Ab1I3WiQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Sep 2011 18:38:16 -0400
+Message-ID: <4E8644D5.6080307@xenotime.net>
+Date: Fri, 30 Sep 2011 15:38:13 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
 MIME-Version: 1.0
-To: Chris Rankin <rankincj@yahoo.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] EM28xx - fix deadlock when unplugging and replugging
- a DVB adapter
-References: <1313851233.95109.YahooMailClassic@web121704.mail.ne1.yahoo.com> <4E4FCC8D.3070305@redhat.com> <4E50FAC7.6080807@yahoo.com>
-In-Reply-To: <4E50FAC7.6080807@yahoo.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Paul Gortmaker <paul.gortmaker@windriver.com>
+CC: mchehab@redhat.com, sfr@canb.auug.org.au,
+	linux-next@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] drivers/media: fix dependencies in video mt9t001/mt9p031
+References: <4E83A02F.2020309@xenotime.net> <1317418491-26513-1-git-send-email-paul.gortmaker@windriver.com>
+In-Reply-To: <1317418491-26513-1-git-send-email-paul.gortmaker@windriver.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/21/2011 03:32 PM, Chris Rankin wrote:
-> It occurred to me this morning that since we're no longer supposed to be
-> holding the device lock when taking the device list lock, then the
-> em28xx_usb_disconnect() function needs changing too.
->
-> Signed-off-by: Chris Rankin <rankincj@yahoo.com>
+On 09/30/11 14:34, Paul Gortmaker wrote:
+> Both mt9t001.c and mt9p031.c have two identical issues, those
+> being that they will need module.h inclusion for the upcoming
+> cleanup going on there, and that their dependencies don't limit
+> selection of configs that will fail to compile as follows:
+> 
+> drivers/media/video/mt9p031.c:457: error: implicit declaration of function ‘v4l2_subdev_get_try_crop’
+> drivers/media/video/mt9t001.c:787: error: ‘struct v4l2_subdev’ has no member named ‘entity’
+> 
+> The related config options are CONFIG_MEDIA_CONTROLLER and
+> CONFIG_VIDEO_V4L2_SUBDEV_API.  Looking at the code, it appears
+> that the driver was never intended to work without these enabled,
+> so add a dependency on CONFIG_VIDEO_V4L2_SUBDEV_API, which in
+> turn already has a dependency on CONFIG_MEDIA_CONTROLLER.
+> 
+> Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 
-I ran that also when re-plugging both PCTV 290e and 460e as today 
-LinuxTV 3.2 tree. Seems like this patch is still missing and maybe some 
-more.
+Acked-by: Randy Dunlap <rdunlap@xenotime.net>
 
-git log drivers/media/video/em28xx/ |grep -A3 "Author: Chris Rankin"
-Author: Chris Rankin <rankincj@yahoo.com>
-Date:   Tue Sep 13 12:23:39 2011 +0300
+Thanks, Paul.
 
-     em28xx: ERROR: "em28xx_add_into_devlist" 
-[drivers/media/video/em28xx/em28xx.ko] undefined!
---
-Author: Chris Rankin <rankincj@yahoo.com>
-Date:   Sat Aug 20 16:01:26 2011 -0300
+> 
+> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> index 75e43c0..d285c8c 100644
+> --- a/drivers/media/video/Kconfig
+> +++ b/drivers/media/video/Kconfig
+> @@ -469,14 +469,14 @@ config VIDEO_OV7670
+>  
+>  config VIDEO_MT9P031
+>  	tristate "Aptina MT9P031 support"
+> -	depends on I2C && VIDEO_V4L2
+> +	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+>  	---help---
+>  	  This is a Video4Linux2 sensor-level driver for the Aptina
+>  	  (Micron) mt9p031 5 Mpixel camera.
+>  
+>  config VIDEO_MT9T001
+>  	tristate "Aptina MT9T001 support"
+> -	depends on I2C && VIDEO_V4L2
+> +	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+>  	---help---
+>  	  This is a Video4Linux2 sensor-level driver for the Aptina
+>  	  (Micron) mt0t001 3 Mpixel camera.
+> diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
+> index 8bcb1ce..fc9603f 100644
+> --- a/drivers/media/video/mt9p031.c
+> +++ b/drivers/media/video/mt9p031.c
+> @@ -14,6 +14,7 @@
+>  
+>  #include <linux/delay.h>
+>  #include <linux/device.h>
+> +#include <linux/module.h>
+>  #include <linux/i2c.h>
+>  #include <linux/log2.h>
+>  #include <linux/pm.h>
+> diff --git a/drivers/media/video/mt9t001.c b/drivers/media/video/mt9t001.c
+> index ae75d82..280d01d 100644
+> --- a/drivers/media/video/mt9t001.c
+> +++ b/drivers/media/video/mt9t001.c
+> @@ -13,6 +13,7 @@
+>   */
+>  
+>  #include <linux/i2c.h>
+> +#include <linux/module.h>
+>  #include <linux/log2.h>
+>  #include <linux/slab.h>
+>  #include <linux/videodev2.h>
 
-     [media] em28xx: don't sleep on disconnect
---
-Author: Chris Rankin <rankincj@yahoo.com>
-Date:   Sat Aug 20 08:31:05 2011 -0300
 
-     [media] em28xx: move printk lines outside mutex lock
---
-Author: Chris Rankin <rankincj@yahoo.com>
-Date:   Sat Aug 20 08:28:17 2011 -0300
-
-     [media] em28xx: clean up resources should init fail
---
-Author: Chris Rankin <rankincj@yahoo.com>
-Date:   Sat Aug 20 08:21:03 2011 -0300
-
-     [media] em28xx: use atomic bit operations for devices-in-use mask
---
-Author: Chris Rankin <rankincj@yahoo.com>
-Date:   Sat Aug 20 08:08:34 2011 -0300
-
-     [media] em28xx: pass correct buffer size to snprintf
-
-
-regards
-Antti
 -- 
-http://palosaari.fi/
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
