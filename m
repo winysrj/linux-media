@@ -1,220 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54687 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752521Ab1IEKar (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 06:30:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [media-ctl][PATCHv4 3/3] libmediactl: get the device name via udev
-Date: Mon, 5 Sep 2011 12:31:24 +0200
-Cc: linux-media@vger.kernel.org
-References: <201109021326.14340.laurent.pinchart@ideasonboard.com> <6075971b959c2e808cd4ceec6540dc09b101346f.1314968925.git.andriy.shevchenko@linux.intel.com> <62c72745987f6490497a54512d1569490c173af3.1314968925.git.andriy.shevchenko@linux.intel.com>
-In-Reply-To: <62c72745987f6490497a54512d1569490c173af3.1314968925.git.andriy.shevchenko@linux.intel.com>
+Received: from mail-yi0-f46.google.com ([209.85.218.46]:63694 "EHLO
+	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758618Ab1I3Muu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Sep 2011 08:50:50 -0400
+Received: by yib18 with SMTP id 18so1459482yib.19
+        for <linux-media@vger.kernel.org>; Fri, 30 Sep 2011 05:50:49 -0700 (PDT)
+Message-ID: <4E85BB23.70300@linaro.org>
+Date: Fri, 30 Sep 2011 18:20:43 +0530
+From: Subash Patel <subash.ramaswamy@linaro.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Kamil Debski <k.debski@samsung.com>
+CC: 'Sachin Kamat' <sachin.kamat@linaro.org>,
+	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	mchehab@infradead.org, patches@linaro.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 1/1] [media] MFC: Change MFC firmware binary name
+References: <1317380162-16344-1-git-send-email-sachin.kamat@linaro.org> <001201cc7f69$9e690c80$db3b2580$%debski@samsung.com>
+In-Reply-To: <001201cc7f69$9e690c80$db3b2580$%debski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109051231.24430.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+Hello,
 
-On Friday 02 September 2011 15:09:28 Andy Shevchenko wrote:
-> If configured with --with-libudev, the libmediactl is built with libudev
-> support. It allows to get the device name in right way in the modern linux
-> systems.
+There is option in menu->"Device Drivers"->"Generic Driver 
+Options"->"External firmware blobs to build into the kernel binary".
+I have used this many times instead of /lib/firmware mechanism. If 
+someone chooses to add firmware in that way, and gives different name, 
+then this code too can break. So I have proposed another way to solve 
+that. Have a look into this.
 
-Thanks for the patch. We're nearly there :-)
-
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  configure.in    |   22 ++++++++++++++++
->  src/Makefile.am |    2 +
->  src/media.c     |   73
-> +++++++++++++++++++++++++++++++++++++++++++++++++++++++ src/media.h     | 
->   1 +
->  4 files changed, 98 insertions(+), 0 deletions(-)
-> 
-> diff --git a/configure.in b/configure.in
-> index fd4c70c..983023e 100644
-> --- a/configure.in
-> +++ b/configure.in
-> @@ -13,6 +13,28 @@ AC_PROG_LIBTOOL
-> 
->  # Checks for libraries.
-> 
-> +AC_ARG_WITH([libudev],
-> +    AS_HELP_STRING([--with-libudev],
-> +        [Enable libudev to detect a device name]))
-> +
-> +AS_IF([test "x$with_libudev" = "xyes"],
-> +    [PKG_CHECK_MODULES(libudev, libudev, have_libudev=yes,
-> have_libudev=no)], +    [have_libudev=no])
-> +
-> +AS_IF([test "x$have_libudev" = "xyes"],
-> +    [
-> +        AC_DEFINE([HAVE_LIBUDEV], [], [Use libudev])
-> +        LIBUDEV_CFLAGS="$libudev_CFLAGS"
-> +        LIBUDEV_LIBS="$libudev_LIBS"
-> +        AC_SUBST(LIBUDEV_CFLAGS)
-> +        AC_SUBST(LIBUDEV_LIBS)
-> +    ],
-> +    [AS_IF([test "x$with_libudev" = "xyes"],
-> +        [AC_MSG_ERROR([libudev requested but not found])
-> +    ])
-> +])
-> +
-> +
->  # Kernel headers path.
->  AC_ARG_WITH(kernel-headers,
->      [AC_HELP_STRING([--with-kernel-headers=DIR],
-> diff --git a/src/Makefile.am b/src/Makefile.am
-> index 267ea83..52628d2 100644
-> --- a/src/Makefile.am
-> +++ b/src/Makefile.am
-> @@ -5,6 +5,8 @@ mediactl_includedir=$(includedir)/mediactl
->  mediactl_include_HEADERS = media.h subdev.h
-> 
->  bin_PROGRAMS = media-ctl
-> +media_ctl_CFLAGS = $(LIBUDEV_CFLAGS)
-> +media_ctl_LDFLAGS = $(LIBUDEV_LIBS)
->  media_ctl_SOURCES = main.c options.c options.h tools.h
->  media_ctl_LDADD = libmediactl.la libv4l2subdev.la
-> 
-> diff --git a/src/media.c b/src/media.c
-> index 5d3ff7c..dae649a 100644
-> --- a/src/media.c
-> +++ b/src/media.c
-> @@ -17,6 +17,8 @@
->   * with this program; if not, write to the Free Software Foundation, Inc.,
->   */
-> 
-> +#include "config.h"
-> +
->  #include <sys/ioctl.h>
->  #include <sys/stat.h>
->  #include <sys/types.h>
-> @@ -245,6 +247,64 @@ static int media_enum_links(struct media_device
-> *media) return ret;
->  }
-> 
-> +#ifdef HAVE_LIBUDEV
-> +
-> +#include <libudev.h>
-> +
-> +static inline int media_udev_open(struct media_device *media)
-> +{
-> +	media->priv = udev_new();
-> +	if (media->priv == NULL)
-> +		return -ENOMEM;
-> +	return 0;
-> +}
-> +
-> +static inline void media_udev_close(struct media_device *media)
-> +{
-> +	udev_unref(media->priv);
-> +}
-> +
-> +static int media_get_devname_udev(struct media_device *media,
-> +		struct media_entity *entity)
-> +{
-> +	int ret = -ENODEV;
-> +	struct udev *udev = media->priv;
-> +	dev_t devnum;
-> +	struct udev_device *device;
-> +	const char *p;
-> +
-> +	if (udev == NULL)
-> +		return -EINVAL;
-> +
-> +	devnum = makedev(entity->info.v4l.major, entity->info.v4l.minor);
-> +	printf("looking up device: %u:%u\n", major(devnum), minor(devnum));
-> +	device = udev_device_new_from_devnum(udev, 'c', devnum);
-> +	if (device) {
-> +		p = udev_device_get_devnode(device);
-> +		if (p)
-> +			snprintf(entity->devname, sizeof(entity->devname), "%s", p);
-> +		ret = 0;
-> +	}
-> +
-> +	udev_device_unref(device);
-> +
-> +	return ret;
-> +}
-> +
-> +#else	/* HAVE_LIBUDEV */
-> +
-> +static inline int media_udev_open(struct media_device *media) { return 0;
-> } +
-> +static inline void media_udev_close(struct media_device *media) { }
-> +
-> +static inline int media_get_devname_udev(struct media_device *media,
-> +		struct media_entity *entity)
-> +{
-> +	return -ENOTSUP;
-> +}
-> +
-> +#endif	/* HAVE_LIBUDEV */
-> +
->  static int media_get_devname_sysfs(struct media_entity *entity)
->  {
->  	struct stat devstat;
-> @@ -324,6 +384,11 @@ static int media_enum_entities(struct media_device
-> *media) media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV)
->  			continue;
-> 
-> +		/* Try to get the device name via udev */
-> +		if (!media_get_devname_udev(media, entity))
-> +			continue;
-> +
-> +		/* Fall back to get the device name via sysfs */
->  		media_get_devname_sysfs(entity);
->  	}
-> 
-> @@ -351,6 +416,13 @@ struct media_device *media_open(const char *name, int
-> verbose) return NULL;
->  	}
-> 
-> +	ret = media_udev_open(media);
-> +	if (ret < 0) {
-> +		printf("%s: Can't get udev context\n", __func__);
-> +		media_close(media);
-> +		return NULL;
-> +	}
-> +
->  	if (verbose)
->  		printf("Enumerating entities\n");
-> 
-> @@ -395,6 +467,7 @@ void media_close(struct media_device *media)
->  	}
-> 
->  	free(media->entities);
-> +	media_udev_close(media);
->  	free(media);
->  }
-> 
-> diff --git a/src/media.h b/src/media.h
-> index b91a2ac..4201451 100644
-> --- a/src/media.h
-> +++ b/src/media.h
-> @@ -54,6 +54,7 @@ struct media_device {
->  	struct media_entity *entities;
->  	unsigned int entities_count;
->  	__u32 padding[6];
-> +	void *priv;
->  };
-> 
->  /**
-
-This will break binary compatibility if an application creates a struct 
-media_device instances itself. On the other hand applications are not supposed 
-to do that.
-
-As the struct udev pointer is only used internally, what about passing it 
-around between functions explicitly instead ?
-
--- 
 Regards,
+Subash
 
-Laurent Pinchart
+On 09/30/2011 05:38 PM, Kamil Debski wrote:
+> Hi Sachin,
+>
+> Thanks for the patch. I agree with you - MFC module could be used in other
+> SoCs as well.
+>
+>> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
+>> Sent: 30 September 2011 12:56
+>>
+>> This patches renames the MFC firmware binary to avoid SoC name in it.
+>>
+>> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
+>
+> Acked-by: Kamil Debski<k.debski@samsung.com>
+>
+>> ---
+>>   drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c |    4 ++--
+>>   1 files changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+>> b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+>> index 5f4da80..f2481a8 100644
+>> --- a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+>> +++ b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+>> @@ -38,7 +38,7 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev
+>> *dev)
+>>   	 * into kernel. */
+>>   	mfc_debug_enter();
+>>   	err = request_firmware((const struct firmware **)&fw_blob,
+>> -				     "s5pc110-mfc.fw", dev->v4l2_dev.dev);
+>> +				     "s5p-mfc.fw", dev->v4l2_dev.dev);
+>>   	if (err != 0) {
+>>   		mfc_err("Firmware is not present in the /lib/firmware directory
+>> nor compiled in kernel\n");
+>>   		return -EINVAL;
+>> @@ -116,7 +116,7 @@ int s5p_mfc_reload_firmware(struct s5p_mfc_dev *dev)
+>>   	 * into kernel. */
+>>   	mfc_debug_enter();
+>>   	err = request_firmware((const struct firmware **)&fw_blob,
+>> -				     "s5pc110-mfc.fw", dev->v4l2_dev.dev);
+>> +				     "s5p-mfc.fw", dev->v4l2_dev.dev);
+int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev *dev)
+{
+         struct firmware *fw_blob;
+         size_t bank2_base_phys;
+         void *b_base;
+         int err;
+         /* default name */
+         char firmware_name[30] = "s5p-mfc.fw";
+
+         /* Firmare has to be present as a separate file or compiled
+          * into kernel. */
+         mfc_debug_enter();
+
+#ifdef CONFIG_EXTRA_FIRMWARE
+         snprintf(firmware_name, sizeof(firmware_name), "%s",
+                                         CONFIG_EXTRA_FIRMWARE);
+#endif
+         err = request_firmware((const struct firmware **)&fw_blob,
+                                      firmware_name, dev->v4l2_dev.dev);
+         if (err != 0) {
+                 mfc_err("Firmware is not present in the /lib/firmware 
+directory nor compiled in kernel\n");
+                 return -EINVAL;
+         }
+<snip>
+
+>>   	if (err != 0) {
+>>   		mfc_err("Firmware is not present in the /lib/firmware directory
+>> nor compiled in kernel\n");
+>>   		return -EINVAL;
+>> --
+>> 1.7.4.1
+>
+> Best regards,
+> --
+> Kamil Debski
+> Linux Platform Group
+> Samsung Poland R&D Center
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
