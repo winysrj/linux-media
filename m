@@ -1,99 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:55128 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754524Ab1IQWAV (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:54833 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753372Ab1I3JTR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Sep 2011 18:00:21 -0400
-Message-ID: <4E751870.5080605@gmail.com>
-Date: Sun, 18 Sep 2011 00:00:16 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
+	Fri, 30 Sep 2011 05:19:17 -0400
+Date: Fri, 30 Sep 2011 11:19:09 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Linux-V4L2 <linux-media@vger.kernel.org>,
+	Takashi.Namiki@renesas.com, phil.edworthy@renesas.com
+Subject: Re: [PATCH 2/3] soc-camera: mt9t112: modify delay time after initialize
+In-Reply-To: <Pine.LNX.4.64.1109200931210.11274@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1109301116130.1888@axis700.grange>
+References: <uock8ky42.wl%morimoto.kuninori@renesas.com> <4E76149D.5050102@redhat.com>
+ <Pine.LNX.4.64.1109181808410.9975@axis700.grange> <87aaa0njj0.wl%kuninori.morimoto.gx@renesas.com>
+ <Pine.LNX.4.64.1109200931210.11274@axis700.grange>
 MIME-Version: 1.0
-To: Martin Hostettler <martin@neutronstar.dyndns.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v2] arm: omap3evm: Add support for an MT9M032 based camera
- board.
-References: <1316252097-4213-1-git-send-email-martin@neutronstar.dyndns.org>
-In-Reply-To: <1316252097-4213-1-git-send-email-martin@neutronstar.dyndns.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/17/2011 11:34 AM, Martin Hostettler wrote:
-> Adds board support for an MT9M032 based camera to omap3evm.
-...
-> +
-> +static int __init camera_init(void)
-> +{
-> +	int ret = -EINVAL;
-> +	
-> +	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
-> +	if (gpio_request(nCAM_VD_SEL, "nCAM_VD_SEL")<  0) {
-> +		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_SEL(%d)\n",
-> +		       nCAM_VD_SEL);
-> +		goto err;
-> +	}
-> +	if (gpio_direction_output(nCAM_VD_SEL, 1)<  0) {
-> +		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_SEL(%d) direction\n",
-> +		       nCAM_VD_SEL);
-> +		goto err_vdsel;
-> +	}
+Morimoto-san
 
-How about replacing gpio_request + gpio_direction_output with:
+There was a question at the bottom of this email, which you might have 
+overseen:-) Could you give me an idea, which patche(es) exactly you meant?
 
-	gpio_request_one(nCAM_VD_SEL, GPIOF_OUT_INIT_HIGH, "nCAM_VD_SEL");
+Thanks
+Guennadi
 
-> +
-> +	if (gpio_request(EVM_TWL_GPIO_BASE + 2, "T2_GPIO2")<  0) {
-> +		pr_err("omap3evm-camera: Failed to get GPIO T2_GPIO2(%d)\n",
-> +		       EVM_TWL_GPIO_BASE + 2);
-> +		goto err_vdsel;
-> +	}
-> +	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 2, 0)<  0) {
-> +		pr_err("omap3evm-camera: Failed to set GPIO T2_GPIO2(%d) direction\n",
-> +		       EVM_TWL_GPIO_BASE + 2);
-> +		goto err_2;
-> +	}
+On Tue, 20 Sep 2011, Guennadi Liakhovetski wrote:
 
- 	gpio_request_one(EVM_TWL_GPIO_BASE + 2, GPIOF_OUT_INIT_LOW, "T2_GPIO2");
+> Morimoto-san
+> 
+> Thanks for your reply.
+> 
+> On Mon, 19 Sep 2011, Kuninori Morimoto wrote:
+> 
+> > Hi Guennadi, all
+> > 
+> > > > > mt9t112 camera needs 100 milliseconds for initializing
+> > > > > Special thanks to Phil
+> > > > > 
+> > > > > Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> > > > > Reported-by: Phil Edworthy <Phil.Edworthy@renesas.com>
+> > > > > ---
+> > > > >  drivers/media/video/mt9t112.c |    2 +-
+> > > > >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > > > > 
+> > > > > diff --git a/drivers/media/video/mt9t112.c b/drivers/media/video/mt9t112.c
+> > > > > index 7438f8d..e581d8a 100644
+> > > > > --- a/drivers/media/video/mt9t112.c
+> > > > > +++ b/drivers/media/video/mt9t112.c
+> > > > > @@ -885,7 +885,7 @@ static int mt9t112_s_stream(struct v4l2_subdev *sd, int enable)
+> > > > >  		/* Invert PCLK (Data sampled on falling edge of pixclk) */
+> > > > >  		mt9t112_reg_write(ret, client, 0x3C20, param);
+> > > > >  
+> > > > > -		mdelay(5);
+> > > > > +		mdelay(100);
+> > > > >  
+> > > > >  		priv->flags |= INIT_DONE;
+> > > > >  	}
+> > > > 
+> > > > Hi Guennadi,
+> > > > 
+> > > > What's the status of this patch?
+> > > > 
+> > > > It applies ok for me, and I couldn't find any reference at the
+> > > > ML why it was not applied yet.
+> > > 
+> > > Hm, yeah... Looks like also this patch:
+> > > 
+> > > > Subject: [PATCH 3/3] soc-camera: mt9t112: The flag which control camera-init is removed
+> > > > 
+> > > > mt9t112 should always be initialized when camera start.
+> > > > Because current driver doesn't run this operation,
+> > > > it will be un-stable if user side player run open/close several times.
+> > > > Special thanks to Namiki-san
+> > > > 
+> > > > Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> > > > Reported-by: Takashi Namiki <Takashi.Namiki@renesas.com>
+> > > 
+> > > has not been applied nor discussed on the list... For patches that old I 
+> > > would tend to say: if the author / submitter didn't re-submit, then, 
+> > > probably, patches aren't relevant anymore... Although it is quite 
+> > > possible, that I failed to process them back then. Morimoto-san, do you 
+> > > have any information on these patches? Have these problems been solved 
+> > > somehow, so that the patches have become obsolete, or are the problems, 
+> > > that they address, still there?
+> > 
+> > This patch is needed for mt9t112 camera initialize.
+> > I thought that it was already applied.
+> 
+> Which patch do you mean? Patch 2/3, or 3/3, or both are needed?
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
 
-> +
-> +	if (gpio_request(EVM_TWL_GPIO_BASE + 8, "nCAM_VD_EN")<  0) {
-> +		pr_err("omap3evm-camera: Failed to get GPIO nCAM_VD_EN(%d)\n",
-> +		       EVM_TWL_GPIO_BASE + 8);
-> +		goto err_2;
-> +	}
-> +	if (gpio_direction_output(EVM_TWL_GPIO_BASE + 8, 0)<  0) {
-> +		pr_err("omap3evm-camera: Failed to set GPIO nCAM_VD_EN(%d) direction\n",
-> +		       EVM_TWL_GPIO_BASE + 8);
-> +		goto err_8;
-> +	}
-
-...and	gpio_request_one(EVM_TWL_GPIO_BASE + 8, GPIOF_OUT_INIT_LOW, "nCAM_VD_EN") ?
-
-> +
-> +	omap3evm_set_mux(MUX_CAMERA_SENSOR);
-> +
-> +	
-> +	ret = omap3_init_camera(&isp_platform_data);
-> +	if (ret<  0)
-> +		goto err_8;
-> +	return 0;
-> +	
-> +err_8:
-> +	gpio_free(EVM_TWL_GPIO_BASE + 8);
-> +err_2:
-> +	gpio_free(EVM_TWL_GPIO_BASE + 2);
-> +err_vdsel:
-> +	gpio_free(nCAM_VD_SEL);
-> +err:
-> +	return ret;
-> +}
-> +
-> +device_initcall(camera_init);
-
---
-Regards,
-Sylwester
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
