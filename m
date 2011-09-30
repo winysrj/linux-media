@@ -1,426 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mr.siano-ms.com ([62.0.79.70]:6220 "EHLO
-	Siano-NV.ser.netvision.net.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754259Ab1ITKSN convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Sep 2011 06:18:13 -0400
-Subject: [PATCH  2/17]DVB:Siano drivers - Update module name string to
- contain module version
-From: Doron Cohen <doronc@siano-ms.com>
-Reply-To: doronc@siano-ms.com
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2991 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756322Ab1I3JBc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Sep 2011 05:01:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Tue, 20 Sep 2011 13:30:55 +0300
-Message-ID: <1316514655.5199.80.camel@Doron-Ubuntu>
-Mime-Version: 1.0
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 1/7] V4L menu: move USB drivers section to the top.
+Date: Fri, 30 Sep 2011 11:01:10 +0200
+Message-Id: <9198dc44ea6f7b8e481c8e6bb24c80fc1b2429ed.1317372990.git.hans.verkuil@cisco.com>
+In-Reply-To: <1317373276-5818-1-git-send-email-hverkuil@xs4all.nl>
+References: <1317373276-5818-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-This patch step adds version to module name string for all modules.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks,
-Doron Cohen
+USB webcams are some of the most used V4L devices, so move it to a more
+prominent place in the menu instead of being at the end.
 
------------------------
->From 81a55103537fb6df2b487819aa9a5af28a5c4bd2 Mon Sep 17 00:00:00 2001
-From: Doron Cohen <doronc@siano-ms.com>
-Date: Wed, 14 Sep 2011 13:33:20 +0300
-Subject: [PATCH 03/21] Add smsspi driver to support Siano SPI connected
-device using SPI generic driver
-
-	modified:   drivers/media/dvb/siano/Makefile
-	modified:   drivers/media/dvb/siano/smscoreapi.c
-	new file:   drivers/media/dvb/siano/smsdbg_prn.h
-	modified:   drivers/media/dvb/siano/smsspidrv.c
-	modified:   drivers/media/dvb/siano/smsspiphy.c
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb/siano/Makefile     |    2 +
- drivers/media/dvb/siano/smscoreapi.c |    2 +-
- drivers/media/dvb/siano/smsdbg_prn.h |   56
-++++++++++++++++++++++++++++++++++
- drivers/media/dvb/siano/smsspidrv.c  |   33 +++++++++++++++-----
- drivers/media/dvb/siano/smsspiphy.c  |   40 ++++++++----------------
- 5 files changed, 97 insertions(+), 36 deletions(-)
- create mode 100644 drivers/media/dvb/siano/smsdbg_prn.h
+ drivers/media/video/Kconfig |  145 ++++++++++++++++++++++---------------------
+ 1 files changed, 73 insertions(+), 72 deletions(-)
 
-diff --git a/drivers/media/dvb/siano/Makefile
-b/drivers/media/dvb/siano/Makefile
-index c54140b..affaf01 100644
---- a/drivers/media/dvb/siano/Makefile
-+++ b/drivers/media/dvb/siano/Makefile
-@@ -1,9 +1,11 @@
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index aed5b3d..0f8ccb4 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -573,6 +573,79 @@ config VIDEO_M52790
  
- smsmdtv-objs := smscoreapi.o sms-cards.o smsendian.o smsir.o
-+smsspi-objs := smsspicommon.o smsspidrv.o smsspiphy.o
+ endmenu # encoder / decoder chips
  
- obj-$(CONFIG_SMS_SIANO_MDTV) += smsmdtv.o smsdvb.o
- obj-$(CONFIG_SMS_USB_DRV) += smsusb.o
- obj-$(CONFIG_SMS_SDIO_DRV) += smssdio.o
-+obj-$(CONFIG_SMS_SPI_DRV) += smsspi.o
- 
- EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
- 
-diff --git a/drivers/media/dvb/siano/smscoreapi.c
-b/drivers/media/dvb/siano/smscoreapi.c
-index 78765ed..239f453 100644
---- a/drivers/media/dvb/siano/smscoreapi.c
-+++ b/drivers/media/dvb/siano/smscoreapi.c
-@@ -39,7 +39,7 @@
- #include "smsir.h"
- #include "smsendian.h"
- 
--static int sms_dbg;
-+int sms_dbg;
- module_param_named(debug, sms_dbg, int, 0644);
- MODULE_PARM_DESC(debug, "set debug level (info=1, adv=2 (or-able))");
- 
-diff --git a/drivers/media/dvb/siano/smsdbg_prn.h
-b/drivers/media/dvb/siano/smsdbg_prn.h
-new file mode 100644
-index 0000000..ea157da
---- /dev/null
-+++ b/drivers/media/dvb/siano/smsdbg_prn.h
-@@ -0,0 +1,56 @@
-+/****************************************************************
++#
++# USB Multimedia device configuration
++#
 +
-+Siano Mobile Silicon, Inc.
-+MDTV receiver kernel modules.
-+Copyright (C) 2006-2008, Uri Shkolnik
++menuconfig V4L_USB_DRIVERS
++	bool "V4L USB devices"
++	depends on USB
++	default y
 +
-+This program is free software: you can redistribute it and/or modify
-+it under the terms of the GNU General Public License as published by
-+the Free Software Foundation, either version 2 of the License, or
-+(at your option) any later version.
++if V4L_USB_DRIVERS && USB
 +
-+ This program is distributed in the hope that it will be useful,
-+but WITHOUT ANY WARRANTY; without even the implied warranty of
-+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+GNU General Public License for more details.
++source "drivers/media/video/uvc/Kconfig"
 +
-+You should have received a copy of the GNU General Public License
-+along with this program.  If not, see <http://www.gnu.org/licenses/>.
++source "drivers/media/video/gspca/Kconfig"
 +
-+****************************************************************/
++source "drivers/media/video/pvrusb2/Kconfig"
 +
-+#ifndef _SMS_DBG_H_
-+#define _SMS_DBG_H_
++source "drivers/media/video/hdpvr/Kconfig"
 +
-+#include <linux/kernel.h>
-+#include <linux/module.h>
++source "drivers/media/video/em28xx/Kconfig"
 +
-+/************************************************************************/
-+/* Debug Zones definitions.
-*/
-+/************************************************************************/
-+#undef PERROR
-+#  define PERROR(fmt, args...) \
-+	printk(KERN_ERR "spibus error: line %d- %s(): " fmt, __LINE__,\
-+	  __func__, ## args)
-+#undef PWARNING
-+#  define PWARNING(fmt, args...) \
-+	printk(KERN_WARNING "spibus warning: line %d- %s(): " fmt, __LINE__,
-\
-+	__func__, ## args)
++source "drivers/media/video/tlg2300/Kconfig"
 +
-+/* the debug macro - conditional compilation from the makefile */
-+#undef PDEBUG			/* undef it, just in case */
-+#ifdef SPIBUS_DEBUG
-+#  define PDEBUG(fmt, args...) \
-+	printk(KERN_DEBUG "spibus: line %d- %s(): " fmt, __LINE__, \
-+	 __func__, ## args)
-+#else
-+#  define PDEBUG(fmt, args...)	/* not debugging: nothing */
-+#endif
++source "drivers/media/video/cx231xx/Kconfig"
 +
-+/* The following defines are used for printing and
-+are mandatory for compilation. */
-+#define TXT(str) str
-+#define PRN_DBG(str) PDEBUG str
-+#define PRN_ERR(str) PERROR str
++source "drivers/media/video/tm6000/Kconfig"
 +
-+#endif /*_SMS_DBG_H_*/
-diff --git a/drivers/media/dvb/siano/smsspidrv.c
-b/drivers/media/dvb/siano/smsspidrv.c
-index 35cce42..fa80c1a 100644
---- a/drivers/media/dvb/siano/smsspidrv.c
-+++ b/drivers/media/dvb/siano/smsspidrv.c
-@@ -79,18 +79,27 @@ struct _Msg {
++source "drivers/media/video/usbvision/Kconfig"
++
++source "drivers/media/video/et61x251/Kconfig"
++
++source "drivers/media/video/sn9c102/Kconfig"
++
++source "drivers/media/video/pwc/Kconfig"
++
++config USB_ZR364XX
++	tristate "USB ZR364XX Camera support"
++	depends on VIDEO_V4L2
++	select VIDEOBUF_GEN
++	select VIDEOBUF_VMALLOC
++	---help---
++	  Say Y here if you want to connect this type of camera to your
++	  computer's USB port.
++	  See <file:Documentation/video4linux/zr364xx.txt> for more info
++	  and list of supported cameras.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called zr364xx.
++
++config USB_STKWEBCAM
++	tristate "USB Syntek DC1125 Camera support"
++	depends on VIDEO_V4L2 && EXPERIMENTAL
++	---help---
++	  Say Y here if you want to use this type of camera.
++	  Supported devices are typically found in some Asus laptops,
++	  with USB id 174f:a311 and 05e1:0501. Other Syntek cameras
++	  may be supported by the stk11xx driver, from which this is
++	  derived, see <http://sourceforge.net/projects/syntekdriver/>
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called stkwebcam.
++
++config USB_S2255
++	tristate "USB Sensoray 2255 video capture device"
++	depends on VIDEO_V4L2
++	select VIDEOBUF_VMALLOC
++	default n
++	help
++	  Say Y here if you want support for the Sensoray 2255 USB device.
++	  This driver can be compiled as a module, called s2255drv.
++
++endif # V4L_USB_DRIVERS
++
+ config VIDEO_SH_VOU
+ 	tristate "SuperH VOU video output driver"
+ 	depends on VIDEO_DEV && ARCH_SHMOBILE
+@@ -994,78 +1067,6 @@ config VIDEO_S5P_MIPI_CSIS
  
- struct _spi_device_st *spi_dev;
+ source "drivers/media/video/s5p-tv/Kconfig"
  
-+int sms_dbg;
- static void spi_worker_thread(void *arg);
- static DECLARE_WORK(spi_work_queue, (void *)spi_worker_thread);
- static u8 smsspi_preamble[] = { 0xa5, 0x5a, 0xe7, 0x7e };
- static u8 smsspi_startup[] = { 0, 0, 0xde, 0xc1, 0xa5, 0x51, 0xf1,
-0xed };
-+static u32 sms_intr_pin = SMS_INTR_PIN;
-+extern u32 host_intr_pin;
-+
- static u32 default_type = SMS_NOVA_B0;
--static u32 intr_pin = SMS_INTR_PIN;
- 
--module_param(default_type, int, 0644);
--MODULE_PARM_DESC(default_type, "default board type.");
-+module_param_named(debug, sms_dbg, int, S_IRUGO|S_IWUSR);
-+MODULE_PARM_DESC(debug, "set debug level (info=1, adv=2 (or-able))");
-+
-+module_param(default_type, int, S_IRUGO);
-+MODULE_PARM_DESC(default_type, "default SMS device type.");
-+
-+module_param(sms_intr_pin, int, S_IRUGO);
-+MODULE_PARM_DESC(sms_intr_pin, "interrupt pin number used by SMS chip
-for interrupting host.");
- 
--module_param(intr_pin, int, 0644);
--MODULE_PARM_DESC(intr_pin, "interrupt pin number.");
-+module_param(host_intr_pin, int, S_IRUGO);
-+MODULE_PARM_DESC(host_intr_pin, "interrupt pin number used by Host to
-be interrupted by SMS.");
- 
- /******************************************/
- static void spi_worker_thread(void *arg)
-@@ -212,7 +221,7 @@ static int smsspi_preload(void *context)
- 		{
- 		MSG_SMS_SPI_INT_LINE_SET_REQ, 0, HIF_TASK,
- 			sizeof(struct _Msg), 0}, {
--		0, intr_pin, 0}
-+		0, sms_intr_pin, 0}
- 	};
- 	int rc;
- 
-@@ -333,7 +342,7 @@ static struct platform_device smsspi_device = {
- 		},
- };
- 
--int smsspi_register(void)
-+static int __init smsspi_module_init(void)
- {
- 	struct smsdevice_params_t params;
- 	int ret;
-@@ -438,7 +447,7 @@ txbuf_error:
- 	return ret;
- }
- 
--void smsspi_unregister(void)
-+static void __exit smsspi_module_exit(void)
- {
- 	struct _spi_device_st *spi_device = spi_dev;
- 	sms_info("entering\n");
-@@ -453,3 +462,11 @@ void smsspi_unregister(void)
- 	platform_device_unregister(&smsspi_device);
- 	sms_info("exiting\n");
- }
-+
-+
-+module_init(smsspi_module_init);
-+module_exit(smsspi_module_exit);
-+
-+MODULE_DESCRIPTION("Siano MDTV SPI device driver");
-+MODULE_AUTHOR("Siano Mobile Silicon, Inc. (doronc@siano-ms.com)");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb/siano/smsspiphy.c
-b/drivers/media/dvb/siano/smsspiphy.c
-index 9b8cb14..708ee06 100644
---- a/drivers/media/dvb/siano/smsspiphy.c
-+++ b/drivers/media/dvb/siano/smsspiphy.c
-@@ -4,6 +4,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/irq.h>
- #include <linux/interrupt.h>
-+
- //#include <linux/timer.h>
- #include "smscoreapi.h"
- 
-@@ -13,6 +14,12 @@
- #define MAX_SPEED_DURING_DOWNLOAD	6000000
- #define MAX_SPEED_DURING_WORK		6000000	
- #define SPI_PACKET_SIZE 		256	
-+extern int sms_dbg;
-+
-+int sms_spi_interrupt = 135;
-+module_param_named(debug, sms_spi_interrupt, int, 0644);
-+MODULE_PARM_DESC(debug, "set interrupt gpio pin for spi device.");
-+
- 
- int spi_max_speed = MAX_SPEED_DURING_WORK;
- 
-@@ -23,8 +30,6 @@ struct sms_spi {
- 	int 			bus_speed;
- 	void (*interruptHandler) (void *);
- 	void			*intr_context;
--//	struct timer_list 	timer;
--//	int			timer_interval;
- };
- 
- /*!
-@@ -141,9 +146,6 @@ void smsspibus_xfer(void *context, unsigned char
-*txbuf,
- 
- 
- 
+-#
+-# USB Multimedia device configuration
+-#
 -
+-menuconfig V4L_USB_DRIVERS
+-	bool "V4L USB devices"
+-	depends on USB
+-	default y
 -
+-if V4L_USB_DRIVERS && USB
 -
- void *smsspiphy_init(void *context, void (*smsspi_interruptHandler)
-(void *),
- 		     void *intr_context)
- {
-@@ -163,9 +165,7 @@ void *smsspiphy_init(void *context, void
-(*smsspi_interruptHandler) (void *),
- 		.mode		= SPI_MODE_0,
- 	};
+-source "drivers/media/video/uvc/Kconfig"
+-
+-source "drivers/media/video/gspca/Kconfig"
+-
+-source "drivers/media/video/pvrusb2/Kconfig"
+-
+-source "drivers/media/video/hdpvr/Kconfig"
+-
+-source "drivers/media/video/em28xx/Kconfig"
+-
+-source "drivers/media/video/tlg2300/Kconfig"
+-
+-source "drivers/media/video/cx231xx/Kconfig"
+-
+-source "drivers/media/video/tm6000/Kconfig"
+-
+-source "drivers/media/video/usbvision/Kconfig"
+-
+-source "drivers/media/video/et61x251/Kconfig"
+-
+-source "drivers/media/video/sn9c102/Kconfig"
+-
+-source "drivers/media/video/pwc/Kconfig"
+-
+-config USB_ZR364XX
+-	tristate "USB ZR364XX Camera support"
+-	depends on VIDEO_V4L2
+-	select VIDEOBUF_GEN
+-	select VIDEOBUF_VMALLOC
+-	---help---
+-	  Say Y here if you want to connect this type of camera to your
+-	  computer's USB port.
+-	  See <file:Documentation/video4linux/zr364xx.txt> for more info
+-	  and list of supported cameras.
+-
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called zr364xx.
+-
+-config USB_STKWEBCAM
+-	tristate "USB Syntek DC1125 Camera support"
+-	depends on VIDEO_V4L2 && EXPERIMENTAL
+-	---help---
+-	  Say Y here if you want to use this type of camera.
+-	  Supported devices are typically found in some Asus laptops,
+-	  with USB id 174f:a311 and 05e1:0501. Other Syntek cameras
+-	  may be supported by the stk11xx driver, from which this is
+-	  derived, see <http://sourceforge.net/projects/syntekdriver/>
+-
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called stkwebcam.
+-
+-config USB_S2255
+-	tristate "USB Sensoray 2255 video capture device"
+-	depends on VIDEO_V4L2
+-	select VIDEOBUF_VMALLOC
+-	default n
+-	help
+-	  Say Y here if you want support for the Sensoray 2255 USB device.
+-	  This driver can be compiled as a module, called s2255drv.
+-
+-endif # V4L_USB_DRIVERS
+ endif # VIDEO_CAPTURE_DRIVERS
  
--
--	printk(KERN_INFO "sms_debug = %d\n", sms_debug);
--
-+	sms_err("sms_debug = %d\n", sms_dbg);
- 
- 	sms_device = spi_new_device(master, &sms_chip);	
- 	if (!sms_device)
-@@ -191,36 +191,22 @@ void *smsspiphy_init(void *context, void
-(*smsspi_interruptHandler) (void *),
- 		return NULL;
- 	}
- 	memset (sms_spi->zero_txbuf, 0, SPI_PACKET_SIZE);
--//	setup_timer(&sms_spi->timer, timer_function, (unsigned
-long)sms_spi);
- 	sms_spi->interruptHandler = smsspi_interruptHandler;
- 	sms_spi->intr_context = intr_context;
- 
- 
--
--
--
--
--
--	if ((gpio_request(135, "SMSSPI") == 0) &&
--	    (gpio_direction_input(135) == 0)) {
--		gpio_export(135, 0);
-+	if ((gpio_request(sms_spi_interrupt, "SMSSPI") == 0) &&
-+	    (gpio_direction_input(sms_spi_interrupt) == 0)) {
-+		gpio_export(sms_spi_interrupt, 0);
- 	}
- 
--
--	set_irq_type(gpio_to_irq(135), IRQ_TYPE_EDGE_FALLING);
--	ret = request_irq(gpio_to_irq(135), spibus_interrupt,
-IRQF_TRIGGER_FALLING, "SMSSPI", sms_spi);
-+	irq_set_irq_type(gpio_to_irq(sms_spi_interrupt),
-IRQ_TYPE_EDGE_FALLING);
-+	ret = request_irq(gpio_to_irq(sms_spi_interrupt), spibus_interrupt,
-IRQF_TRIGGER_FALLING, "SMSSPI", sms_spi);
- 	if (ret) {
- 		sms_err("Could not get interrupt for SMS device. status =%d\n", ret);
- 		return NULL;
- 	}
- 
--
--
--
--
--
--
--//	sms_spi->timer_interval = 1000;
- 	sms_spi->spi_dev = sms_device;
- 	sms_spi->bus_speed = spi_max_speed;
- 	sms_err ("after init sms_spi=0x%x, spi_dev = 0x%x", (int)sms_spi,
-(int)sms_spi->spi_dev);
+ menuconfig V4L_MEM2MEM_DRIVERS
 -- 
-1.7.4.1
-
-
->From 0893c7299081a5366853f7c7aefe48aebee232a5 Mon Sep 17 00:00:00 2001
-From: Doron Cohen <doronc@siano-ms.com>
-Date: Thu, 15 Sep 2011 11:38:53 +0300
-Subject: [PATCH 04/21] Add version number to all siano modules
-description line.
-
----
- drivers/media/dvb/siano/smscoreapi.c |    6 ++++--
- drivers/media/dvb/siano/smscoreapi.h |   11 +++++++++++
- drivers/media/dvb/siano/smsspidrv.c  |    6 ++++--
- drivers/media/dvb/siano/smsusb.c     |    6 ++++--
- 4 files changed, 23 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/dvb/siano/smscoreapi.c
-b/drivers/media/dvb/siano/smscoreapi.c
-index 239f453..115604c 100644
---- a/drivers/media/dvb/siano/smscoreapi.c
-+++ b/drivers/media/dvb/siano/smscoreapi.c
-@@ -1639,6 +1639,8 @@ static void __exit smscore_module_exit(void)
- module_init(smscore_module_init);
- module_exit(smscore_module_exit);
- 
--MODULE_DESCRIPTION("Siano MDTV Core module");
--MODULE_AUTHOR("Siano Mobile Silicon, Inc. (uris@siano-ms.com)");
-+#define MODULE_VERSION_STRING "Siano MDTV module "VERSION_STRING
-+
-+MODULE_DESCRIPTION(MODULE_VERSION_STRING);
-+MODULE_AUTHOR(MODULE_AUTHOR_STRING);
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb/siano/smscoreapi.h
-b/drivers/media/dvb/siano/smscoreapi.h
-index 8ecadec..f700fa2 100644
---- a/drivers/media/dvb/siano/smscoreapi.h
-+++ b/drivers/media/dvb/siano/smscoreapi.h
-@@ -36,6 +36,17 @@ along with this program.  If not, see
-<http://www.gnu.org/licenses/>.
- 
- #include "smsir.h"
- 
-+
-+#define MAJOR_VERSION 2
-+#define MINOR_VERSION 3
-+#define SUB_VERSION 0
-+
-+#define STRINGIZE2(z) #z
-+#define STRINGIZE(z) STRINGIZE2(z)
-+
-+#define VERSION_STRING "Version: " STRINGIZE(MAJOR_VERSION) "."
-STRINGIZE(MINOR_VERSION) "." STRINGIZE(SUB_VERSION)
-+#define MODULE_AUTHOR_STRING "Siano Mobile Silicon, Inc.
-(doronc@siano-ms.com)"
-+
- #define kmutex_init(_p_) mutex_init(_p_)
- #define kmutex_lock(_p_) mutex_lock(_p_)
- #define kmutex_trylock(_p_) mutex_trylock(_p_)
-diff --git a/drivers/media/dvb/siano/smsspidrv.c
-b/drivers/media/dvb/siano/smsspidrv.c
-index fa80c1a..3271e7c 100644
---- a/drivers/media/dvb/siano/smsspidrv.c
-+++ b/drivers/media/dvb/siano/smsspidrv.c
-@@ -467,6 +467,8 @@ static void __exit smsspi_module_exit(void)
- module_init(smsspi_module_init);
- module_exit(smsspi_module_exit);
- 
--MODULE_DESCRIPTION("Siano MDTV SPI device driver");
--MODULE_AUTHOR("Siano Mobile Silicon, Inc. (doronc@siano-ms.com)");
-+#define MODULE_VERSION_STRING "Siano SMSXXXX SPI device driver
-"VERSION_STRING
-+
-+MODULE_DESCRIPTION(MODULE_VERSION_STRING);
-+MODULE_AUTHOR(MODULE_AUTHOR_STRING);
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb/siano/smsusb.c
-b/drivers/media/dvb/siano/smsusb.c
-index 0b8da57..0b6857f 100644
---- a/drivers/media/dvb/siano/smsusb.c
-+++ b/drivers/media/dvb/siano/smsusb.c
-@@ -578,6 +578,8 @@ static void __exit smsusb_module_exit(void)
- module_init(smsusb_module_init);
- module_exit(smsusb_module_exit);
- 
--MODULE_DESCRIPTION("Driver for the Siano SMS1xxx USB dongle");
--MODULE_AUTHOR("Siano Mobile Silicon, INC. (uris@siano-ms.com)");
-+#define MODULE_VERSION_STRING "Driver for the Siano SMS1xxx USB dongle
-"VERSION_STRING
-+
-+MODULE_DESCRIPTION(MODULE_VERSION_STRING);
-+MODULE_AUTHOR("Siano Mobile Silicon, INC. (doronc@siano-ms.com)");
- MODULE_LICENSE("GPL");
--- 
-1.7.4.1
+1.7.6.3
 
