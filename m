@@ -1,103 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:55990 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753673Ab1IUNRz (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3116 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755498Ab1I3Lcr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 09:17:55 -0400
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	"Dave Hansen" <dave@linux.vnet.ibm.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	"Kyungmin Park" <kyungmin.park@samsung.com>,
-	"Russell King" <linux@arm.linux.org.uk>,
-	"Andrew Morton" <akpm@linux-foundation.org>,
-	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"Ankita Garg" <ankita@in.ibm.com>,
-	"Daniel Walker" <dwalker@codeaurora.org>,
-	"Mel Gorman" <mel@csn.ul.ie>, "Arnd Bergmann" <arnd@arndb.de>,
-	"Jesse Barker" <jesse.barker@linaro.org>,
-	"Jonathan Corbet" <corbet@lwn.net>,
-	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
-	"Chunsang Jeong" <chunsang.jeong@linaro.org>
-Subject: Re: [PATCH 2/8] mm: alloc_contig_freed_pages() added
-References: <1313764064-9747-1-git-send-email-m.szyprowski@samsung.com>
- <1313764064-9747-3-git-send-email-m.szyprowski@samsung.com>
- <1315505152.3114.9.camel@nimitz>
-Date: Wed, 21 Sep 2011 15:17:50 +0200
+	Fri, 30 Sep 2011 07:32:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv2 PATCH 4/7] V4L menu: move all platform drivers to the bottom of the menu.
+Date: Fri, 30 Sep 2011 13:32:32 +0200
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1317373276-5818-1-git-send-email-hverkuil@xs4all.nl> <b06b3886212bb34b018a04e35fe460991425f865.1317372990.git.hans.verkuil@cisco.com> <4E85A661.3080203@redhat.com>
+In-Reply-To: <4E85A661.3080203@redhat.com>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.v15tv0183l0zgt@mnazarewicz-glaptop>
-In-Reply-To: <1315505152.3114.9.camel@nimitz>
+Message-Id: <201109301332.32617.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 08 Sep 2011 20:05:52 +0200, Dave Hansen <dave@linux.vnet.ibm.com>  
-wrote:
+On Friday, September 30, 2011 13:22:09 Mauro Carvalho Chehab wrote:
+> Em 30-09-2011 06:01, Hans Verkuil escreveu:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> 
+> From the patch subject: V4L menu: move all platform drivers to the bottom of the menu.
+> 
+> It is clear to me that we're analizing drivers by the bus type.
+> 
+> IMO, what we should do is to arrange the driver as:
+> 
+> menuconfig VIDEO_USB
+> 	bool "USB drivers"
+> ...
+> menuconfig VIDEO_PCI
+> 	bool "PCI drivers"
+> ...
+> menuconfig VIDEO_PLATFORM
+> 	bool "Platform drivers"
+> ...
+> menuconfig VIDEO_ISA_PARPORT
+> 	bool "Isa and Parallel port drivers"
+> 
+> This as a big advantage of the current way, as it helps people to discard drivers
+> that they will never need:
+> 
+> 1) people with modern Desktop PC can just disable VIDEO_PLATFORM and VIDEO_ISA_PARPORT;
+> 2) people with embedded SoC hardware can disable VIDEO_USB, VIDEO_PCI and VIDEO_ISA_PARPORT;
+> 3) people with tablets (and similar stuff) can disable VIDEO_ISA_PARPORT and VIDEO_PCI.
+> 
+> So, things will be easier for the ones that are compiling the kernel, or preparing
+> distributions.
 
-> On Fri, 2011-08-19 at 16:27 +0200, Marek Szyprowski wrote:
->> +unsigned long alloc_contig_freed_pages(unsigned long start, unsigned  
->> long end,
->> +				       gfp_t flag)
->> +{
->> +	unsigned long pfn = start, count;
->> +	struct page *page;
->> +	struct zone *zone;
->> +	int order;
->> +
->> +	VM_BUG_ON(!pfn_valid(start));
->> +	zone = page_zone(pfn_to_page(start));
->
-> This implies that start->end are entirely contained in a single zone.
-> What enforces that?
+OK, I'll do that. You have a point here.
 
-In case of CMA, the __cma_activate_area() function from 6/8 has the check:
+Regards,
 
-  151                         VM_BUG_ON(!pfn_valid(pfn));
-  152                         VM_BUG_ON(page_zone(pfn_to_page(pfn)) !=  
-zone);
+	Hans
 
-This guarantees that CMA will never try to call alloc_contig_freed_pages()
-on a region that spans multiple regions.
-
-> If some higher layer enforces that, I think we probably need at least
-> a VM_BUG_ON() in here and a comment about who enforces it.
-
-Agreed.
-
->> +	spin_lock_irq(&zone->lock);
->> +
->> +	page = pfn_to_page(pfn);
->> +	for (;;) {
->> +		VM_BUG_ON(page_count(page) || !PageBuddy(page));
->> +		list_del(&page->lru);
->> +		order = page_order(page);
->> +		zone->free_area[order].nr_free--;
->> +		rmv_page_order(page);
->> +		__mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
->> +		pfn  += 1 << order;
->> +		if (pfn >= end)
->> +			break;
->> +		VM_BUG_ON(!pfn_valid(pfn));
->> +		page += 1 << order;
->> +	}
-
-> This 'struct page *'++ stuff is OK, but only for small, aligned areas.
-> For at least some of the sparsemem modes (non-VMEMMAP), you could walk
-> off of the end of the section_mem_map[] when you cross a MAX_ORDER
-> boundary.  I'd feel a little bit more comfortable if pfn_to_page() was
-> being done each time, or only occasionally when you cross a section
-> boundary.
-
-I'm fine with that.  I've used pointer arithmetic for performance reasons
-but if that may potentially lead to bugs then obviously pfn_to_page()  
-should
-be used.
-
--- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
-ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
+> 
+> Regards,
+> Mauro
+> 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/video/Kconfig |  106 ++++++++++++++++++++++---------------------
+> >  1 files changed, 55 insertions(+), 51 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> > index fafc9ba..07d31d4 100644
+> > --- a/drivers/media/video/Kconfig
+> > +++ b/drivers/media/video/Kconfig
+> > @@ -646,25 +646,6 @@ config USB_S2255
+> >  
+> >  endif # V4L_USB_DRIVERS
+> >  
+> > -config VIDEO_SH_VOU
+> > -	tristate "SuperH VOU video output driver"
+> > -	depends on VIDEO_DEV && ARCH_SHMOBILE
+> > -	select VIDEOBUF_DMA_CONTIG
+> > -	help
+> > -	  Support for the Video Output Unit (VOU) on SuperH SoCs.
+> > -
+> > -config VIDEO_VIU
+> > -	tristate "Freescale VIU Video Driver"
+> > -	depends on VIDEO_V4L2 && PPC_MPC512x
+> > -	select VIDEOBUF_DMA_CONTIG
+> > -	default y
+> > -	---help---
+> > -	  Support for Freescale VIU video driver. This device captures
+> > -	  video data, or overlays video on DIU frame buffer.
+> > -
+> > -	  Say Y here if you want to enable VIU device on MPC5121e Rev2+.
+> > -	  In doubt, say N.
+> > -
+> >  config VIDEO_VIVI
+> >  	tristate "Virtual Video Driver"
+> >  	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
+> > @@ -679,20 +660,8 @@ config VIDEO_VIVI
+> >  	  Say Y here if you want to test video apps or debug V4L devices.
+> >  	  In doubt, say N.
+> >  
+> > -source "drivers/media/video/davinci/Kconfig"
+> > -
+> > -source "drivers/media/video/omap/Kconfig"
+> > -
+> >  source "drivers/media/video/bt8xx/Kconfig"
+> >  
+> > -config VIDEO_VINO
+> > -	tristate "SGI Vino Video For Linux"
+> > -	depends on I2C && SGI_IP22 && VIDEO_V4L2
+> > -	select VIDEO_SAA7191 if VIDEO_HELPER_CHIPS_AUTO
+> > -	help
+> > -	  Say Y here to build in support for the Vino video input system found
+> > -	  on SGI Indy machines.
+> > -
+> >  source "drivers/media/video/zoran/Kconfig"
+> >  
+> >  config VIDEO_MEYE
+> > @@ -711,16 +680,6 @@ config VIDEO_MEYE
+> >  
+> >  source "drivers/media/video/saa7134/Kconfig"
+> >  
+> > -config VIDEO_TIMBERDALE
+> > -	tristate "Support for timberdale Video In/LogiWIN"
+> > -	depends on VIDEO_V4L2 && I2C && DMADEVICES
+> > -	select DMA_ENGINE
+> > -	select TIMB_DMA
+> > -	select VIDEO_ADV7180
+> > -	select VIDEOBUF_DMA_CONTIG
+> > -	---help---
+> > -	  Add support for the Video In peripherial of the timberdale FPGA.
+> > -
+> >  source "drivers/media/video/cx88/Kconfig"
+> >  
+> >  source "drivers/media/video/cx23885/Kconfig"
+> > @@ -735,6 +694,61 @@ source "drivers/media/video/saa7164/Kconfig"
+> >  
+> >  source "drivers/media/video/marvell-ccic/Kconfig"
+> >  
+> > +config VIDEO_VIA_CAMERA
+> > +	tristate "VIAFB camera controller support"
+> > +	depends on FB_VIA
+> > +	select VIDEOBUF_DMA_SG
+> > +	select VIDEO_OV7670
+> > +	help
+> > +	   Driver support for the integrated camera controller in VIA
+> > +	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
+> > +	   with ov7670 sensors.
+> > +
+> > +#
+> > +# Platform multimedia device configuration
+> > +#
+> > +
+> > +source "drivers/media/video/davinci/Kconfig"
+> > +
+> > +source "drivers/media/video/omap/Kconfig"
+> > +
+> > +config VIDEO_SH_VOU
+> > +	tristate "SuperH VOU video output driver"
+> > +	depends on VIDEO_DEV && ARCH_SHMOBILE
+> > +	select VIDEOBUF_DMA_CONTIG
+> > +	help
+> > +	  Support for the Video Output Unit (VOU) on SuperH SoCs.
+> > +
+> > +config VIDEO_VIU
+> > +	tristate "Freescale VIU Video Driver"
+> > +	depends on VIDEO_V4L2 && PPC_MPC512x
+> > +	select VIDEOBUF_DMA_CONTIG
+> > +	default y
+> > +	---help---
+> > +	  Support for Freescale VIU video driver. This device captures
+> > +	  video data, or overlays video on DIU frame buffer.
+> > +
+> > +	  Say Y here if you want to enable VIU device on MPC5121e Rev2+.
+> > +	  In doubt, say N.
+> > +
+> > +config VIDEO_TIMBERDALE
+> > +	tristate "Support for timberdale Video In/LogiWIN"
+> > +	depends on VIDEO_V4L2 && I2C && DMADEVICES
+> > +	select DMA_ENGINE
+> > +	select TIMB_DMA
+> > +	select VIDEO_ADV7180
+> > +	select VIDEOBUF_DMA_CONTIG
+> > +	---help---
+> > +	  Add support for the Video In peripherial of the timberdale FPGA.
+> > +
+> > +config VIDEO_VINO
+> > +	tristate "SGI Vino Video For Linux"
+> > +	depends on I2C && SGI_IP22 && VIDEO_V4L2
+> > +	select VIDEO_SAA7191 if VIDEO_HELPER_CHIPS_AUTO
+> > +	help
+> > +	  Say Y here to build in support for the Vino video input system found
+> > +	  on SGI Indy machines.
+> > +
+> >  config VIDEO_M32R_AR
+> >  	tristate "AR devices"
+> >  	depends on M32R && VIDEO_V4L2
+> > @@ -754,16 +768,6 @@ config VIDEO_M32R_AR_M64278
+> >  	  To compile this driver as a module, choose M here: the
+> >  	  module will be called arv.
+> >  
+> > -config VIDEO_VIA_CAMERA
+> > -	tristate "VIAFB camera controller support"
+> > -	depends on FB_VIA
+> > -	select VIDEOBUF_DMA_SG
+> > -	select VIDEO_OV7670
+> > -	help
+> > -	   Driver support for the integrated camera controller in VIA
+> > -	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
+> > -	   with ov7670 sensors.
+> > -
+> >  config VIDEO_OMAP3
+> >  	tristate "OMAP 3 Camera support (EXPERIMENTAL)"
+> >  	select OMAP_IOMMU
+> 
