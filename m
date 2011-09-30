@@ -1,76 +1,281 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:47831 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751564Ab1IXPJi (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2713 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755498Ab1I3LaO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Sep 2011 11:09:38 -0400
-Message-ID: <4E7DF2AA.4010104@infradead.org>
-Date: Sat, 24 Sep 2011 12:09:30 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Fri, 30 Sep 2011 07:30:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv2 PATCH 2/7] V4L menu: move legacy drivers into their own submenu.
+Date: Fri, 30 Sep 2011 13:29:55 +0200
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1317373276-5818-1-git-send-email-hverkuil@xs4all.nl> <eb58a802b520329b54aebfeb2a1400870d61b127.1317372990.git.hans.verkuil@cisco.com> <4E85A401.1040200@redhat.com>
+In-Reply-To: <4E85A401.1040200@redhat.com>
 MIME-Version: 1.0
-To: Stas Sergeev <stsp@list.ru>
-CC: linux-media@vger.kernel.org,
-	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
-	Lennart Poettering <lpoetter@redhat.com>,
-	ALSA devel <alsa-devel@alsa-project.org>
-Subject: Re: [patch][saa7134] do not change mute state for capturing audio
-References: <4E19D2F7.6060803@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru> <4E2A23C7.3040209@infradead.org> <4E2A7BF0.8080606@list.ru> <4E2AC742.8020407@infradead.org> <4E2ACAAD.4050602@list.ru> <4E2AE40F.7030108@infradead.org> <4E2C5A35.9030404@list.ru> <4E2C6638.2040707@infrade ad.org> <4E760BCA.6080900@list.ru> <4E7DB798.4060201@infradead.org> <4E7DBB1C.1090407@list.ru> <4E7DC93C.9080101@infradead.org> <4E7DCEC1.6010405@list.ru> <4E7DD1A5.5080204@infradead.org> <4E7DD92A.8030300@list.ru>
-In-Reply-To: <4E7DD92A.8030300@list.ru>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201109301329.55357.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 24-09-2011 10:20, Stas Sergeev escreveu:
-> 24.09.2011 16:48, Mauro Carvalho Chehab wrote:
->> A first scan at driver's init can be removed, IMO.
-> OK, that's the great news.
-> Will write a new patch then.
+On Friday, September 30, 2011 13:12:01 Mauro Carvalho Chehab wrote:
+> Em 30-09-2011 06:01, Hans Verkuil escreveu:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/video/Kconfig |  185 +++++++++++++++++++++++-------------------
+> >  1 files changed, 101 insertions(+), 84 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> > index 0f8ccb4..86fdd7d 100644
+> > --- a/drivers/media/video/Kconfig
+> > +++ b/drivers/media/video/Kconfig
+> > @@ -685,51 +685,6 @@ source "drivers/media/video/omap/Kconfig"
+> >  
+> >  source "drivers/media/video/bt8xx/Kconfig"
+> >  
+> > -config VIDEO_PMS
+> > -	tristate "Mediavision Pro Movie Studio Video For Linux"
+> > -	depends on ISA && VIDEO_V4L2
+> > -	help
+> > -	  Say Y if you have such a thing.
+> > -
+> > -	  To compile this driver as a module, choose M here: the
+> > -	  module will be called pms.
+> > -
+> > -config VIDEO_BWQCAM
+> > -	tristate "Quickcam BW Video For Linux"
+> > -	depends on PARPORT && VIDEO_V4L2
+> > -	help
+> > -	  Say Y have if you the black and white version of the QuickCam
+> > -	  camera. See the next option for the color version.
+> > -
+> > -	  To compile this driver as a module, choose M here: the
+> > -	  module will be called bw-qcam.
+> > -
+> > -config VIDEO_CQCAM
+> > -	tristate "QuickCam Colour Video For Linux (EXPERIMENTAL)"
+> > -	depends on EXPERIMENTAL && PARPORT && VIDEO_V4L2
+> > -	help
+> > -	  This is the video4linux driver for the colour version of the
+> > -	  Connectix QuickCam.  If you have one of these cameras, say Y here,
+> > -	  otherwise say N.  This driver does not work with the original
+> > -	  monochrome QuickCam, QuickCam VC or QuickClip.  It is also available
+> > -	  as a module (c-qcam).
+> > -	  Read <file:Documentation/video4linux/CQcam.txt> for more information.
+> > -
+> > -config VIDEO_W9966
+> > -	tristate "W9966CF Webcam (FlyCam Supra and others) Video For Linux"
+> > -	depends on PARPORT_1284 && PARPORT && VIDEO_V4L2
+> > -	help
+> > -	  Video4linux driver for Winbond's w9966 based Webcams.
+> > -	  Currently tested with the LifeView FlyCam Supra.
+> > -	  If you have one of these cameras, say Y here
+> > -	  otherwise say N.
+> > -	  This driver is also available as a module (w9966).
+> > -
+> > -	  Check out <file:Documentation/video4linux/w9966.txt> for more
+> > -	  information.
+> > -
+> > -source "drivers/media/video/cpia2/Kconfig"
+> > -
+> >  config VIDEO_VINO
+> >  	tristate "SGI Vino Video For Linux (EXPERIMENTAL)"
+> >  	depends on I2C && SGI_IP22 && EXPERIMENTAL && VIDEO_V4L2
+> > @@ -756,45 +711,6 @@ config VIDEO_MEYE
+> >  
+> >  source "drivers/media/video/saa7134/Kconfig"
+> >  
+> > -config VIDEO_MXB
+> > -	tristate "Siemens-Nixdorf 'Multimedia eXtension Board'"
+> > -	depends on PCI && VIDEO_V4L2 && I2C
+> > -	select VIDEO_SAA7146_VV
+> > -	select VIDEO_TUNER
+> > -	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
+> > -	select VIDEO_TDA9840 if VIDEO_HELPER_CHIPS_AUTO
+> > -	select VIDEO_TEA6415C if VIDEO_HELPER_CHIPS_AUTO
+> > -	select VIDEO_TEA6420 if VIDEO_HELPER_CHIPS_AUTO
+> > -	---help---
+> > -	  This is a video4linux driver for the 'Multimedia eXtension Board'
+> > -	  TV card by Siemens-Nixdorf.
+> > -
+> > -	  To compile this driver as a module, choose M here: the
+> > -	  module will be called mxb.
+> > -
+> > -config VIDEO_HEXIUM_ORION
+> > -	tristate "Hexium HV-PCI6 and Orion frame grabber"
+> > -	depends on PCI && VIDEO_V4L2 && I2C
+> > -	select VIDEO_SAA7146_VV
+> > -	---help---
+> > -	  This is a video4linux driver for the Hexium HV-PCI6 and
+> > -	  Orion frame grabber cards by Hexium.
+> > -
+> > -	  To compile this driver as a module, choose M here: the
+> > -	  module will be called hexium_orion.
+> > -
+> > -config VIDEO_HEXIUM_GEMINI
+> > -	tristate "Hexium Gemini frame grabber"
+> > -	depends on PCI && VIDEO_V4L2 && I2C
+> > -	select VIDEO_SAA7146_VV
+> > -	---help---
+> > -	  This is a video4linux driver for the Hexium Gemini frame
+> > -	  grabber card by Hexium. Please note that the Gemini Dual
+> > -	  card is *not* fully supported.
+> > -
+> > -	  To compile this driver as a module, choose M here: the
+> > -	  module will be called hexium_gemini.
+> > -
+> >  config VIDEO_TIMBERDALE
+> >  	tristate "Support for timberdale Video In/LogiWIN"
+> >  	depends on VIDEO_V4L2 && I2C && DMADEVICES
+> > @@ -1067,6 +983,107 @@ config VIDEO_S5P_MIPI_CSIS
+> >  
+> >  source "drivers/media/video/s5p-tv/Kconfig"
+> >  
+> > +#
+> > +# Legacy drivers configuration
+> > +#
+> > +
+> > +menuconfig V4L_LEGACY_DRIVERS
+> > +	bool "V4L legacy devices"
+> > +	default n
+> > +	---help---
+> > +	  Say Y here to enable support for these legacy drivers. These drivers
+> > +	  are for old and obsure hardware (e.g. parallel port webcams, ISA
+> > +	  drivers, niche hardware).
+> 
+> As before, I don't like the name "legacy". The drivers themselves are not
+> legacy, as they work fine, as far as I know.
+> 
+> Parallel port and ISA could be just called as "parallel port and ISA drivers".
+> 
+> With regards to saa7146 drivers, it is hard to say the the hardware is more
+> legacy than, for example, bttv.
 
-OK.
+The saa7146 V4L drivers (MXB and Hexium) are very rarely used. It's very hard
+to find the hardware and you almost never see questions about it on the list.
+The av7110 DVB drivers that are saa7146 based still pop up every now and then.
+
+> As I said before, defining what's a legacy hardware and what isn't is not
+> an objective criteria: it is legacy on what sense? I was told that tda18271
+> were recently discontinued. Should we mark all drivers that use it as legacy?
+
+Of course not. Legacy drivers are for hardware that is almost never used
+anymore (based on the traffic on the mailinglist) and no longer sold since
+many years. Bonus points for using an obsolete interface (ISA, parport).
+
+If you really hate this, then I can move the PCI drivers back to the normal
+menu.
+
+I don't see a problem here: bttv sees a lot of development and use and hardware
+is even still being made today. On the other hand, what was the last time
+anyone ever asked something about the Hexium drivers? If it wasn't for the fact
+that I got the hardware for Hexium and MXB from Michael Hunold (so that I can
+test it) I would have been in favor of removing the drivers altogether.
+
+Regards,
+
+	Hans
 
 > 
->> There's nothing the driver can do if the hardware
->> missdetects a carrier. Dirty tricks to try solving it
->> are not good, as they'll do the wrong thing on some situations.
-> Well, if we assume the first scan can be removed,
-> then we also assume the previous "dirty trick" is
-> harmless, as it affects only the first scan. But I'll
-> better remove both the trick and the first scan then,
-> as the fewer the hacks, the better the code.
-
-Yes.
-
->> If someone is using the board on an environment
->> without udev and pulseaudio, this trick will break the first tuning.
-> I feel this somehow contradicts with your suggestion
-> to remove the first scan, so could you clarify?
-
-What I meant to say is that both udev and pulseaudio opens the device,
-and these might initialize the audio thread. The driver should be able
-to work the same way with or without the first open by udev/pulseaudio.
-
->> Well, if you think that this would solve, then just write a patch
->> exporting the mute control via ALSA. I have no problems with that.
-> That would solve all the problems, but only if:
-> 1. The mplayer is then moved to the use of that new
-> control to not depend on the autounmute hack.
-> I can write the patch for that too.
-
-The autounmute is not a hack. It is a logic to suppress audio when the
-audio carrier is not detected. It should not be removed.
-
-I'm not sure if it is safe to make mplayer to use the audio mixer. It
-is probably a good idea doing that, as it will also work fine with webcams
-that provide alsa inputs.
-
-> 2. Make sure all the other apps are fixed the same way
-> (I hope there are none though)
-> 3. The autounmute hack is then removed. (no
-> regressions if steps 1 and 2 are carefully done)
+> > +
+> > +if V4L_LEGACY_DRIVERS
+> > +
+> > +config VIDEO_PMS
+> > +	tristate "Mediavision Pro Movie Studio Video For Linux"
+> > +	depends on ISA && VIDEO_V4L2
+> > +	help
+> > +	  Say Y if you have the ISA Mediavision Pro Movie Studio
+> > +	  capture card.
+> > +
+> > +	  To compile this driver as a module, choose M here: the
+> > +	  module will be called pms.
+> > +
+> > +config VIDEO_BWQCAM
+> > +	tristate "Quickcam BW Video For Linux"
+> > +	depends on PARPORT && VIDEO_V4L2
+> > +	help
+> > +	  Say Y have if you the black and white version of the QuickCam
+> > +	  camera. See the next option for the color version.
+> > +
+> > +	  To compile this driver as a module, choose M here: the
+> > +	  module will be called bw-qcam.
+> > +
+> > +config VIDEO_CQCAM
+> > +	tristate "QuickCam Colour Video For Linux (EXPERIMENTAL)"
+> > +	depends on EXPERIMENTAL && PARPORT && VIDEO_V4L2
+> > +	help
+> > +	  This is the video4linux driver for the colour version of the
+> > +	  Connectix QuickCam.  If you have one of these cameras, say Y here,
+> > +	  otherwise say N.  This driver does not work with the original
+> > +	  monochrome QuickCam, QuickCam VC or QuickClip.  It is also available
+> > +	  as a module (c-qcam).
+> > +	  Read <file:Documentation/video4linux/CQcam.txt> for more information.
+> > +
+> > +config VIDEO_W9966
+> > +	tristate "W9966CF Webcam (FlyCam Supra and others) Video For Linux"
+> > +	depends on PARPORT_1284 && PARPORT && VIDEO_V4L2
+> > +	help
+> > +	  Video4linux driver for Winbond's w9966 based Webcams.
+> > +	  Currently tested with the LifeView FlyCam Supra.
+> > +	  If you have one of these cameras, say Y here
+> > +	  otherwise say N.
+> > +	  This driver is also available as a module (w9966).
+> > +
+> > +	  Check out <file:Documentation/video4linux/w9966.txt> for more
+> > +	  information.
+> > +
+> > +source "drivers/media/video/cpia2/Kconfig"
+> > +
+> > +config VIDEO_MXB
+> > +	tristate "Siemens-Nixdorf 'Multimedia eXtension Board'"
+> > +	depends on PCI && VIDEO_V4L2 && I2C
+> > +	select VIDEO_SAA7146_VV
+> > +	select VIDEO_TUNER
+> > +	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
+> > +	select VIDEO_TDA9840 if VIDEO_HELPER_CHIPS_AUTO
+> > +	select VIDEO_TEA6415C if VIDEO_HELPER_CHIPS_AUTO
+> > +	select VIDEO_TEA6420 if VIDEO_HELPER_CHIPS_AUTO
+> > +	---help---
+> > +	  This is a video4linux driver for the 'Multimedia eXtension Board'
+> > +	  TV card by Siemens-Nixdorf.
+> > +
+> > +	  To compile this driver as a module, choose M here: the
+> > +	  module will be called mxb.
+> > +
+> > +config VIDEO_HEXIUM_ORION
+> > +	tristate "Hexium HV-PCI6 and Orion frame grabber"
+> > +	depends on PCI && VIDEO_V4L2 && I2C
+> > +	select VIDEO_SAA7146_VV
+> > +	---help---
+> > +	  This is a video4linux driver for the Hexium HV-PCI6 and
+> > +	  Orion frame grabber cards by Hexium.
+> > +
+> > +	  To compile this driver as a module, choose M here: the
+> > +	  module will be called hexium_orion.
+> > +
+> > +config VIDEO_HEXIUM_GEMINI
+> > +	tristate "Hexium Gemini frame grabber"
+> > +	depends on PCI && VIDEO_V4L2 && I2C
+> > +	select VIDEO_SAA7146_VV
+> > +	---help---
+> > +	  This is a video4linux driver for the Hexium Gemini frame
+> > +	  grabber card by Hexium. Please note that the Gemini Dual
+> > +	  card is *not* fully supported.
+> > +
+> > +	  To compile this driver as a module, choose M here: the
+> > +	  module will be called hexium_gemini.
+> > +
+> > +endif # V4L_LEGACY_DRIVERS
+> > +
+> >  endif # VIDEO_CAPTURE_DRIVERS
+> >  
+> >  menuconfig V4L_MEM2MEM_DRIVERS
 > 
-> If you are fine with that plan, then I'll try to find
-> the time and do the things that way. Otherwise,
-> I'll remove the first scan, and that will do the trick
-> in a simpler, though less cleaner way.
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
