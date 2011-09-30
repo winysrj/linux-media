@@ -1,99 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway07.websitewelcome.com ([69.41.247.30]:51394 "HELO
-	gateway07.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753543Ab1IUSLH (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:52884 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751787Ab1I3Ony (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Sep 2011 14:11:07 -0400
-From: "Charlie X. Liu" <charlie@sensoray.com>
-To: "'Pavel Andris'" <utrrandr@savba.sk>, <linux-media@vger.kernel.org>
-References: <20110921093242.GA6210@magor.savba.sk>
-In-Reply-To: <20110921093242.GA6210@magor.savba.sk>
-Subject: RE: frame grabber INT-1461 under Linux
-Date: Wed, 21 Sep 2011 11:02:42 -0700
-Message-ID: <009401cc7888$a8ef1d30$facd5790$@com>
+	Fri, 30 Sep 2011 10:43:54 -0400
+Received: by ywb5 with SMTP id 5so1553072ywb.19
+        for <linux-media@vger.kernel.org>; Fri, 30 Sep 2011 07:43:54 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Language: en-us
+In-Reply-To: <4E85AF12.1000700@infradead.org>
+References: <201109281350.52099.simon.farnsworth@onelan.com>
+	<4E859E74.7080900@infradead.org>
+	<201109301203.36370.simon.farnsworth@onelan.co.uk>
+	<4E85AF12.1000700@infradead.org>
+Date: Fri, 30 Sep 2011 10:43:53 -0400
+Message-ID: <CAGoCfizt-9E_kiheuojrXNNbP46FF+wV=dtQ7QwPEa3szenKBQ@mail.gmail.com>
+Subject: Re: Problems tuning PAL-D with a Hauppauge HVR-1110 (TDA18271 tuner)
+ - workaround hack included
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Simon Farnsworth <simon.farnsworth@onelan.co.uk>,
+	LMML <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-What's strange? card=77 is for "GrandTec Multi Capture Card (Bt878)",
-according to the
-"http://linuxtv.org/hg/v4l-dvb/file/tip/linux/Documentation/video4linux/CARD
-LIST.bttv". Sensoray has a Model 311
-(http://www.sensoray.com/products/311.htm), with card=73. I knew that the
-INT-1461 is very similar to Sensoray's Model 311. So, you may try card=73.
+On Fri, Sep 30, 2011 at 7:59 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> Michael/Devin may be able to double check what tda18271 variants are used at the
+> hvr1100 supported models.
 
+Mike could confirm definitively but I would be very surprised if it
+was anything other than a C2.  I also don't think we've had multiple
+revisions of that board (other than the ones in the list which were
+all released at the same time and are just different population
+options).
 
------Original Message-----
-From: linux-media-owner@vger.kernel.org
-[mailto:linux-media-owner@vger.kernel.org] On Behalf Of Pavel Andris
-Sent: Wednesday, September 21, 2011 2:33 AM
-To: linux-media@vger.kernel.org
-Subject: frame grabber INT-1461 under Linux
+All that said, I also wonder if perhaps this is an issue with the
+analog demod as opposed to the tuner.  It feels unlikely but that
+might explain why I didn't see similar results when I did the testing
+on the cx231xx/tda18271 combo back in February.
 
-Hi,
+The big problem here really though is that somebody who is
+knowledgeable of the driver internals needs to dig into the issue, and
+I don't foresee that happening in the immediate future (I cannot speak
+for Michael but I've been too tied up in other projects).  I'm
+definitely not discounting Simon's skills or findings, but this needs
+to be investigated in a context beyond the tuner/demod combination
+found on a single product.
 
-dmesg has asked me to mail you. Here's the essential part of the message:
+Devin
 
-[    1.806495] Linux video capture interface: v2.00
-[    1.806607] bttv: driver version 0.9.18 loaded
-[    1.806613] bttv: using 8 buffers with 2080k (520 pages) each for capture
-[    1.806669] bttv: Bt8xx card found (0).
-[    1.806692] bttv 0000:01:01.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
-[    1.806710] bttv0: Bt878 (rev 17) at 0000:01:01.0, irq: 17, latency: 64,
-mmio: 0xfdfff000
-[    1.806753] bttv0: subsystem: 1766:ffff (UNKNOWN)
-[    1.806758] please mail id, board name and the correct card= insmod
-option to linux-media@vger.kernel.org
-[    1.806766] bttv0: using: GrandTec Multi Capture Card (Bt878)
-[card=77,insmod option]
-[    1.806839] bttv0: gpio: en=00000000, out=00000000 in=00e31fff [init]
-[    1.807003] bttv0: tuner absent
-[    1.807086] bttv0: registered device video0
-[    1.807179] bttv0: registered device vbi0
-[    1.807204] bttv0: PLL: 28636363 => 35468950 .. ok
-[    1.847974] bt878: AUDIO driver version 0.0.0 loaded
-
-I use bttv.card=77 kernel parameter. With no parameter, the frame
-grabber works, but in a strange way.
-
-Info about my frame grabber:
-
-INT-1461
-PC/104-Plus Frame Grabber w/ 4 CVBS Inputs & 24 DIO
-
-The INT-1461 video frame grabber is a low-cost, high-performance
-solution for capturing analog broadcast signals across the PCI
-bus. Based around the Conexant FusionTM 878A video decoder, this
-compact PC/104-Plus form factor board supports NTSC, PAL, and SECAM
-video formats at capture resolutions of up to 768 x 576 pixels and 30
-frames per second. It can also sub-sample, scale, crop, and clip
-images at various resolutions and frame rates.
-
-You can easily find more info on the net.
-
-Thank you for writing and supporting media drivers.
-
-Regards,
- 
 -- 
-..........................................................................
-Pavel Andris                               | tel: +421 2 5941 1167
-Institute of Informatics                   | fax: +421 2 5477 3271
-Slovak Academy of Sciences                 | 
-Dubravska cesta 9                          | e-mail: utrrandr@savba.sk
-SK - 845 07 Bratislava                     |
-Slovak republic                            |
-..........................................................................
-
-"One hundred thousand lemmings cannot be wrong." 
-                                                       Graffiti
-..........................................................................
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
