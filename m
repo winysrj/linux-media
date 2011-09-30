@@ -1,201 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6354 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753553Ab1IWRFT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Sep 2011 13:05:19 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: greg@kroah.com, Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 1/2] [media] tm6000: Fix some CodingStyle issues
-Date: Fri, 23 Sep 2011 14:04:53 -0300
-Message-Id: <1316797494-23237-1-git-send-email-mchehab@redhat.com>
+Received: from claranet-outbound-smtp02.uk.clara.net ([195.8.89.35]:53401 "EHLO
+	claranet-outbound-smtp02.uk.clara.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755419Ab1I3LLq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Sep 2011 07:11:46 -0400
+From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Problems tuning PAL-D with a Hauppauge HVR-1110 (TDA18271 tuner) - workaround hack included
+Date: Fri, 30 Sep 2011 12:03:36 +0100
+Cc: LMML <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	devin heitmueller <dheitmueller@kernellabs.com>
+References: <201109281350.52099.simon.farnsworth@onelan.com> <4E859E74.7080900@infradead.org>
+In-Reply-To: <4E859E74.7080900@infradead.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201109301203.36370.simon.farnsworth@onelan.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/staging/tm6000/tm6000-core.c     |   20 ++++++++++----------
- drivers/staging/tm6000/tm6000-dvb.c      |    4 ++--
- drivers/staging/tm6000/tm6000-i2c.c      |   16 ++++++++--------
- drivers/staging/tm6000/tm6000-regs.h     |    2 +-
- drivers/staging/tm6000/tm6000-usb-isoc.h |    2 +-
- drivers/staging/tm6000/tm6000.h          |    4 ++--
- 6 files changed, 24 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
-index 6d0803c..9783616 100644
---- a/drivers/staging/tm6000/tm6000-core.c
-+++ b/drivers/staging/tm6000/tm6000-core.c
-@@ -52,18 +52,18 @@ int tm6000_read_write_usb(struct tm6000_core *dev, u8 req_type, u8 req,
- 	}
- 
- 	if (tm6000_debug & V4L2_DEBUG_I2C) {
--		printk("(dev %p, pipe %08x): ", dev->udev, pipe);
-+		printk(KERN_DEBUG "(dev %p, pipe %08x): ", dev->udev, pipe);
- 
--		printk("%s: %02x %02x %02x %02x %02x %02x %02x %02x ",
-+		printk(KERN_CONT "%s: %02x %02x %02x %02x %02x %02x %02x %02x ",
- 			(req_type & USB_DIR_IN) ? " IN" : "OUT",
- 			req_type, req, value&0xff, value>>8, index&0xff,
- 			index>>8, len&0xff, len>>8);
- 
- 		if (!(req_type & USB_DIR_IN)) {
--			printk(">>> ");
-+			printk(KERN_CONT ">>> ");
- 			for (i = 0; i < len; i++)
--				printk(" %02x", buf[i]);
--			printk("\n");
-+				printk(KERN_CONT " %02x", buf[i]);
-+			printk(KERN_CONT "\n");
- 		}
- 	}
- 
-@@ -76,14 +76,14 @@ int tm6000_read_write_usb(struct tm6000_core *dev, u8 req_type, u8 req,
- 	if (tm6000_debug & V4L2_DEBUG_I2C) {
- 		if (ret < 0) {
- 			if (req_type &  USB_DIR_IN)
--				printk("<<< (len=%d)\n", len);
-+				printk(KERN_DEBUG "<<< (len=%d)\n", len);
- 
--			printk("%s: Error #%d\n", __FUNCTION__, ret);
-+			printk(KERN_CONT "%s: Error #%d\n", __func__, ret);
- 		} else if (req_type &  USB_DIR_IN) {
--			printk("<<< ");
-+			printk(KERN_CONT "<<< ");
- 			for (i = 0; i < len; i++)
--				printk(" %02x", buf[i]);
--			printk("\n");
-+				printk(KERN_CONT " %02x", buf[i]);
-+			printk(KERN_CONT "\n");
- 		}
- 	}
- 
-diff --git a/drivers/staging/tm6000/tm6000-dvb.c b/drivers/staging/tm6000/tm6000-dvb.c
-index 8f2a50b..5e6c129 100644
---- a/drivers/staging/tm6000/tm6000-dvb.c
-+++ b/drivers/staging/tm6000/tm6000-dvb.c
-@@ -330,7 +330,7 @@ static int register_dvb(struct tm6000_core *dev)
- 	dvb->demux.write_to_decoder = NULL;
- 	ret = dvb_dmx_init(&dvb->demux);
- 	if (ret < 0) {
--		printk("tm6000: dvb_dmx_init failed (errno = %d)\n", ret);
-+		printk(KERN_ERR "tm6000: dvb_dmx_init failed (errno = %d)\n", ret);
- 		goto frontend_err;
- 	}
- 
-@@ -340,7 +340,7 @@ static int register_dvb(struct tm6000_core *dev)
- 
- 	ret =  dvb_dmxdev_init(&dvb->dmxdev, &dvb->adapter);
- 	if (ret < 0) {
--		printk("tm6000: dvb_dmxdev_init failed (errno = %d)\n", ret);
-+		printk(KERN_ERR "tm6000: dvb_dmxdev_init failed (errno = %d)\n", ret);
- 		goto dvb_dmx_err;
- 	}
- 
-diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
-index 76a8e3a..0290bbf 100644
---- a/drivers/staging/tm6000/tm6000-i2c.c
-+++ b/drivers/staging/tm6000/tm6000-i2c.c
-@@ -189,7 +189,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			/* 1 or 2 byte write followed by a read */
- 			if (i2c_debug >= 2)
- 				for (byte = 0; byte < msgs[i].len; byte++)
--					printk(" %02x", msgs[i].buf[byte]);
-+					printk(KERN_CONT " %02x", msgs[i].buf[byte]);
- 			i2c_dprintk(2, "; joined to read %s len=%d:",
- 				    i == num - 2 ? "stop" : "nonstop",
- 				    msgs[i + 1].len);
-@@ -211,17 +211,17 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			}
- 			if (i2c_debug >= 2)
- 				for (byte = 0; byte < msgs[i].len; byte++)
--					printk(" %02x", msgs[i].buf[byte]);
-+					printk(KERN_CONT " %02x", msgs[i].buf[byte]);
- 		} else {
- 			/* write bytes */
- 			if (i2c_debug >= 2)
- 				for (byte = 0; byte < msgs[i].len; byte++)
--					printk(" %02x", msgs[i].buf[byte]);
-+					printk(KERN_CONT " %02x", msgs[i].buf[byte]);
- 			rc = tm6000_i2c_send_regs(dev, addr, msgs[i].buf[0],
- 				msgs[i].buf + 1, msgs[i].len - 1);
- 		}
- 		if (i2c_debug >= 2)
--			printk("\n");
-+			printk(KERN_CONT "\n");
- 		if (rc < 0)
- 			goto err;
- 	}
-@@ -259,7 +259,7 @@ static int tm6000_i2c_eeprom(struct tm6000_core *dev)
- 		p++;
- 		if (0 == (i % 16))
- 			printk(KERN_INFO "%s: i2c eeprom %02x:", dev->name, i);
--		printk(" %02x", dev->eedata[i]);
-+		printk(KERN_CONT " %02x", dev->eedata[i]);
- 		if ((dev->eedata[i] >= ' ') && (dev->eedata[i] <= 'z'))
- 			bytes[i%16] = dev->eedata[i];
- 		else
-@@ -269,14 +269,14 @@ static int tm6000_i2c_eeprom(struct tm6000_core *dev)
- 
- 		if (0 == (i % 16)) {
- 			bytes[16] = '\0';
--			printk("  %s\n", bytes);
-+			printk(KERN_CONT "  %s\n", bytes);
- 		}
- 	}
- 	if (0 != (i%16)) {
- 		bytes[i%16] = '\0';
- 		for (i %= 16; i < 16; i++)
--			printk("   ");
--		printk("  %s\n", bytes);
-+			printk(KERN_CONT "   ");
-+		printk(KERN_CONT "  %s\n", bytes);
- 	}
- 
- 	return 0;
-diff --git a/drivers/staging/tm6000/tm6000-regs.h b/drivers/staging/tm6000/tm6000-regs.h
-index 6e4ef95..7f491b6 100644
---- a/drivers/staging/tm6000/tm6000-regs.h
-+++ b/drivers/staging/tm6000/tm6000-regs.h
-@@ -90,7 +90,7 @@
-  */
- 
- enum {
--	TM6000_URB_MSG_VIDEO=1,
-+	TM6000_URB_MSG_VIDEO = 1,
- 	TM6000_URB_MSG_AUDIO,
- 	TM6000_URB_MSG_VBI,
- 	TM6000_URB_MSG_PTS,
-diff --git a/drivers/staging/tm6000/tm6000-usb-isoc.h b/drivers/staging/tm6000/tm6000-usb-isoc.h
-index 084c2a8..99d15a5 100644
---- a/drivers/staging/tm6000/tm6000-usb-isoc.h
-+++ b/drivers/staging/tm6000/tm6000-usb-isoc.h
-@@ -46,5 +46,5 @@ struct usb_isoc_ctl {
- 	int				tmp_buf_len;
- 
- 		/* Stores already requested buffers */
--	struct tm6000_buffer    	*buf;
-+	struct tm6000_buffer		*buf;
- };
-diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
-index 5bdce84..2777e51 100644
---- a/drivers/staging/tm6000/tm6000.h
-+++ b/drivers/staging/tm6000/tm6000.h
-@@ -384,7 +384,7 @@ extern int tm6000_debug;
- #define dprintk(dev, level, fmt, arg...) do {\
- 	if (tm6000_debug & level) \
- 		printk(KERN_INFO "(%lu) %s %s :"fmt, jiffies, \
--			 dev->name, __FUNCTION__ , ##arg); } while (0)
-+			 dev->name, __func__ , ##arg); } while (0)
- 
- #define V4L2_DEBUG_REG		0x0004
- #define V4L2_DEBUG_I2C		0x0008
-@@ -395,4 +395,4 @@ extern int tm6000_debug;
- 
- #define tm6000_err(fmt, arg...) do {\
- 	printk(KERN_ERR "tm6000 %s :"fmt, \
--		__FUNCTION__ , ##arg); } while (0)
-+		__func__ , ##arg); } while (0)
+On Friday 30 September 2011, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+> Em 28-09-2011 09:50, Simon Farnsworth escreveu:
+> > (note - the CC list is everyone over 50% certainty from get_maintainer.pl)
+> > 
+> > I'm having problems getting a Hauppauge HVR-1110 card to successfully
+> > tune PAL-D at 85.250 MHz vision frequency; by experimentation, I've
+> > determined that the tda18271 is tuning to a frequency 1.25 MHz lower
+> > than the vision frequency I've requested, so the following workaround
+> > "fixes" it for me.
+> > 
+> > diff --git a/drivers/media/common/tuners/tda18271-fe.c 
+> > b/drivers/media/common/tuners/tda18271-fe.c
+> > index 63cc400..1a94e1a 100644
+> > --- a/drivers/media/common/tuners/tda18271-fe.c
+> > +++ b/drivers/media/common/tuners/tda18271-fe.c
+> > @@ -1031,6 +1031,7 @@ static int tda18271_set_analog_params(struct 
+> > dvb_frontend *fe,
+> >  		mode = "I";
+> >  	} else if (params->std & V4L2_STD_DK) {
+> >  		map = &std_map->atv_dk;
+> > +                freq += 1250000;
+> >  		mode = "DK";
+> >  	} else if (params->std & V4L2_STD_SECAM_L) {
+> >  		map = &std_map->atv_l;
+> 
+> If I am to fix this bug, instead of a hack like that, it seems to be better
+> to split the .atv_dk line at the struct tda18271_std_map maps on
+> drivers/media/common/tuners/tda18271-maps.c.
+> 
+> Looking at the datasheet, on page 43, available at:
+> 	http://www.nxp.com/documents/data_sheet/TDA18271HD.pdf
+> 
+> The offset values for IF seem ok, but maybe your device is using some variant
+> of this chip that requires a different maps table.
+>
+How would I identify this? I definitely need the hack on multiple different
+HVR1110 cards, in different motherboards. I get apparently perfect reception
+if I apply the hack, so clearly something is wrong.
 -- 
-1.7.6.2
-
+Simon Farnsworth
+Software Engineer
+ONELAN Limited
+http://www.onelan.com/
