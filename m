@@ -1,203 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:12900 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:11040 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758518Ab1I3MqK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 08:46:10 -0400
-Message-ID: <4E85B9FA.5000208@redhat.com>
-Date: Fri, 30 Sep 2011 09:45:46 -0300
+	id S1751618Ab1I3K2h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Sep 2011 06:28:37 -0400
+Message-ID: <4E8599CF.1040402@redhat.com>
+Date: Fri, 30 Sep 2011 07:28:31 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 2/7] V4L menu: move legacy drivers into their own
- submenu.
-References: <1317373276-5818-1-git-send-email-hverkuil@xs4all.nl> <eb58a802b520329b54aebfeb2a1400870d61b127.1317372990.git.hans.verkuil@cisco.com> <4E85A401.1040200@redhat.com> <201109301329.55357.hverkuil@xs4all.nl>
-In-Reply-To: <201109301329.55357.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: Christian Gmeiner <christian.gmeiner@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Make use of media bus pixel codes in adv7175 driver
+References: <CAH9NwWdkc20XQXPB4VmT1vf+kGWZWmuA0JPomEKO5ERjdbAn6Q@mail.gmail.com>
+In-Reply-To: <CAH9NwWdkc20XQXPB4VmT1vf+kGWZWmuA0JPomEKO5ERjdbAn6Q@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 30-09-2011 08:29, Hans Verkuil escreveu:
-> On Friday, September 30, 2011 13:12:01 Mauro Carvalho Chehab wrote:
->> Em 30-09-2011 06:01, Hans Verkuil escreveu:
->>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>
->>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>> ---
->>>  drivers/media/video/Kconfig |  185 +++++++++++++++++++++++-------------------
->>>  1 files changed, 101 insertions(+), 84 deletions(-)
->>>
->>> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
->>> index 0f8ccb4..86fdd7d 100644
->>> --- a/drivers/media/video/Kconfig
->>> +++ b/drivers/media/video/Kconfig
->>> @@ -685,51 +685,6 @@ source "drivers/media/video/omap/Kconfig"
->>>  
->>>  source "drivers/media/video/bt8xx/Kconfig"
->>>  
->>> -config VIDEO_PMS
->>> -	tristate "Mediavision Pro Movie Studio Video For Linux"
->>> -	depends on ISA && VIDEO_V4L2
->>> -	help
->>> -	  Say Y if you have such a thing.
->>> -
->>> -	  To compile this driver as a module, choose M here: the
->>> -	  module will be called pms.
->>> -
->>> -config VIDEO_BWQCAM
->>> -	tristate "Quickcam BW Video For Linux"
->>> -	depends on PARPORT && VIDEO_V4L2
->>> -	help
->>> -	  Say Y have if you the black and white version of the QuickCam
->>> -	  camera. See the next option for the color version.
->>> -
->>> -	  To compile this driver as a module, choose M here: the
->>> -	  module will be called bw-qcam.
->>> -
->>> -config VIDEO_CQCAM
->>> -	tristate "QuickCam Colour Video For Linux (EXPERIMENTAL)"
->>> -	depends on EXPERIMENTAL && PARPORT && VIDEO_V4L2
->>> -	help
->>> -	  This is the video4linux driver for the colour version of the
->>> -	  Connectix QuickCam.  If you have one of these cameras, say Y here,
->>> -	  otherwise say N.  This driver does not work with the original
->>> -	  monochrome QuickCam, QuickCam VC or QuickClip.  It is also available
->>> -	  as a module (c-qcam).
->>> -	  Read <file:Documentation/video4linux/CQcam.txt> for more information.
->>> -
->>> -config VIDEO_W9966
->>> -	tristate "W9966CF Webcam (FlyCam Supra and others) Video For Linux"
->>> -	depends on PARPORT_1284 && PARPORT && VIDEO_V4L2
->>> -	help
->>> -	  Video4linux driver for Winbond's w9966 based Webcams.
->>> -	  Currently tested with the LifeView FlyCam Supra.
->>> -	  If you have one of these cameras, say Y here
->>> -	  otherwise say N.
->>> -	  This driver is also available as a module (w9966).
->>> -
->>> -	  Check out <file:Documentation/video4linux/w9966.txt> for more
->>> -	  information.
->>> -
->>> -source "drivers/media/video/cpia2/Kconfig"
->>> -
->>>  config VIDEO_VINO
->>>  	tristate "SGI Vino Video For Linux (EXPERIMENTAL)"
->>>  	depends on I2C && SGI_IP22 && EXPERIMENTAL && VIDEO_V4L2
->>> @@ -756,45 +711,6 @@ config VIDEO_MEYE
->>>  
->>>  source "drivers/media/video/saa7134/Kconfig"
->>>  
->>> -config VIDEO_MXB
->>> -	tristate "Siemens-Nixdorf 'Multimedia eXtension Board'"
->>> -	depends on PCI && VIDEO_V4L2 && I2C
->>> -	select VIDEO_SAA7146_VV
->>> -	select VIDEO_TUNER
->>> -	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
->>> -	select VIDEO_TDA9840 if VIDEO_HELPER_CHIPS_AUTO
->>> -	select VIDEO_TEA6415C if VIDEO_HELPER_CHIPS_AUTO
->>> -	select VIDEO_TEA6420 if VIDEO_HELPER_CHIPS_AUTO
->>> -	---help---
->>> -	  This is a video4linux driver for the 'Multimedia eXtension Board'
->>> -	  TV card by Siemens-Nixdorf.
->>> -
->>> -	  To compile this driver as a module, choose M here: the
->>> -	  module will be called mxb.
->>> -
->>> -config VIDEO_HEXIUM_ORION
->>> -	tristate "Hexium HV-PCI6 and Orion frame grabber"
->>> -	depends on PCI && VIDEO_V4L2 && I2C
->>> -	select VIDEO_SAA7146_VV
->>> -	---help---
->>> -	  This is a video4linux driver for the Hexium HV-PCI6 and
->>> -	  Orion frame grabber cards by Hexium.
->>> -
->>> -	  To compile this driver as a module, choose M here: the
->>> -	  module will be called hexium_orion.
->>> -
->>> -config VIDEO_HEXIUM_GEMINI
->>> -	tristate "Hexium Gemini frame grabber"
->>> -	depends on PCI && VIDEO_V4L2 && I2C
->>> -	select VIDEO_SAA7146_VV
->>> -	---help---
->>> -	  This is a video4linux driver for the Hexium Gemini frame
->>> -	  grabber card by Hexium. Please note that the Gemini Dual
->>> -	  card is *not* fully supported.
->>> -
->>> -	  To compile this driver as a module, choose M here: the
->>> -	  module will be called hexium_gemini.
->>> -
->>>  config VIDEO_TIMBERDALE
->>>  	tristate "Support for timberdale Video In/LogiWIN"
->>>  	depends on VIDEO_V4L2 && I2C && DMADEVICES
->>> @@ -1067,6 +983,107 @@ config VIDEO_S5P_MIPI_CSIS
->>>  
->>>  source "drivers/media/video/s5p-tv/Kconfig"
->>>  
->>> +#
->>> +# Legacy drivers configuration
->>> +#
->>> +
->>> +menuconfig V4L_LEGACY_DRIVERS
->>> +	bool "V4L legacy devices"
->>> +	default n
->>> +	---help---
->>> +	  Say Y here to enable support for these legacy drivers. These drivers
->>> +	  are for old and obsure hardware (e.g. parallel port webcams, ISA
->>> +	  drivers, niche hardware).
->>
->> As before, I don't like the name "legacy". The drivers themselves are not
->> legacy, as they work fine, as far as I know.
->>
->> Parallel port and ISA could be just called as "parallel port and ISA drivers".
->>
->> With regards to saa7146 drivers, it is hard to say the the hardware is more
->> legacy than, for example, bttv.
+Em 27-09-2011 16:16, Christian Gmeiner escreveu:
+> The ADV7175A/ADV7176A can operate in either 8-bit or 16-bit YCrCb mode.
 > 
-> The saa7146 V4L drivers (MXB and Hexium) are very rarely used. It's very hard
-> to find the hardware and you almost never see questions about it on the list.
-> The av7110 DVB drivers that are saa7146 based still pop up every now and then.
+> * 8-Bit YCrCb Mode
+> This default mode accepts multiplexed YCrCb inputs through
+> the P7-P0 pixel inputs. The inputs follow the sequence Cb0, Y0
+> Cr0, Y1 Cb1, Y2, etc. The Y, Cb and Cr data are input on a
+> rising clock edge.
 > 
->> As I said before, defining what's a legacy hardware and what isn't is not
->> an objective criteria: it is legacy on what sense? I was told that tda18271
->> were recently discontinued. Should we mark all drivers that use it as legacy?
+> * 16-Bit YCrCb Mode
+> This mode accepts Y inputs through the P7–P0 pixel inputs and
+> multiplexed CrCb inputs through the P15–P8 pixel inputs. The
+> data is loaded on every second rising edge of CLOCK. The inputs
+> follow the sequence Cb0, Y0 Cr0, Y1 Cb1, Y2, etc.
 > 
-> Of course not. Legacy drivers are for hardware that is almost never used
-> anymore (based on the traffic on the mailinglist) and no longer sold since
-> many years. Bonus points for using an obsolete interface (ISA, parport).
+> Signed-off-by: Christian Gmeiner <christian.gmeiner@gmail.com>
+> ---
+> diff --git a/drivers/media/video/adv7175.c b/drivers/media/video/adv7175.c
+> index d2327db..206078e 100644
+> --- a/drivers/media/video/adv7175.c
+> +++ b/drivers/media/video/adv7175.c
+> @@ -61,6 +61,11 @@ static inline struct adv7175 *to_adv7175(struct
+> v4l2_subdev *sd)
 
-Low traffic at the ML may simply means that the hardware is well-supported, that
-nobody is touching on the driver to break things, or that the users of a particular
-hardware aren't comfortable on writing to a ML in English.
+Patch looks ok, but it got truncated by your emailer [1]... Couldn't apply it
+[1] http://patchwork.linuxtv.org/patch/7973/
 
-> 
-> If you really hate this, then I can move the PCI drivers back to the normal
-> menu.
-> 
-> I don't see a problem here: bttv sees a lot of development and use and hardware
-> is even still being made today. On the other hand, what was the last time
-> anyone ever asked something about the Hexium drivers? If it wasn't for the fact
-> that I got the hardware for Hexium and MXB from Michael Hunold (so that I can
-> test it) I would have been in favor of removing the drivers altogether.
+Care to fix it and re-send?
 
-I'm not doubting that those boards are hard to find, but the point is that
-an objective criteria is needed, if some hardware will be classified inside a new
-menu. _All_ drivers that meet such criteria should be moved to the new menu.
-I don't think we have this criteria for "legacy", as the word could mean several
-different things (legacy driver, hardware not manufactured anymore, hardware not
-compatible with modern machines, etc).
-
-The worse thing with "legacy" is that it means that it is a temporal definition:
-one day, all existing drivers drivers will be moved to this category. This
-actually means that we'll need to track when a driver should be moved into it.
-For sure I don't want to add this task to my TODO list.
-
-Also, I think that some parport drivers are used on some types of hardware
-for medical and astronomy devices. I've no idea if those devices are still
-manufactured or not. So, calling them as "legacy" might actually be wrong.
-
-IMO, the better is to just move saa7146 back the PCI menu, maybe adding a 
-notice about the obsolescence of the hardware at the Kmenu help.
-
-Regards,
+Thanks!
 Mauro
+
+> 
+>  static char *inputs[] = { "pass_through", "play_back", "color_bar" };
+> 
+> +static enum v4l2_mbus_pixelcode adv7175_codes[] = {
+> +	V4L2_MBUS_FMT_UYVY8_2X8,
+> +	V4L2_MBUS_FMT_UYVY8_1X16,
+> +};
+> +
+>  /* ----------------------------------------------------------------------- */
+> 
+>  static inline int adv7175_write(struct v4l2_subdev *sd, u8 reg, u8 value)
+> @@ -296,6 +301,60 @@ static int adv7175_s_routing(struct v4l2_subdev *sd,
+>  	return 0;
+>  }
+> 
+> +static int adv7175_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
+> +				enum v4l2_mbus_pixelcode *code)
+> +{
+> +	if (index >= ARRAY_SIZE(adv7175_codes))
+> +		return -EINVAL;
+> +
+> +	*code = adv7175_codes[index];
+> +	return 0;
+> +}
+> +
+> +static int adv7175_g_fmt(struct v4l2_subdev *sd,
+> +				struct v4l2_mbus_framefmt *mf)
+> +{
+> +	u8 val = adv7175_read(sd, 0x7);
+> +
+> +	if ((val & 0x40) == (1 << 6))
+> +		mf->code = V4L2_MBUS_FMT_UYVY8_1X16;
+> +	else
+> +		mf->code = V4L2_MBUS_FMT_UYVY8_2X8;
+> +
+> +	mf->colorspace  = V4L2_COLORSPACE_SMPTE170M;
+> +	mf->width       = 0;
+> +	mf->height      = 0;
+> +	mf->field       = V4L2_FIELD_ANY;
+> +
+> +	return 0;
+> +}
+> +
+> +static int adv7175_s_fmt(struct v4l2_subdev *sd,
+> +				struct v4l2_mbus_framefmt *mf)
+> +{
+> +	u8 val = adv7175_read(sd, 0x7);
+> +	int ret;
+> +
+> +	switch (mf->code) {
+> +	case V4L2_MBUS_FMT_UYVY8_2X8:
+> +		val &= ~0x40;
+> +		break;
+> +
+> +	case V4L2_MBUS_FMT_UYVY8_1X16:
+> +		val |= 0x40;
+> +		break;
+> +
+> +	default:
+> +		v4l2_dbg(1, debug, sd,
+> +			"illegal v4l2_mbus_framefmt code: %d\n", mf->code);
+> +		return -EINVAL;
+> +	}
+> +
+> +	ret = adv7175_write(sd, 0x7, val);
+> +
+> +	return ret;
+> +}
+> +
+>  static int adv7175_g_chip_ident(struct v4l2_subdev *sd, struct
+> v4l2_dbg_chip_ident *chip)
+>  {
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> @@ -324,6 +383,9 @@ static const struct v4l2_subdev_core_ops
+> adv7175_core_ops = {
+>  static const struct v4l2_subdev_video_ops adv7175_video_ops = {
+>  	.s_std_output = adv7175_s_std_output,
+>  	.s_routing = adv7175_s_routing,
+> +	.s_mbus_fmt = adv7175_s_fmt,
+> +	.g_mbus_fmt = adv7175_g_fmt,
+> +	.enum_mbus_fmt  = adv7175_enum_fmt,
+>  };
+> 
+>  static const struct v4l2_subdev_ops adv7175_ops = {
+> --
+> 1.7.6
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
