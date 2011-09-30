@@ -1,80 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51164 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750928Ab1I0RIo (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1365 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754387Ab1I3MTq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Sep 2011 13:08:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 2/9 v7] V4L: add two new ioctl()s for multi-size videobuffer management
-Date: Tue, 27 Sep 2011 19:08:38 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-References: <1314813768-27752-1-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1109080942172.31156@axis700.grange> <201109271234.20485.hverkuil@xs4all.nl>
-In-Reply-To: <201109271234.20485.hverkuil@xs4all.nl>
+	Fri, 30 Sep 2011 08:19:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: Re: [RFCv2 PATCH 2/7] V4L menu: move legacy drivers into their own submenu.
+Date: Fri, 30 Sep 2011 14:19:36 +0200
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1317373276-5818-1-git-send-email-hverkuil@xs4all.nl> <eb58a802b520329b54aebfeb2a1400870d61b127.1317372990.git.hans.verkuil@cisco.com> <20110930141329.1331bbcd@stein>
+In-Reply-To: <20110930141329.1331bbcd@stein>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109271908.39400.laurent.pinchart@ideasonboard.com>
+Message-Id: <201109301419.36812.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Tuesday 27 September 2011 12:34:20 Hans Verkuil wrote:
-> On Thursday, September 08, 2011 09:45:15 Guennadi Liakhovetski wrote:
-> > A possibility to preallocate and initialise buffers of different sizes
-> > in V4L2 is required for an efficient implementation of a snapshot
-> > mode. This patch adds two new ioctl()s: VIDIOC_CREATE_BUFS and
-> > VIDIOC_PREPARE_BUF and defines respective data structures.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-
-[snip]
-
-> > @@ -2096,6 +2098,33 @@ static long __video_do_ioctl(struct file *file,
-> > 
-> >  		dbgarg(cmd, "type=0x%8.8x", sub->type);
-> >  		break;
-> >  	
-> >  	}
-> > 
-> > +	case VIDIOC_CREATE_BUFS:
-> > +	{
-> > +		struct v4l2_create_buffers *create = arg;
-> > +
-> > +		if (!ops->vidioc_create_bufs)
-> > +			break;
+On Friday, September 30, 2011 14:13:29 Stefan Richter wrote:
+> On Sep 30 Hans Verkuil wrote:
+> > +menuconfig V4L_LEGACY_DRIVERS
+> > +	bool "V4L legacy devices"
+> > +	default n
 > 
-> Just as with REQBUFS you need to add code here to handle priority checking:
+> default n is redundant.
 > 
-> 		if (ret_prio) {
-> 			ret = ret_prio;
-> 			break;
-> 		}
+> > +	---help---
+> > +	  Say Y here to enable support for these legacy drivers. These drivers
+> > +	  are for old and obsure hardware (e.g. parallel port webcams, ISA
+> > +	  drivers, niche hardware).
+> 
+> Perhaps add sentences like these which are commonly seen in such
+> menuconfig variables:
+> 
+> 	  This option alone does not add any kernel code.
+> 
+> 	  If you say N, all options in this submenu will be skipped and disabled.
+> 
+> There are obviously several already existing menuconfigs in the video section
+> which do not have these sentences; so maybe don't add the above, or add it
+> separately across the board, or whatever.  I find these sentences helpful when
+> running "make oldconfig" or the likes.
+> 
 
-Speaking of prio support, how is locking handled here ? Does video_ioctl2() 
-require drivers to synchronize all ioctl calls or can it work with fine-grain 
-locking ?
- 
-> > +		ret = check_fmt(ops, create->format.type);
-> > +		if (ret)
-> > +			break;
-> > +
-> > +		ret = ops->vidioc_create_bufs(file, fh, create);
-> > +
-> > +		dbgarg(cmd, "count=%d @ %d\n", create->count, create->index);
-> > +		break;
-> > +	}
+Good points. I'll see if I can do this for RFCv4. I might also do this as a
+separate cleanup step later.
 
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
