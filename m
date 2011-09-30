@@ -1,72 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49191 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:58830 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754675Ab1IFOl7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Sep 2011 10:41:59 -0400
-Message-ID: <4E66312F.5070102@iki.fi>
-Date: Tue, 06 Sep 2011 17:41:51 +0300
+	id S1755762Ab1I3Pg3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Sep 2011 11:36:29 -0400
+Message-ID: <4E85E1FA.7020709@iki.fi>
+Date: Fri, 30 Sep 2011 18:36:26 +0300
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
 To: =?UTF-8?B?QmrDuHJuIE1vcms=?= <bjorn@mork.no>,
-	Joe Perches <joe@perches.com>
+	=?UTF-8?B?SXN0dsOhbiBWw6E=?= =?UTF-8?B?cmFkaQ==?=
+	<ivaradi@gmail.com>
 CC: linux-media@vger.kernel.org
-Subject: Re: checkpatch.pl WARNING: Do not use whitespace before Signed-off-by:
-References: <4E654F93.9060506@iki.fi> <87r53uf6tg.fsf@nemi.mork.no>
-In-Reply-To: <87r53uf6tg.fsf@nemi.mork.no>
+Subject: Re: Smart card reader support for Anysee DVB devices
+References: <CAFk-VPxQvGiEUdd+X4jjUqcygPO-JsT0gTFvrX-q4cGAW6tq_Q@mail.gmail.com>	<4E485F81.9020700@iki.fi> <4E48FF99.7030006@iki.fi>	<4E4C2784.2020003@iki.fi>	<CAFk-VPzKa4bNLCMMCagFi1LLK6PnY245YJqP5yisQH77nJ0Org@mail.gmail.com>	<4E5BA751.6090709@iki.fi>	<CAFk-VPypTuaKgAHPxyvKg7GHYM358rZ2kypabfvxG-x7GjmFpw@mail.gmail.com>	<4E5BAF03.503@iki.fi> <87wrdri4sp.fsf@nemi.mork.no> <4E60DB09.1060304@iki.fi> <4E832FE6.7020103@iki.fi>
+In-Reply-To: <4E832FE6.7020103@iki.fi>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/06/2011 10:50 AM, Bjørn Mork wrote:
-> Antti Palosaari<crope@iki.fi>  writes:
+On 09/28/2011 05:32 PM, Antti Palosaari wrote:
+> On 09/02/2011 04:32 PM, Antti Palosaari wrote:
+
+>> As I see that CCID still more complex as serial device I will still look
+>> implementing it as serial as now.
 >
->> I am almost sure this have been working earlier, but now it seems like
->> nothing is acceptable for checkpatch.pl! I did surely about 20 --amend
->> and tried to remove everything, without luck. Could someone point out
->> whats new acceptable logging format for checkpatch.pl ?
->>
->> [crope@localhost linux]$ git show
->> 1b19e42952963ae2a09a655f487de15b7c81c5b7 |./scripts/checkpatch.pl -
->> WARNING: Do not use whitespace before Signed-off-by:
+> Here it is, patch attached. Implemented as serial device. Anysee uses
+> two different smart card interfaces, CST56I01 and TDA8024. That one is
+> old CST56I01, I will try to add TDA8024 later, maybe even tonight.
 >
-> Don't know if checkpatch used to accept that, but you can use
-> "--format=email" to make it work with git show:
+> Anyhow, it is something like proof-of-concept currently, missing locks
+> and abusing ttyUSB. Have you any idea if I should reserve own major
+> device numbers for Anysee or should I reserve one like DVB common?
 >
->   bjorn@canardo:/usr/local/src/git/linux$ git show --format=email 1b19e42952963ae2a09a655f487de15b7c81c5b7|./scripts/checkpatch.pl -
->   total: 0 errors, 0 warnings, 48 lines checked
->
->   Your patch has no obvious style problems and is ready for submission.
+> Any other ideas?
 
-Yes, I found it. It was rather new patch adding more checks.
-As a you pointed that can be workaround giving --format=email as a param 
-for git show. But it is yet another "useless" param to remember...
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/anysee
 
-So what is recommended way to ensure patch is correct currently?
-a) before commit
-b) after commit
+Now it works for TDA8024 based readers too (addition to CST56I01). Main 
+difference was that TDA8024 designs reads card presence from GPIO whilst 
+for CST56I01 it was got from anysee firmware (I think CST56I01 outputs 
+that using I2C whilst TDA8024 have external IO line).
 
+I tested it;
+* E30 Combo Plus (TDA8024)
+* E7 T2C (TDA8024)
+* E30 C (CST56I01)
 
-commit 2011247550c1b903a9ecd68f6eb3e9e7b7b07f52
-Author: Joe Perches <joe@perches.com>
-Date:   Mon Jul 25 17:13:23 2011 -0700
-
-     checkpatch: validate signature styles and To: and Cc: lines
-
-     Signatures have many forms and can sometimes cause problems if not 
-in the
-     correct format when using git send-email or quilt.
-
-     Try to verify the signature tags and email addresses to use the 
-generally
-     accepted "Signed-off-by: Full Name <email@domain.tld>" form.
-
-     Original idea by Anish Kumar <anish198519851985@gmail.com>
-
+If you would like to help me then you can find out correct device name 
+and whats needed for that. I mainly see following possibilities;
+* /dev/ttyAnyseeN
+* /dev/ttyDVBN
+* /dev/adapterN/serial
 
 regards
 Antti
-
-
 -- 
 http://palosaari.fi/
