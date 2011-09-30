@@ -1,84 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:12430 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753112Ab1IENJ6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2011 09:09:58 -0400
-Date: Mon, 5 Sep 2011 15:09:42 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Luciano Coelho <coelho@ti.com>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	matti.j.aaltonen@nokia.com, johannes@sipsolutions.net,
-	linux-kernel@vger.kernel.org, sameo@linux.intel.com,
-	mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>,
-	Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 2/2] mfd: remove CONFIG_MFD_SUPPORT
-Message-ID: <20110905150942.54aecf4e@endymion.delvare>
-In-Reply-To: <201109021643.36369.arnd@arndb.de>
-References: <20110829102732.03f0f05d.rdunlap@xenotime.net>
-	<201108311849.37273.arnd@arndb.de>
-	<20110902143713.307bbebe@endymion.delvare>
-	<201109021643.36369.arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-68.nebula.fi ([83.145.220.68]:38687 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752884Ab1I3VQO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Sep 2011 17:16:14 -0400
+Date: Sat, 1 Oct 2011 00:16:09 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PATCHES FOR 3.2] S5K6AAFX sensor driver and a videobuf2
+ update
+Message-ID: <20110930211608.GI6180@valkosipuli.localdomain>
+References: <4E85EA07.7060606@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4E85EA07.7060606@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2 Sep 2011 16:43:36 +0200, Arnd Bergmann wrote:
-> We currently have two symbols to control compilation the MFD subsystem,
-> MFD_SUPPORT and MFD_CORE. The MFD_SUPPORT is actually not required
-> at all, it only hides the submenu when not set, with the effect that
-> Kconfig warns about missing dependencies when another driver selects
-> an MFD driver while MFD_SUPPORT is disabled. Turning the MFD submenu
-> back from menuconfig into a plain menu simplifies the Kconfig syntax
-> for those kinds of users and avoids the surprise when the menu
-> suddenly appears because another driver was enabled that selects this
-> symbol.
+Hi Sylwester,
+
+On Fri, Sep 30, 2011 at 06:10:47PM +0200, Sylwester Nawrocki wrote:
+> Hi Mauro,
 > 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  arch/arm/mach-omap2/Kconfig |    1 -
->  drivers/gpio/Kconfig        |    3 +--
->  drivers/i2c/busses/Kconfig  |    1 -
->  drivers/media/radio/Kconfig |    1 -
->  drivers/mfd/Kconfig         |   22 ++++------------------
->  5 files changed, 5 insertions(+), 23 deletions(-)
-> (...)
-> --- a/drivers/mfd/Kconfig
-> +++ b/drivers/mfd/Kconfig
-> @@ -2,23 +2,8 @@
->  # Multifunction miscellaneous devices
->  #
->  
-> -menuconfig MFD_SUPPORT
-> -	bool "Multifunction device drivers"
-> -	depends on HAS_IOMEM
-> -	default y
-> -	help
-> -	  Multifunction devices embed several functions (e.g. GPIOs,
-> -	  touchscreens, keyboards, current regulators, power management chips,
-> -	  etc...) in one single integrated circuit. They usually talk to the
-> -	  main CPU through one or more IRQ lines and low speed data busses (SPI,
-> -	  I2C, etc..). They appear as one single device to the main system
-> -	  through the data bus and the MFD framework allows for sub devices
-> -	  (a.k.a. functions) to appear as discrete platform devices.
-> -	  MFDs are typically found on embedded platforms.
-> -
-> -	  This option alone does not add any kernel code.
-> -
-> -if MFD_SUPPORT
-> +if HAS_IOMEM
-> +menu "Multifunction device drivers"
->  
->  config MFD_CORE
->  	tristate
+> please pull from
+>   git://git.infradead.org/users/kmpark/linux-2.6-samsung s5k6aafx
+> 
+> for S5K6AAFX sensor subdev driver, a videbuf2 enhancement for non-MMU systems
+> and minor s5p-mfc amendment changing the firmware name to something more
+> generic as the driver supports multiple SoC versions.
+> 
+> 
+> The following changes since commit 446b792c6bd87de4565ba200b75a708b4c575a06:
+> 
+>   [media] media: DocBook: Fix trivial typo in Sub-device Interface (2011-09-27
+> 09:14:58 -0300)
+> 
+> are available in the git repository at:
+>   git://git.infradead.org/users/kmpark/linux-2.6-samsung s5k6aafx
+> 
+> Sachin Kamat (1):
+>       MFC: Change MFC firmware binary name
+> 
+> Scott Jiang (1):
+>       vb2: add vb2_get_unmapped_area in vb2 core
+> 
+> Sylwester Nawrocki (2):
+>       v4l: Add AUTO option for the V4L2_CID_POWER_LINE_FREQUENCY control
+>       v4l: Add v4l2 subdev driver for S5K6AAFX sensor
 
-I think I prefer Luciano's proposal, for the same reasons given for the
-misc device drivers patch. But here again I'm not the one making the
-decision, so it's up to Samuel to decide which patch he wants to apply.
+I'd like to ask you what's your intention regarding the preset functionality
+in this driver? My understanding it it isn't provided to user space
+currently, nor we have such drivers currently (that I know of).
 
+Regards,
 
 -- 
-Jean Delvare
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
