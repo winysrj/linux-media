@@ -1,71 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60829 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751204Ab1IQKyv (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:45137 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755615Ab1I3SFT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Sep 2011 06:54:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH/RFC 1/2] v4l2: Add the parallel bus HREF signal polarity flags
-Date: Sat, 17 Sep 2011 12:54:47 +0200
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, g.liakhovetski@gmx.de,
-	sw0312.kim@samsung.com, riverful.kim@samsung.com
-References: <1316194123-21185-1-git-send-email-s.nawrocki@samsung.com> <1316194123-21185-2-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1316194123-21185-2-git-send-email-s.nawrocki@samsung.com>
+	Fri, 30 Sep 2011 14:05:19 -0400
+Received: by wyg34 with SMTP id 34so1340609wyg.19
+        for <linux-media@vger.kernel.org>; Fri, 30 Sep 2011 11:05:18 -0700 (PDT)
+Message-ID: <4E8604DA.2070008@gmail.com>
+Date: Fri, 30 Sep 2011 19:05:14 +0100
+From: Malcolm Priestley <tvboxspy@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: linux-media@vger.kernel.org, simon.farnsworth@onelan.com
+Subject: Re: Problems tuning PAL-D with a Hauppauge HVR-1110 (TDA18271 tuner)
+ - workaround hack included
+References: <201109281350.52099.simon.farnsworth@onelan.com>
+In-Reply-To: <201109281350.52099.simon.farnsworth@onelan.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109171254.49003.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On 28/09/11 13:50, Simon Farnsworth wrote:
+> (note - the CC list is everyone over 50% certainty from get_maintainer.pl)
+>
+> I'm having problems getting a Hauppauge HVR-1110 card to successfully
+> tune PAL-D at 85.250 MHz vision frequency; by experimentation, I've
+> determined that the tda18271 is tuning to a frequency 1.25 MHz lower
+> than the vision frequency I've requested, so the following workaround
+> "fixes" it for me.
 
-On Friday 16 September 2011 19:28:42 Sylwester Nawrocki wrote:
-> HREF is a signal indicating valid data during single line transmission.
-> Add corresponding flags for this signal to the set of mediabus signal
-> polarity flags.
+Are you sure the transmitter concerned doesn't have a VSB filter for an 
+adjacent DVB-T digital transmitter?
 
-So that's a data valid signal that gates the pixel data ? The OMAP3 ISP has a 
-similar signal called WEN, and I've seen other chips using DVAL. Your patch 
-looks good to me, except maybe for the signal name that could be made a bit 
-more explicit (I'm not sure what most chips use though).
+VSB fitlers have been used on UK(PAL-I) transmitters for some time.
 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  include/media/v4l2-mediabus.h |   14 ++++++++------
->  1 files changed, 8 insertions(+), 6 deletions(-)
-> 
-> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-> index 6114007..41d8771 100644
-> --- a/include/media/v4l2-mediabus.h
-> +++ b/include/media/v4l2-mediabus.h
-> @@ -26,12 +26,14 @@
->  /* Note: in BT.656 mode HSYNC and VSYNC are unused */
->  #define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
->  #define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
-> -#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
-> -#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 5)
-> -#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 6)
-> -#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
-> -#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
-> -#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
-> +#define V4L2_MBUS_HREF_ACTIVE_HIGH		(1 << 4)
-> +#define V4L2_MBUS_HREF_ACTIVE_LOW		(1 << 5)
-> +#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 6)
-> +#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 7)
-> +#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 8)
-> +#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 9)
-> +#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 10)
-> +#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 11)
-> 
->  /* Serial flags */
->  /* How many lanes the client can use */
+From
+downloads.bbc.co.uk/rd/pubs/whp/whp-pdf-files/WHP023.pdf
 
--- 
-Regards,
+"To avoid the likelihood of PAL-I interference to DTT transmissions, the 
+proposal is to use a System B/G VSB filter which provides at least 30 dB 
+of sideband attenuation at 1.4 MHz below the vision carrier. It is also 
+necessary to reduce the image sidebands resulting from transmitter 
+non-linearity, and the method is to fit a high-order bandpass filter at 
+the transmitter output. Typically, the overall sideband response will be 
+-2 dB at (fv - 0.75) MHz and -20 dB at (fv - 1.25) MHz, where fv is the 
+frequency of the vision carrier."
 
-Laurent Pinchart
+
