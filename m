@@ -1,85 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45841 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752573Ab1ICPnH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Sep 2011 11:43:07 -0400
-Message-ID: <4E624B00.5040202@redhat.com>
-Date: Sat, 03 Sep 2011 12:42:56 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] dvb-core, tda18271c2dd: define get_if_frequency()
- callback
-References: <1315062777-12049-1-git-send-email-mchehab@redhat.com> <4E6246BB.8000500@iki.fi> <4E6249EF.9080702@iki.fi>
-In-Reply-To: <4E6249EF.9080702@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.samsung.com ([203.254.224.34]:62880 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751963Ab1I3NPm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Sep 2011 09:15:42 -0400
+Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LSC00HQK7HMRZO0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 30 Sep 2011 22:15:40 +0900 (KST)
+Received: from AMDN157 ([106.116.48.215])
+ by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
+ 64bit (built Sep  7 2010)) with ESMTPA id <0LSC00DCS7I0IX60@mmp1.samsung.com>
+ for linux-media@vger.kernel.org; Fri, 30 Sep 2011 22:15:40 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Subash Patel' <subash.ramaswamy@linaro.org>
+Cc: 'Sachin Kamat' <sachin.kamat@linaro.org>,
+	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	mchehab@infradead.org, patches@linaro.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+References: <1317380162-16344-1-git-send-email-sachin.kamat@linaro.org>
+ <001201cc7f69$9e690c80$db3b2580$%debski@samsung.com>
+ <4E85BB23.70300@linaro.org>
+In-reply-to: <4E85BB23.70300@linaro.org>
+Subject: RE: [PATCH 1/1] [media] MFC: Change MFC firmware binary name
+Date: Fri, 30 Sep 2011 15:15:34 +0200
+Message-id: <001401cc7f73$0ce78d90$26b6a8b0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: en-gb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 03-09-2011 12:38, Antti Palosaari escreveu:
-> On 09/03/2011 06:24 PM, Antti Palosaari wrote:
->> On 09/03/2011 06:12 PM, Mauro Carvalho Chehab wrote:
->>> The DRX-K frontend needs to know the IF frequency in order to work,
->>> just like all other frontends. However, as it is a multi-standard
->>> FE, the IF may change if the standard is changed. So, the usual
->>> procedure of passing it via a config struct doesn't work.
->>>
->>> One might code it as two separate IF frequencies, one by each type
->>> of FE, but, as, on tda18271, the IF changes if the bandwidth for
->>> DVB-C changes, this also won't work.
->>>
->>> So, the better is to just add a new callback for it and require
->>> it for the tuners that can be used with MFE frontends like drx-k.
->>>
->>> It makes sense to add support for it on all existing tuners, and
->>> remove the IF parameter from the demods, cleaning up the code.
->>
->> Is it clear that only used tuner IC defines used IF?
->>
->> I have seen some cases where used IF is different depending on other
->> used hardware, even same tuner IC used. Very good example is to see all
->> configuration structs of old tda18271 driver. Those are mainly used for
->> setting different IF than tuner default...
+Hi Subash,
 
-Not sure if I understood your comments here.
-
-There are two separate things here:
-
-1) digital tuners like tda18271, xc3028, etc allow changing the IF frequency,
-while others, like the analog tuners, have a fixed IF frequency. For digital
-tuners, it makes sense to have ways to configure it, via the tuner's configuration
-file, like the tda18271-fe driver.
-
-This patch doesn't change anything with that regards.
-
-2) Demods need to know what IF is used by the tuner. Currently, the bridge driver
-needs to fill a per-demod configuration struct for it, or pass it via parameter.
-
-This works fine, when the IF is fixed.
-
-However, the tda18271 specs recommend different IF values for each bandwidth, and
-between dvb-t and dvb-c.
-
-It would be possible to workaround that and just use the same IF for everything
-at tda18271, not obeying the recommended values, but this seems a bad idea, as
-the chipset will be used on a non-tested configuration.
-
-So, instead of fixing the same IF at the tuner, this patch allows the tuner to
-change the IF as needed/desired, and letting the demod to change according with
-the tuner changes.
-
-I'll put the above comments at the committed patch.
-
-> Hmm, I think that will actually only reduce defining same IFs to demod which are already set to tuner allowing to remove "redundant" demod definitions. OK, now it looks fine for me.
+> From: Subash Patel [mailto:subash.ramaswamy@linaro.org]
+> Sent: 30 September 2011 14:51
 > 
-> Acked-by: Antti Palosaari <crope@iki.fi>
+> Hello,
+> 
+> There is option in menu->"Device Drivers"->"Generic Driver
+> Options"->"External firmware blobs to build into the kernel binary".
+> I have used this many times instead of /lib/firmware mechanism. If
+> someone chooses to add firmware in that way, and gives different name,
+> then this code too can break. So I have proposed another way to solve
+> that. Have a look into this.
 
-Thanks!
+The CONFIG_EXTRA_FIRMWARE is a list of all firmware blobs that are going to
+be embedded in the kernel. As such I am afraid your solution will not work.
 
+I don't see the need for adding a configuration option for firmware name.
+Some good solution would be adding the following line to s5p_mfc_commn.h
+
+#define MFC_FIRMWARE_NAME "s5p-mfc.fw"
+
+and using MFC_FIRMWARE_NAME in the code.
+
+However I feel that the firmware name will change very rarely. If ever.
+Such option to change the name using a configuration option might be 
+useful during development and testing of various fw versions, but I have
+serious doubts that it should enter the mainline.
 
 > 
 > 
-> Antti
+> On 09/30/2011 05:38 PM, Kamil Debski wrote:
+> > Hi Sachin,
+> >
+> > Thanks for the patch. I agree with you - MFC module could be used in other
+> > SoCs as well.
+> >
+> >> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
+> >> Sent: 30 September 2011 12:56
+> >>
+> >> This patches renames the MFC firmware binary to avoid SoC name in it.
+> >>
+> >> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
+> >
+> > Acked-by: Kamil Debski<k.debski@samsung.com>
+> >
+> >> ---
+> >>   drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c |    4 ++--
+> >>   1 files changed, 2 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+> >> b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+> >> index 5f4da80..f2481a8 100644
+> >> --- a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+> >> +++ b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+> >> @@ -38,7 +38,7 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev
+> >> *dev)
+> >>   	 * into kernel. */
+> >>   	mfc_debug_enter();
+> >>   	err = request_firmware((const struct firmware **)&fw_blob,
+> >> -				     "s5pc110-mfc.fw", dev->v4l2_dev.dev);
+> >> +				     "s5p-mfc.fw", dev->v4l2_dev.dev);
+> >>   	if (err != 0) {
+> >>   		mfc_err("Firmware is not present in the /lib/firmware directory
+> >> nor compiled in kernel\n");
+> >>   		return -EINVAL;
+> >> @@ -116,7 +116,7 @@ int s5p_mfc_reload_firmware(struct s5p_mfc_dev *dev)
+> >>   	 * into kernel. */
+> >>   	mfc_debug_enter();
+> >>   	err = request_firmware((const struct firmware **)&fw_blob,
+> >> -				     "s5pc110-mfc.fw", dev->v4l2_dev.dev);
+> >> +				     "s5p-mfc.fw", dev->v4l2_dev.dev);
+> int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev *dev)
+> {
+>          struct firmware *fw_blob;
+>          size_t bank2_base_phys;
+>          void *b_base;
+>          int err;
+>          /* default name */
+>          char firmware_name[30] = "s5p-mfc.fw";
+> 
+>          /* Firmare has to be present as a separate file or compiled
+>           * into kernel. */
+>          mfc_debug_enter();
+> 
+> #ifdef CONFIG_EXTRA_FIRMWARE
+>          snprintf(firmware_name, sizeof(firmware_name), "%s",
+>                                          CONFIG_EXTRA_FIRMWARE);
+> #endif
+>          err = request_firmware((const struct firmware **)&fw_blob,
+>                                       firmware_name, dev->v4l2_dev.dev);
+>          if (err != 0) {
+>                  mfc_err("Firmware is not present in the /lib/firmware
+> directory nor compiled in kernel\n");
+>                  return -EINVAL;
+>          }
+> <snip>
+> 
+> >>   	if (err != 0) {
+> >>   		mfc_err("Firmware is not present in the /lib/firmware directory
+> >> nor compiled in kernel\n");
+> >>   		return -EINVAL;
+> >> --
+> >> 1.7.4.1
+
+Best wishes,
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
 
