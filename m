@@ -1,66 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from claranet-outbound-smtp02.uk.clara.net ([195.8.89.35]:53401 "EHLO
-	claranet-outbound-smtp02.uk.clara.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755419Ab1I3LLq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Sep 2011 07:11:46 -0400
-From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: Problems tuning PAL-D with a Hauppauge HVR-1110 (TDA18271 tuner) - workaround hack included
-Date: Fri, 30 Sep 2011 12:03:36 +0100
-Cc: LMML <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	devin heitmueller <dheitmueller@kernellabs.com>
-References: <201109281350.52099.simon.farnsworth@onelan.com> <4E859E74.7080900@infradead.org>
-In-Reply-To: <4E859E74.7080900@infradead.org>
+Received: from mx1.redhat.com ([209.132.183.28]:53832 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754149Ab1I3N1G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Sep 2011 09:27:06 -0400
+Message-ID: <4E85C3A7.5040403@redhat.com>
+Date: Fri, 30 Sep 2011 10:27:03 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [RFCv2 PATCH 0/7] V4L menu reorganization
+References: <1317373276-5818-1-git-send-email-hverkuil@xs4all.nl> <4E85A7DC.50708@redhat.com> <201109301334.12300.hverkuil@xs4all.nl>
+In-Reply-To: <201109301334.12300.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201109301203.36370.simon.farnsworth@onelan.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 30 September 2011, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-> Em 28-09-2011 09:50, Simon Farnsworth escreveu:
-> > (note - the CC list is everyone over 50% certainty from get_maintainer.pl)
-> > 
-> > I'm having problems getting a Hauppauge HVR-1110 card to successfully
-> > tune PAL-D at 85.250 MHz vision frequency; by experimentation, I've
-> > determined that the tda18271 is tuning to a frequency 1.25 MHz lower
-> > than the vision frequency I've requested, so the following workaround
-> > "fixes" it for me.
-> > 
-> > diff --git a/drivers/media/common/tuners/tda18271-fe.c 
-> > b/drivers/media/common/tuners/tda18271-fe.c
-> > index 63cc400..1a94e1a 100644
-> > --- a/drivers/media/common/tuners/tda18271-fe.c
-> > +++ b/drivers/media/common/tuners/tda18271-fe.c
-> > @@ -1031,6 +1031,7 @@ static int tda18271_set_analog_params(struct 
-> > dvb_frontend *fe,
-> >  		mode = "I";
-> >  	} else if (params->std & V4L2_STD_DK) {
-> >  		map = &std_map->atv_dk;
-> > +                freq += 1250000;
-> >  		mode = "DK";
-> >  	} else if (params->std & V4L2_STD_SECAM_L) {
-> >  		map = &std_map->atv_l;
+Em 30-09-2011 08:34, Hans Verkuil escreveu:
+> On Friday, September 30, 2011 13:28:28 Mauro Carvalho Chehab wrote:
+>> Em 30-09-2011 06:01, Hans Verkuil escreveu:
+>>> Hi all,
+>>>
+>>> This is the second version of my patch series reorganizing the V4L menu.
+>>> It's based on the latest v3.2 staging tree.
+>>>
+>>> Changes to v1:
+>>>
+>>> - Remove unnecessary USB dependency.
+>>> - Reorganize the radio menu as well.
+>>>
+>>> I did not sort the drivers alphabetically (yet). I'm not quite sure whether
+>>> that's really a good idea, and we can always do that later.
+>>
+>> I still think that we need to sort things alphabetically, or to not sort
+>> things at all, as any other sort criteria would be just a random criteria.
+>>
+>> E. g. on a non-alphabetical criteria, what should come first between bttv,
+>> saa7134, ivtv and cx88? Except by the alphabetical order, any order between 
+>> them will be just a random criteria, as people will argue that driver "foo"
+>> should be the first one, probably because they have more hardware of that
+>> type ;)
 > 
-> If I am to fix this bug, instead of a hack like that, it seems to be better
-> to split the .atv_dk line at the struct tda18271_std_map maps on
-> drivers/media/common/tuners/tda18271-maps.c.
+> Sort by what, BTW? The driver module name?
+
+I think so.
+
 > 
-> Looking at the datasheet, on page 43, available at:
-> 	http://www.nxp.com/documents/data_sheet/TDA18271HD.pdf
+> I'd like to get a concensus on that before I do this.
+
+Sure.
+
 > 
-> The offset values for IF seem ok, but maybe your device is using some variant
-> of this chip that requires a different maps table.
->
-How would I identify this? I definitely need the hack on multiple different
-HVR1110 cards, in different motherboards. I get apparently perfect reception
-if I apply the hack, so clearly something is wrong.
--- 
-Simon Farnsworth
-Software Engineer
-ONELAN Limited
-http://www.onelan.com/
+> Regards,
+> 
+> 	Hans
+> 
+>> In my case, I would vote for saa7134 as I currently have more hardware of
+>> that type. A few years ago, my vote would be for cx88. I bet you'll vote
+>> for ivtv ;)
+>>
+>>> This series is meant for v3.2, but I won't make a pull request until
+>>> Guennadi's pull request is merged first. I'm sure I will have to redo my
+>>> patches once his series is in.
+>>
+>> Ok.
+>>>
+>>> Regards,
+>>>
+>>> 	Hans
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+
