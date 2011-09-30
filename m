@@ -1,511 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:57254 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.171]:57334 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932427Ab1IHIoS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2011 04:44:18 -0400
+	with ESMTP id S1754923Ab1I3JIJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Sep 2011 05:08:09 -0400
+Date: Fri, 30 Sep 2011 11:05:36 +0200 (CEST)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 08/13 v3] ov6650: convert to the control framework.
-Date: Thu,  8 Sep 2011 10:44:01 +0200
-Message-Id: <1315471446-17890-9-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1315471446-17890-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1315471446-17890-1-git-send-email-g.liakhovetski@gmx.de>
+To: Josh Wu <josh.wu@atmel.com>
+cc: linux-media@vger.kernel.org, plagnioj@jcrosoft.com,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	nicolas.ferre@atmel.com, s.nawrocki@samsung.com
+Subject: Re: [PATCH v3 2/2] at91: add Atmel ISI and ov2640 support on
+ sam9m10/sam9g45 board.
+In-Reply-To: <1316664661-11383-2-git-send-email-josh.wu@atmel.com>
+Message-ID: <Pine.LNX.4.64.1109300857580.1888@axis700.grange>
+References: <1316664661-11383-1-git-send-email-josh.wu@atmel.com>
+ <1316664661-11383-2-git-send-email-josh.wu@atmel.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, 22 Sep 2011, Josh Wu wrote:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-[g.liakhovetski@gmx.de: simplified pointer arithmetic]
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> This patch
+> 1. add ISI_MCK parent setting code when add ISI device.
+> 2. add ov2640 support on board file.
+> 3. define isi_mck clock in sam9g45 chip file.
+> 
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+
+Looking a bit more at this, I think, the arch maintainer might want to 
+take a closer look at this:
+
+1. Wouldn't it be a good idea to also bind the isi_clk via a clock 
+connection ID and not via the clock's name?
+
+2. pck1 is not really dedicated to ISI on sam9g45. It can also be used, 
+e.g., as a generic clock output and ISI_PCK can be supplied by an external 
+oscillator. Such set up seems perfectly valid to me and your patch would 
+just unconditionally grab PCK1 and configure it to some frequency... I 
+think, this shall be improved.
+
+3.
+
+> +static int __init isi_set_clk_parent(void)
+> +{
+> +	struct clk *pck1;
+> +	struct clk *plla;
+> +	int ret;
+> +
+> +	/* ISI_MCK is supplied by PCK1 - set parent for it. */
+> +	pck1 = clk_get(NULL, "pck1");
+> +	if (IS_ERR(pck1)) {
+> +		printk(KERN_ERR "Failed to get PCK1\n");
+> +		ret = PTR_ERR(pck1);
+> +		goto err;
+> +	}
+> +
+> +	plla = clk_get(NULL, "plla");
+> +	if (IS_ERR(plla)) {
+> +		printk(KERN_ERR "Failed to get PLLA\n");
+> +		ret = PTR_ERR(plla);
+> +		goto err_pck1;
+> +	}
+> +	ret = clk_set_parent(pck1, plla);
+> +	clk_put(plla);
+
+I think, here you also need a
+
+	clk_put(pck1);
+
+> +	if (ret != 0) {
+> +		printk(KERN_ERR "Failed to set PCK1 parent\n");
+> +		goto err_pck1;
+> +	}
+> +	return ret;
+> +
+> +err_pck1:
+> +	clk_put(pck1);
+> +err:
+> +	return ret;
+> +}
+
+
+Thanks
+Guennadi
 ---
- drivers/media/video/ov6650.c |  381 +++++++++++++-----------------------------
- 1 files changed, 115 insertions(+), 266 deletions(-)
-
-diff --git a/drivers/media/video/ov6650.c b/drivers/media/video/ov6650.c
-index 654b2f5..089a4aa 100644
---- a/drivers/media/video/ov6650.c
-+++ b/drivers/media/video/ov6650.c
-@@ -32,6 +32,7 @@
- #include <media/soc_camera.h>
- #include <media/soc_mediabus.h>
- #include <media/v4l2-chip-ident.h>
-+#include <media/v4l2-ctrls.h>
- 
- /* Register definitions */
- #define REG_GAIN		0x00	/* range 00 - 3F */
-@@ -177,20 +178,23 @@ struct ov6650_reg {
- 
- struct ov6650 {
- 	struct v4l2_subdev	subdev;
--
--	int			gain;
--	int			blue;
--	int			red;
--	int			saturation;
--	int			hue;
--	int			brightness;
--	int			exposure;
--	int			gamma;
--	int			aec;
--	bool			vflip;
--	bool			hflip;
--	bool			awb;
--	bool			agc;
-+	struct v4l2_ctrl_handler hdl;
-+	struct {
-+		/* exposure/autoexposure cluster */
-+		struct v4l2_ctrl *autoexposure;
-+		struct v4l2_ctrl *exposure;
-+	};
-+	struct {
-+		/* gain/autogain cluster */
-+		struct v4l2_ctrl *autogain;
-+		struct v4l2_ctrl *gain;
-+	};
-+	struct {
-+		/* blue/red/autowhitebalance cluster */
-+		struct v4l2_ctrl *autowb;
-+		struct v4l2_ctrl *blue;
-+		struct v4l2_ctrl *red;
-+	};
- 	bool			half_scale;	/* scale down output by 2 */
- 	struct v4l2_rect	rect;		/* sensor cropping window */
- 	unsigned long		pclk_limit;	/* from host */
-@@ -210,126 +214,6 @@ static enum v4l2_mbus_pixelcode ov6650_codes[] = {
- 	V4L2_MBUS_FMT_Y8_1X8,
- };
- 
--static const struct v4l2_queryctrl ov6650_controls[] = {
--	{
--		.id		= V4L2_CID_AUTOGAIN,
--		.type		= V4L2_CTRL_TYPE_BOOLEAN,
--		.name		= "AGC",
--		.minimum	= 0,
--		.maximum	= 1,
--		.step		= 1,
--		.default_value	= 1,
--	},
--	{
--		.id		= V4L2_CID_GAIN,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "Gain",
--		.minimum	= 0,
--		.maximum	= 0x3f,
--		.step		= 1,
--		.default_value	= DEF_GAIN,
--	},
--	{
--		.id		= V4L2_CID_AUTO_WHITE_BALANCE,
--		.type		= V4L2_CTRL_TYPE_BOOLEAN,
--		.name		= "AWB",
--		.minimum	= 0,
--		.maximum	= 1,
--		.step		= 1,
--		.default_value	= 1,
--	},
--	{
--		.id		= V4L2_CID_BLUE_BALANCE,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "Blue",
--		.minimum	= 0,
--		.maximum	= 0xff,
--		.step		= 1,
--		.default_value	= DEF_BLUE,
--	},
--	{
--		.id		= V4L2_CID_RED_BALANCE,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "Red",
--		.minimum	= 0,
--		.maximum	= 0xff,
--		.step		= 1,
--		.default_value	= DEF_RED,
--	},
--	{
--		.id		= V4L2_CID_SATURATION,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "Saturation",
--		.minimum	= 0,
--		.maximum	= 0xf,
--		.step		= 1,
--		.default_value	= 0x8,
--	},
--	{
--		.id		= V4L2_CID_HUE,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "Hue",
--		.minimum	= 0,
--		.maximum	= HUE_MASK,
--		.step		= 1,
--		.default_value	= DEF_HUE,
--	},
--	{
--		.id		= V4L2_CID_BRIGHTNESS,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "Brightness",
--		.minimum	= 0,
--		.maximum	= 0xff,
--		.step		= 1,
--		.default_value	= 0x80,
--	},
--	{
--		.id		= V4L2_CID_EXPOSURE_AUTO,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "AEC",
--		.minimum	= 0,
--		.maximum	= 3,
--		.step		= 1,
--		.default_value	= 0,
--	},
--	{
--		.id		= V4L2_CID_EXPOSURE,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "Exposure",
--		.minimum	= 0,
--		.maximum	= 0xff,
--		.step		= 1,
--		.default_value	= DEF_AECH,
--	},
--	{
--		.id		= V4L2_CID_GAMMA,
--		.type		= V4L2_CTRL_TYPE_INTEGER,
--		.name		= "Gamma",
--		.minimum	= 0,
--		.maximum	= 0xff,
--		.step		= 1,
--		.default_value	= 0x12,
--	},
--	{
--		.id		= V4L2_CID_VFLIP,
--		.type		= V4L2_CTRL_TYPE_BOOLEAN,
--		.name		= "Flip Vertically",
--		.minimum	= 0,
--		.maximum	= 1,
--		.step		= 1,
--		.default_value	= 0,
--	},
--	{
--		.id		= V4L2_CID_HFLIP,
--		.type		= V4L2_CTRL_TYPE_BOOLEAN,
--		.name		= "Flip Horizontally",
--		.minimum	= 0,
--		.maximum	= 1,
--		.step		= 1,
--		.default_value	= 0,
--	},
--};
--
- /* read a register */
- static int ov6650_reg_read(struct i2c_client *client, u8 reg, u8 *val)
- {
-@@ -420,166 +304,91 @@ static int ov6650_s_stream(struct v4l2_subdev *sd, int enable)
- }
- 
- /* Get status of additional camera capabilities */
--static int ov6650_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+static int ov6550_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- {
-+	struct ov6650 *priv = container_of(ctrl->handler, struct ov6650, hdl);
-+	struct v4l2_subdev *sd = &priv->subdev;
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct ov6650 *priv = to_ov6650(client);
--	uint8_t reg;
-+	uint8_t reg, reg2;
- 	int ret = 0;
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUTOGAIN:
--		ctrl->value = priv->agc;
--		break;
--	case V4L2_CID_GAIN:
--		if (priv->agc) {
--			ret = ov6650_reg_read(client, REG_GAIN, &reg);
--			ctrl->value = reg;
--		} else {
--			ctrl->value = priv->gain;
--		}
--		break;
-+		ret = ov6650_reg_read(client, REG_GAIN, &reg);
-+		if (!ret)
-+			priv->gain->val = reg;
-+		return ret;
- 	case V4L2_CID_AUTO_WHITE_BALANCE:
--		ctrl->value = priv->awb;
--		break;
--	case V4L2_CID_BLUE_BALANCE:
--		if (priv->awb) {
--			ret = ov6650_reg_read(client, REG_BLUE, &reg);
--			ctrl->value = reg;
--		} else {
--			ctrl->value = priv->blue;
--		}
--		break;
--	case V4L2_CID_RED_BALANCE:
--		if (priv->awb) {
--			ret = ov6650_reg_read(client, REG_RED, &reg);
--			ctrl->value = reg;
--		} else {
--			ctrl->value = priv->red;
-+		ret = ov6650_reg_read(client, REG_BLUE, &reg);
-+		if (!ret)
-+			ret = ov6650_reg_read(client, REG_RED, &reg2);
-+		if (!ret) {
-+			priv->blue->val = reg;
-+			priv->red->val = reg2;
- 		}
--		break;
--	case V4L2_CID_SATURATION:
--		ctrl->value = priv->saturation;
--		break;
--	case V4L2_CID_HUE:
--		ctrl->value = priv->hue;
--		break;
--	case V4L2_CID_BRIGHTNESS:
--		ctrl->value = priv->brightness;
--		break;
-+		return ret;
- 	case V4L2_CID_EXPOSURE_AUTO:
--		ctrl->value = priv->aec;
--		break;
--	case V4L2_CID_EXPOSURE:
--		if (priv->aec) {
--			ret = ov6650_reg_read(client, REG_AECH, &reg);
--			ctrl->value = reg;
--		} else {
--			ctrl->value = priv->exposure;
--		}
--		break;
--	case V4L2_CID_GAMMA:
--		ctrl->value = priv->gamma;
--		break;
--	case V4L2_CID_VFLIP:
--		ctrl->value = priv->vflip;
--		break;
--	case V4L2_CID_HFLIP:
--		ctrl->value = priv->hflip;
--		break;
-+		ret = ov6650_reg_read(client, REG_AECH, &reg);
-+		if (!ret)
-+			priv->exposure->val = reg;
-+		return ret;
- 	}
--	return ret;
-+	return -EINVAL;
- }
- 
- /* Set status of additional camera capabilities */
--static int ov6650_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+static int ov6550_s_ctrl(struct v4l2_ctrl *ctrl)
- {
-+	struct ov6650 *priv = container_of(ctrl->handler, struct ov6650, hdl);
-+	struct v4l2_subdev *sd = &priv->subdev;
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct ov6650 *priv = to_ov6650(client);
- 	int ret = 0;
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUTOGAIN:
- 		ret = ov6650_reg_rmw(client, REG_COMB,
--				ctrl->value ? COMB_AGC : 0, COMB_AGC);
--		if (!ret)
--			priv->agc = ctrl->value;
--		break;
--	case V4L2_CID_GAIN:
--		ret = ov6650_reg_write(client, REG_GAIN, ctrl->value);
--		if (!ret)
--			priv->gain = ctrl->value;
--		break;
-+				ctrl->val ? COMB_AGC : 0, COMB_AGC);
-+		if (!ret && !ctrl->val)
-+			ret = ov6650_reg_write(client, REG_GAIN, priv->gain->val);
-+		return ret;
- 	case V4L2_CID_AUTO_WHITE_BALANCE:
- 		ret = ov6650_reg_rmw(client, REG_COMB,
--				ctrl->value ? COMB_AWB : 0, COMB_AWB);
--		if (!ret)
--			priv->awb = ctrl->value;
--		break;
--	case V4L2_CID_BLUE_BALANCE:
--		ret = ov6650_reg_write(client, REG_BLUE, ctrl->value);
--		if (!ret)
--			priv->blue = ctrl->value;
--		break;
--	case V4L2_CID_RED_BALANCE:
--		ret = ov6650_reg_write(client, REG_RED, ctrl->value);
--		if (!ret)
--			priv->red = ctrl->value;
--		break;
-+				ctrl->val ? COMB_AWB : 0, COMB_AWB);
-+		if (!ret && !ctrl->val) {
-+			ret = ov6650_reg_write(client, REG_BLUE, priv->blue->val);
-+			if (!ret)
-+				ret = ov6650_reg_write(client, REG_BLUE,
-+							priv->red->val);
-+		}
-+		return ret;
- 	case V4L2_CID_SATURATION:
--		ret = ov6650_reg_rmw(client, REG_SAT, SET_SAT(ctrl->value),
-+		return ov6650_reg_rmw(client, REG_SAT, SET_SAT(ctrl->val),
- 				SAT_MASK);
--		if (!ret)
--			priv->saturation = ctrl->value;
--		break;
- 	case V4L2_CID_HUE:
--		ret = ov6650_reg_rmw(client, REG_HUE, SET_HUE(ctrl->value),
-+		return ov6650_reg_rmw(client, REG_HUE, SET_HUE(ctrl->val),
- 				HUE_MASK);
--		if (!ret)
--			priv->hue = ctrl->value;
--		break;
- 	case V4L2_CID_BRIGHTNESS:
--		ret = ov6650_reg_write(client, REG_BRT, ctrl->value);
--		if (!ret)
--			priv->brightness = ctrl->value;
--		break;
-+		return ov6650_reg_write(client, REG_BRT, ctrl->val);
- 	case V4L2_CID_EXPOSURE_AUTO:
--		switch (ctrl->value) {
--		case V4L2_EXPOSURE_AUTO:
-+		if (ctrl->val == V4L2_EXPOSURE_AUTO)
- 			ret = ov6650_reg_rmw(client, REG_COMB, COMB_AEC, 0);
--			break;
--		default:
-+		else
- 			ret = ov6650_reg_rmw(client, REG_COMB, 0, COMB_AEC);
--			break;
--		}
--		if (!ret)
--			priv->aec = ctrl->value;
--		break;
--	case V4L2_CID_EXPOSURE:
--		ret = ov6650_reg_write(client, REG_AECH, ctrl->value);
--		if (!ret)
--			priv->exposure = ctrl->value;
--		break;
-+		if (!ret && ctrl->val == V4L2_EXPOSURE_MANUAL)
-+			ret = ov6650_reg_write(client, REG_AECH,
-+						priv->exposure->val);
-+		return ret;
- 	case V4L2_CID_GAMMA:
--		ret = ov6650_reg_write(client, REG_GAM1, ctrl->value);
--		if (!ret)
--			priv->gamma = ctrl->value;
--		break;
-+		return ov6650_reg_write(client, REG_GAM1, ctrl->val);
- 	case V4L2_CID_VFLIP:
--		ret = ov6650_reg_rmw(client, REG_COMB,
--				ctrl->value ? COMB_FLIP_V : 0, COMB_FLIP_V);
--		if (!ret)
--			priv->vflip = ctrl->value;
--		break;
-+		return ov6650_reg_rmw(client, REG_COMB,
-+				ctrl->val ? COMB_FLIP_V : 0, COMB_FLIP_V);
- 	case V4L2_CID_HFLIP:
--		ret = ov6650_reg_rmw(client, REG_COMB,
--				ctrl->value ? COMB_FLIP_H : 0, COMB_FLIP_H);
--		if (!ret)
--			priv->hflip = ctrl->value;
--		break;
-+		return ov6650_reg_rmw(client, REG_COMB,
-+				ctrl->val ? COMB_FLIP_H : 0, COMB_FLIP_H);
- 	}
- 
--	return ret;
-+	return -EINVAL;
- }
- 
- /* Get chip identification */
-@@ -1048,14 +857,12 @@ static int ov6650_video_probe(struct soc_camera_device *icd,
- 	return ret;
- }
- 
--static struct soc_camera_ops ov6650_ops = {
--	.controls		= ov6650_controls,
--	.num_controls		= ARRAY_SIZE(ov6650_controls),
-+static const struct v4l2_ctrl_ops ov6550_ctrl_ops = {
-+	.g_volatile_ctrl = ov6550_g_volatile_ctrl,
-+	.s_ctrl = ov6550_s_ctrl,
- };
- 
- static struct v4l2_subdev_core_ops ov6650_core_ops = {
--	.g_ctrl			= ov6650_g_ctrl,
--	.s_ctrl			= ov6650_s_ctrl,
- 	.g_chip_ident		= ov6650_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register		= ov6650_get_register,
-@@ -1164,8 +971,46 @@ static int ov6650_probe(struct i2c_client *client,
- 	}
- 
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov6650_subdev_ops);
-+	v4l2_ctrl_handler_init(&priv->hdl, 13);
-+	v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
-+			V4L2_CID_VFLIP, 0, 1, 1, 0);
-+	v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
-+			V4L2_CID_HFLIP, 0, 1, 1, 0);
-+	priv->autogain = v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
-+			V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
-+	priv->gain = v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
-+			V4L2_CID_GAIN, 0, 0x3f, 1, DEF_GAIN);
-+	priv->autowb = v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
-+			V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
-+	priv->blue = v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
-+			V4L2_CID_BLUE_BALANCE, 0, 0xff, 1, DEF_BLUE);
-+	priv->red = v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
-+			V4L2_CID_RED_BALANCE, 0, 0xff, 1, DEF_RED);
-+	v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
-+			V4L2_CID_SATURATION, 0, 0xf, 1, 0x8);
-+	v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
-+			V4L2_CID_HUE, 0, HUE_MASK, 1, DEF_HUE);
-+	v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
-+			V4L2_CID_BRIGHTNESS, 0, 0xff, 1, 0x80);
-+	priv->autoexposure = v4l2_ctrl_new_std_menu(&priv->hdl,
-+			&ov6550_ctrl_ops, V4L2_CID_EXPOSURE_AUTO, 1, 0,
-+			V4L2_EXPOSURE_AUTO);
-+	priv->exposure = v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
-+			V4L2_CID_EXPOSURE, 0, 0xff, 1, DEF_AECH);
-+	v4l2_ctrl_new_std(&priv->hdl, &ov6550_ctrl_ops,
-+			V4L2_CID_GAMMA, 0, 0xff, 1, 0x12);
-+
-+	priv->subdev.ctrl_handler = &priv->hdl;
-+	if (priv->hdl.error) {
-+		int err = priv->hdl.error;
- 
--	icd->ops = &ov6650_ops;
-+		kfree(priv);
-+		return err;
-+	}
-+	v4l2_ctrl_auto_cluster(2, &priv->autogain, 0, true);
-+	v4l2_ctrl_auto_cluster(3, &priv->autowb, 0, true);
-+	v4l2_ctrl_auto_cluster(2, &priv->autoexposure,
-+				V4L2_EXPOSURE_MANUAL, true);
- 
- 	priv->rect.left	  = DEF_HSTRT << 1;
- 	priv->rect.top	  = DEF_VSTRT << 1;
-@@ -1176,9 +1021,11 @@ static int ov6650_probe(struct i2c_client *client,
- 	priv->colorspace  = V4L2_COLORSPACE_JPEG;
- 
- 	ret = ov6650_video_probe(icd, client);
-+	if (!ret)
-+		ret = v4l2_ctrl_handler_setup(&priv->hdl);
- 
- 	if (ret) {
--		icd->ops = NULL;
-+		v4l2_ctrl_handler_free(&priv->hdl);
- 		kfree(priv);
- 	}
- 
-@@ -1189,6 +1036,8 @@ static int ov6650_remove(struct i2c_client *client)
- {
- 	struct ov6650 *priv = to_ov6650(client);
- 
-+	v4l2_device_unregister_subdev(&priv->subdev);
-+	v4l2_ctrl_handler_free(&priv->hdl);
- 	kfree(priv);
- 	return 0;
- }
--- 
-1.7.2.5
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
