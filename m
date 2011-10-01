@@ -1,77 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:40860 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758643Ab1JFPZo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 11:25:44 -0400
-Received: by gyg10 with SMTP id 10so2684890gyg.19
-        for <linux-media@vger.kernel.org>; Thu, 06 Oct 2011 08:25:44 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAAwP0s1tK5XjmJmtvRFJ2+ADvoMP1ihf3z0UaJAfXOoJ=UrVqg@mail.gmail.com>
-References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
-	<CAAwP0s0Z+EaRfY_9c0QLm0ZpyfG5Dy1qb9pFq=PRxzOOTwKTJw@mail.gmail.com>
-	<CAAwP0s1tK5XjmJmtvRFJ2+ADvoMP1ihf3z0UaJAfXOoJ=UrVqg@mail.gmail.com>
-Date: Thu, 6 Oct 2011 17:25:43 +0200
-Message-ID: <CA+2YH7sdNxfeJvwMOq0zTVKJCQbsR6NekdjU1VW9sJPOUYw6tw@mail.gmail.com>
-Subject: Re: omap3-isp status
-From: Enrico <ebutera@users.berlios.de>
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Adam Pledger <a.pledger@thermoteknix.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:55153 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753147Ab1JAAeA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Sep 2011 20:34:00 -0400
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: [PATCH 1/3] [media] tvp5150: Add constants for PAL and NTSC video standards
+Date: Sat,  1 Oct 2011 02:33:49 +0200
+Message-Id: <1317429231-11359-2-git-send-email-martinez.javier@gmail.com>
+In-Reply-To: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com>
+References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 6, 2011 at 9:51 AM, Javier Martinez Canillas
-<martinez.javier@gmail.com> wrote:
-> Since the patches are not against mainline I can't post for reviewing
-> but can be found in one of our development trees [1]. Comments are
-> highly appreciated.
->
-> The tree is a 2.6.37 that already contain Deepthy patch. I rebased my
-> changes on top of that to correctly support both BT656 an non-BT656
-> video data processing.
->
-> [1]: http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=shortlog;h=refs/heads/linux-2.6.37.y-next
 
-Some random comments from a quick view at [1]:
+Signed-off-by: Javier Martinez Canillas <martinez.javier@gmail.com>
+---
+ include/media/tvp5150.h |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-- i don't see Deepthy patches, it seems to be based on the
-pre-Deepthy-patches driver and fixed (not that this is a bad thing!);
-i say this because, like Gary, i'm interested in a possible forward
-porting to a more recent kernel so i was searching for a starting
-point
+diff --git a/include/media/tvp5150.h b/include/media/tvp5150.h
+index 72bd2a2..ccd4ed0 100644
+--- a/include/media/tvp5150.h
++++ b/include/media/tvp5150.h
+@@ -30,5 +30,11 @@
+ #define TVP5150_NORMAL       0
+ #define TVP5150_BLACK_SCREEN 1
+ 
++/* Number of pixels and number of lines per frame for different standards */
++#define NTSC_NUM_ACTIVE_PIXELS		(720)
++#define NTSC_NUM_ACTIVE_LINES		(480)
++#define PAL_NUM_ACTIVE_PIXELS		(720)
++#define PAL_NUM_ACTIVE_LINES		(576)
++
+ #endif
+ 
+-- 
+1.7.4.1
 
-- i don't think that adding the "priv" field in v4l2-mediabus.h will
-be accepted, and since it is related to the default cropping you added
-i think it can be dropped and just let the user choose the appropriate
-cropping
-
-- because of the previous point, i think the
-PAL(NTSC)_NUM_ACTIVE_LINES can stay to 625(525)
-
-- we really need some comments from someone that is not me, you and Gary
-
-[1]: http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=history;f=drivers/media/video/isp;hb=refs/heads/linux-2.6.37.y-next
-
-
->> Right now I have a working the tvp5151 with the ISP. I can capture
->> ITU-R BT656 video both in PAL-M and NTSC standard. Also, the whole
->> pipeline is configured automatically with the video standard detected
->> by the tvp5151. Also, I'm using the CCDC to crop the frames and only
->> capture the active lines for each standard (576 for PAL and 480 for
->> NTSC) using the CCDC to crop the image.
->>
->
-> As I told you before video capturing is working for both PAL and NTSC
-> using standard V4L2 application (i.e: gstreamer) but the video still
-> shows some motion artifacts. Capturing YUV frames and looking at them
-> I realized that there does exist a pattern, the sequence 2 frames
-> correct and 3 frames with interlacing effects always repeats.
-
-Yes i've seen that too, i was planning to do some tests when things
-will settle down.
-
-Enrico
