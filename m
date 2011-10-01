@@ -1,64 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:43185 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832Ab1JLQMx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Oct 2011 12:12:53 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LSY004QQNPFVS60@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 12 Oct 2011 17:12:51 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LSY002BANPF94@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 12 Oct 2011 17:12:51 +0100 (BST)
-Date: Wed, 12 Oct 2011 18:12:44 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH] media: vb2: add a check for uninitialized buffer
-To: linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>
-Message-id: <1318435964-9986-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:40424 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754526Ab1JAKDK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Oct 2011 06:03:10 -0400
+Received: by eya28 with SMTP id 28so1669162eya.19
+        for <linux-media@vger.kernel.org>; Sat, 01 Oct 2011 03:03:09 -0700 (PDT)
+Message-ID: <4E86E554.1040400@gmail.com>
+Date: Sat, 01 Oct 2011 12:03:00 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org
+Subject: Re: [PATCH 4/4] v4l2: add blackfin capture bridge driver
+References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com> <CAHG8p1C5F_HKX_GPHv_RdCRRNw9s3+ybK4giCjUXxgSUAUDRVw@mail.gmail.com> <4E70BA97.1090904@samsung.com> <201109261625.03748.hverkuil@xs4all.nl>
+In-Reply-To: <201109261625.03748.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-__buffer_in_use() might be called for empty/uninitialized buffer in the
-following scenario: REQBUF(n, USER_PTR), QUERYBUF(). This patch fixes
-kernel ops in such case.
+Hello Hans,
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-CC: Pawel Osciak <pawel@osciak.com>
+On 09/26/2011 04:25 PM, Hans Verkuil wrote:
+> On Wednesday, September 14, 2011 16:30:47 Sylwester Nawrocki wrote:
+>> On 09/14/2011 09:10 AM, Scott Jiang wrote:
+>>>>> +static int bcap_qbuf(struct file *file, void *priv,
+>>>>> +                     struct v4l2_buffer *buf)
+>>>>> +{
+>>>>> +     struct bcap_device *bcap_dev = video_drvdata(file);
+>>>>> +     struct v4l2_fh *fh = file->private_data;
+>>>>> +     struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
+>>>>> +
+>>>>> +     if (!bcap_fh->io_allowed)
+>>>>> +             return -EACCES;
+>>>>
+>>>> I suppose -EBUSY would be more appropriate here.
+>>>>
+>>> no, io_allowed is to control which file instance has the right to do I/O.
+>>
+>> Looks like you are doing here what the v4l2 priority mechanism is meant for.
+>> Have you considered the access priority (VIDIOC_G_PRIORITY/VIDIOC_S_PRIORITY
+>> and friends)? Does it have any shortcomings?
+> 
+> Sylwester, the priority handling doesn't take care of this particular case.
+> 
+> When it comes to streaming you need to administrate which filehandle started
+> the streaming and block any other filehandle from interfering with that.
+> 
+> This check should really be done in vb2.
 
----
- drivers/media/video/videobuf2-core.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+True, I've noticed QBUF/DQBUF are not touched by the priority handling.
+Perhaps I didn't follow the discussions in this topic carefully enough.
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index d8affb8..cdbbab7 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -284,14 +284,14 @@ static bool __buffer_in_use(struct vb2_queue *q, struct vb2_buffer *vb)
- {
- 	unsigned int plane;
- 	for (plane = 0; plane < vb->num_planes; ++plane) {
-+		void mem_priv = vb->planes[plane].mem_priv;
- 		/*
- 		 * If num_users() has not been provided, call_memop
- 		 * will return 0, apparently nobody cares about this
- 		 * case anyway. If num_users() returns more than 1,
- 		 * we are not the only user of the plane's memory.
- 		 */
--		if (call_memop(q, plane, num_users,
--				vb->planes[plane].mem_priv) > 1)
-+		if (mem_priv && call_memop(q, plane, num_users, mem_priv) > 1)
- 			return true;
- 	}
- 	return false;
--- 
-1.7.1.569.g6f426
+Then we seem to have another feature request for vb2.
 
+--
+Thanks,
+Sylwester
