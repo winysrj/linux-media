@@ -1,108 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:40436 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751369Ab1JOAZM (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:45228 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753697Ab1JAAeE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Oct 2011 20:25:12 -0400
-Message-ID: <4E98D2E5.4070805@mlbassoc.com>
-Date: Fri, 14 Oct 2011 18:25:09 -0600
-From: Gary Thomas <gary@mlbassoc.com>
-MIME-Version: 1.0
-To: Enrico <ebutera@users.berlios.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: OMAP3 ISP - interlaced data incorrect
-References: <4E98C09B.2060800@mlbassoc.com> <CA+2YH7uo-CqvW9ez9xtQ-7pTB_nnemL_7hsOAQ6vX-S-wju9dA@mail.gmail.com>
-In-Reply-To: <CA+2YH7uo-CqvW9ez9xtQ-7pTB_nnemL_7hsOAQ6vX-S-wju9dA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 30 Sep 2011 20:34:04 -0400
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: [PATCH 2/3] [media] tvp5150: Add video format registers configuration values
+Date: Sat,  1 Oct 2011 02:33:50 +0200
+Message-Id: <1317429231-11359-3-git-send-email-martinez.javier@gmail.com>
+In-Reply-To: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com>
+References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2011-10-14 17:43, Enrico wrote:
-> On Sat, Oct 15, 2011 at 1:07 AM, Gary Thomas<gary@mlbassoc.com>  wrote:
->> For days, I've been chasing ghosts :-)  I know they are still there,
->> but I think they are more a function of the source than the ISP setup.
->> So, I went looking for a better source, NTSC in my case.  My choice is
->> is a DVD player with known good video (I'm convinced that my cheap NTSC
->> camera produces crap, especially when there is a lot of motion in the
->> frames).  Looking at this on an analogue TV (yes, they still exist!),
->> the picture is not bad, so I think it's a good choice, at least when
->> trying to understand what's happening with the OMAP3 ISP.
->>
->> Look at these two pictures:
->>   http://www.mlbassoc.com/misc/nemo-00001.png
->>   http://www.mlbassoc.com/misc/nemo-swapped-00001.png
->>
->> These represent one frame of data captured via my OMAP3 ISP + TVP5150
->> from a DVD (sorry, Disney).  The first is a raw conversion of the
->> frame using ffmpeg.  As you can see, there seem to be lines swapped,
->> so I wrote a little program to swap the lines even/odd.  The second
->> (nemo-swapped) shows what this looks like.  Obviously, the data is
->> not being stored in memory correctly.  Does anyone know how to adjust
->> the ISP to make this work the right way around?  Currently in ispccdc.c, we
->> have:
->>                 ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENEVEN,
->> 1);
->>                 ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENODD,
->> 1);
->>                 ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDEVEN,
->> 1);
->>                 ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDODD, 1);
->>
->> I tried this:
->>                 ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENEVEN,
->> 2);
->>                 ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENODD,
->> 0);
->>                 ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDEVEN,
->> 2);
->>                 ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDODD, 0);
->> but this lead to a kernel panic :-(
->>
->> Somehow, we need to be storing the data something like this:
->>    EE EE EE EE ...
->>    EO EO EO EO ...
->>    OE OE OE OE ...
->>    OO OO OO OO ...
->> but the current layout is               ccdc_config_outlineoffset(ccdc,
->> pix.bytesperline, EVENEVEN, 1);
->>                 ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENODD,
->> 1);
->>                 ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDEVEN,
->> 1);
->>                 ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDODD, 1);
->>
->>    EO EO EO EO ...
->>    EE EE EE EE ...
->>    OO OO OO OO ...
->>    OE OE OE OE ...
->>
->> First, I need to get the data into memory in the correct order :-)
->>
->> Note: these results are consistent, i.e. if I stop things and do another
->> grab, they are incorrect in the same [wrong] order.
->
->
-> Just set the FINV bit (search for it in ispccdc.c), i tested it before
-> and i had the opposite result (from a good looking nemo-swapped-like
-> picture to a bad one).
+The tvp5150 video decoder has two operation modes to configure the video
+standard used.
 
-That works great, thanks.  Maybe we need another user flag, like fldmode,
-for this?
+If auto-switch mode is enable, the device can sense the signal and detect which
+video standard the device is operating. Also the device can be forced to use a
+user defined video standard.
 
->
->
->>     I've not done any recent tests with the gstreamer modules and the TI DSP
->> code,
->>     but I will shortly.  We'll see how well that does.
->
-> I've tested it with the dsp and nothing changes, same problems. But i
-> will be happy if proven wrong!
+Each operation mode uses a different register and the bitmask values to
+represent each standard is different.
 
-I'll play with this a bit more tomorrow.
+So we add video standard constants for both autoswitch and no-autoswitch mode.
 
+Signed-off-by: Javier Martinez Canillas <martinez.javier@gmail.com>
+---
+ drivers/media/video/tvp5150_reg.h |   17 ++++++++++++++++-
+ 1 files changed, 16 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/tvp5150_reg.h b/drivers/media/video/tvp5150_reg.h
+index 4240043..25a9949 100644
+--- a/drivers/media/video/tvp5150_reg.h
++++ b/drivers/media/video/tvp5150_reg.h
+@@ -45,7 +45,22 @@
+ 
+ /* Reserved 1Fh-27h */
+ 
+-#define TVP5150_VIDEO_STD           0x28 /* Video standard */
++#define VIDEO_STD_MASK			 (0x07 >> 1)
++#define TVP5150_VIDEO_STD                0x28 /* Video standard */
++#define VIDEO_STD_AUTO_SWITCH_BIT	 0x00
++#define VIDEO_STD_NTSC_MJ_BIT		 0x02
++#define VIDEO_STD_PAL_BDGHIN_BIT	 0x04
++#define VIDEO_STD_PAL_M_BIT		 0x06
++#define VIDEO_STD_PAL_COMBINATION_N_BIT	 0x08
++#define VIDEO_STD_NTSC_4_43_BIT		 0x0a
++#define VIDEO_STD_SECAM_BIT		 0x0c
++
++#define VIDEO_STD_NTSC_MJ_BIT_AS                 0x01
++#define VIDEO_STD_PAL_BDGHIN_BIT_AS              0x03
++#define VIDEO_STD_PAL_M_BIT_AS		         0x05
++#define VIDEO_STD_PAL_COMBINATION_N_BIT_AS	 0x07
++#define VIDEO_STD_NTSC_4_43_BIT_AS		 0x09
++#define VIDEO_STD_SECAM_BIT_AS		         0x0b
+ 
+ /* Reserved 29h-2bh */
+ 
 -- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+1.7.4.1
+
