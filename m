@@ -1,61 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:51106 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753526Ab1JLQbi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Oct 2011 12:31:38 -0400
-Date: Wed, 12 Oct 2011 19:31:32 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 1/4] v4l: add support for selection api
-Message-ID: <20111012163132.GF10001@valkosipuli.localdomain>
-References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com>
- <1314793703-32345-2-git-send-email-t.stanislaws@samsung.com>
- <20111012114828.GE10001@valkosipuli.localdomain>
- <4E95AD64.2020702@samsung.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:62134 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750870Ab1JAR16 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Oct 2011 13:27:58 -0400
+Received: by yxl31 with SMTP id 31so2440230yxl.19
+        for <linux-media@vger.kernel.org>; Sat, 01 Oct 2011 10:27:57 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4E95AD64.2020702@samsung.com>
+In-Reply-To: <CA+2YH7u=PzkTFUwWgJHuuHphrz8O7UZvOKDWfFoxGcouzzGo7Q@mail.gmail.com>
+References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com>
+ <4E8716D1.9010104@mlbassoc.com> <CAAwP0s07U3wHR0LoSmvQzXG3KxUoARgjH7G2gxi911RBVe9HRw@mail.gmail.com>
+ <CA+2YH7u=PzkTFUwWgJHuuHphrz8O7UZvOKDWfFoxGcouzzGo7Q@mail.gmail.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Date: Sat, 1 Oct 2011 19:27:37 +0200
+Message-ID: <CAAwP0s3fXYcgKtEKT0h1H92kOZFyOd5s0zYv1wB6wiZEt+d5AA@mail.gmail.com>
+Subject: Re: [PATCH 0/3] [media] tvp5150: Migrate to media-controller
+ framework and add video format detection
+To: Enrico <ebutera@users.berlios.de>
+Cc: Gary Thomas <gary@mlbassoc.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 12, 2011 at 05:08:20PM +0200, Tomasz Stanislawski wrote:
-> On 10/12/2011 01:48 PM, Sakari Ailus wrote:
-> >Hi Tomasz,
-> >
-> >On Wed, Aug 31, 2011 at 02:28:20PM +0200, Tomasz Stanislawski wrote:
-> >...
-> >>diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> >>index fca24cc..b7471fe 100644
-> >>--- a/include/linux/videodev2.h
-> >>+++ b/include/linux/videodev2.h
-> >>@@ -738,6 +738,48 @@ struct v4l2_crop {
-> >>  	struct v4l2_rect        c;
-> >>  };
-> >>
-> >>+/* Hints for adjustments of selection rectangle */
-> >>+#define V4L2_SEL_SIZE_GE	0x00000001
-> >>+#define V4L2_SEL_SIZE_LE	0x00000002
-> >
-> >A minor comment. If the patches have not been pulled yet, how about adding
-> >FLAG_ to the flag names? I.e. V4L2_SEL_FLAG_SIZE_GE and
-> >V4L2_SEL_FLAG_SIZE_LE.
-> 
-> Hi Sakari,
-> 
-> The idea is good. I preferred to avoid using long names if possible.
-> I agree that using _FLAGS_ produce more informative name.
-> I'll fix it in the new version of selection API.
+On Sat, Oct 1, 2011 at 6:39 PM, Enrico <ebutera@users.berlios.de> wrote:
+> On Sat, Oct 1, 2011 at 5:55 PM, Javier Martinez Canillas
+> <martinez.javier@gmail.com> wrote:
+>> We hack a few bits of the ISP CCDC driver to support ITU-R BT656
+>> interlaced data with embedded syncs video format and ported the
+>> tvp5150 driver to the MCF so it can be detected as a sub-device and be
+>> part of the OMAP ISP image processing pipeline (as a source pad).
+>
+> That was already posted on the list [1], there was some discussion but
+> i don't know what's the status/plan to get it into mainline.
+>
 
-Thanks, Thomasz! (I propose "FLAG" and not "FLAGS" since it's a single
-flag.)
+Hello Enrico,
 
-Cheers,
+Yes, I saw it. That is why I didn't post our modifications to the ISP
+CCDC driver. Our approach is very similar to the one followed by TI
+(changing the CCDC output buffer every two VD0 interrupts) but we did
+different a few things:
+
+- decouple next buffer obtaining from last buffer releasing
+- maintain two buffers (struct isp_buffer), current and last
+- move move most of the logic to the VD1 interrupt since the ISP is
+already busy while execution VD0 handler.
+
+> And, as you can see in [2], don't expect many comments :D
+>
+
+Yes, now I saw that you already posted this, sorry for not doing a
+correct mail archive browsing before posting the patch.
+
+> [1]: http://www.spinics.net/lists/linux-media/msg37710.html
+> [2]: http://www.spinics.net/lists/linux-media/msg37116.html
+>
+>
+>>> Even if it does detect the signal shape (NTSC, PAL), doesn't one still need
+>>> to [externally] configure the pads for this shape?
+>>>
+>>
+>> Yes, that is why I wanted to do the auto-detection for the tvp5151, so
+>> we only have to manually configure the ISP components (or any other
+>> hardware video processing pipeline entities, sorry for my
+>> OMAP-specific comments).
+>
+> Laurent was not very happy [3] about changing video formats out of the
+> driver control, so this should be discussed more.
+>
+> [3]: http://www.spinics.net/lists/linux-omap/msg56983.html
+>
+>
+
+Ok, I thought it was the right thing to do, my bad. Lets do it from
+user-space then using the MCF.
+
+>> I didn't know that the physical connection affected the video output
+>> format, I thought that it was only a physical medium to carry the same
+>> information, sorry if my comments are silly but I'm really newbie with
+>> video in general.
+>
+> I think you got it right, i haven't tested it but the output format
+> shouldn't be affected by the video source( if it stays pal/ntsc of
+> course). Maybe you will get only a different "active" video area so
+> only cropping will be affected.
+>
+> Enrico
+>
+
+Thanks and best regards,
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Javier Martínez Canillas
+(+34) 682 39 81 69
+Barcelona, Spain
