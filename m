@@ -1,80 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55933 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933550Ab1JDTxb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Oct 2011 15:53:31 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p94JrUQG011003
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 4 Oct 2011 15:53:30 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCHv2 4/8] [media] saa7115: Trust that V4L2 core will fill the mask
-Date: Tue,  4 Oct 2011 16:53:16 -0300
-Message-Id: <1317758000-21154-4-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1317758000-21154-3-git-send-email-mchehab@redhat.com>
-References: <1317758000-21154-1-git-send-email-mchehab@redhat.com>
- <1317758000-21154-2-git-send-email-mchehab@redhat.com>
- <1317758000-21154-3-git-send-email-mchehab@redhat.com>
+Received: from slow3-v.mail.gandi.net ([217.70.178.89]:57120 "EHLO
+	slow3-v.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751532Ab1JAM1G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Oct 2011 08:27:06 -0400
+Received: from relay4-d.mail.gandi.net (relay4-d.mail.gandi.net [217.70.183.196])
+	by slow3-v.mail.gandi.net (Postfix) with ESMTP id B939438B94
+	for <linux-media@vger.kernel.org>; Sat,  1 Oct 2011 14:18:37 +0200 (CEST)
+From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
+To: <o.endriss@gmx.de>
+Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>
+Subject: [DVB] CXD2099 - Question about the CAM clock
+Date: Sat, 1 Oct 2011 14:18:36 +0200
+Message-ID: <000901cc8034$3fcb13f0$bf613bd0$@coexsi.fr>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Language: fr
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using V4L2_STD_ALL when no standard is detected,
-trust that the maximum allowed standards are already filled by
-the V4L2 core. It is better this way, as the bridge and/or the audio
-decoder may have some extra restrictions to some video standards.
+Dear Oliver,
 
-This also allow other devices like audio and tuners to contribute to
-standards detection, when they support such feature.
+I’ve done some tests with the CAM reader from Digital Devices based on Sony
+CXD2099 chip and I noticed some issues with some CAM:
+* SMIT CAM    : working fine
+* ASTON CAM   : working fine, except that it's crashing quite regularly
+* NEOTION CAM : no stream going out but access to the CAM menu is ok
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/video/saa7115.c |   19 ++++++++++++-------
- 1 files changed, 12 insertions(+), 7 deletions(-)
+When looking at the CXD2099 driver code, I noticed the CAM clock (fMCLKI) is
+fixed at 9MHz using the 27MHz onboard oscillator and using the integer
+divider set to 3 (as MCLKI_FREQ=2).
 
-diff --git a/drivers/media/video/saa7115.c b/drivers/media/video/saa7115.c
-index 86627a8..5cfdbc7 100644
---- a/drivers/media/video/saa7115.c
-+++ b/drivers/media/video/saa7115.c
-@@ -1346,17 +1346,23 @@ static int saa711x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
- 	struct saa711x_state *state = to_state(sd);
- 	int reg1f, reg1e;
- 
-+	/*
-+	 * The V4L2 core already initializes std with all supported
-+	 * Standards. All driver needs to do is to mask it, to remove
-+	 * standards that don't apply from the mask
-+	 */
-+
- 	reg1f = saa711x_read(sd, R_1F_STATUS_BYTE_2_VD_DEC);
- 	v4l2_dbg(1, debug, sd, "Status byte 2 (0x1f)=0x%02x\n", reg1f);
--	if (reg1f & 0x40) {
--		/* horizontal/vertical not locked */
--		*std = V4L2_STD_ALL;
-+
-+	/* horizontal/vertical not locked */
-+	if (reg1f & 0x40)
- 		goto ret;
--	}
-+
- 	if (reg1f & 0x20)
--		*std = V4L2_STD_525_60;
-+		*std &= V4L2_STD_525_60;
- 	else
--		*std = V4L2_STD_625_50;
-+		*std &= V4L2_STD_625_50;
- 
- 	if (state->ident != V4L2_IDENT_SAA7115)
- 		goto ret;
-@@ -1381,7 +1387,6 @@ static int saa711x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
- 		break;
- 	default:
- 		/* Can't detect anything */
--		*std = V4L2_STD_ALL;
- 		break;
- 	}
- 
--- 
-1.7.6.4
+I was wondering if some CAM were not able to work correctly at such high
+clock frequency.
+
+So, I've tried to enable the NCO (numeric controlled oscillator) in order to
+setup a lower frequency for the CAM clock, but I wasn't successful, it's
+looking like the frequency must be around the 9MHz or I can't get any
+stream.
+
+Do you know a way to decrease this CAM clock frequency to do some testing?
+
+Best regards,
+Sebastien.
+
+
 
