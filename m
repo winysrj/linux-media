@@ -1,106 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:51269 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751996Ab1JIR4m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Oct 2011 13:56:42 -0400
-Received: by ywb5 with SMTP id 5so4793814ywb.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Oct 2011 10:56:42 -0700 (PDT)
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:57775 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753689Ab1JAPzn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Oct 2011 11:55:43 -0400
+Received: by gyg10 with SMTP id 10so2310652gyg.19
+        for <linux-media@vger.kernel.org>; Sat, 01 Oct 2011 08:55:43 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <201110091912.47482.laurent.pinchart@ideasonboard.com>
-References: <1318127853-1879-1-git-send-email-martinez.javier@gmail.com> <201110091912.47482.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4E8716D1.9010104@mlbassoc.com>
+References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com> <4E8716D1.9010104@mlbassoc.com>
 From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Date: Sun, 9 Oct 2011 19:56:22 +0200
-Message-ID: <CAAwP0s0uqe0Hvcoes3uCKQREz46fDUD0JkNMmAv-fuzbXSp=Kg@mail.gmail.com>
-Subject: Re: [PATCH 0/2] Add support to ITU-R BT.656 video data format
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Enrico <ebutera@users.berlios.de>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Adam Pledger <a.pledger@thermoteknix.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>, linux-media@vger.kernel.org
+Date: Sat, 1 Oct 2011 17:55:28 +0200
+Message-ID: <CAAwP0s07U3wHR0LoSmvQzXG3KxUoARgjH7G2gxi911RBVe9HRw@mail.gmail.com>
+Subject: Re: [PATCH 0/3] [media] tvp5150: Migrate to media-controller
+ framework and add video format detection
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Oct 9, 2011 at 7:12 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Javier,
->
-> Thanks for the patches.
->
-> On Sunday 09 October 2011 04:37:31 Javier Martinez Canillas wrote:
->> This patch-set aims to add support to the ISP CCDC driver to process
->> interlaced video data in ITU-R BT.656 format.
+On Sat, Oct 1, 2011 at 3:34 PM, Gary Thomas <gary@mlbassoc.com> wrote:
+> On 2011-09-30 18:33, Javier Martinez Canillas wrote:
 >>
->> The patch-set contains the following patches:
+>> Hello,
 >>
->> [PATCH 1/2] omap3isp: video: Decouple buffer obtaining and set ISP entities
->> format [PATCH 2/2] omap3isp: ccdc: Add support to ITU-R BT.656 video data
->> format
+>> The tvp5150 video decoder is usually used on a video pipeline with several
+>> video processing integrated circuits. So the driver has to be migrated to
+>> the new media device API to reflect this at the software level.
 >>
->> The first patch decouples next frame buffer obtaining from the last frame
->> buffer releasing. This change is needed by the second patch that moves
->> most of the CCDC buffer management logic to the VD1 interrupt handler.
+>> Also the tvp5150 is able to detect what is the video standard at which
+>> the device is currently operating, so it makes sense to add video format
+>> detection in the driver as well as.
 >>
->> This patch-set is a proof-of-concept and was only compile tested since I
->> don't have the hardware to test right now. It is a forward porting, on top
->> of Laurent's omap3isp-omap3isp-yuv tree, of the changes we made to the ISP
->> driver to get interlaced video working.
+>> This patch-set migrates the tvp5150 driver to the MCF and adds video
+>> format detection.
 >>
->> Also, the patch will brake other configurations since the resizer and
->> previewer also make use of omap3isp_video_buffer() function that now has a
->> different semantic.
 >
-> That's an issue you need to address :-)
+> What is this patchset relative to?
+
+Hello Gary,
+
+Thank you, I'm a newbie with v4l2 in general and media controller
+framework in particular so your comments and suggestions are highly
+appreciated.
+
+I'm working to have proper support for the tvp5151 video capture
+connected through its parallel interface with our custom TI DM3730 ARM
+OMAP board. I think it's better to show the code as early as possible
+so I can have feedback from the community an see if I'm in the right
+path or completely lost, that is this patch-set about :)
+
+We hack a few bits of the ISP CCDC driver to support ITU-R BT656
+interlaced data with embedded syncs video format and ported the
+tvp5150 driver to the MCF so it can be detected as a sub-device and be
+part of the OMAP ISP image processing pipeline (as a source pad).
+
+We are configuring the graph like this:
+
+./media-ctl -r -l '"tvp5150 2-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+
+I thought (probably wrong for your comments) that since the tvp5150
+can sense which signal shape is being transfer to it (NTSC/PAL/etc) we
+can configure automatically the tvp5150 source pad frame format to
+capture all the lines (not only the visible ones). And if user space
+wants a different frame format we can process the image latter.
+
+So we only have to configure the ISP CCDC input pad format to be
+coherent with the tvp5150 output pad.
+
+./media-ctl --set-format '"OMAP3 ISP CCDC":0 [UYVY 720x625]'
+
+> Does it still handle the case of overscan? e.g. I typically capture from
+> an NTSC source using this device at 720x524.
+
+For the case of the overscan of if you want to crop the image I
+thought to use either the CCDC (to copy less lines on the memory
+output buffer) or the ISP resizer. But in that case one has to
+manually configure a different pipeline including the resizer and set
+the frame formats for each input and output pad (probably I'm wrong
+with this approach too).
+
+> Even if it does detect the signal shape (NTSC, PAL), doesn't one still need
+> to [externally] configure the pads for this shape?
 >
 
-Hi Laurent,
+Yes, that is why I wanted to do the auto-detection for the tvp5151, so
+we only have to manually configure the ISP components (or any other
+hardware video processing pipeline entities, sorry for my
+OMAP-specific comments).
 
-Yes, I know :-)
-
-The first version of the patch-set was only mean so you can review it
-but then I understood that your idea is to actually merge some code I
-send a few ours ago a v2 of the patch-set [1].
-
-This v2 is a simpler code that doesn't move any of the logic to the
-VD1 interrupt handler so it won't brake others components (resizer,
-previewer, etc). So first we can focus to have a working version of
-the interlaced video data support in the driver and then try to fix
-the artifact effect issue.
-
-It is based on an early version of our patch and also I've address all
-the issues you called out on the second patch. The fact that the code
-to address interlaced video is not bt656 but fldmode dependent.
-
-Also I split the patches in atomic operations so it can be applied
-incrementally without breaking the driver.
-
-Please let me know if you got the v2 patches or I can resend them if
-it is easier for you.
-
-[1]: http://www.spinics.net/lists/linux-media/msg38973.html
-
->> I'm posting even when the patch-set is not in a merge-able state so you can
->> review what we were doing and make comments.
+> Have you given any thought as to how the input (composite-A, composite-B or
+> S-Video)
+> could be configured using the MCF?
 >
-> You should split your patches differently. Even if we ignore the above issue,
-> your first patch will break the CCDC. In order to ease bissection patches
-> should be self-contained and not introduce regressions if possible.
+
+I didn't know that the physical connection affected the video output
+format, I thought that it was only a physical medium to carry the same
+information, sorry if my comments are silly but I'm really newbie with
+video in general.
+
+> Note: CC list trimmed to only the linux-media list.
 >
-> Please see my comments to the second patch.
->
->> These are not all our changes since we also modified the ISP to forward the
->> [G | S]_FMT and [G | S]_STD V4L2 ioctl commands to the TVP5151 and to only
->> copy the active lines, but those changes are not relevant with the ghosting
->> effect. With these changes we could get the 25 fps but with some sort of
->> artifacts on the images.
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+
+Thanks a lot, I just followed get_maintainer script suggestions.
 
 Best regards,
 
