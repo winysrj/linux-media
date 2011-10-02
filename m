@@ -1,61 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:39165 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751264Ab1JLIHN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Oct 2011 04:07:13 -0400
-Received: by ggnv2 with SMTP id v2so430959ggn.19
-        for <linux-media@vger.kernel.org>; Wed, 12 Oct 2011 01:07:13 -0700 (PDT)
+Received: from mail-pz0-f42.google.com ([209.85.210.42]:50070 "EHLO
+	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751693Ab1JBWrt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Oct 2011 18:47:49 -0400
+Received: by pzk1 with SMTP id 1so10140317pzk.1
+        for <linux-media@vger.kernel.org>; Sun, 02 Oct 2011 15:47:48 -0700 (PDT)
+Message-ID: <4E88EA0F.2090700@gmail.com>
+Date: Sun, 02 Oct 2011 19:47:43 -0300
+From: =?ISO-8859-1?Q?S=E9bastien_le_Preste_de_Vauban?=
+	<ulpianosonsi@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4E94C465.9090901@mlbassoc.com>
-References: <1318345735-16778-1-git-send-email-ebutera@users.berlios.de>
-	<4E94BD75.5040403@mlbassoc.com>
-	<CA+2YH7vx27qNeOO33NmR4SaqrSrhdu=17p468cSbLxDKfDAQqQ@mail.gmail.com>
-	<4E94C465.9090901@mlbassoc.com>
-Date: Wed, 12 Oct 2011 10:07:12 +0200
-Message-ID: <CA+2YH7vT441UMdawQY=N=4Fa7d9cYejwE4iYd8Sz7aE5NCJf2w@mail.gmail.com>
-Subject: Re: [RFC 0/3] omap3isp: add BT656 support
-From: Enrico <ebutera@users.berlios.de>
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+Subject: Bttv and composite audio
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 12, 2011 at 12:34 AM, Gary Thomas <gary@mlbassoc.com> wrote:
-> On 2011-10-11 16:25, Enrico wrote:
->>
->> On Wed, Oct 12, 2011 at 12:04 AM, Gary Thomas<gary@mlbassoc.com>  wrote:
->>>
->>> Sorry, this just locks up on boot for me, immediately after finding the
->>> TVP5150.
->>> I applied your changes to the above tree
->>>  commit 658d5e03dc1a7283e5119cd0e9504759dbd3d912
->>>  Author: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
->>>  Date:   Wed Aug 31 16:03:53 2011 +0200
->>
->> Did you add Javier patches for the tvp5150?
->
-> No, I thought your set was self-contained.  I'll add them now.
->
->>
->>> However, it does not build for my OMAP3530 without the attached patches.
->>
->> I can't remember now if i had omap vout enabled in my kernel config
->> but that one in ispccdc.c is strange, tomorrow i will do again a clean
->> rebuild.
->
-> I can't see how to turn off omap_vout
+I have a ATV-TUNER-F  tv card.
+This is the manufacturer web site: 
+http://advanteknetworks.com/products/tvtuners/atvtunerf.html
 
-In multimedia/video capture/omap2 video4linux
+Here is some info of the card:
 
-I had it disabled and enabling it gave me an error too, but it's not
-something that is changed by my patches so it is broken in the -yuv
-tree.
+lspci -v
+02:0a.0 Multimedia video controller: Brooktree Corporation Bt878 Video 
+Capture (rev 11)
+         Flags: bus master, medium devsel, latency 64, IRQ 21
+         Memory at faffe000 (32-bit, prefetchable) [size=4K]
+         Capabilities: [44] Vital Product Data
+         Capabilities: [4c] Power Management version 2
+         Kernel driver in use: bttv
+         Kernel modules: bttv
 
-I made a distclean rebuild and i don't have any errors, are you sure
-you need that include in ispccdc.c?
+02:0a.1 Multimedia controller: Brooktree Corporation Bt878 Audio Capture 
+(rev 11)
+         Flags: bus master, medium devsel, latency 64, IRQ 3
+         Memory at fafff000 (32-bit, prefetchable) [size=4K]
+         Capabilities: [44] Vital Product Data
+         Capabilities: [4c] Power Management version 2
 
-Enrico
+cat /etc/modprobe.d/bttv
+options bttv card=38 tuner=43 radio=1 pll=1
+
+uname -r
+3.0-ARCH
+
+dmesg | grep bttv
+[27086.701904] bttv: driver version 0.9.18 loaded
+[27086.701909] bttv: using 8 buffers with 2080k (520 pages) each for capture
+[27086.702544] bttv: Bt8xx card found (0).
+[27086.702566] bttv0: Bt878 (rev 17) at 0000:02:0a.0, irq: 21, latency: 
+64, mmio: 0xfaffe000
+[27086.702614] bttv0: using: Askey CPH06X TView99 [card=38,insmod option]
+[27086.702658] bttv0: gpio: en=00000000, out=00000000 in=00f9807f [init]
+[27086.703500] bttv0: tuner type=43
+[27086.729122] bttv0: audio absent, no audio device found!
+[27086.748110] bttv0: registered device video0
+[27086.748286] bttv0: registered device vbi0
+[27086.748393] bttv0: registered device radio0
+[27086.748416] bttv0: PLL: 28636363 => 35468950 .
+[27086.754854] bttv0: PLL: 28636363 => 35468950 .. ok
+[27086.782948] input: bttv IR (card=38) as 
+/devices/pci0000:00/0000:00:1e.0/0000:02:0a.0/rc/rc3/input8
+[27086.783099] rc3: bttv IR (card=38) as 
+/devices/pci0000:00/0000:00:1e.0/0000:02:0a.0/rc/rc3
+
+
+Tv-tuner video and audio works fine, composite video works fine but I 
+have no composite audio.
+The adapter shipped with the card is very similar to this one:
+http://www.avermedia-usa.com/AVerTV/Upload/SpecialPagePic/S-Video%20Composite%20Dongle%20Cable.jpg
+but the usb connector on the picture is some sort of S-video like 
+connector in my tv card.
+
+
