@@ -1,73 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:21846 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932384Ab1JFInb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 04:43:31 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFC PATCH] media_build: two fixes + one unresolved issue
-Date: Thu, 6 Oct 2011 10:43:24 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <201110051123.39783.hverkuil@xs4all.nl> <201110051545.27427.hverkuil@xs4all.nl> <4E8C852C.7000206@redhat.com>
-In-Reply-To: <4E8C852C.7000206@redhat.com>
+Received: from oproxy9.bluehost.com ([69.89.24.6]:47561 "HELO
+	oproxy9.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753522Ab1JBQ6f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Oct 2011 12:58:35 -0400
+Message-ID: <4E889839.30005@xenotime.net>
+Date: Sun, 02 Oct 2011 09:58:33 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Justin Piszcz <jpiszcz@lucidpixels.com>
+CC: linux-kernel@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: 3.1-rc8 still references 2.6.42 when ioctls will be removed
+References: <alpine.DEB.2.02.1110020640390.3972@p34.internal.lan>
+In-Reply-To: <alpine.DEB.2.02.1110020640390.3972@p34.internal.lan>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201110061043.24652.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 05 October 2011 18:26:20 Mauro Carvalho Chehab wrote:
-> Em 05-10-2011 10:45, Hans Verkuil escreveu:
-> > I'll see if I can make a patch for this.
+On 10/02/11 03:41, Justin Piszcz wrote:
+> Hi,
 > 
-> Ok, thanks!
+> FYI--
+> 
+> [   48.519528] uvcvideo: Deprecated UVCIOC_CTRL_{ADD,MAP_OLD,GET,SET} ioctls will be removed in 2.6.42.
+> 
+> $ grep 2.6.42 -r /usr/src/linux/*
+> 
+> /usr/src/linux/drivers/media/video/uvc/uvc_v4l2.c:                 "ioctls will be removed in 2.6.42.\n");
 
-Mauro, can you test this patch? It should translate 2.4x naming convention to 3.x.
+Let's tell the linux-media & Laurent.
 
-Regards,
+But linux-next does not contain that line nor that function.
+I guess something in linux-next needs to be merged into mainline.
 
-	Hans
-
-diff --git a/linux/patches_for_kernel.pl b/linux/patches_for_kernel.pl
-index 33348d9..00d8b7f 100755
---- a/linux/patches_for_kernel.pl
-+++ b/linux/patches_for_kernel.pl
-@@ -13,11 +13,15 @@ my $file = "../backports/backports.txt";
- open IN, $file or die "can't find $file\n";
- 
- sub kernel_version($) {
--	my $sublevel;
-+	my ($version, $patchlevel, $sublevel) = $_[0] =~ m/^(\d+)\.(\d+)\.?(\d*)/;
- 
--	$_[0] =~ m/^(\d+)\.(\d+)\.?(\d*)/;
--	$sublevel = $3 == "" ? 0 : $3;
--	return ($1*65536 + $2*256 + $sublevel);
-+	# fix kernel version for distros that 'translated' 3.0 to 2.40
-+	if ($version == 2 && $patchlevel >= 40) {
-+		$version = 3;
-+		$patchlevel -= 40;
-+	}
-+	$sublevel = 0 if ($sublevel == "");
-+	return ($version * 65536 + $patchlevel * 256 + $sublevel);
- }
- 
- my $kernel = kernel_version($version);
-diff --git a/v4l/Makefile b/v4l/Makefile
-index 311924e..57302cc 100644
---- a/v4l/Makefile
-+++ b/v4l/Makefile
-@@ -248,7 +248,7 @@ ifneq ($(VER),)
- 	@echo $(VER)|perl -ne 'if (/^([0-9]*)\.([0-9])*\.([0-9]*)(.*)$$/) { printf 
-("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s.%s.%s%s\n",$$1,$$2,$$3,$$1,$$2,$$3,$$4); };' > $(obj)/.version
- else
- 	@echo No version yet, using `uname -r`
--	@uname -r|perl -ne 'if (/^([0-9]*)\.([0-9])*\.?([0-9]*)(.*)$$/) { printf 
-("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s",$$1,$$2,$$3==""?"0":$$3,$$_); };' > $(obj)/.version
-+	@uname -r|perl -ne 'if (/^([0-9]*)\.([0-9])*\.?([0-9]*)(.*)$$/) { $$ver = $$1; $$patch = $$2; $$sub = $$3; if ($$ver == 2 && $$patch >= 40) { 
-$$ver = 3; $$patch -= 40; }; printf ("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s",$$ver,$$patch,$$sub==""?"0":
-$$sub,$$_); };' > $(obj)/.version
- endif
- endif
- 
+-- 
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
