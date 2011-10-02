@@ -1,206 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:35725 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757843Ab1JFAcn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 20:32:43 -0400
-Message-ID: <4E8CF721.4060406@infradead.org>
-Date: Wed, 05 Oct 2011 21:32:33 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:34241 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753195Ab1JBVSt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Oct 2011 17:18:49 -0400
+Received: by ywb5 with SMTP id 5so2852466ywb.19
+        for <linux-media@vger.kernel.org>; Sun, 02 Oct 2011 14:18:49 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <4E8891C1.6000208@iki.fi>
+References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com>
+ <1317429231-11359-4-git-send-email-martinez.javier@gmail.com> <4E8891C1.6000208@iki.fi>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Date: Sun, 2 Oct 2011 23:18:29 +0200
+Message-ID: <CAAwP0s1ozMVi5TgWUGmu5Pxd2cTEHd1rTD72HU9R+Fth3Rb9-A@mail.gmail.com>
+Subject: Re: [PATCH 3/3] [media] tvp5150: Migrate to media-controller
+ framework and add video format detection
 To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Javier Martinez Canillas <martinez.javier@gmail.com>,
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Enrico <ebutera@users.berlios.de>,
 	Gary Thomas <gary@mlbassoc.com>
-Subject: Re: [PATCH 3/3] [media] tvp5150: Migrate to media-controller framework
- and add video format detection
-References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com> <201110032344.08963.laurent.pinchart@ideasonboard.com> <4E8A2F76.4020209@infradead.org> <201110052208.00714.laurent.pinchart@ideasonboard.com> <4E8CCF07.2010400@infradead.org> <20111005231445.GC8614@valkosipuli.localdomain>
-In-Reply-To: <20111005231445.GC8614@valkosipuli.localdomain>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 05-10-2011 20:14, Sakari Ailus escreveu:
-> Hi Mauro,
+On Sun, Oct 2, 2011 at 6:30 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Javier,
 >
-> On Wed, Oct 05, 2011 at 06:41:27PM -0300, Mauro Carvalho Chehab wrote:
->> Em 05-10-2011 17:08, Laurent Pinchart escreveu:
-> [clip]
->>> The pad-level API doesn't replace the V4L2 API, it complements it. I'm of
->>> course not advocating modifying any driver to replace V4L2 ioctls by direct
->>> subdev access. However, the pad-level API needs to be exposed to userspace, as
->>> some harware simply can't be configured through a video node only.
->>>
->>> As Hans also mentionned in his reply, the pad-level API is made of two parts:
->>> an in-kernel API made of subdev operations, and a userspace API accessed
->>> through ioctls. As the userspace API is needed for some devices, the kernel
->>> API needs to be implemented by drivers. We should phase out the non pad-level
->>> format operations in favor of pad-level operations, as the former can be
->>> implemented using the later. That has absolutely no influence on the userspace
->>> API.
+> Thanks for the patch! It's very interesting to see a driver for a video
+> decoder using the MC interface. Before this we've had just image sensors.
+>
+
+Hello Sakari,
+
+Thanks for your comments.
+
+> Javier Martinez Canillas wrote:
+>> +             /* use the standard status register */
+>> +             std_status = tvp5150_read(sd, TVP5150_STATUS_REG_5);
+>> +     else
+>> +             /* use the standard register itself */
+>> +             std_status = std;
+>
+> Braces would be nice here.
+>
+
+Ok.
+
+>> +     switch (std_status & VIDEO_STD_MASK) {
+>> +     case VIDEO_STD_NTSC_MJ_BIT:
+>> +     case VIDEO_STD_NTSC_MJ_BIT_AS:
+>> +             return STD_NTSC_MJ;
+>> +
+>> +     case VIDEO_STD_PAL_BDGHIN_BIT:
+>> +     case VIDEO_STD_PAL_BDGHIN_BIT_AS:
+>> +             return STD_PAL_BDGHIN;
+>> +
+>> +     default:
+>> +             return STD_INVALID;
+>> +     }
+>> +
+>> +     return STD_INVALID;
+>
+> This return won't do anything.
+>
+
+Yes, will clean this.
+
+>> @@ -704,19 +812,19 @@ static int tvp5150_set_std(struct v4l2_subdev *sd, v4l2_std_id std)
+>>       if (std == V4L2_STD_ALL) {
+>>               fmt = 0;        /* Autodetect mode */
+>>       } else if (std & V4L2_STD_NTSC_443) {
+>> -             fmt = 0xa;
+>> +             fmt = VIDEO_STD_NTSC_4_43_BIT;
+>>       } else if (std & V4L2_STD_PAL_M) {
+>> -             fmt = 0x6;
+>> +             fmt = VIDEO_STD_PAL_M_BIT;
+>>       } else if (std & (V4L2_STD_PAL_N | V4L2_STD_PAL_Nc)) {
+>> -             fmt = 0x8;
+>> +             fmt = VIDEO_STD_PAL_COMBINATION_N_BIT;
+>>       } else {
+>>               /* Then, test against generic ones */
+>>               if (std & V4L2_STD_NTSC)
+>> -                     fmt = 0x2;
+>> +                     fmt = VIDEO_STD_NTSC_MJ_BIT;
+>>               else if (std & V4L2_STD_PAL)
+>> -                     fmt = 0x4;
+>> +                     fmt = VIDEO_STD_PAL_BDGHIN_BIT;
+>>               else if (std & V4L2_STD_SECAM)
+>> -                     fmt = 0xc;
+>> +                     fmt = VIDEO_STD_SECAM_BIT;
+>>       }
+>
+> Excellent! Less magic numbers...
+>
 >>
->> What I'm seeing is that:
->> 	- the drivers that are implementing the MC/pad API's aren't
->> compatible with generic V4L2 applications;
+>> +static struct v4l2_mbus_framefmt *
+>> +__tvp5150_get_pad_format(struct tvp5150 *tvp5150, struct v4l2_subdev_fh *fh,
+>> +                      unsigned int pad, enum v4l2_subdev_format_whence which)
+>> +{
+>> +     switch (which) {
+>> +     case V4L2_SUBDEV_FORMAT_TRY:
+>> +             return v4l2_subdev_get_try_format(fh, pad);
+>> +     case V4L2_SUBDEV_FORMAT_ACTIVE:
+>> +             return tvp5150->format;
+>> +     default:
+>> +             return NULL;
 >
-> This is currently true up to a certain degree; you'll need to configure such
-> devices using media-ctl at least. Even then, such embedded systems do often
-> have automatic exposure and white balance algorithms above the V4L2 (often
-> proprietary implementations).
+> Hmm. This will never happen, but is returning NULL the right thing to
+> do? An easy alternative is to just replace this with if (which may only
+> have either of the two values).
 >
-> To be really useful for a regular user, such algorithms would also be
-> needed.
+
+Ok I'll cleanup, I was being a bit paranoid there :)
+
+>> +
+>> +static int tvp5150_set_pad_format(struct v4l2_subdev *subdev,
+>> +                           struct v4l2_subdev_fh *fh,
+>> +                           struct v4l2_subdev_format *format)
+>> +{
+>> +     struct tvp5150 *tvp5150 = to_tvp5150(subdev);
+>> +     tvp5150->std_idx = STD_INVALID;
 >
-> The two problems are separate but they still both need to be resolved to be
-> able to use general purpose V4L2 applications on such systems in a
-> meaningful way.
-
-That's true, and the MC/pad API's were added to offer support for those proprietary
-plugins via libv4l.
-
-That's fine, but the thing is that some developers seem to think that only the streaming
-should be done via the V4L2 API, and all the rest via pad configs, while others have
-different views. Also, I couldn't see a consense about input selection on drivers that
-implement MC: they could either implement S_INPUT, create one V4L device node for each
-input, or create just one devnode and let userspace (somehow) to discover the valid
-inputs and set the pipelines via MC/pad.
-
-With all those complex and different scenarios, writing a generic plugin/application
-that would cover all possible alternatives with a mix of V4L/MC/pad API's would be
-extremely complex, and will take years to do it right.
-
-In other words, we need to confine the possible solutions to the ones that will
-actually be supported.
-
->> 	- there's no way to write a generic application that works with all
->> drivers, even implementing MC/pad API's there as each driver is taking different
->> a approach on how to map things at the different API's, and pipeline configuration
->> is device-dependent;
+> The above assignment will always be overwritten immediately.
 >
-> The pipeline configuration is device specific but the interfaces are not.
-> Thus it's possible to write a generic plugin which configures the device.
->
-> The static configuration can be kept in a text file in the first phase and
-> later on hints may be added for synamic configuration on e.g. where digital
-> gain, scaling and cropping should be performed and which resolutions to
-> advertise in enum_framesizes.
 
-Assuming that all drivers do the same, this would be an alternative for such
-plugin.
+Yes, since tvp515x_query_current_std() already returns STD_INVALID on
+error the assignment is not needed. Will change that.
 
-> But we do not have such plugin yet.
+>> +     tvp5150->std_idx = tvp515x_query_current_std(subdev);
+>> +     if (tvp5150->std_idx == STD_INVALID) {
+>> +             v4l2_err(subdev, "Unable to query std\n");
+>> +             return 0;
+>
+> Isn't this an error?
+>
 
-As several SoC developers showed on all opportunities we've met, the complexity
-for those devices is very high. The practical effect of adding a kernel driver
-without the corresponding required library support is that we ended by
-merging incomplete drivers and nobody, except for the manufacturers/developers
-whose submitted them could actually make an userspace application to work
-with. That would be ok if the drivers would be at /staging, but they aren't.
-This situation should be fixed as soon as possible.
+Yes, I'll change to report the error to the caller.
 
-I'm seriously considering to not send the patches we have on our tree for those
-drivers upstream while we don't have a solution for that.
+>> + * tvp515x_mbus_fmt_cap() - V4L2 decoder interface handler for try/s/g_mbus_fmt
+>
+> The name of the function is different.
+>
 
->> 	- there's no effort to publish patches to libv4l to match the changes
->> at the kernel driver.
->
-> I'd prefer concentrating all efforts towards a single, generic plugin. As
-> noted before, a plugin for OMAP 3 ISP exists, but I don't think it does
-> anything a generic plugin couldn't do, so it hasn't been merged.
->
-> I'm working on patches to move the text-based pipeline configuration to
-> libmediactl and libv4l2subdev and will post them to the list in the coming
-> few days, among with a few other improvements. This is one of the first
-> required steps towards such generic plugin.
+Yes, I'll change that.
 
-That would be great, but it won't solve, as more mess is being proposed each
-day. One thing is to set the pipelines. Another thing is to not support
-things like S_FMT/S_STD/... ioctl's. The user knows what format he wants,
-and that's what S_FMT/S_STD tells to the driver. the extra formats at the
-pipeline could be handled by a policy either at the driver or at a libv4l,
-although I don't think that a generic libv4l plugin would be capable of
-doing it (see more about that bellow).
+>>  static const struct v4l2_subdev_video_ops tvp5150_video_ops = {
+>>       .s_routing = tvp5150_s_routing,
+>> +     .s_stream = tvp515x_s_stream,
+>> +     .enum_mbus_fmt = tvp515x_enum_mbus_fmt,
+>> +     .g_mbus_fmt = tvp515x_mbus_fmt,
+>> +     .try_mbus_fmt = tvp515x_mbus_fmt,
+>> +     .s_mbus_fmt = tvp515x_mbus_fmt,
+>> +     .g_parm = tvp515x_g_parm,
+>> +     .s_parm = tvp515x_s_parm,
+>> +     .s_std_output = tvp5150_s_std,
+>
+> Do we really need both video and pad format ops?
+>
 
-> Unfortunately I haven't been able to use much of my time on this; help would
-> indeed be appreciated from any interested party.
+Good question, I don't know. Can this device be used as a standalone
+v4l2 device? Or is supposed to always be a part of a video streaming
+pipeline as a sub-device with a source pad? Sorry if my questions are
+silly but as I stated before, I'm a newbie with v4l2 and MCF.
+
+> s_std should be added to pad ops so it would be available on the subdev
+> node.
 >
-> [clip]
->
->> I'm fine on providing raw interfaces, just like we have for some types of device
->> (like the block raw interfaces used by CD-ROM drivers) as a bonus, but this should
->> never replace an API where an application developed by a third party could work
->> with all media hardware, without needing hardware specific details.
->
-> I agree.
->
-> [clip]
->
->>>>>> If the application wants a different image resolution, it will use
->>>>>> S_FMT. In this case, what userspace expects is that the driver will
->>>>>> scale, if supported, or return -EINVAL otherwise.
->>>>>
->>>>> With the OMAP3 ISP, which is I believe what Javier was asking about, the
->>>>> application will set the format on the OMAP3 ISP resizer input and output
->>>>> pads to configure scaling.
->>>>
->>>> The V4L2 API doesn't tell where a function like scaler will be implemented.
->>>> So, it is fine to implement it at tvp5151 or at the omap3 resizer, when a
->>>> V4L2 call is sent.
->>>
->>> By rolling a dice ? :-)
+
+Ok, I'll add s_std operation.
+
 >>
->> By using good sense. I never had a case where I had doubts about where the
->> scaling should be implemented on the drivers I've coded. For omap3/tvp5151, the
->> decision is also clear: it should be done at the bridge (omap3) resizer, as the
->> demod doesn't support scaling.
+>> +static int tvp515x_enum_mbus_code(struct v4l2_subdev *subdev,
+>> +                               struct v4l2_subdev_fh *fh,
+>> +                               struct v4l2_subdev_mbus_code_enum *code)
+>> +{
+>> +     if (code->index >= ARRAY_SIZE(tvp515x_std_list))
+>> +             return -EINVAL;
+>> +
+>> +     code->code = V4L2_MBUS_FMT_UYVY8_2X8;
 >
-> Good sense in this case would require knowledge of the tv tuner in the
-> camera ISP driver. One could also, and actually does, connect sensors which
-> can do scaling in two steps to the same ISP. How does the ISP driver now
-> know where to do scaling?
-
-Does it actually make sense to allow scaling on both? In the case of the
-generic plugin you're writing, would it do scale on both? If not, how
-would it decide where to scale? Moving the problem to userspace won't solve
-it, and would require userspace to take some hard decisions based on the specific
-hardware designs. In practice, it means that, every time a hardware is updated
-(a new sensor is added, etc), both the plugin and the driver will need to be
-touched, at the same time. This also means that the userspace plugin will
-be dependent on an specific kernel version, which would be a real mess to
-the distributors to package the libv4l plugin.
-
-Btw, we have some devices that support scaling on both tv decoder and bridge.
-As not all tv decoders have scaling, the decision were to implement scaling
-it only at the bridge. This was as good as doing it at the sensor (or even
-better, as some bridges have temporal/spacial decimation filtering, with
-provides a better decimation than a pure spacial filtering, and can reduce
-the quantization noise).
-
-> OMAP 3 ISP as such is a relatively simple one; there are ISPs which have two
-> scalers and ability to write the image to memory also in between the two.
->
-> I don't think a driver, be that tv tuner / sensor or ISP driver, has enough
-> information to perform the pipeline configuration which is mandatory to
-> implement the standard V4L2 ioctls for e.g. format setting and cropping. We
-> actually had such an implementation of the OMAP 3 ISP driver around 2009
-> (but without MC or V4L2 subdevs, still the underlying technical issues are
-> the same) and it was a disaster. The patches were posted to linux-media a
-> few times back then if you're interested. It was evident something had to be
-> done, and now we have the Media controller and V4L2 subdev user space APIs.
-
-As I said before, you're just transfering the problem from the kernel to
-something else, without actually solving it.
-
-> I want to reiterate that I'm very much in favour of supporting generic V4L2
-> applications on these devices. The additional support that these application
-> need on top of the drivers requires making policy decisions that
-> applications intended for embedded devices (such as Fcam) often run on
-> embedded devices need to make themselves. To support both using the same
-> drivers, these policy decisions must be taken in the user space, not in the
-> kernel. In my opinion libv4l is in perfect spot to fill this gap.
->
-> Kind regards,
+> If there's just one supported mbus code, non-zero code->index must
+> return -EINVAL.
 >
 
+Ok, I'll change that.
+
+>> +     return 0;
+>> +}
+>> +
+>> +static int tvp515x_enum_frame_size(struct v4l2_subdev *subdev,
+>> +                                struct v4l2_subdev_fh *fh,
+>> +                                struct v4l2_subdev_frame_size_enum *fse)
+>> +{
+>> +     int current_std = STD_INVALID;
+>
+> current_std is overwritten before it gets used.
+>
+
+Yes, same case here, will remove the assignment.
+
+>> +     if (fse->code != V4L2_MBUS_FMT_UYVY8_2X8)
+>> +             return -EINVAL;
+>> +
+>> +     /* query the current standard */
+>> +     current_std = tvp515x_query_current_std(subdev);
+>> +     if (current_std == STD_INVALID) {
+>> +             v4l2_err(subdev, "Unable to query std\n");
+>> +             return 0;
+>> +     }
+>
+> I wonder how the enum_frame_size and s_std are supposed to interact,
+> especially that I understand, after reading the discussion, the chip may
+> be used to force certain standard while the actual signal is different.
+>
+
+Well my thought was that the application can select which standard
+(i.e: V4L2_STD_PAL) and enum_frame_size will return the width and
+height for that standard (i.e: 720x625 for PAL). Since that is what
+the device is capturing.
+
+Then a user-space application can configure the CCDC and RESIZER to
+modify the format. Does this make sense to you? Or the user-space
+application can select a different frame size at the sub-dev level
+(tvp5151)?
+
+>
+> --
+> Sakari Ailus
+> sakari.ailus@iki.fi
+>
+
+Thanks a lot for your suggestions and comments.
+
+Best regards,
+
+-- 
+Javier Martínez Canillas
+(+34) 682 39 81 69
+Barcelona, Spain
