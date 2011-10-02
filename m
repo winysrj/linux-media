@@ -1,41 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out3.smtp.messagingengine.com ([66.111.4.27]:60994 "EHLO
-	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750748Ab1JJUwv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Oct 2011 16:52:51 -0400
-Received: from compute3.internal (compute3.nyi.mail.srv.osa [10.202.2.43])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 2BE752050D
-	for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 16:52:51 -0400 (EDT)
-Received: from bowman.localnet (unknown [50.72.131.188])
-	by mail.messagingengine.com (Postfix) with ESMTPSA id EE65B4028CA
-	for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 16:52:50 -0400 (EDT)
-From: Lyle Sigurdson <lyle@sent.com>
-To: linux-media@vger.kernel.org
-Subject: saa7164[0]: can't get MMIO memory @ 0x0 or 0x0
-Date: Mon, 10 Oct 2011 15:52:35 -0500
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43763 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751487Ab1JBRS4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Oct 2011 13:18:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Randy Dunlap <rdunlap@xenotime.net>
+Subject: Re: 3.1-rc8 still references 2.6.42 when ioctls will be removed
+Date: Sun, 2 Oct 2011 19:19:01 +0200
+Cc: Justin Piszcz <jpiszcz@lucidpixels.com>,
+	linux-kernel@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <alpine.DEB.2.02.1110020640390.3972@p34.internal.lan> <4E889839.30005@xenotime.net>
+In-Reply-To: <4E889839.30005@xenotime.net>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201110101552.35977.lyle@sent.com>
+Message-Id: <201110021919.01918.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all, and thanks for all your work.  But, I'm having a problem.
+Hi Randy,
 
-Tuner card: Hauppauge! HVR-2250
-Mainboard: MSNV-939
-Distro: Slackware64 13.1 (kernel 2.6.33.4)
+On Sunday 02 October 2011 18:58:33 Randy Dunlap wrote:
+> On 10/02/11 03:41, Justin Piszcz wrote:
+> > Hi,
+> > 
+> > FYI--
+> > 
+> > [   48.519528] uvcvideo: Deprecated UVCIOC_CTRL_{ADD,MAP_OLD,GET,SET}
+> > ioctls will be removed in 2.6.42.
+> > 
+> > $ grep 2.6.42 -r /usr/src/linux/*
+> > 
+> > /usr/src/linux/drivers/media/video/uvc/uvc_v4l2.c:                
+> > "ioctls will be removed in 2.6.42.\n");
+> 
+> Let's tell the linux-media & Laurent.
+> 
+> But linux-next does not contain that line nor that function.
+> I guess something in linux-next needs to be merged into mainline.
 
-When I modprobe saa7164:
-bowman kernel: saa7164[0]: can't get MMIO memory @ 0x0 or 0x0
-bowman kernel: CORE saa7164[0] No more PCIe resources for subsystem: 0070:8851
-bowman kernel: saa7164: probe of 0000:04:00.0 failed with	error -22
+2.6.42 being 3.2, I've sent a patch to remove the deprecated ioctls. Mauro has 
+applied it to his tree and will push it to Linus for v3.2.
 
-It turns out that pci_resource_start and pci_resource_len are both returning 
-null.
+-- 
+Regards,
 
-What could be the cause of this?  Is there a solution? 
-
-   Lyle.	
+Laurent Pinchart
