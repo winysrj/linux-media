@@ -1,143 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ims-d13.mx.aol.com ([205.188.249.150]:47952 "EHLO
-	ims-d13.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753476Ab1JQRJY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Oct 2011 13:09:24 -0400
-Received: from oms-db04.r1000.mx.aol.com (oms-db04.r1000.mx.aol.com [205.188.58.4])
-	by ims-d13.mx.aol.com (8.14.1/8.14.1) with ESMTP id p9HH965i014136
-	for <linux-media@vger.kernel.org>; Mon, 17 Oct 2011 13:09:06 -0400
-Received: from mtaout-db02.r1000.mx.aol.com (mtaout-db02.r1000.mx.aol.com [172.29.51.194])
-	by oms-db04.r1000.mx.aol.com (AOL Outbound OMS Interface) with ESMTP id E1E661C000087
-	for <linux-media@vger.kernel.org>; Mon, 17 Oct 2011 13:09:06 -0400 (EDT)
-Received: from [192.168.1.34] (unknown [190.50.38.1])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mtaout-db02.r1000.mx.aol.com (MUA/Third Party Client Interface) with ESMTPSA id 161DBE0000E5
-	for <linux-media@vger.kernel.org>; Mon, 17 Oct 2011 13:09:05 -0400 (EDT)
-Message-ID: <4E9C3819.2000307@netscape.net>
-Date: Mon, 17 Oct 2011 11:13:45 -0300
-From: =?ISO-8859-1?Q?Alfredo_Jes=FAs_Delaiti?=
-	<alfredodelaiti@netscape.net>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47043 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757311Ab1JCVjZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Oct 2011 17:39:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 3/3] [media] tvp5150: Migrate to media-controller framework and add video format detection
+Date: Mon, 3 Oct 2011 23:39:31 +0200
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org, Enrico <ebutera@users.berlios.de>,
+	Gary Thomas <gary@mlbassoc.com>
+References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com> <CAAwP0s0bTcUPvkVT-aB2EKskS_60CdW4P3orQLvSJMMkEWBpqw@mail.gmail.com> <4E8A07A6.3030600@infradead.org>
+In-Reply-To: <4E8A07A6.3030600@infradead.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 3.2] cx23885 alsa cleaned and prepaired
-References: <201110101752.11536.liplianin@me.by>
-In-Reply-To: <201110101752.11536.liplianin@me.by>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201110032339.31549.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Hi Mauro,
 
-El 10/10/11 11:52, Igor M. Liplianin escribió:
-> Hi Mauro and Steven,
->
-> It's been a long time since cx23885-alsa pull was requested.
-> To speed things up I created a git branch where I put the patches.
-> Some patches merged, like introduce then correct checkpatch compliance
-> or convert spinlock to mutex and back to spinlock, insert printk then remove printk as well.
-> Minor corrections from me was silently merged, for major I created additional patches.
->
-> Hope it helps.
->
-> The following changes since commit e30528854797f057aa6ffb6dc9f890e923c467fd:
->
->    [media] it913x-fe changes to power up and down of tuner (2011-10-08 08:03:27 -0300)
->
-> are available in the git repository at:
->    git://linuxtv.org/liplianin/media_tree.git cx23885-alsa-clean-2
->
-> Igor M. Liplianin (2):
->        cx23885: videobuf: Remove the videobuf_sg_dma_map/unmap functions
->        cx25840-audio: fix missing state declaration
->
-> Mijhail Moreyra (6):
->        cx23885: merge mijhail's header changes for alsa
->        cx23885: ALSA support
->        cx23885: core changes requireed for ALSA
->        cx23885: add definitions for HVR1500 to support audio
->        cx23885: correct the contrast, saturation and hue controls
->        cx23885: hooks the alsa changes into the video subsystem
->
-> Steven Toth (31):
->        cx23885: prepare the cx23885 makefile for alsa support
->        cx23885: convert from snd_card_new() to snd_card_create()
->        cx23885: convert call clients into subdevices
->        cx23885: minor function renaming to ensure uniformity
->        cx23885: setup the dma mapping for raw audio support
->        cx23885: mute the audio during channel change
->        cx23885: add two additional defines to simplify VBI register bitmap handling
->        cx23885: initial support for VBI with the cx23885
->        cx23885: initialize VBI support in the core, add IRQ support, register vbi device
->        cx23885: minor printk cleanups and device registration
->        cx25840: enable raw cc processing only for the cx23885 hardware
->        cx23885: vbi line window adjustments
->        cx23885: add vbi buffer formatting, window changes and video core changes
->        cx23885: Ensure the VBI pixel format is established correctly.
->        cx23885: ensure video is streaming before allowing vbi to stream
->        cx23885: remove channel dump diagnostics when a vbi buffer times out.
->        cx23885: Ensure VBI buffers timeout quickly - bugfix for vbi hangs during streaming.
->        cx23885: Name an internal i2c part and declare a bitfield by name
->        cx25840: Enable support for non-tuner LR1/LR2 audio inputs
->        cx23885: Enable audio line in support from the back panel
->        cx25840: Ensure AUDIO6 and AUDIO7 trigger line-in baseband use.
->        cx23885: Initial support for the MPX-885 mini-card
->        cx23885: fixes related to maximum number of inputs and range checking
->        cx23885: add generic functions for dealing with audio input selection
->        cx23885: hook the audio selection functions into the main driver
->        cx23885: v4l2 api compliance, set the audioset field correctly
->        cx23885: Removed a spurious function cx23885_set_scale().
->        cx23885: Avoid stopping the risc engine during buffer timeout.
->        cx23885: Avoid incorrect error handling and reporting
->        cx23885: Stop the risc video fifo before reconfiguring it.
->        cx23885: Allow the audio mux config to be specified on a per input basis.
->
->   drivers/media/video/cx23885/Makefile        |    2 +-
->   drivers/media/video/cx23885/cx23885-alsa.c  |  535 +++++++++++++++++++++++++++
->   drivers/media/video/cx23885/cx23885-cards.c |   53 +++
->   drivers/media/video/cx23885/cx23885-core.c  |   99 ++++-
->   drivers/media/video/cx23885/cx23885-i2c.c   |    1 +
->   drivers/media/video/cx23885/cx23885-reg.h   |    3 +
->   drivers/media/video/cx23885/cx23885-vbi.c   |   72 +++-
->   drivers/media/video/cx23885/cx23885-video.c |  373 ++++++++++++++++---
->   drivers/media/video/cx23885/cx23885.h       |   56 +++
->   drivers/media/video/cx25840/cx25840-audio.c |   10 +-
->   drivers/media/video/cx25840/cx25840-core.c  |   19 +
->   11 files changed, 1144 insertions(+), 79 deletions(-)
->   create mode 100644 drivers/media/video/cx23885/cx23885-alsa.c
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-When compile, I get this error:
+On Monday 03 October 2011 21:06:14 Mauro Carvalho Chehab wrote:
+> Em 03-10-2011 06:53, Javier Martinez Canillas escreveu:
+> > On Mon, Oct 3, 2011 at 10:39 AM, Laurent Pinchart wrote:
+> >> On Monday 03 October 2011 08:30:25 Hans Verkuil wrote:
+> >>> On Monday, October 03, 2011 04:17:06 Mauro Carvalho Chehab wrote:
+> >>>> Em 02-10-2011 18:18, Javier Martinez Canillas escreveu:
+> >>>>> On Sun, Oct 2, 2011 at 6:30 PM, Sakari Ailus wrote:
+> >> [snip]
+> >> 
+> >>>>>>>  static const struct v4l2_subdev_video_ops tvp5150_video_ops = {
+> >>>>>>>  
+> >>>>>>>       .s_routing = tvp5150_s_routing,
+> >>>>>>> 
+> >>>>>>> +     .s_stream = tvp515x_s_stream,
+> >>>>>>> +     .enum_mbus_fmt = tvp515x_enum_mbus_fmt,
+> >>>>>>> +     .g_mbus_fmt = tvp515x_mbus_fmt,
+> >>>>>>> +     .try_mbus_fmt = tvp515x_mbus_fmt,
+> >>>>>>> +     .s_mbus_fmt = tvp515x_mbus_fmt,
+> >>>>>>> +     .g_parm = tvp515x_g_parm,
+> >>>>>>> +     .s_parm = tvp515x_s_parm,
+> >>>>>>> +     .s_std_output = tvp5150_s_std,
+> >>>>>> 
+> >>>>>> Do we really need both video and pad format ops?
+> >>>>> 
+> >>>>> Good question, I don't know. Can this device be used as a standalone
+> >>>>> v4l2 device? Or is supposed to always be a part of a video streaming
+> >>>>> pipeline as a sub-device with a source pad? Sorry if my questions are
+> >>>>> silly but as I stated before, I'm a newbie with v4l2 and MCF.
+> >>>> 
+> >>>> The tvp5150 driver is used on some em28xx devices. It is nice to add
+> >>>> auto-detection code to the driver, but converting it to the media bus
+> >>>> should be done with enough care to not break support for the existing
+> >>>> devices.
+> >>> 
+> >>> So in other words, the tvp5150 driver needs both pad and non-pad ops.
+> >>> Eventually all non-pad variants in subdev drivers should be replaced by
+> >>> the pad variants so you don't have duplication of ops. But that will
+> >>> take a lot more work.
+> >> 
+> >> What about replacing direct calls to non-pad operations with core V4L2
+> >> functions that would use the subdev non-pad operation if available, and
+> >> emulate if with the pad operation otherwise ? I think this would ease
+> >> the transition, as subdev drivers could be ported to pad operations
+> >> without worrying about the bridges that use them, and bridge drivers
+> >> could be switched to the new wrappers with a simple search and replace.
+> > 
+> > Ok, that is a good solution. I'll do that. Implement V4L2 core
+> > operations as wrappers of the subdev pad operations.
+> 
+> As I said, I can't see _any_ reason why setting a format would be needed
+> at pad level. Patches shouldn't increase driver/core and userspace
+> complexity for nothing.
 
-dhcppc1:/usr/src/linux # make SUBDIRS=drivers/media/video/cx23885 
-modules -j2
-   Building modules, stage 2.
-   MODPOST 2 modules
-WARNING: "cx23885_risc_databuffer" 
-[drivers/media/video/cx23885/cx23885.ko] undefined!
-
-dhcppc1:/usr/src/linux # modprobe cx23885 debug=3 v4l_debug=3 i2c_scan=3
-FATAL: Error inserting cx23885 
-(/lib/modules/3.0.6-2-desktop/kernel/drivers/media/video/cx23885/cx23885.ko): 
-Unknown symbol in module, or unknown parameter (see dmesg)
-
-dmesg:
-....
-[13447.629867] cx23885: Unknown symbol cx23885_risc_databuffer (err 0)
-
-
-I use kernel 3.0.6 and OpenSuse 11.4
-
-
-Thank
-
-Alfredo
+Sorry ? We already have format setting at the pad level, and that's used by 
+drivers and applications. It's one key feature of the V4L2/MC API.
 
 -- 
-Dona tu voz
-http://www.voxforge.org/es
+Regards,
 
+Laurent Pinchart
