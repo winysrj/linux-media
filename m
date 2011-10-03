@@ -1,94 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:56167 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755234Ab1JMRwd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Oct 2011 13:52:33 -0400
-Received: by bkbzt4 with SMTP id zt4so1762980bkb.19
-        for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 10:52:32 -0700 (PDT)
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:52019 "EHLO
+	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752244Ab1JCOqK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Oct 2011 10:46:10 -0400
+From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
+To: "'Issa Gorissen'" <flop.m@usa.net>, <o.endriss@gmx.de>
+Cc: "'Linux Media Mailing List'" <linux-media@vger.kernel.org>
+References: <533PJcN7P6848S01.1317650355@web01.cms.usa.net>
+In-Reply-To: <533PJcN7P6848S01.1317650355@web01.cms.usa.net>
+Subject: RE: [DVB] CXD2099 - Question about the CAM clock
+Date: Mon, 3 Oct 2011 16:46:04 +0200
+Message-ID: <006f01cc81db$2dfdf220$89f9d660$@coexsi.fr>
 MIME-Version: 1.0
-In-Reply-To: <4E971255.8080203@lockie.ca>
-References: <4E967E5B.3050504@lockie.ca>
-	<CAGoCfiyViRDt690TWtiWdnfP5C-az2aeOK=TGhgP4kwT1QJfqQ@mail.gmail.com>
-	<4E971255.8080203@lockie.ca>
-Date: Thu, 13 Oct 2011 13:52:32 -0400
-Message-ID: <CAGoCfix6dESpBe_=yX38q-q7JGYUcp2UkVi+4kM7dHL=cmW0bg@mail.gmail.com>
-Subject: Re: recent cx23385?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: James <bjlockie@lockie.ca>
-Cc: linux-media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Language: fr
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 13, 2011 at 12:31 PM, James <bjlockie@lockie.ca> wrote:
-> Where do I see the date/version of the media subsystem?
 
-You can't.  The media_build stuff is just a script which backports
-part of the latest kernel tree and applies some patches to make it
-work with older kernels.  There is no real "version" for it.
 
-> It is not video related, w_scan works sometimes but freezes the kernel
-> sometimes.
-> This is booting right to a console.
-> Is there a program to do a stress test on the hardware and print lots of
-> messages as it's working?
+> -----Original Message-----
+> From: Issa Gorissen [mailto:flop.m@usa.net]
+> Sent: lundi 3 octobre 2011 15:59
+> To: o.endriss@gmx.de; Sébastien RAILLARD
+> Cc: 'Linux Media Mailing List'
+> Subject: RE: [DVB] CXD2099 - Question about the CAM clock
+> 
+> > >
+> > > > Dear Oliver,
+> > > >
+> > > > I’ve done some tests with the CAM reader from Digital Devices
+> > > > based on
+> > > Sony
+> > > > CXD2099 chip and I noticed some issues with some CAM:
+> > > > * SMIT CAM    : working fine
+> > > > * ASTON CAM   : working fine, except that it's crashing quite
+> > > regularly
+> > > > * NEOTION CAM : no stream going out but access to the CAM menu is
+> > > > ok
+> > > >
+> > > > When looking at the CXD2099 driver code, I noticed the CAM clock
+> > > > (fMCLKI)
+> > > is
+> > > > fixed at 9MHz using the 27MHz onboard oscillator and using the
+> > > > integer divider set to 3 (as MCLKI_FREQ=2).
+> > > >
+> > > > I was wondering if some CAM were not able to work correctly at
+> > > > such high clock frequency.
+> > > >
+> > > > So, I've tried to enable the NCO (numeric controlled oscillator)
+> > > > in order
+> > > to
+> > > > setup a lower frequency for the CAM clock, but I wasn't
+> > > > successful, it's looking like the frequency must be around the
+> > > > 9MHz or I can't get any stream.
+> > > >
+> > > > Do you know a way to decrease this CAM clock frequency to do some
+> > > testing?
+> > > >
+> > > > Best regards,
+> > > > Sebastien.
+> > >
+> > > Weird that the frequency would pose a problem for those CAMs. The CI
+> > > spec [1] explains that the minimum byte transfer clock period must
+> > > be 111ns. This gives us a frequency of ~9MHz.
+> > >
+> >
+> > You're totally right about the maximum clock frequency specified in
+> > the norm, but I had confirmation from CAM manufacturers that their CAM
+> > may not work correctly up to this maximum frequency.
+> >
+> > Usually, the CAM clock is coming from the input TS stream and I don't
+> > think there is for now a DVB-S2 transponder having a 72mbps bitrate
+> > (so a 9MHz
+> for
+> > parallel CAM clocking).
+> >
+> > > Anyway, wouldn't it be wiser to base MCLKI on TICLK ?
+> > >
+> >
+> > I've tried to use mode C instead of mode D, and I have the same
+> > problem, so I guess TICLK is around 72MHz.
+> >
+> > It could be a good idea to use TICLK, but I don't know the value and
+> > if the clock is constant or only active during data transmission.
+> >
+> >
+> > Did you manage to enable and use the NCO of the CXD2099 (instead of
+> > the integer divider) ?
+> 
+> No, but if your output to the CAM is slower than what comes from the
+> ngene chip, you will lose bytes, no ?
 
-Not really, you can add the debug=1 modprobe option, but in reality
-you probably need to get to the bottom of what is causing the hardware
-lockup.
+The real bandwidth of my transponder is 62mbps, so I've room to decrease the
+CAM clock.
 
-> I did:
-> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
-> /bin/sh: /sbin/lsmod: No such file or directory
-> Lot's of pr_fmt redefined errors.
+I did more tests with the NCO, and I've strange results:
+* Using MCLKI=0x5553 => fMCLKI= 8,99903 => Not working, a lot of TS errors
+* Using MCLKI=0x5554 => fMCLKI= 8,99945 => Working fine
+* Using MCLKI=0x5555 => fMCLKI= 8,99986 => Not working, a lot of TS errors
 
-lsmod is required.  Go install whatever package provides it.
+It's strange that changing very slightly the clock make so much errors!
 
-> I put the build log at: lockie.ca/test/v4l_build.txt.bz2
->
-> Something is not right though. :-(
-> $ modprobe cx23885
-> WARNING: Deprecated config file /etc/modprobe.conf, all config files belong
-> into /etc/modprobe.d/.
-> WARNING: Error inserting altera_ci
-> (/lib/modules/3.0.4/kernel/drivers/media/video/cx23885/altera-ci.ko):
-> Invalid module format
-> WARNING: Error inserting media
-> (/lib/modules/3.0.4/kernel/drivers/media/media.ko): Invalid module format
-> WARNING: Error inserting videodev
-> (/lib/modules/3.0.4/kernel/drivers/media/video/videodev.ko): Invalid module
-> format
-> WARNING: Error inserting v4l2_common
-> (/lib/modules/3.0.4/kernel/drivers/media/video/v4l2-common.ko): Invalid
-> module format
-> WARNING: Error inserting videobuf_core
-> (/lib/modules/3.0.4/kernel/drivers/media/video/videobuf-core.ko): Invalid
-> module format
-> WARNING: Error inserting videobuf_dvb
-> (/lib/modules/3.0.4/kernel/drivers/media/video/videobuf-dvb.ko): Invalid
-> module format
-> WARNING: Error inserting videobuf_dma_sg
-> (/lib/modules/3.0.4/kernel/drivers/media/video/videobuf-dma-sg.ko): Invalid
-> module format
-> WARNING: Error inserting cx2341x
-> (/lib/modules/3.0.4/kernel/drivers/media/video/cx2341x.ko): Invalid module
-> format
-> WARNING: Error inserting altera_stapl
-> (/lib/modules/3.0.4/kernel/drivers/linux/drivers/misc/altera-stapl/altera-stapl.ko):
-> Invalid module format
-> WARNING: Error inserting rc_core
-> (/lib/modules/3.0.4/kernel/drivers/media/rc/rc-core.ko): Invalid module
-> format
-> FATAL: Error inserting cx23885
-> (/lib/modules/3.0.4/kernel/drivers/media/video/cx23885/cx23885.ko): Invalid
-> module format
 
-Your build is screwed up.  Would recommend you do a "make clean" and
-then "make && make install".  Then reboot.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
