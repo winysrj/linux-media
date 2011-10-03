@@ -1,62 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20345 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752178Ab1JKU7h (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Oct 2011 16:59:37 -0400
-Message-ID: <4E94AE2D.4050408@redhat.com>
-Date: Tue, 11 Oct 2011 17:59:25 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from fmmailgate01.web.de ([217.72.192.221]:50618 "EHLO
+	fmmailgate01.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754652Ab1JCMgE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Oct 2011 08:36:04 -0400
+Message-ID: <4E89AC32.7090708@web.de>
+Date: Mon, 03 Oct 2011 14:36:02 +0200
+From: =?ISO-8859-1?Q?Andr=E9_Weidemann?= <Andre.Weidemann@web.de>
 MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Greg Kroah-Hartman <gregkh@suse.de>,
-	"Leonid V. Fedorenchik" <leonidsbox@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, devel@driverdev.osuosl.org,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] Staging: cx25821: off by on in cx25821_vidioc_s_input()
-References: <20111007132643.GB31424@elgon.mountain>
-In-Reply-To: <20111007132643.GB31424@elgon.mountain>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+To: "Igor M. Liplianin" <liplianin@me.by>
+CC: Mauro Chehab <mchehab@infradead.org>, linux-media@vger.kernel.org,
+	Michael Schimek <mschimek@gmx.at>,
+	Hans Petter Selasky <hselasky@c2i.net>,
+	Doychin Dokov <root@net1.cc>,
+	Steffen Barszus <steffenbpunkt@googlemail.com>,
+	Dominik Kuhlen <dkuhlen@gmx.net>
+Subject: Re: [PATCH] pctv452e: hm.. tidy bogus code up
+References: <201109302358.11233.liplianin@me.by> <4E89AAD7.2040400@web.de>
+In-Reply-To: <4E89AAD7.2040400@web.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
+On 03.10.2011 14:30, André Weidemann wrote:
+> Hi Igor,
+>
+> On 30.09.2011 22:58, Igor M. Liplianin wrote:
+>> Currently, usb_register calls two times with cloned structures, but for
+>> different driver names. Let's remove it.
+>>
+>> Signed-off-by: Igor M. Liplianin<liplianin@me.by>
+>
+> Well spotted... The cloned struct should have been removed a long time
+> go. The final version of patch I submitted for the tt-connect S2-3600,
+> did not contain it anymore:
+> http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024233.html
+>
+> Acked-by: André Weideamm<Andre.Weidemann@web.de>
 
-Em 07-10-2011 10:26, Dan Carpenter escreveu:
-> If "i" is 2 then when we call cx25821_video_mux() we'd end up going
-> past the end of the cx25821_boards[dev->board]->input[].
-> 
-> The INPUT() macro obfuscates what's going on in that function so it's
-> a bit hard to follow.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> I don't have this hardware, so I can't actually test this.  Please
-> review this carefully.
-> 
-> diff --git a/drivers/staging/cx25821/cx25821-video.c b/drivers/staging/cx25821/cx25821-video.c
-> index 084fc08..acd7c4b 100644
-> --- a/drivers/staging/cx25821/cx25821-video.c
-> +++ b/drivers/staging/cx25821/cx25821-video.c
-> @@ -1312,7 +1312,7 @@ int cx25821_vidioc_s_input(struct file *file, void *priv, unsigned int i)
->  			return err;
->  	}
->  
-> -	if (i > 2) {
-> +	if (i >= 2) {
+This should read:
+Acked-by: André Weidemann<Andre.Weidemann@web.de>
 
-It would be better to add a NUM_INPUT macro (or something like that, defined together
-with the INPUT macro) that would do an ARRAY_SIZE(cx25821_boards) and use it here, 
-instead of a "2" magic number.
+;-)
 
-Thanks,
-Mauro
-
->  		dprintk(1, "%s(): -EINVAL\n", __func__);
->  		return -EINVAL;
->  	}
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Regards
+  André
