@@ -1,103 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:33305 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750771Ab1JBNIh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Oct 2011 09:08:37 -0400
-Received: by yxl31 with SMTP id 31so2737610yxl.19
-        for <linux-media@vger.kernel.org>; Sun, 02 Oct 2011 06:08:37 -0700 (PDT)
+Received: from casper.infradead.org ([85.118.1.10]:55946 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932397Ab1JCSyE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Oct 2011 14:54:04 -0400
+Message-ID: <4E8A04C2.5000508@infradead.org>
+Date: Mon, 03 Oct 2011 15:53:54 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <CA+2YH7vZvdt=nv4XWeA_4Hefy_us6nB0AxQbM9Ra68UcPz0a3A@mail.gmail.com>
-References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com>
- <4E8716D1.9010104@mlbassoc.com> <CAAwP0s07U3wHR0LoSmvQzXG3KxUoARgjH7G2gxi911RBVe9HRw@mail.gmail.com>
- <CA+2YH7u=PzkTFUwWgJHuuHphrz8O7UZvOKDWfFoxGcouzzGo7Q@mail.gmail.com>
- <CAAwP0s3fXYcgKtEKT0h1H92kOZFyOd5s0zYv1wB6wiZEt+d5AA@mail.gmail.com> <CA+2YH7vZvdt=nv4XWeA_4Hefy_us6nB0AxQbM9Ra68UcPz0a3A@mail.gmail.com>
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Date: Sun, 2 Oct 2011 15:08:17 +0200
-Message-ID: <CAAwP0s2BGL4_iZ=eimpAZZUa_saa4uEd0BSMbrDJ8pPC3ZZZWg@mail.gmail.com>
-Subject: Re: [PATCH 0/3] [media] tvp5150: Migrate to media-controller
- framework and add video format detection
-To: Enrico <ebutera@users.berlios.de>
-Cc: Gary Thomas <gary@mlbassoc.com>, linux-media@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Javier Martinez Canillas <martinez.javier@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org,
+	laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Enrico <ebutera@users.berlios.de>,
+	Gary Thomas <gary@mlbassoc.com>
+Subject: Re: [PATCH 3/3] [media] tvp5150: Migrate to media-controller framework
+ and add video format detection
+References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com> <CAAwP0s1ozMVi5TgWUGmu5Pxd2cTEHd1rTD72HU9R+Fth3Rb9-A@mail.gmail.com> <4E891B22.1020204@infradead.org> <201110030830.25364.hverkuil@xs4all.nl>
+In-Reply-To: <201110030830.25364.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Oct 1, 2011 at 7:46 PM, Enrico <ebutera@users.berlios.de> wrote:
-> On Sat, Oct 1, 2011 at 7:27 PM, Javier Martinez Canillas
-> <martinez.javier@gmail.com> wrote:
->> Yes, I saw it. That is why I didn't post our modifications to the ISP
->> CCDC driver. Our approach is very similar to the one followed by TI
->> (changing the CCDC output buffer every two VD0 interrupts) but we did
->> different a few things:
->>
->> - decouple next buffer obtaining from last buffer releasing
->> - maintain two buffers (struct isp_buffer), current and last
->> - move move most of the logic to the VD1 interrupt since the ISP is
->> already busy while execution VD0 handler.
->
-> If you think it is a better approach you can submit it for review,
-> right now there is no "clean" version supporting bt656 so yours can be
-> the one.
->
->
-
-Ok, I don't know if my approach is the "cleaner" version to support
-bt656, but I will cleanup the code to be in a merge-able state and
-send for review.
-
-Something that I don't know if I got it right is configure the CCDC to
-capture and odd numbers of lines (i.e: 625 lines from a PAL frame)
-since the first and second sub-frames have different numbers of lines
-(i.e: 313 and 312).
-
-My solution was to reprogram the CCDC in the VD1 interrupt handler so
-it can use the new configuration for the next sub-frame:
-
-static void ispccdc_change_numlines(struct isp_device *isp, int numlines)
-{
-	isp_reg_writel(isp, ((numlines - 1) << ISPCCDC_VDINT_0_SHIFT) |
-		       ((numlines * 2 / 3) << ISPCCDC_VDINT_1_SHIFT),
-		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VDINT);
-	isp_reg_writel(isp, (numlines - 1)
-		       << ISPCCDC_VERT_LINES_NLV_SHIFT,
-		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_LINES);
-}
-
-Is this the right approach? because I didn't find in the TRM how to
-configure the CCDC to generate the VD0 and VD1 interrupts with
-variable frame vertical length.
-
->>>>> Even if it does detect the signal shape (NTSC, PAL), doesn't one still need
->>>>> to [externally] configure the pads for this shape?
->>>>>
+Em 03-10-2011 03:30, Hans Verkuil escreveu:
+> On Monday, October 03, 2011 04:17:06 Mauro Carvalho Chehab wrote:
+>> Em 02-10-2011 18:18, Javier Martinez Canillas escreveu:
+>>> On Sun, Oct 2, 2011 at 6:30 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+>>>> Hi Javier,
 >>>>
->>>> Yes, that is why I wanted to do the auto-detection for the tvp5151, so
->>>> we only have to manually configure the ISP components (or any other
->>>> hardware video processing pipeline entities, sorry for my
->>>> OMAP-specific comments).
+>>>> Thanks for the patch! It's very interesting to see a driver for a video
+>>>> decoder using the MC interface. Before this we've had just image sensors.
+>>>>
 >>>
->>> Laurent was not very happy [3] about changing video formats out of the
->>> driver control, so this should be discussed more.
+>>> Hello Sakari,
 >>>
->>> [3]: http://www.spinics.net/lists/linux-omap/msg56983.html
+>>> Thanks for your comments.
 >>>
+>>>> Javier Martinez Canillas wrote:
+>>>>> +             /* use the standard status register */
+>>>>> +             std_status = tvp5150_read(sd, TVP5150_STATUS_REG_5);
+>>>>> +     else
+>>>>> +             /* use the standard register itself */
+>>>>> +             std_status = std;
+>>>>
+>>>> Braces would be nice here.
+>>>>
 >>>
+>>> Ok.
+>>>
+>>>>> +     switch (std_status & VIDEO_STD_MASK) {
+>>>>> +     case VIDEO_STD_NTSC_MJ_BIT:
+>>>>> +     case VIDEO_STD_NTSC_MJ_BIT_AS:
+>>>>> +             return STD_NTSC_MJ;
+>>>>> +
+>>>>> +     case VIDEO_STD_PAL_BDGHIN_BIT:
+>>>>> +     case VIDEO_STD_PAL_BDGHIN_BIT_AS:
+>>>>> +             return STD_PAL_BDGHIN;
+>>>>> +
+>>>>> +     default:
+>>>>> +             return STD_INVALID;
+>>>>> +     }
+>>>>> +
+>>>>> +     return STD_INVALID;
+>>>>
+>>>> This return won't do anything.
+>>>>
+>>>
+>>> Yes, will clean this.
+>>>
+>>>>> @@ -704,19 +812,19 @@ static int tvp5150_set_std(struct v4l2_subdev *sd, v4l2_std_id std)
+>>>>>       if (std == V4L2_STD_ALL) {
+>>>>>               fmt = 0;        /* Autodetect mode */
+>>>>>       } else if (std & V4L2_STD_NTSC_443) {
+>>>>> -             fmt = 0xa;
+>>>>> +             fmt = VIDEO_STD_NTSC_4_43_BIT;
+>>>>>       } else if (std & V4L2_STD_PAL_M) {
+>>>>> -             fmt = 0x6;
+>>>>> +             fmt = VIDEO_STD_PAL_M_BIT;
+>>>>>       } else if (std & (V4L2_STD_PAL_N | V4L2_STD_PAL_Nc)) {
+>>>>> -             fmt = 0x8;
+>>>>> +             fmt = VIDEO_STD_PAL_COMBINATION_N_BIT;
+>>>>>       } else {
+>>>>>               /* Then, test against generic ones */
+>>>>>               if (std & V4L2_STD_NTSC)
+>>>>> -                     fmt = 0x2;
+>>>>> +                     fmt = VIDEO_STD_NTSC_MJ_BIT;
+>>>>>               else if (std & V4L2_STD_PAL)
+>>>>> -                     fmt = 0x4;
+>>>>> +                     fmt = VIDEO_STD_PAL_BDGHIN_BIT;
+>>>>>               else if (std & V4L2_STD_SECAM)
+>>>>> -                     fmt = 0xc;
+>>>>> +                     fmt = VIDEO_STD_SECAM_BIT;
+>>>>>       }
+>>>>
+>>>> Excellent! Less magic numbers...
+>>>>
+>>>>>
+>>>>> +static struct v4l2_mbus_framefmt *
+>>>>> +__tvp5150_get_pad_format(struct tvp5150 *tvp5150, struct v4l2_subdev_fh *fh,
+>>>>> +                      unsigned int pad, enum v4l2_subdev_format_whence which)
+>>>>> +{
+>>>>> +     switch (which) {
+>>>>> +     case V4L2_SUBDEV_FORMAT_TRY:
+>>>>> +             return v4l2_subdev_get_try_format(fh, pad);
+>>>>> +     case V4L2_SUBDEV_FORMAT_ACTIVE:
+>>>>> +             return tvp5150->format;
+>>>>> +     default:
+>>>>> +             return NULL;
+>>>>
+>>>> Hmm. This will never happen, but is returning NULL the right thing to
+>>>> do? An easy alternative is to just replace this with if (which may only
+>>>> have either of the two values).
+>>>>
+>>>
+>>> Ok I'll cleanup, I was being a bit paranoid there :)
+>>>
+>>>>> +
+>>>>> +static int tvp5150_set_pad_format(struct v4l2_subdev *subdev,
+>>>>> +                           struct v4l2_subdev_fh *fh,
+>>>>> +                           struct v4l2_subdev_format *format)
+>>>>> +{
+>>>>> +     struct tvp5150 *tvp5150 = to_tvp5150(subdev);
+>>>>> +     tvp5150->std_idx = STD_INVALID;
+>>>>
+>>>> The above assignment will always be overwritten immediately.
+>>>>
+>>>
+>>> Yes, since tvp515x_query_current_std() already returns STD_INVALID on
+>>> error the assignment is not needed. Will change that.
+>>>
+>>>>> +     tvp5150->std_idx = tvp515x_query_current_std(subdev);
+>>>>> +     if (tvp5150->std_idx == STD_INVALID) {
+>>>>> +             v4l2_err(subdev, "Unable to query std\n");
+>>>>> +             return 0;
+>>>>
+>>>> Isn't this an error?
+>>>>
+>>>
+>>> Yes, I'll change to report the error to the caller.
+>>>
+>>>>> + * tvp515x_mbus_fmt_cap() - V4L2 decoder interface handler for try/s/g_mbus_fmt
+>>>>
+>>>> The name of the function is different.
+>>>>
+>>>
+>>> Yes, I'll change that.
+>>>
+>>>>>  static const struct v4l2_subdev_video_ops tvp5150_video_ops = {
+>>>>>       .s_routing = tvp5150_s_routing,
+>>>>> +     .s_stream = tvp515x_s_stream,
+>>>>> +     .enum_mbus_fmt = tvp515x_enum_mbus_fmt,
+>>>>> +     .g_mbus_fmt = tvp515x_mbus_fmt,
+>>>>> +     .try_mbus_fmt = tvp515x_mbus_fmt,
+>>>>> +     .s_mbus_fmt = tvp515x_mbus_fmt,
+>>>>> +     .g_parm = tvp515x_g_parm,
+>>>>> +     .s_parm = tvp515x_s_parm,
+>>>>> +     .s_std_output = tvp5150_s_std,
+>>>>
+>>>> Do we really need both video and pad format ops?
+>>>>
+>>>
+>>> Good question, I don't know. Can this device be used as a standalone
+>>> v4l2 device? Or is supposed to always be a part of a video streaming
+>>> pipeline as a sub-device with a source pad? Sorry if my questions are
+>>> silly but as I stated before, I'm a newbie with v4l2 and MCF.
 >>
->> Ok, I thought it was the right thing to do, my bad. Lets do it from
->> user-space then using the MCF.
->
-> I see there is some ongoing discussion about a similar topic, so just
-> follow it and see how it turns out.
->
-> Enrico
->
+>> The tvp5150 driver is used on some em28xx devices. It is nice to add auto-detection
+>> code to the driver, but converting it to the media bus should be done with
+>> enough care to not break support for the existing devices.
+> 
+> So in other words, the tvp5150 driver needs both pad and non-pad ops.
+> Eventually all non-pad variants in subdev drivers should be replaced by the
+> pad variants so you don't have duplication of ops. But that will take a lot
+> more work.
+> 
+>> Also, as I've argued with Laurent before, the expected behavior is that the standards
+>> format selection should be done via the video node, and not via the media 
+>> controller node. The V4L2 API has enough support for all you need to do with the
+>> video decoder, so there's no excuse to duplicate it with any other API.
+> 
+> This is relevant for bridge drivers, not for subdev drivers.
+> 
+>> The media controller API is there not to replace V4L2, but to complement
+>> it where needed.
+> 
+> That will be a nice discussion during the workshop :-)
+> 
+>> In the specific code of standards auto-detection, a few drivers currently support
+>> this feature. They're (or should be) coded to do is:
+>>
+>> If V4L2_STD_ALL is used, the driver should autodetect the video standard of the
+>> currently tuned channel.
+> 
+> Actually, this is optional. As per the spec:
+> 
+> "When the standard set is ambiguous drivers may return EINVAL or choose any of
+> the requested standards."
 
-Ok, I will. Thank you very much for your comments.
+Yes. The entire auto-detection thing is optional. Several devices aren't capable of
+auto-detecting standards. Btw, userspace support for standards auto-detection is
+another chapter. I don't think they implement standards auto-detection.
 
-Best regards,
+There are even some applications (qv4l2 and tvtime, for example) that aren't capable of 
+refreshing the maximum height when the standard changes.
 
--- 
-Javier Martínez Canillas
-(+34) 682 39 81 69
-Barcelona, Spain
+> Nor does the spec say anything about doing an autodetect when STD_ALL is passed
+> in. Most drivers will just set the std to PAL or NTSC in this case.
+
+Auto-detection is device specific. That's why most applications don't handle it 
+well (or don't even care on trying to do it). Btw, I did some tests with autodetection
+on a device with a saa7115, and I found some bugs. Just sent a fix for it.
+
+> If you want to autodetect, then use QUERYSTD. Applications cannot rely on drivers
+> to handle V4L2_STD_ALL the way you say.
+> 
+>> The detected standard can be returned to userspace via VIDIOC_G_STD.
+> 
+> No! G_STD always returns the current *selected* standard. Only QUERYSTD returns
+> the detected standard.
+
+Yes, you're right. I should not try to answer emails when I'm lazy enough to not
+look in to the code ;)
+
+Anyway, the thing is that V4L2 API has enough support for auto-detection. There's
+no need to duplicate stuff with MC API.
+
+Regards,
+Mauro
