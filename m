@@ -1,111 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:33690 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754308Ab1JNUZN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Oct 2011 16:25:13 -0400
-Message-ID: <4E989AA3.3010305@infradead.org>
-Date: Fri, 14 Oct 2011 17:25:07 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:32939 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750853Ab1JCLO3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Oct 2011 07:14:29 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 8/9] V4L: mt9t112: add pad level operations
+Date: Mon, 3 Oct 2011 13:14:36 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Deepthy Ravi <deepthy.ravi@ti.com>
+References: <1317313137-4403-1-git-send-email-g.liakhovetski@gmx.de> <1317313137-4403-9-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1317313137-4403-9-git-send-email-g.liakhovetski@gmx.de>
 MIME-Version: 1.0
-To: "Igor M. Liplianin" <liplianin@me.by>
-CC: linux-media@vger.kernel.org, Steven Toth <stoth@linuxtv.org>,
-	Mijhail Moreyra <mijhail.moreyra@gmail.com>,
-	Abylai Ospan <aospan@netup.ru>
-Subject: Re: [GIT PATCHES FOR 3.2] cx23885 alsa cleaned and prepaired
-References: <201110101752.11536.liplianin@me.by>
-In-Reply-To: <201110101752.11536.liplianin@me.by>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201110031314.37234.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 10-10-2011 11:52, Igor M. Liplianin escreveu:
-> Hi Mauro and Steven,
-> 
-> It's been a long time since cx23885-alsa pull was requested.
-> To speed things up I created a git branch where I put the patches.
-> Some patches merged, like introduce then correct checkpatch compliance
-> or convert spinlock to mutex and back to spinlock, insert printk then remove printk as well.
-> Minor corrections from me was silently merged, for major I created additional patches.
-> 
-> Hope it helps.
-> 
-> The following changes since commit e30528854797f057aa6ffb6dc9f890e923c467fd:
-> 
->   [media] it913x-fe changes to power up and down of tuner (2011-10-08 08:03:27 -0300)
-> 
-> are available in the git repository at:
->   git://linuxtv.org/liplianin/media_tree.git cx23885-alsa-clean-2
+Hi Guennadi,
 
-Ok, all the other patches look sane. I just had to do another patchset reorder, moving
-patch 39 to happen before patch 29, and folding one of the Igor's fixes with a patch
-sent by Steven.
+Thanks for the patch.
 
-I'm assuming that all of you are ok with that. So, I'm pushing the changeset into my
-tree.
+On Thursday 29 September 2011 18:18:56 Guennadi Liakhovetski wrote:
+> On Media Controller enabled systems this patch allows the user to
+> communicate with the driver directly over /dev/v4l-subdev* device nodes
+> using VIDIOC_SUBDEV_* ioctl()s.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-> 
-> Igor M. Liplianin (2):
->       cx23885: videobuf: Remove the videobuf_sg_dma_map/unmap functions
->       cx25840-audio: fix missing state declaration
-> 
-> Mijhail Moreyra (6):
->       cx23885: merge mijhail's header changes for alsa
->       cx23885: ALSA support
->       cx23885: core changes requireed for ALSA
->       cx23885: add definitions for HVR1500 to support audio
->       cx23885: correct the contrast, saturation and hue controls
->       cx23885: hooks the alsa changes into the video subsystem
-> 
-> Steven Toth (31):
->       cx23885: prepare the cx23885 makefile for alsa support
->       cx23885: convert from snd_card_new() to snd_card_create()
->       cx23885: convert call clients into subdevices
->       cx23885: minor function renaming to ensure uniformity
->       cx23885: setup the dma mapping for raw audio support
->       cx23885: mute the audio during channel change
->       cx23885: add two additional defines to simplify VBI register bitmap handling
->       cx23885: initial support for VBI with the cx23885
->       cx23885: initialize VBI support in the core, add IRQ support, register vbi device
->       cx23885: minor printk cleanups and device registration
->       cx25840: enable raw cc processing only for the cx23885 hardware
->       cx23885: vbi line window adjustments
->       cx23885: add vbi buffer formatting, window changes and video core changes
->       cx23885: Ensure the VBI pixel format is established correctly.
->       cx23885: ensure video is streaming before allowing vbi to stream
->       cx23885: remove channel dump diagnostics when a vbi buffer times out.
->       cx23885: Ensure VBI buffers timeout quickly - bugfix for vbi hangs during streaming.
->       cx23885: Name an internal i2c part and declare a bitfield by name
->       cx25840: Enable support for non-tuner LR1/LR2 audio inputs
->       cx23885: Enable audio line in support from the back panel
->       cx25840: Ensure AUDIO6 and AUDIO7 trigger line-in baseband use.
->       cx23885: Initial support for the MPX-885 mini-card
->       cx23885: fixes related to maximum number of inputs and range checking
->       cx23885: add generic functions for dealing with audio input selection
->       cx23885: hook the audio selection functions into the main driver
->       cx23885: v4l2 api compliance, set the audioset field correctly
->       cx23885: Removed a spurious function cx23885_set_scale().
->       cx23885: Avoid stopping the risc engine during buffer timeout.
->       cx23885: Avoid incorrect error handling and reporting
->       cx23885: Stop the risc video fifo before reconfiguring it.
->       cx23885: Allow the audio mux config to be specified on a per input basis.
-> 
->  drivers/media/video/cx23885/Makefile        |    2 +-
->  drivers/media/video/cx23885/cx23885-alsa.c  |  535 +++++++++++++++++++++++++++
->  drivers/media/video/cx23885/cx23885-cards.c |   53 +++
->  drivers/media/video/cx23885/cx23885-core.c  |   99 ++++-
->  drivers/media/video/cx23885/cx23885-i2c.c   |    1 +
->  drivers/media/video/cx23885/cx23885-reg.h   |    3 +
->  drivers/media/video/cx23885/cx23885-vbi.c   |   72 +++-
->  drivers/media/video/cx23885/cx23885-video.c |  373 ++++++++++++++++---
->  drivers/media/video/cx23885/cx23885.h       |   56 +++
->  drivers/media/video/cx25840/cx25840-audio.c |   10 +-
->  drivers/media/video/cx25840/cx25840-core.c  |   19 +
->  11 files changed, 1144 insertions(+), 79 deletions(-)
->  create mode 100644 drivers/media/video/cx23885/cx23885-alsa.c
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[snip]
 
+> diff --git a/drivers/media/video/mt9t112.c b/drivers/media/video/mt9t112.c
+> index 32114a3..bb95ad1 100644
+> --- a/drivers/media/video/mt9t112.c
+> +++ b/drivers/media/video/mt9t112.c
+
+[snip]
+
+> @@ -739,8 +741,7 @@ static int mt9t112_init_camera(const struct i2c_client
+> *client) static int mt9t112_g_chip_ident(struct v4l2_subdev *sd,
+>  				struct v4l2_dbg_chip_ident *id)
+>  {
+> -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> -	struct mt9t112_priv *priv = to_mt9t112(client);
+> +	struct mt9t112_priv *priv = container_of(sd, struct mt9t112_priv,
+> subdev);
+
+What about modifying to_mt9t112() to take a subdev pointer, or possibly 
+creating a sd_to_mt9t112() ?
+
+>  	id->ident    = priv->model;
+>  	id->revision = 0;
+
+[snip]
+
+> @@ -1018,14 +1015,67 @@ static struct v4l2_subdev_video_ops
+
+[snip]
+
+> +static int mt9t112_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh
+> *fh, +			   struct v4l2_subdev_format *sd_fmt)
+> +{
+> +	struct v4l2_mbus_framefmt *mf;
+> +
+> +	if (sd_fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+> +		return mt9t112_s_fmt(sd, &sd_fmt->format);
+> +
+> +	mf = v4l2_subdev_get_try_format(fh, sd_fmt->pad);
+> +	*mf = sd_fmt->format;
+> +	return mt9t112_try_fmt(sd, mf);
+
+I think the code would be clea[nr]er if you split mt9t112_s_fmt() into try and 
+set, and called try unconditionally in mt9t112_set_fmt().
+
+> +}
+> +
+> +struct v4l2_subdev_pad_ops mt9t112_subdev_pad_ops = {
+> +	.enum_mbus_code	= mt9t112_enum_mbus_code,
+> +	.get_fmt	= mt9t112_get_fmt,
+> +	.set_fmt	= mt9t112_set_fmt,
+
+Having bot mt9t112_[gs]_fmt and mt9t112_[gs]et_fmt looks confusing to me. What 
+about renaming the later mt9t112_[gs]et_pad_fmt ?
+
+> +};
+> +
+>  static struct v4l2_subdev_ops mt9t112_subdev_ops = {
+>  	.core	= &mt9t112_subdev_core_ops,
+>  	.video	= &mt9t112_subdev_video_ops,
+> +	.pad	= &mt9t112_subdev_pad_ops,
+>  };
+> 
+> +static int mt9t112_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> +{
+> +	struct v4l2_mbus_framefmt *mf = v4l2_subdev_get_try_format(fh, 0);
+> +	return mf ? mt9t112_try_fmt(sd, mf) : 0;
+
+Can mf be NULL ?
+
+> +}
+
+-- 
+Regards,
+
+Laurent Pinchart
