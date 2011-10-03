@@ -1,89 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42503 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755218Ab1JWJZ7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Oct 2011 05:25:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [RFC] subdevice PM: .s_power() deprecation?
-Date: Sun, 23 Oct 2011 11:26:24 +0200
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-References: <Pine.LNX.4.64.1110031138370.14314@axis700.grange> <4EA3D3F8.907@iki.fi> <4EA3D7DB.4000908@gmail.com>
-In-Reply-To: <4EA3D7DB.4000908@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:20232 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757705Ab1JCWUO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Oct 2011 18:20:14 -0400
+Message-ID: <4E8A3519.60905@redhat.com>
+Date: Mon, 03 Oct 2011 19:20:09 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201110231126.24905.laurent.pinchart@ideasonboard.com>
+To: Hans de Goede <hdegoede@redhat.com>
+CC: =?UTF-8?B?TWFyY28gRGllZ28gQXVyw6lsaW8gTWVzcXVpdGE=?=
+	<marcodiegomesquita@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: About the patch I sent.
+References: <CAE_m23n8pmjrdLDYMidu5QYrPvaL-LOH0eDRyAHaH8+YA6sDkw@mail.gmail.com>
+In-Reply-To: <CAE_m23n8pmjrdLDYMidu5QYrPvaL-LOH0eDRyAHaH8+YA6sDkw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
-
-On Sunday 23 October 2011 11:01:15 Sylwester Nawrocki wrote:
-> On 10/23/2011 10:44 AM, Sakari Ailus wrote:
-> > Sylwester Nawrocki wrote:
-> ...
+Em 03-10-2011 19:06, Marco Diego Aurélio Mesquita escreveu:
+> Hi!
+> I'd really like my patch[1] accepted. Is there anything I can do about it?
 > 
-> >>>> 2. In some of our camera pipeline setups - "Sensor - MIPI-CSI receiver
-> >>>> - host/DMA",
-> >>>> 
-> >>>>    the sensor won't boot properly if all MIPI-CSI regulators aren't
-> >>>>    enabled. So the MIPI-CSI receiver must always be powered on before
-> >>>>    the sensor. With the subdevs doing their own magic wrt to power
-> >>>>    control the situation is getting slightly out of control.
-> >>> 
-> >>> How about this: CSI-2 receiver implements a few new regulators which
-> >>> the sensor driver then requests to be enabled. Would that work for
-> >>> you?
-> >> 
-> >> No, I don't like that... :)
-> >> 
-> >> We would have to standardize the regulator supply names, etc. Such
-> >> approach would be more difficult to align with runtime/system
-> >> suspend/resume. Also the sensor drivers should be independent on other
-> >> drivers. The MIPI-CSI receiver is more specific to the host, rather
-> >> than a sensor.
-> >> 
-> >> Not all sensors need MIPI-CSI, some just use parallel video bus.
-> > 
-> > The sensor drivers are responsible for the regulators they want to use,
-> > right? If they need no CSI-2 related regulators then they just ignore
-> 
-> Only for the regulator supplies for their device. In this case the sensor
-> driver would have to touch MIPI-CSI device regulator supplies.
-> 
-> > them as any other regulators the sensor doesn't need.
-> > 
-> > The names of the regulators could come from the platform data, they're
-> > board specific anyway. I can't see another way to do this without having
-> 
-> No, you don't want regulator supply names in any platform data struct.
-> The platform code binds regulator supplies to the devices, whether it is DT
-> based or not.
+> [1] http://patchwork.linuxtv.org/patch/6850/
 
-You can still add a regulator name field to the sensor platform data, or a 
-link to the regulator in the device tree, and use that in the sensor driver if 
-present.
+Hans,
 
-I'm not telling it's a good solution, but it's technically doable.
+Could you please ack or nack this patch?
 
-> > platform code to do this which is not quite compatible with the idea of
-> > the device tree.
-> 
-> Now I just use s_power callback in our drivers and it all works well.
-
-Having the sensor driver calling the CSI-2 receiver s_power callback directly 
-sounds a bit hackish to me. If we really want to call subdev operations from 
-another subdev driver we'll need to specify that, as the current mode of 
-operation (at least in my understanding) is that subdev operations are only 
-called by host drivers.
-
--- 
-Regards,
-
-Laurent Pinchart
+Thanks!
+Mauro
