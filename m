@@ -1,48 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:38512 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751027Ab1JMXNM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Oct 2011 19:13:12 -0400
-Received: from [192.168.1.13] (c-83-233-163-209.cust.bredband2.com [83.233.163.209])
-	(Authenticated sender: ed8153)
-	by smtp.bredband2.com (Postfix) with ESMTPSA id EB67D110B15
-	for <linux-media@vger.kernel.org>; Fri, 14 Oct 2011 01:06:30 +0200 (CEST)
-Message-ID: <4E976EF6.1030101@southpole.se>
-Date: Fri, 14 Oct 2011 01:06:30 +0200
-From: Benjamin Larsson <benjamin@southpole.se>
+Received: from casper.infradead.org ([85.118.1.10]:56131 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751853Ab1JCTGX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Oct 2011 15:06:23 -0400
+Message-ID: <4E8A07A6.3030600@infradead.org>
+Date: Mon, 03 Oct 2011 16:06:14 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: PCTV 520e on Linux
-References: <CAGa-wNOL_1ua0DQFRPFuLtHO0zTFhE0DaM+b6kujMEEL4dQbKg@mail.gmail.com>	<CAGoCfizwYRpSsqobaHWJd5d0wq1N0KSXEQ1Un_ue01KuYGHaWA@mail.gmail.com>	<4E970CA7.8020807@iki.fi>	<CAGoCfiwSJ7EGXxAw7UgbFeECh+dg1EueXEC9iCHu7TaXia=-mQ@mail.gmail.com>	<4E970F7A.5010304@iki.fi> <CAGoCfiyXiANjoB5bXgBpjwOAk8kpz8guxTGuGtVbtgc6+DNAag@mail.gmail.com>
-In-Reply-To: <CAGoCfiyXiANjoB5bXgBpjwOAk8kpz8guxTGuGtVbtgc6+DNAag@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org, Enrico <ebutera@users.berlios.de>,
+	Gary Thomas <gary@mlbassoc.com>
+Subject: Re: [PATCH 3/3] [media] tvp5150: Migrate to media-controller framework
+ and add video format detection
+References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com> <4E891B22.1020204@infradead.org> <201110030830.25364.hverkuil@xs4all.nl> <201110031039.27849.laurent.pinchart@ideasonboard.com> <CAAwP0s0bTcUPvkVT-aB2EKskS_60CdW4P3orQLvSJMMkEWBpqw@mail.gmail.com>
+In-Reply-To: <CAAwP0s0bTcUPvkVT-aB2EKskS_60CdW4P3orQLvSJMMkEWBpqw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/13/2011 07:48 PM, Devin Heitmueller wrote:
-> On Thu, Oct 13, 2011 at 12:19 PM, Antti Palosaari <crope@iki.fi> wrote:
->>> You were close:  em2884, drx-k, xc5000, and for analog it uses the
->>> afv4910b.
->> Then it should be peace of cake at least for digital side.
-> I don't think we've ever done xc5000 on an em28xx before, so it's
-> entirely possible that the xc5000 clock stretching will expose bugs in
-> the em28xx i2c implementation (it uncovered bugs in essentially every
-> other bridge driver I did work on).
->
-> That, and we don't know how much is hard-coded into the drx-k driver
-> making it specific to the couple of device it's currently being used
-> with.
->
-> But yeah, it shouldn't be rocket science.  I added support for the
-> board in my OSX driver and it only took me a couple of hours.
->
-> Devin
->
+Em 03-10-2011 06:53, Javier Martinez Canillas escreveu:
+> On Mon, Oct 3, 2011 at 10:39 AM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>> Hi Hans,
+>>
+>> On Monday 03 October 2011 08:30:25 Hans Verkuil wrote:
+>>> On Monday, October 03, 2011 04:17:06 Mauro Carvalho Chehab wrote:
+>>>> Em 02-10-2011 18:18, Javier Martinez Canillas escreveu:
+>>>>> On Sun, Oct 2, 2011 at 6:30 PM, Sakari Ailus wrote:
+>>
+>> [snip]
+>>
+>>>>>>>  static const struct v4l2_subdev_video_ops tvp5150_video_ops = {
+>>>>>>>
+>>>>>>>       .s_routing = tvp5150_s_routing,
+>>>>>>>
+>>>>>>> +     .s_stream = tvp515x_s_stream,
+>>>>>>> +     .enum_mbus_fmt = tvp515x_enum_mbus_fmt,
+>>>>>>> +     .g_mbus_fmt = tvp515x_mbus_fmt,
+>>>>>>> +     .try_mbus_fmt = tvp515x_mbus_fmt,
+>>>>>>> +     .s_mbus_fmt = tvp515x_mbus_fmt,
+>>>>>>> +     .g_parm = tvp515x_g_parm,
+>>>>>>> +     .s_parm = tvp515x_s_parm,
+>>>>>>> +     .s_std_output = tvp5150_s_std,
+>>>>>>
+>>>>>> Do we really need both video and pad format ops?
+>>>>>
+>>>>> Good question, I don't know. Can this device be used as a standalone
+>>>>> v4l2 device? Or is supposed to always be a part of a video streaming
+>>>>> pipeline as a sub-device with a source pad? Sorry if my questions are
+>>>>> silly but as I stated before, I'm a newbie with v4l2 and MCF.
+>>>>
+>>>> The tvp5150 driver is used on some em28xx devices. It is nice to add
+>>>> auto-detection code to the driver, but converting it to the media bus
+>>>> should be done with enough care to not break support for the existing
+>>>> devices.
+>>>
+>>> So in other words, the tvp5150 driver needs both pad and non-pad ops.
+>>> Eventually all non-pad variants in subdev drivers should be replaced by the
+>>> pad variants so you don't have duplication of ops. But that will take a lot
+>>> more work.
+>>
+>> What about replacing direct calls to non-pad operations with core V4L2
+>> functions that would use the subdev non-pad operation if available, and
+>> emulate if with the pad operation otherwise ? I think this would ease the
+>> transition, as subdev drivers could be ported to pad operations without
+>> worrying about the bridges that use them, and bridge drivers could be switched
+>> to the new wrappers with a simple search and replace.
+> 
+> Ok, that is a good solution. I'll do that. Implement V4L2 core
+> operations as wrappers of the subdev pad operations.
 
-Eddi De Pieri has patches for the HVR-930C that works somewhat. The
-hardware in that stick is the same.
+As I said, I can't see _any_ reason why setting a format would be needed
+at pad level. Patches shouldn't increase driver/core and userspace complexity
+for nothing.
 
-MvH
-Benjamin Larsson
+Regards,
+Mauro
