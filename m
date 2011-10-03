@@ -1,31 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:53297 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753503Ab1J1DG0 (ORCPT
+Received: from claranet-outbound-smtp02.uk.clara.net ([195.8.89.35]:32921 "EHLO
+	claranet-outbound-smtp02.uk.clara.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751156Ab1JCI4E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Oct 2011 23:06:26 -0400
-Received: by qyk27 with SMTP id 27so4023378qyk.19
-        for <linux-media@vger.kernel.org>; Thu, 27 Oct 2011 20:06:26 -0700 (PDT)
+	Mon, 3 Oct 2011 04:56:04 -0400
+From: Simon Farnsworth <simon.farnsworth@onelan.com>
+To: Malcolm Priestley <tvboxspy@gmail.com>
+Subject: Re: Problems tuning PAL-D with a Hauppauge HVR-1110 (TDA18271 tuner) - workaround hack included
+Date: Mon, 3 Oct 2011 09:56:01 +0100
+Cc: linux-media@vger.kernel.org
+References: <201109281350.52099.simon.farnsworth@onelan.com> <4E8604DA.2070008@gmail.com>
+In-Reply-To: <4E8604DA.2070008@gmail.com>
 MIME-Version: 1.0
-Date: Fri, 28 Oct 2011 03:05:25 +0000
-Message-ID: <CAE_m23nibPcf0-eQmpAfuevotCio-KdVN_o+d+74dPzfTQcs-Q@mail.gmail.com>
-Subject: Increase max exposure value to 255 from 26 for pac207
-From: =?ISO-8859-1?Q?Marco_Diego_Aur=E9lio_Mesquita?=
-	<marcodiegomesquita@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201110030956.01130.simon.farnsworth@onelan.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Devs!
+On Friday 30 September 2011, Malcolm Priestley <tvboxspy@gmail.com> wrote:
+> On 28/09/11 13:50, Simon Farnsworth wrote:
+> > (note - the CC list is everyone over 50% certainty from get_maintainer.pl)
+> >
+> > I'm having problems getting a Hauppauge HVR-1110 card to successfully
+> > tune PAL-D at 85.250 MHz vision frequency; by experimentation, I've
+> > determined that the tda18271 is tuning to a frequency 1.25 MHz lower
+> > than the vision frequency I've requested, so the following workaround
+> > "fixes" it for me.
+> 
+> Are you sure the transmitter concerned doesn't have a VSB filter for an 
+> adjacent DVB-T digital transmitter?
+>
+The "transmitter" concerned is a test pattern generator - it has no filters
+applied to its output.
 
-There's a patch I sent some time ago[1] to increase the max exposure
-value on pac207 based webcams. I see no problem with the patch, it has
-survived hours of tests and is a simple on-liner.
-
-It has been in queue for months now, and I really would like to get it
-merged. Please, is there anything I can do about it?
-
-[1] http://patchwork.linuxtv.org/patch/6850/
+The intended customer for this device is in China, hence the use of PAL-D.
+-- 
+Simon Farnsworth
+Software Engineer
+ONELAN Limited
+http://www.onelan.com/
