@@ -1,228 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:48678 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754494Ab1JFNy4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 09:54:56 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Thu, 06 Oct 2011 15:54:43 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 3/9] mm: alloc_contig_range() added
-In-reply-to: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>
-Message-id: <1317909290-29832-4-git-send-email-m.szyprowski@samsung.com>
-References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2871 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756250Ab1JCTfB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Oct 2011 15:35:01 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 1/2] [media] saa7115: Fix standards detection
+Date: Mon, 3 Oct 2011 21:34:48 +0200
+Cc: linux-media@vger.kernel.org, isely@isely.net
+References: <1317667657-4081-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1317667657-4081-1-git-send-email-mchehab@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201110032134.48563.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+On Monday, October 03, 2011 20:47:36 Mauro Carvalho Chehab wrote:
+> There are several bugs at saa7115 standards detection:
+> 
+> After the fix, the driver is returning the proper standards,
+> as tested with 3 different broadcast sources:
+> 
+> On an invalid channel (without any TV signal):
+> [ 4394.931630] saa7115 15-0021: Status byte 2 (0x1f)=0xe0
+> [ 4394.931635] saa7115 15-0021: detected std mask = 00ffffff
+> 
+> With a PAL/M signal:
+> [ 4410.836855] saa7115 15-0021: Status byte 2 (0x1f)=0xb1
+> [ 4410.837727] saa7115 15-0021: Status byte 1 (0x1e)=0x82
+> [ 4410.837731] saa7115 15-0021: detected std mask = 00000900
+> 
+> With a NTSC/M signal:
+> [ 4422.383893] saa7115 15-0021: Status byte 2 (0x1f)=0xb1
+> [ 4422.384768] saa7115 15-0021: Status byte 1 (0x1e)=0x81
+> [ 4422.384772] saa7115 15-0021: detected std mask = 0000b000
+> 
+> Tests were done with a WinTV PVR USB2 Model 29xx card.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-This commit adds the alloc_contig_range() function which tries
-to allocate given range of pages.  It tries to migrate all
-already allocated pages that fall in the range thus freeing them.
-Once all pages in the range are freed they are removed from the
-buddy system thus allocated for the caller to use.
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-[m.szyprowski: renamed some variables for easier code reading]
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Michal Nazarewicz <mina86@mina86.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
----
- include/linux/page-isolation.h |    2 +
- mm/page_alloc.c                |  148 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 150 insertions(+), 0 deletions(-)
+Looks good!
 
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index b9fc428..774ecec 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -36,6 +36,8 @@ extern void unset_migratetype_isolate(struct page *page);
- /* The below functions must be run on a range from a single zone. */
- extern unsigned long alloc_contig_freed_pages(unsigned long start,
- 					      unsigned long end, gfp_t flag);
-+extern int alloc_contig_range(unsigned long start, unsigned long end,
-+			      gfp_t flags);
- extern void free_contig_pages(unsigned long pfn, unsigned nr_pages);
- 
- /*
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index fbfb920..8010854 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5773,6 +5773,154 @@ void free_contig_pages(unsigned long pfn, unsigned nr_pages)
- 	}
- }
- 
-+static unsigned long pfn_to_maxpage(unsigned long pfn)
-+{
-+	return pfn & ~(MAX_ORDER_NR_PAGES - 1);
-+}
-+
-+static unsigned long pfn_to_maxpage_up(unsigned long pfn)
-+{
-+	return ALIGN(pfn, MAX_ORDER_NR_PAGES);
-+}
-+
-+#define MIGRATION_RETRY	5
-+static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-+{
-+	int migration_failed = 0, ret;
-+	unsigned long pfn = start;
-+
-+	/*
-+	 * Some code "borrowed" from KAMEZAWA Hiroyuki's
-+	 * __alloc_contig_pages().
-+	 */
-+
-+	/* drop all pages in pagevec and pcp list */
-+	lru_add_drain_all();
-+	drain_all_pages();
-+
-+	for (;;) {
-+		pfn = scan_lru_pages(pfn, end);
-+		if (!pfn || pfn >= end)
-+			break;
-+
-+		ret = do_migrate_range(pfn, end);
-+		if (!ret) {
-+			migration_failed = 0;
-+		} else if (ret != -EBUSY
-+			|| ++migration_failed >= MIGRATION_RETRY) {
-+			return ret;
-+		} else {
-+			/* There are unstable pages.on pagevec. */
-+			lru_add_drain_all();
-+			/*
-+			 * there may be pages on pcplist before
-+			 * we mark the range as ISOLATED.
-+			 */
-+			drain_all_pages();
-+		}
-+		cond_resched();
-+	}
-+
-+	if (!migration_failed) {
-+		/* drop all pages in pagevec and pcp list */
-+		lru_add_drain_all();
-+		drain_all_pages();
-+	}
-+
-+	/* Make sure all pages are isolated */
-+	if (WARN_ON(test_pages_isolated(start, end)))
-+		return -EBUSY;
-+
-+	return 0;
-+}
-+
-+/**
-+ * alloc_contig_range() -- tries to allocate given range of pages
-+ * @start:	start PFN to allocate
-+ * @end:	one-past-the-last PFN to allocate
-+ * @flags:	flags passed to alloc_contig_freed_pages().
-+ *
-+ * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
-+ * aligned, hovewer it's callers responsibility to guarantee that we
-+ * are the only thread that changes migrate type of pageblocks the
-+ * pages fall in.
-+ *
-+ * Returns zero on success or negative error code.  On success all
-+ * pages which PFN is in (start, end) are allocated for the caller and
-+ * need to be freed with free_contig_pages().
-+ */
-+int alloc_contig_range(unsigned long start, unsigned long end,
-+		       gfp_t flags)
-+{
-+	unsigned long outer_start, outer_end;
-+	int ret;
-+
-+	/*
-+	 * What we do here is we mark all pageblocks in range as
-+	 * MIGRATE_ISOLATE.  Because of the way page allocator work, we
-+	 * align the range to MAX_ORDER pages so that page allocator
-+	 * won't try to merge buddies from different pageblocks and
-+	 * change MIGRATE_ISOLATE to some other migration type.
-+	 *
-+	 * Once the pageblocks are marked as MIGRATE_ISOLATE, we
-+	 * migrate the pages from an unaligned range (ie. pages that
-+	 * we are interested in).  This will put all the pages in
-+	 * range back to page allocator as MIGRATE_ISOLATE.
-+	 *
-+	 * When this is done, we take the pages in range from page
-+	 * allocator removing them from the buddy system.  This way
-+	 * page allocator will never consider using them.
-+	 *
-+	 * This lets us mark the pageblocks back as
-+	 * MIGRATE_CMA/MIGRATE_MOVABLE so that free pages in the
-+	 * MAX_ORDER aligned range but not in the unaligned, original
-+	 * range are put back to page allocator so that buddy can use
-+	 * them.
-+	 */
-+
-+	ret = start_isolate_page_range(pfn_to_maxpage(start),
-+				       pfn_to_maxpage_up(end));
-+	if (ret)
-+		goto done;
-+
-+	ret = __alloc_contig_migrate_range(start, end);
-+	if (ret)
-+		goto done;
-+
-+	/*
-+	 * Pages from [start, end) are within a MAX_ORDER_NR_PAGES
-+	 * aligned blocks that are marked as MIGRATE_ISOLATE.  What's
-+	 * more, all pages in [start, end) are free in page allocator.
-+	 * What we are going to do is to allocate all pages from
-+	 * [start, end) (that is remove them from page allocater).
-+	 *
-+	 * The only problem is that pages at the beginning and at the
-+	 * end of interesting range may be not aligned with pages that
-+	 * page allocator holds, ie. they can be part of higher order
-+	 * pages.  Because of this, we reserve the bigger range and
-+	 * once this is done free the pages we are not interested in.
-+	 */
-+
-+	ret = 0;
-+	while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
-+		if (WARN_ON(++ret >= MAX_ORDER))
-+			return -EINVAL;
-+
-+	outer_start = start & (~0UL << ret);
-+	outer_end   = alloc_contig_freed_pages(outer_start, end, flags);
-+
-+	/* Free head and tail (if any) */
-+	if (start != outer_start)
-+		free_contig_pages(outer_start, start - outer_start);
-+	if (end != outer_end)
-+		free_contig_pages(end, outer_end - end);
-+
-+	ret = 0;
-+done:
-+	undo_isolate_page_range(pfn_to_maxpage(start), pfn_to_maxpage_up(end));
-+	return ret;
-+}
-+
- #ifdef CONFIG_MEMORY_HOTREMOVE
- /*
-  * All pages in the range must be isolated before calling this.
--- 
-1.7.1.569.g6f426
+Regards,
 
+	Hans
+
+> ---
+>  drivers/media/video/saa7115.c |   47 +++++++++++++++++++++++++++-------------
+>  1 files changed, 32 insertions(+), 15 deletions(-)
+> 
+> diff --git a/drivers/media/video/saa7115.c b/drivers/media/video/saa7115.c
+> index cee98ea..86627a8 100644
+> --- a/drivers/media/video/saa7115.c
+> +++ b/drivers/media/video/saa7115.c
+> @@ -1344,35 +1344,52 @@ static int saa711x_g_vbi_data(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_dat
+>  static int saa711x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+>  {
+>  	struct saa711x_state *state = to_state(sd);
+> -	int reg1e;
+> +	int reg1f, reg1e;
+>  
+> -	*std = V4L2_STD_ALL;
+> -	if (state->ident != V4L2_IDENT_SAA7115) {
+> -		int reg1f = saa711x_read(sd, R_1F_STATUS_BYTE_2_VD_DEC);
+> -
+> -		if (reg1f & 0x20)
+> -			*std = V4L2_STD_525_60;
+> -		else
+> -			*std = V4L2_STD_625_50;
+> -
+> -		return 0;
+> +	reg1f = saa711x_read(sd, R_1F_STATUS_BYTE_2_VD_DEC);
+> +	v4l2_dbg(1, debug, sd, "Status byte 2 (0x1f)=0x%02x\n", reg1f);
+> +	if (reg1f & 0x40) {
+> +		/* horizontal/vertical not locked */
+> +		*std = V4L2_STD_ALL;
+> +		goto ret;
+>  	}
+> +	if (reg1f & 0x20)
+> +		*std = V4L2_STD_525_60;
+> +	else
+> +		*std = V4L2_STD_625_50;
+> +
+> +	if (state->ident != V4L2_IDENT_SAA7115)
+> +		goto ret;
+>  
+>  	reg1e = saa711x_read(sd, R_1E_STATUS_BYTE_1_VD_DEC);
+>  
+>  	switch (reg1e & 0x03) {
+>  	case 1:
+> -		*std = V4L2_STD_NTSC;
+> +		*std &= V4L2_STD_NTSC;
+>  		break;
+>  	case 2:
+> -		*std = V4L2_STD_PAL;
+> +		/*
+> +		 * V4L2_STD_PAL just cover the european PAL standards.
+> +		 * This is wrong, as the device could also be using an
+> +		 * other PAL standard.
+> +		 */
+> +		*std &= V4L2_STD_PAL   | V4L2_STD_PAL_N  | V4L2_STD_PAL_Nc |
+> +			V4L2_STD_PAL_M | V4L2_STD_PAL_60;
+>  		break;
+>  	case 3:
+> -		*std = V4L2_STD_SECAM;
+> +		*std &= V4L2_STD_SECAM;
+>  		break;
+>  	default:
+> +		/* Can't detect anything */
+> +		*std = V4L2_STD_ALL;
+>  		break;
+>  	}
+> +
+> +	v4l2_dbg(1, debug, sd, "Status byte 1 (0x1e)=0x%02x\n", reg1e);
+> +
+> +ret:
+> +	v4l2_dbg(1, debug, sd, "detected std mask = %08Lx\n", *std);
+> +
+>  	return 0;
+>  }
+>  
+> 
