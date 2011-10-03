@@ -1,39 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1029 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932772Ab1JZObz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Oct 2011 10:31:55 -0400
-Message-ID: <4EA819CC.100@redhat.com>
-Date: Wed, 26 Oct 2011 16:31:40 +0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:49405 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752079Ab1JCWGj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Oct 2011 18:06:39 -0400
+Received: by qadb15 with SMTP id b15so1981395qad.19
+        for <linux-media@vger.kernel.org>; Mon, 03 Oct 2011 15:06:39 -0700 (PDT)
 MIME-Version: 1.0
-To: Mike Frysinger <vapier@gentoo.org>
-CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Randy Dunlap <rdunlap@xenotime.net>
-Subject: Re: [PATCH] [media] v4l2: punt generated pdf files
-References: <1319635477-9383-1-git-send-email-vapier@gentoo.org> <CAMjpGUfEtLSiJoYG+42aFLnx83Zmzd88MAU1DVYXcBxTpo3wSw@mail.gmail.com>
-In-Reply-To: <CAMjpGUfEtLSiJoYG+42aFLnx83Zmzd88MAU1DVYXcBxTpo3wSw@mail.gmail.com>
+Date: Mon, 3 Oct 2011 22:06:38 +0000
+Message-ID: <CAE_m23n8pmjrdLDYMidu5QYrPvaL-LOH0eDRyAHaH8+YA6sDkw@mail.gmail.com>
+Subject: About the patch I sent.
+From: =?ISO-8859-1?Q?Marco_Diego_Aur=E9lio_Mesquita?=
+	<marcodiegomesquita@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 26-10-2011 15:33, Mike Frysinger escreveu:
-> On Wed, Oct 26, 2011 at 09:24, Mike Frysinger wrote:
->> These don't belong in the tree, and we have a .gitignore on them already
->> (not sure how these slipped in), so punt the compiled files.
-> 
-> hrm, i thought default git send-email/format-patch didn't include
-> binary updates when deleting in the diff.  not sure what's going on
-> here.  i can resend if people want with the -D flag.
+Hi!
+I'd really like my patch[1] accepted. Is there anything I can do about it?
 
-Nah, not needed. I'll fix the patch when merging it. I probably won't
-be merging this week, as this notebook has not enough power to compile
-the Kernel (and I received a series of 100+ patches on those days).
-
-Thanks,
-Mauro
-
+[1] http://patchwork.linuxtv.org/patch/6850/
