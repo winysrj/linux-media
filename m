@@ -1,64 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38790 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754315Ab1J0MTZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Oct 2011 08:19:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 4/6] v4l2-event: Don't set sev->fh to NULL on unsubcribe
-Date: Thu, 27 Oct 2011 14:20:04 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	hverkuil@xs4all.nl
-References: <1319714283-3991-1-git-send-email-hdegoede@redhat.com> <1319714283-3991-5-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1319714283-3991-5-git-send-email-hdegoede@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Received: from ns.mm-sol.com ([213.240.235.226]:36262 "EHLO extserv.mm-sol.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756482Ab1JDL5F (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Oct 2011 07:57:05 -0400
+Subject: Re: Help with omap3isp resizing
+From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Paul Chiha <paul.chiha@greyinnovation.com>,
+	linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Date: Tue, 04 Oct 2011 14:54:12 +0300
+In-Reply-To: <201110041350.33441.laurent.pinchart@ideasonboard.com>
+References: <51A4F524D105AA4C93787F33E2C90E62EE5203@greysvr02.GreyInnovation.local>
+	 <201110041303.03055.laurent.pinchart@ideasonboard.com>
+	 <1317728792.8358.49.camel@iivanov-desktop>
+	 <201110041350.33441.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201110271420.04488.laurent.pinchart@ideasonboard.com>
+Message-ID: <1317729252.8358.54.camel@iivanov-desktop>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-On Thursday 27 October 2011 13:18:01 Hans de Goede wrote:
-> 1: There is no reason for this after v4l2_event_unsubscribe releases the
-> spinlock nothing is holding a reference to the sev anymore except for the
-> local reference in the v4l2_event_unsubscribe function.
+Hi Laurent,
+
+On Tue, 2011-10-04 at 13:50 +0200, Laurent Pinchart wrote:
+> Hi Ivan,
 > 
-> 2: Setting sev->fh to NULL causes problems for the del op added in the next
-> patch of this series, since this op needs a way to get to its own data
-> structures, and typically this will be done by using container_of on an
-> embedded v4l2_fh struct.
+> On Tuesday 04 October 2011 13:46:32 Ivan T. Ivanov wrote:
+> > On Tue, 2011-10-04 at 13:03 +0200, Laurent Pinchart wrote:
+> > > On Monday 03 October 2011 07:51:34 Paul Chiha wrote:
+> > > > Hi,
+> > > > 
+> > > > I've been having trouble getting the resizer to work, and mainly
+> > > > because I don't know how to correctly configure it.
+> > > > I'm using kernel 2.6.37 on arm DM37x board.
+> > > > 
+> > > > I've been able to configure the media links sensor=>ccdc=>ccdc_output
+> > > > (all with 640x480 V4L2_MBUS_FMT_UYVY8_2X8) and VIDIOC_STREAMON works on
+> > > > /dev/video2.
+> > > > But if I configure media links sensor=>ccdc=>resizer=>resizer_output,
+> > > > then VIDIOC_STREAMON fails on /dev/video6 (with pixelformat mismatch).
+> > > > I noticed that the resizer driver only supports
+> > > > V4L2_MBUS_FMT_UYVY8_1X16 & V4L2_MBUS_FMT_YUYV8_1X16, so I tried again
+> > > > with all the links set to V4L2_MBUS_FMT_UYVY8_1X16 instead, but then
+> > > > ioctl VIDIOC_SUBDEV_S_FMT fails on /dev/v4l-subdev8, because the
+> > > > sensor driver doesn't support 1X16.
+> > > > Then I tried using V4L2_MBUS_FMT_UYVY8_2X8 for the sensor and
+> > > > V4L2_MBUS_FMT_UYVY8_1X16 for the resizer, but it either failed with
+> > > > pixelformat mismatch or link pipeline mismatch, depending on which pads
+> > > > were different.
+> > > > 
+> > > > Can someone please tell me what I need to do to make this work?
+> > > 
+> > > Long story short, I don't think that pipeline has ever been tested. I'm
+> > > unfortunately lacking hardware to work on that, as none of my OMAP3
+> > > hardware has a YUV input.
+> > 
+> > If i am not mistaken currently resizer sub device supports only:
+> > 
+> > /* resizer pixel formats */
+> > static const unsigned int resizer_formats[] = {
+> > 	V4L2_MBUS_FMT_UYVY8_1X16,
+> > 	V4L2_MBUS_FMT_YUYV8_1X16,
+> > };
+> > 
+> > Adding something like this [1] in ispresizer.c  should add
+> > support 2X8 formats. Completely untested :-).
+> > 
+> > Regards,
+> > iivanov
+> > 
+> > 
+> > [1]
+> > 
+> > @@ -1307,6 +1311,10 @@ static int resizer_s_crop(struct v4l2_subdev *sd,
+> > struct v4l2_subdev_fh *fh, static const unsigned int resizer_formats[] = {
+> >  	V4L2_MBUS_FMT_UYVY8_1X16,
+> >  	V4L2_MBUS_FMT_YUYV8_1X16,
+> > +	V4L2_MBUS_FMT_UYVY8_2X8,
+> > +	V4L2_MBUS_FMT_VYUY8_2X8,
+> > +	V4L2_MBUS_FMT_YUYV8_2X8,
+> > +	V4L2_MBUS_FMT_YVYU8_2X8,
+> >  };
 > 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> I'd rather modify ispccdc.c to output V4L2_MBUS_FMT_YUYV8_1X16. What do you 
+> think ?
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+For memory->Resizer->memory use cases, CCDC is no involved in pipeline.
+Also several sensor drivers that i have checked, usually define its
+output as 2X8 output. I think is more natural to add 2X8 support to
+CCDC and Resizer engines instead to modifying exiting drivers.
 
-While reviewing the patch I noticed that v4l2_event_unsubscribe_all() calls 
-v4l2_event_unsubscribe(), which performs control lookup again. Is there a 
-reason for that, instead of handling event unsubscription directly in 
-v4l2_event_unsubscribe_all() ?
-
-> ---
->  drivers/media/video/v4l2-event.c |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-event.c
-> b/drivers/media/video/v4l2-event.c index 01cbb7f..3d27300 100644
-> --- a/drivers/media/video/v4l2-event.c
-> +++ b/drivers/media/video/v4l2-event.c
-> @@ -304,7 +304,6 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
->  			}
->  		}
->  		list_del(&sev->list);
-> -		sev->fh = NULL;
->  	}
-> 
->  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-
--- 
 Regards,
+iivanov
+ 
 
-Laurent Pinchart
+
