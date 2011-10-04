@@ -1,105 +1,69 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:63494 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751217Ab1JTMO0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Oct 2011 08:14:26 -0400
-Received: by iaek3 with SMTP id k3so3344154iae.19
-        for <linux-media@vger.kernel.org>; Thu, 20 Oct 2011 05:14:26 -0700 (PDT)
+Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.72)
+	(envelope-from <tommybobbins@gmail.com>) id 1RB3zD-0007PE-Sz
+	for linux-dvb@linuxtv.org; Tue, 04 Oct 2011 14:21:03 +0200
+Received: from mail-iy0-f182.google.com ([209.85.210.182])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-1) with esmtps
+	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
+	id 1RB3zD-0002p6-KN; Tue, 04 Oct 2011 14:20:39 +0200
+Received: by iadk27 with SMTP id k27so607970iad.41
+	for <linux-dvb@linuxtv.org>; Tue, 04 Oct 2011 05:20:36 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4E9FE3F4.2040109@cit-ec.uni-bielefeld.de>
-References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com>
-	<4E9EFA47.4010409@cit-ec.uni-bielefeld.de>
-	<CAFYgh7xxCM0=hiU9+bFS+qA447wC4+OkCRxv1eonYMgTH7oeEw@mail.gmail.com>
-	<4E9FE3F4.2040109@cit-ec.uni-bielefeld.de>
-Date: Thu, 20 Oct 2011 15:14:25 +0300
-Message-ID: <CAFYgh7xhHTz9z8kqnmxRO2hBi_L-bnV-zpJESM4iBcZcftR5Eg@mail.gmail.com>
-Subject: Re: omap3isp: BT.656 support
-From: Boris Todorov <boris.st.todorov@gmail.com>
-To: Stefan Herbrechtsmeier <sherbrec@cit-ec.uni-bielefeld.de>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Date: Tue, 4 Oct 2011 13:20:36 +0100
+Message-ID: <CAPy82EihZdZHD1au7JgqoJuRs8B1axyEFdzK+T_ov7fQ=8DJ1Q@mail.gmail.com>
+From: Tim Gibbon <tim.gibbon@lunarlite.co.uk>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] New UK - DVB-T Ramsbottom Hill config file
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Oct 20, 2011 at 12:03 PM, Stefan Herbrechtsmeier
-<sherbrec@cit-ec.uni-bielefeld.de> wrote:
-> Am 20.10.2011 08:56, schrieb Boris Todorov:
->> On Wed, Oct 19, 2011 at 7:26 PM, Stefan Herbrechtsmeier
->> <sherbrec@cit-ec.uni-bielefeld.de> wrote:
->>> Am 18.10.2011 15:33, schrieb Boris Todorov:
->>>> Hi
->>>>
->>>> I'm trying to run OMAP + TVP5151 in BT656 mode.
->>>>
->>>> I'm using omap3isp-omap3isp-yuv (git.linuxtv.org/pinchartl/media.git).
->>>> Plus the following patches:
->>>>
->>>> TVP5151:
->>>> https://github.com/ebutera/meta-igep/tree/testing-v2/recipes-kernel/linux/linux-3.0+3.1rc/tvp5150
->>>>
->>>> The latest RFC patches for BT656 support:
->>>>
->>>> Enrico Butera (2):
->>>>   omap3isp: ispvideo: export isp_video_mbus_to_pix
->>>>   omap3isp: ispccdc: configure CCDC registers and add BT656 support
->>>>
->>>> Javier Martinez Canillas (1):
->>>>   omap3isp: ccdc: Add interlaced field mode to platform data
->>>>
->>>>
->>>> I'm able to configure with media-ctl:
->>>>
->>>> media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
->>>> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
->>>> media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
->>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
->>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
->>>>
->>>> But
->>>> ./yavta -f UYVY -s 720x525 -n 4 --capture=4 -F /dev/video4
->>>>
->>>> sleeps after
->>>> ...
->>>> Buffer 1 mapped at address 0x4021d000.
->>>> length: 756000 offset: 1515520
->>>> Buffer 2 mapped at address 0x402d6000.
->>>> length: 756000 offset: 2273280
->>>> Buffer 3 mapped at address 0x4038f000.
->>>>
->>>> Anyone with the same issue??? This happens with every other v4l test app I used.
->>> I had the same issue.
->>>
->>> Make sure that you disable the xclk when you remove your sensor driver.
->>>
->>> isp->platform_cb.set_xclk(isp, 0, ISP_XCLK_A)
->> How exactly did you solved your problem? I don't see how XCLK in
->> _remove will help. Pls explain.
-> Sorry, I mean deactive / power off your sensor.
->> Btw I'm feeding TVP with external clock (not from xtal pins) -
->> omap.cam_xclk -> tvp.clk_in
-> I mean the cam_xclk.
->> And I'm using kind of hack to get it:
->> isp_probe()
->> + isp_set_xclk(isp, 27000000, 1);
-> This is your problem.
->
-> You should control the clock via board / platform callback from your driver.
-> Example:
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg56627.html
->
-> It is important that you set the clock to zero when your driver is not
-> in use.
->
-> The problem is connected to the use count of the ISP and some
-> initialisation which only happen when the counter change between zero
-> and one.
->
-tvp_probe() needs clock for i2c detected/config. tvp5150_s_power call
-happens when video starts streaming and if tvp is not configured ->
-kernel panic.
-And what about the case when TVP is used with OSC on XTAL pins and
-CLK_IN is not used at all?
-Maybe I don't fully understand what is happening...
-or isp_set_xclk() use is messing up with ISP
+Hello,
+
+Please find below the w_scan for the Ramsbottom transmitter, Lancashire, UK.
+
+#------------------------------------------------------------------------------
+# file automatically generated by w_scan
+# (http://wirbel.htpc-forum.de/w_scan/index2.html)
+#! <w_scan> 20110702 1 0 OFDM GB </w_scan>
+#------------------------------------------------------------------------------
+# location and provider: Ramsbottom, Lancashire, UK
+# date (yyyy-mm-dd)    : 2011-10-03
+# provided by (opt)    : tim.gibbon@lunarlite.co.uk
+#
+# T[2] <freq> <bw> <fec_hi> <fec_lo> <mod> <tm> <guard> <hi> [# comment]
+#------------------------------------------------------------------------------
+T 490000000 8MHz AUTO AUTO     AUTO AUTO AUTO AUTO
+T 514000000 8MHz AUTO AUTO     AUTO AUTO AUTO AUTO
+T 746000000 8MHz  2/3 NONE    QAM64   8k 1/32 NONE
+T 762000000 8MHz  1/2 NONE     QPSK   8k 1/32 NONE
+T 801833000 8MHz  2/3 NONE    QAM64   8k 1/32 NONE
+T 778000000 8MHz  2/3 NONE    QAM64   8k 1/32 NONE
+T 770000000 8MHz  2/3 NONE    QAM64   8k 1/32 NONE
+T 793833000 8MHz  2/3 NONE    QAM64   8k 1/32 NONE
+T 730000000 8MHz AUTO AUTO     AUTO AUTO AUTO AUTO	# North West
+T 786000000 8MHz AUTO AUTO     AUTO AUTO AUTO AUTO	# North West
+
+Please could this be added to the UK dvb-t transmitters?
+
+More information on the transmitter should it be required.
+http://www.ukfree.tv/shutdowndetail.php?tx=SD803159
+
+tng
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
