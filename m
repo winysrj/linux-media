@@ -1,732 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpo01.poczta.onet.pl ([213.180.142.132]:36521 "EHLO
-	smtpo01.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752264Ab1J3HMB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Oct 2011 03:12:01 -0400
-Date: Sun, 30 Oct 2011 08:11:56 +0100
-From: Piotr Chmura <chmooreck@poczta.onet.pl>
-To: Sylwester Nawrocki <snjw23@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Greg KH <gregkh@suse.de>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
-Subject: [PATCH v3 4/14] staging/media/as102: checkpatch fixes
-Message-ID: <20111030081156.14b70914@darkstar>
-In-Reply-To: <4EAC7214.5030008@gmail.com>
-References: <4E7F1FB5.5030803@gmail.com>
-	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
-	<4E7FF0A0.7060004@gmail.com>
-	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
-	<20110927094409.7a5fcd5a@stein>
-	<20110927174307.GD24197@suse.de>
-	<20110927213300.6893677a@stein>
-	<4E999733.2010802@poczta.onet.pl>
-	<4E99F2FC.5030200@poczta.onet.pl>
-	<20111016105731.09d66f03@stein>
-	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
-	<4E9ADFAE.8050208@redhat.com>
-	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
-	<20111018111151.635ac39e.chmooreck@poczta.onet.pl>
-	<20111018215146.1fbc223f@darkstar>
-	<4EABD3E2.3070302@gmail.com>
-	<4EABFCF8.2010003@poczta.onet.pl>
-	<4EAC2676.8030808@gmail.com>
-	<4EAC3C57.5070701@poczta.onet.pl>
-	<4EAC7214.5030008@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3856 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754438Ab1JDHE4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Oct 2011 03:04:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 3/3] [media] tvp5150: Migrate to media-controller framework and add video format detection
+Date: Tue, 4 Oct 2011 09:03:59 +0200
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org, Enrico <ebutera@users.berlios.de>,
+	Gary Thomas <gary@mlbassoc.com>
+References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com> <CAAwP0s30_FxMu3iegkusk7iQkBaWKmmba7sOk2vK9tcahV3ueg@mail.gmail.com> <4E8A9A2F.3080407@infradead.org>
+In-Reply-To: <4E8A9A2F.3080407@infradead.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201110040903.59755.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+On Tuesday, October 04, 2011 07:31:27 Mauro Carvalho Chehab wrote:
+> Em 03-10-2011 19:37, Javier Martinez Canillas escreveu:
+> > Hello,
+> > 
+> > Reading the last emails I understand that still isn't a consensus on
+> > the way this has to be made.
+> 
+> True.
+> 
+> > If it has to be implemented at the video
+> > device node level or at the sub-device level. And if it has to be made
+> > in kernel or user-space.
+> 
+> For now, I propose you to just add/improve the auto-detection on the
+> existing callbacks. We need to reach a consensus before working at the pad level.
 
-Original source and comment:
-# HG changeset patch
-# User Devin Heitmueller <dheitmueller@kernellabs.com>
-# Date 1267318701 18000
-# Node ID 69c8f5172790784738bcc18f8301919ef3d5373f
-# Parent  b91e96a07bee27c1d421b4c3702e33ee8075de83
-as102: checkpatch fixes
+I agree.
 
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
+> > On Mon, Oct 3, 2011 at 11:56 PM, Mauro Carvalho Chehab
+> > <mchehab@infradead.org> wrote:
+> >> Em 03-10-2011 18:44, Laurent Pinchart escreveu:
+> >>> Hi Mauro,
+> >>>
+> >>> On Monday 03 October 2011 21:16:45 Mauro Carvalho Chehab wrote:
+> >>>> Em 03-10-2011 08:53, Laurent Pinchart escreveu:
+> >>>>> On Monday 03 October 2011 11:53:44 Javier Martinez Canillas wrote:
+> >>>>>
+> >>>>> [snip]
+> >>>>>
+> >>>>>> Laurent, I have a few questions about MCF and the OMAP3ISP driver if
+> >>>>>> you are so kind to answer.
+> >>>>>>
+> >>>>>> 1- User-space programs that are not MCF aware negotiate the format
+> >>>>>> with the V4L2 device (i.e: OMAP3 ISP CCDC output), which is a sink
+> >>>>>> pad. But the real format is driven by the analog video format in the
+> >>>>>> source pad (i.e: tvp5151).
+> >>>>>
+> >>>>> That's not different from existing systems using digital sensors, where
+> >>>>> the format is driven by the sensor.
+> >>>>>
+> >>>>>> I modified the ISP driver to get the data format from the source pad
+> >>>>>> and set the format for each pad on the pipeline accordingly but I've
+> >>>>>> read from the documentation [1] that is not correct to propagate a
+> >>>>>> data format from source pads to sink pads, that the correct thing is
+> >>>>>> to do it from sink to source.
+> >>>>>>
+> >>>>>> So, in this case an administrator has to externally configure the
+> >>>>>> format for each pad and to guarantee a coherent format on the whole
+> >>>>>> pipeline?.
+> >>>>>
+> >>>>> That's correct (except you don't need to be an administrator to do so
+> >>>>> :-)).
+> >>>>
+> >>>> NACK.
+> >>>
+> >>> Double NACK :-D
+> >>>
+> >>>> When userspace sends a VIDIOC_S_STD ioctl to the sink node, the subdevs
+> >>>> that are handling the video/audio standard should be changed, in order to
+> >>>> obey the V4L2 ioctl. This is what happens with all other drivers since the
+> >>>> beginning of the V4L1 API. There's no reason to change it, and such change
+> >>>> would be a regression.
+> >>>
+> >>> The same could have been told for the format API:
+> >>>
+> >>> "When userspace sends a VIDIOC_S_FMT ioctl to the sink node, the subdevs that
+> >>> are handling the video format should be changed, in order to obey the V4L2
+> >>> ioctl. This is what happens with all other drivers since the beginning of the
+> >>> V4L1 API. There's no reason to change it, and such change would be a
+> >>> regression."
+> >>>
+> >>> But we've introduced a pad-level format API. I don't see any reason to treat
+> >>> standard differently.
+> >>
+> >> Neither do I. The pad-level API should not replace the V4L2 API for standard,
+> >> for controls and/or for format settings.
 
-Fix make checkpatch issues reported against as10x_cmd.c.
+Remember we are talking about the subdev driver here. It makes no sense to
+have both a s_mbus_fmt video op and a set_fmt pad op, which both do the same
+thing. Bridge drivers should be adapted to use set_fmt only, so we can drop
+s_mbus_fmt.
 
-Priority: normal
+BTW, the names 'set_fmt' and 'get_fmt' are very confusing to me. I always think
+these refer to v4l2_format. Can we please rename this to g/s_mbus_fmt? And
+set/get_crop to s/g_crop? This for consistent naming.
 
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
-Signed-off-by: Piotr Chmura <chmooreck@poczta.onet.pl>
-----
-Added missing empty lines at end of patch
+When it comes to S_STD I don't see the need for a pad version of this. It is
+an op that is used to configure subdevs to handle a specific standard. If you
+are configuring the pipelines manually, then after calling S_STD you have to
+set up the mbus formats yourself.
 
-Sylwester could you check if it applies cleanly now ?
+Of course, I can generate scenarios where you would need to set the standard
+through the subdev node (i.e. two video receivers connected to a SoC, one
+receiving PAL, the other receiving NTSC, and both streams composed into a single
+new stream that's DMA-ed to memory), but frankly, those scenarios are very
+contrived :-)
 
+The preset ioctls would be more realistic since I know that a scenario like the
+one above does exist for e.g. HDMI inputs, where each can receive a different
+format.
 
-diff --git linux/drivers/staging/media/as102/as10x_cmd.c linuxb/drivers/staging/media/as102/as10x_cmd.c
---- linux/drivers/staging/media/as102/as10x_cmd.c
-+++ linuxb/drivers/staging/media/as102/as10x_cmd.c
-@@ -1,6 +1,7 @@
- /*
-  * Abilis Systems Single DVB-T Receiver
-  * Copyright (C) 2008 Pierrick Hascoet <pierrick.hascoet@abilis.com>
-+ * Copyright (C) 2010 Devin Heitmueller <dheitmueller@kernellabs.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -21,7 +22,8 @@
- #include <linux/kernel.h>
- #include "as102_drv.h"
- #elif defined(WIN32)
--   #if defined(__BUILDMACHINE__) && (__BUILDMACHINE__ == WinDDK)  /* win32 ddk implementation */
-+   #if defined(__BUILDMACHINE__) && (__BUILDMACHINE__ == WinDDK)
-+      /* win32 ddk implementation */
-       #include "wdm.h"
-       #include "Device.h"
-       #include "endian_mgmt.h" /* FIXME */
-@@ -51,43 +53,42 @@
- */
- int as10x_cmd_turn_on(as10x_handle_t *phandle)
- {
--   int error;
--   struct as10x_cmd_t *pcmd, *prsp;
-+	int error;
-+	struct as10x_cmd_t *pcmd, *prsp;
- 
--   ENTER();
-+	ENTER();
- 
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   /* prepare command */
--   as10x_cmd_build(pcmd,(++phandle->cmd_xid), sizeof(pcmd->body.turn_on.req));
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.turn_on.req));
- 
--   /* fill command */
--   pcmd->body.turn_on.req.proc_id = cpu_to_le16(CONTROL_PROC_TURNON);
-+	/* fill command */
-+	pcmd->body.turn_on.req.proc_id = cpu_to_le16(CONTROL_PROC_TURNON);
- 
--   /* send command */
--   if(phandle->ops->xfer_cmd) {
--      error = phandle->ops->xfer_cmd(
--			phandle,
--			(uint8_t *) pcmd,
--			sizeof(pcmd->body.turn_on.req) + HEADER_SIZE,
--			(uint8_t *) prsp,
--			sizeof(prsp->body.turn_on.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
-+					       sizeof(pcmd->body.turn_on.req) +
-+					       HEADER_SIZE,
-+					       (uint8_t *) prsp,
-+					       sizeof(prsp->body.turn_on.rsp) +
-+					       HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
- 
--   if(error < 0) {
--      goto out;
--   }
-+	if (error < 0)
-+		goto out;
- 
--   /* parse response */
--   error = as10x_rsp_parse(prsp, CONTROL_PROC_TURNON_RSP);
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_TURNON_RSP);
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-@@ -98,42 +99,41 @@
- */
- int as10x_cmd_turn_off(as10x_handle_t *phandle)
- {
--   int error;
--   struct as10x_cmd_t *pcmd, *prsp;
-+	int error;
-+	struct as10x_cmd_t *pcmd, *prsp;
- 
--   ENTER();
-+	ENTER();
- 
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   /* prepare command */
--   as10x_cmd_build(pcmd,(++phandle->cmd_xid),sizeof(pcmd->body.turn_off.req));
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.turn_off.req));
- 
--   /* fill command */
--   pcmd->body.turn_off.req.proc_id = cpu_to_le16(CONTROL_PROC_TURNOFF);
-+	/* fill command */
-+	pcmd->body.turn_off.req.proc_id = cpu_to_le16(CONTROL_PROC_TURNOFF);
- 
--   /* send command */
--   if(phandle->ops->xfer_cmd) {
--      error = phandle->ops->xfer_cmd(
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(
- 			phandle, (uint8_t *) pcmd,
- 			sizeof(pcmd->body.turn_off.req) + HEADER_SIZE,
--			 (uint8_t *) prsp,
-+			(uint8_t *) prsp,
- 			sizeof(prsp->body.turn_off.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
- 
--   if(error < 0) {
--      goto out;
--   }
-+	if (error < 0)
-+		goto out;
- 
--   /* parse response */
--   error = as10x_rsp_parse(prsp, CONTROL_PROC_TURNOFF_RSP);
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_TURNOFF_RSP);
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-@@ -145,50 +145,54 @@
-  */
- int as10x_cmd_set_tune(as10x_handle_t *phandle, struct as10x_tune_args *ptune)
- {
--   int error;
--   struct as10x_cmd_t *preq, *prsp;
-+	int error;
-+	struct as10x_cmd_t *preq, *prsp;
- 
--   ENTER();
-+	ENTER();
- 
--   preq = phandle->cmd;
--   prsp = phandle->rsp;
-+	preq = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   /* prepare command */
--   as10x_cmd_build(preq,(++phandle->cmd_xid),sizeof(preq->body.set_tune.req));
-+	/* prepare command */
-+	as10x_cmd_build(preq, (++phandle->cmd_xid),
-+			sizeof(preq->body.set_tune.req));
- 
--   /* fill command */
--   preq->body.set_tune.req.proc_id                 = cpu_to_le16(CONTROL_PROC_SETTUNE);
--   preq->body.set_tune.req.args.freq               = cpu_to_le32(ptune->freq);
--   preq->body.set_tune.req.args.bandwidth          = ptune->bandwidth;
--   preq->body.set_tune.req.args.hier_select        = ptune->hier_select;
--   preq->body.set_tune.req.args.constellation      = ptune->constellation;
--   preq->body.set_tune.req.args.hierarchy          = ptune->hierarchy;
--   preq->body.set_tune.req.args.interleaving_mode  = ptune->interleaving_mode;
--   preq->body.set_tune.req.args.code_rate          = ptune->code_rate;
--   preq->body.set_tune.req.args.guard_interval     = ptune->guard_interval;
--   preq->body.set_tune.req.args.transmission_mode  = ptune->transmission_mode;
-+	/* fill command */
-+	preq->body.set_tune.req.proc_id = cpu_to_le16(CONTROL_PROC_SETTUNE);
-+	preq->body.set_tune.req.args.freq = cpu_to_le32(ptune->freq);
-+	preq->body.set_tune.req.args.bandwidth = ptune->bandwidth;
-+	preq->body.set_tune.req.args.hier_select = ptune->hier_select;
-+	preq->body.set_tune.req.args.constellation = ptune->constellation;
-+	preq->body.set_tune.req.args.hierarchy = ptune->hierarchy;
-+	preq->body.set_tune.req.args.interleaving_mode  =
-+		ptune->interleaving_mode;
-+	preq->body.set_tune.req.args.code_rate  = ptune->code_rate;
-+	preq->body.set_tune.req.args.guard_interval = ptune->guard_interval;
-+	preq->body.set_tune.req.args.transmission_mode  =
-+		ptune->transmission_mode;
- 
--   /* send command */
--   if(phandle->ops->xfer_cmd) {
--      error = phandle->ops->xfer_cmd(phandle,
--			(uint8_t *) preq,
--			sizeof(preq->body.set_tune.req) + HEADER_SIZE,
--			(uint8_t *) prsp,
--			sizeof(prsp->body.set_tune.rsp) + HEADER_SIZE);
--   } else{
--      error = AS10X_CMD_ERROR;
--   }
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(phandle,
-+					       (uint8_t *) preq,
-+					       sizeof(preq->body.set_tune.req)
-+					       + HEADER_SIZE,
-+					       (uint8_t *) prsp,
-+					       sizeof(prsp->body.set_tune.rsp)
-+					       + HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
- 
--   if(error < 0) {
--      goto out;
--   }
-+	if (error < 0)
-+		goto out;
- 
--   /* parse response */
--   error = as10x_rsp_parse(prsp, CONTROL_PROC_SETTUNE_RSP);
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_SETTUNE_RSP);
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-@@ -198,57 +202,55 @@
-    \return 0 when no error, < 0 in case of error.
-    \callgraph
-  */
--int as10x_cmd_get_tune_status(as10x_handle_t *phandle, struct as10x_tune_status *pstatus)
-+int as10x_cmd_get_tune_status(as10x_handle_t *phandle,
-+			      struct as10x_tune_status *pstatus)
- {
--   int error;
--   struct as10x_cmd_t  *preq, *prsp;
-+	int error;
-+	struct as10x_cmd_t  *preq, *prsp;
- 
--   ENTER();
-+	ENTER();
- 
--   preq = phandle->cmd;
--   prsp = phandle->rsp;
-+	preq = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   /* prepare command */
--   as10x_cmd_build(preq,(++phandle->cmd_xid),
--		   sizeof(preq->body.get_tune_status.req));
-+	/* prepare command */
-+	as10x_cmd_build(preq, (++phandle->cmd_xid),
-+			sizeof(preq->body.get_tune_status.req));
- 
--   /* fill command */
--   preq->body.get_tune_status.req.proc_id =
--			cpu_to_le16(CONTROL_PROC_GETTUNESTAT);
-+	/* fill command */
-+	preq->body.get_tune_status.req.proc_id =
-+		cpu_to_le16(CONTROL_PROC_GETTUNESTAT);
- 
--   /* send command */
--   if (phandle->ops->xfer_cmd) {
--      error = phandle->ops->xfer_cmd(
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(
- 			phandle,
- 			(uint8_t *) preq,
- 			sizeof(preq->body.get_tune_status.req) + HEADER_SIZE,
- 			(uint8_t *) prsp,
- 			sizeof(prsp->body.get_tune_status.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
- 
--   if (error < 0) {
--      goto out;
--   }
-+	if (error < 0)
-+		goto out;
- 
--   /* parse response */
--   error = as10x_rsp_parse(prsp, CONTROL_PROC_GETTUNESTAT_RSP);
--   if (error < 0) {
--      goto out;
--   }
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_GETTUNESTAT_RSP);
-+	if (error < 0)
-+		goto out;
- 
--   /* Response OK -> get response data */
--   pstatus->tune_state       = prsp->body.get_tune_status.rsp.sts.tune_state;
--   pstatus->signal_strength  =
--		   le16_to_cpu(prsp->body.get_tune_status.rsp.sts.signal_strength);
--   pstatus->PER              = le16_to_cpu(prsp->body.get_tune_status.rsp.sts.PER);
--   pstatus->BER              = le16_to_cpu(prsp->body.get_tune_status.rsp.sts.BER);
-+	/* Response OK -> get response data */
-+	pstatus->tune_state = prsp->body.get_tune_status.rsp.sts.tune_state;
-+	pstatus->signal_strength  =
-+		le16_to_cpu(prsp->body.get_tune_status.rsp.sts.signal_strength);
-+	pstatus->PER = le16_to_cpu(prsp->body.get_tune_status.rsp.sts.PER);
-+	pstatus->BER = le16_to_cpu(prsp->body.get_tune_status.rsp.sts.BER);
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-@@ -260,56 +262,58 @@
-  */
- int as10x_cmd_get_tps(as10x_handle_t *phandle, struct as10x_tps *ptps)
- {
-+	int error;
-+	struct as10x_cmd_t *pcmd, *prsp;
- 
--   int error;
--   struct as10x_cmd_t *pcmd, *prsp;
-+	ENTER();
- 
--   ENTER();
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.get_tps.req));
- 
--   /* prepare command */
--   as10x_cmd_build(pcmd, (++phandle->cmd_xid),sizeof(pcmd->body.get_tps.req));
-+	/* fill command */
-+	pcmd->body.get_tune_status.req.proc_id =
-+		cpu_to_le16(CONTROL_PROC_GETTPS);
- 
--   /* fill command */
--   pcmd->body.get_tune_status.req.proc_id = cpu_to_le16(CONTROL_PROC_GETTPS);
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(phandle,
-+					       (uint8_t *) pcmd,
-+					       sizeof(pcmd->body.get_tps.req) +
-+					       HEADER_SIZE,
-+					       (uint8_t *) prsp,
-+					       sizeof(prsp->body.get_tps.rsp) +
-+					       HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
- 
--   /* send command */
--   if(phandle->ops->xfer_cmd) {
--      error = phandle->ops->xfer_cmd(phandle,
--	       (uint8_t *) pcmd, sizeof(pcmd->body.get_tps.req) + HEADER_SIZE,
--	       (uint8_t *) prsp, sizeof(prsp->body.get_tps.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
-+	if (error < 0)
-+		goto out;
- 
--   if(error < 0) {
--      goto out;
--   }
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_GETTPS_RSP);
-+	if (error < 0)
-+		goto out;
- 
--   /* parse response */
--   error = as10x_rsp_parse(prsp, CONTROL_PROC_GETTPS_RSP);
--   if (error < 0) {
--      goto out;
--   }
--
--   /* Response OK -> get response data */
--   ptps->constellation      = prsp->body.get_tps.rsp.tps.constellation;
--   ptps->hierarchy          = prsp->body.get_tps.rsp.tps.hierarchy;
--   ptps->interleaving_mode  = prsp->body.get_tps.rsp.tps.interleaving_mode;
--   ptps->code_rate_HP       = prsp->body.get_tps.rsp.tps.code_rate_HP;
--   ptps->code_rate_LP       = prsp->body.get_tps.rsp.tps.code_rate_LP;
--   ptps->guard_interval     = prsp->body.get_tps.rsp.tps.guard_interval;
--   ptps->transmission_mode  = prsp->body.get_tps.rsp.tps.transmission_mode;
--   ptps->DVBH_mask_HP       = prsp->body.get_tps.rsp.tps.DVBH_mask_HP;
--   ptps->DVBH_mask_LP       = prsp->body.get_tps.rsp.tps.DVBH_mask_LP;
--   ptps->cell_ID            = le16_to_cpu(prsp->body.get_tps.rsp.tps.cell_ID);
-+	/* Response OK -> get response data */
-+	ptps->constellation = prsp->body.get_tps.rsp.tps.constellation;
-+	ptps->hierarchy = prsp->body.get_tps.rsp.tps.hierarchy;
-+	ptps->interleaving_mode = prsp->body.get_tps.rsp.tps.interleaving_mode;
-+	ptps->code_rate_HP = prsp->body.get_tps.rsp.tps.code_rate_HP;
-+	ptps->code_rate_LP = prsp->body.get_tps.rsp.tps.code_rate_LP;
-+	ptps->guard_interval = prsp->body.get_tps.rsp.tps.guard_interval;
-+	ptps->transmission_mode  = prsp->body.get_tps.rsp.tps.transmission_mode;
-+	ptps->DVBH_mask_HP = prsp->body.get_tps.rsp.tps.DVBH_mask_HP;
-+	ptps->DVBH_mask_LP = prsp->body.get_tps.rsp.tps.DVBH_mask_LP;
-+	ptps->cell_ID = le16_to_cpu(prsp->body.get_tps.rsp.tps.cell_ID);
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-@@ -322,59 +326,58 @@
- int as10x_cmd_get_demod_stats(as10x_handle_t  *phandle,
- 			      struct as10x_demod_stats *pdemod_stats)
- {
--   int error;
--   struct as10x_cmd_t *pcmd, *prsp;
-+	int error;
-+	struct as10x_cmd_t *pcmd, *prsp;
- 
--   ENTER();
-+	ENTER();
- 
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   /* prepare command */
--   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
--		   sizeof(pcmd->body.get_demod_stats.req));
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.get_demod_stats.req));
- 
--   /* fill command */
--   pcmd->body.get_demod_stats.req.proc_id =
--      cpu_to_le16(CONTROL_PROC_GET_DEMOD_STATS);
-+	/* fill command */
-+	pcmd->body.get_demod_stats.req.proc_id =
-+		cpu_to_le16(CONTROL_PROC_GET_DEMOD_STATS);
- 
--   /* send command */
--   if(phandle->ops->xfer_cmd) {
--      error = phandle->ops->xfer_cmd(phandle,
--			 (uint8_t *) pcmd,
--			 sizeof(pcmd->body.get_demod_stats.req) + HEADER_SIZE,
--			 (uint8_t *) prsp,
--			 sizeof(prsp->body.get_demod_stats.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(phandle,
-+				(uint8_t *) pcmd,
-+				sizeof(pcmd->body.get_demod_stats.req)
-+				+ HEADER_SIZE,
-+				(uint8_t *) prsp,
-+				sizeof(prsp->body.get_demod_stats.rsp)
-+				+ HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
- 
--   if(error < 0) {
--      goto out;
--   }
-+	if (error < 0)
-+		goto out;
- 
--   /* parse response */
--   error = as10x_rsp_parse(prsp,CONTROL_PROC_GET_DEMOD_STATS_RSP);
--   if (error < 0) {
--      goto out;
--   }
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_GET_DEMOD_STATS_RSP);
-+	if (error < 0)
-+		goto out;
- 
--   /* Response OK -> get response data */
--   pdemod_stats->frame_count =
--	   le32_to_cpu(prsp->body.get_demod_stats.rsp.stats.frame_count);
--   pdemod_stats->bad_frame_count =
--	   le32_to_cpu(prsp->body.get_demod_stats.rsp.stats.bad_frame_count);
--   pdemod_stats->bytes_fixed_by_rs =
--	   le32_to_cpu(prsp->body.get_demod_stats.rsp.stats.bytes_fixed_by_rs);
--   pdemod_stats->mer =
--	   le16_to_cpu(prsp->body.get_demod_stats.rsp.stats.mer);
--   pdemod_stats->has_started =
--	   prsp->body.get_demod_stats.rsp.stats.has_started;
-+	/* Response OK -> get response data */
-+	pdemod_stats->frame_count =
-+		le32_to_cpu(prsp->body.get_demod_stats.rsp.stats.frame_count);
-+	pdemod_stats->bad_frame_count =
-+		le32_to_cpu(prsp->body.get_demod_stats.rsp.stats.bad_frame_count);
-+	pdemod_stats->bytes_fixed_by_rs =
-+		le32_to_cpu(prsp->body.get_demod_stats.rsp.stats.bytes_fixed_by_rs);
-+	pdemod_stats->mer =
-+		le16_to_cpu(prsp->body.get_demod_stats.rsp.stats.mer);
-+	pdemod_stats->has_started =
-+		prsp->body.get_demod_stats.rsp.stats.has_started;
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-@@ -388,50 +391,49 @@
- int as10x_cmd_get_impulse_resp(as10x_handle_t     *phandle,
- 			       uint8_t *is_ready)
- {
--   int error;
--   struct as10x_cmd_t *pcmd, *prsp;
-+	int error;
-+	struct as10x_cmd_t *pcmd, *prsp;
- 
--   ENTER();
-+	ENTER();
- 
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   /* prepare command */
--   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
--		   sizeof(pcmd->body.get_impulse_rsp.req));
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.get_impulse_rsp.req));
- 
--   /* fill command */
--   pcmd->body.get_impulse_rsp.req.proc_id =
--      cpu_to_le16(CONTROL_PROC_GET_IMPULSE_RESP);
-+	/* fill command */
-+	pcmd->body.get_impulse_rsp.req.proc_id =
-+		cpu_to_le16(CONTROL_PROC_GET_IMPULSE_RESP);
- 
--   /* send command */
--   if(phandle->ops->xfer_cmd) {
--      error = phandle->ops->xfer_cmd(phandle,
--			 (uint8_t *) pcmd,
--			 sizeof(pcmd->body.get_impulse_rsp.req) + HEADER_SIZE,
--			 (uint8_t *) prsp,
--			 sizeof(prsp->body.get_impulse_rsp.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(phandle,
-+					(uint8_t *) pcmd,
-+					sizeof(pcmd->body.get_impulse_rsp.req)
-+					+ HEADER_SIZE,
-+					(uint8_t *) prsp,
-+					sizeof(prsp->body.get_impulse_rsp.rsp)
-+					+ HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
- 
--   if(error < 0) {
--      goto out;
--   }
-+	if (error < 0)
-+		goto out;
- 
--   /* parse response */
--   error = as10x_rsp_parse(prsp,CONTROL_PROC_GET_IMPULSE_RESP_RSP);
--   if (error < 0) {
--      goto out;
--   }
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_GET_IMPULSE_RESP_RSP);
-+	if (error < 0)
-+		goto out;
- 
--   /* Response OK -> get response data */
--   *is_ready = prsp->body.get_impulse_rsp.rsp.is_ready;
-+	/* Response OK -> get response data */
-+	*is_ready = prsp->body.get_impulse_rsp.rsp.is_ready;
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- 
-@@ -447,10 +449,10 @@
- void as10x_cmd_build(struct as10x_cmd_t *pcmd,
- 		     uint16_t xid, uint16_t cmd_len)
- {
--   pcmd->header.req_id = cpu_to_le16(xid);
--   pcmd->header.prog = cpu_to_le16(SERVICE_PROG_ID);
--   pcmd->header.version = cpu_to_le16(SERVICE_PROG_VERSION);
--   pcmd->header.data_len = cpu_to_le16(cmd_len);
-+	pcmd->header.req_id = cpu_to_le16(xid);
-+	pcmd->header.prog = cpu_to_le16(SERVICE_PROG_ID);
-+	pcmd->header.version = cpu_to_le16(SERVICE_PROG_VERSION);
-+	pcmd->header.data_len = cpu_to_le16(cmd_len);
- }
- 
- /**
-@@ -463,16 +465,17 @@
- */
- int as10x_rsp_parse(struct as10x_cmd_t *prsp, uint16_t proc_id)
- {
--   int error;
-+	int error;
- 
--   /* extract command error code */
--   error = prsp->body.common.rsp.error;
-+	/* extract command error code */
-+	error = prsp->body.common.rsp.error;
- 
--   if((error == 0) && (le16_to_cpu(prsp->body.common.rsp.proc_id) == proc_id)) {
--      return 0;
--   }
-+	if ((error == 0) &&
-+	    (le16_to_cpu(prsp->body.common.rsp.proc_id) == proc_id)) {
-+		return 0;
-+	}
- 
--   return AS10X_CMD_ERROR;
-+	return AS10X_CMD_ERROR;
- }
- 
- 
+In that case the preset ioctls would have to be exposed to the subdev nodes,
+allowing you to set it up for each HDMI receiver independently. But you still
+do not need pads to do this since this is a subdev-level operation, not pad-level.
+
+> >>
+> >>>>>> Or does exist a way to do this automatic?. i.e: The output entity on the
+> >>>>>> pipeline promotes the capabilities of the source pad so applications can
+> >>>>>> select a data format and this format gets propagated all over the
+> >>>>>> pipeline from the sink pad to the source?
+> >>>>>
+> >>>>> It can be automated in userspace (through a libv4l plugin for instance),
+> >>>>> but it's really not the kernel's job to do so.
+> >>>>
+> >>>> It is a kernel job to handle VIDIOC_S_STD, and not a task to be left to any
+> >>>> userspace plugin.
+> >>>
+> >>> And VIDIOC_S_FMT is handled by userspace for the OMAP3 ISP today. Why are
+> >>> standards different ?
+> >>
+> >> All v4l media devices have sub-devices with either tv decoders or sensors connected
+> >> into a sink. The sink implements the /dev/video? node.
+> >> When an ioctl is sent to the v4l node, the sensors/decoders are controlled
+> >> to implement whatever is requested: video standards, formats etc.
+> >>
+> >> Changing it would be a major regression. If OMAP3 is not doing the right thing,
+> >> it should be fixed, and not the opposite.
+> >>
+> > 
+> > That is the approach we took, we hack the isp v4l2 device driver
+> > (ispvideo) to bypass the ioctls to the sub-device that as the source
+> > pad (tvp5151 in our case, but it could be a sensor as well). So, for
+> > example the VIDIOC_S_STD ioctl handler looks like this (I post a
+> > simplified version of the code, just to give an idea):
+> > 
+> > static int isp_video_s_std(struct file *file, void *fh, v4l2_std_id *norm)
+> > {
+> >     struct isp_video *video = video_drvdata(file);
+> >     struct v4l2_subdev *sink_subdev;
+> >     struct v4l2_subdev *source_subdev;
+> > 
+> >     sink_subdev = isp_video_remote_subdev(video, NULL);
+> >     sink_pad = &sink_subdev->entity.pads[0];
+> >     source_pad = media_entity_remote_source(sink_pad);
+> >     source_subdev = media_entity_to_v4l2_subdev(source_pad->entity);
+> >     v4l2_subdev_call(source_subdev, core, s_std, NULL, norm);
+> > }
+> > 
+> > So applications interact with the /dev/video? via V4L2 ioctls whose
+> > handlers call the sub-dev functions. Is that what you propose?
+> 
+> Something like that. For example:
+> 
+> static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *norm)
+> {
+> 	/* Do some sanity test/resolution adjustments, etc */
+> 
+> 	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
+> 
+> 	return 0;
+> }
+> 
+> It should be noticed that:
+> 
+> 1) a full standard auto-detection is only possible at the V4L2 level, as a 
+> standard is a composition of audio and video carriers. I intend to work tomorrow
+> to add audio auto-detection to pvrusb2;
+> 
+> 2) a full s_std should not only adjust the TV demod pad, but also, the audio pad
+> and the tuner pad (if the analog input comes from a tuner).
+> 
+> >> The MC/subdev API is there to fill the blanks, e. g. to handle cases where the
+> >> same function could be implemented on two different places of the pipeline, e. g.
+> >> when both the sensor and the bridge could do scaling, and userspace wants to
+> >> explicitly use one, or the other, but it were never meant to replace the V4L2
+> >> functionality.
+> >>
+> >>>
+> >>>>>> [1]: http://linuxtv.org/downloads/v4l-dvb-apis/subdev.html
+> >>>>>>
+> >>>>>> 2- If the application want a different format that the default
+> >>>>>> provided by the tvp5151, (i.e: 720x576 for PAL), where do I have to
+> >>>>>> crop the image? I thought this can be made using the CCDC, copying
+> >>>>>> less lines to memory or the RESIZER if the application wants a bigger
+> >>>>>> image. What is the best approach for this?
+> >>>>
+> >>>> Not sure if I understood your question, but maybe you're mixing two
+> >>>> different concepts here.
+> >>>>
+> >>>> If the application wants a different image resolution, it will use S_FMT.
+> >>>> In this case, what userspace expects is that the driver will scale,
+> >>>> if supported, or return -EINVAL otherwise.
+> >>>
+> >>> With the OMAP3 ISP, which is I believe what Javier was asking about, the
+> >>> application will set the format on the OMAP3 ISP resizer input and output pads
+> >>> to configure scaling.
+> >>
+> > 
+> > Yes, that was my question about. But still is not clear to me if
+> > configuring the ISP resizer input and output pads with different frame
+> > sizes automatically means that I have to do the scale or this has to
+> > be configured using a S_FMT ioctl to the /dev/video? node.
+> > 
+> > Basically what I don't know is when I have to modify the pipeline
+> > graph inside the ISP driver and when this has to be made from
+> > user-space via MCF.
+> 
+> In the specific case of analog inputs, In general, better results are obtained
+> if the scaling is done at the analog demod, as it can play with the pixel
+> sampling rate, and obtaining a better result than a decimation filter. Not
+> all demods accept this through.
+> 
+> Anyway, S_FMT is expected to work at the /dev/video? node. Laurent will likely
+> argument against, but, again, allowing to control the scaling on a different
+> place is a bonus of the MC/subdev API, but it should never replace the S_FMT
+> V4L2 call.
+
+I agree with Mauro, up to a point. One way or another drivers should support S_FMT
+through the video nodes. But if someone starts programming the pipeline through
+subdev nodes, then I think it is reasonable that trying to call S_FMT would return
+EBUSY or something similar.
+
+It has been suggested that S_FMT can be implemented for such systems as a libv4l2
+plugin, but I would like to see code doing this first as I am not convinced that
+that's the best way to do it.
+
+Regards,
+
+	Hans
+
+> >> The V4L2 API doesn't tell where a function like scaler will be implemented.
+> >> So, it is fine to implement it at tvp5151 or at the omap3 resizer, when a
+> >> V4L2 call is sent.
+> >>
+> > 
+> > I don't think I can do the cropping and scaling in the tvp5151 driver
+> > since this is a dumb device, it only spits bytes via its parallel
+> > interface. The actual buffer is inside the ISP.
+> 
+> I wrote the tvp5150 driver from scratch a long time ago. Can't remember all
+> details anymore. As far as I can remember, I don't think it has scaling. Also,
+> its sampler seems to use a fixed pixel clock rate.
+> 
+> It does support crop by adjusting the blank registers. Probably there's a 
+> limit to the range that cropping can be done, but, in general, it should be enough
+> to remove the black lines from the borders (and the teletext/cc info).
+> 
+> I can't think on any advantage of doing cropping at tvp5150. So, you can just
+> implement it where you're more comfortable with.
+> 
+> Regards,
+> Mauro
+> 
