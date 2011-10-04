@@ -1,57 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16260 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:47739 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932977Ab1JNODN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Oct 2011 10:03:13 -0400
-Message-ID: <4E98411A.6040809@redhat.com>
-Date: Fri, 14 Oct 2011 11:03:06 -0300
+	id S933501Ab1JDTxa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Oct 2011 15:53:30 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p94JrU8S027652
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 4 Oct 2011 15:53:30 -0400
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Benjamin Larsson <benjamin@southpole.se>,
-	linux-media@vger.kernel.org, Eddi De Pieri <eddi@depieri.net>
-Subject: Re: PCTV 520e on Linux
-References: <CAGa-wNOL_1ua0DQFRPFuLtHO0zTFhE0DaM+b6kujMEEL4dQbKg@mail.gmail.com> <CAGoCfizwYRpSsqobaHWJd5d0wq1N0KSXEQ1Un_ue01KuYGHaWA@mail.gmail.com> <4E970CA7.8020807@iki.fi> <CAGoCfiwSJ7EGXxAw7UgbFeECh+dg1EueXEC9iCHu7TaXia=-mQ@mail.gmail.com> <4E970F7A.5010304@iki.fi> <CAGoCfiyXiANjoB5bXgBpjwOAk8kpz8guxTGuGtVbtgc6+DNAag@mail.gmail.com> <4E976EF6.1030101@southpole.se> <CAGoCfixwp-iVFJysEG=UjN63-U_P4mdFWt+8hCwFW7fYeADvuw@mail.gmail.com> <4E9836E5.6040601@redhat.com> <CAGoCfizDdx=a=mR5TRXw_Dnj9cw2_1C9NuRH2LR2gXxEzyfW3w@mail.gmail.com>
-In-Reply-To: <CAGoCfizDdx=a=mR5TRXw_Dnj9cw2_1C9NuRH2LR2gXxEzyfW3w@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCHv2 3/8] [media] v4l2-ioctl: Fill the default value for VIDIOC_QUERYSTD
+Date: Tue,  4 Oct 2011 16:53:15 -0300
+Message-Id: <1317758000-21154-3-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1317758000-21154-2-git-send-email-mchehab@redhat.com>
+References: <1317758000-21154-1-git-send-email-mchehab@redhat.com>
+ <1317758000-21154-2-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 14-10-2011 10:28, Devin Heitmueller escreveu:
-> On Fri, Oct 14, 2011 at 9:19 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->>> While the basic chips used are different, they are completely
->>> different hardware designs and likely have different GPIO
->>> configurations as well as IF specs.
->>
->> The IF settings for xc5000 with DRX-K are solved with this patch:
->>        http://patchwork.linuxtv.org/patch/7932/
->>
->> Basically, DRX-K will use whatever IF the tuner uses.
-> 
-> While I fundamentally disagree with this change, I'm not going to nack
-> it.  That said, this wasn't the issue I was concerned with.  My
-> suggestion was simply that you cannot assume that all devices that
-> happen to have a particular demod and tuner combo will always use the
-> same IF configuration.  The PCB layout can effect the optimal IF.
-> 
-> This is one of those things that (like many tuners in the LinuxTV
-> tree) will probably work good enough to get a signal lock for whoever
-> added the board profile, but will result in poor tuning performance
-> (and a failure to work in less-than-ideal reception conditions).
+According with the V4L2 API spec:
 
-This patch doesn't prevent customizing the IF. It will just avoid the
-need of setting the IF on both xc5000 and drx-k. Basically, (some) DRX-K
-based boards use different IF's depending on the bandwidth and delivery
-system type. Instead of adding a complex logic that would allow such
-kind of IF adjustments on both, drx-k will simply inquire the tuner about
-what IF is currently used.
+	"When detection is not possible or fails, the set must contain
+	 all standards supported by the current video input or output."
 
-> 
-> All that said, if somebody actually intends to hack on it, I can look
-> up what the correct IF is for the 520e.
-> 
-> Devin
-> 
+The V4L2 core has the mask with all supported standards already. So,
+apply it. Driver and subdevs can then just remove standards from the
+mask, as they're able of detecting audio, video and frames frequency.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/video/v4l2-ioctl.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 21c49dc..24fd433 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -1109,6 +1109,14 @@ static long __video_do_ioctl(struct file *file,
+ 
+ 		if (!ops->vidioc_querystd)
+ 			break;
++		/*
++		 * If nothing detected, it should return all supported
++		 * Drivers just need to mask the std argument, in order
++		 * to remove the standards that don't apply from the mask.
++		 * This means that tuners, audio and video decoders can join
++		 * their efforts to improve the standards detection
++		 */
++		*p = vfd->tvnorms;
+ 		ret = ops->vidioc_querystd(file, fh, arg);
+ 		if (!ret)
+ 			dbgarg(cmd, "detected std=%08Lx\n",
+-- 
+1.7.6.4
 
