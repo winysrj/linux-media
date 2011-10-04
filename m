@@ -1,55 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:36399 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751283Ab1JOKHw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Oct 2011 06:07:52 -0400
-Date: Sat, 15 Oct 2011 13:07:47 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 1/1] ARM: EXYNOS4: JPEG: driver initial release
-Message-ID: <20111015100747.GI10001@valkosipuli.localdomain>
-References: <1318337492-21354-1-git-send-email-andrzej.p@samsung.com>
- <1318337492-21354-2-git-send-email-andrzej.p@samsung.com>
- <20111014224046.GH10001@valkosipuli.localdomain>
+Received: from mail.kapsi.fi ([217.30.184.167]:60499 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932867Ab1JDVWM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Oct 2011 17:22:12 -0400
+Message-ID: <4E8B7901.2050700@iki.fi>
+Date: Wed, 05 Oct 2011 00:22:09 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20111014224046.GH10001@valkosipuli.localdomain>
+To: linux-serial@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-usb@vger.kernel.org
+CC: =?ISO-8859-1?Q?Bj=F8rn_Mork?= <bjorn@mork.no>,
+	James Courtier-Dutton <james.dutton@gmail.com>,
+	HoP <jpetrous@gmail.com>,
+	=?ISO-8859-1?Q?Istv=E1n_V=E1radi?= <ivaradi@gmail.com>
+Subject: serial device name for smart card reader that is integrated to Anysee
+ DVB USB device
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Oct 15, 2011 at 01:40:46AM +0300, Sakari Ailus wrote:
-> Hi Andrzej,
-> 
-> Thanks for the patch! Interesting to see a hardware jpeg encoder using V4L2!
-> 
-> I have a few comments below. As a whole, this driver looks quite good to me.
-> 
-> On Tue, Oct 11, 2011 at 02:51:32PM +0200, Andrzej Pietrasiewicz wrote:
-...
-> > +static struct s5p_jpeg_fmt *s5p_jpeg_find_format(struct s5p_jpeg_fmt *formats,
-> > +						 int n, struct v4l2_format *f)
-> > +{
-> > +	struct s5p_jpeg_fmt *fmt;
-> > +	unsigned int k;
-> > +	for (k = 0; k < n; k++) {
-> 
-> You can define fmt here.
-> 
-> > +		fmt = &formats[k];
-> > +		if (fmt->fourcc == f->fmt.pix.pixelformat)
-> 
-> If you're only interested in pixelformat then you should pass that to the
-> function, not v4l2_format.
+I have been looking for correct device name for serial smart card reader 
+that is integrated to Anysee DVB USB devices. Consider it like old so 
+called Phoenix reader. Phoenix is de facto protocol used for such 
+readers and there is whole bunch of different RS232 (/dev/ttyS#) or 
+USB-serial (/dev/ttyUSB#) readers using that protocol.
 
-You could clean this up a lot if you just gave ctx->mode as the argument to
-s5p_jpeg_find_format rather than the format table and it size: there are
-only two alternatives for the table after all.
+Anyhow, that one is integrated to DVB USB device that is driven by 
+dvb_usb_anysee driver. As I understand, I need reserve new device name 
+and major number for my device. See Documentation/devices.txt
+
+Current proof-of-concept driver can be found from:
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/anysee-sc
+Don't review code since it is not ready for release yet, it even lacks 
+locking.
+
+There have been some proposes about names, mainly whether to register it 
+under the DVB adapter it is physically (/dev/dvb/adapterN/sc#) or to the 
+root of /dev (/dev/sc#). I used sc as name, SC=SmartCard.
+
+Could someone who have enough knowledge point out which one is correct 
+or better?
+
+
+regards
+Antti
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+http://palosaari.fi/
