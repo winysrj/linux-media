@@ -1,48 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:44756 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751429Ab1JLLsd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Oct 2011 07:48:33 -0400
-Date: Wed, 12 Oct 2011 14:48:29 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 1/4] v4l: add support for selection api
-Message-ID: <20111012114828.GE10001@valkosipuli.localdomain>
-References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com>
- <1314793703-32345-2-git-send-email-t.stanislaws@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1314793703-32345-2-git-send-email-t.stanislaws@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:26860 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932910Ab1JDTxa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Oct 2011 15:53:30 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p94JrULJ010995
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 4 Oct 2011 15:53:30 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCHv2 1/8] [media] saa7115: Fix standards detection
+Date: Tue,  4 Oct 2011 16:53:13 -0300
+Message-Id: <1317758000-21154-1-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+There are several bugs at saa7115 standards detection:
 
-On Wed, Aug 31, 2011 at 02:28:20PM +0200, Tomasz Stanislawski wrote:
-...
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index fca24cc..b7471fe 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -738,6 +738,48 @@ struct v4l2_crop {
->  	struct v4l2_rect        c;
->  };
->  
-> +/* Hints for adjustments of selection rectangle */
-> +#define V4L2_SEL_SIZE_GE	0x00000001
-> +#define V4L2_SEL_SIZE_LE	0x00000002
+After the fix, the driver is returning the proper standards,
+as tested with 3 different broadcast sources:
 
-A minor comment. If the patches have not been pulled yet, how about adding
-FLAG_ to the flag names? I.e. V4L2_SEL_FLAG_SIZE_GE and
-V4L2_SEL_FLAG_SIZE_LE.
+On an invalid channel (without any TV signal):
+[ 4394.931630] saa7115 15-0021: Status byte 2 (0x1f)=0xe0
+[ 4394.931635] saa7115 15-0021: detected std mask = 00ffffff
 
-Kind regards,
+With a PAL/M signal:
+[ 4410.836855] saa7115 15-0021: Status byte 2 (0x1f)=0xb1
+[ 4410.837727] saa7115 15-0021: Status byte 1 (0x1e)=0x82
+[ 4410.837731] saa7115 15-0021: detected std mask = 00000900
 
+With a NTSC/M signal:
+[ 4422.383893] saa7115 15-0021: Status byte 2 (0x1f)=0xb1
+[ 4422.384768] saa7115 15-0021: Status byte 1 (0x1e)=0x81
+[ 4422.384772] saa7115 15-0021: detected std mask = 0000b000
+
+Tests were done with a WinTV PVR USB2 Model 29xx card.
+
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/video/saa7115.c |   47 +++++++++++++++++++++++++++-------------
+ 1 files changed, 32 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/media/video/saa7115.c b/drivers/media/video/saa7115.c
+index cee98ea..86627a8 100644
+--- a/drivers/media/video/saa7115.c
++++ b/drivers/media/video/saa7115.c
+@@ -1344,35 +1344,52 @@ static int saa711x_g_vbi_data(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_dat
+ static int saa711x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+ {
+ 	struct saa711x_state *state = to_state(sd);
+-	int reg1e;
++	int reg1f, reg1e;
+ 
+-	*std = V4L2_STD_ALL;
+-	if (state->ident != V4L2_IDENT_SAA7115) {
+-		int reg1f = saa711x_read(sd, R_1F_STATUS_BYTE_2_VD_DEC);
+-
+-		if (reg1f & 0x20)
+-			*std = V4L2_STD_525_60;
+-		else
+-			*std = V4L2_STD_625_50;
+-
+-		return 0;
++	reg1f = saa711x_read(sd, R_1F_STATUS_BYTE_2_VD_DEC);
++	v4l2_dbg(1, debug, sd, "Status byte 2 (0x1f)=0x%02x\n", reg1f);
++	if (reg1f & 0x40) {
++		/* horizontal/vertical not locked */
++		*std = V4L2_STD_ALL;
++		goto ret;
+ 	}
++	if (reg1f & 0x20)
++		*std = V4L2_STD_525_60;
++	else
++		*std = V4L2_STD_625_50;
++
++	if (state->ident != V4L2_IDENT_SAA7115)
++		goto ret;
+ 
+ 	reg1e = saa711x_read(sd, R_1E_STATUS_BYTE_1_VD_DEC);
+ 
+ 	switch (reg1e & 0x03) {
+ 	case 1:
+-		*std = V4L2_STD_NTSC;
++		*std &= V4L2_STD_NTSC;
+ 		break;
+ 	case 2:
+-		*std = V4L2_STD_PAL;
++		/*
++		 * V4L2_STD_PAL just cover the european PAL standards.
++		 * This is wrong, as the device could also be using an
++		 * other PAL standard.
++		 */
++		*std &= V4L2_STD_PAL   | V4L2_STD_PAL_N  | V4L2_STD_PAL_Nc |
++			V4L2_STD_PAL_M | V4L2_STD_PAL_60;
+ 		break;
+ 	case 3:
+-		*std = V4L2_STD_SECAM;
++		*std &= V4L2_STD_SECAM;
+ 		break;
+ 	default:
++		/* Can't detect anything */
++		*std = V4L2_STD_ALL;
+ 		break;
+ 	}
++
++	v4l2_dbg(1, debug, sd, "Status byte 1 (0x1e)=0x%02x\n", reg1e);
++
++ret:
++	v4l2_dbg(1, debug, sd, "detected std mask = %08Lx\n", *std);
++
+ 	return 0;
+ }
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.6.4
+
