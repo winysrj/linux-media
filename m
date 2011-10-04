@@ -1,130 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:55696 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751369Ab1JNXiP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Oct 2011 19:38:15 -0400
-Date: Fri, 14 Oct 2011 16:38:11 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Mel Gorman <mel@csn.ul.ie>
-Subject: Re: [PATCH 4/9] mm: MIGRATE_CMA migration type added
-Message-Id: <20111014163811.8d410590.akpm@linux-foundation.org>
-In-Reply-To: <1317909290-29832-5-git-send-email-m.szyprowski@samsung.com>
-References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
-	<1317909290-29832-5-git-send-email-m.szyprowski@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:58614 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932752Ab1JDT2z convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Oct 2011 15:28:55 -0400
+Received: by wyg34 with SMTP id 34so923227wyg.19
+        for <linux-media@vger.kernel.org>; Tue, 04 Oct 2011 12:28:53 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
+References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
+Date: Tue, 4 Oct 2011 21:28:53 +0200
+Message-ID: <CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
+Subject: Re: [PATCH] af9013 frontend tuner bus lock
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: tvboxspy <tvboxspy@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Jason Hecker <jwhecker@gmail.com>,
+	Antti Palosaari <crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 06 Oct 2011 15:54:44 +0200
-Marek Szyprowski <m.szyprowski@samsung.com> wrote:
-
-> From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-> 
-> The MIGRATE_CMA migration type has two main characteristics:
-> (i) only movable pages can be allocated from MIGRATE_CMA
-> pageblocks and (ii) page allocator will never change migration
-> type of MIGRATE_CMA pageblocks.
-> 
-> This guarantees that page in a MIGRATE_CMA page block can
-> always be migrated somewhere else (unless there's no memory left
-> in the system).
-> 
-> It is designed to be used with Contiguous Memory Allocator
-> (CMA) for allocating big chunks (eg. 10MiB) of physically
-> contiguous memory.  Once driver requests contiguous memory,
-> CMA will migrate pages from MIGRATE_CMA pageblocks.
-> 
-> To minimise number of migrations, MIGRATE_CMA migration type
-> is the last type tried when page allocator falls back to other
-> migration types then requested.
-> 
+2011/9/28 tvboxspy <tvboxspy@gmail.com>:
+> Frontend bus lock for af9015 devices.
 >
-> ...
+> Last week, I aqcuired a dual KWorld PlusTV Dual DVB-T Stick (DVB-T 399U).
 >
-> +#ifdef CONFIG_CMA_MIGRATE_TYPE
-> +#  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
-> +#else
-> +#  define is_migrate_cma(migratetype) false
-> +#endif
-
-Implement in C, please.
-
+> The lock is intended for dual frontends that share the same tuner I2C address
+> to stop either frontend sending data while any gate is open. The patch
+> should have no effect on single devices or multiple single devices, well
+> not on the ones I have!
 >
-> ...
+> It also delays read_status call backs being sent while either gate is open, a
+> mostly like cause of corruption.
 >
-> --- a/mm/compaction.c
-> +++ b/mm/compaction.c
-> @@ -115,6 +115,16 @@ static bool suitable_migration_target(struct page *page)
->  	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
->  		return false;
->  
-> +	/* Keep MIGRATE_CMA alone as well. */
-> +	/*
-> +	 * XXX Revisit.  We currently cannot let compaction touch CMA
-> +	 * pages since compaction insists on changing their migration
-> +	 * type to MIGRATE_MOVABLE (see split_free_page() called from
-> +	 * isolate_freepages_block() above).
-> +	 */
-
-Talk to us about this.
-
-How serious is this shortcoming in practice?  What would a fix look
-like?  Is anyone working on an implementation, or planning to do so?
-
-
-> +	if (is_migrate_cma(migratetype))
-> +		return false;
+> The lock also covers the attachment process of the tuner in case there is any
+> race condition, although unlikely.
+>
+> Points about troubles with Myth TV;
+> Streaming corruptions are more likely to appear from the I2C noise generated
+> from setting either frontend. Afatech love their bits as bytes:-)
+>
+> Latest version of Myth TV appears to have a bug where you can't select the second
+> frontend independently and when it does it tunes to the same frequency as
+> the first frontend!
+>
+> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+> ---
+>  drivers/media/dvb/dvb-usb/af9015.c   |    7 ++++++-
+>  drivers/media/dvb/frontends/af9013.c |   13 ++++++++++++-
+>  drivers/media/dvb/frontends/af9013.h |    5 +++--
+>  3 files changed, 21 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+> index c6c275b..0089858 100644
+> --- a/drivers/media/dvb/dvb-usb/af9015.c
+> +++ b/drivers/media/dvb/dvb-usb/af9015.c
+> @@ -43,6 +43,7 @@ MODULE_PARM_DESC(remote, "select remote");
+>  DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+>
+>  static DEFINE_MUTEX(af9015_usb_mutex);
+> +static DEFINE_MUTEX(af9015_fe_mutex);
+>
+>  static struct af9015_config af9015_config;
+>  static struct dvb_usb_device_properties af9015_properties[3];
+> @@ -1114,7 +1115,7 @@ static int af9015_af9013_frontend_attach(struct dvb_usb_adapter *adap)
+>
+>        /* attach demodulator */
+>        adap->fe_adap[0].fe = dvb_attach(af9013_attach, &af9015_af9013_config[adap->id],
+> -               &adap->dev->i2c_adap);
+> +               &adap->dev->i2c_adap, &af9015_fe_mutex);
+>
+>        return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
+>  }
+> @@ -1187,6 +1188,9 @@ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
+>        int ret;
+>        deb_info("%s:\n", __func__);
+>
+> +       if (mutex_lock_interruptible(&af9015_fe_mutex) < 0)
+> +               return -EAGAIN;
 > +
->  	/* If the page is a large free page, then allow migration */
->  	if (PageBuddy(page) && page_order(page) >= pageblock_order)
->  		return true;
+>        switch (af9015_af9013_config[adap->id].tuner) {
+>        case AF9013_TUNER_MT2060:
+>        case AF9013_TUNER_MT2060_2:
+> @@ -1242,6 +1246,7 @@ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
+>                err("Unknown tuner id:%d",
+>                        af9015_af9013_config[adap->id].tuner);
+>        }
+> +       mutex_unlock(&af9015_fe_mutex);
+>        return ret;
+>  }
 >
-> ...
+> diff --git a/drivers/media/dvb/frontends/af9013.c b/drivers/media/dvb/frontends/af9013.c
+> index 345311c..b220a87 100644
+> --- a/drivers/media/dvb/frontends/af9013.c
+> +++ b/drivers/media/dvb/frontends/af9013.c
+> @@ -50,6 +50,7 @@ struct af9013_state {
+>        u16 snr;
+>        u32 frequency;
+>        unsigned long next_statistics_check;
+> +       struct mutex *fe_mutex;
+>  };
 >
-> +void __init init_cma_reserved_pageblock(struct page *page)
-> +{
-> +	struct page *p = page;
-> +	unsigned i = pageblock_nr_pages;
+>  static u8 regmask[8] = { 0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff };
+> @@ -630,9 +631,14 @@ static int af9013_set_frontend(struct dvb_frontend *fe,
+>        state->frequency = params->frequency;
+>
+>        /* program tuner */
+> +       if (mutex_lock_interruptible(state->fe_mutex) < 0)
+> +               return -EAGAIN;
 > +
-> +	prefetchw(p);
-> +	do {
-> +		if (--i)
-> +			prefetchw(p + 1);
-> +		__ClearPageReserved(p);
-> +		set_page_count(p, 0);
-> +	} while (++p, i);
+>        if (fe->ops.tuner_ops.set_params)
+>                fe->ops.tuner_ops.set_params(fe, params);
+>
+> +       mutex_unlock(state->fe_mutex);
 > +
-> +	set_page_refcounted(page);
-> +	set_pageblock_migratetype(page, MIGRATE_CMA);
-> +	__free_pages(page, pageblock_order);
-> +	totalram_pages += pageblock_nr_pages;
-> +}
-
-I wonder if the prefetches do any good.  it doesn't seem very important
-in an __init function.
-
-> +#endif
->  
+>        /* program CFOE coefficients */
+>        ret = af9013_set_coeff(state, params->u.ofdm.bandwidth);
+>        if (ret)
+> @@ -1038,6 +1044,9 @@ static int af9013_read_status(struct dvb_frontend *fe, fe_status_t *status)
+>        u8 tmp;
+>        *status = 0;
 >
-> ...
+> +       if (mutex_lock_interruptible(state->fe_mutex) < 0)
+> +               return -EAGAIN;
+> +
+>        /* MPEG2 lock */
+>        ret = af9013_read_reg_bits(state, 0xd507, 6, 1, &tmp);
+>        if (ret)
+> @@ -1086,6 +1095,7 @@ static int af9013_read_status(struct dvb_frontend *fe, fe_status_t *status)
+>        ret = af9013_update_statistics(fe);
+>
+>  error:
+> +       mutex_unlock(state->fe_mutex);
+>        return ret;
+>  }
+>
+> @@ -1446,7 +1456,7 @@ static void af9013_release(struct dvb_frontend *fe)
+>  static struct dvb_frontend_ops af9013_ops;
+>
+>  struct dvb_frontend *af9013_attach(const struct af9013_config *config,
+> -       struct i2c_adapter *i2c)
+> +       struct i2c_adapter *i2c, struct mutex *fe_mutex)
+>  {
+>        int ret;
+>        struct af9013_state *state = NULL;
+> @@ -1459,6 +1469,7 @@ struct dvb_frontend *af9013_attach(const struct af9013_config *config,
+>
+>        /* setup the state */
+>        state->i2c = i2c;
+> +       state->fe_mutex = fe_mutex;
+>        memcpy(&state->config, config, sizeof(struct af9013_config));
+>
+>        /* download firmware */
+> diff --git a/drivers/media/dvb/frontends/af9013.h b/drivers/media/dvb/frontends/af9013.h
+> index e53d873..95c966a 100644
+> --- a/drivers/media/dvb/frontends/af9013.h
+> +++ b/drivers/media/dvb/frontends/af9013.h
+> @@ -96,10 +96,11 @@ struct af9013_config {
+>  #if defined(CONFIG_DVB_AF9013) || \
+>        (defined(CONFIG_DVB_AF9013_MODULE) && defined(MODULE))
+>  extern struct dvb_frontend *af9013_attach(const struct af9013_config *config,
+> -       struct i2c_adapter *i2c);
+> +       struct i2c_adapter *i2c, struct mutex *fe_mutex);
+>  #else
+>  static inline struct dvb_frontend *af9013_attach(
+> -const struct af9013_config *config, struct i2c_adapter *i2c)
+> +       const struct af9013_config *config, struct i2c_adapter *i2,
+> +               struct mutex *fe_mutex)
+>  {
+>        printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+>        return NULL;
+> --
+> 1.7.5.4
+>
 >
 
+Thanks!!! I have same device, I apply the patch to the s2-liplianin
+branch and it works well.
+
+Two days on MythTV and there is no pixeled playback and not I2C
+messges on dmesg.
+
+Thank you very much, I was waiting long for this fix.
+
+Kind regards.
+
+-- 
+Josu Lazkano
