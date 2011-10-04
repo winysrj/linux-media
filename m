@@ -1,38 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:33643 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933524Ab1JDUCJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Oct 2011 16:02:09 -0400
-Received: by eya28 with SMTP id 28so853694eya.19
-        for <linux-media@vger.kernel.org>; Tue, 04 Oct 2011 13:02:08 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4E8B61FF.8000505@iki.fi>
-References: <4E8B61FF.8000505@iki.fi>
-Date: Tue, 4 Oct 2011 16:02:07 -0400
-Message-ID: <CALzAhNW2=KBqVp69Stoc2AVp9QiW6=0pzyFwjS8A5xJ-vrpqVA@mail.gmail.com>
-Subject: Re: Cypress EZ-USB FX2 firmware development
-From: Steven Toth <stoth@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:55933 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933550Ab1JDTxb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Oct 2011 15:53:31 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p94JrUQG011003
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 4 Oct 2011 15:53:30 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCHv2 4/8] [media] saa7115: Trust that V4L2 core will fill the mask
+Date: Tue,  4 Oct 2011 16:53:16 -0300
+Message-Id: <1317758000-21154-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1317758000-21154-3-git-send-email-mchehab@redhat.com>
+References: <1317758000-21154-1-git-send-email-mchehab@redhat.com>
+ <1317758000-21154-2-git-send-email-mchehab@redhat.com>
+ <1317758000-21154-3-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti,
+Instead of using V4L2_STD_ALL when no standard is detected,
+trust that the maximum allowed standards are already filled by
+the V4L2 core. It is better this way, as the bridge and/or the audio
+decoder may have some extra restrictions to some video standards.
 
-> I would like to made own firmware for Cypress FX2 based DVB device. Is there
-> any sample to look example?
+This also allow other devices like audio and tuners to contribute to
+standards detection, when they support such feature.
 
-I've done multiple FX2 firmware projects in the past, including DVB-T.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/video/saa7115.c |   19 ++++++++++++-------
+ 1 files changed, 12 insertions(+), 7 deletions(-)
 
-The technical reference manual for the FX2 explains the GPIF waveform
-sampling engine very well. It also shows sample firmware listings for
-operating the fifo engine in the different input or output modes.
-You'll find it via google.
-
-If you have specific questions then I'd be happy to answer them on the
-mailing-list.
-
+diff --git a/drivers/media/video/saa7115.c b/drivers/media/video/saa7115.c
+index 86627a8..5cfdbc7 100644
+--- a/drivers/media/video/saa7115.c
++++ b/drivers/media/video/saa7115.c
+@@ -1346,17 +1346,23 @@ static int saa711x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+ 	struct saa711x_state *state = to_state(sd);
+ 	int reg1f, reg1e;
+ 
++	/*
++	 * The V4L2 core already initializes std with all supported
++	 * Standards. All driver needs to do is to mask it, to remove
++	 * standards that don't apply from the mask
++	 */
++
+ 	reg1f = saa711x_read(sd, R_1F_STATUS_BYTE_2_VD_DEC);
+ 	v4l2_dbg(1, debug, sd, "Status byte 2 (0x1f)=0x%02x\n", reg1f);
+-	if (reg1f & 0x40) {
+-		/* horizontal/vertical not locked */
+-		*std = V4L2_STD_ALL;
++
++	/* horizontal/vertical not locked */
++	if (reg1f & 0x40)
+ 		goto ret;
+-	}
++
+ 	if (reg1f & 0x20)
+-		*std = V4L2_STD_525_60;
++		*std &= V4L2_STD_525_60;
+ 	else
+-		*std = V4L2_STD_625_50;
++		*std &= V4L2_STD_625_50;
+ 
+ 	if (state->ident != V4L2_IDENT_SAA7115)
+ 		goto ret;
+@@ -1381,7 +1387,6 @@ static int saa711x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+ 		break;
+ 	default:
+ 		/* Can't detect anything */
+-		*std = V4L2_STD_ALL;
+ 		break;
+ 	}
+ 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+1.7.6.4
+
