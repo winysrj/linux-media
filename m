@@ -1,91 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:51776 "EHLO
-	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932166Ab1JXMSb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Oct 2011 08:18:31 -0400
-Received: from mfilter5-d.gandi.net (mfilter5-d.gandi.net [217.70.178.132])
-	by relay4-d.mail.gandi.net (Postfix) with ESMTP id 2313A1720A2
-	for <linux-media@vger.kernel.org>; Mon, 24 Oct 2011 14:18:30 +0200 (CEST)
-Received: from relay4-d.mail.gandi.net ([217.70.183.196])
-	by mfilter5-d.gandi.net (mfilter5-d.gandi.net [10.0.15.180]) (amavisd-new, port 10024)
-	with ESMTP id JgDRCreE3cKb for <linux-media@vger.kernel.org>;
-	Mon, 24 Oct 2011 14:18:28 +0200 (CEST)
-Received: from WIN7PC (ALyon-157-1-242-76.w109-212.abo.wanadoo.fr [109.212.93.76])
-	(Authenticated sender: sr@coexsi.fr)
-	by relay4-d.mail.gandi.net (Postfix) with ESMTPSA id 7EE801720A3
-	for <linux-media@vger.kernel.org>; Mon, 24 Oct 2011 14:18:28 +0200 (CEST)
-From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
-To: "'Linux Media Mailing List'" <linux-media@vger.kernel.org>
-References: <004c01cc7a03$064111c0$12c33540$@coexsi.fr> <201110240906.24543@orion.escape-edv.de>
-In-Reply-To: <201110240906.24543@orion.escape-edv.de>
-Subject: RE: [DVB] Digital Devices Cine CT V6 support
-Date: Mon, 24 Oct 2011 14:18:29 +0200
-Message-ID: <004e01cc9247$0a8da4d0$1fa8ee70$@coexsi.fr>
+Received: from mail.kapsi.fi ([217.30.184.167]:36411 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933898Ab1JEGTO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Oct 2011 02:19:14 -0400
+Message-ID: <4E8BF6DE.1010105@iki.fi>
+Date: Wed, 05 Oct 2011 09:19:10 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Language: fr
+To: Oliver Neukum <oneukum@suse.de>
+CC: Greg KH <greg@kroah.com>, linux-serial@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+	=?ISO-8859-1?Q?Bj=F8rn_Mork?= <bjorn@mork.no>,
+	James Courtier-Dutton <james.dutton@gmail.com>,
+	HoP <jpetrous@gmail.com>,
+	=?ISO-8859-1?Q?Istv=E1n_V=E1radi?= <ivaradi@gmail.com>
+Subject: Re: serial device name for smart card reader that is integrated to
+ Anysee DVB USB device
+References: <4E8B7901.2050700@iki.fi> <20111005045917.GB4700@kroah.com> <4E8BF21B.4010907@iki.fi> <201110050815.17949.oneukum@suse.de>
+In-Reply-To: <201110050815.17949.oneukum@suse.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 10/05/2011 09:15 AM, Oliver Neukum wrote:
+> Am Mittwoch, 5. Oktober 2011, 07:58:51 schrieb Antti Palosaari:
+>> On 10/05/2011 07:59 AM, Greg KH wrote:
+>
+>>> Why not just use the usb-serial core and then you get a ttyUSB* device
+>>> node "for free"?  It also should provide a lot of the basic tty
+>>> infrastructure and ring buffer logic all ready to use.
+>>
+>> Since I don't see how I can access same platform data from DVB USB  and
+>> USB-serial driver (usb_set_intfdata). I asked that earlier, see:
+>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg36027.html
+>
+> Yes, and I'll have to give you the same answer as then.
+>
+> But, Greg, Antti makes a very valid point here. The generic code assumes that
+> it owns intfdata, that is you cannot use it as is for access to anything that lacks
+> its own interface. But this is not a fatal flaw. We can alter the generic code to use
+> an accessor function the driver can provide and make it default to get/set_intfdata
+>
+> What do you think?
 
+Oliver, I looked your old thread reply but I didn't catch how you meant 
+it to happen. Could you give some small example?
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Oliver Endriss
-> Sent: lundi 24 octobre 2011 09:06
-> To: Sébastien RAILLARD (COEXSI)
-> Cc: Linux Media Mailing List
-> Subject: Re: [DVB] Digital Devices Cine CT V6 support
-> 
-> Hi,
-> 
-> > Using your latest development tree (hg clone
-> > http://linuxtv.org/hg/~endriss/media_build_experimental), I have made
-> > a small modification in ddbridge-core.c (see below) to make the new
-> > "Cine CT V6" card detected by the ddbridge module.
-> >
-> > With this small patch, the card is now detected, but not the double
-> > C/T tuner onboard.
-> 
-> This cannot work, as the cards requires different frontend drivers.
-> 
-> Please try a fresh check-out from
->   http://linuxtv.org/hg/~endriss/media_build_experimental
-> 
-> The Cine CT v6 is supported now.
-> 
+regards
+Antti
 
-Thank you for the update, we'll test it soon, we're waiting for the new
-double-CI reader support.
-
-I've seen a new parameter "ts_loop", can you explain how it's working?
-Is-it for sending the stream from the demodulator directly to the CAM
-reader?
-
-
-> > Also, I was wondering why they put a male and a female RF connectors
-> > on the "Cine CT V6" (maybe a loop-through?) where there are two female
-> > RF connectors on the "DuoFlex CT" card.
-> 
-> The second connector of the Cine CT is the loop-through output.
-> 
-
-Ok
-
-> CU
-> Oliver
-> 
-> --
-> ----------------------------------------------------------------
-> VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-> 4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-> Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-> ----------------------------------------------------------------
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in the body of a message to majordomo@vger.kernel.org More majordomo
-> info at  http://vger.kernel.org/majordomo-info.html
-
+-- 
+http://palosaari.fi/
