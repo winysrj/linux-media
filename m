@@ -1,87 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:52839 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751490Ab1JSHBg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Oct 2011 03:01:36 -0400
-Received: by iaek3 with SMTP id k3so1775178iae.19
-        for <linux-media@vger.kernel.org>; Wed, 19 Oct 2011 00:01:35 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55000 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934849Ab1JEUVg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 16:21:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH 3/3] [media] tvp5150: Migrate to media-controller framework and add video format detection
+Date: Wed, 5 Oct 2011 22:21:32 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org, Enrico <ebutera@users.berlios.de>,
+	Gary Thomas <gary@mlbassoc.com>
+References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com> <4E8A2F76.4020209@infradead.org> <CAAwP0s30_FxMu3iegkusk7iQkBaWKmmba7sOk2vK9tcahV3ueg@mail.gmail.com>
+In-Reply-To: <CAAwP0s30_FxMu3iegkusk7iQkBaWKmmba7sOk2vK9tcahV3ueg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CA+2YH7voGzNzxcdFCAissTtn_-NAL=_jfiOS8kia9m-=XqwOig@mail.gmail.com>
-References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com>
-	<CA+2YH7voGzNzxcdFCAissTtn_-NAL=_jfiOS8kia9m-=XqwOig@mail.gmail.com>
-Date: Wed, 19 Oct 2011 10:01:35 +0300
-Message-ID: <CAFYgh7zzTKT9XHri3seEKDhbMu0xYM=XahjhWU3Wbhj-1U6dhQ@mail.gmail.com>
-Subject: Re: omap3isp: BT.656 support
-From: Boris Todorov <boris.st.todorov@gmail.com>
-To: Enrico <ebutera@users.berlios.de>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201110052221.34188.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 18, 2011 at 7:31 PM, Enrico <ebutera@users.berlios.de> wrote:
-> On Tue, Oct 18, 2011 at 3:33 PM, Boris Todorov
-> <boris.st.todorov@gmail.com> wrote:
->> Hi
->>
->> I'm trying to run OMAP + TVP5151 in BT656 mode.
->>
->> I'm using omap3isp-omap3isp-yuv (git.linuxtv.org/pinchartl/media.git).
->> Plus the following patches:
->>
->> TVP5151:
->> https://github.com/ebutera/meta-igep/tree/testing-v2/recipes-kernel/linux/linux-3.0+3.1rc/tvp5150
->>
->> The latest RFC patches for BT656 support:
->>
->> Enrico Butera (2):
->>  omap3isp: ispvideo: export isp_video_mbus_to_pix
->>  omap3isp: ispccdc: configure CCDC registers and add BT656 support
->>
->> Javier Martinez Canillas (1):
->>  omap3isp: ccdc: Add interlaced field mode to platform data
->>
->>
->> I'm able to configure with media-ctl:
->>
->> media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
->> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
->> media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
->> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
->> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
->>
->> But
->> ./yavta -f UYVY -s 720x525 -n 4 --capture=4 -F /dev/video4
->>
->> sleeps after
->> ...
->> Buffer 1 mapped at address 0x4021d000.
->> length: 756000 offset: 1515520
->> Buffer 2 mapped at address 0x402d6000.
->> length: 756000 offset: 2273280
->> Buffer 3 mapped at address 0x4038f000.
->>
->> Anyone with the same issue??? This happens with every other v4l test app I used.
->> I can see data from TVP5151 but there are no interrupts in ISP.
->
-> You can try if this:
->
-> http://www.spinics.net/lists/linux-media/msg37795.html
->
-> makes it work.
+Hi Javier,
 
-Tried it but it's doesn't work for me.
+On Tuesday 04 October 2011 00:37:27 Javier Martinez Canillas wrote:
+> Hello,
+> 
+> Reading the last emails I understand that still isn't a consensus on
+> the way this has to be made. If it has to be implemented at the video
+> device node level or at the sub-device level. And if it has to be made
+> in kernel or user-space.
+> 
+> On Mon, Oct 3, 2011 at 11:56 PM, Mauro Carvalho Chehab wrote:
+> > Em 03-10-2011 18:44, Laurent Pinchart escreveu:
+> >> On Monday 03 October 2011 21:16:45 Mauro Carvalho Chehab wrote:
+> >>> Em 03-10-2011 08:53, Laurent Pinchart escreveu:
+> >>>> On Monday 03 October 2011 11:53:44 Javier Martinez Canillas wrote:
 
-When yavta calls VIDIOC_DQBUF I'm stuck here:
-omap3isp_video_queue_dqbuf() -> isp_video_buffer_wait()
-"Wait for a buffer to be ready" with O_NONBLOCK
+[snip]
 
-Btw my kernel is 2.6.35 but ISP and V4L are taken from
-omap3isp-omap3isp-yuv and according ISP/TVP register settings
-everything should be OK...
+> >> With the OMAP3 ISP, which is I believe what Javier was asking about, the
+> >> application will set the format on the OMAP3 ISP resizer input and
+> >> output pads to configure scaling.
+> 
+> Yes, that was my question about. But still is not clear to me if
+> configuring the ISP resizer input and output pads with different frame
+> sizes automatically means that I have to do the scale or this has to
+> be configured using a S_FMT ioctl to the /dev/video? node.
 
->
-> Enrico
->
+The resizer is completely controlled through the formats at its sink and 
+source pads. It will scale the image to achieve what is configured at its 
+source pad (with x1/4..x4 limits in the zoom ratio).
+
+> Basically what I don't know is when I have to modify the pipeline graph
+> inside the ISP driver and when this has to be made from user-space via MCF.
+
+The pipeline needs to be configured before you start video capture. This means 
+setting the links according to your use case, and configuring the formats on 
+pads. You will then be able to use a pure V4L2 application to capture video.
+
+> > The V4L2 API doesn't tell where a function like scaler will be
+> > implemented. So, it is fine to implement it at tvp5151 or at the omap3
+> > resizer, when a V4L2 call is sent.
+> 
+> I don't think I can do the cropping and scaling in the tvp5151 driver
+> since this is a dumb device, it only spits bytes via its parallel
+> interface. The actual buffer is inside the ISP.
+
+Cropping might be possible (I'm not too familiar with the tvp5151), but 
+scaling indeed isn't. That doesn't matter much though.
+
+-- 
+Regards,
+
+Laurent Pinchart
