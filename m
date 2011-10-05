@@ -1,84 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:56569 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754225Ab1JSMkm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Oct 2011 08:40:42 -0400
-Received: by gyb13 with SMTP id 13so1594627gyb.19
-        for <linux-media@vger.kernel.org>; Wed, 19 Oct 2011 05:40:41 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:29008 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934402Ab1JETS2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Oct 2011 15:18:28 -0400
+Message-ID: <4E8CAD7E.8020102@redhat.com>
+Date: Wed, 05 Oct 2011 16:18:22 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CAFYgh7yO7Cizqxms0ZbBEvypHSUPayAwhviNuFuzatYMkW-4gw@mail.gmail.com>
-References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com>
-	<CA+2YH7voGzNzxcdFCAissTtn_-NAL=_jfiOS8kia9m-=XqwOig@mail.gmail.com>
-	<CAFYgh7zzTKT9XHri3seEKDhbMu0xYM=XahjhWU3Wbhj-1U6dhQ@mail.gmail.com>
-	<CA+2YH7szWsvzZ7FwL0v99tURrB5qLeR-+ud2cJaRRj0d4HzKaw@mail.gmail.com>
-	<CAFYgh7yO7Cizqxms0ZbBEvypHSUPayAwhviNuFuzatYMkW-4gw@mail.gmail.com>
-Date: Wed, 19 Oct 2011 14:40:41 +0200
-Message-ID: <CA+2YH7vNnTk_AZd4m=AUO8z8XcMuu5x_wYhNPX4tALY4JOCyeQ@mail.gmail.com>
-Subject: Re: omap3isp: BT.656 support
-From: Enrico <ebutera@users.berlios.de>
-To: Boris Todorov <boris.st.todorov@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Will Milspec <will.milspec@gmail.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: fm player for v4l2
+References: <CANut7vBzVpOdqKHxWeZbV1r+9cfBJ3r01i6LKFCoTCTeu55Zpg@mail.gmail.com> <CAGoCfiyNekcUPM_pCn2Y0mf3tMMd=1nWJveP8DBibd53nZ7vJA@mail.gmail.com> <CANut7vAxNB3quqQbt-kHMVHxdvMy_p+woxNXMTS+wx9x=+3rnA@mail.gmail.com>
+In-Reply-To: <CANut7vAxNB3quqQbt-kHMVHxdvMy_p+woxNXMTS+wx9x=+3rnA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 19, 2011 at 11:03 AM, Boris Todorov
-<boris.st.todorov@gmail.com> wrote:
-> Here is my log:
-> [   24.683685] omap3isp omap3isp: -------------CCDC Register dump-------------
-> [   24.683685] omap3isp omap3isp: ###CCDC PCR=0x00000000
-> [   24.683685] omap3isp omap3isp: ###CCDC SYN_MODE=0x00032f80
-> [   24.683715] omap3isp omap3isp: ###CCDC HD_VD_WID=0x00000000
-> [   24.683715] omap3isp omap3isp: ###CCDC PIX_LINES=0x00000000
-> [   24.683746] omap3isp omap3isp: ###CCDC HORZ_INFO=0x0000059f
-> [   24.683746] omap3isp omap3isp: ###CCDC VERT_START=0x00000000
-> [   24.683746] omap3isp omap3isp: ###CCDC VERT_LINES=0x00000105
-> [   24.683776] omap3isp omap3isp: ###CCDC CULLING=0xffff00ff
-> [   24.683776] omap3isp omap3isp: ###CCDC HSIZE_OFF=0x000005a0
-> [   24.683776] omap3isp omap3isp: ###CCDC SDOFST=0x00000249
-> [   24.683807] omap3isp omap3isp: ###CCDC SDR_ADDR=0x00001000
-> [   24.683807] omap3isp omap3isp: ###CCDC CLAMP=0x00000010
-> [   24.683807] omap3isp omap3isp: ###CCDC DCSUB=0x00000000
-> [   24.683837] omap3isp omap3isp: ###CCDC COLPTN=0x00000000
-> [   24.683837] omap3isp omap3isp: ###CCDC BLKCMP=0x00000000
-> [   24.683837] omap3isp omap3isp: ###CCDC FPC=0x00000000
-> [   24.683868] omap3isp omap3isp: ###CCDC FPC_ADDR=0x00000000
-> [   24.683868] omap3isp omap3isp: ###CCDC VDINT=0x01040000
-> [   24.683868] omap3isp omap3isp: ###CCDC ALAW=0x00000004
-> [   24.683898] omap3isp omap3isp: ###CCDC REC656IF=0x00000003
-> [   24.683898] omap3isp omap3isp: ###CCDC CFG=0x00008800
-> [   24.683898] omap3isp omap3isp: ###CCDC FMTCFG=0x00006000
-> [   24.683929] omap3isp omap3isp: ###CCDC FMT_HORZ=0x000002d0
-> [   24.683929] omap3isp omap3isp: ###CCDC FMT_VERT=0x0000020d
-> [   24.683929] omap3isp omap3isp: ###CCDC PRGEVEN0=0x00000000
-> [   24.683959] omap3isp omap3isp: ###CCDC PRGEVEN1=0x00000000
-> [   24.683959] omap3isp omap3isp: ###CCDC PRGODD0=0x00000000
-> [   24.683959] omap3isp omap3isp: ###CCDC PRGODD1=0x00000000
-> [   24.683990] omap3isp omap3isp: ###CCDC VP_OUT=0x04182d00
-> [   24.683990] omap3isp omap3isp: ###CCDC LSC_CONFIG=0x00006600
-> [   24.683990] omap3isp omap3isp: ###CCDC LSC_INITIAL=0x00000000
-> [   24.684020] omap3isp omap3isp: ###CCDC LSC_TABLE_BASE=0x00000000
-> [   24.684020] omap3isp omap3isp: ###CCDC LSC_TABLE_OFFSET=0x00000000
-> [   24.684051] omap3isp omap3isp: --------------------------------------------
+Em 05-10-2011 16:05, Will Milspec escreveu:
+> Thanks for the summary.
 >
-> This is with:
+> Any V4L2 fm-card app's working out there?
+
+xawtv radio application works. Also, gnomeradio (at least, the one shipped
+on Fedora - not sure if the V4L2 port were merged back upstream).
+
+fmtools version 2 says:
+
+2.0:
+
+Sat Dec 12 21:18:52 PST 2009 / Ben Pfaff <blp@cs.stanford.edu>
+
+- Rewrite to use video4linux2 API.
+
+and a grep on its source code shows only V4L2 API ioctl's. So, all you
+need is probably to upgrade it to a newer version.
+
 >
-> .data_lane_shift = 0,
-> .clk_pol             = 0,
-> .hs_pol             = 0,
-> .vs_pol             = 0,
-> .data_pol              = 0,
-> .fldmode           = 1,
-> .bt656               = 1,
+> Also, I apologize in advance for the size of my v4l-info section in
+> the email. I didn't realize its size until after i emailed.
 >
-> and the above mentioned media-ctl settings
+>
+> will
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
->From a quick look It seems ok (apart ALAW that maybe should be 0).
-
-One thing to check: before loading omap3-isp kernel module you must
-manually load iommu2, if you don't it will automatically load only
-iommu and it will not work
-
-Enrico
