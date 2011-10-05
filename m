@@ -1,45 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45470 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934146Ab1J3Pm3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Oct 2011 11:42:29 -0400
-Message-ID: <4EAD7061.3020007@iki.fi>
-Date: Sun, 30 Oct 2011 17:42:25 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:58100 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935524Ab1JEXUR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 19:20:17 -0400
+Date: Thu, 6 Oct 2011 02:20:13 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Javier Martinez Canillas <martinez.javier@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Enrico <ebutera@users.berlios.de>,
+	Gary Thomas <gary@mlbassoc.com>
+Subject: Re: [PATCH 3/3] [media] tvp5150: Migrate to media-controller
+ framework and add video format detection
+Message-ID: <20111005232013.GD8614@valkosipuli.localdomain>
+References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com>
+ <CAAwP0s0bTcUPvkVT-aB2EKskS_60CdW4P3orQLvSJMMkEWBpqw@mail.gmail.com>
+ <4E8A07A6.3030600@infradead.org>
+ <201110032339.31549.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: James <bjlockie@lockie.ca>
-CC: linux-media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: femon patch for dB
-References: <4EAB342F.2020008@lockie.ca>
-In-Reply-To: <4EAB342F.2020008@lockie.ca>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201110032339.31549.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/29/2011 02:01 AM, James wrote:
-> I added a switch to femon so it displays signal and snr in dB.
->
-> The cx23885 driver for my Hauppauge WinTV-HVR1250 reports signal and snr
-> in dB.
->
-> http://lockie.ca/test/femon.patch.bz2
+On Mon, Oct 03, 2011 at 11:39:31PM +0200, Laurent Pinchart wrote:
+> Sorry ? We already have format setting at the pad level, and that's used by 
+> drivers and applications. It's one key feature of the V4L2/MC API.
 
-from patch:
-human readable output: (signal: 0-65335, snr: 1/256 increments)\n"
-human readable output: (signal and snr in .1 dB increments)\n"
+A tiny additional note: this feature is actuall necessary since e.g. OMAP 3
+ISP CCDC provides images of different size at different outputs; one to
+memory and one to another ISP block.
 
-You should take look to demod drivers and check what those are 
-returning. I have strong feeling that most drivers returns SNR as 10xdB. 
-And SS as 0-0xffff. I think there is good consensus of SNR unit, but for 
-SS it is not so clear. For my drivers I have used SNR 10xdB and SS 
-0-0xffff. That's why, giving only those two alternatives is not 
-suitable. Maybe it is better to set own param for SNR and SS?
-
-Devin did some research about SNR long time back:
-http://www.devinheitmueller.com/snr.txt
-
-regards
-Antti
 -- 
-http://palosaari.fi/
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
