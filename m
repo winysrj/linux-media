@@ -1,51 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:46243 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754174Ab1JFCjP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 22:39:15 -0400
-Received: by iakk32 with SMTP id k32so2455955iak.19
-        for <linux-media@vger.kernel.org>; Wed, 05 Oct 2011 19:39:14 -0700 (PDT)
+Received: from gateway06.websitewelcome.com ([67.18.52.14]:57949 "HELO
+	gateway06.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S933897Ab1JETIa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Oct 2011 15:08:30 -0400
+From: "Charlie X. Liu" <charlie@sensoray.com>
+To: "'LD'" <loycfd@tin.it>, <linux-media@vger.kernel.org>
+References: <4E8C3109.7020709@tin.it>
+In-Reply-To: <4E8C3109.7020709@tin.it>
+Subject: RE: request information
+Date: Wed, 5 Oct 2011 11:51:26 -0700
+Message-ID: <004b01cc838f$c9745c70$5c5d1550$@com>
 MIME-Version: 1.0
-In-Reply-To: <CAL9G6WXX2eGmoT+ozv1F0JQdSV5JPwbB0vn70UL+ghgkLGsYQg@mail.gmail.com>
-References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
-	<CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
-	<CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
-	<4e8b8099.95d1e30a.4bee.0501@mx.google.com>
-	<CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
-	<CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
-	<CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
-	<CAL9G6WXX2eGmoT+ozv1F0JQdSV5JPwbB0vn70UL+ghgkLGsYQg@mail.gmail.com>
-Date: Thu, 6 Oct 2011 13:39:14 +1100
-Message-ID: <CAATJ+fve_qhaeCJuaJPva_2K=2PxF61_3aFVomZm4XsAEt8MaA@mail.gmail.com>
-Subject: Re: [PATCH] af9013 frontend tuner bus lock
-From: Jason Hecker <jwhecker@gmail.com>
-To: Josu Lazkano <josu.lazkano@gmail.com>
-Cc: Malcolm Priestley <tvboxspy@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> http://dl.dropbox.com/u/1541853/VID_20111006_004447.3gp
+Check your board and CARDLIST.tuner (
+http://www.mjmwired.net/kernel/Documentation/video4linux/CARDLIST.tuner ),
+see if you can find an appropriate tuner number, tuner=??
 
-That looks very familiar!  Does it occur on tuner A or B?
 
-> I get this I2C messages:
-> # tail -f /var/log/messages
-> Oct  5 20:16:44 htpc kernel: [  534.168957] af9013: I2C read failed reg:d330
+-----Original Message-----
+From: linux-media-owner@vger.kernel.org
+[mailto:linux-media-owner@vger.kernel.org] On Behalf Of LD
+Sent: Wednesday, October 05, 2011 3:27 AM
+To: linux-media@vger.kernel.org
+Subject: RE.request information
 
-As far as I know I never had any such messages.  Maybe though the
-debugging isn't enabled properly.
+Thanks for the reply.
 
-> There are lots of ber and unc bits, I have connected the TV to the
-> same wire and there is a good signal.
+As suggested in the possible numbers of cards, I found the number (card 
+= 174) which allows the card to scan for TV frequencies.
+Unfortunately the scan does not finish successfully, because it also 
+needs the identification of the tuner. Have suggestions for the number 
+of tuners.
+Waiting for your suggestion for the number of tuners to try, I would 
+like to write for confirmation of ASUSTeK (Device [1043:8188]) have an 
+address where I can write.
 
-Yes, your TV might have a better receiver though - I have the same
-problem, if my TV decoding is OK but the signal is weak then my DVB
-cards have problems.  I have solved this signal problem by using
-quad-shield cable and F-connectors and proper metal can splitters so
-now everything gets a good signal.  I am pretty sure my issues are not
-signal related because Tuner A is fine until tuner B is enabled and
-tuner B always records a very low error signal (usually not even one
-visible error).
+Thank you for the answer
+
+LD
+
+Il 03/10/2011 20:50, Charlie X. Liu ha scritto:
+> Checking in the CARDLIST.saa7134 (
+> http://www.mjmwired.net/kernel/Documentation/video4linux/CARDLIST.saa7134 
+> ),
+> sounds, it (Device [1043:8188]) is not in the CARDLIST yet. Then, you may
+> check with ASUSTeK and see which one in the CARDLIST is closer to it. 
+> Like:
+>
+> 78  ->  ASUSTeK P7131 Dual                       [1043:4862]
+> 112 ->  ASUSTeK P7131 Hybrid                     [1043:4876]
+> 146 ->  ASUSTeK P7131 Analog
+> ..
+> ..
+> 174 ->  Asus Europa Hybrid OEM                   [1043:4847]
+>
+>
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org
+> [mailto:linux-media-owner@vger.kernel.org] On Behalf Of LD
+> Sent: Sunday, October 02, 2011 7:47 AM
+> To: linux-media@vger.kernel.org
+> Subject: request information
+>
+> I would like to know which firmware and drivers are helpful to install
+> and set this type of card:
+>
+> Multimedia controller [0480]: Philips Semiconductors
+> SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d0)
+> Subsystem: ASUSTeK Computer Inc. Device [1043:8188]
+> Control: I/O- Mem + BusMaster +
+> SpecCycle-MemWINV-VGASnoop-ParErr-Stepping-SERR-FastB2B-DisINTx-
+> Status: Cap + 66MHz-UDF-FastB2B + ParErr-DEVSEL = medium>
+> TAbort-<TAbort-<MAbort->  SERR-<PERR-intX-
+> Latency: 64 (21000ns min, 8000ns max)
+> Interrupt: pin A routed to IRQ 23
+> Region 0: Memory at dbedb800 (32-bit, non-prefetchable) [size = 2K]
+> Capabilities:<access denied>
+> Kernel driver in use: saa7134
+> Kernel modules: saa7134
+>
+> Thank you for the answer
+>
+> LD
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
