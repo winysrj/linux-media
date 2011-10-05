@@ -1,30 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:46142 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751437Ab1JKNmC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Oct 2011 09:42:02 -0400
-Message-ID: <4E9447A9.2020005@mlbassoc.com>
-Date: Tue, 11 Oct 2011 07:42:01 -0600
-From: Gary Thomas <gary@mlbassoc.com>
+Received: from eth1683.vic.adsl.internode.on.net ([150.101.217.146]:36310 "EHLO
+	greyinnovation.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933922Ab1JECuQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Oct 2011 22:50:16 -0400
+Content-class: urn:content-classes:message
+Subject: RE: Help with omap3isp resizing
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: OMAP3 ISP with digital sensor
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+Date: Wed, 5 Oct 2011 13:51:29 +1100
+Message-ID: <51A4F524D105AA4C93787F33E2C90E62EE5350@greysvr02.GreyInnovation.local>
+In-Reply-To: <201110041500.56885.laurent.pinchart@ideasonboard.com>
+References: <51A4F524D105AA4C93787F33E2C90E62EE5203@greysvr02.GreyInnovation.local> <201110041350.33441.laurent.pinchart@ideasonboard.com> <1317729252.8358.54.camel@iivanov-desktop> <201110041500.56885.laurent.pinchart@ideasonboard.com>
+From: "Paul Chiha" <paul.chiha@greyinnovation.com>
+To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Ivan T. Ivanov" <iivanov@mm-sol.com>
+Cc: <linux-media@vger.kernel.org>,
+	"Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent,
-
-Do you have an example of how to use a digital sensor, in particular
-the MT9P031, with the OMAP3 ISP?
-
-Thanks
-
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+T24gVHVlLCBPY3QgMDQsIDIwMTEgYXQgMDM6MDA6NTVQTSArMDIwMCwgTGF1cmVudCBQaW5jaGFy
+dCB3cm90ZToNCj4gSGkgSXZhbiwNCj4gDQo+IE9uIFR1ZXNkYXkgMDQgT2N0b2JlciAyMDExIDEz
+OjU0OjEyIEl2YW4gVC4gSXZhbm92IHdyb3RlOg0KPiA+IE9uIFR1ZSwgMjAxMS0xMC0wNCBhdCAx
+Mzo1MCArMDIwMCwgTGF1cmVudCBQaW5jaGFydCB3cm90ZToNCj4gPiA+IE9uIFR1ZXNkYXkgMDQg
+T2N0b2JlciAyMDExIDEzOjQ2OjMyIEl2YW4gVC4gSXZhbm92IHdyb3RlOg0KPiA+ID4gPiBPbiBU
+dWUsIDIwMTEtMTAtMDQgYXQgMTM6MDMgKzAyMDAsIExhdXJlbnQgUGluY2hhcnQgd3JvdGU6DQo+
+ID4gPiA+ID4gT24gTW9uZGF5IDAzIE9jdG9iZXIgMjAxMSAwNzo1MTozNCBQYXVsIENoaWhhIHdy
+b3RlOg0KPiA+ID4gPiA+ID4gSGksDQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gSSd2ZSBiZWVu
+IGhhdmluZyB0cm91YmxlIGdldHRpbmcgdGhlIHJlc2l6ZXIgdG8gd29yaywgYW5kDQo+ID4gPiA+
+ID4gPiBtYWlubHkgYmVjYXVzZSBJIGRvbid0IGtub3cgaG93IHRvIGNvcnJlY3RseSBjb25maWd1
+cmUgaXQuDQo+ID4gPiA+ID4gPiBJJ20gdXNpbmcga2VybmVsIDIuNi4zNyBvbiBhcm0gRE0zN3gg
+Ym9hcmQuDQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gSSd2ZSBiZWVuIGFibGUgdG8gY29uZmln
+dXJlIHRoZSBtZWRpYSBsaW5rcw0KPiA+ID4gPiA+ID4gc2Vuc29yPT5jY2RjPT5jY2RjX291dHB1
+dCAoYWxsIHdpdGggNjQweDQ4MA0KPiA+ID4gPiA+ID4gVjRMMl9NQlVTX0ZNVF9VWVZZOF8yWDgp
+IGFuZCBWSURJT0NfU1RSRUFNT04gd29ya3Mgb24NCj4gL2Rldi92aWRlbzIuDQo+ID4gPiA+ID4g
+PiBCdXQgaWYgSSBjb25maWd1cmUgbWVkaWEgbGlua3MNCj4gPiA+ID4gPiA+IHNlbnNvcj0+Y2Nk
+Yz0+cmVzaXplcj0+cmVzaXplcl9vdXRwdXQsIHRoZW4gVklESU9DX1NUUkVBTU9ODQo+ID4gPiA+
+ID4gPiBmYWlscyBvbiAvZGV2L3ZpZGVvNiAod2l0aCBwaXhlbGZvcm1hdCBtaXNtYXRjaCkuIEkg
+bm90aWNlZA0KPiA+ID4gPiA+ID4gdGhhdCB0aGUgcmVzaXplciBkcml2ZXIgb25seSBzdXBwb3J0
+cw0KPiA+ID4gPiA+ID4gVjRMMl9NQlVTX0ZNVF9VWVZZOF8xWDE2ICYgVjRMMl9NQlVTX0ZNVF9Z
+VVlWOF8xWDE2LCBzbyBJDQo+ID4gPiA+ID4gPiB0cmllZCBhZ2FpbiB3aXRoIGFsbCB0aGUgbGlu
+a3Mgc2V0IHRvIFY0TDJfTUJVU19GTVRfVVlWWThfMVgxNg0KPiA+ID4gPiA+ID4gaW5zdGVhZCwg
+YnV0IHRoZW4gaW9jdGwgVklESU9DX1NVQkRFVl9TX0ZNVCBmYWlscyBvbg0KPiA+ID4gPiA+ID4g
+L2Rldi92NGwtc3ViZGV2OCwgYmVjYXVzZSB0aGUgc2Vuc29yIGRyaXZlciBkb2Vzbid0IHN1cHBv
+cnQgMVgxNi4NCj4gPiA+ID4gPiA+IFRoZW4gSSB0cmllZCB1c2luZyBWNEwyX01CVVNfRk1UX1VZ
+Vlk4XzJYOCBmb3IgdGhlIHNlbnNvciBhbmQNCj4gPiA+ID4gPiA+IFY0TDJfTUJVU19GTVRfVVlW
+WThfMVgxNiBmb3IgdGhlIHJlc2l6ZXIsIGJ1dCBpdCBlaXRoZXIgZmFpbGVkDQo+ID4gPiA+ID4g
+PiB3aXRoIHBpeGVsZm9ybWF0IG1pc21hdGNoIG9yIGxpbmsgcGlwZWxpbmUgbWlzbWF0Y2gsIGRl
+cGVuZGluZw0KPiA+ID4gPiA+ID4gb24gd2hpY2ggcGFkcyB3ZXJlIGRpZmZlcmVudC4NCj4gPiA+
+ID4gPiA+DQo+ID4gPiA+ID4gPiBDYW4gc29tZW9uZSBwbGVhc2UgdGVsbCBtZSB3aGF0IEkgbmVl
+ZCB0byBkbyB0byBtYWtlIHRoaXMgd29yaz8NCj4gPiA+ID4gPg0KPiA+ID4gPiA+IExvbmcgc3Rv
+cnkgc2hvcnQsIEkgZG9uJ3QgdGhpbmsgdGhhdCBwaXBlbGluZSBoYXMgZXZlciBiZWVuIHRlc3Rl
+ZC4NCj4gPiA+ID4gPiBJJ20gdW5mb3J0dW5hdGVseSBsYWNraW5nIGhhcmR3YXJlIHRvIHdvcmsg
+b24gdGhhdCwgYXMgbm9uZSBvZg0KPiA+ID4gPiA+IG15DQo+ID4gPiA+ID4gT01BUDMgaGFyZHdh
+cmUgaGFzIGEgWVVWIGlucHV0Lg0KPiA+ID4gPg0KPiA+ID4gPiBJZiBpIGFtIG5vdCBtaXN0YWtl
+biBjdXJyZW50bHkgcmVzaXplciBzdWIgZGV2aWNlIHN1cHBvcnRzIG9ubHk6DQo+ID4gPiA+DQo+
+ID4gPiA+IC8qIHJlc2l6ZXIgcGl4ZWwgZm9ybWF0cyAqLw0KPiA+ID4gPiBzdGF0aWMgY29uc3Qg
+dW5zaWduZWQgaW50IHJlc2l6ZXJfZm9ybWF0c1tdID0gew0KPiA+ID4gPg0KPiA+ID4gPiAJVjRM
+Ml9NQlVTX0ZNVF9VWVZZOF8xWDE2LA0KPiA+ID4gPiAJVjRMMl9NQlVTX0ZNVF9ZVVlWOF8xWDE2
+LA0KPiA+ID4gPg0KPiA+ID4gPiB9Ow0KPiA+ID4gPg0KPiA+ID4gPiBBZGRpbmcgc29tZXRoaW5n
+IGxpa2UgdGhpcyBbMV0gaW4gaXNwcmVzaXplci5jICBzaG91bGQgYWRkIHN1cHBvcnQNCj4gPiA+
+ID4gMlg4IGZvcm1hdHMuIENvbXBsZXRlbHkgdW50ZXN0ZWQgOi0pLg0KPiA+ID4gPg0KPiA+ID4g
+PiBSZWdhcmRzLA0KPiA+ID4gPiBpaXZhbm92DQo+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPiA+IFsx
+XQ0KPiA+ID4gPg0KPiA+ID4gPiBAQCAtMTMwNyw2ICsxMzExLDEwIEBAIHN0YXRpYyBpbnQgcmVz
+aXplcl9zX2Nyb3Aoc3RydWN0DQo+ID4gPiA+IHY0bDJfc3ViZGV2ICpzZCwgc3RydWN0IHY0bDJf
+c3ViZGV2X2ZoICpmaCwgc3RhdGljIGNvbnN0IHVuc2lnbmVkDQo+ID4gPiA+IGludCByZXNpemVy
+X2Zvcm1hdHNbXSA9IHsNCj4gPiA+ID4NCj4gPiA+ID4gIAlWNEwyX01CVVNfRk1UX1VZVlk4XzFY
+MTYsDQo+ID4gPiA+ICAJVjRMMl9NQlVTX0ZNVF9ZVVlWOF8xWDE2LA0KPiA+ID4gPg0KPiA+ID4g
+PiArCVY0TDJfTUJVU19GTVRfVVlWWThfMlg4LA0KPiA+ID4gPiArCVY0TDJfTUJVU19GTVRfVllV
+WThfMlg4LA0KPiA+ID4gPiArCVY0TDJfTUJVU19GTVRfWVVZVjhfMlg4LA0KPiA+ID4gPiArCVY0
+TDJfTUJVU19GTVRfWVZZVThfMlg4LA0KPiA+ID4gPg0KPiA+ID4gPiAgfTsNCj4gPiA+DQo+ID4g
+PiBJJ2QgcmF0aGVyIG1vZGlmeSBpc3BjY2RjLmMgdG8gb3V0cHV0IFY0TDJfTUJVU19GTVRfWVVZ
+VjhfMVgxNi4gV2hhdA0KPiA+ID4gZG8geW91IHRoaW5rID8NCj4gPg0KPiA+IEZvciBtZW1vcnkt
+PlJlc2l6ZXItPm1lbW9yeSB1c2UgY2FzZXMsIENDREMgaXMgbm8gaW52b2x2ZWQgaW4gcGlwZWxp
+bmUuDQo+IA0KPiBCdXQgdGhlIG9yaWdpbmFsIHBvc3RlciB3YW50cyB0byB1c2UgdGhlIHNlbnNv
+ciAtPiBjY2RjIC0+IHJlc2l6ZXIgLT4gcmVzaXplciBvdXRwdXQNCj4gcGlwZWxpbmUuDQo+IA0K
+PiA+IEFsc28gc2V2ZXJhbCBzZW5zb3IgZHJpdmVycyB0aGF0IGkgaGF2ZSBjaGVja2VkLCB1c3Vh
+bGx5IGRlZmluZSBpdHMNCj4gPiBvdXRwdXQgYXMgMlg4IG91dHB1dC4gSSB0aGluayBpcyBtb3Jl
+IG5hdHVyYWwgdG8gYWRkIDJYOCBzdXBwb3J0IHRvDQo+ID4gQ0NEQyBhbmQgUmVzaXplciBlbmdp
+bmVzIGluc3RlYWQgdG8gbW9kaWZ5aW5nIGV4aXRpbmcgZHJpdmVycy4NCj4gDQo+IFN1cmUsIHNl
+bnNvciBkcml2ZXJzIHNob3VsZCBub3QgYmUgbW9kaWZpZWQuIFdoYXQgSSB3YXMgdGFsa2luZyBh
+Ym91dCB3YXMgdG8NCj4gY29uZmlndXJlIHRoZSBwaXBlbGluZSBhcw0KPiANCj4gc2Vuc29yOjAg
+W1lVWVY4XzJYOF0sIENDREM6MCBbWVVZVjhfMlg4XSwgQ0NEQzoxIFtZVVlWOF8xWDE2XSwgcmVz
+aXplcjowDQo+IFtZVVlWOF8xWDE2XQ0KPiANCj4gLS0NCj4gUmVnYXJkcywNCj4gDQo+IExhdXJl
+bnQgUGluY2hhcnQNCg0KVGhhbmtzIGZvciB5b3VyIGhlbHAuDQpJJ3ZlIHVwZGF0ZWQgaXNwY2Nk
+Yy5jIHRvIHN1cHBvcnQgdGhlIF8xWDE2IGNvZGVzIGFuZCB0aGUgcGlwZWxpbmUgc2VlbXMgdG8g
+d29yayBub3cuDQpIb3dldmVyLCBJIG5lZWRlZCB0byB0YWtlIG91dCB0aGUgbWVtY3B5IGluIGNj
+ZGNfdHJ5X2Zvcm1hdCgpLCBiZWNhdXNlIG90aGVyd2lzZSBwYWQgMCBmb3JtYXQgd2FzIGJlaW5n
+IGNvcGllZCB0byBwYWQgMSBvciAyLCByZWdhcmRsZXNzIG9mIHdoYXQgcGFkIDEgb3IgMiB3ZXJl
+IGJlaW5nIHNldCB0by4NCkknbSBub3Qgc3VyZSB3aHkgaXQgd2FzIGRvbmUgdGhhdCB3YXkuICBJ
+IHRoaW5rIGl0J3MgYmV0dGVyIHRoYXQgdGhlIGdpdmVuIGNvZGUgZ2V0cyBjaGVja2VkIHRvIHNl
+ZSBpZiBpdCdzIGluIHRoZSBsaXN0IGFuZCBpZiBzbyB1c2UgaXQuICBEbyB5b3Uga25vdyBvZiBh
+bnkgdmFsaWQgcmVhc29uIHdoeSB0aGlzIGNvcHkgaXMgZG9uZT8NCg0KUGF1bA0K
