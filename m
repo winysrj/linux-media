@@ -1,55 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:34449 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932245Ab1J2KWd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Oct 2011 06:22:33 -0400
-Received: by faan17 with SMTP id n17so4282724faa.19
-        for <linux-media@vger.kernel.org>; Sat, 29 Oct 2011 03:22:32 -0700 (PDT)
-Message-ID: <4EABD3E2.3070302@gmail.com>
-Date: Sat, 29 Oct 2011 12:22:26 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Piotr Chmura <chmooreck@poczta.onet.pl>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Greg KH <gregkh@suse.de>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
-Subject: Re: [RESEND PATCH 4/14] staging/media/as102: checkpatch fixes
-References: <4E7F1FB5.5030803@gmail.com>	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>	<4E7FF0A0.7060004@gmail.com>	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>	<20110927094409.7a5fcd5a@stein>	<20110927174307.GD24197@suse.de>	<20110927213300.6893677a@stein>	<4E999733.2010802@poczta.onet.pl>	<4E99F2FC.5030200@poczta.onet.pl>	<20111016105731.09d66f03@stein>	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>	<4E9ADFAE.8050208@redhat.com>	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>	<20111018111151.635ac39e.chmooreck@poczta.onet.pl> <20111018215146.1fbc223f@darkstar>
-In-Reply-To: <20111018215146.1fbc223f@darkstar>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:57736 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757872Ab1JEVCB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 17:02:01 -0400
+Date: Wed, 5 Oct 2011 14:01:56 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: viro@zeniv.linux.org.uk, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv4 PATCH 0/6]: add poll_requested_events() function
+Message-Id: <20111005140156.70ed0329.akpm@linux-foundation.org>
+In-Reply-To: <201110050947.09488.hverkuil@xs4all.nl>
+References: <1317282252-8290-1-git-send-email-hverkuil@xs4all.nl>
+	<201110050947.09488.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/18/2011 09:51 PM, Piotr Chmura wrote:
-> Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
-> 
-> Original source and comment:
-> # HG changeset patch
-> # User Devin Heitmueller<dheitmueller@kernellabs.com>
-> # Date 1267318701 18000
-> # Node ID 69c8f5172790784738bcc18f8301919ef3d5373f
-> # Parent  b91e96a07bee27c1d421b4c3702e33ee8075de83
-> as102: checkpatch fixes
-> 
-> From: Devin Heitmueller<dheitmueller@kernellabs.com>
-> 
-> Fix make checkpatch issues reported against as10x_cmd.c.
-> 
-> Priority: normal
-> 
-> Signed-off-by: Devin Heitmueller<dheitmueller@kernellabs.com>
-> Signed-off-by: Piotr Chmura<chmooreck@poczta.onet.pl>
+On Wed, 5 Oct 2011 09:47:09 +0200
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-Hi Piotr,
+> On Thursday 29 September 2011 09:44:06 Hans Verkuil wrote:
+> > This is the fourth version of this patch series, incorporating the comments
+> > from Andrew Morton: I've split up the multiple-assignment line and added a
+> > comment explaining the purpose of the new function in poll.h.
+> > 
+> > It's also rebased to the current staging/for_v3.2 branch of the linux-media
+> > tree.
+> > 
+> > There are no other changes compared to the RFCv3 patches.
+> > 
+> > I'd very much like to get an Acked-by (or additional comments) from Al or
+> > Andrew! This patch series really should go into v3.2 which is getting
+> > close.
+> > 
+> > Normally I would have posted this v4 3 weeks ago, but due to Real Life
+> > interference in the past few weeks I was unable to. But I'm back, and this
+> > is currently the highest priority for me.
+> 
+> This is becoming annoying. Andrew, Al, can one of you please Ack this patch or 
+> review it? We *really* need this enhancement for our v4l drivers. I've been 
+> asking for an ack (or review) for ages and for the most part I got radio 
+> silence. Jon Corbet has already reviewed the code in early July (!), so I 
+> don't see why this is taking so long.
+> 
+> Mauro needs an ack from one of you before he can merge it.
+> 
 
-starting from this patch the series doesn't apply cleanly to
-staging/for_v3.2 tree. Which branch is it based on ?
-
----
-Thanks,
-Sylwester
+It looks OK to me, but obviously it would be better if Al were to go
+through it also.  If he doesn't then there isn't a lot we can do about
+it - I suggest that you proceed with the plan to merge it into -rc1.
