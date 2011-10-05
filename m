@@ -1,78 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:40662 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759145Ab1JFVOA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 17:14:00 -0400
-Received: by wwf22 with SMTP id 22so4897282wwf.1
-        for <linux-media@vger.kernel.org>; Thu, 06 Oct 2011 14:13:59 -0700 (PDT)
-Message-ID: <4e8e1a15.8dcfe30a.28b8.243e@mx.google.com>
-Subject: Re: [PATCH] af9013 frontend tuner bus lock
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Josu Lazkano <josu.lazkano@gmail.com>
-Cc: Jason Hecker <jwhecker@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Date: Thu, 06 Oct 2011 22:13:51 +0100
-In-Reply-To: <CAL9G6WXX2eGmoT+ozv1F0JQdSV5JPwbB0vn70UL+ghgkLGsYQg@mail.gmail.com>
-References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
-	 <CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
-	 <CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
-	 <4e8b8099.95d1e30a.4bee.0501@mx.google.com>
-	 <CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
-	 <CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
-	 <CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
-	 <CAL9G6WXX2eGmoT+ozv1F0JQdSV5JPwbB0vn70UL+ghgkLGsYQg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:61949 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757895Ab1JEHrO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 03:47:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: viro@zeniv.linux.org.uk, Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [RFCv4 PATCH 0/6]: add poll_requested_events() function
+Date: Wed, 5 Oct 2011 09:47:09 +0200
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <1317282252-8290-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1317282252-8290-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+Message-Id: <201110050947.09488.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2011-10-06 at 01:12 +0200, Josu Lazkano wrote:
-> 2011/10/6 Jason Hecker <jwhecker@gmail.com>:
-> >> http://palosaari.fi/linux/v4l-dvb/firmware/af9015/5.1.0.0/dvb-usb-af9015.fw
-> >
-> > 5.1?  OK, I might eventually try that one too.
-> >
-
-> Oct  5 21:40:46 htpc kernel: [ 5576.241897] af9013: I2C read failed reg:d2e6
-> Oct  5 23:07:33 htpc kernel: [10782.852522] af9013: I2C read failed reg:d2e6
-> Oct  5 23:20:11 htpc kernel: [11540.824515] af9013: I2C read failed reg:d07c
-> Oct  6 00:11:41 htpc kernel: [14631.122384] af9013: I2C read failed reg:d2e6
-> Oct  6 00:26:13 htpc kernel: [15502.900549] af9013: I2C read failed reg:d2e6
-> Oct  6 00:39:58 htpc kernel: [16328.273015] af9013: I2C read failed reg:d330
+On Thursday 29 September 2011 09:44:06 Hans Verkuil wrote:
+> This is the fourth version of this patch series, incorporating the comments
+> from Andrew Morton: I've split up the multiple-assignment line and added a
+> comment explaining the purpose of the new function in poll.h.
 > 
-> My signal is this:
+> It's also rebased to the current staging/for_v3.2 branch of the linux-media
+> tree.
 > 
-> (idle)
-> $ femon -H -a 4
-> FE: Afatech AF9013 DVB-T (DVBT)
-> status S     | signal  75% | snr   0% | ber 0 | unc 0 |
-> status S     | signal  75% | snr   0% | ber 0 | unc 0 |
-> status S     | signal  75% | snr   0% | ber 0 | unc 0 |
-> status S     | signal  75% | snr   0% | ber 0 | unc 0 |
-> status S     | signal  74% | snr   0% | ber 0 | unc 0 |
-> status S     | signal  74% | snr   0% | ber 0 | unc 0 |
+> There are no other changes compared to the RFCv3 patches.
 > 
-> (watching)
-> $ femon -H -a 5
-> FE: Afatech AF9013 DVB-T (DVBT)
-> status SCVYL | signal  74% | snr   0% | ber 142 | unc 319408 | FE_HAS_LOCK
-> status SCVYL | signal  74% | snr   0% | ber 142 | unc 319408 | FE_HAS_LOCK
-> status SCVYL | signal  74% | snr   0% | ber 31 | unc 319430 | FE_HAS_LOCK
-> status SCVYL | signal  74% | snr   0% | ber 31 | unc 319430 | FE_HAS_LOCK
-> status SCVYL | signal  74% | snr   0% | ber 56 | unc 319519 | FE_HAS_LOCK
-> status SCVYL | signal  74% | snr   0% | ber 0 | unc 319519 | FE_HAS_LOCK
-> status SCVYL | signal  74% | snr   0% | ber 0 | unc 319519 | FE_HAS_LOCK
+> I'd very much like to get an Acked-by (or additional comments) from Al or
+> Andrew! This patch series really should go into v3.2 which is getting
+> close.
 > 
-> There are lots of ber and unc bits, I have connected the TV to the
-> same wire and there is a good signal.
-Using femon bypasses the bus lock, so changes will have to be made to
-the patch.
+> Normally I would have posted this v4 3 weeks ago, but due to Real Life
+> interference in the past few weeks I was unable to. But I'm back, and this
+> is currently the highest priority for me.
 
-At the moment it looks like not much change.  Unless the corruption in
-the first frontend can be solved.
+This is becoming annoying. Andrew, Al, can one of you please Ack this patch or 
+review it? We *really* need this enhancement for our v4l drivers. I've been 
+asking for an ack (or review) for ages and for the most part I got radio 
+silence. Jon Corbet has already reviewed the code in early July (!), so I 
+don't see why this is taking so long.
 
-Regards
+Mauro needs an ack from one of you before he can merge it.
 
-Malcolm
+Regards,
 
+	Hans
