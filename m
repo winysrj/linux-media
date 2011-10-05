@@ -1,199 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog120.obsmtp.com ([207.126.144.149]:48475 "EHLO
-	eu1sys200aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752787Ab1JJMLw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Oct 2011 08:11:52 -0400
-Message-ID: <4E92E003.4060901@stericsson.com>
-Date: Mon, 10 Oct 2011 14:07:31 +0200
-From: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
+Received: from cantor2.suse.de ([195.135.220.15]:50272 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933898Ab1JEGPH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 02:15:07 -0400
+From: Oliver Neukum <oneukum@suse.de>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: serial device name for smart card reader that is integrated to Anysee DVB USB device
+Date: Wed, 5 Oct 2011 08:15:17 +0200
+Cc: Greg KH <greg@kroah.com>, linux-serial@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+	=?iso-8859-1?q?Bj=F8rn_Mork?= <bjorn@mork.no>,
+	"James Courtier-Dutton" <james.dutton@gmail.com>,
+	HoP <jpetrous@gmail.com>,
+	=?iso-8859-1?q?Istv=E1n_V=E1radi?= <ivaradi@gmail.com>
+References: <4E8B7901.2050700@iki.fi> <20111005045917.GB4700@kroah.com> <4E8BF21B.4010907@iki.fi>
+In-Reply-To: <4E8BF21B.4010907@iki.fi>
 MIME-Version: 1.0
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	<benjamin.gaignard@linaro.org>,
-	frq09524 <ludovic.barre@stericsson.com>,
-	<vincent.guittot@linaro.org>
-Subject: Re: [Linaro-mm-sig] [PATCHv16 0/9] Contiguous Memory Allocator
-References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
-In-Reply-To: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201110050815.17949.oneukum@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/06/2011 03:54 PM, Marek Szyprowski wrote:
-> Welcome everyone again,
->
-> Once again I decided to post an updated version of the Contiguous Memory
-> Allocator patches.
->
-> This version provides mainly a bugfix for a very rare issue that might
-> have changed migration type of the CMA page blocks resulting in dropping
-> CMA features from the affected page block and causing memory allocation
-> to fail. Also the issue reported by Dave Hansen has been fixed.
->
-> This version also introduces basic support for x86 architecture, what
-> allows wide testing on KVM/QEMU emulators and all common x86 boxes. I
-> hope this will result in wider testing, comments and easier merging to
-> mainline.
->
-> I've also dropped an examplary patch for s5p-fimc platform device
-> private memory declaration and added the one from real life. CMA device
-> private memory regions are defined for s5p-mfc device to let it allocate
-> buffers from two memory banks.
->
-> ARM integration code has not been changed since last version, it
-> provides implementation of all the ideas that has been discussed during
+Am Mittwoch, 5. Oktober 2011, 07:58:51 schrieb Antti Palosaari:
+> On 10/05/2011 07:59 AM, Greg KH wrote:
 
-Hello Marek,
+> > Why not just use the usb-serial core and then you get a ttyUSB* device
+> > node "for free"?  It also should provide a lot of the basic tty
+> > infrastructure and ring buffer logic all ready to use.
+> 
+> Since I don't see how I can access same platform data from DVB USB  and 
+> USB-serial driver (usb_set_intfdata). I asked that earlier, see: 
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg36027.html
 
-     We are currently testing CMA (v16) on Snowball platform.
-     This feature is very promising, thanks for pushing it!
+Yes, and I'll have to give you the same answer as then.
 
-     During our stress tests, we encountered some problems :
+But, Greg, Antti makes a very valid point here. The generic code assumes that
+it owns intfdata, that is you cannot use it as is for access to anything that lacks
+its own interface. But this is not a fatal flaw. We can alter the generic code to use
+an accessor function the driver can provide and make it default to get/set_intfdata
 
-     1) Contiguous allocation lockup:
-         When system RAM is full of Anon pages, if we try to allocate a 
-contiguous buffer greater than the min_free value, we face a 
-dma_alloc_from_contiguous lockup.
-         The expected result would be dma_alloc_from_contiguous() to fail.
-         The problem is reproduced systematically on our side.
+What do you think?
 
-     2) Contiguous allocation fail:
-         We have developed a small driver and a shell script to 
-allocate/release contiguous buffers.
-         Sometimes, dma_alloc_from_contiguous() fails to allocate the 
-contiguous buffer (about once every 30 runs).
-         We have 270MB Memory passed to the kernel in our configuration, 
-and the CMA pool is 90MB large.
-         In this setup, the overall memory is either free or full of 
-reclaimable pages.
-
-
-     For now, we didn't had time to investigate further theses problems.
-     Have you already faced this kind of issues?
-     Could someone testing CMA on other boards confirm/infirm theses 
-problems?
-
-Best regards,
-Maxime
-
-
-
-> Patches in this patchset:
->
->    mm: move some functions from memory_hotplug.c to page_isolation.c
->    mm: alloc_contig_freed_pages() added
->
->      Code "stolen" from Kamezawa.  The first patch just moves code
->      around and the second provide function for "allocates" already
->      freed memory.
->
->    mm: alloc_contig_range() added
->
->      This is what Kamezawa asked: a function that tries to migrate all
->      pages from given range and then use alloc_contig_freed_pages()
->      (defined by the previous commit) to allocate those pages.
->
->    mm: MIGRATE_CMA migration type added
->    mm: MIGRATE_CMA isolation functions added
->
->      Introduction of the new migratetype and support for it in CMA.
->      MIGRATE_CMA works similar to ZONE_MOVABLE expect almost any
->      memory range can be marked as one.
->
->    mm: cma: Contiguous Memory Allocator added
->
->      The code CMA code. Manages CMA contexts and performs memory
->      allocations.
->
->    X86: integrate CMA with DMA-mapping subsystem
->    ARM: integrate CMA with dma-mapping subsystem
->
->      Main clients of CMA framework. CMA serves as a alloc_pages()
->      replacement.
->
->    ARM: Samsung: use CMA for 2 memory banks for s5p-mfc device
->
->      Use CMA device private memory regions instead of custom solution
->      based on memblock_reserve() + dma_declare_coherent().
->
->
-> Patch summary:
->
-> KAMEZAWA Hiroyuki (2):
->    mm: move some functions from memory_hotplug.c to page_isolation.c
->    mm: alloc_contig_freed_pages() added
->
-> Marek Szyprowski (4):
->    drivers: add Contiguous Memory Allocator
->    ARM: integrate CMA with DMA-mapping subsystem
->    ARM: Samsung: use CMA for 2 memory banks for s5p-mfc device
->    X86: integrate CMA with DMA-mapping subsystem
->
-> Michal Nazarewicz (3):
->    mm: alloc_contig_range() added
->    mm: MIGRATE_CMA migration type added
->    mm: MIGRATE_CMA isolation functions added
->
->   arch/Kconfig                          |    3 +
->   arch/arm/Kconfig                      |    2 +
->   arch/arm/include/asm/dma-contiguous.h |   16 ++
->   arch/arm/include/asm/mach/map.h       |    1 +
->   arch/arm/mm/dma-mapping.c             |  362 +++++++++++++++++++++++++------
->   arch/arm/mm/init.c                    |    8 +
->   arch/arm/mm/mm.h                      |    3 +
->   arch/arm/mm/mmu.c                     |   29 ++-
->   arch/arm/plat-s5p/dev-mfc.c           |   51 +----
->   arch/x86/Kconfig                      |    1 +
->   arch/x86/include/asm/dma-contiguous.h |   13 +
->   arch/x86/include/asm/dma-mapping.h    |    4 +
->   arch/x86/kernel/pci-dma.c             |   18 ++-
->   arch/x86/kernel/pci-nommu.c           |    8 +-
->   arch/x86/kernel/setup.c               |    2 +
->   drivers/base/Kconfig                  |   79 +++++++
->   drivers/base/Makefile                 |    1 +
->   drivers/base/dma-contiguous.c         |  386 +++++++++++++++++++++++++++++++++
->   include/asm-generic/dma-contiguous.h  |   27 +++
->   include/linux/device.h                |    4 +
->   include/linux/dma-contiguous.h        |  106 +++++++++
->   include/linux/mmzone.h                |   57 +++++-
->   include/linux/page-isolation.h        |   53 ++++-
->   mm/Kconfig                            |    8 +-
->   mm/compaction.c                       |   10 +
->   mm/memory_hotplug.c                   |  111 ----------
->   mm/page_alloc.c                       |  317 +++++++++++++++++++++++++--
->   mm/page_isolation.c                   |  131 +++++++++++-
->   28 files changed, 1522 insertions(+), 289 deletions(-)
->   create mode 100644 arch/arm/include/asm/dma-contiguous.h
->   create mode 100644 arch/x86/include/asm/dma-contiguous.h
->   create mode 100644 drivers/base/dma-contiguous.c
->   create mode 100644 include/asm-generic/dma-contiguous.h
->   create mode 100644 include/linux/dma-contiguous.h
->
-> --
-> 1.7.1.569.g6f426
->
->
-> _______________________________________________
-> Linaro-mm-sig mailing list
-> Linaro-mm-sig@lists.linaro.org
-> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
-
+	Regards
+		Oliver
+-- 
+- - - 
+SUSE LINUX Products GmbH, GF: Jeff Hawn, Jennifer Guild, Felix Imendörffer, HRB 16746 (AG Nürnberg) 
+Maxfeldstraße 5                         
+90409 Nürnberg 
+Germany 
+- - - 
