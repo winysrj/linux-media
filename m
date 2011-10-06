@@ -1,100 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:62036 "EHLO
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:33543 "EHLO
 	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752250Ab1JJURp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Oct 2011 16:17:45 -0400
-Received: by gyg10 with SMTP id 10so5712724gyg.19
-        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 13:17:45 -0700 (PDT)
-Message-ID: <4E9352E5.5080209@gmail.com>
-Date: Mon, 10 Oct 2011 15:17:41 -0500
-From: Patrick Dickey <pdickeybeta@gmail.com>
+	with ESMTP id S932374Ab1JFHvc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 03:51:32 -0400
+Received: by gyg10 with SMTP id 10so2327758gyg.19
+        for <linux-media@vger.kernel.org>; Thu, 06 Oct 2011 00:51:32 -0700 (PDT)
 MIME-Version: 1.0
-To: Allan Macdonald <allan.w.macdonald@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Cannot configure second Kodicom 4400R
-References: <CALVOWFPrcYuQ-A=Td7AQMj02e96VNg_z2nUOmTvwKyZC_yUmLg@mail.gmail.com>
-In-Reply-To: <CALVOWFPrcYuQ-A=Td7AQMj02e96VNg_z2nUOmTvwKyZC_yUmLg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAAwP0s0Z+EaRfY_9c0QLm0ZpyfG5Dy1qb9pFq=PRxzOOTwKTJw@mail.gmail.com>
+References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
+ <CAAwP0s0Z+EaRfY_9c0QLm0ZpyfG5Dy1qb9pFq=PRxzOOTwKTJw@mail.gmail.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Date: Thu, 6 Oct 2011 09:51:11 +0200
+Message-ID: <CAAwP0s1tK5XjmJmtvRFJ2+ADvoMP1ihf3z0UaJAfXOoJ=UrVqg@mail.gmail.com>
+Subject: Re: omap3-isp status
+To: Enrico <ebutera@users.berlios.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Wed, Oct 5, 2011 at 7:43 PM, Javier Martinez Canillas
+<martinez.javier@gmail.com> wrote:
+> On Wed, Oct 5, 2011 at 6:28 PM, Enrico <ebutera@users.berlios.de> wrote:
+>> Hi all,
+>>
+>> since we are all interested in this driver (and tvp5150) i'll try to
+>> make a summary of the current situation and understand what is needed
+>> to finally get it into the main tree instead of having to apply a
+>> dozen patches manually.
+>>
+>> The current status of git repositories/branches is:
+>>
+>> - main tree: working (i suppose) but no support for bt656 input
+>>
+>> - pinchartl/media:
+>>  * omap3isp-omap3isp-next: i think it's in sync with linuxtv master
+>> (for the omap3-isp parts)
+>>  * omap3isp-omap3isp-yuv: like ..next but with some additional format patches
+>>
+>> "Floating" patches:
+>>
+>> - Deepthy: sent patches (against mainline) to add bt656 support
+>>
+>> Laurent made some comments, i haven't seen a v2 to be applied
+>>
+>> - Javier: sent patches for tvp5150, currently discussed on
+>> linux-media; possible patches/fixes for omap3-isp
+>>
 
-Hi there Allan,
+Hello,
 
-I'm not familiar with the card (so you'll want to defer to someone else
-if their answer differs from mine).  It looks like video0 and video1 are
-assigned to the first card, and video2 and video3 are assigned to the
-second card.  So, you might want to try
+Since the patches are not against mainline I can't post for reviewing
+but can be found in one of our development trees [1]. Comments are
+highly appreciated.
 
-xawtv -d /dev/video2'
+The tree is a 2.6.37 that already contain Deepthy patch. I rebased my
+changes on top of that to correctly support both BT656 an non-BT656
+video data processing.
 
-or
+[1]: http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=shortlog;h=refs/heads/linux-2.6.37.y-next
 
-xawtv -d /dev/video3
+>
+> I will find some free time slots to resolve the issues called out by
+> Sakari, Hans and Mauro and resend the patch-set for the tvp5151.
+>
+> Also I can send the patches of the modifications I made to the ISP
+> driver. Right now I'm working on top of Deepthy patches.
+>
+> I can either send on top of that patch or rebase to mainline, whatever
+> you think is better for reviewing.
+>
+>> Now what can we all do to converge to a final solution? I think this
+>> is also blocking the possible development/test of missing features,
+>> like the recently-discussed resizer and cropping ones.
+>>
+>> Enrico
+>>
+>
+> Right now I have a working the tvp5151 with the ISP. I can capture
+> ITU-R BT656 video both in PAL-M and NTSC standard. Also, the whole
+> pipeline is configured automatically with the video standard detected
+> by the tvp5151. Also, I'm using the CCDC to crop the frames and only
+> capture the active lines for each standard (576 for PAL and 480 for
+> NTSC) using the CCDC to crop the image.
+>
 
-and see if one of those uses the second card (you could try video4 or
-video5 also, since they're assigned to cards).
+As I told you before video capturing is working for both PAL and NTSC
+using standard V4L2 application (i.e: gstreamer) but the video still
+shows some motion artifacts. Capturing YUV frames and looking at them
+I realized that there does exist a pattern, the sequence 2 frames
+correct and 3 frames with interlacing effects always repeats.
 
-Have a great day:)
-Patrick.
+Hope it helps.
 
-On 10/10/2011 01:45 PM, Allan Macdonald wrote:
-> Hi to all,
-> 
-> I am new to this list.
-> 
-> I have been successfully using a Kodicom 4400R with zoneminder but I
-> wanted to expand so I bought a second card and installed it.  The
-> problem with this card is that I cannot seem to be able to get the
-> second card to work.  I tried using xawtv with the following command:
-> 
-> xawtv -d /dev/video1
-> 
-> The result is that I get images from /dev/video0
-> 
-> I also tried:
-> 
-> xawtv -d /dev/video4
-> 
-> with the same result.
-> 
-> I obviously don't understand what's going on.
-> 
-> I tried following the instructions here, to no avail:
-> 
-> http://www.zoneminder.com/wiki/index.php/Kodicom_4400r
-> 
-> I also looked here:
-> 
-> http://linuxtv.org/wiki/index.php/Kodicom_4400R
-> 
-> but, unfortunately, the following page does not explain what happens
-> with more than one card installed.
-> 
-> Here's my bttv.conf:
-> 
-> [code]
-> options bttv gbuffers=32 card=133,132,133,133,133,132,133,133 tuner=4
-> chroma_agc=1
-> [/code]
-> 
-> I have attached a dmesg output and an lsmod output.
-> 
-> I would greatly appreciate some help.  Many thanks in advance.
-> 
-> Regards,
-> 
-> Allan Macdonald
+Best regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iEYEARECAAYFAk6TUuUACgkQMp6rvjb3CAT9VwCfTyqoIrlUS+IszJIQWpyYD7j9
-NlsAnRFpxHKQT+p7Hem+D2SpUWiDkxu2
-=l16i
------END PGP SIGNATURE-----
+-- 
+Javier Martínez Canillas
+(+34) 682 39 81 69
+Barcelona, Spain
