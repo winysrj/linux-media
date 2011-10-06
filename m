@@ -1,49 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from que21.charter.net ([209.225.8.22]:48618 "EHLO que21.charter.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751716Ab1JBS6K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Oct 2011 14:58:10 -0400
-Message-ID: <4E88B2AF.3020107@gregd.org>
-Date: Sun, 02 Oct 2011 13:51:27 -0500
-From: Greg Dietsche <greg@gregd.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:46243 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754174Ab1JFCjP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 22:39:15 -0400
+Received: by iakk32 with SMTP id k32so2455955iak.19
+        for <linux-media@vger.kernel.org>; Wed, 05 Oct 2011 19:39:14 -0700 (PDT)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Randy Dunlap <rdunlap@xenotime.net>,
-	Justin Piszcz <jpiszcz@lucidpixels.com>,
-	linux-kernel@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: 3.1-rc8 still references 2.6.42 when ioctls will be removed
-References: <alpine.DEB.2.02.1110020640390.3972@p34.internal.lan> <4E889839.30005@xenotime.net> <201110021919.01918.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201110021919.01918.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <CAL9G6WXX2eGmoT+ozv1F0JQdSV5JPwbB0vn70UL+ghgkLGsYQg@mail.gmail.com>
+References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
+	<CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
+	<CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
+	<4e8b8099.95d1e30a.4bee.0501@mx.google.com>
+	<CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
+	<CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
+	<CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
+	<CAL9G6WXX2eGmoT+ozv1F0JQdSV5JPwbB0vn70UL+ghgkLGsYQg@mail.gmail.com>
+Date: Thu, 6 Oct 2011 13:39:14 +1100
+Message-ID: <CAATJ+fve_qhaeCJuaJPva_2K=2PxF61_3aFVomZm4XsAEt8MaA@mail.gmail.com>
+Subject: Re: [PATCH] af9013 frontend tuner bus lock
+From: Jason Hecker <jwhecker@gmail.com>
+To: Josu Lazkano <josu.lazkano@gmail.com>
+Cc: Malcolm Priestley <tvboxspy@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/2/2011 12:19 PM, Laurent Pinchart wrote:
-> Hi Randy,
->
-> On Sunday 02 October 2011 18:58:33 Randy Dunlap wrote:
->> On 10/02/11 03:41, Justin Piszcz wrote:
->>> Hi,
->>>
->>> FYI--
->>>
->>> [   48.519528] uvcvideo: Deprecated UVCIOC_CTRL_{ADD,MAP_OLD,GET,SET}
->>> ioctls will be removed in 2.6.42.
->>>
->>> $ grep 2.6.42 -r /usr/src/linux/*
->>>
->>> /usr/src/linux/drivers/media/video/uvc/uvc_v4l2.c:                
->>> "ioctls will be removed in 2.6.42.\n");
->> Let's tell the linux-media & Laurent.
->>
->> But linux-next does not contain that line nor that function.
->> I guess something in linux-next needs to be merged into mainline.
-> 2.6.42 being 3.2, I've sent a patch to remove the deprecated ioctls. Mauro has 
-> applied it to his tree and will push it to Linus for v3.2.
+> http://dl.dropbox.com/u/1541853/VID_20111006_004447.3gp
 
-I sent in a patch a while back that is/was meant for 3.1:
-https://lkml.org/lkml/2011/7/30/75
+That looks very familiar!  Does it occur on tuner A or B?
 
-Greg
+> I get this I2C messages:
+> # tail -f /var/log/messages
+> Oct  5 20:16:44 htpc kernel: [  534.168957] af9013: I2C read failed reg:d330
+
+As far as I know I never had any such messages.  Maybe though the
+debugging isn't enabled properly.
+
+> There are lots of ber and unc bits, I have connected the TV to the
+> same wire and there is a good signal.
+
+Yes, your TV might have a better receiver though - I have the same
+problem, if my TV decoding is OK but the signal is weak then my DVB
+cards have problems.  I have solved this signal problem by using
+quad-shield cable and F-connectors and proper metal can splitters so
+now everything gets a good signal.  I am pretty sure my issues are not
+signal related because Tuner A is fine until tuner B is enabled and
+tuner B always records a very low error signal (usually not even one
+visible error).
