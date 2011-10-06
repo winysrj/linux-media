@@ -1,738 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:48795 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753387Ab1JaQZj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Oct 2011 12:25:39 -0400
-Received: by mail-ey0-f174.google.com with SMTP id 27so5444413eye.19
-        for <linux-media@vger.kernel.org>; Mon, 31 Oct 2011 09:25:38 -0700 (PDT)
-From: Sylwester Nawrocki <snjw23@gmail.com>
-To: devel@driverdev.osuosl.org, linux-media@vger.kernel.org
-Cc: Piotr Chmura <chmooreck@poczta.onet.pl>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Greg KH <gregkh@suse.de>
-Subject: [PATCH 04/17] staging: as102: Fix CodingStyle errors in file as10x_cmd.c
-Date: Mon, 31 Oct 2011 17:24:42 +0100
-Message-Id: <1320078295-3379-5-git-send-email-snjw23@gmail.com>
-In-Reply-To: <1320078295-3379-1-git-send-email-snjw23@gmail.com>
-References: <1320078295-3379-1-git-send-email-snjw23@gmail.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:62444 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754711Ab1JFS4I convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 14:56:08 -0400
+Received: by wyg34 with SMTP id 34so3153779wyg.19
+        for <linux-media@vger.kernel.org>; Thu, 06 Oct 2011 11:56:07 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4E861163.3000903@redhat.com>
+References: <4E84E010.5020602@gmx.net>
+	<4E84E1A5.3040903@gmx.net>
+	<4E85F769.3040201@redhat.com>
+	<4E860D76.5040605@gmx.net>
+	<4E861163.3000903@redhat.com>
+Date: Fri, 7 Oct 2011 00:26:07 +0530
+Message-ID: <CAHFNz9LGTnGsafhXDJuGDw=VEaOJuoFL+_DoV0vM9-_RuANtPg@mail.gmail.com>
+Subject: Re: [PATCH v2] stb0899: Fix slow and not locking DVB-S transponder(s)
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Lutz Sammer <johns98@gmx.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Mauro,
 
-Fix Linux kernel coding style (whitespace and indentation) errors
-in file as10x_cmd.c. No functional changes.
+comments in-line.
 
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
-Signed-off-by: Piotr Chmura <chmooreck@poczta.onet.pl>
-Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
----
- drivers/staging/media/as102/as10x_cmd.c |  573 ++++++++++++++++---------------
- 1 files changed, 288 insertions(+), 285 deletions(-)
+On Sat, Oct 1, 2011 at 12:28 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 30-09-2011 15:41, Lutz Sammer escreveu:
+>> On 09/30/11 19:07, Mauro Carvalho Chehab wrote:
+>>> Em 29-09-2011 18:22, Lutz Sammer escreveu:
+>>>> Another version of
+>>>> http://patchwork.linuxtv.org/patch/6307
+>>>> http://patchwork.linuxtv.org/patch/6510
+>>>> which was superseded or rejected, but I don't know why.
+>>>
+>>> Probably because of the same reason of this patch [1]:
+>>>
+>>> patch -p1 -i patches/lmml_8023_v2_stb0899_fix_slow_and_not_locking_dvb_s_transponder_s.patch --dry-run -t -N
+>>> patching file drivers/media/dvb/frontends/stb0899_algo.c
+>>> Hunk #1 FAILED at 358.
+>>> 1 out of 1 hunk FAILED -- saving rejects to file drivers/media/dvb/frontends/stb0899_algo.c.rej
+>>>   drivers/media/dvb/frontends/stb0899_algo.c |    1 +
+>>>   1 file changed, 1 insertion(+)
+>>>
+>>> I'll mark this one as rejected, as it doesn't apply upstream[2].
+>>>
+>>> [1] http://patchwork.linuxtv.org/patch/8023/
+>>> [2] at tree/branch: git://linuxtv.org/media_tree.git staging/for_v3.2
+>>>
+>>> Please test if the changes made upstream to solve a similar trouble fixes your issue.
+>>> If not, please rebase your patch on the top of it and resend.
+>>>
+>>> Thanks,
+>>> Mauro
+>>>>
+>>>> In stb0899_status stb0899_check_data the first read of STB0899_VSTATUS
+>>>> could read old (from previous search) status bits and the search fails
+>>>> on a good frequency.
+>>>>
+>>>> With the patch more transponder could be locked and locks about 2* faster.
+>
+> Manu,
+>
+> Could you please review this one-line patch?
+>
+>
+>>>>
+>>>> Signed-off-by: Lutz Sammer<johns98@gmx.net>
+>>>> ---
+>>>>   drivers/media/dvb/frontends/stb0899_algo.c |    1 +
+>>>>   1 files changed, 1 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/drivers/media/dvb/frontends/stb0899_algo.c b/drivers/media/dvb/frontends/stb0899_algo.c
+>>>> index d70eee0..8eca419 100644
+>>>> --- a/drivers/media/dvb/frontends/stb0899_algo.c
+>>>> +++ b/drivers/media/dvb/frontends/stb0899_algo.c
+>>>> @@ -358,6 +358,7 @@ static enum stb0899_status stb0899_check_data(struct stb0899_state *state)
+>>>>          else
+>>>>                  dataTime = 500;
+>>>>
+>>>> +       stb0899_read_reg(state, STB0899_VSTATUS); /* clear old status bits */
+>>>>          stb0899_write_reg(state, STB0899_DSTATUS2, 0x00); /* force search loop */
+>>>>          while (1) {
+>>>>                  /* WARNING! VIT LOCKED has to be tested before VIT_END_LOOOP   */
+>
 
-diff --git a/drivers/staging/media/as102/as10x_cmd.c b/drivers/staging/media/as102/as10x_cmd.c
-index cecb809..222e703 100644
---- a/drivers/staging/media/as102/as10x_cmd.c
-+++ b/drivers/staging/media/as102/as10x_cmd.c
-@@ -1,6 +1,7 @@
- /*
-  * Abilis Systems Single DVB-T Receiver
-  * Copyright (C) 2008 Pierrick Hascoet <pierrick.hascoet@abilis.com>
-+ * Copyright (C) 2010 Devin Heitmueller <dheitmueller@kernellabs.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -21,7 +22,8 @@
- #include <linux/kernel.h>
- #include "as102_drv.h"
- #elif defined(WIN32)
--   #if defined(__BUILDMACHINE__) && (__BUILDMACHINE__ == WinDDK)  /* win32 ddk implementation */
-+   #if defined(__BUILDMACHINE__) && (__BUILDMACHINE__ == WinDDK)
-+      /* win32 ddk implementation */
-       #include "wdm.h"
-       #include "Device.h"
-       #include "endian_mgmt.h" /* FIXME */
-@@ -51,43 +53,42 @@
- */
- int as10x_cmd_turn_on(as10x_handle_t *phandle)
- {
--   int error;
--   struct as10x_cmd_t *pcmd, *prsp;
-+	int error;
-+	struct as10x_cmd_t *pcmd, *prsp;
- 
--   ENTER();
-+	ENTER();
- 
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   /* prepare command */
--   as10x_cmd_build(pcmd,(++phandle->cmd_xid), sizeof(pcmd->body.turn_on.req));
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.turn_on.req));
- 
--   /* fill command */
--   pcmd->body.turn_on.req.proc_id = cpu_to_le16(CONTROL_PROC_TURNON);
-+	/* fill command */
-+	pcmd->body.turn_on.req.proc_id = cpu_to_le16(CONTROL_PROC_TURNON);
- 
--   /* send command */
--   if(phandle->ops->xfer_cmd) {
--      error = phandle->ops->xfer_cmd(
--			phandle,
--			(uint8_t *) pcmd,
--			sizeof(pcmd->body.turn_on.req) + HEADER_SIZE,
--			(uint8_t *) prsp,
--			sizeof(prsp->body.turn_on.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
-+					       sizeof(pcmd->body.turn_on.req) +
-+					       HEADER_SIZE,
-+					       (uint8_t *) prsp,
-+					       sizeof(prsp->body.turn_on.rsp) +
-+					       HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
- 
--   if(error < 0) {
--      goto out;
--   }
-+	if (error < 0)
-+		goto out;
- 
--   /* parse response */
--   error = as10x_rsp_parse(prsp, CONTROL_PROC_TURNON_RSP);
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_TURNON_RSP);
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-@@ -98,42 +99,41 @@ out:
- */
- int as10x_cmd_turn_off(as10x_handle_t *phandle)
- {
--   int error;
--   struct as10x_cmd_t *pcmd, *prsp;
-+	int error;
-+	struct as10x_cmd_t *pcmd, *prsp;
- 
--   ENTER();
-+	ENTER();
- 
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   /* prepare command */
--   as10x_cmd_build(pcmd,(++phandle->cmd_xid),sizeof(pcmd->body.turn_off.req));
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.turn_off.req));
- 
--   /* fill command */
--   pcmd->body.turn_off.req.proc_id = cpu_to_le16(CONTROL_PROC_TURNOFF);
-+	/* fill command */
-+	pcmd->body.turn_off.req.proc_id = cpu_to_le16(CONTROL_PROC_TURNOFF);
- 
--   /* send command */
--   if(phandle->ops->xfer_cmd) {
--      error = phandle->ops->xfer_cmd(
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(
- 			phandle, (uint8_t *) pcmd,
- 			sizeof(pcmd->body.turn_off.req) + HEADER_SIZE,
--			 (uint8_t *) prsp,
-+			(uint8_t *) prsp,
- 			sizeof(prsp->body.turn_off.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
- 
--   if(error < 0) {
--      goto out;
--   }
-+	if (error < 0)
-+		goto out;
- 
--   /* parse response */
--   error = as10x_rsp_parse(prsp, CONTROL_PROC_TURNOFF_RSP);
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_TURNOFF_RSP);
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-@@ -145,50 +145,54 @@ out:
-  */
- int as10x_cmd_set_tune(as10x_handle_t *phandle, struct as10x_tune_args *ptune)
- {
--   int error;
--   struct as10x_cmd_t *preq, *prsp;
--
--   ENTER();
--
--   preq = phandle->cmd;
--   prsp = phandle->rsp;
--
--   /* prepare command */
--   as10x_cmd_build(preq,(++phandle->cmd_xid),sizeof(preq->body.set_tune.req));
--
--   /* fill command */
--   preq->body.set_tune.req.proc_id                 = cpu_to_le16(CONTROL_PROC_SETTUNE);
--   preq->body.set_tune.req.args.freq               = cpu_to_le32(ptune->freq);
--   preq->body.set_tune.req.args.bandwidth          = ptune->bandwidth;
--   preq->body.set_tune.req.args.hier_select        = ptune->hier_select;
--   preq->body.set_tune.req.args.constellation      = ptune->constellation;
--   preq->body.set_tune.req.args.hierarchy          = ptune->hierarchy;
--   preq->body.set_tune.req.args.interleaving_mode  = ptune->interleaving_mode;
--   preq->body.set_tune.req.args.code_rate          = ptune->code_rate;
--   preq->body.set_tune.req.args.guard_interval     = ptune->guard_interval;
--   preq->body.set_tune.req.args.transmission_mode  = ptune->transmission_mode;
--
--   /* send command */
--   if(phandle->ops->xfer_cmd) {
--      error = phandle->ops->xfer_cmd(phandle,
--			(uint8_t *) preq,
--			sizeof(preq->body.set_tune.req) + HEADER_SIZE,
--			(uint8_t *) prsp,
--			sizeof(prsp->body.set_tune.rsp) + HEADER_SIZE);
--   } else{
--      error = AS10X_CMD_ERROR;
--   }
--
--   if(error < 0) {
--      goto out;
--   }
--
--   /* parse response */
--   error = as10x_rsp_parse(prsp, CONTROL_PROC_SETTUNE_RSP);
-+	int error;
-+	struct as10x_cmd_t *preq, *prsp;
-+
-+	ENTER();
-+
-+	preq = phandle->cmd;
-+	prsp = phandle->rsp;
-+
-+	/* prepare command */
-+	as10x_cmd_build(preq, (++phandle->cmd_xid),
-+			sizeof(preq->body.set_tune.req));
-+
-+	/* fill command */
-+	preq->body.set_tune.req.proc_id = cpu_to_le16(CONTROL_PROC_SETTUNE);
-+	preq->body.set_tune.req.args.freq = cpu_to_le32(ptune->freq);
-+	preq->body.set_tune.req.args.bandwidth = ptune->bandwidth;
-+	preq->body.set_tune.req.args.hier_select = ptune->hier_select;
-+	preq->body.set_tune.req.args.constellation = ptune->constellation;
-+	preq->body.set_tune.req.args.hierarchy = ptune->hierarchy;
-+	preq->body.set_tune.req.args.interleaving_mode  =
-+		ptune->interleaving_mode;
-+	preq->body.set_tune.req.args.code_rate  = ptune->code_rate;
-+	preq->body.set_tune.req.args.guard_interval = ptune->guard_interval;
-+	preq->body.set_tune.req.args.transmission_mode  =
-+		ptune->transmission_mode;
-+
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(phandle,
-+					       (uint8_t *) preq,
-+					       sizeof(preq->body.set_tune.req)
-+					       + HEADER_SIZE,
-+					       (uint8_t *) prsp,
-+					       sizeof(prsp->body.set_tune.rsp)
-+					       + HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
-+
-+	if (error < 0)
-+		goto out;
-+
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_SETTUNE_RSP);
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-@@ -198,57 +202,55 @@ out:
-    \return 0 when no error, < 0 in case of error.
-    \callgraph
-  */
--int as10x_cmd_get_tune_status(as10x_handle_t *phandle, struct as10x_tune_status *pstatus)
-+int as10x_cmd_get_tune_status(as10x_handle_t *phandle,
-+			      struct as10x_tune_status *pstatus)
- {
--   int error;
--   struct as10x_cmd_t  *preq, *prsp;
-+	int error;
-+	struct as10x_cmd_t  *preq, *prsp;
- 
--   ENTER();
-+	ENTER();
- 
--   preq = phandle->cmd;
--   prsp = phandle->rsp;
-+	preq = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   /* prepare command */
--   as10x_cmd_build(preq,(++phandle->cmd_xid),
--		   sizeof(preq->body.get_tune_status.req));
-+	/* prepare command */
-+	as10x_cmd_build(preq, (++phandle->cmd_xid),
-+			sizeof(preq->body.get_tune_status.req));
- 
--   /* fill command */
--   preq->body.get_tune_status.req.proc_id =
--			cpu_to_le16(CONTROL_PROC_GETTUNESTAT);
-+	/* fill command */
-+	preq->body.get_tune_status.req.proc_id =
-+		cpu_to_le16(CONTROL_PROC_GETTUNESTAT);
- 
--   /* send command */
--   if (phandle->ops->xfer_cmd) {
--      error = phandle->ops->xfer_cmd(
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(
- 			phandle,
- 			(uint8_t *) preq,
- 			sizeof(preq->body.get_tune_status.req) + HEADER_SIZE,
- 			(uint8_t *) prsp,
- 			sizeof(prsp->body.get_tune_status.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
--
--   if (error < 0) {
--      goto out;
--   }
--
--   /* parse response */
--   error = as10x_rsp_parse(prsp, CONTROL_PROC_GETTUNESTAT_RSP);
--   if (error < 0) {
--      goto out;
--   }
--
--   /* Response OK -> get response data */
--   pstatus->tune_state       = prsp->body.get_tune_status.rsp.sts.tune_state;
--   pstatus->signal_strength  =
--		   le16_to_cpu(prsp->body.get_tune_status.rsp.sts.signal_strength);
--   pstatus->PER              = le16_to_cpu(prsp->body.get_tune_status.rsp.sts.PER);
--   pstatus->BER              = le16_to_cpu(prsp->body.get_tune_status.rsp.sts.BER);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
-+
-+	if (error < 0)
-+		goto out;
-+
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_GETTUNESTAT_RSP);
-+	if (error < 0)
-+		goto out;
-+
-+	/* Response OK -> get response data */
-+	pstatus->tune_state = prsp->body.get_tune_status.rsp.sts.tune_state;
-+	pstatus->signal_strength  =
-+		le16_to_cpu(prsp->body.get_tune_status.rsp.sts.signal_strength);
-+	pstatus->PER = le16_to_cpu(prsp->body.get_tune_status.rsp.sts.PER);
-+	pstatus->BER = le16_to_cpu(prsp->body.get_tune_status.rsp.sts.BER);
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-@@ -260,56 +262,58 @@ out:
-  */
- int as10x_cmd_get_tps(as10x_handle_t *phandle, struct as10x_tps *ptps)
- {
--
--   int error;
--   struct as10x_cmd_t *pcmd, *prsp;
--
--   ENTER();
--
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
--
--   /* prepare command */
--   as10x_cmd_build(pcmd, (++phandle->cmd_xid),sizeof(pcmd->body.get_tps.req));
--
--   /* fill command */
--   pcmd->body.get_tune_status.req.proc_id = cpu_to_le16(CONTROL_PROC_GETTPS);
--
--   /* send command */
--   if(phandle->ops->xfer_cmd) {
--      error = phandle->ops->xfer_cmd(phandle,
--	       (uint8_t *) pcmd, sizeof(pcmd->body.get_tps.req) + HEADER_SIZE,
--	       (uint8_t *) prsp, sizeof(prsp->body.get_tps.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
--
--   if(error < 0) {
--      goto out;
--   }
--
--   /* parse response */
--   error = as10x_rsp_parse(prsp, CONTROL_PROC_GETTPS_RSP);
--   if (error < 0) {
--      goto out;
--   }
--
--   /* Response OK -> get response data */
--   ptps->constellation      = prsp->body.get_tps.rsp.tps.constellation;
--   ptps->hierarchy          = prsp->body.get_tps.rsp.tps.hierarchy;
--   ptps->interleaving_mode  = prsp->body.get_tps.rsp.tps.interleaving_mode;
--   ptps->code_rate_HP       = prsp->body.get_tps.rsp.tps.code_rate_HP;
--   ptps->code_rate_LP       = prsp->body.get_tps.rsp.tps.code_rate_LP;
--   ptps->guard_interval     = prsp->body.get_tps.rsp.tps.guard_interval;
--   ptps->transmission_mode  = prsp->body.get_tps.rsp.tps.transmission_mode;
--   ptps->DVBH_mask_HP       = prsp->body.get_tps.rsp.tps.DVBH_mask_HP;
--   ptps->DVBH_mask_LP       = prsp->body.get_tps.rsp.tps.DVBH_mask_LP;
--   ptps->cell_ID            = le16_to_cpu(prsp->body.get_tps.rsp.tps.cell_ID);
-+	int error;
-+	struct as10x_cmd_t *pcmd, *prsp;
-+
-+	ENTER();
-+
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
-+
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.get_tps.req));
-+
-+	/* fill command */
-+	pcmd->body.get_tune_status.req.proc_id =
-+		cpu_to_le16(CONTROL_PROC_GETTPS);
-+
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(phandle,
-+					       (uint8_t *) pcmd,
-+					       sizeof(pcmd->body.get_tps.req) +
-+					       HEADER_SIZE,
-+					       (uint8_t *) prsp,
-+					       sizeof(prsp->body.get_tps.rsp) +
-+					       HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
-+
-+	if (error < 0)
-+		goto out;
-+
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_GETTPS_RSP);
-+	if (error < 0)
-+		goto out;
-+
-+	/* Response OK -> get response data */
-+	ptps->constellation = prsp->body.get_tps.rsp.tps.constellation;
-+	ptps->hierarchy = prsp->body.get_tps.rsp.tps.hierarchy;
-+	ptps->interleaving_mode = prsp->body.get_tps.rsp.tps.interleaving_mode;
-+	ptps->code_rate_HP = prsp->body.get_tps.rsp.tps.code_rate_HP;
-+	ptps->code_rate_LP = prsp->body.get_tps.rsp.tps.code_rate_LP;
-+	ptps->guard_interval = prsp->body.get_tps.rsp.tps.guard_interval;
-+	ptps->transmission_mode  = prsp->body.get_tps.rsp.tps.transmission_mode;
-+	ptps->DVBH_mask_HP = prsp->body.get_tps.rsp.tps.DVBH_mask_HP;
-+	ptps->DVBH_mask_LP = prsp->body.get_tps.rsp.tps.DVBH_mask_LP;
-+	ptps->cell_ID = le16_to_cpu(prsp->body.get_tps.rsp.tps.cell_ID);
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-@@ -322,59 +326,58 @@ out:
- int as10x_cmd_get_demod_stats(as10x_handle_t  *phandle,
- 			      struct as10x_demod_stats *pdemod_stats)
- {
--   int error;
--   struct as10x_cmd_t *pcmd, *prsp;
--
--   ENTER();
--
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
--
--   /* prepare command */
--   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
--		   sizeof(pcmd->body.get_demod_stats.req));
--
--   /* fill command */
--   pcmd->body.get_demod_stats.req.proc_id =
--      cpu_to_le16(CONTROL_PROC_GET_DEMOD_STATS);
--
--   /* send command */
--   if(phandle->ops->xfer_cmd) {
--      error = phandle->ops->xfer_cmd(phandle,
--			 (uint8_t *) pcmd,
--			 sizeof(pcmd->body.get_demod_stats.req) + HEADER_SIZE,
--			 (uint8_t *) prsp,
--			 sizeof(prsp->body.get_demod_stats.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
--
--   if(error < 0) {
--      goto out;
--   }
--
--   /* parse response */
--   error = as10x_rsp_parse(prsp,CONTROL_PROC_GET_DEMOD_STATS_RSP);
--   if (error < 0) {
--      goto out;
--   }
--
--   /* Response OK -> get response data */
--   pdemod_stats->frame_count =
--	   le32_to_cpu(prsp->body.get_demod_stats.rsp.stats.frame_count);
--   pdemod_stats->bad_frame_count =
--	   le32_to_cpu(prsp->body.get_demod_stats.rsp.stats.bad_frame_count);
--   pdemod_stats->bytes_fixed_by_rs =
--	   le32_to_cpu(prsp->body.get_demod_stats.rsp.stats.bytes_fixed_by_rs);
--   pdemod_stats->mer =
--	   le16_to_cpu(prsp->body.get_demod_stats.rsp.stats.mer);
--   pdemod_stats->has_started =
--	   prsp->body.get_demod_stats.rsp.stats.has_started;
-+	int error;
-+	struct as10x_cmd_t *pcmd, *prsp;
-+
-+	ENTER();
-+
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
-+
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.get_demod_stats.req));
-+
-+	/* fill command */
-+	pcmd->body.get_demod_stats.req.proc_id =
-+		cpu_to_le16(CONTROL_PROC_GET_DEMOD_STATS);
-+
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(phandle,
-+				(uint8_t *) pcmd,
-+				sizeof(pcmd->body.get_demod_stats.req)
-+				+ HEADER_SIZE,
-+				(uint8_t *) prsp,
-+				sizeof(prsp->body.get_demod_stats.rsp)
-+				+ HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
-+
-+	if (error < 0)
-+		goto out;
-+
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_GET_DEMOD_STATS_RSP);
-+	if (error < 0)
-+		goto out;
-+
-+	/* Response OK -> get response data */
-+	pdemod_stats->frame_count =
-+		le32_to_cpu(prsp->body.get_demod_stats.rsp.stats.frame_count);
-+	pdemod_stats->bad_frame_count =
-+		le32_to_cpu(prsp->body.get_demod_stats.rsp.stats.bad_frame_count);
-+	pdemod_stats->bytes_fixed_by_rs =
-+		le32_to_cpu(prsp->body.get_demod_stats.rsp.stats.bytes_fixed_by_rs);
-+	pdemod_stats->mer =
-+		le16_to_cpu(prsp->body.get_demod_stats.rsp.stats.mer);
-+	pdemod_stats->has_started =
-+		prsp->body.get_demod_stats.rsp.stats.has_started;
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-@@ -388,50 +391,49 @@ out:
- int as10x_cmd_get_impulse_resp(as10x_handle_t     *phandle,
- 			       uint8_t *is_ready)
- {
--   int error;
--   struct as10x_cmd_t *pcmd, *prsp;
--
--   ENTER();
--
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
--
--   /* prepare command */
--   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
--		   sizeof(pcmd->body.get_impulse_rsp.req));
--
--   /* fill command */
--   pcmd->body.get_impulse_rsp.req.proc_id =
--      cpu_to_le16(CONTROL_PROC_GET_IMPULSE_RESP);
--
--   /* send command */
--   if(phandle->ops->xfer_cmd) {
--      error = phandle->ops->xfer_cmd(phandle,
--			 (uint8_t *) pcmd,
--			 sizeof(pcmd->body.get_impulse_rsp.req) + HEADER_SIZE,
--			 (uint8_t *) prsp,
--			 sizeof(prsp->body.get_impulse_rsp.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
--
--   if(error < 0) {
--      goto out;
--   }
--
--   /* parse response */
--   error = as10x_rsp_parse(prsp,CONTROL_PROC_GET_IMPULSE_RESP_RSP);
--   if (error < 0) {
--      goto out;
--   }
--
--   /* Response OK -> get response data */
--   *is_ready = prsp->body.get_impulse_rsp.rsp.is_ready;
-+	int error;
-+	struct as10x_cmd_t *pcmd, *prsp;
-+
-+	ENTER();
-+
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
-+
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.get_impulse_rsp.req));
-+
-+	/* fill command */
-+	pcmd->body.get_impulse_rsp.req.proc_id =
-+		cpu_to_le16(CONTROL_PROC_GET_IMPULSE_RESP);
-+
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(phandle,
-+					(uint8_t *) pcmd,
-+					sizeof(pcmd->body.get_impulse_rsp.req)
-+					+ HEADER_SIZE,
-+					(uint8_t *) prsp,
-+					sizeof(prsp->body.get_impulse_rsp.rsp)
-+					+ HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
-+
-+	if (error < 0)
-+		goto out;
-+
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_GET_IMPULSE_RESP_RSP);
-+	if (error < 0)
-+		goto out;
-+
-+	/* Response OK -> get response data */
-+	*is_ready = prsp->body.get_impulse_rsp.rsp.is_ready;
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- 
-@@ -447,10 +449,10 @@ out:
- void as10x_cmd_build(struct as10x_cmd_t *pcmd,
- 		     uint16_t xid, uint16_t cmd_len)
- {
--   pcmd->header.req_id = cpu_to_le16(xid);
--   pcmd->header.prog = cpu_to_le16(SERVICE_PROG_ID);
--   pcmd->header.version = cpu_to_le16(SERVICE_PROG_VERSION);
--   pcmd->header.data_len = cpu_to_le16(cmd_len);
-+	pcmd->header.req_id = cpu_to_le16(xid);
-+	pcmd->header.prog = cpu_to_le16(SERVICE_PROG_ID);
-+	pcmd->header.version = cpu_to_le16(SERVICE_PROG_VERSION);
-+	pcmd->header.data_len = cpu_to_le16(cmd_len);
- }
- 
- /**
-@@ -463,16 +465,17 @@ void as10x_cmd_build(struct as10x_cmd_t *pcmd,
- */
- int as10x_rsp_parse(struct as10x_cmd_t *prsp, uint16_t proc_id)
- {
--   int error;
-+	int error;
- 
--   /* extract command error code */
--   error = prsp->body.common.rsp.error;
-+	/* extract command error code */
-+	error = prsp->body.common.rsp.error;
- 
--   if((error == 0) && (le16_to_cpu(prsp->body.common.rsp.proc_id) == proc_id)) {
--      return 0;
--   }
-+	if ((error == 0) &&
-+	    (le16_to_cpu(prsp->body.common.rsp.proc_id) == proc_id)) {
-+		return 0;
-+	}
- 
--   return AS10X_CMD_ERROR;
-+	return AS10X_CMD_ERROR;
- }
- 
- 
--- 
-1.7.4.1
+Please add in these comments, in case you want to apply the change. I
+am neither for the patch, nor against it.
 
+- In fact, it doesn't hurt to read STATUS just before LOCK test.
+- I wasn't able to find any noticeable difference in LOCK acquisition.
+- Nowhere, I was able to find that reading VSTATUS, clears the
+Read-Only bits set by the onchip microcontroller. The above comment
+could be wrong at least, as far as I can say.
+
+But that said, if the change does really help (thinking of strange
+issues with some Silicon cuts)
+
+Acked-by: Manu Abraham <manu@linuxtv.org>
+
+Regards,
+Manu
