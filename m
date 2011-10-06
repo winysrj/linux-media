@@ -1,61 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:42215 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754589Ab1J2Kmp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Oct 2011 06:42:45 -0400
-Received: by wyg36 with SMTP id 36so4604891wyg.19
-        for <linux-media@vger.kernel.org>; Sat, 29 Oct 2011 03:42:44 -0700 (PDT)
+Received: from smtp-68.nebula.fi ([83.145.220.68]:47827 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965205Ab1JFVgr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 17:36:47 -0400
+Date: Fri, 7 Oct 2011 00:36:41 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sw0312.kim@samsung.com, riverful.kim@samsung.com
+Subject: Re: [PATCH v2 2/2] v4l: Add v4l2 subdev driver for S5K6AAFX sensor
+Message-ID: <20111006213641.GA8908@valkosipuli.localdomain>
+References: <1316627107-18709-1-git-send-email-s.nawrocki@samsung.com>
+ <1316627107-18709-3-git-send-email-s.nawrocki@samsung.com>
+ <20110922220259.GS1845@valkosipuli.localdomain>
+ <4E7C5BAA.9090900@samsung.com>
+ <20110925100804.GU1845@valkosipuli.localdomain>
+ <4E7F5DEC.8020808@gmail.com>
+ <20110927205532.GA6180@valkosipuli.localdomain>
+ <4E86DAA7.4@gmail.com>
+ <20111002072011.GJ6180@valkosipuli.localdomain>
+ <4E8E08F2.10904@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAL9G6WWQAQ4EM1TXmSfU+R+WcmD9Fhq1bu3LRmjO5vAKTXfv_Q@mail.gmail.com>
-References: <CAL9G6WWQAQ4EM1TXmSfU+R+WcmD9Fhq1bu3LRmjO5vAKTXfv_Q@mail.gmail.com>
-Date: Sat, 29 Oct 2011 12:42:44 +0200
-Message-ID: <CAL9G6WUyJ94gEhgqsnJ++iVPmKNK72yjGH4kK6=p4vdRWJo+kA@mail.gmail.com>
-Subject: Re: CONFIG_DVB_MAX_ADAPTERS
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4E8E08F2.10904@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/10/28 Josu Lazkano <josu.lazkano@gmail.com>:
-> Hello list, I want to increase the DVB adapter number, I make a little
-> search and I find this files:
->
-> # grep -r "CONFIG_DVB_MAX_ADAPTERS" .
-> ./s2-liplianin-f5cd7d75370e/linux/drivers/media/dvb/dvb-core/dvbdev.h:#if
-> defined(CONFIG_DVB_MAX_ADAPTERS) && CONFIG_DVB_MAX_ADAPTERS > 0
-> ./s2-liplianin-f5cd7d75370e/linux/drivers/media/dvb/dvb-core/dvbdev.h:
->  #define DVB_MAX_ADAPTERS CONFIG_DVB_MAX_ADAPTERS
-> ./s2-liplianin-f5cd7d75370e/v4l/dvbdev.h:#if
-> defined(CONFIG_DVB_MAX_ADAPTERS) && CONFIG_DVB_MAX_ADAPTERS > 0
-> ./s2-liplianin-f5cd7d75370e/v4l/dvbdev.h:  #define DVB_MAX_ADAPTERS
-> CONFIG_DVB_MAX_ADAPTERS
-> ./s2-liplianin-f5cd7d75370e/v4l/config-compat.h:#undef CONFIG_DVB_MAX_ADAPTERS
-> ./s2-liplianin-f5cd7d75370e/v4l/config-compat.h:#undef
-> CONFIG_DVB_MAX_ADAPTERS_MODULE
-> ./s2-liplianin-f5cd7d75370e/v4l/config-compat.h:#define
-> CONFIG_DVB_MAX_ADAPTERS 8
-> ./s2-liplianin-f5cd7d75370e/v4l/.config:CONFIG_DVB_MAX_ADAPTERS=8
-> ./s2-liplianin-f5cd7d75370e/v4l/.myconfig:CONFIG_DVB_MAX_ADAPTERS
->                := 8
-> grep: warning: ./s2-liplianin-f5cd7d75370e/v4l/oss: recursive directory loop
->
-> Where is the best file to change it? I want to increase it to 16, is
-> it possible?
->
-> Thanks ans best regards.
->
-> --
-> Josu Lazkano
->
+On Thu, Oct 06, 2011 at 10:00:50PM +0200, Sylwester Nawrocki wrote:
+> Moikka Sakari,
 
-This works!
+Hi, Sylwester!
 
-.config:CONFIG_DVB_MAX_ADAPTERS=16
+> On 10/02/2011 09:20 AM, Sakari Ailus wrote:
+> > On Sat, Oct 01, 2011 at 11:17:27AM +0200, Sylwester Nawrocki wrote:
 
-Best regards.
+[clip]
+
+> > That's fine because it's implemented by the sensor already. My point is that
+> > we should only show this fact in V4L2 API as little as possible.
+> > 
+> > I remember Guennadi had sensors which provide something called "snapshot
+> > mode". A single boolean control to turn this on or off would suffice ---
+> > snapshot mode is something that's going to be discussed in the Multimedia
+> > summit if my memory serves me right.
+> 
+> Perhaps, although I don't expect huge outcome from one or two days meeting. 
+> Hopefully it gets us closer into the right direction. 
+> I'll try to prepare a brief summary of the m-5mols sensor requirements. 
+> 
+> > 
+> > This could be one option for this sensor as well but the implementation
+> > might not be quite optimal since you'd still need to switch the
+> > configuration.
+> 
+> I believe the final result would be acceptable as well.
+> 
+> However I recall going through a datasheet of a camera device which was capable
+> of generating simultaneously low resolution YUV and a higher resolution capture 
+> JPEG data stream. Either on same MIPI-CSI channel or on separate ones. This was
+> to achieve so called "zero shutter lag".
+> For this kind of device you may need two separate resolutions, at least
+> an application and the driver must keep track of them.   
+
+This kind of device requires two source pads.
+
+The same goes for the CSI-2 reciever: the CSI-2 channels are freely
+configurable even if the current drivers typically only use one.
+
+Two video nodes are required, too, since the images are independent of each
+other.
+
+In other words, this is already supported by the V4L2 interface. :-)
+
+[clip]
+
+> >>>> If the hardware (or it's firmware) supports something natively why should
+> >>>> we go for a less efficient SW emulated replacement? After all, preview and
+> >>>> capture mode seem pretty basic features that applications will want to
+> >>>> use.
+> >>>
+> >>> I think it depends on an application. If your application only knows it
+> >>> wants to do "viewfinder" or "capture" then it might be V4L2 could be a too
+> >>> low level interface for that job.
+> >>
+> >> Sorry, this is all not about the applications capabilities. Only about the V4L2 API
+> >> limitations in using the existing devices.
+> >>
+> >>>
+> >>> I might suggest GSTphotography instead.
+> >>
+> >> GstPhotography is not really impressive in its current state:
+> >> http://gstreamer.freedesktop.org/data/doc/gstreamer/head/gst-plugins-bad-plugins/html/GstPhotography.html
+> > 
+> > I'm probably not the best person to comment on this, but do you think
+> > something is e.g. either missing or should be implemented differently?
+> 
+> I'm not a big expert either. The GstPhotography interface seems not well documented,
+> I just tried to imagine how it could be used with above mentioned camera chip
+> supporting interlaced viewfinder/capture data stream.  
+
+The lack of documentation aspect might be a valid complaint. :)
+
+I'm not a Gstreamer expert so take this with a grain of salt:
+
+This interface is used to control the capture process, and setting the
+resolutions is not part of that interface. The GSTphotography interface is
+provided by the camera source. A source used with Camerabin2 has three
+output pads: one of the pads provides viewfinder stream while another one
+provides captured images. The third putput pad is for video.
+
+<URL:http://gstreamer.freedesktop.org/wiki/CameraBin>
+
+I your case the source provides the viewfinder and captures images through
+the two pads.
+
+Kind regards,
 
 -- 
-Josu Lazkano
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
