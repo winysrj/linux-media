@@ -1,75 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61407 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934434Ab1JaMg3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Oct 2011 08:36:29 -0400
-Message-ID: <4EAE9661.7010006@redhat.com>
-Date: Mon, 31 Oct 2011 13:36:49 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40828 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935837Ab1JFNab (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 09:30:31 -0400
+Received: from lancelot.localnet (unknown [91.178.166.155])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 0ECAE359E9
+	for <linux-media@vger.kernel.org>; Thu,  6 Oct 2011 13:30:30 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for v3.2] OMAP3 ISP fixes
+Date: Thu, 6 Oct 2011 15:30:28 +0200
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Marco_Diego_Aur=E9lio_Mesquita?=
-	<marcodiegomesquita@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Increase max exposure value to 255 from 26.
-References: <BANLkTikCgTWA92P2Qw4hqyvmQFRZm7+Aog@mail.gmail.com>
-In-Reply-To: <BANLkTikCgTWA92P2Qw4hqyvmQFRZm7+Aog@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201110061530.29396.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Mauro,
 
-Thanks for the patch, I've taken a look at this, and the way the pac207's
-exposure control works is it sets the fps according to the formula of:
-90 / exposure reg value. So the old max setting gave you a max exposure
-time of 90 / 26 = 3.46 fps or 288.9 milliseconds.
+The following changes since commit 2f4cf2c3a971c4d5154def8ef9ce4811d702852d:
 
-3.46 fps already is quite slow for a webcam, but I agree that under low light
-conditions higher exposure settings are necessary. However setting a max
-value of 255 would mean the camera would run at 0.35 fps, which would mean
-3 seconds between frames likely triggering timeouts in various applications,
-or if a frame gets damaged and dropped, 6 seconds, triggering a timeout
-condition inside the gspca core.
+  [media] dib9000: release a lock on error (2011-09-30 13:32:56 -0300)
 
-Thinking more about this I think that a max exposure setting of 1 second
-is a sane value, so I've prepared a patch and send a pull request for
-this to Mauro which changes the max exposure setting to 90. I've also
-included some tweaks to the knee values for the auto exposure knee
-algorithm used, to make auto exposure work better under various
-circumstances.
+are available in the git repository at:
+  git://linuxtv.org/pinchartl/media.git omap3isp-omap3isp-next
 
+Guennadi Liakhovetski (1):
+      omap3isp: ccdc: remove redundant operation
+
+Laurent Pinchart (4):
+      omap3isp: Move media_entity_cleanup() from unregister() to cleanup()
+      omap3isp: Move *_init_entities() functions to the init/cleanup section
+      omap3isp: Add missing mutex_destroy() calls
+      omap3isp: Fix memory leaks in initialization error paths
+
+ drivers/media/video/omap3isp/isp.c         |    2 +
+ drivers/media/video/omap3isp/ispccdc.c     |   86 +++++++++++--------
+ drivers/media/video/omap3isp/ispccp2.c     |  125 ++++++++++++++-------------
+ drivers/media/video/omap3isp/ispcsi2.c     |   91 +++++++++++----------
+ drivers/media/video/omap3isp/isph3a_aewb.c |    2 +-
+ drivers/media/video/omap3isp/isph3a_af.c   |    2 +-
+ drivers/media/video/omap3isp/isphist.c     |    2 +-
+ drivers/media/video/omap3isp/isppreview.c  |  108 ++++++++++++------------
+ drivers/media/video/omap3isp/ispresizer.c  |  104 ++++++++++++-----------
+ drivers/media/video/omap3isp/ispstat.c     |   52 +++++++-----
+ drivers/media/video/omap3isp/ispstat.h     |    2 +-
+ drivers/media/video/omap3isp/ispvideo.c    |   11 ++-
+ drivers/media/video/omap3isp/ispvideo.h    |    1 +
+ 13 files changed, 318 insertions(+), 270 deletions(-)
+
+-- 
 Regards,
 
-Hans
-
-
-
-
-On 06/04/2011 09:38 AM, Marco Diego Aurélio Mesquita wrote:
-> The inline patch increases maximum exposure value from 26 to 255. It
-> has been tested and works well. Without the patch the captured image
-> is too dark and can't be improved too much.
->
-> Please CC answers as I'm not subscribed to the list.
->
->
-> Signed-off-by: Marco Diego Aurélio Mesquita<marcodiegomesquita@gmail.com>
-> ---
->   drivers/media/video/gspca/pac207.c |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/media/video/gspca/pac207.c
-> b/drivers/media/video/gspca/pac207.c
-> index 892b454..6a2fb26 100644
-> --- a/drivers/media/video/gspca/pac207.c
-> +++ b/drivers/media/video/gspca/pac207.c
-> @@ -39,7 +39,7 @@ MODULE_LICENSE("GPL");
->   #define PAC207_BRIGHTNESS_DEFAULT	46
->
->   #define PAC207_EXPOSURE_MIN		3
-> -#define PAC207_EXPOSURE_MAX		26
-> +#define PAC207_EXPOSURE_MAX		255
->   #define PAC207_EXPOSURE_DEFAULT		5 /* power on default: 3 */
->   #define PAC207_EXPOSURE_KNEE		8 /* 4 = 30 fps, 11 = 8, 15 = 6 */
->
+Laurent Pinchart
