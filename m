@@ -1,81 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsmtpvtin3.tin.it ([212.216.176.241]:52377 "EHLO
-	vsmtpvtin3.tin.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934188Ab1JEK10 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 06:27:26 -0400
-Received: from [192.168.1.3] (95.247.48.127) by vsmtpvtin3.tin.it (8.5.132) (authenticated as loycfd)
-        id 4D95A775037BD5AB for linux-media@vger.kernel.org; Wed, 5 Oct 2011 12:27:23 +0200
-Message-ID: <4E8C3109.7020709@tin.it>
-Date: Wed, 05 Oct 2011 12:27:21 +0200
-From: LD <loycfd@tin.it>
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:21846 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932384Ab1JFInb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 04:43:31 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFC PATCH] media_build: two fixes + one unresolved issue
+Date: Thu, 6 Oct 2011 10:43:24 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <201110051123.39783.hverkuil@xs4all.nl> <201110051545.27427.hverkuil@xs4all.nl> <4E8C852C.7000206@redhat.com>
+In-Reply-To: <4E8C852C.7000206@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: RE.request information
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201110061043.24652.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for the reply.
+On Wednesday 05 October 2011 18:26:20 Mauro Carvalho Chehab wrote:
+> Em 05-10-2011 10:45, Hans Verkuil escreveu:
+> > I'll see if I can make a patch for this.
+> 
+> Ok, thanks!
 
-As suggested in the possible numbers of cards, I found the number (card 
-= 174) which allows the card to scan for TV frequencies.
-Unfortunately the scan does not finish successfully, because it also 
-needs the identification of the tuner. Have suggestions for the number 
-of tuners.
-Waiting for your suggestion for the number of tuners to try, I would 
-like to write for confirmation of ASUSTeK (Device [1043:8188]) have an 
-address where I can write.
+Mauro, can you test this patch? It should translate 2.4x naming convention to 3.x.
 
-Thank you for the answer
+Regards,
 
-LD
+	Hans
 
-Il 03/10/2011 20:50, Charlie X. Liu ha scritto:
-> Checking in the CARDLIST.saa7134 (
-> http://www.mjmwired.net/kernel/Documentation/video4linux/CARDLIST.saa7134 
-> ),
-> sounds, it (Device [1043:8188]) is not in the CARDLIST yet. Then, you may
-> check with ASUSTeK and see which one in the CARDLIST is closer to it. 
-> Like:
->
-> 78  ->  ASUSTeK P7131 Dual                       [1043:4862]
-> 112 ->  ASUSTeK P7131 Hybrid                     [1043:4876]
-> 146 ->  ASUSTeK P7131 Analog
-> ..
-> ..
-> 174 ->  Asus Europa Hybrid OEM                   [1043:4847]
->
->
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org
-> [mailto:linux-media-owner@vger.kernel.org] On Behalf Of LD
-> Sent: Sunday, October 02, 2011 7:47 AM
-> To: linux-media@vger.kernel.org
-> Subject: request information
->
-> I would like to know which firmware and drivers are helpful to install
-> and set this type of card:
->
-> Multimedia controller [0480]: Philips Semiconductors
-> SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d0)
-> Subsystem: ASUSTeK Computer Inc. Device [1043:8188]
-> Control: I/O- Mem + BusMaster +
-> SpecCycle-MemWINV-VGASnoop-ParErr-Stepping-SERR-FastB2B-DisINTx-
-> Status: Cap + 66MHz-UDF-FastB2B + ParErr-DEVSEL = medium>
-> TAbort-<TAbort-<MAbort->  SERR-<PERR-intX-
-> Latency: 64 (21000ns min, 8000ns max)
-> Interrupt: pin A routed to IRQ 23
-> Region 0: Memory at dbedb800 (32-bit, non-prefetchable) [size = 2K]
-> Capabilities:<access denied>
-> Kernel driver in use: saa7134
-> Kernel modules: saa7134
->
-> Thank you for the answer
->
-> LD
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
->
+diff --git a/linux/patches_for_kernel.pl b/linux/patches_for_kernel.pl
+index 33348d9..00d8b7f 100755
+--- a/linux/patches_for_kernel.pl
++++ b/linux/patches_for_kernel.pl
+@@ -13,11 +13,15 @@ my $file = "../backports/backports.txt";
+ open IN, $file or die "can't find $file\n";
+ 
+ sub kernel_version($) {
+-	my $sublevel;
++	my ($version, $patchlevel, $sublevel) = $_[0] =~ m/^(\d+)\.(\d+)\.?(\d*)/;
+ 
+-	$_[0] =~ m/^(\d+)\.(\d+)\.?(\d*)/;
+-	$sublevel = $3 == "" ? 0 : $3;
+-	return ($1*65536 + $2*256 + $sublevel);
++	# fix kernel version for distros that 'translated' 3.0 to 2.40
++	if ($version == 2 && $patchlevel >= 40) {
++		$version = 3;
++		$patchlevel -= 40;
++	}
++	$sublevel = 0 if ($sublevel == "");
++	return ($version * 65536 + $patchlevel * 256 + $sublevel);
+ }
+ 
+ my $kernel = kernel_version($version);
+diff --git a/v4l/Makefile b/v4l/Makefile
+index 311924e..57302cc 100644
+--- a/v4l/Makefile
++++ b/v4l/Makefile
+@@ -248,7 +248,7 @@ ifneq ($(VER),)
+ 	@echo $(VER)|perl -ne 'if (/^([0-9]*)\.([0-9])*\.([0-9]*)(.*)$$/) { printf 
+("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s.%s.%s%s\n",$$1,$$2,$$3,$$1,$$2,$$3,$$4); };' > $(obj)/.version
+ else
+ 	@echo No version yet, using `uname -r`
+-	@uname -r|perl -ne 'if (/^([0-9]*)\.([0-9])*\.?([0-9]*)(.*)$$/) { printf 
+("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s",$$1,$$2,$$3==""?"0":$$3,$$_); };' > $(obj)/.version
++	@uname -r|perl -ne 'if (/^([0-9]*)\.([0-9])*\.?([0-9]*)(.*)$$/) { $$ver = $$1; $$patch = $$2; $$sub = $$3; if ($$ver == 2 && $$patch >= 40) { 
+$$ver = 3; $$patch -= 40; }; printf ("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s",$$ver,$$patch,$$sub==""?"0":
+$$sub,$$_); };' > $(obj)/.version
+ endif
+ endif
+ 
