@@ -1,99 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:61095 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750851Ab1JIXAk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Oct 2011 19:00:40 -0400
-Received: by gyg10 with SMTP id 10so4861383gyg.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Oct 2011 16:00:40 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CA+2YH7vat9iSAuZ4ztDvvo4Od+b4tCOsK6Y+grTE05YUZZEYPQ@mail.gmail.com>
-References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
- <CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
- <CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com>
- <201110081751.38953.laurent.pinchart@ideasonboard.com> <CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
- <CA+2YH7vat9iSAuZ4ztDvvo4Od+b4tCOsK6Y+grTE05YUZZEYPQ@mail.gmail.com>
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Date: Mon, 10 Oct 2011 01:00:20 +0200
-Message-ID: <CAAwP0s3NFvvUYd-0kwKLKXfYB4Zx1nXb0nd9+JM61JWtrVFfRg@mail.gmail.com>
-Subject: Re: omap3-isp status
-To: Enrico <ebutera@users.berlios.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Adam Pledger <a.pledger@thermoteknix.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:9709 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751563Ab1JFOpo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 10:45:44 -0400
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LSN00B3LFO6LH@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 06 Oct 2011 15:45:42 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LSN009C8FO61P@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 06 Oct 2011 15:45:42 +0100 (BST)
+Date: Thu, 06 Oct 2011 16:45:38 +0200
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [PATCH] v4l: s5p-mfc: fix reported capabilities
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	Kamil Debski <k.debski@samsung.com>
+Message-id: <1317912338-9693-1-git-send-email-k.debski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 10, 2011 at 12:35 AM, Enrico <ebutera@users.berlios.de> wrote:
-> On Sat, Oct 8, 2011 at 6:11 PM, Javier Martinez Canillas
-> <martinez.javier@gmail.com> wrote:
->> Yes, I'll cook a patch today on top on your omap3isp-yuv and send for
->> review. I won't be able to test neither since I don't have proper
->> hardware at home. But at least you will get an idea of the approach we
->> are using to solve this and can point possible flaws.
->
-> I made some tests and unfortunately there are some problems.
->
-> Note: i made these tests picking some patches from omap3isp-yuv branch
-> and applying to igep 3.1.0rc9 kernel (more or less like mainline +
-> some bsp patches) so maybe i made some mistakes (the tvp5150 driver is
-> patched too), but due to the nature of the problems i don't think this
-> is the case.
->
-> Javier patches v1: i can grab frames with yavta but i get only garbage.
->
-> Javier patches v2: i cannot grab frames with yavta (it hangs). I see
-> only 2 interrupts on the isp, then stops.
->
-> I compared Javier-v2 registers setup with Deepthy's patches and there
-> are some differences. Moreover i remember that in Deepthy patches vd1
-> interrupt was not used (and in fact i had the same yavta-hanging
-> problem before, and Deepthy patches solved it).
->
-> I think Javier-v1 patches didn't hang the isp because they changed
-> vd0/vd1 logic too, so maybe there were only some wrong isp registers
-> but the logic was correct.
->
-> Now i wonder if it could be easier/better to port Deepthy patches
-> first and then add Javier fixes...
->
-> Enrico
->
+MFC uses the multi-plane API, but it reported single-plane
+when querying capabilities.
 
-Hi Enrico,
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+Hi,
 
-Yes, you are right in interlaced mode the VD1 interrupt handler
-doesn't have to be executed. In v1 there is a conditional execution
-and that is why the ISP doesn't hang up.
+This patch fixes capabilites reported by the MFC driver. It uses the multi-plane API
+instead of the reported single-plane.
 
-Could you please try changing this on ispccdc.c with v2 patches?
+Best wishes,
+Kamil Debski
+---
+ drivers/media/video/s5p-mfc/s5p_mfc_dec.c |    4 ++--
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/video/omap3isp/ispccdc.c
-b/drivers/media/video/omap3isp/ispccdc.c
-index 9b40968..bfd3f46 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -1658,7 +1658,8 @@ int omap3isp_ccdc_isr(struct isp_ccdc_device
-*ccdc, u32 events)
-        if (ccdc->state == ISP_PIPELINE_STREAM_STOPPED)
-                return 0;
-
--       if (events & IRQ0STATUS_CCDC_VD1_IRQ)
-+       if ((events & IRQ0STATUS_CCDC_VD1_IRQ) &&
-+           !ccdc_input_is_fldmode(ccdc))
-                ccdc_vd1_isr(ccdc);
-
-        ccdc_lsc_isr(ccdc, events);
-
-With this change the ISP shouldn't hang but I don't know if you will
-get the right data.
-
-Best regards,
-
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
+index bfbe084..3d54a57 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
+@@ -220,8 +220,8 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	strncpy(cap->card, dev->plat_dev->name, sizeof(cap->card) - 1);
+ 	cap->bus_info[0] = 0;
+ 	cap->version = KERNEL_VERSION(1, 0, 0);
+-	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
+-						    | V4L2_CAP_STREAMING;
++	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE_MPLANE |
++			V4L2_CAP_VIDEO_OUTPUT_MPLANE | V4L2_CAP_STREAMING;
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+index 4c90e53..0dbb220 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+@@ -785,8 +785,8 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	strncpy(cap->card, dev->plat_dev->name, sizeof(cap->card) - 1);
+ 	cap->bus_info[0] = 0;
+ 	cap->version = KERNEL_VERSION(1, 0, 0);
+-	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
+-			  | V4L2_CAP_VIDEO_OUTPUT
++	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE_MPLANE
++			  | V4L2_CAP_VIDEO_OUTPUT_MPLANE
+ 			  | V4L2_CAP_STREAMING;
+ 	return 0;
+ }
 -- 
-Javier Martínez Canillas
-(+34) 682 39 81 69
-Barcelona, Spain
+1.6.3.3
+
