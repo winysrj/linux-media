@@ -1,435 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:3960 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751375Ab1JXEFZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Oct 2011 00:05:25 -0400
-Received: from wpaz1.hot.corp.google.com (wpaz1.hot.corp.google.com [172.24.198.65])
-	by smtp-out.google.com with ESMTP id p9O45Mpf007834
-	for <linux-media@vger.kernel.org>; Sun, 23 Oct 2011 21:05:22 -0700
-Received: from iaen33 (iaen33.prod.google.com [10.12.165.33])
-	by wpaz1.hot.corp.google.com with ESMTP id p9O43emf028195
-	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
-	for <linux-media@vger.kernel.org>; Sun, 23 Oct 2011 21:05:21 -0700
-Received: by iaen33 with SMTP id n33so13808379iae.11
-        for <linux-media@vger.kernel.org>; Sun, 23 Oct 2011 21:05:21 -0700 (PDT)
-From: Michal Nazarewicz <mina86@mina86.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	"Kyungmin Park" <kyungmin.park@samsung.com>,
-	"Russell King" <linux@arm.linux.org.uk>,
-	"Andrew Morton" <akpm@linux-foundation.org>,
-	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"Ankita Garg" <ankita@in.ibm.com>,
-	"Daniel Walker" <dwalker@codeaurora.org>,
-	"Arnd Bergmann" <arnd@arndb.de>,
-	"Jesse Barker" <jesse.barker@linaro.org>,
-	"Jonathan Corbet" <corbet@lwn.net>,
-	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
-	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
-	"Dave Hansen" <dave@linux.vnet.ibm.com>
-Subject: Re: [PATCH 2/9] mm: alloc_contig_freed_pages() added
-Date: Sun, 23 Oct 2011 21:05:05 -0700
-Message-Id: <809d0a2afe624c06505e0df51e7657f66aaf9007.1319428526.git.mina86@mina86.com>
-In-Reply-To: <20111018122109.GB6660@csn.ul.ie>
-To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	"Mel Gorman" <mel@csn.ul.ie>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:53484 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965046Ab1JFQMA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 12:12:00 -0400
+Received: by yxl31 with SMTP id 31so2748290yxl.19
+        for <linux-media@vger.kernel.org>; Thu, 06 Oct 2011 09:12:00 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4E8DCD79.3060507@mlbassoc.com>
+References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
+ <CAAwP0s0Z+EaRfY_9c0QLm0ZpyfG5Dy1qb9pFq=PRxzOOTwKTJw@mail.gmail.com>
+ <CAAwP0s1tK5XjmJmtvRFJ2+ADvoMP1ihf3z0UaJAfXOoJ=UrVqg@mail.gmail.com>
+ <4E8DB490.7000403@mlbassoc.com> <CAAwP0s0ddOYAnC7rknLVzcN10iKAwnuOawznpKy9z6B2yWRdCg@mail.gmail.com>
+ <CAAwP0s0tOHmdG6eWuY_QDZ6ReVFXg9S6-MSbX7s4GNEX60U2mQ@mail.gmail.com> <4E8DCD79.3060507@mlbassoc.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Date: Thu, 6 Oct 2011 18:11:38 +0200
+Message-ID: <CAAwP0s15c_AgwisQvNFx-_aR44ijEz+vcB_Su3Rmiob3pPo4sw@mail.gmail.com>
+Subject: Re: omap3-isp status
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: Enrico <ebutera@users.berlios.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On Thu, Oct 06, 2011 at 03:54:42PM +0200, Marek Szyprowski wrote:
->> This commit introduces alloc_contig_freed_pages() function
->> which allocates (ie. removes from buddy system) free pages
->> in range. Caller has to guarantee that all pages in range
->> are in buddy system.
+On Thu, Oct 6, 2011 at 5:47 PM, Gary Thomas <gary@mlbassoc.com> wrote:
+> On 2011-10-06 08:50, Javier Martinez Canillas wrote:
+>>
+>> On Thu, Oct 6, 2011 at 4:29 PM, Javier Martinez Canillas
+>> <martinez.javier@gmail.com>  wrote:
+>>>
+>>> On Thu, Oct 6, 2011 at 4:00 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>>>>
+>>>> On 2011-10-06 01:51, Javier Martinez Canillas wrote:
+>>>>>
+>>>>> On Wed, Oct 5, 2011 at 7:43 PM, Javier Martinez Canillas
+>>>>> <martinez.javier@gmail.com>    wrote:
+>>>>>>
+>>>>>> On Wed, Oct 5, 2011 at 6:28 PM, Enrico<ebutera@users.berlios.de>
+>>>>>>  wrote:
+>>>>>>>
+>>>>>>> Hi all,
+>>>>>>>
+>>>>>>> since we are all interested in this driver (and tvp5150) i'll try to
+>>>>>>> make a summary of the current situation and understand what is needed
+>>>>>>> to finally get it into the main tree instead of having to apply a
+>>>>>>> dozen patches manually.
+>>>>>>>
+>>>>>>> The current status of git repositories/branches is:
+>>>>>>>
+>>>>>>> - main tree: working (i suppose) but no support for bt656 input
+>>>>>>>
+>>>>>>> - pinchartl/media:
+>>>>>>>  * omap3isp-omap3isp-next: i think it's in sync with linuxtv master
+>>>>>>> (for the omap3-isp parts)
+>>>>>>>  * omap3isp-omap3isp-yuv: like ..next but with some additional format
+>>>>>>> patches
+>>>>>>>
+>>>>>>> "Floating" patches:
+>>>>>>>
+>>>>>>> - Deepthy: sent patches (against mainline) to add bt656 support
+>>>>>>>
+>>>>>>> Laurent made some comments, i haven't seen a v2 to be applied
+>>>>>>>
+>>>>>>> - Javier: sent patches for tvp5150, currently discussed on
+>>>>>>> linux-media; possible patches/fixes for omap3-isp
+>>>>>>>
+>>>>>
+>>>>> Hello,
+>>>>>
+>>>>> Since the patches are not against mainline I can't post for reviewing
+>>>>> but can be found in one of our development trees [1]. Comments are
+>>>>> highly appreciated.
+>>>>>
+>>>>> The tree is a 2.6.37 that already contain Deepthy patch. I rebased my
+>>>>> changes on top of that to correctly support both BT656 an non-BT656
+>>>>> video data processing.
+>>>>>
+>>>>> [1]:
+>>>>>
+>>>>> http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=shortlog;h=refs/heads/linux-2.6.37.y-next
+>>>>
+>>>> Any chance of rebasing these against a more up to date kernel, e.g.
+>>>> 3.2-working
+>>>> with the patches Laurent sent today?
+>>>>
+>>>
+>>> Sure, but I won't have time to do it neither today nor tomorrow. But
+>>> will do it during the weekend.
+>>>
+>>>>>>
+>>>>>> I will find some free time slots to resolve the issues called out by
+>>>>>> Sakari, Hans and Mauro and resend the patch-set for the tvp5151.
+>>>>>>
+>>>>>> Also I can send the patches of the modifications I made to the ISP
+>>>>>> driver. Right now I'm working on top of Deepthy patches.
+>>>>>>
+>>>>>> I can either send on top of that patch or rebase to mainline, whatever
+>>>>>> you think is better for reviewing.
+>>>>>>
+>>>>>>> Now what can we all do to converge to a final solution? I think this
+>>>>>>> is also blocking the possible development/test of missing features,
+>>>>>>> like the recently-discussed resizer and cropping ones.
+>>>>>>>
+>>>>>>> Enrico
+>>>>>>>
+>>>>>>
+>>>>>> Right now I have a working the tvp5151 with the ISP. I can capture
+>>>>>> ITU-R BT656 video both in PAL-M and NTSC standard. Also, the whole
+>>>>>> pipeline is configured automatically with the video standard detected
+>>>>>> by the tvp5151. Also, I'm using the CCDC to crop the frames and only
+>>>>>> capture the active lines for each standard (576 for PAL and 480 for
+>>>>>> NTSC) using the CCDC to crop the image.
+>>>>>>
+>>>>>
+>>>>> As I told you before video capturing is working for both PAL and NTSC
+>>>>> using standard V4L2 application (i.e: gstreamer) but the video still
+>>>>> shows some motion artifacts. Capturing YUV frames and looking at them
+>>>>> I realized that there does exist a pattern, the sequence 2 frames
+>>>>> correct and 3 frames with interlacing effects always repeats.
+>>>>
+>>>> I think I've seen this as well.  Could you provide a short video
+>>>> which shows the artefacts?
+>>>>
+>>>
+>>> Yes, I've attached a 16-frame video file. It is a PAL-M video
+>>> (720x576) in YUV 4:22 data format. Please let me know if it is OK for
+>>> you.
+>>>
+>>
+>> Sorry, I didn't notice the size of the image (13 MB) and got a lot of
+>> rejects from your MTAs. I uploaded the file to my personal github
+>> account [1].
+>>
+>> [1]:
+>> https://github.com/martinezjavier/omap3isp_tvp5151/blob/master/pal.yuv
+>
+> Very interesting.  What was your source (camera type, etc)?
 
-On Tue, 18 Oct 2011 05:21:09 -0700, Mel Gorman <mel@csn.ul.ie> wrote:
-> Straight away, I'm wondering why you didn't use
-> mm/compaction.c#isolate_freepages()
+A samsung HD video camera connected to the TVP with its RCA video
+connector. But the artifact its independent of the analog input data,
+I've tried with an Sony Cybershot camera and other input sources.
 
-Does the below look like a step in the right direction?
+> How are you looking (or extracting) individual frames for analysis?
+>
 
-It basically moves isolate_freepages_block() to page_alloc.c (changing
-it name to isolate_freepages_range()) and changes it so that depending
-on arguments it treats holes (either invalid PFN or non-free page) as
-errors so that CMA can use it.
+I'm using gstreamer to capture RAW YUV data and MPEG encoded video
+using the DSP.
 
-It also accepts a range rather then just assuming a single pageblock
-thus the change moves range calculation in compaction.c from
-isolate_freepages_block() up to isolate_freepages().
+This are my pipelines:
 
-The change also modifies spilt_free_page() so that it does not try to
-change pageblock's migrate type if current migrate type is ISOLATE or
-CMA.
+YUV:
 
----
- include/linux/mm.h             |    1 -
- include/linux/page-isolation.h |    4 +-
- mm/compaction.c                |   73 +++--------------------
- mm/internal.h                  |    5 ++
- mm/page_alloc.c                |  128 +++++++++++++++++++++++++---------------
- 5 files changed, 95 insertions(+), 116 deletions(-)
+gst-launch-0.10 -v v4l2src device=/dev/video2 queue-size=16
+num-buffers=16 ! video/x-raw-yuv,format=\(fourcc\)UYVY ! filesink
+location=capture.out
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index fd599f4..98c99c4 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -435,7 +435,6 @@ void put_page(struct page *page);
- void put_pages_list(struct list_head *pages);
- 
- void split_page(struct page *page, unsigned int order);
--int split_free_page(struct page *page);
- 
- /*
-  * Compound pages have a destructor function.  Provide a
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index 003c52f..6becc74 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -48,10 +48,8 @@ static inline void unset_migratetype_isolate(struct page *page)
- }
- 
- /* The below functions must be run on a range from a single zone. */
--extern unsigned long alloc_contig_freed_pages(unsigned long start,
--					      unsigned long end, gfp_t flag);
- extern int alloc_contig_range(unsigned long start, unsigned long end,
--			      gfp_t flags, unsigned migratetype);
-+			      unsigned migratetype);
- extern void free_contig_pages(unsigned long pfn, unsigned nr_pages);
- 
- /*
-diff --git a/mm/compaction.c b/mm/compaction.c
-index 9e5cc59..685a19e 100644
---- a/mm/compaction.c
-+++ b/mm/compaction.c
-@@ -58,77 +58,15 @@ static unsigned long release_freepages(struct list_head *freelist)
- 	return count;
- }
- 
--/* Isolate free pages onto a private freelist. Must hold zone->lock */
--static unsigned long isolate_freepages_block(struct zone *zone,
--				unsigned long blockpfn,
--				struct list_head *freelist)
--{
--	unsigned long zone_end_pfn, end_pfn;
--	int nr_scanned = 0, total_isolated = 0;
--	struct page *cursor;
--
--	/* Get the last PFN we should scan for free pages at */
--	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
--	end_pfn = min(blockpfn + pageblock_nr_pages, zone_end_pfn);
--
--	/* Find the first usable PFN in the block to initialse page cursor */
--	for (; blockpfn < end_pfn; blockpfn++) {
--		if (pfn_valid_within(blockpfn))
--			break;
--	}
--	cursor = pfn_to_page(blockpfn);
--
--	/* Isolate free pages. This assumes the block is valid */
--	for (; blockpfn < end_pfn; blockpfn++, cursor++) {
--		int isolated, i;
--		struct page *page = cursor;
--
--		if (!pfn_valid_within(blockpfn))
--			continue;
--		nr_scanned++;
--
--		if (!PageBuddy(page))
--			continue;
--
--		/* Found a free page, break it into order-0 pages */
--		isolated = split_free_page(page);
--		total_isolated += isolated;
--		for (i = 0; i < isolated; i++) {
--			list_add(&page->lru, freelist);
--			page++;
--		}
--
--		/* If a page was split, advance to the end of it */
--		if (isolated) {
--			blockpfn += isolated - 1;
--			cursor += isolated - 1;
--		}
--	}
--
--	trace_mm_compaction_isolate_freepages(nr_scanned, total_isolated);
--	return total_isolated;
--}
--
- /* Returns true if the page is within a block suitable for migration to */
- static bool suitable_migration_target(struct page *page)
- {
--
- 	int migratetype = get_pageblock_migratetype(page);
- 
- 	/* Don't interfere with memory hot-remove or the min_free_kbytes blocks */
- 	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
- 		return false;
- 
--	/* Keep MIGRATE_CMA alone as well. */
--	/*
--	 * XXX Revisit.  We currently cannot let compaction touch CMA
--	 * pages since compaction insists on changing their migration
--	 * type to MIGRATE_MOVABLE (see split_free_page() called from
--	 * isolate_freepages_block() above).
--	 */
--	if (is_migrate_cma(migratetype))
--		return false;
--
- 	/* If the page is a large free page, then allow migration */
- 	if (PageBuddy(page) && page_order(page) >= pageblock_order)
- 		return true;
-@@ -149,7 +87,7 @@ static void isolate_freepages(struct zone *zone,
- 				struct compact_control *cc)
- {
- 	struct page *page;
--	unsigned long high_pfn, low_pfn, pfn;
-+	unsigned long high_pfn, low_pfn, pfn, zone_end_pfn, end_pfn;
- 	unsigned long flags;
- 	int nr_freepages = cc->nr_freepages;
- 	struct list_head *freelist = &cc->freepages;
-@@ -169,6 +107,8 @@ static void isolate_freepages(struct zone *zone,
- 	 */
- 	high_pfn = min(low_pfn, pfn);
- 
-+	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
-+
- 	/*
- 	 * Isolate free pages until enough are available to migrate the
- 	 * pages on cc->migratepages. We stop searching if the migrate
-@@ -176,7 +116,7 @@ static void isolate_freepages(struct zone *zone,
- 	 */
- 	for (; pfn > low_pfn && cc->nr_migratepages > nr_freepages;
- 					pfn -= pageblock_nr_pages) {
--		unsigned long isolated;
-+		unsigned isolated, scanned;
- 
- 		if (!pfn_valid(pfn))
- 			continue;
-@@ -205,7 +145,10 @@ static void isolate_freepages(struct zone *zone,
- 		isolated = 0;
- 		spin_lock_irqsave(&zone->lock, flags);
- 		if (suitable_migration_target(page)) {
--			isolated = isolate_freepages_block(zone, pfn, freelist);
-+			end_pfn = min(pfn + pageblock_nr_pages, zone_end_pfn);
-+			isolated = isolate_freepages_range(zone, pfn,
-+					end_pfn, freelist, &scanned);
-+			trace_mm_compaction_isolate_freepages(scanned, isolated);
- 			nr_freepages += isolated;
- 		}
- 		spin_unlock_irqrestore(&zone->lock, flags);
-diff --git a/mm/internal.h b/mm/internal.h
-index d071d380..4a9bb3f 100644
---- a/mm/internal.h
-+++ b/mm/internal.h
-@@ -263,3 +263,8 @@ extern u64 hwpoison_filter_flags_mask;
- extern u64 hwpoison_filter_flags_value;
- extern u64 hwpoison_filter_memcg;
- extern u32 hwpoison_filter_enable;
-+
-+unsigned isolate_freepages_range(struct zone *zone,
-+				 unsigned long start, unsigned long end,
-+				 struct list_head *freelist,
-+				 unsigned *scannedp);
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index df69706..adf3f34 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1300,10 +1300,11 @@ void split_page(struct page *page, unsigned int order)
-  * Note: this is probably too low level an operation for use in drivers.
-  * Please consult with lkml before using this in your driver.
-  */
--int split_free_page(struct page *page)
-+static unsigned split_free_page(struct page *page)
- {
- 	unsigned int order;
- 	unsigned long watermark;
-+	struct page *endpage;
- 	struct zone *zone;
- 
- 	BUG_ON(!PageBuddy(page));
-@@ -1326,14 +1327,18 @@ int split_free_page(struct page *page)
- 	set_page_refcounted(page);
- 	split_page(page, order);
- 
--	if (order >= pageblock_order - 1) {
--		struct page *endpage = page + (1 << order) - 1;
--		for (; page < endpage; page += pageblock_nr_pages)
--			if (!is_pageblock_cma(page))
--				set_pageblock_migratetype(page,
--							  MIGRATE_MOVABLE);
-+	if (order < pageblock_order - 1)
-+		goto done;
-+
-+	endpage = page + (1 << order) - 1;
-+	for (; page < endpage; page += pageblock_nr_pages) {
-+		int mt = get_pageblock_migratetype(page);
-+		/* Don't change CMA nor ISOLATE */
-+		if (!is_migrate_cma(mt) && mt != MIGRATE_ISOLATE)
-+			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
- 	}
- 
-+done:
- 	return 1 << order;
- }
- 
-@@ -5723,57 +5728,76 @@ out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
- }
- 
--unsigned long alloc_contig_freed_pages(unsigned long start, unsigned long end,
--				       gfp_t flag)
-+/**
-+ * isolate_freepages_range() - isolate free pages, must hold zone->lock.
-+ * @zone:	Zone pages are in.
-+ * @start:	The first PFN to start isolating.
-+ * @end:	The one-past-last PFN.
-+ * @freelist:	A list to save isolated pages to.
-+ * @scannedp:	Optional pointer where to save number of scanned pages.
-+ *
-+ * If @freelist is not provided, holes in range (either non-free pages
-+ * or invalid PFN) are considered an error and function undos its
-+ * actions and returns zero.
-+ *
-+ * If @freelist is provided, function will simply skip non-free and
-+ * missing pages and put only the ones isolated on the list.  It will
-+ * also call trace_mm_compaction_isolate_freepages() at the end.
-+ *
-+ * Returns number of isolated pages.  This may be more then end-start
-+ * if end fell in a middle of a free page.
-+ */
-+unsigned isolate_freepages_range(struct zone *zone,
-+				 unsigned long start, unsigned long end,
-+				 struct list_head *freelist, unsigned *scannedp)
- {
--	unsigned long pfn = start, count;
-+	unsigned nr_scanned = 0, total_isolated = 0;
-+	unsigned long pfn = start;
- 	struct page *page;
--	struct zone *zone;
--	int order;
- 
- 	VM_BUG_ON(!pfn_valid(start));
--	page = pfn_to_page(start);
--	zone = page_zone(page);
- 
--	spin_lock_irq(&zone->lock);
-+	/* Isolate free pages. This assumes the block is valid */
-+	page = pfn_to_page(pfn);
-+	while (pfn < end) {
-+		unsigned isolated = 1;
- 
--	for (;;) {
--		VM_BUG_ON(!page_count(page) || !PageBuddy(page) ||
--			  page_zone(page) != zone);
-+		VM_BUG_ON(page_zone(page) != zone);
- 
--		list_del(&page->lru);
--		order = page_order(page);
--		count = 1UL << order;
--		zone->free_area[order].nr_free--;
--		rmv_page_order(page);
--		__mod_zone_page_state(zone, NR_FREE_PAGES, -(long)count);
-+		if (!pfn_valid_within(blockpfn))
-+			goto skip;
-+		++nr_scanned;
- 
--		pfn += count;
--		if (pfn >= end)
--			break;
--		VM_BUG_ON(!pfn_valid(pfn));
--
--		if (zone_pfn_same_memmap(pfn - count, pfn))
--			page += count;
--		else
--			page = pfn_to_page(pfn);
--	}
-+		if (!PageBuddy(page)) {
-+skip:
-+			if (freelist)
-+				goto next;
-+			for (; start < pfn; ++start)
-+				__free_page(pfn_to_page(pfn));
-+			return 0;
-+		}
- 
--	spin_unlock_irq(&zone->lock);
-+		/* Found a free page, break it into order-0 pages */
-+		isolated = split_free_page(page);
-+		total_isolated += isolated;
-+		if (freelist) {
-+			struct page *p = page;
-+			unsigned i = isolated;
-+			for (; i--; ++page)
-+				list_add(&p->lru, freelist);
-+		}
- 
--	/* After this, pages in the range can be freed one be one */
--	count = pfn - start;
--	pfn = start;
--	for (page = pfn_to_page(pfn); count; --count) {
--		prep_new_page(page, 0, flag);
--		++pfn;
--		if (likely(zone_pfn_same_memmap(pfn - 1, pfn)))
--			++page;
-+next:		/* Advance to the next page */
-+		pfn += isolated;
-+		if (zone_pfn_same_memmap(pfn - isolated, pfn))
-+			page += isolated;
- 		else
- 			page = pfn_to_page(pfn);
- 	}
- 
--	return pfn;
-+	if (scannedp)
-+		*scannedp = nr_scanned;
-+	return total_isolated;
- }
- 
- static unsigned long pfn_to_maxpage(unsigned long pfn)
-@@ -5837,7 +5861,6 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-  * alloc_contig_range() -- tries to allocate given range of pages
-  * @start:	start PFN to allocate
-  * @end:	one-past-the-last PFN to allocate
-- * @flags:	flags passed to alloc_contig_freed_pages().
-  * @migratetype:	migratetype of the underlaying pageblocks (either
-  *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
-  *			in range must have the same migratetype and it must
-@@ -5853,9 +5876,10 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-  * need to be freed with free_contig_pages().
-  */
- int alloc_contig_range(unsigned long start, unsigned long end,
--		       gfp_t flags, unsigned migratetype)
-+		       unsigned migratetype)
- {
- 	unsigned long outer_start, outer_end;
-+	struct zone *zone;
- 	int ret;
- 
- 	/*
-@@ -5910,7 +5934,17 @@ int alloc_contig_range(unsigned long start, unsigned long end,
- 			return -EINVAL;
- 
- 	outer_start = start & (~0UL << ret);
--	outer_end   = alloc_contig_freed_pages(outer_start, end, flags);
-+
-+	zone = page_zone(pfn_to_page(outer_start));
-+	spin_lock_irq(&zone->lock);
-+	outer_end = isolate_freepages_range(zone, outer_start, end, NULL, NULL);
-+	spin_unlock_irq(&zone->lock);
-+
-+	if (!outer_end) {
-+		ret = -EBUSY;
-+		goto done;
-+	}
-+	outer_end += outer_start;
- 
- 	/* Free head and tail (if any) */
- 	if (start != outer_start)
+MPEG:
+
+gst-launch-0.10 -v v4l2src device=/dev/video2 queue-size=8 !
+video/x-raw-yuv,format=\(fourcc\)UYVY ! TIVidenc1 codecName=mpeg4enc
+engineName=codecServer ! qtmux ! filesink location=capture.m4v
+
+> I see much the same sort of artefacts as you are.  An example is at
+>  http://www.mlbassoc.com/misc/untitled.m2t
+> This is a little example I put together using kdenlive.  The first segment
+> is the raw video from my camera, imported via USB.  The second is roughly
+> the same video captured using my OMAP board and converted to MP4 on the fly
+> by this command:
+>  ffmpeg -r 30/1 -pix_fmt uyvy422 -s 720x524 -f video4linux2 -i /dev/video2
+> -qscale 1 -f mp4 test1.mp4
+> I think there are some aspect ratio issues with these but what bothers me
+> the most is how much the captured data tears whenever there is a lot of
+> motion in the video.
+>
+> --
+> ------------------------------------------------------------
+> Gary Thomas                 |  Consulting for the
+> MLB Associates              |    Embedded world
+> ------------------------------------------------------------
+>
+
+Best regards,
+
 -- 
-1.7.3.1
-
+Javier Martínez Canillas
+(+34) 682 39 81 69
+Barcelona, Spain
