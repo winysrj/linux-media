@@ -1,45 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:36364 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754844Ab1JKSR6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Oct 2011 14:17:58 -0400
-Received: by wwn22 with SMTP id 22so5574227wwn.1
-        for <linux-media@vger.kernel.org>; Tue, 11 Oct 2011 11:17:57 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:4167 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935645Ab1JFN1N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 6 Oct 2011 09:27:13 -0400
+Message-ID: <4E8DACAF.5070207@redhat.com>
+Date: Thu, 06 Oct 2011 10:27:11 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <201110101752.11536.liplianin@me.by>
-References: <201110101752.11536.liplianin@me.by>
-Date: Tue, 11 Oct 2011 14:17:57 -0400
-Message-ID: <CALzAhNUOrg38VkNLq1Nbm+Wbv8OD0wXKK3TSuXez1n1q_uMLDw@mail.gmail.com>
-Subject: Re: [GIT PATCHES FOR 3.2] cx23885 alsa cleaned and prepaired
-From: Steven Toth <stoth@kernellabs.com>
-To: "Igor M. Liplianin" <liplianin@me.by>
-Cc: Mauro Chehab <mchehab@infradead.org>, linux-media@vger.kernel.org,
-	Steven Toth <stoth@linuxtv.org>,
-	Mijhail Moreyra <mijhail.moreyra@gmail.com>,
-	Abylai Ospan <aospan@netup.ru>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Merge v4l-utils. dvb-apps and mediactl to media-utils.git
+References: <201110061423.22064.hverkuil@xs4all.nl>
+In-Reply-To: <201110061423.22064.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> It's been a long time since cx23885-alsa pull was requested.
-> To speed things up I created a git branch where I put the patches.
-> are available in the git repository at:
+Em 06-10-2011 09:23, Hans Verkuil escreveu:
+> Currently we have three repositories containing libraries and utilities that
+> are relevant to the media drivers:
+>
+> dvb-apps (http://linuxtv.org/hg/dvb-apps/)
+> v4l-utils (http://git.linuxtv.org/v4l-utils.git)
+> media-ctl (git://git.ideasonboard.org/media-ctl.git)
+>
+> It makes no sense to me to have three separate repositories, one still using
+> mercurial and one that isn't even on linuxtv.org.
+>
+> I propose to combine them all to one media-utils.git repository. I think it
+> makes a lot of sense to do this.
+>
+> After the switch the other repositories are frozen (with perhaps a README
+> pointing to the new media-utils.git).
+>
+> I'm not sure if there are plans to make new stable releases of either of these
+> repositories any time soon. If there are, then it might make sense to wait
+> until that new stable release before merging.
+>
+> Comments?
 
-...
+I like that idea. It helps to have the basic tools into one single repository,
+and to properly distribute it.
 
->  git://linuxtv.org/liplianin/media_tree.git cx23885-alsa-clean-2
+I think through, that we should work to have an smart configure script that
+would allow enabling/disabling the several components of the utils, like the
+--enable/--disable approach used by autoconf scripts:
+	--enable-libv4l
+	--enable-dvb
+	--enable-ir
+	--enable-v4l
+	--enable-mc
+	...
 
-Thank you for working on this Igor.
+Of course, using "--disable-libv4l" would mean that libv4l-aware utils would
+be statically linked with the current libv4l libraries.
 
-I most certainly have some additional patches that will probably no
-longer apply cleanly. However, given that you've gone to the trouble
-of building a new tree, assuming we can get these merged, then I'll
-rebase and regenerate any patches I have to match the current cx23885
-driver.
+This would help distributions to migrate to it, as they can keep having separate
+packages for each component for the existing stable distros, while merging
+into a single source package for future distros.
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
-+1.646.355.8490
+Regards,
+Mauro
