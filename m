@@ -1,55 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:33342 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752293Ab1JOQiM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Oct 2011 12:38:12 -0400
-Subject: Re: [git:v4l-dvb/for_v3.2] [media] cx25840: enable raw cc
- processing only for the cx23885 hardware
-From: Andy Walls <awalls@md.metrocast.net>
-To: linux-media@vger.kernel.org
-Cc: linuxtv-commits@linuxtv.org, Steven Toth <stoth@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Sat, 15 Oct 2011 12:39:55 -0400
-In-Reply-To: <E1REoKG-0005xF-GE@www.linuxtv.org>
-References: <E1REoKG-0005xF-GE@www.linuxtv.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1318696796.3274.8.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from bar.sig21.net ([80.81.252.164]:45479 "EHLO bar.sig21.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758255Ab1JFMra (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 6 Oct 2011 08:47:30 -0400
+Date: Thu, 6 Oct 2011 14:47:17 +0200
+From: Johannes Stezenbach <js@linuxtv.org>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Cypress EZ-USB FX2 firmware development
+Message-ID: <20111006124717.GA9110@linuxtv.org>
+References: <4E8B61FF.8000505@iki.fi>
+ <20111004212901.GA20648@linuxtv.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20111004212901.GA20648@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2011-10-14 at 22:10 +0200, Mauro Carvalho Chehab wrote:
-> This is an automatic generated email to let you know that the following patch were queued at the 
-> http://git.linuxtv.org/media_tree.git tree:
+On Tue, Oct 04, 2011 at 11:29:01PM +0200, Johannes Stezenbach wrote:
+> On Tue, Oct 04, 2011 at 10:43:59PM +0300, Antti Palosaari wrote:
+> > I would like to made own firmware for Cypress FX2 based DVB device.
+> > Is there any sample to look example?
+> 
+> http://linuxtv.org/cgi-bin/viewvc.cgi/dvb-hw/dvbusb-fx2/termini/
 
-Ummm...
+PS: If you haven't found it already, there is also fx2lib:
+https://github.com/mulicheng/fx2lib
+http://sourceforge.net/projects/fx2lib/
 
-> Subject: [media] cx25840: enable raw cc processing only for the cx23885 hardware
-                                                                  ^^^^^^^^^^^^^^^^   
-
-> diff --git a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
-> index b7ee2ae..8896999 100644
-> --- a/drivers/media/video/cx25840/cx25840-core.c
-> +++ b/drivers/media/video/cx25840/cx25840-core.c
-> @@ -702,6 +702,13 @@ static void cx231xx_initialize(struct i2c_client *client)
-                                   ^^^^^^^^^^^^^^^^^^
-
-Is this what was intended?
-
->  	/* start microcontroller */
->  	cx25840_and_or(client, 0x803, ~0x10, 0x10);
-> +
-> +	/* CC raw enable */
-> +	cx25840_write(client, 0x404, 0x0b);
-> +
-> +	/* CC on */
-> +	cx25840_write(client, 0x42f, 0x66);
-> +	cx25840_write4(client, 0x474, 0x1e1e601a);
->  }
-
-
-Regards,
-Andy
-
+Johannes
