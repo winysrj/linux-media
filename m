@@ -1,105 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:40274 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752841Ab1JUHfo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Oct 2011 03:35:44 -0400
-Received: from epcpsbgm2.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LTE00IQUNRJCHP0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 21 Oct 2011 16:35:43 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTPA id <0LTE002GVNRJR4A0@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 21 Oct 2011 16:35:43 +0900 (KST)
-From: "HeungJun, Kim" <riverful.kim@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: "HeungJun, Kim" <riverful.kim@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 3/5] m5mols: Support for interrupt in the sensor's booting time
-Date: Fri, 21 Oct 2011 16:35:52 +0900
-Message-id: <1319182554-10645-3-git-send-email-riverful.kim@samsung.com>
-In-reply-to: <1319182554-10645-1-git-send-email-riverful.kim@samsung.com>
-References: <1319182554-10645-1-git-send-email-riverful.kim@samsung.com>
+Received: from casper.infradead.org ([85.118.1.10]:36134 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756351Ab1JFBmA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 21:42:00 -0400
+Message-ID: <4E8D075E.40702@infradead.org>
+Date: Wed, 05 Oct 2011 22:41:50 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Javier Martinez Canillas <martinez.javier@gmail.com>,
+	linux-media@vger.kernel.org,
+	laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Enrico <ebutera@users.berlios.de>,
+	Gary Thomas <gary@mlbassoc.com>
+Subject: Re: [PATCH 3/3] [media] tvp5150: Migrate to media-controller framework
+ and add video format detection
+References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com> <CAAwP0s1ozMVi5TgWUGmu5Pxd2cTEHd1rTD72HU9R+Fth3Rb9-A@mail.gmail.com> <4E891B22.1020204@infradead.org> <201110030830.25364.hverkuil@xs4all.nl> <4E8A04C2.5000508@infradead.org> <20111003190109.GN6180@valkosipuli.localdomain> <4E8A0ECC.3030006@infradead.org> <20111005234140.GE8614@valkosipuli.localdomain>
+In-Reply-To: <20111005234140.GE8614@valkosipuli.localdomain>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The M-5MOLS suports 2 booting ways. 1) waiting specific delay(over 520ms),
-or 2) waiting with interrupt. The way of interrupt type supports optimum delay
-for booting by waiting interrupt. Also, in case of using this way, it doesn't
-need the extra delay in the m5mols_sensor_power() for stabilization.
+Em 05-10-2011 20:41, Sakari Ailus escreveu:
+> On Mon, Oct 03, 2011 at 04:36:44PM -0300, Mauro Carvalho Chehab wrote:
+>> Em 03-10-2011 16:01, Sakari Ailus escreveu:
+>>> On Mon, Oct 03, 2011 at 03:53:54PM -0300, Mauro Carvalho Chehab wrote:
+>>>> Yes, you're right. I should not try to answer emails when I'm lazy enough to not
+>>>> look in to the code ;)
+>>>>
+>>>> Anyway, the thing is that V4L2 API has enough support for auto-detection. There's
+>>>> no need to duplicate stuff with MC API.
+>>>
+>>> It's not MC API but V4L2 subdev API. No-one has proposed to add video
+>>> standard awareness to the Media controller API. There's no reason to export
+>>> a video node in video decoder drivers... but I guess you didn't mean that.
+>>>
+>>> Would implementing ENUM/G/S_STD make sense for the camera ISP driver, that
+>>> has nothing to do with any video standard?
+>>
+>> This is an old discussion, and we never agreed on that. Some webcam drivers
+>> implement those ioctls. Others don't. Both cases are compliant with the
+>> current specs. In the past, several userspace applications used to abort if those
+>> ioctl's weren't implemented, but I think that this were fixed already there.
+>>
+>> As I said, we should define a per-device type profile in order to enforce that
+>> all devices of the same type will do the same. We'll need man power to fix the
+>> ones that aren't compliant, and solve the userspace issues. Volunteers needed.
+>>
+>> There's one point to bold on it: devices that can have either an analog input
+>> or a digital input will likely need to implement ENUM/G/S_STD for both, as
+>> userspace applications may fail, if the ioctl's are disabled depending on the
+>> type of input. We had to implement them on several drivers, due to that.
+>
+> My disguised question behind this was actually that would a driver need to
+> implement an ioctl that has no relevance to the driver itself at all but
+> only to support another driver, yet the first driver might not have enough
+> information to properly implement it?
 
-Signed-off-by: HeungJun, Kim <riverful.kim@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/m5mols/m5mols_core.c |   16 ++++++++++------
- drivers/media/video/m5mols/m5mols_reg.h  |    3 ++-
- 2 files changed, 12 insertions(+), 7 deletions(-)
+This is done a lot at the V4L2 drivers: basically, the code at the bridge
+driver just forwards the request to the sub-devices, when it doesn't know
+what to do, and return the information back to the userspace, acting like
+a bridge between the userspace and the sub-devices.
 
-diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
-index f3b9415..24e66ad 100644
---- a/drivers/media/video/m5mols/m5mols_core.c
-+++ b/drivers/media/video/m5mols/m5mols_core.c
-@@ -738,7 +738,6 @@ static int m5mols_sensor_power(struct m5mols_info *info, bool enable)
- 		}
- 
- 		gpio_set_value(pdata->gpio_reset, !pdata->reset_polarity);
--		usleep_range(1000, 1000);
- 		info->power = true;
- 
- 		return ret;
-@@ -755,7 +754,6 @@ static int m5mols_sensor_power(struct m5mols_info *info, bool enable)
- 		info->set_power(&client->dev, 0);
- 
- 	gpio_set_value(pdata->gpio_reset, pdata->reset_polarity);
--	usleep_range(1000, 1000);
- 	info->power = false;
- 
- 	return ret;
-@@ -773,18 +771,24 @@ int __attribute__ ((weak)) m5mols_update_fw(struct v4l2_subdev *sd,
-  *
-  * Booting internal ARM core makes the M-5MOLS is ready for getting commands
-  * with I2C. It's the first thing to be done after it powered up. It must wait
-- * at least 520ms recommended by M-5MOLS datasheet, after executing arm booting.
-+ * at least 520ms recommended by M-5MOLS datasheet. Otherwise we also can check
-+ * the register CATF_CAM_START is still in FLASH_MODE or not, after sensor's
-+ * I2C transfer status is stabled and we write REG_START_ARM_BOOT command
-+ * on the CAT_FLASH category.
-  */
- static int m5mols_sensor_armboot(struct v4l2_subdev *sd)
- {
- 	int ret;
- 
--	ret = m5mols_write(sd, FLASH_CAM_START, REG_START_ARM_BOOT);
-+	/* Execute ARM boot sequence */
-+	ret = m5mols_busy(sd, REG_IN_FLASH_MODE, CAT_FLASH, CATF_CAM_START);
-+	if (!ret)
-+		ret = m5mols_write(sd, FLASH_CAM_START, REG_START_ARM_BOOT);
-+	if (!ret)
-+		ret = m5mols_timeout_interrupt(sd, REG_INT_MODE, 2000);
- 	if (ret < 0)
- 		return ret;
- 
--	msleep(520);
--
- 	ret = m5mols_get_version(sd);
- 	if (!ret)
- 		ret = m5mols_update_fw(sd, m5mols_sensor_power);
-diff --git a/drivers/media/video/m5mols/m5mols_reg.h b/drivers/media/video/m5mols/m5mols_reg.h
-index c755bd6..533aa27 100644
---- a/drivers/media/video/m5mols/m5mols_reg.h
-+++ b/drivers/media/video/m5mols/m5mols_reg.h
-@@ -405,6 +405,7 @@
- 					 * after power-up */
- 
- #define FLASH_CAM_START		I2C_REG(CAT_FLASH, CATF_CAM_START, 1)
--#define REG_START_ARM_BOOT	0x01
-+#define REG_START_ARM_BOOT	0x01	/* value in case of writing */
-+#define REG_IN_FLASH_MODE	0x00	/* value in case of reading */
- 
- #endif	/* M5MOLS_REG_H */
--- 
-1.7.4.1
+For example, this is what the usbvision[1] driver does for all control ioctl's:
 
+[1] usbvision is not an example of a modern driver. It is for some old
+generations of USB 1.1 media devices. I'm just using it here as it contains
+one of the simplest implementations among the drivers we have, as most of
+the work is done by the saa7115 driver.
+
+static int vidioc_s_ctrl(struct file *file, void *priv,
+				struct v4l2_control *ctrl)
+{
+	struct usb_usbvision *usbvision = video_drvdata(file);
+
+	call_all(usbvision, core, s_ctrl, ctrl);
+	return 0;
+}
+
+In other words, it just forwards the call to the tv decoder or to the sensor
+(the same driver is used with both webcams and tv decoders).
+
+The implementation for S_STD is a little more complex, as it also sets the
+input at the video muxer. Even so, it is trivial:
+
+static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *id)
+{
+	struct usb_usbvision *usbvision = video_drvdata(file);
+
+	usbvision->tvnorm_id = *id;
+
+	call_all(usbvision, core, s_std, usbvision->tvnorm_id);
+	/* propagate the change to the decoder */
+	usbvision_muxsel(usbvision, usbvision->ctl_input);
+
+	return 0;
+}
+
+> It may be sometimes necessary but I would like to avoid that if possible
+> since it complicates even more drivers which already are very complex.
+
+As you can see from the two above examples, a code that will just bridge
+the call to the subdevs is trivial to implement, and won't affect much
+the drivers complexity.
+
+On the other hand, Implementing the same at userspace can be much more complex, as userspace
+will need to know some details about the device. For example, userspace
+would need to know what nodes are affected by a command like S_STD, and
+what are the requirements for each pad, to avoid putting the device into
+an unsupported configuration.
+
+>>> If you have two video decoders
+>>> connected to your system, then which one should the ioctls be redirected to?
+>>> What if there's a sensor and a video decoder? And how could the user know
+>>> about this?
+>>
+>> When an input is selected (either via the V4L2 way - S_INPUT or via the MC/subdev
+>> way, there's just one video decoder or sensor associated to the corresponding
+>> V4L2 node).
+>>
+>>> It's the same old issues again... let's discuss this in the Multimedia
+>>> summit.
+>>
+>> We can discuss more at the summit, but we should start discussing it here, as
+>> otherwise we may not be able to go into a consensus there, due to the limited
+>> amount of time we would have for each topic.
+>
+> Sounds good to me, but sometimes face-to-face discussion just is not
+> replaceable.
+>
+
+We've scheduled some time for discussing it there, and we may schedule more discussions
+a about that if needed during the rest of the week.
+
+Regards,
+Mauro
