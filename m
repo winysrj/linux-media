@@ -1,57 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40828 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935837Ab1JFNab (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 09:30:31 -0400
-Received: from lancelot.localnet (unknown [91.178.166.155])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 0ECAE359E9
-	for <linux-media@vger.kernel.org>; Thu,  6 Oct 2011 13:30:30 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for v3.2] OMAP3 ISP fixes
-Date: Thu, 6 Oct 2011 15:30:28 +0200
+Received: from mx1.redhat.com ([209.132.183.28]:64788 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758292Ab1JGB7L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 6 Oct 2011 21:59:11 -0400
+Message-ID: <4E8E5CE9.8030604@redhat.com>
+Date: Thu, 06 Oct 2011 22:59:05 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org, Mikael Magnusson <mikachu@gmail.com>
+Subject: tvtime at linuxtv.org
+References: <1315322996-10576-1-git-send-email-mchehab@redhat.com> <CAGoCfiy2hnH0Xoz_+Q8JgcB-tzuTGbfv8QdK0kv+ttP7t+EZKg@mail.gmail.com> <CAGoCfixa0pr048=-P3OUkZ2HMaY471eNO79BON0vjSVa1eRcTw@mail.gmail.com> <4E66E532.4050402@redhat.com> <CAGoCfiw7vjprc_skYYAXy9sTA7zkYEWtzXy9tEmJD+q8aazPog@mail.gmail.com> <CAGoCfiw-QnfVVwOhejwbMmb+K2F0VDwN_L-6E37w+=jKYGGFkg@mail.gmail.com> <CAGoCfixTqXaDU++-k_tn1NMkg4xXNcL=qvezggqe6BqEH+h5xg@mail.gmail.com>
+In-Reply-To: <CAGoCfixTqXaDU++-k_tn1NMkg4xXNcL=qvezggqe6BqEH+h5xg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201110061530.29396.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Devin,
 
-The following changes since commit 2f4cf2c3a971c4d5154def8ef9ce4811d702852d:
+I had some discussions with Mikael today at the #linuxtv channel about
+tvtime. Mikael has write access to the tvtime site at sourceforge and he
+is doing some maintainance on it for some time, and worked on some bugs
+from Gentoo, and also imported some stuff from Ubuntu.
 
-  [media] dib9000: release a lock on error (2011-09-30 13:32:56 -0300)
+I've merged his patches on my repository:
+	http://git.linuxtv.org/mchehab/tvtime.git
 
-are available in the git repository at:
-  git://linuxtv.org/pinchartl/media.git omap3isp-omap3isp-next
+Tvtime is compiling, at least on Fedora 15. I also added your patch there,
+and changed the latency delay to 50ms. I didn't test it yet. I'll do it later
+today or tomorrow.
 
-Guennadi Liakhovetski (1):
-      omap3isp: ccdc: remove redundant operation
+Btw, Mikael updated the Related Sites there to point to the LinuxTV site:
+	http://tvtime.sourceforge.net/links.html
 
-Laurent Pinchart (4):
-      omap3isp: Move media_entity_cleanup() from unregister() to cleanup()
-      omap3isp: Move *_init_entities() functions to the init/cleanup section
-      omap3isp: Add missing mutex_destroy() calls
-      omap3isp: Fix memory leaks in initialization error paths
+He will try to contact Vektor again, in order to get his ack about adding
+a note at the main page pointing to us.
 
- drivers/media/video/omap3isp/isp.c         |    2 +
- drivers/media/video/omap3isp/ispccdc.c     |   86 +++++++++++--------
- drivers/media/video/omap3isp/ispccp2.c     |  125 ++++++++++++++-------------
- drivers/media/video/omap3isp/ispcsi2.c     |   91 +++++++++++----------
- drivers/media/video/omap3isp/isph3a_aewb.c |    2 +-
- drivers/media/video/omap3isp/isph3a_af.c   |    2 +-
- drivers/media/video/omap3isp/isphist.c     |    2 +-
- drivers/media/video/omap3isp/isppreview.c  |  108 ++++++++++++------------
- drivers/media/video/omap3isp/ispresizer.c  |  104 ++++++++++++-----------
- drivers/media/video/omap3isp/ispstat.c     |   52 +++++++-----
- drivers/media/video/omap3isp/ispstat.h     |    2 +-
- drivers/media/video/omap3isp/ispvideo.c    |   11 ++-
- drivers/media/video/omap3isp/ispvideo.h    |    1 +
- 13 files changed, 318 insertions(+), 270 deletions(-)
+I think we should move those patches to the main repository after testing the
+merges, and give write rights to the ones that are interested on maintaining
+tvtime.
 
--- 
-Regards,
+I'm interested on it, and also Mikael.
 
-Laurent Pinchart
+IMHO, after testing it and applying a few other patches that Mikael might have,
+it is time for us to rename the version to 1.10 and do a tvtime release.
+
+Would that work for you?
+
+Thank you!
+Mauro
