@@ -1,36 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:44460 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752821Ab1JGSIN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2011 14:08:13 -0400
-Received: by wyg34 with SMTP id 34so4145095wyg.19
-        for <linux-media@vger.kernel.org>; Fri, 07 Oct 2011 11:08:12 -0700 (PDT)
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:64765 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753487Ab1JGWqK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2011 18:46:10 -0400
+Received: by eyg7 with SMTP id 7so1622899eyg.19
+        for <linux-media@vger.kernel.org>; Fri, 07 Oct 2011 15:46:08 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <201110061423.22064.hverkuil@xs4all.nl>
-References: <201110061423.22064.hverkuil@xs4all.nl>
-Date: Fri, 7 Oct 2011 23:38:11 +0530
-Message-ID: <CAHFNz9KPXY-z+zq0iSE3O66GaDj-2MA8vWO21KLbjN9tw6RZ-w@mail.gmail.com>
-Subject: Re: [RFC] Merge v4l-utils. dvb-apps and mediactl to media-utils.git
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <4e8f6b0b.c90fe30a.4a1d.26bb@mx.google.com>
+References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
+	<CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
+	<CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
+	<4e8b8099.95d1e30a.4bee.0501@mx.google.com>
+	<CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
+	<CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
+	<CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
+	<4e8f6b0b.c90fe30a.4a1d.26bb@mx.google.com>
+Date: Sat, 8 Oct 2011 09:46:07 +1100
+Message-ID: <CAATJ+fvQA4zAcGq+D0+k+OHb8Xsrda5=DATWXbzEO5z=0rWZfw@mail.gmail.com>
+Subject: Re: [PATCH] af9013 Extended monitoring in set_frontend.
+From: Jason Hecker <jwhecker@gmail.com>
+To: Malcolm Priestley <tvboxspy@gmail.com>
+Cc: Josu Lazkano <josu.lazkano@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 6, 2011 at 5:53 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Currently we have three repositories containing libraries and utilities that
-> are relevant to the media drivers:
->
-> dvb-apps (http://linuxtv.org/hg/dvb-apps/)
-> v4l-utils (http://git.linuxtv.org/v4l-utils.git)
-> media-ctl (git://git.ideasonboard.org/media-ctl.git)
->
-> It makes no sense to me to have three separate repositories, one still using
-> mercurial and one that isn't even on linuxtv.org.
+> Try this patch, it should stop start up corruption on the same frontend.
 
-We had a discussion earlier on the same subject wrt dvb-apps and the
-decision at that time was against a merge. That decision still holds.
+Thanks.  I'll try it today.
 
-Regards,
-Manu
+Have you been able to reproduce any of the corruption issues I and
+others are having?
+
+I noticed last night some recordings on the same card had different
+levels of corruption depending on the order of tuning
+
+Tuner A then tuner B : Tuner A was heavily corrupted.  Tuner B was a fine.
+Tuner B then tuner A: Tuner A had a small corruption every few seconds
+and the show was watchable, Tuner B was fine.
