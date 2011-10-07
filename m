@@ -1,60 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1694 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755725Ab1JXL5W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Oct 2011 07:57:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PATCHES FOR 3.2] add poll_requested_events() function
-Date: Mon, 24 Oct 2011 13:57:06 +0200
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Jonathan Corbet <corbet@lwn.net>, viro@zeniv.linux.org.uk,
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Received: from mail.wut.de ([194.77.229.25]:54427 "EHLO mail.wut.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965348Ab1JGOuW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Oct 2011 10:50:22 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.wut.de (Postfix) with ESMTP id DEC88C44B6
+	for <linux-media@vger.kernel.org>; Fri,  7 Oct 2011 16:34:05 +0200 (CEST)
+Received: from [10.40.33.3] (WSKK3.wtintern.de [10.40.33.3])
+	by mail.wut.de (Postfix) with ESMTPA id 27918C43C5
+	for <linux-media@vger.kernel.org>; Fri,  7 Oct 2011 16:33:57 +0200 (CEST)
+Message-ID: <4E8F0DD9.9070402@wut.de>
+Date: Fri, 07 Oct 2011 16:34:01 +0200
+From: =?ISO-8859-15?Q?Markus_K=F6nigshaus?= <m.koenigshaus@wut.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201110241357.06816.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Bug in xawtv with libjpeg v8
+Content-Type: multipart/mixed;
+ boundary="------------010001070406060405020804"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since there have been no more comment on RFCv4 of this patch series
-(http://comments.gmane.org/gmane.linux.kernel/1196926), I'm posting this
-pull request for v3.2.
+This is a multi-part message in MIME format.
+--------------010001070406060405020804
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I never received any acks or comments from Al Viro (or anyone else from
-linux-fsdevel for that matter), so I'm following Andrew's suggestion and I just
-go ahead with this.
+Using streamer from xawtv-3.102 segfaults with jpeg-output and libjpeg 
+v8. Attached patch will resolve the problem.
 
-This series should be pulled in via the media git repository since the media
-drivers are the primary users of the new poll_requested_events() function.
+Regards, Markus
 
-Regards,
+-- Unsere Aussagen koennen Irrtuemer und Missverstaendnisse enthalten.
+Bitte pruefen Sie die Aussagen fuer Ihren Fall, bevor Sie Entscheidungen 
+auf Grundlage dieser Aussagen treffen.
+Wiesemann & Theis GmbH, Porschestr. 12, D-42279 Wuppertal
+Geschaeftsfuehrer: Dipl.-Ing. Ruediger Theis
+Registergericht: Amtsgericht Wuppertal, HRB 6377 
+Tel. +49-202/2680-0, Fax +49-202/2680-265, http://www.wut.de
+--------------010001070406060405020804
+Content-Type: text/x-patch;
+ name="xawtv-3.102-conv-mjpeg_c.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="xawtv-3.102-conv-mjpeg_c.patch"
 
-	Hans
+from https://bugs.gentoo.org/show_bug.cgi?id=294488
+[...]
+explicitly set do_fancy_downsampling to FALSE 
 
-The following changes since commit a63366b935456dd0984f237642f6d4001dcf8017:
+Apparently, when settings dinfo.raw_data_in,
+previous version jpeg automatically set dinfo.do_fancy_downsampling to
+FALSE. Newer versions (since 7) of media-libs/jpeg do not do that anymore and
+the program must do it explicitly (although I have not found any documentation
+to that effect). 
 
-  [media] mxl111sf: update demod_ops.info.name to "MaxLinear MxL111SF DVB-T demodulator" (2011-10-24 
-03:20:09 +0200)
+Compile tested only, but a similar fix in mjpegtools (but output rather than
+input) works.
+--- xawtv-3.102.org/libng/plugins/conv-mjpeg.c	2011-09-05 19:26:02.000000000 +0200
++++ xawtv-3.102/libng/plugins/conv-mjpeg.c	2011-10-07 15:57:52.413003003 +0200
+@@ -229,6 +229,7 @@
+     jpeg_set_quality(&h->mjpg_cinfo, ng_jpeg_quality, TRUE);
+ 
+     h->mjpg_cinfo.raw_data_in = TRUE;
++    h->mjpg_cinfo.do_fancy_downsampling = FALSE;  // fix segfaulst with libjpeg v7++
+     jpeg_set_colorspace(&h->mjpg_cinfo,JCS_YCbCr);
+ 
+     h->mjpg_ptrs[0] = malloc(h->fmt.height*sizeof(char*));
 
-are available in the git repository at:
-  ssh://linuxtv.org/git/hverkuil/media_tree.git pollv3
-
-Hans Verkuil (6):
-      poll: add poll_requested_events() function
-      ivtv: only start streaming in poll() if polling for input.
-      videobuf2: only start streaming in poll() if so requested by the poll mask.
-      videobuf: only start streaming in poll() if so requested by the poll mask.
-      videobuf2-core: also test for pending events.
-      vivi: let vb2_poll handle events.
-
- drivers/media/video/ivtv/ivtv-fileops.c |    6 ++-
- drivers/media/video/videobuf-core.c     |    3 +-
- drivers/media/video/videobuf2-core.c    |   48 +++++++++++++++++++++---------
- drivers/media/video/vivi.c              |    9 +-----
- fs/eventpoll.c                          |   18 +++++++++--
- fs/select.c                             |   38 +++++++++++-------------
- include/linux/poll.h                    |   13 ++++++++-
- 7 files changed, 84 insertions(+), 51 deletions(-)
+--------------010001070406060405020804--
