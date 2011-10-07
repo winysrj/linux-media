@@ -1,141 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36243 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754029Ab1JCKc2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Oct 2011 06:32:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 6/9] V4L: soc-camera: prepare hooks for Media Controller wrapper
-Date: Mon, 3 Oct 2011 12:32:36 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Deepthy Ravi <deepthy.ravi@ti.com>
-References: <1317313137-4403-1-git-send-email-g.liakhovetski@gmx.de> <1317313137-4403-7-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1317313137-4403-7-git-send-email-g.liakhovetski@gmx.de>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:39466 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752087Ab1JGKI6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2011 06:08:58 -0400
+Received: by qyk7 with SMTP id 7so3440032qyk.19
+        for <linux-media@vger.kernel.org>; Fri, 07 Oct 2011 03:08:57 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201110031232.37027.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4E8EC793.9010001@mlbassoc.com>
+References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
+ <CAAwP0s0Z+EaRfY_9c0QLm0ZpyfG5Dy1qb9pFq=PRxzOOTwKTJw@mail.gmail.com>
+ <CAAwP0s1tK5XjmJmtvRFJ2+ADvoMP1ihf3z0UaJAfXOoJ=UrVqg@mail.gmail.com>
+ <4E8DB490.7000403@mlbassoc.com> <CAAwP0s0ddOYAnC7rknLVzcN10iKAwnuOawznpKy9z6B2yWRdCg@mail.gmail.com>
+ <CAAwP0s0tOHmdG6eWuY_QDZ6ReVFXg9S6-MSbX7s4GNEX60U2mQ@mail.gmail.com>
+ <4E8DCD79.3060507@mlbassoc.com> <CAAwP0s15c_AgwisQvNFx-_aR44ijEz+vcB_Su3Rmiob3pPo4sw@mail.gmail.com>
+ <4E8EC793.9010001@mlbassoc.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Date: Fri, 7 Oct 2011 12:08:37 +0200
+Message-ID: <CAAwP0s0-kDjfNGPKRzGVEPuwbbVhGtPpPhK7qPitU-jWyfp1kA@mail.gmail.com>
+Subject: Re: omap3-isp status
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: Enrico <ebutera@users.berlios.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On Fri, Oct 7, 2011 at 11:34 AM, Gary Thomas <gary@mlbassoc.com> wrote:
+> On 2011-10-06 10:11, Javier Martinez Canillas wrote:
+>>
+>> On Thu, Oct 6, 2011 at 5:47 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>>>
+>>> On 2011-10-06 08:50, Javier Martinez Canillas wrote:
+>>>>
+>>>> On Thu, Oct 6, 2011 at 4:29 PM, Javier Martinez Canillas
+>>>> <martinez.javier@gmail.com>    wrote:
+>>>>>
+>>>>> On Thu, Oct 6, 2011 at 4:00 PM, Gary Thomas<gary@mlbassoc.com>
+>>>>>  wrote:
+>>>>>>
+>>>>>> On 2011-10-06 01:51, Javier Martinez Canillas wrote:
+>>>>>>>
+>>>>>>> On Wed, Oct 5, 2011 at 7:43 PM, Javier Martinez Canillas
+>>>>>>> <martinez.javier@gmail.com>      wrote:
+>>>>>>>>
+>>>>>>>> On Wed, Oct 5, 2011 at 6:28 PM, Enrico<ebutera@users.berlios.de>
+>>>>>>>>  wrote:
+>>>>>>>>>
+>>>>>>>>> Hi all,
+>>>>>>>>>
+>>>>>>>>> since we are all interested in this driver (and tvp5150) i'll try
+>>>>>>>>> to
+>>>>>>>>> make a summary of the current situation and understand what is
+>>>>>>>>> needed
+>>>>>>>>> to finally get it into the main tree instead of having to apply a
+>>>>>>>>> dozen patches manually.
+>>>>>>>>>
+>>>>>>>>> The current status of git repositories/branches is:
+>>>>>>>>>
+>>>>>>>>> - main tree: working (i suppose) but no support for bt656 input
+>>>>>>>>>
+>>>>>>>>> - pinchartl/media:
+>>>>>>>>>  * omap3isp-omap3isp-next: i think it's in sync with linuxtv master
+>>>>>>>>> (for the omap3-isp parts)
+>>>>>>>>>  * omap3isp-omap3isp-yuv: like ..next but with some additional
+>>>>>>>>> format
+>>>>>>>>> patches
+>>>>>>>>>
+>>>>>>>>> "Floating" patches:
+>>>>>>>>>
+>>>>>>>>> - Deepthy: sent patches (against mainline) to add bt656 support
+>>>>>>>>>
+>>>>>>>>> Laurent made some comments, i haven't seen a v2 to be applied
+>>>>>>>>>
+>>>>>>>>> - Javier: sent patches for tvp5150, currently discussed on
+>>>>>>>>> linux-media; possible patches/fixes for omap3-isp
+>>>>>>>>>
+>>>>>>>
+>>>>>>> Hello,
+>>>>>>>
+>>>>>>> Since the patches are not against mainline I can't post for reviewing
+>>>>>>> but can be found in one of our development trees [1]. Comments are
+>>>>>>> highly appreciated.
+>>>>>>>
+>>>>>>> The tree is a 2.6.37 that already contain Deepthy patch. I rebased my
+>>>>>>> changes on top of that to correctly support both BT656 an non-BT656
+>>>>>>> video data processing.
+>>>>>>>
+>>>>>>> [1]:
+>>>>>>>
+>>>>>>>
+>>>>>>> http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=shortlog;h=refs/heads/linux-2.6.37.y-next
+>>>>>>
+>>>>>> Any chance of rebasing these against a more up to date kernel, e.g.
+>>>>>> 3.2-working
+>>>>>> with the patches Laurent sent today?
+>>>>>>
+>>>>>
+>>>>> Sure, but I won't have time to do it neither today nor tomorrow. But
+>>>>> will do it during the weekend.
+>>>>>
+>>>>>>>>
+>>>>>>>> I will find some free time slots to resolve the issues called out by
+>>>>>>>> Sakari, Hans and Mauro and resend the patch-set for the tvp5151.
+>>>>>>>>
+>>>>>>>> Also I can send the patches of the modifications I made to the ISP
+>>>>>>>> driver. Right now I'm working on top of Deepthy patches.
+>>>>>>>>
+>>>>>>>> I can either send on top of that patch or rebase to mainline,
+>>>>>>>> whatever
+>>>>>>>> you think is better for reviewing.
+>>>>>>>>
+>>>>>>>>> Now what can we all do to converge to a final solution? I think
+>>>>>>>>> this
+>>>>>>>>> is also blocking the possible development/test of missing features,
+>>>>>>>>> like the recently-discussed resizer and cropping ones.
+>>>>>>>>>
+>>>>>>>>> Enrico
+>>>>>>>>>
+>>>>>>>>
+>>>>>>>> Right now I have a working the tvp5151 with the ISP. I can capture
+>>>>>>>> ITU-R BT656 video both in PAL-M and NTSC standard. Also, the whole
+>>>>>>>> pipeline is configured automatically with the video standard
+>>>>>>>> detected
+>>>>>>>> by the tvp5151. Also, I'm using the CCDC to crop the frames and only
+>>>>>>>> capture the active lines for each standard (576 for PAL and 480 for
+>>>>>>>> NTSC) using the CCDC to crop the image.
+>>>>>>>>
+>>>>>>>
+>>>>>>> As I told you before video capturing is working for both PAL and NTSC
+>>>>>>> using standard V4L2 application (i.e: gstreamer) but the video still
+>>>>>>> shows some motion artifacts. Capturing YUV frames and looking at them
+>>>>>>> I realized that there does exist a pattern, the sequence 2 frames
+>>>>>>> correct and 3 frames with interlacing effects always repeats.
+>>>>>>
+>>>>>> I think I've seen this as well.  Could you provide a short video
+>>>>>> which shows the artefacts?
+>>>>>>
+>>>>>
+>>>>> Yes, I've attached a 16-frame video file. It is a PAL-M video
+>>>>> (720x576) in YUV 4:22 data format. Please let me know if it is OK for
+>>>>> you.
+>>>>>
+>>>>
+>>>> Sorry, I didn't notice the size of the image (13 MB) and got a lot of
+>>>> rejects from your MTAs. I uploaded the file to my personal github
+>>>> account [1].
+>>>>
+>>>> [1]:
+>>>> https://github.com/martinezjavier/omap3isp_tvp5151/blob/master/pal.yuv
+>>>
+>>> Very interesting.  What was your source (camera type, etc)?
+>>
+>> A samsung HD video camera connected to the TVP with its RCA video
+>> connector. But the artifact its independent of the analog input data,
+>> I've tried with an Sony Cybershot camera and other input sources.
+>>
+>>> How are you looking (or extracting) individual frames for analysis?
+>>>
+>>
+>> I'm using gstreamer to capture RAW YUV data and MPEG encoded video
+>> using the DSP.
+>>
+>> This are my pipelines:
+>>
+>> YUV:
+>>
+>> gst-launch-0.10 -v v4l2src device=/dev/video2 queue-size=16
+>> num-buffers=16 ! video/x-raw-yuv,format=\(fourcc\)UYVY ! filesink
+>> location=capture.out
+>>
+>> MPEG:
+>>
+>> gst-launch-0.10 -v v4l2src device=/dev/video2 queue-size=8 !
+>> video/x-raw-yuv,format=\(fourcc\)UYVY ! TIVidenc1 codecName=mpeg4enc
+>> engineName=codecServer ! qtmux ! filesink location=capture.m4v
+>>
+>>> I see much the same sort of artefacts as you are.  An example is at
+>>>  http://www.mlbassoc.com/misc/untitled.m2t
+>>> This is a little example I put together using kdenlive.  The first
+>>> segment
+>>> is the raw video from my camera, imported via USB.  The second is roughly
+>>> the same video captured using my OMAP board and converted to MP4 on the
+>>> fly
+>>> by this command:
+>>>  ffmpeg -r 30/1 -pix_fmt uyvy422 -s 720x524 -f video4linux2 -i
+>>> /dev/video2
+>>> -qscale 1 -f mp4 test1.mp4
+>>> I think there are some aspect ratio issues with these but what bothers me
+>>> the most is how much the captured data tears whenever there is a lot of
+>>> motion in the video.
+>
+> I figured out how to split your raw video into individual frames.  The
+> problems
+> don't look like only interlace issues to me.  Take a look at
+>  http://www.mlbassoc.com/misc/UYVY_examples/PAL_from_JavierMartinezCanillas/
+> especially image #9 which shows some very serious ghosting.
+>
 
-Thanks for the patch. It's very nice to see you working on that :-)
+Yes, I don't know if this is because I'm not copying the sub-frame in
+the correct buffer or another.
 
-I'm not a soc-camera expert, so my review is by no means extensive.
+> I see the same behaviour here and it bothers me quite a lot.  I do hope that
+> we can figure out what's causing it - we have a number of customers that are
+> wanting to do analogue video capture using the OMAP+TVP5150, so it's pretty
+> important to us.
+>
+> Thanks for your time
 
-On Thursday 29 September 2011 18:18:54 Guennadi Liakhovetski wrote:
+Yes, we are in the same situation. I did my best to fix this but I
+couldn't. I minimized the effect with those changes but there still
+exists.
 
-[snip]
+I hope as Enrico says that Laurent, Sakari (who im cc'ing here) or
+Deepthy that know better the ISP can enter the discussion. So we can
+all work together to resolve this issue.
 
-> diff --git a/drivers/media/video/soc_camera.c
-> b/drivers/media/video/soc_camera.c index 2905a88..790c14c 100644
-> --- a/drivers/media/video/soc_camera.c
-> +++ b/drivers/media/video/soc_camera.c
-
-[snip]
-
-> @@ -1361,9 +1402,11 @@ void soc_camera_host_unregister(struct
-> soc_camera_host *ici) if (icd->iface == ici->nr &&
-> to_soc_camera_control(icd))
->  			soc_camera_remove(icd);
-> 
-> -	mutex_unlock(&list_lock);
-> +	soc_camera_mc_unregister(ici);
-> 
->  	v4l2_device_unregister(&ici->v4l2_dev);
-> +
-> +	mutex_unlock(&list_lock);
->  }
->  EXPORT_SYMBOL(soc_camera_host_unregister);
-
-Do soc_camera_mc_unregister() and v4l2_device_unregister() need to be 
-protected by the mutex ?
-
-> @@ -1443,7 +1486,6 @@ static int video_dev_create(struct soc_camera_device
-> *icd)
-> 
->  	strlcpy(vdev->name, ici->drv_name, sizeof(vdev->name));
-> 
-> -	vdev->parent		= icd->pdev;
->  	vdev->current_norm	= V4L2_STD_UNKNOWN;
->  	vdev->fops		= &soc_camera_fops;
->  	vdev->ioctl_ops		= &soc_camera_ioctl_ops;
-> @@ -1451,6 +1493,8 @@ static int video_dev_create(struct soc_camera_device
-> *icd) vdev->tvnorms		= V4L2_STD_UNKNOWN;
->  	vdev->ctrl_handler	= &icd->ctrl_handler;
->  	vdev->lock		= &icd->video_lock;
-> +	vdev->v4l2_dev		= &ici->v4l2_dev;
-> +	video_set_drvdata(vdev, icd);
-> 
->  	icd->vdev = vdev;
-
-This is an important change, maybe you can move it to a patch of its own.
-
-> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-> index d60bad4..0a21ff1 100644
-> --- a/include/media/soc_camera.h
-> +++ b/include/media/soc_camera.h
-
-[snip]
-
-> @@ -63,6 +65,18 @@ struct soc_camera_host {
->  	void *priv;
->  	const char *drv_name;
->  	struct soc_camera_host_ops *ops;
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	struct media_device mdev;
-> +	struct v4l2_subdev bus_sd;
-> +	struct media_pad bus_pads[2];
-> +	struct media_pad vdev_pads[1];
-> +#endif
-
-Those fields are not used in this patch. Don't they belong to the next one ?
-
-> +};
-> +
-> +enum soc_camera_target {
-> +	SOCAM_TARGET_PIPELINE,
-> +	SOCAM_TARGET_HOST_IN,
-> +	SOCAM_TARGET_HOST_OUT,
->  };
-> 
->  struct soc_camera_host_ops {
-
-[snip]
-
-> diff --git a/include/media/soc_entity.h b/include/media/soc_entity.h
-> new file mode 100644
-> index 0000000..e461f5e
-> --- /dev/null
-> +++ b/include/media/soc_entity.h
-> @@ -0,0 +1,19 @@
-> +/*
-> + * soc-camera Media Controller wrapper
-> + *
-> + * Copyright (C) 2011, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#ifndef SOC_ENTITY_H
-> +#define SOC_ENTITY_H
-> +
-> +#define soc_camera_mc_install(x) 0
-> +#define soc_camera_mc_free(x) do {} while (0)
-> +#define soc_camera_mc_register(x) do {} while (0)
-> +#define soc_camera_mc_unregister(x) do {} while (0)
-
-Doesn't this (and the corresponding changes to 
-drivers/media/video/soc_camera.c) belong to the next patch ?
-
-> +
-> +#endif
+Best regards,
 
 -- 
-Regards,
-
-Laurent Pinchart
+Javier Martínez Canillas
+(+34) 682 39 81 69
+Barcelona, Spain
