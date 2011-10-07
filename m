@@ -1,596 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:46168 "EHLO mgw-da01.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:53046 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751138Ab1JBQbN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Oct 2011 12:31:13 -0400
-Message-ID: <4E8891C1.6000208@iki.fi>
-Date: Sun, 02 Oct 2011 19:30:57 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	id S1752712Ab1JGNFj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Oct 2011 09:05:39 -0400
+Message-ID: <4E8EF91D.2080908@redhat.com>
+Date: Fri, 07 Oct 2011 15:05:33 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 3/3] [media] tvp5150: Migrate to media-controller framework
- and add video format detection
-References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com> <1317429231-11359-4-git-send-email-martinez.javier@gmail.com>
-In-Reply-To: <1317429231-11359-4-git-send-email-martinez.javier@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Merge v4l-utils. dvb-apps and mediactl to media-utils.git
+References: <201110061423.22064.hverkuil@xs4all.nl> <4E8DE450.7030302@redhat.com> <4E8E5EEA.80906@redhat.com> <201110070805.31054.hverkuil@xs4all.nl> <4E8EF87E.5000601@infradead.org>
+In-Reply-To: <4E8EF87E.5000601@infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+Hi,
 
-Thanks for the patch! It's very interesting to see a driver for a video
-decoder using the MC interface. Before this we've had just image sensors.
+On 10/07/2011 03:02 PM, Mauro Carvalho Chehab wrote:
+> Em 07-10-2011 03:05, Hans Verkuil escreveu:
+>> On Friday, October 07, 2011 04:07:38 Mauro Carvalho Chehab wrote:
+>>> Em 06-10-2011 14:24, Mauro Carvalho Chehab escreveu:
+>>>> Em 06-10-2011 10:27, Mauro Carvalho Chehab escreveu:
+>>>>> Em 06-10-2011 09:23, Hans Verkuil escreveu:
+>>>>>> Currently we have three repositories containing libraries and utilities that
+>>>>>> are relevant to the media drivers:
+>>>>>>
+>>>>>> dvb-apps (http://linuxtv.org/hg/dvb-apps/)
+>>>>>> v4l-utils (http://git.linuxtv.org/v4l-utils.git)
+>>>>>> media-ctl (git://git.ideasonboard.org/media-ctl.git)
+>>>>>>
+>>>>>> It makes no sense to me to have three separate repositories, one still using
+>>>>>> mercurial and one that isn't even on linuxtv.org.
+>>>>>>
+>>>>>> I propose to combine them all to one media-utils.git repository. I think it
+>>>>>> makes a lot of sense to do this.
+>>>>>>
+>>>>>> After the switch the other repositories are frozen (with perhaps a README
+>>>>>> pointing to the new media-utils.git).
+>>>>>>
+>>>>>> I'm not sure if there are plans to make new stable releases of either of these
+>>>>>> repositories any time soon. If there are, then it might make sense to wait
+>>>>>> until that new stable release before merging.
+>>>>>>
+>>>>>> Comments?
+>>>>>
+>>>>> I like that idea. It helps to have the basic tools into one single repository,
+>>>>> and to properly distribute it.
+>>>
+>>> Ok, I found some time to do an experimental merge of the repositories. It is available
+>>> at:
+>>>
+>>> http://git.linuxtv.org/mchehab/media-utils.git
+>>>
+>>> For now, all dvb-apps stuff is on a separate directory. It makes sense to latter
+>>> re-organize the directories. Anyway, the configure script will allow disable
+>>> dvb-apps, v4l-utils and/or libv4l. The default is to have all enabled.
+>>>
+>>> One problem I noticed is that the dvb-apps are at version 1.1. So, if we're
+>>> releasing a new version, we'll need to jump from 0.9 to dvb-apps version + 1.
+>>> So, IMO, the first version with the merge should be version 1.2.
+>>>
+>>> Comments?
+>>
+>> Strange:
+>>
+>> $ git clone git://git.linuxtv.org/mchehab/media-utils.git
+>> Cloning into media-utils...
+>> fatal: The remote end hung up unexpectedly
+>>
+>> I've no problem with other git trees.
+>
+> Hans,
+>
+> FYI, I'm getting this when compiling from the v4l-utils tree (even before the merge):
+>
+> g++  -o qv4l2 qv4l2.o general-tab.o ctrl-tab.o v4l2-api.o capture-win.o moc_qv4l2.o moc_general-tab.o moc_capture-win.o qrc_qv4l2.o    -L/usr/lib -L../../lib/libv4l2 -lv4l2 -L../../lib/libv4lconvert -lv4lconvert -lrt -L../libv4l2util -lv4l2util -ldl -ljpeg -lQtGui -lQtCore -lpthread
+> qv4l2.o: In function `ApplicationWindow::setDevice(QString const&, bool)':
+> /home/v4l/work_trees/media-utils/utils/qv4l2/qv4l2.cpp:149: undefined reference to `libv4l2_default_dev_ops'
+> collect2: ld returned 1 exit status
+>
 
-Javier Martinez Canillas wrote:
-> The tvp5150 video decoder is usually used on a video pipeline with several
-> video processing integrated circuits. So the driver has to be migrated to
-> the new media device API to reflect this at the software level.
-> 
-> Also the tvp5150 is able to detect what is the video standard at which
-> the device is currently operating, so it makes sense to add video format
-> detection in the driver.
-> 
-> Signed-off-by: Javier Martinez Canillas <martinez.javier@gmail.com>
-> ---
->  drivers/media/video/tvp5150.c |  400 +++++++++++++++++++++++++++++++++++++++--
->  1 files changed, 389 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/video/tvp5150.c b/drivers/media/video/tvp5150.c
-> index e927d25..1c771f9 100644
-> --- a/drivers/media/video/tvp5150.c
-> +++ b/drivers/media/video/tvp5150.c
-> @@ -13,6 +13,7 @@
->  #include <media/tvp5150.h>
->  #include <media/v4l2-chip-ident.h>
->  #include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-subdev.h>
->  
->  #include "tvp5150_reg.h"
->  
-> @@ -25,11 +26,79 @@ static int debug;
->  module_param(debug, int, 0);
->  MODULE_PARM_DESC(debug, "Debug level (0-2)");
->  
-> +/* enum tvp515x_std - enum for supported standards */
-> +enum tvp515x_std {
-> +	STD_PAL_BDGHIN = 0,
-> +	STD_NTSC_MJ,
-> +	STD_INVALID
-> +};
-> +
-> +/**
-> + * struct tvp515x_std_info - Structure to store standard informations
-> + * @width: Line width in pixels
-> + * @height:Number of active lines
-> + * @video_std: Value to write in REG_VIDEO_STD register
-> + * @standard: v4l2 standard structure information
-> + */
-> +struct tvp515x_std_info {
-> +	u8 video_std;
-> +	struct v4l2_standard standard;
-> +	struct v4l2_mbus_framefmt format;
-> +};
-> +
-> +/**
-> + * Supported standards -
-> + *
-> + * Currently supports two standards only, need to add support for rest of the
-> + * modes, like SECAM, etc...
-> + */
-> +static struct tvp515x_std_info tvp515x_std_list[] = {
-> +	/* Standard: STD_NTSC_MJ */
-> +	/* Standard: STD_PAL_BDGHIN */
-> +	[STD_PAL_BDGHIN] = {
-> +		.video_std = VIDEO_STD_PAL_BDGHIN_BIT,
-> +		.standard = {
-> +			.index = 1,
-> +			.id = V4L2_STD_PAL,
-> +			.name = "PAL",
-> +			.frameperiod = {1, 25},
-> +			.framelines = 625
-> +		},
-> +		.format = {
-> +			.width = PAL_NUM_ACTIVE_PIXELS,
-> +			.height = PAL_NUM_ACTIVE_LINES,
-> +			.code = V4L2_MBUS_FMT_UYVY8_2X8,
-> +			.field = V4L2_FIELD_INTERLACED,
-> +			.colorspace = V4L2_COLORSPACE_SMPTE170M,
-> +		},
-> +	},
-> +	[STD_NTSC_MJ] = {
-> +		.video_std = VIDEO_STD_NTSC_MJ_BIT,
-> +		.standard = {
-> +			.index = 0,
-> +			.id = V4L2_STD_NTSC,
-> +			.name = "NTSC",
-> +			.frameperiod = {1001, 30000},
-> +			.framelines = 525
-> +		},
-> +		.format = {
-> +			.width = NTSC_NUM_ACTIVE_PIXELS,
-> +			.height = NTSC_NUM_ACTIVE_LINES,
-> +			.code = V4L2_MBUS_FMT_UYVY8_2X8,
-> +			.field = V4L2_FIELD_INTERLACED,
-> +			.colorspace = V4L2_COLORSPACE_SMPTE170M,
-> +		},
-> +	},
-> +	/* Standard: need to add for additional standard */
-> +};
-> +
->  struct tvp5150 {
->  	struct v4l2_subdev sd;
->  	struct v4l2_ctrl_handler hdl;
-> -
-> -	v4l2_std_id norm;	/* Current set standard */
-> +	struct media_pad pad;
-> +	struct v4l2_mbus_framefmt *format;
-> +	v4l2_std_id std_idx;
-> +	int norm;
->  	u32 input;
->  	u32 output;
->  	int enable;
-> @@ -692,6 +761,45 @@ static int tvp5150_get_vbi(struct v4l2_subdev *sd,
->  	return type;
->  }
->  
-> +/**
-> + * tvp515x_query_current_std() : Query the current standard detected by TVP5151
-> + * @sd: ptr to v4l2_subdev struct
-> + *
-> + * Returns the current standard detected by TVP5151, STD_INVALID if there is no
-> + * standard detected.
-> + */
-> +static int tvp515x_query_current_std(struct v4l2_subdev *sd)
-> +{
-> +	u8 std, std_status;
-> +
-> +	std = tvp5150_read(sd, TVP5150_VIDEO_STD);
-> +	if ((std & VIDEO_STD_MASK) == VIDEO_STD_AUTO_SWITCH_BIT)
-> +		/* use the standard status register */
-> +		std_status = tvp5150_read(sd, TVP5150_STATUS_REG_5);
-> +	else
-> +		/* use the standard register itself */
-> +		std_status = std;
+Yeah, that is because qmake is stupid and add /usr/lib[64] to the library path and adds it *before* the
+paths we've specified in its template, so if you've an older libv4l2 installed in /usr/lib[64] when building
+you get this.
 
-Braces would be nice here.
+To fix it, first do a make; make install in the lib subdir, with LIBDIR setup up to overwrite the old version.
 
-> +	switch (std_status & VIDEO_STD_MASK) {
-> +	case VIDEO_STD_NTSC_MJ_BIT:
-> +	case VIDEO_STD_NTSC_MJ_BIT_AS:
-> +		return STD_NTSC_MJ;
-> +
-> +	case VIDEO_STD_PAL_BDGHIN_BIT:
-> +	case VIDEO_STD_PAL_BDGHIN_BIT_AS:
-> +		return STD_PAL_BDGHIN;
-> +
-> +	default:
-> +		return STD_INVALID;
-> +	}
-> +
-> +	return STD_INVALID;
+Regards,
 
-This return won't do anything.
-
-> +}
-> +
-> +/****************************************************************************
-> +			V4L2 subdev video operations
-> + ****************************************************************************/
-> +
->  static int tvp5150_set_std(struct v4l2_subdev *sd, v4l2_std_id std)
->  {
->  	struct tvp5150 *decoder = to_tvp5150(sd);
-> @@ -704,19 +812,19 @@ static int tvp5150_set_std(struct v4l2_subdev *sd, v4l2_std_id std)
->  	if (std == V4L2_STD_ALL) {
->  		fmt = 0;	/* Autodetect mode */
->  	} else if (std & V4L2_STD_NTSC_443) {
-> -		fmt = 0xa;
-> +		fmt = VIDEO_STD_NTSC_4_43_BIT;
->  	} else if (std & V4L2_STD_PAL_M) {
-> -		fmt = 0x6;
-> +		fmt = VIDEO_STD_PAL_M_BIT;
->  	} else if (std & (V4L2_STD_PAL_N | V4L2_STD_PAL_Nc)) {
-> -		fmt = 0x8;
-> +		fmt = VIDEO_STD_PAL_COMBINATION_N_BIT;
->  	} else {
->  		/* Then, test against generic ones */
->  		if (std & V4L2_STD_NTSC)
-> -			fmt = 0x2;
-> +			fmt = VIDEO_STD_NTSC_MJ_BIT;
->  		else if (std & V4L2_STD_PAL)
-> -			fmt = 0x4;
-> +			fmt = VIDEO_STD_PAL_BDGHIN_BIT;
->  		else if (std & V4L2_STD_SECAM)
-> -			fmt = 0xc;
-> +			fmt = VIDEO_STD_SECAM_BIT;
->  	}
-
-Excellent! Less magic numbers...
-
->  	v4l2_dbg(1, debug, sd, "Set video std register to %d.\n", fmt);
-> @@ -727,11 +835,26 @@ static int tvp5150_set_std(struct v4l2_subdev *sd, v4l2_std_id std)
->  static int tvp5150_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
->  {
->  	struct tvp5150 *decoder = to_tvp5150(sd);
-> +	int i;
-> +	int num_stds = ARRAY_SIZE(tvp515x_std_list);
->  
->  	if (decoder->norm == std)
->  		return 0;
->  
-> -	return tvp5150_set_std(sd, std);
-> +	for (i = 0; i < num_stds; i++)
-> +		if (std & tvp515x_std_list[i].standard.id)
-> +			break;
-> +
-> +	if ((i == num_stds) || (i == STD_INVALID))
-> +		return -EINVAL;
-> +
-> +	tvp5150_write(sd, TVP5150_VIDEO_STD, tvp515x_std_list[i].video_std);
-> +
-> +	decoder->norm = i;
-> +	decoder->norm = std;
-> +
-> +/*	return tvp5150_set_std(sd, std); */
-> +	return 0;
->  }
->  
->  static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
-> @@ -778,6 +901,177 @@ static int tvp5150_s_ctrl(struct v4l2_ctrl *ctrl)
->  	return -EINVAL;
->  }
->  
-> +static struct v4l2_mbus_framefmt *
-> +__tvp5150_get_pad_format(struct tvp5150 *tvp5150, struct v4l2_subdev_fh *fh,
-> +			 unsigned int pad, enum v4l2_subdev_format_whence which)
-> +{
-> +	switch (which) {
-> +	case V4L2_SUBDEV_FORMAT_TRY:
-> +		return v4l2_subdev_get_try_format(fh, pad);
-> +	case V4L2_SUBDEV_FORMAT_ACTIVE:
-> +		return tvp5150->format;
-> +	default:
-> +		return NULL;
-
-Hmm. This will never happen, but is returning NULL the right thing to
-do? An easy alternative is to just replace this with if (which may only
-have either of the two values).
-
-> +	}
-> +}
-> +
-> +static int tvp5150_get_pad_format(struct v4l2_subdev *subdev,
-> +			      struct v4l2_subdev_fh *fh,
-> +			      struct v4l2_subdev_format *format)
-> +{
-> +	struct tvp5150 *tvp5150 = to_tvp5150(subdev);
-> +
-> +	format->format = *__tvp5150_get_pad_format(tvp5150, fh, format->pad,
-> +						   format->which);
-> +
-> +	return 0;
-> +}
-> +
-> +static int tvp5150_set_pad_format(struct v4l2_subdev *subdev,
-> +			      struct v4l2_subdev_fh *fh,
-> +			      struct v4l2_subdev_format *format)
-> +{
-> +	struct tvp5150 *tvp5150 = to_tvp5150(subdev);
-> +	tvp5150->std_idx = STD_INVALID;
-
-The above assignment will always be overwritten immediately.
-
-> +	tvp5150->std_idx = tvp515x_query_current_std(subdev);
-> +	if (tvp5150->std_idx == STD_INVALID) {
-> +		v4l2_err(subdev, "Unable to query std\n");
-> +		return 0;
-
-Isn't this an error?
-
-> +	}
-> +
-> +	tvp5150->norm = tvp515x_std_list[tvp5150->std_idx].standard.id;
-> +
-> +	tvp5150->format = &tvp515x_std_list[tvp5150->std_idx].format;
-> +
-> +	format->format = *__tvp5150_get_pad_format(tvp5150, fh, format->pad,
-> +	format->which);
-> +
-> +	v4l2_info(subdev, "code=x%x width=%u height=%u colorspace=0x%x\n",
-> +			format->format.code, format->format.width,
-> +			format->format.height, format->format.colorspace);
-> +
-> +	return 0;
-> +}
-> +
-> +/**
-> + * tvp515x_mbus_fmt_cap() - V4L2 decoder interface handler for try/s/g_mbus_fmt
-
-The name of the function is different.
-
-> + * @sd: pointer to standard V4L2 sub-device structure
-> + * @f: pointer to the mediabus format structure
-> + *
-> + * Negotiates the image capture size and mediabus format.
-> + */
-> +static int
-> +tvp515x_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *f)
-> +{
-> +	struct tvp5150 *decoder = to_tvp5150(sd);
-> +
-> +	if (f == NULL)
-> +		return -EINVAL;
-> +
-> +	f = decoder->format;
-> +
-> +	v4l2_dbg(1, debug, sd, "MBUS_FMT: Width - %d, Height - %d\n",
-> +			f->width, f->height);
-> +	return 0;
-> +}
-> +
-> +/*
-> + * tvp515x_s_stream() - V4L2 decoder i/f handler for s_stream
-> + * @sd: pointer to standard V4L2 sub-device structure
-> + * @enable: streaming enable or disable
-> + *
-> + * Sets streaming to enable or disable, if possible.
-> + */
-> +static int tvp515x_s_stream(struct v4l2_subdev *subdev, int enable)
-> +{
-> +
-> +	/* Initializes TVP5150 to its default values */
-> +	/* # set PCLK (27MHz) */
-> +	tvp5150_write(subdev, TVP5150_CONF_SHARED_PIN, 0x00);
-> +
-> +	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
-> +	if (enable)
-> +		tvp5150_write(subdev, TVP5150_MISC_CTL, 0x09);
-> +	else
-> +		tvp5150_write(subdev, TVP5150_MISC_CTL, 0x00);
-> +
-> +	return 0;
-> +}
-> +
-> +
-> +/**
-> + * tvp515x_enum_mbus_fmt() - V4L2 decoder interface handler for enum_mbus_fmt
-> + * @sd: pointer to standard V4L2 sub-device structure
-> + * @index: index of pixelcode to retrieve
-> + * @code: receives the pixelcode
-> + *
-> + * Enumerates supported mediabus formats
-> + */
-> +static int
-> +tvp515x_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned index,
-> +					enum v4l2_mbus_pixelcode *code)
-> +{
-> +	if (index)
-> +		return -EINVAL;
-> +
-> +	*code = V4L2_MBUS_FMT_UYVY8_2X8;
-> +	return 0;
-> +}
-> +
-> +/**
-> + * tvp515x_g_parm() - V4L2 decoder interface handler for g_parm
-> + * @sd: pointer to standard V4L2 sub-device structure
-> + * @a: pointer to standard V4L2 VIDIOC_G_PARM ioctl structure
-> + *
-> + * Returns the decoder's video CAPTURE parameters.
-> + */
-> +static int
-> +tvp515x_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
-> +{
-> +	struct v4l2_captureparm *cparm;
-> +
-> +	if (a == NULL)
-> +		return -EINVAL;
-> +
-> +	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		/* only capture is supported */
-> +		return -EINVAL;
-> +
-> +	cparm = &a->parm.capture;
-> +	cparm->capability = V4L2_CAP_TIMEPERFRAME;
-> +	cparm->timeperframe = a->parm.capture.timeperframe;
-> +
-> +	return 0;
-> +}
-> +
-> +/**
-> + * tvp515x_s_parm() - V4L2 decoder interface handler for s_parm
-> + * @sd: pointer to standard V4L2 sub-device structure
-> + * @a: pointer to standard V4L2 VIDIOC_S_PARM ioctl structure
-> + *
-> + * Configures the decoder to use the input parameters, if possible. If
-> + * not possible, returns the appropriate error code.
-> + */
-> +static int
-> +tvp515x_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
-> +{
-> +	struct v4l2_fract *timeperframe;
-> +
-> +	if (a == NULL)
-> +		return -EINVAL;
-> +
-> +	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		/* only capture is supported */
-> +		return -EINVAL;
-> +
-> +	timeperframe = &a->parm.capture.timeperframe;
-> +
-> +	return 0;
-> +}
-> +
-> +
-> +
->  /****************************************************************************
->  			I2C Command
->   ****************************************************************************/
-> @@ -900,7 +1194,28 @@ static int tvp5150_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
->  	return 0;
->  }
->  
-> -/* ----------------------------------------------------------------------- */
-> +/****************************************************************************
-> +		    V4L2 subdev core operations
-> + ****************************************************************************/
-> +
-> +static int tvp5150_open(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
-> +{
-> +	struct tvp5150 *decoder = to_tvp5150(subdev);
-> +
-> +	decoder->std_idx = STD_INVALID;
-> +
-> +	decoder->std_idx = tvp515x_query_current_std(subdev);
-> +
-> +	if (decoder->std_idx == STD_INVALID) {
-> +		v4l2_err(subdev, "Unable to query std\n");
-> +		return 0;
-> +	}
-> +
-> +	decoder->format = (&(tvp515x_std_list[decoder->std_idx].format));
-> +	decoder->norm = tvp515x_std_list[decoder->std_idx].standard.id;
-> +
-> +	return 0;
-> +}
->  
->  static const struct v4l2_ctrl_ops tvp5150_ctrl_ops = {
->  	.s_ctrl = tvp5150_s_ctrl,
-> @@ -924,12 +1239,24 @@ static const struct v4l2_subdev_core_ops tvp5150_core_ops = {
->  #endif
->  };
->  
-> +static struct v4l2_subdev_file_ops tvp5150_subdev_file_ops = {
-> +	.open		= tvp5150_open,
-> +};
-> +
->  static const struct v4l2_subdev_tuner_ops tvp5150_tuner_ops = {
->  	.g_tuner = tvp5150_g_tuner,
->  };
->  
->  static const struct v4l2_subdev_video_ops tvp5150_video_ops = {
->  	.s_routing = tvp5150_s_routing,
-> +	.s_stream = tvp515x_s_stream,
-> +	.enum_mbus_fmt = tvp515x_enum_mbus_fmt,
-> +	.g_mbus_fmt = tvp515x_mbus_fmt,
-> +	.try_mbus_fmt = tvp515x_mbus_fmt,
-> +	.s_mbus_fmt = tvp515x_mbus_fmt,
-> +	.g_parm = tvp515x_g_parm,
-> +	.s_parm = tvp515x_s_parm,
-> +	.s_std_output = tvp5150_s_std,
-
-Do we really need both video and pad format ops?
-
-s_std should be added to pad ops so it would be available on the subdev
-node.
-
->  };
->  
->  static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
-> @@ -939,14 +1266,57 @@ static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
->  	.s_raw_fmt = tvp5150_s_raw_fmt,
->  };
->  
-> +static int tvp515x_enum_mbus_code(struct v4l2_subdev *subdev,
-> +				  struct v4l2_subdev_fh *fh,
-> +				  struct v4l2_subdev_mbus_code_enum *code)
-> +{
-> +	if (code->index >= ARRAY_SIZE(tvp515x_std_list))
-> +		return -EINVAL;
-> +
-> +	code->code = V4L2_MBUS_FMT_UYVY8_2X8;
-
-If there's just one supported mbus code, non-zero code->index must
-return -EINVAL.
-
-> +	return 0;
-> +}
-> +
-> +static int tvp515x_enum_frame_size(struct v4l2_subdev *subdev,
-> +				   struct v4l2_subdev_fh *fh,
-> +				   struct v4l2_subdev_frame_size_enum *fse)
-> +{
-> +	int current_std = STD_INVALID;
-
-current_std is overwritten before it gets used.
-
-> +	if (fse->code != V4L2_MBUS_FMT_UYVY8_2X8)
-> +		return -EINVAL;
-> +
-> +	/* query the current standard */
-> +	current_std = tvp515x_query_current_std(subdev);
-> +	if (current_std == STD_INVALID) {
-> +		v4l2_err(subdev, "Unable to query std\n");
-> +		return 0;
-> +	}
-
-I wonder how the enum_frame_size and s_std are supposed to interact,
-especially that I understand, after reading the discussion, the chip may
-be used to force certain standard while the actual signal is different.
-
-> +	fse->min_width = tvp515x_std_list[current_std].format.width;
-> +	fse->min_height = tvp515x_std_list[current_std].format.height;
-> +	fse->max_width = fse->min_width;
-> +	fse->max_height = fse->min_height;
-> +	return 0;
-> +}
-> +
-> +static struct v4l2_subdev_pad_ops tvp5150_pad_ops = {
-> +	.enum_mbus_code = tvp515x_enum_mbus_code,
-> +	.enum_frame_size = tvp515x_enum_frame_size,
-> +	.get_fmt = tvp5150_get_pad_format,
-> +	.set_fmt = tvp5150_set_pad_format,
-> +};
-> +
->  static const struct v4l2_subdev_ops tvp5150_ops = {
->  	.core = &tvp5150_core_ops,
-> +	.file	= &tvp5150_subdev_file_ops,
->  	.tuner = &tvp5150_tuner_ops,
->  	.video = &tvp5150_video_ops,
->  	.vbi = &tvp5150_vbi_ops,
-> +	.pad = &tvp5150_pad_ops,
->  };
->  
-> -
->  /****************************************************************************
->  			I2C Client & Driver
->   ****************************************************************************/
-> @@ -957,6 +1327,7 @@ static int tvp5150_probe(struct i2c_client *c,
->  	struct tvp5150 *core;
->  	struct v4l2_subdev *sd;
->  	u8 msb_id, lsb_id, msb_rom, lsb_rom;
-> +	int ret;
->  
->  	/* Check if the adapter supports the needed features */
->  	if (!i2c_check_functionality(c->adapter,
-> @@ -992,6 +1363,7 @@ static int tvp5150_probe(struct i2c_client *c,
->  		}
->  	}
->  
-> +	core->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
->  	core->norm = V4L2_STD_ALL;	/* Default is autodetect */
->  	core->input = TVP5150_COMPOSITE1;
->  	core->enable = 1;
-> @@ -1017,6 +1389,12 @@ static int tvp5150_probe(struct i2c_client *c,
->  
->  	if (debug > 1)
->  		tvp5150_log_status(sd);
-> +
-> +	core->pad.flags = MEDIA_PAD_FLAG_OUTPUT;
-> +	ret = media_entity_init(&core->sd.entity, 1, &core->pad, 0);
-> +	if (ret < 0)
-> +		kfree(core);
-> +
->  	return 0;
->  }
->  
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Hans
