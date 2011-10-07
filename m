@@ -1,48 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:43540 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755308Ab1JNRBV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Oct 2011 13:01:21 -0400
-Received: by qadb15 with SMTP id b15so1025823qad.19
-        for <linux-media@vger.kernel.org>; Fri, 14 Oct 2011 10:01:20 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4E9838CF.6030702@redhat.com>
-References: <CABb1zhvkLYTZ4zUy7jPh1AH+1XGQRdhsHM7CxK5ADMuuzKHAzg@mail.gmail.com>
-	<CABb1zhvUMZ1bSqz1X5qCzOArKYsGG4EHthK-OrbAWRLn+q_+Sg@mail.gmail.com>
-	<4E9838CF.6030702@redhat.com>
-Date: Fri, 14 Oct 2011 19:01:19 +0200
-Message-ID: <CABb1zhsxHyYb1nXvVTZUzMwOdLzvKpGSGG36VmbOzB1XqGK9zw@mail.gmail.com>
-Subject: Re: Support for Sveon STV22 (IT9137)
-From: =?ISO-8859-1?Q?Leandro_Terr=E9s?= <imlordlt@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:61187 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751209Ab1JGVLn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2011 17:11:43 -0400
+Received: by wwf22 with SMTP id 22so6496509wwf.1
+        for <linux-media@vger.kernel.org>; Fri, 07 Oct 2011 14:11:42 -0700 (PDT)
+Message-ID: <4e8f6b0b.c90fe30a.4a1d.26bb@mx.google.com>
+Subject: [PATCH] af9013 Extended monitoring in set_frontend.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Jason Hecker <jwhecker@gmail.com>
+Cc: Josu Lazkano <josu.lazkano@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Date: Fri, 07 Oct 2011 22:11:34 +0100
+In-Reply-To: <CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
+References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
+	 <CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
+	 <CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
+	 <4e8b8099.95d1e30a.4bee.0501@mx.google.com>
+	 <CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
+	 <CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
+	 <CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/10/14 Mauro Carvalho Chehab <mchehab@redhat.com>:
-> Em 09-10-2011 02:09, Leandro Terrés escreveu:
->> This device identifies has IdProduct 0xe411 and is a clone of KWorld
->> UB499-2T T09(IT9137).
->>
->> This patch simply adds support for this device.
->
-> Patch applies ok, with just one small whitespace issue. However, you
-> forgot to add your signed-off-by: on it. Also, it helps if you copy the
-> driver's maintainer (Malcolm).
->
-> Patchwork: http://patchwork.linuxtv.org/patch/8099/
->
-> WARNING: please, no space before tabs
-> #24: FILE: drivers/media/dvb/dvb-usb/dvb-usb-ids.h:323:
-> +#define USB_PID_SVEON_STV22_IT9137     ^I^I0xe411$
->
-> ERROR: Missing Signed-off-by: line(s)
->
-> total: 1 errors, 1 warnings, 29 lines checked
->
+Try this patch, it should stop start up corruption on the same frontend.
 
-This is my first contribution and I don't know who to do that.
+It is a missing section of code that checks the frontend is ready to go.
 
-Sorry.
+However, it will not stop corruptions on frontend A.
+
+af9013 Extended monitoring in set_front.
+
+---
+ drivers/media/dvb/frontends/af9013.c |   16 +++++++++++++++-
+ 1 files changed, 15 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/dvb/frontends/af9013.c b/drivers/media/dvb/frontends/af9013.c
+index b220a87..347c187 100644
+--- a/drivers/media/dvb/frontends/af9013.c
++++ b/drivers/media/dvb/frontends/af9013.c
+@@ -622,8 +622,9 @@ static int af9013_set_frontend(struct dvb_frontend *fe,
+ 	struct dvb_frontend_parameters *params)
+ {
+ 	struct af9013_state *state = fe->demodulator_priv;
+-	int ret;
++	int ret, i;
+ 	u8 auto_mode; /* auto set TPS */
++	u8 v1, v2;
+ 
+ 	deb_info("%s: freq:%d bw:%d\n", __func__, params->frequency,
+ 		params->u.ofdm.bandwidth);
+@@ -694,6 +695,19 @@ static int af9013_set_frontend(struct dvb_frontend *fe,
+ 	if (ret)
+ 		goto error;
+ 
++	for (i = 0; i < 27; ++i) {
++		ret = af9013_read_reg(state, 0x9bc2, &v1);
++		if (ret)
++			break;
++		ret = af9013_read_reg(state, 0xd330, &v2);
++		if (ret)
++			break;
++		if (v1 == 0 && v2 > 0)
++				break;
++		msleep(40);
++	}
++
++
+ error:
+ 	return ret;
+ }
+-- 
+1.7.5.4
+
+
