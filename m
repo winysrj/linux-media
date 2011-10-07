@@ -1,120 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:19240 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750712Ab1JKHRy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Oct 2011 03:17:54 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Date: Tue, 11 Oct 2011 09:17:40 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [Linaro-mm-sig] [PATCHv16 0/9] Contiguous Memory Allocator
-In-reply-to: <4E92E003.4060901@stericsson.com>
-To: 'Maxime Coquelin' <maxime.coquelin-nonst@stericsson.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Russell King' <linux@arm.linux.org.uk>,
-	'Arnd Bergmann' <arnd@arndb.de>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	'Dave Hansen' <dave@linux.vnet.ibm.com>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	benjamin.gaignard@linaro.org,
-	'frq09524' <ludovic.barre@stericsson.com>,
-	vincent.guittot@linaro.org
-Message-id: <00b001cc87e5$dc818cc0$9584a640$%szyprowski@samsung.com>
-Content-language: pl
-References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
- <4E92E003.4060901@stericsson.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:60067 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752531Ab1JGRB7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2011 13:01:59 -0400
+Message-ID: <4E8F3071.3010802@gmx.net>
+Date: Fri, 07 Oct 2011 19:01:37 +0200
+From: Lutz Sammer <johns98@gmx.net>
+MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] stb0899: Fix slow and not locking DVB-S transponder(s)
+References: <4E84E010.5020602@gmx.net> <4E84E1A5.3040903@gmx.net> <4E85F769.3040201@redhat.com> <4E860D76.5040605@gmx.net> <4E861163.3000903@redhat.com> <CAHFNz9LGTnGsafhXDJuGDw=VEaOJuoFL+_DoV0vM9-_RuANtPg@mail.gmail.com>
+In-Reply-To: <CAHFNz9LGTnGsafhXDJuGDw=VEaOJuoFL+_DoV0vM9-_RuANtPg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 10/06/11 20:56, Manu Abraham wrote:
+> Mauro,
+>
+> comments in-line.
+>
+> On Sat, Oct 1, 2011 at 12:28 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com>  wrote:
+>> Em 30-09-2011 15:41, Lutz Sammer escreveu:
+>>> On 09/30/11 19:07, Mauro Carvalho Chehab wrote:
+>>>> Em 29-09-2011 18:22, Lutz Sammer escreveu:
+>>>>> Another version of
+>>>>> http://patchwork.linuxtv.org/patch/6307
+>>>>> http://patchwork.linuxtv.org/patch/6510
+>>>>> which was superseded or rejected, but I don't know why.
+>>>>
+>>>> Probably because of the same reason of this patch [1]:
+>>>>
+>>>> patch -p1 -i patches/lmml_8023_v2_stb0899_fix_slow_and_not_locking_dvb_s_transponder_s.patch --dry-run -t -N
+>>>> patching file drivers/media/dvb/frontends/stb0899_algo.c
+>>>> Hunk #1 FAILED at 358.
+>>>> 1 out of 1 hunk FAILED -- saving rejects to file drivers/media/dvb/frontends/stb0899_algo.c.rej
+>>>>    drivers/media/dvb/frontends/stb0899_algo.c |    1 +
+>>>>    1 file changed, 1 insertion(+)
+>>>>
+>>>> I'll mark this one as rejected, as it doesn't apply upstream[2].
+>>>>
+>>>> [1] http://patchwork.linuxtv.org/patch/8023/
+>>>> [2] at tree/branch: git://linuxtv.org/media_tree.git staging/for_v3.2
+>>>>
+>>>> Please test if the changes made upstream to solve a similar trouble fixes your issue.
+>>>> If not, please rebase your patch on the top of it and resend.
+>>>>
+>>>> Thanks,
+>>>> Mauro
+>>>>>
+>>>>> In stb0899_status stb0899_check_data the first read of STB0899_VSTATUS
+>>>>> could read old (from previous search) status bits and the search fails
+>>>>> on a good frequency.
+>>>>>
+>>>>> With the patch more transponder could be locked and locks about 2* faster.
+>>
+>> Manu,
+>>
+>> Could you please review this one-line patch?
+>>
+>>
+>>>>>
+>>>>> Signed-off-by: Lutz Sammer<johns98@gmx.net>
+>>>>> ---
+>>>>>    drivers/media/dvb/frontends/stb0899_algo.c |    1 +
+>>>>>    1 files changed, 1 insertions(+), 0 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/dvb/frontends/stb0899_algo.c b/drivers/media/dvb/frontends/stb0899_algo.c
+>>>>> index d70eee0..8eca419 100644
+>>>>> --- a/drivers/media/dvb/frontends/stb0899_algo.c
+>>>>> +++ b/drivers/media/dvb/frontends/stb0899_algo.c
+>>>>> @@ -358,6 +358,7 @@ static enum stb0899_status stb0899_check_data(struct stb0899_state *state)
+>>>>>           else
+>>>>>                   dataTime = 500;
+>>>>>
+>>>>> +       stb0899_read_reg(state, STB0899_VSTATUS); /* clear old status bits */
+>>>>>           stb0899_write_reg(state, STB0899_DSTATUS2, 0x00); /* force search loop */
+>>>>>           while (1) {
+>>>>>                   /* WARNING! VIT LOCKED has to be tested before VIT_END_LOOOP   */
+>>
+>
+> Please add in these comments, in case you want to apply the change. I
+> am neither for the patch, nor against it.
+>
+> - In fact, it doesn't hurt to read STATUS just before LOCK test.
+> - I wasn't able to find any noticeable difference in LOCK acquisition.
+> - Nowhere, I was able to find that reading VSTATUS, clears the
+> Read-Only bits set by the onchip microcontroller. The above comment
+> could be wrong at least, as far as I can say.
+>
+> But that said, if the change does really help (thinking of strange
+> issues with some Silicon cuts)
+>
+> Acked-by: Manu Abraham<manu@linuxtv.org>
+>
+> Regards,
+> Manu
+>
 
-Hello,
+To be exact only the loop bit is reset by the read:
 
-On Monday, October 10, 2011 2:08 PM Maxime Coquelin wrote:
+kernel: [62791.427869] stb0899: vstatus 40 00 40 00
+kernel: [62791.597609] stb0899: vstatus 00 00 18 18
 
-> On 10/06/2011 03:54 PM, Marek Szyprowski wrote:
-> > Welcome everyone again,
-> >
-> > Once again I decided to post an updated version of the Contiguous Memory
-> > Allocator patches.
-> >
-> > This version provides mainly a bugfix for a very rare issue that might
-> > have changed migration type of the CMA page blocks resulting in dropping
-> > CMA features from the affected page block and causing memory allocation
-> > to fail. Also the issue reported by Dave Hansen has been fixed.
-> >
-> > This version also introduces basic support for x86 architecture, what
-> > allows wide testing on KVM/QEMU emulators and all common x86 boxes. I
-> > hope this will result in wider testing, comments and easier merging to
-> > mainline.
-> >
-> > I've also dropped an examplary patch for s5p-fimc platform device
-> > private memory declaration and added the one from real life. CMA device
-> > private memory regions are defined for s5p-mfc device to let it allocate
-> > buffers from two memory banks.
-> >
-> > ARM integration code has not been changed since last version, it
-> > provides implementation of all the ideas that has been discussed during
-> 
-> Hello Marek,
-> 
->      We are currently testing CMA (v16) on Snowball platform.
->      This feature is very promising, thanks for pushing it!
-> 
->      During our stress tests, we encountered some problems :
-> 
->      1) Contiguous allocation lockup:
->          When system RAM is full of Anon pages, if we try to allocate a
-> contiguous buffer greater than the min_free value, we face a
-> dma_alloc_from_contiguous lockup.
->          The expected result would be dma_alloc_from_contiguous() to fail.
->          The problem is reproduced systematically on our side.
+Printed twice before and after the loop. I tested this with the
+tt-3600 and tt-3650.
 
-Thanks for the report. Do you use Android's lowmemorykiller? I haven't 
-tested CMA on Android kernel yet. I have no idea how it will interfere 
-with Android patches.
+Johns
 
-> 
->      2) Contiguous allocation fail:
->          We have developed a small driver and a shell script to
-> allocate/release contiguous buffers.
->          Sometimes, dma_alloc_from_contiguous() fails to allocate the
-> contiguous buffer (about once every 30 runs).
->          We have 270MB Memory passed to the kernel in our configuration,
-> and the CMA pool is 90MB large.
->          In this setup, the overall memory is either free or full of
-> reclaimable pages.
 
-Yeah. We also did such stress tests recently and faced this issue. I've
-spent some time investigating it but I have no solution yet. 
 
-The problem is caused by a page, which is put in the CMA area. This page 
-is movable, but it's address space provides no 'migratepage' method. In
-such case mm subsystem uses fallback_migrate_page() function. Sadly this
-function only returns -EAGAIN. The migration loops a few times over it
-and fails causing the fail in the allocation procedure.
 
-We are investing now which kernel code created/allocated such problematic
-pages and how to add real migration support for them.
 
->      For now, we didn't had time to investigate further theses problems.
->      Have you already faced this kind of issues?
->      Could someone testing CMA on other boards confirm/infirm theses
-> problems?
-
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
 
