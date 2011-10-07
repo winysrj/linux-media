@@ -1,59 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:43111 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757242Ab1JEHCW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Oct 2011 03:02:22 -0400
-Date: Wed, 5 Oct 2011 00:01:59 -0700
-From: Greg KH <greg@kroah.com>
-To: Oliver Neukum <oneukum@suse.de>
-Cc: Antti Palosaari <crope@iki.fi>, linux-serial@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-	=?iso-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>,
-	James Courtier-Dutton <james.dutton@gmail.com>,
-	HoP <jpetrous@gmail.com>,
-	=?iso-8859-1?Q?Istv=E1n_V=E1radi?= <ivaradi@gmail.com>
-Subject: Re: serial device name for smart card reader that is integrated to
- Anysee DVB USB device
-Message-ID: <20111005070159.GA6896@kroah.com>
-References: <4E8B7901.2050700@iki.fi>
- <20111005045917.GB4700@kroah.com>
- <4E8BF21B.4010907@iki.fi>
- <201110050815.17949.oneukum@suse.de>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2582 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755125Ab1JGCpB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 22:45:01 -0400
+Received: from starbug-2.trinair2002 (c74072.upc-c.chello.nl [212.187.74.72])
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id p972ZvBk014931
+	for <linux-media@vger.kernel.org>; Fri, 7 Oct 2011 04:35:58 +0200 (CEST)
+	(envelope-from maarten@treewalker.org)
+Received: from hyperion.localnet (hyperion.trinair2002 [192.168.0.43])
+	by starbug-2.trinair2002 (Postfix) with ESMTP id AF6822BCD1
+	for <linux-media@vger.kernel.org>; Fri,  7 Oct 2011 04:35:57 +0200 (CEST)
+From: Maarten ter Huurne <maarten@treewalker.org>
+To: linux-media@vger.kernel.org
+Subject: Signal strength threshold for hardware seek
+Date: Fri, 07 Oct 2011 04:41:18 +0200
+Message-ID: <1428635.yHD7DEIEQt@hyperion>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201110050815.17949.oneukum@suse.de>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 05, 2011 at 08:15:17AM +0200, Oliver Neukum wrote:
-> Am Mittwoch, 5. Oktober 2011, 07:58:51 schrieb Antti Palosaari:
-> > On 10/05/2011 07:59 AM, Greg KH wrote:
-> 
-> > > Why not just use the usb-serial core and then you get a ttyUSB* device
-> > > node "for free"?  It also should provide a lot of the basic tty
-> > > infrastructure and ring buffer logic all ready to use.
-> > 
-> > Since I don't see how I can access same platform data from DVB USB  and 
-> > USB-serial driver (usb_set_intfdata). I asked that earlier, see: 
-> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg36027.html
-> 
-> Yes, and I'll have to give you the same answer as then.
-> 
-> But, Greg, Antti makes a very valid point here. The generic code assumes that
-> it owns intfdata, that is you cannot use it as is for access to anything that lacks
-> its own interface. But this is not a fatal flaw. We can alter the generic code to use
-> an accessor function the driver can provide and make it default to get/set_intfdata
-> 
-> What do you think?
+Hi,
 
-I totally forgot about that previous answer, I write too much email :)
+I'm writing a V4L2 driver for the RDA5807 FM receiver chip. This chip has 
+hardware seek capability where it will search for a frequency on which the 
+signal level is above a configurable threshold. I am wondering what would be 
+the best way to configure that threshold in the driver:
 
-Anyway, yes, if we can alter the core to make this work for this type of
-device, that is probably much easier than having to write a whole tty
-driver just for this one type of device.  I'll gladly take such a patch.
+a. Use a fixed hardcoded value?
+b. Use a fixed value specified in the platform data?
+c. Use a fixed value specified as a module parameter?
+d. Add a control for it? (a CID would have to be added)
+e. Add a field for it in struct v4l2_hw_freq_seek?
 
-thanks,
+Since I'm pretty new at V4L2 and options d and e would introduce new 
+interface elements, I could use some guidance.
 
-greg k-h
+
+If anyone is interested, the work in progress can be found here:
+
+http://projects.qi-hardware.com/index.php/p/qi-kernel/source/tree/
+  jz-3.0/drivers/media/radio/radio-rda5807.c
+
+It has sufficient functionality to support playback and scanning using 
+fmtools 2.0.1, but it needs more functionality and some cleanup before I can 
+submit it for inclusion in the mainline kernel.
+
+Bye,
+		Maarten
+
