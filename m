@@ -1,67 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:30149 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753040Ab1JLPIZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Oct 2011 11:08:25 -0400
-Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LSY009PYKPZU6@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 12 Oct 2011 16:08:23 +0100 (BST)
-Received: from [106.116.48.223] by spt2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LSY00JXJKPYW2@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 12 Oct 2011 16:08:23 +0100 (BST)
-Date: Wed, 12 Oct 2011 17:08:20 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 1/4] v4l: add support for selection api
-In-reply-to: <20111012114828.GE10001@valkosipuli.localdomain>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com
-Message-id: <4E95AD64.2020702@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com>
- <1314793703-32345-2-git-send-email-t.stanislaws@samsung.com>
- <20111012114828.GE10001@valkosipuli.localdomain>
+Received: from mx1.redhat.com ([209.132.183.28]:8994 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759455Ab1JGCHm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 6 Oct 2011 22:07:42 -0400
+Message-ID: <4E8E5EEA.80906@redhat.com>
+Date: Thu, 06 Oct 2011 23:07:38 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Hans De Goede <hdegoede@redhat.com>
+Subject: Re: [RFC] Merge v4l-utils. dvb-apps and mediactl to media-utils.git
+References: <201110061423.22064.hverkuil@xs4all.nl> <4E8DACAF.5070207@redhat.com> <4E8DE450.7030302@redhat.com>
+In-Reply-To: <4E8DE450.7030302@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/12/2011 01:48 PM, Sakari Ailus wrote:
-> Hi Tomasz,
->
-> On Wed, Aug 31, 2011 at 02:28:20PM +0200, Tomasz Stanislawski wrote:
-> ...
->> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
->> index fca24cc..b7471fe 100644
->> --- a/include/linux/videodev2.h
->> +++ b/include/linux/videodev2.h
->> @@ -738,6 +738,48 @@ struct v4l2_crop {
->>   	struct v4l2_rect        c;
->>   };
+Em 06-10-2011 14:24, Mauro Carvalho Chehab escreveu:
+> Em 06-10-2011 10:27, Mauro Carvalho Chehab escreveu:
+>> Em 06-10-2011 09:23, Hans Verkuil escreveu:
+>>> Currently we have three repositories containing libraries and utilities that
+>>> are relevant to the media drivers:
+>>>
+>>> dvb-apps (http://linuxtv.org/hg/dvb-apps/)
+>>> v4l-utils (http://git.linuxtv.org/v4l-utils.git)
+>>> media-ctl (git://git.ideasonboard.org/media-ctl.git)
+>>>
+>>> It makes no sense to me to have three separate repositories, one still using
+>>> mercurial and one that isn't even on linuxtv.org.
+>>>
+>>> I propose to combine them all to one media-utils.git repository. I think it
+>>> makes a lot of sense to do this.
+>>>
+>>> After the switch the other repositories are frozen (with perhaps a README
+>>> pointing to the new media-utils.git).
+>>>
+>>> I'm not sure if there are plans to make new stable releases of either of these
+>>> repositories any time soon. If there are, then it might make sense to wait
+>>> until that new stable release before merging.
+>>>
+>>> Comments?
 >>
->> +/* Hints for adjustments of selection rectangle */
->> +#define V4L2_SEL_SIZE_GE	0x00000001
->> +#define V4L2_SEL_SIZE_LE	0x00000002
->
-> A minor comment. If the patches have not been pulled yet, how about adding
-> FLAG_ to the flag names? I.e. V4L2_SEL_FLAG_SIZE_GE and
-> V4L2_SEL_FLAG_SIZE_LE.
+>> I like that idea. It helps to have the basic tools into one single repository,
+>> and to properly distribute it.
 
-Hi Sakari,
+Ok, I found some time to do an experimental merge of the repositories. It is available
+at:
 
-The idea is good. I preferred to avoid using long names if possible.
-I agree that using _FLAGS_ produce more informative name.
-I'll fix it in the new version of selection API.
+http://git.linuxtv.org/mchehab/media-utils.git
+
+For now, all dvb-apps stuff is on a separate directory. It makes sense to latter
+re-organize the directories. Anyway, the configure script will allow disable
+dvb-apps, v4l-utils and/or libv4l. The default is to have all enabled.
+
+One problem I noticed is that the dvb-apps are at version 1.1. So, if we're
+releasing a new version, we'll need to jump from 0.9 to dvb-apps version + 1.
+So, IMO, the first version with the merge should be version 1.2.
+
+Comments?
 
 Regards,
-Tomasz Stanislawski
-
->
-> Kind regards,
->
-
+Mauro
