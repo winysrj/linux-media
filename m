@@ -1,75 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:2573 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751875Ab1JGJGe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2011 05:06:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: libv4l2 misbehavior after calling S_STD or S_DV_PRESET
-Date: Fri, 7 Oct 2011 11:06:31 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <201110061313.56974.hverkuil@xs4all.nl> <4E8EB0F6.3060002@redhat.com>
-In-Reply-To: <4E8EB0F6.3060002@redhat.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:58618 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752235Ab1JGLDR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2011 07:03:17 -0400
+Received: by qyk7 with SMTP id 7so3466521qyk.19
+        for <linux-media@vger.kernel.org>; Fri, 07 Oct 2011 04:03:17 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201110071106.31515.hverkuil@xs4all.nl>
+In-Reply-To: <CA+2YH7sZHop1es0FE5SZZbx=1e61+QSVS_FAdteFOepN_YGOEg@mail.gmail.com>
+References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
+ <CAAwP0s0Z+EaRfY_9c0QLm0ZpyfG5Dy1qb9pFq=PRxzOOTwKTJw@mail.gmail.com>
+ <CAAwP0s1tK5XjmJmtvRFJ2+ADvoMP1ihf3z0UaJAfXOoJ=UrVqg@mail.gmail.com>
+ <4E8DB490.7000403@mlbassoc.com> <CAAwP0s0ddOYAnC7rknLVzcN10iKAwnuOawznpKy9z6B2yWRdCg@mail.gmail.com>
+ <CAAwP0s0tOHmdG6eWuY_QDZ6ReVFXg9S6-MSbX7s4GNEX60U2mQ@mail.gmail.com>
+ <4E8DCD79.3060507@mlbassoc.com> <CAAwP0s15c_AgwisQvNFx-_aR44ijEz+vcB_Su3Rmiob3pPo4sw@mail.gmail.com>
+ <4E8EC793.9010001@mlbassoc.com> <CAAwP0s0-kDjfNGPKRzGVEPuwbbVhGtPpPhK7qPitU-jWyfp1kA@mail.gmail.com>
+ <4E8ED2CF.70302@mlbassoc.com> <CA+2YH7sZHop1es0FE5SZZbx=1e61+QSVS_FAdteFOepN_YGOEg@mail.gmail.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Date: Fri, 7 Oct 2011 13:02:57 +0200
+Message-ID: <CAAwP0s31cSh+T-k=9f+_M845aQG3M5N82NPYALdVkDn5FogmWg@mail.gmail.com>
+Subject: Re: omap3-isp status
+To: Enrico <ebutera@users.berlios.de>
+Cc: Gary Thomas <gary@mlbassoc.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 07 October 2011 09:57:42 Hans de Goede wrote:
-> Hi,
-> 
-> Hmm, nasty...
-> 
-> On 10/06/2011 01:13 PM, Hans Verkuil wrote:
-> > Hi Hans!
-> > 
-> > I've been looking into a problem with libv4l2 that occurs when you change
-> > TV standard or video preset using VIDIOC_S_STD or VIDIOC_S_DV_PRESET.
-> > These calls will change the format implicitly (e.g. if the current
-> > format is set for PAL at 720x576 and you select NTSC, then the format
-> > will be reset to 720x480).
-> > 
-> > However, libv4l2 isn't taking this into account and will keep using the
-> > cached dest_fmt value. It is easy to reproduce this using qv4l2.
-> > 
-> > The same problem is likely to occur with S_CROP (haven't tested that yet,
-> > though): calling S_CROP can also change the format.
-> > 
-> > To be precise: S_STD and S_DV_PRESET can change both the crop rectangle
-> > and the format, and S_CROP can change the format.
-> 
-> First of all it would be good to actually document this behavior of
-> VIDIOC_S_STD or VIDIOC_S_DV_PRESET, the current docs don't mention this at
-> all: http://linuxtv.org/downloads/v4l-dvb-apis/standard.html
+On Fri, Oct 7, 2011 at 12:36 PM, Enrico <ebutera@users.berlios.de> wrote:
+> On Fri, Oct 7, 2011 at 12:22 PM, Gary Thomas <gary@mlbassoc.com> wrote:
+>> Do we know for sure that these problems are happening in the ISP itself
+>> or could they possibly be in the TVP5150?  Does anyone have experience
+>> with a different analogue encoder?
+>
+> Never tried another encoder, but at this point it's something to look
+> at. I don't think some TI people will say "yes the encoder has
+> ghosting artifacts".
+>
+> Enrico
+>
 
-Odd, I'd have sworn that it was in the docs.
+I have never tried with an different decoder either. I don't think
+this is a HW thing. As far as I know the tvp5150 is used in some
+em28xx devices that is what Mauro said, and he would notice that
+behaviour.
 
-The full list of ioctls that can change both the crop settings and the format 
-is:
+Also, if you try getting 625 lines (for PAL) but disable the
+line-output-formatter for deinterlacing, i.e:
 
-VIDIOC_S_STD
-VIDIOC_S_DV_PRESET
-VIDIOC_S_DV_TIMINGS
-VIDIOC_S_INPUT (can implicitly change standard/preset)
-VIDIOC_S_OUTPUT (ditto)
-VIDIOC_S_CROP
+pdata->fldmode = 0;
 
-Note that I suspect that there are quite a few drivers that do not handle this
-correctly. After all, for normal SDTV capture cards you almost never change
-the TV standard once it is set up at the start so I doubt if this has been
-tested much. For DV_PRESET it is much more common to switch from e.g.
-720p to 1080p. That is how I found this issue.
+ispccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENEVEN, 0);
+ispccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENODD, 0);
+ispccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDEVEN, 0);
+ispccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDODD, 0);
 
-> I've attached 2 patches which should make libv4l2 deal with this correctly.
-> I assume you've a reproducer for this and I would appreciate it if you
-> could test if these patches actually fix the issue you are seeing.
+Then you get a frame with the 313 odd lines and 312 even lines
+correctly. That means that the TVP5151 is generating correctly the
+interlaced video.
 
-Almost working. The second patch forgot to set src_fmt.type, so I got an error 
-back. After initializing it to BUF_TYPE_VIDEO_CAPTURE it worked fine.
+Also the ISP is doing correctly the deinterlacing for a some frames.
+But all the approaches used so far (wait for two VD0 interrupt to
+change the CCCDC output memory direction), looks more like a hack than
+a clean solution to me, but maybe is the only way to do it with the
+ISP.
 
-Regards,
+My guess is that the problem is the ISP driver that before this
+configuration (TVP5150/1 + ISP) had never been tested with an video
+decoder that generates interlaced data.
 
-	Hans
+-- 
+Javier Martínez Canillas
+(+34) 682 39 81 69
+Barcelona, Spain
