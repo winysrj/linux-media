@@ -1,96 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eth1683.vic.adsl.internode.on.net ([150.101.217.146]:36310 "EHLO
-	greyinnovation.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S933922Ab1JECuQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Oct 2011 22:50:16 -0400
-Content-class: urn:content-classes:message
-Subject: RE: Help with omap3isp resizing
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Date: Wed, 5 Oct 2011 13:51:29 +1100
-Message-ID: <51A4F524D105AA4C93787F33E2C90E62EE5350@greysvr02.GreyInnovation.local>
-In-Reply-To: <201110041500.56885.laurent.pinchart@ideasonboard.com>
-References: <51A4F524D105AA4C93787F33E2C90E62EE5203@greysvr02.GreyInnovation.local> <201110041350.33441.laurent.pinchart@ideasonboard.com> <1317729252.8358.54.camel@iivanov-desktop> <201110041500.56885.laurent.pinchart@ideasonboard.com>
-From: "Paul Chiha" <paul.chiha@greyinnovation.com>
-To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Ivan T. Ivanov" <iivanov@mm-sol.com>
-Cc: <linux-media@vger.kernel.org>,
-	"Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>
+Received: from smtp.nokia.com ([147.243.1.48]:61073 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753643Ab1JGPfQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Oct 2011 11:35:16 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [media-ctl PATCH 7/7] Remove extra verbosity
+Date: Fri,  7 Oct 2011 18:38:08 +0300
+Message-Id: <1318001888-18689-7-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20111007153443.GC8908@valkosipuli.localdomain>
+References: <20111007153443.GC8908@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-T24gVHVlLCBPY3QgMDQsIDIwMTEgYXQgMDM6MDA6NTVQTSArMDIwMCwgTGF1cmVudCBQaW5jaGFy
-dCB3cm90ZToNCj4gSGkgSXZhbiwNCj4gDQo+IE9uIFR1ZXNkYXkgMDQgT2N0b2JlciAyMDExIDEz
-OjU0OjEyIEl2YW4gVC4gSXZhbm92IHdyb3RlOg0KPiA+IE9uIFR1ZSwgMjAxMS0xMC0wNCBhdCAx
-Mzo1MCArMDIwMCwgTGF1cmVudCBQaW5jaGFydCB3cm90ZToNCj4gPiA+IE9uIFR1ZXNkYXkgMDQg
-T2N0b2JlciAyMDExIDEzOjQ2OjMyIEl2YW4gVC4gSXZhbm92IHdyb3RlOg0KPiA+ID4gPiBPbiBU
-dWUsIDIwMTEtMTAtMDQgYXQgMTM6MDMgKzAyMDAsIExhdXJlbnQgUGluY2hhcnQgd3JvdGU6DQo+
-ID4gPiA+ID4gT24gTW9uZGF5IDAzIE9jdG9iZXIgMjAxMSAwNzo1MTozNCBQYXVsIENoaWhhIHdy
-b3RlOg0KPiA+ID4gPiA+ID4gSGksDQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gSSd2ZSBiZWVu
-IGhhdmluZyB0cm91YmxlIGdldHRpbmcgdGhlIHJlc2l6ZXIgdG8gd29yaywgYW5kDQo+ID4gPiA+
-ID4gPiBtYWlubHkgYmVjYXVzZSBJIGRvbid0IGtub3cgaG93IHRvIGNvcnJlY3RseSBjb25maWd1
-cmUgaXQuDQo+ID4gPiA+ID4gPiBJJ20gdXNpbmcga2VybmVsIDIuNi4zNyBvbiBhcm0gRE0zN3gg
-Ym9hcmQuDQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gSSd2ZSBiZWVuIGFibGUgdG8gY29uZmln
-dXJlIHRoZSBtZWRpYSBsaW5rcw0KPiA+ID4gPiA+ID4gc2Vuc29yPT5jY2RjPT5jY2RjX291dHB1
-dCAoYWxsIHdpdGggNjQweDQ4MA0KPiA+ID4gPiA+ID4gVjRMMl9NQlVTX0ZNVF9VWVZZOF8yWDgp
-IGFuZCBWSURJT0NfU1RSRUFNT04gd29ya3Mgb24NCj4gL2Rldi92aWRlbzIuDQo+ID4gPiA+ID4g
-PiBCdXQgaWYgSSBjb25maWd1cmUgbWVkaWEgbGlua3MNCj4gPiA+ID4gPiA+IHNlbnNvcj0+Y2Nk
-Yz0+cmVzaXplcj0+cmVzaXplcl9vdXRwdXQsIHRoZW4gVklESU9DX1NUUkVBTU9ODQo+ID4gPiA+
-ID4gPiBmYWlscyBvbiAvZGV2L3ZpZGVvNiAod2l0aCBwaXhlbGZvcm1hdCBtaXNtYXRjaCkuIEkg
-bm90aWNlZA0KPiA+ID4gPiA+ID4gdGhhdCB0aGUgcmVzaXplciBkcml2ZXIgb25seSBzdXBwb3J0
-cw0KPiA+ID4gPiA+ID4gVjRMMl9NQlVTX0ZNVF9VWVZZOF8xWDE2ICYgVjRMMl9NQlVTX0ZNVF9Z
-VVlWOF8xWDE2LCBzbyBJDQo+ID4gPiA+ID4gPiB0cmllZCBhZ2FpbiB3aXRoIGFsbCB0aGUgbGlu
-a3Mgc2V0IHRvIFY0TDJfTUJVU19GTVRfVVlWWThfMVgxNg0KPiA+ID4gPiA+ID4gaW5zdGVhZCwg
-YnV0IHRoZW4gaW9jdGwgVklESU9DX1NVQkRFVl9TX0ZNVCBmYWlscyBvbg0KPiA+ID4gPiA+ID4g
-L2Rldi92NGwtc3ViZGV2OCwgYmVjYXVzZSB0aGUgc2Vuc29yIGRyaXZlciBkb2Vzbid0IHN1cHBv
-cnQgMVgxNi4NCj4gPiA+ID4gPiA+IFRoZW4gSSB0cmllZCB1c2luZyBWNEwyX01CVVNfRk1UX1VZ
-Vlk4XzJYOCBmb3IgdGhlIHNlbnNvciBhbmQNCj4gPiA+ID4gPiA+IFY0TDJfTUJVU19GTVRfVVlW
-WThfMVgxNiBmb3IgdGhlIHJlc2l6ZXIsIGJ1dCBpdCBlaXRoZXIgZmFpbGVkDQo+ID4gPiA+ID4g
-PiB3aXRoIHBpeGVsZm9ybWF0IG1pc21hdGNoIG9yIGxpbmsgcGlwZWxpbmUgbWlzbWF0Y2gsIGRl
-cGVuZGluZw0KPiA+ID4gPiA+ID4gb24gd2hpY2ggcGFkcyB3ZXJlIGRpZmZlcmVudC4NCj4gPiA+
-ID4gPiA+DQo+ID4gPiA+ID4gPiBDYW4gc29tZW9uZSBwbGVhc2UgdGVsbCBtZSB3aGF0IEkgbmVl
-ZCB0byBkbyB0byBtYWtlIHRoaXMgd29yaz8NCj4gPiA+ID4gPg0KPiA+ID4gPiA+IExvbmcgc3Rv
-cnkgc2hvcnQsIEkgZG9uJ3QgdGhpbmsgdGhhdCBwaXBlbGluZSBoYXMgZXZlciBiZWVuIHRlc3Rl
-ZC4NCj4gPiA+ID4gPiBJJ20gdW5mb3J0dW5hdGVseSBsYWNraW5nIGhhcmR3YXJlIHRvIHdvcmsg
-b24gdGhhdCwgYXMgbm9uZSBvZg0KPiA+ID4gPiA+IG15DQo+ID4gPiA+ID4gT01BUDMgaGFyZHdh
-cmUgaGFzIGEgWVVWIGlucHV0Lg0KPiA+ID4gPg0KPiA+ID4gPiBJZiBpIGFtIG5vdCBtaXN0YWtl
-biBjdXJyZW50bHkgcmVzaXplciBzdWIgZGV2aWNlIHN1cHBvcnRzIG9ubHk6DQo+ID4gPiA+DQo+
-ID4gPiA+IC8qIHJlc2l6ZXIgcGl4ZWwgZm9ybWF0cyAqLw0KPiA+ID4gPiBzdGF0aWMgY29uc3Qg
-dW5zaWduZWQgaW50IHJlc2l6ZXJfZm9ybWF0c1tdID0gew0KPiA+ID4gPg0KPiA+ID4gPiAJVjRM
-Ml9NQlVTX0ZNVF9VWVZZOF8xWDE2LA0KPiA+ID4gPiAJVjRMMl9NQlVTX0ZNVF9ZVVlWOF8xWDE2
-LA0KPiA+ID4gPg0KPiA+ID4gPiB9Ow0KPiA+ID4gPg0KPiA+ID4gPiBBZGRpbmcgc29tZXRoaW5n
-IGxpa2UgdGhpcyBbMV0gaW4gaXNwcmVzaXplci5jICBzaG91bGQgYWRkIHN1cHBvcnQNCj4gPiA+
-ID4gMlg4IGZvcm1hdHMuIENvbXBsZXRlbHkgdW50ZXN0ZWQgOi0pLg0KPiA+ID4gPg0KPiA+ID4g
-PiBSZWdhcmRzLA0KPiA+ID4gPiBpaXZhbm92DQo+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPiA+IFsx
-XQ0KPiA+ID4gPg0KPiA+ID4gPiBAQCAtMTMwNyw2ICsxMzExLDEwIEBAIHN0YXRpYyBpbnQgcmVz
-aXplcl9zX2Nyb3Aoc3RydWN0DQo+ID4gPiA+IHY0bDJfc3ViZGV2ICpzZCwgc3RydWN0IHY0bDJf
-c3ViZGV2X2ZoICpmaCwgc3RhdGljIGNvbnN0IHVuc2lnbmVkDQo+ID4gPiA+IGludCByZXNpemVy
-X2Zvcm1hdHNbXSA9IHsNCj4gPiA+ID4NCj4gPiA+ID4gIAlWNEwyX01CVVNfRk1UX1VZVlk4XzFY
-MTYsDQo+ID4gPiA+ICAJVjRMMl9NQlVTX0ZNVF9ZVVlWOF8xWDE2LA0KPiA+ID4gPg0KPiA+ID4g
-PiArCVY0TDJfTUJVU19GTVRfVVlWWThfMlg4LA0KPiA+ID4gPiArCVY0TDJfTUJVU19GTVRfVllV
-WThfMlg4LA0KPiA+ID4gPiArCVY0TDJfTUJVU19GTVRfWVVZVjhfMlg4LA0KPiA+ID4gPiArCVY0
-TDJfTUJVU19GTVRfWVZZVThfMlg4LA0KPiA+ID4gPg0KPiA+ID4gPiAgfTsNCj4gPiA+DQo+ID4g
-PiBJJ2QgcmF0aGVyIG1vZGlmeSBpc3BjY2RjLmMgdG8gb3V0cHV0IFY0TDJfTUJVU19GTVRfWVVZ
-VjhfMVgxNi4gV2hhdA0KPiA+ID4gZG8geW91IHRoaW5rID8NCj4gPg0KPiA+IEZvciBtZW1vcnkt
-PlJlc2l6ZXItPm1lbW9yeSB1c2UgY2FzZXMsIENDREMgaXMgbm8gaW52b2x2ZWQgaW4gcGlwZWxp
-bmUuDQo+IA0KPiBCdXQgdGhlIG9yaWdpbmFsIHBvc3RlciB3YW50cyB0byB1c2UgdGhlIHNlbnNv
-ciAtPiBjY2RjIC0+IHJlc2l6ZXIgLT4gcmVzaXplciBvdXRwdXQNCj4gcGlwZWxpbmUuDQo+IA0K
-PiA+IEFsc28gc2V2ZXJhbCBzZW5zb3IgZHJpdmVycyB0aGF0IGkgaGF2ZSBjaGVja2VkLCB1c3Vh
-bGx5IGRlZmluZSBpdHMNCj4gPiBvdXRwdXQgYXMgMlg4IG91dHB1dC4gSSB0aGluayBpcyBtb3Jl
-IG5hdHVyYWwgdG8gYWRkIDJYOCBzdXBwb3J0IHRvDQo+ID4gQ0NEQyBhbmQgUmVzaXplciBlbmdp
-bmVzIGluc3RlYWQgdG8gbW9kaWZ5aW5nIGV4aXRpbmcgZHJpdmVycy4NCj4gDQo+IFN1cmUsIHNl
-bnNvciBkcml2ZXJzIHNob3VsZCBub3QgYmUgbW9kaWZpZWQuIFdoYXQgSSB3YXMgdGFsa2luZyBh
-Ym91dCB3YXMgdG8NCj4gY29uZmlndXJlIHRoZSBwaXBlbGluZSBhcw0KPiANCj4gc2Vuc29yOjAg
-W1lVWVY4XzJYOF0sIENDREM6MCBbWVVZVjhfMlg4XSwgQ0NEQzoxIFtZVVlWOF8xWDE2XSwgcmVz
-aXplcjowDQo+IFtZVVlWOF8xWDE2XQ0KPiANCj4gLS0NCj4gUmVnYXJkcywNCj4gDQo+IExhdXJl
-bnQgUGluY2hhcnQNCg0KVGhhbmtzIGZvciB5b3VyIGhlbHAuDQpJJ3ZlIHVwZGF0ZWQgaXNwY2Nk
-Yy5jIHRvIHN1cHBvcnQgdGhlIF8xWDE2IGNvZGVzIGFuZCB0aGUgcGlwZWxpbmUgc2VlbXMgdG8g
-d29yayBub3cuDQpIb3dldmVyLCBJIG5lZWRlZCB0byB0YWtlIG91dCB0aGUgbWVtY3B5IGluIGNj
-ZGNfdHJ5X2Zvcm1hdCgpLCBiZWNhdXNlIG90aGVyd2lzZSBwYWQgMCBmb3JtYXQgd2FzIGJlaW5n
-IGNvcGllZCB0byBwYWQgMSBvciAyLCByZWdhcmRsZXNzIG9mIHdoYXQgcGFkIDEgb3IgMiB3ZXJl
-IGJlaW5nIHNldCB0by4NCkknbSBub3Qgc3VyZSB3aHkgaXQgd2FzIGRvbmUgdGhhdCB3YXkuICBJ
-IHRoaW5rIGl0J3MgYmV0dGVyIHRoYXQgdGhlIGdpdmVuIGNvZGUgZ2V0cyBjaGVja2VkIHRvIHNl
-ZSBpZiBpdCdzIGluIHRoZSBsaXN0IGFuZCBpZiBzbyB1c2UgaXQuICBEbyB5b3Uga25vdyBvZiBh
-bnkgdmFsaWQgcmVhc29uIHdoeSB0aGlzIGNvcHkgaXMgZG9uZT8NCg0KUGF1bA0K
+Remove extra verbosity by default; "-v" option brings back what used to be
+there. The error messages are now being printed by main.c with the possibly
+helpful error code attached.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ src/main.c     |   48 ++++++++++++++++++++++++++++++++++++++----------
+ src/mediactl.c |   21 ++++++++++-----------
+ src/mediactl.h |    6 ++----
+ 3 files changed, 50 insertions(+), 25 deletions(-)
+
+diff --git a/src/main.c b/src/main.c
+index 40ab13e..57bbc16 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -288,10 +288,16 @@ int main(int argc, char **argv)
+ 		return EXIT_FAILURE;
+ 
+ 	/* Open the media device and enumerate entities, pads and links. */
+-	media = media_open_debug(media_opts.devname, media_opts.verbose,
+-				 (void (*)(void *, ...))fprintf, stdout);
+-	if (media == NULL)
++	if (media_opts.verbose)
++		media = media_open_debug(
++			media_opts.devname,
++			(void (*)(void *, ...))fprintf, stdout);
++	else
++		media = media_open(media_opts.devname);
++	if (media == NULL) {
++		printf("Failed to open %s\n", media_opts.devname);
+ 		goto out;
++	}
+ 
+ 	if (media_opts.entity) {
+ 		struct media_entity *entity;
+@@ -326,15 +332,34 @@ int main(int argc, char **argv)
+ 	}
+ 
+ 	if (media_opts.reset) {
+-		printf("Resetting all links to inactive\n");
+-		media_reset_links(media);
++		if (media_opts.verbose)
++			printf("Resetting all links to inactive\n");
++		ret = media_reset_links(media);
++		if (ret) {
++			printf("Unable to reset links: %s (%d)\n",
++			       strerror(-ret), -ret);
++			goto out;
++		}
+ 	}
+ 
+-	if (media_opts.links)
+-		media_parse_setup_links(media, media_opts.links);
++	if (media_opts.links) {
++		ret = media_parse_setup_links(media, media_opts.links);
++		if (ret) {
++			printf("Unable to parse link: %s (%d)\n",
++			       strerror(-ret), -ret);
++			goto out;
++		}
++	}
+ 
+-	if (media_opts.formats)
+-		v4l2_subdev_parse_setup_formats(media, media_opts.formats);
++	if (media_opts.formats) {
++		ret = v4l2_subdev_parse_setup_formats(media,
++						      media_opts.formats);
++		if (ret) {
++			printf("Unable to parse format: %s (%d)\n",
++			       strerror(-ret), -ret);
++			goto out;
++		}
++	}
+ 
+ 	if (media_opts.interactive) {
+ 		while (1) {
+@@ -348,7 +373,10 @@ int main(int argc, char **argv)
+ 			if (buffer[0] == '\n')
+ 				break;
+ 
+-			media_parse_setup_link(media, buffer, &end);
++			ret = media_parse_setup_link(media, buffer, &end);
++			if (ret)
++				printf("Unable to parse link: %s (%d)\n",
++				       strerror(-ret), -ret);
+ 		}
+ 	}
+ 
+diff --git a/src/mediactl.c b/src/mediactl.c
+index 43d1b6a..b9c2a10 100644
+--- a/src/mediactl.c
++++ b/src/mediactl.c
+@@ -270,7 +270,7 @@ static inline void media_udev_close(struct udev *udev)
+ }
+ 
+ static int media_get_devname_udev(struct udev *udev,
+-		struct media_entity *entity, int verbose)
++		struct media_entity *entity)
+ {
+ 	struct udev_device *device;
+ 	dev_t devnum;
+@@ -281,9 +281,8 @@ static int media_get_devname_udev(struct udev *udev,
+ 		return -EINVAL;
+ 
+ 	devnum = makedev(entity->info.v4l.major, entity->info.v4l.minor);
+-	if (verbose)
+-		media_dbg(entity->media, "looking up device: %u:%u\n",
+-			  major(devnum), minor(devnum));
++	media_dbg(entity->media, "looking up device: %u:%u\n",
++		  major(devnum), minor(devnum));
+ 	device = udev_device_new_from_devnum(udev, 'c', devnum);
+ 	if (device) {
+ 		p = udev_device_get_devnode(device);
+@@ -308,7 +307,7 @@ static inline int media_udev_open(struct udev **udev) { return 0; }
+ static inline void media_udev_close(struct udev *udev) { }
+ 
+ static inline int media_get_devname_udev(struct udev *udev,
+-		struct media_entity *entity, int verbose)
++		struct media_entity *entity)
+ {
+ 	return -ENOTSUP;
+ }
+@@ -351,7 +350,7 @@ static int media_get_devname_sysfs(struct media_entity *entity)
+ 	return 0;
+ }
+ 
+-static int media_enum_entities(struct media_device *media, int verbose)
++static int media_enum_entities(struct media_device *media)
+ {
+ 	struct media_entity *entity;
+ 	struct udev *udev;
+@@ -400,7 +399,7 @@ static int media_enum_entities(struct media_device *media, int verbose)
+ 			continue;
+ 
+ 		/* Try to get the device name via udev */
+-		if (!media_get_devname_udev(udev, entity, verbose))
++		if (!media_get_devname_udev(udev, entity))
+ 			continue;
+ 
+ 		/* Fall back to get the device name via sysfs */
+@@ -429,7 +428,7 @@ void media_debug_set_handler(struct media_device *media,
+ }
+ 
+ struct media_device *media_open_debug(
+-	const char *name, int verbose, void (*debug_handler)(void *, ...),
++	const char *name, void (*debug_handler)(void *, ...),
+ 	void *debug_priv)
+ {
+ 	struct media_device *media;
+@@ -453,7 +452,7 @@ struct media_device *media_open_debug(
+ 
+ 	media_dbg(media, "Enumerating entities\n");
+ 
+-	ret = media_enum_entities(media, verbose);
++	ret = media_enum_entities(media);
+ 
+ 	if (ret < 0) {
+ 		media_dbg(media,
+@@ -478,9 +477,9 @@ struct media_device *media_open_debug(
+ 	return media;
+ }
+ 
+-struct media_device *media_open(const char *name, int verbose)
++struct media_device *media_open(const char *name)
+ {
+-	return media_open_debug(name, verbose, NULL, NULL);
++	return media_open_debug(name, NULL, NULL);
+ }
+ 
+ void media_close(struct media_device *media)
+diff --git a/src/mediactl.h b/src/mediactl.h
+index c6bf723..5fdd078 100644
+--- a/src/mediactl.h
++++ b/src/mediactl.h
+@@ -79,7 +79,6 @@ void media_debug_set_handler(
+ /**
+  * @brief Open a media device with debugging enabled.
+  * @param name - name (including path) of the device node.
+- * @param verbose - whether to print verbose information on the standard output.
+  * @param debug_handler - debug message handler
+  * @param debug_priv - first argument to debug message handler
+  *
+@@ -95,13 +94,12 @@ void media_debug_set_handler(
+  * media_close when the device isn't needed anymore.
+  */
+ struct media_device *media_open_debug(
+-	const char *name, int verbose, void (*debug_handler)(void *, ...),
++	const char *name, void (*debug_handler)(void *, ...),
+ 	void *debug_priv);
+ 
+ /**
+  * @brief Open a media device.
+  * @param name - name (including path) of the device node.
+- * @param verbose - whether to print verbose information on the standard output.
+  *
+  * Open the media device referenced by @a name and enumerate entities, pads and
+  * links.
+@@ -110,7 +108,7 @@ struct media_device *media_open_debug(
+  * success and NULL on failure. The returned pointer must be freed with
+  * media_close when the device isn't needed anymore.
+  */
+-struct media_device *media_open(const char *name, int verbose);
++struct media_device *media_open(const char *name);
+ 
+ /**
+  * @brief Close a media device.
+-- 
+1.7.2.5
+
