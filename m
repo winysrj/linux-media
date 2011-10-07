@@ -1,65 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:40424 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754526Ab1JAKDK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Oct 2011 06:03:10 -0400
-Received: by eya28 with SMTP id 28so1669162eya.19
-        for <linux-media@vger.kernel.org>; Sat, 01 Oct 2011 03:03:09 -0700 (PDT)
-Message-ID: <4E86E554.1040400@gmail.com>
-Date: Sat, 01 Oct 2011 12:03:00 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:38915 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760028Ab1JGNjB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2011 09:39:01 -0400
+Received: by bkbzt4 with SMTP id zt4so4869239bkb.19
+        for <linux-media@vger.kernel.org>; Fri, 07 Oct 2011 06:39:00 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	uclinux-dist-devel@blackfin.uclinux.org
-Subject: Re: [PATCH 4/4] v4l2: add blackfin capture bridge driver
-References: <1315938892-20243-1-git-send-email-scott.jiang.linux@gmail.com> <CAHG8p1C5F_HKX_GPHv_RdCRRNw9s3+ybK4giCjUXxgSUAUDRVw@mail.gmail.com> <4E70BA97.1090904@samsung.com> <201109261625.03748.hverkuil@xs4all.nl>
-In-Reply-To: <201109261625.03748.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4E8E5CE9.8030604@redhat.com>
+References: <1315322996-10576-1-git-send-email-mchehab@redhat.com>
+	<CAGoCfiy2hnH0Xoz_+Q8JgcB-tzuTGbfv8QdK0kv+ttP7t+EZKg@mail.gmail.com>
+	<CAGoCfixa0pr048=-P3OUkZ2HMaY471eNO79BON0vjSVa1eRcTw@mail.gmail.com>
+	<4E66E532.4050402@redhat.com>
+	<CAGoCfiw7vjprc_skYYAXy9sTA7zkYEWtzXy9tEmJD+q8aazPog@mail.gmail.com>
+	<CAGoCfiw-QnfVVwOhejwbMmb+K2F0VDwN_L-6E37w+=jKYGGFkg@mail.gmail.com>
+	<CAGoCfixTqXaDU++-k_tn1NMkg4xXNcL=qvezggqe6BqEH+h5xg@mail.gmail.com>
+	<4E8E5CE9.8030604@redhat.com>
+Date: Fri, 7 Oct 2011 09:38:59 -0400
+Message-ID: <CAGoCfixT_DL7nm0zQRYExut8Pd2D9N6rzRKJdoH8oOjJOq9ZFw@mail.gmail.com>
+Subject: Re: tvtime at linuxtv.org
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, Mikael Magnusson <mikachu@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+On Thu, Oct 6, 2011 at 9:59 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Hi Devin,
+>
+> I had some discussions with Mikael today at the #linuxtv channel about
+> tvtime. Mikael has write access to the tvtime site at sourceforge and he
+> is doing some maintainance on it for some time, and worked on some bugs
+> from Gentoo, and also imported some stuff from Ubuntu.
+>
+> I've merged his patches on my repository:
+>        http://git.linuxtv.org/mchehab/tvtime.git
+>
+> Tvtime is compiling, at least on Fedora 15. I also added your patch there,
+> and changed the latency delay to 50ms. I didn't test it yet. I'll do it
+> later
+> today or tomorrow.
+>
+> Btw, Mikael updated the Related Sites there to point to the LinuxTV site:
+>        http://tvtime.sourceforge.net/links.html
+>
+> He will try to contact Vektor again, in order to get his ack about adding
+> a note at the main page pointing to us.
+>
+> I think we should move those patches to the main repository after testing
+> the
+> merges, and give write rights to the ones that are interested on maintaining
+> tvtime.
+>
+> I'm interested on it, and also Mikael.
+>
+> IMHO, after testing it and applying a few other patches that Mikael might
+> have,
+> it is time for us to rename the version to 1.10 and do a tvtime release.
+>
+> Would that work for you?
+>
+> Thank you!
+> Mauro
 
-On 09/26/2011 04:25 PM, Hans Verkuil wrote:
-> On Wednesday, September 14, 2011 16:30:47 Sylwester Nawrocki wrote:
->> On 09/14/2011 09:10 AM, Scott Jiang wrote:
->>>>> +static int bcap_qbuf(struct file *file, void *priv,
->>>>> +                     struct v4l2_buffer *buf)
->>>>> +{
->>>>> +     struct bcap_device *bcap_dev = video_drvdata(file);
->>>>> +     struct v4l2_fh *fh = file->private_data;
->>>>> +     struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
->>>>> +
->>>>> +     if (!bcap_fh->io_allowed)
->>>>> +             return -EACCES;
->>>>
->>>> I suppose -EBUSY would be more appropriate here.
->>>>
->>> no, io_allowed is to control which file instance has the right to do I/O.
->>
->> Looks like you are doing here what the v4l2 priority mechanism is meant for.
->> Have you considered the access priority (VIDIOC_G_PRIORITY/VIDIOC_S_PRIORITY
->> and friends)? Does it have any shortcomings?
-> 
-> Sylwester, the priority handling doesn't take care of this particular case.
-> 
-> When it comes to streaming you need to administrate which filehandle started
-> the streaming and block any other filehandle from interfering with that.
-> 
-> This check should really be done in vb2.
+Hi Mauro,
 
-True, I've noticed QBUF/DQBUF are not touched by the priority handling.
-Perhaps I didn't follow the discussions in this topic carefully enough.
+It's good to hear that patches are continuing to be merged, and of
+course contributors are always welcome.
 
-Then we seem to have another feature request for vb2.
+The more I think about this, the more I recognize that I'm not really
+adding any value to this process.  While I would really like to put
+more time/energy into tvtime, I just don't have the time and it
+appears I'm actually slowing down a community of contributors who are
+trying to move things forward.
 
---
-Thanks,
-Sylwester
+At this point I would recommend the LinuxTV community just take over
+the project, give yourself write access to the main repo, and spin a
+release.  I would indeed recommend calling it 1.10, to prevent
+confusion with the various vendor branches where I believe some of
+which may actually already be calling themselves 1.03.
+
+Regarding expanding the list of individuals with commit rights, I
+might suggest keeping the list of write privileges for the main repo
+to a minimum in the short term (starting with yourself), until
+developers have demonstrated their ability to author coherent patches
+which won't cause breakage as well as the ability to review the work
+of others.
+
+Cheers,
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
