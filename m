@@ -1,42 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:39600 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956Ab1JKWZk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Oct 2011 18:25:40 -0400
-Received: by ggnv2 with SMTP id v2so66674ggn.19
-        for <linux-media@vger.kernel.org>; Tue, 11 Oct 2011 15:25:39 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:33471 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750891Ab1JHKxI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 8 Oct 2011 06:53:08 -0400
+Message-ID: <4E902B89.7030004@redhat.com>
+Date: Sat, 08 Oct 2011 07:52:57 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4E94BD75.5040403@mlbassoc.com>
-References: <1318345735-16778-1-git-send-email-ebutera@users.berlios.de>
-	<4E94BD75.5040403@mlbassoc.com>
-Date: Wed, 12 Oct 2011 00:25:39 +0200
-Message-ID: <CA+2YH7vx27qNeOO33NmR4SaqrSrhdu=17p468cSbLxDKfDAQqQ@mail.gmail.com>
-Subject: Re: [RFC 0/3] omap3isp: add BT656 support
-From: Enrico <ebutera@users.berlios.de>
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+CC: Randy Dunlap <rdunlap@xenotime.net>,
+	Paul Gortmaker <paul.gortmaker@windriver.com>,
+	linux-next@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] drivers/media: fix dependencies in video mt9t001/mt9p031
+References: <4E83A02F.2020309@xenotime.net> <1317418491-26513-1-git-send-email-paul.gortmaker@windriver.com> <4E8644D5.6080307@xenotime.net> <20111006140214.b64b22b77f2f831442d59794@canb.auug.org.au>
+In-Reply-To: <20111006140214.b64b22b77f2f831442d59794@canb.auug.org.au>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 12, 2011 at 12:04 AM, Gary Thomas <gary@mlbassoc.com> wrote:
-> Sorry, this just locks up on boot for me, immediately after finding the
-> TVP5150.
-> I applied your changes to the above tree
->  commit 658d5e03dc1a7283e5119cd0e9504759dbd3d912
->  Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->  Date:   Wed Aug 31 16:03:53 2011 +0200
+Em 06-10-2011 00:02, Stephen Rothwell escreveu:
+> Hi Mauro,
+>
+> On Fri, 30 Sep 2011 15:38:13 -0700 Randy Dunlap<rdunlap@xenotime.net>  wrote:
+>>
+>> On 09/30/11 14:34, Paul Gortmaker wrote:
+>>> Both mt9t001.c and mt9p031.c have two identical issues, those
+>>> being that they will need module.h inclusion for the upcoming
+>>> cleanup going on there, and that their dependencies don't limit
+>>> selection of configs that will fail to compile as follows:
+>>>
+>>> drivers/media/video/mt9p031.c:457: error: implicit declaration of function â€˜v4l2_subdev_get_try_cropâ€™
+>>> drivers/media/video/mt9t001.c:787: error: â€˜struct v4l2_subdevâ€™ has no member named â€˜entityâ€™
+>>>
+>>> The related config options are CONFIG_MEDIA_CONTROLLER and
+>>> CONFIG_VIDEO_V4L2_SUBDEV_API.  Looking at the code, it appears
+>>> that the driver was never intended to work without these enabled,
+>>> so add a dependency on CONFIG_VIDEO_V4L2_SUBDEV_API, which in
+>>> turn already has a dependency on CONFIG_MEDIA_CONTROLLER.
+>>>
+>>> Reported-by: Randy Dunlap<rdunlap@xenotime.net>
+>>> Signed-off-by: Paul Gortmaker<paul.gortmaker@windriver.com>
+>>
+>> Acked-by: Randy Dunlap<rdunlap@xenotime.net>
+>
+> Ping?
+>
+Sorry, I was assuming that this patch would be going together with the
+other module.h trees. I'll apply it on my tree.
 
-Did you add Javier patches for the tvp5150?
-
-
-> However, it does not build for my OMAP3530 without the attached patches.
-
-I can't remember now if i had omap vout enabled in my kernel config
-but that one in ispccdc.c is strange, tomorrow i will do again a clean
-rebuild.
-
-Enrico
+Thanks,
+Mauro
