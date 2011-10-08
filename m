@@ -1,163 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ppsw-41.csi.cam.ac.uk ([131.111.8.141]:41368 "EHLO
-	ppsw-41.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752067Ab1JUKN0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Oct 2011 06:13:26 -0400
-From: Jonathan Cameron <jic23@cam.ac.uk>
-To: linux-media@vger.kernel.org
-Cc: khali@linux-fr.org, kernel@pengutronix.de, robert.jarzmik@free.fr,
-	laurent.pinchart@ideasonboard.com,
-	Jonathan Cameron <jic23@cam.ac.uk>
-Subject: [PATCH] v4l: use i2c_smbus_read_word_swapped
-Date: Fri, 21 Oct 2011 11:13:29 +0100
-Message-Id: <1319192009-24158-1-git-send-email-jic23@cam.ac.uk>
+Received: from mx1.redhat.com ([209.132.183.28]:17616 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750798Ab1JHIOZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 8 Oct 2011 04:14:25 -0400
+Message-ID: <4E900660.7030606@redhat.com>
+Date: Sat, 08 Oct 2011 10:14:24 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Merge v4l-utils. dvb-apps and mediactl to media-utils.git
+References: <201110061423.22064.hverkuil@xs4all.nl> <4E8DE450.7030302@redhat.com> <4E8E5EEA.80906@redhat.com> <201110070805.31054.hverkuil@xs4all.nl> <4E8EF87E.5000601@infradead.org> <4E8EF91D.2080908@redhat.com> <4E8F029D.3020705@infradead.org>
+In-Reply-To: <4E8F029D.3020705@infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Function ensures that error codes don't get mangled.
-Dependant on:
-i2c: boilerplate function for byte swapped  smbus_write/read_word_data
-which is working it's way through the i2c tree.
+Hi,
 
-Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
----
+On 10/07/2011 03:46 PM, Mauro Carvalho Chehab wrote:
+> Em 07-10-2011 10:05, Hans de Goede escreveu:
+>> Hi,
+>>
+>> On 10/07/2011 03:02 PM, Mauro Carvalho Chehab wrote:
+>>> Em 07-10-2011 03:05, Hans Verkuil escreveu:
+>>>> On Friday, October 07, 2011 04:07:38 Mauro Carvalho Chehab wrote:
+>>>>> Em 06-10-2011 14:24, Mauro Carvalho Chehab escreveu:
+>>>>>> Em 06-10-2011 10:27, Mauro Carvalho Chehab escreveu:
+>>>>>>> Em 06-10-2011 09:23, Hans Verkuil escreveu:
+>>>>>>>> Currently we have three repositories containing libraries and utilities that
+>>>>>>>> are relevant to the media drivers:
+>>>>>>>>
+>>>>>>>> dvb-apps (http://linuxtv.org/hg/dvb-apps/)
+>>>>>>>> v4l-utils (http://git.linuxtv.org/v4l-utils.git)
+>>>>>>>> media-ctl (git://git.ideasonboard.org/media-ctl.git)
+>>>>>>>>
+>>>>>>>> It makes no sense to me to have three separate repositories, one still using
+>>>>>>>> mercurial and one that isn't even on linuxtv.org.
+>>>>>>>>
+>>>>>>>> I propose to combine them all to one media-utils.git repository. I think it
+>>>>>>>> makes a lot of sense to do this.
+>>>>>>>>
+>>>>>>>> After the switch the other repositories are frozen (with perhaps a README
+>>>>>>>> pointing to the new media-utils.git).
+>>>>>>>>
+>>>>>>>> I'm not sure if there are plans to make new stable releases of either of these
+>>>>>>>> repositories any time soon. If there are, then it might make sense to wait
+>>>>>>>> until that new stable release before merging.
+>>>>>>>>
+>>>>>>>> Comments?
+>>>>>>>
+>>>>>>> I like that idea. It helps to have the basic tools into one single repository,
+>>>>>>> and to properly distribute it.
+>>>>>
+>>>>> Ok, I found some time to do an experimental merge of the repositories. It is available
+>>>>> at:
+>>>>>
+>>>>> http://git.linuxtv.org/mchehab/media-utils.git
+>>>>>
+>>>>> For now, all dvb-apps stuff is on a separate directory. It makes sense to latter
+>>>>> re-organize the directories. Anyway, the configure script will allow disable
+>>>>> dvb-apps, v4l-utils and/or libv4l. The default is to have all enabled.
+>>>>>
+>>>>> One problem I noticed is that the dvb-apps are at version 1.1. So, if we're
+>>>>> releasing a new version, we'll need to jump from 0.9 to dvb-apps version + 1.
+>>>>> So, IMO, the first version with the merge should be version 1.2.
+>>>>>
+>>>>> Comments?
+>>>>
+>>>> Strange:
+>>>>
+>>>> $ git clone git://git.linuxtv.org/mchehab/media-utils.git
+>>>> Cloning into media-utils...
+>>>> fatal: The remote end hung up unexpectedly
+>>>>
+>>>> I've no problem with other git trees.
+>>>
+>>> Hans,
+>>>
+>>> FYI, I'm getting this when compiling from the v4l-utils tree (even before the merge):
+>>>
+>>> g++ -o qv4l2 qv4l2.o general-tab.o ctrl-tab.o v4l2-api.o capture-win.o moc_qv4l2.o moc_general-tab.o moc_capture-win.o qrc_qv4l2.o -L/usr/lib -L../../lib/libv4l2 -lv4l2 -L../../lib/libv4lconvert -lv4lconvert -lrt -L../libv4l2util -lv4l2util -ldl -ljpeg -lQtGui -lQtCore -lpthread
+>>> qv4l2.o: In function `ApplicationWindow::setDevice(QString const&, bool)':
+>>> /home/v4l/work_trees/media-utils/utils/qv4l2/qv4l2.cpp:149: undefined reference to `libv4l2_default_dev_ops'
+>>> collect2: ld returned 1 exit status
+>>>
+>>
+>> Yeah, that is because qmake is stupid and add /usr/lib[64] to the library path and adds it *before* the
+>> paths we've specified in its template, so if you've an older libv4l2 installed in /usr/lib[64] when building
+>> you get this.
+>>
+>> To fix it, first do a make; make install in the lib subdir, with LIBDIR setup up to overwrite the old version.
+>
+> Didn't work, as the Fedora package installed it at /usr/lib, while make install installed at /usr/local/lib.
+>
+> (ok, I forced it anyway, by renaming the old library, but this sucks)
+>
 
-In some cases the now largely pointless boiler plate functions
-could be squished.
+Agreed (that it sucks).
 
-patch based on 3.1-rc10
+> The right thing to do is to get rid of it from qv4l2.pro. I can see two possible solutions:
+>
+> 1) add a logic at the build target that would do something like "cat qv4l2.pro|sed s,"\-L/usr/lib",,";
+>
+> 2) Don't use -L for the libraries. In this case, we'll need to add some logic to include either the .so or the
+> .a version of the library, depending on the type of the libraries that were generated.
 
- drivers/media/video/mt9m001.c |    6 +++---
- drivers/media/video/mt9m111.c |    7 +++----
- drivers/media/video/mt9t031.c |    5 ++---
- drivers/media/video/mt9v022.c |    5 ++---
- drivers/media/video/mt9v032.c |    8 ++++----
- 5 files changed, 14 insertions(+), 17 deletions(-)
+We're not adding the -L/usr/lib, qmake is when it generates the Makefile, which is why I gave up after
+a quick attempt to fix it. Patches welcome :)
 
-diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
-index 4da9cca..7493d9e 100644
---- a/drivers/media/video/mt9m001.c
-+++ b/drivers/media/video/mt9m001.c
-@@ -102,14 +102,14 @@ static struct mt9m001 *to_mt9m001(const struct i2c_client *client)
- 
- static int reg_read(struct i2c_client *client, const u8 reg)
- {
--	s32 data = i2c_smbus_read_word_data(client, reg);
--	return data < 0 ? data : swab16(data);
-+	return i2c_smbus_read_word_swapped(client, reg);
-+
- }
- 
- static int reg_write(struct i2c_client *client, const u8 reg,
- 		     const u16 data)
- {
--	return i2c_smbus_write_word_data(client, reg, swab16(data));
-+	return i2c_smbus_write_word_swapped(client, reg, data);
- }
- 
- static int reg_set(struct i2c_client *client, const u8 reg,
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index a357aa8..41b3029 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -210,7 +210,7 @@ static int reg_page_map_set(struct i2c_client *client, const u16 reg)
- 	if (page > 2)
- 		return -EINVAL;
- 
--	ret = i2c_smbus_write_word_data(client, MT9M111_PAGE_MAP, swab16(page));
-+	ret = i2c_smbus_write_word_swapped(client, MT9M111_PAGE_MAP, page);
- 	if (!ret)
- 		lastpage = page;
- 	return ret;
-@@ -222,7 +222,7 @@ static int mt9m111_reg_read(struct i2c_client *client, const u16 reg)
- 
- 	ret = reg_page_map_set(client, reg);
- 	if (!ret)
--		ret = swab16(i2c_smbus_read_word_data(client, reg & 0xff));
-+		ret = i2c_smbus_read_word_swapped(client, reg & 0xff);
- 
- 	dev_dbg(&client->dev, "read  reg.%03x -> %04x\n", reg, ret);
- 	return ret;
-@@ -235,8 +235,7 @@ static int mt9m111_reg_write(struct i2c_client *client, const u16 reg,
- 
- 	ret = reg_page_map_set(client, reg);
- 	if (!ret)
--		ret = i2c_smbus_write_word_data(client, reg & 0xff,
--						swab16(data));
-+		ret = i2c_smbus_write_word_swapped(client, reg & 0xff, data);
- 	dev_dbg(&client->dev, "write reg.%03x = %04x -> %d\n", reg, data, ret);
- 	return ret;
- }
-diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
-index 30547cc..e4ac238 100644
---- a/drivers/media/video/mt9t031.c
-+++ b/drivers/media/video/mt9t031.c
-@@ -81,14 +81,13 @@ static struct mt9t031 *to_mt9t031(const struct i2c_client *client)
- 
- static int reg_read(struct i2c_client *client, const u8 reg)
- {
--	s32 data = i2c_smbus_read_word_data(client, reg);
--	return data < 0 ? data : swab16(data);
-+	return i2c_smbus_read_word_swapped(client, reg);
- }
- 
- static int reg_write(struct i2c_client *client, const u8 reg,
- 		     const u16 data)
- {
--	return i2c_smbus_write_word_data(client, reg, swab16(data));
-+	return i2c_smbus_write_word_swapped(client, reg, data);
- }
- 
- static int reg_set(struct i2c_client *client, const u8 reg,
-diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-index 51b0fcc..d5272d9 100644
---- a/drivers/media/video/mt9v022.c
-+++ b/drivers/media/video/mt9v022.c
-@@ -116,14 +116,13 @@ static struct mt9v022 *to_mt9v022(const struct i2c_client *client)
- 
- static int reg_read(struct i2c_client *client, const u8 reg)
- {
--	s32 data = i2c_smbus_read_word_data(client, reg);
--	return data < 0 ? data : swab16(data);
-+	return i2c_smbus_read_word_swapped(client, reg);
- }
- 
- static int reg_write(struct i2c_client *client, const u8 reg,
- 		     const u16 data)
- {
--	return i2c_smbus_write_word_data(client, reg, swab16(data));
-+	return i2c_smbus_write_word_swapped(client, reg, data);
- }
- 
- static int reg_set(struct i2c_client *client, const u8 reg,
-diff --git a/drivers/media/video/mt9v032.c b/drivers/media/video/mt9v032.c
-index c64e1dc..7906929 100644
---- a/drivers/media/video/mt9v032.c
-+++ b/drivers/media/video/mt9v032.c
-@@ -138,10 +138,10 @@ static struct mt9v032 *to_mt9v032(struct v4l2_subdev *sd)
- 
- static int mt9v032_read(struct i2c_client *client, const u8 reg)
- {
--	s32 data = i2c_smbus_read_word_data(client, reg);
-+	s32 data = i2c_smbus_read_word_swapped(client, reg);
- 	dev_dbg(&client->dev, "%s: read 0x%04x from 0x%02x\n", __func__,
--		swab16(data), reg);
--	return data < 0 ? data : swab16(data);
-+		data, reg);
-+	return data;
- }
- 
- static int mt9v032_write(struct i2c_client *client, const u8 reg,
-@@ -149,7 +149,7 @@ static int mt9v032_write(struct i2c_client *client, const u8 reg,
- {
- 	dev_dbg(&client->dev, "%s: writing 0x%04x to 0x%02x\n", __func__,
- 		data, reg);
--	return i2c_smbus_write_word_data(client, reg, swab16(data));
-+	return i2c_smbus_write_word_swapped(client, reg, data);
- }
- 
- static int mt9v032_set_chip_control(struct mt9v032 *mt9v032, u16 clear, u16 set)
--- 
-1.7.7
+Regards,
 
+Hans
