@@ -1,274 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:65092 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932209Ab1JCP3Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Oct 2011 11:29:25 -0400
-Date: Mon, 3 Oct 2011 17:29:23 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: Re: [PATCH 7/9] V4L: soc-camera: add a Media Controller wrapper
-In-Reply-To: <201110031305.41253.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1110031700330.16384@axis700.grange>
-References: <1317313137-4403-1-git-send-email-g.liakhovetski@gmx.de>
- <1317313137-4403-8-git-send-email-g.liakhovetski@gmx.de>
- <201110031305.41253.laurent.pinchart@ideasonboard.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:56982 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750891Ab1JHKcz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Oct 2011 06:32:55 -0400
+Received: by bkbzt4 with SMTP id zt4so5957402bkb.19
+        for <linux-media@vger.kernel.org>; Sat, 08 Oct 2011 03:32:53 -0700 (PDT)
+Message-ID: <4E9026CD.1030200@gmail.com>
+Date: Sat, 08 Oct 2011 12:32:45 +0200
+From: =?ISO-8859-1?Q?Roger_M=E5rtensson?= <roger.martensson@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-media@vger.kernel.org
+Subject: Stream degrades when going through CAM
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent
+Hej(Hello)!
 
-Thanks for the reviews!
+I'm the one that posted about non responding CAM earlier. I got another 
+CAM I had laying around to work but now it's different problems.
 
-On Mon, 3 Oct 2011, Laurent Pinchart wrote:
+With this SMIT Conax CAM(Earlier it was a Dilog Conax) I can decode but 
+the resulting mpg-stream degrades fast to something unwatchable.
 
-> Hi Guennadi,
-> 
-> Thanks for the patch.
-> 
-> On Thursday 29 September 2011 18:18:55 Guennadi Liakhovetski wrote:
-> > This wrapper adds a Media Controller implementation to soc-camera drivers.
-> > To really benefit from it individual host drivers should implement support
-> > for values of enum soc_camera_target other than SOCAM_TARGET_PIPELINE in
-> > their .set_fmt() and .try_fmt() methods.
-> 
-> [snip]
-> 
-> > diff --git a/drivers/media/video/soc_entity.c
-> > b/drivers/media/video/soc_entity.c new file mode 100644
-> > index 0000000..3a04700
-> > --- /dev/null
-> > +++ b/drivers/media/video/soc_entity.c
-> > @@ -0,0 +1,284 @@
-> 
-> [snip]
-> 
-> > +static int bus_sd_pad_g_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh
-> > *fh,
-> > +			    struct v4l2_subdev_format *sd_fmt)
-> > +{
-> > +	struct soc_camera_device *icd = v4l2_get_subdevdata(sd);
-> > +	struct v4l2_mbus_framefmt *f = &sd_fmt->format;
-> > +
-> > +	if (sd_fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> > +		sd_fmt->format = *v4l2_subdev_get_try_format(fh, sd_fmt->pad);
-> > +		return 0;
-> > +	}
-> > +
-> > +	if (sd_fmt->pad == SOC_HOST_BUS_PAD_SINK) {
-> > +		f->width	= icd->host_input_width;
-> > +		f->height	= icd->host_input_height;
-> > +	} else {
-> > +		f->width	= icd->user_width;
-> > +		f->height	= icd->user_height;
-> > +	}
-> > +	f->field	= icd->field;
-> > +	f->code		= icd->current_fmt->code;
-> > +	f->colorspace	= icd->colorspace;
-> 
-> Can soc-camera hosts perform format conversion ? If so you will likely need to 
-> store the mbus code for the input and output separately, possibly in 
-> v4l2_mbus_format fields. You could then simplify the [gs]_fmt functions by 
-> implementing similar to the __*_get_format functions in the OMAP3 ISP driver.
+The testprogram I'm using is gnutv:
+$ gnutv -channels ~/my-channels-v4.conf -timeout 30 -out file t.mpg SVT1
+Using frontend "Philips TDA10023 DVB-C", type DVB-C
+status SCVYL | signal f0f0 | snr f3f3 | ber 000fffff | unc 000000ec | 
+FE_HAS_LOCK
+CAM Application type: 01
+CAM Application manufacturer: cafe
+CAM Manufacturer code: babe
+CAM Menu string: Conax Conditional Access
+CAM supports the following ca system ids:
+   0x0b00
+Received new PMT - sending to CAM...
 
-They can, yes. But, under soc-camera conversions are performed between 
-mediabus codes and fourcc formats. Upon pipeline construction (probing) a 
-table of format conversions is built, where hosts generate one or more 
-translation entries for all client formats, that they support. The only 
-example of a more complex translations so far is MIPI CSI-2, but even 
-there we have decided to identify CSI-2 formats using the same media-bus 
-codes, as what you "get" "between" the CSI-2 block and the DMA engine. For 
-the only CSI-2 capable soc-camera host so far - the CEU driver - this is 
-also a very natural representation, because there the CSI-2 block is 
-indeed an additional pipeline stage, uniquely translating CSI-2 to 
-media-bus codes, that are then fed to the CEU parallel port.
+The recording always starts up nice but after some time it gets blocky 
+artifacts and mplayer starts outputing errors. These artifacts increases 
+almost exponential making this 30 second recording unwatchable very fast.
+This of course does not happen when the CAM isn't inserted.
 
-> 
-> > +	return 0;
-> > +}
-> > +
-> > +static int bus_sd_pad_s_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh
-> > *fh,
-> > +			    struct v4l2_subdev_format *sd_fmt)
-> > +{
-> > +	struct soc_camera_device *icd = v4l2_get_subdevdata(sd);
-> > +	struct v4l2_mbus_framefmt *mf = &sd_fmt->format;
-> > +	struct v4l2_format vf = {
-> > +		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-> > +	};
-> > +	enum soc_camera_target tgt = sd_fmt->pad == SOC_HOST_BUS_PAD_SINK ?
-> > +		SOCAM_TARGET_HOST_IN : SOCAM_TARGET_HOST_OUT;
-> > +	int ret;
-> > +
-> > +	se_mbus_to_v4l2(icd, mf, &vf);
-> > +
-> > +	if (sd_fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> > +		struct v4l2_mbus_framefmt *try_fmt =
-> > +			v4l2_subdev_get_try_format(fh, sd_fmt->pad);
-> > +		ret = soc_camera_try_fmt(icd, &vf, tgt);
-> > +		if (!ret) {
-> > +			se_v4l2_to_mbus(icd, &vf, try_fmt);
-> > +			sd_fmt->format = *try_fmt;
-> > +		}
-> > +		return ret;
-> > +	}
-> > +
-> > +	ret = soc_camera_set_fmt(icd, &vf, tgt);
-> > +	if (!ret)
-> > +		se_v4l2_to_mbus(icd, &vf, &sd_fmt->format);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> > +static int bus_sd_pad_enum_mbus_code(struct v4l2_subdev *sd,
-> > +				     struct v4l2_subdev_fh *fh,
-> > +				     struct v4l2_subdev_mbus_code_enum *ce)
-> > +{
-> > +	struct soc_camera_device *icd = v4l2_get_subdevdata(sd);
-> > +
-> > +	if (ce->index >= icd->num_user_formats)
-> > +		return -EINVAL;
-> > +
-> > +	ce->code = icd->user_formats[ce->index].code;
-> > +	return 0;
-> > +}
-> > +
-> > +static const struct v4l2_subdev_pad_ops se_bus_sd_pad_ops = {
-> > +	.get_fmt	= bus_sd_pad_g_fmt,
-> > +	.set_fmt	= bus_sd_pad_s_fmt,
-> > +	.enum_mbus_code	= bus_sd_pad_enum_mbus_code,
-> > +};
-> > +
-> > +static const struct v4l2_subdev_ops se_bus_sd_ops = {
-> > +	.pad		= &se_bus_sd_pad_ops,
-> > +};
-> > +
-> > +static const struct media_entity_operations se_bus_me_ops = {
-> > +};
-> > +
-> > +static const struct media_entity_operations se_vdev_me_ops = {
-> > +};
-> 
-> NULL operations are allowed, you don't have to use an empty structure.
+So my question is. Is there something in the driver talking with the CAM 
+that degrades the stream?
 
-Ok
+It's almost like when the errors starts displaying it gets more worse by 
+the second.
 
-> > +
-> > +int soc_camera_mc_streamon(struct soc_camera_device *icd)
-> > +{
-> > +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> > +	struct v4l2_subdev *bus_sd = &ici->bus_sd;
-> > +	struct media_entity *bus_me = &bus_sd->entity;
-> > +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> > +	struct v4l2_mbus_framefmt mf;
-> > +	int ret = v4l2_subdev_call(sd, video, g_mbus_fmt, &mf);
-> > +	if (WARN_ON(ret < 0))
-> > +		return ret;
-> > +	if (icd->host_input_width != mf.width ||
-> > +	    icd->host_input_height != mf.height ||
-> > +	    icd->current_fmt->code != mf.code)
-> > +		return -EINVAL;
-> 
-> Shouldn't you also check that the source pad format matches the video node 
-> format ?
+Other "errors" I see with this CAM inserted are PMT/NIT/STD filter 
+timeouts when scanning with w_scan and filter timeouts(one or many pids) 
+with scan resulting in channels not being found. Other runs may find the 
+missing channels but then others are missing. Sometimes a run completes 
+without errors and all channels are found.
 
-I think, that's true by construction. It is already cheked in 
-soc_camera_set_fmt():
+If the CAM is not inserted then I do not see these errors.
+All tests done with the same non-encrypted channel. (encrypted channels 
+show the same problems. HD Channels degrades faster than SD.)
 
-	} else if (!icd->current_fmt ||
-		   icd->current_fmt->host_fmt->fourcc != pix->pixelformat) {
-		dev_err(icd->pdev,
-			"Host driver hasn't set up current format correctly!\n");
-		return -EINVAL;
+If someone with knowledge could help me it would be great. I sure do 
+want to get this working. It is working, sort of. I does decode so 
+something is getting through the CAM but not for long.
 
+I did try to search the "web" and mailing list and I did find people 
+with similar errors all the way back to 2006.
 
-> 
-> > +
-> > +	media_entity_pipeline_start(bus_me, &ici->pipe);
-> > +	return 0;
-> > +}
-> > +
-> > +void soc_camera_mc_streamoff(struct soc_camera_device *icd)
-> > +{
-> > +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> > +	struct v4l2_subdev *bus_sd = &ici->bus_sd;
-> > +	struct media_entity *bus_me = &bus_sd->entity;
-> > +	media_entity_pipeline_stop(bus_me);
-> > +}
-> > +
-> > +int soc_camera_mc_install(struct soc_camera_device *icd)
-> > +{
-> > +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> > +	struct v4l2_subdev *bus_sd = &ici->bus_sd;
-> > +	struct media_entity *bus_me = &bus_sd->entity;
-> > +	struct media_pad *bus_pads = ici->bus_pads;
-> > +	struct media_pad *vdev_pads = ici->vdev_pads;
-> > +	struct video_device *vdev = icd->vdev;
-> > +	struct media_entity *vdev_me = &vdev->entity;
-> > +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> > +	int ret;
-> > +
-> > +	if (!ici->v4l2_dev.mdev || soc_entity_native_mc(icd))
-> > +		return 0;
-> > +
-> > +	/* Configure the video bus subdevice, entity, and pads */
-> > +	v4l2_subdev_init(bus_sd, &se_bus_sd_ops);
-> > +	v4l2_set_subdevdata(bus_sd, icd);
-> > +	bus_sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> > +	snprintf(bus_sd->name, sizeof(bus_sd->name), "%s input", ici->drv_name);
-> > +
-> > +	bus_pads[SOC_HOST_BUS_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
-> > +	bus_pads[SOC_HOST_BUS_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
-> > +	bus_me->ops = &se_bus_me_ops;
-> > +
-> > +	ret = media_entity_init(bus_me, 2, bus_pads, 0);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	/* Configure the video-device entity */
-> > +	vdev_pads[SOC_HOST_VDEV_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
-> > +	vdev_me->ops = &se_vdev_me_ops;
-> > +
-> > +	ret = media_entity_init(vdev_me, 1, vdev_pads, 0);
-> > +	if (ret < 0)
-> > +		goto evmei;
-> > +
-> > +	/* Link the two entities */
-> > +	ret = media_entity_create_link(bus_me, SOC_HOST_BUS_PAD_SOURCE,
-> > +				vdev_me, SOC_HOST_VDEV_PAD_SINK,
-> > +				MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
-> > +	if (ret < 0)
-> > +		goto elink;
-> > +
-> > +	ret = v4l2_device_register_subdev(&ici->v4l2_dev, bus_sd);
-> > +	if (ret < 0)
-> > +		goto eregsd;
-> > +
-> > +	ret = v4l2_device_register_subdev_nodes(&ici->v4l2_dev);
-> > +	if (ret < 0)
-> > +		goto eregsdn;
-> > +
-> > +	/*
-> > +	 * Link the client: make it immutable too for now, since there is no
-> > +	 * meaningful mapping for the .link_setup() method to the soc-camera
-> > +	 * API
-> > +	 */
-> > +	ret = media_entity_create_link(&sd->entity, 0,
-> > +				bus_me, SOC_HOST_BUS_PAD_SINK,
-> > +				MEDIA_LNK_FL_IMMUTABLE | MEDIA_LNK_FL_ENABLED);
-> > +	if (ret < 0)
-> > +		goto eclink;
-> 
-> Qhat do you think about moving this above subdev registration ?
+The hardware I got is a mystique DVB-C Card but it seems to a KNC1 
+TV-Station MK3 clone.
+08:01.0 Multimedia controller [0480]: Philips Semiconductors SAA7146 
+[1131:7146] (rev 01)
+         Subsystem: KNC One Device [1894:0028]
+         Flags: bus master, medium devsel, latency 64, IRQ 16
+         Memory at fbeffc00 (32-bit, non-prefetchable) [size=512]
+         Kernel driver in use: budget_av
+         Kernel modules: budget-av
 
-I don't yet:-) But yes, perhaps, this can be done.
+The CAM is a SMIT CONAX.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Kernel Used: 2.6.38(2.6.38-11-generic. Ubuntu 11.04 SMP)
+
+Drivers tested: from latest media_build git
