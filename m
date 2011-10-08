@@ -1,77 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:41283 "EHLO
-	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754355Ab1JXVom convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Oct 2011 17:44:42 -0400
-From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
-To: "'Ralph Metzler'" <rjkm@metzlerbros.de>
-Cc: "'Linux Media Mailing List'" <linux-media@vger.kernel.org>
-References: <004c01cc7a03$064111c0$12c33540$@coexsi.fr>	<201110240906.24543@orion.escape-edv.de>	<004e01cc9247$0a8da4d0$1fa8ee70$@coexsi.fr> <20133.44781.388484.71473@morden.metzler>
-In-Reply-To: <20133.44781.388484.71473@morden.metzler>
-Subject: RE: [DVB] Digital Devices Cine CT V6 support
-Date: Mon, 24 Oct 2011 23:44:39 +0200
-Message-ID: <00a001cc9296$22c75420$6855fc60$@coexsi.fr>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:48741 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753790Ab1JHVhB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Oct 2011 17:37:01 -0400
+Date: Sun, 9 Oct 2011 00:36:57 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] subdevice PM: .s_power() deprecation?
+Message-ID: <20111008213657.GE8908@valkosipuli.localdomain>
+References: <Pine.LNX.4.64.1110031138370.14314@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Language: fr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1110031138370.14314@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Oct 03, 2011 at 12:57:10PM +0200, Guennadi Liakhovetski wrote:
+> Hi all
 
+Hi Guennadi,
 
-> -----Original Message-----
-> From: Ralph Metzler [mailto:rjkm@metzlerbros.de]
-> Sent: lundi 24 octobre 2011 20:31
-> To: S é bastien RAILLARD (COEXSI)
-> Cc: 'Linux Media Mailing List'
-> Subject: RE: [DVB] Digital Devices Cine CT V6 support
-> 
-> Sébastien RAILLARD (COEXSI) writes:
->  > I've seen a new parameter "ts_loop", can you explain how it's
-> working?
->  > Is-it for sending the stream from the demodulator directly to the CAM
-> > reader?
-> 
-> No, it is mainly for testing. It declares one TAB as loopback, which
-> means that the data output is directly connected to the input.
-> 
+Thanks for a thoughtful writing on subdev PM!
 
-Ok
+> (The original .s_power() author added to cc;-))
+> 
+> Here comes one more Request for Discussion from me.
+> 
+> Short: on what events, at which level and how shall subdevice PM be 
+> envoked?
+> 
+> Subdevices can have varying and arbitrarily complex Power Management 
+> methods. On-SoC subdevices would typically be powered on and off by 
+> writing to some system registers. External subdevices (sensors etc.) can 
+> be powered on or off by something as simple as a GPIO, or can use several 
+> power regulators, supplying power to different device circuits. This 
+> means, a part of this knowledge belongs directly to the driver, while 
+> another part of it comes from platform data. The driver itself knows, 
+> whether it can control device's power, using internal capabilities, or it 
+> has to request a certain number of regulators. In the latter case, 
+> perhaps, it would be sane to assume, that if a certain regulator is not 
+> available, then the respective voltage is supplied by the system 
+> statically.
+> 
+> When to invoke? Subdeices can be used in two cases: for configuration and 
+> for data processing (streaming). For configuration the driver can choose 
+> one of two approaches: (1) cache all configuration requests and only 
+> execute them on STREAMON. Advantages: (a) the device can be kept off all 
+> the time during configuration, (b) the order is unimportant: the driver 
+> only stores values and applies them in the "correct" order. Disadvantages: 
+> (a) if the result of any such operation cannot be fully predicted by the 
+> driver, it cannot be reported to the user immediately after the operation 
+> execution but only at the STREAMON time (does anyone know any such 
+> "volatile" operations?), (b) the order is lost (is this important?). (2) 
+> execute all operations immediately. Advantages and disadvantages: just 
+> invert those from (1) above.
+> 
+> So far individual drivers decide themselves which way to go. This way only 
+> drivers themselves know, when and what parts of the device they have to 
+> power on and off for configuration. The only thing the bridge driver can 
+> be sure about is, that all the involved subdevices in the pipeline have to 
+> be powered on during streaming. But even then - maybe the driver can and 
+> wants to power the i2c circuitry off for that time?
 
-> For redirecting a stream through a CI see the "redirect" attribute.
-> I don't know if my small redirect readme was included in the package I
-> sent to Oliver. So, I attached it below.
-> 
-> 
-> -Ralph
-> 
-> 
-> 
-> Redirection of TS streams through CI modules is now supported through
-> /sys/class/ddbridge/ddbridge0/redirect.
-> It only works with cards based on the ddbridge PCIe bridge, not with
-> nGene based cards.
-> 
-> It is set up in such a way that you can write "AB CD" to a "redirect"
-> attribute and data from input B of card A is then piped through port D
-> (meaning TAB (D+1) which uses output D and input 2*D for CI io) of card
-> C and then shows up in the demux device belonging to input B (input
-> (B&1) of TAB (B/2+1)) of card A.
-> 
+The bridge driver can't (nor should) know about the power management
+requirements of random subdevs. The name of the s_power op is rather
+poitless in its current state.
 
-Great feature, thanks!
+The power state of the subdev probably even never matters to the bridge ---
+or do we really have an example of that?
 
-> E.g.:
-> 
-> echo "00 01" > /sys/class/ddbridge/ddbridge0/redirect
-> 
-> will pipe input 0 of card 0 through CI at port 1 (TAB 2) of card 0.
-> 
-> Redirection should only be done right after loading the driver (or
-> booting if the driver is built-in) and before using the devices in any
-> way.
+In my opinion the bridge driver should instead tell the bridge drivers what
+they can expect to hear from the bridge --- for example that the bridge can
+issue set / get controls or fmt ops to the subdev. The subdev may or may not
+need to be powered for those: only the subdev driver knows.
 
+This is analogous to opening the subdev node from user space. Anything else
+except streaming is allowed. And streaming, which for sure requires powering
+on the subdev, is already nicely handled by the s_stream op.
 
+What do you think?
+
+In practice the name of s_power should change, as well as possible
+implementatio on subdev drivers.
+
+> All the above makes me think, that .s_power() methods are actually useless 
+> in the "operation context." The bridge has basically no way to know, when 
+> and which parts of the subdevice to power on or off. Subdevice 
+> configuration is anyway always performed, using the driver, and for 
+> streaming all participating subdevices just have to be informed about 
+> streaming begin and end.
+> 
+> The only pure PM activity, that subdevice drivers have to be informed 
+> about are suspends and resumes. Normal bus PM callbacks are not always 
+> usable in our case. E.g., you cannot use i2c PM, because i2c can well be 
+> resumed before the bridge and then camera sensors typically still cannot 
+> be accessed over i2c.
+
+Do you have a bridge that provides a clock to subdevs? The clock should be
+modelled in the clock framework --- yes, I guess there's still a way to go
+before that,s universally possible.
+
+> Therefore I propose to either deprecate (and later remove) .s_power() and 
+> add .suspend() and .resume() instead or repurpose .s_power() to be _only_ 
+> used for system-wide suspending and resuming. Even for runtime PM the 
+> subdevice driver has all the chances to decide itself when and how to save 
+> power, so, again, there is no need to be called from outside.
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
