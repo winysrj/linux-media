@@ -1,55 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:52242 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751914Ab1JNSiN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Oct 2011 14:38:13 -0400
-Received: by bkbzt19 with SMTP id zt19so312278bkb.19
-        for <linux-media@vger.kernel.org>; Fri, 14 Oct 2011 11:38:12 -0700 (PDT)
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:64747 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752400Ab1JHQMJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Oct 2011 12:12:09 -0400
+Received: by ywb5 with SMTP id 5so4408833ywb.19
+        for <linux-media@vger.kernel.org>; Sat, 08 Oct 2011 09:12:09 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4E9873E3.8040103@redhat.com>
-References: <CAGa-wNOL_1ua0DQFRPFuLtHO0zTFhE0DaM+b6kujMEEL4dQbKg@mail.gmail.com>
-	<CAGoCfizwYRpSsqobaHWJd5d0wq1N0KSXEQ1Un_ue01KuYGHaWA@mail.gmail.com>
-	<4E970CA7.8020807@iki.fi>
-	<CAGoCfiwSJ7EGXxAw7UgbFeECh+dg1EueXEC9iCHu7TaXia=-mQ@mail.gmail.com>
-	<4E970F7A.5010304@iki.fi>
-	<CAGoCfiyXiANjoB5bXgBpjwOAk8kpz8guxTGuGtVbtgc6+DNAag@mail.gmail.com>
-	<4E976EF6.1030101@southpole.se>
-	<CAGoCfixwp-iVFJysEG=UjN63-U_P4mdFWt+8hCwFW7fYeADvuw@mail.gmail.com>
-	<4E9836E5.6040601@redhat.com>
-	<CAGoCfizDdx=a=mR5TRXw_Dnj9cw2_1C9NuRH2LR2gXxEzyfW3w@mail.gmail.com>
-	<101260B451BFC64699575BAC372B3DEE0138889E@mx1.pctvsystems.com>
-	<CAGoCfiwPbGEqQgu-yjoFMz_7mk-u9gDEvwWSJ0uW1tCaGwzWgQ@mail.gmail.com>
-	<4E985FDF.6080203@redhat.com>
-	<CAGoCfiw6B1ZjmCRqurSfTmhPZ5W+GMy0bQfhbavahWSPLBhAdg@mail.gmail.com>
-	<4E9873E3.8040103@redhat.com>
-Date: Fri, 14 Oct 2011 14:38:12 -0400
-Message-ID: <CAGoCfizVnD8eNWgrqJCw=2Xqpi+AcA6b2Uq__-Jxx0EsUmpz1g@mail.gmail.com>
-Subject: Re: PCTV 520e on Linux
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: =?ISO-8859-1?Q?S=F6nke_Brandt?= <SBrandt@pctvsystems.com>,
-	Benjamin Larsson <benjamin@southpole.se>,
-	linux-media@vger.kernel.org, Eddi De Pieri <eddi@depieri.net>
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <201110081751.38953.laurent.pinchart@ideasonboard.com>
+References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
+ <CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
+ <CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com> <201110081751.38953.laurent.pinchart@ideasonboard.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Date: Sat, 8 Oct 2011 18:11:49 +0200
+Message-ID: <CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
+Subject: Re: omap3-isp status
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Enrico <ebutera@users.berlios.de>,
+	Deepthy Ravi <deepthy.ravi@ti.com>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 14, 2011 at 1:39 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> What are the USB ID's for the device? I may try to do a patch for it during this
-> weekend, if I found time to add support for a few other devices that Terratec
-> gently donated me.
+On Sat, Oct 8, 2011 at 5:51 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi,
+>
+> On Friday 07 October 2011 11:31:46 Javier Martinez Canillas wrote:
+>> On Fri, Oct 7, 2011 at 10:54 AM, Enrico wrote:
+>> > On Thu, Oct 6, 2011 at 6:05 PM, Javier Martinez Canillas wrote:
+>> >> On Thu, Oct 6, 2011 at 5:25 PM, Enrico wrote:
+>> >>> - i don't see Deepthy patches, it seems to be based on the
+>> >>> pre-Deepthy-patches driver and fixed (not that this is a bad thing!);
+>> >>> i say this because, like Gary, i'm interested in a possible forward
+>> >>> porting to a more recent kernel so i was searching for a starting
+>> >>> point
+>> >>
+>> >> I didn't know there was a more recent version of Deepthy patches,
+>> >> Since they are not yet in mainline we should decide if we work on top
+>> >> of that or on top of mainline. Deepthy patches are very good to
+>> >> separate bt656 and non-bt656 execution inside the ISP, also add a
+>> >> platform data variable to decide which mode has to be used.
+>> >>
+>> >> But reading the documentation and from my experimental validation I
+>> >> think that there are a few things that can be improved.
+>> >>
+>> >> First the assumption that we can use FLDSTAT to check if a frame is
+>> >> ODD or EVEN I find to not always be true. Also I don't know who sets
+>> >> this value since in the TRM always talks as it is only used with
+>> >> discrete syncs.
+>> >
+>> > Yes about FLDSTAT i noticed the same thing. And that's why we need
+>> > someone that knows the ISP better to help us....
+>>
+>> Great, good to know that I'm not the only one that noticed this behavior.
+>>
+>> >> Also, I don't think that we should change the ISP CCDC configuration
+>> >> inside the VD0 interrupt handler. Since the shadowed registers only
+>> >> can be accessed during a frame processing, or more formally the new
+>> >> values are taken at the beginning of a frame execution.
+>> >>
+>> >> By the time we change for example the output address memory for the
+>> >> next buffer in the VD0 handler, the next frame is already being
+>> >> processed so that value won't be used for the CCDC until that frame
+>> >> finish. So It is not behaving as the code expect, since for 3 frames
+>> >> the CCDC output memory address will be the same.
+>> >>
+>> >> That is why I move most of the logic to the VD1 interrupt since there
+>> >> the current frame didn't finish yet and we can configure the CCDC for
+>> >> the next frame.
+>> >>
+>> >> But to do that the buffer for the next frame and the releasing of the
+>> >> last buffer can't happen simultaneously, that is why I decouple these
+>> >> two actions.
+>> >>
+>> >> Again, this is my own observations and what I understood from the TRM
+>> >> and I could be wrong.
+>> >
+>> > I can't comment on that, i hope Laurent or Deepthy will join the
+>> > discussion...
+>>
+>> I second you on that, we need someone who knows the ISP better than we
+>> do. I have to fix this anyway, so it is better if I can do it the
+>> right way and the code gos upstream, so we don't have to internally
+>> maintain a separate patch-set and forward port for each kernel release
+>> we do.
+>
+> Two quick comments, as I haven't had time to look into this recently.
+>
+> 1. I've updated the omap3isp-omap3isp-yuv branch with a new CCDC YUV support
+> patch which should (hopefully) configure the bridge automatically and report
+> correct formats at the CCDC output. The patch hasn't been tested as I still
+> don't have access to YUV hardware.
+>
 
-510e 2304:0242
-520e 2013:0251, 2013:0252
+Hello Laurent, I'm glad to see that you are joining the thread :)
 
-Of course, you shouldn't just blindly check anything in.  That said,
-seems there are people on this list who have at least some of these
-variants.
+> 2. Could you guys please rebase all your patches on top of the omap3isp-
+> omap3isp-yuv branch ? I will then review them.
+>
 
-Devin
+Yes, I'll cook a patch today on top on your omap3isp-yuv and send for
+review. I won't be able to test neither since I don't have proper
+hardware at home. But at least you will get an idea of the approach we
+are using to solve this and can point possible flaws.
+
+>> >>> - i don't think that adding the "priv" field in v4l2-mediabus.h will
+>> >>> be accepted, and since it is related to the default cropping you added
+>> >>> i think it can be dropped and just let the user choose the appropriate
+>> >>> cropping
+>> >>
+>> >> Yes, probably is too much of a hack, but I didn't know of another way
+>> >> that the subdev could report to the ISP of the standard and since
+>> >> v4l2_pix_format has also a priv field, I think it could be at least a
+>> >> temporary solution (remember that we want this to work first and then
+>> >> we plan to do it right for upstream submission).
+>> >
+>> > ...and my hope continues here.
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+
+Thanks a lot for your time.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Javier Martínez Canillas
+(+34) 682 39 81 69
+Barcelona, Spain
