@@ -1,114 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:57775 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753689Ab1JAPzn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Oct 2011 11:55:43 -0400
-Received: by gyg10 with SMTP id 10so2310652gyg.19
-        for <linux-media@vger.kernel.org>; Sat, 01 Oct 2011 08:55:43 -0700 (PDT)
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:64847 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752443Ab1JHNNw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Oct 2011 09:13:52 -0400
+Received: by wyg34 with SMTP id 34so4668533wyg.19
+        for <linux-media@vger.kernel.org>; Sat, 08 Oct 2011 06:13:51 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4E8716D1.9010104@mlbassoc.com>
-References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com> <4E8716D1.9010104@mlbassoc.com>
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Date: Sat, 1 Oct 2011 17:55:28 +0200
-Message-ID: <CAAwP0s07U3wHR0LoSmvQzXG3KxUoARgjH7G2gxi911RBVe9HRw@mail.gmail.com>
-Subject: Re: [PATCH 0/3] [media] tvp5150: Migrate to media-controller
- framework and add video format detection
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <CAATJ+fvQA4zAcGq+D0+k+OHb8Xsrda5=DATWXbzEO5z=0rWZfw@mail.gmail.com>
+References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
+	<CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
+	<CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
+	<4e8b8099.95d1e30a.4bee.0501@mx.google.com>
+	<CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
+	<CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
+	<CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
+	<4e8f6b0b.c90fe30a.4a1d.26bb@mx.google.com>
+	<CAATJ+fvQA4zAcGq+D0+k+OHb8Xsrda5=DATWXbzEO5z=0rWZfw@mail.gmail.com>
+Date: Sat, 8 Oct 2011 15:13:51 +0200
+Message-ID: <CAL9G6WWMw3npqjt0WHGhyjaW5Mu=1jA5Y_QduSr3KudZTKLgBw@mail.gmail.com>
+Subject: Re: [PATCH] af9013 Extended monitoring in set_frontend.
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: Jason Hecker <jwhecker@gmail.com>
+Cc: Malcolm Priestley <tvboxspy@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Oct 1, 2011 at 3:34 PM, Gary Thomas <gary@mlbassoc.com> wrote:
-> On 2011-09-30 18:33, Javier Martinez Canillas wrote:
->>
->> Hello,
->>
->> The tvp5150 video decoder is usually used on a video pipeline with several
->> video processing integrated circuits. So the driver has to be migrated to
->> the new media device API to reflect this at the software level.
->>
->> Also the tvp5150 is able to detect what is the video standard at which
->> the device is currently operating, so it makes sense to add video format
->> detection in the driver as well as.
->>
->> This patch-set migrates the tvp5150 driver to the MCF and adds video
->> format detection.
->>
+2011/10/8 Jason Hecker <jwhecker@gmail.com>:
+>> Try this patch, it should stop start up corruption on the same frontend.
 >
-> What is this patchset relative to?
-
-Hello Gary,
-
-Thank you, I'm a newbie with v4l2 in general and media controller
-framework in particular so your comments and suggestions are highly
-appreciated.
-
-I'm working to have proper support for the tvp5151 video capture
-connected through its parallel interface with our custom TI DM3730 ARM
-OMAP board. I think it's better to show the code as early as possible
-so I can have feedback from the community an see if I'm in the right
-path or completely lost, that is this patch-set about :)
-
-We hack a few bits of the ISP CCDC driver to support ITU-R BT656
-interlaced data with embedded syncs video format and ported the
-tvp5150 driver to the MCF so it can be detected as a sub-device and be
-part of the OMAP ISP image processing pipeline (as a source pad).
-
-We are configuring the graph like this:
-
-./media-ctl -r -l '"tvp5150 2-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
-ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-
-I thought (probably wrong for your comments) that since the tvp5150
-can sense which signal shape is being transfer to it (NTSC/PAL/etc) we
-can configure automatically the tvp5150 source pad frame format to
-capture all the lines (not only the visible ones). And if user space
-wants a different frame format we can process the image latter.
-
-So we only have to configure the ISP CCDC input pad format to be
-coherent with the tvp5150 output pad.
-
-./media-ctl --set-format '"OMAP3 ISP CCDC":0 [UYVY 720x625]'
-
-> Does it still handle the case of overscan? e.g. I typically capture from
-> an NTSC source using this device at 720x524.
-
-For the case of the overscan of if you want to crop the image I
-thought to use either the CCDC (to copy less lines on the memory
-output buffer) or the ISP resizer. But in that case one has to
-manually configure a different pipeline including the resizer and set
-the frame formats for each input and output pad (probably I'm wrong
-with this approach too).
-
-> Even if it does detect the signal shape (NTSC, PAL), doesn't one still need
-> to [externally] configure the pads for this shape?
+> Thanks. †I'll try it today.
+>
+> Have you been able to reproduce any of the corruption issues I and
+> others are having?
+>
+> I noticed last night some recordings on the same card had different
+> levels of corruption depending on the order of tuning
+>
+> Tuner A then tuner B : Tuner A was heavily corrupted. †Tuner B was a fine.
+> Tuner B then tuner A: Tuner A had a small corruption every few seconds
+> and the show was watchable, Tuner B was fine.
 >
 
-Yes, that is why I wanted to do the auto-detection for the tvp5151, so
-we only have to manually configure the ISP components (or any other
-hardware video processing pipeline entities, sorry for my
-OMAP-specific comments).
+Thanks again, I try the patch and it works well last nigh. This
+morning one tuner is getting pixeled images and the other can not
+LOCK.
 
-> Have you given any thought as to how the input (composite-A, composite-B or
-> S-Video)
-> could be configured using the MCF?
->
+This is the kernel messages:
 
-I didn't know that the physical connection affected the video output
-format, I thought that it was only a physical medium to carry the same
-information, sorry if my comments are silly but I'm really newbie with
-video in general.
+# tail /var/log/messages
+Oct  8 14:16:06 htpc kernel: [45025.328902] mxl5005s I2C write failed
+Oct  8 14:16:06 htpc kernel: [45025.333147] mxl5005s I2C write failed
+Oct  8 14:16:06 htpc kernel: [45025.333637] mxl5005s I2C write failed
+Oct  8 14:16:06 htpc kernel: [45025.490524] mxl5005s I2C write failed
+Oct  8 14:16:06 htpc kernel: [45025.491014] mxl5005s I2C write failed
+Oct  8 14:16:08 htpc kernel: [45027.642858] mxl5005s I2C write failed
+Oct  8 14:16:08 htpc kernel: [45027.647477] mxl5005s I2C write failed
+Oct  8 14:16:08 htpc kernel: [45027.647970] mxl5005s I2C write failed
+Oct  8 14:16:09 htpc kernel: [45027.806477] mxl5005s I2C write failed
+Oct  8 14:16:09 htpc kernel: [45027.806969] mxl5005s I2C write failed
 
-> Note: CC list trimmed to only the linux-media list.
->
+I try to increase the signal timeout from 1000 to 2000 ms and the
+tuning timeout from 3000 to 6000 ms on mythbackend.
 
-Thanks a lot, I just followed get_maintainer script suggestions.
+Which will be the best value for the Kworld 399U?
 
-Best regards,
+Thank for your great work on this device.
+
+Best regards!
 
 -- 
-Javier Mart√≠nez Canillas
-(+34) 682 39 81 69
-Barcelona, Spain
+Josu Lazkano
