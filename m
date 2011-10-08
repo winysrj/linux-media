@@ -1,45 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:34904 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759792Ab1JGKge convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2011 06:36:34 -0400
-Received: by bkbzt4 with SMTP id zt4so4699730bkb.19
-        for <linux-media@vger.kernel.org>; Fri, 07 Oct 2011 03:36:33 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4E8ED2CF.70302@mlbassoc.com>
-References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
-	<CAAwP0s0Z+EaRfY_9c0QLm0ZpyfG5Dy1qb9pFq=PRxzOOTwKTJw@mail.gmail.com>
-	<CAAwP0s1tK5XjmJmtvRFJ2+ADvoMP1ihf3z0UaJAfXOoJ=UrVqg@mail.gmail.com>
-	<4E8DB490.7000403@mlbassoc.com>
-	<CAAwP0s0ddOYAnC7rknLVzcN10iKAwnuOawznpKy9z6B2yWRdCg@mail.gmail.com>
-	<CAAwP0s0tOHmdG6eWuY_QDZ6ReVFXg9S6-MSbX7s4GNEX60U2mQ@mail.gmail.com>
-	<4E8DCD79.3060507@mlbassoc.com>
-	<CAAwP0s15c_AgwisQvNFx-_aR44ijEz+vcB_Su3Rmiob3pPo4sw@mail.gmail.com>
-	<4E8EC793.9010001@mlbassoc.com>
-	<CAAwP0s0-kDjfNGPKRzGVEPuwbbVhGtPpPhK7qPitU-jWyfp1kA@mail.gmail.com>
-	<4E8ED2CF.70302@mlbassoc.com>
-Date: Fri, 7 Oct 2011 12:36:33 +0200
-Message-ID: <CA+2YH7sZHop1es0FE5SZZbx=1e61+QSVS_FAdteFOepN_YGOEg@mail.gmail.com>
-Subject: Re: omap3-isp status
-From: Enrico <ebutera@users.berlios.de>
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>,
-	Adam Pledger <a.pledger@thermoteknix.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:57422 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751531Ab1JHNKc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Oct 2011 09:10:32 -0400
+Received: by wwf22 with SMTP id 22so7150527wwf.1
+        for <linux-media@vger.kernel.org>; Sat, 08 Oct 2011 06:10:31 -0700 (PDT)
+Message-ID: <4e904bc5.83c9e30a.6332.ffff8e1c@mx.google.com>
+Subject: Re: [PATCH] af9013 Extended monitoring in set_frontend.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Jason Hecker <jwhecker@gmail.com>
+Cc: Josu Lazkano <josu.lazkano@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Date: Sat, 08 Oct 2011 14:10:22 +0100
+In-Reply-To: <CAATJ+fvQA4zAcGq+D0+k+OHb8Xsrda5=DATWXbzEO5z=0rWZfw@mail.gmail.com>
+References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
+	 <CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
+	 <CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
+	 <4e8b8099.95d1e30a.4bee.0501@mx.google.com>
+	 <CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
+	 <CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
+	 <CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
+	 <4e8f6b0b.c90fe30a.4a1d.26bb@mx.google.com>
+	 <CAATJ+fvQA4zAcGq+D0+k+OHb8Xsrda5=DATWXbzEO5z=0rWZfw@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 7, 2011 at 12:22 PM, Gary Thomas <gary@mlbassoc.com> wrote:
-> Do we know for sure that these problems are happening in the ISP itself
-> or could they possibly be in the TVP5150?  Does anyone have experience
-> with a different analogue encoder?
+On Sat, 2011-10-08 at 09:46 +1100, Jason Hecker wrote:
+> > Try this patch, it should stop start up corruption on the same frontend.
+> 
+> Thanks.  I'll try it today.
+> 
+> Have you been able to reproduce any of the corruption issues I and
+> others are having?
+Yes , I left it recording various programmes overnight, but the symptoms
+come and go.
 
-Never tried another encoder, but at this point it's something to look
-at. I don't think some TI people will say "yes the encoder has
-ghosting artifacts".
+> 
+> I noticed last night some recordings on the same card had different
+> levels of corruption depending on the order of tuning
+> 
+> Tuner A then tuner B : Tuner A was heavily corrupted.  Tuner B was a fine.
+> Tuner B then tuner A: Tuner A had a small corruption every few seconds
+> and the show was watchable, Tuner B was fine.
 
-Enrico
+It seems like a lagging effect, as if the devices firmware is slowing
+down.
+
+
