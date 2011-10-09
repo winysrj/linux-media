@@ -1,45 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:55889 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755877Ab1JXU4E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Oct 2011 16:56:04 -0400
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LTL0098W8TDB9@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 24 Oct 2011 21:56:01 +0100 (BST)
-Received: from [127.0.0.1] ([106.10.22.2])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LTL00FD78T7DD@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 24 Oct 2011 21:56:01 +0100 (BST)
-Date: Mon, 24 Oct 2011 22:55:56 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: Reqbufs(0) need to release queued_list
-In-reply-to: <CABbt3s68q_jKf9bHPT8kuaB6donrAzmucJJseWNiX88qud273g@mail.gmail.com>
-To: Angela Wan <angela.j.wan@gmail.com>
-Cc: pawel@osciak.com, linux-media@vger.kernel.org, leiwen@marvell.com,
-	ytang5@marvell.com, qingx@marvell.com, jwan@marvell.com
-Message-id: <4EA5D0DC.6000209@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <CABbt3s68q_jKf9bHPT8kuaB6donrAzmucJJseWNiX88qud273g@mail.gmail.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:39585 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750922Ab1JIN05 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Oct 2011 09:26:57 -0400
+Received: by mail-wy0-f174.google.com with SMTP id 34so5137571wyg.19
+        for <linux-media@vger.kernel.org>; Sun, 09 Oct 2011 06:26:56 -0700 (PDT)
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Enrico <ebutera@users.berlios.de>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: [PATCH v2 1/3] omap3isp: ccdc: Add interlaced field mode to platform data
+Date: Sun,  9 Oct 2011 15:26:41 +0200
+Message-Id: <1318166803-7392-2-git-send-email-martinez.javier@gmail.com>
+In-Reply-To: <1318166803-7392-1-git-send-email-martinez.javier@gmail.com>
+References: <1318166803-7392-1-git-send-email-martinez.javier@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+The fldmode field from the CCDC_SYN_MODE register configure the ISP CCDC
+between progresive and interlaced mode.
 
-On 2011-10-24 05:25, Angela Wan wrote:
+Adding this field to the platform data, allows boards to configure accordingly.
 
->     As I have used videobuf2+soc_camera architecture on my camera
-> driver. I find a problem when I use Reqbuf(0), which only release
-> buffer, but not clear queued_list.
+Signed-off-by: Javier Martinez Canillas <martinez.javier@gmail.com>
+---
+ include/media/omap3isp.h |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-Thanks for pointing this bug. I will post a fix ASAP.
-
-Best regards
+diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
+index 3b2d2b7..0f215de 100644
+--- a/include/media/omap3isp.h
++++ b/include/media/omap3isp.h
+@@ -61,6 +61,8 @@ enum {
+  *		0 - Normal, 1 - One's complement
+  * @bt656: ITU-R BT656 embedded synchronization
+  *		0 - HS/VS sync, 1 - BT656 sync
++ * @fldmode: Field mode
++ *             0 - progressive, 1 - Interlaced
+  */
+ struct isp_parallel_platform_data {
+ 	unsigned int data_lane_shift:2;
+@@ -69,6 +71,7 @@ struct isp_parallel_platform_data {
+ 	unsigned int vs_pol:1;
+ 	unsigned int data_pol:1;
+ 	unsigned int bt656:1;
++	unsigned int fldmode:1;
+ };
+ 
+ enum {
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
+1.7.4.1
 
