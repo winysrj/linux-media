@@ -1,51 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpo09.poczta.onet.pl ([213.180.142.140]:32795 "EHLO
-	smtpo09.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752323Ab1J3VDz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Oct 2011 17:03:55 -0400
-Message-ID: <4EADBBB7.7070802@poczta.onet.pl>
-Date: Sun, 30 Oct 2011 22:03:51 +0100
-From: Piotr Chmura <chmooreck@poczta.onet.pl>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:61023 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750853Ab1JIPsW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Oct 2011 11:48:22 -0400
+Received: by ggnv2 with SMTP id v2so3879793ggn.19
+        for <linux-media@vger.kernel.org>; Sun, 09 Oct 2011 08:48:21 -0700 (PDT)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Greg KH <gregkh@suse.de>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org,
-	Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [RESEND PATCH 1/14] staging/media/as102: initial import from
- Abilis
-References: <4E7F1FB5.5030803@gmail.com> <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com> <4E7FF0A0.7060004@gmail.com> <CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com> <20110927094409.7a5fcd5a@stein> <20110927174307.GD24197@suse.de> <20110927213300.6893677a@stein> <4E999733.2010802@poczta.onet.pl> <4E99F2FC.5030200@poczta.onet.pl> <20111016105731.09d66f03@stein> <CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com> <4E9ADFAE.8050208@redhat.com> <20111018094647.d4982eb2.chmooreck@poczta.onet.pl> <20111018111134.8482d1f8.chmooreck@poczta.onet.pl> <20111018214634.544344cc@darkstar>
-In-Reply-To: <20111018214634.544344cc@darkstar>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CA+2YH7tF10xeEW+M2QzdPyjN9F+h8PY+JCha6KY8+ocovobjhg@mail.gmail.com>
+References: <1318127853-1879-1-git-send-email-martinez.javier@gmail.com>
+ <1318127853-1879-3-git-send-email-martinez.javier@gmail.com>
+ <201110091202.16086.laurent.pinchart@ideasonboard.com> <CA+2YH7tF10xeEW+M2QzdPyjN9F+h8PY+JCha6KY8+ocovobjhg@mail.gmail.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Date: Sun, 9 Oct 2011 17:48:01 +0200
+Message-ID: <CAAwP0s2Ze4J=4w2oimqNOahPE5yCYw6RvLWD+xkfL7d1J_T7vw@mail.gmail.com>
+Subject: Re: [PATCH 2/2] omap3isp: ccdc: Add support to ITU-R BT.656 video
+ data format
+To: Enrico <ebutera@users.berlios.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-W dniu 18.10.2011 21:46, Piotr Chmura pisze:
-> Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+On Sun, Oct 9, 2011 at 2:58 PM, Enrico <ebutera@users.berlios.de> wrote:
+> On Sun, Oct 9, 2011 at 12:02 PM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>> Hi Javier,
+>>
+>> Thanks for the patch.
 >
-> Changes made by me:
-> 1. Driver moved from media/dvb to staging/media
-> 2. Removed Makefile/Kconfig - it doesn't compile in current tree
-(...)
-> +
-> +/*
-> + * Note:
-> + * - in AS102 SNR=MER
-> + *   - the SNR will be returned in linear terms, i.e. not in dB
-> + *   - the accuracy equals Â±2dB for a SNR range from 4dB to 30dB
-> + *   - the accuracy is>2dB for SNR values outside this range
-> + */
+> Laurent, apart from the specific comments on Javier code, did you have
+> a look at Deepthy patches too?
+>
+> I say this because asking Javier for fixes means (to me) that you are
+> going to merge his patches (if testing will confirm it works of
+> course). Am i wrong?
+>
+> Btw i'm trying to get these patches on 3.1.0rc9 (from igep repository,
+> that should be just like mainline 3.1.0rc9 with some bsp patches), i
+> hope i will report good news.
+>
+> Enrico
+>
 
-I found another issue here.
-In this comment "±" is from upper ASCII (0xF1). Should I change it into 
-sth. like "+/-" in this patch (1/14) or leave it and just resend without 
-"Â" (wasn't there in original patch, don't know where it came from) ?
+I just created a repository on my personal github account to keep the
+patches [1] and make it more easily accessible to people that want to
+try.
+These already have the fix to the fact that ccdc_input_is_fldmode()
+was returning pdata->bt655 instead of pdata->fldmode.
 
-Peter
+I will try to test the patches tomorrow when I have access to the
+hardware but I can't promise because I have lots of other tasks to do.
 
-P.S. Thanks to Sylwester Nawrocki for pointing me out, that there is 
-something wrong with patch 6/14, which was caused by this comment in 1/14.
+[1]: https://github.com/martinezjavier/omap3isp/tree/master/omap3isp-yuv-patches
+
+Best regards,
+
+-- 
+Javier Martínez Canillas
+(+34) 682 39 81 69
+Barcelona, Spain
