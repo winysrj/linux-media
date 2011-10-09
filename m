@@ -1,51 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:61072 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753650Ab1JGPfQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Oct 2011 11:35:16 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [media-ctl PATCH 5/7] Add link to media_device from the media_entity
-Date: Fri,  7 Oct 2011 18:38:06 +0300
-Message-Id: <1318001888-18689-5-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20111007153443.GC8908@valkosipuli.localdomain>
-References: <20111007153443.GC8908@valkosipuli.localdomain>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:57608 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751512Ab1JIChp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Oct 2011 22:37:45 -0400
+Received: by wyg34 with SMTP id 34so4947103wyg.19
+        for <linux-media@vger.kernel.org>; Sat, 08 Oct 2011 19:37:44 -0700 (PDT)
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Enrico <ebutera@users.berlios.de>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>, linux-media@vger.kernel.org
+Subject: [PATCH 0/2] Add support to ITU-R BT.656 video data format
+Date: Sun,  9 Oct 2011 04:37:31 +0200
+Message-Id: <1318127853-1879-1-git-send-email-martinez.javier@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This makes it possible to obtain the media device an entity belongs to.
+This patch-set aims to add support to the ISP CCDC driver to process interlaced
+video data in ITU-R BT.656 format.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- src/mediactl.c |    1 +
- src/mediactl.h |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+The patch-set contains the following patches:
 
-diff --git a/src/mediactl.c b/src/mediactl.c
-index a03c19a..8cc338d 100644
---- a/src/mediactl.c
-+++ b/src/mediactl.c
-@@ -372,6 +372,7 @@ static int media_enum_entities(struct media_device *media, int verbose)
- 		memset(entity, 0, sizeof(*entity));
- 		entity->fd = -1;
- 		entity->info.id = id | MEDIA_ENT_ID_FLAG_NEXT;
-+		entity->media = media;
- 
- 		ret = ioctl(media->fd, MEDIA_IOC_ENUM_ENTITIES, &entity->info);
- 		if (ret < 0) {
-diff --git a/src/mediactl.h b/src/mediactl.h
-index 9ebad9f..98b47fd 100644
---- a/src/mediactl.h
-+++ b/src/mediactl.h
-@@ -38,6 +38,7 @@ struct media_pad {
- };
- 
- struct media_entity {
-+	struct media_device *media;
- 	struct media_entity_desc info;
- 	struct media_pad *pads;
- 	struct media_link *links;
--- 
-1.7.2.5
+[PATCH 1/2] omap3isp: video: Decouple buffer obtaining and set ISP entities format
+[PATCH 2/2] omap3isp: ccdc: Add support to ITU-R BT.656 video data format
 
+The first patch decouples next frame buffer obtaining from the last frame buffer
+releasing. This change is needed by the second patch that moves most of the CCDC
+buffer management logic to the VD1 interrupt handler.
+
+This patch-set is a proof-of-concept and was only compile tested since I
+don't have the hardware to test right now. It is a forward porting, on top
+of Laurent's omap3isp-omap3isp-yuv tree, of the changes we made to the ISP
+driver to get interlaced video working.
+
+Also, the patch will brake other configurations since the resizer and previewer
+also make use of omap3isp_video_buffer() function that now has a different semantic.
+
+I'm posting even when the patch-set is not in a merge-able state so you can review
+what we were doing and make comments.
+
+These are not all our changes since we also modified the ISP to forward the
+[G | S]_FMT and [G | S]_STD V4L2 ioctl commands to the TVP5151 and to only
+copy the active lines, but those changes are not relevant with the ghosting
+effect. With these changes we could get the 25 fps but with some sort of
+artifacts on the images.
+
+I hope that together we can find a solution to this issue.
+
+Thanks a lot.
