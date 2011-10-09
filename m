@@ -1,78 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11857 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935288Ab1JFL5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Oct 2011 07:57:12 -0400
-Message-ID: <4E8D9796.6090809@redhat.com>
-Date: Thu, 06 Oct 2011 08:57:10 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:51269 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751996Ab1JIR4m convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Oct 2011 13:56:42 -0400
+Received: by ywb5 with SMTP id 5so4793814ywb.19
+        for <linux-media@vger.kernel.org>; Sun, 09 Oct 2011 10:56:42 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [RFC PATCH] media_build: two fixes + one unresolved issue
-References: <201110051123.39783.hverkuil@xs4all.nl> <201110061043.24652.hverkuil@xs4all.nl> <4E8D87F6.10502@redhat.com> <201110061303.45629.hverkuil@xs4all.nl>
-In-Reply-To: <201110061303.45629.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <201110091912.47482.laurent.pinchart@ideasonboard.com>
+References: <1318127853-1879-1-git-send-email-martinez.javier@gmail.com> <201110091912.47482.laurent.pinchart@ideasonboard.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Date: Sun, 9 Oct 2011 19:56:22 +0200
+Message-ID: <CAAwP0s0uqe0Hvcoes3uCKQREz46fDUD0JkNMmAv-fuzbXSp=Kg@mail.gmail.com>
+Subject: Re: [PATCH 0/2] Add support to ITU-R BT.656 video data format
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Enrico <ebutera@users.berlios.de>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> The idea was good, but the patch didn't work ;)
+On Sun, Oct 9, 2011 at 7:12 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Javier,
+>
+> Thanks for the patches.
+>
+> On Sunday 09 October 2011 04:37:31 Javier Martinez Canillas wrote:
+>> This patch-set aims to add support to the ISP CCDC driver to process
+>> interlaced video data in ITU-R BT.656 format.
 >>
->> Fixed it. It is now properly recognizing the version 2.40 as 3.0.0 on both
->> scripts. See enclosed. I didn't apply it yet.
->
-> Yeah, it's 2.6.40 to 3.0 instead of 2.40 to 3.0. It's amazing how quickly you
-> forget :-)
-
-Yes :)
->
->> Btw, I just applied another fix upstream. The most noticed effect is that
->> calling make -C linux apply_patches will now show:
->> 	Patches for 2.6.40.4-5.fc15.x86_64 already applied.
->> instead of:
->> 	Patches for  already applied.
->
-> Nice!
->
->> -
->> Fix Name convention for kernels 2.6.40 and upper
+>> The patch-set contains the following patches:
 >>
->> Based on a patch from Hans Verkuil<hverkuil@xs4all.nl>
+>> [PATCH 1/2] omap3isp: video: Decouple buffer obtaining and set ISP entities
+>> format [PATCH 2/2] omap3isp: ccdc: Add support to ITU-R BT.656 video data
+>> format
 >>
->> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+>> The first patch decouples next frame buffer obtaining from the last frame
+>> buffer releasing. This change is needed by the second patch that moves
+>> most of the CCDC buffer management logic to the VD1 interrupt handler.
 >>
->> diff --git a/linux/patches_for_kernel.pl b/linux/patches_for_kernel.pl
->> index 33348d9..2669e6c 100755
->> --- a/linux/patches_for_kernel.pl
->> +++ b/linux/patches_for_kernel.pl
->> @@ -13,11 +13,18 @@ my $file = "../backports/backports.txt";
->>    open IN, $file or die "can't find $file\n";
+>> This patch-set is a proof-of-concept and was only compile tested since I
+>> don't have the hardware to test right now. It is a forward porting, on top
+>> of Laurent's omap3isp-omap3isp-yuv tree, of the changes we made to the ISP
+>> driver to get interlaced video working.
 >>
->>    sub kernel_version($) {
->> -	my $sublevel;
->> +	my ($version, $patchlevel, $sublevel) = $_[0] =~
->> m/^(\d+)\.(\d+)\.?(\d*)/;
->>
->> -	$_[0] =~ m/^(\d+)\.(\d+)\.?(\d*)/;
->> -	$sublevel = $3 == "" ? 0 : $3;
->> -	return ($1*65536 + $2*256 + $sublevel);
->> +	# fix kernel version for distros that 'translated' 3.0 to 2.40
+>> Also, the patch will brake other configurations since the resizer and
+>> previewer also make use of omap3isp_video_buffer() function that now has a
+>> different semantic.
 >
-> This comment is wrong, it should be 2.6.40.
+> That's an issue you need to address :-)
 >
->> +	$version += 0;
->> +	$patchlevel += 0;
+
+Hi Laurent,
+
+Yes, I know :-)
+
+The first version of the patch-set was only mean so you can review it
+but then I understood that your idea is to actually merge some code I
+send a few ours ago a v2 of the patch-set [1].
+
+This v2 is a simpler code that doesn't move any of the logic to the
+VD1 interrupt handler so it won't brake others components (resizer,
+previewer, etc). So first we can focus to have a working version of
+the interlaced video data support in the driver and then try to fix
+the artifact effect issue.
+
+It is based on an early version of our patch and also I've address all
+the issues you called out on the second patch. The fact that the code
+to address interlaced video is not bt656 but fldmode dependent.
+
+Also I split the patches in atomic operations so it can be applied
+incrementally without breaking the driver.
+
+Please let me know if you got the v2 patches or I can resend them if
+it is easier for you.
+
+[1]: http://www.spinics.net/lists/linux-media/msg38973.html
+
+>> I'm posting even when the patch-set is not in a merge-able state so you can
+>> review what we were doing and make comments.
 >
-> These two lines seems to be leftovers from debugging.
+> You should split your patches differently. Even if we ignore the above issue,
+> your first patch will break the CCDC. In order to ease bissection patches
+> should be self-contained and not introduce regressions if possible.
+>
+> Please see my comments to the second patch.
+>
+>> These are not all our changes since we also modified the ISP to forward the
+>> [G | S]_FMT and [G | S]_STD V4L2 ioctl commands to the TVP5151 and to only
+>> copy the active lines, but those changes are not relevant with the ghosting
+>> effect. With these changes we could get the 25 fps but with some sort of
+>> artifacts on the images.
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
 
-Yes. Ok, fixed on a separate patch.
+Best regards,
 
-> I assume you will commit this?
-
-I can do it.
-
-Ok, done!
-
-Thanks!
-Mauro
+-- 
+Javier Martínez Canillas
+(+34) 682 39 81 69
+Barcelona, Spain
