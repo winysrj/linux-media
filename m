@@ -1,345 +1,399 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:60294 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751879Ab1JQPBz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Oct 2011 11:01:55 -0400
-Date: Mon, 17 Oct 2011 17:01:50 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Josh Wu <josh.wu@atmel.com>
-cc: linux-media@vger.kernel.org, plagnioj@jcrosoft.com,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	nicolas.ferre@atmel.com, s.nawrocki@samsung.com
-Subject: Re: [PATCH v4 3/3] at91: add Atmel ISI and ov2640 support on
- sam9m10/sam9g45 board
-In-Reply-To: <1318331020-22031-4-git-send-email-josh.wu@atmel.com>
-Message-ID: <Pine.LNX.4.64.1110171635310.18438@axis700.grange>
-References: <1318331020-22031-1-git-send-email-josh.wu@atmel.com>
- <1318331020-22031-4-git-send-email-josh.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:57608 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751520Ab1JICht (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Oct 2011 22:37:49 -0400
+Received: by mail-wy0-f174.google.com with SMTP id 34so4947103wyg.19
+        for <linux-media@vger.kernel.org>; Sat, 08 Oct 2011 19:37:48 -0700 (PDT)
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Enrico <ebutera@users.berlios.de>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: [PATCH 2/2] omap3isp: ccdc: Add support to ITU-R BT.656 video data format
+Date: Sun,  9 Oct 2011 04:37:33 +0200
+Message-Id: <1318127853-1879-3-git-send-email-martinez.javier@gmail.com>
+In-Reply-To: <1318127853-1879-1-git-send-email-martinez.javier@gmail.com>
+References: <1318127853-1879-1-git-send-email-martinez.javier@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 11 Oct 2011, Josh Wu wrote:
+The ITU-R BT.656 standard data format provides interlaced video data.
 
-> This patch add:
-> - ov2640 sensor in sam9m10/sam9g45 board.
-> - support to use PCK as ISI_MCK. PCK's parent is managed in SoC level, e.g. at91sam9g45_devices.c
-> 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
->  arch/arm/mach-at91/at91sam9g45_devices.c |   98 +++++++++++++++++++++++++++++-
->  arch/arm/mach-at91/board-sam9m10g45ek.c  |   85 +++++++++++++++++++++++++-
->  2 files changed, 180 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-at91/at91sam9g45_devices.c b/arch/arm/mach-at91/at91sam9g45_devices.c
-> index 600bffb..00e6a7f 100644
-> --- a/arch/arm/mach-at91/at91sam9g45_devices.c
-> +++ b/arch/arm/mach-at91/at91sam9g45_devices.c
-> @@ -16,7 +16,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/i2c-gpio.h>
->  #include <linux/atmel-mci.h>
-> -
-> +#include <linux/clk.h>
->  #include <linux/fb.h>
->  #include <video/atmel_lcdc.h>
->  
-> @@ -28,7 +28,10 @@
->  #include <mach/at_hdmac.h>
->  #include <mach/atmel-mci.h>
->  
-> +#include <media/atmel-isi.h>
-> +
->  #include "generic.h"
-> +#include "clock.h"
->  
->  
->  /* --------------------------------------------------------------------
-> @@ -863,6 +866,99 @@ void __init at91_add_device_ac97(struct ac97c_platform_data *data)
->  void __init at91_add_device_ac97(struct ac97c_platform_data *data) {}
->  #endif
->  
-> +/* --------------------------------------------------------------------
-> + *  Image Sensor Interface
-> + * -------------------------------------------------------------------- */
-> +#if defined(CONFIG_VIDEO_ATMEL_ISI) || defined(CONFIG_VIDEO_ATMEL_ISI_MODULE)
-> +static u64 isi_dmamask = DMA_BIT_MASK(32);
-> +static struct isi_platform_data isi_data;
-> +
-> +struct resource isi_resources[] = {
-> +	[0] = {
-> +		.start	= AT91SAM9G45_BASE_ISI,
-> +		.end	= AT91SAM9G45_BASE_ISI + SZ_16K - 1,
-> +		.flags	= IORESOURCE_MEM,
-> +	},
-> +	[1] = {
-> +		.start	= AT91SAM9G45_ID_ISI,
-> +		.end	= AT91SAM9G45_ID_ISI,
-> +		.flags	= IORESOURCE_IRQ,
-> +	},
-> +};
-> +
-> +static struct platform_device at91sam9g45_isi_device = {
-> +	.name		= "atmel_isi",
-> +	.id		= 0,
-> +	.dev		= {
-> +			.dma_mask		= &isi_dmamask,
-> +			.coherent_dma_mask	= DMA_BIT_MASK(32),
-> +			.platform_data		= &isi_data,
-> +	},
-> +	.resource	= isi_resources,
-> +	.num_resources	= ARRAY_SIZE(isi_resources),
-> +};
-> +
-> +static struct clk_lookup isi_mck_lookups[] = {
-> +	CLKDEV_CON_DEV_ID("isi_mck", "atmel_isi.0", NULL),
-> +};
-> +
-> +void __init at91_add_device_isi(struct isi_platform_data * data,
-> +		bool use_pck_as_mck)
+This patch adds to the ISP CCDC driver the ability to deinterlace the
+video data and send progressive frames to user-space applications.
 
-Extra space.
+The changes are:
+    - Maintain two buffers (struct isp_buffer), current and last.
+    - Decouple next buffer obtaining from last buffer releasing.
+    - Move most of the logic to the VD1 interrupt handler since the
+      ISP is not busy there.
 
-> +{
-> +	struct clk *pck;
-> +	struct clk *parent;
-> +
-> +	if (!data)
-> +		return;
-> +	isi_data = *data;
-> +
-> +	at91_set_A_periph(AT91_PIN_PB20, 0);	/* ISI_D0 */
-> +	at91_set_A_periph(AT91_PIN_PB21, 0);	/* ISI_D1 */
-> +	at91_set_A_periph(AT91_PIN_PB22, 0);	/* ISI_D2 */
-> +	at91_set_A_periph(AT91_PIN_PB23, 0);	/* ISI_D3 */
-> +	at91_set_A_periph(AT91_PIN_PB24, 0);	/* ISI_D4 */
-> +	at91_set_A_periph(AT91_PIN_PB25, 0);	/* ISI_D5 */
-> +	at91_set_A_periph(AT91_PIN_PB26, 0);	/* ISI_D6 */
-> +	at91_set_A_periph(AT91_PIN_PB27, 0);	/* ISI_D7 */
-> +	at91_set_A_periph(AT91_PIN_PB28, 0);	/* ISI_PCK */
-> +	at91_set_A_periph(AT91_PIN_PB30, 0);	/* ISI_HSYNC */
-> +	at91_set_A_periph(AT91_PIN_PB29, 0);	/* ISI_VSYNC */
-> +	at91_set_B_periph(AT91_PIN_PB8, 0);	/* ISI_PD8 */
-> +	at91_set_B_periph(AT91_PIN_PB9, 0);	/* ISI_PD9 */
-> +	at91_set_B_periph(AT91_PIN_PB10, 0);	/* ISI_PD10 */
-> +	at91_set_B_periph(AT91_PIN_PB11, 0);	/* ISI_PD11 */
-> +
-> +	platform_device_register(&at91sam9g45_isi_device);
-> +
-> +	if (use_pck_as_mck) {
-> +		at91_set_B_periph(AT91_PIN_PB31, 0);	/* ISI_MCK (PCK1) */
-> +
-> +		pck = clk_get(NULL, "pck1");
-> +		parent = clk_get(NULL, "plla");
-> +
-> +		if (IS_ERR(pck) || IS_ERR(parent))
-> +			BUG();
-
-Use BUG_ON().
-
-> +
-> +		if (clk_set_parent(pck, parent))
-> +			printk(KERN_ERR "Failed to set PCK's parent\n");
-
-pr_err()
-
-> +		else {
-
-Missing braces before "else."
-
-> +			/* Register PCK as ISI_MCK */
-> +			isi_mck_lookups->clk = pck;
-
-If you're certain, it'll always be a single-element array, you might 
-remove the array completely. If you want to have the array, better do
-
-+			isi_mck_lookups[0].clk = pck;
-
-Or even:
-
-+ #define CLK_IDX_ISI_MCK 0
-
-...
-
-+	[CLK_IDX_ISI_MCK] = CLKDEV_CON_DEV_ID("isi_mck", "atmel_isi.0", NULL),
-
-...
-
-+			isi_mck_lookups[CLK_IDX_ISI_MCK].clk = pck;
-
-But in any case I wouldn't use "isi_mck_lookups->clk" with an array.
-
-> +			clkdev_add_table(isi_mck_lookups,
-> +					ARRAY_SIZE(isi_mck_lookups));
-> +		}
-> +
-> +		clk_put(pck);
-> +		clk_put(parent);
-> +	}
-> +
-> +	return;
-
-No need for "return."
-
-> +}
-> +#else
-> +void __init at91_add_device_isi(struct isi_platform_data * data,
-> +		int use_pck_as_mck) {}
-
-Please use the same prototype - bool. Looks like you haven't tried to 
-compile this with CONFIG_VIDEO_ATMEL_ISI(_MODULE) unset. Extra space.
-
-> +#endif
-> +
->  
->  /* --------------------------------------------------------------------
->   *  LCD Controller
-> diff --git a/arch/arm/mach-at91/board-sam9m10g45ek.c b/arch/arm/mach-at91/board-sam9m10g45ek.c
-> index ad234cc..068464c 100644
-> --- a/arch/arm/mach-at91/board-sam9m10g45ek.c
-> +++ b/arch/arm/mach-at91/board-sam9m10g45ek.c
-> @@ -23,11 +23,13 @@
->  #include <linux/gpio_keys.h>
->  #include <linux/input.h>
->  #include <linux/leds.h>
-> -#include <linux/clk.h>
->  #include <linux/atmel-mci.h>
-> +#include <linux/delay.h>
->  
->  #include <mach/hardware.h>
->  #include <video/atmel_lcdc.h>
-> +#include <media/soc_camera.h>
-> +#include <media/atmel-isi.h>
->  
->  #include <asm/setup.h>
->  #include <asm/mach-types.h>
-> @@ -187,6 +189,76 @@ static void __init ek_add_device_nand(void)
->  
->  
->  /*
-> + *  ISI
-> + */
-> +static struct isi_platform_data __initdata isi_data = {
-> +	.frate			= ISI_CFG1_FRATE_CAPTURE_ALL,
-> +	.has_emb_sync		= 0,
-> +	.emb_crc_sync		= 0,
-> +	.hsync_act_low		= 0,
-> +	.vsync_act_low		= 0,
-> +	.pclk_act_falling	= 0,
-
-I would drop all "= 0"
-
-> +	/* to use codec and preview path simultaneously */
-> +	.full_mode		= 1,
-> +	.data_width_flags	= ISI_DATAWIDTH_8 | ISI_DATAWIDTH_10,
-> +	/* ISI_MCK is provided by programmable clock or external clock  */
-
-Superfluous space before '*/'
-
-> +	.mck_hz			= 25000000,
-> +};
-> +
-> +
-> +/*
-> + * soc-camera OV2640
-> + */
-> +#if defined(CONFIG_SOC_CAMERA_OV2640) || \
-> +	defined(CONFIG_SOC_CAMERA_OV2640_MODULE)
-> +static unsigned long isi_camera_query_bus_param(struct soc_camera_link *link)
-> +{
-> +	/* ISI board for ek using default 8-bits connection */
-> +	return SOCAM_DATAWIDTH_8;
-> +}
-> +
-> +static int i2c_camera_power(struct device *dev, int on)
-> +{
-> +	/* enable or disable the camera */
-> +	pr_debug("%s: %s the camera\n", __func__, on ? "ENABLE" : "DISABLE");
-> +	at91_set_gpio_output(AT91_PIN_PD13, !on);
-> +
-> +	if (!on)
-> +		goto out;
-> +
-> +	/* If enabled, give a reset impulse */
-> +	at91_set_gpio_output(AT91_PIN_PD12, 0);
-> +	msleep(20);
-> +	at91_set_gpio_output(AT91_PIN_PD12, 1);
-> +	msleep(100);
-> +
-> +out:
-> +	return 0;
-> +}
-> +
-> +static struct i2c_board_info i2c_camera = {
-> +	I2C_BOARD_INFO("ov2640", 0x30),
-> +};
-> +
-> +static struct soc_camera_link iclink_ov2640 = {
-> +	.bus_id			= 0,
-> +	.board_info		= &i2c_camera,
-> +	.i2c_adapter_id		= 0,
-> +	.power			= i2c_camera_power,
-> +	.query_bus_param	= isi_camera_query_bus_param,
-> +};
-> +
-> +static struct platform_device isi_ov2640 = {
-> +	.name	= "soc-camera-pdrv",
-> +	.id	= 0,
-> +	.dev	= {
-> +		.platform_data = &iclink_ov2640,
-> +	},
-> +};
-> +#endif
-> +
-> +
-> +/*
->   * LCD Controller
->   */
->  #if defined(CONFIG_FB_ATMEL) || defined(CONFIG_FB_ATMEL_MODULE)
-> @@ -378,7 +450,12 @@ static struct gpio_led ek_pwm_led[] = {
->  #endif
->  };
->  
-> -
-> +static struct platform_device *devices[] __initdata = {
-> +#if defined(CONFIG_SOC_CAMERA_OV2640) || \
-> +	defined(CONFIG_SOC_CAMERA_OV2640_MODULE)
-> +	&isi_ov2640,
-> +#endif
-> +};
->  
->  static void __init ek_board_init(void)
->  {
-> @@ -400,6 +477,8 @@ static void __init ek_board_init(void)
->  	ek_add_device_nand();
->  	/* I2C */
->  	at91_add_device_i2c(0, NULL, 0);
-> +	/* ISI, using programmable clock as ISI_MCK */
-> +	at91_add_device_isi(&isi_data, 1);
-
-s/1/true/
-
->  	/* LCD Controller */
->  	at91_add_device_lcdc(&ek_lcdc_data);
->  	/* Touch Screen */
-> @@ -411,6 +490,8 @@ static void __init ek_board_init(void)
->  	/* LEDs */
->  	at91_gpio_leds(ek_leds, ARRAY_SIZE(ek_leds));
->  	at91_pwm_leds(ek_pwm_led, ARRAY_SIZE(ek_pwm_led));
-> +	/* Other platform devices */
-> +	platform_add_devices(devices, ARRAY_SIZE(devices));
->  }
->  
->  MACHINE_START(AT91SAM9M10G45EK, "Atmel AT91SAM9M10G45-EK")
-> -- 
-> 1.6.3.3
-> 
-
-Thanks
-Guennadi
+Signed-off-by: Javier Martinez Canillas <martinez.javier@gmail.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/omap3isp/ispccdc.c |  195 ++++++++++++++++++++++----------
+ drivers/media/video/omap3isp/ispccdc.h |    6 +
+ include/media/omap3isp.h               |    3 +
+ 3 files changed, 146 insertions(+), 58 deletions(-)
+
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index c25db54..fff1ae1 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -40,6 +40,7 @@
+ static struct v4l2_mbus_framefmt *
+ __ccdc_get_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
+ 		  unsigned int pad, enum v4l2_subdev_format_whence which);
++static bool ccdc_input_is_bt656(struct isp_ccdc_device *ccdc);
+ 
+ static const unsigned int ccdc_fmts[] = {
+ 	V4L2_MBUS_FMT_Y8_1X8,
+@@ -893,7 +894,7 @@ static void ccdc_config_outlineoffset(struct isp_ccdc_device *ccdc,
+ 		    ISPCCDC_SDOFST_FINV);
+ 
+ 	isp_reg_clr(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST,
+-		    ISPCCDC_SDOFST_FOFST_4L);
++		    ISPCCDC_SDOFST_FOFST_1L);
+ 
+ 	switch (oddeven) {
+ 	case EVENEVEN:
+@@ -1010,6 +1011,9 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
+ 	if (pdata && pdata->vs_pol)
+ 		syn_mode |= ISPCCDC_SYN_MODE_VDPOL;
+ 
++	if (pdata && pdata->fldmode)
++		syn_mode |= ISPCCDC_SYN_MODE_FLDMODE;
++
+ 	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
+ 
+ 	if (format->code == V4L2_MBUS_FMT_UYVY8_2X8)
+@@ -1115,6 +1119,10 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
+ 	unsigned int shift;
+ 	u32 syn_mode;
+ 	u32 ccdc_pattern;
++	u32 nph;
++	u32 nlv;
++	u32 vd0;
++	u32 vd1;
+ 
+ 	pad = media_entity_remote_source(&ccdc->pads[CCDC_PAD_SINK]);
+ 	sensor = media_entity_to_v4l2_subdev(pad->entity);
+@@ -1185,26 +1193,44 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
+ 	}
+ 	ccdc_config_imgattr(ccdc, ccdc_pattern);
+ 
++	if (pdata->bt656) {
++		vd0 = nlv = format->height / 2 - 1;
++		vd1 = format->height / 3 - 1;
++		nph = format->width * 2 - 1;
++	} else {
++		vd0 = nlv = format->height - 2;
++		vd1 = format->height * 2 / 3;
++		nph = format->width - 1;
++	}
++
+ 	/* Generate VD0 on the last line of the image and VD1 on the
+ 	 * 2/3 height line.
+ 	 */
+-	isp_reg_writel(isp, ((format->height - 2) << ISPCCDC_VDINT_0_SHIFT) |
+-		       ((format->height * 2 / 3) << ISPCCDC_VDINT_1_SHIFT),
++	isp_reg_writel(isp, (vd0 << ISPCCDC_VDINT_0_SHIFT) |
++		       (vd1 << ISPCCDC_VDINT_1_SHIFT),
+ 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VDINT);
+ 
+ 	/* CCDC_PAD_SOURCE_OF */
+ 	format = &ccdc->formats[CCDC_PAD_SOURCE_OF];
+ 
+ 	isp_reg_writel(isp, (0 << ISPCCDC_HORZ_INFO_SPH_SHIFT) |
+-		       ((format->width - 1) << ISPCCDC_HORZ_INFO_NPH_SHIFT),
++		       (nph << ISPCCDC_HORZ_INFO_NPH_SHIFT),
+ 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_HORZ_INFO);
++	isp_reg_writel(isp, nlv << ISPCCDC_VERT_LINES_NLV_SHIFT,
++		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_LINES);
+ 	isp_reg_writel(isp, 0 << ISPCCDC_VERT_START_SLV0_SHIFT,
+ 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_START);
+-	isp_reg_writel(isp, (format->height - 1)
+-			<< ISPCCDC_VERT_LINES_NLV_SHIFT,
+-		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_LINES);
++	isp_reg_writel(isp, 0 << ISPCCDC_VERT_START_SLV1_SHIFT,
++		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_START);
+ 
+-	ccdc_config_outlineoffset(ccdc, ccdc->video_out.bpl_value, 0, 0);
++
++	if (pdata->bt656) {
++		ccdc_config_outlineoffset(ccdc, nph, EVENEVEN, 1);
++		ccdc_config_outlineoffset(ccdc, nph, EVENODD, 1);
++		ccdc_config_outlineoffset(ccdc, nph, ODDEVEN, 1);
++		ccdc_config_outlineoffset(ccdc, nph, ODDODD, 1);
++	} else
++		ccdc_config_outlineoffset(ccdc, ccdc->video_out.bpl_value, 0, 0);
+ 
+ 	/* CCDC_PAD_SOURCE_VP */
+ 	format = &ccdc->formats[CCDC_PAD_SOURCE_VP];
+@@ -1212,13 +1238,12 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
+ 	isp_reg_writel(isp, (0 << ISPCCDC_FMT_HORZ_FMTSPH_SHIFT) |
+ 		       (format->width << ISPCCDC_FMT_HORZ_FMTLNH_SHIFT),
+ 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMT_HORZ);
+-	isp_reg_writel(isp, (0 << ISPCCDC_FMT_VERT_FMTSLV_SHIFT) |
+-		       ((format->height + 1) << ISPCCDC_FMT_VERT_FMTLNV_SHIFT),
+-		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMT_VERT);
+-
+ 	isp_reg_writel(isp, (format->width << ISPCCDC_VP_OUT_HORZ_NUM_SHIFT) |
+ 		       (format->height << ISPCCDC_VP_OUT_VERT_NUM_SHIFT),
+ 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VP_OUT);
++	isp_reg_writel(isp, (0 << ISPCCDC_FMT_VERT_FMTSLV_SHIFT) |
++		       ((format->height + 1) << ISPCCDC_FMT_VERT_FMTLNV_SHIFT),
++		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMT_VERT);
+ 
+ 	/* Use PACK8 mode for 1byte per pixel formats. */
+ 	if (omap3isp_video_format_info(format->code)->width <= 8)
+@@ -1464,6 +1489,19 @@ done:
+ 	spin_unlock_irqrestore(&ccdc->lsc.req_lock, flags);
+ }
+ 
++static void ccdc_release_buffer(struct isp_buffer *buffer, int error)
++{
++	buffer->buffer.state = error ? ISP_BUF_STATE_ERROR : ISP_BUF_STATE_DONE;
++	wake_up(&buffer->buffer.wait);
++}
++
++static void ccdc_release_last_buffer(struct isp_ccdc_device *ccdc)
++{
++	struct isp_buffer *buffer = ccdc->last_buffer;
++	ccdc->last_buffer = NULL;
++	ccdc_release_buffer(buffer, ccdc->error);
++}
++
+ static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
+ {
+ 	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
+@@ -1495,11 +1533,19 @@ static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
+ 		goto done;
+ 	}
+ 
+-	buffer = omap3isp_video_buffer_next(&ccdc->video_out, ccdc->error);
+-	if (buffer != NULL) {
+-		ccdc_set_outaddr(ccdc, buffer->isp_addr);
++	if (!ccdc_input_is_bt656(ccdc)) {
++		ccdc->last_buffer = ccdc->current_buffer;
++		buffer = omap3isp_video_buffer_next(&ccdc->video_out,
++						    ccdc->error);
++		if (buffer != NULL) {
++			ccdc_set_outaddr(ccdc, buffer->isp_addr);
++			restart = 1;
++		}
++		ccdc->current_buffer = buffer;
++		if (ccdc->last_buffer)
++			ccdc_release_last_buffer(ccdc);
++	} else
+ 		restart = 1;
+-	}
+ 
+ 	pipe->state |= ISP_PIPELINE_IDLE_OUTPUT;
+ 
+@@ -1541,6 +1587,16 @@ static void ccdc_vd0_isr(struct isp_ccdc_device *ccdc)
+ 		ccdc_enable(ccdc);
+ }
+ 
++static inline struct isp_buffer *ccdc_getbuffer(struct isp_ccdc_device *ccdc)
++{
++	return omap3isp_video_buffer_next(&ccdc->video_out, ccdc->error);
++}
++
++static inline void ccdc_set_next_buffer(struct isp_ccdc_device *ccdc)
++{
++	ccdc_set_outaddr(ccdc, ccdc->current_buffer->isp_addr);
++}
++
+ /*
+  * ccdc_vd1_isr - Handle VD1 event
+  * @ccdc: Pointer to ISP CCDC device.
+@@ -1549,57 +1605,77 @@ static void ccdc_vd1_isr(struct isp_ccdc_device *ccdc)
+ {
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(&ccdc->lsc.req_lock, flags);
++	if (ccdc_input_is_bt656(ccdc)) {
++		if (ccdc->interlaced_cnt) {
++			ccdc->interlaced_cnt = 0;
++			ccdc->last_buffer = ccdc->current_buffer;
++			if (!list_empty(&ccdc->video_out.dmaqueue)) {
++				ccdc->current_buffer =
++					ccdc_getbuffer(ccdc);
++				if (ccdc->current_buffer != NULL)
++					ccdc_set_next_buffer(ccdc);
++			} else
++				ccdc->current_buffer = NULL;
++		} else {
++			ccdc->interlaced_cnt = 1;
++			if (ccdc->last_buffer)
++				ccdc_release_last_buffer(ccdc);
++		}
++	} else {
+ 
+-	/*
+-	 * Depending on the CCDC pipeline state, CCDC stopping should be
+-	 * handled differently. In SINGLESHOT we emulate an internal CCDC
+-	 * stopping because the CCDC hw works only in continuous mode.
+-	 * When CONTINUOUS pipeline state is used and the CCDC writes it's
+-	 * data to memory the CCDC and LSC are stopped immediately but
+-	 * without change the CCDC stopping state machine. The CCDC
+-	 * stopping state machine should be used only when user request
+-	 * for stopping is received (SINGLESHOT is an exeption).
+-	 */
+-	switch (ccdc->state) {
+-	case ISP_PIPELINE_STREAM_SINGLESHOT:
+-		ccdc->stopping = CCDC_STOP_REQUEST;
+-		break;
++		spin_lock_irqsave(&ccdc->lsc.req_lock, flags);
+ 
+-	case ISP_PIPELINE_STREAM_CONTINUOUS:
+-		if (ccdc->output & CCDC_OUTPUT_MEMORY) {
+-			if (ccdc->lsc.state != LSC_STATE_STOPPED)
+-				__ccdc_lsc_enable(ccdc, 0);
+-			__ccdc_enable(ccdc, 0);
+-		}
+-		break;
++		/*
++		 * Depending on the CCDC pipeline state, CCDC stopping should be
++		 * handled differently. In SINGLESHOT we emulate an internal CCDC
++		 * stopping because the CCDC hw works only in continuous mode.
++		 * When CONTINUOUS pipeline state is used and the CCDC writes it's
++		 * data to memory the CCDC and LSC are stopped immediately but
++		 * without change the CCDC stopping state machine. The CCDC
++		 * stopping state machine should be used only when user request
++		 * for stopping is received (SINGLESHOT is an exeption).
++		 */
++		switch (ccdc->state) {
++		case ISP_PIPELINE_STREAM_SINGLESHOT:
++			ccdc->stopping = CCDC_STOP_REQUEST;
++			break;
+ 
+-	case ISP_PIPELINE_STREAM_STOPPED:
+-		break;
+-	}
++		case ISP_PIPELINE_STREAM_CONTINUOUS:
++			if (ccdc->output & CCDC_OUTPUT_MEMORY) {
++				if (ccdc->lsc.state != LSC_STATE_STOPPED)
++					__ccdc_lsc_enable(ccdc, 0);
++				__ccdc_enable(ccdc, 0);
++			}
++			break;
+ 
+-	if (__ccdc_handle_stopping(ccdc, CCDC_EVENT_VD1))
+-		goto done;
++		case ISP_PIPELINE_STREAM_STOPPED:
++			break;
++		}
+ 
+-	if (ccdc->lsc.request == NULL)
+-		goto done;
++		if (__ccdc_handle_stopping(ccdc, CCDC_EVENT_VD1))
++			goto done;
+ 
+-	/*
+-	 * LSC need to be reconfigured. Stop it here and on next LSC_DONE IRQ
+-	 * do the appropriate changes in registers
+-	 */
+-	if (ccdc->lsc.state == LSC_STATE_RUNNING) {
+-		__ccdc_lsc_enable(ccdc, 0);
+-		ccdc->lsc.state = LSC_STATE_RECONFIG;
+-		goto done;
+-	}
++		if (ccdc->lsc.request == NULL)
++			goto done;
+ 
+-	/* LSC has been in STOPPED state, enable it */
+-	if (ccdc->lsc.state == LSC_STATE_STOPPED)
+-		ccdc_lsc_enable(ccdc);
++		/*
++		 * LSC need to be reconfigured. Stop it here and on next
++		 * LSC_DONE IRQ do the appropriate changes in registers
++		 */
++		if (ccdc->lsc.state == LSC_STATE_RUNNING) {
++			__ccdc_lsc_enable(ccdc, 0);
++			ccdc->lsc.state = LSC_STATE_RECONFIG;
++			goto done;
++		}
++
++		/* LSC has been in STOPPED state, enable it */
++		if (ccdc->lsc.state == LSC_STATE_STOPPED)
++			ccdc_lsc_enable(ccdc);
+ 
+ done:
+-	spin_unlock_irqrestore(&ccdc->lsc.req_lock, flags);
++		spin_unlock_irqrestore(&ccdc->lsc.req_lock, flags);
++
++	}
+ }
+ 
+ /*
+@@ -1638,6 +1714,7 @@ static int ccdc_video_queue(struct isp_video *video, struct isp_buffer *buffer)
+ 		return -ENODEV;
+ 
+ 	ccdc_set_outaddr(ccdc, buffer->isp_addr);
++	ccdc->current_buffer = buffer;
+ 
+ 	/* We now have a buffer queued on the output, restart the pipeline
+ 	 * on the next CCDC interrupt if running in continuous mode (or when
+@@ -1764,6 +1841,8 @@ static int ccdc_set_stream(struct v4l2_subdev *sd, int enable)
+ 			omap3isp_sbl_disable(isp, OMAP3_ISP_SBL_CCDC_WRITE);
+ 		omap3isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_CCDC);
+ 		ccdc->underrun = 0;
++		ccdc->current_buffer = NULL;
++		ccdc->interlaced_cnt = 0;
+ 		break;
+ 	}
+ 
+diff --git a/drivers/media/video/omap3isp/ispccdc.h b/drivers/media/video/omap3isp/ispccdc.h
+index 54811ce..dad021c 100644
+--- a/drivers/media/video/omap3isp/ispccdc.h
++++ b/drivers/media/video/omap3isp/ispccdc.h
+@@ -134,6 +134,9 @@ struct ispccdc_lsc {
+  * @wait: Wait queue used to stop the module
+  * @stopping: Stopping state
+  * @ioctl_lock: Serializes ioctl calls and LSC requests freeing
++ * @current_buffer: Buffer for current frame
++ * @last_buffer: Buffer used for the last frame
++ * @interlaced_cnt: Sub-frame count for an interlaced video frame
+  */
+ struct isp_ccdc_device {
+ 	struct v4l2_subdev subdev;
+@@ -164,6 +167,9 @@ struct isp_ccdc_device {
+ 	wait_queue_head_t wait;
+ 	unsigned int stopping;
+ 	struct mutex ioctl_lock;
++	struct isp_buffer *current_buffer;
++	struct isp_buffer *last_buffer;
++	unsigned int interlaced_cnt;
+ };
+ 
+ struct isp_device;
+diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
+index 3b2d2b7..0f215de 100644
+--- a/include/media/omap3isp.h
++++ b/include/media/omap3isp.h
+@@ -61,6 +61,8 @@ enum {
+  *		0 - Normal, 1 - One's complement
+  * @bt656: ITU-R BT656 embedded synchronization
+  *		0 - HS/VS sync, 1 - BT656 sync
++ * @fldmode: Field mode
++ *             0 - progressive, 1 - Interlaced
+  */
+ struct isp_parallel_platform_data {
+ 	unsigned int data_lane_shift:2;
+@@ -69,6 +71,7 @@ struct isp_parallel_platform_data {
+ 	unsigned int vs_pol:1;
+ 	unsigned int data_pol:1;
+ 	unsigned int bt656:1;
++	unsigned int fldmode:1;
+ };
+ 
+ enum {
+-- 
+1.7.4.1
+
