@@ -1,54 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34531 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754216Ab1J0MEH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Oct 2011 08:04:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 2/6] v4l2-event: Deny subscribing with a type of V4L2_EVENT_ALL
-Date: Thu, 27 Oct 2011 14:04:44 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	hverkuil@xs4all.nl
-References: <1319714283-3991-1-git-send-email-hdegoede@redhat.com> <1319714283-3991-3-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1319714283-3991-3-git-send-email-hdegoede@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201110271404.44386.laurent.pinchart@ideasonboard.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:39585 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750922Ab1JIN0z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Oct 2011 09:26:55 -0400
+Received: by wyg34 with SMTP id 34so5137571wyg.19
+        for <linux-media@vger.kernel.org>; Sun, 09 Oct 2011 06:26:54 -0700 (PDT)
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Enrico <ebutera@users.berlios.de>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>, linux-media@vger.kernel.org
+Subject: [PATCH v2 0/2] Add support to ITU-R BT.656 video data format
+Date: Sun,  9 Oct 2011 15:26:40 +0200
+Message-Id: <1318166803-7392-1-git-send-email-martinez.javier@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hello folks,
 
-On Thursday 27 October 2011 13:17:59 Hans de Goede wrote:
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+This is a v2 patch-set that aims to add support to the ISP CCDC driver to
+process video in interlaced mode.
 
-This brings the code in sync with the documentation, thanks.
+The patch-set contains the following patches:
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+[PATCH v2 1/3] omap3isp: ccdc: Add interlaced field mode to platform data
+[PATCH v2 2/3] omap3isp: ccdc: Add interlaced count field to isp_ccdc_device
+[PATCH v2 3/3] omap3isp: ccdc: Add support to ITU-R BT.656 video data format
 
-> ---
->  drivers/media/video/v4l2-event.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-event.c
-> b/drivers/media/video/v4l2-event.c index 53b190c..9f56f18 100644
-> --- a/drivers/media/video/v4l2-event.c
-> +++ b/drivers/media/video/v4l2-event.c
-> @@ -215,6 +215,9 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
->  	unsigned long flags;
->  	unsigned i;
-> 
-> +	if (sub->type == V4L2_EVENT_ALL)
-> +		return -EINVAL;
-> +
->  	if (elems < 1)
->  		elems = 1;
->  	if (sub->type == V4L2_EVENT_CTRL) {
+This is based on one of the earlier changes we made. This doesn't move the
+buffer management logic to the VD1 interrupt handler so is less intrusive than
+v1 patch-set.
 
--- 
-Regards,
+Also, based on Laurent's comments I check not if we are in BT.656 but if the
+ISP CCDC is configured to operate in interlaced mode (fldmode == 1).
 
-Laurent Pinchart
+Again, this patch-set is a proof-of-concept and was only compile tested since I
+don't have the hardware to test right now. It is a forward porting, on top
+of Laurent's omap3isp-omap3isp-yuv tree, of the changes we made to the ISP
+driver to get interlaced video working. And this is one of the earlier changes
+we made.
+
+It is not intended to be merged, I'm posting here only for review and feedback.
+
+Best regards,
