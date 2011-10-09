@@ -1,41 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fmmailgate01.web.de ([217.72.192.221]:44989 "EHLO
-	fmmailgate01.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755666Ab1JCMaV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Oct 2011 08:30:21 -0400
-Message-ID: <4E89AAD7.2040400@web.de>
-Date: Mon, 03 Oct 2011 14:30:15 +0200
-From: =?ISO-8859-1?Q?Andr=E9_Weidemann?= <Andre.Weidemann@web.de>
-MIME-Version: 1.0
-To: "Igor M. Liplianin" <liplianin@me.by>
-CC: Mauro Chehab <mchehab@infradead.org>, linux-media@vger.kernel.org,
-	Michael Schimek <mschimek@gmx.at>,
-	Hans Petter Selasky <hselasky@c2i.net>,
-	Doychin Dokov <root@net1.cc>,
-	Steffen Barszus <steffenbpunkt@googlemail.com>,
-	Dominik Kuhlen <dkuhlen@gmx.net>
-Subject: Re: [PATCH] pctv452e: hm.. tidy bogus code up
-References: <201109302358.11233.liplianin@me.by>
-In-Reply-To: <201109302358.11233.liplianin@me.by>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:36593 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751174Ab1JIKo0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Oct 2011 06:44:26 -0400
+From: Renzo Dani <arons7@gmail.com>
+To: mchehab@infradead.org
+Cc: arons7@gmail.com, rdunlap@xenotime.net,
+	linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 1/1] update az6027 firmware URL
+Date: Sun,  9 Oct 2011 12:43:50 +0200
+Message-Id: <1318157030-3901-1-git-send-email-arons7@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Igor,
+From: Renzo Dani <arons7@gmail.com>
 
-On 30.09.2011 22:58, Igor M. Liplianin wrote:
-> Currently, usb_register calls two times with cloned structures, but for
-> different driver names. Let's remove it.
->
-> Signed-off-by: Igor M. Liplianin<liplianin@me.by>
 
-Well spotted... The cloned struct should have been removed a long time 
-go. The final version of patch I submitted for the tt-connect S2-3600, 
-did not contain it anymore: 
-http://www.linuxtv.org/pipermail/linux-dvb/2008-March/024233.html
+Signed-off-by: Renzo Dani <arons7@gmail.com>
+---
+ Documentation/dvb/get_dvb_firmware |   13 ++-----------
+ 1 files changed, 2 insertions(+), 11 deletions(-)
 
-Acked-by: André Weideamm<Andre.Weidemann@web.de>
+diff --git a/Documentation/dvb/get_dvb_firmware b/Documentation/dvb/get_dvb_firmware
+index c466f58..06456d0 100755
+--- a/Documentation/dvb/get_dvb_firmware
++++ b/Documentation/dvb/get_dvb_firmware
+@@ -575,19 +575,10 @@ sub ngene {
+ }
+ 
+ sub az6027{
+-    my $file = "AZ6027_Linux_Driver.tar.gz";
+-    my $url = "http://linux.terratec.de/files/$file";
+     my $firmware = "dvb-usb-az6027-03.fw";
++    my $url = "http://linux.terratec.de/files/TERRATEC_S7/$firmware";
+ 
+-    wgetfile($file, $url);
+-
+-    #untar
+-    if( system("tar xzvf $file $firmware")){
+-        die "failed to untar firmware";
+-    }
+-    if( system("rm $file")){
+-        die ("unable to remove unnecessary files");
+-    }
++    wgetfile($firmware, $url);
+ 
+     $firmware;
+ }
+-- 
+1.7.3.4
 
-Regards
-  André
