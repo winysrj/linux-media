@@ -1,147 +1,317 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:54354 "EHLO
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:56753 "EHLO
 	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754201Ab1JCJyF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Oct 2011 05:54:05 -0400
-Received: by gyg10 with SMTP id 10so3222927gyg.19
-        for <linux-media@vger.kernel.org>; Mon, 03 Oct 2011 02:54:04 -0700 (PDT)
+	with ESMTP id S1753786Ab1JJMqR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Oct 2011 08:46:17 -0400
+Received: by gyg10 with SMTP id 10so5274056gyg.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 05:46:16 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <201110031039.27849.laurent.pinchart@ideasonboard.com>
-References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com>
- <4E891B22.1020204@infradead.org> <201110030830.25364.hverkuil@xs4all.nl> <201110031039.27849.laurent.pinchart@ideasonboard.com>
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Date: Mon, 3 Oct 2011 11:53:44 +0200
-Message-ID: <CAAwP0s0bTcUPvkVT-aB2EKskS_60CdW4P3orQLvSJMMkEWBpqw@mail.gmail.com>
-Subject: Re: [PATCH 3/3] [media] tvp5150: Migrate to media-controller
- framework and add video format detection
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-media@vger.kernel.org, Enrico <ebutera@users.berlios.de>,
-	Gary Thomas <gary@mlbassoc.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <CAAwP0s3ZqDpMsF7mYYtM7twomREZTyO-uDhGPnfNsQcOTXQ_fw@mail.gmail.com>
+References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
+	<CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
+	<CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com>
+	<201110081751.38953.laurent.pinchart@ideasonboard.com>
+	<CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
+	<CA+2YH7vat9iSAuZ4ztDvvo4Od+b4tCOsK6Y+grTE05YUZZEYPQ@mail.gmail.com>
+	<CAAwP0s3NFvvUYd-0kwKLKXfYB4Zx1nXb0nd9+JM61JWtrVFfRg@mail.gmail.com>
+	<CA+2YH7uFeHAmEpVqbd94qtCajb45pkr9YzeW+RDa5sf2bUG_wQ@mail.gmail.com>
+	<CAAwP0s3GJ7-By=q_ADa6qcpaENK5kXvkTG8Hd=Y+qXs9dgXa0w@mail.gmail.com>
+	<CA+2YH7subMzFAg7f7-uHXEmYBD+Kd1=E2nWKx7dgKCEpOu=zgQ@mail.gmail.com>
+	<CA+2YH7ti4xz9zNby6O=3ZOKAB9=1hnYZr9cM8HSMrj0r4zi1=A@mail.gmail.com>
+	<CAAwP0s3ZqDpMsF7mYYtM7twomREZTyO-uDhGPnfNsQcOTXQ_fw@mail.gmail.com>
+Date: Mon, 10 Oct 2011 14:46:16 +0200
+Message-ID: <CA+2YH7s6rhLsyJTdWwQVUCd2WBWiH2saSaZZw0tysRWsXw-6Cg@mail.gmail.com>
+Subject: Re: omap3-isp status
+From: Enrico <ebutera@users.berlios.de>
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	linux-media@vger.kernel.org,
+	Enric Balletbo i Serra <eballetbo@iseebcn.com>
+Content-Type: multipart/mixed; boundary=20cf300512804638f604aef12d55
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 3, 2011 at 10:39 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Hans,
->
-> On Monday 03 October 2011 08:30:25 Hans Verkuil wrote:
->> On Monday, October 03, 2011 04:17:06 Mauro Carvalho Chehab wrote:
->> > Em 02-10-2011 18:18, Javier Martinez Canillas escreveu:
->> > > On Sun, Oct 2, 2011 at 6:30 PM, Sakari Ailus wrote:
->
-> [snip]
->
->> > >>>  static const struct v4l2_subdev_video_ops tvp5150_video_ops = {
->> > >>>
->> > >>>       .s_routing = tvp5150_s_routing,
->> > >>>
->> > >>> +     .s_stream = tvp515x_s_stream,
->> > >>> +     .enum_mbus_fmt = tvp515x_enum_mbus_fmt,
->> > >>> +     .g_mbus_fmt = tvp515x_mbus_fmt,
->> > >>> +     .try_mbus_fmt = tvp515x_mbus_fmt,
->> > >>> +     .s_mbus_fmt = tvp515x_mbus_fmt,
->> > >>> +     .g_parm = tvp515x_g_parm,
->> > >>> +     .s_parm = tvp515x_s_parm,
->> > >>> +     .s_std_output = tvp5150_s_std,
->> > >>
->> > >> Do we really need both video and pad format ops?
->> > >
->> > > Good question, I don't know. Can this device be used as a standalone
->> > > v4l2 device? Or is supposed to always be a part of a video streaming
->> > > pipeline as a sub-device with a source pad? Sorry if my questions are
->> > > silly but as I stated before, I'm a newbie with v4l2 and MCF.
->> >
->> > The tvp5150 driver is used on some em28xx devices. It is nice to add
->> > auto-detection code to the driver, but converting it to the media bus
->> > should be done with enough care to not break support for the existing
->> > devices.
+--20cf300512804638f604aef12d55
+Content-Type: text/plain; charset=ISO-8859-1
+
+On Mon, Oct 10, 2011 at 12:33 PM, Javier Martinez Canillas
+<martinez.javier@gmail.com> wrote:
+> On Mon, Oct 10, 2011 at 12:07 PM, Enrico <ebutera@users.berlios.de> wrote:
+>> On Mon, Oct 10, 2011 at 12:06 PM, Enrico <ebutera@users.berlios.de> wrote:
+>>> I have updated my igep openembedded layer at [1] (testing branch) with:
 >>
->> So in other words, the tvp5150 driver needs both pad and non-pad ops.
->> Eventually all non-pad variants in subdev drivers should be replaced by the
->> pad variants so you don't have duplication of ops. But that will take a lot
->> more work.
->
-> What about replacing direct calls to non-pad operations with core V4L2
-> functions that would use the subdev non-pad operation if available, and
-> emulate if with the pad operation otherwise ? I think this would ease the
-> transition, as subdev drivers could be ported to pad operations without
-> worrying about the bridges that use them, and bridge drivers could be switched
-> to the new wrappers with a simple search and replace.
-
-Ok, that is a good solution. I'll do that. Implement V4L2 core
-operations as wrappers of the subdev pad operations.
-
->
->> > Also, as I've argued with Laurent before, the expected behavior is that
->> > the standards format selection should be done via the video node, and
->> > not via the media controller node. The V4L2 API has enough support for
->> > all you need to do with the video decoder, so there's no excuse to
->> > duplicate it with any other API.
+>> Ops, forgot [1] !
 >>
->> This is relevant for bridge drivers, not for subdev drivers.
+>> [1]: https://github.com/ebutera/meta-igep
 >>
->> > The media controller API is there not to replace V4L2, but to complement
->> > it where needed.
+>> Enrico
 >>
->> That will be a nice discussion during the workshop :-)
 >
-> I don't think we disagree on that, but we probably disagree on what it means
-> :-)
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+> Perfect, thank you Enrico. I will try this latter today and let you
+> know. I'm sure I can get this working (with the ghosting effect of
+> course) so you can at least obtain 25 fps and once I have this working
+> I will resend the patch-set as v3 so Laurent can review it and
+> hopefully help us to fix the artifact on the video.
 
-Laurent, I have a few questions about MCF and the OMAP3ISP driver if
-you are so kind to answer.
+Yes it must be something simple but not easy to spot.
 
-1- User-space programs that are not MCF aware negotiate the format
-with the V4L2 device (i.e: OMAP3 ISP CCDC output), which is a sink
-pad. But the real format is driven by the analog video format in the
-source pad (i.e: tvp5151).
+And to add even more confusion i've attached two patches: one is a
+port of two Deepthy patches, the other one just a board fix.
 
-I modified the ISP driver to get the data format from the source pad
-and set the format for each pad on the pipeline accordingly but I've
-read from the documentation [1] that is not correct to propagate a
-data format from source pads to sink pads, that the correct thing is
-to do it from sink to source.
+Just replace patches 0017-18-19 with the attached 0001 patch, and
+after patch 0025 apply the attached 0002 patch.
 
-So, in this case an administrator has to externally configure the
-format for each pad and to guarantee a coherent format on the whole
-pipeline?. Or does exist a way to do this automatic?. i.e: The output
-entity on the pipeline promotes the capabilities of the source pad so
-applications can select a data format and this format gets propagated
-all over the pipeline from the sink pad to the source?
+With these i can succesfully grab frames with yavta BUT i only get
+half-height frames. Disclaimer: i just made the patch monkey and gave
+it a run without a review so it could be anything.
 
-[1]: http://linuxtv.org/downloads/v4l-dvb-apis/subdev.html
+Enrico
 
-2- If the application want a different format that the default
-provided by the tvp5151, (i.e: 720x576 for PAL), where do I have to
-crop the image? I thought this can be made using the CCDC, copying
-less lines to memory or the RESIZER if the application wants a bigger
-image. What is the best approach for this?
+--20cf300512804638f604aef12d55
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0001-omap3isp-configure-ccdc-and-add-bt656-support.patch"
+Content-Disposition: attachment;
+	filename="0001-omap3isp-configure-ccdc-and-add-bt656-support.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gtlgg0rw0
 
-3- When using embedded sync, CCDC doesn't have an external vertical
-sync signal, so we have to manually configure when we want the VD0
-interrupt to raise. This works for progressive frames, since each
-frame has the same size but in the case of interlaced video,
-sub-frames have different sizes (i.e: 313 and 312 vertical lines for
-PAL).
+RnJvbSBhYmI0ZDlkZjkzN2ViZGE0ZjYyOGQ1Yjk0YWUwMmM2MGU3YjA2YTdiIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBFbnJpY28gQnV0ZXJhIDxlYnV0ZXJhQHVzZXJzLmJlcmxpb3Mu
+ZGU+CkRhdGU6IE1vbiwgMTAgT2N0IDIwMTEgMTQ6MTY6NDYgKzAyMDAKU3ViamVjdDogW1BBVENI
+XSBvbWFwM2lzcDogY29uZmlndXJlIGNjZGMgYW5kIGFkZCBidDY1NiBzdXBwb3J0CgpUaGlzIGlz
+IGEgcG9ydCBvZiB0aGUgZm9sbG93aW5nIERlZXB0aHkgUmF2aSBwYXRjaGVzOgoKW1BBVENIIDUv
+OF0gaXNwY2NkYzogQ29uZmlndXJlIENDREMgcmVnaXN0ZXJzCltQQVRDSCA2LzhdIGlzcGNjZGM6
+IEFkZCBzdXBwb3J0IGZvciBCVDY1NiBpbnRlcmZhY2UKClNpZ25lZC1vZmYtYnk6IEVucmljbyBC
+dXRlcmEgPGVidXRlcmFAdXNlcnMuYmVybGlvcy5kZT4KLS0tCiBkcml2ZXJzL21lZGlhL3ZpZGVv
+L29tYXAzaXNwL2lzcGNjZGMuYyAgfCAgMTI2ICsrKysrKysrKysrKysrKysrKysrKysrKystLS0t
+LS0KIGRyaXZlcnMvbWVkaWEvdmlkZW8vb21hcDNpc3AvaXNwY2NkYy5oICB8ICAgIDEgKwogZHJp
+dmVycy9tZWRpYS92aWRlby9vbWFwM2lzcC9pc3ByZWcuaCAgIHwgICAgMSArCiBkcml2ZXJzL21l
+ZGlhL3ZpZGVvL29tYXAzaXNwL2lzcHZpZGVvLmMgfCAgICAyICstCiBkcml2ZXJzL21lZGlhL3Zp
+ZGVvL29tYXAzaXNwL2lzcHZpZGVvLmggfCAgICA0ICstCiA1IGZpbGVzIGNoYW5nZWQsIDExMCBp
+bnNlcnRpb25zKCspLCAyNCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlh
+L3ZpZGVvL29tYXAzaXNwL2lzcGNjZGMuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vb21hcDNpc3Av
+aXNwY2NkYy5jCmluZGV4IGNlMGU1N2QuLjM5MDNhY2YgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVk
+aWEvdmlkZW8vb21hcDNpc3AvaXNwY2NkYy5jCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vb21h
+cDNpc3AvaXNwY2NkYy5jCkBAIC02MCw4ICs2MCwxMSBAQCBzdGF0aWMgY29uc3QgdW5zaWduZWQg
+aW50IGNjZGNfZm10c1tdID0gewogCVY0TDJfTUJVU19GTVRfU0dCUkcxMl8xWDEyLAogCVY0TDJf
+TUJVU19GTVRfWVVZVjhfMlg4LAogCVY0TDJfTUJVU19GTVRfVVlWWThfMlg4LAorCVY0TDJfTUJV
+U19GTVRfWVVZVjhfMlg4LAogfTsKIAorc3RhdGljIGJvb2wgY2NkY19pbnB1dF9pc19idDY1Nihz
+dHJ1Y3QgaXNwX2NjZGNfZGV2aWNlICpjY2RjKTsKKwogLyoKICAqIGNjZGNfcHJpbnRfc3RhdHVz
+IC0gUHJpbnQgY3VycmVudCBDQ0RDIE1vZHVsZSByZWdpc3RlciB2YWx1ZXMuCiAgKiBAY2NkYzog
+UG9pbnRlciB0byBJU1AgQ0NEQyBkZXZpY2UuCkBAIC03OTMsMTEgKzc5NiwxNiBAQCBzdGF0aWMg
+dm9pZCBjY2RjX2FwcGx5X2NvbnRyb2xzKHN0cnVjdCBpc3BfY2NkY19kZXZpY2UgKmNjZGMpCiB2
+b2lkIG9tYXAzaXNwX2NjZGNfcmVzdG9yZV9jb250ZXh0KHN0cnVjdCBpc3BfZGV2aWNlICppc3Ap
+CiB7CiAJc3RydWN0IGlzcF9jY2RjX2RldmljZSAqY2NkYyA9ICZpc3AtPmlzcF9jY2RjOworCXN0
+cnVjdCB2NGwyX21idXNfZnJhbWVmbXQgKmZvcm1hdDsKIAogCWlzcF9yZWdfc2V0KGlzcCwgT01B
+UDNfSVNQX0lPTUVNX0NDREMsIElTUENDRENfQ0ZHLCBJU1BDQ0RDX0NGR19WRExDKTsKIAotCWNj
+ZGMtPnVwZGF0ZSA9IE9NQVAzSVNQX0NDRENfQUxBVyB8IE9NQVAzSVNQX0NDRENfTFBGCi0JCSAg
+ICAgfCBPTUFQM0lTUF9DQ0RDX0JMQ0xBTVAgfCBPTUFQM0lTUF9DQ0RDX0JDT01QOworCS8qIEND
+RENfUEFEX1NJTksgKi8KKwlmb3JtYXQgPSAmY2NkYy0+Zm9ybWF0c1tDQ0RDX1BBRF9TSU5LXTsK
+KwlpZiAoKGZvcm1hdC0+Y29kZSAhPSBWNEwyX01CVVNfRk1UX1VZVlk4XzJYOCkgJiYKKwkJCShm
+b3JtYXQtPmNvZGUgIT0gVjRMMl9NQlVTX0ZNVF9VWVZZOF8yWDgpKQorCQljY2RjLT51cGRhdGUg
+PSBPTUFQM0lTUF9DQ0RDX0FMQVcgfCBPTUFQM0lTUF9DQ0RDX0xQRgorCQkJCXwgT01BUDNJU1Bf
+Q0NEQ19CTENMQU1QIHwgT01BUDNJU1BfQ0NEQ19CQ09NUDsKIAljY2RjX2FwcGx5X2NvbnRyb2xz
+KGNjZGMpOwogCWNjZGNfY29uZmlndXJlX2ZwYyhjY2RjKTsKIH0KQEAgLTEwMjIsMTAgKzEwMzAs
+MTAgQEAgc3RhdGljIHZvaWQgY2NkY19jb25maWdfc3luY19pZihzdHJ1Y3QgaXNwX2NjZGNfZGV2
+aWNlICpjY2RjLAogCiAJaWYgKHBkYXRhICYmIHBkYXRhLT5idDY1NikKIAkJaXNwX3JlZ19zZXQo
+aXNwLCBPTUFQM19JU1BfSU9NRU1fQ0NEQywgSVNQQ0NEQ19SRUM2NTZJRiwKLQkJCSAgICBJU1BD
+Q0RDX1JFQzY1NklGX1I2NTZPTik7CisJCQkgICAgSVNQQ0NEQ19SRUM2NTZJRl9SNjU2T04gfCBJ
+U1BDQ0RDX1JFQzY1NklGX0VDQ0ZWSCk7CiAJZWxzZQogCQlpc3BfcmVnX2Nscihpc3AsIE9NQVAz
+X0lTUF9JT01FTV9DQ0RDLCBJU1BDQ0RDX1JFQzY1NklGLAotCQkJICAgIElTUENDRENfUkVDNjU2
+SUZfUjY1Nk9OKTsKKwkJCSAgICBJU1BDQ0RDX1JFQzY1NklGX1I2NTZPTiB8IElTUENDRENfUkVD
+NjU2SUZfRUNDRlZIKTsKIH0KIAogLyogQ0NEQyBmb3JtYXRzIGRlc2NyaXB0aW9ucyAqLwpAQCAt
+MTEwNyw2ICsxMTE1LDcgQEAgc3RhdGljIHZvaWQgY2NkY19jb25maWd1cmUoc3RydWN0IGlzcF9j
+Y2RjX2RldmljZSAqY2NkYykKIAlzdHJ1Y3QgaXNwX3BhcmFsbGVsX3BsYXRmb3JtX2RhdGEgKnBk
+YXRhID0gTlVMTDsKIAlzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNlbnNvcjsKIAlzdHJ1Y3QgdjRsMl9t
+YnVzX2ZyYW1lZm10ICpmb3JtYXQ7CisJc3RydWN0IHY0bDJfcGl4X2Zvcm1hdCBwaXg7CiAJY29u
+c3Qgc3RydWN0IGlzcF9mb3JtYXRfaW5mbyAqZm10X2luZm87CiAJc3RydWN0IHY0bDJfc3ViZGV2
+X2Zvcm1hdCBmbXRfc3JjOwogCXVuc2lnbmVkIGludCBkZXB0aF9vdXQ7CkBAIC0xMTY1LDYgKzEx
+NzQsOSBAQCBzdGF0aWMgdm9pZCBjY2RjX2NvbmZpZ3VyZShzdHJ1Y3QgaXNwX2NjZGNfZGV2aWNl
+ICpjY2RjKQogCS8qIENDRENfUEFEX1NJTksgKi8KIAlmb3JtYXQgPSAmY2NkYy0+Zm9ybWF0c1tD
+Q0RDX1BBRF9TSU5LXTsKIAorCWlmIChmb3JtYXQtPmNvZGUgPT0gVjRMMl9NQlVTX0ZNVF9VWVZZ
+OF8yWDgpCisJCWlzcF9yZWdfc2V0KGlzcCwgT01BUDNfSVNQX0lPTUVNX0NDREMsIElTUENDRENf
+Q0ZHLAorCQkJICAgIElTUENDRENfQ0ZHX1k4UE9TKTsKIAkvKiBNb3NhaWMgZmlsdGVyICovCiAJ
+c3dpdGNoIChmb3JtYXQtPmNvZGUpIHsKIAljYXNlIFY0TDJfTUJVU19GTVRfU1JHR0IxMF8xWDEw
+OgpAQCAtMTE4NCwyNyArMTE5Niw1OSBAQCBzdGF0aWMgdm9pZCBjY2RjX2NvbmZpZ3VyZShzdHJ1
+Y3QgaXNwX2NjZGNfZGV2aWNlICpjY2RjKQogCQljY2RjX3BhdHRlcm4gPSBjY2RjX3NncmJnX3Bh
+dHRlcm47CiAJCWJyZWFrOwogCX0KLQljY2RjX2NvbmZpZ19pbWdhdHRyKGNjZGMsIGNjZGNfcGF0
+dGVybik7CiAKLQkvKiBHZW5lcmF0ZSBWRDAgb24gdGhlIGxhc3QgbGluZSBvZiB0aGUgaW1hZ2Ug
+YW5kIFZEMSBvbiB0aGUKLQkgKiAyLzMgaGVpZ2h0IGxpbmUuCi0JICovCi0JaXNwX3JlZ193cml0
+ZWwoaXNwLCAoKGZvcm1hdC0+aGVpZ2h0IC0gMikgPDwgSVNQQ0NEQ19WRElOVF8wX1NISUZUKSB8
+Ci0JCSAgICAgICAoKGZvcm1hdC0+aGVpZ2h0ICogMiAvIDMpIDw8IElTUENDRENfVkRJTlRfMV9T
+SElGVCksCi0JCSAgICAgICBPTUFQM19JU1BfSU9NRU1fQ0NEQywgSVNQQ0NEQ19WRElOVCk7CisJ
+aWYgKChmb3JtYXQtPmNvZGUgIT0gVjRMMl9NQlVTX0ZNVF9ZVVlWOF8yWDgpICYmCisJCQkoZm9y
+bWF0LT5jb2RlICE9IFY0TDJfTUJVU19GTVRfVVlWWThfMlg4KSkKKwkJY2NkY19jb25maWdfaW1n
+YXR0cihjY2RjLCBjY2RjX3BhdHRlcm4pOworCisJLyogQlQ2NTY6IEdlbmVyYXRlIFZEMCBvbiB0
+aGUgbGFzdCBsaW5lIG9mIGVhY2ggZmllbGQsIGFuZCB3ZQorCSogZG9uJ3QgdXNlIFZEMS4KKwkq
+IE5vbiBCVDY1NjogR2VuZXJhdGUgVkQwIG9uIHRoZSBsYXN0IGxpbmUgb2YgdGhlIGltYWdlIGFu
+ZCBWRDEgb24gdGhlCisJKiAyLzMgaGVpZ2h0IGxpbmUuCisJKi8KKwlpZiAocGRhdGEtPmJ0NjU2
+KQorCQlpc3BfcmVnX3dyaXRlbChpc3AsCisJCQkoZm9ybWF0LT5oZWlnaHQvMiAtIDIpIDw8IElT
+UENDRENfVkRJTlRfMF9TSElGVCwKKwkJCU9NQVAzX0lTUF9JT01FTV9DQ0RDLCBJU1BDQ0RDX1ZE
+SU5UKTsKKwllbHNlCisJCWlzcF9yZWdfd3JpdGVsKGlzcCwKKwkJCSgoZm9ybWF0LT5oZWlnaHQg
+LSAyKSA8PCBJU1BDQ0RDX1ZESU5UXzBfU0hJRlQpIHwKKwkJCSgoZm9ybWF0LT5oZWlnaHQgKiAy
+IC8gMykgPDwgSVNQQ0NEQ19WRElOVF8xX1NISUZUKSwKKwkJCU9NQVAzX0lTUF9JT01FTV9DQ0RD
+LCBJU1BDQ0RDX1ZESU5UKTsKIAogCS8qIENDRENfUEFEX1NPVVJDRV9PRiAqLwogCWZvcm1hdCA9
+ICZjY2RjLT5mb3JtYXRzW0NDRENfUEFEX1NPVVJDRV9PRl07CiAKLQlpc3BfcmVnX3dyaXRlbChp
+c3AsICgwIDw8IElTUENDRENfSE9SWl9JTkZPX1NQSF9TSElGVCkgfAorCS8qIEZvciBCVDY1NiB0
+aGUgbnVtYmVyIG9mIGJ5dGVzIHdvdWxkIGJlIHdpZHRoKjIgKi8KKwlpZiAocGRhdGEtPmJ0NjU2
+KQorCQlpc3BfcmVnX3dyaXRlbChpc3AsICgwIDw8IElTUENDRENfSE9SWl9JTkZPX1NQSF9TSElG
+VCkgfAorCQkJKChmb3JtYXQtPndpZHRoICogMiAtIDEpIDw8IElTUENDRENfSE9SWl9JTkZPX05Q
+SF9TSElGVCksCisJCQlPTUFQM19JU1BfSU9NRU1fQ0NEQywgSVNQQ0NEQ19IT1JaX0lORk8pOwor
+CWVsc2UKKwkJaXNwX3JlZ193cml0ZWwoaXNwLCAoMCA8PCBJU1BDQ0RDX0hPUlpfSU5GT19TUEhf
+U0hJRlQpIHwKIAkJICAgICAgICgoZm9ybWF0LT53aWR0aCAtIDEpIDw8IElTUENDRENfSE9SWl9J
+TkZPX05QSF9TSElGVCksCiAJCSAgICAgICBPTUFQM19JU1BfSU9NRU1fQ0NEQywgSVNQQ0NEQ19I
+T1JaX0lORk8pOwogCWlzcF9yZWdfd3JpdGVsKGlzcCwgMCA8PCBJU1BDQ0RDX1ZFUlRfU1RBUlRf
+U0xWMF9TSElGVCwKIAkJICAgICAgIE9NQVAzX0lTUF9JT01FTV9DQ0RDLCBJU1BDQ0RDX1ZFUlRf
+U1RBUlQpOwotCWlzcF9yZWdfd3JpdGVsKGlzcCwgKGZvcm1hdC0+aGVpZ2h0IC0gMSkKKworCWlm
+IChwZGF0YS0+YnQ2NTYpCisJCWlzcF9yZWdfd3JpdGVsKGlzcCwgKChmb3JtYXQtPmhlaWdodCA+
+PiAxKSAtIDEpCisJCQk8PCBJU1BDQ0RDX1ZFUlRfTElORVNfTkxWX1NISUZULAorCQkJT01BUDNf
+SVNQX0lPTUVNX0NDREMsIElTUENDRENfVkVSVF9MSU5FUyk7CisJZWxzZQorCQlpc3BfcmVnX3dy
+aXRlbChpc3AsIChmb3JtYXQtPmhlaWdodCAtIDEpCiAJCQk8PCBJU1BDQ0RDX1ZFUlRfTElORVNf
+TkxWX1NISUZULAogCQkgICAgICAgT01BUDNfSVNQX0lPTUVNX0NDREMsIElTUENDRENfVkVSVF9M
+SU5FUyk7CiAKKwlpc3BfcmVnX2Nscihpc3AsIE9NQVAzX0lTUF9JT01FTV9DQ0RDLCBJU1BDQ0RD
+X1NET0ZTVCwKKwkJICAgIElTUENDRENfU0RPRlNUX0xPRlNUX01BU0sgPDwgSVNQQ0NEQ19TRE9G
+U1RfTE9GU1QwX1NISUZUKTsKKwlpc3BfcmVnX2Nscihpc3AsIE9NQVAzX0lTUF9JT01FTV9DQ0RD
+LCBJU1BDQ0RDX1NET0ZTVCwKKwkJICAgIElTUENDRENfU0RPRlNUX0xPRlNUX01BU0sgPDwgSVNQ
+Q0NEQ19TRE9GU1RfTE9GU1QxX1NISUZUKTsKKwlpc3BfcmVnX2Nscihpc3AsIE9NQVAzX0lTUF9J
+T01FTV9DQ0RDLCBJU1BDQ0RDX1NET0ZTVCwKKwkJICAgIElTUENDRENfU0RPRlNUX0xPRlNUX01B
+U0sgPDwgSVNQQ0NEQ19TRE9GU1RfTE9GU1QyX1NISUZUKTsKKwlpc3BfcmVnX2Nscihpc3AsIE9N
+QVAzX0lTUF9JT01FTV9DQ0RDLCBJU1BDQ0RDX1NET0ZTVCwKKwkJICAgIElTUENDRENfU0RPRlNU
+X0xPRlNUX01BU0sgPDwgSVNQQ0NEQ19TRE9GU1RfTE9GU1QzX1NISUZUKTsKKwogCWNjZGNfY29u
+ZmlnX291dGxpbmVvZmZzZXQoY2NkYywgY2NkYy0+dmlkZW9fb3V0LmJwbF92YWx1ZSwgMCwgMCk7
+CiAKIAkvKiBDQ0RDX1BBRF9TT1VSQ0VfVlAgKi8KQEAgLTEyMjQsOCArMTI2OCwxNCBAQCBzdGF0
+aWMgdm9pZCBjY2RjX2NvbmZpZ3VyZShzdHJ1Y3QgaXNwX2NjZGNfZGV2aWNlICpjY2RjKQogCS8q
+IFVzZSBQQUNLOCBtb2RlIGZvciAxYnl0ZSBwZXIgcGl4ZWwgZm9ybWF0cy4gKi8KIAlpZiAob21h
+cDNpc3BfdmlkZW9fZm9ybWF0X2luZm8oZm9ybWF0LT5jb2RlKS0+d2lkdGggPD0gOCkKIAkJc3lu
+X21vZGUgfD0gSVNQQ0NEQ19TWU5fTU9ERV9QQUNLODsKLQllbHNlCi0JCXN5bl9tb2RlICY9IH5J
+U1BDQ0RDX1NZTl9NT0RFX1BBQ0s4OworCisJaWYgKChmb3JtYXQtPmNvZGUgPT0gVjRMMl9NQlVT
+X0ZNVF9ZVVlWOF8yWDgpIHx8CisJCShmb3JtYXQtPmNvZGUgPT0gVjRMMl9NQlVTX0ZNVF9VWVZZ
+OF8yWDgpKSB7CisJCWlmIChwZGF0YS0+YnQ2NTYpCisJCQlzeW5fbW9kZSB8PSBJU1BDQ0RDX1NZ
+Tl9NT0RFX0lOUE1PRF9ZQ0JDUjg7CisJCWVsc2UKKwkJCXN5bl9tb2RlIHw9IElTUENDRENfU1lO
+X01PREVfSU5QTU9EX1lDQkNSMTY7CisJfQogCiAJaXNwX3JlZ193cml0ZWwoaXNwLCBzeW5fbW9k
+ZSwgT01BUDNfSVNQX0lPTUVNX0NDREMsIElTUENDRENfU1lOX01PREUpOwogCkBAIC0xMjUyLDYg
+KzEzMDIsMTEgQEAgc3RhdGljIHZvaWQgY2NkY19jb25maWd1cmUoc3RydWN0IGlzcF9jY2RjX2Rl
+dmljZSAqY2NkYykKIHVubG9jazoKIAlzcGluX3VubG9ja19pcnFyZXN0b3JlKCZjY2RjLT5sc2Mu
+cmVxX2xvY2ssIGZsYWdzKTsKIAorCWlmIChwZGF0YS0+YnQ2NTYpCisJCWNjZGMtPnVwZGF0ZSA9
+IE9NQVAzSVNQX0NDRENfQkxDTEFNUDsKKwllbHNlCisJCWNjZGMtPnVwZGF0ZSA9IDA7CisKIAlj
+Y2RjX2FwcGx5X2NvbnRyb2xzKGNjZGMpOwogfQogCkBAIC0xMjYzLDYgKzEzMTgsNyBAQCBzdGF0
+aWMgdm9pZCBfX2NjZGNfZW5hYmxlKHN0cnVjdCBpc3BfY2NkY19kZXZpY2UgKmNjZGMsIGludCBl
+bmFibGUpCiAJCQlJU1BDQ0RDX1BDUl9FTiwgZW5hYmxlID8gSVNQQ0NEQ19QQ1JfRU4gOiAwKTsK
+IH0KIAorc3RhdGljIGludCBfX2NjZGNfaGFuZGxlX3N0b3BwaW5nKHN0cnVjdCBpc3BfY2NkY19k
+ZXZpY2UgKmNjZGMsIHUzMiBldmVudCk7CiBzdGF0aWMgaW50IGNjZGNfZGlzYWJsZShzdHJ1Y3Qg
+aXNwX2NjZGNfZGV2aWNlICpjY2RjKQogewogCXVuc2lnbmVkIGxvbmcgZmxhZ3M7CkBAIC0xMjcz
+LDYgKzEzMjksMTEgQEAgc3RhdGljIGludCBjY2RjX2Rpc2FibGUoc3RydWN0IGlzcF9jY2RjX2Rl
+dmljZSAqY2NkYykKIAkJY2NkYy0+c3RvcHBpbmcgPSBDQ0RDX1NUT1BfUkVRVUVTVDsKIAlzcGlu
+X3VubG9ja19pcnFyZXN0b3JlKCZjY2RjLT5sb2NrLCBmbGFncyk7CiAKKwlfX2NjZGNfbHNjX2Vu
+YWJsZShjY2RjLCAwKTsKKwlfX2NjZGNfZW5hYmxlKGNjZGMsIDApOworCWNjZGMtPnN0b3BwaW5n
+ID0gQ0NEQ19TVE9QX0VYRUNVVEVEOworCV9fY2NkY19oYW5kbGVfc3RvcHBpbmcoY2NkYywgQ0NE
+Q19TVE9QX0ZJTklTSEVEKTsKKwogCXJldCA9IHdhaXRfZXZlbnRfdGltZW91dChjY2RjLT53YWl0
+LAogCQkJCSBjY2RjLT5zdG9wcGluZyA9PSBDQ0RDX1NUT1BfRklOSVNIRUQsCiAJCQkJIG1zZWNz
+X3RvX2ppZmZpZXMoMjAwMCkpOwpAQCAtMTUyMSwxMCArMTU4MiwyOSBAQCBzdGF0aWMgdm9pZCBj
+Y2RjX3ZkMF9pc3Ioc3RydWN0IGlzcF9jY2RjX2RldmljZSAqY2NkYykKIHsKIAl1bnNpZ25lZCBs
+b25nIGZsYWdzOwogCWludCByZXN0YXJ0ID0gMDsKKwlzdHJ1Y3QgaXNwX2RldmljZSAqaXNwID0g
+dG9faXNwX2RldmljZShjY2RjKTsKIAotCWlmIChjY2RjLT5vdXRwdXQgJiBDQ0RDX09VVFBVVF9N
+RU1PUlkpCi0JCXJlc3RhcnQgPSBjY2RjX2lzcl9idWZmZXIoY2NkYyk7Ci0KKwlpZiAoY2NkYy0+
+b3V0cHV0ICYgQ0NEQ19PVVRQVVRfTUVNT1JZKSB7CisJCWlmIChjY2RjX2lucHV0X2lzX2J0NjU2
+KGNjZGMpKSB7CisJCQl1MzIgZmlkOworCQkJdTMyIHN5bl9tb2RlID0gaXNwX3JlZ19yZWFkbChp
+c3AsIE9NQVAzX0lTUF9JT01FTV9DQ0RDLAorCQkJCQlJU1BDQ0RDX1NZTl9NT0RFKTsKKwkJCWZp
+ZCA9IHN5bl9tb2RlICYgSVNQQ0NEQ19TWU5fTU9ERV9GTERTVEFUOworCQkJLyogdG9nZ2xlIHRo
+ZSBzb2Z0d2FyZSBtYWludGFpbmVkIGZpZCAqLworCQkJY2NkYy0+Zmxkc3RhdCBePSAxOworCQkJ
+aWYgKGZpZCA9PSBjY2RjLT5mbGRzdGF0KSB7CisJCQkJaWYgKGZpZCA9PSAwKSB7CisJCQkJCXJl
+c3RhcnQgPSBjY2RjX2lzcl9idWZmZXIoY2NkYyk7CisJCQkJCWdvdG8gZG9uZTsKKwkJCQl9CisJ
+CQl9IGVsc2UgaWYgKGZpZCA9PSAwKSB7CisJCQkJY2NkYy0+Zmxkc3RhdCA9IGZpZDsKKwkJCX0K
+KwkJfSBlbHNlIHsKKwkJCXJlc3RhcnQgPSBjY2RjX2lzcl9idWZmZXIoY2NkYyk7CisJCX0KKwl9
+Citkb25lOgogCXNwaW5fbG9ja19pcnFzYXZlKCZjY2RjLT5sb2NrLCBmbGFncyk7CiAJaWYgKF9f
+Y2NkY19oYW5kbGVfc3RvcHBpbmcoY2NkYywgQ0NEQ19FVkVOVF9WRDApKSB7CiAJCXNwaW5fdW5s
+b2NrX2lycXJlc3RvcmUoJmNjZGMtPmxvY2ssIGZsYWdzKTsKQEAgLTE2MTAsNyArMTY5MCw4IEBA
+IGludCBvbWFwM2lzcF9jY2RjX2lzcihzdHJ1Y3QgaXNwX2NjZGNfZGV2aWNlICpjY2RjLCB1MzIg
+ZXZlbnRzKQogCWlmIChjY2RjLT5zdGF0ZSA9PSBJU1BfUElQRUxJTkVfU1RSRUFNX1NUT1BQRUQp
+CiAJCXJldHVybiAwOwogCi0JaWYgKGV2ZW50cyAmIElSUTBTVEFUVVNfQ0NEQ19WRDFfSVJRKQor
+CWlmICghY2NkY19pbnB1dF9pc19idDY1NihjY2RjKSAmJgorCQkJKGV2ZW50cyAmIElSUTBTVEFU
+VVNfQ0NEQ19WRDFfSVJRKSkKIAkJY2NkY192ZDFfaXNyKGNjZGMpOwogCiAJY2NkY19sc2NfaXNy
+KGNjZGMsIGV2ZW50cyk7CkBAIC0xNjE4LDcgKzE2OTksOCBAQCBpbnQgb21hcDNpc3BfY2NkY19p
+c3Ioc3RydWN0IGlzcF9jY2RjX2RldmljZSAqY2NkYywgdTMyIGV2ZW50cykKIAlpZiAoZXZlbnRz
+ICYgSVJRMFNUQVRVU19DQ0RDX1ZEMF9JUlEpCiAJCWNjZGNfdmQwX2lzcihjY2RjKTsKIAotCWlm
+IChldmVudHMgJiBJUlEwU1RBVFVTX0hTX1ZTX0lSUSkKKwlpZiAoIWNjZGNfaW5wdXRfaXNfYnQ2
+NTYoY2NkYykgJiYKKwkJCShldmVudHMgJiBJUlEwU1RBVFVTX0hTX1ZTX0lSUSkpCiAJCWNjZGNf
+aHNfdnNfaXNyKGNjZGMpOwogCiAJcmV0dXJuIDA7CkBAIC0xNzI4LDcgKzE4MTAsNyBAQCBzdGF0
+aWMgaW50IGNjZGNfc2V0X3N0cmVhbShzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNkLCBpbnQgZW5hYmxl
+KQogCQkgKiBsaW5rcyBhcmUgaW5hY3RpdmUuCiAJCSAqLwogCQljY2RjX2NvbmZpZ192cChjY2Rj
+KTsKLQkJY2NkY19lbmFibGVfdnAoY2NkYywgMSk7CisJCWNjZGNfZW5hYmxlX3ZwKGNjZGMsIDAp
+OwogCQljY2RjLT5lcnJvciA9IDA7CiAJCWNjZGNfcHJpbnRfc3RhdHVzKGNjZGMpOwogCX0KQEAg
+LTIyNzgsNyArMjM2MCw3IEBAIGludCBvbWFwM2lzcF9jY2RjX2luaXQoc3RydWN0IGlzcF9kZXZp
+Y2UgKmlzcCkKIAogCWNjZGMtPnZwY2ZnLnBpeGVsY2xrID0gMDsKIAotCWNjZGMtPnVwZGF0ZSA9
+IE9NQVAzSVNQX0NDRENfQkxDTEFNUDsKKwljY2RjLT51cGRhdGUgPSAwOwogCWNjZGNfYXBwbHlf
+Y29udHJvbHMoY2NkYyk7CiAKIAlyZXQgPSBjY2RjX2luaXRfZW50aXRpZXMoY2NkYyk7CmRpZmYg
+LS1naXQgYS9kcml2ZXJzL21lZGlhL3ZpZGVvL29tYXAzaXNwL2lzcGNjZGMuaCBiL2RyaXZlcnMv
+bWVkaWEvdmlkZW8vb21hcDNpc3AvaXNwY2NkYy5oCmluZGV4IDU0ODExY2UuLjdmOTMzYjIgMTAw
+NjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vb21hcDNpc3AvaXNwY2NkYy5oCisrKyBiL2Ry
+aXZlcnMvbWVkaWEvdmlkZW8vb21hcDNpc3AvaXNwY2NkYy5oCkBAIC0xNTksNiArMTU5LDcgQEAg
+c3RydWN0IGlzcF9jY2RjX2RldmljZSB7CiAJc3RydWN0IGlzcGNjZGNfdnAgdnBjZmc7CiAKIAl1
+bnNpZ25lZCBpbnQgdW5kZXJydW46MTsKKwl1bnNpZ25lZCBpbnQgZmxkc3RhdDoxOwogCWVudW0g
+aXNwX3BpcGVsaW5lX3N0cmVhbV9zdGF0ZSBzdGF0ZTsKIAlzcGlubG9ja190IGxvY2s7CiAJd2Fp
+dF9xdWV1ZV9oZWFkX3Qgd2FpdDsKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vb21h
+cDNpc3AvaXNwcmVnLmggYi9kcml2ZXJzL21lZGlhL3ZpZGVvL29tYXAzaXNwL2lzcHJlZy5oCmlu
+ZGV4IDY5ZjZhZjYuLmFkYTM5YzYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vb21h
+cDNpc3AvaXNwcmVnLmgKKysrIGIvZHJpdmVycy9tZWRpYS92aWRlby9vbWFwM2lzcC9pc3ByZWcu
+aApAQCAtODI3LDYgKzgyNyw3IEBACiAjZGVmaW5lIElTUENDRENfU0RPRlNUX0xPRlNUMl9TSElG
+VAkJMwogI2RlZmluZSBJU1BDQ0RDX1NET0ZTVF9MT0ZTVDFfU0hJRlQJCTYKICNkZWZpbmUgSVNQ
+Q0NEQ19TRE9GU1RfTE9GU1QwX1NISUZUCQk5CisjZGVmaW5lIElTUENDRENfU0RPRlNUX0xPRlNU
+X01BU0sgICAgICAgICAgICAgIDB4NwogI2RlZmluZSBFVkVORVZFTgkJCQkxCiAjZGVmaW5lIE9E
+REVWRU4JCQkJCTIKICNkZWZpbmUgRVZFTk9ERAkJCQkJMwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9t
+ZWRpYS92aWRlby9vbWFwM2lzcC9pc3B2aWRlby5jIGIvZHJpdmVycy9tZWRpYS92aWRlby9vbWFw
+M2lzcC9pc3B2aWRlby5jCmluZGV4IGNjNzMzNzUuLmQ1OWY4ODYgMTAwNjQ0Ci0tLSBhL2RyaXZl
+cnMvbWVkaWEvdmlkZW8vb21hcDNpc3AvaXNwdmlkZW8uYworKysgYi9kcml2ZXJzL21lZGlhL3Zp
+ZGVvL29tYXAzaXNwL2lzcHZpZGVvLmMKQEAgLTE2NCw3ICsxNjQsNyBAQCBzdGF0aWMgYm9vbCBp
+c3BfdmlkZW9faXNfc2hpZnRhYmxlKGVudW0gdjRsMl9tYnVzX3BpeGVsY29kZSBpbiwKICAqCiAg
+KiBSZXR1cm4gdGhlIG51bWJlciBvZiBwYWRkaW5nIGJ5dGVzIGF0IGVuZCBvZiBsaW5lLgogICov
+Ci1zdGF0aWMgdW5zaWduZWQgaW50IGlzcF92aWRlb19tYnVzX3RvX3BpeChjb25zdCBzdHJ1Y3Qg
+aXNwX3ZpZGVvICp2aWRlbywKK3Vuc2lnbmVkIGludCBpc3BfdmlkZW9fbWJ1c190b19waXgoY29u
+c3Qgc3RydWN0IGlzcF92aWRlbyAqdmlkZW8sCiAJCQkJCSAgY29uc3Qgc3RydWN0IHY0bDJfbWJ1
+c19mcmFtZWZtdCAqbWJ1cywKIAkJCQkJICBzdHJ1Y3QgdjRsMl9waXhfZm9ybWF0ICpwaXgpCiB7
+CmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3ZpZGVvL29tYXAzaXNwL2lzcHZpZGVvLmggYi9k
+cml2ZXJzL21lZGlhL3ZpZGVvL29tYXAzaXNwL2lzcHZpZGVvLmgKaW5kZXggNTJmZTQ2Yi4uNWZh
+OGZkNyAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9vbWFwM2lzcC9pc3B2aWRlby5o
+CisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vb21hcDNpc3AvaXNwdmlkZW8uaApAQCAtMjAwLDcg
+KzIwMCw5IEBAIHN0cnVjdCBpc3BfYnVmZmVyICpvbWFwM2lzcF92aWRlb19idWZmZXJfbmV4dChz
+dHJ1Y3QgaXNwX3ZpZGVvICp2aWRlbywKIAkJCQkJICAgICAgdW5zaWduZWQgaW50IGVycm9yKTsK
+IHZvaWQgb21hcDNpc3BfdmlkZW9fcmVzdW1lKHN0cnVjdCBpc3BfdmlkZW8gKnZpZGVvLCBpbnQg
+Y29udGludW91cyk7CiBzdHJ1Y3QgbWVkaWFfcGFkICpvbWFwM2lzcF92aWRlb19yZW1vdGVfcGFk
+KHN0cnVjdCBpc3BfdmlkZW8gKnZpZGVvKTsKLQorZXh0ZXJuIHVuc2lnbmVkIGludCBpc3Bfdmlk
+ZW9fbWJ1c190b19waXgoY29uc3Qgc3RydWN0IGlzcF92aWRlbyAqdmlkZW8sCisJCQkJICBjb25z
+dCBzdHJ1Y3QgdjRsMl9tYnVzX2ZyYW1lZm10ICptYnVzLAorCQkJCSAgc3RydWN0IHY0bDJfcGl4
+X2Zvcm1hdCAqcGl4KTsKIGNvbnN0IHN0cnVjdCBpc3BfZm9ybWF0X2luZm8gKgogb21hcDNpc3Bf
+dmlkZW9fZm9ybWF0X2luZm8oZW51bSB2NGwyX21idXNfcGl4ZWxjb2RlIGNvZGUpOwogCi0tIAox
+LjcuNC4xCgo=
+--20cf300512804638f604aef12d55
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0002-igep00x0-remove-fldmode-from-camera-platform-data.patch"
+Content-Disposition: attachment;
+	filename="0002-igep00x0-remove-fldmode-from-camera-platform-data.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gtlggh021
 
-What I did is to reconfigure the CCDC on the VD1 interrupt handler,
-but I think this is more a hack than a clean solution. What do you
-think is the best approach to solve this?
-
-Best regards,
-
--- 
-Javier Martínez Canillas
-(+34) 682 39 81 69
-Barcelona, Spain
+RnJvbSAzZTVjNzRmNjg0MTJhYjA3ZTgzMDNmNzEyYTJmYzdjMzNhYjBkODQzIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBFbnJpY28gQnV0ZXJhIDxlYnV0ZXJhQHVzZXJzLmJlcmxpb3Mu
+ZGU+CkRhdGU6IE1vbiwgMTAgT2N0IDIwMTEgMTQ6MzQ6MzMgKzAyMDAKU3ViamVjdDogW1BBVENI
+XSBpZ2VwMDB4MDogcmVtb3ZlIGZsZG1vZGUgZnJvbSBjYW1lcmEgcGxhdGZvcm0gZGF0YQoKU2ln
+bmVkLW9mZi1ieTogRW5yaWNvIEJ1dGVyYSA8ZWJ1dGVyYUB1c2Vycy5iZXJsaW9zLmRlPgotLS0K
+IGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtaWdlcDAweDAuYyB8ICAgIDEgLQogMSBmaWxlcyBj
+aGFuZ2VkLCAwIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJj
+aC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1pZ2VwMDB4MC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9i
+b2FyZC1pZ2VwMDB4MC5jCmluZGV4IDYxMjUwNTcuLjc0ZmQxOGMgMTAwNjQ0Ci0tLSBhL2FyY2gv
+YXJtL21hY2gtb21hcDIvYm9hcmQtaWdlcDAweDAuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAy
+L2JvYXJkLWlnZXAwMHgwLmMKQEAgLTU4MCw3ICs1ODAsNiBAQCBzdGF0aWMgc3RydWN0IGlzcF92
+NGwyX3N1YmRldnNfZ3JvdXAgaWdlcDAweDBfY2FtZXJhX3N1YmRldnNbXSA9IHsKICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgLmNsa19wb2wgICAgICAgICAgICAgICAgPSAwLAogICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAuaHNfcG9sICAgICAgICAgICAgICAgICA9IDAs
+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC52c19wb2wgICAgICAgICAgICAgICAg
+ID0gMCwKLSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgLmZsZG1vZGUgICAgICAgICAg
+ICAgICAgPSAxLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAuYnQ2NTYgICAgICAg
+ICAgICAgICA9IDEsCiAgICAgICAgICAgICAgICAgfSB9LAogICAgICAgICB9LAotLSAKMS43LjQu
+MQoK
+--20cf300512804638f604aef12d55--
