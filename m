@@ -1,66 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:61011 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932930Ab1J2RDp (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:42057 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750919Ab1JJOv7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Oct 2011 13:03:45 -0400
-Date: Sat, 29 Oct 2011 20:00:32 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Piotr Chmura <chmooreck@poczta.onet.pl>,
-	devel@driverdev.osuosl.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	Greg KH <gregkh@suse.de>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [RESEND PATCH 4/14] staging/media/as102: checkpatch fixes
-Message-ID: <20111029170032.GI14881@longonot.mountain>
-References: <20111016105731.09d66f03@stein>
- <CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
- <4E9ADFAE.8050208@redhat.com>
- <20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
- <20111018111151.635ac39e.chmooreck@poczta.onet.pl>
- <20111018215146.1fbc223f@darkstar>
- <4EABD3E2.3070302@gmail.com>
- <4EABFCF8.2010003@poczta.onet.pl>
- <4EAC2914.1010508@poczta.onet.pl>
- <4EAC2C5A.4010506@gmail.com>
+	Mon, 10 Oct 2011 10:51:59 -0400
+Received: by ggnv2 with SMTP id v2so4555848ggn.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 07:51:59 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Mauro Chehab <mchehab@infradead.org>
+Subject: [GIT PATCHES FOR 3.2] cx23885 alsa cleaned and prepaired
+Date: Mon, 10 Oct 2011 17:52:11 +0300
+Cc: linux-media@vger.kernel.org, Steven Toth <stoth@linuxtv.org>,
+	Mijhail Moreyra <mijhail.moreyra@gmail.com>,
+	Abylai Ospan <aospan@netup.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4EAC2C5A.4010506@gmail.com>
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201110101752.11536.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Oct 29, 2011 at 06:39:54PM +0200, Sylwester Nawrocki wrote:
-> >> Hi Sylwester,
-> >>
-> >> I'is based on
-> >> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git kernel-3.1.0-git9+
-> >>
-> >> All patches are working on newly created driver directory drivers/staging/media/as102
-> >> (exception is 13/14: staging/Makefile and staging/Kconfig) and they apply cleanly in
-> >>  my tree. Let me know why they doesn't on yours and i'll try to fix them.
-> > One more thing... patches starting from 4/14 in patchwork have
-> > 
-> > "To unsubscribe from this list: send the line "unsubscribe linux-media" in..."
-> > 
-> > on the end.
-> > 
-> > Isn't this making them wrong ?
-> 
-> This shouldn't be an issue, I've also used patches saved directly form an e-mail client
-> which didn't have this text appended and the patch didn't apply in same way. 
+Hi Mauro and Steven,
 
-I get this error when I try apply them.
+It's been a long time since cx23885-alsa pull was requested.
+To speed things up I created a git branch where I put the patches.
+Some patches merged, like introduce then correct checkpatch compliance
+or convert spinlock to mutex and back to spinlock, insert printk then remove printk as well.
+Minor corrections from me was silently merged, for major I created additional patches.
 
-patching file drivers/staging/media/as102/as10x_cmd.c
-patch: **** malformed patch at line 696: _______________________________________________
+Hope it helps.
 
-I'm applying with "patch" not with "git am".
+The following changes since commit e30528854797f057aa6ffb6dc9f890e923c467fd:
 
-regards,
-dan carpenter
+  [media] it913x-fe changes to power up and down of tuner (2011-10-08 08:03:27 -0300)
 
+are available in the git repository at:
+  git://linuxtv.org/liplianin/media_tree.git cx23885-alsa-clean-2
+
+Igor M. Liplianin (2):
+      cx23885: videobuf: Remove the videobuf_sg_dma_map/unmap functions
+      cx25840-audio: fix missing state declaration
+
+Mijhail Moreyra (6):
+      cx23885: merge mijhail's header changes for alsa
+      cx23885: ALSA support
+      cx23885: core changes requireed for ALSA
+      cx23885: add definitions for HVR1500 to support audio
+      cx23885: correct the contrast, saturation and hue controls
+      cx23885: hooks the alsa changes into the video subsystem
+
+Steven Toth (31):
+      cx23885: prepare the cx23885 makefile for alsa support
+      cx23885: convert from snd_card_new() to snd_card_create()
+      cx23885: convert call clients into subdevices
+      cx23885: minor function renaming to ensure uniformity
+      cx23885: setup the dma mapping for raw audio support
+      cx23885: mute the audio during channel change
+      cx23885: add two additional defines to simplify VBI register bitmap handling
+      cx23885: initial support for VBI with the cx23885
+      cx23885: initialize VBI support in the core, add IRQ support, register vbi device
+      cx23885: minor printk cleanups and device registration
+      cx25840: enable raw cc processing only for the cx23885 hardware
+      cx23885: vbi line window adjustments
+      cx23885: add vbi buffer formatting, window changes and video core changes
+      cx23885: Ensure the VBI pixel format is established correctly.
+      cx23885: ensure video is streaming before allowing vbi to stream
+      cx23885: remove channel dump diagnostics when a vbi buffer times out.
+      cx23885: Ensure VBI buffers timeout quickly - bugfix for vbi hangs during streaming.
+      cx23885: Name an internal i2c part and declare a bitfield by name
+      cx25840: Enable support for non-tuner LR1/LR2 audio inputs
+      cx23885: Enable audio line in support from the back panel
+      cx25840: Ensure AUDIO6 and AUDIO7 trigger line-in baseband use.
+      cx23885: Initial support for the MPX-885 mini-card
+      cx23885: fixes related to maximum number of inputs and range checking
+      cx23885: add generic functions for dealing with audio input selection
+      cx23885: hook the audio selection functions into the main driver
+      cx23885: v4l2 api compliance, set the audioset field correctly
+      cx23885: Removed a spurious function cx23885_set_scale().
+      cx23885: Avoid stopping the risc engine during buffer timeout.
+      cx23885: Avoid incorrect error handling and reporting
+      cx23885: Stop the risc video fifo before reconfiguring it.
+      cx23885: Allow the audio mux config to be specified on a per input basis.
+
+ drivers/media/video/cx23885/Makefile        |    2 +-
+ drivers/media/video/cx23885/cx23885-alsa.c  |  535 +++++++++++++++++++++++++++
+ drivers/media/video/cx23885/cx23885-cards.c |   53 +++
+ drivers/media/video/cx23885/cx23885-core.c  |   99 ++++-
+ drivers/media/video/cx23885/cx23885-i2c.c   |    1 +
+ drivers/media/video/cx23885/cx23885-reg.h   |    3 +
+ drivers/media/video/cx23885/cx23885-vbi.c   |   72 +++-
+ drivers/media/video/cx23885/cx23885-video.c |  373 ++++++++++++++++---
+ drivers/media/video/cx23885/cx23885.h       |   56 +++
+ drivers/media/video/cx25840/cx25840-audio.c |   10 +-
+ drivers/media/video/cx25840/cx25840-core.c  |   19 +
+ 11 files changed, 1144 insertions(+), 79 deletions(-)
+ create mode 100644 drivers/media/video/cx23885/cx23885-alsa.c
