@@ -1,109 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:33378 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753592Ab1JNUDM (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:45906 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750953Ab1JJVG5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Oct 2011 16:03:12 -0400
-Message-ID: <4E98957A.1070009@infradead.org>
-Date: Fri, 14 Oct 2011 17:03:06 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Mon, 10 Oct 2011 17:06:57 -0400
+Received: by iabz25 with SMTP id z25so763640iab.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 14:06:56 -0700 (PDT)
 MIME-Version: 1.0
-To: "Igor M. Liplianin" <liplianin@me.by>
-CC: linux-media@vger.kernel.org, Steven Toth <stoth@linuxtv.org>,
-	Mijhail Moreyra <mijhail.moreyra@gmail.com>,
-	Abylai Ospan <aospan@netup.ru>
-Subject: Re: [GIT PATCHES FOR 3.2] cx23885 alsa cleaned and prepaired
-References: <201110101752.11536.liplianin@me.by>
-In-Reply-To: <201110101752.11536.liplianin@me.by>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1318278450.16238.15.camel@localhost>
+References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
+	<CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
+	<CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
+	<4e8b8099.95d1e30a.4bee.0501@mx.google.com>
+	<CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
+	<CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
+	<CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
+	<4e8f6b0b.c90fe30a.4a1d.26bb@mx.google.com>
+	<CAATJ+fvQA4zAcGq+D0+k+OHb8Xsrda5=DATWXbzEO5z=0rWZfw@mail.gmail.com>
+	<CAL9G6WWMw3npqjt0WHGhyjaW5Mu=1jA5Y_QduSr3KudZTKLgBw@mail.gmail.com>
+	<4e904f71.ce66e30a.69f3.ffff9870@mx.google.com>
+	<CAATJ+fstZmoctKrv8Owv53-oEPOn6C8d5FOwMAmLL=7R8UwYzg@mail.gmail.com>
+	<4E93481F.8010205@iki.fi>
+	<1318278450.16238.15.camel@localhost>
+Date: Tue, 11 Oct 2011 08:06:56 +1100
+Message-ID: <CAATJ+fub_tmoXxxPKU1vBnRNT=7MEUTn0T=_+iP2koj7N4MBrA@mail.gmail.com>
+Subject: Re: [PATCH] af9013 Extended monitoring in set_frontend.
+From: Jason Hecker <jwhecker@gmail.com>
+To: Malcolm Priestley <tvboxspy@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Josu Lazkano <josu.lazkano@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 10-10-2011 11:52, Igor M. Liplianin escreveu:
-> Hi Mauro and Steven,
-> 
-> It's been a long time since cx23885-alsa pull was requested.
-> To speed things up I created a git branch where I put the patches.
-> Some patches merged, like introduce then correct checkpatch compliance
-> or convert spinlock to mutex and back to spinlock, insert printk then remove printk as well.
-> Minor corrections from me was silently merged, for major I created additional patches.
-> 
-> Hope it helps.
-> 
-> The following changes since commit e30528854797f057aa6ffb6dc9f890e923c467fd:
-> 
->   [media] it913x-fe changes to power up and down of tuner (2011-10-08 08:03:27 -0300)
-> 
-> are available in the git repository at:
->   git://linuxtv.org/liplianin/media_tree.git cx23885-alsa-clean-2
-> 
-> Igor M. Liplianin (2):
->       cx23885: videobuf: Remove the videobuf_sg_dma_map/unmap functions
->       cx25840-audio: fix missing state declaration
-> 
-> Mijhail Moreyra (6):
->       cx23885: merge mijhail's header changes for alsa
->       cx23885: ALSA support
->       cx23885: core changes requireed for ALSA
->       cx23885: add definitions for HVR1500 to support audio
->       cx23885: correct the contrast, saturation and hue controls
->       cx23885: hooks the alsa changes into the video subsystem
+> Playing with Kaffeine or Mplayer all the devices are fine on the same
+> system.
 
-> patches/0009-cx23885-hooks-the-alsa-changes-into-the-video-subsys.patch
-> From ee1eadb6f02f9c1b6d14e049874ad883d752ea7e Mon Sep 17 00:00:00 2001
-> From: Mijhail Moreyra <mijhail.moreyra@gmail.com>
-> Date: Mon, 10 Oct 2011 17:09:53 +0300
-> Subject: cx23885: hooks the alsa changes into the video subsystem
-> Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-> 
-> Priority: normal
-> 
-> Signed-off-by: Mijhail Moreyra <mijhail.moreyra@gmail.com>
-> Signed-off-by: Steven Toth <stoth@kernellabs.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/video/cx23885/cx23885-video.c |   23 ++++++++++++++++-------
->  1 files changed, 16 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/video/cx23885/cx23885-video.c b/drivers/media/video/cx23885/cx23885-video.c
-> index 0c463f9..acd6e0c 100644
-> --- a/drivers/media/video/cx23885/cx23885-video.c
-> +++ b/drivers/media/video/cx23885/cx23885-video.c
-> @@ -37,6 +37,8 @@
->  #include "cx23885-ioctl.h"
->  #include "tuner-xc2028.h"
->  
-> +#include <media/cx25840.h>
-> +
->  MODULE_DESCRIPTION("v4l2 driver module for cx23885 based TV cards");
->  MODULE_AUTHOR("Steven Toth <stoth@linuxtv.org>");
->  MODULE_LICENSE("GPL");
-> @@ -884,8 +886,9 @@ static int cx23885_get_control(struct cx23885_dev *dev,
->  static int cx23885_set_control(struct cx23885_dev *dev,
->  	struct v4l2_control *ctl)
->  {
-> -	dprintk(1, "%s() calling cx25840(VIDIOC_S_CTRL)"
-> -		" (disabled - no action)\n", __func__);
-> +	dprintk(1, "%s() calling cx25840(VIDIOC_S_CTRL)\n", __func__);
-> +	call_all(dev, core, s_ctrl, ctl);
-> +
->  	return 0;
->  }
->  
-> @@ -1220,11 +1223,9 @@ static int vidioc_g_tuner(struct file *file, void *priv,
->  	if (0 != t->index)
->  		return -EINVAL;
->  
-> +	memset(t, 0, sizeof(*t));
+Right, admittedly most of my testing has been done with MythTV.  I
+recall about a month ago I could also get corruption with mplayer.
 
-No. The V4L2 core already cleans the parameters that are meant to be
-returned to userspace.
+> At the moment, I am going step by step what Myth TV is sending to the
+> devices.
 
-In particular, this will break part of the tuner logic, as now the V4L2 core
-fills t->type, and tuner-core relies on that.
+Great.  If you want I can replicate your tests here to see what I get.
 
-If the rest of the patches are ok, I'll add a patch on the series removing this.
+Antti, my AF9015 chips are integrated on PCI so I can't swap cables
+(alas, if only this was my problem!)
 
-Regards,
-Mauro
+Cheers
+Jason
