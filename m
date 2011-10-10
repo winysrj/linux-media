@@ -1,132 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:45211 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753277Ab1JJKG4 (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:58175 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753196Ab1JJQyA convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Oct 2011 06:06:56 -0400
-Received: by yxl31 with SMTP id 31so5183097yxl.19
-        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 03:06:55 -0700 (PDT)
+	Mon, 10 Oct 2011 12:54:00 -0400
+Received: by ywb5 with SMTP id 5so5553241ywb.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 09:54:00 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAAwP0s3GJ7-By=q_ADa6qcpaENK5kXvkTG8Hd=Y+qXs9dgXa0w@mail.gmail.com>
+In-Reply-To: <CA+2YH7uNvuRdWSoX25NvHryknExrfeew1heB5DNSf3Epz2LOUw@mail.gmail.com>
 References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
-	<CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
-	<CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com>
-	<201110081751.38953.laurent.pinchart@ideasonboard.com>
-	<CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
-	<CA+2YH7vat9iSAuZ4ztDvvo4Od+b4tCOsK6Y+grTE05YUZZEYPQ@mail.gmail.com>
-	<CAAwP0s3NFvvUYd-0kwKLKXfYB4Zx1nXb0nd9+JM61JWtrVFfRg@mail.gmail.com>
-	<CA+2YH7uFeHAmEpVqbd94qtCajb45pkr9YzeW+RDa5sf2bUG_wQ@mail.gmail.com>
-	<CAAwP0s3GJ7-By=q_ADa6qcpaENK5kXvkTG8Hd=Y+qXs9dgXa0w@mail.gmail.com>
-Date: Mon, 10 Oct 2011 12:06:55 +0200
-Message-ID: <CA+2YH7subMzFAg7f7-uHXEmYBD+Kd1=E2nWKx7dgKCEpOu=zgQ@mail.gmail.com>
+ <CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
+ <CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com>
+ <201110081751.38953.laurent.pinchart@ideasonboard.com> <CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
+ <CA+2YH7vat9iSAuZ4ztDvvo4Od+b4tCOsK6Y+grTE05YUZZEYPQ@mail.gmail.com>
+ <CAAwP0s3NFvvUYd-0kwKLKXfYB4Zx1nXb0nd9+JM61JWtrVFfRg@mail.gmail.com>
+ <CA+2YH7uFeHAmEpVqbd94qtCajb45pkr9YzeW+RDa5sf2bUG_wQ@mail.gmail.com>
+ <CAAwP0s3GJ7-By=q_ADa6qcpaENK5kXvkTG8Hd=Y+qXs9dgXa0w@mail.gmail.com>
+ <CA+2YH7subMzFAg7f7-uHXEmYBD+Kd1=E2nWKx7dgKCEpOu=zgQ@mail.gmail.com>
+ <CA+2YH7ti4xz9zNby6O=3ZOKAB9=1hnYZr9cM8HSMrj0r4zi1=A@mail.gmail.com>
+ <CAAwP0s3ZqDpMsF7mYYtM7twomREZTyO-uDhGPnfNsQcOTXQ_fw@mail.gmail.com>
+ <CA+2YH7s6rhLsyJTdWwQVUCd2WBWiH2saSaZZw0tysRWsXw-6Cg@mail.gmail.com>
+ <CA+2YH7tdMHNpJGyOhVJnR4UN5ZwCcspD0Nnj8xCvUs7RaERb_w@mail.gmail.com> <CA+2YH7uNvuRdWSoX25NvHryknExrfeew1heB5DNSf3Epz2LOUw@mail.gmail.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Date: Mon, 10 Oct 2011 18:53:40 +0200
+Message-ID: <CAAwP0s1JDoSUqX2Fm7+L1HyNxAZkdenDfmy0M8U5nVLo2eSvOw@mail.gmail.com>
 Subject: Re: omap3-isp status
-From: Enrico <ebutera@users.berlios.de>
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
+To: Enrico <ebutera@users.berlios.de>
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Deepthy Ravi <deepthy.ravi@ti.com>,
 	Gary Thomas <gary@mlbassoc.com>,
 	Adam Pledger <a.pledger@thermoteknix.com>,
 	linux-media@vger.kernel.org,
 	Enric Balletbo i Serra <eballetbo@iseebcn.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 10, 2011 at 11:02 AM, Javier Martinez Canillas
-<martinez.javier@gmail.com> wrote:
-> Is your tree (igep 3.1.0rc9 kernel + omap3isp-yuv patches) accessible
-> so I can clone and give a try?
+On Mon, Oct 10, 2011 at 6:34 PM, Enrico <ebutera@users.berlios.de> wrote:
+> On Mon, Oct 10, 2011 at 4:17 PM, Enrico <ebutera@users.berlios.de> wrote:
+>> On Mon, Oct 10, 2011 at 2:46 PM, Enrico <ebutera@users.berlios.de> wrote:
+>>> On Mon, Oct 10, 2011 at 12:33 PM, Javier Martinez Canillas
+>>>> Perfect, thank you Enrico. I will try this latter today and let you
+>>>> know. I'm sure I can get this working (with the ghosting effect of
+>>>> course) so you can at least obtain 25 fps and once I have this working
+>>>> I will resend the patch-set as v3 so Laurent can review it and
+>>>> hopefully help us to fix the artifact on the video.
+>>>
+>>> Yes it must be something simple but not easy to spot.
+>>>
+>>> And to add even more confusion i've attached two patches: one is a
+>>> port of two Deepthy patches, the other one just a board fix.
+>>>
+>>> Just replace patches 0017-18-19 with the attached 0001 patch, and
+>>> after patch 0025 apply the attached 0002 patch.
+>>>
+>>> With these i can succesfully grab frames with yavta BUT i only get
+>>> half-height frames. Disclaimer: i just made the patch monkey and gave
+>>> it a run without a review so it could be anything.
+>>
+>> My bad, i forgot a part about config_outlineoffset (ODDEVEN...), i
+>> still have (different) half-green images though...
+>>
+>> Side note: while making some tests i can confirm that the solution
+>> adopted in Deepthy patches:
+>>
+>> u32 syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
+>> fid = syn_mode & ISPCCDC_SYN_MODE_FLDSTAT;
+>> /* toggle the software maintained fid */
+>>
+>> works as expected, i see fid switching correctly.
 >
-> I can then make a patch-set on top on that, one that I can actually
-> test on real hardware and be sure that is working well.
+> Ok, i made it work. It was missing just the config_outlineoffset i
+> wrote before and a missing FLDMODE in SYNC registers.
 >
-> If I can git clone your tree then it will be faster, otherwise I will
-> try omap3isp-yuv with igep board support added, but it would take me
-> more time to do so. I will find some free time late this afternoon to
-> try that.
 
-I have updated my igep openembedded layer at [1] (testing branch) with:
+Great, do you get the ghosting effect or do you have a clean video?
 
-current igep master kernel (3.1.0rc9) + omap3isp-yuv patches + your
-patches v2 + tvp5150 patches + some tvp5150 and board files fixes.
+> Moreover it seems to me that the software-maintained field id
+> (interlaced_cnt in Javier patches, fldstat in Deepthy patches) is
+> useless, i've tried to only use the FLDSTAT bit from isp register
+> (fid) in vd0_isr:
+>
+> if (fid == 0) {
+>     restart = ccdc_isr_buffer(ccdc);
+>     goto done;
+> }
+>
+> and it works. I've not tested very long frame sequences, only up to 16
+> frames. The only issue is that the first frame could be half-green
+> because a field is missing.
+>
+> Enrico
+>
 
-All the patches (specified in the .bb file) are git am-able patches so
-you can just clone the igep master repository and apply all the
-patches (0001-0025).
+Yes, when I tried Deepthy patches I realized that the fldstat was not
+in sync with the frames, but probably I made something wrong.
 
-This is the cover letter for the patches i applied, if someone can
-review the omap3isp related patches to be sure i didn't forget
-anything it would be very helpful:
+We had the same problem with the hal-green frame. Our solution was to
+synchronize the CCDC with the first even field looking at fdstat on
+the VD1 interrupt handler and forcing to start processing from an ODD
+sub-frame.
 
-Arnaud Lacombe (1):
-  drivers/media: do not use EXTRA_CFLAGS
+Best regards,
 
-Enrico Butera (3):
-  tvp5150: compile fixes and added missing entity_cleanup
-  exp-igep0022: add tvp5151 support
-  igep00x0: fix camera platform data
-
-Guennadi Liakhovetski (1):
-  omap3isp: ccdc: remove redundant operation
-
-Ivaylo Petrov (1):
-  omap3isp: csi2: Add V4L2_MBUS_FMT_YUYV8_2X8 support
-
-Javier Martinez Canillas (6):
-  omap3isp: ccdc: Add interlaced field mode to platform data
-  omap3isp: ccdc: Add interlaced count field to isp_ccdc_device
-  omap3isp: ccdc: Add support to ITU-R BT.656 video data format
-  tvp5150: Add constants for PAL and NTSC video standards
-  tvp5150: Add video format registers configuration values
-  tvp5150: Migrate to media-controller framework and add video format
-    detection
-
-Laurent Pinchart (12):
-  omap3isp: Don't accept pipelines with no video source as valid
-  omap3isp: Move platform data definitions from isp.h to
-    media/omap3isp.h
-  omap3isp: Don't fail streamon when the sensor doesn't implement
-    s_stream
-  omap3isp: video: Avoid crashes when pipeline set stream operation
-    fails
-  omap3isp: Move media_entity_cleanup() from unregister() to cleanup()
-  omap3isp: Move *_init_entities() functions to the init/cleanup
-    section
-  omap3isp: Add missing mutex_destroy() calls
-  omap3isp: Fix memory leaks in initialization error paths
-  omap3isp: video: Split format info bpp field into width and bpp
-  omap3isp: ccdc: Remove support for interlaced data and master HS/VS
-    mode
-  omap3isp: ccdc: Remove ispccdc_syncif structure
-  omap3isp: ccdc: Add YUV input formats support
-
-Michael Jones (1):
-  omap3isp: queue: fail QBUF if user buffer is too small
-
- arch/arm/mach-omap2/board-igep00x0.c       |   67 +++++
- arch/arm/mach-omap2/exp-igep0022.c         |    3 +
- drivers/media/video/omap3isp/Makefile      |    4 +-
- drivers/media/video/omap3isp/isp.c         |   13 +-
- drivers/media/video/omap3isp/isp.h         |   87 +------
- drivers/media/video/omap3isp/ispccdc.c     |  376 ++++++++++++++++----------
- drivers/media/video/omap3isp/ispccdc.h     |   38 +---
- drivers/media/video/omap3isp/ispccp2.c     |  129 +++++-----
- drivers/media/video/omap3isp/ispcsi2.c     |  118 +++++---
- drivers/media/video/omap3isp/isph3a_aewb.c |    2 +-
- drivers/media/video/omap3isp/isph3a_af.c   |    2 +-
- drivers/media/video/omap3isp/isphist.c     |    2 +-
- drivers/media/video/omap3isp/isppreview.c  |  108 ++++----
- drivers/media/video/omap3isp/ispqueue.c    |    4 +
- drivers/media/video/omap3isp/ispresizer.c  |  104 ++++----
- drivers/media/video/omap3isp/ispstat.c     |   52 ++--
- drivers/media/video/omap3isp/ispstat.h     |    2 +-
- drivers/media/video/omap3isp/ispvideo.c    |   77 ++++--
- drivers/media/video/omap3isp/ispvideo.h    |    5 +-
- drivers/media/video/tvp5150.c              |  408 +++++++++++++++++++++++++++-
- drivers/media/video/tvp5150_reg.h          |   17 +-
- include/media/omap3isp.h                   |  138 ++++++++++
- include/media/tvp5150.h                    |    6 +
- 23 files changed, 1215 insertions(+), 547 deletions(-)
- create mode 100644 include/media/omap3isp.h
-
-Enrico
+-- 
+Javier Martínez Canillas
+(+34) 682 39 81 69
+Barcelona, Spain
