@@ -1,266 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:39820 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934271Ab1JENpc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 09:45:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFC PATCH] media_build: two fixes + one unresolved issue
-Date: Wed, 5 Oct 2011 15:45:27 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <201110051123.39783.hverkuil@xs4all.nl> <4E8C5198.4020107@redhat.com>
-In-Reply-To: <4E8C5198.4020107@redhat.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:62036 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752250Ab1JJURp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Oct 2011 16:17:45 -0400
+Received: by gyg10 with SMTP id 10so5712724gyg.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 13:17:45 -0700 (PDT)
+Message-ID: <4E9352E5.5080209@gmail.com>
+Date: Mon, 10 Oct 2011 15:17:41 -0500
+From: Patrick Dickey <pdickeybeta@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Allan Macdonald <allan.w.macdonald@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Cannot configure second Kodicom 4400R
+References: <CALVOWFPrcYuQ-A=Td7AQMj02e96VNg_z2nUOmTvwKyZC_yUmLg@mail.gmail.com>
+In-Reply-To: <CALVOWFPrcYuQ-A=Td7AQMj02e96VNg_z2nUOmTvwKyZC_yUmLg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201110051545.27427.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 05 October 2011 14:46:16 Mauro Carvalho Chehab wrote:
-> Em 05-10-2011 06:23, Hans Verkuil escreveu:
-> > Hi Mauro,
-> > 
-> > While doing a compatibility build I found three issues. I've got patches
-> > for two, but one issue is still unresolved.
-> > 
-> > The first is this small patch to get rid of this warning when doing 'make
-> > install':
-> > 
-> > make -C firmware install
-> > make[2]: Entering directory `/home/hve/work/media_build/v4l/firmware'
-> > Installing firmwares at /lib/firmware: vicam/firmware.fw
-> > dabusb/firmware.fw dabusb/bitstream.bin ttusb-budget/dspbootcode.bin
-> > cpia2/stv0672_vp4.bin av7110/bootcode.bin *.fw* cp: target
-> > `/lib/firmware/v4l-pvrusb2-29xxx-01.fw' is not a directory make[2]:
-> > [install] Error 1 (ignored)
-> > 
-> > The fix is simply to remove '*.fw*' since it doesn't match any files.
-> > 
-> > diff --git a/v4l/firmware/Makefile b/v4l/firmware/Makefile
-> > index fb53ef2..bcbc784 100644
-> > --- a/v4l/firmware/Makefile
-> > +++ b/v4l/firmware/Makefile
-> > @@ -22,7 +22,7 @@ distclean: clean
-> > 
-> >  install: default
-> >  
-> >  	@echo -n "Installing firmwares at $(FW_DIR): "
-> >  	-@for i in $(DIRS); do if [ ! -d $(FW_DIR)/$$i ]; then mkdir -p
-> >  	$(FW_DIR)/$$i; fi; done
-> > 
-> > -	-@for i in $(TARGETS) *.fw*; do echo -n "$$i "; cp $$i $(FW_DIR)/$$i;
-> > done +	-@for i in $(TARGETS); do echo -n "$$i "; cp $$i $(FW_DIR)/$$i;
-> > done
-> > 
-> >  	@echo
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi there Allan,
+
+I'm not familiar with the card (so you'll want to defer to someone else
+if their answer differs from mine).  It looks like video0 and video1 are
+assigned to the first card, and video2 and video3 are assigned to the
+second card.  So, you might want to try
+
+xawtv -d /dev/video2'
+
+or
+
+xawtv -d /dev/video3
+
+and see if one of those uses the second card (you could try video4 or
+video5 also, since they're assigned to cards).
+
+Have a great day:)
+Patrick.
+
+On 10/10/2011 01:45 PM, Allan Macdonald wrote:
+> Hi to all,
 > 
-> I suspect that, for some unknown reason, you're not capable of downloading
-> the firmwares from linuxtv.org, or maybe you never ran the build script.
-
-I never ran the build script. I'm just using 'make dir'.
-
-> The build firmware downloads the latest version of the firmwares from:
-> 	http://www.linuxtv.org/downloads/firmware/
+> I am new to this list.
 > 
-> It should be noticed that the install procedure won't fail if you never
-> downloaded the firmwares, due to the "-" signal. So, please don't apply
-> this patch.
-
-I'll apply this patch instead:
-
--       -@for i in $(TARGETS) *.fw*; do echo -n "$$i "; cp $$i $(FW_DIR)/$$i; done
-+       -@for i in $(TARGETS) $(wildcard *.fw*); do echo -n "$$i "; cp $$i $(FW_DIR)/$$i; done
-
-The make wildcard function resolves to nothing if the pattern can't be matched,
-thus avoiding the error.
-
+> I have been successfully using a Kodicom 4400R with zoneminder but I
+> wanted to expand so I bought a second card and installed it.  The
+> problem with this card is that I cannot seem to be able to get the
+> second card to work.  I tried using xawtv with the following command:
 > 
-> >  rminstall:
-> > I think this fix is fine, unless this is something you want to have for
-> > the future.
-> > 
-> > The other is a kernel naming issue: my aptosid distro (debian based)
-> > running kernel v3.0.0 uses a different naming convention:
-> > 
-> > $ uname -r
-> > 3.0-4.slh.6-aptosid-amd64
-> > 
-> > So the sublevel is not shown.
-> > 
-> > This patch makes the sublevel optional (and assumes it to be 0 if
-> > absent):
-> > 
-> > diff --git a/linux/patches_for_kernel.pl b/linux/patches_for_kernel.pl
-> > index c19b216..33348d9 100755
-> > --- a/linux/patches_for_kernel.pl
-> > +++ b/linux/patches_for_kernel.pl
-> > @@ -13,8 +13,11 @@ my $file = "../backports/backports.txt";
-> > 
-> >  open IN, $file or die "can't find $file\n";
-> >  
-> >  sub kernel_version($) {
-> > 
-> > -	$_[0] =~ m/^(\d+)\.(\d+)\.(\d+)/;
-> > -	return ($1*65536 + $2*256 + $3);
-> > +	my $sublevel;
-> > +
-> > +	$_[0] =~ m/^(\d+)\.(\d+)\.?(\d*)/;
-> > +	$sublevel = $3 == "" ? 0 : $3;
-> > +	return ($1*65536 + $2*256 + $sublevel);
-> > 
-> >  }
-> >  
-> >  my $kernel = kernel_version($version);
-> > 
-> > diff --git a/v4l/Makefile b/v4l/Makefile
-> > index ab07a7a..311924e 100644
-> > --- a/v4l/Makefile
-> > +++ b/v4l/Makefile
-> > @@ -248,7 +248,7 @@ ifneq ($(VER),)
-> > 
-> >  	@echo $(VER)|perl -ne 'if (/^([0-9]*)\.([0-9])*\.([0-9]*)(.*)$$/) {
-> >  	printf
-> > 
-> > ("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s.%s.%s%s\n",
-> > $$1,$$2,$$3,$$1,$$2,$$3,$$4); };' > $(obj)/.version
-> > 
-> >  else
-> >  
-> >  	@echo No version yet, using `uname -r`
-> > 
-> > -	@uname -r|perl -ne 'if (/^([0-9]*)\.([0-9])*\.([0-9]*)(.*)$$/) { printf
-> > ("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s.
-> > %s.%s%s\n",$$1,$$2,$$3,$$1,$$2,$$3,$$4); };' > $(obj)/.version
-> > +	@uname -r|perl -ne 'if (/^([0-9]*)\.([0-9])*\.?([0-9]*)(.*)$$/) {
-> > printf
-> > ("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s",$$1,$$2,$
-> > $3==""?"0":$$3,$$_); };' > $(obj)/.version
-> > 
-> >  endif
-> >  endif
+> xawtv -d /dev/video1
 > 
-> Seems OK to me. If you're willing to fix those distro-specific stuff, on
-> Fedora 15, the 3.0 kernel were renamed as "2.40", as they wanted to avoid
-> touching on some scripts (that's what I got from a lwn discussion). Maybe
-> other distros might have done weird things like that. The only practical
-> consequence I noticed with F15 is that one driver were disabled (the
-> firewire one).
-
-I'll see if I can make a patch for this.
-
-> > The last issue I have is that the media.ko module isn't installed when I
-> > run 'make install'. I tried to fix it, but I got lost in the
-> > Makefile/perl magic :-)
+> The result is that I get images from /dev/video0
 > 
-> That's weird... I took a look here. My Makefile.media was generated with a
-> line to install it. See:
+> I also tried:
 > 
-> @n=0;for i in dvb-ttpci.ko budget-patch.ko ttpci-eeprom.ko budget-av.ko
-> budget.ko budget-core.ko budget-ci.ko;do if [ -f "$$i" ]; then if [ $$n
-> -eq 0 ]; then echo -n "	dvb/ttpci/: "; install -d
-> $(DESTDIR)$(KDIR26)/dvb/ttpci; fi; n=$$(($$n+1)); if [ $$n -eq 4 ]; then
-> echo; echo -n "		"; n=1; fi; echo -n "$$i "; install -m 644 -c $$i
-> $(DESTDIR)$(KDIR26)/dvb/ttpci; fi; done; if [  $$n -ne 0 ]; then echo;
-> strip --strip-debug $(DESTDIR)$(KDIR26)/dvb/ttpci/*.ko; fi;
+> xawtv -d /dev/video4
 > 
+> with the same result.
 > 
-> @n=0;for i in media.ko;do if [ -f "$$i" ]; then if [ $$n -eq 0 ]; then echo
-> -n "	../linux/drivers/media/: "; insta ll -d
-> $(DESTDIR)$(KDIR26)/../linux/drivers/media; fi; n=$$(($$n+1)); if [  $$n
-> -eq 4 ]; then echo; echo -n "		"; n=1; f i; echo -n "$$i "; install -m 644
-> -c $$i $(DESTDIR)$(KDIR26)/../linux/drivers/media; fi; done; if [  $$n -ne
-> 0 ]; then echo; stri p --strip-debug
-> $(DESTDIR)$(KDIR26)/../linux/drivers/media/*.ko; fi;
+> I obviously don't understand what's going on.
 > 
-> For me, it is likely a trouble at scripts/make_makefile.pl, on that line of
-> the script:
-> 		$idir =~ s|^../linux/drivers/media/||;
+> I tried following the instructions here, to no avail:
 > 
-> An one line patch to make the last / optional is probably enough to fix it.
-
-You're absolutely right.
-
-The output from make install looks like this:
-
-        video/cx25840/: cx25840.ko 
-        dvb/ttusb-dec/: ttusbdecfe.ko ttusb_dec.ko 
-        dvb/ngene/: ngene.ko 
-        dvb/dm1105/: dm1105.ko 
-        ../linux/drivers/media/: media.ko 
-        video/gspca/gl860/: gspca_gl860.ko 
-        video/et61x251/: et61x251.ko
-
-As you can see it tries to get media.ko from the wrong place. Making the last /
-optional fixes this.
-
+> http://www.zoneminder.com/wiki/index.php/Kodicom_4400r
 > 
-> Care to write the patch and fix it?
+> I also looked here:
+> 
+> http://linuxtv.org/wiki/index.php/Kodicom_4400R
+> 
+> but, unfortunately, the following page does not explain what happens
+> with more than one card installed.
+> 
+> Here's my bttv.conf:
+> 
+> [code]
+> options bttv gbuffers=32 card=133,132,133,133,133,132,133,133 tuner=4
+> chroma_agc=1
+> [/code]
+> 
+> I have attached a dmesg output and an lsmod output.
+> 
+> I would greatly appreciate some help.  Many thanks in advance.
+> 
+> Regards,
+> 
+> Allan Macdonald
 
-This patch fixes all three:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
 
-diff --git a/linux/patches_for_kernel.pl b/linux/patches_for_kernel.pl
-index c19b216..33348d9 100755
---- a/linux/patches_for_kernel.pl
-+++ b/linux/patches_for_kernel.pl
-@@ -13,8 +13,11 @@ my $file = "../backports/backports.txt";
- open IN, $file or die "can't find $file\n";
- 
- sub kernel_version($) {
--	$_[0] =~ m/^(\d+)\.(\d+)\.(\d+)/;
--	return ($1*65536 + $2*256 + $3);
-+	my $sublevel;
-+
-+	$_[0] =~ m/^(\d+)\.(\d+)\.?(\d*)/;
-+	$sublevel = $3 == "" ? 0 : $3;
-+	return ($1*65536 + $2*256 + $sublevel);
- }
- 
- my $kernel = kernel_version($version);
-diff --git a/v4l/Makefile b/v4l/Makefile
-index ab07a7a..311924e 100644
---- a/v4l/Makefile
-+++ b/v4l/Makefile
-@@ -248,7 +248,7 @@ ifneq ($(VER),)
- 	@echo $(VER)|perl -ne 'if (/^([0-9]*)\.([0-9])*\.([0-9]*)(.*)$$/) { printf 
-("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s.%s.%s%s\n",$$1,$$2,$$3,$$1,$$2,$$3,$$4); };' > $(obj)/.version
- else
- 	@echo No version yet, using `uname -r`
--	@uname -r|perl -ne 'if (/^([0-9]*)\.([0-9])*\.([0-9]*)(.*)$$/) { printf ("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s.
-%s.%s%s\n",$$1,$$2,$$3,$$1,$$2,$$3,$$4); };' > $(obj)/.version
-+	@uname -r|perl -ne 'if (/^([0-9]*)\.([0-9])*\.?([0-9]*)(.*)$$/) { printf 
-("VERSION=%s\nPATCHLEVEL:=%s\nSUBLEVEL:=%s\nKERNELRELEASE:=%s",$$1,$$2,$$3==""?"0":$$3,$$_); };' > $(obj)/.version
- endif
- endif
- 
-diff --git a/v4l/firmware/Makefile b/v4l/firmware/Makefile
-index fb53ef2..ff08bf2 100644
---- a/v4l/firmware/Makefile
-+++ b/v4l/firmware/Makefile
-@@ -22,7 +22,7 @@ distclean: clean
- install: default
- 	@echo -n "Installing firmwares at $(FW_DIR): "
- 	-@for i in $(DIRS); do if [ ! -d $(FW_DIR)/$$i ]; then mkdir -p $(FW_DIR)/$$i; fi; done
--	-@for i in $(TARGETS) *.fw*; do echo -n "$$i "; cp $$i $(FW_DIR)/$$i; done
-+	-@for i in $(TARGETS) $(wildcard *.fw*); do echo -n "$$i "; cp $$i $(FW_DIR)/$$i; done
- 	@echo
- 
- rminstall:
-diff --git a/v4l/scripts/make_makefile.pl b/v4l/scripts/make_makefile.pl
-index 4a578a5..1832e5b 100755
---- a/v4l/scripts/make_makefile.pl
-+++ b/v4l/scripts/make_makefile.pl
-@@ -32,7 +32,7 @@ sub check_line($$$)
- 		# It's a file, add it to list of files to install
- 		s/\.o$/.ko/;
- 		my $idir = $dir;
--		$idir =~ s|^../linux/drivers/media/||;
-+		$idir =~ s|^../linux/drivers/media/?||;
- 		$instdir{$idir}{$_} = 1;
- 		$count++;
- 	}
-
-Regards,
-
-	Hans
+iEYEARECAAYFAk6TUuUACgkQMp6rvjb3CAT9VwCfTyqoIrlUS+IszJIQWpyYD7j9
+NlsAnRFpxHKQT+p7Hem+D2SpUWiDkxu2
+=l16i
+-----END PGP SIGNATURE-----
