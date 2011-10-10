@@ -1,61 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:55251 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751246Ab1JIWfJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Oct 2011 18:35:09 -0400
-Received: by yxl31 with SMTP id 31so4881985yxl.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Oct 2011 15:35:08 -0700 (PDT)
+Received: from out3.smtp.messagingengine.com ([66.111.4.27]:60994 "EHLO
+	out3.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750748Ab1JJUwv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Oct 2011 16:52:51 -0400
+Received: from compute3.internal (compute3.nyi.mail.srv.osa [10.202.2.43])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 2BE752050D
+	for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 16:52:51 -0400 (EDT)
+Received: from bowman.localnet (unknown [50.72.131.188])
+	by mail.messagingengine.com (Postfix) with ESMTPSA id EE65B4028CA
+	for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 16:52:50 -0400 (EDT)
+From: Lyle Sigurdson <lyle@sent.com>
+To: linux-media@vger.kernel.org
+Subject: saa7164[0]: can't get MMIO memory @ 0x0 or 0x0
+Date: Mon, 10 Oct 2011 15:52:35 -0500
 MIME-Version: 1.0
-In-Reply-To: <CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
-References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
-	<CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
-	<CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com>
-	<201110081751.38953.laurent.pinchart@ideasonboard.com>
-	<CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
-Date: Mon, 10 Oct 2011 00:35:08 +0200
-Message-ID: <CA+2YH7vat9iSAuZ4ztDvvo4Od+b4tCOsK6Y+grTE05YUZZEYPQ@mail.gmail.com>
-Subject: Re: omap3-isp status
-From: Enrico <ebutera@users.berlios.de>
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Adam Pledger <a.pledger@thermoteknix.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201110101552.35977.lyle@sent.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Oct 8, 2011 at 6:11 PM, Javier Martinez Canillas
-<martinez.javier@gmail.com> wrote:
-> Yes, I'll cook a patch today on top on your omap3isp-yuv and send for
-> review. I won't be able to test neither since I don't have proper
-> hardware at home. But at least you will get an idea of the approach we
-> are using to solve this and can point possible flaws.
+Hi all, and thanks for all your work.  But, I'm having a problem.
 
-I made some tests and unfortunately there are some problems.
+Tuner card: Hauppauge! HVR-2250
+Mainboard: MSNV-939
+Distro: Slackware64 13.1 (kernel 2.6.33.4)
 
-Note: i made these tests picking some patches from omap3isp-yuv branch
-and applying to igep 3.1.0rc9 kernel (more or less like mainline +
-some bsp patches) so maybe i made some mistakes (the tvp5150 driver is
-patched too), but due to the nature of the problems i don't think this
-is the case.
+When I modprobe saa7164:
+bowman kernel: saa7164[0]: can't get MMIO memory @ 0x0 or 0x0
+bowman kernel: CORE saa7164[0] No more PCIe resources for subsystem: 0070:8851
+bowman kernel: saa7164: probe of 0000:04:00.0 failed with	error -22
 
-Javier patches v1: i can grab frames with yavta but i get only garbage.
+It turns out that pci_resource_start and pci_resource_len are both returning 
+null.
 
-Javier patches v2: i cannot grab frames with yavta (it hangs). I see
-only 2 interrupts on the isp, then stops.
+What could be the cause of this?  Is there a solution? 
 
-I compared Javier-v2 registers setup with Deepthy's patches and there
-are some differences. Moreover i remember that in Deepthy patches vd1
-interrupt was not used (and in fact i had the same yavta-hanging
-problem before, and Deepthy patches solved it).
-
-I think Javier-v1 patches didn't hang the isp because they changed
-vd0/vd1 logic too, so maybe there were only some wrong isp registers
-but the logic was correct.
-
-Now i wonder if it could be easier/better to port Deepthy patches
-first and then add Javier fixes...
-
-Enrico
+   Lyle.	
