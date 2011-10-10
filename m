@@ -1,55 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:45879 "EHLO
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:37815 "EHLO
 	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754980Ab1JTQJz convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1751240Ab1JJG6f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Oct 2011 12:09:55 -0400
-Received: by wyg36 with SMTP id 36so3046891wyg.19
-        for <linux-media@vger.kernel.org>; Thu, 20 Oct 2011 09:09:54 -0700 (PDT)
+	Mon, 10 Oct 2011 02:58:35 -0400
 MIME-Version: 1.0
-In-Reply-To: <CAGoCfiyCPD-W3xeqD4+AE3xCo-bj05VAy4aHXMNXP7P124ospQ@mail.gmail.com>
-References: <CAOTqeXouWiYaRkKKO-1iQ5SJEb7RUXJpHdfe9-YeSzwXxdUVfg@mail.gmail.com>
-	<CAGoCfiyCPD-W3xeqD4+AE3xCo-bj05VAy4aHXMNXP7P124ospQ@mail.gmail.com>
-Date: Thu, 20 Oct 2011 12:09:53 -0400
-Message-ID: <CAOTqeXp8t-qsC9NBgSD9rkeRuKfJue8JZM7vu+EwidDtrNKvCQ@mail.gmail.com>
-Subject: Re: [PATCH] [media] hdpvr: update picture controls to support
- firmware versions > 0.15
-From: Taylor Ralph <taylor.ralph@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org, Janne Grunau <j@jannau.net>
+In-Reply-To: <201110071827.06366.arnd@arndb.de>
+References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com> <201110071827.06366.arnd@arndb.de>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Date: Mon, 10 Oct 2011 08:58:14 +0200
+Message-ID: <CADMYwHzZWTgSEwr9gMJrK2mZgC2WiiGC9Pp6saZGx=PY-N=ueg@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCHv16 0/9] Contiguous Memory Allocator
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 20, 2011 at 11:30 AM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Thu, Oct 20, 2011 at 11:24 AM, Taylor Ralph <taylor.ralph@gmail.com> wrote:
->> I've attached a patch that correctly sets the max/min/default values
->> for the hdpvr picture controls. The reason the current values didn't
->> cause a problem until now is because any firmware <= 0.15 didn't
->> support them. The latest firmware releases properly support picture
->> controls and the values in the patch are derived from the windows
->> driver using SniffUSB2.0.
->>
->> Thanks to Devin Heitmueller for helping me.
->>
->> Regards.
->> --
->> Taylor
->
-> Hi Taylor,
->
-> What worries me here is the assertion that the controls didn't work at
-> all in previous firmware and driver versions.  Did you downgrade the
-> firmware and see that the controls had no effect when using v4l2-ctl?
->
+On Fri, Oct 7, 2011 at 6:27 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> IMHO it would be good to merge the entire series into 3.2, since
+> the ARM portion fixes an important bug (double mapping of memory
+> ranges with conflicting attributes) that we've lived with for far
+> too long, but it really depends on how everyone sees the risk
+> for regressions here. If something breaks in unfixable ways before
+> the 3.2 release, we can always revert the patches and have another
+> try later.
 
-I have 2 HD-PVRs. I ran one with 0x17 and one with 0x15. Using
-v4l2-ctl to control the 0x15 unit produced zero changes. It has been
-reported by mythtv users in the past the picture control changes did
-not work for the HD-PVR.
+I didn't thoroughly review the patches, but I did try them out (to be
+precise, I tried v15) on an OMAP4 PandaBoard, and really liked the
+result.
 
-Regards.
---
-Taylor
+The interfaces seem clean and convenient and things seem to work (I
+used a private CMA pool with rpmsg and remoteproc, but also noticed
+that several other drivers were utilizing the global pool). And with
+this in hand we can finally ditch the old reserve+ioremap approach.
+
+So from a user perspective, I sure do hope this patch set gets into
+3.2; hopefully we can just fix anything that would show up during the
+3.2 cycle.
+
+Marek, Michal (and everyone involved!), thanks so much for pushing
+this! Judging from the history of this patch set and the areas that it
+touches (and from the number of LWN articles ;) it looks like a
+considerable feat.
+
+FWIW, feel free to add my
+
+Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+
+(small and optional comment: I think it'd be nice if
+dma_declare_contiguous would fail if called too late, otherwise users
+of that misconfigured device will end up using the global pool without
+easily knowing that something went wrong)
+
+Thanks,
+Ohad.
