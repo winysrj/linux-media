@@ -1,77 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:24120 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754385Ab1JWIHv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Oct 2011 04:07:51 -0400
-Message-ID: <4EA3CB48.5000203@iki.fi>
-Date: Sun, 23 Oct 2011 11:07:36 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:45157 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753113Ab1JJKdg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Oct 2011 06:33:36 -0400
+Received: by gyg10 with SMTP id 10so5176014gyg.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 03:33:36 -0700 (PDT)
 MIME-Version: 1.0
-To: Sylwester Nawrocki <snjw23@gmail.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [RFC] subdevice PM: .s_power() deprecation?
-References: <Pine.LNX.4.64.1110031138370.14314@axis700.grange> <Pine.LNX.4.64.1110171720260.18438@axis700.grange> <4E9C9D84.5020905@gmail.com> <201110180107.20494.laurent.pinchart@ideasonboard.com> <4E9DEB4A.4050001@gmail.com> <Pine.LNX.4.64.1110182315180.7139@axis700.grange> <4E9F399B.9080207@gmail.com>
-In-Reply-To: <4E9F399B.9080207@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CA+2YH7ti4xz9zNby6O=3ZOKAB9=1hnYZr9cM8HSMrj0r4zi1=A@mail.gmail.com>
+References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
+ <CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
+ <CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com>
+ <201110081751.38953.laurent.pinchart@ideasonboard.com> <CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
+ <CA+2YH7vat9iSAuZ4ztDvvo4Od+b4tCOsK6Y+grTE05YUZZEYPQ@mail.gmail.com>
+ <CAAwP0s3NFvvUYd-0kwKLKXfYB4Zx1nXb0nd9+JM61JWtrVFfRg@mail.gmail.com>
+ <CA+2YH7uFeHAmEpVqbd94qtCajb45pkr9YzeW+RDa5sf2bUG_wQ@mail.gmail.com>
+ <CAAwP0s3GJ7-By=q_ADa6qcpaENK5kXvkTG8Hd=Y+qXs9dgXa0w@mail.gmail.com>
+ <CA+2YH7subMzFAg7f7-uHXEmYBD+Kd1=E2nWKx7dgKCEpOu=zgQ@mail.gmail.com> <CA+2YH7ti4xz9zNby6O=3ZOKAB9=1hnYZr9cM8HSMrj0r4zi1=A@mail.gmail.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Date: Mon, 10 Oct 2011 12:33:16 +0200
+Message-ID: <CAAwP0s3ZqDpMsF7mYYtM7twomREZTyO-uDhGPnfNsQcOTXQ_fw@mail.gmail.com>
+Subject: Re: omap3-isp status
+To: Enrico <ebutera@users.berlios.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	linux-media@vger.kernel.org,
+	Enric Balletbo i Serra <eballetbo@iseebcn.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On Mon, Oct 10, 2011 at 12:07 PM, Enrico <ebutera@users.berlios.de> wrote:
+> On Mon, Oct 10, 2011 at 12:06 PM, Enrico <ebutera@users.berlios.de> wrote:
+>> I have updated my igep openembedded layer at [1] (testing branch) with:
+>
+> Ops, forgot [1] !
+>
+> [1]: https://github.com/ebutera/meta-igep
+>
+> Enrico
+>
 
-Sylwester Nawrocki wrote:
-...
->> I understand what you're saying, but can you give us a specific example,
->> when a subdev driver (your SoC internal subdev, that is) doesn't have a
->> way to react to an event itself and only the bridge driver gets called
->> into at that time? Something like an interrupt or an internal timer or
->> some other internal event?
-> 
-> 1. The S5P SoC video output subsystem (http://lwn.net/Articles/449661) comprises
->  of multiple logical blocks, like Video Processor, Mixer, HDMI, HDMI PHY, SD TV Out.
->  For instance the master video clock is during normal operation derived from
->  (synchronized to, with PLL,) the HDMI-PHY output clock. The host driver can
->  switch to this clock only when the HDMI-PHY (subdev) power and clocks are enabled.
->  And it should be done before .s_stream(), to do some H/W configuration earlier
->  in the pipeline, before streaming is enabled. Perhaps Tomasz could give some
->  further explanation of what the s_power() op does and why in the driver. 
->  
-> 2. In some of our camera pipeline setups - "Sensor - MIPI-CSI receiver - host/DMA",
->  the sensor won't boot properly if all MIPI-CSI regulators aren't enabled. So the  
->  MIPI-CSI receiver must always be powered on before the sensor. With the subdevs
->  doing their own magic wrt to power control the situation is getting slightly
->  out of control. 
+Perfect, thank you Enrico. I will try this latter today and let you
+know. I'm sure I can get this working (with the ghosting effect of
+course) so you can at least obtain 25 fps and once I have this working
+I will resend the patch-set as v3 so Laurent can review it and
+hopefully help us to fix the artifact on the video.
 
-How about this: CSI-2 receiver implements a few new regulators which the
-sensor driver then requests to be enabled. Would that work for you?
-
->>> I guess we all agree the power requirements of external subdevs are generally
->>> unknown to the hosts.
->>>
->>> For these it might make lot of sense to let the subdev driver handle the device
->>> power supplies on basis of requests like, s_ctrl, s_stream, etc.
->>
->> Yes, right, so, most "external" (sensor, decoder,...) subdev drivers
->> should never need to implement .s_power(), regardless of whether we decide
->> to keep it or not. Well, ok, no, put it differently - in those drivers
->> .s_power() should only really be called during system-wide suspend /
->> resume.
-> 
-> Yes, I agree with that. But before we attempt to remove .s_power() or deprecate 
-> it on "external" subdevs, I'd like to get solved the issue with sensor master clock 
-> provided by the bridge. As these two are closely related - the sensor controller 
-> won't boot if the clock is disabled. And there are always advantages of not keeping
-> the clock always enabled. 
-
-I guess we'll need to wait awhile before the clock framework would
-support this. I don't know what's the status of this; probably worth
-checking.
-
-Regards,
+Best regards,
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Javier Martínez Canillas
+(+34) 682 39 81 69
+Barcelona, Spain
