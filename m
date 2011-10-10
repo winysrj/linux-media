@@ -1,103 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:58014 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755114Ab1JMMwo (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:41693 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751866Ab1JJRJ1 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Oct 2011 08:52:44 -0400
-Message-ID: <4E96DF19.8080702@mlbassoc.com>
-Date: Thu, 13 Oct 2011 06:52:41 -0600
-From: Gary Thomas <gary@mlbassoc.com>
+	Mon, 10 Oct 2011 13:09:27 -0400
+Received: by ggnv2 with SMTP id v2so4707894ggn.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 10:09:27 -0700 (PDT)
 MIME-Version: 1.0
-To: Enrico <ebutera@users.berlios.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Enric Balletbo i Serra <eballetbo@iseebcn.com>,
-	Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: OMAP3 ISP ghosting
-References: <4E9442A9.1060202@mlbassoc.com> <4E9609E3.3000902@mlbassoc.com> <CA+2YH7v+wV4Kz=gLkACiE0fRHu2BCLLvNj8q=ipLDVy_GztXjw@mail.gmail.com> <4E96CF04.7000100@mlbassoc.com> <CA+2YH7vaN5Q+AJZp8b9E=7Jumaz-cB191CnYDDXF6ZOt7mZocg@mail.gmail.com>
-In-Reply-To: <CA+2YH7vaN5Q+AJZp8b9E=7Jumaz-cB191CnYDDXF6ZOt7mZocg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAAwP0s1JDoSUqX2Fm7+L1HyNxAZkdenDfmy0M8U5nVLo2eSvOw@mail.gmail.com>
+References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
+	<CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
+	<CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com>
+	<201110081751.38953.laurent.pinchart@ideasonboard.com>
+	<CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
+	<CA+2YH7vat9iSAuZ4ztDvvo4Od+b4tCOsK6Y+grTE05YUZZEYPQ@mail.gmail.com>
+	<CAAwP0s3NFvvUYd-0kwKLKXfYB4Zx1nXb0nd9+JM61JWtrVFfRg@mail.gmail.com>
+	<CA+2YH7uFeHAmEpVqbd94qtCajb45pkr9YzeW+RDa5sf2bUG_wQ@mail.gmail.com>
+	<CAAwP0s3GJ7-By=q_ADa6qcpaENK5kXvkTG8Hd=Y+qXs9dgXa0w@mail.gmail.com>
+	<CA+2YH7subMzFAg7f7-uHXEmYBD+Kd1=E2nWKx7dgKCEpOu=zgQ@mail.gmail.com>
+	<CA+2YH7ti4xz9zNby6O=3ZOKAB9=1hnYZr9cM8HSMrj0r4zi1=A@mail.gmail.com>
+	<CAAwP0s3ZqDpMsF7mYYtM7twomREZTyO-uDhGPnfNsQcOTXQ_fw@mail.gmail.com>
+	<CA+2YH7s6rhLsyJTdWwQVUCd2WBWiH2saSaZZw0tysRWsXw-6Cg@mail.gmail.com>
+	<CA+2YH7tdMHNpJGyOhVJnR4UN5ZwCcspD0Nnj8xCvUs7RaERb_w@mail.gmail.com>
+	<CA+2YH7uNvuRdWSoX25NvHryknExrfeew1heB5DNSf3Epz2LOUw@mail.gmail.com>
+	<CAAwP0s1JDoSUqX2Fm7+L1HyNxAZkdenDfmy0M8U5nVLo2eSvOw@mail.gmail.com>
+Date: Mon, 10 Oct 2011 19:09:27 +0200
+Message-ID: <CA+2YH7votO73gQmdxhHkfLsc9sp8Z-S=wxxrJhsTYUzVqpiACA@mail.gmail.com>
+Subject: Re: omap3-isp status
+From: Enrico <ebutera@users.berlios.de>
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	linux-media@vger.kernel.org,
+	Enric Balletbo i Serra <eballetbo@iseebcn.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2011-10-13 06:32, Enrico wrote:
-> On Thu, Oct 13, 2011 at 1:44 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
->> On 2011-10-13 02:42, Enrico wrote:
->>>
->>> On Wed, Oct 12, 2011 at 11:42 PM, Gary Thomas<gary@mlbassoc.com>    wrote:
->>>>
->>>> Any ideas on this?  My naive attempt (diffs attached) just hangs up.
->>>> These changes disable BT-656 mode in the CCDC and tell the TVP5150
->>>> to output raw YUV 4:2:2 data including all SYNC signals.
->>>
->>> I tried that too, you will need to change many of the is_bt656 into
->>> is_fldmode. For isp configuration it seems that the only difference
->>> between the two is (more or less) just the REC656 register. I made a
->>> hundred attempts and in the end i had a quite working capture (just
->>> not centered) but ghosting always there.
->>>
->>> I made another test and by luck i got a strange thing, look at the
->>> following image:
->>>
->>> http://postimage.org/image/2d610pjk4/
->>>
->>> (It's noisy because of a hardware problem)
->>>
->>> I made it with these changes:
->>>
->>> //ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENEVEN, 1);
->>> ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENODD, 1);
->>> //ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDEVEN, 1);
->>> ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDODD, 1);
->>>
->>> So you have an image with a field with no offset, and a field with
->>> offsets.
->>>
->>> Now if you look between my thumb and my forefinger behind them there's
->>> a monoscope picture and in one field you can see 2 black squares, in
->>> the other one you can see 3 black squares. So the two field that will
->>> be composing a single image differ very much.
->>>
->>> Now the questions are: is this expected to happen on an analogue video
->>> source and we can't do anything (apart from software deinterlacing)?
->>> is this a problem with tvp5150? Is this a problem with the isp?
+On Mon, Oct 10, 2011 at 6:53 PM, Javier Martinez Canillas
+<martinez.javier@gmail.com> wrote:
+> On Mon, Oct 10, 2011 at 6:34 PM, Enrico <ebutera@users.berlios.de> wrote:
+>> Ok, i made it work. It was missing just the config_outlineoffset i
+>> wrote before and a missing FLDMODE in SYNC registers.
 >>
->> Yes, there does seem to be significant movement/differences between these
->> two images.  Are you saying that these should be the two halves of one frame
->> that would be stitched together by de-interlacing?  Perhaps the halves are
->> out of sync and the bottom one of this image really goes with the top of
->> the next (frame13)?
 >
-> They are two fields that normally will be "merged" into a frame, but
-> with those settings i made the isp "expand" (SDOFST) just one of the
-> fields.
->
-> One possible thing is that, as you say, "the bottom one of this image
-> really goes with the top of the next".
->
-> But one thing to consider is that it is normal for interlaced video to
-> have such "effects", that's why progressive scan was invented.
->
->
->> The ghosting problem is still evident, even in this split image.  Notice
->> that every other scan line is really poor - basically junk.  When this gets
->> merged as part of the de-interlace, the ghosts appear.
->
-> I don't think so. The bottom part is "expanded" by the isp, so it's ok
-> to have green half lines, that's where the top part will go if it is
-> "expanded" by the isp.
->
-> Looking at the single images (top and bottom) i don't see ghosting
-> artifacts (not only in that image but in a sequence of 16 frames),
-> just a little blurry in moving parts but that's expected in an
-> interlaced video. So it seems to me that the images arrive correctly
-> at the isp and the deinterlacing causes ghosting.
+> Great, do you get the ghosting effect or do you have a clean video?
 
-Is there any way to prove this by doing the de-interlacing in software?
 
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+Unfortunately i always get the ghosting effect. But this is something
+we will try to fix later.
+
+
+>> Moreover it seems to me that the software-maintained field id
+>> (interlaced_cnt in Javier patches, fldstat in Deepthy patches) is
+>> useless, i've tried to only use the FLDSTAT bit from isp register
+>> (fid) in vd0_isr:
+>>
+>> if (fid == 0) {
+>>     restart = ccdc_isr_buffer(ccdc);
+>>     goto done;
+>> }
+>>
+>> and it works. I've not tested very long frame sequences, only up to 16
+>> frames. The only issue is that the first frame could be half-green
+>> because a field is missing.
+>>
+>
+> Yes, when I tried Deepthy patches I realized that the fldstat was not
+> in sync with the frames, but probably I made something wrong.
+
+
+I had noticed the same thing, but now i tested it and it is ok, maybe
+my fault too.
+
+
+> We had the same problem with the hal-green frame. Our solution was to
+> synchronize the CCDC with the first even field looking at fdstat on
+> the VD1 interrupt handler and forcing to start processing from an ODD
+> sub-frame.
+
+Thinking more about it, it's ugly to have that half-green video frame
+even if it's just one. It's better to keep your or Deepthy solution.
+
+Enrico
