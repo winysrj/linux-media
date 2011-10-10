@@ -1,54 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:40754 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751295Ab1JTT0l convert rfc822-to-8bit (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:40903 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752993Ab1JJMyO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Oct 2011 15:26:41 -0400
-Received: by wwe6 with SMTP id 6so4659138wwe.1
-        for <linux-media@vger.kernel.org>; Thu, 20 Oct 2011 12:26:40 -0700 (PDT)
+	Mon, 10 Oct 2011 08:54:14 -0400
+Received: by ggnv2 with SMTP id v2so4430890ggn.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 05:54:14 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAGoCfiz38bdpnz0dLfs2p4PjLR1dDm_5d_y34ACpNd6W62G7-w@mail.gmail.com>
-References: <CAOTqeXouWiYaRkKKO-1iQ5SJEb7RUXJpHdfe9-YeSzwXxdUVfg@mail.gmail.com>
-	<CAGoCfiyCPD-W3xeqD4+AE3xCo-bj05VAy4aHXMNXP7P124ospQ@mail.gmail.com>
-	<20111020162340.GC7530@jannau.net>
-	<CAGoCfiwXjQsAEVfFiNA5CNw1PVuO0npO63pGb91rpbPuKGvwZQ@mail.gmail.com>
-	<20111020170811.GD7530@jannau.net>
-	<CAGoCfiz38bdpnz0dLfs2p4PjLR1dDm_5d_y34ACpNd6W62G7-w@mail.gmail.com>
-Date: Thu, 20 Oct 2011 15:26:39 -0400
-Message-ID: <CAOTqeXpJfk-ENgxhELo03LBHqdtf957knXQzOjYo0YO7sGcAbg@mail.gmail.com>
-Subject: Re: [PATCH] [media] hdpvr: update picture controls to support
- firmware versions > 0.15
-From: Taylor Ralph <taylor.ralph@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Janne Grunau <j@jannau.net>, linux-media@vger.kernel.org
+In-Reply-To: <CAAwP0s3ZqDpMsF7mYYtM7twomREZTyO-uDhGPnfNsQcOTXQ_fw@mail.gmail.com>
+References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
+	<CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
+	<CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com>
+	<201110081751.38953.laurent.pinchart@ideasonboard.com>
+	<CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
+	<CA+2YH7vat9iSAuZ4ztDvvo4Od+b4tCOsK6Y+grTE05YUZZEYPQ@mail.gmail.com>
+	<CAAwP0s3NFvvUYd-0kwKLKXfYB4Zx1nXb0nd9+JM61JWtrVFfRg@mail.gmail.com>
+	<CA+2YH7uFeHAmEpVqbd94qtCajb45pkr9YzeW+RDa5sf2bUG_wQ@mail.gmail.com>
+	<CAAwP0s3GJ7-By=q_ADa6qcpaENK5kXvkTG8Hd=Y+qXs9dgXa0w@mail.gmail.com>
+	<CA+2YH7subMzFAg7f7-uHXEmYBD+Kd1=E2nWKx7dgKCEpOu=zgQ@mail.gmail.com>
+	<CA+2YH7ti4xz9zNby6O=3ZOKAB9=1hnYZr9cM8HSMrj0r4zi1=A@mail.gmail.com>
+	<CAAwP0s3ZqDpMsF7mYYtM7twomREZTyO-uDhGPnfNsQcOTXQ_fw@mail.gmail.com>
+Date: Mon, 10 Oct 2011 14:54:14 +0200
+Message-ID: <CA+2YH7tCOdpjiWhC80Nx8OiijJHVYxZypdB0E=3p1zn0bXVpQw@mail.gmail.com>
+Subject: Re: omap3-isp status
+From: Enrico <ebutera@users.berlios.de>
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	linux-media@vger.kernel.org,
+	Enric Balletbo i Serra <eballetbo@iseebcn.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 20, 2011 at 2:14 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Thu, Oct 20, 2011 at 1:08 PM, Janne Grunau <j@jannau.net> wrote:
->> I think such scenario is unlikely but I don't know it for sure and
->> I don't want to force anyone to test every firmware version.
->> Ignoring them for firmware version < 16 should be safe since we assume
->> they had no effect. Returning -EINVAL might break API-ignoring
->> applications written with the HD PVR in mind but I think it's a better
->> approach than silently ignoring those controls.
+On Mon, Oct 10, 2011 at 12:33 PM, Javier Martinez Canillas
+<martinez.javier@gmail.com> wrote:
+> On Mon, Oct 10, 2011 at 12:07 PM, Enrico <ebutera@users.berlios.de> wrote:
+>> On Mon, Oct 10, 2011 at 12:06 PM, Enrico <ebutera@users.berlios.de> wrote:
+>>> I have updated my igep openembedded layer at [1] (testing branch) with:
+>>
+>> Ops, forgot [1] !
+>>
+>> [1]: https://github.com/ebutera/meta-igep
+>>
+>> Enrico
+>>
 >
-> At this point, let's just make it so that the old behavior is
-> unchanged for old firmwares, meaning from both an API standpoint as
-> well as what the values are.  At some point if somebody cares enough
-> to go back and fix the support so that the controls actually work with
-> old firmwares, they can take that up as a separate task.  In reality,
-> it is likely that nobody will ever do that, as the "easy answer" is
-> just to upgrade to firmware 16.
->
-> Taylor, could you please tweak your patch to that effect and resubmit?
->
+> Perfect, thank you Enrico. I will try this latter today and let you
+> know. I'm sure I can get this working (with the ghosting effect of
+> course) so you can at least obtain 25 fps and once I have this working
+> I will resend the patch-set as v3 so Laurent can review it and
+> hopefully help us to fix the artifact on the video.
 
-Sure, I'll try to get to it tonight and have it tested.
+For your tests i suggest to add "nohlt" to the kernel cmdline, see [1]
+for the reason.
 
-Regards.
---
-Taylor
+Enrico
+
+[1]: http://www.spinics.net/lists/linux-media/msg37795.html
