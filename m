@@ -1,75 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:64847 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752443Ab1JHNNw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Oct 2011 09:13:52 -0400
-Received: by wyg34 with SMTP id 34so4668533wyg.19
-        for <linux-media@vger.kernel.org>; Sat, 08 Oct 2011 06:13:51 -0700 (PDT)
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:40208 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754104Ab1JJORr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Oct 2011 10:17:47 -0400
+Received: by yxl31 with SMTP id 31so5385801yxl.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 07:17:47 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAATJ+fvQA4zAcGq+D0+k+OHb8Xsrda5=DATWXbzEO5z=0rWZfw@mail.gmail.com>
-References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
-	<CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
-	<CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
-	<4e8b8099.95d1e30a.4bee.0501@mx.google.com>
-	<CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
-	<CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
-	<CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
-	<4e8f6b0b.c90fe30a.4a1d.26bb@mx.google.com>
-	<CAATJ+fvQA4zAcGq+D0+k+OHb8Xsrda5=DATWXbzEO5z=0rWZfw@mail.gmail.com>
-Date: Sat, 8 Oct 2011 15:13:51 +0200
-Message-ID: <CAL9G6WWMw3npqjt0WHGhyjaW5Mu=1jA5Y_QduSr3KudZTKLgBw@mail.gmail.com>
-Subject: Re: [PATCH] af9013 Extended monitoring in set_frontend.
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: Jason Hecker <jwhecker@gmail.com>
-Cc: Malcolm Priestley <tvboxspy@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <CA+2YH7s6rhLsyJTdWwQVUCd2WBWiH2saSaZZw0tysRWsXw-6Cg@mail.gmail.com>
+References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
+	<CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
+	<CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com>
+	<201110081751.38953.laurent.pinchart@ideasonboard.com>
+	<CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
+	<CA+2YH7vat9iSAuZ4ztDvvo4Od+b4tCOsK6Y+grTE05YUZZEYPQ@mail.gmail.com>
+	<CAAwP0s3NFvvUYd-0kwKLKXfYB4Zx1nXb0nd9+JM61JWtrVFfRg@mail.gmail.com>
+	<CA+2YH7uFeHAmEpVqbd94qtCajb45pkr9YzeW+RDa5sf2bUG_wQ@mail.gmail.com>
+	<CAAwP0s3GJ7-By=q_ADa6qcpaENK5kXvkTG8Hd=Y+qXs9dgXa0w@mail.gmail.com>
+	<CA+2YH7subMzFAg7f7-uHXEmYBD+Kd1=E2nWKx7dgKCEpOu=zgQ@mail.gmail.com>
+	<CA+2YH7ti4xz9zNby6O=3ZOKAB9=1hnYZr9cM8HSMrj0r4zi1=A@mail.gmail.com>
+	<CAAwP0s3ZqDpMsF7mYYtM7twomREZTyO-uDhGPnfNsQcOTXQ_fw@mail.gmail.com>
+	<CA+2YH7s6rhLsyJTdWwQVUCd2WBWiH2saSaZZw0tysRWsXw-6Cg@mail.gmail.com>
+Date: Mon, 10 Oct 2011 16:17:47 +0200
+Message-ID: <CA+2YH7tdMHNpJGyOhVJnR4UN5ZwCcspD0Nnj8xCvUs7RaERb_w@mail.gmail.com>
+Subject: Re: omap3-isp status
+From: Enrico <ebutera@users.berlios.de>
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	linux-media@vger.kernel.org,
+	Enric Balletbo i Serra <eballetbo@iseebcn.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/10/8 Jason Hecker <jwhecker@gmail.com>:
->> Try this patch, it should stop start up corruption on the same frontend.
+On Mon, Oct 10, 2011 at 2:46 PM, Enrico <ebutera@users.berlios.de> wrote:
+> On Mon, Oct 10, 2011 at 12:33 PM, Javier Martinez Canillas
+> <martinez.javier@gmail.com> wrote:
+>> On Mon, Oct 10, 2011 at 12:07 PM, Enrico <ebutera@users.berlios.de> wrote:
+>>> On Mon, Oct 10, 2011 at 12:06 PM, Enrico <ebutera@users.berlios.de> wrote:
+>>>> I have updated my igep openembedded layer at [1] (testing branch) with:
+>>>
+>>> Ops, forgot [1] !
+>>>
+>>> [1]: https://github.com/ebutera/meta-igep
+>>>
+>>> Enrico
+>>>
+>>
+>> Perfect, thank you Enrico. I will try this latter today and let you
+>> know. I'm sure I can get this working (with the ghosting effect of
+>> course) so you can at least obtain 25 fps and once I have this working
+>> I will resend the patch-set as v3 so Laurent can review it and
+>> hopefully help us to fix the artifact on the video.
 >
-> Thanks.  I'll try it today.
+> Yes it must be something simple but not easy to spot.
 >
-> Have you been able to reproduce any of the corruption issues I and
-> others are having?
+> And to add even more confusion i've attached two patches: one is a
+> port of two Deepthy patches, the other one just a board fix.
 >
-> I noticed last night some recordings on the same card had different
-> levels of corruption depending on the order of tuning
+> Just replace patches 0017-18-19 with the attached 0001 patch, and
+> after patch 0025 apply the attached 0002 patch.
 >
-> Tuner A then tuner B : Tuner A was heavily corrupted.  Tuner B was a fine.
-> Tuner B then tuner A: Tuner A had a small corruption every few seconds
-> and the show was watchable, Tuner B was fine.
->
+> With these i can succesfully grab frames with yavta BUT i only get
+> half-height frames. Disclaimer: i just made the patch monkey and gave
+> it a run without a review so it could be anything.
 
-Thanks again, I try the patch and it works well last nigh. This
-morning one tuner is getting pixeled images and the other can not
-LOCK.
+My bad, i forgot a part about config_outlineoffset (ODDEVEN...), i
+still have (different) half-green images though...
 
-This is the kernel messages:
+Side note: while making some tests i can confirm that the solution
+adopted in Deepthy patches:
 
-# tail /var/log/messages
-Oct  8 14:16:06 htpc kernel: [45025.328902] mxl5005s I2C write failed
-Oct  8 14:16:06 htpc kernel: [45025.333147] mxl5005s I2C write failed
-Oct  8 14:16:06 htpc kernel: [45025.333637] mxl5005s I2C write failed
-Oct  8 14:16:06 htpc kernel: [45025.490524] mxl5005s I2C write failed
-Oct  8 14:16:06 htpc kernel: [45025.491014] mxl5005s I2C write failed
-Oct  8 14:16:08 htpc kernel: [45027.642858] mxl5005s I2C write failed
-Oct  8 14:16:08 htpc kernel: [45027.647477] mxl5005s I2C write failed
-Oct  8 14:16:08 htpc kernel: [45027.647970] mxl5005s I2C write failed
-Oct  8 14:16:09 htpc kernel: [45027.806477] mxl5005s I2C write failed
-Oct  8 14:16:09 htpc kernel: [45027.806969] mxl5005s I2C write failed
+u32 syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
+fid = syn_mode & ISPCCDC_SYN_MODE_FLDSTAT;
+/* toggle the software maintained fid */
 
-I try to increase the signal timeout from 1000 to 2000 ms and the
-tuning timeout from 3000 to 6000 ms on mythbackend.
+works as expected, i see fid switching correctly.
 
-Which will be the best value for the Kworld 399U?
-
-Thank for your great work on this device.
-
-Best regards!
-
--- 
-Josu Lazkano
+Enrico
