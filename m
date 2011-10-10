@@ -1,74 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:62372 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751437Ab1JKNxk (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:43237 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753279Ab1JJSp6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Oct 2011 09:53:40 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Paul McKenney <paul.mckenney@linaro.org>
-Subject: Re: [PATCHv16 0/9] Contiguous Memory Allocator
-Date: Tue, 11 Oct 2011 15:52:04 +0200
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>
-References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com> <201110071827.06366.arnd@arndb.de> <20111010155642.38df59af.akpm@linux-foundation.org>
-In-Reply-To: <20111010155642.38df59af.akpm@linux-foundation.org>
+	Mon, 10 Oct 2011 14:45:58 -0400
+Received: by bkbzt4 with SMTP id zt4so8785987bkb.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 11:45:57 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201110111552.04615.arnd@arndb.de>
+Date: Mon, 10 Oct 2011 15:45:55 -0300
+Message-ID: <CALVOWFPrcYuQ-A=Td7AQMj02e96VNg_z2nUOmTvwKyZC_yUmLg@mail.gmail.com>
+Subject: Cannot configure second Kodicom 4400R
+From: Allan Macdonald <allan.w.macdonald@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=0015175cb2847e2a7b04aef63328
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 11 October 2011, Andrew Morton wrote:
-> Russell's going to hate me, but...
-> 
-> I do know that he had substantial objections to at least earlier
-> versions of this, and he is a guy who knows of what he speaks.
-> 
-> So I would want to get a nod from rmk on this work before proceeding. 
-> If that nod isn't available then let's please identify the issues and
-> see what we can do about them.
+--0015175cb2847e2a7b04aef63328
+Content-Type: text/plain; charset=ISO-8859-1
 
-I'm pretty sure that Russell's concerns were almost entirely about the
-ARM specific parts, which were extremely hard to figure out. The
-most important technical concern back in July was that the patch
-series at the time did not address the problem of conflicting pte
-flags when we remap memory as uncached on ARMv6. He had a patch
-to address this problem that was supposed to get merged in 3.1
-and would have conflicted with the CMA patch set.
+Hi to all,
 
-Things have changed a lot since then. Russell had to revert his
-own patch because he found regressions using it on older machines.
-However, the current CMA on ARM patch AFAICT reliably fixes this
-problem now and does not cause the same regression on older machines.
-The solution used now is the one we agreed on after sitting together
-for a few hours with Russell, Marek, Paul McKenney and myself.
+I am new to this list.
 
-If there are still concerns over the ARM specific portion of
-the patch series, I'm very confident that we can resolve these
-now (I was much less so before that meeting).
+I have been successfully using a Kodicom 4400R with zoneminder but I
+wanted to expand so I bought a second card and installed it.  The
+problem with this card is that I cannot seem to be able to get the
+second card to work.  I tried using xawtv with the following command:
 
-What I would really want to hear from you is your opinion on
-the architecture independent stuff. Obviously, ARM is the
-most important consumer of the patch set, but I think the
-code has its merit on other architectures as well and most of
-them (maybe not parisc) should be about as simple as the x86
-one that Marek posted now with v16.
+xawtv -d /dev/video1
 
-	Arnd
+The result is that I get images from /dev/video0
+
+I also tried:
+
+xawtv -d /dev/video4
+
+with the same result.
+
+I obviously don't understand what's going on.
+
+I tried following the instructions here, to no avail:
+
+http://www.zoneminder.com/wiki/index.php/Kodicom_4400r
+
+I also looked here:
+
+http://linuxtv.org/wiki/index.php/Kodicom_4400R
+
+but, unfortunately, the following page does not explain what happens
+with more than one card installed.
+
+Here's my bttv.conf:
+
+[code]
+options bttv gbuffers=32 card=133,132,133,133,133,132,133,133 tuner=4
+chroma_agc=1
+[/code]
+
+I have attached a dmesg output and an lsmod output.
+
+I would greatly appreciate some help.  Many thanks in advance.
+
+Regards,
+
+Allan Macdonald
+
+--0015175cb2847e2a7b04aef63328
+Content-Type: text/plain; charset=US-ASCII; name="dmesg-bttv.txt"
+Content-Disposition: attachment; filename="dmesg-bttv.txt"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gtlt2z4t0
+
+WzE3ODk4MTUuMjQwMDQzXSBidHR2NzogdW5sb2FkaW5nClsxNzg5ODE1LjI0MDU0M10gYnR0djY6
+IHVubG9hZGluZwpbMTc4OTgxNS4yNDE5NTddIGJ0dHY1OiB1bmxvYWRpbmcKWzE3ODk4MTUuMjQy
+NzEyXSBidHR2NDogdW5sb2FkaW5nClsxNzg5ODE1LjI0Mzc5MV0gYnR0djM6IHVubG9hZGluZwpb
+MTc4OTgxNS4yNDUxNDFdIGJ0dHYyOiB1bmxvYWRpbmcKWzE3ODk4MTUuMjQ1OTExXSBidHR2MTog
+dW5sb2FkaW5nClsxNzg5ODE1LjI0NjYzMF0gYnR0djA6IHVubG9hZGluZwpbMTc4OTgyNS40NTM3
+ODBdIGJ0dHY6IGRyaXZlciB2ZXJzaW9uIDAuOS4xOCBsb2FkZWQKWzE3ODk4MjUuNDUzNzgzXSBi
+dHR2OiB1c2luZyAzMiBidWZmZXJzIHdpdGggMjA4MGsgKDUyMCBwYWdlcykgZWFjaCBmb3IgY2Fw
+dHVyZQpbMTc4OTgyNS40NTQwNzldIGJ0dHY6IEJ0OHh4IGNhcmQgZm91bmQgKDApLgpbMTc4OTgy
+NS40NTQwOThdIGJ0dHYwOiBCdDg3OCAocmV2IDE3KSBhdCAwMDAwOjA0OjBjLjAsIGlycTogMTcs
+IGxhdGVuY3k6IDY0LCBtbWlvOiAweGZiZWZlMDAwClsxNzg5ODI1LjQ1NDE5NF0gYnR0djA6IHVz
+aW5nOiBLb2RpY29tIDQ0MDBSIChzbGF2ZSkgW2NhcmQ9MTMzLGluc21vZCBvcHRpb25dClsxNzg5
+ODI1LjQ1NDE5N10gSVJRIDE3L2J0dHYwOiBJUlFGX0RJU0FCTEVEIGlzIG5vdCBndWFyYW50ZWVk
+IG9uIHNoYXJlZCBJUlFzClsxNzg5ODI1LjQ1NDIyNl0gYnR0djA6IGdwaW86IGVuPTAwMDAwMDAw
+LCBvdXQ9MDAwMDAwMDAgaW49MDBmZmZmZmYgW2luaXRdClsxNzg5ODI1LjQ1NDMyNF0gYnR0djA6
+IHR1bmVyIGFic2VudApbMTc4OTgyNS40NTQ5MzBdIGJ0dHYwOiByZWdpc3RlcmVkIGRldmljZSB2
+aWRlbzAKWzE3ODk4MjUuNDU1MzI4XSBidHR2MDogcmVnaXN0ZXJlZCBkZXZpY2UgdmJpMApbMTc4
+OTgyNS40NTUzNTFdIGJ0dHYwOiBQTEw6IDI4NjM2MzYzID0+IDM1NDY4OTUwIC4KWzE3ODk4MjUu
+NDU1NzM1XSBidHR2MDogUExMOiAyODYzNjM2MyA9PiAzNTQ2ODk1MCAuClsxNzg5ODI1LjQ1NTc1
+OV0gYnR0djA6IFBMTDogMjg2MzYzNjMgPT4gMzU0Njg5NTAgLi4gb2sKWzE3ODk4MjUuNDc3NTY3
+XSBidHR2OiBCdDh4eCBjYXJkIGZvdW5kICgxKS4KWzE3ODk4MjUuNDc3NTkwXSBidHR2MTogQnQ4
+NzggKHJldiAxNykgYXQgMDAwMDowNDowZC4wLCBpcnE6IDE4LCBsYXRlbmN5OiA2NCwgbW1pbzog
+MHhmYmVmYzAwMApbMTc4OTgyNS40Nzc3NDhdIGJ0dHYxOiB1c2luZzogS29kaWNvbSA0NDAwUiAo
+bWFzdGVyKSBbY2FyZD0xMzIsaW5zbW9kIG9wdGlvbl0KWzE3ODk4MjUuNDc3NzUxXSBJUlEgMTgv
+YnR0djE6IElSUUZfRElTQUJMRUQgaXMgbm90IGd1YXJhbnRlZWQgb24gc2hhcmVkIElSUXMKWzE3
+ODk4MjUuNDc3Nzg3XSBidHR2MTogZ3BpbzogZW49MDAwMDAwMDAsIG91dD0wMDAwMDAwMCBpbj0w
+MGZmZmZmZiBbaW5pdF0KWzE3ODk4MjUuNDc3OTUzXSBidHR2MTogdHVuZXIgYWJzZW50ClsxNzg5
+ODI1LjQ3ODMwOV0gYnR0djE6IHJlZ2lzdGVyZWQgZGV2aWNlIHZpZGVvMQpbMTc4OTgyNS40Nzg0
+MDhdIGJ0dHYxOiByZWdpc3RlcmVkIGRldmljZSB2YmkxClsxNzg5ODI1LjQ3ODQzMF0gYnR0djE6
+IFBMTDogMjg2MzYzNjMgPT4gMzU0Njg5NTAgLgpbMTc4OTgyNS40Nzk1MjFdIGJ0dHYxOiBQTEw6
+IDI4NjM2MzYzID0+IDM1NDY4OTUwIC4KWzE3ODk4MjUuNDc5Nzg4XSBidHR2MTogUExMOiAyODYz
+NjM2MyA9PiAzNTQ2ODk1MCAuIG9rClsxNzg5ODU3LjY2ODUzOF0gYnR0djogQnQ4eHggY2FyZCBm
+b3VuZCAoMikuClsxNzg5ODU3LjY2ODU1OF0gYnR0djI6IEJ0ODc4IChyZXYgMTcpIGF0IDAwMDA6
+MDQ6MGUuMCwgaXJxOiAxOSwgbGF0ZW5jeTogNjQsIG1taW86IDB4ZmJlZmEwMDAKWzE3ODk4NTcu
+NjY4NzAyXSBidHR2MjogdXNpbmc6IEtvZGljb20gNDQwMFIgKHNsYXZlKSBbY2FyZD0xMzMsaW5z
+bW9kIG9wdGlvbl0KWzE3ODk4NTcuNjY4NzA1XSBJUlEgMTkvYnR0djI6IElSUUZfRElTQUJMRUQg
+aXMgbm90IGd1YXJhbnRlZWQgb24gc2hhcmVkIElSUXMKWzE3ODk4NTcuNjY4NzQyXSBidHR2Mjog
+Z3BpbzogZW49MDAwMDAwMDAsIG91dD0wMDAwMDAwMCBpbj0wMGZmZmZmZiBbaW5pdF0KWzE3ODk4
+NTcuNjY4ODA0XSBidHR2MjogdHVuZXIgYWJzZW50ClsxNzg5ODU3LjY2ODg5M10gYnR0djI6IHJl
+Z2lzdGVyZWQgZGV2aWNlIHZpZGVvMgpbMTc4OTg1Ny42Njg5MjNdIGJ0dHYyOiByZWdpc3RlcmVk
+IGRldmljZSB2YmkyClsxNzg5ODU3LjY2ODk1MV0gYnR0djI6IFBMTDogMjg2MzYzNjMgPT4gMzU0
+Njg5NTAgLgpbMTc4OTg1Ny42NzAyMDBdIGJ0dHYyOiBQTEw6IDI4NjM2MzYzID0+IDM1NDY4OTUw
+IC4KWzE3ODk4NTcuNjcwNjQzXSBidHR2MjogUExMOiAyODYzNjM2MyA9PiAzNTQ2ODk1MCAuLiBv
+awpbMTc4OTg4OS44NjA1MzddIGJ0dHY6IEJ0OHh4IGNhcmQgZm91bmQgKDMpLgpbMTc4OTg4OS44
+NjA1NThdIGJ0dHYzOiBCdDg3OCAocmV2IDE3KSBhdCAwMDAwOjA0OjBmLjAsIGlycTogMTYsIGxh
+dGVuY3k6IDY0LCBtbWlvOiAweGZiZWY4MDAwClsxNzg5ODg5Ljg2MDcwMl0gYnR0djM6IHVzaW5n
+OiBLb2RpY29tIDQ0MDBSIChzbGF2ZSkgW2NhcmQ9MTMzLGluc21vZCBvcHRpb25dClsxNzg5ODg5
+Ljg2MDcwNV0gSVJRIDE2L2J0dHYzOiBJUlFGX0RJU0FCTEVEIGlzIG5vdCBndWFyYW50ZWVkIG9u
+IHNoYXJlZCBJUlFzClsxNzg5ODg5Ljg2MDc0Ml0gYnR0djM6IGdwaW86IGVuPTAwMDAwMDAwLCBv
+dXQ9MDAwMDAwMDAgaW49MDBmZmZmZmYgW2luaXRdClsxNzg5ODg5Ljg2MDgwN10gYnR0djM6IHR1
+bmVyIGFic2VudApbMTc4OTg4OS44NjA4OTldIGJ0dHYzOiByZWdpc3RlcmVkIGRldmljZSB2aWRl
+bzMKWzE3ODk4ODkuODYwOTM1XSBidHR2MzogcmVnaXN0ZXJlZCBkZXZpY2UgdmJpMwpbMTc4OTg4
+OS44NjA5NjBdIGJ0dHYzOiBQTEw6IDI4NjM2MzYzID0+IDM1NDY4OTUwIC4KWzE3ODk4ODkuODYy
+MTUyXSBidHR2MzogUExMOiAyODYzNjM2MyA9PiAzNTQ2ODk1MCAuClsxNzg5ODg5Ljg2Mjg3MV0g
+YnR0djM6IFBMTDogMjg2MzYzNjMgPT4gMzU0Njg5NTAgLi4gb2sKWzE3ODk5MjIuMDUyNTM5XSBi
+dHR2OiBCdDh4eCBjYXJkIGZvdW5kICg0KS4KWzE3ODk5MjIuMDUyNTYwXSBidHR2NDogQnQ4Nzgg
+KHJldiAxNykgYXQgMDAwMDowNTowYy4wLCBpcnE6IDE4LCBsYXRlbmN5OiA2NCwgbW1pbzogMHhm
+YmZmZTAwMApbMTc4OTkyMi4wNTI3MDRdIGJ0dHY0OiB1c2luZzogS29kaWNvbSA0NDAwUiAoc2xh
+dmUpIFtjYXJkPTEzMyxpbnNtb2Qgb3B0aW9uXQpbMTc4OTkyMi4wNTI3MDddIElSUSAxOC9idHR2
+NDogSVJRRl9ESVNBQkxFRCBpcyBub3QgZ3VhcmFudGVlZCBvbiBzaGFyZWQgSVJRcwpbMTc4OTky
+Mi4wNTI3MzddIGJ0dHY0OiBncGlvOiBlbj0wMDAwMDAwMCwgb3V0PTAwMDAwMDAwIGluPTAwZmZm
+ZmZmIFtpbml0XQpbMTc4OTkyMi4wNTI4MDFdIGJ0dHY0OiB0dW5lciBhYnNlbnQKWzE3ODk5MjIu
+MDUyODk0XSBidHR2NDogcmVnaXN0ZXJlZCBkZXZpY2UgdmlkZW80ClsxNzg5OTIyLjA1MjkyNl0g
+YnR0djQ6IHJlZ2lzdGVyZWQgZGV2aWNlIHZiaTQKWzE3ODk5MjIuMDUyOTQ3XSBidHR2NDogUExM
+OiAyODYzNjM2MyA9PiAzNTQ2ODk1MCAuClsxNzg5OTIyLjA1NDEyMF0gYnR0djQ6IFBMTDogMjg2
+MzYzNjMgPT4gMzU0Njg5NTAgLgpbMTc4OTkyMi4wNTQ4MTZdIGJ0dHY0OiBQTEw6IDI4NjM2MzYz
+ID0+IDM1NDY4OTUwIC4uIG9rClsxNzg5OTIyLjA4NzUzMl0gYnR0djogQnQ4eHggY2FyZCBmb3Vu
+ZCAoNSkuClsxNzg5OTIyLjA4NzU1MF0gYnR0djU6IEJ0ODc4IChyZXYgMTcpIGF0IDAwMDA6MDU6
+MGQuMCwgaXJxOiAxOSwgbGF0ZW5jeTogNjQsIG1taW86IDB4ZmJmZmMwMDAKWzE3ODk5MjIuMDg3
+Njk1XSBidHR2NTogdXNpbmc6IEtvZGljb20gNDQwMFIgKG1hc3RlcikgW2NhcmQ9MTMyLGluc21v
+ZCBvcHRpb25dClsxNzg5OTIyLjA4NzY5OV0gSVJRIDE5L2J0dHY1OiBJUlFGX0RJU0FCTEVEIGlz
+IG5vdCBndWFyYW50ZWVkIG9uIHNoYXJlZCBJUlFzClsxNzg5OTIyLjA4NzcyN10gYnR0djU6IGdw
+aW86IGVuPTAwMDAwMDAwLCBvdXQ9MDAwMDAwMDAgaW49MDBmZmZmZmYgW2luaXRdClsxNzg5OTIy
+LjA4NzgwMl0gYnR0djU6IHR1bmVyIGFic2VudApbMTc4OTkyMi4wODc4OTBdIGJ0dHY1OiByZWdp
+c3RlcmVkIGRldmljZSB2aWRlbzUKWzE3ODk5MjIuMDg3OTIyXSBidHR2NTogcmVnaXN0ZXJlZCBk
+ZXZpY2UgdmJpNQpbMTc4OTkyMi4wODc5NDFdIGJ0dHY1OiBQTEw6IDI4NjM2MzYzID0+IDM1NDY4
+OTUwIC4KWzE3ODk5MjIuMDg5MDk1XSBidHR2NTogUExMOiAyODYzNjM2MyA9PiAzNTQ2ODk1MCAu
+ClsxNzg5OTIyLjA4OTUzM10gYnR0djU6IFBMTDogMjg2MzYzNjMgPT4gMzU0Njg5NTAgLiBvawo=
+--0015175cb2847e2a7b04aef63328
+Content-Type: text/plain; charset=US-ASCII; name="lsmod-bttv.txt"
+Content-Disposition: attachment; filename="lsmod-bttv.txt"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gtlt58wr1
+
+YnR0diAgICAgICAgICAgICAgICAgIDExMTY2OSAgMCAKdjRsMl9jb21tb24gICAgICAgICAgICAx
+NTQzMSAgMSBidHR2CnZpZGVvZGV2ICAgICAgICAgICAgICAgMzQ0MjUgIDIgYnR0dix2NGwyX2Nv
+bW1vbgppcl9jb21tb24gICAgICAgICAgICAgIDM4ODc1ICAxIGJ0dHYKaTJjX2FsZ29fYml0ICAg
+ICAgICAgICAgNTAyOCAgMSBidHR2CnZpZGVvYnVmX2RtYV9zZyAgICAgICAgMTA3ODIgIDEgYnR0
+dgp2aWRlb2J1Zl9jb3JlICAgICAgICAgIDE2MzU2ICAyIGJ0dHYsdmlkZW9idWZfZG1hX3NnCmJ0
+Y3hfcmlzYyAgICAgICAgICAgICAgIDM2MjQgIDEgYnR0dgp0dmVlcHJvbSAgICAgICAgICAgICAg
+IDExMTAyICAxIGJ0dHYK
+--0015175cb2847e2a7b04aef63328--
