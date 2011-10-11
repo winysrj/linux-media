@@ -1,62 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kaapeli.fi ([84.20.139.148]:32851 "EHLO mail.kaapeli.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751518Ab1JTEpu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Oct 2011 00:45:50 -0400
-Message-ID: <4E9FA779.5040406@iki.fi>
-Date: Thu, 20 Oct 2011 07:45:45 +0300
-From: Jyrki Kuoppala <jkp@iki.fi>
+Received: from hermes.mlbassoc.com ([64.234.241.98]:54504 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750922Ab1JKWg2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Oct 2011 18:36:28 -0400
+Message-ID: <4E94C4EA.5080309@mlbassoc.com>
+Date: Tue, 11 Oct 2011 16:36:26 -0600
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-To: Carlos Corbacho <carlos@strangeworlds.co.uk>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] Fix to qt1010 tuner frequency selection (media/dvb)
-References: <4E528FAE.5060801@iki.fi> <5010154.A6jI82beuA@valkyrie> <4E7F58BB.5080803@iki.fi> <2165330.TqTdf0zloM@valkyrie>
-In-Reply-To: <2165330.TqTdf0zloM@valkyrie>
+To: Enrico <ebutera@users.berlios.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC 0/3] omap3isp: add BT656 support
+References: <1318345735-16778-1-git-send-email-ebutera@users.berlios.de> <4E94BD75.5040403@mlbassoc.com> <CA+2YH7vx27qNeOO33NmR4SaqrSrhdu=17p468cSbLxDKfDAQqQ@mail.gmail.com> <4E94C465.9090901@mlbassoc.com>
+In-Reply-To: <4E94C465.9090901@mlbassoc.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I think my problem frequency has also been at the later spot. It is possible there is something more complicated going on at 474 MHz - so based on your testing, it's best to apply just the latter change, at least for now.
-
-Jyrki
-
-
-
-+    else if (freq<   546000000) rd[15].val = 0xd6; /* 546 MHz */
-
-+    else if (freq<   546000000) rd[15].val = 0xd6; /* 546 MHz */
-
-
-20.10.2011 00:06, Carlos Corbacho kirjoitti:
-> Jyrki,
+On 2011-10-11 16:34, Gary Thomas wrote:
+> On 2011-10-11 16:25, Enrico wrote:
+>> On Wed, Oct 12, 2011 at 12:04 AM, Gary Thomas<gary@mlbassoc.com> wrote:
+>>> Sorry, this just locks up on boot for me, immediately after finding the
+>>> TVP5150.
+>>> I applied your changes to the above tree
+>>> commit 658d5e03dc1a7283e5119cd0e9504759dbd3d912
+>>> Author: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+>>> Date: Wed Aug 31 16:03:53 2011 +0200
+>>
+>> Did you add Javier patches for the tvp5150?
 >
-> So after a bit more testing...
->
-> [...]
->
->>>>         /* 22 */
->>>>         if      (freq<   450000000) rd[15].val = 0xd0; /* 450 MHz
->>>>         */
->>>>
->>>> -    else if (freq<   482000000) rd[15].val = 0xd1; /* 482 MHz */
->>>> +    else if (freq<   482000000) rd[15].val = 0xd2; /* 482 MHz */
-> This change isn't so good.
->
-> With this change, I can no longer tune to channel 21 (474 MHz). If I revert it
-> back to 0xd1, it's fine.
->
-> [...]
->
->>>>         else if (freq<   514000000) rd[15].val = 0xd4; /* 514 MHz
->>>>         */
->>>>
->>>> -    else if (freq<   546000000) rd[15].val = 0xd7; /* 546 MHz */
->>>> +    else if (freq<   546000000) rd[15].val = 0xd6; /* 546 MHz */
->>>> +    else if (freq<   578000000) rd[15].val = 0xd8; /* 578 MHz */
-> (This change is still good though, as this does allow me to now tune to the
-> BBC channels in this range).
->
-> -Carlos
+> No, I thought your set was self-contained. I'll add them now.
 
+That said, it's not clear the current/final state of them.  I don't see any repost
+after the very long discussion with Laurent.
+
+Maybe you could just send that file to me directly?
+
+>
+>>
+>>> However, it does not build for my OMAP3530 without the attached patches.
+>>
+>> I can't remember now if i had omap vout enabled in my kernel config
+>> but that one in ispccdc.c is strange, tomorrow i will do again a clean
+>> rebuild.
+>
+> I can't see how to turn off omap_vout
+>
+
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
