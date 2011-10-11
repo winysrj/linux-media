@@ -1,56 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29]:35770 "EHLO
-	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756449Ab1JQWdV (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56291 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753107Ab1JKJjA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Oct 2011 18:33:21 -0400
-Date: Mon, 17 Oct 2011 15:31:36 -0700
-From: Greg KH <greg@kroah.com>
-To: Piotr Chmura <chmooreck@poczta.onet.pl>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Greg KH <gregkh@suse.de>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <maurochehab@gmail.com>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
-Subject: Re: [PATCH 0/7] Staging submission: PCTV 74e drivers and some
- cleanup (was: Staging submission: PCTV 80e and PCTV 74e drivers)
-Message-ID: <20111017223136.GA20939@kroah.com>
-References: <4E7F1FB5.5030803@gmail.com>
- <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
- <4E7FF0A0.7060004@gmail.com>
- <CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
- <20110927094409.7a5fcd5a@stein>
- <20110927174307.GD24197@suse.de>
- <20110927213300.6893677a@stein>
- <4E99F2F6.9000307@poczta.onet.pl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4E99F2F6.9000307@poczta.onet.pl>
+	Tue, 11 Oct 2011 05:39:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH] omap3isp: Report the ISP revision through the media controller API
+Date: Tue, 11 Oct 2011 11:39:04 +0200
+Message-Id: <1318325944-11666-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Oct 15, 2011 at 10:54:14PM +0200, Piotr Chmura wrote:
-> [PATCH 1/7] pull as102 driver fromhttp://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
-> with the only change needed to compile it in git tree[1]: usb_buffer_alloc()
-> to usb_alloc_coherent() and usb_buffer_free() to usb_free_coherent()
-> 
-> [PATCH 2/7] as102: add new device nBox DVB-T Dongle
-> adds new device working on this driver
-> 
-> 
-> Next patches i made basing on Mauro Carvalho Chehab comments from previous pull try [2].
-> 
-> [PATCH 3/7] as102: cleanup - get rid off typedefs
-> [PATCH 4/7] as102: cleanup - formatting code
-> [PATCH 5/7] as102: cleanup - set __attribute__(packed) instead of pragma(pack)
-> [PATCH 6/7] as102: cleanup - delete vim comments
-> [PATCH 7/7] as102: cleanup - get rid of unnecessary defines (WIN32, LINUX)
+Set the media_device::hw_revision field to the ISP revision number.
 
-Mauro, care to take these and move them under your newly-created
-drivers/staging/media/ directory?
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/isp.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-thanks,
+diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+index 7b5ab42..192c448 100644
+--- a/drivers/media/video/omap3isp/isp.c
++++ b/drivers/media/video/omap3isp/isp.c
+@@ -1697,6 +1697,7 @@ static int isp_register_entities(struct isp_device *isp)
+ 	isp->media_dev.dev = isp->dev;
+ 	strlcpy(isp->media_dev.model, "TI OMAP3 ISP",
+ 		sizeof(isp->media_dev.model));
++	isp->media_dev.hw_revision = isp->revision;
+ 	isp->media_dev.link_notify = isp_pipeline_link_notify;
+ 	ret = media_device_register(&isp->media_dev);
+ 	if (ret < 0) {
+-- 
+1.7.3.4
 
-greg k-h
