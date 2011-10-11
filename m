@@ -1,396 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpo05.poczta.onet.pl ([213.180.142.136]:33283 "EHLO
-	smtpo05.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756091Ab1JRJPd (ORCPT
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:36364 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754844Ab1JKSR6 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Oct 2011 05:15:33 -0400
-Date: Tue, 18 Oct 2011 11:11:56 +0200
-From: Piotr Chmura <chmooreck@poczta.onet.pl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Greg KH <gregkh@suse.de>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
-Subject: [PATCH 5/14] staging/media/as102: checkpatch fixes
-Message-Id: <20111018111156.1fc2f267.chmooreck@poczta.onet.pl>
-In-Reply-To: <20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
-References: <4E7F1FB5.5030803@gmail.com>
-	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
-	<4E7FF0A0.7060004@gmail.com>
-	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
-	<20110927094409.7a5fcd5a@stein>
-	<20110927174307.GD24197@suse.de>
-	<20110927213300.6893677a@stein>
-	<4E999733.2010802@poczta.onet.pl>
-	<4E99F2FC.5030200@poczta.onet.pl>
-	<20111016105731.09d66f03@stein>
-	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
-	<4E9ADFAE.8050208@redhat.com>
-	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 11 Oct 2011 14:17:58 -0400
+Received: by wwn22 with SMTP id 22so5574227wwn.1
+        for <linux-media@vger.kernel.org>; Tue, 11 Oct 2011 11:17:57 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201110101752.11536.liplianin@me.by>
+References: <201110101752.11536.liplianin@me.by>
+Date: Tue, 11 Oct 2011 14:17:57 -0400
+Message-ID: <CALzAhNUOrg38VkNLq1Nbm+Wbv8OD0wXKK3TSuXez1n1q_uMLDw@mail.gmail.com>
+Subject: Re: [GIT PATCHES FOR 3.2] cx23885 alsa cleaned and prepaired
+From: Steven Toth <stoth@kernellabs.com>
+To: "Igor M. Liplianin" <liplianin@me.by>
+Cc: Mauro Chehab <mchehab@infradead.org>, linux-media@vger.kernel.org,
+	Steven Toth <stoth@linuxtv.org>,
+	Mijhail Moreyra <mijhail.moreyra@gmail.com>,
+	Abylai Ospan <aospan@netup.ru>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+> It's been a long time since cx23885-alsa pull was requested.
+> To speed things up I created a git branch where I put the patches.
+> are available in the git repository at:
 
-Original source and comment:
-# HG changeset patch
-# User Devin Heitmueller <dheitmueller@kernellabs.com>
-# Date 1267318751 18000
-# Node ID 1ccb2e0adbf02a111decf8a4c78e93f4354e2bd2
-# Parent  69c8f5172790784738bcc18f8301919ef3d5373f
-as102: checkpatch fixes
+...
 
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
+>  git://linuxtv.org/liplianin/media_tree.git cx23885-alsa-clean-2
 
-Fix make checkpatch issues reported against as10x_cmd_stream.c.
+Thank you for working on this Igor.
 
-Priority: normal
+I most certainly have some additional patches that will probably no
+longer apply cleanly. However, given that you've gone to the trouble
+of building a new tree, assuming we can get these merged, then I'll
+rebase and regenerate any patches I have to match the current cx23885
+driver.
 
-Signed-off-by: Piotr Chmura <chmooreck@poczta.onet.pl>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-
-diff --git linux/drivers/staging/media/as102/as10x_cmd_stream.c linuxb/drivers/media/dvb/as102/as10x_cmd_stream.c
---- linux/drivers/staging/media/as102/as10x_cmd_stream.c
-+++ linuxb/drivers/staging/media/as102/as10x_cmd_stream.c
-@@ -2,8 +2,6 @@
- 
-  \file   as10x_cmd_stream.c
- 
-- \version $Id$
--
-  \author: S. Martinelli
- 
-  ----------------------------------------------------------------------------\n
-@@ -53,57 +51,57 @@
-    \return 0 when no error, < 0 in case of error.
-    \callgraph
- */
--int as10x_cmd_add_PID_filter(as10x_handle_t* phandle,
--			     struct as10x_ts_filter *filter) {
--   int    error;
--   struct as10x_cmd_t *pcmd, *prsp;
-+int as10x_cmd_add_PID_filter(as10x_handle_t *phandle,
-+			     struct as10x_ts_filter *filter)
-+{
-+	int error;
-+	struct as10x_cmd_t *pcmd, *prsp;
- 
--   ENTER();
-+	ENTER();
- 
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   /* prepare command */
--   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
--		    sizeof(pcmd->body.add_pid_filter.req));
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.add_pid_filter.req));
- 
--   /* fill command */
--   pcmd->body.add_pid_filter.req.proc_id = cpu_to_le16(CONTROL_PROC_SETFILTER);
--   pcmd->body.add_pid_filter.req.pid = cpu_to_le16(filter->pid);
--   pcmd->body.add_pid_filter.req.stream_type = filter->type;
-+	/* fill command */
-+	pcmd->body.add_pid_filter.req.proc_id =
-+		cpu_to_le16(CONTROL_PROC_SETFILTER);
-+	pcmd->body.add_pid_filter.req.pid = cpu_to_le16(filter->pid);
-+	pcmd->body.add_pid_filter.req.stream_type = filter->type;
- 
--   if(filter->idx < 16)
--	pcmd->body.add_pid_filter.req.idx = filter->idx;
--   else
--	pcmd->body.add_pid_filter.req.idx = 0xFF;
-+	if (filter->idx < 16)
-+		pcmd->body.add_pid_filter.req.idx = filter->idx;
-+	else
-+		pcmd->body.add_pid_filter.req.idx = 0xFF;
- 
--   /* send command */
--   if(phandle->ops->xfer_cmd) {
--      error = phandle->ops->xfer_cmd(phandle,
--		       (uint8_t *) pcmd,
--		       sizeof(pcmd->body.add_pid_filter.req) + HEADER_SIZE,
--		       (uint8_t *) prsp,
--		       sizeof(prsp->body.add_pid_filter.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
-+				sizeof(pcmd->body.add_pid_filter.req)
-+				+ HEADER_SIZE, (uint8_t *) prsp,
-+				sizeof(prsp->body.add_pid_filter.rsp)
-+				+ HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
- 
--   if(error < 0) {
--      goto out;
--   }
-+	if (error < 0)
-+		goto out;
- 
--   /* parse response */
--   error = as10x_rsp_parse(prsp, CONTROL_PROC_SETFILTER_RSP);
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_SETFILTER_RSP);
- 
--   if(error == 0) {
--     /* Response OK -> get response data */
--     filter->idx = prsp->body.add_pid_filter.rsp.filter_id;
--   }
-+	if (error == 0) {
-+		/* Response OK -> get response data */
-+		filter->idx = prsp->body.add_pid_filter.rsp.filter_id;
-+	}
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-@@ -113,144 +111,138 @@
-    \return 0 when no error, < 0 in case of error.
-    \callgraph
- */
--int as10x_cmd_del_PID_filter(as10x_handle_t* phandle,
-+int as10x_cmd_del_PID_filter(as10x_handle_t *phandle,
- 			     uint16_t pid_value)
- {
-+	int error;
-+	struct as10x_cmd_t *pcmd, *prsp;
- 
--   int    error;
--   struct as10x_cmd_t *pcmd, *prsp;
-+	ENTER();
- 
--   ENTER();
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.del_pid_filter.req));
- 
--   /* prepare command */
--   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
--		    sizeof(pcmd->body.del_pid_filter.req));
-+	/* fill command */
-+	pcmd->body.del_pid_filter.req.proc_id =
-+		cpu_to_le16(CONTROL_PROC_REMOVEFILTER);
-+	pcmd->body.del_pid_filter.req.pid = cpu_to_le16(pid_value);
- 
--   /* fill command */
--   pcmd->body.del_pid_filter.req.proc_id = cpu_to_le16(CONTROL_PROC_REMOVEFILTER);
--   pcmd->body.del_pid_filter.req.pid = cpu_to_le16(pid_value);
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
-+				sizeof(pcmd->body.del_pid_filter.req)
-+				+ HEADER_SIZE, (uint8_t *) prsp,
-+				sizeof(prsp->body.del_pid_filter.rsp)
-+				+ HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
- 
--   /* send command */
--   if(phandle->ops->xfer_cmd){
--      error = phandle->ops->xfer_cmd(phandle,
--		       (uint8_t *) pcmd,
--		       sizeof(pcmd->body.del_pid_filter.req) + HEADER_SIZE,
--		       (uint8_t *) prsp,
--		       sizeof(prsp->body.del_pid_filter.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
-+	if (error < 0)
-+		goto out;
- 
--   if(error < 0) {
--      goto out;
--   }
--
--   /* parse response */
--   error = as10x_rsp_parse(prsp, CONTROL_PROC_REMOVEFILTER_RSP);
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_REMOVEFILTER_RSP);
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-    \brief Send start streaming command to AS10x
-    \param  phandle:   pointer to AS10x handle
--   \return 0 when no error, < 0 in case of error._
-+   \return 0 when no error, < 0 in case of error.
-    \callgraph
- */
--int as10x_cmd_start_streaming(as10x_handle_t* phandle)
-+int as10x_cmd_start_streaming(as10x_handle_t *phandle)
- {
--   int error;
--   struct as10x_cmd_t *pcmd, *prsp;
-+	int error;
-+	struct as10x_cmd_t *pcmd, *prsp;
- 
--   ENTER();
-+	ENTER();
- 
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   /* prepare command */
--   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
--		    sizeof(pcmd->body.start_streaming.req));
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.start_streaming.req));
- 
--   /* fill command */
--   pcmd->body.start_streaming.req.proc_id =
--				   cpu_to_le16(CONTROL_PROC_START_STREAMING);
-+	/* fill command */
-+	pcmd->body.start_streaming.req.proc_id =
-+		cpu_to_le16(CONTROL_PROC_START_STREAMING);
- 
--   /* send command */
--   if(phandle->ops->xfer_cmd){
--      error = phandle->ops->xfer_cmd(phandle,
--		       (uint8_t *) pcmd,
--		       sizeof(pcmd->body.start_streaming.req) + HEADER_SIZE,
--		       (uint8_t *) prsp,
--		       sizeof(prsp->body.start_streaming.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
-+				sizeof(pcmd->body.start_streaming.req)
-+				+ HEADER_SIZE, (uint8_t *) prsp,
-+				sizeof(prsp->body.start_streaming.rsp)
-+				+ HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
- 
--   if(error < 0) {
--      goto out;
--   }
-+	if (error < 0)
-+		goto out;
- 
--   /* parse response */
--   error = as10x_rsp_parse(prsp, CONTROL_PROC_START_STREAMING_RSP);
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_START_STREAMING_RSP);
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-    \brief Send stop streaming command to AS10x
-    \param  phandle:   pointer to AS10x handle
--   \return 0 when no error, < 0 in case of error._
-+   \return 0 when no error, < 0 in case of error.
-    \callgraph
- */
--int as10x_cmd_stop_streaming(as10x_handle_t* phandle)
-+int as10x_cmd_stop_streaming(as10x_handle_t *phandle)
- {
--   int8_t error;
--   struct as10x_cmd_t *pcmd, *prsp;
-+	int8_t error;
-+	struct as10x_cmd_t *pcmd, *prsp;
- 
--   ENTER();
-+	ENTER();
- 
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   /* prepare command */
--   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
--		    sizeof(pcmd->body.stop_streaming.req));
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.stop_streaming.req));
- 
--   /* fill command */
--   pcmd->body.stop_streaming.req.proc_id =
--				   cpu_to_le16(CONTROL_PROC_STOP_STREAMING);
-+	/* fill command */
-+	pcmd->body.stop_streaming.req.proc_id =
-+		cpu_to_le16(CONTROL_PROC_STOP_STREAMING);
- 
--   /* send command */
--   if(phandle->ops->xfer_cmd){
--      error = phandle->ops->xfer_cmd(phandle,
--		       (uint8_t *) pcmd,
--		       sizeof(pcmd->body.stop_streaming.req) + HEADER_SIZE,
--		       (uint8_t *) prsp,
--		       sizeof(prsp->body.stop_streaming.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
-+				sizeof(pcmd->body.stop_streaming.req)
-+				+ HEADER_SIZE, (uint8_t *) prsp,
-+				sizeof(prsp->body.stop_streaming.rsp)
-+				+ HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
- 
--   if(error < 0) {
--      goto out;
--   }
-+	if (error < 0)
-+		goto out;
- 
--   /* parse response */
--   error = as10x_rsp_parse(prsp, CONTROL_PROC_STOP_STREAMING_RSP);
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_STOP_STREAMING_RSP);
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
++1.646.355.8490
