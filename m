@@ -1,68 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46989 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755173Ab1JCMvB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Oct 2011 08:51:01 -0400
-Message-ID: <4E89AFB1.9030707@iki.fi>
-Date: Mon, 03 Oct 2011 15:50:57 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:39007 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752117Ab1JKKvR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Oct 2011 06:51:17 -0400
+Received: by gyg10 with SMTP id 10so6349389gyg.19
+        for <linux-media@vger.kernel.org>; Tue, 11 Oct 2011 03:51:17 -0700 (PDT)
 MIME-Version: 1.0
-To: James Courtier-Dutton <james.dutton@gmail.com>
-CC: =?UTF-8?B?SXN0dsOhbiBWw6FyYWRp?= <ivaradi@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Smart card reader support for Anysee DVB devices
-References: <CAFk-VPxQvGiEUdd+X4jjUqcygPO-JsT0gTFvrX-q4cGAW6tq_Q@mail.gmail.com>	<4E485F81.9020700@iki.fi>	<4E48FF99.7030006@iki.fi>	<4E4C2784.2020003@iki.fi>	<CAFk-VPzKa4bNLCMMCagFi1LLK6PnY245YJqP5yisQH77nJ0Org@mail.gmail.com>	<4E5BA751.6090709@iki.fi> <CAAMvbhFayrVYNiT8GxQfEJi4D7KG-MCr4wM3+DKC2kc4ZOp7ZA@mail.gmail.com>
-In-Reply-To: <CAAMvbhFayrVYNiT8GxQfEJi4D7KG-MCr4wM3+DKC2kc4ZOp7ZA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CA+2YH7v444zTDCV9Gmnkcj+mXB10RZE4KU2zDHFMqjzDmUXLzw@mail.gmail.com>
+References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
+ <CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
+ <CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com>
+ <201110081751.38953.laurent.pinchart@ideasonboard.com> <CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
+ <CA+2YH7vat9iSAuZ4ztDvvo4Od+b4tCOsK6Y+grTE05YUZZEYPQ@mail.gmail.com>
+ <CAAwP0s3NFvvUYd-0kwKLKXfYB4Zx1nXb0nd9+JM61JWtrVFfRg@mail.gmail.com>
+ <CA+2YH7uFeHAmEpVqbd94qtCajb45pkr9YzeW+RDa5sf2bUG_wQ@mail.gmail.com>
+ <CAAwP0s3GJ7-By=q_ADa6qcpaENK5kXvkTG8Hd=Y+qXs9dgXa0w@mail.gmail.com>
+ <CA+2YH7subMzFAg7f7-uHXEmYBD+Kd1=E2nWKx7dgKCEpOu=zgQ@mail.gmail.com>
+ <CA+2YH7ti4xz9zNby6O=3ZOKAB9=1hnYZr9cM8HSMrj0r4zi1=A@mail.gmail.com>
+ <CAAwP0s3ZqDpMsF7mYYtM7twomREZTyO-uDhGPnfNsQcOTXQ_fw@mail.gmail.com>
+ <CA+2YH7s6rhLsyJTdWwQVUCd2WBWiH2saSaZZw0tysRWsXw-6Cg@mail.gmail.com>
+ <CA+2YH7tdMHNpJGyOhVJnR4UN5ZwCcspD0Nnj8xCvUs7RaERb_w@mail.gmail.com>
+ <CA+2YH7uNvuRdWSoX25NvHryknExrfeew1heB5DNSf3Epz2LOUw@mail.gmail.com>
+ <CAAwP0s1JDoSUqX2Fm7+L1HyNxAZkdenDfmy0M8U5nVLo2eSvOw@mail.gmail.com>
+ <CA+2YH7votO73gQmdxhHkfLsc9sp8Z-S=wxxrJhsTYUzVqpiACA@mail.gmail.com>
+ <CAAwP0s3tUUm+9S-MasWcp2HMLOW6xegQMTNbhxJ6355fW=hr0g@mail.gmail.com> <CA+2YH7v444zTDCV9Gmnkcj+mXB10RZE4KU2zDHFMqjzDmUXLzw@mail.gmail.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Date: Tue, 11 Oct 2011 12:50:57 +0200
+Message-ID: <CAAwP0s0-5h=R39V7Nf3896eLi0HVXY8+edguMEH_Dtbs5RZnhg@mail.gmail.com>
+Subject: Re: omap3-isp status
+To: Enrico <ebutera@users.berlios.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Deepthy Ravi <deepthy.ravi@ti.com>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Adam Pledger <a.pledger@thermoteknix.com>,
+	linux-media@vger.kernel.org,
+	Enric Balletbo i Serra <eballetbo@iseebcn.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/03/2011 03:36 PM, James Courtier-Dutton wrote:
-> 2011/8/29 Antti Palosaari<crope@iki.fi>:
->> Only De facto serial smartcard protocol is so called Phoenix/Smartmouse,
->> implementing new protocol is totally dead idea. It will never got any
->> support.
+On Tue, Oct 11, 2011 at 12:29 PM, Enrico <ebutera@users.berlios.de> wrote:
+> On Mon, Oct 10, 2011 at 8:18 PM, Javier Martinez Canillas
+> <martinez.javier@gmail.com> wrote:
+>> On Mon, Oct 10, 2011 at 7:09 PM, Enrico <ebutera@users.berlios.de> wrote:
+>>> On Mon, Oct 10, 2011 at 6:53 PM, Javier Martinez Canillas
+>>> <martinez.javier@gmail.com> wrote:
+>>>> On Mon, Oct 10, 2011 at 6:34 PM, Enrico <ebutera@users.berlios.de> wrote:
+>>>>> Ok, i made it work. It was missing just the config_outlineoffset i
+>>>>> wrote before and a missing FLDMODE in SYNC registers.
+>>>>>
+>>>>
+>>>> Great, do you get the ghosting effect or do you have a clean video?
+>>>
+>>>
+>>> Unfortunately i always get the ghosting effect. But this is something
+>>> we will try to fix later.
+>>>
+>>>
 >>
->> There is already such drivers, at least Infinity Unlimited USB Phoenix
->> driver (iuu_phoenix.c). It uses USB-serial driver framework and some small
->> emulation for Phoenix protocol. Look that driver to see which kind of
->> complexity it adds. Anysee have *just* same situation.
+>> Agree, we should try to get some code upstream to add interlaced video
+>> and bt.656 support and fix the artifact later.
 >>
-> I helped write the iuu_phoenix.c driver.
-> With regards to "The character device supports two ioctl's (see
-> anysee_sc), one for
-> detecting the presence of a card, the other one for resetting the card
-> and querying the ATR."
-> The iuu_phoenix.c driver uses standard phoenix/smartmouse reset and
-> atr controls. (i.e. with DCD, DTR, RTS, CTS lines etc)
-> As the result the iuu_phoenix.c driver works out of the box with oscam.
-> It might be a good idea to use a similar interface for your driver.
-> The result would be that your driver would work out of the box with
-> oscam as well as other user space programs that read smart cards.
-> The problem would be if you wished to support smart card program
-> capabilities, the Phoenix/Smartmouse interface does not support that.
-> If I add programmer functionallity to the iuu_phoenix driver, I would
-> probably add an IOCTL for it.
+>>>>> Moreover it seems to me that the software-maintained field id
+>>>>> (interlaced_cnt in Javier patches, fldstat in Deepthy patches) is
+>>>>> useless, i've tried to only use the FLDSTAT bit from isp register
+>>>>> (fid) in vd0_isr:
+>>>>>
+>>>>> if (fid == 0) {
+>>>>>     restart = ccdc_isr_buffer(ccdc);
+>>>>>     goto done;
+>>>>> }
+>>>>>
+>>>>> and it works. I've not tested very long frame sequences, only up to 16
+>>>>> frames. The only issue is that the first frame could be half-green
+>>>>> because a field is missing.
+>>>>>
+>>>>
+>>>> Yes, when I tried Deepthy patches I realized that the fldstat was not
+>>>> in sync with the frames, but probably I made something wrong.
+>>>
+>>>
+>>> I had noticed the same thing, but now i tested it and it is ok, maybe
+>>> my fault too.
+>>>
+>>>
+>>>> We had the same problem with the hal-green frame. Our solution was to
+>>>> synchronize the CCDC with the first even field looking at fdstat on
+>>>> the VD1 interrupt handler and forcing to start processing from an ODD
+>>>> sub-frame.
+>>>
+>>> Thinking more about it, it's ugly to have that half-green video frame
+>>> even if it's just one. It's better to keep your or Deepthy solution.
+>>>
+>>> Enrico
+>>>
+>>
+>> Well, that is something that can be fixed later also. Can you send to
+>> the list your patches? So, Laurent, Sakari and others than know more
+>> about the ISP can review it. I hope they can find the cause for the
+>> artifact.
+>
+> I'm attaching some fixes (taken from Deepthy patches) to be applied on
+> top of your v2 patches, with those i can grab frames but i only get
+> garbage.
+>
 
-Thank you for the feedback. I already did that. See latest tree:
-http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/anysee
+Yes, I still couldn't find time to try that patch on real hardware, sorry.
 
-Adding IOCTLs and making new userspace IFD was István idea / propose.
+> I think the problem is that it always hits this in ccdc_isr_buffer:
+>
+> if (ccdc_sbl_wait_idle(ccdc, 1000)) {
+>                dev_info(isp->dev, "CCDC won't become idle!\n");
+>                goto done;
+> }
+>
+> so the video buffer never gets updated.
+>
+> At this point i think it is better to go on with my port of Deepthy
+> patches and try to solve the ghosting issues, maybe with your fixes
+> about buffer decoupling.
+>
 
-Interface is now de facto standard Phoenix. Unfortunately it is not very 
-compatible yet. I used oscam as client during development mainly since 
-as a open source it was easy to look and add debugs to see what kind of 
-protocol is. Unfortunately I did mistake and removed accidentally my 
-original tree and was forced to rewrite it. At that point oscam stopped 
-working, but it is surely small bug. I suspect .set_termios() or 
-.tiocmget() or .tiocmset().
+I second you on that. Deepthy patches make two changes to the ISP in
+order to support BT.656:
 
-Currently device name and location are under the discussion. Mainly, 
-should that device be under /dev/tty* as other character devices or 
-under /dev/dvb/adapterN/ as a property of DVB card.
+1- Add support to configure the bridge with UYVY8_2X8 format.
+2- Add support to interlaced video mode.
 
-regards
-Antti
+Looking at your fixes taken from Deepthy I see code that still make
+(1). I understood from Laurent's comments that its oma3isp-yuv branch
+already made (1), but he also said he didn't try on hardware though.
+
+I think the best approach is to resend Deepthy patches again on top of
+Laurent's yuv branch so it can be reviewed. Probably Laurent will want
+then to split the patch in two, one to fix the UYVY8_2X8 support and
+another one that adds support to interlaced video mode.
+
+> Laurent, what do you suggest to do?
+>
+> Enrico
+>
+
+Best regards,
+
 -- 
-http://palosaari.fi/
+Javier Martínez Canillas
+(+34) 682 39 81 69
+Barcelona, Spain
