@@ -1,83 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from newsmtp5.atmel.com ([204.2.163.5]:62367 "EHLO
-	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752107Ab1JVHR7 (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:33374 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751491Ab1JKWsw convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Oct 2011 03:17:59 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	plagnioj@jcrosoft.com
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	nicolas.ferre@atmel.com, s.nawrocki@samsung.com,
-	Josh Wu <josh.wu@atmel.com>
-Subject: [RESEND][PATCH v4 2/3] at91: add parameters for at91_add_device_isi function
-Date: Sat, 22 Oct 2011 15:17:39 +0800
-Message-Id: <1319267860-32367-1-git-send-email-josh.wu@atmel.com>
+	Tue, 11 Oct 2011 18:48:52 -0400
+Received: by gyb13 with SMTP id 13so82921gyb.19
+        for <linux-media@vger.kernel.org>; Tue, 11 Oct 2011 15:48:51 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4E94C4EA.5080309@mlbassoc.com>
+References: <1318345735-16778-1-git-send-email-ebutera@users.berlios.de>
+	<4E94BD75.5040403@mlbassoc.com>
+	<CA+2YH7vx27qNeOO33NmR4SaqrSrhdu=17p468cSbLxDKfDAQqQ@mail.gmail.com>
+	<4E94C465.9090901@mlbassoc.com>
+	<4E94C4EA.5080309@mlbassoc.com>
+Date: Wed, 12 Oct 2011 00:48:51 +0200
+Message-ID: <CA+2YH7tF5=wYuC7Q-Mspc=NbX08SwR3+uOTiAHzuirqS=1gfZw@mail.gmail.com>
+Subject: Re: [RFC 0/3] omap3isp: add BT656 support
+From: Enrico <ebutera@users.berlios.de>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
-fix codeing style
-using bool instead of int for boolean type
+On Wed, Oct 12, 2011 at 12:36 AM, Gary Thomas <gary@mlbassoc.com> wrote:
+> On 2011-10-11 16:34, Gary Thomas wrote:
+>>
+>> On 2011-10-11 16:25, Enrico wrote:
+>>>
+>>> On Wed, Oct 12, 2011 at 12:04 AM, Gary Thomas<gary@mlbassoc.com> wrote:
+>>>>
+>>>> Sorry, this just locks up on boot for me, immediately after finding the
+>>>> TVP5150.
+>>>> I applied your changes to the above tree
+>>>> commit 658d5e03dc1a7283e5119cd0e9504759dbd3d912
+>>>> Author: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+>>>> Date: Wed Aug 31 16:03:53 2011 +0200
+>>>
+>>> Did you add Javier patches for the tvp5150?
+>>
+>> No, I thought your set was self-contained. I'll add them now.
+>
+> That said, it's not clear the current/final state of them.  I don't see any
+> repost
+> after the very long discussion with Laurent.
 
 
- arch/arm/mach-at91/at91sam9263_devices.c |   13 ++++++++++---
- arch/arm/mach-at91/include/mach/board.h  |    4 +++-
- 2 files changed, 13 insertions(+), 4 deletions(-)
+Me too, and i don't remeber if Javier is going/was requested to send a v2.
 
-diff --git a/arch/arm/mach-at91/at91sam9263_devices.c b/arch/arm/mach-at91/at91sam9263_devices.c
-index a050f41..29d5c01 100644
---- a/arch/arm/mach-at91/at91sam9263_devices.c
-+++ b/arch/arm/mach-at91/at91sam9263_devices.c
-@@ -885,7 +885,8 @@ static struct platform_device at91sam9263_isi_device = {
- 	.num_resources	= ARRAY_SIZE(isi_resources),
- };
- 
--void __init at91_add_device_isi(void)
-+void __init at91_add_device_isi(struct isi_platform_data *data,
-+		bool use_pck_as_mck)
- {
- 	at91_set_A_periph(AT91_PIN_PE0, 0);	/* ISI_D0 */
- 	at91_set_A_periph(AT91_PIN_PE1, 0);	/* ISI_D1 */
-@@ -898,14 +899,20 @@ void __init at91_add_device_isi(void)
- 	at91_set_A_periph(AT91_PIN_PE8, 0);	/* ISI_PCK */
- 	at91_set_A_periph(AT91_PIN_PE9, 0);	/* ISI_HSYNC */
- 	at91_set_A_periph(AT91_PIN_PE10, 0);	/* ISI_VSYNC */
--	at91_set_B_periph(AT91_PIN_PE11, 0);	/* ISI_MCK (PCK3) */
- 	at91_set_B_periph(AT91_PIN_PE12, 0);	/* ISI_PD8 */
- 	at91_set_B_periph(AT91_PIN_PE13, 0);	/* ISI_PD9 */
- 	at91_set_B_periph(AT91_PIN_PE14, 0);	/* ISI_PD10 */
- 	at91_set_B_periph(AT91_PIN_PE15, 0);	/* ISI_PD11 */
-+
-+	if (use_pck_as_mck) {
-+		at91_set_B_periph(AT91_PIN_PE11, 0);	/* ISI_MCK (PCK3) */
-+
-+		/* TODO: register the PCK for ISI_MCK and set its parent */
-+	}
- }
- #else
--void __init at91_add_device_isi(void) {}
-+void __init at91_add_device_isi(struct isi_platform_data *data,
-+		bool use_pck_as_mck) {}
- #endif
- 
- 
-diff --git a/arch/arm/mach-at91/include/mach/board.h b/arch/arm/mach-at91/include/mach/board.h
-index ed544a0..731c449 100644
---- a/arch/arm/mach-at91/include/mach/board.h
-+++ b/arch/arm/mach-at91/include/mach/board.h
-@@ -183,7 +183,9 @@ extern void __init at91_add_device_lcdc(struct atmel_lcdfb_info *data);
- extern void __init at91_add_device_ac97(struct ac97c_platform_data *data);
- 
-  /* ISI */
--extern void __init at91_add_device_isi(void);
-+struct isi_platform_data;
-+extern void __init at91_add_device_isi(struct isi_platform_data *data,
-+		bool use_pck_as_mck);
- 
-  /* Touchscreen Controller */
- struct at91_tsadcc_data {
--- 
-1.6.3.3
 
+> Maybe you could just send that file to me directly?
+
+I'm not at work now but you can find the patches here:
+
+https://github.com/ebutera/meta-igep/tree/testing-v2/recipes-kernel/linux/linux-3.0+3.1rc/tvp5150
+
+They should apply cleanly.
+
+Enrico
