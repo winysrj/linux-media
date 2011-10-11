@@ -1,39 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47230 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932826Ab1JXPle (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:44362 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751880Ab1JKJYv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Oct 2011 11:41:34 -0400
-Received: from localhost.localdomain (unknown [85.13.70.251])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 06DF735B60
-	for <linux-media@vger.kernel.org>; Mon, 24 Oct 2011 15:41:33 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/2] uvcvideo: videobuf2-vmalloc support
-Date: Mon, 24 Oct 2011 17:42:02 +0200
-Message-Id: <1319470924-15703-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 11 Oct 2011 05:24:51 -0400
+From: Sumit Semwal <sumit.semwal@ti.com>
+To: <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linux-mm@kvack.org>,
+	<linaro-mm-sig@lists.linaro.org>,
+	<dri-devel@lists.freedesktop.org>, <linux-media@vger.kernel.org>
+CC: <linux@arm.linux.org.uk>, <arnd@arndb.de>,
+	<jesse.barker@linaro.org>, <m.szyprowski@samsung.com>,
+	<rob@ti.com>, <daniel@ffwll.ch>, <t.stanislaws@samsung.com>,
+	Sumit Semwal <sumit.semwal@ti.com>
+Subject: [RFC 0/2] Introduce dma buffer sharing mechanism
+Date: Tue, 11 Oct 2011 14:53:51 +0530
+Message-ID: <1318325033-32688-1-git-send-email-sumit.semwal@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
+Hello Everyone,
 
-The subject says it all. Now you can only blame me for not using video_ioctl2
-(which I'm currently evaluating btw...) and the control framework :-)
+Various subsystems - V4L2, GPU-accessors, DRI to name a few - have felt the 
+need to have a common mechanism to share memory buffers across different
+devices - ARM, video hardware, GPU.
 
-Laurent Pinchart (2):
-  uvcvideo: Move fields from uvc_buffer::buf to uvc_buffer
-  uvcvideo: Use videobuf2-vmalloc
+This need comes forth from a variety of use cases including cameras, image 
+processing, video recorders, sound processing, DMA engines, GPU and display
+buffers, and others.
 
- drivers/media/video/uvc/Kconfig      |    1 +
- drivers/media/video/uvc/uvc_isight.c |   10 +-
- drivers/media/video/uvc/uvc_queue.c  |  554 +++++++++-------------------------
- drivers/media/video/uvc/uvc_v4l2.c   |   19 +-
- drivers/media/video/uvc/uvc_video.c  |   30 +-
- drivers/media/video/uvc/uvcvideo.h   |   37 +--
- 6 files changed, 181 insertions(+), 470 deletions(-)
+This RFC is the first attempt in defining such a buffer sharing mechanism- it is
+the result of discussions from a couple of memory-management mini-summits held
+by Linaro to understand and address common needs around memory management. [1]
+
+A new dma_buf buffer object is added, with operations and API to allow easy
+sharing of this buffer object across devices.
+
+The framework allows:
+- a new buffer-object to be created with fixed size.
+- different devices to 'attach' themselves to this buffer, to facilitate
+  backing storage negotiation, using dma_buf_attach() API.
+- association of a file pointer with each user-buffer and associated
+   allocator-defined operations on that buffer. This operation is called the
+   'export' operation.
+- this exported buffer-object to be shared with the other entity by asking for
+   its 'file-descriptor (fd)', and sharing the fd across.
+- a received fd to get the buffer object back, where it can be accessed using
+   the associated exporter-defined operations.
+- the exporter and user to share the scatterlist using get_scatterlist and
+   put_scatterlist operations.
+
+Documentation present in the patch-set gives more details.
+
+This is based on design suggestions from many people at the mini-summits,
+most notably from Arnd Bergmann <arnd@arndb.de>, Rob Clark <rob@ti.com> and
+Daniel Vetter <daniel@ffwll.ch>.
+
+The implementation is inspired from proof-of-concept patch-set from
+Tomasz Stanislawski <t.stanislaws@samsung.com>, who demonstrated buffer sharing
+between two v4l2 devices. [2]
+
+References:
+[1]: https://wiki.linaro.org/OfficeofCTO/MemoryManagement
+[2]: http://lwn.net/Articles/454389
+
+
+Sumit Semwal (2):
+  dma-buf: Introduce dma buffer sharing mechanism
+  dma-buf: Documentation for buffer sharing framework
+
+ Documentation/dma-buf-sharing.txt |  210 ++++++++++++++++++++++++++++++++
+ drivers/base/Kconfig              |   10 ++
+ drivers/base/Makefile             |    1 +
+ drivers/base/dma-buf.c            |  242 +++++++++++++++++++++++++++++++++++++
+ include/linux/dma-buf.h           |  162 +++++++++++++++++++++++++
+ 5 files changed, 625 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/dma-buf-sharing.txt
+ create mode 100644 drivers/base/dma-buf.c
+ create mode 100644 include/linux/dma-buf.h
 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.4.1
 
