@@ -1,60 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nexicom.net ([216.168.96.13]:55049 "EHLO smtp.nexicom.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751356Ab1JMXts (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Oct 2011 19:49:48 -0400
-Received: from mail.lockie.ca (dyn-dsl-mb-216-168-118-207.nexicom.net [216.168.118.207])
-	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id p9DNnk4s006056
-	for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 19:49:47 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by mail.lockie.ca (Postfix) with ESMTP id B29B81E0229
-	for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 19:49:45 -0400 (EDT)
-Message-ID: <4E977919.5060102@lockie.ca>
-Date: Thu, 13 Oct 2011 19:49:45 -0400
-From: James <bjlockie@lockie.ca>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:40477 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753863Ab1JKJqa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Oct 2011 05:46:30 -0400
+Date: Tue, 11 Oct 2011 12:46:24 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] omap3isp: Report the ISP revision through the media
+ controller API
+Message-ID: <20111011094624.GB10001@valkosipuli.localdomain>
+References: <1318325944-11666-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: linux-media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: help with azap
-References: <4E972A8F.2020004@lockie.ca> <CAGoCfiygsxpA_qpoJ=BJ2YorqRPxg8ooMhvTMqscoxH1m+rh6A@mail.gmail.com>
-In-Reply-To: <CAGoCfiygsxpA_qpoJ=BJ2YorqRPxg8ooMhvTMqscoxH1m+rh6A@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1318325944-11666-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/13/11 14:30, Devin Heitmueller wrote:
-> On Thu, Oct 13, 2011 at 2:14 PM, James<bjlockie@lockie.ca>  wrote:
->> $ more channels.conf
->> CIII-HD:85000000:8VSB:49:52+53:1
->> OTTAWA CBOFT-DT:189000000:8VSB:49:53+52:3
->> CJOH:213000000:8VSB:49:51+52:1
->> TVO    :533000000:8VSB:49:52+53:1
->> OTTAWA  CBOT-DT:539000000:8VSB:49:52+53:3
->> Télé-Québec_HD:569000000:8VSB:49:52+53:3
->> CHOT:629000000:8VSB:49:52:3
->
->> What does "ERROR: error while parsing Audio PID (not a number)" mean?
-> I don't know where your channels.conf came from, but it appears to be
-> malformed.  You cannot have "52+53" as the audio PID.  If you just
-> want to get up and running, remove the "+53" part.
->
-> Devin
->
-I used:
-w_scan -f a -c US -M
-(mplayer format)
+On Tue, Oct 11, 2011 at 11:39:04AM +0200, Laurent Pinchart wrote:
+> Set the media_device::hw_revision field to the ISP revision number.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/video/omap3isp/isp.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+> index 7b5ab42..192c448 100644
+> --- a/drivers/media/video/omap3isp/isp.c
+> +++ b/drivers/media/video/omap3isp/isp.c
+> @@ -1697,6 +1697,7 @@ static int isp_register_entities(struct isp_device *isp)
+>  	isp->media_dev.dev = isp->dev;
+>  	strlcpy(isp->media_dev.model, "TI OMAP3 ISP",
+>  		sizeof(isp->media_dev.model));
+> +	isp->media_dev.hw_revision = isp->revision;
+>  	isp->media_dev.link_notify = isp_pipeline_link_notify;
+>  	ret = media_device_register(&isp->media_dev);
+>  	if (ret < 0) {
+> -- 
+> 1.7.3.4
+> 
 
-I redid it with:
-w_scan -f a -c US -X
-(czap/tzap/szap/xine)
-and got:
-CIII-HD:85000000:8VSB:49:52:1
-OTTAWA CBOFT-DT:189000000:8VSB:49:53:3
-CJOH:213000000:8VSB:49:51:1
-TVO    :533000000:8VSB:49:52:1
-OTTAWA  CBOT-DT:539000000:8VSB:49:52:3
-Télé-Québec_HD:569000000:8VSB:49:52:3
-CHOT:629000000:8VSB:49:52:3
+Thanks!
 
-It is weird there is not a standard format. :-)
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
