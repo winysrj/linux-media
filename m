@@ -1,118 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:52538 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932353Ab1JROtq (ORCPT
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:50026 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754089Ab1JKOn3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Oct 2011 10:49:46 -0400
-Message-ID: <4E9D9209.3000907@mlbassoc.com>
-Date: Tue, 18 Oct 2011 08:49:45 -0600
-From: Gary Thomas <gary@mlbassoc.com>
+	Tue, 11 Oct 2011 10:43:29 -0400
+Received: by qadb15 with SMTP id b15so4749417qad.19
+        for <linux-media@vger.kernel.org>; Tue, 11 Oct 2011 07:43:29 -0700 (PDT)
 MIME-Version: 1.0
-To: Boris Todorov <boris.st.todorov@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: omap3isp: BT.656 support
-References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com> <4E9D882F.5010608@mlbassoc.com> <CAFYgh7wKeOmQnvpbugZcFX-shKRN7oGmho_tyYLtcVOnPL8Peg@mail.gmail.com>
-In-Reply-To: <CAFYgh7wKeOmQnvpbugZcFX-shKRN7oGmho_tyYLtcVOnPL8Peg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Tue, 11 Oct 2011 09:43:28 -0500
+Message-ID: <CANut7vDGKcYD3zXNSGv3UAkLaE+_x=Yv2WuJQm8RFmZPOCAg9g@mail.gmail.com>
+Subject: kernel settings and modules for radio tuner
+From: Will Milspec <will.milspec@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2011-10-18 08:28, Boris Todorov wrote:
-> I'm using different board.
+Hi all,
 
-What board?  I would think the architecture of the OMAP3 ISP would
-not change, based on the board?
+Sorry if this is the wrong place for this question, but I've had
+trouble finding recent information about fm card support in light of
+recent kernel changes.
 
-> According "media-ctl -p":
->
-> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
->              type V4L2 subdev subtype Unknown
->              device node name /dev/v4l-subdev2
->          pad0: Input [UYVY2X8 720x525]
->                  <- 'OMAP3 ISP CCP2':pad1 []
->                  <- 'OMAP3 ISP CSI2a':pad1 []
->                  <- 'tvp5150 3-005c':pad0 [ACTIVE]
->          pad1: Output [UYVY2X8 720x525]
->                  ->  'OMAP3 ISP CCDC output':pad0 [ACTIVE]
->                  ->  'OMAP3 ISP resizer':pad0 []
->          pad2: Output [UYVY2X8 720x524]
->                  ->  'OMAP3 ISP preview':pad0 []
->                  ->  'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
->                  ->  'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
->                  ->  'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
->
-> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
->              type Node subtype V4L
->              device node name /dev/video4
->          pad0: Input
->                  <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
->
->
-> Should be /dev/video4...
+Context
+=========
+I use an fm card (WINTV-GO fm) for listening/recording radio.  It's a
+great tool for building fair-use recordings.
 
-Could you send your pipeline setup and full output of 'media-ctl -p'?
+Kernel upgrades--dropping V4L1 support-- forced upgrading fmtools
+(from 1.0.2 to 2.0.1).  However, "fm" command fails:
 
->
->
-> On Tue, Oct 18, 2011 at 5:07 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
->> On 2011-10-18 07:33, Boris Todorov wrote:
->>>
->>> Hi
->>>
->>> I'm trying to run OMAP + TVP5151 in BT656 mode.
->>>
->>> I'm using omap3isp-omap3isp-yuv (git.linuxtv.org/pinchartl/media.git).
->>> Plus the following patches:
->>>
->>> TVP5151:
->>>
->>> https://github.com/ebutera/meta-igep/tree/testing-v2/recipes-kernel/linux/linux-3.0+3.1rc/tvp5150
->>>
->>> The latest RFC patches for BT656 support:
->>>
->>> Enrico Butera (2):
->>>    omap3isp: ispvideo: export isp_video_mbus_to_pix
->>>    omap3isp: ispccdc: configure CCDC registers and add BT656 support
->>>
->>> Javier Martinez Canillas (1):
->>>    omap3isp: ccdc: Add interlaced field mode to platform data
->>>
->>>
->>> I'm able to configure with media-ctl:
->>>
->>> media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
->>> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
->>> media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
->>> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
->>> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
->>>
->>> But
->>> ./yavta -f UYVY -s 720x525 -n 4 --capture=4 -F /dev/video4
->>>
->>> sleeps after
->>> ...
->>> Buffer 1 mapped at address 0x4021d000.
->>> length: 756000 offset: 1515520
->>> Buffer 2 mapped at address 0x402d6000.
->>> length: 756000 offset: 2273280
->>> Buffer 3 mapped at address 0x4038f000.
->>>
->>> Anyone with the same issue??? This happens with every other v4l test app I
->>> used.
->>> I can see data from TVP5151 but there are no interrupts in ISP.
->>
->> Why are you using /dev/video4?  The CCDC output is on /dev/video2
->>
->> --
->> ------------------------------------------------------------
->> Gary Thomas                 |  Consulting for the
->> MLB Associates              |    Embedded world
->> ------------------------------------------------------------
->>
+ #fm on
+Radio on (radio does not support volume control)
+ # fm 98.7
+/usr/local/bin/fm: Frequency 98.7 MHz out of range (0.0 - 0.0 MHz)
 
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+Tuner module
+===============
+For documentation, I've used the bttv howto:
+   http://tldp.org/HOWTO/html_single/BTTV/
+
+"modprobe tuner" succeeds but then "tuner" doesn't appear in the lsmod
+output. I don't see any 'tuner' modules in the '/lib/modules/*
+
+(I've appended dmesg output below).
+Question
+============
+Does the tuner module still exist?
+What kernnel config options to load it?
+
+Google searches showed most of the documentation is 5-10 years old and
+"last.fm" seems more popular than "over the air fm".
+
+
+thanks
+
+will
+
+
+Appendix A. Dmesg Output
+===========================
+Here are relevent sections from dmesg:
+
+bttv: driver version 0.9.18 loaded
+bttv: using 8 buffers with 2080k (520 pages) each for capture
+bttv: Bt8xx card found (0).
+bttv 0000:05:0a.0: PCI INT A -> GSI 21 (level, low) -> IRQ 21
+bttv0: Bt878 (rev 2) at 0000:05:0a.0, irq: 21, latency: 66, mmio: 0xf8500000
+bttv0: detected: Hauppauge WinTV [card=10], PCI subsystem ID is 0070:13eb
+bttv0: using: Hauppauge (bt878) [card=10,autodetected]
+bttv0: gpio: en=00000000, out=00000000 in=00fffffb [init]
+bttv0: Hauppauge/Voodoo msp34xx: reset line init [5]
+tveeprom 0-0050: Hauppauge model 62471, rev A2  , serial# 1155176
+tveeprom 0-0050: tuner model is Philips FM1236 (idx 23, type 2)
+tveeprom 0-0050: TV standards NTSC(M) (eeprom 0x08)
+tveeprom 0-0050: audio processor is TDA9850 (idx 3)
+tveeprom 0-0050: has radio
+bttv0: Hauppauge eeprom indicates model#62471
+bttv: driver version 0.9.18 loaded
+bttv: using 8 buffers with 2080k (520 pages) each for capture
+bttv: Bt8xx card found (0).
+bttv 0000:05:0a.0: PCI INT A -> GSI 21 (level, low) -> IRQ 21
+bttv0: Bt878 (rev 2) at 0000:05:0a.0, irq: 21, latency: 66, mmio: 0xf8500000
+bttv0: detected: Hauppauge WinTV [card=10], PCI subsystem ID is 0070:13eb
+bttv0: using: Hauppauge (bt878) [card=10,autodetected]
+bttv0: gpio: en=00000000, out=00000000 in=00fffffb [init]
+bttv0: Hauppauge/Voodoo msp34xx: reset line init [5]
+tveeprom 0-0050: Hauppauge model 62471, rev A2  , serial# 1155176
+tveeprom 0-0050: tuner model is Philips FM1236 (idx 23, type 2)
+tveeprom 0-0050: TV standards NTSC(M) (eeprom 0x08)
+tveeprom 0-0050: audio processor is TDA9850 (idx 3)
+tveeprom 0-0050: has radio
+bttv0: Hauppauge eeprom indicates model#62471
