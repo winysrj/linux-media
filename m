@@ -1,62 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:35529 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752168Ab1JFWec (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 18:34:32 -0400
-Received: by iakk32 with SMTP id k32so3450379iak.19
-        for <linux-media@vger.kernel.org>; Thu, 06 Oct 2011 15:34:31 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAL9G6WXb9zkgu++__LzW4nBBoAQYBvWWNCJkm_nRqiJEg+VE1A@mail.gmail.com>
-References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
-	<CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
-	<CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
-	<4e8b8099.95d1e30a.4bee.0501@mx.google.com>
-	<CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
-	<CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
-	<CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
-	<CAL9G6WXX2eGmoT+ozv1F0JQdSV5JPwbB0vn70UL+ghgkLGsYQg@mail.gmail.com>
-	<kQmOmyBaqgjOFweZ@echelon.upsilon.org.uk>
-	<CAL9G6WXb9zkgu++__LzW4nBBoAQYBvWWNCJkm_nRqiJEg+VE1A@mail.gmail.com>
-Date: Fri, 7 Oct 2011 09:34:31 +1100
-Message-ID: <CAATJ+fuBSrnB5wAh=RrjRx53uYwhmZP5joTS-soZy0NnbB5oVg@mail.gmail.com>
-Subject: Re: [PATCH] af9013 frontend tuner bus lock
-From: Jason Hecker <jwhecker@gmail.com>
-To: Josu Lazkano <josu.lazkano@gmail.com>
-Cc: dave cunningham <ml@upsilon.org.uk>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from newsmtp5.atmel.com ([204.2.163.5]:46455 "EHLO
+	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754378Ab1JKLEO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Oct 2011 07:04:14 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	plagnioj@jcrosoft.com
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	nicolas.ferre@atmel.com, s.nawrocki@samsung.com,
+	Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v4 2/3] at91: add parameters for at91_add_device_isi function
+Date: Tue, 11 Oct 2011 19:03:39 +0800
+Message-Id: <1318331020-22031-3-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1318331020-22031-1-git-send-email-josh.wu@atmel.com>
+References: <1318331020-22031-1-git-send-email-josh.wu@atmel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Thanks Dave, I have a MCP79 nvidia USB controller:
+This patch add parameters for at91_add_device_isi function
 
-I too have:
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+ arch/arm/mach-at91/at91sam9263_devices.c |   13 ++++++++++---
+ arch/arm/mach-at91/include/mach/board.h  |    4 +++-
+ 2 files changed, 13 insertions(+), 4 deletions(-)
 
-USB Controller: nVidia Corporation MCP78S [GeForce 8200] EHCI USB 2.0
-Controller (rev a1)
+diff --git a/arch/arm/mach-at91/at91sam9263_devices.c b/arch/arm/mach-at91/at91sam9263_devices.c
+index a050f41..7990e8e 100644
+--- a/arch/arm/mach-at91/at91sam9263_devices.c
++++ b/arch/arm/mach-at91/at91sam9263_devices.c
+@@ -885,7 +885,8 @@ static struct platform_device at91sam9263_isi_device = {
+ 	.num_resources	= ARRAY_SIZE(isi_resources),
+ };
+ 
+-void __init at91_add_device_isi(void)
++void __init at91_add_device_isi(struct isi_platform_data * data,
++		bool use_pck_as_mck)
+ {
+ 	at91_set_A_periph(AT91_PIN_PE0, 0);	/* ISI_D0 */
+ 	at91_set_A_periph(AT91_PIN_PE1, 0);	/* ISI_D1 */
+@@ -898,14 +899,20 @@ void __init at91_add_device_isi(void)
+ 	at91_set_A_periph(AT91_PIN_PE8, 0);	/* ISI_PCK */
+ 	at91_set_A_periph(AT91_PIN_PE9, 0);	/* ISI_HSYNC */
+ 	at91_set_A_periph(AT91_PIN_PE10, 0);	/* ISI_VSYNC */
+-	at91_set_B_periph(AT91_PIN_PE11, 0);	/* ISI_MCK (PCK3) */
+ 	at91_set_B_periph(AT91_PIN_PE12, 0);	/* ISI_PD8 */
+ 	at91_set_B_periph(AT91_PIN_PE13, 0);	/* ISI_PD9 */
+ 	at91_set_B_periph(AT91_PIN_PE14, 0);	/* ISI_PD10 */
+ 	at91_set_B_periph(AT91_PIN_PE15, 0);	/* ISI_PD11 */
++
++	if (use_pck_as_mck) {
++		at91_set_B_periph(AT91_PIN_PE11, 0);	/* ISI_MCK (PCK3) */
++
++		/* TODO: register the PCK for ISI_MCK and set its parent */
++	}
+ }
+ #else
+-void __init at91_add_device_isi(void) {}
++void __init at91_add_device_isi(struct isi_platform_data * data,
++		int use_pck_as_mck) {}
+ #endif
+ 
+ 
+diff --git a/arch/arm/mach-at91/include/mach/board.h b/arch/arm/mach-at91/include/mach/board.h
+index ed544a0..731c449 100644
+--- a/arch/arm/mach-at91/include/mach/board.h
++++ b/arch/arm/mach-at91/include/mach/board.h
+@@ -183,7 +183,9 @@ extern void __init at91_add_device_lcdc(struct atmel_lcdfb_info *data);
+ extern void __init at91_add_device_ac97(struct ac97c_platform_data *data);
+ 
+  /* ISI */
+-extern void __init at91_add_device_isi(void);
++struct isi_platform_data;
++extern void __init at91_add_device_isi(struct isi_platform_data *data,
++		bool use_pck_as_mck);
+ 
+  /* Touchscreen Controller */
+ struct at91_tsadcc_data {
+-- 
+1.6.3.3
 
-BUT I have never had boot trouble if I plugged in a 4-port hub.
-
-I think Dave means that you need to buy a USB to PCI or PCIe card.
-Avoid VIA if you can and try to get an NEC or Intel based card.
-
-> not change the system board. Need I some extra configuration on BIOS?
-
-Do you have the latest BIOS installed?  Try that and reset to safe
-defaults.  I think AMI Bios (if you have it) has hidden performance
-menus if you type in CTRL-F1 or SHIFT-F1 in the BIOS menu.
-
-My Afatech dual tuners are the Leadtek DS2000
-(http://www.linuxtv.org/wiki/index.php/Leadtek_WinFast_DTV2000DS)
-which are on a PCI card.  They have the same USB tuner parts you have
-plus a VIA USB->PCI bus chip.
-
-My next step is to once again try the PID filter and maybe disable USB
-sleeping/powerdown.
-
-Someone on another mailing list is having similar problems in
-Windows(!) and found the errors were minimal if PCI latency was set to
-96.
-
-I am beginning to think Afatech is just crappy.
-
-Jason
