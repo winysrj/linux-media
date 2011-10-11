@@ -1,94 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14933 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752436Ab1JGL76 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Oct 2011 07:59:58 -0400
-Message-ID: <4E8EE9C1.8080503@redhat.com>
-Date: Fri, 07 Oct 2011 14:00:01 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:52519 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751865Ab1JKOlr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Oct 2011 10:41:47 -0400
+Received: by wyg34 with SMTP id 34so7096587wyg.19
+        for <linux-media@vger.kernel.org>; Tue, 11 Oct 2011 07:41:46 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: libv4l2 misbehavior after calling S_STD or S_DV_PRESET
-References: <201110061313.56974.hverkuil@xs4all.nl> <4E8EB0F6.3060002@redhat.com> <201110071106.31515.hverkuil@xs4all.nl>
-In-Reply-To: <201110071106.31515.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Tue, 11 Oct 2011 09:41:46 -0500
+Message-ID: <CANut7vCYNev-ydVjuvHWfpGnqhhyeL1h74xtU7q3QSGh1tAiwQ@mail.gmail.com>
+Subject: kernel settings and modules for radio tuner
+From: Will Milspec <will.milspec@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi all,
 
-On 10/07/2011 11:06 AM, Hans Verkuil wrote:
-> On Friday 07 October 2011 09:57:42 Hans de Goede wrote:
->> Hi,
->>
->> Hmm, nasty...
->>
->> On 10/06/2011 01:13 PM, Hans Verkuil wrote:
->>> Hi Hans!
->>>
->>> I've been looking into a problem with libv4l2 that occurs when you change
->>> TV standard or video preset using VIDIOC_S_STD or VIDIOC_S_DV_PRESET.
->>> These calls will change the format implicitly (e.g. if the current
->>> format is set for PAL at 720x576 and you select NTSC, then the format
->>> will be reset to 720x480).
->>>
->>> However, libv4l2 isn't taking this into account and will keep using the
->>> cached dest_fmt value. It is easy to reproduce this using qv4l2.
->>>
->>> The same problem is likely to occur with S_CROP (haven't tested that yet,
->>> though): calling S_CROP can also change the format.
->>>
->>> To be precise: S_STD and S_DV_PRESET can change both the crop rectangle
->>> and the format, and S_CROP can change the format.
->>
->> First of all it would be good to actually document this behavior of
->> VIDIOC_S_STD or VIDIOC_S_DV_PRESET, the current docs don't mention this at
->> all: http://linuxtv.org/downloads/v4l-dvb-apis/standard.html
->
-> Odd, I'd have sworn that it was in the docs.
->
-> The full list of ioctls that can change both the crop settings and the format
-> is:
->
-> VIDIOC_S_STD
-> VIDIOC_S_DV_PRESET
+Sorry if this is the wrong place for this question, but I've had
+trouble finding recent information about fm card support in light of
+recent kernel changes.
 
-The patch already handles these 2 :)
+Context
+=========
+I use an fm card (WINTV-GO fm) for listening/recording radio.  It's a
+great tool for building fair-use recordings.
 
-> VIDIOC_S_DV_TIMINGS
-> VIDIOC_S_INPUT (can implicitly change standard/preset)
+Kernel upgrades--dropping V4L1 support-- forced upgrading fmtools
+(from 1.0.2 to 2.0.1).  However, "fm" command fails:
 
-I'll add these 2.
+ #fm on
+Radio on (radio does not support volume control)
+ # fm 98.7
+/usr/local/bin/fm: Frequency 98.7 MHz out of range (0.0 - 0.0 MHz)
 
-> VIDIOC_S_OUTPUT (ditto)
+Tuner module
+===============
+For documentation, I've used the bttv howto:
+   http://tldp.org/HOWTO/html_single/BTTV/
 
-libv4l2 only cares about capture, all the rest it just passes
-through completely unmodified.
+"modprobe tuner" succeeds but then "tuner" doesn't appear in the lsmod
+output. I don't see any 'tuner' modules in the '/lib/modules/*
 
-> VIDIOC_S_CROP
+(I've appended dmesg output below).
+Question
+============
+Does the tuner module still exist?
+What kernnel config options to load it?
 
-Hmm, can this also change the fmt? That would be an unexpected
-side effect. But if it does I can handle it the same way, right?
+Google searches showed most of the documentation is 5-10 years old and
+"last.fm" seems more popular than "over the air fm".
 
-> Note that I suspect that there are quite a few drivers that do not handle this
-> correctly. After all, for normal SDTV capture cards you almost never change
-> the TV standard once it is set up at the start so I doubt if this has been
-> tested much. For DV_PRESET it is much more common to switch from e.g.
-> 720p to 1080p. That is how I found this issue.
->
->> I've attached 2 patches which should make libv4l2 deal with this correctly.
->> I assume you've a reproducer for this and I would appreciate it if you
->> could test if these patches actually fix the issue you are seeing.
->
-> Almost working. The second patch forgot to set src_fmt.type, so I got an error
-> back. After initializing it to BUF_TYPE_VIDEO_CAPTURE it worked fine.
 
-Thanks for testing, and duh wrt my G_FMT mistake. If you can answer my question
-about S_CROP then I'll go add the other ioctls which need similar handling to
-my 2nd patch and push both patches.
+thanks
 
-Regards,
+will
 
-Hans
+
+Appendix A. Dmesg Output
+===========================
+Here are relevent sections from dmesg:
+
+bttv: driver version 0.9.18 loaded
+bttv: using 8 buffers with 2080k (520 pages) each for capture
+bttv: Bt8xx card found (0).
+bttv 0000:05:0a.0: PCI INT A -> GSI 21 (level, low) -> IRQ 21
+bttv0: Bt878 (rev 2) at 0000:05:0a.0, irq: 21, latency: 66, mmio: 0xf8500000
+bttv0: detected: Hauppauge WinTV [card=10], PCI subsystem ID is 0070:13eb
+bttv0: using: Hauppauge (bt878) [card=10,autodetected]
+bttv0: gpio: en=00000000, out=00000000 in=00fffffb [init]
+bttv0: Hauppauge/Voodoo msp34xx: reset line init [5]
+tveeprom 0-0050: Hauppauge model 62471, rev A2  , serial# 1155176
+tveeprom 0-0050: tuner model is Philips FM1236 (idx 23, type 2)
+tveeprom 0-0050: TV standards NTSC(M) (eeprom 0x08)
+tveeprom 0-0050: audio processor is TDA9850 (idx 3)
+tveeprom 0-0050: has radio
+bttv0: Hauppauge eeprom indicates model#62471
+bttv: driver version 0.9.18 loaded
+bttv: using 8 buffers with 2080k (520 pages) each for capture
+bttv: Bt8xx card found (0).
+bttv 0000:05:0a.0: PCI INT A -> GSI 21 (level, low) -> IRQ 21
+bttv0: Bt878 (rev 2) at 0000:05:0a.0, irq: 21, latency: 66, mmio: 0xf8500000
+bttv0: detected: Hauppauge WinTV [card=10], PCI subsystem ID is 0070:13eb
+bttv0: using: Hauppauge (bt878) [card=10,autodetected]
+bttv0: gpio: en=00000000, out=00000000 in=00fffffb [init]
+bttv0: Hauppauge/Voodoo msp34xx: reset line init [5]
+tveeprom 0-0050: Hauppauge model 62471, rev A2  , serial# 1155176
+tveeprom 0-0050: tuner model is Philips FM1236 (idx 23, type 2)
+tveeprom 0-0050: TV standards NTSC(M) (eeprom 0x08)
+tveeprom 0-0050: audio processor is TDA9850 (idx 3)
+tveeprom 0-0050: has radio
+bttv0: Hauppauge eeprom indicates model#62471
