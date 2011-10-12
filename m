@@ -1,59 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:50128 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750828Ab1JIMzF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Oct 2011 08:55:05 -0400
-Received: by bkbzt4 with SMTP id zt4so7178652bkb.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Oct 2011 05:55:03 -0700 (PDT)
-Message-ID: <4E91999B.7050307@gmail.com>
-Date: Sun, 09 Oct 2011 14:54:51 +0200
-From: =?ISO-8859-1?Q?Roger_M=E5rtensson?= <roger.martensson@gmail.com>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:55884 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752819Ab1JLMl6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Oct 2011 08:41:58 -0400
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Stream degrades when going through CAM
-References: <4E9026CD.1030200@gmail.com>
-In-Reply-To: <4E9026CD.1030200@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1318325033-32688-2-git-send-email-sumit.semwal@ti.com>
+References: <1318325033-32688-1-git-send-email-sumit.semwal@ti.com>
+	<1318325033-32688-2-git-send-email-sumit.semwal@ti.com>
+Date: Wed, 12 Oct 2011 13:41:57 +0100
+Message-ID: <CAPM=9tzHOa5Dbe=SQz+AURMMbio4L7qoS8kUT3Ek0+HdtkrH4g@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [RFC 1/2] dma-buf: Introduce dma buffer sharing mechanism
+From: Dave Airlie <airlied@gmail.com>
+To: Sumit Semwal <sumit.semwal@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	linux@arm.linux.org.uk, arnd@arndb.de, jesse.barker@linaro.org,
+	daniel@ffwll.ch
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Roger Mårtensson skrev 2011-10-08 12:32:
-> Hej(Hello)!
+On Tue, Oct 11, 2011 at 10:23 AM, Sumit Semwal <sumit.semwal@ti.com> wrote:
+> This is the first step in defining a dma buffer sharing mechanism.
 >
-> The hardware I got is a mystique DVB-C Card but it seems to a KNC1 
-> TV-Station MK3 clone.
-> 08:01.0 Multimedia controller [0480]: Philips Semiconductors SAA7146 
-> [1131:7146] (rev 01)
->         Subsystem: KNC One Device [1894:0028]
->         Flags: bus master, medium devsel, latency 64, IRQ 16
->         Memory at fbeffc00 (32-bit, non-prefetchable) [size=512]
->         Kernel driver in use: budget_av
->         Kernel modules: budget-av
+> A new buffer object dma_buf is added, with operations and API to allow easy
+> sharing of this buffer object across devices.
 >
-> The CAM is a SMIT CONAX.
+> The framework allows:
+> - a new buffer-object to be created with fixed size.
+> - different devices to 'attach' themselves to this buffer, to facilitate
+>  backing storage negotiation, using dma_buf_attach() API.
+> - association of a file pointer with each user-buffer and associated
+>   allocator-defined operations on that buffer. This operation is called the
+>   'export' operation.
+> - this exported buffer-object to be shared with the other entity by asking for
+>   its 'file-descriptor (fd)', and sharing the fd across.
+> - a received fd to get the buffer object back, where it can be accessed using
+>   the associated exporter-defined operations.
+> - the exporter and user to share the scatterlist using get_scatterlist and
+>   put_scatterlist operations.
 >
-> Kernel Used: 2.6.38(2.6.38-11-generic. Ubuntu 11.04 SMP)
+> Atleast one 'attach()' call is required to be made prior to calling the
+> get_scatterlist() operation.
 >
-> Drivers tested: from latest media_build git
-I noticed now that my board seems to be using a tda10024. It's wired the 
-same as a tda10023 in the code so it seems compatible to 10023?
+> Couple of building blocks in get_scatterlist() are added to ease introduction
+> of sync'ing across exporter and users, and late allocation by the exporter.
+>
+> mmap() file operation is provided for the associated 'fd', as wrapper over the
+> optional allocator defined mmap(), to be used by devices that might need one.
 
-Whenever I insert the cam and starts a capture I get this error in the 
-dmesg:
-[    8.019398] budget_av: cam inserted A
-[    8.689753] dvb_ca adapter 0: DVB CAM detected and initialised 
-successfully
-[   15.061237] eth0: no IPv6 routers present
-[   92.831735] budget_av: cam inserted A
-[   92.832713] DVB: TDA10023(0): tda10023_writereg, writereg error (reg 
-== 0x2a, val == 0x02, ret == -121)
-[   93.499511] dvb_ca adapter 0: DVB CAM detected and initialised 
-successfully
-[  161.695810] budget_av: cam ejected 5
+Why is this needed? it really doesn't make sense to be mmaping objects
+independent of some front-end like drm or v4l.
 
-This is after a reboot and one capture with gnutv.
-If I unplug the CAM the error does not show.
+how will you know what contents are in them, how will you synchronise
+access. Unless someone has a hard use-case for this I'd say we drop it
+until someone does.
 
-Can it be related to the corrupt mpg-stream I see whenever the CAM is 
-inserted?
+Dave.
