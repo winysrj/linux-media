@@ -1,69 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:51595 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751222Ab1JINak convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Oct 2011 09:30:40 -0400
-Received: by yxl31 with SMTP id 31so4711517yxl.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Oct 2011 06:30:40 -0700 (PDT)
+Received: from mail.imavis.com ([85.94.219.26]:45243 "EHLO mail.imavis.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750792Ab1JLOJo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Oct 2011 10:09:44 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.imavis.com (Postfix) with ESMTP id 4B68A1DAEF4E
+	for <linux-media@vger.kernel.org>; Wed, 12 Oct 2011 15:52:47 +0200 (CEST)
+Received: from mail.imavis.com ([127.0.0.1])
+	by localhost (phx1-ss-2-lb.cnet.com [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id mnYLHk3A2vbb for <linux-media@vger.kernel.org>;
+	Wed, 12 Oct 2011 15:52:46 +0200 (CEST)
+Received: from augusto-laptop.localnet (ldap.imavis.com [89.96.73.90])
+	by mail.imavis.com (Postfix) with ESMTPSA id BF8881DAEF4D
+	for <linux-media@vger.kernel.org>; Wed, 12 Oct 2011 15:52:46 +0200 (CEST)
+From: Augusto Destrero <destrero@imavis.com>
+To: linux-media@vger.kernel.org
+Subject: Controlling external GPIO in IVC-200G board
+Date: Wed, 12 Oct 2011 16:03:46 +0200
 MIME-Version: 1.0
-In-Reply-To: <CA+2YH7tF10xeEW+M2QzdPyjN9F+h8PY+JCha6KY8+ocovobjhg@mail.gmail.com>
-References: <1318127853-1879-1-git-send-email-martinez.javier@gmail.com>
- <1318127853-1879-3-git-send-email-martinez.javier@gmail.com>
- <201110091202.16086.laurent.pinchart@ideasonboard.com> <CA+2YH7tF10xeEW+M2QzdPyjN9F+h8PY+JCha6KY8+ocovobjhg@mail.gmail.com>
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Date: Sun, 9 Oct 2011 15:30:20 +0200
-Message-ID: <CAAwP0s07xs8pCCPsBAKCKhREdV8dZPr0kkSP_Vru2cak-UvAYQ@mail.gmail.com>
-Subject: Re: [PATCH 2/2] omap3isp: ccdc: Add support to ITU-R BT.656 video
- data format
-To: Enrico <ebutera@users.berlios.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Adam Pledger <a.pledger@thermoteknix.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201110121603.46582.destrero@imavis.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Oct 9, 2011 at 2:58 PM, Enrico <ebutera@users.berlios.de> wrote:
-> On Sun, Oct 9, 2011 at 12:02 PM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
->> Hi Javier,
->>
->> Thanks for the patch.
->
-> Laurent, apart from the specific comments on Javier code, did you have
-> a look at Deepthy patches too?
->
-> I say this because asking Javier for fixes means (to me) that you are
-> going to merge his patches (if testing will confirm it works of
-> course). Am i wrong?
+Hi there,
+we recently purchased a IVC-200G board from IEI:
 
-I don't think these patches are in merge-able state because I only
-compile tested.
-Now based on Laurent's comments I just sent a v2 patch-set based in
-one of our earlier changes.
+http://ieiworld.com/product_groups/industrial/content.aspx?gid=09049535992720993533&cid=09049577938864496628&id=08142301152930771045
 
-This was before we decide to move the logic to VD1 so the patch-set is
-less intrusive and will be easier to review.
+we would like to use the external GPIO capabilities of such board on Linux. 
+This external GPIO is used to control external devices, such as lights, gates, 
+doors, ...
+We already asked for support from the vendor, but they suggested us to use the 
+Windows SDK :(, so we hope that some one in this list have some knowledge 
+about the board and can help us.
 
-Also, now I check for fldmode not bt656, Laurent's is right that
-bt.656 is interlaced but not every interlaced video is bt.656.
+We are using a quite recent version of Linux Kernel (2.6.35.11) and the bttv 
+module is working correctly for what concerns video capturing.
 
->
-> Btw i'm trying to get these patches on 3.1.0rc9 (from igep repository,
-> that should be just like mainline 3.1.0rc9 with some bsp patches), i
-> hope i will report good news.
->
-> Enrico
->
+Now we would like to control the external GPIO embedded in the IVC-200G board, 
+but we don't know how to do it.
+In the driver CD provided with the board we found a directory Linux, 
+containing three subdirectories: Demo, Driver and Sdk:
 
-Great, thank you very much for your efforts Enrico.
+The "Demo" directory contains a demo program which demonstrates how to capture 
+video with the IVC-200G board, but doesn't help to understand how to control 
+the external GPIO.
 
-Best regards,
+The "Driver" directory contains some very old _binary_ bttv drivers (specific 
+for Red Hat 7.2, 7.3 and 8 versions), but this is not useful for our purpose.
+
+The "Sdk" directory contains only a C header file (ieibt878.h, pasted here 
+http://pastebin.com/cjezwusy) and a text file sdk-howto (pasted here 
+http://pastebin.com/H66WzF1G).
+The section 4 of sdk-howto explains something related to external GPIO, for 
+example we can read "To set GPIO outputs, use structure iei_gpio and 
+VIDIOC_IEI_SET_GPIO ioctl call", but it's not clear on which device (we mean 
+which node in /dev directory) we should perform the ioctl call.
+
+Can you help us in using the external GPIO in the IVC-200G board on Linux?
+
+Thank you very much for your help!
 
 -- 
-Javier Martínez Canillas
-(+34) 682 39 81 69
-Barcelona, Spain
+Augusto Destrero, PhD
