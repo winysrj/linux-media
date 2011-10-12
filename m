@@ -1,54 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out0.tiscali.nl ([195.241.79.175]:37006 "EHLO
-	smtp-out0.tiscali.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933965Ab1J3MI5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Oct 2011 08:08:57 -0400
-Subject: [PATCH] [RESEND] media: tea5764: reconcile Kconfig symbol and macro
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 30 Oct 2011 13:08:50 +0100
-Message-ID: <1319976530.14409.17.camel@x61.thuisdomein>
-Mime-Version: 1.0
+Received: from smtp.nexicom.net ([216.168.96.13]:41222 "EHLO smtp.nexicom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750747Ab1JMAmR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Oct 2011 20:42:17 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-118-207.nexicom.net [216.168.118.207])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id p9D0gFu5030140
+	for <linux-media@vger.kernel.org>; Wed, 12 Oct 2011 20:42:16 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by mail.lockie.ca (Postfix) with ESMTP id 15D761E000D
+	for <linux-media@vger.kernel.org>; Wed, 12 Oct 2011 20:41:55 -0400 (EDT)
+Message-ID: <4E95FBC9.3060309@lockie.ca>
+Date: Wed, 12 Oct 2011 16:42:49 -0400
+From: James <bjlockie@lockie.ca>
+MIME-Version: 1.0
+To: linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: where is the cx23887 module in kernel-3.04 config?
+References: <4E95F8D3.4070104@lockie.ca>
+In-Reply-To: <4E95F8D3.4070104@lockie.ca>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Kconfig symbol RADIO_TEA5764_XTAL is unused. The code does use a
-RADIO_TEA5764_XTAL macro, but does that rather peculiar. But there seems
-to be a way to keep both. (The easiest way out would be to rip out both
-the Kconfig symbol and the macro.)
-
-Note there's also a module parameter 'use_xtal' to influence all this.
-
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
----
-I didn't dare to submit this a trivial patch. This is still untested. By
-the way, is xtal a common abbreviation of crystal?
-
- drivers/media/radio/radio-tea5764.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/radio/radio-tea5764.c b/drivers/media/radio/radio-tea5764.c
-index 95ddcc4..db20904 100644
---- a/drivers/media/radio/radio-tea5764.c
-+++ b/drivers/media/radio/radio-tea5764.c
-@@ -128,8 +128,10 @@ struct tea5764_write_regs {
- 	u16 rdsbbl;				/* PAUSEDET & RDSBBL */
- } __attribute__ ((packed));
- 
--#ifndef RADIO_TEA5764_XTAL
-+#ifdef CONFIG_RADIO_TEA5764_XTAL
- #define RADIO_TEA5764_XTAL 1
-+#else
-+#define RADIO_TEA5764_XTAL 0
- #endif
- 
- static int radio_nr = -1;
--- 
-1.7.4.4
-
-
-
+On 10/12/11 16:30, James wrote:
+> Where is the cx23887 module in the kernel-3.04 config?
+> I'm trying to get a Hauppauge WinTV-HVR-1250 working.
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+Found it under video4lnux driver and not DVB/ATSC adapters (which seems 
+more logical).
