@@ -1,70 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay03.digicable.hu ([92.249.128.185]:41475 "EHLO
-	relay03.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751287Ab1JRUlN (ORCPT
+Received: from hermes.mlbassoc.com ([64.234.241.98]:37042 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752955Ab1JLMPO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Oct 2011 16:41:13 -0400
-Message-ID: <4E9DDE13.103@freemail.hu>
-Date: Tue, 18 Oct 2011 22:14:11 +0200
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Wed, 12 Oct 2011 08:15:14 -0400
+Message-ID: <4E9584CD.5080107@mlbassoc.com>
+Date: Wed, 12 Oct 2011 06:15:09 -0600
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-To: Lars Noschinski <lars@public.noschinski.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: pac7311
-References: <20111017060334.GA16001@lars.home.noschinski.de>
-In-Reply-To: <20111017060334.GA16001@lars.home.noschinski.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Enrico <ebutera@users.berlios.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC 0/3] omap3isp: add BT656 support
+References: <1318345735-16778-1-git-send-email-ebutera@users.berlios.de> <4E94BD75.5040403@mlbassoc.com> <CA+2YH7vx27qNeOO33NmR4SaqrSrhdu=17p468cSbLxDKfDAQqQ@mail.gmail.com> <4E94C465.9090901@mlbassoc.com> <CA+2YH7vT441UMdawQY=N=4Fa7d9cYejwE4iYd8Sz7aE5NCJf2w@mail.gmail.com>
+In-Reply-To: <CA+2YH7vT441UMdawQY=N=4Fa7d9cYejwE4iYd8Sz7aE5NCJf2w@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Lars,
+On 2011-10-12 02:07, Enrico wrote:
+> On Wed, Oct 12, 2011 at 12:34 AM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>> On 2011-10-11 16:25, Enrico wrote:
+>>>
+>>> On Wed, Oct 12, 2011 at 12:04 AM, Gary Thomas<gary@mlbassoc.com>    wrote:
+>>>>
+>>>> Sorry, this just locks up on boot for me, immediately after finding the
+>>>> TVP5150.
+>>>> I applied your changes to the above tree
+>>>>   commit 658d5e03dc1a7283e5119cd0e9504759dbd3d912
+>>>>   Author: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+>>>>   Date:   Wed Aug 31 16:03:53 2011 +0200
+>>>
+>>> Did you add Javier patches for the tvp5150?
+>>
+>> No, I thought your set was self-contained.  I'll add them now.
+>>
+>>>
+>>>> However, it does not build for my OMAP3530 without the attached patches.
+>>>
+>>> I can't remember now if i had omap vout enabled in my kernel config
+>>> but that one in ispccdc.c is strange, tomorrow i will do again a clean
+>>> rebuild.
+>>
+>> I can't see how to turn off omap_vout
+>
+> In multimedia/video capture/omap2 video4linux
+>
+> I had it disabled and enabling it gave me an error too, but it's not
+> something that is changed by my patches so it is broken in the -yuv
+> tree.
+>
+> I made a distclean rebuild and i don't have any errors, are you sure
+> you need that include in ispccdc.c?
 
-Lars Noschinski wrote:
-> I'm using a webcam (Philipps SPC500NC) which identifies itself as
-> 
->     093a:2603 Pixart Imaging, Inc. PAC7312 Camera
-> 
-> and is sort-of supported by the gspca_pac7311 module. "sort-of" because
-> the image alternates quickly between having a red tint or a green tint
-> (using the gspac driver from kernel 3.0.0, but this problem is present
-> since at least 2.6.31).
+Yes, I started from a 100% clean build + tree.  Without that change,
+I get a compile error.  With it, and the TVP patches, I can now grab
+some video from my camera.
 
-The most important source code for your webcam is drivers/media/video/gspca/pac7311.c .
-You can see it online at http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=drivers/media/video/gspca/pac7311.c .
-
-> If I remove and re-plugin the camera a few times (on average around 3
-> times), the colors are stable.
-
-When you plug and remove the webcam and the colors are wrong, do you get any
-message in the "dmesg"?
-
-Once the colors are stable and you unplug and replug the webcam, what happens then?
-Is there again around 3 times when the webcam is not working properly?
-
-> Then a second issue becomes apparent:
-> There is almost no saturation in the image. Toying around with Contrast,
-> Gamma, Exposure or Gain does not help. What _does_ help is the Vflip
-> switch: If I enable it, the image is flipped vertically (as expected),
-> but also the color become a lot better.
-
-Is there any difference when you use the "Mirror" control? What about the
-combination of the "Vflip" and "Mirror" controls?
-
-What about the "Auto Gain" setting? Is it enabled or disabled in your case?
-
-> Is there something I can do to debug/fix this problem?
-
-You can try testing the webcam with different resolutions. The webcam
-supports 160x120, 320x240 and 640x480 resolutions based on the source code.
-You can try the different resolutions for example with "cheese"
-( http://projects.gnome.org/cheese/ ) or any of your favorite V4L2 program.
-
-You can load the usbmon kernel module and use Wireshark to log the USB communication
-between your computer and the webcam starting with plug-in. You can compare
-the communication when the webcam starts to work correctly with the one when
-the webcam doesn't work as expected.
-
-Regards,
-
-	Márton Németh
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
