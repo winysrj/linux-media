@@ -1,103 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gir.skynet.ie ([193.1.99.77]:48404 "EHLO gir.skynet.ie"
+Received: from smtp.nexicom.net ([216.168.96.13]:40473 "EHLO smtp.nexicom.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754868Ab1JRMFX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Oct 2011 08:05:23 -0400
-Date: Tue, 18 Oct 2011 14:05:06 +0200
-From: Mel Gorman <mel@csn.ul.ie>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>
-Subject: Re: [PATCH 1/9] mm: move some functions from memory_hotplug.c to
- page_isolation.c
-Message-ID: <20111018120506.GA6660@csn.ul.ie>
-References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
- <1317909290-29832-2-git-send-email-m.szyprowski@samsung.com>
+	id S1751635Ab1JMA3V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Oct 2011 20:29:21 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-118-207.nexicom.net [216.168.118.207])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id p9D0THPD029197
+	for <linux-media@vger.kernel.org>; Wed, 12 Oct 2011 20:29:18 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by mail.lockie.ca (Postfix) with ESMTP id 98C8D1E000D
+	for <linux-media@vger.kernel.org>; Wed, 12 Oct 2011 20:29:17 -0400 (EDT)
+Message-ID: <4E95F8D3.4070104@lockie.ca>
+Date: Wed, 12 Oct 2011 16:30:11 -0400
+From: James <bjlockie@lockie.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-In-Reply-To: <1317909290-29832-2-git-send-email-m.szyprowski@samsung.com>
+To: linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: where is the cx23887 module in kernel-3.04 config?
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 06, 2011 at 03:54:41PM +0200, Marek Szyprowski wrote:
-> From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-> 
-> Memory hotplug is a logic for making pages unused in the specified
-> range of pfn. So, some of core logics can be used for other purpose
-> as allocating a very large contigous memory block.
-> 
-> This patch moves some functions from mm/memory_hotplug.c to
-> mm/page_isolation.c. This helps adding a function for large-alloc in
-> page_isolation.c with memory-unplug technique.
-> 
-> Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-> [m.nazarewicz: reworded commit message]
-> Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> [m.szyprowski: rebased and updated to Linux v3.0-rc1]
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> CC: Michal Nazarewicz <mina86@mina86.com>
-> Acked-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  include/linux/page-isolation.h |    7 +++
->  mm/memory_hotplug.c            |  111 --------------------------------------
->  mm/page_isolation.c            |  114 ++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 121 insertions(+), 111 deletions(-)
-> 
-> diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-> index 051c1b1..58cdbac 100644
-> --- a/include/linux/page-isolation.h
-> +++ b/include/linux/page-isolation.h
-> @@ -33,5 +33,12 @@ test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
->  extern int set_migratetype_isolate(struct page *page);
->  extern void unset_migratetype_isolate(struct page *page);
->  
-> +/*
-> + * For migration.
-> + */
-> +
-> +int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn);
-
-bool
-
-> +unsigned long scan_lru_pages(unsigned long start, unsigned long end);
-
-Both function names are misleading.
-
-> +int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn);
->  
-
-scan_lru_pages as it is used by memory hotplug is also extremely
-expensive. Unplugging memory is rare so the performance is not a concern
-but it make be for CMA.
-
-I think it would have made more sense to either express this as an iterator
-like for_each_lru_page_in_range() and use cursors or reuse the compaction
-code. As it is, these functions are a bit rough. I'm biased but this code
-seems to have very similar responsibilities to the compaction.c code for
-isolate_migratepages and how it handles migration. It also knows how to avoid
-isolating so much memory as to put the system in the risk of being livelocked,
-isolate pages from the LRU in batch etc.
-
-This is not a show-stopper as such but personally I would prefer that
-the memory hotplug code be sharing code with compaction than CMA adding
-a new dependency on memory hotplug.
-
--- 
-Mel Gorman
-SUSE Labs
+Where is the cx23887 module in the kernel-3.04 config?
+I'm trying to get a Hauppauge WinTV-HVR-1250 working.
