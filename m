@@ -1,104 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:49737 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754298Ab1JRViV (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:32877 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751880Ab1JLOtA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Oct 2011 17:38:21 -0400
-Date: Tue, 18 Oct 2011 23:38:11 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFC] subdevice PM: .s_power() deprecation?
-In-Reply-To: <4E9DEB4A.4050001@gmail.com>
-Message-ID: <Pine.LNX.4.64.1110182315180.7139@axis700.grange>
-References: <Pine.LNX.4.64.1110031138370.14314@axis700.grange>
- <Pine.LNX.4.64.1110171720260.18438@axis700.grange> <4E9C9D84.5020905@gmail.com>
- <201110180107.20494.laurent.pinchart@ideasonboard.com> <4E9DEB4A.4050001@gmail.com>
+	Wed, 12 Oct 2011 10:49:00 -0400
+Date: Wed, 12 Oct 2011 16:49:40 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Dave Airlie <airlied@gmail.com>
+Cc: Rob Clark <robdclark@gmail.com>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	linux@arm.linux.org.uk, arnd@arndb.de, jesse.barker@linaro.org,
+	daniel@ffwll.ch
+Subject: Re: [Linaro-mm-sig] [RFC 1/2] dma-buf: Introduce dma buffer sharing
+ mechanism
+Message-ID: <20111012144940.GB2938@phenom.ffwll.local>
+References: <1318325033-32688-1-git-send-email-sumit.semwal@ti.com>
+ <1318325033-32688-2-git-send-email-sumit.semwal@ti.com>
+ <CAPM=9tzHOa5Dbe=SQz+AURMMbio4L7qoS8kUT3Ek0+HdtkrH4g@mail.gmail.com>
+ <CAF6AEGs6kkGp85NoNVuq5W9i=WE86V8wvAtKydX=D3bQOc+6Pw@mail.gmail.com>
+ <CAPM=9twft0eBEUoCD11a2gTZHwOaPzFmZvBfE032dfK10eQ27Q@mail.gmail.com>
+ <CAF6AEGuwMt6Snq=YSN4iddTv_Cu56aR_2BY1d3hjVvTdkom5MQ@mail.gmail.com>
+ <CAPM=9tyKjodxf9MKjG=5bBDZTuqOx4Nu31L5iNN9LrO9fsp+FA@mail.gmail.com>
+ <CAF6AEGsK25wk28YmiwsZTenecKqCt6irx66nR-8nOFMo6Z=Dkw@mail.gmail.com>
+ <CAPM=9tyAiUZ9tNaer=_52WmiLKpJKG+3EXvZzotwGwvqkJFmOQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPM=9tyAiUZ9tNaer=_52WmiLKpJKG+3EXvZzotwGwvqkJFmOQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 18 Oct 2011, Sylwester Nawrocki wrote:
-
-> Hi Laurent,
-> 
-> On 10/18/2011 01:07 AM, Laurent Pinchart wrote:
-> > On Monday 17 October 2011 23:26:28 Sylwester Nawrocki wrote:
-> >> On 10/17/2011 05:23 PM, Guennadi Liakhovetski wrote:
-> >>> On Mon, 17 Oct 2011, Sylwester Nawrocki wrote:
-
-[snip]
-
-> >>>> The bridge driver could also choose to keep the sensor powered on,
-> >>>> whenever it sees appropriate, to avoid re-enabling the sensor to often.
-> >>>
-> >>> On what basis would the bridge driver make these decisions? How would it
-> >>> know in advance, when it'll have to re-enable the subdev next time?
+On Wed, Oct 12, 2011 at 03:34:54PM +0100, Dave Airlie wrote:
+> On Wed, Oct 12, 2011 at 3:24 PM, Rob Clark <robdclark@gmail.com> wrote:
+> > On Wed, Oct 12, 2011 at 9:01 AM, Dave Airlie <airlied@gmail.com> wrote:
+> >>> But then we'd need a different set of accessors for every different
+> >>> drm/v4l/etc driver, wouldn't we?
 > >>
-> >> Re-enabling by allowing a subdev driver to entirely control the power
-> >> state. The sensor might implement "lowest power consumption" policy, while
-> >> the user might want "highest performance".
-> > 
-> > Exactly, that's a policy decision. Would PM QoS help here ?
+> >> Not any more different than you need for this, you just have a new
+> >> interface that you request a sw object from,
+> >> then mmap that object, and underneath it knows who owns it in the kernel.
+> >
+> > oh, ok, so you are talking about a kernel level interface, rather than
+> > userspace..
+> >
+> > but I guess in this case I don't quite see the difference.  It amounts
+> > to which fd you call mmap (or ioctl[*]) on..  If you use the dmabuf fd
+> > directly then you don't have to pass around a 2nd fd.
+> >
+> > [*] there is nothing stopping defining some dmabuf ioctls (such as for
+> > synchronization).. although the thinking was to keep it simple for
+> > first version of dmabuf
+> >
 > 
-> Thanks for reminding about PM QoS. I didn't pay much attention to it but it
-> indeed appears to be a good fit for this sort of tasks.
-
-But you anyway have to decide - who will implement those PM QoS callbacks? 
-The bridge and then decide whether or not to call subdev's .s_power(), or 
-the subdev driver itself? I think, the latter, in which case .s_power() 
-remain unused.
-
-> We would possibly just need to think of parameters which could be associated with
-> video, e.g. video_latency, etc. ?...
+> Yes a separate kernel level interface.
 > 
-> I'm curious whether the whole power handling could be contained within a subdev 
-> driver, most likely it could be done for subdevs exposing a devnode.
+> Well I'd like to keep it even simpler. dmabuf is a buffer sharing API,
+> shoehorning in a sw mapping API isn't making it simpler.
 > 
-> > 
-> >> I'm referring only to camera sensor subdevs, as I don't have much experience
-> >> with other ones.
-> >>
-> >> Also there are some devices where you want to model power control
-> >> explicitly, and it is critical to overall system operation. The s5p-tv
-> >> driver is one example of these. The host driver knows exactly how the
-> >> power state of its subdevs should be handled.
-> > 
-> > The host probably knows about how to handle the power state of its internal
-> > subdevs, but what about external ones ?
+> The problem I have with implementing mmap on the sharing fd, is that
+> nothing says this should be purely optional and userspace shouldn't
+> rely on it.
 > 
-> In this particular example there is no external subdevs associated with the host. 
-> 
-> But we don't seem to have separate callbacks for internal and external subdevs..
-> So removing s_power() puts the above described sort of drivers in trouble.
+> In the Intel GEM space alone you have two types of mapping, one direct
+> to shmem one via GTT, the GTT could be even be a linear view. The
+> intel guys initially did GEM mmaps direct to the shmem pages because
+> it seemed simple, up until they
+> had to do step two which was do mmaps on the GTT copy and ended up
+> having two separate mmap methods. I think the problem here is it seems
+> deceptively simple to add this to the API now because the API is
+> simple, however I think in the future it'll become a burden that we'll
+> have to workaround.
 
-I understand what you're saying, but can you give us a specific example, 
-when a subdev driver (your SoC internal subdev, that is) doesn't have a 
-way to react to an event itself and only the bridge driver gets called 
-into at that time? Something like an interrupt or an internal timer or 
-some other internal event?
+Yeah, that's my feeling, too. Adding mmap sounds like a neat, simple idea,
+that could simplify things for simple devices like v4l. But as soon as
+you're dealing with a real gpu, nothing is simple. Those who don't believe
+this, just take a look at the data upload/download paths in the
+open-source i915,nouveau,radeon drivers. Making this fast (and for gpus,
+it needs to be fast) requires tons of tricks, special-cases and jumping
+through loops.
 
-> I guess we all agree the power requirements of external subdevs are generally 
-> unknown to the hosts.
-> 
-> For these it might make lot of sense to let the subdev driver handle the device
-> power supplies on basis of requests like, s_ctrl, s_stream, etc.  
+You absolutely want the device-specific ioctls to do that. Adding a
+generic mmap just makes matters worse, especially if userspace expects
+this to work synchronized with everything else that is going on.
 
-Yes, right, so, most "external" (sensor, decoder,...) subdev drivers 
-should never need to implement .s_power(), regardless of whether we decide 
-to keep it or not. Well, ok, no, put it differently - in those drivers 
-.s_power() should only really be called during system-wide suspend / 
-resume.
-
-> With PM QoS it could be easier to decide in the driver when a device should be
-> put in a low power state. 
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Cheers, Daniel
+-- 
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
