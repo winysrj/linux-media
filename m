@@ -1,38 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:56564 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934378Ab1JEUE4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 16:04:56 -0400
-Received: by gyg10 with SMTP id 10so1923350gyg.19
-        for <linux-media@vger.kernel.org>; Wed, 05 Oct 2011 13:04:56 -0700 (PDT)
+Received: from smtp.nexicom.net ([216.168.96.13]:55049 "EHLO smtp.nexicom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751356Ab1JMXts (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Oct 2011 19:49:48 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-118-207.nexicom.net [216.168.118.207])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id p9DNnk4s006056
+	for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 19:49:47 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by mail.lockie.ca (Postfix) with ESMTP id B29B81E0229
+	for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 19:49:45 -0400 (EDT)
+Message-ID: <4E977919.5060102@lockie.ca>
+Date: Thu, 13 Oct 2011 19:49:45 -0400
+From: James <bjlockie@lockie.ca>
 MIME-Version: 1.0
-From: Evan Platt <evplatt@gmail.com>
-Date: Wed, 5 Oct 2011 15:04:34 -0500
-Message-ID: <CABHmaNMw8OUoSZ8XsWA_QQz5H9h6+3aVTVMcW30VzOCGTx7=gw@mail.gmail.com>
-Subject: Media_build Issue with altera on cx23885
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: help with azap
+References: <4E972A8F.2020004@lockie.ca> <CAGoCfiygsxpA_qpoJ=BJ2YorqRPxg8ooMhvTMqscoxH1m+rh6A@mail.gmail.com>
+In-Reply-To: <CAGoCfiygsxpA_qpoJ=BJ2YorqRPxg8ooMhvTMqscoxH1m+rh6A@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L-DVB was previously working correctly for me.  I was experiencing
-some problems which had been solved before by recompiling v4l.  So I
-cloned the latest media_build tree and ran the build process.
+On 10/13/11 14:30, Devin Heitmueller wrote:
+> On Thu, Oct 13, 2011 at 2:14 PM, James<bjlockie@lockie.ca>  wrote:
+>> $ more channels.conf
+>> CIII-HD:85000000:8VSB:49:52+53:1
+>> OTTAWA CBOFT-DT:189000000:8VSB:49:53+52:3
+>> CJOH:213000000:8VSB:49:51+52:1
+>> TVO    :533000000:8VSB:49:52+53:1
+>> OTTAWA  CBOT-DT:539000000:8VSB:49:52+53:3
+>> Télé-Québec_HD:569000000:8VSB:49:52+53:3
+>> CHOT:629000000:8VSB:49:52:3
+>
+>> What does "ERROR: error while parsing Audio PID (not a number)" mean?
+> I don't know where your channels.conf came from, but it appears to be
+> malformed.  You cannot have "52+53" as the audio PID.  If you just
+> want to get up and running, remove the "+53" part.
+>
+> Devin
+>
+I used:
+w_scan -f a -c US -M
+(mplayer format)
 
-Afterward, the driver does not load correctly and dmesg shows an error
-(cx23885: Unknown symbol altera_init (err 0)).  I know there was a
-change to move altera from staging to misc but I see that the changes
-were propogated to media_build on 9/26/11.
+I redid it with:
+w_scan -f a -c US -X
+(czap/tzap/szap/xine)
+and got:
+CIII-HD:85000000:8VSB:49:52:1
+OTTAWA CBOFT-DT:189000000:8VSB:49:53:3
+CJOH:213000000:8VSB:49:51:1
+TVO    :533000000:8VSB:49:52:1
+OTTAWA  CBOT-DT:539000000:8VSB:49:52:3
+Télé-Québec_HD:569000000:8VSB:49:52:3
+CHOT:629000000:8VSB:49:52:3
 
-I ran menuconfig and made sure that MISC_DEVICES was set to 'y' to
-include altera-stapl but to no avail.
+It is weird there is not a standard format. :-)
 
-Please advise.
-
-Some relevant information:
-
-Device:  Hauppauge HVR-1250 Tuner
-Driver:  cx23885
-Environment: Ubuntu 11.04, 2.6.38-11-generic
-
-Thanks!
