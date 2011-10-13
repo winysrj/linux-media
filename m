@@ -1,94 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpo09.poczta.onet.pl ([213.180.142.140]:43305 "EHLO
-	smtpo09.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752559Ab1JSNHh (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:54345 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754417Ab1JMMc2 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Oct 2011 09:07:37 -0400
-Message-ID: <4E9ECB94.70806@poczta.onet.pl>
-Date: Wed, 19 Oct 2011 15:07:32 +0200
-From: Piotr Chmura <chmooreck@poczta.onet.pl>
+	Thu, 13 Oct 2011 08:32:28 -0400
+Received: by ggnv2 with SMTP id v2so1749975ggn.19
+        for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 05:32:27 -0700 (PDT)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Javier Martinez Canillas <martinez.javier@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Greg KH <gregkh@suse.de>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
-Subject: Re: [PATCH 0/14] staging/media/as102: new driver submission (was
- Re: [PATCH 1/7] Staging submission: PCTV 74e driver (as102)
-References: <4E7F1FB5.5030803@gmail.com> <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com> <4E7FF0A0.7060004@gmail.com> <CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com> <20110927094409.7a5fcd5a@stein> <20110927174307.GD24197@suse.de> <20110927213300.6893677a@stein> <4E999733.2010802@poczta.onet.pl> <4E99F2FC.5030200@poczta.onet.pl> <20111016105731.09d66f03@stein> <CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com> <4E9ADFAE.8050208@redhat.com> <20111018111044.ebbc89a8.chmooreck@poczta.onet.pl> <CAGoCfiwLgGREEO5nRKZ4n=UD70aKTix+HZpjMvmfnADpEDgATg@mail.gmail.com> <20111018192019.4485315f@darkstar> <CAAwP0s2ZeP0JQPLDpryfbv3xhBZNrpjCmz-bfhJF5w0E3tcahQ@mail.gmail.com> <4E9EB82D.30300@redhat.com>
-In-Reply-To: <4E9EB82D.30300@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4E96CF04.7000100@mlbassoc.com>
+References: <4E9442A9.1060202@mlbassoc.com>
+	<4E9609E3.3000902@mlbassoc.com>
+	<CA+2YH7v+wV4Kz=gLkACiE0fRHu2BCLLvNj8q=ipLDVy_GztXjw@mail.gmail.com>
+	<4E96CF04.7000100@mlbassoc.com>
+Date: Thu, 13 Oct 2011 14:32:27 +0200
+Message-ID: <CA+2YH7vaN5Q+AJZp8b9E=7Jumaz-cB191CnYDDXF6ZOt7mZocg@mail.gmail.com>
+Subject: Re: OMAP3 ISP ghosting
+From: Enrico <ebutera@users.berlios.de>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Enric Balletbo i Serra <eballetbo@iseebcn.com>,
+	Javier Martinez Canillas <martinez.javier@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-W dniu 19.10.2011 13:44, Mauro Carvalho Chehab pisze:
-> Em 19-10-2011 09:41, Javier Martinez Canillas escreveu:
->> On Tue, Oct 18, 2011 at 7:20 PM, Piotr Chmura<chmooreck@poczta.onet.pl>  wrote:
->>> On Tue, 18 Oct 2011 11:52:17 -0400
->>> Devin Heitmueller<dheitmueller@kernellabs.com>  wrote:
->>>
->>>> On Tue, Oct 18, 2011 at 5:10 AM, Piotr Chmura<chmooreck@poczta.onet.pl>  wrote:
->>>>> Thanks for comments for all of you.
->>>>>
->>>>> [PATCH 1-12/14] Following your guidelines i exported all changes from hg one by one. This way we will have all history in kernel tree.
->>>>> I moved driver to staging/media and removed Kconfig/Makefile changes in parent directory in first patch.
->>>> Hello Piotr,
->>>>
->>>> Not that I want to create more work for you, but it would appear that
->>>> your patches stripped off all the Signed-off-by lines for both myself
->>>> and Pierrick Hascoet (the developer from the hardware vendor).  You
->>>> have replaced them with "cc:" lines, which breaks the chain of
->>>> "Developer's Certificate of Origin".
->>>>
->>>> When you take somebody else's patches, you need to preserve any
->>>> existing Signed-off-by lines, adding your own at the bottom of the
->>>> list.
->>>>
->>>> In other words, the first patch should be:
->>>>
->>>> Signed-off-by: Pierrick Hascoet<pierrick.hascoet@abilis.com>
->>>> Signed-off-by: Devin Heitmueller<dheitmueller@kernellabs.com>
->>>> Signed-off-by: Piotr Chmura<chmooreck@poczta.onet.pl>
->>>>
->>>> instead of:
->>>>
->>>> Signed-off-by: Piotr Chmura<chmooreck@poczta.onet.pl>
->>>> Cc: Pierrick Hascoet<pierrick.hascoet@abilis.com>
->>>> Cc: Devin Heitmueller<dheitmueller@kernellabs.com>
->>>>
->>>> Devin
->>>>
->>>> --
->>>> Devin J. Heitmueller - Kernel Labs
->>>> http://www.kernellabs.com
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>> Ok, i'll resend them again.
->>>
->>> Should I replay to every patch with something like [RESEND PATCH nn/mm]..., right ?
->>>
->>> Peter
->> Hi Peter,
+On Thu, Oct 13, 2011 at 1:44 PM, Gary Thomas <gary@mlbassoc.com> wrote:
+> On 2011-10-13 02:42, Enrico wrote:
 >>
->> A common convention is to add the version of your patch in the subject like:
+>> On Wed, Oct 12, 2011 at 11:42 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>>>
+>>> Any ideas on this?  My naive attempt (diffs attached) just hangs up.
+>>> These changes disable BT-656 mode in the CCDC and tell the TVP5150
+>>> to output raw YUV 4:2:2 data including all SYNC signals.
 >>
->> [PATCH v2 0/14] staging/media/as102: new driver submission
+>> I tried that too, you will need to change many of the is_bt656 into
+>> is_fldmode. For isp configuration it seems that the only difference
+>> between the two is (more or less) just the REC656 register. I made a
+>> hundred attempts and in the end i had a quite working capture (just
+>> not centered) but ghosting always there.
 >>
->> That way people can know that is actually a resend of a new patch-set
->> and not a resend of the last one.
-Thanks, I'll do it this way next time.
+>> I made another test and by luck i got a strange thing, look at the
+>> following image:
+>>
+>> http://postimage.org/image/2d610pjk4/
+>>
+>> (It's noisy because of a hardware problem)
+>>
+>> I made it with these changes:
+>>
+>> //ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENEVEN, 1);
+>> ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENODD, 1);
+>> //ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDEVEN, 1);
+>> ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDODD, 1);
+>>
+>> So you have an image with a field with no offset, and a field with
+>> offsets.
+>>
+>> Now if you look between my thumb and my forefinger behind them there's
+>> a monoscope picture and in one field you can see 2 black squares, in
+>> the other one you can see 3 black squares. So the two field that will
+>> be composing a single image differ very much.
+>>
+>> Now the questions are: is this expected to happen on an analogue video
+>> source and we can't do anything (apart from software deinterlacing)?
+>> is this a problem with tvp5150? Is this a problem with the isp?
+>
+> Yes, there does seem to be significant movement/differences between these
+> two images.  Are you saying that these should be the two halves of one frame
+> that would be stitched together by de-interlacing?  Perhaps the halves are
+> out of sync and the bottom one of this image really goes with the top of
+> the next (frame13)?
 
-> Yes. Also, it seems that you've submitted only 12 patches of this 14 patch
-> series. Where are the other two missing patches?
-13 and 14 were written by me, so they didn't suffer "signed-off-by" 
-mistake. Do I need resend them too ?
+They are two fields that normally will be "merged" into a frame, but
+with those settings i made the isp "expand" (SDOFST) just one of the
+fields.
 
-Peter
+One possible thing is that, as you say, "the bottom one of this image
+really goes with the top of the next".
 
+But one thing to consider is that it is normal for interlaced video to
+have such "effects", that's why progressive scan was invented.
+
+
+> The ghosting problem is still evident, even in this split image.  Notice
+> that every other scan line is really poor - basically junk.  When this gets
+> merged as part of the de-interlace, the ghosts appear.
+
+I don't think so. The bottom part is "expanded" by the isp, so it's ok
+to have green half lines, that's where the top part will go if it is
+"expanded" by the isp.
+
+Looking at the single images (top and bottom) i don't see ghosting
+artifacts (not only in that image but in a sequence of 16 frames),
+just a little blurry in moving parts but that's expected in an
+interlaced video. So it seems to me that the images arrive correctly
+at the isp and the deinterlacing causes ghosting.
+
+Enrico
