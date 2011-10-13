@@ -1,42 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:48848 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752239Ab1JMDUZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Oct 2011 23:20:25 -0400
-Received: by bkbzt4 with SMTP id zt4so847233bkb.19
-        for <linux-media@vger.kernel.org>; Wed, 12 Oct 2011 20:20:24 -0700 (PDT)
+Received: from smtp.nexicom.net ([216.168.96.13]:35753 "EHLO smtp.nexicom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752793Ab1JMSBv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Oct 2011 14:01:51 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-118-207.nexicom.net [216.168.118.207])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id p9DI1nQk014319
+	for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 14:01:50 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by mail.lockie.ca (Postfix) with ESMTP id 54CA31E015A
+	for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 14:01:48 -0400 (EDT)
+Message-ID: <4E97278C.109@lockie.ca>
+Date: Thu, 13 Oct 2011 14:01:48 -0400
+From: James <bjlockie@lockie.ca>
 MIME-Version: 1.0
-In-Reply-To: <4DCC39C6.30802@lockie.ca>
-References: <4DCC39C6.30802@lockie.ca>
-Date: Wed, 12 Oct 2011 23:20:23 -0400
-Message-ID: <CAGoCfiysOxEgpMhGSDOjo3Utg8AH6kUjRkkO2wF__KB_0i-zvQ@mail.gmail.com>
-Subject: Re: digital tuner
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: James <bjlockie@lockie.ca>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: recent cx23385?
+References: <4E967E5B.3050504@lockie.ca> <CAGoCfiyViRDt690TWtiWdnfP5C-az2aeOK=TGhgP4kwT1QJfqQ@mail.gmail.com> <4E971255.8080203@lockie.ca> <4E9713F5.1060308@lockie.ca>
+In-Reply-To: <4E9713F5.1060308@lockie.ca>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 12, 2011 at 3:49 PM, James <bjlockie@lockie.ca> wrote:
->
-> I have an analog: Hauppauge WinTV-Go PLUS which has a lineout.
->
-> I'm considering a digital card.
-> The Hauppauge WinTV-HVR-1250 does NOT have a lineout so how does it do
-> sound?
-> Does PCIe pass through the sound to the OS sound system?
-> I read on the linuxtv wiki that only the digital works on this card.
+On 10/13/11 12:38, James wrote:
+> On 10/13/11 12:31, James wrote:
+>> On 10/13/11 08:48, Devin Heitmueller wrote:
+>>> On Thu, Oct 13, 2011 at 1:59 AM, James<bjlockie@lockie.ca>  wrote:
+>>>> Is there a newer cx23385 driver than the one in kernel-3.0.4?
+>>>> I bought 
+>>>> ahttp://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-1250  and it
+>>>> shows video for about 5 seconds and then locks up the system.
+>>> You cannot install individual drivers (Linux doesn't work like Windows
+>>> in this regards).  You have to either install the latest kernel or you
+>>> can swap out the whole media subsystem with a later version.
+>>>
+>>> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers 
+>>>
+>>>
+>>> Devin
+>> Where do I see the date/version of the media subsystem?
+>>
+>> It is not video related, w_scan works sometimes but freezes the 
+>> kernel sometimes.
+>> This is booting right to a console.
+>> Is there a program to do a stress test on the hardware and print lots 
+>> of messages as it's working?
+>>
+>>
+>> $ modinfo cx23885
+>> filename:       
+>> /lib/modules/3.0.4/kernel/drivers/media/video/cx23885/cx23885.ko
+>> license:        GPL
+>> author:         Steven Toth <stoth@linuxtv.org>
+>> description:    v4l2 driver module for cx23885 based TV cards
+>> license:        GPL
+>> author:         Steven Toth <stoth@linuxtv.org>
+>> description:    Driver for cx23885 based TV cards
+>> alias:          pci:v000014F1d00008880sv*sd*bc*sc*i*
+>> alias:          pci:v000014F1d00008852sv*sd*bc*sc*i*
+>> depends:        
+>> videobuf-core,videobuf-dma-sg,stv0367,lnbp21,cx2341x,tveeprom,lgdt330x,videobuf-dvb,stv0900,zl10353,mt2131,ds3000,dib7000p,btcx-risc,tda10048,cx24116,s5h1411,s5h1409,stv6110
+>> vermagic:       3.0.4 SMP mod_unload
+>> parm:           ci_dbg:Enable CI debugging (int)
+>> parm:           ci_irq_enable:Enable IRQ from CAM (int)
+>> parm:           ir_888_debug:enable debug messages [CX23888 IR 
+>> controller] (int)
+>> parm:           mpegbufs:number of mpeg buffers, range 2-32 (int)
+>> parm:           mpeglines:number of lines in an MPEG buffer, range 
+>> 2-32 (int)
+>> parm:           mpeglinesize:number of bytes in each line of an MPEG 
+>> buffer, range 512-1024 (int)
+>> parm:           v4l_debug:enable V4L debug messages (int)
+>> parm:           alt_tuner:Enable alternate tuner configuration (int)
+>> parm:           adapter_nr:DVB adapter numbers (array of short)
+>> parm:           i2c_debug:enable debug messages [i2c] (int)
+>> parm:           i2c_scan:scan i2c bus at insmod time (int)
+>> parm:           debug:enable debug messages (int)
+>> parm:           card:card type (array of int)
+>> parm:           vbibufs:number of vbi buffers, range 2-32 (int)
+>> parm:           vbi_debug:enable debug messages [vbi] (int)
+>> parm:           video_nr:video device numbers (array of int)
+>> parm:           vbi_nr:vbi device numbers (array of int)
+>> parm:           radio_nr:radio device numbers (array of int)
+>> parm:           video_debug:enable debug messages [video] (int)
+>> parm:           irq_debug:enable debug messages [IRQ handler] (int)
+>> parm:           vid_limit:capture memory limit in megabytes (int)
+>> parm:           enable_885_ir:Enable integrated IR controller for 
+>> supported
+>>                     CX2388[57] boards that are wired for it:
+>>                         HVR-1250 (reported safe)
+>>                         TeVii S470 (reported unsafe)
+>>                     This can cause an interrupt storm with some cards.
+>>                     Default: 0 [Disabled] (int)
+>>
+>> I did:
+>> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers 
+>>
+>> /bin/sh: /sbin/lsmod: No such file or directory
+>> Lot's of pr_fmt redefined errors.
+>>
+>> I put the build log at: lockie.ca/test/v4l_build.txt.bz2
+>>
+>> Something is not right though. :-(
+>> $ modprobe cx23885
+>> WARNING: Deprecated config file /etc/modprobe.conf, all config files 
+>> belong into /etc/modprobe.d/.
+>> WARNING: Error inserting altera_ci 
+>> (/lib/modules/3.0.4/kernel/drivers/media/video/cx23885/altera-ci.ko): 
+>> Invalid module format
+>> WARNING: Error inserting media 
+>> (/lib/modules/3.0.4/kernel/drivers/media/media.ko): Invalid module 
+>> format
+>> WARNING: Error inserting videodev 
+>> (/lib/modules/3.0.4/kernel/drivers/media/video/videodev.ko): Invalid 
+>> module format
+>> WARNING: Error inserting v4l2_common 
+>> (/lib/modules/3.0.4/kernel/drivers/media/video/v4l2-common.ko): 
+>> Invalid module format
+>> WARNING: Error inserting videobuf_core 
+>> (/lib/modules/3.0.4/kernel/drivers/media/video/videobuf-core.ko): 
+>> Invalid module format
+>> WARNING: Error inserting videobuf_dvb 
+>> (/lib/modules/3.0.4/kernel/drivers/media/video/videobuf-dvb.ko): 
+>> Invalid module format
+>> WARNING: Error inserting videobuf_dma_sg 
+>> (/lib/modules/3.0.4/kernel/drivers/media/video/videobuf-dma-sg.ko): 
+>> Invalid module format
+>> WARNING: Error inserting cx2341x 
+>> (/lib/modules/3.0.4/kernel/drivers/media/video/cx2341x.ko): Invalid 
+>> module format
+>> WARNING: Error inserting altera_stapl 
+>> (/lib/modules/3.0.4/kernel/drivers/linux/drivers/misc/altera-stapl/altera-stapl.ko): 
+>> Invalid module format
+>> WARNING: Error inserting rc_core 
+>> (/lib/modules/3.0.4/kernel/drivers/media/rc/rc-core.ko): Invalid 
+>> module format
+>> FATAL: Error inserting cx23885 
+>> (/lib/modules/3.0.4/kernel/drivers/media/video/cx23885/cx23885.ko): 
+>> Invalid module format
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> dmesg:
+> dvb_core: exports duplicate symbol dvb_ca_en50221_camchange_irq (owned 
+> by kernel)
+Compiled, I unchecked Multimedia and recompiled the kernel.
 
-You've probably already figured this out by now, but the cx23885 does
-have an ALSA driver, which isn't yet upstream.  Igor actually just
-rebased Steven's tree with the support against the latest kernel, so
-hopefully it will make it upstream soon (see the linux-media mailing
-list for the last couple of days to find the thread).
+It still crashes though. :-(
 
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
