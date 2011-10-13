@@ -1,58 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:45157 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753113Ab1JJKdg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Oct 2011 06:33:36 -0400
-Received: by gyg10 with SMTP id 10so5176014gyg.19
-        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 03:33:36 -0700 (PDT)
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:45234 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750789Ab1JMEsb convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Oct 2011 00:48:31 -0400
 MIME-Version: 1.0
-In-Reply-To: <CA+2YH7ti4xz9zNby6O=3ZOKAB9=1hnYZr9cM8HSMrj0r4zi1=A@mail.gmail.com>
-References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
- <CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
- <CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com>
- <201110081751.38953.laurent.pinchart@ideasonboard.com> <CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
- <CA+2YH7vat9iSAuZ4ztDvvo4Od+b4tCOsK6Y+grTE05YUZZEYPQ@mail.gmail.com>
- <CAAwP0s3NFvvUYd-0kwKLKXfYB4Zx1nXb0nd9+JM61JWtrVFfRg@mail.gmail.com>
- <CA+2YH7uFeHAmEpVqbd94qtCajb45pkr9YzeW+RDa5sf2bUG_wQ@mail.gmail.com>
- <CAAwP0s3GJ7-By=q_ADa6qcpaENK5kXvkTG8Hd=Y+qXs9dgXa0w@mail.gmail.com>
- <CA+2YH7subMzFAg7f7-uHXEmYBD+Kd1=E2nWKx7dgKCEpOu=zgQ@mail.gmail.com> <CA+2YH7ti4xz9zNby6O=3ZOKAB9=1hnYZr9cM8HSMrj0r4zi1=A@mail.gmail.com>
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Date: Mon, 10 Oct 2011 12:33:16 +0200
-Message-ID: <CAAwP0s3ZqDpMsF7mYYtM7twomREZTyO-uDhGPnfNsQcOTXQ_fw@mail.gmail.com>
-Subject: Re: omap3-isp status
-To: Enrico <ebutera@users.berlios.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Adam Pledger <a.pledger@thermoteknix.com>,
-	linux-media@vger.kernel.org,
-	Enric Balletbo i Serra <eballetbo@iseebcn.com>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <4E9614FA.20108@xenotime.net>
+References: <1318325033-32688-1-git-send-email-sumit.semwal@ti.com>
+ <1318325033-32688-3-git-send-email-sumit.semwal@ti.com> <4E9614FA.20108@xenotime.net>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Date: Thu, 13 Oct 2011 10:18:10 +0530
+Message-ID: <CAB2ybb8RTdUt8w2T74KH=hJoe9_tV41Ua_Z4x4kWa64OpXOe+A@mail.gmail.com>
+Subject: Re: [RFC 2/2] dma-buf: Documentation for buffer sharing framework
+To: Randy Dunlap <rdunlap@xenotime.net>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	linux@arm.linux.org.uk, arnd@arndb.de, jesse.barker@linaro.org,
+	m.szyprowski@samsung.com, rob@ti.com, daniel@ffwll.ch,
+	t.stanislaws@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 10, 2011 at 12:07 PM, Enrico <ebutera@users.berlios.de> wrote:
-> On Mon, Oct 10, 2011 at 12:06 PM, Enrico <ebutera@users.berlios.de> wrote:
->> I have updated my igep openembedded layer at [1] (testing branch) with:
+Hi Randy,
+On Thu, Oct 13, 2011 at 4:00 AM, Randy Dunlap <rdunlap@xenotime.net> wrote:
+> On 10/11/2011 02:23 AM, Sumit Semwal wrote:
+>> Add documentation for dma buffer sharing framework, explaining the
+>> various operations, members and API of the dma buffer sharing
+>> framework.
+>>
+>> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+>> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+>> ---
+>> †Documentation/dma-buf-sharing.txt | †210 +++++++++++++++++++++++++++++++++++++
+<snip>
+>> + † †if the new buffer-user has stricter 'backing-storage constraints', and the
+>> + † †exporter can handle these constraints, the exporter can just stall on the
+>> + † †get_scatterlist till all outstanding access is completed (as signalled by
 >
-> Ops, forgot [1] !
+> † † † † † † † † † † † until
 >
-> [1]: https://github.com/ebutera/meta-igep
+Thanks for your review; I will update all these in the next version.
+>> + † †put_scatterlist).
+>> + † †Once all ongoing access is completed, the exporter could potentially move
+>> + † †the buffer to the stricter backing-storage, and then allow further
+>> + † †{get,put}_scatterlist operations from any buffer-user from the migrated
+>> + † †backing-storage.
+>> +
+>> + † If the exporter cannot fulfill the backing-storage constraints of the new
+>> + † buffer-user device as requested, dma_buf_attach() would return an error to
+>> + † denote non-compatibility of the new buffer-sharing request with the current
+>> + † buffer.
+>> +
+>> + † If the exporter chooses not to allow an attach() operation once a
+>> + † get_scatterlist has been called, it simply returns an error.
+>> +
+>> +- mmap file operation
+>> + † An mmap() file operation is provided for the fd associated with the buffer.
+>> + † If the exporter defines an mmap operation, the mmap() fop calls this to allow
+>> + † mmap for devices that might need it; if not, it returns an error.
+>> +
+>> +References:
+>> +[1] struct dma_buf_ops in include/linux/dma-buf.h
+>> +[2] All interfaces mentioned above defined in include/linux/dma-buf.h
 >
-> Enrico
 >
-
-Perfect, thank you Enrico. I will try this latter today and let you
-know. I'm sure I can get this working (with the ghosting effect of
-course) so you can at least obtain 25 fps and once I have this working
-I will resend the patch-set as v3 so Laurent can review it and
-hopefully help us to fix the artifact on the video.
-
+> --
+> ~Randy
+> *** Remember to use Documentation/SubmitChecklist when testing your code ***
+>
 Best regards,
-
--- 
-Javier Mart√≠nez Canillas
-(+34) 682 39 81 69
-Barcelona, Spain
+~Sumit.
