@@ -1,143 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpo09.poczta.onet.pl ([213.180.142.140]:48239 "EHLO
-	smtpo09.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753118Ab1JRUFn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Oct 2011 16:05:43 -0400
-Date: Tue, 18 Oct 2011 22:05:40 +0200
-From: Piotr Chmura <chmooreck@poczta.onet.pl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Greg KH <gregkh@suse.de>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
-Subject: [RESEND PATCH 12/14] staging/media/as102: fix licensing oversight
-Message-ID: <20111018220540.1437710e@darkstar>
-In-Reply-To: <20111018111340.8686f724.chmooreck@poczta.onet.pl>
-References: <4E7F1FB5.5030803@gmail.com>
-	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
-	<4E7FF0A0.7060004@gmail.com>
-	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
-	<20110927094409.7a5fcd5a@stein>
-	<20110927174307.GD24197@suse.de>
-	<20110927213300.6893677a@stein>
-	<4E999733.2010802@poczta.onet.pl>
-	<4E99F2FC.5030200@poczta.onet.pl>
-	<20111016105731.09d66f03@stein>
-	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
-	<4E9ADFAE.8050208@redhat.com>
-	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
-	<20111018111340.8686f724.chmooreck@poczta.onet.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp.nexicom.net ([216.168.96.13]:57706 "EHLO smtp.nexicom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756330Ab1JMQbU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Oct 2011 12:31:20 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-118-207.nexicom.net [216.168.118.207])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id p9DGVIgG006433
+	for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 12:31:19 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by mail.lockie.ca (Postfix) with ESMTP id 3FA1C1E00BE
+	for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 12:31:17 -0400 (EDT)
+Message-ID: <4E971255.8080203@lockie.ca>
+Date: Thu, 13 Oct 2011 12:31:17 -0400
+From: James <bjlockie@lockie.ca>
+MIME-Version: 1.0
+To: linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: recent cx23385?
+References: <4E967E5B.3050504@lockie.ca> <CAGoCfiyViRDt690TWtiWdnfP5C-az2aeOK=TGhgP4kwT1QJfqQ@mail.gmail.com>
+In-Reply-To: <CAGoCfiyViRDt690TWtiWdnfP5C-az2aeOK=TGhgP4kwT1QJfqQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+On 10/13/11 08:48, Devin Heitmueller wrote:
+> On Thu, Oct 13, 2011 at 1:59 AM, James<bjlockie@lockie.ca>  wrote:
+>> Is there a newer cx23385 driver than the one in kernel-3.0.4?
+>> I bought ahttp://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-1250  and it
+>> shows video for about 5 seconds and then locks up the system.
+> You cannot install individual drivers (Linux doesn't work like Windows
+> in this regards).  You have to either install the latest kernel or you
+> can swap out the whole media subsystem with a later version.
+>
+> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+>
+> Devin
+Where do I see the date/version of the media subsystem?
 
-Original source and comment:# HG changeset patch
-# User Devin Heitmueller <dheitmueller@kernellabs.com>
-# Date 1267577404 18000
-# Node ID 8557cb6da3e71a350a538e3a0eb41126884289b9
-# Parent  84b93826c0a19efa114a6808165f91390cb86daa
-as102: fix licensing oversight
+It is not video related, w_scan works sometimes but freezes the kernel 
+sometimes.
+This is booting right to a console.
+Is there a program to do a stress test on the hardware and print lots of 
+messages as it's working?
 
-From: Pierrick Hascoet <pierrick.hascoet@abilis.com>
 
-Fix a couple of files which were supposed by be relicensed as GPL but were
-overlooked.
+$ modinfo cx23885
+filename:       
+/lib/modules/3.0.4/kernel/drivers/media/video/cx23885/cx23885.ko
+license:        GPL
+author:         Steven Toth <stoth@linuxtv.org>
+description:    v4l2 driver module for cx23885 based TV cards
+license:        GPL
+author:         Steven Toth <stoth@linuxtv.org>
+description:    Driver for cx23885 based TV cards
+alias:          pci:v000014F1d00008880sv*sd*bc*sc*i*
+alias:          pci:v000014F1d00008852sv*sd*bc*sc*i*
+depends:        
+videobuf-core,videobuf-dma-sg,stv0367,lnbp21,cx2341x,tveeprom,lgdt330x,videobuf-dvb,stv0900,zl10353,mt2131,ds3000,dib7000p,btcx-risc,tda10048,cx24116,s5h1411,s5h1409,stv6110
+vermagic:       3.0.4 SMP mod_unload
+parm:           ci_dbg:Enable CI debugging (int)
+parm:           ci_irq_enable:Enable IRQ from CAM (int)
+parm:           ir_888_debug:enable debug messages [CX23888 IR 
+controller] (int)
+parm:           mpegbufs:number of mpeg buffers, range 2-32 (int)
+parm:           mpeglines:number of lines in an MPEG buffer, range 2-32 
+(int)
+parm:           mpeglinesize:number of bytes in each line of an MPEG 
+buffer, range 512-1024 (int)
+parm:           v4l_debug:enable V4L debug messages (int)
+parm:           alt_tuner:Enable alternate tuner configuration (int)
+parm:           adapter_nr:DVB adapter numbers (array of short)
+parm:           i2c_debug:enable debug messages [i2c] (int)
+parm:           i2c_scan:scan i2c bus at insmod time (int)
+parm:           debug:enable debug messages (int)
+parm:           card:card type (array of int)
+parm:           vbibufs:number of vbi buffers, range 2-32 (int)
+parm:           vbi_debug:enable debug messages [vbi] (int)
+parm:           video_nr:video device numbers (array of int)
+parm:           vbi_nr:vbi device numbers (array of int)
+parm:           radio_nr:radio device numbers (array of int)
+parm:           video_debug:enable debug messages [video] (int)
+parm:           irq_debug:enable debug messages [IRQ handler] (int)
+parm:           vid_limit:capture memory limit in megabytes (int)
+parm:           enable_885_ir:Enable integrated IR controller for supported
+                     CX2388[57] boards that are wired for it:
+                         HVR-1250 (reported safe)
+                         TeVii S470 (reported unsafe)
+                     This can cause an interrupt storm with some cards.
+                     Default: 0 [Disabled] (int)
 
-Priority: normal
+I did:
+http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+/bin/sh: /sbin/lsmod: No such file or directory
+Lot's of pr_fmt redefined errors.
 
-Signed-off-by: Pierrick Hascoet <pierrick.hascoet@abilis.com>
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
-Signed-off-by: Piotr Chmura <chmooreck@poczta.onet.pl>
+I put the build log at: lockie.ca/test/v4l_build.txt.bz2
 
-diff --git linux/drivers/staging/media/as102/as10x_cmd_cfg.c linuxb/drivers/staging/media/as102/as10x_cmd_cfg.c
---- linux/drivers/staging/media/as102/as10x_cmd_cfg.c
-+++ linuxb/drivers/staging/media/as102/as10x_cmd_cfg.c
-@@ -1,20 +1,21 @@
--/**
--
-- \file   as10x_cmd_cfg.c
--
-- \author: S. Martinelli
--
-- ----------------------------------------------------------------------------\n
--   (c) Copyright Abilis Systems SARL 2005-2009 All rigths reserved \n
--   www.abilis.com                                                  \n
-- ----------------------------------------------------------------------------\n
--
-- \brief AS10x API, configuration services
--
--	AS10x cmd management: build command buffer, send command through
--	selected port and wait for the response when required.
--
--*/
-+/*
-+ * Abilis Systems Single DVB-T Receiver
-+ * Copyright (C) 2008 Pierrick Hascoet <pierrick.hascoet@abilis.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2, or (at your option)
-+ * any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
- 
- #if defined(LINUX) && defined(__KERNEL__) /* linux kernel implementation */
- #include <linux/kernel.h>
-diff --git linux/drivers/staging/media/as102/as10x_cmd_stream.c linuxb/drivers/staging/media/as102/as10x_cmd_stream.c
---- linux/drivers/staging/media/as102/as10x_cmd_stream.c
-+++ linuxb/drivers/staging/media/as102/as10x_cmd_stream.c
-@@ -1,22 +1,21 @@
--/**
--
-- \file   as10x_cmd_stream.c
--
-- \author: S. Martinelli
--
-- ----------------------------------------------------------------------------\n
--   (c) Copyright Abilis Systems SARL 2005-2009 All rigths reserved \n
--   www.abilis.com                                                  \n
-- ----------------------------------------------------------------------------\n
--
-- \brief AS10x CMD, stream services
--
--	AS10x CMD management: build command buffer, send command through
--	selected port and wait for the response when required.
--
--*/
--
--
-+/*
-+ * Abilis Systems Single DVB-T Receiver
-+ * Copyright (C) 2008 Pierrick Hascoet <pierrick.hascoet@abilis.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2, or (at your option)
-+ * any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
- #if defined(LINUX) && defined(__KERNEL__) /* linux kernel implementation */
- #include <linux/kernel.h>
- #include "as102_drv.h"
+Something is not right though. :-(
+$ modprobe cx23885
+WARNING: Deprecated config file /etc/modprobe.conf, all config files 
+belong into /etc/modprobe.d/.
+WARNING: Error inserting altera_ci 
+(/lib/modules/3.0.4/kernel/drivers/media/video/cx23885/altera-ci.ko): 
+Invalid module format
+WARNING: Error inserting media 
+(/lib/modules/3.0.4/kernel/drivers/media/media.ko): Invalid module format
+WARNING: Error inserting videodev 
+(/lib/modules/3.0.4/kernel/drivers/media/video/videodev.ko): Invalid 
+module format
+WARNING: Error inserting v4l2_common 
+(/lib/modules/3.0.4/kernel/drivers/media/video/v4l2-common.ko): Invalid 
+module format
+WARNING: Error inserting videobuf_core 
+(/lib/modules/3.0.4/kernel/drivers/media/video/videobuf-core.ko): 
+Invalid module format
+WARNING: Error inserting videobuf_dvb 
+(/lib/modules/3.0.4/kernel/drivers/media/video/videobuf-dvb.ko): Invalid 
+module format
+WARNING: Error inserting videobuf_dma_sg 
+(/lib/modules/3.0.4/kernel/drivers/media/video/videobuf-dma-sg.ko): 
+Invalid module format
+WARNING: Error inserting cx2341x 
+(/lib/modules/3.0.4/kernel/drivers/media/video/cx2341x.ko): Invalid 
+module format
+WARNING: Error inserting altera_stapl 
+(/lib/modules/3.0.4/kernel/drivers/linux/drivers/misc/altera-stapl/altera-stapl.ko): 
+Invalid module format
+WARNING: Error inserting rc_core 
+(/lib/modules/3.0.4/kernel/drivers/media/rc/rc-core.ko): Invalid module 
+format
+FATAL: Error inserting cx23885 
+(/lib/modules/3.0.4/kernel/drivers/media/video/cx23885/cx23885.ko): 
+Invalid module format
+
