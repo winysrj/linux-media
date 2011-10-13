@@ -1,30 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:40887 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751262Ab1JLIcs (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:62282 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756320Ab1JMP6C convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Oct 2011 04:32:48 -0400
-Date: Wed, 12 Oct 2011 11:29:51 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>,
-	"Leonid V. Fedorenchik" <leonidsbox@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, devel@driverdev.osuosl.org,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] Staging: cx25821: off by on in cx25821_vidioc_s_input()
-Message-ID: <20111012082951.GF18470@longonot.mountain>
-References: <20111007132643.GB31424@elgon.mountain>
- <4E94AE2D.4050408@redhat.com>
- <20111012081412.GE18470@longonot.mountain>
+	Thu, 13 Oct 2011 11:58:02 -0400
+Received: by bkbzt4 with SMTP id zt4so1632179bkb.19
+        for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 08:58:00 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20111012081412.GE18470@longonot.mountain>
+In-Reply-To: <CAGa-wNOL_1ua0DQFRPFuLtHO0zTFhE0DaM+b6kujMEEL4dQbKg@mail.gmail.com>
+References: <CAGa-wNOL_1ua0DQFRPFuLtHO0zTFhE0DaM+b6kujMEEL4dQbKg@mail.gmail.com>
+Date: Thu, 13 Oct 2011 11:57:59 -0400
+Message-ID: <CAGoCfizwYRpSsqobaHWJd5d0wq1N0KSXEQ1Un_ue01KuYGHaWA@mail.gmail.com>
+Subject: Re: PCTV 520e on Linux
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Claus Olesen <ceolesen@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Never mind.  I figured out what you meant.  I've fixed my patch and
-I will send v2 this evening.
+On Thu, Oct 13, 2011 at 10:49 AM, Claus Olesen <ceolesen@gmail.com> wrote:
+> I'm looking for a USB stick for DVB-C on Linux,
+> have good experience with the PCTV nanoStick T2 290e for DVB-T on
+> Linux (except for the replug issue)
 
-regards,
-dan carpenter
+I believe the replug issue is probably fixed if you're using the
+current media_build tree.
+
+> http://www.pctvsystems.com/Products/ProductsEuropeAsia/Digitalproducts/PCTVnanoStickT2/tabid/248/language/en-GB/Default.aspx
+> and wonder if anyone know the status of support, if any, of the PCTV
+> QuatroStick nano 520e for DVB-C on Linux?
+> http://www.pctvsystems.com/Products/ProductsEuropeAsia/Hybridproducts/PCTVQuatroSticknano/tabid/254/language/en-GB/Default.aspx
+
+No support currently.  I have the stick, but haven't had any time to work on it.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
