@@ -1,46 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nexicom.net ([216.168.96.13]:47855 "EHLO smtp.nexicom.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:57625 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751185Ab1JZTcR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Oct 2011 15:32:17 -0400
-Received: from mail.lockie.ca (dyn-dsl-mb-216-168-118-207.nexicom.net [216.168.118.207])
-	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id p9QJQQOQ019669
-	for <linux-media@vger.kernel.org>; Wed, 26 Oct 2011 15:26:26 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by mail.lockie.ca (Postfix) with ESMTP id 72E0E1E01A6
-	for <linux-media@vger.kernel.org>; Wed, 26 Oct 2011 15:26:25 -0400 (EDT)
-Message-ID: <4EA85EE1.7080807@lockie.ca>
-Date: Wed, 26 Oct 2011 15:26:25 -0400
-From: James <rjl@lockie.ca>
+	id S1756422Ab1JMQHL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Oct 2011 12:07:11 -0400
+Message-ID: <4E970CA7.8020807@iki.fi>
+Date: Thu, 13 Oct 2011 19:07:03 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-media Mailing List <linux-media@vger.kernel.org>
-Subject: cx23885[0]: videobuf_dvb_register_frontend failed (errno = -12)
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Claus Olesen <ceolesen@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: PCTV 520e on Linux
+References: <CAGa-wNOL_1ua0DQFRPFuLtHO0zTFhE0DaM+b6kujMEEL4dQbKg@mail.gmail.com> <CAGoCfizwYRpSsqobaHWJd5d0wq1N0KSXEQ1Un_ue01KuYGHaWA@mail.gmail.com>
+In-Reply-To: <CAGoCfizwYRpSsqobaHWJd5d0wq1N0KSXEQ1Un_ue01KuYGHaWA@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-*I compiled kernel-3.1 and now my tuner card fails:
+On 10/13/2011 06:57 PM, Devin Heitmueller wrote:
+>> and wonder if anyone know the status of support, if any, of the PCTV
+>> QuatroStick nano 520e for DVB-C on Linux?
+>> http://www.pctvsystems.com/Products/ProductsEuropeAsia/Hybridproducts/PCTVQuatroSticknano/tabid/254/language/en-GB/Default.aspx
+>
+> No support currently.  I have the stick, but haven't had any time to work on it.
 
-> $ dmesg | grep cx
-> cx23885 driver version 0.0.3 loaded
-> cx23885 0000:03:00.0: PCI INT A -> Link[LNEA] -> GSI 16 (level, low) 
-> -> IRQ 16
-> CORE cx23885[0]: subsystem: 0070:7911, board: Hauppauge WinTV-HVR1250 
-> [card=3,autodetected]
-> cx23885[0]: hauppauge eeprom: model=79571
-> cx23885_dvb_register() allocating 1 frontend(s)
-> cx23885[0]: cx23885 based dvb card
-> DVB: registering new adapter (cx23885[0])
-> cx23885[0]: videobuf_dvb_register_frontend failed (errno = -12)
-> cx23885_dvb_register() dvb_register failed err = -22
-> cx23885_dev_setup() Failed to register dvb on VID_C
-> cx23885_dev_checkrevision() Hardware revision = 0xb0
-> cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 16, latency: 0, 
-> mmio: 0xf9e00000
-> cx23885 0000:03:00.0: setting latency timer to 64
+Is that EM28xx + DRX-K + TDA18217 ? And analog parts...
 
-**cx23885[0]: videobuf_dvb_register_frontend failed (errno = -12)
-**Where can I look up what errno  -12 is?
+regards
+Antti
 
-*
+-- 
+http://palosaari.fi/
