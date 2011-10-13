@@ -1,74 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oproxy3-pub.bluehost.com ([69.89.21.8]:59164 "HELO
-	oproxy3-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755693Ab1J3QnO (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:39454 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755499Ab1JMRsQ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Oct 2011 12:43:14 -0400
-Message-ID: <4EAD7E9F.6050709@xenotime.net>
-Date: Sun, 30 Oct 2011 09:43:11 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
+	Thu, 13 Oct 2011 13:48:16 -0400
+Received: by bkbzt4 with SMTP id zt4so1758079bkb.19
+        for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 10:48:14 -0700 (PDT)
 MIME-Version: 1.0
-To: Paul Bolle <pebolle@tiscali.nl>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [RESEND] media: tea5764: reconcile Kconfig symbol and
- macro
-References: <1319976530.14409.17.camel@x61.thuisdomein>
-In-Reply-To: <1319976530.14409.17.camel@x61.thuisdomein>
+In-Reply-To: <4E970F7A.5010304@iki.fi>
+References: <CAGa-wNOL_1ua0DQFRPFuLtHO0zTFhE0DaM+b6kujMEEL4dQbKg@mail.gmail.com>
+	<CAGoCfizwYRpSsqobaHWJd5d0wq1N0KSXEQ1Un_ue01KuYGHaWA@mail.gmail.com>
+	<4E970CA7.8020807@iki.fi>
+	<CAGoCfiwSJ7EGXxAw7UgbFeECh+dg1EueXEC9iCHu7TaXia=-mQ@mail.gmail.com>
+	<4E970F7A.5010304@iki.fi>
+Date: Thu, 13 Oct 2011 13:48:14 -0400
+Message-ID: <CAGoCfiyXiANjoB5bXgBpjwOAk8kpz8guxTGuGtVbtgc6+DNAag@mail.gmail.com>
+Subject: Re: PCTV 520e on Linux
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Claus Olesen <ceolesen@gmail.com>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/30/11 05:08, Paul Bolle wrote:
-> The Kconfig symbol RADIO_TEA5764_XTAL is unused. The code does use a
-> RADIO_TEA5764_XTAL macro, but does that rather peculiar. But there seems
-> to be a way to keep both. (The easiest way out would be to rip out both
-> the Kconfig symbol and the macro.)
-> 
-> Note there's also a module parameter 'use_xtal' to influence all this.
+On Thu, Oct 13, 2011 at 12:19 PM, Antti Palosaari <crope@iki.fi> wrote:
+>> You were close:  em2884, drx-k, xc5000, and for analog it uses the
+>> afv4910b.
+>
+> Then it should be peace of cake at least for digital side.
 
-It's curious that the module parameter is only available when the driver
-is builtin (=y) but not built as a loadable module (=m):
+I don't think we've ever done xc5000 on an em28xx before, so it's
+entirely possible that the xc5000 clock stretching will expose bugs in
+the em28xx i2c implementation (it uncovered bugs in essentially every
+other bridge driver I did work on).
 
-config RADIO_TEA5764_XTAL
-	bool "TEA5764 crystal reference"
-	depends on RADIO_TEA5764=y
-	default y
+That, and we don't know how much is hard-coded into the drx-k driver
+making it specific to the couple of device it's currently being used
+with.
 
-> 
-> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-> ---
-> I didn't dare to submit this a trivial patch. This is still untested. By
-> the way, is xtal a common abbreviation of crystal?
+But yeah, it shouldn't be rocket science.  I added support for the
+board in my OSX driver and it only took me a couple of hours.
 
-Yes, it is.
-
-Acked-by: Randy Dunlap <rdunlap@xenotime.net>
-
-Thanks.
-
->  drivers/media/radio/radio-tea5764.c |    4 +++-
->  1 files changed, 3 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/radio/radio-tea5764.c b/drivers/media/radio/radio-tea5764.c
-> index 95ddcc4..db20904 100644
-> --- a/drivers/media/radio/radio-tea5764.c
-> +++ b/drivers/media/radio/radio-tea5764.c
-> @@ -128,8 +128,10 @@ struct tea5764_write_regs {
->  	u16 rdsbbl;				/* PAUSEDET & RDSBBL */
->  } __attribute__ ((packed));
->  
-> -#ifndef RADIO_TEA5764_XTAL
-> +#ifdef CONFIG_RADIO_TEA5764_XTAL
->  #define RADIO_TEA5764_XTAL 1
-> +#else
-> +#define RADIO_TEA5764_XTAL 0
->  #endif
->  
->  static int radio_nr = -1;
-
+Devin
 
 -- 
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
