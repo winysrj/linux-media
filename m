@@ -1,48 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rsk6.de ([85.214.108.125]:52874 "EHLO mail.rsk6.de"
+Received: from dell.nexicom.net ([216.168.96.13]:35982 "EHLO smtp.nexicom.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753147Ab1JVPdu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Oct 2011 11:33:50 -0400
-Received: from [192.168.79.38] (ppp-93-104-183-78.dynamic.mnet-online.de [93.104.183.78])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail.rsk6.de (Postfix) with ESMTPSA id 0C90D11240FD
-	for <linux-media@vger.kernel.org>; Sat, 22 Oct 2011 17:25:42 +0200 (CEST)
-Message-ID: <1319297142.7468.9.camel@krypton>
-Subject: In search of a capture card or DVI with compression
-From: Fabian Sturm <f@rtfs.org>
-To: linux-media@vger.kernel.org
-Date: Sat, 22 Oct 2011 17:25:42 +0200
-Content-Type: text/plain; charset="UTF-8"
+	id S1753417Ab1JMSF1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Oct 2011 14:05:27 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-118-207.nexicom.net [216.168.118.207])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id p9DI5NQi014635
+	for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 14:05:24 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by mail.lockie.ca (Postfix) with ESMTP id E93931E015A
+	for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 14:05:22 -0400 (EDT)
+Message-ID: <4E972862.4060309@lockie.ca>
+Date: Thu, 13 Oct 2011 14:05:22 -0400
+From: James <bjlockie@lockie.ca>
+MIME-Version: 1.0
+To: linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: /bin/lsmod
+References: <4E967E5B.3050504@lockie.ca> <CAGoCfiyViRDt690TWtiWdnfP5C-az2aeOK=TGhgP4kwT1QJfqQ@mail.gmail.com> <4E971255.8080203@lockie.ca> <CAGoCfix6dESpBe_=yX38q-q7JGYUcp2UkVi+4kM7dHL=cmW0bg@mail.gmail.com>
+In-Reply-To: <CAGoCfix6dESpBe_=yX38q-q7JGYUcp2UkVi+4kM7dHL=cmW0bg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-I searched the web for quite some time for a good video capture card but
-did not find something for linux. 
-
-What I want to do is to capture the output of 4 pcs from a single
-server. Therefore I am looking for capture card that can capture more
-then one stream, but in the worst case I would buy 4 cards.
-Unfortunately the DVI signal I want to cature is only digital DVI so
-can't use cheap analog capture cards.
-
-Here my wishlist of features:
-
-- capturing of one or more digital DVI streams with a single card
-- encoding/compression of the video on the capture card 
-  (so I don't need a very fast computer)
-- a very low framerate of 5 to 10 frames per second
-- resolution around 1024x768
-- full Linux support, of course
-
-Any idea if something like this exists? Or how I could realise such a
-setup?
-
-Thanks a lot, Fabian
-
+On 10/13/11 13:52, Devin Heitmueller wrote:
+> I did:
+> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+> /bin/sh: /sbin/lsmod: No such file or directory
+>
+> lsmod is required.  Go install whatever package provides it.
+I have it, Gentoo puts it at /bin/lsmod
 
 
