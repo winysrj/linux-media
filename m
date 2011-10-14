@@ -1,59 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from queueout04-winn.ispmail.ntl.com ([81.103.221.58]:50023 "EHLO
-	queueout04-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932688Ab1JZO20 (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:38114 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751367Ab1JNXTz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Oct 2011 10:28:26 -0400
-From: Daniel Drake <dsd@laptop.org>
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org
-Cc: corbet@lwn.net
-Subject: [PATCH] via-camera: disable RGB mode
-Message-Id: <20111026131650.97F529D401E@zog.reactivated.net>
-Date: Wed, 26 Oct 2011 14:16:50 +0100 (BST)
+	Fri, 14 Oct 2011 19:19:55 -0400
+Date: Fri, 14 Oct 2011 16:19:51 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Paul McKenney <paul.mckenney@linaro.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Johannes Weiner <jweiner@redhat.com>
+Subject: Re: [PATCHv16 0/9] Contiguous Memory Allocator
+Message-Id: <20111014161951.5b4bb327.akpm@linux-foundation.org>
+In-Reply-To: <201110111552.04615.arnd@arndb.de>
+References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
+	<201110071827.06366.arnd@arndb.de>
+	<20111010155642.38df59af.akpm@linux-foundation.org>
+	<201110111552.04615.arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The RGB mode does not work correctly. It captures fine at 640x480
-but whenever the scaling engine is used to produce another resolution,
-color corruption occurs (lots of erroneous pink and green).
+On Tue, 11 Oct 2011 15:52:04 +0200
+Arnd Bergmann <arnd@arndb.de> wrote:
 
-It is not clear how the scaling engine is supposed to work and how
-it knows which pixel format it is dealing with. Work around this
-problem by disabling RGB support. YUYV scaling works just fine.
+> On Tuesday 11 October 2011, Andrew Morton wrote:
+> > Russell's going to hate me, but...
+> > 
+> > I do know that he had substantial objections to at least earlier
+> > versions of this, and he is a guy who knows of what he speaks.
+> > 
+> > So I would want to get a nod from rmk on this work before proceeding. 
+> > If that nod isn't available then let's please identify the issues and
+> > see what we can do about them.
+> 
+> I'm pretty sure that Russell's concerns were almost entirely about the
+> ARM specific parts, which were extremely hard to figure out. The
+> most important technical concern back in July was that the patch
+> series at the time did not address the problem of conflicting pte
+> flags when we remap memory as uncached on ARMv6. He had a patch
+> to address this problem that was supposed to get merged in 3.1
+> and would have conflicted with the CMA patch set.
+> 
+> Things have changed a lot since then. Russell had to revert his
+> own patch because he found regressions using it on older machines.
+> However, the current CMA on ARM patch AFAICT reliably fixes this
+> problem now and does not cause the same regression on older machines.
+> The solution used now is the one we agreed on after sitting together
+> for a few hours with Russell, Marek, Paul McKenney and myself.
+> 
+> If there are still concerns over the ARM specific portion of
+> the patch series, I'm very confident that we can resolve these
+> now (I was much less so before that meeting).
+> 
+> What I would really want to hear from you is your opinion on
+> the architecture independent stuff. Obviously, ARM is the
+> most important consumer of the patch set, but I think the
+> code has its merit on other architectures as well and most of
+> them (maybe not parisc) should be about as simple as the x86
+> one that Marek posted now with v16.
 
-Test case:
+Having an x86 implementation is good.  It would also be good to get
+some x86 drivers using CMA asap, so the thing gets some runtime testing
+from the masses.  Can we think of anything we can do here?
 
-	gst-launch v4l2src ! video/x-raw-rgb,bpp=16,width=320,height=240 ! \
-	ffmpegcolorspace ! xvimagesink
-
-Signed-off-by: Daniel Drake <dsd@laptop.org>
----
- drivers/media/video/via-camera.c |   10 +++-------
- 1 files changed, 3 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/media/video/via-camera.c b/drivers/media/video/via-camera.c
-index bb7f17f..e64b571 100644
---- a/drivers/media/video/via-camera.c
-+++ b/drivers/media/video/via-camera.c
-@@ -156,14 +156,10 @@ static struct via_format {
- 		.mbus_code	= V4L2_MBUS_FMT_YUYV8_2X8,
- 		.bpp		= 2,
- 	},
--	{
--		.desc		= "RGB 565",
--		.pixelformat	= V4L2_PIX_FMT_RGB565,
--		.mbus_code	= V4L2_MBUS_FMT_RGB565_2X8_LE,
--		.bpp		= 2,
--	},
- 	/* RGB444 and Bayer should be doable, but have never been
--	   tested with this driver. */
-+	   tested with this driver. RGB565 seems to work at the default
-+	   resolution, but results in color corruption when being scaled by
-+	   viacam_set_scaled(), and is disabled as a result. */
- };
- #define N_VIA_FMTS ARRAY_SIZE(via_formats)
- 
--- 
-1.7.6.4
+Regarding the core MM changes: Mel's the man for migration and
+compaction.  I wouldn't want to proceed until he (and perferably
+Johannes) have spent some quality time with the code.  I'm not seeing
+their reviewed-by's of acked-by's and I don't have a good recollection
+of their involvement?
 
