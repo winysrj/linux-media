@@ -1,148 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:51453 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752701Ab1JUDdZ (ORCPT
+Received: from smtpo01.poczta.onet.pl ([213.180.142.132]:57183 "EHLO
+	smtpo01.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752439Ab1JNMnF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Oct 2011 23:33:25 -0400
-Received: by eye27 with SMTP id 27so3467822eye.19
-        for <linux-media@vger.kernel.org>; Thu, 20 Oct 2011 20:33:24 -0700 (PDT)
+	Fri, 14 Oct 2011 08:43:05 -0400
+Message-ID: <4E982CE7.6030203@poczta.onet.pl>
+Date: Fri, 14 Oct 2011 14:36:55 +0200
+From: Piotr Chmura <chmooreck@poczta.onet.pl>
 MIME-Version: 1.0
-In-Reply-To: <CAOTqeXpJfk-ENgxhELo03LBHqdtf957knXQzOjYo0YO7sGcAbg@mail.gmail.com>
-References: <CAOTqeXouWiYaRkKKO-1iQ5SJEb7RUXJpHdfe9-YeSzwXxdUVfg@mail.gmail.com>
-	<CAGoCfiyCPD-W3xeqD4+AE3xCo-bj05VAy4aHXMNXP7P124ospQ@mail.gmail.com>
-	<20111020162340.GC7530@jannau.net>
-	<CAGoCfiwXjQsAEVfFiNA5CNw1PVuO0npO63pGb91rpbPuKGvwZQ@mail.gmail.com>
-	<20111020170811.GD7530@jannau.net>
-	<CAGoCfiz38bdpnz0dLfs2p4PjLR1dDm_5d_y34ACpNd6W62G7-w@mail.gmail.com>
-	<CAOTqeXpJfk-ENgxhELo03LBHqdtf957knXQzOjYo0YO7sGcAbg@mail.gmail.com>
-Date: Thu, 20 Oct 2011 23:33:23 -0400
-Message-ID: <CAOTqeXpY3uvy7Dq3fi1wTD5nRx1r1LMo7=XEfJdxyURY2opKuw@mail.gmail.com>
-Subject: Re: [PATCH] [media] hdpvr: update picture controls to support
- firmware versions > 0.15
-From: Taylor Ralph <taylor.ralph@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Janne Grunau <j@jannau.net>, linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=001517475eb647ae9d04afc6bc1c
+To: Hans Petter Selasky <hselasky@c2i.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] dvb/as102 nBox DVB-T dongle
+References: <4E273AB5.7090405@poczta.onet.pl> <201110140927.23067.hselasky@c2i.net>
+In-Reply-To: <201110140927.23067.hselasky@c2i.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---001517475eb647ae9d04afc6bc1c
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Thu, Oct 20, 2011 at 3:26 PM, Taylor Ralph <taylor.ralph@gmail.com> wrot=
-e:
-> On Thu, Oct 20, 2011 at 2:14 PM, Devin Heitmueller
-> <dheitmueller@kernellabs.com> wrote:
->> On Thu, Oct 20, 2011 at 1:08 PM, Janne Grunau <j@jannau.net> wrote:
->>> I think such scenario is unlikely but I don't know it for sure and
->>> I don't want to force anyone to test every firmware version.
->>> Ignoring them for firmware version < 16 should be safe since we assume
->>> they had no effect. Returning -EINVAL might break API-ignoring
->>> applications written with the HD PVR in mind but I think it's a better
->>> approach than silently ignoring those controls.
->>
->> At this point, let's just make it so that the old behavior is
->> unchanged for old firmwares, meaning from both an API standpoint as
->> well as what the values are. =A0At some point if somebody cares enough
->> to go back and fix the support so that the controls actually work with
->> old firmwares, they can take that up as a separate task. =A0In reality,
->> it is likely that nobody will ever do that, as the "easy answer" is
->> just to upgrade to firmware 16.
->>
->> Taylor, could you please tweak your patch to that effect and resubmit?
->>
+There's  licencing problem with as10x_cmd_cfg.c and as10x_cmd_stream.c 
+files which are not GPL ( (c) Copyright Abilis Systems SARL 2005-2009 
+All rigths reserved \n
+    www.abilis.com).
+
+Dunno if it's only Davin's Heitmueller oversight in changing licencing 
+or a real problem.
+What about it Davin ?
+
+
+Peter
+
+
+W dniu 14.10.2011 09:27, Hans Petter Selasky pisze:
+> Hi,
 >
-> Sure, I'll try to get to it tonight and have it tested.
+> Could someone pull the AS102 driver into the media tree?
 >
-
-OK, I've updated the patch per your requests. I made this patch
-against the latest kernel source but I'm unable to test since my
-2.6.32 kernel has symbol issues with the new v4l code.
-
-Regards.
---
-Taylor
-
---001517475eb647ae9d04afc6bc1c
-Content-Type: text/x-patch; charset=US-ASCII; name="hdpvr_v2.diff"
-Content-Disposition: attachment; filename="hdpvr_v2.diff"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gu0mjcxi0
-
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vaGRwdnIvaGRwdnItY29yZS5jIGIvZHJp
-dmVycy9tZWRpYS92aWRlby9oZHB2ci9oZHB2ci1jb3JlLmMKaW5kZXggNDQxZGFjZi4uNjg3Mjgy
-ZCAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9oZHB2ci9oZHB2ci1jb3JlLmMKKysr
-IGIvZHJpdmVycy9tZWRpYS92aWRlby9oZHB2ci9oZHB2ci1jb3JlLmMKQEAgLTE1NCwxMCArMTU0
-LDIwIEBAIHN0YXRpYyBpbnQgZGV2aWNlX2F1dGhvcml6YXRpb24oc3RydWN0IGhkcHZyX2Rldmlj
-ZSAqZGV2KQogCX0KICNlbmRpZgogCisJZGV2LT5md192ZXIgPSBkZXYtPnVzYmNfYnVmWzFdOwor
-CiAJdjRsMl9pbmZvKCZkZXYtPnY0bDJfZGV2LCAiZmlybXdhcmUgdmVyc2lvbiAweCV4IGRhdGVk
-ICVzXG4iLAotCQkJICBkZXYtPnVzYmNfYnVmWzFdLCAmZGV2LT51c2JjX2J1ZlsyXSk7CisJCQkg
-IGRldi0+ZndfdmVyLCAmZGV2LT51c2JjX2J1ZlsyXSk7CisKKwlpZiAoZGV2LT5md192ZXIgPiAw
-eDE1KSB7CisJCWRldi0+b3B0aW9ucy5icmlnaHRuZXNzCT0gMHg4MDsKKwkJZGV2LT5vcHRpb25z
-LmNvbnRyYXN0CT0gMHg0MDsKKwkJZGV2LT5vcHRpb25zLmh1ZQk9IDB4ZjsKKwkJZGV2LT5vcHRp
-b25zLnNhdHVyYXRpb24JPSAweDQwOworCQlkZXYtPm9wdGlvbnMuc2hhcnBuZXNzCT0gMHg4MDsK
-Kwl9CiAKLQlzd2l0Y2ggKGRldi0+dXNiY19idWZbMV0pIHsKKwlzd2l0Y2ggKGRldi0+ZndfdmVy
-KSB7CiAJY2FzZSBIRFBWUl9GSVJNV0FSRV9WRVJTSU9OOgogCQlkZXYtPmZsYWdzICY9IH5IRFBW
-Ul9GTEFHX0FDM19DQVA7CiAJCWJyZWFrOwpAQCAtMTY5LDcgKzE3OSw3IEBAIHN0YXRpYyBpbnQg
-ZGV2aWNlX2F1dGhvcml6YXRpb24oc3RydWN0IGhkcHZyX2RldmljZSAqZGV2KQogCWRlZmF1bHQ6
-CiAJCXY0bDJfaW5mbygmZGV2LT52NGwyX2RldiwgInVudGVzdGVkIGZpcm13YXJlLCB0aGUgZHJp
-dmVyIG1pZ2h0IgogCQkJICAiIG5vdCB3b3JrLlxuIik7Ci0JCWlmIChkZXYtPnVzYmNfYnVmWzFd
-ID49IEhEUFZSX0ZJUk1XQVJFX1ZFUlNJT05fQUMzKQorCQlpZiAoZGV2LT5md192ZXIgPj0gSERQ
-VlJfRklSTVdBUkVfVkVSU0lPTl9BQzMpCiAJCQlkZXYtPmZsYWdzIHw9IEhEUFZSX0ZMQUdfQUMz
-X0NBUDsKIAkJZWxzZQogCQkJZGV2LT5mbGFncyAmPSB+SERQVlJfRkxBR19BQzNfQ0FQOwpAQCAt
-MjcwLDYgKzI4MCw4IEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgaGRwdnJfb3B0aW9ucyBoZHB2cl9k
-ZWZhdWx0X29wdGlvbnMgPSB7CiAJLmJpdHJhdGVfbW9kZQk9IEhEUFZSX0NPTlNUQU5ULAogCS5n
-b3BfbW9kZQk9IEhEUFZSX1NJTVBMRV9JRFJfR09QLAogCS5hdWRpb19jb2RlYwk9IFY0TDJfTVBF
-R19BVURJT19FTkNPRElOR19BQUMsCisJLyogb3JpZ2luYWwgcGljdHVyZSBjb250cm9scyBmb3Ig
-ZmlybXdhcmUgdmVyc2lvbiA8PSAweDE1ICovCisJLyogdXBkYXRlZCBpbiBkZXZpY2VfYXV0aG9y
-aXphdGlvbigpIGZvciBuZXdlciBmaXJtd2FyZSAqLwogCS5icmlnaHRuZXNzCT0gMHg4NiwKIAku
-Y29udHJhc3QJPSAweDgwLAogCS5odWUJCT0gMHg4MCwKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVk
-aWEvdmlkZW8vaGRwdnIvaGRwdnItdmlkZW8uYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vaGRwdnIv
-aGRwdnItdmlkZW8uYwppbmRleCAwODdmN2MwLi4zNmJiMDU3IDEwMDY0NAotLS0gYS9kcml2ZXJz
-L21lZGlhL3ZpZGVvL2hkcHZyL2hkcHZyLXZpZGVvLmMKKysrIGIvZHJpdmVycy9tZWRpYS92aWRl
-by9oZHB2ci9oZHB2ci12aWRlby5jCkBAIC03MjIsMjEgKzcyMiwzOSBAQCBzdGF0aWMgY29uc3Qg
-czMyIHN1cHBvcnRlZF92NGwyX2N0cmxzW10gPSB7CiB9OwogCiBzdGF0aWMgaW50IGZpbGxfcXVl
-cnljdHJsKHN0cnVjdCBoZHB2cl9vcHRpb25zICpvcHQsIHN0cnVjdCB2NGwyX3F1ZXJ5Y3RybCAq
-cWMsCi0JCQkgIGludCBhYzMpCisJCQkgIGludCBhYzMsIGludCBmd192ZXIpCiB7CiAJaW50IGVy
-cjsKIAorCWlmIChmd192ZXIgPiAweDE1KSB7CisJCXN3aXRjaCAocWMtPmlkKSB7CisJCWNhc2Ug
-VjRMMl9DSURfQlJJR0hUTkVTUzoKKwkJCXJldHVybiB2NGwyX2N0cmxfcXVlcnlfZmlsbChxYywg
-MHgwLCAweGZmLCAxLCAweDgwKTsKKwkJY2FzZSBWNEwyX0NJRF9DT05UUkFTVDoKKwkJCXJldHVy
-biB2NGwyX2N0cmxfcXVlcnlfZmlsbChxYywgMHgwLCAweGZmLCAxLCAweDQwKTsKKwkJY2FzZSBW
-NEwyX0NJRF9TQVRVUkFUSU9OOgorCQkJcmV0dXJuIHY0bDJfY3RybF9xdWVyeV9maWxsKHFjLCAw
-eDAsIDB4ZmYsIDEsIDB4NDApOworCQljYXNlIFY0TDJfQ0lEX0hVRToKKwkJCXJldHVybiB2NGwy
-X2N0cmxfcXVlcnlfZmlsbChxYywgMHgwLCAweDFlLCAxLCAweGYpOworCQljYXNlIFY0TDJfQ0lE
-X1NIQVJQTkVTUzoKKwkJCXJldHVybiB2NGwyX2N0cmxfcXVlcnlfZmlsbChxYywgMHgwLCAweGZm
-LCAxLCAweDgwKTsKKwkJfQorCX0gZWxzZSB7CisJCXN3aXRjaCAocWMtPmlkKSB7CisJCWNhc2Ug
-VjRMMl9DSURfQlJJR0hUTkVTUzoKKwkJCXJldHVybiB2NGwyX2N0cmxfcXVlcnlfZmlsbChxYywg
-MHgwLCAweGZmLCAxLCAweDg2KTsKKwkJY2FzZSBWNEwyX0NJRF9DT05UUkFTVDoKKwkJCXJldHVy
-biB2NGwyX2N0cmxfcXVlcnlfZmlsbChxYywgMHgwLCAweGZmLCAxLCAweDgwKTsKKwkJY2FzZSBW
-NEwyX0NJRF9TQVRVUkFUSU9OOgorCQkJcmV0dXJuIHY0bDJfY3RybF9xdWVyeV9maWxsKHFjLCAw
-eDAsIDB4ZmYsIDEsIDB4ODApOworCQljYXNlIFY0TDJfQ0lEX0hVRToKKwkJCXJldHVybiB2NGwy
-X2N0cmxfcXVlcnlfZmlsbChxYywgMHgwLCAweGZmLCAxLCAweDgwKTsKKwkJY2FzZSBWNEwyX0NJ
-RF9TSEFSUE5FU1M6CisJCQlyZXR1cm4gdjRsMl9jdHJsX3F1ZXJ5X2ZpbGwocWMsIDB4MCwgMHhm
-ZiwgMSwgMHg4MCk7CisJCX0KKwl9CisKIAlzd2l0Y2ggKHFjLT5pZCkgewotCWNhc2UgVjRMMl9D
-SURfQlJJR0hUTkVTUzoKLQkJcmV0dXJuIHY0bDJfY3RybF9xdWVyeV9maWxsKHFjLCAweDAsIDB4
-ZmYsIDEsIDB4ODYpOwotCWNhc2UgVjRMMl9DSURfQ09OVFJBU1Q6Ci0JCXJldHVybiB2NGwyX2N0
-cmxfcXVlcnlfZmlsbChxYywgMHgwLCAweGZmLCAxLCAweDgwKTsKLQljYXNlIFY0TDJfQ0lEX1NB
-VFVSQVRJT046Ci0JCXJldHVybiB2NGwyX2N0cmxfcXVlcnlfZmlsbChxYywgMHgwLCAweGZmLCAx
-LCAweDgwKTsKLQljYXNlIFY0TDJfQ0lEX0hVRToKLQkJcmV0dXJuIHY0bDJfY3RybF9xdWVyeV9m
-aWxsKHFjLCAweDAsIDB4ZmYsIDEsIDB4ODApOwotCWNhc2UgVjRMMl9DSURfU0hBUlBORVNTOgot
-CQlyZXR1cm4gdjRsMl9jdHJsX3F1ZXJ5X2ZpbGwocWMsIDB4MCwgMHhmZiwgMSwgMHg4MCk7CiAJ
-Y2FzZSBWNEwyX0NJRF9NUEVHX0FVRElPX0VOQ09ESU5HOgogCQlyZXR1cm4gdjRsMl9jdHJsX3F1
-ZXJ5X2ZpbGwoCiAJCQlxYywgVjRMMl9NUEVHX0FVRElPX0VOQ09ESU5HX0FBQywKQEAgLTc5NCw3
-ICs4MTIsOCBAQCBzdGF0aWMgaW50IHZpZGlvY19xdWVyeWN0cmwoc3RydWN0IGZpbGUgKmZpbGUs
-IHZvaWQgKnByaXZhdGVfZGF0YSwKIAogCQlpZiAocWMtPmlkID09IHN1cHBvcnRlZF92NGwyX2N0
-cmxzW2ldKQogCQkJcmV0dXJuIGZpbGxfcXVlcnljdHJsKCZkZXYtPm9wdGlvbnMsIHFjLAotCQkJ
-CQkgICAgICBkZXYtPmZsYWdzICYgSERQVlJfRkxBR19BQzNfQ0FQKTsKKwkJCQkJICAgICAgZGV2
-LT5mbGFncyAmIEhEUFZSX0ZMQUdfQUMzX0NBUCwKKwkJCQkJICAgICAgZGV2LT5md192ZXIpOwog
-CiAJCWlmIChxYy0+aWQgPCBzdXBwb3J0ZWRfdjRsMl9jdHJsc1tpXSkKIAkJCWJyZWFrOwpkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9tZWRpYS92aWRlby9oZHB2ci9oZHB2ci5oIGIvZHJpdmVycy9tZWRp
-YS92aWRlby9oZHB2ci9oZHB2ci5oCmluZGV4IGQ2NDM5ZGIuLmZlYTNjNjkgMTAwNjQ0Ci0tLSBh
-L2RyaXZlcnMvbWVkaWEvdmlkZW8vaGRwdnIvaGRwdnIuaAorKysgYi9kcml2ZXJzL21lZGlhL3Zp
-ZGVvL2hkcHZyL2hkcHZyLmgKQEAgLTExMyw2ICsxMTMsNyBAQCBzdHJ1Y3QgaGRwdnJfZGV2aWNl
-IHsKIAkvKiB1c2IgY29udHJvbCB0cmFuc2ZlciBidWZmZXIgYW5kIGxvY2sgKi8KIAlzdHJ1Y3Qg
-bXV0ZXgJCXVzYmNfbXV0ZXg7CiAJdTgJCQkqdXNiY19idWY7CisJdTgJCQlmd192ZXI7CiB9Owog
-CiBzdGF0aWMgaW5saW5lIHN0cnVjdCBoZHB2cl9kZXZpY2UgKnRvX2hkcHZyX2RldihzdHJ1Y3Qg
-djRsMl9kZXZpY2UgKnY0bDJfZGV2KQo=
---001517475eb647ae9d04afc6bc1c--
+> http://git.linuxtv.org/media_tree.git/tree/HEAD:/drivers/media/dvb
+>
+> --HPS
+>
+>
+> On Wednesday 20 July 2011 22:29:41 Piotr Chmura wrote:
+>> I just bought DVB-T USB dongle for one of polish digital platform. It
+>> works fine with as102 driver.
+>> Here is patch adding vendor and product ID to as102 driver taken from
+>> http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102.
+>> I tested it with kernel-3.0-rc7-git7 (had to change usb_buffer_alloc()
+>> to usb_alloc_coherent and usb_buffer_free to usb_free_coherent() ).
+>>
+>> patch:
+>>
+>> diff -Nur linux/drivers/media/dvb/as102/as102_usb_drv.c
+>> linux-mine/drivers/media/dvb/as102/as102_usb_drv.c
+>> --- as102/as102_usb_drv.c    2011-07-20 21:37:33.924143297 +0200
+>> +++ /usr/src/linux/drivers/media/dvb/as102/as102_usb_drv.c    2011-07-20
+>> 20:40:21.000000000 +0200
+>> @@ -39,6 +39,7 @@
+>>    static struct usb_device_id as102_usb_id_table[] = {
+>>        { USB_DEVICE(AS102_USB_DEVICE_VENDOR_ID, AS102_USB_DEVICE_PID_0001)
+>> }, { USB_DEVICE(PCTV_74E_USB_VID, PCTV_74E_USB_PID) },
+>> +    { USB_DEVICE(NBOX_USB_VID, NBOX_USB_PID) },
+>>        { USB_DEVICE(ELGATO_EYETV_DTT_USB_VID, ELGATO_EYETV_DTT_USB_PID) },
+>>        { } /* Terminating entry */
+>>    };
+>> @@ -48,6 +49,7 @@
+>>    static const char *as102_device_names[] = {
+>>        AS102_REFERENCE_DESIGN,
+>>        AS102_PCTV_74E,
+>> +    AS102_NBOX,
+>>        AS102_ELGATO_EYETV_DTT_NAME,
+>>        NULL /* Terminating entry */
+>>    };
+>> diff -Nur linux/drivers/media/dvb/as102/as102_usb_drv.h
+>> linux-mine/drivers/media/dvb/as102/as102_usb_drv.h
+>> --- as102/as102_usb_drv.h    2011-07-20 21:37:33.925143297 +0200
+>> +++ /usr/src/linux/drivers/media/dvb/as102/as102_usb_drv.h    2011-07-20
+>> 20:39:46.000000000 +0200
+>> @@ -36,6 +36,11 @@
+>>    #define PCTV_74E_USB_VID        0x2013
+>>    #define PCTV_74E_USB_PID        0x0246
+>>
+>> +/* nBox DVB-T Stick */
+>> +#define AS102_NBOX            "nBox DVB-T Stick"
+>> +#define NBOX_USB_VID            0x0b89
+>> +#define NBOX_USB_PID            0x0007
+>> +
+>>    /* Elgato: EyeTV DTT Deluxe */
+>>    #define AS102_ELGATO_EYETV_DTT_NAME    "Elgato EyeTV DTT Deluxe"
+>>    #define ELGATO_EYETV_DTT_USB_VID    0x0fd9
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
