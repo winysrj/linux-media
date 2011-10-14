@@ -1,307 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:53856 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754743Ab1JRQEx (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:64126 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753581Ab1JNXfU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Oct 2011 12:04:53 -0400
-Message-ID: <4E9DA3A2.3050009@mlbassoc.com>
-Date: Tue, 18 Oct 2011 10:04:50 -0600
-From: Gary Thomas <gary@mlbassoc.com>
-MIME-Version: 1.0
-To: Boris Todorov <boris.st.todorov@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: omap3isp: BT.656 support
-References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com> <4E9D882F.5010608@mlbassoc.com> <CAFYgh7wKeOmQnvpbugZcFX-shKRN7oGmho_tyYLtcVOnPL8Peg@mail.gmail.com> <4E9D9209.3000907@mlbassoc.com> <CAFYgh7ybJYX0ec9avYrMf+cCWnp_AU3WivZkROCDLi-6p2WB_A@mail.gmail.com> <4E9D9A23.8060604@mlbassoc.com> <CAFYgh7x7LOw493Bvy3ETC9rq8DkDVnj5tL9mEZd4OF6RtNk8yA@mail.gmail.com>
-In-Reply-To: <CAFYgh7x7LOw493Bvy3ETC9rq8DkDVnj5tL9mEZd4OF6RtNk8yA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Fri, 14 Oct 2011 19:35:20 -0400
+Date: Fri, 14 Oct 2011 16:35:16 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Mel Gorman <mel@csn.ul.ie>
+Subject: Re: [PATCH 3/9] mm: alloc_contig_range() added
+Message-Id: <20111014163516.7d19a61a.akpm@linux-foundation.org>
+In-Reply-To: <1317909290-29832-4-git-send-email-m.szyprowski@samsung.com>
+References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
+	<1317909290-29832-4-git-send-email-m.szyprowski@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2011-10-18 09:53, Boris Todorov wrote:
-> On Tue, Oct 18, 2011 at 6:24 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
->> On 2011-10-18 09:10, Boris Todorov wrote:
->>>
->>> On Tue, Oct 18, 2011 at 5:49 PM, Gary Thomas<gary@mlbassoc.com>    wrote:
->>>>
->>>> On 2011-10-18 08:28, Boris Todorov wrote:
->>>>>
->>>>> I'm using different board.
->>>>
->>>> What board?  I would think the architecture of the OMAP3 ISP would
->>>> not change, based on the board?
->>>
->>> It's a custom board with omap3630. ISP is not changed.
->>> When I disable OMAP2_VOUT from defconfig "CCD output" is /dev/video2.
->>
->> I see, I have that option turned off.
->>
->>> But result is the same - yavta sleeps at VIDIOC_DQBUF ioctl
->>
->> How are you configuring the TVP5150?  In particular these settings at boot
->> time:
->>
->> static struct isp_v4l2_subdevs_group my_camera_subdevs[] = {
->>         {
->>                 .subdevs = tvp5150_camera_subdevs,
->>                 .interface = ISP_INTERFACE_PARALLEL,
->>                 .bus = {
->>                                 .parallel = {
->>                                         .data_lane_shift = 0,
->>                                         .clk_pol = 1,
->>                                         .bt656 = 1,
->>                                         .fldmode = 1,
->>                                 }
->>                 },
->>         },
->>         { },
->> };
+On Thu, 06 Oct 2011 15:54:43 +0200
+Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+
+> From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+> 
+> This commit adds the alloc_contig_range() function which tries
+> to allocate given range of pages.  It tries to migrate all
+> already allocated pages that fall in the range thus freeing them.
+> Once all pages in the range are freed they are removed from the
+> buddy system thus allocated for the caller to use.
+> 
+> Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> [m.szyprowski: renamed some variables for easier code reading]
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> CC: Michal Nazarewicz <mina86@mina86.com>
+> Acked-by: Arnd Bergmann <arnd@arndb.de>
+
+Where-is: Mel Gorman <mel@csn.ul.ie>
+
+> +#define MIGRATION_RETRY	5
+> +static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+> +{
+> +	int migration_failed = 0, ret;
+> +	unsigned long pfn = start;
+> +
+> +	/*
+> +	 * Some code "borrowed" from KAMEZAWA Hiroyuki's
+> +	 * __alloc_contig_pages().
+> +	 */
+> +
+> +	/* drop all pages in pagevec and pcp list */
+> +	lru_add_drain_all();
+> +	drain_all_pages();
+
+These operations are sometimes wrong ;) Have you confirmed that we
+really need to perform them here?  If so, a little comment explaining
+why we're using them here would be good.
+
+> +	for (;;) {
+> +		pfn = scan_lru_pages(pfn, end);
+> +		if (!pfn || pfn >= end)
+> +			break;
+> +
+> +		ret = do_migrate_range(pfn, end);
+> +		if (!ret) {
+> +			migration_failed = 0;
+> +		} else if (ret != -EBUSY
+> +			|| ++migration_failed >= MIGRATION_RETRY) {
+
+Sigh, magic numbers.
+
+Have you ever seen this retry loop actually expire in testing?
+
+migrate_pages() tries ten times.  This code tries five times.  Is there
+any science to all of this?
+
+> +			return ret;
+> +		} else {
+> +			/* There are unstable pages.on pagevec. */
+> +			lru_add_drain_all();
+> +			/*
+> +			 * there may be pages on pcplist before
+> +			 * we mark the range as ISOLATED.
+> +			 */
+> +			drain_all_pages();
+> +		}
+> +		cond_resched();
+> +	}
+> +
+> +	if (!migration_failed) {
+> +		/* drop all pages in pagevec and pcp list */
+> +		lru_add_drain_all();
+> +		drain_all_pages();
+
+hm.
+
+> +	}
+> +
+> +	/* Make sure all pages are isolated */
+> +	if (WARN_ON(test_pages_isolated(start, end)))
+> +		return -EBUSY;
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * alloc_contig_range() -- tries to allocate given range of pages
+> + * @start:	start PFN to allocate
+> + * @end:	one-past-the-last PFN to allocate
+> + * @flags:	flags passed to alloc_contig_freed_pages().
+> + *
+> + * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
+> + * aligned, hovewer it's callers responsibility to guarantee that we
+
+"however"
+
+"however it is the caller's responsibility.."
+
+> + * are the only thread that changes migrate type of pageblocks the
+> + * pages fall in.
+> + *
+> + * Returns zero on success or negative error code.  On success all
+> + * pages which PFN is in (start, end) are allocated for the caller and
+> + * need to be freed with free_contig_pages().
+> + */
 >
-> My settings are:
->   				.data_lane_shift        = 0,
-> 				.clk_pol                = 0,
-> 				.hs_pol                 = 0,
-> 				.vs_pol                 = 0,
-> 				.fldmode                = 1,
-> 				.bt656               = 1,
+> ...
 >
-> I tried yours but same result.
-> Why did you chose clk_pol=1?
 
-I just copied the settings from the BeagleBoard
-
-Have you had this working before (earlier kernel, etc)?
-
->
->>
->> This is how you tell the ISP to run in BT656 mode.  Without it, it will run
->> using the HS/VS/FID signals (and also in my experience does not work
->> properly)
->>
->>>>
->>>>> According "media-ctl -p":
->>>>>
->>>>> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
->>>>>              type V4L2 subdev subtype Unknown
->>>>>              device node name /dev/v4l-subdev2
->>>>>          pad0: Input [UYVY2X8 720x525]
->>>>>                  <- 'OMAP3 ISP CCP2':pad1 []
->>>>>                  <- 'OMAP3 ISP CSI2a':pad1 []
->>>>>                  <- 'tvp5150 3-005c':pad0 [ACTIVE]
->>>>>          pad1: Output [UYVY2X8 720x525]
->>>>>                  ->      'OMAP3 ISP CCDC output':pad0 [ACTIVE]
->>>>>                  ->      'OMAP3 ISP resizer':pad0 []
->>>>>          pad2: Output [UYVY2X8 720x524]
->>>>>                  ->      'OMAP3 ISP preview':pad0 []
->>>>>                  ->      'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
->>>>>                  ->      'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
->>>>>                  ->      'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
->>>>>
->>>>> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
->>>>>              type Node subtype V4L
->>>>>              device node name /dev/video4
->>>>>          pad0: Input
->>>>>                  <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
->>>>>
->>>>>
->>>>> Should be /dev/video4...
->>>>
->>>> Could you send your pipeline setup and full output of 'media-ctl -p'?
->>>
->>> Pipeline setup is:
->>>
->>> $ media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1],
->>> "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
->>> $ media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
->>> $ media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
->>> $ media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
->>>
->>> media-ctl output (with /dev/video4):
->>>
->>> $ media-ctl -p
->>> Opening media device /dev/media0
->>> Enumerating entities
->>> Found 16 entities
->>> Enumerating pads and links
->>> Device topology
->>> - entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
->>>              type V4L2 subdev subtype Unknown
->>>              device node name /dev/v4l-subdev0
->>>          pad0: Input [SGRBG10 4096x4096]
->>>                  <- 'OMAP3 ISP CCP2 input':pad0 []
->>>          pad1: Output [SGRBG10 4096x4096]
->>>                  ->    'OMAP3 ISP CCDC':pad0 []
->>>
->>> - entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
->>>              type Node subtype V4L
->>>              device node name /dev/video0
->>>          pad0: Output
->>>                  ->    'OMAP3 ISP CCP2':pad0 []
->>>
->>> - entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
->>>              type V4L2 subdev subtype Unknown
->>>              device node name /dev/v4l-subdev1
->>>          pad0: Input [SGRBG10 4096x4096]
->>>          pad1: Output [SGRBG10 4096x4096]
->>>                  ->    'OMAP3 ISP CSI2a output':pad0 []
->>>                  ->    'OMAP3 ISP CCDC':pad0 []
->>>
->>> - entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
->>>              type Node subtype V4L
->>>              device node name /dev/video3
->>>          pad0: Input
->>>                  <- 'OMAP3 ISP CSI2a':pad1 []
->>>
->>> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
->>>              type V4L2 subdev subtype Unknown
->>>              device node name /dev/v4l-subdev2
->>>          pad0: Input [UYVY2X8 720x525]
->>>                  <- 'OMAP3 ISP CCP2':pad1 []
->>>                  <- 'OMAP3 ISP CSI2a':pad1 []
->>>                  <- 'tvp5150 3-005c':pad0 [ACTIVE]
->>>          pad1: Output [UYVY2X8 720x525]
->>>                  ->    'OMAP3 ISP CCDC output':pad0 [ACTIVE]
->>>                  ->    'OMAP3 ISP resizer':pad0 []
->>>          pad2: Output [UYVY2X8 720x524]
->>>                  ->    'OMAP3 ISP preview':pad0 []
->>>                  ->    'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
->>>                  ->    'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
->>>                  ->    'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
->>>
->>> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
->>>              type Node subtype V4L
->>>              device node name /dev/video4
->>>          pad0: Input
->>>                  <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
->>>
->>> - entity 7: OMAP3 ISP preview (2 pads, 4 links)
->>>              type V4L2 subdev subtype Unknown
->>>              device node name /dev/v4l-subdev3
->>>          pad0: Input [SGRBG10 4096x4096]
->>>                  <- 'OMAP3 ISP CCDC':pad2 []
->>>                  <- 'OMAP3 ISP preview input':pad0 []
->>>          pad1: Output [YUYV 4082x4088]
->>>                  ->    'OMAP3 ISP preview output':pad0 []
->>>                  ->    'OMAP3 ISP resizer':pad0 []
->>>
->>> - entity 8: OMAP3 ISP preview input (1 pad, 1 link)
->>>              type Node subtype V4L
->>>              device node name /dev/video5
->>>          pad0: Output
->>>                  ->    'OMAP3 ISP preview':pad0 []
->>>
->>> - entity 9: OMAP3 ISP preview output (1 pad, 1 link)
->>>              type Node subtype V4L
->>>              device node name /dev/video6
->>>          pad0: Input
->>>                  <- 'OMAP3 ISP preview':pad1 []
->>>
->>> - entity 10: OMAP3 ISP resizer (2 pads, 4 links)
->>>               type V4L2 subdev subtype Unknown
->>>               device node name /dev/v4l-subdev4
->>>          pad0: Input [YUYV 4095x4095 (4,6)/4086x4082]
->>>                  <- 'OMAP3 ISP CCDC':pad1 []
->>>                  <- 'OMAP3 ISP preview':pad1 []
->>>                  <- 'OMAP3 ISP resizer input':pad0 []
->>>          pad1: Output [YUYV 4096x4095]
->>>                  ->    'OMAP3 ISP resizer output':pad0 []
->>>
->>> - entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
->>>               type Node subtype V4L
->>>               device node name /dev/video7
->>>          pad0: Output
->>>                  ->    'OMAP3 ISP resizer':pad0 []
->>>
->>> - entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
->>>               type Node subtype V4L
->>>               device node name /dev/video8
->>>          pad0: Input
->>>                  <- 'OMAP3 ISP resizer':pad1 []
->>>
->>> - entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
->>>               type V4L2 subdev subtype Unknown
->>>               device node name /dev/v4l-subdev5
->>>          pad0: Input
->>>                  <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
->>>
->>> - entity 14: OMAP3 ISP AF (1 pad, 1 link)
->>>               type V4L2 subdev subtype Unknown
->>>               device node name /dev/v4l-subdev6
->>>          pad0: Input
->>>                  <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
->>>
->>> - entity 15: OMAP3 ISP histogram (1 pad, 1 link)
->>>               type V4L2 subdev subtype Unknown
->>>               device node name /dev/v4l-subdev7
->>>          pad0: Input
->>>                  <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
->>>
->>> - entity 16: tvp5150 3-005c (1 pad, 1 link)
->>>               type V4L2 subdev subtype Unknown
->>>               device node name /dev/v4l-subdev8
->>>          pad0: Output [UYVY2X8 720x525]
->>>                  ->    'OMAP3 ISP CCDC':pad0 [ACTIVE]
->>>
->>>>
->>>>>
->>>>>
->>>>> On Tue, Oct 18, 2011 at 5:07 PM, Gary Thomas<gary@mlbassoc.com>
->>>>>   wrote:
->>>>>>
->>>>>> On 2011-10-18 07:33, Boris Todorov wrote:
->>>>>>>
->>>>>>> Hi
->>>>>>>
->>>>>>> I'm trying to run OMAP + TVP5151 in BT656 mode.
->>>>>>>
->>>>>>> I'm using omap3isp-omap3isp-yuv (git.linuxtv.org/pinchartl/media.git).
->>>>>>> Plus the following patches:
->>>>>>>
->>>>>>> TVP5151:
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> https://github.com/ebutera/meta-igep/tree/testing-v2/recipes-kernel/linux/linux-3.0+3.1rc/tvp5150
->>>>>>>
->>>>>>> The latest RFC patches for BT656 support:
->>>>>>>
->>>>>>> Enrico Butera (2):
->>>>>>>    omap3isp: ispvideo: export isp_video_mbus_to_pix
->>>>>>>    omap3isp: ispccdc: configure CCDC registers and add BT656 support
->>>>>>>
->>>>>>> Javier Martinez Canillas (1):
->>>>>>>    omap3isp: ccdc: Add interlaced field mode to platform data
->>>>>>>
->>>>>>>
->>>>>>> I'm able to configure with media-ctl:
->>>>>>>
->>>>>>> media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
->>>>>>> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
->>>>>>> media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
->>>>>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
->>>>>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
->>>>>>>
->>>>>>> But
->>>>>>> ./yavta -f UYVY -s 720x525 -n 4 --capture=4 -F /dev/video4
->>>>>>>
->>>>>>> sleeps after
->>>>>>> ...
->>>>>>> Buffer 1 mapped at address 0x4021d000.
->>>>>>> length: 756000 offset: 1515520
->>>>>>> Buffer 2 mapped at address 0x402d6000.
->>>>>>> length: 756000 offset: 2273280
->>>>>>> Buffer 3 mapped at address 0x4038f000.
->>>>>>>
->>>>>>> Anyone with the same issue??? This happens with every other v4l test
->>>>>>> app
->>>>>>> I
->>>>>>> used.
->>>>>>> I can see data from TVP5151 but there are no interrupts in ISP.
->>>>>>
->>>>>> Why are you using /dev/video4?  The CCDC output is on /dev/video2
-
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
