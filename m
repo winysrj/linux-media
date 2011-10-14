@@ -1,119 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:60067 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752531Ab1JGRB7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2011 13:01:59 -0400
-Message-ID: <4E8F3071.3010802@gmx.net>
-Date: Fri, 07 Oct 2011 19:01:37 +0200
-From: Lutz Sammer <johns98@gmx.net>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:49174 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751488Ab1JNXxg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Oct 2011 19:53:36 -0400
+Received: by ggnb1 with SMTP id b1so907770ggn.19
+        for <linux-media@vger.kernel.org>; Fri, 14 Oct 2011 16:53:35 -0700 (PDT)
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] stb0899: Fix slow and not locking DVB-S transponder(s)
-References: <4E84E010.5020602@gmx.net> <4E84E1A5.3040903@gmx.net> <4E85F769.3040201@redhat.com> <4E860D76.5040605@gmx.net> <4E861163.3000903@redhat.com> <CAHFNz9LGTnGsafhXDJuGDw=VEaOJuoFL+_DoV0vM9-_RuANtPg@mail.gmail.com>
-In-Reply-To: <CAHFNz9LGTnGsafhXDJuGDw=VEaOJuoFL+_DoV0vM9-_RuANtPg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4E98C48A.6070009@mlbassoc.com>
+References: <4E98C09B.2060800@mlbassoc.com>
+	<4E98C48A.6070009@mlbassoc.com>
+Date: Sat, 15 Oct 2011 01:53:34 +0200
+Message-ID: <CA+2YH7vDNGhop61YYKRDGycj-LKOidAFu2cG01qpia3jk3fHEw@mail.gmail.com>
+Subject: Re: OMAP3 ISP - interlaced data incorrect
+From: Enrico <ebutera@users.berlios.de>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/06/11 20:56, Manu Abraham wrote:
-> Mauro,
+On Sat, Oct 15, 2011 at 1:23 AM, Gary Thomas <gary@mlbassoc.com> wrote:
+> To be clear, moving from film to video, there would be no change of data
+> within a single frame between the two interleaved halves.  I'm sure this
+> was even true of old cameras, which were not digital capture devices being
+> used to send interleaved analogue data.
 >
-> comments in-line.
+>> You can see some of this in the [otherwise quite good] sequence of images
+>> http://www.mlbassoc.com/misc/nemo-swapped-00001.png
+>> ...
+>> http://www.mlbassoc.com/misc/nemo-swapped-00062.png
+>> * Frames being skipped &/or very stale data being reused - I think this is
+>> a [user]
+>> software problem. The ISP driver assumes that it always has an empty
+>> buffer to
+>> move captured data into. Depending on the [user] program which is
+>> consuming the
+>> data, this may or not be true. In the case of ffmpeg, if I capture raw
+>> images,
+>> ffmpeg can almost always keep up and there is always a free buffer.
+>> However, if
+>> I have ffmpeg turn the raw frames into compressed video (mp4), nearly 1/2
+>> of
+>> the time, the ISP will run dry on buffers. I think I know how to fix this
+>> (untested)
+>> but it shows that some of the issues may be with the userland code we rely
+>> on.
 >
-> On Sat, Oct 1, 2011 at 12:28 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com>  wrote:
->> Em 30-09-2011 15:41, Lutz Sammer escreveu:
->>> On 09/30/11 19:07, Mauro Carvalho Chehab wrote:
->>>> Em 29-09-2011 18:22, Lutz Sammer escreveu:
->>>>> Another version of
->>>>> http://patchwork.linuxtv.org/patch/6307
->>>>> http://patchwork.linuxtv.org/patch/6510
->>>>> which was superseded or rejected, but I don't know why.
->>>>
->>>> Probably because of the same reason of this patch [1]:
->>>>
->>>> patch -p1 -i patches/lmml_8023_v2_stb0899_fix_slow_and_not_locking_dvb_s_transponder_s.patch --dry-run -t -N
->>>> patching file drivers/media/dvb/frontends/stb0899_algo.c
->>>> Hunk #1 FAILED at 358.
->>>> 1 out of 1 hunk FAILED -- saving rejects to file drivers/media/dvb/frontends/stb0899_algo.c.rej
->>>>    drivers/media/dvb/frontends/stb0899_algo.c |    1 +
->>>>    1 file changed, 1 insertion(+)
->>>>
->>>> I'll mark this one as rejected, as it doesn't apply upstream[2].
->>>>
->>>> [1] http://patchwork.linuxtv.org/patch/8023/
->>>> [2] at tree/branch: git://linuxtv.org/media_tree.git staging/for_v3.2
->>>>
->>>> Please test if the changes made upstream to solve a similar trouble fixes your issue.
->>>> If not, please rebase your patch on the top of it and resend.
->>>>
->>>> Thanks,
->>>> Mauro
->>>>>
->>>>> In stb0899_status stb0899_check_data the first read of STB0899_VSTATUS
->>>>> could read old (from previous search) status bits and the search fails
->>>>> on a good frequency.
->>>>>
->>>>> With the patch more transponder could be locked and locks about 2* faster.
->>
->> Manu,
->>
->> Could you please review this one-line patch?
->>
->>
->>>>>
->>>>> Signed-off-by: Lutz Sammer<johns98@gmx.net>
->>>>> ---
->>>>>    drivers/media/dvb/frontends/stb0899_algo.c |    1 +
->>>>>    1 files changed, 1 insertions(+), 0 deletions(-)
->>>>>
->>>>> diff --git a/drivers/media/dvb/frontends/stb0899_algo.c b/drivers/media/dvb/frontends/stb0899_algo.c
->>>>> index d70eee0..8eca419 100644
->>>>> --- a/drivers/media/dvb/frontends/stb0899_algo.c
->>>>> +++ b/drivers/media/dvb/frontends/stb0899_algo.c
->>>>> @@ -358,6 +358,7 @@ static enum stb0899_status stb0899_check_data(struct stb0899_state *state)
->>>>>           else
->>>>>                   dataTime = 500;
->>>>>
->>>>> +       stb0899_read_reg(state, STB0899_VSTATUS); /* clear old status bits */
->>>>>           stb0899_write_reg(state, STB0899_DSTATUS2, 0x00); /* force search loop */
->>>>>           while (1) {
->>>>>                   /* WARNING! VIT LOCKED has to be tested before VIT_END_LOOOP   */
->>
+> In the case of ffmpeg capturing raw data, there were no times that the ISP
+> driver
+> wanted a buffer and failed to get one, at least when storing the frames in a
+> RAM
+> disk.  If stored to a physical device like MMC card, this might not be true.
 >
-> Please add in these comments, in case you want to apply the change. I
-> am neither for the patch, nor against it.
->
-> - In fact, it doesn't hurt to read STATUS just before LOCK test.
-> - I wasn't able to find any noticeable difference in LOCK acquisition.
-> - Nowhere, I was able to find that reading VSTATUS, clears the
-> Read-Only bits set by the onchip microcontroller. The above comment
-> could be wrong at least, as far as I can say.
->
-> But that said, if the change does really help (thinking of strange
-> issues with some Silicon cuts)
->
-> Acked-by: Manu Abraham<manu@linuxtv.org>
->
-> Regards,
-> Manu
->
+> However, when ffmpeg is used to create an MP4 image, even to RAM disk,
+> nearly 1/2
+> of the time the ISP goes wanting, which certainly can't be good!
 
-To be exact only the loop bit is reset by the read:
+That is to be expected, it's not good but the worst thing that could
+happen is that you will lose some frames, not fields (unless you are
+losing interrupts too). So you will get laggy video, but with no
+ghosting.
 
-kernel: [62791.427869] stb0899: vstatus 40 00 40 00
-kernel: [62791.597609] stb0899: vstatus 00 00 18 18
+But i can't remember what the isp buffer code do when "out of buffer"
+so i'm assuming it will do a sane thing (drop the current frame).
 
-Printed twice before and after the loop. I tested this with the
-tt-3600 and tt-3650.
-
-Johns
-
-
-
-
-
-
+Enrico
