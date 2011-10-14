@@ -1,77 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55000 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934849Ab1JEUVg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 16:21:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH 3/3] [media] tvp5150: Migrate to media-controller framework and add video format detection
-Date: Wed, 5 Oct 2011 22:21:32 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-media@vger.kernel.org, Enrico <ebutera@users.berlios.de>,
-	Gary Thomas <gary@mlbassoc.com>
-References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com> <4E8A2F76.4020209@infradead.org> <CAAwP0s30_FxMu3iegkusk7iQkBaWKmmba7sOk2vK9tcahV3ueg@mail.gmail.com>
-In-Reply-To: <CAAwP0s30_FxMu3iegkusk7iQkBaWKmmba7sOk2vK9tcahV3ueg@mail.gmail.com>
+Received: from casper.infradead.org ([85.118.1.10]:33466 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932297Ab1JNUHz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Oct 2011 16:07:55 -0400
+Message-ID: <4E989696.5030106@infradead.org>
+Date: Fri, 14 Oct 2011 17:07:50 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: "Igor M. Liplianin" <liplianin@me.by>
+CC: linux-media@vger.kernel.org, Steven Toth <stoth@linuxtv.org>,
+	Mijhail Moreyra <mijhail.moreyra@gmail.com>,
+	Abylai Ospan <aospan@netup.ru>
+Subject: Re: [GIT PATCHES FOR 3.2] cx23885 alsa cleaned and prepaired
+References: <201110101752.11536.liplianin@me.by>
+In-Reply-To: <201110101752.11536.liplianin@me.by>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201110052221.34188.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
-
-On Tuesday 04 October 2011 00:37:27 Javier Martinez Canillas wrote:
-> Hello,
+Em 10-10-2011 11:52, Igor M. Liplianin escreveu:
+> Hi Mauro and Steven,
 > 
-> Reading the last emails I understand that still isn't a consensus on
-> the way this has to be made. If it has to be implemented at the video
-> device node level or at the sub-device level. And if it has to be made
-> in kernel or user-space.
+> It's been a long time since cx23885-alsa pull was requested.
+> To speed things up I created a git branch where I put the patches.
+> Some patches merged, like introduce then correct checkpatch compliance
+> or convert spinlock to mutex and back to spinlock, insert printk then remove printk as well.
+> Minor corrections from me was silently merged, for major I created additional patches.
 > 
-> On Mon, Oct 3, 2011 at 11:56 PM, Mauro Carvalho Chehab wrote:
-> > Em 03-10-2011 18:44, Laurent Pinchart escreveu:
-> >> On Monday 03 October 2011 21:16:45 Mauro Carvalho Chehab wrote:
-> >>> Em 03-10-2011 08:53, Laurent Pinchart escreveu:
-> >>>> On Monday 03 October 2011 11:53:44 Javier Martinez Canillas wrote:
-
-[snip]
-
-> >> With the OMAP3 ISP, which is I believe what Javier was asking about, the
-> >> application will set the format on the OMAP3 ISP resizer input and
-> >> output pads to configure scaling.
+> Hope it helps.
 > 
-> Yes, that was my question about. But still is not clear to me if
-> configuring the ISP resizer input and output pads with different frame
-> sizes automatically means that I have to do the scale or this has to
-> be configured using a S_FMT ioctl to the /dev/video? node.
 
-The resizer is completely controlled through the formats at its sink and 
-source pads. It will scale the image to achieve what is configured at its 
-source pad (with x1/4..x4 limits in the zoom ratio).
+> Steven Toth (31):
+>       cx23885: mute the audio during channel change
 
-> Basically what I don't know is when I have to modify the pipeline graph
-> inside the ISP driver and when this has to be made from user-space via MCF.
-
-The pipeline needs to be configured before you start video capture. This means 
-setting the links according to your use case, and configuring the formats on 
-pads. You will then be able to use a pure V4L2 application to capture video.
-
-> > The V4L2 API doesn't tell where a function like scaler will be
-> > implemented. So, it is fine to implement it at tvp5151 or at the omap3
-> > resizer, when a V4L2 call is sent.
+> From 3241f9a7ba2505c48eaa608df7f2bd2a3e79eea0 Mon Sep 17 00:00:00 2001
+> From: Steven Toth <stoth@kernellabs.com>
+> Date: Mon, 10 Oct 2011 11:09:53 -0300
+> Subject: [PATCH] [media] cx23885: mute the audio during channel change
 > 
-> I don't think I can do the cropping and scaling in the tvp5151 driver
-> since this is a dumb device, it only spits bytes via its parallel
-> interface. The actual buffer is inside the ISP.
+> Signed-off-by: Steven Toth <stoth@kernellabs.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> diff --git a/drivers/media/video/cx23885/cx23885-video.c b/drivers/media/video/cx23885/cx23885-video.c
+> index 58855b2..7e5342b 100644
+> --- a/drivers/media/video/cx23885/cx23885-video.c
+> +++ b/drivers/media/video/cx23885/cx23885-video.c
+> @@ -1264,18 +1264,30 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+>  
+>  static int cx23885_set_freq(struct cx23885_dev *dev, struct v4l2_frequency *f)
+>  {
+> +	struct v4l2_control ctrl;
+> +
+>  	if (unlikely(UNSET == dev->tuner_type))
+>  		return -EINVAL;
+>  	if (unlikely(f->tuner != 0))
+>  		return -EINVAL;
+>  
+> +
+>  	mutex_lock(&dev->lock);
+>  	dev->freq = f->frequency;
+>  
+> +	/* I need to mute audio here */
+> +	ctrl.id = V4L2_CID_AUDIO_MUTE;
+> +	ctrl.value = 1;
+> +	cx23885_set_control(dev, &ctrl);
+> +
+>  	call_all(dev, tuner, s_frequency, f);
+>  
+>  	/* When changing channels it is required to reset TVAUDIO */
+> -	msleep(10);
+> +	msleep(100);
+> +
+> +	/* I need to unmute audio here */
+> +	ctrl.value = 0;
+> +	cx23885_set_control(dev, &ctrl);
+>  
+>  	mutex_unlock(&dev->lock);
+>  
 
-Cropping might be possible (I'm not too familiar with the tvp5151), but 
-scaling indeed isn't. That doesn't matter much though.
+This patch has a weird side effect: If the user has muted the audio, changing the channel will
+unmute. The right thing to do here is to do a g_ctrl to check if the device is muted. If it is
+muted, don't touch at the mute.
 
--- 
+I'll drop this one from my patch series.
+
 Regards,
-
-Laurent Pinchart
+Mauro
