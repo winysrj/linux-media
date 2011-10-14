@@ -1,64 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4167 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935645Ab1JFN1N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Oct 2011 09:27:13 -0400
-Message-ID: <4E8DACAF.5070207@redhat.com>
-Date: Thu, 06 Oct 2011 10:27:11 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [RFC] Merge v4l-utils. dvb-apps and mediactl to media-utils.git
-References: <201110061423.22064.hverkuil@xs4all.nl>
-In-Reply-To: <201110061423.22064.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:55432 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750711Ab1JNED0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Oct 2011 00:03:26 -0400
+Received: from epcpsbgm2.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LT100EYXF9DCRH0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 14 Oct 2011 13:03:24 +0900 (KST)
+Received: from jtppark ([12.23.121.105])
+ by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
+ 64bit (built Sep  7 2010)) with ESMTPA id <0LT10080EF9N1R70@mmp1.samsung.com>
+ for linux-media@vger.kernel.org; Fri, 14 Oct 2011 13:03:24 +0900 (KST)
+Reply-to: jtp.park@samsung.com
+From: Jeongtae Park <jtp.park@samsung.com>
+To: linux-media@vger.kernel.org,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>
+Cc: 'Marek Szyprowski' <m.szyprowski@samsung.com>,
+	'Kamil Debski' <k.debski@samsung.com>, kgene.kim@samsung.com,
+	kyungmin.park@samsung.com, 'Jeongtae Park' <jtp.park@samsung.com>
+Subject: [PATCH] MAINTAINERS: add a maintainer for s5p-mfc driver
+Date: Fri, 14 Oct 2011 13:03:23 +0900
+Message-id: <007601cc8a26$3809f9f0$a81dedd0$%park@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 06-10-2011 09:23, Hans Verkuil escreveu:
-> Currently we have three repositories containing libraries and utilities that
-> are relevant to the media drivers:
->
-> dvb-apps (http://linuxtv.org/hg/dvb-apps/)
-> v4l-utils (http://git.linuxtv.org/v4l-utils.git)
-> media-ctl (git://git.ideasonboard.org/media-ctl.git)
->
-> It makes no sense to me to have three separate repositories, one still using
-> mercurial and one that isn't even on linuxtv.org.
->
-> I propose to combine them all to one media-utils.git repository. I think it
-> makes a lot of sense to do this.
->
-> After the switch the other repositories are frozen (with perhaps a README
-> pointing to the new media-utils.git).
->
-> I'm not sure if there are plans to make new stable releases of either of these
-> repositories any time soon. If there are, then it might make sense to wait
-> until that new stable release before merging.
->
-> Comments?
+Add a maintainer for s5p-mfc driver.
 
-I like that idea. It helps to have the basic tools into one single repository,
-and to properly distribute it.
+Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Kamil Debski <k.debski@samsung.com>
+---
+ MAINTAINERS |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-I think through, that we should work to have an smart configure script that
-would allow enabling/disabling the several components of the utils, like the
---enable/--disable approach used by autoconf scripts:
-	--enable-libv4l
-	--enable-dvb
-	--enable-ir
-	--enable-v4l
-	--enable-mc
-	...
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 5e207a8..ef16770 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -1087,6 +1087,7 @@ F:        drivers/media/video/s5p-fimc/
+ ARM/SAMSUNG S5P SERIES Multi Format Codec (MFC) SUPPORT
+ M:     Kyungmin Park <kyungmin.park@samsung.com>
+ M:     Kamil Debski <k.debski@samsung.com>
++M:     Jeongtae Park <jtp.park@samsung.com>
+ L:     linux-arm-kernel@lists.infradead.org
+ L:     linux-media@vger.kernel.org
+ S:     Maintained
+-- 
+1.7.1
 
-Of course, using "--disable-libv4l" would mean that libv4l-aware utils would
-be statically linked with the current libv4l libraries.
-
-This would help distributions to migrate to it, as they can keep having separate
-packages for each component for the existing stable distros, while merging
-into a single source package for future distros.
-
-Regards,
-Mauro
