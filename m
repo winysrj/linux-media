@@ -1,103 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:59403 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751575Ab1JNXXX (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:33006 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750757Ab1JNOEl convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Oct 2011 19:23:23 -0400
-Date: Fri, 14 Oct 2011 16:23:19 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>
-Subject: Re: [PATCH 1/9] mm: move some functions from memory_hotplug.c to
- page_isolation.c
-Message-Id: <20111014162319.825896dc.akpm@linux-foundation.org>
-In-Reply-To: <1317909290-29832-2-git-send-email-m.szyprowski@samsung.com>
-References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
-	<1317909290-29832-2-git-send-email-m.szyprowski@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Fri, 14 Oct 2011 10:04:41 -0400
+Received: by bkbzt19 with SMTP id zt19so34300bkb.19
+        for <linux-media@vger.kernel.org>; Fri, 14 Oct 2011 07:04:40 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <101260B451BFC64699575BAC372B3DEE0138889E@mx1.pctvsystems.com>
+References: <CAGa-wNOL_1ua0DQFRPFuLtHO0zTFhE0DaM+b6kujMEEL4dQbKg@mail.gmail.com>
+	<CAGoCfizwYRpSsqobaHWJd5d0wq1N0KSXEQ1Un_ue01KuYGHaWA@mail.gmail.com>
+	<4E970CA7.8020807@iki.fi>
+	<CAGoCfiwSJ7EGXxAw7UgbFeECh+dg1EueXEC9iCHu7TaXia=-mQ@mail.gmail.com>
+	<4E970F7A.5010304@iki.fi>
+	<CAGoCfiyXiANjoB5bXgBpjwOAk8kpz8guxTGuGtVbtgc6+DNAag@mail.gmail.com>
+	<4E976EF6.1030101@southpole.se>
+	<CAGoCfixwp-iVFJysEG=UjN63-U_P4mdFWt+8hCwFW7fYeADvuw@mail.gmail.com>
+	<4E9836E5.6040601@redhat.com>
+	<CAGoCfizDdx=a=mR5TRXw_Dnj9cw2_1C9NuRH2LR2gXxEzyfW3w@mail.gmail.com>
+	<101260B451BFC64699575BAC372B3DEE0138889E@mx1.pctvsystems.com>
+Date: Fri, 14 Oct 2011 10:04:39 -0400
+Message-ID: <CAGoCfiwPbGEqQgu-yjoFMz_7mk-u9gDEvwWSJ0uW1tCaGwzWgQ@mail.gmail.com>
+Subject: Re: PCTV 520e on Linux
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: =?ISO-8859-1?Q?S=F6nke_Brandt?= <SBrandt@pctvsystems.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Benjamin Larsson <benjamin@southpole.se>,
+	linux-media@vger.kernel.org, Eddi De Pieri <eddi@depieri.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 06 Oct 2011 15:54:41 +0200
-Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+On Fri, Oct 14, 2011 at 10:01 AM, Sönke Brandt <SBrandt@pctvsystems.com> wrote:
+>  Just a quick note: The 520e does use the TDA18271 tuner, not an XC5000.
+>
+>  Soenke.
 
-> From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-> 
-> Memory hotplug is a logic for making pages unused in the specified
-> range of pfn. So, some of core logics can be used for other purpose
-> as allocating a very large contigous memory block.
-> 
-> This patch moves some functions from mm/memory_hotplug.c to
-> mm/page_isolation.c. This helps adding a function for large-alloc in
-> page_isolation.c with memory-unplug technique.
-> 
-> Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-> [m.nazarewicz: reworded commit message]
-> Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> [m.szyprowski: rebased and updated to Linux v3.0-rc1]
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> CC: Michal Nazarewicz <mina86@mina86.com>
-> Acked-by: Arnd Bergmann <arnd@arndb.de>
->
-> ...
->
-> +/*
-> + * For migration.
-> + */
-> +
-> +int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn);
+Wow, how the hell did I screw that up?  Of course Sönke is correct.  I
+momentarily got the 520e confused with the HVR-930c (I've done work on
+both in the past).
 
-This is a rather poor function name.  Given that we're now making it a
-global identifier, perhaps we should give it a better name. 
-pages_in_single_zone()?
+Regards,
 
-> +unsigned long scan_lru_pages(unsigned long start, unsigned long end);
-> +int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn);
->  
->
-> ...
->
-> --- a/mm/page_isolation.c
-> +++ b/mm/page_isolation.c
-> @@ -5,6 +5,9 @@
->  #include <linux/mm.h>
->  #include <linux/page-isolation.h>
->  #include <linux/pageblock-flags.h>
-> +#include <linux/memcontrol.h>
-> +#include <linux/migrate.h>
-> +#include <linux/mm_inline.h>
->  #include "internal.h"
->  
->  static inline struct page *
-> @@ -139,3 +142,114 @@ int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn)
->  	spin_unlock_irqrestore(&zone->lock, flags);
->  	return ret ? 0 : -EBUSY;
->  }
-> +
-> +
-> +/*
-> + * Confirm all pages in a range [start, end) is belongs to the same zone.
+Devin
 
-It would be good to fix up that sentence while we're touching it. 
-"Confirm that all pages ...  belong to the same zone".
-
->
-> ...
->
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
