@@ -1,52 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64788 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758292Ab1JGB7L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Oct 2011 21:59:11 -0400
-Message-ID: <4E8E5CE9.8030604@redhat.com>
-Date: Thu, 06 Oct 2011 22:59:05 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org, Mikael Magnusson <mikachu@gmail.com>
-Subject: tvtime at linuxtv.org
-References: <1315322996-10576-1-git-send-email-mchehab@redhat.com> <CAGoCfiy2hnH0Xoz_+Q8JgcB-tzuTGbfv8QdK0kv+ttP7t+EZKg@mail.gmail.com> <CAGoCfixa0pr048=-P3OUkZ2HMaY471eNO79BON0vjSVa1eRcTw@mail.gmail.com> <4E66E532.4050402@redhat.com> <CAGoCfiw7vjprc_skYYAXy9sTA7zkYEWtzXy9tEmJD+q8aazPog@mail.gmail.com> <CAGoCfiw-QnfVVwOhejwbMmb+K2F0VDwN_L-6E37w+=jKYGGFkg@mail.gmail.com> <CAGoCfixTqXaDU++-k_tn1NMkg4xXNcL=qvezggqe6BqEH+h5xg@mail.gmail.com>
-In-Reply-To: <CAGoCfixTqXaDU++-k_tn1NMkg4xXNcL=qvezggqe6BqEH+h5xg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:55799 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755404Ab1JNJOm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Oct 2011 05:14:42 -0400
+Date: Fri, 14 Oct 2011 11:14:25 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [Linaro-mm-sig] [PATCH 8/9] ARM: integrate CMA with DMA-mapping
+ subsystem
+In-reply-to: <4E97BB8E.3060204@gmail.com>
+To: 'Subash Patel' <subashrp@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Russell King' <linux@arm.linux.org.uk>,
+	'Arnd Bergmann' <arnd@arndb.de>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	'Dave Hansen' <dave@linux.vnet.ibm.com>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>
+Message-id: <013701cc8a51$ab1a3fb0$014ebf10$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
+ <1317909290-29832-10-git-send-email-m.szyprowski@samsung.com>
+ <4E97BB8E.3060204@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Devin,
+Hello,
 
-I had some discussions with Mikael today at the #linuxtv channel about
-tvtime. Mikael has write access to the tvtime site at sourceforge and he
-is doing some maintainance on it for some time, and worked on some bugs
-from Gentoo, and also imported some stuff from Ubuntu.
+On Friday, October 14, 2011 6:33 AM Subash Patel wrote:
 
-I've merged his patches on my repository:
-	http://git.linuxtv.org/mchehab/tvtime.git
+> Hi Marek,
+> 
+> As informed to you in private over IRC, below piece of code broke during
+> booting EXYNOS4:SMDKV310 with ZONE_DMA enabled.
 
-Tvtime is compiling, at least on Fedora 15. I also added your patch there,
-and changed the latency delay to 50ms. I didn't test it yet. I'll do it later
-today or tomorrow.
+Right, I missed the fact that ZONE_DMA can be enabled but the machine does not
+provide specific zone size. I will fix this in the next version. Thanks for 
+pointing this bug!
 
-Btw, Mikael updated the Related Sites there to point to the LinuxTV site:
-	http://tvtime.sourceforge.net/links.html
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
-He will try to contact Vektor again, in order to get his ack about adding
-a note at the main page pointing to us.
 
-I think we should move those patches to the main repository after testing the
-merges, and give write rights to the ones that are interested on maintaining
-tvtime.
-
-I'm interested on it, and also Mikael.
-
-IMHO, after testing it and applying a few other patches that Mikael might have,
-it is time for us to rename the version to 1.10 and do a tvtime release.
-
-Would that work for you?
-
-Thank you!
-Mauro
