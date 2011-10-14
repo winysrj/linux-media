@@ -1,61 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:63234 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753371Ab1JMSbB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Oct 2011 14:31:01 -0400
-Received: by bkbzt4 with SMTP id zt4so1804948bkb.19
-        for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 11:31:00 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:18538 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754245Ab1JNQOd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Oct 2011 12:14:33 -0400
+Message-ID: <4E985FDF.6080203@redhat.com>
+Date: Fri, 14 Oct 2011 13:14:23 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4E972A8F.2020004@lockie.ca>
-References: <4E972A8F.2020004@lockie.ca>
-Date: Thu, 13 Oct 2011 14:30:59 -0400
-Message-ID: <CAGoCfiygsxpA_qpoJ=BJ2YorqRPxg8ooMhvTMqscoxH1m+rh6A@mail.gmail.com>
-Subject: Re: help with azap
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: James <bjlockie@lockie.ca>
-Cc: linux-media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: =?UTF-8?B?U8O2bmtlIEJyYW5kdA==?= <SBrandt@pctvsystems.com>,
+	Benjamin Larsson <benjamin@southpole.se>,
+	linux-media@vger.kernel.org, Eddi De Pieri <eddi@depieri.net>
+Subject: Re: PCTV 520e on Linux
+References: <CAGa-wNOL_1ua0DQFRPFuLtHO0zTFhE0DaM+b6kujMEEL4dQbKg@mail.gmail.com> <CAGoCfizwYRpSsqobaHWJd5d0wq1N0KSXEQ1Un_ue01KuYGHaWA@mail.gmail.com> <4E970CA7.8020807@iki.fi> <CAGoCfiwSJ7EGXxAw7UgbFeECh+dg1EueXEC9iCHu7TaXia=-mQ@mail.gmail.com> <4E970F7A.5010304@iki.fi> <CAGoCfiyXiANjoB5bXgBpjwOAk8kpz8guxTGuGtVbtgc6+DNAag@mail.gmail.com> <4E976EF6.1030101@southpole.se> <CAGoCfixwp-iVFJysEG=UjN63-U_P4mdFWt+8hCwFW7fYeADvuw@mail.gmail.com> <4E9836E5.6040601@redhat.com> <CAGoCfizDdx=a=mR5TRXw_Dnj9cw2_1C9NuRH2LR2gXxEzyfW3w@mail.gmail.com> <101260B451BFC64699575BAC372B3DEE0138889E@mx1.pctvsystems.com> <CAGoCfiwPbGEqQgu-yjoFMz_7mk-u9gDEvwWSJ0uW1tCaGwzWgQ@mail.gmail.com>
+In-Reply-To: <CAGoCfiwPbGEqQgu-yjoFMz_7mk-u9gDEvwWSJ0uW1tCaGwzWgQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 13, 2011 at 2:14 PM, James <bjlockie@lockie.ca> wrote:
-> $ more channels.conf
-> CIII-HD:85000000:8VSB:49:52+53:1
-> OTTAWA CBOFT-DT:189000000:8VSB:49:53+52:3
-> CJOH:213000000:8VSB:49:51+52:1
-> TVO    :533000000:8VSB:49:52+53:1
-> OTTAWA  CBOT-DT:539000000:8VSB:49:52+53:3
-> Télé-Québec_HD:569000000:8VSB:49:52+53:3
-> CHOT:629000000:8VSB:49:52:3
->
-> $ azap -c channels.conf "CJOH"
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> ERROR: error while parsing Audio PID (not a number)
->
-> $ tzap -c channels.conf "CJOH"
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> reading channels from file 'channels.conf'
-> ERROR: error while parsing inversion (syntax error)
->
-> Why does tzap show what file it is reading the channel list from but azap
-> doesn't?
+Em 14-10-2011 11:04, Devin Heitmueller escreveu:
+> On Fri, Oct 14, 2011 at 10:01 AM, SÃ¶nke Brandt <SBrandt@pctvsystems.com> wrote:
+>>  Just a quick note: The 520e does use the TDA18271 tuner, not an XC5000.
 
-If I recall, tzap and azap are actually from different codebases
-(although I believe one was originally derived from the other).  That
-is why the output is a little inconsistent.
+The tda18271-dd/drx-k/em28xx combination works fine, provided that the GPIO
+initialization enables both tuner and demod during probe time. Currently, the
+device I used to add support for it (a Terratec H5) has a hack to enable
+the devices: it just replies whatever initialization the original driver does.
 
-That said, you should not be using tzap for ATSC/ClearQAM.  tzap is for DVB-T.
+When I have some time, I'll fix that, but I'm not urging doing so, because it
+just works ;)
 
-> What does "ERROR: error while parsing Audio PID (not a number)" mean?
+In order to add support for PCTV 520e, it is probably a matter of just set the
+GPIO's.
 
-I don't know where your channels.conf came from, but it appears to be
-malformed.  You cannot have "52+53" as the audio PID.  If you just
-want to get up and running, remove the "+53" part.
+>>
+>>  Soenke.
+> 
+> Wow, how the hell did I screw that up?  Of course SÃ¶nke is correct.  I
+> momentarily got the 520e confused with the HVR-930c (I've done work on
+> both in the past).
+> 
+> Regards,
+> 
+> Devin
+> 
 
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
