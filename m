@@ -1,117 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:38295 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752998Ab1JJIyq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Oct 2011 04:54:46 -0400
-Received: by ywb5 with SMTP id 5so5136304ywb.19
-        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 01:54:46 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:62869 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755123Ab1JNRj5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Oct 2011 13:39:57 -0400
+Message-ID: <4E9873E3.8040103@redhat.com>
+Date: Fri, 14 Oct 2011 14:39:47 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CAAwP0s3NFvvUYd-0kwKLKXfYB4Zx1nXb0nd9+JM61JWtrVFfRg@mail.gmail.com>
-References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
-	<CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
-	<CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com>
-	<201110081751.38953.laurent.pinchart@ideasonboard.com>
-	<CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
-	<CA+2YH7vat9iSAuZ4ztDvvo4Od+b4tCOsK6Y+grTE05YUZZEYPQ@mail.gmail.com>
-	<CAAwP0s3NFvvUYd-0kwKLKXfYB4Zx1nXb0nd9+JM61JWtrVFfRg@mail.gmail.com>
-Date: Mon, 10 Oct 2011 10:54:46 +0200
-Message-ID: <CA+2YH7uFeHAmEpVqbd94qtCajb45pkr9YzeW+RDa5sf2bUG_wQ@mail.gmail.com>
-Subject: Re: omap3-isp status
-From: Enrico <ebutera@users.berlios.de>
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Adam Pledger <a.pledger@thermoteknix.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: =?UTF-8?B?U8O2bmtlIEJyYW5kdA==?= <SBrandt@pctvsystems.com>,
+	Benjamin Larsson <benjamin@southpole.se>,
+	linux-media@vger.kernel.org, Eddi De Pieri <eddi@depieri.net>
+Subject: Re: PCTV 520e on Linux
+References: <CAGa-wNOL_1ua0DQFRPFuLtHO0zTFhE0DaM+b6kujMEEL4dQbKg@mail.gmail.com> <CAGoCfizwYRpSsqobaHWJd5d0wq1N0KSXEQ1Un_ue01KuYGHaWA@mail.gmail.com> <4E970CA7.8020807@iki.fi> <CAGoCfiwSJ7EGXxAw7UgbFeECh+dg1EueXEC9iCHu7TaXia=-mQ@mail.gmail.com> <4E970F7A.5010304@iki.fi> <CAGoCfiyXiANjoB5bXgBpjwOAk8kpz8guxTGuGtVbtgc6+DNAag@mail.gmail.com> <4E976EF6.1030101@southpole.se> <CAGoCfixwp-iVFJysEG=UjN63-U_P4mdFWt+8hCwFW7fYeADvuw@mail.gmail.com> <4E9836E5.6040601@redhat.com> <CAGoCfizDdx=a=mR5TRXw_Dnj9cw2_1C9NuRH2LR2gXxEzyfW3w@mail.gmail.com> <101260B451BFC64699575BAC372B3DEE0138889E@mx1.pctvsystems.com> <CAGoCfiwPbGEqQgu-yjoFMz_7mk-u9gDEvwWSJ0uW1tCaGwzWgQ@mail.gmail.com> <4E985FDF.6080203@redhat.com> <CAGoCfiw6B1ZjmCRqurSfTmhPZ5W+GMy0bQfhbavahWSPLBhAdg@mail.gmail.com>
+In-Reply-To: <CAGoCfiw6B1ZjmCRqurSfTmhPZ5W+GMy0bQfhbavahWSPLBhAdg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 10, 2011 at 1:00 AM, Javier Martinez Canillas
-<martinez.javier@gmail.com> wrote:
-> On Mon, Oct 10, 2011 at 12:35 AM, Enrico <ebutera@users.berlios.de> wrote:
->> I made some tests and unfortunately there are some problems.
+Em 14-10-2011 13:41, Devin Heitmueller escreveu:
+> On Fri, Oct 14, 2011 at 12:14 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> The tda18271-dd/drx-k/em28xx combination works fine, provided that the GPIO
+>> initialization enables both tuner and demod during probe time. Currently, the
+>> device I used to add support for it (a Terratec H5) has a hack to enable
+>> the devices: it just replies whatever initialization the original driver does.
 >>
->> Note: i made these tests picking some patches from omap3isp-yuv branch
->> and applying to igep 3.1.0rc9 kernel (more or less like mainline +
->> some bsp patches) so maybe i made some mistakes (the tvp5150 driver is
->> patched too), but due to the nature of the problems i don't think this
->> is the case.
+>> When I have some time, I'll fix that, but I'm not urging doing so, because it
+>> just works ;)
 >>
->> Javier patches v1: i can grab frames with yavta but i get only garbage.
->>
->> Javier patches v2: i cannot grab frames with yavta (it hangs). I see
->> only 2 interrupts on the isp, then stops.
->>
->> I compared Javier-v2 registers setup with Deepthy's patches and there
->> are some differences. Moreover i remember that in Deepthy patches vd1
->> interrupt was not used (and in fact i had the same yavta-hanging
->> problem before, and Deepthy patches solved it).
->>
->> I think Javier-v1 patches didn't hang the isp because they changed
->> vd0/vd1 logic too, so maybe there were only some wrong isp registers
->> but the logic was correct.
->>
->> Now i wonder if it could be easier/better to port Deepthy patches
->> first and then add Javier fixes...
->>
->> Enrico
->>
->
-> Hi Enrico,
->
-> Yes, you are right in interlaced mode the VD1 interrupt handler
-> doesn't have to be executed. In v1 there is a conditional execution
-> and that is why the ISP doesn't hang up.
->
-> Could you please try changing this on ispccdc.c with v2 patches?
->
-> diff --git a/drivers/media/video/omap3isp/ispccdc.c
-> b/drivers/media/video/omap3isp/ispccdc.c
-> index 9b40968..bfd3f46 100644
-> --- a/drivers/media/video/omap3isp/ispccdc.c
-> +++ b/drivers/media/video/omap3isp/ispccdc.c
-> @@ -1658,7 +1658,8 @@ int omap3isp_ccdc_isr(struct isp_ccdc_device
-> *ccdc, u32 events)
->        if (ccdc->state == ISP_PIPELINE_STREAM_STOPPED)
->                return 0;
->
-> -       if (events & IRQ0STATUS_CCDC_VD1_IRQ)
-> +       if ((events & IRQ0STATUS_CCDC_VD1_IRQ) &&
-> +           !ccdc_input_is_fldmode(ccdc))
->                ccdc_vd1_isr(ccdc);
->
->        ccdc_lsc_isr(ccdc, events);
->
-> With this change the ISP shouldn't hang but I don't know if you will
-> get the right data.
+>> In order to add support for PCTV 520e, it is probably a matter of just set the
+>> GPIO's.
+> 
+> Complements of our friends at PCTV:
+> 
+> 520e:
+> GPIO02: Decoder Reset, active-low
+> GPIO04: Decoder Suspend, active-low
+> GPIO06: Demod Reset, active-low
+> GPIO07: LED on, active-high
 
-I tried that but i only get this:
+What are the USB ID's for the device? I may try to do a patch for it during this
+weekend, if I found time to add support for a few other devices that Terratec
+gently donated me.
 
-root@igep0020:~# yavta -c4 -f UYVY -s 720x625 -n 4 /dev/video2
-Device /dev/video2 opened.
-Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
-Video format set: UYVY (59565955) 720x625 buffer size 900000
-Video format: UYVY (59565955) 720x625 buffer size 900000
-4 buffers requested.
-length: 900000 offset: 0
-Buffer 0 mapped at address 0x4027a000.
-length: 900000 offset: 901120
-Buffer 1 mapped at address 0x403de000.
-length: 900000 offset: 1802240
-Buffer 2 mapped at address 0x4059b000.
-length: 900000 offset: 2703360
-Buffer 3 mapped at address 0x40748000.
-[  952.675170] omap3isp omap3isp: CCDC won't become idle!
-[  952.695159] omap3isp omap3isp: CCDC won't become idle!
-[  952.715179] omap3isp omap3isp: CCDC won't become idle!
-[  952.735137] omap3isp omap3isp: CCDC won't become idle!
+Thanks!
+Mauro
+> 
+> Devin
+> 
 
-and it continues forever saying that.
-
-I'm going to try to apply Deepthy patches on omap3isp-yuv and hope it will work.
-
-Enrico
