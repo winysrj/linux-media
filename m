@@ -1,41 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgate.thermoteknix.com ([188.223.91.156]:49251 "EHLO
-	mailgate.thermoteknix.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934403Ab1JELLG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 07:11:06 -0400
-Message-ID: <4E8C3595.3000702@thermoteknix.com>
-Date: Wed, 05 Oct 2011 11:46:45 +0100
-From: Adam Pledger <a.pledger@thermoteknix.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:41274 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752220Ab1JNMv7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Oct 2011 08:51:59 -0400
+Received: by bkbzt4 with SMTP id zt4so2760332bkb.19
+        for <linux-media@vger.kernel.org>; Fri, 14 Oct 2011 05:51:58 -0700 (PDT)
 MIME-Version: 1.0
-To: ebutera@users.berlios.de, gary@mlbassoc.com
-CC: linux-media@vger.kernel.org
-Subject: Re: Getting started with OMAP3 ISP
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4E982CE7.6030203@poczta.onet.pl>
+References: <4E273AB5.7090405@poczta.onet.pl>
+	<201110140927.23067.hselasky@c2i.net>
+	<4E982CE7.6030203@poczta.onet.pl>
+Date: Fri, 14 Oct 2011 08:51:57 -0400
+Message-ID: <CAGoCfiwysaB5x9Ojrnmgi-4VWVBu-exv1O2Hv+U3_hpROO6a_w@mail.gmail.com>
+Subject: Re: [PATCH] dvb/as102 nBox DVB-T dongle
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Piotr Chmura <chmooreck@poczta.onet.pl>
+Cc: Hans Petter Selasky <hselasky@c2i.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On Tue, Sep 6, 2011 at 10:49 AM, Laurent Pinchart
-> <laurent.pinch...@ideasonboard.com>  wrote:
-> >  On Monday 05 September 2011 18:37:04 you wrote:
-> >>  Yes that was the first thing i tried, anyway now i have it finally
-> >>  working. Well at least yavta doesn't hang, do you know some
-> >>  application to see raw yuv images?
+On Fri, Oct 14, 2011 at 8:36 AM, Piotr Chmura <chmooreck@poczta.onet.pl> wrote:
+> Hi,
 >
-> I made a typo since in fact it's uyvy ( so a tool to covert from yuv
-> will not work ;) ), but if someone will ever need it:
+> There's  licencing problem with as10x_cmd_cfg.c and as10x_cmd_stream.c files
+> which are not GPL ( (c) Copyright Abilis Systems SARL 2005-2009 All rigths
+> reserved \n
+>   www.abilis.com).
 >
-> ffmpeg -f rawvideo -pix_fmt uyvy422 -s 720x628 -i frame-000001.bin frame-1.png
->
-> Enrico
+> Dunno if it's only Davin's Heitmueller oversight in changing licencing or a
+> real problem.
+> What about it Davin ?
 
-Enrico, Gary,
+Yeah, those were an oversight on the part of Abilis.  I already talked
+to them about it and got permission to fix the text.
 
-I am in an identical situation to you both in that I am migrating to a newer kernel and am faced with the task of getting a driver for the tvp5150 working with the new MC framework and omap3 ISP.
-I understand from reading this thread that you have both had some success in modifying an existing / writing a driver and configuring a MC pipeline.
-If you are able to share your driver(s) or any insights, I would be very grateful and I am happy to help out with further testing or polishing as required.
+Devin
 
-Best Regards
-
-Adam
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
