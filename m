@@ -1,42 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:36531 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752850Ab1JQXuN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Oct 2011 19:50:13 -0400
-Message-ID: <4E9CBF33.5090401@gmail.com>
-Date: Mon, 17 Oct 2011 16:50:11 -0700
-From: Mario Torres <mtmontaras@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:16260 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932977Ab1JNODN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Oct 2011 10:03:13 -0400
+Message-ID: <4E98411A.6040809@redhat.com>
+Date: Fri, 14 Oct 2011 11:03:06 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, majordomo@vger.kernel.org
-Subject: help
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Benjamin Larsson <benjamin@southpole.se>,
+	linux-media@vger.kernel.org, Eddi De Pieri <eddi@depieri.net>
+Subject: Re: PCTV 520e on Linux
+References: <CAGa-wNOL_1ua0DQFRPFuLtHO0zTFhE0DaM+b6kujMEEL4dQbKg@mail.gmail.com> <CAGoCfizwYRpSsqobaHWJd5d0wq1N0KSXEQ1Un_ue01KuYGHaWA@mail.gmail.com> <4E970CA7.8020807@iki.fi> <CAGoCfiwSJ7EGXxAw7UgbFeECh+dg1EueXEC9iCHu7TaXia=-mQ@mail.gmail.com> <4E970F7A.5010304@iki.fi> <CAGoCfiyXiANjoB5bXgBpjwOAk8kpz8guxTGuGtVbtgc6+DNAag@mail.gmail.com> <4E976EF6.1030101@southpole.se> <CAGoCfixwp-iVFJysEG=UjN63-U_P4mdFWt+8hCwFW7fYeADvuw@mail.gmail.com> <4E9836E5.6040601@redhat.com> <CAGoCfizDdx=a=mR5TRXw_Dnj9cw2_1C9NuRH2LR2gXxEzyfW3w@mail.gmail.com>
+In-Reply-To: <CAGoCfizDdx=a=mR5TRXw_Dnj9cw2_1C9NuRH2LR2gXxEzyfW3w@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Can I say a word to you guys?
+Em 14-10-2011 10:28, Devin Heitmueller escreveu:
+> On Fri, Oct 14, 2011 at 9:19 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>>> While the basic chips used are different, they are completely
+>>> different hardware designs and likely have different GPIO
+>>> configurations as well as IF specs.
+>>
+>> The IF settings for xc5000 with DRX-K are solved with this patch:
+>>        http://patchwork.linuxtv.org/patch/7932/
+>>
+>> Basically, DRX-K will use whatever IF the tuner uses.
+> 
+> While I fundamentally disagree with this change, I'm not going to nack
+> it.  That said, this wasn't the issue I was concerned with.  My
+> suggestion was simply that you cannot assume that all devices that
+> happen to have a particular demod and tuner combo will always use the
+> same IF configuration.  The PCB layout can effect the optimal IF.
+> 
+> This is one of those things that (like many tuners in the LinuxTV
+> tree) will probably work good enough to get a signal lock for whoever
+> added the board profile, but will result in poor tuning performance
+> (and a failure to work in less-than-ideal reception conditions).
 
-Cool
+This patch doesn't prevent customizing the IF. It will just avoid the
+need of setting the IF on both xc5000 and drx-k. Basically, (some) DRX-K
+based boards use different IF's depending on the bandwidth and delivery
+system type. Instead of adding a complex logic that would allow such
+kind of IF adjustments on both, drx-k will simply inquire the tuner about
+what IF is currently used.
 
-I got one AVerMedia M792 PCIe Combo (OEM) on Ubuntu 11.10 and i wonder 
-if we can work it out, it is a pci-e and yes it is on the unsupported 
-list. but if we can work it out lets do it.
+> 
+> All that said, if somebody actually intends to hack on it, I can look
+> up what the correct IF is for the 520e.
+> 
+> Devin
+> 
 
-when i do a lspci -vv
-it gives me this
-
-
-03:00.0 Multimedia video controller: Conexant Systems, Inc. CX23887/8 
-PCIe Broadcast Audio and Video Decoder with 3D Comb (rev 0f)
-     Subsystem: Avermedia Technologies Inc Device df39
-     Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- 
-Stepping- SERR- FastB2B- DisINTx-
-     Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-     Latency: 0, Cache Line Size: 32 bytes
-     Interrupt: pin A routed to IRQ 17
-     Region 0: Memory at f9e00000 (64-bit, non-prefetchable) [size=2M]
-     Capabilities: <access denied>
-     Kernel driver in use: cx23885
-     Kernel modules: cx23885
