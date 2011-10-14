@@ -1,46 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay01.ispgateway.de ([80.67.29.23]:41962 "EHLO
-	smtprelay01.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754487Ab1JQGN3 (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:40013 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932401Ab1JNXnW convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Oct 2011 02:13:29 -0400
-Received: from [188.174.123.244] (helo=zwergkolibri.home.noschinski.de)
-	by smtprelay01.ispgateway.de with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.68)
-	(envelope-from <lars@public.noschinski.de>)
-	id 1RFgIV-0008NF-N9
-	for linux-media@vger.kernel.org; Mon, 17 Oct 2011 08:03:39 +0200
-Received: from lars by zwergkolibri.home.noschinski.de with local (Exim 4.76)
-	(envelope-from <lars@public.noschinski.de>)
-	id 1RFgIV-0004PV-5y
-	for linux-media@vger.kernel.org; Mon, 17 Oct 2011 08:03:39 +0200
-Date: Mon, 17 Oct 2011 08:03:34 +0200
-From: Lars Noschinski <lars@public.noschinski.de>
-To: linux-media@vger.kernel.org
-Subject: pac7311
-Message-ID: <20111017060334.GA16001@lars.home.noschinski.de>
+	Fri, 14 Oct 2011 19:43:22 -0400
+Received: by ggnb1 with SMTP id b1so903157ggn.19
+        for <linux-media@vger.kernel.org>; Fri, 14 Oct 2011 16:43:22 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <4E98C09B.2060800@mlbassoc.com>
+References: <4E98C09B.2060800@mlbassoc.com>
+Date: Sat, 15 Oct 2011 01:43:20 +0200
+Message-ID: <CA+2YH7uo-CqvW9ez9xtQ-7pTB_nnemL_7hsOAQ6vX-S-wju9dA@mail.gmail.com>
+Subject: Re: OMAP3 ISP - interlaced data incorrect
+From: Enrico <ebutera@users.berlios.de>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Sat, Oct 15, 2011 at 1:07 AM, Gary Thomas <gary@mlbassoc.com> wrote:
+> For days, I've been chasing ghosts :-)  I know they are still there,
+> but I think they are more a function of the source than the ISP setup.
+> So, I went looking for a better source, NTSC in my case.  My choice is
+> is a DVD player with known good video (I'm convinced that my cheap NTSC
+> camera produces crap, especially when there is a lot of motion in the
+> frames).  Looking at this on an analogue TV (yes, they still exist!),
+> the picture is not bad, so I think it's a good choice, at least when
+> trying to understand what's happening with the OMAP3 ISP.
+>
+> Look at these two pictures:
+>  http://www.mlbassoc.com/misc/nemo-00001.png
+>  http://www.mlbassoc.com/misc/nemo-swapped-00001.png
+>
+> These represent one frame of data captured via my OMAP3 ISP + TVP5150
+> from a DVD (sorry, Disney).  The first is a raw conversion of the
+> frame using ffmpeg.  As you can see, there seem to be lines swapped,
+> so I wrote a little program to swap the lines even/odd.  The second
+> (nemo-swapped) shows what this looks like.  Obviously, the data is
+> not being stored in memory correctly.  Does anyone know how to adjust
+> the ISP to make this work the right way around?  Currently in ispccdc.c, we
+> have:
+>                ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENEVEN,
+> 1);
+>                ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENODD,
+> 1);
+>                ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDEVEN,
+> 1);
+>                ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDODD, 1);
+>
+> I tried this:
+>                ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENEVEN,
+> 2);
+>                ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENODD,
+> 0);
+>                ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDEVEN,
+> 2);
+>                ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDODD, 0);
+> but this lead to a kernel panic :-(
+>
+> Somehow, we need to be storing the data something like this:
+>   EE EE EE EE ...
+>   EO EO EO EO ...
+>   OE OE OE OE ...
+>   OO OO OO OO ...
+> but the current layout is               ccdc_config_outlineoffset(ccdc,
+> pix.bytesperline, EVENEVEN, 1);
+>                ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENODD,
+> 1);
+>                ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDEVEN,
+> 1);
+>                ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDODD, 1);
+>
+>   EO EO EO EO ...
+>   EE EE EE EE ...
+>   OO OO OO OO ...
+>   OE OE OE OE ...
+>
+> First, I need to get the data into memory in the correct order :-)
+>
+> Note: these results are consistent, i.e. if I stop things and do another
+> grab, they are incorrect in the same [wrong] order.
 
-I'm using a webcam (Philipps SPC500NC) which identifies itself as
 
-    093a:2603 Pixart Imaging, Inc. PAC7312 Camera
+Just set the FINV bit (search for it in ispccdc.c), i tested it before
+and i had the opposite result (from a good looking nemo-swapped-like
+picture to a bad one).
 
-and is sort-of supported by the gspca_pac7311 module. "sort-of" because
-the image alternates quickly between having a red tint or a green tint
-(using the gspac driver from kernel 3.0.0, but this problem is present
-since at least 2.6.31).
 
-If I remove and re-plugin the camera a few times (on average around 3
-times), the colors are stable. Then a second issue becomes apparent:
-There is almost no saturation in the image. Toying around with Contrast,
-Gamma, Exposure or Gain does not help. What _does_ help is the Vflip
-switch: If I enable it, the image is flipped vertically (as expected),
-but also the color become a lot better.
 
-Is there something I can do to debug/fix this problem?
+>    I've not done any recent tests with the gstreamer modules and the TI DSP
+> code,
+>    but I will shortly.  We'll see how well that does.
+
+I've tested it with the dsp and nothing changes, same problems. But i
+will be happy if proven wrong!
+
+Enrico
