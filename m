@@ -1,154 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nexicom.net ([216.168.96.13]:35753 "EHLO smtp.nexicom.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752793Ab1JMSBv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Oct 2011 14:01:51 -0400
-Received: from mail.lockie.ca (dyn-dsl-mb-216-168-118-207.nexicom.net [216.168.118.207])
-	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id p9DI1nQk014319
-	for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 14:01:50 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by mail.lockie.ca (Postfix) with ESMTP id 54CA31E015A
-	for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 14:01:48 -0400 (EDT)
-Message-ID: <4E97278C.109@lockie.ca>
-Date: Thu, 13 Oct 2011 14:01:48 -0400
-From: James <bjlockie@lockie.ca>
-MIME-Version: 1.0
-To: linux-media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: recent cx23385?
-References: <4E967E5B.3050504@lockie.ca> <CAGoCfiyViRDt690TWtiWdnfP5C-az2aeOK=TGhgP4kwT1QJfqQ@mail.gmail.com> <4E971255.8080203@lockie.ca> <4E9713F5.1060308@lockie.ca>
-In-Reply-To: <4E9713F5.1060308@lockie.ca>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail-pz0-f42.google.com ([209.85.210.42]:50114 "EHLO
+	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751800Ab1JOAD6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Oct 2011 20:03:58 -0400
+Date: Fri, 14 Oct 2011 17:03:54 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: Re: [PATCH 7/7] ARM: integrate CMA with DMA-mapping subsystem
+Message-Id: <20111014170354.ebd604a6.akpm@linux-foundation.org>
+In-Reply-To: <1317909290-29832-8-git-send-email-m.szyprowski@samsung.com>
+References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
+	<1317909290-29832-8-git-send-email-m.szyprowski@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/13/11 12:38, James wrote:
-> On 10/13/11 12:31, James wrote:
->> On 10/13/11 08:48, Devin Heitmueller wrote:
->>> On Thu, Oct 13, 2011 at 1:59 AM, James<bjlockie@lockie.ca>  wrote:
->>>> Is there a newer cx23385 driver than the one in kernel-3.0.4?
->>>> I bought 
->>>> ahttp://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-1250  and it
->>>> shows video for about 5 seconds and then locks up the system.
->>> You cannot install individual drivers (Linux doesn't work like Windows
->>> in this regards).  You have to either install the latest kernel or you
->>> can swap out the whole media subsystem with a later version.
->>>
->>> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers 
->>>
->>>
->>> Devin
->> Where do I see the date/version of the media subsystem?
->>
->> It is not video related, w_scan works sometimes but freezes the 
->> kernel sometimes.
->> This is booting right to a console.
->> Is there a program to do a stress test on the hardware and print lots 
->> of messages as it's working?
->>
->>
->> $ modinfo cx23885
->> filename:       
->> /lib/modules/3.0.4/kernel/drivers/media/video/cx23885/cx23885.ko
->> license:        GPL
->> author:         Steven Toth <stoth@linuxtv.org>
->> description:    v4l2 driver module for cx23885 based TV cards
->> license:        GPL
->> author:         Steven Toth <stoth@linuxtv.org>
->> description:    Driver for cx23885 based TV cards
->> alias:          pci:v000014F1d00008880sv*sd*bc*sc*i*
->> alias:          pci:v000014F1d00008852sv*sd*bc*sc*i*
->> depends:        
->> videobuf-core,videobuf-dma-sg,stv0367,lnbp21,cx2341x,tveeprom,lgdt330x,videobuf-dvb,stv0900,zl10353,mt2131,ds3000,dib7000p,btcx-risc,tda10048,cx24116,s5h1411,s5h1409,stv6110
->> vermagic:       3.0.4 SMP mod_unload
->> parm:           ci_dbg:Enable CI debugging (int)
->> parm:           ci_irq_enable:Enable IRQ from CAM (int)
->> parm:           ir_888_debug:enable debug messages [CX23888 IR 
->> controller] (int)
->> parm:           mpegbufs:number of mpeg buffers, range 2-32 (int)
->> parm:           mpeglines:number of lines in an MPEG buffer, range 
->> 2-32 (int)
->> parm:           mpeglinesize:number of bytes in each line of an MPEG 
->> buffer, range 512-1024 (int)
->> parm:           v4l_debug:enable V4L debug messages (int)
->> parm:           alt_tuner:Enable alternate tuner configuration (int)
->> parm:           adapter_nr:DVB adapter numbers (array of short)
->> parm:           i2c_debug:enable debug messages [i2c] (int)
->> parm:           i2c_scan:scan i2c bus at insmod time (int)
->> parm:           debug:enable debug messages (int)
->> parm:           card:card type (array of int)
->> parm:           vbibufs:number of vbi buffers, range 2-32 (int)
->> parm:           vbi_debug:enable debug messages [vbi] (int)
->> parm:           video_nr:video device numbers (array of int)
->> parm:           vbi_nr:vbi device numbers (array of int)
->> parm:           radio_nr:radio device numbers (array of int)
->> parm:           video_debug:enable debug messages [video] (int)
->> parm:           irq_debug:enable debug messages [IRQ handler] (int)
->> parm:           vid_limit:capture memory limit in megabytes (int)
->> parm:           enable_885_ir:Enable integrated IR controller for 
->> supported
->>                     CX2388[57] boards that are wired for it:
->>                         HVR-1250 (reported safe)
->>                         TeVii S470 (reported unsafe)
->>                     This can cause an interrupt storm with some cards.
->>                     Default: 0 [Disabled] (int)
->>
->> I did:
->> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers 
->>
->> /bin/sh: /sbin/lsmod: No such file or directory
->> Lot's of pr_fmt redefined errors.
->>
->> I put the build log at: lockie.ca/test/v4l_build.txt.bz2
->>
->> Something is not right though. :-(
->> $ modprobe cx23885
->> WARNING: Deprecated config file /etc/modprobe.conf, all config files 
->> belong into /etc/modprobe.d/.
->> WARNING: Error inserting altera_ci 
->> (/lib/modules/3.0.4/kernel/drivers/media/video/cx23885/altera-ci.ko): 
->> Invalid module format
->> WARNING: Error inserting media 
->> (/lib/modules/3.0.4/kernel/drivers/media/media.ko): Invalid module 
->> format
->> WARNING: Error inserting videodev 
->> (/lib/modules/3.0.4/kernel/drivers/media/video/videodev.ko): Invalid 
->> module format
->> WARNING: Error inserting v4l2_common 
->> (/lib/modules/3.0.4/kernel/drivers/media/video/v4l2-common.ko): 
->> Invalid module format
->> WARNING: Error inserting videobuf_core 
->> (/lib/modules/3.0.4/kernel/drivers/media/video/videobuf-core.ko): 
->> Invalid module format
->> WARNING: Error inserting videobuf_dvb 
->> (/lib/modules/3.0.4/kernel/drivers/media/video/videobuf-dvb.ko): 
->> Invalid module format
->> WARNING: Error inserting videobuf_dma_sg 
->> (/lib/modules/3.0.4/kernel/drivers/media/video/videobuf-dma-sg.ko): 
->> Invalid module format
->> WARNING: Error inserting cx2341x 
->> (/lib/modules/3.0.4/kernel/drivers/media/video/cx2341x.ko): Invalid 
->> module format
->> WARNING: Error inserting altera_stapl 
->> (/lib/modules/3.0.4/kernel/drivers/linux/drivers/misc/altera-stapl/altera-stapl.ko): 
->> Invalid module format
->> WARNING: Error inserting rc_core 
->> (/lib/modules/3.0.4/kernel/drivers/media/rc/rc-core.ko): Invalid 
->> module format
->> FATAL: Error inserting cx23885 
->> (/lib/modules/3.0.4/kernel/drivers/media/video/cx23885/cx23885.ko): 
->> Invalid module format
->>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> dmesg:
-> dvb_core: exports duplicate symbol dvb_ca_en50221_camchange_irq (owned 
-> by kernel)
-Compiled, I unchecked Multimedia and recompiled the kernel.
+On Thu, 06 Oct 2011 15:54:47 +0200
+Marek Szyprowski <m.szyprowski@samsung.com> wrote:
 
-It still crashes though. :-(
+> This patch adds support for CMA to dma-mapping subsystem for ARM
+> architecture. By default a global CMA area is used, but specific devices
+> are allowed to have their private memory areas if required (they can be
+> created with dma_declare_contiguous() function during board
+> initialization).
+> 
+> Contiguous memory areas reserved for DMA are remapped with 2-level page
+> tables on boot. Once a buffer is requested, a low memory kernel mapping
+> is updated to to match requested memory access type.
+> 
+> GFP_ATOMIC allocations are performed from special pool which is created
+> early during boot. This way remapping page attributes is not needed on
+> allocation time.
+> 
+> CMA has been enabled unconditionally for ARMv6+ systems.
+> 
+>
+> ...
+>
+> --- /dev/null
+> +++ b/arch/arm/include/asm/dma-contiguous.h
+> @@ -0,0 +1,33 @@
+> +#ifndef ASMARM_DMA_CONTIGUOUS_H
+> +#define ASMARM_DMA_CONTIGUOUS_H
+> +
+> +#ifdef __KERNEL__
+> +
+> +#include <linux/device.h>
+> +#include <linux/dma-contiguous.h>
+> +
+> +#ifdef CONFIG_CMA
+> +
+> +#define MAX_CMA_AREAS	(8)
+
+This was already defined in include/linux/dma-contiguous.h.  The
+compiler didn't warn because it was defined to the same value.  Sort it
+out, please?
+
+>
+> ...
+>
+> +static int __init early_coherent_pool(char *p)
+> +{
+> +	coherent_pool_size = memparse(p, &p);
+> +	return 0;
+> +}
+> +early_param("coherent_pool", early_coherent_pool);
+
+Is there user documentation for the new parameter?
+
+>
+> ...
+>
+> +struct dma_contiguous_early_reserve {
+> +	phys_addr_t base;
+> +	unsigned long size;
+> +};
+> +
+> +static struct dma_contiguous_early_reserve
+> +dma_mmu_remap[MAX_CMA_AREAS] __initdata;
+
+Tab the continuation line to the right a bit.
+
+> +
+> +static int dma_mmu_remap_num __initdata;
+>
+> ...
+>
+> +static void *__alloc_from_pool(struct device *dev, size_t size,
+> +			       struct page **ret_page)
+> +{
+> +	struct arm_vmregion *c;
+> +	size_t align;
+> +
+> +	if (!coherent_head.vm_start) {
+> +		printk(KERN_ERR "%s: coherent pool not initialised!\n",
+> +		       __func__);
+> +		dump_stack();
+> +		return NULL;
+> +	}
+> +
+> +	align = 1 << fls(size - 1);
+
+Is there a roundup_pow_of_two() hiding in there?
+
+> +	c = arm_vmregion_alloc(&coherent_head, align, size, 0);
+> +	if (c) {
+> +		void *ptr = (void *)c->vm_start;
+> +		struct page *page = virt_to_page(ptr);
+> +		*ret_page = page;
+> +		return ptr;
+> +	}
+> +	return NULL;
+> +}
+>
+> ...
+>
 
