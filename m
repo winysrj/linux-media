@@ -1,106 +1,337 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:33543 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932374Ab1JFHvc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 03:51:32 -0400
-Received: by gyg10 with SMTP id 10so2327758gyg.19
-        for <linux-media@vger.kernel.org>; Thu, 06 Oct 2011 00:51:32 -0700 (PDT)
+Received: from smtpo05.poczta.onet.pl ([213.180.142.136]:60220 "EHLO
+	smtpo05.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751218Ab1JOUyf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Oct 2011 16:54:35 -0400
+Message-ID: <4E99F308.20406@poczta.onet.pl>
+Date: Sat, 15 Oct 2011 22:54:32 +0200
+From: Piotr Chmura <chmooreck@poczta.onet.pl>
 MIME-Version: 1.0
-In-Reply-To: <CAAwP0s0Z+EaRfY_9c0QLm0ZpyfG5Dy1qb9pFq=PRxzOOTwKTJw@mail.gmail.com>
-References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
- <CAAwP0s0Z+EaRfY_9c0QLm0ZpyfG5Dy1qb9pFq=PRxzOOTwKTJw@mail.gmail.com>
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Date: Thu, 6 Oct 2011 09:51:11 +0200
-Message-ID: <CAAwP0s1tK5XjmJmtvRFJ2+ADvoMP1ihf3z0UaJAfXOoJ=UrVqg@mail.gmail.com>
-Subject: Re: omap3-isp status
-To: Enrico <ebutera@users.berlios.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Adam Pledger <a.pledger@thermoteknix.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+CC: Greg KH <gregkh@suse.de>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <maurochehab@gmail.com>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
+Subject: [PATCH 3/7] staging/as102: cleanup - get rid of typedefs
+References: <4E7F1FB5.5030803@gmail.com> <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com> <4E7FF0A0.7060004@gmail.com> <CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com> <20110927094409.7a5fcd5a@stein> <20110927174307.GD24197@suse.de> <20110927213300.6893677a@stein> <4E9992F9.7000101@poczta.onet.pl>
+In-Reply-To: <4E9992F9.7000101@poczta.onet.pl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 5, 2011 at 7:43 PM, Javier Martinez Canillas
-<martinez.javier@gmail.com> wrote:
-> On Wed, Oct 5, 2011 at 6:28 PM, Enrico <ebutera@users.berlios.de> wrote:
->> Hi all,
->>
->> since we are all interested in this driver (and tvp5150) i'll try to
->> make a summary of the current situation and understand what is needed
->> to finally get it into the main tree instead of having to apply a
->> dozen patches manually.
->>
->> The current status of git repositories/branches is:
->>
->> - main tree: working (i suppose) but no support for bt656 input
->>
->> - pinchartl/media:
->>  * omap3isp-omap3isp-next: i think it's in sync with linuxtv master
->> (for the omap3-isp parts)
->>  * omap3isp-omap3isp-yuv: like ..next but with some additional format patches
->>
->> "Floating" patches:
->>
->> - Deepthy: sent patches (against mainline) to add bt656 support
->>
->> Laurent made some comments, i haven't seen a v2 to be applied
->>
->> - Javier: sent patches for tvp5150, currently discussed on
->> linux-media; possible patches/fixes for omap3-isp
->>
+staging as102: cleanup - get rid off typedefs
 
-Hello,
+Cleanup code: get rid of typedef in structures and union definitions.
 
-Since the patches are not against mainline I can't post for reviewing
-but can be found in one of our development trees [1]. Comments are
-highly appreciated.
+Signed-off-by: Piotr Chmura<chmooreck@poczta.onet.pl>
+Cc: Devin Heitmueller<dheitmueller@kernellabs.com>
+Cc: Greg HK<gregkh@suse.de>
 
-The tree is a 2.6.37 that already contain Deepthy patch. I rebased my
-changes on top of that to correctly support both BT656 an non-BT656
-video data processing.
+diff -Nur linux.as102.02-nbox/drivers/staging/as102/as10x_cmd.h linux.as102.03-typedefs/drivers/staging/as102/as10x_cmd.h
+--- linux.as102.02-nbox/drivers/staging/as102/as10x_cmd.h	2011-10-14 17:55:02.000000000 +0200
++++ linux.as102.03-typedefs/drivers/staging/as102/as10x_cmd.h	2011-10-14 18:48:39.000000000 +0200
+@@ -52,7 +52,7 @@
+  /*********************************/
+  /*     TYPE DEFINITION           */
+  /*********************************/
+-typedef enum {
++enum control_proc {
+     CONTROL_PROC_TURNON               = 0x0001,
+     CONTROL_PROC_TURNON_RSP           = 0x0100,
+     CONTROL_PROC_SET_REGISTER         = 0x0002,
+@@ -92,11 +92,11 @@
+     CONTROL_PROC_DUMPLOG_MEMORY_RSP   = 0xFE00,
+     CONTROL_PROC_TURNOFF              = 0x00FF,
+     CONTROL_PROC_TURNOFF_RSP          = 0xFF00
+-} control_proc;
++};
 
-[1]: http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=shortlog;h=refs/heads/linux-2.6.37.y-next
 
->
-> I will find some free time slots to resolve the issues called out by
-> Sakari, Hans and Mauro and resend the patch-set for the tvp5151.
->
-> Also I can send the patches of the modifications I made to the ISP
-> driver. Right now I'm working on top of Deepthy patches.
->
-> I can either send on top of that patch or rebase to mainline, whatever
-> you think is better for reviewing.
->
->> Now what can we all do to converge to a final solution? I think this
->> is also blocking the possible development/test of missing features,
->> like the recently-discussed resizer and cropping ones.
->>
->> Enrico
->>
->
-> Right now I have a working the tvp5151 with the ISP. I can capture
-> ITU-R BT656 video both in PAL-M and NTSC standard. Also, the whole
-> pipeline is configured automatically with the video standard detected
-> by the tvp5151. Also, I'm using the CCDC to crop the frames and only
-> capture the active lines for each standard (576 for PAL and 480 for
-> NTSC) using the CCDC to crop the image.
->
+  #pragma pack(1)
+-typedef union {
++union TURN_ON {
+     /* request */
+     struct {
+        /* request identifier */
+@@ -109,9 +109,9 @@
+        /* error */
+        uint8_t error;
+     } rsp;
+-} TURN_ON;
++};
 
-As I told you before video capturing is working for both PAL and NTSC
-using standard V4L2 application (i.e: gstreamer) but the video still
-shows some motion artifacts. Capturing YUV frames and looking at them
-I realized that there does exist a pattern, the sequence 2 frames
-correct and 3 frames with interlacing effects always repeats.
+-typedef union {
++union TURN_OFF {
+     /* request */
+     struct {
+        /* request identifier */
+@@ -124,9 +124,9 @@
+        /* error */
+        uint8_t err;
+     } rsp;
+-} TURN_OFF;
++};
 
-Hope it helps.
+-typedef union {
++union SET_TUNE {
+     /* request */
+     struct {
+        /* request identifier */
+@@ -141,9 +141,9 @@
+        /* response error */
+        uint8_t error;
+     } rsp;
+-} SET_TUNE;
++};
 
-Best regards,
+-typedef union {
++union GET_TUNE_STATUS {
+     /* request */
+     struct {
+        /* request identifier */
+@@ -158,9 +158,9 @@
+        /* tune status */
+        struct as10x_tune_status sts;
+     } rsp;
+-} GET_TUNE_STATUS;
++};
 
--- 
-Javier Martínez Canillas
-(+34) 682 39 81 69
-Barcelona, Spain
+-typedef union {
++union GET_TPS {
+     /* request */
+     struct {
+        /* request identifier */
+@@ -175,9 +175,9 @@
+        /* tps details */
+        struct as10x_tps tps;
+     } rsp;
+-} GET_TPS;
++};
+
+-typedef union {
++union COMMON {
+     /* request */
+     struct {
+        /* request identifier */
+@@ -190,9 +190,9 @@
+        /* response error */
+        uint8_t error;
+     } rsp;
+-} COMMON;
++};
+
+-typedef union {
++union ADD_PID_FILTER {
+     /* request */
+     struct {
+        /* request identifier */
+@@ -213,9 +213,9 @@
+        /* Filter id */
+        uint8_t filter_id;
+     } rsp;
+-} ADD_PID_FILTER;
++};
+
+-typedef union {
++union DEL_PID_FILTER {
+     /* request */
+     struct {
+        /* request identifier */
+@@ -230,9 +230,9 @@
+        /* response error */
+        uint8_t error;
+     } rsp;
+-} DEL_PID_FILTER;
++};
+
+-typedef union {
++union START_STREAMING {
+     /* request */
+     struct {
+        /* request identifier */
+@@ -245,9 +245,9 @@
+        /* error */
+        uint8_t error;
+     } rsp;
+-} START_STREAMING;
++};
+
+-typedef union {
++union STOP_STREAMING {
+     /* request */
+     struct {
+        /* request identifier */
+@@ -260,9 +260,9 @@
+        /* error */
+        uint8_t error;
+     } rsp;
+-} STOP_STREAMING;
++};
+
+-typedef union {
++union GET_DEMOD_STATS {
+     /* request */
+     struct {
+        /* request identifier */
+@@ -277,9 +277,9 @@
+        /* demod stats */
+        struct as10x_demod_stats stats;
+     } rsp;
+-} GET_DEMOD_STATS;
++};
+
+-typedef union {
++union GET_IMPULSE_RESP {
+     /* request */
+     struct {
+        /* request identifier */
+@@ -294,9 +294,9 @@
+        /* impulse response ready */
+        uint8_t is_ready;
+     } rsp;
+-} GET_IMPULSE_RESP;
++};
+
+-typedef union {
++union FW_CONTEXT {
+     /* request */
+     struct {
+        /* request identifier */
+@@ -319,9 +319,9 @@
+        /* error */
+        uint8_t error;
+     } rsp;
+-} FW_CONTEXT;
++};
+
+-typedef union {
++union SET_REGISTER {
+     /* request */
+     struct {
+        /* response identifier */
+@@ -338,9 +338,9 @@
+        /* error */
+        uint8_t error;
+     } rsp;
+-} SET_REGISTER;
++};
+
+-typedef union {
++union GET_REGISTER {
+     /* request */
+     struct {
+        /* response identifier */
+@@ -357,9 +357,9 @@
+        /* register content */
+        struct as10x_register_value reg_val;
+     } rsp;
+-} GET_REGISTER;
++};
+
+-typedef union {
++union CFG_CHANGE_MODE {
+     /* request */
+     struct {
+        /* request identifier */
+@@ -374,7 +374,7 @@
+        /* error */
+        uint8_t error;
+     } rsp;
+-} CFG_CHANGE_MODE;
++};
+
+  struct as10x_cmd_header_t {
+     uint16_t req_id;
+@@ -384,7 +384,7 @@
+  };
+
+  #define DUMP_BLOCK_SIZE 16
+-typedef union {
++union DUMP_MEMORY {
+     /* request */
+     struct {
+        /* request identifier */
+@@ -411,9 +411,9 @@
+  	 uint32_t data32[DUMP_BLOCK_SIZE / sizeof(uint32_t)];
+        } u;
+     } rsp;
+-} DUMP_MEMORY;
++};
+
+-typedef union {
++union DUMPLOG_MEMORY {
+     struct {
+        /* request identifier */
+        uint16_t proc_id;
+@@ -430,9 +430,9 @@
+        /* dump data */
+        uint8_t data[DUMP_BLOCK_SIZE];
+     } rsp;
+-} DUMPLOG_MEMORY;
++};
+
+-typedef union {
++union RAW_DATA {
+     /* request */
+     struct {
+        uint16_t proc_id;
+@@ -445,32 +445,32 @@
+        uint8_t data[64 - sizeof(struct as10x_cmd_header_t) /* header */
+  		      - 2 /* proc_id */ - 1 /* rc */];
+     } rsp;
+-} RAW_DATA;
++};
+
+  struct as10x_cmd_t {
+     /* header */
+     struct as10x_cmd_header_t header;
+     /* body */
+     union {
+-      TURN_ON           turn_on;
+-      TURN_OFF          turn_off;
+-      SET_TUNE          set_tune;
+-      GET_TUNE_STATUS   get_tune_status;
+-      GET_TPS           get_tps;
+-      COMMON            common;
+-      ADD_PID_FILTER    add_pid_filter;
+-      DEL_PID_FILTER    del_pid_filter;
+-      START_STREAMING   start_streaming;
+-      STOP_STREAMING    stop_streaming;
+-      GET_DEMOD_STATS   get_demod_stats;
+-      GET_IMPULSE_RESP  get_impulse_rsp;
+-      FW_CONTEXT        context;
+-      SET_REGISTER      set_register;
+-      GET_REGISTER      get_register;
+-      CFG_CHANGE_MODE   cfg_change_mode;
+-      DUMP_MEMORY       dump_memory;
+-      DUMPLOG_MEMORY    dumplog_memory;
+-      RAW_DATA          raw_data;
++      union TURN_ON           turn_on;
++      union TURN_OFF          turn_off;
++      union SET_TUNE          set_tune;
++      union GET_TUNE_STATUS   get_tune_status;
++      union GET_TPS           get_tps;
++      union COMMON            common;
++      union ADD_PID_FILTER    add_pid_filter;
++      union DEL_PID_FILTER    del_pid_filter;
++      union START_STREAMING   start_streaming;
++      union STOP_STREAMING    stop_streaming;
++      union GET_DEMOD_STATS   get_demod_stats;
++      union GET_IMPULSE_RESP  get_impulse_rsp;
++      union FW_CONTEXT        context;
++      union SET_REGISTER      set_register;
++      union GET_REGISTER      get_register;
++      union CFG_CHANGE_MODE   cfg_change_mode;
++      union DUMP_MEMORY       dump_memory;
++      union DUMPLOG_MEMORY    dumplog_memory;
++      union RAW_DATA          raw_data;
+     } body;
+  };
+
+
+
+
+
