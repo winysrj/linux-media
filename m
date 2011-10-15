@@ -1,145 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.fr.smartjog.net ([95.81.144.3]:33356 "EHLO
-	mx.fr.smartjog.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932772Ab1JZOfK (ORCPT
+Received: from smtpo05.poczta.onet.pl ([213.180.142.136]:39498 "EHLO
+	smtpo05.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751218Ab1JOUy2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Oct 2011 10:35:10 -0400
-Message-ID: <4EA816E2.8080607@smartjog.com>
-Date: Wed, 26 Oct 2011 16:19:14 +0200
-From: Laurent Defert <laurent.defert@smartjog.com>
+	Sat, 15 Oct 2011 16:54:28 -0400
+Message-ID: <4E99F302.8050205@poczta.onet.pl>
+Date: Sat, 15 Oct 2011 22:54:26 +0200
+From: Piotr Chmura <chmooreck@poczta.onet.pl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] [media] compat_ioctl: add compat handler for FE_SET_PROPERTY
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+CC: Greg KH <gregkh@suse.de>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <maurochehab@gmail.com>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
+Subject: [PATCH 2/7] staging/as102: add new device nBox DVB-T Dongle
+References: <4E7F1FB5.5030803@gmail.com> <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com> <4E7FF0A0.7060004@gmail.com> <CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com> <20110927094409.7a5fcd5a@stein> <20110927174307.GD24197@suse.de> <20110927213300.6893677a@stein> <4E9992F9.7000101@poczta.onet.pl>
+In-Reply-To: <4E9992F9.7000101@poczta.onet.pl>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+staging/as102: add new device nBox DVB-T Dongle
 
-You'll find below a patch that implements the FE_SET_PROPERTY ioctl 
-compat code. This code is reached  when a 32 bit application does the 
-ioctl on a 64 bit kernel.
-There are other dvb ioctl that are missing from the compat layer 
-(FE_GET_PROPERTY and  FE_SET_FRONTEND_TUNE_MODE), if this patch is ok, 
-i'm going to write them as well.
+Add nBox DVB-T Dongle tuner based on 74e chip.
 
-Laurent
+Tested by me on amd64.
 
-commit 6647fda45d70d1947f2dff06c485aa64d78357d7
-Author: Laurent Defert <laurent.defert@smartjog.com>
-Date:   Wed Oct 26 14:32:29 2011 +0200
+Signed-off-by: Piotr Chmura<chmooreck@poczta.onet.pl>
+Cc: Devin Heitmueller<dheitmueller@kernellabs.com>
+Cc: Greg HK<gregkh@suse.de>
 
-[media] compat_ioctl: add compat handler for FE_SET_PROPERTY
+diff -Nur linux.as102.01-initial/drivers/staging/as102/as102_usb_drv.c linux.as102.02-nbox/drivers/staging/as102/as102_usb_drv.c
+--- linux.as102.01-initial/drivers/staging/as102/as102_usb_drv.c	2011-10-14 18:00:19.000000000 +0200
++++ linux.as102.02-nbox/drivers/staging/as102/as102_usb_drv.c	2011-10-14 18:21:36.000000000 +0200
+@@ -41,6 +41,7 @@
+  	{ USB_DEVICE(AS102_USB_DEVICE_VENDOR_ID, AS102_USB_DEVICE_PID_0001) },
+  	{ USB_DEVICE(PCTV_74E_USB_VID, PCTV_74E_USB_PID) },
+  	{ USB_DEVICE(ELGATO_EYETV_DTT_USB_VID, ELGATO_EYETV_DTT_USB_PID) },
++	{ USB_DEVICE(NBOX_DVBT_DONGLE_USB_VID, NBOX_DVBT_DONGLE_USB_PID) },
+  	{ } /* Terminating entry */
+  };
 
-fixes following error seen on x86_64 kernel:
-ioctl32(dvblast:6973): Unknown cmd fd(3) cmd(40086f52){t:'o';sz:8} 
-arg(0805a318) on /dev/dvb/adapter0/frontend0
+@@ -50,6 +51,7 @@
+  	AS102_REFERENCE_DESIGN,
+  	AS102_PCTV_74E,
+  	AS102_ELGATO_EYETV_DTT_NAME,
++	AS102_NBOX_DVBT_DONGLE_NAME,
+  	NULL /* Terminating entry */
+  };
 
-The argument (struct dtv_properties) contains a pointer to an array of 
-struct dtv_property.
-Both struct are converted to have proper pointer size.
+diff -Nur linux.as102.01-initial/drivers/staging/as102/as102_usb_drv.h linux.as102.02-nbox/drivers/staging/as102/as102_usb_drv.h
+--- linux.as102.01-initial/drivers/staging/as102/as102_usb_drv.h	2011-10-14 17:55:02.000000000 +0200
++++ linux.as102.02-nbox/drivers/staging/as102/as102_usb_drv.h	2011-10-14 18:20:32.000000000 +0200
+@@ -42,6 +42,11 @@
+  #define ELGATO_EYETV_DTT_USB_VID	0x0fd9
+  #define ELGATO_EYETV_DTT_USB_PID	0x002c
 
-Signed-off-by: Laurent Defert <laurent.defert@smartjog.com>
++/* nBox: nBox DVB-T Dongle */
++#define AS102_NBOX_DVBT_DONGLE_NAME	"nBox DVB-T Dongle"
++#define NBOX_DVBT_DONGLE_USB_VID	0x0b89
++#define NBOX_DVBT_DONGLE_USB_PID	0x0007
++
+  #if (LINUX_VERSION_CODE<= KERNEL_VERSION(2, 6, 18))
+  void as102_urb_stream_irq(struct urb *urb, struct pt_regs *regs);
+  #else
 
-diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
-index 51352de..6b89ff0 100644
---- a/fs/compat_ioctl.c
-+++ b/fs/compat_ioctl.c
-@@ -222,6 +222,84 @@ static int do_video_set_spu_palette(unsigned int 
-fd, unsigned int cmd,
-      return err;
-  }
 
-+struct compat_dtv_property {
-+    __u32 cmd;
-+    __u32 reserved[3];
-+    union {
-+        __u32 data;
-+        struct {
-+            __u8 data[32];
-+            __u32 len;
-+            __u32 reserved1[3];
-+            compat_uptr_t reserved2;
-+        } buffer;
-+    } u;
-+    int result;
-+};
-+
-+struct compat_dtv_properties {
-+    __u32 num;
-+    compat_uptr_t props;
-+};
-+
-+#define FE_SET_PROPERTY32    _IOW('o', 82, struct compat_dtv_properties)
-+
-+static int do_fe_set_property(unsigned int fd, unsigned int cmd,
-+        struct compat_dtv_properties __user *dtv32)
-+{
-+    struct dtv_properties __user *dtv;
-+    struct dtv_property __user *properties;
-+    struct compat_dtv_property __user *properties32;
-+    compat_uptr_t data;
-+
-+    int err;
-+    int i;
-+    __u32 num;
-+
-+    err = get_user(num, &dtv32->num);
-+    err |= get_user(data, &dtv32->props);
-+
-+    if(err)
-+        return -EFAULT;
-+
-+    dtv = compat_alloc_user_space(sizeof(struct dtv_properties) +
-+                    sizeof(struct dtv_property) * num);
-+    properties = (struct dtv_property*)((char*)dtv +
-+                    sizeof(struct dtv_properties));
-+
-+    err = put_user(properties, &dtv->props);
-+    err |= put_user(num, &dtv->num);
-+
-+    properties32 = compat_ptr(data);
-+
-+    if(err)
-+        return -EFAULT;
-+
-+    for(i = 0; i < num; i++) {
-+        compat_uptr_t reserved2;
-+
-+        err |= copy_in_user(&properties[i], &properties32[i],
-+                (8 * sizeof(__u32)) + (32 * sizeof(__u8)));
-+        err |= get_user(reserved2, &properties32[i].u.buffer.reserved2);
-+        err |= put_user(compat_ptr(reserved2),
-+ &properties[i].u.buffer.reserved2);
-+    }
-+
-+    if(err)
-+        return -EFAULT;
-+
-+    err = sys_ioctl(fd, FE_SET_PROPERTY, (unsigned long) dtv);
-+
-+    for(i = 0; i < num; i++) {
-+        if(copy_in_user(&properties[i].result, &properties32[i].result,
-+                                sizeof(int)))
-+            return -EFAULT;
-+    }
-+
-+    return err;
-+}
-+
-+
-  #ifdef CONFIG_BLOCK
-  typedef struct sg_io_hdr32 {
-      compat_int_t interface_id;    /* [i] 'S' for SCSI generic 
-(required) */
-@@ -1470,6 +1548,8 @@ static long do_ioctl_trans(int fd, unsigned int cmd,
-          return do_video_stillpicture(fd, cmd, argp);
-      case VIDEO_SET_SPU_PALETTE:
-          return do_video_set_spu_palette(fd, cmd, argp);
-+    case FE_SET_PROPERTY32:
-+        return do_fe_set_property(fd, cmd, argp);
-      }
 
-      /*
 
