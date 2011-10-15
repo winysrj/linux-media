@@ -1,135 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:64747 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752400Ab1JHQMJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Oct 2011 12:12:09 -0400
-Received: by ywb5 with SMTP id 5so4408833ywb.19
-        for <linux-media@vger.kernel.org>; Sat, 08 Oct 2011 09:12:09 -0700 (PDT)
+Received: from claranet-outbound-smtp01.uk.clara.net ([195.8.89.34]:55368 "EHLO
+	claranet-outbound-smtp01.uk.clara.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751387Ab1JOU70 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Oct 2011 16:59:26 -0400
+Message-ID: <95e7f2b3b44ccb1f24d60cf8b0ad8d47.squirrel@ssl-webmail-vh.clara.net>
+Date: Sat, 15 Oct 2011 21:59:25 +0100
+Subject: Pinnacle 700-USB capture device mis-recognised, duplicate USB
+ VID:PID?
+From: markk@clara.co.uk
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-In-Reply-To: <201110081751.38953.laurent.pinchart@ideasonboard.com>
-References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
- <CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
- <CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com> <201110081751.38953.laurent.pinchart@ideasonboard.com>
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Date: Sat, 8 Oct 2011 18:11:49 +0200
-Message-ID: <CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
-Subject: Re: omap3-isp status
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Enrico <ebutera@users.berlios.de>,
-	Deepthy Ravi <deepthy.ravi@ti.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Adam Pledger <a.pledger@thermoteknix.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Oct 8, 2011 at 5:51 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi,
->
-> On Friday 07 October 2011 11:31:46 Javier Martinez Canillas wrote:
->> On Fri, Oct 7, 2011 at 10:54 AM, Enrico wrote:
->> > On Thu, Oct 6, 2011 at 6:05 PM, Javier Martinez Canillas wrote:
->> >> On Thu, Oct 6, 2011 at 5:25 PM, Enrico wrote:
->> >>> - i don't see Deepthy patches, it seems to be based on the
->> >>> pre-Deepthy-patches driver and fixed (not that this is a bad thing!);
->> >>> i say this because, like Gary, i'm interested in a possible forward
->> >>> porting to a more recent kernel so i was searching for a starting
->> >>> point
->> >>
->> >> I didn't know there was a more recent version of Deepthy patches,
->> >> Since they are not yet in mainline we should decide if we work on top
->> >> of that or on top of mainline. Deepthy patches are very good to
->> >> separate bt656 and non-bt656 execution inside the ISP, also add a
->> >> platform data variable to decide which mode has to be used.
->> >>
->> >> But reading the documentation and from my experimental validation I
->> >> think that there are a few things that can be improved.
->> >>
->> >> First the assumption that we can use FLDSTAT to check if a frame is
->> >> ODD or EVEN I find to not always be true. Also I don't know who sets
->> >> this value since in the TRM always talks as it is only used with
->> >> discrete syncs.
->> >
->> > Yes about FLDSTAT i noticed the same thing. And that's why we need
->> > someone that knows the ISP better to help us....
->>
->> Great, good to know that I'm not the only one that noticed this behavior.
->>
->> >> Also, I don't think that we should change the ISP CCDC configuration
->> >> inside the VD0 interrupt handler. Since the shadowed registers only
->> >> can be accessed during a frame processing, or more formally the new
->> >> values are taken at the beginning of a frame execution.
->> >>
->> >> By the time we change for example the output address memory for the
->> >> next buffer in the VD0 handler, the next frame is already being
->> >> processed so that value won't be used for the CCDC until that frame
->> >> finish. So It is not behaving as the code expect, since for 3 frames
->> >> the CCDC output memory address will be the same.
->> >>
->> >> That is why I move most of the logic to the VD1 interrupt since there
->> >> the current frame didn't finish yet and we can configure the CCDC for
->> >> the next frame.
->> >>
->> >> But to do that the buffer for the next frame and the releasing of the
->> >> last buffer can't happen simultaneously, that is why I decouple these
->> >> two actions.
->> >>
->> >> Again, this is my own observations and what I understood from the TRM
->> >> and I could be wrong.
->> >
->> > I can't comment on that, i hope Laurent or Deepthy will join the
->> > discussion...
->>
->> I second you on that, we need someone who knows the ISP better than we
->> do. I have to fix this anyway, so it is better if I can do it the
->> right way and the code gos upstream, so we don't have to internally
->> maintain a separate patch-set and forward port for each kernel release
->> we do.
->
-> Two quick comments, as I haven't had time to look into this recently.
->
-> 1. I've updated the omap3isp-omap3isp-yuv branch with a new CCDC YUV support
-> patch which should (hopefully) configure the bridge automatically and report
-> correct formats at the CCDC output. The patch hasn't been tested as I still
-> don't have access to YUV hardware.
->
+Hi,
 
-Hello Laurent, I'm glad to see that you are joining the thread :)
+I have a Pinnacle Systems 700-USB video capture device which was bundled
+with Studio video editing software as Studio Plus 10. The capture device
+may also have been known as Moviebox Deluxe. It has composite, S-video and
+stereo audio inputs and outputs, and a Firewire port (can capture DV from
+a camcorder over USB, or play back DV for recording to a camcorder).
 
-> 2. Could you guys please rebase all your patches on top of the omap3isp-
-> omap3isp-yuv branch ? I will then review them.
->
+Some info at
+http://www.pinnaclesys.com/PublicSite/us/Products/Consumer+Products/Home+Video/Studio+Family/Studio+Plus+700-USB+version+10+Documents/Technical+Specifications/Technical+Specifications.htm
 
-Yes, I'll cook a patch today on top on your omap3isp-yuv and send for
-review. I won't be able to test neither since I don't have proper
-hardware at home. But at least you will get an idea of the approach we
-are using to solve this and can point possible flaws.
+Windows drivers are available from
+	http://cdn.pinnaclesys.com/SupportFiles/Hardware_Installer/readmeHW10.htm
+direct URLs
+	http://cdn.pinnaclesys.com/SupportFiles/Hardware_Installer/PCLEUSB2x32.exe
+	http://cdn.pinnaclesys.com/SupportFiles/Hardware_Installer/Pinnacle_Video_Driver_64bit.exe
 
->> >>> - i don't think that adding the "priv" field in v4l2-mediabus.h will
->> >>> be accepted, and since it is related to the default cropping you added
->> >>> i think it can be dropped and just let the user choose the appropriate
->> >>> cropping
->> >>
->> >> Yes, probably is too much of a hack, but I didn't know of another way
->> >> that the subdev could report to the ISP of the standard and since
->> >> v4l2_pix_format has also a priv field, I think it could be at least a
->> >> temporary solution (remember that we want this to work first and then
->> >> we plan to do it right for upstream submission).
->> >
->> > ...and my hope continues here.
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+In Windows, the 700-USB uses the same driver as the current model Moviebox
+Plus 710, MarvinAVS.sys and MarvinUsb.ax. There is also a  "Pinnacle
+Marvin Bus" entry under System devices in the Windows Device Manager,
+which uses MarvinBus.sys.
 
-Thanks a lot for your time.
+The first problem is that it is mis-recognised by Linux, which tries to
+use the usbvision driver. The 700-USB USB VID:PID is 2304:0212. Looking at
+the usb.ids file, that ID is for the "Studio PCTV USB (NTSC)".
 
--- 
-Javier Martínez Canillas
-(+34) 682 39 81 69
-Barcelona, Spain
+Now, Windows drivers for the PCTV USB (an old USB 1.x capture device, from
+circa 2000) can be downloaded from
+	ftp://ftp.pinnaclesys.de/driver/pc/tvusb/PCTVUSBW2K104.exe
+(Warning: large file!)
+Download and unpack that, check pctvusb2.inf. (My guess is it contains
+details for a later hardware revision; it doesn't refer to high-speed USB
+2.0.) An excerpt:
+  %P0211.DeviceDesc% = P0211.Install,USB\VID_2304&PID_0211	;PAL,   R,P
+  %P0212.DeviceDesc% = P0212.Install,USB\VID_2304&PID_0212	;NTSC,	R,T
+  %P0213.DeviceDesc% = P0213.Install,USB\VID_2304&PID_0213	;NTSC, 	R,P
+  %P0214.DeviceDesc% = P0214.Install,USB\VID_2304&PID_0214	;PAL I, R,T
+
+Did Pinnacle release two different products with the same USB VID:PID? Or
+perhaps there are entries in pctvusb2.inf for products which were never
+actually released, so the IDs were reassigned to later products? If anyone
+has an original PCTV USB with VID:PID 2302:0212, please let me know.
+
+Looking at the INF file for the 700-USB driver (MarvinAVS.inf):
+  [Marvin.Device]
+  %Marvin.DeviceDesc%=Marvin.Install,USB\VID_2304&PID_0206         ;
+Marvin-classic
+  %MarvinCR.DeviceDesc%=MarvinCR.Install,USB\VID_2304&PID_0212     ;
+Marvin-CR
+  %MarvinLite.DeviceDesc%=MarvinLite.Install,USB\VID_2304&PID_0213 ;
+Marvin-Lite
+  %Marvin510.DeviceDesc%=Marvin510.Install,USB\VID_2304&PID_0223	 ;
+Marvin-510
+  %Marvin710.DeviceDesc%=Marvin710.Install,USB\VID_2304&PID_0224   ;
+Marvin-710
+
+So the "Marvin-Lite" also has a duplicated VID:PID. Marvin-Lite must be
+the 500-USB capture device, and is listed correctly in usb.ids.
+
+There's another duplicated entry in MarvinPro.inf. This for the USB
+breakout box supplied with Pinnacle/Avid Liquid Pro (similar to the
+700-USB but with 5.1 audio and component video in/out):
+  %Marvin.DeviceDesc%=Marvin.Install,USB\VID_2304&PID_0211 ; FX2
+MarvinDiscrete Pro Rev. 0.1
+
+-- Mark
+
+
