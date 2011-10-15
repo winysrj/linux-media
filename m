@@ -1,54 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:50272 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933898Ab1JEGPH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 02:15:07 -0400
-From: Oliver Neukum <oneukum@suse.de>
-To: Antti Palosaari <crope@iki.fi>
-Subject: Re: serial device name for smart card reader that is integrated to Anysee DVB USB device
-Date: Wed, 5 Oct 2011 08:15:17 +0200
-Cc: Greg KH <greg@kroah.com>, linux-serial@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-	=?iso-8859-1?q?Bj=F8rn_Mork?= <bjorn@mork.no>,
-	"James Courtier-Dutton" <james.dutton@gmail.com>,
-	HoP <jpetrous@gmail.com>,
-	=?iso-8859-1?q?Istv=E1n_V=E1radi?= <ivaradi@gmail.com>
-References: <4E8B7901.2050700@iki.fi> <20111005045917.GB4700@kroah.com> <4E8BF21B.4010907@iki.fi>
-In-Reply-To: <4E8BF21B.4010907@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.17.10]:51987 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752951Ab1JOOZm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Oct 2011 10:25:42 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCHv16 0/9] Contiguous Memory Allocator
+Date: Sat, 15 Oct 2011 16:24:45 +0200
+Cc: Paul McKenney <paul.mckenney@linaro.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Johannes Weiner <jweiner@redhat.com>
+References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com> <201110111552.04615.arnd@arndb.de> <20111014161951.5b4bb327.akpm@linux-foundation.org>
+In-Reply-To: <20111014161951.5b4bb327.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201110050815.17949.oneukum@suse.de>
+Content-Transfer-Encoding: 7bit
+Message-Id: <201110151624.47336.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, 5. Oktober 2011, 07:58:51 schrieb Antti Palosaari:
-> On 10/05/2011 07:59 AM, Greg KH wrote:
-
-> > Why not just use the usb-serial core and then you get a ttyUSB* device
-> > node "for free"?  It also should provide a lot of the basic tty
-> > infrastructure and ring buffer logic all ready to use.
+On Saturday 15 October 2011, Andrew Morton wrote:
 > 
-> Since I don't see how I can access same platform data from DVB USB  and 
-> USB-serial driver (usb_set_intfdata). I asked that earlier, see: 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg36027.html
+> On Tue, 11 Oct 2011 15:52:04 +0200
+> Arnd Bergmann <arnd@arndb.de> wrote:
+> > What I would really want to hear from you is your opinion on
+> > the architecture independent stuff. Obviously, ARM is the
+> > most important consumer of the patch set, but I think the
+> > code has its merit on other architectures as well and most of
+> > them (maybe not parisc) should be about as simple as the x86
+> > one that Marek posted now with v16.
+> 
+> Having an x86 implementation is good.  It would also be good to get
+> some x86 drivers using CMA asap, so the thing gets some runtime testing
+> from the masses.  Can we think of anything we can do here?
 
-Yes, and I'll have to give you the same answer as then.
+With the current implementation, all drivers that use dma_alloc_coherent
+automatically use CMA, there is no need to modify any driver. On
+the other hand, nothing on x86 currently actually requires this feature
+(otherwise it would be broken already), making it hard to test the
+actual migration path.
 
-But, Greg, Antti makes a very valid point here. The generic code assumes that
-it owns intfdata, that is you cannot use it as is for access to anything that lacks
-its own interface. But this is not a fatal flaw. We can alter the generic code to use
-an accessor function the driver can provide and make it default to get/set_intfdata
+The best test I can think of would be a network benchmark under memory
+pressure, preferrably one that use large jumbo frames (64KB).
 
-What do you think?
-
-	Regards
-		Oliver
--- 
-- - - 
-SUSE LINUX Products GmbH, GF: Jeff Hawn, Jennifer Guild, Felix Imendörffer, HRB 16746 (AG Nürnberg) 
-Maxfeldstraße 5                         
-90409 Nürnberg 
-Germany 
-- - - 
+	Arnd
