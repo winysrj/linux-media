@@ -1,90 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:43526 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753639Ab1JPJjO (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:38024 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752578Ab1JOQur (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Oct 2011 05:39:14 -0400
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Andrew Morton" <akpm@linux-foundation.org>
-Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	"Kyungmin Park" <kyungmin.park@samsung.com>,
-	"Russell King" <linux@arm.linux.org.uk>,
-	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"Ankita Garg" <ankita@in.ibm.com>,
-	"Daniel Walker" <dwalker@codeaurora.org>,
-	"Mel Gorman" <mel@csn.ul.ie>, "Arnd Bergmann" <arnd@arndb.de>,
-	"Jesse Barker" <jesse.barker@linaro.org>,
-	"Jonathan Corbet" <corbet@lwn.net>,
-	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
-	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
-	"Dave Hansen" <dave@linux.vnet.ibm.com>
-Subject: Re: [PATCH 2/9] mm: alloc_contig_freed_pages() added
-References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
- <1317909290-29832-3-git-send-email-m.szyprowski@samsung.com>
- <20111014162933.d8fead58.akpm@linux-foundation.org>
- <op.v3fpwyxc3l0zgt@mpn-glaptop>
- <20111016013116.53032449.akpm@linux-foundation.org>
-Date: Sun, 16 Oct 2011 11:39:10 +0200
-MIME-Version: 1.0
+	Sat, 15 Oct 2011 12:50:47 -0400
+Subject: Re: [git:v4l-dvb/for_v3.2] [media] cx25840: Enable support for
+ non-tuner LR1/LR2 audio inputs
+From: Andy Walls <awalls@md.metrocast.net>
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linuxtv-commits@linuxtv.org,
+	"Igor M. Liplianin" <liplianin@netup.ru>,
+	Steven Toth <stoth@kernellabs.com>
+Date: Sat, 15 Oct 2011 12:52:36 -0400
+In-Reply-To: <E1REoKF-0005w5-BM@www.linuxtv.org>
+References: <E1REoKF-0005w5-BM@www.linuxtv.org>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.v3fufkaw3l0zgt@mpn-glaptop>
-In-Reply-To: <20111016013116.53032449.akpm@linux-foundation.org>
+Message-ID: <1318697558.3274.13.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On Sun, 16 Oct 2011 10:01:36 +0200 "Michal Nazarewicz" wrote:
->> Still, as I think of it now, maybe alloc_contig_free_range() would be
->> better?
+On Fri, 2011-10-14 at 22:15 +0200, Mauro Carvalho Chehab wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the 
+> http://git.linuxtv.org/media_tree.git tree:
+> 
+> Subject: [media] cx25840: Enable support for non-tuner LR1/LR2 audio inputs
+> Author:  Steven Toth <stoth@kernellabs.com>
+> Date:    Mon Oct 10 11:09:55 2011 -0300
+> 
+> The change effects cx23885 boards only and preserves support for existing
+> boards. Essentially, if we're using baseband audio into the cx23885 AV
+> core then we have to patch registers. The cx23885 driver will call
+> with either CX25840_AUDIO8 to signify tuner audio or AUDIO7 to
+> signify baseband audio. If/When we become more comfortable with this change
+> across a series of products then we may decide to relax the cx23885 only
+> restriction.
+> 
+> [liplianin@netup.ru: fix missing state declaration]
+> 
+> Signed-off-by: Steven Toth <stoth@kernellabs.com>
+> Signed-off-by: Igor M. Liplianin <liplianin@netup.ru>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+>  drivers/media/video/cx25840/cx25840-audio.c |   10 +++++++++-
+>  drivers/media/video/cx25840/cx25840-core.c  |   11 +++++++++++
+>  2 files changed, 20 insertions(+), 1 deletions(-)
+> 
+> ---
+> 
+> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=2ccdd9a59b3a1ff3bd1be6390c4b1989a008e61c
+> 
+> diff --git a/drivers/media/video/cx25840/cx25840-audio.c b/drivers/media/video/cx25840/cx25840-audio.c
+> index 34b96c7..005f110 100644
+> --- a/drivers/media/video/cx25840/cx25840-audio.c
+> +++ b/drivers/media/video/cx25840/cx25840-audio.c
+> @@ -480,6 +480,7 @@ void cx25840_audio_set_path(struct i2c_client *client)
+>  
+>  static void set_volume(struct i2c_client *client, int volume)
+>  {
+> +	struct cx25840_state *state = to_state(i2c_get_clientdata(client));
+>  	int vol;
+>  
+>  	/* Convert the volume to msp3400 values (0-127) */
+> @@ -495,7 +496,14 @@ static void set_volume(struct i2c_client *client, int volume)
+>  	}
+>  
+>  	/* PATH1_VOLUME */
+> -	cx25840_write(client, 0x8d4, 228 - (vol * 2));
+> +	if (is_cx2388x(state)) {
+> +		/* for cx23885 volume doesn't work,
+> +		 * the calculation always results in
+> +		 * e4 regardless.
+> +		 */
+> +		cx25840_write(client, 0x8d4, volume);
 
-On Sun, 16 Oct 2011 10:31:16 +0200, Andrew Morton wrote:
-> Nope.  Of *course* the pages were free.  Otherwise we couldn't
-> (re)allocate them.  I still think the "free" part is redundant.
+Sigh.  All the comments I made in this thread still seem to apply:
 
-Makes sense.
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg21049.html
 
-> What could be improved is the "alloc" part.  This really isn't an
-> allocation operation.  The pages are being removed from buddy then
-> moved into the free arena of a different memory manager from where they
-> will _later_ be "allocated".
+In the case of this conditional code branch:
 
-Not quite.  After alloc_contig_range() returns, the pages are passed with
-no further processing to the caller.  Ie. the area is not later split into
-several parts nor kept in CMA's pool unused.
+"IIRC the change set also does not have a complementary conditional code
+branch when reading out the volume value from the register.  (But I
+don't have time to double check that right now [...]"
 
-alloc_contig_freed_pages() is a little different since it must be called on
-a buddy page boundary and may return more then requested (because of the way
-buddy system merges buddies) so there is a little processing after it returns
-(namely freeing of the excess pages).
+Regards,
+Andy
 
-> So we should move away from the alloc/free naming altogether for this
-> operation and think up new terms.  How about "claim" and "release"?
-> claim_contig_pages, claim_contig_range, release_contig_pages, etc?
-> Or we could use take/return.
+> +	} else
+> +		cx25840_write(client, 0x8d4, 228 - (vol * 2));
+>  }
+>  
+>  static void set_balance(struct i2c_client *client, int balance)
+> diff --git a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
+> index 8896999..0316e41 100644
+> --- a/drivers/media/video/cx25840/cx25840-core.c
+> +++ b/drivers/media/video/cx25840/cx25840-core.c
+> @@ -1074,6 +1074,17 @@ static int set_input(struct i2c_client *client, enum cx25840_video_input vid_inp
+>  		cx25840_write(client, 0x919, 0x01);
+>  	}
+>  
+> +	if (is_cx2388x(state) && (aud_input == CX25840_AUDIO7)) {
+> +		/* Configure audio from LR1 or LR2 input */
+> +		cx25840_write4(client, 0x910, 0);
+> +		cx25840_write4(client, 0x8d0, 0x63073);
+> +	} else
+> +	if (is_cx2388x(state) && (aud_input == CX25840_AUDIO8)) {
+> +		/* Configure audio from tuner/sif input */
+> +		cx25840_write4(client, 0x910, 0x12b000c9);
+> +		cx25840_write4(client, 0x8d0, 0x1f063870);
+> +	}
+> +
+>  	return 0;
+>  }
+>  
+> 
+> _______________________________________________
+> linuxtv-commits mailing list
+> linuxtv-commits@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
 
-Personally, I'm not convinced about changing the names of alloc_contig_range()
-and free_contig_pages() but I see merit in changing alloc_contig_freed_pages()
-to something else.
 
-Since at the moment, it's used only by alloc_contig_range(), I'd lean
-towards removing it from page-isolation.h, marking as static and renaming
-to __alloc_contig_range().
-
-> Also, if we have no expectation that anything apart from CMA will use
-> these interfaces (?), the names could/should be prefixed with "cma_".
-
-In Kamezawa's original patchset, he used those for a bit different
-approach (IIRC, Kamezawa's patchset introduced a function that scanned memory
-and tried to allocate contiguous memory where it could), so I can imagine that
-someone will make use of those functions.  It may be used in any situation
-where a range of pages is either free (ie. in buddy system) or movable and
-one wants to allocate them for some reason.
-
--- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
-ooo +--<mina86@mina86.com>---<mina86@jabber.org>---ooO--(_)--Ooo--
