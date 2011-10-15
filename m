@@ -1,67 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:25484 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932353Ab1JRQ2S (ORCPT
+Received: from smtpo05.poczta.onet.pl ([213.180.142.136]:32881 "EHLO
+	smtpo05.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751218Ab1JOUzO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Oct 2011 12:28:18 -0400
-Date: Tue, 18 Oct 2011 19:24:23 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Piotr Chmura <chmooreck@poczta.onet.pl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	devel@driverdev.osuosl.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	Greg KH <gregkh@suse.de>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/14] staging/media/as102: initial import from Abilis
-Message-ID: <20111018162423.GA24215@longonot.mountain>
-References: <20110927094409.7a5fcd5a@stein>
- <20110927174307.GD24197@suse.de>
- <20110927213300.6893677a@stein>
- <4E999733.2010802@poczta.onet.pl>
- <4E99F2FC.5030200@poczta.onet.pl>
- <20111016105731.09d66f03@stein>
- <CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
- <4E9ADFAE.8050208@redhat.com>
- <20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
- <20111018111134.8482d1f8.chmooreck@poczta.onet.pl>
+	Sat, 15 Oct 2011 16:55:14 -0400
+Message-ID: <4E99F32F.6070101@poczta.onet.pl>
+Date: Sat, 15 Oct 2011 22:55:11 +0200
+From: Piotr Chmura <chmooreck@poczta.onet.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20111018111134.8482d1f8.chmooreck@poczta.onet.pl>
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+CC: Greg KH <gregkh@suse.de>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <maurochehab@gmail.com>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
+Subject: [PATCH 6/7] staging/as102: cleanup - get rid of editor comments
+References: <4E7F1FB5.5030803@gmail.com> <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com> <4E7FF0A0.7060004@gmail.com> <CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com> <20110927094409.7a5fcd5a@stein> <20110927174307.GD24197@suse.de> <20110927213300.6893677a@stein> <4E999733.2010802@poczta.onet.pl>
+In-Reply-To: <4E999733.2010802@poczta.onet.pl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 18, 2011 at 11:11:34AM +0200, Piotr Chmura wrote:
-> diff --git linux/drivers/staging/media/as102/Kconfig linuxb/drivers/media/dvb/as102/Kconfig
-> new file mode 100644
-> --- /dev/null
-> +++ linuxb/drivers/staging/media/as102/Kconfig
-> @@ -0,0 +1,7 @@
-> +config DVB_AS102
-> +	tristate "Abilis AS102 DVB receiver"
-> +	depends on DVB_CORE && USB && I2C && INPUT
-> +	help
-> +	  Choose Y or M here if you have a device containing an AS102
-> +
-> +	  To compile this driver as a module, choose M here
-> diff --git linux/drivers/staging/media/as102/Makefile linuxb/drivers/media/dvb/as102/Makefile
-> new file mode 100644
-> --- /dev/null
-> +++ linuxb/drivers/staging/media/as102/Makefile
-> @@ -0,0 +1,5 @@
-> +dvb-as102-objs := as102_drv.o as102_fw.o as10x_cmd.o as10x_cmd_stream.o as102_fe.o as102_usb_drv.o as10x_cmd_cfg.o
-> +
-> +obj-$(CONFIG_DVB_AS102) += dvb-as102.o
-> +
-> +EXTRA_CFLAGS += -DLINUX -DCONFIG_AS102_USB -Idrivers/media/dvb/dvb-core
+staging/as102: cleanup - get rid of editor comments
 
-It sounds like you're going to do a resend to add in the
-Signed-off-by lines?
+Cleanup code: Delete vim formatting comments.
 
-It would be better to separate these two chunks out and put them at
-the end after you've fixed the compile errors in [PATCH 13/14].
+Signed-off-by: Piotr Chmura<chmooreck@poczta.onet.pl>
+Cc: Devin Heitmueller<dheitmueller@kernellabs.com>
+Cc: Greg HK<gregkh@suse.de>
 
-regards,
-dan carpenter
+
+
+diff -Nur linux.as102.05-pragmapack/drivers/staging/as102/as102_drv.c linux.as102.06-editor/drivers/staging/as102/as102_drv.c
+--- linux.as102.05-pragmapack/drivers/staging/as102/as102_drv.c	2011-10-14 23:20:05.000000000 +0200
++++ linux.as102.06-editor/drivers/staging/as102/as102_drv.c	2011-10-14 23:42:30.000000000 +0200
+@@ -356,5 +356,3 @@
+  MODULE_DESCRIPTION(DRIVER_FULL_NAME);
+  MODULE_LICENSE("GPL");
+  MODULE_AUTHOR("Pierrick Hascoet<pierrick.hascoet@abilis.com>");
+-
+-/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
+diff -Nur linux.as102.05-pragmapack/drivers/staging/as102/as102_drv.h linux.as102.06-editor/drivers/staging/as102/as102_drv.h
+--- linux.as102.05-pragmapack/drivers/staging/as102/as102_drv.h	2011-10-14 22:21:58.000000000 +0200
++++ linux.as102.06-editor/drivers/staging/as102/as102_drv.h	2011-10-14 23:42:40.000000000 +0200
+@@ -143,5 +143,3 @@
+  int as102_dvb_register_fe(struct as102_dev_t *dev, struct dvb_frontend *fe);
+  int as102_dvb_unregister_fe(struct dvb_frontend *dev);
+  #endif
+-
+-/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
+diff -Nur linux.as102.05-pragmapack/drivers/staging/as102/as102_fe.c linux.as102.06-editor/drivers/staging/as102/as102_fe.c
+--- linux.as102.05-pragmapack/drivers/staging/as102/as102_fe.c	2011-10-14 23:21:51.000000000 +0200
++++ linux.as102.06-editor/drivers/staging/as102/as102_fe.c	2011-10-14 23:42:47.000000000 +0200
+@@ -671,5 +671,3 @@
+  	}
+  }
+  #endif
+-
+-/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
+diff -Nur linux.as102.05-pragmapack/drivers/staging/as102/as102_fw.c linux.as102.06-editor/drivers/staging/as102/as102_fw.c
+--- linux.as102.05-pragmapack/drivers/staging/as102/as102_fw.c	2011-10-14 23:22:33.000000000 +0200
++++ linux.as102.06-editor/drivers/staging/as102/as102_fw.c	2011-10-14 23:42:54.000000000 +0200
+@@ -247,5 +247,3 @@
+  	return errno;
+  }
+  #endif
+-
+-/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
+diff -Nur linux.as102.05-pragmapack/drivers/staging/as102/as102_fw.h linux.as102.06-editor/drivers/staging/as102/as102_fw.h
+--- linux.as102.05-pragmapack/drivers/staging/as102/as102_fw.h	2011-10-14 23:38:24.000000000 +0200
++++ linux.as102.06-editor/drivers/staging/as102/as102_fw.h	2011-10-14 23:43:00.000000000 +0200
+@@ -36,5 +36,3 @@
+  #ifdef __KERNEL__
+  int as102_fw_upload(struct as102_bus_adapter_t *bus_adap);
+  #endif
+-
+-/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
+diff -Nur linux.as102.05-pragmapack/drivers/staging/as102/as102_usb_drv.c linux.as102.06-editor/drivers/staging/as102/as102_usb_drv.c
+--- linux.as102.05-pragmapack/drivers/staging/as102/as102_usb_drv.c	2011-10-14 23:23:14.000000000 +0200
++++ linux.as102.06-editor/drivers/staging/as102/as102_usb_drv.c	2011-10-14 23:43:07.000000000 +0200
+@@ -482,5 +482,3 @@
+  }
+
+  MODULE_DEVICE_TABLE(usb, as102_usb_id_table);
+-
+-/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
+diff -Nur linux.as102.05-pragmapack/drivers/staging/as102/as102_usb_drv.h linux.as102.06-editor/drivers/staging/as102/as102_usb_drv.h
+--- linux.as102.05-pragmapack/drivers/staging/as102/as102_usb_drv.h	2011-10-14 22:22:15.000000000 +0200
++++ linux.as102.06-editor/drivers/staging/as102/as102_usb_drv.h	2011-10-14 23:43:13.000000000 +0200
+@@ -61,4 +61,3 @@
+  	struct as10x_cmd_t r;
+  };
+  #endif
+-/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
+diff -Nur linux.as102.05-pragmapack/drivers/staging/as102/as10x_cmd.h linux.as102.06-editor/drivers/staging/as102/as10x_cmd.h
+--- linux.as102.05-pragmapack/drivers/staging/as102/as10x_cmd.h	2011-10-14 23:39:06.000000000 +0200
++++ linux.as102.06-editor/drivers/staging/as102/as10x_cmd.h	2011-10-14 23:43:20.000000000 +0200
+@@ -534,4 +534,3 @@
+  }
+  #endif
+  #endif
+-/* EOF - vim: set textwidth=80 ts=3 sw=3 sts=3 et: */
+
+
+
+
+
