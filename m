@@ -1,49 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37771 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753326Ab1JXHWQ (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:62229 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751376Ab1JPIBl convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Oct 2011 03:22:16 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: hvaibhav@ti.com
-Subject: Re: [GIT PULL for v3.2] OMAP_VOUT: Few cleaups and feature addition
-Date: Mon, 24 Oct 2011 09:22:45 +0200
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com
-References: <1319285184-14605-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <1319285184-14605-1-git-send-email-hvaibhav@ti.com>
+	Sun, 16 Oct 2011 04:01:41 -0400
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	"Andrew Morton" <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Russell King" <linux@arm.linux.org.uk>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"Ankita Garg" <ankita@in.ibm.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Mel Gorman" <mel@csn.ul.ie>, "Arnd Bergmann" <arnd@arndb.de>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Jonathan Corbet" <corbet@lwn.net>,
+	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
+	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>
+Subject: Re: [PATCH 2/9] mm: alloc_contig_freed_pages() added
+References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
+ <1317909290-29832-3-git-send-email-m.szyprowski@samsung.com>
+ <20111014162933.d8fead58.akpm@linux-foundation.org>
+Date: Sun, 16 Oct 2011 10:01:36 +0200
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201110240922.45744.laurent.pinchart@ideasonboard.com>
+Content-Transfer-Encoding: 8BIT
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.v3fpwyxc3l0zgt@mpn-glaptop>
+In-Reply-To: <20111014162933.d8fead58.akpm@linux-foundation.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vaibhav,
+On Sat, 15 Oct 2011 01:29:33 +0200, Andrew Morton <akpm@linux-foundation.org> wrote:
 
-On Saturday 22 October 2011 14:06:24 hvaibhav@ti.com wrote:
-> Hi Mauro,
-> 
-> The following changes since commit
-> 35a912455ff5640dc410e91279b03e04045265b2: Mauro Carvalho Chehab (1):
->         Merge branch 'v4l_for_linus' into staging/for_v3.2
-> 
-> are available in the git repository at:
-> 
->   git://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git
-> for-linux-media
-> 
-> Archit Taneja (5):
->       OMAP_VOUT: Fix check in reqbuf for buf_size allocation
->       OMAP_VOUT: CLEANUP: Remove redundant code from omap_vout_isr
->       OMAP_VOUT: Fix VSYNC IRQ handling in omap_vout_isr
->       OMAP_VOUT: Add support for DSI panels
->       OMAP_VOUT: Increase MAX_DISPLAYS to a larger value
+> On Thu, 06 Oct 2011 15:54:42 +0200
+> Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+>
+>> From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+>>
+>> This commit introduces alloc_contig_freed_pages() function
+>
+> The "freed" seems redundant to me.  Wouldn't "alloc_contig_pages" be a
+> better name?
 
-What about http://patchwork.linuxtv.org/patch/299/ ? Do you plan to push it 
-through your tree, or should I push it through mine ?
+The “freed” is there because the function operates on pages that are in
+buddy system, ie. it is given a range of PFNs that are to be removed
+ from buddy system.
 
--- 
-Regards,
+There's also a alloc_contig_range() function (added by next patch)
+which frees pages in given range and then calls
+alloc_contig_free_pages() to allocate them.
 
-Laurent Pinchart
+IMO, if there was an alloc_contig_pages() function, it would have to
+be one level up (ie. it would figure out where to allocate memory and
+then call alloc_contig_range()).  (That's really what CMA is doing).
+
+Still, as I think of it now, maybe alloc_contig_free_range() would be
+better?
