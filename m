@@ -1,131 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:54105 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964981Ab1JFQFe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 12:05:34 -0400
-Received: by yxl31 with SMTP id 31so2741250yxl.19
-        for <linux-media@vger.kernel.org>; Thu, 06 Oct 2011 09:05:33 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CA+2YH7sdNxfeJvwMOq0zTVKJCQbsR6NekdjU1VW9sJPOUYw6tw@mail.gmail.com>
-References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
- <CAAwP0s0Z+EaRfY_9c0QLm0ZpyfG5Dy1qb9pFq=PRxzOOTwKTJw@mail.gmail.com>
- <CAAwP0s1tK5XjmJmtvRFJ2+ADvoMP1ihf3z0UaJAfXOoJ=UrVqg@mail.gmail.com> <CA+2YH7sdNxfeJvwMOq0zTVKJCQbsR6NekdjU1VW9sJPOUYw6tw@mail.gmail.com>
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Date: Thu, 6 Oct 2011 18:05:12 +0200
-Message-ID: <CAAwP0s3RFoyV6-RtLxh8amFZh1qpWhF7dMD46OoMQ7CY8-1AfA@mail.gmail.com>
-Subject: Re: omap3-isp status
-To: Enrico <ebutera@users.berlios.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Adam Pledger <a.pledger@thermoteknix.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:46152 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750818Ab1JPU0m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Oct 2011 16:26:42 -0400
+Received: by wwe6 with SMTP id 6so1243618wwe.1
+        for <linux-media@vger.kernel.org>; Sun, 16 Oct 2011 13:26:41 -0700 (PDT)
+Message-ID: <4e9b3dff.e766e30a.54ec.4d44@mx.google.com>
+Subject: Re: [PATCH] af9013 Extended monitoring in set_frontend.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Jason Hecker <jwhecker@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Josu Lazkano <josu.lazkano@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Date: Sun, 16 Oct 2011 21:26:33 +0100
+In-Reply-To: <CAATJ+fub_tmoXxxPKU1vBnRNT=7MEUTn0T=_+iP2koj7N4MBrA@mail.gmail.com>
+References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
+	 <CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
+	 <CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
+	 <4e8b8099.95d1e30a.4bee.0501@mx.google.com>
+	 <CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
+	 <CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
+	 <CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
+	 <4e8f6b0b.c90fe30a.4a1d.26bb@mx.google.com>
+	 <CAATJ+fvQA4zAcGq+D0+k+OHb8Xsrda5=DATWXbzEO5z=0rWZfw@mail.gmail.com>
+	 <CAL9G6WWMw3npqjt0WHGhyjaW5Mu=1jA5Y_QduSr3KudZTKLgBw@mail.gmail.com>
+	 <4e904f71.ce66e30a.69f3.ffff9870@mx.google.com>
+	 <CAATJ+fstZmoctKrv8Owv53-oEPOn6C8d5FOwMAmLL=7R8UwYzg@mail.gmail.com>
+	 <4E93481F.8010205@iki.fi> <1318278450.16238.15.camel@localhost>
+	 <CAATJ+fub_tmoXxxPKU1vBnRNT=7MEUTn0T=_+iP2koj7N4MBrA@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 6, 2011 at 5:25 PM, Enrico <ebutera@users.berlios.de> wrote:
-> On Thu, Oct 6, 2011 at 9:51 AM, Javier Martinez Canillas
-> <martinez.javier@gmail.com> wrote:
->> Since the patches are not against mainline I can't post for reviewing
->> but can be found in one of our development trees [1]. Comments are
->> highly appreciated.
->>
->> The tree is a 2.6.37 that already contain Deepthy patch. I rebased my
->> changes on top of that to correctly support both BT656 an non-BT656
->> video data processing.
->>
->> [1]: http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=shortlog;h=refs/heads/linux-2.6.37.y-next
->
-> Some random comments from a quick view at [1]:
->
-> - i don't see Deepthy patches, it seems to be based on the
-> pre-Deepthy-patches driver and fixed (not that this is a bad thing!);
-> i say this because, like Gary, i'm interested in a possible forward
-> porting to a more recent kernel so i was searching for a starting
-> point
->
+On Tue, 2011-10-11 at 08:06 +1100, Jason Hecker wrote:
+> > Playing with Kaffeine or Mplayer all the devices are fine on the same
+> > system.
+> 
+> Right, admittedly most of my testing has been done with MythTV.  I
+> recall about a month ago I could also get corruption with mplayer.
+> 
+> > At the moment, I am going step by step what Myth TV is sending to the
+> > devices.
+> 
+> Great.  If you want I can replicate your tests here to see what I get.
+> 
+> Antti, my AF9015 chips are integrated on PCI so I can't swap cables
+> (alas, if only this was my problem!)
 
-I didn't know there was a more recent version of Deepthy patches,
-Since they are not yet in mainline we should decide if we work on top
-of that or on top of mainline. Deepthy patches are very good to
-separate bt656 and non-bt656 execution inside the ISP, also add a
-platform data variable to decide which mode has to be used.
+Jason, do you get firmware loading fails on boot with the PCI device?
 
-But reading the documentation and from my experimental validation I
-think that there are a few things that can be improved.
+There needs to be a delay put in the firmware download of at least 250uS
+after each write, but this does not solve the corruption.
 
-First the assumption that we can use FLDSTAT to check if a frame is
-ODD or EVEN I find to not always be true. Also I don't know who sets
-this value since in the TRM always talks as it is only used with
-discrete syncs.
+I have tried everything, but all of them fail to get rid of the
+corruption on the first frontend when the second frontend starts and
+then corruptions every 5 seconds or so. These only come through demux on
+endpoint 84 and are not caused by any other frontend operations.
 
-Also, I don't think that we should change the ISP CCDC configuration
-inside the VD0 interrupt handler. Since the shadowed registers only
-can be accessed during a frame processing, or more formally the new
-values are taken at the beginning of a frame execution.
+Trouble is, on a Nvidia motherboard I have it does not do it at all and
+all applications work without any troubles.  This seems to suggest a USB
+motherboard driver issue.
 
-By the time we change for example the output address memory for the
-next buffer in the VD0 handler, the next frame is already being
-processed so that value won't be used for the CCDC until that frame
-finish. So It is not behaving as the code expect, since for 3 frames
-the CCDC output memory address will be the same.
+However, the frontend lock does make it at least work on Myth TV.
 
-That is why I move most of the logic to the VD1 interrupt since there
-the current frame didn't finish yet and we can configure the CCDC for
-the next frame.
+I am continuing to look into it.
 
-But to do that the buffer for the next frame and the releasing of the
-last buffer can't happen simultaneously, that is why I decouple these
-two actions.
+Regards
 
-Again, this is my own observations and what I understood from the TRM
-and I could be wrong.
+Malcolm
 
-> - i don't think that adding the "priv" field in v4l2-mediabus.h will
-> be accepted, and since it is related to the default cropping you added
-> i think it can be dropped and just let the user choose the appropriate
-> cropping
->
-
-Yes, probably is too much of a hack, but I didn't know of another way
-that the subdev could report to the ISP of the standard and since
-v4l2_pix_format has also a priv field, I think it could be at least a
-temporary solution (remember that we want this to work first and then
-we plan to do it right for upstream submission).
-
-> - because of the previous point, i think the
-> PAL(NTSC)_NUM_ACTIVE_LINES can stay to 625(525)
->
-> - we really need some comments from someone that is not me, you and Gary
->
-> [1]: http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=history;f=drivers/media/video/isp;hb=refs/heads/linux-2.6.37.y-next
->
->
->>> Right now I have a working the tvp5151 with the ISP. I can capture
->>> ITU-R BT656 video both in PAL-M and NTSC standard. Also, the whole
->>> pipeline is configured automatically with the video standard detected
->>> by the tvp5151. Also, I'm using the CCDC to crop the frames and only
->>> capture the active lines for each standard (576 for PAL and 480 for
->>> NTSC) using the CCDC to crop the image.
->>>
->>
->> As I told you before video capturing is working for both PAL and NTSC
->> using standard V4L2 application (i.e: gstreamer) but the video still
->> shows some motion artifacts. Capturing YUV frames and looking at them
->> I realized that there does exist a pattern, the sequence 2 frames
->> correct and 3 frames with interlacing effects always repeats.
->
-> Yes i've seen that too, i was planning to do some tests when things
-> will settle down.
->
-> Enrico
->
-
-Best regards,
-
--- 
-Javier Martínez Canillas
-(+34) 682 39 81 69
-Barcelona, Spain
