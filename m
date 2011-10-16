@@ -1,77 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out1.tiscali.nl ([195.241.79.176]:57971 "EHLO
-	smtp-out1.tiscali.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934231Ab1J3RMZ (ORCPT
+Received: from mail-pz0-f42.google.com ([209.85.210.42]:41519 "EHLO
+	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752557Ab1JPD5k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Oct 2011 13:12:25 -0400
-Subject: Re: [PATCH] [RESEND] media: tea5764: reconcile Kconfig symbol and
- macro
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <4EAD7E9F.6050709@xenotime.net>
-References: <1319976530.14409.17.camel@x61.thuisdomein>
-	 <4EAD7E9F.6050709@xenotime.net>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 30 Oct 2011 18:12:18 +0100
-Message-ID: <1319994738.14409.37.camel@x61.thuisdomein>
-Mime-Version: 1.0
+	Sat, 15 Oct 2011 23:57:40 -0400
+Received: by pzk36 with SMTP id 36so2147733pzk.1
+        for <linux-media@vger.kernel.org>; Sat, 15 Oct 2011 20:57:40 -0700 (PDT)
+Message-ID: <4E9A5632.9010107@gmail.com>
+Date: Sat, 15 Oct 2011 20:57:38 -0700
+From: Mario Torres <mtmontaras@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Can I say a word to you guys?
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2011-10-30 at 09:43 -0700, Randy Dunlap wrote:
-> On 10/30/11 05:08, Paul Bolle wrote:
-> > The Kconfig symbol RADIO_TEA5764_XTAL is unused. The code does use a
-> > RADIO_TEA5764_XTAL macro, but does that rather peculiar. But there seems
-> > to be a way to keep both. (The easiest way out would be to rip out both
-> > the Kconfig symbol and the macro.)
-> > 
-> > Note there's also a module parameter 'use_xtal' to influence all this.
-> 
-> It's curious that the module parameter is only available when the driver
-> is builtin (=y) but not built as a loadable module (=m):
+Can I say a word to you guys?
 
-As far as I can see the module parameter is available in both cases but
-defaults to different values when builtin and when loadable. 
+Cool
 
-> config RADIO_TEA5764_XTAL
-> 	bool "TEA5764 crystal reference"
-> 	depends on RADIO_TEA5764=y
-> 	default y
-
-0) I've noticed similar dependencies (while doing some other Kconfig
-related clean up) with a number of other config entries in that same
-Kconfig file:
-    $ git grep -n "depends on.*=y" drivers/media/radio/
-    drivers/media/radio/Kconfig:60: depends on RADIO_RTRACK=y
-    drivers/media/radio/Kconfig:83: depends on RADIO_RTRACK2=y
-    drivers/media/radio/Kconfig:106:        depends on RADIO_AZTECH=y
-    drivers/media/radio/Kconfig:135:        depends on RADIO_GEMTEK=y
-    drivers/media/radio/Kconfig:147:        depends on RADIO_GEMTEK=y
-    drivers/media/radio/Kconfig:239:        depends on RADIO_TERRATEC=y
-    drivers/media/radio/Kconfig:257:        depends on RADIO_TRUST=y
-    drivers/media/radio/Kconfig:280:        depends on RADIO_TYPHOON=y
-    drivers/media/radio/Kconfig:287:        depends on RADIO_TYPHOON=y
-    drivers/media/radio/Kconfig:314:        depends on RADIO_ZOLTRIX=y
-    drivers/media/radio/Kconfig:385:        depends on RADIO_TEA5764=y 
-
-1) It seems the logic behind those config symbols is mostly like this:
-- if the driver for a radio is builtin: default some setting for that
-  radio to a sane value, but allow overriding of that setting on the
-  kernel commandline (through a module parameter)
-- if the driver for a radio is a module: default that same setting to
-  something invalid and _force_ the use of module parameters to get a
-  sane value
-
-This logic isn't implemented flawless but it does look to me that this
-is intentional.
-
-2) I'm not sure why things are done that way. Why can't builtin drivers
-and loadable drivers default to identical values? But perhaps I'm just
-misunderstanding the code.
-
-
-Paul Bolle
-
+I got one AVerMedia M792 PCIe Combo (OEM) on Ubuntu 11.10 and i wonder 
+if we can work it out, it is a pci-e and yes it is on the unsupported 
+list. but if we can work it out lets do it.
