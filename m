@@ -1,105 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:33265 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751297Ab1JJSSi convert rfc822-to-8bit (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:49305 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751875Ab1JPVSM convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Oct 2011 14:18:38 -0400
-Received: by ggnv2 with SMTP id v2so4774498ggn.19
-        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 11:18:37 -0700 (PDT)
+	Sun, 16 Oct 2011 17:18:12 -0400
+Received: by iaek3 with SMTP id k3so5293061iae.19
+        for <linux-media@vger.kernel.org>; Sun, 16 Oct 2011 14:18:11 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CA+2YH7votO73gQmdxhHkfLsc9sp8Z-S=wxxrJhsTYUzVqpiACA@mail.gmail.com>
-References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
- <CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
- <CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com>
- <201110081751.38953.laurent.pinchart@ideasonboard.com> <CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
- <CA+2YH7vat9iSAuZ4ztDvvo4Od+b4tCOsK6Y+grTE05YUZZEYPQ@mail.gmail.com>
- <CAAwP0s3NFvvUYd-0kwKLKXfYB4Zx1nXb0nd9+JM61JWtrVFfRg@mail.gmail.com>
- <CA+2YH7uFeHAmEpVqbd94qtCajb45pkr9YzeW+RDa5sf2bUG_wQ@mail.gmail.com>
- <CAAwP0s3GJ7-By=q_ADa6qcpaENK5kXvkTG8Hd=Y+qXs9dgXa0w@mail.gmail.com>
- <CA+2YH7subMzFAg7f7-uHXEmYBD+Kd1=E2nWKx7dgKCEpOu=zgQ@mail.gmail.com>
- <CA+2YH7ti4xz9zNby6O=3ZOKAB9=1hnYZr9cM8HSMrj0r4zi1=A@mail.gmail.com>
- <CAAwP0s3ZqDpMsF7mYYtM7twomREZTyO-uDhGPnfNsQcOTXQ_fw@mail.gmail.com>
- <CA+2YH7s6rhLsyJTdWwQVUCd2WBWiH2saSaZZw0tysRWsXw-6Cg@mail.gmail.com>
- <CA+2YH7tdMHNpJGyOhVJnR4UN5ZwCcspD0Nnj8xCvUs7RaERb_w@mail.gmail.com>
- <CA+2YH7uNvuRdWSoX25NvHryknExrfeew1heB5DNSf3Epz2LOUw@mail.gmail.com>
- <CAAwP0s1JDoSUqX2Fm7+L1HyNxAZkdenDfmy0M8U5nVLo2eSvOw@mail.gmail.com> <CA+2YH7votO73gQmdxhHkfLsc9sp8Z-S=wxxrJhsTYUzVqpiACA@mail.gmail.com>
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Date: Mon, 10 Oct 2011 20:18:17 +0200
-Message-ID: <CAAwP0s3tUUm+9S-MasWcp2HMLOW6xegQMTNbhxJ6355fW=hr0g@mail.gmail.com>
-Subject: Re: omap3-isp status
-To: Enrico <ebutera@users.berlios.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Adam Pledger <a.pledger@thermoteknix.com>,
-	linux-media@vger.kernel.org,
-	Enric Balletbo i Serra <eballetbo@iseebcn.com>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <4e9b3dff.e766e30a.54ec.4d44@mx.google.com>
+References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
+	<CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
+	<CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
+	<4e8b8099.95d1e30a.4bee.0501@mx.google.com>
+	<CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
+	<CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
+	<CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
+	<4e8f6b0b.c90fe30a.4a1d.26bb@mx.google.com>
+	<CAATJ+fvQA4zAcGq+D0+k+OHb8Xsrda5=DATWXbzEO5z=0rWZfw@mail.gmail.com>
+	<CAL9G6WWMw3npqjt0WHGhyjaW5Mu=1jA5Y_QduSr3KudZTKLgBw@mail.gmail.com>
+	<4e904f71.ce66e30a.69f3.ffff9870@mx.google.com>
+	<CAATJ+fstZmoctKrv8Owv53-oEPOn6C8d5FOwMAmLL=7R8UwYzg@mail.gmail.com>
+	<4E93481F.8010205@iki.fi>
+	<1318278450.16238.15.camel@localhost>
+	<CAATJ+fub_tmoXxxPKU1vBnRNT=7MEUTn0T=_+iP2koj7N4MBrA@mail.gmail.com>
+	<4e9b3dff.e766e30a.54ec.4d44@mx.google.com>
+Date: Mon, 17 Oct 2011 08:18:11 +1100
+Message-ID: <CAATJ+fsAjEkBTaOUhtSBmQOOs7YUBZ61xAyc-guxJMS7avVEAg@mail.gmail.com>
+Subject: Re: [PATCH] af9013 Extended monitoring in set_frontend.
+From: Jason Hecker <jwhecker@gmail.com>
+To: Malcolm Priestley <tvboxspy@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Josu Lazkano <josu.lazkano@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 10, 2011 at 7:09 PM, Enrico <ebutera@users.berlios.de> wrote:
-> On Mon, Oct 10, 2011 at 6:53 PM, Javier Martinez Canillas
-> <martinez.javier@gmail.com> wrote:
->> On Mon, Oct 10, 2011 at 6:34 PM, Enrico <ebutera@users.berlios.de> wrote:
->>> Ok, i made it work. It was missing just the config_outlineoffset i
->>> wrote before and a missing FLDMODE in SYNC registers.
->>>
->>
->> Great, do you get the ghosting effect or do you have a clean video?
->
->
-> Unfortunately i always get the ghosting effect. But this is something
-> we will try to fix later.
->
->
+> Trouble is, on a Nvidia motherboard I have it does not do it at all and
+> all applications work without any troubles. �This seems to suggest a USB
+> motherboard driver issue.
 
-Agree, we should try to get some code upstream to add interlaced video
-and bt.656 support and fix the artifact later.
+Right.  Well, I can say with high confidence that my dual tuner worked
+flawlessly for 18 months using Ubuntu's kernel 2.6.32 up until some
+update around May.   Some kernel (or other) update apparently made it
+all go pear shaped which prompted me to get another card then update
+the whole system to try fix the problem - I haven't gone back to an
+old 2.6.32 kernel.  So I am wondering if some other non v4l related
+patch has affected us all.
 
->>> Moreover it seems to me that the software-maintained field id
->>> (interlaced_cnt in Javier patches, fldstat in Deepthy patches) is
->>> useless, i've tried to only use the FLDSTAT bit from isp register
->>> (fid) in vd0_isr:
->>>
->>> if (fid == 0) {
->>>     restart = ccdc_isr_buffer(ccdc);
->>>     goto done;
->>> }
->>>
->>> and it works. I've not tested very long frame sequences, only up to 16
->>> frames. The only issue is that the first frame could be half-green
->>> because a field is missing.
->>>
->>
->> Yes, when I tried Deepthy patches I realized that the fldstat was not
->> in sync with the frames, but probably I made something wrong.
->
->
-> I had noticed the same thing, but now i tested it and it is ok, maybe
-> my fault too.
->
->
->> We had the same problem with the hal-green frame. Our solution was to
->> synchronize the CCDC with the first even field looking at fdstat on
->> the VD1 interrupt handler and forcing to start processing from an ODD
->> sub-frame.
->
-> Thinking more about it, it's ugly to have that half-green video frame
-> even if it's just one. It's better to keep your or Deepthy solution.
->
-> Enrico
->
+> I am continuing to look into it.
 
-Well, that is something that can be fixed later also. Can you send to
-the list your patches? So, Laurent, Sakari and others than know more
-about the ISP can review it. I hope they can find the cause for the
-artifact.
+OK, well I am still running my system with your two patches, with
+corruptions alas, so if you'd like me to independently try stuff out
+let me know.
 
-Thank you and best regards,
-
--- 
-Javier Martínez Canillas
-(+34) 682 39 81 69
-Barcelona, Spain
+Jason
