@@ -1,132 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:48251 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932362Ab1JNVTi convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:43526 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753639Ab1JPJjO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Oct 2011 17:19:38 -0400
-Received: by wwf22 with SMTP id 22so4042099wwf.1
-        for <linux-media@vger.kernel.org>; Fri, 14 Oct 2011 14:19:36 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [GIT PATCHES FOR 3.2] cx23885 alsa cleaned and prepaired
-Date: Sat, 15 Oct 2011 00:19:55 +0300
-Cc: linux-media@vger.kernel.org, Steven Toth <stoth@linuxtv.org>,
-	Mijhail Moreyra <mijhail.moreyra@gmail.com>,
-	Abylai Ospan <aospan@netup.ru>
-References: <201110101752.11536.liplianin@me.by> <4E989AA3.3010305@infradead.org>
-In-Reply-To: <4E989AA3.3010305@infradead.org>
+	Sun, 16 Oct 2011 05:39:14 -0400
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Andrew Morton" <akpm@linux-foundation.org>
+Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Russell King" <linux@arm.linux.org.uk>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"Ankita Garg" <ankita@in.ibm.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Mel Gorman" <mel@csn.ul.ie>, "Arnd Bergmann" <arnd@arndb.de>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Jonathan Corbet" <corbet@lwn.net>,
+	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
+	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>
+Subject: Re: [PATCH 2/9] mm: alloc_contig_freed_pages() added
+References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
+ <1317909290-29832-3-git-send-email-m.szyprowski@samsung.com>
+ <20111014162933.d8fead58.akpm@linux-foundation.org>
+ <op.v3fpwyxc3l0zgt@mpn-glaptop>
+ <20111016013116.53032449.akpm@linux-foundation.org>
+Date: Sun, 16 Oct 2011 11:39:10 +0200
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201110150019.55734.liplianin@me.by>
+Content-Transfer-Encoding: 7bit
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.v3fufkaw3l0zgt@mpn-glaptop>
+In-Reply-To: <20111016013116.53032449.akpm@linux-foundation.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-В сообщении от 14 октября 2011 23:25:07 автор Mauro Carvalho Chehab написал:
-> Em 10-10-2011 11:52, Igor M. Liplianin escreveu:
-> > Hi Mauro and Steven,
-> > 
-> > It's been a long time since cx23885-alsa pull was requested.
-> > To speed things up I created a git branch where I put the patches.
-> > Some patches merged, like introduce then correct checkpatch compliance
-> > or convert spinlock to mutex and back to spinlock, insert printk then
-> > remove printk as well. Minor corrections from me was silently merged,
-> > for major I created additional patches.
-> > 
-> > Hope it helps.
-> > 
-> > The following changes since commit 
-e30528854797f057aa6ffb6dc9f890e923c467fd:
-> >   [media] it913x-fe changes to power up and down of tuner (2011-10-08
-> >   08:03:27 -0300)
-> > 
-> > are available in the git repository at:
-> >   git://linuxtv.org/liplianin/media_tree.git cx23885-alsa-clean-2
-> 
-> Ok, all the other patches look sane. I just had to do another patchset
-> reorder, moving patch 39 to happen before patch 29, and folding one of the
-> Igor's fixes with a patch sent by Steven.
-> 
-> I'm assuming that all of you are ok with that. So, I'm pushing the
-> changeset into my tree.
-Great. Thank you Mauro.
+> On Sun, 16 Oct 2011 10:01:36 +0200 "Michal Nazarewicz" wrote:
+>> Still, as I think of it now, maybe alloc_contig_free_range() would be
+>> better?
 
-> 
-> > Igor M. Liplianin (2):
-> >       cx23885: videobuf: Remove the videobuf_sg_dma_map/unmap functions
-> >       cx25840-audio: fix missing state declaration
-> > 
-> > Mijhail Moreyra (6):
-> >       cx23885: merge mijhail's header changes for alsa
-> >       cx23885: ALSA support
-> >       cx23885: core changes requireed for ALSA
-> >       cx23885: add definitions for HVR1500 to support audio
-> >       cx23885: correct the contrast, saturation and hue controls
-> >       cx23885: hooks the alsa changes into the video subsystem
-> > 
-> > Steven Toth (31):
-> >       cx23885: prepare the cx23885 makefile for alsa support
-> >       cx23885: convert from snd_card_new() to snd_card_create()
-> >       cx23885: convert call clients into subdevices
-> >       cx23885: minor function renaming to ensure uniformity
-> >       cx23885: setup the dma mapping for raw audio support
-> >       cx23885: mute the audio during channel change
-> >       cx23885: add two additional defines to simplify VBI register bitmap
-> >       handling cx23885: initial support for VBI with the cx23885
-> >       cx23885: initialize VBI support in the core, add IRQ support,
-> >       register vbi device cx23885: minor printk cleanups and device
-> >       registration
-> >       cx25840: enable raw cc processing only for the cx23885 hardware
-> >       cx23885: vbi line window adjustments
-> >       cx23885: add vbi buffer formatting, window changes and video core
-> >       changes cx23885: Ensure the VBI pixel format is established
-> >       correctly. cx23885: ensure video is streaming before allowing vbi
-> >       to stream cx23885: remove channel dump diagnostics when a vbi
-> >       buffer times out. cx23885: Ensure VBI buffers timeout quickly -
-> >       bugfix for vbi hangs during streaming. cx23885: Name an internal
-> >       i2c part and declare a bitfield by name cx25840: Enable support
-> >       for non-tuner LR1/LR2 audio inputs cx23885: Enable audio line in
-> >       support from the back panel
-> >       cx25840: Ensure AUDIO6 and AUDIO7 trigger line-in baseband use.
-> >       cx23885: Initial support for the MPX-885 mini-card
-> >       cx23885: fixes related to maximum number of inputs and range
-> >       checking cx23885: add generic functions for dealing with audio
-> >       input selection cx23885: hook the audio selection functions into
-> >       the main driver cx23885: v4l2 api compliance, set the audioset
-> >       field correctly cx23885: Removed a spurious function
-> >       cx23885_set_scale().
-> >       cx23885: Avoid stopping the risc engine during buffer timeout.
-> >       cx23885: Avoid incorrect error handling and reporting
-> >       cx23885: Stop the risc video fifo before reconfiguring it.
-> >       cx23885: Allow the audio mux config to be specified on a per input
-> >       basis.
-> >  
-> >  drivers/media/video/cx23885/Makefile        |    2 +-
-> >  drivers/media/video/cx23885/cx23885-alsa.c  |  535
-> >  +++++++++++++++++++++++++++ drivers/media/video/cx23885/cx23885-cards.c
-> >  |   53 +++
-> >  drivers/media/video/cx23885/cx23885-core.c  |   99 ++++-
-> >  drivers/media/video/cx23885/cx23885-i2c.c   |    1 +
-> >  drivers/media/video/cx23885/cx23885-reg.h   |    3 +
-> >  drivers/media/video/cx23885/cx23885-vbi.c   |   72 +++-
-> >  drivers/media/video/cx23885/cx23885-video.c |  373 ++++++++++++++++---
-> >  drivers/media/video/cx23885/cx23885.h       |   56 +++
-> >  drivers/media/video/cx25840/cx25840-audio.c |   10 +-
-> >  drivers/media/video/cx25840/cx25840-core.c  |   19 +
-> >  11 files changed, 1144 insertions(+), 79 deletions(-)
-> >  create mode 100644 drivers/media/video/cx23885/cx23885-alsa.c
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Sun, 16 Oct 2011 10:31:16 +0200, Andrew Morton wrote:
+> Nope.  Of *course* the pages were free.  Otherwise we couldn't
+> (re)allocate them.  I still think the "free" part is redundant.
+
+Makes sense.
+
+> What could be improved is the "alloc" part.  This really isn't an
+> allocation operation.  The pages are being removed from buddy then
+> moved into the free arena of a different memory manager from where they
+> will _later_ be "allocated".
+
+Not quite.  After alloc_contig_range() returns, the pages are passed with
+no further processing to the caller.  Ie. the area is not later split into
+several parts nor kept in CMA's pool unused.
+
+alloc_contig_freed_pages() is a little different since it must be called on
+a buddy page boundary and may return more then requested (because of the way
+buddy system merges buddies) so there is a little processing after it returns
+(namely freeing of the excess pages).
+
+> So we should move away from the alloc/free naming altogether for this
+> operation and think up new terms.  How about "claim" and "release"?
+> claim_contig_pages, claim_contig_range, release_contig_pages, etc?
+> Or we could use take/return.
+
+Personally, I'm not convinced about changing the names of alloc_contig_range()
+and free_contig_pages() but I see merit in changing alloc_contig_freed_pages()
+to something else.
+
+Since at the moment, it's used only by alloc_contig_range(), I'd lean
+towards removing it from page-isolation.h, marking as static and renaming
+to __alloc_contig_range().
+
+> Also, if we have no expectation that anything apart from CMA will use
+> these interfaces (?), the names could/should be prefixed with "cma_".
+
+In Kamezawa's original patchset, he used those for a bit different
+approach (IIRC, Kamezawa's patchset introduced a function that scanned memory
+and tried to allocate contiguous memory where it could), so I can imagine that
+someone will make use of those functions.  It may be used in any situation
+where a range of pages is either free (ie. in buddy system) or movable and
+one wants to allocate them for some reason.
 
 -- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
+ooo +--<mina86@mina86.com>---<mina86@jabber.org>---ooO--(_)--Ooo--
