@@ -1,56 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:41966 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240Ab1JIPK0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Oct 2011 11:10:26 -0400
-Received: by wyg34 with SMTP id 34so5180373wyg.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Oct 2011 08:10:24 -0700 (PDT)
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Enrico <ebutera@users.berlios.de>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Adam Pledger <a.pledger@thermoteknix.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>,
-	linux-media@vger.kernel.org,
-	Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: [PATCH v2 1/3] omap3isp: ccdc: Add interlaced field mode to platform data
-Date: Sun,  9 Oct 2011 17:10:18 +0200
-Message-Id: <1318173020-7302-1-git-send-email-martinez.javier@gmail.com>
+Received: from mail-pz0-f42.google.com ([209.85.210.42]:52088 "EHLO
+	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750765Ab1JPEGf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Oct 2011 00:06:35 -0400
+Received: by pzk36 with SMTP id 36so2161018pzk.1
+        for <linux-media@vger.kernel.org>; Sat, 15 Oct 2011 21:06:35 -0700 (PDT)
+Message-ID: <4E9A5849.3030808@gmail.com>
+Date: Sat, 15 Oct 2011 21:06:33 -0700
+From: Mario Torres <mtmontaras@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Can I Say a Word to you Guys?
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The fldmode field from the CCDC_SYN_MODE register configure the ISP CCDC
-between progresive and interlaced mode.
+Can I say a word to you guys?
 
-Adding this field to the platform data, allows boards to configure accordingly.
+Cool
 
-Signed-off-by: Javier Martinez Canillas <martinez.javier@gmail.com>
----
- include/media/omap3isp.h |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+I got one AVerMedia M792 PCIe Combo (OEM) on Ubuntu 11.10 and i wonder 
+if we can work it out, it is a pci-e and yes it is on the unsupported 
+list. but if we can work it out lets do it.
 
-diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-index 3b2d2b7..0f215de 100644
---- a/include/media/omap3isp.h
-+++ b/include/media/omap3isp.h
-@@ -61,6 +61,8 @@ enum {
-  *		0 - Normal, 1 - One's complement
-  * @bt656: ITU-R BT656 embedded synchronization
-  *		0 - HS/VS sync, 1 - BT656 sync
-+ * @fldmode: Field mode
-+ *             0 - progressive, 1 - Interlaced
-  */
- struct isp_parallel_platform_data {
- 	unsigned int data_lane_shift:2;
-@@ -69,6 +71,7 @@ struct isp_parallel_platform_data {
- 	unsigned int vs_pol:1;
- 	unsigned int data_pol:1;
- 	unsigned int bt656:1;
-+	unsigned int fldmode:1;
- };
- 
- enum {
--- 
-1.7.4.1
+when i do a lspci -vv
+it gives me this
+
+
+03:00.0 Multimedia video controller: Conexant Systems, Inc. CX23887/8 
+PCIe Broadcast Audio and Video Decoder with 3D Comb (rev 0f)
+     Subsystem: Avermedia Technologies Inc Device df39
+     Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- 
+Stepping- SERR- FastB2B- DisINTx-
+     Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- 
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+     Latency: 0, Cache Line Size: 32 bytes
+     Interrupt: pin A routed to IRQ 17
+     Region 0: Memory at f9e00000 (64-bit, non-prefetchable) [size=2M]
+     Capabilities: <access denied>
+     Kernel driver in use: cx23885
+     Kernel modules: cx23885
 
