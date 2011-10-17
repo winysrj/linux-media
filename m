@@ -1,54 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36411 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933898Ab1JEGTO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Oct 2011 02:19:14 -0400
-Message-ID: <4E8BF6DE.1010105@iki.fi>
-Date: Wed, 05 Oct 2011 09:19:10 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Oliver Neukum <oneukum@suse.de>
-CC: Greg KH <greg@kroah.com>, linux-serial@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-	=?ISO-8859-1?Q?Bj=F8rn_Mork?= <bjorn@mork.no>,
-	James Courtier-Dutton <james.dutton@gmail.com>,
-	HoP <jpetrous@gmail.com>,
-	=?ISO-8859-1?Q?Istv=E1n_V=E1radi?= <ivaradi@gmail.com>
-Subject: Re: serial device name for smart card reader that is integrated to
- Anysee DVB USB device
-References: <4E8B7901.2050700@iki.fi> <20111005045917.GB4700@kroah.com> <4E8BF21B.4010907@iki.fi> <201110050815.17949.oneukum@suse.de>
-In-Reply-To: <201110050815.17949.oneukum@suse.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:16957 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756140Ab1JQPPO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Oct 2011 11:15:14 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LT700BIDUDBUQ70@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 17 Oct 2011 16:15:12 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LT700353UDB1N@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 17 Oct 2011 16:15:11 +0100 (BST)
+Date: Mon, 17 Oct 2011 17:15:10 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [RFC] subdevice PM: .s_power() deprecation?
+In-reply-to: <Pine.LNX.4.64.1110171546340.18438@axis700.grange>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Message-id: <4E9C467E.3090602@samsung.com>
+References: <Pine.LNX.4.64.1110031138370.14314@axis700.grange>
+ <20111008213657.GE8908@valkosipuli.localdomain>
+ <Pine.LNX.4.64.1110170955560.18438@axis700.grange>
+ <4E9C26BC.2010304@samsung.com>
+ <Pine.LNX.4.64.1110171546340.18438@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/05/2011 09:15 AM, Oliver Neukum wrote:
-> Am Mittwoch, 5. Oktober 2011, 07:58:51 schrieb Antti Palosaari:
->> On 10/05/2011 07:59 AM, Greg KH wrote:
->
->>> Why not just use the usb-serial core and then you get a ttyUSB* device
->>> node "for free"?  It also should provide a lot of the basic tty
->>> infrastructure and ring buffer logic all ready to use.
+On 10/17/2011 03:49 PM, Guennadi Liakhovetski wrote:
+> On Mon, 17 Oct 2011, Sylwester Nawrocki wrote:
+>> On 10/17/2011 10:06 AM, Guennadi Liakhovetski wrote:
+>>> On Sun, 9 Oct 2011, Sakari Ailus wrote:
+>>>> On Mon, Oct 03, 2011 at 12:57:10PM +0200, Guennadi Liakhovetski wrote:
+...
+>>>> The bridge driver can't (nor should) know about the power management
+>>>> requirements of random subdevs. The name of the s_power op is rather
+>>>> poitless in its current state.
+>>>>
+>>>> The power state of the subdev probably even never matters to the bridge ---
+>>>
+>>> Exactly, that's the conclusion I come to in this RFC too.
+>>>
+>>>> or do we really have an example of that?
+>>>>
+>>>> In my opinion the bridge driver should instead tell the bridge drivers what
+>>>> they can expect to hear from the bridge --- for example that the bridge can
+>>>> issue set / get controls or fmt ops to the subdev. The subdev may or may not
+>>>> need to be powered for those: only the subdev driver knows.
+>>>
+>>> Hm, why should the bridge driver tell the subdev driver (I presume, that's 
+>>> a typo in your above sentence) what to _expect_? Isn't just calling those 
+>>> operations enough?
+>>>
+>>>> This is analogous to opening the subdev node from user space. Anything else
+>>>> except streaming is allowed. And streaming, which for sure requires powering
+>>>> on the subdev, is already nicely handled by the s_stream op.
+>>>>
+>>>> What do you think?
+>>>>
+>>>> In practice the name of s_power should change, as well as possible
+>>>> implementatio on subdev drivers.
+>>>
+>>> But why do we need it at all?
 >>
->> Since I don't see how I can access same platform data from DVB USB  and
->> USB-serial driver (usb_set_intfdata). I asked that earlier, see:
->> http://www.mail-archive.com/linux-media@vger.kernel.org/msg36027.html
->
-> Yes, and I'll have to give you the same answer as then.
->
-> But, Greg, Antti makes a very valid point here. The generic code assumes that
-> it owns intfdata, that is you cannot use it as is for access to anything that lacks
-> its own interface. But this is not a fatal flaw. We can alter the generic code to use
-> an accessor function the driver can provide and make it default to get/set_intfdata
->
-> What do you think?
+>> AFAICS in some TV card drivers it is used to put the analog tuner into low
+>> power state.
+>> So core.s_power op provides the mans to suspend/resume a sub-device.
+>>
+>> If the bridge driver only implements a user space interface for the subdev,
+>> it may want to bring a subdev up in some specific moment, before video.s_stream,
+>> e.g. in some ioctl or at device open(), etc.
+>>
+>> Let's imagine bringing the sensor up takes appr. 700 ms, often we don't want 
+>> the sensor driver to be doing this before every s_stream().
+> 
+> Sorry, I still don't understand, how the bridge driver knows better, than 
+> the subdev driver, whether the user will resume streaming in 500ms or in 
+> 20s? Maybe there's some such information available with tuners, which I'm 
+> just unaware about?
 
-Oliver, I looked your old thread reply but I didn't catch how you meant 
-it to happen. Could you give some small example?
+What I meant was that if the bridge driver assumes in advance that enabling
+sensor's power and getting it fully operational takes long time, it can enable
+sensor's power earlier than it's really necessary, to avoid excessive latencies
+during further actions.
 
-regards
-Antti
+The bridge driver could also choose to keep the sensor powered on, whenever it
+sees appropriate, to avoid re-enabling the sensor to often. 
 
+And I'm not convinced the subdev driver has all prerequisites for implementing
+the power control policy.
+
+
+Regards,
 -- 
-http://palosaari.fi/
+Sylwester Nawrocki
+Samsung Poland R&D Center
