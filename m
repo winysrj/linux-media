@@ -1,91 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpo13.poczta.onet.pl ([213.180.142.144]:37386 "EHLO
-	smtpo13.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753065Ab1JRT7s (ORCPT
+Received: from smtprelay01.ispgateway.de ([80.67.29.23]:41962 "EHLO
+	smtprelay01.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754487Ab1JQGN3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Oct 2011 15:59:48 -0400
-Date: Tue, 18 Oct 2011 21:59:45 +0200
-From: Piotr Chmura <chmooreck@poczta.onet.pl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Greg KH <gregkh@suse.de>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
-Subject: [RESEND PATCH 9/14] staging/media/as102: Add Elgato EyeTV DTT
- Deluxe
-Message-ID: <20111018215945.529b5d86@darkstar>
-In-Reply-To: <20111018111243.0cb4e5cf.chmooreck@poczta.onet.pl>
-References: <4E7F1FB5.5030803@gmail.com>
-	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
-	<4E7FF0A0.7060004@gmail.com>
-	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
-	<20110927094409.7a5fcd5a@stein>
-	<20110927174307.GD24197@suse.de>
-	<20110927213300.6893677a@stein>
-	<4E999733.2010802@poczta.onet.pl>
-	<4E99F2FC.5030200@poczta.onet.pl>
-	<20111016105731.09d66f03@stein>
-	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
-	<4E9ADFAE.8050208@redhat.com>
-	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
-	<20111018111243.0cb4e5cf.chmooreck@poczta.onet.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Mon, 17 Oct 2011 02:13:29 -0400
+Received: from [188.174.123.244] (helo=zwergkolibri.home.noschinski.de)
+	by smtprelay01.ispgateway.de with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.68)
+	(envelope-from <lars@public.noschinski.de>)
+	id 1RFgIV-0008NF-N9
+	for linux-media@vger.kernel.org; Mon, 17 Oct 2011 08:03:39 +0200
+Received: from lars by zwergkolibri.home.noschinski.de with local (Exim 4.76)
+	(envelope-from <lars@public.noschinski.de>)
+	id 1RFgIV-0004PV-5y
+	for linux-media@vger.kernel.org; Mon, 17 Oct 2011 08:03:39 +0200
+Date: Mon, 17 Oct 2011 08:03:34 +0200
+From: Lars Noschinski <lars@public.noschinski.de>
+To: linux-media@vger.kernel.org
+Subject: pac7311
+Message-ID: <20111017060334.GA16001@lars.home.noschinski.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+Hello,
 
-Original source and comment:
-# HG changeset patch
-# User Devin Heitmueller <dheitmueller@kernellabs.com>
-# Date 1267318991 18000
-# Node ID 4a82558f6df8b957bc623d854a118a5da32dead2
-# Parent  89de57601df871f6d951ca13bf52b136f9eadddf
-as102: Add Elgato EyeTV DTT Deluxe
+I'm using a webcam (Philipps SPC500NC) which identifies itself as
 
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
+    093a:2603 Pixart Imaging, Inc. PAC7312 Camera
 
-Add support for the Elgato EyeTV DTT Deluxe.  Note that the product
-name field has not yet been abstracted out, so it will still identify
-itself as a PCTV 74e.  The driver was originally built by the chipset
-manufacturer so that the product vendor can specify the deivce name via
-a #define, but wasn't setup to support multiple products from the same build of
-the driver.
+and is sort-of supported by the gspca_pac7311 module. "sort-of" because
+the image alternates quickly between having a red tint or a green tint
+(using the gspac driver from kernel 3.0.0, but this problem is present
+since at least 2.6.31).
 
-Thanks to Joerg Unglaub for suggesting this change.
+If I remove and re-plugin the camera a few times (on average around 3
+times), the colors are stable. Then a second issue becomes apparent:
+There is almost no saturation in the image. Toying around with Contrast,
+Gamma, Exposure or Gain does not help. What _does_ help is the Vflip
+switch: If I enable it, the image is flipped vertically (as expected),
+but also the color become a lot better.
 
-Priority: normal
-
-Signed-off-by: Joerg Unglaub <joerg.unglaub@gmail.com>
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
-Signed-off-by: Piotr Chmura <chmooreck@poczta.onet.pl>
-
-diff --git linux/drivers/staging/media/as102/as102_usb_drv.c linuxb/drivers/staging/media/as102/as102_usb_drv.c
---- linux/drivers/staging/media/as102/as102_usb_drv.c
-+++ linuxb/drivers/staging/media/as102/as102_usb_drv.c
-@@ -40,6 +40,7 @@
- static struct usb_device_id as102_usb_id_table[] = {
- 	{ USB_DEVICE(AS102_USB_DEVICE_VENDOR_ID, AS102_USB_DEVICE_PID_0001) },
- 	{ USB_DEVICE(PCTV_74E_USB_VID, PCTV_74E_USB_PID) },
-+	{ USB_DEVICE(ELGATO_EYETV_DTT_USB_VID, ELGATO_EYETV_DTT_USB_PID) },
- 	{ } /* Terminating entry */
- };
- 
-diff --git linux/drivers/staging/media/as102/as102_usb_drv.h linuxb/drivers/staging/media/as102/as102_usb_drv.h
---- linux/drivers/staging/media/as102/as102_usb_drv.h
-+++ linuxb/drivers/staging/media/as102/as102_usb_drv.h
-@@ -36,6 +36,11 @@
- #define PCTV_74E_USB_VID		0x2013
- #define PCTV_74E_USB_PID		0x0246
- 
-+/* Elgato: EyeTV DTT Deluxe */
-+#define ELGATO_EYETV_DTT_NAME		"Elgato EyeTV DTT Deluxe"
-+#define ELGATO_EYETV_DTT_USB_VID	0x0fd9
-+#define ELGATO_EYETV_DTT_USB_PID	0x002c
-+
- #if (LINUX_VERSION_CODE <= KERNEL_VERSION(2, 6, 18))
- void as102_urb_stream_irq(struct urb *urb, struct pt_regs *regs);
- #else
+Is there something I can do to debug/fix this problem?
