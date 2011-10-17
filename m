@@ -1,165 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:43237 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753279Ab1JJSp6 (ORCPT
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:35770 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756449Ab1JQWdV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Oct 2011 14:45:58 -0400
-Received: by bkbzt4 with SMTP id zt4so8785987bkb.19
-        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 11:45:57 -0700 (PDT)
+	Mon, 17 Oct 2011 18:33:21 -0400
+Date: Mon, 17 Oct 2011 15:31:36 -0700
+From: Greg KH <greg@kroah.com>
+To: Piotr Chmura <chmooreck@poczta.onet.pl>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Greg KH <gregkh@suse.de>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <maurochehab@gmail.com>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
+Subject: Re: [PATCH 0/7] Staging submission: PCTV 74e drivers and some
+ cleanup (was: Staging submission: PCTV 80e and PCTV 74e drivers)
+Message-ID: <20111017223136.GA20939@kroah.com>
+References: <4E7F1FB5.5030803@gmail.com>
+ <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
+ <4E7FF0A0.7060004@gmail.com>
+ <CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
+ <20110927094409.7a5fcd5a@stein>
+ <20110927174307.GD24197@suse.de>
+ <20110927213300.6893677a@stein>
+ <4E99F2F6.9000307@poczta.onet.pl>
 MIME-Version: 1.0
-Date: Mon, 10 Oct 2011 15:45:55 -0300
-Message-ID: <CALVOWFPrcYuQ-A=Td7AQMj02e96VNg_z2nUOmTvwKyZC_yUmLg@mail.gmail.com>
-Subject: Cannot configure second Kodicom 4400R
-From: Allan Macdonald <allan.w.macdonald@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=0015175cb2847e2a7b04aef63328
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4E99F2F6.9000307@poczta.onet.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0015175cb2847e2a7b04aef63328
-Content-Type: text/plain; charset=ISO-8859-1
+On Sat, Oct 15, 2011 at 10:54:14PM +0200, Piotr Chmura wrote:
+> [PATCH 1/7] pull as102 driver fromhttp://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+> with the only change needed to compile it in git tree[1]: usb_buffer_alloc()
+> to usb_alloc_coherent() and usb_buffer_free() to usb_free_coherent()
+> 
+> [PATCH 2/7] as102: add new device nBox DVB-T Dongle
+> adds new device working on this driver
+> 
+> 
+> Next patches i made basing on Mauro Carvalho Chehab comments from previous pull try [2].
+> 
+> [PATCH 3/7] as102: cleanup - get rid off typedefs
+> [PATCH 4/7] as102: cleanup - formatting code
+> [PATCH 5/7] as102: cleanup - set __attribute__(packed) instead of pragma(pack)
+> [PATCH 6/7] as102: cleanup - delete vim comments
+> [PATCH 7/7] as102: cleanup - get rid of unnecessary defines (WIN32, LINUX)
 
-Hi to all,
+Mauro, care to take these and move them under your newly-created
+drivers/staging/media/ directory?
 
-I am new to this list.
+thanks,
 
-I have been successfully using a Kodicom 4400R with zoneminder but I
-wanted to expand so I bought a second card and installed it.  The
-problem with this card is that I cannot seem to be able to get the
-second card to work.  I tried using xawtv with the following command:
-
-xawtv -d /dev/video1
-
-The result is that I get images from /dev/video0
-
-I also tried:
-
-xawtv -d /dev/video4
-
-with the same result.
-
-I obviously don't understand what's going on.
-
-I tried following the instructions here, to no avail:
-
-http://www.zoneminder.com/wiki/index.php/Kodicom_4400r
-
-I also looked here:
-
-http://linuxtv.org/wiki/index.php/Kodicom_4400R
-
-but, unfortunately, the following page does not explain what happens
-with more than one card installed.
-
-Here's my bttv.conf:
-
-[code]
-options bttv gbuffers=32 card=133,132,133,133,133,132,133,133 tuner=4
-chroma_agc=1
-[/code]
-
-I have attached a dmesg output and an lsmod output.
-
-I would greatly appreciate some help.  Many thanks in advance.
-
-Regards,
-
-Allan Macdonald
-
---0015175cb2847e2a7b04aef63328
-Content-Type: text/plain; charset=US-ASCII; name="dmesg-bttv.txt"
-Content-Disposition: attachment; filename="dmesg-bttv.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gtlt2z4t0
-
-WzE3ODk4MTUuMjQwMDQzXSBidHR2NzogdW5sb2FkaW5nClsxNzg5ODE1LjI0MDU0M10gYnR0djY6
-IHVubG9hZGluZwpbMTc4OTgxNS4yNDE5NTddIGJ0dHY1OiB1bmxvYWRpbmcKWzE3ODk4MTUuMjQy
-NzEyXSBidHR2NDogdW5sb2FkaW5nClsxNzg5ODE1LjI0Mzc5MV0gYnR0djM6IHVubG9hZGluZwpb
-MTc4OTgxNS4yNDUxNDFdIGJ0dHYyOiB1bmxvYWRpbmcKWzE3ODk4MTUuMjQ1OTExXSBidHR2MTog
-dW5sb2FkaW5nClsxNzg5ODE1LjI0NjYzMF0gYnR0djA6IHVubG9hZGluZwpbMTc4OTgyNS40NTM3
-ODBdIGJ0dHY6IGRyaXZlciB2ZXJzaW9uIDAuOS4xOCBsb2FkZWQKWzE3ODk4MjUuNDUzNzgzXSBi
-dHR2OiB1c2luZyAzMiBidWZmZXJzIHdpdGggMjA4MGsgKDUyMCBwYWdlcykgZWFjaCBmb3IgY2Fw
-dHVyZQpbMTc4OTgyNS40NTQwNzldIGJ0dHY6IEJ0OHh4IGNhcmQgZm91bmQgKDApLgpbMTc4OTgy
-NS40NTQwOThdIGJ0dHYwOiBCdDg3OCAocmV2IDE3KSBhdCAwMDAwOjA0OjBjLjAsIGlycTogMTcs
-IGxhdGVuY3k6IDY0LCBtbWlvOiAweGZiZWZlMDAwClsxNzg5ODI1LjQ1NDE5NF0gYnR0djA6IHVz
-aW5nOiBLb2RpY29tIDQ0MDBSIChzbGF2ZSkgW2NhcmQ9MTMzLGluc21vZCBvcHRpb25dClsxNzg5
-ODI1LjQ1NDE5N10gSVJRIDE3L2J0dHYwOiBJUlFGX0RJU0FCTEVEIGlzIG5vdCBndWFyYW50ZWVk
-IG9uIHNoYXJlZCBJUlFzClsxNzg5ODI1LjQ1NDIyNl0gYnR0djA6IGdwaW86IGVuPTAwMDAwMDAw
-LCBvdXQ9MDAwMDAwMDAgaW49MDBmZmZmZmYgW2luaXRdClsxNzg5ODI1LjQ1NDMyNF0gYnR0djA6
-IHR1bmVyIGFic2VudApbMTc4OTgyNS40NTQ5MzBdIGJ0dHYwOiByZWdpc3RlcmVkIGRldmljZSB2
-aWRlbzAKWzE3ODk4MjUuNDU1MzI4XSBidHR2MDogcmVnaXN0ZXJlZCBkZXZpY2UgdmJpMApbMTc4
-OTgyNS40NTUzNTFdIGJ0dHYwOiBQTEw6IDI4NjM2MzYzID0+IDM1NDY4OTUwIC4KWzE3ODk4MjUu
-NDU1NzM1XSBidHR2MDogUExMOiAyODYzNjM2MyA9PiAzNTQ2ODk1MCAuClsxNzg5ODI1LjQ1NTc1
-OV0gYnR0djA6IFBMTDogMjg2MzYzNjMgPT4gMzU0Njg5NTAgLi4gb2sKWzE3ODk4MjUuNDc3NTY3
-XSBidHR2OiBCdDh4eCBjYXJkIGZvdW5kICgxKS4KWzE3ODk4MjUuNDc3NTkwXSBidHR2MTogQnQ4
-NzggKHJldiAxNykgYXQgMDAwMDowNDowZC4wLCBpcnE6IDE4LCBsYXRlbmN5OiA2NCwgbW1pbzog
-MHhmYmVmYzAwMApbMTc4OTgyNS40Nzc3NDhdIGJ0dHYxOiB1c2luZzogS29kaWNvbSA0NDAwUiAo
-bWFzdGVyKSBbY2FyZD0xMzIsaW5zbW9kIG9wdGlvbl0KWzE3ODk4MjUuNDc3NzUxXSBJUlEgMTgv
-YnR0djE6IElSUUZfRElTQUJMRUQgaXMgbm90IGd1YXJhbnRlZWQgb24gc2hhcmVkIElSUXMKWzE3
-ODk4MjUuNDc3Nzg3XSBidHR2MTogZ3BpbzogZW49MDAwMDAwMDAsIG91dD0wMDAwMDAwMCBpbj0w
-MGZmZmZmZiBbaW5pdF0KWzE3ODk4MjUuNDc3OTUzXSBidHR2MTogdHVuZXIgYWJzZW50ClsxNzg5
-ODI1LjQ3ODMwOV0gYnR0djE6IHJlZ2lzdGVyZWQgZGV2aWNlIHZpZGVvMQpbMTc4OTgyNS40Nzg0
-MDhdIGJ0dHYxOiByZWdpc3RlcmVkIGRldmljZSB2YmkxClsxNzg5ODI1LjQ3ODQzMF0gYnR0djE6
-IFBMTDogMjg2MzYzNjMgPT4gMzU0Njg5NTAgLgpbMTc4OTgyNS40Nzk1MjFdIGJ0dHYxOiBQTEw6
-IDI4NjM2MzYzID0+IDM1NDY4OTUwIC4KWzE3ODk4MjUuNDc5Nzg4XSBidHR2MTogUExMOiAyODYz
-NjM2MyA9PiAzNTQ2ODk1MCAuIG9rClsxNzg5ODU3LjY2ODUzOF0gYnR0djogQnQ4eHggY2FyZCBm
-b3VuZCAoMikuClsxNzg5ODU3LjY2ODU1OF0gYnR0djI6IEJ0ODc4IChyZXYgMTcpIGF0IDAwMDA6
-MDQ6MGUuMCwgaXJxOiAxOSwgbGF0ZW5jeTogNjQsIG1taW86IDB4ZmJlZmEwMDAKWzE3ODk4NTcu
-NjY4NzAyXSBidHR2MjogdXNpbmc6IEtvZGljb20gNDQwMFIgKHNsYXZlKSBbY2FyZD0xMzMsaW5z
-bW9kIG9wdGlvbl0KWzE3ODk4NTcuNjY4NzA1XSBJUlEgMTkvYnR0djI6IElSUUZfRElTQUJMRUQg
-aXMgbm90IGd1YXJhbnRlZWQgb24gc2hhcmVkIElSUXMKWzE3ODk4NTcuNjY4NzQyXSBidHR2Mjog
-Z3BpbzogZW49MDAwMDAwMDAsIG91dD0wMDAwMDAwMCBpbj0wMGZmZmZmZiBbaW5pdF0KWzE3ODk4
-NTcuNjY4ODA0XSBidHR2MjogdHVuZXIgYWJzZW50ClsxNzg5ODU3LjY2ODg5M10gYnR0djI6IHJl
-Z2lzdGVyZWQgZGV2aWNlIHZpZGVvMgpbMTc4OTg1Ny42Njg5MjNdIGJ0dHYyOiByZWdpc3RlcmVk
-IGRldmljZSB2YmkyClsxNzg5ODU3LjY2ODk1MV0gYnR0djI6IFBMTDogMjg2MzYzNjMgPT4gMzU0
-Njg5NTAgLgpbMTc4OTg1Ny42NzAyMDBdIGJ0dHYyOiBQTEw6IDI4NjM2MzYzID0+IDM1NDY4OTUw
-IC4KWzE3ODk4NTcuNjcwNjQzXSBidHR2MjogUExMOiAyODYzNjM2MyA9PiAzNTQ2ODk1MCAuLiBv
-awpbMTc4OTg4OS44NjA1MzddIGJ0dHY6IEJ0OHh4IGNhcmQgZm91bmQgKDMpLgpbMTc4OTg4OS44
-NjA1NThdIGJ0dHYzOiBCdDg3OCAocmV2IDE3KSBhdCAwMDAwOjA0OjBmLjAsIGlycTogMTYsIGxh
-dGVuY3k6IDY0LCBtbWlvOiAweGZiZWY4MDAwClsxNzg5ODg5Ljg2MDcwMl0gYnR0djM6IHVzaW5n
-OiBLb2RpY29tIDQ0MDBSIChzbGF2ZSkgW2NhcmQ9MTMzLGluc21vZCBvcHRpb25dClsxNzg5ODg5
-Ljg2MDcwNV0gSVJRIDE2L2J0dHYzOiBJUlFGX0RJU0FCTEVEIGlzIG5vdCBndWFyYW50ZWVkIG9u
-IHNoYXJlZCBJUlFzClsxNzg5ODg5Ljg2MDc0Ml0gYnR0djM6IGdwaW86IGVuPTAwMDAwMDAwLCBv
-dXQ9MDAwMDAwMDAgaW49MDBmZmZmZmYgW2luaXRdClsxNzg5ODg5Ljg2MDgwN10gYnR0djM6IHR1
-bmVyIGFic2VudApbMTc4OTg4OS44NjA4OTldIGJ0dHYzOiByZWdpc3RlcmVkIGRldmljZSB2aWRl
-bzMKWzE3ODk4ODkuODYwOTM1XSBidHR2MzogcmVnaXN0ZXJlZCBkZXZpY2UgdmJpMwpbMTc4OTg4
-OS44NjA5NjBdIGJ0dHYzOiBQTEw6IDI4NjM2MzYzID0+IDM1NDY4OTUwIC4KWzE3ODk4ODkuODYy
-MTUyXSBidHR2MzogUExMOiAyODYzNjM2MyA9PiAzNTQ2ODk1MCAuClsxNzg5ODg5Ljg2Mjg3MV0g
-YnR0djM6IFBMTDogMjg2MzYzNjMgPT4gMzU0Njg5NTAgLi4gb2sKWzE3ODk5MjIuMDUyNTM5XSBi
-dHR2OiBCdDh4eCBjYXJkIGZvdW5kICg0KS4KWzE3ODk5MjIuMDUyNTYwXSBidHR2NDogQnQ4Nzgg
-KHJldiAxNykgYXQgMDAwMDowNTowYy4wLCBpcnE6IDE4LCBsYXRlbmN5OiA2NCwgbW1pbzogMHhm
-YmZmZTAwMApbMTc4OTkyMi4wNTI3MDRdIGJ0dHY0OiB1c2luZzogS29kaWNvbSA0NDAwUiAoc2xh
-dmUpIFtjYXJkPTEzMyxpbnNtb2Qgb3B0aW9uXQpbMTc4OTkyMi4wNTI3MDddIElSUSAxOC9idHR2
-NDogSVJRRl9ESVNBQkxFRCBpcyBub3QgZ3VhcmFudGVlZCBvbiBzaGFyZWQgSVJRcwpbMTc4OTky
-Mi4wNTI3MzddIGJ0dHY0OiBncGlvOiBlbj0wMDAwMDAwMCwgb3V0PTAwMDAwMDAwIGluPTAwZmZm
-ZmZmIFtpbml0XQpbMTc4OTkyMi4wNTI4MDFdIGJ0dHY0OiB0dW5lciBhYnNlbnQKWzE3ODk5MjIu
-MDUyODk0XSBidHR2NDogcmVnaXN0ZXJlZCBkZXZpY2UgdmlkZW80ClsxNzg5OTIyLjA1MjkyNl0g
-YnR0djQ6IHJlZ2lzdGVyZWQgZGV2aWNlIHZiaTQKWzE3ODk5MjIuMDUyOTQ3XSBidHR2NDogUExM
-OiAyODYzNjM2MyA9PiAzNTQ2ODk1MCAuClsxNzg5OTIyLjA1NDEyMF0gYnR0djQ6IFBMTDogMjg2
-MzYzNjMgPT4gMzU0Njg5NTAgLgpbMTc4OTkyMi4wNTQ4MTZdIGJ0dHY0OiBQTEw6IDI4NjM2MzYz
-ID0+IDM1NDY4OTUwIC4uIG9rClsxNzg5OTIyLjA4NzUzMl0gYnR0djogQnQ4eHggY2FyZCBmb3Vu
-ZCAoNSkuClsxNzg5OTIyLjA4NzU1MF0gYnR0djU6IEJ0ODc4IChyZXYgMTcpIGF0IDAwMDA6MDU6
-MGQuMCwgaXJxOiAxOSwgbGF0ZW5jeTogNjQsIG1taW86IDB4ZmJmZmMwMDAKWzE3ODk5MjIuMDg3
-Njk1XSBidHR2NTogdXNpbmc6IEtvZGljb20gNDQwMFIgKG1hc3RlcikgW2NhcmQ9MTMyLGluc21v
-ZCBvcHRpb25dClsxNzg5OTIyLjA4NzY5OV0gSVJRIDE5L2J0dHY1OiBJUlFGX0RJU0FCTEVEIGlz
-IG5vdCBndWFyYW50ZWVkIG9uIHNoYXJlZCBJUlFzClsxNzg5OTIyLjA4NzcyN10gYnR0djU6IGdw
-aW86IGVuPTAwMDAwMDAwLCBvdXQ9MDAwMDAwMDAgaW49MDBmZmZmZmYgW2luaXRdClsxNzg5OTIy
-LjA4NzgwMl0gYnR0djU6IHR1bmVyIGFic2VudApbMTc4OTkyMi4wODc4OTBdIGJ0dHY1OiByZWdp
-c3RlcmVkIGRldmljZSB2aWRlbzUKWzE3ODk5MjIuMDg3OTIyXSBidHR2NTogcmVnaXN0ZXJlZCBk
-ZXZpY2UgdmJpNQpbMTc4OTkyMi4wODc5NDFdIGJ0dHY1OiBQTEw6IDI4NjM2MzYzID0+IDM1NDY4
-OTUwIC4KWzE3ODk5MjIuMDg5MDk1XSBidHR2NTogUExMOiAyODYzNjM2MyA9PiAzNTQ2ODk1MCAu
-ClsxNzg5OTIyLjA4OTUzM10gYnR0djU6IFBMTDogMjg2MzYzNjMgPT4gMzU0Njg5NTAgLiBvawo=
---0015175cb2847e2a7b04aef63328
-Content-Type: text/plain; charset=US-ASCII; name="lsmod-bttv.txt"
-Content-Disposition: attachment; filename="lsmod-bttv.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gtlt58wr1
-
-YnR0diAgICAgICAgICAgICAgICAgIDExMTY2OSAgMCAKdjRsMl9jb21tb24gICAgICAgICAgICAx
-NTQzMSAgMSBidHR2CnZpZGVvZGV2ICAgICAgICAgICAgICAgMzQ0MjUgIDIgYnR0dix2NGwyX2Nv
-bW1vbgppcl9jb21tb24gICAgICAgICAgICAgIDM4ODc1ICAxIGJ0dHYKaTJjX2FsZ29fYml0ICAg
-ICAgICAgICAgNTAyOCAgMSBidHR2CnZpZGVvYnVmX2RtYV9zZyAgICAgICAgMTA3ODIgIDEgYnR0
-dgp2aWRlb2J1Zl9jb3JlICAgICAgICAgIDE2MzU2ICAyIGJ0dHYsdmlkZW9idWZfZG1hX3NnCmJ0
-Y3hfcmlzYyAgICAgICAgICAgICAgIDM2MjQgIDEgYnR0dgp0dmVlcHJvbSAgICAgICAgICAgICAg
-IDExMTAyICAxIGJ0dHYK
---0015175cb2847e2a7b04aef63328--
+greg k-h
