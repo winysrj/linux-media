@@ -1,73 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:38650 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933288Ab1JRQbz convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:50870 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754943Ab1JQNt7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Oct 2011 12:31:55 -0400
-Received: by yxp4 with SMTP id 4so765728yxp.19
-        for <linux-media@vger.kernel.org>; Tue, 18 Oct 2011 09:31:54 -0700 (PDT)
+	Mon, 17 Oct 2011 09:49:59 -0400
+Date: Mon, 17 Oct 2011 15:49:51 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] subdevice PM: .s_power() deprecation?
+In-Reply-To: <4E9C26BC.2010304@samsung.com>
+Message-ID: <Pine.LNX.4.64.1110171546340.18438@axis700.grange>
+References: <Pine.LNX.4.64.1110031138370.14314@axis700.grange>
+ <20111008213657.GE8908@valkosipuli.localdomain> <Pine.LNX.4.64.1110170955560.18438@axis700.grange>
+ <4E9C26BC.2010304@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com>
-References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com>
-Date: Tue, 18 Oct 2011 18:31:54 +0200
-Message-ID: <CA+2YH7voGzNzxcdFCAissTtn_-NAL=_jfiOS8kia9m-=XqwOig@mail.gmail.com>
-Subject: Re: omap3isp: BT.656 support
-From: Enrico <ebutera@users.berlios.de>
-To: Boris Todorov <boris.st.todorov@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 18, 2011 at 3:33 PM, Boris Todorov
-<boris.st.todorov@gmail.com> wrote:
-> Hi
->
-> I'm trying to run OMAP + TVP5151 in BT656 mode.
->
-> I'm using omap3isp-omap3isp-yuv (git.linuxtv.org/pinchartl/media.git).
-> Plus the following patches:
->
-> TVP5151:
-> https://github.com/ebutera/meta-igep/tree/testing-v2/recipes-kernel/linux/linux-3.0+3.1rc/tvp5150
->
-> The latest RFC patches for BT656 support:
->
-> Enrico Butera (2):
->  omap3isp: ispvideo: export isp_video_mbus_to_pix
->  omap3isp: ispccdc: configure CCDC registers and add BT656 support
->
-> Javier Martinez Canillas (1):
->  omap3isp: ccdc: Add interlaced field mode to platform data
->
->
-> I'm able to configure with media-ctl:
->
-> media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
-> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
-> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
-> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
->
-> But
-> ./yavta -f UYVY -s 720x525 -n 4 --capture=4 -F /dev/video4
->
-> sleeps after
-> ...
-> Buffer 1 mapped at address 0x4021d000.
-> length: 756000 offset: 1515520
-> Buffer 2 mapped at address 0x402d6000.
-> length: 756000 offset: 2273280
-> Buffer 3 mapped at address 0x4038f000.
->
-> Anyone with the same issue??? This happens with every other v4l test app I used.
-> I can see data from TVP5151 but there are no interrupts in ISP.
+On Mon, 17 Oct 2011, Sylwester Nawrocki wrote:
 
-You can try if this:
+> Hi,
+> 
+> On 10/17/2011 10:06 AM, Guennadi Liakhovetski wrote:
+> > On Sun, 9 Oct 2011, Sakari Ailus wrote:
+> >> On Mon, Oct 03, 2011 at 12:57:10PM +0200, Guennadi Liakhovetski wrote:
+> >> Thanks for a thoughtful writing on subdev PM!
+> >>
+> >>> (The original .s_power() author added to cc;-))
+> >>>
+> >>> Here comes one more Request for Discussion from me.
+> >>>
+> >>> Short: on what events, at which level and how shall subdevice PM be 
+> >>> envoked?
+> >>>
+> >>> Subdevices can have varying and arbitrarily complex Power Management 
+> >>> methods. On-SoC subdevices would typically be powered on and off by 
+> >>> writing to some system registers. External subdevices (sensors etc.) can 
+> >>> be powered on or off by something as simple as a GPIO, or can use several 
+> >>> power regulators, supplying power to different device circuits. This 
+> >>> means, a part of this knowledge belongs directly to the driver, while 
+> >>> another part of it comes from platform data. The driver itself knows, 
+> >>> whether it can control device's power, using internal capabilities, or it 
+> >>> has to request a certain number of regulators. In the latter case, 
+> >>> perhaps, it would be sane to assume, that if a certain regulator is not 
+> >>> available, then the respective voltage is supplied by the system 
+> >>> statically.
+> >>>
+> >>> When to invoke? Subdeices can be used in two cases: for configuration and 
+> >>> for data processing (streaming). For configuration the driver can choose 
+> >>> one of two approaches: (1) cache all configuration requests and only 
+> >>> execute them on STREAMON. Advantages: (a) the device can be kept off all 
+> >>> the time during configuration, (b) the order is unimportant: the driver 
+> >>> only stores values and applies them in the "correct" order. Disadvantages: 
+> >>> (a) if the result of any such operation cannot be fully predicted by the 
+> >>> driver, it cannot be reported to the user immediately after the operation 
+> >>> execution but only at the STREAMON time (does anyone know any such 
+> >>> "volatile" operations?), (b) the order is lost (is this important?). (2) 
+> >>> execute all operations immediately. Advantages and disadvantages: just 
+> >>> invert those from (1) above.
+> >>>
+> >>> So far individual drivers decide themselves which way to go. This way only 
+> >>> drivers themselves know, when and what parts of the device they have to 
+> >>> power on and off for configuration. The only thing the bridge driver can 
+> >>> be sure about is, that all the involved subdevices in the pipeline have to 
+> >>> be powered on during streaming. But even then - maybe the driver can and 
+> >>> wants to power the i2c circuitry off for that time?
+> >>
+> >> The bridge driver can't (nor should) know about the power management
+> >> requirements of random subdevs. The name of the s_power op is rather
+> >> poitless in its current state.
+> >>
+> >> The power state of the subdev probably even never matters to the bridge ---
+> > 
+> > Exactly, that's the conclusion I come to in this RFC too.
+> > 
+> >> or do we really have an example of that?
+> >>
+> >> In my opinion the bridge driver should instead tell the bridge drivers what
+> >> they can expect to hear from the bridge --- for example that the bridge can
+> >> issue set / get controls or fmt ops to the subdev. The subdev may or may not
+> >> need to be powered for those: only the subdev driver knows.
+> > 
+> > Hm, why should the bridge driver tell the subdev driver (I presume, that's 
+> > a typo in your above sentence) what to _expect_? Isn't just calling those 
+> > operations enough?
+> > 
+> >> This is analogous to opening the subdev node from user space. Anything else
+> >> except streaming is allowed. And streaming, which for sure requires powering
+> >> on the subdev, is already nicely handled by the s_stream op.
+> >>
+> >> What do you think?
+> >>
+> >> In practice the name of s_power should change, as well as possible
+> >> implementatio on subdev drivers.
+> > 
+> > But why do we need it at all?
+> 
+> AFAICS in some TV card drivers it is used to put the analog tuner into low
+> power state.
+> So core.s_power op provides the mans to suspend/resume a sub-device.
+> 
+> If the bridge driver only implements a user space interface for the subdev,
+> it may want to bring a subdev up in some specific moment, before video.s_stream,
+> e.g. in some ioctl or at device open(), etc.
+> 
+> Let's imagine bringing the sensor up takes appr. 700 ms, often we don't want 
+> the sensor driver to be doing this before every s_stream().
 
-http://www.spinics.net/lists/linux-media/msg37795.html
+Sorry, I still don't understand, how the bridge driver knows better, than 
+the subdev driver, whether the user will resume streaming in 500ms or in 
+20s? Maybe there's some such information available with tuners, which I'm 
+just unaware about?
 
-makes it work.
+> I agree the subdev drivers have best knowledge as to when to enable/disable
+> power, from their device point of view. 
+> 
+> But how could we resolve the high latencies issue without something like 
+> the s_power() callback ?
+> 
+> > 
+> >>> All the above makes me think, that .s_power() methods are actually useless 
+> >>> in the "operation context." The bridge has basically no way to know, when 
+> >>> and which parts of the subdevice to power on or off. Subdevice 
+> >>> configuration is anyway always performed, using the driver, and for 
+> >>> streaming all participating subdevices just have to be informed about 
+> >>> streaming begin and end.
+> >>>
+> >>> The only pure PM activity, that subdevice drivers have to be informed 
+> >>> about are suspends and resumes. Normal bus PM callbacks are not always 
+> >>> usable in our case. E.g., you cannot use i2c PM, because i2c can well be 
+> >>> resumed before the bridge and then camera sensors typically still cannot 
+> >>> be accessed over i2c.
+> >>
+> >> Do you have a bridge that provides a clock to subdevs? The clock should be
+> >> modelled in the clock framework --- yes, I guess there's still a way to go
+> >> before that,s universally possible.
+> > 
+> > sure, almost all cameras in my configurations get their master clock from 
+> > the bridge - usually a dedicated camera master clock output.
+> > 
+> >>> Therefore I propose to either deprecate (and later remove) .s_power() and 
+> >>> add .suspend() and .resume() instead or repurpose .s_power() to be _only_ 
+> >>> used for system-wide suspending and resuming. Even for runtime PM the 
+> >>> subdevice driver has all the chances to decide itself when and how to save 
+> >>> power, so, again, there is no need to be called from outside.
+> 
+> Although more explicit, two suspend/resume callbacks in place of single s_power
+> doesn't seem to add much value to me.
 
-Enrico
+No, the important point was - to _only_ use .s_power() for system-wide PM, 
+whether we keep the names or not.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
