@@ -1,346 +1,329 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpo05.poczta.onet.pl ([213.180.142.136]:56069 "EHLO
-	smtpo05.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757162Ab1JRJQE (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:53209 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933110Ab1JRQOI convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Oct 2011 05:16:04 -0400
-Date: Tue, 18 Oct 2011 11:12:26 +0200
-From: Piotr Chmura <chmooreck@poczta.onet.pl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Greg KH <gregkh@suse.de>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
-Subject: [PATCH 8/14] staging/media/as102: checkpatch fixes
-Message-Id: <20111018111226.adab687e.chmooreck@poczta.onet.pl>
-In-Reply-To: <20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
-References: <4E7F1FB5.5030803@gmail.com>
-	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
-	<4E7FF0A0.7060004@gmail.com>
-	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
-	<20110927094409.7a5fcd5a@stein>
-	<20110927174307.GD24197@suse.de>
-	<20110927213300.6893677a@stein>
-	<4E999733.2010802@poczta.onet.pl>
-	<4E99F2FC.5030200@poczta.onet.pl>
-	<20111016105731.09d66f03@stein>
-	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
-	<4E9ADFAE.8050208@redhat.com>
-	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 18 Oct 2011 12:14:08 -0400
+Received: by iaek3 with SMTP id k3so947581iae.19
+        for <linux-media@vger.kernel.org>; Tue, 18 Oct 2011 09:14:07 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4E9DA3A2.3050009@mlbassoc.com>
+References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com>
+	<4E9D882F.5010608@mlbassoc.com>
+	<CAFYgh7wKeOmQnvpbugZcFX-shKRN7oGmho_tyYLtcVOnPL8Peg@mail.gmail.com>
+	<4E9D9209.3000907@mlbassoc.com>
+	<CAFYgh7ybJYX0ec9avYrMf+cCWnp_AU3WivZkROCDLi-6p2WB_A@mail.gmail.com>
+	<4E9D9A23.8060604@mlbassoc.com>
+	<CAFYgh7x7LOw493Bvy3ETC9rq8DkDVnj5tL9mEZd4OF6RtNk8yA@mail.gmail.com>
+	<4E9DA3A2.3050009@mlbassoc.com>
+Date: Tue, 18 Oct 2011 19:14:07 +0300
+Message-ID: <CAFYgh7zUwt=C9pyfepM6B0stHhnJs7U08JP_w8x_ycce2HKbZg@mail.gmail.com>
+Subject: Re: omap3isp: BT.656 support
+From: Boris Todorov <boris.st.todorov@gmail.com>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+On Tue, Oct 18, 2011 at 7:04 PM, Gary Thomas <gary@mlbassoc.com> wrote:
+> On 2011-10-18 09:53, Boris Todorov wrote:
+>>
+>> On Tue, Oct 18, 2011 at 6:24 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>>>
+>>> On 2011-10-18 09:10, Boris Todorov wrote:
+>>>>
+>>>> On Tue, Oct 18, 2011 at 5:49 PM, Gary Thomas<gary@mlbassoc.com>
+>>>>  wrote:
+>>>>>
+>>>>> On 2011-10-18 08:28, Boris Todorov wrote:
+>>>>>>
+>>>>>> I'm using different board.
+>>>>>
+>>>>> What board?  I would think the architecture of the OMAP3 ISP would
+>>>>> not change, based on the board?
+>>>>
+>>>> It's a custom board with omap3630. ISP is not changed.
+>>>> When I disable OMAP2_VOUT from defconfig "CCD output" is /dev/video2.
+>>>
+>>> I see, I have that option turned off.
+>>>
+>>>> But result is the same - yavta sleeps at VIDIOC_DQBUF ioctl
+>>>
+>>> How are you configuring the TVP5150?  In particular these settings at
+>>> boot
+>>> time:
+>>>
+>>> static struct isp_v4l2_subdevs_group my_camera_subdevs[] = {
+>>>        {
+>>>                .subdevs = tvp5150_camera_subdevs,
+>>>                .interface = ISP_INTERFACE_PARALLEL,
+>>>                .bus = {
+>>>                                .parallel = {
+>>>                                        .data_lane_shift = 0,
+>>>                                        .clk_pol = 1,
+>>>                                        .bt656 = 1,
+>>>                                        .fldmode = 1,
+>>>                                }
+>>>                },
+>>>        },
+>>>        { },
+>>> };
+>>
+>> My settings are:
+>>                                .data_lane_shift        = 0,
+>>                                .clk_pol                = 0,
+>>                                .hs_pol                 = 0,
+>>                                .vs_pol                 = 0,
+>>                                .fldmode                = 1,
+>>                                .bt656               = 1,
+>>
+>> I tried yours but same result.
+>> Why did you chose clk_pol=1?
+>
+> I just copied the settings from the BeagleBoard
+btw what board are you using?
 
-Original source and comment:
-# HG changeset patch
-# User Devin Heitmueller <dheitmueller@kernellabs.com>
-# Date 1267318909 18000
-# Node ID 89de57601df871f6d951ca13bf52b136f9eadddf
-# Parent  152825226bec049f947a844bea2c530fc9269ae5
-as102: checkpatch fixes
+> Have you had this working before (earlier kernel, etc)?
+Never in BT.656 mode...
 
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-
-Fix make checkpatch issues reported against as10x_cmd_cfg.c.
-
-Priority: normal
-
-Signed-off-by: Piotr Chmura <chmooreck@poczta.onet.pl>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-
-diff --git linux/drivers/staging/media/as102/as10x_cmd_cfg.c linuxb/drivers/media/dvb/as102/as10x_cmd_cfg.c
---- linux/drivers/staging/media/as102/as10x_cmd_cfg.c
-+++ linuxb/drivers/staging/media/as102/as10x_cmd_cfg.c
-@@ -2,8 +2,6 @@
- 
-  \file   as10x_cmd_cfg.c
- 
-- \version $Id$
--
-  \author: S. Martinelli
- 
-  ----------------------------------------------------------------------------\n
-@@ -22,7 +20,8 @@
- #include <linux/kernel.h>
- #include "as102_drv.h"
- #elif defined(WIN32)
--   #if defined(__BUILDMACHINE__) && (__BUILDMACHINE__ == WinDDK)  /* win32 ddk implementation */
-+   #if defined(__BUILDMACHINE__) && (__BUILDMACHINE__ == WinDDK)
-+      /* win32 ddk implementation */
-       #include "wdm.h"
-       #include "Device.h"
-       #include "endian_mgmt.h" /* FIXME */
-@@ -59,52 +58,52 @@
- int as10x_cmd_get_context(as10x_handle_t *phandle, uint16_t tag,
- 			  uint32_t *pvalue)
- {
--   int  error;
--   struct as10x_cmd_t *pcmd, *prsp;
-+	int  error;
-+	struct as10x_cmd_t *pcmd, *prsp;
- 
--   ENTER();
-+	ENTER();
- 
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   /* prepare command */
--   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
--		    sizeof(pcmd->body.context.req));
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.context.req));
- 
--   /* fill command */
--   pcmd->body.context.req.proc_id      = cpu_to_le16(CONTROL_PROC_CONTEXT);
--   pcmd->body.context.req.tag          = cpu_to_le16(tag);
--   pcmd->body.context.req.type         = cpu_to_le16(GET_CONTEXT_DATA);
-+	/* fill command */
-+	pcmd->body.context.req.proc_id = cpu_to_le16(CONTROL_PROC_CONTEXT);
-+	pcmd->body.context.req.tag = cpu_to_le16(tag);
-+	pcmd->body.context.req.type = cpu_to_le16(GET_CONTEXT_DATA);
- 
--   /* send command */
--   if(phandle->ops->xfer_cmd) {
--      error  = phandle->ops->xfer_cmd(phandle,
--			   (uint8_t *) pcmd,
--			   sizeof(pcmd->body.context.req) + HEADER_SIZE,
--			   (uint8_t *) prsp,
--			   sizeof(prsp->body.context.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error  = phandle->ops->xfer_cmd(phandle,
-+						(uint8_t *) pcmd,
-+						sizeof(pcmd->body.context.req)
-+						+ HEADER_SIZE,
-+						(uint8_t *) prsp,
-+						sizeof(prsp->body.context.rsp)
-+						+ HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
- 
--   if(error < 0) {
--      goto out;
--   }
-+	if (error < 0)
-+		goto out;
- 
--   /* parse response: context command do not follow the common response */
--   /* structure -> specific handling response parse required            */
--   error = as10x_context_rsp_parse(prsp, CONTROL_PROC_CONTEXT_RSP);
-+	/* parse response: context command do not follow the common response */
-+	/* structure -> specific handling response parse required            */
-+	error = as10x_context_rsp_parse(prsp, CONTROL_PROC_CONTEXT_RSP);
- 
--   if(error == 0) {
--     /* Response OK -> get response data */
--      *pvalue = le32_to_cpu(prsp->body.context.rsp.reg_val.u.value32);
--     /* value returned is always a 32-bit value */
--   }
-+	if (error == 0) {
-+		/* Response OK -> get response data */
-+		*pvalue = le32_to_cpu(prsp->body.context.rsp.reg_val.u.value32);
-+		/* value returned is always a 32-bit value */
-+	}
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-@@ -118,47 +117,48 @@
- int as10x_cmd_set_context(as10x_handle_t *phandle, uint16_t tag,
- 			  uint32_t value)
- {
--   int error;
--   struct as10x_cmd_t *pcmd, *prsp;
-+	int error;
-+	struct as10x_cmd_t *pcmd, *prsp;
- 
--   ENTER();
-+	ENTER();
- 
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   /* prepare command */
--   as10x_cmd_build(pcmd,(++phandle->cmd_xid),sizeof(pcmd->body.context.req));
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.context.req));
- 
--   /* fill command */
--   pcmd->body.context.req.proc_id      = cpu_to_le16(CONTROL_PROC_CONTEXT);
--      /* pcmd->body.context.req.reg_val.mode initialization is not required */
--   pcmd->body.context.req.reg_val.u.value32 = cpu_to_le32(value);
--   pcmd->body.context.req.tag          = cpu_to_le16(tag);
--   pcmd->body.context.req.type         = cpu_to_le16(SET_CONTEXT_DATA);
-+	/* fill command */
-+	pcmd->body.context.req.proc_id = cpu_to_le16(CONTROL_PROC_CONTEXT);
-+	/* pcmd->body.context.req.reg_val.mode initialization is not required */
-+	pcmd->body.context.req.reg_val.u.value32 = cpu_to_le32(value);
-+	pcmd->body.context.req.tag = cpu_to_le16(tag);
-+	pcmd->body.context.req.type = cpu_to_le16(SET_CONTEXT_DATA);
- 
--   /* send command */
--   if(phandle->ops->xfer_cmd){
--      error  = phandle->ops->xfer_cmd(phandle,
--				(uint8_t *) pcmd,
--				sizeof(pcmd->body.context.req) + HEADER_SIZE,
--				(uint8_t *) prsp,
--				sizeof(prsp->body.context.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error  = phandle->ops->xfer_cmd(phandle,
-+						(uint8_t *) pcmd,
-+						sizeof(pcmd->body.context.req)
-+						+ HEADER_SIZE,
-+						(uint8_t *) prsp,
-+						sizeof(prsp->body.context.rsp)
-+						+ HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
- 
--   if(error < 0) {
--      goto out;
--   }
-+	if (error < 0)
-+		goto out;
- 
--   /* parse response: context command do not follow the common response */
--   /* structure -> specific handling response parse required            */
--   error = as10x_context_rsp_parse(prsp, CONTROL_PROC_CONTEXT_RSP);
-+	/* parse response: context command do not follow the common response */
-+	/* structure -> specific handling response parse required            */
-+	error = as10x_context_rsp_parse(prsp, CONTROL_PROC_CONTEXT_RSP);
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-@@ -175,45 +175,43 @@
- */
- int as10x_cmd_eLNA_change_mode(as10x_handle_t *phandle, uint8_t mode)
- {
--   int error;
--   struct as10x_cmd_t *pcmd, *prsp;
-+	int error;
-+	struct as10x_cmd_t *pcmd, *prsp;
- 
--   ENTER();
-+	ENTER();
- 
--   pcmd = phandle->cmd;
--   prsp = phandle->rsp;
-+	pcmd = phandle->cmd;
-+	prsp = phandle->rsp;
- 
--   /* prepare command */
--   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
--		   sizeof(pcmd->body.cfg_change_mode.req));
-+	/* prepare command */
-+	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
-+			sizeof(pcmd->body.cfg_change_mode.req));
- 
--   /* fill command */
--   pcmd->body.cfg_change_mode.req.proc_id =
--				    cpu_to_le16(CONTROL_PROC_ELNA_CHANGE_MODE);
--   pcmd->body.cfg_change_mode.req.mode    = mode;
-+	/* fill command */
-+	pcmd->body.cfg_change_mode.req.proc_id =
-+		cpu_to_le16(CONTROL_PROC_ELNA_CHANGE_MODE);
-+	pcmd->body.cfg_change_mode.req.mode = mode;
- 
--   /* send command */
--   if(phandle->ops->xfer_cmd){
--      error  = phandle->ops->xfer_cmd(phandle,
--			 (uint8_t *) pcmd,
--			 sizeof(pcmd->body.cfg_change_mode.req) + HEADER_SIZE,
--			 (uint8_t *) prsp,
--			 sizeof(prsp->body.cfg_change_mode.rsp) + HEADER_SIZE);
--   }
--   else{
--      error = AS10X_CMD_ERROR;
--   }
-+	/* send command */
-+	if (phandle->ops->xfer_cmd) {
-+		error  = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
-+				sizeof(pcmd->body.cfg_change_mode.req)
-+				+ HEADER_SIZE, (uint8_t *) prsp,
-+				sizeof(prsp->body.cfg_change_mode.rsp)
-+				+ HEADER_SIZE);
-+	} else {
-+		error = AS10X_CMD_ERROR;
-+	}
- 
--   if(error < 0) {
--      goto out;
--   }
-+	if (error < 0)
-+		goto out;
- 
--   /* parse response */
--   error = as10x_rsp_parse(prsp, CONTROL_PROC_ELNA_CHANGE_MODE_RSP);
-+	/* parse response */
-+	error = as10x_rsp_parse(prsp, CONTROL_PROC_ELNA_CHANGE_MODE_RSP);
- 
- out:
--   LEAVE();
--   return(error);
-+	LEAVE();
-+	return error;
- }
- 
- /**
-@@ -225,15 +223,15 @@
- 	   ABILIS_RC_NOK
-    \callgraph
- */
--int as10x_context_rsp_parse(struct as10x_cmd_t *prsp, uint16_t proc_id) {
-+int as10x_context_rsp_parse(struct as10x_cmd_t *prsp, uint16_t proc_id)
-+{
-+	int err;
- 
--   int err;
-+	err = prsp->body.context.rsp.error;
- 
--   err = prsp->body.context.rsp.error;
--
--   if((err == 0) &&
--      (le16_to_cpu(prsp->body.context.rsp.proc_id) == proc_id)) {
--      return 0;
--   }
--   return AS10X_CMD_ERROR;
-+	if ((err == 0) &&
-+	    (le16_to_cpu(prsp->body.context.rsp.proc_id) == proc_id)) {
-+		return 0;
-+	}
-+	return AS10X_CMD_ERROR;
- }
+>
+>>
+>>>
+>>> This is how you tell the ISP to run in BT656 mode.  Without it, it will
+>>> run
+>>> using the HS/VS/FID signals (and also in my experience does not work
+>>> properly)
+>>>
+>>>>>
+>>>>>> According "media-ctl -p":
+>>>>>>
+>>>>>> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+>>>>>>             type V4L2 subdev subtype Unknown
+>>>>>>             device node name /dev/v4l-subdev2
+>>>>>>         pad0: Input [UYVY2X8 720x525]
+>>>>>>                 <- 'OMAP3 ISP CCP2':pad1 []
+>>>>>>                 <- 'OMAP3 ISP CSI2a':pad1 []
+>>>>>>                 <- 'tvp5150 3-005c':pad0 [ACTIVE]
+>>>>>>         pad1: Output [UYVY2X8 720x525]
+>>>>>>                 ->      'OMAP3 ISP CCDC output':pad0 [ACTIVE]
+>>>>>>                 ->      'OMAP3 ISP resizer':pad0 []
+>>>>>>         pad2: Output [UYVY2X8 720x524]
+>>>>>>                 ->      'OMAP3 ISP preview':pad0 []
+>>>>>>                 ->      'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
+>>>>>>                 ->      'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
+>>>>>>                 ->      'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
+>>>>>>
+>>>>>> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+>>>>>>             type Node subtype V4L
+>>>>>>             device node name /dev/video4
+>>>>>>         pad0: Input
+>>>>>>                 <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
+>>>>>>
+>>>>>>
+>>>>>> Should be /dev/video4...
+>>>>>
+>>>>> Could you send your pipeline setup and full output of 'media-ctl -p'?
+>>>>
+>>>> Pipeline setup is:
+>>>>
+>>>> $ media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1],
+>>>> "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+>>>> $ media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
+>>>> $ media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
+>>>> $ media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
+>>>>
+>>>> media-ctl output (with /dev/video4):
+>>>>
+>>>> $ media-ctl -p
+>>>> Opening media device /dev/media0
+>>>> Enumerating entities
+>>>> Found 16 entities
+>>>> Enumerating pads and links
+>>>> Device topology
+>>>> - entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
+>>>>             type V4L2 subdev subtype Unknown
+>>>>             device node name /dev/v4l-subdev0
+>>>>         pad0: Input [SGRBG10 4096x4096]
+>>>>                 <- 'OMAP3 ISP CCP2 input':pad0 []
+>>>>         pad1: Output [SGRBG10 4096x4096]
+>>>>                 ->    'OMAP3 ISP CCDC':pad0 []
+>>>>
+>>>> - entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
+>>>>             type Node subtype V4L
+>>>>             device node name /dev/video0
+>>>>         pad0: Output
+>>>>                 ->    'OMAP3 ISP CCP2':pad0 []
+>>>>
+>>>> - entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
+>>>>             type V4L2 subdev subtype Unknown
+>>>>             device node name /dev/v4l-subdev1
+>>>>         pad0: Input [SGRBG10 4096x4096]
+>>>>         pad1: Output [SGRBG10 4096x4096]
+>>>>                 ->    'OMAP3 ISP CSI2a output':pad0 []
+>>>>                 ->    'OMAP3 ISP CCDC':pad0 []
+>>>>
+>>>> - entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
+>>>>             type Node subtype V4L
+>>>>             device node name /dev/video3
+>>>>         pad0: Input
+>>>>                 <- 'OMAP3 ISP CSI2a':pad1 []
+>>>>
+>>>> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+>>>>             type V4L2 subdev subtype Unknown
+>>>>             device node name /dev/v4l-subdev2
+>>>>         pad0: Input [UYVY2X8 720x525]
+>>>>                 <- 'OMAP3 ISP CCP2':pad1 []
+>>>>                 <- 'OMAP3 ISP CSI2a':pad1 []
+>>>>                 <- 'tvp5150 3-005c':pad0 [ACTIVE]
+>>>>         pad1: Output [UYVY2X8 720x525]
+>>>>                 ->    'OMAP3 ISP CCDC output':pad0 [ACTIVE]
+>>>>                 ->    'OMAP3 ISP resizer':pad0 []
+>>>>         pad2: Output [UYVY2X8 720x524]
+>>>>                 ->    'OMAP3 ISP preview':pad0 []
+>>>>                 ->    'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
+>>>>                 ->    'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
+>>>>                 ->    'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
+>>>>
+>>>> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+>>>>             type Node subtype V4L
+>>>>             device node name /dev/video4
+>>>>         pad0: Input
+>>>>                 <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
+>>>>
+>>>> - entity 7: OMAP3 ISP preview (2 pads, 4 links)
+>>>>             type V4L2 subdev subtype Unknown
+>>>>             device node name /dev/v4l-subdev3
+>>>>         pad0: Input [SGRBG10 4096x4096]
+>>>>                 <- 'OMAP3 ISP CCDC':pad2 []
+>>>>                 <- 'OMAP3 ISP preview input':pad0 []
+>>>>         pad1: Output [YUYV 4082x4088]
+>>>>                 ->    'OMAP3 ISP preview output':pad0 []
+>>>>                 ->    'OMAP3 ISP resizer':pad0 []
+>>>>
+>>>> - entity 8: OMAP3 ISP preview input (1 pad, 1 link)
+>>>>             type Node subtype V4L
+>>>>             device node name /dev/video5
+>>>>         pad0: Output
+>>>>                 ->    'OMAP3 ISP preview':pad0 []
+>>>>
+>>>> - entity 9: OMAP3 ISP preview output (1 pad, 1 link)
+>>>>             type Node subtype V4L
+>>>>             device node name /dev/video6
+>>>>         pad0: Input
+>>>>                 <- 'OMAP3 ISP preview':pad1 []
+>>>>
+>>>> - entity 10: OMAP3 ISP resizer (2 pads, 4 links)
+>>>>              type V4L2 subdev subtype Unknown
+>>>>              device node name /dev/v4l-subdev4
+>>>>         pad0: Input [YUYV 4095x4095 (4,6)/4086x4082]
+>>>>                 <- 'OMAP3 ISP CCDC':pad1 []
+>>>>                 <- 'OMAP3 ISP preview':pad1 []
+>>>>                 <- 'OMAP3 ISP resizer input':pad0 []
+>>>>         pad1: Output [YUYV 4096x4095]
+>>>>                 ->    'OMAP3 ISP resizer output':pad0 []
+>>>>
+>>>> - entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
+>>>>              type Node subtype V4L
+>>>>              device node name /dev/video7
+>>>>         pad0: Output
+>>>>                 ->    'OMAP3 ISP resizer':pad0 []
+>>>>
+>>>> - entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
+>>>>              type Node subtype V4L
+>>>>              device node name /dev/video8
+>>>>         pad0: Input
+>>>>                 <- 'OMAP3 ISP resizer':pad1 []
+>>>>
+>>>> - entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
+>>>>              type V4L2 subdev subtype Unknown
+>>>>              device node name /dev/v4l-subdev5
+>>>>         pad0: Input
+>>>>                 <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+>>>>
+>>>> - entity 14: OMAP3 ISP AF (1 pad, 1 link)
+>>>>              type V4L2 subdev subtype Unknown
+>>>>              device node name /dev/v4l-subdev6
+>>>>         pad0: Input
+>>>>                 <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+>>>>
+>>>> - entity 15: OMAP3 ISP histogram (1 pad, 1 link)
+>>>>              type V4L2 subdev subtype Unknown
+>>>>              device node name /dev/v4l-subdev7
+>>>>         pad0: Input
+>>>>                 <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+>>>>
+>>>> - entity 16: tvp5150 3-005c (1 pad, 1 link)
+>>>>              type V4L2 subdev subtype Unknown
+>>>>              device node name /dev/v4l-subdev8
+>>>>         pad0: Output [UYVY2X8 720x525]
+>>>>                 ->    'OMAP3 ISP CCDC':pad0 [ACTIVE]
+>>>>
+>>>>>
+>>>>>>
+>>>>>>
+>>>>>> On Tue, Oct 18, 2011 at 5:07 PM, Gary Thomas<gary@mlbassoc.com>
+>>>>>>  wrote:
+>>>>>>>
+>>>>>>> On 2011-10-18 07:33, Boris Todorov wrote:
+>>>>>>>>
+>>>>>>>> Hi
+>>>>>>>>
+>>>>>>>> I'm trying to run OMAP + TVP5151 in BT656 mode.
+>>>>>>>>
+>>>>>>>> I'm using omap3isp-omap3isp-yuv
+>>>>>>>> (git.linuxtv.org/pinchartl/media.git).
+>>>>>>>> Plus the following patches:
+>>>>>>>>
+>>>>>>>> TVP5151:
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> https://github.com/ebutera/meta-igep/tree/testing-v2/recipes-kernel/linux/linux-3.0+3.1rc/tvp5150
+>>>>>>>>
+>>>>>>>> The latest RFC patches for BT656 support:
+>>>>>>>>
+>>>>>>>> Enrico Butera (2):
+>>>>>>>>   omap3isp: ispvideo: export isp_video_mbus_to_pix
+>>>>>>>>   omap3isp: ispccdc: configure CCDC registers and add BT656 support
+>>>>>>>>
+>>>>>>>> Javier Martinez Canillas (1):
+>>>>>>>>   omap3isp: ccdc: Add interlaced field mode to platform data
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> I'm able to configure with media-ctl:
+>>>>>>>>
+>>>>>>>> media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1],
+>>>>>>>> "OMAP3
+>>>>>>>> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+>>>>>>>> media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
+>>>>>>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
+>>>>>>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
+>>>>>>>>
+>>>>>>>> But
+>>>>>>>> ./yavta -f UYVY -s 720x525 -n 4 --capture=4 -F /dev/video4
+>>>>>>>>
+>>>>>>>> sleeps after
+>>>>>>>> ...
+>>>>>>>> Buffer 1 mapped at address 0x4021d000.
+>>>>>>>> length: 756000 offset: 1515520
+>>>>>>>> Buffer 2 mapped at address 0x402d6000.
+>>>>>>>> length: 756000 offset: 2273280
+>>>>>>>> Buffer 3 mapped at address 0x4038f000.
+>>>>>>>>
+>>>>>>>> Anyone with the same issue??? This happens with every other v4l test
+>>>>>>>> app
+>>>>>>>> I
+>>>>>>>> used.
+>>>>>>>> I can see data from TVP5151 but there are no interrupts in ISP.
+>>>>>>>
+>>>>>>> Why are you using /dev/video4?  The CCDC output is on /dev/video2
+>
+> --
+> ------------------------------------------------------------
+> Gary Thomas                 |  Consulting for the
+> MLB Associates              |    Embedded world
+> ------------------------------------------------------------
+>
