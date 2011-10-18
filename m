@@ -1,86 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from calzone.tip.net.au ([203.10.76.15]:49020 "EHLO
-	calzone.tip.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752250Ab1JFDC2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 23:02:28 -0400
-Date: Thu, 6 Oct 2011 14:02:14 +1100
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>,
-	Paul Gortmaker <paul.gortmaker@windriver.com>,
-	linux-next@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] drivers/media: fix dependencies in video
- mt9t001/mt9p031
-Message-Id: <20111006140214.b64b22b77f2f831442d59794@canb.auug.org.au>
-In-Reply-To: <4E8644D5.6080307@xenotime.net>
-References: <4E83A02F.2020309@xenotime.net>
-	<1317418491-26513-1-git-send-email-paul.gortmaker@windriver.com>
-	<4E8644D5.6080307@xenotime.net>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Thu__6_Oct_2011_14_02_14_+1100_5V6Yt/gIeO6_v0JX"
+Received: from moutng.kundenserver.de ([212.227.17.10]:49737 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754298Ab1JRViV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Oct 2011 17:38:21 -0400
+Date: Tue, 18 Oct 2011 23:38:11 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC] subdevice PM: .s_power() deprecation?
+In-Reply-To: <4E9DEB4A.4050001@gmail.com>
+Message-ID: <Pine.LNX.4.64.1110182315180.7139@axis700.grange>
+References: <Pine.LNX.4.64.1110031138370.14314@axis700.grange>
+ <Pine.LNX.4.64.1110171720260.18438@axis700.grange> <4E9C9D84.5020905@gmail.com>
+ <201110180107.20494.laurent.pinchart@ideasonboard.com> <4E9DEB4A.4050001@gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Signature=_Thu__6_Oct_2011_14_02_14_+1100_5V6Yt/gIeO6_v0JX
-Content-Type: text/plain; charset=UTF-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, 18 Oct 2011, Sylwester Nawrocki wrote:
 
-Hi Mauro,
+> Hi Laurent,
+> 
+> On 10/18/2011 01:07 AM, Laurent Pinchart wrote:
+> > On Monday 17 October 2011 23:26:28 Sylwester Nawrocki wrote:
+> >> On 10/17/2011 05:23 PM, Guennadi Liakhovetski wrote:
+> >>> On Mon, 17 Oct 2011, Sylwester Nawrocki wrote:
 
-On Fri, 30 Sep 2011 15:38:13 -0700 Randy Dunlap <rdunlap@xenotime.net> wrot=
-e:
->
-> On 09/30/11 14:34, Paul Gortmaker wrote:
-> > Both mt9t001.c and mt9p031.c have two identical issues, those
-> > being that they will need module.h inclusion for the upcoming
-> > cleanup going on there, and that their dependencies don't limit
-> > selection of configs that will fail to compile as follows:
-> >=20
-> > drivers/media/video/mt9p031.c:457: error: implicit declaration of funct=
-ion =E2=80=98v4l2_subdev_get_try_crop=E2=80=99
-> > drivers/media/video/mt9t001.c:787: error: =E2=80=98struct v4l2_subdev=
-=E2=80=99 has no member named =E2=80=98entity=E2=80=99
-> >=20
-> > The related config options are CONFIG_MEDIA_CONTROLLER and
-> > CONFIG_VIDEO_V4L2_SUBDEV_API.  Looking at the code, it appears
-> > that the driver was never intended to work without these enabled,
-> > so add a dependency on CONFIG_VIDEO_V4L2_SUBDEV_API, which in
-> > turn already has a dependency on CONFIG_MEDIA_CONTROLLER.
-> >=20
-> > Reported-by: Randy Dunlap <rdunlap@xenotime.net>
-> > Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
->=20
-> Acked-by: Randy Dunlap <rdunlap@xenotime.net>
+[snip]
 
-Ping?
+> >>>> The bridge driver could also choose to keep the sensor powered on,
+> >>>> whenever it sees appropriate, to avoid re-enabling the sensor to often.
+> >>>
+> >>> On what basis would the bridge driver make these decisions? How would it
+> >>> know in advance, when it'll have to re-enable the subdev next time?
+> >>
+> >> Re-enabling by allowing a subdev driver to entirely control the power
+> >> state. The sensor might implement "lowest power consumption" policy, while
+> >> the user might want "highest performance".
+> > 
+> > Exactly, that's a policy decision. Would PM QoS help here ?
+> 
+> Thanks for reminding about PM QoS. I didn't pay much attention to it but it
+> indeed appears to be a good fit for this sort of tasks.
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+But you anyway have to decide - who will implement those PM QoS callbacks? 
+The bridge and then decide whether or not to call subdev's .s_power(), or 
+the subdev driver itself? I think, the latter, in which case .s_power() 
+remain unused.
 
---Signature=_Thu__6_Oct_2011_14_02_14_+1100_5V6Yt/gIeO6_v0JX
-Content-Type: application/pgp-signature
+> We would possibly just need to think of parameters which could be associated with
+> video, e.g. video_latency, etc. ?...
+> 
+> I'm curious whether the whole power handling could be contained within a subdev 
+> driver, most likely it could be done for subdevs exposing a devnode.
+> 
+> > 
+> >> I'm referring only to camera sensor subdevs, as I don't have much experience
+> >> with other ones.
+> >>
+> >> Also there are some devices where you want to model power control
+> >> explicitly, and it is critical to overall system operation. The s5p-tv
+> >> driver is one example of these. The host driver knows exactly how the
+> >> power state of its subdevs should be handled.
+> > 
+> > The host probably knows about how to handle the power state of its internal
+> > subdevs, but what about external ones ?
+> 
+> In this particular example there is no external subdevs associated with the host. 
+> 
+> But we don't seem to have separate callbacks for internal and external subdevs..
+> So removing s_power() puts the above described sort of drivers in trouble.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+I understand what you're saying, but can you give us a specific example, 
+when a subdev driver (your SoC internal subdev, that is) doesn't have a 
+way to react to an event itself and only the bridge driver gets called 
+into at that time? Something like an interrupt or an internal timer or 
+some other internal event?
 
-iQIcBAEBCAAGBQJOjRo2AAoJEECxmPOUX5FEN9YQAJDGa1UL4mqZAe9Y3gc1SRU2
-ZjWL11vlwed1Qr1Ert3WJnOOmQ1zAht25hGawhLjIOTAMC9qhFz76hNsY4AzQY3T
-Jq/rsominQ6z/chTheynt2GOuu0hJC9UfnPkdvorf66PyqcPFAXFr+51swAt+0fB
-igW9lFigLgcBtL9QeqHfLjDEA8/cZZRmIAacon5/wfMK9gGEKlwWWeWcfXLbdJnM
-f+tD1zaxgEo1RC0BVjJvsgxRenfNsRCw1QhYoQsbI/FL2UewITt56qpVPLoIQKPe
-SVrYm6QO9//7hxyhd/cvyde3u2ypogjB0MaVcZnPeyoGhAt9UzTRkvSgOmseEUEN
-xXmj8tzmgjDzEZiNkk0ZpCwTpBHEW71CH5lVvz8QAAPkPd8QHwXldvIWuYcej/lM
-vln9ivIT5UlWQkKTZKQ4YWIdw6WWcUUW+ynICYqzdFob+hELdBVLaMruEQME+DKg
-MshdtXn2Wwj3Q1Z3sa7bB+Hb37Lz5gZ0PP9E64x/Dq9ucLGDMODA8l7QBak9aab/
-tbsuLYgQ4Vm20fnOe0n4RlXLFGwZnGT1cZwI3NQkTRjOi7T7zsvuO5v/hZjfsNpR
-lmVTr8zm1vrB+96gvAedfjVpnXKVf7EfKft1QBTx29yjwag7792HxFGQPP7rWbbL
-iOtz69Y+4xEuVEvMBdBQ
-=Z1Ab
------END PGP SIGNATURE-----
+> I guess we all agree the power requirements of external subdevs are generally 
+> unknown to the hosts.
+> 
+> For these it might make lot of sense to let the subdev driver handle the device
+> power supplies on basis of requests like, s_ctrl, s_stream, etc.  
 
---Signature=_Thu__6_Oct_2011_14_02_14_+1100_5V6Yt/gIeO6_v0JX--
+Yes, right, so, most "external" (sensor, decoder,...) subdev drivers 
+should never need to implement .s_power(), regardless of whether we decide 
+to keep it or not. Well, ok, no, put it differently - in those drivers 
+.s_power() should only really be called during system-wide suspend / 
+resume.
+
+> With PM QoS it could be easier to decide in the driver when a device should be
+> put in a low power state. 
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
