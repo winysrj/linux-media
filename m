@@ -1,66 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:39731 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752516Ab1J3V0C convert rfc822-to-8bit (ORCPT
+Received: from relay03.digicable.hu ([92.249.128.185]:41475 "EHLO
+	relay03.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751287Ab1JRUlN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Oct 2011 17:26:02 -0400
-Date: Sun, 30 Oct 2011 22:25:50 +0100
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-To: Piotr Chmura <chmooreck@poczta.onet.pl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Greg KH <gregkh@suse.de>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org,
-	Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [RESEND PATCH 1/14] staging/media/as102: initial import from
- Abilis
-Message-ID: <20111030222550.618a5f17@stein>
-In-Reply-To: <4EADBBB7.7070802@poczta.onet.pl>
-References: <4E7F1FB5.5030803@gmail.com>
-	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
-	<4E7FF0A0.7060004@gmail.com>
-	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
-	<20110927094409.7a5fcd5a@stein>
-	<20110927174307.GD24197@suse.de>
-	<20110927213300.6893677a@stein>
-	<4E999733.2010802@poczta.onet.pl>
-	<4E99F2FC.5030200@poczta.onet.pl>
-	<20111016105731.09d66f03@stein>
-	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
-	<4E9ADFAE.8050208@redhat.com>
-	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
-	<20111018111134.8482d1f8.chmooreck@poczta.onet.pl>
-	<20111018214634.544344cc@darkstar>
-	<4EADBBB7.7070802@poczta.onet.pl>
-Mime-Version: 1.0
+	Tue, 18 Oct 2011 16:41:13 -0400
+Message-ID: <4E9DDE13.103@freemail.hu>
+Date: Tue, 18 Oct 2011 22:14:11 +0200
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+MIME-Version: 1.0
+To: Lars Noschinski <lars@public.noschinski.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: pac7311
+References: <20111017060334.GA16001@lars.home.noschinski.de>
+In-Reply-To: <20111017060334.GA16001@lars.home.noschinski.de>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Oct 30 Piotr Chmura wrote:
-> > + * Note:
-> > + * - in AS102 SNR=MER
-> > + *   - the SNR will be returned in linear terms, i.e. not in dB
-> > + *   - the accuracy equals Â±2dB for a SNR range from 4dB to 30dB
-> > + *   - the accuracy is>2dB for SNR values outside this range
-> > + */
-> 
-> I found another issue here.
-> In this comment "±" is from upper ASCII (0xF1). Should I change it into 
-> sth. like "+/-" in this patch (1/14) or leave it and just resend without 
-> "Â" (wasn't there in original patch, don't know where it came from) ?
+Hi Lars,
 
-Special characters can be used in comments, provided that they are UTF-8
-encoded.  In case of names of persons or companies, it is very much
-desirable to preserve special characters.  In case like this one on the
-other hand, sticking with ASCII (the 7 bit character table) might not be
-such a bad idea to keep things simple.  But since you are passing on a
-patch from somebody else, the right thing to do is IMO to keep the special
-characters that the author chose and only make sure that the file (and
-the patch mailing) are UTF-8 encoded.
--- 
-Stefan Richter
--=====-==-== =-=- ====-
-http://arcgraph.de/sr/
+Lars Noschinski wrote:
+> I'm using a webcam (Philipps SPC500NC) which identifies itself as
+> 
+>     093a:2603 Pixart Imaging, Inc. PAC7312 Camera
+> 
+> and is sort-of supported by the gspca_pac7311 module. "sort-of" because
+> the image alternates quickly between having a red tint or a green tint
+> (using the gspac driver from kernel 3.0.0, but this problem is present
+> since at least 2.6.31).
+
+The most important source code for your webcam is drivers/media/video/gspca/pac7311.c .
+You can see it online at http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=drivers/media/video/gspca/pac7311.c .
+
+> If I remove and re-plugin the camera a few times (on average around 3
+> times), the colors are stable.
+
+When you plug and remove the webcam and the colors are wrong, do you get any
+message in the "dmesg"?
+
+Once the colors are stable and you unplug and replug the webcam, what happens then?
+Is there again around 3 times when the webcam is not working properly?
+
+> Then a second issue becomes apparent:
+> There is almost no saturation in the image. Toying around with Contrast,
+> Gamma, Exposure or Gain does not help. What _does_ help is the Vflip
+> switch: If I enable it, the image is flipped vertically (as expected),
+> but also the color become a lot better.
+
+Is there any difference when you use the "Mirror" control? What about the
+combination of the "Vflip" and "Mirror" controls?
+
+What about the "Auto Gain" setting? Is it enabled or disabled in your case?
+
+> Is there something I can do to debug/fix this problem?
+
+You can try testing the webcam with different resolutions. The webcam
+supports 160x120, 320x240 and 640x480 resolutions based on the source code.
+You can try the different resolutions for example with "cheese"
+( http://projects.gnome.org/cheese/ ) or any of your favorite V4L2 program.
+
+You can load the usbmon kernel module and use Wireshark to log the USB communication
+between your computer and the webcam starting with plug-in. You can compare
+the communication when the webcam starts to work correctly with the one when
+the webcam doesn't work as expected.
+
+Regards,
+
+	Márton Németh
