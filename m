@@ -1,58 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:40573 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754565Ab1JKPJ0 (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:58454 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752422Ab1JRSvF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Oct 2011 11:09:26 -0400
-Received: by wwf22 with SMTP id 22so10739016wwf.1
-        for <linux-media@vger.kernel.org>; Tue, 11 Oct 2011 08:09:25 -0700 (PDT)
-From: Enrico Butera <ebutera@users.berlios.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>,
-	linux-media@vger.kernel.org,
-	Enrico Butera <ebutera@users.berlios.de>
-Subject: [RFC 1/3] omap3isp: ccdc: Add interlaced field mode to platform data
-Date: Tue, 11 Oct 2011 17:08:53 +0200
-Message-Id: <1318345735-16778-2-git-send-email-ebutera@users.berlios.de>
-In-Reply-To: <1318345735-16778-1-git-send-email-ebutera@users.berlios.de>
-References: <1318345735-16778-1-git-send-email-ebutera@users.berlios.de>
+	Tue, 18 Oct 2011 14:51:05 -0400
+Received: by vws1 with SMTP id 1so700273vws.19
+        for <linux-media@vger.kernel.org>; Tue, 18 Oct 2011 11:51:03 -0700 (PDT)
+MIME-Version: 1.0
+Date: Tue, 18 Oct 2011 14:51:02 -0400
+Message-ID: <CAHAyoxwJPpYbc06AB_S=JbqtCmmtYiCuxAuV_CBrmCHUJA_pLg@mail.gmail.com>
+Subject: [PULL] git://linuxtv.org/mkrufky/mxl111sf aero-m-dvbt
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Mauro,
 
-The fldmode field from the CCDC_SYN_MODE register configure the ISP CCDC
-between progresive and interlaced mode.
+Please pull from the aero-m-dvbt branch of my mxl111sf git tree.  This
+adds DVB-T support to the WinTV Aero-M, which already supports ATSC.
+Once this is merged, the WinTV Aero-M will be the first USB device
+known to be supported under Linux that supports both ATSC and DVB-T.
+(I will have mine with me in Prague next week) ... Please pull asap so
+that we can play with the device next week using the merged
+repository.
 
-Adding this field to the platform data, allows boards to configure accordingly.
+The following changes since commit a461e0ad3d27b6342140566909a80db30d151a91:
+  Steven Toth (1):
+        [media] cx23885: Stop the risc video fifo before reconfiguring it
 
-Signed-off-by: Javier Martinez Canillas <martinez.javier@gmail.com>
-Signed-off-by: Enrico Butera <ebutera@users.berlios.de>
----
- include/media/omap3isp.h |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+are available in the git repository at:
 
-diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-index 3b2d2b7..0f215de 100644
---- a/include/media/omap3isp.h
-+++ b/include/media/omap3isp.h
-@@ -61,6 +61,8 @@ enum {
-  *		0 - Normal, 1 - One's complement
-  * @bt656: ITU-R BT656 embedded synchronization
-  *		0 - HS/VS sync, 1 - BT656 sync
-+ * @fldmode: Field mode
-+ *             0 - progressive, 1 - Interlaced
-  */
- struct isp_parallel_platform_data {
- 	unsigned int data_lane_shift:2;
-@@ -69,6 +71,7 @@ struct isp_parallel_platform_data {
- 	unsigned int vs_pol:1;
- 	unsigned int data_pol:1;
- 	unsigned int bt656:1;
-+	unsigned int fldmode:1;
- };
- 
- enum {
--- 
-1.7.4.1
+  git://linuxtv.org/mkrufky/mxl111sf aero-m-dvbt
 
+Michael Krufky (2):
+      DVB: add MaxLinear MxL111SF DVB-T demodulator driver
+      mxl111sf: add DVB-T support
+
+ drivers/media/dvb/dvb-usb/Makefile         |    1 +
+ drivers/media/dvb/dvb-usb/mxl111sf-demod.c |  604 ++++++++++++++++++++++++++++
+ drivers/media/dvb/dvb-usb/mxl111sf-demod.h |   55 +++
+ drivers/media/dvb/dvb-usb/mxl111sf.c       |  228 +++++++++++-
+ drivers/media/dvb/dvb-usb/mxl111sf.h       |    2 +-
+ 5 files changed, 886 insertions(+), 4 deletions(-)
+ create mode 100644 drivers/media/dvb/dvb-usb/mxl111sf-demod.c
+ create mode 100644 drivers/media/dvb/dvb-usb/mxl111sf-demod.h
+
+Best Regards,
+
+Michael Krufky
