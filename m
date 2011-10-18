@@ -1,62 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:40903 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752993Ab1JJMyO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Oct 2011 08:54:14 -0400
-Received: by ggnv2 with SMTP id v2so4430890ggn.19
-        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 05:54:14 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAAwP0s3ZqDpMsF7mYYtM7twomREZTyO-uDhGPnfNsQcOTXQ_fw@mail.gmail.com>
-References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
-	<CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
-	<CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com>
-	<201110081751.38953.laurent.pinchart@ideasonboard.com>
-	<CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
-	<CA+2YH7vat9iSAuZ4ztDvvo4Od+b4tCOsK6Y+grTE05YUZZEYPQ@mail.gmail.com>
-	<CAAwP0s3NFvvUYd-0kwKLKXfYB4Zx1nXb0nd9+JM61JWtrVFfRg@mail.gmail.com>
-	<CA+2YH7uFeHAmEpVqbd94qtCajb45pkr9YzeW+RDa5sf2bUG_wQ@mail.gmail.com>
-	<CAAwP0s3GJ7-By=q_ADa6qcpaENK5kXvkTG8Hd=Y+qXs9dgXa0w@mail.gmail.com>
-	<CA+2YH7subMzFAg7f7-uHXEmYBD+Kd1=E2nWKx7dgKCEpOu=zgQ@mail.gmail.com>
-	<CA+2YH7ti4xz9zNby6O=3ZOKAB9=1hnYZr9cM8HSMrj0r4zi1=A@mail.gmail.com>
-	<CAAwP0s3ZqDpMsF7mYYtM7twomREZTyO-uDhGPnfNsQcOTXQ_fw@mail.gmail.com>
-Date: Mon, 10 Oct 2011 14:54:14 +0200
-Message-ID: <CA+2YH7tCOdpjiWhC80Nx8OiijJHVYxZypdB0E=3p1zn0bXVpQw@mail.gmail.com>
-Subject: Re: omap3-isp status
-From: Enrico <ebutera@users.berlios.de>
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Adam Pledger <a.pledger@thermoteknix.com>,
-	linux-media@vger.kernel.org,
-	Enric Balletbo i Serra <eballetbo@iseebcn.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from e9.ny.us.ibm.com ([32.97.182.139]:44825 "EHLO e9.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755396Ab1JRRuP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Oct 2011 13:50:15 -0400
+Subject: Re: [PATCH 2/9] mm: alloc_contig_freed_pages() added
+From: Dave Hansen <dave@linux.vnet.ibm.com>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mel Gorman <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>
+In-Reply-To: <op.v3j5ent03l0zgt@mpn-glaptop>
+References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
+	 <1317909290-29832-3-git-send-email-m.szyprowski@samsung.com>
+	 <20111018122109.GB6660@csn.ul.ie>  <op.v3j5ent03l0zgt@mpn-glaptop>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 18 Oct 2011 10:48:46 -0700
+Message-ID: <1318960126.4465.249.camel@nimitz>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 10, 2011 at 12:33 PM, Javier Martinez Canillas
-<martinez.javier@gmail.com> wrote:
-> On Mon, Oct 10, 2011 at 12:07 PM, Enrico <ebutera@users.berlios.de> wrote:
->> On Mon, Oct 10, 2011 at 12:06 PM, Enrico <ebutera@users.berlios.de> wrote:
->>> I have updated my igep openembedded layer at [1] (testing branch) with:
->>
->> Ops, forgot [1] !
->>
->> [1]: https://github.com/ebutera/meta-igep
->>
->> Enrico
->>
->
-> Perfect, thank you Enrico. I will try this latter today and let you
-> know. I'm sure I can get this working (with the ghosting effect of
-> course) so you can at least obtain 25 fps and once I have this working
-> I will resend the patch-set as v3 so Laurent can review it and
-> hopefully help us to fix the artifact on the video.
+On Tue, 2011-10-18 at 10:26 -0700, Michal Nazarewicz wrote:
+> > You can do this in a more general fashion by checking the
+> > zone boundaries and resolving the pfn->page every MAX_ORDER_NR_PAGES.
+> > That will not be SPARSEMEM specific.
+> 
+> I've tried doing stuff that way but it ended up with much more code.
 
-For your tests i suggest to add "nohlt" to the kernel cmdline, see [1]
-for the reason.
+I guess instead of:
 
-Enrico
+>> +static inline bool zone_pfn_same_memmap(unsigned long pfn1, unsigned long pfn2)
+>> +{
+>> +    return pfn_to_section_nr(pfn1) == pfn_to_section_nr(pfn2);
+>> +}
 
-[1]: http://www.spinics.net/lists/linux-media/msg37795.html
+You could do:
+
+static inline bool zone_pfn_same_maxorder(unsigned long pfn1, unsigned long pfn2)
+{
+	unsigned long mask = MAX_ORDER_NR_PAGES-1;
+	return (pfn1 & mask) == (pfn2 & mask);
+}
+
+I think that works.  Should be the same code you have now, basically.
+
+-- Dave
+
