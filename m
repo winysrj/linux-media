@@ -1,341 +1,397 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:51729 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751800Ab1JNX5e (ORCPT
+Received: from smtpo13.poczta.onet.pl ([213.180.142.144]:41194 "EHLO
+	smtpo13.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753238Ab1JRTyQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Oct 2011 19:57:34 -0400
-Date: Fri, 14 Oct 2011 16:57:30 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>
-Subject: Re: [PATCH 6/9] drivers: add Contiguous Memory Allocator
-Message-Id: <20111014165730.e98aee8a.akpm@linux-foundation.org>
-In-Reply-To: <1317909290-29832-7-git-send-email-m.szyprowski@samsung.com>
-References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
-	<1317909290-29832-7-git-send-email-m.szyprowski@samsung.com>
+	Tue, 18 Oct 2011 15:54:16 -0400
+Date: Tue, 18 Oct 2011 21:54:13 +0200
+From: Piotr Chmura <chmooreck@poczta.onet.pl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Greg KH <gregkh@suse.de>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
+Subject: [RESEND PATCH 5/14] staging/media/as102: checkpatch fixes
+Message-ID: <20111018215413.119601a2@darkstar>
+In-Reply-To: <20111018111156.1fc2f267.chmooreck@poczta.onet.pl>
+References: <4E7F1FB5.5030803@gmail.com>
+	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
+	<4E7FF0A0.7060004@gmail.com>
+	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
+	<20110927094409.7a5fcd5a@stein>
+	<20110927174307.GD24197@suse.de>
+	<20110927213300.6893677a@stein>
+	<4E999733.2010802@poczta.onet.pl>
+	<4E99F2FC.5030200@poczta.onet.pl>
+	<20111016105731.09d66f03@stein>
+	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
+	<4E9ADFAE.8050208@redhat.com>
+	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
+	<20111018111156.1fc2f267.chmooreck@poczta.onet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 06 Oct 2011 15:54:46 +0200
-Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
 
-> The Contiguous Memory Allocator is a set of helper functions for DMA
-> mapping framework that improves allocations of contiguous memory chunks.
-> 
-> CMA grabs memory on system boot, marks it with CMA_MIGRATE_TYPE and
-> gives back to the system. Kernel is allowed to allocate movable pages
-> within CMA's managed memory so that it can be used for example for page
-> cache when DMA mapping do not use it. On dma_alloc_from_contiguous()
-> request such pages are migrated out of CMA area to free required
-> contiguous block and fulfill the request. This allows to allocate large
-> contiguous chunks of memory at any time assuming that there is enough
-> free memory available in the system.
-> 
-> This code is heavily based on earlier works by Michal Nazarewicz.
-> 
->
-> ...
->
-> +#ifdef phys_to_pfn
-> +/* nothing to do */
-> +#elif defined __phys_to_pfn
-> +#  define phys_to_pfn __phys_to_pfn
-> +#elif defined __va
-> +#  define phys_to_pfn(x) page_to_pfn(virt_to_page(__va(x)))
-> +#else
-> +#  error phys_to_pfn implementation needed
-> +#endif
+Original source and comment:
+# HG changeset patch
+# User Devin Heitmueller <dheitmueller@kernellabs.com>
+# Date 1267318751 18000
+# Node ID 1ccb2e0adbf02a111decf8a4c78e93f4354e2bd2
+# Parent  69c8f5172790784738bcc18f8301919ef3d5373f
+as102: checkpatch fixes
 
-Yikes!
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
 
-This hackery should not be here, please.  If we need a phys_to_pfn()
-then let's write a proper one which lives in core MM and arch, then get
-it suitably reviewed and integrated and then maintained.
+Fix make checkpatch issues reported against as10x_cmd_stream.c.
 
-> +struct cma {
-> +	unsigned long	base_pfn;
-> +	unsigned long	count;
-> +	unsigned long	*bitmap;
-> +};
-> +
-> +struct cma *dma_contiguous_default_area;
-> +
-> +#ifndef CONFIG_CMA_SIZE_ABSOLUTE
-> +#define CONFIG_CMA_SIZE_ABSOLUTE 0
-> +#endif
-> +
-> +#ifndef CONFIG_CMA_SIZE_PERCENTAGE
-> +#define CONFIG_CMA_SIZE_PERCENTAGE 0
-> +#endif
+Priority: normal
 
-No, .c files should not #define CONFIG_ variables like this.
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Piotr Chmura <chmooreck@poczta.onet.pl>
 
-One approach is
-
-#ifdef CONFIG_FOO
-#define BAR CONFIG_FOO
-#else
-#define BAR 0
-#endif
-
-but that's merely cosmetic fluff.  A superior fix is to get the Kconfig
-correct, so CONFIG_FOO cannot ever be undefined if we're compiling this
-.c file.
-
-> +static unsigned long size_abs = CONFIG_CMA_SIZE_ABSOLUTE * SZ_1M;
-> +static unsigned long size_percent = CONFIG_CMA_SIZE_PERCENTAGE;
-> +static long size_cmdline = -1;
-
-Maybe a little documentation for these, explaining their role in
-everything?
-
-> +static int __init early_cma(char *p)
-> +{
-> +	pr_debug("%s(%s)\n", __func__, p);
-> +	size_cmdline = memparse(p, &p);
-> +	return 0;
-> +}
-> +early_param("cma", early_cma);
-
-Did this get added to Documentation/kernel-parameters.txt?
-
-> +static unsigned long __init __cma_early_get_total_pages(void)
-
-The leading __ seems unnecessay for a static function.
-
-> +{
-> +	struct memblock_region *reg;
-> +	unsigned long total_pages = 0;
-> +
-> +	/*
-> +	 * We cannot use memblock_phys_mem_size() here, because
-> +	 * memblock_analyze() has not been called yet.
-> +	 */
-> +	for_each_memblock(memory, reg)
-> +		total_pages += memblock_region_memory_end_pfn(reg) -
-> +			       memblock_region_memory_base_pfn(reg);
-> +	return total_pages;
-> +}
-> +
-> +/**
-> + * dma_contiguous_reserve() - reserve area for contiguous memory handling
-> + *
-> + * This funtion reserves memory from early allocator. It should be
-> + * called by arch specific code once the early allocator (memblock or bootmem)
-> + * has been activated and all other subsystems have already allocated/reserved
-> + * memory.
-> + */
-
-Forgot to document the argument.
-
-> +void __init dma_contiguous_reserve(phys_addr_t limit)
-> +{
-> +	unsigned long selected_size = 0;
-> +	unsigned long total_pages;
-> +
-> +	pr_debug("%s(limit %08lx)\n", __func__, (unsigned long)limit);
-> +
-> +	total_pages = __cma_early_get_total_pages();
-> +	size_percent *= (total_pages << PAGE_SHIFT) / 100;
-> +
-> +	pr_debug("%s: total available: %ld MiB, size absolute: %ld MiB, size percentage: %ld MiB\n",
-> +		 __func__, (total_pages << PAGE_SHIFT) / SZ_1M,
-> +		size_abs / SZ_1M, size_percent / SZ_1M);
-> +
-> +#ifdef CONFIG_CMA_SIZE_SEL_ABSOLUTE
-> +	selected_size = size_abs;
-> +#elif defined(CONFIG_CMA_SIZE_SEL_PERCENTAGE)
-> +	selected_size = size_percent;
-> +#elif defined(CONFIG_CMA_SIZE_SEL_MIN)
-> +	selected_size = min(size_abs, size_percent);
-> +#elif defined(CONFIG_CMA_SIZE_SEL_MAX)
-> +	selected_size = max(size_abs, size_percent);
-> +#endif
-
-geeze, what's all that stuff?
-
-Whatever it's doing, it seems a bad idea to relegate these decisions to
-Kconfig-time.  The vast majority of users don't have control of their
-kernel configuration!  The code would be more flexible and generic if
-this was done at runtime somehow.
-
-> +	if (size_cmdline != -1)
-> +		selected_size = size_cmdline;
-> +
-> +	if (!selected_size)
-> +		return;
-> +
-> +	pr_debug("%s: reserving %ld MiB for global area\n", __func__,
-> +		 selected_size / SZ_1M);
-> +
-> +	dma_declare_contiguous(NULL, selected_size, 0, limit);
-> +};
-> +
->
-> ...
->
-> +static struct cma *__cma_create_area(unsigned long base_pfn,
-
-s/__//?
-
-> +				     unsigned long count)
-> +{
-> +	int bitmap_size = BITS_TO_LONGS(count) * sizeof(long);
-> +	struct cma *cma;
-> +
-> +	pr_debug("%s(base %08lx, count %lx)\n", __func__, base_pfn, count);
-> +
-> +	cma = kmalloc(sizeof *cma, GFP_KERNEL);
-> +	if (!cma)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	cma->base_pfn = base_pfn;
-> +	cma->count = count;
-> +	cma->bitmap = kzalloc(bitmap_size, GFP_KERNEL);
-> +
-> +	if (!cma->bitmap)
-> +		goto no_mem;
-> +
-> +	__cma_activate_area(base_pfn, count);
-> +
-> +	pr_debug("%s: returned %p\n", __func__, (void *)cma);
-> +	return cma;
-> +
-> +no_mem:
-> +	kfree(cma);
-> +	return ERR_PTR(-ENOMEM);
-> +}
->
-> ...
->
-> +int __init dma_declare_contiguous(struct device *dev, unsigned long size,
-> +				  phys_addr_t base, phys_addr_t limit)
-> +{
-> +	struct cma_reserved *r = &cma_reserved[cma_reserved_count];
-> +	unsigned long alignment;
-> +
-> +	pr_debug("%s(size %lx, base %08lx, limit %08lx)\n", __func__,
-> +		 (unsigned long)size, (unsigned long)base,
-> +		 (unsigned long)limit);
-> +
-> +	/* Sanity checks */
-> +	if (cma_reserved_count == ARRAY_SIZE(cma_reserved))
-> +		return -ENOSPC;
-
-I think a loud printk() is appropriate if the kernel fails in this
-manner.
-
-> +	if (!size)
-> +		return -EINVAL;
-> +
-> +	/* Sanitise input arguments */
-> +	alignment = PAGE_SIZE << max(MAX_ORDER, pageblock_order);
-> +	base = ALIGN(base, alignment);
-> +	size = ALIGN(size, alignment);
-> +	limit = ALIGN(limit, alignment);
-> +
-> +	/* Reserve memory */
-> +	if (base) {
-> +		if (memblock_is_region_reserved(base, size) ||
-> +		    memblock_reserve(base, size) < 0) {
-> +			base = -EBUSY;
-> +			goto err;
-> +		}
-> +	} else {
-> +		/*
-> +		 * Use __memblock_alloc_base() since
-> +		 * memblock_alloc_base() panic()s.
-> +		 */
-> +		phys_addr_t addr = __memblock_alloc_base(size, alignment, limit);
-> +		if (!addr) {
-> +			base = -ENOMEM;
-> +			goto err;
-> +		} else if (addr + size > ~(unsigned long)0) {
-> +			memblock_free(addr, size);
-> +			base = -EOVERFLOW;
-
-EOVERFLOW is a numeric/float thing.  It seems inappropriate to use it
-here.
-
-> +			goto err;
-> +		} else {
-> +			base = addr;
-> +		}
-> +	}
-> +
-> +	/*
-> +	 * Each reserved area must be initialised later, when more kernel
-> +	 * subsystems (like slab allocator) are available.
-> +	 */
-> +	r->start = base;
-> +	r->size = size;
-> +	r->dev = dev;
-> +	cma_reserved_count++;
-> +	printk(KERN_INFO "CMA: reserved %ld MiB at %08lx\n", size / SZ_1M,
-> +	       (unsigned long)base);
-> +
-> +	/*
-> +	 * Architecture specific contiguous memory fixup.
-> +	 */
-> +	dma_contiguous_early_fixup(base, size);
-> +	return 0;
-> +err:
-> +	printk(KERN_ERR "CMA: failed to reserve %ld MiB\n", size / SZ_1M);
-> +	return base;
-> +}
-> +
->
-> ...
->
-> +static inline struct cma *get_dev_cma_area(struct device *dev)
-> +{
-> +	if (dev && dev->cma_area)
-> +		return dev->cma_area;
-> +	return dma_contiguous_default_area;
-> +}
-> +
-> +static inline void set_dev_cma_area(struct device *dev, struct cma *cma)
-> +{
-> +	if (dev)
-> +		dev->cma_area = cma;
-> +	dma_contiguous_default_area = cma;
-> +}
-
-dev_[get|set]_cma_area() would be better names.
-
-> +#endif
-> +#endif
-> +#endif
->
-> ...
->
-> +
-> +#ifdef CONFIG_CMA
-> +
-> +#define MAX_CMA_AREAS	(8)
-
-What are the implications of this decision?
-
-Should it be in Kconfig?  Everything else is :)
-
->
-> ...
->
-
+diff --git linux/drivers/staging/media/as102/as10x_cmd_stream.c linuxb/drivers/staging/media/as102/as10x_cmd_stream.c
+--- linux/drivers/staging/media/as102/as10x_cmd_stream.c
++++ linuxb/drivers/staging/media/as102/as10x_cmd_stream.c
+@@ -2,8 +2,6 @@
+ 
+  \file   as10x_cmd_stream.c
+ 
+- \version $Id$
+-
+  \author: S. Martinelli
+ 
+  ----------------------------------------------------------------------------\n
+@@ -53,57 +51,57 @@
+    \return 0 when no error, < 0 in case of error.
+    \callgraph
+ */
+-int as10x_cmd_add_PID_filter(as10x_handle_t* phandle,
+-			     struct as10x_ts_filter *filter) {
+-   int    error;
+-   struct as10x_cmd_t *pcmd, *prsp;
++int as10x_cmd_add_PID_filter(as10x_handle_t *phandle,
++			     struct as10x_ts_filter *filter)
++{
++	int error;
++	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-   ENTER();
++	ENTER();
+ 
+-   pcmd = phandle->cmd;
+-   prsp = phandle->rsp;
++	pcmd = phandle->cmd;
++	prsp = phandle->rsp;
+ 
+-   /* prepare command */
+-   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
+-		    sizeof(pcmd->body.add_pid_filter.req));
++	/* prepare command */
++	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++			sizeof(pcmd->body.add_pid_filter.req));
+ 
+-   /* fill command */
+-   pcmd->body.add_pid_filter.req.proc_id = cpu_to_le16(CONTROL_PROC_SETFILTER);
+-   pcmd->body.add_pid_filter.req.pid = cpu_to_le16(filter->pid);
+-   pcmd->body.add_pid_filter.req.stream_type = filter->type;
++	/* fill command */
++	pcmd->body.add_pid_filter.req.proc_id =
++		cpu_to_le16(CONTROL_PROC_SETFILTER);
++	pcmd->body.add_pid_filter.req.pid = cpu_to_le16(filter->pid);
++	pcmd->body.add_pid_filter.req.stream_type = filter->type;
+ 
+-   if(filter->idx < 16)
+-	pcmd->body.add_pid_filter.req.idx = filter->idx;
+-   else
+-	pcmd->body.add_pid_filter.req.idx = 0xFF;
++	if (filter->idx < 16)
++		pcmd->body.add_pid_filter.req.idx = filter->idx;
++	else
++		pcmd->body.add_pid_filter.req.idx = 0xFF;
+ 
+-   /* send command */
+-   if(phandle->ops->xfer_cmd) {
+-      error = phandle->ops->xfer_cmd(phandle,
+-		       (uint8_t *) pcmd,
+-		       sizeof(pcmd->body.add_pid_filter.req) + HEADER_SIZE,
+-		       (uint8_t *) prsp,
+-		       sizeof(prsp->body.add_pid_filter.rsp) + HEADER_SIZE);
+-   }
+-   else{
+-      error = AS10X_CMD_ERROR;
+-   }
++	/* send command */
++	if (phandle->ops->xfer_cmd) {
++		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
++				sizeof(pcmd->body.add_pid_filter.req)
++				+ HEADER_SIZE, (uint8_t *) prsp,
++				sizeof(prsp->body.add_pid_filter.rsp)
++				+ HEADER_SIZE);
++	} else {
++		error = AS10X_CMD_ERROR;
++	}
+ 
+-   if(error < 0) {
+-      goto out;
+-   }
++	if (error < 0)
++		goto out;
+ 
+-   /* parse response */
+-   error = as10x_rsp_parse(prsp, CONTROL_PROC_SETFILTER_RSP);
++	/* parse response */
++	error = as10x_rsp_parse(prsp, CONTROL_PROC_SETFILTER_RSP);
+ 
+-   if(error == 0) {
+-     /* Response OK -> get response data */
+-     filter->idx = prsp->body.add_pid_filter.rsp.filter_id;
+-   }
++	if (error == 0) {
++		/* Response OK -> get response data */
++		filter->idx = prsp->body.add_pid_filter.rsp.filter_id;
++	}
+ 
+ out:
+-   LEAVE();
+-   return(error);
++	LEAVE();
++	return error;
+ }
+ 
+ /**
+@@ -113,144 +111,138 @@
+    \return 0 when no error, < 0 in case of error.
+    \callgraph
+ */
+-int as10x_cmd_del_PID_filter(as10x_handle_t* phandle,
++int as10x_cmd_del_PID_filter(as10x_handle_t *phandle,
+ 			     uint16_t pid_value)
+ {
++	int error;
++	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-   int    error;
+-   struct as10x_cmd_t *pcmd, *prsp;
++	ENTER();
+ 
+-   ENTER();
++	pcmd = phandle->cmd;
++	prsp = phandle->rsp;
+ 
+-   pcmd = phandle->cmd;
+-   prsp = phandle->rsp;
++	/* prepare command */
++	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++			sizeof(pcmd->body.del_pid_filter.req));
+ 
+-   /* prepare command */
+-   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
+-		    sizeof(pcmd->body.del_pid_filter.req));
++	/* fill command */
++	pcmd->body.del_pid_filter.req.proc_id =
++		cpu_to_le16(CONTROL_PROC_REMOVEFILTER);
++	pcmd->body.del_pid_filter.req.pid = cpu_to_le16(pid_value);
+ 
+-   /* fill command */
+-   pcmd->body.del_pid_filter.req.proc_id = cpu_to_le16(CONTROL_PROC_REMOVEFILTER);
+-   pcmd->body.del_pid_filter.req.pid = cpu_to_le16(pid_value);
++	/* send command */
++	if (phandle->ops->xfer_cmd) {
++		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
++				sizeof(pcmd->body.del_pid_filter.req)
++				+ HEADER_SIZE, (uint8_t *) prsp,
++				sizeof(prsp->body.del_pid_filter.rsp)
++				+ HEADER_SIZE);
++	} else {
++		error = AS10X_CMD_ERROR;
++	}
+ 
+-   /* send command */
+-   if(phandle->ops->xfer_cmd){
+-      error = phandle->ops->xfer_cmd(phandle,
+-		       (uint8_t *) pcmd,
+-		       sizeof(pcmd->body.del_pid_filter.req) + HEADER_SIZE,
+-		       (uint8_t *) prsp,
+-		       sizeof(prsp->body.del_pid_filter.rsp) + HEADER_SIZE);
+-   }
+-   else{
+-      error = AS10X_CMD_ERROR;
+-   }
++	if (error < 0)
++		goto out;
+ 
+-   if(error < 0) {
+-      goto out;
+-   }
+-
+-   /* parse response */
+-   error = as10x_rsp_parse(prsp, CONTROL_PROC_REMOVEFILTER_RSP);
++	/* parse response */
++	error = as10x_rsp_parse(prsp, CONTROL_PROC_REMOVEFILTER_RSP);
+ 
+ out:
+-   LEAVE();
+-   return(error);
++	LEAVE();
++	return error;
+ }
+ 
+ /**
+    \brief Send start streaming command to AS10x
+    \param  phandle:   pointer to AS10x handle
+-   \return 0 when no error, < 0 in case of error._
++   \return 0 when no error, < 0 in case of error.
+    \callgraph
+ */
+-int as10x_cmd_start_streaming(as10x_handle_t* phandle)
++int as10x_cmd_start_streaming(as10x_handle_t *phandle)
+ {
+-   int error;
+-   struct as10x_cmd_t *pcmd, *prsp;
++	int error;
++	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-   ENTER();
++	ENTER();
+ 
+-   pcmd = phandle->cmd;
+-   prsp = phandle->rsp;
++	pcmd = phandle->cmd;
++	prsp = phandle->rsp;
+ 
+-   /* prepare command */
+-   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
+-		    sizeof(pcmd->body.start_streaming.req));
++	/* prepare command */
++	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++			sizeof(pcmd->body.start_streaming.req));
+ 
+-   /* fill command */
+-   pcmd->body.start_streaming.req.proc_id =
+-				   cpu_to_le16(CONTROL_PROC_START_STREAMING);
++	/* fill command */
++	pcmd->body.start_streaming.req.proc_id =
++		cpu_to_le16(CONTROL_PROC_START_STREAMING);
+ 
+-   /* send command */
+-   if(phandle->ops->xfer_cmd){
+-      error = phandle->ops->xfer_cmd(phandle,
+-		       (uint8_t *) pcmd,
+-		       sizeof(pcmd->body.start_streaming.req) + HEADER_SIZE,
+-		       (uint8_t *) prsp,
+-		       sizeof(prsp->body.start_streaming.rsp) + HEADER_SIZE);
+-   }
+-   else{
+-      error = AS10X_CMD_ERROR;
+-   }
++	/* send command */
++	if (phandle->ops->xfer_cmd) {
++		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
++				sizeof(pcmd->body.start_streaming.req)
++				+ HEADER_SIZE, (uint8_t *) prsp,
++				sizeof(prsp->body.start_streaming.rsp)
++				+ HEADER_SIZE);
++	} else {
++		error = AS10X_CMD_ERROR;
++	}
+ 
+-   if(error < 0) {
+-      goto out;
+-   }
++	if (error < 0)
++		goto out;
+ 
+-   /* parse response */
+-   error = as10x_rsp_parse(prsp, CONTROL_PROC_START_STREAMING_RSP);
++	/* parse response */
++	error = as10x_rsp_parse(prsp, CONTROL_PROC_START_STREAMING_RSP);
+ 
+ out:
+-   LEAVE();
+-   return(error);
++	LEAVE();
++	return error;
+ }
+ 
+ /**
+    \brief Send stop streaming command to AS10x
+    \param  phandle:   pointer to AS10x handle
+-   \return 0 when no error, < 0 in case of error._
++   \return 0 when no error, < 0 in case of error.
+    \callgraph
+ */
+-int as10x_cmd_stop_streaming(as10x_handle_t* phandle)
++int as10x_cmd_stop_streaming(as10x_handle_t *phandle)
+ {
+-   int8_t error;
+-   struct as10x_cmd_t *pcmd, *prsp;
++	int8_t error;
++	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-   ENTER();
++	ENTER();
+ 
+-   pcmd = phandle->cmd;
+-   prsp = phandle->rsp;
++	pcmd = phandle->cmd;
++	prsp = phandle->rsp;
+ 
+-   /* prepare command */
+-   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
+-		    sizeof(pcmd->body.stop_streaming.req));
++	/* prepare command */
++	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++			sizeof(pcmd->body.stop_streaming.req));
+ 
+-   /* fill command */
+-   pcmd->body.stop_streaming.req.proc_id =
+-				   cpu_to_le16(CONTROL_PROC_STOP_STREAMING);
++	/* fill command */
++	pcmd->body.stop_streaming.req.proc_id =
++		cpu_to_le16(CONTROL_PROC_STOP_STREAMING);
+ 
+-   /* send command */
+-   if(phandle->ops->xfer_cmd){
+-      error = phandle->ops->xfer_cmd(phandle,
+-		       (uint8_t *) pcmd,
+-		       sizeof(pcmd->body.stop_streaming.req) + HEADER_SIZE,
+-		       (uint8_t *) prsp,
+-		       sizeof(prsp->body.stop_streaming.rsp) + HEADER_SIZE);
+-   }
+-   else{
+-      error = AS10X_CMD_ERROR;
+-   }
++	/* send command */
++	if (phandle->ops->xfer_cmd) {
++		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
++				sizeof(pcmd->body.stop_streaming.req)
++				+ HEADER_SIZE, (uint8_t *) prsp,
++				sizeof(prsp->body.stop_streaming.rsp)
++				+ HEADER_SIZE);
++	} else {
++		error = AS10X_CMD_ERROR;
++	}
+ 
+-   if(error < 0) {
+-      goto out;
+-   }
++	if (error < 0)
++		goto out;
+ 
+-   /* parse response */
+-   error = as10x_rsp_parse(prsp, CONTROL_PROC_STOP_STREAMING_RSP);
++	/* parse response */
++	error = as10x_rsp_parse(prsp, CONTROL_PROC_STOP_STREAMING_RSP);
+ 
+ out:
+-   LEAVE();
+-   return(error);
++	LEAVE();
++	return error;
+ }
+ 
