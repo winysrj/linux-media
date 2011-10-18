@@ -1,72 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:58015 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751336Ab1JRSAj convert rfc822-to-8bit (ORCPT
+Received: from rcsinet15.oracle.com ([148.87.113.117]:38090 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751393Ab1JRGMk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Oct 2011 14:00:39 -0400
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Dave Hansen" <dave@linux.vnet.ibm.com>
-Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	"Mel Gorman" <mel@csn.ul.ie>, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
-	"Kyungmin Park" <kyungmin.park@samsung.com>,
-	"Russell King" <linux@arm.linux.org.uk>,
-	"Andrew Morton" <akpm@linux-foundation.org>,
-	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"Ankita Garg" <ankita@in.ibm.com>,
-	"Daniel Walker" <dwalker@codeaurora.org>,
-	"Arnd Bergmann" <arnd@arndb.de>,
-	"Jesse Barker" <jesse.barker@linaro.org>,
-	"Jonathan Corbet" <corbet@lwn.net>,
-	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
-	"Chunsang Jeong" <chunsang.jeong@linaro.org>
-Subject: Re: [PATCH 2/9] mm: alloc_contig_freed_pages() added
-References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
- <1317909290-29832-3-git-send-email-m.szyprowski@samsung.com>
- <20111018122109.GB6660@csn.ul.ie> <op.v3j5ent03l0zgt@mpn-glaptop>
- <1318960126.4465.249.camel@nimitz>
-Date: Tue, 18 Oct 2011 11:00:34 -0700
+	Tue, 18 Oct 2011 02:12:40 -0400
+Date: Tue, 18 Oct 2011 09:12:09 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Derek Kelly <user.vdr@gmail.com>,
+	"Hans J. Koch" <hjk@linutronix.de>, Jiri Kosina <jkosina@suse.cz>,
+	Ben Pfaff <blp@cs.stanford.edu>, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [patch] [media] av7110: wrong limiter in av7110_start_feed()
+Message-ID: <20111018061209.GF27732@elgon.mountain>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.v3j6y8i33l0zgt@mpn-glaptop>
-In-Reply-To: <1318960126.4465.249.camel@nimitz>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 18 Oct 2011 10:48:46 -0700, Dave Hansen <dave@linux.vnet.ibm.com> wrote:
+Smatch complains that the wrong limiter is used here:
+drivers/media/dvb/ttpci/av7110.c +906 dvb_feed_start_pid(12)
+	error: buffer overflow 'npids' 5 <= 19
 
-> On Tue, 2011-10-18 at 10:26 -0700, Michal Nazarewicz wrote:
->> > You can do this in a more general fashion by checking the
->> > zone boundaries and resolving the pfn->page every MAX_ORDER_NR_PAGES.
->> > That will not be SPARSEMEM specific.
->>
->> I've tried doing stuff that way but it ended up with much more code.
->
-> I guess instead of:
->
->>> +static inline bool zone_pfn_same_memmap(unsigned long pfn1, unsigned long pfn2)
->>> +{
->>> +    return pfn_to_section_nr(pfn1) == pfn_to_section_nr(pfn2);
->>> +}
->
-> You could do:
->
-> static inline bool zone_pfn_same_maxorder(unsigned long pfn1, unsigned long pfn2)
-> {
-> 	unsigned long mask = MAX_ORDER_NR_PAGES-1;
-> 	return (pfn1 & mask) == (pfn2 & mask);
-> }
->
-> I think that works.  Should be the same code you have now, basically.
+Here is the problem code:
+   905          i = dvbdmxfeed->pes_type;
+   906          npids[i] = (pid[i]&0x8000) ? 0 : pid[i];
 
-Makes sense.  It'd require calling pfn_to_page() every MAX_ORDER_NR_PAGES even
-in memory models that have linear mapping of struct page, but I guess that's
-not that bad.
+"npids" is a 5 element array declared on the stack.  If
+dvbdmxfeed->pes_type is more than 4 we probably put a (u16)0 past
+the end of the array.
 
--- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
-ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
+If dvbdmxfeed->pes_type is over 4 the rest of the function doesn't
+do anything.  dvbdmxfeed->pes_type is capped at less than
+DMX_TS_PES_OTHER (20) in the caller function, but I changed it to
+less than or equal to DMX_TS_PES_PCR (4).
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+
+diff --git a/drivers/media/dvb/ttpci/av7110.c b/drivers/media/dvb/ttpci/av7110.c
+index 3d20719..abf6b55 100644
+--- a/drivers/media/dvb/ttpci/av7110.c
++++ b/drivers/media/dvb/ttpci/av7110.c
+@@ -991,7 +991,7 @@ static int av7110_start_feed(struct dvb_demux_feed *feed)
+ 
+ 	if (feed->type == DMX_TYPE_TS) {
+ 		if ((feed->ts_type & TS_DECODER) &&
+-		    (feed->pes_type < DMX_TS_PES_OTHER)) {
++		    (feed->pes_type <= DMX_TS_PES_PCR)) {
+ 			switch (demux->dmx.frontend->source) {
+ 			case DMX_MEMORY_FE:
+ 				if (feed->ts_type & TS_DECODER)
