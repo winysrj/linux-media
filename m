@@ -1,52 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3279 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933363Ab1J3KQv (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:36294 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755338Ab1JRNdg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Oct 2011 06:16:51 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 1/6] v4l2-ctrl: Send change events to all fh for auto cluster slave controls
-Date: Sun, 30 Oct 2011 11:16:39 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1319714283-3991-1-git-send-email-hdegoede@redhat.com> <1319714283-3991-2-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1319714283-3991-2-git-send-email-hdegoede@redhat.com>
+	Tue, 18 Oct 2011 09:33:36 -0400
+Received: by iaek3 with SMTP id k3so778150iae.19
+        for <linux-media@vger.kernel.org>; Tue, 18 Oct 2011 06:33:36 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201110301116.39787.hverkuil@xs4all.nl>
+Date: Tue, 18 Oct 2011 16:33:35 +0300
+Message-ID: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com>
+Subject: omap3isp: BT.656 support
+From: Boris Todorov <boris.st.todorov@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is also part of a pull request from me (and so has my Signed-off-by already):
+Hi
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg38018.html
+I'm trying to run OMAP + TVP5151 in BT656 mode.
 
-Regards,
+I'm using omap3isp-omap3isp-yuv (git.linuxtv.org/pinchartl/media.git).
+Plus the following patches:
 
-	Hans
+TVP5151:
+https://github.com/ebutera/meta-igep/tree/testing-v2/recipes-kernel/linux/linux-3.0+3.1rc/tvp5150
 
-On Thursday, October 27, 2011 13:17:58 Hans de Goede wrote:
-> Otherwise the fh changing the master control won't get the inactive state
-> change event for the slave controls.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/media/video/v4l2-ctrls.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> index fc8666a..69e24f4 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -945,6 +945,7 @@ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
->  			if (ctrl->cluster[0]->has_volatiles)
->  				ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
->  		}
-> +		fh = NULL;
->  	}
->  	if (changed || update_inactive) {
->  		/* If a control was changed that was not one of the controls
-> 
+The latest RFC patches for BT656 support:
+
+Enrico Butera (2):
+  omap3isp: ispvideo: export isp_video_mbus_to_pix
+  omap3isp: ispccdc: configure CCDC registers and add BT656 support
+
+Javier Martinez Canillas (1):
+  omap3isp: ccdc: Add interlaced field mode to platform data
+
+
+I'm able to configure with media-ctl:
+
+media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
+media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
+media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
+
+But
+./yavta -f UYVY -s 720x525 -n 4 --capture=4 -F /dev/video4
+
+sleeps after
+...
+Buffer 1 mapped at address 0x4021d000.
+length: 756000 offset: 1515520
+Buffer 2 mapped at address 0x402d6000.
+length: 756000 offset: 2273280
+Buffer 3 mapped at address 0x4038f000.
+
+Anyone with the same issue??? This happens with every other v4l test app I used.
+I can see data from TVP5151 but there are no interrupts in ISP.
