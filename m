@@ -1,69 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:38665 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751063Ab1JPUCl convert rfc822-to-8bit (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:38650 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933288Ab1JRQbz convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Oct 2011 16:02:41 -0400
-Received: by iaek3 with SMTP id k3so5232401iae.19
-        for <linux-media@vger.kernel.org>; Sun, 16 Oct 2011 13:02:40 -0700 (PDT)
+	Tue, 18 Oct 2011 12:31:55 -0400
+Received: by yxp4 with SMTP id 4so765728yxp.19
+        for <linux-media@vger.kernel.org>; Tue, 18 Oct 2011 09:31:54 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CACGoy5=QGEatHtG-GbpQOPKbmb1sE3ML1aOShGkTVkNCB++V8A@mail.gmail.com>
-References: <CACGoy5k=vu5Z9Rh6hkiMEKs4p=VN+3ALUbR=LP_hm1XJXTe=pw@mail.gmail.com>
-	<CACGoy5=QGEatHtG-GbpQOPKbmb1sE3ML1aOShGkTVkNCB++V8A@mail.gmail.com>
-Date: Sun, 16 Oct 2011 17:02:40 -0300
-Message-ID: <CACGoy5nHCM9CCEa8B-xFqBqiw3LUKCpwsS=wjsGVBUebPx9-ag@mail.gmail.com>
-Subject: Re: support for tv tuner tda18211 in Iconbit U100 analog stick
-From: Ariel Jolo <ariel.jolo@coso-ad.com>
-To: linux-media@vger.kernel.org
+In-Reply-To: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com>
+References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com>
+Date: Tue, 18 Oct 2011 18:31:54 +0200
+Message-ID: <CA+2YH7voGzNzxcdFCAissTtn_-NAL=_jfiOS8kia9m-=XqwOig@mail.gmail.com>
+Subject: Re: omap3isp: BT.656 support
+From: Enrico <ebutera@users.berlios.de>
+To: Boris Todorov <boris.st.todorov@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey guys, I'm having the same issue here. I bought a MSI Digi VOX Mini
-II Analog (which was documented as having RTL2832 or AF9016 chips) but
-mine is:
-1f4d:0237 G-Tek Electronics Group
-
-Here's the syslog output when I plug it in:
-http://pastebin.com/fWc7hM18
-
-As Ling, I can't get a tuner to work nor does /dev/dvb get created.
-I really need some help on this.
-Thank you very much !
-
-
-On 13 Oct 2011, Antti Palosaari wrote:
-> From: Antti Palosaari <crope <at> iki.fi>
-> Subject: Re: support for tv tuner tda18211 in Iconbit U100 analog stick
-> Date: 2011-10-13 13:21:41 GMT (3 days, 6 hours and 26 minutes ago)
-> CX23102 + TDA18211 (== DVB-T only version of TDA18271)>
+On Tue, Oct 18, 2011 at 3:33 PM, Boris Todorov
+<boris.st.todorov@gmail.com> wrote:
+> Hi
 >
->Maybe someone have better knowledge about that as I am not any familiar
->with CX23102 nor analog TV side.
+> I'm trying to run OMAP + TVP5151 in BT656 mode.
 >
->Antti
+> I'm using omap3isp-omap3isp-yuv (git.linuxtv.org/pinchartl/media.git).
+> Plus the following patches:
 >
->On 10/09/2011 03:56 AM, Ling Sequera wrote:
->> I try to post this at linux-media <at> vger.kernel.org
->> <mailto:linux-media <at> vger.kernel.org>, but the system rejects the
->> sending, Excuse me for send this to you, I have understood that you are
->> one of the developers of the tda18271 module.
->>
->> I have a "Mygica u719c usb analog tv stick", lsusb output identify this
->> device as: "ID 1f4d:0237 G-Tek Electronics Group". Googling, I found
->> that this device is the same "Iconbit Analog Stick U100 FM
->> <http://translate.google.es/translate?sl=ru&tl=en&js=n&prev=_t&hl=es&ie=UTF-8&layout=2&eotf=1&u=http%3A%2F%2Fwww.f1cd.ru%2Ftuners%2Freviews%2Ficonbit_u100_fm_iconbit_u500_fm_page_1%2F>",
->> which has support in the kernel since version 3.0 as shown here
->> <http://cateee.net/lkddb/web-lkddb/VIDEO_CX231XX.html>. I opened the
->> device to corfirm this information, and effectively, it has to chips,
->> the demod Conexan "CX23102" and the DVB-T tuner NPX "TDA-18211". I
->> installed the precompiled version of kernel 3.0.4, and the device was
->> reconized, but only works in the modes: composite and s-video. I check
->> the source code and I found that it don't support tv tuner mode
->> (.tuner_type=TUNER_ABSENT in 513 line of the cx231xx-cards.c
->> <http://lxr.linux.no/#linux+v3.0.4/drivers/media/video/cx231xx/cx231xx-cards.c>
->> source file), I want to add support for this. The TDA-18211 tuner has
->> support in the kernel in the module tda18271 according to the thread of
->> this mailing list
->> <http://www.mail-archive.com/linux-dvb <at> linuxtv.
+> TVP5151:
+> https://github.com/ebutera/meta-igep/tree/testing-v2/recipes-kernel/linux/linux-3.0+3.1rc/tvp5150
+>
+> The latest RFC patches for BT656 support:
+>
+> Enrico Butera (2):
+>  omap3isp: ispvideo: export isp_video_mbus_to_pix
+>  omap3isp: ispccdc: configure CCDC registers and add BT656 support
+>
+> Javier Martinez Canillas (1):
+>  omap3isp: ccdc: Add interlaced field mode to platform data
+>
+>
+> I'm able to configure with media-ctl:
+>
+> media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+> media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
+> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
+> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
+>
+> But
+> ./yavta -f UYVY -s 720x525 -n 4 --capture=4 -F /dev/video4
+>
+> sleeps after
+> ...
+> Buffer 1 mapped at address 0x4021d000.
+> length: 756000 offset: 1515520
+> Buffer 2 mapped at address 0x402d6000.
+> length: 756000 offset: 2273280
+> Buffer 3 mapped at address 0x4038f000.
+>
+> Anyone with the same issue??? This happens with every other v4l test app I used.
+> I can see data from TVP5151 but there are no interrupts in ISP.
+
+You can try if this:
+
+http://www.spinics.net/lists/linux-media/msg37795.html
+
+makes it work.
+
+Enrico
