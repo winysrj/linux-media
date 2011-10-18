@@ -1,30 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.agetop.goias.gov.br ([201.2.1.244]:48372 "EHLO
-	mail.agetop.goias.gov.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752496Ab1JNSkb (ORCPT
+Received: from smtpo01.poczta.onet.pl ([213.180.142.132]:33988 "EHLO
+	smtpo01.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753581Ab1JRUD5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Oct 2011 14:40:31 -0400
-Date: Fri, 14 Oct 2011 15:13:19 -0300 (BRT)
-From: "Barrister  Jacque Charles" <liliapereira@agetop.goias.gov.br>
-Reply-To: "Barrister  Jacque Charles" <barjacque@rocketmail.com>
-Subject: Confidential/How are you
-Message-ID: <a04b06f0-7ef7-4c1e-98a4-41c4b80ed531@arabia>
-Content-Type: text/plain; charset=utf-8
+	Tue, 18 Oct 2011 16:03:57 -0400
+Date: Tue, 18 Oct 2011 22:03:52 +0200
+From: Piotr Chmura <chmooreck@poczta.onet.pl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Greg KH <gregkh@suse.de>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
+Subject: [RESEND PATCH 11/14] staging/media/as102: fix compile warning about
+ unused function
+Message-ID: <20111018220352.3179feb1@darkstar>
+In-Reply-To: <20111018111336.62af07ce.chmooreck@poczta.onet.pl>
+References: <4E7F1FB5.5030803@gmail.com>
+	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
+	<4E7FF0A0.7060004@gmail.com>
+	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
+	<20110927094409.7a5fcd5a@stein>
+	<20110927174307.GD24197@suse.de>
+	<20110927213300.6893677a@stein>
+	<4E999733.2010802@poczta.onet.pl>
+	<4E99F2FC.5030200@poczta.onet.pl>
+	<20111016105731.09d66f03@stein>
+	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
+	<4E9ADFAE.8050208@redhat.com>
+	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
+	<20111018111336.62af07ce.chmooreck@poczta.onet.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
-To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
 
+Original source and comment:
+# HG changeset patch
+# User Devin Heitmueller <dheitmueller@kernellabs.com>
+# Date 1267319685 18000
+# Node ID 84b93826c0a19efa114a6808165f91390cb86daa
+# Parent  22ef1bdca69a2781abf397c53a0f7f6125f5359a
+as102: fix compile warning about unused function
 
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
 
-Dearest,
+The function in question is only used on old kernels, so we had the call to
+the function #ifdef'd, but the definition of the function was stil being
+included.
 
+Priority: normal
 
-My name is Barrister Jacque Charles, a personal Attorney to a late client who died in car crash without a will.
-For more information please contact via email: (jacquecharles@rocketmail.com) upon your response, I shall then provide you with more details and relevant documents that will help you understand this transaction well.
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Piotr Chmura <chmooreck@poczta.onet.pl>
 
-
-Kindest Regards 
-Barrister Jacque Charles,
+diff --git linux/drivers/staging/media/as102/as102_fe.c linuxb/drivers/staging/media/as102/as102_fe.c
+--- linux/drivers/staging/media/as102/as102_fe.c
++++ linuxb/drivers/staging/media/as102/as102_fe.c
+@@ -32,6 +32,7 @@
+ static void as102_fe_copy_tune_parameters(struct as10x_tune_args *dst,
+ 					  struct dvb_frontend_parameters *src);
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19))
+ static void as102_fe_release(struct dvb_frontend *fe)
+ {
+ 	struct as102_dev_t *dev;
+@@ -42,7 +43,6 @@
+ 	if (dev == NULL)
+ 		return;
+ 
+-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19))
+ 	if (mutex_lock_interruptible(&dev->bus_adap.lock))
+ 		return;
+ 
+@@ -50,7 +50,6 @@
+ 	as10x_cmd_turn_off(&dev->bus_adap);
+ 
+ 	mutex_unlock(&dev->bus_adap.lock);
+-#endif
+ 
+ 	/* release frontend callback ops */
+ 	memset(&fe->ops, 0, sizeof(struct dvb_frontend_ops));
+@@ -66,7 +65,6 @@
+ 	LEAVE();
+ }
+ 
+-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19))
+ static int as102_fe_init(struct dvb_frontend *fe)
+ {
+ 	int ret = 0;
