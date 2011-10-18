@@ -1,116 +1,307 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17616 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750798Ab1JHIOZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Oct 2011 04:14:25 -0400
-Message-ID: <4E900660.7030606@redhat.com>
-Date: Sat, 08 Oct 2011 10:14:24 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from hermes.mlbassoc.com ([64.234.241.98]:53856 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754743Ab1JRQEx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Oct 2011 12:04:53 -0400
+Message-ID: <4E9DA3A2.3050009@mlbassoc.com>
+Date: Tue, 18 Oct 2011 10:04:50 -0600
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [RFC] Merge v4l-utils. dvb-apps and mediactl to media-utils.git
-References: <201110061423.22064.hverkuil@xs4all.nl> <4E8DE450.7030302@redhat.com> <4E8E5EEA.80906@redhat.com> <201110070805.31054.hverkuil@xs4all.nl> <4E8EF87E.5000601@infradead.org> <4E8EF91D.2080908@redhat.com> <4E8F029D.3020705@infradead.org>
-In-Reply-To: <4E8F029D.3020705@infradead.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Boris Todorov <boris.st.todorov@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: omap3isp: BT.656 support
+References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com> <4E9D882F.5010608@mlbassoc.com> <CAFYgh7wKeOmQnvpbugZcFX-shKRN7oGmho_tyYLtcVOnPL8Peg@mail.gmail.com> <4E9D9209.3000907@mlbassoc.com> <CAFYgh7ybJYX0ec9avYrMf+cCWnp_AU3WivZkROCDLi-6p2WB_A@mail.gmail.com> <4E9D9A23.8060604@mlbassoc.com> <CAFYgh7x7LOw493Bvy3ETC9rq8DkDVnj5tL9mEZd4OF6RtNk8yA@mail.gmail.com>
+In-Reply-To: <CAFYgh7x7LOw493Bvy3ETC9rq8DkDVnj5tL9mEZd4OF6RtNk8yA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On 10/07/2011 03:46 PM, Mauro Carvalho Chehab wrote:
-> Em 07-10-2011 10:05, Hans de Goede escreveu:
->> Hi,
+On 2011-10-18 09:53, Boris Todorov wrote:
+> On Tue, Oct 18, 2011 at 6:24 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>> On 2011-10-18 09:10, Boris Todorov wrote:
+>>>
+>>> On Tue, Oct 18, 2011 at 5:49 PM, Gary Thomas<gary@mlbassoc.com>    wrote:
+>>>>
+>>>> On 2011-10-18 08:28, Boris Todorov wrote:
+>>>>>
+>>>>> I'm using different board.
+>>>>
+>>>> What board?  I would think the architecture of the OMAP3 ISP would
+>>>> not change, based on the board?
+>>>
+>>> It's a custom board with omap3630. ISP is not changed.
+>>> When I disable OMAP2_VOUT from defconfig "CCD output" is /dev/video2.
 >>
->> On 10/07/2011 03:02 PM, Mauro Carvalho Chehab wrote:
->>> Em 07-10-2011 03:05, Hans Verkuil escreveu:
->>>> On Friday, October 07, 2011 04:07:38 Mauro Carvalho Chehab wrote:
->>>>> Em 06-10-2011 14:24, Mauro Carvalho Chehab escreveu:
->>>>>> Em 06-10-2011 10:27, Mauro Carvalho Chehab escreveu:
->>>>>>> Em 06-10-2011 09:23, Hans Verkuil escreveu:
->>>>>>>> Currently we have three repositories containing libraries and utilities that
->>>>>>>> are relevant to the media drivers:
->>>>>>>>
->>>>>>>> dvb-apps (http://linuxtv.org/hg/dvb-apps/)
->>>>>>>> v4l-utils (http://git.linuxtv.org/v4l-utils.git)
->>>>>>>> media-ctl (git://git.ideasonboard.org/media-ctl.git)
->>>>>>>>
->>>>>>>> It makes no sense to me to have three separate repositories, one still using
->>>>>>>> mercurial and one that isn't even on linuxtv.org.
->>>>>>>>
->>>>>>>> I propose to combine them all to one media-utils.git repository. I think it
->>>>>>>> makes a lot of sense to do this.
->>>>>>>>
->>>>>>>> After the switch the other repositories are frozen (with perhaps a README
->>>>>>>> pointing to the new media-utils.git).
->>>>>>>>
->>>>>>>> I'm not sure if there are plans to make new stable releases of either of these
->>>>>>>> repositories any time soon. If there are, then it might make sense to wait
->>>>>>>> until that new stable release before merging.
->>>>>>>>
->>>>>>>> Comments?
+>> I see, I have that option turned off.
+>>
+>>> But result is the same - yavta sleeps at VIDIOC_DQBUF ioctl
+>>
+>> How are you configuring the TVP5150?  In particular these settings at boot
+>> time:
+>>
+>> static struct isp_v4l2_subdevs_group my_camera_subdevs[] = {
+>>         {
+>>                 .subdevs = tvp5150_camera_subdevs,
+>>                 .interface = ISP_INTERFACE_PARALLEL,
+>>                 .bus = {
+>>                                 .parallel = {
+>>                                         .data_lane_shift = 0,
+>>                                         .clk_pol = 1,
+>>                                         .bt656 = 1,
+>>                                         .fldmode = 1,
+>>                                 }
+>>                 },
+>>         },
+>>         { },
+>> };
+>
+> My settings are:
+>   				.data_lane_shift        = 0,
+> 				.clk_pol                = 0,
+> 				.hs_pol                 = 0,
+> 				.vs_pol                 = 0,
+> 				.fldmode                = 1,
+> 				.bt656               = 1,
+>
+> I tried yours but same result.
+> Why did you chose clk_pol=1?
+
+I just copied the settings from the BeagleBoard
+
+Have you had this working before (earlier kernel, etc)?
+
+>
+>>
+>> This is how you tell the ISP to run in BT656 mode.  Without it, it will run
+>> using the HS/VS/FID signals (and also in my experience does not work
+>> properly)
+>>
+>>>>
+>>>>> According "media-ctl -p":
+>>>>>
+>>>>> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+>>>>>              type V4L2 subdev subtype Unknown
+>>>>>              device node name /dev/v4l-subdev2
+>>>>>          pad0: Input [UYVY2X8 720x525]
+>>>>>                  <- 'OMAP3 ISP CCP2':pad1 []
+>>>>>                  <- 'OMAP3 ISP CSI2a':pad1 []
+>>>>>                  <- 'tvp5150 3-005c':pad0 [ACTIVE]
+>>>>>          pad1: Output [UYVY2X8 720x525]
+>>>>>                  ->      'OMAP3 ISP CCDC output':pad0 [ACTIVE]
+>>>>>                  ->      'OMAP3 ISP resizer':pad0 []
+>>>>>          pad2: Output [UYVY2X8 720x524]
+>>>>>                  ->      'OMAP3 ISP preview':pad0 []
+>>>>>                  ->      'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
+>>>>>                  ->      'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
+>>>>>                  ->      'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
+>>>>>
+>>>>> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+>>>>>              type Node subtype V4L
+>>>>>              device node name /dev/video4
+>>>>>          pad0: Input
+>>>>>                  <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
+>>>>>
+>>>>>
+>>>>> Should be /dev/video4...
+>>>>
+>>>> Could you send your pipeline setup and full output of 'media-ctl -p'?
+>>>
+>>> Pipeline setup is:
+>>>
+>>> $ media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1],
+>>> "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+>>> $ media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
+>>> $ media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
+>>> $ media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
+>>>
+>>> media-ctl output (with /dev/video4):
+>>>
+>>> $ media-ctl -p
+>>> Opening media device /dev/media0
+>>> Enumerating entities
+>>> Found 16 entities
+>>> Enumerating pads and links
+>>> Device topology
+>>> - entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
+>>>              type V4L2 subdev subtype Unknown
+>>>              device node name /dev/v4l-subdev0
+>>>          pad0: Input [SGRBG10 4096x4096]
+>>>                  <- 'OMAP3 ISP CCP2 input':pad0 []
+>>>          pad1: Output [SGRBG10 4096x4096]
+>>>                  ->    'OMAP3 ISP CCDC':pad0 []
+>>>
+>>> - entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
+>>>              type Node subtype V4L
+>>>              device node name /dev/video0
+>>>          pad0: Output
+>>>                  ->    'OMAP3 ISP CCP2':pad0 []
+>>>
+>>> - entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
+>>>              type V4L2 subdev subtype Unknown
+>>>              device node name /dev/v4l-subdev1
+>>>          pad0: Input [SGRBG10 4096x4096]
+>>>          pad1: Output [SGRBG10 4096x4096]
+>>>                  ->    'OMAP3 ISP CSI2a output':pad0 []
+>>>                  ->    'OMAP3 ISP CCDC':pad0 []
+>>>
+>>> - entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
+>>>              type Node subtype V4L
+>>>              device node name /dev/video3
+>>>          pad0: Input
+>>>                  <- 'OMAP3 ISP CSI2a':pad1 []
+>>>
+>>> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+>>>              type V4L2 subdev subtype Unknown
+>>>              device node name /dev/v4l-subdev2
+>>>          pad0: Input [UYVY2X8 720x525]
+>>>                  <- 'OMAP3 ISP CCP2':pad1 []
+>>>                  <- 'OMAP3 ISP CSI2a':pad1 []
+>>>                  <- 'tvp5150 3-005c':pad0 [ACTIVE]
+>>>          pad1: Output [UYVY2X8 720x525]
+>>>                  ->    'OMAP3 ISP CCDC output':pad0 [ACTIVE]
+>>>                  ->    'OMAP3 ISP resizer':pad0 []
+>>>          pad2: Output [UYVY2X8 720x524]
+>>>                  ->    'OMAP3 ISP preview':pad0 []
+>>>                  ->    'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
+>>>                  ->    'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
+>>>                  ->    'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
+>>>
+>>> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+>>>              type Node subtype V4L
+>>>              device node name /dev/video4
+>>>          pad0: Input
+>>>                  <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
+>>>
+>>> - entity 7: OMAP3 ISP preview (2 pads, 4 links)
+>>>              type V4L2 subdev subtype Unknown
+>>>              device node name /dev/v4l-subdev3
+>>>          pad0: Input [SGRBG10 4096x4096]
+>>>                  <- 'OMAP3 ISP CCDC':pad2 []
+>>>                  <- 'OMAP3 ISP preview input':pad0 []
+>>>          pad1: Output [YUYV 4082x4088]
+>>>                  ->    'OMAP3 ISP preview output':pad0 []
+>>>                  ->    'OMAP3 ISP resizer':pad0 []
+>>>
+>>> - entity 8: OMAP3 ISP preview input (1 pad, 1 link)
+>>>              type Node subtype V4L
+>>>              device node name /dev/video5
+>>>          pad0: Output
+>>>                  ->    'OMAP3 ISP preview':pad0 []
+>>>
+>>> - entity 9: OMAP3 ISP preview output (1 pad, 1 link)
+>>>              type Node subtype V4L
+>>>              device node name /dev/video6
+>>>          pad0: Input
+>>>                  <- 'OMAP3 ISP preview':pad1 []
+>>>
+>>> - entity 10: OMAP3 ISP resizer (2 pads, 4 links)
+>>>               type V4L2 subdev subtype Unknown
+>>>               device node name /dev/v4l-subdev4
+>>>          pad0: Input [YUYV 4095x4095 (4,6)/4086x4082]
+>>>                  <- 'OMAP3 ISP CCDC':pad1 []
+>>>                  <- 'OMAP3 ISP preview':pad1 []
+>>>                  <- 'OMAP3 ISP resizer input':pad0 []
+>>>          pad1: Output [YUYV 4096x4095]
+>>>                  ->    'OMAP3 ISP resizer output':pad0 []
+>>>
+>>> - entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
+>>>               type Node subtype V4L
+>>>               device node name /dev/video7
+>>>          pad0: Output
+>>>                  ->    'OMAP3 ISP resizer':pad0 []
+>>>
+>>> - entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
+>>>               type Node subtype V4L
+>>>               device node name /dev/video8
+>>>          pad0: Input
+>>>                  <- 'OMAP3 ISP resizer':pad1 []
+>>>
+>>> - entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
+>>>               type V4L2 subdev subtype Unknown
+>>>               device node name /dev/v4l-subdev5
+>>>          pad0: Input
+>>>                  <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+>>>
+>>> - entity 14: OMAP3 ISP AF (1 pad, 1 link)
+>>>               type V4L2 subdev subtype Unknown
+>>>               device node name /dev/v4l-subdev6
+>>>          pad0: Input
+>>>                  <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+>>>
+>>> - entity 15: OMAP3 ISP histogram (1 pad, 1 link)
+>>>               type V4L2 subdev subtype Unknown
+>>>               device node name /dev/v4l-subdev7
+>>>          pad0: Input
+>>>                  <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+>>>
+>>> - entity 16: tvp5150 3-005c (1 pad, 1 link)
+>>>               type V4L2 subdev subtype Unknown
+>>>               device node name /dev/v4l-subdev8
+>>>          pad0: Output [UYVY2X8 720x525]
+>>>                  ->    'OMAP3 ISP CCDC':pad0 [ACTIVE]
+>>>
+>>>>
+>>>>>
+>>>>>
+>>>>> On Tue, Oct 18, 2011 at 5:07 PM, Gary Thomas<gary@mlbassoc.com>
+>>>>>   wrote:
+>>>>>>
+>>>>>> On 2011-10-18 07:33, Boris Todorov wrote:
 >>>>>>>
->>>>>>> I like that idea. It helps to have the basic tools into one single repository,
->>>>>>> and to properly distribute it.
->>>>>
->>>>> Ok, I found some time to do an experimental merge of the repositories. It is available
->>>>> at:
->>>>>
->>>>> http://git.linuxtv.org/mchehab/media-utils.git
->>>>>
->>>>> For now, all dvb-apps stuff is on a separate directory. It makes sense to latter
->>>>> re-organize the directories. Anyway, the configure script will allow disable
->>>>> dvb-apps, v4l-utils and/or libv4l. The default is to have all enabled.
->>>>>
->>>>> One problem I noticed is that the dvb-apps are at version 1.1. So, if we're
->>>>> releasing a new version, we'll need to jump from 0.9 to dvb-apps version + 1.
->>>>> So, IMO, the first version with the merge should be version 1.2.
->>>>>
->>>>> Comments?
->>>>
->>>> Strange:
->>>>
->>>> $ git clone git://git.linuxtv.org/mchehab/media-utils.git
->>>> Cloning into media-utils...
->>>> fatal: The remote end hung up unexpectedly
->>>>
->>>> I've no problem with other git trees.
->>>
->>> Hans,
->>>
->>> FYI, I'm getting this when compiling from the v4l-utils tree (even before the merge):
->>>
->>> g++ -o qv4l2 qv4l2.o general-tab.o ctrl-tab.o v4l2-api.o capture-win.o moc_qv4l2.o moc_general-tab.o moc_capture-win.o qrc_qv4l2.o -L/usr/lib -L../../lib/libv4l2 -lv4l2 -L../../lib/libv4lconvert -lv4lconvert -lrt -L../libv4l2util -lv4l2util -ldl -ljpeg -lQtGui -lQtCore -lpthread
->>> qv4l2.o: In function `ApplicationWindow::setDevice(QString const&, bool)':
->>> /home/v4l/work_trees/media-utils/utils/qv4l2/qv4l2.cpp:149: undefined reference to `libv4l2_default_dev_ops'
->>> collect2: ld returned 1 exit status
->>>
->>
->> Yeah, that is because qmake is stupid and add /usr/lib[64] to the library path and adds it *before* the
->> paths we've specified in its template, so if you've an older libv4l2 installed in /usr/lib[64] when building
->> you get this.
->>
->> To fix it, first do a make; make install in the lib subdir, with LIBDIR setup up to overwrite the old version.
->
-> Didn't work, as the Fedora package installed it at /usr/lib, while make install installed at /usr/local/lib.
->
-> (ok, I forced it anyway, by renaming the old library, but this sucks)
->
+>>>>>>> Hi
+>>>>>>>
+>>>>>>> I'm trying to run OMAP + TVP5151 in BT656 mode.
+>>>>>>>
+>>>>>>> I'm using omap3isp-omap3isp-yuv (git.linuxtv.org/pinchartl/media.git).
+>>>>>>> Plus the following patches:
+>>>>>>>
+>>>>>>> TVP5151:
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> https://github.com/ebutera/meta-igep/tree/testing-v2/recipes-kernel/linux/linux-3.0+3.1rc/tvp5150
+>>>>>>>
+>>>>>>> The latest RFC patches for BT656 support:
+>>>>>>>
+>>>>>>> Enrico Butera (2):
+>>>>>>>    omap3isp: ispvideo: export isp_video_mbus_to_pix
+>>>>>>>    omap3isp: ispccdc: configure CCDC registers and add BT656 support
+>>>>>>>
+>>>>>>> Javier Martinez Canillas (1):
+>>>>>>>    omap3isp: ccdc: Add interlaced field mode to platform data
+>>>>>>>
+>>>>>>>
+>>>>>>> I'm able to configure with media-ctl:
+>>>>>>>
+>>>>>>> media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+>>>>>>> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+>>>>>>> media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
+>>>>>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
+>>>>>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
+>>>>>>>
+>>>>>>> But
+>>>>>>> ./yavta -f UYVY -s 720x525 -n 4 --capture=4 -F /dev/video4
+>>>>>>>
+>>>>>>> sleeps after
+>>>>>>> ...
+>>>>>>> Buffer 1 mapped at address 0x4021d000.
+>>>>>>> length: 756000 offset: 1515520
+>>>>>>> Buffer 2 mapped at address 0x402d6000.
+>>>>>>> length: 756000 offset: 2273280
+>>>>>>> Buffer 3 mapped at address 0x4038f000.
+>>>>>>>
+>>>>>>> Anyone with the same issue??? This happens with every other v4l test
+>>>>>>> app
+>>>>>>> I
+>>>>>>> used.
+>>>>>>> I can see data from TVP5151 but there are no interrupts in ISP.
+>>>>>>
+>>>>>> Why are you using /dev/video4?  The CCDC output is on /dev/video2
 
-Agreed (that it sucks).
-
-> The right thing to do is to get rid of it from qv4l2.pro. I can see two possible solutions:
->
-> 1) add a logic at the build target that would do something like "cat qv4l2.pro|sed s,"\-L/usr/lib",,";
->
-> 2) Don't use -L for the libraries. In this case, we'll need to add some logic to include either the .so or the
-> .a version of the library, depending on the type of the libraries that were generated.
-
-We're not adding the -L/usr/lib, qmake is when it generates the Makefile, which is why I gave up after
-a quick attempt to fix it. Patches welcome :)
-
-Regards,
-
-Hans
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
