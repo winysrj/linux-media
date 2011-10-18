@@ -1,205 +1,330 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:60066 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933415Ab1JDUof convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Oct 2011 16:44:35 -0400
-Received: by iakk32 with SMTP id k32so999750iak.19
-        for <linux-media@vger.kernel.org>; Tue, 04 Oct 2011 13:44:34 -0700 (PDT)
+Received: from hermes.mlbassoc.com ([64.234.241.98]:54204 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932353Ab1JRQYG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Oct 2011 12:24:06 -0400
+Message-ID: <4E9DA823.3080708@mlbassoc.com>
+Date: Tue, 18 Oct 2011 10:24:03 -0600
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-In-Reply-To: <CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
-References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
-	<CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
-Date: Wed, 5 Oct 2011 07:44:34 +1100
-Message-ID: <CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
-Subject: Re: [PATCH] af9013 frontend tuner bus lock
-From: Jason Hecker <jwhecker@gmail.com>
-To: Josu Lazkano <josu.lazkano@gmail.com>
-Cc: tvboxspy <tvboxspy@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Boris Todorov <boris.st.todorov@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: omap3isp: BT.656 support
+References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com> <4E9D882F.5010608@mlbassoc.com> <CAFYgh7wKeOmQnvpbugZcFX-shKRN7oGmho_tyYLtcVOnPL8Peg@mail.gmail.com> <4E9D9209.3000907@mlbassoc.com> <CAFYgh7ybJYX0ec9avYrMf+cCWnp_AU3WivZkROCDLi-6p2WB_A@mail.gmail.com> <4E9D9A23.8060604@mlbassoc.com> <CAFYgh7x7LOw493Bvy3ETC9rq8DkDVnj5tL9mEZd4OF6RtNk8yA@mail.gmail.com> <4E9DA3A2.3050009@mlbassoc.com> <CAFYgh7zUwt=C9pyfepM6B0stHhnJs7U08JP_w8x_ycce2HKbZg@mail.gmail.com>
+In-Reply-To: <CAFYgh7zUwt=C9pyfepM6B0stHhnJs7U08JP_w8x_ycce2HKbZg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have had some luck with this patch.  I am still getting fouled
-recordings with tuner A but it's not consistent.  I have yet to
-ascertain if the problem occurs depending on the order of tuning to
-have both tuners recording different frquencies at the same time, ie
-Tuner B then Tuner A or vice versa.
+On 2011-10-18 10:14, Boris Todorov wrote:
+> On Tue, Oct 18, 2011 at 7:04 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>> On 2011-10-18 09:53, Boris Todorov wrote:
+>>>
+>>> On Tue, Oct 18, 2011 at 6:24 PM, Gary Thomas<gary@mlbassoc.com>    wrote:
+>>>>
+>>>> On 2011-10-18 09:10, Boris Todorov wrote:
+>>>>>
+>>>>> On Tue, Oct 18, 2011 at 5:49 PM, Gary Thomas<gary@mlbassoc.com>
+>>>>>   wrote:
+>>>>>>
+>>>>>> On 2011-10-18 08:28, Boris Todorov wrote:
+>>>>>>>
+>>>>>>> I'm using different board.
+>>>>>>
+>>>>>> What board?  I would think the architecture of the OMAP3 ISP would
+>>>>>> not change, based on the board?
+>>>>>
+>>>>> It's a custom board with omap3630. ISP is not changed.
+>>>>> When I disable OMAP2_VOUT from defconfig "CCD output" is /dev/video2.
+>>>>
+>>>> I see, I have that option turned off.
+>>>>
+>>>>> But result is the same - yavta sleeps at VIDIOC_DQBUF ioctl
+>>>>
+>>>> How are you configuring the TVP5150?  In particular these settings at
+>>>> boot
+>>>> time:
+>>>>
+>>>> static struct isp_v4l2_subdevs_group my_camera_subdevs[] = {
+>>>>         {
+>>>>                 .subdevs = tvp5150_camera_subdevs,
+>>>>                 .interface = ISP_INTERFACE_PARALLEL,
+>>>>                 .bus = {
+>>>>                                 .parallel = {
+>>>>                                         .data_lane_shift = 0,
+>>>>                                         .clk_pol = 1,
+>>>>                                         .bt656 = 1,
+>>>>                                         .fldmode = 1,
+>>>>                                 }
+>>>>                 },
+>>>>         },
+>>>>         { },
+>>>> };
+>>>
+>>> My settings are:
+>>>                                 .data_lane_shift        = 0,
+>>>                                 .clk_pol                = 0,
+>>>                                 .hs_pol                 = 0,
+>>>                                 .vs_pol                 = 0,
+>>>                                 .fldmode                = 1,
+>>>                                 .bt656               = 1,
+>>>
+>>> I tried yours but same result.
+>>> Why did you chose clk_pol=1?
+>>
+>> I just copied the settings from the BeagleBoard
+> btw what board are you using?
 
-Malcolm, did you say there was a MythTV tubing bug?  Do you have an
-URL for the bug if it has been reported?
+An internal project for the company I work with, OMAP 3530, much like the BeagleBoard
 
-I fear I might have a multi-layered problem - not only the Afatech
-tuners but perhaps some PCI issue too.  It doesn't help if MythTV
-isn't doing the right thing either.
-
-On 5 October 2011 06:28, Josu Lazkano <josu.lazkano@gmail.com> wrote:
-> 2011/9/28 tvboxspy <tvboxspy@gmail.com>:
->> Frontend bus lock for af9015 devices.
+>
+>> Have you had this working before (earlier kernel, etc)?
+> Never in BT.656 mode...
+>
 >>
->> Last week, I aqcuired a dual KWorld PlusTV Dual DVB-T Stick (DVB-T 399U).
+>>>
+>>>>
+>>>> This is how you tell the ISP to run in BT656 mode.  Without it, it will
+>>>> run
+>>>> using the HS/VS/FID signals (and also in my experience does not work
+>>>> properly)
+>>>>
+>>>>>>
+>>>>>>> According "media-ctl -p":
+>>>>>>>
+>>>>>>> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+>>>>>>>              type V4L2 subdev subtype Unknown
+>>>>>>>              device node name /dev/v4l-subdev2
+>>>>>>>          pad0: Input [UYVY2X8 720x525]
+>>>>>>>                  <- 'OMAP3 ISP CCP2':pad1 []
+>>>>>>>                  <- 'OMAP3 ISP CSI2a':pad1 []
+>>>>>>>                  <- 'tvp5150 3-005c':pad0 [ACTIVE]
+>>>>>>>          pad1: Output [UYVY2X8 720x525]
+>>>>>>>                  ->        'OMAP3 ISP CCDC output':pad0 [ACTIVE]
+>>>>>>>                  ->        'OMAP3 ISP resizer':pad0 []
+>>>>>>>          pad2: Output [UYVY2X8 720x524]
+>>>>>>>                  ->        'OMAP3 ISP preview':pad0 []
+>>>>>>>                  ->        'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
+>>>>>>>                  ->        'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
+>>>>>>>                  ->        'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
+>>>>>>>
+>>>>>>> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+>>>>>>>              type Node subtype V4L
+>>>>>>>              device node name /dev/video4
+>>>>>>>          pad0: Input
+>>>>>>>                  <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
+>>>>>>>
+>>>>>>>
+>>>>>>> Should be /dev/video4...
+>>>>>>
+>>>>>> Could you send your pipeline setup and full output of 'media-ctl -p'?
+>>>>>
+>>>>> Pipeline setup is:
+>>>>>
+>>>>> $ media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1],
+>>>>> "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+>>>>> $ media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
+>>>>> $ media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
+>>>>> $ media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
+>>>>>
+>>>>> media-ctl output (with /dev/video4):
+>>>>>
+>>>>> $ media-ctl -p
+>>>>> Opening media device /dev/media0
+>>>>> Enumerating entities
+>>>>> Found 16 entities
+>>>>> Enumerating pads and links
+>>>>> Device topology
+>>>>> - entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
+>>>>>              type V4L2 subdev subtype Unknown
+>>>>>              device node name /dev/v4l-subdev0
+>>>>>          pad0: Input [SGRBG10 4096x4096]
+>>>>>                  <- 'OMAP3 ISP CCP2 input':pad0 []
+>>>>>          pad1: Output [SGRBG10 4096x4096]
+>>>>>                  ->      'OMAP3 ISP CCDC':pad0 []
+>>>>>
+>>>>> - entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
+>>>>>              type Node subtype V4L
+>>>>>              device node name /dev/video0
+>>>>>          pad0: Output
+>>>>>                  ->      'OMAP3 ISP CCP2':pad0 []
+>>>>>
+>>>>> - entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
+>>>>>              type V4L2 subdev subtype Unknown
+>>>>>              device node name /dev/v4l-subdev1
+>>>>>          pad0: Input [SGRBG10 4096x4096]
+>>>>>          pad1: Output [SGRBG10 4096x4096]
+>>>>>                  ->      'OMAP3 ISP CSI2a output':pad0 []
+>>>>>                  ->      'OMAP3 ISP CCDC':pad0 []
+>>>>>
+>>>>> - entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
+>>>>>              type Node subtype V4L
+>>>>>              device node name /dev/video3
+>>>>>          pad0: Input
+>>>>>                  <- 'OMAP3 ISP CSI2a':pad1 []
+>>>>>
+>>>>> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+>>>>>              type V4L2 subdev subtype Unknown
+>>>>>              device node name /dev/v4l-subdev2
+>>>>>          pad0: Input [UYVY2X8 720x525]
+>>>>>                  <- 'OMAP3 ISP CCP2':pad1 []
+>>>>>                  <- 'OMAP3 ISP CSI2a':pad1 []
+>>>>>                  <- 'tvp5150 3-005c':pad0 [ACTIVE]
+>>>>>          pad1: Output [UYVY2X8 720x525]
+>>>>>                  ->      'OMAP3 ISP CCDC output':pad0 [ACTIVE]
+>>>>>                  ->      'OMAP3 ISP resizer':pad0 []
+>>>>>          pad2: Output [UYVY2X8 720x524]
+>>>>>                  ->      'OMAP3 ISP preview':pad0 []
+>>>>>                  ->      'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
+>>>>>                  ->      'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
+>>>>>                  ->      'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
+>>>>>
+>>>>> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+>>>>>              type Node subtype V4L
+>>>>>              device node name /dev/video4
+>>>>>          pad0: Input
+>>>>>                  <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
+>>>>>
+>>>>> - entity 7: OMAP3 ISP preview (2 pads, 4 links)
+>>>>>              type V4L2 subdev subtype Unknown
+>>>>>              device node name /dev/v4l-subdev3
+>>>>>          pad0: Input [SGRBG10 4096x4096]
+>>>>>                  <- 'OMAP3 ISP CCDC':pad2 []
+>>>>>                  <- 'OMAP3 ISP preview input':pad0 []
+>>>>>          pad1: Output [YUYV 4082x4088]
+>>>>>                  ->      'OMAP3 ISP preview output':pad0 []
+>>>>>                  ->      'OMAP3 ISP resizer':pad0 []
+>>>>>
+>>>>> - entity 8: OMAP3 ISP preview input (1 pad, 1 link)
+>>>>>              type Node subtype V4L
+>>>>>              device node name /dev/video5
+>>>>>          pad0: Output
+>>>>>                  ->      'OMAP3 ISP preview':pad0 []
+>>>>>
+>>>>> - entity 9: OMAP3 ISP preview output (1 pad, 1 link)
+>>>>>              type Node subtype V4L
+>>>>>              device node name /dev/video6
+>>>>>          pad0: Input
+>>>>>                  <- 'OMAP3 ISP preview':pad1 []
+>>>>>
+>>>>> - entity 10: OMAP3 ISP resizer (2 pads, 4 links)
+>>>>>               type V4L2 subdev subtype Unknown
+>>>>>               device node name /dev/v4l-subdev4
+>>>>>          pad0: Input [YUYV 4095x4095 (4,6)/4086x4082]
+>>>>>                  <- 'OMAP3 ISP CCDC':pad1 []
+>>>>>                  <- 'OMAP3 ISP preview':pad1 []
+>>>>>                  <- 'OMAP3 ISP resizer input':pad0 []
+>>>>>          pad1: Output [YUYV 4096x4095]
+>>>>>                  ->      'OMAP3 ISP resizer output':pad0 []
+>>>>>
+>>>>> - entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
+>>>>>               type Node subtype V4L
+>>>>>               device node name /dev/video7
+>>>>>          pad0: Output
+>>>>>                  ->      'OMAP3 ISP resizer':pad0 []
+>>>>>
+>>>>> - entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
+>>>>>               type Node subtype V4L
+>>>>>               device node name /dev/video8
+>>>>>          pad0: Input
+>>>>>                  <- 'OMAP3 ISP resizer':pad1 []
+>>>>>
+>>>>> - entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
+>>>>>               type V4L2 subdev subtype Unknown
+>>>>>               device node name /dev/v4l-subdev5
+>>>>>          pad0: Input
+>>>>>                  <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+>>>>>
+>>>>> - entity 14: OMAP3 ISP AF (1 pad, 1 link)
+>>>>>               type V4L2 subdev subtype Unknown
+>>>>>               device node name /dev/v4l-subdev6
+>>>>>          pad0: Input
+>>>>>                  <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+>>>>>
+>>>>> - entity 15: OMAP3 ISP histogram (1 pad, 1 link)
+>>>>>               type V4L2 subdev subtype Unknown
+>>>>>               device node name /dev/v4l-subdev7
+>>>>>          pad0: Input
+>>>>>                  <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+>>>>>
+>>>>> - entity 16: tvp5150 3-005c (1 pad, 1 link)
+>>>>>               type V4L2 subdev subtype Unknown
+>>>>>               device node name /dev/v4l-subdev8
+>>>>>          pad0: Output [UYVY2X8 720x525]
+>>>>>                  ->      'OMAP3 ISP CCDC':pad0 [ACTIVE]
+>>>>>
+>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> On Tue, Oct 18, 2011 at 5:07 PM, Gary Thomas<gary@mlbassoc.com>
+>>>>>>>   wrote:
+>>>>>>>>
+>>>>>>>> On 2011-10-18 07:33, Boris Todorov wrote:
+>>>>>>>>>
+>>>>>>>>> Hi
+>>>>>>>>>
+>>>>>>>>> I'm trying to run OMAP + TVP5151 in BT656 mode.
+>>>>>>>>>
+>>>>>>>>> I'm using omap3isp-omap3isp-yuv
+>>>>>>>>> (git.linuxtv.org/pinchartl/media.git).
+>>>>>>>>> Plus the following patches:
+>>>>>>>>>
+>>>>>>>>> TVP5151:
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> https://github.com/ebutera/meta-igep/tree/testing-v2/recipes-kernel/linux/linux-3.0+3.1rc/tvp5150
+>>>>>>>>>
+>>>>>>>>> The latest RFC patches for BT656 support:
+>>>>>>>>>
+>>>>>>>>> Enrico Butera (2):
+>>>>>>>>>    omap3isp: ispvideo: export isp_video_mbus_to_pix
+>>>>>>>>>    omap3isp: ispccdc: configure CCDC registers and add BT656 support
+>>>>>>>>>
+>>>>>>>>> Javier Martinez Canillas (1):
+>>>>>>>>>    omap3isp: ccdc: Add interlaced field mode to platform data
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> I'm able to configure with media-ctl:
+>>>>>>>>>
+>>>>>>>>> media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1],
+>>>>>>>>> "OMAP3
+>>>>>>>>> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+>>>>>>>>> media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
+>>>>>>>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
+>>>>>>>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
+>>>>>>>>>
+>>>>>>>>> But
+>>>>>>>>> ./yavta -f UYVY -s 720x525 -n 4 --capture=4 -F /dev/video4
+>>>>>>>>>
+>>>>>>>>> sleeps after
+>>>>>>>>> ...
+>>>>>>>>> Buffer 1 mapped at address 0x4021d000.
+>>>>>>>>> length: 756000 offset: 1515520
+>>>>>>>>> Buffer 2 mapped at address 0x402d6000.
+>>>>>>>>> length: 756000 offset: 2273280
+>>>>>>>>> Buffer 3 mapped at address 0x4038f000.
+>>>>>>>>>
+>>>>>>>>> Anyone with the same issue??? This happens with every other v4l test
+>>>>>>>>> app
+>>>>>>>>> I
+>>>>>>>>> used.
+>>>>>>>>> I can see data from TVP5151 but there are no interrupts in ISP.
+>>>>>>>>
+>>>>>>>> Why are you using /dev/video4?  The CCDC output is on /dev/video2
 >>
->> The lock is intended for dual frontends that share the same tuner I2C address
->> to stop either frontend sending data while any gate is open. The patch
->> should have no effect on single devices or multiple single devices, well
->> not on the ones I have!
->>
->> It also delays read_status call backs being sent while either gate is open, a
->> mostly like cause of corruption.
->>
->> The lock also covers the attachment process of the tuner in case there is any
->> race condition, although unlikely.
->>
->> Points about troubles with Myth TV;
->> Streaming corruptions are more likely to appear from the I2C noise generated
->> from setting either frontend. Afatech love their bits as bytes:-)
->>
->> Latest version of Myth TV appears to have a bug where you can't select the second
->> frontend independently and when it does it tunes to the same frequency as
->> the first frontend!
->>
->> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
->> ---
->>  drivers/media/dvb/dvb-usb/af9015.c   |    7 ++++++-
->>  drivers/media/dvb/frontends/af9013.c |   13 ++++++++++++-
->>  drivers/media/dvb/frontends/af9013.h |    5 +++--
->>  3 files changed, 21 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
->> index c6c275b..0089858 100644
->> --- a/drivers/media/dvb/dvb-usb/af9015.c
->> +++ b/drivers/media/dvb/dvb-usb/af9015.c
->> @@ -43,6 +43,7 @@ MODULE_PARM_DESC(remote, "select remote");
->>  DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
->>
->>  static DEFINE_MUTEX(af9015_usb_mutex);
->> +static DEFINE_MUTEX(af9015_fe_mutex);
->>
->>  static struct af9015_config af9015_config;
->>  static struct dvb_usb_device_properties af9015_properties[3];
->> @@ -1114,7 +1115,7 @@ static int af9015_af9013_frontend_attach(struct dvb_usb_adapter *adap)
->>
->>        /* attach demodulator */
->>        adap->fe_adap[0].fe = dvb_attach(af9013_attach, &af9015_af9013_config[adap->id],
->> -               &adap->dev->i2c_adap);
->> +               &adap->dev->i2c_adap, &af9015_fe_mutex);
->>
->>        return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
->>  }
->> @@ -1187,6 +1188,9 @@ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
->>        int ret;
->>        deb_info("%s:\n", __func__);
->>
->> +       if (mutex_lock_interruptible(&af9015_fe_mutex) < 0)
->> +               return -EAGAIN;
->> +
->>        switch (af9015_af9013_config[adap->id].tuner) {
->>        case AF9013_TUNER_MT2060:
->>        case AF9013_TUNER_MT2060_2:
->> @@ -1242,6 +1246,7 @@ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
->>                err("Unknown tuner id:%d",
->>                        af9015_af9013_config[adap->id].tuner);
->>        }
->> +       mutex_unlock(&af9015_fe_mutex);
->>        return ret;
->>  }
->>
->> diff --git a/drivers/media/dvb/frontends/af9013.c b/drivers/media/dvb/frontends/af9013.c
->> index 345311c..b220a87 100644
->> --- a/drivers/media/dvb/frontends/af9013.c
->> +++ b/drivers/media/dvb/frontends/af9013.c
->> @@ -50,6 +50,7 @@ struct af9013_state {
->>        u16 snr;
->>        u32 frequency;
->>        unsigned long next_statistics_check;
->> +       struct mutex *fe_mutex;
->>  };
->>
->>  static u8 regmask[8] = { 0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff };
->> @@ -630,9 +631,14 @@ static int af9013_set_frontend(struct dvb_frontend *fe,
->>        state->frequency = params->frequency;
->>
->>        /* program tuner */
->> +       if (mutex_lock_interruptible(state->fe_mutex) < 0)
->> +               return -EAGAIN;
->> +
->>        if (fe->ops.tuner_ops.set_params)
->>                fe->ops.tuner_ops.set_params(fe, params);
->>
->> +       mutex_unlock(state->fe_mutex);
->> +
->>        /* program CFOE coefficients */
->>        ret = af9013_set_coeff(state, params->u.ofdm.bandwidth);
->>        if (ret)
->> @@ -1038,6 +1044,9 @@ static int af9013_read_status(struct dvb_frontend *fe, fe_status_t *status)
->>        u8 tmp;
->>        *status = 0;
->>
->> +       if (mutex_lock_interruptible(state->fe_mutex) < 0)
->> +               return -EAGAIN;
->> +
->>        /* MPEG2 lock */
->>        ret = af9013_read_reg_bits(state, 0xd507, 6, 1, &tmp);
->>        if (ret)
->> @@ -1086,6 +1095,7 @@ static int af9013_read_status(struct dvb_frontend *fe, fe_status_t *status)
->>        ret = af9013_update_statistics(fe);
->>
->>  error:
->> +       mutex_unlock(state->fe_mutex);
->>        return ret;
->>  }
->>
->> @@ -1446,7 +1456,7 @@ static void af9013_release(struct dvb_frontend *fe)
->>  static struct dvb_frontend_ops af9013_ops;
->>
->>  struct dvb_frontend *af9013_attach(const struct af9013_config *config,
->> -       struct i2c_adapter *i2c)
->> +       struct i2c_adapter *i2c, struct mutex *fe_mutex)
->>  {
->>        int ret;
->>        struct af9013_state *state = NULL;
->> @@ -1459,6 +1469,7 @@ struct dvb_frontend *af9013_attach(const struct af9013_config *config,
->>
->>        /* setup the state */
->>        state->i2c = i2c;
->> +       state->fe_mutex = fe_mutex;
->>        memcpy(&state->config, config, sizeof(struct af9013_config));
->>
->>        /* download firmware */
->> diff --git a/drivers/media/dvb/frontends/af9013.h b/drivers/media/dvb/frontends/af9013.h
->> index e53d873..95c966a 100644
->> --- a/drivers/media/dvb/frontends/af9013.h
->> +++ b/drivers/media/dvb/frontends/af9013.h
->> @@ -96,10 +96,11 @@ struct af9013_config {
->>  #if defined(CONFIG_DVB_AF9013) || \
->>        (defined(CONFIG_DVB_AF9013_MODULE) && defined(MODULE))
->>  extern struct dvb_frontend *af9013_attach(const struct af9013_config *config,
->> -       struct i2c_adapter *i2c);
->> +       struct i2c_adapter *i2c, struct mutex *fe_mutex);
->>  #else
->>  static inline struct dvb_frontend *af9013_attach(
->> -const struct af9013_config *config, struct i2c_adapter *i2c)
->> +       const struct af9013_config *config, struct i2c_adapter *i2,
->> +               struct mutex *fe_mutex)
->>  {
->>        printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
->>        return NULL;
 >> --
->> 1.7.5.4
+>> ------------------------------------------------------------
+>> Gary Thomas                 |  Consulting for the
+>> MLB Associates              |    Embedded world
+>> ------------------------------------------------------------
 >>
->>
->
-> Thanks!!! I have same device, I apply the patch to the s2-liplianin
-> branch and it works well.
->
-> Two days on MythTV and there is no pixeled playback and not I2C
-> messges on dmesg.
->
-> Thank you very much, I was waiting long for this fix.
->
-> Kind regards.
->
-> --
-> Josu Lazkano
->
+
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
