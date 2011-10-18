@@ -1,83 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from newsmtp5.atmel.com ([204.2.163.5]:46455 "EHLO
-	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754378Ab1JKLEO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Oct 2011 07:04:14 -0400
-From: Josh Wu <josh.wu@atmel.com>
-To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	plagnioj@jcrosoft.com
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	nicolas.ferre@atmel.com, s.nawrocki@samsung.com,
-	Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH v4 2/3] at91: add parameters for at91_add_device_isi function
-Date: Tue, 11 Oct 2011 19:03:39 +0800
-Message-Id: <1318331020-22031-3-git-send-email-josh.wu@atmel.com>
-In-Reply-To: <1318331020-22031-1-git-send-email-josh.wu@atmel.com>
-References: <1318331020-22031-1-git-send-email-josh.wu@atmel.com>
+Received: from perches-mx.perches.com ([206.117.179.246]:34234 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752471Ab1JRU6m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Oct 2011 16:58:42 -0400
+Message-ID: <1318971519.8639.3.camel@Joe-Laptop>
+Subject: Re: [RESEND PATCH 10/14] staging/media/as102: properly handle
+ multiple product names
+From: Joe Perches <joe@perches.com>
+To: Piotr Chmura <chmooreck@poczta.onet.pl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	devel@driverdev.osuosl.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	Greg KH <gregkh@suse.de>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	LMML <linux-media@vger.kernel.org>
+Date: Tue, 18 Oct 2011 13:58:39 -0700
+In-Reply-To: <20111018225408.4fcd8ec9@darkstar>
+References: <4E7F1FB5.5030803@gmail.com>
+	 <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
+	 <4E7FF0A0.7060004@gmail.com>
+	 <CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
+	 <20110927094409.7a5fcd5a@stein> <20110927174307.GD24197@suse.de>
+	 <20110927213300.6893677a@stein> <4E999733.2010802@poczta.onet.pl>
+	 <4E99F2FC.5030200@poczta.onet.pl> <20111016105731.09d66f03@stein>
+	 <CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
+	 <4E9ADFAE.8050208@redhat.com>
+	 <20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
+	 <20111018111251.d7978be8.chmooreck@poczta.onet.pl>
+	 <20111018220230.13c8436e@darkstar> <1318969719.7985.4.camel@Joe-Laptop>
+	 <20111018225408.4fcd8ec9@darkstar>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add parameters for at91_add_device_isi function
+On Tue, 2011-10-18 at 22:54 +0200, Piotr Chmura wrote:
+> On Tue, 18 Oct 2011 13:28:39 -0700
+> Joe Perches <joe@perches.com> wrote:
+> > On Tue, 2011-10-18 at 22:02 +0200, Piotr Chmura wrote:
+> > > Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+> > []
+> > > diff --git linux/drivers/staging/media/as102/as102_fe.c linuxb/drivers/staging/media/as102/as102_fe.c
+> > []
+> > > @@ -408,6 +408,8 @@
+> > >  
+> > >  	/* init frontend callback ops */
+> > >  	memcpy(&dvb_fe->ops, &as102_fe_ops, sizeof(struct dvb_frontend_ops));
+> > > +	strncpy(dvb_fe->ops.info.name, as102_dev->name,
+> > > +		sizeof(dvb_fe->ops.info.name));
+> > strlcpy?
+> Can be, but not during moving from another repo.
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
----
- arch/arm/mach-at91/at91sam9263_devices.c |   13 ++++++++++---
- arch/arm/mach-at91/include/mach/board.h  |    4 +++-
- 2 files changed, 13 insertions(+), 4 deletions(-)
+I don't know nor care much really which of these
+patches are direct moves from another repo and which
+are "cleanups".  It does appear that only patch
+1 is a move from some repository to the kernel tree
+and all the rest are cleanups though.
 
-diff --git a/arch/arm/mach-at91/at91sam9263_devices.c b/arch/arm/mach-at91/at91sam9263_devices.c
-index a050f41..7990e8e 100644
---- a/arch/arm/mach-at91/at91sam9263_devices.c
-+++ b/arch/arm/mach-at91/at91sam9263_devices.c
-@@ -885,7 +885,8 @@ static struct platform_device at91sam9263_isi_device = {
- 	.num_resources	= ARRAY_SIZE(isi_resources),
- };
- 
--void __init at91_add_device_isi(void)
-+void __init at91_add_device_isi(struct isi_platform_data * data,
-+		bool use_pck_as_mck)
- {
- 	at91_set_A_periph(AT91_PIN_PE0, 0);	/* ISI_D0 */
- 	at91_set_A_periph(AT91_PIN_PE1, 0);	/* ISI_D1 */
-@@ -898,14 +899,20 @@ void __init at91_add_device_isi(void)
- 	at91_set_A_periph(AT91_PIN_PE8, 0);	/* ISI_PCK */
- 	at91_set_A_periph(AT91_PIN_PE9, 0);	/* ISI_HSYNC */
- 	at91_set_A_periph(AT91_PIN_PE10, 0);	/* ISI_VSYNC */
--	at91_set_B_periph(AT91_PIN_PE11, 0);	/* ISI_MCK (PCK3) */
- 	at91_set_B_periph(AT91_PIN_PE12, 0);	/* ISI_PD8 */
- 	at91_set_B_periph(AT91_PIN_PE13, 0);	/* ISI_PD9 */
- 	at91_set_B_periph(AT91_PIN_PE14, 0);	/* ISI_PD10 */
- 	at91_set_B_periph(AT91_PIN_PE15, 0);	/* ISI_PD11 */
-+
-+	if (use_pck_as_mck) {
-+		at91_set_B_periph(AT91_PIN_PE11, 0);	/* ISI_MCK (PCK3) */
-+
-+		/* TODO: register the PCK for ISI_MCK and set its parent */
-+	}
- }
- #else
--void __init at91_add_device_isi(void) {}
-+void __init at91_add_device_isi(struct isi_platform_data * data,
-+		int use_pck_as_mck) {}
- #endif
- 
- 
-diff --git a/arch/arm/mach-at91/include/mach/board.h b/arch/arm/mach-at91/include/mach/board.h
-index ed544a0..731c449 100644
---- a/arch/arm/mach-at91/include/mach/board.h
-+++ b/arch/arm/mach-at91/include/mach/board.h
-@@ -183,7 +183,9 @@ extern void __init at91_add_device_lcdc(struct atmel_lcdfb_info *data);
- extern void __init at91_add_device_ac97(struct ac97c_platform_data *data);
- 
-  /* ISI */
--extern void __init at91_add_device_isi(void);
-+struct isi_platform_data;
-+extern void __init at91_add_device_isi(struct isi_platform_data *data,
-+		bool use_pck_as_mck);
- 
-  /* Touchscreen Controller */
- struct at91_tsadcc_data {
--- 
-1.6.3.3
+> There will be time for such fixes in kernel tree.
+> Am I right ?
+
+Oh sure, just pointing out what looks odd.
+
+cheers, Joe
 
