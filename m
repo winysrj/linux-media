@@ -1,82 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:56982 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891Ab1JHKcz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Oct 2011 06:32:55 -0400
-Received: by bkbzt4 with SMTP id zt4so5957402bkb.19
-        for <linux-media@vger.kernel.org>; Sat, 08 Oct 2011 03:32:53 -0700 (PDT)
-Message-ID: <4E9026CD.1030200@gmail.com>
-Date: Sat, 08 Oct 2011 12:32:45 +0200
-From: =?ISO-8859-1?Q?Roger_M=E5rtensson?= <roger.martensson@gmail.com>
+Received: from smtp-out.google.com ([74.125.121.67]:30339 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753783Ab1JRUjd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Oct 2011 16:39:33 -0400
+Received: from wpaz9.hot.corp.google.com (wpaz9.hot.corp.google.com [172.24.198.73])
+	by smtp-out.google.com with ESMTP id p9IKdVw9018516
+	for <linux-media@vger.kernel.org>; Tue, 18 Oct 2011 13:39:31 -0700
+Received: from ywm39 (ywm39.prod.google.com [10.192.13.39])
+	by wpaz9.hot.corp.google.com with ESMTP id p9IKcxLc010242
+	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
+	for <linux-media@vger.kernel.org>; Tue, 18 Oct 2011 13:39:30 -0700
+Received: by ywm39 with SMTP id 39so1459896ywm.9
+        for <linux-media@vger.kernel.org>; Tue, 18 Oct 2011 13:39:30 -0700 (PDT)
+Date: Tue, 18 Oct 2011 13:39:27 -0700 (PDT)
+From: David Rientjes <rientjes@google.com>
+To: Antonio Ospite <ospite@studenti.unina.it>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: "Tomas M." <tmezzadra@gmail.com>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: kernel OOPS when releasing usb webcam (random)
+In-Reply-To: <20111018104054.07aa2bcf462c0268a23c0139@studenti.unina.it>
+Message-ID: <alpine.DEB.2.00.1110181332320.2639@chino.kir.corp.google.com>
+References: <4E9CB0C2.3030902@gmail.com> <alpine.DEB.2.00.1110171703210.13515@chino.kir.corp.google.com> <20111018104054.07aa2bcf462c0268a23c0139@studenti.unina.it>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Stream degrades when going through CAM
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hej(Hello)!
+On Tue, 18 Oct 2011, Antonio Ospite wrote:
 
-I'm the one that posted about non responding CAM earlier. I got another 
-CAM I had laying around to work but now it's different problems.
+> > > im getting the following null pointer dereference from time to time when
+> > > releasing a usb camera.
+> > > 
+> > > maybe this trace is of assistance...please reply to my mail since im not
+> > > subscribed.
+> > > 
+> > 
+> > I suspect this is happening in v4l2_device_unregister_subdev().  Adding 
+> > Guennadi, Mauro, and linux-media.
+> > 
+> > > BUG: unable to handle kernel NULL pointer dereference at 0000006c
+> > > IP: [<f90be6c2>] v4l2_device_release+0xa2/0xf0 [videodev]
+> 
+> Hi,
+> 
+> I sent a fix for a similar trace last week:
+> http://patchwork.linuxtv.org/patch/8124/
+> 
+> Tomas, can you test it fixes the problem for you too?
+> 
 
-With this SMIT Conax CAM(Earlier it was a Dilog Conax) I can decode but 
-the resulting mpg-stream degrades fast to something unwatchable.
+Tomas reported that the same change from Frederik Deweerdt fixed the 
+issue, so you can add his tested-by from 
+https://lkml.org/lkml/2011/10/18/298.
 
-The testprogram I'm using is gnutv:
-$ gnutv -channels ~/my-channels-v4.conf -timeout 30 -out file t.mpg SVT1
-Using frontend "Philips TDA10023 DVB-C", type DVB-C
-status SCVYL | signal f0f0 | snr f3f3 | ber 000fffff | unc 000000ec | 
-FE_HAS_LOCK
-CAM Application type: 01
-CAM Application manufacturer: cafe
-CAM Manufacturer code: babe
-CAM Menu string: Conax Conditional Access
-CAM supports the following ca system ids:
-   0x0b00
-Received new PMT - sending to CAM...
-
-The recording always starts up nice but after some time it gets blocky 
-artifacts and mplayer starts outputing errors. These artifacts increases 
-almost exponential making this 30 second recording unwatchable very fast.
-This of course does not happen when the CAM isn't inserted.
-
-So my question is. Is there something in the driver talking with the CAM 
-that degrades the stream?
-
-It's almost like when the errors starts displaying it gets more worse by 
-the second.
-
-Other "errors" I see with this CAM inserted are PMT/NIT/STD filter 
-timeouts when scanning with w_scan and filter timeouts(one or many pids) 
-with scan resulting in channels not being found. Other runs may find the 
-missing channels but then others are missing. Sometimes a run completes 
-without errors and all channels are found.
-
-If the CAM is not inserted then I do not see these errors.
-All tests done with the same non-encrypted channel. (encrypted channels 
-show the same problems. HD Channels degrades faster than SD.)
-
-If someone with knowledge could help me it would be great. I sure do 
-want to get this working. It is working, sort of. I does decode so 
-something is getting through the CAM but not for long.
-
-I did try to search the "web" and mailing list and I did find people 
-with similar errors all the way back to 2006.
-
-The hardware I got is a mystique DVB-C Card but it seems to a KNC1 
-TV-Station MK3 clone.
-08:01.0 Multimedia controller [0480]: Philips Semiconductors SAA7146 
-[1131:7146] (rev 01)
-         Subsystem: KNC One Device [1894:0028]
-         Flags: bus master, medium devsel, latency 64, IRQ 16
-         Memory at fbeffc00 (32-bit, non-prefetchable) [size=512]
-         Kernel driver in use: budget_av
-         Kernel modules: budget-av
-
-The CAM is a SMIT CONAX.
-
-Kernel Used: 2.6.38(2.6.38-11-generic. Ubuntu 11.04 SMP)
-
-Drivers tested: from latest media_build git
+Guennadi or Mauro, how is this going to Linus?  It sounds like 3.1 
+material since we've received at least a couple of reports of this in the 
+past week.
