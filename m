@@ -1,54 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35009 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756099Ab1JDLDG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Oct 2011 07:03:06 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Paul Chiha" <paul.chiha@greyinnovation.com>
-Subject: Re: Help with omap3isp resizing
-Date: Tue, 4 Oct 2011 13:03:02 +0200
-Cc: linux-media@vger.kernel.org
-References: <51A4F524D105AA4C93787F33E2C90E62EE5203@greysvr02.GreyInnovation.local>
-In-Reply-To: <51A4F524D105AA4C93787F33E2C90E62EE5203@greysvr02.GreyInnovation.local>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:60891 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755525Ab1JRO21 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Oct 2011 10:28:27 -0400
+Received: by yxp4 with SMTP id 4so634506yxp.19
+        for <linux-media@vger.kernel.org>; Tue, 18 Oct 2011 07:28:27 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201110041303.03055.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4E9D882F.5010608@mlbassoc.com>
+References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com>
+	<4E9D882F.5010608@mlbassoc.com>
+Date: Tue, 18 Oct 2011 17:28:25 +0300
+Message-ID: <CAFYgh7wKeOmQnvpbugZcFX-shKRN7oGmho_tyYLtcVOnPL8Peg@mail.gmail.com>
+Subject: Re: omap3isp: BT.656 support
+From: Boris Todorov <boris.st.todorov@gmail.com>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paul,
+I'm using different board.
 
-On Monday 03 October 2011 07:51:34 Paul Chiha wrote:
-> Hi,
-> 
-> I've been having trouble getting the resizer to work, and mainly because
-> I don't know how to correctly configure it.
-> I'm using kernel 2.6.37 on arm DM37x board.
-> 
-> I've been able to configure the media links sensor=>ccdc=>ccdc_output
-> (all with 640x480 V4L2_MBUS_FMT_UYVY8_2X8) and VIDIOC_STREAMON works on
-> /dev/video2.
-> But if I configure media links sensor=>ccdc=>resizer=>resizer_output,
-> then VIDIOC_STREAMON fails on /dev/video6 (with pixelformat mismatch).
-> I noticed that the resizer driver only supports V4L2_MBUS_FMT_UYVY8_1X16
-> & V4L2_MBUS_FMT_YUYV8_1X16, so I tried again with all the links set to
-> V4L2_MBUS_FMT_UYVY8_1X16 instead, but then ioctl VIDIOC_SUBDEV_S_FMT
-> fails on /dev/v4l-subdev8, because the sensor driver doesn't support
-> 1X16.
-> Then I tried using V4L2_MBUS_FMT_UYVY8_2X8 for the sensor and
-> V4L2_MBUS_FMT_UYVY8_1X16 for the resizer, but it either failed with
-> pixelformat mismatch or link pipeline mismatch, depending on which pads
-> were different.
-> 
-> Can someone please tell me what I need to do to make this work?
+According "media-ctl -p":
 
-Long story short, I don't think that pipeline has ever been tested. I'm 
-unfortunately lacking hardware to work on that, as none of my OMAP3 hardware 
-has a YUV input.
+- entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev2
+        pad0: Input [UYVY2X8 720x525]
+                <- 'OMAP3 ISP CCP2':pad1 []
+                <- 'OMAP3 ISP CSI2a':pad1 []
+                <- 'tvp5150 3-005c':pad0 [ACTIVE]
+        pad1: Output [UYVY2X8 720x525]
+                -> 'OMAP3 ISP CCDC output':pad0 [ACTIVE]
+                -> 'OMAP3 ISP resizer':pad0 []
+        pad2: Output [UYVY2X8 720x524]
+                -> 'OMAP3 ISP preview':pad0 []
+                -> 'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
+                -> 'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
+                -> 'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
 
--- 
-Regards,
+- entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video4
+        pad0: Input
+                <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
 
-Laurent Pinchart
+
+Should be /dev/video4...
+
+
+On Tue, Oct 18, 2011 at 5:07 PM, Gary Thomas <gary@mlbassoc.com> wrote:
+> On 2011-10-18 07:33, Boris Todorov wrote:
+>>
+>> Hi
+>>
+>> I'm trying to run OMAP + TVP5151 in BT656 mode.
+>>
+>> I'm using omap3isp-omap3isp-yuv (git.linuxtv.org/pinchartl/media.git).
+>> Plus the following patches:
+>>
+>> TVP5151:
+>>
+>> https://github.com/ebutera/meta-igep/tree/testing-v2/recipes-kernel/linux/linux-3.0+3.1rc/tvp5150
+>>
+>> The latest RFC patches for BT656 support:
+>>
+>> Enrico Butera (2):
+>>   omap3isp: ispvideo: export isp_video_mbus_to_pix
+>>   omap3isp: ispccdc: configure CCDC registers and add BT656 support
+>>
+>> Javier Martinez Canillas (1):
+>>   omap3isp: ccdc: Add interlaced field mode to platform data
+>>
+>>
+>> I'm able to configure with media-ctl:
+>>
+>> media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+>> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+>> media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
+>> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
+>> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
+>>
+>> But
+>> ./yavta -f UYVY -s 720x525 -n 4 --capture=4 -F /dev/video4
+>>
+>> sleeps after
+>> ...
+>> Buffer 1 mapped at address 0x4021d000.
+>> length: 756000 offset: 1515520
+>> Buffer 2 mapped at address 0x402d6000.
+>> length: 756000 offset: 2273280
+>> Buffer 3 mapped at address 0x4038f000.
+>>
+>> Anyone with the same issue??? This happens with every other v4l test app I
+>> used.
+>> I can see data from TVP5151 but there are no interrupts in ISP.
+>
+> Why are you using /dev/video4?  The CCDC output is on /dev/video2
+>
+> --
+> ------------------------------------------------------------
+> Gary Thomas                 |  Consulting for the
+> MLB Associates              |    Embedded world
+> ------------------------------------------------------------
+>
