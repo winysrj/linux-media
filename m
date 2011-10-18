@@ -1,132 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:65151 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754083Ab1J0LTh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Oct 2011 07:19:37 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: hverkuil@xs4all.nl,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 1/2] uvcvideo: Refactor uvc_ctrl_get and query
-Date: Thu, 27 Oct 2011 13:19:51 +0200
-Message-Id: <1319714392-4406-2-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1319714392-4406-1-git-send-email-hdegoede@redhat.com>
-References: <1319714392-4406-1-git-send-email-hdegoede@redhat.com>
+Received: from smtpo05.poczta.onet.pl ([213.180.142.136]:34781 "EHLO
+	smtpo05.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753581Ab1JRUCd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Oct 2011 16:02:33 -0400
+Date: Tue, 18 Oct 2011 22:02:30 +0200
+From: Piotr Chmura <chmooreck@poczta.onet.pl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Greg KH <gregkh@suse.de>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
+Subject: [RESEND PATCH 10/14] staging/media/as102: properly handle multiple
+ product names
+Message-ID: <20111018220230.13c8436e@darkstar>
+In-Reply-To: <20111018111251.d7978be8.chmooreck@poczta.onet.pl>
+References: <4E7F1FB5.5030803@gmail.com>
+	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
+	<4E7FF0A0.7060004@gmail.com>
+	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
+	<20110927094409.7a5fcd5a@stein>
+	<20110927174307.GD24197@suse.de>
+	<20110927213300.6893677a@stein>
+	<4E999733.2010802@poczta.onet.pl>
+	<4E99F2FC.5030200@poczta.onet.pl>
+	<20111016105731.09d66f03@stein>
+	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
+	<4E9ADFAE.8050208@redhat.com>
+	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
+	<20111018111251.d7978be8.chmooreck@poczta.onet.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a preparation patch for adding ctrl event support.
+Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/video/uvc/uvc_ctrl.c |   62 +++++++++++++++++++++++++-----------
- 1 files changed, 43 insertions(+), 19 deletions(-)
+Original source and comment:# HG changeset patch
+# User Devin Heitmueller <dheitmueller@kernellabs.com>
+# Date 1267319051 18000
+# Node ID 22ef1bdca69a2781abf397c53a0f7f6125f5359a
+# Parent  4a82558f6df8b957bc623d854a118a5da32dead2
+as102: properly handle multiple product names
 
-diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
-index 254d326..1a2c1a3 100644
---- a/drivers/media/video/uvc/uvc_ctrl.c
-+++ b/drivers/media/video/uvc/uvc_ctrl.c
-@@ -886,24 +886,14 @@ static int uvc_ctrl_populate_cache(struct uvc_video_chain *chain,
- 	return 0;
- }
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+
+Properly handle the case where the driver can be associated with multiple
+different products (as opposed to always saying the device is named after the
+value in a #define
+
+Priority: normal
+
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Piotr Chmura <chmooreck@poczta.onet.pl>
+
+diff --git linux/drivers/staging/media/as102/as102_drv.c linuxb/drivers/staging/media/as102/as102_drv.c
+--- linux/drivers/staging/media/as102/as102_drv.c
++++ linuxb/drivers/staging/media/as102/as102_drv.c
+@@ -209,7 +209,7 @@
  
--int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
-+static int __uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
-+	struct uvc_control *ctrl,
-+	struct uvc_control_mapping *mapping,
- 	struct v4l2_queryctrl *v4l2_ctrl)
+ #if defined(CONFIG_DVB_CORE) || defined(CONFIG_DVB_CORE_MODULE)
+ 	ret = dvb_register_adapter(&as102_dev->dvb_adap,
+-				   DEVICE_FULL_NAME,
++				   as102_dev->name,
+ 				   THIS_MODULE,
+ #if defined(CONFIG_AS102_USB)
+ 				   &as102_dev->bus_adap.usb_dev->dev
+diff --git linux/drivers/staging/media/as102/as102_drv.h linuxb/drivers/staging/media/as102/as102_drv.h
+--- linux/drivers/staging/media/as102/as102_drv.h
++++ linuxb/drivers/staging/media/as102/as102_drv.h
+@@ -106,6 +106,7 @@
+ };
+ 
+ struct as102_dev_t {
++	const char *name;
+ 	struct as102_bus_adapter_t bus_adap;
+ 	struct list_head device_entry;
+ 	struct kref kref;
+diff --git linux/drivers/staging/media/as102/as102_fe.c linuxb/drivers/staging/media/as102/as102_fe.c
+--- linux/drivers/staging/media/as102/as102_fe.c
++++ linuxb/drivers/staging/media/as102/as102_fe.c
+@@ -346,7 +346,7 @@
+ 
+ static struct dvb_frontend_ops as102_fe_ops = {
+ 	.info = {
+-		.name			= DEVICE_FULL_NAME,
++		.name			= "Unknown AS102 device",
+ 		.type			= FE_OFDM,
+ 		.frequency_min		= 174000000,
+ 		.frequency_max		= 862000000,
+@@ -408,6 +408,8 @@
+ 
+ 	/* init frontend callback ops */
+ 	memcpy(&dvb_fe->ops, &as102_fe_ops, sizeof(struct dvb_frontend_ops));
++	strncpy(dvb_fe->ops.info.name, as102_dev->name,
++		sizeof(dvb_fe->ops.info.name));
+ 
+ 	/* register dbvb frontend */
+ 	errno = dvb_register_frontend(dvb_adap, dvb_fe);
+diff --git linux/drivers/staging/media/as102/as102_usb_drv.c linuxb/drivers/staging/media/as102/as102_usb_drv.c
+--- linux/drivers/staging/media/as102/as102_usb_drv.c
++++ linuxb/drivers/staging/media/as102/as102_usb_drv.c
+@@ -44,6 +44,15 @@
+ 	{ } /* Terminating entry */
+ };
+ 
++/* Note that this table must always have the same number of entries as the
++   as102_usb_id_table struct */
++static const char *as102_device_names[] = {
++	AS102_REFERENCE_DESIGN,
++	AS102_PCTV_74E,
++	AS102_ELGATO_EYETV_DTT_NAME,
++	NULL /* Terminating entry */
++};
++
+ struct usb_driver as102_usb_driver = {
+ 	.name       =  DRIVER_FULL_NAME,
+ 	.probe      =  as102_usb_probe,
+@@ -344,6 +353,7 @@
  {
--	struct uvc_control *ctrl;
--	struct uvc_control_mapping *mapping;
- 	struct uvc_menu_info *menu;
- 	unsigned int i;
--	int ret;
--
--	ret = mutex_lock_interruptible(&chain->ctrl_mutex);
--	if (ret < 0)
--		return -ERESTARTSYS;
--
--	ctrl = uvc_find_control(chain, v4l2_ctrl->id, &mapping);
--	if (ctrl == NULL) {
--		ret = -EINVAL;
--		goto done;
--	}
-+	int ret = 0;
+ 	int ret;
+ 	struct as102_dev_t *as102_dev;
++	int i;
  
- 	memset(v4l2_ctrl, 0, sizeof *v4l2_ctrl);
- 	v4l2_ctrl->id = mapping->id;
-@@ -972,6 +962,28 @@ int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
- 				  uvc_ctrl_data(ctrl, UVC_CTRL_DATA_RES));
+ 	ENTER();
  
- done:
-+	return ret;
-+}
-+
-+int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
-+	struct v4l2_queryctrl *v4l2_ctrl)
-+{
-+	struct uvc_control *ctrl;
-+	struct uvc_control_mapping *mapping;
-+	int ret;
-+
-+	ret = mutex_lock_interruptible(&chain->ctrl_mutex);
-+	if (ret < 0)
-+		return -ERESTARTSYS;
-+
-+	ctrl = uvc_find_control(chain, v4l2_ctrl->id, &mapping);
-+	if (ctrl == NULL) {
-+		ret = -EINVAL;
-+		goto done;
+@@ -353,6 +363,23 @@
+ 		return -ENOMEM;
+ 	}
+ 
++	/* This should never actually happen */
++	if ((sizeof(as102_usb_id_table) / sizeof(struct usb_device_id)) !=
++	    (sizeof(as102_device_names) / sizeof(const char *))) {
++		printk(KERN_ERR "Device names table invalid size");
++		return -EINVAL;
 +	}
 +
-+	ret = __uvc_query_v4l2_ctrl(chain, ctrl, mapping, v4l2_ctrl);
-+done:
- 	mutex_unlock(&chain->ctrl_mutex);
- 	return ret;
- }
-@@ -1135,17 +1147,16 @@ done:
- 	return ret;
- }
- 
--int uvc_ctrl_get(struct uvc_video_chain *chain,
-+static int __uvc_ctrl_get(struct uvc_video_chain *chain,
-+	struct uvc_control *ctrl,
-+	struct uvc_control_mapping *mapping,
- 	struct v4l2_ext_control *xctrl)
- {
--	struct uvc_control *ctrl;
--	struct uvc_control_mapping *mapping;
- 	struct uvc_menu_info *menu;
- 	unsigned int i;
- 	int ret;
- 
--	ctrl = uvc_find_control(chain, xctrl->id, &mapping);
--	if (ctrl == NULL || (ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR) == 0)
-+	if ((ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR) == 0)
- 		return -EINVAL;
- 
- 	if (!ctrl->loaded) {
-@@ -1175,6 +1186,19 @@ int uvc_ctrl_get(struct uvc_video_chain *chain,
- 	return 0;
- }
- 
-+int uvc_ctrl_get(struct uvc_video_chain *chain,
-+	struct v4l2_ext_control *xctrl)
-+{
-+	struct uvc_control *ctrl;
-+	struct uvc_control_mapping *mapping;
++	/* Assign the user-friendly device name */
++	for (i = 0; i < (sizeof(as102_usb_id_table) /
++			 sizeof(struct usb_device_id)); i++) {
++		if (id == &as102_usb_id_table[i])
++			as102_dev->name = as102_device_names[i];
++	}
 +
-+	ctrl = uvc_find_control(chain, xctrl->id, &mapping);
-+	if (ctrl == NULL)
-+		return -EINVAL;
++	if (as102_dev->name == NULL)
++		as102_dev->name = "Unknown AS102 device";
 +
-+	return __uvc_ctrl_get(chain, ctrl, mapping, xctrl);
-+}
-+
- int uvc_ctrl_set(struct uvc_video_chain *chain,
- 	struct v4l2_ext_control *xctrl)
- {
--- 
-1.7.7
-
+ 	/* set private callback functions */
+ 	as102_dev->bus_adap.ops = &as102_priv_ops;
+ 
+diff --git linux/drivers/staging/media/as102/as102_usb_drv.h linuxb/drivers/staging/media/as102/as102_usb_drv.h
+--- linux/drivers/staging/media/as102/as102_usb_drv.h
++++ linuxb/drivers/staging/media/as102/as102_usb_drv.h
+@@ -28,16 +28,17 @@
+ /* define these values to match the supported devices */
+ 
+ /* Abilis system: "TITAN" */
++#define AS102_REFERENCE_DESIGN		"Abilis Systems DVB-Titan"
+ #define AS102_USB_DEVICE_VENDOR_ID	0x1BA6
+ #define AS102_USB_DEVICE_PID_0001	0x0001
+ 
+ /* PCTV Systems: PCTV picoStick (74e) */
+-#define DEVICE_FULL_NAME		"PCTV Systems : PCTV picoStick (74e)"
++#define AS102_PCTV_74E			"PCTV Systems picoStick (74e)"
+ #define PCTV_74E_USB_VID		0x2013
+ #define PCTV_74E_USB_PID		0x0246
+ 
+ /* Elgato: EyeTV DTT Deluxe */
+-#define ELGATO_EYETV_DTT_NAME		"Elgato EyeTV DTT Deluxe"
++#define AS102_ELGATO_EYETV_DTT_NAME	"Elgato EyeTV DTT Deluxe"
+ #define ELGATO_EYETV_DTT_USB_VID	0x0fd9
+ #define ELGATO_EYETV_DTT_USB_PID	0x002c
+ 
