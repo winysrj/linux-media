@@ -1,145 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:57315 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932788Ab1JDRek (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Oct 2011 13:34:40 -0400
-Date: Tue, 4 Oct 2011 19:34:36 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Deepthy Ravi <deepthy.ravi@ti.com>
-Subject: Re: [PATCH 7/9] V4L: soc-camera: add a Media Controller wrapper
-In-Reply-To: <201110032244.22764.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1110041741220.28955@axis700.grange>
-References: <1317313137-4403-1-git-send-email-g.liakhovetski@gmx.de>
- <201110031305.41253.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1110031700330.16384@axis700.grange>
- <201110032244.22764.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtpo09.poczta.onet.pl ([213.180.142.140]:53786 "EHLO
+	smtpo09.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753925Ab1JRUyM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Oct 2011 16:54:12 -0400
+Date: Tue, 18 Oct 2011 22:54:08 +0200
+From: Piotr Chmura <chmooreck@poczta.onet.pl>
+To: Joe Perches <joe@perches.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	devel@driverdev.osuosl.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	Greg KH <gregkh@suse.de>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [RESEND PATCH 10/14] staging/media/as102: properly handle
+ multiple product names
+Message-ID: <20111018225408.4fcd8ec9@darkstar>
+In-Reply-To: <1318969719.7985.4.camel@Joe-Laptop>
+References: <4E7F1FB5.5030803@gmail.com>
+	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
+	<4E7FF0A0.7060004@gmail.com>
+	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
+	<20110927094409.7a5fcd5a@stein>
+	<20110927174307.GD24197@suse.de>
+	<20110927213300.6893677a@stein>
+	<4E999733.2010802@poczta.onet.pl>
+	<4E99F2FC.5030200@poczta.onet.pl>
+	<20111016105731.09d66f03@stein>
+	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
+	<4E9ADFAE.8050208@redhat.com>
+	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
+	<20111018111251.d7978be8.chmooreck@poczta.onet.pl>
+	<20111018220230.13c8436e@darkstar>
+	<1318969719.7985.4.camel@Joe-Laptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 3 Oct 2011, Laurent Pinchart wrote:
+On Tue, 18 Oct 2011 13:28:39 -0700
+Joe Perches <joe@perches.com> wrote:
 
-> Hi Guennadi,
+> On Tue, 2011-10-18 at 22:02 +0200, Piotr Chmura wrote:
+> > Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+> []
+> > diff --git linux/drivers/staging/media/as102/as102_fe.c linuxb/drivers/staging/media/as102/as102_fe.c
+> []
+> > @@ -408,6 +408,8 @@
+> >  
+> >  	/* init frontend callback ops */
+> >  	memcpy(&dvb_fe->ops, &as102_fe_ops, sizeof(struct dvb_frontend_ops));
+> > +	strncpy(dvb_fe->ops.info.name, as102_dev->name,
+> > +		sizeof(dvb_fe->ops.info.name));
 > 
-> On Monday 03 October 2011 17:29:23 Guennadi Liakhovetski wrote:
-> > Hi Laurent
-> > 
-> > Thanks for the reviews!
+> strlcpy?
 > 
-> You're welcome.
 > 
-> > On Mon, 3 Oct 2011, Laurent Pinchart wrote:
-> > > On Thursday 29 September 2011 18:18:55 Guennadi Liakhovetski wrote:
-> > > > This wrapper adds a Media Controller implementation to soc-camera
-> > > > drivers. To really benefit from it individual host drivers should
-> > > > implement support for values of enum soc_camera_target other than
-> > > > SOCAM_TARGET_PIPELINE in their .set_fmt() and .try_fmt() methods.
-> > > 
-> > > [snip]
-> > > 
-> > > > diff --git a/drivers/media/video/soc_entity.c
-> > > > b/drivers/media/video/soc_entity.c new file mode 100644
-> > > > index 0000000..3a04700
-> > > > --- /dev/null
-> > > > +++ b/drivers/media/video/soc_entity.c
-> > > > @@ -0,0 +1,284 @@
-> > > 
-> > > [snip]
-> > > 
-> > > > +static int bus_sd_pad_g_fmt(struct v4l2_subdev *sd, struct
-> > > > v4l2_subdev_fh *fh,
-> > > > +			    struct v4l2_subdev_format *sd_fmt)
-> > > > +{
-> > > > +	struct soc_camera_device *icd = v4l2_get_subdevdata(sd);
-> > > > +	struct v4l2_mbus_framefmt *f = &sd_fmt->format;
-> > > > +
-> > > > +	if (sd_fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-> > > > +		sd_fmt->format = *v4l2_subdev_get_try_format(fh, sd_fmt->pad);
-> > > > +		return 0;
-> > > > +	}
-> > > > +
-> > > > +	if (sd_fmt->pad == SOC_HOST_BUS_PAD_SINK) {
-> > > > +		f->width	= icd->host_input_width;
-> > > > +		f->height	= icd->host_input_height;
-> > > > +	} else {
-> > > > +		f->width	= icd->user_width;
-> > > > +		f->height	= icd->user_height;
-> > > > +	}
-> > > > +	f->field	= icd->field;
-> > > > +	f->code		= icd->current_fmt->code;
-> > > > +	f->colorspace	= icd->colorspace;
-> > > 
-> > > Can soc-camera hosts perform format conversion ? If so you will likely
-> > > need to store the mbus code for the input and output separately,
-> > > possibly in v4l2_mbus_format fields. You could then simplify the
-> > > [gs]_fmt functions by implementing similar to the __*_get_format
-> > > functions in the OMAP3 ISP driver.
-> > 
-> > They can, yes. But, under soc-camera conversions are performed between
-> > mediabus codes and fourcc formats. Upon pipeline construction (probing) a
-> > table of format conversions is built, where hosts generate one or more
-> > translation entries for all client formats, that they support. The only
-> > example of a more complex translations so far is MIPI CSI-2, but even
-> > there we have decided to identify CSI-2 formats using the same media-bus
-> > codes, as what you "get" "between" the CSI-2 block and the DMA engine. For
-> > the only CSI-2 capable soc-camera host so far - the CEU driver - this is
-> > also a very natural representation, because there the CSI-2 block is
-> > indeed an additional pipeline stage, uniquely translating CSI-2 to
-> > media-bus codes, that are then fed to the CEU parallel port.
-> 
-> How does that work with the MC API then ? If the bridge can, let's say, 
-> convert between raw bayer and YUV, shouldn't the format at the bridge input be 
-> raw bayer and at the bridge output YUV ?
 
-Doesn't it depend on your definition? I define the conversion as taking 
-place on the "DMA-engine entity." I.e., a media-bus code is transferred 
-unchanged all the way down to that entity and there it gets converted to 
-one of fourcc formats for storage in the memory. Isn't what you are 
-suggesting some kind of a t2o-stage conversion: first you convert one 
-media-bus code to another one, then you convert the latter one to some 
-fourcc, which is also not a one-to-one conversion.
-
-[snip]
-
-> > > > +int soc_camera_mc_streamon(struct soc_camera_device *icd)
-> > > > +{
-> > > > +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> > > > +	struct v4l2_subdev *bus_sd = &ici->bus_sd;
-> > > > +	struct media_entity *bus_me = &bus_sd->entity;
-> > > > +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> > > > +	struct v4l2_mbus_framefmt mf;
-> > > > +	int ret = v4l2_subdev_call(sd, video, g_mbus_fmt, &mf);
-> > > > +	if (WARN_ON(ret < 0))
-> > > > +		return ret;
-> > > > +	if (icd->host_input_width != mf.width ||
-> > > > +	    icd->host_input_height != mf.height ||
-> > > > +	    icd->current_fmt->code != mf.code)
-> > > > +		return -EINVAL;
-> > > 
-> > > Shouldn't you also check that the source pad format matches the video
-> > > node format ?
-> > 
-> > I think, that's true by construction. It is already cheked in
-> > soc_camera_set_fmt():
-> > 
-> > 	} else if (!icd->current_fmt ||
-> > 		   icd->current_fmt->host_fmt->fourcc != pix->pixelformat) {
-> > 		dev_err(icd->pdev,
-> > 			"Host driver hasn't set up current format correctly!\n");
-> > 		return -EINVAL;
-> 
-> But aren't applications allowed to configure the format at the bridge output 
-> pad first ?
-
-They are. In either case an mbus -> fourcc translation is selected and the 
-.current_fmt is filled.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Can be, but not during moving from another repo.
+There will be time for such fixes in kernel tree.
+Am I right ?
