@@ -1,47 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20251 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932908Ab1JaPQg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Oct 2011 11:16:36 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: hverkuil@xs4all.nl,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 4/6] v4l2-event: Don't set sev->fh to NULL on unsubcribe
-Date: Mon, 31 Oct 2011 16:16:47 +0100
-Message-Id: <1320074209-23473-5-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1320074209-23473-1-git-send-email-hdegoede@redhat.com>
-References: <1320074209-23473-1-git-send-email-hdegoede@redhat.com>
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:46808 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752681Ab1JRWA7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Oct 2011 18:00:59 -0400
+Received: from compute5.internal (compute5.nyi.mail.srv.osa [10.202.2.45])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id CAD0720DBE
+	for <linux-media@vger.kernel.org>; Tue, 18 Oct 2011 18:00:58 -0400 (EDT)
+Received: from [10.40.142.32] (pool101.bizrate.com [216.52.235.101])
+	by mail.messagingengine.com (Postfix) with ESMTPSA id 7E239483403
+	for <linux-media@vger.kernel.org>; Tue, 18 Oct 2011 18:00:58 -0400 (EDT)
+Message-ID: <4E9DF719.7000609@fastmail.co.uk>
+Date: Tue, 18 Oct 2011 15:00:57 -0700
+From: Greg Bowyer <gbowyer@fastmail.co.uk>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: PVR-2200 error with what I think is tuning
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-1: There is no reason for this after v4l2_event_unsubscribe releases the
-spinlock nothing is holding a reference to the sev anymore except for the
-local reference in the v4l2_event_unsubscribe function.
+Hi there
 
-2: Setting sev->fh to NULL causes problems for the del op added in the next
-patch of this series, since this op needs a way to get to its own data
-structures, and typically this will be done by using container_of on an
-embedded v4l2_fh struct.
+You probably get this a lot, with the latest and greatest drivers from 
+your git repository at Steve Tosh's website I get the following after a 
+few days
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/video/v4l2-event.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+[198934.085303] tda18271_write_regs: [4-0060|S] ERROR: idx = 0x5, len = 
+1, i2c_transfer returned: -5
+[198934.085310] tda18271_init: [4-0060|S] error -5 on line 831
+[198934.085317] tda18271_tune: [4-0060|S] error -5 on line 909
+[198934.085324] tda18271_set_params: [4-0060|S] error -5 on line 994
+[198934.085331] saa7164_cmd_send() No free sequences
+[198934.085336] saa7164_api_i2c_read() error, ret(1) = 0xc
+[198934.085341] tda10048_readreg: readreg error (ret == -5)
 
-diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
-index 01cbb7f..3d27300 100644
---- a/drivers/media/video/v4l2-event.c
-+++ b/drivers/media/video/v4l2-event.c
-@@ -304,7 +304,6 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- 			}
- 		}
- 		list_del(&sev->list);
--		sev->fh = NULL;
- 	}
- 
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
--- 
-1.7.7
 
+[198934.087195] tda10048_readreg: readreg error (ret == -5)
+[198934.087209] saa7164_cmd_send() No free sequences
+[198934.087214] saa7164_api_i2c_read() error, ret(1) = 0xc
+[198934.087220] tda10048_readreg: readreg error (ret == -5)
+
+My tuning software is tvheadend (which I would prefer to keep)
+
+I started to look at the sourcecode, but I know too little about I2C to 
+make any sense of what might be bugging out
+
+Is there anything I can do to avoid this ?
+
+-- Greg
