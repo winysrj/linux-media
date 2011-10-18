@@ -1,155 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:59758 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750699Ab1JKPhz convert rfc822-to-8bit (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:44795 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932066Ab1JRPKQ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Oct 2011 11:37:55 -0400
-Received: by bkbzt4 with SMTP id zt4so9943360bkb.19
-        for <linux-media@vger.kernel.org>; Tue, 11 Oct 2011 08:37:54 -0700 (PDT)
+	Tue, 18 Oct 2011 11:10:16 -0400
+Received: by iaek3 with SMTP id k3so880900iae.19
+        for <linux-media@vger.kernel.org>; Tue, 18 Oct 2011 08:10:16 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4E9352E5.5080209@gmail.com>
-References: <CALVOWFPrcYuQ-A=Td7AQMj02e96VNg_z2nUOmTvwKyZC_yUmLg@mail.gmail.com>
-	<4E9352E5.5080209@gmail.com>
-Date: Tue, 11 Oct 2011 12:37:54 -0300
-Message-ID: <CALVOWFP1fw7EMDNxHZP-q_CiybwBKuccT3VrRsrpZMYyfBNUfg@mail.gmail.com>
-Subject: Re: Cannot configure second Kodicom 4400R
-From: Allan Macdonald <allan.w.macdonald@gmail.com>
-To: linux-media@vger.kernel.org
+In-Reply-To: <4E9D9209.3000907@mlbassoc.com>
+References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com>
+	<4E9D882F.5010608@mlbassoc.com>
+	<CAFYgh7wKeOmQnvpbugZcFX-shKRN7oGmho_tyYLtcVOnPL8Peg@mail.gmail.com>
+	<4E9D9209.3000907@mlbassoc.com>
+Date: Tue, 18 Oct 2011 18:10:16 +0300
+Message-ID: <CAFYgh7ybJYX0ec9avYrMf+cCWnp_AU3WivZkROCDLi-6p2WB_A@mail.gmail.com>
+Subject: Re: omap3isp: BT.656 support
+From: Boris Todorov <boris.st.todorov@gmail.com>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 10, 2011 at 5:17 PM, Patrick Dickey <pdickeybeta@gmail.com> wrote:
-> Hi there Allan,
+On Tue, Oct 18, 2011 at 5:49 PM, Gary Thomas <gary@mlbassoc.com> wrote:
+> On 2011-10-18 08:28, Boris Todorov wrote:
+>>
+>> I'm using different board.
 >
-> I'm not familiar with the card (so you'll want to defer to someone else
-> if their answer differs from mine).  It looks like video0 and video1 are
-> assigned to the first card, and video2 and video3 are assigned to the
-> second card.  So, you might want to try
+> What board?  I would think the architecture of the OMAP3 ISP would
+> not change, based on the board?
+
+It's a custom board with omap3630. ISP is not changed.
+When I disable OMAP2_VOUT from defconfig "CCD output" is /dev/video2.
+But result is the same - yavta sleeps at VIDIOC_DQBUF ioctl
+
 >
-> xawtv -d /dev/video2'
+>> According "media-ctl -p":
+>>
+>> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+>>             type V4L2 subdev subtype Unknown
+>>             device node name /dev/v4l-subdev2
+>>         pad0: Input [UYVY2X8 720x525]
+>>                 <- 'OMAP3 ISP CCP2':pad1 []
+>>                 <- 'OMAP3 ISP CSI2a':pad1 []
+>>                 <- 'tvp5150 3-005c':pad0 [ACTIVE]
+>>         pad1: Output [UYVY2X8 720x525]
+>>                 ->  'OMAP3 ISP CCDC output':pad0 [ACTIVE]
+>>                 ->  'OMAP3 ISP resizer':pad0 []
+>>         pad2: Output [UYVY2X8 720x524]
+>>                 ->  'OMAP3 ISP preview':pad0 []
+>>                 ->  'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
+>>                 ->  'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
+>>                 ->  'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
+>>
+>> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+>>             type Node subtype V4L
+>>             device node name /dev/video4
+>>         pad0: Input
+>>                 <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
+>>
+>>
+>> Should be /dev/video4...
 >
-> or
+> Could you send your pipeline setup and full output of 'media-ctl -p'?
+
+Pipeline setup is:
+
+$ media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1],
+"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+$ media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
+$ media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
+$ media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
+
+media-ctl output (with /dev/video4):
+
+$ media-ctl -p
+Opening media device /dev/media0
+Enumerating entities
+Found 16 entities
+Enumerating pads and links
+Device topology
+- entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev0
+        pad0: Input [SGRBG10 4096x4096]
+                <- 'OMAP3 ISP CCP2 input':pad0 []
+        pad1: Output [SGRBG10 4096x4096]
+                -> 'OMAP3 ISP CCDC':pad0 []
+
+- entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video0
+        pad0: Output
+                -> 'OMAP3 ISP CCP2':pad0 []
+
+- entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev1
+        pad0: Input [SGRBG10 4096x4096]
+        pad1: Output [SGRBG10 4096x4096]
+                -> 'OMAP3 ISP CSI2a output':pad0 []
+                -> 'OMAP3 ISP CCDC':pad0 []
+
+- entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video3
+        pad0: Input
+                <- 'OMAP3 ISP CSI2a':pad1 []
+
+- entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev2
+        pad0: Input [UYVY2X8 720x525]
+                <- 'OMAP3 ISP CCP2':pad1 []
+                <- 'OMAP3 ISP CSI2a':pad1 []
+                <- 'tvp5150 3-005c':pad0 [ACTIVE]
+        pad1: Output [UYVY2X8 720x525]
+                -> 'OMAP3 ISP CCDC output':pad0 [ACTIVE]
+                -> 'OMAP3 ISP resizer':pad0 []
+        pad2: Output [UYVY2X8 720x524]
+                -> 'OMAP3 ISP preview':pad0 []
+                -> 'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
+                -> 'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
+                -> 'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
+
+- entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video4
+        pad0: Input
+                <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
+
+- entity 7: OMAP3 ISP preview (2 pads, 4 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev3
+        pad0: Input [SGRBG10 4096x4096]
+                <- 'OMAP3 ISP CCDC':pad2 []
+                <- 'OMAP3 ISP preview input':pad0 []
+        pad1: Output [YUYV 4082x4088]
+                -> 'OMAP3 ISP preview output':pad0 []
+                -> 'OMAP3 ISP resizer':pad0 []
+
+- entity 8: OMAP3 ISP preview input (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video5
+        pad0: Output
+                -> 'OMAP3 ISP preview':pad0 []
+
+- entity 9: OMAP3 ISP preview output (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video6
+        pad0: Input
+                <- 'OMAP3 ISP preview':pad1 []
+
+- entity 10: OMAP3 ISP resizer (2 pads, 4 links)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev4
+        pad0: Input [YUYV 4095x4095 (4,6)/4086x4082]
+                <- 'OMAP3 ISP CCDC':pad1 []
+                <- 'OMAP3 ISP preview':pad1 []
+                <- 'OMAP3 ISP resizer input':pad0 []
+        pad1: Output [YUYV 4096x4095]
+                -> 'OMAP3 ISP resizer output':pad0 []
+
+- entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
+             type Node subtype V4L
+             device node name /dev/video7
+        pad0: Output
+                -> 'OMAP3 ISP resizer':pad0 []
+
+- entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
+             type Node subtype V4L
+             device node name /dev/video8
+        pad0: Input
+                <- 'OMAP3 ISP resizer':pad1 []
+
+- entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev5
+        pad0: Input
+                <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+
+- entity 14: OMAP3 ISP AF (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev6
+        pad0: Input
+                <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+
+- entity 15: OMAP3 ISP histogram (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev7
+        pad0: Input
+                <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+
+- entity 16: tvp5150 3-005c (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev8
+        pad0: Output [UYVY2X8 720x525]
+                -> 'OMAP3 ISP CCDC':pad0 [ACTIVE]
+
 >
-> xawtv -d /dev/video3
+>>
+>>
+>> On Tue, Oct 18, 2011 at 5:07 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>>>
+>>> On 2011-10-18 07:33, Boris Todorov wrote:
+>>>>
+>>>> Hi
+>>>>
+>>>> I'm trying to run OMAP + TVP5151 in BT656 mode.
+>>>>
+>>>> I'm using omap3isp-omap3isp-yuv (git.linuxtv.org/pinchartl/media.git).
+>>>> Plus the following patches:
+>>>>
+>>>> TVP5151:
+>>>>
+>>>>
+>>>> https://github.com/ebutera/meta-igep/tree/testing-v2/recipes-kernel/linux/linux-3.0+3.1rc/tvp5150
+>>>>
+>>>> The latest RFC patches for BT656 support:
+>>>>
+>>>> Enrico Butera (2):
+>>>>   omap3isp: ispvideo: export isp_video_mbus_to_pix
+>>>>   omap3isp: ispccdc: configure CCDC registers and add BT656 support
+>>>>
+>>>> Javier Martinez Canillas (1):
+>>>>   omap3isp: ccdc: Add interlaced field mode to platform data
+>>>>
+>>>>
+>>>> I'm able to configure with media-ctl:
+>>>>
+>>>> media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+>>>> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+>>>> media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
+>>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
+>>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
+>>>>
+>>>> But
+>>>> ./yavta -f UYVY -s 720x525 -n 4 --capture=4 -F /dev/video4
+>>>>
+>>>> sleeps after
+>>>> ...
+>>>> Buffer 1 mapped at address 0x4021d000.
+>>>> length: 756000 offset: 1515520
+>>>> Buffer 2 mapped at address 0x402d6000.
+>>>> length: 756000 offset: 2273280
+>>>> Buffer 3 mapped at address 0x4038f000.
+>>>>
+>>>> Anyone with the same issue??? This happens with every other v4l test app
+>>>> I
+>>>> used.
+>>>> I can see data from TVP5151 but there are no interrupts in ISP.
+>>>
+>>> Why are you using /dev/video4?  The CCDC output is on /dev/video2
+>>>
+>>> --
+>>> ------------------------------------------------------------
+>>> Gary Thomas                 |  Consulting for the
+>>> MLB Associates              |    Embedded world
+>>> ------------------------------------------------------------
+>>>
 >
-> and see if one of those uses the second card (you could try video4 or
-> video5 also, since they're assigned to cards).
+> --
+> ------------------------------------------------------------
+> Gary Thomas                 |  Consulting for the
+> MLB Associates              |    Embedded world
+> ------------------------------------------------------------
 >
-> Have a great day:)
-> Patrick.
->
-> On 10/10/2011 01:45 PM, Allan Macdonald wrote:
->> Hi to all,
->>
->> I am new to this list.
->>
->> I have been successfully using a Kodicom 4400R with zoneminder but I
->> wanted to expand so I bought a second card and installed it.  The
->> problem with this card is that I cannot seem to be able to get the
->> second card to work.  I tried using xawtv with the following command:
->>
->> xawtv -d /dev/video1
->>
->> The result is that I get images from /dev/video0
->>
->> I also tried:
->>
->> xawtv -d /dev/video4
->>
->> with the same result.
->>
->> I obviously don't understand what's going on.
->>
->> I tried following the instructions here, to no avail:
->>
->> http://www.zoneminder.com/wiki/index.php/Kodicom_4400r
->>
->> I also looked here:
->>
->> http://linuxtv.org/wiki/index.php/Kodicom_4400R
->>
->> but, unfortunately, the following page does not explain what happens
->> with more than one card installed.
->>
->> Here's my bttv.conf:
->>
->> [code]
->> options bttv gbuffers=32 card=133,132,133,133,133,132,133,133 tuner=4
->> chroma_agc=1
->> [/code]
->>
->> I have attached a dmesg output and an lsmod output.
->>
->> I would greatly appreciate some help.  Many thanks in advance.
->>
->> Regards,
->>
->> Allan Macdonald
->
-
-Thanks for your reply, Patrick.  I tried every device from /dev/video0
-to /dev/video5 and several channel numbers.
-
-The wierd thing is that, if I pick video0, I can see inputs 0 - 3.
-
-When I select devices video1 - 4, I still see the inputs for video0.
-
-To the list:
-
-What I'd really like to know is:
-
-1. I had previously assumed that video0 was the first card installed,
-video1 was the second, etc.  Is this incorrect?  Please clarify.
-
-2. The card is a 4-input card.  I presume these inputs were
-composite(0) to composite(3).  Am I mistaken here too?  Please
-clarify.
-
-As an educational exercise, (or just plain insanity - you judge!) I
-have been playing around with the example C code found here:
-
-http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html
-
-and inserted the following couple of lines around line 457 (just after
-the "Select video input" comment)
-
-        int index;
-
-        index = 0;
-
-        if (-1 == ioctl (fd, VIDIOC_S_INPUT, &index)) {
-        	      perror ("VIDIOC_S_INPUT");
-	              exit (EXIT_FAILURE);
-        }
-
-Questions about this software:
-
-1. I had assumed that, if I wanted the second input on the second
-card, I would make the index variable equal to 1, compile and  run the
-program with option -d /dev/video1.  Am I out to lunch?  (I actually
-made the input number a command-line option but that source is at home
-and I'm at work now).
-
-2. Also, is the index passed to the VIDIOC_S_INPUT ioctl the same
-index passed to VIDIOC_QBUF and VIDIOC_DQBUF"?
-
-3. What does the documentation mean by "enqueue" and "dequeue"  I
-believe to "dequeue" is to cause the driver to transfer a frame from
-its internal fifo buffer to the destination buffer and move the oldest
-data pointer to the next oldest item.  Is this correct?  Why does the
-example program then go and "enqueue" the same data to the same
-device?
-
-I should point out that I don't really know what this program is
-actually doing... The only thing I can figure is that the program gets
-frames from the video device and stores them in a ram buffer (assuming
-default options).  I guess the data is just a big binary blob and
-another process is required to handle the data in some way (i.e.
-display it, or whatever).  As you can see, I am totally new at this
-and some help there would be appreciated as well.  Please help a baby
-learn to crawl!
-
-Cheers,
-Allan
