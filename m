@@ -1,49 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:45540 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750755Ab1JTSOQ (ORCPT
+Received: from smtpo05.poczta.onet.pl ([213.180.142.136]:49943 "EHLO
+	smtpo05.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757162Ab1JRJRM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Oct 2011 14:14:16 -0400
-Received: by bkbzt19 with SMTP id zt19so3846403bkb.19
-        for <linux-media@vger.kernel.org>; Thu, 20 Oct 2011 11:14:15 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20111020170811.GD7530@jannau.net>
-References: <CAOTqeXouWiYaRkKKO-1iQ5SJEb7RUXJpHdfe9-YeSzwXxdUVfg@mail.gmail.com>
-	<CAGoCfiyCPD-W3xeqD4+AE3xCo-bj05VAy4aHXMNXP7P124ospQ@mail.gmail.com>
-	<20111020162340.GC7530@jannau.net>
-	<CAGoCfiwXjQsAEVfFiNA5CNw1PVuO0npO63pGb91rpbPuKGvwZQ@mail.gmail.com>
-	<20111020170811.GD7530@jannau.net>
-Date: Thu, 20 Oct 2011 14:14:14 -0400
-Message-ID: <CAGoCfiz38bdpnz0dLfs2p4PjLR1dDm_5d_y34ACpNd6W62G7-w@mail.gmail.com>
-Subject: Re: [PATCH] [media] hdpvr: update picture controls to support
- firmware versions > 0.15
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Janne Grunau <j@jannau.net>
-Cc: Taylor Ralph <taylor.ralph@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 18 Oct 2011 05:17:12 -0400
+Date: Tue, 18 Oct 2011 11:13:36 +0200
+From: Piotr Chmura <chmooreck@poczta.onet.pl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Greg KH <gregkh@suse.de>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
+Subject: [PATCH 11/14] staging/media/as102: fix compile warning about unused
+ function
+Message-Id: <20111018111336.62af07ce.chmooreck@poczta.onet.pl>
+In-Reply-To: <20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
+References: <4E7F1FB5.5030803@gmail.com>
+	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
+	<4E7FF0A0.7060004@gmail.com>
+	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
+	<20110927094409.7a5fcd5a@stein>
+	<20110927174307.GD24197@suse.de>
+	<20110927213300.6893677a@stein>
+	<4E999733.2010802@poczta.onet.pl>
+	<4E99F2FC.5030200@poczta.onet.pl>
+	<20111016105731.09d66f03@stein>
+	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
+	<4E9ADFAE.8050208@redhat.com>
+	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 20, 2011 at 1:08 PM, Janne Grunau <j@jannau.net> wrote:
-> I think such scenario is unlikely but I don't know it for sure and
-> I don't want to force anyone to test every firmware version.
-> Ignoring them for firmware version < 16 should be safe since we assume
-> they had no effect. Returning -EINVAL might break API-ignoring
-> applications written with the HD PVR in mind but I think it's a better
-> approach than silently ignoring those controls.
+Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
 
-At this point, let's just make it so that the old behavior is
-unchanged for old firmwares, meaning from both an API standpoint as
-well as what the values are.  At some point if somebody cares enough
-to go back and fix the support so that the controls actually work with
-old firmwares, they can take that up as a separate task.  In reality,
-it is likely that nobody will ever do that, as the "easy answer" is
-just to upgrade to firmware 16.
+Original source and comment:
+# HG changeset patch
+# User Devin Heitmueller <dheitmueller@kernellabs.com>
+# Date 1267319685 18000
+# Node ID 84b93826c0a19efa114a6808165f91390cb86daa
+# Parent  22ef1bdca69a2781abf397c53a0f7f6125f5359a
+as102: fix compile warning about unused function
 
-Taylor, could you please tweak your patch to that effect and resubmit?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
 
-Devin
+The function in question is only used on old kernels, so we had the call to
+the function #ifdef'd, but the definition of the function was stil being
+included.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Priority: normal
+
+Signed-off-by: Piotr Chmura <chmooreck@poczta.onet.pl>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+
+diff --git linux/drivers/staging/media/as102/as102_fe.c linuxb/drivers/media/dvb/as102/as102_fe.c
+--- linux/drivers/staging/media/as102/as102_fe.c
++++ linuxb/drivers/staging/media/as102/as102_fe.c
+@@ -32,6 +32,7 @@
+ static void as102_fe_copy_tune_parameters(struct as10x_tune_args *dst,
+ 					  struct dvb_frontend_parameters *src);
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19))
+ static void as102_fe_release(struct dvb_frontend *fe)
+ {
+ 	struct as102_dev_t *dev;
+@@ -42,7 +43,6 @@
+ 	if (dev == NULL)
+ 		return;
+ 
+-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19))
+ 	if (mutex_lock_interruptible(&dev->bus_adap.lock))
+ 		return;
+ 
+@@ -50,7 +50,6 @@
+ 	as10x_cmd_turn_off(&dev->bus_adap);
+ 
+ 	mutex_unlock(&dev->bus_adap.lock);
+-#endif
+ 
+ 	/* release frontend callback ops */
+ 	memset(&fe->ops, 0, sizeof(struct dvb_frontend_ops));
+@@ -66,7 +65,6 @@
+ 	LEAVE();
+ }
+ 
+-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19))
+ static int as102_fe_init(struct dvb_frontend *fe)
+ {
+ 	int ret = 0;
