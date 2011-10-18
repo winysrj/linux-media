@@ -1,70 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28368 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933501Ab1JDTxc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Oct 2011 15:53:32 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p94JrWA1028881
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 4 Oct 2011 15:53:32 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCHv2 8/8] [media] em28xx: Add VIDIOC_QUERYSTD support
-Date: Tue,  4 Oct 2011 16:53:20 -0300
-Message-Id: <1317758000-21154-8-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1317758000-21154-7-git-send-email-mchehab@redhat.com>
-References: <1317758000-21154-1-git-send-email-mchehab@redhat.com>
- <1317758000-21154-2-git-send-email-mchehab@redhat.com>
- <1317758000-21154-3-git-send-email-mchehab@redhat.com>
- <1317758000-21154-4-git-send-email-mchehab@redhat.com>
- <1317758000-21154-5-git-send-email-mchehab@redhat.com>
- <1317758000-21154-6-git-send-email-mchehab@redhat.com>
- <1317758000-21154-7-git-send-email-mchehab@redhat.com>
+Received: from hermes.mlbassoc.com ([64.234.241.98]:52538 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932353Ab1JROtq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Oct 2011 10:49:46 -0400
+Message-ID: <4E9D9209.3000907@mlbassoc.com>
+Date: Tue, 18 Oct 2011 08:49:45 -0600
+From: Gary Thomas <gary@mlbassoc.com>
+MIME-Version: 1.0
+To: Boris Todorov <boris.st.todorov@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: omap3isp: BT.656 support
+References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com> <4E9D882F.5010608@mlbassoc.com> <CAFYgh7wKeOmQnvpbugZcFX-shKRN7oGmho_tyYLtcVOnPL8Peg@mail.gmail.com>
+In-Reply-To: <CAFYgh7wKeOmQnvpbugZcFX-shKRN7oGmho_tyYLtcVOnPL8Peg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allow subdevs to return the detected standards
+On 2011-10-18 08:28, Boris Todorov wrote:
+> I'm using different board.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/video/em28xx/em28xx-video.c |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+), 0 deletions(-)
+What board?  I would think the architecture of the OMAP3 ISP would
+not change, based on the board?
 
-diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
-index 61f35c8..62182e3 100644
---- a/drivers/media/video/em28xx/em28xx-video.c
-+++ b/drivers/media/video/em28xx/em28xx-video.c
-@@ -1156,6 +1156,21 @@ static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *norm)
- 	return 0;
- }
- 
-+static int vidioc_querystd(struct file *file, void *priv, v4l2_std_id *norm)
-+{
-+	struct em28xx_fh   *fh  = priv;
-+	struct em28xx      *dev = fh->dev;
-+	int                rc;
-+
-+	rc = check_dev(dev);
-+	if (rc < 0)
-+		return rc;
-+
-+	v4l2_device_call_all(&dev->v4l2_dev, 0, video, querystd, norm);
-+
-+	return 0;
-+}
-+
- static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *norm)
- {
- 	struct em28xx_fh   *fh  = priv;
-@@ -2354,6 +2369,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 	.vidioc_qbuf                = vidioc_qbuf,
- 	.vidioc_dqbuf               = vidioc_dqbuf,
- 	.vidioc_g_std               = vidioc_g_std,
-+	.vidioc_querystd            = vidioc_querystd,
- 	.vidioc_s_std               = vidioc_s_std,
- 	.vidioc_g_parm		    = vidioc_g_parm,
- 	.vidioc_s_parm		    = vidioc_s_parm,
+> According "media-ctl -p":
+>
+> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev2
+>          pad0: Input [UYVY2X8 720x525]
+>                  <- 'OMAP3 ISP CCP2':pad1 []
+>                  <- 'OMAP3 ISP CSI2a':pad1 []
+>                  <- 'tvp5150 3-005c':pad0 [ACTIVE]
+>          pad1: Output [UYVY2X8 720x525]
+>                  ->  'OMAP3 ISP CCDC output':pad0 [ACTIVE]
+>                  ->  'OMAP3 ISP resizer':pad0 []
+>          pad2: Output [UYVY2X8 720x524]
+>                  ->  'OMAP3 ISP preview':pad0 []
+>                  ->  'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
+>                  ->  'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
+>                  ->  'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
+>
+> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+>              type Node subtype V4L
+>              device node name /dev/video4
+>          pad0: Input
+>                  <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
+>
+>
+> Should be /dev/video4...
+
+Could you send your pipeline setup and full output of 'media-ctl -p'?
+
+>
+>
+> On Tue, Oct 18, 2011 at 5:07 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>> On 2011-10-18 07:33, Boris Todorov wrote:
+>>>
+>>> Hi
+>>>
+>>> I'm trying to run OMAP + TVP5151 in BT656 mode.
+>>>
+>>> I'm using omap3isp-omap3isp-yuv (git.linuxtv.org/pinchartl/media.git).
+>>> Plus the following patches:
+>>>
+>>> TVP5151:
+>>>
+>>> https://github.com/ebutera/meta-igep/tree/testing-v2/recipes-kernel/linux/linux-3.0+3.1rc/tvp5150
+>>>
+>>> The latest RFC patches for BT656 support:
+>>>
+>>> Enrico Butera (2):
+>>>    omap3isp: ispvideo: export isp_video_mbus_to_pix
+>>>    omap3isp: ispccdc: configure CCDC registers and add BT656 support
+>>>
+>>> Javier Martinez Canillas (1):
+>>>    omap3isp: ccdc: Add interlaced field mode to platform data
+>>>
+>>>
+>>> I'm able to configure with media-ctl:
+>>>
+>>> media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+>>> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+>>> media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
+>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
+>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
+>>>
+>>> But
+>>> ./yavta -f UYVY -s 720x525 -n 4 --capture=4 -F /dev/video4
+>>>
+>>> sleeps after
+>>> ...
+>>> Buffer 1 mapped at address 0x4021d000.
+>>> length: 756000 offset: 1515520
+>>> Buffer 2 mapped at address 0x402d6000.
+>>> length: 756000 offset: 2273280
+>>> Buffer 3 mapped at address 0x4038f000.
+>>>
+>>> Anyone with the same issue??? This happens with every other v4l test app I
+>>> used.
+>>> I can see data from TVP5151 but there are no interrupts in ISP.
+>>
+>> Why are you using /dev/video4?  The CCDC output is on /dev/video2
+>>
+>> --
+>> ------------------------------------------------------------
+>> Gary Thomas                 |  Consulting for the
+>> MLB Associates              |    Embedded world
+>> ------------------------------------------------------------
+>>
+
 -- 
-1.7.6.4
-
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
