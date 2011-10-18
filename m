@@ -1,71 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:43616 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932357Ab1JNEd1 (ORCPT
+Received: from smtpo05.poczta.onet.pl ([213.180.142.136]:49191 "EHLO
+	smtpo05.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757325Ab1JRJRW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Oct 2011 00:33:27 -0400
-Message-ID: <4E97BB8E.3060204@gmail.com>
-Date: Fri, 14 Oct 2011 10:03:18 +0530
-From: Subash Patel <subashrp@gmail.com>
-MIME-Version: 1.0
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 8/9] ARM: integrate CMA with DMA-mapping
- subsystem
-References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com> <1317909290-29832-10-git-send-email-m.szyprowski@samsung.com>
-In-Reply-To: <1317909290-29832-10-git-send-email-m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Tue, 18 Oct 2011 05:17:22 -0400
+Date: Tue, 18 Oct 2011 11:13:45 +0200
+From: Piotr Chmura <chmooreck@poczta.onet.pl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Greg KH <gregkh@suse.de>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
+Subject: [PATCH 13/14] staging/media/as102: fix compile
+Message-Id: <20111018111345.dfdd7a8f.chmooreck@poczta.onet.pl>
+In-Reply-To: <20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
+References: <4E7F1FB5.5030803@gmail.com>
+	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
+	<4E7FF0A0.7060004@gmail.com>
+	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
+	<20110927094409.7a5fcd5a@stein>
+	<20110927174307.GD24197@suse.de>
+	<20110927213300.6893677a@stein>
+	<4E999733.2010802@poczta.onet.pl>
+	<4E99F2FC.5030200@poczta.onet.pl>
+	<20111016105731.09d66f03@stein>
+	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
+	<4E9ADFAE.8050208@redhat.com>
+	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek,
+Replace usb_buffer_free() and usb_buffer_alloc() by usb_free_coherent() and usb_alloc_coherent() making it compile in current tree.
+Add driver to parent Makefile and Kconfig
 
-As informed to you in private over IRC, below piece of code broke during 
-booting EXYNOS4:SMDKV310 with ZONE_DMA enabled.
+Signed-off-by: Piotr Chmura <chmooreck@poczta.onet.pl>
 
-
-On 10/06/2011 07:24 PM, Marek Szyprowski wrote:
-...
-> diff --git a/arch/arm/mm/init.c b/arch/arm/mm/init.c
-> index fbdd12e..9c27fbd 100644
-> --- a/arch/arm/mm/init.c
-> +++ b/arch/arm/mm/init.c
-> @@ -21,6 +21,7 @@
->   #include<linux/gfp.h>
->   #include<linux/memblock.h>
->   #include<linux/sort.h>
-> +#include<linux/dma-contiguous.h>
->
->   #include<asm/mach-types.h>
->   #include<asm/prom.h>
-> @@ -371,6 +372,13 @@ void __init arm_memblock_init(struct meminfo *mi, struct machine_desc *mdesc)
->   	if (mdesc->reserve)
->   		mdesc->reserve();
->
-> +	/* reserve memory for DMA contigouos allocations */
-> +#ifdef CONFIG_ZONE_DMA
-> +	dma_contiguous_reserve(PHYS_OFFSET + mdesc->dma_zone_size - 1);
-> +#else
-> +	dma_contiguous_reserve(0);
-> +#endif
-> +
->   	memblock_analyze();
->   	memblock_dump_all();
->   }
-Regards,
-Subash
+diff -Nur linux.as102.pulled/drivers/staging/Kconfig linux.as102.compiling/drivers/staging/Kconfig
+--- linux.as102.pulled/drivers/staging/Kconfig	2011-10-14 15:26:42.000000000 +0200
++++ linux.as102.compiling/drivers/staging/Kconfig	2011-10-17 22:26:48.000000000 +0200
+@@ -150,4 +150,6 @@
+ 
+ source "drivers/staging/nvec/Kconfig"
+ 
++source "drivers/staging/media/as102/Kconfig"
++
+ endif # STAGING
+diff -Nur linux.as102.pulled/drivers/staging/Makefile linux.as102.compiling/drivers/staging/Makefile
+--- linux.as102.pulled/drivers/staging/Makefile	2011-10-14 15:26:42.000000000 +0200
++++ linux.as102.compiling/drivers/staging/Makefile	2011-10-17 22:17:39.439874425 +0200
+@@ -66,3 +66,4 @@
+ obj-$(CONFIG_DRM_PSB)		+= gma500/
+ obj-$(CONFIG_INTEL_MEI)		+= mei/
+ obj-$(CONFIG_MFD_NVEC)		+= nvec/
++obj-$(CONFIG_DVB_AS102)		+= media/as102/
+diff -Nur linux.as102.pulled/drivers/staging/media/as102/as102_usb_drv.c linux.as102.compiling/drivers/staging/media/as102/as102_usb_drv.c
+--- linux.as102.pulled/drivers/staging/media/as102/as102_usb_drv.c	2011-10-17 22:05:15.996841251 +0200
++++ linux.as102.compiling/drivers/staging/media/as102/as102_usb_drv.c	2011-10-17 22:22:33.317887538 +0200
+@@ -238,7 +238,7 @@
+ 	for (i = 0; i < MAX_STREAM_URB; i++)
+ 		usb_free_urb(dev->stream_urb[i]);
+ 
+-	usb_buffer_free(dev->bus_adap.usb_dev,
++	usb_free_coherent(dev->bus_adap.usb_dev,
+ 			MAX_STREAM_URB * AS102_USB_BUF_SIZE,
+ 			dev->stream,
+ 			dev->dma_addr);
+@@ -251,7 +251,7 @@
+ 
+ 	ENTER();
+ 
+-	dev->stream = usb_buffer_alloc(dev->bus_adap.usb_dev,
++	dev->stream = usb_alloc_coherent(dev->bus_adap.usb_dev,
+ 				       MAX_STREAM_URB * AS102_USB_BUF_SIZE,
+ 				       GFP_KERNEL,
+ 				       &dev->dma_addr);
