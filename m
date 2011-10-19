@@ -1,109 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:57742 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758383Ab1JFOAu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 10:00:50 -0400
-Message-ID: <4E8DB490.7000403@mlbassoc.com>
-Date: Thu, 06 Oct 2011 08:00:48 -0600
-From: Gary Thomas <gary@mlbassoc.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:55065 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756080Ab1JSMgV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Oct 2011 08:36:21 -0400
+Received: by iaek3 with SMTP id k3so2058219iae.19
+        for <linux-media@vger.kernel.org>; Wed, 19 Oct 2011 05:36:19 -0700 (PDT)
+Message-ID: <4E9EC441.4090400@gmail.com>
+Date: Wed, 19 Oct 2011 07:36:17 -0500
+From: Patrick Dickey <pdickeybeta@gmail.com>
 MIME-Version: 1.0
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-CC: Enrico <ebutera@users.berlios.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>,
-	Adam Pledger <a.pledger@thermoteknix.com>,
-	linux-media@vger.kernel.org
-Subject: Re: omap3-isp status
-References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com> <CAAwP0s0Z+EaRfY_9c0QLm0ZpyfG5Dy1qb9pFq=PRxzOOTwKTJw@mail.gmail.com> <CAAwP0s1tK5XjmJmtvRFJ2+ADvoMP1ihf3z0UaJAfXOoJ=UrVqg@mail.gmail.com>
-In-Reply-To: <CAAwP0s1tK5XjmJmtvRFJ2+ADvoMP1ihf3z0UaJAfXOoJ=UrVqg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: LMML <linux-media@vger.kernel.org>
+Subject: Staging questions: WAS Re: [PATCH 0/7] Staging submission: PCTV 74e
+ drivers and some cleanup
+References: <4E7F1FB5.5030803@gmail.com> <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com> <4E7FF0A0.7060004@gmail.com> <CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com> <20110927094409.7a5fcd5a@stein> <20110927174307.GD24197@suse.de> <20110927213300.6893677a@stein> <4E99F2F6.9000307@poczta.onet.pl> <20111017223136.GA20939@kroah.com>
+In-Reply-To: <20111017223136.GA20939@kroah.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2011-10-06 01:51, Javier Martinez Canillas wrote:
-> On Wed, Oct 5, 2011 at 7:43 PM, Javier Martinez Canillas
-> <martinez.javier@gmail.com>  wrote:
->> On Wed, Oct 5, 2011 at 6:28 PM, Enrico<ebutera@users.berlios.de>  wrote:
->>> Hi all,
->>>
->>> since we are all interested in this driver (and tvp5150) i'll try to
->>> make a summary of the current situation and understand what is needed
->>> to finally get it into the main tree instead of having to apply a
->>> dozen patches manually.
->>>
->>> The current status of git repositories/branches is:
->>>
->>> - main tree: working (i suppose) but no support for bt656 input
->>>
->>> - pinchartl/media:
->>>   * omap3isp-omap3isp-next: i think it's in sync with linuxtv master
->>> (for the omap3-isp parts)
->>>   * omap3isp-omap3isp-yuv: like ..next but with some additional format patches
->>>
->>> "Floating" patches:
->>>
->>> - Deepthy: sent patches (against mainline) to add bt656 support
->>>
->>> Laurent made some comments, i haven't seen a v2 to be applied
->>>
->>> - Javier: sent patches for tvp5150, currently discussed on
->>> linux-media; possible patches/fixes for omap3-isp
->>>
->
-> Hello,
->
-> Since the patches are not against mainline I can't post for reviewing
-> but can be found in one of our development trees [1]. Comments are
-> highly appreciated.
->
-> The tree is a 2.6.37 that already contain Deepthy patch. I rebased my
-> changes on top of that to correctly support both BT656 an non-BT656
-> video data processing.
->
-> [1]: http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=shortlog;h=refs/heads/linux-2.6.37.y-next
+I'm posting this question under this thread because the subject pertains
+to the question (in that I'm asking about staging and about the PCTV 80e
+drivers).
 
-Any chance of rebasing these against a more up to date kernel, e.g. 3.2-working
-with the patches Laurent sent today?
+I started cleaning up the drx39xx* drivers for the PCTV-80e and have
+them in a github repository. Ultimately I want to send a pull request,
+so other people can finish the cleaning (as I'm not comfortable with
+pulling out the #ifdef statements myself).
 
->>
->> I will find some free time slots to resolve the issues called out by
->> Sakari, Hans and Mauro and resend the patch-set for the tvp5151.
->>
->> Also I can send the patches of the modifications I made to the ISP
->> driver. Right now I'm working on top of Deepthy patches.
->>
->> I can either send on top of that patch or rebase to mainline, whatever
->> you think is better for reviewing.
->>
->>> Now what can we all do to converge to a final solution? I think this
->>> is also blocking the possible development/test of missing features,
->>> like the recently-discussed resizer and cropping ones.
->>>
->>> Enrico
->>>
->>
->> Right now I have a working the tvp5151 with the ISP. I can capture
->> ITU-R BT656 video both in PAL-M and NTSC standard. Also, the whole
->> pipeline is configured automatically with the video standard detected
->> by the tvp5151. Also, I'm using the CCDC to crop the frames and only
->> capture the active lines for each standard (576 for PAL and 480 for
->> NTSC) using the CCDC to crop the image.
->>
->
-> As I told you before video capturing is working for both PAL and NTSC
-> using standard V4L2 application (i.e: gstreamer) but the video still
-> shows some motion artifacts. Capturing YUV frames and looking at them
-> I realized that there does exist a pattern, the sequence 2 frames
-> correct and 3 frames with interlacing effects always repeats.
+So my questions are these:
 
-I think I've seen this as well.  Could you provide a short video
-which shows the artefacts?
+1.  If I move the drx39xx* and associated files into the staging
+directory (staging/media/dvb/frontends to be exact), do I simply need to
+point to staging/filename for any #include statements (specifically in
+the em28xx-dvb.c and em28xx-cards.c files), or do I need to do something
+else?
 
-Thanks
+2.  In the Makefile for the frontends, I have the commands to make the
+drivers for the drx39xx* files. Do I need to point those to the staging/
+directory as well, or do I need to create Makefiles in that directory
+for these files?  I ask this because on my system, I wasn't able to
+"make" the files when they were in a subdirectory of frontends. I
+actually had to move them to the frontends directory and transfer the
+commands from the Makefile in the subdirectory to the frontends Makefile.
 
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+3.  If I submit a pull request as is right now (where these files will
+go into the linux/drivers/media/dvb/frontends directory and the em28xx-*
+files will point to those files), will they be pulled in, and someone
+will help me to get them in the right places? Or do I need to move them
+to staging, reconfigure everything, and then submit the pull request?
+
+Thank you for any help and information, and have a great day:)
+Patrick.
+
+
+On 10/17/2011 05:31 PM, Greg KH wrote:
+> On Sat, Oct 15, 2011 at 10:54:14PM +0200, Piotr Chmura wrote:
+>> [PATCH 1/7] pull as102 driver fromhttp://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+>> with the only change needed to compile it in git tree[1]: usb_buffer_alloc()
+>> to usb_alloc_coherent() and usb_buffer_free() to usb_free_coherent()
+>>
+>> [PATCH 2/7] as102: add new device nBox DVB-T Dongle
+>> adds new device working on this driver
+>>
+>>
+>> Next patches i made basing on Mauro Carvalho Chehab comments from previous pull try [2].
+>>
+>> [PATCH 3/7] as102: cleanup - get rid off typedefs
+>> [PATCH 4/7] as102: cleanup - formatting code
+>> [PATCH 5/7] as102: cleanup - set __attribute__(packed) instead of pragma(pack)
+>> [PATCH 6/7] as102: cleanup - delete vim comments
+>> [PATCH 7/7] as102: cleanup - get rid of unnecessary defines (WIN32, LINUX)
+> 
+> Mauro, care to take these and move them under your newly-created
+> drivers/staging/media/ directory?
+> 
+> thanks,
+> 
+> greg k-h
+
