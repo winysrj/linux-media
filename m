@@ -1,119 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smarthost.TechFak.Uni-Bielefeld.DE ([129.70.137.17]:50745 "EHLO
-	smarthost.TechFak.Uni-Bielefeld.DE" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932115Ab1JTOiD (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:49901 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752449Ab1JSP4p convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Oct 2011 10:38:03 -0400
-Message-ID: <4EA031FD.7020109@cit-ec.uni-bielefeld.de>
-Date: Thu, 20 Oct 2011 16:36:45 +0200
-From: Stefan Herbrechtsmeier <sherbrec@cit-ec.uni-bielefeld.de>
+	Wed, 19 Oct 2011 11:56:45 -0400
+Received: by mail-gx0-f174.google.com with SMTP id b1so1800114ggn.19
+        for <linux-media@vger.kernel.org>; Wed, 19 Oct 2011 08:56:45 -0700 (PDT)
 MIME-Version: 1.0
-To: Boris Todorov <boris.st.todorov@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <CAFYgh7zb0Bv1+rhQMtnY45ZY0Va+1btPsvJrEOdMdxuePEr+ow@mail.gmail.com>
+References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com>
+	<CA+2YH7voGzNzxcdFCAissTtn_-NAL=_jfiOS8kia9m-=XqwOig@mail.gmail.com>
+	<CAFYgh7zzTKT9XHri3seEKDhbMu0xYM=XahjhWU3Wbhj-1U6dhQ@mail.gmail.com>
+	<CA+2YH7szWsvzZ7FwL0v99tURrB5qLeR-+ud2cJaRRj0d4HzKaw@mail.gmail.com>
+	<CAFYgh7yO7Cizqxms0ZbBEvypHSUPayAwhviNuFuzatYMkW-4gw@mail.gmail.com>
+	<CA+2YH7vNnTk_AZd4m=AUO8z8XcMuu5x_wYhNPX4tALY4JOCyeQ@mail.gmail.com>
+	<CAFYgh7zb0Bv1+rhQMtnY45ZY0Va+1btPsvJrEOdMdxuePEr+ow@mail.gmail.com>
+Date: Wed, 19 Oct 2011 18:56:45 +0300
+Message-ID: <CAFYgh7z5SWt_YLaKuXGXDn3v6gNpxmwTGOnj79FWTb6YoJ6o4A@mail.gmail.com>
 Subject: Re: omap3isp: BT.656 support
-References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com> <4E9EFA47.4010409@cit-ec.uni-bielefeld.de> <CAFYgh7xxCM0=hiU9+bFS+qA447wC4+OkCRxv1eonYMgTH7oeEw@mail.gmail.com> <4E9FE3F4.2040109@cit-ec.uni-bielefeld.de> <CAFYgh7xhHTz9z8kqnmxRO2hBi_L-bnV-zpJESM4iBcZcftR5Eg@mail.gmail.com>
-In-Reply-To: <CAFYgh7xhHTz9z8kqnmxRO2hBi_L-bnV-zpJESM4iBcZcftR5Eg@mail.gmail.com>
+From: Boris Todorov <boris.st.todorov@gmail.com>
+To: Enrico <ebutera@users.berlios.de>
+Cc: linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 20.10.2011 14:14, schrieb Boris Todorov:
-> On Thu, Oct 20, 2011 at 12:03 PM, Stefan Herbrechtsmeier
-> <sherbrec@cit-ec.uni-bielefeld.de> wrote:
->> Am 20.10.2011 08:56, schrieb Boris Todorov:
->>> On Wed, Oct 19, 2011 at 7:26 PM, Stefan Herbrechtsmeier
->>> <sherbrec@cit-ec.uni-bielefeld.de> wrote:
->>>> Am 18.10.2011 15:33, schrieb Boris Todorov:
->>>>> Hi
->>>>>
->>>>> I'm trying to run OMAP + TVP5151 in BT656 mode.
->>>>>
->>>>> I'm using omap3isp-omap3isp-yuv (git.linuxtv.org/pinchartl/media.git).
->>>>> Plus the following patches:
->>>>>
->>>>> TVP5151:
->>>>> https://github.com/ebutera/meta-igep/tree/testing-v2/recipes-kernel/linux/linux-3.0+3.1rc/tvp5150
->>>>>
->>>>> The latest RFC patches for BT656 support:
->>>>>
->>>>> Enrico Butera (2):
->>>>>   omap3isp: ispvideo: export isp_video_mbus_to_pix
->>>>>   omap3isp: ispccdc: configure CCDC registers and add BT656 support
->>>>>
->>>>> Javier Martinez Canillas (1):
->>>>>   omap3isp: ccdc: Add interlaced field mode to platform data
->>>>>
->>>>>
->>>>> I'm able to configure with media-ctl:
->>>>>
->>>>> media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
->>>>> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
->>>>> media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
->>>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
->>>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
->>>>>
->>>>> But
->>>>> ./yavta -f UYVY -s 720x525 -n 4 --capture=4 -F /dev/video4
->>>>>
->>>>> sleeps after
->>>>> ...
->>>>> Buffer 1 mapped at address 0x4021d000.
->>>>> length: 756000 offset: 1515520
->>>>> Buffer 2 mapped at address 0x402d6000.
->>>>> length: 756000 offset: 2273280
->>>>> Buffer 3 mapped at address 0x4038f000.
->>>>>
->>>>> Anyone with the same issue??? This happens with every other v4l test app I used.
->>>> I had the same issue.
->>>>
->>>> Make sure that you disable the xclk when you remove your sensor driver.
->>>>
->>>> isp->platform_cb.set_xclk(isp, 0, ISP_XCLK_A)
->>> How exactly did you solved your problem? I don't see how XCLK in
->>> _remove will help. Pls explain.
->> Sorry, I mean deactive / power off your sensor.
->>> Btw I'm feeding TVP with external clock (not from xtal pins) -
->>> omap.cam_xclk -> tvp.clk_in
->> I mean the cam_xclk.
->>> And I'm using kind of hack to get it:
->>> isp_probe()
->>> + isp_set_xclk(isp, 27000000, 1);
->> This is your problem.
+On Wed, Oct 19, 2011 at 4:06 PM, Boris Todorov
+<boris.st.todorov@gmail.com> wrote:
+> On Wed, Oct 19, 2011 at 3:40 PM, Enrico <ebutera@users.berlios.de> wrote:
+>> On Wed, Oct 19, 2011 at 11:03 AM, Boris Todorov
+>> <boris.st.todorov@gmail.com> wrote:
+>>> Here is my log:
+>>> [   24.683685] omap3isp omap3isp: -------------CCDC Register dump-------------
+>>> [   24.683685] omap3isp omap3isp: ###CCDC PCR=0x00000000
+>>> [   24.683685] omap3isp omap3isp: ###CCDC SYN_MODE=0x00032f80
+>>> [   24.683715] omap3isp omap3isp: ###CCDC HD_VD_WID=0x00000000
+>>> [   24.683715] omap3isp omap3isp: ###CCDC PIX_LINES=0x00000000
+>>> [   24.683746] omap3isp omap3isp: ###CCDC HORZ_INFO=0x0000059f
+>>> [   24.683746] omap3isp omap3isp: ###CCDC VERT_START=0x00000000
+>>> [   24.683746] omap3isp omap3isp: ###CCDC VERT_LINES=0x00000105
+>>> [   24.683776] omap3isp omap3isp: ###CCDC CULLING=0xffff00ff
+>>> [   24.683776] omap3isp omap3isp: ###CCDC HSIZE_OFF=0x000005a0
+>>> [   24.683776] omap3isp omap3isp: ###CCDC SDOFST=0x00000249
+>>> [   24.683807] omap3isp omap3isp: ###CCDC SDR_ADDR=0x00001000
+>>> [   24.683807] omap3isp omap3isp: ###CCDC CLAMP=0x00000010
+>>> [   24.683807] omap3isp omap3isp: ###CCDC DCSUB=0x00000000
+>>> [   24.683837] omap3isp omap3isp: ###CCDC COLPTN=0x00000000
+>>> [   24.683837] omap3isp omap3isp: ###CCDC BLKCMP=0x00000000
+>>> [   24.683837] omap3isp omap3isp: ###CCDC FPC=0x00000000
+>>> [   24.683868] omap3isp omap3isp: ###CCDC FPC_ADDR=0x00000000
+>>> [   24.683868] omap3isp omap3isp: ###CCDC VDINT=0x01040000
+>>> [   24.683868] omap3isp omap3isp: ###CCDC ALAW=0x00000004
+>>> [   24.683898] omap3isp omap3isp: ###CCDC REC656IF=0x00000003
+>>> [   24.683898] omap3isp omap3isp: ###CCDC CFG=0x00008800
+>>> [   24.683898] omap3isp omap3isp: ###CCDC FMTCFG=0x00006000
+>>> [   24.683929] omap3isp omap3isp: ###CCDC FMT_HORZ=0x000002d0
+>>> [   24.683929] omap3isp omap3isp: ###CCDC FMT_VERT=0x0000020d
+>>> [   24.683929] omap3isp omap3isp: ###CCDC PRGEVEN0=0x00000000
+>>> [   24.683959] omap3isp omap3isp: ###CCDC PRGEVEN1=0x00000000
+>>> [   24.683959] omap3isp omap3isp: ###CCDC PRGODD0=0x00000000
+>>> [   24.683959] omap3isp omap3isp: ###CCDC PRGODD1=0x00000000
+>>> [   24.683990] omap3isp omap3isp: ###CCDC VP_OUT=0x04182d00
+>>> [   24.683990] omap3isp omap3isp: ###CCDC LSC_CONFIG=0x00006600
+>>> [   24.683990] omap3isp omap3isp: ###CCDC LSC_INITIAL=0x00000000
+>>> [   24.684020] omap3isp omap3isp: ###CCDC LSC_TABLE_BASE=0x00000000
+>>> [   24.684020] omap3isp omap3isp: ###CCDC LSC_TABLE_OFFSET=0x00000000
+>>> [   24.684051] omap3isp omap3isp: --------------------------------------------
+>>>
+>>> This is with:
+>>>
+>>> .data_lane_shift = 0,
+>>> .clk_pol             = 0,
+>>> .hs_pol             = 0,
+>>> .vs_pol             = 0,
+>>> .data_pol              = 0,
+>>> .fldmode           = 1,
+>>> .bt656               = 1,
+>>>
+>>> and the above mentioned media-ctl settings
 >>
->> You should control the clock via board / platform callback from your driver.
->> Example:
->> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg56627.html
+>> From a quick look It seems ok (apart ALAW that maybe should be 0).
 >>
->> It is important that you set the clock to zero when your driver is not
->> in use.
+>> One thing to check: before loading omap3-isp kernel module you must
+>> manually load iommu2, if you don't it will automatically load only
+>> iommu and it will not work
 >>
->> The problem is connected to the use count of the ISP and some
->> initialisation which only happen when the counter change between zero
->> and one.
+>> Enrico
 >>
-> tvp_probe() needs clock for i2c detected/config. tvp5150_s_power call
-> happens when video starts streaming and if tvp is not configured ->
-> kernel panic.
-I use an other sensor and driver and this config the sensor during start
-stream.
-> And what about the case when TVP is used with OSC on XTAL pins and
-> CLK_IN is not used at all?
-Then your system will work, as you never call isp_set_xclk.
+>
+> When I started omap3-isp was embedded in kernel and my /dev/media0 was
+> missing. Making it module resolved this issue.
+> iommu2 is still embedded...
+> will try with module now
+>
 
-The problem is not the clock, but how the isp driver works.
-It expects, that the sensor driver disable the cam_xclk, if the sensor
-is not used.
-> Maybe I don't fully understand what is happening...
-> or isp_set_xclk() use is messing up with ISP
-On my system I have the same issues as you if I don't set the cam_xclk
-to zero
-during stop streaming.
+I loaded the modules in this order:
+iommu.ko -> iovmm.ko -> iommu2.ko -> omap_iommu.ko -> omap3_isp.ko
 
-I haven't investigate in the real cause for the issue. I only released,
-that this
-issue stick together with an always enabled cam_xclk.
+# lsmod
+Module                  Size  Used by    Not tainted
+omap3_isp             121471  0
+omap_iommu              1276  0
+iommu2                  5118  0
+iovmm                  11389  1 omap3_isp
+iommu                  14627  3 omap3_isp,iommu2,iovmm
 
-Regards,
-    Stefan
-
+But it didn't solved my problem.
+I just scoped PCLK and the data lines from TVP and everything looks
+fine. I can see the BT.656 embedded sync information. But no ISP
+irqs...
