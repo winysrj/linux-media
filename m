@@ -1,314 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eth1683.vic.adsl.internode.on.net ([150.101.217.146]:3272 "EHLO
-	greyinnovation.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753223Ab1JFD3B convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 23:29:01 -0400
-Content-class: urn:content-classes:message
-Subject: Re: Help with omap3isp resizing
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:50175 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752105Ab1JSI2e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Oct 2011 04:28:34 -0400
+Received: by yxp4 with SMTP id 4so1429444yxp.19
+        for <linux-media@vger.kernel.org>; Wed, 19 Oct 2011 01:28:34 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Date: Thu, 6 Oct 2011 14:29:23 +1100
-Message-ID: <51A4F524D105AA4C93787F33E2C90E62EE5443@greysvr02.GreyInnovation.local>
-In-Reply-To: <20111005105438.GA8614@valkosipuli.localdomain>
-References: <51A4F524D105AA4C93787F33E2C90E62EE5203@greysvr02.GreyInnovation.local> <201110041350.33441.laurent.pinchart@ideasonboard.com> <1317729252.8358.54.camel@iivanov-desktop> <201110041500.56885.laurent.pinchart@ideasonboard.com> <51A4F524D105AA4C93787F33E2C90E62EE5350@greysvr02.GreyInnovation.local> <20111005105438.GA8614@valkosipuli.localdomain>
-From: "Paul Chiha" <paul.chiha@greyinnovation.com>
-To: "Sakari Ailus" <sakari.ailus@iki.fi>,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-Cc: "Ivan T. Ivanov" <iivanov@mm-sol.com>,
-	<linux-media@vger.kernel.org>,
-	"Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <CAFYgh7zzTKT9XHri3seEKDhbMu0xYM=XahjhWU3Wbhj-1U6dhQ@mail.gmail.com>
+References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com>
+	<CA+2YH7voGzNzxcdFCAissTtn_-NAL=_jfiOS8kia9m-=XqwOig@mail.gmail.com>
+	<CAFYgh7zzTKT9XHri3seEKDhbMu0xYM=XahjhWU3Wbhj-1U6dhQ@mail.gmail.com>
+Date: Wed, 19 Oct 2011 10:28:34 +0200
+Message-ID: <CA+2YH7szWsvzZ7FwL0v99tURrB5qLeR-+ud2cJaRRj0d4HzKaw@mail.gmail.com>
+Subject: Re: omap3isp: BT.656 support
+From: Enrico <ebutera@users.berlios.de>
+To: Boris Todorov <boris.st.todorov@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday, 5 October 2011 9:55 PM Sakari Ailus wrote:
-> On Wed, Oct 05, 2011 at 01:51:29PM +1100, Paul Chiha wrote:
-> > On Tue, Oct 04, 2011 at 03:00:55PM +0200, Laurent Pinchart wrote:
-> > > Hi Ivan,
-> > >
-> > > On Tuesday 04 October 2011 13:54:12 Ivan T. Ivanov wrote:
-> > > > On Tue, 2011-10-04 at 13:50 +0200, Laurent Pinchart wrote:
-> > > > > On Tuesday 04 October 2011 13:46:32 Ivan T. Ivanov wrote:
-> > > > > > On Tue, 2011-10-04 at 13:03 +0200, Laurent Pinchart wrote:
-> > > > > > > On Monday 03 October 2011 07:51:34 Paul Chiha wrote:
-> > > > > > > > Hi,
-> > > > > > > >
-> > > > > > > > I've been having trouble getting the resizer to work,
-and
-> > > > > > > > mainly because I don't know how to correctly configure
-it.
-> > > > > > > > I'm using kernel 2.6.37 on arm DM37x board.
-> > > > > > > >
-> > > > > > > > I've been able to configure the media links
-> > > > > > > > sensor=>ccdc=>ccdc_output (all with 640x480
-> > > > > > > > V4L2_MBUS_FMT_UYVY8_2X8) and VIDIOC_STREAMON works on
-> > > /dev/video2.
-> > > > > > > > But if I configure media links
-> > > > > > > > sensor=>ccdc=>resizer=>resizer_output, then
-> > > > > > > > VIDIOC_STREAMON fails on /dev/video6 (with pixelformat
-> > > > > > > > mismatch). I noticed that the resizer driver only
-supports
-> > > > > > > > V4L2_MBUS_FMT_UYVY8_1X16 & V4L2_MBUS_FMT_YUYV8_1X16,
-> so I
-> > > > > > > > tried again with all the links set to
-> > > > > > > > V4L2_MBUS_FMT_UYVY8_1X16 instead, but then ioctl
-> > > > > > > > VIDIOC_SUBDEV_S_FMT fails on /dev/v4l-subdev8, because
-the
-> sensor driver doesn't support 1X16.
-> > > > > > > > Then I tried using V4L2_MBUS_FMT_UYVY8_2X8 for the
-sensor
-> > > > > > > > and
-> > > > > > > > V4L2_MBUS_FMT_UYVY8_1X16 for the resizer, but it either
-> > > > > > > > failed with pixelformat mismatch or link pipeline
-> > > > > > > > mismatch, depending on which pads were different.
-> > > > > > > >
-> > > > > > > > Can someone please tell me what I need to do to make
-this work?
-> > > > > > >
-> > > > > > > Long story short, I don't think that pipeline has ever
-been tested.
-> > > > > > > I'm unfortunately lacking hardware to work on that, as
-none
-> > > > > > > of my
-> > > > > > > OMAP3 hardware has a YUV input.
-> > > > > >
-> > > > > > If i am not mistaken currently resizer sub device supports
-only:
-> > > > > >
-> > > > > > /* resizer pixel formats */
-> > > > > > static const unsigned int resizer_formats[] = {
-> > > > > >
-> > > > > > 	V4L2_MBUS_FMT_UYVY8_1X16,
-> > > > > > 	V4L2_MBUS_FMT_YUYV8_1X16,
-> > > > > >
-> > > > > > };
-> > > > > >
-> > > > > > Adding something like this [1] in ispresizer.c  should add
-> > > > > > support
-> > > > > > 2X8 formats. Completely untested :-).
-> > > > > >
-> > > > > > Regards,
-> > > > > > iivanov
-> > > > > >
-> > > > > >
-> > > > > > [1]
-> > > > > >
-> > > > > > @@ -1307,6 +1311,10 @@ static int resizer_s_crop(struct
-> > > > > > v4l2_subdev *sd, struct v4l2_subdev_fh *fh, static const
-> > > > > > unsigned int resizer_formats[] = {
-> > > > > >
-> > > > > >  	V4L2_MBUS_FMT_UYVY8_1X16,
-> > > > > >  	V4L2_MBUS_FMT_YUYV8_1X16,
-> > > > > >
-> > > > > > +	V4L2_MBUS_FMT_UYVY8_2X8,
-> > > > > > +	V4L2_MBUS_FMT_VYUY8_2X8,
-> > > > > > +	V4L2_MBUS_FMT_YUYV8_2X8,
-> > > > > > +	V4L2_MBUS_FMT_YVYU8_2X8,
-> > > > > >
-> > > > > >  };
-> > > > >
-> > > > > I'd rather modify ispccdc.c to output
-V4L2_MBUS_FMT_YUYV8_1X16.
-> > > > > What do you think ?
-> > > >
-> > > > For memory->Resizer->memory use cases, CCDC is no involved in
-pipeline.
-> > >
-> > > But the original poster wants to use the sensor -> ccdc -> resizer
-> > > -> resizer output pipeline.
-> > >
-> > > > Also several sensor drivers that i have checked, usually define
-> > > > its output as 2X8 output. I think is more natural to add 2X8
-> > > > support to CCDC and Resizer engines instead to modifying exiting
-drivers.
-> > >
-> > > Sure, sensor drivers should not be modified. What I was talking
-> > > about was to configure the pipeline as
-> > >
-> > > sensor:0 [YUYV8_2X8], CCDC:0 [YUYV8_2X8], CCDC:1 [YUYV8_1X16],
-> > > resizer:0 [YUYV8_1X16]
-> > >
-> > > --
-> > > Regards,
-> > >
-> > > Laurent Pinchart
-> >
-> > Thanks for your help. I've updated ispccdc.c to support the _1X16
-> > codes and the pipeline seems to work now. However, I needed to take
-> > out the memcpy in ccdc_try_format(), because otherwise pad 0 format
-> > was being copied to pad 1 or 2, regardless of what pad 1 or 2 were
-> > being set to. I'm not sure why it was done that way. I think it's
-> > better that the given code gets checked to see if it's in the list
-and
-> > if so use it. Do you know of any valid reason why this copy is done?
-> 
-> If I remember corretly, it's because there's nothing the CCDC may do
-to the size
-> of the image --- the driver doesn't either support cropping on the
-CCDC. The sink
-> format used to be always the same as the source format, the assumption
-which
-> no longer is valid when YUYV8_2X8 etc. formats are supported. This
-must be
-> taken into account, i.e. YUYV8_2X8 must be converted to YUYV8_1X16
-instead of
-> just copying the format as such.
-> 
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+On Wed, Oct 19, 2011 at 9:01 AM, Boris Todorov
+<boris.st.todorov@gmail.com> wrote:
+> On Tue, Oct 18, 2011 at 7:31 PM, Enrico <ebutera@users.berlios.de> wrote:
+>> You can try if this:
+>>
+>> http://www.spinics.net/lists/linux-media/msg37795.html
+>>
+>> makes it work.
+>
+> Tried it but it's doesn't work for me.
+>
+> When yavta calls VIDIOC_DQBUF I'm stuck here:
+> omap3isp_video_queue_dqbuf() -> isp_video_buffer_wait()
+> "Wait for a buffer to be ready" with O_NONBLOCK
+>
+> Btw my kernel is 2.6.35 but ISP and V4L are taken from
+> omap3isp-omap3isp-yuv and according ISP/TVP register settings
+> everything should be OK...
 
-FYI ... here's the diff of the ISP CCDC changes I made to get the
-sensor->ccdc->resizer pipeline to work.
-Note: it's based on kernel 2.6.37.
+When you stop yavta you should have in the kernel log something like
+this (this comes from an old log i'm not 100% sure they are the
+correct values):
 
---- drivers/media/video/isp/ispccdc.c
-+++ drivers/media/video/isp/ispccdc.c 
-@@ -53,6 +53,10 @@
-        V4L2_MBUS_FMT_SGBRG12_1X12,
-        V4L2_MBUS_FMT_UYVY8_2X8,
-        V4L2_MBUS_FMT_YUYV8_2X8,
-+       V4L2_MBUS_FMT_UYVY8_1X16,
-+       V4L2_MBUS_FMT_VYUY8_1X16,
-+       V4L2_MBUS_FMT_YUYV8_1X16,
-+       V4L2_MBUS_FMT_YVYU8_1X16,
- };
- 
- /*
-@@ -791,7 +795,7 @@
-        format = &ccdc->formats[CCDC_PAD_SINK];
- 
-        if ((format->code != V4L2_MBUS_FMT_UYVY8_2X8) &&
--                       (format->code != V4L2_MBUS_FMT_UYVY8_2X8))
-+                       (format->code != V4L2_MBUS_FMT_YUYV8_2X8))
-                ccdc->update = OMAP3ISP_CCDC_ALAW | OMAP3ISP_CCDC_LPF
-                             | OMAP3ISP_CCDC_BLCLAMP |
-OMAP3ISP_CCDC_BCOMP;
- 
-@@ -1167,12 +1171,22 @@
-        /* CCDC_PAD_SINK */
-        format = &ccdc->formats[CCDC_PAD_SINK];
- 
--       if ((format->code == V4L2_MBUS_FMT_YUYV8_2X8) ||
--                       (format->code == V4L2_MBUS_FMT_UYVY8_2X8)) {
-+       switch (format->code) {
-+       case V4L2_MBUS_FMT_YUYV8_2X8:
-+       case V4L2_MBUS_FMT_UYVY8_2X8:
-                if (pdata->is_bt656)
-                        syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
-                else
-                        syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
-+               break;
-+       case V4L2_MBUS_FMT_UYVY8_1X16:
-+       case V4L2_MBUS_FMT_VYUY8_1X16:
-+       case V4L2_MBUS_FMT_YUYV8_1X16:
-+       case V4L2_MBUS_FMT_YVYU8_1X16:
-+               syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
-+               break;
-+       default:
-+               ;
-        }
- 
-        isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC,
-ISPCCDC_SYN_MODE);
-@@ -1199,10 +1213,19 @@
-                ccdc_pattern = ccdc_sgrbg_pattern;
-                break;
-        }
--       if ((format->code != V4L2_MBUS_FMT_YUYV8_2X8) &&
--                       (format->code != V4L2_MBUS_FMT_UYVY8_2X8))
--       ispccdc_config_imgattr(ccdc, ccdc_pattern);
- 
-+       switch (format->code) {
-+       case V4L2_MBUS_FMT_YUYV8_2X8:
-+       case V4L2_MBUS_FMT_UYVY8_2X8:
-+       case V4L2_MBUS_FMT_UYVY8_1X16:
-+       case V4L2_MBUS_FMT_VYUY8_1X16:
-+       case V4L2_MBUS_FMT_YUYV8_1X16:
-+       case V4L2_MBUS_FMT_YVYU8_1X16:
-+               break;
-+       default:
-+               ispccdc_config_imgattr(ccdc, ccdc_pattern);
-+       }
-+
-        /* BT656: Generate VD0 on the last line of each field, and we
-         * don't use VD1.
-         * Non BT656: Generate VD0 on the last line of the image and VD1
-on the
-@@ -1870,20 +1893,21 @@
-        unsigned int height = fmt->height;
-        unsigned int i;
- 
-+       for (i = 0; i < ARRAY_SIZE(ccdc_fmts); i++) {
-+               if (fmt->code == ccdc_fmts[i])
-+                       break;
-+       }
-+
-+       /* If not found, use SGRBG10 as default */
-+       if (i >= ARRAY_SIZE(ccdc_fmts))
-+               fmt->code = V4L2_MBUS_FMT_SGRBG10_1X10;
-+
-        switch (pad) {
-        case CCDC_PAD_SINK:
-                /* TODO: If the CCDC output formatter pad is connected
-directly
-                 * to the resizer, only YUV formats can be used.
-                 */
--               for (i = 0; i < ARRAY_SIZE(ccdc_fmts); i++) {
--                       if (fmt->code == ccdc_fmts[i])
--                               break;
--               }
- 
--               /* If not found, use SGRBG10 as default */
--               if (i >= ARRAY_SIZE(ccdc_fmts))
--                       fmt->code = V4L2_MBUS_FMT_SGRBG10_1X10;
--
-                /* Clamp the input size. */
-                fmt->width = clamp_t(u32, width, 32, 4096);
-                fmt->height = clamp_t(u32, height, 32, 4096);
-@@ -1891,21 +1915,19 @@
- 
-        case CCDC_PAD_SOURCE_OF:
-                format = __ccdc_get_format(ccdc, fh, CCDC_PAD_SINK,
-which);
--               memcpy(fmt, format, sizeof(*fmt));
- 
-                /* The data formatter truncates the number of horizontal
-output
-                 * pixels to a multiple of 16. To avoid clipping data,
-allow
-                 * callers to request an output size bigger than the
-input size
-                 * up to the nearest multiple of 16.
-                 */
--               fmt->width = clamp_t(u32, width, 32, (fmt->width + 15) &
-~15);
-+               fmt->width = clamp_t(u32, width, 32, format->width +
-15);
-                fmt->width &= ~15;
--               fmt->height = clamp_t(u32, height, 32, fmt->height);
-+               fmt->height = clamp_t(u32, height, 32, format->height);
-                break;
- 
-        case CCDC_PAD_SOURCE_VP:
-                format = __ccdc_get_format(ccdc, fh, CCDC_PAD_SINK,
-which);
--               memcpy(fmt, format, sizeof(*fmt));
- 
-                /* The video port interface truncates the data to 10
-bits. */
-                info = isp_video_format_info(fmt->code);
-@@ -1915,8 +1937,8 @@
-                 * port output must be at least one line less than the
-number
-                 * of input lines.
-                 */
--               fmt->width = clamp_t(u32, width, 32, fmt->width);
--               fmt->height = clamp_t(u32, height, 32, fmt->height - 1);
-+               fmt->width = clamp_t(u32, width, 32, format->width);
-+               fmt->height = clamp_t(u32, height, 32, format->height -
-1);
-                break;
-        }
+[  655.470581] omap3isp omap3isp: ###CCDC PCR=0x00000000
+[  655.475677] omap3isp omap3isp: ###CCDC SYN_MODE=0x00032f80
+[  655.481231] omap3isp omap3isp: ###CCDC HD_VD_WID=0x00000000
+[  655.486816] omap3isp omap3isp: ###CCDC PIX_LINES=0x00000000
+[  655.492431] omap3isp omap3isp: ###CCDC HORZ_INFO=0x0000059f
+[  655.498046] omap3isp omap3isp: ###CCDC VERT_START=0x00000000
+[  655.503784] omap3isp omap3isp: ###CCDC VERT_LINES=0x00000139
+[  655.509460] omap3isp omap3isp: ###CCDC CULLING=0xffff00ff
+[  655.514892] omap3isp omap3isp: ###CCDC HSIZE_OFF=0x000005a0
+[  655.520507] omap3isp omap3isp: ###CCDC SDOFST=0x00000249
+[  655.525848] omap3isp omap3isp: ###CCDC SDR_ADDR=0x00001000
+[  655.531372] omap3isp omap3isp: ###CCDC CLAMP=0x00000010
+[  655.536651] omap3isp omap3isp: ###CCDC DCSUB=0x00000040
+[  655.541900] omap3isp omap3isp: ###CCDC COLPTN=0xbb11bb11
+[  655.547271] omap3isp omap3isp: ###CCDC BLKCMP=0x00000000
+[  655.552612] omap3isp omap3isp: ###CCDC FPC=0x00000000
+[  655.557708] omap3isp omap3isp: ###CCDC FPC_ADDR=0x00000000
+[  655.563232] omap3isp omap3isp: ###CCDC VDINT=0x013800d1
+[  655.568511] omap3isp omap3isp: ###CCDC ALAW=0x00000000
+[  655.573669] omap3isp omap3isp: ###CCDC REC656IF=0x00000003
+[  655.579193] omap3isp omap3isp: ###CCDC CFG=0x00008800
+[  655.584289] omap3isp omap3isp: ###CCDC FMTCFG=0x0000e000
+[  655.589660] omap3isp omap3isp: ###CCDC FMT_HORZ=0x00000000
+[  655.595184] omap3isp omap3isp: ###CCDC FMT_VERT=0x00000000
+[  655.600769] omap3isp omap3isp: ###CCDC PRGEVEN0=0x00000000
+[  655.606323] omap3isp omap3isp: ###CCDC PRGEVEN1=0x00000000
+[  655.611816] omap3isp omap3isp: ###CCDC PRGODD0=0x00000000
+[  655.617279] omap3isp omap3isp: ###CCDC PRGODD1=0x00000000
+[  655.622711] omap3isp omap3isp: ###CCDC VP_OUT=0x00000000
+[  655.628051] omap3isp omap3isp: ###CCDC LSC_CONFIG=0x00006600
+[  655.633758] omap3isp omap3isp: ###CCDC LSC_INITIAL=0x00000000
+[  655.639556] omap3isp omap3isp: ###CCDC LSC_TABLE_BASE=0x00000000
+[  655.645599] omap3isp omap3isp: ###CCDC LSC_TABLE_OFFSET=0x00000000
 
+Send your values so we can try to see where the problem is.
+
+Enrico
