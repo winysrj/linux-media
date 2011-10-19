@@ -1,49 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from slow3-v.mail.gandi.net ([217.70.178.89]:57120 "EHLO
-	slow3-v.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751532Ab1JAM1G convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Oct 2011 08:27:06 -0400
-Received: from relay4-d.mail.gandi.net (relay4-d.mail.gandi.net [217.70.183.196])
-	by slow3-v.mail.gandi.net (Postfix) with ESMTP id B939438B94
-	for <linux-media@vger.kernel.org>; Sat,  1 Oct 2011 14:18:37 +0200 (CEST)
-From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
-To: <o.endriss@gmx.de>
-Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>
-Subject: [DVB] CXD2099 - Question about the CAM clock
-Date: Sat, 1 Oct 2011 14:18:36 +0200
-Message-ID: <000901cc8034$3fcb13f0$bf613bd0$@coexsi.fr>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Language: fr
+Received: from mx1.redhat.com ([209.132.183.28]:24306 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752883Ab1JSJXJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Oct 2011 05:23:09 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p9J9N9w3030369
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 19 Oct 2011 05:23:09 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] [media] em28xx: implement VIDIOC_ENUM_FRAMESIZES
+Date: Wed, 19 Oct 2011 02:06:23 -0200
+Message-Id: <1318997183-4370-1-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Oliver,
+Pidgin uses gstreamer (and libv4l) to work. Without implementing this ioctl,
+it won't detect properly the size range, and driver will fail.
 
-I’ve done some tests with the CAM reader from Digital Devices based on Sony
-CXD2099 chip and I noticed some issues with some CAM:
-* SMIT CAM    : working fine
-* ASTON CAM   : working fine, except that it's crashing quite regularly
-* NEOTION CAM : no stream going out but access to the CAM menu is ok
+So, this patch is required, in order to use an em27xx webcam, like
+Silvercrest.
 
-When looking at the CXD2099 driver code, I noticed the CAM clock (fMCLKI) is
-fixed at 9MHz using the 27MHz onboard oscillator and using the integer
-divider set to 3 (as MCLKI_FREQ=2).
+The pigdin/gstreamer/libv4l needs to be fixed, as it shouldn't assume
+that all drivers will implement this optional ioctl, but, at least now,
+devices with em28xx have a better chance of working with pidgin.
 
-I was wondering if some CAM were not able to work correctly at such high
-clock frequency.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/video/em28xx/em28xx-video.c |   41 ++++++++++++++++++++++++++++-
+ 1 files changed, 40 insertions(+), 1 deletions(-)
 
-So, I've tried to enable the NCO (numeric controlled oscillator) in order to
-setup a lower frequency for the CAM clock, but I wasn't successful, it's
-looking like the frequency must be around the 9MHz or I can't get any
-stream.
-
-Do you know a way to decrease this CAM clock frequency to do some testing?
-
-Best regards,
-Sebastien.
-
-
+diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
+index 62182e3..9b4557a 100644
+--- a/drivers/media/video/em28xx/em28xx-video.c
++++ b/drivers/media/video/em28xx/em28xx-video.c
+@@ -1802,6 +1802,45 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
+ 	return 0;
+ }
+ 
++static int vidioc_enum_framesizes(struct file *file, void *priv,
++				  struct v4l2_frmsizeenum *fsize)
++{
++	struct em28xx_fh      *fh  = priv;
++	struct em28xx         *dev = fh->dev;
++	struct em28xx_fmt     *fmt;
++	unsigned int	      maxw = norm_maxw(dev);
++	unsigned int	      maxh = norm_maxh(dev);
++
++	fmt = format_by_fourcc(fsize->pixel_format);
++	if (!fmt) {
++		em28xx_videodbg("Fourcc format (%08x) invalid.\n",
++				fsize->pixel_format);
++		return -EINVAL;
++	}
++
++	if (dev->board.is_em2800) {
++		if (fsize->index > 1)
++			return -EINVAL;
++		fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++		fsize->discrete.width = maxw / (1 + fsize->index);
++		fsize->discrete.height = maxh / (1 + fsize->index);
++		return 0;
++	}
++
++	if (fsize->index != 0)
++		return -EINVAL;
++
++	/* Report a continuous range */
++	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
++	fsize->stepwise.min_width = 48;
++	fsize->stepwise.min_height = 32;
++	fsize->stepwise.max_width = maxw;
++	fsize->stepwise.max_height = maxh;
++	fsize->stepwise.step_width = 1;
++	fsize->stepwise.step_height = 1;
++	return 0;
++}
++
+ /* Sliced VBI ioctls */
+ static int vidioc_g_fmt_sliced_vbi_cap(struct file *file, void *priv,
+ 					struct v4l2_format *f)
+@@ -2356,10 +2395,10 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_s_fmt_vid_cap       = vidioc_s_fmt_vid_cap,
+ 	.vidioc_g_fmt_vbi_cap       = vidioc_g_fmt_vbi_cap,
+ 	.vidioc_s_fmt_vbi_cap       = vidioc_s_fmt_vbi_cap,
++	.vidioc_enum_framesizes     = vidioc_enum_framesizes,
+ 	.vidioc_g_audio             = vidioc_g_audio,
+ 	.vidioc_s_audio             = vidioc_s_audio,
+ 	.vidioc_cropcap             = vidioc_cropcap,
+-
+ 	.vidioc_g_fmt_sliced_vbi_cap   = vidioc_g_fmt_sliced_vbi_cap,
+ 	.vidioc_try_fmt_sliced_vbi_cap = vidioc_try_set_sliced_vbi_cap,
+ 	.vidioc_s_fmt_sliced_vbi_cap   = vidioc_try_set_sliced_vbi_cap,
+-- 
+1.7.6.4
 
