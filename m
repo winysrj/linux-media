@@ -1,103 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:46512 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754343Ab1JLVnC (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:55553 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755667Ab1JSJDL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Oct 2011 17:43:02 -0400
-Message-ID: <4E9609E3.3000902@mlbassoc.com>
-Date: Wed, 12 Oct 2011 15:42:59 -0600
-From: Gary Thomas <gary@mlbassoc.com>
+	Wed, 19 Oct 2011 05:03:11 -0400
+Received: by iaek3 with SMTP id k3so1878778iae.19
+        for <linux-media@vger.kernel.org>; Wed, 19 Oct 2011 02:03:11 -0700 (PDT)
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Enric Balletbo i Serra <eballetbo@iseebcn.com>,
-	Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: OMAP3 ISP ghosting
-References: <4E9442A9.1060202@mlbassoc.com>
-In-Reply-To: <4E9442A9.1060202@mlbassoc.com>
-Content-Type: multipart/mixed;
- boundary="------------020106000400020802080407"
+In-Reply-To: <CA+2YH7szWsvzZ7FwL0v99tURrB5qLeR-+ud2cJaRRj0d4HzKaw@mail.gmail.com>
+References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com>
+	<CA+2YH7voGzNzxcdFCAissTtn_-NAL=_jfiOS8kia9m-=XqwOig@mail.gmail.com>
+	<CAFYgh7zzTKT9XHri3seEKDhbMu0xYM=XahjhWU3Wbhj-1U6dhQ@mail.gmail.com>
+	<CA+2YH7szWsvzZ7FwL0v99tURrB5qLeR-+ud2cJaRRj0d4HzKaw@mail.gmail.com>
+Date: Wed, 19 Oct 2011 12:03:10 +0300
+Message-ID: <CAFYgh7yO7Cizqxms0ZbBEvypHSUPayAwhviNuFuzatYMkW-4gw@mail.gmail.com>
+Subject: Re: omap3isp: BT.656 support
+From: Boris Todorov <boris.st.todorov@gmail.com>
+To: Enrico <ebutera@users.berlios.de>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------020106000400020802080407
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-On 2011-10-11 07:20, Gary Thomas wrote:
-> As a number of us have seen, when using the OMAP3 ISP with a BT-656
-> sensor, e.g. TVP5150, the results are not 100% correct. Some number
-> of frames (typically 2) will be correct, followed by another set (3)
-> which are incorrect and show only partially correct data. Note: I
-> think the numbers (2 correct, 3 wrong) are not cast in stone and may
-> be related to some other factors like number of buffers in use, etc.
+On Wed, Oct 19, 2011 at 11:28 AM, Enrico <ebutera@users.berlios.de> wrote:
+> On Wed, Oct 19, 2011 at 9:01 AM, Boris Todorov
+> <boris.st.todorov@gmail.com> wrote:
+>> On Tue, Oct 18, 2011 at 7:31 PM, Enrico <ebutera@users.berlios.de> wrote:
+>>> You can try if this:
+>>>
+>>> http://www.spinics.net/lists/linux-media/msg37795.html
+>>>
+>>> makes it work.
+>>
+>> Tried it but it's doesn't work for me.
+>>
+>> When yavta calls VIDIOC_DQBUF I'm stuck here:
+>> omap3isp_video_queue_dqbuf() -> isp_video_buffer_wait()
+>> "Wait for a buffer to be ready" with O_NONBLOCK
+>>
+>> Btw my kernel is 2.6.35 but ISP and V4L are taken from
+>> omap3isp-omap3isp-yuv and according ISP/TVP register settings
+>> everything should be OK...
 >
-> Anyway, I've observed that in the incorrect frames, 1/2 the data is
-> correct (even lines?) and the other 1/2 is wrong. One of my customers
-> pointed out that it looks like the incorrect data is just what was
-> left in memory during some previous frame. I'd like to prove this
-> by "zeroing" the entire frame data memory before the frame is captured.
-> That way, there won't be stale data from a previous frame, but null
-> data which should show up strongly when examined. Does anyone in this
-> group have a suggestion the best way/place to do this?
+> When you stop yavta you should have in the kernel log something like
+> this (this comes from an old log i'm not 100% sure they are the
+> correct values):
 >
-> Final question: given a properly connected TVP5150->CCDC, including
-> all SYNC signals, could this setup be made to work in RAW, non BT-656
-> mode? My board at least has all of these signals routed, so it should
-> just be a matter of configuring the software...
+> [  655.470581] omap3isp omap3isp: ###CCDC PCR=0x00000000
+> [  655.475677] omap3isp omap3isp: ###CCDC SYN_MODE=0x00032f80
+> [  655.481231] omap3isp omap3isp: ###CCDC HD_VD_WID=0x00000000
+> [  655.486816] omap3isp omap3isp: ###CCDC PIX_LINES=0x00000000
+> [  655.492431] omap3isp omap3isp: ###CCDC HORZ_INFO=0x0000059f
+> [  655.498046] omap3isp omap3isp: ###CCDC VERT_START=0x00000000
+> [  655.503784] omap3isp omap3isp: ###CCDC VERT_LINES=0x00000139
+> [  655.509460] omap3isp omap3isp: ###CCDC CULLING=0xffff00ff
+> [  655.514892] omap3isp omap3isp: ###CCDC HSIZE_OFF=0x000005a0
+> [  655.520507] omap3isp omap3isp: ###CCDC SDOFST=0x00000249
+> [  655.525848] omap3isp omap3isp: ###CCDC SDR_ADDR=0x00001000
+> [  655.531372] omap3isp omap3isp: ###CCDC CLAMP=0x00000010
+> [  655.536651] omap3isp omap3isp: ###CCDC DCSUB=0x00000040
+> [  655.541900] omap3isp omap3isp: ###CCDC COLPTN=0xbb11bb11
+> [  655.547271] omap3isp omap3isp: ###CCDC BLKCMP=0x00000000
+> [  655.552612] omap3isp omap3isp: ###CCDC FPC=0x00000000
+> [  655.557708] omap3isp omap3isp: ###CCDC FPC_ADDR=0x00000000
+> [  655.563232] omap3isp omap3isp: ###CCDC VDINT=0x013800d1
+> [  655.568511] omap3isp omap3isp: ###CCDC ALAW=0x00000000
+> [  655.573669] omap3isp omap3isp: ###CCDC REC656IF=0x00000003
+> [  655.579193] omap3isp omap3isp: ###CCDC CFG=0x00008800
+> [  655.584289] omap3isp omap3isp: ###CCDC FMTCFG=0x0000e000
+> [  655.589660] omap3isp omap3isp: ###CCDC FMT_HORZ=0x00000000
+> [  655.595184] omap3isp omap3isp: ###CCDC FMT_VERT=0x00000000
+> [  655.600769] omap3isp omap3isp: ###CCDC PRGEVEN0=0x00000000
+> [  655.606323] omap3isp omap3isp: ###CCDC PRGEVEN1=0x00000000
+> [  655.611816] omap3isp omap3isp: ###CCDC PRGODD0=0x00000000
+> [  655.617279] omap3isp omap3isp: ###CCDC PRGODD1=0x00000000
+> [  655.622711] omap3isp omap3isp: ###CCDC VP_OUT=0x00000000
+> [  655.628051] omap3isp omap3isp: ###CCDC LSC_CONFIG=0x00006600
+> [  655.633758] omap3isp omap3isp: ###CCDC LSC_INITIAL=0x00000000
+> [  655.639556] omap3isp omap3isp: ###CCDC LSC_TABLE_BASE=0x00000000
+> [  655.645599] omap3isp omap3isp: ###CCDC LSC_TABLE_OFFSET=0x00000000
+>
+> Send your values so we can try to see where the problem is.
+>
+> Enrico
+>
 
-Any ideas on this?  My naive attempt (diffs attached) just hangs up.
-These changes disable BT-656 mode in the CCDC and tell the TVP5150
-to output raw YUV 4:2:2 data including all SYNC signals.
+I really appreciate your help.
 
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+Here is my log:
+[   24.683685] omap3isp omap3isp: -------------CCDC Register dump-------------
+[   24.683685] omap3isp omap3isp: ###CCDC PCR=0x00000000
+[   24.683685] omap3isp omap3isp: ###CCDC SYN_MODE=0x00032f80
+[   24.683715] omap3isp omap3isp: ###CCDC HD_VD_WID=0x00000000
+[   24.683715] omap3isp omap3isp: ###CCDC PIX_LINES=0x00000000
+[   24.683746] omap3isp omap3isp: ###CCDC HORZ_INFO=0x0000059f
+[   24.683746] omap3isp omap3isp: ###CCDC VERT_START=0x00000000
+[   24.683746] omap3isp omap3isp: ###CCDC VERT_LINES=0x00000105
+[   24.683776] omap3isp omap3isp: ###CCDC CULLING=0xffff00ff
+[   24.683776] omap3isp omap3isp: ###CCDC HSIZE_OFF=0x000005a0
+[   24.683776] omap3isp omap3isp: ###CCDC SDOFST=0x00000249
+[   24.683807] omap3isp omap3isp: ###CCDC SDR_ADDR=0x00001000
+[   24.683807] omap3isp omap3isp: ###CCDC CLAMP=0x00000010
+[   24.683807] omap3isp omap3isp: ###CCDC DCSUB=0x00000000
+[   24.683837] omap3isp omap3isp: ###CCDC COLPTN=0x00000000
+[   24.683837] omap3isp omap3isp: ###CCDC BLKCMP=0x00000000
+[   24.683837] omap3isp omap3isp: ###CCDC FPC=0x00000000
+[   24.683868] omap3isp omap3isp: ###CCDC FPC_ADDR=0x00000000
+[   24.683868] omap3isp omap3isp: ###CCDC VDINT=0x01040000
+[   24.683868] omap3isp omap3isp: ###CCDC ALAW=0x00000004
+[   24.683898] omap3isp omap3isp: ###CCDC REC656IF=0x00000003
+[   24.683898] omap3isp omap3isp: ###CCDC CFG=0x00008800
+[   24.683898] omap3isp omap3isp: ###CCDC FMTCFG=0x00006000
+[   24.683929] omap3isp omap3isp: ###CCDC FMT_HORZ=0x000002d0
+[   24.683929] omap3isp omap3isp: ###CCDC FMT_VERT=0x0000020d
+[   24.683929] omap3isp omap3isp: ###CCDC PRGEVEN0=0x00000000
+[   24.683959] omap3isp omap3isp: ###CCDC PRGEVEN1=0x00000000
+[   24.683959] omap3isp omap3isp: ###CCDC PRGODD0=0x00000000
+[   24.683959] omap3isp omap3isp: ###CCDC PRGODD1=0x00000000
+[   24.683990] omap3isp omap3isp: ###CCDC VP_OUT=0x04182d00
+[   24.683990] omap3isp omap3isp: ###CCDC LSC_CONFIG=0x00006600
+[   24.683990] omap3isp omap3isp: ###CCDC LSC_INITIAL=0x00000000
+[   24.684020] omap3isp omap3isp: ###CCDC LSC_TABLE_BASE=0x00000000
+[   24.684020] omap3isp omap3isp: ###CCDC LSC_TABLE_OFFSET=0x00000000
+[   24.684051] omap3isp omap3isp: --------------------------------------------
 
---------------020106000400020802080407
-Content-Type: text/plain;
- name="ccdc.raw"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="ccdc.raw"
+This is with:
 
-diff --git a/arch/arm/mach-omap2/board-cobra3530p60.c b/arch/arm/mach-omap2/board-cobra3530p60.c
-index a8e8f21..5e97838 100644
---- a/arch/arm/mach-omap2/board-cobra3530p60.c
-+++ b/arch/arm/mach-omap2/board-cobra3530p60.c
-@@ -480,6 +480,6 @@ static struct isp_v4l2_subdevs_group cobra3530p60_camera_subdevs[] = {
- 					.data_lane_shift = 0,
- 					.clk_pol = 1,
--                                        .bt656 = 1,
-+                                        .bt656 = 0,
-                                         .fldmode = 1,
- 				}
- 		},
- 
-diff --git a/drivers/media/video/tvp5150.c b/drivers/media/video/tvp5150.c
-index f4a66c7..26360ae 100644
---- a/drivers/media/video/tvp5150.c
-+++ b/drivers/media/video/tvp5150.c
-@@ -499,7 +499,7 @@ static const struct i2c_reg_value tvp5150_init_enable[] = {
- 	},{	/* Activates video std autodetection for all standards */
- 		TVP5150_AUTOSW_MSK, 0x0
- 	},{	/* Default format: 0x47. For 4:2:2: 0x40 */
--		TVP5150_DATA_RATE_SEL, 0x47
-+		TVP5150_DATA_RATE_SEL, 0x40 /*0x47*/
- 	},{
- 		TVP5150_CHROMA_PROC_CTL_1, 0x0c
- 	},{
-@@ -993,7 +993,7 @@ static int tvp515x_s_stream(struct v4l2_subdev *subdev, int enable)
- 
- 	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
- 	if (enable)
--		tvp5150_write(subdev, TVP5150_MISC_CTL, 0x09);
-+		tvp5150_write(subdev, TVP5150_MISC_CTL, 0x09+0x04);
- 	else
- 		tvp5150_write(subdev, TVP5150_MISC_CTL, 0x00);
- 
+.data_lane_shift = 0,
+.clk_pol             = 0,
+.hs_pol             = 0,
+.vs_pol             = 0,
+.data_pol	       = 0,
+.fldmode           = 1,
+.bt656               = 1,
 
---------------020106000400020802080407--
+and the above mentioned media-ctl settings
