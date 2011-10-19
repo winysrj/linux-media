@@ -1,145 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36878 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754396Ab1J0M3q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Oct 2011 08:29:46 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 5/6] v4l2-event: Add v4l2_subscribed_event_ops
-Date: Thu, 27 Oct 2011 14:30:24 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	hverkuil@xs4all.nl
-References: <1319714283-3991-1-git-send-email-hdegoede@redhat.com> <1319714283-3991-6-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1319714283-3991-6-git-send-email-hdegoede@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:61840 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751574Ab1JSL4L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Oct 2011 07:56:11 -0400
+Message-ID: <4E9EBAD8.1050303@redhat.com>
+Date: Wed, 19 Oct 2011 09:56:08 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v3.1-rc10] media fix
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201110271430.25044.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-On Thursday 27 October 2011 13:18:02 Hans de Goede wrote:
-> Just like with ctrl events, drivers may want to get called back on
-> listener add / remove for other event types too. Rather then special
-> casing all of this in subscribe / unsubscribe event it is better to
-> use ops for this.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/media/video/ivtv/ivtv-ioctl.c  |    2 +-
->  drivers/media/video/omap3isp/ispccdc.c |    2 +-
->  drivers/media/video/omap3isp/ispstat.c |    2 +-
->  drivers/media/video/pwc/pwc-v4l.c      |    2 +-
->  drivers/media/video/v4l2-event.c       |   42 ++++++++++++++++++++++-------
->  drivers/media/video/vivi.c             |    2 +-
->  include/media/v4l2-event.h             |   24 +++++++++++++-----
+Hi Linus,
 
-Haven't you forgotten to update Documentation/video4linux/v4l2-framework.txt ?
+Please pull from:
+  git://linuxtv.org/mchehab/for_linus.git v4l_for_linus
 
->  7 files changed, 54 insertions(+), 22 deletions(-)
 
-[snip]
+For a one line fix at the V4L2 core, causing OOPSes at device release under
+certain circumstances.
 
-> diff --git a/drivers/media/video/v4l2-event.c
-> b/drivers/media/video/v4l2-event.c index 3d27300..2dd9252 100644
-> --- a/drivers/media/video/v4l2-event.c
-> +++ b/drivers/media/video/v4l2-event.c
-> @@ -131,14 +131,14 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh,
-> const struct v4l2_event *e sev->first = sev_pos(sev, 1);
->  		fh->navailable--;
->  		if (sev->elems == 1) {
-> -			if (sev->replace) {
-> -				sev->replace(&kev->event, ev);
-> +			if (sev->ops && sev->ops->replace) {
-> +				sev->ops->replace(&kev->event, ev);
->  				copy_payload = false;
->  			}
-> -		} else if (sev->merge) {
-> +		} else if (sev->ops && sev->ops->merge) {
->  			struct v4l2_kevent *second_oldest =
->  				sev->events + sev_pos(sev, 0);
-> -			sev->merge(&kev->event, &second_oldest->event);
-> +			sev->ops->merge(&kev->event, &second_oldest->event);
->  		}
->  	}
-> 
-> @@ -207,8 +207,14 @@ static void ctrls_merge(const struct v4l2_event *old,
-> struct v4l2_event *new) new->u.ctrl.changes |= old->u.ctrl.changes;
->  }
-> 
-> +const struct v4l2_subscribed_event_ops ctrl_ops = {
+Thanks!
+Mauro.
 
-Shouldn't this be static const ?
+Latest commit at the branch: e58fced201ad6e6cb673f07499919c3b20792d94 [media] videodev: fix a NULL pointer dereference in v4l2_device_release()
+The following changes since commit 899e3ee404961a90b828ad527573aaaac39f0ab1:
 
-> +	.replace = ctrls_replace,
-> +	.merge = ctrls_merge,
-> +};
-> +
->  int v4l2_event_subscribe(struct v4l2_fh *fh,
-> -			 struct v4l2_event_subscription *sub, unsigned elems)
-> +			 struct v4l2_event_subscription *sub, unsigned elems,
-> +			 const struct v4l2_subscribed_event_ops *ops)
->  {
->  	struct v4l2_subscribed_event *sev, *found_ev;
->  	struct v4l2_ctrl *ctrl = NULL;
-> @@ -236,9 +242,9 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
->  	sev->flags = sub->flags;
->  	sev->fh = fh;
->  	sev->elems = elems;
-> +	sev->ops = ops;
->  	if (ctrl) {
-> -		sev->replace = ctrls_replace;
-> -		sev->merge = ctrls_merge;
-> +		sev->ops = &ctrl_ops;
->  	}
+  Linux 3.1-rc10 (2011-10-17 21:06:23 -0700)
 
-You can remove the brackets here.
+are available in the git repository at:
+  git://linuxtv.org/mchehab/for_linus.git v4l_for_linus
 
-> 
->  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> @@ -247,10 +253,22 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
->  		list_add(&sev->list, &fh->subscribed);
->  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> 
-> -	/* v4l2_ctrl_add_event uses a mutex, so do this outside the spin lock */
-> -	if (found_ev)
-> +	if (found_ev) {
->  		kfree(sev);
-> -	else if (ctrl)
-> +		return 0; /* Already listening */
-> +	}
-> +
-> +	if (sev->ops && sev->ops->add) {
-> +		int ret = sev->ops->add(sev);
-> +		if (ret) {
-> +			sev->ops = NULL;
-> +			v4l2_event_unsubscribe(fh, sub);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	/* v4l2_ctrl_add_event uses a mutex, so do this outside the spin lock */
-> +	if (ctrl)
->  		v4l2_ctrl_add_event(ctrl, sev);
-> 
->  	return 0;
-> @@ -307,6 +325,10 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
->  	}
-> 
->  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> +
-> +	if (sev && sev->ops && sev->ops->del)
-> +		sev->ops->del(sev);
-> +
->  	if (sev && sev->type == V4L2_EVENT_CTRL) {
->  		struct v4l2_ctrl *ctrl = v4l2_ctrl_find(fh->ctrl_handler, sev->id);
-> 
+Antonio Ospite (1):
+      [media] videodev: fix a NULL pointer dereference in v4l2_device_release()
 
--- 
-Regards,
+ drivers/media/video/v4l2-dev.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Laurent Pinchart
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iQIcBAEBAgAGBQJOnrrNAAoJEGO08Bl/PELnIU4P/iiuqUGQnYr5NH/keGd562Cn
+INrqAJ5SO9nNjgE2Eg9fuxVGriQazEJ8s+qs1wwZrpcRkrZVq2xzy7LtC/TuBdu1
+c8lStlSLN2Cmo6kfkNBuNc++6X1SWh+Rdz4l5r3N8IKNQsu6XfW1idgKql3Pwavr
+Afzb18vDL8rRQC9etbxzBgtOXHj6zJw+ehdKwqx9SglF1DH72afxAv7z3UhygZYp
+UVJzgjVKgAyOVQfxHKzFrpNiLQpYWJtJaTpTw+t7hOp8kNZ4rXlinmy9UYsZ8Lrr
+mlcWld1F2dmDuhxj0xU+QDDOhmfXnPWbLi/VWWramBq9ksNXQzxsQriI4ZKmHg5J
+nnmvkrbKB+nL/51ITfXBTxYdC5zcDfEwD1m6mge3c8r4SJaRXOuHoMtVOpKAENFj
+hqBRRDnb6LjnMJhdWrgFPHGs1k/T/BoduCphwZIAU2Ii7Tz0AqCnyKL4aaWHqcwp
+0ECduB1Iyr1AUVnf5S7wH3m/gukasIEIGhEH2Yqr7mG1odguM5eSdHRYTLejZw+7
+I2Nk71DI099Hrnt3GAer0hEzN8Pm96xMCh5kCqD2pz6H9zoijK7K7MFD0Nf2RhZV
+JKy/UNwDTGAx3989G0nUu5KWmfYvvqgzZUYNgN1IZhde/YEHldIUOxY6yf3gZy9J
+twUAlsCBnY/6povAvdMH
+=RCnh
+-----END PGP SIGNATURE-----
