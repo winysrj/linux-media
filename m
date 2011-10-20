@@ -1,46 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:16495 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754705Ab1JRWg1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Oct 2011 18:36:27 -0400
-Date: Wed, 19 Oct 2011 01:33:18 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: devel@driverdev.osuosl.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	Greg KH <gregkh@suse.de>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Piotr Chmura <chmooreck@poczta.onet.pl>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/14] staging/media/as102: initial import from Abilis
-Message-ID: <20111018223318.GC24215@longonot.mountain>
-References: <20110927213300.6893677a@stein>
- <4E999733.2010802@poczta.onet.pl>
- <4E99F2FC.5030200@poczta.onet.pl>
- <20111016105731.09d66f03@stein>
- <CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
- <4E9ADFAE.8050208@redhat.com>
- <20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
- <20111018111134.8482d1f8.chmooreck@poczta.onet.pl>
- <20111018162423.GA24215@longonot.mountain>
- <4E9DABA3.1070609@redhat.com>
+Received: from mail.kaapeli.fi ([84.20.139.148]:32851 "EHLO mail.kaapeli.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751518Ab1JTEpu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Oct 2011 00:45:50 -0400
+Message-ID: <4E9FA779.5040406@iki.fi>
+Date: Thu, 20 Oct 2011 07:45:45 +0300
+From: Jyrki Kuoppala <jkp@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4E9DABA3.1070609@redhat.com>
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] Fix to qt1010 tuner frequency selection (media/dvb)
+References: <4E528FAE.5060801@iki.fi> <5010154.A6jI82beuA@valkyrie> <4E7F58BB.5080803@iki.fi> <2165330.TqTdf0zloM@valkyrie>
+In-Reply-To: <2165330.TqTdf0zloM@valkyrie>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 18, 2011 at 02:38:59PM -0200, Mauro Carvalho Chehab wrote:
-> > It would be better to separate these two chunks out and put them at
-> > the end after you've fixed the compile errors in [PATCH 13/14].
-> 
-> This doesn't really matter, as the driver won't be added to the Kernel building system
-> before patch 13/14, as drivers/staging/Makefile wasn't touch on patch 1/14.
+I think my problem frequency has also been at the later spot. It is possible there is something more complicated going on at 474 MHz - so based on your testing, it's best to apply just the latter change, at least for now.
 
-Ah sorry.  My bad.
+Jyrki
 
-regards,
-dan carpenter
+
+
++    else if (freq<   546000000) rd[15].val = 0xd6; /* 546 MHz */
+
++    else if (freq<   546000000) rd[15].val = 0xd6; /* 546 MHz */
+
+
+20.10.2011 00:06, Carlos Corbacho kirjoitti:
+> Jyrki,
+>
+> So after a bit more testing...
+>
+> [...]
+>
+>>>>         /* 22 */
+>>>>         if      (freq<   450000000) rd[15].val = 0xd0; /* 450 MHz
+>>>>         */
+>>>>
+>>>> -    else if (freq<   482000000) rd[15].val = 0xd1; /* 482 MHz */
+>>>> +    else if (freq<   482000000) rd[15].val = 0xd2; /* 482 MHz */
+> This change isn't so good.
+>
+> With this change, I can no longer tune to channel 21 (474 MHz). If I revert it
+> back to 0xd1, it's fine.
+>
+> [...]
+>
+>>>>         else if (freq<   514000000) rd[15].val = 0xd4; /* 514 MHz
+>>>>         */
+>>>>
+>>>> -    else if (freq<   546000000) rd[15].val = 0xd7; /* 546 MHz */
+>>>> +    else if (freq<   546000000) rd[15].val = 0xd6; /* 546 MHz */
+>>>> +    else if (freq<   578000000) rd[15].val = 0xd8; /* 578 MHz */
+> (This change is still good though, as this does allow me to now tune to the
+> BBC channels in this range).
+>
+> -Carlos
+
