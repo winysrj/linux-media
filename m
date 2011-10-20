@@ -1,84 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:19844 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754910Ab1JQNbZ (ORCPT
+Received: from smtprelay01.ispgateway.de ([80.67.18.43]:34431 "EHLO
+	smtprelay01.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751724Ab1JTTYz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Oct 2011 09:31:25 -0400
-Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LT700FBYPKA34@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 17 Oct 2011 14:31:22 +0100 (BST)
-Received: from [106.116.48.223] by spt2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LT7005K5PK9TC@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 17 Oct 2011 14:31:22 +0100 (BST)
-Date: Mon, 17 Oct 2011 15:31:17 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 1/4] v4l: add support for selection api
-In-reply-to: <20111014171938.GG10001@valkosipuli.localdomain>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com
-Message-id: <4E9C2E25.2080803@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <1314793703-32345-1-git-send-email-t.stanislaws@samsung.com>
- <1314793703-32345-2-git-send-email-t.stanislaws@samsung.com>
- <20111012114828.GE10001@valkosipuli.localdomain>
- <4E95AD64.2020702@samsung.com> <20111014171938.GG10001@valkosipuli.localdomain>
+	Thu, 20 Oct 2011 15:24:55 -0400
+Date: Thu, 20 Oct 2011 21:18:37 +0200
+From: Lars Noschinski <lars@public.noschinski.de>
+To: =?iso-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Cc: linux-media@vger.kernel.org
+Subject: Re: pac7311
+Message-ID: <20111020191837.GA14773@lars.home.noschinski.de>
+References: <20111017060334.GA16001@lars.home.noschinski.de>
+ <4E9DDE13.103@freemail.hu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4E9DDE13.103@freemail.hu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+* Németh Márton <nm127@freemail.hu> [11-10-18 22:14]:
+> Hi Lars,
+> 
+> Lars Noschinski wrote:
+> > I'm using a webcam (Philipps SPC500NC) which identifies itself as
+> > 
+> >     093a:2603 Pixart Imaging, Inc. PAC7312 Camera
+> > 
+> > and is sort-of supported by the gspca_pac7311 module. "sort-of" because
+> > the image alternates quickly between having a red tint or a green tint
+> > (using the gspac driver from kernel 3.0.0, but this problem is present
+> > since at least 2.6.31).
+> 
+> The most important source code for your webcam is drivers/media/video/gspca/pac7311.c .
+> You can see it online at http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=drivers/media/video/gspca/pac7311.c .
+> 
+> > If I remove and re-plugin the camera a few times (on average around 3
+> > times), the colors are stable.
+> 
+> When you plug and remove the webcam and the colors are wrong, do you get any
+> message in the "dmesg"?
 
-On 10/14/2011 07:19 PM, Sakari Ailus wrote:
-> On Wed, Oct 12, 2011 at 05:08:20PM +0200, Tomasz Stanislawski wrote:
->> On 10/12/2011 01:48 PM, Sakari Ailus wrote:
->>> Hi Tomasz,
->>>
->>> On Wed, Aug 31, 2011 at 02:28:20PM +0200, Tomasz Stanislawski wrote:
->>> ...
->>>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
->>>> index fca24cc..b7471fe 100644
->>>> --- a/include/linux/videodev2.h
->>>> +++ b/include/linux/videodev2.h
->>>> @@ -738,6 +738,48 @@ struct v4l2_crop {
->>>>   	struct v4l2_rect        c;
->>>>   };
->>>>
->>>> +/* Hints for adjustments of selection rectangle */
->>>> +#define V4L2_SEL_SIZE_GE	0x00000001
->>>> +#define V4L2_SEL_SIZE_LE	0x00000002
->>>
->>> A minor comment. If the patches have not been pulled yet, how about adding
->>> FLAG_ to the flag names? I.e. V4L2_SEL_FLAG_SIZE_GE and
->>> V4L2_SEL_FLAG_SIZE_LE.
+I get the same messages; sometimes the order of the messages output by
+uhci_hcd ehci_hcd differs, but this seems to be unrelated to working/not
+working.
 
-I thought that it may be worth to drop _SEL_. The constraint flags could 
-be reused in future ioctls? I mean S_FRAMESIZES or extensions to control 
-API. What do you think?
+> Once the colors are stable and you unplug and replug the webcam, what happens then?
+> Is there again around 3 times when the webcam is not working properly?
 
->>
->> Hi Sakari,
->>
->> The idea is good. I preferred to avoid using long names if possible.
->> I agree that using _FLAGS_ produce more informative name.
->> I'll fix it in the new version of selection API.
->
-> Hi Tomasz,
->
-> I'd also have the same comment on the selection targets.
-> V4L2_SEL_TGT_CROP_ACTIVE, for example?
+I now did a longer series of unplug&replug: Over the time, status
+"stable colors" seemed to get more probable. After a while, it only
+falls back to alternating colors, when I unplug it for a longer time
+(say 10 seconds). Might be a hardware problem?
 
-It is logical to use _TGT_, it is sad that the names becomes so long :/
+> > Then a second issue becomes apparent:
+> > There is almost no saturation in the image. Toying around with Contrast,
+> > Gamma, Exposure or Gain does not help. What _does_ help is the Vflip
+> > switch: If I enable it, the image is flipped vertically (as expected),
+> > but also the color become a lot better.
+> 
+> Is there any difference when you use the "Mirror" control? What about the
+> combination of the "Vflip" and "Mirror" controls?
 
-Regards,
-Tomasz Stanislawski
+"Vflip" and ("Vflip" and "Mirror") change color; "Mirror" alone does
+not.
 
->
-> What do you think?
->
+> What about the "Auto Gain" setting? Is it enabled or disabled in your case?
 
+Auto Gain is enabled; but colors also change if it is disabled
+> 
+> > Is there something I can do to debug/fix this problem?
+> 
+> You can try testing the webcam with different resolutions. The webcam
+> supports 160x120, 320x240 and 640x480 resolutions based on the source code.
+> You can try the different resolutions for example with "cheese"
+> ( http://projects.gnome.org/cheese/ ) or any of your favorite V4L2 program.
+
+This does not seem to make a difference; except that 160x120 is listed,
+but does not seem to be available. guvcview tells me:
+
+Checking video mode 640x480@32bpp : OK 
+setting new resolution (320 x 240)
+checking format: 859981650
+Checking video mode 320x240@32bpp : OK 
+setting new resolution (160 x 120)
+checking format: 859981650
+Checking video mode 160x120@32bpp : OK 
+ioctl (-1067952623) retried 4 times - giving up: Die Ressource ist zur Zeit nicht verfügbar)
+VIDIOC_DQBUF - Unable to dequeue buffer : Die Ressource ist zur Zeit nicht verfügbar
+Error grabbing image 
+(the last message is then repeated, till i change the resolution)
+
+[Also, since I switched to 160x120, cheese crashes with a segfault,
+without giving me the possibility to switch back and I cannot find the
+config file.]
+
+> You can load the usbmon kernel module and use Wireshark to log the USB communication
+> between your computer and the webcam starting with plug-in. You can compare
+> the communication when the webcam starts to work correctly with the one when
+> the webcam doesn't work as expected.
+
+I'll try to do this later this week.
+
+Greetings,
+  Lars Noschinski
