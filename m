@@ -1,106 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:62444 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754711Ab1JFS4I convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 14:56:08 -0400
-Received: by wyg34 with SMTP id 34so3153779wyg.19
-        for <linux-media@vger.kernel.org>; Thu, 06 Oct 2011 11:56:07 -0700 (PDT)
+Received: from v38276.1blu.de ([88.84.155.223]:46093 "EHLO barth.jannau.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753855Ab1JTQaP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Oct 2011 12:30:15 -0400
+Date: Thu, 20 Oct 2011 18:23:40 +0200
+From: Janne Grunau <janne@jannau.net>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Taylor Ralph <taylor.ralph@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] hdpvr: update picture controls to support
+ firmware versions > 0.15
+Message-ID: <20111020162340.GC7530@jannau.net>
+References: <CAOTqeXouWiYaRkKKO-1iQ5SJEb7RUXJpHdfe9-YeSzwXxdUVfg@mail.gmail.com>
+ <CAGoCfiyCPD-W3xeqD4+AE3xCo-bj05VAy4aHXMNXP7P124ospQ@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4E861163.3000903@redhat.com>
-References: <4E84E010.5020602@gmx.net>
-	<4E84E1A5.3040903@gmx.net>
-	<4E85F769.3040201@redhat.com>
-	<4E860D76.5040605@gmx.net>
-	<4E861163.3000903@redhat.com>
-Date: Fri, 7 Oct 2011 00:26:07 +0530
-Message-ID: <CAHFNz9LGTnGsafhXDJuGDw=VEaOJuoFL+_DoV0vM9-_RuANtPg@mail.gmail.com>
-Subject: Re: [PATCH v2] stb0899: Fix slow and not locking DVB-S transponder(s)
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Lutz Sammer <johns98@gmx.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAGoCfiyCPD-W3xeqD4+AE3xCo-bj05VAy4aHXMNXP7P124ospQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+On Thu, Oct 20, 2011 at 11:30:11AM -0400, Devin Heitmueller wrote:
+> On Thu, Oct 20, 2011 at 11:24 AM, Taylor Ralph <taylor.ralph@gmail.com> wrote:
+> > I've attached a patch that correctly sets the max/min/default values
+> > for the hdpvr picture controls. The reason the current values didn't
+> > cause a problem until now is because any firmware <= 0.15 didn't
+> > support them. The latest firmware releases properly support picture
+> > controls and the values in the patch are derived from the windows
+> > driver using SniffUSB2.0.
+> >
+> > Thanks to Devin Heitmueller for helping me.
+> 
+> What worries me here is the assertion that the controls didn't work at
+> all in previous firmware and driver versions.  Did you downgrade the
+> firmware and see that the controls had no effect when using v4l2-ctl?
+> 
+> Janne, any comment on whether the controls *ever* worked?
 
-comments in-line.
+I've looked at them only at very beginning and if I recall correctly
+they had no visible effects. The values in the linux driver were taken
+from sniffing the windows driver. I remember that I've verified the
+default brightness value since 0x86 looked odd. I'm not sure that I
+verified all controls. I might have assumed all controls shared the
+same value range.
 
-On Sat, Oct 1, 2011 at 12:28 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 30-09-2011 15:41, Lutz Sammer escreveu:
->> On 09/30/11 19:07, Mauro Carvalho Chehab wrote:
->>> Em 29-09-2011 18:22, Lutz Sammer escreveu:
->>>> Another version of
->>>> http://patchwork.linuxtv.org/patch/6307
->>>> http://patchwork.linuxtv.org/patch/6510
->>>> which was superseded or rejected, but I don't know why.
->>>
->>> Probably because of the same reason of this patch [1]:
->>>
->>> patch -p1 -i patches/lmml_8023_v2_stb0899_fix_slow_and_not_locking_dvb_s_transponder_s.patch --dry-run -t -N
->>> patching file drivers/media/dvb/frontends/stb0899_algo.c
->>> Hunk #1 FAILED at 358.
->>> 1 out of 1 hunk FAILED -- saving rejects to file drivers/media/dvb/frontends/stb0899_algo.c.rej
->>>   drivers/media/dvb/frontends/stb0899_algo.c |    1 +
->>>   1 file changed, 1 insertion(+)
->>>
->>> I'll mark this one as rejected, as it doesn't apply upstream[2].
->>>
->>> [1] http://patchwork.linuxtv.org/patch/8023/
->>> [2] at tree/branch: git://linuxtv.org/media_tree.git staging/for_v3.2
->>>
->>> Please test if the changes made upstream to solve a similar trouble fixes your issue.
->>> If not, please rebase your patch on the top of it and resend.
->>>
->>> Thanks,
->>> Mauro
->>>>
->>>> In stb0899_status stb0899_check_data the first read of STB0899_VSTATUS
->>>> could read old (from previous search) status bits and the search fails
->>>> on a good frequency.
->>>>
->>>> With the patch more transponder could be locked and locks about 2* faster.
->
-> Manu,
->
-> Could you please review this one-line patch?
->
->
->>>>
->>>> Signed-off-by: Lutz Sammer<johns98@gmx.net>
->>>> ---
->>>>   drivers/media/dvb/frontends/stb0899_algo.c |    1 +
->>>>   1 files changed, 1 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/drivers/media/dvb/frontends/stb0899_algo.c b/drivers/media/dvb/frontends/stb0899_algo.c
->>>> index d70eee0..8eca419 100644
->>>> --- a/drivers/media/dvb/frontends/stb0899_algo.c
->>>> +++ b/drivers/media/dvb/frontends/stb0899_algo.c
->>>> @@ -358,6 +358,7 @@ static enum stb0899_status stb0899_check_data(struct stb0899_state *state)
->>>>          else
->>>>                  dataTime = 500;
->>>>
->>>> +       stb0899_read_reg(state, STB0899_VSTATUS); /* clear old status bits */
->>>>          stb0899_write_reg(state, STB0899_DSTATUS2, 0x00); /* force search loop */
->>>>          while (1) {
->>>>                  /* WARNING! VIT LOCKED has to be tested before VIT_END_LOOOP   */
->
+There were previous reports of the picture controls not working at all.
 
-Please add in these comments, in case you want to apply the change. I
-am neither for the patch, nor against it.
-
-- In fact, it doesn't hurt to read STATUS just before LOCK test.
-- I wasn't able to find any noticeable difference in LOCK acquisition.
-- Nowhere, I was able to find that reading VSTATUS, clears the
-Read-Only bits set by the onchip microcontroller. The above comment
-could be wrong at least, as far as I can say.
-
-But that said, if the change does really help (thinking of strange
-issues with some Silicon cuts)
-
-Acked-by: Manu Abraham <manu@linuxtv.org>
-
-Regards,
-Manu
+Janne
