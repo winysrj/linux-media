@@ -1,28 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:36036 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751728Ab1JYJJX (ORCPT
+Received: from mail.agetop.goias.gov.br ([201.2.1.244]:57458 "EHLO
+	mail.agetop.goias.gov.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751082Ab1JTUOw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Oct 2011 05:09:23 -0400
-Received: by qabj40 with SMTP id j40so191402qab.19
-        for <linux-media@vger.kernel.org>; Tue, 25 Oct 2011 02:09:22 -0700 (PDT)
+	Thu, 20 Oct 2011 16:14:52 -0400
+Date: Thu, 20 Oct 2011 18:12:10 -0200 (BRST)
+From: "Barrister  Jacque Charles" <liliapereira@agetop.goias.gov.br>
+Reply-To: "Barrister  Jacque Charles" <barjacquec@yahoo.com>
+Subject: Confidential/How are you
+Message-ID: <ef3889ae-9a1f-4d1c-b2af-4a1c09c7b1b5@arabia>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Date: Tue, 25 Oct 2011 10:09:22 +0100
-Message-ID: <CAAMvbhF0GJDxePwhRBmMRQaCH-EN7Cv1AKhgLO99sjdnba+v7A@mail.gmail.com>
-Subject: Display hotplug
-From: James Courtier-Dutton <james.dutton@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-Does anyone know when X will support display hotplug?
-I have a PC connected via HDMI to a TV.
-Unless I turn the TV on first, I have to reboot the PC before it
-displays anything on the HDMI TV.
 
-Kind Regards
 
-James
+Dearest,
+
+
+My name is Barrister Jacque Charles, a personal Attorney to a late client who died in car crash without a will.
+For more information please contact via email: (barcharlesuk@rocketmail.com) upon your response, I shall then provide you with more details and relevant documents that will help you understand this transaction well.
+
+
+Kindest Regards 
+Barrister Jacque Charles,
