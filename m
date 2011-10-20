@@ -1,101 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from outbound-queue-2.mail.thdo.gradwell.net ([212.11.70.35]:37188
-	"EHLO outbound-queue-2.mail.thdo.gradwell.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754605Ab1JFUMQ (ORCPT
+Received: from smarthost.TechFak.Uni-Bielefeld.DE ([129.70.137.17]:50745 "EHLO
+	smarthost.TechFak.Uni-Bielefeld.DE" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932115Ab1JTOiD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Oct 2011 16:12:16 -0400
-Received: from outbound-edge-2.mail.thdo.gradwell.net (bonnie.gradwell.net [212.11.70.2])
-	by outbound-queue-2.mail.thdo.gradwell.net (Postfix) with ESMTP id 5DDC92250B
-	for <linux-media@vger.kernel.org>; Thu,  6 Oct 2011 21:06:42 +0100 (BST)
-Message-ID: <kQmOmyBaqgjOFweZ@echelon.upsilon.org.uk>
-Date: Thu, 6 Oct 2011 21:07:54 +0100
-To: linux-media@vger.kernel.org
-From: dave cunningham <ml@upsilon.org.uk>
-Subject: Re: [PATCH] af9013 frontend tuner bus lock
-References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
- <CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
- <CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
- <4e8b8099.95d1e30a.4bee.0501@mx.google.com>
- <CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
- <CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
- <CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
- <CAL9G6WXX2eGmoT+ozv1F0JQdSV5JPwbB0vn70UL+ghgkLGsYQg@mail.gmail.com>
-In-Reply-To: <CAL9G6WXX2eGmoT+ozv1F0JQdSV5JPwbB0vn70UL+ghgkLGsYQg@mail.gmail.com>
+	Thu, 20 Oct 2011 10:38:03 -0400
+Message-ID: <4EA031FD.7020109@cit-ec.uni-bielefeld.de>
+Date: Thu, 20 Oct 2011 16:36:45 +0200
+From: Stefan Herbrechtsmeier <sherbrec@cit-ec.uni-bielefeld.de>
 MIME-Version: 1.0
-Content-Type: multipart/signed;boundary="=_Turnpike_iwFPeqBUqgjO57uG=";
- protocol="application/pgp-signature";micalg=pgp-sha1
+To: Boris Todorov <boris.st.todorov@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: omap3isp: BT.656 support
+References: <CAFYgh7z4r+oZg4K7Zh6-CTm2Th9RNujOS-b8W_qb-C8q9LRr2w@mail.gmail.com> <4E9EFA47.4010409@cit-ec.uni-bielefeld.de> <CAFYgh7xxCM0=hiU9+bFS+qA447wC4+OkCRxv1eonYMgTH7oeEw@mail.gmail.com> <4E9FE3F4.2040109@cit-ec.uni-bielefeld.de> <CAFYgh7xhHTz9z8kqnmxRO2hBi_L-bnV-zpJESM4iBcZcftR5Eg@mail.gmail.com>
+In-Reply-To: <CAFYgh7xhHTz9z8kqnmxRO2hBi_L-bnV-zpJESM4iBcZcftR5Eg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a PGP signed message sent according to RFC3156 [PGP/MIME]
+Am 20.10.2011 14:14, schrieb Boris Todorov:
+> On Thu, Oct 20, 2011 at 12:03 PM, Stefan Herbrechtsmeier
+> <sherbrec@cit-ec.uni-bielefeld.de> wrote:
+>> Am 20.10.2011 08:56, schrieb Boris Todorov:
+>>> On Wed, Oct 19, 2011 at 7:26 PM, Stefan Herbrechtsmeier
+>>> <sherbrec@cit-ec.uni-bielefeld.de> wrote:
+>>>> Am 18.10.2011 15:33, schrieb Boris Todorov:
+>>>>> Hi
+>>>>>
+>>>>> I'm trying to run OMAP + TVP5151 in BT656 mode.
+>>>>>
+>>>>> I'm using omap3isp-omap3isp-yuv (git.linuxtv.org/pinchartl/media.git).
+>>>>> Plus the following patches:
+>>>>>
+>>>>> TVP5151:
+>>>>> https://github.com/ebutera/meta-igep/tree/testing-v2/recipes-kernel/linux/linux-3.0+3.1rc/tvp5150
+>>>>>
+>>>>> The latest RFC patches for BT656 support:
+>>>>>
+>>>>> Enrico Butera (2):
+>>>>>   omap3isp: ispvideo: export isp_video_mbus_to_pix
+>>>>>   omap3isp: ispccdc: configure CCDC registers and add BT656 support
+>>>>>
+>>>>> Javier Martinez Canillas (1):
+>>>>>   omap3isp: ccdc: Add interlaced field mode to platform data
+>>>>>
+>>>>>
+>>>>> I'm able to configure with media-ctl:
+>>>>>
+>>>>> media-ctl -v -r -l '"tvp5150 3-005c":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+>>>>> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+>>>>> media-ctl -v --set-format '"tvp5150 3-005c":0 [UYVY2X8 720x525]'
+>>>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x525]'
+>>>>> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x525]'
+>>>>>
+>>>>> But
+>>>>> ./yavta -f UYVY -s 720x525 -n 4 --capture=4 -F /dev/video4
+>>>>>
+>>>>> sleeps after
+>>>>> ...
+>>>>> Buffer 1 mapped at address 0x4021d000.
+>>>>> length: 756000 offset: 1515520
+>>>>> Buffer 2 mapped at address 0x402d6000.
+>>>>> length: 756000 offset: 2273280
+>>>>> Buffer 3 mapped at address 0x4038f000.
+>>>>>
+>>>>> Anyone with the same issue??? This happens with every other v4l test app I used.
+>>>> I had the same issue.
+>>>>
+>>>> Make sure that you disable the xclk when you remove your sensor driver.
+>>>>
+>>>> isp->platform_cb.set_xclk(isp, 0, ISP_XCLK_A)
+>>> How exactly did you solved your problem? I don't see how XCLK in
+>>> _remove will help. Pls explain.
+>> Sorry, I mean deactive / power off your sensor.
+>>> Btw I'm feeding TVP with external clock (not from xtal pins) -
+>>> omap.cam_xclk -> tvp.clk_in
+>> I mean the cam_xclk.
+>>> And I'm using kind of hack to get it:
+>>> isp_probe()
+>>> + isp_set_xclk(isp, 27000000, 1);
+>> This is your problem.
+>>
+>> You should control the clock via board / platform callback from your driver.
+>> Example:
+>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg56627.html
+>>
+>> It is important that you set the clock to zero when your driver is not
+>> in use.
+>>
+>> The problem is connected to the use count of the ISP and some
+>> initialisation which only happen when the counter change between zero
+>> and one.
+>>
+> tvp_probe() needs clock for i2c detected/config. tvp5150_s_power call
+> happens when video starts streaming and if tvp is not configured ->
+> kernel panic.
+I use an other sensor and driver and this config the sensor during start
+stream.
+> And what about the case when TVP is used with OSC on XTAL pins and
+> CLK_IN is not used at all?
+Then your system will work, as you never call isp_set_xclk.
 
---=_Turnpike_iwFPeqBUqgjO57uG=
-Content-Type: text/plain;charset=us-ascii;format=flowed
-Content-Transfer-Encoding: quoted-printable
+The problem is not the clock, but how the isp driver works.
+It expects, that the sensor driver disable the cam_xclk, if the sensor
+is not used.
+> Maybe I don't fully understand what is happening...
+> or isp_set_xclk() use is messing up with ISP
+On my system I have the same issues as you if I don't set the cam_xclk
+to zero
+during stop streaming.
 
-In message=20
-<CAL9G6WXX2eGmoT+ozv1F0JQdSV5JPwbB0vn70UL+ghgkLGsYQg@mail.gmail.com>,=20
-Josu Lazkano wrote
+I haven't investigate in the real cause for the issue. I only released,
+that this
+issue stick together with an always enabled cam_xclk.
 
-<snip>
->
->I get this I2C messages:
->
-># tail -f /var/log/messages
->Oct  5 20:16:44 htpc kernel: [  534.168957] af9013: I2C read failed reg:d3=
-30
->Oct  5 20:16:49 htpc kernel: [  538.626152] af9013: I2C read failed reg:d3=
-30
->Oct  5 21:22:15 htpc kernel: [ 4464.930734] af9013: I2C write failed
->reg:d2e2 len:1
->Oct  5 21:40:46 htpc kernel: [ 5576.241897] af9013: I2C read failed reg:d2=
-e6
->Oct  5 23:07:33 htpc kernel: [10782.852522] af9013: I2C read failed reg:d2=
-e6
->Oct  5 23:20:11 htpc kernel: [11540.824515] af9013: I2C read failed reg:d0=
-7c
->Oct  6 00:11:41 htpc kernel: [14631.122384] af9013: I2C read failed reg:d2=
-e6
->Oct  6 00:26:13 htpc kernel: [15502.900549] af9013: I2C read failed reg:d2=
-e6
->Oct  6 00:39:58 htpc kernel: [16328.273015] af9013: I2C read failed reg:d3=
-30
->
+Regards,
+    Stefan
 
-I have two af9013 sticks in my mythtv backend. One is a KWorld 399U, the=20
-other a single tuner Tevion stick.
-
-When I originally setup this system I had major problems with these=20
-sticks and also a pair of Freecom WT-220U (which worked perfectly in an=20
-older system - I've since disposed of these).
-
-I was seeing I2C read fails similar to the above.
-
-The system in question has an AMD760G southbridge.
-
-After a lot of googling I came across a post somewhere which said that=20
-the USB host controller on the 760G is problematic and suggested getting=20
-a NEC or VIA hub and using this between the DVB sticks and the root hub.
-
-I bought a cheap hub with an NEC chip on and since then (6 months maybe)=20
-I've had no problems with the system. Having said this I probably don't=20
-use all three frontends that often (I also have a DVB-S card and this=20
-takes precedence) though I certainly have on occasion and don't recall=20
-any problems.
-
---=20
-Dave Cunningham                                  PGP KEY ID: 0xA78636DC
-
---=_Turnpike_iwFPeqBUqgjO57uG=
-Content-Type: application/pgp-signature
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: PGPsdk 2.1.1
-
-iQA/AwUATo4KlCuVAX6nhjbcEQKyBACginLeBiHz/o33zY/3IBBIlUo3ouUAoM4v
-ZaE6HQdL7mI4HUdEvdNH4nTz
-=h8DZ
------END PGP SIGNATURE-----
-
---=_Turnpike_iwFPeqBUqgjO57uG=--
