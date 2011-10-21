@@ -1,132 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:55458 "EHLO
-	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752001Ab1JCWA4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Oct 2011 18:00:56 -0400
-From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
-To: "'Issa Gorissen'" <flop.m@usa.net>, <o.endriss@gmx.de>
-Cc: "'Linux Media Mailing List'" <linux-media@vger.kernel.org>
-References: <533PJcN7P6848S01.1317650355@web01.cms.usa.net> <006f01cc81db$2dfdf220$89f9d660$@coexsi.fr>
-In-Reply-To: <006f01cc81db$2dfdf220$89f9d660$@coexsi.fr>
-Subject: RE: [DVB] CXD2099 - Question about the CAM clock
-Date: Tue, 4 Oct 2011 00:00:53 +0200
-Message-ID: <008301cc8217$ec0ff830$c42fe890$@coexsi.fr>
+Received: from gir.skynet.ie ([193.1.99.77]:46479 "EHLO gir.skynet.ie"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752067Ab1JUKG2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Oct 2011 06:06:28 -0400
+Date: Fri, 21 Oct 2011 12:06:24 +0200
+From: Mel Gorman <mel@csn.ul.ie>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: Re: [PATCH 2/9] mm: alloc_contig_freed_pages() added
+Message-ID: <20111021100624.GB4029@csn.ul.ie>
+References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
+ <1317909290-29832-3-git-send-email-m.szyprowski@samsung.com>
+ <20111018122109.GB6660@csn.ul.ie>
+ <op.v3j5ent03l0zgt@mpn-glaptop>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Language: fr
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <op.v3j5ent03l0zgt@mpn-glaptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Sébastien RAILLARD (COEXSI)
-> Sent: lundi 3 octobre 2011 16:46
-> To: 'Issa Gorissen'; o.endriss@gmx.de
-> Cc: 'Linux Media Mailing List'
-> Subject: RE: [DVB] CXD2099 - Question about the CAM clock
+On Tue, Oct 18, 2011 at 10:26:37AM -0700, Michal Nazarewicz wrote:
+> On Tue, 18 Oct 2011 05:21:09 -0700, Mel Gorman <mel@csn.ul.ie> wrote:
 > 
-> 
-> 
-> > -----Original Message-----
-> > From: Issa Gorissen [mailto:flop.m@usa.net]
-> > Sent: lundi 3 octobre 2011 15:59
-> > To: o.endriss@gmx.de; Sébastien RAILLARD
-> > Cc: 'Linux Media Mailing List'
-> > Subject: RE: [DVB] CXD2099 - Question about the CAM clock
+> >At this point, I'm going to apologise for not reviewing this a long long
+> >time ago.
 > >
-> > > >
-> > > > > Dear Oliver,
-> > > > >
-> > > > > I’ve done some tests with the CAM reader from Digital Devices
-> > > > > based on
-> > > > Sony
-> > > > > CXD2099 chip and I noticed some issues with some CAM:
-> > > > > * SMIT CAM    : working fine
-> > > > > * ASTON CAM   : working fine, except that it's crashing quite
-> > > > regularly
-> > > > > * NEOTION CAM : no stream going out but access to the CAM menu
-> > > > > is ok
-> > > > >
-> > > > > When looking at the CXD2099 driver code, I noticed the CAM clock
-> > > > > (fMCLKI)
-> > > > is
-> > > > > fixed at 9MHz using the 27MHz onboard oscillator and using the
-> > > > > integer divider set to 3 (as MCLKI_FREQ=2).
-> > > > >
-> > > > > I was wondering if some CAM were not able to work correctly at
-> > > > > such high clock frequency.
-> > > > >
-> > > > > So, I've tried to enable the NCO (numeric controlled oscillator)
-> > > > > in order
-> > > > to
-> > > > > setup a lower frequency for the CAM clock, but I wasn't
-> > > > > successful, it's looking like the frequency must be around the
-> > > > > 9MHz or I can't get any stream.
-> > > > >
-> > > > > Do you know a way to decrease this CAM clock frequency to do
-> > > > > some
-> > > > testing?
-> > > > >
-> > > > > Best regards,
-> > > > > Sebastien.
-> > > >
-> > > > Weird that the frequency would pose a problem for those CAMs. The
-> > > > CI spec [1] explains that the minimum byte transfer clock period
-> > > > must be 111ns. This gives us a frequency of ~9MHz.
-> > > >
-> > >
-> > > You're totally right about the maximum clock frequency specified in
-> > > the norm, but I had confirmation from CAM manufacturers that their
-> > > CAM may not work correctly up to this maximum frequency.
-> > >
-> > > Usually, the CAM clock is coming from the input TS stream and I
-> > > don't think there is for now a DVB-S2 transponder having a 72mbps
-> > > bitrate (so a 9MHz
-> > for
-> > > parallel CAM clocking).
-> > >
-> > > > Anyway, wouldn't it be wiser to base MCLKI on TICLK ?
-> > > >
-> > >
-> > > I've tried to use mode C instead of mode D, and I have the same
-> > > problem, so I guess TICLK is around 72MHz.
-> > >
-> > > It could be a good idea to use TICLK, but I don't know the value and
-> > > if the clock is constant or only active during data transmission.
-> > >
-> > >
-> > > Did you manage to enable and use the NCO of the CXD2099 (instead of
-> > > the integer divider) ?
+> >On Thu, Oct 06, 2011 at 03:54:42PM +0200, Marek Szyprowski wrote:
+> >>From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+> >>
+> >>This commit introduces alloc_contig_freed_pages() function
+> >>which allocates (ie. removes from buddy system) free pages
+> >>in range. Caller has to guarantee that all pages in range
+> >>are in buddy system.
+> >>
 > >
-> > No, but if your output to the CAM is slower than what comes from the
-> > ngene chip, you will lose bytes, no ?
+> >Straight away, I'm wondering why you didn't use
+> >
+> >mm/compaction.c#isolate_freepages()
+> >
+> >It knows how to isolate pages within ranges. All its control information
+> >is passed via struct compact_control() which I recognise may be awkward
+> >for CMA but compaction.c know how to manage all the isolated pages and
+> >pass them to migrate.c appropriately.
 > 
-> The real bandwidth of my transponder is 62mbps, so I've room to decrease
-> the CAM clock.
-> 
-> I did more tests with the NCO, and I've strange results:
-> * Using MCLKI=0x5553 => fMCLKI= 8,99903 => Not working, a lot of TS
-> errors
-> * Using MCLKI=0x5554 => fMCLKI= 8,99945 => Working fine
-> * Using MCLKI=0x5555 => fMCLKI= 8,99986 => Not working, a lot of TS
-> errors
-> 
-> It's strange that changing very slightly the clock make so much errors!
+> It is something to consider.  At first glance, I see that isolate_freepages
+> seem to operate on pageblocks which is not desired for CMA.
 > 
 
-I managed to find a series of values that are working correctly for MCLKI:
+isolate_freepages_block operates on a range of pages that happens to be
+hard-coded to be a pageblock because that was the requirements. It calculates
+end_pfn and it is possible to make that a function parameter.
 
-MCLKI = 0x5554 - i * 0x0c
-
-In my case I can go down to 0x5338 before having TS errors.
-
+> >I haven't read all the patches yet but isolate_freepages() does break
+> >everything up into order-0 pages. This may not be to your liking but it
+> >would not be possible to change.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in the body of a message to majordomo@vger.kernel.org More majordomo
-> info at  http://vger.kernel.org/majordomo-info.html
+> Splitting everything into order-0 pages is desired behaviour.
+> 
 
+Great.
+
+> >>Along with this function, a free_contig_pages() function is
+> >>provided which frees all (or a subset of) pages allocated
+> >>with alloc_contig_free_pages().
+> 
+> >mm/compaction.c#release_freepages()
+> 
+> It sort of does the same thing but release_freepages() assumes that pages
+> that are being freed are not-continuous and they need to be on the lru list.
+> With free_contig_pages(), we can assume all pages are continuous.
+> 
+
+Ok, I jumped the gun here. release_freepages() may not be a perfect fit.
+release_freepages() is also used when finishing compaction where as it
+is a real free function that is required here.
+
+> >You can do this in a more general fashion by checking the
+> >zone boundaries and resolving the pfn->page every MAX_ORDER_NR_PAGES.
+> >That will not be SPARSEMEM specific.
+> 
+> I've tried doing stuff that way but it ended up with much more code.
+> 
+> Dave suggested the above function to check if pointer arithmetic is valid.
+> 
+> Please see also <https://lkml.org/lkml/2011/9/21/220>.
+> 
+
+Ok, I'm still not fully convinced but I confess I'm not thinking about this
+particular function too deeply because I am expecting the problem would
+go away if compaction and CMA shared common code for freeing contiguous
+regions via page migration.
+
+> >> <SNIP>
+> >>+		if (zone_pfn_same_memmap(pfn - count, pfn))
+> >>+			page += count;
+> >>+		else
+> >>+			page = pfn_to_page(pfn);
+> >>+	}
+> >>+
+> >>+	spin_unlock_irq(&zone->lock);
+> >>+
+> >>+	/* After this, pages in the range can be freed one be one */
+> >>+	count = pfn - start;
+> >>+	pfn = start;
+> >>+	for (page = pfn_to_page(pfn); count; --count) {
+> >>+		prep_new_page(page, 0, flag);
+> >>+		++pfn;
+> >>+		if (likely(zone_pfn_same_memmap(pfn - 1, pfn)))
+> >>+			++page;
+> >>+		else
+> >>+			page = pfn_to_page(pfn);
+> >>+	}
+> >>+
+> >
+> >Here it looks like you have implemented something like split_free_page().
+> 
+> split_free_page() takes a single page, removes it from buddy system, and finally
+> splits it. 
+
+I'm referring to just this chunk.
+
+split_free_page takes a page, checks the watermarks and performs similar
+operations to prep_new_page(). There should be no need to introduce a
+new similar function. split_free_page() does affect hte pageblock
+migratetype and that is undesirable but that part could be taken out and
+moved to compaction.c if necessary.
+
+On the watermarks thing, CMA does not pay much attention to them. I have
+a strong feeling that it is easy to deadlock a system by using CMA while
+under memory pressure. Compaction had the same problem early in its
+development FWIW. This is partially why I'd prefer to see CMA and
+compaction sharing as much code as possible because compaction gets
+continual testing.
+
+-- 
+Mel Gorman
+SUSE Labs
