@@ -1,156 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:42161 "EHLO
-	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759174Ab1JFVVR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 17:21:17 -0400
-From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
-To: "'Manu Abraham'" <abraham.manu@gmail.com>,
-	"'Mauro Carvalho Chehab'" <mchehab@redhat.com>
-Cc: "'Lutz Sammer'" <johns98@gmx.net>, <linux-media@vger.kernel.org>
-References: <4DA63A66.1070300@gmx.net>	<4DC08CB8.3020105@redhat.com>	<4DC13823.7000700@gmx.net>	<4E7A1481.1090205@redhat.com> <CAHFNz9K3kAVeH=um-9yts4UkehUf9x=-C_3pfdhR5c4qZ4euvw@mail.gmail.com>
-In-Reply-To: <CAHFNz9K3kAVeH=um-9yts4UkehUf9x=-C_3pfdhR5c4qZ4euvw@mail.gmail.com>
-Subject: RE: TT-budget S2-3200 cannot tune on HB13E DVBS2 transponder
-Date: Thu, 6 Oct 2011 23:21:16 +0200
-Message-ID: <014e01cc846d$e309e540$a91dafc0$@coexsi.fr>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Language: fr
+Received: from mailout1.samsung.com ([203.254.224.24]:40274 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752841Ab1JUHfq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Oct 2011 03:35:46 -0400
+Received: from epcpsbgm2.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LTE00IQUNRJCHP0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 21 Oct 2011 16:35:43 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp2.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTPA id <0LTE0023ENRJDQG0@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 21 Oct 2011 16:35:43 +0900 (KST)
+From: "HeungJun, Kim" <riverful.kim@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: "HeungJun, Kim" <riverful.kim@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 5/5] m5mols: Relocation the order and count for CAPTURE
+ interrupt
+Date: Fri, 21 Oct 2011 16:35:54 +0900
+Message-id: <1319182554-10645-5-git-send-email-riverful.kim@samsung.com>
+In-reply-to: <1319182554-10645-1-git-send-email-riverful.kim@samsung.com>
+References: <1319182554-10645-1-git-send-email-riverful.kim@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The double enabling CAPTURE interrupt is not needed in m5mols_start_capture(),
+so remove these, and add one at the only booting time once. Also, fix the order
+of CAPTURE sequence to the right way.
 
+Signed-off-by: HeungJun, Kim <riverful.kim@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/m5mols/m5mols_capture.c |   37 ++++++++------------------
+ drivers/media/video/m5mols/m5mols_core.c    |    4 ++-
+ 2 files changed, 15 insertions(+), 26 deletions(-)
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Manu Abraham
-> Sent: mercredi 21 septembre 2011 19:53
-> To: Mauro Carvalho Chehab
-> Cc: Lutz Sammer; linux-media@vger.kernel.org
-> Subject: Re: TT-budget S2-3200 cannot tune on HB13E DVBS2 transponder
-> 
-> Mauro,
-> 
-> On Wed, Sep 21, 2011 at 10:14 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
-> > Em 04-05-2011 08:27, Lutz Sammer escreveu:
-> >> On 05/04/11 01:16, Mauro Carvalho Chehab wrote:
-> >>> Em 13-04-2011 21:05, Lutz Sammer escreveu:
-> >>>>> On 05/04/11 21:07, Steffen Barszus wrote:
-> >>>>>> On Tue, 05 Apr 2011 13:00:14 +0200 "Issa Gorissen"
-> >>>>>> <flop.m@xxxxxxx> wrote:
-> >>>>>>
-> >>>>>>> Hi,
-> >>>>>>>
-> >>>>>>> Eutelsat made a recent migration from DVB-S to DVB-S2 (since
-> >>>>>>> 31/3/2011) on two transponders on HB13E
-> >>>>>>>
-> >>>>>>> - HOT BIRD 6 13° Est TP 159 Freq 11,681 Ghz DVB-S2 FEC 3/4 27500
-> >>>>>>> Msymb/s 0.2 Pilot off Polar H
-> >>>>>>>
-> >>>>>>> - HOT BIRD 9 13° Est TP 99 Freq 12,692 Ghz DVB-S2 FEC 3/4 27500
-> >>>>>>> Msymb/s 0.2 Pilot off Polar H
-> >>>>>>>
-> >>>>>>>
-> >>>>>>> Before those changes, with my TT S2 3200, I was able to watch TV
-> >>>>>>> on those transponders. Now, I cannot even tune on those
-> >>>>>>> transponders. I have tried with scan-s2 and w_scan and the
-> latest drivers from git.
-> >>>>>>> They both find the transponders but cannot tune onto it.
-> >>>>>>>
-> >>>>>>> Something noteworthy is that my other card, a DuoFlex S2 can
-> >>>>>>> tune fine on those transponders.
-> >>>>>>>
-> >>>>>>> My question is; can someone try this as well with a TT S2 3200
-> >>>>>>> and post the results ?
-> >>>>>> i read something about it lately here (german!):
-> >>>>>> http://www.vdr-portal.de/board16-video-disk-recorder/board85-hdtv
-> >>>>>> -dvb-s2/p977938-stb0899-fec-3-4-tester-gesucht/#post977938
-> >>>>>>
-> >>>>>> It says in stb0899_drv.c function:
-> >>>>>> static void stb0899_set_iterations(struct stb0899_state *state)
-> >>>>>>
-> >>>>>> This:
-> >>>>>> reg = STB0899_READ_S2REG(STB0899_S2DEMOD, MAX_ITER);
-> >>>>>> STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
-> >>>>>> stb0899_write_s2reg(state, STB0899_S2DEMOD,
-> >>>>>> STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
-> >>>>>>
-> >>>>>> should be replaced with this:
-> >>>>>>
-> >>>>>> reg = STB0899_READ_S2REG(STB0899_S2FEC, MAX_ITER);
-> >>>>>> STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
-> >>>>>> stb0899_write_s2reg(state, STB0899_S2FEC, STB0899_BASE_MAX_ITER,
-> >>>>>> STB0899_OFF0_MAX_ITER, reg);
-> >>>>>>
-> >>>>>> Basically replace STB0899_S2DEMOD with STB0899_S2FEC in this 2
-> >>>>>> lines affected.
-> >>>>>>
-> >>>>>> Kind Regards
-> >>>>>>
-> >>>>>> Steffen
-> >>>>> Hi Steffen,
-> >>>>>
-> >>>>> Unfortunately, it does not help in my case. Thx anyway.
-> >>>>
-> >>>> Try my locking fix. With above patch I can lock the channels
-> >>>> without problem.
-> >>>
-> >>> Can someone confirm that such patch would fix the issue? If so,
-> >>> please forward it in a way that it could be applied (patch is
-> >>> currently line-wrapped), and submit with some comments/description
-> and your SOB.
-> >>>
-> >>> As the patch is currently broken, I'm just marking it as rejected at
-> patchwork.
-> >>>
-> >>> Manu,
-> >>>
-> >>> Please take a look on this trouble report.
-> >>>
-> >>
-> >> Sorry, the things are mixed here. My patch (resend and hopefully this
-> >> time not broken) handles only DVB-S transponders.
-> >>
-> >> The FEC fix patch fixed locking on 11,681 Ghz, but not on 12,692 Ghz
-> >> for me.  But I have very weak receiption,
-> >>
-
-We did a lot of experiments with this card and these 2 transponders, and
-here is what you need:
-* The dish must be perfectly oriented
-* Check carefully the X-pol (LNB rotation)
-* Be careful that all the LNB are not equal: we managed to get good results
-with some LNBs and never manage to have reception with other models of LNB
-* It seems that the DVB-S2 demodulator (that is quite old now) in this card
-is very sensitive to bad signals and maybe sensitive to cross polarization
-more than other demodulators.
-
-So make a short answer: to correct the issues with these specifics
-transponders and this card, we first do a fine dish/LND orientation and then
-change the LNB, usually, it's enough. Specific measurement tool is needed to
-make good work.
-
-Finally, it isn't that much a driver problem in my opinion.
-
-> >> Johns
-> >
-> > Manu,
-> >
-> > We're still missing your review on this patch[1], or it were
-> > eventually missed. Please review it.
-> >
-> > Thanks,
-> > Mauro
-> >
-> > [1] http://patchwork.linuxtv.org/patch/6511/
-> >
-> 
-> Patch is good and correct. Thanks.
-> Reviewed-by: Manu Abraham <manu@linuxtv.org>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in the body of a message to majordomo@vger.kernel.org More majordomo
-> info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/video/m5mols/m5mols_capture.c b/drivers/media/video/m5mols/m5mols_capture.c
+index 18a56bf..5bb0f96 100644
+--- a/drivers/media/video/m5mols/m5mols_capture.c
++++ b/drivers/media/video/m5mols/m5mols_capture.c
+@@ -108,51 +108,38 @@ int m5mols_start_capture(struct m5mols_info *info)
+ 	int ret;
+ 
+ 	/*
+-	 * Preparing capture. Setting control & interrupt before entering
+-	 * capture mode
+-	 *
+-	 * 1) change to MONITOR mode for operating control & interrupt
+-	 * 2) set controls (considering v4l2_control value & lock 3A)
+-	 * 3) set interrupt
+-	 * 4) change to CAPTURE mode
++	 * CAPTURE - capture using ISP in the various sized and formats
++	 * (JPEG/RAW-BAYER/YUV422 for recording). As soon as changing to
++	 * CAPTURE mode, the CAPTURE is started. And until desired jiffies,
++	 * wait interrupt.
+ 	 */
+ 	ret = m5mols_mode(info, REG_MONITOR);
+ 	if (!ret)
+ 		ret = m5mols_sync_controls(info);
+ 	if (!ret)
+-		ret = m5mols_lock_3a(info, true);
++		ret = m5mols_write(sd, CAPP_YUVOUT_MAIN, REG_JPEG);
++	if (!ret)
++		ret = m5mols_write(sd, CAPP_MAIN_IMAGE_SIZE, resolution);
+ 	if (!ret)
+-		ret = m5mols_enable_interrupt(sd, REG_INT_CAPTURE);
++		ret = m5mols_lock_3a(info, true);
+ 	if (!ret)
+ 		ret = m5mols_mode(info, REG_CAPTURE);
+ 	if (!ret)
+-		/* Wait for capture interrupt, after changing capture mode */
+ 		ret = m5mols_timeout_interrupt(sd, REG_INT_CAPTURE, 2000);
+ 	if (!ret)
+ 		ret = m5mols_lock_3a(info, false);
+ 	if (ret)
+ 		return ret;
++
+ 	/*
+-	 * Starting capture. Setting capture frame count and resolution and
+-	 * the format(available format: JPEG, Bayer RAW, YUV).
+-	 *
+-	 * 1) select single or multi(enable to 25), format, size
+-	 * 2) set interrupt
+-	 * 3) start capture(for main image, now)
+-	 * 4) get information
+-	 * 5) notify file size to v4l2 device(e.g, to s5p-fimc v4l2 device)
++	 * TRANSFER - transfer captured image and information. As soon as
++	 * sending CAPC_START commands, the TRANSFER is started. And until
++	 * desired jiffies, wait interrupt.
+ 	 */
+ 	ret = m5mols_write(sd, CAPC_SEL_FRAME, 1);
+ 	if (!ret)
+-		ret = m5mols_write(sd, CAPP_YUVOUT_MAIN, REG_JPEG);
+-	if (!ret)
+-		ret = m5mols_write(sd, CAPP_MAIN_IMAGE_SIZE, resolution);
+-	if (!ret)
+-		ret = m5mols_enable_interrupt(sd, REG_INT_CAPTURE);
+-	if (!ret)
+ 		ret = m5mols_write(sd, CAPC_START, REG_CAP_START_MAIN);
+ 	if (!ret) {
+-		/* Wait for the capture completion interrupt */
+ 		ret = m5mols_timeout_interrupt(sd, REG_INT_CAPTURE, 2000);
+ 		if (!ret) {
+ 			ret = m5mols_capture_info(info);
+diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
+index 0aae868..09bb258 100644
+--- a/drivers/media/video/m5mols/m5mols_core.c
++++ b/drivers/media/video/m5mols/m5mols_core.c
+@@ -806,9 +806,11 @@ static int m5mols_sensor_armboot(struct v4l2_subdev *sd)
+ 
+ 	v4l2_dbg(1, m5mols_debug, sd, "Success ARM Booting\n");
+ 
++	/* Initialize general setting for M-5MOLS */
+ 	ret = m5mols_write(sd, PARM_INTERFACE, REG_INTERFACE_MIPI);
+ 	if (!ret)
+-		ret = m5mols_enable_interrupt(sd, REG_INT_AF);
++		ret = m5mols_enable_interrupt(sd,
++				REG_INT_AF | REG_INT_CAPTURE);
+ 
+ 	return ret;
+ }
+-- 
+1.7.4.1
 
