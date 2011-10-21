@@ -1,83 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:40208 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754104Ab1JJORr (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:40274 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753367Ab1JUHfp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Oct 2011 10:17:47 -0400
-Received: by yxl31 with SMTP id 31so5385801yxl.19
-        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2011 07:17:47 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CA+2YH7s6rhLsyJTdWwQVUCd2WBWiH2saSaZZw0tysRWsXw-6Cg@mail.gmail.com>
-References: <CA+2YH7t+cHNoV_oNF6cOyTjr+OFbWAAoKCujFwfNHjvijoD8pw@mail.gmail.com>
-	<CA+2YH7tv-VVnsoKe+C3es==hmKZw771YvVNL=_wwN=hz7JSKSQ@mail.gmail.com>
-	<CAAwP0s0qUvCn+L+tx4NppZknNJ=6aMD5e8E+bLerTnBLLyGL8A@mail.gmail.com>
-	<201110081751.38953.laurent.pinchart@ideasonboard.com>
-	<CAAwP0s3K8D7-LyVUmbj1tMjU6UPESJPxWJu43P2THz4fDSF41A@mail.gmail.com>
-	<CA+2YH7vat9iSAuZ4ztDvvo4Od+b4tCOsK6Y+grTE05YUZZEYPQ@mail.gmail.com>
-	<CAAwP0s3NFvvUYd-0kwKLKXfYB4Zx1nXb0nd9+JM61JWtrVFfRg@mail.gmail.com>
-	<CA+2YH7uFeHAmEpVqbd94qtCajb45pkr9YzeW+RDa5sf2bUG_wQ@mail.gmail.com>
-	<CAAwP0s3GJ7-By=q_ADa6qcpaENK5kXvkTG8Hd=Y+qXs9dgXa0w@mail.gmail.com>
-	<CA+2YH7subMzFAg7f7-uHXEmYBD+Kd1=E2nWKx7dgKCEpOu=zgQ@mail.gmail.com>
-	<CA+2YH7ti4xz9zNby6O=3ZOKAB9=1hnYZr9cM8HSMrj0r4zi1=A@mail.gmail.com>
-	<CAAwP0s3ZqDpMsF7mYYtM7twomREZTyO-uDhGPnfNsQcOTXQ_fw@mail.gmail.com>
-	<CA+2YH7s6rhLsyJTdWwQVUCd2WBWiH2saSaZZw0tysRWsXw-6Cg@mail.gmail.com>
-Date: Mon, 10 Oct 2011 16:17:47 +0200
-Message-ID: <CA+2YH7tdMHNpJGyOhVJnR4UN5ZwCcspD0Nnj8xCvUs7RaERb_w@mail.gmail.com>
-Subject: Re: omap3-isp status
-From: Enrico <ebutera@users.berlios.de>
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Deepthy Ravi <deepthy.ravi@ti.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Adam Pledger <a.pledger@thermoteknix.com>,
-	linux-media@vger.kernel.org,
-	Enric Balletbo i Serra <eballetbo@iseebcn.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 21 Oct 2011 03:35:45 -0400
+Received: from epcpsbgm2.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LTE00IQUNRJCHP0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 21 Oct 2011 16:35:43 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp2.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTPA id <0LTE0023BNRJDQG0@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 21 Oct 2011 16:35:43 +0900 (KST)
+From: "HeungJun, Kim" <riverful.kim@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: "HeungJun, Kim" <riverful.kim@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 4/5] m5mols: Add boot flag for not showing the msg of I2C error
+Date: Fri, 21 Oct 2011 16:35:53 +0900
+Message-id: <1319182554-10645-4-git-send-email-riverful.kim@samsung.com>
+In-reply-to: <1319182554-10645-1-git-send-email-riverful.kim@samsung.com>
+References: <1319182554-10645-1-git-send-email-riverful.kim@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 10, 2011 at 2:46 PM, Enrico <ebutera@users.berlios.de> wrote:
-> On Mon, Oct 10, 2011 at 12:33 PM, Javier Martinez Canillas
-> <martinez.javier@gmail.com> wrote:
->> On Mon, Oct 10, 2011 at 12:07 PM, Enrico <ebutera@users.berlios.de> wrote:
->>> On Mon, Oct 10, 2011 at 12:06 PM, Enrico <ebutera@users.berlios.de> wrote:
->>>> I have updated my igep openembedded layer at [1] (testing branch) with:
->>>
->>> Ops, forgot [1] !
->>>
->>> [1]: https://github.com/ebutera/meta-igep
->>>
->>> Enrico
->>>
->>
->> Perfect, thank you Enrico. I will try this latter today and let you
->> know. I'm sure I can get this working (with the ghosting effect of
->> course) so you can at least obtain 25 fps and once I have this working
->> I will resend the patch-set as v3 so Laurent can review it and
->> hopefully help us to fix the artifact on the video.
->
-> Yes it must be something simple but not easy to spot.
->
-> And to add even more confusion i've attached two patches: one is a
-> port of two Deepthy patches, the other one just a board fix.
->
-> Just replace patches 0017-18-19 with the attached 0001 patch, and
-> after patch 0025 apply the attached 0002 patch.
->
-> With these i can succesfully grab frames with yavta BUT i only get
-> half-height frames. Disclaimer: i just made the patch monkey and gave
-> it a run without a review so it could be anything.
+In M-5MOLS sensor, the I2C error can be occured before sensor booting done,
+becase I2C interface is not stabilized although the sensor have done already
+for booting, so the right value is deliver through I2C interface. In case,
+it needs to make the I2C error msg not to be printed.
 
-My bad, i forgot a part about config_outlineoffset (ODDEVEN...), i
-still have (different) half-green images though...
+Signed-off-by: HeungJun, Kim <riverful.kim@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/m5mols/m5mols.h      |    2 ++
+ drivers/media/video/m5mols/m5mols_core.c |   17 +++++++++++++----
+ 2 files changed, 15 insertions(+), 4 deletions(-)
 
-Side note: while making some tests i can confirm that the solution
-adopted in Deepthy patches:
+diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
+index 75f7984..0d7e202 100644
+--- a/drivers/media/video/m5mols/m5mols.h
++++ b/drivers/media/video/m5mols/m5mols.h
+@@ -175,6 +175,7 @@ struct m5mols_version {
+  * @ver: information of the version
+  * @cap: the capture mode attributes
+  * @power: current sensor's power status
++ * @boot: "true" means the M-5MOLS sensor done ARM Booting
+  * @ctrl_sync: true means all controls of the sensor are initialized
+  * @int_capture: true means the capture interrupt is issued once
+  * @lock_ae: true means the Auto Exposure is locked
+@@ -210,6 +211,7 @@ struct m5mols_info {
+ 	struct m5mols_version ver;
+ 	struct m5mols_capture cap;
+ 	bool power;
++	bool boot;
+ 	bool issue;
+ 	bool ctrl_sync;
+ 	bool lock_ae;
+diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
+index 24e66ad..0aae868 100644
+--- a/drivers/media/video/m5mols/m5mols_core.c
++++ b/drivers/media/video/m5mols/m5mols_core.c
+@@ -138,6 +138,7 @@ static u32 m5mols_swap_byte(u8 *data, u8 length)
+ static int m5mols_read(struct v4l2_subdev *sd, u32 size, u32 reg, u32 *val)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct m5mols_info *info = to_m5mols(sd);
+ 	u8 rbuf[M5MOLS_I2C_MAX_SIZE + 1];
+ 	u8 category = I2C_CATEGORY(reg);
+ 	u8 cmd = I2C_COMMAND(reg);
+@@ -168,8 +169,10 @@ static int m5mols_read(struct v4l2_subdev *sd, u32 size, u32 reg, u32 *val)
+ 
+ 	ret = i2c_transfer(client->adapter, msg, 2);
+ 	if (ret < 0) {
+-		v4l2_err(sd, "read failed: size:%d cat:%02x cmd:%02x. %d\n",
+-			 size, category, cmd, ret);
++		if (info->boot)
++			v4l2_err(sd,
++				"read failed: cat:%02x cmd:%02x ret:%d\n",
++				category, cmd, ret);
+ 		return ret;
+ 	}
+ 
+@@ -232,6 +235,7 @@ int m5mols_read_u32(struct v4l2_subdev *sd, u32 reg, u32 *val)
+ int m5mols_write(struct v4l2_subdev *sd, u32 reg, u32 val)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct m5mols_info *info = to_m5mols(sd);
+ 	u8 wbuf[M5MOLS_I2C_MAX_SIZE + 4];
+ 	u8 category = I2C_CATEGORY(reg);
+ 	u8 cmd = I2C_COMMAND(reg);
+@@ -263,8 +267,10 @@ int m5mols_write(struct v4l2_subdev *sd, u32 reg, u32 val)
+ 
+ 	ret = i2c_transfer(client->adapter, msg, 1);
+ 	if (ret < 0) {
+-		v4l2_err(sd, "write failed: size:%d cat:%02x cmd:%02x. %d\n",
+-			size, category, cmd, ret);
++		if (info->boot)
++			v4l2_err(sd,
++				"write failed: cat:%02x cmd:%02x ret:%d\n",
++				category, cmd, ret);
+ 		return ret;
+ 	}
+ 
+@@ -778,6 +784,7 @@ int __attribute__ ((weak)) m5mols_update_fw(struct v4l2_subdev *sd,
+  */
+ static int m5mols_sensor_armboot(struct v4l2_subdev *sd)
+ {
++	struct m5mols_info *info = to_m5mols(sd);
+ 	int ret;
+ 
+ 	/* Execute ARM boot sequence */
+@@ -786,6 +793,8 @@ static int m5mols_sensor_armboot(struct v4l2_subdev *sd)
+ 		ret = m5mols_write(sd, FLASH_CAM_START, REG_START_ARM_BOOT);
+ 	if (!ret)
+ 		ret = m5mols_timeout_interrupt(sd, REG_INT_MODE, 2000);
++	if (!ret)
++		info->boot = true;
+ 	if (ret < 0)
+ 		return ret;
+ 
+-- 
+1.7.4.1
 
-u32 syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-fid = syn_mode & ISPCCDC_SYN_MODE_FLDSTAT;
-/* toggle the software maintained fid */
-
-works as expected, i see fid switching correctly.
-
-Enrico
