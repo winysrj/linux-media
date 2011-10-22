@@ -1,53 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:47222 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932704Ab1JaLZQ (ORCPT
+Received: from newsmtp5.atmel.com ([204.2.163.5]:62367 "EHLO
+	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752107Ab1JVHR7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Oct 2011 07:25:16 -0400
-Received: by iaby12 with SMTP id y12so7076837iab.19
-        for <linux-media@vger.kernel.org>; Mon, 31 Oct 2011 04:25:16 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 31 Oct 2011 07:25:15 -0400
-Message-ID: <CAOcJUbxTLAtQFa3s5FMUKp2MgX6FCmheN930xWp2xYTD8oApzw@mail.gmail.com>
-Subject: au8522/s4h1409/s4h1411: Calculate signal strength shown as percentage
- from SNR up to 35dB
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sat, 22 Oct 2011 03:17:59 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	plagnioj@jcrosoft.com
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	nicolas.ferre@atmel.com, s.nawrocki@samsung.com,
+	Josh Wu <josh.wu@atmel.com>
+Subject: [RESEND][PATCH v4 2/3] at91: add parameters for at91_add_device_isi function
+Date: Sat, 22 Oct 2011 15:17:39 +0800
+Message-Id: <1319267860-32367-1-git-send-email-josh.wu@atmel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+fix codeing style
+using bool instead of int for boolean type
 
-Please pull from my atscdemod branch at
-git://linuxtv.org/mkrufky/tuners .  These changesets bring au8522,
-s5h1409, and s5h1411 up to speed with the other ATSC demodulator
-drivers to all report signal strength in a single conforming way.  We
-all agreed on this at the LPC over two years ago, and these patches
-have been sitting in my hg tree since then, I've just completely
-forgotten to issue this pull request. LGDT3305 and LGDT330X drivers
-already report signal strength this way. Userspace developers have
-been patiently waiting for this merge - I apologize to them for
-sitting on it for so long.  Please merge this :-)
 
-The following changes since commit a63366b935456dd0984f237642f6d4001dcf8017:
+ arch/arm/mach-at91/at91sam9263_devices.c |   13 ++++++++++---
+ arch/arm/mach-at91/include/mach/board.h  |    4 +++-
+ 2 files changed, 13 insertions(+), 4 deletions(-)
 
-  [media] mxl111sf: update demod_ops.info.name to "MaxLinear MxL111SF
-DVB-T demodulator" (2011-10-24 03:20:09 +0200)
+diff --git a/arch/arm/mach-at91/at91sam9263_devices.c b/arch/arm/mach-at91/at91sam9263_devices.c
+index a050f41..29d5c01 100644
+--- a/arch/arm/mach-at91/at91sam9263_devices.c
++++ b/arch/arm/mach-at91/at91sam9263_devices.c
+@@ -885,7 +885,8 @@ static struct platform_device at91sam9263_isi_device = {
+ 	.num_resources	= ARRAY_SIZE(isi_resources),
+ };
+ 
+-void __init at91_add_device_isi(void)
++void __init at91_add_device_isi(struct isi_platform_data *data,
++		bool use_pck_as_mck)
+ {
+ 	at91_set_A_periph(AT91_PIN_PE0, 0);	/* ISI_D0 */
+ 	at91_set_A_periph(AT91_PIN_PE1, 0);	/* ISI_D1 */
+@@ -898,14 +899,20 @@ void __init at91_add_device_isi(void)
+ 	at91_set_A_periph(AT91_PIN_PE8, 0);	/* ISI_PCK */
+ 	at91_set_A_periph(AT91_PIN_PE9, 0);	/* ISI_HSYNC */
+ 	at91_set_A_periph(AT91_PIN_PE10, 0);	/* ISI_VSYNC */
+-	at91_set_B_periph(AT91_PIN_PE11, 0);	/* ISI_MCK (PCK3) */
+ 	at91_set_B_periph(AT91_PIN_PE12, 0);	/* ISI_PD8 */
+ 	at91_set_B_periph(AT91_PIN_PE13, 0);	/* ISI_PD9 */
+ 	at91_set_B_periph(AT91_PIN_PE14, 0);	/* ISI_PD10 */
+ 	at91_set_B_periph(AT91_PIN_PE15, 0);	/* ISI_PD11 */
++
++	if (use_pck_as_mck) {
++		at91_set_B_periph(AT91_PIN_PE11, 0);	/* ISI_MCK (PCK3) */
++
++		/* TODO: register the PCK for ISI_MCK and set its parent */
++	}
+ }
+ #else
+-void __init at91_add_device_isi(void) {}
++void __init at91_add_device_isi(struct isi_platform_data *data,
++		bool use_pck_as_mck) {}
+ #endif
+ 
+ 
+diff --git a/arch/arm/mach-at91/include/mach/board.h b/arch/arm/mach-at91/include/mach/board.h
+index ed544a0..731c449 100644
+--- a/arch/arm/mach-at91/include/mach/board.h
++++ b/arch/arm/mach-at91/include/mach/board.h
+@@ -183,7 +183,9 @@ extern void __init at91_add_device_lcdc(struct atmel_lcdfb_info *data);
+ extern void __init at91_add_device_ac97(struct ac97c_platform_data *data);
+ 
+  /* ISI */
+-extern void __init at91_add_device_isi(void);
++struct isi_platform_data;
++extern void __init at91_add_device_isi(struct isi_platform_data *data,
++		bool use_pck_as_mck);
+ 
+  /* Touchscreen Controller */
+ struct at91_tsadcc_data {
+-- 
+1.6.3.3
 
-are available in the git repository at:
-  git://linuxtv.org/mkrufky/tuners atscdemod
-
-Michael Krufky (3):
-      au8522: Calculate signal strength shown as percentage from SNR up to 35dB
-      s5h1409: Calculate signal strength shown as percentage from SNR up to 35dB
-      s5h1411: Calculate signal strength shown as percentage from SNR up to 35dB
-
- drivers/media/dvb/frontends/au8522_dig.c |   31 +++++++++++++++++++++++++++++-
- drivers/media/dvb/frontends/s5h1409.c    |   31 +++++++++++++++++++++++++++++-
- drivers/media/dvb/frontends/s5h1411.c    |   31 +++++++++++++++++++++++++++++-
- 3 files changed, 90 insertions(+), 3 deletions(-)
-
-Best regards,
-Michael Krufky
