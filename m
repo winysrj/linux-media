@@ -1,83 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:48980 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752543Ab1JXBAg convert rfc822-to-8bit (ORCPT
+Received: from newsmtp5.atmel.com ([204.2.163.5]:5004 "EHLO sjogate2.atmel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751592Ab1JVGll convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Oct 2011 21:00:36 -0400
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Mel Gorman" <mel@csn.ul.ie>
-Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	"Kyungmin Park" <kyungmin.park@samsung.com>,
-	"Russell King" <linux@arm.linux.org.uk>,
-	"Andrew Morton" <akpm@linux-foundation.org>,
-	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"Ankita Garg" <ankita@in.ibm.com>,
-	"Daniel Walker" <dwalker@codeaurora.org>,
-	"Arnd Bergmann" <arnd@arndb.de>,
-	"Jesse Barker" <jesse.barker@linaro.org>,
-	"Jonathan Corbet" <corbet@lwn.net>,
-	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
-	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
-	"Dave Hansen" <dave@linux.vnet.ibm.com>
-Subject: Re: [PATCH 2/9] mm: alloc_contig_freed_pages() added
-References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
- <1317909290-29832-3-git-send-email-m.szyprowski@samsung.com>
- <20111018122109.GB6660@csn.ul.ie> <op.v3j5ent03l0zgt@mpn-glaptop>
- <20111021100624.GB4029@csn.ul.ie>
-Date: Sun, 23 Oct 2011 18:00:30 -0700
+	Sat, 22 Oct 2011 02:41:41 -0400
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.v3tzq4q53l0zgt@mpn-glaptop>
-In-Reply-To: <20111021100624.GB4029@csn.ul.ie>
+Subject: RE: [PATCH v4 1/3] [media] at91: add code to enable/disable ISI_MCK clock
+Date: Sat, 22 Oct 2011 14:41:08 +0800
+Message-ID: <4C79549CB6F772498162A641D92D5328031B11E0@penmb01.corp.atmel.com>
+In-Reply-To: <Pine.LNX.4.64.1110171702370.18438@axis700.grange>
+References: <1318331020-22031-1-git-send-email-josh.wu@atmel.com> <1318331020-22031-2-git-send-email-josh.wu@atmel.com> <Pine.LNX.4.64.1110171702370.18438@axis700.grange>
+From: "Wu, Josh" <Josh.wu@atmel.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+Cc: <linux-media@vger.kernel.org>, <plagnioj@jcrosoft.com>,
+	<linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	"Ferre, Nicolas" <Nicolas.FERRE@atmel.com>,
+	<s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 21 Oct 2011 03:06:24 -0700, Mel Gorman <mel@csn.ul.ie> wrote:
+Hi, Guennadi
 
-> On Tue, Oct 18, 2011 at 10:26:37AM -0700, Michal Nazarewicz wrote:
->> On Tue, 18 Oct 2011 05:21:09 -0700, Mel Gorman <mel@csn.ul.ie> wrote:
->>
->> >At this point, I'm going to apologise for not reviewing this a long long
->> >time ago.
->> >
->> >On Thu, Oct 06, 2011 at 03:54:42PM +0200, Marek Szyprowski wrote:
->> >>From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
->> >>
->> >>This commit introduces alloc_contig_freed_pages() function
->> >>which allocates (ie. removes from buddy system) free pages
->> >>in range. Caller has to guarantee that all pages in range
->> >>are in buddy system.
->> >>
->> >
->> >Straight away, I'm wondering why you didn't use
->> >
->> >mm/compaction.c#isolate_freepages()
->> >
->> >It knows how to isolate pages within ranges. All its control information
->> >is passed via struct compact_control() which I recognise may be awkward
->> >for CMA but compaction.c know how to manage all the isolated pages and
->> >pass them to migrate.c appropriately.
->>
->> It is something to consider.  At first glance, I see that isolate_freepages
->> seem to operate on pageblocks which is not desired for CMA.
->>
+On Monday, October 17, 2011 11:04 PM, Guennadi Liakhovetski wrote:
+
+> From: Josh Wu <josh.wu@atmel.com>
 >
-> isolate_freepages_block operates on a range of pages that happens to be
-> hard-coded to be a pageblock because that was the requirements. It calculates
-> end_pfn and it is possible to make that a function parameter.
+> This patch
+> - add ISI_MCK clock enable/disable code.
+> - change field name in isi_platform_data structure
+>
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> [g.liakhovetski@gmx.de: fix label names]
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
 
-Yes, this seems doable.  I'll try and rewrite the patches to use it.
+> Josh, I missed a slight hick-up in the previous version of this your 
+> patch, so, I fixed it myself. Please confirm, that this version is ok
+with 
+> you.
 
-The biggest difference is in how CMA and compaction treat pages which are not
-free.  CMA treat it as an error and compaction just skips those.  This is
-solvable by an argument though.
+> Thanks
+> Guennadi
 
--- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
-ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
+I confirm that the patch is ok for me. Thank you.
+
+Best Regards,
+Josh Wu
