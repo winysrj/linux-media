@@ -1,225 +1,279 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:61073 "EHLO mgw-sa02.nokia.com"
+Received: from newsmtp5.atmel.com ([204.2.163.5]:8804 "EHLO sjogate2.atmel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753643Ab1JGPfQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Oct 2011 11:35:16 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [media-ctl PATCH 7/7] Remove extra verbosity
-Date: Fri,  7 Oct 2011 18:38:08 +0300
-Message-Id: <1318001888-18689-7-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20111007153443.GC8908@valkosipuli.localdomain>
-References: <20111007153443.GC8908@valkosipuli.localdomain>
+	id S1752582Ab1JVHSA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Oct 2011 03:18:00 -0400
+From: Josh Wu <josh.wu@atmel.com>
+To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	plagnioj@jcrosoft.com
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	nicolas.ferre@atmel.com, s.nawrocki@samsung.com,
+	Josh Wu <josh.wu@atmel.com>
+Subject: [RESEND][PATCH v4 3/3] at91: add Atmel ISI and ov2640 support on sam9m10/sam9g45 board
+Date: Sat, 22 Oct 2011 15:17:40 +0800
+Message-Id: <1319267860-32367-2-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1319267860-32367-1-git-send-email-josh.wu@atmel.com>
+References: <1319267860-32367-1-git-send-email-josh.wu@atmel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove extra verbosity by default; "-v" option brings back what used to be
-there. The error messages are now being printed by main.c with the possibly
-helpful error code attached.
+This patch adds:
+- ov2640 sensor in sam9m10/sam9g45 board
+- support to use PCK as ISI_MCK. PCK's parent is managed in SoC level, e.g. at91sam9g45_devices.c
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
 ---
- src/main.c     |   48 ++++++++++++++++++++++++++++++++++++++----------
- src/mediactl.c |   21 ++++++++++-----------
- src/mediactl.h |    6 ++----
- 3 files changed, 50 insertions(+), 25 deletions(-)
+fix the coding style
+using simpler code
 
-diff --git a/src/main.c b/src/main.c
-index 40ab13e..57bbc16 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -288,10 +288,16 @@ int main(int argc, char **argv)
- 		return EXIT_FAILURE;
+ arch/arm/mach-at91/at91sam9g45_devices.c |   94 +++++++++++++++++++++++++++++-
+ arch/arm/mach-at91/board-sam9m10g45ek.c  |   80 +++++++++++++++++++++++++-
+ 2 files changed, 171 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-at91/at91sam9g45_devices.c b/arch/arm/mach-at91/at91sam9g45_devices.c
+index 600bffb..1474149 100644
+--- a/arch/arm/mach-at91/at91sam9g45_devices.c
++++ b/arch/arm/mach-at91/at91sam9g45_devices.c
+@@ -16,9 +16,10 @@
+ #include <linux/platform_device.h>
+ #include <linux/i2c-gpio.h>
+ #include <linux/atmel-mci.h>
+-
++#include <linux/clk.h>
+ #include <linux/fb.h>
+ #include <video/atmel_lcdc.h>
++#include <media/atmel-isi.h>
  
- 	/* Open the media device and enumerate entities, pads and links. */
--	media = media_open_debug(media_opts.devname, media_opts.verbose,
--				 (void (*)(void *, ...))fprintf, stdout);
--	if (media == NULL)
-+	if (media_opts.verbose)
-+		media = media_open_debug(
-+			media_opts.devname,
-+			(void (*)(void *, ...))fprintf, stdout);
-+	else
-+		media = media_open(media_opts.devname);
-+	if (media == NULL) {
-+		printf("Failed to open %s\n", media_opts.devname);
- 		goto out;
-+	}
+ #include <mach/board.h>
+ #include <mach/gpio.h>
+@@ -29,6 +30,7 @@
+ #include <mach/atmel-mci.h>
  
- 	if (media_opts.entity) {
- 		struct media_entity *entity;
-@@ -326,15 +332,34 @@ int main(int argc, char **argv)
- 	}
+ #include "generic.h"
++#include "clock.h"
  
- 	if (media_opts.reset) {
--		printf("Resetting all links to inactive\n");
--		media_reset_links(media);
-+		if (media_opts.verbose)
-+			printf("Resetting all links to inactive\n");
-+		ret = media_reset_links(media);
-+		if (ret) {
-+			printf("Unable to reset links: %s (%d)\n",
-+			       strerror(-ret), -ret);
-+			goto out;
+ 
+ /* --------------------------------------------------------------------
+@@ -863,6 +865,96 @@ void __init at91_add_device_ac97(struct ac97c_platform_data *data)
+ void __init at91_add_device_ac97(struct ac97c_platform_data *data) {}
+ #endif
+ 
++/* --------------------------------------------------------------------
++ *  Image Sensor Interface
++ * -------------------------------------------------------------------- */
++#if defined(CONFIG_VIDEO_ATMEL_ISI) || defined(CONFIG_VIDEO_ATMEL_ISI_MODULE)
++static u64 isi_dmamask = DMA_BIT_MASK(32);
++static struct isi_platform_data isi_data;
++
++struct resource isi_resources[] = {
++	[0] = {
++		.start	= AT91SAM9G45_BASE_ISI,
++		.end	= AT91SAM9G45_BASE_ISI + SZ_16K - 1,
++		.flags	= IORESOURCE_MEM,
++	},
++	[1] = {
++		.start	= AT91SAM9G45_ID_ISI,
++		.end	= AT91SAM9G45_ID_ISI,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static struct platform_device at91sam9g45_isi_device = {
++	.name		= "atmel_isi",
++	.id		= 0,
++	.dev		= {
++			.dma_mask		= &isi_dmamask,
++			.coherent_dma_mask	= DMA_BIT_MASK(32),
++			.platform_data		= &isi_data,
++	},
++	.resource	= isi_resources,
++	.num_resources	= ARRAY_SIZE(isi_resources),
++};
++
++static struct clk_lookup isi_mck_lookups[] = {
++	CLKDEV_CON_DEV_ID("isi_mck", "atmel_isi.0", NULL),
++};
++
++void __init at91_add_device_isi(struct isi_platform_data *data,
++		bool use_pck_as_mck)
++{
++	struct clk *pck;
++	struct clk *parent;
++
++	if (!data)
++		return;
++	isi_data = *data;
++
++	at91_set_A_periph(AT91_PIN_PB20, 0);	/* ISI_D0 */
++	at91_set_A_periph(AT91_PIN_PB21, 0);	/* ISI_D1 */
++	at91_set_A_periph(AT91_PIN_PB22, 0);	/* ISI_D2 */
++	at91_set_A_periph(AT91_PIN_PB23, 0);	/* ISI_D3 */
++	at91_set_A_periph(AT91_PIN_PB24, 0);	/* ISI_D4 */
++	at91_set_A_periph(AT91_PIN_PB25, 0);	/* ISI_D5 */
++	at91_set_A_periph(AT91_PIN_PB26, 0);	/* ISI_D6 */
++	at91_set_A_periph(AT91_PIN_PB27, 0);	/* ISI_D7 */
++	at91_set_A_periph(AT91_PIN_PB28, 0);	/* ISI_PCK */
++	at91_set_A_periph(AT91_PIN_PB30, 0);	/* ISI_HSYNC */
++	at91_set_A_periph(AT91_PIN_PB29, 0);	/* ISI_VSYNC */
++	at91_set_B_periph(AT91_PIN_PB8, 0);	/* ISI_PD8 */
++	at91_set_B_periph(AT91_PIN_PB9, 0);	/* ISI_PD9 */
++	at91_set_B_periph(AT91_PIN_PB10, 0);	/* ISI_PD10 */
++	at91_set_B_periph(AT91_PIN_PB11, 0);	/* ISI_PD11 */
++
++	platform_device_register(&at91sam9g45_isi_device);
++
++	if (use_pck_as_mck) {
++		at91_set_B_periph(AT91_PIN_PB31, 0);	/* ISI_MCK (PCK1) */
++
++		pck = clk_get(NULL, "pck1");
++		parent = clk_get(NULL, "plla");
++
++		BUG_ON(IS_ERR(pck) || IS_ERR(parent));
++
++		if (clk_set_parent(pck, parent)) {
++			pr_err("Failed to set PCK's parent\n");
++		} else {
++			/* Register PCK as ISI_MCK */
++			isi_mck_lookups[0].clk = pck;
++			clkdev_add_table(isi_mck_lookups,
++					ARRAY_SIZE(isi_mck_lookups));
 +		}
- 	}
- 
--	if (media_opts.links)
--		media_parse_setup_links(media, media_opts.links);
-+	if (media_opts.links) {
-+		ret = media_parse_setup_links(media, media_opts.links);
-+		if (ret) {
-+			printf("Unable to parse link: %s (%d)\n",
-+			       strerror(-ret), -ret);
-+			goto out;
-+		}
++
++		clk_put(pck);
++		clk_put(parent);
 +	}
++}
++#else
++void __init at91_add_device_isi(struct isi_platform_data *data,
++		bool use_pck_as_mck) {}
++#endif
++
  
--	if (media_opts.formats)
--		v4l2_subdev_parse_setup_formats(media, media_opts.formats);
-+	if (media_opts.formats) {
-+		ret = v4l2_subdev_parse_setup_formats(media,
-+						      media_opts.formats);
-+		if (ret) {
-+			printf("Unable to parse format: %s (%d)\n",
-+			       strerror(-ret), -ret);
-+			goto out;
-+		}
-+	}
+ /* --------------------------------------------------------------------
+  *  LCD Controller
+diff --git a/arch/arm/mach-at91/board-sam9m10g45ek.c b/arch/arm/mach-at91/board-sam9m10g45ek.c
+index ad234cc..9082f42 100644
+--- a/arch/arm/mach-at91/board-sam9m10g45ek.c
++++ b/arch/arm/mach-at91/board-sam9m10g45ek.c
+@@ -23,11 +23,13 @@
+ #include <linux/gpio_keys.h>
+ #include <linux/input.h>
+ #include <linux/leds.h>
+-#include <linux/clk.h>
+ #include <linux/atmel-mci.h>
++#include <linux/delay.h>
  
- 	if (media_opts.interactive) {
- 		while (1) {
-@@ -348,7 +373,10 @@ int main(int argc, char **argv)
- 			if (buffer[0] == '\n')
- 				break;
+ #include <mach/hardware.h>
+ #include <video/atmel_lcdc.h>
++#include <media/soc_camera.h>
++#include <media/atmel-isi.h>
  
--			media_parse_setup_link(media, buffer, &end);
-+			ret = media_parse_setup_link(media, buffer, &end);
-+			if (ret)
-+				printf("Unable to parse link: %s (%d)\n",
-+				       strerror(-ret), -ret);
- 		}
- 	}
+ #include <asm/setup.h>
+ #include <asm/mach-types.h>
+@@ -187,6 +189,71 @@ static void __init ek_add_device_nand(void)
  
-diff --git a/src/mediactl.c b/src/mediactl.c
-index 43d1b6a..b9c2a10 100644
---- a/src/mediactl.c
-+++ b/src/mediactl.c
-@@ -270,7 +270,7 @@ static inline void media_udev_close(struct udev *udev)
- }
  
- static int media_get_devname_udev(struct udev *udev,
--		struct media_entity *entity, int verbose)
-+		struct media_entity *entity)
- {
- 	struct udev_device *device;
- 	dev_t devnum;
-@@ -281,9 +281,8 @@ static int media_get_devname_udev(struct udev *udev,
- 		return -EINVAL;
- 
- 	devnum = makedev(entity->info.v4l.major, entity->info.v4l.minor);
--	if (verbose)
--		media_dbg(entity->media, "looking up device: %u:%u\n",
--			  major(devnum), minor(devnum));
-+	media_dbg(entity->media, "looking up device: %u:%u\n",
-+		  major(devnum), minor(devnum));
- 	device = udev_device_new_from_devnum(udev, 'c', devnum);
- 	if (device) {
- 		p = udev_device_get_devnode(device);
-@@ -308,7 +307,7 @@ static inline int media_udev_open(struct udev **udev) { return 0; }
- static inline void media_udev_close(struct udev *udev) { }
- 
- static inline int media_get_devname_udev(struct udev *udev,
--		struct media_entity *entity, int verbose)
-+		struct media_entity *entity)
- {
- 	return -ENOTSUP;
- }
-@@ -351,7 +350,7 @@ static int media_get_devname_sysfs(struct media_entity *entity)
- 	return 0;
- }
- 
--static int media_enum_entities(struct media_device *media, int verbose)
-+static int media_enum_entities(struct media_device *media)
- {
- 	struct media_entity *entity;
- 	struct udev *udev;
-@@ -400,7 +399,7 @@ static int media_enum_entities(struct media_device *media, int verbose)
- 			continue;
- 
- 		/* Try to get the device name via udev */
--		if (!media_get_devname_udev(udev, entity, verbose))
-+		if (!media_get_devname_udev(udev, entity))
- 			continue;
- 
- 		/* Fall back to get the device name via sysfs */
-@@ -429,7 +428,7 @@ void media_debug_set_handler(struct media_device *media,
- }
- 
- struct media_device *media_open_debug(
--	const char *name, int verbose, void (*debug_handler)(void *, ...),
-+	const char *name, void (*debug_handler)(void *, ...),
- 	void *debug_priv)
- {
- 	struct media_device *media;
-@@ -453,7 +452,7 @@ struct media_device *media_open_debug(
- 
- 	media_dbg(media, "Enumerating entities\n");
- 
--	ret = media_enum_entities(media, verbose);
-+	ret = media_enum_entities(media);
- 
- 	if (ret < 0) {
- 		media_dbg(media,
-@@ -478,9 +477,9 @@ struct media_device *media_open_debug(
- 	return media;
- }
- 
--struct media_device *media_open(const char *name, int verbose)
-+struct media_device *media_open(const char *name)
- {
--	return media_open_debug(name, verbose, NULL, NULL);
-+	return media_open_debug(name, NULL, NULL);
- }
- 
- void media_close(struct media_device *media)
-diff --git a/src/mediactl.h b/src/mediactl.h
-index c6bf723..5fdd078 100644
---- a/src/mediactl.h
-+++ b/src/mediactl.h
-@@ -79,7 +79,6 @@ void media_debug_set_handler(
- /**
-  * @brief Open a media device with debugging enabled.
-  * @param name - name (including path) of the device node.
-- * @param verbose - whether to print verbose information on the standard output.
-  * @param debug_handler - debug message handler
-  * @param debug_priv - first argument to debug message handler
-  *
-@@ -95,13 +94,12 @@ void media_debug_set_handler(
-  * media_close when the device isn't needed anymore.
+ /*
++ *  ISI
++ */
++static struct isi_platform_data __initdata isi_data = {
++	.frate			= ISI_CFG1_FRATE_CAPTURE_ALL,
++	/* to use codec and preview path simultaneously */
++	.full_mode		= 1,
++	.data_width_flags	= ISI_DATAWIDTH_8 | ISI_DATAWIDTH_10,
++	/* ISI_MCK is provided by programmable clock or external clock */
++	.mck_hz			= 25000000,
++};
++
++
++/*
++ * soc-camera OV2640
++ */
++#if defined(CONFIG_SOC_CAMERA_OV2640) || \
++	defined(CONFIG_SOC_CAMERA_OV2640_MODULE)
++static unsigned long isi_camera_query_bus_param(struct soc_camera_link *link)
++{
++	/* ISI board for ek using default 8-bits connection */
++	return SOCAM_DATAWIDTH_8;
++}
++
++static int i2c_camera_power(struct device *dev, int on)
++{
++	/* enable or disable the camera */
++	pr_debug("%s: %s the camera\n", __func__, on ? "ENABLE" : "DISABLE");
++	at91_set_gpio_output(AT91_PIN_PD13, !on);
++
++	if (!on)
++		goto out;
++
++	/* If enabled, give a reset impulse */
++	at91_set_gpio_output(AT91_PIN_PD12, 0);
++	msleep(20);
++	at91_set_gpio_output(AT91_PIN_PD12, 1);
++	msleep(100);
++
++out:
++	return 0;
++}
++
++static struct i2c_board_info i2c_camera = {
++	I2C_BOARD_INFO("ov2640", 0x30),
++};
++
++static struct soc_camera_link iclink_ov2640 = {
++	.bus_id			= 0,
++	.board_info		= &i2c_camera,
++	.i2c_adapter_id		= 0,
++	.power			= i2c_camera_power,
++	.query_bus_param	= isi_camera_query_bus_param,
++};
++
++static struct platform_device isi_ov2640 = {
++	.name	= "soc-camera-pdrv",
++	.id	= 0,
++	.dev	= {
++		.platform_data = &iclink_ov2640,
++	},
++};
++#endif
++
++
++/*
+  * LCD Controller
   */
- struct media_device *media_open_debug(
--	const char *name, int verbose, void (*debug_handler)(void *, ...),
-+	const char *name, void (*debug_handler)(void *, ...),
- 	void *debug_priv);
+ #if defined(CONFIG_FB_ATMEL) || defined(CONFIG_FB_ATMEL_MODULE)
+@@ -378,7 +445,12 @@ static struct gpio_led ek_pwm_led[] = {
+ #endif
+ };
  
- /**
-  * @brief Open a media device.
-  * @param name - name (including path) of the device node.
-- * @param verbose - whether to print verbose information on the standard output.
-  *
-  * Open the media device referenced by @a name and enumerate entities, pads and
-  * links.
-@@ -110,7 +108,7 @@ struct media_device *media_open_debug(
-  * success and NULL on failure. The returned pointer must be freed with
-  * media_close when the device isn't needed anymore.
-  */
--struct media_device *media_open(const char *name, int verbose);
-+struct media_device *media_open(const char *name);
+-
++static struct platform_device *devices[] __initdata = {
++#if defined(CONFIG_SOC_CAMERA_OV2640) || \
++	defined(CONFIG_SOC_CAMERA_OV2640_MODULE)
++	&isi_ov2640,
++#endif
++};
  
- /**
-  * @brief Close a media device.
+ static void __init ek_board_init(void)
+ {
+@@ -400,6 +472,8 @@ static void __init ek_board_init(void)
+ 	ek_add_device_nand();
+ 	/* I2C */
+ 	at91_add_device_i2c(0, NULL, 0);
++	/* ISI, using programmable clock as ISI_MCK */
++	at91_add_device_isi(&isi_data, true);
+ 	/* LCD Controller */
+ 	at91_add_device_lcdc(&ek_lcdc_data);
+ 	/* Touch Screen */
+@@ -411,6 +485,8 @@ static void __init ek_board_init(void)
+ 	/* LEDs */
+ 	at91_gpio_leds(ek_leds, ARRAY_SIZE(ek_leds));
+ 	at91_pwm_leds(ek_pwm_led, ARRAY_SIZE(ek_pwm_led));
++	/* Other platform devices */
++	platform_add_devices(devices, ARRAY_SIZE(devices));
+ }
+ 
+ MACHINE_START(AT91SAM9M10G45EK, "Atmel AT91SAM9M10G45-EK")
 -- 
-1.7.2.5
+1.6.3.3
 
