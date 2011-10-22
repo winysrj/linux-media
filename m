@@ -1,53 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41576 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935288Ab1JFMCG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 08:02:06 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 3/3] [media] tvp5150: Migrate to media-controller framework and add video format detection
-Date: Thu, 6 Oct 2011 14:02:04 +0200
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Javier Martinez Canillas <martinez.javier@gmail.com>,
-	linux-media@vger.kernel.org, Enrico <ebutera@users.berlios.de>,
-	Gary Thomas <gary@mlbassoc.com>
-References: <1317429231-11359-1-git-send-email-martinez.javier@gmail.com> <20111005234140.GE8614@valkosipuli.localdomain> <4E8D075E.40702@infradead.org>
-In-Reply-To: <4E8D075E.40702@infradead.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Received: from rsk6.de ([85.214.108.125]:52874 "EHLO mail.rsk6.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753147Ab1JVPdu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Oct 2011 11:33:50 -0400
+Received: from [192.168.79.38] (ppp-93-104-183-78.dynamic.mnet-online.de [93.104.183.78])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.rsk6.de (Postfix) with ESMTPSA id 0C90D11240FD
+	for <linux-media@vger.kernel.org>; Sat, 22 Oct 2011 17:25:42 +0200 (CEST)
+Message-ID: <1319297142.7468.9.camel@krypton>
+Subject: In search of a capture card or DVI with compression
+From: Fabian Sturm <f@rtfs.org>
+To: linux-media@vger.kernel.org
+Date: Sat, 22 Oct 2011 17:25:42 +0200
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201110061402.05364.laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-On Thursday 06 October 2011 03:41:50 Mauro Carvalho Chehab wrote:
-> Em 05-10-2011 20:41, Sakari Ailus escreveu:
-> > On Mon, Oct 03, 2011 at 04:36:44PM -0300, Mauro Carvalho Chehab wrote:
-> >> Em 03-10-2011 16:01, Sakari Ailus escreveu:
-> >>
-> >>> It's the same old issues again... let's discuss this in the Multimedia
-> >>> summit.
-> >> 
-> >> We can discuss more at the summit, but we should start discussing it
-> >> here, as otherwise we may not be able to go into a consensus there, due
-> >> to the limited amount of time we would have for each topic.
-> > 
-> > Sounds good to me, but sometimes face-to-face discussion just is not
-> > replaceable.
-> 
-> We've scheduled some time for discussing it there, and we may schedule more
-> discussions a about that if needed during the rest of the week.
+I searched the web for quite some time for a good video capture card but
+did not find something for linux. 
 
-This is clearly a hot topic, and I believe there are some basic 
-misunderstandings (probably on all sides) that would be much easier to solve 
-with a face to face meeting. The kernel summit is only a couple of weeks away, 
-what about taking a bit of psychological rest until then ? :-)
+What I want to do is to capture the output of 4 pcs from a single
+server. Therefore I am looking for capture card that can capture more
+then one stream, but in the worst case I would buy 4 cards.
+Unfortunately the DVI signal I want to cature is only digital DVI so
+can't use cheap analog capture cards.
 
--- 
-Regards,
+Here my wishlist of features:
 
-Laurent Pinchart
+- capturing of one or more digital DVI streams with a single card
+- encoding/compression of the video on the capture card 
+  (so I don't need a very fast computer)
+- a very low framerate of 5 to 10 frames per second
+- resolution around 1024x768
+- full Linux support, of course
+
+Any idea if something like this exists? Or how I could realise such a
+setup?
+
+Thanks a lot, Fabian
+
+
+
