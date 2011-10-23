@@ -1,130 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:58562 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754695Ab1JaQZx (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:54773 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755151Ab1JWIfW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Oct 2011 12:25:53 -0400
-Received: by mail-ey0-f174.google.com with SMTP id 27so5444327eye.19
-        for <linux-media@vger.kernel.org>; Mon, 31 Oct 2011 09:25:52 -0700 (PDT)
+	Sun, 23 Oct 2011 04:35:22 -0400
+Received: by bkbzt19 with SMTP id zt19so6776033bkb.19
+        for <linux-media@vger.kernel.org>; Sun, 23 Oct 2011 01:35:20 -0700 (PDT)
+Message-ID: <4EA3D1C4.8050302@gmail.com>
+Date: Sun, 23 Oct 2011 10:35:16 +0200
 From: Sylwester Nawrocki <snjw23@gmail.com>
-To: devel@driverdev.osuosl.org, linux-media@vger.kernel.org
-Cc: Piotr Chmura <chmooreck@poczta.onet.pl>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Greg KH <gregkh@suse.de>,
-	Pierrick Hascoet <pierrick.hascoet@abilis.com>
-Subject: [PATCH 11/17] staging: as102: Fix licensing oversight
-Date: Mon, 31 Oct 2011 17:24:49 +0100
-Message-Id: <1320078295-3379-12-git-send-email-snjw23@gmail.com>
-In-Reply-To: <1320078295-3379-1-git-send-email-snjw23@gmail.com>
-References: <1320078295-3379-1-git-send-email-snjw23@gmail.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [RFC] subdevice PM: .s_power() deprecation?
+References: <Pine.LNX.4.64.1110031138370.14314@axis700.grange> <Pine.LNX.4.64.1110171720260.18438@axis700.grange> <4E9C9D84.5020905@gmail.com> <201110180107.20494.laurent.pinchart@ideasonboard.com> <4E9DEB4A.4050001@gmail.com> <Pine.LNX.4.64.1110182315180.7139@axis700.grange> <4E9F399B.9080207@gmail.com> <4EA3CB48.5000203@iki.fi>
+In-Reply-To: <4EA3CB48.5000203@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pierrick Hascoet <pierrick.hascoet@abilis.com>
+Hi Sakari,
 
-Fix a couple of files which were supposed by be relicensed as GPL
-but were overlooked.
+On 10/23/2011 10:07 AM, Sakari Ailus wrote:
+> Sylwester Nawrocki wrote:
+> ...
+>>> I understand what you're saying, but can you give us a specific example,
+>>> when a subdev driver (your SoC internal subdev, that is) doesn't have a
+>>> way to react to an event itself and only the bridge driver gets called
+>>> into at that time? Something like an interrupt or an internal timer or
+>>> some other internal event?
+>>
+>> 1. The S5P SoC video output subsystem (http://lwn.net/Articles/449661) comprises
+>>   of multiple logical blocks, like Video Processor, Mixer, HDMI, HDMI PHY, SD TV Out.
+>>   For instance the master video clock is during normal operation derived from
+>>   (synchronized to, with PLL,) the HDMI-PHY output clock. The host driver can
+>>   switch to this clock only when the HDMI-PHY (subdev) power and clocks are enabled.
+>>   And it should be done before .s_stream(), to do some H/W configuration earlier
+>>   in the pipeline, before streaming is enabled. Perhaps Tomasz could give some
+>>   further explanation of what the s_power() op does and why in the driver.
+>>
+>> 2. In some of our camera pipeline setups - "Sensor - MIPI-CSI receiver - host/DMA",
+>>   the sensor won't boot properly if all MIPI-CSI regulators aren't enabled. So the
+>>   MIPI-CSI receiver must always be powered on before the sensor. With the subdevs
+>>   doing their own magic wrt to power control the situation is getting slightly
+>>   out of control.
+> 
+> How about this: CSI-2 receiver implements a few new regulators which the
+> sensor driver then requests to be enabled. Would that work for you?
 
-Signed-off-by: Pierrick Hascoet <pierrick.hascoet@abilis.com>
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
-Signed-off-by: Piotr Chmura <chmooreck@poczta.onet.pl>
-Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
----
- drivers/staging/media/as102/as10x_cmd_cfg.c    |   35 +++++++++++-----------
- drivers/staging/media/as102/as10x_cmd_stream.c |   37 +++++++++++------------
- 2 files changed, 36 insertions(+), 36 deletions(-)
+No, I don't like that... :)
 
-diff --git a/drivers/staging/media/as102/as10x_cmd_cfg.c b/drivers/staging/media/as102/as10x_cmd_cfg.c
-index 7b22e19..0635797 100644
---- a/drivers/staging/media/as102/as10x_cmd_cfg.c
-+++ b/drivers/staging/media/as102/as10x_cmd_cfg.c
-@@ -1,20 +1,21 @@
--/**
--
-- \file   as10x_cmd_cfg.c
--
-- \author: S. Martinelli
--
-- ----------------------------------------------------------------------------\n
--   (c) Copyright Abilis Systems SARL 2005-2009 All rigths reserved \n
--   www.abilis.com                                                  \n
-- ----------------------------------------------------------------------------\n
--
-- \brief AS10x API, configuration services
--
--	AS10x cmd management: build command buffer, send command through
--	selected port and wait for the response when required.
--
--*/
-+/*
-+ * Abilis Systems Single DVB-T Receiver
-+ * Copyright (C) 2008 Pierrick Hascoet <pierrick.hascoet@abilis.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2, or (at your option)
-+ * any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
- 
- #if defined(LINUX) && defined(__KERNEL__) /* linux kernel implementation */
- #include <linux/kernel.h>
-diff --git a/drivers/staging/media/as102/as10x_cmd_stream.c b/drivers/staging/media/as102/as10x_cmd_stream.c
-index 8705894..b5e6254 100644
---- a/drivers/staging/media/as102/as10x_cmd_stream.c
-+++ b/drivers/staging/media/as102/as10x_cmd_stream.c
-@@ -1,22 +1,21 @@
--/**
--
-- \file   as10x_cmd_stream.c
--
-- \author: S. Martinelli
--
-- ----------------------------------------------------------------------------\n
--   (c) Copyright Abilis Systems SARL 2005-2009 All rigths reserved \n
--   www.abilis.com                                                  \n
-- ----------------------------------------------------------------------------\n
--
-- \brief AS10x CMD, stream services
--
--	AS10x CMD management: build command buffer, send command through
--	selected port and wait for the response when required.
--
--*/
--
--
-+/*
-+ * Abilis Systems Single DVB-T Receiver
-+ * Copyright (C) 2008 Pierrick Hascoet <pierrick.hascoet@abilis.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2, or (at your option)
-+ * any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
- #if defined(LINUX) && defined(__KERNEL__) /* linux kernel implementation */
- #include <linux/kernel.h>
- #include "as102_drv.h"
--- 
-1.7.4.1
+We would have to standardize the regulator supply names, etc. Such approach
+would be more difficult to align with runtime/system suspend/resume.
+Also the sensor drivers should be independent on other drivers. The MIPI-CSI
+receiver is more specific to the host, rather than a sensor.
 
+Not all sensors need MIPI-CSI, some just use parallel video bus.
+
+> 
+>>>> I guess we all agree the power requirements of external subdevs are generally
+>>>> unknown to the hosts.
+>>>>
+>>>> For these it might make lot of sense to let the subdev driver handle the device
+>>>> power supplies on basis of requests like, s_ctrl, s_stream, etc.
+>>>
+>>> Yes, right, so, most "external" (sensor, decoder,...) subdev drivers
+>>> should never need to implement .s_power(), regardless of whether we decide
+>>> to keep it or not. Well, ok, no, put it differently - in those drivers
+>>> .s_power() should only really be called during system-wide suspend /
+>>> resume.
+>>
+>> Yes, I agree with that. But before we attempt to remove .s_power() or deprecate
+>> it on "external" subdevs, I'd like to get solved the issue with sensor master clock
+>> provided by the bridge. As these two are closely related - the sensor controller
+>> won't boot if the clock is disabled. And there are always advantages of not keeping
+>> the clock always enabled.
+> 
+> I guess we'll need to wait awhile before the clock framework would
+> support this. I don't know what's the status of this; probably worth
+> checking.
+
+Last time I checked, a reference platform migration to common clk struct was
+being prepared for OMAP.
+So hopefully we are close to the agreement. I think there is a speech about
+this during ELCE.
+
+--
+Regards,
+Sylwester
