@@ -1,64 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:43473 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932689Ab1JaKYj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Oct 2011 06:24:39 -0400
-Received: by eye27 with SMTP id 27so5139015eye.19
-        for <linux-media@vger.kernel.org>; Mon, 31 Oct 2011 03:24:38 -0700 (PDT)
-Message-ID: <4EAE7763.4060306@gmail.com>
-Date: Mon, 31 Oct 2011 11:24:35 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from smtp.nokia.com ([147.243.128.24]:24120 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754385Ab1JWIHv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Oct 2011 04:07:51 -0400
+Message-ID: <4EA3CB48.5000203@iki.fi>
+Date: Sun, 23 Oct 2011 11:07:36 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Piotr Chmura <chmooreck@poczta.onet.pl>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Greg KH <gregkh@suse.de>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
-Subject: Re: [RESEND PATCH 1/14] staging/media/as102: initial import from
- Abilis
-References: <4E7F1FB5.5030803@gmail.com> <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com> <4E7FF0A0.7060004@gmail.com> <CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com> <20110927094409.7a5fcd5a@stein> <20110927174307.GD24197@suse.de> <20110927213300.6893677a@stein> <4E999733.2010802@poczta.onet.pl> <4E99F2FC.5030200@poczta.onet.pl> <20111016105731.09d66f03@stein> <CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com> <4E9ADFAE.8050208@redhat.com> <20111018094647.d4982eb2.chmooreck@poczta.onet.pl> <20111018111134.8482d1f8.chmooreck@poczta.onet.pl> <20111018214634.544344cc@darkstar> <4EADBBB7.7070802@poczta.onet.pl>
-In-Reply-To: <4EADBBB7.7070802@poczta.onet.pl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [RFC] subdevice PM: .s_power() deprecation?
+References: <Pine.LNX.4.64.1110031138370.14314@axis700.grange> <Pine.LNX.4.64.1110171720260.18438@axis700.grange> <4E9C9D84.5020905@gmail.com> <201110180107.20494.laurent.pinchart@ideasonboard.com> <4E9DEB4A.4050001@gmail.com> <Pine.LNX.4.64.1110182315180.7139@axis700.grange> <4E9F399B.9080207@gmail.com>
+In-Reply-To: <4E9F399B.9080207@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/30/2011 10:03 PM, Piotr Chmura wrote:
-> W dniu 18.10.2011 21:46, Piotr Chmura pisze:
->> Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+Hi Sylwester,
+
+Sylwester Nawrocki wrote:
+...
+>> I understand what you're saying, but can you give us a specific example,
+>> when a subdev driver (your SoC internal subdev, that is) doesn't have a
+>> way to react to an event itself and only the bridge driver gets called
+>> into at that time? Something like an interrupt or an internal timer or
+>> some other internal event?
+> 
+> 1. The S5P SoC video output subsystem (http://lwn.net/Articles/449661) comprises
+>  of multiple logical blocks, like Video Processor, Mixer, HDMI, HDMI PHY, SD TV Out.
+>  For instance the master video clock is during normal operation derived from
+>  (synchronized to, with PLL,) the HDMI-PHY output clock. The host driver can
+>  switch to this clock only when the HDMI-PHY (subdev) power and clocks are enabled.
+>  And it should be done before .s_stream(), to do some H/W configuration earlier
+>  in the pipeline, before streaming is enabled. Perhaps Tomasz could give some
+>  further explanation of what the s_power() op does and why in the driver. 
+>  
+> 2. In some of our camera pipeline setups - "Sensor - MIPI-CSI receiver - host/DMA",
+>  the sensor won't boot properly if all MIPI-CSI regulators aren't enabled. So the  
+>  MIPI-CSI receiver must always be powered on before the sensor. With the subdevs
+>  doing their own magic wrt to power control the situation is getting slightly
+>  out of control. 
+
+How about this: CSI-2 receiver implements a few new regulators which the
+sensor driver then requests to be enabled. Would that work for you?
+
+>>> I guess we all agree the power requirements of external subdevs are generally
+>>> unknown to the hosts.
+>>>
+>>> For these it might make lot of sense to let the subdev driver handle the device
+>>> power supplies on basis of requests like, s_ctrl, s_stream, etc.
 >>
->> Changes made by me:
->> 1. Driver moved from media/dvb to staging/media
->> 2. Removed Makefile/Kconfig - it doesn't compile in current tree
-> (...)
->> +
->> +/*
->> + * Note:
->> + * - in AS102 SNR=MER
->> + * - the SNR will be returned in linear terms, i.e. not in dB
->> + * - the accuracy equals Â±2dB for a SNR range from 4dB to 30dB
->> + * - the accuracy is>2dB for SNR values outside this range
->> + */
+>> Yes, right, so, most "external" (sensor, decoder,...) subdev drivers
+>> should never need to implement .s_power(), regardless of whether we decide
+>> to keep it or not. Well, ok, no, put it differently - in those drivers
+>> .s_power() should only really be called during system-wide suspend /
+>> resume.
 > 
-> I found another issue here.
-> In this comment "±" is from upper ASCII (0xF1). Should I change it into sth. 
-> like "+/-" in this patch (1/14) or leave it and just resend without "Â" 
-> (wasn't there in original patch, don't know where it came from) ?
+> Yes, I agree with that. But before we attempt to remove .s_power() or deprecate 
+> it on "external" subdevs, I'd like to get solved the issue with sensor master clock 
+> provided by the bridge. As these two are closely related - the sensor controller 
+> won't boot if the clock is disabled. And there are always advantages of not keeping
+> the clock always enabled. 
 
-I collected all your patches (1..14/14, as we agreed in private), did a bit of
-cleanup myself, re-edited the changelogs and I'm going to post the series which
-is hopefully ready for initial pull into staging/media. I've also removed that
-odd Â character right from the first patch. 
+I guess we'll need to wait awhile before the clock framework would
+support this. I don't know what's the status of this; probably worth
+checking.
 
-> 
-> Peter
-> 
-> P.S. Thanks to Sylwester Nawrocki for pointing me out, that there is something
-> wrong with patch 6/14, which was caused by this comment in 1/14.
-
----
 Regards,
-Sylwester
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
