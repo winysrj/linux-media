@@ -1,78 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:9709 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751563Ab1JFOpo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 10:45:44 -0400
-Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LSN00B3LFO6LH@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 06 Oct 2011 15:45:42 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LSN009C8FO61P@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 06 Oct 2011 15:45:42 +0100 (BST)
-Date: Thu, 06 Oct 2011 16:45:38 +0200
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH] v4l: s5p-mfc: fix reported capabilities
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	Kamil Debski <k.debski@samsung.com>
-Message-id: <1317912338-9693-1-git-send-email-k.debski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Received: from comal.ext.ti.com ([198.47.26.152]:37377 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750755Ab1JWSaa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Oct 2011 14:30:30 -0400
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>
+CC: "'Sakari Ailus'" <sakari.ailus@iki.fi>,
+	"'Hans Verkuil'" <hverkuil@xs4all.nl>
+Date: Mon, 24 Oct 2011 00:00:11 +0530
+Subject: new mbus formats
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930328A9BD1E@dbde02.ent.ti.com>
+References: <1309439597-15998-1-git-send-email-manjunath.hadli@ti.com>
+ <1309439597-15998-2-git-send-email-manjunath.hadli@ti.com>
+ <20110713185050.GC27451@valkosipuli.localdomain>
+ <B85A65D85D7EB246BE421B3FB0FBB593025729ADDF@dbde02.ent.ti.com>
+ <20110831112323.GL12368@valkosipuli.localdomain>
+In-Reply-To: <20110831112323.GL12368@valkosipuli.localdomain>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-MFC uses the multi-plane API, but it reported single-plane
-when querying capabilities.
-
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
 Hi,
 
-This patch fixes capabilites reported by the MFC driver. It uses the multi-plane API
-instead of the reported single-plane.
+ I need a few mbus formats to be defined loosely for following. Please tell me if anyone has already thought of taking care of them already.
 
-Best wishes,
-Kamil Debski
----
- drivers/media/video/s5p-mfc/s5p_mfc_dec.c |    4 ++--
- drivers/media/video/s5p-mfc/s5p_mfc_enc.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+These are supported for Texas Instruments DM365 and DM355 SoCs.
 
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-index bfbe084..3d54a57 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-@@ -220,8 +220,8 @@ static int vidioc_querycap(struct file *file, void *priv,
- 	strncpy(cap->card, dev->plat_dev->name, sizeof(cap->card) - 1);
- 	cap->bus_info[0] = 0;
- 	cap->version = KERNEL_VERSION(1, 0, 0);
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
--						    | V4L2_CAP_STREAMING;
-+	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE_MPLANE |
-+			V4L2_CAP_VIDEO_OUTPUT_MPLANE | V4L2_CAP_STREAMING;
- 	return 0;
- }
  
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-index 4c90e53..0dbb220 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-@@ -785,8 +785,8 @@ static int vidioc_querycap(struct file *file, void *priv,
- 	strncpy(cap->card, dev->plat_dev->name, sizeof(cap->card) - 1);
- 	cap->bus_info[0] = 0;
- 	cap->version = KERNEL_VERSION(1, 0, 0);
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
--			  | V4L2_CAP_VIDEO_OUTPUT
-+	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE_MPLANE
-+			  | V4L2_CAP_VIDEO_OUTPUT_MPLANE
- 			  | V4L2_CAP_STREAMING;
- 	return 0;
- }
--- 
-1.6.3.3
+1. RGB 888 parallel:    
 
+2. YUV420  color separate:
+
+3. C plane 420: ( On the lines of Y plane:  V4L2_MBUS_FMT_Y8_1X8)
+
+4. C plane 422
+
+5. 10 bit bayer with ALAW compression.
+
+If not, could you please suggest/discuss on the possible MBUS formats for the above?
+
+
+Thanks and Regards,
+
+-Manju
