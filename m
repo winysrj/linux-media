@@ -1,52 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:35766 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752075Ab1JMDOw convert rfc822-to-8bit (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:43428 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754947Ab1JWIS7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Oct 2011 23:14:52 -0400
-Received: by bkbzt4 with SMTP id zt4so842904bkb.19
-        for <linux-media@vger.kernel.org>; Wed, 12 Oct 2011 20:14:51 -0700 (PDT)
+	Sun, 23 Oct 2011 04:18:59 -0400
+From: Carlos Corbacho <carlos@strangeworlds.co.uk>
+To: Jyrki Kuoppala <jkp@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] Fix to qt1010 tuner frequency selection (media/dvb)
+Date: Sun, 23 Oct 2011 09:18:54 +0100
+Message-ID: <2657078.NsMWCJCMlO@valkyrie>
+In-Reply-To: <4E9FA779.5040406@iki.fi>
+References: <4E528FAE.5060801@iki.fi> <2165330.TqTdf0zloM@valkyrie> <4E9FA779.5040406@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <4E95FBC9.3060309@lockie.ca>
-References: <4E95F8D3.4070104@lockie.ca>
-	<4E95FBC9.3060309@lockie.ca>
-Date: Wed, 12 Oct 2011 23:14:51 -0400
-Message-ID: <CAGoCfiy5=te3sgEs9UhANEQbMVDkJ28ordoJAmYtPqkz5A1JkA@mail.gmail.com>
-Subject: Re: where is the cx23887 module in kernel-3.04 config?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: James <bjlockie@lockie.ca>
-Cc: linux-media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 12, 2011 at 4:42 PM, James <bjlockie@lockie.ca> wrote:
-> On 10/12/11 16:30, James wrote:
->>
->> Where is the cx23887 module in the kernel-3.04 config?
->> I'm trying to get a Hauppauge WinTV-HVR-1250 working.
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> Found it under video4lnux driver and not DVB/ATSC adapters (which seems more
-> logical).
+On Thursday 20 Oct 2011 07:45:45 Jyrki Kuoppala wrote:
+> I think my problem frequency has also been at the later spot. It is possible
+> there is something more complicated going on at 474 MHz - so based on your
+> testing, it's best to apply just the latter change, at least for now.
+> 
+> Jyrki
+> 
+> 
+> 
+> +    else if (freq<   546000000) rd[15].val = 0xd6; /* 546 MHz */
+> 
+> +    else if (freq<   546000000) rd[15].val = 0xd6; /* 546 MHz */
 
-In general, everything that is a hybrid card is under media/video.
-That's just a product of the way the two trees evolved (v4l vs.
-dvb)...
+Are you going to resubmit the patch with just these changes (you can add my 
+Tested-by to that), or if you want, I can take care of resubmitting it?
 
-Steven actually has a tree which I believe has support for pretty much
-every 1250 variant.  It's not merged upstream though, so you will
-likely have to do some tweaking of the code to make it work with
-current kernels.
-
-http://kernellabs.com/hg/~stoth/cx23888-encoder/
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+-Carlos
