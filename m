@@ -1,50 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:55176 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934332Ab1JENJt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 09:09:49 -0400
-Received: by ywb5 with SMTP id 5so1539783ywb.19
-        for <linux-media@vger.kernel.org>; Wed, 05 Oct 2011 06:09:48 -0700 (PDT)
+Received: from smtp.nokia.com ([147.243.128.26]:40920 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755167Ab1JWIov (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Oct 2011 04:44:51 -0400
+Message-ID: <4EA3D3F8.907@iki.fi>
+Date: Sun, 23 Oct 2011 11:44:40 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <20111005105438.GA8614@valkosipuli.localdomain>
-References: <51A4F524D105AA4C93787F33E2C90E62EE5203@greysvr02.GreyInnovation.local>
-	<201110041350.33441.laurent.pinchart@ideasonboard.com>
-	<1317729252.8358.54.camel@iivanov-desktop>
-	<201110041500.56885.laurent.pinchart@ideasonboard.com>
-	<51A4F524D105AA4C93787F33E2C90E62EE5350@greysvr02.GreyInnovation.local>
-	<20111005105438.GA8614@valkosipuli.localdomain>
-Date: Wed, 5 Oct 2011 15:09:48 +0200
-Message-ID: <CA+2YH7vRZ9XVT-DMowOnCd0mbTWR6b3drPHAfRjsNuq3m+Kudg@mail.gmail.com>
-Subject: Re: Help with omap3isp resizing
-From: Enrico <ebutera@users.berlios.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Paul Chiha <paul.chiha@greyinnovation.com>,
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Ivan T. Ivanov" <iivanov@mm-sol.com>, linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [RFC] subdevice PM: .s_power() deprecation?
+References: <Pine.LNX.4.64.1110031138370.14314@axis700.grange> <Pine.LNX.4.64.1110171720260.18438@axis700.grange> <4E9C9D84.5020905@gmail.com> <201110180107.20494.laurent.pinchart@ideasonboard.com> <4E9DEB4A.4050001@gmail.com> <Pine.LNX.4.64.1110182315180.7139@axis700.grange> <4E9F399B.9080207@gmail.com> <4EA3CB48.5000203@iki.fi> <4EA3D1C4.8050302@gmail.com>
+In-Reply-To: <4EA3D1C4.8050302@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 5, 2011 at 12:54 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> On Wed, Oct 05, 2011 at 01:51:29PM +1100, Paul Chiha wrote:
->> Thanks for your help. I've updated ispccdc.c to support the _1X16 codes
->> and the pipeline seems to work now. However, I needed to take out the
->> memcpy in ccdc_try_format(), because otherwise pad 0 format was being
->> copied to pad 1 or 2, regardless of what pad 1 or 2 were being set to. I'm
->> not sure why it was done that way. I think it's better that the given code
->> gets checked to see if it's in the list and if so use it. Do you know of
->> any valid reason why this copy is done?
->
-> If I remember corretly, it's because there's nothing the CCDC may do to the
-> size of the image --- the driver doesn't either support cropping on the
-> CCDC. The sink format used to be always the same as the source format, the
-> assumption which no longer is valid when YUYV8_2X8 etc. formats are
-> supported. This must be taken into account, i.e. YUYV8_2X8 must be converted
-> to YUYV8_1X16 instead of just copying the format as such.
+Sylwester Nawrocki wrote:
+> Hi Sakari,
+> 
+> On 10/23/2011 10:07 AM, Sakari Ailus wrote:
+>> Sylwester Nawrocki wrote:
+>> ...
+>>>> I understand what you're saying, but can you give us a specific example,
+>>>> when a subdev driver (your SoC internal subdev, that is) doesn't have a
+>>>> way to react to an event itself and only the bridge driver gets called
+>>>> into at that time? Something like an interrupt or an internal timer or
+>>>> some other internal event?
+>>>
+>>> 1. The S5P SoC video output subsystem (http://lwn.net/Articles/449661) comprises
+>>>   of multiple logical blocks, like Video Processor, Mixer, HDMI, HDMI PHY, SD TV Out.
+>>>   For instance the master video clock is during normal operation derived from
+>>>   (synchronized to, with PLL,) the HDMI-PHY output clock. The host driver can
+>>>   switch to this clock only when the HDMI-PHY (subdev) power and clocks are enabled.
+>>>   And it should be done before .s_stream(), to do some H/W configuration earlier
+>>>   in the pipeline, before streaming is enabled. Perhaps Tomasz could give some
+>>>   further explanation of what the s_power() op does and why in the driver.
+>>>
+>>> 2. In some of our camera pipeline setups - "Sensor - MIPI-CSI receiver - host/DMA",
+>>>   the sensor won't boot properly if all MIPI-CSI regulators aren't enabled. So the
+>>>   MIPI-CSI receiver must always be powered on before the sensor. With the subdevs
+>>>   doing their own magic wrt to power control the situation is getting slightly
+>>>   out of control.
+>>
+>> How about this: CSI-2 receiver implements a few new regulators which the
+>> sensor driver then requests to be enabled. Would that work for you?
+> 
+> No, I don't like that... :)
+> 
+> We would have to standardize the regulator supply names, etc. Such approach
+> would be more difficult to align with runtime/system suspend/resume.
+> Also the sensor drivers should be independent on other drivers. The MIPI-CSI
+> receiver is more specific to the host, rather than a sensor.
+> 
+> Not all sensors need MIPI-CSI, some just use parallel video bus.
 
-Looking at omap trm (spruf98t, July 2011) figure 12-103 it seems
-possible to set some registers (start pixel horizontal/vertical and so
-on...) to crop the "final" image, but i never tested it.
+The sensor drivers are responsible for the regulators they want to use,
+right? If they need no CSI-2 related regulators then they just ignore
+them as any other regulators the sensor doesn't need.
 
-Enrico
+The names of the regulators could come from the platform data, they're
+board specific anyway. I can't see another way to do this without having
+platform code to do this which is not quite compatible with the idea of
+the device tree.
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
