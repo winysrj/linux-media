@@ -1,50 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:33006 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750757Ab1JNOEl convert rfc822-to-8bit (ORCPT
+Received: from ppsw-51.csi.cam.ac.uk ([131.111.8.151]:42304 "EHLO
+	ppsw-51.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753807Ab1JXI0g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Oct 2011 10:04:41 -0400
-Received: by bkbzt19 with SMTP id zt19so34300bkb.19
-        for <linux-media@vger.kernel.org>; Fri, 14 Oct 2011 07:04:40 -0700 (PDT)
+	Mon, 24 Oct 2011 04:26:36 -0400
+Message-ID: <4EA52143.50806@cam.ac.uk>
+Date: Mon, 24 Oct 2011 09:26:43 +0100
+From: Jonathan Cameron <jic23@cam.ac.uk>
 MIME-Version: 1.0
-In-Reply-To: <101260B451BFC64699575BAC372B3DEE0138889E@mx1.pctvsystems.com>
-References: <CAGa-wNOL_1ua0DQFRPFuLtHO0zTFhE0DaM+b6kujMEEL4dQbKg@mail.gmail.com>
-	<CAGoCfizwYRpSsqobaHWJd5d0wq1N0KSXEQ1Un_ue01KuYGHaWA@mail.gmail.com>
-	<4E970CA7.8020807@iki.fi>
-	<CAGoCfiwSJ7EGXxAw7UgbFeECh+dg1EueXEC9iCHu7TaXia=-mQ@mail.gmail.com>
-	<4E970F7A.5010304@iki.fi>
-	<CAGoCfiyXiANjoB5bXgBpjwOAk8kpz8guxTGuGtVbtgc6+DNAag@mail.gmail.com>
-	<4E976EF6.1030101@southpole.se>
-	<CAGoCfixwp-iVFJysEG=UjN63-U_P4mdFWt+8hCwFW7fYeADvuw@mail.gmail.com>
-	<4E9836E5.6040601@redhat.com>
-	<CAGoCfizDdx=a=mR5TRXw_Dnj9cw2_1C9NuRH2LR2gXxEzyfW3w@mail.gmail.com>
-	<101260B451BFC64699575BAC372B3DEE0138889E@mx1.pctvsystems.com>
-Date: Fri, 14 Oct 2011 10:04:39 -0400
-Message-ID: <CAGoCfiwPbGEqQgu-yjoFMz_7mk-u9gDEvwWSJ0uW1tCaGwzWgQ@mail.gmail.com>
-Subject: Re: PCTV 520e on Linux
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?S=F6nke_Brandt?= <SBrandt@pctvsystems.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Benjamin Larsson <benjamin@southpole.se>,
-	linux-media@vger.kernel.org, Eddi De Pieri <eddi@depieri.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, khali@linux-fr.org,
+	kernel@pengutronix.de
+Subject: Re: [PATCH] v4l: mt9p031/mt9t001: Use i2c_smbus_{read|write}_word_swapped()
+References: <20111021144652.6aa97c8f@endymion.delvare> <1319203825-23247-1-git-send-email-jic23@cam.ac.uk> <201110221057.54573.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201110221057.54573.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 14, 2011 at 10:01 AM, Sönke Brandt <SBrandt@pctvsystems.com> wrote:
->  Just a quick note: The 520e does use the TDA18271 tuner, not an XC5000.
->
->  Soenke.
+On 10/22/11 09:57, Laurent Pinchart wrote:
+> The MT9P031 and MT9T001 sensors transfer 16-bit data on the I2C bus in
+> swapped order. Let the I2C core handle byte order by using the
+> i2c_smbus_{read|write}_word_swapped() functions.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
+> ---
+>  drivers/media/video/mt9p031.c |    5 ++---
+>  drivers/media/video/mt9t001.c |    5 ++---
+>  2 files changed, 4 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
+> index 5cfa39f..aa01c4b 100644
+> --- a/drivers/media/video/mt9p031.c
+> +++ b/drivers/media/video/mt9p031.c
+> @@ -131,13 +131,12 @@ static struct mt9p031 *to_mt9p031(struct v4l2_subdev *sd)
+>  
+>  static int mt9p031_read(struct i2c_client *client, u8 reg)
+>  {
+> -	s32 data = i2c_smbus_read_word_data(client, reg);
+> -	return data < 0 ? data : be16_to_cpu(data);
+> +	return i2c_smbus_read_word_swapped(client, reg);
+>  }
+>  
+>  static int mt9p031_write(struct i2c_client *client, u8 reg, u16 data)
+>  {
+> -	return i2c_smbus_write_word_data(client, reg, cpu_to_be16(data));
+> +	return i2c_smbus_write_word_swapped(client, reg, data);
+>  }
+>  
+>  static int mt9p031_set_output_control(struct mt9p031 *mt9p031, u16 clear,
+> diff --git a/drivers/media/video/mt9t001.c b/drivers/media/video/mt9t001.c
+> index cac1416..2ea6a08 100644
+> --- a/drivers/media/video/mt9t001.c
+> +++ b/drivers/media/video/mt9t001.c
+> @@ -132,13 +132,12 @@ static inline struct mt9t001 *to_mt9t001(struct v4l2_subdev *sd)
+>  
+>  static int mt9t001_read(struct i2c_client *client, u8 reg)
+>  {
+> -	s32 data = i2c_smbus_read_word_data(client, reg);
+> -	return data < 0 ? data : be16_to_cpu(data);
+> +	return i2c_smbus_read_word_swapped(client, reg);
+>  }
+>  
+>  static int mt9t001_write(struct i2c_client *client, u8 reg, u16 data)
+>  {
+> -	return i2c_smbus_write_word_data(client, reg, cpu_to_be16(data));
+> +	return i2c_smbus_write_word_swapped(client, reg, data);
+>  }
+>  
+>  static int mt9t001_set_output_control(struct mt9t001 *mt9t001, u16 clear,
 
-Wow, how the hell did I screw that up?  Of course Sönke is correct.  I
-momentarily got the 520e confused with the HVR-930c (I've done work on
-both in the past).
-
-Regards,
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
