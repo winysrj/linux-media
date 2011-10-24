@@ -1,53 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:38090 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751393Ab1JRGMk (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52277 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932166Ab1JXMaT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Oct 2011 02:12:40 -0400
-Date: Tue, 18 Oct 2011 09:12:09 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Derek Kelly <user.vdr@gmail.com>,
-	"Hans J. Koch" <hjk@linutronix.de>, Jiri Kosina <jkosina@suse.cz>,
-	Ben Pfaff <blp@cs.stanford.edu>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [patch] [media] av7110: wrong limiter in av7110_start_feed()
-Message-ID: <20111018061209.GF27732@elgon.mountain>
+	Mon, 24 Oct 2011 08:30:19 -0400
+Received: from lancelot.localnet (unknown [85.13.70.251])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 2882B35999
+	for <linux-media@vger.kernel.org>; Mon, 24 Oct 2011 12:30:18 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.2] OMAP3 ISP and OMAP VOUT fixes
+Date: Mon, 24 Oct 2011 14:30:47 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201110241430.48230.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Smatch complains that the wrong limiter is used here:
-drivers/media/dvb/ttpci/av7110.c +906 dvb_feed_start_pid(12)
-	error: buffer overflow 'npids' 5 <= 19
+Hi Mauro,
 
-Here is the problem code:
-   905          i = dvbdmxfeed->pes_type;
-   906          npids[i] = (pid[i]&0x8000) ? 0 : pid[i];
+The following changes since commit 35a912455ff5640dc410e91279b03e04045265b2:
 
-"npids" is a 5 element array declared on the stack.  If
-dvbdmxfeed->pes_type is more than 4 we probably put a (u16)0 past
-the end of the array.
+  Merge branch 'v4l_for_linus' into staging/for_v3.2 (2011-10-19 12:41:18 
+-0200)
 
-If dvbdmxfeed->pes_type is over 4 the rest of the function doesn't
-do anything.  dvbdmxfeed->pes_type is capped at less than
-DMX_TS_PES_OTHER (20) in the caller function, but I changed it to
-less than or equal to DMX_TS_PES_PCR (4).
+are available in the git repository at:
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+  git://linuxtv.org/pinchartl/media.git omap3isp-omap3isp-next
 
-diff --git a/drivers/media/dvb/ttpci/av7110.c b/drivers/media/dvb/ttpci/av7110.c
-index 3d20719..abf6b55 100644
---- a/drivers/media/dvb/ttpci/av7110.c
-+++ b/drivers/media/dvb/ttpci/av7110.c
-@@ -991,7 +991,7 @@ static int av7110_start_feed(struct dvb_demux_feed *feed)
- 
- 	if (feed->type == DMX_TYPE_TS) {
- 		if ((feed->ts_type & TS_DECODER) &&
--		    (feed->pes_type < DMX_TS_PES_OTHER)) {
-+		    (feed->pes_type <= DMX_TS_PES_PCR)) {
- 			switch (demux->dmx.frontend->source) {
- 			case DMX_MEMORY_FE:
- 				if (feed->ts_type & TS_DECODER)
+Guennadi Liakhovetski (1):
+      omap3isp: ccdc: remove redundant operation
+
+Laurent Pinchart (9):
+      omap3isp: Move media_entity_cleanup() from unregister() to cleanup()
+      omap3isp: Move *_init_entities() functions to the init/cleanup section
+      omap3isp: Add missing mutex_destroy() calls
+      omap3isp: Fix memory leaks in initialization error paths
+      omap3isp: Report the ISP revision through the media controller API
+      omap3isp: preview: Remove horizontal averager support
+      omap3isp: preview: Rename min/max input/output sizes defines
+      omap3isp: preview: Add crop support on the sink pad
+      omap_vout: Add poll() support
+
+ drivers/media/video/omap/omap_vout.c       |   10 +
+ drivers/media/video/omap3isp/isp.c         |    3 +
+ drivers/media/video/omap3isp/ispccdc.c     |   86 ++++---
+ drivers/media/video/omap3isp/ispccp2.c     |  125 +++++----
+ drivers/media/video/omap3isp/ispcsi2.c     |   91 ++++---
+ drivers/media/video/omap3isp/isph3a_aewb.c |    2 +-
+ drivers/media/video/omap3isp/isph3a_af.c   |    2 +-
+ drivers/media/video/omap3isp/isphist.c     |    2 +-
+ drivers/media/video/omap3isp/isppreview.c  |  419 +++++++++++++++++----------
+ drivers/media/video/omap3isp/isppreview.h  |    9 +-
+ drivers/media/video/omap3isp/ispreg.h      |    3 -
+ drivers/media/video/omap3isp/ispresizer.c  |  104 ++++----
+ drivers/media/video/omap3isp/ispstat.c     |   52 ++--
+ drivers/media/video/omap3isp/ispstat.h     |    2 +-
+ drivers/media/video/omap3isp/ispvideo.c    |   11 +-
+ drivers/media/video/omap3isp/ispvideo.h    |    1 +
+ 16 files changed, 545 insertions(+), 377 deletions(-)
+
+-- 
+Regards,
+
+Laurent Pinchart
