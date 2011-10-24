@@ -1,107 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:52019 "EHLO
-	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752244Ab1JCOqK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Oct 2011 10:46:10 -0400
-From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
-To: "'Issa Gorissen'" <flop.m@usa.net>, <o.endriss@gmx.de>
-Cc: "'Linux Media Mailing List'" <linux-media@vger.kernel.org>
-References: <533PJcN7P6848S01.1317650355@web01.cms.usa.net>
-In-Reply-To: <533PJcN7P6848S01.1317650355@web01.cms.usa.net>
-Subject: RE: [DVB] CXD2099 - Question about the CAM clock
-Date: Mon, 3 Oct 2011 16:46:04 +0200
-Message-ID: <006f01cc81db$2dfdf220$89f9d660$@coexsi.fr>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40229 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932478Ab1JXNpY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Oct 2011 09:45:24 -0400
+Received: from lancelot.localnet (unknown [85.13.70.251])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 62AE335999
+	for <linux-media@vger.kernel.org>; Mon, 24 Oct 2011 13:45:23 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.2] uvcvideo fixes
+Date: Mon, 24 Oct 2011 15:45:47 +0200
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Language: fr
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201110241545.48557.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
+The following changes since commit 35a912455ff5640dc410e91279b03e04045265b2:
 
-> -----Original Message-----
-> From: Issa Gorissen [mailto:flop.m@usa.net]
-> Sent: lundi 3 octobre 2011 15:59
-> To: o.endriss@gmx.de; Sébastien RAILLARD
-> Cc: 'Linux Media Mailing List'
-> Subject: RE: [DVB] CXD2099 - Question about the CAM clock
-> 
-> > >
-> > > > Dear Oliver,
-> > > >
-> > > > I’ve done some tests with the CAM reader from Digital Devices
-> > > > based on
-> > > Sony
-> > > > CXD2099 chip and I noticed some issues with some CAM:
-> > > > * SMIT CAM    : working fine
-> > > > * ASTON CAM   : working fine, except that it's crashing quite
-> > > regularly
-> > > > * NEOTION CAM : no stream going out but access to the CAM menu is
-> > > > ok
-> > > >
-> > > > When looking at the CXD2099 driver code, I noticed the CAM clock
-> > > > (fMCLKI)
-> > > is
-> > > > fixed at 9MHz using the 27MHz onboard oscillator and using the
-> > > > integer divider set to 3 (as MCLKI_FREQ=2).
-> > > >
-> > > > I was wondering if some CAM were not able to work correctly at
-> > > > such high clock frequency.
-> > > >
-> > > > So, I've tried to enable the NCO (numeric controlled oscillator)
-> > > > in order
-> > > to
-> > > > setup a lower frequency for the CAM clock, but I wasn't
-> > > > successful, it's looking like the frequency must be around the
-> > > > 9MHz or I can't get any stream.
-> > > >
-> > > > Do you know a way to decrease this CAM clock frequency to do some
-> > > testing?
-> > > >
-> > > > Best regards,
-> > > > Sebastien.
-> > >
-> > > Weird that the frequency would pose a problem for those CAMs. The CI
-> > > spec [1] explains that the minimum byte transfer clock period must
-> > > be 111ns. This gives us a frequency of ~9MHz.
-> > >
-> >
-> > You're totally right about the maximum clock frequency specified in
-> > the norm, but I had confirmation from CAM manufacturers that their CAM
-> > may not work correctly up to this maximum frequency.
-> >
-> > Usually, the CAM clock is coming from the input TS stream and I don't
-> > think there is for now a DVB-S2 transponder having a 72mbps bitrate
-> > (so a 9MHz
-> for
-> > parallel CAM clocking).
-> >
-> > > Anyway, wouldn't it be wiser to base MCLKI on TICLK ?
-> > >
-> >
-> > I've tried to use mode C instead of mode D, and I have the same
-> > problem, so I guess TICLK is around 72MHz.
-> >
-> > It could be a good idea to use TICLK, but I don't know the value and
-> > if the clock is constant or only active during data transmission.
-> >
-> >
-> > Did you manage to enable and use the NCO of the CXD2099 (instead of
-> > the integer divider) ?
-> 
-> No, but if your output to the CAM is slower than what comes from the
-> ngene chip, you will lose bytes, no ?
+  Merge branch 'v4l_for_linus' into staging/for_v3.2 (2011-10-19 12:41:18 
+-0200)
 
-The real bandwidth of my transponder is 62mbps, so I've room to decrease the
-CAM clock.
+are available in the git repository at:
 
-I did more tests with the NCO, and I've strange results:
-* Using MCLKI=0x5553 => fMCLKI= 8,99903 => Not working, a lot of TS errors
-* Using MCLKI=0x5554 => fMCLKI= 8,99945 => Working fine
-* Using MCLKI=0x5555 => fMCLKI= 8,99986 => Not working, a lot of TS errors
+  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
 
-It's strange that changing very slightly the clock make so much errors!
+Hans de Goede (1):
+      uvcvideo: GET_RES should only be checked for BITMAP type menu controls
 
+ drivers/media/video/uvc/uvc_ctrl.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
+-- 
+Regards,
+
+Laurent Pinchart
