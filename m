@@ -1,31 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:33865 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755931Ab1J2AVI (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:33215 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752355Ab1JWX7a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Oct 2011 20:21:08 -0400
-Received: by faan17 with SMTP id n17so4074169faa.19
-        for <linux-media@vger.kernel.org>; Fri, 28 Oct 2011 17:21:07 -0700 (PDT)
-From: Marek Vasut <marek.vasut@gmail.com>
-To: James <bjlockie@lockie.ca>
-Subject: Re: femon patch for dB
-Date: Sat, 29 Oct 2011 02:21:04 +0200
-Cc: "linux-media Mailing List" <linux-media@vger.kernel.org>
-References: <4EAB342F.2020008@lockie.ca>
-In-Reply-To: <4EAB342F.2020008@lockie.ca>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+	Sun, 23 Oct 2011 19:59:30 -0400
+Subject: [GIT PULL] ivtv, cx18: FM radio fixes
+From: Andy Walls <awalls@md.metrocast.net>
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ian Armstrong <mail01@iarmst.co.uk>,
+	Sven Verdoolaege <skimo@kotnet.org>
+Date: Sun, 23 Oct 2011 20:01:27 -0400
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201110290221.05015.marek.vasut@gmail.com>
+Message-ID: <1319414487.17800.8.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I added a switch to femon so it displays signal and snr in dB.
-> 
-> The cx23885 driver for my Hauppauge WinTV-HVR1250 reports signal and snr
-> in dB.
-> 
-> http://lockie.ca/test/femon.patch.bz2
+Mauro,
 
-Use git send-email to submit patches to mailing lists, thanks
+Please pull two changes that fix FM radio in ivtv and cx18.  Thanks go
+to Ian Armstrong for finding and fixing the ivtv problem.
+
+Regards,
+Andy
+
+
+The following changes since commit 35a912455ff5640dc410e91279b03e04045265b2:
+
+  Merge branch 'v4l_for_linus' into staging/for_v3.2 (2011-10-19 12:41:18 -0200)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/awalls/media_tree.git fm_radio
+
+Andy Walls (1):
+      cx18: Fix FM radio
+
+Ian Armstrong (1):
+      ivtv: Fix radio support
+
+ drivers/media/video/cx18/cx18-driver.c |    2 ++
+ drivers/media/video/ivtv/ivtv-driver.c |    2 ++
+ 2 files changed, 4 insertions(+), 0 deletions(-)
+
+
