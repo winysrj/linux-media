@@ -1,52 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41902 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47230 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932721Ab1J1Mlj (ORCPT
+	with ESMTP id S932826Ab1JXPle (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Oct 2011 08:41:39 -0400
+	Mon, 24 Oct 2011 11:41:34 -0400
+Received: from localhost.localdomain (unknown [85.13.70.251])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 06DF735B60
+	for <linux-media@vger.kernel.org>; Mon, 24 Oct 2011 15:41:33 +0000 (UTC)
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Gilles Gigan <gilles.gigan@gmail.com>
-Subject: Re: Switching input during capture
-Date: Fri, 28 Oct 2011 14:42:21 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <CAJWu0HN8WC-xfAy3cNnA_o3YPj7+9Eo5+YCvNtqRNs9dG18+8A@mail.gmail.com>
-In-Reply-To: <CAJWu0HN8WC-xfAy3cNnA_o3YPj7+9Eo5+YCvNtqRNs9dG18+8A@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201110281442.21776.laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/2] uvcvideo: videobuf2-vmalloc support
+Date: Mon, 24 Oct 2011 17:42:02 +0200
+Message-Id: <1319470924-15703-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gilles,
+Hi everybody,
 
-On Friday 28 October 2011 03:31:53 Gilles Gigan wrote:
-> Hi,
-> I would like to know what is the correct way to switch the current
-> video input during capture on a card with a single BT878 chip and 4
-> inputs
-> (http://store.bluecherry.net/products/PV%252d143-%252d-4-port-video-captur
-> e-card-%2830FPS%29-%252d-OEM.html). I tried doing it in two ways:
-> - using VIDIOC_S_INPUT to change the current input. While this works,
-> the next captured frame shows video from the old input in its top half
-> and video from the new input in the bottom half.
-> - I tried setting the input field to the new input and flags to
-> V4L2_BUF_FLAG_INPUT in the struct v4l2_buffer passed to VIDIOC_QBUF
-> when enqueuing buffers. However, when doing so, the ioctl fails
-> altogether, and I cannot enqueue any buffers with the
-> V4L2_BUF_FLAG_INPUT flag set.
+The subject says it all. Now you can only blame me for not using video_ioctl2
+(which I'm currently evaluating btw...) and the control framework :-)
 
-V4L2_BUF_FLAG_INPUT is (or at least should be) deprecated. It isn't supported 
-by mainline drivers and was a mistake in the first place.
+Laurent Pinchart (2):
+  uvcvideo: Move fields from uvc_buffer::buf to uvc_buffer
+  uvcvideo: Use videobuf2-vmalloc
 
-> Is there another way of doing it ? or is there a way to synchronise
-> the input change (when using VIDIOC_S_INPUT) so it happens in between
-> 2 frames and produces a clean switch ?
-
-You will need hardware support for that.
+ drivers/media/video/uvc/Kconfig      |    1 +
+ drivers/media/video/uvc/uvc_isight.c |   10 +-
+ drivers/media/video/uvc/uvc_queue.c  |  554 +++++++++-------------------------
+ drivers/media/video/uvc/uvc_v4l2.c   |   19 +-
+ drivers/media/video/uvc/uvc_video.c  |   30 +-
+ drivers/media/video/uvc/uvcvideo.h   |   37 +--
+ 6 files changed, 181 insertions(+), 470 deletions(-)
 
 -- 
 Regards,
 
 Laurent Pinchart
+
