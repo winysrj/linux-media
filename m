@@ -1,123 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:34575 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933233Ab1JETsy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 15:48:54 -0400
-Received: by ggnv2 with SMTP id v2so1036477ggn.19
-        for <linux-media@vger.kernel.org>; Wed, 05 Oct 2011 12:48:53 -0700 (PDT)
-From: Christian Gmeiner <christian.gmeiner@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH resend] Make use of media bus pixel codes in adv7175 driver
-Date: Wed, 05 Oct 2011 21:48:43 +0000
-Message-ID: <1689465.o3NluRqnXi@localhost>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:57844 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754820Ab1JXL3Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Oct 2011 07:29:16 -0400
+Received: by wwe6 with SMTP id 6so8792584wwe.1
+        for <linux-media@vger.kernel.org>; Mon, 24 Oct 2011 04:29:15 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <4EA54389.9040505@darkmike.ru>
+References: <4EA54389.9040505@darkmike.ru>
+Date: Mon, 24 Oct 2011 13:29:15 +0200
+Message-ID: <CAL9G6WX1tTSLsm-iMNWnJdWJWQQ1m31WTTzrvG3eh9BYE8fnfw@mail.gmail.com>
+Subject: Re: Problem with TeVii S-470
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: Mike Mironov <subscribe@darkmike.ru>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=KOI8-R
 Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ADV7175A/ADV7176A can operate in either 8-bit or 16-bit YCrCb mode.
+2011/10/24 Mike Mironov <subscribe@darkmike.ru>:
+> Hello!
+>
+> I have this card http://www.linuxtv.org/wiki/index.php/TeVii_S470
+>
+> I try to use it under Debian Squeeze, but I can't get channel data from it.
+>
+> I try to use drivers from 2.6.38, 2.6.39 kernels, s2-liplianin drivers with
+> 2.6.32 kernel, last linux-media drivers with 2.6.32
+>
+> With all drivers I can scan channels, but then a I'll try to lock channel I
+> get some error in syslog (module cx23885 loaded with debug=1)
+>
+> cx23885[0]/0: [f373ec80/27] cx23885_buf_queue - append to active
+> cx23885[0]/0: [f373ebc0/28] wakeup reg=477 buf=477
+> cx23885[0]/0: queue is not empty - append to active
+>
+> and finally a lot of
+>
+> cx23885[0]/0: [f42c4240/6] timeout - dma=0x03c5c000
+> cx23885[0]/0: [f42c4180/7] timeout - dma=0x3322b000
+> cx23885[0]/0: [f4374440/8] timeout - dma=0x33048000
+> cx23885[0]/0: [f4374140/9] timeout - dma=0x03d68000
+>
+> In other machine this work under Windows. Under Linux I have same effects.
+>
+> It's problem in drivers or in card? That addition information need to
+> resolve this problem?
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at �http://vger.kernel.org/majordomo-info.html
+>
 
-* 8-Bit YCrCb Mode
-This default mode accepts multiplexed YCrCb inputs through
-the P7-P0 pixel inputs. The inputs follow the sequence Cb0, Y0
-Cr0, Y1 Cb1, Y2, etc. The Y, Cb and Cr data are input on a
-rising clock edge.
-
-* 16-Bit YCrCb Mode
-This mode accepts Y inputs through the P7–P0 pixel inputs and
-multiplexed CrCb inputs through the P15–P8 pixel inputs. The
-data is loaded on every second rising edge of CLOCK. The inputs
-follow the sequence Cb0, Y0 Cr0, Y1 Cb1, Y2, etc.
-
-Signed-off-by: Christian Gmeiner <christian.gmeiner@gmail.com>
----
-diff --git a/drivers/media/video/adv7175.c b/drivers/media/video/adv7175.c
-index d2327db..206078e 100644
---- a/drivers/media/video/adv7175.c
-+++ b/drivers/media/video/adv7175.c
-@@ -61,6 +61,11 @@ static inline struct adv7175 *to_adv7175(struct v4l2_subdev *sd)
- 
- static char *inputs[] = { "pass_through", "play_back", "color_bar" };
- 
-+static enum v4l2_mbus_pixelcode adv7175_codes[] = {
-+	V4L2_MBUS_FMT_UYVY8_2X8,
-+	V4L2_MBUS_FMT_UYVY8_1X16,
-+};
-+
- /* ----------------------------------------------------------------------- */
- 
- static inline int adv7175_write(struct v4l2_subdev *sd, u8 reg, u8 value)
-@@ -296,6 +301,60 @@ static int adv7175_s_routing(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static int adv7175_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
-+				enum v4l2_mbus_pixelcode *code)
-+{
-+	if (index >= ARRAY_SIZE(adv7175_codes))
-+		return -EINVAL;
-+
-+	*code = adv7175_codes[index];
-+	return 0;
-+}
-+
-+static int adv7175_g_fmt(struct v4l2_subdev *sd,
-+				struct v4l2_mbus_framefmt *mf)
-+{
-+	u8 val = adv7175_read(sd, 0x7);
-+
-+	if ((val & 0x40) == (1 << 6))
-+		mf->code = V4L2_MBUS_FMT_UYVY8_1X16;
-+	else
-+		mf->code = V4L2_MBUS_FMT_UYVY8_2X8;
-+
-+	mf->colorspace  = V4L2_COLORSPACE_SMPTE170M;
-+	mf->width       = 0;
-+	mf->height      = 0;
-+	mf->field       = V4L2_FIELD_ANY;
-+
-+	return 0;
-+}
-+
-+static int adv7175_s_fmt(struct v4l2_subdev *sd,
-+				struct v4l2_mbus_framefmt *mf)
-+{
-+	u8 val = adv7175_read(sd, 0x7);
-+	int ret;
-+
-+	switch (mf->code) {
-+	case V4L2_MBUS_FMT_UYVY8_2X8:
-+		val &= ~0x40;
-+		break;
-+
-+	case V4L2_MBUS_FMT_UYVY8_1X16:
-+		val |= 0x40;
-+		break;
-+
-+	default:
-+		v4l2_dbg(1, debug, sd,
-+			"illegal v4l2_mbus_framefmt code: %d\n", mf->code);
-+		return -EINVAL;
-+	}
-+
-+	ret = adv7175_write(sd, 0x7, val);
-+
-+	return ret;
-+}
-+
- static int adv7175_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-@@ -324,6 +383,9 @@ static const struct v4l2_subdev_core_ops adv7175_core_ops = {
- static const struct v4l2_subdev_video_ops adv7175_video_ops = {
- 	.s_std_output = adv7175_s_std_output,
- 	.s_routing = adv7175_s_routing,
-+	.s_mbus_fmt = adv7175_s_fmt,
-+	.g_mbus_fmt = adv7175_g_fmt,
-+	.enum_mbus_fmt  = adv7175_enum_fmt,
- };
- 
- static const struct v4l2_subdev_ops adv7175_ops = {
---
-1.7.7
+Hello Mike, I have same device on same OS, try this:
+mkdir /usr/local/src/dvbcd /usr/local/src/dvbwget
+http://tevii.com/100315_Beta_linux_tevii_ds3000.rarunrar x
+100315_Beta_linux_tevii_ds3000.rarcp dvb-fe-ds3000.fw
+/lib/firmware/tar xjvf linux-tevii-ds3000.tar.bz2cd
+linux-tevii-ds3000make && make install
+Regards.
+-- 
+Josu Lazkano
