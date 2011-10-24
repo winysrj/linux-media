@@ -1,58 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54588 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932848Ab1JaMae (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Oct 2011 08:30:34 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p9VCUYlf001272
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 31 Oct 2011 08:30:34 -0400
-Received: from shalem.localdomain (vpn1-4-232.ams2.redhat.com [10.36.4.232])
-	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id p9VCUWPH016637
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 31 Oct 2011 08:30:33 -0400
-Message-ID: <4EAE94FE.6020600@redhat.com>
-Date: Mon, 31 Oct 2011 13:30:54 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:62549 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751994Ab1JXTjb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Oct 2011 15:39:31 -0400
+Date: Mon, 24 Oct 2011 21:39:23 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Angela Wan <angela.j.wan@gmail.com>
+cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	linux-media@vger.kernel.org, leiwen@marvell.com,
+	ytang5@marvell.com, qingx@marvell.com, jwan@marvell.com
+Subject: Re: Reqbufs(0) need to release queued_list
+In-Reply-To: <CABbt3s68q_jKf9bHPT8kuaB6donrAzmucJJseWNiX88qud273g@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1110242136510.8610@axis700.grange>
+References: <CABbt3s68q_jKf9bHPT8kuaB6donrAzmucJJseWNiX88qud273g@mail.gmail.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PATCHES FOR 3.2] pwc driver ctrl events + fixes + pac207 exposure
- fix
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Mon, 24 Oct 2011, Angela Wan wrote:
 
-Please pull from my tree for the pwc ctrl-event changes +
-various fixes as well as the long expected pac207 exposure fix:
+> Hi,
+>    As I have used videobuf2+soc_camera architecture on my camera
+> driver. I find a problem when I use Reqbuf(0), which only release
+> buffer, but not clear queued_list.
 
-The following changes since commit 9e9e52f85fac877344e1a5bf92b41c5450a8d2e5:
+Indeed, looks like vb2_reqbufs(p->count == 0) fails to clean up the queue?
 
-   vivi: let vb2_poll handle events. (2011-10-06 14:45:26 +0200)
+Thanks
+Guennadi
 
-are available in the git repository at:
-   git://linuxtv.org/hgoede/gspca.git media-for_v3.2
+>    Problem description:
+>    That is if upper layer uses qbuf then reqbuf0 directly, not having
+> stream on/dqbuf/off, then next time when streamon, videobuf2 could
+> still have the buffer from queued_list which having the buffer
+> released in privious reqbuf0, and the camera driver could access the
+> buffer already freed.
+> The steps that could cause problem for USERPTR:
+> Qbuf
+> Qbuf
+> Reqbuf 0
+> Reqbuf 20
+> Qbuf
+> Qbuf
+> Streamon   (queued_list still has the buffer already freed in the
+> previous reqbuf0)
+> .buf_queue (from camera driver, could access the buffer already freed)
+> 
+>    My question is if we could use __vb2_queue_release which calls
+> __vb2_queue_cancle(clear queue_list) and __vb2_queue_free(release
+> buffer) in Reqbuf(0), while not only use __vb2_queue_free.
+> 
+> Thank you
+> 
+> Angela Wan
+> Best Regards
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Hans de Goede (7):
-       pwc: Add support for control events
-       pwc: properly mark device_hint as unused in all probe error paths
-       pwc: Make auto white balance speed and delay available as v4l2 controls
-       pwc: rework locking
-       pwc: poll(): Check that the device has not beem claimed for streaming already
-       pwc: read new preset values when changing awb control to a preset
-       gspca_pac207: Raise max exposure + various autogain setting tweaks
-
-  drivers/media/video/gspca/pac207.c  |   10 +-
-  drivers/media/video/pwc/pwc-ctrl.c  |  134 +++++++++++++++---------------
-  drivers/media/video/pwc/pwc-dec23.c |    7 ++
-  drivers/media/video/pwc/pwc-dec23.h |    2 +
-  drivers/media/video/pwc/pwc-if.c    |  155 ++++++++++++++++++-----------------
-  drivers/media/video/pwc/pwc-v4l.c   |  155 ++++++++++++++++++++++++-----------
-  drivers/media/video/pwc/pwc.h       |   11 ++-
-  7 files changed, 275 insertions(+), 199 deletions(-)
-
-Thanks & Regards,
-
-Hans
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
