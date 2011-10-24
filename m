@@ -1,57 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:51292 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752975Ab1JJWi5 (ORCPT
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:41283 "EHLO
+	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754355Ab1JXVom convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Oct 2011 18:38:57 -0400
-References: <201110101552.35977.lyle@sent.com>
-In-Reply-To: <201110101552.35977.lyle@sent.com>
+	Mon, 24 Oct 2011 17:44:42 -0400
+From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
+To: "'Ralph Metzler'" <rjkm@metzlerbros.de>
+Cc: "'Linux Media Mailing List'" <linux-media@vger.kernel.org>
+References: <004c01cc7a03$064111c0$12c33540$@coexsi.fr>	<201110240906.24543@orion.escape-edv.de>	<004e01cc9247$0a8da4d0$1fa8ee70$@coexsi.fr> <20133.44781.388484.71473@morden.metzler>
+In-Reply-To: <20133.44781.388484.71473@morden.metzler>
+Subject: RE: [DVB] Digital Devices Cine CT V6 support
+Date: Mon, 24 Oct 2011 23:44:39 +0200
+Message-ID: <00a001cc9296$22c75420$6855fc60$@coexsi.fr>
 MIME-Version: 1.0
 Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: saa7164[0]: can't get MMIO memory @ 0x0 or 0x0
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Mon, 10 Oct 2011 18:38:32 -0400
-To: Lyle Sigurdson <lyle@sent.com>, linux-media@vger.kernel.org
-Message-ID: <e8dafcd9-eb83-4f88-a936-0b96ee350bb4@email.android.com>
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Language: fr
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Lyle Sigurdson <lyle@sent.com> wrote:
 
->Hi all, and thanks for all your work.  But, I'm having a problem.
->
->Tuner card: Hauppauge! HVR-2250
->Mainboard: MSNV-939
->Distro: Slackware64 13.1 (kernel 2.6.33.4)
->
->When I modprobe saa7164:
->bowman kernel: saa7164[0]: can't get MMIO memory @ 0x0 or 0x0
->bowman kernel: CORE saa7164[0] No more PCIe resources for subsystem:
->0070:8851
->bowman kernel: saa7164: probe of 0000:04:00.0 failed with	error -22
->
->It turns out that pci_resource_start and pci_resource_len are both
->returning 
->null.
->
->What could be the cause of this?  Is there a solution? 
->
->   Lyle.	
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Try upping your kernel's vmalloc space
+> -----Original Message-----
+> From: Ralph Metzler [mailto:rjkm@metzlerbros.de]
+> Sent: lundi 24 octobre 2011 20:31
+> To: S é bastien RAILLARD (COEXSI)
+> Cc: 'Linux Media Mailing List'
+> Subject: RE: [DVB] Digital Devices Cine CT V6 support
+> 
+> Sébastien RAILLARD (COEXSI) writes:
+>  > I've seen a new parameter "ts_loop", can you explain how it's
+> working?
+>  > Is-it for sending the stream from the demodulator directly to the CAM
+> > reader?
+> 
+> No, it is mainly for testing. It declares one TAB as loopback, which
+> means that the data output is directly connected to the input.
+> 
 
-1. cat /proc/meminfo | grep -i vmalloc
+Ok
 
-Observe the vmalloctotal you have and convert from kB to MB.
+> For redirecting a stream through a CI see the "redirect" attribute.
+> I don't know if my small redirect readme was included in the package I
+> sent to Oliver. So, I attached it below.
+> 
+> 
+> -Ralph
+> 
+> 
+> 
+> Redirection of TS streams through CI modules is now supported through
+> /sys/class/ddbridge/ddbridge0/redirect.
+> It only works with cards based on the ddbridge PCIe bridge, not with
+> nGene based cards.
+> 
+> It is set up in such a way that you can write "AB CD" to a "redirect"
+> attribute and data from input B of card A is then piped through port D
+> (meaning TAB (D+1) which uses output D and input 2*D for CI io) of card
+> C and then shows up in the demux device belonging to input B (input
+> (B&1) of TAB (B/2+1)) of card A.
+> 
 
-2. Add a vmalloc=NNN to your kernel commandline on boot.  NNN should be the number of megabytes of address space to allow.  Try 64 or 128 megabytes more than your current setting.
+Great feature, thanks!
 
-Regards,
-Andy 
+> E.g.:
+> 
+> echo "00 01" > /sys/class/ddbridge/ddbridge0/redirect
+> 
+> will pipe input 0 of card 0 through CI at port 1 (TAB 2) of card 0.
+> 
+> Redirection should only be done right after loading the driver (or
+> booting if the driver is built-in) and before using the devices in any
+> way.
+
+
