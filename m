@@ -1,62 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:20766 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752219Ab1JNMyo (ORCPT
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:41974 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751368Ab1JYIH6 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Oct 2011 08:54:44 -0400
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LT200K0U3V629@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 14 Oct 2011 13:54:42 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LT200HHB3V6IW@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 14 Oct 2011 13:54:42 +0100 (BST)
-Date: Fri, 14 Oct 2011 14:54:29 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH] media: vb2: set buffer length correctly for all buffer types
-To: linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>
-Message-id: <1318596869-30027-1-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+	Tue, 25 Oct 2011 04:07:58 -0400
+Received: by qabj40 with SMTP id j40so146555qab.19
+        for <linux-media@vger.kernel.org>; Tue, 25 Oct 2011 01:07:57 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4EA66C5F.8080202@samsung.com>
+References: <CABbt3s68q_jKf9bHPT8kuaB6donrAzmucJJseWNiX88qud273g@mail.gmail.com>
+	<4EA66C5F.8080202@samsung.com>
+Date: Tue, 25 Oct 2011 16:07:57 +0800
+Message-ID: <CABbt3s5Lo7hNPxyK_NAmHHXTYt2WMQtSO9W907HxaU6HOpxTnw@mail.gmail.com>
+Subject: Re: [PATCH] media: vb2: reset queued list on REQBUFS(0) call
+From: Angela Wan <angela.j.wan@gmail.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: pawel@osciak.com, linux-media@vger.kernel.org, leiwen@marvell.com,
+	ytang5@marvell.com, qingx@marvell.com, jwan@marvell.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_planes[plane].length field was not initialized for userptr buffers.
-This patch fixes this issue.
+Hi, Marek
+   Why not call vb2_queue_release directly in reqbufs(0) instead of
+__vb2_queue_free, which could clear queued_count as well?
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-CC: Pawel Osciak <pawel@osciak.com>
----
- drivers/media/video/videobuf2-core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Angela
+Best Regards
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index d8affb8..5656fdf 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -58,7 +58,6 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- 
- 		/* Associate allocator private data with this plane */
- 		vb->planes[plane].mem_priv = mem_priv;
--		vb->v4l2_planes[plane].length = q->plane_sizes[plane];
- 	}
- 
- 	return 0;
-@@ -121,6 +120,7 @@ static void __setup_offsets(struct vb2_queue *q)
- 			continue;
- 
- 		for (plane = 0; plane < vb->num_planes; ++plane) {
-+			vb->v4l2_planes[plane].length = q->plane_sizes[plane];
- 			vb->v4l2_planes[plane].m.mem_offset = off;
- 
- 			dprintk(3, "Buffer %d, plane %d offset 0x%08lx\n",
--- 
-1.7.1.569.g6f426
-
+On Tue, Oct 25, 2011 at 3:59 PM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+> Queued list was not reset on REQBUFS(0) call. This caused enqueuing
+> a freed buffer to the driver.
+>
+> Reported-by: Angela Wan <angela.j.wan@gmail.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/video/videobuf2-core.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/media/video/videobuf2-core.c
+> b/drivers/media/video/videobuf2-core.c
+> index 3015e60..5722b81 100644
+> --- a/drivers/media/video/videobuf2-core.c
+> +++ b/drivers/media/video/videobuf2-core.c
+> @@ -254,6 +254,7 @@ static void __vb2_queue_free(struct vb2_queue *q)
+>
+>        q->num_buffers = 0;
+>        q->memory = 0;
+> +       INIT_LIST_HEAD(&q->queued_list);
+>  }
+>
+>  /**
+> --
+> 1.7.1
+>
+>
+>
