@@ -1,63 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:44847 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753574Ab1JMImp convert rfc822-to-8bit (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:35378 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752842Ab1JYH7e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Oct 2011 04:42:45 -0400
-Received: by gyb13 with SMTP id 13so1576132gyb.19
-        for <linux-media@vger.kernel.org>; Thu, 13 Oct 2011 01:42:44 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4E9609E3.3000902@mlbassoc.com>
-References: <4E9442A9.1060202@mlbassoc.com>
-	<4E9609E3.3000902@mlbassoc.com>
-Date: Thu, 13 Oct 2011 10:42:44 +0200
-Message-ID: <CA+2YH7v+wV4Kz=gLkACiE0fRHu2BCLLvNj8q=ipLDVy_GztXjw@mail.gmail.com>
-Subject: Re: OMAP3 ISP ghosting
-From: Enrico <ebutera@users.berlios.de>
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Enric Balletbo i Serra <eballetbo@iseebcn.com>,
-	Javier Martinez Canillas <martinez.javier@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Tue, 25 Oct 2011 03:59:34 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LTM00F6M3J8FE30@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 25 Oct 2011 08:59:32 +0100 (BST)
+Received: from [127.0.0.1] ([106.10.22.71])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LTM00APU3J2IN@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 25 Oct 2011 08:59:32 +0100 (BST)
+Date: Tue, 25 Oct 2011 09:59:27 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH] media: vb2: reset queued list on REQBUFS(0) call
+In-reply-to: <CABbt3s68q_jKf9bHPT8kuaB6donrAzmucJJseWNiX88qud273g@mail.gmail.com>
+To: Angela Wan <angela.j.wan@gmail.com>
+Cc: pawel@osciak.com, linux-media@vger.kernel.org, leiwen@marvell.com,
+	ytang5@marvell.com, qingx@marvell.com, jwan@marvell.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <4EA66C5F.8080202@samsung.com>
+References: <CABbt3s68q_jKf9bHPT8kuaB6donrAzmucJJseWNiX88qud273g@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 12, 2011 at 11:42 PM, Gary Thomas <gary@mlbassoc.com> wrote:
-> Any ideas on this?  My naive attempt (diffs attached) just hangs up.
-> These changes disable BT-656 mode in the CCDC and tell the TVP5150
-> to output raw YUV 4:2:2 data including all SYNC signals.
+Queued list was not reset on REQBUFS(0) call. This caused enqueuing
+a freed buffer to the driver.
 
-I tried that too, you will need to change many of the is_bt656 into
-is_fldmode. For isp configuration it seems that the only difference
-between the two is (more or less) just the REC656 register. I made a
-hundred attempts and in the end i had a quite working capture (just
-not centered) but ghosting always there.
+Reported-by: Angela Wan <angela.j.wan@gmail.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+  drivers/media/video/videobuf2-core.c |    1 +
+  1 files changed, 1 insertions(+), 0 deletions(-)
 
-I made another test and by luck i got a strange thing, look at the
-following image:
+diff --git a/drivers/media/video/videobuf2-core.c 
+b/drivers/media/video/videobuf2-core.c
+index 3015e60..5722b81 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -254,6 +254,7 @@ static void __vb2_queue_free(struct vb2_queue *q)
 
-http://postimage.org/image/2d610pjk4/
+  	q->num_buffers = 0;
+  	q->memory = 0;
++	INIT_LIST_HEAD(&q->queued_list);
+  }
 
-(It's noisy because of a hardware problem)
+  /**
+-- 
+1.7.1
 
-I made it with these changes:
 
-//ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENEVEN, 1);
-ccdc_config_outlineoffset(ccdc, pix.bytesperline, EVENODD, 1);
-//ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDEVEN, 1);
-ccdc_config_outlineoffset(ccdc, pix.bytesperline, ODDODD, 1);
-
-So you have an image with a field with no offset, and a field with offsets.
-
-Now if you look between my thumb and my forefinger behind them there's
-a monoscope picture and in one field you can see 2 black squares, in
-the other one you can see 3 black squares. So the two field that will
-be composing a single image differ very much.
-
-Now the questions are: is this expected to happen on an analogue video
-source and we can't do anything (apart from software deinterlacing)?
-is this a problem with tvp5150? Is this a problem with the isp?
-
-Enrico
