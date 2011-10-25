@@ -1,44 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56781 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934328Ab1JaLrr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Oct 2011 07:47:47 -0400
-Message-ID: <4EAE8AC8.603@redhat.com>
-Date: Mon, 31 Oct 2011 09:47:20 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:46013 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750823Ab1JYILh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Oct 2011 04:11:37 -0400
+Received: by ywm3 with SMTP id 3so250003ywm.19
+        for <linux-media@vger.kernel.org>; Tue, 25 Oct 2011 01:11:37 -0700 (PDT)
 MIME-Version: 1.0
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-CC: Piotr Chmura <chmooreck@poczta.onet.pl>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Greg KH <gregkh@suse.de>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
-Subject: Re: [PATCH v3 4/14] staging/media/as102: checkpatch fixes
-References: <4E7F1FB5.5030803@gmail.com> <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com> <4E7FF0A0.7060004@gmail.com> <CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com> <20110927094409.7a5fcd5a@stein> <20110927174307.GD24197@suse.de> <20110927213300.6893677a@stein> <4E999733.2010802@poczta.onet.pl> <4E99F2FC.5030200@poczta.onet.pl> <20111016105731.09d66f03@stein> <CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com> <4E9ADFAE.8050208@redhat.com> <20111018094647.d4982eb2.chmooreck@poczta.onet.pl> <20111018111151.635ac39e.chmooreck@poczta.onet.pl> <20111018215146.1fbc223f@darkstar> <4EABD3E2.3070302@gmail.com> <4EABFCF8.2010003@poczta.onet.pl> <4EAC2676.8030808@gmail.com> <4EAC3C57.5070701@poczta.onet.pl> <4EAC7214.5030008@gmail.com> <20111030081156.14b70914@darkstar> <20111030121710.73f9ee11@stein> <4EAE7CE4.10809@s5r6.in-berlin.de>
-In-Reply-To: <4EAE7CE4.10809@s5r6.in-berlin.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4EA66C5F.8080202@samsung.com>
+References: <CABbt3s68q_jKf9bHPT8kuaB6donrAzmucJJseWNiX88qud273g@mail.gmail.com>
+ <4EA66C5F.8080202@samsung.com>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Tue, 25 Oct 2011 01:11:17 -0700
+Message-ID: <CAMm-=zBt9HufMLpvcDBfD3qS1vL+zwm77APcfVcPQst1zqEyPw@mail.gmail.com>
+Subject: Re: [PATCH] media: vb2: reset queued list on REQBUFS(0) call
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Angela Wan <angela.j.wan@gmail.com>, linux-media@vger.kernel.org,
+	leiwen@marvell.com, ytang5@marvell.com, qingx@marvell.com,
+	jwan@marvell.com, Kyungmin Park <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 31-10-2011 08:48, Stefan Richter escreveu:
->> On Oct 30 Piotr Chmura wrote:
->>> Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
->>>
->>> Original source and comment:
->>> # HG changeset patch
-> 
-> By the way, the brand new git 1.7.8.rc0 features some HG support in "git am":
-> https://code.google.com/p/git-core/source/detail?spec=svnbe3fa9125e708348c7baf04ebe9507a72a9d1800&r=0cfd112032017ab68ed576f6bb5258452084ebf1
-> 
-> This converts the "# User" and "# Date" lines of HG patches into RFC 2822
-> "From: " and "Date: " lines which are then used as authorship metadata.
+On Tue, Oct 25, 2011 at 00:59, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+> Queued list was not reset on REQBUFS(0) call. This caused enqueuing
+> a freed buffer to the driver.
+>
+> Reported-by: Angela Wan <angela.j.wan@gmail.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/video/videobuf2-core.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/media/video/videobuf2-core.c
+> b/drivers/media/video/videobuf2-core.c
+> index 3015e60..5722b81 100644
+> --- a/drivers/media/video/videobuf2-core.c
+> +++ b/drivers/media/video/videobuf2-core.c
+> @@ -254,6 +254,7 @@ static void __vb2_queue_free(struct vb2_queue *q)
+>
+>        q->num_buffers = 0;
+>        q->memory = 0;
+> +       INIT_LIST_HEAD(&q->queued_list);
+>  }
+>
+>  /**
+> --
+> 1.7.1
+>
+>
+>
 
-hg headers are fine. As we moved from hg a few years, the scripts I use here already
-handles hg headers, converting them to rfc-2822 (it also does other neat things like
-calling checkpatch.pl ;) ).
+Acked-by: Pawel Osciak <pawel@osciak.com>
 
-Cheers,
-Mauro
-
+-- 
+Best regards,
+Pawel Osciak
