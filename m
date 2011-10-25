@@ -1,76 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63511 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932328Ab1JCSr4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Oct 2011 14:47:56 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org, isely@isely.net
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 2/2] [media] pvrusb2: implement VIDIOC_QUERYSTD
-Date: Mon,  3 Oct 2011 15:47:37 -0300
-Message-Id: <1317667657-4081-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1317667657-4081-1-git-send-email-mchehab@redhat.com>
-References: <1317667657-4081-1-git-send-email-mchehab@redhat.com>
+Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:33148 "EHLO
+	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751312Ab1JYJZU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Oct 2011 05:25:20 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by stevekerrison.com (Postfix) with ESMTP id 91C2716423
+	for <linux-media@vger.kernel.org>; Tue, 25 Oct 2011 10:25:17 +0100 (BST)
+Received: from stevekerrison.com ([127.0.0.1])
+	by localhost (stevekez.vm.bytemark.co.uk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id MXhqdcs06yif for <linux-media@vger.kernel.org>;
+	Tue, 25 Oct 2011 10:25:14 +0100 (BST)
+Received: from [10.0.97.47] (unknown [195.26.247.141])
+	(Authenticated sender: steve@stevekerrison.com)
+	by stevekerrison.com (Postfix) with ESMTPSA id CFF7F162C2
+	for <linux-media@vger.kernel.org>; Tue, 25 Oct 2011 10:25:14 +0100 (BST)
+Subject: Re: Display hotplug
+From: Steve Kerrison <steve@stevekerrison.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <1319534660.2847.57.camel@ares>
+References: <CAAMvbhF0GJDxePwhRBmMRQaCH-EN7Cv1AKhgLO99sjdnba+v7A@mail.gmail.com>
+	 <1319534660.2847.57.camel@ares>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 25 Oct 2011 10:25:13 +0100
+Message-ID: <1319534713.2847.59.camel@ares>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/video/pvrusb2/pvrusb2-hdw.c  |    7 +++++++
- drivers/media/video/pvrusb2/pvrusb2-hdw.h  |    3 +++
- drivers/media/video/pvrusb2/pvrusb2-v4l2.c |    7 +++++++
- 3 files changed, 17 insertions(+), 0 deletions(-)
+Hi James,
 
-diff --git a/drivers/media/video/pvrusb2/pvrusb2-hdw.c b/drivers/media/video/pvrusb2/pvrusb2-hdw.c
-index e98d382..5a6f24d 100644
---- a/drivers/media/video/pvrusb2/pvrusb2-hdw.c
-+++ b/drivers/media/video/pvrusb2/pvrusb2-hdw.c
-@@ -2993,6 +2993,13 @@ static void pvr2_subdev_set_control(struct pvr2_hdw *hdw, int id,
- 		pvr2_subdev_set_control(hdw, id, #lab, (hdw)->lab##_val); \
- 	}
- 
-+int pvr2_hdw_get_detected_std(struct pvr2_hdw *hdw, v4l2_std_id *std)
-+{
-+	v4l2_device_call_all(&hdw->v4l2_dev, 0,
-+			     video, querystd, std);
-+	return 0;
-+}
-+
- /* Execute whatever commands are required to update the state of all the
-    sub-devices so that they match our current control values. */
- static void pvr2_subdev_update(struct pvr2_hdw *hdw)
-diff --git a/drivers/media/video/pvrusb2/pvrusb2-hdw.h b/drivers/media/video/pvrusb2/pvrusb2-hdw.h
-index d7753ae..6654658 100644
---- a/drivers/media/video/pvrusb2/pvrusb2-hdw.h
-+++ b/drivers/media/video/pvrusb2/pvrusb2-hdw.h
-@@ -214,6 +214,9 @@ struct pvr2_stream *pvr2_hdw_get_video_stream(struct pvr2_hdw *);
- int pvr2_hdw_get_stdenum_value(struct pvr2_hdw *hdw,struct v4l2_standard *std,
- 			       unsigned int idx);
- 
-+/* Get the detected video standard */
-+int pvr2_hdw_get_detected_std(struct pvr2_hdw *hdw, v4l2_std_id *std);
-+
- /* Enable / disable retrieval of CPU firmware or prom contents.  This must
-    be enabled before pvr2_hdw_cpufw_get() will function.  Note that doing
-    this may prevent the device from running (and leaving this mode may
-diff --git a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-index e27f8ab..0d029da 100644
---- a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-@@ -227,6 +227,13 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		break;
- 	}
- 
-+	case VIDIOC_QUERYSTD:
-+	{
-+		v4l2_std_id *std = arg;
-+		ret = pvr2_hdw_get_detected_std(hdw, std);
-+		break;
-+	}
-+
- 	case VIDIOC_G_STD:
- 	{
- 		int val = 0;
+When I plug my laptop's (Toshiba R630, Intel i3 with integrated on-die
+graphics) HDMI port into a TV, the display manager in Ubuntu is able to
+detect it and, after a click or two, mirror or extended-desktop to it.
+
+So I would say the answer is... it already does. It's more likely that
+your distribution doesn't have the tools you need to do what you want,
+or the driver for your graphics device needs some work :)
+
+And I don't think this problem falls into the remit of linux-media;
+graphics drivers are dealt with elsewhere, aren't they?
 -- 
-1.7.6.4
+Steve Kerrison MEng Hons.
+http://www.stevekerrison.com/ 
+
+On Tue, 2011-10-25 at 10:09 +0100, James Courtier-Dutton wrote:
+> Hi,
+> 
+> Does anyone know when X will support display hotplug?
+> I have a PC connected via HDMI to a TV.
+> Unless I turn the TV on first, I have to reboot the PC before it
+> displays anything on the HDMI TV.
+> 
+> Kind Regards
+> 
+> James
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
