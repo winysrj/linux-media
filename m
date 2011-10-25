@@ -1,136 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:50114 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751800Ab1JOAD6 (ORCPT
+Received: from qmta03.westchester.pa.mail.comcast.net ([76.96.62.32]:54221
+	"EHLO qmta03.westchester.pa.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752069Ab1JYWdJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Oct 2011 20:03:58 -0400
-Date: Fri, 14 Oct 2011 17:03:54 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>
-Subject: Re: [PATCH 7/7] ARM: integrate CMA with DMA-mapping subsystem
-Message-Id: <20111014170354.ebd604a6.akpm@linux-foundation.org>
-In-Reply-To: <1317909290-29832-8-git-send-email-m.szyprowski@samsung.com>
-References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
-	<1317909290-29832-8-git-send-email-m.szyprowski@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Tue, 25 Oct 2011 18:33:09 -0400
+Message-ID: <4EA737C7.8090908@comcast.net>
+Date: Tue, 25 Oct 2011 18:27:19 -0400
+From: Peter Bennett <pgbennett@comcast.net>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: KWorld UB435-Q New Model
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 06 Oct 2011 15:54:47 +0200
-Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+I purchased a new KWorld UB435-Q USB ATSC Stick from newegg. It is not
+working. My experience suggests that it is using different chips from
+the version supported by Linux Media.
 
-> This patch adds support for CMA to dma-mapping subsystem for ARM
-> architecture. By default a global CMA area is used, but specific devices
-> are allowed to have their private memory areas if required (they can be
-> created with dma_declare_contiguous() function during board
-> initialization).
-> 
-> Contiguous memory areas reserved for DMA are remapped with 2-level page
-> tables on boot. Once a buffer is requested, a low memory kernel mapping
-> is updated to to match requested memory access type.
-> 
-> GFP_ATOMIC allocations are performed from special pool which is created
-> early during boot. This way remapping page attributes is not needed on
-> allocation time.
-> 
-> CMA has been enabled unconditionally for ARMv6+ systems.
-> 
->
-> ...
->
-> --- /dev/null
-> +++ b/arch/arm/include/asm/dma-contiguous.h
-> @@ -0,0 +1,33 @@
-> +#ifndef ASMARM_DMA_CONTIGUOUS_H
-> +#define ASMARM_DMA_CONTIGUOUS_H
-> +
-> +#ifdef __KERNEL__
-> +
-> +#include <linux/device.h>
-> +#include <linux/dma-contiguous.h>
-> +
-> +#ifdef CONFIG_CMA
-> +
-> +#define MAX_CMA_AREAS	(8)
+I downloaded my kernel source and checked it against the latest version
+in git. All the latest code for this device is in my system, including
+changes made by Jarod Wilson to support it.
 
-This was already defined in include/linux/dma-contiguous.h.  The
-compiler didn't warn because it was defined to the same value.  Sort it
-out, please?
+According to comments in the code
+([media_tree.git]/drivers/media/video/em28xx/em28xx-cards.c), the KWorld
+UB435-Q is the same as Empia EM2870, NXP TDA18271HD and LG DT3304, and
+the KWorld PlusTV 340U, and should have vendor id 0x1b80, 0xa340 and
+maps to EM2870_BOARD_KWORLD_A340.
 
->
-> ...
->
-> +static int __init early_coherent_pool(char *p)
-> +{
-> +	coherent_pool_size = memparse(p, &p);
-> +	return 0;
-> +}
-> +early_param("coherent_pool", early_coherent_pool);
+My unit has vendor id 0x1b80, 0xe346 and that is currently not mapped to
+any USB device. I recompiled drivers/media/video/em28xx/em28xx-cards.c
+to map that vendor id to EM2870_BOARD_KWORLD_A340.
 
-Is there user documentation for the new parameter?
+After installing the updated driver I received the following in dmesg:
+em28xx video device (1b80:e346): interface 0, class 255 found.
+em28xx This is an anciliary interface not used by the driver
+usbcore: registered new interface driver em28xx
+em28xx driver loaded
 
->
-> ...
->
-> +struct dma_contiguous_early_reserve {
-> +	phys_addr_t base;
-> +	unsigned long size;
-> +};
-> +
-> +static struct dma_contiguous_early_reserve
-> +dma_mmu_remap[MAX_CMA_AREAS] __initdata;
+No device was registered.
 
-Tab the continuation line to the right a bit.
+I then installed the KWorld UB435-Q under MS Windows 7 and it worked
+perfectly. The windows drivers have loaded some new rom into the device,
+so that now I get a different response from Linux. A little more
+hopeful, but still does not create the dvb device. It is in fact
+creating a video0 device which is not useful as there is no analog
+output from the USB stick.
+em28xx: New device USB 2875 Device @ 480 Mbps (1b80:e346, interface 0,
+class 0)
+em28xx #0: chip ID is em2874
+em28xx #0: Identified as KWorld PlusTV 340U or UB435-Q (ATSC) (card=76)
+em28xx #0: v4l2 driver version 0.1.2
+em28xx #0: V4L2 video device registered as video0
+usbcore: registered new interface driver em28xx
+em28xx driver loaded
+lgdt3305_read_reg: error (addr 0e reg 0001 error (ret == -19)
+lgdt3305_attach: error -19 on line 1144
+lgdt3305_attach: unable to detect LGDT3304 hardware
+em28xx #0: /2: frontend initialization failed
+Em28xx: Initialized (Em28xx dvb Extension) extension
 
-> +
-> +static int dma_mmu_remap_num __initdata;
->
-> ...
->
-> +static void *__alloc_from_pool(struct device *dev, size_t size,
-> +			       struct page **ret_page)
-> +{
-> +	struct arm_vmregion *c;
-> +	size_t align;
-> +
-> +	if (!coherent_head.vm_start) {
-> +		printk(KERN_ERR "%s: coherent pool not initialised!\n",
-> +		       __func__);
-> +		dump_stack();
-> +		return NULL;
-> +	}
-> +
-> +	align = 1 << fls(size - 1);
+There is a file in the widows system directory called merlinFW.rom. I
+suspect that this has been loaded into the memory stick and modified it.
 
-Is there a roundup_pow_of_two() hiding in there?
+Any ideas what I can do to support this? It would be nice to have this
+tuner supported, it is good value.
 
-> +	c = arm_vmregion_alloc(&coherent_head, align, size, 0);
-> +	if (c) {
-> +		void *ptr = (void *)c->vm_start;
-> +		struct page *page = virt_to_page(ptr);
-> +		*ret_page = page;
-> +		return ptr;
-> +	}
-> +	return NULL;
-> +}
->
-> ...
->
+Opening the USB stick I find a chip marked LGDT3305. The board is marked
+HU435Q and also has a TD18271 chip. It seems to be the same as the old
+UB435-Q except now has LGDT3305 instead of LGDT3304. The module
+(drivers/media/dvb/frontends/lgdt3305.c) is expecting an LGDT3304 as can
+be seen from the error message (lgdt3305_attach: unable to detect
+LGDT3304 hardware). looking at drivers/media/video/em28xx/em28xx-dvb.c I
+see that the chip type is never set to LGDT3305, only to LGDT3304 or
+LGDT3303. I will try creating a new entry for this device that sets it
+to LGDT3305, although if LGDT3305 is never used there is a good chance
+that it does not work.
+
+I am new to these device drivers but if anybody can point me in the
+right direction I would like to get it working, then I can contribute
+the code to the Linux Media effort.
 
