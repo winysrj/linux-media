@@ -1,74 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:24930 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752931Ab1JQMVL (ORCPT
+Received: from gateway09.websitewelcome.com ([67.18.21.24]:56382 "HELO
+	gateway09.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753707Ab1JYXEd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Oct 2011 08:21:11 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Date: Mon, 17 Oct 2011 14:21:07 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 2/9] mm: alloc_contig_freed_pages() added
-In-reply-to: <20111014162933.d8fead58.akpm@linux-foundation.org>
-To: 'Andrew Morton' <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Russell King' <linux@arm.linux.org.uk>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	'Ankita Garg' <ankita@in.ibm.com>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Mel Gorman' <mel@csn.ul.ie>, 'Arnd Bergmann' <arnd@arndb.de>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
-	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
-	'Dave Hansen' <dave@linux.vnet.ibm.com>
-Message-id: <01b201cc8cc7$3f6117d0$be234770$%szyprowski@samsung.com>
-Content-language: pl
-References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
- <1317909290-29832-3-git-send-email-m.szyprowski@samsung.com>
- <20111014162933.d8fead58.akpm@linux-foundation.org>
+	Tue, 25 Oct 2011 19:04:33 -0400
+Date: Tue, 25 Oct 2011 15:54:55 -0700 (PDT)
+From: sensoray-dev <linux-dev@sensoray.com>
+Subject: [PATCH][media] bttv: adding Sensoray 611 board to driver.
+To: linux-media@vger.kernel.org, mchehab@infradead.org
+Message-ID: <tkrat.9d996cc744b77c09@sensoray.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Andrew,
+commit affebd4db94b459f676a14d9bb696c3c2b73643d
+Author: Dean Anderson <linux-dev@sensoray.com>
+Date:   Tue Oct 25 15:43:55 2011 -0700
 
-Thanks for your comments. I will try to address them in the next round of
-CMA patches.
+[media] bttv: adding Sensoray 611 board to bttv driver
 
-On Saturday, October 15, 2011 1:30 AM Andrew Morton wrote:
+Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
 
-(snipped)
-
-> > +
-> > +void free_contig_pages(unsigned long pfn, unsigned nr_pages)
-> > +{
-> > +	struct page *page = pfn_to_page(pfn);
-> > +
-> > +	while (nr_pages--) {
-> > +		__free_page(page);
-> > +		++pfn;
-> > +		if (likely(zone_pfn_same_memmap(pfn - 1, pfn)))
-> > +			++page;
-> > +		else
-> > +			page = pfn_to_page(pfn);
-> > +	}
-> > +}
-> 
-> You're sure these functions don't need EXPORT_SYMBOL()?  Maybe the
-> design is that only DMA core calls into here (if so, that's good).
-
-Drivers should not call it, it is intended to be used by low-level DMA
-code. Do you think that a comment about missing EXPORT_SYMBOL is 
-required?
-
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
+diff --git a/Documentation/video4linux/CARDLIST.bttv b/Documentation/video4linux/CARDLIST.bttv
+index 4739d56..8948da4 100644
+--- a/Documentation/video4linux/CARDLIST.bttv
++++ b/Documentation/video4linux/CARDLIST.bttv
+@@ -71,7 +71,7 @@
+  70 -> Prolink Pixelview PV-BT878P+ (Rev.4C,8E)
+  71 -> Lifeview FlyVideo 98EZ (capture only) LR51          [1851:1851]
+  72 -> Prolink Pixelview PV-BT878P+9B (PlayTV Pro rev.9B FM+NICAM) [1554:4011]
+- 73 -> Sensoray 311                                        [6000:0311]
++ 73 -> Sensoray 311/611                                    [6000:0311,6000:0611]
+  74 -> RemoteVision MX (RV605)
+  75 -> Powercolor MTV878/ MTV878R/ MTV878F
+  76 -> Canopus WinDVR PCI (COMPAQ Presario 3524JP, 5112JP) [0e11:0079]
+diff --git a/drivers/media/video/bt8xx/bttv-cards.c b/drivers/media/video/bt8xx/bttv-cards.c
+index 5939021..076b7f2 100644
+--- a/drivers/media/video/bt8xx/bttv-cards.c
++++ b/drivers/media/video/bt8xx/bttv-cards.c
+@@ -284,7 +284,8 @@ static struct CARD {
+ 	{ 0x10b42636, BTTV_BOARD_HAUPPAUGE878,  "STB ???" },
+ 	{ 0x217d6606, BTTV_BOARD_WINFAST2000,   "Leadtek WinFast TV 2000" },
+ 	{ 0xfff6f6ff, BTTV_BOARD_WINFAST2000,   "Leadtek WinFast TV 2000" },
+-	{ 0x03116000, BTTV_BOARD_SENSORAY311,   "Sensoray 311" },
++	{ 0x03116000, BTTV_BOARD_SENSORAY311_611, "Sensoray 311" },
++	{ 0x06116000, BTTV_BOARD_SENSORAY311_611, "Sensoray 611" },
+ 	{ 0x00790e11, BTTV_BOARD_WINDVR,        "Canopus WinDVR PCI" },
+ 	{ 0xa0fca1a0, BTTV_BOARD_ZOLTRIX,       "Face to Face Tvmax" },
+ 	{ 0x82b2aa6a, BTTV_BOARD_SIMUS_GVC1100, "SIMUS GVC1100" },
+@@ -1526,10 +1527,10 @@ struct tvcard bttv_tvcards[] = {
+ 			GPIO20,22,23: R30,R29,R28
+ 		*/
+ 	},
+-	[BTTV_BOARD_SENSORAY311] = {
++	[BTTV_BOARD_SENSORAY311_611] = {
+ 		/* Clay Kunz <ckunz@mail.arc.nasa.gov> */
+-		/* you must jumper JP5 for the card to work */
+-		.name           = "Sensoray 311",
++		/* you must jumper JP5 for the 311 card (PC/104+) to work */
++		.name           = "Sensoray 311/611",
+ 		.video_inputs   = 5,
+ 		/* .audio_inputs= 0, */
+ 		.svhs           = 4,
+diff --git a/drivers/media/video/bt8xx/bttv.h b/drivers/media/video/bt8xx/bttv.h
+index c633359..4db8b7d 100644
+--- a/drivers/media/video/bt8xx/bttv.h
++++ b/drivers/media/video/bt8xx/bttv.h
+@@ -96,7 +96,7 @@
+ #define BTTV_BOARD_PV_BT878P_PLUS          0x46
+ #define BTTV_BOARD_FLYVIDEO98EZ            0x47
+ #define BTTV_BOARD_PV_BT878P_9B            0x48
+-#define BTTV_BOARD_SENSORAY311             0x49
++#define BTTV_BOARD_SENSORAY311_611         0x49
+ #define BTTV_BOARD_RV605                   0x4a
+ #define BTTV_BOARD_POWERCLR_MTV878         0x4b
+ #define BTTV_BOARD_WINDVR                  0x4c
 
