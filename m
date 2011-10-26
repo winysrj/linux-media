@@ -1,57 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:14003 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755620Ab1JFO5P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 10:57:15 -0400
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LSN00K7PG7DDI@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 06 Oct 2011 15:57:13 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LSN0049JG7D5X@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 06 Oct 2011 15:57:13 +0100 (BST)
-Date: Thu, 06 Oct 2011 16:57:05 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [GIT PULL] More Samsung patches for v3.2
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1317913025-11534-1-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Received: from dell.nexicom.net ([216.168.96.13]:58838 "EHLO smtp.nexicom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751199Ab1JZEgR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Oct 2011 00:36:17 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-118-207.nexicom.net [216.168.118.207])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id p9Q4aDeD001440
+	for <linux-media@vger.kernel.org>; Wed, 26 Oct 2011 00:36:13 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by mail.lockie.ca (Postfix) with ESMTP id 64BF91E0149
+	for <linux-media@vger.kernel.org>; Wed, 26 Oct 2011 00:36:12 -0400 (EDT)
+Message-ID: <4EA78E3C.2020308@lockie.ca>
+Date: Wed, 26 Oct 2011 00:36:12 -0400
+From: James <bjlockie@lockie.ca>
+MIME-Version: 1.0
+To: linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: femon signal strength
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+My signal strength is always above 0 but when I use -H, it is 0%.
+Does that mean my signal strength is <0%?
+Maybe femon should report 0.x%.
 
-The following changes since commit 2f4cf2c3a971c4d5154def8ef9ce4811d702852d:
+$ femon
+FE: Samsung S5H1409 QAM/8VSB Frontend (ATSC)
+status SCVYL | signal 00b9 | snr 00b9 | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
 
-  [media] dib9000: release a lock on error (2011-09-30 13:32:56 -0300)
+$ femon -H
+FE: Samsung S5H1409 QAM/8VSB Frontend (ATSC)
+status SCVYL | signal   0% | snr   0% | ber 0 | unc 0 | FE_HAS_LOCK
 
-are available in the git repository at:
-  git://git.infradead.org/users/kmpark/linux-2.6-samsung for_mauro
-
-Kamil Debski (2):
-      v4l: add G2D driver for s5p device family
-      v4l: s5p-mfc: fix reported capabilities
-
- drivers/media/video/Kconfig               |    9 +
- drivers/media/video/Makefile              |    2 +
- drivers/media/video/s5p-g2d/Makefile      |    3 +
- drivers/media/video/s5p-g2d/g2d-hw.c      |  106 ++++
- drivers/media/video/s5p-g2d/g2d-regs.h    |  115 ++++
- drivers/media/video/s5p-g2d/g2d.c         |  824 +++++++++++++++++++++++++++++
- drivers/media/video/s5p-g2d/g2d.h         |   83 +++
- drivers/media/video/s5p-mfc/s5p_mfc_dec.c |    4 +-
- drivers/media/video/s5p-mfc/s5p_mfc_enc.c |    4 +-
- 9 files changed, 1146 insertions(+), 4 deletions(-)
- create mode 100644 drivers/media/video/s5p-g2d/Makefile
- create mode 100644 drivers/media/video/s5p-g2d/g2d-hw.c
- create mode 100644 drivers/media/video/s5p-g2d/g2d-regs.h
- create mode 100644 drivers/media/video/s5p-g2d/g2d.c
- create mode 100644 drivers/media/video/s5p-g2d/g2d.h
+Is it normal to have <0% signal strength and still get reception?
