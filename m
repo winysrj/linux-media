@@ -1,57 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4570 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750850Ab1JLKCX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Oct 2011 06:02:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 3.2] auto-cluster bug fix
-Date: Wed, 12 Oct 2011 12:02:16 +0200
-Cc: Hans de Goede <hdegoede@redhat.com>
-References: <201110121000.57301.hverkuil@xs4all.nl>
-In-Reply-To: <201110121000.57301.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:1029 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932772Ab1JZObz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Oct 2011 10:31:55 -0400
+Message-ID: <4EA819CC.100@redhat.com>
+Date: Wed, 26 Oct 2011 16:31:40 +0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Mike Frysinger <vapier@gentoo.org>
+CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Randy Dunlap <rdunlap@xenotime.net>
+Subject: Re: [PATCH] [media] v4l2: punt generated pdf files
+References: <1319635477-9383-1-git-send-email-vapier@gentoo.org> <CAMjpGUfEtLSiJoYG+42aFLnx83Zmzd88MAU1DVYXcBxTpo3wSw@mail.gmail.com>
+In-Reply-To: <CAMjpGUfEtLSiJoYG+42aFLnx83Zmzd88MAU1DVYXcBxTpo3wSw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201110121202.16517.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday, October 12, 2011 10:00:57 Hans Verkuil wrote:
-> Hi Mauro,
+Em 26-10-2011 15:33, Mike Frysinger escreveu:
+> On Wed, Oct 26, 2011 at 09:24, Mike Frysinger wrote:
+>> These don't belong in the tree, and we have a .gitignore on them already
+>> (not sure how these slipped in), so punt the compiled files.
 > 
-> Here is a small fix for a bug in the autocluster handling that was found
-> by Hans de Goede.
+> hrm, i thought default git send-email/format-patch didn't include
+> binary updates when deleting in the diff.  not sure what's going on
+> here.  i can resend if people want with the -D flag.
 
-I've added one more fix:
+Nah, not needed. I'll fix the patch when merging it. I probably won't
+be merging this week, as this notebook has not enough power to compile
+the Kernel (and I received a series of 100+ patches on those days).
 
-      V4L spec: fix typo and missing CAP_RDS documentation.
+Thanks,
+Mauro
 
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit e30528854797f057aa6ffb6dc9f890e923c467fd:
-> 
->   [media] it913x-fe changes to power up and down of tuner (2011-10-08 08:03:27 -0300)
-> 
-> are available in the git repository at:
->   ssh://linuxtv.org/git/hverkuil/media_tree.git ctrlfix
-> 
-> Hans Verkuil (1):
->       v4l2-ctrls: if auto-cluster flags change, then send event to all.
-> 
->  drivers/media/video/v4l2-ctrls.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
