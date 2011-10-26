@@ -1,79 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:34535 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753824Ab1JTQfm convert rfc822-to-8bit (ORCPT
+Received: from queueout04-winn.ispmail.ntl.com ([81.103.221.58]:50023 "EHLO
+	queueout04-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932688Ab1JZO20 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Oct 2011 12:35:42 -0400
-Received: by bkbzt19 with SMTP id zt19so3750331bkb.19
-        for <linux-media@vger.kernel.org>; Thu, 20 Oct 2011 09:35:41 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20111020162340.GC7530@jannau.net>
-References: <CAOTqeXouWiYaRkKKO-1iQ5SJEb7RUXJpHdfe9-YeSzwXxdUVfg@mail.gmail.com>
-	<CAGoCfiyCPD-W3xeqD4+AE3xCo-bj05VAy4aHXMNXP7P124ospQ@mail.gmail.com>
-	<20111020162340.GC7530@jannau.net>
-Date: Thu, 20 Oct 2011 12:35:40 -0400
-Message-ID: <CAGoCfiwXjQsAEVfFiNA5CNw1PVuO0npO63pGb91rpbPuKGvwZQ@mail.gmail.com>
-Subject: Re: [PATCH] [media] hdpvr: update picture controls to support
- firmware versions > 0.15
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Janne Grunau <janne@jannau.net>
-Cc: Taylor Ralph <taylor.ralph@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 26 Oct 2011 10:28:26 -0400
+From: Daniel Drake <dsd@laptop.org>
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org
+Cc: corbet@lwn.net
+Subject: [PATCH] via-camera: disable RGB mode
+Message-Id: <20111026131650.97F529D401E@zog.reactivated.net>
+Date: Wed, 26 Oct 2011 14:16:50 +0100 (BST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 20, 2011 at 12:23 PM, Janne Grunau <janne@jannau.net> wrote:
-> On Thu, Oct 20, 2011 at 11:30:11AM -0400, Devin Heitmueller wrote:
->> On Thu, Oct 20, 2011 at 11:24 AM, Taylor Ralph <taylor.ralph@gmail.com> wrote:
->> > I've attached a patch that correctly sets the max/min/default values
->> > for the hdpvr picture controls. The reason the current values didn't
->> > cause a problem until now is because any firmware <= 0.15 didn't
->> > support them. The latest firmware releases properly support picture
->> > controls and the values in the patch are derived from the windows
->> > driver using SniffUSB2.0.
->> >
->> > Thanks to Devin Heitmueller for helping me.
->>
->> What worries me here is the assertion that the controls didn't work at
->> all in previous firmware and driver versions.  Did you downgrade the
->> firmware and see that the controls had no effect when using v4l2-ctl?
->>
->> Janne, any comment on whether the controls *ever* worked?
->
-> I've looked at them only at very beginning and if I recall correctly
-> they had no visible effects. The values in the linux driver were taken
-> from sniffing the windows driver. I remember that I've verified the
-> default brightness value since 0x86 looked odd. I'm not sure that I
-> verified all controls. I might have assumed all controls shared the
-> same value range.
->
-> There were previous reports of the picture controls not working at all.
+The RGB mode does not work correctly. It captures fine at 640x480
+but whenever the scaling engine is used to produce another resolution,
+color corruption occurs (lots of erroneous pink and green).
 
-Hi Janne,
+It is not clear how the scaling engine is supposed to work and how
+it knows which pixel format it is dealing with. Work around this
+problem by disabling RGB support. YUYV scaling works just fine.
 
-Thanks for taking the time to chime in.
+Test case:
 
-If the controls really were broken all along under Linux, then that's
-good to know.  That said, I'm not confident the changes Taylor
-proposed should really be run against older firmwares.  There probably
-needs to be a check to have the values in question only applied if
-firmware >= 16.  If the controls were broken entirely, then we should
-probably not advertise them in ENUM_CTRL and S_CTRL should return
--EINVAL if running the old firmware (perhaps put a warning in the
-dmesg output saying the controls are unavailable because the user is
-not running firmware >= 16).
+	gst-launch v4l2src ! video/x-raw-rgb,bpp=16,width=320,height=240 ! \
+	ffmpegcolorspace ! xvimagesink
 
-My immediate concern is about ensuring we don't cause breakage in
-older firmware.  For example, we don't know if there are some older
-firmware revisions that *did* work with the driver.  The controls
-might have worked up to firmware revision 10, then been broken from
-11-15, then work again in 16 (with the new hue value needed).  The
-safe approach is to only use these new settings if they're running
-firmware >= 16.
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+---
+ drivers/media/video/via-camera.c |   10 +++-------
+ 1 files changed, 3 insertions(+), 7 deletions(-)
 
-Devin
-
+diff --git a/drivers/media/video/via-camera.c b/drivers/media/video/via-camera.c
+index bb7f17f..e64b571 100644
+--- a/drivers/media/video/via-camera.c
++++ b/drivers/media/video/via-camera.c
+@@ -156,14 +156,10 @@ static struct via_format {
+ 		.mbus_code	= V4L2_MBUS_FMT_YUYV8_2X8,
+ 		.bpp		= 2,
+ 	},
+-	{
+-		.desc		= "RGB 565",
+-		.pixelformat	= V4L2_PIX_FMT_RGB565,
+-		.mbus_code	= V4L2_MBUS_FMT_RGB565_2X8_LE,
+-		.bpp		= 2,
+-	},
+ 	/* RGB444 and Bayer should be doable, but have never been
+-	   tested with this driver. */
++	   tested with this driver. RGB565 seems to work at the default
++	   resolution, but results in color corruption when being scaled by
++	   viacam_set_scaled(), and is disabled as a result. */
+ };
+ #define N_VIA_FMTS ARRAY_SIZE(via_formats)
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.6.4
+
