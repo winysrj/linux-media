@@ -1,48 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from v38276.1blu.de ([88.84.155.223]:46093 "EHLO barth.jannau.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753855Ab1JTQaP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Oct 2011 12:30:15 -0400
-Date: Thu, 20 Oct 2011 18:23:40 +0200
-From: Janne Grunau <janne@jannau.net>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Taylor Ralph <taylor.ralph@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] hdpvr: update picture controls to support
- firmware versions > 0.15
-Message-ID: <20111020162340.GC7530@jannau.net>
-References: <CAOTqeXouWiYaRkKKO-1iQ5SJEb7RUXJpHdfe9-YeSzwXxdUVfg@mail.gmail.com>
- <CAGoCfiyCPD-W3xeqD4+AE3xCo-bj05VAy4aHXMNXP7P124ospQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAGoCfiyCPD-W3xeqD4+AE3xCo-bj05VAy4aHXMNXP7P124ospQ@mail.gmail.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:44000 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932490Ab1JZKgo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Oct 2011 06:36:44 -0400
+Received: from epcpsbgm2.samsung.com (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LTO005LD5H6NHH0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 26 Oct 2011 19:36:43 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp2.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTPA id <0LTO00BMD5H63A00@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 26 Oct 2011 19:36:42 +0900 (KST)
+From: "HeungJun, Kim" <riverful.kim@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com,
+	"HeungJun, Kim" <riverful.kim@samsung.com>
+Subject: [GIT PULL FOR v3.2] m5mols misc fixes about booting time
+Date: Wed, 26 Oct 2011 19:36:42 +0900
+Message-id: <1319625402-1299-1-git-send-email-riverful.kim@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 20, 2011 at 11:30:11AM -0400, Devin Heitmueller wrote:
-> On Thu, Oct 20, 2011 at 11:24 AM, Taylor Ralph <taylor.ralph@gmail.com> wrote:
-> > I've attached a patch that correctly sets the max/min/default values
-> > for the hdpvr picture controls. The reason the current values didn't
-> > cause a problem until now is because any firmware <= 0.15 didn't
-> > support them. The latest firmware releases properly support picture
-> > controls and the values in the patch are derived from the windows
-> > driver using SniffUSB2.0.
-> >
-> > Thanks to Devin Heitmueller for helping me.
-> 
-> What worries me here is the assertion that the controls didn't work at
-> all in previous firmware and driver versions.  Did you downgrade the
-> firmware and see that the controls had no effect when using v4l2-ctl?
-> 
-> Janne, any comment on whether the controls *ever* worked?
+Hello Mauro,
 
-I've looked at them only at very beginning and if I recall correctly
-they had no visible effects. The values in the linux driver were taken
-from sniffing the windows driver. I remember that I've verified the
-default brightness value since 0x86 looked odd. I'm not sure that I
-verified all controls. I might have assumed all controls shared the
-same value range.
+the following changes since commit 35a912455ff5640dc410e91279b03e04045265b2:
 
-There were previous reports of the picture controls not working at all.
+  merge branch 'v4l_for_linus' into staging/for_v3.2 (2011-10-19 12:41:18 -0200)
 
-Janne
+are available in the git repository at:
+
+  git://git.infradead.org/users/kmpark/linux-2.6-samsung m5mols
+
+heungjun, kim (5):
+      m5mols: add more functions to check busy status
+      m5mols: replace irq workqueue to waitqueue only
+      m5mols: support for interrupt in the sensor's booting time
+      m5mols: add boot flag for not showing the msg of i2c error
+      m5mols: relocation the order and count for capture interrupt
+
+ drivers/media/video/m5mols/m5mols.h         |   10 +-
+ drivers/media/video/m5mols/m5mols_capture.c |   71 +++----------
+ drivers/media/video/m5mols/m5mols_core.c    |  140 ++++++++++++++++-----------
+ drivers/media/video/m5mols/m5mols_reg.h     |    3 +-
+ 4 files changed, 109 insertions(+), 115 deletions(-)
+--
+Regards,
+HeungJun Kim
+--
