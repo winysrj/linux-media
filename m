@@ -1,117 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:48678 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758461Ab1JFNy5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 09:54:57 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Thu, 06 Oct 2011 15:54:50 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 9/9] ARM: Samsung: use CMA for 2 memory banks for s5p-mfc device
-In-reply-to: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>
-Message-id: <1317909290-29832-11-git-send-email-m.szyprowski@samsung.com>
-References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
+Received: from dell.nexicom.net ([216.168.96.13]:49576 "EHLO smtp.nexicom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751170Ab1JZT6e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Oct 2011 15:58:34 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-118-207.nexicom.net [216.168.118.207])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id p9QJwWqw022764
+	for <linux-media@vger.kernel.org>; Wed, 26 Oct 2011 15:58:33 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by mail.lockie.ca (Postfix) with ESMTP id 626791E01A6
+	for <linux-media@vger.kernel.org>; Wed, 26 Oct 2011 15:58:32 -0400 (EDT)
+Message-ID: <4EA86668.6090508@lockie.ca>
+Date: Wed, 26 Oct 2011 15:58:32 -0400
+From: James <bjlockie@lockie.ca>
+MIME-Version: 1.0
+CC: linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: femon signal strength
+References: <4EA78E3C.2020308@lockie.ca> <CAGoCfiwS=O75uyaaueNSrq275MS9eednR+Y=yrgsJo0XaExRKA@mail.gmail.com> <4EA86366.1020906@lockie.ca> <CAGoCfiww_5pF_S3M_mpN4gk1qqLYn7H7PPcieZXZNnjvK-RHHA@mail.gmail.com>
+In-Reply-To: <CAGoCfiww_5pF_S3M_mpN4gk1qqLYn7H7PPcieZXZNnjvK-RHHA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace custom memory bank initialization using memblock_reserve and
-dma_declare_coherent with a single call to CMA's dma_declare_contiguous.
+On 10/26/11 15:49, Devin Heitmueller wrote:
+> On Wed, Oct 26, 2011 at 3:45 PM, James<bjlockie@lockie.ca>  wrote:
+>> How many different formats are there (do I have to go through the archive)?
+>> Would it be feasable to change femon to handle different formats?
+> There are three or four common formats, and there is no real way for
+> an application to know which format was used unless it perhaps
+> hard-codes some table of demodulator driver names into the source
+> (which by the way will cause breakage if efforts are made to change
+> the demods to use a common format).
+>
+> Devin
+>
+I was thinking of a table. :-)
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/plat-s5p/dev-mfc.c |   51 ++++++-------------------------------------
- 1 files changed, 7 insertions(+), 44 deletions(-)
+How about adding switches to femon, it won't be automatic?
 
-diff --git a/arch/arm/plat-s5p/dev-mfc.c b/arch/arm/plat-s5p/dev-mfc.c
-index 94226a0..0dec422 100644
---- a/arch/arm/plat-s5p/dev-mfc.c
-+++ b/arch/arm/plat-s5p/dev-mfc.c
-@@ -14,6 +14,7 @@
- #include <linux/interrupt.h>
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
-+#include <linux/dma-contiguous.h>
- #include <linux/memblock.h>
- #include <linux/ioport.h>
- 
-@@ -72,52 +73,14 @@ struct platform_device s5p_device_mfc_r = {
- 	},
- };
- 
--struct s5p_mfc_reserved_mem {
--	phys_addr_t	base;
--	unsigned long	size;
--	struct device	*dev;
--};
--
--static struct s5p_mfc_reserved_mem s5p_mfc_mem[2] __initdata;
--
- void __init s5p_mfc_reserve_mem(phys_addr_t rbase, unsigned int rsize,
- 				phys_addr_t lbase, unsigned int lsize)
- {
--	int i;
--
--	s5p_mfc_mem[0].dev = &s5p_device_mfc_r.dev;
--	s5p_mfc_mem[0].base = rbase;
--	s5p_mfc_mem[0].size = rsize;
--
--	s5p_mfc_mem[1].dev = &s5p_device_mfc_l.dev;
--	s5p_mfc_mem[1].base = lbase;
--	s5p_mfc_mem[1].size = lsize;
--
--	for (i = 0; i < ARRAY_SIZE(s5p_mfc_mem); i++) {
--		struct s5p_mfc_reserved_mem *area = &s5p_mfc_mem[i];
--		if (memblock_remove(area->base, area->size)) {
--			printk(KERN_ERR "Failed to reserve memory for MFC device (%ld bytes at 0x%08lx)\n",
--			       area->size, (unsigned long) area->base);
--			area->base = 0;
--		}
--	}
--}
--
--static int __init s5p_mfc_memory_init(void)
--{
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(s5p_mfc_mem); i++) {
--		struct s5p_mfc_reserved_mem *area = &s5p_mfc_mem[i];
--		if (!area->base)
--			continue;
-+	if (dma_declare_contiguous(&s5p_device_mfc_r.dev, rsize, rbase, 0))
-+		printk(KERN_ERR "Failed to reserve memory for MFC device (%u bytes at 0x%08lx)\n",
-+		       rsize, (unsigned long) rbase);
- 
--		if (dma_declare_coherent_memory(area->dev, area->base,
--				area->base, area->size,
--				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE) == 0)
--			printk(KERN_ERR "Failed to declare coherent memory for MFC device (%ld bytes at 0x%08lx)\n",
--			       area->size, (unsigned long) area->base);
--	}
--	return 0;
-+	if (dma_declare_contiguous(&s5p_device_mfc_l.dev, lsize, lbase, 0))
-+		printk(KERN_ERR "Failed to reserve memory for MFC device (%u bytes at 0x%08lx)\n",
-+		       rsize, (unsigned long) rbase);
- }
--device_initcall(s5p_mfc_memory_init);
--- 
-1.7.1.569.g6f426
+I'm going to make femon work for my card, anyways. :-)
 
