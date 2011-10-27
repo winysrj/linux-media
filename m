@@ -1,114 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:48741 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753790Ab1JHVhB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Oct 2011 17:37:01 -0400
-Date: Sun, 9 Oct 2011 00:36:57 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36878 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754396Ab1J0M3q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Oct 2011 08:29:46 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 5/6] v4l2-event: Add v4l2_subscribed_event_ops
+Date: Thu, 27 Oct 2011 14:30:24 +0200
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] subdevice PM: .s_power() deprecation?
-Message-ID: <20111008213657.GE8908@valkosipuli.localdomain>
-References: <Pine.LNX.4.64.1110031138370.14314@axis700.grange>
+	hverkuil@xs4all.nl
+References: <1319714283-3991-1-git-send-email-hdegoede@redhat.com> <1319714283-3991-6-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1319714283-3991-6-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1110031138370.14314@axis700.grange>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201110271430.25044.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 03, 2011 at 12:57:10PM +0200, Guennadi Liakhovetski wrote:
-> Hi all
+Hi Hans,
 
-Hi Guennadi,
-
-Thanks for a thoughtful writing on subdev PM!
-
-> (The original .s_power() author added to cc;-))
+On Thursday 27 October 2011 13:18:02 Hans de Goede wrote:
+> Just like with ctrl events, drivers may want to get called back on
+> listener add / remove for other event types too. Rather then special
+> casing all of this in subscribe / unsubscribe event it is better to
+> use ops for this.
 > 
-> Here comes one more Request for Discussion from me.
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/media/video/ivtv/ivtv-ioctl.c  |    2 +-
+>  drivers/media/video/omap3isp/ispccdc.c |    2 +-
+>  drivers/media/video/omap3isp/ispstat.c |    2 +-
+>  drivers/media/video/pwc/pwc-v4l.c      |    2 +-
+>  drivers/media/video/v4l2-event.c       |   42 ++++++++++++++++++++++-------
+>  drivers/media/video/vivi.c             |    2 +-
+>  include/media/v4l2-event.h             |   24 +++++++++++++-----
+
+Haven't you forgotten to update Documentation/video4linux/v4l2-framework.txt ?
+
+>  7 files changed, 54 insertions(+), 22 deletions(-)
+
+[snip]
+
+> diff --git a/drivers/media/video/v4l2-event.c
+> b/drivers/media/video/v4l2-event.c index 3d27300..2dd9252 100644
+> --- a/drivers/media/video/v4l2-event.c
+> +++ b/drivers/media/video/v4l2-event.c
+> @@ -131,14 +131,14 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh,
+> const struct v4l2_event *e sev->first = sev_pos(sev, 1);
+>  		fh->navailable--;
+>  		if (sev->elems == 1) {
+> -			if (sev->replace) {
+> -				sev->replace(&kev->event, ev);
+> +			if (sev->ops && sev->ops->replace) {
+> +				sev->ops->replace(&kev->event, ev);
+>  				copy_payload = false;
+>  			}
+> -		} else if (sev->merge) {
+> +		} else if (sev->ops && sev->ops->merge) {
+>  			struct v4l2_kevent *second_oldest =
+>  				sev->events + sev_pos(sev, 0);
+> -			sev->merge(&kev->event, &second_oldest->event);
+> +			sev->ops->merge(&kev->event, &second_oldest->event);
+>  		}
+>  	}
 > 
-> Short: on what events, at which level and how shall subdevice PM be 
-> envoked?
+> @@ -207,8 +207,14 @@ static void ctrls_merge(const struct v4l2_event *old,
+> struct v4l2_event *new) new->u.ctrl.changes |= old->u.ctrl.changes;
+>  }
 > 
-> Subdevices can have varying and arbitrarily complex Power Management 
-> methods. On-SoC subdevices would typically be powered on and off by 
-> writing to some system registers. External subdevices (sensors etc.) can 
-> be powered on or off by something as simple as a GPIO, or can use several 
-> power regulators, supplying power to different device circuits. This 
-> means, a part of this knowledge belongs directly to the driver, while 
-> another part of it comes from platform data. The driver itself knows, 
-> whether it can control device's power, using internal capabilities, or it 
-> has to request a certain number of regulators. In the latter case, 
-> perhaps, it would be sane to assume, that if a certain regulator is not 
-> available, then the respective voltage is supplied by the system 
-> statically.
+> +const struct v4l2_subscribed_event_ops ctrl_ops = {
+
+Shouldn't this be static const ?
+
+> +	.replace = ctrls_replace,
+> +	.merge = ctrls_merge,
+> +};
+> +
+>  int v4l2_event_subscribe(struct v4l2_fh *fh,
+> -			 struct v4l2_event_subscription *sub, unsigned elems)
+> +			 struct v4l2_event_subscription *sub, unsigned elems,
+> +			 const struct v4l2_subscribed_event_ops *ops)
+>  {
+>  	struct v4l2_subscribed_event *sev, *found_ev;
+>  	struct v4l2_ctrl *ctrl = NULL;
+> @@ -236,9 +242,9 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+>  	sev->flags = sub->flags;
+>  	sev->fh = fh;
+>  	sev->elems = elems;
+> +	sev->ops = ops;
+>  	if (ctrl) {
+> -		sev->replace = ctrls_replace;
+> -		sev->merge = ctrls_merge;
+> +		sev->ops = &ctrl_ops;
+>  	}
+
+You can remove the brackets here.
+
 > 
-> When to invoke? Subdeices can be used in two cases: for configuration and 
-> for data processing (streaming). For configuration the driver can choose 
-> one of two approaches: (1) cache all configuration requests and only 
-> execute them on STREAMON. Advantages: (a) the device can be kept off all 
-> the time during configuration, (b) the order is unimportant: the driver 
-> only stores values and applies them in the "correct" order. Disadvantages: 
-> (a) if the result of any such operation cannot be fully predicted by the 
-> driver, it cannot be reported to the user immediately after the operation 
-> execution but only at the STREAMON time (does anyone know any such 
-> "volatile" operations?), (b) the order is lost (is this important?). (2) 
-> execute all operations immediately. Advantages and disadvantages: just 
-> invert those from (1) above.
+>  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> @@ -247,10 +253,22 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+>  		list_add(&sev->list, &fh->subscribed);
+>  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
 > 
-> So far individual drivers decide themselves which way to go. This way only 
-> drivers themselves know, when and what parts of the device they have to 
-> power on and off for configuration. The only thing the bridge driver can 
-> be sure about is, that all the involved subdevices in the pipeline have to 
-> be powered on during streaming. But even then - maybe the driver can and 
-> wants to power the i2c circuitry off for that time?
-
-The bridge driver can't (nor should) know about the power management
-requirements of random subdevs. The name of the s_power op is rather
-poitless in its current state.
-
-The power state of the subdev probably even never matters to the bridge ---
-or do we really have an example of that?
-
-In my opinion the bridge driver should instead tell the bridge drivers what
-they can expect to hear from the bridge --- for example that the bridge can
-issue set / get controls or fmt ops to the subdev. The subdev may or may not
-need to be powered for those: only the subdev driver knows.
-
-This is analogous to opening the subdev node from user space. Anything else
-except streaming is allowed. And streaming, which for sure requires powering
-on the subdev, is already nicely handled by the s_stream op.
-
-What do you think?
-
-In practice the name of s_power should change, as well as possible
-implementatio on subdev drivers.
-
-> All the above makes me think, that .s_power() methods are actually useless 
-> in the "operation context." The bridge has basically no way to know, when 
-> and which parts of the subdevice to power on or off. Subdevice 
-> configuration is anyway always performed, using the driver, and for 
-> streaming all participating subdevices just have to be informed about 
-> streaming begin and end.
+> -	/* v4l2_ctrl_add_event uses a mutex, so do this outside the spin lock */
+> -	if (found_ev)
+> +	if (found_ev) {
+>  		kfree(sev);
+> -	else if (ctrl)
+> +		return 0; /* Already listening */
+> +	}
+> +
+> +	if (sev->ops && sev->ops->add) {
+> +		int ret = sev->ops->add(sev);
+> +		if (ret) {
+> +			sev->ops = NULL;
+> +			v4l2_event_unsubscribe(fh, sub);
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	/* v4l2_ctrl_add_event uses a mutex, so do this outside the spin lock */
+> +	if (ctrl)
+>  		v4l2_ctrl_add_event(ctrl, sev);
 > 
-> The only pure PM activity, that subdevice drivers have to be informed 
-> about are suspends and resumes. Normal bus PM callbacks are not always 
-> usable in our case. E.g., you cannot use i2c PM, because i2c can well be 
-> resumed before the bridge and then camera sensors typically still cannot 
-> be accessed over i2c.
-
-Do you have a bridge that provides a clock to subdevs? The clock should be
-modelled in the clock framework --- yes, I guess there's still a way to go
-before that,s universally possible.
-
-> Therefore I propose to either deprecate (and later remove) .s_power() and 
-> add .suspend() and .resume() instead or repurpose .s_power() to be _only_ 
-> used for system-wide suspending and resuming. Even for runtime PM the 
-> subdevice driver has all the chances to decide itself when and how to save 
-> power, so, again, there is no need to be called from outside.
+>  	return 0;
+> @@ -307,6 +325,10 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+>  	}
+> 
+>  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +
+> +	if (sev && sev->ops && sev->ops->del)
+> +		sev->ops->del(sev);
+> +
+>  	if (sev && sev->type == V4L2_EVENT_CTRL) {
+>  		struct v4l2_ctrl *ctrl = v4l2_ctrl_find(fh->ctrl_handler, sev->id);
+> 
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Regards,
+
+Laurent Pinchart
