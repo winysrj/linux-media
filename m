@@ -1,73 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:40920 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755167Ab1JWIov (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Oct 2011 04:44:51 -0400
-Message-ID: <4EA3D3F8.907@iki.fi>
-Date: Sun, 23 Oct 2011 11:44:40 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:61759 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753100Ab1J0Uuk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Oct 2011 16:50:40 -0400
+Received: by bkbzt19 with SMTP id zt19so2343421bkb.19
+        for <linux-media@vger.kernel.org>; Thu, 27 Oct 2011 13:50:38 -0700 (PDT)
+From: Christian Gmeiner <christian.gmeiner@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Make use of media bus pixel codes in adv7170 driver
+Date: Thu, 27 Oct 2011 22:50:21 +0000
+Message-ID: <2798541.448Qvf8D65@localhost>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <snjw23@gmail.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [RFC] subdevice PM: .s_power() deprecation?
-References: <Pine.LNX.4.64.1110031138370.14314@axis700.grange> <Pine.LNX.4.64.1110171720260.18438@axis700.grange> <4E9C9D84.5020905@gmail.com> <201110180107.20494.laurent.pinchart@ideasonboard.com> <4E9DEB4A.4050001@gmail.com> <Pine.LNX.4.64.1110182315180.7139@axis700.grange> <4E9F399B.9080207@gmail.com> <4EA3CB48.5000203@iki.fi> <4EA3D1C4.8050302@gmail.com>
-In-Reply-To: <4EA3D1C4.8050302@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sylwester Nawrocki wrote:
-> Hi Sakari,
-> 
-> On 10/23/2011 10:07 AM, Sakari Ailus wrote:
->> Sylwester Nawrocki wrote:
->> ...
->>>> I understand what you're saying, but can you give us a specific example,
->>>> when a subdev driver (your SoC internal subdev, that is) doesn't have a
->>>> way to react to an event itself and only the bridge driver gets called
->>>> into at that time? Something like an interrupt or an internal timer or
->>>> some other internal event?
->>>
->>> 1. The S5P SoC video output subsystem (http://lwn.net/Articles/449661) comprises
->>>   of multiple logical blocks, like Video Processor, Mixer, HDMI, HDMI PHY, SD TV Out.
->>>   For instance the master video clock is during normal operation derived from
->>>   (synchronized to, with PLL,) the HDMI-PHY output clock. The host driver can
->>>   switch to this clock only when the HDMI-PHY (subdev) power and clocks are enabled.
->>>   And it should be done before .s_stream(), to do some H/W configuration earlier
->>>   in the pipeline, before streaming is enabled. Perhaps Tomasz could give some
->>>   further explanation of what the s_power() op does and why in the driver.
->>>
->>> 2. In some of our camera pipeline setups - "Sensor - MIPI-CSI receiver - host/DMA",
->>>   the sensor won't boot properly if all MIPI-CSI regulators aren't enabled. So the
->>>   MIPI-CSI receiver must always be powered on before the sensor. With the subdevs
->>>   doing their own magic wrt to power control the situation is getting slightly
->>>   out of control.
->>
->> How about this: CSI-2 receiver implements a few new regulators which the
->> sensor driver then requests to be enabled. Would that work for you?
-> 
-> No, I don't like that... :)
-> 
-> We would have to standardize the regulator supply names, etc. Such approach
-> would be more difficult to align with runtime/system suspend/resume.
-> Also the sensor drivers should be independent on other drivers. The MIPI-CSI
-> receiver is more specific to the host, rather than a sensor.
-> 
-> Not all sensors need MIPI-CSI, some just use parallel video bus.
+The ADV7170/ADV7171 can operate in either 8-bit or 16-bit YCrCb Mode.
 
-The sensor drivers are responsible for the regulators they want to use,
-right? If they need no CSI-2 related regulators then they just ignore
-them as any other regulators the sensor doesn't need.
+* 8-Bit YCrCb Mode
+This default mode accepts multiplexed YCrCb inputs through
+the P7-P0 pixel inputs. The inputs follow the sequence Cb0, Y0
+Cr0, Y1 Cb1, Y2, etc. The Y, Cb and Cr data are input on a
+rising clock edge.
 
-The names of the regulators could come from the platform data, they're
-board specific anyway. I can't see another way to do this without having
-platform code to do this which is not quite compatible with the idea of
-the device tree.
+* 16-Bit YCrCb Mode
+This mode accepts Y inputs through the P7–P0 pixel inputs and
+multiplexed CrCb inputs through the P15–P8 pixel inputs. The
+data is loaded on every second rising edge of CLOCK. The inputs
+follow the sequence Cb0, Y0 Cr0, Y1 Cb1, Y2, etc.
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Signed-off-by: Christian Gmeiner <christian.gmeiner@gmail.com>
+---
+diff --git a/drivers/media/video/adv7170.c b/drivers/media/video/adv7170.c
+index 23ba5c3..29c253b 100644
+--- a/drivers/media/video/adv7170.c
++++ b/drivers/media/video/adv7170.c
+@@ -64,6 +64,11 @@ static inline struct adv7170 *to_adv7170(struct v4l2_subdev *sd)
+ 
+ static char *inputs[] = { "pass_through", "play_back" };
+ 
++static enum v4l2_mbus_pixelcode adv7170_codes[] = {
++	V4L2_MBUS_FMT_UYVY8_2X8,
++	V4L2_MBUS_FMT_UYVY8_1X16,
++};
++
+ /* ----------------------------------------------------------------------- */
+ 
+ static inline int adv7170_write(struct v4l2_subdev *sd, u8 reg, u8 value)
+@@ -258,6 +263,60 @@ static int adv7170_s_routing(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
++static int adv7170_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
++				enum v4l2_mbus_pixelcode *code)
++{
++	if (index >= ARRAY_SIZE(adv7170_codes))
++		return -EINVAL;
++
++	*code = adv7170_codes[index];
++	return 0;
++}
++
++static int adv7170_g_fmt(struct v4l2_subdev *sd,
++				struct v4l2_mbus_framefmt *mf)
++{
++	u8 val = adv7170_read(sd, 0x7);
++
++	if ((val & 0x40) == (1 << 6))
++		mf->code = V4L2_MBUS_FMT_UYVY8_1X16;
++	else
++		mf->code = V4L2_MBUS_FMT_UYVY8_2X8;
++
++	mf->colorspace  = V4L2_COLORSPACE_SMPTE170M;
++	mf->width       = 0;
++	mf->height      = 0;
++	mf->field       = V4L2_FIELD_ANY;
++
++	return 0;
++}
++
++static int adv7170_s_fmt(struct v4l2_subdev *sd,
++				struct v4l2_mbus_framefmt *mf)
++{
++	u8 val = adv7170_read(sd, 0x7);
++	int ret;
++
++	switch (mf->code) {
++	case V4L2_MBUS_FMT_UYVY8_2X8:
++		val &= ~0x40;
++		break;
++
++	case V4L2_MBUS_FMT_UYVY8_1X16:
++		val |= 0x40;
++		break;
++
++	default:
++		v4l2_dbg(1, debug, sd,
++			"illegal v4l2_mbus_framefmt code: %d\n", mf->code);
++		return -EINVAL;
++	}
++
++	ret = adv7170_write(sd, 0x7, val);
++
++	return ret;
++}
++
+ static int adv7170_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+@@ -274,6 +333,9 @@ static const struct v4l2_subdev_core_ops adv7170_core_ops = {
+ static const struct v4l2_subdev_video_ops adv7170_video_ops = {
+ 	.s_std_output = adv7170_s_std_output,
+ 	.s_routing = adv7170_s_routing,
++	.s_mbus_fmt = adv7170_s_fmt,
++	.g_mbus_fmt = adv7170_g_fmt,
++	.enum_mbus_fmt  = adv7170_enum_fmt,
+ };
+ 
+ static const struct v4l2_subdev_ops adv7170_ops = {
+--
+1.7.6
