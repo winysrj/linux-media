@@ -1,46 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:45827 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754245Ab1JKNUo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Oct 2011 09:20:44 -0400
-Message-ID: <4E9442A9.1060202@mlbassoc.com>
-Date: Tue, 11 Oct 2011 07:20:41 -0600
-From: Gary Thomas <gary@mlbassoc.com>
-MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Enric Balletbo i Serra <eballetbo@iseebcn.com>,
-	Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: OMAP3 ISP ghosting
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:51652 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754083Ab1J0LRt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Oct 2011 07:17:49 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: hverkuil@xs4all.nl,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 1/6] v4l2-ctrl: Send change events to all fh for auto cluster slave controls
+Date: Thu, 27 Oct 2011 13:17:58 +0200
+Message-Id: <1319714283-3991-2-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1319714283-3991-1-git-send-email-hdegoede@redhat.com>
+References: <1319714283-3991-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As a number of us have seen, when using the OMAP3 ISP with a BT-656
-sensor, e.g. TVP5150, the results are not 100% correct.  Some number
-of frames (typically 2) will be correct, followed by another set (3)
-which are incorrect and show only partially correct data.  Note: I
-think the numbers (2 correct, 3 wrong) are not cast in stone and may
-be related to some other factors like number of buffers in use, etc.
+Otherwise the fh changing the master control won't get the inactive state
+change event for the slave controls.
 
-Anyway, I've observed that in the incorrect frames, 1/2 the data is
-correct (even lines?) and the other 1/2 is wrong.  One of my customers
-pointed out that it looks like the incorrect data is just what was
-left in memory during some previous frame.  I'd like to prove this
-by "zeroing" the entire frame data memory before the frame is captured.
-That way, there won't be stale data from a previous frame, but null
-data which should show up strongly when examined.  Does anyone in this
-group have a suggestion the best way/place to do this?
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/video/v4l2-ctrls.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Final question: given a properly connected TVP5150->CCDC, including
-all SYNC signals, could this setup be made to work in RAW, non BT-656
-mode?  My board at least has all of these signals routed, so it should
-just be a matter of configuring the software...
-
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index fc8666a..69e24f4 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -945,6 +945,7 @@ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
+ 			if (ctrl->cluster[0]->has_volatiles)
+ 				ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
+ 		}
++		fh = NULL;
+ 	}
+ 	if (changed || update_inactive) {
+ 		/* If a control was changed that was not one of the controls
 -- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+1.7.7
+
