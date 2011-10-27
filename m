@@ -1,175 +1,246 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpo05.poczta.onet.pl ([213.180.142.136]:53280 "EHLO
-	smtpo05.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757162Ab1JRJQ2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Oct 2011 05:16:28 -0400
-Date: Tue, 18 Oct 2011 11:12:51 +0200
-From: Piotr Chmura <chmooreck@poczta.onet.pl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Greg KH <gregkh@suse.de>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
-Subject: [PATCH 10/14] staging/media/as102: properly handle multiple product
- names
-Message-Id: <20111018111251.d7978be8.chmooreck@poczta.onet.pl>
-In-Reply-To: <20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
-References: <4E7F1FB5.5030803@gmail.com>
-	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
-	<4E7FF0A0.7060004@gmail.com>
-	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
-	<20110927094409.7a5fcd5a@stein>
-	<20110927174307.GD24197@suse.de>
-	<20110927213300.6893677a@stein>
-	<4E999733.2010802@poczta.onet.pl>
-	<4E99F2FC.5030200@poczta.onet.pl>
-	<20111016105731.09d66f03@stein>
-	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
-	<4E9ADFAE.8050208@redhat.com>
-	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:2113 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755244Ab1J0LRz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Oct 2011 07:17:55 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: hverkuil@xs4all.nl,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 5/6] v4l2-event: Add v4l2_subscribed_event_ops
+Date: Thu, 27 Oct 2011 13:18:02 +0200
+Message-Id: <1319714283-3991-6-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1319714283-3991-1-git-send-email-hdegoede@redhat.com>
+References: <1319714283-3991-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+Just like with ctrl events, drivers may want to get called back on
+listener add / remove for other event types too. Rather then special
+casing all of this in subscribe / unsubscribe event it is better to
+use ops for this.
 
-Original source and comment:# HG changeset patch
-# User Devin Heitmueller <dheitmueller@kernellabs.com>
-# Date 1267319051 18000
-# Node ID 22ef1bdca69a2781abf397c53a0f7f6125f5359a
-# Parent  4a82558f6df8b957bc623d854a118a5da32dead2
-as102: properly handle multiple product names
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/video/ivtv/ivtv-ioctl.c  |    2 +-
+ drivers/media/video/omap3isp/ispccdc.c |    2 +-
+ drivers/media/video/omap3isp/ispstat.c |    2 +-
+ drivers/media/video/pwc/pwc-v4l.c      |    2 +-
+ drivers/media/video/v4l2-event.c       |   42 ++++++++++++++++++++++++-------
+ drivers/media/video/vivi.c             |    2 +-
+ include/media/v4l2-event.h             |   24 +++++++++++++-----
+ 7 files changed, 54 insertions(+), 22 deletions(-)
 
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-
-Properly handle the case where the driver can be associated with multiple
-different products (as opposed to always saying the device is named after the
-value in a #define
-
-Priority: normal
-
-Signed-off-by: Piotr Chmura <chmooreck@poczta.onet.pl>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-
-diff --git linux/drivers/staging/media/as102/as102_drv.c linuxb/drivers/media/dvb/as102/as102_drv.c
---- linux/drivers/staging/media/as102/as102_drv.c
-+++ linuxb/drivers/staging/media/as102/as102_drv.c
-@@ -209,7 +209,7 @@
+diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
+index ecafa69..9aec8a0 100644
+--- a/drivers/media/video/ivtv/ivtv-ioctl.c
++++ b/drivers/media/video/ivtv/ivtv-ioctl.c
+@@ -1456,7 +1456,7 @@ static int ivtv_subscribe_event(struct v4l2_fh *fh, struct v4l2_event_subscripti
+ 	case V4L2_EVENT_VSYNC:
+ 	case V4L2_EVENT_EOS:
+ 	case V4L2_EVENT_CTRL:
+-		return v4l2_event_subscribe(fh, sub, 0);
++		return v4l2_event_subscribe(fh, sub, 0, NULL);
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 40b141c..b6da736 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -1700,7 +1700,7 @@ static int ccdc_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+ 	if (sub->id != 0)
+ 		return -EINVAL;
  
- #if defined(CONFIG_DVB_CORE) || defined(CONFIG_DVB_CORE_MODULE)
- 	ret = dvb_register_adapter(&as102_dev->dvb_adap,
--				   DEVICE_FULL_NAME,
-+				   as102_dev->name,
- 				   THIS_MODULE,
- #if defined(CONFIG_AS102_USB)
- 				   &as102_dev->bus_adap.usb_dev->dev
-diff --git linux/drivers/staging/media/as102/as102_drv.h linuxb/drivers/media/dvb/as102/as102_drv.h
---- linux/drivers/staging/media/as102/as102_drv.h
-+++ linuxb/drivers/staging/media/as102/as102_drv.h
-@@ -106,6 +106,7 @@
- };
+-	return v4l2_event_subscribe(fh, sub, OMAP3ISP_CCDC_NEVENTS);
++	return v4l2_event_subscribe(fh, sub, OMAP3ISP_CCDC_NEVENTS, NULL);
+ }
  
- struct as102_dev_t {
-+	const char *name;
- 	struct as102_bus_adapter_t bus_adap;
- 	struct list_head device_entry;
- 	struct kref kref;
-diff --git linux/drivers/staging/media/as102/as102_fe.c linuxb/drivers/media/dvb/as102/as102_fe.c
---- linux/drivers/staging/media/as102/as102_fe.c
-+++ linuxb/drivers/staging/media/as102/as102_fe.c
-@@ -346,7 +346,7 @@
+ static int ccdc_unsubscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+diff --git a/drivers/media/video/omap3isp/ispstat.c b/drivers/media/video/omap3isp/ispstat.c
+index 8080659..4f337a2 100644
+--- a/drivers/media/video/omap3isp/ispstat.c
++++ b/drivers/media/video/omap3isp/ispstat.c
+@@ -1049,7 +1049,7 @@ int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
+ 	if (sub->type != stat->event_type)
+ 		return -EINVAL;
  
- static struct dvb_frontend_ops as102_fe_ops = {
- 	.info = {
--		.name			= DEVICE_FULL_NAME,
-+		.name			= "Unknown AS102 device",
- 		.type			= FE_OFDM,
- 		.frequency_min		= 174000000,
- 		.frequency_max		= 862000000,
-@@ -408,6 +408,8 @@
+-	return v4l2_event_subscribe(fh, sub, STAT_NEVENTS);
++	return v4l2_event_subscribe(fh, sub, STAT_NEVENTS, NULL);
+ }
  
- 	/* init frontend callback ops */
- 	memcpy(&dvb_fe->ops, &as102_fe_ops, sizeof(struct dvb_frontend_ops));
-+	strncpy(dvb_fe->ops.info.name, as102_dev->name,
-+		sizeof(dvb_fe->ops.info.name));
- 
- 	/* register dbvb frontend */
- 	errno = dvb_register_frontend(dvb_adap, dvb_fe);
-diff --git linux/drivers/staging/media/as102/as102_usb_drv.c linuxb/drivers/media/dvb/as102/as102_usb_drv.c
---- linux/drivers/staging/media/as102/as102_usb_drv.c
-+++ linuxb/drivers/staging/media/as102/as102_usb_drv.c
-@@ -44,6 +44,15 @@
- 	{ } /* Terminating entry */
- };
- 
-+/* Note that this table must always have the same number of entries as the
-+   as102_usb_id_table struct */
-+static const char *as102_device_names[] = {
-+	AS102_REFERENCE_DESIGN,
-+	AS102_PCTV_74E,
-+	AS102_ELGATO_EYETV_DTT_NAME,
-+	NULL /* Terminating entry */
-+};
-+
- struct usb_driver as102_usb_driver = {
- 	.name       =  DRIVER_FULL_NAME,
- 	.probe      =  as102_usb_probe,
-@@ -344,6 +353,7 @@
+ int omap3isp_stat_unsubscribe_event(struct v4l2_subdev *subdev,
+diff --git a/drivers/media/video/pwc/pwc-v4l.c b/drivers/media/video/pwc/pwc-v4l.c
+index 68e1323..7f159bf 100644
+--- a/drivers/media/video/pwc/pwc-v4l.c
++++ b/drivers/media/video/pwc/pwc-v4l.c
+@@ -1138,7 +1138,7 @@ static int pwc_subscribe_event(struct v4l2_fh *fh,
  {
- 	int ret;
- 	struct as102_dev_t *as102_dev;
-+	int i;
- 
- 	ENTER();
- 
-@@ -353,6 +363,23 @@
- 		return -ENOMEM;
+ 	switch (sub->type) {
+ 	case V4L2_EVENT_CTRL:
+-		return v4l2_event_subscribe(fh, sub, 0);
++		return v4l2_event_subscribe(fh, sub, 0, NULL);
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index 3d27300..2dd9252 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -131,14 +131,14 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *e
+ 		sev->first = sev_pos(sev, 1);
+ 		fh->navailable--;
+ 		if (sev->elems == 1) {
+-			if (sev->replace) {
+-				sev->replace(&kev->event, ev);
++			if (sev->ops && sev->ops->replace) {
++				sev->ops->replace(&kev->event, ev);
+ 				copy_payload = false;
+ 			}
+-		} else if (sev->merge) {
++		} else if (sev->ops && sev->ops->merge) {
+ 			struct v4l2_kevent *second_oldest =
+ 				sev->events + sev_pos(sev, 0);
+-			sev->merge(&kev->event, &second_oldest->event);
++			sev->ops->merge(&kev->event, &second_oldest->event);
+ 		}
  	}
  
-+	/* This should never actually happen */
-+	if ((sizeof(as102_usb_id_table) / sizeof(struct usb_device_id)) !=
-+	    (sizeof(as102_device_names) / sizeof(const char *))) {
-+		printk(KERN_ERR "Device names table invalid size");
-+		return -EINVAL;
+@@ -207,8 +207,14 @@ static void ctrls_merge(const struct v4l2_event *old, struct v4l2_event *new)
+ 	new->u.ctrl.changes |= old->u.ctrl.changes;
+ }
+ 
++const struct v4l2_subscribed_event_ops ctrl_ops = {
++	.replace = ctrls_replace,
++	.merge = ctrls_merge,
++};
++
+ int v4l2_event_subscribe(struct v4l2_fh *fh,
+-			 struct v4l2_event_subscription *sub, unsigned elems)
++			 struct v4l2_event_subscription *sub, unsigned elems,
++			 const struct v4l2_subscribed_event_ops *ops)
+ {
+ 	struct v4l2_subscribed_event *sev, *found_ev;
+ 	struct v4l2_ctrl *ctrl = NULL;
+@@ -236,9 +242,9 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 	sev->flags = sub->flags;
+ 	sev->fh = fh;
+ 	sev->elems = elems;
++	sev->ops = ops;
+ 	if (ctrl) {
+-		sev->replace = ctrls_replace;
+-		sev->merge = ctrls_merge;
++		sev->ops = &ctrl_ops;
+ 	}
+ 
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+@@ -247,10 +253,22 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 		list_add(&sev->list, &fh->subscribed);
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 
+-	/* v4l2_ctrl_add_event uses a mutex, so do this outside the spin lock */
+-	if (found_ev)
++	if (found_ev) {
+ 		kfree(sev);
+-	else if (ctrl)
++		return 0; /* Already listening */
 +	}
 +
-+	/* Assign the user-friendly device name */
-+	for (i = 0; i < (sizeof(as102_usb_id_table) /
-+			 sizeof(struct usb_device_id)); i++) {
-+		if (id == &as102_usb_id_table[i])
-+			as102_dev->name = as102_device_names[i];
++	if (sev->ops && sev->ops->add) {
++		int ret = sev->ops->add(sev);
++		if (ret) {
++			sev->ops = NULL;
++			v4l2_event_unsubscribe(fh, sub);
++			return ret;
++		}
 +	}
 +
-+	if (as102_dev->name == NULL)
-+		as102_dev->name = "Unknown AS102 device";
++	/* v4l2_ctrl_add_event uses a mutex, so do this outside the spin lock */
++	if (ctrl)
+ 		v4l2_ctrl_add_event(ctrl, sev);
+ 
+ 	return 0;
+@@ -307,6 +325,10 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 	}
+ 
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
 +
- 	/* set private callback functions */
- 	as102_dev->bus_adap.ops = &as102_priv_ops;
++	if (sev && sev->ops && sev->ops->del)
++		sev->ops->del(sev);
++
+ 	if (sev && sev->type == V4L2_EVENT_CTRL) {
+ 		struct v4l2_ctrl *ctrl = v4l2_ctrl_find(fh->ctrl_handler, sev->id);
  
-diff --git linux/drivers/staging/media/as102/as102_usb_drv.h linuxb/drivers/media/dvb/as102/as102_usb_drv.h
---- linux/drivers/staging/media/as102/as102_usb_drv.h
-+++ linuxb/drivers/staging/media/as102/as102_usb_drv.h
-@@ -28,16 +28,17 @@
- /* define these values to match the supported devices */
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index c25787d..74ebbad 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -1013,7 +1013,7 @@ static int vidioc_subscribe_event(struct v4l2_fh *fh,
+ {
+ 	switch (sub->type) {
+ 	case V4L2_EVENT_CTRL:
+-		return v4l2_event_subscribe(fh, sub, 0);
++		return v4l2_event_subscribe(fh, sub, 0, NULL);
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+index 5f14e88..88fa9a1 100644
+--- a/include/media/v4l2-event.h
++++ b/include/media/v4l2-event.h
+@@ -78,6 +78,19 @@ struct v4l2_kevent {
+ 	struct v4l2_event	event;
+ };
  
- /* Abilis system: "TITAN" */
-+#define AS102_REFERENCE_DESIGN		"Abilis Systems DVB-Titan"
- #define AS102_USB_DEVICE_VENDOR_ID	0x1BA6
- #define AS102_USB_DEVICE_PID_0001	0x0001
- 
- /* PCTV Systems: PCTV picoStick (74e) */
--#define DEVICE_FULL_NAME		"PCTV Systems : PCTV picoStick (74e)"
-+#define AS102_PCTV_74E			"PCTV Systems picoStick (74e)"
- #define PCTV_74E_USB_VID		0x2013
- #define PCTV_74E_USB_PID		0x0246
- 
- /* Elgato: EyeTV DTT Deluxe */
--#define ELGATO_EYETV_DTT_NAME		"Elgato EyeTV DTT Deluxe"
-+#define AS102_ELGATO_EYETV_DTT_NAME	"Elgato EyeTV DTT Deluxe"
- #define ELGATO_EYETV_DTT_USB_VID	0x0fd9
- #define ELGATO_EYETV_DTT_USB_PID	0x002c
- 
++/** struct v4l2_subscribed_event_ops - Subscribed event operations.
++  * @add:	Optional callback, called when a new listener is added
++  * @del:	Optional callback, called when a listener stops listening
++  * @replace:	Optional callback that can replace event 'old' with event 'new'.
++  * @merge:	Optional callback that can merge event 'old' into event 'new'.
++  */
++struct v4l2_subscribed_event_ops {
++	int  (*add)(struct v4l2_subscribed_event *sev);
++	void (*del)(struct v4l2_subscribed_event *sev);
++	void (*replace)(struct v4l2_event *old, const struct v4l2_event *new);
++	void (*merge)(const struct v4l2_event *old, struct v4l2_event *new);
++};
++
+ /** struct v4l2_subscribed_event - Internal struct representing a subscribed event.
+   * @list:	List node for the v4l2_fh->subscribed list.
+   * @type:	Event type.
+@@ -85,8 +98,7 @@ struct v4l2_kevent {
+   * @flags:	Copy of v4l2_event_subscription->flags.
+   * @fh:	Filehandle that subscribed to this event.
+   * @node:	List node that hooks into the object's event list (if there is one).
+-  * @replace:	Optional callback that can replace event 'old' with event 'new'.
+-  * @merge:	Optional callback that can merge event 'old' into event 'new'.
++  * @ops:	v4l2_subscribed_event_ops
+   * @elems:	The number of elements in the events array.
+   * @first:	The index of the events containing the oldest available event.
+   * @in_use:	The number of queued events.
+@@ -99,10 +111,7 @@ struct v4l2_subscribed_event {
+ 	u32			flags;
+ 	struct v4l2_fh		*fh;
+ 	struct list_head	node;
+-	void			(*replace)(struct v4l2_event *old,
+-					   const struct v4l2_event *new);
+-	void			(*merge)(const struct v4l2_event *old,
+-					 struct v4l2_event *new);
++	const struct v4l2_subscribed_event_ops *ops;
+ 	unsigned		elems;
+ 	unsigned		first;
+ 	unsigned		in_use;
+@@ -115,7 +124,8 @@ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev);
+ void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev);
+ int v4l2_event_pending(struct v4l2_fh *fh);
+ int v4l2_event_subscribe(struct v4l2_fh *fh,
+-			 struct v4l2_event_subscription *sub, unsigned elems);
++			 struct v4l2_event_subscription *sub, unsigned elems,
++			 const struct v4l2_subscribed_event_ops *ops);
+ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 			   struct v4l2_event_subscription *sub);
+ void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
+-- 
+1.7.7
+
