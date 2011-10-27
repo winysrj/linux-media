@@ -1,121 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpo13.poczta.onet.pl ([213.180.142.144]:53383 "EHLO
-	smtpo13.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933496Ab1J2RsL (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:56756 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754925Ab1J0JKr convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Oct 2011 13:48:11 -0400
-Message-ID: <4EAC3C57.5070701@poczta.onet.pl>
-Date: Sat, 29 Oct 2011 19:48:07 +0200
-From: Piotr Chmura <chmooreck@poczta.onet.pl>
+	Thu, 27 Oct 2011 05:10:47 -0400
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	"Mel Gorman" <mel@csn.ul.ie>,
+	"Michal Nazarewicz" <mina86@mina86.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Russell King" <linux@arm.linux.org.uk>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"Ankita Garg" <ankita@in.ibm.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Arnd Bergmann" <arnd@arndb.de>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Jonathan Corbet" <corbet@lwn.net>,
+	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
+	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>
+Subject: Re: [PATCH 4/9] mm: MIGRATE_CMA migration type added
+References: <1317909290-29832-1-git-send-email-m.szyprowski@samsung.com>
+ <1317909290-29832-5-git-send-email-m.szyprowski@samsung.com>
+ <20111018130826.GD6660@csn.ul.ie> <op.v3ve8vbl3l0zgt@mpn-glaptop>
+Date: Thu, 27 Oct 2011 11:10:42 +0200
 MIME-Version: 1.0
-To: Sylwester Nawrocki <snjw23@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Greg KH <gregkh@suse.de>,
-	Patrick Dickey <pdickeybeta@gmail.com>,
-	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
-Subject: Re: [RESEND PATCH 4/14] staging/media/as102: checkpatch fixes
-References: <4E7F1FB5.5030803@gmail.com>	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>	<4E7FF0A0.7060004@gmail.com>	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>	<20110927094409.7a5fcd5a@stein>	<20110927174307.GD24197@suse.de>	<20110927213300.6893677a@stein>	<4E999733.2010802@poczta.onet.pl>	<4E99F2FC.5030200@poczta.onet.pl>	<20111016105731.09d66f03@stein>	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>	<4E9ADFAE.8050208@redhat.com>	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>	<20111018111151.635ac39e.chmooreck@poczta.onet.pl> <20111018215146.1fbc223f@darkstar> <4EABD3E2.3070302@gmail.com> <4EABFCF8.2010003@poczta.onet.pl> <4EAC2676.8030808@gmail.com>
-In-Reply-To: <4EAC2676.8030808@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.v3z6f4173l0zgt@mpn-glaptop>
+In-Reply-To: <op.v3ve8vbl3l0zgt@mpn-glaptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+> On Tue, 18 Oct 2011 06:08:26 -0700, Mel Gorman <mel@csn.ul.ie> wrote:
+>> This does mean that MIGRATE_CMA also does not have a per-cpu list.
+>> I don't know if that matters to you but all allocations using
+>> MIGRATE_CMA will take the zone lock.
 
+On Mon, 24 Oct 2011 21:32:45 +0200, Michal Nazarewicz <mina86@mina86.com> wrote:
+> This is sort of an artefact of my misunderstanding of pcp lists in the
+> past.  I'll have to re-evaluate the decision not to include CMA on pcp
+> list.
 
-W dniu 29.10.2011 18:14, Sylwester Nawrocki pisze:
-> Hi,
->
-> On 10/29/2011 03:17 PM, Piotr Chmura wrote:
->> W dniu 29.10.2011 12:22, Sylwester Nawrocki pisze:
->>> On 10/18/2011 09:51 PM, Piotr Chmura wrote:
->>>> Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
->>>>
->>>> Original source and comment:
->>>> # HG changeset patch
->>>> # User Devin Heitmueller<dheitmueller@kernellabs.com>
->>>> # Date 1267318701 18000
->>>> # Node ID 69c8f5172790784738bcc18f8301919ef3d5373f
->>>> # Parent b91e96a07bee27c1d421b4c3702e33ee8075de83
->>>> as102: checkpatch fixes
->>>>
->>>> From: Devin Heitmueller<dheitmueller@kernellabs.com>
->>>>
->>>> Fix make checkpatch issues reported against as10x_cmd.c.
->>>>
->>>> Priority: normal
->>>>
->>>> Signed-off-by: Devin Heitmueller<dheitmueller@kernellabs.com>
->>>> Signed-off-by: Piotr Chmura<chmooreck@poczta.onet.pl>
->>> Hi Piotr,
->>>
->>> starting from this patch the series doesn't apply cleanly to
->>> staging/for_v3.2 tree. Which branch is it based on ?
->>>
->>> ---
->>> Thanks,
->>> Sylwester
->> Hi Sylwester,
->>
->> I'is based on
->> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git kernel-3.1.0-git9+
->>
->> All patches are working on newly created driver directory drivers/staging/media/as102
->> (exception is 13/14: staging/Makefile and staging/Kconfig) and they apply cleanly in
->> my tree. Let me know why they doesn't on yours and i'll try to fix them.
-> I suspect the patch got mangled. The base tree shouldn't matter that much since
-> the patches are touching only the newly created directory.
-> With you previous patch set I'm getting an error at patch 5/11.
->
->
-> snawrocki@vostro:~/linux/media_tree$ git am -3 RESEND-1-14-staging-media-as102-initial-import-from-Abilis.patch
-> Applying: staging/media/as102: initial import from Abilis
-> snawrocki@vostro:~/linux/media_tree$ git am -3 RESEND-2-14-staging-media-as102-checkpatch-fixes.patch
-> Applying: staging/media/as102: checkpatch fixes
-> snawrocki@vostro:~/linux/media_tree$ git am -3 RESEND-3-14-staging-media-as102-checkpatch-fixes.patch
-> Applying: staging/media/as102: checkpatch fixes
-> snawrocki@vostro:~/linux/media_tree$ git am -3 RESEND-4-14-staging-media-as102-checkpatch-fixes.patch
-> Applying: staging/media/as102: checkpatch fixes
-> fatal: corrupt patch at line 664
-> Repository lacks necessary blobs to fall back on 3-way merge.
-> Cannot fall back to three-way merge.
-> Patch failed at 0001 staging/media/as102: checkpatch fixes
-> When you have resolved this problem run "git am --resolved".
-> If you would prefer to skip this patch, instead run "git am --skip".
-> To restore the original branch and stop patching run "git am --abort".
-I've downloaded patches from patchwork, as expected by you:
+Actually sorry.  My comment above is somehow invalid.
 
-dom@darkstar ~/src/kernel/linux.trynew $ patch -p1 -i 
-RESEND-4-14-staging-media-as102-checkpatch-fixes.patch
-patching file drivers/staging/media/as102/as10x_cmd.c
-patch: **** malformed patch at line 664: To unsubscribe from this list: 
-send the line "unsubscribe linux-media" in
+The CMA does not need to be on pcp list because CMA pages are never allocated
+via standard kmalloc() and friends.  Because of the fallbacks in rmqueue_bulk()
+the CMA pages end up being added to a pcp list of the MOVABLE type and so when
+kmallec() allocates an MOVABLE page it can end up grabbing a CMA page.
 
-after removing
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-from end of file:
+So it's quite OK that CMA does not have its own pcp list as the list would
+not be used anyway.
 
-dom@darkstar ~/src/kernel/linux.trynew $ patch -p1 -i 
-RESEND-4-14-staging-media-as102-checkpatch-fixes.patch
-patching file drivers/staging/media/as102/as10x_cmd.c
-
-Works fine, so looks like footer of mailing list IS an issue here (there 
-are less then 3 lines in patch because of end of file).
-
-> snawrocki@vostro:~/linux/media_tree$ git apply --verbose --reject RESEND-4-14-staging-media-as102-checkpatch-fixes.patch
-> fatal: corrupt patch at line 702
-> snawrocki@vostro:~/linux/media_tree$ git ll
-> cbcbb4b staging/media/as102: checkpatch fixes
-> acde12d staging/media/as102: checkpatch fixes
-> d47fc51 staging/media/as102: initial import from Abilis
-> ...
->
-> You are not using git send-email to send the patches, are you ?
->
-I'm not using git for sending patches.
-
-Peter
+-- 
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
+ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
