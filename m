@@ -1,68 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52277 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932166Ab1JXMaT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Oct 2011 08:30:19 -0400
-Received: from lancelot.localnet (unknown [85.13.70.251])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 2882B35999
-	for <linux-media@vger.kernel.org>; Mon, 24 Oct 2011 12:30:18 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.2] OMAP3 ISP and OMAP VOUT fixes
-Date: Mon, 24 Oct 2011 14:30:47 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201110241430.48230.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:65151 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754083Ab1J0LTh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Oct 2011 07:19:37 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: hverkuil@xs4all.nl,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 1/2] uvcvideo: Refactor uvc_ctrl_get and query
+Date: Thu, 27 Oct 2011 13:19:51 +0200
+Message-Id: <1319714392-4406-2-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1319714392-4406-1-git-send-email-hdegoede@redhat.com>
+References: <1319714392-4406-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This is a preparation patch for adding ctrl event support.
 
-The following changes since commit 35a912455ff5640dc410e91279b03e04045265b2:
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/video/uvc/uvc_ctrl.c |   62 +++++++++++++++++++++++++-----------
+ 1 files changed, 43 insertions(+), 19 deletions(-)
 
-  Merge branch 'v4l_for_linus' into staging/for_v3.2 (2011-10-19 12:41:18 
--0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git omap3isp-omap3isp-next
-
-Guennadi Liakhovetski (1):
-      omap3isp: ccdc: remove redundant operation
-
-Laurent Pinchart (9):
-      omap3isp: Move media_entity_cleanup() from unregister() to cleanup()
-      omap3isp: Move *_init_entities() functions to the init/cleanup section
-      omap3isp: Add missing mutex_destroy() calls
-      omap3isp: Fix memory leaks in initialization error paths
-      omap3isp: Report the ISP revision through the media controller API
-      omap3isp: preview: Remove horizontal averager support
-      omap3isp: preview: Rename min/max input/output sizes defines
-      omap3isp: preview: Add crop support on the sink pad
-      omap_vout: Add poll() support
-
- drivers/media/video/omap/omap_vout.c       |   10 +
- drivers/media/video/omap3isp/isp.c         |    3 +
- drivers/media/video/omap3isp/ispccdc.c     |   86 ++++---
- drivers/media/video/omap3isp/ispccp2.c     |  125 +++++----
- drivers/media/video/omap3isp/ispcsi2.c     |   91 ++++---
- drivers/media/video/omap3isp/isph3a_aewb.c |    2 +-
- drivers/media/video/omap3isp/isph3a_af.c   |    2 +-
- drivers/media/video/omap3isp/isphist.c     |    2 +-
- drivers/media/video/omap3isp/isppreview.c  |  419 +++++++++++++++++----------
- drivers/media/video/omap3isp/isppreview.h  |    9 +-
- drivers/media/video/omap3isp/ispreg.h      |    3 -
- drivers/media/video/omap3isp/ispresizer.c  |  104 ++++----
- drivers/media/video/omap3isp/ispstat.c     |   52 ++--
- drivers/media/video/omap3isp/ispstat.h     |    2 +-
- drivers/media/video/omap3isp/ispvideo.c    |   11 +-
- drivers/media/video/omap3isp/ispvideo.h    |    1 +
- 16 files changed, 545 insertions(+), 377 deletions(-)
-
+diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
+index 254d326..1a2c1a3 100644
+--- a/drivers/media/video/uvc/uvc_ctrl.c
++++ b/drivers/media/video/uvc/uvc_ctrl.c
+@@ -886,24 +886,14 @@ static int uvc_ctrl_populate_cache(struct uvc_video_chain *chain,
+ 	return 0;
+ }
+ 
+-int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
++static int __uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
++	struct uvc_control *ctrl,
++	struct uvc_control_mapping *mapping,
+ 	struct v4l2_queryctrl *v4l2_ctrl)
+ {
+-	struct uvc_control *ctrl;
+-	struct uvc_control_mapping *mapping;
+ 	struct uvc_menu_info *menu;
+ 	unsigned int i;
+-	int ret;
+-
+-	ret = mutex_lock_interruptible(&chain->ctrl_mutex);
+-	if (ret < 0)
+-		return -ERESTARTSYS;
+-
+-	ctrl = uvc_find_control(chain, v4l2_ctrl->id, &mapping);
+-	if (ctrl == NULL) {
+-		ret = -EINVAL;
+-		goto done;
+-	}
++	int ret = 0;
+ 
+ 	memset(v4l2_ctrl, 0, sizeof *v4l2_ctrl);
+ 	v4l2_ctrl->id = mapping->id;
+@@ -972,6 +962,28 @@ int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
+ 				  uvc_ctrl_data(ctrl, UVC_CTRL_DATA_RES));
+ 
+ done:
++	return ret;
++}
++
++int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
++	struct v4l2_queryctrl *v4l2_ctrl)
++{
++	struct uvc_control *ctrl;
++	struct uvc_control_mapping *mapping;
++	int ret;
++
++	ret = mutex_lock_interruptible(&chain->ctrl_mutex);
++	if (ret < 0)
++		return -ERESTARTSYS;
++
++	ctrl = uvc_find_control(chain, v4l2_ctrl->id, &mapping);
++	if (ctrl == NULL) {
++		ret = -EINVAL;
++		goto done;
++	}
++
++	ret = __uvc_query_v4l2_ctrl(chain, ctrl, mapping, v4l2_ctrl);
++done:
+ 	mutex_unlock(&chain->ctrl_mutex);
+ 	return ret;
+ }
+@@ -1135,17 +1147,16 @@ done:
+ 	return ret;
+ }
+ 
+-int uvc_ctrl_get(struct uvc_video_chain *chain,
++static int __uvc_ctrl_get(struct uvc_video_chain *chain,
++	struct uvc_control *ctrl,
++	struct uvc_control_mapping *mapping,
+ 	struct v4l2_ext_control *xctrl)
+ {
+-	struct uvc_control *ctrl;
+-	struct uvc_control_mapping *mapping;
+ 	struct uvc_menu_info *menu;
+ 	unsigned int i;
+ 	int ret;
+ 
+-	ctrl = uvc_find_control(chain, xctrl->id, &mapping);
+-	if (ctrl == NULL || (ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR) == 0)
++	if ((ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR) == 0)
+ 		return -EINVAL;
+ 
+ 	if (!ctrl->loaded) {
+@@ -1175,6 +1186,19 @@ int uvc_ctrl_get(struct uvc_video_chain *chain,
+ 	return 0;
+ }
+ 
++int uvc_ctrl_get(struct uvc_video_chain *chain,
++	struct v4l2_ext_control *xctrl)
++{
++	struct uvc_control *ctrl;
++	struct uvc_control_mapping *mapping;
++
++	ctrl = uvc_find_control(chain, xctrl->id, &mapping);
++	if (ctrl == NULL)
++		return -EINVAL;
++
++	return __uvc_ctrl_get(chain, ctrl, mapping, xctrl);
++}
++
+ int uvc_ctrl_set(struct uvc_video_chain *chain,
+ 	struct v4l2_ext_control *xctrl)
+ {
 -- 
-Regards,
+1.7.7
 
-Laurent Pinchart
