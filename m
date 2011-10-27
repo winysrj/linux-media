@@ -1,48 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:16769 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751058Ab1JPV4Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Oct 2011 17:56:24 -0400
-Date: Mon, 17 Oct 2011 00:53:06 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Julian Andres Klode <jak@jak-linux.org>,
-	devel@driverdev.osuosl.org, Patrick Dickey <pdickeybeta@gmail.com>,
-	Greg KH <gregkh@suse.de>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Piotr Chmura <chmooreck@poczta.onet.pl>,
-	LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <maurochehab@gmail.com>
-Subject: Re: [PATCH 4/7] staging/as102: cleanup - formatting code
-Message-ID: <20111016215306.GL18470@longonot.mountain>
-References: <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
- <4E7FF0A0.7060004@gmail.com>
- <CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
- <20110927094409.7a5fcd5a@stein>
- <20110927174307.GD24197@suse.de>
- <20110927213300.6893677a@stein>
- <4E9992F9.7000101@poczta.onet.pl>
- <4E99F313.4050103@poczta.onet.pl>
- <20111016122359.GA19023@jak-linux.org>
- <CAGoCfixB553TtwrHFu4pmqk05zeJV6w0-2a1=sfy48Zg_t-65Q@mail.gmail.com>
+Received: from dell.nexicom.net ([216.168.96.13]:45331 "EHLO smtp.nexicom.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750773Ab1J0E1z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Oct 2011 00:27:55 -0400
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-118-207.nexicom.net [216.168.118.207])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id p9R4RqUw014386
+	for <linux-media@vger.kernel.org>; Thu, 27 Oct 2011 00:27:52 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by mail.lockie.ca (Postfix) with ESMTP id 66FFD1E0119
+	for <linux-media@vger.kernel.org>; Thu, 27 Oct 2011 00:27:51 -0400 (EDT)
+Message-ID: <4EA8DDC7.4050609@lockie.ca>
+Date: Thu, 27 Oct 2011 00:27:51 -0400
+From: James <bjlockie@lockie.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAGoCfixB553TtwrHFu4pmqk05zeJV6w0-2a1=sfy48Zg_t-65Q@mail.gmail.com>
+CC: linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: femon.c
+References: <4EA8BFCF.8080109@lockie.ca> <CACL2Z1_nVpiaQQbC6Hjy7=a6xDh6+igBFLWeXvtyB0DQi6frjA@mail.gmail.com>
+In-Reply-To: <CACL2Z1_nVpiaQQbC6Hjy7=a6xDh6+igBFLWeXvtyB0DQi6frjA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Oct 16, 2011 at 08:40:06AM -0400, Devin Heitmueller wrote:
-> then the people who have nothing better to do than obsess about
-> whitespace can submit incremental patches
-
-You're right that the white space changes aren't needed to get the
-driver into staging, but there is no need to get snarky about it.
-Julian was replying to problems that a specific patch introduced and
-everything he said was correct.  Piotr was already going to redo the
-patches anyway.
-
-regards,
-dan carpenter
+On 10/26/11 22:39, Jonathan Isom wrote:
+> On Wed, Oct 26, 2011 at 9:19 PM, James<bjlockie@lockie.ca>  wrote:
+>> I'm trying to find femon.c
+>>
+>> I found a reference to it on the web (DVB-apps/szap//femon/.c) but I can't
+>> find it. :-(
+> Try this repository.
+>
+> http://linuxtv.org/hg/dvb-apps/
+>
+> HTH
+>
+> Jonathan
+Thanks.
+I must be going blind, I checked there before and I didn't find it but 
+it is there now. :-)
 
