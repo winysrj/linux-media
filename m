@@ -1,69 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:58111 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755194Ab1JWJBU (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:41937 "EHLO
+	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753742Ab1J0JFr convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Oct 2011 05:01:20 -0400
-Received: by bkbzt19 with SMTP id zt19so6792925bkb.19
-        for <linux-media@vger.kernel.org>; Sun, 23 Oct 2011 02:01:18 -0700 (PDT)
-Message-ID: <4EA3D7DB.4000908@gmail.com>
-Date: Sun, 23 Oct 2011 11:01:15 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Thu, 27 Oct 2011 05:05:47 -0400
+From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
+To: "'Ralph Metzler'" <rjkm@metzlerbros.de>
+Cc: "'Linux Media Mailing List'" <linux-media@vger.kernel.org>
+References: <004c01cc7a03$064111c0$12c33540$@coexsi.fr>	<201110240906.24543@orion.escape-edv.de>	<004e01cc9247$0a8da4d0$1fa8ee70$@coexsi.fr> <20133.44781.388484.71473@morden.metzler>
+In-Reply-To: <20133.44781.388484.71473@morden.metzler>
+Subject: RE: [DVB] Digital Devices Cine CT V6 support
+Date: Thu, 27 Oct 2011 11:05:47 +0200
+Message-ID: <000b01cc9487$9e48aac0$dada0040$@coexsi.fr>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [RFC] subdevice PM: .s_power() deprecation?
-References: <Pine.LNX.4.64.1110031138370.14314@axis700.grange> <Pine.LNX.4.64.1110171720260.18438@axis700.grange> <4E9C9D84.5020905@gmail.com> <201110180107.20494.laurent.pinchart@ideasonboard.com> <4E9DEB4A.4050001@gmail.com> <Pine.LNX.4.64.1110182315180.7139@axis700.grange> <4E9F399B.9080207@gmail.com> <4EA3CB48.5000203@iki.fi> <4EA3D1C4.8050302@gmail.com> <4EA3D3F8.907@iki.fi>
-In-Reply-To: <4EA3D3F8.907@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Language: fr
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/23/2011 10:44 AM, Sakari Ailus wrote:
-> Sylwester Nawrocki wrote:
-...
->>>> 2. In some of our camera pipeline setups - "Sensor - MIPI-CSI receiver - host/DMA",
->>>>    the sensor won't boot properly if all MIPI-CSI regulators aren't enabled. So the
->>>>    MIPI-CSI receiver must always be powered on before the sensor. With the subdevs
->>>>    doing their own magic wrt to power control the situation is getting slightly
->>>>    out of control.
->>>
->>> How about this: CSI-2 receiver implements a few new regulators which the
->>> sensor driver then requests to be enabled. Would that work for you?
->>
->> No, I don't like that... :)
->>
->> We would have to standardize the regulator supply names, etc. Such approach
->> would be more difficult to align with runtime/system suspend/resume.
->> Also the sensor drivers should be independent on other drivers. The MIPI-CSI
->> receiver is more specific to the host, rather than a sensor.
->>
->> Not all sensors need MIPI-CSI, some just use parallel video bus.
+
+
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Ralph Metzler
+> Sent: lundi 24 octobre 2011 20:31
+> To: S é bastien RAILLARD (COEXSI)
+> Cc: 'Linux Media Mailing List'
+> Subject: RE: [DVB] Digital Devices Cine CT V6 support
 > 
-> The sensor drivers are responsible for the regulators they want to use,
-> right? If they need no CSI-2 related regulators then they just ignore
-
-Only for the regulator supplies for their device. In this case the sensor
-driver would have to touch MIPI-CSI device regulator supplies.
-
-> them as any other regulators the sensor doesn't need.
+> Sébastien RAILLARD (COEXSI) writes:
+>  > I've seen a new parameter "ts_loop", can you explain how it's
+> working?
+>  > Is-it for sending the stream from the demodulator directly to the CAM
+> > reader?
 > 
-> The names of the regulators could come from the platform data, they're
-> board specific anyway. I can't see another way to do this without having
+> No, it is mainly for testing. It declares one TAB as loopback, which
+> means that the data output is directly connected to the input.
+> 
+> For redirecting a stream through a CI see the "redirect" attribute.
+> I don't know if my small redirect readme was included in the package I
+> sent to Oliver. So, I attached it below.
+> 
+> 
+> -Ralph
+> 
+> 
+> 
+> Redirection of TS streams through CI modules is now supported through
+> /sys/class/ddbridge/ddbridge0/redirect.
+> It only works with cards based on the ddbridge PCIe bridge, not with
+> nGene based cards.
+> 
+> It is set up in such a way that you can write "AB CD" to a "redirect"
+> attribute and data from input B of card A is then piped through port D
+> (meaning TAB (D+1) which uses output D and input 2*D for CI io) of card
+> C and then shows up in the demux device belonging to input B (input
+> (B&1) of TAB (B/2+1)) of card A.
+> 
+> E.g.:
+> 
+> echo "00 01" > /sys/class/ddbridge/ddbridge0/redirect
+> 
+> will pipe input 0 of card 0 through CI at port 1 (TAB 2) of card 0.
+> 
 
-No, you don't want regulator supply names in any platform data struct.
-The platform code binds regulator supplies to the devices, whether it is DT
-based or not.
+Dear Ralph,
 
-> platform code to do this which is not quite compatible with the idea of
-> the device tree.
+I've made two diagrams (see below) to explain the numbering based on your
+explanation and the driver code source.
+I hope they are right and it can help for understanding the octopus bridge.
 
-Now I just use s_power callback in our drivers and it all works well.
+The good news with the new redirect function is we can emulate the
+traditional CAM handling and then use the current DVB software without
+modification.
 
---
-Regards,
-Sylwester
+Best regards,
+Sebastien.
+
+
+                          OCTOPUS BRIDGE
+
+                        +----------------+
+  Tuner 0 -> Input 0 -> |                |
+                        | Port 0 - TAB 1 | -> Output 0
+  Tuner 1 -> Input 1 -> |                |
+                        +----------------+
+  Tuner 0 -> Input 2 -> |                |
+                        | Port 1 - TAB 2 | -> Output 1
+  Tuner 1 -> Input 3 -> |                |
+                        +----------------+
+  Tuner 0 -> Input 4 -> |                |
+                        | Port 2 - TAB 3 | -> Output 2
+  Tuner 1 -> Input 5 -> |                |
+                        +----------------+
+  Tuner 0 -> Input 6 -> |                |
+                        | Port 3 - TAB 4 | -> Output 3
+  Tuner 1 -> Input 7 -> |                |
+                        +----------------+
+
+
+                     CineS2 v6 + 2 CAM Readers
+
+                        +----------------+
+  Tuner 0 -> Input 0 -> |                |
+                        | Port 0 - TAB 1 | -> Output 0
+  Tuner 1 -> Input 1 -> |     DVB-S2     |
+                        +----------------+
+             Input 2 -> |                |
+                        | Port 1 - TAB 2 | -> Output 1
+             Input 3 -> |                |
+                        +----------------+
+    CAM 0 -> Input 4 -> |                |
+                        | Port 2 - TAB 3 | -> Output 2 -> CAM 0
+             Input 5 -> |       CAM      |
+                        +----------------+
+    CAM 1 -> Input 6 -> |                |
+                        | Port 3 - TAB 4 | -> Output 3 -> CAM 1
+             Input 7 -> |       CAM      |
+                        +----------------+
+
+Two redirections to set : 
+
+* "X0 X2" (input #0 to port #2)
+* "X1 X3" (input #1 to port #3)
+
+Where X is the device number.
+
+
+> Redirection should only be done right after loading the driver (or
+> booting if the driver is built-in) and before using the devices in any
+> way.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in the body of a message to majordomo@vger.kernel.org More majordomo
+> info at  http://vger.kernel.org/majordomo-info.html
+
