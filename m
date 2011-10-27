@@ -1,41 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:51536 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759378Ab1JGUio convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2011 16:38:44 -0400
-Received: by yxl31 with SMTP id 31so3996701yxl.19
-        for <linux-media@vger.kernel.org>; Fri, 07 Oct 2011 13:38:44 -0700 (PDT)
-Content-Type: text/plain; charset=iso-8859-2; format=flowed; delsp=yes
-To: linux-media@vger.kernel.org,
-	=?iso-8859-2?Q?S=E9bastien_le_Preste_de_Vauban?=
-	<ulpianosonsi@gmail.com>
-Subject: Re: Bttv and composite audio
-References: <4E88EA0F.2090700@gmail.com>
-Date: Fri, 07 Oct 2011 22:38:44 +0200
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38790 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754315Ab1J0MTZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Oct 2011 08:19:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 4/6] v4l2-event: Don't set sev->fh to NULL on unsubcribe
+Date: Thu, 27 Oct 2011 14:20:04 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	hverkuil@xs4all.nl
+References: <1319714283-3991-1-git-send-email-hdegoede@redhat.com> <1319714283-3991-5-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1319714283-3991-5-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-From: semiRocket <semirocket@gmail.com>
-Message-ID: <op.v2z0yvp53xmt7q@00-25-22-b5-7b-09.dummy.porta.siemens.net>
-In-Reply-To: <4E88EA0F.2090700@gmail.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201110271420.04488.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 03 Oct 2011 00:47:43 +0200, Sébastien le Preste de Vauban  
-<ulpianosonsi@gmail.com> wrote:
+Hi Hans,
 
-> Tv-tuner video and audio works fine, composite video works fine but I  
-> have no composite audio.
-> The adapter shipped with the card is very similar to this one:
-> http://www.avermedia-usa.com/AVerTV/Upload/SpecialPagePic/S-Video%20Composite%20Dongle%20Cable.jpg
-> but the usb connector on the picture is some sort of S-video like  
-> connector in my tv card.
+On Thursday 27 October 2011 13:18:01 Hans de Goede wrote:
+> 1: There is no reason for this after v4l2_event_unsubscribe releases the
+> spinlock nothing is holding a reference to the sev anymore except for the
+> local reference in the v4l2_event_unsubscribe function.
+> 
+> 2: Setting sev->fh to NULL causes problems for the del op added in the next
+> patch of this series, since this op needs a way to get to its own data
+> structures, and typically this will be done by using container_of on an
+> embedded v4l2_fh struct.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-Here's a picture of the bundle it seems:
-	http://img467.imageshack.us/img467/4516/0000415smalljn3.jpg
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-S-video doesn't carry audio signals so cards cable is associated with a  
-3.5 mm audio jack. Since I don't see that card has an audio input  
-connector (doesn't support?) you plug that one in your sound card input.
+While reviewing the patch I noticed that v4l2_event_unsubscribe_all() calls 
+v4l2_event_unsubscribe(), which performs control lookup again. Is there a 
+reason for that, instead of handling event unsubscription directly in 
+v4l2_event_unsubscribe_all() ?
 
-- use tv card for video
-- use sound card for audio
+> ---
+>  drivers/media/video/v4l2-event.c |    1 -
+>  1 files changed, 0 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-event.c
+> b/drivers/media/video/v4l2-event.c index 01cbb7f..3d27300 100644
+> --- a/drivers/media/video/v4l2-event.c
+> +++ b/drivers/media/video/v4l2-event.c
+> @@ -304,7 +304,6 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+>  			}
+>  		}
+>  		list_del(&sev->list);
+> -		sev->fh = NULL;
+>  	}
+> 
+>  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+
+-- 
+Regards,
+
+Laurent Pinchart
