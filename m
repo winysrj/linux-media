@@ -1,115 +1,314 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:58562 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751370Ab1JaQZb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Oct 2011 12:25:31 -0400
-Received: by eye27 with SMTP id 27so5444327eye.19
-        for <linux-media@vger.kernel.org>; Mon, 31 Oct 2011 09:25:29 -0700 (PDT)
-From: Sylwester Nawrocki <snjw23@gmail.com>
-To: devel@driverdev.osuosl.org, linux-media@vger.kernel.org
-Cc: Piotr Chmura <chmooreck@poczta.onet.pl>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Greg KH <gregkh@suse.de>
-Subject: [PATCH 00/17] Staging: Abilis Systems AS102 driver
-Date: Mon, 31 Oct 2011 17:24:38 +0100
-Message-Id: <1320078295-3379-1-git-send-email-snjw23@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:44486 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754083Ab1J0LTi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Oct 2011 07:19:38 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: hverkuil@xs4all.nl,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 2/2] uvcvideo: Add support for control events
+Date: Thu, 27 Oct 2011 13:19:52 +0200
+Message-Id: <1319714392-4406-3-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1319714392-4406-1-git-send-email-hdegoede@redhat.com>
+References: <1319714392-4406-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/video/uvc/uvc_ctrl.c |  104 ++++++++++++++++++++++++++++++++++++
+ drivers/media/video/uvc/uvc_v4l2.c |   51 ++++++++++++++++-
+ drivers/media/video/uvc/uvcvideo.h |    9 +++
+ 3 files changed, 161 insertions(+), 3 deletions(-)
 
-I have collected most of patches for Abilis Systems AS102 driver
-recently submitted by Piotr and I'm resending it as the following
-series. There were some issues with some of the previous patches,
-due to improper e-mail encoding and some of them refused to apply
-properly. Hopefully there is no issues this time, I have also
-pushed the patches to a public git, as indicated below.
+diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
+index 1a2c1a3..b9486e5 100644
+--- a/drivers/media/video/uvc/uvc_ctrl.c
++++ b/drivers/media/video/uvc/uvc_ctrl.c
+@@ -21,6 +21,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/wait.h>
+ #include <linux/atomic.h>
++#include <media/v4l2-ctrls.h>
+ 
+ #include "uvcvideo.h"
+ 
+@@ -1308,6 +1309,107 @@ int uvc_ctrl_set(struct uvc_video_chain *chain,
+ }
+ 
+ /* --------------------------------------------------------------------------
++ * Ctrl event handling
++ */
++
++static void uvc_ctrl_fill_event(struct uvc_video_chain *chain,
++	struct v4l2_event *ev,
++	struct uvc_control *ctrl,
++	struct uvc_control_mapping *mapping,
++	u32 value, u32 changes)
++{
++	struct v4l2_queryctrl v4l2_ctrl;
++
++	__uvc_query_v4l2_ctrl(chain, ctrl, mapping, &v4l2_ctrl);
++
++	memset(ev->reserved, 0, sizeof(ev->reserved));
++	ev->type = V4L2_EVENT_CTRL;
++	ev->id = v4l2_ctrl.id;
++	ev->u.ctrl.value = value;
++	ev->u.ctrl.changes = changes;
++	ev->u.ctrl.type = v4l2_ctrl.type;
++	ev->u.ctrl.flags = v4l2_ctrl.flags;
++	ev->u.ctrl.minimum = v4l2_ctrl.minimum;
++	ev->u.ctrl.maximum = v4l2_ctrl.maximum;
++	ev->u.ctrl.step = v4l2_ctrl.step;
++	ev->u.ctrl.default_value = v4l2_ctrl.default_value;
++}
++
++void uvc_ctrl_send_event(struct uvc_fh *handle,
++	struct v4l2_ext_control *xctrl)
++{
++	struct v4l2_event ev;
++	struct v4l2_subscribed_event *sev;
++	struct uvc_control *ctrl;
++	struct uvc_control_mapping *mapping;
++
++	ctrl = uvc_find_control(handle->chain, xctrl->id, &mapping);
++
++	if (list_empty(&mapping->ev_subs))
++		return;
++
++	uvc_ctrl_fill_event(handle->chain, &ev, ctrl, mapping, xctrl->value,
++			    V4L2_EVENT_CTRL_CH_VALUE);
++
++	list_for_each_entry(sev, &mapping->ev_subs, node)
++		if (sev->fh && (sev->fh != &handle->vfh ||
++			     (sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK)))
++			v4l2_event_queue_fh(sev->fh, &ev);
++}
++
++static int uvc_ctrl_add_event(struct v4l2_subscribed_event *sev)
++{
++	struct uvc_fh *handle = container_of(sev->fh, struct uvc_fh, vfh);
++	struct uvc_control *ctrl;
++	struct uvc_control_mapping *mapping;
++	int ret;
++
++	ret = mutex_lock_interruptible(&handle->chain->ctrl_mutex);
++	if (ret < 0)
++		return -ERESTARTSYS;
++
++	ctrl = uvc_find_control(handle->chain, sev->id, &mapping);
++	if (ctrl == NULL) {
++		ret = -EINVAL;
++		goto done;
++	}
++
++	list_add_tail(&sev->node, &mapping->ev_subs);
++	if (sev->flags & V4L2_EVENT_SUB_FL_SEND_INITIAL) {
++		struct v4l2_event ev;
++		struct v4l2_ext_control xctrl = { .value = 0 };
++		u32 changes = V4L2_EVENT_CTRL_CH_FLAGS;
++
++		if (__uvc_ctrl_get(handle->chain, ctrl, mapping, &xctrl) == 0)
++			changes |= V4L2_EVENT_CTRL_CH_VALUE;
++
++		uvc_ctrl_fill_event(handle->chain, &ev, ctrl, mapping,
++				    xctrl.value, changes);
++		v4l2_event_queue_fh(sev->fh, &ev);
++	}
++
++done:
++	mutex_unlock(&handle->chain->ctrl_mutex);
++	return ret;
++}
++
++static void uvc_ctrl_del_event(struct v4l2_subscribed_event *sev)
++{
++	struct uvc_fh *handle = container_of(sev->fh, struct uvc_fh, vfh);
++
++	mutex_lock(&handle->chain->ctrl_mutex);
++	list_del(&sev->node);
++	mutex_unlock(&handle->chain->ctrl_mutex);
++}
++
++const struct v4l2_subscribed_event_ops uvc_ctrl_sub_ev_ops = {
++	.add = uvc_ctrl_add_event,
++	.del = uvc_ctrl_del_event,
++	.replace = v4l2_ctrl_replace,
++	.merge = v4l2_ctrl_merge,
++};
++
++/* --------------------------------------------------------------------------
+  * Dynamic controls
+  */
+ 
+@@ -1652,6 +1754,8 @@ static int __uvc_ctrl_add_mapping(struct uvc_device *dev,
+ 	if (map == NULL)
+ 		return -ENOMEM;
+ 
++	INIT_LIST_HEAD(&map->ev_subs);
++
+ 	size = sizeof(*mapping->menu_info) * mapping->menu_count;
+ 	map->menu_info = kmemdup(mapping->menu_info, size, GFP_KERNEL);
+ 	if (map->menu_info == NULL) {
+diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
+index dadf11f..1c577a3 100644
+--- a/drivers/media/video/uvc/uvc_v4l2.c
++++ b/drivers/media/video/uvc/uvc_v4l2.c
+@@ -25,6 +25,7 @@
+ 
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-event.h>
+ 
+ #include "uvcvideo.h"
+ 
+@@ -495,6 +496,8 @@ static int uvc_v4l2_open(struct file *file)
+ 		}
+ 	}
+ 
++	v4l2_fh_init(&handle->vfh, stream->vdev);
++	v4l2_fh_add(&handle->vfh);
+ 	handle->chain = stream->chain;
+ 	handle->stream = stream;
+ 	handle->state = UVC_HANDLE_PASSIVE;
+@@ -521,6 +524,8 @@ static int uvc_v4l2_release(struct file *file)
+ 
+ 	/* Release the file handle. */
+ 	uvc_dismiss_privileges(handle);
++	v4l2_fh_del(&handle->vfh);
++	v4l2_fh_exit(&handle->vfh);
+ 	kfree(handle);
+ 	file->private_data = NULL;
+ 
+@@ -602,8 +607,10 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 			return ret;
+ 		}
+ 		ret = uvc_ctrl_commit(chain);
+-		if (ret == 0)
++		if (ret == 0) {
++			uvc_ctrl_send_event(handle, &xctrl);
+ 			ctrl->value = xctrl.value;
++		}
+ 		break;
+ 	}
+ 
+@@ -655,8 +662,14 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 
+ 		ctrls->error_idx = 0;
+ 
+-		if (cmd == VIDIOC_S_EXT_CTRLS)
++		if (cmd == VIDIOC_S_EXT_CTRLS) {
+ 			ret = uvc_ctrl_commit(chain);
++			if (ret == 0) {
++				ctrl = ctrls->controls;
++				for (i = 0; i < ctrls->count; ++ctrl, ++i)
++					uvc_ctrl_send_event(handle, ctrl);
++			}
++		}
+ 		else
+ 			ret = uvc_ctrl_rollback(chain);
+ 		break;
+@@ -996,6 +1009,26 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		return uvc_video_enable(stream, 0);
+ 	}
+ 
++	case VIDIOC_SUBSCRIBE_EVENT:
++	{
++		struct v4l2_event_subscription *sub = arg;
++
++		switch (sub->type) {
++		case V4L2_EVENT_CTRL:
++			return v4l2_event_subscribe(&handle->vfh, sub, 0,
++						    &uvc_ctrl_sub_ev_ops);
++		default:
++			return -EINVAL;
++		}
++	}
++
++	case VIDIOC_UNSUBSCRIBE_EVENT:
++		return v4l2_event_unsubscribe(&handle->vfh, arg);
++
++	case VIDIOC_DQEVENT:
++		return v4l2_event_dequeue(&handle->vfh, arg,
++					  file->f_flags & O_NONBLOCK);
++
+ 	/* Analog video standards make no sense for digital cameras. */
+ 	case VIDIOC_ENUMSTD:
+ 	case VIDIOC_QUERYSTD:
+@@ -1058,10 +1091,22 @@ static unsigned int uvc_v4l2_poll(struct file *file, poll_table *wait)
+ {
+ 	struct uvc_fh *handle = file->private_data;
+ 	struct uvc_streaming *stream = handle->stream;
++	unsigned long req_events = poll_requested_events(wait);
++	unsigned int res = 0;
+ 
+ 	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_poll\n");
+ 
+-	return uvc_queue_poll(&stream->queue, file, wait);
++	if (req_events & POLLPRI) {
++		if (v4l2_event_pending(&handle->vfh))
++			res |= POLLPRI;
++		else
++			poll_wait(file, &handle->vfh.wait, wait);
++	}
++
++	if (req_events & (POLLIN | POLLRDNORM | POLLOUT | POLLWRNORM))
++		res |= uvc_queue_poll(&stream->queue, file, wait);
++
++	return res;
+ }
+ 
+ #ifndef CONFIG_MMU
+diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
+index 4c1392e..cf3cbe4 100644
+--- a/drivers/media/video/uvc/uvcvideo.h
++++ b/drivers/media/video/uvc/uvcvideo.h
+@@ -13,6 +13,8 @@
+ #include <linux/videodev2.h>
+ #include <media/media-device.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-event.h>
+ 
+ /* --------------------------------------------------------------------------
+  * UVC constants
+@@ -151,6 +153,7 @@ struct uvc_control_info {
+ 
+ struct uvc_control_mapping {
+ 	struct list_head list;
++	struct list_head ev_subs;
+ 
+ 	struct uvc_control_info *ctrl;
+ 
+@@ -455,6 +458,7 @@ enum uvc_handle_state {
+ };
+ 
+ struct uvc_fh {
++	struct v4l2_fh vfh;
+ 	struct uvc_video_chain *chain;
+ 	struct uvc_streaming *stream;
+ 	enum uvc_handle_state state;
+@@ -570,6 +574,8 @@ extern int uvc_status_suspend(struct uvc_device *dev);
+ extern int uvc_status_resume(struct uvc_device *dev);
+ 
+ /* Controls */
++extern const struct v4l2_subscribed_event_ops uvc_ctrl_sub_ev_ops;
++
+ extern int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
+ 		struct v4l2_queryctrl *v4l2_ctrl);
+ extern int uvc_query_v4l2_menu(struct uvc_video_chain *chain,
+@@ -597,6 +603,9 @@ extern int uvc_ctrl_get(struct uvc_video_chain *chain,
+ extern int uvc_ctrl_set(struct uvc_video_chain *chain,
+ 		struct v4l2_ext_control *xctrl);
+ 
++extern void uvc_ctrl_send_event(struct uvc_fh *handle,
++		struct v4l2_ext_control *xctrl);
++
+ extern int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
+ 		struct uvc_xu_control_query *xqry);
+ 
+-- 
+1.7.7
 
-This change set superseeds all previous as102 patches from Piotr
-Chmura, we've agreed to prepare another series addressing the
-remaining issues in order to move the driver out of staging.
-
-So this change set is meant as an initial pull to staging/media.
-If there are any issues with the patches related to submission
-procedure, authorship, etc., please let us know.
-
-The original author dates as in mercurial repository at
-http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
-has been preserved.
-
-The patch set is based of off master branch at
-git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-
-It can be pulled from git://gitorious.org/linux-media/media_tree.git
-
-The driver has been tested with PCTV picoStick (74e) DVB-T tuner.
-
---
-Regards,
-Sylwester
-
-Devin Heitmueller (9):
-  staging: as102: Fix CodingStyle errors in file as102_drv.c
-  staging: as102: Fix CodingStyle errors in file as102_fw.c
-  staging: as102: Fix CodingStyle errors in file as10x_cmd.c
-  staging: as102: Fix CodingStyle errors in file as10x_cmd_stream.c
-  staging: as102: Fix CodingStyle errors in file as102_fe.c
-  staging: as102: Fix CodingStyle errors in file as102_usb_drv.c
-  staging: as102: Fix CodingStyle errors in file as10x_cmd_cfg.c
-  staging: as102: Add Elgato EyeTV DTT Deluxe
-  staging: as102: Properly handle multiple product names
-
-Pierrick Hascoet (2):
-  staging: as102: Initial import from Abilis
-  staging: as102: Fix licensing oversight
-
-Piotr Chmura (3):
-  staging: as102: Remove non-linux headers inclusion
-  staging: as102: Enable compilation
-  staging: as102: Add nBox Tuner Dongle support
-
-Sylwester Nawrocki (3):
-  staging: as102: Convert the comments to kernel-doc style
-  staging: as102: Unconditionally compile code dependent on DVB_CORE
-  staging: as102: Remove conditional compilation based on kernel version
-
- drivers/staging/Kconfig                        |    2 +
- drivers/staging/Makefile                       |    1 +
- drivers/staging/media/as102/Kconfig            |    7 +
- drivers/staging/media/as102/Makefile           |    6 +
- drivers/staging/media/as102/as102_drv.c        |  351 ++++++++++++++
- drivers/staging/media/as102/as102_drv.h        |  141 ++++++
- drivers/staging/media/as102/as102_fe.c         |  603 ++++++++++++++++++++++++
- drivers/staging/media/as102/as102_fw.c         |  251 ++++++++++
- drivers/staging/media/as102/as102_fw.h         |   42 ++
- drivers/staging/media/as102/as102_usb_drv.c    |  478 +++++++++++++++++++
- drivers/staging/media/as102/as102_usb_drv.h    |   59 +++
- drivers/staging/media/as102/as10x_cmd.c        |  452 ++++++++++++++++++
- drivers/staging/media/as102/as10x_cmd.h        |  540 +++++++++++++++++++++
- drivers/staging/media/as102/as10x_cmd_cfg.c    |  215 +++++++++
- drivers/staging/media/as102/as10x_cmd_stream.c |  223 +++++++++
- drivers/staging/media/as102/as10x_handle.h     |   58 +++
- drivers/staging/media/as102/as10x_types.h      |  198 ++++++++
- 17 files changed, 3627 insertions(+), 0 deletions(-)
- create mode 100644 drivers/staging/media/as102/Kconfig
- create mode 100644 drivers/staging/media/as102/Makefile
- create mode 100644 drivers/staging/media/as102/as102_drv.c
- create mode 100644 drivers/staging/media/as102/as102_drv.h
- create mode 100644 drivers/staging/media/as102/as102_fe.c
- create mode 100644 drivers/staging/media/as102/as102_fw.c
- create mode 100644 drivers/staging/media/as102/as102_fw.h
- create mode 100644 drivers/staging/media/as102/as102_usb_drv.c
- create mode 100644 drivers/staging/media/as102/as102_usb_drv.h
- create mode 100644 drivers/staging/media/as102/as10x_cmd.c
- create mode 100644 drivers/staging/media/as102/as10x_cmd.h
- create mode 100644 drivers/staging/media/as102/as10x_cmd_cfg.c
- create mode 100644 drivers/staging/media/as102/as10x_cmd_stream.c
- create mode 100644 drivers/staging/media/as102/as10x_handle.h
- create mode 100644 drivers/staging/media/as102/as10x_types.h
-
---
-1.7.4.1
