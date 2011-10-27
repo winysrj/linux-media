@@ -1,114 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57461 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:49762 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751087Ab1JCSry (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Oct 2011 14:47:54 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org, isely@isely.net
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 1/2] [media] saa7115: Fix standards detection
-Date: Mon,  3 Oct 2011 15:47:36 -0300
-Message-Id: <1317667657-4081-1-git-send-email-mchehab@redhat.com>
+	id S1754083Ab1J0LRx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Oct 2011 07:17:53 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: hverkuil@xs4all.nl,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 4/6] v4l2-event: Don't set sev->fh to NULL on unsubcribe
+Date: Thu, 27 Oct 2011 13:18:01 +0200
+Message-Id: <1319714283-3991-5-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1319714283-3991-1-git-send-email-hdegoede@redhat.com>
+References: <1319714283-3991-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several bugs at saa7115 standards detection:
+1: There is no reason for this after v4l2_event_unsubscribe releases the
+spinlock nothing is holding a reference to the sev anymore except for the
+local reference in the v4l2_event_unsubscribe function.
 
-After the fix, the driver is returning the proper standards,
-as tested with 3 different broadcast sources:
+2: Setting sev->fh to NULL causes problems for the del op added in the next
+patch of this series, since this op needs a way to get to its own data
+structures, and typically this will be done by using container_of on an
+embedded v4l2_fh struct.
 
-On an invalid channel (without any TV signal):
-[ 4394.931630] saa7115 15-0021: Status byte 2 (0x1f)=0xe0
-[ 4394.931635] saa7115 15-0021: detected std mask = 00ffffff
-
-With a PAL/M signal:
-[ 4410.836855] saa7115 15-0021: Status byte 2 (0x1f)=0xb1
-[ 4410.837727] saa7115 15-0021: Status byte 1 (0x1e)=0x82
-[ 4410.837731] saa7115 15-0021: detected std mask = 00000900
-
-With a NTSC/M signal:
-[ 4422.383893] saa7115 15-0021: Status byte 2 (0x1f)=0xb1
-[ 4422.384768] saa7115 15-0021: Status byte 1 (0x1e)=0x81
-[ 4422.384772] saa7115 15-0021: detected std mask = 0000b000
-
-Tests were done with a WinTV PVR USB2 Model 29xx card.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/media/video/saa7115.c |   47 +++++++++++++++++++++++++++-------------
- 1 files changed, 32 insertions(+), 15 deletions(-)
+ drivers/media/video/v4l2-event.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/saa7115.c b/drivers/media/video/saa7115.c
-index cee98ea..86627a8 100644
---- a/drivers/media/video/saa7115.c
-+++ b/drivers/media/video/saa7115.c
-@@ -1344,35 +1344,52 @@ static int saa711x_g_vbi_data(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_dat
- static int saa711x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
- {
- 	struct saa711x_state *state = to_state(sd);
--	int reg1e;
-+	int reg1f, reg1e;
- 
--	*std = V4L2_STD_ALL;
--	if (state->ident != V4L2_IDENT_SAA7115) {
--		int reg1f = saa711x_read(sd, R_1F_STATUS_BYTE_2_VD_DEC);
--
--		if (reg1f & 0x20)
--			*std = V4L2_STD_525_60;
--		else
--			*std = V4L2_STD_625_50;
--
--		return 0;
-+	reg1f = saa711x_read(sd, R_1F_STATUS_BYTE_2_VD_DEC);
-+	v4l2_dbg(1, debug, sd, "Status byte 2 (0x1f)=0x%02x\n", reg1f);
-+	if (reg1f & 0x40) {
-+		/* horizontal/vertical not locked */
-+		*std = V4L2_STD_ALL;
-+		goto ret;
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index 01cbb7f..3d27300 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -304,7 +304,6 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 			}
+ 		}
+ 		list_del(&sev->list);
+-		sev->fh = NULL;
  	}
-+	if (reg1f & 0x20)
-+		*std = V4L2_STD_525_60;
-+	else
-+		*std = V4L2_STD_625_50;
-+
-+	if (state->ident != V4L2_IDENT_SAA7115)
-+		goto ret;
  
- 	reg1e = saa711x_read(sd, R_1E_STATUS_BYTE_1_VD_DEC);
- 
- 	switch (reg1e & 0x03) {
- 	case 1:
--		*std = V4L2_STD_NTSC;
-+		*std &= V4L2_STD_NTSC;
- 		break;
- 	case 2:
--		*std = V4L2_STD_PAL;
-+		/*
-+		 * V4L2_STD_PAL just cover the european PAL standards.
-+		 * This is wrong, as the device could also be using an
-+		 * other PAL standard.
-+		 */
-+		*std &= V4L2_STD_PAL   | V4L2_STD_PAL_N  | V4L2_STD_PAL_Nc |
-+			V4L2_STD_PAL_M | V4L2_STD_PAL_60;
- 		break;
- 	case 3:
--		*std = V4L2_STD_SECAM;
-+		*std &= V4L2_STD_SECAM;
- 		break;
- 	default:
-+		/* Can't detect anything */
-+		*std = V4L2_STD_ALL;
- 		break;
- 	}
-+
-+	v4l2_dbg(1, debug, sd, "Status byte 1 (0x1e)=0x%02x\n", reg1e);
-+
-+ret:
-+	v4l2_dbg(1, debug, sd, "detected std mask = %08Lx\n", *std);
-+
- 	return 0;
- }
- 
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
 -- 
-1.7.6.4
+1.7.7
 
