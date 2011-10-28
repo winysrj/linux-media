@@ -1,47 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:39095 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750834Ab1J1TL0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Oct 2011 15:11:26 -0400
-Received: by wyg36 with SMTP id 36so4220415wyg.19
-        for <linux-media@vger.kernel.org>; Fri, 28 Oct 2011 12:11:25 -0700 (PDT)
+Received: from max.feld.cvut.cz ([147.32.192.36]:35933 "EHLO max.feld.cvut.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751627Ab1J1QCb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Oct 2011 12:02:31 -0400
+Received: from localhost (unknown [192.168.200.4])
+	by max.feld.cvut.cz (Postfix) with ESMTP id 2F7E619F2F36
+	for <linux-media@vger.kernel.org>; Fri, 28 Oct 2011 18:02:30 +0200 (CEST)
+Received: from max.feld.cvut.cz ([192.168.200.1])
+	by localhost (styx.feld.cvut.cz [192.168.200.4]) (amavisd-new, port 10044)
+	with ESMTP id xLKTIJhtPCBM for <linux-media@vger.kernel.org>;
+	Fri, 28 Oct 2011 18:02:29 +0200 (CEST)
+Received: from imap.feld.cvut.cz (imap.feld.cvut.cz [147.32.192.34])
+	by max.feld.cvut.cz (Postfix) with ESMTP id E9DCD19F30DC
+	for <linux-media@vger.kernel.org>; Fri, 28 Oct 2011 18:02:28 +0200 (CEST)
+Received: from [10.0.0.1] (223.19.broadband10.iol.cz [90.177.19.223])
+	(Authenticated sender: kocurzby)
+	by imap.feld.cvut.cz (Postfix) with ESMTPSA id AC92CFA00F
+	for <linux-media@vger.kernel.org>; Fri, 28 Oct 2011 18:02:28 +0200 (CEST)
+Message-ID: <4EAAD20A.6000705@fel.cvut.cz>
+Date: Fri, 28 Oct 2011 18:02:18 +0200
+From: =?ISO-8859-2?Q?Zbyn=ECk_Kocur?= <zbynek.kocur@fel.cvut.cz>
 MIME-Version: 1.0
-Date: Fri, 28 Oct 2011 21:11:25 +0200
-Message-ID: <CAL9G6WWQAQ4EM1TXmSfU+R+WcmD9Fhq1bu3LRmjO5vAKTXfv_Q@mail.gmail.com>
-Subject: CONFIG_DVB_MAX_ADAPTERS
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: Avermedia TV Pilot
+References: <4EAAC8AC.70407@fel.cvut.cz>
+In-Reply-To: <4EAAC8AC.70407@fel.cvut.cz>
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms070308020804060205060609"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello list, I want to increase the DVB adapter number, I make a little
-search and I find this files:
+Toto je elektronicky podepsaná zpráva ve formátu MIME.
 
-# grep -r "CONFIG_DVB_MAX_ADAPTERS" .
-./s2-liplianin-f5cd7d75370e/linux/drivers/media/dvb/dvb-core/dvbdev.h:#if
-defined(CONFIG_DVB_MAX_ADAPTERS) && CONFIG_DVB_MAX_ADAPTERS > 0
-./s2-liplianin-f5cd7d75370e/linux/drivers/media/dvb/dvb-core/dvbdev.h:
- #define DVB_MAX_ADAPTERS CONFIG_DVB_MAX_ADAPTERS
-./s2-liplianin-f5cd7d75370e/v4l/dvbdev.h:#if
-defined(CONFIG_DVB_MAX_ADAPTERS) && CONFIG_DVB_MAX_ADAPTERS > 0
-./s2-liplianin-f5cd7d75370e/v4l/dvbdev.h:  #define DVB_MAX_ADAPTERS
-CONFIG_DVB_MAX_ADAPTERS
-./s2-liplianin-f5cd7d75370e/v4l/config-compat.h:#undef CONFIG_DVB_MAX_ADAPTERS
-./s2-liplianin-f5cd7d75370e/v4l/config-compat.h:#undef
-CONFIG_DVB_MAX_ADAPTERS_MODULE
-./s2-liplianin-f5cd7d75370e/v4l/config-compat.h:#define
-CONFIG_DVB_MAX_ADAPTERS 8
-./s2-liplianin-f5cd7d75370e/v4l/.config:CONFIG_DVB_MAX_ADAPTERS=8
-./s2-liplianin-f5cd7d75370e/v4l/.myconfig:CONFIG_DVB_MAX_ADAPTERS
-                := 8
-grep: warning: ./s2-liplianin-f5cd7d75370e/v4l/oss: recursive directory loop
+--------------ms070308020804060205060609
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: quoted-printable
 
-Where is the best file to change it? I want to increase it to 16, is
-it possible?
+Hi,
 
-Thanks ans best regards.
+I have new Linux DVB-T card from Avermedia. Avermedia TV Pilot but it is
+not supported in kernel. Is it possible to support this USB TV DVB-T? It
+has a chipset which is currently supported but demodulator is without
+support.
 
--- 
-Josu Lazkano
+lsusb
+Bus 002 Device 007: ID 07ca:0810 AVerMedia Technologies, Inc.
+
+It has a followed chpsets:
+TDA18271    (Supported)
+CX23102        (Supported)
+and
+AF9030        (Not supported :-()
+
+Thank you very much. If you have any other question, please write me.
+
+Zbynek Kocur
+
+--=20
+email: zbynek.kocur@fel.cvut.cz
+web: http://www.fel.cvut.cz
+Dept. Of Telecommunications Engineering
+Faculty of Electrical Engineering
+Czech Technical University in Prague
+Technicka 2,166 27 Prague 6
+
+
+
+--------------ms070308020804060205060609
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: Elektronický podpis S/MIME
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIOcTCC
+BIowggNyoAMCAQICECf06hH0eobEbp27bqkXBwcwDQYJKoZIhvcNAQEFBQAwbzELMAkGA1UE
+BhMCU0UxFDASBgNVBAoTC0FkZFRydXN0IEFCMSYwJAYDVQQLEx1BZGRUcnVzdCBFeHRlcm5h
+bCBUVFAgTmV0d29yazEiMCAGA1UEAxMZQWRkVHJ1c3QgRXh0ZXJuYWwgQ0EgUm9vdDAeFw0w
+NTA2MDcwODA5MTBaFw0yMDA1MzAxMDQ4MzhaMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
+VVQxFzAVBgNVBAcTDlNhbHQgTGFrZSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5l
+dHdvcmsxITAfBgNVBAsTGGh0dHA6Ly93d3cudXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVRO
+LVVTRVJGaXJzdC1DbGllbnQgQXV0aGVudGljYXRpb24gYW5kIEVtYWlsMIIBIjANBgkqhkiG
+9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjmFpPJ9q0E7YkY3rs3BYHW8OWX5ShpHornMSMxqmNVN
+NRm5pELlzkniii8efNIxB8dOtINknS4p1aJkxIW9hVE1eaROaJB7HHqkkqgX8pgV8pPMyaQy
+lbsMTzC9mKALi+VuG6JG+ni8om+rWV6lL8/K2m2qL+usobNqqrcuZzWLeeEeaYji5kbNoKXq
+vgvOdjp6Dpvq/NonWz1zHyLmSGHGTPNpsaguG7bUMSAsvIKKjqQOpdeJQ/wWWq8dcdcRWdq6
+hw2v+vPhwvCkxWeM1tZUOt4KpLoDd7NlyP0e03RiqhjKaJMeoYV+9Udly/hNVyh00jT/MLbu
+9mIwFIws6wIDAQABo4HhMIHeMB8GA1UdIwQYMBaAFK29mHo0tCb3+sQmVO8DveAky1QaMB0G
+A1UdDgQWBBSJgmd9xJ0mcABLtFBIfN49rgRufTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/
+BAUwAwEB/zB7BgNVHR8EdDByMDigNqA0hjJodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9BZGRU
+cnVzdEV4dGVybmFsQ0FSb290LmNybDA2oDSgMoYwaHR0cDovL2NybC5jb21vZG8ubmV0L0Fk
+ZFRydXN0RXh0ZXJuYWxDQVJvb3QuY3JsMA0GCSqGSIb3DQEBBQUAA4IBAQAZ2IkRbyispgCi
+54fBm5AD236hEv0e8+LwAamUVEJrmgnEoG3XkJIEA2Z5Q3H8+G+v23ZF4jcaPd3kWQR4rBz0
+g0bzes9bhHIt5UbBuhgRKfPLSXmHPLptBZ2kbWhPrXIUNqi5sf2/z3/wpGqUNVCPz4FtVbHd
+WTBK322gnGQfSXzvNrv042n0+DmPWq1LhTq3Du3Tzw1EovsEv+QvcI4l+1pUBrPQxLxtjftz
+Mizpm4QkLdZ/kXpoAlAfDj9N6cz1u2fo3BwuO/xOzf4CjuOoEwqlJkRl6RDyTVKnrtw+ymsy
+XEFs/vVdoOr/0fqbhlhtPZZH5f4ulQTCAMyOofK7MIIE2jCCA8KgAwIBAgIQXf9Q6v4PU0aI
+n4BBj+dCyDANBgkqhkiG9w0BAQUFADCBrjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcw
+FQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3Jr
+MSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VS
+Rmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFpbDAeFw0wOTA1MTgwMDAwMDBa
+Fw0yODEyMzEyMzU5NTlaMEQxCzAJBgNVBAYTAk5MMQ8wDQYDVQQKEwZURVJFTkExJDAiBgNV
+BAMTG1RFUkVOQSBlU2NpZW5jZSBQZXJzb25hbCBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEP
+ADCCAQoCggEBAMS8JX3N71kEq3QnKbZjiu/ENXChRgivblCbG3F4lwKFwDX/kBgRZvozORSe
+pBL3Pe4FLIHn9y0uNnhDDjm2f3p0w8tVPy+zy8M3auGVAyMbsyKYE4NYMF+sPJFF020LLsvR
+kWGyynH6wokMewnWkr+jgRcRVSDfN4GfHiYJHdIXGUPLi5kldEFb5jIq0KdT3NIhjc2Rz3ts
+9Mn+0OXSBmsaYUIbgJEH3BRJJzsKirLiO2kIhMuBmde6FB/YfpJjvfYtMfqVTs02DZnvEbqt
+SvuoxHi5fFo+yPUIMsCpBceMGiiPMLoXo/G54genuPtVv59iWtUUDwi0E5nSEnla8P0CAwEA
+AaOCAVswggFXMB8GA1UdIwQYMBaAFImCZ33EnSZwAEu0UEh83j2uBG59MB0GA1UdDgQWBBTI
+iXOZp11RFlNFVHyjwjl8y9eqgTAOBgNVHQ8BAf8EBAMCAQYwEgYDVR0TAQH/BAgwBgEB/wIB
+ADAmBgNVHSAEHzAdMA0GCysGAQQBsjEBAgIdMAwGCiqGSIb3TAUCAgUwWAYDVR0fBFEwTzBN
+oEugSYZHaHR0cDovL2NybC51c2VydHJ1c3QuY29tL1VUTi1VU0VSRmlyc3QtQ2xpZW50QXV0
+aGVudGljYXRpb25hbmRFbWFpbC5jcmwwbwYIKwYBBQUHAQEEYzBhMDgGCCsGAQUFBzAChixo
+dHRwOi8vY3J0LnVzZXJ0cnVzdC5jb20vVVROQUFBQ2xpZW50X0NBLmNydDAlBggrBgEFBQcw
+AYYZaHR0cDovL29jc3AudXNlcnRydXN0LmNvbTANBgkqhkiG9w0BAQUFAAOCAQEACBekHPkV
+a7AZYW+gSON6JO9BVZqgUHDYI9VThkpnjujaVhYYLBsYIYm6mCTuVjTjF4YmvSFa1BmTSuph
+dE22xISNR+7KLmVtNpOYseKSZojiTnt1x15EaSHcEmow/GGA/g/wndLcfq7lwlNNC3CDYVZF
++z3fcvYCQnXriIqYV2D1n6JySbF6PkFnNcNVKw0HNejGK9W6h3mAdOeSNr1GgXouKeJqvuEX
+EzV8FqQlMy9h7s7JUuBA29O+OVrPz0wU5X/FQ1eLTblajsIPBk3eyEmdgXO65D+YpZM8WU7b
+mzXf/k2/VaHpZMNFfKyPfEfROvFOddmQZ0DosS+eFy9cNTCCBQEwggPpoAMCAQICEQD40H6Y
+fIDrV6yuMxZ2GTz5MA0GCSqGSIb3DQEBBQUAMEQxCzAJBgNVBAYTAk5MMQ8wDQYDVQQKEwZU
+RVJFTkExJDAiBgNVBAMTG1RFUkVOQSBlU2NpZW5jZSBQZXJzb25hbCBDQTAeFw0xMTAyMjMw
+MDAwMDBaFw0xMjAzMjQyMzU5NTlaMIGcMRMwEQYKCZImiZPyLGQBGRYDb3JnMRYwFAYKCZIm
+iZPyLGQBGRYGdGVyZW5hMRMwEQYKCZImiZPyLGQBGRYDdGNzMQswCQYDVQQGEwJDWjEtMCsG
+A1UEChMkQ3plY2ggVGVjaG5pY2FsIFVuaXZlcnNpdHkgaW4gUHJhZ3VlMRwwGgYDVQQDExNa
+YnluZWsgS29jdXIgMjUyMzkwMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5GpR
+YGMaqaZ77rHzkj3ISlaxq6amZmeyvt0dmKTjKsxFRgjpjmdi6zKYZOu/ZLwzx4PLGV2bVICF
+IoHQLHtzx9UGTdYnhgmpQcR4vMAKy9Zg/2Z6Fa38AnIyn5I2efpK92emmGdQpAtV9QFWoyN5
+/wnRL9/uAdv13Qfgr7b2WGdeD5QCy0B7MnbG8OiCZ28vcI/YXD+fBMvcAIz5MQuOCx1ITivo
+VMw4Ug8XQudzHgYbwepLhA5vrwl3UUeUqNR2babCASS77XvJk9DM6OKSjPwQC8HIpcMSk3QB
+rRqF0rO7xXvhI8TDg9kJdqmvzXVMlZQZIbtaNO9GroGVpC9ORQIDAQABo4IBkzCCAY8wHwYD
+VR0jBBgwFoAUyIlzmaddURZTRVR8o8I5fMvXqoEwHQYDVR0OBBYEFAnvfyyEidrR6s9Xah7D
+SsY2OKAaMA4GA1UdDwEB/wQEAwIFoDAMBgNVHRMBAf8EAjAAMB0GA1UdJQQWMBQGCCsGAQUF
+BwMEBggrBgEFBQcDAjAmBgNVHSAEHzAdMA0GCysGAQQBsjEBAgIdMAwGCiqGSIb3TAUCAgUw
+RwYDVR0fBEAwPjA8oDqgOIY2aHR0cDovL2NybC50Y3MudGVyZW5hLm9yZy9URVJFTkFlU2Np
+ZW5jZVBlcnNvbmFsQ0EuY3JsMHoGCCsGAQUFBwEBBG4wbDBCBggrBgEFBQcwAoY2aHR0cDov
+L2NydC50Y3MudGVyZW5hLm9yZy9URVJFTkFlU2NpZW5jZVBlcnNvbmFsQ0EuY3J0MCYGCCsG
+AQUFBzABhhpodHRwOi8vb2NzcC50Y3MudGVyZW5hLm9yZzAjBgNVHREEHDAagRh6YnluZWsu
+a29jdXJAZmVsLmN2dXQuY3owDQYJKoZIhvcNAQEFBQADggEBAHieSg/1wmvmHWOxwjNfPGr1
+9cP8cRBDeb/ddT0QRnzZGhfSe/LOoMFPzRgqzTdygpDjcdmrDBTnyrR50uvpIUbPbN4nwnDP
++t0OH1+6aGWX/tHMmGCv1MZvrLaVB7z3GKHw+Q9H66RuWN3fPu3WgH5pt+pAwbclQrpLjLo7
+pDj39akgAQZK4q0168NuuxDHaY0vaClx46Xk64YaIFhU3LqoLlPZIMtHnrWEHjorpPkrSbsJ
+wShsE8piADh+S1k1Yo/2Dli3Kk1V8xoys087Cq6RELeb7myuNIyG+GVV9wTLuLgOyg7BJYEg
+GPHN1rDmJFpc6LYOK1nsLPe1XC8TybcxggMYMIIDFAIBATBZMEQxCzAJBgNVBAYTAk5MMQ8w
+DQYDVQQKEwZURVJFTkExJDAiBgNVBAMTG1RFUkVOQSBlU2NpZW5jZSBQZXJzb25hbCBDQQIR
+APjQfph8gOtXrK4zFnYZPPkwCQYFKw4DAhoFAKCCAZQwGAYJKoZIhvcNAQkDMQsGCSqGSIb3
+DQEHATAcBgkqhkiG9w0BCQUxDxcNMTExMDI4MTYwMjE4WjAjBgkqhkiG9w0BCQQxFgQU97u6
+eLVuQNrvFoRLUWc/2t0Qrq8wXwYJKoZIhvcNAQkPMVIwUDALBglghkgBZQMEAQIwCgYIKoZI
+hvcNAwcwDgYIKoZIhvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3
+DQMCAgEoMGgGCSsGAQQBgjcQBDFbMFkwRDELMAkGA1UEBhMCTkwxDzANBgNVBAoTBlRFUkVO
+QTEkMCIGA1UEAxMbVEVSRU5BIGVTY2llbmNlIFBlcnNvbmFsIENBAhEA+NB+mHyA61esrjMW
+dhk8+TBqBgsqhkiG9w0BCRACCzFboFkwRDELMAkGA1UEBhMCTkwxDzANBgNVBAoTBlRFUkVO
+QTEkMCIGA1UEAxMbVEVSRU5BIGVTY2llbmNlIFBlcnNvbmFsIENBAhEA+NB+mHyA61esrjMW
+dhk8+TANBgkqhkiG9w0BAQEFAASCAQDGys1koMN68mWW52/UnmYx9R8DI1dT75jFPT0U4dbT
+ZiyTsZK6biyX/P6osytM/bnk94075k6KqGlhwm5XjANzxEYUT19mfGsE+ntN9Xr8k6GO9eRw
+piOWnmUuClxht0O0QEfxF/waHdCsc9SkE6KyE5WgBkDvlDSASo44GKhp+sPbQtej1UD3nA6T
+ABr9oxnI87aKngshFuAO/DjkxmFDX3Efel2VRIAqLyAHmBUWaOuOIUNjPv+ATeroJieBiP/q
+CuLPsnG8TqOaxFQyT7/CNcly9I99TkzMJWML2tI1xK9jj5fhyDBwzOGw4gciR4GU+dFhci/h
+cj2rzbros/CEAAAAAAAA
+--------------ms070308020804060205060609--
