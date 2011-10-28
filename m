@@ -1,52 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:4360 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752170Ab1JaQRe (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:33651 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753736Ab1J1BcO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Oct 2011 12:17:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Various ctrl and event frame work patches (version 2)
-Date: Mon, 31 Oct 2011 17:17:32 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1320074209-23473-1-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1320074209-23473-1-git-send-email-hdegoede@redhat.com>
+	Thu, 27 Oct 2011 21:32:14 -0400
+Received: by ggnb1 with SMTP id b1so3218826ggn.19
+        for <linux-media@vger.kernel.org>; Thu, 27 Oct 2011 18:32:14 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201110311717.32581.hverkuil@xs4all.nl>
+From: Gilles Gigan <gilles.gigan@gmail.com>
+Date: Fri, 28 Oct 2011 12:31:53 +1100
+Message-ID: <CAJWu0HN8WC-xfAy3cNnA_o3YPj7+9Eo5+YCvNtqRNs9dG18+8A@mail.gmail.com>
+Subject: Switching input during capture
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans!
-
-On Monday, October 31, 2011 16:16:43 Hans de Goede wrote:
-> Hi All,
-> 
-> This patch set obsoletes my previous "add v4l2_subscribed_event_ops" set,
-> while working on adding support for ctrl-events to the uvc driver I found
-> a few bugs in the event code, which this patchset fixes.
-
-Did you see my comments to patches 3/6, 4/6 and 5/6 in version 1?
-Those need to be addressed before I can ack them.
-
-Regards,
-
-	Hans
-
-> Changes since version 1:
-> -Added a documentation update (update v4l2-framework.txt) to:
->  "v4l2-event: Add v4l2_subscribed_event_ops"
-> 
-> Regards,
-> 
-> Hans
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Hi,
+I would like to know what is the correct way to switch the current
+video input during capture on a card with a single BT878 chip and 4
+inputs (http://store.bluecherry.net/products/PV%252d143-%252d-4-port-video-capture-card-%2830FPS%29-%252d-OEM.html).
+I tried doing it in two ways:
+- using VIDIOC_S_INPUT to change the current input. While this works,
+the next captured frame shows video from the old input in its top half
+and video from the new input in the bottom half.
+- I tried setting the input field to the new input and flags to
+V4L2_BUF_FLAG_INPUT in the struct v4l2_buffer passed to VIDIOC_QBUF
+when enqueuing buffers. However, when doing so, the ioctl fails
+altogether, and I cannot enqueue any buffers with the
+V4L2_BUF_FLAG_INPUT flag set.
+Is there another way of doing it ? or is there a way to synchronise
+the input change (when using VIDIOC_S_INPUT) so it happens in between
+2 frames and produces a clean switch ?
+Thanks
+Gilles
