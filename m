@@ -1,41 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60759 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932908Ab1JaPQc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Oct 2011 11:16:32 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: hverkuil@xs4all.nl,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 1/6] v4l2-ctrl: Send change events to all fh for auto cluster slave controls
-Date: Mon, 31 Oct 2011 16:16:44 +0100
-Message-Id: <1320074209-23473-2-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1320074209-23473-1-git-send-email-hdegoede@redhat.com>
-References: <1320074209-23473-1-git-send-email-hdegoede@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54434 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752889Ab1J1Lrb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Oct 2011 07:47:31 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 4/6] v4l2-event: Don't set sev->fh to NULL on unsubcribe
+Date: Fri, 28 Oct 2011 13:48:10 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	hverkuil@xs4all.nl
+References: <1319714283-3991-1-git-send-email-hdegoede@redhat.com> <201110271420.04488.laurent.pinchart@ideasonboard.com> <4EAA696A.1090301@redhat.com>
+In-Reply-To: <4EAA696A.1090301@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201110281348.11917.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Otherwise the fh changing the master control won't get the inactive state
-change event for the slave controls.
+Hi Hans,
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/video/v4l2-ctrls.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+On Friday 28 October 2011 10:35:54 Hans de Goede wrote:
+> On 10/27/2011 02:20 PM, Laurent Pinchart wrote:
+> > On Thursday 27 October 2011 13:18:01 Hans de Goede wrote:
+> >> 1: There is no reason for this after v4l2_event_unsubscribe releases the
+> >> spinlock nothing is holding a reference to the sev anymore except for
+> >> the local reference in the v4l2_event_unsubscribe function.
+> >> 
+> >> 2: Setting sev->fh to NULL causes problems for the del op added in the
+> >> next patch of this series, since this op needs a way to get to its own
+> >> data structures, and typically this will be done by using container_of
+> >> on an embedded v4l2_fh struct.
+> >> 
+> >> Signed-off-by: Hans de Goede<hdegoede@redhat.com>
+> > 
+> > Acked-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+> > 
+> > While reviewing the patch I noticed that v4l2_event_unsubscribe_all()
+> > calls v4l2_event_unsubscribe(), which performs control lookup again. Is
+> > there a reason for that, instead of handling event unsubscription
+> > directly in v4l2_event_unsubscribe_all() ?
+> 
+> I didn't write that part, so I'll let Hans V. answer this question.
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index fc8666a..69e24f4 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -945,6 +945,7 @@ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
- 			if (ctrl->cluster[0]->has_volatiles)
- 				ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
- 		}
-+		fh = NULL;
- 	}
- 	if (changed || update_inactive) {
- 		/* If a control was changed that was not one of the controls
+I know, that's why I still acked your patch :-)
+
 -- 
-1.7.7
+Regards,
 
+Laurent Pinchart
