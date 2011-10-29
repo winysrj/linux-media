@@ -1,45 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nexicom.net ([216.168.96.13]:60476 "EHLO smtp.nexicom.net"
+Received: from mx1.redhat.com ([209.132.183.28]:2238 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751301Ab1JOHfP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Oct 2011 03:35:15 -0400
-Received: from mail.lockie.ca (dyn-dsl-mb-216-168-118-207.nexicom.net [216.168.118.207])
-	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id p9F7ZE4Z021238
-	for <linux-media@vger.kernel.org>; Sat, 15 Oct 2011 03:35:14 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by mail.lockie.ca (Postfix) with ESMTP id 4946F1E000D
-	for <linux-media@vger.kernel.org>; Sat, 15 Oct 2011 03:35:13 -0400 (EDT)
-Message-ID: <4E9937B1.5080806@lockie.ca>
-Date: Sat, 15 Oct 2011 03:35:13 -0400
-From: James <bjlockie@lockie.ca>
+	id S1750919Ab1J2Gh5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Oct 2011 02:37:57 -0400
+Message-ID: <4EAB9F41.40208@redhat.com>
+Date: Sat, 29 Oct 2011 08:37:53 +0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: freeze/crash
-References: <4E977989.30808@lockie.ca> <op.v3b9bll93xmt7q@00-25-22-b5-7b-09.dummy.porta.siemens.net> <4E9881B6.8070606@lockie.ca> <op.v3c23z0s3xmt7q@00-25-22-b5-7b-09.dummy.porta.siemens.net>
-In-Reply-To: <op.v3c23z0s3xmt7q@00-25-22-b5-7b-09.dummy.porta.siemens.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Randy Dunlap <rdunlap@xenotime.net>
+CC: James <bjlockie@lockie.ca>,
+	linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: femon patch for dB
+References: <4EAB342F.2020008@lockie.ca> <201110290221.05015.marek.vasut@gmail.com> <4EAB612A.6010003@xenotime.net> <4EAB8B5A.5040908@lockie.ca> <4EAB919A.6020401@xenotime.net>
+In-Reply-To: <4EAB919A.6020401@xenotime.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/14/11 17:53, semiRocket wrote:
-> On Fri, 14 Oct 2011 20:38:46 +0200, James <bjlockie@lockie.ca> wrote:
->
->> On 10/14/11 07:10, semiRocket wrote:
->> On Fri, 14 Oct 2011 01:51:37 +0200, James <bjlockie@lockie.ca> wrote:
->>  It always crashes when I access the hardware but the place it crashes
->> is random.
->>  Maybe you would want to pass those crash logs for debugging purposes 
->> What crash logs?
->> The kernel locks up, is there a log somewhere?
->
->
-> System log under /var/log/messages
-> or command dmesg
->
-> Also, if you keep your terminal window open crash should pop-up by 
-> itself so called "kernel oops". For example see first post in the 
-> following link:
->     http://stackoverflow.com/questions/316131/how-do-you-diagnose-a-kernel-oops
-There was no kernel oops, everything just froze.
-dmesg seems to clear when I reboot.
+Em 29-10-2011 07:39, Randy Dunlap escreveu:
+> On 10/28/11 22:12, James wrote:
+>> diff -r d4e8bf5658ce util/femon/femon.c
+>> --- a/util/femon/femon.c    Fri Oct 07 01:26:04 2011 +0530
+>> +++ b/util/femon/femon.c    Fri Oct 28 18:52:12 2011 -0400
+>> @@ -16,6 +16,9 @@
+>>   * You should have received a copy of the GNU General Public License
+>>   * along with this program; if not, write to the Free Software
+>>   * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+>> + *
+>> + * James Lockie: Oct. 2011
+>> + * modified to add a switch (-2) to show signal/snr in dB
+>>   */
+>>  
+>>  
+>> @@ -37,11 +40,16 @@
+>>  
+>>  #include <libdvbapi/dvbfe.h>
+>>  
+>> +/* the s5h1409 delivers both fields in 0.1dB increments, while
+>> + * some demods expect signal to be 0-65535 and SNR to be in 1/256
+>> increments
+> 
+> Looks like thunderbird is being too helpful for us here -- by breaking
+> a long line where it shouldn't be broken.  You can see if
+> <kernel source>/Documentation/email-clients.txt helps you any with that.
+
+This is not a kernel patch, but yes, you're right: there's nothing we can't
+apply it to dvb-apps as-is.
+
+Thunderbird only works well if the html editor is disabled and if the max number
+of lines is set to 0. I use it here, but I'm currently sending patches directly
+from git, as it is simpler, if the smtp server is properly configured.
+There is one plugin for it that fixes those stuff on thunerbird (asalted-patches),
+but this doesn't work with newer versions of it (well, fixing it is probably
+a one-line patch like [2] changing the maxVersion).
+
+[1] https://hg.mozilla.org/users/clarkbw_gnome.org/asalted-patches/
+[2] https://hg.mozilla.org/users/clarkbw_gnome.org/asalted-patches/rev/49d587f60371
+
+Regards,
+Mauro
