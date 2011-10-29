@@ -1,52 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:37618 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757013Ab1JEWTX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 18:19:23 -0400
-Received: by iakk32 with SMTP id k32so2256620iak.19
-        for <linux-media@vger.kernel.org>; Wed, 05 Oct 2011 15:19:23 -0700 (PDT)
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:34449 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932245Ab1J2KWd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Oct 2011 06:22:33 -0400
+Received: by faan17 with SMTP id n17so4282724faa.19
+        for <linux-media@vger.kernel.org>; Sat, 29 Oct 2011 03:22:32 -0700 (PDT)
+Message-ID: <4EABD3E2.3070302@gmail.com>
+Date: Sat, 29 Oct 2011 12:22:26 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
-References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
-	<CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
-	<CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
-	<4e8b8099.95d1e30a.4bee.0501@mx.google.com>
-	<CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
-	<CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
-Date: Thu, 6 Oct 2011 09:19:22 +1100
-Message-ID: <CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
-Subject: Re: [PATCH] af9013 frontend tuner bus lock
-From: Jason Hecker <jwhecker@gmail.com>
-To: Josu Lazkano <josu.lazkano@gmail.com>
-Cc: Malcolm Priestley <tvboxspy@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Piotr Chmura <chmooreck@poczta.onet.pl>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Greg KH <gregkh@suse.de>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
+Subject: Re: [RESEND PATCH 4/14] staging/media/as102: checkpatch fixes
+References: <4E7F1FB5.5030803@gmail.com>	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>	<4E7FF0A0.7060004@gmail.com>	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>	<20110927094409.7a5fcd5a@stein>	<20110927174307.GD24197@suse.de>	<20110927213300.6893677a@stein>	<4E999733.2010802@poczta.onet.pl>	<4E99F2FC.5030200@poczta.onet.pl>	<20111016105731.09d66f03@stein>	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>	<4E9ADFAE.8050208@redhat.com>	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>	<20111018111151.635ac39e.chmooreck@poczta.onet.pl> <20111018215146.1fbc223f@darkstar>
+In-Reply-To: <20111018215146.1fbc223f@darkstar>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> http://palosaari.fi/linux/v4l-dvb/firmware/af9015/5.1.0.0/dvb-usb-af9015.fw
+On 10/18/2011 09:51 PM, Piotr Chmura wrote:
+> Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+> 
+> Original source and comment:
+> # HG changeset patch
+> # User Devin Heitmueller<dheitmueller@kernellabs.com>
+> # Date 1267318701 18000
+> # Node ID 69c8f5172790784738bcc18f8301919ef3d5373f
+> # Parent  b91e96a07bee27c1d421b4c3702e33ee8075de83
+> as102: checkpatch fixes
+> 
+> From: Devin Heitmueller<dheitmueller@kernellabs.com>
+> 
+> Fix make checkpatch issues reported against as10x_cmd.c.
+> 
+> Priority: normal
+> 
+> Signed-off-by: Devin Heitmueller<dheitmueller@kernellabs.com>
+> Signed-off-by: Piotr Chmura<chmooreck@poczta.onet.pl>
 
-5.1?  OK, I might eventually try that one too.
+Hi Piotr,
 
-> This morning I get a little pixeled playback, less than a second.
+starting from this patch the series doesn't apply cleanly to
+staging/for_v3.2 tree. Which branch is it based on ?
 
-OK, mine was fine for a few days then the pixellation started up in earnest.
-
-At the moment my symptoms were always:
-
-TunerA: Tuned - picture good
-TunerB: Idle
-
-Tuner B gets tuned, Tuner A starts to pixellate badly.
-
-I am sure this is the case too:
-
-TunerA: Idle
-TunerB: Tuned - picture good
-
-Tuner A gets tuned and has a bad recording.  *Never* has Tuner B
-suffered from the pixellation in spite of whatever Tuner A is doing!
-
-Anyway, Malcolm has suggested there is a bug lurking in MythTV too
-causing problems with dual tuners so it's a bit hard to isolate the
-issue.
+---
+Thanks,
+Sylwester
