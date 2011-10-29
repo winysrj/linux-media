@@ -1,79 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:61187 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751209Ab1JGVLn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2011 17:11:43 -0400
-Received: by wwf22 with SMTP id 22so6496509wwf.1
-        for <linux-media@vger.kernel.org>; Fri, 07 Oct 2011 14:11:42 -0700 (PDT)
-Message-ID: <4e8f6b0b.c90fe30a.4a1d.26bb@mx.google.com>
-Subject: [PATCH] af9013 Extended monitoring in set_frontend.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Jason Hecker <jwhecker@gmail.com>
-Cc: Josu Lazkano <josu.lazkano@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Date: Fri, 07 Oct 2011 22:11:34 +0100
-In-Reply-To: <CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
-References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
-	 <CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
-	 <CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
-	 <4e8b8099.95d1e30a.4bee.0501@mx.google.com>
-	 <CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
-	 <CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
-	 <CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41098 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753312Ab1J2Hvg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Oct 2011 03:51:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <maurochehab@gmail.com>
+Subject: Re: Switching input during capture
+Date: Sat, 29 Oct 2011 09:52:17 +0200
+Cc: Gilles Gigan <gilles.gigan@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <CAJWu0HN8WC-xfAy3cNnA_o3YPj7+9Eo5+YCvNtqRNs9dG18+8A@mail.gmail.com> <201110281442.21776.laurent.pinchart@ideasonboard.com> <4EAB2CF4.4040007@gmail.com>
+In-Reply-To: <4EAB2CF4.4040007@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+Message-Id: <201110290952.17916.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Try this patch, it should stop start up corruption on the same frontend.
+Hi Mauro,
 
-It is a missing section of code that checks the frontend is ready to go.
+On Saturday 29 October 2011 00:30:12 Mauro Carvalho Chehab wrote:
+> Em 28-10-2011 14:42, Laurent Pinchart escreveu:
+> > On Friday 28 October 2011 03:31:53 Gilles Gigan wrote:
+> >> Hi,
+> >> I would like to know what is the correct way to switch the current
+> >> video input during capture on a card with a single BT878 chip and 4
+> >> inputs
+> >> (http://store.bluecherry.net/products/PV%252d143-%252d-4-port-video-capt
+> >> ur e-card-%2830FPS%29-%252d-OEM.html). I tried doing it in two ways: -
+> >> using VIDIOC_S_INPUT to change the current input. While this works, the
+> >> next captured frame shows video from the old input in its top half and
+> >> video from the new input in the bottom half.
+> 
+> This is is likely easy to fix. The driver has already a logic to prevent
+> changing the buffer while in the middle of a buffer filling. I suspect
+> that the BKL removal patches might have broken it somewhat, allowing
+> things like that. basically, it should be as simple as not allowing
+> changing the input at the top half.
 
-However, it will not stop corruptions on frontend A.
+This will work optimally only if the input analog signals are synchronized, 
+right ? If we switch to a new input right when the frame start, can the first 
+frame captured on the new input be corrupted ?
 
-af9013 Extended monitoring in set_front.
+> Please try the enclosed patch.
+> 
+> Regards,
+> Mauro
+> 
+> -
+> 
+> bttv: Avoid switching the video input at the top half.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> diff --git a/drivers/media/video/bt8xx/bttv-driver.c
+> b/drivers/media/video/bt8xx/bttv-driver.c index 3dd0660..6a3be6f 100644
+> --- a/drivers/media/video/bt8xx/bttv-driver.c
+> +++ b/drivers/media/video/bt8xx/bttv-driver.c
+> @@ -3978,7 +3978,7 @@ bttv_irq_switch_video(struct bttv *btv)
+>  	bttv_set_dma(btv, 0);
+> 
+>  	/* switch input */
+> -	if (UNSET != btv->new_input) {
+> +	if (! btv->curr.top && UNSET != btv->new_input) {
+>  		video_mux(btv,btv->new_input);
+>  		btv->new_input = UNSET;
+>  	}
 
----
- drivers/media/dvb/frontends/af9013.c |   16 +++++++++++++++-
- 1 files changed, 15 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/dvb/frontends/af9013.c b/drivers/media/dvb/frontends/af9013.c
-index b220a87..347c187 100644
---- a/drivers/media/dvb/frontends/af9013.c
-+++ b/drivers/media/dvb/frontends/af9013.c
-@@ -622,8 +622,9 @@ static int af9013_set_frontend(struct dvb_frontend *fe,
- 	struct dvb_frontend_parameters *params)
- {
- 	struct af9013_state *state = fe->demodulator_priv;
--	int ret;
-+	int ret, i;
- 	u8 auto_mode; /* auto set TPS */
-+	u8 v1, v2;
- 
- 	deb_info("%s: freq:%d bw:%d\n", __func__, params->frequency,
- 		params->u.ofdm.bandwidth);
-@@ -694,6 +695,19 @@ static int af9013_set_frontend(struct dvb_frontend *fe,
- 	if (ret)
- 		goto error;
- 
-+	for (i = 0; i < 27; ++i) {
-+		ret = af9013_read_reg(state, 0x9bc2, &v1);
-+		if (ret)
-+			break;
-+		ret = af9013_read_reg(state, 0xd330, &v2);
-+		if (ret)
-+			break;
-+		if (v1 == 0 && v2 > 0)
-+				break;
-+		msleep(40);
-+	}
-+
-+
- error:
- 	return ret;
- }
 -- 
-1.7.5.4
+Regards,
 
-
+Laurent Pinchart
