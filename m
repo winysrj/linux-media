@@ -1,102 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:64639 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751171Ab1JQPXO (ORCPT
+Received: from oproxy8-pub.bluehost.com ([69.89.22.20]:41029 "HELO
+	oproxy8-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752401Ab1J2Fj4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Oct 2011 11:23:14 -0400
-Date: Mon, 17 Oct 2011 17:23:12 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] subdevice PM: .s_power() deprecation?
-In-Reply-To: <4E9C467E.3090602@samsung.com>
-Message-ID: <Pine.LNX.4.64.1110171720260.18438@axis700.grange>
-References: <Pine.LNX.4.64.1110031138370.14314@axis700.grange>
- <20111008213657.GE8908@valkosipuli.localdomain> <Pine.LNX.4.64.1110170955560.18438@axis700.grange>
- <4E9C26BC.2010304@samsung.com> <Pine.LNX.4.64.1110171546340.18438@axis700.grange>
- <4E9C467E.3090602@samsung.com>
+	Sat, 29 Oct 2011 01:39:56 -0400
+Message-ID: <4EAB919A.6020401@xenotime.net>
+Date: Fri, 28 Oct 2011 22:39:38 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: James <bjlockie@lockie.ca>
+CC: linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: femon patch for dB
+References: <4EAB342F.2020008@lockie.ca> <201110290221.05015.marek.vasut@gmail.com> <4EAB612A.6010003@xenotime.net> <4EAB8B5A.5040908@lockie.ca>
+In-Reply-To: <4EAB8B5A.5040908@lockie.ca>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 17 Oct 2011, Sylwester Nawrocki wrote:
+On 10/28/11 22:12, James wrote:
+> diff -r d4e8bf5658ce util/femon/femon.c
+> --- a/util/femon/femon.c    Fri Oct 07 01:26:04 2011 +0530
+> +++ b/util/femon/femon.c    Fri Oct 28 18:52:12 2011 -0400
+> @@ -16,6 +16,9 @@
+>   * You should have received a copy of the GNU General Public License
+>   * along with this program; if not, write to the Free Software
+>   * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + *
+> + * James Lockie: Oct. 2011
+> + * modified to add a switch (-2) to show signal/snr in dB
+>   */
+>  
+>  
+> @@ -37,11 +40,16 @@
+>  
+>  #include <libdvbapi/dvbfe.h>
+>  
+> +/* the s5h1409 delivers both fields in 0.1dB increments, while
+> + * some demods expect signal to be 0-65535 and SNR to be in 1/256
+> increments
 
-> On 10/17/2011 03:49 PM, Guennadi Liakhovetski wrote:
-> > On Mon, 17 Oct 2011, Sylwester Nawrocki wrote:
-> >> On 10/17/2011 10:06 AM, Guennadi Liakhovetski wrote:
-> >>> On Sun, 9 Oct 2011, Sakari Ailus wrote:
-> >>>> On Mon, Oct 03, 2011 at 12:57:10PM +0200, Guennadi Liakhovetski wrote:
-> ...
-> >>>> The bridge driver can't (nor should) know about the power management
-> >>>> requirements of random subdevs. The name of the s_power op is rather
-> >>>> poitless in its current state.
-> >>>>
-> >>>> The power state of the subdev probably even never matters to the bridge ---
-> >>>
-> >>> Exactly, that's the conclusion I come to in this RFC too.
-> >>>
-> >>>> or do we really have an example of that?
-> >>>>
-> >>>> In my opinion the bridge driver should instead tell the bridge drivers what
-> >>>> they can expect to hear from the bridge --- for example that the bridge can
-> >>>> issue set / get controls or fmt ops to the subdev. The subdev may or may not
-> >>>> need to be powered for those: only the subdev driver knows.
-> >>>
-> >>> Hm, why should the bridge driver tell the subdev driver (I presume, that's 
-> >>> a typo in your above sentence) what to _expect_? Isn't just calling those 
-> >>> operations enough?
-> >>>
-> >>>> This is analogous to opening the subdev node from user space. Anything else
-> >>>> except streaming is allowed. And streaming, which for sure requires powering
-> >>>> on the subdev, is already nicely handled by the s_stream op.
-> >>>>
-> >>>> What do you think?
-> >>>>
-> >>>> In practice the name of s_power should change, as well as possible
-> >>>> implementatio on subdev drivers.
-> >>>
-> >>> But why do we need it at all?
-> >>
-> >> AFAICS in some TV card drivers it is used to put the analog tuner into low
-> >> power state.
-> >> So core.s_power op provides the mans to suspend/resume a sub-device.
-> >>
-> >> If the bridge driver only implements a user space interface for the subdev,
-> >> it may want to bring a subdev up in some specific moment, before video.s_stream,
-> >> e.g. in some ioctl or at device open(), etc.
-> >>
-> >> Let's imagine bringing the sensor up takes appr. 700 ms, often we don't want 
-> >> the sensor driver to be doing this before every s_stream().
-> > 
-> > Sorry, I still don't understand, how the bridge driver knows better, than 
-> > the subdev driver, whether the user will resume streaming in 500ms or in 
-> > 20s? Maybe there's some such information available with tuners, which I'm 
-> > just unaware about?
+Looks like thunderbird is being too helpful for us here -- by breaking
+a long line where it shouldn't be broken.  You can see if
+<kernel source>/Documentation/email-clients.txt helps you any with that.
+
+> +*/
+> +
+>  #define FE_STATUS_PARAMS
+> (DVBFE_INFO_LOCKSTATUS|DVBFE_INFO_SIGNAL_STRENGTH|DVBFE_INFO_BER|DVBFE_INFO_SNR|DVBFE_INFO_UNCORRECTED_BLOCKS)
+>  
+>  static char *usage_str =
+>      "\nusage: femon [options]\n"
+> -    "     -H        : human readable output\n"
+> +    "     -H        : human readable output: (signal: 0-65335, snr:
+> 1/256 increments)\n"
+> +    "     -2        : human readable output: (signal and snr in .1 dB
+> increments)\n"
+
+same problem as above.
+
+>      "     -A        : Acoustical mode. A sound indicates the signal
+> quality.\n"
+>      "     -r        : If 'Acoustical mode' is active it tells the
+> application\n"
+>      "                 is called remotely via ssh. The sound is heard on
+> the 'real'\n"
+> @@ -62,7 +70,7 @@ static void usage(void)
+>  
+>  
+>  static
+> -int check_frontend (struct dvbfe_handle *fe, int human_readable,
+> unsigned int count)
+> +int check_frontend (struct dvbfe_handle *fe, int human_readable, int
+> db_readable, unsigned int count)
+
+and again.
+
+>  {
+>      struct dvbfe_info fe_info;
+>      unsigned int samples = 0;
+> @@ -93,31 +101,32 @@ int check_frontend (struct dvbfe_handle
+>              fprintf(stderr, "Problem retrieving frontend information:
+> %m\n");
+>          }
+>  
+> +        //  print the status code
+> +        printf ("status %c%c%c%c%c | ",
+> +            fe_info.signal ? 'S' : ' ',
+> +            fe_info.carrier ? 'C' : ' ',
+> +            fe_info.viterbi ? 'V' : ' ',
+> +            fe_info.sync ? 'Y' : ' ',
+> +            fe_info.lock ? 'L' : ' ' );
+>  
+> +        if (db_readable) {
+> +                       printf ("signal %3.0fdB | snr %3.0fdB",
+> +                (fe_info.signal_strength * 0.1),
+> +                (fe_info.snr * 0.1) );
+> +        } else if (human_readable) {
+> +                       printf ("signal %3u%% | snr %3u%%",
+> +                (fe_info.signal_strength * 100) / 0xffff,
+> +                (fe_info.snr * 100) / 0xffff );
+> +        } else {
+> +            printf ("signal %04x | snr %04x",
+> +                fe_info.signal_strength,
+> +                fe_info.snr );
+> +        }
+>  
+> -        if (human_readable) {
+> -                       printf ("status %c%c%c%c%c | signal %3u%% | snr
+> %3u%% | ber %d | unc %d | ",
+> -                fe_info.signal ? 'S' : ' ',
+> -                fe_info.carrier ? 'C' : ' ',
+> -                fe_info.viterbi ? 'V' : ' ',
+> -                fe_info.sync ? 'Y' : ' ',
+> -                fe_info.lock ? 'L' : ' ',
+> -                (fe_info.signal_strength * 100) / 0xffff,
+> -                (fe_info.snr * 100) / 0xffff,
+> -                fe_info.ber,
+> -                fe_info.ucblocks);
+> -        } else {
+> -            printf ("status %c%c%c%c%c | signal %04x | snr %04x | ber
+> %08x | unc %08x | ",
+> -                fe_info.signal ? 'S' : ' ',
+> -                fe_info.carrier ? 'C' : ' ',
+> -                fe_info.viterbi ? 'V' : ' ',
+> -                fe_info.sync ? 'Y' : ' ',
+> -                fe_info.lock ? 'L' : ' ',
+> -                fe_info.signal_strength,
+> -                fe_info.snr,
+> -                fe_info.ber,
+> -                fe_info.ucblocks);
+> -        }
+> +        /* always print ber and ucblocks */
+> +        printf (" | ber %08x | unc %08x | ",
+> +            fe_info.ber,
+> +            fe_info.ucblocks);
+>  
+>          if (fe_info.lock)
+>              printf("FE_HAS_LOCK");
+> @@ -145,7 +154,7 @@ int check_frontend (struct dvbfe_handle
+>  
+>  
+>  static
+> -int do_mon(unsigned int adapter, unsigned int frontend, int
+> human_readable, unsigned int count)
+> +int do_mon(unsigned int adapter, unsigned int frontend, int
+> human_readable, int db_readable, unsigned int count)
+
+and again.
+
+>  {
+>      int result;
+>      struct dvbfe_handle *fe;
+> @@ -175,7 +184,7 @@ int do_mon(unsigned int adapter, unsigne
+>      }
+>      printf("FE: %s (%s)\n", fe_info.name, fe_type);
+>  
+> -    result = check_frontend (fe, human_readable, count);
+> +    result = check_frontend (fe, human_readable, db_readable, count);
+>  
+>      dvbfe_close(fe);
+>  
+> @@ -186,9 +195,10 @@ int main(int argc, char *argv[])
+>  {
+>      unsigned int adapter = 0, frontend = 0, count = 0;
+>      int human_readable = 0;
+> +    int db_readable = 0;
+>      int opt;
+>  
+> -       while ((opt = getopt(argc, argv, "rAHa:f:c:")) != -1) {
+> +       while ((opt = getopt(argc, argv, "rAH2a:f:c:")) != -1) {
+>          switch (opt)
+>          {
+>          default:
+> @@ -206,6 +216,9 @@ int main(int argc, char *argv[])
+>          case 'H':
+>              human_readable = 1;
+>              break;
+> +        case '2':
+> +            db_readable = 1;
+> +            break;
+>          case 'A':
+>              // Acoustical mode: we have to reduce the delay between
+>              // checks in order to hear nice sound
+> @@ -218,7 +231,7 @@ int main(int argc, char *argv[])
+>          }
+>      }
+>  
+> -    do_mon(adapter, frontend, human_readable, count);
+> +    do_mon(adapter, frontend, human_readable, db_readable, count);
+>  
+>      return 0;
+>  }
 > 
-> What I meant was that if the bridge driver assumes in advance that enabling
-> sensor's power and getting it fully operational takes long time, it can enable
-> sensor's power earlier than it's really necessary, to avoid excessive latencies
-> during further actions.
+> --
 
-Where would a bridge driver get this information from? And how would it 
-know in advance, when power would be "really needed" to enable it 
-"earlier?"...
 
-> The bridge driver could also choose to keep the sensor powered on, whenever it
-> sees appropriate, to avoid re-enabling the sensor to often. 
-
-On what basis would the bridge driver make these decisions? How would it 
-know in advance, when it'll have to re-enable the subdev next time?
-
-> And I'm not convinced the subdev driver has all prerequisites for implementing
-> the power control policy.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
