@@ -1,92 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:45739 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752832Ab1JHNm6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Oct 2011 09:42:58 -0400
-Received: by wyg34 with SMTP id 34so4681527wyg.19
-        for <linux-media@vger.kernel.org>; Sat, 08 Oct 2011 06:42:57 -0700 (PDT)
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:37453 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933470Ab1J2QkA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Oct 2011 12:40:00 -0400
+Received: by eye27 with SMTP id 27so4226548eye.19
+        for <linux-media@vger.kernel.org>; Sat, 29 Oct 2011 09:39:59 -0700 (PDT)
+Message-ID: <4EAC2C5A.4010506@gmail.com>
+Date: Sat, 29 Oct 2011 18:39:54 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4e904f71.ce66e30a.69f3.ffff9870@mx.google.com>
-References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
-	<CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
-	<CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
-	<4e8b8099.95d1e30a.4bee.0501@mx.google.com>
-	<CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
-	<CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
-	<CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
-	<4e8f6b0b.c90fe30a.4a1d.26bb@mx.google.com>
-	<CAATJ+fvQA4zAcGq+D0+k+OHb8Xsrda5=DATWXbzEO5z=0rWZfw@mail.gmail.com>
-	<CAL9G6WWMw3npqjt0WHGhyjaW5Mu=1jA5Y_QduSr3KudZTKLgBw@mail.gmail.com>
-	<4e904f71.ce66e30a.69f3.ffff9870@mx.google.com>
-Date: Sat, 8 Oct 2011 15:42:57 +0200
-Message-ID: <CAL9G6WX4jNXcEtzmzO0+sK=5ujM+8+L38MAY7YEKtwqe6muaJw@mail.gmail.com>
-Subject: Re: [PATCH] af9013 Extended monitoring in set_frontend.
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: Malcolm Priestley <tvboxspy@gmail.com>
-Cc: Jason Hecker <jwhecker@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Piotr Chmura <chmooreck@poczta.onet.pl>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Greg KH <gregkh@suse.de>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
+Subject: Re: [RESEND PATCH 4/14] staging/media/as102: checkpatch fixes
+References: <4E7F1FB5.5030803@gmail.com>	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>	<4E7FF0A0.7060004@gmail.com>	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>	<20110927094409.7a5fcd5a@stein>	<20110927174307.GD24197@suse.de>	<20110927213300.6893677a@stein>	<4E999733.2010802@poczta.onet.pl>	<4E99F2FC.5030200@poczta.onet.pl>	<20111016105731.09d66f03@stein>	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>	<4E9ADFAE.8050208@redhat.com>	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>	<20111018111151.635ac39e.chmooreck@poczta.onet.pl> <20111018215146.1fbc223f@darkstar> <4EABD3E2.3070302@gmail.com> <4EABFCF8.2010003@poczta.onet.pl> <4EAC2914.1010508@poczta.onet.pl>
+In-Reply-To: <4EAC2914.1010508@poczta.onet.pl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/10/8 Malcolm Priestley <tvboxspy@gmail.com>:
-> On Sat, 2011-10-08 at 15:13 +0200, Josu Lazkano wrote:
->> 2011/10/8 Jason Hecker <jwhecker@gmail.com>:
->> >> Try this patch, it should stop start up corruption on the same frontend.
->> >
->> > Thanks.  I'll try it today.
->> >
->> > Have you been able to reproduce any of the corruption issues I and
->> > others are having?
->> >
->> > I noticed last night some recordings on the same card had different
->> > levels of corruption depending on the order of tuning
->> >
->> > Tuner A then tuner B : Tuner A was heavily corrupted.  Tuner B was a fine.
->> > Tuner B then tuner A: Tuner A had a small corruption every few seconds
->> > and the show was watchable, Tuner B was fine.
->> >
+On 10/29/2011 06:25 PM, Piotr Chmura wrote:
+> 
+> W dniu 29.10.2011 15:17, Piotr Chmura pisze:
 >>
->> Thanks again, I try the patch and it works well last nigh. This
->> morning one tuner is getting pixeled images and the other can not
->> LOCK.
+>> W dniu 29.10.2011 12:22, Sylwester Nawrocki pisze:
+>>> On 10/18/2011 09:51 PM, Piotr Chmura wrote:
+>>>> Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+>>>>
+>>>> Original source and comment:
+>>>> # HG changeset patch
+>>>> # User Devin Heitmueller<dheitmueller@kernellabs.com>
+>>>> # Date 1267318701 18000
+>>>> # Node ID 69c8f5172790784738bcc18f8301919ef3d5373f
+>>>> # Parent b91e96a07bee27c1d421b4c3702e33ee8075de83
+>>>> as102: checkpatch fixes
+>>>>
+>>>> From: Devin Heitmueller<dheitmueller@kernellabs.com>
+>>>>
+>>>> Fix make checkpatch issues reported against as10x_cmd.c.
+>>>>
+>>>> Priority: normal
+>>>>
+>>>> Signed-off-by: Devin Heitmueller<dheitmueller@kernellabs.com>
+>>>> Signed-off-by: Piotr Chmura<chmooreck@poczta.onet.pl>
+>>> Hi Piotr,
+>>>
+>>> starting from this patch the series doesn't apply cleanly to
+>>> staging/for_v3.2 tree. Which branch is it based on ?
+>>>
+>>> ---
+>>> Thanks,
+>>> Sylwester
+>> Hi Sylwester,
 >>
->> This is the kernel messages:
+>> I'is based on
+>> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git kernel-3.1.0-git9+
 >>
->> # tail /var/log/messages
->> Oct  8 14:16:06 htpc kernel: [45025.328902] mxl5005s I2C write failed
->> Oct  8 14:16:06 htpc kernel: [45025.333147] mxl5005s I2C write failed
->> Oct  8 14:16:06 htpc kernel: [45025.333637] mxl5005s I2C write failed
->> Oct  8 14:16:06 htpc kernel: [45025.490524] mxl5005s I2C write failed
->> Oct  8 14:16:06 htpc kernel: [45025.491014] mxl5005s I2C write failed
->> Oct  8 14:16:08 htpc kernel: [45027.642858] mxl5005s I2C write failed
->> Oct  8 14:16:08 htpc kernel: [45027.647477] mxl5005s I2C write failed
->> Oct  8 14:16:08 htpc kernel: [45027.647970] mxl5005s I2C write failed
->> Oct  8 14:16:09 htpc kernel: [45027.806477] mxl5005s I2C write failed
->> Oct  8 14:16:09 htpc kernel: [45027.806969] mxl5005s I2C write failed
->>
->> I try to increase the signal timeout from 1000 to 2000 ms and the
->> tuning timeout from 3000 to 6000 ms on mythbackend.
->>
-> I have left these at the default settings
->
-> Which kernels are you all running?
->
-> uname -rv
->
-> I think replicate your systems on my test pc.
->
->
+>> All patches are working on newly created driver directory drivers/staging/media/as102
+>> (exception is 13/14: staging/Makefile and staging/Kconfig) and they apply cleanly in
+>>  my tree. Let me know why they doesn't on yours and i'll try to fix them.
+> One more thing... patches starting from 4/14 in patchwork have
+> 
+> "To unsubscribe from this list: send the line "unsubscribe linux-media" in..."
+> 
+> on the end.
+> 
+> Isn't this making them wrong ?
 
-Hello again, this is my kernel:
-
-$ uname -rv
-2.6.32-5-686 #1 SMP Fri Sep 9 20:51:05 UTC 2011
-
-This is a Debian Squeeze system.
-
-Regards.
-
--- 
-Josu Lazkano
+This shouldn't be an issue, I've also used patches saved directly form an e-mail client
+which didn't have this text appended and the patch didn't apply in same way. 
