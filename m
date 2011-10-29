@@ -1,107 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:55488 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759260Ab1JFVsP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2011 17:48:15 -0400
-Received: by wyg34 with SMTP id 34so3299471wyg.19
-        for <linux-media@vger.kernel.org>; Thu, 06 Oct 2011 14:48:14 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:60394 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932744Ab1J2Ovm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Oct 2011 10:51:42 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p9TEpdL6031768
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 29 Oct 2011 09:51:41 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [RFC PATCH v3 0/8] RFC for Media Controller capture driver for DM365
+Date: Sat, 29 Oct 2011 20:21:24 +0530
+Message-ID: <1319899892-19658-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <kQmOmyBaqgjOFweZ@echelon.upsilon.org.uk>
-References: <4e83369f.5d6de30a.485b.ffffdc29@mx.google.com>
-	<CAL9G6WWK-Fas4Yx2q2gPpLvo5T2SxVVNFtvSXeD7j07JbX2srw@mail.gmail.com>
-	<CAATJ+fvHQgVMVp1uwxxci61qdCdxG89qK0ja-=jo4JRyGW52cw@mail.gmail.com>
-	<4e8b8099.95d1e30a.4bee.0501@mx.google.com>
-	<CAATJ+fvs5OXBS9VREpZM=tY+z+n97Pf42uJFqLXbh58GVZ_reA@mail.gmail.com>
-	<CAL9G6WWUv+jKY7LkcJMpwMTvV+A-fzwHYJNgpbAkOiQfPoj5ng@mail.gmail.com>
-	<CAATJ+fu2W=o_xhsoghK1756ZGCw2g0W_95iYC8OX04AK8jAHLg@mail.gmail.com>
-	<CAL9G6WXX2eGmoT+ozv1F0JQdSV5JPwbB0vn70UL+ghgkLGsYQg@mail.gmail.com>
-	<kQmOmyBaqgjOFweZ@echelon.upsilon.org.uk>
-Date: Thu, 6 Oct 2011 23:48:14 +0200
-Message-ID: <CAL9G6WXb9zkgu++__LzW4nBBoAQYBvWWNCJkm_nRqiJEg+VE1A@mail.gmail.com>
-Subject: Re: [PATCH] af9013 frontend tuner bus lock
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: dave cunningham <ml@upsilon.org.uk>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/10/6 dave cunningham <ml@upsilon.org.uk>:
-> In message
-> <CAL9G6WXX2eGmoT+ozv1F0JQdSV5JPwbB0vn70UL+ghgkLGsYQg@mail.gmail.com>, Josu
-> Lazkano wrote
->
-> <snip>
->>
->> I get this I2C messages:
->>
->> # tail -f /var/log/messages
->> Oct  5 20:16:44 htpc kernel: [  534.168957] af9013: I2C read failed
->> reg:d330
->> Oct  5 20:16:49 htpc kernel: [  538.626152] af9013: I2C read failed
->> reg:d330
->> Oct  5 21:22:15 htpc kernel: [ 4464.930734] af9013: I2C write failed
->> reg:d2e2 len:1
->> Oct  5 21:40:46 htpc kernel: [ 5576.241897] af9013: I2C read failed
->> reg:d2e6
->> Oct  5 23:07:33 htpc kernel: [10782.852522] af9013: I2C read failed
->> reg:d2e6
->> Oct  5 23:20:11 htpc kernel: [11540.824515] af9013: I2C read failed
->> reg:d07c
->> Oct  6 00:11:41 htpc kernel: [14631.122384] af9013: I2C read failed
->> reg:d2e6
->> Oct  6 00:26:13 htpc kernel: [15502.900549] af9013: I2C read failed
->> reg:d2e6
->> Oct  6 00:39:58 htpc kernel: [16328.273015] af9013: I2C read failed
->> reg:d330
->>
->
-> I have two af9013 sticks in my mythtv backend. One is a KWorld 399U, the
-> other a single tuner Tevion stick.
->
-> When I originally setup this system I had major problems with these sticks
-> and also a pair of Freecom WT-220U (which worked perfectly in an older
-> system - I've since disposed of these).
->
-> I was seeing I2C read fails similar to the above.
->
-> The system in question has an AMD760G southbridge.
->
-> After a lot of googling I came across a post somewhere which said that the
-> USB host controller on the 760G is problematic and suggested getting a NEC
-> or VIA hub and using this between the DVB sticks and the root hub.
->
-> I bought a cheap hub with an NEC chip on and since then (6 months maybe)
-> I've had no problems with the system. Having said this I probably don't use
-> all three frontends that often (I also have a DVB-S card and this takes
-> precedence) though I certainly have on occasion and don't recall any
-> problems.
->
-> --
-> Dave Cunningham                                  PGP KEY ID: 0xA78636DC
->
+Changes from last version:
+Addressed Sakari's comments. mainly -
+ 1. Used lower case hexadecimals.
+ 2. Removed ISNULL and replaced it appropriately.
+ 3. Alligned the code wherever necessary.
+ 4. Used v4l2_mbus_pixelcode.
+ 5. Removed #ifdef CONFIG_IPIPE_PARAM_VALIDATION
+ 6. Removed #ifdef __KERNEL__ from kerenel header files.
+ 7. Created the pipe state datastructure as part of the
+    device structure rather than a static. Appropriately changed
+    signatures.
+ 8. Removed zero initialisation.
 
-Thanks Dave, I have a MCP79 nvidia USB controller:
+Manjunath Hadli (8):
+  davinci: vpfe: add dm3xx IPIPEIF hardware support module
+  davinci: vpfe: add IPIPE hardware layer support
+  davinci: vpfe: add IPIPE support for media controller driver
+  davinci: vpfe: add support for CCDC hardware for dm365
+  davinci: vpfe: add ccdc driver with media controller interface
+  davinci: vpfe: add v4l2 video driver support
+  davinci: vpfe: v4l2 capture driver with media interface
+  davinci: vpfe: build infrastructure for dm365
 
-$ lspci | grep USB
-00:04.0 USB Controller: nVidia Corporation MCP79 OHCI USB 1.1
-Controller (rev b1)
-00:04.1 USB Controller: nVidia Corporation MCP79 EHCI USB 2.0
-Controller (rev b1)
-00:06.0 USB Controller: nVidia Corporation MCP79 OHCI USB 1.1
-Controller (rev b1)
-00:06.1 USB Controller: nVidia Corporation MCP79 EHCI USB 2.0
-Controller (rev b1)
+ drivers/media/video/davinci/Kconfig           |   46 +-
+ drivers/media/video/davinci/Makefile          |   17 +-
+ drivers/media/video/davinci/ccdc_hw_device.h  |   12 +-
+ drivers/media/video/davinci/ccdc_types.h      |   43 +
+ drivers/media/video/davinci/dm365_ccdc.c      | 1505 +++++++++
+ drivers/media/video/davinci/dm365_ccdc.h      |   86 +
+ drivers/media/video/davinci/dm365_ccdc_regs.h |  309 ++
+ drivers/media/video/davinci/dm365_def_para.c  |  334 ++
+ drivers/media/video/davinci/dm365_def_para.h  |   39 +
+ drivers/media/video/davinci/dm365_ipipe.c     | 4034 +++++++++++++++++++++++++
+ drivers/media/video/davinci/dm365_ipipe.h     |  395 +++
+ drivers/media/video/davinci/dm365_ipipe_hw.c  |  948 ++++++
+ drivers/media/video/davinci/dm365_ipipe_hw.h  |  539 ++++
+ drivers/media/video/davinci/dm3xx_ipipeif.c   |  314 ++
+ drivers/media/video/davinci/dm3xx_ipipeif.h   |  255 ++
+ drivers/media/video/davinci/imp_common.h      |   81 +
+ drivers/media/video/davinci/imp_hw_if.h       |  184 ++
+ drivers/media/video/davinci/vpfe_capture.c    |  795 +++++
+ drivers/media/video/davinci/vpfe_capture.h    |  102 +
+ drivers/media/video/davinci/vpfe_ccdc.c       |  813 +++++
+ drivers/media/video/davinci/vpfe_ccdc.h       |   82 +
+ drivers/media/video/davinci/vpfe_video.c      | 1713 +++++++++++
+ drivers/media/video/davinci/vpfe_video.h      |  142 +
+ include/linux/davinci_vpfe.h                  | 1194 ++++++++
+ include/linux/dm365_ccdc.h                    |  621 ++++
+ include/linux/dm3xx_ipipeif.h                 |   64 +
+ include/media/davinci/vpfe.h                  |   91 +
+ 27 files changed, 14745 insertions(+), 13 deletions(-)
+ create mode 100644 drivers/media/video/davinci/ccdc_types.h
+ create mode 100644 drivers/media/video/davinci/dm365_ccdc.c
+ create mode 100644 drivers/media/video/davinci/dm365_ccdc.h
+ create mode 100644 drivers/media/video/davinci/dm365_ccdc_regs.h
+ create mode 100644 drivers/media/video/davinci/dm365_def_para.c
+ create mode 100644 drivers/media/video/davinci/dm365_def_para.h
+ create mode 100644 drivers/media/video/davinci/dm365_ipipe.c
+ create mode 100644 drivers/media/video/davinci/dm365_ipipe.h
+ create mode 100644 drivers/media/video/davinci/dm365_ipipe_hw.c
+ create mode 100644 drivers/media/video/davinci/dm365_ipipe_hw.h
+ create mode 100644 drivers/media/video/davinci/dm3xx_ipipeif.c
+ create mode 100644 drivers/media/video/davinci/dm3xx_ipipeif.h
+ create mode 100644 drivers/media/video/davinci/imp_common.h
+ create mode 100644 drivers/media/video/davinci/imp_hw_if.h
+ create mode 100644 drivers/media/video/davinci/vpfe_capture.c
+ create mode 100644 drivers/media/video/davinci/vpfe_capture.h
+ create mode 100644 drivers/media/video/davinci/vpfe_ccdc.c
+ create mode 100644 drivers/media/video/davinci/vpfe_ccdc.h
+ create mode 100644 drivers/media/video/davinci/vpfe_video.c
+ create mode 100644 drivers/media/video/davinci/vpfe_video.h
+ create mode 100644 include/linux/davinci_vpfe.h
+ create mode 100644 include/linux/dm365_ccdc.h
+ create mode 100644 include/linux/dm3xx_ipipeif.h
+ create mode 100644 include/media/davinci/vpfe.h
 
-When I add a USB hub it can not boot, the system stop on boot. I can
-not change the system board. Need I some extra configuration on BIOS?
-I will appreciate any help, I have no experience on system
-performance.
-
-Thanks for all your help.
-
-Regards.
-
--- 
-Josu Lazkano
