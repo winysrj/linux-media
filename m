@@ -1,113 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:62337 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751019Ab1J0FyR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Oct 2011 01:54:17 -0400
-Received: by wwe6 with SMTP id 6so3587088wwe.1
-        for <linux-media@vger.kernel.org>; Wed, 26 Oct 2011 22:54:15 -0700 (PDT)
-Date: Thu, 27 Oct 2011 15:54:09 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] FM1216ME_MK3 AUX byte for FM mode
-Message-ID: <20111027155409.3d6f8bbd@glory.local>
-In-Reply-To: <4E75E799.1010307@redhat.com>
-References: <20090423154046.7b54f7cc@glory.loctelecom.ru>
- <4E75E799.1010307@redhat.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_//UyTewYrHekOCmTP+LROnJg"
+Received: from mail.kapsi.fi ([217.30.184.167]:45470 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934146Ab1J3Pm3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Oct 2011 11:42:29 -0400
+Message-ID: <4EAD7061.3020007@iki.fi>
+Date: Sun, 30 Oct 2011 17:42:25 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: James <bjlockie@lockie.ca>
+CC: linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: femon patch for dB
+References: <4EAB342F.2020008@lockie.ca>
+In-Reply-To: <4EAB342F.2020008@lockie.ca>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_//UyTewYrHekOCmTP+LROnJg
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On 10/29/2011 02:01 AM, James wrote:
+> I added a switch to femon so it displays signal and snr in dB.
+>
+> The cx23885 driver for my Hauppauge WinTV-HVR1250 reports signal and snr
+> in dB.
+>
+> http://lockie.ca/test/femon.patch.bz2
 
-Hi Mauro
+from patch:
+human readable output: (signal: 0-65335, snr: 1/256 increments)\n"
+human readable output: (signal and snr in .1 dB increments)\n"
 
-I found TV card and test this patch. Audio is better. Please apply.
+You should take look to demod drivers and check what those are 
+returning. I have strong feeling that most drivers returns SNR as 10xdB. 
+And SS as 0-0xffff. I think there is good consensus of SNR unit, but for 
+SS it is not so clear. For my drivers I have used SNR 10xdB and SS 
+0-0xffff. That's why, giving only those two alternatives is not 
+suitable. Maybe it is better to set own param for SNR and SS?
 
-With my best regards, Dmitry.
+Devin did some research about SNR long time back:
+http://www.devinheitmueller.com/snr.txt
 
-> Hi Dmitri,
-> 
-> Em 23-04-2009 02:40, Dmitri Belimov escreveu:
-> > Hi All
-> > 
-> > Write AUX byte to FM1216ME_MK3 when FM mode, better sensitivity. It
-> > can be usefull for other tuners.
-> 
-> Hmm... Found this patch. It were never applied, but it may make some
-> sense to apply it.
-> 
-> Could you please double-check if this patch is still valid, and, if
-> so, re-send it to me?
-> 
-> Thanks!
-> Mauro
-> 
-> 
-> > 
-> > diff -r 00a84f86671d
-> > linux/drivers/media/common/tuners/tuner-simple.c ---
-> > a/linux/drivers/media/common/tuners/tuner-simple.c	Mon Apr
-> > 20 22:07:44 2009 +0000 +++
-> > b/linux/drivers/media/common/tuners/tuner-simple.c	Thu Apr
-> > 23 10:26:54 2009 +1000 @@ -751,6 +751,17 @@ if (4 != rc)
-> > tuner_warn("i2c i/o error: rc == %d (should be 4)\n", rc); 
-> > +	/* Write AUX byte */
-> > +	switch (priv->type) {
-> > +	case TUNER_PHILIPS_FM1216ME_MK3:
-> > +		buffer[2] = 0x98;
-> > +		buffer[3] = 0x20; /* set TOP AGC */
-> > +		rc = tuner_i2c_xfer_send(&priv->i2c_props, buffer,
-> > 4);
-> > +		if (4 != rc)
-> > +			tuner_warn("i2c i/o error: rc == %d
-> > (should be 4)\n", rc);
-> > +		break;
-> > +	}
-> > +
-> >  	return 0;
-> >  }
-> >  
-> > Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov
-> > <d.belimov@gmail.com>
-> > 
-> > 
-> > With my best regards, Dmitry.
-> 
-
---MP_//UyTewYrHekOCmTP+LROnJg
-Content-Type: text/x-patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=me_mk3_fm.patch
-
-diff --git a/drivers/media/common/tuners/tuner-simple.c b/drivers/media/common/tuners/tuner-simple.c
-index f8ee29e..4092200 100644
---- a/drivers/media/common/tuners/tuner-simple.c
-+++ b/drivers/media/common/tuners/tuner-simple.c
-@@ -751,6 +751,17 @@ static int simple_set_radio_freq(struct dvb_frontend *fe,
- 	if (4 != rc)
- 		tuner_warn("i2c i/o error: rc == %d (should be 4)\n", rc);
- 
-+	/* Write AUX byte */
-+	switch (priv->type) {
-+	case TUNER_PHILIPS_FM1216ME_MK3:
-+		buffer[2] = 0x98;
-+		buffer[3] = 0x20; /* set TOP AGC */
-+		rc = tuner_i2c_xfer_send(&priv->i2c_props, buffer, 4);
-+		if (4 != rc)
-+			tuner_warn("i2c i/o error: rc == %d (should be 4)\n", rc);
-+		break;
-+	}
-+
- 	return 0;
- }
- 
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
---MP_//UyTewYrHekOCmTP+LROnJg--
+regards
+Antti
+-- 
+http://palosaari.fi/
