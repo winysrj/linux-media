@@ -1,105 +1,263 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:47044 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755583Ab1J3OBI convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1361 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754389Ab1J3LYt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Oct 2011 10:01:08 -0400
-Received: by iaby12 with SMTP id y12so6123344iab.19
-        for <linux-media@vger.kernel.org>; Sun, 30 Oct 2011 07:01:08 -0700 (PDT)
+	Sun, 30 Oct 2011 07:24:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 6/6] v4l2-ctrls: Use v4l2_subscribed_event_ops
+Date: Sun, 30 Oct 2011 12:24:43 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1319714283-3991-1-git-send-email-hdegoede@redhat.com> <1319714283-3991-7-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1319714283-3991-7-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CAOcJUbzLrRGa8MvziFd_OLaJEUyzXgjK-w4vL95gykOwz5otHQ@mail.gmail.com>
-References: <4EAB342F.2020008@lockie.ca>
-	<201110290221.05015.marek.vasut@gmail.com>
-	<4EAB612A.6010003@xenotime.net>
-	<4EAB8B5A.5040908@lockie.ca>
-	<4EAB919A.6020401@xenotime.net>
-	<4EAB9F41.40208@redhat.com>
-	<CAOcJUbzLrRGa8MvziFd_OLaJEUyzXgjK-w4vL95gykOwz5otHQ@mail.gmail.com>
-Date: Sun, 30 Oct 2011 10:01:07 -0400
-Message-ID: <CAOcJUbw4512cswquogyUg19QXm=sKcsPQGsBty6+738f9mnvkw@mail.gmail.com>
-Subject: Re: femon patch for dB
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>, James <bjlockie@lockie.ca>,
-	linux-media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201110301224.43348.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Oct 30, 2011 at 9:52 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> On Sat, Oct 29, 2011 at 2:37 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Em 29-10-2011 07:39, Randy Dunlap escreveu:
->>> On 10/28/11 22:12, James wrote:
->>>> diff -r d4e8bf5658ce util/femon/femon.c
->>>> --- a/util/femon/femon.c    Fri Oct 07 01:26:04 2011 +0530
->>>> +++ b/util/femon/femon.c    Fri Oct 28 18:52:12 2011 -0400
->>>> @@ -16,6 +16,9 @@
->>>>   * You should have received a copy of the GNU General Public License
->>>>   * along with this program; if not, write to the Free Software
->>>>   * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
->>>> + *
->>>> + * James Lockie: Oct. 2011
->>>> + * modified to add a switch (-2) to show signal/snr in dB
->>>>   */
->>>>
->>>>
->>>> @@ -37,11 +40,16 @@
->>>>
->>>>  #include <libdvbapi/dvbfe.h>
->>>>
->>>> +/* the s5h1409 delivers both fields in 0.1dB increments, while
->>>> + * some demods expect signal to be 0-65535 and SNR to be in 1/256
->>>> increments
->>>
->>> Looks like thunderbird is being too helpful for us here -- by breaking
->>> a long line where it shouldn't be broken.  You can see if
->>> <kernel source>/Documentation/email-clients.txt helps you any with that.
->>
->> This is not a kernel patch, but yes, you're right: there's nothing we can't
->> apply it to dvb-apps as-is.
->>
->> Thunderbird only works well if the html editor is disabled and if the max number
->> of lines is set to 0. I use it here, but I'm currently sending patches directly
->> from git, as it is simpler, if the smtp server is properly configured.
->> There is one plugin for it that fixes those stuff on thunerbird (asalted-patches),
->> but this doesn't work with newer versions of it (well, fixing it is probably
->> a one-line patch like [2] changing the maxVersion).
->>
->> [1] https://hg.mozilla.org/users/clarkbw_gnome.org/asalted-patches/
->> [2] https://hg.mozilla.org/users/clarkbw_gnome.org/asalted-patches/rev/49d587f60371
->>
->> Regards,
->> Mauro
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
-> please do not apply this patch - as per the patch description (i
-> haven't seen the patch yet since it wasnt sent inline) this is a
-> userspace conversion patch based on the output of *one* demodulator
-> driver.
->
-> I will push the work for the ATSC snr conversions to my git repository
-> and issue a pull request to Mauro by the end of the day.  This issue
-> is larger than a simple userspace unit conversion.  Please send in the
-> patch inline anyway, as some users may wish to experiment with it, but
-> we need to first standardize the kernel unit reporting before we claim
-> to report in a given unit.
+On Thursday, October 27, 2011 13:18:03 Hans de Goede wrote:
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-...actually, I couldn't resist -- I downloaded the bz2'd patch and
-reviewed it.  The patch is actually OK with me, except that i disagree
-with the -2 parameter choice.  I propose instead, to use a lowercase
-'h' ...
-
-If you could resend with that change, acked-by: Michael Krufky
-<mkrufky@linuxtv.org>
-
-(apologies for the previous reactive email ;-) )
-
-Best regards,
-Michael Krufky
+> ---
+>  drivers/media/video/ivtv/ivtv-ioctl.c |    3 +-
+>  drivers/media/video/pwc/pwc-v4l.c     |    2 +-
+>  drivers/media/video/v4l2-ctrls.c      |   56 +++++++++++++++++++++++++++------
+>  drivers/media/video/v4l2-event.c      |   39 -----------------------
+>  drivers/media/video/vivi.c            |    2 +-
+>  include/media/v4l2-ctrls.h            |    7 ++--
+>  6 files changed, 53 insertions(+), 56 deletions(-)
+> 
+> diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
+> index 9aec8a0..72fd74f 100644
+> --- a/drivers/media/video/ivtv/ivtv-ioctl.c
+> +++ b/drivers/media/video/ivtv/ivtv-ioctl.c
+> @@ -1455,8 +1455,9 @@ static int ivtv_subscribe_event(struct v4l2_fh *fh, struct v4l2_event_subscripti
+>  	switch (sub->type) {
+>  	case V4L2_EVENT_VSYNC:
+>  	case V4L2_EVENT_EOS:
+> -	case V4L2_EVENT_CTRL:
+>  		return v4l2_event_subscribe(fh, sub, 0, NULL);
+> +	case V4L2_EVENT_CTRL:
+> +		return v4l2_event_subscribe(fh, sub, 0, &v4l2_ctrl_sub_ev_ops);
+>  	default:
+>  		return -EINVAL;
+>  	}
+> diff --git a/drivers/media/video/pwc/pwc-v4l.c b/drivers/media/video/pwc/pwc-v4l.c
+> index 7f159bf..afc5b15 100644
+> --- a/drivers/media/video/pwc/pwc-v4l.c
+> +++ b/drivers/media/video/pwc/pwc-v4l.c
+> @@ -1138,7 +1138,7 @@ static int pwc_subscribe_event(struct v4l2_fh *fh,
+>  {
+>  	switch (sub->type) {
+>  	case V4L2_EVENT_CTRL:
+> -		return v4l2_event_subscribe(fh, sub, 0, NULL);
+> +		return v4l2_event_subscribe(fh, sub, 0, &v4l2_ctrl_sub_ev_ops);
+>  	default:
+>  		return -EINVAL;
+>  	}
+> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+> index 69e24f4..c4dec20 100644
+> --- a/drivers/media/video/v4l2-ctrls.c
+> +++ b/drivers/media/video/v4l2-ctrls.c
+> @@ -2329,10 +2329,22 @@ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
+>  }
+>  EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
+>  
+> -void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
+> -				struct v4l2_subscribed_event *sev)
+> +static int v4l2_ctrl_add_event(struct v4l2_subscribed_event *sev)
+>  {
+> -	v4l2_ctrl_lock(ctrl);
+> +	struct v4l2_ctrl_handler *hdl = sev->fh->ctrl_handler;
+> +	struct v4l2_ctrl_ref *ref;
+> +	struct v4l2_ctrl *ctrl;
+> +	int ret = 0;
+> +
+> +	mutex_lock(&hdl->lock);
+> +
+> +	ref = find_ref(hdl, sev->id);
+> +	if (!ref) {
+> +		ret = -EINVAL;
+> +		goto leave;
+> +	}
+> +	ctrl = ref->ctrl;
+> +
+>  	list_add_tail(&sev->node, &ctrl->ev_subs);
+>  	if (ctrl->type != V4L2_CTRL_TYPE_CTRL_CLASS &&
+>  	    (sev->flags & V4L2_EVENT_SUB_FL_SEND_INITIAL)) {
+> @@ -2344,15 +2356,39 @@ void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
+>  		fill_event(&ev, ctrl, changes);
+>  		v4l2_event_queue_fh(sev->fh, &ev);
+>  	}
+> -	v4l2_ctrl_unlock(ctrl);
+> +leave:
+> +	mutex_unlock(&hdl->lock);
+> +	return ret;
+>  }
+> -EXPORT_SYMBOL(v4l2_ctrl_add_event);
+>  
+> -void v4l2_ctrl_del_event(struct v4l2_ctrl *ctrl,
+> -				struct v4l2_subscribed_event *sev)
+> +static void v4l2_ctrl_del_event(struct v4l2_subscribed_event *sev)
+>  {
+> -	v4l2_ctrl_lock(ctrl);
+> +	struct v4l2_ctrl_handler *hdl = sev->fh->ctrl_handler;
+> +
+> +	mutex_lock(&hdl->lock);
+>  	list_del(&sev->node);
+> -	v4l2_ctrl_unlock(ctrl);
+> +	mutex_unlock(&hdl->lock);
+>  }
+> -EXPORT_SYMBOL(v4l2_ctrl_del_event);
+> +
+> +void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new)
+> +{
+> +	u32 old_changes = old->u.ctrl.changes;
+> +
+> +	old->u.ctrl = new->u.ctrl;
+> +	old->u.ctrl.changes |= old_changes;
+> +}
+> +EXPORT_SYMBOL(v4l2_ctrl_replace);
+> +
+> +void v4l2_ctrl_merge(const struct v4l2_event *old, struct v4l2_event *new)
+> +{
+> +	new->u.ctrl.changes |= old->u.ctrl.changes;
+> +}
+> +EXPORT_SYMBOL(v4l2_ctrl_merge);
+> +
+> +const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops = {
+> +	.add = v4l2_ctrl_add_event,
+> +	.del = v4l2_ctrl_del_event,
+> +	.replace = v4l2_ctrl_replace,
+> +	.merge = v4l2_ctrl_merge,
+> +};
+> +EXPORT_SYMBOL(v4l2_ctrl_sub_ev_ops);
+> diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+> index 2dd9252..2f5ee7b 100644
+> --- a/drivers/media/video/v4l2-event.c
+> +++ b/drivers/media/video/v4l2-event.c
+> @@ -25,7 +25,6 @@
+>  #include <media/v4l2-dev.h>
+>  #include <media/v4l2-fh.h>
+>  #include <media/v4l2-event.h>
+> -#include <media/v4l2-ctrls.h>
+>  
+>  #include <linux/sched.h>
+>  #include <linux/slab.h>
+> @@ -194,30 +193,11 @@ int v4l2_event_pending(struct v4l2_fh *fh)
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_event_pending);
+>  
+> -static void ctrls_replace(struct v4l2_event *old, const struct v4l2_event *new)
+> -{
+> -	u32 old_changes = old->u.ctrl.changes;
+> -
+> -	old->u.ctrl = new->u.ctrl;
+> -	old->u.ctrl.changes |= old_changes;
+> -}
+> -
+> -static void ctrls_merge(const struct v4l2_event *old, struct v4l2_event *new)
+> -{
+> -	new->u.ctrl.changes |= old->u.ctrl.changes;
+> -}
+> -
+> -const struct v4l2_subscribed_event_ops ctrl_ops = {
+> -	.replace = ctrls_replace,
+> -	.merge = ctrls_merge,
+> -};
+> -
+>  int v4l2_event_subscribe(struct v4l2_fh *fh,
+>  			 struct v4l2_event_subscription *sub, unsigned elems,
+>  			 const struct v4l2_subscribed_event_ops *ops)
+>  {
+>  	struct v4l2_subscribed_event *sev, *found_ev;
+> -	struct v4l2_ctrl *ctrl = NULL;
+>  	unsigned long flags;
+>  	unsigned i;
+>  
+> @@ -226,11 +206,6 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+>  
+>  	if (elems < 1)
+>  		elems = 1;
+> -	if (sub->type == V4L2_EVENT_CTRL) {
+> -		ctrl = v4l2_ctrl_find(fh->ctrl_handler, sub->id);
+> -		if (ctrl == NULL)
+> -			return -EINVAL;
+> -	}
+>  
+>  	sev = kzalloc(sizeof(*sev) + sizeof(struct v4l2_kevent) * elems, GFP_KERNEL);
+>  	if (!sev)
+> @@ -243,9 +218,6 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+>  	sev->fh = fh;
+>  	sev->elems = elems;
+>  	sev->ops = ops;
+> -	if (ctrl) {
+> -		sev->ops = &ctrl_ops;
+> -	}
+>  
+>  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+>  	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
+> @@ -267,10 +239,6 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+>  		}
+>  	}
+>  
+> -	/* v4l2_ctrl_add_event uses a mutex, so do this outside the spin lock */
+> -	if (ctrl)
+> -		v4l2_ctrl_add_event(ctrl, sev);
+> -
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_event_subscribe);
+> @@ -329,13 +297,6 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+>  	if (sev && sev->ops && sev->ops->del)
+>  		sev->ops->del(sev);
+>  
+> -	if (sev && sev->type == V4L2_EVENT_CTRL) {
+> -		struct v4l2_ctrl *ctrl = v4l2_ctrl_find(fh->ctrl_handler, sev->id);
+> -
+> -		if (ctrl)
+> -			v4l2_ctrl_del_event(ctrl, sev);
+> -	}
+> -
+>  	kfree(sev);
+>  
+>  	return 0;
+> diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+> index 74ebbad..ce1783d 100644
+> --- a/drivers/media/video/vivi.c
+> +++ b/drivers/media/video/vivi.c
+> @@ -1013,7 +1013,7 @@ static int vidioc_subscribe_event(struct v4l2_fh *fh,
+>  {
+>  	switch (sub->type) {
+>  	case V4L2_EVENT_CTRL:
+> -		return v4l2_event_subscribe(fh, sub, 0, NULL);
+> +		return v4l2_event_subscribe(fh, sub, 0, &v4l2_ctrl_sub_ev_ops);
+>  	default:
+>  		return -EINVAL;
+>  	}
+> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> index eeb3df6..fde17ff 100644
+> --- a/include/media/v4l2-ctrls.h
+> +++ b/include/media/v4l2-ctrls.h
+> @@ -487,10 +487,9 @@ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
+>  int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
+>  
+>  /* Internal helper functions that deal with control events. */
+> -void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
+> -		struct v4l2_subscribed_event *sev);
+> -void v4l2_ctrl_del_event(struct v4l2_ctrl *ctrl,
+> -		struct v4l2_subscribed_event *sev);
+> +extern const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops;
+> +void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new);
+> +void v4l2_ctrl_merge(const struct v4l2_event *old, struct v4l2_event *new);
+>  
+>  /* Helpers for ioctl_ops. If hdl == NULL then they will all return -EINVAL. */
+>  int v4l2_queryctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_queryctrl *qc);
+> 
