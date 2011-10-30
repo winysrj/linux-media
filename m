@@ -1,157 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32512 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933551Ab1JDTxb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Oct 2011 15:53:31 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id p94JrVBx027659
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 4 Oct 2011 15:53:31 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCHv2 6/8] [media] videodev2: Reorganize standard macros and add a few more
-Date: Tue,  4 Oct 2011 16:53:18 -0300
-Message-Id: <1317758000-21154-6-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1317758000-21154-5-git-send-email-mchehab@redhat.com>
-References: <1317758000-21154-1-git-send-email-mchehab@redhat.com>
- <1317758000-21154-2-git-send-email-mchehab@redhat.com>
- <1317758000-21154-3-git-send-email-mchehab@redhat.com>
- <1317758000-21154-4-git-send-email-mchehab@redhat.com>
- <1317758000-21154-5-git-send-email-mchehab@redhat.com>
+Received: from einhorn.in-berlin.de ([192.109.42.8]:39731 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752516Ab1J3V0C convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Oct 2011 17:26:02 -0400
+Date: Sun, 30 Oct 2011 22:25:50 +0100
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+To: Piotr Chmura <chmooreck@poczta.onet.pl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Greg KH <gregkh@suse.de>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: Re: [RESEND PATCH 1/14] staging/media/as102: initial import from
+ Abilis
+Message-ID: <20111030222550.618a5f17@stein>
+In-Reply-To: <4EADBBB7.7070802@poczta.onet.pl>
+References: <4E7F1FB5.5030803@gmail.com>
+	<CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com>
+	<4E7FF0A0.7060004@gmail.com>
+	<CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com>
+	<20110927094409.7a5fcd5a@stein>
+	<20110927174307.GD24197@suse.de>
+	<20110927213300.6893677a@stein>
+	<4E999733.2010802@poczta.onet.pl>
+	<4E99F2FC.5030200@poczta.onet.pl>
+	<20111016105731.09d66f03@stein>
+	<CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com>
+	<4E9ADFAE.8050208@redhat.com>
+	<20111018094647.d4982eb2.chmooreck@poczta.onet.pl>
+	<20111018111134.8482d1f8.chmooreck@poczta.onet.pl>
+	<20111018214634.544344cc@darkstar>
+	<4EADBBB7.7070802@poczta.onet.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reorganize the standards macro and add a few more, that will be
-used on msp3400 in order to allow it to detect the audio standard.
+On Oct 30 Piotr Chmura wrote:
+> > + * Note:
+> > + * - in AS102 SNR=MER
+> > + *   - the SNR will be returned in linear terms, i.e. not in dB
+> > + *   - the accuracy equals Â±2dB for a SNR range from 4dB to 30dB
+> > + *   - the accuracy is>2dB for SNR values outside this range
+> > + */
+> 
+> I found another issue here.
+> In this comment "±" is from upper ASCII (0xF1). Should I change it into 
+> sth. like "+/-" in this patch (1/14) or leave it and just resend without 
+> "Â" (wasn't there in original patch, don't know where it came from) ?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- include/linux/videodev2.h |   79 +++++++++++++++++++++++++++++++++-----------
- 1 files changed, 59 insertions(+), 20 deletions(-)
-
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 9d14523..225560c 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -759,10 +759,10 @@ typedef __u64 v4l2_std_id;
- #define V4L2_STD_PAL_Nc         ((v4l2_std_id)0x00000400)
- #define V4L2_STD_PAL_60         ((v4l2_std_id)0x00000800)
- 
--#define V4L2_STD_NTSC_M         ((v4l2_std_id)0x00001000)
--#define V4L2_STD_NTSC_M_JP      ((v4l2_std_id)0x00002000)
-+#define V4L2_STD_NTSC_M         ((v4l2_std_id)0x00001000)	/* BTSC */
-+#define V4L2_STD_NTSC_M_JP      ((v4l2_std_id)0x00002000)	/* EIA-J */
- #define V4L2_STD_NTSC_443       ((v4l2_std_id)0x00004000)
--#define V4L2_STD_NTSC_M_KR      ((v4l2_std_id)0x00008000)
-+#define V4L2_STD_NTSC_M_KR      ((v4l2_std_id)0x00008000)	/* FM A2 */
- 
- #define V4L2_STD_SECAM_B        ((v4l2_std_id)0x00010000)
- #define V4L2_STD_SECAM_D        ((v4l2_std_id)0x00020000)
-@@ -786,47 +786,86 @@ typedef __u64 v4l2_std_id;
-    v4l2-common.c should be fixed.
-  */
- 
--/* some merged standards */
--#define V4L2_STD_MN	(V4L2_STD_PAL_M|V4L2_STD_PAL_N|V4L2_STD_PAL_Nc|V4L2_STD_NTSC)
--#define V4L2_STD_B	(V4L2_STD_PAL_B|V4L2_STD_PAL_B1|V4L2_STD_SECAM_B)
--#define V4L2_STD_GH	(V4L2_STD_PAL_G|V4L2_STD_PAL_H|V4L2_STD_SECAM_G|V4L2_STD_SECAM_H)
--#define V4L2_STD_DK	(V4L2_STD_PAL_DK|V4L2_STD_SECAM_DK)
-+/*
-+ * Some macros to merge video standards in order to make live easier for the
-+ * drivers and V4L2 applications
-+ */
- 
--/* some common needed stuff */
--#define V4L2_STD_PAL_BG		(V4L2_STD_PAL_B		|\
--				 V4L2_STD_PAL_B1	|\
--				 V4L2_STD_PAL_G)
--#define V4L2_STD_PAL_DK		(V4L2_STD_PAL_D		|\
--				 V4L2_STD_PAL_D1	|\
--				 V4L2_STD_PAL_K)
--#define V4L2_STD_PAL		(V4L2_STD_PAL_BG	|\
--				 V4L2_STD_PAL_DK	|\
--				 V4L2_STD_PAL_H		|\
--				 V4L2_STD_PAL_I)
-+/*
-+ * "Common" NTSC/M - It should be noticed that V4L2_STD_NTSC_443 is
-+ * Missing here.
-+ */
- #define V4L2_STD_NTSC           (V4L2_STD_NTSC_M	|\
- 				 V4L2_STD_NTSC_M_JP     |\
- 				 V4L2_STD_NTSC_M_KR)
-+/* Secam macros */
- #define V4L2_STD_SECAM_DK      	(V4L2_STD_SECAM_D	|\
- 				 V4L2_STD_SECAM_K	|\
- 				 V4L2_STD_SECAM_K1)
-+/* All Secam Standards */
- #define V4L2_STD_SECAM		(V4L2_STD_SECAM_B	|\
- 				 V4L2_STD_SECAM_G	|\
- 				 V4L2_STD_SECAM_H	|\
- 				 V4L2_STD_SECAM_DK	|\
- 				 V4L2_STD_SECAM_L       |\
- 				 V4L2_STD_SECAM_LC)
-+/* PAL macros */
-+#define V4L2_STD_PAL_BG		(V4L2_STD_PAL_B		|\
-+				 V4L2_STD_PAL_B1	|\
-+				 V4L2_STD_PAL_G)
-+#define V4L2_STD_PAL_DK		(V4L2_STD_PAL_D		|\
-+				 V4L2_STD_PAL_D1	|\
-+				 V4L2_STD_PAL_K)
-+/*
-+ * "Common" PAL - This macro is there to be compatible with the old
-+ * V4L1 concept of "PAL": /BGDKHI.
-+ * Several PAL standards are mising here: /M, /N and /Nc
-+ */
-+#define V4L2_STD_PAL		(V4L2_STD_PAL_BG	|\
-+				 V4L2_STD_PAL_DK	|\
-+				 V4L2_STD_PAL_H		|\
-+				 V4L2_STD_PAL_I)
-+/* Chroma "agnostic" standards */
-+#define V4L2_STD_B		(V4L2_STD_PAL_B		|\
-+				 V4L2_STD_PAL_B1	|\
-+				 V4L2_STD_SECAM_B)
-+#define V4L2_STD_G		(V4L2_STD_PAL_G		|\
-+				 V4L2_STD_SECAM_G)
-+#define V4L2_STD_H		(V4L2_STD_PAL_H		|\
-+				 V4L2_STD_SECAM_H)
-+#define V4L2_STD_L		(V4L2_STD_SECAM_L	|\
-+				 V4L2_STD_SECAM_LC)
-+#define V4L2_STD_GH		(V4L2_STD_G		|\
-+				 V4L2_STD_H)
-+#define V4L2_STD_DK		(V4L2_STD_PAL_DK	|\
-+				 V4L2_STD_SECAM_DK)
-+#define V4L2_STD_BG		(V4L2_STD_B		|\
-+				 V4L2_STD_G)
-+#define V4L2_STD_MN		(V4L2_STD_PAL_M		|\
-+				 V4L2_STD_PAL_N		|\
-+				 V4L2_STD_PAL_Nc	|\
-+				 V4L2_STD_NTSC)
- 
-+/* Standards where MTS/BTSC stereo could be found */
-+#define V4L2_STD_MTS		(V4L2_STD_NTSC_M	|\
-+				 V4L2_STD_PAL_M		|\
-+				 V4L2_STD_PAL_N		|\
-+				 V4L2_STD_PAL_Nc)
-+
-+/* Standards for Countries with 60Hz Line frequency */
- #define V4L2_STD_525_60		(V4L2_STD_PAL_M		|\
- 				 V4L2_STD_PAL_60	|\
- 				 V4L2_STD_NTSC		|\
- 				 V4L2_STD_NTSC_443)
-+/* Standards for Countries with 50Hz Line frequency */
- #define V4L2_STD_625_50		(V4L2_STD_PAL		|\
- 				 V4L2_STD_PAL_N		|\
- 				 V4L2_STD_PAL_Nc	|\
- 				 V4L2_STD_SECAM)
-+
- #define V4L2_STD_ATSC           (V4L2_STD_ATSC_8_VSB    |\
- 				 V4L2_STD_ATSC_16_VSB)
--
-+/* Macros with none and all analog standards */
- #define V4L2_STD_UNKNOWN        0
- #define V4L2_STD_ALL            (V4L2_STD_525_60	|\
- 				 V4L2_STD_625_50)
+Special characters can be used in comments, provided that they are UTF-8
+encoded.  In case of names of persons or companies, it is very much
+desirable to preserve special characters.  In case like this one on the
+other hand, sticking with ASCII (the 7 bit character table) might not be
+such a bad idea to keep things simple.  But since you are passing on a
+patch from somebody else, the right thing to do is IMO to keep the special
+characters that the author chose and only make sure that the file (and
+the patch mailing) are UTF-8 encoded.
 -- 
-1.7.6.4
-
+Stefan Richter
+-=====-==-== =-=- ====-
+http://arcgraph.de/sr/
