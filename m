@@ -1,86 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44362 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751880Ab1JKJYv (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2251 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933907Ab1J3Kas (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Oct 2011 05:24:51 -0400
-From: Sumit Semwal <sumit.semwal@ti.com>
-To: <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linux-mm@kvack.org>,
-	<linaro-mm-sig@lists.linaro.org>,
-	<dri-devel@lists.freedesktop.org>, <linux-media@vger.kernel.org>
-CC: <linux@arm.linux.org.uk>, <arnd@arndb.de>,
-	<jesse.barker@linaro.org>, <m.szyprowski@samsung.com>,
-	<rob@ti.com>, <daniel@ffwll.ch>, <t.stanislaws@samsung.com>,
-	Sumit Semwal <sumit.semwal@ti.com>
-Subject: [RFC 0/2] Introduce dma buffer sharing mechanism
-Date: Tue, 11 Oct 2011 14:53:51 +0530
-Message-ID: <1318325033-32688-1-git-send-email-sumit.semwal@ti.com>
+	Sun, 30 Oct 2011 06:30:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 4/6] v4l2-event: Don't set sev->fh to NULL on unsubcribe
+Date: Sun, 30 Oct 2011 11:30:37 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1319714283-3991-1-git-send-email-hdegoede@redhat.com> <1319714283-3991-5-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1319714283-3991-5-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201110301130.37195.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Everyone,
+On Thursday, October 27, 2011 13:18:01 Hans de Goede wrote:
+> 1: There is no reason for this after v4l2_event_unsubscribe releases the
+> spinlock nothing is holding a reference to the sev anymore except for the
+> local reference in the v4l2_event_unsubscribe function.
 
-Various subsystems - V4L2, GPU-accessors, DRI to name a few - have felt the 
-need to have a common mechanism to share memory buffers across different
-devices - ARM, video hardware, GPU.
+Not true. v4l2-ctrls.c may still have a reference to the sev through the
+ev_subs list in struct v4l2_ctrl. The send_event() function checks for a
+non-zero fh.
 
-This need comes forth from a variety of use cases including cameras, image 
-processing, video recorders, sound processing, DMA engines, GPU and display
-buffers, and others.
+All that is needed is to find some different way of letting send_event()
+know that this sev is no longer used. Perhaps by making sev->list empty?
 
-This RFC is the first attempt in defining such a buffer sharing mechanism- it is
-the result of discussions from a couple of memory-management mini-summits held
-by Linaro to understand and address common needs around memory management. [1]
+Regards,
 
-A new dma_buf buffer object is added, with operations and API to allow easy
-sharing of this buffer object across devices.
+	Hans
 
-The framework allows:
-- a new buffer-object to be created with fixed size.
-- different devices to 'attach' themselves to this buffer, to facilitate
-  backing storage negotiation, using dma_buf_attach() API.
-- association of a file pointer with each user-buffer and associated
-   allocator-defined operations on that buffer. This operation is called the
-   'export' operation.
-- this exported buffer-object to be shared with the other entity by asking for
-   its 'file-descriptor (fd)', and sharing the fd across.
-- a received fd to get the buffer object back, where it can be accessed using
-   the associated exporter-defined operations.
-- the exporter and user to share the scatterlist using get_scatterlist and
-   put_scatterlist operations.
-
-Documentation present in the patch-set gives more details.
-
-This is based on design suggestions from many people at the mini-summits,
-most notably from Arnd Bergmann <arnd@arndb.de>, Rob Clark <rob@ti.com> and
-Daniel Vetter <daniel@ffwll.ch>.
-
-The implementation is inspired from proof-of-concept patch-set from
-Tomasz Stanislawski <t.stanislaws@samsung.com>, who demonstrated buffer sharing
-between two v4l2 devices. [2]
-
-References:
-[1]: https://wiki.linaro.org/OfficeofCTO/MemoryManagement
-[2]: http://lwn.net/Articles/454389
-
-
-Sumit Semwal (2):
-  dma-buf: Introduce dma buffer sharing mechanism
-  dma-buf: Documentation for buffer sharing framework
-
- Documentation/dma-buf-sharing.txt |  210 ++++++++++++++++++++++++++++++++
- drivers/base/Kconfig              |   10 ++
- drivers/base/Makefile             |    1 +
- drivers/base/dma-buf.c            |  242 +++++++++++++++++++++++++++++++++++++
- include/linux/dma-buf.h           |  162 +++++++++++++++++++++++++
- 5 files changed, 625 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/dma-buf-sharing.txt
- create mode 100644 drivers/base/dma-buf.c
- create mode 100644 include/linux/dma-buf.h
-
--- 
-1.7.4.1
-
+> 2: Setting sev->fh to NULL causes problems for the del op added in the next
+> patch of this series, since this op needs a way to get to its own data
+> structures, and typically this will be done by using container_of on an
+> embedded v4l2_fh struct.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/media/video/v4l2-event.c |    1 -
+>  1 files changed, 0 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+> index 01cbb7f..3d27300 100644
+> --- a/drivers/media/video/v4l2-event.c
+> +++ b/drivers/media/video/v4l2-event.c
+> @@ -304,7 +304,6 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+>  			}
+>  		}
+>  		list_del(&sev->list);
+> -		sev->fh = NULL;
+>  	}
+>  
+>  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> 
