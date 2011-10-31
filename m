@@ -1,45 +1,394 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59387 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750834Ab1JJTXM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Oct 2011 15:23:12 -0400
-Message-ID: <4E93461D.2020804@iki.fi>
-Date: Mon, 10 Oct 2011 22:23:09 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:58562 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752682Ab1JaQZl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Oct 2011 12:25:41 -0400
+Received: by mail-ey0-f174.google.com with SMTP id 27so5444327eye.19
+        for <linux-media@vger.kernel.org>; Mon, 31 Oct 2011 09:25:40 -0700 (PDT)
+From: Sylwester Nawrocki <snjw23@gmail.com>
+To: devel@driverdev.osuosl.org, linux-media@vger.kernel.org
+Cc: Piotr Chmura <chmooreck@poczta.onet.pl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Greg KH <gregkh@suse.de>
+Subject: =?UTF-8?q?=5BPATCH=2005/17=5D=20staging=3A=20as102=3A=20Fix=20CodingStyle=20errors=20in=20file=20as10x=5Fcmd=5Fstream=2Ec?=
+Date: Mon, 31 Oct 2011 17:24:43 +0100
+Message-Id: <1320078295-3379-6-git-send-email-snjw23@gmail.com>
+In-Reply-To: <1320078295-3379-1-git-send-email-snjw23@gmail.com>
+References: <1320078295-3379-1-git-send-email-snjw23@gmail.com>
 MIME-Version: 1.0
-To: Johannes Stezenbach <js@linuxtv.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: Cypress EZ-USB FX2 firmware development
-References: <4E8B61FF.8000505@iki.fi> <20111004212901.GA20648@linuxtv.org> <20111006124717.GA9110@linuxtv.org> <4E8DA8CC.5080903@iki.fi>
-In-Reply-To: <4E8DA8CC.5080903@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/06/2011 04:10 PM, Antti Palosaari wrote:
-> On 10/06/2011 03:47 PM, Johannes Stezenbach wrote:
->> On Tue, Oct 04, 2011 at 11:29:01PM +0200, Johannes Stezenbach wrote:
->>> On Tue, Oct 04, 2011 at 10:43:59PM +0300, Antti Palosaari wrote:
->>>> I would like to made own firmware for Cypress FX2 based DVB device.
->>>> Is there any sample to look example?
->>>
->>> http://linuxtv.org/cgi-bin/viewvc.cgi/dvb-hw/dvbusb-fx2/termini/
->>
->> PS: If you haven't found it already, there is also fx2lib:
->> https://github.com/mulicheng/fx2lib
->> http://sourceforge.net/projects/fx2lib/
->>
->> Johannes
->
-> Thank you! I already looked those termini project files and it was kinda
-> jackpot. Much more than I ever imagined. I will try to compile it next
-> weekend and upload to my FX2 device to see if I can get at least control
-> for I2C-bus.
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
 
-After very long hack sessions during weekend I got it working. I2C was 
-easy stuff, streaming video was more challenging.
+Fix Linux kernel coding style (whitespace and indentation) errors
+in file as10x_cmd_stream.c. No functional changes.
 
-Antti
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Piotr Chmura <chmooreck@poczta.onet.pl>
+Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
+---
+ drivers/staging/media/as102/as10x_cmd_stream.c |  280 ++++++++++++------------
+ 1 files changed, 136 insertions(+), 144 deletions(-)
+
+diff --git a/drivers/staging/media/as102/as10x_cmd_stream.c b/drivers/staging/media/as102/as10x_cmd_stream.c
+index 4dfacf4..8705894 100644
+--- a/drivers/staging/media/as102/as10x_cmd_stream.c
++++ b/drivers/staging/media/as102/as10x_cmd_stream.c
+@@ -2,8 +2,6 @@
+ 
+  \file   as10x_cmd_stream.c
+ 
+- \version $Id$
+-
+  \author: S. Martinelli
+ 
+  ----------------------------------------------------------------------------\n
+@@ -53,57 +51,57 @@
+    \return 0 when no error, < 0 in case of error.
+    \callgraph
+ */
+-int as10x_cmd_add_PID_filter(as10x_handle_t* phandle,
+-			     struct as10x_ts_filter *filter) {
+-   int    error;
+-   struct as10x_cmd_t *pcmd, *prsp;
+-
+-   ENTER();
+-
+-   pcmd = phandle->cmd;
+-   prsp = phandle->rsp;
+-
+-   /* prepare command */
+-   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
+-		    sizeof(pcmd->body.add_pid_filter.req));
+-
+-   /* fill command */
+-   pcmd->body.add_pid_filter.req.proc_id = cpu_to_le16(CONTROL_PROC_SETFILTER);
+-   pcmd->body.add_pid_filter.req.pid = cpu_to_le16(filter->pid);
+-   pcmd->body.add_pid_filter.req.stream_type = filter->type;
+-
+-   if(filter->idx < 16)
+-	pcmd->body.add_pid_filter.req.idx = filter->idx;
+-   else
+-	pcmd->body.add_pid_filter.req.idx = 0xFF;
+-
+-   /* send command */
+-   if(phandle->ops->xfer_cmd) {
+-      error = phandle->ops->xfer_cmd(phandle,
+-		       (uint8_t *) pcmd,
+-		       sizeof(pcmd->body.add_pid_filter.req) + HEADER_SIZE,
+-		       (uint8_t *) prsp,
+-		       sizeof(prsp->body.add_pid_filter.rsp) + HEADER_SIZE);
+-   }
+-   else{
+-      error = AS10X_CMD_ERROR;
+-   }
+-
+-   if(error < 0) {
+-      goto out;
+-   }
+-
+-   /* parse response */
+-   error = as10x_rsp_parse(prsp, CONTROL_PROC_SETFILTER_RSP);
+-
+-   if(error == 0) {
+-     /* Response OK -> get response data */
+-     filter->idx = prsp->body.add_pid_filter.rsp.filter_id;
+-   }
++int as10x_cmd_add_PID_filter(as10x_handle_t *phandle,
++			     struct as10x_ts_filter *filter)
++{
++	int error;
++	struct as10x_cmd_t *pcmd, *prsp;
++
++	ENTER();
++
++	pcmd = phandle->cmd;
++	prsp = phandle->rsp;
++
++	/* prepare command */
++	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++			sizeof(pcmd->body.add_pid_filter.req));
++
++	/* fill command */
++	pcmd->body.add_pid_filter.req.proc_id =
++		cpu_to_le16(CONTROL_PROC_SETFILTER);
++	pcmd->body.add_pid_filter.req.pid = cpu_to_le16(filter->pid);
++	pcmd->body.add_pid_filter.req.stream_type = filter->type;
++
++	if (filter->idx < 16)
++		pcmd->body.add_pid_filter.req.idx = filter->idx;
++	else
++		pcmd->body.add_pid_filter.req.idx = 0xFF;
++
++	/* send command */
++	if (phandle->ops->xfer_cmd) {
++		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
++				sizeof(pcmd->body.add_pid_filter.req)
++				+ HEADER_SIZE, (uint8_t *) prsp,
++				sizeof(prsp->body.add_pid_filter.rsp)
++				+ HEADER_SIZE);
++	} else {
++		error = AS10X_CMD_ERROR;
++	}
++
++	if (error < 0)
++		goto out;
++
++	/* parse response */
++	error = as10x_rsp_parse(prsp, CONTROL_PROC_SETFILTER_RSP);
++
++	if (error == 0) {
++		/* Response OK -> get response data */
++		filter->idx = prsp->body.add_pid_filter.rsp.filter_id;
++	}
+ 
+ out:
+-   LEAVE();
+-   return(error);
++	LEAVE();
++	return error;
+ }
+ 
+ /**
+@@ -113,144 +111,138 @@ out:
+    \return 0 when no error, < 0 in case of error.
+    \callgraph
+ */
+-int as10x_cmd_del_PID_filter(as10x_handle_t* phandle,
++int as10x_cmd_del_PID_filter(as10x_handle_t *phandle,
+ 			     uint16_t pid_value)
+ {
++	int error;
++	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-   int    error;
+-   struct as10x_cmd_t *pcmd, *prsp;
+-
+-   ENTER();
++	ENTER();
+ 
+-   pcmd = phandle->cmd;
+-   prsp = phandle->rsp;
++	pcmd = phandle->cmd;
++	prsp = phandle->rsp;
+ 
+-   /* prepare command */
+-   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
+-		    sizeof(pcmd->body.del_pid_filter.req));
++	/* prepare command */
++	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++			sizeof(pcmd->body.del_pid_filter.req));
+ 
+-   /* fill command */
+-   pcmd->body.del_pid_filter.req.proc_id = cpu_to_le16(CONTROL_PROC_REMOVEFILTER);
+-   pcmd->body.del_pid_filter.req.pid = cpu_to_le16(pid_value);
++	/* fill command */
++	pcmd->body.del_pid_filter.req.proc_id =
++		cpu_to_le16(CONTROL_PROC_REMOVEFILTER);
++	pcmd->body.del_pid_filter.req.pid = cpu_to_le16(pid_value);
+ 
+-   /* send command */
+-   if(phandle->ops->xfer_cmd){
+-      error = phandle->ops->xfer_cmd(phandle,
+-		       (uint8_t *) pcmd,
+-		       sizeof(pcmd->body.del_pid_filter.req) + HEADER_SIZE,
+-		       (uint8_t *) prsp,
+-		       sizeof(prsp->body.del_pid_filter.rsp) + HEADER_SIZE);
+-   }
+-   else{
+-      error = AS10X_CMD_ERROR;
+-   }
++	/* send command */
++	if (phandle->ops->xfer_cmd) {
++		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
++				sizeof(pcmd->body.del_pid_filter.req)
++				+ HEADER_SIZE, (uint8_t *) prsp,
++				sizeof(prsp->body.del_pid_filter.rsp)
++				+ HEADER_SIZE);
++	} else {
++		error = AS10X_CMD_ERROR;
++	}
+ 
+-   if(error < 0) {
+-      goto out;
+-   }
++	if (error < 0)
++		goto out;
+ 
+-   /* parse response */
+-   error = as10x_rsp_parse(prsp, CONTROL_PROC_REMOVEFILTER_RSP);
++	/* parse response */
++	error = as10x_rsp_parse(prsp, CONTROL_PROC_REMOVEFILTER_RSP);
+ 
+ out:
+-   LEAVE();
+-   return(error);
++	LEAVE();
++	return error;
+ }
+ 
+ /**
+    \brief Send start streaming command to AS10x
+    \param  phandle:   pointer to AS10x handle
+-   \return 0 when no error, < 0 in case of error. 
++   \return 0 when no error, < 0 in case of error.
+    \callgraph
+ */
+-int as10x_cmd_start_streaming(as10x_handle_t* phandle)
++int as10x_cmd_start_streaming(as10x_handle_t *phandle)
+ {
+-   int error;
+-   struct as10x_cmd_t *pcmd, *prsp;
++	int error;
++	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-   ENTER();
++	ENTER();
+ 
+-   pcmd = phandle->cmd;
+-   prsp = phandle->rsp;
++	pcmd = phandle->cmd;
++	prsp = phandle->rsp;
+ 
+-   /* prepare command */
+-   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
+-		    sizeof(pcmd->body.start_streaming.req));
++	/* prepare command */
++	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++			sizeof(pcmd->body.start_streaming.req));
+ 
+-   /* fill command */
+-   pcmd->body.start_streaming.req.proc_id =
+-				   cpu_to_le16(CONTROL_PROC_START_STREAMING);
++	/* fill command */
++	pcmd->body.start_streaming.req.proc_id =
++		cpu_to_le16(CONTROL_PROC_START_STREAMING);
+ 
+-   /* send command */
+-   if(phandle->ops->xfer_cmd){
+-      error = phandle->ops->xfer_cmd(phandle,
+-		       (uint8_t *) pcmd,
+-		       sizeof(pcmd->body.start_streaming.req) + HEADER_SIZE,
+-		       (uint8_t *) prsp,
+-		       sizeof(prsp->body.start_streaming.rsp) + HEADER_SIZE);
+-   }
+-   else{
+-      error = AS10X_CMD_ERROR;
+-   }
++	/* send command */
++	if (phandle->ops->xfer_cmd) {
++		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
++				sizeof(pcmd->body.start_streaming.req)
++				+ HEADER_SIZE, (uint8_t *) prsp,
++				sizeof(prsp->body.start_streaming.rsp)
++				+ HEADER_SIZE);
++	} else {
++		error = AS10X_CMD_ERROR;
++	}
+ 
+-   if(error < 0) {
+-      goto out;
+-   }
++	if (error < 0)
++		goto out;
+ 
+-   /* parse response */
+-   error = as10x_rsp_parse(prsp, CONTROL_PROC_START_STREAMING_RSP);
++	/* parse response */
++	error = as10x_rsp_parse(prsp, CONTROL_PROC_START_STREAMING_RSP);
+ 
+ out:
+-   LEAVE();
+-   return(error);
++	LEAVE();
++	return error;
+ }
+ 
+ /**
+    \brief Send stop streaming command to AS10x
+    \param  phandle:   pointer to AS10x handle
+-   \return 0 when no error, < 0 in case of error. 
++   \return 0 when no error, < 0 in case of error.
+    \callgraph
+ */
+-int as10x_cmd_stop_streaming(as10x_handle_t* phandle)
++int as10x_cmd_stop_streaming(as10x_handle_t *phandle)
+ {
+-   int8_t error;
+-   struct as10x_cmd_t *pcmd, *prsp;
++	int8_t error;
++	struct as10x_cmd_t *pcmd, *prsp;
+ 
+-   ENTER();
++	ENTER();
+ 
+-   pcmd = phandle->cmd;
+-   prsp = phandle->rsp;
++	pcmd = phandle->cmd;
++	prsp = phandle->rsp;
+ 
+-   /* prepare command */
+-   as10x_cmd_build(pcmd, (++phandle->cmd_xid),
+-		    sizeof(pcmd->body.stop_streaming.req));
++	/* prepare command */
++	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++			sizeof(pcmd->body.stop_streaming.req));
+ 
+-   /* fill command */
+-   pcmd->body.stop_streaming.req.proc_id =
+-				   cpu_to_le16(CONTROL_PROC_STOP_STREAMING);
++	/* fill command */
++	pcmd->body.stop_streaming.req.proc_id =
++		cpu_to_le16(CONTROL_PROC_STOP_STREAMING);
+ 
+-   /* send command */
+-   if(phandle->ops->xfer_cmd){
+-      error = phandle->ops->xfer_cmd(phandle,
+-		       (uint8_t *) pcmd,
+-		       sizeof(pcmd->body.stop_streaming.req) + HEADER_SIZE,
+-		       (uint8_t *) prsp,
+-		       sizeof(prsp->body.stop_streaming.rsp) + HEADER_SIZE);
+-   }
+-   else{
+-      error = AS10X_CMD_ERROR;
+-   }
++	/* send command */
++	if (phandle->ops->xfer_cmd) {
++		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
++				sizeof(pcmd->body.stop_streaming.req)
++				+ HEADER_SIZE, (uint8_t *) prsp,
++				sizeof(prsp->body.stop_streaming.rsp)
++				+ HEADER_SIZE);
++	} else {
++		error = AS10X_CMD_ERROR;
++	}
+ 
+-   if(error < 0) {
+-      goto out;
+-   }
++	if (error < 0)
++		goto out;
+ 
+-   /* parse response */
+-   error = as10x_rsp_parse(prsp, CONTROL_PROC_STOP_STREAMING_RSP);
++	/* parse response */
++	error = as10x_rsp_parse(prsp, CONTROL_PROC_STOP_STREAMING_RSP);
+ 
+ out:
+-   LEAVE();
+-   return(error);
++	LEAVE();
++	return error;
+ }
+ 
+ 
 -- 
-http://palosaari.fi/
+1.7.4.1
+
