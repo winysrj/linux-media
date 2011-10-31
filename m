@@ -1,39 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:41488 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934036Ab1J3Ohs (ORCPT
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:4360 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752170Ab1JaQRe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Oct 2011 10:37:48 -0400
-Received: by bkbzt4 with SMTP id zt4so1507926bkb.19
-        for <linux-media@vger.kernel.org>; Sun, 30 Oct 2011 07:37:47 -0700 (PDT)
-Message-ID: <4EAD6139.40803@gmail.com>
-Date: Sun, 30 Oct 2011 15:37:45 +0100
-From: =?ISO-8859-1?Q?Roger_M=E5rtensson?= <roger.martensson@gmail.com>
+	Mon, 31 Oct 2011 12:17:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Various ctrl and event frame work patches (version 2)
+Date: Mon, 31 Oct 2011 17:17:32 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1320074209-23473-1-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1320074209-23473-1-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: budget-av problem with inserted CAM (KNC1 DVB-C TDA10024)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201110311717.32581.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello! (again)
+Hi Hans!
 
-Am I the only one with a KNC1 DVB-C TDA10024(clone) card that is trying 
-to use a CAM(smit)?
-Is there anyone else that have got this to work? In the code it says 
-it's compatible with TDA10023 som the KNC1 DVB-C MK3 card should be 
-identical? (It's identical in code anyway)
+On Monday, October 31, 2011 16:16:43 Hans de Goede wrote:
+> Hi All,
+> 
+> This patch set obsoletes my previous "add v4l2_subscribed_event_ops" set,
+> while working on adding support for ctrl-events to the uvc driver I found
+> a few bugs in the event code, which this patchset fixes.
 
-Symtoms: TS streams gets corrupted when CAM is inserted. This is both 
-with unencrypted and encrypted channels. When it's not inserted 
-unencrypted streams works without any problems.
-(works without a problem in my Philips TV and the TV is connected to the 
-output of the PCI-card so it cannot be a signal problem).
+Did you see my comments to patches 3/6, 4/6 and 5/6 in version 1?
+Those need to be addressed before I can ack them.
 
-When searching the net I found a reference to a old patch that said 
-something about having a different clock whenever the CAM is inserted 
-but that code got removed a number of commits later(it was also for the 
-TDA10021).
+Regards,
 
-So am I alone?
+	Hans
+
+> Changes since version 1:
+> -Added a documentation update (update v4l2-framework.txt) to:
+>  "v4l2-event: Add v4l2_subscribed_event_ops"
+> 
+> Regards,
+> 
+> Hans
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
