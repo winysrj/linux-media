@@ -1,30 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:45383 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934262Ab1JETFh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2011 15:05:37 -0400
-Received: by wwf22 with SMTP id 22so3029834wwf.1
-        for <linux-media@vger.kernel.org>; Wed, 05 Oct 2011 12:05:36 -0700 (PDT)
+Received: from einhorn.in-berlin.de ([192.109.42.8]:44496 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932676Ab1JaKsU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Oct 2011 06:48:20 -0400
+Message-ID: <4EAE7CE4.10809@s5r6.in-berlin.de>
+Date: Mon, 31 Oct 2011 11:48:04 +0100
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
 MIME-Version: 1.0
-In-Reply-To: <CAGoCfiyNekcUPM_pCn2Y0mf3tMMd=1nWJveP8DBibd53nZ7vJA@mail.gmail.com>
-References: <CANut7vBzVpOdqKHxWeZbV1r+9cfBJ3r01i6LKFCoTCTeu55Zpg@mail.gmail.com>
-	<CAGoCfiyNekcUPM_pCn2Y0mf3tMMd=1nWJveP8DBibd53nZ7vJA@mail.gmail.com>
-Date: Wed, 5 Oct 2011 14:05:36 -0500
-Message-ID: <CANut7vAxNB3quqQbt-kHMVHxdvMy_p+woxNXMTS+wx9x=+3rnA@mail.gmail.com>
-Subject: Re: fm player for v4l2
-From: Will Milspec <will.milspec@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
+To: Piotr Chmura <chmooreck@poczta.onet.pl>
+CC: Sylwester Nawrocki <snjw23@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Greg KH <gregkh@suse.de>,
+	Patrick Dickey <pdickeybeta@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org
+Subject: Re: [PATCH v3 4/14] staging/media/as102: checkpatch fixes
+References: <4E7F1FB5.5030803@gmail.com> <CAGoCfixneQG=S5wy2qZZ50+PB-QNTFx=GLM7RYPuxfXtUy6Ecg@mail.gmail.com> <4E7FF0A0.7060004@gmail.com> <CAGoCfizyLgpEd_ei-SYEf6WWs5cygQJNjKPNPOYOQUqF773D4Q@mail.gmail.com> <20110927094409.7a5fcd5a@stein> <20110927174307.GD24197@suse.de> <20110927213300.6893677a@stein> <4E999733.2010802@poczta.onet.pl> <4E99F2FC.5030200@poczta.onet.pl> <20111016105731.09d66f03@stein> <CAGoCfix9Yiju3-uyuPaV44dBg5i-LLdezz-fbo3v29i6ymRT7w@mail.gmail.com> <4E9ADFAE.8050208@redhat.com> <20111018094647.d4982eb2.chmooreck@poczta.onet.pl> <20111018111151.635ac39e.chmooreck@poczta.onet.pl> <20111018215146.1fbc223f@darkstar> <4EABD3E2.3070302@gmail.com> <4EABFCF8.2010003@poczta.onet.pl> <4EAC2676.8030808@gmail.com> <4EAC3C57.5070701@poczta.onet.pl> <4EAC7214.5030008@gmail.com> <20111030081156.14b70914@darkstar> <20111030121710.73f9ee11@stein>
+In-Reply-To: <20111030121710.73f9ee11@stein>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for the summary.
+> On Oct 30 Piotr Chmura wrote:
+>> Patch taken from http://kernellabs.com/hg/~dheitmueller/v4l-dvb-as102-2/
+>>
+>> Original source and comment:
+>> # HG changeset patch
 
-Any V4L2 fm-card app's working out there?
+By the way, the brand new git 1.7.8.rc0 features some HG support in "git am":
+https://code.google.com/p/git-core/source/detail?spec=svnbe3fa9125e708348c7baf04ebe9507a72a9d1800&r=0cfd112032017ab68ed576f6bb5258452084ebf1
 
-Also, I apologize in advance for the size of my v4l-info section in
-the email. I didn't realize its size until after i emailed.
-
-
-will
+This converts the "# User" and "# Date" lines of HG patches into RFC 2822
+"From: " and "Date: " lines which are then used as authorship metadata.
+-- 
+Stefan Richter
+-=====-==-== =-=- =====
+http://arcgraph.de/sr/
