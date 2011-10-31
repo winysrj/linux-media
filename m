@@ -1,114 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.digicable.hu ([92.249.128.189]:54359 "EHLO
-	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751792Ab1JUFT4 (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:44870 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934328Ab1JaL2c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Oct 2011 01:19:56 -0400
-Message-ID: <4EA100EF.9040800@freemail.hu>
-Date: Fri, 21 Oct 2011 07:19:43 +0200
-From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+	Mon, 31 Oct 2011 07:28:32 -0400
+Received: by iaby12 with SMTP id y12so7079170iab.19
+        for <linux-media@vger.kernel.org>; Mon, 31 Oct 2011 04:28:32 -0700 (PDT)
 MIME-Version: 1.0
-To: Lars Noschinski <lars@public.noschinski.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: pac7311
-References: <20111017060334.GA16001@lars.home.noschinski.de> <4E9DDE13.103@freemail.hu> <20111020191837.GA14773@lars.home.noschinski.de>
-In-Reply-To: <20111020191837.GA14773@lars.home.noschinski.de>
+In-Reply-To: <CAOcJUbxTLAtQFa3s5FMUKp2MgX6FCmheN930xWp2xYTD8oApzw@mail.gmail.com>
+References: <CAOcJUbxTLAtQFa3s5FMUKp2MgX6FCmheN930xWp2xYTD8oApzw@mail.gmail.com>
+Date: Mon, 31 Oct 2011 07:28:32 -0400
+Message-ID: <CAOcJUbxpgpYtFs+=4_ZsH36KczUeeTeoQ0n4bAcY+dvcu3QwLQ@mail.gmail.com>
+Subject: [PULL] au8522/s4h1409/s4h1411: Calculate signal strength shown as
+ percentage from SNR up to 35dB
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Lars Noschinski wrote:
-> * Németh Márton <nm127@freemail.hu> [11-10-18 22:14]:
->> Hi Lars,
->>
->> Lars Noschinski wrote:
->>> I'm using a webcam (Philipps SPC500NC) which identifies itself as
->>>
->>>     093a:2603 Pixart Imaging, Inc. PAC7312 Camera
->>>
->>> and is sort-of supported by the gspca_pac7311 module. "sort-of" because
->>> the image alternates quickly between having a red tint or a green tint
->>> (using the gspac driver from kernel 3.0.0, but this problem is present
->>> since at least 2.6.31).
->> The most important source code for your webcam is drivers/media/video/gspca/pac7311.c .
->> You can see it online at http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=drivers/media/video/gspca/pac7311.c .
->>
->>> If I remove and re-plugin the camera a few times (on average around 3
->>> times), the colors are stable.
->> When you plug and remove the webcam and the colors are wrong, do you get any
->> message in the "dmesg"?
-> 
-> I get the same messages; sometimes the order of the messages output by
-> uhci_hcd ehci_hcd differs, but this seems to be unrelated to working/not
-> working.
-> 
->> Once the colors are stable and you unplug and replug the webcam, what happens then?
->> Is there again around 3 times when the webcam is not working properly?
-> 
-> I now did a longer series of unplug&replug: Over the time, status
-> "stable colors" seemed to get more probable. After a while, it only
-> falls back to alternating colors, when I unplug it for a longer time
-> (say 10 seconds). Might be a hardware problem?
+(resent with missing [PULL] tag in subject line)
 
-You might want to try the same webcam on different USB port to exclude the
-connector problem on the computer. I don't know if you have the possibility
-to try the webcam on a completly different computer also.
+Mauro,
 
->>> Then a second issue becomes apparent:
->>> There is almost no saturation in the image. Toying around with Contrast,
->>> Gamma, Exposure or Gain does not help. What _does_ help is the Vflip
->>> switch: If I enable it, the image is flipped vertically (as expected),
->>> but also the color become a lot better.
->> Is there any difference when you use the "Mirror" control? What about the
->> combination of the "Vflip" and "Mirror" controls?
-> 
-> "Vflip" and ("Vflip" and "Mirror") change color; "Mirror" alone does
-> not.
-> 
->> What about the "Auto Gain" setting? Is it enabled or disabled in your case?
-> 
-> Auto Gain is enabled; but colors also change if it is disabled
->>> Is there something I can do to debug/fix this problem?
->> You can try testing the webcam with different resolutions. The webcam
->> supports 160x120, 320x240 and 640x480 resolutions based on the source code.
->> You can try the different resolutions for example with "cheese"
->> ( http://projects.gnome.org/cheese/ ) or any of your favorite V4L2 program.
-> 
-> This does not seem to make a difference; except that 160x120 is listed,
-> but does not seem to be available. guvcview tells me:
-> 
-> Checking video mode 640x480@32bpp : OK 
-> setting new resolution (320 x 240)
-> checking format: 859981650
-> Checking video mode 320x240@32bpp : OK 
-> setting new resolution (160 x 120)
-> checking format: 859981650
-> Checking video mode 160x120@32bpp : OK 
-> ioctl (-1067952623) retried 4 times - giving up: Die Ressource ist zur Zeit nicht verfügbar)
-> VIDIOC_DQBUF - Unable to dequeue buffer : Die Ressource ist zur Zeit nicht verfügbar
-> Error grabbing image 
-> (the last message is then repeated, till i change the resolution)
-> 
-> [Also, since I switched to 160x120, cheese crashes with a segfault,
-> without giving me the possibility to switch back and I cannot find the
-> config file.]
+Please pull from my atscdemod branch at
+git://linuxtv.org/mkrufky/tuners .  These changesets bring au8522,
+s5h1409, and s5h1411 up to speed with the other ATSC demodulator
+drivers to all report signal strength in a single conforming way.  We
+all agreed on this at the LPC over two years ago, and these patches
+have been sitting in my hg tree since then, I've just completely
+forgotten to issue this pull request. LGDT3305 and LGDT330X drivers
+already report signal strength this way. Userspace developers have
+been patiently waiting for this merge - I apologize to them for
+sitting on it for so long.  Please merge this :-)
 
-You can try running cheese using the command line "strace -f cheese" to see what was the last
-system call before the crash. If you have the debug symbols installed for cheese then you
-can also try running "gdb cheese". Once you get the (gdb) prompt enter the command "run".
-Switch to 160x120 resolution. When cheese crashes you should get (gdb) prompt again. Execute
-"bt" (backtrace) and send the result.
+The following changes since commit a63366b935456dd0984f237642f6d4001dcf8017:
 
->> You can load the usbmon kernel module and use Wireshark to log the USB communication
->> between your computer and the webcam starting with plug-in. You can compare
->> the communication when the webcam starts to work correctly with the one when
->> the webcam doesn't work as expected.
-> 
-> I'll try to do this later this week.
-> 
-> Greetings,
->   Lars Noschinski
-> 
-> 
+  [media] mxl111sf: update demod_ops.info.name to "MaxLinear MxL111SF
+DVB-T demodulator" (2011-10-24 03:20:09 +0200)
 
+are available in the git repository at:
+  git://linuxtv.org/mkrufky/tuners atscdemod
+
+Michael Krufky (3):
+      au8522: Calculate signal strength shown as percentage from SNR up to 35dB
+      s5h1409: Calculate signal strength shown as percentage from SNR up to 35dB
+      s5h1411: Calculate signal strength shown as percentage from SNR up to 35dB
+
+ drivers/media/dvb/frontends/au8522_dig.c |   31 +++++++++++++++++++++++++++++-
+ drivers/media/dvb/frontends/s5h1409.c    |   31 +++++++++++++++++++++++++++++-
+ drivers/media/dvb/frontends/s5h1411.c    |   31 +++++++++++++++++++++++++++++-
+ 3 files changed, 90 insertions(+), 3 deletions(-)
+
+Best regards,
+Michael Krufky
