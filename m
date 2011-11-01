@@ -1,52 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:39275 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753271Ab1KADWF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Oct 2011 23:22:05 -0400
-Received: by iaby12 with SMTP id y12so7852412iab.19
-        for <linux-media@vger.kernel.org>; Mon, 31 Oct 2011 20:22:04 -0700 (PDT)
+Received: from yop.chewa.net ([91.121.105.214]:59045 "EHLO yop.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754320Ab1KAMpJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Nov 2011 08:45:09 -0400
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] Monotonic clock usage in buffer timestamps
 MIME-Version: 1.0
-Date: Mon, 31 Oct 2011 23:22:04 -0400
-Message-ID: <CAOcJUbyBHU=z9uNkF8_wLRaS1aMOvFjETfZBkwviGqYve1s5gw@mail.gmail.com>
-Subject: [PULL] mxl111sf bug-fix for v3.2
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Date: Tue, 01 Nov 2011 13:36:50 +0100
+From: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <201111011324.36742.laurent.pinchart@ideasonboard.com>
+References: <201111011324.36742.laurent.pinchart@ideasonboard.com>
+Message-ID: <b3e1d11fbdb6c1fe02954f7b2dd29b01@chewa.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+   Hello,
 
-Please pull the following from the bug-fix branch of my mxl111sf tree.
- I thank Hans' scripts for finding these build warnings for me.  One
-of them was a typo, causing the wrong return value in a function....
-In the end, this fixes a real error - not just build warnings.  Please
-get these over to Linus for v3.2.
 
-The following changes since commit a63366b935456dd0984f237642f6d4001dcf8017:
-  Michael Krufky (1):
-        [media] mxl111sf: update demod_ops.info.name to "MaxLinear
-MxL111SF DVB-T demodulator"
 
-are available in the git repository at:
+On Tue, 1 Nov 2011 13:24:35 +0100, Laurent Pinchart
 
-  git://linuxtv.org/mkrufky/mxl111sf bug-fix
+<laurent.pinchart@ideasonboard.com> wrote:
 
-Michael Krufky (4):
-      mxl111sf: fix return value of mxl111sf_idac_config
-      mxl111sf: check for errors after mxl111sf_write_reg in
-mxl111sf_idac_config
-      mxl111sf: remove pointless if condition in mxl111sf_config_spi
-      mxl111sf: fix build warning: variable ‘ret’ set but not used in
-function ‘mxl111sf_i2c_readagain’
+> We should instead fix the V4L2 specification to mandate the use of a
 
- drivers/media/dvb/dvb-usb/mxl111sf-i2c.c |    3 +--
- drivers/media/dvb/dvb-usb/mxl111sf-phy.c |    7 ++++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+> monotonic clock (which could then also support hardware timestamps when
 
-Thanks & regards,
+> they are available). Would such a change be acceptable ?
 
-Michael Krufky
+
+
+I'd rather have the real time clock everywhere, than a driver-dependent
+
+clock, if it comes to that.
+
+Nevertheless, I agree that the monotonic clock is better than the real
+
+time clock.
+
+In user space, VLC, Gstreamer already switched to monotonic a while ago as
+
+far as I know.
+
+
+
+And I guess there is no way to detect this, other than detect ridiculously
+
+large gap between the timestamp and the current clock value?
+
+
+
+-- 
+
+RÃ©mi Denis-Courmont
+
+http://www.remlab.net/
