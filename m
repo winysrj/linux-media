@@ -1,54 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mr.siano-ms.com ([62.0.79.70]:40557 "EHLO
-	Siano-NV.ser.netvision.net.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755638Ab1KCL5x convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Nov 2011 07:57:53 -0400
-Content-class: urn:content-classes:message
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:37082 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751048Ab1KASHB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Nov 2011 14:07:01 -0400
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Mel Gorman" <mel@csn.ul.ie>
+Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Russell King" <linux@arm.linux.org.uk>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"Ankita Garg" <ankita@in.ibm.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Arnd Bergmann" <arnd@arndb.de>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Jonathan Corbet" <corbet@lwn.net>,
+	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
+	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>
+Subject: Re: [PATCH 2/9] mm: alloc_contig_freed_pages() added
+References: <20111018122109.GB6660@csn.ul.ie>
+ <809d0a2afe624c06505e0df51e7657f66aaf9007.1319428526.git.mina86@mina86.com>
+ <20111101150448.GD14998@csn.ul.ie>
+Date: Tue, 01 Nov 2011 19:06:56 +0100
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
 Content-Transfer-Encoding: 8BIT
-Subject: Problem with DVB module during suspend/hibernate.
-Date: Thu, 3 Nov 2011 14:00:51 +0200
-Message-ID: <D945C405928A9949A0F33C69E64A1A3BD8D5EF@s-mail.siano-ms.ent>
-From: "Doron Cohen" <doronc@siano-ms.com>
-To: <linux-media@vger.kernel.org>
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.v394luhl3l0zgt@mpn-glaptop>
+In-Reply-To: <20111101150448.GD14998@csn.ul.ie>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I am dealing with a problems with suspend/hibernate freeze during resume
-when DVB API is used. I found a workaround for it here
-<http://forum.xbmc.org/showthread.php?t=71490> which solve the problem
-but this is not a solution only a workaround.
+On Tue, 01 Nov 2011 16:04:48 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
+> For the purposes of review, have a separate patch for moving
+> isolate_freepages_block to another file that does not alter the
+> function in any way. When the function is updated in a follow-on patch,
+> it'll be far easier to see what has changed.
 
-Problem is that when using USB DVB tuner the tuner is turned off/on
-during the suspend process, meaning that during the resume the USB
-disconnect and probe methods are running.
-The disconnect method is causing a call to dvb_unregister_frontend (or,
-if changing the order to dvb_dmxdev_release) This call hangs on
-wait_event until fepriv->dvbdev->users will free all users. 
+Will do.
 
-This works fine when application is not playing the video, but if an
-application receives TV (tested with VLC and Kaffeine but true to all)
-Users will be free only when the application stops. It works if the
-device is plugged out during video display (users will be released when
-application closes the frontend and than the device will be free) but
-during the resume process, user interface is not working and there is a
-dead lock system must be hard power off and on.
+> page_isolation.c may also be a better fit than page_alloc.c
 
-The workaround just causes the application to close force before the
-suspend.
+Since isolate_freepages_block() is the only user of split_free_page(),
+would it make sense to move split_free_page() to page_isolation.c as
+well?  I sort of like the idea of making it static and removing from
+header file.
 
-Since I only have Siano devices at hand, I couldn't prove if the problem
-is with our driver or in all USB receivers or only related to Siano
-driver, but exploring the code it seems that everybody are working in
-the same way.
+> I confess I didn't read closely because of the mess in page_alloc.c but
+> the intent seems fine.
 
-Can anyone approve that suspend and hibernate works fine when DVB is
-being watched by an application?
+No worries.  I just needed for a quick comment whether I'm headed the right
+direction. :)
 
-Thanks,
-Doron
+> Hopefully there will be a new version of CMA posted that will be easier
+> to review.
 
+I'll try and create the code no latter then on the weekend so hopefully
+the new version will be sent next week.
+
+-- 
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
+ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
