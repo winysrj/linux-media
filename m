@@ -1,63 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:15034 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755569Ab1KPKwa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Nov 2011 05:52:30 -0500
-Message-ID: <1321440745.30587.28.camel@smile>
-Subject: Re: [PATCH 6/9] as3645a: free resources in case of error properly
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-Date: Wed, 16 Nov 2011 12:52:25 +0200
-In-Reply-To: <201111161137.54083.laurent.pinchart@ideasonboard.com>
-References: <1321374065-20063-3-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <cover.1321379276.git.andriy.shevchenko@linux.intel.com>
-	 <20ff3c96498a0e9e0a1c1d09690fbbf6a59bee15.1321379276.git.andriy.shevchenko@linux.intel.com>
-	 <201111161137.54083.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34110 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754462Ab1KAMts convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Nov 2011 08:49:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "=?utf-8?q?R=C3=A9mi?= Denis-Courmont" <remi@remlab.net>
+Subject: Re: [RFC] Monotonic clock usage in buffer timestamps
+Date: Tue, 1 Nov 2011 13:49:46 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <201111011324.36742.laurent.pinchart@ideasonboard.com> <b3e1d11fbdb6c1fe02954f7b2dd29b01@chewa.net>
+In-Reply-To: <b3e1d11fbdb6c1fe02954f7b2dd29b01@chewa.net>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 8BIT
-Mime-Version: 1.0
+Message-Id: <201111011349.47132.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2011-11-16 at 11:37 +0100, Laurent Pinchart wrote: 
-> > @@ -812,13 +814,12 @@ static int as3645a_probe(struct i2c_client *client,
-> > 
-> >  	flash->led_mode = V4L2_FLASH_LED_MODE_NONE;
-> > 
-> > -	ret = as3645a_init_controls(flash);
-> > -	if (ret < 0) {
-> > -		kfree(flash);
-> > -		return ret;
-> > -	}
-> > -
-> 
-> Would you mind if I replace this code below
-> 
-> >  	return 0;
-> > +
-> > +free_and_quit:
-> > +	v4l2_ctrl_handler_free(&flash->ctrls);
-> > +	kfree(flash);
-> > +	return ret;
-> 
-> with
-> 
-> done:
-> 	if (ret < 0) {
-> 		v4l2_ctrl_handler_free(&flash->ctrls);
-> 		kfree(flash);
-> 	}
-> 
-> 	return ret;
-> 
+Hi Rémi,
 
-I'm okay with it. However, I don't know if the compiler could optimize
-double check here.
+On Tuesday 01 November 2011 13:36:50 Rémi Denis-Courmont wrote:
+> On Tue, 1 Nov 2011 13:24:35 +0100, Laurent Pinchart wrote:
+> > We should instead fix the V4L2 specification to mandate the use of a
+> > monotonic clock (which could then also support hardware timestamps when
+> > they are available). Would such a change be acceptable ?
+> 
+> I'd rather have the real time clock everywhere, than a driver-dependent
+> clock, if it comes to that.
 
+That's my opinion as well. Modifying drivers to use a monotonic clock is easy, 
+and I can provide patches. The real issue is whether this can be accepted, as 
+it would change the spec.
+
+> Nevertheless, I agree that the monotonic clock is better than the real
+> time clock.
+> In user space, VLC, Gstreamer already switched to monotonic a while ago as
+> far as I know.
+> 
+> And I guess there is no way to detect this, other than detect ridiculously
+> large gap between the timestamp and the current clock value?
+
+That's right. We could add a device capability flag if needed, but that 
+wouldn't help older applications that expect system time in the timestamps.
 
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Regards,
+
+Laurent Pinchart
