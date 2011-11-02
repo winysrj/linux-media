@@ -1,306 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:58080 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.8]:49978 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750765Ab1KCOOF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2011 10:14:05 -0400
-Date: Thu, 3 Nov 2011 15:14:00 +0100 (CET)
+	with ESMTP id S1753382Ab1KBS7r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 14:59:47 -0400
+Date: Wed, 2 Nov 2011 19:59:44 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v7] V4L: mx3-camera: prepare to support multi-size buffers
-Message-ID: <Pine.LNX.4.64.1111031511380.16077@axis700.grange>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: Re: [PATCH] media: vb2: vmalloc-based allocator user pointer handling
+In-Reply-To: <201111021453.46902.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1111021949570.19054@axis700.grange>
+References: <1320231122-22518-1-git-send-email-andrzej.p@samsung.com>
+ <201111021453.46902.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prepare the mx3_camera friver to support the new VIDIOC_CREATE_BUFS and
-VIDIOC_PREPARE_BUF ioctl()s. The .queue_setup() vb2 operation must be
-able to handle buffer sizes, provided by the caller, and the
-.buf_prepare() operation must not use the currently configured frame
-format for its operation, which makes it superfluous for this driver.
-Its functionality is moved into .buf_queue().
+On Wed, 2 Nov 2011, Laurent Pinchart wrote:
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Hi Andrzej,
+> 
+> Thanks for the patch.
+> 
+> On Wednesday 02 November 2011 11:52:02 Andrzej Pietrasiewicz wrote:
+> > vmalloc-based allocator user pointer handling
+> > 
+> > Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > ---
+> >  drivers/media/video/videobuf2-vmalloc.c |   86 +++++++++++++++++++++++++++-
+> >  1 files changed, 85 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/videobuf2-vmalloc.c
+> > b/drivers/media/video/videobuf2-vmalloc.c index a3a8842..ee0ee37 100644
+> > --- a/drivers/media/video/videobuf2-vmalloc.c
+> > +++ b/drivers/media/video/videobuf2-vmalloc.c
+> > @@ -12,6 +12,7 @@
+> > 
+> >  #include <linux/module.h>
+> >  #include <linux/mm.h>
+> > +#include <linux/sched.h>
+> >  #include <linux/slab.h>
+> >  #include <linux/vmalloc.h>
+> > 
+> > @@ -20,7 +21,10 @@
+> > 
+> >  struct vb2_vmalloc_buf {
+> >  	void				*vaddr;
+> > +	struct page			**pages;
+> > +	int				write;
+> >  	unsigned long			size;
+> > +	unsigned int			n_pages;
+> >  	atomic_t			refcount;
+> >  	struct vb2_vmarea_handler	handler;
+> >  };
+> > @@ -66,6 +70,83 @@ static void vb2_vmalloc_put(void *buf_priv)
+> >  	}
+> >  }
+> > 
+> > +static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+> > +				     unsigned long size, int write)
+> > +{
+> > +	struct vb2_vmalloc_buf *buf;
+> > +
+> > +	unsigned long first, last;
+> > +	int n_pages_from_user, offset;
+> 
+> Doesn't the kernel coding style prefer one variable declaration per line ?
+
+Wow?... That's something soooo new to me, that I'm (well, almost;-)) 
+prepared to eat my hat, if this is stated in CodingStyle or if checkpatch 
+complains about it...
+
+> 
+> > +
+> > +	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+> > +	if (!buf)
+> > +		return NULL;
+> > +
+> > +	buf->vaddr = NULL;
+
+Technically, this is not needed, since kzalloc() already allocates zeroed 
+memory, but it's up to the author to keep it, if he thinks, that this is 
+important semantically.
+
+> > +	buf->write = write;
+> > +	offset = vaddr & ~PAGE_MASK;
+> > +	buf->size = size;
+> > +
+> > +	first = (vaddr & PAGE_MASK) >> PAGE_SHIFT;
+> > +	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
+> > +	buf->n_pages = last - first + 1;
+> > +	buf->pages = kzalloc(buf->n_pages * sizeof(struct page *), GFP_KERNEL);
+> > +	if (!buf->pages)
+> > +		goto userptr_fail_pages_array_alloc;
+> > +
+> > +	down_read(&current->mm->mmap_sem);
+> > +	n_pages_from_user = get_user_pages(current, current->mm,
+> > +					     vaddr & PAGE_MASK,
+> > +					     buf->n_pages,
+> > +					     write,
+> > +					     1, /* force */
+> > +					     buf->pages,
+> > +					     NULL);
+> > +	up_read(&current->mm->mmap_sem);
+> 
+> This can cause an AB-BA deadlock, and will be reported by deadlock detection 
+> if enabled.
+> 
+> The issue is that the mmap() handler is called by the MM core with current-
+> >mm->mmap_sem held, and then takes the driver's lock before calling 
+> videobuf2's mmap handler. The VIDIOC_QBUF handler, on the other hand, will 
+> first take the driver's lock and will then try to take current->mm->mmap_sem 
+> here.
+> 
+> This can result in a deadlock if both MMAP and USERPTR buffers are used by the 
+> same driver at the same time.
+> 
+> If we assume that MMAP and USERPTR buffers can't be used on the same queue at 
+> the same time (VIDIOC_CREATEBUFS doesn't allow that if I'm not mistaken, so we 
+
+I don't think this is checked in the version, waiting to be pulled in my 
+tree. And I don't remember a patch for this, but we definitely want one, 
+until we have a better solution for this.
+
+> should be safe, at least for now), this can be fixed by having a per-queue 
+> lock in the driver instead of a global device lock. However, that means that 
+> drivers that want to support USERPTR will not be allowed to delegate lock 
+> handling to the V4L2 core and video_ioctl2().
+> 
+> > +	if (n_pages_from_user != buf->n_pages)
+> > +		goto userptr_fail_get_user_pages;
+> > +
+> > +	buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1, PAGE_KERNEL);
+> 
+> Will this create a second kernel mapping ? What if the user tries to pass 
+> framebuffer memory that has been mapped uncacheable to userspace ?
+> 
+> > +
+> > +	if (buf->vaddr) {
+> > +		buf->vaddr += offset;
+> > +		return buf;
+> > +	}
+> 
+> if () statements with a return look like error handling, what about
+> 
+> 	if (buf->vaddr == NULL)
+> 		goto userptr_fail_get_user_pages;
+> 
+> 	buf->vaddr += offset;
+> 	return buf;
+> 
+> > +
+> > +userptr_fail_get_user_pages:
+> > +	printk(KERN_DEBUG "get_user_pages requested/got: %d/%d]\n",
+> > +	       n_pages_from_user, buf->n_pages);
+> 
+> Do we really need that debug printk ?
+
+...and if we _do_ need it, then, I think, pr_debug() is preferred these 
+days.
+
+> 
+> > +	while (--n_pages_from_user >= 0)
+> > +		put_page(buf->pages[n_pages_from_user]);
+> > +	kfree(buf->pages);
+> > +
+> > +userptr_fail_pages_array_alloc:
+> > +	kfree(buf);
+> > +
+> > +	return NULL;
+> > +}
+> > +
+> > +static void vb2_vmalloc_put_userptr(void *buf_priv)
+> > +{
+> > +	struct vb2_vmalloc_buf *buf = buf_priv;
+> > +
+> > +	int i = buf->n_pages;
+> > +	int offset = (unsigned long)buf->vaddr & ~PAGE_MASK;
+> > +
+> > +	printk(KERN_DEBUG "%s: Releasing userspace buffer of %d pages\n",
+> > +	       __func__, buf->n_pages);
+> > +	if (buf->vaddr)
+> > +		vm_unmap_ram((const void *)((unsigned long)buf->vaddr - offset),
+> > +			     buf->n_pages);
+> > +	while (--i >= 0) {
+> 
+> Anything wrong with
+> 
+> for (i = 0; i < buf->n_pages; ++i)
+> 
+> ? :-)
+> 
+> You could then make i an unsigned int, which would match buf->n_pages.
+> 
+> > +		if (buf->write)
+> > +			set_page_dirty_lock(buf->pages[i]);
+> > +		put_page(buf->pages[i]);
+> > +	}
+> > +	kfree(buf->pages);
+> > +	kfree(buf);
+> > +}
+> > +
+> >  static void *vb2_vmalloc_vaddr(void *buf_priv)
+> >  {
+> >  	struct vb2_vmalloc_buf *buf = buf_priv;
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+
+Thanks
+Guennadi
 ---
-
-v7: fix a potential NULL-pointer dereference. Thanks to Mauro for pointing 
-out.
-
- drivers/media/video/mx3_camera.c |  159 ++++++++++++++++++++------------------
- 1 files changed, 83 insertions(+), 76 deletions(-)
-
-diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-index 24c2fe0..fb38e22 100644
---- a/drivers/media/video/mx3_camera.c
-+++ b/drivers/media/video/mx3_camera.c
-@@ -114,6 +114,7 @@ struct mx3_camera_dev {
- 	struct list_head	capture;
- 	spinlock_t		lock;		/* Protects video buffer lists */
- 	struct mx3_camera_buffer *active;
-+	size_t			buf_total;
- 	struct vb2_alloc_ctx	*alloc_ctx;
- 	enum v4l2_field		field;
- 	int			sequence;
-@@ -198,73 +199,46 @@ static int mx3_videobuf_setup(struct vb2_queue *vq,
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx3_camera_dev *mx3_cam = ici->priv;
--	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
--						icd->current_fmt->host_fmt);
--
--	if (bytes_per_line < 0)
--		return bytes_per_line;
-+	int bytes_per_line;
-+	unsigned int height;
- 
- 	if (!mx3_cam->idmac_channel[0])
- 		return -EINVAL;
- 
--	*num_planes = 1;
--
--	mx3_cam->sequence = 0;
--	sizes[0] = bytes_per_line * icd->user_height;
--	alloc_ctxs[0] = mx3_cam->alloc_ctx;
--
--	if (!*count)
--		*count = 32;
--
--	if (sizes[0] * *count > MAX_VIDEO_MEM * 1024 * 1024)
--		*count = MAX_VIDEO_MEM * 1024 * 1024 / sizes[0];
--
--	return 0;
--}
--
--static int mx3_videobuf_prepare(struct vb2_buffer *vb)
--{
--	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
--	struct mx3_camera_dev *mx3_cam = ici->priv;
--	struct idmac_channel *ichan = mx3_cam->idmac_channel[0];
--	struct scatterlist *sg;
--	struct mx3_camera_buffer *buf;
--	size_t new_size;
--	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
-+	if (fmt) {
-+		const struct soc_camera_format_xlate *xlate = soc_camera_xlate_by_fourcc(icd,
-+								fmt->fmt.pix.pixelformat);
-+		if (!xlate)
-+			return -EINVAL;
-+		bytes_per_line = soc_mbus_bytes_per_line(fmt->fmt.pix.width,
-+							 xlate->host_fmt);
-+		height = fmt->fmt.pix.height;
-+	} else {
-+		/* Called from VIDIOC_REQBUFS or in compatibility mode */
-+		bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
- 						icd->current_fmt->host_fmt);
--
-+		height = icd->user_height;
-+	}
- 	if (bytes_per_line < 0)
- 		return bytes_per_line;
- 
--	buf = to_mx3_vb(vb);
--	sg = &buf->sg;
--
--	new_size = bytes_per_line * icd->user_height;
--
--	if (vb2_plane_size(vb, 0) < new_size) {
--		dev_err(icd->parent, "Buffer too small (%lu < %zu)\n",
--			vb2_plane_size(vb, 0), new_size);
--		return -ENOBUFS;
--	}
-+	sizes[0] = bytes_per_line * height;
- 
--	if (buf->state == CSI_BUF_NEEDS_INIT) {
--		sg_dma_address(sg)	= vb2_dma_contig_plane_dma_addr(vb, 0);
--		sg_dma_len(sg)		= new_size;
-+	alloc_ctxs[0] = mx3_cam->alloc_ctx;
- 
--		buf->txd = ichan->dma_chan.device->device_prep_slave_sg(
--			&ichan->dma_chan, sg, 1, DMA_FROM_DEVICE,
--			DMA_PREP_INTERRUPT);
--		if (!buf->txd)
--			return -EIO;
-+	if (!vq->num_buffers)
-+		mx3_cam->sequence = 0;
- 
--		buf->txd->callback_param	= buf->txd;
--		buf->txd->callback		= mx3_cam_dma_done;
-+	if (!*count)
-+		*count = 2;
- 
--		buf->state = CSI_BUF_PREPARED;
--	}
-+	/* If *num_planes != 0, we have already verified *count. */
-+	if (!*num_planes &&
-+	    sizes[0] * *count + mx3_cam->buf_total > MAX_VIDEO_MEM * 1024 * 1024)
-+		*count = (MAX_VIDEO_MEM * 1024 * 1024 - mx3_cam->buf_total) /
-+			sizes[0];
- 
--	vb2_set_plane_payload(vb, 0, new_size);
-+	*num_planes = 1;
- 
- 	return 0;
- }
-@@ -288,28 +260,58 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx3_camera_dev *mx3_cam = ici->priv;
- 	struct mx3_camera_buffer *buf = to_mx3_vb(vb);
--	struct dma_async_tx_descriptor *txd = buf->txd;
--	struct idmac_channel *ichan = to_idmac_chan(txd->chan);
-+	struct scatterlist *sg = &buf->sg;
-+	struct dma_async_tx_descriptor *txd;
-+	struct idmac_channel *ichan = mx3_cam->idmac_channel[0];
- 	struct idmac_video_param *video = &ichan->params.video;
--	dma_cookie_t cookie;
--	u32 fourcc = icd->current_fmt->host_fmt->fourcc;
-+	const struct soc_mbus_pixelfmt *host_fmt = icd->current_fmt->host_fmt;
-+	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width, host_fmt);
- 	unsigned long flags;
-+	dma_cookie_t cookie;
-+	size_t new_size;
-+
-+	BUG_ON(bytes_per_line <= 0);
-+
-+	new_size = bytes_per_line * icd->user_height;
-+
-+	if (vb2_plane_size(vb, 0) < new_size) {
-+		dev_err(icd->parent, "Buffer #%d too small (%lu < %zu)\n",
-+			vb->v4l2_buf.index, vb2_plane_size(vb, 0), new_size);
-+		goto error;
-+	}
-+
-+	if (buf->state == CSI_BUF_NEEDS_INIT) {
-+		sg_dma_address(sg)	= vb2_dma_contig_plane_dma_addr(vb, 0);
-+		sg_dma_len(sg)		= new_size;
-+
-+		txd = ichan->dma_chan.device->device_prep_slave_sg(
-+			&ichan->dma_chan, sg, 1, DMA_FROM_DEVICE,
-+			DMA_PREP_INTERRUPT);
-+		if (!txd)
-+			goto error;
-+
-+		txd->callback_param	= txd;
-+		txd->callback		= mx3_cam_dma_done;
-+
-+		buf->state		= CSI_BUF_PREPARED;
-+		buf->txd		= txd;
-+	} else {
-+		txd = buf->txd;
-+	}
-+
-+	vb2_set_plane_payload(vb, 0, new_size);
- 
- 	/* This is the configuration of one sg-element */
--	video->out_pixel_fmt	= fourcc_to_ipu_pix(fourcc);
-+	video->out_pixel_fmt = fourcc_to_ipu_pix(host_fmt->fourcc);
- 
- 	if (video->out_pixel_fmt == IPU_PIX_FMT_GENERIC) {
- 		/*
--		 * If the IPU DMA channel is configured to transport
--		 * generic 8-bit data, we have to set up correctly the
--		 * geometry parameters upon the current pixel format.
--		 * So, since the DMA horizontal parameters are expressed
--		 * in bytes not pixels, convert these in the right unit.
-+		 * If the IPU DMA channel is configured to transfer generic
-+		 * 8-bit data, we have to set up the geometry parameters
-+		 * correctly, according to the current pixel format. The DMA
-+		 * horizontal parameters in this case are expressed in bytes,
-+		 * not in pixels.
- 		 */
--		int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
--						icd->current_fmt->host_fmt);
--		BUG_ON(bytes_per_line <= 0);
--
- 		video->out_width	= bytes_per_line;
- 		video->out_height	= icd->user_height;
- 		video->out_stride	= bytes_per_line;
-@@ -353,6 +355,7 @@ static void mx3_videobuf_queue(struct vb2_buffer *vb)
- 		mx3_cam->active = NULL;
- 
- 	spin_unlock_irqrestore(&mx3_cam->lock, flags);
-+error:
- 	vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
- }
- 
-@@ -386,17 +389,24 @@ static void mx3_videobuf_release(struct vb2_buffer *vb)
- 	}
- 
- 	spin_unlock_irqrestore(&mx3_cam->lock, flags);
-+
-+	mx3_cam->buf_total -= vb2_plane_size(vb, 0);
- }
- 
- static int mx3_videobuf_init(struct vb2_buffer *vb)
- {
-+	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+	struct mx3_camera_dev *mx3_cam = ici->priv;
- 	struct mx3_camera_buffer *buf = to_mx3_vb(vb);
-+
- 	/* This is for locking debugging only */
- 	INIT_LIST_HEAD(&buf->queue);
- 	sg_init_table(&buf->sg, 1);
- 
- 	buf->state = CSI_BUF_NEEDS_INIT;
--	buf->txd = NULL;
-+
-+	mx3_cam->buf_total += vb2_plane_size(vb, 0);
- 
- 	return 0;
- }
-@@ -407,13 +417,12 @@ static int mx3_stop_streaming(struct vb2_queue *q)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx3_camera_dev *mx3_cam = ici->priv;
- 	struct idmac_channel *ichan = mx3_cam->idmac_channel[0];
--	struct dma_chan *chan;
- 	struct mx3_camera_buffer *buf, *tmp;
- 	unsigned long flags;
- 
- 	if (ichan) {
--		chan = &ichan->dma_chan;
--		chan->device->device_control(chan, DMA_TERMINATE_ALL, 0);
-+		struct dma_chan *chan = &ichan->dma_chan;
-+		chan->device->device_control(chan, DMA_PAUSE, 0);
- 	}
- 
- 	spin_lock_irqsave(&mx3_cam->lock, flags);
-@@ -421,8 +430,8 @@ static int mx3_stop_streaming(struct vb2_queue *q)
- 	mx3_cam->active = NULL;
- 
- 	list_for_each_entry_safe(buf, tmp, &mx3_cam->capture, queue) {
--		buf->state = CSI_BUF_NEEDS_INIT;
- 		list_del_init(&buf->queue);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
- 	}
- 
- 	spin_unlock_irqrestore(&mx3_cam->lock, flags);
-@@ -432,7 +441,6 @@ static int mx3_stop_streaming(struct vb2_queue *q)
- 
- static struct vb2_ops mx3_videobuf_ops = {
- 	.queue_setup	= mx3_videobuf_setup,
--	.buf_prepare	= mx3_videobuf_prepare,
- 	.buf_queue	= mx3_videobuf_queue,
- 	.buf_cleanup	= mx3_videobuf_release,
- 	.buf_init	= mx3_videobuf_init,
-@@ -516,6 +524,7 @@ static int mx3_camera_add_device(struct soc_camera_device *icd)
- 
- 	mx3_camera_activate(mx3_cam, icd);
- 
-+	mx3_cam->buf_total = 0;
- 	mx3_cam->icd = icd;
- 
- 	dev_info(icd->parent, "MX3 Camera driver attached to camera %d\n",
-@@ -1263,8 +1272,6 @@ static int __devexit mx3_camera_remove(struct platform_device *pdev)
- 
- 	dmaengine_put();
- 
--	dev_info(&pdev->dev, "i.MX3x Camera driver unloaded\n");
--
- 	return 0;
- }
- 
--- 
-1.7.2.5
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
