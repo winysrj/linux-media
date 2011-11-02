@@ -1,123 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.162]:62630 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754300Ab1K1Tqg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 14:46:36 -0500
-From: linuxtv@stefanringel.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, d.belimov@gmail.com,
-	Stefan Ringel <linuxtv@stefanringel.de>
-Subject: [PATCH 3/5] tm6000: bugfix interrupt reset
-Date: Mon, 28 Nov 2011 20:46:18 +0100
-Message-Id: <1322509580-14460-3-git-send-email-linuxtv@stefanringel.de>
-In-Reply-To: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de>
-References: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de>
+Received: from cantor2.suse.de ([195.135.220.15]:34574 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932707Ab1KBPKz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Nov 2011 11:10:55 -0400
+Date: Wed, 2 Nov 2011 08:10:09 -0700
+From: Greg KH <gregkh@suse.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: devel@driverdev.osuosl.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/3] Move media staging drivers to staging/media
+Message-ID: <20111102151009.GA22699@suse.de>
+References: <20111102094509.4954fead@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20111102094509.4954fead@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <linuxtv@stefanringel.de>
+On Wed, Nov 02, 2011 at 09:45:09AM -0200, Mauro Carvalho Chehab wrote:
+> Greg,
+> 
+> As agreed, this is the patches that move media drivers to their
+> own places. Basically, cx25821 now seems ready to be at the standard
+> place, while the other drivers should still be in staging for a while.
+> 
+> The cxd2099 is a special case. This is an optional driver for handling
+> encrypted DVB streams. It abuses of the DVB API and, while we don't
+> have a proper way for handling it, we should keep it at staging, as
+> its API will change after we add proper support for it. According with
+> KS Workshop discussions, the proper way seems to add Media Controller
+> capabilities for DVB, and allow changing the DVB pipelines to add
+> a decriptor if/when needed.
+> 
+> PS.: I'll likely merge patch 3 with patch 2 when submitting it
+> upstream.
 
-Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
----
- drivers/media/video/tm6000/tm6000-core.c  |   49 -----------------------------
- drivers/media/video/tm6000/tm6000-video.c |   21 ++++++++++--
- 2 files changed, 17 insertions(+), 53 deletions(-)
+That would be great, please feel free to add:
+	Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+to all of these and send them to Linus through your tree.
 
-diff --git a/drivers/media/video/tm6000/tm6000-core.c b/drivers/media/video/tm6000/tm6000-core.c
-index c007e6d..920299e 100644
---- a/drivers/media/video/tm6000/tm6000-core.c
-+++ b/drivers/media/video/tm6000/tm6000-core.c
-@@ -599,55 +599,6 @@ int tm6000_init(struct tm6000_core *dev)
- 	return rc;
- }
- 
--int tm6000_reset(struct tm6000_core *dev)
--{
--	int pipe;
--	int err;
--
--	msleep(500);
--
--	err = usb_set_interface(dev->udev, dev->isoc_in.bInterfaceNumber, 0);
--	if (err < 0) {
--		tm6000_err("failed to select interface %d, alt. setting 0\n",
--				dev->isoc_in.bInterfaceNumber);
--		return err;
--	}
--
--	err = usb_reset_configuration(dev->udev);
--	if (err < 0) {
--		tm6000_err("failed to reset configuration\n");
--		return err;
--	}
--
--	if ((dev->quirks & TM6000_QUIRK_NO_USB_DELAY) == 0)
--		msleep(5);
--
--	/*
--	 * Not all devices have int_in defined
--	 */
--	if (!dev->int_in.endp)
--		return 0;
--
--	err = usb_set_interface(dev->udev, dev->isoc_in.bInterfaceNumber, 2);
--	if (err < 0) {
--		tm6000_err("failed to select interface %d, alt. setting 2\n",
--				dev->isoc_in.bInterfaceNumber);
--		return err;
--	}
--
--	msleep(5);
--
--	pipe = usb_rcvintpipe(dev->udev,
--			dev->int_in.endp->desc.bEndpointAddress & USB_ENDPOINT_NUMBER_MASK);
--
--	err = usb_clear_halt(dev->udev, pipe);
--	if (err < 0) {
--		tm6000_err("usb_clear_halt failed: %d\n", err);
--		return err;
--	}
--
--	return 0;
--}
- 
- int tm6000_set_audio_bitrate(struct tm6000_core *dev, int bitrate)
- {
-diff --git a/drivers/media/video/tm6000/tm6000-video.c b/drivers/media/video/tm6000/tm6000-video.c
-index 1e5ace0..4db3535 100644
---- a/drivers/media/video/tm6000/tm6000-video.c
-+++ b/drivers/media/video/tm6000/tm6000-video.c
-@@ -1609,12 +1609,25 @@ static int tm6000_release(struct file *file)
- 
- 		tm6000_uninit_isoc(dev);
- 
-+		/* Stop interrupt USB pipe */
-+		tm6000_ir_int_stop(dev);
-+
-+		usb_reset_configuration(dev->udev);
-+
-+		if (&dev->int_in)
-+			usb_set_interface(dev->udev,
-+			dev->isoc_in.bInterfaceNumber,
-+			2);
-+		else
-+			usb_set_interface(dev->udev,
-+			dev->isoc_in.bInterfaceNumber,
-+			0);
-+
-+		/* Start interrupt USB pipe */
-+		tm6000_ir_int_start(dev);
-+
- 		if (!fh->radio)
- 			videobuf_mmap_free(&fh->vb_vidq);
--
--		err = tm6000_reset(dev);
--		if (err < 0)
--			dev_err(&vdev->dev, "reset failed: %d\n", err);
- 	}
- 
- 	kfree(fh);
--- 
-1.7.7
+thanks,
 
+greg k-h
