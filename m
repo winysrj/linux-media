@@ -1,95 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11942 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752397Ab1KXSZP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 13:25:15 -0500
-Message-ID: <4ECE8C06.2070302@redhat.com>
-Date: Thu, 24 Nov 2011 16:25:10 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:51354 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755735Ab1KBPLS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 11:11:18 -0400
+Received: by iage36 with SMTP id e36so215377iag.19
+        for <linux-media@vger.kernel.org>; Wed, 02 Nov 2011 08:11:18 -0700 (PDT)
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
-References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com> <4ECE79F5.9000402@linuxtv.org> <201111241844.23292.hverkuil@xs4all.nl> <4ECE8434.5060106@linuxtv.org> <4ECE85CE.7040807@redhat.com> <4ECE87EA.9000001@linuxtv.org>
-In-Reply-To: <4ECE87EA.9000001@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAL9G6WVCqw4vLm+Ew-jfRPosvHBxyTM4QUoL0P6-UXEH_L4tzw@mail.gmail.com>
+References: <CAL9G6WV=4xxara7vw+jRfydnwqEoc4_qrz6p_z_wowDeEV0scA@mail.gmail.com>
+	<CAGoCfiy=FKo5vRiAV8m-maRZ7aQfmgdivQBrhGSfjF-NGZ=Lpg@mail.gmail.com>
+	<CAOcJUbw8ASb9fqeGQJyvod=03-Yi8MLEhjYL3oTsZztDhMbNiw@mail.gmail.com>
+	<CAGoCfizk7jsKcCSzhyz0PWtj3yUidB_vjjYTCoZ0nfj9L60u5Q@mail.gmail.com>
+	<CAOcJUbz8j6UrLeEKXVOJ+6sf40cbZ_Cp1C6u+GCMkqrRbLVDLQ@mail.gmail.com>
+	<CAL9G6WVCqw4vLm+Ew-jfRPosvHBxyTM4QUoL0P6-UXEH_L4tzw@mail.gmail.com>
+Date: Wed, 2 Nov 2011 11:11:17 -0400
+Message-ID: <CAOcJUbzJZTirAsAgS7=FiBdg3L4bNeTVCp6tD9cFrUfqwD3azg@mail.gmail.com>
+Subject: Re: Hauppauge WIN-TV DUET HD
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Josu Lazkano <josu.lazkano@gmail.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 24-11-2011 16:07, Andreas Oberritter escreveu:
-> On 24.11.2011 18:58, Mauro Carvalho Chehab wrote:
->> Em 24-11-2011 15:51, Andreas Oberritter escreveu:
->>> On 24.11.2011 18:44, Hans Verkuil wrote:
->>>> On Thursday, November 24, 2011 18:08:05 Andreas Oberritter wrote:
->>>>> Don't break existing Userspace APIs for no reason! It's OK to add the
->>>>> new API, but - pretty please - don't just blindly remove audio.h and
->>>>> video.h. They are in use since many years by av7110, out-of-tree drivers
->>>>> *and more importantly* by applications. Yes, I know, you'd like to see
->>>>> those out-of-tree drivers merged, but it isn't possible for many
->>>>> reasons. And even if they were merged, you'd say "Port them and your
->>>>> apps to V4L". No! That's not an option.
->>>>
->>>> I'm not breaking anything. All apps will still work.
->>>>
->>>> One option (and it depends on whether people like it or not) is to have
->>>> audio.h, video.h and osd.h just include av7110.h and add a #warning
->>>> that these headers need to be replaced by the new av7110.h.
->>>>
->>>> And really remove them at some point in the future.
->>>>
->>>> But the important thing to realize is that the ABI hasn't changed (unless
->>>> I made a mistake somewhere).
->>>
->>> So why don't you just leave the headers where they are and add a notice
->>> about the new V4L API as a comment?
->>>
->>> What you proposed breaks compilation. If you add a warning, it breaks
->>> compilation for programs compiled with -Werror. Both are regressions.
->>
->> I don't mind doing it for 3.3 kernel, and add a note at
->> Documentation/feature-removal-schedule.txt that the
->> headers will go away on 3.4. This should give distributions
->> and app developers enough time to prevent build failures, and
->> prepare for the upcoming changes.
-> 
-> Are you serious?
-> 
-> Breaking things that worked well for many years - for an artificially
-> invented reason - is so annoying, I can't even find the words to express
-> how much this sucks.
+On Wed, Nov 2, 2011 at 10:53 AM, Josu Lazkano <josu.lazkano@gmail.com> wrote:
+> Hello, I have no trouble, I have not buy it yet.
+>
+> I have some DVB-T (most of them with af9015), and I am having lots of
+> I2C problems.
+>
+> I just want to know that it is working as dual tuner.
 
-Andreas,
+Josu,
 
-All the in-kernel API's are there to support in-kernel drivers.
+Yes, it works correctly as a dual tuner.  This is one of Hauppauge's
+more popular tuner sticks for use both in Windows *and* Linux.
 
-Out of tree drivers can do whatever they want. As you likely know, several STB 
-vendors have their own API's. 
+Best regards,
 
-Some use some variants of DVBv3 or DVBv5, and some use their own proprietary
-API's, that are even incompatible with DVB (and some even provide both).
-
-Even the ones that use DVBv3 (or v5) have their own implementation that diverges
-from the upstream one.
-
-Provided that such vendors don't violate the Kernel GPLv2 license where it applies, 
-they're free do do whatever they want, forking the DVB API, or creating their own
-stacks.
-
-So, keeping the in-kernel unused ioctl's don't bring any real benefit, as vendors
-can still do their forks, and applications designed to work with those hardware 
-need to support the vendor's stack.
-
-On the other hand, keeping an outdated API that doesn't fit well for the vendors
-that want to upstream their STB drivers is bad, as it creates confusion for
-them, and prevents innovation, as they may try to workaround on the limitation of
-an API designed for the first generation DVB standards.
-
-That's what Hans patches are addressing.
-
-If you have a better approach, feel free to suggest it, provided that, at the end,
-the API that aren't used by non-legacy drivers are removed (or moved to driver's
-specific ioctl's).
-
-Regards,
-Mauro
+Mike
