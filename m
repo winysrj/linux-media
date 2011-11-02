@@ -1,276 +1,334 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1501 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756095Ab1KXNjZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 08:39:25 -0500
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:40590 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752143Ab1KBKch (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 06:32:37 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 03/12] ivtv: implement new decoder command ioctls.
-Date: Thu, 24 Nov 2011 14:39:00 +0100
-Message-Id: <b20dbf75adf4e71821725bb3f7efa7bae631aaa1.1322141686.git.hans.verkuil@cisco.com>
-In-Reply-To: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
-References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <07c1a0737016dcf588e866cde0f3bc1a59e35bfb.1322141686.git.hans.verkuil@cisco.com>
-References: <07c1a0737016dcf588e866cde0f3bc1a59e35bfb.1322141686.git.hans.verkuil@cisco.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 4/5] v4l2-event: Add v4l2_subscribed_event_ops
+Date: Wed, 2 Nov 2011 11:31:51 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1320228805-9097-1-git-send-email-hdegoede@redhat.com> <1320228805-9097-5-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1320228805-9097-5-git-send-email-hdegoede@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111021131.51457.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wednesday 02 November 2011 11:13:24 Hans de Goede wrote:
+> Just like with ctrl events, drivers may want to get called back on
+> listener add / remove for other event types too. Rather then special
+> casing all of this in subscribe / unsubscribe event it is better to
+> use ops for this.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/ivtv/ivtv-driver.c  |    2 +-
- drivers/media/video/ivtv/ivtv-fileops.c |    2 +-
- drivers/media/video/ivtv/ivtv-ioctl.c   |  106 +++++++++++++++++++-----------
- drivers/media/video/ivtv/ivtv-streams.c |    4 +-
- 4 files changed, 71 insertions(+), 43 deletions(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
-index 41108a9..7ee7594 100644
---- a/drivers/media/video/ivtv/ivtv-driver.c
-+++ b/drivers/media/video/ivtv/ivtv-driver.c
-@@ -1378,7 +1378,7 @@ static void ivtv_remove(struct pci_dev *pdev)
- 			else
- 				type = IVTV_DEC_STREAM_TYPE_MPG;
- 			ivtv_stop_v4l2_decode_stream(&itv->streams[type],
--				VIDEO_CMD_STOP_TO_BLACK | VIDEO_CMD_STOP_IMMEDIATELY, 0);
-+				V4L2_DEC_CMD_STOP_TO_BLACK | V4L2_DEC_CMD_STOP_IMMEDIATELY, 0);
- 		}
- 		ivtv_halt_firmware(itv);
- 	}
-diff --git a/drivers/media/video/ivtv/ivtv-fileops.c b/drivers/media/video/ivtv/ivtv-fileops.c
-index 38f0522..66228ee 100644
---- a/drivers/media/video/ivtv/ivtv-fileops.c
-+++ b/drivers/media/video/ivtv/ivtv-fileops.c
-@@ -899,7 +899,7 @@ int ivtv_v4l2_close(struct file *filp)
- 	} else if (s->type >= IVTV_DEC_STREAM_TYPE_MPG) {
- 		struct ivtv_stream *s_vout = &itv->streams[IVTV_DEC_STREAM_TYPE_VOUT];
- 
--		ivtv_stop_decoding(id, VIDEO_CMD_STOP_TO_BLACK | VIDEO_CMD_STOP_IMMEDIATELY, 0);
-+		ivtv_stop_decoding(id, V4L2_DEC_CMD_STOP_TO_BLACK | V4L2_DEC_CMD_STOP_IMMEDIATELY, 0);
- 
- 		/* If all output streams are closed, and if the user doesn't have
- 		   IVTV_DEC_STREAM_TYPE_VOUT open, then disable CC on TV-out. */
-diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
-index ecafa69..c84e325 100644
---- a/drivers/media/video/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/video/ivtv/ivtv-ioctl.c
-@@ -244,34 +244,40 @@ static int ivtv_validate_speed(int cur_speed, int new_speed)
- }
- 
- static int ivtv_video_command(struct ivtv *itv, struct ivtv_open_id *id,
--		struct video_command *vc, int try)
-+		struct v4l2_decoder_cmd *dc, int try)
- {
- 	struct ivtv_stream *s = &itv->streams[IVTV_DEC_STREAM_TYPE_MPG];
- 
- 	if (!(itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT))
- 		return -EINVAL;
- 
--	switch (vc->cmd) {
--	case VIDEO_CMD_PLAY: {
--		vc->flags = 0;
--		vc->play.speed = ivtv_validate_speed(itv->speed, vc->play.speed);
--		if (vc->play.speed < 0)
--			vc->play.format = VIDEO_PLAY_FMT_GOP;
-+	switch (dc->cmd) {
-+	case V4L2_DEC_CMD_START: {
-+		dc->flags &= V4L2_DEC_CMD_START_MUTE_AUDIO;
-+		dc->start.speed = ivtv_validate_speed(itv->speed, dc->start.speed);
-+		if (dc->start.speed < 0)
-+			dc->start.format = V4L2_DEC_START_FMT_GOP;
-+		else
-+			dc->start.format = V4L2_DEC_START_FMT_NONE;
-+		if (dc->start.speed != 500 && dc->start.speed != 1500)
-+			dc->flags = dc->start.speed == 1000 ? 0 :
-+					V4L2_DEC_CMD_START_MUTE_AUDIO;
- 		if (try) break;
- 
-+		itv->speed_mute_audio = dc->flags & V4L2_DEC_CMD_START_MUTE_AUDIO;
- 		if (ivtv_set_output_mode(itv, OUT_MPG) != OUT_MPG)
- 			return -EBUSY;
- 		if (test_and_clear_bit(IVTV_F_I_DEC_PAUSED, &itv->i_flags)) {
- 			/* forces ivtv_set_speed to be called */
- 			itv->speed = 0;
- 		}
--		return ivtv_start_decoding(id, vc->play.speed);
-+		return ivtv_start_decoding(id, dc->start.speed);
- 	}
- 
--	case VIDEO_CMD_STOP:
--		vc->flags &= VIDEO_CMD_STOP_IMMEDIATELY|VIDEO_CMD_STOP_TO_BLACK;
--		if (vc->flags & VIDEO_CMD_STOP_IMMEDIATELY)
--			vc->stop.pts = 0;
-+	case V4L2_DEC_CMD_STOP:
-+		dc->flags &= V4L2_DEC_CMD_STOP_IMMEDIATELY | V4L2_DEC_CMD_STOP_TO_BLACK;
-+		if (dc->flags & V4L2_DEC_CMD_STOP_IMMEDIATELY)
-+			dc->stop.pts = 0;
- 		if (try) break;
- 		if (atomic_read(&itv->decoding) == 0)
- 			return 0;
-@@ -279,22 +285,22 @@ static int ivtv_video_command(struct ivtv *itv, struct ivtv_open_id *id,
- 			return -EBUSY;
- 
- 		itv->output_mode = OUT_NONE;
--		return ivtv_stop_v4l2_decode_stream(s, vc->flags, vc->stop.pts);
-+		return ivtv_stop_v4l2_decode_stream(s, dc->flags, dc->stop.pts);
- 
--	case VIDEO_CMD_FREEZE:
--		vc->flags &= VIDEO_CMD_FREEZE_TO_BLACK;
-+	case V4L2_DEC_CMD_PAUSE:
-+		dc->flags &= V4L2_DEC_CMD_PAUSE_TO_BLACK;
- 		if (try) break;
- 		if (itv->output_mode != OUT_MPG)
- 			return -EBUSY;
- 		if (atomic_read(&itv->decoding) > 0) {
- 			ivtv_vapi(itv, CX2341X_DEC_PAUSE_PLAYBACK, 1,
--				(vc->flags & VIDEO_CMD_FREEZE_TO_BLACK) ? 1 : 0);
-+				(dc->flags & V4L2_DEC_CMD_PAUSE_TO_BLACK) ? 1 : 0);
- 			set_bit(IVTV_F_I_DEC_PAUSED, &itv->i_flags);
- 		}
- 		break;
- 
--	case VIDEO_CMD_CONTINUE:
--		vc->flags = 0;
-+	case V4L2_DEC_CMD_RESUME:
-+		dc->flags = 0;
- 		if (try) break;
- 		if (itv->output_mode != OUT_MPG)
- 			return -EBUSY;
-@@ -1568,6 +1574,24 @@ static int ivtv_log_status(struct file *file, void *fh)
- 	return 0;
- }
- 
-+static int ivtv_decoder_cmd(struct file *file, void *fh, struct v4l2_decoder_cmd *dec)
-+{
-+	struct ivtv_open_id *id = fh2id(file->private_data);
-+	struct ivtv *itv = id->itv;
-+
-+	IVTV_DEBUG_IOCTL("VIDIOC_DECODER_CMD %d\n", dec->cmd);
-+	return ivtv_video_command(itv, id, dec, false);
-+}
-+
-+static int ivtv_try_decoder_cmd(struct file *file, void *fh, struct v4l2_decoder_cmd *dec)
-+{
-+	struct ivtv_open_id *id = fh2id(file->private_data);
-+	struct ivtv *itv = id->itv;
-+
-+	IVTV_DEBUG_IOCTL("VIDIOC_TRY_DECODER_CMD %d\n", dec->cmd);
-+	return ivtv_video_command(itv, id, dec, true);
-+}
-+
- static int ivtv_decoder_ioctls(struct file *filp, unsigned int cmd, void *arg)
- {
- 	struct ivtv_open_id *id = fh2id(filp->private_data);
-@@ -1662,52 +1686,54 @@ static int ivtv_decoder_ioctls(struct file *filp, unsigned int cmd, void *arg)
- 	}
- 
- 	case VIDEO_PLAY: {
--		struct video_command vc;
-+		struct v4l2_decoder_cmd dc;
- 
- 		IVTV_DEBUG_IOCTL("VIDEO_PLAY\n");
--		memset(&vc, 0, sizeof(vc));
--		vc.cmd = VIDEO_CMD_PLAY;
--		return ivtv_video_command(itv, id, &vc, 0);
-+		memset(&dc, 0, sizeof(dc));
-+		dc.cmd = V4L2_DEC_CMD_START;
-+		return ivtv_video_command(itv, id, &dc, 0);
- 	}
- 
- 	case VIDEO_STOP: {
--		struct video_command vc;
-+		struct v4l2_decoder_cmd dc;
- 
- 		IVTV_DEBUG_IOCTL("VIDEO_STOP\n");
--		memset(&vc, 0, sizeof(vc));
--		vc.cmd = VIDEO_CMD_STOP;
--		vc.flags = VIDEO_CMD_STOP_TO_BLACK | VIDEO_CMD_STOP_IMMEDIATELY;
--		return ivtv_video_command(itv, id, &vc, 0);
-+		memset(&dc, 0, sizeof(dc));
-+		dc.cmd = V4L2_DEC_CMD_STOP;
-+		dc.flags = V4L2_DEC_CMD_STOP_TO_BLACK | V4L2_DEC_CMD_STOP_IMMEDIATELY;
-+		return ivtv_video_command(itv, id, &dc, 0);
- 	}
- 
- 	case VIDEO_FREEZE: {
--		struct video_command vc;
-+		struct v4l2_decoder_cmd dc;
- 
- 		IVTV_DEBUG_IOCTL("VIDEO_FREEZE\n");
--		memset(&vc, 0, sizeof(vc));
--		vc.cmd = VIDEO_CMD_FREEZE;
--		return ivtv_video_command(itv, id, &vc, 0);
-+		memset(&dc, 0, sizeof(dc));
-+		dc.cmd = V4L2_DEC_CMD_PAUSE;
-+		return ivtv_video_command(itv, id, &dc, 0);
- 	}
- 
- 	case VIDEO_CONTINUE: {
--		struct video_command vc;
-+		struct v4l2_decoder_cmd dc;
- 
- 		IVTV_DEBUG_IOCTL("VIDEO_CONTINUE\n");
--		memset(&vc, 0, sizeof(vc));
--		vc.cmd = VIDEO_CMD_CONTINUE;
--		return ivtv_video_command(itv, id, &vc, 0);
-+		memset(&dc, 0, sizeof(dc));
-+		dc.cmd = V4L2_DEC_CMD_RESUME;
-+		return ivtv_video_command(itv, id, &dc, 0);
- 	}
- 
- 	case VIDEO_COMMAND:
- 	case VIDEO_TRY_COMMAND: {
--		struct video_command *vc = arg;
-+		/* Note: struct v4l2_decoder_cmd has the same layout as
-+		   struct video_command */
-+		struct v4l2_decoder_cmd *dc = arg;
- 		int try = (cmd == VIDEO_TRY_COMMAND);
- 
- 		if (try)
--			IVTV_DEBUG_IOCTL("VIDEO_TRY_COMMAND %d\n", vc->cmd);
-+			IVTV_DEBUG_IOCTL("VIDEO_TRY_COMMAND %d\n", dc->cmd);
- 		else
--			IVTV_DEBUG_IOCTL("VIDEO_COMMAND %d\n", vc->cmd);
--		return ivtv_video_command(itv, id, vc, try);
-+			IVTV_DEBUG_IOCTL("VIDEO_COMMAND %d\n", dc->cmd);
-+		return ivtv_video_command(itv, id, dc, try);
- 	}
- 
- 	case VIDEO_GET_EVENT: {
-@@ -1901,6 +1927,8 @@ static const struct v4l2_ioctl_ops ivtv_ioctl_ops = {
- 	.vidioc_enum_fmt_vid_cap 	    = ivtv_enum_fmt_vid_cap,
- 	.vidioc_encoder_cmd  		    = ivtv_encoder_cmd,
- 	.vidioc_try_encoder_cmd 	    = ivtv_try_encoder_cmd,
-+	.vidioc_decoder_cmd		    = ivtv_decoder_cmd,
-+	.vidioc_try_decoder_cmd		    = ivtv_try_decoder_cmd,
- 	.vidioc_enum_fmt_vid_out 	    = ivtv_enum_fmt_vid_out,
- 	.vidioc_g_fmt_vid_cap 		    = ivtv_g_fmt_vid_cap,
- 	.vidioc_g_fmt_vbi_cap		    = ivtv_g_fmt_vbi_cap,
-diff --git a/drivers/media/video/ivtv/ivtv-streams.c b/drivers/media/video/ivtv/ivtv-streams.c
-index e7794dc..75226b7 100644
---- a/drivers/media/video/ivtv/ivtv-streams.c
-+++ b/drivers/media/video/ivtv/ivtv-streams.c
-@@ -891,7 +891,7 @@ int ivtv_stop_v4l2_decode_stream(struct ivtv_stream *s, int flags, u64 pts)
- 	IVTV_DEBUG_INFO("Stop Decode at %llu, flags: %x\n", (unsigned long long)pts, flags);
- 
- 	/* Stop Decoder */
--	if (!(flags & VIDEO_CMD_STOP_IMMEDIATELY) || pts) {
-+	if (!(flags & V4L2_DEC_CMD_STOP_IMMEDIATELY) || pts) {
- 		u32 tmp = 0;
- 
- 		/* Wait until the decoder is no longer running */
-@@ -911,7 +911,7 @@ int ivtv_stop_v4l2_decode_stream(struct ivtv_stream *s, int flags, u64 pts)
- 				break;
- 		}
- 	}
--	ivtv_vapi(itv, CX2341X_DEC_STOP_PLAYBACK, 3, flags & VIDEO_CMD_STOP_TO_BLACK, 0, 0);
-+	ivtv_vapi(itv, CX2341X_DEC_STOP_PLAYBACK, 3, flags & V4L2_DEC_CMD_STOP_TO_BLACK, 0, 0);
- 
- 	/* turn off notification of dual/stereo mode change */
- 	ivtv_vapi(itv, CX2341X_DEC_SET_EVENT_NOTIFICATION, 4, 0, 0, IVTV_IRQ_DEC_AUD_MODE_CHG, -1);
--- 
-1.7.7.3
-
+> ---
+>  Documentation/video4linux/v4l2-framework.txt |   28 ++++++++++---
+>  drivers/media/video/ivtv/ivtv-ioctl.c        |    2 +-
+>  drivers/media/video/omap3isp/ispccdc.c       |    2 +-
+>  drivers/media/video/omap3isp/ispstat.c       |    2 +-
+>  drivers/media/video/pwc/pwc-v4l.c            |    2 +-
+>  drivers/media/video/v4l2-event.c             |   54
+> ++++++++++++++++++++----- drivers/media/video/vivi.c                   |  
+>  2 +-
+>  include/media/v4l2-event.h                   |   24 ++++++++---
+>  8 files changed, 86 insertions(+), 30 deletions(-)
+> 
+> diff --git a/Documentation/video4linux/v4l2-framework.txt
+> b/Documentation/video4linux/v4l2-framework.txt index f8dcabf..16eb8af
+> 100644
+> --- a/Documentation/video4linux/v4l2-framework.txt
+> +++ b/Documentation/video4linux/v4l2-framework.txt
+> @@ -930,21 +930,35 @@ fast.
+> 
+>  Useful functions:
+> 
+> -- v4l2_event_queue()
+> +void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event
+> *ev)
+> 
+>    Queue events to video device. The driver's only responsibility is to
+> fill in the type and the data fields. The other fields will be filled in
+> by V4L2.
+> 
+> -- v4l2_event_subscribe()
+> +int v4l2_event_subscribe(struct v4l2_fh *fh,
+> +			 struct v4l2_event_subscription *sub, unsigned elems,
+> +			 const struct v4l2_subscribed_event_ops *ops)
+> 
+>    The video_device->ioctl_ops->vidioc_subscribe_event must check the
+> driver is able to produce events with specified event id. Then it calls - 
+> v4l2_event_subscribe() to subscribe the event. The last argument is the - 
+> size of the event queue for this event. If it is 0, then the framework - 
+> will fill in a default value (this depends on the event type).
+> +  v4l2_event_subscribe() to subscribe the event.
+> 
+> -- v4l2_event_unsubscribe()
+> +  The elems argument is the size of the event queue for this event. If it
+> is 0, +  then the framework will fill in a default value (this depends on
+> the event +  type).
+> +
+> +  The ops argument allows the driver to specify a number of callbacks:
+> +  * add:     called when a new listener gets added (subscribing to the
+> same +             event twice will only cause this callback to get called
+> once) +  * del:     called when a listener stops listening
+> +  * replace: replace event 'old' with event 'new'.
+> +  * merge:   merge event 'old' into event 'new'.
+> +  All 4 callbacks are optional, if you don't want to specify any callbacks
+> +  the ops argument itself maybe NULL.
+> +
+> +int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+> +			   struct v4l2_event_subscription *sub)
+> 
+>    vidioc_unsubscribe_event in struct v4l2_ioctl_ops. A driver may use
+>    v4l2_event_unsubscribe() directly unless it wants to be involved in
+> @@ -953,7 +967,7 @@ Useful functions:
+>    The special type V4L2_EVENT_ALL may be used to unsubscribe all events.
+> The drivers may want to handle this in a special way.
+> 
+> -- v4l2_event_pending()
+> +int v4l2_event_pending(struct v4l2_fh *fh)
+> 
+>    Returns the number of pending events. Useful when implementing poll.
+> 
+> diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c
+> b/drivers/media/video/ivtv/ivtv-ioctl.c index ecafa69..9aec8a0 100644
+> --- a/drivers/media/video/ivtv/ivtv-ioctl.c
+> +++ b/drivers/media/video/ivtv/ivtv-ioctl.c
+> @@ -1456,7 +1456,7 @@ static int ivtv_subscribe_event(struct v4l2_fh *fh,
+> struct v4l2_event_subscripti case V4L2_EVENT_VSYNC:
+>  	case V4L2_EVENT_EOS:
+>  	case V4L2_EVENT_CTRL:
+> -		return v4l2_event_subscribe(fh, sub, 0);
+> +		return v4l2_event_subscribe(fh, sub, 0, NULL);
+>  	default:
+>  		return -EINVAL;
+>  	}
+> diff --git a/drivers/media/video/omap3isp/ispccdc.c
+> b/drivers/media/video/omap3isp/ispccdc.c index 40b141c..b6da736 100644
+> --- a/drivers/media/video/omap3isp/ispccdc.c
+> +++ b/drivers/media/video/omap3isp/ispccdc.c
+> @@ -1700,7 +1700,7 @@ static int ccdc_subscribe_event(struct v4l2_subdev
+> *sd, struct v4l2_fh *fh, if (sub->id != 0)
+>  		return -EINVAL;
+> 
+> -	return v4l2_event_subscribe(fh, sub, OMAP3ISP_CCDC_NEVENTS);
+> +	return v4l2_event_subscribe(fh, sub, OMAP3ISP_CCDC_NEVENTS, NULL);
+>  }
+> 
+>  static int ccdc_unsubscribe_event(struct v4l2_subdev *sd, struct v4l2_fh
+> *fh, diff --git a/drivers/media/video/omap3isp/ispstat.c
+> b/drivers/media/video/omap3isp/ispstat.c index 8080659..4f337a2 100644
+> --- a/drivers/media/video/omap3isp/ispstat.c
+> +++ b/drivers/media/video/omap3isp/ispstat.c
+> @@ -1049,7 +1049,7 @@ int omap3isp_stat_subscribe_event(struct v4l2_subdev
+> *subdev, if (sub->type != stat->event_type)
+>  		return -EINVAL;
+> 
+> -	return v4l2_event_subscribe(fh, sub, STAT_NEVENTS);
+> +	return v4l2_event_subscribe(fh, sub, STAT_NEVENTS, NULL);
+>  }
+> 
+>  int omap3isp_stat_unsubscribe_event(struct v4l2_subdev *subdev,
+> diff --git a/drivers/media/video/pwc/pwc-v4l.c
+> b/drivers/media/video/pwc/pwc-v4l.c index 68e1323..7f159bf 100644
+> --- a/drivers/media/video/pwc/pwc-v4l.c
+> +++ b/drivers/media/video/pwc/pwc-v4l.c
+> @@ -1138,7 +1138,7 @@ static int pwc_subscribe_event(struct v4l2_fh *fh,
+>  {
+>  	switch (sub->type) {
+>  	case V4L2_EVENT_CTRL:
+> -		return v4l2_event_subscribe(fh, sub, 0);
+> +		return v4l2_event_subscribe(fh, sub, 0, NULL);
+>  	default:
+>  		return -EINVAL;
+>  	}
+> diff --git a/drivers/media/video/v4l2-event.c
+> b/drivers/media/video/v4l2-event.c index 3d93251..aad2a79 100644
+> --- a/drivers/media/video/v4l2-event.c
+> +++ b/drivers/media/video/v4l2-event.c
+> @@ -119,6 +119,14 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh,
+> const struct v4l2_event *e if (sev == NULL)
+>  		return;
+> 
+> +	/*
+> +	 * If the event has been added to the fh->subscribed list, but its
+> +	 * add op has not completed yet elems will be 0, treat this as
+> +	 * not being subscribed.
+> +	 */
+> +	if (!sev->elems)
+> +		return;
+> +
+>  	/* Increase event sequence number on fh. */
+>  	fh->sequence++;
+> 
+> @@ -131,14 +139,14 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh,
+> const struct v4l2_event *e sev->first = sev_pos(sev, 1);
+>  		fh->navailable--;
+>  		if (sev->elems == 1) {
+> -			if (sev->replace) {
+> -				sev->replace(&kev->event, ev);
+> +			if (sev->ops && sev->ops->replace) {
+> +				sev->ops->replace(&kev->event, ev);
+>  				copy_payload = false;
+>  			}
+> -		} else if (sev->merge) {
+> +		} else if (sev->ops && sev->ops->merge) {
+>  			struct v4l2_kevent *second_oldest =
+>  				sev->events + sev_pos(sev, 0);
+> -			sev->merge(&kev->event, &second_oldest->event);
+> +			sev->ops->merge(&kev->event, &second_oldest->event);
+>  		}
+>  	}
+> 
+> @@ -207,8 +215,14 @@ static void ctrls_merge(const struct v4l2_event *old,
+> struct v4l2_event *new) new->u.ctrl.changes |= old->u.ctrl.changes;
+>  }
+> 
+> +static const struct v4l2_subscribed_event_ops ctrl_ops = {
+> +	.replace = ctrls_replace,
+> +	.merge = ctrls_merge,
+> +};
+> +
+>  int v4l2_event_subscribe(struct v4l2_fh *fh,
+> -			 struct v4l2_event_subscription *sub, unsigned elems)
+> +			 struct v4l2_event_subscription *sub, unsigned elems,
+> +			 const struct v4l2_subscribed_event_ops *ops)
+>  {
+>  	struct v4l2_subscribed_event *sev, *found_ev;
+>  	struct v4l2_ctrl *ctrl = NULL;
+> @@ -235,10 +249,9 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+>  	sev->id = sub->id;
+>  	sev->flags = sub->flags;
+>  	sev->fh = fh;
+> -	sev->elems = elems;
+> +	sev->ops = ops;
+>  	if (ctrl) {
+> -		sev->replace = ctrls_replace;
+> -		sev->merge = ctrls_merge;
+> +		sev->ops = &ctrl_ops;
+>  	}
+> 
+>  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> @@ -247,12 +260,27 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+>  		list_add(&sev->list, &fh->subscribed);
+>  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> 
+> -	/* v4l2_ctrl_add_event uses a mutex, so do this outside the spin lock 
+*/
+> -	if (found_ev)
+> +	if (found_ev) {
+>  		kfree(sev);
+> -	else if (ctrl)
+> +		return 0; /* Already listening */
+> +	}
+> +
+> +	if (sev->ops && sev->ops->add) {
+> +		int ret = sev->ops->add(sev);
+> +		if (ret) {
+> +			sev->ops = NULL;
+> +			v4l2_event_unsubscribe(fh, sub);
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	/* v4l2_ctrl_add_event uses a mutex, so do this outside the spin lock 
+*/
+> +	if (ctrl)
+>  		v4l2_ctrl_add_event(ctrl, sev);
+> 
+> +	/* Mark as ready for use */
+> +	sev->elems = elems;
+> +
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_event_subscribe);
+> @@ -305,6 +333,10 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+>  	}
+> 
+>  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +
+> +	if (sev && sev->ops && sev->ops->del)
+> +		sev->ops->del(sev);
+> +
+>  	if (sev && sev->type == V4L2_EVENT_CTRL) {
+>  		struct v4l2_ctrl *ctrl = v4l2_ctrl_find(fh->ctrl_handler, sev-
+>id);
+> 
+> diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+> index c25787d..74ebbad 100644
+> --- a/drivers/media/video/vivi.c
+> +++ b/drivers/media/video/vivi.c
+> @@ -1013,7 +1013,7 @@ static int vidioc_subscribe_event(struct v4l2_fh *fh,
+>  {
+>  	switch (sub->type) {
+>  	case V4L2_EVENT_CTRL:
+> -		return v4l2_event_subscribe(fh, sub, 0);
+> +		return v4l2_event_subscribe(fh, sub, 0, NULL);
+>  	default:
+>  		return -EINVAL;
+>  	}
+> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+> index 5f14e88..88fa9a1 100644
+> --- a/include/media/v4l2-event.h
+> +++ b/include/media/v4l2-event.h
+> @@ -78,6 +78,19 @@ struct v4l2_kevent {
+>  	struct v4l2_event	event;
+>  };
+> 
+> +/** struct v4l2_subscribed_event_ops - Subscribed event operations.
+> +  * @add:	Optional callback, called when a new listener is added
+> +  * @del:	Optional callback, called when a listener stops listening
+> +  * @replace:	Optional callback that can replace event 'old' with 
+event
+> 'new'. +  * @merge:	Optional callback that can merge event 'old' into
+> event 'new'. +  */
+> +struct v4l2_subscribed_event_ops {
+> +	int  (*add)(struct v4l2_subscribed_event *sev);
+> +	void (*del)(struct v4l2_subscribed_event *sev);
+> +	void (*replace)(struct v4l2_event *old, const struct v4l2_event *new);
+> +	void (*merge)(const struct v4l2_event *old, struct v4l2_event *new);
+> +};
+> +
+>  /** struct v4l2_subscribed_event - Internal struct representing a
+> subscribed event. * @list:	List node for the v4l2_fh->subscribed list.
+>    * @type:	Event type.
+> @@ -85,8 +98,7 @@ struct v4l2_kevent {
+>    * @flags:	Copy of v4l2_event_subscription->flags.
+>    * @fh:	Filehandle that subscribed to this event.
+>    * @node:	List node that hooks into the object's event list (if there is
+> one). -  * @replace:	Optional callback that can replace event 'old' with
+> event 'new'. -  * @merge:	Optional callback that can merge event 'old'
+> into event 'new'. +  * @ops:	v4l2_subscribed_event_ops
+>    * @elems:	The number of elements in the events array.
+>    * @first:	The index of the events containing the oldest available event.
+>    * @in_use:	The number of queued events.
+> @@ -99,10 +111,7 @@ struct v4l2_subscribed_event {
+>  	u32			flags;
+>  	struct v4l2_fh		*fh;
+>  	struct list_head	node;
+> -	void			(*replace)(struct v4l2_event *old,
+> -					   const struct v4l2_event *new);
+> -	void			(*merge)(const struct v4l2_event *old,
+> -					 struct v4l2_event *new);
+> +	const struct v4l2_subscribed_event_ops *ops;
+>  	unsigned		elems;
+>  	unsigned		first;
+>  	unsigned		in_use;
+> @@ -115,7 +124,8 @@ void v4l2_event_queue(struct video_device *vdev, const
+> struct v4l2_event *ev); void v4l2_event_queue_fh(struct v4l2_fh *fh, const
+> struct v4l2_event *ev); int v4l2_event_pending(struct v4l2_fh *fh);
+>  int v4l2_event_subscribe(struct v4l2_fh *fh,
+> -			 struct v4l2_event_subscription *sub, unsigned elems);
+> +			 struct v4l2_event_subscription *sub, unsigned elems,
+> +			 const struct v4l2_subscribed_event_ops *ops);
+>  int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+>  			   struct v4l2_event_subscription *sub);
+>  void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
