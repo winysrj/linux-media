@@ -1,81 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:41366 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751291Ab1K2CWS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 21:22:18 -0500
-Received: by bke11 with SMTP id 11so9426267bke.19
-        for <linux-media@vger.kernel.org>; Mon, 28 Nov 2011 18:22:17 -0800 (PST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53504 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751115Ab1KBKv2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 06:51:28 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC] Monotonic clock usage in buffer timestamps
+Date: Wed, 2 Nov 2011 11:51:25 +0100
+Cc: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <201111011324.36742.laurent.pinchart@ideasonboard.com> <20111102091046.GA14955@minime.bse> <20111102101449.GC22159@valkosipuli.localdomain>
+In-Reply-To: <20111102101449.GC22159@valkosipuli.localdomain>
 MIME-Version: 1.0
-In-Reply-To: <1321970669-23423-1-git-send-email-leiwen@marvell.com>
-References: <1321970669-23423-1-git-send-email-leiwen@marvell.com>
-Date: Tue, 29 Nov 2011 10:22:17 +0800
-Message-ID: <CALZhoSR6+E41KsJL6ChbF26y4nRR+TXEOHk8HPnvxiYnuC=fGA@mail.gmail.com>
-Subject: Re: [PATCH] [media] V4L: soc-camera: change order of removing device
-From: Lei Wen <adrian.wenl@gmail.com>
-To: Lei Wen <leiwen@marvell.com>
-Cc: linux-media@vger.kernel.org, jqsu@marvell.com, qingx@marvell.com,
-	fswu@marvell.com, twang13@marvell.com, ytang5@marvell.com,
-	wwang27@marvell.com, wzhu10@marvell.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 8BIT
+Message-Id: <201111021151.26259.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sakari,
 
-On Tue, Nov 22, 2011 at 10:04 PM, Lei Wen <leiwen@marvell.com> wrote:
-> As our general practice, we use stream off before we close
-> the video node. So that the drivers its stream off function
-> would be called before its remove function.
->
-> But for the case for ctrl+c, the program would be force closed.
-> We have no chance to call that vb2 stream off from user space,
-> but directly call the remove function in soc_camera.
->
-> In that common code of soc_camera:
->
->                ici->ops->remove(icd);
->                if (ici->ops->init_videobuf2)
->                        vb2_queue_release(&icd->vb2_vidq);
->
-> It would first call the device remove function, then release vb2,
-> in which stream off function is called. Thus it create different
-> order for the driver.
->
-> This patch change the order to make driver see the same sequence
-> to make it happy.
->
-> Signed-off-by: Lei Wen <leiwen@marvell.com>
-> ---
->  drivers/media/video/soc_camera.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> index b72580c..fdc6167 100644
-> --- a/drivers/media/video/soc_camera.c
-> +++ b/drivers/media/video/soc_camera.c
-> @@ -600,9 +600,9 @@ static int soc_camera_close(struct file *file)
->                pm_runtime_suspend(&icd->vdev->dev);
->                pm_runtime_disable(&icd->vdev->dev);
->
-> -               ici->ops->remove(icd);
->                if (ici->ops->init_videobuf2)
->                        vb2_queue_release(&icd->vb2_vidq);
-> +               ici->ops->remove(icd);
->
->                soc_camera_power_off(icd, icl);
->        }
-> --
-> 1.7.0.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+On Wednesday 02 November 2011 11:14:49 Sakari Ailus wrote:
+> On Wed, Nov 02, 2011 at 10:10:46AM +0100, Daniel Glöckner wrote:
+> > On Tue, Nov 01, 2011 at 01:49:46PM +0100, Laurent Pinchart wrote:
+> > > > Nevertheless, I agree that the monotonic clock is better than the
+> > > > real time clock.
+> > > > In user space, VLC, Gstreamer already switched to monotonic a while
+> > > > ago as far as I know.
+> > > > 
+> > > > And I guess there is no way to detect this, other than detect
+> > > > ridiculously large gap between the timestamp and the current clock
+> > > > value?
+> > > 
+> > > That's right. We could add a device capability flag if needed, but that
+> > > wouldn't help older applications that expect system time in the
+> > > timestamps.
+> > 
+> > I just so happen to have tried to use V4L2 and ALSA timestamps in a
+> > single application. In ALSA the core supports switching between
+> > monotonic and realtime timestamps, with the library always using
+> > monotonic available.
+> > 
+> > How about making all drivers record monotonic timestamps and doing
+> > the conversion to/from realtime timestamps in v4l2-ioctl.c's
+> > __video_do_ioctl if requested? We then just need an extension of the
+> > spec to switch to monotonic, which can be implemented without touching
+> > a single driver.
+> 
+> Converting between the two can be done when making the timestamp but it's
+> non-trivial at other times and likely isn't supported. I could be wrong,
+> though. This might lead to e.g. timestamps that are taken before switching
+> to summer time and for which the conversion is done after the switch. This
+> might be a theoretical possibility, but there might be also unfavourable
+> interaction with the NTP.
+> 
+> I'd probably rather just make a new timestamp in wall clock time in
+> v4l2-ioctl.c if needed using do_gettimeofday(). It also needs to be agreed
+> how does the user space request that to be done.
+> 
+> Or just do the wall clock timestamps user space as they are typically
+> critical in timing.
+> 
+> How would this work for you?
 
-Any comments?
+I agree that converting between the timestamps is error prone. Compatibility 
+code, if required, should probably just call do_gettimeofday() in v4l2_ioctl.c 
+(or possibly in videobuf2 ?).
 
-Thanks,
-Lei
+The real problem would be to decide how to select compatibility mode. Adding a 
+flag so that applications can request monotonic timestamps is doable, but 
+would open the door to a long transition period, and I'd like to avoid that.
+
+I expect most applications to not even notice the switch from the system clock 
+to a monotonic clock. Using system timestamps for video buffers is unreliable 
+and broken by design, so we could argue that applications that would break (if 
+any) are already broken :-)
+
+-- 
+Regards,
+
+Laurent Pinchart
