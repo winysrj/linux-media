@@ -1,87 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39627 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752788Ab1KYM6Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Nov 2011 07:58:25 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC/PATCH 1/3] v4l: Introduce integer menu controls
-Date: Fri, 25 Nov 2011 13:58:27 +0100
-Cc: linux-media@vger.kernel.org, snjw23@gmail.com, hverkuil@xs4all.nl
-References: <20111124161228.GA29342@valkosipuli.localdomain> <201111251343.13776.laurent.pinchart@ideasonboard.com> <20111125125650.GE29342@valkosipuli.localdomain>
-In-Reply-To: <20111125125650.GE29342@valkosipuli.localdomain>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111251358.27725.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:25412 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754074Ab1KBKNK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Nov 2011 06:13:10 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: hverkuil@xs4all.nl,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 3/5] v4l2-event: Don't set sev->fh to NULL on unsubscribe
+Date: Wed,  2 Nov 2011 11:13:23 +0100
+Message-Id: <1320228805-9097-4-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1320228805-9097-1-git-send-email-hdegoede@redhat.com>
+References: <1320228805-9097-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Setting sev->fh to NULL causes problems for the del op added in the next
+patch of this series, since this op needs a way to get to its own data
+structures, and typically this will be done by using container_of on an
+embedded v4l2_fh struct.
 
-On Friday 25 November 2011 13:56:50 Sakari Ailus wrote:
-> On Fri, Nov 25, 2011 at 01:43:12PM +0100, Laurent Pinchart wrote:
-> > On Friday 25 November 2011 13:02:02 Sakari Ailus wrote:
-> > > On Fri, Nov 25, 2011 at 11:28:46AM +0100, Laurent Pinchart wrote:
-> > > > On Thursday 24 November 2011 17:12:50 Sakari Ailus wrote:
-> > > ...
-> > > 
-> > > > > @@ -1440,12 +1458,13 @@ struct v4l2_ctrl
-> > > > > *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl, u32 flags;
-> > > > > 
-> > > > >  	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def,
-> > > > >  	&flags);
-> > > > > 
-> > > > > -	if (type != V4L2_CTRL_TYPE_MENU) {
-> > > > > +	if (type != V4L2_CTRL_TYPE_MENU
-> > > > > +	    && type != V4L2_CTRL_TYPE_INTEGER_MENU) {
-> > > > > 
-> > > > >  		handler_set_err(hdl, -EINVAL);
-> > > > >  		return NULL;
-> > > > >  	
-> > > > >  	}
-> > > > >  	return v4l2_ctrl_new(hdl, ops, id, name, type,
-> > > > > 
-> > > > > -				    0, max, mask, def, flags, qmenu, NULL);
-> > > > > +			     0, max, mask, def, flags, qmenu, NULL, NULL);
-> > > > 
-> > > > You pass NULL to the v4l2_ctrl_new() qmenu_int argument, which will
-> > > > make the function fail for integer menu controls. Do you expect
-> > > > standard integer menu controls to share a list of values ? If not,
-> > > > what about modifying v4l2_ctrl_new_std_menu() to take a list of
-> > > > values (or alternatively forbidding the function from being used for
-> > > > integer menu controls) ?
-> > > 
-> > > We currently have no integer menu controls, let alone one which would
-> > > have a set of standard values. We need same functionality as in
-> > > v4l2_ctrl_get_menu() for integer menus when we add the first
-> > > standardised integer menu control. I think it could be added at that
-> > > time, or I could implement a v4l2_ctrl_get_integer_menu() which would
-> > > do nothing.
-> > > 
-> > > What do you think?
-> > 
-> > I was just wondering if we will ever have a standard menu control with
-> > standard integer items. If that never happens, v4l2_ctrl_new_std_menu()
-> > needs to either take a qmenu_int array, or reject integer menu controls
-> > completely. I would thus delay adding the V4L2_CTRL_TYPE_INTEGER_MENU
-> > check to the function as it wouldn't work anyway (or, alternatively, we
-> > would add the qmenu_int argument now).
-> 
-> Either one, yes. I think I'll add a separate patch adding standard integer
-> menus and remove the check from this one.
-> 
-> There'll definitely be a need for them. For example, there are bit rate
-> menus in the standard menu type controls that ideally should be integers.
+The reason the original code is setting sev->fh to NULL is to signal
+to users of the event framework that the unsubscription has happened,
+but since their is no shared lock between the event framework and users
+of it, this is inherently racy, and it also turns out to be unnecessary
+as long as both the event framework and the user of the framework do their
+own locking properly and the user guarantees that it holds no references
+to the subcribed_event structure after its del operation has been called.
 
-Sure, but I doubt that the bit rates themselves will be standard.
+This is best explained by looking at the only code currently checking for
+sev->fh being set to NULL on unsubscribe, which is the v4l2-ctrls.c send_event
+function. Here is the relevant code from v4l2-ctrls: send_event():
 
-> We won't change them but there will be others. Or I'd be very surprised if
-> there were not!
+	if (sev->fh && (sev->fh != fh ||
+			(sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK)))
+		v4l2_event_queue_fh(sev->fh, &ev);
 
+Now lets say that v4l2_event_unsubscribe and v4l2-ctrls: send_event() race
+on the same sev, then the following could happens:
+
+1) send_event checks sev->fh, finds it is not NULL
+<thread switch>
+2) v4l2_event_unsubscribe sets sev->fh NULL
+3) v4l2_event_unsubscribe calls v4l2_ctrls del_event function, this blocks
+   as the thread calling send_event holds the ctrl_lock
+<thread switch>
+4) send_event calls v4l2_event_queue_fh(sev->fh, &ev) which not is equivalent
+   to calling: v4l2_event_queue_fh(NULL, &ev)
+5) oops, NULL pointer deref.
+
+Now again without setting sev->fh to NULL in v4l2_event_unsubscribe and
+without the (now senseless since always true) sev->fh != NULL check in
+send_event:
+
+1) send_event is about to call v4l2_event_queue_fh(sev->fh, &ev)
+<thread switch>
+2) v4l2_event_unsubscribe removes sev->list from the fh->subscribed list
+<thread switch>
+3) send_event calls v4l2_event_queue_fh(sev->fh, &ev)
+4) v4l2_event_queue_fh blocks on the fh_lock spinlock
+<thread switch>
+5) v4l2_event_unsubscribe unlocks the fh_lock spinlock
+6) v4l2_event_unsubscribe calls v4l2_ctrls del_event function, this blocks
+   as the thread calling send_event holds the ctrl_lock
+<thread switch>
+8) v4l2_event_queue_fh takes the fh_lock
+7) v4l2_event_queue_fh calls v4l2_event_subscribed, does not find it since
+   sev->list has been removed from fh->subscribed already -> does nothing
+9) v4l2_event_queue_fh releases the fh_lock
+10) the caller of send_event releases the ctrl lock (mutex)
+<thread switch>
+11) v4l2_ctrls del_event takes the ctrl lock
+12) v4l2_ctrls del_event removes sev->node from the ev_subs list
+13) v4l2_ctrls del_event releases the ctrl lock
+14) v4l2_event_unsubscribe frees the sev, to which no references are being
+    held anymore
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/video/v4l2-ctrls.c |    4 ++--
+ drivers/media/video/v4l2-event.c |    1 -
+ 2 files changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 69e24f4..1832a87 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -819,8 +819,8 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
+ 	fill_event(&ev, ctrl, changes);
+ 
+ 	list_for_each_entry(sev, &ctrl->ev_subs, node)
+-		if (sev->fh && (sev->fh != fh ||
+-				(sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK)))
++		if (sev->fh != fh ||
++		    (sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK))
+ 			v4l2_event_queue_fh(sev->fh, &ev);
+ }
+ 
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index 4d01f17..3d93251 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -302,7 +302,6 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 			fh->navailable--;
+ 		}
+ 		list_del(&sev->list);
+-		sev->fh = NULL;
+ 	}
+ 
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
 -- 
-Regards,
+1.7.7
 
-Laurent Pinchart
