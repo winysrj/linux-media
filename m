@@ -1,44 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:51389 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753172Ab1KUOF6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Nov 2011 09:05:58 -0500
-Received: by fagn18 with SMTP id n18so5970983fag.19
-        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 06:05:56 -0800 (PST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Jos Lemmens <jos@jlemmens.nl>
-Subject: Re: Nova-T Stick 2 on kernel 3.0
-Date: Mon, 21 Nov 2011 15:08:27 +0100
+Received: from mx1.redhat.com ([209.132.183.28]:2099 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752306Ab1KBLqW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Nov 2011 07:46:22 -0400
+Date: Wed, 2 Nov 2011 09:45:08 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: devel@driverdev.osuosl.org, Greg KH <gregkh@suse.de>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20111121131425.GA14204@jlemmens.nl>
-In-Reply-To: <20111121131425.GA14204@jlemmens.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Subject: [PATCH 3/3] staging/Makefile: Don't compile a media driver there
+Message-ID: <20111102094508.5a4eded5@redhat.com>
+In-Reply-To: <cover.1320233265.git.mchehab@redhat.com>
+References: <cover.1320233265.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201111211508.27391.pboettcher@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jos,
+Otherwise, with driver as "y", compilation will break:
 
-On Monday 21 November 2011 14:14:25 Jos Lemmens wrote:
-> Hello Patrick,
-> 
-> I have a Device 008: ID 2040:7060 Hauppauge Nova-T Stick 2 dvb
-> adapter. It worked great with your driver in Linux kernel 2. But
-> since kernel 3.0 it doesn't work anymore. When I try to start the tv
-> with the tzap tool, I get this message:
-> 
->    dib0700: tx buffer length is larger than 4. Not supported.
+drivers/staging/media/as102/built-in.o: In function `as10x_cmd_get_demod_stats':
+/home/v4l/work_trees/linux-next/drivers/staging/media/as102/as10x_cmd.c:306: multiple definition of `as10x_cmd_get_demod_stats'
+drivers/staging/media/built-in.o:/home/v4l/work_trees/linux-next/drivers/staging/media/as102/as10x_cmd.c:306: first defined here
+drivers/staging/media/as102/built-in.o:(.data+0x88): multiple definition of `as102_st_fw1'
+drivers/staging/media/built-in.o:(.data+0x88): first defined here
 
-Oh, I wasn't aware that this problem exists (or I forgot). If you can 
-please try a newer version of the kernel. Or try the media_build + the 
-v4l-dvb-repository to track down (via git bisect, for example) which 
-commit broke it. What was the latest version you have tried?
+as the same driver is already at staging/media/Makefile.
 
-Anyone else confirms this problem?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
---
-Patrick
+diff --git a/drivers/staging/Makefile b/drivers/staging/Makefile
+index cf92bc1..c1a60ef 100644
+--- a/drivers/staging/Makefile
++++ b/drivers/staging/Makefile
+@@ -58,4 +58,3 @@ obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4)	+= ste_rmi4/
+ obj-$(CONFIG_DRM_PSB)		+= gma500/
+ obj-$(CONFIG_INTEL_MEI)		+= mei/
+ obj-$(CONFIG_MFD_NVEC)		+= nvec/
+-obj-$(CONFIG_DVB_AS102)		+= media/as102/
+-- 
+1.7.6.4
+
