@@ -1,56 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:53858 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755149Ab1KUJCs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Nov 2011 04:02:48 -0500
-Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LV000HRW6GMZ3@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 21 Nov 2011 09:02:46 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LV000DR06GMCA@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 21 Nov 2011 09:02:46 +0000 (GMT)
-Date: Mon, 21 Nov 2011 10:02:38 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH] media: video: s5p-tv: fix build break
-To: linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1321866159-27749-1-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:44592 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752055Ab1KBKQv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 06:16:51 -0400
+MIME-Version: 1.0
+In-Reply-To: <1320185752-568-5-git-send-email-omar.ramirez@ti.com>
+References: <1320185752-568-1-git-send-email-omar.ramirez@ti.com>
+	<1320185752-568-5-git-send-email-omar.ramirez@ti.com>
+Date: Wed, 2 Nov 2011 19:16:50 +0900
+Message-ID: <CAJ0PZbSpxtp1bvbdWxK-hsg=XUbfodgY-7D37rOn=s3yB-Upjw@mail.gmail.com>
+Subject: Re: [PATCH v3 4/4] OMAP3/4: iommu: adapt to runtime pm
+From: MyungJoo Ham <myungjoo.ham@gmail.com>
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>,
+	Benoit Cousson <b-cousson@ti.com>,
+	Ohad Ben-Cohen <ohad@wizery.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	lkml <linux-kernel@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	lo <linux-omap@vger.kernel.org>,
+	lak <linux-arm-kernel@lists.infradead.org>,
+	lm <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes following build break:
+On Wed, Nov 2, 2011 at 7:15 AM, Omar Ramirez Luna <omar.ramirez@ti.com> wrote:
+> Use runtime PM functionality interfaced with hwmod enable/idle
+> functions, to replace direct clock operations, reset and sysconfig
+> handling.
+>
+> Tidspbridge uses a macro removed with this patch, for now the value
+> is hardcoded to avoid breaking compilation.
+>
+> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+> ---
+>  arch/arm/mach-omap2/iommu2.c                      |   17 --------
+>  arch/arm/mach-omap2/omap-iommu.c                  |    1 -
+>  arch/arm/plat-omap/include/plat/iommu.h           |    2 -
+>  arch/arm/plat-omap/include/plat/iommu2.h          |    2 -
+>  drivers/iommu/omap-iommu.c                        |   46 ++++++++-------------
+>  drivers/staging/tidspbridge/core/tiomap3430_pwr.c |    2 +-
+>  6 files changed, 19 insertions(+), 51 deletions(-)
+>
+> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+> index bbbf747..3c55be0 100644
+> --- a/drivers/iommu/omap-iommu.c
+> +++ b/drivers/iommu/omap-iommu.c
+> @@ -123,11 +123,11 @@ static int iommu_enable(struct omap_iommu *obj)
+>        if (!arch_iommu)
+>                return -ENODEV;
+>
+> -       clk_enable(obj->clk);
+> +       pm_runtime_enable(obj->dev);
+> +       pm_runtime_get_sync(obj->dev);
+>
+>        err = arch_iommu->enable(obj);
+>
+> -       clk_disable(obj->clk);
+>        return err;
+>  }
+>
+> @@ -136,11 +136,10 @@ static void iommu_disable(struct omap_iommu *obj)
+>        if (!obj)
+>                return;
+>
+> -       clk_enable(obj->clk);
+> -
+>        arch_iommu->disable(obj);
+>
+> -       clk_disable(obj->clk);
+> +       pm_runtime_put_sync(obj->dev);
+> +       pm_runtime_disable(obj->dev);
+>  }
 
-drivers/media/video/s5p-tv/mixer_video.c:828: error: â€˜THIS_MODULEâ€™ undeclared here (not in a function)
-make[4]: *** [drivers/media/video/s5p-tv/mixer_video.o] Error 1
-make[4]: *** Waiting for unfinished jobs....
-make[3]: *** [drivers/media/video/s5p-tv] Error 2
+Hello Omar,
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/video/s5p-tv/mixer_video.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
-index e90f63e..0e3316b 100644
---- a/drivers/media/video/s5p-tv/mixer_video.c
-+++ b/drivers/media/video/s5p-tv/mixer_video.c
-@@ -17,6 +17,7 @@
- #include <linux/videodev2.h>
- #include <media/videobuf2-fb.h>
- #include <linux/mm.h>
-+#include <linux/module.h>
- #include <linux/version.h>
- #include <linux/timer.h>
- #include <media/videobuf2-dma-contig.h>
+I'm just curious here... Is there any reason to do
+pm_runtime_enable/disable at iommu_enable/iommu_disable which are
+called by iommu_attach/detach?
+I thought that normally, ideal locations of pm_runtime_enable/disable
+for such devices are in probe/remove() because it assures that the
+device is suspended after the probe.
+It seems that the device might be kept on after probe and before the
+first iommu_attach if it is default-on.
+
+
+Thanks,
+MyungJoo
+
+
 -- 
-1.7.1.569.g6f426
-
+MyungJoo Ham, Ph.D.
+Mobile Software Platform Lab, DMC Business, Samsung Electronics
