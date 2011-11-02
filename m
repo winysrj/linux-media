@@ -1,145 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:40954 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752171Ab1K3Rjw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 12:39:52 -0500
+Received: from smtp-68.nebula.fi ([83.145.220.68]:44367 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753230Ab1KBKEF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 06:04:05 -0400
+Date: Wed, 2 Nov 2011 12:04:01 +0200
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, snjw23@gmail.com,
-	hverkuil@xs4all.nl
-Subject: [RFC/PATCH v2 2/3] v4l: Document integer menu controls
-Date: Wed, 30 Nov 2011 19:35:57 +0200
-Message-Id: <1322674558-7963-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20111130173821.GH29805@valkosipuli.localdomain>
-References: <20111130173821.GH29805@valkosipuli.localdomain>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	robert.swain@collabora.co.uk
+Subject: Re: [RFC] Monotonic clock usage in buffer timestamps
+Message-ID: <20111102100401.GB22159@valkosipuli.localdomain>
+References: <201111011324.36742.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201111011324.36742.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/DocBook/media/v4l/compat.xml         |   10 +++++
- Documentation/DocBook/media/v4l/v4l2.xml           |    7 ++++
- .../DocBook/media/v4l/vidioc-queryctrl.xml         |   39 +++++++++++++++++++-
- 3 files changed, 54 insertions(+), 2 deletions(-)
+On Tue, Nov 01, 2011 at 01:24:35PM +0100, Laurent Pinchart wrote:
+> Hi everybody,
+> 
+> The V4L2 specification documents the v4l2_buffer timestamp field as
+> 
+> "For input streams this is the system time (as returned by the gettimeofday() 
+> function) when the first data byte was captured."
+> 
+> The system time is a pretty bad clock source to timestamp buffers, as it can 
+> jump back and forth in time. Using a monotonic clock, as returned by 
+> clock_gettime(CLOCK_MONOTONIC) (or ktime_get_ts() in the kernel), would be 
+> much more useful.
+> 
+> Several drivers already use a monotonic clock instead of the system clock, 
+> which currently violates the V4L2 specification. As those drivers do the right 
+> thing from a technical point of view, I'd really hate "fixing" them by making 
+> them use gettimeofday().
+> 
+> We should instead fix the V4L2 specification to mandate the use of a monotonic 
+> clock (which could then also support hardware timestamps when they are 
+> available). Would such a change be acceptable ?
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index b68698f..569efd1 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2379,6 +2379,16 @@ that used it. It was originally scheduled for removal in 2.6.35.
-       </orderedlist>
-     </section>
- 
-+    <section>
-+      <title>V4L2 in Linux 3.3</title>
-+      <orderedlist>
-+        <listitem>
-+	  <para>Added integer menus, the new type will be
-+	  V4L2_CTRL_TYPE_INTEGER_MENU.</para>
-+        </listitem>
-+      </orderedlist>
-+    </section>
-+
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
- 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 2ab365c..affe1ba 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -128,6 +128,13 @@ structs, ioctls) must be noted in more detail in the history chapter
- applications. -->
- 
-       <revision>
-+	<revnumber>3.3</revnumber>
-+	<date>2011-11-24</date>
-+	<authorinitials>sa</authorinitials>
-+	<revremark>Added V4L2_CTRL_TYPE_INTEGER_MENU.</revremark>
-+      </revision>
-+
-+      <revision>
- 	<revnumber>3.2</revnumber>
- 	<date>2011-08-26</date>
- 	<authorinitials>hv</authorinitials>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-index 0ac0057..02064b0 100644
---- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-@@ -215,11 +215,12 @@ the array to zero.</entry>
- 
-     <table pgwide="1" frame="none" id="v4l2-querymenu">
-       <title>struct <structname>v4l2_querymenu</structname></title>
--      <tgroup cols="3">
-+      <tgroup cols="4">
- 	&cs-str;
- 	<tbody valign="top">
- 	  <row>
- 	    <entry>__u32</entry>
-+	    <entry></entry>
- 	    <entry><structfield>id</structfield></entry>
- 	    <entry>Identifies the control, set by the application
- from the respective &v4l2-queryctrl;
-@@ -227,18 +228,38 @@ from the respective &v4l2-queryctrl;
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-+	    <entry></entry>
- 	    <entry><structfield>index</structfield></entry>
- 	    <entry>Index of the menu item, starting at zero, set by
- 	    the application.</entry>
- 	  </row>
- 	  <row>
-+	    <entry>union</entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
- 	    <entry>__u8</entry>
- 	    <entry><structfield>name</structfield>[32]</entry>
- 	    <entry>Name of the menu item, a NUL-terminated ASCII
--string. This information is intended for the user.</entry>
-+string. This information is intended for the user. This field is valid
-+for <constant>V4L2_CTRL_FLAG_MENU</constant> type controls.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>__s64</entry>
-+	    <entry><structfield>value</structfield></entry>
-+	    <entry>
-+              Value of the integer menu item. This field is valid for
-+              <constant>V4L2_CTRL_FLAG_INTEGER_MENU</constant> type
-+              controls.
-+            </entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-+	    <entry></entry>
- 	    <entry><structfield>reserved</structfield></entry>
- 	    <entry>Reserved for future extensions. Drivers must set
- the array to zero.</entry>
-@@ -292,6 +313,20 @@ the menu items can be enumerated with the
- <constant>VIDIOC_QUERYMENU</constant> ioctl.</entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_CTRL_TYPE_INTEGER_MENU</constant></entry>
-+	    <entry>&ge; 0</entry>
-+	    <entry>1</entry>
-+	    <entry>N-1</entry>
-+	    <entry>
-+              The control has a menu of N choices. The values of the
-+              menu items can be enumerated with the
-+              <constant>VIDIOC_QUERYMENU</constant> ioctl. This is
-+              similar to <constant>V4L2_CTRL_TYPE_MENU</constant>
-+              except that instead of strings, the menu items are
-+              signed 64-bit integers.
-+            </entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_CTRL_TYPE_BITMASK</constant></entry>
- 	    <entry>0</entry>
- 	    <entry>n/a</entry>
+I'm in favour of that. I don't think wall clock timestamps are really useful
+to begin with. If you really need them, you can always do gettimeofday() in
+the user space.
+
+For any kind of a/v synchronisation where precise timestamps matter the
+monotonic clock is the way to go.
+
+Cheers,
+
 -- 
-1.7.2.5
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
