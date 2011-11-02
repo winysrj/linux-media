@@ -1,96 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40692 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752990Ab1KTKzE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Nov 2011 05:55:04 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Subject: Re: [PATCH v3 1/3] fbdev: Add FOURCC-based format configuration API
-Date: Sun, 20 Nov 2011 11:55:22 +0100
-Cc: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com
-References: <1314789501-824-1-git-send-email-laurent.pinchart@ideasonboard.com> <1314789501-824-2-git-send-email-laurent.pinchart@ideasonboard.com> <4EC85F41.50100@gmx.de>
-In-Reply-To: <4EC85F41.50100@gmx.de>
+Received: from mx1.redhat.com ([209.132.183.28]:21679 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756236Ab1KBK6d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Nov 2011 06:58:33 -0400
+Message-ID: <4EB12251.1080405@redhat.com>
+Date: Wed, 02 Nov 2011 08:58:25 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="windows-1252"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201111201155.22948.laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for v3.2-rc1] media drivers/core updates
+References: <4EAE976C.3020607@redhat.com> <Pine.LNX.4.64.1111020957580.18080@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1111020957580.18080@axis700.grange>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Florian,
-
-On Sunday 20 November 2011 03:00:33 Florian Tobias Schandinat wrote:
-> Hi Laurent,
+Em 02-11-2011 07:04, Guennadi Liakhovetski escreveu:
+> Hi Mauro
 > 
-> On 08/31/2011 11:18 AM, Laurent Pinchart wrote:
-> > This API will be used to support YUV frame buffer formats in a standard
-> > way.
+> On Mon, 31 Oct 2011, Mauro Carvalho Chehab wrote:
 > 
-> looks like the union is causing problems. With this patch applied I get
-> errors like this:
+> Hi Linus,
 > 
->   CC [M]  drivers/auxdisplay/cfag12864bfb.o
-> drivers/auxdisplay/cfag12864bfb.c:57: error: unknown field ‘red’ specified
-> in initializer
+> Please pull from:
+> 	git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+> 
+> For the latest improvements at the media subsystem, including:
+> 	dvb-core: several fixes and addition for DVB turbo delivery system
+> 		  (used on North American satellite streams);
+> 	dvb-usb: add support for multiple frontends;
+> 	ati-remote: migrate to rc-core subsystem;
+> 	new dvb-usb drivers:it913x, mxl111sf and pctv452e;
+> 	new frontends: a8293, it913x-fe, lnbp22 and tda10071;
+> 	Alsa driver for cx23885-based cards;
+> 	new gspca driver: topro;
+> 	new sensor drivers: mt9p031, mt9t001;
+> 	new driver for Samsung SoC s5p fimc;
+> 	drivers moved from staging: tda6000 and altera-stapl;
+> 	several fixes, card additions and improvements at the existing drivers.
+> 
+>> Could you, please, confirm, that there's not going to be even an attempt 
+>> to push V4L patches from my tree up for 3.2, as requested more than a 
+>> month ago:
+> 
+>> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/38854
+> 
+>> and re-requested a couple of times since then? It would really be a major 
+>> inconvenience to have those patches lying around until 3.3, there are 101 
+>> of them, many of them will inevitably fail to apply then. Fixing them 
+>> will cause breakage, re-testing on multiple systems with multiple hardware 
+>> configurations and in multiple scenarious will be a very time-consuming 
+>> operation.
 
-*ouch*
+Guennadi,
 
-gcc < 4.6 chokes on anonymous unions initializers :-/
+As I told you during the KS workshop, my intention were to push first the patches
+that were already on my tree (and on linux-next) before the beginning of the merge
+window. Unfortunately, The email with the instructions to enable my kernel.org account
+arrived only after my return back from KS. This delayed my patch submission to start
+only this week, on the trees I maintain.
 
-[snip]
+That's said, analyzing a 100+ patch series git request requires me to reserve
+a large amount of time to do such task (one day or two?), as it is something I can't
+do partially each day. Next time, please don't hold so many patches to be submitted
+altogether, but break it into smaller series. It is much easier to analyze 10 series of
+10 patches each, sent along the time, than a big series with 100 patches.
 
-> > @@ -246,12 +251,23 @@ struct fb_var_screeninfo {
-> > 
-> >  	__u32 yoffset;			/* resolution			*/
-> >  	
-> >  	__u32 bits_per_pixel;		/* guess what			*/
-> > 
-> > -	__u32 grayscale;		/* != 0 Graylevels instead of colors */
-> > 
-> > -	struct fb_bitfield red;		/* bitfield in fb mem if true color, */
-> > -	struct fb_bitfield green;	/* else only length is significant */
-> > -	struct fb_bitfield blue;
-> > -	struct fb_bitfield transp;	/* transparency			*/
-> > +	union {
-> > +		struct {		/* Legacy format API		*/
-> > +			__u32 grayscale; /* 0 = color, 1 = grayscale	*/
-> > +			/* bitfields in fb mem if true color, else only */
-> > +			/* length is significant			*/
-> > +			struct fb_bitfield red;
-> > +			struct fb_bitfield green;
-> > +			struct fb_bitfield blue;
-> > +			struct fb_bitfield transp;	/* transparency	*/
-> > +		};
-> > +		struct {		/* FOURCC-based format API	*/
-> > +			__u32 fourcc;		/* FOURCC format	*/
-> > +			__u32 colorspace;
-> > +			__u32 reserved[11];
-> > +		} fourcc;
-> > +	};
+I'll still see if I can analyze and merge those patches during this week, but if I can't
+merge them up to Thursday, they'll likely be delayed to 3.3, as we won't have time for
+sending them to linux-next in time for 3.2 submission.
 
-We can't name the union, otherwise this will change the userspace API.
-
-We could "fix" the problem on the kernel side with
-
-#ifdef __KERNEL__
-	} color;
-#else
-	};
-#endif
-
-That's quite hackish though... What's your opinion ?
-
-It would also not handle userspace code that initializes an fb_var_screeninfo 
-structure with named initializers, but that shouldn't happen, as application 
-should read fb_var_screeninfo , modify it and write it back.
-
-> > 
-> >  	__u32 nonstd;			/* != 0 Non standard pixel format */
-
--- 
 Regards,
-
-Laurent Pinchart
+Mauro
