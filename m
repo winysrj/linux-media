@@ -1,40 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from csmtp2.one.com ([91.198.169.22]:51810 "EHLO csmtp2.one.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753038Ab1KNLcQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Nov 2011 06:32:16 -0500
-Received: from Jantjes-MacBook.local (ip51ce01a5.speed.planet.nl [81.206.1.165])
-	by csmtp2.one.com (Postfix) with ESMTPA id A311A3044223
-	for <linux-media@vger.kernel.org>; Mon, 14 Nov 2011 11:32:14 +0000 (UTC)
-Message-ID: <4EC0FC3E.1050907@x34.nl>
-Date: Mon, 14 Nov 2011 12:32:14 +0100
-From: Jan <jan@x34.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57914 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754811Ab1KBOUc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 10:20:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: davinci-linux-open-source@linux.davincidsp.com
+Subject: Re: new mbus formats
+Date: Wed, 2 Nov 2011 15:20:32 +0100
+Cc: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
+	LMML <linux-media@vger.kernel.org>,
+	"'Sakari Ailus'" <sakari.ailus@iki.fi>
+References: <1309439597-15998-1-git-send-email-manjunath.hadli@ti.com> <20110831112323.GL12368@valkosipuli.localdomain> <B85A65D85D7EB246BE421B3FB0FBB5930328A9BD1E@dbde02.ent.ti.com>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930328A9BD1E@dbde02.ent.ti.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: tt-1500b tuning problems
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111021520.32483.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi List,
+Hi Manju,
 
-I have a strange problem tuning my tt-s1500b card, the problem looks the one described in these 
-posts (http://www.mail-archive.com/linux-media@vger.kernel.org/msg34251.html).
+On Sunday 23 October 2011 20:30:11 Hadli, Manjunath wrote:
+> Hi,
+> 
+> I need a few mbus formats to be defined loosely for following. Please tell
+> me if anyone has already thought of taking care of them already.
+> 
+> These are supported for Texas Instruments DM365 and DM355 SoCs.
+> 
+> 1. RGB 888 parallel:
 
-The frequencies I use are:
+How is that transfered ? Do you have a 24-bit bus ? Or do you use an 8-bit bus 
+with 3 transfers per pixel ? In the first case you will need something like 
+V4L2_MBUS_FMT_RGB888_1X24, in the second case V4L2_MBUS_FMT_RGB888_3X8 (and 
+the corresponding BGR formats).
 
-astra 19.2 12343000hz SR 27500 FEC 3/4 which works like a charm
-and
-astra 19.2 12515000hz SR 22000 FEC 5/6 which does not seem to tune
+> 2. YUV420  color separate:
+> 3. C plane 420: ( On the lines of Y plane:  V4L2_MBUS_FMT_Y8_1X8)
+> 4. C plane 422
 
-Currently I am testing with a 3.1.0-rc4 kernel and the media build drivers.
+Could you please detail how those three formats are transferred on the bus ?
 
-Is there something I can test or try to get the 2nd frequency with the SR of 22000 working?
+> 5. 10 bit bayer with ALAW compression.
 
-Both frequencies have worked on my older install with a 2.6.39 kernel after I manually added some 
-patches especially for this card. (Did not find my way to the media build system then).
+Is that 10 bit compressed to 8 bit with alaw ? If so
 
-Thanks.
+V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8
+V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8
+V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8
+V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8
 
-Jan
+should do.
+
+-- 
+Regards,
+
+Laurent Pinchart
