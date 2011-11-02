@@ -1,90 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:45790 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753841Ab1KTVoj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Nov 2011 16:44:39 -0500
-Received: by bke11 with SMTP id 11so5742994bke.19
-        for <linux-media@vger.kernel.org>; Sun, 20 Nov 2011 13:44:37 -0800 (PST)
-Message-ID: <4EC974C2.1040500@gmail.com>
-Date: Sun, 20 Nov 2011 22:44:34 +0100
-From: Sebastian Steinhuber <sebastian.steinhuber@googlemail.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:37546 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932719Ab1KBOub convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 10:50:31 -0400
+Received: by iage36 with SMTP id e36so193411iag.19
+        for <linux-media@vger.kernel.org>; Wed, 02 Nov 2011 07:50:31 -0700 (PDT)
 MIME-Version: 1.0
-CC: linux-media@vger.kernel.org
-Subject: Re: Regression with kernel 3.1 and bt87x?
-References: <ja3cpe$6qm$1@dough.gmane.org>
-In-Reply-To: <ja3cpe$6qm$1@dough.gmane.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+In-Reply-To: <CAGoCfizk7jsKcCSzhyz0PWtj3yUidB_vjjYTCoZ0nfj9L60u5Q@mail.gmail.com>
+References: <CAL9G6WV=4xxara7vw+jRfydnwqEoc4_qrz6p_z_wowDeEV0scA@mail.gmail.com>
+	<CAGoCfiy=FKo5vRiAV8m-maRZ7aQfmgdivQBrhGSfjF-NGZ=Lpg@mail.gmail.com>
+	<CAOcJUbw8ASb9fqeGQJyvod=03-Yi8MLEhjYL3oTsZztDhMbNiw@mail.gmail.com>
+	<CAGoCfizk7jsKcCSzhyz0PWtj3yUidB_vjjYTCoZ0nfj9L60u5Q@mail.gmail.com>
+Date: Wed, 2 Nov 2011 10:50:31 -0400
+Message-ID: <CAOcJUbz8j6UrLeEKXVOJ+6sf40cbZ_Cp1C6u+GCMkqrRbLVDLQ@mail.gmail.com>
+Subject: Re: Hauppauge WIN-TV DUET HD
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Josu Lazkano <josu.lazkano@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 17.11.2011 17:29, schrieb Sebastian Steinhuber:
-> Hi all,
-> 
-> I've got a Hauppauge WinTV pci board that used to be working until
-> kernel 3.1 was used; I tried 3.1.1, too, without luck. 3.0.7 is working,
-> with the same config as the 3.1s regarding the media parts.
-> 
-> I'm compiling my customized kernel from vanilla sources and a
-> linux-vserver patch, and I also tested the 3.1.0-1-amd64 from debian
-> stock with very result.
-> 
-> 
-> On starting up Zapping, I got these messages:
-> 'Unable to open /dev/video0.'
-> 'The device cannot be attached to any controller.'
-> Tvtime simply complained about 'No signal'.
-> 
-> I couldn't find further messages or any errors in syslog nor in
-> messages, so I'm feeling there might be a bug somewhere.
-> 
-> 
-> The same modules are loaded into the kernel with 3.0.7 (working, with
-> the same config as the 3.1s regarding the media parts), 3.1 and also 3.1.1:
-> bttv
-> btcx_risc
-> rc_core
-> tuner
-> tuner_simple
-> tuner_types
-> videobuf_dma_sg
-> videobuf_core
-> tveeprom
-> 
-> 
-> $lspci -vv
-> â€¦
-> 05:00.0 Multimedia video controller: Brooktree Corporation Bt878 Video
-> Capture (rev 02)
-> 	Subsystem: Hauppauge computer works Inc. WinTV Series
-> 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR- FastB2B- DisINTx-
-> 	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
-> 	Latency: 64 (4000ns min, 10000ns max)
-> 	Interrupt: pin A routed to IRQ 16
-> 	Region 0: Memory at d0001000 (32-bit, prefetchable) [size=4K]
-> 	Kernel driver in use: bttv
-> 
-> 05:00.1 Multimedia controller: Brooktree Corporation Bt878 Audio Capture
-> (rev 02)
-> 	Subsystem: Hauppauge computer works Inc. WinTV Series
-> 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR- FastB2B- DisINTx-
-> 	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
-> 	Latency: 64 (1000ns min, 63750ns max)
-> 	Interrupt: pin A routed to IRQ 16
-> 	Region 0: Memory at d0000000 (32-bit, prefetchable) [size=4K]
-> 	Kernel driver in use: Bt87x
+On Wed, Nov 2, 2011 at 10:14 AM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Wed, Nov 2, 2011 at 10:11 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>> INCORRECT.  The WinTV Duet is just a rebranding of the NOVA-TD ... It
+>> is, in fact, supported, and quite possibly Hauppauge's coolest DVB-T
+>> stick.
+>
+> My mistake.  I must have gotten it confused with something else.
+>
+> Despite assertions that it's Hauppauge's coolest stick, the user is
+> claiming that it isn't working.  Did they use new USB VID/PIDs that
+> will require a driver change to add support for it?
+>
+> Devin
 
-Update: There are no issues with 3.0.9.
+I just took a look on our model matrix, and confirmed with hardware -
+we did not assigned new ID's, and the WinTV Duet is identical to the
+Nova TD ... From the post I see, the user is simply asking if the
+device is supported -- it is in fact supported.  Where is the post
+that says he's having trouble?
 
-If someone has an idea which commit could cause the problem, I would
-like to check it out. I have cloned the stable kernel repository and
-despite of being new to git, I can test every commit with the hardware.
-Thanks in advance,
-
-Sebastian
+-Mike
