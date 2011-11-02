@@ -1,127 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23765 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752014Ab1KKMoR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Nov 2011 07:44:17 -0500
-Message-ID: <4EBD1892.8020603@redhat.com>
-Date: Fri, 11 Nov 2011 10:44:02 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Patrick Boettcher <pboettcher@kernellabs.com>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: FE_CAN-bits
-References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com> <CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com> <4EBC402E.20208@redhat.com> <201111111055.12496.pboettcher@kernellabs.com> <4EBD08D0.6030701@iki.fi>
-In-Reply-To: <4EBD08D0.6030701@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:44729 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752143Ab1KBKw4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 06:52:56 -0400
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LU100B4Q4W5Z6@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 02 Nov 2011 10:52:54 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LU1008AJ4W5AO@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 02 Nov 2011 10:52:53 +0000 (GMT)
+Date: Wed, 02 Nov 2011 11:52:02 +0100
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Subject: [PATCH] media: vb2: vmalloc-based allocator user pointer handling
+To: linux-media@vger.kernel.org
+Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Message-id: <1320231122-22518-1-git-send-email-andrzej.p@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 11-11-2011 09:36, Antti Palosaari escreveu:
-> On 11/11/2011 11:55 AM, Patrick Boettcher wrote:
->> On Thursday, November 10, 2011 10:20:46 PM Mauro Carvalho Chehab wrote:
->>>
->>> We should also think on a way to enumerate the supported values for each
->>> DVB properties, the enum fe_caps is not enough anymore to store
->>> everything. It currently has 30 bits filled (of a total of 32 bits), and
->>> we currently have:
->>>     12 code rates (including AUTO/NONE);
->>>     13 modulation types;
->>>     7 transmission modes;
->>>     7 bandwidths;
->>>     8 guard intervals (including AUTO);
->>>     5 hierarchy names;
->>>     4 rolloff's (probably, we'll need to add 2 more, to distinguish between
->>> DVB-C Annex A and Annex C).
->>>
->>> So, if we would need to add one CAN_foo for each of the above, we would
->>> need 56 to 58 bits, plus 5-6 bits to the other capabilities that
->>> currently exists there. So, even 64 bits won't be enough for the current
->>> needs (even having the delivery system caps addressed by something
->>> else).
->>
->> IMHO, we don't need such a fine FE_CAN_-bit distinguishing for most
->> standards. A well defined sub-standard definition is sufficient, which can be
->> handled with a delivery-system-like query as proposed in the original patch.
->> This also will be much simpler for most user-space applications and users.
-> 
-> I agree that. Those are totally useless in general. Let driver return error to userspace if it cannot handle.
-> 
->> DVB-T means:
->> - 8K or 2K,
->> - 1/4-1/32 Guard,
->> - 1/2, 2/3, 3/4, 5/6 and 7/8 coderate,
->> - QPSK, 64QAM or 16QAM
->>
->> DVB-H (RIP as Remi wrote somewhere) would have meant:
->> - DVB-T + 4K + in-depth-interleaver mode
->>
->> The same applies to ISDB-T and ISDB-T 1seg. And for CMMB, CTTB, DVB-SH.
->>
->> If there are demods which can't do one particular thing, we should forget
->> about them. At least this is what almost all applications I have seen so far
->> are doing implicitly.
-> 
-> I know only one case where device cannot support all standard parameters. It is one TDA10023 device and looks like stream goes too wide when QAM256 is used.
-> 
->> Though, I see at least one inconvenience is if someone is using linux-dvb
->> for developping dsp-software and wants to deliver things which aren't done.
->> But is this a case we want to "support" within the official API.
-> 
+vmalloc-based allocator user pointer handling
 
-If you take a look at DVB-C, for example, The reference used by the DVB subsystem
-seems to be the ITU-T J.83, as the delivery systems are named according to
-ITU-T J.83 annexes:
-	Annex A - European DVB-C (also defined on EN 300 429)
-	Annex B - American DOCSYS
-	Annex C - Japanese variant of Annex A, optimized for 6 MHz Bw
+Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/videobuf2-vmalloc.c |   86 ++++++++++++++++++++++++++++++-
+ 1 files changed, 85 insertions(+), 1 deletions(-)
 
-According with ITU-T J.83/1997 (from where Annex A, B and C are referenced), we have:
+diff --git a/drivers/media/video/videobuf2-vmalloc.c b/drivers/media/video/videobuf2-vmalloc.c
+index a3a8842..ee0ee37 100644
+--- a/drivers/media/video/videobuf2-vmalloc.c
++++ b/drivers/media/video/videobuf2-vmalloc.c
+@@ -12,6 +12,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/mm.h>
++#include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/vmalloc.h>
+ 
+@@ -20,7 +21,10 @@
+ 
+ struct vb2_vmalloc_buf {
+ 	void				*vaddr;
++	struct page			**pages;
++	int				write;
+ 	unsigned long			size;
++	unsigned int			n_pages;
+ 	atomic_t			refcount;
+ 	struct vb2_vmarea_handler	handler;
+ };
+@@ -66,6 +70,83 @@ static void vb2_vmalloc_put(void *buf_priv)
+ 	}
+ }
+ 
++static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
++				     unsigned long size, int write)
++{
++	struct vb2_vmalloc_buf *buf;
++
++	unsigned long first, last;
++	int n_pages_from_user, offset;
++
++	buf = kzalloc(sizeof *buf, GFP_KERNEL);
++	if (!buf)
++		return NULL;
++
++	buf->vaddr = NULL;
++	buf->write = write;
++	offset = vaddr & ~PAGE_MASK;
++	buf->size = size;
++
++	first = (vaddr & PAGE_MASK) >> PAGE_SHIFT;
++	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
++	buf->n_pages = last - first + 1;
++	buf->pages = kzalloc(buf->n_pages * sizeof(struct page *), GFP_KERNEL);
++	if (!buf->pages)
++		goto userptr_fail_pages_array_alloc;
++
++	down_read(&current->mm->mmap_sem);
++	n_pages_from_user = get_user_pages(current, current->mm,
++					     vaddr & PAGE_MASK,
++					     buf->n_pages,
++					     write,
++					     1, /* force */
++					     buf->pages,
++					     NULL);
++	up_read(&current->mm->mmap_sem);
++	if (n_pages_from_user != buf->n_pages)
++		goto userptr_fail_get_user_pages;
++
++	buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1, PAGE_KERNEL);
++
++	if (buf->vaddr) {
++		buf->vaddr += offset;
++		return buf;
++	}
++
++userptr_fail_get_user_pages:
++	printk(KERN_DEBUG "get_user_pages requested/got: %d/%d]\n",
++	       n_pages_from_user, buf->n_pages);
++	while (--n_pages_from_user >= 0)
++		put_page(buf->pages[n_pages_from_user]);
++	kfree(buf->pages);
++
++userptr_fail_pages_array_alloc:
++	kfree(buf);
++
++	return NULL;
++}
++
++static void vb2_vmalloc_put_userptr(void *buf_priv)
++{
++	struct vb2_vmalloc_buf *buf = buf_priv;
++
++	int i = buf->n_pages;
++	int offset = (unsigned long)buf->vaddr & ~PAGE_MASK;
++
++	printk(KERN_DEBUG "%s: Releasing userspace buffer of %d pages\n",
++	       __func__, buf->n_pages);
++	if (buf->vaddr)
++		vm_unmap_ram((const void *)((unsigned long)buf->vaddr - offset),
++			     buf->n_pages);
++	while (--i >= 0) {
++		if (buf->write)
++			set_page_dirty_lock(buf->pages[i]);
++		put_page(buf->pages[i]);
++	}
++	kfree(buf->pages);
++	kfree(buf);
++}
++
+ static void *vb2_vmalloc_vaddr(void *buf_priv)
+ {
+ 	struct vb2_vmalloc_buf *buf = buf_priv;
+@@ -73,7 +154,8 @@ static void *vb2_vmalloc_vaddr(void *buf_priv)
+ 	BUG_ON(!buf);
+ 
+ 	if (!buf->vaddr) {
+-		printk(KERN_ERR "Address of an unallocated plane requested\n");
++		printk(KERN_ERR "Address of an unallocated plane requested "
++		       "or cannot map user pointer\n");
+ 		return NULL;
+ 	}
+ 
+@@ -121,6 +203,8 @@ static int vb2_vmalloc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ const struct vb2_mem_ops vb2_vmalloc_memops = {
+ 	.alloc		= vb2_vmalloc_alloc,
+ 	.put		= vb2_vmalloc_put,
++	.get_userptr	= vb2_vmalloc_get_userptr,
++	.put_userptr	= vb2_vmalloc_put_userptr,
+ 	.vaddr		= vb2_vmalloc_vaddr,
+ 	.mmap		= vb2_vmalloc_mmap,
+ 	.num_users	= vb2_vmalloc_num_users,
+-- 
+1.7.0.4
 
-Annex A:
-	- modulation: QAM 16, 32 and 64
-	  Mentions that QAM 128 and 256 could be used in future
-	- rolloff: 0.15
-
-Annex B:
-	- Modulation: QAM 64, 256
-
-Annex C:
-	- Modulation: QAM 64
-	- rolloff: 0.13
-
-ITU-T Annex A is also defined at ETSI as EN 300 429/1998. There, we have:
-	- modulation: QAM 16, 32, 64, 128 and 256
-	- rolloff: 0.15
-
-As the same delivery system is used for both Annex A and Annex C, the "minimum"
-requirement for SYS_DVBC_ANNEX_AC is to support QAM64 (as it can be a device that 
-implements only Annex C).
-
-So, just assuming some default from the delivery system is dangerous. Also, as
-specs may change with time (as J.83 -> EN 300 429 addition for QAM 128 and 256),
-this may lead into troubles in the future.
-
-Btw, DVB-C2, as defined on ITU-T J.122 is even more complex, offering a myriad of
-mandatory and optional formats, as shown at item 6.2.3:
-	The upstream demodulator MAY support QPSK and 16QAM differential modulation for TDMA.
-	The upstream demodulator MUST support QPSK, 16QAM, and 64QAM modulations for TDMA and S-CDMA channels.
-	The upstream demodulator MAY support 8QAM and 32QAM modulation for TDMA and S-CDMA channels.
-	The upstream demodulator MAY support QPSK, 8QAM, 16QAM, 32QAM, 64QAM, and 128QAM TCM encoded modulations for S-CDMA channels.
-
-What I think we can do is to provide macros for the capabilities, like:
-
-#define FE_CAN_DVBT	FE_CAN_1_2 | FE_CAN_3_4 | ...
-
-With regards to the idea of returning an error, this may not work on all cases.
-For example, my 1seg stick is capable of retrieving channel info from 3-seg and full-seg
-streams, even not being able of actually watching those. Ideally, userspace should
-be capable of disabling the 3seg/full-seg channels if they aren't actually supported
-by the plugged device.
-
-Regards,
-Mauro
