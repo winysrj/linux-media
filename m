@@ -1,66 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:39766 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753219Ab1KYNhA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Nov 2011 08:37:00 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1RTvxZ-0000aQ-V7
-	for linux-media@vger.kernel.org; Fri, 25 Nov 2011 14:36:57 +0100
-Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 25 Nov 2011 14:36:57 +0100
-Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 25 Nov 2011 14:36:57 +0100
-To: linux-media@vger.kernel.org
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: Re: gnutv should not ignore SIGPIPE
-Date: Fri, 25 Nov 2011 08:36:40 -0500
-Message-ID: <jao5l8$v03$1@dough.gmane.org>
-References: <jao3r9$i9e$1@dough.gmane.org> <201111251534.05480.remi@remlab.net>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig43DC9E316F4B923C21C70095"
-In-Reply-To: <201111251534.05480.remi@remlab.net>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:48110 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753213Ab1KBMrs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 08:47:48 -0400
+Date: Wed, 2 Nov 2011 14:47:43 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	=?iso-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Monotonic clock usage in buffer timestamps
+Message-ID: <20111102124743.GE22159@valkosipuli.localdomain>
+References: <201111011324.36742.laurent.pinchart@ideasonboard.com>
+ <b3e1d11fbdb6c1fe02954f7b2dd29b01@chewa.net>
+ <201111011349.47132.laurent.pinchart@ideasonboard.com>
+ <20111102091046.GA14955@minime.bse>
+ <20111102101449.GC22159@valkosipuli.localdomain>
+ <20111102105804.GA15491@minime.bse>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20111102105804.GA15491@minime.bse>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig43DC9E316F4B923C21C70095
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+On Wed, Nov 02, 2011 at 11:58:04AM +0100, Daniel Glöckner wrote:
+> On Wed, Nov 02, 2011 at 12:14:49PM +0200, Sakari Ailus wrote:
+> > > How about making all drivers record monotonic timestamps and doing
+> > > the conversion to/from realtime timestamps in v4l2-ioctl.c's
+> > > __video_do_ioctl if requested? We then just need an extension of the
+> > > spec to switch to monotonic, which can be implemented without touching
+> > > a single driver.
+> > 
+> > Converting between the two can be done when making the timestamp but it's
+> > non-trivial at other times and likely isn't supported. I could be wrong,
+> > though. This might lead to e.g. timestamps that are taken before switching
+> > to summer time and for which the conversion is done after the switch. This
+> > might be a theoretical possibility, but there might be also unfavourable
+> > interaction with the NTP.
+> 
+> Summertime/wintertime is purely a userspace thing. UTC as returned by
+> gettimeofday is unaffected by that.
 
-On 11-11-25 08:34 AM, R=E9mi Denis-Courmont wrote:
->=20
-> Anyway, the problem is not so mucgh ignoring SIGPIPE as ignoring EPIPE =
-write=20
-> errors.
+Indeed, that's correct.
 
-Yes, that is the other way to skin that cat I suppose.
+> NTP AFAIK adjusts the speed of the monotonic clock, so there is a constant
+> delta between wall clock time and clock monotonic unless there is a leap
+> second or someone calls settimeofday. Applications currently using the
+> wall clock timestamps should have trouble dealing with that as well.
 
-What's the best/proper way to go about getting this fixed?
+I wonder if applications do use it for something these days. Some might, but
+I don't know of any that would be affected.
 
-Cheers,
-b.
+> > I'd probably rather just make a new timestamp in wall clock time in
+> > v4l2-ioctl.c if needed using do_gettimeofday().
+> 
+> I think that would be worse than subtracting ktime_get_monotonic_offset().
+> You don't know the delay between capturing a frame and calling dqbuf.
 
+Right. As Laurent suggested, doing that in videobuf2 is better option since
+it gets called when the buffer gets dequeueable.
 
+If videobuf2 already has knowledge on what kind of timestamp the user
+expects it would be possible to do it here.
 
---------------enig43DC9E316F4B923C21C70095
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+> If there is a settimeofday between capturing a frame and calling dqbuf,
+> the wall time clock was probably wrong when the frame was captured
+> and subtracting the new ktime_get_monotonic_offset() yields a better
+> timestamp.
+> 
+> > Or just do the wall clock timestamps user space as they are typically
+> > critical in timing.
+> >
+> > How would this work for you?
+> 
+> As I keep the cpu busy with video encoding in the same thread, I'd expect
+> a high jitter from taking timestamps in userspace.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+True.
 
-iEYEARECAAYFAk7PmegACgkQl3EQlGLyuXBCuQCgz2MlCL7YiSLskBT0qX07Czbk
-exAAoLYoID5HVPO2YIZGP+iW9XRFs+PC
-=ht2g
------END PGP SIGNATURE-----
+Kind regards,
 
---------------enig43DC9E316F4B923C21C70095--
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
