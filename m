@@ -1,95 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55317 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751700Ab1KILBD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Nov 2011 06:01:03 -0500
-Message-ID: <4EBA5D6A.4040300@iki.fi>
-Date: Wed, 09 Nov 2011 13:00:58 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44286 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753106Ab1KBNxs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 09:53:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Subject: Re: [PATCH] media: vb2: vmalloc-based allocator user pointer handling
+Date: Wed, 2 Nov 2011 14:53:46 +0100
+Cc: linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>
+References: <1320231122-22518-1-git-send-email-andrzej.p@samsung.com>
+In-Reply-To: <1320231122-22518-1-git-send-email-andrzej.p@samsung.com>
 MIME-Version: 1.0
-To: Jean Delvare <khali@linux-fr.org>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@kernellabs.com>
-Subject: Re: [RFC 1/2] dvb-core: add generic helper function for I2C register
-References: <4EB9C13A.2060707@iki.fi>	<4EBA4E3D.80105@redhat.com> <20111109113740.4b345130@endymion.delvare>
-In-Reply-To: <20111109113740.4b345130@endymion.delvare>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111021453.46902.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/09/2011 12:37 PM, Jean Delvare wrote:
-> On Wed, 09 Nov 2011 07:56:13 -0200, Mauro Carvalho Chehab wrote:
->>      ret = i2c_transfer(i2c_cfg->adapter, msg, 2);
->>
->> Produces a different result. In the latter case, I2C core avoids having any other
->> transaction in the middle of the 2 messages.
->
-> This is correct, but this isn't the only difference. The second
-> difference is that, with the code above, a repeated-start condition is
-> used between both messages, instead of a stop condition followed by a
-> start condition. While ideally all controllers, all controller drivers
-> and all slaves would support that, I don't think this is true in
-> practice.
+Hi Andrzej,
 
-I agree, as we just replied same time to that message :)
+Thanks for the patch.
 
-> I agree that it makes some sense. We recently added helper functions for
-> swapped word reads, to avoid code duplication amongst device drivers.
-> This would follow a similar logic.
->
-> However you should bear in mind that different I2C devices have
-> different expectations and requirements. Some do automatic register
-> address increment, some don't. Some support arbitrary read/write
-> length and alignment, some don't. It is common that write constraints
-> differ from read constraints. So you won't possibly come up with
-> universal I2C read and write functions. There is a reason why it was
-> originally decided to only provide the low-level transfer functions in
-> i2c-core and leave the rest up to individual device drivers.
+On Wednesday 02 November 2011 11:52:02 Andrzej Pietrasiewicz wrote:
+> vmalloc-based allocator user pointer handling
+> 
+> Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/video/videobuf2-vmalloc.c |   86 +++++++++++++++++++++++++++-
+>  1 files changed, 85 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/videobuf2-vmalloc.c
+> b/drivers/media/video/videobuf2-vmalloc.c index a3a8842..ee0ee37 100644
+> --- a/drivers/media/video/videobuf2-vmalloc.c
+> +++ b/drivers/media/video/videobuf2-vmalloc.c
+> @@ -12,6 +12,7 @@
+> 
+>  #include <linux/module.h>
+>  #include <linux/mm.h>
+> +#include <linux/sched.h>
+>  #include <linux/slab.h>
+>  #include <linux/vmalloc.h>
+> 
+> @@ -20,7 +21,10 @@
+> 
+>  struct vb2_vmalloc_buf {
+>  	void				*vaddr;
+> +	struct page			**pages;
+> +	int				write;
+>  	unsigned long			size;
+> +	unsigned int			n_pages;
+>  	atomic_t			refcount;
+>  	struct vb2_vmarea_handler	handler;
+>  };
+> @@ -66,6 +70,83 @@ static void vb2_vmalloc_put(void *buf_priv)
+>  	}
+>  }
+> 
+> +static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+> +				     unsigned long size, int write)
+> +{
+> +	struct vb2_vmalloc_buf *buf;
+> +
+> +	unsigned long first, last;
+> +	int n_pages_from_user, offset;
 
-So true. Some chips allow even configure auto increment or not and even 
-more.
-But I take that most common behaviour way. It is never possible to 
-support all I2C access formats chip vendors will define. But that first 
-reg then values with auto increment is very common, maybe over 90% cases.
+Doesn't the kernel coding style prefer one variable declaration per line ?
 
-> If code is duplicated, then something should indeed be done about it.
-> But preferably after analyzing properly what the helper functions
-> should look like, and for this you'll have to look at "all" drivers
-> that could benefit from it. At the moment only the tda18218 driver was
-> reported to need it, that's not enough to generalize.
+> +
+> +	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+> +	if (!buf)
+> +		return NULL;
+> +
+> +	buf->vaddr = NULL;
+> +	buf->write = write;
+> +	offset = vaddr & ~PAGE_MASK;
+> +	buf->size = size;
+> +
+> +	first = (vaddr & PAGE_MASK) >> PAGE_SHIFT;
+> +	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
+> +	buf->n_pages = last - first + 1;
+> +	buf->pages = kzalloc(buf->n_pages * sizeof(struct page *), GFP_KERNEL);
+> +	if (!buf->pages)
+> +		goto userptr_fail_pages_array_alloc;
+> +
+> +	down_read(&current->mm->mmap_sem);
+> +	n_pages_from_user = get_user_pages(current, current->mm,
+> +					     vaddr & PAGE_MASK,
+> +					     buf->n_pages,
+> +					     write,
+> +					     1, /* force */
+> +					     buf->pages,
+> +					     NULL);
+> +	up_read(&current->mm->mmap_sem);
 
-Only?, I think you missed part of my first mail I mentioned 7 cases from 
-*my* drivers where splitting is needed. Actually, I just remember one 
-more, it is AF9015 & AF9033. And those are for the splitting only, same 
-function can be used maybe 90% of current tuner and demod drivers we have.
+This can cause an AB-BA deadlock, and will be reported by deadlock detection 
+if enabled.
 
-> You should take a look at drivers/misc/eeprom/at24.c, it contains
-> fairly complete transfer functions which cover the various EEPROM
-> types. Non-EEPROM devices could behave differently, but this would
-> still seem to be a good start for any I2C device using block transfers.
-> It was once proposed that these functions could make their way into
-> i2c-core or a generic i2c helper function.
->
-> Both at24 and Antti's proposal share the idea of storing information
-> about the device capabilities (max block read and write lengths, but we
-> could also put there alignment requirements or support for repeated
-> start condition.) in a private structure. If we generalize the
-> functions then this information would have to be stored in struct
-> i2c_client and possibly struct i2c_adapter (or struct i2c_algorithm) so
-> that the function can automatically find out the right sequence of
-> commands for the adapter/slave combination.
->
-> Speaking of struct i2c_client, I seem to remember that the dvb
-> subsystem doesn't use it much at the moment. This might be an issue if
-> you intend to get the generic code into i2c-core, as most helper
-> functions rely on a valid i2c_client structure by design.
+The issue is that the mmap() handler is called by the MM core with current-
+>mm->mmap_sem held, and then takes the driver's lock before calling 
+videobuf2's mmap handler. The VIDIOC_QBUF handler, on the other hand, will 
+first take the driver's lock and will then try to take current->mm->mmap_sem 
+here.
 
-I will check those later today, have to go back lecture.
+This can result in a deadlock if both MMAP and USERPTR buffers are used by the 
+same driver at the same time.
 
-regards
-Antti
+If we assume that MMAP and USERPTR buffers can't be used on the same queue at 
+the same time (VIDIOC_CREATEBUFS doesn't allow that if I'm not mistaken, so we 
+should be safe, at least for now), this can be fixed by having a per-queue 
+lock in the driver instead of a global device lock. However, that means that 
+drivers that want to support USERPTR will not be allowed to delegate lock 
+handling to the V4L2 core and video_ioctl2().
+
+> +	if (n_pages_from_user != buf->n_pages)
+> +		goto userptr_fail_get_user_pages;
+> +
+> +	buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1, PAGE_KERNEL);
+
+Will this create a second kernel mapping ? What if the user tries to pass 
+framebuffer memory that has been mapped uncacheable to userspace ?
+
+> +
+> +	if (buf->vaddr) {
+> +		buf->vaddr += offset;
+> +		return buf;
+> +	}
+
+if () statements with a return look like error handling, what about
+
+	if (buf->vaddr == NULL)
+		goto userptr_fail_get_user_pages;
+
+	buf->vaddr += offset;
+	return buf;
+
+> +
+> +userptr_fail_get_user_pages:
+> +	printk(KERN_DEBUG "get_user_pages requested/got: %d/%d]\n",
+> +	       n_pages_from_user, buf->n_pages);
+
+Do we really need that debug printk ?
+
+> +	while (--n_pages_from_user >= 0)
+> +		put_page(buf->pages[n_pages_from_user]);
+> +	kfree(buf->pages);
+> +
+> +userptr_fail_pages_array_alloc:
+> +	kfree(buf);
+> +
+> +	return NULL;
+> +}
+> +
+> +static void vb2_vmalloc_put_userptr(void *buf_priv)
+> +{
+> +	struct vb2_vmalloc_buf *buf = buf_priv;
+> +
+> +	int i = buf->n_pages;
+> +	int offset = (unsigned long)buf->vaddr & ~PAGE_MASK;
+> +
+> +	printk(KERN_DEBUG "%s: Releasing userspace buffer of %d pages\n",
+> +	       __func__, buf->n_pages);
+> +	if (buf->vaddr)
+> +		vm_unmap_ram((const void *)((unsigned long)buf->vaddr - offset),
+> +			     buf->n_pages);
+> +	while (--i >= 0) {
+
+Anything wrong with
+
+for (i = 0; i < buf->n_pages; ++i)
+
+? :-)
+
+You could then make i an unsigned int, which would match buf->n_pages.
+
+> +		if (buf->write)
+> +			set_page_dirty_lock(buf->pages[i]);
+> +		put_page(buf->pages[i]);
+> +	}
+> +	kfree(buf->pages);
+> +	kfree(buf);
+> +}
+> +
+>  static void *vb2_vmalloc_vaddr(void *buf_priv)
+>  {
+>  	struct vb2_vmalloc_buf *buf = buf_priv;
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
