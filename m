@@ -1,103 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:61243 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753054Ab1KIVXz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2011 16:23:55 -0500
-Date: Wed, 9 Nov 2011 22:23:53 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [KS workshop follow-up] multiple sensor contexts
-In-Reply-To: <4EBAECD1.2030604@gmail.com>
-Message-ID: <Pine.LNX.4.64.1111092219410.4188@axis700.grange>
-References: <Pine.LNX.4.64.1111071645180.26363@axis700.grange>
- <4EBAECD1.2030604@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:54508 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751572Ab1KBKDU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Nov 2011 06:03:20 -0400
+Message-ID: <4EB1157D.2000602@redhat.com>
+Date: Wed, 02 Nov 2011 11:03:41 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 4/6] v4l2-event: Don't set sev->fh to NULL on unsubscribe
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 9 Nov 2011, Sylwester Nawrocki wrote:
+<resend with correct subject, sorry for the confusing wrong subject with the previous mail>
 
-> Hi Guennadi,
-> 
-> On 11/07/2011 05:17 PM, Guennadi Liakhovetski wrote:
-> > Hi all
-> > 
-> > At the V4L/DVB workshop in Prague a couple of weeks ago possible merits of
-> > supporting multiple camera sensor contexts have been discussed. Such
-> > contexts are often promoted by camera manufacturers as a hardware
-> > optimization to support fast switching to the snapshot mode. Such a switch
-> > is often accompanied by a change of the frame format. Typically, a smaller
-> > frame is used for the preview mode and a larger frame is used for photo
-> > shooting. Those sensors provide 2 (or more) sets of frame size and data
-> > format registers and a single command to switch between them. The
-> > decision, whether or not to support these multiple camera contexts has
-> > been postponed until some measurements become available, how much time
-> > such a "fast switching" implementation would save us.
-> > 
-> > I took the mt9m111 driver, that supports mt9m111, mt9m131, and mt9m112
-> > camera sensors from Aptina. They do indeed implement two contexts,
-> > however, the driver first had to be somewhat reorganised to make use of
-> > them. I pushed my (highly!) experimental tree to
-> > 
-> > git://linuxtv.org/gliakhovetski/v4l-dvb.git staging-3.3
-> > 
-> > with the addition of the below debugging diff, that pre-programs a fixed
-> > format into the second context registers and switches to it, once a
-> > matching S_FMT is called. On the i.MX31 based pcm037 board, that I've got,
-> > this sensor is attached to the I2C bus #2, running at 20kHz. The explicit
-> > programming of the new format parameters measures to take around 27ms,
-> > which is also about what we win, when using the second context.
-> 
-> I was expecting the re-programming time being not significant like this.
-> I'll try to reserve some time next week to measure how long the sensor
-> re-programming takes in case of m5mols device. It has quite a few registers
-> to write but its I2C bus clock frequency is 400 kHz so perhaps the results 
-> will be similar to yours. 
-> 
-> > 
-> > As for interpretation: firstly 20kHz is not much, I expect many other set
-> > ups to run much faster. But even if we accept, that on some hardware>
-> > 20kHz doesn't work and we really lose 27ms when not using multiple
-> > register contexts, is it a lot? Thinking about my personal photographing
-> > experiences with cameras and camera-phones, I don't think, I'd notice a
-> > 27ms latency;-) I don't think anything below 200ms really makes a
-> > difference and, I think, the major contributor to the snapshot latency is
-> > the need to synchronise on a frame, and, possibly skip or shoot several
-> > frames, instead of just one.
-> > 
-> > So, my conclusion would be: when working with "sane" camera sensors, i.e.,
-> > those, where you don't have to reprogram 100s of registers from some magic
-> > tables to configure a different frame format (;-)), supporting several
-> > register contexts doesn't bring a huge advantage in terms of snapshot
-> > latency. OTOH, it can well happen, that at some point we anyway will have
-> > to support those multiple register contexts for some other reason.
-> 
-> Hmm, I'm wondering what should the drivers do in case of devices that require 
-> explicit setting of some control registers for still capture. Guessing on pixel
-> format basis is rather a poor men's solution. This is what M-5MOLS mainline driver
-> doeas - if JPEG format is set it switches to snaphot mode. This way YUV format
-> cannot be used in snaphot mode.
-> There are also distinct resolutions supported for snaphot mode, and it can't be
-> currently properly enumerated.
-> 
-> Hence my question is, should such (whatsoever rare) devices stick with _private_ 
-> controls ?
-> 
-> If we have used VIDIOC_STREAMON for triggering capture, something like boolean 
-> SNAPSHOT control is needed, for instance, to tell the sensor controller it should
-> fire the flash. 
+Hi,
 
-Yes, I think, that was one of the conclusions of the workshop on this 
-topic: we need a new control (a common one, not a private one) to switch 
-to snapshot mode. I think, it has been agreed, that someone, (who first 
-hits a valid practical use-case?;-)) submits an RFC / patch for such a 
-control with a sufficiently detailed description of its semantics...
+hverkuil wrote:
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ >On Thursday, October 27, 2011 13:18:01 Hans de Goede wrote:
+>> 1: There is no reason for this after v4l2_event_unsubscribe releases the
+>> spinlock nothing is holding a reference to the sev anymore except for the
+>> local reference in the v4l2_event_unsubscribe function.
+>
+> Not true. v4l2-ctrls.c may still have a reference to the sev through the
+> ev_subs list in struct v4l2_ctrl. The send_event() function checks for a
+> non-zero fh.
+
+Ah, yes. You're right v4l2-ctrls.c may still hold a reference after
+releasing the spinlock.
+
+*But* setting sev->fh to NULL and checking for this in v4l2-ctrls: send_event(),
+or doing something similar, is not only not needed it is outright wrong.
+v4l2_event_unsubscribe() and v4l2-ctrls: send_event() don't hold any shared
+lock, so any form of test then use in v4l2-ctrls: send_event() is inherent racy.
+
+Here is the relevant code from v4l2-ctrls: send_event():
+
+	if (sev->fh && (sev->fh != fh ||
+			(sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK)))
+		v4l2_event_queue_fh(sev->fh, &ev);
+
+Now lets say that v4l2_event_unsubscribe and v4l2-ctrls: send_event() race
+on the same sev, then the following could happens:
+
+1) send_event checks sev->fh, finds it is not NULL
+<thread switch>
+2) v4l2_event_unsubscribe sets sev->fh NULL
+3) v4l2_event_unsubscribe calls v4l2_ctrls del_event function, this blocks
+    as the thread calling send_event holds the ctrl_lock
+<thread switch>
+4) send_event calls v4l2_event_queue_fh(sev->fh, &ev) which not is equivalent
+    to calling: v4l2_event_queue_fh(NULL, &ev)
+5) oops, NULL pointer deref.
+
+Now again without setting sev->fh to NULL in v4l2_event_unsubscribe and
+without the (now senseless since always true) sev->fh != NULL check in
+send_event:
+
+1) send_event is about to call v4l2_event_queue_fh(sev->fh, &ev)
+<thread switch>
+2) v4l2_event_unsubscribe removes sev->list from the fh->subscribed list
+<thread switch>
+3) send_event calls v4l2_event_queue_fh(sev->fh, &ev)
+4) v4l2_event_queue_fh blocks on the fh_lock spinlock
+<thread switch>
+5) v4l2_event_unsubscribe unlocks the fh_lock spinlock
+6) v4l2_event_unsubscribe calls v4l2_ctrls del_event function, this blocks
+    as the thread calling send_event holds the ctrl_lock
+<thread switch>
+8) v4l2_event_queue_fh takes the fh_lock
+7) v4l2_event_queue_fh calls v4l2_event_subscribed, does not find it since
+    sev->list has been removed from fh->subscribed already -> does nothing
+9) v4l2_event_queue_fh releases the fh_lock
+10) the caller of send_event releases the ctrl lock (mutex)
+<thread switch>
+11) v4l2_ctrls del_event takes the ctrl lock
+12) v4l2_ctrls del_event removes sev->node from the ev_subs list
+13) v4l2_ctrls del_event releases the ctrl lock
+14) v4l2_event_unsubscribe frees the sev, to which no references are being
+     held anymore
+
+> All that is needed is to find some different way of letting send_event()
+> know that this sev is no longer used. Perhaps by making sev->list empty?
+
+Actually as explained above the fix is to not do any checks and let both
+"subsystems" take care of their own locking / consistency without any
+interactions (other then that v4l2_ctrls should not hold any references
+to the sev after its del op has completed).
+
+I'll update the patch to also remove the sev->fh check from v4l2_ctrls:
+send_event() and update the commit message.
+
+Regards,
+
+Hans
