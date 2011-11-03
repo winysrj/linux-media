@@ -1,656 +1,260 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:39189 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753211Ab1K1TOb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 14:14:31 -0500
-Received: by bke11 with SMTP id 11so8921673bke.19
-        for <linux-media@vger.kernel.org>; Mon, 28 Nov 2011 11:14:30 -0800 (PST)
-Message-ID: <4ED3DD91.1060505@gmail.com>
-Date: Mon, 28 Nov 2011 22:14:25 +0300
-From: Alex <alex.vizor@gmail.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: uvcvideo: Failed to query (SET_CUR) UVC control 10 on unit 2:
- -32 (exp. 2).
-References: <4ED29713.1010202@gmail.com> <201111281135.57435.laurent.pinchart@ideasonboard.com> <4ED3CD26.8000403@gmail.com> <201111282008.44684.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201111282008.44684.laurent.pinchart@ideasonboard.com>
-Content-Type: multipart/mixed;
- boundary="------------030405020206040500080008"
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:61114 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932075Ab1KCHuC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2011 03:50:02 -0400
+Received: by faao14 with SMTP id o14so1224556faa.19
+        for <linux-media@vger.kernel.org>; Thu, 03 Nov 2011 00:50:01 -0700 (PDT)
+Date: Thu, 3 Nov 2011 08:49:49 +0100
+From: Steffen Barszus <steffenbpunkt@googlemail.com>
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices
+ bridge (ddbridge)
+Message-ID: <20111103084949.5853b4f0@grobi>
+In-Reply-To: <201107161740.54543@orion.escape-edv.de>
+References: <201107032321.46092@orion.escape-edv.de>
+	<4E219D49.1070709@iki.fi>
+	<4E21A63A.8040008@redhat.com>
+	<201107161740.54543@orion.escape-edv.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------030405020206040500080008
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi !
 
-On 11/28/2011 10:08 PM, Laurent Pinchart wrote:
-> Hi Alex,
->
-> On Monday 28 November 2011 19:04:22 Alex wrote:
->> Hi Laurent,
->>
->> Fortunately my laptop is alive now so I'm sending you lsusb output.
-> Thanks. Would you mind re-running lsusb -v -d '04f2:b221' as root ? What
-> laptop brand/model is the camera embedded in ?
->
->> About reverting commit - will try bit later.
-> I've received reports that reverting the commit helps. A proper patch has also
-> been posted to the linux-usb mailing list ("EHCI : Fix a regression in the ISO
-> scheduler"). It would be nice if you could check whether that fixes your first
-> issue as well.
->
-Laurent,
+>From a users point of view i would like to have some clarification on
+this discussion. 
 
-That is lsusb output you asked. Laptop is Thinkpad T420s. Camera works 
-OK with 3.1.x kernel BTW.
+Lets take a (now real world) example. 
 
-Could you send this fix patch to me please?
+Having 
+  /dev/dvb/adapter0/demux0
+  /dev/dvb/adapter0/dvr0
+  /dev/dvb/adapter0/frontend0
+  /dev/dvb/adapter0/frontend1
+  /dev/dvb/adapter0/net0
+  /dev/dvb/adapter1/demux0
+  /dev/dvb/adapter1/dvr0
+  /dev/dvb/adapter1/frontend0
+  /dev/dvb/adapter1/frontend1
+  /dev/dvb/adapter1/net0
 
-Thanks,
-Alex
+for a C/T card, where one fe is C and the other is T , connector is
+only one per adapter. 
 
---------------030405020206040500080008
-Content-Type: text/plain;
- name="lsusb2"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="lsusb2"
+How is the logic to handle this ? 
+
+Two big issues i don't properly understand at the moment. 
+
+1.) VDR does not know that frontend1 is
+related to demux0. since no application changes magically on its own,
+can someone provide some information of what an application is expected
+to do, to handle this properly. With this information it could be
+discussed at i.e. vdr mailing list. 
+
+2.) How does an application/user/whatever know what can be used ? 
+I mean there is only C connected OR T - how can the application know
+what fe can be used (assumed point 1. has been fixed). How would the
+user know, which is which and how one should specify what is
+connected ? 
+
+3.) ca/caio device handling - is this something an application should
+implement ... and how. 
+
+Please help me to understand these points as this is something which
+pops up regular in discussion with our (yavdr.org) users. 
+
+For 1 and 2 the only proper solution i see would be 1 frontend instead
+of 2 with a possibility to specifiy the transport in one way or
+another. (which -> to be discussed) 
+
+Regards 
+
+Steffen
 
 
-Bus 001 Device 003: ID 04f2:b221 Chicony Electronics Co., Ltd 
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass          239 Miscellaneous Device
-  bDeviceSubClass         2 ?
-  bDeviceProtocol         1 Interface Association
-  bMaxPacketSize0        64
-  idVendor           0x04f2 Chicony Electronics Co., Ltd
-  idProduct          0xb221 
-  bcdDevice            7.52
-  iManufacturer           1 Chicony Electronics Co., Ltd.
-  iProduct                2 Integrated Camera
-  iSerial                 0 
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          800
-    bNumInterfaces          2
-    bConfigurationValue     1
-    iConfiguration          0 
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              200mA
-    Interface Association:
-      bLength                 8
-      bDescriptorType        11
-      bFirstInterface         0
-      bInterfaceCount         2
-      bFunctionClass         14 Video
-      bFunctionSubClass       3 Video Interface Collection
-      bFunctionProtocol       0 
-      iFunction               4 Integrated Camera
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      1 Video Control
-      bInterfaceProtocol      0 
-      iInterface              4 Integrated Camera
-      VideoControl Interface Descriptor:
-        bLength                13
-        bDescriptorType        36
-        bDescriptorSubtype      1 (HEADER)
-        bcdUVC               1.00
-        wTotalLength           78
-        dwClockFrequency       30.000000MHz
-        bInCollection           1
-        baInterfaceNr( 0)       1
-      VideoControl Interface Descriptor:
-        bLength                18
-        bDescriptorType        36
-        bDescriptorSubtype      2 (INPUT_TERMINAL)
-        bTerminalID             1
-        wTerminalType      0x0201 Camera Sensor
-        bAssocTerminal          4
-        iTerminal               0 
-        wObjectiveFocalLengthMin      0
-        wObjectiveFocalLengthMax      0
-        wOcularFocalLength            0
-        bControlSize                  3
-        bmControls           0x00040a0e
-          Auto-Exposure Mode
-          Auto-Exposure Priority
-          Exposure Time (Absolute)
-          Zoom (Absolute)
-          PanTilt (Absolute)
-          Privacy
-      VideoControl Interface Descriptor:
-        bLength                11
-        bDescriptorType        36
-        bDescriptorSubtype      5 (PROCESSING_UNIT)
-      Warning: Descriptor too short
-        bUnitID                 2
-        bSourceID               1
-        wMaxMultiplier          0
-        bControlSize            2
-        bmControls     0x0000157f
-          Brightness
-          Contrast
-          Hue
-          Saturation
-          Sharpness
-          Gamma
-          White Balance Temperature
-          Backlight Compensation
-          Power Line Frequency
-          White Balance Temperature, Auto
-        iProcessing             0 
-        bmVideoStandards     0x1b
-          None
-          NTSC - 525/60
-          SECAM - 625/50
-          NTSC - 625/50
-      VideoControl Interface Descriptor:
-        bLength                27
-        bDescriptorType        36
-        bDescriptorSubtype      6 (EXTENSION_UNIT)
-        bUnitID                 3
-        guidExtensionCode         {0a3e1874-8254-1a48-b402-48b8b8c49cc8}
-        bNumControl            11
-        bNrPins                 1
-        baSourceID( 0)          2
-        bControlSize            2
-        bmControls( 0)       0xff
-        bmControls( 1)       0x07
-        iExtension              0 
-      VideoControl Interface Descriptor:
-        bLength                 9
-        bDescriptorType        36
-        bDescriptorSubtype      3 (OUTPUT_TERMINAL)
-        bTerminalID             4
-        wTerminalType      0x0101 USB Streaming
-        bAssocTerminal          0
-        bSourceID               3
-        iTerminal               0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0010  1x 16 bytes
-        bInterval               8
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       0
-      bNumEndpoints           0
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      VideoStreaming Interface Descriptor:
-        bLength                            15
-        bDescriptorType                    36
-        bDescriptorSubtype                  1 (INPUT_HEADER)
-        bNumFormats                         2
-        wTotalLength                      563
-        bEndPointAddress                  130
-        bmInfo                              1
-        bTerminalLink                       4
-        bStillCaptureMethod                 1
-        bTriggerSupport                     0
-        bTriggerUsage                       0
-        bControlSize                        1
-        bmaControls( 0)                    27
-        bmaControls( 1)                    27
-      VideoStreaming Interface Descriptor:
-        bLength                            27
-        bDescriptorType                    36
-        bDescriptorSubtype                  4 (FORMAT_UNCOMPRESSED)
-        bFormatIndex                        1
-        bNumFrameDescriptors                8
-        guidFormat                            {59555932-0000-1000-8000-00aa00389b71}
-        bBitsPerPixel                      16
-        bDefaultFrameIndex                  1
-        bAspectRatioX                       0
-        bAspectRatioY                       0
-        bmInterlaceFlags                 0x02
-          Interlaced stream or variable: No
-          Fields per frame: 1 fields
-          Field 1 first: No
-          Field pattern: Field 1 only
-          bCopyProtect                      0
-      VideoStreaming Interface Descriptor:
-        bLength                            34
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         1
-        bmCapabilities                   0x01
-          Still image supported
-        wWidth                            640
-        wHeight                           480
-        dwMinBitRate                 73728000
-        dwMaxBitRate                147456000
-        dwMaxVideoFrameBufferSize      614400
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  2
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            666666
-      VideoStreaming Interface Descriptor:
-        bLength                            34
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         2
-        bmCapabilities                   0x01
-          Still image supported
-        wWidth                            640
-        wHeight                           360
-        dwMinBitRate                 55296000
-        dwMaxBitRate                110592000
-        dwMaxVideoFrameBufferSize      460800
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  2
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            666666
-      VideoStreaming Interface Descriptor:
-        bLength                            34
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         3
-        bmCapabilities                   0x01
-          Still image supported
-        wWidth                            352
-        wHeight                           288
-        dwMinBitRate                 24330240
-        dwMaxBitRate                 48660480
-        dwMaxVideoFrameBufferSize      202752
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  2
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            666666
-      VideoStreaming Interface Descriptor:
-        bLength                            34
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         4
-        bmCapabilities                   0x01
-          Still image supported
-        wWidth                            320
-        wHeight                           240
-        dwMinBitRate                 18432000
-        dwMaxBitRate                 36864000
-        dwMaxVideoFrameBufferSize      153600
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  2
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            666666
-      VideoStreaming Interface Descriptor:
-        bLength                            30
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         5
-        bmCapabilities                   0x01
-          Still image supported
-        wWidth                            800
-        wHeight                           448
-        dwMinBitRate                 86016000
-        dwMaxBitRate                 86016000
-        dwMaxVideoFrameBufferSize      716800
-        dwDefaultFrameInterval         666666
-        bFrameIntervalType                  1
-        dwFrameInterval( 0)            666666
-      VideoStreaming Interface Descriptor:
-        bLength                            30
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         6
-        bmCapabilities                   0x01
-          Still image supported
-        wWidth                            960
-        wHeight                           544
-        dwMinBitRate                 83558400
-        dwMaxBitRate                 83558400
-        dwMaxVideoFrameBufferSize     1044480
-        dwDefaultFrameInterval        1000000
-        bFrameIntervalType                  1
-        dwFrameInterval( 0)           1000000
-      VideoStreaming Interface Descriptor:
-        bLength                            30
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         7
-        bmCapabilities                   0x01
-          Still image supported
-        wWidth                           1280
-        wHeight                           720
-        dwMinBitRate                147456000
-        dwMaxBitRate                147456000
-        dwMaxVideoFrameBufferSize     1843200
-        dwDefaultFrameInterval        1000000
-        bFrameIntervalType                  1
-        dwFrameInterval( 0)           1000000
-      VideoStreaming Interface Descriptor:
-        bLength                            34
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         8
-        bmCapabilities                   0x01
-          Still image supported
-        wWidth                            424
-        wHeight                           240
-        dwMinBitRate                 24422400
-        dwMaxBitRate                 48844800
-        dwMaxVideoFrameBufferSize      203520
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  2
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            666666
-      VideoStreaming Interface Descriptor:
-        bLength                             6
-        bDescriptorType                    36
-        bDescriptorSubtype                 13 (COLORFORMAT)
-        bColorPrimaries                     1 (BT.709,sRGB)
-        bTransferCharacteristics            1 (BT.709)
-        bMatrixCoefficients                 4 (SMPTE 170M (BT.601))
-      VideoStreaming Interface Descriptor:
-        bLength                            11
-        bDescriptorType                    36
-        bDescriptorSubtype                  6 (FORMAT_MJPEG)
-        bFormatIndex                        2
-        bNumFrameDescriptors                7
-        bFlags                              0
-          Fixed-size samples: No
-        bDefaultFrameIndex                  1
-        bAspectRatioX                       0
-        bAspectRatioY                       0
-        bmInterlaceFlags                 0x02
-          Interlaced stream or variable: No
-          Fields per frame: 2 fields
-          Field 1 first: No
-          Field pattern: Field 1 only
-          bCopyProtect                      0
-      VideoStreaming Interface Descriptor:
-        bLength                            34
-        bDescriptorType                    36
-        bDescriptorSubtype                  7 (FRAME_MJPEG)
-        bFrameIndex                         1
-        bmCapabilities                   0x01
-          Still image supported
-        wWidth                            640
-        wHeight                           480
-        dwMinBitRate                110592000
-        dwMaxBitRate                221184000
-        dwMaxVideoFrameBufferSize      921600
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  2
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            666666
-      VideoStreaming Interface Descriptor:
-        bLength                            34
-        bDescriptorType                    36
-        bDescriptorSubtype                  7 (FRAME_MJPEG)
-        bFrameIndex                         2
-        bmCapabilities                   0x01
-          Still image supported
-        wWidth                            640
-        wHeight                           360
-        dwMinBitRate                 82944000
-        dwMaxBitRate                165888000
-        dwMaxVideoFrameBufferSize      691200
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  2
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            666666
-      VideoStreaming Interface Descriptor:
-        bLength                            34
-        bDescriptorType                    36
-        bDescriptorSubtype                  7 (FRAME_MJPEG)
-        bFrameIndex                         3
-        bmCapabilities                   0x01
-          Still image supported
-        wWidth                            352
-        wHeight                           288
-        dwMinBitRate                 36495360
-        dwMaxBitRate                 72990720
-        dwMaxVideoFrameBufferSize      304128
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  2
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            666666
-      VideoStreaming Interface Descriptor:
-        bLength                            34
-        bDescriptorType                    36
-        bDescriptorSubtype                  7 (FRAME_MJPEG)
-        bFrameIndex                         4
-        bmCapabilities                   0x01
-          Still image supported
-        wWidth                            320
-        wHeight                           240
-        dwMinBitRate                 27648000
-        dwMaxBitRate                 55296000
-        dwMaxVideoFrameBufferSize      230400
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  2
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            666666
-      VideoStreaming Interface Descriptor:
-        bLength                            34
-        bDescriptorType                    36
-        bDescriptorSubtype                  7 (FRAME_MJPEG)
-        bFrameIndex                         5
-        bmCapabilities                   0x01
-          Still image supported
-        wWidth                            800
-        wHeight                           448
-        dwMinBitRate                129024000
-        dwMaxBitRate                258048000
-        dwMaxVideoFrameBufferSize     1075200
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  2
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            666666
-      VideoStreaming Interface Descriptor:
-        bLength                            34
-        bDescriptorType                    36
-        bDescriptorSubtype                  7 (FRAME_MJPEG)
-        bFrameIndex                         6
-        bmCapabilities                   0x01
-          Still image supported
-        wWidth                            960
-        wHeight                           544
-        dwMinBitRate                188006400
-        dwMaxBitRate                376012800
-        dwMaxVideoFrameBufferSize     1566720
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  2
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            666666
-      VideoStreaming Interface Descriptor:
-        bLength                            34
-        bDescriptorType                    36
-        bDescriptorSubtype                  7 (FRAME_MJPEG)
-        bFrameIndex                         7
-        bmCapabilities                   0x01
-          Still image supported
-        wWidth                           1280
-        wHeight                           720
-        dwMinBitRate                331776000
-        dwMaxBitRate                663552000
-        dwMaxVideoFrameBufferSize     2764800
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  2
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            666666
-      VideoStreaming Interface Descriptor:
-        bLength                             6
-        bDescriptorType                    36
-        bDescriptorSubtype                 13 (COLORFORMAT)
-        bColorPrimaries                     1 (BT.709,sRGB)
-        bTransferCharacteristics            1 (BT.709)
-        bMatrixCoefficients                 4 (SMPTE 170M (BT.601))
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       1
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x03c0  1x 960 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       2
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x0400  1x 1024 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       3
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x0b5c  2x 860 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       4
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x0c00  2x 1024 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       5
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x135c  3x 860 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       6
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x13c0  3x 960 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       7
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x13fc  3x 1020 bytes
-        bInterval               1
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass          239 Miscellaneous Device
-  bDeviceSubClass         2 ?
-  bDeviceProtocol         1 Interface Association
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
 
---------------030405020206040500080008--
+On Sat, 16 Jul 2011 17:40:53 +0200
+Oliver Endriss <o.endriss@gmx.de> wrote:
+
+> On Saturday 16 July 2011 16:54:50 Mauro Carvalho Chehab wrote:
+> > Em 16-07-2011 11:16, Antti Palosaari escreveu:
+> > > On 07/16/2011 03:25 PM, Mauro Carvalho Chehab wrote:
+> > >> Em 15-07-2011 20:41, Antti Palosaari escreveu:
+> > >>> On 07/15/2011 08:01 PM, Andreas Oberritter wrote:
+> > >>>> On 15.07.2011 15:25, Mauro Carvalho Chehab wrote:
+> > >>>>> Em 15-07-2011 05:26, Ralph Metzler escreveu:
+> > >>>>>> At the same time I want to add delivery system properties to
+> > >>>>>> support everything in one frontend device.
+> > >>>>>> Adding a parameter to select C or T as default should help
+> > >>>>>> in most cases where the application does not support
+> > >>>>>> switching yet.
+> > >>>>>
+> > >>>>> If I understood well, creating a multi-delivery type of
+> > >>>>> frontend for devices like DRX-K makes sense for me.
+> > >>>>>
+> > >>>>> We need to take some care about how to add support for them,
+> > >>>>> to avoid breaking userspace, or to follow kernel deprecating
+> > >>>>> rules, by adding some legacy compatibility glue for a few
+> > >>>>> kernel versions. So, the sooner we add such support, the
+> > >>>>> better, as less drivers will need to support a "fallback"
+> > >>>>> mechanism.
+> > >>>>>
+> > >>>>> The current DVB version 5 API doesn't prevent some userspace
+> > >>>>> application to change the delivery system[1] for a given
+> > >>>>> frontend. This feature is actually used by DVB-T2 and DVB-S2
+> > >>>>> drivers. This actually improved the DVB API multi-fe support,
+> > >>>>> by avoiding the need of create of a secondary frontend for
+> > >>>>> T2/S2.
+> > >>>>>
+> > >>>>> Userspace applications can detect that feature by using
+> > >>>>> FE_CAN_2G_MODULATION flag, but this mechanism doesn't allow
+> > >>>>> other types of changes like from/to DVB-T/DVB-C or from/to
+> > >>>>> DVB-T/ISDB-T. So, drivers that allow such type of delivery
+> > >>>>> system switch, using the same chip ended by needing to add
+> > >>>>> two frontends.
+> > >>>>>
+> > >>>>> Maybe we can add a generic FE_CAN_MULTI_DELIVERY flag to
+> > >>>>> fe_caps_t, and add a way to query the type of delivery
+> > >>>>> systems supported by a driver.
+> > >>>>>
+> > >>>>> [1]
+> > >>>>> http://linuxtv.org/downloads/v4l-dvb-apis/FE_GET_SET_PROPERTY.html#DTV-DELIVERY-SYSTEM
+> > >>>>
+> > >>>> I don't think it's necessary to add a new flag. It should be
+> > >>>> sufficient to add a property like
+> > >>>> "DTV_SUPPORTED_DELIVERY_SYSTEMS", which should be read-only
+> > >>>> and return an array of type fe_delivery_system_t.
+> > >>>>
+> > >>>> Querying this new property on present kernels hopefully fails
+> > >>>> with a non-zero return code. in which case FE_GET_INFO should
+> > >>>> be used to query the delivery system.
+> > >>>>
+> > >>>> In future kernels we can provide a default implementation,
+> > >>>> returning exactly one fe_delivery_system_t for unported
+> > >>>> drivers. Other drivers should be able to override this default
+> > >>>> implementation in their get_property callback.
+> > >>>
+> > >>> One thing I want to say is that consider about devices which
+> > >>> does have MFE using two different *physical* demods, not
+> > >>> integrated to same silicon.
+> > >>>
+> > >>> If you add such FE delsys switch mechanism it needs some more
+> > >>> glue to bind two physical FEs to one virtual FE. I see much
+> > >>> easier to keep all FEs as own - just register those under the
+> > >>> same adapter if FEs are shared.
+> > >>
+> > >> In this case, the driver should just create two frontends, as
+> > >> currently.
+> > >>
+> > >> There's a difference when there are two physical FE's and just
+> > >> one FE: with 2 FE's, the userspace application can just keep
+> > >> both opened at the same time. Some applications (like vdr)
+> > >> assumes that all multi-fe are like that.
+> > > 
+> > > Does this mean demod is not sleeping (.init() called)?
+> > > 
+> > >> When there's just a single FE, but the driver needs to "fork" it
+> > >> in two due to the API troubles, the driver needs to prevent the
+> > >> usage of both fe's, either at open or at the ioctl level. So,
+> > >> applications like vdr will only use the first frontend.
+> > > 
+> > > Lets take example. There is shared MFE having DVB-S, DVB-T and
+> > > DVB-C. DVB-T and DVB-C are integrated to one chip whilst DVB-S
+> > > have own.
+> > > 
+> > > Currently it will shown as:
+> > 
+> > Let me name the approaches:
+> > 
+> > Approach 1)
+> > > * adapter0
+> > > ** frontend0 (DVB-S)
+> > > ** frontend1 (DVB-T)
+> > > ** frontend2 (DVB-C)
+> > 
+> > Approach 2)
+> > > Your new "ideal" solution will be:
+> > > * adapter0
+> > > ** frontend0 (DVB-S/T/C)
+> > 
+> > Approach 3)
+> > > What really happens (mixed old and new):
+> 
+> Why does this happen?
+> 
+> > > * adapter0
+> > > ** frontend0 (DVB-S)
+> > > ** frontend1 (DVB-T/C)
+> >
+> > What I've said before is that approach 3 is the "ideal" solution.
+> 
+> No, sorry.
+> 
+> > > It does not look very good to offer this kind of mixed solution,
+> > > since it is possible to offer only one solution for userspace,
+> > > new or old, but not mixing.
+> > 
+> > Good point. 
+> > 
+> > There's an additional aspect to handle: if a driver that uses
+> > approach 1, a conversion to either approach 2 or 3 would break
+> > existing applications that can't handle with the new approach.
+> > 
+> > There's a 4th posibility: always offering fe0 with MFE
+> > capabilities, and creating additional fe's for old applications
+> > that can't cope with the new mode. For example, on a device that
+> > supports DVB-S/DVB-S2/DVB-T/DVB-T2/DVB-C/ISDB-T, it will be shown
+> > as:
+> > 
+> > Approach 4) fe0 is a frontend "superset"
+> > 
+> > *adapter0
+> > *frontend0 (DVB-S/DVB-S2/DVB-T/DVB-T2/DVB-C/ISDB-T) - aka: FE
+> > superset *frontend1 (DVB-S/DVB-S2)
+> > *frontend2 (DVB-T/DVB-T2)
+> > *frontend3 (DVB-C)
+> > *frontend4 (ISDB-T)
+> > 
+> > fe0 will need some special logic to allow redirecting a FE call to
+> > the right fe, if there are more than one physical frontend bound
+> > into the FE API.
+> > 
+> > I'm starting to think that (4) is the better approach, as it won't
+> > break legacy applications, and it will provide an easier way for
+> > new applications to control the frontend with just one frontend.
+> 
+> Nack. Do not make it more complicated than neccessary!
+> Approach (2) is the way to go.
+> 
+> I consider the current way as a clear abuse of the DVB API.
+> It is a bug, not a feature!
+> 
+> Originally it was intended to support multiple data paths per adapter.
+> For example, A dual tuner DVB-S card should have been implemented as
+> one adapter:
+> 
+> adapterX +--- demux0/frontend0/ca0/dvr0/net0
+>          |
+>          +--- demux1/frontend1/ca1/dvr1/net1
+> 
+> (Both tuners can be used concurrently without limitations.)
+> 
+> My proposal is:
+> If there is any kind of shared hardware, i.e. the application cannot
+> use both adapters independently, these hardware must be folded into a
+> single frontend.
+> 
+> It is not so hard to implement, even for separate chips:
+> The driver just has to "switch" from one set of frontend ops to
+> another.
+> 
+> Btw, which applications do really handle this fronten0/1 stuff
+> correctly? VDR definitely does not. Access to the frontend1 fails.
+> 
+> CU
+> Oliver
+> 
+
