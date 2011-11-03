@@ -1,38 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wg2.cofc.edu ([153.9.243.202]:51784 "EHLO WG2.cofc.edu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751205Ab1KBEa6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 00:30:58 -0400
-Content-class: urn:content-classes:message
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Subject: Contact UPS Via {ups_despatch.ng@dgoh.org} For Claims
-Date: Tue, 1 Nov 2011 23:44:16 -0400
-Message-ID: <5352E3E2B5E98F49A2A2DDA0FCD841D1083EB6A8@EXCHMBX2.COUGARS.INT>
-From: "Boerner, Hunter" <boernerh@cofc.edu>
-To: undisclosed-recipients:;
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:63586 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752670Ab1KCKlG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2011 06:41:06 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LU2008SAZ0FR140@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 03 Nov 2011 10:41:03 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LU20093SZ0ESK@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 03 Nov 2011 10:41:03 +0000 (GMT)
+Date: Thu, 03 Nov 2011 11:40:59 +0100
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Subject: RE: [PATCH] media: vb2: vmalloc-based allocator user pointer handling
+In-reply-to: <201111021453.46902.laurent.pinchart@ideasonboard.com>
+To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	'Pawel Osciak' <pawel@osciak.com>
+Message-id: <002301cc9a15$13580cb0$3a082610$%p@samsung.com>
+Content-language: pl
+References: <1320231122-22518-1-git-send-email-andrzej.p@samsung.com>
+ <201111021453.46902.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello Laurent,
 
-  
- 
-After much attempts to reach you on phone, I deemed it necessary and urgent to contact you via your e-mail and to notify you finally about your outstanding compensation payment.
+Thank you for quickly responding with a review. As for coding style
+remarks I generally agree. However, Guennadi seems to have a different
+opinion on one of them.
 
-During our last annual calculation of your banking and Internet activities we realized that you are eligible to receive a compensation payment of $2,811,041.00 USD.This compensation is being made to all of you who have suffered losses as a result of fraud, accident or illness.
+On Wednesday, November 02, 2011 2:54 PM Laurent Pinchart wrote:
 
-For more information, contact the UPS agent for the delivery of your cashier check ($2,811,041.00 USD).
+> 
+> This can cause an AB-BA deadlock, and will be reported by deadlock
+> detection
+> if enabled.
+> 
+Marek has already wrote about this. The same problem relates to other
+allocators, AFAIK. He proposed a solution.
 
-United Parcel Service (UPS)
-Contact Name: Collins Abah
-Tel:+2348168636983
-E-mail: ups_despatch.ng@dgoh.org <mailto:ups_despatch.ng@dgoh.org> 
+Regards,
 
-Please take note that you will pay a shipping/handling fee of $245.00 USD to UPS.
+Andrzej
 
-Thanks for your patience.
 
-Boernar Hunter
-Programme Manager
-United Nations Human Settlements Programme
+
