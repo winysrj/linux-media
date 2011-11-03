@@ -1,197 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53765 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755789Ab1KKO0D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Nov 2011 09:26:03 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: Using MT9P031 digital sensor
-Date: Fri, 11 Nov 2011 15:26:04 +0100
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4EB04001.9050803@mlbassoc.com> <201111091719.03586.laurent.pinchart@ideasonboard.com> <4EBAA93A.2000806@mlbassoc.com>
-In-Reply-To: <4EBAA93A.2000806@mlbassoc.com>
+Received: from mx1.redhat.com ([209.132.183.28]:53062 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756417Ab1KCSEX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Nov 2011 14:04:23 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pA3I4NqG022483
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 3 Nov 2011 14:04:23 -0400
+Received: from [10.11.11.101] (vpn-11-101.rdu.redhat.com [10.11.11.101])
+	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id pA3I4Mkf008885
+	for <linux-media@vger.kernel.org>; Thu, 3 Nov 2011 14:04:23 -0400
+Message-ID: <4EB2D7A5.1080208@redhat.com>
+Date: Thu, 03 Nov 2011 16:04:21 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] edac: Only build sb_edac on 64-bit
+References: <1320343211-10665-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1320343211-10665-1-git-send-email-mchehab@redhat.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201111111526.05270.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gary,
-
-On Wednesday 09 November 2011 17:24:26 Gary Thomas wrote:
-> On 2011-11-09 09:18, Laurent Pinchart wrote:
-> > On Wednesday 09 November 2011 12:01:34 Gary Thomas wrote:
-> >> On 2011-11-08 17:54, Laurent Pinchart wrote:
-> >>> On Tuesday 08 November 2011 14:38:55 Gary Thomas wrote:
-> >>>> On 2011-11-08 06:06, Laurent Pinchart wrote:
-> >>>>> On Tuesday 08 November 2011 13:52:25 Gary Thomas wrote:
-> >>>>>> On 2011-11-08 05:30, Javier Martinez Canillas wrote:
-> >>>>>>> On Tue, Nov 8, 2011 at 1:20 PM, Gary Thomas wrote:
-> >>>>>>>> On 2011-11-04 04:37, Laurent Pinchart wrote:
-> >>>>>>>>> On Tuesday 01 November 2011 19:52:49 Gary Thomas wrote:
-> >>>>>>>>>> I'm trying to use the MT9P031 digital sensor with the Media
-> >>>>>>>>>> Controller Framework.  media-ctl tells me that the sensor is set
-> >>>>>>>>>> to capture using SGRBG12  2592x1944
-> >>>>>>>>>> 
-> >>>>>>>>>> Questions:
-> >>>>>>>>>> * What pixel format in ffmpeg does this correspond to?
-> >>>>>>>>> 
-> >>>>>>>>> I don't know if ffmpeg supports Bayer formats. The corresponding
-> >>>>>>>>> fourcc in V4L2 is BA12.
-> >>>>>>>> 
-> >>>>>>>> ffmpeg doesn't seem to support these formats
-> >>>>>>>> 
-> >>>>>>>>> If your sensor is hooked up to the OMAP3 ISP, you can then
-> >>>>>>>>> configure the pipeline to include the preview engine and the
-> >>>>>>>>> resizer, and capture YUV data
-> >>>>>>>>> at the resizer output.
-> >>>>>>>> 
-> >>>>>>>> I am using the OMAP3 ISP, but it's a bit unclear to me how to set
-> >>>>>>>> up the pipeline
-> >>>>>>> 
-> >>>>>>> Hi Gary,
-> >>>>>>> 
-> >>>>>>> I'm also using another sensor mtv9034 with OMAP3 ISP, so maybe I
-> >>>>>>> can help you.
-> >>>>>>> 
-> >>>>>>>> using media-ctl (I looked for documentation on this tool, but came
-> >>>>>>>> up dry - is there any?)
-> >>>>>>>> 
-> >>>>>>>> Do you have an example of how to configure this using the OMAP3
-> >>>>>>>> ISP?
-> >>>>>>> 
-> >>>>>>> This is how I configure the pipeline to connect the CCDC with the
-> >>>>>>> Previewer and Resizer:
-> >>>>>>> 
-> >>>>>>> ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
-> >>>>>>> ./media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
-> >>>>>>> ./media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
-> >>>>>>> ./media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
-> >>>>>>> output":0[1]' ./media-ctl -f '"mt9v032 3-005c":0[SGRBG10 752x480]'
-> >>>>>>> ./media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG10 752x480]'
-> >>>>>>> ./media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 752x480]'
-> >>>>>>> ./media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 752x479]'
-> >>>>>>> ./media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 734x471]'
-> >>>>>>> ./media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 640x480]'
-> >>>>>>> 
-> >>>>>>> Hope it helps,
-> >>>>>> 
-> >>>>>> Thanks, I'll give this a try.
-> >>>>>> 
-> >>>>>> I assume that your sensor is probably larger than 752x480 (the
-> >>>>>> mt9p031 is 2592x1944 raw) and that setting the smaller frame size
-> >>>>>> enables some scaling and/or cropping in the driver?
-> >>>>> 
-> >>>>> The mt9v034 is a wide VGA 752x480 sensor if I'm not mistaken. You
-> >>>>> should modify the resolutions in the above commands according to your
-> >>>>> sensor. Note that the CCDC crops online line when outputting data to
-> >>>>> the preview engine, and that the preview engine crops 18 columsn and
-> >>>>> 8 lines. You can then scale the image by modifying the resizer
-> >>>>> output size.
-> >>>> 
-> >>>> Thanks.  After much trial and error (and some kernel printks to
-> >>>> 
-> >>>> understand what parameters were failing), I came up with this sequence:
-> >>>>      media-ctl -r
-> >>>>      media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
-> >>>>      media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
-> >>>>      media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
-> >>>>      media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
-> >>>>      output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12
-> >>>>      2592x1944]' media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG12
-> >>>>      2592x1944]'
-> >>>>      media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG12 2592x1944]'
-> >>>>      media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG12 2592x1943]'
-> >>>>      media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
-> >>>>      media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 642x483]'
-> >>>> 
-> >>>> When I tried to grab though, I got this:
-> >>>> 
-> >>>> # yavta --capture=4 -f YUYV -s 642x483 -F /dev/video6
-> >>>> Device /dev/video6 opened.
-> >>>> Device `OMAP3 ISP resizer output' on `media' is a video capture
-> >>>> device. Video format set: YUYV (56595559) 642x483 buffer size 633696
-> >>>> Video format: YUYV (56595559) 642x483 buffer size 633696
-> >>>> 8 buffers requested.
-> >>>> length: 633696 offset: 0
-> >>>> Buffer 0 mapped at address 0x4028c000.
-> >>>> length: 633696 offset: 634880
-> >>>> Buffer 1 mapped at address 0x403d0000.
-> >>>> length: 633696 offset: 1269760
-> >>>> Buffer 2 mapped at address 0x404b3000.
-> >>>> length: 633696 offset: 1904640
-> >>>> Buffer 3 mapped at address 0x4062b000.
-> >>>> length: 633696 offset: 2539520
-> >>>> Buffer 4 mapped at address 0x406d6000.
-> >>>> length: 633696 offset: 3174400
-> >>>> Buffer 5 mapped at address 0x40821000.
-> >>>> length: 633696 offset: 3809280
-> >>>> Buffer 6 mapped at address 0x4097c000.
-> >>>> length: 633696 offset: 4444160
-> >>>> Buffer 7 mapped at address 0x40adf000.
-> >>>> 
-> >>>> Unable to handle kernel NULL pointer dereference at virtual address
-> >>>> 00000018
-> >>> 
-> >>> Ouch :-(
-> >>> 
-> >>> Could you please verify that arch/arm/mach-omap2/board-overo.c includes
-> >>> the following code, and that CONFIG_OMAP_MUX is enabled ?
-> >> 
-> >> I'm not using an Overo board - rather one of our own internal designs.
-> > 
-> > My bad, sorry.
-> > 
-> >> I have verified that the pull up/down on those pins is disabled.
-> >> 
-> >> The failure is coming from this code in ispccdc.c
-> >> 
-> >>     static void ccdc_hs_vs_isr(struct isp_ccdc_device *ccdc)
-> >>     {
-> >> 	  
-> >> 	  struct isp_pipeline *pipe =
-> >> 		
-> >> 		to_isp_pipeline(&ccdc->video_out.video.entity);
-> >> 
-> >> The value of pipe is NULL which leads to the failure.
-> >> 
-> >> Questions:
-> >> * I assume that getting HS/VS interrupts is correct in this mode?
-> >> * Why is the statement not written (as all others are)
-> >> 
-> >> 	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
-> >> 	
-> >>     I tried this change and the kernel doesn't crash.
-> >> 
-> >> I've found that I can get raw frames out of CCDC, but I don't get
-> >> anything at all when the output continues through the preview and/or
-> >> resize nodes.
-> >> 
-> >> Ideas?
-> > 
-> > I'm really puzzled, this should have been caught much earlier :-)
-> > 
-> > Your analysis makes sense. Would you like to submit a patch yourself ? If
-> > not I can do it.
+Em 03-11-2011 16:00, Mauro Carvalho Chehab escreveu:
+> From: Josh Boyer <jwboyer@redhat.com>
 > 
-> Sure, I can submit a patch. I would like to figure out why it's not working
-> first.
+> The sb_edac driver is marginally useful on a 32-bit kernel, and
+> currently has 64-bit divide compile errors when building that config.
+> For now, make this build on only for 64-bit kernels.
+> 
+> Signed-off-by: Josh Boyer <jwboyer@redhat.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Oops, I've overlooked that, sorry.
+Please discard this patch... my fingers just automatically typed "--cc lmml",
+as they used to do it most of the time when typing a git send-email command ;)
 
-> Any ideas how I can debug this? I can't seem to get anything past the CCDC,
-> e.g. into the preview or resize units. Is there some way to trace
-> packets/data through the various stages? Any ideas what might cause it to
-> stall?
+> ---
+>  drivers/edac/Kconfig |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/edac/Kconfig b/drivers/edac/Kconfig
+> index 203361e..5948a21 100644
+> --- a/drivers/edac/Kconfig
+> +++ b/drivers/edac/Kconfig
+> @@ -214,7 +214,7 @@ config EDAC_I7300
+>  
+>  config EDAC_SBRIDGE
+>  	tristate "Intel Sandy-Bridge Integrated MC"
+> -	depends on EDAC_MM_EDAC && PCI && X86 && X86_MCE_INTEL
+> +	depends on EDAC_MM_EDAC && PCI && X86_64 && X86_MCE_INTEL
+>  	depends on EXPERIMENTAL
+>  	help
+>  	  Support for error detection and correction the Intel
 
-How have you configured your pipeline ? Can you try tracing the preview engine 
-and/or resizer interrupts ?
+For the silly patchwork at linuxtv:
 
--- 
-Regards,
+Nacked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Laurent Pinchart
+(as it doesn't bellong to media stuff ;) )
