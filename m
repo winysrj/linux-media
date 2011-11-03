@@ -1,41 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6532 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750805Ab1KTM5z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Nov 2011 07:57:55 -0500
-Message-ID: <4EC8F94F.8090800@redhat.com>
-Date: Sun, 20 Nov 2011 10:57:51 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from casper.infradead.org ([85.118.1.10]:43370 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933865Ab1KCSeh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2011 14:34:37 -0400
+Message-ID: <4EB2DEB6.7030508@infradead.org>
+Date: Thu, 03 Nov 2011 16:34:30 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Eddi De Pieri <eddi@depieri.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] initial support for HAUPPAUGE HVR-930C again...
-References: <CAKdnbx5_qfotsKh0-s+DN7skx-J2=1HRw-qZOw=3mUHCQFHo2g@mail.gmail.com>
-In-Reply-To: <CAKdnbx5_qfotsKh0-s+DN7skx-J2=1HRw-qZOw=3mUHCQFHo2g@mail.gmail.com>
+To: Paul Bolle <pebolle@tiscali.nl>
+CC: Randy Dunlap <rdunlap@xenotime.net>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [RESEND] media: tea5764: reconcile Kconfig symbol and
+ macro
+References: <1319976530.14409.17.camel@x61.thuisdomein>  <4EAD7E9F.6050709@xenotime.net> <1319994738.14409.37.camel@x61.thuisdomein>  <4EAD8832.9090509@xenotime.net> <1319995903.14409.42.camel@x61.thuisdomein>
+In-Reply-To: <1319995903.14409.42.camel@x61.thuisdomein>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 19-11-2011 13:37, Eddi De Pieri escreveu:
-> With this patch I try again to add initial support for HVR930C.
+Em 30-10-2011 15:31, Paul Bolle escreveu:
+> On Sun, 2011-10-30 at 10:24 -0700, Randy Dunlap wrote:
+>> On 10/30/11 10:12, Paul Bolle wrote:
+>>> 2) I'm not sure why things are done that way. Why can't builtin drivers
+>>> and loadable drivers default to identical values? But perhaps I'm just
+>>> misunderstanding the code.
+>>
+>> They could default to identical values.
 > 
-> Tested only DVB-T, since in Italy Analog service is stopped.
+> That would make the cleaning up I'm trying to do now somewhat easier. It
+> would allow to simplify the drivers a bit too.
 > 
-> Actually "scan -a0 -f1", find only about 50 channel while 400 should
-> be available.
+>> Maybe someone thinks that
+>> it's more difficult to pass parameters to builtin drivers so they
+>> just try to use some sane defaults for them instead, whereas it's
+>> easy (easier) to pass parameters to loadable modules.  ??
 > 
-> Signed-off-by: Eddi De Pieri <eddi@depieri.net>
+> Perhaps Mauro or the people at linux-media know the reasoning here. Or
+> they can show us that I didn't parse the code correctly, of course.
 
-Tested here with DVB-C, using the Terratec firmware. It worked as expected:
-213 channels scanned, tested a few non-encrypted ones, and it seems to be
-working as expected.
+I can't remember the dirty details about this driver, sorry. The first
+patch on it might shed some light:
 
-It didn't work with the firmware used by ddbrigde driver (the one that get_dvb_firmware
-script is capable of retrieving).
+
+commit 46a60cfef581307d8273919182ae939d44ff7cca
+Author: Fabio Belavenuto <belavenuto@gmail.com>
+Date:   Tue Dec 30 19:27:09 2008 -0300
+
+    V4L/DVB (10155): Add TEA5764 radio driver
+    
+    Add support for radio driver TEA5764 from NXP.
+    This chip is connected in pxa I2C bus in EZX phones
+    from Motorola, the chip is used in phone model A1200.
+    This driver is for OpenEZX project (www.openezx.org)
+    Tested with A1200 phone, openezx kernel and fm-tools
+    
+    [mchehab@redhat.com: Fixed CodingStyle and solved some merge conflicts]
+    Signed-off-by: Fabio Belavenuto <belavenuto@gmail.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+>From the above, I _suspect_ that the default (whatever it is) is due to
+the Motorola A1200 phone. Not sure if it is compiled as module or as builtin
+at OpenEZX.
+
 
 > 
-> Regards
 > 
-> Eddi
+> Paul Bolle
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
