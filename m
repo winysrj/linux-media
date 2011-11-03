@@ -1,40 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:37908 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754599Ab1KPHma (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Nov 2011 02:42:30 -0500
-Received: from compute6.internal (compute6.nyi.mail.srv.osa [10.202.2.46])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id E00FC21116
-	for <linux-media@vger.kernel.org>; Wed, 16 Nov 2011 02:42:28 -0500 (EST)
-Message-ID: <4EC36963.9000300@ladisch.de>
-Date: Wed, 16 Nov 2011 08:42:27 +0100
-From: Clemens Ladisch <clemens@ladisch.de>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: fix truncated entity specification
-References: <4EB5ADA9.6010104@ladisch.de> <201111150148.07957.laurent.pinchart@ideasonboard.com> <4EC262DD.1070502@ladisch.de> <201111160133.04816.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201111160133.04816.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:30788 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754719Ab1KCSAo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Nov 2011 14:00:44 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Josh Boyer <jwboyer@redhat.com>,
+	Linux Edac Mailing List <linux-edac@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] edac: Only build sb_edac on 64-bit
+Date: Thu,  3 Nov 2011 16:00:11 -0200
+Message-Id: <1320343211-10665-1-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-> > > On Saturday 05 November 2011 22:42:01 Clemens Ladisch wrote:
-> > > > When enumerating an entity, assign the entire entity specification
-> > > > instead of only the first two words.  (This requires giving the
-> > > > specification union a name.)
-> 
-> Your patch looks good then, except that I would memcpy to u_ent.raw instead of
-> u_ent.v4l. Would you also be ok with shortening specification to spec (or
-> info) ?
+From: Josh Boyer <jwboyer@redhat.com>
 
-Yes, go ahead.
+The sb_edac driver is marginally useful on a 32-bit kernel, and
+currently has 64-bit divide compile errors when building that config.
+For now, make this build on only for 64-bit kernels.
 
+Signed-off-by: Josh Boyer <jwboyer@redhat.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/edac/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Regards,
-Clemens
+diff --git a/drivers/edac/Kconfig b/drivers/edac/Kconfig
+index 203361e..5948a21 100644
+--- a/drivers/edac/Kconfig
++++ b/drivers/edac/Kconfig
+@@ -214,7 +214,7 @@ config EDAC_I7300
+ 
+ config EDAC_SBRIDGE
+ 	tristate "Intel Sandy-Bridge Integrated MC"
+-	depends on EDAC_MM_EDAC && PCI && X86 && X86_MCE_INTEL
++	depends on EDAC_MM_EDAC && PCI && X86_64 && X86_MCE_INTEL
+ 	depends on EXPERIMENTAL
+ 	help
+ 	  Support for error detection and correction the Intel
+-- 
+1.7.8.rc0.32.g87bf9
+
