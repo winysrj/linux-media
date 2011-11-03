@@ -1,78 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:60558 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581Ab1KFWad (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 17:30:33 -0500
-Received: by wyh15 with SMTP id 15so3948653wyh.19
-        for <linux-media@vger.kernel.org>; Sun, 06 Nov 2011 14:30:32 -0800 (PST)
-Message-ID: <4eb70a87.c6cae30a.09a9.22d4@mx.google.com>
-Subject: [PATCH ]Re: Support for Sveon STV22 (IT9137)
-From: Malcolm Priestley <tvboxspy@gmail.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:42549 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934175Ab1KCRBr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2011 13:01:47 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LU30084YGMWR190@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 03 Nov 2011 17:01:44 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LU3009NHGMW9N@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 03 Nov 2011 17:01:44 +0000 (GMT)
+Date: Thu, 03 Nov 2011 18:01:31 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RFC/PATCH 0/3] New g_framesamples subdev callback for compressed
+ formats
 To: linux-media@vger.kernel.org
-Cc: Leandro =?ISO-8859-1?Q?Terr=E9s?= <imlordlt@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Sun, 06 Nov 2011 22:30:26 +0000
-In-Reply-To: <CABb1zhvUMZ1bSqz1X5qCzOArKYsGG4EHthK-OrbAWRLn+q_+Sg@mail.gmail.com>
-References: <CABb1zhvkLYTZ4zUy7jPh1AH+1XGQRdhsHM7CxK5ADMuuzKHAzg@mail.gmail.com>
-	 <CABb1zhvUMZ1bSqz1X5qCzOArKYsGG4EHthK-OrbAWRLn+q_+Sg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com
+Message-id: <1320339694-9027-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This indeed a clone of Kworld UB499 2T
+Hi everybody,
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/dvb/dvb-usb/dvb-usb-ids.h |    1 +
- drivers/media/dvb/dvb-usb/it913x.c      |    6 +++++-
- 2 files changed, 6 insertions(+), 1 deletions(-)
+Many of our embedded systems I deal with are equipped with (too) smart camera 
+sensors (devices) which use MIPI-CSI bus to send already compressed image data.
+Usually the media bus is used with camera for transmitting raw image data, where
+it's easy to calculate target memory buffer size given the pixel resolution,
+bus width and number of bus samples per pixel.
 
-diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-index 31b4aa4..07ede26 100644
---- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-@@ -319,6 +319,7 @@
- #define USB_PID_TVWAY_PLUS				0x0002
- #define USB_PID_SVEON_STV20				0xe39d
- #define USB_PID_SVEON_STV22				0xe401
-+#define USB_PID_SVEON_STV22_IT9137			0xe411
- #define USB_PID_AZUREWAVE_AZ6027			0x3275
- #define USB_PID_TERRATEC_DVBS2CI_V1			0x10a4
- #define USB_PID_TERRATEC_DVBS2CI_V2			0x10ac
-diff --git a/drivers/media/dvb/dvb-usb/it913x.c b/drivers/media/dvb/dvb-usb/it913x.c
-index d4739d1..66b2dcb 100644
---- a/drivers/media/dvb/dvb-usb/it913x.c
-+++ b/drivers/media/dvb/dvb-usb/it913x.c
-@@ -577,6 +577,7 @@ static int it913x_probe(struct usb_interface *intf,
- static struct usb_device_id it913x_table[] = {
- 	{ USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_UB499_2T_T09) },
- 	{ USB_DEVICE(USB_VID_ITETECH, USB_PID_ITETECH_IT9135) },
-+	{ USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV22_IT9137) },
- 	{}		/* Terminating entry */
- };
- 
-@@ -652,7 +653,7 @@ static struct dvb_usb_device_properties it913x_properties = {
- 		.rc_codes	= RC_MAP_KWORLD_315U,
- 	},
- 	.i2c_algo         = &it913x_i2c_algo,
--	.num_device_descs = 2,
-+	.num_device_descs = 3,
- 	.devices = {
- 		{   "Kworld UB499-2T T09(IT9137)",
- 			{ &it913x_table[0], NULL },
-@@ -660,6 +661,9 @@ static struct dvb_usb_device_properties it913x_properties = {
- 		{   "ITE 9135 Generic",
- 			{ &it913x_table[1], NULL },
- 			},
-+		{   "Sveon STV22 Dual DVB-T HDTV(IT9137)",
-+			{ &it913x_table[2], NULL },
-+			},
- 	}
- };
- 
--- 
-1.7.5.4
+However when compressed formats come into play, there is no standard way to obtain
+information from a subdev how much data it is going to transmit per single frame.
+In other words MIPI-CSI receiver can't know how much memory it should allocate
+for MIPI-CSI transmitter to proceed.
 
+The following change set adds g_framesamples callback to the subdev video operations
+set, so the host drivers can query subdev for memory requirements per specific format.
+I have added media bus pixel format as an argument because the host may need to know
+number of samples per frame' if user space issues VIDIOC_TRY_FMT, at this time pixel
+format at MIPI-CSI transmitter subdev might not be set yet.
+
+I have also been preparing patches utilising '__u32 framesamples' field added to
+struct v4l2_mbus_framefmt. Extending v4l2_mbus_framefmt data structure allows
+to associate frame length with pads, similarly as it's done with media bus pixel
+format. But if would force application to set proper framesamples value at each pad,
+I suppose it could be done only for compressed formats, then the host driver would
+validate the values before actually starting streaming.
+
+Any critics and suggestions are welcome :-)
+
+
+Sylwester Nawrocki (3):
+  v4l: Add new g_framesamples subdev video operation
+  s5p-fimc: Add g_framesamples subdev operation support
+  m5mols: Add g_framesamples operation support
+
+ drivers/media/video/m5mols/m5mols.h         |    2 +
+ drivers/media/video/m5mols/m5mols_capture.c |    4 ++
+ drivers/media/video/m5mols/m5mols_core.c    |   16 ++++++-
+ drivers/media/video/m5mols/m5mols_reg.h     |    2 +
+ drivers/media/video/s5p-fimc/fimc-capture.c |   63 +++++++++++++++++++++++++--
+ drivers/media/video/s5p-fimc/fimc-core.c    |   11 ++++-
+ drivers/media/video/s5p-fimc/fimc-core.h    |    9 +++-
+ include/media/v4l2-subdev.h                 |    6 +++
+ 8 files changed, 103 insertions(+), 10 deletions(-)
+
+
+--
+Regards,
+Sylwester
 
