@@ -1,111 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:5068 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752368Ab1KPOmE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Nov 2011 09:42:04 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [RFCv1 PATCH 1/3] V4L2: Add per-device-node capabilities
-Date: Wed, 16 Nov 2011 15:41:41 +0100
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <1320662246-8531-1-git-send-email-hverkuil@xs4all.nl> <43f3b62f1a17a91a02b5a66026b8af02ad31fa2f.1320661643.git.hans.verkuil@cisco.com> <4EC2C904.2010308@gmail.com>
-In-Reply-To: <4EC2C904.2010308@gmail.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:63416 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755293Ab1KCPni convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2011 11:43:38 -0400
+Received: by iage36 with SMTP id e36so1465381iag.19
+        for <linux-media@vger.kernel.org>; Thu, 03 Nov 2011 08:43:38 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111161541.41796.hverkuil@xs4all.nl>
+Date: Thu, 3 Nov 2011 11:43:38 -0400
+Message-ID: <CAOcJUbybUwq9Oc=torsnfiUO5ThQoH4pugjamSnxy9UMom2=gw@mail.gmail.com>
+Subject: [PULL] git://linuxtv.org/mkrufky/tuners if_freq
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 15 November 2011 21:18:12 Sylwester Nawrocki wrote:
-> Hello Hans,
-> 
-> On 11/07/2011 11:37 AM, Hans Verkuil wrote:
-> > From: Hans Verkuil<hans.verkuil@cisco.com>
-> > 
-> > If V4L2_CAP_DEVICE_CAPS is set, then the new device_caps field is filled
-> > with the capabilities of the opened device node.
-> > 
-> > The capabilities field traditionally contains the capabilities of the
-> > whole device. E.g., if you open video0, then if it contains VBI caps
-> > then that means that there is a corresponding vbi node as well. And the
-> > capabilities field of both the video and vbi node should contain
-> > identical caps.
-> > 
-> > However, it would be very useful to also have a capabilities field that
-> > contains just the caps for the currently open device, hence the new CAP
-> > bit and field.
-> > 
-> > Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
-> > ---
-> > 
-> >   include/linux/videodev2.h |    7 +++++--
-> >   1 files changed, 5 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index 4b752d5..2b6338b 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -243,8 +243,9 @@ struct v4l2_capability {
-> > 
-> >   	__u8	card[32];	/* i.e. "Hauppauge WinTV" */
-> >   	__u8	bus_info[32];	/* "PCI:" + pci_name(pci_dev) */
-> >   	__u32   version;        /* should use KERNEL_VERSION() */
-> > 
-> > -	__u32	capabilities;	/* Device capabilities */
-> > -	__u32	reserved[4];
-> > +	__u32	capabilities;	/* Global device capabilities */
-> > +	__u32	device_caps;	/* Device node capabilities */
-> 
-> How about changing this to
-> 
-> 	__u32	devnode_caps;	/* Device node capabilities */
-> 
-> > +	__u32	reserved[3];
-> > 
-> >   };
-> >   
-> >   /* Values for 'capabilities' field */
-> > 
-> > @@ -274,6 +275,8 @@ struct v4l2_capability {
-> > 
-> >   #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
-> >   #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O
-> >   ioctls */
-> > 
-> > +#define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device
-> > capabilities field */
-> 
-> ..and
-> 
-> #define V4L2_CAP_DEVNODE_CAPS            0x80000000  /* sets device node
-> capabilities field */
-> 
-> ?
-> 
-> 'device' might suggest a whole physical device/system at first sight.
-> Maybe devnode_caps is not be the best name but it seems more explicit and
-> less confusing :)
-> 
-> It's just my personal opinion though.
+Mauro,
 
-I also have a preference for devnode, but it is my understanding that Mauro 
-prefers 'device' over 'devnode'. Is that correct, Mauro?
+I've pushed some additional patches since my last "mxl111sf bug-fix"
+patches, all into a single branch.  This fixes an actual bug in the
+mxl111sf driver, and also adds the get_if_frequency calls to three
+tuner drivers.  Please merge.
 
-I am OK with either.
+Please note that I still have a pending pull request from the same
+tree waiting for merge - the "atscdemod" branch.  Please merge both
+branches as soon as you can.
 
-Regards,
 
-	Hans
+The following changes since commit a63366b935456dd0984f237642f6d4001dcf8017:
+  Michael Krufky (1):
+        [media] mxl111sf: update demod_ops.info.name to "MaxLinear
+MxL111SF DVB-T demodulator"
 
-> 
-> --
-> Regards,
-> Sylwester
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+are available in the git repository at:
+
+  git://linuxtv.org/mkrufky/tuners if_freq
+
+Michael Krufky (7):
+      mxl111sf: fix return value of mxl111sf_idac_config
+      mxl111sf: check for errors after mxl111sf_write_reg in
+mxl111sf_idac_config
+      mxl111sf: remove pointless if condition in mxl111sf_config_spi
+      mxl111sf: fix build warning: variable âretâ set but not used in
+function âmxl111sf_i2c_readagainâ
+      mxl111sf: add mxl111sf_tuner_get_if_frequency
+      mxl5007t: add mxl5007t_get_if_frequency
+      tda18271: add tda18271_get_if_frequency
+
+ drivers/media/common/tuners/mxl5007t.c      |   49 +++++++++++++++++++++++
+ drivers/media/common/tuners/tda18271-fe.c   |   10 +++++
+ drivers/media/common/tuners/tda18271-priv.h |    2 +
+ drivers/media/dvb/dvb-usb/mxl111sf-i2c.c    |    3 +-
+ drivers/media/dvb/dvb-usb/mxl111sf-phy.c    |    7 ++-
+ drivers/media/dvb/dvb-usb/mxl111sf-tuner.c  |   56 ++++++++++++++++++++++++++-
+ 6 files changed, 121 insertions(+), 6 deletions(-)
+
+Best regards,
+
+Michael Krufky
