@@ -1,99 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:40138 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752544Ab1KFUcU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 15:32:20 -0500
-Received: by mail-fx0-f46.google.com with SMTP id o14so4498572faa.19
-        for <linux-media@vger.kernel.org>; Sun, 06 Nov 2011 12:32:19 -0800 (PST)
-From: Sylwester Nawrocki <snjw23@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Piotr Chmura <chmooreck@poczta.onet.pl>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>
-Subject: [PATCH 04/13] staging: as102: Make the driver select CONFIG_FW_LOADER
-Date: Sun,  6 Nov 2011 21:31:41 +0100
-Message-Id: <1320611510-3326-5-git-send-email-snjw23@gmail.com>
-In-Reply-To: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
-References: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:32291 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754824Ab1KCSMT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Nov 2011 14:12:19 -0400
+Message-ID: <4EB2D97E.3020600@redhat.com>
+Date: Thu, 03 Nov 2011 16:12:14 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Alain VOLMAT <alain.volmat@st.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: MediaController support in LinuxDVB demux
+References: <E27519AE45311C49887BE8C438E68FAA01010C61F5A6@SAFEX1MAIL1.st.com> <4EB294C9.90204@redhat.com> <E27519AE45311C49887BE8C438E68FAA01010C61F643@SAFEX1MAIL1.st.com>
+In-Reply-To: <E27519AE45311C49887BE8C438E68FAA01010C61F643@SAFEX1MAIL1.st.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It doesn't seem to be of much advantage to compile in FW_LOADER
-support conditionally, then make the driver always select FW_LOADER
-and remove #idefs from the code.
+Em 03-11-2011 12:05, Alain VOLMAT escreveu:
+> Hi Mauro
+> 
+>>> During last workshop, I think we agreed that a pad would represent a
+>> demux filter.
+>>> My personal idea would be to have filters created via the demux
+>> device node and filters accessible via MC pads totally independent.
+>>> Meaning that, just as current demux, it is possible to open the demux
+>> device node, create filter, set PIDs etc. Those filters have totally no
+>> relation with MC pads, filters created via the demux device node are
+>> just not accessible via MC pads.
+>>> As far as demux MC pads are concerned, it would be possible to link a
+>> pad to another entity pad (probably decoder or LinuxDVB CA) and thus
+>> create a new filter in the demux. By setting the demux MC pad format
+>> (not sure format is the proper term here), it would be possible to set
+>> for example the PID of a filter.
+>>> Internally of course all filters (MC filters and demux device node
+>> filters) are all together but they are only accessible via either the
+>> demux device node or the MC pad.
+>>
+>> We need to think a little more about that. In principle, it doesn't
+>> sound a good idea
+>> to me to have filters mutually exclusive to one of the API's, but maybe
+>> there are
+>> some implementation and/or API specific details that might force us to
+>> get on this
+>> direction.
+> 
+> The reason why I propose to have mutex mutually exclusive is that I think it is hard to figure out the relation between a file handle and a PAD.
+> Meaning, you could open the demux device file, then create a filter and set a PID for instance but how would you figure out which pad is corresponding to the filter you've just created via the demux device file. Having MC filters and demux device node filter separately also help not to break existing LinuxDVB demux API.
 
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
----
- drivers/staging/media/as102/Kconfig     |    1 +
- drivers/staging/media/as102/as102_drv.c |    3 ---
- drivers/staging/media/as102/as102_fw.c  |    5 +----
- 3 files changed, 2 insertions(+), 7 deletions(-)
+On the other hand, we'll have troubles with existing applications if this is not implemented.
+So, we'll need anyway to associate a PID filter with a DVBv5 call. At V4L, this will be solved
+via v4l-utils. We probably need to discuss it better for DVB.
 
-diff --git a/drivers/staging/media/as102/Kconfig b/drivers/staging/media/as102/Kconfig
-index 5865029..28aba00 100644
---- a/drivers/staging/media/as102/Kconfig
-+++ b/drivers/staging/media/as102/Kconfig
-@@ -1,6 +1,7 @@
- config DVB_AS102
- 	tristate "Abilis AS102 DVB receiver"
- 	depends on DVB_CORE && USB && I2C && INPUT
-+	select FW_LOADER
- 	help
- 	  Choose Y or M here if you have a device containing an AS102
- 
-diff --git a/drivers/staging/media/as102/as102_drv.c b/drivers/staging/media/as102/as102_drv.c
-index 0bcc55c..85f58b9 100644
---- a/drivers/staging/media/as102/as102_drv.c
-+++ b/drivers/staging/media/as102/as102_drv.c
-@@ -249,7 +249,6 @@ int as102_dvb_register(struct as102_dev_t *as102_dev)
- 	/* init start / stop stream mutex */
- 	mutex_init(&as102_dev->sem);
- 
--#if defined(CONFIG_FW_LOADER) || defined(CONFIG_FW_LOADER_MODULE)
- 	/*
- 	 * try to load as102 firmware. If firmware upload failed, we'll be
- 	 * able to upload it later.
-@@ -257,8 +256,6 @@ int as102_dvb_register(struct as102_dev_t *as102_dev)
- 	if (fw_upload)
- 		try_then_request_module(as102_fw_upload(&as102_dev->bus_adap),
- 				"firmware_class");
--#endif
--
- failed:
- 	LEAVE();
- 	/* FIXME: free dvb_XXX */
-diff --git a/drivers/staging/media/as102/as102_fw.c b/drivers/staging/media/as102/as102_fw.c
-index 3aa4aad..ab7dcdb 100644
---- a/drivers/staging/media/as102/as102_fw.c
-+++ b/drivers/staging/media/as102/as102_fw.c
-@@ -26,7 +26,6 @@
- #include "as102_drv.h"
- #include "as102_fw.h"
- 
--#if defined(CONFIG_FW_LOADER) || defined(CONFIG_FW_LOADER_MODULE)
- char as102_st_fw1[] = "as102_data1_st.hex";
- char as102_st_fw2[] = "as102_data2_st.hex";
- char as102_dt_fw1[] = "as102_data1_dt.hex";
-@@ -182,7 +181,6 @@ int as102_fw_upload(struct as102_bus_adapter_t *bus_adap)
- 		fw2 = as102_st_fw2;
- 	}
- 
--#if defined(CONFIG_FW_LOADER) || defined(CONFIG_FW_LOADER_MODULE)
- 	/* allocate buffer to store firmware upload command and data */
- 	cmd_buf = kzalloc(MAX_FW_PKT_SIZE, GFP_KERNEL);
- 	if (cmd_buf == NULL) {
-@@ -237,8 +235,7 @@ error:
- 	/* release firmware if needed */
- 	if (firmware != NULL)
- 		release_firmware(firmware);
--#endif
-+
- 	LEAVE();
- 	return errno;
- }
--#endif
--- 
-1.7.5.4
+
+> 
+>> So, I'd say that we should try to write a patch for it first, trying to
+>> allow
+>> setting it via both API's and then discuss about implementation-
+>> specific issues,
+>> if this is not feasible, or would be very messy.
+> 
+> Currently, of drivers integrated in upstream linux, I guess that only the av7110 driver (too old right) is actually having the demux output pushed to something other than user land right ? (in this case the decoder). Implementing MC support for the kernel demux driver would be possible I think but probably not really meaningful since having pads wouldn't help much ...
+
+Yes, only av7110 uses it. Well, let's first add MC support to DVB. We can take care
+of the details like that when we'll have something coded.
+
+> Regards,
+> 
+> Alain
+> N�����r��y���b�X��ǧv�^�)޺{.n�+����{���bj)���w*jg��������ݢj/���z�ޖ��2�ޙ���&�)ߡ�a�����G���h��j:+v���w�٥
 
