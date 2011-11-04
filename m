@@ -1,58 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34617 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:48573 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753158Ab1KLQzg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Nov 2011 11:55:36 -0500
-Message-ID: <4EBEA506.3030003@iki.fi>
-Date: Sat, 12 Nov 2011 18:55:34 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1750862Ab1KDKtU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Nov 2011 06:49:20 -0400
+Message-ID: <4EB3C32E.4010208@redhat.com>
+Date: Fri, 04 Nov 2011 08:49:18 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 7/7] af9013 empty buffer overflow command.
-References: <4ebe9734.d4c7e30a.6b0e.ffff9414@mx.google.com>
-In-Reply-To: <4ebe9734.d4c7e30a.6b0e.ffff9414@mx.google.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans De Goede <hdegoede@redhat.com>
+Subject: Re: [GIT PULL FOR v3.2] Compilation fixes
+References: <201111041039.58290.hverkuil@xs4all.nl> <4EB3BAE4.2080303@redhat.com> <4EB3BC39.9000404@redhat.com> <201111041127.02908.hverkuil@xs4all.nl>
+In-Reply-To: <201111041127.02908.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/12/2011 05:56 PM, Malcolm Priestley wrote:
-> This command is present in other Afatech devices zeroing bit 7
-> seems to force streaming output even if it isn't one.
->
-> I was considering timing it out, but it seems to have no harmful effect
-> on streaming output.
+Em 04-11-2011 08:27, Hans Verkuil escreveu:
+> On Friday 04 November 2011 11:19:37 Mauro Carvalho Chehab wrote:
+>> Em 04-11-2011 08:13, Mauro Carvalho Chehab escreveu:
+>>> Em 04-11-2011 07:39, Hans Verkuil escreveu:
+>>>> Mauro,
+>>>>
+>>>> This fixes two compilation problems when using the media_build system.
+>>>>
+>>>> Both gspca and the solo driver have a header with the same name, and
+>>>> that clashes when using media_build.
+>>>
+>>> This the kind of patch that doesn't make much sense upstream. Granted,
+>>> the files weren't properly named, but there's not requirement upstream
+>>> that denies naming two different files with the same name.
+>>>
+>>> Btw, looking at both, it seems that they can be merged: both defines the
+>>> jpeg header. The basic difference is that, while gspca jpeg header can
+>>> have a size of either 556 or 589 bytes, the one at solo6x10 has 575
+>>> bytes.
+>>>
+>>> IMHO, the proper fix is to make solo6x10 driver to use the gspca jpeg.h
+>>> header. Assuming that this driver would find his way out of staging,
+>>> then the jpeg.h file should also be moved to another place, like
+>>> include/linux/media, as I don't think that solo6x10 driver should be a
+>>> gspca sub-driver.
+>>>
+>>> Hans G, what do you think?
+>>
+>> The quantization tables are completely different on Solo driver. Merging
+>> them will probably be very messy. I withdraw the proposal of merging them.
+>>
+>> Your patch makes sense to me.
+> 
+> OK.
+> 
+> Perhaps the gspca jpeg.h header should be renamed to gspca-jpeg.h as well?
 
-You didn't find any reason this makes sense?
+I think so, as it currently doesn't implement a generic way of generating
+jpeg headers.
 
-regards
-Antti
+> Since the solo driver is in staging I went for just renaming the header in
+> that driver rather than renaming a header in a non-staging driver.
+> 
+>>>> And the solo driver uses an incorrect Makefile construct, which
+>>>> (somewhat mysteriously) skips the compilation of 90% of all media
+>>>> drivers.
+>>>
+>>> Hmm.. probably they're using "=" or ":=" instead of "+=". While this
+>>> works at leaf Makefiles, this breaks compilation when there's just one
+>>> Makefile, or when you add another thing to be compiled there. This is
+>>> something that requires a fix.
+> 
+> That's indeed what I fixed in my second patch (:= -> +=).
 
+Ok.
 
->
-> Signed-off-by: Malcolm Priestley<tvboxspy@gmail.com>
-> ---
->   drivers/media/dvb/frontends/af9013.c |    5 ++++-
->   1 files changed, 4 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/media/dvb/frontends/af9013.c b/drivers/media/dvb/frontends/af9013.c
-> index 6a5b40c..fbf6bca 100644
-> --- a/drivers/media/dvb/frontends/af9013.c
-> +++ b/drivers/media/dvb/frontends/af9013.c
-> @@ -1094,7 +1094,10 @@ static int af9013_read_status(struct dvb_frontend *fe, fe_status_t *status)
->   	}
->
->   	ret = af9013_update_statistics(fe);
-> -
-> +	if (ret)
-> +		goto error;
-> +	/* Force empty stream buffer if overflow */
-> +	ret = af9013_write_reg_bits(state, 0xd500, 7, 1, 0);
->   error:
->   	return ret;
->   }
-
-
--- 
-http://palosaari.fi/
+Regards,
+Mauro
