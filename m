@@ -1,107 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:10100 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752754Ab1KDN2u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2011 09:28:50 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=US-ASCII
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LU500M7X1G12E60@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Nov 2011 13:28:49 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LU5002TD1G0PW@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Nov 2011 13:28:49 +0000 (GMT)
-Date: Fri, 04 Nov 2011 14:28:48 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: Query the meaning of variable in v4l2_pix_format and v4l2_plane
-In-reply-to: <001c01cc9af2$c607e0f0$5217a2d0$%han@samsung.com>
-To: 'Jonghun Han' <jonghun.han@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: 'Hans Verkuil' <hans.verkuil@cisco.com>
-Message-id: <007701cc9af5$af267560$0d736020$%szyprowski@samsung.com>
-Content-language: pl
-References: <001c01cc9af2$c607e0f0$5217a2d0$%han@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37716 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755007Ab1KDKnP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2011 06:43:15 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH] v4l: Add VIDIOC_LOG_STATUS support for sub-device nodes
+Date: Fri, 4 Nov 2011 11:43:17 +0100
+Cc: linux-media@vger.kernel.org, riverful.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+References: <1320250557-20880-1-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1320250557-20880-1-git-send-email-s.nawrocki@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111041143.17621.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Sylwester,
 
-On Friday, November 04, 2011 2:08 PM Jonghun Han wrote:
+Thanks for the patch.
 
-> I'm not sure the meaning of variables in v4l2_pix_format and v4l2_plane.
-> Especially bytesperline, sizeimage, length and bytesused.
+On Wednesday 02 November 2011 17:15:57 Sylwester Nawrocki wrote:
+> The VIDIOC_LOG_STATUS ioctl allows to dump current status of a driver
+> to the kernel log. Currently this ioctl is only available at video
+> device nodes and the subdevs rely on the host driver to expose their
+> core.log_status operation to user space.
 > 
-> v4l2_pix_format.width		= width
-> v4l2_pix_format.height		= height
-> v4l2_pix_format.bytesperline	= bytesperline [in bytes]
-> v4l2_pix_format.sizeimage	= bytesperline * buf height  -> Is this
-> right ?
-
-Yes, I would expect it to be calculated this way for formats where 
-bytesperline can be defined (for macroblock format bytesperline is hard
-to define).
-
+> This patch adds VIDIOC_LOG_STATUS support at the sub-device nodes,
+> for standalone subdevs that expose their own /dev entry.
 > 
-> v4l2_plane.length	= bytesperline * buf height  -> Is this right ?
-> I don't which is right.
-> v4l2_plane.bytesused	= bytesperline * (top + height)
-> v4l2_plane.bytesused	= bytesperline * height
-> v4l2_plane.bytesused	= width * height * bytesperpixel
-> v4l2_plane.bytesused	= bytesperline * (top + height) - (pixelperline -
-> (left + width)) * bytesperpixel
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-bytesused should indicate how many bytes have been modified from the 
-beginning of the buffer, so memcpy(dst, buf->mem, byteused) will copy 
-all the video data.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-So probably the most appropriate value for bytesused is:
-v4l2_plane.bytesused	= bytesperline * (top + height)
-
-I hope my assumptions are correct, but I would also like Hans to comment 
-on this.
-
-> I assumed the following buffer.
+> ---
+>  drivers/media/video/v4l2-subdev.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
 > 
-> |                                                          |
-> |<--------------------- bytesperline --------------------->|
-> |                                                          |
-> +----------------------------------------------------------+-----
-> |          ^                                               |  ^
-> |          |                                               |  |
-> |                                                          |  |
-> |          t                                               |  |
-> |          o                                               |  |
-> |          p                                               |  |
-> |                                                          |  |
-> |          |                                               |  |
-> |          V |<--------- width ---------->|                |  |
-> |<-- left -->+----------------------------+ -              |  |
-> |            |                            | ^              |
-> |            |                            | |              |  b
-> |            |                            | |              |  u
-> |            |                            |                |  f
-> |            |                            | h              |
-> |            |                            | e              |  h
-> |            |                            | i              |  e
-> |            |                            | g              |  i
-> |            |                            | h              |  g
-> |            |                            | t              |  h
-> |            |                            |                |  t
-> |            |                            | |              |
-> |            |                            | |              |  |
-> |            |                            | v              |  |
-> |            +----------------------------+ -              |  |
-> |                                                          |  |
-> |                                                          |  |
-> |                                                          |  v
-> +----------------------------------------------------------+-----
- 
-Best regards
+> diff --git a/drivers/media/video/v4l2-subdev.c
+> b/drivers/media/video/v4l2-subdev.c index 179e20e..4fe1e7a 100644
+> --- a/drivers/media/video/v4l2-subdev.c
+> +++ b/drivers/media/video/v4l2-subdev.c
+> @@ -192,6 +192,9 @@ static long subdev_do_ioctl(struct file *file, unsigned
+> int cmd, void *arg) return v4l2_subdev_call(sd, core, s_register, p);
+>  	}
+>  #endif
+
+I would have put a blank line here, but that's probably just me :-)
+
+> +	case VIDIOC_LOG_STATUS:
+> +		return v4l2_subdev_call(sd, core, log_status);
+> +
+>  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+>  	case VIDIOC_SUBDEV_G_FMT: {
+>  		struct v4l2_subdev_format *format = arg;
+
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
+Regards,
 
-
+Laurent Pinchart
