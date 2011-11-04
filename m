@@ -1,81 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:53480 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751319Ab1KHMaa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 07:30:30 -0500
-Received: by gyc15 with SMTP id 15so474133gyc.19
-        for <linux-media@vger.kernel.org>; Tue, 08 Nov 2011 04:30:29 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4EB91E7C.4050302@mlbassoc.com>
-References: <4EB04001.9050803@mlbassoc.com> <201111041137.08254.laurent.pinchart@ideasonboard.com>
- <4EB91E7C.4050302@mlbassoc.com>
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Date: Tue, 8 Nov 2011 13:30:08 +0100
-Message-ID: <CAAwP0s0joZbNLDzR-WkwFBgOpyZ+=hvbMROQs+LTTyNCpfccTw@mail.gmail.com>
-Subject: Re: Using MT9P031 digital sensor
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:10100 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752754Ab1KDN2u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2011 09:28:50 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=US-ASCII
+Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LU500M7X1G12E60@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 04 Nov 2011 13:28:49 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LU5002TD1G0PW@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 04 Nov 2011 13:28:49 +0000 (GMT)
+Date: Fri, 04 Nov 2011 14:28:48 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: Query the meaning of variable in v4l2_pix_format and v4l2_plane
+In-reply-to: <001c01cc9af2$c607e0f0$5217a2d0$%han@samsung.com>
+To: 'Jonghun Han' <jonghun.han@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: 'Hans Verkuil' <hans.verkuil@cisco.com>
+Message-id: <007701cc9af5$af267560$0d736020$%szyprowski@samsung.com>
+Content-language: pl
+References: <001c01cc9af2$c607e0f0$5217a2d0$%han@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 8, 2011 at 1:20 PM, Gary Thomas <gary@mlbassoc.com> wrote:
-> On 2011-11-04 04:37, Laurent Pinchart wrote:
->>
->> Hi Gary,
->>
->> On Tuesday 01 November 2011 19:52:49 Gary Thomas wrote:
->>>
->>> I'm trying to use the MT9P031 digital sensor with the Media Controller
->>> Framework.  media-ctl tells me that the sensor is set to capture using
->>> SGRBG12  2592x1944
->>>
->>> Questions:
->>> * What pixel format in ffmpeg does this correspond to?
->>
->> I don't know if ffmpeg supports Bayer formats. The corresponding fourcc in
->> V4L2 is BA12.
->
-> ffmpeg doesn't seem to support these formats
->
->>
->> If your sensor is hooked up to the OMAP3 ISP, you can then configure the
->> pipeline to include the preview engine and the resizer, and capture YUV
->> data
->> at the resizer output.
->
-> I am using the OMAP3 ISP, but it's a bit unclear to me how to set up the
-> pipeline
+Hello,
 
-Hi Gary,
+On Friday, November 04, 2011 2:08 PM Jonghun Han wrote:
 
-I'm also using another sensor mtv9034 with OMAP3 ISP, so maybe I can help you.
+> I'm not sure the meaning of variables in v4l2_pix_format and v4l2_plane.
+> Especially bytesperline, sizeimage, length and bytesused.
+> 
+> v4l2_pix_format.width		= width
+> v4l2_pix_format.height		= height
+> v4l2_pix_format.bytesperline	= bytesperline [in bytes]
+> v4l2_pix_format.sizeimage	= bytesperline * buf height  -> Is this
+> right ?
 
-> using media-ctl (I looked for documentation on this tool, but came up dry -
-> is there any?)
->
-> Do you have an example of how to configure this using the OMAP3 ISP?
->
+Yes, I would expect it to be calculated this way for formats where 
+bytesperline can be defined (for macroblock format bytesperline is hard
+to define).
 
-This is how I configure the pipeline to connect the CCDC with the
-Previewer and Resizer:
+> 
+> v4l2_plane.length	= bytesperline * buf height  -> Is this right ?
+> I don't which is right.
+> v4l2_plane.bytesused	= bytesperline * (top + height)
+> v4l2_plane.bytesused	= bytesperline * height
+> v4l2_plane.bytesused	= width * height * bytesperpixel
+> v4l2_plane.bytesused	= bytesperline * (top + height) - (pixelperline -
+> (left + width)) * bytesperpixel
 
-./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
-./media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
-./media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
-./media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
-./media-ctl -f '"mt9v032 3-005c":0[SGRBG10 752x480]'
-./media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG10 752x480]'
-./media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 752x480]'
-./media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 752x479]'
-./media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 734x471]'
-./media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 640x480]'
+bytesused should indicate how many bytes have been modified from the 
+beginning of the buffer, so memcpy(dst, buf->mem, byteused) will copy 
+all the video data.
 
-Hope it helps,
+So probably the most appropriate value for bytesused is:
+v4l2_plane.bytesused	= bytesperline * (top + height)
 
+I hope my assumptions are correct, but I would also like Hans to comment 
+on this.
+
+> I assumed the following buffer.
+> 
+> |                                                          |
+> |<--------------------- bytesperline --------------------->|
+> |                                                          |
+> +----------------------------------------------------------+-----
+> |          ^                                               |  ^
+> |          |                                               |  |
+> |                                                          |  |
+> |          t                                               |  |
+> |          o                                               |  |
+> |          p                                               |  |
+> |                                                          |  |
+> |          |                                               |  |
+> |          V |<--------- width ---------->|                |  |
+> |<-- left -->+----------------------------+ -              |  |
+> |            |                            | ^              |
+> |            |                            | |              |  b
+> |            |                            | |              |  u
+> |            |                            |                |  f
+> |            |                            | h              |
+> |            |                            | e              |  h
+> |            |                            | i              |  e
+> |            |                            | g              |  i
+> |            |                            | h              |  g
+> |            |                            | t              |  h
+> |            |                            |                |  t
+> |            |                            | |              |
+> |            |                            | |              |  |
+> |            |                            | v              |  |
+> |            +----------------------------+ -              |  |
+> |                                                          |  |
+> |                                                          |  |
+> |                                                          |  v
+> +----------------------------------------------------------+-----
+ 
+Best regards
 -- 
-Javier Martínez Canillas
-(+34) 682 39 81 69
-Barcelona, Spain
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
