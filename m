@@ -1,71 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lon1-post-1.mail.demon.net ([195.173.77.148]:60449 "EHLO
-	lon1-post-1.mail.demon.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750769Ab1KLLs4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Nov 2011 06:48:56 -0500
-From: Ian Armstrong <mail01@iarmst.co.uk>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: RFC: Use of V4L2_FBUF_FLAG_OVERLAY
-Date: Sat, 12 Nov 2011 11:27:52 +0000
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-References: <201111071424.17938.hverkuil@xs4all.nl>
-In-Reply-To: <201111071424.17938.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111121127.52607.mail01@iarmst.co.uk>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:16340 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751371Ab1KDHJP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2011 03:09:15 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=utf-8
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LU400I2GJVDUR20@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 04 Nov 2011 07:09:13 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LU40097AJV8KD@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 04 Nov 2011 07:09:13 +0000 (GMT)
+Date: Fri, 04 Nov 2011 08:09:07 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [GIT PULL] More Samsung patches for v3.2
+In-reply-to: <4EB2DCAC.2060106@redhat.com>
+To: 'Mauro Carvalho Chehab' <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, 'Kamil Debski' <k.debski@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>
+Message-id: <005101cc9ac0$a4ed1160$eec73420$%szyprowski@samsung.com>
+Content-language: pl
+References: <1317913025-11534-1-git-send-email-m.szyprowski@samsung.com>
+ <4EB2DCAC.2060106@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 07 November 2011, Hans Verkuil wrote:
-> During the recent V4L-DVB workshop we discussed the usage of the
-> V4L2_FBUF_FLAG_OVERLAY flag.
-> 
+Hello Mauro,
 
-> In the case of ivtv the behavior is as follows (from the original commit
-> message):
-> 
->     The existing yuv code limits output to the display area occupied by the
->     framebuffer. This patch allows the yuv output to be 'detached' via
->     V4L2_FBUF_FLAG_OVERLAY.
-> 
->     By default, the yuv output window will be restricted to the framebuffer
->     dimensions and the output position is relative to the top left corner
->     of the framebuffer. This matches the behaviour of previous versions.
-> 
->     If V4L2_FBUF_FLAG_OVERLAY is cleared, the yuv output will no longer be
->     linked to the framebuffer. The maximum dimensions are either 720x576 or
->     720x480 depending on the current broadcast standard, with the output
->     position relative to the top left corner of the display. The framebuffer
->     itself can be resized, moved and panned without affecting the yuv 
->     output.
-> 
-> So, the definition for FLAG_OVERLAY for output overlays would be:
-> 
-> 'If FLAG_OVERLAY is set, then the video output overlay window is relative
-> to the top-left corner of the framebuffer and restricted to the size of
-> the framebuffer. If it is cleared, then the video output overlay window is
-> relative to the video output display.'
-> 
-> Ian, does this make sense?
- 
-Makes sense to me, but I understand how the hardware & driver works.
+On Thursday, November 03, 2011 7:26 PM Mauro Carvalho Chehab wrote:
 
-With the PVR350 there is no hardware restriction that limits yuv output to the 
-framebuffer area. They are effectively two separate overlays that are shown on 
-the video output display. The framebuffer does not have to occupy the entire 
-display area, but can be reduced to cover just a small part. There are times 
-when it may be beneficial to reduce the framebuffer size (faster redraws) 
-without reducing yuv output (require full-screen video). Likewise, larger 
-virtual resolution framebuffers also have their uses.
+> Em 06-10-2011 11:57, Marek Szyprowski escreveu:
+> > Hello Mauro,
+> >
+> > The following changes since commit 2f4cf2c3a971c4d5154def8ef9ce4811d702852d:
+> >
+> >   [media] dib9000: release a lock on error (2011-09-30 13:32:56 -0300)
+> >
+> > are available in the git repository at:
+> >   git://git.infradead.org/users/kmpark/linux-2.6-samsung for_mauro
+> >
+> > Kamil Debski (2):
+> >       v4l: add G2D driver for s5p device family
+> >       v4l: s5p-mfc: fix reported capabilities
+> 
+> Not sure what happened, but the patches that came from the above are these, instead:
+> 
+> 0001-media-vb2-add-a-check-for-uninitialized-buffer.patch
+> 0002-media-vb2-set-buffer-length-correctly-for-all-buffer.patch
+> 0003-media-vb2-reset-queued-list-on-REQBUFS-0-call.patch
+> 0004-vb2-add-vb2_get_unmapped_area-in-vb2-core.patch
+> 0005-v4l-add-G2D-driver-for-s5p-device-family.patch
+> 0006-v4l-s5p-mfc-fix-reported-capabilities.patch
+> 0007-MFC-Change-MFC-firmware-binary-name.patch
+> 0008-v4l-Add-AUTO-option-for-the-V4L2_CID_POWER_LINE_FREQ.patch
+> 0009-v4l-Add-v4l2-subdev-driver-for-S5K6AAFX-sensor.patch
 
-V4L2_FBUF_FLAG_OVERLAY was the closest thing to an existing flag that could 
-toggle the mode of operation. With it set, things like XVideo work as 
-expected, with the yuv window positioned correctly within the framebuffer 
-area. When V4L2_FBUF_FLAG_OVERLAY is cleared, the framebuffer & yuv output 
-detach to become two separate 'windows' on the display.
+Right. I thought that my initial pull request have been lost so I've collected all
+the patches that had not been merged yet and I was about to send the pull request
+again yesterday. Too bad that I had to get out from the office early...
 
+Now I see that some of these patches have been merged, so I will rebase the branch
+and send pull request again.
+
+Almost all of them are quite important fixes to various videobuf2 corner cases, so I
+hope they will find their way into v3.2.
+
+Best regards
 -- 
-Ian
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
