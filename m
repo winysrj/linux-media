@@ -1,73 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46815 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752816Ab1KXLWt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 06:22:49 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andrew Tubbiolo <andrew.tubbiolo@gmail.com>
-Subject: Re: mt9p031 based sensor and ack lockups. Ie CCDC won't become idle.
-Date: Thu, 24 Nov 2011 12:22:48 +0100
-Cc: linux-media@vger.kernel.org
-References: <CAAN7ACQFzNhswnDfsprHDk5C71GCXnbvnpkX+AsoQ9ejCFn6wQ@mail.gmail.com>
-In-Reply-To: <CAAN7ACQFzNhswnDfsprHDk5C71GCXnbvnpkX+AsoQ9ejCFn6wQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111241222.49453.laurent.pinchart@ideasonboard.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:14785 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932078Ab1KDOUK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2011 10:20:10 -0400
+Date: Fri, 04 Nov 2011 15:19:54 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 0/8] s5p-fimc bug fixes for 3.2-rc
+To: linux-media@vger.kernel.org
+Cc: samsung-soc@vger.kernel.org, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1320416402-22883-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrew,
+The following is a bunch of bug fixes/improvements for s5p-fimc driver. 
 
-On Monday 21 November 2011 00:54:04 Andrew Tubbiolo wrote:
-> Hi All:
-> 
->    I'm having fun with my new camera project that uses the mt9p031
-> camera. I'm getting nice raw stills, and that's great, but every 16 or
-> so images I take I get a troublesome error.
-> 
-> CCDC won't become idle!
-> 
-> The message is coming from...
-> 
-> 
-> static int ccdc_isr_buffer(struct isp_ccdc_device *ccdc)
-> 
-> in ...
-> 
-> linux-2.6.39.1/drivers/media/video/omap3isp/ispccdc.c
-> 
-> I printed out the return of the status of the registers on the CCDC
-> and found that the only bit set was the CCDC_BUSY register.
+Sylwester Nawrocki (8):
+  s5p-fimc: Fix wrong pointer dereference when unregistering sensors
+  s5p-fimc: Fix error in the capture subdev deinitialization
+  s5p-fimc: Fix initialization for proper system suspend support
+  s5p-fimc: Fix buffer dequeue order issue
+  s5p-fimc: Allow probe() to succeed with null platform data
+  s5p-fimc: Adjust pixel height alignments according to the IP revision
+  s5p-fimc: Fail driver probing when sensor configuration is wrong
+  s5p-fimc: Use correct fourcc for RGB565 colour format
 
-[snip]
+ drivers/media/video/s5p-fimc/fimc-capture.c |   13 +++++---
+ drivers/media/video/s5p-fimc/fimc-core.c    |   24 +++++++-------
+ drivers/media/video/s5p-fimc/fimc-core.h    |    2 +
+ drivers/media/video/s5p-fimc/fimc-mdevice.c |   43 +++++++++++++++++----------
+ drivers/media/video/s5p-fimc/fimc-reg.c     |   15 +++++++--
+ 5 files changed, 61 insertions(+), 36 deletions(-)
 
-> I THINK I'm suffering from a data underflow, where the previous batch
-> of images did not complete, or something.
-
-The OMAP3 ISP is quite picky about its input signals and doesn't gracefully 
-handle missing or extra sync pulses for instance. A "CCDC won't become idle!" 
-message usually indicates that the CCDC received a frame of unexpected size 
-(this can happen if the sensor stops in the middle of a frame for instance), 
-or that the driver had no time to process the end of frame interrupt before 
-the next frame arrived (either because of an unsually long interrupt delay on 
-the system, or because of too low vertical blanking).
-
-> Which is funny because I almost always get a full data set if everything
-> starts up with no hiccup. I should add that I get this error when I start a
-> exposure and data ack. The error is immediate, not in the middle of an ack.
-> In fact the error is thrown during the yavta init sequence. During a
-> ioctl(STREAM_ON).
-> 
-> I tried to issue a isp flush to the flush bit as described on (fig
-> Table 12-88 ISP_CTRL) pg 1512 of the TI-OMAP manual. This froze the
-> whole system. I'm wondering if anyone else is running into a similar
-> or even the same problem and if they know of a solution, a fix, or a
-> workaround?
-
--- 
+--
 Regards,
-
-Laurent Pinchart
+Sylwester Nawrocki
