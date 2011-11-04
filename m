@@ -1,79 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21679 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756236Ab1KBK6d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Nov 2011 06:58:33 -0400
-Message-ID: <4EB12251.1080405@redhat.com>
-Date: Wed, 02 Nov 2011 08:58:25 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for v3.2-rc1] media drivers/core updates
-References: <4EAE976C.3020607@redhat.com> <Pine.LNX.4.64.1111020957580.18080@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1111020957580.18080@axis700.grange>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:33297 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755501Ab1KDNH7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2011 09:07:59 -0400
+Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LU500I1M0HAWVH0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 04 Nov 2011 22:07:58 +0900 (KST)
+Received: from JONGHUNHA11 ([12.23.121.116])
+ by mmp2.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
+ 64bit (built Sep  7 2010)) with ESMTPA id <0LU5007YG0HASN60@mmp2.samsung.com>
+ for linux-media@vger.kernel.org; Fri, 04 Nov 2011 22:07:58 +0900 (KST)
+From: Jonghun Han <jonghun.han@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com
+Subject: Query the meaning of variable in v4l2_pix_format and v4l2_plane
+Date: Fri, 04 Nov 2011 22:07:58 +0900
+Message-id: <001c01cc9af2$c607e0f0$5217a2d0$%han@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 02-11-2011 07:04, Guennadi Liakhovetski escreveu:
-> Hi Mauro
-> 
-> On Mon, 31 Oct 2011, Mauro Carvalho Chehab wrote:
-> 
-> Hi Linus,
-> 
-> Please pull from:
-> 	git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
-> 
-> For the latest improvements at the media subsystem, including:
-> 	dvb-core: several fixes and addition for DVB turbo delivery system
-> 		  (used on North American satellite streams);
-> 	dvb-usb: add support for multiple frontends;
-> 	ati-remote: migrate to rc-core subsystem;
-> 	new dvb-usb drivers:it913x, mxl111sf and pctv452e;
-> 	new frontends: a8293, it913x-fe, lnbp22 and tda10071;
-> 	Alsa driver for cx23885-based cards;
-> 	new gspca driver: topro;
-> 	new sensor drivers: mt9p031, mt9t001;
-> 	new driver for Samsung SoC s5p fimc;
-> 	drivers moved from staging: tda6000 and altera-stapl;
-> 	several fixes, card additions and improvements at the existing drivers.
-> 
->> Could you, please, confirm, that there's not going to be even an attempt 
->> to push V4L patches from my tree up for 3.2, as requested more than a 
->> month ago:
-> 
->> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/38854
-> 
->> and re-requested a couple of times since then? It would really be a major 
->> inconvenience to have those patches lying around until 3.3, there are 101 
->> of them, many of them will inevitably fail to apply then. Fixing them 
->> will cause breakage, re-testing on multiple systems with multiple hardware 
->> configurations and in multiple scenarious will be a very time-consuming 
->> operation.
 
-Guennadi,
+Hi,
 
-As I told you during the KS workshop, my intention were to push first the patches
-that were already on my tree (and on linux-next) before the beginning of the merge
-window. Unfortunately, The email with the instructions to enable my kernel.org account
-arrived only after my return back from KS. This delayed my patch submission to start
-only this week, on the trees I maintain.
+I'm not sure the meaning of variables in v4l2_pix_format and v4l2_plane.
+Especially bytesperline, sizeimage, length and bytesused.
 
-That's said, analyzing a 100+ patch series git request requires me to reserve
-a large amount of time to do such task (one day or two?), as it is something I can't
-do partially each day. Next time, please don't hold so many patches to be submitted
-altogether, but break it into smaller series. It is much easier to analyze 10 series of
-10 patches each, sent along the time, than a big series with 100 patches.
+v4l2_pix_format.width		= width
+v4l2_pix_format.height		= height
+v4l2_pix_format.bytesperline	= bytesperline [in bytes]
+v4l2_pix_format.sizeimage	= bytesperline * buf height  -> Is this
+right ?
 
-I'll still see if I can analyze and merge those patches during this week, but if I can't
-merge them up to Thursday, they'll likely be delayed to 3.3, as we won't have time for
-sending them to linux-next in time for 3.2 submission.
+v4l2_plane.length	= bytesperline * buf height  -> Is this right ?
+I don't which is right.
+v4l2_plane.bytesused	= bytesperline * (top + height)
+v4l2_plane.bytesused	= bytesperline * height
+v4l2_plane.bytesused	= width * height * bytesperpixel
+v4l2_plane.bytesused	= bytesperline * (top + height) - (pixelperline -
+(left + width)) * bytesperpixel
 
-Regards,
-Mauro
+I assumed the following buffer.
+
+|                                                          |
+|<--------------------- bytesperline --------------------->|
+|                                                          |
++----------------------------------------------------------+-----
+|          ^                                               |  ^
+|          |                                               |  |
+|                                                          |  |
+|          t                                               |  |
+|          o                                               |  |
+|          p                                               |  |
+|                                                          |  |
+|          |                                               |  |
+|          V |<--------- width ---------->|                |  |
+|<-- left -->+----------------------------+ -              |  |
+|            |                            | ^              |
+|            |                            | |              |  b
+|            |                            | |              |  u
+|            |                            |                |  f
+|            |                            | h              |
+|            |                            | e              |  h
+|            |                            | i              |  e
+|            |                            | g              |  i
+|            |                            | h              |  g
+|            |                            | t              |  h
+|            |                            |                |  t
+|            |                            | |              |  
+|            |                            | |              |  |
+|            |                            | v              |  |
+|            +----------------------------+ -              |  |
+|                                                          |  |
+|                                                          |  |
+|                                                          |  v
++----------------------------------------------------------+-----
+
+
+Best regards,
+
+
