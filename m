@@ -1,160 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49190 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753602Ab1KYKab (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Nov 2011 05:30:31 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC/PATCH 2/3] v4l: Document integer menu controls
-Date: Fri, 25 Nov 2011 11:30:32 +0100
-Cc: linux-media@vger.kernel.org, snjw23@gmail.com, hverkuil@xs4all.nl
-References: <20111124161228.GA29342@valkosipuli.localdomain> <1322151172-5362-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1322151172-5362-2-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111251130.33210.laurent.pinchart@ideasonboard.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:55809 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932185Ab1KDOUM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2011 10:20:12 -0400
+Date: Fri, 04 Nov 2011 15:20:00 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 6/8] s5p-fimc: Adjust pixel height alignments according to the
+ IP revision
+In-reply-to: <1320416402-22883-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: samsung-soc@vger.kernel.org, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1320416402-22883-7-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1320416402-22883-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Minimum vertical pixel size alignment for input and output DMA and
+the scaler depend on color format, rotation, the IP instance and revision.
 
-Thanks for the patch.
+Make vertical pixel size of format and crop better fit for each SoC
+revision and the IP instance by adding min_vsize_align attribute to
+the FIMC variant data structure. It's now common for the DMA engines
+and the scaler.
 
-On Thursday 24 November 2011 17:12:51 Sakari Ailus wrote:
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  Documentation/DocBook/media/v4l/compat.xml         |   10 +++++
->  Documentation/DocBook/media/v4l/v4l2.xml           |    7 ++++
->  .../DocBook/media/v4l/vidioc-queryctrl.xml         |   39
-> +++++++++++++++++++- 3 files changed, 54 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/compat.xml
-> b/Documentation/DocBook/media/v4l/compat.xml index b68698f..569efd1 100644
-> --- a/Documentation/DocBook/media/v4l/compat.xml
-> +++ b/Documentation/DocBook/media/v4l/compat.xml
-> @@ -2379,6 +2379,16 @@ that used it. It was originally scheduled for
-> removal in 2.6.35. </orderedlist>
->      </section>
-> 
-> +    <section>
-> +      <title>V4L2 in Linux 3.3</title>
-> +      <orderedlist>
-> +        <listitem>
-> +	  <para>Added integer menus, the new type will be
-> +	  V4L2_CTRL_TYPE_INTEGER_MENU.</para>
-> +        </listitem>
-> +      </orderedlist>
-> +    </section>
-> +
->      <section id="other">
->        <title>Relation of V4L2 to other Linux multimedia APIs</title>
-> 
-> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml
-> b/Documentation/DocBook/media/v4l/v4l2.xml index 2ab365c..affe1ba 100644
-> --- a/Documentation/DocBook/media/v4l/v4l2.xml
-> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
-> @@ -128,6 +128,13 @@ structs, ioctls) must be noted in more detail in the
-> history chapter applications. -->
-> 
->        <revision>
-> +	<revnumber>3.3</revnumber>
-> +	<date>2011-11-24</date>
-> +	<authorinitials>sa</authorinitials>
-> +	<revremark>Added V4L2_CTRL_TYPE_INTEGER_MENU.</revremark>
-> +      </revision>
-> +
-> +      <revision>
->  	<revnumber>3.2</revnumber>
->  	<date>2011-08-26</date>
->  	<authorinitials>hv</authorinitials>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-> b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml index
-> 0ac0057..049cd46 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-> @@ -215,11 +215,12 @@ the array to zero.</entry>
-> 
->      <table pgwide="1" frame="none" id="v4l2-querymenu">
->        <title>struct <structname>v4l2_querymenu</structname></title>
-> -      <tgroup cols="3">
-> +      <tgroup cols="4">
->  	&cs-str;
->  	<tbody valign="top">
->  	  <row>
->  	    <entry>__u32</entry>
-> +	    <entry></entry>
->  	    <entry><structfield>id</structfield></entry>
->  	    <entry>Identifies the control, set by the application
->  from the respective &v4l2-queryctrl;
-> @@ -227,18 +228,38 @@ from the respective &v4l2-queryctrl;
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> +	    <entry></entry>
->  	    <entry><structfield>index</structfield></entry>
->  	    <entry>Index of the menu item, starting at zero, set by
->  	    the application.</entry>
->  	  </row>
->  	  <row>
-> +	    <entry>union</entry>
-> +	    <entry></entry>
-> +	    <entry></entry>
-> +	    <entry></entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry></entry>
->  	    <entry>__u8</entry>
->  	    <entry><structfield>name</structfield>[32]</entry>
->  	    <entry>Name of the menu item, a NUL-terminated ASCII
-> -string. This information is intended for the user.</entry>
-> +string. This information is intended for the user. This field is valid
-> +for <constant>V4L2_CTRL_FLAG_MENU</constant> type controls.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry></entry>
-> +	    <entry>__s64</entry>
-> +	    <entry><structfield>value</structfield></entry>
-> +	    <entry>
-> +              Value of the integer menu item. This field is valid for
-> +              <constant>V4L2_CTRL_FLAG_INTEGER_MENU</constant> type
-> +              controls.
-> +            </entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> +	    <entry></entry>
->  	    <entry><structfield>reserved</structfield></entry>
->  	    <entry>Reserved for future extensions. Drivers must set
->  the array to zero.</entry>
-> @@ -292,6 +313,20 @@ the menu items can be enumerated with the
->  <constant>VIDIOC_QUERYMENU</constant> ioctl.</entry>
->  	  </row>
->  	  <row>
-> +	    <entry><constant>V4L2_CTRL_TYPE_INTEGER_MENU</constant></entry>
-> +	    <entry>&ge; 0</entry>
-> +	    <entry>1</entry>
-> +	    <entry>N-1</entry>
-> +	    <entry>
-> +              The control has a menu of N choices. The names of the
-> +              menu items can be enumerated with the
-> +              <constant>VIDIOC_QUERYMENU</constant> ioctl. This is
-> +              similar to <constant>V4L2_CTRL_TYPE_MENU</constant>
-> +              except that instead of integers, the menu items are
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |    2 +-
+ drivers/media/video/s5p-fimc/fimc-core.c    |   16 +++++++++++-----
+ drivers/media/video/s5p-fimc/fimc-core.h    |    2 ++
+ 3 files changed, 14 insertions(+), 6 deletions(-)
 
-Do you mean "instead of strings" ?
-
-> +              signed 64-bit integers.
-> +            </entry>
-> +	  </row>
-> +	  <row>
->  	    <entry><constant>V4L2_CTRL_TYPE_BITMASK</constant></entry>
->  	    <entry>0</entry>
->  	    <entry>n/a</entry>
-
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 70f741f..82d9ab6 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -526,7 +526,7 @@ static struct fimc_fmt *fimc_capture_try_format(struct fimc_ctx *ctx,
+ 	max_w = rotation ? pl->out_rot_en_w : pl->out_rot_dis_w;
+ 	min_w = ctx->state & FIMC_DST_CROP ? dst->width : var->min_out_pixsize;
+ 	min_h = ctx->state & FIMC_DST_CROP ? dst->height : var->min_out_pixsize;
+-	if (fimc->id == 1 && var->pix_hoff)
++	if (var->min_vsize_align == 1 && !rotation)
+ 		align_h = fimc_fmt_is_rgb(ffmt->color) ? 0 : 1;
+ 
+ 	depth = fimc_get_format_depth(ffmt);
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 9c3a8c5..7c22d78 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -1038,12 +1038,11 @@ static int fimc_try_fmt_mplane(struct fimc_ctx *ctx, struct v4l2_format *f)
+ 		mod_x = 6; /* 64 x 32 pixels tile */
+ 		mod_y = 5;
+ 	} else {
+-		if (fimc->id == 1 && variant->pix_hoff)
++		if (variant->min_vsize_align == 1)
+ 			mod_y = fimc_fmt_is_rgb(fmt->color) ? 0 : 1;
+ 		else
+-			mod_y = mod_x;
++			mod_y = ffs(variant->min_vsize_align) - 1;
+ 	}
+-	dbg("mod_x: %d, mod_y: %d, max_w: %d", mod_x, mod_y, max_w);
+ 
+ 	v4l_bound_align_image(&pix->width, 16, max_w, mod_x,
+ 		&pix->height, 8, variant->pix_limit->scaler_dis_w, mod_y, 0);
+@@ -1226,10 +1225,10 @@ static int fimc_m2m_try_crop(struct fimc_ctx *ctx, struct v4l2_crop *cr)
+ 		fimc->variant->min_inp_pixsize : fimc->variant->min_out_pixsize;
+ 
+ 	/* Get pixel alignment constraints. */
+-	if (fimc->id == 1 && fimc->variant->pix_hoff)
++	if (fimc->variant->min_vsize_align == 1)
+ 		halign = fimc_fmt_is_rgb(f->fmt->color) ? 0 : 1;
+ 	else
+-		halign = ffs(min_size) - 1;
++		halign = ffs(fimc->variant->min_vsize_align) - 1;
+ 
+ 	for (i = 0; i < f->fmt->colplanes; i++)
+ 		depth += f->fmt->depth[i];
+@@ -1834,6 +1833,7 @@ static struct samsung_fimc_variant fimc0_variant_s5p = {
+ 	.min_inp_pixsize = 16,
+ 	.min_out_pixsize = 16,
+ 	.hor_offs_align	 = 8,
++	.min_vsize_align = 16,
+ 	.out_buf_count	 = 4,
+ 	.pix_limit	 = &s5p_pix_limit[0],
+ };
+@@ -1843,6 +1843,7 @@ static struct samsung_fimc_variant fimc2_variant_s5p = {
+ 	.min_inp_pixsize = 16,
+ 	.min_out_pixsize = 16,
+ 	.hor_offs_align	 = 8,
++	.min_vsize_align = 16,
+ 	.out_buf_count	 = 4,
+ 	.pix_limit = &s5p_pix_limit[1],
+ };
+@@ -1855,6 +1856,7 @@ static struct samsung_fimc_variant fimc0_variant_s5pv210 = {
+ 	.min_inp_pixsize = 16,
+ 	.min_out_pixsize = 16,
+ 	.hor_offs_align	 = 8,
++	.min_vsize_align = 16,
+ 	.out_buf_count	 = 4,
+ 	.pix_limit	 = &s5p_pix_limit[1],
+ };
+@@ -1868,6 +1870,7 @@ static struct samsung_fimc_variant fimc1_variant_s5pv210 = {
+ 	.min_inp_pixsize = 16,
+ 	.min_out_pixsize = 16,
+ 	.hor_offs_align	 = 1,
++	.min_vsize_align = 1,
+ 	.out_buf_count	 = 4,
+ 	.pix_limit	 = &s5p_pix_limit[2],
+ };
+@@ -1878,6 +1881,7 @@ static struct samsung_fimc_variant fimc2_variant_s5pv210 = {
+ 	.min_inp_pixsize = 16,
+ 	.min_out_pixsize = 16,
+ 	.hor_offs_align	 = 8,
++	.min_vsize_align = 16,
+ 	.out_buf_count	 = 4,
+ 	.pix_limit	 = &s5p_pix_limit[2],
+ };
+@@ -1892,6 +1896,7 @@ static struct samsung_fimc_variant fimc0_variant_exynos4 = {
+ 	.min_inp_pixsize = 16,
+ 	.min_out_pixsize = 16,
+ 	.hor_offs_align	 = 2,
++	.min_vsize_align = 1,
+ 	.out_buf_count	 = 32,
+ 	.pix_limit	 = &s5p_pix_limit[1],
+ };
+@@ -1904,6 +1909,7 @@ static struct samsung_fimc_variant fimc3_variant_exynos4 = {
+ 	.min_inp_pixsize = 16,
+ 	.min_out_pixsize = 16,
+ 	.hor_offs_align	 = 2,
++	.min_vsize_align = 1,
+ 	.out_buf_count	 = 32,
+ 	.pix_limit	 = &s5p_pix_limit[3],
+ };
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index a6936da..c7f01c4 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -377,6 +377,7 @@ struct fimc_pix_limit {
+  * @min_inp_pixsize: minimum input pixel size
+  * @min_out_pixsize: minimum output pixel size
+  * @hor_offs_align: horizontal pixel offset aligment
++ * @min_vsize_align: minimum vertical pixel size alignment
+  * @out_buf_count: the number of buffers in output DMA sequence
+  */
+ struct samsung_fimc_variant {
+@@ -390,6 +391,7 @@ struct samsung_fimc_variant {
+ 	u16		min_inp_pixsize;
+ 	u16		min_out_pixsize;
+ 	u16		hor_offs_align;
++	u16		min_vsize_align;
+ 	u16		out_buf_count;
+ };
+ 
 -- 
-Regards,
+1.7.7.1
 
-Laurent Pinchart
