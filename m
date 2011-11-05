@@ -1,67 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:60784 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754989Ab1KOKzn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Nov 2011 05:55:43 -0500
-Received: by bke11 with SMTP id 11so6991397bke.19
-        for <linux-media@vger.kernel.org>; Tue, 15 Nov 2011 02:55:42 -0800 (PST)
-Message-ID: <4EC244F9.1030604@mvista.com>
-Date: Tue, 15 Nov 2011 14:54:49 +0400
-From: Sergei Shtylyov <sshtylyov@mvista.com>
+Received: from ffm.saftware.de ([83.141.3.46]:46530 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753253Ab1KEQt7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 Nov 2011 12:49:59 -0400
+Message-ID: <4EB566CD.7050704@linuxtv.org>
+Date: Sat, 05 Nov 2011 17:39:41 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>
-Subject: Re: [PATCH v2 5/5] davinci: delete individual platform header files
- and use a common header
-References: <1321283357-27698-1-git-send-email-manjunath.hadli@ti.com> <1321283357-27698-6-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1321283357-27698-6-git-send-email-manjunath.hadli@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Lawrence Rust <lawrence@softsystem.co.uk>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Revert most of 15cc2bb [media] DVB: dtv_property_cache_submit
+ shouldn't modifiy the cache
+References: <1320506379.1731.12.camel@gagarin>
+In-Reply-To: <1320506379.1731.12.camel@gagarin>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+On 05.11.2011 16:19, Lawrence Rust wrote:
+> Hi,
+> 
+> I believe that I have found a problem with dtv_property_cache updating
+> when handling the legacy API.  This was introduced between 2.6.39 and
+> 3.0.
+> 
+> dtv_property_cache_submit() in dvb_frontend.c tests the field
+> delivery_system and if it's a legacy type (including SYS_UNDEFINED) then
+> it calls dtv_property_legacy_params_sync().
+> 
+> The original patch removed the assignment to delivery_system in this
+> function.  However, the legacy API allows delivery_system to be
+> SYS_UNDEFINED - in fact is_legacy_delivery_system() tests for this
+> value.
+> 
+> If the delivery_system field is left as SYS_UNDEFINED then when tuning
+> is started, fe->ops.set_frontend() fails.
+> 
+> The current version of MythTV 0.24.1 is affected by this bug when using
+> a dvb-s2 card (tbs6981) tuned to a dvb-s channel.
 
-On 14-11-2011 19:09, Manjunath Hadli wrote:
+How does MythTV set the parameters (i.e. using which interface, calls)?
+If using S2API, it should also set DTV_DELIVERY_SYSTEM.
 
-> include davinci_common.h file in files using the platform
-> header file for dm355, dm365, dm644x and dm646x and delete the
-> individual platform header files.
+SYS_UNDEFINED get's set by dvb_frontend_clear_cache() only. I think it
+would be better to call dtv_property_cache_init() from there to get rid
+of it.
 
-> Signed-off-by: Manjunath Hadli<manjunath.hadli@ti.com>
-[...]
-
-> diff --git a/drivers/media/video/davinci/vpif.h b/drivers/media/video/davinci/vpif.h
-> index 25036cb..73b00bd 100644
-> --- a/drivers/media/video/davinci/vpif.h
-> +++ b/drivers/media/video/davinci/vpif.h
-> @@ -18,8 +18,7 @@
->
->   #include<linux/io.h>
->   #include<linux/videodev2.h>
-> -#include<mach/hardware.h>
-
-    Why are you removing this?
-
-> -#include<mach/dm646x.h>
-> +#include<mach/davinci_common.h>
->   #include<media/davinci/vpif_types.h>
->
->   /* Maximum channel allowed */
-> diff --git a/drivers/media/video/davinci/vpif_capture.h b/drivers/media/video/davinci/vpif_capture.h
-> index a693d4e..c019d26 100644
-> --- a/drivers/media/video/davinci/vpif_capture.h
-> +++ b/drivers/media/video/davinci/vpif_capture.h
-> @@ -27,6 +27,7 @@
->   #include<media/v4l2-device.h>
->   #include<media/videobuf-core.h>
->   #include<media/videobuf-dma-contig.h>
-> +#include<mach/davinci_common.h>
-
-    Not clear why are you adding this when no platform header was included before.
-
-WBR, Sergei
+> Signed-off-by: Lawrence Rust <lvr@softsystem.co.uk>
+> ---
+>  drivers/media/dvb/dvb-core/dvb_frontend.c |    9 ++++++++-
+>  1 files changed, 8 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> index 5b6b451..06c3975 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> @@ -1076,7 +1076,7 @@ static void dtv_property_cache_sync(struct dvb_frontend *fe,
+>   */
+>  static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
+>  {
+> -	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+>  	struct dvb_frontend_parameters *p = &fepriv->parameters_in;
+>  
+> @@ -1088,12 +1088,14 @@ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
+>  		dprintk("%s() Preparing QPSK req\n", __func__);
+>  		p->u.qpsk.symbol_rate = c->symbol_rate;
+>  		p->u.qpsk.fec_inner = c->fec_inner;
+> +		c->delivery_system = SYS_DVBS;
+>  		break;
+>  	case FE_QAM:
+>  		dprintk("%s() Preparing QAM req\n", __func__);
+>  		p->u.qam.symbol_rate = c->symbol_rate;
+>  		p->u.qam.fec_inner = c->fec_inner;
+>  		p->u.qam.modulation = c->modulation;
+> +		c->delivery_system = SYS_DVBC_ANNEX_AC;
+>  		break;
+>  	case FE_OFDM:
+>  		dprintk("%s() Preparing OFDM req\n", __func__);
+> @@ -1111,10 +1113,15 @@ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
+>  		p->u.ofdm.transmission_mode = c->transmission_mode;
+>  		p->u.ofdm.guard_interval = c->guard_interval;
+>  		p->u.ofdm.hierarchy_information = c->hierarchy;
+> +		c->delivery_system = SYS_DVBT;
+>  		break;
+>  	case FE_ATSC:
+>  		dprintk("%s() Preparing VSB req\n", __func__);
+>  		p->u.vsb.modulation = c->modulation;
+> +		if ((c->modulation == VSB_8) || (c->modulation == VSB_16))
+> +			c->delivery_system = SYS_ATSC;
+> +		else
+> +			c->delivery_system = SYS_DVBC_ANNEX_B;
+>  		break;
+>  	}
+>  }
 
