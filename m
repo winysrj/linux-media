@@ -1,50 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fmmailgate05.web.de ([217.72.192.243]:54780 "EHLO
-	fmmailgate05.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751780Ab1K3Tjw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 14:39:52 -0500
-Received: from moweb001.kundenserver.de (moweb001.kundenserver.de [172.19.20.114])
-	by fmmailgate05.web.de (Postfix) with ESMTP id 7E0B967AD382
-	for <linux-media@vger.kernel.org>; Wed, 30 Nov 2011 20:39:51 +0100 (CET)
-From: Jens Erdmann <Jens.Erdmann@web.de>
-To: Andreas Oberritter <obi@linuxtv.org>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] em28xx: Add Terratec Cinergy HTC Stick
-Date: Wed, 30 Nov 2011 20:39:48 +0100
-References: <11607963.5467764.1322494881126.JavaMail.fmail@mwmweb051> <0MQf77-1RNtkl3pe9-00U2UK@smtp.web.de> <4ED4D683.40508@linuxtv.org>
-In-Reply-To: <4ED4D683.40508@linuxtv.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:37817 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752252Ab1KFNP0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 08:15:26 -0500
+Received: by bke11 with SMTP id 11so3019713bke.19
+        for <linux-media@vger.kernel.org>; Sun, 06 Nov 2011 05:15:25 -0800 (PST)
+Date: Sun, 6 Nov 2011 14:15:15 +0100
+From: Steffen Barszus <steffenbpunkt@googlemail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: James <bjlockie@lockie.ca>,
+	linux-media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: femon signal strength
+Message-ID: <20111106141515.5b56a377@grobi>
+In-Reply-To: <CAGoCfiwC+7pkY6ZchySBYRkyY1XjFjKeJYQEPTc2ZiBN-pdoyw@mail.gmail.com>
+References: <4EA78E3C.2020308@lockie.ca>
+	<CAGoCfiwS=O75uyaaueNSrq275MS9eednR+Y=yrgsJo0XaExRKA@mail.gmail.com>
+	<4EA86366.1020906@lockie.ca>
+	<CAGoCfiww_5pF_S3M_mpN4gk1qqLYn7H7PPcieZXZNnjvK-RHHA@mail.gmail.com>
+	<4EA86668.6090508@lockie.ca>
+	<20111105111050.5b8762fa@grobi>
+	<CAGoCfiwC+7pkY6ZchySBYRkyY1XjFjKeJYQEPTc2ZiBN-pdoyw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201111302039.48970.Jens.Erdmann@web.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Andreas,
+On Sat, 5 Nov 2011 15:38:50 -0400
+Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
 
-On Tuesday, November 29, 2011 01:56:35 PM you wrote:
-<snip>
+> On Saturday, November 5, 2011, Steffen Barszus
+> <steffenbpunkt@googlemail.com> wrote:
+> > On Wed, 26 Oct 2011 15:58:32 -0400
+> > James <bjlockie@lockie.ca> wrote:
+> >> How about adding switches to femon, it won't be automatic?
+> >>
+> >> I'm going to make femon work for my card, anyways. :-)
+> >
+> > This is no solution - drivers should be patched to deliver result in
+> > common format. femon is not the only application reading this
+> > values. And every application carrying its own set of correction
+> > tables doesn't help in any way. Shouldn't be to hard to agree on
+> > one scale and scale whatever value to that in reporting the signal
+> > strength.
 > 
-> >>> 2. I stumbled over http://linux.terratec.de/tv_en.html where they list
-> >>> a NXP TDA18271
-> >>> 
-> >>>     as used tuner for H5 and HTC Stick devices. I dont have any
-> >>>     experience in this kind of stuff but i am just asking.
-> >> 
-> >> That's right.
-> > 
-> > So this should be made like the other devices which are using the
-> > TDA18271? Or is there no driver for this tuner yet?
-> 
-> I don't understand your question. Both TERRATEC H5 and Cinergy HTC Stick
-> are already supported by Linux (at least for digital signals, the latter
-> since the patch you're referring to), so a driver for every relevant
-> chip, including TDA18271, is already involved.
-> 
+> You would think this would be relatively simple to get a consensus on.
+> You would be wrong though.  I would suggest doing a search of the ML
+> for "SNR" so you can see all. the history of the debate amongst the
+> driver developers.
 
-If i remember correctly there was used another tuner driver in the out 
-commended code. Is this just a coyp paste leftover?
+I don't need to read the history of this and i am not even interested
+in doing so. No matter what "The right solution" is, showing the
+inability of acting as a team and putting the conflict to the user is
+the worst solution you can achieve. Any uniform scale is better, then
+whats there at the moment. 
 
-Regards, 
-  Jens
+Being ignorant in this respect is and was intended.  
+
