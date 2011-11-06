@@ -1,59 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55312 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753136Ab1KPUGi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Nov 2011 15:06:38 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:44704 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752544Ab1KFUc1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 15:32:27 -0500
+Received: by mail-fx0-f46.google.com with SMTP id o14so4498582faa.19
+        for <linux-media@vger.kernel.org>; Sun, 06 Nov 2011 12:32:26 -0800 (PST)
+From: Sylwester Nawrocki <snjw23@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH 3/4] omap3isp: Fix crash caused by subdevs now having a pointer to devnodes
-Date: Wed, 16 Nov 2011 21:06:45 +0100
-Message-Id: <1321474006-24589-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1321474006-24589-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1321474006-24589-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Piotr Chmura <chmooreck@poczta.onet.pl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: [PATCH 08/13] staging: as102: Replace printk(KERN_<LEVEL> witk pr_<level>
+Date: Sun,  6 Nov 2011 21:31:45 +0100
+Message-Id: <1320611510-3326-9-git-send-email-snjw23@gmail.com>
+In-Reply-To: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
+References: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 3e0ec41c5c5ee14e27f65e28d4a616de34f59a97 ("V4L: dynamically
-allocate video_device nodes in subdevices") makes the
-v4l2_subdev::devnode field a pointer to a struct video_device instead of
-embedding video_device directly.
+While at it also correct some spelling errors.
 
-Fix accesses to the devnode accordingly.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
 ---
- drivers/media/video/omap3isp/ispccdc.c |    2 +-
- drivers/media/video/omap3isp/ispstat.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/staging/media/as102/as102_fw.c      |   26 +++++++++++++-------------
+ drivers/staging/media/as102/as102_usb_drv.c |   10 +++++-----
+ 2 files changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index 9012b57..a319281 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -1407,7 +1407,7 @@ static int __ccdc_handle_stopping(struct isp_ccdc_device *ccdc, u32 event)
- static void ccdc_hs_vs_isr(struct isp_ccdc_device *ccdc)
- {
- 	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
--	struct video_device *vdev = &ccdc->subdev.devnode;
-+	struct video_device *vdev = ccdc->subdev.devnode;
- 	struct v4l2_event event;
+diff --git a/drivers/staging/media/as102/as102_fw.c b/drivers/staging/media/as102/as102_fw.c
+index ab7dcdb..fa56939 100644
+--- a/drivers/staging/media/as102/as102_fw.c
++++ b/drivers/staging/media/as102/as102_fw.c
+@@ -58,7 +58,7 @@ static int parse_hex_line(unsigned char *fw_data, unsigned char *addr,
+ 	unsigned char *src, dst;
  
- 	memset(&event, 0, sizeof(event));
-diff --git a/drivers/media/video/omap3isp/ispstat.c b/drivers/media/video/omap3isp/ispstat.c
-index 68d5394..bc0b2c7 100644
---- a/drivers/media/video/omap3isp/ispstat.c
-+++ b/drivers/media/video/omap3isp/ispstat.c
-@@ -496,7 +496,7 @@ static int isp_stat_bufs_alloc(struct ispstat *stat, u32 size)
+ 	if (*fw_data++ != ':') {
+-		printk(KERN_ERR "invalid firmware file\n");
++		pr_err("invalid firmware file\n");
+ 		return -EFAULT;
+ 	}
  
- static void isp_stat_queue_event(struct ispstat *stat, int err)
- {
--	struct video_device *vdev = &stat->subdev.devnode;
-+	struct video_device *vdev = stat->subdev.devnode;
- 	struct v4l2_event event;
- 	struct omap3isp_stat_event_status *status = (void *)event.u.data;
+@@ -191,21 +191,21 @@ int as102_fw_upload(struct as102_bus_adapter_t *bus_adap)
+ 	/* request kernel to locate firmware file: part1 */
+ 	errno = request_firmware(&firmware, fw1, &dev->dev);
+ 	if (errno < 0) {
+-		printk(KERN_ERR "%s: unable to locate firmware file: %s\n",
+-				 DRIVER_NAME, fw1);
++		pr_err("%s: unable to locate firmware file: %s\n",
++		       DRIVER_NAME, fw1);
+ 		goto error;
+ 	}
  
+ 	/* initiate firmware upload */
+ 	errno = as102_firmware_upload(bus_adap, cmd_buf, firmware);
+ 	if (errno < 0) {
+-		printk(KERN_ERR "%s: error during firmware upload part1\n",
+-				 DRIVER_NAME);
++		pr_err("%s: error during firmware upload part1\n",
++		       DRIVER_NAME);
+ 		goto error;
+ 	}
+ 
+-	printk(KERN_INFO "%s: fimrware: %s loaded with success\n",
+-			 DRIVER_NAME, fw1);
++	pr_info("%s: firmware: %s loaded with success\n",
++		DRIVER_NAME, fw1);
+ 	release_firmware(firmware);
+ 
+ 	/* wait for boot to complete */
+@@ -214,21 +214,21 @@ int as102_fw_upload(struct as102_bus_adapter_t *bus_adap)
+ 	/* request kernel to locate firmware file: part2 */
+ 	errno = request_firmware(&firmware, fw2, &dev->dev);
+ 	if (errno < 0) {
+-		printk(KERN_ERR "%s: unable to locate firmware file: %s\n",
+-				 DRIVER_NAME, fw2);
++		pr_err("%s: unable to locate firmware file: %s\n",
++		       DRIVER_NAME, fw2);
+ 		goto error;
+ 	}
+ 
+ 	/* initiate firmware upload */
+ 	errno = as102_firmware_upload(bus_adap, cmd_buf, firmware);
+ 	if (errno < 0) {
+-		printk(KERN_ERR "%s: error during firmware upload part2\n",
+-				 DRIVER_NAME);
++		pr_err("%s: error during firmware upload part2\n",
++		       DRIVER_NAME);
+ 		goto error;
+ 	}
+ 
+-	printk(KERN_INFO "%s: fimrware: %s loaded with success\n",
+-			DRIVER_NAME, fw2);
++	pr_info("%s: firmware: %s loaded with success\n",
++		DRIVER_NAME, fw2);
+ error:
+ 	/* free data buffer */
+ 	kfree(cmd_buf);
+diff --git a/drivers/staging/media/as102/as102_usb_drv.c b/drivers/staging/media/as102/as102_usb_drv.c
+index e0c3854..3ded7d6 100644
+--- a/drivers/staging/media/as102/as102_usb_drv.c
++++ b/drivers/staging/media/as102/as102_usb_drv.c
+@@ -337,7 +337,7 @@ static void as102_usb_disconnect(struct usb_interface *intf)
+ 	/* decrement usage counter */
+ 	kref_put(&as102_dev->kref, as102_usb_release);
+ 
+-	printk(KERN_INFO "%s: device has been disconnected\n", DRIVER_NAME);
++	pr_info("%s: device has been disconnected\n", DRIVER_NAME);
+ 
+ 	LEAVE();
+ }
+@@ -360,7 +360,7 @@ static int as102_usb_probe(struct usb_interface *intf,
+ 	/* This should never actually happen */
+ 	if ((sizeof(as102_usb_id_table) / sizeof(struct usb_device_id)) !=
+ 	    (sizeof(as102_device_names) / sizeof(const char *))) {
+-		printk(KERN_ERR "Device names table invalid size");
++		pr_err("Device names table invalid size");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -399,7 +399,7 @@ static int as102_usb_probe(struct usb_interface *intf,
+ 		goto failed;
+ 	}
+ 
+-	printk(KERN_INFO "%s: device has been detected\n", DRIVER_NAME);
++	pr_info("%s: device has been detected\n", DRIVER_NAME);
+ 
+ 	/* request buffer allocation for streaming */
+ 	ret = as102_alloc_usb_stream_buffer(as102_dev);
+@@ -432,8 +432,8 @@ static int as102_open(struct inode *inode, struct file *file)
+ 	/* fetch device from usb interface */
+ 	intf = usb_find_interface(&as102_usb_driver, minor);
+ 	if (intf == NULL) {
+-		printk(KERN_ERR "%s: can't find device for minor %d\n",
+-				__func__, minor);
++		pr_err("%s: can't find device for minor %d\n",
++		       __func__, minor);
+ 		ret = -ENODEV;
+ 		goto exit;
+ 	}
 -- 
-1.7.3.4
+1.7.5.4
 
