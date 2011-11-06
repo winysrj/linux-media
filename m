@@ -1,167 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from server88-208-211-118.live-servers.net ([88.208.211.118]:12023
-	"EHLO mail.redrat.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751437Ab1KHQst convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 11:48:49 -0500
-From: Andrew Vincer <Andrew.Vincer@redrat.co.uk>
-CC: "mchehab@infradead.org" <mchehab@infradead.org>,
-	"jarod@redhat.com" <jarod@redhat.com>,
-	"error27@gmail.com" <error27@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: [PATCH 1/1] rc: Fix input deadlock and transmit error in redrat3
- driver
-Date: Tue, 8 Nov 2011 16:43:45 +0000
-Message-ID: <DA69C24DC634074E9591C2B60BFDBC1C730E13@CP5-3512.fh.redrat.co.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:40138 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752544Ab1KFUcU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 15:32:20 -0500
+Received: by mail-fx0-f46.google.com with SMTP id o14so4498572faa.19
+        for <linux-media@vger.kernel.org>; Sun, 06 Nov 2011 12:32:19 -0800 (PST)
+From: Sylwester Nawrocki <snjw23@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Piotr Chmura <chmooreck@poczta.onet.pl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: [PATCH 04/13] staging: as102: Make the driver select CONFIG_FW_LOADER
+Date: Sun,  6 Nov 2011 21:31:41 +0100
+Message-Id: <1320611510-3326-5-git-send-email-snjw23@gmail.com>
+In-Reply-To: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
+References: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixed submit urb logic so hardware doesn't hang trying to transmit
-signal data
+It doesn't seem to be of much advantage to compile in FW_LOADER
+support conditionally, then make the driver always select FW_LOADER
+and remove #idefs from the code.
 
-Removed unneeded enable/disable detector commands in
-redrat3_transmit_ir (the hardware does this anyway) and converted
-arguments to unsigned as per 5588dc2
-
-Signed-off-by: Andrew Vincer <andrew@redrat.co.uk>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
 ---
- drivers/media/rc/redrat3.c |   52 +++++++++++++++----------------------------
- 1 files changed, 18 insertions(+), 34 deletions(-)
+ drivers/staging/media/as102/Kconfig     |    1 +
+ drivers/staging/media/as102/as102_drv.c |    3 ---
+ drivers/staging/media/as102/as102_fw.c  |    5 +----
+ 3 files changed, 2 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index 61287fc..9bff23c 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -286,12 +286,6 @@ static void redrat3_issue_async(struct redrat3_dev *rr3)
+diff --git a/drivers/staging/media/as102/Kconfig b/drivers/staging/media/as102/Kconfig
+index 5865029..28aba00 100644
+--- a/drivers/staging/media/as102/Kconfig
++++ b/drivers/staging/media/as102/Kconfig
+@@ -1,6 +1,7 @@
+ config DVB_AS102
+ 	tristate "Abilis AS102 DVB receiver"
+ 	depends on DVB_CORE && USB && I2C && INPUT
++	select FW_LOADER
+ 	help
+ 	  Choose Y or M here if you have a device containing an AS102
  
- 	rr3_ftr(rr3->dev, "Entering %s\n", __func__);
+diff --git a/drivers/staging/media/as102/as102_drv.c b/drivers/staging/media/as102/as102_drv.c
+index 0bcc55c..85f58b9 100644
+--- a/drivers/staging/media/as102/as102_drv.c
++++ b/drivers/staging/media/as102/as102_drv.c
+@@ -249,7 +249,6 @@ int as102_dvb_register(struct as102_dev_t *as102_dev)
+ 	/* init start / stop stream mutex */
+ 	mutex_init(&as102_dev->sem);
  
--	if (!rr3->det_enabled) {
--		dev_warn(rr3->dev, "not issuing async read, "
--			 "detector not enabled\n");
--		return;
--	}
+-#if defined(CONFIG_FW_LOADER) || defined(CONFIG_FW_LOADER_MODULE)
+ 	/*
+ 	 * try to load as102 firmware. If firmware upload failed, we'll be
+ 	 * able to upload it later.
+@@ -257,8 +256,6 @@ int as102_dvb_register(struct as102_dev_t *as102_dev)
+ 	if (fw_upload)
+ 		try_then_request_module(as102_fw_upload(&as102_dev->bus_adap),
+ 				"firmware_class");
+-#endif
 -
- 	memset(rr3->bulk_in_buf, 0, rr3->ep_in->wMaxPacketSize);
- 	res = usb_submit_urb(rr3->read_urb, GFP_ATOMIC);
- 	if (res)
-@@ -827,6 +821,7 @@ out:
- static void redrat3_handle_async(struct urb *urb, struct pt_regs *regs)
- {
- 	struct redrat3_dev *rr3;
-+	int ret;
+ failed:
+ 	LEAVE();
+ 	/* FIXME: free dvb_XXX */
+diff --git a/drivers/staging/media/as102/as102_fw.c b/drivers/staging/media/as102/as102_fw.c
+index 3aa4aad..ab7dcdb 100644
+--- a/drivers/staging/media/as102/as102_fw.c
++++ b/drivers/staging/media/as102/as102_fw.c
+@@ -26,7 +26,6 @@
+ #include "as102_drv.h"
+ #include "as102_fw.h"
  
- 	if (!urb)
- 		return;
-@@ -840,15 +835,13 @@ static void redrat3_handle_async(struct urb *urb, struct pt_regs *regs)
- 
- 	rr3_ftr(rr3->dev, "Entering %s\n", __func__);
- 
--	if (!rr3->det_enabled) {
--		rr3_dbg(rr3->dev, "received a read callback but detector "
--			"disabled - ignoring\n");
--		return;
--	}
--
- 	switch (urb->status) {
- 	case 0:
--		redrat3_get_ir_data(rr3, urb->actual_length);
-+		ret = redrat3_get_ir_data(rr3, urb->actual_length);
-+		if (!ret) {
-+			/* no error, prepare to read more */
-+			redrat3_issue_async(rr3);
-+		}
- 		break;
- 
- 	case -ECONNRESET:
-@@ -865,11 +858,6 @@ static void redrat3_handle_async(struct urb *urb, struct pt_regs *regs)
- 		rr3->pkttype = 0;
- 		break;
- 	}
--
--	if (!rr3->transmitting)
--		redrat3_issue_async(rr3);
--	else
--		rr3_dbg(rr3->dev, "IR transmit in progress\n");
- }
- 
- static void redrat3_write_bulk_callback(struct urb *urb, struct pt_regs *regs)
-@@ -896,21 +884,24 @@ static u16 mod_freq_to_val(unsigned int mod_freq)
- 	return (u16)(65536 - (mult / mod_freq));
- }
- 
--static int redrat3_set_tx_carrier(struct rc_dev *dev, u32 carrier)
-+static int redrat3_set_tx_carrier(struct rc_dev *rcdev, u32 carrier)
- {
--	struct redrat3_dev *rr3 = dev->priv;
-+	struct redrat3_dev *rr3 = rcdev->priv;
-+	struct device *dev = rr3->dev;
- 
-+	rr3_dbg(dev, "Setting modulation frequency to %u", carrier);
- 	rr3->carrier = carrier;
- 
- 	return carrier;
- }
- 
--static int redrat3_transmit_ir(struct rc_dev *rcdev, int *txbuf, u32 n)
-+static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
-+				unsigned count)
- {
- 	struct redrat3_dev *rr3 = rcdev->priv;
- 	struct device *dev = rr3->dev;
- 	struct redrat3_signal_header header;
--	int i, j, count, ret, ret_len, offset;
-+	int i, j, ret, ret_len, offset;
- 	int lencheck, cur_sample_len, pipe;
- 	char *buffer = NULL, *sigdata = NULL;
- 	int *sample_lens = NULL;
-@@ -928,20 +919,13 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, int *txbuf, u32 n)
- 		return -EAGAIN;
+-#if defined(CONFIG_FW_LOADER) || defined(CONFIG_FW_LOADER_MODULE)
+ char as102_st_fw1[] = "as102_data1_st.hex";
+ char as102_st_fw2[] = "as102_data2_st.hex";
+ char as102_dt_fw1[] = "as102_data1_dt.hex";
+@@ -182,7 +181,6 @@ int as102_fw_upload(struct as102_bus_adapter_t *bus_adap)
+ 		fw2 = as102_st_fw2;
  	}
  
--	count = n / sizeof(int);
- 	if (count > (RR3_DRIVER_MAXLENS * 2))
- 		return -EINVAL;
- 
-+	/* rr3 will disable rc detector on transmit */
-+	rr3->det_enabled = false;
- 	rr3->transmitting = true;
- 
--	redrat3_disable_detector(rr3);
--
--	if (rr3->det_enabled) {
--		dev_err(dev, "%s: cannot tx while rx is enabled\n", __func__);
--		ret = -EIO;
--		goto out;
--	}
--
- 	sample_lens = kzalloc(sizeof(int) * RR3_DRIVER_MAXLENS, GFP_KERNEL);
- 	if (!sample_lens) {
- 		ret = -ENOMEM;
-@@ -1055,7 +1039,7 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, int *txbuf, u32 n)
- 	if (ret < 0)
- 		dev_err(dev, "Error: control msg send failed, rc %d\n", ret);
- 	else
--		ret = n;
-+		ret = count;
- 
- out:
- 	kfree(sample_lens);
-@@ -1063,8 +1047,8 @@ out:
- 	kfree(sigdata);
- 
- 	rr3->transmitting = false;
--
--	redrat3_enable_detector(rr3);
-+	/* rr3 re-enables rc detector because it was enabled before */
-+	rr3->det_enabled = true;
- 
- 	return ret;
+-#if defined(CONFIG_FW_LOADER) || defined(CONFIG_FW_LOADER_MODULE)
+ 	/* allocate buffer to store firmware upload command and data */
+ 	cmd_buf = kzalloc(MAX_FW_PKT_SIZE, GFP_KERNEL);
+ 	if (cmd_buf == NULL) {
+@@ -237,8 +235,7 @@ error:
+ 	/* release firmware if needed */
+ 	if (firmware != NULL)
+ 		release_firmware(firmware);
+-#endif
++
+ 	LEAVE();
+ 	return errno;
  }
+-#endif
 -- 
-1.7.1
+1.7.5.4
+
