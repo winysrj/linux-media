@@ -1,66 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:38757 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753361Ab1K1MRJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 07:17:09 -0500
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LVD006ICE4JHW@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 28 Nov 2011 12:17:07 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LVD0022YE4JPC@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 28 Nov 2011 12:17:07 +0000 (GMT)
-Date: Mon, 28 Nov 2011 13:17:06 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v2 2/2] s5p-fimc: Add support for alpha component
- configuration
-In-reply-to: <201111281242.17246.hverkuil@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	laurent.pinchart@ideasonboard.com, m.szyprowski@samsung.com,
-	jonghun.han@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <4ED37BC2.60205@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-15
-Content-transfer-encoding: 7BIT
-References: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com>
- <1322235572-22016-3-git-send-email-s.nawrocki@samsung.com>
- <201111281242.17246.hverkuil@xs4all.nl>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:42827 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750736Ab1KFSNP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 13:13:15 -0500
+Received: by wyh15 with SMTP id 15so3789436wyh.19
+        for <linux-media@vger.kernel.org>; Sun, 06 Nov 2011 10:13:14 -0800 (PST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: FX2 FW: conversion from Intel HEX to DVB USB "hexline"
+Date: Sun, 6 Nov 2011 19:13:11 +0100
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <4EB6990C.8000904@iki.fi> <201111061858.00709.pboettcher@kernellabs.com> <4EB6CCE3.4020809@iki.fi>
+In-Reply-To: <4EB6CCE3.4020809@iki.fi>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111061913.11505.pboettcher@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/28/2011 12:42 PM, Hans Verkuil wrote:
-> On Friday 25 November 2011 16:39:32 Sylwester Nawrocki wrote:
->> On Exynos SoCs the FIMC IP allows to configure globally the alpha
->> component of all pixels for V4L2_PIX_FMT_RGB32, V4L2_PIX_FMT_RGB555
->> and V4L2_PIX_FMT_RGB444 image formats. This patch adds a v4l2 control
->> in order to let the applications control the alpha component value.
->>
->> The alpha value range depends on the pixel format, for RGB32 it's
->> 0..255 (8-bits), for RGB555 - 0..1 (1-bit) and for RGB444 - 0..15
->> (4-bits). The v4l2 control range is always 0..255 and the alpha
->> component data width is determined by currently set format on the
->> V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE buffer queue. The applications
->> need to match the alpha channel data width and the pixel format
->> since the driver will ignore the alpha component bits that are not
->> applicable to the configured pixel format.
+On Sunday, November 06, 2011 07:07:31 PM Antti Palosaari wrote:
+> Many thanks!
 > 
-> Will the driver ignore the least significant bits or the most significant 
-> bits?
+> Actually, I was just started to write similar Python script! You got
+> maybe 15min late but still 15min before mine was ready :)
+> 
+> Format was nothing more than convert ASCII hex values to binary bytes
+> and stripping out all white spaces and Intel HEX start code ":".
+> 
+> Why it was initially converted to binary and not used Intel HEX as it
+> is? I think you know, as a original author, history about that decision?
 
-Most significant bits will be ignored, i.e. depending on fourcc the valid
-alpha bits are:
+Because doing string-parsing and evaluation in the kernel is something I 
+usually  avoid. And it can't sure be done within 300 bytes (the size of the 
+perl script). Also the .bin is smaller in term of size compared to the .hex.
 
-V4L2_PIX_FMT_RGB555 - [0]
-V4L2_PIX_FMT_RGB444 - [3:0]
-V4L2_PIX_FMT_RGB32  - [7:0]
 
 --
-
-Regards,
-Sylwester
-
+Patrick Boettcher - KernelLabs
+http://www.kernellabs.com/
