@@ -1,123 +1,340 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38424 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755138Ab1KHOzC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 09:55:02 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH] media: vb2: vmalloc-based allocator user pointer handling
-Date: Tue, 8 Nov 2011 15:43:42 +0100
-Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	linux-media@vger.kernel.org,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Pawel Osciak'" <pawel@osciak.com>
-References: <1320231122-22518-1-git-send-email-andrzej.p@samsung.com> <201111081501.00656.laurent.pinchart@ideasonboard.com> <004e01cc9e22$c1c0b390$45421ab0$%szyprowski@samsung.com>
-In-Reply-To: <004e01cc9e22$c1c0b390$45421ab0$%szyprowski@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111081543.43122.laurent.pinchart@ideasonboard.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:40138 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754002Ab1KFUcR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 15:32:17 -0500
+Received: by mail-fx0-f46.google.com with SMTP id o14so4498572faa.19
+        for <linux-media@vger.kernel.org>; Sun, 06 Nov 2011 12:32:16 -0800 (PST)
+From: Sylwester Nawrocki <snjw23@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Piotr Chmura <chmooreck@poczta.onet.pl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: [PATCH 02/13] staging: as102: Remove unnecessary typedefs
+Date: Sun,  6 Nov 2011 21:31:39 +0100
+Message-Id: <1320611510-3326-3-git-send-email-snjw23@gmail.com>
+In-Reply-To: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
+References: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek,
+According to the kernel coding rules typedefs should be avoided,
+so replace theit occurances with explicit enum/union types.
 
-On Tuesday 08 November 2011 15:29:00 Marek Szyprowski wrote:
-> On Tuesday, November 08, 2011 3:01 PM Laurent Pinchart wrote:
-> > On Tuesday 08 November 2011 14:57:40 Marek Szyprowski wrote:
-> > > On Tuesday, November 08, 2011 12:32 PM Laurent Pinchart wrote:
-> > > > On Thursday 03 November 2011 08:40:26 Marek Szyprowski wrote:
-> > > > > On Wednesday, November 02, 2011 2:54 PM Laurent Pinchart wrote:
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
+---
+ drivers/staging/media/as102/as10x_cmd.h |  127 +++++++++++++++----------------
+ 1 files changed, 63 insertions(+), 64 deletions(-)
 
-[snip]
-
-> > > > > > This can cause an AB-BA deadlock, and will be reported by
-> > > > > > deadlock detection if enabled.
-> > > > > > 
-> > > > > > The issue is that the mmap() handler is called by the MM core
-> > > > > > with current->mm->mmap_sem held, and then takes the driver's
-> > > > > > lock before calling videobuf2's mmap handler. The VIDIOC_QBUF
-> > > > > > handler, on the other hand, will first take the driver's lock
-> > > > > > and will then try to take current->mm->mmap_sem here.
-> > > > > > 
-> > > > > > This can result in a deadlock if both MMAP and USERPTR buffers
-> > > > > > are used by the same driver at the same time.
-> > > > > > 
-> > > > > > If we assume that MMAP and USERPTR buffers can't be used on the
-> > > > > > same queue at the same time (VIDIOC_CREATEBUFS doesn't allow
-> > > > > > that if I'm not mistaken, so we should be safe, at least for
-> > > > > > now), this can be fixed by having a per-queue lock in the driver
-> > > > > > instead of a global device lock. However, that means that
-> > > > > > drivers that want to support USERPTR will not be allowed to
-> > > > > > delegate lock handling to the V4L2 core and
-> > > > > > video_ioctl2().
-> > > > > 
-> > > > > Thanks for pointing this issue! This problem is already present in
-> > > > > the other videobuf2 memory allocators as well as the old videobuf
-> > > > > and other v4l2 drivers which implement queue handling by
-> > > > > themselves.
-> > > > 
-> > > > The problem is present in most (but not all) drivers, yes. That's one
-> > > > more reason to fix it in videobuf2 :-)
-> > > > 
-> > > > > The only solution that will not complicate the videobuf2 and
-> > > > > allocators code is to move taking current->mm->mmap_sem lock into
-> > > > > videobuf2 core. Before acquiring this lock, vb2 calls wait_prepare
-> > > > > to release device lock and then once mmap_sem is locked, calls
-> > > > > wait_finish to get it again. This way the deadlock is avoided and
-> > > > > allocators are free to call
-> > > > > get_user_pages() without further messing with locks. The only
-> > > > > drawback is the fact that a bit more code will be executed under
-> > > > > mmap_sem lock.
-> > > > > 
-> > > > > What do you think about such solution?
-> > > > 
-> > > > Won't that create a race condition ? Wouldn't an application for
-> > > > instance be able to call VIDIOC_REQBUFS(0) during the time window
-> > > > where the device lock is released ?
-> > > 
-> > > Hmm... Right...
-> > > 
-> > > The only solution I see now is to move acquiring mmap_sem as early as
-> > > possible to make the possible race harmless. The first operation in
-> > > vb2_qbuf will be then:
-> > > 
-> > > if (b->memory == V4L2_MEMORY_USERPTR) {
-> > > 
-> > >        call_qop(q, wait_prepare, q);
-> > >        down_read(&current->mm->mmap_sem);
-> > >        call_qop(q, wait_finish, q);
-> > > 
-> > > }
-> > > 
-> > > This should solve the race although all userptr buffers will be handled
-> > > under mmap_sem lock. Do you have any other idea?
-> > 
-> > If queues don't mix MMAP and USERPTR buffers (is that something we want
-> > to allow ?), wouldn't using a per-queue lock instead of a device-wide
-> > lock be a better way to fix the problem ?
-> 
-> It is not really about allowing mixing MMAP & USERPTR. Even if your
-> application use only USRPTR  buffers, a malicious task might open the video
-> node and call mmap operation what might cause a deadlock in certain rare
-> cases.
-
-Right :-/
-
-The mmap() call would fail, but it still takes the lock before failing.
-
-Would there be a way to make mmap() fail on queues configured for USERPTR 
-without taking the lock ?
-
-> I'm against adding internal locks to vb2 queue. Avoiding deadlocks will be
-> a nightmare when you will try to handle or synchronize more than one queue
-> in a single call...
-
-I wasn't proposing adding internal locks to vb2 queue, but using per-queue 
-locks inside the driver. vb2 would still not handle locking itself.
-
+diff --git a/drivers/staging/media/as102/as10x_cmd.h b/drivers/staging/media/as102/as10x_cmd.h
+index 6f837b1..8f13bea 100644
+--- a/drivers/staging/media/as102/as10x_cmd.h
++++ b/drivers/staging/media/as102/as10x_cmd.h
+@@ -52,7 +52,7 @@
+ /*********************************/
+ /*     TYPE DEFINITION           */
+ /*********************************/
+-typedef enum {
++enum control_proc {
+    CONTROL_PROC_TURNON               = 0x0001,
+    CONTROL_PROC_TURNON_RSP           = 0x0100,
+    CONTROL_PROC_SET_REGISTER         = 0x0002,
+@@ -92,11 +92,11 @@ typedef enum {
+    CONTROL_PROC_DUMPLOG_MEMORY_RSP   = 0xFE00,
+    CONTROL_PROC_TURNOFF              = 0x00FF,
+    CONTROL_PROC_TURNOFF_RSP          = 0xFF00
+-} control_proc;
++};
+ 
+ 
+ #pragma pack(1)
+-typedef union {
++union as10x_turn_on {
+    /* request */
+    struct {
+       /* request identifier */
+@@ -109,9 +109,9 @@ typedef union {
+       /* error */
+       uint8_t error;
+    } rsp;
+-} TURN_ON;
++};
+ 
+-typedef union {
++union as10x_turn_off {
+    /* request */
+    struct {
+       /* request identifier */
+@@ -124,9 +124,9 @@ typedef union {
+       /* error */
+       uint8_t err;
+    } rsp;
+-} TURN_OFF;
++};
+ 
+-typedef union {
++union as10x_set_tune {
+    /* request */
+    struct {
+       /* request identifier */
+@@ -141,9 +141,9 @@ typedef union {
+       /* response error */
+       uint8_t error;
+    } rsp;
+-} SET_TUNE;
++};
+ 
+-typedef union {
++union as10x_get_tune_status {
+    /* request */
+    struct {
+       /* request identifier */
+@@ -158,9 +158,9 @@ typedef union {
+       /* tune status */
+       struct as10x_tune_status sts;
+    } rsp;
+-} GET_TUNE_STATUS;
++};
+ 
+-typedef union {
++union as10x_get_tps {
+    /* request */
+    struct {
+       /* request identifier */
+@@ -175,9 +175,9 @@ typedef union {
+       /* tps details */
+       struct as10x_tps tps;
+    } rsp;
+-} GET_TPS;
++};
+ 
+-typedef union {
++union as10x_common {
+    /* request */
+    struct {
+       /* request identifier */
+@@ -190,9 +190,9 @@ typedef union {
+       /* response error */
+       uint8_t error;
+    } rsp;
+-} COMMON;
++};
+ 
+-typedef union {
++union as10x_add_pid_filter {
+    /* request */
+    struct {
+       /* request identifier */
+@@ -213,9 +213,9 @@ typedef union {
+       /* Filter id */
+       uint8_t filter_id;
+    } rsp;
+-} ADD_PID_FILTER;
++};
+ 
+-typedef union {
++union as10x_del_pid_filter {
+    /* request */
+    struct {
+       /* request identifier */
+@@ -230,9 +230,9 @@ typedef union {
+       /* response error */
+       uint8_t error;
+    } rsp;
+-} DEL_PID_FILTER;
++};
+ 
+-typedef union {
++union as10x_start_streaming {
+    /* request */
+    struct {
+       /* request identifier */
+@@ -245,9 +245,9 @@ typedef union {
+       /* error */
+       uint8_t error;
+    } rsp;
+-} START_STREAMING;
++};
+ 
+-typedef union {
++union as10x_stop_streaming {
+    /* request */
+    struct {
+       /* request identifier */
+@@ -260,9 +260,9 @@ typedef union {
+       /* error */
+       uint8_t error;
+    } rsp;
+-} STOP_STREAMING;
++};
+ 
+-typedef union {
++union as10x_get_demod_stats {
+    /* request */
+    struct {
+       /* request identifier */
+@@ -277,9 +277,9 @@ typedef union {
+       /* demod stats */
+       struct as10x_demod_stats stats;
+    } rsp;
+-} GET_DEMOD_STATS;
++};
+ 
+-typedef union {
++union as10x_get_impulse_resp {
+    /* request */
+    struct {
+       /* request identifier */
+@@ -294,9 +294,9 @@ typedef union {
+       /* impulse response ready */
+       uint8_t is_ready;
+    } rsp;
+-} GET_IMPULSE_RESP;
++};
+ 
+-typedef union {
++union as10x_fw_context {
+    /* request */
+    struct {
+       /* request identifier */
+@@ -319,9 +319,9 @@ typedef union {
+       /* error */
+       uint8_t error;
+    } rsp;
+-} FW_CONTEXT;
++};
+ 
+-typedef union {
++union as10x_set_register {
+    /* request */
+    struct {
+       /* response identifier */
+@@ -338,9 +338,9 @@ typedef union {
+       /* error */
+       uint8_t error;
+    } rsp;
+-} SET_REGISTER;
++};
+ 
+-typedef union {
++union as10x_get_register {
+    /* request */
+    struct {
+       /* response identifier */
+@@ -357,9 +357,9 @@ typedef union {
+       /* register content */
+       struct as10x_register_value reg_val;
+    } rsp;
+-} GET_REGISTER;
++};
+ 
+-typedef union {
++union as10x_cfg_change_mode {
+    /* request */
+    struct {
+       /* request identifier */
+@@ -374,7 +374,7 @@ typedef union {
+       /* error */
+       uint8_t error;
+    } rsp;
+-} CFG_CHANGE_MODE;
++};
+ 
+ struct as10x_cmd_header_t {
+    uint16_t req_id;
+@@ -384,7 +384,8 @@ struct as10x_cmd_header_t {
+ };
+ 
+ #define DUMP_BLOCK_SIZE 16
+-typedef union {
++
++union as10x_dump_memory {
+    /* request */
+    struct {
+       /* request identifier */
+@@ -411,9 +412,9 @@ typedef union {
+ 	 uint32_t data32[DUMP_BLOCK_SIZE / sizeof(uint32_t)];
+       } u;
+    } rsp;
+-} DUMP_MEMORY;
++};
+ 
+-typedef union {
++union as10x_dumplog_memory {
+    struct {
+       /* request identifier */
+       uint16_t proc_id;
+@@ -430,9 +431,9 @@ typedef union {
+       /* dump data */
+       uint8_t data[DUMP_BLOCK_SIZE];
+    } rsp;
+-} DUMPLOG_MEMORY;
++};
+ 
+-typedef union {
++union as10x_raw_data {
+    /* request */
+    struct {
+       uint16_t proc_id;
+@@ -445,33 +446,31 @@ typedef union {
+       uint8_t data[64 - sizeof(struct as10x_cmd_header_t) /* header */
+ 		      - 2 /* proc_id */ - 1 /* rc */];
+    } rsp;
+-} RAW_DATA;
++};
+ 
+ struct as10x_cmd_t {
+-   /* header */
+-   struct as10x_cmd_header_t header;
+-   /* body */
+-   union {
+-      TURN_ON           turn_on;
+-      TURN_OFF          turn_off;
+-      SET_TUNE          set_tune;
+-      GET_TUNE_STATUS   get_tune_status;
+-      GET_TPS           get_tps;
+-      COMMON            common;
+-      ADD_PID_FILTER    add_pid_filter;
+-      DEL_PID_FILTER    del_pid_filter;
+-      START_STREAMING   start_streaming;
+-      STOP_STREAMING    stop_streaming;
+-      GET_DEMOD_STATS   get_demod_stats;
+-      GET_IMPULSE_RESP  get_impulse_rsp;
+-      FW_CONTEXT        context;
+-      SET_REGISTER      set_register;
+-      GET_REGISTER      get_register;
+-      CFG_CHANGE_MODE   cfg_change_mode;
+-      DUMP_MEMORY       dump_memory;
+-      DUMPLOG_MEMORY    dumplog_memory;
+-      RAW_DATA          raw_data;
+-   } body;
++	struct as10x_cmd_header_t header;
++	union {
++		union as10x_turn_on		turn_on;
++		union as10x_turn_off		turn_off;
++		union as10x_set_tune		set_tune;
++		union as10x_get_tune_status	get_tune_status;
++		union as10x_get_tps		get_tps;
++		union as10x_common		common;
++		union as10x_add_pid_filter	add_pid_filter;
++		union as10x_del_pid_filter	del_pid_filter;
++		union as10x_start_streaming	start_streaming;
++		union as10x_stop_streaming	stop_streaming;
++		union as10x_get_demod_stats	get_demod_stats;
++		union as10x_get_impulse_resp	get_impulse_rsp;
++		union as10x_fw_context		context;
++		union as10x_set_register	set_register;
++		union as10x_get_register	get_register;
++		union as10x_cfg_change_mode	cfg_change_mode;
++		union as10x_dump_memory		dump_memory;
++		union as10x_dumplog_memory	dumplog_memory;
++		union as10x_raw_data		raw_data;
++	} body;
+ };
+ 
+ struct as10x_token_cmd_t {
 -- 
-Regards,
+1.7.5.4
 
-Laurent Pinchart
