@@ -1,76 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:44954 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751030Ab1KXSBV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 13:01:21 -0500
-Message-ID: <4ECE866D.5040608@linuxtv.org>
-Date: Thu, 24 Nov 2011 19:01:17 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:58249 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132Ab1KFVfb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 16:35:31 -0500
+From: Michal Nazarewicz <mina86@mina86.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: "linaro-mm-sig\@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Russell King' <linux@arm.linux.org.uk>,
+	'Arnd Bergmann' <arnd@arndb.de>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	"linux-kernel\@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	'Dave Hansen' <dave@linux.vnet.ibm.com>,
+	"linux-mm\@kvack.org" <linux-mm@kvack.org>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Ankita Garg' <ankita@in.ibm.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	"linux-arm-kernel\@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>,
+	'Subash Patel' <subashrp@gmail.com>,
+	Joerg Roedel <joro@8bytes.org>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Krishna Reddy <vdumpa@nvidia.com>
+Subject: Re: CMA v16 and DMA-mapping v13 patch series
+References: <ADF13DA15EB3FE4FBA487CCC7BEFDF3622549EBE58@bssrvexch01>
+Date: Sun, 06 Nov 2011 22:35:16 +0100
+In-Reply-To: <ADF13DA15EB3FE4FBA487CCC7BEFDF3622549EBE58@bssrvexch01> (Marek
+	Szyprowski's message of "Thu, 20 Oct 2011 08:01:12 +0200")
+Message-ID: <87lirtgciz.fsf@erwin.mina86.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
-References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com> <4ECE79F5.9000402@linuxtv.org> <4ECE80BE.4090109@redhat.com>
-In-Reply-To: <4ECE80BE.4090109@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 24.11.2011 18:37, Mauro Carvalho Chehab wrote:
-> Em 24-11-2011 15:08, Andreas Oberritter escreveu:
->> Don't break existing Userspace APIs for no reason! It's OK to add the
->> new API, but - pretty please - don't just blindly remove audio.h and
->> video.h. They are in use since many years by av7110, out-of-tree drivers
->> *and more importantly* by applications. Yes, I know, you'd like to see
->> those out-of-tree drivers merged, but it isn't possible for many
->> reasons. And even if they were merged, you'd say "Port them and your
->> apps to V4L". No! That's not an option.
-> 
-> Hi Andreas,
-> 
-> Userspace applications that support av7110 can include the new linux/av7110.h
-> header. Other applications that support out-of-tree drivers can just have
-> their own copy of audio.h, osd.h and video.h. So, it won't break or prevent
-> existing applications to keep working.
+--=-=-=
+Content-Transfer-Encoding: quoted-printable
 
-As already replied to Hans, breaking compilation on purpose is bad.
+Marek Szyprowski <m.szyprowski@samsung.com> writes:
+> Linux v3.1-rc10 with both CMA v16 and DMA-mapping v3:
+> git://git.infradead.org/users/kmpark/linux-2.6-samsung 3.1-rc10-cma-v16-d=
+ma-v3
 
-> The thing is that the media API presents two interfaces to control mpeg decoders.
-> This is confusing, and, while one of them has active upstream developers working
-> on it, adding new drivers and new features on it, the other API is not being
-> updated accordingly, and no new upstream drivers use it.
+I've pushed a new version based on Mel's suggestions to=20
 
-There is no "media API". There's a V4L API and a DVB API. There are
-active downstream developers adding new drivers and features to it.
+     git://github.com/mina86/linux-2.6.git cma-17
 
-> Worse than that, several ioctl's are there, with not a single in-kernel implementation, 
-> nor any documentation about how they are supposed to work.
+Unfortunately, it took me more time then I anticipated and so I had no
+time to test the code in any way (other then compile it on x86_64).
 
-I think I know how most of them are supposed to work. If you have
-questions, just ask.
+=2D-=20
+Best regards,                                          _     _
+ .o. | Liege of Serenly Enlightened Majesty of       o' \,=3D./ `o
+ ..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
+ ooo +-<mina86-mina86.com>-<jid:mina86-jabber.org>--ooO--(_)--Ooo--
 
-Yes, there are many ioctls which have never been used (mostly for DVD
-playback, IIRC). You can mark them as deprecated.
+--=-=-=
+Content-Type: application/pgp-signature
 
-> We noticed in Prague that new DVB developers got confused about what should be the
-> proper implementation for new drivers, so marking it as deprecated is important,
-> otherwise, we'll end by having different approaches for the same thing.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.17 (GNU/Linux)
 
-There's a huge difference between marking something as deprecated and
-deleting userspace header files (and compat-ioctl for that matter).
-
-Adding a comment on top of audio.h and video.h will be good enough for
-new DVB developers.
-
-> Just to give you one example, newer DTV standards like ISDB-T and DVB-T2 now uses
-> H.264 video streams. Support for H.264 were added recently at V4L2 API, but the
-> dvb video API doesn't support it.
-
-My attempts to add the necessary #defines for new video standards were
-blocked because there was no in-kernel driver available. You can't use
-that as an argument against it now. If you like, I can submit patches to
-address this.
-
-Regards,
-Andreas
+iEYEARECAAYFAk62/Z4ACgkQUyzLALfG3x79TwCghV+S7VGchGmHFCcE70bs9kwB
+93kAn1QslNio6hpatD2GoUQLjzYxSyJJ
+=UBof
+-----END PGP SIGNATURE-----
+--=-=-=--
