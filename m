@@ -1,104 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:57437 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755125Ab1K0VfP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Nov 2011 16:35:15 -0500
-Received: by wwp14 with SMTP id 14so7666618wwp.1
-        for <linux-media@vger.kernel.org>; Sun, 27 Nov 2011 13:35:14 -0800 (PST)
-Message-ID: <1322429706.29078.1.camel@tvbox>
-Subject: [PATCH] for 3_3 it913x endpoint size changes.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Sun, 27 Nov 2011 21:35:06 +0000
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+Received: from apfelkorn.psychaos.be ([195.144.77.38]:42100 "EHLO
+	apfelkorn.psychaos.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752565Ab1KFOrF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 09:47:05 -0500
+From: Peter De Schrijver <p2@psychaos.be>
+To: p2@psychaos.be
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jeff Verheyen <jeff.verheyen@ampersant.be>
+Subject: [PATCH] bt8xx: add support for PCI device ID 0x36c
+Date: Sun,  6 Nov 2011 16:47:58 +0200
+Message-Id: <1320590878-9612-1-git-send-email-p2@psychaos.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Previously endpoint had been aligned to packet size (128)
+add support for conexant PCI device 0x36c. Seems to be fully compatible with
+the currently supported chips, yet the chip has different PCI ID.
 
-Some early it9135 devices appear to have problems with this.
-
-This patch now aligns with mpeg TS size (188)
-
-With the pid filter off max size is increased to the maxmium
-size (348 * 188)
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Peter De Schrijver <p2@psychaos.be>
 ---
- drivers/media/dvb/dvb-usb/it913x.c |   28 +++++++++++++++++++++++-----
- 1 files changed, 23 insertions(+), 5 deletions(-)
+ drivers/media/video/bt8xx/bt848.h       |    5 ++++-
+ drivers/media/video/bt8xx/bttv-driver.c |    1 +
+ 2 files changed, 5 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-usb/it913x.c b/drivers/media/dvb/dvb-usb/it913x.c
-index 9abdaee..24f04b4 100644
---- a/drivers/media/dvb/dvb-usb/it913x.c
-+++ b/drivers/media/dvb/dvb-usb/it913x.c
-@@ -337,6 +337,13 @@ static int it913x_rc_query(struct dvb_usb_device *d)
- 
- 	return ret;
- }
+diff --git a/drivers/media/video/bt8xx/bt848.h b/drivers/media/video/bt8xx/bt848.h
+index 0bcd953..c37e6ac 100644
+--- a/drivers/media/video/bt8xx/bt848.h
++++ b/drivers/media/video/bt8xx/bt848.h
+@@ -30,6 +30,10 @@
+ #ifndef PCI_DEVICE_ID_BT849
+ #define PCI_DEVICE_ID_BT849     0x351
+ #endif
++#ifndef PCI_DEVICE_ID_FUSION879
++#define PCI_DEVICE_ID_FUSION879	0x36c
++#endif
 +
-+#define TS_MPEG_PKT_SIZE	188
-+#define EP_LOW			21
-+#define TS_BUFFER_SIZE_PID	(EP_LOW*TS_MPEG_PKT_SIZE)
-+#define EP_HIGH			348
-+#define TS_BUFFER_SIZE_MAX	(EP_HIGH*TS_MPEG_PKT_SIZE)
-+
- static int it913x_identify_state(struct usb_device *udev,
- 		struct dvb_usb_device_properties *props,
- 		struct dvb_usb_device_description **desc,
-@@ -374,6 +381,17 @@ static int it913x_identify_state(struct usb_device *udev,
- 	info("Dual mode=%x Remote=%x Tuner Type=%x", it913x_config.dual_mode
- 		, remote, it913x_config.tuner_id_0);
+ #ifndef PCI_DEVICE_ID_BT878
+ #define PCI_DEVICE_ID_BT878     0x36e
+ #endif
+@@ -37,7 +41,6 @@
+ #define PCI_DEVICE_ID_BT879     0x36f
+ #endif
  
-+	/* Select Stream Buffer Size */
-+	if (pid_filter)
-+		props->adapter[0].fe[0].stream.u.bulk.buffersize =
-+			TS_BUFFER_SIZE_MAX;
-+	else
-+		props->adapter[0].fe[0].stream.u.bulk.buffersize =
-+			TS_BUFFER_SIZE_PID;
-+	if (it913x_config.dual_mode)
-+		props->adapter[1].fe[0].stream.u.bulk.buffersize =
-+			props->adapter[0].fe[0].stream.u.bulk.buffersize;
-+
- 	if (firm_no > 0) {
- 		*cold = 0;
- 		return 0;
-@@ -511,7 +529,7 @@ static int it913x_frontend_attach(struct dvb_usb_adapter *adap)
- 	struct usb_device *udev = adap->dev->udev;
- 	int ret = 0;
- 	u8 adap_addr = I2C_BASE_ADDR + (adap->id << 5);
--	u16 ep_size = adap->props.fe[0].stream.u.bulk.buffersize;
-+	u16 ep_size = adap->props.fe[0].stream.u.bulk.buffersize / 4;
- 	u8 pkt_size = 0x80;
- 
- 	if (adap->dev->udev->speed != USB_SPEED_HIGH)
-@@ -610,8 +628,8 @@ static struct dvb_usb_device_properties it913x_properties = {
- 				.endpoint = 0x04,
- 				.u = {/* Keep Low if PID filter on */
- 					.bulk = {
--						.buffersize = 3584,
 -
-+					.buffersize =
-+						TS_BUFFER_SIZE_PID,
- 					}
- 				}
- 			}
-@@ -635,8 +653,8 @@ static struct dvb_usb_device_properties it913x_properties = {
- 				.endpoint = 0x05,
- 				.u = {
- 					.bulk = {
--						.buffersize = 3584,
--
-+						.buffersize =
-+							TS_BUFFER_SIZE_PID,
- 					}
- 				}
- 			}
+ /* Brooktree 848 registers */
+ 
+ #define BT848_DSTATUS          0x000
+diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
+index 3dd0660..76c301f 100644
+--- a/drivers/media/video/bt8xx/bttv-driver.c
++++ b/drivers/media/video/bt8xx/bttv-driver.c
+@@ -4572,6 +4572,7 @@ static struct pci_device_id bttv_pci_tbl[] = {
+ 	{PCI_VDEVICE(BROOKTREE, PCI_DEVICE_ID_BT849), 0},
+ 	{PCI_VDEVICE(BROOKTREE, PCI_DEVICE_ID_BT878), 0},
+ 	{PCI_VDEVICE(BROOKTREE, PCI_DEVICE_ID_BT879), 0},
++	{PCI_VDEVICE(BROOKTREE, PCI_DEVICE_ID_FUSION879), 0},
+ 	{0,}
+ };
+ 
 -- 
-1.7.7.1
-
+1.7.4.1
 
