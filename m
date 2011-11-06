@@ -1,98 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:56511 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750743Ab1K1HdF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 02:33:05 -0500
-Date: Mon, 28 Nov 2011 08:31:37 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH] [media] convert drivers/media/* to use
- module_platform_driver()
-In-reply-to: <1322290135.20464.1.camel@phoenix>
-To: 'Axel Lin' <axel.lin@gmail.com>, linux-kernel@vger.kernel.org
-Cc: 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>,
-	=?utf-8?Q?'Richard_R=C3=B6jfors'?= <richard.rojfors@pelagicore.com>,
-	"'Matti J. Aaltonen'" <matti.j.aaltonen@nokia.com>,
-	'Lucas De Marchi' <lucas.demarchi@profusion.mobi>,
-	'Manjunath Hadli' <manjunath.hadli@ti.com>,
-	'Muralidharan Karicheri' <m-karicheri2@ti.com>,
-	'Anatolij Gustschin' <agust@denx.de>,
-	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
-	'Robert Jarzmik' <robert.jarzmik@free.fr>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Daniel Drake' <dsd@laptop.org>, linux-media@vger.kernel.org
-Message-id: <000001ccad9f$c371c440$4a554cc0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-language: pl
-Content-transfer-encoding: 8BIT
-References: <1322290135.20464.1.camel@phoenix>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:44704 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752544Ab1KFUcS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 15:32:18 -0500
+Received: by mail-fx0-f46.google.com with SMTP id o14so4498582faa.19
+        for <linux-media@vger.kernel.org>; Sun, 06 Nov 2011 12:32:18 -0800 (PST)
+From: Sylwester Nawrocki <snjw23@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Piotr Chmura <chmooreck@poczta.onet.pl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: [PATCH 03/13] staging: as102: Remove leftovers of the SPI bus driver
+Date: Sun,  6 Nov 2011 21:31:40 +0100
+Message-Id: <1320611510-3326-4-git-send-email-snjw23@gmail.com>
+In-Reply-To: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
+References: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+SPI bus driver support is not included in this module, the SPI
+driver files are missing. But some bits are still present so
+clean up the unused code.
+The SPI driver support can be properly added later if needed.
 
-On Saturday, November 26, 2011 7:49 AM Axel Lin wrote:
+Then CONFIG_AS102_SPI and CONFIG_AS102_USB is now not needed
+and the pre-processor statements using these config options
+can now be removed from *.c files.
 
-> This patch converts the drivers in drivers/media/* to use the
-> module_platform_driver() macro which makes the code smaller and a bit
-> simpler.
-> 
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: "Richard Röjfors" <richard.rojfors@pelagicore.com>
-> Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-> Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>
-> Cc: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Muralidharan Karicheri <m-karicheri2@ti.com>
-> Cc: Anatolij Gustschin <agust@denx.de>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-> Cc: Robert Jarzmik <robert.jarzmik@free.fr>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Daniel Drake <dsd@laptop.org>
-> Signed-off-by: Axel Lin <axel.lin@gmail.com>
-> ---
->  drivers/media/radio/radio-si4713.c         |   15 +----------
->  drivers/media/radio/radio-timb.c           |   15 +----------
->  drivers/media/radio/radio-wl1273.c         |   17 +-----------
->  drivers/media/video/davinci/dm355_ccdc.c   |   13 +---------
->  drivers/media/video/davinci/dm644x_ccdc.c  |   13 +---------
->  drivers/media/video/davinci/isif.c         |   13 +---------
->  drivers/media/video/davinci/vpbe.c         |   24 +-----------------
->  drivers/media/video/davinci/vpbe_display.c |   38 +---------------------------
->  drivers/media/video/davinci/vpbe_osd.c     |   18 +------------
->  drivers/media/video/davinci/vpbe_venc.c    |   18 +------------
->  drivers/media/video/davinci/vpfe_capture.c |   18 +------------
->  drivers/media/video/fsl-viu.c              |   13 +---------
->  drivers/media/video/mx3_camera.c           |   14 +---------
->  drivers/media/video/omap1_camera.c         |   12 +--------
->  drivers/media/video/omap24xxcam.c          |   19 +-------------
->  drivers/media/video/omap3isp/isp.c         |   19 +-------------
->  drivers/media/video/pxa_camera.c           |   14 +---------
->  drivers/media/video/s5p-g2d/g2d.c          |   16 +-----------
->  drivers/media/video/s5p-mfc/s5p_mfc.c      |   22 +---------------
->  drivers/media/video/s5p-tv/hdmi_drv.c      |   26 +------------------
->  drivers/media/video/s5p-tv/sdo_drv.c       |   22 +---------------
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
+---
+ drivers/staging/media/as102/Makefile    |    2 +-
+ drivers/staging/media/as102/as102_drv.c |   33 ++--------------------
+ drivers/staging/media/as102/as102_drv.h |   46 ++++---------------------------
+ drivers/staging/media/as102/as102_fw.c  |    7 +----
+ 4 files changed, 11 insertions(+), 77 deletions(-)
 
-For Samsung drivers in drivers/media/video/s5p-*
-
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
->  drivers/media/video/sh_mobile_csi2.c       |   13 +---------
->  drivers/media/video/soc_camera_platform.c  |   13 +---------
->  drivers/media/video/timblogiw.c            |   15 +----------
->  drivers/media/video/via-camera.c           |   12 +--------
->  25 files changed, 26 insertions(+), 406 deletions(-)
-
-Best regards
+diff --git a/drivers/staging/media/as102/Makefile b/drivers/staging/media/as102/Makefile
+index e7dbb6f..1bca43e 100644
+--- a/drivers/staging/media/as102/Makefile
++++ b/drivers/staging/media/as102/Makefile
+@@ -3,4 +3,4 @@ dvb-as102-objs := as102_drv.o as102_fw.o as10x_cmd.o as10x_cmd_stream.o \
+ 
+ obj-$(CONFIG_DVB_AS102) += dvb-as102.o
+ 
+-EXTRA_CFLAGS += -DCONFIG_AS102_USB -Idrivers/media/dvb/dvb-core
++EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+diff --git a/drivers/staging/media/as102/as102_drv.c b/drivers/staging/media/as102/as102_drv.c
+index 771d550..0bcc55c 100644
+--- a/drivers/staging/media/as102/as102_drv.c
++++ b/drivers/staging/media/as102/as102_drv.c
+@@ -56,9 +56,7 @@ int elna_enable = 1;
+ module_param_named(elna_enable, elna_enable, int, 0644);
+ MODULE_PARM_DESC(elna_enable, "Activate eLNA (default: on)");
+ 
+-#ifdef DVB_DEFINE_MOD_OPT_ADAPTER_NR
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+-#endif
+ 
+ static void as102_stop_stream(struct as102_dev_t *dev)
+ {
+@@ -203,16 +201,8 @@ int as102_dvb_register(struct as102_dev_t *as102_dev)
+ 	ret = dvb_register_adapter(&as102_dev->dvb_adap,
+ 				   as102_dev->name,
+ 				   THIS_MODULE,
+-#if defined(CONFIG_AS102_USB)
+-				   &as102_dev->bus_adap.usb_dev->dev
+-#elif defined(CONFIG_AS102_SPI)
+-				   &as102_dev->bus_adap.spi_dev->dev
+-#else
+-#error >>> dvb_register_adapter <<<
+-#endif
+-#ifdef DVB_DEFINE_MOD_OPT_ADAPTER_NR
+-				   , adapter_nr
+-#endif
++				   &as102_dev->bus_adap.usb_dev->dev,
++				   adapter_nr
+ 				   );
+ 	if (ret < 0) {
+ 		err("%s: dvb_register_adapter() failed (errno = %d)",
+@@ -294,23 +284,13 @@ void as102_dvb_unregister(struct as102_dev_t *as102_dev)
+ 
+ static int __init as102_driver_init(void)
+ {
+-	int ret = 0;
+-
+-	ENTER();
++	int ret;
+ 
+ 	/* register this driver with the low level subsystem */
+-#if defined(CONFIG_AS102_USB)
+ 	ret = usb_register(&as102_usb_driver);
+ 	if (ret)
+ 		err("usb_register failed (ret = %d)", ret);
+-#endif
+-#if defined(CONFIG_AS102_SPI)
+-	ret = spi_register_driver(&as102_spi_driver);
+-	if (ret)
+-		printk(KERN_ERR "spi_register failed (ret = %d)", ret);
+-#endif
+ 
+-	LEAVE();
+ 	return ret;
+ }
+ 
+@@ -327,15 +307,8 @@ module_init(as102_driver_init);
+  */
+ static void __exit as102_driver_exit(void)
+ {
+-	ENTER();
+ 	/* deregister this driver with the low level bus subsystem */
+-#if defined(CONFIG_AS102_USB)
+ 	usb_deregister(&as102_usb_driver);
+-#endif
+-#if defined(CONFIG_AS102_SPI)
+-	spi_unregister_driver(&as102_spi_driver);
+-#endif
+-	LEAVE();
+ }
+ 
+ /*
+diff --git a/drivers/staging/media/as102/as102_drv.h b/drivers/staging/media/as102/as102_drv.h
+index 7f56f64..af2bf1e 100644
+--- a/drivers/staging/media/as102/as102_drv.h
++++ b/drivers/staging/media/as102/as102_drv.h
+@@ -17,27 +17,18 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#if defined(CONFIG_AS102_USB)
+ #include <linux/usb.h>
+-extern struct usb_driver as102_usb_driver;
+-#endif
+-
+-#if defined(CONFIG_AS102_SPI)
+-#include <linux/platform_device.h>
+-#include <linux/spi/spi.h>
+-#include <linux/cdev.h>
+-
+-extern struct spi_driver as102_spi_driver;
+-#endif
+-
+-#include "dvb_demux.h"
+-#include "dvb_frontend.h"
+-#include "dmxdev.h"
++#include <dvb_demux.h>
++#include <dvb_frontend.h>
++#include <dmxdev.h>
++#include "as10x_cmd.h"
++#include "as102_usb_drv.h"
+ 
+ #define DRIVER_FULL_NAME "Abilis Systems as10x usb driver"
+ #define DRIVER_NAME "as10x_usb"
+ 
+ extern int debug;
++extern struct usb_driver as102_usb_driver;
+ 
+ #define dprintk(debug, args...) \
+ 	do { if (debug) {	\
+@@ -58,39 +49,14 @@ extern int debug;
+ #define AS102_USB_BUF_SIZE	512
+ #define MAX_STREAM_URB		32
+ 
+-#include "as10x_cmd.h"
+-
+-#if defined(CONFIG_AS102_USB)
+-#include "as102_usb_drv.h"
+-#endif
+-
+-#if defined(CONFIG_AS102_SPI)
+-#include "as10x_spi_drv.h"
+-#endif
+-
+-
+ struct as102_bus_adapter_t {
+-#if defined(CONFIG_AS102_USB)
+ 	struct usb_device *usb_dev;
+-#elif defined(CONFIG_AS102_SPI)
+-	struct spi_device *spi_dev;
+-	struct cdev cdev; /* spidev raw device */
+-
+-	struct timer_list timer;
+-	struct completion xfer_done;
+-#endif
+ 	/* bus token lock */
+ 	struct mutex lock;
+ 	/* low level interface for bus adapter */
+ 	union as10x_bus_token_t {
+-#if defined(CONFIG_AS102_USB)
+ 		/* usb token */
+ 		struct as10x_usb_token_cmd_t usb;
+-#endif
+-#if defined(CONFIG_AS102_SPI)
+-		/* spi token */
+-		struct as10x_spi_token_cmd_t spi;
+-#endif
+ 	} token;
+ 
+ 	/* token cmd xfer id */
+diff --git a/drivers/staging/media/as102/as102_fw.c b/drivers/staging/media/as102/as102_fw.c
+index 4fb2987..3aa4aad 100644
+--- a/drivers/staging/media/as102/as102_fw.c
++++ b/drivers/staging/media/as102/as102_fw.c
+@@ -169,13 +169,8 @@ int as102_fw_upload(struct as102_bus_adapter_t *bus_adap)
+ 	const struct firmware *firmware;
+ 	unsigned char *cmd_buf = NULL;
+ 	char *fw1, *fw2;
+-
+-#if defined(CONFIG_AS102_USB)
+ 	struct usb_device *dev = bus_adap->usb_dev;
+-#endif
+-#if defined(CONFIG_AS102_SPI)
+-	struct spi_device *dev = bus_adap->spi_dev;
+-#endif
++
+ 	ENTER();
+ 
+ 	/* select fw file to upload */
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
+1.7.5.4
 
