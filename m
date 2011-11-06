@@ -1,1153 +1,917 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:60709 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757084Ab1KVUxV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Nov 2011 15:53:21 -0500
-Received: by bke11 with SMTP id 11so719205bke.19
-        for <linux-media@vger.kernel.org>; Tue, 22 Nov 2011 12:53:20 -0800 (PST)
-Message-ID: <4ECC0BB5.7070205@gmail.com>
-Date: Tue, 22 Nov 2011 21:53:09 +0100
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:40138 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754763Ab1KFUcf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 15:32:35 -0500
+Received: by mail-fx0-f46.google.com with SMTP id o14so4498572faa.19
+        for <linux-media@vger.kernel.org>; Sun, 06 Nov 2011 12:32:34 -0800 (PST)
 From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Javier Martin <javier.martin@vista-silicon.com>
-CC: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, shawn.guo@linaro.org,
-	richard.zhao@linaro.org, fabio.estevam@freescale.com,
-	kernel@pengutronix.de, s.hauer@pengutronix.de,
-	r.schwebel@pengutronix.de
-Subject: Re: [PATCH v2 2/2] MEM2MEM: Add support for eMMa-PrP mem2mem operations.
-References: <1321963316-9058-1-git-send-email-javier.martin@vista-silicon.com> <1321963316-9058-3-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1321963316-9058-3-git-send-email-javier.martin@vista-silicon.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Piotr Chmura <chmooreck@poczta.onet.pl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: [PATCH 13/13] staging: as102: Eliminate as10x_handle_t alias
+Date: Sun,  6 Nov 2011 21:31:50 +0100
+Message-Id: <1320611510-3326-14-git-send-email-snjw23@gmail.com>
+In-Reply-To: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
+References: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/22/2011 01:01 PM, Javier Martin wrote:
-> Changes since v1:
-> - Embed queue data in ctx structure to allow multi instance.
-> - Remove redundant job_ready callback.
-> - Adjust format against device capabilities.
-> - Register/unregister video device at the right time.
-> - Other minor coding fixes.
-> 
-> Signed-off-by: Javier Martin<javier.martin@vista-silicon.com>
-> ---
->   drivers/media/video/Kconfig       |   10 +
->   drivers/media/video/Makefile      |    2 +
->   drivers/media/video/mx2_emmaprp.c | 1035 +++++++++++++++++++++++++++++++++++++
->   3 files changed, 1047 insertions(+), 0 deletions(-)
->   create mode 100644 drivers/media/video/mx2_emmaprp.c
-> 
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index b303a3f..77d7921 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -1107,4 +1107,14 @@ config VIDEO_SAMSUNG_S5P_MFC
->   	help
->   	    MFC 5.1 driver for V4L2.
-> 
-> +config VIDEO_MX2_EMMAPRP
-> +	tristate "MX2 eMMa-PrP support"
-> +	depends on VIDEO_DEV&&  VIDEO_V4L2&&  MACH_MX27
-> +	select VIDEOBUF2_DMA_CONTIG
-> +	select V4L2_MEM2MEM_DEV
-> +	help
-> +	    MX2X chips have a PrP that can be used to process buffers from
-> +	    memory to memory. Operations include resizing and format
-> +	    conversion.
-> +
->   endif # V4L_MEM2MEM_DRIVERS
-> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> index 117f9c4..7ae711e 100644
-> --- a/drivers/media/video/Makefile
-> +++ b/drivers/media/video/Makefile
-> @@ -176,6 +176,8 @@ obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
->   obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
->   obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
-> 
-> +obj-$(CONFIG_VIDEO_MX2_EMMAPRP)		+= mx2_emmaprp.o
-> +
->   obj-$(CONFIG_VIDEO_SAMSUNG_S5P_FIMC) 	+= s5p-fimc/
->   obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC)	+= s5p-mfc/
->   obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
-> diff --git a/drivers/media/video/mx2_emmaprp.c b/drivers/media/video/mx2_emmaprp.c
-> new file mode 100644
-> index 0000000..6b98aac
-> --- /dev/null
-> +++ b/drivers/media/video/mx2_emmaprp.c
-> @@ -0,0 +1,1035 @@
-> +/*
-> + * Support eMMa-PrP through mem2mem framework.
-> + *
-> + * eMMa-PrP is a piece of HW that allows fetching buffers
-> + * from one memory location and do several operations on
-> + * them such as scaling or format conversion giving, as a result
-> + * a new processed buffer in another memory location.
-> + *
-> + * Based on mem2mem_testdev.c by Pawel Osciak.
-> + *
-> + * Copyright (c) 2011 Vista Silicon S.L.
-> + * Javier Martin<javier.martin@vista-silicon.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by the
-> + * Free Software Foundation; either version 2 of the
-> + * License, or (at your option) any later version
-> + */
-> +#include<linux/module.h>
-> +#include<linux/clk.h>
-> +#include<linux/slab.h>
-> +#include<linux/interrupt.h>
+Remove pre-processor defined as10x_handle_t data type by directly
+replacing it with struct as102_bus_adapter_t. phandle is renamed
+to adap inside function bodies.
 
-You may want to add 
-#include <asm/sizes.h> 
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
+---
+I'm not sure about this one, maybe something less invasive is needed.
+---
+ drivers/staging/media/as102/as102_drv.c        |    6 +-
+ drivers/staging/media/as102/as102_drv.h        |    4 +-
+ drivers/staging/media/as102/as102_fw.c         |    4 +-
+ drivers/staging/media/as102/as102_fw.h         |    2 +-
+ drivers/staging/media/as102/as102_usb_drv.c    |    6 +-
+ drivers/staging/media/as102/as10x_cmd.c        |  137 ++++++++++++------------
+ drivers/staging/media/as102/as10x_cmd.h        |   28 +++---
+ drivers/staging/media/as102/as10x_cmd_cfg.c    |   66 ++++++------
+ drivers/staging/media/as102/as10x_cmd_stream.c |   56 +++++-----
+ drivers/staging/media/as102/as10x_handle.h     |   20 ++--
+ 10 files changed, 163 insertions(+), 166 deletions(-)
 
-for SZ_1M.
-
-> +
-> +#include<linux/platform_device.h>
-> +#include<media/v4l2-mem2mem.h>
-> +#include<media/v4l2-device.h>
-> +#include<media/v4l2-ioctl.h>
-> +#include<media/videobuf2-dma-contig.h>
-> +
-> +#define EMMAPRP_MODULE_NAME "mem2mem-emmaprp"
-> +
-> +MODULE_DESCRIPTION("mem2mem device which supports eMMa-PrP present in mx2 SoCs");
-
-How about s/mem2mem/Mem-to-mem  ?
-
-> +MODULE_AUTHOR("Javier Martin<javier.martin@vista-silicon.com");
-> +MODULE_LICENSE("GPL");
-> +MODULE_VERSION("0.0.1");
-> +
-> +static bool debug;
-> +module_param(debug, bool, 0644);
-> +
-> +#define MIN_W 32
-> +#define MIN_H 32
-> +#define MAX_W 2040
-> +#define MAX_H 2046
-> +
-> +#define W_ALIGN_MASK_YUV420	0x07 /* multiple of 8 */
-> +#define W_ALIGN_MASK_OTHERS	0x03 /* multiple of 4 */
-> +#define H_ALIGN_MASK		0x01 /* multiple of 2 */
-> +
-> +/* Flags that indicate a format can be used for capture/output */
-> +#define MEM2MEM_CAPTURE	(1<<  0)
-> +#define MEM2MEM_OUTPUT	(1<<  1)
-> +
-> +#define MEM2MEM_NAME		"m2m-emmaprp"
-> +
-> +/* In bytes, per queue */
-> +#define MEM2MEM_VID_MEM_LIMIT	(16 * SZ_1M)
-> +
-> +#define dprintk(dev, fmt, arg...) \
-> +	v4l2_dbg(1, debug,&dev->v4l2_dev, "%s: " fmt, __func__, ## arg)
-> +
-> +/* EMMA PrP */
-> +#define PRP_CNTL                        0x00
-> +#define PRP_INTR_CNTL                   0x04
-> +#define PRP_INTRSTATUS                  0x08
-> +#define PRP_SOURCE_Y_PTR                0x0c
-> +#define PRP_SOURCE_CB_PTR               0x10
-> +#define PRP_SOURCE_CR_PTR               0x14
-> +#define PRP_DEST_RGB1_PTR               0x18
-> +#define PRP_DEST_RGB2_PTR               0x1c
-> +#define PRP_DEST_Y_PTR                  0x20
-> +#define PRP_DEST_CB_PTR                 0x24
-> +#define PRP_DEST_CR_PTR                 0x28
-> +#define PRP_SRC_FRAME_SIZE              0x2c
-> +#define PRP_DEST_CH1_LINE_STRIDE        0x30
-> +#define PRP_SRC_PIXEL_FORMAT_CNTL       0x34
-> +#define PRP_CH1_PIXEL_FORMAT_CNTL       0x38
-> +#define PRP_CH1_OUT_IMAGE_SIZE          0x3c
-> +#define PRP_CH2_OUT_IMAGE_SIZE          0x40
-> +#define PRP_SRC_LINE_STRIDE             0x44
-> +#define PRP_CSC_COEF_012                0x48
-> +#define PRP_CSC_COEF_345                0x4c
-> +#define PRP_CSC_COEF_678                0x50
-> +#define PRP_CH1_RZ_HORI_COEF1           0x54
-> +#define PRP_CH1_RZ_HORI_COEF2           0x58
-> +#define PRP_CH1_RZ_HORI_VALID           0x5c
-> +#define PRP_CH1_RZ_VERT_COEF1           0x60
-> +#define PRP_CH1_RZ_VERT_COEF2           0x64
-> +#define PRP_CH1_RZ_VERT_VALID           0x68
-> +#define PRP_CH2_RZ_HORI_COEF1           0x6c
-> +#define PRP_CH2_RZ_HORI_COEF2           0x70
-> +#define PRP_CH2_RZ_HORI_VALID           0x74
-> +#define PRP_CH2_RZ_VERT_COEF1           0x78
-> +#define PRP_CH2_RZ_VERT_COEF2           0x7c
-> +#define PRP_CH2_RZ_VERT_VALID           0x80
-> +
-> +#define PRP_CNTL_CH1EN          (1<<  0)
-> +#define PRP_CNTL_CH2EN          (1<<  1)
-> +#define PRP_CNTL_CSIEN          (1<<  2)
-> +#define PRP_CNTL_DATA_IN_YUV420 (0<<  3)
-> +#define PRP_CNTL_DATA_IN_YUV422 (1<<  3)
-> +#define PRP_CNTL_DATA_IN_RGB16  (2<<  3)
-> +#define PRP_CNTL_DATA_IN_RGB32  (3<<  3)
-> +#define PRP_CNTL_CH1_OUT_RGB8   (0<<  5)
-> +#define PRP_CNTL_CH1_OUT_RGB16  (1<<  5)
-> +#define PRP_CNTL_CH1_OUT_RGB32  (2<<  5)
-> +#define PRP_CNTL_CH1_OUT_YUV422 (3<<  5)
-> +#define PRP_CNTL_CH2_OUT_YUV420 (0<<  7)
-> +#define PRP_CNTL_CH2_OUT_YUV422 (1<<  7)
-> +#define PRP_CNTL_CH2_OUT_YUV444 (2<<  7)
-> +#define PRP_CNTL_CH1_LEN        (1<<  9)
-> +#define PRP_CNTL_CH2_LEN        (1<<  10)
-> +#define PRP_CNTL_SKIP_FRAME     (1<<  11)
-> +#define PRP_CNTL_SWRST          (1<<  12)
-> +#define PRP_CNTL_CLKEN          (1<<  13)
-> +#define PRP_CNTL_WEN            (1<<  14)
-> +#define PRP_CNTL_CH1BYP         (1<<  15)
-> +#define PRP_CNTL_IN_TSKIP(x)    ((x)<<  16)
-> +#define PRP_CNTL_CH1_TSKIP(x)   ((x)<<  19)
-> +#define PRP_CNTL_CH2_TSKIP(x)   ((x)<<  22)
-> +#define PRP_CNTL_INPUT_FIFO_LEVEL(x)    ((x)<<  25)
-> +#define PRP_CNTL_RZ_FIFO_LEVEL(x)       ((x)<<  27)
-> +#define PRP_CNTL_CH2B1EN        (1<<  29)
-> +#define PRP_CNTL_CH2B2EN        (1<<  30)
-> +#define PRP_CNTL_CH2FEN         (1<<  31)
-> +
-> +#define PRP_SIZE_HEIGHT(x)	(x)
-> +#define PRP_SIZE_WIDTH(x)	((x)<<  16)
-> +
-> +/* IRQ Enable and status register */
-> +#define PRP_INTR_RDERR          (1<<  0)
-> +#define PRP_INTR_CH1WERR        (1<<  1)
-> +#define PRP_INTR_CH2WERR        (1<<  2)
-> +#define PRP_INTR_CH1FC          (1<<  3)
-> +#define PRP_INTR_CH2FC          (1<<  5)
-> +#define PRP_INTR_LBOVF          (1<<  7)
-> +#define PRP_INTR_CH2OVF         (1<<  8)
-> +
-> +#define PRP_INTR_ST_RDERR	(1<<  0)
-> +#define PRP_INTR_ST_CH1WERR	(1<<  1)
-> +#define PRP_INTR_ST_CH2WERR	(1<<  2)
-> +#define PRP_INTR_ST_CH2B2CI	(1<<  3)
-> +#define PRP_INTR_ST_CH2B1CI	(1<<  4)
-> +#define PRP_INTR_ST_CH1B2CI	(1<<  5)
-> +#define PRP_INTR_ST_CH1B1CI	(1<<  6)
-> +#define PRP_INTR_ST_LBOVF	(1<<  7)
-> +#define PRP_INTR_ST_CH2OVF	(1<<  8)
-> +
-> +struct emmaprp_fmt {
-> +	char	*name;
-> +	u32	fourcc;
-> +	/* Types the format can be used for */
-> +	u32	types;
-> +};
-> +
-> +static struct emmaprp_fmt formats[] = {
-> +	{
-> +		.name	= "YUV 4:2:0 Planar",
-> +		.fourcc	= V4L2_PIX_FMT_YUV420,
-> +		.types	= MEM2MEM_CAPTURE,
-> +	},
-> +	{
-> +		.name	= "4:2:2, packed, YUYV",
-> +		.fourcc	= V4L2_PIX_FMT_YUYV,
-> +		.types	= MEM2MEM_OUTPUT,
-> +	},
-> +};
-> +
-> +/* Per-queue, driver-specific private data */
-> +struct emmaprp_q_data {
-> +	unsigned int		width;
-> +	unsigned int		height;
-> +	unsigned int		sizeimage;
-> +	struct emmaprp_fmt	*fmt;
-> +};
-> +
-> +enum {
-> +	V4L2_M2M_SRC = 0,
-> +	V4L2_M2M_DST = 1,
-> +};
-> +
-> +#define NUM_FORMATS ARRAY_SIZE(formats)
-> +
-> +static struct emmaprp_fmt *find_format(struct v4l2_format *f)
-> +{
-> +	struct emmaprp_fmt *fmt;
-> +	unsigned int k;
-> +
-> +	for (k = 0; k<  NUM_FORMATS; k++) {
-> +		fmt =&formats[k];
-> +		if (fmt->fourcc == f->fmt.pix.pixelformat)
-> +			break;
-> +	}
-> +
-> +	if (k == NUM_FORMATS)
-> +		return NULL;
-> +
-> +	return&formats[k];
-> +}
-> +
-> +struct emmaprp_dev {
-> +	struct v4l2_device	v4l2_dev;
-> +	struct video_device	*vfd;
-> +
-> +	struct mutex		dev_mutex;
-> +	spinlock_t		irqlock;
-> +
-> +	int			irq_emma;
-> +	void __iomem		*base_emma;
-> +	struct clk		*clk_emma;
-> +	struct resource		*res_emma;
-> +
-> +	struct v4l2_m2m_dev	*m2m_dev;
-> +	struct vb2_alloc_ctx	*alloc_ctx;
-> +};
-> +
-> +struct emmaprp_ctx {
-> +	struct emmaprp_dev	*dev;
-> +	/* Abort requested by m2m */
-> +	int			aborting;
-> +	struct emmaprp_q_data	q_data[2];
-> +	struct v4l2_m2m_ctx	*m2m_ctx;
-> +};
-> +
-> +static struct emmaprp_q_data *get_q_data(struct emmaprp_ctx *ctx,
-> +					 enum v4l2_buf_type type)
-> +{
-> +	switch (type) {
-> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-> +		return&(ctx->q_data[V4L2_M2M_SRC]);
-> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-> +		return&(ctx->q_data[V4L2_M2M_DST]);
-> +	default:
-> +		BUG();
-> +	}
-> +	return NULL;
-> +}
-> +
-> +/*
-> + * mem2mem callbacks
-> + */
-> +static void emmaprp_job_abort(void *priv)
-> +{
-> +	struct emmaprp_ctx *ctx = priv;
-> +	struct emmaprp_dev *pcdev = ctx->dev;
-> +
-> +	ctx->aborting = 1;
-> +
-> +	dprintk(pcdev, "Aborting task\n");
-> +
-> +	v4l2_m2m_job_finish(pcdev->m2m_dev, ctx->m2m_ctx);
-> +}
-> +
-> +static void emmaprp_lock(void *priv)
-> +{
-> +	struct emmaprp_ctx *ctx = priv;
-> +	struct emmaprp_dev *pcdev = ctx->dev;
-> +	mutex_lock(&pcdev->dev_mutex);
-> +}
-> +
-> +static void emmaprp_unlock(void *priv)
-> +{
-> +	struct emmaprp_ctx *ctx = priv;
-> +	struct emmaprp_dev *pcdev = ctx->dev;
-> +	mutex_unlock(&pcdev->dev_mutex);
-> +}
-> +
-> +static inline void emmaprp_dump_regs(struct emmaprp_dev *pcdev)
-> +{
-> +	dprintk(pcdev,
-> +		"eMMa-PrP Registers:\n"
-> +		"  SOURCE_Y_PTR = 0x%08X\n"
-> +		"  SRC_FRAME_SIZE = 0x%08X\n"
-> +		"  DEST_Y_PTR = 0x%08X\n"
-> +		"  DEST_CR_PTR = 0x%08X\n"
-> +		"  DEST_CB_PTR = 0x%08X\n"
-> +		"  CH2_OUT_IMAGE_SIZE = 0x%08X\n"
-> +		"  CNTL = 0x%08X\n",
-> +		readl(pcdev->base_emma + PRP_SOURCE_Y_PTR),
-> +		readl(pcdev->base_emma + PRP_SRC_FRAME_SIZE),
-> +		readl(pcdev->base_emma + PRP_DEST_Y_PTR),
-> +		readl(pcdev->base_emma + PRP_DEST_CR_PTR),
-> +		readl(pcdev->base_emma + PRP_DEST_CB_PTR),
-> +		readl(pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE),
-> +		readl(pcdev->base_emma + PRP_CNTL));
-> +}
-> +
-> +static void emmaprp_device_run(void *priv)
-> +{
-> +	struct emmaprp_ctx *ctx = priv;
-> +	struct emmaprp_q_data *s_q_data, *d_q_data;
-> +	struct vb2_buffer *src_buf, *dst_buf;
-> +	struct emmaprp_dev *pcdev = ctx->dev;
-> +	unsigned int s_width, s_height;
-> +	unsigned int d_width, d_height;
-> +	unsigned int d_size;
-> +	dma_addr_t p_in, p_out;
-> +	u32 tmp;
-> +
-> +	src_buf = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
-> +	dst_buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
-> +
-> +	s_q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> +	s_width	= s_q_data->width;
-> +	s_height = s_q_data->height;
-> +
-> +	d_q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
-> +	d_width = d_q_data->width;
-> +	d_height = d_q_data->height;
-> +	d_size = d_width * d_height;
-> +
-> +	p_in = vb2_dma_contig_plane_dma_addr(src_buf, 0);
-> +	p_out = vb2_dma_contig_plane_dma_addr(dst_buf, 0);
-> +	if (!p_in || !p_out) {
-> +		v4l2_err(&pcdev->v4l2_dev,
-> +			 "Acquiring kernel pointers to buffers failed\n");
-> +		return;
-> +	}
-> +
-> +	/* Input frame parameters */
-> +	writel(p_in, pcdev->base_emma + PRP_SOURCE_Y_PTR);
-> +	writel(PRP_SIZE_WIDTH(s_width) | PRP_SIZE_HEIGHT(s_height),
-> +	       pcdev->base_emma + PRP_SRC_FRAME_SIZE);
-> +
-> +	/* Output frame parameters */
-> +	writel(p_out, pcdev->base_emma + PRP_DEST_Y_PTR);
-> +	writel(p_out + d_size, pcdev->base_emma + PRP_DEST_CB_PTR);
-> +	writel(p_out + d_size + (d_size>>  2),
-> +	       pcdev->base_emma + PRP_DEST_CR_PTR);
-> +	writel(PRP_SIZE_WIDTH(d_width) | PRP_SIZE_HEIGHT(d_height),
-> +	       pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE);
-> +
-> +	/* IRQ configuration */
-> +	tmp = readl(pcdev->base_emma + PRP_INTR_CNTL);
-> +	writel(tmp | PRP_INTR_RDERR |
-> +		PRP_INTR_CH2WERR |
-> +		PRP_INTR_CH2FC,
-> +		pcdev->base_emma + PRP_INTR_CNTL);
-> +
-> +	emmaprp_dump_regs(pcdev);
-> +
-> +	/* Enable transfer */
-> +	tmp = readl(pcdev->base_emma + PRP_CNTL);
-> +	writel(tmp | PRP_CNTL_CH2_OUT_YUV420 |
-> +		PRP_CNTL_DATA_IN_YUV422 |
-> +		PRP_CNTL_CH2EN,
-> +		pcdev->base_emma + PRP_CNTL);
-> +}
-> +
-> +static irqreturn_t emmaprp_irq(int irq_emma, void *data)
-> +{
-> +	struct emmaprp_dev *pcdev = data;
-> +	struct emmaprp_ctx *curr_ctx;
-> +	struct vb2_buffer *src_vb, *dst_vb;
-> +	unsigned long flags;
-> +	u32 irqst;
-> +
-> +	/* Check irq flags and clear irq */
-> +	irqst = readl(pcdev->base_emma + PRP_INTRSTATUS);
-> +	writel(irqst, pcdev->base_emma + PRP_INTRSTATUS);
-> +	dprintk(pcdev, "irqst = 0x%08x\n", irqst);
-> +
-> +	curr_ctx = v4l2_m2m_get_curr_priv(pcdev->m2m_dev);
-> +	if (NULL == curr_ctx) {
-
-Nit: (lval == const) is used anywhere else in the patch, perhaps it's worth
-to change this line to follow the convention.
-
-> +		pr_err("Instance released before the end of transaction\n");
-> +		return IRQ_HANDLED;
-> +	}
-> +
-> +	if (curr_ctx->aborting)
-> +		goto irq_ok;
-> +
-> +	if ((irqst&  PRP_INTR_ST_RDERR) ||
-> +	    (irqst&  PRP_INTR_ST_CH2WERR)) {
-> +		pr_err("PrP bus error ocurred, this transfer is probably corrupted\n");
-> +		writel(PRP_CNTL_SWRST, pcdev->base_emma + PRP_CNTL);
-> +		goto irq_ok;
-> +	}
-> +
-> +	if (irqst&  PRP_INTR_ST_CH2B1CI) { /* buffer ready */
-
-Nit: by making it "else if" you could drop the above "goto".
-
-> +		src_vb = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
-> +		dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
-> +
-> +		spin_lock_irqsave(&pcdev->irqlock, flags);
-> +		v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
-> +		v4l2_m2m_buf_done(dst_vb, VB2_BUF_STATE_DONE);
-> +		spin_unlock_irqrestore(&pcdev->irqlock, flags);
-> +		goto irq_ok;
-
-Superfluous goto.
-
-> +	}
-> +
-> +irq_ok:
-> +	v4l2_m2m_job_finish(pcdev->m2m_dev, curr_ctx->m2m_ctx);
-> +
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +/*
-> + * video ioctls
-> + */
-> +static int vidioc_querycap(struct file *file, void *priv,
-> +			   struct v4l2_capability *cap)
-> +{
-> +	strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
-> +	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
-> +	cap->bus_info[0] = 0;
-> +	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
-> +			  | V4L2_CAP_STREAMING;
-> +
-> +	return 0;
-> +}
-> +
-> +static int enum_fmt(struct v4l2_fmtdesc *f, u32 type)
-> +{
-> +	int i, num;
-> +	struct emmaprp_fmt *fmt;
-> +
-> +	num = 0;
-> +
-> +	for (i = 0; i<  NUM_FORMATS; ++i) {
-> +		if (formats[i].types&  type) {
-> +			/* index-th format of type type found ? */
-> +			if (num == f->index)
-> +				break;
-> +			/* Correct type but haven't reached our index yet,
-> +			 * just increment per-type index */
-> +			++num;
-> +		}
-> +	}
-> +
-> +	if (i<  NUM_FORMATS) {
-> +		/* Format found */
-> +		fmt =&formats[i];
-> +		strncpy(f->description, fmt->name, sizeof(f->description) - 1);
-
-strlcpy needs to be used here.
-
-> +		f->pixelformat = fmt->fourcc;
-> +		return 0;
-> +	}
-> +
-> +	/* Format not found */
-> +	return -EINVAL;
-> +}
-> +
-> +static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
-> +				   struct v4l2_fmtdesc *f)
-> +{
-> +	return enum_fmt(f, MEM2MEM_CAPTURE);
-> +}
-> +
-> +static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
-> +				   struct v4l2_fmtdesc *f)
-> +{
-> +	return enum_fmt(f, MEM2MEM_OUTPUT);
-> +}
-> +
-> +static int vidioc_g_fmt(struct emmaprp_ctx *ctx, struct v4l2_format *f)
-> +{
-> +	struct vb2_queue *vq;
-> +	struct emmaprp_q_data *q_data;
-> +
-> +	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
-> +	if (!vq)
-> +		return -EINVAL;
-> +
-> +	q_data = get_q_data(ctx, f->type);
-> +
-> +	f->fmt.pix.width	= q_data->width;
-> +	f->fmt.pix.height	= q_data->height;
-> +	f->fmt.pix.field	= V4L2_FIELD_NONE;
-> +	f->fmt.pix.pixelformat	= q_data->fmt->fourcc;
-> +	if (f->fmt.pix.pixelformat == V4L2_PIX_FMT_YUV420)
-> +		f->fmt.pix.bytesperline = q_data->width * 3 / 2;
-> +	else /* YUYV */
-> +		f->fmt.pix.bytesperline = q_data->width * 2;
-> +	f->fmt.pix.sizeimage	= q_data->sizeimage;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidioc_g_fmt_vid_out(struct file *file, void *priv,
-> +				struct v4l2_format *f)
-> +{
-> +	return vidioc_g_fmt(priv, f);
-> +}
-> +
-> +static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-> +				struct v4l2_format *f)
-> +{
-> +	return vidioc_g_fmt(priv, f);
-> +}
-> +
-> +static int vidioc_try_fmt(struct v4l2_format *f)
-> +{
-> +	enum v4l2_field field;
-> +
-> +
-> +	if (!find_format(f))
-> +		return -EINVAL;
-> +
-> +	field = f->fmt.pix.field;
-> +	if (field == V4L2_FIELD_ANY)
-> +		field = V4L2_FIELD_NONE;
-> +	else if (V4L2_FIELD_NONE != field)
-> +		return -EINVAL;
-> +
-> +	/* V4L2 specification suggests the driver corrects the format struct
-> +	 * if any of the dimensions is unsupported */
-> +	f->fmt.pix.field = field;
-> +
-> +	f->fmt.pix.height = clamp_t(u32, f->fmt.pix.height, MIN_H, MAX_H);
-> +	f->fmt.pix.width = clamp_t(u32, f->fmt.pix.width, MIN_W, MAX_W);
-> +
-> +	f->fmt.pix.height&= ~H_ALIGN_MASK;
-> +	if (f->fmt.pix.pixelformat == V4L2_PIX_FMT_YUV420) {
-> +		f->fmt.pix.width&= ~W_ALIGN_MASK_YUV420;
-> +		f->fmt.pix.bytesperline = f->fmt.pix.width * 3 / 2;
-> +	} else { /* YUYV */
-> +		f->fmt.pix.width&= ~W_ALIGN_MASK_OTHERS;
-> +		f->fmt.pix.bytesperline = f->fmt.pix.width * 2;
-> +	}
-> +	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-> +				  struct v4l2_format *f)
-> +{
-> +	struct emmaprp_fmt *fmt;
-> +	struct emmaprp_ctx *ctx = priv;
-> +
-> +	fmt = find_format(f);
-> +	if (!fmt || !(fmt->types&  MEM2MEM_CAPTURE)) {
-> +		v4l2_err(&ctx->dev->v4l2_dev,
-> +			 "Fourcc format (0x%08x) invalid.\n",
-> +			 f->fmt.pix.pixelformat);
-> +		return -EINVAL;
-> +	}
-> +
-> +	return vidioc_try_fmt(f);
-> +}
-> +
-> +static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
-> +				  struct v4l2_format *f)
-> +{
-> +	struct emmaprp_fmt *fmt;
-> +	struct emmaprp_ctx *ctx = priv;
-> +
-> +	fmt = find_format(f);
-> +	if (!fmt || !(fmt->types&  MEM2MEM_OUTPUT)) {
-> +		v4l2_err(&ctx->dev->v4l2_dev,
-> +			 "Fourcc format (0x%08x) invalid.\n",
-> +			 f->fmt.pix.pixelformat);
-> +		return -EINVAL;
-> +	}
-> +
-> +	return vidioc_try_fmt(f);
-> +}
-> +
-> +static int vidioc_s_fmt(struct emmaprp_ctx *ctx, struct v4l2_format *f)
-> +{
-> +	struct emmaprp_q_data *q_data;
-> +	struct vb2_queue *vq;
-> +	int ret;
-> +
-> +	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
-> +	if (!vq)
-> +		return -EINVAL;
-> +
-> +	q_data = get_q_data(ctx, f->type);
-> +	if (!q_data)
-> +		return -EINVAL;
-> +
-> +	if (vb2_is_busy(vq)) {
-> +		v4l2_err(&ctx->dev->v4l2_dev, "%s queue busy\n", __func__);
-> +		return -EBUSY;
-> +	}
-> +
-> +	ret = vidioc_try_fmt(f);
-> +	if (ret)
-> +		return ret;
-> +
-> +	q_data->fmt		= find_format(f);
-> +	q_data->width		= f->fmt.pix.width;
-> +	q_data->height		= f->fmt.pix.height;
-> +	if (q_data->fmt->fourcc == V4L2_PIX_FMT_YUV420)
-> +		q_data->sizeimage = q_data->width * q_data->height * 3 / 2;
-> +	else /* YUYV */
-> +		q_data->sizeimage = q_data->width * q_data->height * 2;
-> +
-> +	dprintk(ctx->dev,
-> +		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
-> +		f->type, q_data->width, q_data->height, q_data->fmt->fourcc);
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
-> +				struct v4l2_format *f)
-> +{
-> +	int ret;
-> +
-> +	ret = vidioc_try_fmt_vid_cap(file, priv, f);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return vidioc_s_fmt(priv, f);
-> +}
-> +
-> +static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
-> +				struct v4l2_format *f)
-> +{
-> +	int ret;
-> +
-> +	ret = vidioc_try_fmt_vid_out(file, priv, f);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return vidioc_s_fmt(priv, f);
-> +}
-> +
-> +static int vidioc_reqbufs(struct file *file, void *priv,
-> +			  struct v4l2_requestbuffers *reqbufs)
-> +{
-> +	struct emmaprp_ctx *ctx = priv;
-> +
-> +	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
-> +}
-> +
-> +static int vidioc_querybuf(struct file *file, void *priv,
-> +			   struct v4l2_buffer *buf)
-> +{
-> +	struct emmaprp_ctx *ctx = priv;
-> +
-> +	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
-> +}
-> +
-> +static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
-> +{
-> +	struct emmaprp_ctx *ctx = priv;
-> +
-> +	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
-> +}
-> +
-> +static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
-> +{
-> +	struct emmaprp_ctx *ctx = priv;
-> +
-> +	return v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
-> +}
-> +
-> +static int vidioc_streamon(struct file *file, void *priv,
-> +			   enum v4l2_buf_type type)
-> +{
-> +	struct emmaprp_ctx *ctx = priv;
-> +
-> +	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
-> +}
-> +
-> +static int vidioc_streamoff(struct file *file, void *priv,
-> +			    enum v4l2_buf_type type)
-> +{
-> +	struct emmaprp_ctx *ctx = priv;
-> +
-> +	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
-> +}
-> +
-> +static const struct v4l2_ioctl_ops emmaprp_ioctl_ops = {
-> +	.vidioc_querycap	= vidioc_querycap,
-> +
-> +	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
-> +	.vidioc_g_fmt_vid_cap	= vidioc_g_fmt_vid_cap,
-> +	.vidioc_try_fmt_vid_cap	= vidioc_try_fmt_vid_cap,
-> +	.vidioc_s_fmt_vid_cap	= vidioc_s_fmt_vid_cap,
-> +
-> +	.vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
-> +	.vidioc_g_fmt_vid_out	= vidioc_g_fmt_vid_out,
-> +	.vidioc_try_fmt_vid_out	= vidioc_try_fmt_vid_out,
-> +	.vidioc_s_fmt_vid_out	= vidioc_s_fmt_vid_out,
-> +
-> +	.vidioc_reqbufs		= vidioc_reqbufs,
-> +	.vidioc_querybuf	= vidioc_querybuf,
-> +
-> +	.vidioc_qbuf		= vidioc_qbuf,
-> +	.vidioc_dqbuf		= vidioc_dqbuf,
-> +
-> +	.vidioc_streamon	= vidioc_streamon,
-> +	.vidioc_streamoff	= vidioc_streamoff,
-> +};
-> +
-> +
-> +/*
-> + * Queue operations
-> + */
-> +struct vb2_dc_conf {
-
-This is unused, probably could be removed.
+diff --git a/drivers/staging/media/as102/as102_drv.c b/drivers/staging/media/as102/as102_drv.c
+index 44f6017..b8adfd2 100644
+--- a/drivers/staging/media/as102/as102_drv.c
++++ b/drivers/staging/media/as102/as102_drv.c
+@@ -60,7 +60,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
  
-> +	struct device           *dev;
-> +};
-> +
-> +static int emmaprp_queue_setup(struct vb2_queue *vq,
-> +				const struct v4l2_format *fmt,
-> +				unsigned int *nbuffers, unsigned int *nplanes,
-> +				unsigned int sizes[], void *alloc_ctxs[])
-> +{
-> +	struct emmaprp_ctx *ctx = vb2_get_drv_priv(vq);
-> +	struct emmaprp_q_data *q_data;
-> +	unsigned int size, count = *nbuffers;
-> +
-> +	q_data = get_q_data(ctx, vq->type);
-> +
-> +	if (q_data->fmt->fourcc == V4L2_PIX_FMT_YUV420)
-> +		size = q_data->width * q_data->height * 3 / 2;
-> +	else
-> +		size = q_data->width * q_data->height * 2;
-> +
-> +	while (size * count>  MEM2MEM_VID_MEM_LIMIT)
-> +		(count)--;
-> +
-> +	*nplanes = 1;
-> +	*nbuffers = count;
-> +	sizes[0] = size;
-> +
-> +	alloc_ctxs[0] = ctx->dev->alloc_ctx;
-> +
-> +	dprintk(ctx->dev, "get %d buffer(s) of size %d each.\n", count, size);
-> +
-> +	return 0;
-> +}
-> +
-> +static int emmaprp_buf_prepare(struct vb2_buffer *vb)
-> +{
-> +	struct emmaprp_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-> +	struct emmaprp_q_data *q_data;
-> +
-> +	dprintk(ctx->dev, "type: %d\n", vb->vb2_queue->type);
-> +
-> +	q_data = get_q_data(ctx, vb->vb2_queue->type);
-> +
-> +	if (vb2_plane_size(vb, 0)<  q_data->sizeimage) {
-> +		dprintk(ctx->dev, "%s data will not fit into plane"
-> +				  "(%lu<  %lu)\n", __func__,
-> +				  vb2_plane_size(vb, 0),
-> +				  (long)q_data->sizeimage);
-> +		return -EINVAL;
-> +	}
-> +
-> +	vb2_set_plane_payload(vb, 0, q_data->sizeimage);
-> +
-> +	return 0;
-> +}
-> +
-> +static void emmaprp_buf_queue(struct vb2_buffer *vb)
-> +{
-> +	struct emmaprp_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-> +	v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
-> +}
-> +
-> +static struct vb2_ops emmaprp_qops = {
-> +	.queue_setup	 = emmaprp_queue_setup,
-> +	.buf_prepare	 = emmaprp_buf_prepare,
-> +	.buf_queue	 = emmaprp_buf_queue,
-> +};
-> +
-> +static int queue_init(void *priv, struct vb2_queue *src_vq,
-> +		      struct vb2_queue *dst_vq)
-> +{
-> +	struct emmaprp_ctx *ctx = priv;
-> +	int ret;
-> +
-> +	memset(src_vq, 0, sizeof(*src_vq));
-> +	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-> +	src_vq->io_modes = VB2_MMAP;
-> +	src_vq->drv_priv = ctx;
-> +	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
-> +	src_vq->ops =&emmaprp_qops;
-> +	src_vq->mem_ops =&vb2_dma_contig_memops;
-> +
-> +	ret = vb2_queue_init(src_vq);
-> +	if (ret)
-> +		return ret;
-> +
-> +	memset(dst_vq, 0, sizeof(*dst_vq));
-> +	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +	dst_vq->io_modes = VB2_MMAP;
-> +	dst_vq->drv_priv = ctx;
-> +	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
-> +	dst_vq->ops =&emmaprp_qops;
-> +	dst_vq->mem_ops =&vb2_dma_contig_memops;
-> +
-> +	return vb2_queue_init(dst_vq);
-> +}
-> +
-> +/*
-> + * File operations
-> + */
-> +static int emmaprp_open(struct file *file)
-> +{
-> +	struct emmaprp_dev *pcdev = video_drvdata(file);
-> +	struct emmaprp_ctx *ctx;
-> +
-> +	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
-> +	if (!ctx)
-> +		return -ENOMEM;
-> +
-> +	file->private_data = ctx;
-> +	ctx->dev = pcdev;
-> +
-> +	ctx->m2m_ctx = v4l2_m2m_ctx_init(pcdev->m2m_dev, ctx,&queue_init);
-> +
-> +	if (IS_ERR(ctx->m2m_ctx)) {
-> +		int ret = PTR_ERR(ctx->m2m_ctx);
-> +
-> +		kfree(ctx);
-> +		return ret;
-> +	}
-> +
-> +	clk_enable(pcdev->clk_emma);
-> +	ctx->q_data[V4L2_M2M_SRC].fmt =&formats[1];
-> +	ctx->q_data[V4L2_M2M_DST].fmt =&formats[0];
-> +
-> +	dprintk(pcdev, "Created instance %p, m2m_ctx: %p\n", ctx, ctx->m2m_ctx);
-> +
-> +	return 0;
-> +}
-> +
-> +static int emmaprp_release(struct file *file)
-> +{
-> +	struct emmaprp_dev *pcdev = video_drvdata(file);
-> +	struct emmaprp_ctx *ctx = file->private_data;
-> +
-> +	dprintk(pcdev, "Releasing instance %p\n", ctx);
-> +
-> +	clk_disable(pcdev->clk_emma);
-> +	v4l2_m2m_ctx_release(ctx->m2m_ctx);
-> +	kfree(ctx);
-> +
-> +	return 0;
-> +}
-> +
-> +static unsigned int emmaprp_poll(struct file *file,
-> +				 struct poll_table_struct *wait)
-> +{
-> +	struct emmaprp_ctx *ctx = file->private_data;
-> +
-> +	return v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
-> +}
-> +
-> +static int emmaprp_mmap(struct file *file, struct vm_area_struct *vma)
-> +{
-> +	struct emmaprp_ctx *ctx = file->private_data;
-> +
-> +	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
-> +}
-> +
-> +static const struct v4l2_file_operations emmaprp_fops = {
-> +	.owner		= THIS_MODULE,
-> +	.open		= emmaprp_open,
-> +	.release	= emmaprp_release,
-> +	.poll		= emmaprp_poll,
-> +	.unlocked_ioctl	= video_ioctl2,
-> +	.mmap		= emmaprp_mmap,
-> +};
-> +
-> +static struct video_device emmaprp_videodev = {
-> +	.name		= MEM2MEM_NAME,
-> +	.fops		=&emmaprp_fops,
-> +	.ioctl_ops	=&emmaprp_ioctl_ops,
-> +	.minor		= -1,
-> +	.release	= video_device_release,
-> +};
-> +
-> +static struct v4l2_m2m_ops m2m_ops = {
-> +	.device_run	= emmaprp_device_run,
-> +	.job_abort	= emmaprp_job_abort,
-> +	.lock		= emmaprp_lock,
-> +	.unlock		= emmaprp_unlock,
-> +};
-> +
-> +static int emmaprp_probe(struct platform_device *pdev)
-> +{
-> +	struct emmaprp_dev *pcdev;
-> +	struct video_device *vfd;
-> +	struct resource *res_emma;
-> +	int irq_emma;
-> +	int ret;
-> +
-> +	pcdev = kzalloc(sizeof *pcdev, GFP_KERNEL);
-> +	if (!pcdev)
-> +		return -ENOMEM;
-> +
-> +	spin_lock_init(&pcdev->irqlock);
-> +
-> +	pcdev->clk_emma = clk_get(NULL, "emma");
-> +	if (IS_ERR(pcdev->clk_emma)) {
-> +		ret = PTR_ERR(pcdev->clk_emma);
-> +		goto free_dev;
-> +	}
-> +
-> +	irq_emma = platform_get_irq(pdev, 0);
-> +	res_emma = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (irq_emma<  0 || res_emma == NULL) {
-> +		dev_err(&pdev->dev, "Missing platform resources data\n");
-> +		ret = -ENODEV;
-> +		goto free_clk;
-> +	}
-> +
-> +	ret = v4l2_device_register(&pdev->dev,&pcdev->v4l2_dev);
-> +	if (ret)
-> +		goto free_clk;
-> +
-> +	mutex_init(&pcdev->dev_mutex);
-> +
-> +	vfd = video_device_alloc();
-> +	if (!vfd) {
-> +		v4l2_err(&pcdev->v4l2_dev, "Failed to allocate video device\n");
-> +		ret = -ENOMEM;
-> +		goto unreg_dev;
-> +	}
-> +
-> +	*vfd = emmaprp_videodev;
-> +	vfd->lock =&pcdev->dev_mutex;
-> +
-> +	video_set_drvdata(vfd, pcdev);
-> +	snprintf(vfd->name, sizeof(vfd->name), "%s", emmaprp_videodev.name);
-> +	pcdev->vfd = vfd;
-> +	v4l2_info(&pcdev->v4l2_dev, EMMAPRP_MODULE_NAME
-> +			" Device registered as /dev/video%d\n", vfd->num);
-> +
-> +	platform_set_drvdata(pdev, pcdev);
-> +
-> +	if (!request_mem_region(res_emma->start, resource_size(res_emma),
-> +				MEM2MEM_NAME)) {
-> +		ret = -EBUSY;
-> +		goto rel_vdev;
-> +	}
-> +
-> +	pcdev->base_emma = ioremap(res_emma->start, resource_size(res_emma));
-> +	if (!pcdev->base_emma) {
-> +		ret = -ENOMEM;
-> +		goto rel_mem;
-> +	}
-> +	pcdev->irq_emma = irq_emma;
-> +	pcdev->res_emma = res_emma;
-> +
-> +	ret = request_irq(pcdev->irq_emma, emmaprp_irq, 0,
-> +			  MEM2MEM_NAME, pcdev);
-> +	if (ret)
-> +		goto rel_map;
-> +
-> +
-> +	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
-> +	if (IS_ERR(pcdev->alloc_ctx)) {
-> +		v4l2_err(&pcdev->v4l2_dev, "Failed to alloc vb2 context\n");
-> +		ret = PTR_ERR(pcdev->alloc_ctx);
-> +		goto rel_irq;
-> +	}
-> +
-> +	pcdev->m2m_dev = v4l2_m2m_init(&m2m_ops);
-> +	if (IS_ERR(pcdev->m2m_dev)) {
-> +		v4l2_err(&pcdev->v4l2_dev, "Failed to init mem2mem device\n");
-> +		ret = PTR_ERR(pcdev->m2m_dev);
-> +		goto rel_ctx;
-> +	}
-> +
-> +	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
-> +	if (ret) {
-> +		v4l2_err(&pcdev->v4l2_dev, "Failed to register video device\n");
-> +		goto rel_m2m;
-> +	}
-> +
-> +	return 0;
-> +
-> +
-> +rel_m2m:
-> +	v4l2_m2m_release(pcdev->m2m_dev);
-> +rel_ctx:
-> +	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
-> +rel_irq:
-> +	free_irq(pcdev->irq_emma, pcdev);
-> +rel_map:
-> +	iounmap(pcdev->base_emma);
-> +rel_mem:
-> +	release_mem_region(res_emma->start, resource_size(res_emma));
-> +rel_vdev:
-> +	video_device_release(vfd);
-> +unreg_dev:
-> +	v4l2_device_unregister(&pcdev->v4l2_dev);
-> +free_clk:
-> +	clk_put(pcdev->clk_emma);
-> +free_dev:
-> +	kfree(pcdev);
-> +
-> +	return ret;
-> +}
-> +
-> +static int emmaprp_remove(struct platform_device *pdev)
-> +{
-> +	struct resource *res_emma;
-> +	struct emmaprp_dev *pcdev = platform_get_drvdata(pdev);
-> +
-> +	v4l2_info(&pcdev->v4l2_dev, "Removing " EMMAPRP_MODULE_NAME);
-> +
-> +	video_unregister_device(pcdev->vfd);
-> +	v4l2_m2m_release(pcdev->m2m_dev);
-> +	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
-> +	free_irq(pcdev->irq_emma, pcdev);
-> +	iounmap(pcdev->base_emma);
-> +
-> +	res_emma = pcdev->res_emma;
-> +	release_mem_region(res_emma->start, resource_size(res_emma));
-> +
-> +	v4l2_device_unregister(&pcdev->v4l2_dev);
-> +	clk_put(pcdev->clk_emma);
-> +	kfree(pcdev);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver emmaprp_pdrv = {
-> +	.probe		= emmaprp_probe,
-> +	.remove		= emmaprp_remove,
-> +	.driver		= {
-> +		.name	= MEM2MEM_NAME,
-> +		.owner	= THIS_MODULE,
-> +	},
-> +};
-> +
-> +static void __exit emmaprp_exit(void)
-> +{
-> +	platform_driver_unregister(&emmaprp_pdrv);
-> +}
-> +
-> +static int __init emmaprp_init(void)
-> +{
-> +	return platform_driver_register(&emmaprp_pdrv);
-> +}
-> +
-> +module_init(emmaprp_init);
-> +module_exit(emmaprp_exit);
-> +
+ static void as102_stop_stream(struct as102_dev_t *dev)
+ {
+-	struct as102_bus_adapter_t *bus_adap;
++	struct as10x_bus_adapter_t *bus_adap;
+ 
+ 	if (dev != NULL)
+ 		bus_adap = &dev->bus_adap;
+@@ -83,7 +83,7 @@ static void as102_stop_stream(struct as102_dev_t *dev)
+ 
+ static int as102_start_stream(struct as102_dev_t *dev)
+ {
+-	struct as102_bus_adapter_t *bus_adap;
++	struct as10x_bus_adapter_t *bus_adap;
+ 	int ret = -EFAULT;
+ 
+ 	if (dev != NULL)
+@@ -109,7 +109,7 @@ static int as102_start_stream(struct as102_dev_t *dev)
+ static int as10x_pid_filter(struct as102_dev_t *dev,
+ 			    int index, u16 pid, int onoff) {
+ 
+-	struct as102_bus_adapter_t *bus_adap = &dev->bus_adap;
++	struct as10x_bus_adapter_t *bus_adap = &dev->bus_adap;
+ 	int ret = -EFAULT;
+ 
+ 	ENTER();
+diff --git a/drivers/staging/media/as102/as102_drv.h b/drivers/staging/media/as102/as102_drv.h
+index 06466fd..0ecef9e 100644
+--- a/drivers/staging/media/as102/as102_drv.h
++++ b/drivers/staging/media/as102/as102_drv.h
+@@ -50,7 +50,7 @@ extern int elna_enable;
+ #define AS102_USB_BUF_SIZE	512
+ #define MAX_STREAM_URB		32
+ 
+-struct as102_bus_adapter_t {
++struct as10x_bus_adapter_t {
+ 	struct usb_device *usb_dev;
+ 	/* bus token lock */
+ 	struct mutex lock;
+@@ -72,7 +72,7 @@ struct as102_bus_adapter_t {
+ 
+ struct as102_dev_t {
+ 	const char *name;
+-	struct as102_bus_adapter_t bus_adap;
++	struct as10x_bus_adapter_t bus_adap;
+ 	struct list_head device_entry;
+ 	struct kref kref;
+ 	unsigned long minor;
+diff --git a/drivers/staging/media/as102/as102_fw.c b/drivers/staging/media/as102/as102_fw.c
+index fa56939..43ebc43 100644
+--- a/drivers/staging/media/as102/as102_fw.c
++++ b/drivers/staging/media/as102/as102_fw.c
+@@ -101,7 +101,7 @@ static int parse_hex_line(unsigned char *fw_data, unsigned char *addr,
+ 	return (count * 2) + 2;
+ }
+ 
+-static int as102_firmware_upload(struct as102_bus_adapter_t *bus_adap,
++static int as102_firmware_upload(struct as10x_bus_adapter_t *bus_adap,
+ 				 unsigned char *cmd,
+ 				 const struct firmware *firmware) {
+ 
+@@ -162,7 +162,7 @@ error:
+ 	return (errno == 0) ? total_read_bytes : errno;
+ }
+ 
+-int as102_fw_upload(struct as102_bus_adapter_t *bus_adap)
++int as102_fw_upload(struct as10x_bus_adapter_t *bus_adap)
+ {
+ 	int errno = -EFAULT;
+ 	const struct firmware *firmware;
+diff --git a/drivers/staging/media/as102/as102_fw.h b/drivers/staging/media/as102/as102_fw.h
+index a1fdb92..bd21f05 100644
+--- a/drivers/staging/media/as102/as102_fw.h
++++ b/drivers/staging/media/as102/as102_fw.h
+@@ -34,5 +34,5 @@ struct as10x_fw_pkt_t {
+ } __packed;
+ 
+ #ifdef __KERNEL__
+-int as102_fw_upload(struct as102_bus_adapter_t *bus_adap);
++int as102_fw_upload(struct as10x_bus_adapter_t *bus_adap);
+ #endif
+diff --git a/drivers/staging/media/as102/as102_usb_drv.c b/drivers/staging/media/as102/as102_usb_drv.c
+index 97bceeb..9faab5b 100644
+--- a/drivers/staging/media/as102/as102_usb_drv.c
++++ b/drivers/staging/media/as102/as102_usb_drv.c
+@@ -74,7 +74,7 @@ static struct usb_class_driver as102_usb_class_driver = {
+ 	.minor_base	= AS102_DEVICE_MAJOR,
+ };
+ 
+-static int as102_usb_xfer_cmd(struct as102_bus_adapter_t *bus_adap,
++static int as102_usb_xfer_cmd(struct as10x_bus_adapter_t *bus_adap,
+ 			      unsigned char *send_buf, int send_buf_len,
+ 			      unsigned char *recv_buf, int recv_buf_len)
+ {
+@@ -131,7 +131,7 @@ static int as102_usb_xfer_cmd(struct as102_bus_adapter_t *bus_adap,
+ 	return ret;
+ }
+ 
+-static int as102_send_ep1(struct as102_bus_adapter_t *bus_adap,
++static int as102_send_ep1(struct as10x_bus_adapter_t *bus_adap,
+ 			  unsigned char *send_buf,
+ 			  int send_buf_len,
+ 			  int swap32)
+@@ -154,7 +154,7 @@ static int as102_send_ep1(struct as102_bus_adapter_t *bus_adap,
+ 	return ret ? ret : actual_len;
+ }
+ 
+-static int as102_read_ep2(struct as102_bus_adapter_t *bus_adap,
++static int as102_read_ep2(struct as10x_bus_adapter_t *bus_adap,
+ 		   unsigned char *recv_buf, int recv_buf_len)
+ {
+ 	int ret = 0, actual_len;
+diff --git a/drivers/staging/media/as102/as10x_cmd.c b/drivers/staging/media/as102/as10x_cmd.c
+index 1663a45..0387bb8 100644
+--- a/drivers/staging/media/as102/as10x_cmd.c
++++ b/drivers/staging/media/as102/as10x_cmd.c
+@@ -25,35 +25,35 @@
+ 
+ /**
+  * as10x_cmd_turn_on - send turn on command to AS10x
+- * @phandle:   pointer to AS10x handle
++ * @adap:   pointer to AS10x bus adapter
+  *
+  * Return 0 when no error, < 0 in case of error.
+  */
+-int as10x_cmd_turn_on(as10x_handle_t *phandle)
++int as10x_cmd_turn_on(struct as10x_bus_adapter_t *adap)
+ {
+ 	int error;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+ 	ENTER();
+ 
+-	pcmd = phandle->cmd;
+-	prsp = phandle->rsp;
++	pcmd = adap->cmd;
++	prsp = adap->rsp;
+ 
+ 	/* prepare command */
+-	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++	as10x_cmd_build(pcmd, (++adap->cmd_xid),
+ 			sizeof(pcmd->body.turn_on.req));
+ 
+ 	/* fill command */
+ 	pcmd->body.turn_on.req.proc_id = cpu_to_le16(CONTROL_PROC_TURNON);
+ 
+ 	/* send command */
+-	if (phandle->ops->xfer_cmd) {
+-		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
+-					       sizeof(pcmd->body.turn_on.req) +
+-					       HEADER_SIZE,
+-					       (uint8_t *) prsp,
+-					       sizeof(prsp->body.turn_on.rsp) +
+-					       HEADER_SIZE);
++	if (adap->ops->xfer_cmd) {
++		error = adap->ops->xfer_cmd(adap, (uint8_t *) pcmd,
++					    sizeof(pcmd->body.turn_on.req) +
++					    HEADER_SIZE,
++					    (uint8_t *) prsp,
++					    sizeof(prsp->body.turn_on.rsp) +
++					    HEADER_SIZE);
+ 	} else {
+ 		error = AS10X_CMD_ERROR;
+ 	}
+@@ -71,31 +71,31 @@ out:
+ 
+ /**
+  * as10x_cmd_turn_off - send turn off command to AS10x
+- * @phandle:   pointer to AS10x handle
++ * @adap:   pointer to AS10x bus adapter
+  *
+  * Return 0 on success or negative value in case of error.
+  */
+-int as10x_cmd_turn_off(as10x_handle_t *phandle)
++int as10x_cmd_turn_off(struct as10x_bus_adapter_t *adap)
+ {
+ 	int error;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+ 	ENTER();
+ 
+-	pcmd = phandle->cmd;
+-	prsp = phandle->rsp;
++	pcmd = adap->cmd;
++	prsp = adap->rsp;
+ 
+ 	/* prepare command */
+-	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++	as10x_cmd_build(pcmd, (++adap->cmd_xid),
+ 			sizeof(pcmd->body.turn_off.req));
+ 
+ 	/* fill command */
+ 	pcmd->body.turn_off.req.proc_id = cpu_to_le16(CONTROL_PROC_TURNOFF);
+ 
+ 	/* send command */
+-	if (phandle->ops->xfer_cmd) {
+-		error = phandle->ops->xfer_cmd(
+-			phandle, (uint8_t *) pcmd,
++	if (adap->ops->xfer_cmd) {
++		error = adap->ops->xfer_cmd(
++			adap, (uint8_t *) pcmd,
+ 			sizeof(pcmd->body.turn_off.req) + HEADER_SIZE,
+ 			(uint8_t *) prsp,
+ 			sizeof(prsp->body.turn_off.rsp) + HEADER_SIZE);
+@@ -116,23 +116,24 @@ out:
+ 
+ /**
+  * as10x_cmd_set_tune - send set tune command to AS10x
+- * @phandle: pointer to AS10x handle
++ * @adap:    pointer to AS10x bus adapter
+  * @ptune:   tune parameters
+  *
+  * Return 0 on success or negative value in case of error.
+  */
+-int as10x_cmd_set_tune(as10x_handle_t *phandle, struct as10x_tune_args *ptune)
++int as10x_cmd_set_tune(struct as10x_bus_adapter_t *adap,
++		       struct as10x_tune_args *ptune)
+ {
+ 	int error;
+ 	struct as10x_cmd_t *preq, *prsp;
+ 
+ 	ENTER();
+ 
+-	preq = phandle->cmd;
+-	prsp = phandle->rsp;
++	preq = adap->cmd;
++	prsp = adap->rsp;
+ 
+ 	/* prepare command */
+-	as10x_cmd_build(preq, (++phandle->cmd_xid),
++	as10x_cmd_build(preq, (++adap->cmd_xid),
+ 			sizeof(preq->body.set_tune.req));
+ 
+ 	/* fill command */
+@@ -150,14 +151,14 @@ int as10x_cmd_set_tune(as10x_handle_t *phandle, struct as10x_tune_args *ptune)
+ 		ptune->transmission_mode;
+ 
+ 	/* send command */
+-	if (phandle->ops->xfer_cmd) {
+-		error = phandle->ops->xfer_cmd(phandle,
+-					       (uint8_t *) preq,
+-					       sizeof(preq->body.set_tune.req)
+-					       + HEADER_SIZE,
+-					       (uint8_t *) prsp,
+-					       sizeof(prsp->body.set_tune.rsp)
+-					       + HEADER_SIZE);
++	if (adap->ops->xfer_cmd) {
++		error = adap->ops->xfer_cmd(adap,
++					    (uint8_t *) preq,
++					    sizeof(preq->body.set_tune.req)
++					    + HEADER_SIZE,
++					    (uint8_t *) prsp,
++					    sizeof(prsp->body.set_tune.rsp)
++					    + HEADER_SIZE);
+ 	} else {
+ 		error = AS10X_CMD_ERROR;
+ 	}
+@@ -175,12 +176,12 @@ out:
+ 
+ /**
+  * as10x_cmd_get_tune_status - send get tune status command to AS10x
+- * @phandle: pointer to AS10x handle
++ * @adap: pointer to AS10x bus adapter
+  * @pstatus: pointer to updated status structure of the current tune
+  *
+  * Return 0 on success or negative value in case of error.
+  */
+-int as10x_cmd_get_tune_status(as10x_handle_t *phandle,
++int as10x_cmd_get_tune_status(struct as10x_bus_adapter_t *adap,
+ 			      struct as10x_tune_status *pstatus)
+ {
+ 	int error;
+@@ -188,11 +189,11 @@ int as10x_cmd_get_tune_status(as10x_handle_t *phandle,
+ 
+ 	ENTER();
+ 
+-	preq = phandle->cmd;
+-	prsp = phandle->rsp;
++	preq = adap->cmd;
++	prsp = adap->rsp;
+ 
+ 	/* prepare command */
+-	as10x_cmd_build(preq, (++phandle->cmd_xid),
++	as10x_cmd_build(preq, (++adap->cmd_xid),
+ 			sizeof(preq->body.get_tune_status.req));
+ 
+ 	/* fill command */
+@@ -200,9 +201,9 @@ int as10x_cmd_get_tune_status(as10x_handle_t *phandle,
+ 		cpu_to_le16(CONTROL_PROC_GETTUNESTAT);
+ 
+ 	/* send command */
+-	if (phandle->ops->xfer_cmd) {
+-		error = phandle->ops->xfer_cmd(
+-			phandle,
++	if (adap->ops->xfer_cmd) {
++		error = adap->ops->xfer_cmd(
++			adap,
+ 			(uint8_t *) preq,
+ 			sizeof(preq->body.get_tune_status.req) + HEADER_SIZE,
+ 			(uint8_t *) prsp,
+@@ -233,23 +234,23 @@ out:
+ 
+ /**
+  * as10x_cmd_get_tps - send get TPS command to AS10x
+- * @phandle:   pointer to AS10x handle
++ * @adap:      pointer to AS10x handle
+  * @ptps:      pointer to TPS parameters structure
+  *
+  * Return 0 on success or negative value in case of error.
+  */
+-int as10x_cmd_get_tps(as10x_handle_t *phandle, struct as10x_tps *ptps)
++int as10x_cmd_get_tps(struct as10x_bus_adapter_t *adap, struct as10x_tps *ptps)
+ {
+ 	int error;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+ 	ENTER();
+ 
+-	pcmd = phandle->cmd;
+-	prsp = phandle->rsp;
++	pcmd = adap->cmd;
++	prsp = adap->rsp;
+ 
+ 	/* prepare command */
+-	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++	as10x_cmd_build(pcmd, (++adap->cmd_xid),
+ 			sizeof(pcmd->body.get_tps.req));
+ 
+ 	/* fill command */
+@@ -257,14 +258,14 @@ int as10x_cmd_get_tps(as10x_handle_t *phandle, struct as10x_tps *ptps)
+ 		cpu_to_le16(CONTROL_PROC_GETTPS);
+ 
+ 	/* send command */
+-	if (phandle->ops->xfer_cmd) {
+-		error = phandle->ops->xfer_cmd(phandle,
+-					       (uint8_t *) pcmd,
+-					       sizeof(pcmd->body.get_tps.req) +
+-					       HEADER_SIZE,
+-					       (uint8_t *) prsp,
+-					       sizeof(prsp->body.get_tps.rsp) +
+-					       HEADER_SIZE);
++	if (adap->ops->xfer_cmd) {
++		error = adap->ops->xfer_cmd(adap,
++					    (uint8_t *) pcmd,
++					    sizeof(pcmd->body.get_tps.req) +
++					    HEADER_SIZE,
++					    (uint8_t *) prsp,
++					    sizeof(prsp->body.get_tps.rsp) +
++					    HEADER_SIZE);
+ 	} else {
+ 		error = AS10X_CMD_ERROR;
+ 	}
+@@ -296,12 +297,12 @@ out:
+ 
+ /**
+  * as10x_cmd_get_demod_stats - send get demod stats command to AS10x
+- * @phandle:       pointer to AS10x handle
++ * @adap:          pointer to AS10x bus adapter
+  * @pdemod_stats:  pointer to demod stats parameters structure
+  *
+  * Return 0 on success or negative value in case of error.
+  */
+-int as10x_cmd_get_demod_stats(as10x_handle_t  *phandle,
++int as10x_cmd_get_demod_stats(struct as10x_bus_adapter_t *adap,
+ 			      struct as10x_demod_stats *pdemod_stats)
+ {
+ 	int error;
+@@ -309,11 +310,11 @@ int as10x_cmd_get_demod_stats(as10x_handle_t  *phandle,
+ 
+ 	ENTER();
+ 
+-	pcmd = phandle->cmd;
+-	prsp = phandle->rsp;
++	pcmd = adap->cmd;
++	prsp = adap->rsp;
+ 
+ 	/* prepare command */
+-	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++	as10x_cmd_build(pcmd, (++adap->cmd_xid),
+ 			sizeof(pcmd->body.get_demod_stats.req));
+ 
+ 	/* fill command */
+@@ -321,8 +322,8 @@ int as10x_cmd_get_demod_stats(as10x_handle_t  *phandle,
+ 		cpu_to_le16(CONTROL_PROC_GET_DEMOD_STATS);
+ 
+ 	/* send command */
+-	if (phandle->ops->xfer_cmd) {
+-		error = phandle->ops->xfer_cmd(phandle,
++	if (adap->ops->xfer_cmd) {
++		error = adap->ops->xfer_cmd(adap,
+ 				(uint8_t *) pcmd,
+ 				sizeof(pcmd->body.get_demod_stats.req)
+ 				+ HEADER_SIZE,
+@@ -360,13 +361,13 @@ out:
+ 
+ /**
+  * as10x_cmd_get_impulse_resp - send get impulse response command to AS10x
+- * @phandle:  pointer to AS10x handle
++ * @adap:     pointer to AS10x bus adapter
+  * @is_ready: pointer to value indicating when impulse
+  *	      response data is ready
+  *
+  * Return 0 on success or negative value in case of error.
+  */
+-int as10x_cmd_get_impulse_resp(as10x_handle_t     *phandle,
++int as10x_cmd_get_impulse_resp(struct as10x_bus_adapter_t *adap,
+ 			       uint8_t *is_ready)
+ {
+ 	int error;
+@@ -374,11 +375,11 @@ int as10x_cmd_get_impulse_resp(as10x_handle_t     *phandle,
+ 
+ 	ENTER();
+ 
+-	pcmd = phandle->cmd;
+-	prsp = phandle->rsp;
++	pcmd = adap->cmd;
++	prsp = adap->rsp;
+ 
+ 	/* prepare command */
+-	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++	as10x_cmd_build(pcmd, (++adap->cmd_xid),
+ 			sizeof(pcmd->body.get_impulse_rsp.req));
+ 
+ 	/* fill command */
+@@ -386,8 +387,8 @@ int as10x_cmd_get_impulse_resp(as10x_handle_t     *phandle,
+ 		cpu_to_le16(CONTROL_PROC_GET_IMPULSE_RESP);
+ 
+ 	/* send command */
+-	if (phandle->ops->xfer_cmd) {
+-		error = phandle->ops->xfer_cmd(phandle,
++	if (adap->ops->xfer_cmd) {
++		error = adap->ops->xfer_cmd(adap,
+ 					(uint8_t *) pcmd,
+ 					sizeof(pcmd->body.get_impulse_rsp.req)
+ 					+ HEADER_SIZE,
+diff --git a/drivers/staging/media/as102/as10x_cmd.h b/drivers/staging/media/as102/as10x_cmd.h
+index da31c6d..4ea249e 100644
+--- a/drivers/staging/media/as102/as10x_cmd.h
++++ b/drivers/staging/media/as102/as10x_cmd.h
+@@ -489,41 +489,41 @@ void as10x_cmd_build(struct as10x_cmd_t *pcmd, uint16_t proc_id,
+ int as10x_rsp_parse(struct as10x_cmd_t *r, uint16_t proc_id);
+ 
+ /* as10x cmd */
+-int as10x_cmd_turn_on(as10x_handle_t *phandle);
+-int as10x_cmd_turn_off(as10x_handle_t *phandle);
++int as10x_cmd_turn_on(struct as10x_bus_adapter_t *adap);
++int as10x_cmd_turn_off(struct as10x_bus_adapter_t *adap);
+ 
+-int as10x_cmd_set_tune(as10x_handle_t *phandle,
++int as10x_cmd_set_tune(struct as10x_bus_adapter_t *adap,
+ 		       struct as10x_tune_args *ptune);
+ 
+-int as10x_cmd_get_tune_status(as10x_handle_t *phandle,
++int as10x_cmd_get_tune_status(struct as10x_bus_adapter_t *adap,
+ 			      struct as10x_tune_status *pstatus);
+ 
+-int as10x_cmd_get_tps(as10x_handle_t *phandle,
++int as10x_cmd_get_tps(struct as10x_bus_adapter_t *adap,
+ 		      struct as10x_tps *ptps);
+ 
+-int as10x_cmd_get_demod_stats(as10x_handle_t  *phandle,
++int as10x_cmd_get_demod_stats(struct as10x_bus_adapter_t  *adap,
+ 			      struct as10x_demod_stats *pdemod_stats);
+ 
+-int as10x_cmd_get_impulse_resp(as10x_handle_t *phandle,
++int as10x_cmd_get_impulse_resp(struct as10x_bus_adapter_t *adap,
+ 			       uint8_t *is_ready);
+ 
+ /* as10x cmd stream */
+-int as10x_cmd_add_PID_filter(as10x_handle_t *phandle,
++int as10x_cmd_add_PID_filter(struct as10x_bus_adapter_t *adap,
+ 			     struct as10x_ts_filter *filter);
+-int as10x_cmd_del_PID_filter(as10x_handle_t *phandle,
++int as10x_cmd_del_PID_filter(struct as10x_bus_adapter_t *adap,
+ 			     uint16_t pid_value);
+ 
+-int as10x_cmd_start_streaming(as10x_handle_t *phandle);
+-int as10x_cmd_stop_streaming(as10x_handle_t *phandle);
++int as10x_cmd_start_streaming(struct as10x_bus_adapter_t *adap);
++int as10x_cmd_stop_streaming(struct as10x_bus_adapter_t *adap);
+ 
+ /* as10x cmd cfg */
+-int as10x_cmd_set_context(as10x_handle_t *phandle,
++int as10x_cmd_set_context(struct as10x_bus_adapter_t *adap,
+ 			  uint16_t tag,
+ 			  uint32_t value);
+-int as10x_cmd_get_context(as10x_handle_t *phandle,
++int as10x_cmd_get_context(struct as10x_bus_adapter_t *adap,
+ 			  uint16_t tag,
+ 			  uint32_t *pvalue);
+ 
+-int as10x_cmd_eLNA_change_mode(as10x_handle_t *phandle, uint8_t mode);
++int as10x_cmd_eLNA_change_mode(struct as10x_bus_adapter_t *adap, uint8_t mode);
+ int as10x_context_rsp_parse(struct as10x_cmd_t *prsp, uint16_t proc_id);
+ #endif
+diff --git a/drivers/staging/media/as102/as10x_cmd_cfg.c b/drivers/staging/media/as102/as10x_cmd_cfg.c
+index ec6f69f..d2a4bce 100644
+--- a/drivers/staging/media/as102/as10x_cmd_cfg.c
++++ b/drivers/staging/media/as102/as10x_cmd_cfg.c
+@@ -28,13 +28,13 @@
+ 
+ /**
+  * as10x_cmd_get_context - Send get context command to AS10x
+- * @phandle:   pointer to AS10x handle
++ * @adap:      pointer to AS10x bus adapter
+  * @tag:       context tag
+  * @pvalue:    pointer where to store context value read
+  *
+  * Return 0 on success or negative value in case of error.
+  */
+-int as10x_cmd_get_context(as10x_handle_t *phandle, uint16_t tag,
++int as10x_cmd_get_context(struct as10x_bus_adapter_t *adap, uint16_t tag,
+ 			  uint32_t *pvalue)
+ {
+ 	int  error;
+@@ -42,11 +42,11 @@ int as10x_cmd_get_context(as10x_handle_t *phandle, uint16_t tag,
+ 
+ 	ENTER();
+ 
+-	pcmd = phandle->cmd;
+-	prsp = phandle->rsp;
++	pcmd = adap->cmd;
++	prsp = adap->rsp;
+ 
+ 	/* prepare command */
+-	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++	as10x_cmd_build(pcmd, (++adap->cmd_xid),
+ 			sizeof(pcmd->body.context.req));
+ 
+ 	/* fill command */
+@@ -55,14 +55,14 @@ int as10x_cmd_get_context(as10x_handle_t *phandle, uint16_t tag,
+ 	pcmd->body.context.req.type = cpu_to_le16(GET_CONTEXT_DATA);
+ 
+ 	/* send command */
+-	if (phandle->ops->xfer_cmd) {
+-		error  = phandle->ops->xfer_cmd(phandle,
+-						(uint8_t *) pcmd,
+-						sizeof(pcmd->body.context.req)
+-						+ HEADER_SIZE,
+-						(uint8_t *) prsp,
+-						sizeof(prsp->body.context.rsp)
+-						+ HEADER_SIZE);
++	if (adap->ops->xfer_cmd) {
++		error  = adap->ops->xfer_cmd(adap,
++					     (uint8_t *) pcmd,
++					     sizeof(pcmd->body.context.req)
++					     + HEADER_SIZE,
++					     (uint8_t *) prsp,
++					     sizeof(prsp->body.context.rsp)
++					     + HEADER_SIZE);
+ 	} else {
+ 		error = AS10X_CMD_ERROR;
+ 	}
+@@ -87,13 +87,13 @@ out:
+ 
+ /**
+  * as10x_cmd_set_context - send set context command to AS10x
+- * @phandle:   pointer to AS10x handle
++ * @adap:      pointer to AS10x bus adapter
+  * @tag:       context tag
+  * @value:     value to set in context
+  *
+  * Return 0 on success or negative value in case of error.
+  */
+-int as10x_cmd_set_context(as10x_handle_t *phandle, uint16_t tag,
++int as10x_cmd_set_context(struct as10x_bus_adapter_t *adap, uint16_t tag,
+ 			  uint32_t value)
+ {
+ 	int error;
+@@ -101,11 +101,11 @@ int as10x_cmd_set_context(as10x_handle_t *phandle, uint16_t tag,
+ 
+ 	ENTER();
+ 
+-	pcmd = phandle->cmd;
+-	prsp = phandle->rsp;
++	pcmd = adap->cmd;
++	prsp = adap->rsp;
+ 
+ 	/* prepare command */
+-	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++	as10x_cmd_build(pcmd, (++adap->cmd_xid),
+ 			sizeof(pcmd->body.context.req));
+ 
+ 	/* fill command */
+@@ -116,14 +116,14 @@ int as10x_cmd_set_context(as10x_handle_t *phandle, uint16_t tag,
+ 	pcmd->body.context.req.type = cpu_to_le16(SET_CONTEXT_DATA);
+ 
+ 	/* send command */
+-	if (phandle->ops->xfer_cmd) {
+-		error  = phandle->ops->xfer_cmd(phandle,
+-						(uint8_t *) pcmd,
+-						sizeof(pcmd->body.context.req)
+-						+ HEADER_SIZE,
+-						(uint8_t *) prsp,
+-						sizeof(prsp->body.context.rsp)
+-						+ HEADER_SIZE);
++	if (adap->ops->xfer_cmd) {
++		error  = adap->ops->xfer_cmd(adap,
++					     (uint8_t *) pcmd,
++					     sizeof(pcmd->body.context.req)
++					     + HEADER_SIZE,
++					     (uint8_t *) prsp,
++					     sizeof(prsp->body.context.rsp)
++					     + HEADER_SIZE);
+ 	} else {
+ 		error = AS10X_CMD_ERROR;
+ 	}
+@@ -142,7 +142,7 @@ out:
+ 
+ /**
+  * as10x_cmd_eLNA_change_mode - send eLNA change mode command to AS10x
+- * @phandle:   pointer to AS10x handle
++ * @adap:      pointer to AS10x bus adapter
+  * @mode:      mode selected:
+  *	        - ON    : 0x0 => eLNA always ON
+  *	        - OFF   : 0x1 => eLNA always OFF
+@@ -151,18 +151,18 @@ out:
+  *
+  * Return 0 on success or negative value in case of error.
+  */
+-int as10x_cmd_eLNA_change_mode(as10x_handle_t *phandle, uint8_t mode)
++int as10x_cmd_eLNA_change_mode(struct as10x_bus_adapter_t *adap, uint8_t mode)
+ {
+ 	int error;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+ 	ENTER();
+ 
+-	pcmd = phandle->cmd;
+-	prsp = phandle->rsp;
++	pcmd = adap->cmd;
++	prsp = adap->rsp;
+ 
+ 	/* prepare command */
+-	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++	as10x_cmd_build(pcmd, (++adap->cmd_xid),
+ 			sizeof(pcmd->body.cfg_change_mode.req));
+ 
+ 	/* fill command */
+@@ -171,8 +171,8 @@ int as10x_cmd_eLNA_change_mode(as10x_handle_t *phandle, uint8_t mode)
+ 	pcmd->body.cfg_change_mode.req.mode = mode;
+ 
+ 	/* send command */
+-	if (phandle->ops->xfer_cmd) {
+-		error  = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
++	if (adap->ops->xfer_cmd) {
++		error  = adap->ops->xfer_cmd(adap, (uint8_t *) pcmd,
+ 				sizeof(pcmd->body.cfg_change_mode.req)
+ 				+ HEADER_SIZE, (uint8_t *) prsp,
+ 				sizeof(prsp->body.cfg_change_mode.rsp)
+diff --git a/drivers/staging/media/as102/as10x_cmd_stream.c b/drivers/staging/media/as102/as10x_cmd_stream.c
+index 045c706..6d000f6 100644
+--- a/drivers/staging/media/as102/as10x_cmd_stream.c
++++ b/drivers/staging/media/as102/as10x_cmd_stream.c
+@@ -23,12 +23,12 @@
+ 
+ /**
+  * as10x_cmd_add_PID_filter - send add filter command to AS10x
+- * @phandle:   pointer to AS10x handle
++ * @adap:      pointer to AS10x bus adapter
+  * @filter:    TSFilter filter for DVB-T
+  *
+  * Return 0 on success or negative value in case of error.
+  */
+-int as10x_cmd_add_PID_filter(as10x_handle_t *phandle,
++int as10x_cmd_add_PID_filter(struct as10x_bus_adapter_t *adap,
+ 			     struct as10x_ts_filter *filter)
+ {
+ 	int error;
+@@ -36,11 +36,11 @@ int as10x_cmd_add_PID_filter(as10x_handle_t *phandle,
+ 
+ 	ENTER();
+ 
+-	pcmd = phandle->cmd;
+-	prsp = phandle->rsp;
++	pcmd = adap->cmd;
++	prsp = adap->rsp;
+ 
+ 	/* prepare command */
+-	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++	as10x_cmd_build(pcmd, (++adap->cmd_xid),
+ 			sizeof(pcmd->body.add_pid_filter.req));
+ 
+ 	/* fill command */
+@@ -55,8 +55,8 @@ int as10x_cmd_add_PID_filter(as10x_handle_t *phandle,
+ 		pcmd->body.add_pid_filter.req.idx = 0xFF;
+ 
+ 	/* send command */
+-	if (phandle->ops->xfer_cmd) {
+-		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
++	if (adap->ops->xfer_cmd) {
++		error = adap->ops->xfer_cmd(adap, (uint8_t *) pcmd,
+ 				sizeof(pcmd->body.add_pid_filter.req)
+ 				+ HEADER_SIZE, (uint8_t *) prsp,
+ 				sizeof(prsp->body.add_pid_filter.rsp)
+@@ -83,12 +83,12 @@ out:
+ 
+ /**
+  * as10x_cmd_del_PID_filter - Send delete filter command to AS10x
+- * @phandle:      pointer to AS10x handle
++ * @adap:         pointer to AS10x bus adapte
+  * @pid_value:    PID to delete
+  *
+  * Return 0 on success or negative value in case of error.
+  */
+-int as10x_cmd_del_PID_filter(as10x_handle_t *phandle,
++int as10x_cmd_del_PID_filter(struct as10x_bus_adapter_t *adap,
+ 			     uint16_t pid_value)
+ {
+ 	int error;
+@@ -96,11 +96,11 @@ int as10x_cmd_del_PID_filter(as10x_handle_t *phandle,
+ 
+ 	ENTER();
+ 
+-	pcmd = phandle->cmd;
+-	prsp = phandle->rsp;
++	pcmd = adap->cmd;
++	prsp = adap->rsp;
+ 
+ 	/* prepare command */
+-	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++	as10x_cmd_build(pcmd, (++adap->cmd_xid),
+ 			sizeof(pcmd->body.del_pid_filter.req));
+ 
+ 	/* fill command */
+@@ -109,8 +109,8 @@ int as10x_cmd_del_PID_filter(as10x_handle_t *phandle,
+ 	pcmd->body.del_pid_filter.req.pid = cpu_to_le16(pid_value);
+ 
+ 	/* send command */
+-	if (phandle->ops->xfer_cmd) {
+-		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
++	if (adap->ops->xfer_cmd) {
++		error = adap->ops->xfer_cmd(adap, (uint8_t *) pcmd,
+ 				sizeof(pcmd->body.del_pid_filter.req)
+ 				+ HEADER_SIZE, (uint8_t *) prsp,
+ 				sizeof(prsp->body.del_pid_filter.rsp)
+@@ -132,22 +132,22 @@ out:
+ 
+ /**
+  * as10x_cmd_start_streaming - Send start streaming command to AS10x
+- * @phandle:   pointer to AS10x handle
++ * @adap:   pointer to AS10x bus adapter
+  *
+  * Return 0 on success or negative value in case of error.
+  */
+-int as10x_cmd_start_streaming(as10x_handle_t *phandle)
++int as10x_cmd_start_streaming(struct as10x_bus_adapter_t *adap)
+ {
+ 	int error;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+ 	ENTER();
+ 
+-	pcmd = phandle->cmd;
+-	prsp = phandle->rsp;
++	pcmd = adap->cmd;
++	prsp = adap->rsp;
+ 
+ 	/* prepare command */
+-	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++	as10x_cmd_build(pcmd, (++adap->cmd_xid),
+ 			sizeof(pcmd->body.start_streaming.req));
+ 
+ 	/* fill command */
+@@ -155,8 +155,8 @@ int as10x_cmd_start_streaming(as10x_handle_t *phandle)
+ 		cpu_to_le16(CONTROL_PROC_START_STREAMING);
+ 
+ 	/* send command */
+-	if (phandle->ops->xfer_cmd) {
+-		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
++	if (adap->ops->xfer_cmd) {
++		error = adap->ops->xfer_cmd(adap, (uint8_t *) pcmd,
+ 				sizeof(pcmd->body.start_streaming.req)
+ 				+ HEADER_SIZE, (uint8_t *) prsp,
+ 				sizeof(prsp->body.start_streaming.rsp)
+@@ -178,22 +178,22 @@ out:
+ 
+ /**
+  * as10x_cmd_stop_streaming - Send stop streaming command to AS10x
+- * @phandle:   pointer to AS10x handle
++ * @adap:   pointer to AS10x bus adapter
+  *
+  * Return 0 on success or negative value in case of error.
+  */
+-int as10x_cmd_stop_streaming(as10x_handle_t *phandle)
++int as10x_cmd_stop_streaming(struct as10x_bus_adapter_t *adap)
+ {
+ 	int8_t error;
+ 	struct as10x_cmd_t *pcmd, *prsp;
+ 
+ 	ENTER();
+ 
+-	pcmd = phandle->cmd;
+-	prsp = phandle->rsp;
++	pcmd = adap->cmd;
++	prsp = adap->rsp;
+ 
+ 	/* prepare command */
+-	as10x_cmd_build(pcmd, (++phandle->cmd_xid),
++	as10x_cmd_build(pcmd, (++adap->cmd_xid),
+ 			sizeof(pcmd->body.stop_streaming.req));
+ 
+ 	/* fill command */
+@@ -201,8 +201,8 @@ int as10x_cmd_stop_streaming(as10x_handle_t *phandle)
+ 		cpu_to_le16(CONTROL_PROC_STOP_STREAMING);
+ 
+ 	/* send command */
+-	if (phandle->ops->xfer_cmd) {
+-		error = phandle->ops->xfer_cmd(phandle, (uint8_t *) pcmd,
++	if (adap->ops->xfer_cmd) {
++		error = adap->ops->xfer_cmd(adap, (uint8_t *) pcmd,
+ 				sizeof(pcmd->body.stop_streaming.req)
+ 				+ HEADER_SIZE, (uint8_t *) prsp,
+ 				sizeof(prsp->body.stop_streaming.rsp)
+diff --git a/drivers/staging/media/as102/as10x_handle.h b/drivers/staging/media/as102/as10x_handle.h
+index d67203a..62b9795 100644
+--- a/drivers/staging/media/as102/as10x_handle.h
++++ b/drivers/staging/media/as102/as10x_handle.h
+@@ -17,10 +17,9 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ #ifdef __KERNEL__
+-struct as102_bus_adapter_t;
++struct as10x_bus_adapter_t;
+ struct as102_dev_t;
+ 
+-#define as10x_handle_t struct as102_bus_adapter_t
+ #include "as10x_cmd.h"
+ 
+ /* values for "mode" field */
+@@ -29,29 +28,26 @@ struct as102_dev_t;
+ #define REGMODE32	32
+ 
+ struct as102_priv_ops_t {
+-	int (*upload_fw_pkt) (struct as102_bus_adapter_t *bus_adap,
++	int (*upload_fw_pkt) (struct as10x_bus_adapter_t *bus_adap,
+ 			      unsigned char *buf, int buflen, int swap32);
+ 
+-	int (*send_cmd) (struct as102_bus_adapter_t *bus_adap,
++	int (*send_cmd) (struct as10x_bus_adapter_t *bus_adap,
+ 			 unsigned char *buf, int buflen);
+ 
+-	int (*xfer_cmd) (struct as102_bus_adapter_t *bus_adap,
++	int (*xfer_cmd) (struct as10x_bus_adapter_t *bus_adap,
+ 			 unsigned char *send_buf, int send_buf_len,
+ 			 unsigned char *recv_buf, int recv_buf_len);
+-/*
+-	int (*pid_filter) (struct as102_bus_adapter_t *bus_adap,
+-			   int index, u16 pid, int onoff);
+-*/
++
+ 	int (*start_stream) (struct as102_dev_t *dev);
+ 	void (*stop_stream) (struct as102_dev_t *dev);
+ 
+-	int (*reset_target) (struct as102_bus_adapter_t *bus_adap);
++	int (*reset_target) (struct as10x_bus_adapter_t *bus_adap);
+ 
+-	int (*read_write)(struct as102_bus_adapter_t *bus_adap, uint8_t mode,
++	int (*read_write)(struct as10x_bus_adapter_t *bus_adap, uint8_t mode,
+ 			  uint32_t rd_addr, uint16_t rd_len,
+ 			  uint32_t wr_addr, uint16_t wr_len);
+ 
+-	int (*as102_read_ep2) (struct as102_bus_adapter_t *bus_adap,
++	int (*as102_read_ep2) (struct as10x_bus_adapter_t *bus_adap,
+ 			       unsigned char *recv_buf,
+ 			       int recv_buf_len);
+ };
+-- 
+1.7.5.4
 
-This extra empty line triggers "new blank line at EOF" warning with git am.
-
-Otherwise the patch looks good to me. Feel free to stick my:
-
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-
-
---
-Thanks,
-Sylwester
