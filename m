@@ -1,300 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4306 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751965Ab1KWLMs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Nov 2011 06:12:48 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:44704 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752544Ab1KFUcQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 15:32:16 -0500
+Received: by faao14 with SMTP id o14so4498582faa.19
+        for <linux-media@vger.kernel.org>; Sun, 06 Nov 2011 12:32:15 -0800 (PST)
+From: Sylwester Nawrocki <snjw23@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 2/4] v4l spec: document VIDIOC_(TRY_)DECODER_CMD.
-Date: Wed, 23 Nov 2011 12:12:34 +0100
-Message-Id: <9f5cf3b545b1b9e71a81ffb133f71c25268b9d79.1322045294.git.hans.verkuil@cisco.com>
-In-Reply-To: <1322046756-22870-1-git-send-email-hverkuil@xs4all.nl>
-References: <1322046756-22870-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <5f3ea26a94437e97b4b7ddfb3f7dc8dd4c2a8f12.1322045294.git.hans.verkuil@cisco.com>
-References: <5f3ea26a94437e97b4b7ddfb3f7dc8dd4c2a8f12.1322045294.git.hans.verkuil@cisco.com>
+Cc: Piotr Chmura <chmooreck@poczta.onet.pl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: [PATCH 01/13] staging: as102: Remove comment tags for editors configuration
+Date: Sun,  6 Nov 2011 21:31:38 +0100
+Message-Id: <1320611510-3326-2-git-send-email-snjw23@gmail.com>
+In-Reply-To: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
+References: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Piotr Chmura <chmooreck@poczta.onet.pl>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Piotr Chmura <chmooreck@poczta.onet.pl>
+Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
 ---
- Documentation/DocBook/media/v4l/v4l2.xml           |    1 +
- .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |  250 ++++++++++++++++++++
- 2 files changed, 251 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
+ drivers/staging/media/as102/as102_drv.c     |    2 --
+ drivers/staging/media/as102/as102_drv.h     |    2 --
+ drivers/staging/media/as102/as102_fe.c      |    2 --
+ drivers/staging/media/as102/as102_fw.c      |    2 --
+ drivers/staging/media/as102/as102_fw.h      |    2 --
+ drivers/staging/media/as102/as102_usb_drv.c |    2 --
+ drivers/staging/media/as102/as102_usb_drv.h |    1 -
+ drivers/staging/media/as102/as10x_cmd.h     |    1 -
+ 8 files changed, 0 insertions(+), 14 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 2ab365c..7fc11db 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -473,6 +473,7 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-cropcap;
-     &sub-dbg-g-chip-ident;
-     &sub-dbg-g-register;
-+    &sub-decoder-cmd;
-     &sub-dqevent;
-     &sub-encoder-cmd;
-     &sub-enumaudio;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-new file mode 100644
-index 0000000..bf016f0
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-@@ -0,0 +1,250 @@
-+<refentry id="vidioc-decoder-cmd">
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_DECODER_CMD, VIDIOC_TRY_DECODER_CMD</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>VIDIOC_DECODER_CMD</refname>
-+    <refname>VIDIOC_TRY_DECODER_CMD</refname>
-+    <refpurpose>Execute an decoder command</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_decoder_cmd *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_DECODER_CMD, VIDIOC_TRY_DECODER_CMD</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <note>
-+      <title>Experimental</title>
-+
-+      <para>This is an <link linkend="experimental">experimental</link>
-+interface and may change in the future.</para>
-+    </note>
-+
-+    <para>These ioctls control an audio/video (usually MPEG-) decoder.
-+<constant>VIDIOC_DECODER_CMD</constant> sends a command to the
-+decoder, <constant>VIDIOC_TRY_DECODER_CMD</constant> can be used to
-+try a command without actually executing it. To send a command applications
-+must initialize all fields of a &v4l2-decoder-cmd; and call
-+<constant>VIDIOC_DECODER_CMD</constant> or <constant>VIDIOC_TRY_DECODER_CMD</constant>
-+with a pointer to this structure.</para>
-+
-+    <para>The <structfield>cmd</structfield> field must contain the
-+command code. Some commands use the <structfield>flags</structfield> field for
-+additional information.
-+</para>
-+
-+    <para>A <function>write</function>() call sends a START command to
-+the decoder if it has not been started yet.
-+</para>
-+
-+    <para>A <function>close</function>() call sends an immediate STOP
-+to the decoder, and all buffered data is discarded.</para>
-+
-+    <para>These ioctls are optional, not all drivers may support
-+them. They were introduced in Linux 3.3.</para>
-+
-+    <table pgwide="1" frame="none" id="v4l2-decoder-cmd">
-+      <title>struct <structname>v4l2_decoder_cmd</structname></title>
-+      <tgroup cols="5">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>cmd</structfield></entry>
-+            <entry></entry>
-+            <entry></entry>
-+	    <entry>The decoder command, see <xref linkend="decoder-cmds" />.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+            <entry></entry>
-+            <entry></entry>
-+	    <entry>Flags to go with the command. If no flags are defined for
-+this command, drivers and applications must set this field to zero.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>union</entry>
-+	    <entry>(anonymous)</entry>
-+            <entry></entry>
-+	    <entry></entry>
-+            <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>struct</entry>
-+            <entry><structfield>start</structfield></entry>
-+            <entry></entry>
-+            <entry>Structure containing additional data for the
-+<constant>V4L2_DEC_CMD_START</constant> command.</entry>
-+	  </row>
-+	  <row>
-+            <entry></entry>
-+            <entry></entry>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>speed</structfield></entry>
-+            <entry>Playback speed and direction. The playback speed is defined as
-+<structfield>speed</structfield>/1000 of the normal speed. So 1000 is normal playback.
-+Negative numbers denote reverse playback, so -1000 does reverse playback at normal
-+speed. Speeds -1, 0 and 1 have special meanings: speed 0 is shorthand for 1000
-+(normal playback). A speed of 1 steps just one frame forward, a speed of -1 steps
-+just one frame back.
-+	    </entry>
-+	  </row>
-+	  <row>
-+            <entry></entry>
-+            <entry></entry>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>format</structfield></entry>
-+            <entry>Format restrictions. This field is set by the driver, not the
-+application. Possible values are <constant>V4L2_DEC_START_FMT_NONE</constant> if
-+there are no format restrictions or <constant>V4L2_DEC_START_FMT_GOP</constant>
-+if the decoder operates on full GOPs (<wordasword>Group Of Pictures</wordasword>).
-+This is usually the case for reverse playback: the decoder needs full GOPs, which
-+it can then play in reverse order. So to implement reverse playback the application
-+must feed the decoder the last GOP in the video file, then the GOP before that, etc. etc.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>struct</entry>
-+            <entry><structfield>stop</structfield></entry>
-+            <entry></entry>
-+            <entry>Structure containing additional data for the
-+<constant>V4L2_DEC_CMD_STOP</constant> command.</entry>
-+	  </row>
-+	  <row>
-+            <entry></entry>
-+            <entry></entry>
-+	    <entry>__u64</entry>
-+	    <entry><structfield>pts</structfield></entry>
-+            <entry>Stop playback at this <structfield>pts</structfield> or immediately
-+if the playback is already past that timestamp. Leave to 0 if you want to stop after the
-+last frame was decoded.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>struct</entry>
-+            <entry><structfield>raw</structfield></entry>
-+            <entry></entry>
-+            <entry></entry>
-+	  </row>
-+	  <row>
-+            <entry></entry>
-+            <entry></entry>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>data</structfield>[16]</entry>
-+	    <entry>Reserved for future extensions. Drivers and
-+applications must set the array to zero.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="decoder-cmds">
-+      <title>Decoder Commands</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>V4L2_DEC_CMD_START</constant></entry>
-+	    <entry>0</entry>
-+	    <entry>Start the decoder. When the decoder is already
-+running or paused, this command does nothing. There are no flags
-+associated with this command.
-+            </entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_DEC_CMD_STOP</constant></entry>
-+	    <entry>1</entry>
-+	    <entry>Stop the decoder. When the decoder is already stopped,
-+this command does nothing. This command has two flags:
-+if <constant>V4L2_DEC_CMD_STOP_TO_BLACK</constant> is set, then the decoder will
-+set the picture to black after it stopped decoding. Otherwise the last image will
-+repeat. If <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the decoder
-+stops immediately (ignoring the <structfield>pts</structfield> value), otherwise it
-+will keep decoding until timestamp >= pts or until the last of the pending data from
-+its internal buffers was decoded.
-+</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_DEC_CMD_PAUSE</constant></entry>
-+	    <entry>2</entry>
-+	    <entry>Pause the decoder. When the decoder has not been
-+started yet, the driver will return an &EPERM;. When the decoder is
-+already paused, this command does nothing. This command has one flag:
-+if <constant>V4L2_DEC_CMD_PAUSE_TO_BLACK</constant> is set, then set the
-+decoder output to black when paused.
-+</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_DEC_CMD_RESUME</constant></entry>
-+	    <entry>3</entry>
-+	    <entry>Resume decoding after a PAUSE command. When the
-+decoder has not been started yet, the driver will return an &EPERM;.
-+When the decoder is already running, this command does nothing. No
-+flags are defined for this command.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EINVAL</errorcode></term>
-+	<listitem>
-+	  <para>The <structfield>cmd</structfield> field is invalid.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>EPERM</errorcode></term>
-+	<listitem>
-+	  <para>The application sent a PAUSE or RESUME command when
-+the decoder was not running.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
+diff --git a/drivers/staging/media/as102/as102_drv.c b/drivers/staging/media/as102/as102_drv.c
+index d335c7d..771d550 100644
+--- a/drivers/staging/media/as102/as102_drv.c
++++ b/drivers/staging/media/as102/as102_drv.c
+@@ -347,5 +347,3 @@ module_exit(as102_driver_exit);
+ MODULE_DESCRIPTION(DRIVER_FULL_NAME);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pierrick Hascoet <pierrick.hascoet@abilis.com>");
+-
+-/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
+diff --git a/drivers/staging/media/as102/as102_drv.h b/drivers/staging/media/as102/as102_drv.h
+index bcda635..7f56f64 100644
+--- a/drivers/staging/media/as102/as102_drv.h
++++ b/drivers/staging/media/as102/as102_drv.h
+@@ -137,5 +137,3 @@ void as102_dvb_unregister(struct as102_dev_t *dev);
+ 
+ int as102_dvb_register_fe(struct as102_dev_t *dev, struct dvb_frontend *fe);
+ int as102_dvb_unregister_fe(struct dvb_frontend *dev);
+-
+-/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
+diff --git a/drivers/staging/media/as102/as102_fe.c b/drivers/staging/media/as102/as102_fe.c
+index 3550f90..7d7dd55 100644
+--- a/drivers/staging/media/as102/as102_fe.c
++++ b/drivers/staging/media/as102/as102_fe.c
+@@ -599,5 +599,3 @@ static void as102_fe_copy_tune_parameters(struct as10x_tune_args *tune_args,
+ 			as102_fe_get_code_rate(params->u.ofdm.code_rate_HP);
+ 	}
+ }
+-
+-/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
+diff --git a/drivers/staging/media/as102/as102_fw.c b/drivers/staging/media/as102/as102_fw.c
+index c019df9..4fb2987 100644
+--- a/drivers/staging/media/as102/as102_fw.c
++++ b/drivers/staging/media/as102/as102_fw.c
+@@ -247,5 +247,3 @@ error:
+ 	return errno;
+ }
+ #endif
+-
+-/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
+diff --git a/drivers/staging/media/as102/as102_fw.h b/drivers/staging/media/as102/as102_fw.h
+index 27e5347..951a1fa 100644
+--- a/drivers/staging/media/as102/as102_fw.h
++++ b/drivers/staging/media/as102/as102_fw.h
+@@ -38,5 +38,3 @@ struct as10x_fw_pkt_t {
+ #ifdef __KERNEL__
+ int as102_fw_upload(struct as102_bus_adapter_t *bus_adap);
+ #endif
+-
+-/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
+diff --git a/drivers/staging/media/as102/as102_usb_drv.c b/drivers/staging/media/as102/as102_usb_drv.c
+index 264be2d..0a8f12b 100644
+--- a/drivers/staging/media/as102/as102_usb_drv.c
++++ b/drivers/staging/media/as102/as102_usb_drv.c
+@@ -474,5 +474,3 @@ static int as102_release(struct inode *inode, struct file *file)
+ }
+ 
+ MODULE_DEVICE_TABLE(usb, as102_usb_id_table);
+-
+-/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
+diff --git a/drivers/staging/media/as102/as102_usb_drv.h b/drivers/staging/media/as102/as102_usb_drv.h
+index fb1fc41..35925b7 100644
+--- a/drivers/staging/media/as102/as102_usb_drv.h
++++ b/drivers/staging/media/as102/as102_usb_drv.h
+@@ -56,4 +56,3 @@ struct as10x_usb_token_cmd_t {
+ 	struct as10x_cmd_t r;
+ };
+ #endif
+-/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
+diff --git a/drivers/staging/media/as102/as10x_cmd.h b/drivers/staging/media/as102/as10x_cmd.h
+index 01a7163..6f837b1 100644
+--- a/drivers/staging/media/as102/as10x_cmd.h
++++ b/drivers/staging/media/as102/as10x_cmd.h
+@@ -537,4 +537,3 @@ int as10x_context_rsp_parse(struct as10x_cmd_t *prsp, uint16_t proc_id);
+ }
+ #endif
+ #endif
+-/* EOF - vim: set textwidth=80 ts=3 sw=3 sts=3 et: */
 -- 
-1.7.7.3
+1.7.5.4
 
