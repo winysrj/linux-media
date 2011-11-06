@@ -1,55 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46320 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751136Ab1K3SuG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 13:50:06 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pAUIo5bP005278
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 30 Nov 2011 13:50:05 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:40138 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754752Ab1KFUcb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 15:32:31 -0500
+Received: by mail-fx0-f46.google.com with SMTP id o14so4498572faa.19
+        for <linux-media@vger.kernel.org>; Sun, 06 Nov 2011 12:32:30 -0800 (PST)
+From: Sylwester Nawrocki <snjw23@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 2/2] [media] tm6000: fix OOPS at tm6000_ir_int_stop() and tm6000_ir_int_start()
-Date: Wed, 30 Nov 2011 16:50:00 -0200
-Message-Id: <1322679000-26453-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1322679000-26453-1-git-send-email-mchehab@redhat.com>
-References: <1322679000-26453-1-git-send-email-mchehab@redhat.com>
+Cc: Piotr Chmura <chmooreck@poczta.onet.pl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: [PATCH 11/13] staging: as102: Move variable declarations to the header
+Date: Sun,  6 Nov 2011 21:31:48 +0100
+Message-Id: <1320611510-3326-12-git-send-email-snjw23@gmail.com>
+In-Reply-To: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
+References: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[ 3755.608233] BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
-[ 3755.616360] IP: [<ffffffffa03b80b7>] tm6000_ir_int_stop+0x10/0x1b [tm6000]
+Fixes following checkpatch.pl warning:
+WARNING: externs should be avoided in .c files
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
 ---
- drivers/media/video/tm6000/tm6000-input.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ drivers/staging/media/as102/as102_drv.h |    1 +
+ drivers/staging/media/as102/as102_fe.c  |    2 --
+ 2 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/tm6000/tm6000-input.c b/drivers/media/video/tm6000/tm6000-input.c
-index e3467d4..af4bcf5 100644
---- a/drivers/media/video/tm6000/tm6000-input.c
-+++ b/drivers/media/video/tm6000/tm6000-input.c
-@@ -377,6 +377,9 @@ int tm6000_ir_int_start(struct tm6000_core *dev)
- {
- 	struct tm6000_IR *ir = dev->ir;
+diff --git a/drivers/staging/media/as102/as102_drv.h b/drivers/staging/media/as102/as102_drv.h
+index d32019c..06466fd 100644
+--- a/drivers/staging/media/as102/as102_drv.h
++++ b/drivers/staging/media/as102/as102_drv.h
+@@ -29,6 +29,7 @@
  
-+	if (!ir)
-+		return;
-+
- 	return __tm6000_ir_int_start(ir->rc);
- }
+ extern int debug;
+ extern struct usb_driver as102_usb_driver;
++extern int elna_enable;
  
-@@ -384,6 +387,9 @@ void tm6000_ir_int_stop(struct tm6000_core *dev)
- {
- 	struct tm6000_IR *ir = dev->ir;
+ #define dprintk(debug, args...) \
+ 	do { if (debug) {	\
+diff --git a/drivers/staging/media/as102/as102_fe.c b/drivers/staging/media/as102/as102_fe.c
+index 7d7dd55..c2adfe5 100644
+--- a/drivers/staging/media/as102/as102_fe.c
++++ b/drivers/staging/media/as102/as102_fe.c
+@@ -23,8 +23,6 @@
+ #include "as10x_types.h"
+ #include "as10x_cmd.h"
  
-+	if (!ir || !ir->rc)
-+		return;
-+
- 	__tm6000_ir_int_stop(ir->rc);
- }
+-extern int elna_enable;
+-
+ static void as10x_fe_copy_tps_parameters(struct dvb_frontend_parameters *dst,
+ 					 struct as10x_tps *src);
  
 -- 
-1.7.7.3
+1.7.5.4
 
