@@ -1,197 +1,380 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49835 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:16946 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756803Ab1KKSl7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Nov 2011 13:41:59 -0500
-Message-ID: <4EBD6C71.4040604@redhat.com>
-Date: Fri, 11 Nov 2011 16:41:53 -0200
+	id S1751015Ab1KFJxT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Nov 2011 04:53:19 -0500
+Message-ID: <4EB64D43.50602@redhat.com>
+Date: Sun, 06 Nov 2011 07:02:59 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com
-Subject: Re: [PATCH v3 2/3] v4l: Add V4L2_PIX_FMT_NV24 and V4L2_PIX_FMT_NV42
- formats
-References: <1314789501-824-1-git-send-email-laurent.pinchart@ideasonboard.com> <1314789501-824-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1314789501-824-3-git-send-email-laurent.pinchart@ideasonboard.com>
+To: John McMaster <johndmcmaster@gmail.com>
+CC: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
+Subject: Re: Anchor Chips V4L2 driver
+References: <4DE873B4.4050306@gmail.com> <4DE8D065.7020502@redhat.com> <4DE8E018.7070007@redhat.com> <4DEC6862.8000006@gmail.com> <4DEC851B.7030000@redhat.com> <4DEDB623.2010200@gmail.com> <4DEDD4B5.9020801@redhat.com> <4EB62ADA.9090909@gmail.com>
+In-Reply-To: <4EB62ADA.9090909@gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 31-08-2011 08:18, Laurent Pinchart escreveu:
-> NV24 and NV42 are planar YCbCr 4:4:4 and YCrCb 4:4:4 formats with a
-> luma plane followed by an interleaved chroma plane.
+Em 06-11-2011 04:36, John McMaster escreveu:
+> On 06/07/2011 12:35 AM, Hans de Goede wrote:
+>> Hi,
+>>
+>> On 06/07/2011 07:24 AM, John McMaster wrote:
+>>> On 06/06/2011 12:43 AM, Hans de Goede wrote:
+>>>> Hi,
+>>>>
+>>>> On 06/06/2011 07:40 AM, John McMaster wrote:
+>>>>> On 06/03/2011 06:22 AM, Hans de Goede wrote:
+>>>>>> Hi,
+>>>>>>
+>>>>>> On 06/03/2011 02:15 PM, Mauro Carvalho Chehab wrote:
+>>>>>>> Em 03-06-2011 02:40, John McMaster escreveu:
+>>>>>>>> I'd like to write a driver for an Anchor Chips (seems to be
+>>>>>>>> bought by
+>>>>>>>> Cypress) USB camera Linux driver sold as an AmScope MD1800.  It
+>>>>>>>> seems
+>>>>>>>> like this implies I need to write a V4L2 driver.  The camera
+>>>>>>>> does not
+>>>>>>>> seem its currently supported (checked on Fedora 13 / 2.6.34.8)
+>>>>>>>> and I
+>>>>>>>> did
+>>>>>>>> not find any information on it in mailing list archives.  Does
+>>>>>>>> anyone
+>>>>>>>> know or can help me identify if a similar camera might already be
+>>>>>>>> supported?
+>>>>>>>
+>>>>>>> I've no idea. Better to wait for a couple days for developers to
+>>>>>>> manifest
+>>>>>>> about that, if they're already working on it.
+>>>>>>>
+>>>>>>>> lsusb gives the following output:
+>>>>>>>>
+>>>>>>>> Bus 001 Device 111: ID 0547:4d88 Anchor Chips, Inc.
+>>>>>>>>
+>>>>>>>> I've started reading the "Video for Linux Two API Specification"
+>>>>>>>> which
+>>>>>>>> seems like a good starting point and will move onto using source
+>>>>>>>> code as
+>>>>>>>> appropriate.  Any help would be appreciated.  Thanks!
+>>>>>>>
+>>>>>>> You'll find other useful information at linuxtv.org wiki page. The
+>>>>>>> better
+>>>>>>> is to write it as a sub-driver for gspca. The gspca core have
+>>>>>>> already
+>>>>>>> all
+>>>>>>> that it is needed for cameras. So, you'll need to focus only at the
+>>>>>>> device-specific
+>>>>>>> stuff.
+>>>>>>
+>>>>>> I can second that you should definitely use gspca for usb webcam(ish)
+>>>>>> device
+>>>>>> drivers. As for how to go about this, first of all grep through the
+>>>>>> windows drivers
+>>>>>> for strings which may hint on the actual bridge chip used, chances
+>>>>>> are
+>>>>>> good
+>>>>>> there is an already supported bridge inside the camera.
+>>>>>>
+>>>>>> If not then make usb dumps, and start reverse engineering ...
+>>>>>>
+>>>>>> Usually it is enough to replay the windows init sequence to get the
+>>>>>> device
+>>>>>> to stream over either an bulk or iso endpoint, and then it is time to
+>>>>>> figure out what that stream contains (jpeg, raw bayer, some custom
+>>>>>> format ???)
+>>>>>>
+>>>>>> Regards,
+>>>>>>
+>>>>>> Hans
+>>>>> Thanks for the response.  I replayed some packets (using libusb)
+>>>>> and am
+>>>>> able to get something resembling the desired image through its bulk
+>>>>> endpoint.  So now I just need to figure out how to decode it better,
+>>>>> options, etc.  I'll post back to the list once I get something
+>>>>> moderately stable running and have taken a swing at the kernel driver.
+>>>>>
+>>>>
+>>>> Hmm, bulk you say and cypress and 8mp usb2.0 have you tried looking
+>>>> at the gspca-ovfx2 driver? Likely you've an ovfx2 cam with an as of
+>>>> yet unknown usb-id. Chances are just adding the id is enough, although
+>>>> your sensor may be unknown.
+>>>>
+>>>> Regards,
+>>>>
+>>>> Hans
+>>> If it helps, I should have also mentioned that with a small amount of
+>>> digging I found that the camera unit is put together by ScopeTek.  My
+>>> reference WIP implementation is at
+>>> https://github.com/JohnDMcMaster/uvscopetek which I'm comparing to
+>>> 2.6.39.1 drivers.
+>>>
+>>> Anyway, looking at reg_w() I see that it likes to make 0x00, 0x02, or
+>>> 0x0A requests where as mine makes 0x01, 0x0A, and mostly 0x0B requests.
+>>> I do see that it tends to want a byte back though like mine (0x0A except
+>>> at end).  My code has a few 3 byte returns (byte 0 varies, byte 1 fixed
+>>> at 0x00, byte 2 fixed at 0x08 like others), so I'm not sure if its a
+>>> good match for reg read.  Following that I tried to grep around some
+>>> more for a number of the more interesting numbers (eg: 90D8 as opposed
+>>> to 0001) in the $SRC/drivers/media/video dir and could only find
+>>> scattered matches.  I do realize that a lot of the more esoteric numbers
+>>> could be specific settings and not registers, commands, etc.  Or maybe
+>>> tofx2 is related and I'm not understanding the bridge concept?
+>>
+>> I think you may have been looking at the wrong driver, if your trace
+>> shows
+>> mostly 0x0a, 0x0b and 0x02 requests then chances are high it is indeed
+>> an ovfx2, the ovfx2 driver is part of drivers/media/video/gspca/ov519.c
+>> because it shares a bunch of functions (mostly sensor detect stuff) with
+>> the ov511/ov518/ov519 driver.
+>>
+>> And it makes 0x0a request for ovfx2 (bridge) register writes, 0x0b
+>> requests for ovfx2 (bridge) register reads and 0x02 requests for i2c
+>> writes.
+>>
+>> If things indeed seem a better match with the ovfx2 support in ov519.c,
+>> one quick way to find out if it is an ovfx2 is to just add the usb-id of
+>> your camera to ov519.c as an ovfx2 camera, and load the driver, first
+>> thing the driver does is try to detect the sensor type through the i2c
+>> bus between the bridge and the sensor, if that works (even if it
+>> detects an unknown sensor, but the sensor id found seems sensible) it
+>> it likely is an ovfx2.
+>>
+>> You could also try grapping for strings like fx2 and cypress in the
+>> windows
+>> driver. Also try looking at the .inf file from the windows driver, if
+>> that
+>> contains different (maybe commented out) usb-ids of potentially
+>> compatible
+>> cams.
+>>
+>> Regards,
+>>
+>> Hans
+>>
+>>
+>>>
+>>> John
+>>>
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-> ---
->  Documentation/DocBook/media/v4l/pixfmt-nv24.xml |  129 +++++++++++++++++++++++
->  Documentation/DocBook/media/v4l/pixfmt.xml      |    1 +
->  include/linux/videodev2.h                       |    2 +
->  3 files changed, 132 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+> Hi,
+> Time to resurrect a dead thread ;)   Got busy with work but I'm still
+> determined to get this working. 
 > 
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv24.xml b/Documentation/DocBook/media/v4l/pixfmt-nv24.xml
-> new file mode 100644
-> index 0000000..939c803
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/pixfmt-nv24.xml
-> @@ -0,0 +1,129 @@
-> +    <refentry>
-> +      <refmeta>
-> +	<refentrytitle>V4L2_PIX_FMT_NV24 ('NV24'), V4L2_PIX_FMT_NV42 ('NV42')</refentrytitle>
-> +	&manvol;
-> +      </refmeta>
-> +      <refnamediv>
-> +	<refname id="V4L2-PIX-FMT-NV24"><constant>V4L2_PIX_FMT_NV24</constant></refname>
-> +	<refname id="V4L2-PIX-FMT-NV42"><constant>V4L2_PIX_FMT_NV42</constant></refname>
-> +	<refpurpose>Formats with full horizontal and vertical
-> +chroma resolutions, also known as YUV 4:4:4. One luminance and one
-> +chrominance plane with alternating chroma samples as opposed to
-> +<constant>V4L2_PIX_FMT_YVU420</constant></refpurpose>
-> +      </refnamediv>
-> +      <refsect1>
-> +	<title>Description</title>
-> +
-> +	<para>These are two-plane versions of the YUV 4:4:4 format. The three
-> +	components are separated into two sub-images or planes. The Y plane is
-> +	first, with each Y sample stored in one byte per pixel. For
-> +	<constant>V4L2_PIX_FMT_NV24</constant>, a combined CbCr plane
-> +	immediately follows the Y plane in memory. The CbCr plane has the same
-> +	width and height, in pixels, as the Y plane (and the image). Each line
-> +	contains one CbCr pair per pixel, with each Cb and Cr sample stored in
-> +	one byte. <constant>V4L2_PIX_FMT_NV42</constant> is the same except that
-> +	the Cb and Cr samples are swapped, the CrCb plane starts with a Cr
-> +	sample.</para>
-> +
-> +	<para>If the Y plane has pad bytes after each row, then the CbCr plane
-> +	has twice as many pad bytes after its rows.</para>
-> +
-> +	<example>
-> +	  <title><constant>V4L2_PIX_FMT_NV24</constant> 4 &times; 4
-> +pixel image</title>
-> +
-> +	  <formalpara>
-> +	    <title>Byte Order.</title>
-> +	    <para>Each cell is one byte.
-> +		<informaltable frame="none">
-> +		<tgroup cols="9" align="center">
-> +		  <colspec align="left" colwidth="2*" />
-> +		  <tbody valign="top">
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;0:</entry>
-> +		      <entry>Y'<subscript>00</subscript></entry>
-> +		      <entry>Y'<subscript>01</subscript></entry>
-> +		      <entry>Y'<subscript>02</subscript></entry>
-> +		      <entry>Y'<subscript>03</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;4:</entry>
-> +		      <entry>Y'<subscript>10</subscript></entry>
-> +		      <entry>Y'<subscript>11</subscript></entry>
-> +		      <entry>Y'<subscript>12</subscript></entry>
-> +		      <entry>Y'<subscript>13</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;8:</entry>
-> +		      <entry>Y'<subscript>20</subscript></entry>
-> +		      <entry>Y'<subscript>21</subscript></entry>
-> +		      <entry>Y'<subscript>22</subscript></entry>
-> +		      <entry>Y'<subscript>23</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;12:</entry>
-> +		      <entry>Y'<subscript>30</subscript></entry>
-> +		      <entry>Y'<subscript>31</subscript></entry>
-> +		      <entry>Y'<subscript>32</subscript></entry>
-> +		      <entry>Y'<subscript>33</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;16:</entry>
-> +		      <entry>Cb<subscript>00</subscript></entry>
-> +		      <entry>Cr<subscript>00</subscript></entry>
-> +		      <entry>Cb<subscript>01</subscript></entry>
-> +		      <entry>Cr<subscript>01</subscript></entry>
-> +		      <entry>Cb<subscript>02</subscript></entry>
-> +		      <entry>Cr<subscript>02</subscript></entry>
-> +		      <entry>Cb<subscript>03</subscript></entry>
-> +		      <entry>Cr<subscript>03</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;24:</entry>
-> +		      <entry>Cb<subscript>10</subscript></entry>
-> +		      <entry>Cr<subscript>10</subscript></entry>
-> +		      <entry>Cb<subscript>11</subscript></entry>
-> +		      <entry>Cr<subscript>11</subscript></entry>
-> +		      <entry>Cb<subscript>12</subscript></entry>
-> +		      <entry>Cr<subscript>12</subscript></entry>
-> +		      <entry>Cb<subscript>13</subscript></entry>
-> +		      <entry>Cr<subscript>13</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;32:</entry>
-> +		      <entry>Cb<subscript>20</subscript></entry>
-> +		      <entry>Cr<subscript>20</subscript></entry>
-> +		      <entry>Cb<subscript>21</subscript></entry>
-> +		      <entry>Cr<subscript>21</subscript></entry>
-> +		      <entry>Cb<subscript>22</subscript></entry>
-> +		      <entry>Cr<subscript>22</subscript></entry>
-> +		      <entry>Cb<subscript>23</subscript></entry>
-> +		      <entry>Cr<subscript>23</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;40:</entry>
-> +		      <entry>Cb<subscript>30</subscript></entry>
-> +		      <entry>Cr<subscript>30</subscript></entry>
-> +		      <entry>Cb<subscript>31</subscript></entry>
-> +		      <entry>Cr<subscript>31</subscript></entry>
-> +		      <entry>Cb<subscript>32</subscript></entry>
-> +		      <entry>Cr<subscript>32</subscript></entry>
-> +		      <entry>Cb<subscript>33</subscript></entry>
-> +		      <entry>Cr<subscript>33</subscript></entry>
-> +		    </row>
-> +		  </tbody>
-> +		</tgroup>
-> +		</informaltable>
-> +	      </para>
-> +	  </formalpara>
-> +	</example>
-> +      </refsect1>
-> +    </refentry>
-> +
-> +  <!--
-> +Local Variables:
-> +mode: sgml
-> +sgml-parent-document: "pixfmt.sgml"
-> +indent-tabs-mode: nil
-> +End:
-> +  -->
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-> index 2ff6b77..aef4615 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-> @@ -714,6 +714,7 @@ information.</para>
->      &sub-nv12m;
->      &sub-nv12mt;
->      &sub-nv16;
-> +    &sub-nv24;
->      &sub-m420;
->    </section>
->  
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index fca24cc..8225163 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -343,6 +343,8 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V', '2', '1') /* 12  Y/CrCb 4:2:0  */
->  #define V4L2_PIX_FMT_NV16    v4l2_fourcc('N', 'V', '1', '6') /* 16  Y/CbCr 4:2:2  */
->  #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
-> +#define V4L2_PIX_FMT_NV24    v4l2_fourcc('N', 'V', '2', '4') /* 24  Y/CbCr 4:4:4  */
-> +#define V4L2_PIX_FMT_NV42    v4l2_fourcc('N', 'V', '4', '2') /* 24  Y/CrCb 4:4:4  */
->  
->  /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
->  #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
+> A lot of things sound close but maybe not quite right?  I will not doubt
+> your fx2 was a good guess.  I also dug a little more and found some
+> addition Windows driver files I didn't notice before and tried to grep
+> for FX.  I did previously try to match up some of the other VID/PIDs
+> before and no luck there.  I finally decided to open it up and its a
+> Cypress CY7C68013A, an "EZ-USB-FX2LP".
 
+The Cypress FX/FX2/.. family is a series of programmable processors found on
+several media devices. There's a firmware somewhere that configures its behavior.
+Vendors using it in general just gets the standard firmware, and add some
+device-specific stuff (but nothing prevents them to change or add some reqs).
+I doubt that they need to do that for a simple camera. They generally use those
+things when they want to implement InfraRed or CI support on DVB devices, that are
+much more complex.
+
+If you discover that just a few things on your device is different, then
+it is probably better to just improve the existing driver to handle the
+differences.
+
+> This is what happens when I
+> patch it to my VID / PID with some debugging turned on:
+> 
+> gspca: main v2.9.0 registered
+> usbcore: registered new interface driver ov519
+> registered
+> usb 2-1: new high speed USB device using ehci_hcd and address 5
+> usb 2-1: config 1 interface 0 altsetting 0 bulk endpoint 0x82 has
+> invalid maxpacket 1024
+> usb 2-1: New USB device found, idVendor=0547, idProduct=4d88
+> usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+> usb 2-1: Product: DCM800
+> usb 2-1: Manufacturer: ScopeTek
+> gspca: probing 0547:4d88
+> Write reg 0x0060 -> [0x00]
+> Write reg 0x0001 -> [0x02]
+> Write reg 0x001d -> [0x0f]
+> Write reg 0x0082 -> [0xe9]
+> Write reg 0x00c7 -> [0xea]
+> Write reg 0x0010 -> [0xeb]
+> Write reg 0x00f6 -> [0xec]
+> Write reg 0x0042 -> [0x00]
+> i2c 0x80 -> [0x12] failed
+> Write reg 0x00c0 -> [0x00]
+> i2c 0x80 -> [0x12] failed
+> Write reg 0x00a0 -> [0x00]
+> i2c 0x80 -> [0x12] failed
+> Write reg 0x0060 -> [0x00]
+> i2c 0x80 -> [0x12] failed
+> Can't determine sensor slave IDs
+> OV519 Config failed
+> ov519: probe of 2-1:1.0 failed with error -16
+
+It seems to me that only the sensor weren't detect, and that reg 0x0a is
+used for bridge initialization by ovfx2_configure().
+
+Don't you have the USB sniff from your original driver? You can easily see
+there the req used by the init sequence and check if it is the same as
+this one. I suspect that is also uses 0x0a during device init.
+
+> Maybe a key piece of data I gleaned that might help identify it.  To set
+> the resolution it sends:
+> 
+> request = 0x0B, request type = USB_DIR_IN | USB_TYPE_VENDOR |
+> USB_RECIP_DEVICE, value = width, index = 0x034C, ret = {0x08}
+> 
+> and
+> 
+> request = 0x0B, request type = USB_DIR_IN | USB_TYPE_VENDOR |
+> USB_RECIP_DEVICE, value = height index = 0x034E, ret = {0x08}
+> 
+> This seems to point that a 0x0B request would be some sort of write,
+> wValue is a register value, and wIndex is the register.  
+
+Such kind of init are generally at sensor level. All bridge may need to
+know is the used dot clock, if it can't auto-detect it.
+
+> However in the
+> OV519 this type of request seems to be a read:
+> 
+> static int reg_r(struct sd *sd, __u16 index)
+> ...
+>     case BRIDGE_OVFX2:
+>         req = 0x0b;
+> ...
+> 
+> 
+> On the off chance that the numbers were just switched around I tried the
+> following quick switches as a long shot:
+> 
+> reg_w()
+> Does bulk setup
+> Orig: 0x0A
+> Switched to 0x0B
+> 
+> reg_r()
+> Orig: 0x0B
+> Switched to 0x0A
+
+The above doesn't seem right, as your init seemed to work using req 0x0b.
+
+> 
+> 
+> i2c_w() => ovfx2_i2c_w()
+> Orig: 0x02
+> Switched to 0x01
+> 
+> i2c_r() => ovfx2_i2c_r()
+> Orig: 0x03
+> Switched to 0x02 on loose grounds
+
+Had you try to just do this change?
+> 
+> 
+> But not too surprisingly it didn't do very well and stopped right after
+> "Write reg 0x0060 -> [0x00] failed".  Additionally, I haven't been able
+> to figure out how to find SOF/EOF and none of the algorithms presented
+> in ov519.c seem to be applicable to the data streams I'm seeing.  The
+> biggest hint I have is that there seems to be a darkened pixel row the
+> second from the top and left in case that's familiar.
+> 
+> In any case, I got a bit more serious and learned the basic V4L API as
+> well as GSPCA enough to write a proof of concept driver for it (I used
+> dead reckoning on frame size to find SOF/EOF but it of course gets
+> messed up if a packet drops which sometimes happens during init).  I
+> figure even if there is an existing driver it was a good experience for
+> me and it should help fitting it in.  I also read the datasheet enough
+> to figure out how to rip the firmware off although I don't know if it
+> would be of any use.  From what I can tell from the datasheet though
+> even if its the same chip it could be configured in a number of
+> different ways and there is no guarantee the requests would line up.  Of
+> course, I'm not going to deny that they are the same requests and I'm
+> still misinterpreting it since you did predict the chip before me ;) 
+> Thanks for the help and hopefully with a little more prodding we'll be
+> able to straighten this out.
+> 
+> John
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+If your firmware is using a different settings of req's for I2C, you probably
+need to do something like the patch below. This will avoid breaking support
+for the existing devices, and will be simple enough for you to re-use the
+existing driver, after figuring out the missing parts. Of yourse, you'll need
+to replace the dead:beef USB ID by yours ;)
+
+Regards,
+Mauro
+
+diff --git a/drivers/media/video/gspca/ov519.c b/drivers/media/video/gspca/ov519.c
+index 6a01b35..9ca3cfc 100644
+--- a/drivers/media/video/gspca/ov519.c
++++ b/drivers/media/video/gspca/ov519.c
+@@ -92,6 +92,8 @@ struct sd {
+ #define BRIDGE_W9968CF		6
+ #define BRIDGE_MASK		7
+ 
++#define BRIDGE_OVFX2_V2	9			/* For devices with another firmware */
++
+ 	char invert_led;
+ #define BRIDGE_INVERT_LED	8
+ 
+@@ -2448,14 +2450,19 @@ static int ov518_i2c_r(struct sd *sd, u8 reg)
+ 
+ static void ovfx2_i2c_w(struct sd *sd, u8 reg, u8 value)
+ {
+-	int ret;
++	int ret, req;
+ 
+ 	if (sd->gspca_dev.usb_err < 0)
+ 		return;
+ 
++	if (id->driver_info & BRIDGE_OVFX2_V2)
++		req = 0x0b;
++	else
++		req = 0x02;
++
+ 	ret = usb_control_msg(sd->gspca_dev.dev,
+ 			usb_sndctrlpipe(sd->gspca_dev.dev, 0),
+-			0x02,
++			req,
+ 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+ 			(u16) value, (u16) reg, NULL, 0, 500);
+ 
+@@ -2469,14 +2476,19 @@ static void ovfx2_i2c_w(struct sd *sd, u8 reg, u8 value)
+ 
+ static int ovfx2_i2c_r(struct sd *sd, u8 reg)
+ {
+-	int ret;
++	int ret, req;
+ 
+ 	if (sd->gspca_dev.usb_err < 0)
+ 		return -1;
+ 
++	if (id->driver_info & BRIDGE_OVFX2_V2)
++		req = 0x0b;
++	else
++		req = 0x03;
++
+ 	ret = usb_control_msg(sd->gspca_dev.dev,
+ 			usb_rcvctrlpipe(sd->gspca_dev.dev, 0),
+-			0x03,
++			req,
+ 			USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+ 			0, (u16) reg, sd->gspca_dev.usb_buf, 1, 500);
+ 
+@@ -5023,6 +5035,7 @@ static const struct usb_device_id device_table[] = {
+ 	{USB_DEVICE(0x05a9, 0x0530),
+ 		.driver_info = BRIDGE_OV519 | BRIDGE_INVERT_LED },
+ 	{USB_DEVICE(0x05a9, 0x2800), .driver_info = BRIDGE_OVFX2 },
++	{USB_DEVICE(0xdead, 0xbeef), .driver_info = BRIDGE_OVFX2 | BRIDGE_OVFX2_V2 },
+ 	{USB_DEVICE(0x05a9, 0x4519), .driver_info = BRIDGE_OV519 },
+ 	{USB_DEVICE(0x05a9, 0x8519), .driver_info = BRIDGE_OV519 },
+ 	{USB_DEVICE(0x05a9, 0xa511), .driver_info = BRIDGE_OV511PLUS },
