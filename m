@@ -1,161 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5505 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753181Ab1KPPgx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Nov 2011 10:36:53 -0500
-Message-ID: <4EC3D891.9090009@redhat.com>
-Date: Wed, 16 Nov 2011 13:36:49 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Sylwester Nawrocki <snjw23@gmail.com>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv1 PATCH 1/3] V4L2: Add per-device-node capabilities
-References: <1320662246-8531-1-git-send-email-hverkuil@xs4all.nl> <43f3b62f1a17a91a02b5a66026b8af02ad31fa2f.1320661643.git.hans.verkuil@cisco.com> <4EC2C904.2010308@gmail.com> <201111161541.41796.hverkuil@xs4all.nl>
-In-Reply-To: <201111161541.41796.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:63251 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752621Ab1KFPTW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 10:19:22 -0500
+Received: by wwf22 with SMTP id 22so3938879wwf.1
+        for <linux-media@vger.kernel.org>; Sun, 06 Nov 2011 07:19:20 -0800 (PST)
+Message-ID: <4eb6a578.8bcbe30a.30d9.fffff86a@mx.google.com>
+Subject: [PATCH] it913x-fe ver 1.10 correct SNR reading from frontend.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Sun, 06 Nov 2011 15:19:14 +0000
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 16-11-2011 12:41, Hans Verkuil escreveu:
-> On Tuesday 15 November 2011 21:18:12 Sylwester Nawrocki wrote:
->> Hello Hans,
->>
->> On 11/07/2011 11:37 AM, Hans Verkuil wrote:
->>> From: Hans Verkuil<hans.verkuil@cisco.com>
->>>
->>> If V4L2_CAP_DEVICE_CAPS is set, then the new device_caps field is filled
->>> with the capabilities of the opened device node.
->>>
->>> The capabilities field traditionally contains the capabilities of the
->>> whole device. E.g., if you open video0, then if it contains VBI caps
->>> then that means that there is a corresponding vbi node as well. And the
->>> capabilities field of both the video and vbi node should contain
->>> identical caps.
->>>
->>> However, it would be very useful to also have a capabilities field that
->>> contains just the caps for the currently open device, hence the new CAP
->>> bit and field.
->>>
->>> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
->>> ---
->>>
->>>   include/linux/videodev2.h |    7 +++++--
->>>   1 files changed, 5 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
->>> index 4b752d5..2b6338b 100644
->>> --- a/include/linux/videodev2.h
->>> +++ b/include/linux/videodev2.h
->>> @@ -243,8 +243,9 @@ struct v4l2_capability {
->>>
->>>   	__u8	card[32];	/* i.e. "Hauppauge WinTV" */
->>>   	__u8	bus_info[32];	/* "PCI:" + pci_name(pci_dev) */
->>>   	__u32   version;        /* should use KERNEL_VERSION() */
->>>
->>> -	__u32	capabilities;	/* Device capabilities */
->>> -	__u32	reserved[4];
->>> +	__u32	capabilities;	/* Global device capabilities */
->>> +	__u32	device_caps;	/* Device node capabilities */
->>
->> How about changing this to
->>
->> 	__u32	devnode_caps;	/* Device node capabilities */
->>
->>> +	__u32	reserved[3];
->>>
->>>   };
->>>   
->>>   /* Values for 'capabilities' field */
->>>
->>> @@ -274,6 +275,8 @@ struct v4l2_capability {
->>>
->>>   #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
->>>   #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O
->>>   ioctls */
->>>
->>> +#define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device
->>> capabilities field */
->>
->> ..and
->>
->> #define V4L2_CAP_DEVNODE_CAPS            0x80000000  /* sets device node
->> capabilities field */
->>
->> ?
->>
->> 'device' might suggest a whole physical device/system at first sight.
->> Maybe devnode_caps is not be the best name but it seems more explicit and
->> less confusing :)
+Correction of reading from frontend and represents
+a SNR nonlinear scale of minimum signal to full signal.
 
-On kernel, "device" doesn't represent a physical device/system.
-See, for example:
-	Documentation/devices.txt
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/dvb/frontends/it913x-fe.c |   56 +++++++++++++++++++++++++++----
+ 1 files changed, 49 insertions(+), 7 deletions(-)
 
-It is clear there that a device is directly associated with a devnode.
+diff --git a/drivers/media/dvb/frontends/it913x-fe.c b/drivers/media/dvb/frontends/it913x-fe.c
+index 6d12dcc..07c1b46 100644
+--- a/drivers/media/dvb/frontends/it913x-fe.c
++++ b/drivers/media/dvb/frontends/it913x-fe.c
+@@ -53,6 +53,8 @@ struct it913x_fe_state {
+ 	struct ite_config *config;
+ 	u8 i2c_addr;
+ 	u32 frequency;
++	fe_modulation_t constellation;
++	fe_transmit_mode_t transmission_mode;
+ 	u32 crystalFrequency;
+ 	u32 adcFrequency;
+ 	u8 tuner_type;
+@@ -496,14 +498,50 @@ static int it913x_fe_read_signal_strength(struct dvb_frontend *fe,
+ 	return 0;
+ }
+ 
+-static int it913x_fe_read_snr(struct dvb_frontend *fe, u16* snr)
++static int it913x_fe_read_snr(struct dvb_frontend *fe, u16 *snr)
+ {
+ 	struct it913x_fe_state *state = fe->demodulator_priv;
+-	int ret = it913x_read_reg_u8(state, SIGNAL_QUALITY);
+-	ret = (ret * 0xff) / 0x64;
+-	ret |= (ret << 0x8);
+-	*snr = ~ret;
+-	return 0;
++	int ret;
++	u8 reg[3];
++	u32 snr_val, snr_min, snr_max;
++	u32 temp;
++
++	ret = it913x_read_reg(state, 0x2c, reg, sizeof(reg));
++
++	snr_val = (u32)(reg[2] << 16) | (reg[1] < 8) | reg[0];
++
++	ret |= it913x_read_reg(state, 0xf78b, reg, 1);
++	if (reg[0])
++		snr_val /= reg[0];
++
++	if (state->transmission_mode == TRANSMISSION_MODE_2K)
++		snr_val *= 4;
++	else if (state->transmission_mode == TRANSMISSION_MODE_4K)
++		snr_val *= 2;
++
++	if (state->constellation == QPSK) {
++		snr_min = 0xb4711;
++		snr_max = 0x191451;
++	} else if (state->constellation == QAM_16) {
++		snr_min = 0x4f0d5;
++		snr_max = 0xc7925;
++	} else if (state->constellation == QAM_64) {
++		snr_min = 0x256d0;
++		snr_max = 0x626be;
++	} else
++		return -EINVAL;
++
++	if (snr_val < snr_min)
++		*snr = 0;
++	else if (snr_val < snr_max) {
++		temp = (snr_val - snr_min) >> 5;
++		temp *= 0xffff;
++		temp /= (snr_max - snr_min) >> 5;
++		*snr = (u16)temp;
++	} else
++		*snr = 0xffff;
++
++	return (ret < 0) ? -ENODEV : 0;
+ }
+ 
+ static int it913x_fe_read_ber(struct dvb_frontend *fe, u32 *ber)
+@@ -530,9 +568,13 @@ static int it913x_fe_get_frontend(struct dvb_frontend *fe,
+ 	if (reg[3] < 3)
+ 		p->u.ofdm.constellation = fe_con[reg[3]];
+ 
++	state->constellation = p->u.ofdm.constellation;
++
+ 	if (reg[0] < 3)
+ 		p->u.ofdm.transmission_mode = fe_mode[reg[0]];
+ 
++	state->transmission_mode = p->u.ofdm.transmission_mode;
++
+ 	if (reg[1] < 4)
+ 		p->u.ofdm.guard_interval = fe_gi[reg[1]];
+ 
+@@ -888,5 +930,5 @@ static struct dvb_frontend_ops it913x_fe_ofdm_ops = {
+ 
+ MODULE_DESCRIPTION("it913x Frontend and it9137 tuner");
+ MODULE_AUTHOR("Malcolm Priestley tvboxspy@gmail.com");
+-MODULE_VERSION("1.09");
++MODULE_VERSION("1.10");
+ MODULE_LICENSE("GPL");
+-- 
+1.7.5.4
 
-The thing is that the kernel struct that represents a device is "struct device".
-And the userspace view for "struct device" is a device node.
-
-As I told several times, what we call "subdevice" is, in fact a device, as it is
-(on most cases) exported via devnodes to userspace. For example, all I2C subdevices
-are devices, as they can be seen via devnodes at the I2C bus support (if i2c-dev
-module is loaded). Worse than that, if MC/subdev API is used, the same sub-device
-will be, in fact, 2 devices (one I2C device, and one V4L2 subdev device), each
-device with its own device node.
-
-A "physical device" can have more than one device. For example, serial devices, in
-general, have two devices for each physical one (cua0-191 and TTYS0-191). This is
-there since the beginning of Linux.
-
-So, calling/interpreting the term "device" as the physical device is _wrong_.
-It might be used as-is only if there's only one device is associated to the physical
-device. I don't think there's any such case currently at V4L2 (as, at least, one
-bus device and one V4L2 device will be created at the simplest case).
-
->> It's just my personal opinion though.
-> 
-> I also have a preference for devnode, but it is my understanding that Mauro 
-> prefers 'device' over 'devnode'. Is that correct, Mauro?
-
-This is a recurrent discussion. Do a "git grep devnode|wc" and compare it with
-a "git grep device|wc".
-
-So, calling anything as "devnode" is confusing, as there's no obvious way to
-distinguish it from "device".
-
->>> +	__u32	capabilities;	/* Global device capabilities */
->>> +	__u32	device_caps;	/* Device node capabilities */
-
-I would change the comments to:
-
-	__u32	capabilities;	/* capabilities present at the physical device as a hole */
-	__u32	device_caps;	/* capabilities accessed via this particular device (node) */
-
-Btw, the better would be to use the standard way to comment it:
-
-/**
- * struct v4l2_capability - Describes V4L2 device caps on VIDIOC_QUERYCAP
-...
- @capabilities: capabilities present at the physical device as a hole
- @device_caps:	capabilities accessed via this particular device
-...
- */
-
-
-> I am OK with either.
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>
->> --
->> Regards,
->> Sylwester
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
