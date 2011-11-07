@@ -1,100 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:63684 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752580Ab1KXSeF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 13:34:05 -0500
-Received: by eaak14 with SMTP id k14so349875eaa.19
-        for <linux-media@vger.kernel.org>; Thu, 24 Nov 2011 10:34:04 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:60856 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753200Ab1KGMVx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Nov 2011 07:21:53 -0500
+Message-ID: <4EB7CD59.1010303@redhat.com>
+Date: Mon, 07 Nov 2011 10:21:45 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4ECE8C06.2070302@redhat.com>
-References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
-	<dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com>
-	<4ECE79F5.9000402@linuxtv.org>
-	<201111241844.23292.hverkuil@xs4all.nl>
-	<4ECE8434.5060106@linuxtv.org>
-	<4ECE85CE.7040807@redhat.com>
-	<4ECE87EA.9000001@linuxtv.org>
-	<4ECE8C06.2070302@redhat.com>
-Date: Fri, 25 Nov 2011 00:04:04 +0530
-Message-ID: <CAHFNz9JbETiNWzJ_zrFEmb8HOOy-Jmsc-NzGo=AJ_sS1ND=3SA@mail.gmail.com>
-Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Taylor Ralph <taylor.ralph@gmail.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Janne Grunau <j@jannau.net>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] hdpvr: update picture controls to support firmware
+ versions > 0.15
+References: <CAOTqeXouWiYaRkKKO-1iQ5SJEb7RUXJpHdfe9-YeSzwXxdUVfg@mail.gmail.com> <CAGoCfiyCPD-W3xeqD4+AE3xCo-bj05VAy4aHXMNXP7P124ospQ@mail.gmail.com> <20111020162340.GC7530@jannau.net> <CAGoCfiwXjQsAEVfFiNA5CNw1PVuO0npO63pGb91rpbPuKGvwZQ@mail.gmail.com> <20111020170811.GD7530@jannau.net> <CAGoCfiz38bdpnz0dLfs2p4PjLR1dDm_5d_y34ACpNd6W62G7-w@mail.gmail.com> <CAOTqeXpJfk-ENgxhELo03LBHqdtf957knXQzOjYo0YO7sGcAbg@mail.gmail.com> <CAOTqeXpY3uvy7Dq3fi1wTD5nRx1r1LMo7=XEfJdxyURY2opKuw@mail.gmail.com>
+In-Reply-To: <CAOTqeXpY3uvy7Dq3fi1wTD5nRx1r1LMo7=XEfJdxyURY2opKuw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 24, 2011 at 11:55 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 24-11-2011 16:07, Andreas Oberritter escreveu:
->> On 24.11.2011 18:58, Mauro Carvalho Chehab wrote:
->>> Em 24-11-2011 15:51, Andreas Oberritter escreveu:
->>>> On 24.11.2011 18:44, Hans Verkuil wrote:
->>>>> On Thursday, November 24, 2011 18:08:05 Andreas Oberritter wrote:
->>>>>> Don't break existing Userspace APIs for no reason! It's OK to add the
->>>>>> new API, but - pretty please - don't just blindly remove audio.h and
->>>>>> video.h. They are in use since many years by av7110, out-of-tree drivers
->>>>>> *and more importantly* by applications. Yes, I know, you'd like to see
->>>>>> those out-of-tree drivers merged, but it isn't possible for many
->>>>>> reasons. And even if they were merged, you'd say "Port them and your
->>>>>> apps to V4L". No! That's not an option.
->>>>>
->>>>> I'm not breaking anything. All apps will still work.
->>>>>
->>>>> One option (and it depends on whether people like it or not) is to have
->>>>> audio.h, video.h and osd.h just include av7110.h and add a #warning
->>>>> that these headers need to be replaced by the new av7110.h.
->>>>>
->>>>> And really remove them at some point in the future.
->>>>>
->>>>> But the important thing to realize is that the ABI hasn't changed (unless
->>>>> I made a mistake somewhere).
->>>>
->>>> So why don't you just leave the headers where they are and add a notice
->>>> about the new V4L API as a comment?
->>>>
->>>> What you proposed breaks compilation. If you add a warning, it breaks
->>>> compilation for programs compiled with -Werror. Both are regressions.
+Em 21-10-2011 01:33, Taylor Ralph escreveu:
+> On Thu, Oct 20, 2011 at 3:26 PM, Taylor Ralph <taylor.ralph@gmail.com> wrote:
+>> On Thu, Oct 20, 2011 at 2:14 PM, Devin Heitmueller
+>> <dheitmueller@kernellabs.com> wrote:
+>>> On Thu, Oct 20, 2011 at 1:08 PM, Janne Grunau <j@jannau.net> wrote:
+>>>> I think such scenario is unlikely but I don't know it for sure and
+>>>> I don't want to force anyone to test every firmware version.
+>>>> Ignoring them for firmware version < 16 should be safe since we assume
+>>>> they had no effect. Returning -EINVAL might break API-ignoring
+>>>> applications written with the HD PVR in mind but I think it's a better
+>>>> approach than silently ignoring those controls.
 >>>
->>> I don't mind doing it for 3.3 kernel, and add a note at
->>> Documentation/feature-removal-schedule.txt that the
->>> headers will go away on 3.4. This should give distributions
->>> and app developers enough time to prevent build failures, and
->>> prepare for the upcoming changes.
+>>> At this point, let's just make it so that the old behavior is
+>>> unchanged for old firmwares, meaning from both an API standpoint as
+>>> well as what the values are.  At some point if somebody cares enough
+>>> to go back and fix the support so that the controls actually work with
+>>> old firmwares, they can take that up as a separate task.  In reality,
+>>> it is likely that nobody will ever do that, as the "easy answer" is
+>>> just to upgrade to firmware 16.
+>>>
+>>> Taylor, could you please tweak your patch to that effect and resubmit?
+>>>
 >>
->> Are you serious?
+>> Sure, I'll try to get to it tonight and have it tested.
 >>
->> Breaking things that worked well for many years - for an artificially
->> invented reason - is so annoying, I can't even find the words to express
->> how much this sucks.
->
-> Andreas,
->
-> All the in-kernel API's are there to support in-kernel drivers.
->
-> Out of tree drivers can do whatever they want. As you likely know, several STB
-> vendors have their own API's.
->
-> Some use some variants of DVBv3 or DVBv5, and some use their own proprietary
-> API's, that are even incompatible with DVB (and some even provide both).
->
-> Even the ones that use DVBv3 (or v5) have their own implementation that diverges
-> from the upstream one.
->
-> Provided that such vendors don't violate the Kernel GPLv2 license where it applies,
-> they're free do do whatever they want, forking the DVB API, or creating their own
-> stacks.
->
-> So, keeping the in-kernel unused ioctl's don't bring any real benefit, as vendors
-> can still do their forks, and applications designed to work with those hardware
-> need to support the vendor's stack.
+> 
+> OK, I've updated the patch per your requests. I made this patch
+> against the latest kernel source but I'm unable to test since my
+> 2.6.32 kernel has symbol issues with the new v4l code.
 
+Please, add your Signed-off-by: to the patch. This is a requirement for
+it to be accepted upstream[1].
 
-In another thread, where I requested you to revert the audio/video
-ioctl removal
-patch, I did chime in that those headers are in use. If you consider a
-driver that's
-to be merged as an out-of tree driver, then you are asking people to go away.
+Thanks,
+Mauro
+
+[1] See: http://linuxtv.org/wiki/index.php/Development:_Submitting_Patches#Developer.27s_Certificate_of_Origin_1.1
+
+> 
+> Regards.
+> --
+> Taylor
+
