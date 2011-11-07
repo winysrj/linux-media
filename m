@@ -1,39 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1645 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751173Ab1KYPZt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Nov 2011 10:25:49 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
-Date: Fri, 25 Nov 2011 16:25:44 +0100
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <4ECF9038.6050208@linuxtv.org> <4ECFB1DC.2090304@redhat.com>
-In-Reply-To: <4ECFB1DC.2090304@redhat.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:37170 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755817Ab1KGSVn convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Nov 2011 13:21:43 -0500
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111251625.44135.hverkuil@xs4all.nl>
+In-Reply-To: <87obwr1n9i.fsf@ti.com>
+References: <1320185752-568-1-git-send-email-omar.ramirez@ti.com>
+	<1320185752-568-5-git-send-email-omar.ramirez@ti.com>
+	<87obwr1n9i.fsf@ti.com>
+Date: Mon, 7 Nov 2011 12:21:41 -0600
+Message-ID: <CAB-zwWhkdv430aD8Osgi7Kyi6ScvhkwZ7BSW1cs3Nyzxc10VYg@mail.gmail.com>
+Subject: Re: [PATCH v3 4/4] OMAP3/4: iommu: adapt to runtime pm
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>,
+	Benoit Cousson <b-cousson@ti.com>,
+	Ohad Ben-Cohen <ohad@wizery.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	lkml <linux-kernel@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	lo <linux-omap@vger.kernel.org>,
+	lak <linux-arm-kernel@lists.infradead.org>,
+	lm <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, November 25, 2011 16:18:52 Mauro Carvalho Chehab wrote:
-> The V4L2 API complements the ALSA API. Audio streaming, audio format negotiation
-> etc are via the ALSA API.
-> 
-> > Can you control pass-through of digital audio to SPDIF for example? Can
-> > you control which decoder should be the master when synchronizing AV?
-> 
-> Patches for that are being proposed and should be merged soon. They are part
-> of the set of patches under discussion with ALSA people, as part of the Media
-> Controller API.
+Hi,
 
-Can you provide a link to those patches? I haven't seen anything cross-posted
-to linux-media.
+On Fri, Nov 4, 2011 at 6:27 PM, Kevin Hilman <khilman@ti.com> wrote:
+>> @@ -821,9 +820,7 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
+>>       if (!obj->refcount)
+>>               return IRQ_NONE;
+>>
+>> -     clk_enable(obj->clk);
+>>       errs = iommu_report_fault(obj, &da);
+>> -     clk_disable(obj->clk);
+>>       if (errs == 0)
+>>               return IRQ_HANDLED;
+>
+> I'm not terribly familiar with this IOMMU code, but this one looks
+> suspiciou because you're removing the clock calls but not replacing them
+> with runtime PM get/put calls.
+>
+> I just want to make sure that's intentional.  If so, you might want to
+> add a comment about that to the changelog.
 
-Regards,
+Yes it is intentional, reason is that in order to get an interrupt,
+the device should be powered on in advance, right now it is working
+because the modules share a common clock so the users of the
+omap-iommu indirectly give power to it. However I made another change
+to do pm_runtime_get/put on attach/detach so it doesn't rely on others
+to keep the clocks on.
 
-	Hans
+I'll add the comment.
+
+Thanks,
+
+Omar
