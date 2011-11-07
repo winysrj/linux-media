@@ -1,100 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9558 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752756Ab1KBJN7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Nov 2011 05:13:59 -0400
-Message-ID: <4EB109EC.6000709@redhat.com>
-Date: Wed, 02 Nov 2011 10:14:20 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:56801 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753639Ab1KGWT4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2011 17:19:56 -0500
+Received: by mail-gy0-f174.google.com with SMTP id 15so4656389gyc.19
+        for <linux-media@vger.kernel.org>; Mon, 07 Nov 2011 14:19:55 -0800 (PST)
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/6] v4l2-event: Remove pending events from fh event queue
- when unsubscribing
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4EB7F048.1050307@redhat.com>
+References: <CAJWu0HN8WC-xfAy3cNnA_o3YPj7+9Eo5+YCvNtqRNs9dG18+8A@mail.gmail.com>
+ <201110281442.21776.laurent.pinchart@ideasonboard.com> <4EAB2CF4.4040007@gmail.com>
+ <201110290952.17916.laurent.pinchart@ideasonboard.com> <4EB7F048.1050307@redhat.com>
+From: Gilles Gigan <gilles.gigan@gmail.com>
+Date: Tue, 8 Nov 2011 09:19:33 +1100
+Message-ID: <CAJWu0HNtJukPLjcRU1m6=P5dTo7DAgNozqLZreMCVXZZzTRSbQ@mail.gmail.com>
+Subject: Re: Switching input during capture
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi all,
 
-hverkuil wrote:
+On Tue, Nov 8, 2011 at 1:50 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 29-10-2011 05:52, Laurent Pinchart escreveu:
+>> Hi Mauro,
+>>
+>> On Saturday 29 October 2011 00:30:12 Mauro Carvalho Chehab wrote:
+>>> Em 28-10-2011 14:42, Laurent Pinchart escreveu:
+>>>> On Friday 28 October 2011 03:31:53 Gilles Gigan wrote:
+>>>>> Hi,
+>>>>> I would like to know what is the correct way to switch the current
+>>>>> video input during capture on a card with a single BT878 chip and 4
+>>>>> inputs
+>>>>> (http://store.bluecherry.net/products/PV%252d143-%252d-4-port-video-capt
+>>>>> ur e-card-%2830FPS%29-%252d-OEM.html). I tried doing it in two ways: -
+>>>>> using VIDIOC_S_INPUT to change the current input. While this works, the
+>>>>> next captured frame shows video from the old input in its top half and
+>>>>> video from the new input in the bottom half.
+>>>
+>>> This is is likely easy to fix. The driver has already a logic to prevent
+>>> changing the buffer while in the middle of a buffer filling. I suspect
+>>> that the BKL removal patches might have broken it somewhat, allowing
+>>> things like that. basically, it should be as simple as not allowing
+>>> changing the input at the top half.
+>>
+>> This will work optimally only if the input analog signals are synchronized,
+>> right ? If we switch to a new input right when the frame start, can the first
+>> frame captured on the new input be corrupted ?
+>
+> That's a good question. I'm not sure how those bttv cards solve it, but as
+> they're widely used on such configurations, I suspect that the hardware used
+> on those CCTV boards have some logic to keep them in sync.
+>
+>>
+>>> Please try the enclosed patch.
+>>>
+>>> Regards,
+>>> Mauro
+>>>
+>>> -
+>>>
+>>> bttv: Avoid switching the video input at the top half.
+>>>
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>>
+>>> diff --git a/drivers/media/video/bt8xx/bttv-driver.c
+>>> b/drivers/media/video/bt8xx/bttv-driver.c index 3dd0660..6a3be6f 100644
+>>> --- a/drivers/media/video/bt8xx/bttv-driver.c
+>>> +++ b/drivers/media/video/bt8xx/bttv-driver.c
+>>> @@ -3978,7 +3978,7 @@ bttv_irq_switch_video(struct bttv *btv)
+>>>      bttv_set_dma(btv, 0);
+>>>
+>>>      /* switch input */
+>>> -    if (UNSET != btv->new_input) {
+>>> +    if (! btv->curr.top && UNSET != btv->new_input) {
+>>>              video_mux(btv,btv->new_input);
+>>>              btv->new_input = UNSET;
+>>>      }
+>>
+>
+>
 
-On Thursday, October 27, 2011 13:18:01 Hans de Goede wrote:
- >> 1: There is no reason for this after v4l2_event_unsubscribe releases the
- >> spinlock nothing is holding a reference to the sev anymore except for the
- >> local reference in the v4l2_event_unsubscribe function.
- >
- > Not true. v4l2-ctrls.c may still have a reference to the sev through the
- > ev_subs list in struct v4l2_ctrl. The send_event() function checks for a
- > non-zero fh.
-
-Ah, yes. You're right v4l2-ctrls.c may still hold a reference after
-releasing the spinlock.
-
-*But* setting sev->fh to NULL and checking for this in v4l2-ctrls: send_event(),
-or doing something similar, is not only not needed it is outright wrong.
-v4l2_event_unsubscribe() and v4l2-ctrls: send_event() don't hold any shared
-lock, so any form of test then use in v4l2-ctrls: send_event() is inherent racy.
-
-Here is the relevant code from v4l2-ctrls: send_event():
-
-	if (sev->fh && (sev->fh != fh ||
-			(sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK)))
-		v4l2_event_queue_fh(sev->fh, &ev);
-
-Now lets say that v4l2_event_unsubscribe and v4l2-ctrls: send_event() race
-on the same sev, then the following could happens:
-
-1) send_event checks sev->fh, finds it is not NULL
-<thread switch>
-2) v4l2_event_unsubscribe sets sev->fh NULL
-3) v4l2_event_unsubscribe calls v4l2_ctrls del_event function, this blocks
-    as the thread calling send_event holds the ctrl_lock
-<thread switch>
-4) send_event calls v4l2_event_queue_fh(sev->fh, &ev) which not is equivalent
-    to calling: v4l2_event_queue_fh(NULL, &ev)
-5) oops, NULL pointer deref.
-
-Now again without setting sev->fh to NULL in v4l2_event_unsubscribe and
-without the (now senseless since always true) sev->fh != NULL check in
-send_event:
-
-1) send_event is about to call v4l2_event_queue_fh(sev->fh, &ev)
-<thread switch>
-2) v4l2_event_unsubscribe removes sev->list from the fh->subscribed list
-<thread switch>
-3) send_event calls v4l2_event_queue_fh(sev->fh, &ev)
-4) v4l2_event_queue_fh blocks on the fh_lock spinlock
-<thread switch>
-5) v4l2_event_unsubscribe unlocks the fh_lock spinlock
-6) v4l2_event_unsubscribe calls v4l2_ctrls del_event function, this blocks
-    as the thread calling send_event holds the ctrl_lock
-<thread switch>
-8) v4l2_event_queue_fh takes the fh_lock
-7) v4l2_event_queue_fh calls v4l2_event_subscribed, does not find it since
-    sev->list has been removed from fh->subscribed already -> does nothing
-9) v4l2_event_queue_fh releases the fh_lock
-10) the caller of send_event releases the ctrl lock (mutex)
-<thread switch>
-11) v4l2_ctrls del_event takes the ctrl lock
-12) v4l2_ctrls del_event removes sev->node from the ev_subs list
-13) v4l2_ctrls del_event releases the ctrl lock
-14) v4l2_event_unsubscribe frees the sev, to which no references are being
-     held anymore
-
- > All that is needed is to find some different way of letting send_event()
- > know that this sev is no longer used. Perhaps by making sev->list empty?
-
-Actually as explained above the fix is to not do any checks and let both
-"subsystems" take care of their own locking / consistency without any
-interactions (other then that v4l2_ctrls should not hold any references
-to the sev after its del op has completed).
-
-I'll update the patch to also remove the sev->fh check from v4l2_ctrls:
-send_event() and update the commit message.
-
-Regards,
-
-Hans
-
+I am yet to try the above patch myself, but I have received feedback
+from another user and it seems it does not solve the issue.
+Will keep you posted as soon as I got around to testing it.
+Thanks
+Gilles
