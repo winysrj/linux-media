@@ -1,107 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45117 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755462Ab1KNW26 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Nov 2011 17:28:58 -0500
-Message-ID: <4EC19622.80304@redhat.com>
-Date: Mon, 14 Nov 2011 20:28:50 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3970 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754394Ab1KGNfw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2011 08:35:52 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: hvaibhav@ti.com
+Subject: Re: [PATCH] v4l2 doc: Added FBUF_CAP_SRC_CHROMAKEY/FLAG_SRC_CHROMAKEY
+Date: Mon, 7 Nov 2011 14:35:39 +0100
+Cc: linux-media@vger.kernel.org
+References: <hvaibhav@ti.com> <1257864345-13595-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <1257864345-13595-1-git-send-email-hvaibhav@ti.com>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Andreas Oberritter <obi@linuxtv.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: PATCH v3: Query DVB frontend delivery capabilities (was: Re:
- PATCH: Query DVB frontend capabilities)
-References: <CAHFNz9JW-CyOsFutMNkfVZ-KuJX2FE1DZ_AQ5TZne4CCypLYng@mail.gmail.com> <4EC17E31.5010407@redhat.com> <CAHFNz9+44KMXYDpXKswkp5a3eah8UFLX4oe5GnKpnP4fHTqCLw@mail.gmail.com>
-In-Reply-To: <CAHFNz9+44KMXYDpXKswkp5a3eah8UFLX4oe5GnKpnP4fHTqCLw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111071435.39805.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 14-11-2011 20:08, Manu Abraham escreveu:
-> On Tue, Nov 15, 2011 at 2:16 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Em 14-11-2011 17:39, Manu Abraham escreveu:
->>> On 11/12/11, Andreas Oberritter <obi@linuxtv.org> wrote:
->>>> On 11.11.2011 23:38, Mauro Carvalho Chehab wrote:
->>>>> Em 11-11-2011 20:07, Manu Abraham escreveu:
->>>>>> On Fri, Nov 11, 2011 at 3:42 PM, Mauro Carvalho Chehab
->>>>>> <mchehab@redhat.com> wrote:
->>>>>>> Em 11-11-2011 04:26, Manu Abraham escreveu:
->>>>>>>> On Fri, Nov 11, 2011 at 2:50 AM, Mauro Carvalho Chehab
->>>>>>>> <mchehab@redhat.com> wrote:
->>>>>>>>> Em 10-11-2011 13:30, Manu Abraham escreveu:
->>>>>>>> The purpose of the patch is to
->>>>>>>> query DVB delivery system capabilities alone, rather than DVB frontend
->>>>>>>> info/capability.
->>>>>>>>
->>>>>>>> Attached is a revised version 2 of the patch, which addresses the
->>>>>>>> issues that were raised.
->>>>>>>
->>>>>>> It looks good for me. I would just rename it to DTV_SUPPORTED_DELIVERY.
->>>>>>> Please, when submitting upstream, don't forget to increment DVB version
->>>>>>> and
->>>>>>> add touch at DocBook, in order to not increase the gap between API specs
->>>>>>> and the
->>>>>>> implementation.
->>>>>>
->>>>>> Ok, thanks for the feedback, will do that.
->>>>>>
->>>>>> The naming issue is trivial. I would like to have a shorter name
->>>>>> rather that SUPPORTED. CAPS would have been ideal, since it refers to
->>>>>> device capability.
->>>>>
->>>>> CAPS is not a good name, as there are those two CAPABILITIES calls there
->>>>> (well, currently not implemented). So, it can lead in to some confusion.
->>>>>
->>>>> DTV_ENUM_DELIVERY could be an alternative for a short name to be used
->>>>> there.
->>>>
->>>> I like "enum", because it suggests that it's a read-only property.
->>>>
->>>> DVB calls them "delivery systems", so maybe DTV_ENUM_DELSYS may be an
->>>> alternative.
->>>
->>> This is a bit more sensible and meaningful than the others. I like
->>> this one better than the others.
->>>
->>> Attached is a version 3 patch which addresses all the issues that were raised
->>
->> Ok from my side. A minor issue is that we've renamed the cmd, but the
->> internal function name was the same:
->>
->> dtv_set_default_delivery_caps()
->>
->> Anyway, ACK from my side.
->>
-> 
-> Ok, thanks.
-> 
-> 
->> I'll merge it upstream when you submit the DocBook patches (or send me a git
->> pull request with both things - whatever work better for you).
-> 
-> Those xml docs seem to have some issue ?
-> I get this following error on opening the docs:
-> 
-> XML error while loading the document:
-> The markup in the document following the root element must be well
-> formed. at line3
+Hi Vaibhav!
 
-Never saw this error before. I doubt that there are any issues, as otherwise,
-kernel people would have complained already. Also, linuxtv rebuilds it every
-day.
+This is a bit of a 'blast from the past', but when I went through the
+documentation of the framebuffer flags in the V4L2 spec I noticed that the
+definition of V4L2_FBUF_CAP_SRC_CHROMAKEY seemed to be wrong.
 
-Are you just doing:
-	make htmldocs
-?
+The definition of V4L2_FBUF_CAP_CHROMAKEY says:
 
-If so, then perhaps you have some missing dependencies. I remember I had some
-dependency issues when I've made it to work on Ubuntu, at linuxtv.org. Some
-of the xml tools there, on that time, had some troubles (wrong versions on
-some docbook templates at the Ubuntu packages).
+'The device supports clipping by chroma-keying the
+images. That is, image pixels replace pixels in the VGA or video
+signal only where the latter assume a certain color. Chroma-keying
+makes no sense for destructive overlays.'
+
+The definition of V4L2_FBUF_CAP_SRC_CHROMAKEY says:
+
+'The device supports Source Chroma-keying. Framebuffer pixels
+with the chroma-key colors are replaced by video pixels, which
+is exactly opposite of V4L2_FBUF_CAP_CHROMAKEY.'
+
+As far as I can tell these definitions are really the same. I would expect
+that V4L2_FBUF_CAP_SRC_CHROMAKEY was defined as:
+
+'The device supports Source Chroma-keying. Video pixels
+with the chroma-key colors are replaced by framebuffer pixels, which
+is exactly opposite of V4L2_FBUF_CAP_CHROMAKEY.'
+
+The only driver that implements this is omap_vout.c. So is the mistake
+in the documentation or in the driver? I think the documentation is wrong
+in this case.
 
 Regards,
-Mauro
+
+	Hans
+
+On Tuesday, November 10, 2009 15:45:45 hvaibhav@ti.com wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  linux/Documentation/DocBook/v4l/videodev2.h.xml   |    2 ++
+>  linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml |   17 +++++++++++++++++
+>  2 files changed, 19 insertions(+), 0 deletions(-)
+> 
+> diff --git a/linux/Documentation/DocBook/v4l/videodev2.h.xml b/linux/Documentation/DocBook/v4l/videodev2.h.xml
+> index 9700206..eef7ba4 100644
+> --- a/linux/Documentation/DocBook/v4l/videodev2.h.xml
+> +++ b/linux/Documentation/DocBook/v4l/videodev2.h.xml
+> @@ -565,6 +565,7 @@ struct <link linkend="v4l2-framebuffer">v4l2_framebuffer</link> {
+>  #define V4L2_FBUF_CAP_LOCAL_ALPHA       0x0010
+>  #define V4L2_FBUF_CAP_GLOBAL_ALPHA      0x0020
+>  #define V4L2_FBUF_CAP_LOCAL_INV_ALPHA   0x0040
+> +#define V4L2_FBUF_CAP_SRC_CHROMAKEY     0x0080
+>  /*  Flags for the 'flags' field. */
+>  #define V4L2_FBUF_FLAG_PRIMARY          0x0001
+>  #define V4L2_FBUF_FLAG_OVERLAY          0x0002
+> @@ -572,6 +573,7 @@ struct <link linkend="v4l2-framebuffer">v4l2_framebuffer</link> {
+>  #define V4L2_FBUF_FLAG_LOCAL_ALPHA      0x0008
+>  #define V4L2_FBUF_FLAG_GLOBAL_ALPHA     0x0010
+>  #define V4L2_FBUF_FLAG_LOCAL_INV_ALPHA  0x0020
+> +#define V4L2_FBUF_FLAG_SRC_CHROMAKEY    0x0040
+>  
+>  struct <link linkend="v4l2-clip">v4l2_clip</link> {
+>          struct <link linkend="v4l2-rect">v4l2_rect</link>        c;
+> diff --git a/linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml b/linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml
+> index f701706..e7dda48 100644
+> --- a/linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml
+> +++ b/linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml
+> @@ -336,6 +336,13 @@ alpha value. Alpha blending makes no sense for destructive overlays.</entry>
+>  inverted alpha channel of the framebuffer or VGA signal. Alpha
+>  blending makes no sense for destructive overlays.</entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_FBUF_CAP_SRC_CHROMAKEY</constant></entry>
+> +	    <entry>0x0080</entry>
+> +	    <entry>The device supports Source Chroma-keying. Framebuffer pixels
+> +with the chroma-key colors are replaced by video pixels, which is exactly opposite of
+> +<constant>V4L2_FBUF_CAP_CHROMAKEY</constant></entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> @@ -411,6 +418,16 @@ images, but with an inverted alpha value. The blend function is:
+>  output = framebuffer pixel * (1 - alpha) + video pixel * alpha. The
+>  actual alpha depth depends on the framebuffer pixel format.</entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_FBUF_FLAG_SRC_CHROMAKEY</constant></entry>
+> +	    <entry>0x0040</entry>
+> +	    <entry>Use source chroma-keying. The source chroma-key color is
+> +determined by the <structfield>chromakey</structfield> field of
+> +&v4l2-window; and negotiated with the &VIDIOC-S-FMT; ioctl, see <xref
+> +linkend="overlay" /> and <xref linkend="osd" />.
+> +Both chroma-keying are mutual exclusive to each other, so same
+> +<structfield>chromakey</structfield> field of &v4l2-window; is being used.</entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> 
