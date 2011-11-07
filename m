@@ -1,198 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxweb10.versatel.de ([82.140.32.150]:40811 "EHLO
-	mxweb10.versatel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755928Ab1KNSsA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Nov 2011 13:48:00 -0500
-Received: from cinnamon-sage.de (i577A3D32.versanet.de [87.122.61.50])
-	(authenticated bits=0)
-	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id pAEIZJm3023198
-	for <linux-media@vger.kernel.org>; Mon, 14 Nov 2011 19:35:19 +0100
-Received: from 192.168.23.2:49784 by cinnamon-sage.de for <linux-media@vger.kernel.org> ; 14.11.2011 19:35:19
-Message-ID: <4EC15F67.8010801@flensrocker.de>
-Date: Mon, 14 Nov 2011 19:35:19 +0100
-From: "L. Hanisch" <dvb@flensrocker.de>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: HVR 4000 drivers broken - adapter0/frontend1 busy
-References: <0F9690932B81064FB7B6FCE776BC26C719A34076@FALEX02.au.fjanz.com>
-In-Reply-To: <0F9690932B81064FB7B6FCE776BC26C719A34076@FALEX02.au.fjanz.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:55264 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755480Ab1KGOPE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2011 09:15:04 -0500
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LUA00635NL1C9@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 07 Nov 2011 14:15:01 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LUA00A83NL0T5@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 07 Nov 2011 14:15:01 +0000 (GMT)
+Date: Mon, 07 Nov 2011 15:14:18 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH] media: vb2: reset queued list on REQBUFS(0) call
+In-reply-to: <4EB7E11D.4060709@redhat.com>
+To: 'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	'Pawel Osciak' <pawel@osciak.com>
+Cc: 'Angela Wan' <angela.j.wan@gmail.com>, linux-media@vger.kernel.org,
+	leiwen@marvell.com, ytang5@marvell.com, qingx@marvell.com,
+	jwan@marvell.com, 'Kyungmin Park' <kyungmin.park@samsung.com>
+Message-id: <012d01cc9d57$89867df0$9c9379d0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <CABbt3s68q_jKf9bHPT8kuaB6donrAzmucJJseWNiX88qud273g@mail.gmail.com>
+ <4EA66C5F.8080202@samsung.com>
+ <CAMm-=zBt9HufMLpvcDBfD3qS1vL+zwm77APcfVcPQst1zqEyPw@mail.gmail.com>
+ <4EB7E11D.4060709@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello,
 
-Am 14.11.2011 04:14, schrieb Hawes, Mark:
-> Hi,
->
-> I have just acquired a Hauppauge HVR 4000 hybrid DVB-S2 / DVB-T / Analogue card
- > which I am trying to use with VDR 1.7.21 on the latest Slackware stable release
- > using kernel 2.6.37.6.
+On Monday, November 07, 2011 2:46 PM Mauro Carvalho Chehab wrote:
 
-  vdr doesn't know anything about hybrid cards where you can access only one frontend at the same time.
-  On startup vdr opens all frontends, so when accessing the second one this is blocked.
+> Em 25-10-2011 06:11, Pawel Osciak escreveu:
+> > On Tue, Oct 25, 2011 at 00:59, Marek Szyprowski
+> > <m.szyprowski@samsung.com> wrote:
+> >> Queued list was not reset on REQBUFS(0) call. This caused enqueuing
+> >> a freed buffer to the driver.
+> >>
+> >> Reported-by: Angela Wan <angela.j.wan@gmail.com>
+> >> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> >> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >> ---
+> >>  drivers/media/video/videobuf2-core.c |    1 +
+> >>  1 files changed, 1 insertions(+), 0 deletions(-)
+> >>
+> >> diff --git a/drivers/media/video/videobuf2-core.c
+> >> b/drivers/media/video/videobuf2-core.c
+> >> index 3015e60..5722b81 100644
+> >> --- a/drivers/media/video/videobuf2-core.c
+> >> +++ b/drivers/media/video/videobuf2-core.c
+> >> @@ -254,6 +254,7 @@ static void __vb2_queue_free(struct vb2_queue *q)
+> >>
+> >>        q->num_buffers = 0;
+> >>        q->memory = 0;
+> >> +       INIT_LIST_HEAD(&q->queued_list);
+> >>  }
+> >>
+> >>  /**
+> >> --
+> >> 1.7.1
+> >>
+> >>
+> >>
+> >
+> > Acked-by: Pawel Osciak <pawel@osciak.com>
+> >
+> 
+> This patch doesn't apply anymore. Is it still needed? If so, please rebase.
 
-  Since I don't know this card exactly, what devices does it create? Is there also a demux[01] and dvr[01] or just a 
-demux0 and dvr0? Which frontend do you want to use? For now you have to choose one and start vdr with the "-D" parameter 
-to tell it which to use.
-  If there's no demux1 and dvr1 and you want to use frontend1 you'll have the next problem since vdr asumes that every 
-frontend has its own demux/dvr. I wrote a patch, so vdr uses demux0 with frontend1.
+Yes, it is needed. This patch, together with other fixes (all rebased) is waiting in the
+pull request I've sent on 4.11.2011 - "[GIT PULL] More Samsung patches for v3.2 (updated)"
+thread. Do you want me to resend all of them?
 
-  http://linuxtv.org/pipermail/vdr/2011-November/025411.html
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
-  Soon I will have some DVB-C/T hybrid device so I will try to extend the patch so both frontends can be used (not at 
-the same time of course).
-
-  It would be nice if you can send me the output of "ls -la /dev/dvb/adapter0/*".
-
-  I don't know exactly what the dvb/v4l spec is saying about hybrid devices and how they should expose their 
-capabilities but it seems to me there's some discussion about this topic from time to time.
-
-  After all this is a problem at application level, not driver level. If I'm wrong please correct me.
-  And maybe you want to read the vdr mailing list...
-
-Regards,
-Lars.
-
->
-> The drivers seem to detect the card OK as seen in dmesg output:
->
-> [    7.501729] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.9 loaded
-> [    7.503174] cx88[0]: subsystem: 0070:6902, board: Hauppauge WinTV-HVR4000 DVB-S/S2/T/Hybrid [card=68,autodetected], frontend(s): 2
-> [    7.503373] cx88[0]: TV tuner type 63, Radio tuner type -1
-> [    7.551718] i915 0000:00:02.0: PCI INT A ->  GSI 16 (level, low) ->  IRQ 16
-> [    7.551788] i915 0000:00:02.0: setting latency timer to 64
-> [    7.564218] i915 0000:00:02.0: irq 41 for MSI/MSI-X
-> [    7.564399] vgaarb: device changed decodes: PCI:0000:00:02.0,olddecodes=io+mem,decodes=io+mem:owns=io+mem
-> [    7.564825] [drm] initialized overlay support
-> [    7.579830] cx88/0: cx2388x v4l2 driver version 0.0.9 loaded
-> [    7.583007] No connectors reported connected with modes
-> [    7.583077] [drm] Cannot find any crtc or sizes - going 1024x768
-> [    7.588874] Console: switching to colour frame buffer device 128x48
-> [    7.591121] fb0: inteldrmfb frame buffer device
-> [    7.591144] drm: registered panic notifier
-> [    7.591174] No ACPI video bus found
-> [    7.591316] [drm] Initialized i915 1.6.0 20080730 for 0000:00:02.0 on minor 0
-> [    7.617097] cx88[0]: i2c init: enabling analog demod on HVR1300/3000/4000 tuner
-> [    7.702578] IR RC5(x) protocol handler initialized
-> [    7.728589] IR RC6 protocol handler initialized
-> [    7.730628] cx2388x alsa driver version 0.0.9 loaded
-> [    7.746096] IR JVC protocol handler initialized
-> [    7.749962] IR Sony protocol handler initialized
-> [    7.918601] IR MCE Keyboard/mouse protocol handler initialized
-> [    7.980484] lirc_dev: IR Remote Control driver registered, major 243
-> [    7.994039] IR LIRC bridge handler initialized
-> [    7.994767] tda9887 15-0043: creating new instance
-> [    7.994795] tda9887 15-0043: tda988[5/6/7] found
-> [    7.995608] tuner 15-0043: Tuner 74 found with type(s) Radio TV.
-> [    7.997560] tuner 15-0061: Tuner -1 found with type(s) Radio TV.
-> [    8.035897] tveeprom 15-0050: Hauppauge model 69009, rev B2D3, serial# 3313260
-> [    8.035934] tveeprom 15-0050: MAC address is 00:0d:fe:32:8e:6c
-> [    8.035965] tveeprom 15-0050: tuner model is Philips FMD1216MEX (idx 133, type 78)
-> [    8.036005] tveeprom 15-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xf4)
-> [    8.036055] tveeprom 15-0050: audio processor is CX882 (idx 33)
-> [    8.036085] tveeprom 15-0050: decoder processor is CX882 (idx 25)
-> [    8.037240] tveeprom 15-0050: has radio, has IR receiver, has no IR transmitter
-> [    8.038391] cx88[0]: hauppauge eeprom: model=69009
-> [    8.042759] tuner-simple 15-0061: creating new instance
-> [    8.043910] tuner-simple 15-0061: type set to 78 (Philips FMD1216MEX MK3 Hybrid Tuner)
-> [    8.087006] Registered IR keymap rc-hauppauge
-> [    8.088273] input: cx88 IR (Hauppauge WinTV-HVR400 as /devices/pci0000:00/0000:00:1e.0/0000:03:00.2/rc/rc0/input6
-> [    8.089502] rc0: cx88 IR (Hauppauge WinTV-HVR400 as /devices/pci0000:00/0000:00:1e.0/0000:03:00.2/rc/rc0
-> [    8.090743] input: MCE IR Keyboard/Mouse (cx88xx) as /devices/virtual/input/input7
-> [    8.092315] rc rc0: lirc_dev: driver ir-lirc-codec (cx88xx) registered at minor = 0
-> [    8.093521] cx88[0]/2: cx2388x 8802 Driver Manager
-> [    8.094694] cx88-mpeg driver manager 0000:03:00.2: PCI INT A ->  GSI 19 (level, low) ->  IRQ 19
-> [    8.095882] cx88[0]/2: found at 0000:03:00.2, rev: 5, irq: 19, latency: 64, mmio: 0xfc000000
-> [    8.097825] cx8800 0000:03:00.0: PCI INT A ->  GSI 19 (level, low) ->  IRQ 19
-> [    8.099081] cx88[0]/0: found at 0000:03:00.0, rev: 5, irq: 19, latency: 64, mmio: 0xfa000000
-> [    8.112941] WARNING: You are using an experimental version of the media stack.
-> [    8.112943]  As the driver is backported to an older kernel, it doesn't offer
-> [    8.112944]  enough quality for its usage in production.
-> [    8.112945]  Use it with care.
-> [    8.112945] Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
-> [    8.112946]  e9eb0dadba932940f721f9d27544a7818b2fa1c5 [media] V4L menu: add submenu for platform devices
-> [    8.112947]  1df3a2c6d036f4923c229fa98725deda320680e1 [media] cx88: fix menu level for the VP-3054 module
-> [    8.112948]  486eeb5628f812b4836405e2b2e76594287dd873 [media] V4L menu: move all PCI(e) devices to their own submenu
-> [    8.197600] wm8775 15-001b: chip found @ 0x36 (cx88[0])
-> [    8.211895] cx88/2: cx2388x dvb driver version 0.0.9 loaded
-> [    8.213155] cx88/2: registering cx8802 driver, type: dvb access: shared
-> [    8.213801] cx88[0]/0: registered device video0 [v4l2]
-> [    8.213847] cx88[0]/0: registered device vbi0
-> [    8.213891] cx88[0]/0: registered device radio0
-> [    8.215082] cx88_audio 0000:03:00.1: PCI INT A ->  GSI 19 (level, low) ->  IRQ 19
-> [    8.215106] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
-> [    8.220763] cx88[0]/2: subsystem: 0070:6902, board: Hauppauge WinTV-HVR4000 DVB-S/S2/T/Hybrid [card=68]
-> [    8.222053] cx88[0]/2: cx2388x based DVB/ATSC card
-> [    8.223339] cx8802_alloc_frontends() allocating 2 frontend(s)
-> [    8.272844] tuner-simple 15-0061: attaching existing instance
-> [    8.274126] tuner-simple 15-0061: couldn't set type to 63. Using 78 (Philips FMD1216MEX MK3 Hybrid Tuner) instead
-> [    8.279264] DVB: registering new adapter (cx88[0])
-> [    8.280558] DVB: registering adapter 0 frontend 0 (Conexant CX24116/CX24118)...
-> [    8.282871] DVB: registering adapter 0 frontend 1 (Conexant CX22702 DVB-T)...
-> [    8.423842] Adding 1954444k swap on /dev/sda2.  Priority:-1 extents:1 across:1954444k
-> [    8.503564] fuse init (API version 7.15)
-> [    9.184585] EXT4-fs (sda1): re-mounted. Opts: (null)
-> [    9.308820] EXT4-fs (sda1): re-mounted. Opts: (null)
-> [    9.581725] lp0: using parport0 (interrupt-driven).
-> [    9.583036] lp0: console ready
-> [   14.900540] ATL1E 0000:01:00.0: irq 42 for MSI/MSI-X
-> [   20.345506] ATL1E 0000:01:00.0: eth0: NIC Link is Up<10 Mbps Full Duplex>
-> [   29.618702] NET: Registered protocol family 10
-> [   29.618871] lo: Disabled Privacy Extensions
-> [   40.210009] eth0: no IPv6 routers present
-> [  308.497672] start_kdeinit (2104): /proc/2104/oom_adj is deprecated, please use /proc/2104/oom_score_adj instead.
-> [  313.497259] ata3.00: configured for UDMA/133
-> [  313.497262] ata3: EH complete
-> [  314.195827] EXT4-fs (sda1): re-mounted. Opts: commit=0
->
-> However, VDR is only able to use the first of the two frontends, reporting that the second frontend (DVB/T) is busy:
->
-> Nov 13 20:04:06 Nutrigrain vdr: [2426] VDR version 1.7.21 started
-> Nov 13 20:04:06 Nutrigrain vdr: [2426] codeset is 'ISO-8859-1' - known
-> Nov 13 20:04:06 Nutrigrain vdr: [2426] found 28 locales in ./locale
-> Nov 13 20:04:06 Nutrigrain vdr: [2426] loading plugin: ./PLUGINS/lib/libvdr-sc.so.1.7.21
-> Nov 13 20:04:06 Nutrigrain vdr: [2426] cTimeMs: using monotonic clock (resolution is 1 ns)
-> Nov 13 20:04:06 Nutrigrain vdr: [2426] loading plugin: ./PLUGINS/lib/libvdr-rotor.so.1.7.21
-> Nov 13 20:04:06 Nutrigrain vdr: [2426] loading /home/digitalTV/config/setup.conf
-> Nov 13 20:04:07 Nutrigrain vdr: [2426] unknown locale: '0'
-> Nov 13 20:04:07 Nutrigrain vdr: [2426] loading /home/digitalTV/config/sources.conf
-> Nov 13 20:04:07 Nutrigrain vdr: [2426] loading /home/digitalTV/config/diseqc.conf
-> Nov 13 20:04:07 Nutrigrain vdr: [2426] loading /home/digitalTV/config/channels.conf
-> Nov 13 20:04:07 Nutrigrain vdr: [2426] loading /home/digitalTV/config/timers.conf
-> Nov 13 20:04:07 Nutrigrain vdr: [2426] loading /home/digitalTV/config/commands.conf
-> Nov 13 20:04:07 Nutrigrain vdr: [2426] loading /home/digitalTV/config/svdrphosts.conf
-> Nov 13 20:04:07 Nutrigrain vdr: [2426] loading /home/digitalTV/config/remote.conf
-> Nov 13 20:04:07 Nutrigrain vdr: [2426] loading /home/digitalTV/config/keymacros.conf
-> Nov 13 20:04:07 Nutrigrain vdr: [2427] video directory scanner thread started (pid=2426, tid=2427)
-> Nov 13 20:04:07 Nutrigrain vdr: [2428] video directory scanner thread started (pid=2426, tid=2428)
-> Nov 13 20:04:07 Nutrigrain vdr: [2426] reading EPG data from /home/digitalTV/video/epg.data
-> Nov 13 20:04:07 Nutrigrain vdr: [2427] video directory scanner thread ended (pid=2426, tid=2427)
-> Nov 13 20:04:07 Nutrigrain vdr: [2428] video directory scanner thread ended (pid=2426, tid=2428)
-> Nov 13 20:04:07 Nutrigrain vdr: [2426] registered source parameters for 'A - ATSC'
-> Nov 13 20:04:07 Nutrigrain vdr: [2426] registered source parameters for 'C - DVB-C'
-> Nov 13 20:04:07 Nutrigrain vdr: [2426] registered source parameters for 'S - DVB-S'
-> Nov 13 20:04:07 Nutrigrain vdr: [2426] registered source parameters for 'T - DVB-T'
-> Nov 13 20:04:07 Nutrigrain vdr: [2426] probing /dev/dvb/adapter0/frontend0
-> Nov 13 20:04:07 Nutrigrain vdr: [2426] new device number 1
-> Nov 13 20:04:12 Nutrigrain vdr: [2426] frontend 0/0 provides DVB-S2 with QPSK ("Conexant CX24116/CX24118")
-> Nov 13 20:04:12 Nutrigrain vdr: [2431] tuner on frontend 0/0 thread started (pid=2426, tid=2431)
-> Nov 13 20:04:12 Nutrigrain vdr: [2432] section handler thread started (pid=2426, tid=2432)
-> Nov 13 20:04:17 Nutrigrain vdr: [2426] ERROR: /dev/dvb/adapter0/frontend1: Device or resource busy
-> Nov 13 20:04:17 Nutrigrain vdr: [2426] found 1 DVB device
->
-> I initially tried using the stock drivers that came with  2.6.37.6 which is where I first experienced the problem. I then tried the latest s2-liplianin- f5cd7d75370e drivers and finally (in the example above) the latest v4l-dvb drivers, all of which exhibit the same problem. I have also tried to use the mfe drivers from November 2008 but could not get them to compile.
->
-> Any assistance in resolving this issue would be much appreciated.
->
-> Thanks,
->
-> Mark Hawes.
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
