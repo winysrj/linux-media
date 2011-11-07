@@ -1,188 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15980 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753570Ab1KKROX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Nov 2011 12:14:23 -0500
-Message-ID: <4EBD57E8.1010501@redhat.com>
-Date: Fri, 11 Nov 2011 15:14:16 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1923 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754394Ab1KGNY0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2011 08:24:26 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: RFC: Use of V4L2_FBUF_FLAG_OVERLAY
+Date: Mon, 7 Nov 2011 14:24:17 +0100
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Manu Abraham <abraham.manu@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: PATCH: Query DVB frontend capabilities
-References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com> <4EBBE336.8050501@linuxtv.org> <CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com> <4EBC402E.20208@redhat.com> <CAHFNz9KFv7XvK4Uafuk8UDZiu1GEHSZ8bUp3nAyM21ck09yOCQ@mail.gmail.com> <4EBD3191.2040107@linuxtv.org> <4EBD347C.40801@redhat.com> <4EBD39DF.8060909@linuxtv.org>
-In-Reply-To: <4EBD39DF.8060909@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ian Armstrong <mail01@iarmst.co.uk>
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111071424.17938.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 11-11-2011 13:06, Andreas Oberritter escreveu:
-> On 11.11.2011 15:43, Mauro Carvalho Chehab wrote:
->> Em 11-11-2011 12:30, Andreas Oberritter escreveu:
->>> On 11.11.2011 07:26, Manu Abraham wrote:
->>>> diff -r b6eb04718aa9 linux/drivers/media/dvb/dvb-core/dvb_frontend.c
->>>> --- a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c	Wed Nov 09 19:52:36 2011 +0530
->>>> +++ b/linux/drivers/media/dvb/dvb-core/dvb_frontend.c	Fri Nov 11 06:05:40 2011 +0530
->>>> @@ -973,6 +973,8 @@
->>>>  	_DTV_CMD(DTV_GUARD_INTERVAL, 0, 0),
->>>>  	_DTV_CMD(DTV_TRANSMISSION_MODE, 0, 0),
->>>>  	_DTV_CMD(DTV_HIERARCHY, 0, 0),
->>>> +
->>>> +	_DTV_CMD(DTV_DELIVERY_CAPS, 0, 0),
->>>>  };
->>>>  
->>>>  static void dtv_property_dump(struct dtv_property *tvp)
->>>> @@ -1226,7 +1228,11 @@
->>>>  		c = &cdetected;
->>>>  	}
->>>>  
->>>> +	dprintk("%s\n", __func__);
->>>> +
->>>>  	switch(tvp->cmd) {
->>>> +	case DTV_DELIVERY_CAPS:
->>>
->>> It would be nice to have a default implementation inserted at this point, e.g. something like:
->>>
->>> static void dtv_set_default_delivery_caps(const struct dvb_frontend *fe, struct dtv_property *p)
->>> {
->>> 	const struct dvb_frontend_info *info = &fe->ops.info;
->>> 	u32 ncaps = 0;
->>>
->>> 	switch (info->type) {
->>> 	case FE_QPSK:
->>> 		p->u.buffer.data[ncaps++] = SYS_DVBS;
->>> 		if (info->caps & FE_CAN_2G_MODULATION)
->>> 			p->u.buffer.data[ncaps++] = SYS_DVBS2;
->>> 		if (info->caps & FE_CAN_TURBO_FEC)
->>> 			p->u.buffer.data[ncaps++] = SYS_TURBO;
->>> 		break;
->>> 	case FE_QAM:
->>> 		p->u.buffer.data[ncaps++] = SYS_DVBC_ANNEX_AC;
->>> 		break;
->>> 	case FE_OFDM:
->>> 		p->u.buffer.data[ncaps++] = SYS_DVBT;
->>> 		if (info->caps & FE_CAN_2G_MODULATION)
->>> 			p->u.buffer.data[ncaps++] = SYS_DVBT2;
->>> 		break;
->>> 	case FE_ATSC:
->>> 		if (info->caps & (FE_CAN_8VSB | FE_CAN_16VSB))
->>> 			p->u.buffer.data[ncaps++] = SYS_ATSC;
->>> 		if (info->caps & (FE_CAN_QAM_16 | FE_CAN_QAM_64 | FE_CAN_QAM_128 | FE_CAN_QAM_256))
->>> 			p->u.buffer.data[ncaps++] = SYS_DVBC_ANNEX_B;
->>> 	}
->>>
->>> 	p->u.buffer.len = ncaps;
->>> }
->>>
->>> I think this would be sufficient for a lot of drivers and would thus save a lot of work.
->>>
->>>> +		break;
->>>>  	case DTV_FREQUENCY:
->>>>  		tvp->u.data = c->frequency;
->>>>  		break;
->>>> @@ -1350,7 +1356,7 @@
->>>>  		if (r < 0)
->>>>  			return r;
->>>>  	}
->>>> -
->>>> +done:
->>>
->>> This label is unused now and should be removed.
->>>
->>>>  	dtv_property_dump(tvp);
->>>>  
->>>>  	return 0;
->>>> diff -r b6eb04718aa9 linux/drivers/media/dvb/frontends/stb0899_drv.c
->>>> --- a/linux/drivers/media/dvb/frontends/stb0899_drv.c	Wed Nov 09 19:52:36 2011 +0530
->>>> +++ b/linux/drivers/media/dvb/frontends/stb0899_drv.c	Fri Nov 11 06:05:40 2011 +0530
->>>> @@ -1605,6 +1605,22 @@
->>>>  	return DVBFE_ALGO_CUSTOM;
->>>>  }
->>>>  
->>>> +static int stb0899_get_property(struct dvb_frontend *fe, struct dtv_property *p)
->>>> +{
->>>> +	switch (p->cmd) {
->>>> +	case DTV_DELIVERY_CAPS:
->>>> +		p->u.buffer.data[0] = SYS_DSS;
->>>> +		p->u.buffer.data[1] = SYS_DVBS;
->>>> +		p->u.buffer.data[2] = SYS_DVBS2;
->>>> +		p->u.buffer.len = 3;
->>>> +		break;
->>>> +	default:
->>>> +		return -EINVAL;
->>>
->>> You should ignore all unhandled properties. Otherwise all properties handled
->>> by the core will have result set to -EINVAL.
->>
->> IMHO, the better is to set all parameters via stb0899_get_property(). We should
->> work on deprecate the old way, as, by having all frontends implementing the
->> get/set property ops, we can remove part of the legacy code inside the DVB core.
-> 
-> I'm not sure what "legacy code" you're referring to. If you're referring
-> to the big switch in dtv_property_process_get(), which presets output
-> values based on previously set tuning parameters, then no, please don't
-> deprecate it. It doesn't improve driver code if you move this switch
-> down into every driver.
+During the recent V4L-DVB workshop we discussed the usage of the
+V4L2_FBUF_FLAG_OVERLAY flag.
 
-What I mean is that drivers should get rid of implementing get_frontend() and 
-set_frontend(), restricting the usage of struct dvb_frontend_parameters for DVBv3
-calls from userspace.
+There are currently two drivers that use it: bttv uses it for the capture
+overlay, and ivtv uses it for the output overlay (OSD).
 
-In other words, it should be part of the core logic to get all the parameters
-passed from userspace and passing them via one single call to something similar
-to set_property. 
+In the case of bttv the behavior seems to be as follows:
 
-In other words, ideally, the implementation for DTV set should be
-like:
+If this flag is set by VIDIOC_S_FBUF, then the internal data structures are
+setup so that the captured video covers the full framebuffer.
 
-static int dtv_property_process_set(struct dvb_frontend *fe,
-				    struct dtv_property *tvp,
-				    struct file *file)
-{
-	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+If this flag is cleared, then the current overlay geometry is kept. If you
+want to update that, then you have to call S_FMT.
 
-	switch(tvp->cmd) {
-	case DTV_CLEAR:
-		dvb_frontend_clear_cache(fe);
-		break;
-	case DTV_FREQUENCY:
-		c->frequency = tvp->u.data;
-		break;
-	case DTV_MODULATION:
-		c->modulation = tvp->u.data;
-		break;
-	case DTV_BANDWIDTH_HZ:
-		c->bandwidth_hz = tvp->u.data;
-		break;
-...
-	case DTV_TUNE:
-		/* interpret the cache of data */
-		if (fe->ops.new_set_frontend) {
-			r = fe->ops.new_set_frontend(fe);
-			if (r < 0)
-				return r;
-		}
-		break;
+I am not really sure how to express this in the spec. The best I can come
+up with is this:
 
-E. g. instead of using the struct dvb_frontend_parameters, the drivers would
-use struct dtv_frontend_properties (already stored at the frontend
-struct as fe->dtv_property_cache).
+'If FLAG_OVERLAY is set, then the video capture overlay is initially scaled
+to cover the full framebuffer area. Otherwise the old S_FMT values are used.'
 
-Btw, with such change, it would actually make sense the original proposal
-from Manu of having a separate callback for supported delivery systems.
+The problem with this is that it doesn't add any useful functionality, and
+that the other drivers that implement capture overlay do not support it.
 
-> Of course, a driver can and should override any property it knows about
-> in its get_property callback, if - and only if - the property value
-> possibly differs from the value set by the default implementation in
-> dvb_frontend.
-> 
-> However, all of this is out of scope of Manu's patch. 
+Even if the application sets this flag, then it won't know whether it was
+effective. If we want to fully support this flag, then those other drivers
+either need to clear it (thus telling the application that this flag wasn't
+supported), or actually implement this functionality. Just clearing the
+flag is of course the easiest course of action.
 
-Yes. The above change would require more work than what the current
-patch is trying to address.
+Mauro, does this make sense? What is your opinion?
 
-Regards,
-Mauro
+
+In the case of ivtv the behavior is as follows (from the original commit
+message):
+
+    The existing yuv code limits output to the display area occupied by the
+    framebuffer. This patch allows the yuv output to be 'detached' via
+    V4L2_FBUF_FLAG_OVERLAY.
+    
+    By default, the yuv output window will be restricted to the framebuffer
+    dimensions and the output position is relative to the top left corner of the
+    framebuffer. This matches the behaviour of previous versions.
+    
+    If V4L2_FBUF_FLAG_OVERLAY is cleared, the yuv output will no longer be linked
+    to the framebuffer. The maximum dimensions are either 720x576 or 720x480
+    depending on the current broadcast standard, with the output position
+    relative to the top left corner of the display. The framebuffer itself can be
+    resized, moved and panned without affecting the yuv output.
+
+So, the definition for FLAG_OVERLAY for output overlays would be:
+
+'If FLAG_OVERLAY is set, then the video output overlay window is relative to
+the top-left corner of the framebuffer and restricted to the size of the
+framebuffer. If it is cleared, then the video output overlay window is relative
+to the video output display.'
+
+Ian, does this make sense?
+
+Does anyone else have any comments regarding this flag?
+
+	Hans
