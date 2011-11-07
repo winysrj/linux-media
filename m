@@ -1,73 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:37355 "EHLO mgw-da02.nokia.com"
+Received: from ffm.saftware.de ([83.141.3.46]:43489 "EHLO ffm.saftware.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751473Ab1K3Rjw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 12:39:52 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, snjw23@gmail.com,
-	hverkuil@xs4all.nl
-Subject: [RFC/PATCH v2 3/3] vivi: Add an integer menu test control
-Date: Wed, 30 Nov 2011 19:35:58 +0200
-Message-Id: <1322674558-7963-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20111130173821.GH29805@valkosipuli.localdomain>
-References: <20111130173821.GH29805@valkosipuli.localdomain>
+	id S1752374Ab1KGKsB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Nov 2011 05:48:01 -0500
+Message-ID: <4EB7B75B.70004@linuxtv.org>
+Date: Mon, 07 Nov 2011 11:47:55 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
+MIME-Version: 1.0
+To: Steffen Barszus <steffenbpunkt@googlemail.com>
+CC: linux-media Mailing List <linux-media@vger.kernel.org>,
+	James <bjlockie@lockie.ca>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: femon signal strength
+References: <4EA78E3C.2020308@lockie.ca> <CAGoCfiwS=O75uyaaueNSrq275MS9eednR+Y=yrgsJo0XaExRKA@mail.gmail.com> <4EA86366.1020906@lockie.ca> <CAGoCfiww_5pF_S3M_mpN4gk1qqLYn7H7PPcieZXZNnjvK-RHHA@mail.gmail.com> <4EA86668.6090508@lockie.ca> <20111105111050.5b8762fa@grobi> <CAGoCfiwC+7pkY6ZchySBYRkyY1XjFjKeJYQEPTc2ZiBN-pdoyw@mail.gmail.com> <20111106141515.5b56a377@grobi> <CAGoCfixoOwZumohwJrLVKhfpUNGYwbD9uSq7nM0GhqriOx0FxA@mail.gmail.com> <20111106205907.47b9102b@grobi>
+In-Reply-To: <20111106205907.47b9102b@grobi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an integer menu test control for the vivi driver.
+I didn't receive Devin's mail, so I'm replying to this one instead, see
+below:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/vivi.c |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+), 0 deletions(-)
+On 06.11.2011 20:59, Steffen Barszus wrote:
+> On Sun, 6 Nov 2011 10:01:49 -0500
+> Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+> 
+>> On Sunday, November 6, 2011, Steffen Barszus
+>> <steffenbpunkt@googlemail.com> wrote:
+>>>
+>>> Any uniform
+>>> scale is better, then whats there at the moment.
 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index 7d754fb..763ec23 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -177,6 +177,7 @@ struct vivi_dev {
- 	struct v4l2_ctrl	   *menu;
- 	struct v4l2_ctrl	   *string;
- 	struct v4l2_ctrl	   *bitmask;
-+	struct v4l2_ctrl	   *int_menu;
- 
- 	spinlock_t                 slock;
- 	struct mutex		   mutex;
-@@ -503,6 +504,10 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
- 			dev->boolean->cur.val,
- 			dev->menu->qmenu[dev->menu->cur.val],
- 			dev->string->cur.string);
-+	snprintf(str, sizeof(str), " integer_menu %s, value %lld ",
-+			dev->int_menu->qmenu[dev->int_menu->cur.val],
-+			dev->int64->cur.val64);
-+	gen_text(dev, vbuf, line++ * 16, 16, str);
- 	mutex_unlock(&dev->ctrl_handler.lock);
- 	gen_text(dev, vbuf, line++ * 16, 16, str);
- 	if (dev->button_pressed) {
-@@ -1183,6 +1188,22 @@ static const struct v4l2_ctrl_config vivi_ctrl_bitmask = {
- 	.step = 0,
- };
- 
-+static const s64 * const vivi_ctrl_int_menu_values[] = {
-+	1, 1, 2, 3, 5, 8, 13, 21, 42,
-+};
-+
-+static const struct v4l2_ctrl_config vivi_ctrl_string = {
-+	.ops = &vivi_ctrl_ops,
-+	.id = VIDI_CID_CUSTOM_BASE + 7
-+	.name = "Integer menu",
-+	.type = V4L2_CTRL_TYPE_INTEGER_MENU,
-+	.min = 1,
-+	.max = 8,
-+	.def = 4,
-+	.menu_skip_mask = 0x02,
-+	.qmenu_int = &vivi_ctrl_int_menu_values,
-+};
-+
- static const struct v4l2_file_operations vivi_fops = {
- 	.owner		= THIS_MODULE,
- 	.open           = v4l2_fh_open,
--- 
-1.7.2.5
+[...]
 
+>> (and I've said on numerous occasions when discussing this
+>> issue that any standard that is uniform is better than no standard at
+>> all).  "Perfect is the enemy of good"
+
+Quoting myself from three years ago, I propose to add an interface to
+read SNR in units of db/100:
+
+On 17.10.2008 11:55, Andreas Oberritter wrote:
+> How about adding a new command instead (and a similar one for S2API)? 
+> 
+> /* Read SNR in units of dB/100 */
+> #define FE_READ_SNR_DB _IOR('o', 74, __u16)
+> 
+> Then it's no problem to slowly migrate the drivers to this interface. The
+> old interface can still stay for some time without changes. Applications
+> can try this ioctl, and if it returns an error, then it is not implemented
+> for the used device.
+
+S2API currently implements none of the signal quality measurement
+commands that v3 knows about. Nevertheless, it should be easy to add a
+property:
+
+/* SNR in units of dB/100 */
+#define DTV_SNR		44
+
+If a driver does not implement this property, the core should return an
+error (i.e. set dtv_property.result to a non-zero value, e.g. -EOPNOTSUPP).
+
+Regards,
+Andreas
