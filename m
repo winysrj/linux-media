@@ -1,176 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:62780 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851Ab1KKWMl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Nov 2011 17:12:41 -0500
-Received: by wyh15 with SMTP id 15so4297581wyh.19
-        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2011 14:12:40 -0800 (PST)
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1465 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751734Ab1KGJmi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2011 04:42:38 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.2] Menu changes
+Date: Mon, 7 Nov 2011 10:42:30 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 MIME-Version: 1.0
-In-Reply-To: <4EBD3191.2040107@linuxtv.org>
-References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com>
-	<4EBBE336.8050501@linuxtv.org>
-	<CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com>
-	<4EBC402E.20208@redhat.com>
-	<CAHFNz9KFv7XvK4Uafuk8UDZiu1GEHSZ8bUp3nAyM21ck09yOCQ@mail.gmail.com>
-	<4EBD3191.2040107@linuxtv.org>
-Date: Sat, 12 Nov 2011 03:42:39 +0530
-Message-ID: <CAHFNz9LoETccPvd3S1H+tvHCu-HDNi3oDdLAekU9y9RAHrSHBQ@mail.gmail.com>
-Subject: Re: PATCH: Query DVB frontend capabilities
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Andreas Oberritter <obi@linuxtv.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Steven Toth <stoth@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111071042.30157.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 11, 2011 at 8:00 PM, Andreas Oberritter <obi@linuxtv.org> wrote:
-> On 11.11.2011 07:26, Manu Abraham wrote:
->> diff -r b6eb04718aa9 linux/drivers/media/dvb/dvb-core/dvb_frontend.c
->> --- a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c Wed Nov 09 19:52:36 2011 +0530
->> +++ b/linux/drivers/media/dvb/dvb-core/dvb_frontend.c Fri Nov 11 06:05:40 2011 +0530
->> @@ -973,6 +973,8 @@
->>       _DTV_CMD(DTV_GUARD_INTERVAL, 0, 0),
->>       _DTV_CMD(DTV_TRANSMISSION_MODE, 0, 0),
->>       _DTV_CMD(DTV_HIERARCHY, 0, 0),
->> +
->> +     _DTV_CMD(DTV_DELIVERY_CAPS, 0, 0),
->>  };
->>
->>  static void dtv_property_dump(struct dtv_property *tvp)
->> @@ -1226,7 +1228,11 @@
->>               c = &cdetected;
->>       }
->>
->> +     dprintk("%s\n", __func__);
->> +
->>       switch(tvp->cmd) {
->> +     case DTV_DELIVERY_CAPS:
->
-> It would be nice to have a default implementation inserted at this point, e.g. something like:
->
-> static void dtv_set_default_delivery_caps(const struct dvb_frontend *fe, struct dtv_property *p)
-> {
->        const struct dvb_frontend_info *info = &fe->ops.info;
->        u32 ncaps = 0;
->
->        switch (info->type) {
->        case FE_QPSK:
->                p->u.buffer.data[ncaps++] = SYS_DVBS;
->                if (info->caps & FE_CAN_2G_MODULATION)
->                        p->u.buffer.data[ncaps++] = SYS_DVBS2;
->                if (info->caps & FE_CAN_TURBO_FEC)
->                        p->u.buffer.data[ncaps++] = SYS_TURBO;
->                break;
->        case FE_QAM:
->                p->u.buffer.data[ncaps++] = SYS_DVBC_ANNEX_AC;
->                break;
->        case FE_OFDM:
->                p->u.buffer.data[ncaps++] = SYS_DVBT;
->                if (info->caps & FE_CAN_2G_MODULATION)
->                        p->u.buffer.data[ncaps++] = SYS_DVBT2;
->                break;
->        case FE_ATSC:
->                if (info->caps & (FE_CAN_8VSB | FE_CAN_16VSB))
->                        p->u.buffer.data[ncaps++] = SYS_ATSC;
->                if (info->caps & (FE_CAN_QAM_16 | FE_CAN_QAM_64 | FE_CAN_QAM_128 | FE_CAN_QAM_256))
->                        p->u.buffer.data[ncaps++] = SYS_DVBC_ANNEX_B;
->        }
->
->        p->u.buffer.len = ncaps;
-> }
->
-> I think this would be sufficient for a lot of drivers and would thus save a lot of work.
+Hi Mauro,
 
+This is the patch series that reorganizes the V4L menu.
 
-Ahhh, I get what you mean.
+The only thing I didn't touch is the SoC camera support submenu.
 
-
->
->> +             break;
->>       case DTV_FREQUENCY:
->>               tvp->u.data = c->frequency;
->>               break;
->> @@ -1350,7 +1356,7 @@
->>               if (r < 0)
->>                       return r;
->>       }
->> -
->> +done:
->
-> This label is unused now and should be removed.
-
-
-True.
-
->>       dtv_property_dump(tvp);
->>
->>       return 0;
->> diff -r b6eb04718aa9 linux/drivers/media/dvb/frontends/stb0899_drv.c
->> --- a/linux/drivers/media/dvb/frontends/stb0899_drv.c Wed Nov 09 19:52:36 2011 +0530
->> +++ b/linux/drivers/media/dvb/frontends/stb0899_drv.c Fri Nov 11 06:05:40 2011 +0530
->> @@ -1605,6 +1605,22 @@
->>       return DVBFE_ALGO_CUSTOM;
->>  }
->>
->> +static int stb0899_get_property(struct dvb_frontend *fe, struct dtv_property *p)
->> +{
->> +     switch (p->cmd) {
->> +     case DTV_DELIVERY_CAPS:
->> +             p->u.buffer.data[0] = SYS_DSS;
->> +             p->u.buffer.data[1] = SYS_DVBS;
->> +             p->u.buffer.data[2] = SYS_DVBS2;
->> +             p->u.buffer.len = 3;
->> +             break;
->> +     default:
->> +             return -EINVAL;
->
-> You should ignore all unhandled properties. Otherwise all properties handled
-> by the core will have result set to -EINVAL.
-
-
-Ah yes, much true. Didn't think of that issue, Will fix.
-
-
->
->> +     }
->> +     return 0;
->> +}
->> +
->> +
->>  static struct dvb_frontend_ops stb0899_ops = {
->>
->>       .info = {
->> @@ -1647,6 +1663,8 @@
->>       .diseqc_send_master_cmd         = stb0899_send_diseqc_msg,
->>       .diseqc_recv_slave_reply        = stb0899_recv_slave_reply,
->>       .diseqc_send_burst              = stb0899_send_diseqc_burst,
->> +
->> +     .get_property                   = stb0899_get_property,
->>  };
->>
->>  struct dvb_frontend *stb0899_attach(struct stb0899_config *config, struct i2c_adapter *i2c)
->> diff -r b6eb04718aa9 linux/include/linux/dvb/frontend.h
->> --- a/linux/include/linux/dvb/frontend.h      Wed Nov 09 19:52:36 2011 +0530
->> +++ b/linux/include/linux/dvb/frontend.h      Fri Nov 11 06:05:40 2011 +0530
->> @@ -316,7 +316,9 @@
->>
->>  #define DTV_DVBT2_PLP_ID     43
->>
->> -#define DTV_MAX_COMMAND                              DTV_DVBT2_PLP_ID
->> +#define DTV_DELIVERY_CAPS    44
->> +
->> +#define DTV_MAX_COMMAND                              DTV_DELIVERY_CAPS
->>
->>  typedef enum fe_pilot {
->>       PILOT_ON,
->>
-
-
-Thanks for the feedback.
+Guennadi, what is the status for the SoC camera sensor drivers? I see that
+they still have a menu dependency to SOC_CAMERA. Is that still valid?
 
 Regards,
-Manu
+
+	Hans
+
+The following changes since commit 31cea59efb3a4210c063f31c061ebcaff833f583:
+
+  [media] saa7134.h: Suppress compiler warnings when CONFIG_VIDEO_SAA7134_RC is not set (2011-11-03 16:58:20 -0200)
+
+are available in the git repository at:
+  git://linuxtv.org/hverkuil/media_tree.git menu
+
+Hans Verkuil (8):
+      V4L menu: move USB drivers section to the top.
+      V4L menu: move ISA and parport drivers into their own submenu.
+      V4L menu: remove the EXPERIMENTAL tag from vino and c-qcam.
+      V4L menu: move all platform drivers to the bottom of the menu.
+      V4L menu: remove duplicate USB dependency.
+      V4L menu: reorganize the radio menu.
+      V4L menu: move all PCI(e) devices to their own submenu.
+      cx88: fix menu level for the VP-3054 module.
+
+ drivers/media/radio/Kconfig      |  298 +++++++++++++++--------------
+ drivers/media/video/Kconfig      |  394 +++++++++++++++++++++-----------------
+ drivers/media/video/cx88/Kconfig |   10 +-
+ 3 files changed, 377 insertions(+), 325 deletions(-)
