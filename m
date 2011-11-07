@@ -1,61 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:54928 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752765Ab1KUXSt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Nov 2011 18:18:49 -0500
-Received: by ywt32 with SMTP id 32so5267824ywt.19
-        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 15:18:48 -0800 (PST)
-Date: Mon, 21 Nov 2011 20:24:21 -0300
-From: Ezequiel <elezegarcia@gmail.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org, hdegoede@redhat.com,
-	ospite@studenti.unina.it
-Subject: Re: Cleanup proposal for media/gspca
-Message-ID: <20111121232421.GA2575@devel2>
-References: <20111116013445.GA5273@localhost>
- <CALF0-+V+rEYi1of3jUGeVZsF2Ms215k0_CQjJx0qnPDUuC1BQQ@mail.gmail.com>
- <20111117110716.6343d46c@tele>
- <20111119185950.GB3048@localhost>
- <20111120082429.06ad5a32@tele>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:36248 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754394Ab1KGNx6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2011 08:53:58 -0500
+Received: by gyc15 with SMTP id 15so4181936gyc.19
+        for <linux-media@vger.kernel.org>; Mon, 07 Nov 2011 05:53:57 -0800 (PST)
+Message-ID: <4EB7E2F3.4090101@gmail.com>
+Date: Mon, 07 Nov 2011 07:53:55 -0600
+From: Patrick Dickey <pdickeybeta@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20111120082429.06ad5a32@tele>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL for 3.2-rc1] media updates part 2
+References: <4EB3D7FC.7030507@redhat.com> <4EB3E733.4000406@iki.fi> <4EB7CE34.2050409@redhat.com>
+In-Reply-To: <4EB7CE34.2050409@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 20, 2011 at 08:24:29AM +0100, Jean-Francois Moine wrote:
+On 11/07/2011 06:25 AM, Mauro Carvalho Chehab wrote:
+> Em 04-11-2011 11:22, Antti Palosaari escreveu:
+>> Mauro,
+>>
+>> Could you still try PULL some rather small Anysee changes for 3.2 I have requested two weeks ago?
+>> http://patchwork.linuxtv.org/patch/8182/
+>>
+>> Those are Common Interface support and new board layout for Anysee E7 T2C.
 > 
-> Hi Ezequiel,
+> Sorry, but it is very likely to merge them for 3.3. I doubt that we still would have time
+> to push this into -next and merge upstream.
 > 
-> It is not a minor patch, but maybe you don't know about object
-> programming.
-> 
-> As it is defined, a gspca device _is_ a video device, as a gspca
-> subdriver is a gspca device, and as a video device is a device: each
-> lower structure is contained in a higher one.
-> 
-> Your patch defines the gspca structure as a separate entity which is
-> somewhat related to a video device by two reverse pointers. It
-> complexifies the structure accesses, adds more code and hides the
-> nature of a gspca device.
-> 
+> Regards,
+> Mauro
+>>
 
-Hi Jef, 
+Hi Mauro,
 
-Thanks for the explanation, I have things much clear now.
-I didn't realize linux coding style enforces so explicitly OOP.
+For those of us who are new to the project, how soon can we expect you
+to create the remote for 3.3 (/staging_for_v3.3, I'm guessing the name
+will be)?  A ballpark timeframe (rough guess, in other words) is fine
+since a lot will depend on when the 3.2 kernel will be released, I'd guess.
 
-I based my patch on tm6000 driver and your
-previous mail about the -supposedly- ugly cast:
-
-  gspca_dev = (struct gspca_dev *) video_devdata(file);
-
-Now it doesn't seems so ugly, I guess I went too far.
-Still, maybe the 'container_of' trick could make thins
-easier to understand.
-
-Thanks again for your patience,
-Ezequiel.
+Thanks, and have a great day:)
+Patrick.
 
