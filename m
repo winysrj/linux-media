@@ -1,77 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:36543 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750957Ab1KGSme (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2011 13:42:34 -0500
-Date: Mon, 7 Nov 2011 21:43:10 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: re: [media] V4L: soc-camera: make (almost) all client drivers
- re-usable outside of the framework
-Message-ID: <20111107184310.GY4682@mwanda>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2064 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752357Ab1KGJKl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2011 04:10:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [GIT FIXES FOR 3.2 <resend>] Fixes for event framework
+Date: Mon, 7 Nov 2011 10:10:33 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4EB79528.60106@redhat.com>
+In-Reply-To: <4EB79528.60106@redhat.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1fZJyN7nFm/tosmV"
-Content-Disposition: inline
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111071010.33633.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
---1fZJyN7nFm/tosmV
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Is there a reason why this fix:
 
-Hi Guennadi,
+v4l2-ctrl: Send change events to all fh for auto cluster slave controls
 
-Gcc complains about 2f0babb7e432 "[media] V4L: soc-camera: make
-(almost) all client drivers re-usable outside of the framework"
+isn't part of this pull request? Or do you want me to make a pull request for
+that?
 
-include/media/soc_camera.h: In function =E2=80=98soc_camera_i2c_to_vdev=E2=
-=80=99:
-include/media/soc_camera.h:257:34: warning: cast to pointer from integer of=
- different size [-Wint-to-pointer-cast]
+Regards,
 
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -253,14 +253,14 @@ unsigned long soc_camera_apply_board_flags(struct soc=
-_camera_link *icl,
- #include <linux/i2c.h>
-  static inline struct video_device *soc_camera_i2c_to_vdev(const struct i2=
-c_client *client)
-   {
-   -       struct soc_camera_device *icd =3D client->dev.platform_data;
-   +       struct v4l2_subdev *sd =3D i2c_get_clientdata(client);
-   +       struct soc_camera_device *icd =3D (struct soc_camera_device *)sd=
-->grp_id;
-           return icd ? icd->vdev : NULL;
+	Hans
 
-sd->grp_id is a u32 so this doesn't work on 64 bit systems.
-
-regards,
-dan carpenter
-
---1fZJyN7nFm/tosmV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJOuCa9AAoJEOnZkXI/YHqR/WEQAKCK13ASl0sNYG9PAIfGIxBL
-oZRyiwqJJ8p8lm6ERcvrdVUy5HkN8piIow7r47qqrPLymbHOZ1JHhwm+PQOTKylB
-lgk2Dx9rz/IUJTC8Uhsb0Z8rgn5euqXBxX/cxHHCOfeNLe1z5WldLrJTkkmhzv4V
-DvkUtq5dylCycs/Y1t46hlGzQ/ZkAB5Vg25Ug2Go6o5jqrx6yPkf8TYuDK7ZcD+E
-hToGk0JdtoxmkIXQdbs1tT+edp9lJzFHty6tRkGpjSMxVChelvfvunTU+8RZIHDI
-894C1H+kEueTcfgm5CJLpaM1PieabNWxresdGrWu0WiCibdi8AG/5L1/e6XDaMWk
-1PIYAplcNUe5jIZT1fXXcEIXVz0CJ5Bc4pL+CZOb2tQzNIEPK2PQo6SI/vMfFnx3
-WwEo3mGjdcVvWRkt/C7kuFFh5Wr6Ew0IDpftY0r+BiLejqvmymwJR9wcjEpFhY6U
-VQat18nRGOUtSp9L56PjlRhOfy45tZKGcAamQutvCctDEIZ3+vGjZBOAc285LRTp
-wMmwTXnIMt03PMqR/tXwyGoVVHNyZ2V5vx2pfXovx2ac06G1K6H5y8qfEKV0DVLV
-6X78t7gzkzKqd/3nMJQKR/hLb+cb5nAINwxB6CK0bKTwb3rbPsXrZxd6VJgUHRp1
-6U/2O+247VW8feBPPuyF
-=hNYQ
------END PGP SIGNATURE-----
-
---1fZJyN7nFm/tosmV--
+On Monday, November 07, 2011 09:22:00 Hans de Goede wrote:
+> Hi Mauro et all,
+> 
+> Please pull from me tree for the following event framework fixes:
+> 
+> The following changes since commit b82b12633773804713fc10ae5d0006be2b5bf943:
+> 
+>    staging: Move media drivers to staging/media (2011-11-01 23:55:06 -0200)
+> 
+> are available in the git repository at:
+>    git://linuxtv.org/hgoede/gspca.git eventfixes
+> 
+> Hans de Goede (3):
+>        v4l2-event: Deny subscribing with a type of V4L2_EVENT_ALL
+>        v4l2-event: Remove pending events from fh event queue when unsubscribing
+>        v4l2-event: Don't set sev->fh to NULL on unsubscribe
+> 
+>   drivers/media/video/v4l2-ctrls.c |    4 ++--
+>   drivers/media/video/v4l2-event.c |   10 +++++++++-
+>   2 files changed, 11 insertions(+), 3 deletions(-)
+> 
+> Thanks & Regards,
+> 
+> Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
