@@ -1,85 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:60048 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752712Ab1KTV1m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Nov 2011 16:27:42 -0500
-Date: Sun, 20 Nov 2011 23:27:38 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [KS workshop follow-up] multiple sensor contexts
-Message-ID: <20111120212738.GD27136@valkosipuli.localdomain>
-References: <Pine.LNX.4.64.1111071645180.26363@axis700.grange>
+Received: from moutng.kundenserver.de ([212.227.126.187]:59160 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753311Ab1KGLMx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2011 06:12:53 -0500
+Date: Mon, 7 Nov 2011 12:12:49 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.2] Menu changes
+In-Reply-To: <201111071042.30157.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1111071206440.26363@axis700.grange>
+References: <201111071042.30157.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1111071645180.26363@axis700.grange>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Hans
 
-On Mon, Nov 07, 2011 at 05:17:23PM +0100, Guennadi Liakhovetski wrote:
-> Hi all
+On Mon, 7 Nov 2011, Hans Verkuil wrote:
+
+> Hi Mauro,
 > 
-> At the V4L/DVB workshop in Prague a couple of weeks ago possible merits of 
-> supporting multiple camera sensor contexts have been discussed. Such 
-> contexts are often promoted by camera manufacturers as a hardware 
-> optimization to support fast switching to the snapshot mode. Such a switch 
-> is often accompanied by a change of the frame format. Typically, a smaller 
-> frame is used for the preview mode and a larger frame is used for photo 
-> shooting. Those sensors provide 2 (or more) sets of frame size and data 
-> format registers and a single command to switch between them. The 
-> decision, whether or not to support these multiple camera contexts has 
-> been postponed until some measurements become available, how much time 
-> such a "fast switching" implementation would save us.
+> This is the patch series that reorganizes the V4L menu.
 > 
-> I took the mt9m111 driver, that supports mt9m111, mt9m131, and mt9m112 
-> camera sensors from Aptina. They do indeed implement two contexts, 
-> however, the driver first had to be somewhat reorganised to make use of 
-> them. I pushed my (highly!) experimental tree to
+> The only thing I didn't touch is the SoC camera support submenu.
 > 
-> git://linuxtv.org/gliakhovetski/v4l-dvb.git staging-3.3
+> Guennadi, what is the status for the SoC camera sensor drivers? I see that
+> they still have a menu dependency to SOC_CAMERA. Is that still valid?
+
+Yes, at least most, or, perhaps all "former" soc-camera client (camera, 
+decoder) subdev drivers need soc-camera enabled in the kernel and need the 
+soc_camera_core module loaded for them to run. Most those driver have been 
+converted to work without relying on the soc-camera infrastructure being 
+active, but they still need a couple of soc-camera helper functions, 
+provided by that module. As the need arises, those helper fuunctions can 
+be moved to the v4l2 core.
+
+Thanks
+Guennadi
+
 > 
-> with the addition of the below debugging diff, that pre-programs a fixed 
-> format into the second context registers and switches to it, once a 
-> matching S_FMT is called. On the i.MX31 based pcm037 board, that I've got, 
-> this sensor is attached to the I2C bus #2, running at 20kHz. The explicit 
-> programming of the new format parameters measures to take around 27ms, 
-> which is also about what we win, when using the second context.
-
-27 ms isn't a lot. May I ask what's the reason for such an unusual I2C
-speed? Even the relatively low speed 400 kHz spec has been available for
-almost 20 years by now.
-
-> As for interpretation: firstly 20kHz is not much, I expect many other set 
-> ups to run much faster. But even if we accept, that on some hardware > 
-> 20kHz doesn't work and we really lose 27ms when not using multiple 
-> register contexts, is it a lot? Thinking about my personal photographing 
-> experiences with cameras and camera-phones, I don't think, I'd notice a 
-> 27ms latency;-) I don't think anything below 200ms really makes a 
-> difference and, I think, the major contributor to the snapshot latency is 
-> the need to synchronise on a frame, and, possibly skip or shoot several 
-> frames, instead of just one.
+> Regards,
 > 
-> So, my conclusion would be: when working with "sane" camera sensors, i.e., 
-> those, where you don't have to reprogram 100s of registers from some magic 
-> tables to configure a different frame format (;-)), supporting several 
-> register contexts doesn't bring a huge advantage in terms of snapshot 
-> latency. OTOH, it can well happen, that at some point we anyway will have 
-> to support those multiple register contexts for some other reason.
+> 	Hans
+> 
+> The following changes since commit 31cea59efb3a4210c063f31c061ebcaff833f583:
+> 
+>   [media] saa7134.h: Suppress compiler warnings when CONFIG_VIDEO_SAA7134_RC is not set (2011-11-03 16:58:20 -0200)
+> 
+> are available in the git repository at:
+>   git://linuxtv.org/hverkuil/media_tree.git menu
+> 
+> Hans Verkuil (8):
+>       V4L menu: move USB drivers section to the top.
+>       V4L menu: move ISA and parport drivers into their own submenu.
+>       V4L menu: remove the EXPERIMENTAL tag from vino and c-qcam.
+>       V4L menu: move all platform drivers to the bottom of the menu.
+>       V4L menu: remove duplicate USB dependency.
+>       V4L menu: reorganize the radio menu.
+>       V4L menu: move all PCI(e) devices to their own submenu.
+>       cx88: fix menu level for the VP-3054 module.
+> 
+>  drivers/media/radio/Kconfig      |  298 +++++++++++++++--------------
+>  drivers/media/video/Kconfig      |  394 +++++++++++++++++++++-----------------
+>  drivers/media/video/cx88/Kconfig |   10 +-
+>  3 files changed, 377 insertions(+), 325 deletions(-)
+> 
 
-Sensor have seldom anything  which would require passing a huge amount of
-data to configure the sensor. I personally don't see need for supporting
-different contects in the foreseeable future --- but of course I could be
-wrong. Also knowing much of a future desired configuration is a difficult
-guess. The hardware people will hopefully rather provide a faster bus to
-transfer the settings to the sensor to make the configuration delays
-smaller.
-
-Kind regards,
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
