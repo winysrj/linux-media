@@ -1,219 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26669 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752464Ab1KYAEd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 19:04:33 -0500
-Message-ID: <4ECED5D3.4060305@redhat.com>
-Date: Thu, 24 Nov 2011 21:40:03 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Manu Abraham <abraham.manu@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: PATCH 04/13: 0004-TDA18271-Allow-frontend-to-set-DELSYS
-References: <CAHFNz9+e0K__EWdc=ckHURjjYMbez22=xup0d7=H7k2xQNVnyw@mail.gmail.com> <4ECAE71B.2060700@linuxtv.org>
-In-Reply-To: <4ECAE71B.2060700@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:41708 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754649Ab1KHN5m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 08:57:42 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LUC00HI6HG4YL70@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 08 Nov 2011 13:57:40 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LUC002Q4HG4PX@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 08 Nov 2011 13:57:40 +0000 (GMT)
+Date: Tue, 08 Nov 2011 14:57:40 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH] media: vb2: vmalloc-based allocator user pointer handling
+In-reply-to: <201111081232.07239.laurent.pinchart@ideasonboard.com>
+To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
+Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	linux-media@vger.kernel.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Pawel Osciak' <pawel@osciak.com>
+Message-id: <004d01cc9e1e$6101fef0$2305fcd0$%szyprowski@samsung.com>
+Content-language: pl
+References: <1320231122-22518-1-git-send-email-andrzej.p@samsung.com>
+ <201111021453.46902.laurent.pinchart@ideasonboard.com>
+ <020b01cc99fb$da90de70$8fb29b50$%szyprowski@samsung.com>
+ <201111081232.07239.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 21-11-2011 22:04, Andreas Oberritter escreveu:
-> On 21.11.2011 22:06, Manu Abraham wrote:
->>
->> 0004-TDA18271-Allow-frontend-to-set-DELSYS-rather-than-qu.patch
->>
->>
->> From 2ece38602678ae323450d0e35379147e6e086326 Mon Sep 17 00:00:00 2001
->> From: Manu Abraham <abraham.manu@gmail.com>
->> Date: Sat, 19 Nov 2011 19:50:09 +0530
->> Subject: [PATCH 04/13] TDA18271: Allow frontend to set DELSYS, rather than querying fe->ops.info.type
->>
->> With any tuner that can tune to multiple delivery systems/standards, it does
->> query fe->ops.info.type to determine frontend type and set the delivery
->> system type. fe->ops.info.type can handle only 4 delivery systems, viz FE_QPSK,
->> FE_QAM, FE_OFDM and FE_ATSC.
->>
->> The change allows the tuner to be set to any delivery system specified in
->> fe_delivery_system_t, thereby simplifying a lot of issues.
->>
->> Signed-off-by: Manu Abraham <abraham.manu@gmail.com>
->> ---
->>  drivers/media/common/tuners/tda18271-fe.c   |   80 +++++++++++++++++++++++++++
->>  drivers/media/common/tuners/tda18271-priv.h |    2 +
->>  2 files changed, 82 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/media/common/tuners/tda18271-fe.c b/drivers/media/common/tuners/tda18271-fe.c
->> index 3347c5b..6e29faf 100644
->> --- a/drivers/media/common/tuners/tda18271-fe.c
->> +++ b/drivers/media/common/tuners/tda18271-fe.c
->> @@ -928,6 +928,85 @@ fail:
->>  
->>  /* ------------------------------------------------------------------ */
->>  
->> +static int tda18271_set_state(struct dvb_frontend *fe,
->> +			      enum tuner_param param,
->> +			      struct tuner_state *state)
->> +{
->> +	struct tda18271_priv *priv = fe->tuner_priv;
->> +	struct tuner_state *req = &priv->request;
->> +	struct tda18271_std_map *std_map = &priv->std;
->> +	struct tda18271_std_map_item *map;
->> +	int ret;
->> +
->> +	BUG_ON(!priv);
+Hello,
+
+On Tuesday, November 08, 2011 12:32 PM Laurent Pinchart wrote:
+> On Thursday 03 November 2011 08:40:26 Marek Szyprowski wrote:
+> > On Wednesday, November 02, 2011 2:54 PM Laurent Pinchart wrote:
+> > > On Wednesday 02 November 2011 11:52:02 Andrzej Pietrasiewicz wrote:
+> > > > vmalloc-based allocator user pointer handling
 > 
-> At this point priv has already been dereferenced.
+> [snip]
 > 
->> +	if (param & DVBFE_TUNER_DELSYS)
->> +		req->delsys = state->delsys;
->> +	if (param & DVBFE_TUNER_FREQUENCY)
->> +		req->frequency = state->frequency;
->> +	if (param & DVBFE_TUNER_BANDWIDTH)
->> +		req->bandwidth = state->bandwidth;
+> > > This can cause an AB-BA deadlock, and will be reported by deadlock
+> > > detection if enabled.
+> > >
+> > > The issue is that the mmap() handler is called by the MM core with
+> > > current->mm->mmap_sem held, and then takes the driver's lock before
+> > > calling videobuf2's mmap handler. The VIDIOC_QBUF handler, on the other
+> > > hand, will first take the driver's lock and will then try to take
+> > > current->mm->mmap_sem here.
+> > >
+> > > This can result in a deadlock if both MMAP and USERPTR buffers are used
+> > > by the same driver at the same time.
+> > >
+> > > If we assume that MMAP and USERPTR buffers can't be used on the same
+> > > queue at the same time (VIDIOC_CREATEBUFS doesn't allow that if I'm not
+> > > mistaken, so we should be safe, at least for now), this can be fixed by
+> > > having a per-queue lock in the driver instead of a global device lock.
+> > > However, that means that drivers that want to support USERPTR will not
+> > > be allowed to delegate lock handling to the V4L2 core and
+> > > video_ioctl2().
+> >
+> > Thanks for pointing this issue! This problem is already present in the
+> > other videobuf2 memory allocators as well as the old videobuf and other
+> > v4l2 drivers which implement queue handling by themselves.
 > 
-> What happens if one of these flags is not set, when the function is
-> called for the first time? priv->request doesn't seem to get initialized.
+> The problem is present in most (but not all) drivers, yes. That's one more
+> reason to fix it in videobuf2 :-)
+>
+> > The only solution that will not complicate the videobuf2 and allocators
+> > code is to move taking current->mm->mmap_sem lock into videobuf2 core.
+> > Before acquiring this lock, vb2 calls wait_prepare to release device lock
+> > and then once mmap_sem is locked, calls wait_finish to get it again. This
+> > way the deadlock is avoided and allocators are free to call
+> > get_user_pages() without further messing with locks. The only drawback is
+> > the fact that a bit more code will be executed under mmap_sem lock.
+> >
+> > What do you think about such solution?
 > 
-> Regards,
-> Andreas
+> Won't that create a race condition ? Wouldn't an application for instance be
+> able to call VIDIOC_REQBUFS(0) during the time window where the device lock is
+> released ?
+
+Hmm... Right... 
+
+The only solution I see now is to move acquiring mmap_sem as early as possible
+to make the possible race harmless. The first operation in vb2_qbuf will be then:
+
+if (b->memory == V4L2_MEMORY_USERPTR) {
+       call_qop(q, wait_prepare, q);
+       down_read(&current->mm->mmap_sem);
+       call_qop(q, wait_finish, q);
+}
+
+This should solve the race although all userptr buffers will be handled under
+mmap_sem lock. Do you have any other idea?
+ 
+> > > > +	if (n_pages_from_user != buf->n_pages)
+> > > > +		goto userptr_fail_get_user_pages;
+> > > > +
+> > > > +	buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1, PAGE_KERNEL);
+> > >
+> > > Will this create a second kernel mapping ?
+> >
+> > Yes, it is very similar to vmalloc function which grabs a set of pages and
+> > creates contiguous virtual kernel mapping for them.
+> >
+> > > What if the user tries to pass framebuffer memory that has been mapped
+> > > uncacheable to userspace ?
+> >
+> > get_user_pages() fails if it is called for framebuffer memory (VM_PFNMAP
+> > type mappings).
 > 
->> +
->> +	priv->mode = TDA18271_DIGITAL;
->> +
->> +	switch (req->delsys) {
->> +	case SYS_ATSC:
->> +		map = &std_map->atsc_6;
->> +		req->bandwidth = 6000000;
->> +		break;
->> +	case SYS_DVBC_ANNEX_B:
->> +		map = &std_map->qam_6;
->> +		req->bandwidth = 6000000;
->> +		break;
->> +	case SYS_DVBT:
->> +	case SYS_DVBT2:
->> +		switch (req->bandwidth) {
->> +		case 6000000:
->> +			map = &std_map->dvbt_6;
->> +			break;
->> +		case 7000000:
->> +			map = &std_map->dvbt_7;
->> +			break;
->> +		case 8000000:
->> +			map = &std_map->dvbt_8;
->> +			break;
->> +		default:
->> +			ret = -EINVAL;
->> +			goto fail;
->> +		}
->> +		break;
->> +	case SYS_DVBC_ANNEX_AC:
->> +		map = &std_map->qam_8;
->> +		req->bandwidth = 8000000;
->> +		break;
+> Right. Do you think we should handle them, or should we wait for the buffer
+> sharing API ?
 
-This premise is not correct, and causes tuning failure on places where
-channels are spaced with 6MHz.
+I'm not sure that waiting for buffer sharing API makes much sense here. 
+First I would like to have vmalloc allocator finished for the typical desktop
+centric use cases (well, that's the most common use case for usb cams). Code
+for handling VM_PFNMAP buffers can be added later in the separate patches as
+it is useful mainly in the embedded world... 
 
-The bandwidth should be calculated as a function of the rolloff and symbol
-rate. I had to fix it on a few places, for devices to work with Net Digital
-Cable operator in Brazil (6MHz spaced channels, 5.217 KBauds per carrier,
-DVB-C Annex A).
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
-The correct way for doing it is:
-
-	else if (fe->ops.info.type == FE_QAM) {
-		/*
-		 * Using a higher bandwidth at the tuner filter may
-		 * allow inter-carrier interference.
-		 * So, determine the minimal channel spacing, in order
-		 * to better adjust the tuner filter.
-		 * According with ITU-T J.83, the bandwidth is given by:
-		 * bw = Simbol Rate * (1 + roll_off), where the roll_off
-		 * is equal to 0.15 for Annex A, and 0.13 for annex C
-		 */
-		if (fe->dtv_property_cache.rolloff == ROLLOFF_13)
-			bw = (params->u.qam.symbol_rate * 13) / 10;
-		else
-			bw = (params->u.qam.symbol_rate * 15) / 10;
-		if (bw <= 6000000)
-			Standard = HF_DVBC_6MHZ;
-		else if (bw <= 7000000)
-			Standard = HF_DVBC_7MHZ;
-		else
-			Standard = HF_DVBC_8MHZ;
-
-(from drivers/media/dvb/frontends/tda18271c2dd.c)
-
-Where ROLLOFF_13 is used on Annex C, and ROLLOF_15 on Annex A.
-
-The same fix should be applied to all DVB-C capable tuners. Alternatively, we 
-should put some ancillary function at the core, and let the core estimate the 
-needed bandwidth for DVB-C.
-
-PS.: While I didn't test, I suspect that places using 7MHz-spaced channels will 
-also increase the reception, as less inter-channel noise will be sent to
-the demod.
-
->> +	default:
->> +		tda_warn("Invalid delivery system!\n");
->> +		ret = -EINVAL;
->> +		goto fail;
->> +	}
->> +	tda_dbg("Trying to tune .. delsys=%d modulation=%d frequency=%d bandwidth=%d",
->> +		req->delsys,
->> +		req->modulation,
->> +		req->frequency,
->> +		req->bandwidth);
->> +
->> +	/* When tuning digital, the analog demod must be tri-stated */
->> +	if (fe->ops.analog_ops.standby)
->> +		fe->ops.analog_ops.standby(fe);
->> +
->> +	ret = tda18271_tune(fe, map, req->frequency, req->bandwidth);
->> +
->> +	if (tda_fail(ret))
->> +		goto fail;
->> +
->> +	priv->if_freq   = map->if_freq;
->> +	priv->frequency = req->frequency;
->> +	priv->bandwidth = (req->delsys == SYS_DVBT || req->delsys == SYS_DVBT2) ?
->> +			   req->bandwidth : 0;
->> +fail:
->> +	return ret;
->> +}
->> +
->> +
->>  static int tda18271_set_params(struct dvb_frontend *fe,
->>  			       struct dvb_frontend_parameters *params)
->>  {
->> @@ -1249,6 +1328,7 @@ static const struct dvb_tuner_ops tda18271_tuner_ops = {
->>  	.init              = tda18271_init,
->>  	.sleep             = tda18271_sleep,
->>  	.set_params        = tda18271_set_params,
->> +	.set_state         = tda18271_set_state,
->>  	.set_analog_params = tda18271_set_analog_params,
->>  	.release           = tda18271_release,
->>  	.set_config        = tda18271_set_config,
->> diff --git a/drivers/media/common/tuners/tda18271-priv.h b/drivers/media/common/tuners/tda18271-priv.h
->> index 454c152..bd1bf58 100644
->> --- a/drivers/media/common/tuners/tda18271-priv.h
->> +++ b/drivers/media/common/tuners/tda18271-priv.h
->> @@ -126,6 +126,8 @@ struct tda18271_priv {
->>  
->>  	u32 frequency;
->>  	u32 bandwidth;
->> +
->> +	struct tuner_state request;
->>  };
->>  
->>  /*---------------------------------------------------------------------*/
->> -- 1.7.1
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
