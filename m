@@ -1,248 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:54266 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757221Ab1KJXex (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Nov 2011 18:34:53 -0500
-Received: by mail-iy0-f174.google.com with SMTP id e36so3520899iag.19
-        for <linux-media@vger.kernel.org>; Thu, 10 Nov 2011 15:34:53 -0800 (PST)
-From: Patrick Dickey <pdickeybeta@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Patrick Dickey <pdickeybeta@gmail.com>
-Subject: [PATCH 04/25] added bsp_tuner for pctv80e support
-Date: Thu, 10 Nov 2011 17:31:24 -0600
-Message-Id: <1320967905-7932-5-git-send-email-pdickeybeta@gmail.com>
-In-Reply-To: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
-References: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:55605 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755745Ab1KHXyg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Nov 2011 18:54:36 -0500
+Message-ID: <4EB9C13A.2060707@iki.fi>
+Date: Wed, 09 Nov 2011 01:54:34 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: linux-media <linux-media@vger.kernel.org>
+CC: Michael Krufky <mkrufky@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jean Delvare <khali@linux-fr.org>
+Subject: [RFC 1/2] dvb-core: add generic helper function for I2C register
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Function that splits and sends most typical I2C register write.
+
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/dvb/frontends/bsp_tuner.h |  215 +++++++++++++++++++++++++++++++
- 1 files changed, 215 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/dvb/frontends/bsp_tuner.h
+  drivers/media/dvb/dvb-core/Makefile      |    2 +-
+  drivers/media/dvb/dvb-core/dvb_generic.c |   48 
+++++++++++++++++++++++++++++++
+  drivers/media/dvb/dvb-core/dvb_generic.h |   21 +++++++++++++
+  3 files changed, 70 insertions(+), 1 deletions(-)
+  create mode 100644 drivers/media/dvb/dvb-core/dvb_generic.c
+  create mode 100644 drivers/media/dvb/dvb-core/dvb_generic.h
 
-diff --git a/drivers/media/dvb/frontends/bsp_tuner.h b/drivers/media/dvb/frontends/bsp_tuner.h
+diff --git a/drivers/media/dvb/dvb-core/Makefile 
+b/drivers/media/dvb/dvb-core/Makefile
+index 8f22bcd..230584a 100644
+--- a/drivers/media/dvb/dvb-core/Makefile
++++ b/drivers/media/dvb/dvb-core/Makefile
+@@ -6,6 +6,6 @@ dvb-net-$(CONFIG_DVB_NET) := dvb_net.o
+
+  dvb-core-objs := dvbdev.o dmxdev.o dvb_demux.o dvb_filter.o 	\
+  		 dvb_ca_en50221.o dvb_frontend.o 		\
+-		 $(dvb-net-y) dvb_ringbuffer.o dvb_math.o
++		 $(dvb-net-y) dvb_ringbuffer.o dvb_math.o dvb_generic.o
+
+  obj-$(CONFIG_DVB_CORE) += dvb-core.o
+diff --git a/drivers/media/dvb/dvb-core/dvb_generic.c 
+b/drivers/media/dvb/dvb-core/dvb_generic.c
 new file mode 100644
-index 0000000..b67027f
+index 0000000..002bd24
 --- /dev/null
-+++ b/drivers/media/dvb/frontends/bsp_tuner.h
-@@ -0,0 +1,215 @@
-+/*
-+  Copyright (c), 2004-2005,2007-2010 Trident Microsystems, Inc.
-+  All rights reserved.
++++ b/drivers/media/dvb/dvb-core/dvb_generic.c
+@@ -0,0 +1,48 @@
++#include <linux/i2c.h>
++#include "dvb_generic.h"
 +
-+  Redistribution and use in source and binary forms, with or without
-+  modification, are permitted provided that the following conditions are met:
-+
-+  * Redistributions of source code must retain the above copyright notice,
-+    this list of conditions and the following disclaimer.
-+  * Redistributions in binary form must reproduce the above copyright notice,
-+    this list of conditions and the following disclaimer in the documentation
-+	and/or other materials provided with the distribution.
-+  * Neither the name of Trident Microsystems nor Hauppauge Computer Works
-+    nor the names of its contributors may be used to endorse or promote
-+	products derived from this software without specific prior written
-+	permission.
-+
-+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-+  POSSIBILITY OF SUCH DAMAGE.
-+*/
-+
-+/**
-+* \file $Id: bsp_tuner.h,v 1.5 2009/10/19 22:15:13 dingtao Exp $
-+*
-+* \brief Tuner dependable type definitions, macro's and functions
-+*
-+*/
-+
-+#ifndef __DRXBSP_TUNER_H__
-+#define __DRXBSP_TUNER_H__
-+/*------------------------------------------------------------------------------
-+INCLUDES
-+------------------------------------------------------------------------------*/
-+#include "bsp_types.h"
-+#include "bsp_i2c.h"
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+/*------------------------------------------------------------------------------
-+DEFINES
-+------------------------------------------------------------------------------*/
-+
-+
-+   /* Sub-mode bits should be adjacent and incremental */
-+#define TUNER_MODE_SUB0    0x0001   /* for sub-mode (e.g. RF-AGC setting) */
-+#define TUNER_MODE_SUB1    0x0002   /* for sub-mode (e.g. RF-AGC setting) */
-+#define TUNER_MODE_SUB2    0x0004   /* for sub-mode (e.g. RF-AGC setting) */
-+#define TUNER_MODE_SUB3    0x0008   /* for sub-mode (e.g. RF-AGC setting) */
-+#define TUNER_MODE_SUB4    0x0010   /* for sub-mode (e.g. RF-AGC setting) */
-+#define TUNER_MODE_SUB5    0x0020   /* for sub-mode (e.g. RF-AGC setting) */
-+#define TUNER_MODE_SUB6    0x0040   /* for sub-mode (e.g. RF-AGC setting) */
-+#define TUNER_MODE_SUB7    0x0080   /* for sub-mode (e.g. RF-AGC setting) */
-+
-+#define TUNER_MODE_DIGITAL 0x0100   /* for digital channel (e.g. DVB-T)   */
-+#define TUNER_MODE_ANALOG  0x0200   /* for analog channel  (e.g. PAL)     */
-+#define TUNER_MODE_SWITCH  0x0400   /* during channel switch & scanning   */
-+#define TUNER_MODE_LOCK    0x0800   /* after tuner has locked             */
-+#define TUNER_MODE_6MHZ    0x1000   /* for 6MHz bandwidth channels        */
-+#define TUNER_MODE_7MHZ    0x2000   /* for 7MHz bandwidth channels        */
-+#define TUNER_MODE_8MHZ    0x4000   /* for 8MHz bandwidth channels        */
-+
-+#define TUNER_MODE_SUB_MAX 8
-+#define TUNER_MODE_SUBALL  (TUNER_MODE_SUB0 | TUNER_MODE_SUB1 | \
-+			      TUNER_MODE_SUB2 | TUNER_MODE_SUB3 | \
-+			      TUNER_MODE_SUB4 | TUNER_MODE_SUB5 | \
-+			      TUNER_MODE_SUB6 | TUNER_MODE_SUB7)
-+
-+/*------------------------------------------------------------------------------
-+TYPEDEFS
-+------------------------------------------------------------------------------*/
-+
-+typedef u32_t TUNERMode_t;
-+typedef pu32_t pTUNERMode_t;
-+
-+typedef char*           TUNERSubMode_t;    /* description of submode */
-+typedef TUNERSubMode_t *pTUNERSubMode_t;
-+
-+
-+typedef enum {
-+
-+	TUNER_LOCKED,
-+	TUNER_NOT_LOCKED
-+
-+} TUNERLockStatus_t, *pTUNERLockStatus_t;
-+
-+
-+typedef struct {
-+
-+	char           *name;         /* Tuner brand & type name */
-+	DRXFrequency_t minFreqRF;     /* Lowest  RF input frequency, in kHz */
-+	DRXFrequency_t maxFreqRF;     /* Highest RF input frequency, in kHz */
-+
-+	u8_t            subMode;             /* Index to sub-mode in use */
-+	pTUNERSubMode_t subModeDescriptions; /* Pointer to description of sub-modes*/
-+	u8_t            subModes;            /* Number of available sub-modes      */
-+
-+   /* The following fields will be either 0, NULL or FALSE and do not need
-+      initialisation */
-+	void           *selfCheck;     /* gives proof of initialization  */
-+	Bool_t         programmed;     /* only valid if selfCheck is OK  */
-+	DRXFrequency_t RFfrequency;    /* only valid if programmed       */
-+	DRXFrequency_t IFfrequency;    /* only valid if programmed       */
-+
-+	void*          myUserData;     /* pointer to associated demod instance */
-+	u16_t          myCapabilities; /* value for storing application flags  */
-+
-+} TUNERCommonAttr_t, *pTUNERCommonAttr_t;
-+
-+
-+/*
-+* Generic functions for DRX devices.
-+*/
-+typedef struct TUNERInstance_s *pTUNERInstance_t;
-+
-+typedef DRXStatus_t (*TUNEROpenFunc_t)(pTUNERInstance_t  tuner);
-+typedef DRXStatus_t (*TUNERCloseFunc_t)(pTUNERInstance_t  tuner);
-+
-+typedef DRXStatus_t (*TUNERSetFrequencyFunc_t)(pTUNERInstance_t  tuner,
-+						TUNERMode_t       mode,
-+						DRXFrequency_t    frequency);
-+
-+typedef DRXStatus_t (*TUNERGetFrequencyFunc_t)(pTUNERInstance_t  tuner,
-+						TUNERMode_t       mode,
-+						pDRXFrequency_t   RFfrequency,
-+						pDRXFrequency_t   IFfrequency);
-+
-+typedef DRXStatus_t (*TUNERLockStatusFunc_t)(pTUNERInstance_t  tuner,
-+						pTUNERLockStatus_t lockStat);
-+
-+typedef DRXStatus_t (*TUNERi2cWriteReadFunc_t)(pTUNERInstance_t  tuner,
-+						pI2CDeviceAddr_t  wDevAddr,
-+						u16_t             wCount,
-+						pu8_t             wData,
-+						pI2CDeviceAddr_t  rDevAddr,
-+						u16_t             rCount,
-+						pu8_t             rData);
-+
-+typedef struct
++/* write multiple registers */
++int dvb_wr_regs(struct dvb_i2c_cfg *i2c_cfg, u8 reg, u8 *val, int len_tot)
 +{
-+	TUNEROpenFunc_t         openFunc;
-+	TUNERCloseFunc_t        closeFunc;
-+	TUNERSetFrequencyFunc_t setFrequencyFunc;
-+	TUNERGetFrequencyFunc_t getFrequencyFunc;
-+	TUNERLockStatusFunc_t   lockStatusFunc;
-+	TUNERi2cWriteReadFunc_t i2cWriteReadFunc;
++#define REG_ADDR_LEN 1
++#define REG_VAL_LEN 1
++	int ret, len_cur, len_rem, len_max;
++	u8 buf[i2c_cfg->max_wr];
++	struct i2c_msg msg[1] = {
++		{
++			.addr = i2c_cfg->addr,
++			.flags = 0,
++			.buf = buf,
++		}
++	};
 +
-+} TUNERFunc_t, *pTUNERFunc_t;
++	len_max = i2c_cfg->max_wr - REG_ADDR_LEN;
++	for (len_rem = len_tot; len_rem > 0; len_rem -= len_max) {
++		len_cur = len_rem;
++		if (len_cur > len_max)
++			len_cur = len_max;
 +
-+typedef struct TUNERInstance_s {
++		msg[0].len = len_cur + REG_ADDR_LEN;
++		buf[0] = reg;
++		memcpy(&buf[REG_ADDR_LEN], &val[len_tot - len_rem], len_cur);
 +
-+	I2CDeviceAddr_t      myI2CDevAddr;
-+	pTUNERCommonAttr_t   myCommonAttr;
-+	void*                myExtAttr;
-+	pTUNERFunc_t         myFunct;
++		ret = i2c_transfer(i2c_cfg->adapter, msg, 1);
++		if (ret != 1) {
++			warn("i2c wr failed=%d reg=%02x len=%d",
++				ret, reg, len_cur);
++			return -EREMOTEIO;
++		}
++		reg += len_cur;
++	}
 +
-+} TUNERInstance_t;
-+
-+
-+/*------------------------------------------------------------------------------
-+ENUM
-+------------------------------------------------------------------------------*/
-+
-+/*------------------------------------------------------------------------------
-+STRUCTS
-+------------------------------------------------------------------------------*/
-+
-+
-+/*------------------------------------------------------------------------------
-+Exported FUNCTIONS
-+------------------------------------------------------------------------------*/
-+
-+DRXStatus_t DRXBSP_TUNER_Open(pTUNERInstance_t tuner);
-+
-+DRXStatus_t DRXBSP_TUNER_Close(pTUNERInstance_t tuner);
-+
-+DRXStatus_t DRXBSP_TUNER_SetFrequency(pTUNERInstance_t tuner,
-+				       TUNERMode_t      mode,
-+				       DRXFrequency_t   frequency);
-+
-+DRXStatus_t DRXBSP_TUNER_GetFrequency(pTUNERInstance_t tuner,
-+				       TUNERMode_t      mode,
-+				       pDRXFrequency_t  RFfrequency,
-+				       pDRXFrequency_t  IFfrequency);
-+
-+DRXStatus_t DRXBSP_TUNER_LockStatus(pTUNERInstance_t   tuner,
-+				       pTUNERLockStatus_t lockStat);
-+
-+DRXStatus_t DRXBSP_TUNER_DefaultI2CWriteRead(pTUNERInstance_t tuner,
-+						pI2CDeviceAddr_t wDevAddr,
-+						u16_t            wCount,
-+						pu8_t            wData,
-+						pI2CDeviceAddr_t rDevAddr,
-+						u16_t            rCount,
-+						pu8_t            rData);
-+
-+/*------------------------------------------------------------------------------
-+THE END
-+------------------------------------------------------------------------------*/
-+#ifdef __cplusplus
++	return 0;
 +}
-+#endif
-+#endif   /* __DRXBSP_TUNER_H__ */
++EXPORT_SYMBOL(dvb_wr_regs);
 +
-+/* End of file */
++/* write single register */
++int dvb_wr_reg(struct dvb_i2c_cfg *i2c_cfg, u8 reg, u8 val)
++{
++	return dvb_wr_regs(i2c_cfg, reg, &val, 1);
++}
++EXPORT_SYMBOL(dvb_wr_reg);
++
+diff --git a/drivers/media/dvb/dvb-core/dvb_generic.h 
+b/drivers/media/dvb/dvb-core/dvb_generic.h
+new file mode 100644
+index 0000000..7a140ab
+--- /dev/null
++++ b/drivers/media/dvb/dvb-core/dvb_generic.h
+@@ -0,0 +1,21 @@
++#ifndef DVB_GENERIC_H
++#define DVB_GENERIC_H
++
++#define DVB_GENERIC_LOG_PREFIX "dvb_generic"
++#define warn(f, arg...) \
++	printk(KERN_WARNING DVB_GENERIC_LOG_PREFIX": " f "\n", ## arg)
++
++struct dvb_i2c_cfg {
++	struct i2c_adapter *adapter;
++	u8 addr;
++	/* TODO: reg_addr_len; as now use one byte */
++	/* TODO: reg_val_len; as now use one byte */
++	u8 max_wr;
++	u8 max_rd;
++};
++
++extern int dvb_wr_regs(struct dvb_i2c_cfg *, u8, u8 *, int);
++extern int dvb_wr_reg(struct dvb_i2c_cfg *, u8, u8);
++
++#endif
++
 -- 
-1.7.5.4
-
+1.7.4.4
