@@ -1,41 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:50212 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755630Ab1KBOrX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 10:47:23 -0400
-Received: by gyb13 with SMTP id 13so197887gyb.19
-        for <linux-media@vger.kernel.org>; Wed, 02 Nov 2011 07:47:23 -0700 (PDT)
+Received: from rcsinet15.oracle.com ([148.87.113.117]:19689 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756030Ab1KHRKk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 12:10:40 -0500
+Date: Tue, 8 Nov 2011 20:11:23 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Andrew Vincer <Andrew.Vincer@redrat.co.uk>
+Cc: "mchehab@infradead.org" <mchehab@infradead.org>,
+	"jarod@redhat.com" <jarod@redhat.com>,
+	"error27@gmail.com" <error27@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 1/1] rc: Fix input deadlock and transmit error in redrat3
+ driver
+Message-ID: <20111108171122.GA4682@mwanda>
+References: <DA69C24DC634074E9591C2B60BFDBC1C730E13@CP5-3512.fh.redrat.co.uk>
 MIME-Version: 1.0
-In-Reply-To: <CAL9G6WUAJ17mUKUvXvrdVLhxREs36_mr4T45uzjiPSuwLgLnOQ@mail.gmail.com>
-References: <CAL9G6WV=4xxara7vw+jRfydnwqEoc4_qrz6p_z_wowDeEV0scA@mail.gmail.com>
-	<CAGoCfiy=FKo5vRiAV8m-maRZ7aQfmgdivQBrhGSfjF-NGZ=Lpg@mail.gmail.com>
-	<CAOcJUbw8ASb9fqeGQJyvod=03-Yi8MLEhjYL3oTsZztDhMbNiw@mail.gmail.com>
-	<CAGoCfizk7jsKcCSzhyz0PWtj3yUidB_vjjYTCoZ0nfj9L60u5Q@mail.gmail.com>
-	<CAL9G6WUAJ17mUKUvXvrdVLhxREs36_mr4T45uzjiPSuwLgLnOQ@mail.gmail.com>
-Date: Wed, 2 Nov 2011 10:47:22 -0400
-Message-ID: <CAGoCfixSKjV=9pEMpy0EKw_7wj8VvX1RvDL4uhfVVqVfOqVv5A@mail.gmail.com>
-Subject: Re: Hauppauge WIN-TV DUET HD
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Josu Lazkano <josu.lazkano@gmail.com>
-Cc: Michael Krufky <mkrufky@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4vu0d+lqoSa2/ZEk"
+Content-Disposition: inline
+In-Reply-To: <DA69C24DC634074E9591C2B60BFDBC1C730E13@CP5-3512.fh.redrat.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 2, 2011 at 10:45 AM, Josu Lazkano <josu.lazkano@gmail.com> wrote:
-> Thanks both!
->
-> Devin, could you add some info on the linuxtv wiki (firmware, installation...)?
 
-The wiki is available for edits by anyone, so feel free to update it.
-That said, it seems that I don't have all the relevant info, so
-hopefully Michael can provide some insight as to the VID/PID situation
-for that board (and whether a driver change is required).
+--4vu0d+lqoSa2/ZEk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Devin
+On Tue, Nov 08, 2011 at 04:43:45PM +0000, Andrew Vincer wrote:
+> Fixed submit urb logic so hardware doesn't hang trying to transmit
+> signal data
+>=20
+> Removed unneeded enable/disable detector commands in
+> redrat3_transmit_ir (the hardware does this anyway) and converted
+> arguments to unsigned as per 5588dc2
+>=20
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+This would be easier to review it you put the changes to enable and
+disable into one patch and the changes so that we now measure the
+buffer length in bytes instead of ints into a second patch.
+
+regards,
+dan carpenter
+
+
+--4vu0d+lqoSa2/ZEk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJOuWK6AAoJEOnZkXI/YHqRW/oP/RRbpcB1bqc36u7mlM3VFYv0
+5DHxeQC/hV+eSEFqvEbxLK2fcEtmNj0256Ch2Z+utrZdKs1K9DvYsNp7VneYEu5H
+CfIZJQrM7O0MGM9USACqIhTEuJINU9BxEszpKSyfnPjlZYaTk2T5gV0ScRv2u8dJ
+6Cc/hxwk8/Nc/7AxlyB0+TjyjX8tX1wMhEgMkyfhilCMM5ylMQ2G2QBBgWzysQtp
+v7D0r0j9GH46Bvuk+pfG/t0YrNqtrOUivKF2/16iU/8iWzQsSAk6+WwXOJqItvLx
+sX0XC8a5ZCwu/qaPilUXo7440Mj/NJJUGL9SxbAMHt5CHuy1g/xwNVA19RrvSVI8
+Anv5ltRaSFWiDyWZYbRMKGfUODzj56Fa8CVx7Mvx9Ln09sxPDKSkrWGP2K5VFSp0
+EfYKDCWMh9a/OJvZFGbPVyyHQysFEobMurneRkqsNIgVr7WrT5z44tF/JsuBzHw2
+4rECNi+aui8f8F4p2TpqqWuEw4WbPMxSYOPu9KkBb3HYGcKCFhlEZ78nUUbOnHcI
+qyYPONW7v3YO90slXIL1trhUGKgJ9lXVcScxv081hfPOZmKicsPMYMt5Iy/LsXtS
+Uug4oTyvcmGQwi4p7QiFtkjNTXwDLnj6plr+6ci2H3kOLX5Oe0FClN/lGDO3L2pT
+41xhyT/ZvjYnmn4aibON
+=W0mn
+-----END PGP SIGNATURE-----
+
+--4vu0d+lqoSa2/ZEk--
