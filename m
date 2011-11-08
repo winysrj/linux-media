@@ -1,41 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:42184 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751398Ab1KQSQh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Nov 2011 13:16:37 -0500
-Date: Thu, 17 Nov 2011 10:09:41 -0800
-From: Greg KH <gregkh@suse.de>
-To: Tomas Winkler <tomasw@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	devel@driverdev.osuosl.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/3] Move media staging drivers to staging/media
-Message-ID: <20111117180941.GA13717@suse.de>
-References: <20111102094509.4954fead@redhat.com>
- <20111102151009.GA22699@suse.de>
- <CA+i0qc4v=X+swmTdc26nTcjFSnj1kSpKvhG2vvQeaRbKTxjmQQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+i0qc4v=X+swmTdc26nTcjFSnj1kSpKvhG2vvQeaRbKTxjmQQ@mail.gmail.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:52379 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753606Ab1KHXQX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 18:16:23 -0500
+Received: by faan17 with SMTP id n17so1063733faa.19
+        for <linux-media@vger.kernel.org>; Tue, 08 Nov 2011 15:16:22 -0800 (PST)
+From: Sylwester Nawrocki <snjw23@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: [PATCH] staging: as102: Add missing function argument
+Date: Wed,  9 Nov 2011 00:16:04 +0100
+Message-Id: <1320794164-11537-1-git-send-email-snjw23@gmail.com>
+In-Reply-To: <4EB9304C.5020305@redhat.com>
+References: <4EB9304C.5020305@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 17, 2011 at 07:47:50PM +0200, Tomas Winkler wrote:
-> On Wed, Nov 2, 2011 at 5:10 PM, Greg KH <gregkh@suse.de> wrote:
-> > On Wed, Nov 02, 2011 at 09:45:09AM -0200, Mauro Carvalho Chehab wrote:
-> >> Greg,
-> >>
-> >> As agreed, this is the patches that move media drivers to their
-> 
-> I've probably missed the news so  I'd like ask what is the current
-> patch flow for staging/media?
-> Are the patches applied first to linux-media and then merged to the
-> greg's staging tree or the staging tree remains the first sync point?
+Add missing dev argument in dev_err() call to correct an error
+introduced in commit 880102898f19cf9f9ba36dc9d838b5476645ce00
+"...as102: Fix the dvb device registration error path".
 
-Mauro handles all of the drivers/staging/media/ patches, I'm going to
-just ignore them all, or, worse case, just bounce them to him :)
+Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
+---
+ drivers/staging/media/as102/as102_drv.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-thanks,
+diff --git a/drivers/staging/media/as102/as102_drv.c b/drivers/staging/media/as102/as102_drv.c
+index b8adfd2..beacb2c 100644
+--- a/drivers/staging/media/as102/as102_drv.c
++++ b/drivers/staging/media/as102/as102_drv.c
+@@ -220,7 +220,7 @@ int as102_dvb_register(struct as102_dev_t *as102_dev)
+ 
+ 	ret = dvb_dmx_init(&as102_dev->dvb_dmx);
+ 	if (ret < 0) {
+-		dev_err("%s: dvb_dmx_init() failed: %d\n", __func__, ret);
++		dev_err(dev, "%s: dvb_dmx_init() failed: %d\n", __func__, ret);
+ 		goto edmxinit;
+ 	}
+ 
+-- 
+1.7.5.4
 
-greg k-h
