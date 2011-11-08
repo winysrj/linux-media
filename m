@@ -1,102 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:61149 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755141Ab1KXXxW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 18:53:22 -0500
-Received: by bke11 with SMTP id 11so3595813bke.19
-        for <linux-media@vger.kernel.org>; Thu, 24 Nov 2011 15:53:21 -0800 (PST)
-Message-ID: <4ECED8EC.8010807@gmail.com>
-Date: Fri, 25 Nov 2011 00:53:16 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:31231 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752802Ab1KHNgV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Nov 2011 08:36:21 -0500
+Message-ID: <4EB9304C.5020305@redhat.com>
+Date: Tue, 08 Nov 2011 11:36:12 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	=?UTF-8?B?UsOpbWkgRGVuaXMtQ291cm1vbnQ=?= <remi@remlab.net>
-Subject: Re: [Query] V4L2 Integer (?) menu control
-References: <4ECD730E.3080808@gmail.com> <20111124085018.GF27136@valkosipuli.localdomain> <4ECE0FA5.1040205@samsung.com> <4ECEAFBE.1010303@iki.fi>
-In-Reply-To: <4ECEAFBE.1010303@iki.fi>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: linux-media@vger.kernel.org,
+	Piotr Chmura <chmooreck@poczta.onet.pl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PATCH 00/13] Remaining coding style clean up of AS102 driver
+References: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
+In-Reply-To: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-On 11/24/2011 09:57 PM, Sakari Ailus wrote:
-> Sylwester Nawrocki wrote:
->> On 11/24/2011 09:50 AM, Sakari Ailus wrote:
->>>
->>> There is not currently, but I have patches for it. The issue is that I need
->>> them myself but the driver I need them for isn't ready to be released yet.
->>> And as usual, I assume others than vivo is required to show they're really
->>> useful so I haven't sent them.
->>
->> That's great news. Then I might not need to do all the work on my own;)
+Em 06-11-2011 18:31, Sylwester Nawrocki escreveu:
+> Hello,
 > 
-> I hope mine will do. ;-)
+> the following patch set is a further cleanup of the AS102 DVB-T receiver 
+> driver. I'm not sure if there are more issues to address before moving 
+> the driver to drivers/media/dvb/, but checkpatch.pl seems now to be fairly
+> happy about the driver's state:
 > 
-> I'm working on 2.6.32 kernel (ouch!) so I haven't been able to test them properly
-> yet. Please provide feedback on them if you find any issues.
+> 8<------
+> $ scripts/checkpatch.pl -f drivers/staging/media/as102/*.[ch]
+> WARNING: line over 80 characters
+> #137: FILE: staging/media/as102/as102_drv.c:137:
+> +		dprintk(debug, "ADD_PID_FILTER([%02d -> %02d], 0x%04x) ret = %d\n",
 > 
->>>
->>> Good that you asked so we won't end up writing essentially the same code
->>> again. I'll try to send the patches today.
->>
->> All right, there is no rush. I was just looking around how to support the
->> camera scene mode with m5mols sort of sensors. The scene mode is essentially
->> a compilation of several different parameters, for some of which there are
->> standard controls in V4L2 but for many there are not.
+> total: 0 errors, 1 warnings, 319 lines checked
 > 
-> I fully agree with this approach. Scene modes should not be implemented at the
-> level of the V4L2 API. Instead, the parameters that the scene modes consist of
-> must be shown separately on the V4L2 API, if that is the level of API they belong
-> to. Depending on your camera stack control algorithms could reside in the user 
-> space, which I believe is however not the case with the M5-MOLS.
+> drivers/staging/media/as102/as102_drv.c has style problems, please review.
+> 
+> If any of these errors are false positives, please report
+> them to the maintainer, see CHECKPATCH in MAINTAINERS.
+> total: 0 errors, 0 warnings, 106 lines checked
+> 
+> drivers/staging/media/as102/as102_drv.h has no obvious style problems and is ready for submission.
+> total: 0 errors, 0 warnings, 599 lines checked
+> 
+> drivers/staging/media/as102/as102_fe.c has no obvious style problems and is ready for submission.
+> total: 0 errors, 0 warnings, 241 lines checked
+> 
+> drivers/staging/media/as102/as102_fw.c has no obvious style problems and is ready for submission.
+> total: 0 errors, 0 warnings, 38 lines checked
+> 
+> drivers/staging/media/as102/as102_fw.h has no obvious style problems and is ready for submission.
+> total: 0 errors, 0 warnings, 476 lines checked
+> 
+> drivers/staging/media/as102/as102_usb_drv.c has no obvious style problems and is ready for submission.
+> total: 0 errors, 0 warnings, 58 lines checked
+> 
+> drivers/staging/media/as102/as102_usb_drv.h has no obvious style problems and is ready for submission.
+> WARNING: line over 80 characters
+> #349: FILE: staging/media/as102/as10x_cmd.c:349:
+> +		le32_to_cpu(prsp->body.get_demod_stats.rsp.stats.bad_frame_count);
+> 
+> WARNING: line over 80 characters
+> #351: FILE: staging/media/as102/as10x_cmd.c:351:
+> +		le32_to_cpu(prsp->body.get_demod_stats.rsp.stats.bytes_fixed_by_rs);
+> 
+> total: 0 errors, 2 warnings, 453 lines checked
+> 
+> drivers/staging/media/as102/as10x_cmd.c has style problems, please review.
+> 
+> If any of these errors are false positives, please report
+> them to the maintainer, see CHECKPATCH in MAINTAINERS.
+> total: 0 errors, 0 warnings, 215 lines checked
+> 
+> drivers/staging/media/as102/as10x_cmd_cfg.c has no obvious style problems and is ready for submission.
+> total: 0 errors, 0 warnings, 529 lines checked
+> 
+> drivers/staging/media/as102/as10x_cmd.h has no obvious style problems and is ready for submission.
+> total: 0 errors, 0 warnings, 223 lines checked
+> 
+> drivers/staging/media/as102/as10x_cmd_stream.c has no obvious style problems and is ready for submission.
+> total: 0 errors, 0 warnings, 54 lines checked
+> 
+> drivers/staging/media/as102/as10x_handle.h has no obvious style problems and is ready for submission.
+> total: 0 errors, 0 warnings, 194 lines checked
+> 
+> drivers/staging/media/as102/as10x_types.h has no obvious style problems and is ready for submission.
+> ---->8
+> 
+> Thanks to Piotr Chmura for initially reviewing the series.
+> 
+> The patches can be pulled from:
+> git://gitorious.org/linux-media/media_tree.git staging_media_as102_cleanup
+> 
+> The driver has been tested with PCTV picoStick (74e) DVB-T tuner. 
 
-No, with these hybrid camera devices the algorithms are built in their own ISP.
-And there is quite many advanced algorithms, e.g. auto focus/face detection that 
-are difficult to control at the subdevice API level.
+I got a few warnings here, after applying the patch series:
+
+drivers/staging/media/as102/as102_drv.c: In function ‘as102_dvb_register’:
+drivers/staging/media/as102/as102_drv.c:223:3: warning: passing argument 1 of ‘dev_err’ from incompatible pointer type [enabled by default]
+include/linux/device.h:812:12: note: expected ‘const struct device *’ but argument is of type ‘char *’
+drivers/staging/media/as102/as102_drv.c:223:3: warning: too many arguments for format [-Wformat-extra-args]
+
+please check.
 
 > 
->> I've got a feeling the best way to handle this would be to create controls
->> for each single parameter and then do a batch set from user space, and keep
->> the scene mode mappings in user space. The only concern is there is a couple
->> of ISP-specific parameters involved with that scene mode thing. Perhaps they
->> just could be set initially to fixed values.
+> The only issue I observed is at first run MeTV displays 
+> "Failed to lock channel" error instead of playing the last selected 
+> channel immediately.
 > 
-> Can you describe what kind of parameters this is about? Is there an issue in 
-> just setting those using the ISP driver V4L2 subdev API?
-
-Please see struct m5mols_scenemode in file m5mols.h
-
-http://git.linuxtv.org/media_tree.git/blob/7e5219d18e93dd23e834a53b1ea73ead19cfeeb1:/drivers/media/video/m5mols/m5mols.h
-
-for a brief overview. I have also been preparing a list of the parameters and their
-exact meaning, but it's not ready yet.
-
-The issue is that the subdev API seems to low level for the device but it's
-the only API available at the user space ;) 
-
+> I'm rather not planning to be doing much more work on this driver.
 > 
-> This makes your user space to depend both on the sensor and the ISP, but there's
-> really no way around that if both do non-trivial hardware-specific things.
-
-I guess a dedicated library for the sensor itself is needed on top of subdevice API
-to be able to use advanced features. And even then subdevice/V4L2 API is a limitation.
-
+> --
+> Thanks,
+> Sylwester
 > 
-> I think we need to further standardise image processing configuration such as 
-> RGB-to-RGB matrices and gamma tables. This would make the ISP interfaces less 
-> hardware specific.
+> 
+> Piotr Chmura (1):
+>   staging: as102: Remove comment tags for editors configuration
+> 
+> Sylwester Nawrocki (12):
+>   staging: as102: Remove unnecessary typedefs
+>   staging: as102: Remove leftovers of the SPI bus driver
+>   staging: as102: Make the driver select CONFIG_FW_LOADER
+>   staging: as102: Replace pragma(pack) with attribute __packed
+>   staging: as102: Fix the dvb device registration error path
+>   staging: as102: Whitespace and indentation cleanup
+>   staging: as102: Replace printk(KERN_<LEVEL> witk pr_<level>
+>   staging: as102: Remove linkage specifiers for C++
+>   staging: as102: Use linux/uaccess.h instead of asm/uaccess.h
+>   staging: as102: Move variable declarations to the header
+>   staging: as102: Define device name string pointers constant
+>   staging: as102: Eliminate as10x_handle_t alias
+> 
+>  drivers/staging/media/as102/Kconfig            |    1 +
+>  drivers/staging/media/as102/Makefile           |    2 +-
+>  drivers/staging/media/as102/as102_drv.c        |  126 ++---
+>  drivers/staging/media/as102/as102_drv.h        |   59 +--
+>  drivers/staging/media/as102/as102_fe.c         |    4 -
+>  drivers/staging/media/as102/as102_fw.c         |   44 +-
+>  drivers/staging/media/as102/as102_fw.h         |   10 +-
+>  drivers/staging/media/as102/as102_usb_drv.c    |   34 +-
+>  drivers/staging/media/as102/as102_usb_drv.h    |    1 -
+>  drivers/staging/media/as102/as10x_cmd.c        |  139 ++--
+>  drivers/staging/media/as102/as10x_cmd.h        |  895 ++++++++++++------------
+>  drivers/staging/media/as102/as10x_cmd_cfg.c    |   66 +-
+>  drivers/staging/media/as102/as10x_cmd_stream.c |   56 +-
+>  drivers/staging/media/as102/as10x_handle.h     |   26 +-
+>  drivers/staging/media/as102/as10x_types.h      |  250 ++++----
+>  15 files changed, 804 insertions(+), 909 deletions(-)
+> 
 
-I guess first we need at least one more OMAP3 ISP like device driver in mainline 
-to identify common features and design APIs for them. On the other hand gamma tables
-are also present in some embedded ISPs, e.g. in s5k6aafx IIRC. 
-
-
--- 
-Regards,
-Sylwester
