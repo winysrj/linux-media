@@ -1,85 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53711 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754389Ab1K2S6m (ORCPT
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:48787 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755273Ab1KHPYE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Nov 2011 13:58:42 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2 1/2] v4l: Add new alpha component control
-Date: Tue, 29 Nov 2011 19:58:48 +0100
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com,
-	m.szyprowski@samsung.com, jonghun.han@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-References: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com> <201111291910.40076.laurent.pinchart@ideasonboard.com> <201111291930.25608.hverkuil@xs4all.nl>
-In-Reply-To: <201111291930.25608.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111291958.48671.laurent.pinchart@ideasonboard.com>
+	Tue, 8 Nov 2011 10:24:04 -0500
+Received: by mail-bw0-f41.google.com with SMTP id s6so612809bka.0
+        for <linux-media@vger.kernel.org>; Tue, 08 Nov 2011 07:24:03 -0800 (PST)
+Subject: RE: [PATCH] omap_vout: fix section mismatch
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Taneja, Archit" <archit@ti.com>
+In-Reply-To: <79CD15C6BA57404B839C016229A409A802693C@DBDE01.ent.ti.com>
+References: <1320745628-20603-1-git-send-email-tomi.valkeinen@ti.com>
+	 <79CD15C6BA57404B839C016229A409A802693C@DBDE01.ent.ti.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-vzZdaKn3EJO3XubdBO3A"
+Date: Tue, 08 Nov 2011 17:23:59 +0200
+Message-ID: <1320765839.1907.55.camel@deskari>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-On Tuesday 29 November 2011 19:30:25 Hans Verkuil wrote:
-> On Tuesday, November 29, 2011 19:10:39 Laurent Pinchart wrote:
-> > On Tuesday 29 November 2011 17:40:10 Sylwester Nawrocki wrote:
-> > > On 11/29/2011 12:08 PM, Hans Verkuil wrote:
-> > > > On Monday 28 November 2011 14:02:49 Sylwester Nawrocki wrote:
-> > > >> On 11/28/2011 01:39 PM, Hans Verkuil wrote:
-> > > >>> On Monday 28 November 2011 13:13:32 Sylwester Nawrocki wrote:
-> > > >>>> On 11/28/2011 12:38 PM, Hans Verkuil wrote:
-> > > >>>>> On Friday 25 November 2011 16:39:31 Sylwester Nawrocki wrote:
-> > > > Here is a patch that updates the range. It also sends a control event
-> > > > telling any listener that the range has changed. Tested with vivi and
-> > > > a modified v4l2-ctl.
-> > > > 
-> > > > The only thing missing is a DocBook entry for that new event flag and
-> > > > perhaps some more documentation in places.
-> > > > 
-> > > > Let me know how this works for you, and if it is really needed, then
-> > > > I can add it to the control framework.
-> > > 
-> > > Thanks for your work, it's very appreciated.
-> > > 
-> > > I've tested the patch with s5p-fimc and it works well. I just didn't
-> > > check the event part yet.
-> > > 
-> > > I spoke to Kamil as in the past he considered the control range
-> > > updating at the codec driver. But since separate controls are used for
-> > > different encoding standards, this is not needed it any more.
-> > > 
-> > > Nevertheless I have at least two use cases, for the alpha control and
-> > > for the image sensor driver. In case of the camera sensor, different
-> > > device revisions may have different step and maximum value for some
-> > > controls, depending on firmware.
-> > > By using v4l2_ctrl_range_update() I don't need to invoke lengthy sensor
-> > > start-up procedure just to find out properties of some controls.
-> > 
-> > Wouldn't it be confusing for applications to start with a range and have
-> > it updated at runtime ?
-> 
-> Good question. It was a nice exercise creating the range_update() function
-> and it works well, but it this something we want to do?
+--=-vzZdaKn3EJO3XubdBO3A
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-I think that being able to modify the range is a very useful functionality. 
-It's just that in this case the sensor would start with a default range and 
-switch to another based on the model. It would be better if we could start 
-with the right range from the start.
+On Tue, 2011-11-08 at 15:15 +0000, Hiremath, Vaibhav wrote:
 
-> If we do, then we should mark such controls with a flag (_VOLATILE_RANGE or
-> something like that) so apps know that the range isn't fixed.
-> 
-> I think that when it comes to apps writing or reading such a control
-> directly it isn't a problem. But for applications that automatically
-> generate control panels (xawtv et al) it is rather complex to support such
-> things.
+> I am not sure whether you had tested it, but kernel doesn't boot with V4L=
+2 display enabled in defconfig. I have patch to fix this, will submit short=
+ly -
+>=20
+>=20
+> diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/o=
+map/omap_vout.c
+> index 9c5c19f..9031c39 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -2140,6 +2140,8 @@ static int omap_vout_remove(struct platform_device =
+*pdev)
+>                 omap_vout_cleanup_device(vid_dev->vouts[k]);
+>=20
+>         for (k =3D 0; k < vid_dev->num_displays; k++) {
+> +               if (!vid_dev->displays[k] && !vid_dev->displays[k]->drive=
+r)
+> +                       continue;
+>                 if (vid_dev->displays[k]->state !=3D OMAP_DSS_DISPLAY_DIS=
+ABLED)
+>                         vid_dev->displays[k]->driver->disable(vid_dev->di=
+splays[k]);
+>=20
+> @@ -2226,7 +2228,7 @@ static int __init omap_vout_probe(struct platform_d=
+evice *pdev)
+>         for (i =3D 0; i < vid_dev->num_displays; i++) {
+>                 struct omap_dss_device *display =3D vid_dev->displays[i];
+>=20
+> -               if (display->driver->update)
+> +               if (display && display->driver && display->driver->update=
+)
+>                         display->driver->update(display, 0, 0,
+>                                         display->panel.timings.x_res,
+>                                         display->panel.timings.y_res);
+>=20
+>=20
+> Reason being,=20
+>=20
+> If you have enabled certain device and fail to enable in defconfig, this =
+will lead to kernel crash in omap_vout driver.
 
--- 
-Regards,
+Hmm, I didn't quite understand the explanation. But now that you mention
+this, I did have the following patch in one of my work trees, but I seem
+to have forgotten to post it.
 
-Laurent Pinchart
+It fixes the case where a display device defined in the board file
+doesn't have a driver loaded. I guess this is the same problem you
+mention? Is my patch fixing the same problem?
+
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/oma=
+p/omap_vout.c
+index 30d8896..18fe02f 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -2159,6 +2159,14 @@ static int __init omap_vout_probe(struct platform_de=
+vice *pdev)
+        vid_dev->num_displays =3D 0;
+        for_each_dss_dev(dssdev) {
+                omap_dss_get_device(dssdev);
++
++               if (!dssdev->driver) {
++                       dev_warn(&pdev->dev, "no driver for display: %s\n",
++                                       dssdev->name);
++                       omap_dss_put_device(dssdev);
++                       continue;
++               }
++
+                vid_dev->displays[vid_dev->num_displays++] =3D dssdev;
+        }
+
+ Tomi
+
+
+--=-vzZdaKn3EJO3XubdBO3A
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJOuUmPAAoJEPo9qoy8lh71OQAP/2uif0VgEJ4dh0jOdBQk/6ab
+cvzsyTDYr+Qa5mDCg7t7cuO1lMPTtfE72gGPt2eyl/M3PAQatMlGhQ1Y5FSw57jv
+KLhWfwQIT40raRdn7GXAbkBFkH+IjzmHY4ZcJnQ8kisShGPU52cqmIkH3tpmI0/s
+qCwARUFHpUNsUyYh9jfBFv0qicuwk021gD0GxCykZ0zNnNR61eAQobyOBCuLaVaP
+Qc7YhQQd97P1FclDJ98KlyiCeya+ugn8pw9MoEWY6C/CKKNtZMMFCkmQQDiuy2EU
+o+QfR0WUiVGZy4dS5ohnml1zVC9xd35Bq9OWJz7iDtaC8cX5PsDpiwdIxSIuTRo9
+gANT8nruE+FPIbFW9naTYBw20dLGdV7EEc7jKOE5ALbpqws+bKhMI8bEiuuP5xxl
+GMsiyoBkQN7+NfyemlbYbrYLvBh3wXDKYzgdb+F+h9MHExFAkRxpuuPNrL8iWkio
+vyRhhA+y8n1k+aoqke06UEcm6w/gUm7QFxqom1qEn3nmg0gPB16mo8xoOUk3Svdh
+I8NEf5DjpizPSfDfxzw7WsMQXnshNXgDhZqgSsT0xQhUoeGE5Nr7qW2pJGEXtoOa
+3Bmjy7JRayOqILFl1iqPtd7ztLhOT397tnXrk/u+YLmcs/DLrWu0rSkROR/+3EB7
+2i7NdbB9mIJ30uHMf+/3
+=OEFr
+-----END PGP SIGNATURE-----
+
+--=-vzZdaKn3EJO3XubdBO3A--
+
