@@ -1,51 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43898 "EHLO comal.ext.ti.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:45335 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752709Ab1K3N1r convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 08:27:47 -0500
-From: "Nori, Sekhar" <nsekhar@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: RE: [PATCH] board-dm646x-evm.c: wrong register used in
- setup_vpif_input_channel_mode
-Date: Wed, 30 Nov 2011 13:27:38 +0000
-Message-ID: <DF0F476B391FA8409C78302C7BA518B6035772@DBDE01.ent.ti.com>
-References: <1321294849-2738-1-git-send-email-hverkuil@xs4all.nl>
- <986dc5c6de4525aa3427ccded735d8e982080b0e.1321294701.git.hans.verkuil@cisco.com>
-In-Reply-To: <986dc5c6de4525aa3427ccded735d8e982080b0e.1321294701.git.hans.verkuil@cisco.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1756039Ab1KHXwl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Nov 2011 18:52:41 -0500
+Message-ID: <4EB9C0C4.1090200@iki.fi>
+Date: Wed, 09 Nov 2011 01:52:36 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
+To: linux-media <linux-media@vger.kernel.org>
+CC: Michael Krufky <mkrufky@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jean Delvare <khali@linux-fr.org>
+Subject: [RFC 0/2] add generic helper function for I2C register write
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This adds helper function for most typical I2C register write. Main 
+reason was the fact I2C messages are are needed to split smaller parts 
+as I2C-adapters cannot send all long messages used.
 
-On Mon, Nov 14, 2011 at 23:50:49, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The function setup_vpif_input_channel_mode() used the VSCLKDIS register
-> instead of VIDCLKCTL. This meant that when in HD mode videoport channel 0
-> used a different clock from channel 1.
-> 
-> Clearly a copy-and-paste error.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Basically there is three different kind of I2C register access used:
+* register write (I2C write)
+* register read (I2C write + I2C read)
+* register read (I2C read)
 
-Queuing this for v3.2-rc. I changed the headline to match current convention
-Being used in ARM:
+Register read is usually done using write+read combination (with 
+REPEATED START) and almost all I2C-adapters we have can handle it. Some 
+rare situations simple read is used. That means for example reading 
+small amount of registers starting from register 0 and thus register 
+write for setting desired register is not needed. Other used rarely used 
+combination for register read is simple register write (for set desired 
+reg) and then perform simple register read. It looks like write+read but 
+there is no REPEATED START, both messages are own transactions. I hope 
+this story gives better understanding :)
 
-ARM: davinci: dm646x evm: wrong register used in setup_vpif_input_channel_mode
+At that point, I just implemented simple register write as a example. It 
+does not have even any configuration for "register map", like register 
+address length nor register value length. It just assumes register is 
+one byte wide for both address and value. Lets add those later when needed.
 
-Also, the code in question has not changed for a long time, so added the
-stable tag.
+And here is the list of drivers I have been working and this kind of 
+splitting have been one problematic issue;
+* RTL2832U & RTL2832
+* RTL2831U & RTL2830
+* AF9015 & TDA18212
+* AF9015 & TDA18271
+* EM28xx & TDA10071
+* Anysee & CX24116
+* <demod driver not released yet>
 
-Regards,
-Sekhar
+So, as you can see, there is a lot of drivers need splitting!
+
+Any comments?
+
+
+Antti Palosaari (2):
+   dvb-core: add generic helper function for I2C register write
+   tda18218: use generic dvb_wr_regs()
+
+  drivers/media/common/tuners/tda18218.c      |   69 
++++++---------------------
+  drivers/media/common/tuners/tda18218_priv.h |    3 +
+  drivers/media/dvb/dvb-core/Makefile         |    2 +-
+  drivers/media/dvb/dvb-core/dvb_generic.c    |   48 ++++++++++++++++++
+  drivers/media/dvb/dvb-core/dvb_generic.h    |   21 ++++++++
+  5 files changed, 87 insertions(+), 56 deletions(-)
+  create mode 100644 drivers/media/dvb/dvb-core/dvb_generic.c
+  create mode 100644 drivers/media/dvb/dvb-core/dvb_generic.h
+
+-- 
+1.7.4.4
+---
+
+
+-- 
+http://palosaari.fi/
+
 
