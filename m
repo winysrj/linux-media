@@ -1,409 +1,263 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:27126 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752536Ab1KYPji (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Nov 2011 10:39:38 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LV800EX33I03R60@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Nov 2011 15:39:36 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LV800DR73I09Q@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Nov 2011 15:39:36 +0000 (GMT)
-Date: Fri, 25 Nov 2011 16:39:32 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 2/2] s5p-fimc: Add support for alpha component configuration
-In-reply-to: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:47493 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752228Ab1KHVzV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 16:55:21 -0500
+Date: Tue, 8 Nov 2011 23:55:14 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, m.szyprowski@samsung.com,
-	jonghun.han@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1322235572-22016-3-git-send-email-s.nawrocki@samsung.com>
-References: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com>
+Cc: laurent.pinchart@ideasonboard.com, t.stanislaws@samsung.com,
+	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
+	hverkuil@xs4all.nl, dacohen@gmail.com,
+	andriy.shevchenko@linux.intel.com
+Subject: [RFC] SUBDEV_S/G_SELECTION IOCTLs
+Message-ID: <20111108215514.GJ22159@valkosipuli.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Exynos SoCs the FIMC IP allows to configure globally the alpha
-component of all pixels for V4L2_PIX_FMT_RGB32, V4L2_PIX_FMT_RGB555
-and V4L2_PIX_FMT_RGB444 image formats. This patch adds a v4l2 control
-in order to let the applications control the alpha component value.
+Hi all,
 
-The alpha value range depends on the pixel format, for RGB32 it's
-0..255 (8-bits), for RGB555 - 0..1 (1-bit) and for RGB444 - 0..15
-(4-bits). The v4l2 control range is always 0..255 and the alpha
-component data width is determined by currently set format on the
-V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE buffer queue. The applications
-need to match the alpha channel data width and the pixel format
-since the driver will ignore the alpha component bits that are not
-applicable to the configured pixel format.
+This RFC discusses the SUBDEV_S_SELECTION/SUBDEV_G_SELECTION API which is
+intended to amend and replace the existing SUBDEV_[SG]_CROP API. These
+IOCTLs have previously been discussed in the Cambridge V4L2 brainstorming
+meeting [0] and their intent is to provide more configurability for subdevs,
+including cropping on the source pads and composing for a display.
 
-A new entry is added in the variant description data structure
-so an additional control is created only where really supported
-by the hardware.
+The S_SELECTION patches for V4L2 nodes are available here [1] and the
+existing documentation for the V4L2 subdev pad format configuration can be
+found in [2].
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |    4 ++
- drivers/media/video/s5p-fimc/fimc-core.c    |   49 ++++++++++++++++++++++---
- drivers/media/video/s5p-fimc/fimc-core.h    |   13 ++++++-
- drivers/media/video/s5p-fimc/fimc-reg.c     |   53 +++++++++++++++++++++------
- drivers/media/video/s5p-fimc/regs-fimc.h    |    5 +++
- 5 files changed, 105 insertions(+), 19 deletions(-)
+SUBDEV_[SG]_SELECTION is intended to fully replace SUBDEV_[SG]_CROP in
+drivers as the latter can be implemented in SUBDEV_[SG]_SELECTION using
+active CROP target on sink pads. That can be done in v4l2-ioctl.c so drivers
+only will need to implement SUBDEV_[SG]_SELECTION.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 82d9ab6..70176e5 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -63,6 +63,8 @@ static int fimc_init_capture(struct fimc_dev *fimc)
- 		fimc_hw_set_effect(ctx, false);
- 		fimc_hw_set_output_path(ctx);
- 		fimc_hw_set_out_dma(ctx);
-+		if (fimc->variant->has_alpha)
-+			fimc_hw_set_rgb_alpha(ctx);
- 		clear_bit(ST_CAPT_APPLY_CFG, &fimc->state);
- 	}
- 	spin_unlock_irqrestore(&fimc->slock, flags);
-@@ -154,6 +156,8 @@ int fimc_capture_config_update(struct fimc_ctx *ctx)
- 		fimc_hw_set_rotation(ctx);
- 		fimc_prepare_dma_offset(ctx, &ctx->d_frame);
- 		fimc_hw_set_out_dma(ctx);
-+		if (fimc->variant->has_alpha)
-+			fimc_hw_set_rgb_alpha(ctx);
- 		clear_bit(ST_CAPT_APPLY_CFG, &fimc->state);
- 	}
- 	spin_unlock(&ctx->slock);
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 567e9ea..5fe9aeb 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -52,13 +52,29 @@ static struct fimc_fmt fimc_formats[] = {
- 		.colplanes	= 1,
- 		.flags		= FMT_FLAGS_M2M,
- 	}, {
--		.name		= "XRGB-8-8-8-8, 32 bpp",
-+		.name		= "ARGB8888, 32 bpp",
- 		.fourcc		= V4L2_PIX_FMT_RGB32,
- 		.depth		= { 32 },
- 		.color		= S5P_FIMC_RGB888,
- 		.memplanes	= 1,
- 		.colplanes	= 1,
--		.flags		= FMT_FLAGS_M2M,
-+		.flags		= FMT_FLAGS_M2M | FMT_HAS_ALPHA,
-+	}, {
-+		.name		= "ARGB1555",
-+		.fourcc		= V4L2_PIX_FMT_RGB555,
-+		.depth		= { 16 },
-+		.color		= S5P_FIMC_RGB555,
-+		.memplanes	= 1,
-+		.colplanes	= 1,
-+		.flags		= FMT_FLAGS_M2M | FMT_HAS_ALPHA,
-+	}, {
-+		.name		= "ARGB4444",
-+		.fourcc		= V4L2_PIX_FMT_RGB444,
-+		.depth		= { 16 },
-+		.color		= S5P_FIMC_RGB444,
-+		.memplanes	= 1,
-+		.colplanes	= 1,
-+		.flags		= FMT_FLAGS_M2M | FMT_HAS_ALPHA,
- 	}, {
- 		.name		= "YUV 4:2:2 packed, YCbYCr",
- 		.fourcc		= V4L2_PIX_FMT_YUYV,
-@@ -652,8 +668,11 @@ static void fimc_dma_run(void *priv)
- 	if (ctx->state & (FIMC_DST_ADDR | FIMC_PARAMS))
- 		fimc_hw_set_output_addr(fimc, &ctx->d_frame.paddr, -1);
- 
--	if (ctx->state & FIMC_PARAMS)
-+	if (ctx->state & FIMC_PARAMS) {
- 		fimc_hw_set_out_dma(ctx);
-+		if (fimc->variant->has_alpha)
-+			fimc_hw_set_rgb_alpha(ctx);
-+	}
- 
- 	fimc_activate_capture(ctx);
- 
-@@ -790,6 +809,11 @@ static int fimc_s_ctrl(struct v4l2_ctrl *ctrl)
- 		ctx->rotation = ctrl->val;
- 		break;
- 
-+	case V4L2_CID_ALPHA_COMPONENT:
-+		spin_lock_irqsave(&ctx->slock, flags);
-+		ctx->d_frame.alpha = ctrl->val;
-+		break;
-+
- 	default:
- 		v4l2_err(fimc->v4l2_dev, "Invalid control: 0x%X\n", ctrl->id);
- 		return -EINVAL;
-@@ -806,9 +830,11 @@ static const struct v4l2_ctrl_ops fimc_ctrl_ops = {
- 
- int fimc_ctrls_create(struct fimc_ctx *ctx)
- {
-+	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
-+
- 	if (ctx->ctrls_rdy)
- 		return 0;
--	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 3);
-+	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 4);
- 
- 	ctx->ctrl_rotate = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
- 				     V4L2_CID_HFLIP, 0, 1, 1, 0);
-@@ -816,6 +842,14 @@ int fimc_ctrls_create(struct fimc_ctx *ctx)
- 				    V4L2_CID_VFLIP, 0, 1, 1, 0);
- 	ctx->ctrl_vflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
- 				    V4L2_CID_ROTATE, 0, 270, 90, 0);
-+
-+	if (variant->has_alpha)
-+		ctx->ctrl_alpha = v4l2_ctrl_new_std(&ctx->ctrl_handler,
-+				    &fimc_ctrl_ops, V4L2_CID_ALPHA_COMPONENT,
-+				    0, 0xff, 1, 0);
-+	else
-+		ctx->ctrl_alpha = NULL;
-+
- 	ctx->ctrls_rdy = ctx->ctrl_handler.error == 0;
- 
- 	return ctx->ctrl_handler.error;
-@@ -838,6 +872,8 @@ void fimc_ctrls_activate(struct fimc_ctx *ctx, bool active)
- 	v4l2_ctrl_activate(ctx->ctrl_rotate, active);
- 	v4l2_ctrl_activate(ctx->ctrl_hflip, active);
- 	v4l2_ctrl_activate(ctx->ctrl_vflip, active);
-+	if (ctx->ctrl_alpha)
-+		v4l2_ctrl_activate(ctx->ctrl_alpha, active);
- 
- 	if (active) {
- 		ctx->rotation = ctx->ctrl_rotate->val;
-@@ -1374,6 +1410,8 @@ static int fimc_m2m_open(struct file *file)
- 	if (!ctx)
- 		return -ENOMEM;
- 	v4l2_fh_init(&ctx->fh, fimc->m2m.vfd);
-+	ctx->fimc_dev = fimc;
-+
- 	ret = fimc_ctrls_create(ctx);
- 	if (ret)
- 		goto error_fh;
-@@ -1383,7 +1421,6 @@ static int fimc_m2m_open(struct file *file)
- 	file->private_data = &ctx->fh;
- 	v4l2_fh_add(&ctx->fh);
- 
--	ctx->fimc_dev = fimc;
- 	/* Default color format */
- 	ctx->s_frame.fmt = &fimc_formats[0];
- 	ctx->d_frame.fmt = &fimc_formats[0];
-@@ -1892,6 +1929,7 @@ static struct samsung_fimc_variant fimc0_variant_exynos4 = {
- 	.has_cam_if	 = 1,
- 	.has_cistatus2	 = 1,
- 	.has_mainscaler_ext = 1,
-+	.has_alpha	 = 1,
- 	.min_inp_pixsize = 16,
- 	.min_out_pixsize = 16,
- 	.hor_offs_align	 = 2,
-@@ -1905,6 +1943,7 @@ static struct samsung_fimc_variant fimc3_variant_exynos4 = {
- 	.has_cam_if	 = 1,
- 	.has_cistatus2	 = 1,
- 	.has_mainscaler_ext = 1,
-+	.has_alpha	 = 1,
- 	.min_inp_pixsize = 16,
- 	.min_out_pixsize = 16,
- 	.hor_offs_align	 = 2,
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index c7f01c4..9d1f669 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -85,11 +85,14 @@ enum fimc_datapath {
- };
- 
- enum fimc_color_fmt {
--	S5P_FIMC_RGB565 = 0x10,
-+	S5P_FIMC_RGB444 = 0x10,
-+	S5P_FIMC_RGB555,
-+	S5P_FIMC_RGB565,
- 	S5P_FIMC_RGB666,
- 	S5P_FIMC_RGB888,
- 	S5P_FIMC_RGB30_LOCAL,
- 	S5P_FIMC_YCBCR420 = 0x20,
-+	S5P_FIMC_YCBCR422,
- 	S5P_FIMC_YCBYCR422,
- 	S5P_FIMC_YCRYCB422,
- 	S5P_FIMC_CBYCRY422,
-@@ -162,6 +165,7 @@ struct fimc_fmt {
- 	u16	flags;
- #define FMT_FLAGS_CAM	(1 << 0)
- #define FMT_FLAGS_M2M	(1 << 1)
-+#define FMT_HAS_ALPHA	(1 << 2)
- };
- 
- /**
-@@ -283,6 +287,7 @@ struct fimc_frame {
- 	struct fimc_addr	paddr;
- 	struct fimc_dma_offset	dma_offset;
- 	struct fimc_fmt		*fmt;
-+	u8			alpha;
- };
- 
- /**
-@@ -387,6 +392,7 @@ struct samsung_fimc_variant {
- 	unsigned int	has_cistatus2:1;
- 	unsigned int	has_mainscaler_ext:1;
- 	unsigned int	has_cam_if:1;
-+	unsigned int	has_alpha:1;
- 	struct fimc_pix_limit *pix_limit;
- 	u16		min_inp_pixsize;
- 	u16		min_out_pixsize;
-@@ -482,7 +488,8 @@ struct fimc_dev {
-  * @ctrl_handler:	v4l2 controls handler
-  * @ctrl_rotate		image rotation control
-  * @ctrl_hflip		horizontal flip control
-- * @ctrl_vflip		vartical flip control
-+ * @ctrl_vflip		vertical flip control
-+ * @ctrl_alpha		RGB alpha control
-  * @ctrls_rdy:		true if the control handler is initialized
-  */
- struct fimc_ctx {
-@@ -509,6 +516,7 @@ struct fimc_ctx {
- 	struct v4l2_ctrl	*ctrl_rotate;
- 	struct v4l2_ctrl	*ctrl_hflip;
- 	struct v4l2_ctrl	*ctrl_vflip;
-+	struct v4l2_ctrl	*ctrl_alpha;
- 	bool			ctrls_rdy;
- };
- 
-@@ -674,6 +682,7 @@ void fimc_hw_set_prescaler(struct fimc_ctx *ctx);
- void fimc_hw_set_mainscaler(struct fimc_ctx *ctx);
- void fimc_hw_en_capture(struct fimc_ctx *ctx);
- void fimc_hw_set_effect(struct fimc_ctx *ctx, bool active);
-+void fimc_hw_set_rgb_alpha(struct fimc_ctx *ctx);
- void fimc_hw_set_in_dma(struct fimc_ctx *ctx);
- void fimc_hw_set_input_path(struct fimc_ctx *ctx);
- void fimc_hw_set_output_path(struct fimc_ctx *ctx);
-diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
-index 44f5c2d..15466d0 100644
---- a/drivers/media/video/s5p-fimc/fimc-reg.c
-+++ b/drivers/media/video/s5p-fimc/fimc-reg.c
-@@ -117,7 +117,7 @@ void fimc_hw_set_target_format(struct fimc_ctx *ctx)
- 		  S5P_CITRGFMT_VSIZE_MASK);
- 
- 	switch (frame->fmt->color) {
--	case S5P_FIMC_RGB565...S5P_FIMC_RGB888:
-+	case S5P_FIMC_RGB444...S5P_FIMC_RGB888:
- 		cfg |= S5P_CITRGFMT_RGB;
- 		break;
- 	case S5P_FIMC_YCBCR420:
-@@ -175,6 +175,7 @@ void fimc_hw_set_out_dma(struct fimc_ctx *ctx)
- 	struct fimc_dev *dev = ctx->fimc_dev;
- 	struct fimc_frame *frame = &ctx->d_frame;
- 	struct fimc_dma_offset *offset = &frame->dma_offset;
-+	struct fimc_fmt *fmt = frame->fmt;
- 
- 	/* Set the input dma offsets. */
- 	cfg = 0;
-@@ -198,15 +199,22 @@ void fimc_hw_set_out_dma(struct fimc_ctx *ctx)
- 	cfg = readl(dev->regs + S5P_CIOCTRL);
- 
- 	cfg &= ~(S5P_CIOCTRL_ORDER2P_MASK | S5P_CIOCTRL_ORDER422_MASK |
--		 S5P_CIOCTRL_YCBCR_PLANE_MASK);
-+		 S5P_CIOCTRL_YCBCR_PLANE_MASK | S5P_CIOCTRL_RGB16FMT_MASK);
- 
--	if (frame->fmt->colplanes == 1)
-+	if (fmt->colplanes == 1)
- 		cfg |= ctx->out_order_1p;
--	else if (frame->fmt->colplanes == 2)
-+	else if (fmt->colplanes == 2)
- 		cfg |= ctx->out_order_2p | S5P_CIOCTRL_YCBCR_2PLANE;
--	else if (frame->fmt->colplanes == 3)
-+	else if (fmt->colplanes == 3)
- 		cfg |= S5P_CIOCTRL_YCBCR_3PLANE;
- 
-+	if (fmt->color == S5P_FIMC_RGB565)
-+		cfg |= S5P_CIOCTRL_RGB565;
-+	else if (fmt->color == S5P_FIMC_RGB555)
-+		cfg |= S5P_CIOCTRL_ARGB1555;
-+	else if (fmt->color == S5P_FIMC_RGB444)
-+		cfg |= S5P_CIOCTRL_ARGB4444;
-+
- 	writel(cfg, dev->regs + S5P_CIOCTRL);
- }
- 
-@@ -278,22 +286,28 @@ static void fimc_hw_set_scaler(struct fimc_ctx *ctx)
- 	if (sc->copy_mode)
- 		cfg |= S5P_CISCCTRL_ONE2ONE;
- 
--
- 	if (ctx->in_path == FIMC_DMA) {
--		if (src_frame->fmt->color == S5P_FIMC_RGB565)
-+		switch (src_frame->fmt->color) {
-+		case S5P_FIMC_RGB565:
- 			cfg |= S5P_CISCCTRL_INRGB_FMT_RGB565;
--		else if (src_frame->fmt->color == S5P_FIMC_RGB666)
-+			break;
-+		case S5P_FIMC_RGB666:
- 			cfg |= S5P_CISCCTRL_INRGB_FMT_RGB666;
--		else if (src_frame->fmt->color == S5P_FIMC_RGB888)
-+			break;
-+		case S5P_FIMC_RGB888:
- 			cfg |= S5P_CISCCTRL_INRGB_FMT_RGB888;
-+			break;
-+		}
- 	}
- 
- 	if (ctx->out_path == FIMC_DMA) {
--		if (dst_frame->fmt->color == S5P_FIMC_RGB565)
-+		u32 color = dst_frame->fmt->color;
-+
-+		if (color >= S5P_FIMC_RGB444 && color <= S5P_FIMC_RGB565)
- 			cfg |= S5P_CISCCTRL_OUTRGB_FMT_RGB565;
--		else if (dst_frame->fmt->color == S5P_FIMC_RGB666)
-+		else if (color == S5P_FIMC_RGB666)
- 			cfg |= S5P_CISCCTRL_OUTRGB_FMT_RGB666;
--		else if (dst_frame->fmt->color == S5P_FIMC_RGB888)
-+		else if (color == S5P_FIMC_RGB888)
- 			cfg |= S5P_CISCCTRL_OUTRGB_FMT_RGB888;
- 	} else {
- 		cfg |= S5P_CISCCTRL_OUTRGB_FMT_RGB888;
-@@ -379,6 +393,21 @@ void fimc_hw_set_effect(struct fimc_ctx *ctx, bool active)
- 	writel(cfg, dev->regs + S5P_CIIMGEFF);
- }
- 
-+void fimc_hw_set_rgb_alpha(struct fimc_ctx *ctx)
-+{
-+	struct fimc_dev *dev = ctx->fimc_dev;
-+	struct fimc_frame *frame = &ctx->d_frame;
-+	u32 cfg;
-+
-+	if (!(frame->fmt->flags & FMT_HAS_ALPHA))
-+		return;
-+
-+	cfg = readl(dev->regs + S5P_CIOCTRL);
-+	cfg &= ~S5P_CIOCTRL_ALPHA_OUT_MASK;
-+	cfg |= (frame->alpha << 4);
-+	writel(cfg, dev->regs + S5P_CIOCTRL);
-+}
-+
- static void fimc_hw_set_in_dma_size(struct fimc_ctx *ctx)
- {
- 	struct fimc_dev *dev = ctx->fimc_dev;
-diff --git a/drivers/media/video/s5p-fimc/regs-fimc.h b/drivers/media/video/s5p-fimc/regs-fimc.h
-index c8e3b94..c7a5bc5 100644
---- a/drivers/media/video/s5p-fimc/regs-fimc.h
-+++ b/drivers/media/video/s5p-fimc/regs-fimc.h
-@@ -107,6 +107,11 @@
- #define S5P_CIOCTRL_YCBCR_3PLANE	(0 << 3)
- #define S5P_CIOCTRL_YCBCR_2PLANE	(1 << 3)
- #define S5P_CIOCTRL_YCBCR_PLANE_MASK	(1 << 3)
-+#define S5P_CIOCTRL_ALPHA_OUT_MASK	(0xff << 4)
-+#define S5P_CIOCTRL_RGB16FMT_MASK	(3 << 16)
-+#define S5P_CIOCTRL_RGB565		(0 << 16)
-+#define S5P_CIOCTRL_ARGB1555		(1 << 16)
-+#define S5P_CIOCTRL_ARGB4444		(2 << 16)
- #define S5P_CIOCTRL_ORDER2P_SHIFT	(24)
- #define S5P_CIOCTRL_ORDER2P_MASK	(3 << 24)
- #define S5P_CIOCTRL_ORDER422_2P_LSB_CRCB (0 << 24)
+
+Questions, comments and thoughts are welcome, especially regarding new use
+cases.
+
+
+Order of configuration
+======================
+
+The proposed order of the subdev configuration is as follows. Individual
+steps may be omitted since any of the steps will reset the rectangles /
+sizes for any following step.
+
+1. SUBDEV_S_FMT on the SINK pad. The user will issue SUBDEV_S_FMT to set the
+subdev sink pad image size and media bus format code and other parameters in
+v4l2_mbus_framefmt as necessary.
+
+2. SUBDEV_S_SELECTION with CROP target on the SINK pad. The crop rectangle
+is set related to the image size given in step 1).
+
+3. SUBDEV_S_SELECTION with COMPOSE target on the SINK pad. The size of the
+compose rectangle, if it differs from the size of the rectangle given in 2),
+signifies user's wish to perform scaling.
+
+4. SUBDEV_S_SELECTION with CROP target on the SOURCE pad. Configure cropping
+performed by the subdev after scaling.
+
+5. SUBDEV_S_SELECTION with COMPOSE target on the SOURCE pad. This configures
+composition on the display if relevant for the subdevice. (In this case the
+COMPOSE bounds will yield to the size of the display.)
+
+6. SUBDEV_S_FMT on the SOURCE pad. The size of the image is defined by
+setting CROP on the SOURCE pad, so SUBDEV_S_FMT only has an effect of
+changing other parameters than size.
+
+As defined in [2], when performing any of the configuration phases above,
+the formats and selections are reset to defaults from each phase onwards.
+For example, SUBDEV_S_SELECTION with CROP target on the SINK pad will
+--- beyond its obvious function of setting CROP selection target on the SINK
+pad --- reset the COMPOSE selection target on SINK pad, as well as the CROP
+selection target and format on the SOURCE pad.
+
+
+Definitions
+===========
+
+/**
+ * struct v4l2_subdev_selection - selection info
+ *
+ * @which: either V4L2_SUBDEV_FORMAT_ACTIVE or V4L2_SUBDEV_FORMAT_TRY
+ * @pad: pad number, as reported by the media API
+ * @target: selection target, used to choose one of possible rectangles
+ * @flags: constraints flags
+ * @r: coordinates of selection window
+ * @reserved: for future use, rounds structure size to 64 bytes, set to zero
+ *
+ * Hardware may use multiple helper window to process a video stream.
+ * The structure is used to exchange this selection areas between
+ * an application and a driver.
+ */
+struct v4l2_subdev_selection {
+	__u32 which;
+	__u32 pad;
+	__u32 target;
+	__u32 flags;
+	struct v4l2_rect r;
+	__u32 reserved[8];
+};
+
+Both SUBDEV_S_SELECTION and SUBDEV_G_SELECTION would take struct
+v4l2_subdev_selection as the IOCTL argument (RW).
+
+The same target definitions and flags apply as in [1], with possible
+exception of the PADDED targets --- see below. The flags will gain _SUBDEV
+prefix after the existing V4L2 prefix.
+
+
+Sample use cases
+================
+
+
+OMAP 3 ISP preview
+------------------
+
+The OMAP 3 ISP preview block provides cropping on preview sink pad, but also
+horizontal averaging. The horizontal averaging may scale the image
+horizontally by factor 1/n, where n is either 1, 2, 4 or 8.
+
+The preview block also performs pixel format conversion from raw bayer to
+YUV. Other image processing operations crops maximum of 12 columns and 8 rows
+before the format conversion. After the format conversion, further 2 columns
+are cropped.
+
+To make this easy for the user, the driver assumes that all the features
+affecting cropping are enabled at all times so the size stays constant for
+the user.
+
+
+This example only includes the preview subdev since it can be shown
+independently. In the example, the preview subdev is configured to crop the
+image by 100 pixels on all sides of the image. The horizontal averaging is
+configured by factor 1/2, which translates 100 pixels from each side of the
+original image. The preview sink pad format is 800x600 SGRBG10.
+
+
+[crop] 0:preview:1 [crop (static), compose]
+
+	The initial state of the pipeline is:
+
+	preview:0	preview:1
+compose (0,0)/788x592	(0,0)/788x592
+crop	(7,4)/788x592	(1,0)/786x592
+fmt	800x600/SGRBG10	786x592/YUYV
+
+	This is due to hardware imposed cropping performed in the sink pad
+	as well as on the source pad.
+
+	To crop 100 pixels on all sides:
+
+	SUBDEV_S_SELECTION(preview:0, CROP_ACTIVE, (99,100)/602x400);
+
+	The hardware mandated crop on the sink pad is thus one pixel on left
+	and right sides of the image. (This would also be shown in the
+	CROP_BOUNDS target.)
+
+	preview:0	preview:1
+compose (0,0)/602x400	(0,0)/602x400
+crop	(99,100)/602x400 (1,0)/600x400
+fmt	800x600/SGRBG10	600x400/YUYV
+
+
+A sensor
+--------
+
+The intent is to obtain a VGA image from a 8 MP sensor which provides
+following pipeline:
+
+pixel_array:0 [crop] ---> 0:binner:1 ---> [crop] 0:scaler:1 [crop]
+
+Binner is an entity which can perform scaling, but only in factor of 1/n,
+where n is a positive integer. No cropping is needed. The intent is to get a
+640x480 image from such sensor. (This doesn't involve any other
+configuration as the image size related one.)
+
+	The initial state of the pipeline
+
+	pixel_array:0	binner:0	binner:1	scaler:0	scaler:1
+compose (0,0)/3600x2464	(0,0)/3600x2464	(0,0)/3600x2464	(0,0)/3600x2464	(0,0)/3600x2464
+crop	(0,0)/3600x2464	(0,0)/3600x2464	(0,0)/3600x2464	(0,0)/3600x2464	(0,0)/3600x2464
+fmt	3600x2464	3600x2464	3600x2464	3600x2464	3600x2464
+
+	This will configure the binning on the binner subdev sink pad:
+
+	SUBDEV_S_SELECTION(binner:0, COMPOSE_ACTIVE, (0,0)/1800x1232);
+
+	pixel_array:0	binner:0	binner:1	scaler:0	scaler:1
+compose (0,0)/3600x2464	(0,0)/1800x1232	(0,0)/1800x1232	(0,0)/3600x2464	(0,0)/3600x2464
+crop	(0,0)/3600x2464	(0,0)/3600x2464	(0,0)/1800x1232	(0,0)/3600x2464	(0,0)/3600x2464
+fmt	3600x2464	3600x2464	1800x1232	3600x2464	3600x2464
+
+	The same format must be set on the scaler pad 0 as well. This will
+	reset the size inside the scaler to a sane default, which is no
+	scaling:
+
+	SUBDEV_S_FMT(scaler:0, 1800x1232);
+
+	pixel_array:0	binner:0	binner:1	scaler:0	scaler:1
+compose (0,0)/3600x2464	(0,0)/1800x1232	(0,0)/1800x1232	(0,0)/1800x1232	(0,0)/1800x1232
+crop	(0,0)/3600x2464	(0,0)/3600x2464	(0,0)/1800x1232	(0,0)/1800x1232	(0,0)/1800x1232
+fmt	3600x2464	3600x2464	1800x1232	1800x1232	1800x1232
+
+	To perform further scaling on the scaler, the COMPOSE target is used
+	on the scaler subdev's SOURCE pad:
+
+	SUBDEV_S_SELECTION(scaler:0, COMPOSE_ACTIVE, (0,0)/640x480);
+
+	pixel_array:0	binner:0	binner:1	scaler:0	scaler:1
+compose (0,0)/3600x2464	(0,0)/1800x1232	(0,0)/1800x1232	(0,0)/640x480	(0,0)/640x480
+crop	(0,0)/3600x2464	(0,0)/3600x2464	(0,0)/1800x1232	(0,0)/1800x1232	(0,0)/640x480
+fmt	3600x2464	3600x2464	1800x1232	1800x1232	640x480
+
+
+The result is a 640x480 image from the scaler's output pad. The aspect ratio
+of the resulting image is different from 4/3 since no cropping was
+performed in this example.
+
+
+Applications which do not recognise SUBDEV_S_SELECTION 
+======================================================
+
+The current spec [2] tells that the scaling factor is defined by using
+SUBDEV_S_FMT in the source pad. This method would not be supported in the
+future, possibly affecting applications which use SUBDEV_S_FMT to configure
+the scaling factor.
+
+If supporting this is seen necessary, it can be implemented by e.g.
+reverting to the old behaviour if the SOURCE crop rectangle width or height
+is different from width and height specified in SOURCE S_FMT.
+
+
+Open questions
+==============
+
+1. Keep subdev configuration flag. In Cambourne meeting the case of the OMAP
+3 ISP resizer configuration dilemma was discussed, and the proposal was to
+add a flag to disable propagating the configuration inside a single subdev.
+Propagating inside a single subdev is the default. Where do we need this
+flag; is just SUBDEV_S_SELECTION enough? [0]
+
+2. Are PADDED targets relevant for media bus formats? [3]
+
+
+References
+==========
+
+[0] http://www.mail-archive.com/linux-media@vger.kernel.org/msg35361.html
+
+[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg36206.html
+
+[2] http://hverkuil.home.xs4all.nl/spec/media.html#subdev
+
+[3] http://www.mail-archive.com/linux-media@vger.kernel.org/msg36203.html
+
+
 -- 
-1.7.7.2
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
