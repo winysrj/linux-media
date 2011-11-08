@@ -1,71 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26876 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752212Ab1KMLjd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Nov 2011 06:39:33 -0500
-Message-ID: <4EBFAC6C.4000302@redhat.com>
-Date: Sun, 13 Nov 2011 09:39:24 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38424 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755138Ab1KHOzC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 09:55:02 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH] media: vb2: vmalloc-based allocator user pointer handling
+Date: Tue, 8 Nov 2011 15:43:42 +0100
+Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	linux-media@vger.kernel.org,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Pawel Osciak'" <pawel@osciak.com>
+References: <1320231122-22518-1-git-send-email-andrzej.p@samsung.com> <201111081501.00656.laurent.pinchart@ideasonboard.com> <004e01cc9e22$c1c0b390$45421ab0$%szyprowski@samsung.com>
+In-Reply-To: <004e01cc9e22$c1c0b390$45421ab0$%szyprowski@samsung.com>
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Manu Abraham <abraham.manu@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: PATCH: Query DVB frontend capabilities
-References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com> <4EBBE336.8050501@linuxtv.org> <CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com> <4EBC402E.20208@redhat.com> <CAHFNz9KFv7XvK4Uafuk8UDZiu1GEHSZ8bUp3nAyM21ck09yOCQ@mail.gmail.com> <4EBCF4F1.2030606@redhat.com> <CAHFNz9JWi3f3kB2UdBQXJBP2Q3Y+a0qBVNBAiZPVxtcCVZCN7g@mail.gmail.com> <4EBDA3D2.6060506@redhat.com> <4EBDE9B7.20802@linuxtv.org>
-In-Reply-To: <4EBDE9B7.20802@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111081543.43122.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 12-11-2011 01:36, Andreas Oberritter escreveu:
-> On 11.11.2011 23:38, Mauro Carvalho Chehab wrote:
->> Em 11-11-2011 20:07, Manu Abraham escreveu:
->>> On Fri, Nov 11, 2011 at 3:42 PM, Mauro Carvalho Chehab
->>> <mchehab@redhat.com> wrote:
->>>> Em 11-11-2011 04:26, Manu Abraham escreveu:
->>>>> On Fri, Nov 11, 2011 at 2:50 AM, Mauro Carvalho Chehab
->>>>> <mchehab@redhat.com> wrote:
->>>>>> Em 10-11-2011 13:30, Manu Abraham escreveu:
->>>>> The purpose of the patch is to
->>>>> query DVB delivery system capabilities alone, rather than DVB frontend
->>>>> info/capability.
->>>>>
->>>>> Attached is a revised version 2 of the patch, which addresses the
->>>>> issues that were raised.
->>>>
->>>> It looks good for me. I would just rename it to DTV_SUPPORTED_DELIVERY.
->>>> Please, when submitting upstream, don't forget to increment DVB version and
->>>> add touch at DocBook, in order to not increase the gap between API specs and the
->>>> implementation.
->>>
->>> Ok, thanks for the feedback, will do that.
->>>
->>> The naming issue is trivial. I would like to have a shorter name
->>> rather that SUPPORTED. CAPS would have been ideal, since it refers to
->>> device capability.
->>
->> CAPS is not a good name, as there are those two CAPABILITIES calls there
->> (well, currently not implemented). So, it can lead in to some confusion.
->>
->> DTV_ENUM_DELIVERY could be an alternative for a short name to be used there.
+Hi Marek,
+
+On Tuesday 08 November 2011 15:29:00 Marek Szyprowski wrote:
+> On Tuesday, November 08, 2011 3:01 PM Laurent Pinchart wrote:
+> > On Tuesday 08 November 2011 14:57:40 Marek Szyprowski wrote:
+> > > On Tuesday, November 08, 2011 12:32 PM Laurent Pinchart wrote:
+> > > > On Thursday 03 November 2011 08:40:26 Marek Szyprowski wrote:
+> > > > > On Wednesday, November 02, 2011 2:54 PM Laurent Pinchart wrote:
+
+[snip]
+
+> > > > > > This can cause an AB-BA deadlock, and will be reported by
+> > > > > > deadlock detection if enabled.
+> > > > > > 
+> > > > > > The issue is that the mmap() handler is called by the MM core
+> > > > > > with current->mm->mmap_sem held, and then takes the driver's
+> > > > > > lock before calling videobuf2's mmap handler. The VIDIOC_QBUF
+> > > > > > handler, on the other hand, will first take the driver's lock
+> > > > > > and will then try to take current->mm->mmap_sem here.
+> > > > > > 
+> > > > > > This can result in a deadlock if both MMAP and USERPTR buffers
+> > > > > > are used by the same driver at the same time.
+> > > > > > 
+> > > > > > If we assume that MMAP and USERPTR buffers can't be used on the
+> > > > > > same queue at the same time (VIDIOC_CREATEBUFS doesn't allow
+> > > > > > that if I'm not mistaken, so we should be safe, at least for
+> > > > > > now), this can be fixed by having a per-queue lock in the driver
+> > > > > > instead of a global device lock. However, that means that
+> > > > > > drivers that want to support USERPTR will not be allowed to
+> > > > > > delegate lock handling to the V4L2 core and
+> > > > > > video_ioctl2().
+> > > > > 
+> > > > > Thanks for pointing this issue! This problem is already present in
+> > > > > the other videobuf2 memory allocators as well as the old videobuf
+> > > > > and other v4l2 drivers which implement queue handling by
+> > > > > themselves.
+> > > > 
+> > > > The problem is present in most (but not all) drivers, yes. That's one
+> > > > more reason to fix it in videobuf2 :-)
+> > > > 
+> > > > > The only solution that will not complicate the videobuf2 and
+> > > > > allocators code is to move taking current->mm->mmap_sem lock into
+> > > > > videobuf2 core. Before acquiring this lock, vb2 calls wait_prepare
+> > > > > to release device lock and then once mmap_sem is locked, calls
+> > > > > wait_finish to get it again. This way the deadlock is avoided and
+> > > > > allocators are free to call
+> > > > > get_user_pages() without further messing with locks. The only
+> > > > > drawback is the fact that a bit more code will be executed under
+> > > > > mmap_sem lock.
+> > > > > 
+> > > > > What do you think about such solution?
+> > > > 
+> > > > Won't that create a race condition ? Wouldn't an application for
+> > > > instance be able to call VIDIOC_REQBUFS(0) during the time window
+> > > > where the device lock is released ?
+> > > 
+> > > Hmm... Right...
+> > > 
+> > > The only solution I see now is to move acquiring mmap_sem as early as
+> > > possible to make the possible race harmless. The first operation in
+> > > vb2_qbuf will be then:
+> > > 
+> > > if (b->memory == V4L2_MEMORY_USERPTR) {
+> > > 
+> > >        call_qop(q, wait_prepare, q);
+> > >        down_read(&current->mm->mmap_sem);
+> > >        call_qop(q, wait_finish, q);
+> > > 
+> > > }
+> > > 
+> > > This should solve the race although all userptr buffers will be handled
+> > > under mmap_sem lock. Do you have any other idea?
+> > 
+> > If queues don't mix MMAP and USERPTR buffers (is that something we want
+> > to allow ?), wouldn't using a per-queue lock instead of a device-wide
+> > lock be a better way to fix the problem ?
 > 
-> I like "enum", because it suggests that it's a read-only property.
-> 
-> DVB calls them "delivery systems", so maybe DTV_ENUM_DELSYS may be an
-> alternative.
+> It is not really about allowing mixing MMAP & USERPTR. Even if your
+> application use only USRPTR  buffers, a malicious task might open the video
+> node and call mmap operation what might cause a deadlock in certain rare
+> cases.
 
-DELSYS may give other interpretations. I don't think we should be so short
-at the cmd name. There are already some on ISDB with very big names.
+Right :-/
 
-I would get either 
+The mmap() call would fail, but it still takes the lock before failing.
 
-DTV_ENUM_DELIVSYS
- or
-DTV_ENUM_DELIVERYSYS
+Would there be a way to make mmap() fail on queues configured for USERPTR 
+without taking the lock ?
 
-(IMHO, DTV_ENUM_DELIVERYSYS is the better choice)
+> I'm against adding internal locks to vb2 queue. Avoiding deadlocks will be
+> a nightmare when you will try to handle or synchronize more than one queue
+> in a single call...
 
+I wasn't proposing adding internal locks to vb2 queue, but using per-queue 
+locks inside the driver. vb2 would still not handle locking itself.
+
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
