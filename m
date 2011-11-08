@@ -1,64 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:34525 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754264Ab1KNV1F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Nov 2011 16:27:05 -0500
-Received: by wwe5 with SMTP id 5so5039072wwe.1
-        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2011 13:27:03 -0800 (PST)
-Message-ID: <4ec187a6.c6d0e30a.2cea.ffff9e85@mx.google.com>
-Subject: Re: AF9015 Dual tuner i2c write failures
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Tim Draper <veehexx@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <CAB33W8eTZg3Q9xZg9Ebz5C+Cb_H2SHH_R1u30V4i+_Oe8N1ysA@mail.gmail.com>
-References: <CAB33W8dW0Yts_dxz=WyYEK9-bcoQ_9gM-t3+aR5s-G_5QswOyA@mail.gmail.com>
-	 <CAB33W8eMEG6cxM9x0aGRe+1xx6TwvjBZL4KSdRY4Ti2sTHk9hg@mail.gmail.com>
-	 <CAL9G6WXq_MSu+6Ogjis43bsszDri0y5JQrhHrAQ8tiTKv09YKQ@mail.gmail.com>
-	 <CAATJ+ftr76OMckcpf_ceX4cPwv0840C9HL+UuHivAtub+OC+jw@mail.gmail.com>
-	 <4ebdacc2.04c6e30a.29e4.58ff@mx.google.com>
-	 <CAB33W8eYnQbKAkNobiez0yH5tgCVN4s84ncT5cmKHxeqHm8P3Q@mail.gmail.com>
-	 <CAL9G6WXHfA-n0u_yB7QvUAN_8TxSSA2M_O0m6kbsOrcgE+nMsA@mail.gmail.com>
-	 <CAB33W8cJYoXe+1yCPhEGgSpHM7AYd_b-sm5dSy8g+jT=98X=eg@mail.gmail.com>
-	 <CAB33W8eTZg3Q9xZg9Ebz5C+Cb_H2SHH_R1u30V4i+_Oe8N1ysA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 14 Nov 2011 21:26:06 +0000
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:33811 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754691Ab1KHO3D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 09:29:03 -0500
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LUC00M3IIWD2G@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 08 Nov 2011 14:29:01 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LUC00CE2IWCDG@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 08 Nov 2011 14:29:01 +0000 (GMT)
+Date: Tue, 08 Nov 2011 15:29:00 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH] media: vb2: vmalloc-based allocator user pointer handling
+In-reply-to: <201111081501.00656.laurent.pinchart@ideasonboard.com>
+To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
+Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	linux-media@vger.kernel.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Pawel Osciak' <pawel@osciak.com>
+Message-id: <004e01cc9e22$c1c0b390$45421ab0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1320231122-22518-1-git-send-email-andrzej.p@samsung.com>
+ <201111081232.07239.laurent.pinchart@ideasonboard.com>
+ <004d01cc9e1e$6101fef0$2305fcd0$%szyprowski@samsung.com>
+ <201111081501.00656.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2011-11-14 at 13:35 +0000, Tim Draper wrote:
-> ok, looks like the patch has fixed the issue in my initial response,
-> but now i've got a new issue (related?) when i reboot - the
-> dvb-usb-af9015 module is not being loaded.
+Hello,
+
+On Tuesday, November 08, 2011 3:01 PM Laurent Pinchart wrote:
+> On Tuesday 08 November 2011 14:57:40 Marek Szyprowski wrote:
+> > On Tuesday, November 08, 2011 12:32 PM Laurent Pinchart wrote:
+> > > On Thursday 03 November 2011 08:40:26 Marek Szyprowski wrote:
+> > > > On Wednesday, November 02, 2011 2:54 PM Laurent Pinchart wrote:
+> > > > > On Wednesday 02 November 2011 11:52:02 Andrzej Pietrasiewicz wrote:
+> > > > > > vmalloc-based allocator user pointer handling
+> > >
+> > > [snip]
+> > >
+> > > > > This can cause an AB-BA deadlock, and will be reported by deadlock
+> > > > > detection if enabled.
+> > > > >
+> > > > > The issue is that the mmap() handler is called by the MM core with
+> > > > > current->mm->mmap_sem held, and then takes the driver's lock before
+> > > > > calling videobuf2's mmap handler. The VIDIOC_QBUF handler, on the
+> > > > > other hand, will first take the driver's lock and will then try to
+> > > > > take current->mm->mmap_sem here.
+> > > > >
+> > > > > This can result in a deadlock if both MMAP and USERPTR buffers are
+> > > > > used by the same driver at the same time.
+> > > > >
+> > > > > If we assume that MMAP and USERPTR buffers can't be used on the same
+> > > > > queue at the same time (VIDIOC_CREATEBUFS doesn't allow that if I'm
+> > > > > not mistaken, so we should be safe, at least for now), this can be
+> > > > > fixed by having a per-queue lock in the driver instead of a global
+> > > > > device lock. However, that means that drivers that want to support
+> > > > > USERPTR will not be allowed to delegate lock handling to the V4L2
+> > > > > core and
+> > > > > video_ioctl2().
+> > > >
+> > > > Thanks for pointing this issue! This problem is already present in the
+> > > > other videobuf2 memory allocators as well as the old videobuf and other
+> > > > v4l2 drivers which implement queue handling by themselves.
+> > >
+> > > The problem is present in most (but not all) drivers, yes. That's one
+> > > more reason to fix it in videobuf2 :-)
+> > >
+> > > > The only solution that will not complicate the videobuf2 and allocators
+> > > > code is to move taking current->mm->mmap_sem lock into videobuf2 core.
+> > > > Before acquiring this lock, vb2 calls wait_prepare to release device
+> > > > lock and then once mmap_sem is locked, calls wait_finish to get it
+> > > > again. This way the deadlock is avoided and allocators are free to
+> > > > call
+> > > > get_user_pages() without further messing with locks. The only drawback
+> > > > is the fact that a bit more code will be executed under mmap_sem lock.
+> > > >
+> > > > What do you think about such solution?
+> > >
+> > > Won't that create a race condition ? Wouldn't an application for instance
+> > > be able to call VIDIOC_REQBUFS(0) during the time window where the
+> > > device lock is released ?
+> >
+> > Hmm... Right...
+> >
+> > The only solution I see now is to move acquiring mmap_sem as early as
+> > possible to make the possible race harmless. The first operation in
+> > vb2_qbuf will be then:
+> >
+> > if (b->memory == V4L2_MEMORY_USERPTR) {
+> >        call_qop(q, wait_prepare, q);
+> >        down_read(&current->mm->mmap_sem);
+> >        call_qop(q, wait_finish, q);
+> > }
+> >
+> > This should solve the race although all userptr buffers will be handled
+> > under mmap_sem lock. Do you have any other idea?
 > 
-> if i try to modprobe it (sudo modprobe dvb-usb-af9015), then i get the error:
-> FATAL: Error inserting dvb_usb_af9015
-> (/lib/modules/2.6.38-12-generic/kernel/drivers/media/dvb/dvb-usb/dvb-usb-af9015.ko):
-> Unknown symbol in module, or unknown parameter (see dmesg)
-> 
-> dmesg |tail:
-> [  170.406969] dvb_usb_af9015: Unknown parameter `adapter'
-> 
-> thats the only 2 lines related to the issue.
-> 
-> what i did was apply the patch that Malcolm sent to me, and then
-> rebooted. af9015 still not working, so removed USB device and
-> reinserted. tuner now worked flawlessly.
-> gave the PC a reboot, and now i've got the above error.
-> 
-> any ideas?
+> If queues don't mix MMAP and USERPTR buffers (is that something we want to
+> allow ?), wouldn't using a per-queue lock instead of a device-wide lock be a
+> better way to fix the problem ?
 
-Are you sure that your system hasn't rolled to 2.6.38-13-generic
-yesterday or today even?
+It is not really about allowing mixing MMAP & USERPTR. Even if your 
+application use only USRPTR  buffers, a malicious task might open the video
+node and call mmap operation what might cause a deadlock in certain rare 
+cases.
 
-In terminal
+I'm against adding internal locks to vb2 queue. Avoiding deadlocks will be a 
+nightmare when you will try to handle or synchronize more than one queue in a
+single call...
 
-uname -r
-
-Regards
-
-
-Malcolm
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
