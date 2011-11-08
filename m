@@ -1,56 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:47678 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751271Ab1KTHYF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Nov 2011 02:24:05 -0500
-Date: Sun, 20 Nov 2011 08:24:29 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Ezequiel <elezegarcia@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Cleanup proposal for media/gspca
-Message-ID: <20111120082429.06ad5a32@tele>
-In-Reply-To: <20111119185950.GB3048@localhost>
-References: <20111116013445.GA5273@localhost>
-	<CALF0-+V+rEYi1of3jUGeVZsF2Ms215k0_CQjJx0qnPDUuC1BQQ@mail.gmail.com>
-	<20111117110716.6343d46c@tele>
-	<20111119185950.GB3048@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1747 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932409Ab1KHOZh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 09:25:37 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: Re: [PATCH] v4l2 doc: Added FBUF_CAP_SRC_CHROMAKEY/FLAG_SRC_CHROMAKEY
+Date: Tue, 8 Nov 2011 15:25:31 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <hvaibhav@ti.com> <201111071435.39805.hverkuil@xs4all.nl> <79CD15C6BA57404B839C016229A409A8025FDD@DBDE01.ent.ti.com>
+In-Reply-To: <79CD15C6BA57404B839C016229A409A8025FDD@DBDE01.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111081525.31108.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 19 Nov 2011 15:59:50 -0300
-Ezequiel <elezegarcia@gmail.com> wrote:
-
-> Hi Jef,
+On Tuesday, November 08, 2011 12:46:32 Hiremath, Vaibhav wrote:
+> > -----Original Message-----
+> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> > Sent: Monday, November 07, 2011 7:06 PM
+> > To: Hiremath, Vaibhav
+> > Cc: linux-media@vger.kernel.org
+> > Subject: Re: [PATCH] v4l2 doc: Added
+> > FBUF_CAP_SRC_CHROMAKEY/FLAG_SRC_CHROMAKEY
+> > 
+> > Hi Vaibhav!
+> > 
+> > This is a bit of a 'blast from the past', but when I went through the
+> > documentation of the framebuffer flags in the V4L2 spec I noticed that the
+> > definition of V4L2_FBUF_CAP_SRC_CHROMAKEY seemed to be wrong.
+> > 
+> > The definition of V4L2_FBUF_CAP_CHROMAKEY says:
+> 	> 
+> > 'The device supports clipping by chroma-keying the
+> > images. That is, image pixels replace pixels in the VGA or video
+> > signal only where the latter assume a certain color. Chroma-keying
+> > makes no sense for destructive overlays.'
+> > 
+> > The definition of V4L2_FBUF_CAP_SRC_CHROMAKEY says:
+> > 
+> > 'The device supports Source Chroma-keying. Framebuffer pixels
+> > with the chroma-key colors are replaced by video pixels, which
+> > is exactly opposite of V4L2_FBUF_CAP_CHROMAKEY.'
+> > 
+> > As far as I can tell these definitions are really the same. I would expect
+> > that V4L2_FBUF_CAP_SRC_CHROMAKEY was defined as:
+> > 
+> > 'The device supports Source Chroma-keying. Video pixels
+> > with the chroma-key colors are replaced by framebuffer pixels, which
+> > is exactly opposite of V4L2_FBUF_CAP_CHROMAKEY.'
+> > 
+> > The only driver that implements this is omap_vout.c. So is the mistake
+> > in the documentation or in the driver? I think the documentation is wrong
+> > in this case.
+> > 
+> I remember long time back we had discussion on this, we consider
+> V4L2_FBUF_CAP_CHROMAKEY as a destination color keying (term used in OMAP
+> spec) and V4L2_FBUF_CAP_SRC_CHROMAKEY as a source color keying(term used in
+> OMAP spec).
 > 
-> I just sent a patch to linux-media for this little issue. 
+> As per OMAP spec the source color key is, replace video pixels by underneath gfx pixels based on chroma-key color. I think we aligned in this at that time, isn't it? AM I missing something?
+
+No, just that the current definition in the spec for V4L2_FBUF_CAP_SRC_CHROMAKEY
+is indeed the wrong way around.
+
+It should read:
+
+'The device supports Source Chroma-keying. Video pixels
+with the chroma-key colors are replaced by framebuffer pixels, which
+is exactly opposite of V4L2_FBUF_CAP_CHROMAKEY.'
+
+I'll make a patch fixing this.
+
+Regards,
+
+	Hans
+
 > 
-> I realize it is only a very minor patch, 
-> so I am not sure If I am helping or just annoying the developers ;)
 > 
-> Anyway, if you could check the patch I would appreciate it. 
-	[snip]
-> Again, hope the patch helps, 
-
-Hi Ezequiel,
-
-It is not a minor patch, but maybe you don't know about object
-programming.
-
-As it is defined, a gspca device _is_ a video device, as a gspca
-subdriver is a gspca device, and as a video device is a device: each
-lower structure is contained in a higher one.
-
-Your patch defines the gspca structure as a separate entity which is
-somewhat related to a video device by two reverse pointers. It
-complexifies the structure accesses, adds more code and hides the
-nature of a gspca device.
-
-No, your patch does not help...
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+> FYI, as per OMAP spec,
+> 
+> Destination color keying:
+> The graphics destination transparency color key value defines the encoded
+> pixels in the video layers to be displayed. The encoded pixel values with
+> the destination color key value are pixels not visible on the screen and the
+> pixels different from the transparency color key are displayed over the
+> video layers. The destination transparency color key is applicable only in
+> the graphics region when graphics and video overlap; otherwise, the
+> destination transparency color key is ignored.
+> 
+> 
+> Source color keying:
+> The video source transparency color key value defines the encoded pixel data
+> considered as the transparent pixel. The encoded pixel values with the
+> source color key value are pixels not visible on the screen, and the
+> underlayer encoded pixel values or solid background color are visible.
+> 
+> 
+> Thanks,
+> Vaibhav
+> 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> > On Tuesday, November 10, 2009 15:45:45 hvaibhav@ti.com wrote:
+> > > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> > >
+> > >
+> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > > ---
+> > >  linux/Documentation/DocBook/v4l/videodev2.h.xml   |    2 ++
+> > >  linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml |   17
+> > +++++++++++++++++
+> > >  2 files changed, 19 insertions(+), 0 deletions(-)
+> > >
+> > > diff --git a/linux/Documentation/DocBook/v4l/videodev2.h.xml
+> > b/linux/Documentation/DocBook/v4l/videodev2.h.xml
+> > > index 9700206..eef7ba4 100644
+> > > --- a/linux/Documentation/DocBook/v4l/videodev2.h.xml
+> > > +++ b/linux/Documentation/DocBook/v4l/videodev2.h.xml
+> > > @@ -565,6 +565,7 @@ struct <link linkend="v4l2-
+> > framebuffer">v4l2_framebuffer</link> {
+> > >  #define V4L2_FBUF_CAP_LOCAL_ALPHA       0x0010
+> > >  #define V4L2_FBUF_CAP_GLOBAL_ALPHA      0x0020
+> > >  #define V4L2_FBUF_CAP_LOCAL_INV_ALPHA   0x0040
+> > > +#define V4L2_FBUF_CAP_SRC_CHROMAKEY     0x0080
+> > >  /*  Flags for the 'flags' field. */
+> > >  #define V4L2_FBUF_FLAG_PRIMARY          0x0001
+> > >  #define V4L2_FBUF_FLAG_OVERLAY          0x0002
+> > > @@ -572,6 +573,7 @@ struct <link linkend="v4l2-
+> > framebuffer">v4l2_framebuffer</link> {
+> > >  #define V4L2_FBUF_FLAG_LOCAL_ALPHA      0x0008
+> > >  #define V4L2_FBUF_FLAG_GLOBAL_ALPHA     0x0010
+> > >  #define V4L2_FBUF_FLAG_LOCAL_INV_ALPHA  0x0020
+> > > +#define V4L2_FBUF_FLAG_SRC_CHROMAKEY    0x0040
+> > >
+> > >  struct <link linkend="v4l2-clip">v4l2_clip</link> {
+> > >          struct <link linkend="v4l2-rect">v4l2_rect</link>        c;
+> > > diff --git a/linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml
+> > b/linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml
+> > > index f701706..e7dda48 100644
+> > > --- a/linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml
+> > > +++ b/linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml
+> > > @@ -336,6 +336,13 @@ alpha value. Alpha blending makes no sense for
+> > destructive overlays.</entry>
+> > >  inverted alpha channel of the framebuffer or VGA signal. Alpha
+> > >  blending makes no sense for destructive overlays.</entry>
+> > >  	  </row>
+> > > +	  <row>
+> > > +	    <entry><constant>V4L2_FBUF_CAP_SRC_CHROMAKEY</constant></entry>
+> > > +	    <entry>0x0080</entry>
+> > > +	    <entry>The device supports Source Chroma-keying. Framebuffer
+> > pixels
+> > > +with the chroma-key colors are replaced by video pixels, which is
+> > exactly opposite of
+> > > +<constant>V4L2_FBUF_CAP_CHROMAKEY</constant></entry>
+> > > +	  </row>
+> > >  	</tbody>
+> > >        </tgroup>
+> > >      </table>
+> > > @@ -411,6 +418,16 @@ images, but with an inverted alpha value. The blend
+> > function is:
+> > >  output = framebuffer pixel * (1 - alpha) + video pixel * alpha. The
+> > >  actual alpha depth depends on the framebuffer pixel format.</entry>
+> > >  	  </row>
+> > > +	  <row>
+> > > +	    <entry><constant>V4L2_FBUF_FLAG_SRC_CHROMAKEY</constant></entry>
+> > > +	    <entry>0x0040</entry>
+> > > +	    <entry>Use source chroma-keying. The source chroma-key color is
+> > > +determined by the <structfield>chromakey</structfield> field of
+> > > +&v4l2-window; and negotiated with the &VIDIOC-S-FMT; ioctl, see <xref
+> > > +linkend="overlay" /> and <xref linkend="osd" />.
+> > > +Both chroma-keying are mutual exclusive to each other, so same
+> > > +<structfield>chromakey</structfield> field of &v4l2-window; is being
+> > used.</entry>
+> > > +	  </row>
+> > >  	</tbody>
+> > >        </tgroup>
+> > >      </table>
+> > >
+> 
