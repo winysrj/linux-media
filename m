@@ -1,47 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:34249 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620Ab1KZQO3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Nov 2011 11:14:29 -0500
-Received: by bke11 with SMTP id 11so5845441bke.19
-        for <linux-media@vger.kernel.org>; Sat, 26 Nov 2011 08:14:27 -0800 (PST)
+Received: from hermes.mlbassoc.com ([64.234.241.98]:43385 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753194Ab1KHMUN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 07:20:13 -0500
+Message-ID: <4EB91E7C.4050302@mlbassoc.com>
+Date: Tue, 08 Nov 2011 05:20:12 -0700
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-In-Reply-To: <4ED0FF05.4020700@iki.fi>
-References: <CAO=zWDJD19uCJJfdZQVQzHOSxLcXb11D+Avw--YV5mCk8qxPww@mail.gmail.com>
-	<4ED0FF05.4020700@iki.fi>
-Date: Sat, 26 Nov 2011 17:14:27 +0100
-Message-ID: <CAO=zWD+w+qOWoJQ2_t-b24Yc+dpG2BDAUMOwnE-FAQ8D3hrk1w@mail.gmail.com>
-Subject: Re: Status of RTL283xU support?
-From: Maik Zumstrull <maik@zumstrull.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Using MT9P031 digital sensor
+References: <4EB04001.9050803@mlbassoc.com> <201111041137.08254.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201111041137.08254.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 26, 2011 at 16:00, Antti Palosaari <crope@iki.fi> wrote:
-> On 11/26/2011 02:47 PM, Maik Zumstrull wrote:
-
->> it seems I've found myself with an rtl2832u-based DVB-T USB stick. The
->> latest news on that seems to be that you were working on cleaning up
->> the code of the Realtek-provided GPL driver, with the goal of
->> eventually getting it into mainline.
->>
->> Would you mind giving a short status update?
+On 2011-11-04 04:37, Laurent Pinchart wrote:
+> Hi Gary,
 >
-> Shortly, It is error No time, -ENOTIME.
+> On Tuesday 01 November 2011 19:52:49 Gary Thomas wrote:
+>> I'm trying to use the MT9P031 digital sensor with the Media Controller
+>> Framework.  media-ctl tells me that the sensor is set to capture using
+>> SGRBG12  2592x1944
+>>
+>> Questions:
+>> * What pixel format in ffmpeg does this correspond to?
+>
+> I don't know if ffmpeg supports Bayer formats. The corresponding fourcc in
+> V4L2 is BA12.
 
-Isn't it always. :-) I won't be holding my breath for 3.3, then.
+ffmpeg doesn't seem to support these formats
 
-Thanks for the info and your efforts.
+>
+> If your sensor is hooked up to the OMAP3 ISP, you can then configure the
+> pipeline to include the preview engine and the resizer, and capture YUV data
+> at the resizer output.
 
-> And the tree I have does support only very limited set of RTL2831U devices.
-> It was Maxim Levitsky working for RTL2832U but he have given up.
+I am using the OMAP3 ISP, but it's a bit unclear to me how to set up the pipeline
+using media-ctl (I looked for documentation on this tool, but came up dry - is there any?)
 
-I hope development will be revived by someone eventually. When looking
-around, it seemed to me that this chipset is becoming more and more
-common with low-end devices.
+Do you have an example of how to configure this using the OMAP3 ISP?
 
-I've ordered a different stick that is supposed to be fully supported
-already, so I should be fine until then.
+>
+>> * Can I zoom/crop with this driver using the MCF?  If so, how?
+>
+> That depends on what host/bridge you use. The OMAP3 ISP has scaling
+> capabilities (controller by the crop rectangle at the resizer input and the
+> format at the resizer output), others might not.
+
+Thanks
+
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
