@@ -1,241 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34443 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750934Ab1KNQkB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Nov 2011 11:40:01 -0500
-Message-ID: <4EC1445C.4030503@redhat.com>
-Date: Mon, 14 Nov 2011 14:39:56 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:44420 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752644Ab1KHSmO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 13:42:14 -0500
+Date: Tue, 8 Nov 2011 19:43:14 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Daniel Vetter <daniel@ffwll.ch>, "Clark, Rob" <rob@ti.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: Re: [RFC 1/2] dma-buf: Introduce dma buffer sharing mechanismch
+Message-ID: <20111108184314.GB4754@phenom.ffwll.local>
+References: <1318325033-32688-1-git-send-email-sumit.semwal@ti.com>
+ <1318325033-32688-2-git-send-email-sumit.semwal@ti.com>
+ <4E98085A.8080803@samsung.com>
+ <20111014152139.GA2908@phenom.ffwll.local>
+ <000001cc99ff$47cfe960$d76fbc20$%szyprowski@samsung.com>
+ <CAO8GWqnNMGwADVnO4-RfJu0TPzHhANBdyctv2RyhCxbBJ0beXw@mail.gmail.com>
+ <20111108174122.GA4754@phenom.ffwll.local>
+ <20111108175517.GG12913@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: PATCH: Query DVB frontend capabilities
-References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com> <4EBBE336.8050501@linuxtv.org> <CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com> <4EBC402E.20208@redhat.com> <alpine.DEB.2.01.1111111759060.6676@localhost.localdomain> <4EBD6B61.7020605@redhat.com> <CAHFNz9JSk+TeptBZ8F9SEiyaa8q5OO8qwBiBxR9KEsOT8o_J-w@mail.gmail.com> <4EBFC6F3.50404@redhat.com> <CAHFNz9+Gia40gQkW_VtRrwpawqhLDzwL5Qf_AGW4zQSJ3yj1Yg@mail.gmail.com> <4EC0FFCA.6060006@redhat.com> <CAHFNz9KRGwcPwfndg322Fso_i=zuArJDijoP2evLjJuaOFviDA@mail.gmail.com>
-In-Reply-To: <CAHFNz9KRGwcPwfndg322Fso_i=zuArJDijoP2evLjJuaOFviDA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20111108175517.GG12913@n2100.arm.linux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 14-11-2011 13:02, Manu Abraham escreveu:
-> On Mon, Nov 14, 2011 at 5:17 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Em 13-11-2011 13:27, Manu Abraham escreveu:
->>> On Sun, Nov 13, 2011 at 7:02 PM, Mauro Carvalho Chehab
->>> <mchehab@redhat.com> wrote:
->>>> Em 11-11-2011 20:34, Manu Abraham escreveu:
->>>>> On Sat, Nov 12, 2011 at 12:07 AM, Mauro Carvalho Chehab
->>>>> <mchehab@redhat.com> wrote:
->>>>>> Em 11-11-2011 15:43, BOUWSMA Barry escreveu:
->>>>>>>
->>>>>>> On Do (Donnerstag) 10.Nov (November) 2011, 22:20,  Mauro Carvalho Chehab wrote:
->>>>>>>
->>>>>>>> We should also think on a way to enumerate the supported values for each DVB $
->>>>>>>> the enum fe_caps is not enough anymore to store everything. It currently has $
->>>>>>>> filled (of a total of 32 bits), and we currently have:
->>>>>>>>      12 code rates (including AUTO/NONE);
->>>>>>>
->>>>>>> I'm probably not looking at the correct source, but the numbers
->>>>>>> seem to match, so I'll just note that in what I'm looking at,
->>>>>>> there are missing the values  1/3  and  2/5 .
->>>>>>
->>>>>> Those were not added yet, as no driver currently uses it.
->>>>>>
->>>>>>>
->>>>>>> But I have to apologise in that I've also not been paying
->>>>>>> attention to this conversation, and haven't even been trying
->>>>>>> to follow recent developments.
->>>>>>>
->>>>>>>
->>>>>>>>      13 modulation types;
->>>>>>>
->>>>>>> Here I see missing  QAM1024  and  QAM4096 .
->>>>>>
->>>>>> Same here.
->>>>>>
->>>>>>>
->>>>>>>
->>>>>>>>      7 transmission modes;
->>>>>>>>      7 bandwidths;
->>>>>>>
->>>>>>> Apparently DVB-C2 allows us any bandwidth from 8MHz to 450MHz,
->>>>>>> rather than the discrete values used by the other systems.
->>>>>>> If this is also applicable to other countries with 6MHz rasters,
->>>>>>> would it be necessary in addition to specify carrier spacing,
->>>>>>> either 2,232kHz or 1,674kHz as opposed to getting this from the
->>>>>>> channel bandwidth?
->>>>>>
->>>>>> There are 3 parameters for Satellite and Cable systems:
->>>>>>        - Roll off factor;
->>>>>>        - Symbol Rate;
->>>>>>        - Bandwidth.
->>>>>>
->>>>>> Only two of the tree are independent, as the spec defines:
->>>>>>        Bandwidth = symbol rate * (1  + roll off).
->>>>>>
->>>>>> For DVB-C Annex A and C, roll off is fixed (0.15 and 0.13, respectively).
->>>>>>
->>>>>> ITU-T J 83 Annex B doesn't say anything about it, but the ANSI SCTE07 spec
->>>>>> says that the roll-off is approx. 0.18 for 256-QAM and approx. 0.12 for
->>>>>> 256-QAM.
->>>>>>
->>>>>> DVB-S also has a fixed roll-off of 0.35, while DVB-S2 allows configuring it.
->>>>>
->>>>>
->>>>> DVB-S uses 3 different rolloffs just like DVB-S2. In fact the rolloff
->>>>> doesn't have anything to do with the delivery system at all, but
->>>>> something that which is independant and physical to the channel,
->>>>> rather than something logical such as a delivery system, looking at a
->>>>> satellite transponder's viewpoint.
->>>>>
->>>>> For general (home) broadcast purposes, we use only 0.35. There are
->>>>> many other usages, which is not yet applicable with especially Linux
->>>>> DVB with regards to narrow band operations such as DVB feeds and DSNG.
->>>>
->>>> Ok.
->>>>
->>>>>
->>>>> There are many usages for the second generation delivery systems,
->>>>> which will likely realize only a very small part.
->>>>>
->>>>> Eg: there are other aspects to DVB-S2 such as ACM and VCM, which most
->>>>> likely we wouldn't cover. the reason is that the users of it are most
->>>>> likely propreitary users of it and neither would they prefer to have
->>>>> an open source version for it, nor would any Open Source users be
->>>>> likely to implement it. Eg: Ericson's Director CA system, where they
->>>>> have complete control over the box, rather than the user. As far as I
->>>>> am aware they have a return path as well.
->>>>>
->>>>>>
->>>>>> Not 100% sure, but ISDB-S also seems to use a per-modulation roll-off factor.
->>>>>>
->>>>>> Anyway, when the roll-off is known, only symbol rate is needed, in order
->>>>>> to know the needed bandwidth.
->>>>>
->>>>>
->>>>> You need to know FEC, modulation too .. Eg: If you have 16APSK where
->>>>> you have 4 bits, in comparison to 3 bits as with 8PSK, then you
->>>>> require lesser bandwidth.
->>>>
->>>> Manu, you're probably thinking in terms of the TS bit rate, and not the
->>>> modulator symbol rate.
->>>>
->>>> The number of bits don't matter here, as the symbol rate is specified
->>>> in bauds (e. g. symbols per second), and not in bits/s.
->>>
->>>
->>> A PSK modulator is a state machine:
->>> where states/symbols are logically represented by bits, given that the
->>> state can either be a 0 or 1
->>>
->>> BPSK  states=2    bits=1
->>> QPSK  states=4    bits=2
->>> 8PSK  states=8     bits=3
->>> 16PSK states=16  bits=4
->>> 32PSK states=32  bits=5
->>>
->>> http://en.wikipedia.org/wiki/Constellation_diagram
->>> http://en.wikipedia.org/wiki/Gray_code
->>>
->>> Symbol Rate is generally specified in SPS, ie Symbols/sec, or in
->>> Bauds. AFAICS, We generally use Symbols Per Second rather than bauds.
->>>
->>> http://www.asiasat.com/asiasat/contentView.php?section=69&lang=0
->>> http://www.b4utv.com/subs/technology.shtml
->>> http://www.skynewsinternational.com/watch/satellite-information
->>>
->>> I haven't seen a demodulator specification which states Mbaud, but
->>> have seen them stated as MSPS or kSPS.
->>>
->>> Now, assuming a 36MHz TP as an example: The given bandwidth is better
->>> or efficiently used by a higher order modulation. This is the reason
->>> why DVB.org states that DVB-S2 saves 30% bandwidth.
->>>
->>> Quoting you: "Anyway, when the roll-off is known, only symbol rate is
->>> needed, in order to know the needed bandwidth."
->>>
->>> Given a fixed TP CHBW, according to you: Channel Bandwidth can be
->>> calculated by knowing Symbol Rate alone, with a known rolloff.
->>>
->>> I say that this is not possible. Since the number of states/symbols
->>> for any given channel depends on the modulation order as well.
->>>
->>> I hope that clears up things for you.
->>>
->>>
->>>> The conversion from bauds to bits/s is to multiply the number of bits per
->>>> symbol by the rate, in bauds.
->>>>
->>>> A higher number of bits for a given modulation just increase the number of
->>>> possible states that the modulation will use. So, it will require a higher
->>>> signal to noise relation at the demod, to avoid miss-detection, but this is
->>>> a separate issue.
->>>
->>>
->>> That's why for higher order modulations, demodulators use better Error
->>> Correction Schemes (eg: BCH/Turbo) when the modulation order is
->>> higher.
->>>
->>> http://en.wikipedia.org/wiki/Modulation_order
->>> http://en.wikipedia.org/wiki/BCH_code
->>>
->>>
->>>> The roll-off, minimal bandwidth (referred as "Nyquist frequency" by the DVB-C
->>>> specs) and symbol rate are related by this equation:
->>>>        f = symbol_rate * (1 + roll_off)
->>>>
->>>> The f value is the Nyquist frequency, and it will dictate the low-pass filter
->>>> needed to confine the entire signal of the channel (with is, basically, the
->>>> amount of bandwidth required by the channel).
->>>>
->>>>> Also, higher the Error correction information bits set in (redundant),
->>>>> the more bandwidth it needs to occupy.
->>>>
->>>> The error correction algorithm will reduce the bit rate of the TS stream,
->>>> but won't affect the symbol rate at the modulator.
->>>
->>>
->>> No. That's an incorrect statement. FEC gives the receiver the ability
->>> to correct errors without needing a reverse channel to request
->>> retransmission of data, but at the cost of a fixed, higher forward
->>> channel bandwidth.
->>>
->>> http://en.wikipedia.org/wiki/Forward_error_correction
->>
->> Manu,
->>
->> A good reference for working with those stuff is the Symon Haykin book:
->>        http://www.amazon.com/Communication-Systems-4th-Simon-Haykin/dp/0471178691
->>
->> I used it a lot during the time I was studying Electrical Engineering it at University,
->> and during my post-graduation.
+On Tue, Nov 08, 2011 at 05:55:17PM +0000, Russell King - ARM Linux wrote:
+> On Tue, Nov 08, 2011 at 06:42:27PM +0100, Daniel Vetter wrote:
+> > Actually I think the importer should get a _mapped_ scatterlist when it
+> > calls get_scatterlist. The simple reason is that for strange stuff like
+> > memory remapped into e.g. omaps TILER doesn't have any sensible notion of
+> > an address in physical memory. For the USB-example I think the right
+> > approach is to attach the usb hci to the dma_buf, after all that is the
+> > device that will read the data and move over the usb bus to the udl
+> > device. Similar for any other device that sits behind a bus that can't do
+> > dma (or it doesn't make sense to do dma).
+> > 
+> > Imo if there's a use-case where the client needs to frob the sg_list
+> > before calling dma_map_sg, we have an issue with the dma subsystem in
+> > general.
 > 
+> Let's clear something up about the DMA API, which I think is causing some
+> misunderstanding here.  For this purpose, I'm going to talk about
+> dma_map_single(), but the same applies to the scatterlist and _page
+> variants as well.
 > 
-> Mauro,
+> 	dma = dma_map_single(dev, cpuaddr, size, dir);
 > 
-> Well, if the discussion is about know the person whom you are talking
-> to: I did my Engineering degree in Electronics and Communication;
-> Simon and Haykin was just one among them in one of the semesters. I
-> still have those college books somewhere in an old dusty shelf. Later
-> on, I worked at the (Remote Sensing and CVAI labs) Indian Institute of
-> Sciences, Bangalore. Further down the lane, did work with media
-> broadcast organizations.
+> dev := the device _performing_ the DMA operation.  You are quite correct
+>        that in the case of a USB peripheral device, the device is normally
+>        the USB HCI device.
 > 
-> I am not going to get into an argument session, where you keep on
-> changing the topic, with unrelated or incorrect stuff altogether.
-
-I'm not changing topic. All I'm saying since the beginning is that
-there's no need to add Bandwidth at the DVB API for cable/satellite, as,
-for the supported delivery systems, the symbol rate + roll-off can be used
-for bandwidth estimation, where needed,
-
-E. g.:
-	Bandwidth = max_symbol_rate * (1 + roll_off)
-
+> dma := dma address to be programmed into 'dev' which corresponds (by some
+>        means) with 'cpuaddr'.  This may not be the physical address due
+>        to bus offset translations or mappings setup in IOMMUs.
 > 
-> Let this thread die. :-)
+> Therefore, it is wrong to talk about a 'physical address' when talking
+> about the DMA API.
+> 
+> We can take this one step further.  Lets say that the USB HCI is not
+> capable of performing memory accesses itself, but it is connected to a
+> separate DMA engine device:
+> 
+> 	mem <---> dma engine <---> usb hci <---> usb peripheral
+> 
+> (such setups do exist, but despite having such implementations I've never
+> tried to support it.)
+> 
+> In this case, the dma engine, in response to control signals from the
+> USB host controller, will generate the appropriate bus address to access
+> memory and transfer the data into the USB HCI device.
+> 
+> So, in this case, the struct device to be used for mapping memory for
+> transfers to the usb peripheral is the DMA engine device, not the USB HCI
+> device nor the USB peripheral device.
 
-Agreed.
+Thanks for the clarification. I think this is another reason why
+get_scatterlist should return the sg_list already mapped into the device
+address space - it's more consisten with the other dma apis. Another
+reason to completely hide everything but mapped addresses is crazy stuff
+like this
 
-Regards,
-Mauro
+	mem <---> tiling iommu <-+-> gpu
+	                         |
+	                         +-> scanout engine
+	                         |
+				 +-> mpeg decoder
+
+where it doesn't really make sense to talk about the memory backing the
+dma buffer because that's smeared all over the place due to tiling. IIRC
+for the case of omap these devices can also access memory through other
+paths and iommut that don't tile (but just remap like a normal iommu)
+
+-Daniel
+-- 
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
