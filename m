@@ -1,93 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:60015 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753831Ab1KERjL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Nov 2011 13:39:11 -0400
-Message-ID: <4EB574A3.8050503@linuxtv.org>
-Date: Sat, 05 Nov 2011 18:38:43 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43276 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751141Ab1KHOBB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 09:01:01 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH] media: vb2: vmalloc-based allocator user pointer handling
+Date: Tue, 8 Nov 2011 15:01:00 +0100
+Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	linux-media@vger.kernel.org,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Pawel Osciak'" <pawel@osciak.com>
+References: <1320231122-22518-1-git-send-email-andrzej.p@samsung.com> <201111081232.07239.laurent.pinchart@ideasonboard.com> <004d01cc9e1e$6101fef0$2305fcd0$%szyprowski@samsung.com>
+In-Reply-To: <004d01cc9e1e$6101fef0$2305fcd0$%szyprowski@samsung.com>
 MIME-Version: 1.0
-To: Lawrence Rust <lawrence@softsystem.co.uk>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Revert most of 15cc2bb [media] DVB: dtv_property_cache_submit
- shouldn't modifiy the cache
-References: <1320506379.1731.12.camel@gagarin>	 <4EB566CD.7050704@linuxtv.org> <1320513624.1731.20.camel@gagarin>
-In-Reply-To: <1320513624.1731.20.camel@gagarin>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111081501.00656.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05.11.2011 18:20, Lawrence Rust wrote:
-> On Sat, 2011-11-05 at 17:39 +0100, Andreas Oberritter wrote:
-> [snip]
->> How does MythTV set the parameters (i.e. using which interface, calls)?
->> If using S2API, it should also set DTV_DELIVERY_SYSTEM.
-> 
-> The following kern.log excerpt shows MythTV setting up the card:
-> 
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489804] dvb_frontend_ioctl (82)  FE_SET_PROPERTY
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489806] dvb_frontend_ioctl_properties
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489808] dvb_frontend_ioctl_properties() properties.num = 1
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489810] dvb_frontend_ioctl_properties() properties.props = bf95ec24
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489813] dtv_property_dump() tvp.cmd    = 0x00000002 (DTV_CLEAR)
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489814] dtv_property_dump() tvp.u.data = 0xb7819a31
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489816] dtv_property_process_set() Flushing property cache
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489841] dvb_frontend_ioctl (82) FE_SET_PROPERTY
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489842] dvb_frontend_ioctl_properties
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489843] dvb_frontend_ioctl_properties() properties.num = 7
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489844] dvb_frontend_ioctl_properties() properties.props = 0a0acab0
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489846] dtv_property_dump() tvp.cmd    = 0x00000011 (DTV_DELIVERY_SYSTEM)
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489848] dtv_property_dump() tvp.u.data = 0x00000000
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489850] dtv_property_dump() tvp.cmd    = 0x00000003 (DTV_FREQUENCY)
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489851] dtv_property_dump() tvp.u.data = 0x0010104e
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489853] dtv_property_dump() tvp.cmd    = 0x00000004 (DTV_MODULATION)
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489854] dtv_property_dump() tvp.u.data = 0x00000000
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489856] dtv_property_dump() tvp.cmd    = 0x00000006 (DTV_INVERSION)
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489857] dtv_property_dump() tvp.u.data = 0x00000002
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489859] dtv_property_dump() tvp.cmd    = 0x00000008 (DTV_SYMBOL_RATE)
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489860] dtv_property_dump() tvp.u.data = 0x014fb180
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489861] dtv_property_dump() tvp.cmd    = 0x00000009 (DTV_INNER_FEC)
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489863] dtv_property_dump() tvp.u.data = 0x00000009
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489864] dtv_property_dump() tvp.cmd    = 0x00000001 (DTV_TUNE)
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489866] dtv_property_dump() tvp.u.data = 0x00000000
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489867] dtv_property_process_set() Finalised property cache
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489869] dtv_property_cache_submit() legacy, modulation = 0
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489870] dtv_property_legacy_params_sync() Preparing QPSK req
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489879] dvb_frontend_add_event
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489880] dvb_frontend_ioctl_properties() Property cache is full, tuning
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489897] dvb_frontend_thread: Frontend ALGO = DVBFE_ALGO_HW
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489899] dvb_frontend_poll
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489902] dvb_frontend_thread: Retune requested, FESTATE_RETUNE
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489903] dvb_frontend_ioctl (69)  FE_READ_STATUS
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489907] TurboSight TBS 6981 Frontend:
-> Nov  5 11:54:52 cyclops kernel: [ 4139.489907]  tbs6981fe - delivery system 0 is not supported
-> 
-> Note that DTV_DELIVERY_SYSTEM is set to 0 which worked OK in 2.6.39
-> 
->> SYS_UNDEFINED get's set by dvb_frontend_clear_cache() only. I think it
->> would be better to call dtv_property_cache_init() from there to get rid
->> of it.
-> 
-> That doesn't fix this problem, which is explicitly setting
-> DTV_DELIVERY_SYSTEM.  A value of 0 (SYS_UNDEFINED) was accepted before
-> this change and should continue to be accepted.
+Hi Marek,
 
-I don't get how this could be useful. MythTV knows what delivery system
-it wants to use, so it should pass this information to the kernel.
-Trying to set an invalid delivery system must fail.
+On Tuesday 08 November 2011 14:57:40 Marek Szyprowski wrote:
+> On Tuesday, November 08, 2011 12:32 PM Laurent Pinchart wrote:
+> > On Thursday 03 November 2011 08:40:26 Marek Szyprowski wrote:
+> > > On Wednesday, November 02, 2011 2:54 PM Laurent Pinchart wrote:
+> > > > On Wednesday 02 November 2011 11:52:02 Andrzej Pietrasiewicz wrote:
+> > > > > vmalloc-based allocator user pointer handling
+> > 
+> > [snip]
+> > 
+> > > > This can cause an AB-BA deadlock, and will be reported by deadlock
+> > > > detection if enabled.
+> > > > 
+> > > > The issue is that the mmap() handler is called by the MM core with
+> > > > current->mm->mmap_sem held, and then takes the driver's lock before
+> > > > calling videobuf2's mmap handler. The VIDIOC_QBUF handler, on the
+> > > > other hand, will first take the driver's lock and will then try to
+> > > > take current->mm->mmap_sem here.
+> > > > 
+> > > > This can result in a deadlock if both MMAP and USERPTR buffers are
+> > > > used by the same driver at the same time.
+> > > > 
+> > > > If we assume that MMAP and USERPTR buffers can't be used on the same
+> > > > queue at the same time (VIDIOC_CREATEBUFS doesn't allow that if I'm
+> > > > not mistaken, so we should be safe, at least for now), this can be
+> > > > fixed by having a per-queue lock in the driver instead of a global
+> > > > device lock. However, that means that drivers that want to support
+> > > > USERPTR will not be allowed to delegate lock handling to the V4L2
+> > > > core and
+> > > > video_ioctl2().
+> > > 
+> > > Thanks for pointing this issue! This problem is already present in the
+> > > other videobuf2 memory allocators as well as the old videobuf and other
+> > > v4l2 drivers which implement queue handling by themselves.
+> > 
+> > The problem is present in most (but not all) drivers, yes. That's one
+> > more reason to fix it in videobuf2 :-)
+> > 
+> > > The only solution that will not complicate the videobuf2 and allocators
+> > > code is to move taking current->mm->mmap_sem lock into videobuf2 core.
+> > > Before acquiring this lock, vb2 calls wait_prepare to release device
+> > > lock and then once mmap_sem is locked, calls wait_finish to get it
+> > > again. This way the deadlock is avoided and allocators are free to
+> > > call
+> > > get_user_pages() without further messing with locks. The only drawback
+> > > is the fact that a bit more code will be executed under mmap_sem lock.
+> > > 
+> > > What do you think about such solution?
+> > 
+> > Won't that create a race condition ? Wouldn't an application for instance
+> > be able to call VIDIOC_REQBUFS(0) during the time window where the
+> > device lock is released ?
+> 
+> Hmm... Right...
+> 
+> The only solution I see now is to move acquiring mmap_sem as early as
+> possible to make the possible race harmless. The first operation in
+> vb2_qbuf will be then:
+> 
+> if (b->memory == V4L2_MEMORY_USERPTR) {
+>        call_qop(q, wait_prepare, q);
+>        down_read(&current->mm->mmap_sem);
+>        call_qop(q, wait_finish, q);
+> }
+> 
+> This should solve the race although all userptr buffers will be handled
+> under mmap_sem lock. Do you have any other idea?
 
-Using SYS_UNDEFINED as a pre-set default is different from setting
-SYS_UNDEFINED from userspace, which should always generate an error IMO,
-unless this is documented otherwise in the API specification.
+If queues don't mix MMAP and USERPTR buffers (is that something we want to 
+allow ?), wouldn't using a per-queue lock instead of a device-wide lock be a 
+better way to fix the problem ?
 
+> > > > > +	if (n_pages_from_user != buf->n_pages)
+> > > > > +		goto userptr_fail_get_user_pages;
+> > > > > +
+> > > > > +	buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1,
+> > > > > PAGE_KERNEL);
+> > > > 
+> > > > Will this create a second kernel mapping ?
+> > > 
+> > > Yes, it is very similar to vmalloc function which grabs a set of pages
+> > > and creates contiguous virtual kernel mapping for them.
+> > > 
+> > > > What if the user tries to pass framebuffer memory that has been
+> > > > mapped uncacheable to userspace ?
+> > > 
+> > > get_user_pages() fails if it is called for framebuffer memory
+> > > (VM_PFNMAP type mappings).
+> > 
+> > Right. Do you think we should handle them, or should we wait for the
+> > buffer sharing API ?
+> 
+> I'm not sure that waiting for buffer sharing API makes much sense here.
+> First I would like to have vmalloc allocator finished for the typical
+> desktop centric use cases (well, that's the most common use case for usb
+> cams). Code for handling VM_PFNMAP buffers can be added later in the
+> separate patches as it is useful mainly in the embedded world...
+
+Capturing video directly to the frame buffer is a very common use case in the 
+embedded world. I agree that we can implement that in a second step.
+
+-- 
 Regards,
-Andreas
 
-> In
-> dtv_property_cache_submit the comment reads:
-> 
-> /* For legacy delivery systems we don't need the delivery_system to
->  * be specified, but we populate the older structures from the cache
->  * so we can call set_frontend on older drivers.
->  */
+Laurent Pinchart
