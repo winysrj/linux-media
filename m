@@ -1,56 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:51906 "EHLO ffm.saftware.de"
+Received: from mx1.redhat.com ([209.132.183.28]:32273 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755843Ab1KYOlq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Nov 2011 09:41:46 -0500
-Message-ID: <4ECFA927.10108@linuxtv.org>
-Date: Fri, 25 Nov 2011 15:41:43 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+	id S1751150Ab1KIMKa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Nov 2011 07:10:30 -0500
+Message-ID: <4EBA6DB2.6040106@redhat.com>
+Date: Wed, 09 Nov 2011 10:10:26 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Manu Abraham <abraham.manu@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
-References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com> <4ECE79F5.9000402@linuxtv.org> <201111241844.23292.hverkuil@xs4all.nl> <CAHFNz9J+3DYW-Gf0FPYhcZqHf7XPtM+dmK0Y15HhkWQZOzNzuQ@mail.gmail.com> <4ECE8839.8040606@redhat.com> <CAHFNz9LOYHTXjhk2yTqhoC90HQQ0AGiOp4A6Gki-vsEtJr_UOw@mail.gmail.com> <4ECE913A.9090001@redhat.com> <4ECF8359.5080705@linuxtv.org> <4ECF9C92.2040607@redhat.com>
-In-Reply-To: <4ECF9C92.2040607@redhat.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v3.2-rc2] media fixes
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25.11.2011 14:48, Mauro Carvalho Chehab wrote:
-> If your complain is about the removal of audio.h, video.h
+Hi Linus,
 
-We're back on topic, thank you!
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
 
-> and osd.h, then my proposal is
-> to keep it there, writing a text that they are part of a deprecated API,
+For a few V4L2 core and driver fixes, and one MAINTAINERS update for the s5p driver.
 
-That's exactly what I proposed. Well, you shouldn't write "deprecated",
-because it's not. Just explain - inside this text - when V4L2 should be
-preferred over DVB.
+Thanks!
+Mauro
 
-> but keeping
-> the rest of the patches
+-
 
-Which ones?
+Latest commit at the branch:
+  1249a3a82d08d73ece65ae79e0553cd0f3407a15 [media] v4l2-ctrl: Send change events to all fh for auto cluster slave controls
 
-> and not accepting anymore any submission using them
+The following changes since commit 1ea6b8f48918282bdca0b32a34095504ee65bab5:
 
-Why? First you complain about missing users and then don't want to allow
-any new ones.
+  Linux 3.2-rc1 (2011-11-07 16:16:02 -0800)
 
->, removing
-> the ioctl's that aren't used by av7110 from them.
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
 
-That's just stupid. I can easily provide a list of used and valuable
-ioctls, which need to remain present in order to not break userspace
-applications.
+Hans de Goede (5):
+      [media] uvcvideo: GET_RES should only be checked for BITMAP type menu controls
+      [media] v4l2-event: Deny subscribing with a type of V4L2_EVENT_ALL
+      [media] v4l2-event: Remove pending events from fh event queue when unsubscribing
+      [media] v4l2-event: Don't set sev->fh to NULL on unsubscribe
+      [media] v4l2-ctrl: Send change events to all fh for auto cluster slave controls
 
-Btw.: It's not easy to submit a driver for a SoC. Even if you are
-legally allowed to do it, you have to first merge and maintain the board
-support code before even thinking about multimedia.
+Jeongtae Park (1):
+      [media] MAINTAINERS: add a maintainer for s5p-mfc driver
 
-Regards,
-Andreas
+Kamil Debski (1):
+      [media] v4l: s5p-mfc: fix reported capabilities
+
+Marek Szyprowski (3):
+      [media] media: vb2: add a check for uninitialized buffer
+      [media] media: vb2: set buffer length correctly for all buffer types
+      [media] media: vb2: reset queued list on REQBUFS(0) call
+
+Michael Krufky (4):
+      [media] mxl111sf: fix return value of mxl111sf_idac_config
+      [media] mxl111sf: check for errors after mxl111sf_write_reg in mxl111sf_idac_config
+      [media] mxl111sf: remove pointless if condition in mxl111sf_config_spi
+      [media] mxl111sf: fix build warning
+
+ MAINTAINERS                               |    1 +
+ drivers/media/dvb/dvb-usb/mxl111sf-i2c.c  |    3 +--
+ drivers/media/dvb/dvb-usb/mxl111sf-phy.c  |    7 ++++---
+ drivers/media/video/s5p-mfc/s5p_mfc_dec.c |    4 ++--
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.c |    4 ++--
+ drivers/media/video/uvc/uvc_ctrl.c        |    6 ++++--
+ drivers/media/video/v4l2-ctrls.c          |    5 +++--
+ drivers/media/video/v4l2-event.c          |   10 +++++++++-
+ drivers/media/video/videobuf2-core.c      |    6 ++++--
+ 9 files changed, 30 insertions(+), 16 deletions(-)
+
