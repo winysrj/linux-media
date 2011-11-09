@@ -1,279 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxweb6.versatel.de ([82.140.32.146]:42355 "EHLO
-	mxweb6.versatel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754719Ab1KCRaD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2011 13:30:03 -0400
-Received: from cinnamon-sage.de (i577A3278.versanet.de [87.122.50.120])
-	(authenticated bits=0)
-	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id pA3HOt7V016330
-	for <linux-media@vger.kernel.org>; Thu, 3 Nov 2011 18:24:57 +0100
-Received: from 192.168.23.2:50077 by cinnamon-sage.de for <linux-media@vger.kernel.org> ; 03.11.2011 18:24:55
-Message-ID: <4EB2CE67.2020307@cinnamon-sage.de>
-Date: Thu, 03 Nov 2011 18:24:55 +0100
-From: Lars Hanisch <dvb@cinnamon-sage.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59331 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754090Ab1KIAyF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 19:54:05 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: Using MT9P031 digital sensor
+Date: Wed, 9 Nov 2011 01:54:03 +0100
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4EB04001.9050803@mlbassoc.com> <201111081406.55967.laurent.pinchart@ideasonboard.com> <4EB930EF.90507@mlbassoc.com>
+In-Reply-To: <4EB930EF.90507@mlbassoc.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/5] Driver support for cards based on Digital Devices
- bridge (ddbridge)
-References: <201107032321.46092@orion.escape-edv.de> <4E219D49.1070709@iki.fi> <4E21A63A.8040008@redhat.com> <201107161740.54543@orion.escape-edv.de> <20111103084949.5853b4f0@grobi>
-In-Reply-To: <20111103084949.5853b4f0@grobi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111090154.03796.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 03.11.2011 08:49, schrieb Steffen Barszus:
-> Hi !
->
->> From a users point of view i would like to have some clarification on
-> this discussion.
->
-> Lets take a (now real world) example.
->
-> Having
->    /dev/dvb/adapter0/demux0
->    /dev/dvb/adapter0/dvr0
->    /dev/dvb/adapter0/frontend0
->    /dev/dvb/adapter0/frontend1
->    /dev/dvb/adapter0/net0
->    /dev/dvb/adapter1/demux0
->    /dev/dvb/adapter1/dvr0
->    /dev/dvb/adapter1/frontend0
->    /dev/dvb/adapter1/frontend1
->    /dev/dvb/adapter1/net0
->
-> for a C/T card, where one fe is C and the other is T , connector is
-> only one per adapter.
->
-> How is the logic to handle this ?
->
-> Two big issues i don't properly understand at the moment.
->
-> 1.) VDR does not know that frontend1 is
-> related to demux0. since no application changes magically on its own,
-> can someone provide some information of what an application is expected
-> to do, to handle this properly. With this information it could be
-> discussed at i.e. vdr mailing list.
->
-> 2.) How does an application/user/whatever know what can be used ?
-> I mean there is only C connected OR T - how can the application know
-> what fe can be used (assumed point 1. has been fixed). How would the
-> user know, which is which and how one should specify what is
-> connected ?
->
-> 3.) ca/caio device handling - is this something an application should
-> implement ... and how.
->
-> Please help me to understand these points as this is something which
-> pops up regular in discussion with our (yavdr.org) users.
->
-> For 1 and 2 the only proper solution i see would be 1 frontend instead
-> of 2 with a possibility to specifiy the transport in one way or
-> another. (which ->  to be discussed)
+Hi Gary,
 
-  For me as an application developer it wouldn't make sense if the frontend handles multiple delivery types as outlined 
-in approach 2 and 3 from below. That would mean that *every* application has to ask the user and must provide some 
-configuration possibility. And there has to be a new ioctl to set the delivery type (or is there one I don't know about?).
+On Tuesday 08 November 2011 14:38:55 Gary Thomas wrote:
+> On 2011-11-08 06:06, Laurent Pinchart wrote:
+> > On Tuesday 08 November 2011 13:52:25 Gary Thomas wrote:
+> >> On 2011-11-08 05:30, Javier Martinez Canillas wrote:
+> >>> On Tue, Nov 8, 2011 at 1:20 PM, Gary Thomas wrote:
+> >>>> On 2011-11-04 04:37, Laurent Pinchart wrote:
+> >>>>> On Tuesday 01 November 2011 19:52:49 Gary Thomas wrote:
+> >>>>>> I'm trying to use the MT9P031 digital sensor with the Media
+> >>>>>> Controller Framework.  media-ctl tells me that the sensor is set to
+> >>>>>> capture using SGRBG12  2592x1944
+> >>>>>> 
+> >>>>>> Questions:
+> >>>>>> * What pixel format in ffmpeg does this correspond to?
+> >>>>> 
+> >>>>> I don't know if ffmpeg supports Bayer formats. The corresponding
+> >>>>> fourcc in V4L2 is BA12.
+> >>>> 
+> >>>> ffmpeg doesn't seem to support these formats
+> >>>> 
+> >>>>> If your sensor is hooked up to the OMAP3 ISP, you can then configure
+> >>>>> the pipeline to include the preview engine and the resizer, and
+> >>>>> capture YUV data
+> >>>>> at the resizer output.
+> >>>> 
+> >>>> I am using the OMAP3 ISP, but it's a bit unclear to me how to set up
+> >>>> the pipeline
+> >>> 
+> >>> Hi Gary,
+> >>> 
+> >>> I'm also using another sensor mtv9034 with OMAP3 ISP, so maybe I can
+> >>> help you.
+> >>> 
+> >>>> using media-ctl (I looked for documentation on this tool, but came up
+> >>>> dry - is there any?)
+> >>>> 
+> >>>> Do you have an example of how to configure this using the OMAP3 ISP?
+> >>> 
+> >>> This is how I configure the pipeline to connect the CCDC with the
+> >>> Previewer and Resizer:
+> >>> 
+> >>> ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
+> >>> ./media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+> >>> ./media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+> >>> ./media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+> >>> ./media-ctl -f '"mt9v032 3-005c":0[SGRBG10 752x480]'
+> >>> ./media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG10 752x480]'
+> >>> ./media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 752x480]'
+> >>> ./media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 752x479]'
+> >>> ./media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 734x471]'
+> >>> ./media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 640x480]'
+> >>> 
+> >>> Hope it helps,
+> >> 
+> >> Thanks, I'll give this a try.
+> >> 
+> >> I assume that your sensor is probably larger than 752x480 (the mt9p031
+> >> is 2592x1944 raw) and that setting the smaller frame size enables some
+> >> scaling and/or cropping in the driver?
+> > 
+> > The mt9v034 is a wide VGA 752x480 sensor if I'm not mistaken. You should
+> > modify the resolutions in the above commands according to your sensor.
+> > Note that the CCDC crops online line when outputting data to the preview
+> > engine, and that the preview engine crops 18 columsn and 8 lines. You
+> > can then scale the image by modifying the resizer output size.
+> 
+> Thanks.  After much trial and error (and some kernel printks to
+> understand what parameters were failing), I came up with this sequence:
+>    media-ctl -r
+>    media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+>    media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>    media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+>    media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+>    media-ctl -f '"mt9p031 3-005d":0[SGRBG12 2592x1944]'
+>    media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG12 2592x1944]'
+>    media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG12 2592x1944]'
+>    media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG12 2592x1943]'
+>    media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
+>    media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 642x483]'
+> 
+> When I tried to grab though, I got this:
+> 
+> # yavta --capture=4 -f YUYV -s 642x483 -F /dev/video6
+> Device /dev/video6 opened.
+> Device `OMAP3 ISP resizer output' on `media' is a video capture device.
+> Video format set: YUYV (56595559) 642x483 buffer size 633696
+> Video format: YUYV (56595559) 642x483 buffer size 633696
+> 8 buffers requested.
+> length: 633696 offset: 0
+> Buffer 0 mapped at address 0x4028c000.
+> length: 633696 offset: 634880
+> Buffer 1 mapped at address 0x403d0000.
+> length: 633696 offset: 1269760
+> Buffer 2 mapped at address 0x404b3000.
+> length: 633696 offset: 1904640
+> Buffer 3 mapped at address 0x4062b000.
+> length: 633696 offset: 2539520
+> Buffer 4 mapped at address 0x406d6000.
+> length: 633696 offset: 3174400
+> Buffer 5 mapped at address 0x40821000.
+> length: 633696 offset: 3809280
+> Buffer 6 mapped at address 0x4097c000.
+> length: 633696 offset: 4444160
+> Buffer 7 mapped at address 0x40adf000.
+> 
+> Unable to handle kernel NULL pointer dereference at virtual address
+> 00000018
 
-  Either I have DVB-C or DVB-T. So I would like to specify the delivery type at module load time with an option. Then 
-there would be one frontend and every (existent) application would "just work". And it's configured at one place.
+Ouch :-(
 
-  Everyone who changes the connection frequently should learn to reload the module... :-)
+Could you please verify that arch/arm/mach-omap2/board-overo.c includes the 
+following code, and that CONFIG_OMAP_MUX is enabled ?
 
+@@ -497,6 +558,23 @@ static const struct usbhs_omap_board_data usbhs_bdata 
+__initconst = {
+ 
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
++       /*
++        * Camera
++        *
++        * The level shifters used on the Caspa camera module have a 4k output
++        * impedance. Combined with the 100uA pull-up resistors in the OMAP3,
++        * this raises the ground level to 400mV. Adding crosstalk between the
++        * pixel clock and the HS/VS signals on the flat cable (a ground line 
+in
++        * between would have been nice), logic 0 levels can raise up to 
+650mV.
++        * This exceeds the camera input pins VIL maximum voltage.
++        *
++        * To work around the issue, disable pull-ups on the PCLK, HS and VS
++        * signals.
++        */
++       OMAP3_MUX(CAM_PCLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++       OMAP3_MUX(CAM_HS, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++       OMAP3_MUX(CAM_VS, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++
+        { .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+ #endif
+
+> pgd = c0004000
+> [00000018] *pgd=00000000
+> Internal error: Oops: 17 [#1]
+> Modules linked in: sdmak lpm_omap3530 dsplinkk cmemk ipv6
+> CPU: 0    Not tainted  (3.0.0 #3)
+> PC is at ccdc_hs_vs_isr+0x28/0x40
+> LR is at 0x0
+> pc : [<c0251ae0>]    lr : [<00000000>]    psr: 60000193
+> sp : c0433e70  ip : 00000000  fp : 00000001
+> r10: 00000001  r9 : c0470524  r8 : 00000001
+> r7 : 00000080  r6 : 00000000  r5 : 00000000  r4 : cee45b88
+> r3 : 00000004  r2 : 00000000  r1 : 00000000  r0 : cee45c28
+> Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+> Control: 10c5387d  Table: 8e4d8019  DAC: 00000015
+> Process swapper (pid: 0, stack limit = 0xc04322f0)
+> Stack: (0xc0433e70 to 0xc0434000)
+> 3e60:                                     00000004 00000000 00000000
+> 00000000 3e80: 00000000 00000000 00000000 00000000 00000000 00000000
+> 00000000 00000000 3ea0: 00000000 00000000 00000000 00000000 00000000
+> 00000000 00000000 00000000 3ec0: 00000000 00000000 00000000 00000000
+> 00000000 00000000 00000000 00000000 3ee0: 00000000 00000000 00000000
+> 00000000 80000000 cee45b88 80000000 c0252d88 3f00: cee40000 80000000
+> 00000000 00000080 00000001 c024a424 cee2ff80 00000018 3f20: c04476e8
+> c0089bd8 c04476e8 ced051c0 00004c00 c04476e8 00000000 c0468d44 3f40:
+> c0437154 80004059 413fc082 00000000 00000000 c0089d40 c04476e8 c008b7f4
+> 3f60: 00000018 c00896c4 0000019a c0033060 60000013 ffffffff fa200000
+> c003caf4 3f80: 00000001 c0446be0 0039acad 60000013 c0432000 c043715c
+> c0468d44 c0437154 3fa0: 80004059 413fc082 00000000 00000000 00000000
+> c0433fc8 c003dfec c003dff0 3fc0: 60000013 ffffffff c043415c c0029e24
+> c0682980 c0008a04 c0008488 00000a7d 3fe0: 80000100 c0029e24 10c53c7d
+> c0434080 c0029e20 8000803c 00000000 00000000 [<c0251ae0>]
+> (ccdc_hs_vs_isr+0x28/0x40) from [<c0252d88>]
+> (omap3isp_ccdc_isr+0x2c4/0x2d8) [<c0252d88>]
+> (omap3isp_ccdc_isr+0x2c4/0x2d8) from [<c024a424>] (isp_isr+0x19c/0x230)
+> [<c024a424>] (isp_isr+0x19c/0x230) from [<c0089bd8>]
+> (handle_irq_event_percpu+0x30/0x170) [<c0089bd8>]
+> (handle_irq_event_percpu+0x30/0x170) from [<c0089d40>]
+> (handle_irq_event+0x28/0x38) [<c0089d40>] (handle_irq_event+0x28/0x38)
+> from [<c008b7f4>] (handle_level_irq+0xac/0xd4) [<c008b7f4>]
+> (handle_level_irq+0xac/0xd4) from [<c00896c4>]
+> (generic_handle_irq+0x30/0x44) [<c00896c4>] (generic_handle_irq+0x30/0x44)
+> from [<c0033060>] (asm_do_IRQ+0x60/0x84) [<c0033060>]
+> (asm_do_IRQ+0x60/0x84) from [<c003caf4>] (__irq_svc+0x34/0x80) Exception
+> stack(0xc0433f80 to 0xc0433fc8)
+> 3f80: 00000001 c0446be0 0039acad 60000013 c0432000 c043715c c0468d44
+> c0437154 3fa0: 80004059 413fc082 00000000 00000000 00000000 c0433fc8
+> c003dfec c003dff0 3fc0: 60000013 ffffffff
+> [<c003caf4>] (__irq_svc+0x34/0x80) from [<c003dff0>] (cpu_idle+0x4c/0x88)
+> [<c003dff0>] (cpu_idle+0x4c/0x88) from [<c0008a04>]
+> (start_kernel+0x26c/0x2c0) [<c0008a04>] (start_kernel+0x26c/0x2c0) from
+> [<8000803c>] (0x8000803c) Code: ebfce5a2 e3a03004 e58d3000 e28400a0
+> (e5953018)
+> ---[ end trace bd263f5099189d04 ]---
+> 
+> Any ideas of where to look?
+
+-- 
 Regards,
-Lars.
 
->
-> Regards
->
-> Steffen
->
->
->
-> On Sat, 16 Jul 2011 17:40:53 +0200
-> Oliver Endriss<o.endriss@gmx.de>  wrote:
->
->> On Saturday 16 July 2011 16:54:50 Mauro Carvalho Chehab wrote:
->>> Em 16-07-2011 11:16, Antti Palosaari escreveu:
->>>> On 07/16/2011 03:25 PM, Mauro Carvalho Chehab wrote:
->>>>> Em 15-07-2011 20:41, Antti Palosaari escreveu:
->>>>>> On 07/15/2011 08:01 PM, Andreas Oberritter wrote:
->>>>>>> On 15.07.2011 15:25, Mauro Carvalho Chehab wrote:
->>>>>>>> Em 15-07-2011 05:26, Ralph Metzler escreveu:
->>>>>>>>> At the same time I want to add delivery system properties to
->>>>>>>>> support everything in one frontend device.
->>>>>>>>> Adding a parameter to select C or T as default should help
->>>>>>>>> in most cases where the application does not support
->>>>>>>>> switching yet.
->>>>>>>>
->>>>>>>> If I understood well, creating a multi-delivery type of
->>>>>>>> frontend for devices like DRX-K makes sense for me.
->>>>>>>>
->>>>>>>> We need to take some care about how to add support for them,
->>>>>>>> to avoid breaking userspace, or to follow kernel deprecating
->>>>>>>> rules, by adding some legacy compatibility glue for a few
->>>>>>>> kernel versions. So, the sooner we add such support, the
->>>>>>>> better, as less drivers will need to support a "fallback"
->>>>>>>> mechanism.
->>>>>>>>
->>>>>>>> The current DVB version 5 API doesn't prevent some userspace
->>>>>>>> application to change the delivery system[1] for a given
->>>>>>>> frontend. This feature is actually used by DVB-T2 and DVB-S2
->>>>>>>> drivers. This actually improved the DVB API multi-fe support,
->>>>>>>> by avoiding the need of create of a secondary frontend for
->>>>>>>> T2/S2.
->>>>>>>>
->>>>>>>> Userspace applications can detect that feature by using
->>>>>>>> FE_CAN_2G_MODULATION flag, but this mechanism doesn't allow
->>>>>>>> other types of changes like from/to DVB-T/DVB-C or from/to
->>>>>>>> DVB-T/ISDB-T. So, drivers that allow such type of delivery
->>>>>>>> system switch, using the same chip ended by needing to add
->>>>>>>> two frontends.
->>>>>>>>
->>>>>>>> Maybe we can add a generic FE_CAN_MULTI_DELIVERY flag to
->>>>>>>> fe_caps_t, and add a way to query the type of delivery
->>>>>>>> systems supported by a driver.
->>>>>>>>
->>>>>>>> [1]
->>>>>>>> http://linuxtv.org/downloads/v4l-dvb-apis/FE_GET_SET_PROPERTY.html#DTV-DELIVERY-SYSTEM
->>>>>>>
->>>>>>> I don't think it's necessary to add a new flag. It should be
->>>>>>> sufficient to add a property like
->>>>>>> "DTV_SUPPORTED_DELIVERY_SYSTEMS", which should be read-only
->>>>>>> and return an array of type fe_delivery_system_t.
->>>>>>>
->>>>>>> Querying this new property on present kernels hopefully fails
->>>>>>> with a non-zero return code. in which case FE_GET_INFO should
->>>>>>> be used to query the delivery system.
->>>>>>>
->>>>>>> In future kernels we can provide a default implementation,
->>>>>>> returning exactly one fe_delivery_system_t for unported
->>>>>>> drivers. Other drivers should be able to override this default
->>>>>>> implementation in their get_property callback.
->>>>>>
->>>>>> One thing I want to say is that consider about devices which
->>>>>> does have MFE using two different *physical* demods, not
->>>>>> integrated to same silicon.
->>>>>>
->>>>>> If you add such FE delsys switch mechanism it needs some more
->>>>>> glue to bind two physical FEs to one virtual FE. I see much
->>>>>> easier to keep all FEs as own - just register those under the
->>>>>> same adapter if FEs are shared.
->>>>>
->>>>> In this case, the driver should just create two frontends, as
->>>>> currently.
->>>>>
->>>>> There's a difference when there are two physical FE's and just
->>>>> one FE: with 2 FE's, the userspace application can just keep
->>>>> both opened at the same time. Some applications (like vdr)
->>>>> assumes that all multi-fe are like that.
->>>>
->>>> Does this mean demod is not sleeping (.init() called)?
->>>>
->>>>> When there's just a single FE, but the driver needs to "fork" it
->>>>> in two due to the API troubles, the driver needs to prevent the
->>>>> usage of both fe's, either at open or at the ioctl level. So,
->>>>> applications like vdr will only use the first frontend.
->>>>
->>>> Lets take example. There is shared MFE having DVB-S, DVB-T and
->>>> DVB-C. DVB-T and DVB-C are integrated to one chip whilst DVB-S
->>>> have own.
->>>>
->>>> Currently it will shown as:
->>>
->>> Let me name the approaches:
->>>
->>> Approach 1)
->>>> * adapter0
->>>> ** frontend0 (DVB-S)
->>>> ** frontend1 (DVB-T)
->>>> ** frontend2 (DVB-C)
->>>
->>> Approach 2)
->>>> Your new "ideal" solution will be:
->>>> * adapter0
->>>> ** frontend0 (DVB-S/T/C)
->>>
->>> Approach 3)
->>>> What really happens (mixed old and new):
->>
->> Why does this happen?
->>
->>>> * adapter0
->>>> ** frontend0 (DVB-S)
->>>> ** frontend1 (DVB-T/C)
->>>
->>> What I've said before is that approach 3 is the "ideal" solution.
->>
->> No, sorry.
->>
->>>> It does not look very good to offer this kind of mixed solution,
->>>> since it is possible to offer only one solution for userspace,
->>>> new or old, but not mixing.
->>>
->>> Good point.
->>>
->>> There's an additional aspect to handle: if a driver that uses
->>> approach 1, a conversion to either approach 2 or 3 would break
->>> existing applications that can't handle with the new approach.
->>>
->>> There's a 4th posibility: always offering fe0 with MFE
->>> capabilities, and creating additional fe's for old applications
->>> that can't cope with the new mode. For example, on a device that
->>> supports DVB-S/DVB-S2/DVB-T/DVB-T2/DVB-C/ISDB-T, it will be shown
->>> as:
->>>
->>> Approach 4) fe0 is a frontend "superset"
->>>
->>> *adapter0
->>> *frontend0 (DVB-S/DVB-S2/DVB-T/DVB-T2/DVB-C/ISDB-T) - aka: FE
->>> superset *frontend1 (DVB-S/DVB-S2)
->>> *frontend2 (DVB-T/DVB-T2)
->>> *frontend3 (DVB-C)
->>> *frontend4 (ISDB-T)
->>>
->>> fe0 will need some special logic to allow redirecting a FE call to
->>> the right fe, if there are more than one physical frontend bound
->>> into the FE API.
->>>
->>> I'm starting to think that (4) is the better approach, as it won't
->>> break legacy applications, and it will provide an easier way for
->>> new applications to control the frontend with just one frontend.
->>
->> Nack. Do not make it more complicated than neccessary!
->> Approach (2) is the way to go.
->>
->> I consider the current way as a clear abuse of the DVB API.
->> It is a bug, not a feature!
->>
->> Originally it was intended to support multiple data paths per adapter.
->> For example, A dual tuner DVB-S card should have been implemented as
->> one adapter:
->>
->> adapterX +--- demux0/frontend0/ca0/dvr0/net0
->>           |
->>           +--- demux1/frontend1/ca1/dvr1/net1
->>
->> (Both tuners can be used concurrently without limitations.)
->>
->> My proposal is:
->> If there is any kind of shared hardware, i.e. the application cannot
->> use both adapters independently, these hardware must be folded into a
->> single frontend.
->>
->> It is not so hard to implement, even for separate chips:
->> The driver just has to "switch" from one set of frontend ops to
->> another.
->>
->> Btw, which applications do really handle this fronten0/1 stuff
->> correctly? VDR definitely does not. Access to the frontend1 fails.
->>
->> CU
->> Oliver
->>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Laurent Pinchart
