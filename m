@@ -1,155 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:61952 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755713Ab1KDOUJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2011 10:20:09 -0400
-Date: Fri, 04 Nov 2011 15:19:58 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 4/8] s5p-fimc: Fix buffer dequeue order issue
-In-reply-to: <1320416402-22883-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: samsung-soc@vger.kernel.org, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1320416402-22883-5-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1320416402-22883-1-git-send-email-s.nawrocki@samsung.com>
+Received: from hermes.mlbassoc.com ([64.234.241.98]:53931 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753714Ab1KILBg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2011 06:01:36 -0500
+Message-ID: <4EBA5D8E.30609@mlbassoc.com>
+Date: Wed, 09 Nov 2011 04:01:34 -0700
+From: Gary Thomas <gary@mlbassoc.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Javier Martinez Canillas <martinez.javier@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Using MT9P031 digital sensor
+References: <4EB04001.9050803@mlbassoc.com> <201111081406.55967.laurent.pinchart@ideasonboard.com> <4EB930EF.90507@mlbassoc.com> <201111090154.03796.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201111090154.03796.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When requested more than 2 buffers the buffer dequeue order was wrong
-due to erroneous updating FIMC registers in every interrupt handler
-call. This also fixes regression of resetting the output DMA buffer
-pointer at wrong time, when some buffers are already queued in hardware.
-The hardware is reset in the start_streaming callback in order to align
-the H/W state with the software output buffer pointer (buf_index).
+On 2011-11-08 17:54, Laurent Pinchart wrote:
+> Hi Gary,
+>
+> On Tuesday 08 November 2011 14:38:55 Gary Thomas wrote:
+>> On 2011-11-08 06:06, Laurent Pinchart wrote:
+>>> On Tuesday 08 November 2011 13:52:25 Gary Thomas wrote:
+>>>> On 2011-11-08 05:30, Javier Martinez Canillas wrote:
+>>>>> On Tue, Nov 8, 2011 at 1:20 PM, Gary Thomas wrote:
+>>>>>> On 2011-11-04 04:37, Laurent Pinchart wrote:
+>>>>>>> On Tuesday 01 November 2011 19:52:49 Gary Thomas wrote:
+>>>>>>>> I'm trying to use the MT9P031 digital sensor with the Media
+>>>>>>>> Controller Framework.  media-ctl tells me that the sensor is set to
+>>>>>>>> capture using SGRBG12  2592x1944
+>>>>>>>>
+>>>>>>>> Questions:
+>>>>>>>> * What pixel format in ffmpeg does this correspond to?
+>>>>>>>
+>>>>>>> I don't know if ffmpeg supports Bayer formats. The corresponding
+>>>>>>> fourcc in V4L2 is BA12.
+>>>>>>
+>>>>>> ffmpeg doesn't seem to support these formats
+>>>>>>
+>>>>>>> If your sensor is hooked up to the OMAP3 ISP, you can then configure
+>>>>>>> the pipeline to include the preview engine and the resizer, and
+>>>>>>> capture YUV data
+>>>>>>> at the resizer output.
+>>>>>>
+>>>>>> I am using the OMAP3 ISP, but it's a bit unclear to me how to set up
+>>>>>> the pipeline
+>>>>>
+>>>>> Hi Gary,
+>>>>>
+>>>>> I'm also using another sensor mtv9034 with OMAP3 ISP, so maybe I can
+>>>>> help you.
+>>>>>
+>>>>>> using media-ctl (I looked for documentation on this tool, but came up
+>>>>>> dry - is there any?)
+>>>>>>
+>>>>>> Do you have an example of how to configure this using the OMAP3 ISP?
+>>>>>
+>>>>> This is how I configure the pipeline to connect the CCDC with the
+>>>>> Previewer and Resizer:
+>>>>>
+>>>>> ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
+>>>>> ./media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>>>>> ./media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+>>>>> ./media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+>>>>> ./media-ctl -f '"mt9v032 3-005c":0[SGRBG10 752x480]'
+>>>>> ./media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG10 752x480]'
+>>>>> ./media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 752x480]'
+>>>>> ./media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 752x479]'
+>>>>> ./media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 734x471]'
+>>>>> ./media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 640x480]'
+>>>>>
+>>>>> Hope it helps,
+>>>>
+>>>> Thanks, I'll give this a try.
+>>>>
+>>>> I assume that your sensor is probably larger than 752x480 (the mt9p031
+>>>> is 2592x1944 raw) and that setting the smaller frame size enables some
+>>>> scaling and/or cropping in the driver?
+>>>
+>>> The mt9v034 is a wide VGA 752x480 sensor if I'm not mistaken. You should
+>>> modify the resolutions in the above commands according to your sensor.
+>>> Note that the CCDC crops online line when outputting data to the preview
+>>> engine, and that the preview engine crops 18 columsn and 8 lines. You
+>>> can then scale the image by modifying the resizer output size.
+>>
+>> Thanks.  After much trial and error (and some kernel printks to
+>> understand what parameters were failing), I came up with this sequence:
+>>     media-ctl -r
+>>     media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+>>     media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>>     media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+>>     media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+>>     media-ctl -f '"mt9p031 3-005d":0[SGRBG12 2592x1944]'
+>>     media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG12 2592x1944]'
+>>     media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG12 2592x1944]'
+>>     media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG12 2592x1943]'
+>>     media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
+>>     media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 642x483]'
+>>
+>> When I tried to grab though, I got this:
+>>
+>> # yavta --capture=4 -f YUYV -s 642x483 -F /dev/video6
+>> Device /dev/video6 opened.
+>> Device `OMAP3 ISP resizer output' on `media' is a video capture device.
+>> Video format set: YUYV (56595559) 642x483 buffer size 633696
+>> Video format: YUYV (56595559) 642x483 buffer size 633696
+>> 8 buffers requested.
+>> length: 633696 offset: 0
+>> Buffer 0 mapped at address 0x4028c000.
+>> length: 633696 offset: 634880
+>> Buffer 1 mapped at address 0x403d0000.
+>> length: 633696 offset: 1269760
+>> Buffer 2 mapped at address 0x404b3000.
+>> length: 633696 offset: 1904640
+>> Buffer 3 mapped at address 0x4062b000.
+>> length: 633696 offset: 2539520
+>> Buffer 4 mapped at address 0x406d6000.
+>> length: 633696 offset: 3174400
+>> Buffer 5 mapped at address 0x40821000.
+>> length: 633696 offset: 3809280
+>> Buffer 6 mapped at address 0x4097c000.
+>> length: 633696 offset: 4444160
+>> Buffer 7 mapped at address 0x40adf000.
+>>
+>> Unable to handle kernel NULL pointer dereference at virtual address
+>> 00000018
+>
+> Ouch :-(
+>
+> Could you please verify that arch/arm/mach-omap2/board-overo.c includes the
+> following code, and that CONFIG_OMAP_MUX is enabled ?
 
-Additionally a simple write to S5P_CISCCTRL register is replaced with
-a read/modification/write to make sure the scaler is not being disabled
-in fimc_hw_set_scaler().
+I'm not using an Overo board - rather one of our own internal designs.
+I have verified that the pull up/down on those pins is disabled.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |    9 ++++++---
- drivers/media/video/s5p-fimc/fimc-core.c    |    4 ----
- drivers/media/video/s5p-fimc/fimc-reg.c     |   15 ++++++++++++---
- 3 files changed, 18 insertions(+), 10 deletions(-)
+The failure is coming from this code in ispccdc.c
+   static void ccdc_hs_vs_isr(struct isp_ccdc_device *ccdc)
+   {
+	  struct isp_pipeline *pipe =
+		to_isp_pipeline(&ccdc->video_out.video.entity);
+The value of pipe is NULL which leads to the failure.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 382dacd..70f741f 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -98,6 +98,10 @@ static int fimc_capture_state_cleanup(struct fimc_dev *fimc, bool suspend)
- 			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
- 	}
- 	set_bit(ST_CAPT_SUSPENDED, &fimc->state);
-+
-+	fimc_hw_reset(fimc);
-+	cap->buf_index = 0;
-+
- 	spin_unlock_irqrestore(&fimc->slock, flags);
- 
- 	if (streaming)
-@@ -137,7 +141,7 @@ int fimc_capture_config_update(struct fimc_ctx *ctx)
- 	struct fimc_dev *fimc = ctx->fimc_dev;
- 	int ret;
- 
--	if (test_bit(ST_CAPT_APPLY_CFG, &fimc->state))
-+	if (!test_bit(ST_CAPT_APPLY_CFG, &fimc->state))
- 		return 0;
- 
- 	spin_lock(&ctx->slock);
-@@ -150,7 +154,7 @@ int fimc_capture_config_update(struct fimc_ctx *ctx)
- 		fimc_hw_set_rotation(ctx);
- 		fimc_prepare_dma_offset(ctx, &ctx->d_frame);
- 		fimc_hw_set_out_dma(ctx);
--		set_bit(ST_CAPT_APPLY_CFG, &fimc->state);
-+		clear_bit(ST_CAPT_APPLY_CFG, &fimc->state);
- 	}
- 	spin_unlock(&ctx->slock);
- 	return ret;
-@@ -164,7 +168,6 @@ static int start_streaming(struct vb2_queue *q, unsigned int count)
- 	int min_bufs;
- 	int ret;
- 
--	fimc_hw_reset(fimc);
- 	vid_cap->frame_count = 0;
- 
- 	ret = fimc_init_capture(fimc);
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index ef53528..9c3a8c5 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -1706,8 +1706,6 @@ static int fimc_runtime_resume(struct device *dev)
- 	/* Enable clocks and perform basic initalization */
- 	clk_enable(fimc->clock[CLK_GATE]);
- 	fimc_hw_reset(fimc);
--	if (fimc->variant->out_buf_count > 4)
--		fimc_hw_set_dma_seq(fimc, 0xF);
- 
- 	/* Resume the capture or mem-to-mem device */
- 	if (fimc_capture_busy(fimc))
-@@ -1749,8 +1747,6 @@ static int fimc_resume(struct device *dev)
- 		return 0;
- 	}
- 	fimc_hw_reset(fimc);
--	if (fimc->variant->out_buf_count > 4)
--		fimc_hw_set_dma_seq(fimc, 0xF);
- 	spin_unlock_irqrestore(&fimc->slock, flags);
- 
- 	if (fimc_capture_busy(fimc))
-diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
-index 20e664e..44f5c2d 100644
---- a/drivers/media/video/s5p-fimc/fimc-reg.c
-+++ b/drivers/media/video/s5p-fimc/fimc-reg.c
-@@ -35,6 +35,9 @@ void fimc_hw_reset(struct fimc_dev *dev)
- 	cfg = readl(dev->regs + S5P_CIGCTRL);
- 	cfg &= ~S5P_CIGCTRL_SWRST;
- 	writel(cfg, dev->regs + S5P_CIGCTRL);
-+
-+	if (dev->variant->out_buf_count > 4)
-+		fimc_hw_set_dma_seq(dev, 0xF);
- }
- 
- static u32 fimc_hw_get_in_flip(struct fimc_ctx *ctx)
-@@ -251,7 +254,14 @@ static void fimc_hw_set_scaler(struct fimc_ctx *ctx)
- 	struct fimc_scaler *sc = &ctx->scaler;
- 	struct fimc_frame *src_frame = &ctx->s_frame;
- 	struct fimc_frame *dst_frame = &ctx->d_frame;
--	u32 cfg = 0;
-+
-+	u32 cfg = readl(dev->regs + S5P_CISCCTRL);
-+
-+	cfg &= ~(S5P_CISCCTRL_CSCR2Y_WIDE | S5P_CISCCTRL_CSCY2R_WIDE |
-+		 S5P_CISCCTRL_SCALEUP_H | S5P_CISCCTRL_SCALEUP_V |
-+		 S5P_CISCCTRL_SCALERBYPASS | S5P_CISCCTRL_ONE2ONE |
-+		 S5P_CISCCTRL_INRGB_FMT_MASK | S5P_CISCCTRL_OUTRGB_FMT_MASK |
-+		 S5P_CISCCTRL_INTERLACE | S5P_CISCCTRL_RGB_EXT);
- 
- 	if (!(ctx->flags & FIMC_COLOR_RANGE_NARROW))
- 		cfg |= (S5P_CISCCTRL_CSCR2Y_WIDE | S5P_CISCCTRL_CSCY2R_WIDE);
-@@ -308,9 +318,9 @@ void fimc_hw_set_mainscaler(struct fimc_ctx *ctx)
- 	fimc_hw_set_scaler(ctx);
- 
- 	cfg = readl(dev->regs + S5P_CISCCTRL);
-+	cfg &= ~(S5P_CISCCTRL_MHRATIO_MASK | S5P_CISCCTRL_MVRATIO_MASK);
- 
- 	if (variant->has_mainscaler_ext) {
--		cfg &= ~(S5P_CISCCTRL_MHRATIO_MASK | S5P_CISCCTRL_MVRATIO_MASK);
- 		cfg |= S5P_CISCCTRL_MHRATIO_EXT(sc->main_hratio);
- 		cfg |= S5P_CISCCTRL_MVRATIO_EXT(sc->main_vratio);
- 		writel(cfg, dev->regs + S5P_CISCCTRL);
-@@ -323,7 +333,6 @@ void fimc_hw_set_mainscaler(struct fimc_ctx *ctx)
- 		cfg |= S5P_CIEXTEN_MVRATIO_EXT(sc->main_vratio);
- 		writel(cfg, dev->regs + S5P_CIEXTEN);
- 	} else {
--		cfg &= ~(S5P_CISCCTRL_MHRATIO_MASK | S5P_CISCCTRL_MVRATIO_MASK);
- 		cfg |= S5P_CISCCTRL_MHRATIO(sc->main_hratio);
- 		cfg |= S5P_CISCCTRL_MVRATIO(sc->main_vratio);
- 		writel(cfg, dev->regs + S5P_CISCCTRL);
+Questions:
+* I assume that getting HS/VS interrupts is correct in this mode?
+* Why is the statement not written (as all others are)
+	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
+   I tried this change and the kernel doesn't crash.
+
+I've found that I can get raw frames out of CCDC, but I don't get anything at
+all when the output continues through the preview and/or resize nodes.
+
+Ideas?
+
 -- 
-1.7.7.1
-
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
