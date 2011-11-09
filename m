@@ -1,220 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57365 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754084Ab1KLPGQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Nov 2011 10:06:16 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>
-CC: Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH RESEND] davinci: dm646x: move vpif related code to driver core header from platform
-Date: Sat, 12 Nov 2011 20:36:02 +0530
-Message-ID: <1321110362-6699-1-git-send-email-manjunath.hadli@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:50489 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751946Ab1KIMes (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Nov 2011 07:34:48 -0500
+Subject: Re: Daily build update
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Wed, 09 Nov 2011 07:37:02 -0500
+In-Reply-To: <201111081132.23365.hverkuil@xs4all.nl>
+References: <201111081132.23365.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1320842223.2271.2.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-move vpif related code for capture and display drivers
-from dm646x platform header file to vpif_types.h as these definitions
-are related to driver code more than the platform or board.
+On Tue, 2011-11-08 at 11:32 +0100, Hans Verkuil wrote:
+> Hi all,
+> 
+> I've managed to get the daily build working again with the for_v3.3 branch and
+> with the full range of kernels from 2.6.31 to 3.2-rc1.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
----
- arch/arm/mach-davinci/include/mach/dm646x.h |   53 +-------------------
- drivers/media/video/davinci/vpif.h          |    1 +
- drivers/media/video/davinci/vpif_capture.h  |    2 +-
- drivers/media/video/davinci/vpif_display.h  |    1 +
- include/media/davinci/vpif_types.h          |   71 +++++++++++++++++++++++++++
- 5 files changed, 75 insertions(+), 53 deletions(-)
- create mode 100644 include/media/davinci/vpif_types.h
+Thank you!  
 
-diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h b/arch/arm/mach-davinci/include/mach/dm646x.h
-index 2a00fe5..a8ee6c9 100644
---- a/arch/arm/mach-davinci/include/mach/dm646x.h
-+++ b/arch/arm/mach-davinci/include/mach/dm646x.h
-@@ -16,6 +16,7 @@
- #include <linux/i2c.h>
- #include <linux/videodev2.h>
- #include <linux/davinci_emac.h>
-+#include <media/davinci/vpif_types.h>
- 
- #define DM646X_EMAC_BASE		(0x01C80000)
- #define DM646X_EMAC_MDIO_BASE		(DM646X_EMAC_BASE + 0x4000)
-@@ -34,58 +35,6 @@ int __init dm646x_init_edma(struct edma_rsv_info *rsv);
- 
- void dm646x_video_init(void);
- 
--enum vpif_if_type {
--	VPIF_IF_BT656,
--	VPIF_IF_BT1120,
--	VPIF_IF_RAW_BAYER
--};
--
--struct vpif_interface {
--	enum vpif_if_type if_type;
--	unsigned hd_pol:1;
--	unsigned vd_pol:1;
--	unsigned fid_pol:1;
--};
--
--struct vpif_subdev_info {
--	const char *name;
--	struct i2c_board_info board_info;
--	u32 input;
--	u32 output;
--	unsigned can_route:1;
--	struct vpif_interface vpif_if;
--};
--
--struct vpif_display_config {
--	int (*set_clock)(int, int);
--	struct vpif_subdev_info *subdevinfo;
--	int subdev_count;
--	const char **output;
--	int output_count;
--	const char *card_name;
--};
--
--struct vpif_input {
--	struct v4l2_input input;
--	const char *subdev_name;
--};
--
--#define VPIF_CAPTURE_MAX_CHANNELS	2
--
--struct vpif_capture_chan_config {
--	const struct vpif_input *inputs;
--	int input_count;
--};
--
--struct vpif_capture_config {
--	int (*setup_input_channel_mode)(int);
--	int (*setup_input_path)(int, const char *);
--	struct vpif_capture_chan_config chan_config[VPIF_CAPTURE_MAX_CHANNELS];
--	struct vpif_subdev_info *subdev_info;
--	int subdev_count;
--	const char *card_name;
--};
--
- void dm646x_setup_vpif(struct vpif_display_config *,
- 		       struct vpif_capture_config *);
- 
-diff --git a/drivers/media/video/davinci/vpif.h b/drivers/media/video/davinci/vpif.h
-index 10550bd..25036cb 100644
---- a/drivers/media/video/davinci/vpif.h
-+++ b/drivers/media/video/davinci/vpif.h
-@@ -20,6 +20,7 @@
- #include <linux/videodev2.h>
- #include <mach/hardware.h>
- #include <mach/dm646x.h>
-+#include <media/davinci/vpif_types.h>
- 
- /* Maximum channel allowed */
- #define VPIF_NUM_CHANNELS		(4)
-diff --git a/drivers/media/video/davinci/vpif_capture.h b/drivers/media/video/davinci/vpif_capture.h
-index 064550f..a693d4e 100644
---- a/drivers/media/video/davinci/vpif_capture.h
-+++ b/drivers/media/video/davinci/vpif_capture.h
-@@ -27,7 +27,7 @@
- #include <media/v4l2-device.h>
- #include <media/videobuf-core.h>
- #include <media/videobuf-dma-contig.h>
--#include <mach/dm646x.h>
-+#include <media/davinci/vpif_types.h>
- 
- #include "vpif.h"
- 
-diff --git a/drivers/media/video/davinci/vpif_display.h b/drivers/media/video/davinci/vpif_display.h
-index 5d1936d..56879d1 100644
---- a/drivers/media/video/davinci/vpif_display.h
-+++ b/drivers/media/video/davinci/vpif_display.h
-@@ -22,6 +22,7 @@
- #include <media/v4l2-device.h>
- #include <media/videobuf-core.h>
- #include <media/videobuf-dma-contig.h>
-+#include <media/davinci/vpif_types.h>
- 
- #include "vpif.h"
- 
-diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
-new file mode 100644
-index 0000000..9929b05
---- /dev/null
-+++ b/include/media/davinci/vpif_types.h
-@@ -0,0 +1,71 @@
-+/*
-+ * Copyright (C) 2011 Texas Instruments Inc
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation version 2.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+#ifndef _VPIF_TYPES_H
-+#define _VPIF_TYPES_H
-+
-+#define VPIF_CAPTURE_MAX_CHANNELS	2
-+
-+enum vpif_if_type {
-+	VPIF_IF_BT656,
-+	VPIF_IF_BT1120,
-+	VPIF_IF_RAW_BAYER
-+};
-+
-+struct vpif_interface {
-+	enum vpif_if_type if_type;
-+	unsigned hd_pol:1;
-+	unsigned vd_pol:1;
-+	unsigned fid_pol:1;
-+};
-+
-+struct vpif_subdev_info {
-+	const char *name;
-+	struct i2c_board_info board_info;
-+	u32 input;
-+	u32 output;
-+	unsigned can_route:1;
-+	struct vpif_interface vpif_if;
-+};
-+
-+struct vpif_display_config {
-+	int (*set_clock)(int, int);
-+	struct vpif_subdev_info *subdevinfo;
-+	int subdev_count;
-+	const char **output;
-+	int output_count;
-+	const char *card_name;
-+};
-+
-+struct vpif_input {
-+	struct v4l2_input input;
-+	const char *subdev_name;
-+};
-+
-+struct vpif_capture_chan_config {
-+	const struct vpif_input *inputs;
-+	int input_count;
-+};
-+
-+struct vpif_capture_config {
-+	int (*setup_input_channel_mode)(int);
-+	int (*setup_input_path)(int, const char *);
-+	struct vpif_capture_chan_config chan_config[VPIF_CAPTURE_MAX_CHANNELS];
-+	struct vpif_subdev_info *subdev_info;
-+	int subdev_count;
-+	const char *card_name;
-+};
-+#endif /* _VPIF_TYPES_H */
--- 
-1.6.2.4
+(The personal time devoted to clean-up should never be thankless.)
+
+Regards,
+Andy
+
+> There is one error remaining with the compilation of cpia2_usb.c on 3.2-rc1
+> (a missing module.h header). This should be resolved once the for_v3.3 branch
+> is synced with the 3.2-rc1 mainline branch. So I am not going to workaround
+> that error.
+> 
+> I'm sure it will break again after the next round of commits, though :-)
+> 
+> Regards,
+> 
+> 	Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
