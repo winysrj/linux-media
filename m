@@ -1,43 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:56655 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750921Ab1KXSCA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 13:02:00 -0500
-Received: by eaak14 with SMTP id k14so330682eaa.19
-        for <linux-media@vger.kernel.org>; Thu, 24 Nov 2011 10:01:59 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <201111241844.23292.hverkuil@xs4all.nl>
-References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
-	<dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com>
-	<4ECE79F5.9000402@linuxtv.org>
-	<201111241844.23292.hverkuil@xs4all.nl>
-Date: Thu, 24 Nov 2011 23:31:58 +0530
-Message-ID: <CAHFNz9J+3DYW-Gf0FPYhcZqHf7XPtM+dmK0Y15HhkWQZOzNzuQ@mail.gmail.com>
-Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andreas Oberritter <obi@linuxtv.org>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from zone0.gcu-squad.org ([212.85.147.21]:32636 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751709Ab1KIR2H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2011 12:28:07 -0500
+Date: Wed, 9 Nov 2011 18:27:53 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Andy Walls <awalls@md.metrocast.net>, ivtv-devel@ivtvdriver.org
+Subject: [PATCH] [media] video: Drop undue references to i2c-algo-bit
+Message-ID: <20111109182753.5f996f3e@endymion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 24, 2011 at 11:14 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Thursday, November 24, 2011 18:08:05 Andreas Oberritter wrote:
->> Don't break existing Userspace APIs for no reason! It's OK to add the
->> new API, but - pretty please - don't just blindly remove audio.h and
->> video.h. They are in use since many years by av7110, out-of-tree drivers
->> *and more importantly* by applications. Yes, I know, you'd like to see
->> those out-of-tree drivers merged, but it isn't possible for many
->> reasons. And even if they were merged, you'd say "Port them and your
->> apps to V4L". No! That's not an option.
->
-> I'm not breaking anything. All apps will still work.
->
-> One option (and it depends on whether people like it or not) is to have
-> audio.h, video.h and osd.h just include av7110.h and add a #warning
-> that these headers need to be replaced by the new av7110.h.
+There's one comment that has been copied from bttv to many other
+media/video drivers:
+
+/* init + register i2c algo-bit adapter */
+
+Meanwhile, many drivers use hardware I2C implementations instead of
+relying on i2c-algo-bit, so this comment is misleading. Remove the
+reference to "algo-bit" from all drivers, to avoid any confusion. This
+is the best way to ensure that the comments won't go out of sync
+again. Anyone interested in the implementation details would rather
+look at the code itself.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/media/video/au0828/au0828-i2c.c   |    2 +-
+ drivers/media/video/bt8xx/bttv-i2c.c      |    2 +-
+ drivers/media/video/cx18/cx18-i2c.c       |    2 +-
+ drivers/media/video/cx18/cx18-i2c.h       |    2 +-
+ drivers/media/video/cx23885/cx23885-i2c.c |    2 +-
+ drivers/media/video/cx25821/cx25821-i2c.c |    2 +-
+ drivers/media/video/cx88/cx88-i2c.c       |    2 +-
+ drivers/media/video/ivtv/ivtv-i2c.h       |    2 +-
+ 8 files changed, 8 insertions(+), 8 deletions(-)
+
+--- linux-3.2-rc0.orig/drivers/media/video/au0828/au0828-i2c.c	2011-07-22 04:17:23.000000000 +0200
++++ linux-3.2-rc0/drivers/media/video/au0828/au0828-i2c.c	2011-11-07 18:50:50.000000000 +0100
+@@ -348,7 +348,7 @@ static void do_i2c_scan(char *name, stru
+ 	}
+ }
+ 
+-/* init + register i2c algo-bit adapter */
++/* init + register i2c adapter */
+ int au0828_i2c_register(struct au0828_dev *dev)
+ {
+ 	dprintk(1, "%s()\n", __func__);
+--- linux-3.2-rc0.orig/drivers/media/video/bt8xx/bttv-i2c.c	2011-11-06 17:44:24.000000000 +0100
++++ linux-3.2-rc0/drivers/media/video/bt8xx/bttv-i2c.c	2011-11-07 18:51:13.000000000 +0100
+@@ -346,7 +346,7 @@ static void do_i2c_scan(char *name, stru
+ 	}
+ }
+ 
+-/* init + register i2c algo-bit adapter */
++/* init + register i2c adapter */
+ int __devinit init_bttv_i2c(struct bttv *btv)
+ {
+ 	strlcpy(btv->i2c_client.name, "bttv internal", I2C_NAME_SIZE);
+--- linux-3.2-rc0.orig/drivers/media/video/cx18/cx18-i2c.c	2011-07-22 04:17:23.000000000 +0200
++++ linux-3.2-rc0/drivers/media/video/cx18/cx18-i2c.c	2011-11-07 18:50:44.000000000 +0100
+@@ -232,7 +232,7 @@ static struct i2c_algo_bit_data cx18_i2c
+ 	.timeout	= CX18_ALGO_BIT_TIMEOUT*HZ /* jiffies */
+ };
+ 
+-/* init + register i2c algo-bit adapter */
++/* init + register i2c adapter */
+ int init_cx18_i2c(struct cx18 *cx)
+ {
+ 	int i, err;
+--- linux-3.2-rc0.orig/drivers/media/video/cx18/cx18-i2c.h	2011-07-22 04:17:23.000000000 +0200
++++ linux-3.2-rc0/drivers/media/video/cx18/cx18-i2c.h	2011-11-07 18:50:38.000000000 +0100
+@@ -24,6 +24,6 @@
+ int cx18_i2c_register(struct cx18 *cx, unsigned idx);
+ struct v4l2_subdev *cx18_find_hw(struct cx18 *cx, u32 hw);
+ 
+-/* init + register i2c algo-bit adapter */
++/* init + register i2c adapter */
+ int init_cx18_i2c(struct cx18 *cx);
+ void exit_cx18_i2c(struct cx18 *cx);
+--- linux-3.2-rc0.orig/drivers/media/video/cx23885/cx23885-i2c.c	2011-11-06 17:44:24.000000000 +0100
++++ linux-3.2-rc0/drivers/media/video/cx23885/cx23885-i2c.c	2011-11-07 18:51:25.000000000 +0100
+@@ -309,7 +309,7 @@ static void do_i2c_scan(char *name, stru
+ 	}
+ }
+ 
+-/* init + register i2c algo-bit adapter */
++/* init + register i2c adapter */
+ int cx23885_i2c_register(struct cx23885_i2c *bus)
+ {
+ 	struct cx23885_dev *dev = bus->dev;
+--- linux-3.2-rc0.orig/drivers/media/video/cx25821/cx25821-i2c.c	2011-11-06 17:44:24.000000000 +0100
++++ linux-3.2-rc0/drivers/media/video/cx25821/cx25821-i2c.c	2011-11-07 18:51:01.000000000 +0100
+@@ -300,7 +300,7 @@ static struct i2c_client cx25821_i2c_cli
+ 	.name = "cx25821 internal",
+ };
+ 
+-/* init + register i2c algo-bit adapter */
++/* init + register i2c adapter */
+ int cx25821_i2c_register(struct cx25821_i2c *bus)
+ {
+ 	struct cx25821_dev *dev = bus->dev;
+--- linux-3.2-rc0.orig/drivers/media/video/cx88/cx88-i2c.c	2011-07-22 04:17:23.000000000 +0200
++++ linux-3.2-rc0/drivers/media/video/cx88/cx88-i2c.c	2011-11-07 18:51:07.000000000 +0100
+@@ -132,7 +132,7 @@ static void do_i2c_scan(const char *name
+ 	}
+ }
+ 
+-/* init + register i2c algo-bit adapter */
++/* init + register i2c adapter */
+ int cx88_i2c_init(struct cx88_core *core, struct pci_dev *pci)
+ {
+ 	/* Prevents usage of invalid delay values */
+--- linux-3.2-rc0.orig/drivers/media/video/ivtv/ivtv-i2c.h	2011-07-22 04:17:23.000000000 +0200
++++ linux-3.2-rc0/drivers/media/video/ivtv/ivtv-i2c.h	2011-11-07 18:50:55.000000000 +0100
+@@ -25,7 +25,7 @@ struct i2c_client *ivtv_i2c_new_ir_legac
+ int ivtv_i2c_register(struct ivtv *itv, unsigned idx);
+ struct v4l2_subdev *ivtv_find_hw(struct ivtv *itv, u32 hw);
+ 
+-/* init + register i2c algo-bit adapter */
++/* init + register i2c adapter */
+ int init_ivtv_i2c(struct ivtv *itv);
+ void exit_ivtv_i2c(struct ivtv *itv);
+ 
 
 
-That won't work with other non av7110 hardware.
+-- 
+Jean Delvare
