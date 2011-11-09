@@ -1,132 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:54004 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754459Ab1KZMVI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Nov 2011 07:21:08 -0500
-Received: by bke11 with SMTP id 11so5589631bke.19
-        for <linux-media@vger.kernel.org>; Sat, 26 Nov 2011 04:21:06 -0800 (PST)
-Message-ID: <4ED0D9AD.90603@gmail.com>
-Date: Sat, 26 Nov 2011 13:21:01 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:41625 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752063Ab1KICyB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 21:54:01 -0500
+Received: by faan17 with SMTP id n17so1199145faa.19
+        for <linux-media@vger.kernel.org>; Tue, 08 Nov 2011 18:53:59 -0800 (PST)
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v4][media] Exynos4 JPEG codec v4l2 driver
-References: <1322213893-5462-1-git-send-email-andrzej.p@samsung.com> <20111126095625.GA29805@valkosipuli.localdomain>
-In-Reply-To: <20111126095625.GA29805@valkosipuli.localdomain>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Reply-To: whittenburg@gmail.com
+In-Reply-To: <201111081342.19494.laurent.pinchart@ideasonboard.com>
+References: <CABcw_OkE=ANKDCVRRxgj33Mt=b3KAtGpe3RMnL3h0UMgOQ0ZdQ@mail.gmail.com>
+	<201111071214.36935.laurent.pinchart@ideasonboard.com>
+	<CABcw_Omoj2VkiksKEs1tV_9vB6ZVtTvUJ2GK0beY5JjFSBgd_g@mail.gmail.com>
+	<201111081342.19494.laurent.pinchart@ideasonboard.com>
+Date: Tue, 8 Nov 2011 20:53:58 -0600
+Message-ID: <CABcw_O=Vg=r1oWJriBT4bOVcdFWjaPEbjs0nAMq74L7-vgrT3Q@mail.gmail.com>
+Subject: Re: media0 not showing up on beagleboard-xm
+From: Chris Whittenburg <whittenburg@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Gary Thomas <gary@mlbassoc.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Tue, Nov 8, 2011 at 6:42 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Chris,
+>
+> On Tuesday 08 November 2011 03:03:43 Chris Whittenburg wrote:
+>> On Mon, Nov 7, 2011 at 5:14 AM, Laurent Pinchart wrote:
+>> > On Monday 07 November 2011 12:08:15 Gary Thomas wrote:
+>> >> On 2011-11-06 15:26, Chris Whittenburg wrote:
+>> >> > On Fri, Nov 4, 2011 at 6:49 AM, Laurent Pinchart wrote:
+>> >> >> On Tuesday 25 October 2011 04:48:13 Chris Whittenburg wrote:
+>> >> >>> I'm using oe-core to build the 3.0.7+ kernel, which runs fine on my
+>> >> >>> beagleboard-xm.
+>> >> >>
+>> >> >> You will need board code to register the OMAP3 ISP platform device
+>> >> >> that will then be picked by the OMAP3 ISP driver. Example of such
+>> >> >> board code can be found at
+>> >> >>
+>> >> >> http://git.linuxtv.org/pinchartl/media.git/commit/37f505296ccd3fb055e
+>> >> >> 03b 2ab15ccf6ad4befb8d
+>> >> >
+>> >> > I followed your example to add the MT9P031 support, and now I get
+>> >> > /dev/media0 and /dev/video0 to 7.
+>> >> >
+>> >> > I don't have the actual sensor hooked up yet.
+>> >> >
+>> >> > If I try "media-ctl -p", I see lots of "Failed to open subdev device
+>> >> > node" msgs.
+>> >> > http://pastebin.com/F1TC9A1n
+>> >> >
+>> >> > This is with the media-ctl utility from:
+>> >> > http://feeds.angstrom-distribution.org/feeds/core/ipk/eglibc/armv7a/ba
+>> >> > se/ media-ctl_0.0.1-r0_armv7a.ipk
+>> >> >
+>> >> > I also tried with the latest from your media-ctl repository, but got
+>> >> > the same msgs.
+>> >> >
+>> >> > Is this an issue with my 3.0.8 kernel not being compatible with
+>> >> > current media-ctl utility?  Is there some older commit that I should
+>> >> > build from?  Or maybe it is just a side effect of the sensor not being
+>> >> > connected yet.
+>> >>
+>> >> Does your kernel config enable CONFIG_VIDEO_V4L2_SUBDEV_API?
+>>
+>> Yes, it is enabled...  Here is a snippet of my config:
+>>
+>> #
+>> # Multimedia core support
+>> #
+>> CONFIG_MEDIA_CONTROLLER=y
+>> CONFIG_VIDEO_DEV=y
+>> CONFIG_VIDEO_V4L2_COMMON=y
+>> CONFIG_VIDEO_V4L2_SUBDEV_API=y
+>> CONFIG_DVB_CORE=m
+>> CONFIG_VIDEO_MEDIA=m
+>>
+>> > And does your system run udev, or have you created the device nodes
+>> > manually ?
+>>
+>> It runs udev-173... I didn't create the nodes manually.
+>>
+>> I also have the /dev/v4l-subdev0 to 7 entries, as expected.
+>>
+>> Anything else I should check?
+>
+> Could you please send me the output of the following commands ?
+>
+> ls -l /dev/v4l-subdev*
+> ls -l /sys/dev/char/
+>
+> And, optionally,
+>
+> strace ./media-ctl -p
 
-On 11/26/2011 10:56 AM, Sakari Ailus wrote:
-> On Fri, Nov 25, 2011 at 10:38:13AM +0100, Andrzej Pietrasiewicz wrote:
-> ...
->> +static int s5p_jpeg_s_jpegcomp(struct file *file, void *priv,
->> +			       struct v4l2_jpegcompression *compr)
->> +{
->> +	struct s5p_jpeg_ctx *ctx = priv;
->> +
->> +	if (ctx->mode == S5P_JPEG_DECODE)
->> +		return -ENOTTY;
->> +
->> +	compr->quality = clamp(compr->quality, S5P_JPEG_COMPR_QUAL_BEST,
->> +			       S5P_JPEG_COMPR_QUAL_WORST);
->> +
->> +	ctx->compr_quality = S5P_JPEG_COMPR_QUAL_WORST - compr->quality;
->> +
->> +	return 0;
-> 
-> The quality paramaeter of VIDIOC_S_JPEGCOMP is badly documented and its
-> value range is unspecified. To make the matter worse, VIDIOC_S_JPEGCOMP is a
-> write-only IOCTL, so the user won't be able to know the value the driver
-> uses. This forces the user space to know the value range for quality. I
-> think we have a good change to resolve the matter properly now.
-> 
-> I can think of two alternatives, both of which are very simple.
-> 
-> 1) Define the value range for v4l2_jpegcompression. The driver implements
-> four, so they essentially would be 0, 33, 66 and 100, if 0--100 is chosen as
-> the standard range. This is what I have seen is often used by jpeg
-> compression programs.
+Hi Laurent,
 
-This is improving a situation a bit but it's not really solving anything, using
-Muaro's words, let's not waste time investing in a dead horse. ;)
+Your last questions helped me find that sysfs wasn't mounted.  I think
+this is because meta-Angstrom was using systemd, and I changed it to
+sysvinit, but must have missed something.
 
-I'm in favour of creating a new control for jpeg quality and leave the range 
-driver-specific, with only requirement that ascending values should indicate
-better quality, i.e. lower compression ratio. 
+With sysfs mounted, I get the following media-ctl -p output... Does
+this look as expected?  (The sensor still isn't connected-- it should
+come in today, so ignore the "Failed to reset the camera" errors.
 
-Did you have a chance to look at this RFC [1] ? I have reviewed usage 
-of VIDIOC_[S/G]_JPEGCOMP ioctls and there are also some links to previous 
-discussion there. 
+root@beagleboard:~# media-ctl -p
+Opening media device /dev/media0
+Enumerating entities
+Found 16 entities
+Enumerating pads and links
+Device topology
+- entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev0
+	pad0: Input [SGRBG10 4096x4096]
+		<- 'OMAP3 ISP CCP2 input':pad0 []
+	pad1: Output [SGRBG10 4096x4096]
+		-> 'OMAP3 ISP CCDC':pad0 []
 
-> 
-> 2) Define a new control for jpeg quality. Its value range can be what the
-> hardware supports and the user space gets much better information on the
-> capabilities of the hardware and the granularity of the quality setting.
+- entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video0
+	pad0: Output
+		-> 'OMAP3 ISP CCP2':pad0 []
 
-This was my conclusion as well. That sounds like a most effective and flexible 
-solution. IIRC, Hans also suggested those things might be a perfect candidate
-for a control class.
+- entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev1
+	pad0: Input [SGRBG10 4096x4096]
+	pad1: Output [SGRBG10 4096x4096]
+		-> 'OMAP3 ISP CSI2a output':pad0 []
+		-> 'OMAP3 ISP CCDC':pad0 []
 
-> 
-> I might even favour the second one. I also wonder how many user space
-> applications use this IOCTL, so if we're breaking anything by not supporting
-> it.
+- entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video1
+	pad0: Input
+		<- 'OMAP3 ISP CSI2a':pad1 []
 
-I imagine we could deprecate 'quality' and 'jpeg_markers' fields of v4l2_jpegcompression
-and during deprecation period add support for the controls for these parameters,
-so the application can adapt and fall back to a control based interface once the
-ioctl is removed in the kernel.
-This should be possible for almost all drivers as they virtually use G/S_JPEGCOMP 
-ioctls for image quality only.  
+- entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev2
+	pad0: Input [SGRBG10 4096x4096]
+		<- 'OMAP3 ISP CCP2':pad1 []
+		<- 'OMAP3 ISP CSI2a':pad1 []
+		<- 'mt9p031 2-0048':pad0 []
+	pad1: Output [SGRBG10 4096x4096]
+		-> 'OMAP3 ISP CCDC output':pad0 []
+		-> 'OMAP3 ISP resizer':pad0 []
+	pad2: Output [SGRBG10 4096x4095]
+		-> 'OMAP3 ISP preview':pad0 []
+		-> 'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
+		-> 'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
+		-> 'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
 
-> 
-> Or we could decide to do option 1 right now and implement 2) later on. I can
-> write a patch to change the documentation.
+- entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video2
+	pad0: Input
+		<- 'OMAP3 ISP CCDC':pad1 []
 
-The documentation could always be improved. But I personally would like to see these
-ioctls die, as they're really hopeless as a part of public API. I though about
-something like
+- entity 7: OMAP3 ISP preview (2 pads, 4 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev3
+	pad0: Input [SGRBG10 4096x4096]
+		<- 'OMAP3 ISP CCDC':pad2 []
+		<- 'OMAP3 ISP preview input':pad0 []
+	pad1: Output [YUYV 4082x4088]
+		-> 'OMAP3 ISP preview output':pad0 []
+		-> 'OMAP3 ISP resizer':pad0 []
 
-/* The ioctls to configure/query selected data segment in a jpeg encoder */  
-#define VIDIOC_G_JPEGCOMP        _IOR('V', 61, struct v4l2_jpegcomp)
-#define VIDIOC_S_JPEGCOMP        _IOW('V', 62, struct v4l2_jpegcomp)
+- entity 8: OMAP3 ISP preview input (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video3
+	pad0: Output
+		-> 'OMAP3 ISP preview':pad0 []
 
-/**
- * struct v4l2_jpegcomp - JPEG segment data structure
- *
- * @id: field indicating what standard JPEG data segment @data contains
- * @data: points the segment data
- * @length: length of the segment
- */
-struct v4l2_jpegcomp {
-	__u32 id;		 
+- entity 9: OMAP3 ISP preview output (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video4
+	pad0: Input
+		<- 'OMAP3 ISP preview':pad1 []
 
-        int  length;
-        void  *data;
-};
+- entity 10: OMAP3 ISP resizer (2 pads, 4 links)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev4
+	pad0: Input [YUYV 4095x4095 (4,6)/4086x4082]
+		<- 'OMAP3 ISP CCDC':pad1 []
+		<- 'OMAP3 ISP preview':pad1 []
+		<- 'OMAP3 ISP resizer input':pad0 []
+	pad1: Output [YUYV 4096x4095]
+		-> 'OMAP3 ISP resizer output':pad0 []
 
+- entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
+             type Node subtype V4L
+             device node name /dev/video5
+	pad0: Output
+		-> 'OMAP3 ISP resizer':pad0 []
 
-As a side note, our plan was to get merged the S5P JPEG codec in v3.3, with 
-the old jpeg ioctls and then switch to the controls when they're ready, possibly
-in subsequent kernel release. That's why the driver is marked as experimental.
+- entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
+             type Node subtype V4L
+             device node name /dev/video6
+	pad0: Input
+		<- 'OMAP3 ISP resizer':pad1 []
 
+- entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev5
+	pad0: Input
+		<- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
 
---
-Regards,
-Sylwester
+- entity 14: OMAP3 ISP AF (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev6
+	pad0: Input
+		<- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
 
+- entity 15: OMAP3 ISP histogram (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev7
+	pad0: Input
+		<- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
 
-[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg39012.html
+- entity 16: mt9p031 2-0048 (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev8
+	pad0: Output v4l2_subdev_open: Failed to open subdev device node
+/dev/v4l-subdev8
 
+		-> 'OMAP3 ISP CCDC':pad0 []
+
+Thanks.
