@@ -1,37 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www17.your-server.de ([213.133.104.17]:48600 "EHLO
-	www17.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757210Ab1KRJ2k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Nov 2011 04:28:40 -0500
-Subject: [PATCH] [media] v4l: Casting (void *) value returned by kmalloc is
- useless
-From: Thomas Meyer <thomas@m3y3r.de>
-To: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Date: Thu, 17 Nov 2011 23:43:40 +0100
-Message-ID: <1321569820.1624.247.camel@localhost.localdomain>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52902 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750936Ab1KIJVD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2011 04:21:03 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: whittenburg@gmail.com
+Subject: Re: media0 not showing up on beagleboard-xm
+Date: Wed, 9 Nov 2011 10:21:03 +0100
+Cc: Gary Thomas <gary@mlbassoc.com>, linux-media@vger.kernel.org
+References: <CABcw_OkE=ANKDCVRRxgj33Mt=b3KAtGpe3RMnL3h0UMgOQ0ZdQ@mail.gmail.com> <201111081342.19494.laurent.pinchart@ideasonboard.com> <CABcw_O=Vg=r1oWJriBT4bOVcdFWjaPEbjs0nAMq74L7-vgrT3Q@mail.gmail.com>
+In-Reply-To: <CABcw_O=Vg=r1oWJriBT4bOVcdFWjaPEbjs0nAMq74L7-vgrT3Q@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111091021.03811.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The semantic patch that makes this change is available
-in scripts/coccinelle/api/alloc/drop_kmalloc_cast.cocci.
+Hi Chris,
 
-Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
----
+On Wednesday 09 November 2011 03:53:58 Chris Whittenburg wrote:
+> On Tue, Nov 8, 2011 at 6:42 AM, Laurent Pinchart wrote:
+> > On Tuesday 08 November 2011 03:03:43 Chris Whittenburg wrote:
+> >> On Mon, Nov 7, 2011 at 5:14 AM, Laurent Pinchart wrote:
+> >> > On Monday 07 November 2011 12:08:15 Gary Thomas wrote:
+> >> >> On 2011-11-06 15:26, Chris Whittenburg wrote:
+> >> >> > On Fri, Nov 4, 2011 at 6:49 AM, Laurent Pinchart wrote:
+> >> >> >> On Tuesday 25 October 2011 04:48:13 Chris Whittenburg wrote:
+> >> >> >>> I'm using oe-core to build the 3.0.7+ kernel, which runs fine on
+> >> >> >>> my beagleboard-xm.
+> >> >> >> 
+> >> >> >> You will need board code to register the OMAP3 ISP platform device
+> >> >> >> that will then be picked by the OMAP3 ISP driver. Example of such
+> >> >> >> board code can be found at
+> >> >> >> 
+> >> >> >> http://git.linuxtv.org/pinchartl/media.git/commit/37f505296ccd3fb0
+> >> >> >> 55e 03b 2ab15ccf6ad4befb8d
+> >> >> > 
+> >> >> > I followed your example to add the MT9P031 support, and now I get
+> >> >> > /dev/media0 and /dev/video0 to 7.
+> >> >> > 
+> >> >> > I don't have the actual sensor hooked up yet.
+> >> >> > 
+> >> >> > If I try "media-ctl -p", I see lots of "Failed to open subdev
+> >> >> > device node" msgs.
+> >> >> > http://pastebin.com/F1TC9A1n
+> >> >> > 
+> >> >> > This is with the media-ctl utility from:
+> >> >> > http://feeds.angstrom-distribution.org/feeds/core/ipk/eglibc/armv7a
+> >> >> > /ba se/ media-ctl_0.0.1-r0_armv7a.ipk
+> >> >> > 
+> >> >> > I also tried with the latest from your media-ctl repository, but
+> >> >> > got the same msgs.
+> >> >> > 
+> >> >> > Is this an issue with my 3.0.8 kernel not being compatible with
+> >> >> > current media-ctl utility?  Is there some older commit that I
+> >> >> > should build from?  Or maybe it is just a side effect of the
+> >> >> > sensor not being connected yet.
+> >> >> 
+> >> >> Does your kernel config enable CONFIG_VIDEO_V4L2_SUBDEV_API?
+> >> 
+> >> Yes, it is enabled...  Here is a snippet of my config:
+> >> 
+> >> #
+> >> # Multimedia core support
+> >> #
+> >> CONFIG_MEDIA_CONTROLLER=y
+> >> CONFIG_VIDEO_DEV=y
+> >> CONFIG_VIDEO_V4L2_COMMON=y
+> >> CONFIG_VIDEO_V4L2_SUBDEV_API=y
+> >> CONFIG_DVB_CORE=m
+> >> CONFIG_VIDEO_MEDIA=m
+> >> 
+> >> > And does your system run udev, or have you created the device nodes
+> >> > manually ?
+> >> 
+> >> It runs udev-173... I didn't create the nodes manually.
+> >> 
+> >> I also have the /dev/v4l-subdev0 to 7 entries, as expected.
+> >> 
+> >> Anything else I should check?
+> > 
+> > Could you please send me the output of the following commands ?
+> > 
+> > ls -l /dev/v4l-subdev*
+> > ls -l /sys/dev/char/
+> > 
+> > And, optionally,
+> > 
+> > strace ./media-ctl -p
+> 
+> Hi Laurent,
+> 
+> Your last questions helped me find that sysfs wasn't mounted.  I think
+> this is because meta-Angstrom was using systemd, and I changed it to
+> sysvinit, but must have missed something.
+> 
+> With sysfs mounted, I get the following media-ctl -p output... Does
+> this look as expected?  (The sensor still isn't connected-- it should
+> come in today, so ignore the "Failed to reset the camera" errors.
 
-diff -u -p a/drivers/media/video/vino.c b/drivers/media/video/vino.c
---- a/drivers/media/video/vino.c 2011-11-07 19:37:51.673341747 +0100
-+++ b/drivers/media/video/vino.c 2011-11-08 09:05:04.618617718 +0100
-@@ -708,7 +708,7 @@ static int vino_allocate_buffer(struct v
- 		size, count);
- 
- 	/* allocate memory for table with virtual (page) addresses */
--	fb->desc_table.virtual = (unsigned long *)
-+	fb->desc_table.virtual =
- 		kmalloc(count * sizeof(unsigned long), GFP_KERNEL);
- 	if (!fb->desc_table.virtual)
- 		return -ENOMEM;
+Yes, the media-ctl -p output looks correct.
+
+> root@beagleboard:~# media-ctl -p
+> Opening media device /dev/media0
+> Enumerating entities
+> Found 16 entities
+> Enumerating pads and links
+> Device topology
+> - entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
+>             type V4L2 subdev subtype Unknown
+>             device node name /dev/v4l-subdev0
+> 	pad0: Input [SGRBG10 4096x4096]
+> 		<- 'OMAP3 ISP CCP2 input':pad0 []
+> 	pad1: Output [SGRBG10 4096x4096]
+> 		-> 'OMAP3 ISP CCDC':pad0 []
+> 
+> - entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
+>             type Node subtype V4L
+>             device node name /dev/video0
+> 	pad0: Output
+> 		-> 'OMAP3 ISP CCP2':pad0 []
+> 
+> - entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
+>             type V4L2 subdev subtype Unknown
+>             device node name /dev/v4l-subdev1
+> 	pad0: Input [SGRBG10 4096x4096]
+> 	pad1: Output [SGRBG10 4096x4096]
+> 		-> 'OMAP3 ISP CSI2a output':pad0 []
+> 		-> 'OMAP3 ISP CCDC':pad0 []
+> 
+> - entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
+>             type Node subtype V4L
+>             device node name /dev/video1
+> 	pad0: Input
+> 		<- 'OMAP3 ISP CSI2a':pad1 []
+> 
+> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+>             type V4L2 subdev subtype Unknown
+>             device node name /dev/v4l-subdev2
+> 	pad0: Input [SGRBG10 4096x4096]
+> 		<- 'OMAP3 ISP CCP2':pad1 []
+> 		<- 'OMAP3 ISP CSI2a':pad1 []
+> 		<- 'mt9p031 2-0048':pad0 []
+> 	pad1: Output [SGRBG10 4096x4096]
+> 		-> 'OMAP3 ISP CCDC output':pad0 []
+> 		-> 'OMAP3 ISP resizer':pad0 []
+> 	pad2: Output [SGRBG10 4096x4095]
+> 		-> 'OMAP3 ISP preview':pad0 []
+> 		-> 'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
+> 		-> 'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
+> 		-> 'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
+> 
+> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+>             type Node subtype V4L
+>             device node name /dev/video2
+> 	pad0: Input
+> 		<- 'OMAP3 ISP CCDC':pad1 []
+> 
+> - entity 7: OMAP3 ISP preview (2 pads, 4 links)
+>             type V4L2 subdev subtype Unknown
+>             device node name /dev/v4l-subdev3
+> 	pad0: Input [SGRBG10 4096x4096]
+> 		<- 'OMAP3 ISP CCDC':pad2 []
+> 		<- 'OMAP3 ISP preview input':pad0 []
+> 	pad1: Output [YUYV 4082x4088]
+> 		-> 'OMAP3 ISP preview output':pad0 []
+> 		-> 'OMAP3 ISP resizer':pad0 []
+> 
+> - entity 8: OMAP3 ISP preview input (1 pad, 1 link)
+>             type Node subtype V4L
+>             device node name /dev/video3
+> 	pad0: Output
+> 		-> 'OMAP3 ISP preview':pad0 []
+> 
+> - entity 9: OMAP3 ISP preview output (1 pad, 1 link)
+>             type Node subtype V4L
+>             device node name /dev/video4
+> 	pad0: Input
+> 		<- 'OMAP3 ISP preview':pad1 []
+> 
+> - entity 10: OMAP3 ISP resizer (2 pads, 4 links)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev4
+> 	pad0: Input [YUYV 4095x4095 (4,6)/4086x4082]
+> 		<- 'OMAP3 ISP CCDC':pad1 []
+> 		<- 'OMAP3 ISP preview':pad1 []
+> 		<- 'OMAP3 ISP resizer input':pad0 []
+> 	pad1: Output [YUYV 4096x4095]
+> 		-> 'OMAP3 ISP resizer output':pad0 []
+> 
+> - entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
+>              type Node subtype V4L
+>              device node name /dev/video5
+> 	pad0: Output
+> 		-> 'OMAP3 ISP resizer':pad0 []
+> 
+> - entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
+>              type Node subtype V4L
+>              device node name /dev/video6
+> 	pad0: Input
+> 		<- 'OMAP3 ISP resizer':pad1 []
+> 
+> - entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev5
+> 	pad0: Input
+> 		<- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+> 
+> - entity 14: OMAP3 ISP AF (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev6
+> 	pad0: Input
+> 		<- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+> 
+> - entity 15: OMAP3 ISP histogram (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev7
+> 	pad0: Input
+> 		<- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+> 
+> - entity 16: mt9p031 2-0048 (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev8
+> 	pad0: Output v4l2_subdev_open: Failed to open subdev device node
+> /dev/v4l-subdev8
+> 
+> 		-> 'OMAP3 ISP CCDC':pad0 []
+> 
+> Thanks.
+
+-- 
+Regards,
+
+Laurent Pinchart
