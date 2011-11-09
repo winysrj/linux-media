@@ -1,310 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:37537 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756975Ab1KRQn2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Nov 2011 11:43:28 -0500
-Date: Fri, 18 Nov 2011 17:43:12 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 05/11] mm: page_alloc: introduce alloc_contig_range()
-In-reply-to: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>
-Message-id: <1321634598-16859-6-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+Received: from hermes.mlbassoc.com ([64.234.241.98]:57052 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751479Ab1KIQYc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2011 11:24:32 -0500
+Message-ID: <4EBAA93A.2000806@mlbassoc.com>
+Date: Wed, 09 Nov 2011 09:24:26 -0700
+From: Gary Thomas <gary@mlbassoc.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Javier Martinez Canillas <martinez.javier@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Using MT9P031 digital sensor
+References: <4EB04001.9050803@mlbassoc.com> <201111090154.03796.laurent.pinchart@ideasonboard.com> <4EBA5D8E.30609@mlbassoc.com> <201111091719.03586.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201111091719.03586.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <mina86@mina86.com>
+On 2011-11-09 09:18, Laurent Pinchart wrote:
+> Hi Gary,
+>
+> On Wednesday 09 November 2011 12:01:34 Gary Thomas wrote:
+>> On 2011-11-08 17:54, Laurent Pinchart wrote:
+>>> On Tuesday 08 November 2011 14:38:55 Gary Thomas wrote:
+>>>> On 2011-11-08 06:06, Laurent Pinchart wrote:
+>>>>> On Tuesday 08 November 2011 13:52:25 Gary Thomas wrote:
+>>>>>> On 2011-11-08 05:30, Javier Martinez Canillas wrote:
+>>>>>>> On Tue, Nov 8, 2011 at 1:20 PM, Gary Thomas wrote:
+>>>>>>>> On 2011-11-04 04:37, Laurent Pinchart wrote:
+>>>>>>>>> On Tuesday 01 November 2011 19:52:49 Gary Thomas wrote:
+>>>>>>>>>> I'm trying to use the MT9P031 digital sensor with the Media
+>>>>>>>>>> Controller Framework.  media-ctl tells me that the sensor is set
+>>>>>>>>>> to capture using SGRBG12  2592x1944
+>>>>>>>>>>
+>>>>>>>>>> Questions:
+>>>>>>>>>> * What pixel format in ffmpeg does this correspond to?
+>>>>>>>>>
+>>>>>>>>> I don't know if ffmpeg supports Bayer formats. The corresponding
+>>>>>>>>> fourcc in V4L2 is BA12.
+>>>>>>>>
+>>>>>>>> ffmpeg doesn't seem to support these formats
+>>>>>>>>
+>>>>>>>>> If your sensor is hooked up to the OMAP3 ISP, you can then
+>>>>>>>>> configure the pipeline to include the preview engine and the
+>>>>>>>>> resizer, and capture YUV data
+>>>>>>>>> at the resizer output.
+>>>>>>>>
+>>>>>>>> I am using the OMAP3 ISP, but it's a bit unclear to me how to set up
+>>>>>>>> the pipeline
+>>>>>>>
+>>>>>>> Hi Gary,
+>>>>>>>
+>>>>>>> I'm also using another sensor mtv9034 with OMAP3 ISP, so maybe I can
+>>>>>>> help you.
+>>>>>>>
+>>>>>>>> using media-ctl (I looked for documentation on this tool, but came
+>>>>>>>> up dry - is there any?)
+>>>>>>>>
+>>>>>>>> Do you have an example of how to configure this using the OMAP3 ISP?
+>>>>>>>
+>>>>>>> This is how I configure the pipeline to connect the CCDC with the
+>>>>>>> Previewer and Resizer:
+>>>>>>>
+>>>>>>> ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
+>>>>>>> ./media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>>>>>>> ./media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+>>>>>>> ./media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
+>>>>>>> output":0[1]' ./media-ctl -f '"mt9v032 3-005c":0[SGRBG10 752x480]'
+>>>>>>> ./media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG10 752x480]'
+>>>>>>> ./media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 752x480]'
+>>>>>>> ./media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 752x479]'
+>>>>>>> ./media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 734x471]'
+>>>>>>> ./media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 640x480]'
+>>>>>>>
+>>>>>>> Hope it helps,
+>>>>>>
+>>>>>> Thanks, I'll give this a try.
+>>>>>>
+>>>>>> I assume that your sensor is probably larger than 752x480 (the mt9p031
+>>>>>> is 2592x1944 raw) and that setting the smaller frame size enables some
+>>>>>> scaling and/or cropping in the driver?
+>>>>>
+>>>>> The mt9v034 is a wide VGA 752x480 sensor if I'm not mistaken. You
+>>>>> should modify the resolutions in the above commands according to your
+>>>>> sensor. Note that the CCDC crops online line when outputting data to
+>>>>> the preview engine, and that the preview engine crops 18 columsn and 8
+>>>>> lines. You can then scale the image by modifying the resizer output
+>>>>> size.
+>>>>
+>>>> Thanks.  After much trial and error (and some kernel printks to
+>>>>
+>>>> understand what parameters were failing), I came up with this sequence:
+>>>>      media-ctl -r
+>>>>      media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+>>>>      media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>>>>      media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+>>>>      media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
+>>>>      output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12 2592x1944]'
+>>>>      media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG12 2592x1944]'
+>>>>      media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG12 2592x1944]'
+>>>>      media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG12 2592x1943]'
+>>>>      media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
+>>>>      media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 642x483]'
+>>>>
+>>>> When I tried to grab though, I got this:
+>>>>
+>>>> # yavta --capture=4 -f YUYV -s 642x483 -F /dev/video6
+>>>> Device /dev/video6 opened.
+>>>> Device `OMAP3 ISP resizer output' on `media' is a video capture device.
+>>>> Video format set: YUYV (56595559) 642x483 buffer size 633696
+>>>> Video format: YUYV (56595559) 642x483 buffer size 633696
+>>>> 8 buffers requested.
+>>>> length: 633696 offset: 0
+>>>> Buffer 0 mapped at address 0x4028c000.
+>>>> length: 633696 offset: 634880
+>>>> Buffer 1 mapped at address 0x403d0000.
+>>>> length: 633696 offset: 1269760
+>>>> Buffer 2 mapped at address 0x404b3000.
+>>>> length: 633696 offset: 1904640
+>>>> Buffer 3 mapped at address 0x4062b000.
+>>>> length: 633696 offset: 2539520
+>>>> Buffer 4 mapped at address 0x406d6000.
+>>>> length: 633696 offset: 3174400
+>>>> Buffer 5 mapped at address 0x40821000.
+>>>> length: 633696 offset: 3809280
+>>>> Buffer 6 mapped at address 0x4097c000.
+>>>> length: 633696 offset: 4444160
+>>>> Buffer 7 mapped at address 0x40adf000.
+>>>>
+>>>> Unable to handle kernel NULL pointer dereference at virtual address
+>>>> 00000018
+>>>
+>>> Ouch :-(
+>>>
+>>> Could you please verify that arch/arm/mach-omap2/board-overo.c includes
+>>> the following code, and that CONFIG_OMAP_MUX is enabled ?
+>>
+>> I'm not using an Overo board - rather one of our own internal designs.
+>
+> My bad, sorry.
+>
+>> I have verified that the pull up/down on those pins is disabled.
+>>
+>> The failure is coming from this code in ispccdc.c
+>>     static void ccdc_hs_vs_isr(struct isp_ccdc_device *ccdc)
+>>     {
+>> 	  struct isp_pipeline *pipe =
+>> 		to_isp_pipeline(&ccdc->video_out.video.entity);
+>> The value of pipe is NULL which leads to the failure.
+>>
+>> Questions:
+>> * I assume that getting HS/VS interrupts is correct in this mode?
+>> * Why is the statement not written (as all others are)
+>> 	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
+>>     I tried this change and the kernel doesn't crash.
+>>
+>> I've found that I can get raw frames out of CCDC, but I don't get anything
+>> at all when the output continues through the preview and/or resize nodes.
+>>
+>> Ideas?
+>
+> I'm really puzzled, this should have been caught much earlier :-)
+>
+> Your analysis makes sense. Would you like to submit a patch yourself ? If not
+> I can do it.
 
-This commit adds the alloc_contig_range() function which tries
-to allocate given range of pages.  It tries to migrate all
-already allocated pages that fall in the range thus freeing them.
-Once all pages in the range are freed they are removed from the
-buddy system thus allocated for the caller to use.
+Sure, I can submit a patch.  I would like to figure out why it's
+not working first.
 
-__alloc_contig_migrate_range() borrows some code from KAMEZAWA
-Hiroyuki's __alloc_contig_pages().
+Any ideas how I can debug this?  I can't seem to get anything past the
+CCDC, e.g. into the preview or resize units.  Is there some way to trace
+packets/data through the various stages?  Any ideas what might cause it
+to stall?
 
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- include/linux/page-isolation.h |    3 +
- mm/page_alloc.c                |  223 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 226 insertions(+), 0 deletions(-)
-
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index 051c1b1..d305080 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -33,5 +33,8 @@ test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
- extern int set_migratetype_isolate(struct page *page);
- extern void unset_migratetype_isolate(struct page *page);
- 
-+/* The below functions must be run on a range from a single zone. */
-+int alloc_contig_range(unsigned long start, unsigned long end);
-+void free_contig_range(unsigned long pfn, unsigned nr_pages);
- 
- #endif
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 58d1a2e..b7aac26 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -57,6 +57,7 @@
- #include <linux/ftrace_event.h>
- #include <linux/memcontrol.h>
- #include <linux/prefetch.h>
-+#include <linux/migrate.h>
- 
- #include <asm/tlbflush.h>
- #include <asm/div64.h>
-@@ -5687,6 +5688,228 @@ out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
- }
- 
-+static unsigned long pfn_align_to_maxpage_down(unsigned long pfn)
-+{
-+	return pfn & ~(MAX_ORDER_NR_PAGES - 1);
-+}
-+
-+static unsigned long pfn_align_to_maxpage_up(unsigned long pfn)
-+{
-+	return ALIGN(pfn, MAX_ORDER_NR_PAGES);
-+}
-+
-+static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-+{
-+	/* This function is based on compact_zone() from compaction.c. */
-+
-+	unsigned long pfn = start;
-+	int ret = -EBUSY;
-+	unsigned tries = 0;
-+
-+	struct compact_control cc = {
-+		.nr_migratepages = 0,
-+		.nr_freepages = 0,
-+		.order = -1,
-+		.zone = page_zone(pfn_to_page(start)),
-+		.sync = true,
-+		.migrate_pfn = 0,
-+	};
-+	INIT_LIST_HEAD(&cc.freepages);
-+	INIT_LIST_HEAD(&cc.migratepages);
-+
-+	/*
-+	 * Compaction code uses two pointers, a "migrate_pfn" and
-+	 * "free_pfn".  The first one goes from the beginning, and the
-+	 * second one from the end of the zone.  Once they meet,
-+	 * compaction stops.
-+	 *
-+	 * This is good behaviour if you want to migrate all pages to
-+	 * the end of the zone put that's not what we want.  We want
-+	 * to migrate pages from [start, end) *anywhere* inside the
-+	 * zone.  To do that, we set "migrate_pfn" to the beginning of
-+	 * the zone and never touch it again so compaction will finish
-+	 * only when the "free_pfn" pointer reaches beginning of the
-+	 * zone.
-+	 */
-+
-+	cc.migrate_pfn = cc.zone->zone_start_pfn;
-+	cc.free_pfn = cc.migrate_pfn + cc.zone->spanned_pages;
-+	cc.free_pfn &= ~(pageblock_nr_pages-1);
-+
-+	migrate_prep_local();
-+
-+	while (pfn < end || cc.nr_migratepages) {
-+		/* Abort on signal */
-+		if (fatal_signal_pending(current)) {
-+			ret = -EINTR;
-+			goto done;
-+		}
-+
-+		/* Are there any pages left? */
-+		if (cc.nr_freepages && cc.free_pfn <= cc.migrate_pfn) {
-+			/* We've run out of pages to migrate to. */
-+			ret = -EBUSY;
-+			goto done;
-+		}
-+
-+		/* Get some pages to migrate. */
-+		if (list_empty(&cc.migratepages)) {
-+			cc.nr_migratepages = 0;
-+			pfn = isolate_migratepages_range(cc.zone, &cc,
-+							 pfn, end);
-+			if (!pfn) {
-+				ret = -EINTR;
-+				goto done;
-+			}
-+			tries = 0;
-+		}
-+
-+		/* Try to migrate. */
-+		ret = migrate_pages(&cc.migratepages, compaction_alloc,
-+				    (unsigned long)&cc, false, cc.sync);
-+
-+		/* Migrated all of them? Great! */
-+		if (list_empty(&cc.migratepages))
-+			continue;
-+
-+		/* Try five times. */
-+		if (++tries == 5) {
-+			ret = ret < 0 ? ret : -EBUSY;
-+			goto done;
-+		}
-+
-+		/* Before each time drain everything and reschedule. */
-+		lru_add_drain_all();
-+		drain_all_pages();
-+		cond_resched();
-+	}
-+	ret = 0;
-+
-+done:
-+	/* Make sure all pages are isolated. */
-+	if (!ret) {
-+		lru_add_drain_all();
-+		drain_all_pages();
-+		if (WARN_ON(test_pages_isolated(start, end)))
-+			ret = -EBUSY;
-+	}
-+
-+	/* Release pages */
-+	putback_lru_pages(&cc.migratepages);
-+	cc.nr_freepages -= release_freepages(&cc.freepages);
-+	VM_BUG_ON(cc.nr_freepages != 0);
-+
-+	return ret;
-+}
-+
-+/**
-+ * alloc_contig_range() -- tries to allocate given range of pages
-+ * @start:	start PFN to allocate
-+ * @end:	one-past-the-last PFN to allocate
-+ *
-+ * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
-+ * aligned, hovewer it's callers responsibility to guarantee that we
-+ * are the only thread that changes migrate type of pageblocks the
-+ * pages fall in.
-+ *
-+ * Returns zero on success or negative error code.  On success all
-+ * pages which PFN is in (start, end) are allocated for the caller and
-+ * need to be freed with free_contig_range().
-+ */
-+int alloc_contig_range(unsigned long start, unsigned long end)
-+{
-+	unsigned long outer_start, outer_end;
-+	int ret;
-+
-+	/*
-+	 * What we do here is we mark all pageblocks in range as
-+	 * MIGRATE_ISOLATE.  Because of the way page allocator work, we
-+	 * align the range to MAX_ORDER pages so that page allocator
-+	 * won't try to merge buddies from different pageblocks and
-+	 * change MIGRATE_ISOLATE to some other migration type.
-+	 *
-+	 * Once the pageblocks are marked as MIGRATE_ISOLATE, we
-+	 * migrate the pages from an unaligned range (ie. pages that
-+	 * we are interested in).  This will put all the pages in
-+	 * range back to page allocator as MIGRATE_ISOLATE.
-+	 *
-+	 * When this is done, we take the pages in range from page
-+	 * allocator removing them from the buddy system.  This way
-+	 * page allocator will never consider using them.
-+	 *
-+	 * This lets us mark the pageblocks back as
-+	 * MIGRATE_CMA/MIGRATE_MOVABLE so that free pages in the
-+	 * MAX_ORDER aligned range but not in the unaligned, original
-+	 * range are put back to page allocator so that buddy can use
-+	 * them.
-+	 */
-+
-+	ret = start_isolate_page_range(pfn_align_to_maxpage_down(start),
-+				       pfn_align_to_maxpage_up(end));
-+	if (ret)
-+		goto done;
-+
-+	ret = __alloc_contig_migrate_range(start, end);
-+	if (ret)
-+		goto done;
-+
-+	/*
-+	 * Pages from [start, end) are within a MAX_ORDER_NR_PAGES
-+	 * aligned blocks that are marked as MIGRATE_ISOLATE.  What's
-+	 * more, all pages in [start, end) are free in page allocator.
-+	 * What we are going to do is to allocate all pages from
-+	 * [start, end) (that is remove them from page allocater).
-+	 *
-+	 * The only problem is that pages at the beginning and at the
-+	 * end of interesting range may be not aligned with pages that
-+	 * page allocator holds, ie. they can be part of higher order
-+	 * pages.  Because of this, we reserve the bigger range and
-+	 * once this is done free the pages we are not interested in.
-+	 */
-+
-+	ret = 0;
-+	while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
-+		if (WARN_ON(++ret >= MAX_ORDER)) {
-+			ret = -EINVAL;
-+			goto done;
-+		}
-+
-+	outer_start = start & (~0UL << ret);
-+	outer_end = isolate_freepages_range(page_zone(pfn_to_page(outer_start)),
-+					    outer_start, end, NULL);
-+	if (!outer_end) {
-+		ret = -EBUSY;
-+		goto done;
-+	}
-+	outer_end += outer_start;
-+
-+	/* Free head and tail (if any) */
-+	if (start != outer_start)
-+		free_contig_range(outer_start, start - outer_start);
-+	if (end != outer_end)
-+		free_contig_range(end, outer_end - end);
-+
-+	ret = 0;
-+done:
-+	undo_isolate_page_range(pfn_align_to_maxpage_down(start),
-+				pfn_align_to_maxpage_up(end));
-+	return ret;
-+}
-+
-+void free_contig_range(unsigned long pfn, unsigned nr_pages)
-+{
-+	struct page *page = pfn_to_page(pfn);
-+
-+	while (nr_pages--) {
-+		__free_page(page);
-+		++pfn;
-+		if (likely(zone_pfn_same_memmap(pfn - 1, pfn)))
-+			++page;
-+		else
-+			page = pfn_to_page(pfn);
-+	}
-+}
-+
- #ifdef CONFIG_MEMORY_HOTREMOVE
- /*
-  * All pages in the range must be isolated before calling this.
 -- 
-1.7.1.569.g6f426
-
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
