@@ -1,67 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:64697 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750949Ab1KMMET (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Nov 2011 07:04:19 -0500
-Received: by wyh15 with SMTP id 15so5081350wyh.19
-        for <linux-media@vger.kernel.org>; Sun, 13 Nov 2011 04:04:18 -0800 (PST)
-Message-ID: <4ebfb241.8366b40a.1a27.7902@mx.google.com>
-Subject: Re: [PATCH 2/7] af9015 Remove call to get config from probe.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Date: Sun, 13 Nov 2011 12:04:11 +0000
-In-Reply-To: <4EBECAA4.1050400@iki.fi>
-References: <4ebe96dc.d467e30a.389b.ffff8e28@mx.google.com>
-	 <4EBE9C3C.4070201@iki.fi> <4ebeb95d.e813b40a.37be.5102@mx.google.com>
-	 <4EBECAA4.1050400@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail.kapsi.fi ([217.30.184.167]:42260 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750783Ab1KIPvt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Nov 2011 10:51:49 -0500
+Message-ID: <4EBAA190.30305@iki.fi>
+Date: Wed, 09 Nov 2011 17:51:44 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Jean Delvare <khali@linux-fr.org>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: Re: [RFC 1/2] dvb-core: add generic helper function for I2C register
+References: <4EB9C13A.2060707@iki.fi>	<4EBA4E3D.80105@redhat.com> <20111109113740.4b345130@endymion.delvare>
+In-Reply-To: <20111109113740.4b345130@endymion.delvare>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2011-11-12 at 21:36 +0200, Antti Palosaari wrote:
-> On 11/12/2011 08:22 PM, Malcolm Priestley wrote:
-> > On Sat, 2011-11-12 at 18:18 +0200, Antti Palosaari wrote:
-> >> On 11/12/2011 05:55 PM, Malcolm Priestley wrote:
-> >>> Remove get config from probe and move to identify_state.
-> >>>
-> >>> intf->cur_altsetting->desc.bInterfaceNumber is always expected to be zero, so there
-> >>> no point in checking for it.
-> >>
-> >> Are you sure? IIRC there is HID remote on interface 1 or 2 or so (some
-> >> other than 0). Please double check.
-> >>
-> >>> Calling from probe seems to cause a race condition with some USB controllers.
-> >>
-> >> Why?
-> >>
-> > Is some other module going to claim the device?
-> >
-> > Would it not be better use usb_set_interface to set it back to 0?
-> >
+Hello,
+I compared all I2C-client drivers I have done and here are the results:
+name = name of driver module
+reg = reg addr len (bytes)
+val = reg val len (bytes)
+auto = auto increment
+other = register banks, etc.
 
-I spoke too soon, there is someone else about.
+name       reg  val auto   other
+qt1010       1    1    ?
+af9013       2    1    Y
+ec100        1    1    ?
+tda18218     1    1    Y
+tua9001      1    2    ?
+tda18212     1    1    Y
+cxd2820r     1    1    ?   bank
+tda10071     1    1    Y
+a8293        not relevant, only one control byte
+rtl2830      1    1    Y   bank
+rtl2832      1    1    Y   bank
+af9033       3*   1    Y   *bank/mailbox
+<noname>     2    1    Y
 
-On boot input claims interface 1
+As we can see I2C msg structure where is address first ans after that 
+payload is quite de Facto. There was only one driver which didn't meet 
+that condition, it is LNB-controller which uses only one byte.
 
-Nov 13 11:43:36 tvbox kernel: [    1.830276] input: Afatech DVB-T 2 as /devices/pci0000:00/0000:00:06.1/usb2/2-4/2-4:1.1/input/input2
-Nov 13 11:43:36 tvbox kernel: [    1.830367] generic-usb 0003:1B80:E399.0001: input,hidraw0: USB HID v1.01 Keyboard [Afatech DVB-T 2] on usb-0000:00:06.1-4/input1
-...
-Nov 13 11:43:38 tvbox kernel: [   19.151700] dvb-usb: found a 'KWorld PlusTV Dual DVB-T Stick (DVB-T 399U)' in cold state, will try to load a firmware
-...
-Nov 13 11:43:39 tvbox kernel: [   20.313483] input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:06.1/usb2/2-4/rc/rc0/input8
-Nov 13 11:43:39 tvbox kernel: [   20.313528] rc0: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:06.1/usb2/2-4/rc/rc0
-Nov 13 11:43:39 tvbox kernel: [   20.313530] dvb-usb: schedule remote query interval to 500 msecs.
-Nov 13 11:43:39 tvbox kernel: [   20.313534] dvb-usb: KWorld PlusTV Dual DVB-T Stick (DVB-T 399U) successfully initialized and connected.
+tda10071 driver has most typical register read and write routines and 
+size of those are 70 LOC, including rd_reg, rd_regs, wr_reg, wr_regs, 
+excluding bit based register functions.
+12 drivers, ca. 70 LOC per driver makes 840 LOC of less code. And you 
+can save even more if generalize bit register access functions too 
+(commonly: wr_reg_mask, rd_reg_mask, wr_reg_bits, rd_reg_bits).
 
-So, a usb_set_interface is needed to make sure we on interface 0 and remain there.
+More comments below.
 
-Regards
+On 11/09/2011 12:37 PM, Jean Delvare wrote:
+> If code is duplicated, then something should indeed be done about it.
+> But preferably after analyzing properly what the helper functions
+> should look like, and for this you'll have to look at "all" drivers
+> that could benefit from it. At the moment only the tda18218 driver was
+> reported to need it, that's not enough to generalize.
+>
+> You should take a look at drivers/misc/eeprom/at24.c, it contains
+> fairly complete transfer functions which cover the various EEPROM
+> types. Non-EEPROM devices could behave differently, but this would
+> still seem to be a good start for any I2C device using block transfers.
+> It was once proposed that these functions could make their way into
+> i2c-core or a generic i2c helper function.
+>
+> Both at24 and Antti's proposal share the idea of storing information
+> about the device capabilities (max block read and write lengths, but we
+> could also put there alignment requirements or support for repeated
+> start condition.) in a private structure. If we generalize the
+> functions then this information would have to be stored in struct
+> i2c_client and possibly struct i2c_adapter (or struct i2c_algorithm) so
+> that the function can automatically find out the right sequence of
+> commands for the adapter/slave combination.
+>
+> Speaking of struct i2c_client, I seem to remember that the dvb
+> subsystem doesn't use it much at the moment. This might be an issue if
+> you intend to get the generic code into i2c-core, as most helper
+> functions rely on a valid i2c_client structure by design.
+
+As we have now some kind of understanding what is needed, could you 
+start direct planning? I am ready to implement some basic stuff that I 
+see most benefit (listed below).
+
+The functions I see most important are:
+wr_regs
+rd_regs
+wr_reg
+rg_reg
+wr_reg_mask
+wr_reg_bits
+rd_reg_bits
 
 
-Malcolm
-
-
+regards
+Antti
+-- 
+http://palosaari.fi/
