@@ -1,44 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42388 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754733Ab1K0FcV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Nov 2011 00:32:21 -0500
-From: Cong Wang <amwang@redhat.com>
-To: linux-kernel@vger.kernel.org
-Cc: akpm@linux-foundation.org, Cong Wang <amwang@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-Subject: [PATCH 18/62] media: remove the second argument of k[un]map_atomic()
-Date: Sun, 27 Nov 2011 13:26:58 +0800
-Message-Id: <1322371662-26166-19-git-send-email-amwang@redhat.com>
-In-Reply-To: <1322371662-26166-1-git-send-email-amwang@redhat.com>
-References: <1322371662-26166-1-git-send-email-amwang@redhat.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:48663 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934701Ab1KJOSj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Nov 2011 09:18:39 -0500
+Received: by wyh15 with SMTP id 15so2733434wyh.19
+        for <linux-media@vger.kernel.org>; Thu, 10 Nov 2011 06:18:38 -0800 (PST)
+MIME-Version: 1.0
+Date: Thu, 10 Nov 2011 19:48:38 +0530
+Message-ID: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com>
+Subject: PATCH: Query DVB frontend capabilities
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: multipart/mixed; boundary=0015177fd030a71e3d04b16214cb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+--0015177fd030a71e3d04b16214cb
+Content-Type: text/plain; charset=ISO-8859-1
 
-Signed-off-by: Cong Wang <amwang@redhat.com>
----
- drivers/media/video/ivtv/ivtv-udma.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Hi,
 
-diff --git a/drivers/media/video/ivtv/ivtv-udma.c b/drivers/media/video/ivtv/ivtv-udma.c
-index 69cc816..7338cb2 100644
---- a/drivers/media/video/ivtv/ivtv-udma.c
-+++ b/drivers/media/video/ivtv/ivtv-udma.c
-@@ -57,9 +57,9 @@ int ivtv_udma_fill_sg_list (struct ivtv_user_dma *dma, struct ivtv_dma_page_info
- 			if (dma->bouncemap[map_offset] == NULL)
- 				return -1;
- 			local_irq_save(flags);
--			src = kmap_atomic(dma->map[map_offset], KM_BOUNCE_READ) + offset;
-+			src = kmap_atomic(dma->map[map_offset]) + offset;
- 			memcpy(page_address(dma->bouncemap[map_offset]) + offset, src, len);
--			kunmap_atomic(src, KM_BOUNCE_READ);
-+			kunmap_atomic(src);
- 			local_irq_restore(flags);
- 			sg_set_page(&dma->SGlist[map_offset], dma->bouncemap[map_offset], len, offset);
- 		}
--- 
-1.7.4.4
+Currently, for a multi standard frontend it is assumed that it just
+has a single standard capability. This is fine in some cases, but
+makes things hard when there are incompatible standards in conjuction.
+Eg: DVB-S can be seen as a subset of DVB-S2, but the same doesn't hold
+the same for DSS. This is not specific to any driver as it is, but a
+generic issue. This was handled correctly in the multiproto tree,
+while such functionality is missing from the v5 API update.
 
+http://www.linuxtv.org/pipermail/vdr/2008-November/018417.html
+
+Later on a FE_CAN_2G_MODULATION was added as a hack to workaround this
+issue in the v5 API, but that hack is incapable of addressing the
+issue, as it can be used to simply distinguish between DVB-S and
+DVB-S2 alone, or another x vs X2 modulation. If there are more
+systems, then you have a potential issue.
+
+In addition to the patch, for illustrative purposes the stb0899 driver
+is depicted providing the said capability information.
+
+An application needs to query the device capabilities before
+requesting an operation from the device.
+
+If people don't have any objections, Probably other drivers can be
+adapted similarly. In fact the change is quite simple.
+
+Comments ?
+
+Regards,
+Manu
+
+--0015177fd030a71e3d04b16214cb
+Content-Type: text/x-patch; charset=US-ASCII; name="query_frontend_capabilities.diff"
+Content-Disposition: attachment; filename="query_frontend_capabilities.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
+
+ZGlmZiAtciBiNmViMDQ3MThhYTkgbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZi
+X2Zyb250ZW5kLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2Zy
+b250ZW5kLmMJV2VkIE5vdiAwOSAxOTo1MjozNiAyMDExICswNTMwCisrKyBiL2xpbnV4L2RyaXZl
+cnMvbWVkaWEvZHZiL2R2Yi1jb3JlL2R2Yl9mcm9udGVuZC5jCVRodSBOb3YgMTAgMTM6NTE6MzUg
+MjAxMSArMDUzMApAQCAtOTczLDYgKzk3Myw4IEBACiAJX0RUVl9DTUQoRFRWX0dVQVJEX0lOVEVS
+VkFMLCAwLCAwKSwKIAlfRFRWX0NNRChEVFZfVFJBTlNNSVNTSU9OX01PREUsIDAsIDApLAogCV9E
+VFZfQ01EKERUVl9ISUVSQVJDSFksIDAsIDApLAorCisJX0RUVl9DTUQoRFRWX0RFTElWRVJZX0NB
+UFMsIDAsIDApLAogfTsKIAogc3RhdGljIHZvaWQgZHR2X3Byb3BlcnR5X2R1bXAoc3RydWN0IGR0
+dl9wcm9wZXJ0eSAqdHZwKQpAQCAtMTIyNiw3ICsxMjI4LDE4IEBACiAJCWMgPSAmY2RldGVjdGVk
+OwogCX0KIAorCWRwcmludGsoIiVzXG4iLCBfX2Z1bmNfXyk7CisKIAlzd2l0Y2godHZwLT5jbWQp
+IHsKKwljYXNlIERUVl9ERUxJVkVSWV9DQVBTOgorCQlpZiAoZmUtPm9wcy5kZWxpdmVyeV9jYXBz
+KSB7CisJCQlyID0gZmUtPm9wcy5kZWxpdmVyeV9jYXBzKGZlLCB0dnApOworCQkJaWYgKHIgPCAw
+KQorCQkJCXJldHVybiByOworCQkJZWxzZQorCQkJCWdvdG8gZG9uZTsKKwkJfQorCQlicmVhazsK
+IAljYXNlIERUVl9GUkVRVUVOQ1k6CiAJCXR2cC0+dS5kYXRhID0gYy0+ZnJlcXVlbmN5OwogCQli
+cmVhazsKQEAgLTEzNTAsNyArMTM2Myw3IEBACiAJCWlmIChyIDwgMCkKIAkJCXJldHVybiByOwog
+CX0KLQorZG9uZToKIAlkdHZfcHJvcGVydHlfZHVtcCh0dnApOwogCiAJcmV0dXJuIDA7CmRpZmYg
+LXIgYjZlYjA0NzE4YWE5IGxpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi1jb3JlL2R2Yl9mcm9u
+dGVuZC5oCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi1jb3JlL2R2Yl9mcm9udGVu
+ZC5oCVdlZCBOb3YgMDkgMTk6NTI6MzYgMjAxMSArMDUzMAorKysgYi9saW51eC9kcml2ZXJzL21l
+ZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQuaAlUaHUgTm92IDEwIDEzOjUxOjM1IDIwMTEg
+KzA1MzAKQEAgLTMwNSw2ICszMDUsOCBAQAogCiAJaW50ICgqc2V0X3Byb3BlcnR5KShzdHJ1Y3Qg
+ZHZiX2Zyb250ZW5kKiBmZSwgc3RydWN0IGR0dl9wcm9wZXJ0eSogdHZwKTsKIAlpbnQgKCpnZXRf
+cHJvcGVydHkpKHN0cnVjdCBkdmJfZnJvbnRlbmQqIGZlLCBzdHJ1Y3QgZHR2X3Byb3BlcnR5KiB0
+dnApOworCisJaW50ICgqZGVsaXZlcnlfY2Fwcykoc3RydWN0IGR2Yl9mcm9udGVuZCAqZmUsIHN0
+cnVjdCBkdHZfcHJvcGVydHkgKnR2cCk7CiB9OwogCiAjZGVmaW5lIE1BWF9FVkVOVCA4CkBAIC0z
+NjIsNiArMzY0LDggQEAKIAogCS8qIERWQi1UMiBzcGVjaWZpY3MgKi8KIAl1MzIgICAgICAgICAg
+ICAgICAgICAgICBkdmJ0Ml9wbHBfaWQ7CisKKwlmZV9kZWxpdmVyeV9zeXN0ZW1fdAlkZWxpdmVy
+eV9jYXBzWzMyXTsKIH07CiAKIHN0cnVjdCBkdmJfZnJvbnRlbmQgewpkaWZmIC1yIGI2ZWIwNDcx
+OGFhOSBsaW51eC9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvc3RiMDg5OV9kcnYuYwotLS0g
+YS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvc3RiMDg5OV9kcnYuYwlXZWQgTm92
+IDA5IDE5OjUyOjM2IDIwMTEgKzA1MzAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZnJv
+bnRlbmRzL3N0YjA4OTlfZHJ2LmMJVGh1IE5vdiAxMCAxMzo1MTozNSAyMDExICswNTMwCkBAIC0x
+NjA1LDYgKzE2MDUsMTkgQEAKIAlyZXR1cm4gRFZCRkVfQUxHT19DVVNUT007CiB9CiAKK3N0YXRp
+YyBpbnQgc3RiMDg5OV9kZWxpdmVyeV9jYXBzKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCBzdHJ1
+Y3QgZHR2X3Byb3BlcnR5ICpjYXBzKQoreworCXN0cnVjdCBzdGIwODk5X3N0YXRlICpzdGF0ZQkJ
+PSBmZS0+ZGVtb2R1bGF0b3JfcHJpdjsKKworCWRwcmludGsoc3RhdGUtPnZlcmJvc2UsIEZFX0RF
+QlVHLCAxLCAiR2V0IGNhcHMiKTsKKwljYXBzLT51LmJ1ZmZlci5kYXRhWzBdID0gU1lTX0RTUzsK
+KwljYXBzLT51LmJ1ZmZlci5kYXRhWzFdID0gU1lTX0RWQlM7CisJY2Fwcy0+dS5idWZmZXIuZGF0
+YVsyXSA9IFNZU19EVkJTMjsKKwljYXBzLT51LmJ1ZmZlci5sZW4gPSAzOworCisJcmV0dXJuIDA7
+Cit9CisKIHN0YXRpYyBzdHJ1Y3QgZHZiX2Zyb250ZW5kX29wcyBzdGIwODk5X29wcyA9IHsKIAog
+CS5pbmZvID0gewpAQCAtMTY0Nyw2ICsxNjYwLDggQEAKIAkuZGlzZXFjX3NlbmRfbWFzdGVyX2Nt
+ZAkJPSBzdGIwODk5X3NlbmRfZGlzZXFjX21zZywKIAkuZGlzZXFjX3JlY3Zfc2xhdmVfcmVwbHkJ
+PSBzdGIwODk5X3JlY3Zfc2xhdmVfcmVwbHksCiAJLmRpc2VxY19zZW5kX2J1cnN0CQk9IHN0YjA4
+OTlfc2VuZF9kaXNlcWNfYnVyc3QsCisKKwkuZGVsaXZlcnlfY2FwcwkJCT0gc3RiMDg5OV9kZWxp
+dmVyeV9jYXBzLAogfTsKIAogc3RydWN0IGR2Yl9mcm9udGVuZCAqc3RiMDg5OV9hdHRhY2goc3Ry
+dWN0IHN0YjA4OTlfY29uZmlnICpjb25maWcsIHN0cnVjdCBpMmNfYWRhcHRlciAqaTJjKQpkaWZm
+IC1yIGI2ZWIwNDcxOGFhOSBsaW51eC9pbmNsdWRlL2xpbnV4L2R2Yi9mcm9udGVuZC5oCi0tLSBh
+L2xpbnV4L2luY2x1ZGUvbGludXgvZHZiL2Zyb250ZW5kLmgJV2VkIE5vdiAwOSAxOTo1MjozNiAy
+MDExICswNTMwCisrKyBiL2xpbnV4L2luY2x1ZGUvbGludXgvZHZiL2Zyb250ZW5kLmgJVGh1IE5v
+diAxMCAxMzo1MTozNSAyMDExICswNTMwCkBAIC0zMTYsNyArMzE2LDkgQEAKIAogI2RlZmluZSBE
+VFZfRFZCVDJfUExQX0lECTQzCiAKLSNkZWZpbmUgRFRWX01BWF9DT01NQU5ECQkJCURUVl9EVkJU
+Ml9QTFBfSUQKKyNkZWZpbmUgRFRWX0RFTElWRVJZX0NBUFMJNDQKKworI2RlZmluZSBEVFZfTUFY
+X0NPTU1BTkQJCQkJRFRWX0RFTElWRVJZX0NBUFMKIAogdHlwZWRlZiBlbnVtIGZlX3BpbG90IHsK
+IAlQSUxPVF9PTiwK
+--0015177fd030a71e3d04b16214cb--
