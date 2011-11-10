@@ -1,95 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56164 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751478Ab1KHMmU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 07:42:20 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: whittenburg@gmail.com
-Subject: Re: media0 not showing up on beagleboard-xm
-Date: Tue, 8 Nov 2011 13:42:17 +0100
-Cc: Gary Thomas <gary@mlbassoc.com>, linux-media@vger.kernel.org
-References: <CABcw_OkE=ANKDCVRRxgj33Mt=b3KAtGpe3RMnL3h0UMgOQ0ZdQ@mail.gmail.com> <201111071214.36935.laurent.pinchart@ideasonboard.com> <CABcw_Omoj2VkiksKEs1tV_9vB6ZVtTvUJ2GK0beY5JjFSBgd_g@mail.gmail.com>
-In-Reply-To: <CABcw_Omoj2VkiksKEs1tV_9vB6ZVtTvUJ2GK0beY5JjFSBgd_g@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111081342.19494.laurent.pinchart@ideasonboard.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:54266 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932741Ab1KJXfj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Nov 2011 18:35:39 -0500
+Received: by mail-iy0-f174.google.com with SMTP id e36so3520899iag.19
+        for <linux-media@vger.kernel.org>; Thu, 10 Nov 2011 15:35:39 -0800 (PST)
+From: Patrick Dickey <pdickeybeta@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Patrick Dickey <pdickeybeta@gmail.com>
+Subject: [PATCH 20/25] added drxj_options header for pctv80e support
+Date: Thu, 10 Nov 2011 17:31:40 -0600
+Message-Id: <1320967905-7932-21-git-send-email-pdickeybeta@gmail.com>
+In-Reply-To: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
+References: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Chris,
+---
+ drivers/media/dvb/frontends/drxj_options.h |   65 ++++++++++++++++++++++++++++
+ 1 files changed, 65 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/dvb/frontends/drxj_options.h
 
-On Tuesday 08 November 2011 03:03:43 Chris Whittenburg wrote:
-> On Mon, Nov 7, 2011 at 5:14 AM, Laurent Pinchart wrote:
-> > On Monday 07 November 2011 12:08:15 Gary Thomas wrote:
-> >> On 2011-11-06 15:26, Chris Whittenburg wrote:
-> >> > On Fri, Nov 4, 2011 at 6:49 AM, Laurent Pinchart wrote:
-> >> >> On Tuesday 25 October 2011 04:48:13 Chris Whittenburg wrote:
-> >> >>> I'm using oe-core to build the 3.0.7+ kernel, which runs fine on my
-> >> >>> beagleboard-xm.
-> >> >> 
-> >> >> You will need board code to register the OMAP3 ISP platform device
-> >> >> that will then be picked by the OMAP3 ISP driver. Example of such
-> >> >> board code can be found at
-> >> >> 
-> >> >> http://git.linuxtv.org/pinchartl/media.git/commit/37f505296ccd3fb055e
-> >> >> 03b 2ab15ccf6ad4befb8d
-> >> > 
-> >> > I followed your example to add the MT9P031 support, and now I get
-> >> > /dev/media0 and /dev/video0 to 7.
-> >> > 
-> >> > I don't have the actual sensor hooked up yet.
-> >> > 
-> >> > If I try "media-ctl -p", I see lots of "Failed to open subdev device
-> >> > node" msgs.
-> >> > http://pastebin.com/F1TC9A1n
-> >> > 
-> >> > This is with the media-ctl utility from:
-> >> > http://feeds.angstrom-distribution.org/feeds/core/ipk/eglibc/armv7a/ba
-> >> > se/ media-ctl_0.0.1-r0_armv7a.ipk
-> >> > 
-> >> > I also tried with the latest from your media-ctl repository, but got
-> >> > the same msgs.
-> >> > 
-> >> > Is this an issue with my 3.0.8 kernel not being compatible with
-> >> > current media-ctl utility?  Is there some older commit that I should
-> >> > build from?  Or maybe it is just a side effect of the sensor not being
-> >> > connected yet.
-> >> 
-> >> Does your kernel config enable CONFIG_VIDEO_V4L2_SUBDEV_API?
-> 
-> Yes, it is enabled...  Here is a snippet of my config:
-> 
-> #
-> # Multimedia core support
-> #
-> CONFIG_MEDIA_CONTROLLER=y
-> CONFIG_VIDEO_DEV=y
-> CONFIG_VIDEO_V4L2_COMMON=y
-> CONFIG_VIDEO_V4L2_SUBDEV_API=y
-> CONFIG_DVB_CORE=m
-> CONFIG_VIDEO_MEDIA=m
-> 
-> > And does your system run udev, or have you created the device nodes
-> > manually ?
-> 
-> It runs udev-173... I didn't create the nodes manually.
-> 
-> I also have the /dev/v4l-subdev0 to 7 entries, as expected.
-> 
-> Anything else I should check?
-
-Could you please send me the output of the following commands ?
-
-ls -l /dev/v4l-subdev*
-ls -l /sys/dev/char/
-
-And, optionally,
-
-strace ./media-ctl -p
-
+diff --git a/drivers/media/dvb/frontends/drxj_options.h b/drivers/media/dvb/frontends/drxj_options.h
+new file mode 100644
+index 0000000..962bd61
+--- /dev/null
++++ b/drivers/media/dvb/frontends/drxj_options.h
+@@ -0,0 +1,65 @@
++/*
++  Copyright (c), 2004-2005,2007-2010 Trident Microsystems, Inc.
++  All rights reserved.
++
++  Redistribution and use in source and binary forms, with or without
++  modification, are permitted provided that the following conditions are met:
++
++  * Redistributions of source code must retain the above copyright notice,
++    this list of conditions and the following disclaimer.
++  * Redistributions in binary form must reproduce the above copyright notice,
++    this list of conditions and the following disclaimer in the documentation
++	and/or other materials provided with the distribution.
++  * Neither the name of Trident Microsystems nor Hauppauge Computer Works
++    nor the names of its contributors may be used to endorse or promote
++	products derived from this software without specific prior written
++	permission.
++
++  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++  POSSIBILITY OF SUCH DAMAGE.
++*/
++
++/**
++* \file $Id: drxj_options.h,v 1.5 2009/10/05 21:32:49 dingtao Exp $
++*
++* \brief DRXJ optional settings
++*
++* \author Tao Ding
++*/
++
++/* Note: Please add preprocessor DRXJ_OPTIONS_H for drxj.c to include this file */
++#ifndef __DRXJ_OPTIONS_H__
++#define __DRXJ_OPTIONS_H__
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++/* #define DRXJ_DIGITAL_ONLY     */
++/* #define DRXJ_VSB_ONLY         */
++/* #define DRXJ_SIGNAL_ACCUM_ERR */
++/* #define MPEG_SERIAL_OUTPUT_PIN_DRIVE_STRENGTH   0x03  */
++/* #define MPEG_PARALLEL_OUTPUT_PIN_DRIVE_STRENGTH 0x04  */
++/* #define MPEG_OUTPUT_CLK_DRIVE_STRENGTH    0x05  */
++/* #define OOB_CRX_DRIVE_STRENGTH            0x04  */
++/* #define OOB_DRX_DRIVE_STRENGTH            0x05  */
++/* #define DRXJ_QAM_MAX_WAITTIME             1000  */
++/* #define DRXJ_QAM_FEC_LOCK_WAITTIME        200   */
++/* #define DRXJ_QAM_DEMOD_LOCK_EXT_WAITTIME  250   */
++
++/*-------------------------------------------------------------------------
++THE END
++-------------------------------------------------------------------------*/
++#ifdef __cplusplus
++}
++#endif
++#endif /* __DRXJ_OPTIONS_H__ */
 -- 
-Regards,
+1.7.5.4
 
-Laurent Pinchart
