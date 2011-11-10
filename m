@@ -1,158 +1,746 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:37814 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751154Ab1KLSyq convert rfc822-to-8bit (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:20165 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932423Ab1KJLxv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Nov 2011 13:54:46 -0500
-Received: by wyh15 with SMTP id 15so4769277wyh.19
-        for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 10:54:45 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAL9G6WVfx3_0c1=uGoa5OB+0K8LretrGjAnB6EsGvF4kHApCCw@mail.gmail.com>
-References: <CAL9G6WVfx3_0c1=uGoa5OB+0K8LretrGjAnB6EsGvF4kHApCCw@mail.gmail.com>
-Date: Sat, 12 Nov 2011 19:54:45 +0100
-Message-ID: <CAL9G6WXuWVMixD2pHChW_UE+wN5XpyLQnLXHjiZsr=wt4J5PBQ@mail.gmail.com>
-Subject: Re: Hauppauge WinTV-Duet HD i2c problems
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Thu, 10 Nov 2011 06:53:51 -0500
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LUG004EM11JPR@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 Nov 2011 11:53:43 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LUG00KRO11ICO@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 Nov 2011 11:53:43 +0000 (GMT)
+Date: Thu, 10 Nov 2011 12:53:33 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 3/5] doc: v4l: add documentation for selection API
+In-reply-to: <1320926015-5841-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	mchehab@redhat.com
+Message-id: <1320926015-5841-4-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1320926015-5841-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/11/11 Josu Lazkano <josu.lazkano@gmail.com>:
-> Hello list, I just buy a Hauppauge WinTV-Duet HD DVB USB stick. I
-> added on my laptop and it works great.
->
-> The problem is on my Nvidia ION board PC, when I add the stick I get this:
->
-> [ 3852.016040] usb 1-2: new high speed USB device using ehci_hcd and address 2
-> [ 3852.149612] usb 1-2: New USB device found, idVendor=2040, idProduct=5200
-> [ 3852.149620] usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-> [ 3852.149627] usb 1-2: Product: NovaT 500Stick
-> [ 3852.149631] usb 1-2: Manufacturer: Hauppauge
-> [ 3852.149636] usb 1-2: SerialNumber: 4034588817
-> [ 3852.149876] usb 1-2: configuration #1 chosen from 1 choice
-> [ 3852.343074] dib0700: loaded with support for 14 different device-types
-> [ 3852.343247] dvb-usb: found a 'Hauppauge Nova-TD Stick (52009)' in
-> cold state, will try to load a firmware
-> [ 3852.343259] usb 1-2: firmware: requesting dvb-usb-dib0700-1.20.fw
-> [ 3852.389203] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
-> [ 3852.590849] dib0700: firmware started successfully.
-> [ 3853.092251] dvb-usb: found a 'Hauppauge Nova-TD Stick (52009)' in warm state.
-> [ 3853.092369] dvb-usb: will pass the complete MPEG2 transport stream
-> to the software demuxer.
-> [ 3853.092502] DVB: registering new adapter (Hauppauge Nova-TD Stick (52009))
-> [ 3853.327595] DVB: registering adapter 4 frontend 0 (DiBcom 7000PC)...
-> [ 3853.380054] BUG: unable to handle kernel NULL pointer dereference at (null)
-> [ 3853.380067] IP: [<f7f34314>] i2c_transfer+0x18/0x9a [i2c_core]
-> [ 3853.380096] *pde = 00000000
-> [ 3853.380102] Oops: 0000 [#1] SMP
-> [ 3853.380108] last sysfs file:
-> /sys/devices/pci0000:00/0000:00:04.1/usb1/1-2/dvb/dvb4.frontend0/uevent
-> [ 3853.380116] Modules linked in: dvb_usb_dib0700(+) dib7000p dib0090
-> dib7000m dib0070 dib8000 dib3000mc dibx000_common dvbloopback
-> cpufreq_stats cpufreq_powersave cpufreq_userspace cpufreq_conservative
-> parport_pc ppdev lp parport sco rfcomm bridge stp bnep l2cap crc16
-> bluetooth rfkill nls_utf8 cifs xt_multiport iptable_filter ip_tables
-> x_tables binfmt_misc fuse nfsd nfs lockd fscache nfs_acl auth_rpcgss
-> sunrpc xfs exportfs lm90 coretemp loop snd_hda_codec_nvhdmi
-> snd_hda_codec_realtek cx23885 cx2341x v4l2_common snd_hda_intel
-> videodev v4l1_compat videobuf_dma_sg snd_hda_codec ir_sony_decoder
-> videobuf_dvb ir_jvc_decoder snd_hwdep videobuf_core snd_pcm
-> ir_rc6_decoder ds3000 ir_rc5_decoder joydev snd_seq ir_common
-> ir_nec_decoder snd_timer snd_seq_device ir_core hid_sunplus snd
-> btcx_risc dvb_usb_dw2102 usbhid soundcore shpchp dvb_usb lirc_mceusb2
-> psmouse snd_page_alloc i2c_nforce2 pci_hotplug hid dvb_core tveeprom
-> lirc_dev nvidia(P) evdev i2c_core wmi serio_raw pcspkr processor
-> button ext3 jbd mbcache sd_mod crc_t10dif ata_generic ohci_hcd ahci
-> libata scsi_mod ehci_hcd forcedeth usbcore nls_base thermal
-> thermal_sys [last unloaded: scsi_wait_scan]
-> [ 3853.380287]
-> [ 3853.380295] Pid: 7052, comm: modprobe Tainted: P
-> (2.6.32-5-686 #1) To Be Filled By O.E.M.
-> [ 3853.380302] EIP: 0060:[<f7f34314>] EFLAGS: 00010282 CPU: 0
-> [ 3853.380322] EIP is at i2c_transfer+0x18/0x9a [i2c_core]
-> [ 3853.380328] EAX: 00000000 EBX: ffffffa1 ECX: 00000002 EDX: f3c4de14
-> [ 3853.380334] ESI: f60afaf8 EDI: 00000040 EBP: f7e30874 ESP: f3c4ddf4
-> [ 3853.380340]  DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
-> [ 3853.380347] Process modprobe (pid: 7052, ti=f3c4c000 task=f6114400
-> task.ti=f3c4c000)
-> [ 3853.380352] Stack:
-> [ 3853.380355]  00000002 f3c4de14 f7d81b00 f51eac00 00000040 f7e30874
-> f7d8110a 00000022
-> [ 3853.380369] <0> 00000060 00000001 f3c4de10 00010060 f7d80002
-> f3c4de2e c103b32a f7d81bcd
-> [ 3853.380383] <0> f51eac00 f60afaf8 f60af800 f7d820d4 f4078864
-> f7d81b00 f4078864 f60afaf8
-> [ 3853.380398] Call Trace:
-> [ 3853.380409]  [<f7d81b00>] ? dib0070_attach+0x0/0x3c4 [dib0070]
-> [ 3853.380418]  [<f7d8110a>] ? dib0070_read_reg+0x4e/0x77 [dib0070]
-> [ 3853.380443]  [<c103b32a>] ? msleep+0xd/0x12
-> [ 3853.380451]  [<f7d81bcd>] ? dib0070_attach+0xcd/0x3c4 [dib0070]
-> [ 3853.380460]  [<f7d81b00>] ? dib0070_attach+0x0/0x3c4 [dib0070]
-> [ 3853.380475]  [<f7e27fa6>] ? dib7070p_tuner_attach+0x9e/0xeb [dvb_usb_dib0700]
-> [ 3853.380503]  [<f96c2d6a>] ? dvb_usb_adapter_frontend_init+0xb9/0xd7 [dvb_usb]
-> [ 3853.380527]  [<f96c2878>] ? dvb_usb_device_init+0x448/0x51c [dvb_usb]
-> [ 3853.380541]  [<f7e26ae8>] ? dib0700_probe+0x33/0xb5 [dvb_usb_dib0700]
-> [ 3853.380551]  [<c126dece>] ? mutex_lock+0xb/0x24
-> [ 3853.380592]  [<f7c9400c>] ? usb_match_one_id+0x19/0x6e [usbcore]
-> [ 3853.380635]  [<f7c94d8c>] ? usb_probe_interface+0xe7/0x130 [usbcore]
-> [ 3853.380646]  [<c11b3482>] ? driver_probe_device+0x8a/0x11e
-> [ 3853.380654]  [<c11b3556>] ? __driver_attach+0x40/0x5b
-> [ 3853.380678]  [<c11b2ec5>] ? bus_for_each_dev+0x37/0x5f
-> [ 3853.380686]  [<c11b3355>] ? driver_attach+0x11/0x13
-> [ 3853.380694]  [<c11b3516>] ? __driver_attach+0x0/0x5b
-> [ 3853.380702]  [<c11b298d>] ? bus_add_driver+0x99/0x1c5
-> [ 3853.380724]  [<c11b3787>] ? driver_register+0x87/0xe0
-> [ 3853.380733]  [<c107248f>] ? tracepoint_module_notify+0x1d/0x20
-> [ 3853.380774]  [<f7c94b9a>] ? usb_register_driver+0x5d/0xb4 [usbcore]
-> [ 3853.380787]  [<f7e13000>] ? dib0700_module_init+0x0/0x3e [dvb_usb_dib0700]
-> [ 3853.380800]  [<f7e13025>] ? dib0700_module_init+0x25/0x3e [dvb_usb_dib0700]
-> [ 3853.380809]  [<c100113e>] ? do_one_initcall+0x55/0x155
-> [ 3853.380817]  [<c1057949>] ? sys_init_module+0xa7/0x1d7
-> [ 3853.380825]  [<c10030fb>] ? sysenter_do_call+0x12/0x28
-> [ 3853.380830] Code: 89 e2 89 4c 24 04 b9 ee 40 f3 f7 e8 a0 ce 27 c9
-> 59 58 c3 55 57 56 89 c6 53 bb a1 ff ff ff 83 ec 08 89 54 24 04 89 0c
-> 24 8b 40 0c <83> 38 00 74 74 89 e0 25 00 e0 ff ff f7 40 14 ff ff ff ef
-> 75 0b
-> [ 3853.380909] EIP: [<f7f34314>] i2c_transfer+0x18/0x9a [i2c_core]
-> SS:ESP 0068:f3c4ddf4
-> [ 3853.380937] CR2: 0000000000000000
-> [ 3853.380943] ---[ end trace 488e92047d7c65dd ]---
->
-> If I boot with the stick connected I get similar problems, and if I
-> execute the "lsusb" the terminal stop working.
->
-> I don't know if this is related to the DVB device or the Nvidia board.
-> This is the board USB controller:
->
-> # lspci | grep USB
-> 00:04.0 USB Controller: nVidia Corporation MCP79 OHCI USB 1.1
-> Controller (rev b1)
-> 00:04.1 USB Controller: nVidia Corporation MCP79 EHCI USB 2.0
-> Controller (rev b1)
-> 00:06.0 USB Controller: nVidia Corporation MCP79 OHCI USB 1.1
-> Controller (rev b1)
-> 00:06.1 USB Controller: nVidia Corporation MCP79 EHCI USB 2.0
-> Controller (rev b1)
->
-> I will appreciate any help, I have not enough technical skill to
-> understand this.
->
-> Best regards.
->
-> --
-> Josu Lazkano
->
+This patch adds a documentation for VIDIOC_{G/S}_SELECTION ioctl. Moreover, the
+patch adds the description of modeling of composing, cropping and scaling
+features in V4L2. Finally, some examples are presented.
 
-Hello again, I just update to Ubuntu 11.10 (3.0.0) and all message
-disappeared. So, it is related to the kernel version. Now it is
-working great on both tuners.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/media/v4l/common.xml         |    2 +
+ Documentation/DocBook/media/v4l/compat.xml         |    9 +
+ Documentation/DocBook/media/v4l/selection-api.xml  |  327 ++++++++++++++++++++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    1 +
+ .../DocBook/media/v4l/vidioc-g-selection.xml       |  304 ++++++++++++++++++
+ 5 files changed, 643 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/selection-api.xml
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-g-selection.xml
 
-I prefer to use Debian, but I need a working DVB devices, so I will
-wait to get stable Debian Wheezy.
-
-Regards.
-
+diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
+index a86f7a0..9c8db86 100644
+--- a/Documentation/DocBook/media/v4l/common.xml
++++ b/Documentation/DocBook/media/v4l/common.xml
+@@ -1168,6 +1168,8 @@ dheight = format.fmt.pix.height;
+     </section>
+   </section>
+ 
++  &sub-selection-api;
++
+   <section id="streaming-par">
+     <title>Streaming Parameters</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index b68698f..433933a 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2376,6 +2376,12 @@ that used it. It was originally scheduled for removal in 2.6.35.
+         <listitem>
+ 	  <para>V4L2_CTRL_FLAG_VOLATILE was added to signal volatile controls to userspace.</para>
+         </listitem>
++        <listitem>
++	  <para>Add selection API for extended control over cropping and
++composing. Does not affect the compatibility of current drivers and
++applications.  See <link linkend="selection-api"> selection API </link> for
++details.</para>
++        </listitem>
+       </orderedlist>
+     </section>
+ 
+@@ -2489,6 +2495,9 @@ ioctls.</para>
+         <listitem>
+ 	  <para>&VIDIOC-CREATE-BUFS; and &VIDIOC-PREPARE-BUF; ioctls.</para>
+         </listitem>
++        <listitem>
++	  <para>Selection API. <xref linkend="selection-api" /></para>
++        </listitem>
+       </itemizedlist>
+     </section>
+ 
+diff --git a/Documentation/DocBook/media/v4l/selection-api.xml b/Documentation/DocBook/media/v4l/selection-api.xml
+new file mode 100644
+index 0000000..46cb47a
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/selection-api.xml
+@@ -0,0 +1,327 @@
++<section id="selection-api">
++
++  <title>Experimental API for cropping, composing and scaling</title>
++
++      <note>
++	<title>Experimental</title>
++
++	<para>This is an <link linkend="experimental">experimental</link>
++interface and may change in the future.</para>
++      </note>
++
++  <section>
++    <title>Introduction</title>
++
++<para>Some video capture devices can sample a subsection of a picture and
++shrink or enlarge it to an image of arbitrary size. Next, the devices can
++insert the image into larger one. Some video output devices can crop part of an
++input image, scale it up or down and insert it at an arbitrary scan line and
++horizontal offset into a video signal. We call these abilities cropping,
++scaling and composing.</para>
++
++<para>On a video <emphasis>capture</emphasis> device the source is a video
++signal, and the cropping target determine the area actually sampled. The sink
++is an image stored in a memory buffer.  The composing area specifies which part
++of the buffer is actually written to by the hardware. </para>
++
++<para>On a video <emphasis>output</emphasis> device the source is an image in a
++memory buffer, and the cropping target is a part of an image to be shown on a
++display. The sink is the display or the graphics screen. The application may
++select the part of display where the image should be displayed. The size and
++position of such a window is controlled by the compose target.</para>
++
++<para>Rectangles for all cropping and composing targets are defined even if the
++device does supports neither cropping nor composing. Their size and position
++will be fixed in such a case. If the device does not support scaling then the
++cropping and composing rectangles have the same size.</para>
++
++  </section>
++
++    <section>
++      <title>Selection targets</title>
++
++      <figure id="sel-targets-capture">
++	<title>Cropping and composing targets</title>
++	<mediaobject>
++	  <imageobject>
++	    <imagedata fileref="selection.png" format="PNG" />
++	  </imageobject>
++	  <textobject>
++	    <phrase>Targets used by a cropping, composing and scaling
++            process</phrase>
++	  </textobject>
++	</mediaobject>
++      </figure>
++    </section>
++
++  <section>
++
++  <title>Configuration</title>
++
++<para>Applications can use the <link linkend="vidioc-g-selection">selection
++API</link> to select an area in a video signal or a buffer, and to query for
++default settings and hardware limits.</para>
++
++<para>Video hardware can have various cropping, composing and scaling
++limitations. It may only scale up or down, support only discrete scaling
++factors, or have different scaling abilities in the horizontal and vertical
++directions. Also it may not support scaling at all. At the same time the
++cropping/composing rectangles may have to be aligned, and both the source and
++the sink may have arbitrary upper and lower size limits. Therefore, as usual,
++drivers are expected to adjust the requested parameters and return the actual
++values selected. An application can control the rounding behaviour using <link
++linkend="v4l2-sel-flags"> constraint flags </link>.</para>
++
++   <section>
++
++   <title>Configuration of video capture</title>
++
++<para>See figure <xref linkend="sel-targets-capture" /> for examples of the
++selection targets available for a video capture device.  It is recommended to
++configure the cropping targets before to the composing targets.</para>
++
++<para>The range of coordinates of the top left corner, width and height of
++areas that can be sampled is given by the <constant> V4L2_SEL_TGT_CROP_BOUNDS
++</constant> target. It is recommended for the driver developers to put the
++top/left corner at position <constant> (0,0) </constant>.  The rectangle's
++coordinates are expressed in driver dependant units, although the coordinate
++system guarantees that if sizes of the active cropping and the active composing
++rectangles are equal then no scaling is performed.  </para>
++
++<para>The top left corner, width and height of the source rectangle, that is
++the area actually sampled, is given by the <constant> V4L2_SEL_TGT_CROP_ACTIVE
++</constant> target. It uses the same coordinate system as <constant>
++V4L2_SEL_TGT_CROP_BOUNDS </constant>. The active cropping area must lie
++completely inside the capture boundaries. The driver may further adjust the
++requested size and/or position according to hardware limitations.</para>
++
++<para>Each capture device has a default source rectangle, given by the
++<constant> V4L2_SEL_TGT_CROP_DEFAULT </constant> target. This rectangle shall
++over what the driver writer considers the complete picture.  Drivers shall set
++the active crop rectangle to the default when the driver is first loaded, but
++not later.</para>
++
++<para>The composing targets refer to a memory buffer. The limits of composing
++coordinates are obtained using <constant> V4L2_SEL_TGT_COMPOSE_BOUNDS
++</constant>.  All coordinates are expressed in natural unit for given formats.
++Pixels are highly recommended.  The rectangle's top/left corner must be located
++at position <constant> (0,0) </constant>. The width and height are equal to the
++image size set by <constant> VIDIOC_S_FMT </constant>.</para>
++
++<para>The part of a buffer into which the image is inserted by the hardware is
++controlled by the <constant> V4L2_SEL_TGT_COMPOSE_ACTIVE </constant> target.
++The rectangle's coordinates are also expressed in the same coordinate system as
++the bounds rectangle. The composing rectangle must lie completely inside bounds
++rectangle. The driver must adjust the composing rectangle to fit to the
++bounding limits. Moreover, the driver can perform other adjustments according
++to hardware limitations. The application can control rounding behaviour using
++<link linkend="v4l2-sel-flags"> constraint flags </link>.</para>
++
++<para>For capture devices the default composing rectangle is queried using
++<constant> V4L2_SEL_TGT_COMPOSE_DEFAULT </constant>. It is usually equal to the
++bounding rectangle.</para>
++
++<para>The part of a buffer that is modified by the hardware is given by
++<constant> V4L2_SEL_TGT_COMPOSE_PADDED </constant>. It contains all pixels
++defined using <constant> V4L2_SEL_TGT_COMPOSE_ACTIVE </constant> plus all
++padding data modified by hardware during insertion process. All pixels outside
++this rectangle <emphasis>must not</emphasis> be changed by the hardware. The
++content of pixels that lie inside the padded area but outside active area is
++undefined. The application can use the padded and active rectangles to detect
++where the rubbish pixels are located and remove them if needed.</para>
++
++   </section>
++
++   <section>
++
++   <title>Configuration of video output</title>
++
++<para>For output devices targets and ioctls are used similarly to the video
++capture case. The <emphasis> composing </emphasis> rectangle refers to the
++insertion of an image into a video signal. The cropping rectangles refer to a
++memory buffer. It is recommended to configure the composing targets before to
++the cropping targets.</para>
++
++<para>The cropping targets refer to the memory buffer that contains an image to
++be inserted into a video signal or graphical screen. The limits of cropping
++coordinates are obtained using <constant> V4L2_SEL_TGT_CROP_BOUNDS </constant>.
++All coordinates are expressed in natural units for a given format. Pixels are
++highly recommended.  The top/left corner is always point <constant> (0,0)
++</constant>.  The width and height is equal to the image size specified using
++<constant> VIDIOC_S_FMT </constant> ioctl.</para>
++
++<para>The top left corner, width and height of the source rectangle, that is
++the area from which image date are processed by the hardware, is given by the
++<constant> V4L2_SEL_TGT_CROP_ACTIVE </constant>. Its coordinates are expressed
++in in the same coordinate system as the bounds rectangle. The active cropping
++area must lie completely inside the crop boundaries and the driver may further
++adjust the requested size and/or position according to hardware
++limitations.</para>
++
++<para>For output devices the default cropping rectangle is queried using
++<constant> V4L2_SEL_TGT_CROP_DEFAULT </constant>. It is usually equal to the
++bounding rectangle.</para>
++
++<para>The part of a video signal or graphics display where the image is
++inserted by the hardware is controlled by <constant> V4L2_SEL_TGT_COMPOSE_ACTIVE
++</constant> target.  The rectangle's coordinates are expressed in driver
++dependant units. The only exception are digital outputs where the units are
++pixels. For other types of devices, the coordinate system guarantees that if
++sizes of the active cropping and the active composing rectangles are equal then
++no scaling is performed.  The composing rectangle must lie completely inside
++the bounds rectangle.  The driver must adjust the area to fit to the bounding
++limits.  Moreover, the driver can perform other adjustments according to
++hardware limitations. </para>
++
++<para>The device has a default composing rectangle, given by the <constant>
++V4L2_SEL_TGT_COMPOSE_DEFAULT </constant> target. This rectangle shall cover what
++the driver writer considers the complete picture. It is recommended for the
++driver developers to put the top/left corner at position <constant> (0,0)
++</constant>. Drivers shall set the active composing rectangle to the default
++one when the driver is first loaded.</para>
++
++<para>The devices may introduce additional content to video signal other than
++an image from memory buffers.  It includes borders around an image. However,
++such a padded area is driver-dependent feature not covered by this document.
++Driver developers are encouraged to keep padded rectangle equal to active one.
++The padded target is accessed by the <constant> V4L2_SEL_TGT_COMPOSE_PADDED
++</constant> identifier.  It must contain all pixels from the <constant>
++V4L2_SEL_TGT_COMPOSE_ACTIVE </constant> target.</para>
++
++   </section>
++
++   <section>
++
++     <title>Scaling control.</title>
++
++<para>An application can detect if scaling is performed by comparing the width
++and the height of rectangles obtained using <constant> V4L2_SEL_TGT_CROP_ACTIVE
++</constant> and <constant> V4L2_SEL_TGT_COMPOSE_ACTIVE </constant> targets. If
++these are not equal then the scaling is applied. The application can compute
++the scaling ratios using these values.</para>
++
++   </section>
++
++  </section>
++
++  <section>
++
++    <title>Comparison with old cropping API.</title>
++
++<para>The selection API was introduced to cope with deficiencies of previous
++<link linkend="crop"> API </link>, that was designed to control simple capture
++devices. Later the cropping API was adopted by video output drivers. The ioctls
++are used to select a part of the display were the video signal is inserted. It
++should be considered as an API abuse because the described operation is
++actually the composing.  The selection API makes a clear distinction between
++composing and cropping operations by setting the appropriate targets.  The V4L2
++API lacks any support for composing to and cropping from an image inside a
++memory buffer.  The application could configure a capture device to fill only a
++part of an image by abusing V4L2 API.  Cropping a smaller image from a larger
++one is achieved by setting the field <structfield>
++&v4l2-pix-format;::bytesperline </structfield>.  Introducing an image offsets
++could be done by modifying field <structfield> &v4l2-buffer;::m:userptr
++</structfield> before calling <constant> VIDIOC_QBUF </constant>. Those
++operations should be avoided because they are not portable (endianness), and do
++not work for macroblock and Bayer formats and mmap buffers.  The selection API
++deals with configuration of buffer cropping/composing in a clear, intuitive and
++portable way.  Next, with the selection API the concepts of the padded target
++and constraints flags are introduced.  Finally, <structname> &v4l2-crop;
++</structname> and <structname> &v4l2-cropcap; </structname> have no reserved
++fields. Therefore there is no way to extend their functionality.  The new
++<structname> &v4l2-selection; </structname> provides a lot of place for future
++extensions.  Driver developers are encouraged to implement only selection API.
++The former cropping API would be simulated using the new one. </para>
++
++  </section>
++
++   <section>
++      <title>Examples</title>
++      <example>
++	<title>Resetting the cropping parameters</title>
++
++	<para>(A video capture device is assumed; change <constant>
++V4L2_BUF_TYPE_VIDEO_CAPTURE </constant> for other devices; change target to
++<constant> V4L2_SEL_TGT_COMPOSE_* </constant> family to configure composing
++area)</para>
++
++	<programlisting>
++
++	&v4l2-selection; sel = {
++		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
++		.target = V4L2_SEL_TGT_CROP_DEFAULT,
++	};
++	ret = ioctl(fd, &VIDIOC-G-SELECTION;, &amp;sel);
++	if (ret)
++		exit(-1);
++	sel.target = V4L2_SEL_TGT_CROP_ACTIVE;
++	ret = ioctl(fd, &VIDIOC-S-SELECTION;, &amp;sel);
++	if (ret)
++		exit(-1);
++
++        </programlisting>
++      </example>
++
++      <example>
++	<title>Simple downscaling</title>
++	<para>Setting a composing area on output of size of <emphasis> at most
++</emphasis> half of limit placed at a center of a display.</para>
++	<programlisting>
++
++	&v4l2-selection; sel = {
++		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT,
++		.target = V4L2_SEL_TGT_COMPOSE_BOUNDS,
++	};
++	struct v4l2_rect r;
++
++	ret = ioctl(fd, &VIDIOC-G-SELECTION;, &amp;sel);
++	if (ret)
++		exit(-1);
++	/* setting smaller compose rectangle */
++	r.width = sel.r.width / 2;
++	r.height = sel.r.height / 2;
++	r.left = sel.r.width / 4;
++	r.top = sel.r.height / 4;
++	sel.r = r;
++	sel.target = V4L2_SEL_TGT_COMPOSE_ACTIVE;
++	sel.flags = V4L2_SEL_FLAG_LE;
++	ret = ioctl(fd, &VIDIOC-S-SELECTION;, &amp;sel);
++	if (ret)
++		exit(-1);
++
++        </programlisting>
++      </example>
++
++      <example>
++	<title>Querying for scaling factors</title>
++	<para>A video output device is assumed; change <constant>
++V4L2_BUF_TYPE_VIDEO_OUTPUT </constant> for other devices</para>
++	<programlisting>
++
++	&v4l2-selection; compose = {
++		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT,
++		.target = V4L2_SEL_TGT_COMPOSE_ACTIVE,
++	};
++	&v4l2-selection; crop = {
++		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT,
++		.target = V4L2_SEL_TGT_CROP_ACTIVE,
++	};
++	double hscale, vscale;
++
++	ret = ioctl(fd, &VIDIOC-G-SELECTION;, &amp;compose);
++	if (ret)
++		exit(-1);
++	ret = ioctl(fd, &VIDIOC-G-SELECTION;, &amp;crop);
++	if (ret)
++		exit(-1);
++
++	/* computing scaling factors */
++	hscale = (double)compose.r.width / crop.r.width;
++	vscale = (double)compose.r.height / crop.r.height;
++
++	</programlisting>
++      </example>
++
++   </section>
++
++</section>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 2ab365c..e97c512 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -501,6 +501,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-g-output;
+     &sub-g-parm;
+     &sub-g-priority;
++    &sub-g-selection;
+     &sub-g-sliced-vbi-cap;
+     &sub-g-std;
+     &sub-g-tuner;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
+new file mode 100644
+index 0000000..a9d36e0
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
+@@ -0,0 +1,304 @@
++<refentry id="vidioc-g-selection">
++
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_G_SELECTION, VIDIOC_S_SELECTION</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_G_SELECTION</refname>
++    <refname>VIDIOC_S_SELECTION</refname>
++    <refpurpose>Get or set one of the selection rectangles</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_selection *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_G_SELECTION, VIDIOC_S_SELECTION</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <note>
++      <title>Experimental</title>
++      <para>This is an <link linkend="experimental"> experimental </link>
++      interface and may change in the future.</para>
++    </note>
++
++    <para>The ioctls are used to query and configure selection rectangles.</para>
++
++<para> To query the cropping (composing) rectangle set <structfield>
++&v4l2-selection;::type </structfield> to the respective buffer type.  Do not
++use multiplanar buffers.  Use <constant> V4L2_BUF_TYPE_VIDEO_CAPTURE
++</constant> instead of <constant> V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
++</constant>.  Use <constant> V4L2_BUF_TYPE_VIDEO_OUTPUT </constant> instead of
++<constant> V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE </constant>.  The next step is
++setting <structfield> &v4l2-selection;::target </structfield> to value
++<constant> V4L2_SEL_TGT_CROP_ACTIVE </constant> (<constant>
++V4L2_SEL_TGT_COMPOSE_ACTIVE </constant>).  Please refer to table <xref
++linkend="v4l2-sel-target" /> or <xref linkend="selection-api" /> for additional
++targets.  Fields <structfield> &v4l2-selection;::flags </structfield> and
++<structfield> &v4l2-selection;::reserved </structfield> are ignored and they
++must be filled with zeros.  The driver fills the rest of the structure or
++returns &EINVAL; if incorrect buffer type or target was used. If cropping
++(composing) is not supported then the active rectangle is not mutable and it is
++always equal to the bounds rectangle.  Finally, structure <structfield>
++&v4l2-selection;::r </structfield> is filled with the current cropping
++(composing) coordinates. The coordinates are expressed in driver-dependent
++units. The only exception are rectangles for images in raw formats, whose
++coordinates are always expressed in pixels.  </para>
++
++<para> To change the cropping (composing) rectangle set <structfield>
++&v4l2-selection;::type </structfield> to the respective buffer type.  Do not
++use multiplanar buffers.  Use <constant> V4L2_BUF_TYPE_VIDEO_CAPTURE
++</constant> instead of <constant> V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
++</constant>.  Use <constant> V4L2_BUF_TYPE_VIDEO_OUTPUT </constant> instead of
++<constant> V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE </constant>.  The next step is
++setting <structfield> &v4l2-selection;::target </structfield> to value
++<constant> V4L2_SEL_TGT_CROP_ACTIVE </constant> (<constant>
++V4L2_SEL_TGT_COMPOSE_ACTIVE </constant>). Please refer to table <xref
++linkend="v4l2-sel-target" /> or <xref linkend="selection-api" /> for additional
++targets.  Set desired active area into the field <structfield>
++&v4l2-selection;::r </structfield>.  Field <structfield>
++&v4l2-selection;::reserved </structfield> is ignored and must be filled with
++zeros.  The driver may adjust the rectangle coordinates. An application may
++introduce constraints to control rounding behaviour. Set the field
++<structfield> &v4l2-selection;::flags </structfield> to one of values:
++
++<itemizedlist>
++  <listitem>
++<para><constant>0</constant> - The driver can adjust the rectangle size freely
++and shall choose a crop/compose rectangle as close as possible to the requested
++one.</para>
++  </listitem>
++  <listitem>
++<para><constant>V4L2_SEL_FLAG_GE</constant> - The driver is not allowed to
++shrink the rectangle.  The original rectangle must lay inside the adjusted
++one.</para>
++  </listitem>
++  <listitem>
++<para><constant>V4L2_SEL_FLAG_LE</constant> - The driver is not allowed to
++enlarge the rectangle.  The adjusted rectangle must lay inside the original
++one.</para>
++  </listitem>
++  <listitem>
++<para><constant>V4L2_SEL_FLAG_GE | V4L2_SEL_FLAG_LE</constant> - The driver
++must choose the size exactly the same as in the requested rectangle.</para>
++  </listitem>
++</itemizedlist>
++
++Please refer to <xref linkend="sel-const-adjust" />.
++
++</para>
++
++<para> The driver may have to adjusts the requested dimensions against hardware
++limits and other parts as the pipeline, i.e. the bounds given by the
++capture/output window or TV display. The closest possible values of horizontal
++and vertical offset and sizes are chosen according to following priority:
++
++<orderedlist>
++  <listitem>
++    <para>Satisfy constraints from <structfield>&v4l2-selection;::flags</structfield>.</para>
++  </listitem>
++  <listitem>
++    <para>Adjust width, height, left, and top to hardware limits and alignments.</para>
++  </listitem>
++  <listitem>
++    <para>Keep center of adjusted rectangle as close as possible to the original one.</para>
++  </listitem>
++  <listitem>
++    <para>Keep width and height as close as possible to original ones.</para>
++  </listitem>
++  <listitem>
++    <para>Keep horizontal and vertical offset as close as possible to original ones.</para>
++  </listitem>
++</orderedlist>
++
++On success the field <structfield> &v4l2-selection;::r </structfield> contains
++the adjusted rectangle. When the parameters are unsuitable the application may
++modify the cropping (composing) or image parameters and repeat the cycle until
++satisfactory parameters have been negotiated. If constraints flags have to be
++violated at then ERANGE is returned. The error indicates that <emphasis> there
++exist no rectangle </emphasis> that satisfies the constraints.</para>
++
++  </refsect1>
++
++  <refsect1>
++    <table frame="none" pgwide="1" id="v4l2-sel-target">
++      <title>Selection targets.</title>
++      <tgroup cols="3">
++	&cs-def;
++	<tbody valign="top">
++	  <row>
++            <entry><constant>V4L2_SEL_TGT_CROP_ACTIVE</constant></entry>
++            <entry>0</entry>
++            <entry>area that is currently cropped by hardware</entry>
++	  </row>
++	  <row>
++            <entry><constant>V4L2_SEL_TGT_CROP_DEFAULT</constant></entry>
++            <entry>1</entry>
++            <entry>suggested cropping rectangle that covers the "whole picture"</entry>
++	  </row>
++	  <row>
++            <entry><constant>V4L2_SEL_TGT_CROP_BOUNDS</constant></entry>
++            <entry>2</entry>
++            <entry>limits for the cropping rectangle</entry>
++	  </row>
++	  <row>
++            <entry><constant>V4L2_SEL_TGT_COMPOSE_ACTIVE</constant></entry>
++            <entry>256</entry>
++            <entry>area to which data are composed by hardware</entry>
++	  </row>
++	  <row>
++            <entry><constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant></entry>
++            <entry>257</entry>
++            <entry>suggested composing rectangle that covers the "whole picture"</entry>
++	  </row>
++	  <row>
++            <entry><constant>V4L2_SEL_TGT_COMPOSE_BOUNDS</constant></entry>
++            <entry>258</entry>
++            <entry>limits for the composing rectangle</entry>
++	  </row>
++	  <row>
++            <entry><constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant></entry>
++            <entry>259</entry>
++            <entry>the active area and all padding pixels that are inserted or modified by the hardware</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++  </refsect1>
++
++  <refsect1>
++    <table frame="none" pgwide="1" id="v4l2-sel-flags">
++      <title>Selection constraint flags</title>
++      <tgroup cols="3">
++	&cs-def;
++	<tbody valign="top">
++	  <row>
++            <entry><constant>V4L2_SEL_FLAG_GE</constant></entry>
++            <entry>0x00000001</entry>
++            <entry>indicate that adjusted rectangle must contain a rectangle from <structfield>&v4l2-selection;::r</structfield></entry>
++	  </row>
++	  <row>
++            <entry><constant>V4L2_SEL_FLAG_LE</constant></entry>
++            <entry>0x00000002</entry>
++            <entry>indicate that adjusted rectangle must be inside a rectangle from <structfield>&v4l2-selection;::r</structfield></entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++  </refsect1>
++
++    <section>
++      <figure id="sel-const-adjust">
++	<title>Size adjustments with constraint flags.</title>
++	<mediaobject>
++	  <imageobject>
++	    <imagedata fileref="constraints.png" format="PNG" />
++	  </imageobject>
++	  <textobject>
++	    <phrase>Behaviour of rectangle adjustment for different constraint
++            flags.</phrase>
++	  </textobject>
++	</mediaobject>
++      </figure>
++    </section>
++
++  <refsect1>
++    <table pgwide="1" frame="none" id="v4l2-selection">
++      <title>struct <structname>v4l2_selection</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>type</structfield></entry>
++	    <entry>Type of the buffer (from &v4l2-buf-type;)</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>target</structfield></entry>
++            <entry>used to select between <link linkend="v4l2-sel-target"> cropping and composing rectangles </link></entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>flags</structfield></entry>
++            <entry>control over coordinates adjustments, refer to <link linkend="v4l2-sel-flags">selection flags</link></entry>
++	  </row>
++	  <row>
++	    <entry>&v4l2-rect;</entry>
++	    <entry><structfield>r</structfield></entry>
++	    <entry>selection rectangle</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved[9]</structfield></entry>
++	    <entry>Reserved fields for future use</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>The buffer <structfield> &v4l2-selection;::type </structfield>
++or <structfield> &v4l2-selection;::target </structfield> is not supported, or
++the <structfield> &v4l2-selection;::flags </structfield> are invalid.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><errorcode>ERANGE</errorcode></term>
++	<listitem>
++	  <para>it is not possible to adjust a rectangle <structfield>
++&v4l2-selection;::r </structfield> that satisfies all contraints from
++<structfield> &v4l2-selection;::flags </structfield>.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><errorcode>EBUSY</errorcode></term>
++	<listitem>
++	  <para>it is not possible to apply change of selection rectangle at the moment.
++Usually because streaming is in progress.</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++</refentry>
 -- 
-Josu Lazkano
+1.7.5.4
+
