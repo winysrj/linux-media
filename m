@@ -1,242 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26989 "EHLO mx1.redhat.com"
+Received: from yop.chewa.net ([91.121.105.214]:55188 "EHLO yop.chewa.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752268Ab1KXQUU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 11:20:20 -0500
-Message-ID: <4ECE6EBC.8020006@redhat.com>
-Date: Thu, 24 Nov 2011 14:20:12 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1751277Ab1KJHIw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Nov 2011 02:08:52 -0500
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: DVBv5 frontend library
 MIME-Version: 1.0
-To: Dmitri Belimov <d.belimov@gmail.com>
-CC: Stefan Ringel <stefan.ringel@arcor.de>,
-	linux-media@vger.kernel.org, fabbione@redhat.com
-Subject: Re: [PATCH] Fix tm6010 audio
-References: <4E8C5675.8070604@arcor.de> <20111017155537.6c55aec8@glory.local> <4E9C65CD.2070409@arcor.de> <20111108104500.2f0fc14f@glory.local>
-In-Reply-To: <20111108104500.2f0fc14f@glory.local>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Date: Thu, 10 Nov 2011 08:08:50 +0100
+From: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@kernellabs.com>
+In-Reply-To: <4EBACE27.8000907@redhat.com>
+References: <4EBACE27.8000907@redhat.com>
+Message-ID: <b0eac44a264432f586edf13983ea6829@chewa.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 07-11-2011 22:45, Dmitri Belimov escreveu:
-> Hi
+   Hello kernel-space friends,
+
+
+
+On Wed, 09 Nov 2011 17:01:59 -0200, Mauro Carvalho Chehab
+
+<mchehab@redhat.com> wrote:
+
+> As I've commented with some at the KS, I started writing a new DVB
+
+> library, based on DVBv5.
+
+> It is currently at very early stages. Help and suggestions are welcome.
+
 > 
-> I found why audio dosn't work for me and fix it.
+
+> It is at:
+
+>
+
+	http://git.linuxtv.org/mchehab/experimental-v4l-utils.git/shortlog/refs/heads/dvb-utils
+
 > 
-> 2Stefan:
-> The V4L2_STD_DK has V4L2_STD_SECAM_DK but not equal 
-> switch-case statement not worked
+
+> It currently doesn't do much, but the hole idea is to offer a library
+
+that
+
+> can easily upgraded to support new standards, and based on DVBv5.
+
+
+
+IMHO, adding new standards with DVBv5 is already fairly easy, as opposed
+
+to with DVBv3.
+
+
+
+The only issue I've had (while porting VLC to DVBv5) lied in determining
+
+which parameters needed to be set and what values they would accept.
+
+
+
+(...)
+
+> The frontend library is inside:
+
+> 	dvb-fe.c  
+
+> 	dvb-fe.h 
+
 > 
-> you can use 
-> if (dev->norm & V4L2_STD_DK) { 
-> }
-> 
-> This patch fix this problem.
-> 
-> Other, please don't remove any workarounds without important reason.
-> For your chip revision it can be work but for other audio will be bad.
-> 
-> I can watch TV but radio not work. After start Gnomeradio I see 
-> VIDIOCGAUDIO incorrect
-> VIDIOCSAUDIO incorrect
-> VIDIOCSFREQ incorrect
-> 
-> Try found what happens with radio.
 
-This patch has several issues. The usage of switch for video doesn't work
-well. A better approach follows. Not tested yet.
+> And the pertinent parameters needed by each delivery system is provided
 
-PS.: I couldn't test it: not sure why, but the audio source is not working
-for me: arecord is not able to read from the device input.
+> into a separate header:
+
+> 	dvb-v5-std.h  
 
 
--
-[media] tm6000: Fix tm6010 audio standard selection
 
-A V4L2 standards mask may contain several standards. A more restricted
-mask with just one standard is used when user needs to bind to an specific
-standard that can't be auto-detect among a more generic mask.
+As a documentation, it's nice to have. It should also enumerate the legal
 
-So, Improve the autodetection logic to detect the correct audio standard
-most of the time.
-
-Based on a patch made by Dmitri Belimov <d.belimov@gmail.com>.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+values, a bit like V4L2 user controls.
 
 
-diff --git a/drivers/media/video/tm6000/tm6000-core.c b/drivers/media/video/tm6000/tm6000-core.c
-index 9783616..55d097e 100644
---- a/drivers/media/video/tm6000/tm6000-core.c
-+++ b/drivers/media/video/tm6000/tm6000-core.c
-@@ -696,11 +696,13 @@ int tm6000_set_audio_rinput(struct tm6000_core *dev)
- 	if (dev->dev_type == TM6010) {
- 		/* Audio crossbar setting, default SIF1 */
- 		u8 areg_f0;
-+		u8 areg_07 = 0x10;
- 
- 		switch (dev->rinput.amux) {
- 		case TM6000_AMUX_SIF1:
- 		case TM6000_AMUX_SIF2:
- 			areg_f0 = 0x03;
-+			areg_07 = 0x30;
- 			break;
- 		case TM6000_AMUX_ADC1:
- 			areg_f0 = 0x00;
-@@ -720,6 +722,9 @@ int tm6000_set_audio_rinput(struct tm6000_core *dev)
- 		/* Set audio input crossbar */
- 		tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
- 							areg_f0, 0x0f);
-+		/* Mux overflow workaround */
-+		tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
-+			areg_07, 0xf0);
- 	} else {
- 		u8 areg_eb;
- 		/* Audio setting, default LINE1 */
-diff --git a/drivers/media/video/tm6000/tm6000-stds.c b/drivers/media/video/tm6000/tm6000-stds.c
-index 9a4145d..9dc0831 100644
---- a/drivers/media/video/tm6000/tm6000-stds.c
-+++ b/drivers/media/video/tm6000/tm6000-stds.c
-@@ -361,82 +361,51 @@ static int tm6000_set_audio_std(struct tm6000_core *dev)
- 		return 0;
- 	}
- 
--	switch (tm6010_a_mode) {
-+	/*
-+	 * STD/MN shouldn't be affected by tm6010_a_mode, as there's just one
-+	 * audio standard for each V4L2_STD type.
-+	 */
-+	if ((dev->norm & V4L2_STD_NTSC) == V4L2_STD_NTSC_M_KR) {
-+		areg_05 |= 0x04;
-+	} else if ((dev->norm & V4L2_STD_NTSC) == V4L2_STD_NTSC_M_JP) {
-+		areg_05 |= 0x43;
-+	} else if (dev->norm & V4L2_STD_MN) {
-+		areg_05 |= 0x22;
-+	} else switch (tm6010_a_mode) {
- 	/* auto */
- 	case 0:
--		switch (dev->norm) {
--		case V4L2_STD_NTSC_M_KR:
-+		if ((dev->norm & V4L2_STD_SECAM) == V4L2_STD_SECAM_L)
- 			areg_05 |= 0x00;
--			break;
--		case V4L2_STD_NTSC_M_JP:
--			areg_05 |= 0x40;
--			break;
--		case V4L2_STD_NTSC_M:
--		case V4L2_STD_PAL_M:
--		case V4L2_STD_PAL_N:
--			areg_05 |= 0x20;
--			break;
--		case V4L2_STD_PAL_Nc:
--			areg_05 |= 0x60;
--			break;
--		case V4L2_STD_SECAM_L:
--			areg_05 |= 0x00;
--			break;
--		case V4L2_STD_DK:
-+		else	/* Other PAL/SECAM standards */
- 			areg_05 |= 0x10;
--			break;
--		}
- 		break;
- 	/* A2 */
- 	case 1:
--		switch (dev->norm) {
--		case V4L2_STD_B:
--		case V4L2_STD_GH:
--			areg_05 = 0x05;
--			break;
--		case V4L2_STD_DK:
-+		if (dev->norm & V4L2_STD_DK)
- 			areg_05 = 0x09;
--			break;
--		}
-+		else
-+			areg_05 = 0x05;
- 		break;
- 	/* NICAM */
- 	case 2:
--		switch (dev->norm) {
--		case V4L2_STD_B:
--		case V4L2_STD_GH:
--			areg_05 = 0x07;
--			break;
--		case V4L2_STD_DK:
-+		if (dev->norm & V4L2_STD_DK) {
- 			areg_05 = 0x06;
--			break;
--		case V4L2_STD_PAL_I:
-+		} else if (dev->norm & V4L2_STD_PAL_I) {
- 			areg_05 = 0x08;
--			break;
--		case V4L2_STD_SECAM_L:
-+		} else if (dev->norm & V4L2_STD_SECAM_L) {
- 			areg_05 = 0x0a;
- 			areg_02 = 0x02;
--			break;
-+		} else {
-+			areg_05 = 0x07;
- 		}
- 		nicam_flag = 1;
- 		break;
- 	/* other */
- 	case 3:
--		switch (dev->norm) {
--		/* DK3_A2 */
--		case V4L2_STD_DK:
-+		if (dev->norm & V4L2_STD_DK) {
- 			areg_05 = 0x0b;
--			break;
--		/* Korea */
--		case V4L2_STD_NTSC_M_KR:
--			areg_05 = 0x04;
--			break;
--		/* EIAJ */
--		case V4L2_STD_NTSC_M_JP:
--			areg_05 = 0x03;
--			break;
--		default:
-+		} else {
- 			areg_05 = 0x02;
--			break;
- 		}
- 		break;
- 	}
-@@ -557,10 +526,16 @@ int tm6000_set_standard(struct tm6000_core *dev)
- 		case TM6000_AMUX_ADC1:
- 			tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
- 				0x00, 0x0f);
-+			/* Mux overflow workaround */
-+			tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
-+				0x10, 0xf0);
- 			break;
- 		case TM6000_AMUX_ADC2:
- 			tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
- 				0x08, 0x0f);
-+			/* Mux overflow workaround */
-+			tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
-+				0x10, 0xf0);
- 			break;
- 		case TM6000_AMUX_SIF1:
- 			reg_08_e2 |= 0x02;
-@@ -570,6 +545,9 @@ int tm6000_set_standard(struct tm6000_core *dev)
- 			tm6000_set_reg(dev, TM6010_REQ08_RE4_ADC_IN2_SEL, 0xf3);
- 			tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
- 				0x02, 0x0f);
-+			/* Mux overflow workaround */
-+			tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
-+				0x30, 0xf0);
- 			break;
- 		case TM6000_AMUX_SIF2:
- 			reg_08_e2 |= 0x02;
-@@ -579,6 +557,9 @@ int tm6000_set_standard(struct tm6000_core *dev)
- 			tm6000_set_reg(dev, TM6010_REQ08_RE4_ADC_IN2_SEL, 0xf7);
- 			tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
- 				0x02, 0x0f);
-+			/* Mux overflow workaround */
-+			tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
-+				0x30, 0xf0);
- 			break;
- 		default:
- 			break;
+
+However, I'm not sure how useful it can really be used to abstract away
+
+tuning standards. There are a number of problems remaining:
+
+
+
+1) User-space may need localization of parameters names and enumeration
+
+value names. For frequency, we also need a unit, since it depends on the
+
+delivery system. In VLC, we have to replicate and keep the list of
+
+well-known V4L2 controls parameters just so gettext sees them. The same
+
+problem would affect DVB if you carry on with this.
+
+
+
+And unfortunately, even if v4l-utils had its own gettext domain, I doubt
+
+it would get as good visibility among translators as end-user applications
+
+have (e.g. VLC has 78 locales as of today).
+
+
+
+2) Some user-space are cross-platform, say across Linux DVB and Windows
+
+BDA. Since Windows BDA does not abstract delivery subsystems, such software
+
+cannot leverage dvb-v5-std.h.
+
+
+
+3) Some settings are absolutely required (e.g. frequency), some may be
+
+required depending on hardware and/or driver, some are not normally
+
+required to tune. When writing a UI, you need to know that.
+
+
+
+4) Systems like DVB-H (R.I.P.) or ATSC-M/H cannot be abstracted
+
+meaningfully as they don't provide a TS feed, so the user-space can't use
+
+them.
+
+
+
+5) Unless/Until the library implements scanning and some kind of channel
+
+or transponder abstraction (e.g. unique ID per transponder), it is dubious
+
+that it can really abstract new delivery systems. I mean, the tuning
+
+parameters need to come from somewhere, so the application will have to
+
+know about the delivery systems.
+
+
+
+
+
+So hmm, that's a lot of problems before I could use that library. Maybe
+
+some other user-space guys are less demanding bitches though :-)
+
+
+
+-- 
+
+Rémi Denis-Courmont
+
+http://www.remlab.net/
