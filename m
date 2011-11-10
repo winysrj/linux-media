@@ -1,120 +1,703 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61187 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752072Ab1K1OlW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 09:41:22 -0500
-Message-ID: <4ED39D88.507@redhat.com>
-Date: Mon, 28 Nov 2011 15:41:12 +0100
-From: "Fabio M. Di Nitto" <fdinitto@redhat.com>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>,
-	Mauro Chehab <mchehab@redhat.com>,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: HVR-900H dvb-t regression(s)
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:54266 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932280Ab1KJXe7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Nov 2011 18:34:59 -0500
+Received: by mail-iy0-f174.google.com with SMTP id e36so3520899iag.19
+        for <linux-media@vger.kernel.org>; Thu, 10 Nov 2011 15:34:59 -0800 (PST)
+From: Patrick Dickey <pdickeybeta@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Patrick Dickey <pdickeybeta@gmail.com>
+Subject: [PATCH 09/25] added drx_dap_fasi for pctv80e support
+Date: Thu, 10 Nov 2011 17:31:29 -0600
+Message-Id: <1320967905-7932-10-git-send-email-pdickeybeta@gmail.com>
+In-Reply-To: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
+References: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+---
+ drivers/media/dvb/frontends/drx_dap_fasi.c |  670 ++++++++++++++++++++++++++++
+ 1 files changed, 670 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/dvb/frontends/drx_dap_fasi.c
 
-short summary is that dvb-t on $subject doesn´t work with head of the
-tree (for_3.3 branch) and scan or mplayer stop working.
+diff --git a/drivers/media/dvb/frontends/drx_dap_fasi.c b/drivers/media/dvb/frontends/drx_dap_fasi.c
+new file mode 100644
+index 0000000..f34641d
+--- /dev/null
++++ b/drivers/media/dvb/frontends/drx_dap_fasi.c
+@@ -0,0 +1,670 @@
++/*
++  Copyright (c), 2004-2005,2007-2010 Trident Microsystems, Inc.
++  All rights reserved.
++
++  Redistribution and use in source and binary forms, with or without
++  modification, are permitted provided that the following conditions are met:
++
++  * Redistributions of source code must retain the above copyright notice,
++    this list of conditions and the following disclaimer.
++  * Redistributions in binary form must reproduce the above copyright notice,
++    this list of conditions and the following disclaimer in the documentation
++	and/or other materials provided with the distribution.
++  * Neither the name of Trident Microsystems nor Hauppauge Computer Works
++    nor the names of its contributors may be used to endorse or promote
++	products derived from this software without specific prior written
++	permission.
++
++  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++  POSSIBILITY OF SUCH DAMAGE.
++*/
++
++/*******************************************************************************
++* FILENAME: $Id: drx_dap_fasi.c,v 1.7 2009/12/28 14:36:21 carlo Exp $
++*
++* DESCRIPTION:
++* Part of DRX driver.
++* Data access protocol: Fast Access Sequential Interface (fasi)
++* Fast access, because of short addressing format (16 instead of 32 bits addr)
++* Sequential, because of I2C.
++* These functions know how the chip's memory and registers are to be accessed,
++* but nothing more.
++*
++* These functions should not need adapting to a new platform.
++*
++* USAGE:
++* -
++*
++* NOTES:
++*
++*
++*******************************************************************************/
++
++#include "drx_dap_fasi.h"
++#include "bsp_host.h"  /* for DRXBSP_HST_Memcpy() */
++
++/*============================================================================*/
++
++/* Function prototypes */
++static DRXStatus_t DRXDAP_FASI_WriteBlock (
++	pI2CDeviceAddr_t  devAddr,       /* address of I2C device        */
++	DRXaddr_t         addr,          /* address of register/memory   */
++	u16_t             datasize,      /* size of data                 */
++	pu8_t             data,          /* data to send                 */
++	DRXflags_t        flags);        /* special device flags         */
++
++static DRXStatus_t DRXDAP_FASI_ReadBlock (
++	pI2CDeviceAddr_t  devAddr,       /* address of I2C device        */
++	DRXaddr_t         addr,          /* address of register/memory   */
++	u16_t             datasize,      /* size of data                 */
++	pu8_t             data,          /* data to send                 */
++	DRXflags_t        flags);        /* special device flags         */
++
++static DRXStatus_t DRXDAP_FASI_WriteReg8 (
++	pI2CDeviceAddr_t  devAddr,       /* address of I2C device        */
++	DRXaddr_t         addr,          /* address of register          */
++	u8_t              data,          /* data to write                */
++	DRXflags_t        flags);        /* special device flags         */
++
++static DRXStatus_t DRXDAP_FASI_ReadReg8 (
++	pI2CDeviceAddr_t  devAddr,       /* address of I2C device        */
++	DRXaddr_t         addr,          /* address of register          */
++	pu8_t             data,          /* buffer to receive data       */
++	DRXflags_t        flags);        /* special device flags         */
++
++static DRXStatus_t DRXDAP_FASI_ReadModifyWriteReg8 (
++	pI2CDeviceAddr_t  devAddr,       /* address of I2C device        */
++	DRXaddr_t         waddr,         /* address of register          */
++	DRXaddr_t         raddr,         /* address to read back from    */
++	u8_t              datain,        /* data to send                 */
++	pu8_t             dataout);      /* data to receive back         */
++
++static DRXStatus_t DRXDAP_FASI_WriteReg16 (
++	pI2CDeviceAddr_t  devAddr,       /* address of I2C device        */
++	DRXaddr_t         addr,          /* address of register          */
++	u16_t             data,          /* data to write                */
++	DRXflags_t        flags);        /* special device flags         */
++
++static DRXStatus_t DRXDAP_FASI_ReadReg16 (
++	pI2CDeviceAddr_t  devAddr,       /* address of I2C device        */
++	DRXaddr_t         addr,          /* address of register          */
++	pu16_t            data,          /* buffer to receive data       */
++	DRXflags_t        flags);        /* special device flags         */
++
++static DRXStatus_t DRXDAP_FASI_ReadModifyWriteReg16 (
++	pI2CDeviceAddr_t  devAddr,       /* address of I2C device        */
++	DRXaddr_t         waddr,         /* address of register          */
++	DRXaddr_t         raddr,         /* address to read back from    */
++	u16_t             datain,        /* data to send                 */
++	pu16_t            dataout);      /* data to receive back         */
++
++static DRXStatus_t DRXDAP_FASI_WriteReg32 (
++	pI2CDeviceAddr_t  devAddr,       /* address of I2C device        */
++	DRXaddr_t         addr,          /* address of register          */
++	u32_t             data,          /* data to write                */
++	DRXflags_t        flags);        /* special device flags         */
++
++static DRXStatus_t DRXDAP_FASI_ReadReg32 (
++	pI2CDeviceAddr_t  devAddr,       /* address of I2C device        */
++	DRXaddr_t         addr,          /* address of register          */
++	pu32_t            data,          /* buffer to receive data       */
++	DRXflags_t        flags);        /* special device flags         */
++
++static DRXStatus_t DRXDAP_FASI_ReadModifyWriteReg32 (
++	pI2CDeviceAddr_t  devAddr,       /* address of I2C device        */
++	DRXaddr_t         waddr,         /* address of register          */
++	DRXaddr_t         raddr,         /* address to read back from    */
++	u32_t             datain,        /* data to send                 */
++	pu32_t            dataout);      /* data to receive back         */
++
++/* The version structure of this protocol implementation */
++char drxDapFASIModuleName[]  = "FASI Data Access Protocol";
++char drxDapFASIVersionText[] = "";
++
++DRXVersion_t drxDapFASIVersion =
++{
++	DRX_MODULE_DAP,            /**< type identifier of the module */
++	drxDapFASIModuleName,      /**< name or description of module */
++
++	0,                         /**< major version number */
++	0,                         /**< minor version number */
++	0,                         /**< patch version number */
++	drxDapFASIVersionText      /**< version as text string */
++};
++
++/* The structure containing the protocol interface */
++DRXAccessFunc_t drxDapFASIFunct_g =
++{
++	&drxDapFASIVersion,
++	DRXDAP_FASI_WriteBlock,               /* Supported */
++	DRXDAP_FASI_ReadBlock,                /* Supported */
++	DRXDAP_FASI_WriteReg8,                /* Not supported */
++	DRXDAP_FASI_ReadReg8,                 /* Not supported */
++	DRXDAP_FASI_ReadModifyWriteReg8,      /* Not supported */
++	DRXDAP_FASI_WriteReg16,               /* Supported */
++	DRXDAP_FASI_ReadReg16,                /* Supported */
++	DRXDAP_FASI_ReadModifyWriteReg16,     /* Supported */
++	DRXDAP_FASI_WriteReg32,               /* Supported */
++	DRXDAP_FASI_ReadReg32,                /* Supported */
++	DRXDAP_FASI_ReadModifyWriteReg32      /* Not supported */
++};
++
++/*============================================================================*/
++
++/* Functions not supported by protocol*/
++
++static DRXStatus_t DRXDAP_FASI_WriteReg8 (
++	pI2CDeviceAddr_t  devAddr,       /* address of I2C device        */
++	DRXaddr_t         addr,          /* address of register          */
++	u8_t              data,          /* data to write                */
++	DRXflags_t        flags)         /* special device flags         */
++{
++	return DRX_STS_ERROR;
++}
++
++static DRXStatus_t DRXDAP_FASI_ReadReg8 (
++	pI2CDeviceAddr_t  devAddr,       /* address of I2C device        */
++	DRXaddr_t         addr,          /* address of register          */
++	pu8_t             data,          /* buffer to receive data       */
++	DRXflags_t        flags)         /* special device flags         */
++{
++	return DRX_STS_ERROR;
++}
++
++static DRXStatus_t DRXDAP_FASI_ReadModifyWriteReg8 (
++	pI2CDeviceAddr_t  devAddr,       /* address of I2C device        */
++	DRXaddr_t         waddr,         /* address of register          */
++	DRXaddr_t         raddr,         /* address to read back from    */
++	u8_t              datain,        /* data to send                 */
++	pu8_t             dataout)       /* data to receive back         */
++{
++	return DRX_STS_ERROR;
++}
++
++static DRXStatus_t DRXDAP_FASI_ReadModifyWriteReg32 (
++	pI2CDeviceAddr_t  devAddr,       /* address of I2C device        */
++	DRXaddr_t         waddr,         /* address of register          */
++	DRXaddr_t         raddr,         /* address to read back from    */
++	u32_t             datain,        /* data to send                 */
++	pu32_t            dataout)       /* data to receive back         */
++{
++	return DRX_STS_ERROR;
++}
++
++/*============================================================================*/
++
++/******************************
++*
++* DRXStatus_t DRXDAP_FASI_ReadBlock (
++*      pI2CDeviceAddr_t devAddr,      -- address of I2C device
++*      DRXaddr_t        addr,         -- address of chip register/memory
++*      u16_t            datasize,     -- number of bytes to read
++*      pu8_t            data,         -- data to receive
++*      DRXflags_t       flags)        -- special device flags
++*
++* Read block data from chip address. Because the chip is word oriented,
++* the number of bytes to read must be even.
++*
++* Make sure that the buffer to receive the data is large enough.
++*
++* Although this function expects an even number of bytes, it is still byte
++* oriented, and the data read back is NOT translated to the endianness of
++* the target platform.
++*
++* Output:
++* - DRX_STS_OK     if reading was successful
++*                  in that case: data read is in *data.
++* - DRX_STS_ERROR  if anything went wrong
++*
++******************************/
++
++static DRXStatus_t DRXDAP_FASI_ReadBlock (pI2CDeviceAddr_t  devAddr,
++					DRXaddr_t         addr,
++					u16_t             datasize,
++					pu8_t             data,
++					DRXflags_t        flags)
++{
++	u8_t buf[4];
++	u16_t bufx;
++	DRXStatus_t rc;
++	u16_t overheadSize = 0;
++
++	/* Check parameters ********************************************************/
++	if (devAddr == NULL)
++	{
++	return DRX_STS_INVALID_ARG;
++	}
++
++	overheadSize = (IS_I2C_10BIT (devAddr->i2cAddr) ? 2 : 1) +
++			(DRXDAP_FASI_LONG_FORMAT(addr) ? 4 : 2);
++
++	if ((DRXDAP_FASI_OFFSET_TOO_LARGE(addr)) ||
++		((!(DRXDAPFASI_LONG_ADDR_ALLOWED)) &&
++		DRXDAP_FASI_LONG_FORMAT(addr)) ||
++		(overheadSize > (DRXDAP_MAX_WCHUNKSIZE)) ||
++		((datasize!=0) && (data==NULL)) ||
++		((datasize & 1)==1))
++	{
++	return DRX_STS_INVALID_ARG;
++	}
++
++	/* ReadModifyWrite & mode flag bits are not allowed */
++	flags &= (~DRXDAP_FASI_RMW & ~DRXDAP_FASI_MODEFLAGS);
++#if DRXDAP_SINGLE_MASTER
++	flags |= DRXDAP_FASI_SINGLE_MASTER;
++#endif
++
++	/* Read block from I2C *****************************************************/
++	do {
++		u16_t todo = (datasize <  DRXDAP_MAX_RCHUNKSIZE ?
++				datasize :  DRXDAP_MAX_RCHUNKSIZE);
++
++	bufx = 0;
++
++	addr  &= ~DRXDAP_FASI_FLAGS;
++	addr |= flags;
++
++#if ((DRXDAPFASI_LONG_ADDR_ALLOWED==1) && \
++	(DRXDAPFASI_SHORT_ADDR_ALLOWED==1))
++	/* short format address preferred but long format otherwise */
++	if (DRXDAP_FASI_LONG_FORMAT(addr))
++	{
++#endif
++#if (DRXDAPFASI_LONG_ADDR_ALLOWED==1)
++	buf[bufx++] = (u8_t) (((addr <<  1) & 0xFF)|0x01);
++	buf[bufx++] = (u8_t) ((addr >> 16) & 0xFF);
++	buf[bufx++] = (u8_t) ((addr >> 24) & 0xFF);
++	buf[bufx++] = (u8_t) ((addr >>  7) & 0xFF);
++#endif
++#if ((DRXDAPFASI_LONG_ADDR_ALLOWED==1) && \
++	(DRXDAPFASI_SHORT_ADDR_ALLOWED==1))
++	} else {
++#endif
++#if (DRXDAPFASI_SHORT_ADDR_ALLOWED==1)
++	buf[bufx++] = (u8_t) ((addr <<  1) & 0xFF);
++	buf[bufx++] = (u8_t) (((addr >> 16) & 0x0F) | ((addr >> 18) & 0xF0));
++#endif
++#if ((DRXDAPFASI_LONG_ADDR_ALLOWED==1) && \
++	(DRXDAPFASI_SHORT_ADDR_ALLOWED==1))
++	}
++#endif
++
++
++
++
++#if DRXDAP_SINGLE_MASTER
++	/*
++	* In single master mode, split the read and write actions.
++	* No special action is needed for write chunks here.
++	*/
++	rc = DRXBSP_I2C_WriteRead (devAddr, bufx, buf, 0, 0, 0);
++	if (rc == DRX_STS_OK) {
++		rc = DRXBSP_I2C_WriteRead (0, 0, 0, devAddr, todo, data);
++	}
++#else
++	/* In multi master mode, do everything in one RW action */
++	rc = DRXBSP_I2C_WriteRead (devAddr, bufx, buf, devAddr, todo, data);
++#endif
++	data += todo;
++	addr += (todo >> 1);
++	datasize -= todo;
++	} while (datasize && rc == DRX_STS_OK);
++
++	return rc;
++}
++
++
++
++
++/******************************
++*
++* DRXStatus_t DRXDAP_FASI_ReadModifyWriteReg16 (
++*      pI2CDeviceAddr_t devAddr,   -- address of I2C device
++*      DRXaddr_t        waddr,     -- address of chip register/memory
++*      DRXaddr_t        raddr,     -- chip address to read back from
++*      u16_t            wdata,     -- data to send
++*      pu16_t           rdata)     -- data to receive back
++*
++* Write 16-bit data, then read back the original contents of that location.
++* Requires long addressing format to be allowed.
++*
++* Before sending data, the data is converted to little endian. The
++* data received back is converted back to the target platform's endianness.
++*
++* WARNING: This function is only guaranteed to work if there is one
++* master on the I2C bus.
++*
++* Output:
++* - DRX_STS_OK     if reading was successful
++*                  in that case: read back data is at *rdata
++* - DRX_STS_ERROR  if anything went wrong
++*
++******************************/
++
++static DRXStatus_t DRXDAP_FASI_ReadModifyWriteReg16 (pI2CDeviceAddr_t  devAddr,
++						DRXaddr_t         waddr,
++						DRXaddr_t         raddr,
++						u16_t             wdata,
++						pu16_t            rdata)
++{
++	DRXStatus_t rc=DRX_STS_ERROR;
++
++#if (DRXDAPFASI_LONG_ADDR_ALLOWED==1)
++	if (rdata == NULL) {
++		return DRX_STS_INVALID_ARG;
++	}
++
++	rc = DRXDAP_FASI_WriteReg16 (devAddr, waddr, wdata, DRXDAP_FASI_RMW);
++	if (rc == DRX_STS_OK) {
++		rc = DRXDAP_FASI_ReadReg16 (devAddr, raddr, rdata, 0);
++	}
++#endif
++
++	return rc;
++}
++
++
++
++
++/******************************
++*
++* DRXStatus_t DRXDAP_FASI_ReadReg16 (
++*     pI2CDeviceAddr_t devAddr, -- address of I2C device
++*     DRXaddr_t        addr,    -- address of chip register/memory
++*     pu16_t           data,    -- data to receive
++*     DRXflags_t       flags)   -- special device flags
++*
++* Read one 16-bit register or memory location. The data received back is
++* converted back to the target platform's endianness.
++*
++* Output:
++* - DRX_STS_OK     if reading was successful
++*                  in that case: read data is at *data
++* - DRX_STS_ERROR  if anything went wrong
++*
++******************************/
++
++static DRXStatus_t DRXDAP_FASI_ReadReg16 (pI2CDeviceAddr_t  devAddr,
++					DRXaddr_t         addr,
++					pu16_t            data,
++					DRXflags_t        flags)
++{
++	u8_t buf[sizeof (*data)];
++	DRXStatus_t rc;
++
++	if (!data) {
++		return DRX_STS_INVALID_ARG;
++	}
++	rc = DRXDAP_FASI_ReadBlock (devAddr, addr, sizeof (*data), buf, flags);
++	*data = buf[0] + (((u16_t) buf[1]) << 8);
++	return rc;
++}
++
++
++
++
++/******************************
++*
++* DRXStatus_t DRXDAP_FASI_ReadReg32 (
++*     pI2CDeviceAddr_t devAddr, -- address of I2C device
++*     DRXaddr_t        addr,    -- address of chip register/memory
++*     pu32_t           data,    -- data to receive
++*     DRXflags_t       flags)   -- special device flags
++*
++* Read one 32-bit register or memory location. The data received back is
++* converted back to the target platform's endianness.
++*
++* Output:
++* - DRX_STS_OK     if reading was successful
++*                  in that case: read data is at *data
++* - DRX_STS_ERROR  if anything went wrong
++*
++******************************/
++
++static DRXStatus_t DRXDAP_FASI_ReadReg32 (pI2CDeviceAddr_t  devAddr,
++					DRXaddr_t         addr,
++					pu32_t            data,
++					DRXflags_t        flags)
++{
++	u8_t buf[sizeof (*data)];
++	DRXStatus_t rc;
++
++	if (!data) {
++		return DRX_STS_INVALID_ARG;
++	}
++	rc = DRXDAP_FASI_ReadBlock (devAddr, addr, sizeof (*data), buf, flags);
++	*data =  (((u32_t) buf[0]) <<  0) +
++		(((u32_t) buf[1]) <<  8) +
++		(((u32_t) buf[2]) << 16) +
++		(((u32_t) buf[3]) << 24);
++	return rc;
++}
++
++
++
++
++/******************************
++*
++* DRXStatus_t DRXDAP_FASI_WriteBlock (
++*      pI2CDeviceAddr_t devAddr,    -- address of I2C device
++*      DRXaddr_t        addr,       -- address of chip register/memory
++*      u16_t            datasize,   -- number of bytes to read
++*      pu8_t            data,       -- data to receive
++*      DRXflags_t       flags)      -- special device flags
++*
++* Write block data to chip address. Because the chip is word oriented,
++* the number of bytes to write must be even.
++*
++* Although this function expects an even number of bytes, it is still byte
++* oriented, and the data being written is NOT translated from the endianness of
++* the target platform.
++*
++* Output:
++* - DRX_STS_OK     if writing was successful
++* - DRX_STS_ERROR  if anything went wrong
++*
++******************************/
++
++static DRXStatus_t DRXDAP_FASI_WriteBlock (pI2CDeviceAddr_t  devAddr,
++						DRXaddr_t         addr,
++						u16_t             datasize,
++						pu8_t             data,
++						DRXflags_t        flags)
++{
++	u8_t buf[ DRXDAP_MAX_WCHUNKSIZE ];
++	DRXStatus_t st       = DRX_STS_ERROR;
++	DRXStatus_t firstErr = DRX_STS_OK;
++	u16_t overheadSize   = 0;
++	u16_t blockSize      = 0;
++
++   /* Check parameters ********************************************************/
++	if (devAddr == NULL) {
++		return DRX_STS_INVALID_ARG;
++	}
++
++	overheadSize = (IS_I2C_10BIT (devAddr->i2cAddr) ? 2 : 1) +
++			(DRXDAP_FASI_LONG_FORMAT(addr) ? 4 : 2);
++
++	if ((DRXDAP_FASI_OFFSET_TOO_LARGE(addr)) ||
++		((!(DRXDAPFASI_LONG_ADDR_ALLOWED)) &&
++		DRXDAP_FASI_LONG_FORMAT(addr)) ||
++		(overheadSize > (DRXDAP_MAX_WCHUNKSIZE)) ||
++		((datasize!=0) && (data==NULL)) ||
++		((datasize & 1)==1)) {
++		return DRX_STS_INVALID_ARG;
++	}
++
++	flags &= DRXDAP_FASI_FLAGS;
++	flags &= ~DRXDAP_FASI_MODEFLAGS;
++#if DRXDAP_SINGLE_MASTER
++	flags |= DRXDAP_FASI_SINGLE_MASTER;
++#endif
++
++   /* Write block to I2C ******************************************************/
++	blockSize = ((DRXDAP_MAX_WCHUNKSIZE) - overheadSize) & ~1;
++	do
++	{
++		u16_t todo = 0;
++		u16_t bufx = 0;
++
++		/* Buffer device address */
++		addr  &= ~DRXDAP_FASI_FLAGS;
++		addr |= flags;
++		#if (((DRXDAPFASI_LONG_ADDR_ALLOWED)==1) && \
++			((DRXDAPFASI_SHORT_ADDR_ALLOWED)==1))
++			/* short format address preferred but long format otherwise */
++			if (DRXDAP_FASI_LONG_FORMAT(addr)) {
++		#endif
++		#if ((DRXDAPFASI_LONG_ADDR_ALLOWED)==1)
++			buf[bufx++] = (u8_t) (((addr <<  1) & 0xFF)|0x01);
++			buf[bufx++] = (u8_t) ((addr >> 16) & 0xFF);
++			buf[bufx++] = (u8_t) ((addr >> 24) & 0xFF);
++			buf[bufx++] = (u8_t) ((addr >>  7) & 0xFF);
++		#endif
++		#if (((DRXDAPFASI_LONG_ADDR_ALLOWED)==1) && \
++			((DRXDAPFASI_SHORT_ADDR_ALLOWED)==1))
++		} else {
++		#endif
++			#if ((DRXDAPFASI_SHORT_ADDR_ALLOWED)==1)
++			buf[bufx++] = (u8_t) ((addr <<  1) & 0xFF);
++			buf[bufx++] = (u8_t) (((addr >> 16) & 0x0F) |
++						((addr >> 18) & 0xF0));
++			#endif
++			#if (((DRXDAPFASI_LONG_ADDR_ALLOWED)==1) && \
++				((DRXDAPFASI_SHORT_ADDR_ALLOWED)==1))
++		}
++			#endif
++
++		/*
++		In single master mode blockSize can be 0. In such a case this I2C
++		sequense will be visible: (1) write address {i2c addr,
++		4 bytes chip address} (2) write data {i2c addr, 4 bytes data }
++		(3) write address (4) write data etc...
++		Addres must be rewriten because HI is reset after data transport and
++		expects an address.
++		*/
++		todo = (blockSize < datasize ? blockSize : datasize);
++		if (todo==0) {
++			u16_t overheadSizeI2cAddr = 0;
++			u16_t dataBlockSize       = 0;
++
++			overheadSizeI2cAddr = (IS_I2C_10BIT (devAddr->i2cAddr)
++						 ? 2 : 1);
++			dataBlockSize = (DRXDAP_MAX_WCHUNKSIZE -
++					overheadSizeI2cAddr) & ~1;
++
++			/* write device address */
++			st = DRXBSP_I2C_WriteRead(devAddr,
++						(u16_t) (bufx),
++						buf,
++						(pI2CDeviceAddr_t)(NULL),
++						0,
++						(pu8_t)(NULL));
++
++			if ((st != DRX_STS_OK) && (firstErr == DRX_STS_OK)) {
++				/* at the end, return the first error encountered */
++				firstErr = st;
++			}
++			bufx = 0;
++			todo = (dataBlockSize < datasize ? dataBlockSize :
++								datasize);
++		}
++		DRXBSP_HST_Memcpy (&buf[bufx], data, todo);
++		/* write (address if can do and) data */
++		st = DRXBSP_I2C_WriteRead(devAddr,
++						(u16_t)(bufx + todo),
++						buf,
++						(pI2CDeviceAddr_t)(NULL),
++						0,
++						(pu8_t)(NULL));
++
++		if ((st != DRX_STS_OK) && (firstErr == DRX_STS_OK)) {
++			/* at the end, return the first error encountered */
++			firstErr = st;
++		}
++		datasize -= todo;
++		data += todo;
++		addr += (todo >> 1);
++	} while (datasize);
++
++	return firstErr;
++}
++
++
++
++
++/******************************
++*
++* DRXStatus_t DRXDAP_FASI_WriteReg16 (
++*     pI2CDeviceAddr_t devAddr, -- address of I2C device
++*     DRXaddr_t        addr,    -- address of chip register/memory
++*     u16_t            data,    -- data to send
++*     DRXflags_t       flags)   -- special device flags
++*
++* Write one 16-bit register or memory location. The data being written is
++* converted from the target platform's endianness to little endian.
++*
++* Output:
++* - DRX_STS_OK     if writing was successful
++* - DRX_STS_ERROR  if anything went wrong
++*
++******************************/
++
++static DRXStatus_t DRXDAP_FASI_WriteReg16 (pI2CDeviceAddr_t  devAddr,
++					DRXaddr_t         addr,
++					u16_t             data,
++					DRXflags_t        flags)
++{
++	u8_t buf[sizeof (data)];
++
++	buf[0] = (u8_t) ((data >> 0) & 0xFF);
++	buf[1] = (u8_t) ((data >> 8) & 0xFF);
++
++	return DRXDAP_FASI_WriteBlock (devAddr, addr, sizeof (data), buf,
++								flags);
++}
++
++
++
++
++/******************************
++*
++* DRXStatus_t DRXDAP_FASI_WriteReg32 (
++*     pI2CDeviceAddr_t devAddr, -- address of I2C device
++*     DRXaddr_t        addr,    -- address of chip register/memory
++*     u32_t            data,    -- data to send
++*     DRXflags_t       flags)   -- special device flags
++*
++* Write one 32-bit register or memory location. The data being written is
++* converted from the target platform's endianness to little endian.
++*
++* Output:
++* - DRX_STS_OK     if writing was successful
++* - DRX_STS_ERROR  if anything went wrong
++*
++******************************/
++
++static DRXStatus_t DRXDAP_FASI_WriteReg32 (pI2CDeviceAddr_t  devAddr,
++					DRXaddr_t         addr,
++					u32_t             data,
++					DRXflags_t        flags)
++{
++	u8_t buf[sizeof (data)];
++
++	buf[0] = (u8_t) ((data >> 0) & 0xFF);
++	buf[1] = (u8_t) ((data >> 8) & 0xFF);
++	buf[2] = (u8_t) ((data >> 16) & 0xFF);
++	buf[3] = (u8_t) ((data >> 24) & 0xFF);
++
++	return DRXDAP_FASI_WriteBlock (devAddr, addr, sizeof (data), buf,
++								flags);
++}
+-- 
+1.7.5.4
 
-Here is the breakdown of what I found with all logs. Please let me know
-if you need any extra info. Can easily test patches and gather more logs
-if necessary.
-
-Also please note that I am no media guru of any kind. I had to work on
-some assumptions from time to time.
-
-Based on git bisect:
-
-The last known good commit is e872bb9a7ddfc025ed727cc922b0aa32a7582004
-
-The first known bad commit is f010dca2e52d8dcc0445d695192df19241afacdb
-
-commit f010dca2e52d8dcc0445d695192df19241afacdb
-Author: Stefan Ringel <stefan.ringel@arcor.de>
-Date:   Mon May 9 16:53:58 2011 -0300
-
-    [media] tm6000: move from tm6000_set_reg to tm6000_set_reg_mask
-
-    move from tm6000_set_reg to tm6000_set_reg_mask
-
-    Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-While this commit appears rather innocent, it changes the way some
-registries are set.
-
-the original code did:
-
-read_reg...
-change value
-write_reg.. (unconditionally)
-
-the new code path:
-
-read_reg...
-calculate new value
-check if it is same
-if not, write_reg...
-
-So I did the simplest test as possible by removing the conditional in
-tm6000_set_reg_mask and dvb-t started working again.
-
-something along those lines:
-
-diff --git a/drivers/media/video/tm6000/tm6000-core.c
-b/drivers/media/video/tm6000/tm6000-core.c
-index 9783616..818f542 100644
---- a/drivers/media/video/tm6000/tm6000-core.c
-+++ b/drivers/media/video/tm6000/tm6000-core.c
-@@ -132,8 +132,8 @@ int tm6000_set_reg_mask(struct tm6000_core *dev, u8
-req, u16 value,
-
-        new_index = (buf[0] & ~mask) | (index & mask);
-
--       if (new_index == index)
--               return 0;
-+//     if (new_index == index)
-+//             return 0;
-
-        return tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR,
-                                      req, value, new_index, NULL, 0);
-
-but moving this change to the HEAD of for_v3.3 doesn´t solve the
-problem, possibly hinting to multiple regressions in the driver but at
-this point I am slightly lost because i can´t figure out what else is
-wrong. Some semi-random git bisect didn´t bring me anywhere useful at
-this point.
-
-In an poor attempt to be a good boy, I collected all the data here:
-http://fabbione.fedorapeople.org/dvblogs.tar.xz
-(NOTE: 76MB file, 101MB unpacked)
-
-The file contains 5 dirs:
-
-last-known-good-e872bb9a7ddfc025ed727cc922b0aa32a7582004
-first-known-bad-f010dca2e52d8dcc0445d695192df19241afacdb
-test1-change-set-reg-mask-f010dca2e52d8dcc0445d695192df19241afacdb+
-head-known-bad-7e5219d18e93dd23e834a53b1ea73ead19cfeeb1
-test2-change-set-reg-mask-7e5219d18e93dd23e834a53b1ea73ead19cfeeb1+
-
-and each directory has:
-
-dmesg
-scan_results
-tcpdump (tcpdump -i usbmod1 -w tcpdump)
-usbmon0u (cat /sys.... > usbmod0u)
-
-captures are started before modprobe tm6000-dvb and stop after a "scan
--a 0 dk"
-
-The testX are marked "+" as they contain the workaround mentioned above
-(test1 also adds a build workaround fixed a few commits later in the
-tree to unexport a symbol).
-
-Thanks
-Fabio
