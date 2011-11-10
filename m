@@ -1,50 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52214 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750916Ab1KDMqT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2011 08:46:19 -0400
-Received: from localhost.localdomain (unknown [91.178.160.144])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 016E735B6D
-	for <linux-media@vger.kernel.org>; Fri,  4 Nov 2011 12:46:17 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/6] uvcvideo: Remove duplicate definitions of UVC_STREAM_* macros
-Date: Fri,  4 Nov 2011 13:46:13 +0100
-Message-Id: <1320410777-14108-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1320410777-14108-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1320410777-14108-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:47845 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755208Ab1KJI0P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Nov 2011 03:26:15 -0500
+Date: Thu, 10 Nov 2011 09:26:06 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: Re: [RFC 1/2] dvb-core: add generic helper function for I2C
+ register
+Message-ID: <20111110092606.37fe3c45@endymion.delvare>
+In-Reply-To: <4EBA6BC0.7080405@redhat.com>
+References: <4EB9C13A.2060707@iki.fi>
+	<4EBA4E3D.80105@redhat.com>
+	<20111109113740.4b345130@endymion.delvare>
+	<4EBA6BC0.7080405@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The macros are defined in both drivers/media/video/uvc/uvc_video.c and
-include/linux/usb/video.h. Remove definitions from the former.
+On Wed, 09 Nov 2011 10:02:08 -0200, Mauro Carvalho Chehab wrote:
+> Em 09-11-2011 08:37, Jean Delvare escreveu:
+> > Speaking of struct i2c_client, I seem to remember that the dvb
+> > subsystem doesn't use it much at the moment. This might be an issue if
+> > you intend to get the generic code into i2c-core, as most helper
+> > functions rely on a valid i2c_client structure by design.
+> 
+> Yes, DVB uses the low level I2C ops. I don't see any reason why not
+> changing it to use struct i2c_client (well, except that such change
+> would require lots of changes and tests).
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/uvc/uvc_video.c |   10 ----------
- 1 files changed, 0 insertions(+), 10 deletions(-)
+The "lots of changes and tests" part is indeed the problem. Furthermore
+I clearly remember discussing this with Michael a couple years ago
+(during the i2c device driver model rework) and telling him I would
+never force DVB to make use of i2c_client if they did not want to. I
+gave my word, taking it back now would be unfair. Well at least the new
+i2c model would make it possible, this wasn't the case before, but this
+is such a huge amount of work that I certainly don't want to push this
+on anyone.
 
-diff --git a/drivers/media/video/uvc/uvc_video.c b/drivers/media/video/uvc/uvc_video.c
-index 2e5e728..d8666ec 100644
---- a/drivers/media/video/uvc/uvc_video.c
-+++ b/drivers/media/video/uvc/uvc_video.c
-@@ -361,16 +361,6 @@ int uvc_commit_video(struct uvc_streaming *stream,
-  * Video codecs
-  */
- 
--/* Values for bmHeaderInfo (Video and Still Image Payload Headers, 2.4.3.3) */
--#define UVC_STREAM_EOH	(1 << 7)
--#define UVC_STREAM_ERR	(1 << 6)
--#define UVC_STREAM_STI	(1 << 5)
--#define UVC_STREAM_RES	(1 << 4)
--#define UVC_STREAM_SCR	(1 << 3)
--#define UVC_STREAM_PTS	(1 << 2)
--#define UVC_STREAM_EOF	(1 << 1)
--#define UVC_STREAM_FID	(1 << 0)
--
- /* Video payload decoding is handled by uvc_video_decode_start(),
-  * uvc_video_decode_data() and uvc_video_decode_end().
-  *
 -- 
-1.7.3.4
-
+Jean Delvare
