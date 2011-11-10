@@ -1,42 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54895 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755812Ab1KGRdy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2011 12:33:54 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andrew Tubbiolo <andrew.tubbiolo@gmail.com>
-Subject: Re: mt9p031 driver source.
-Date: Mon, 7 Nov 2011 18:33:51 +0100
-Cc: linux-media@vger.kernel.org
-References: <CAAN7ACRw1nGXRgs6Mtx4x-0USWMMohH0WrW4H7XEhMVnFaVSLw@mail.gmail.com> <CAAN7ACQQLAao2rGp2zWgob0mBSs+DUqd1SLkBgzZW-poRBDVsA@mail.gmail.com>
-In-Reply-To: <CAAN7ACQQLAao2rGp2zWgob0mBSs+DUqd1SLkBgzZW-poRBDVsA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111071833.52553.laurent.pinchart@ideasonboard.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:54266 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757191Ab1KJXeu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Nov 2011 18:34:50 -0500
+Received: by mail-iy0-f174.google.com with SMTP id e36so3520899iag.19
+        for <linux-media@vger.kernel.org>; Thu, 10 Nov 2011 15:34:50 -0800 (PST)
+From: Patrick Dickey <pdickeybeta@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Patrick Dickey <pdickeybeta@gmail.com>
+Subject: [PATCH 01/25] added PCTV80e information to cardlist file
+Date: Thu, 10 Nov 2011 17:31:21 -0600
+Message-Id: <1320967905-7932-2-git-send-email-pdickeybeta@gmail.com>
+In-Reply-To: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
+References: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrew,
+---
+ Documentation/video4linux/CARDLIST.em28xx |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-On Saturday 05 November 2011 05:01:01 Andrew Tubbiolo wrote:
-> Hi All:
-> 
->    I've been playing with the mt9p031 for some time now. Last weekend
-> I got the raw 12 bit data dump I've been wanting for some time. As of
-> now the module I'm using only works if it is included in the kernel. I
-> cannot obtain functionality or enumeration on the i2c bus if I insert
-> it as a module. I think some of the init code is missing in the
-> version of the driver I've been working with. Can folks who are
-> working with the aptina mt9p031.c driver tell me the location from
-> which you obtained your source? I need a driver that is compatiable
-> with linux 2.6.39 and ready to respond to commands from media-ctl.
-
-Where have you got the mt9p031 driver you're currently using ? An mt9p031 
-driver is now available in mainline, you should use that one.
-
+diff --git a/Documentation/video4linux/CARDLIST.em28xx b/Documentation/video4linux/CARDLIST.em28xx
+index d8c8544..319a9b2 100644
+--- a/Documentation/video4linux/CARDLIST.em28xx
++++ b/Documentation/video4linux/CARDLIST.em28xx
+@@ -78,3 +78,4 @@
+  78 -> PCTV nanoStick T2 290e                   (em28174)
+  79 -> Terratec Cinergy H5                      (em2884)        [0ccd:0043,0ccd:10a2]
+  80 -> PCTV DVB-S2 Stick (460e)                 (em28174)
++81 -> Pinnacle PCTV HD Mini                    (em2874)        [2304:023f]
 -- 
-Regards,
+1.7.5.4
 
-Laurent Pinchart
