@@ -1,90 +1,497 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49557 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755122Ab1KWNNC (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:54266 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757271Ab1KJXe4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Nov 2011 08:13:02 -0500
-Date: Wed, 23 Nov 2011 14:12:50 +0100
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, shawn.guo@linaro.org,
-	richard.zhao@linaro.org, fabio.estevam@freescale.com,
-	kernel@pengutronix.de, r.schwebel@pengutronix.de
-Subject: Re: [PATCH v2 2/2] MEM2MEM: Add support for eMMa-PrP mem2mem
- operations.
-Message-ID: <20111123131250.GT27267@pengutronix.de>
-References: <1321963316-9058-1-git-send-email-javier.martin@vista-silicon.com>
- <1321963316-9058-3-git-send-email-javier.martin@vista-silicon.com>
- <20111122205552.GO27267@pengutronix.de>
- <CACKLOr0-GzO0r0ERCQvqCn2oDkDE816+MHsu=bLbA5BkEBAqYA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CACKLOr0-GzO0r0ERCQvqCn2oDkDE816+MHsu=bLbA5BkEBAqYA@mail.gmail.com>
+	Thu, 10 Nov 2011 18:34:56 -0500
+Received: by mail-iy0-f174.google.com with SMTP id e36so3520899iag.19
+        for <linux-media@vger.kernel.org>; Thu, 10 Nov 2011 15:34:55 -0800 (PST)
+From: Patrick Dickey <pdickeybeta@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Patrick Dickey <pdickeybeta@gmail.com>
+Subject: [PATCH 06/25] added drx39xxj for pctv80e support
+Date: Thu, 10 Nov 2011 17:31:26 -0600
+Message-Id: <1320967905-7932-7-git-send-email-pdickeybeta@gmail.com>
+In-Reply-To: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
+References: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 23, 2011 at 01:32:29PM +0100, javier Martin wrote:
-> Hi Sascha,
-> I was just trying to fix the issues you pointed previously and I have
-> a question for you.
-> 
-> On 22 November 2011 21:55, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> > Hi Javier,
-> >> +
-> >> +static int emmaprp_probe(struct platform_device *pdev)
-> >> +{
-> >> +     struct emmaprp_dev *pcdev;
-> >> +     struct video_device *vfd;
-> >> +     struct resource *res_emma;
-> >> +     int irq_emma;
-> >> +     int ret;
-> >> +
-> >> +     pcdev = kzalloc(sizeof *pcdev, GFP_KERNEL);
-> >> +     if (!pcdev)
-> >> +             return -ENOMEM;
-> >> +
-> >> +     spin_lock_init(&pcdev->irqlock);
-> >> +
-> >> +     pcdev->clk_emma = clk_get(NULL, "emma");
-> >
-> > You should change the entry for the emma in
-> > arch/arm/mach-imx/clock-imx27.c to the following:
-> >
-> > _REGISTER_CLOCK("m2m-emmaprp", NULL, emma_clk)
-> >
-> > and use clk_get(&pdev->dev, NULL) here.
-> >
-> 
-> Is this what you are asking for?
-> 
-> --- a/arch/arm/mach-imx/clock-imx27.c
-> +++ b/arch/arm/mach-imx/clock-imx27.c
-> @@ -661,7 +661,7 @@ static struct clk_lookup lookups[] = {
->         _REGISTER_CLOCK(NULL, "dma", dma_clk)
->         _REGISTER_CLOCK(NULL, "rtic", rtic_clk)
->         _REGISTER_CLOCK(NULL, "brom", brom_clk)
-> -       _REGISTER_CLOCK(NULL, "emma", emma_clk)
-> +       _REGISTER_CLOCK("m2m-emmaprp", NULL, emma_clk)
->         _REGISTER_CLOCK(NULL, "slcdc", slcdc_clk)
->         _REGISTER_CLOCK("imx27-fec.0", NULL, fec_clk)
->         _REGISTER_CLOCK(NULL, "emi", emi_clk)
-> 
-> If I do that, mx2_camera.c will stop working.
+---
+ drivers/media/dvb/frontends/drx39xxj.c |  464 ++++++++++++++++++++++++++++++++
+ 1 files changed, 464 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/dvb/frontends/drx39xxj.c
 
-This depends on the platform device id. If you use with -1
-you have to use "m2m-emmaprp", if you use 0 (as you did I think)
-you have to use "m2m-emmaprp.0". Basically the string has to
-match the device name as found in /sys/devices/platform/
-
-Sascha
-
+diff --git a/drivers/media/dvb/frontends/drx39xxj.c b/drivers/media/dvb/frontends/drx39xxj.c
+new file mode 100644
+index 0000000..a74e81b
+--- /dev/null
++++ b/drivers/media/dvb/frontends/drx39xxj.c
+@@ -0,0 +1,464 @@
++/*
++ *  Driver for Micronas DRX39xx family (drx3933j)
++ *
++ *  Written by Devin Heitmueller <devin.heitmueller@kernellabs.com>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/string.h>
++#include <linux/slab.h>
++
++#include "dvb_frontend.h"
++#include "drx39xxj.h"
++#include "drx_driver.h"
++#include "bsp_types.h"
++#include "bsp_tuner.h"
++#include "drxj_mc.h"
++#include "drxj.h"
++
++static int drx39xxj_set_powerstate(struct dvb_frontend* fe, int enable)
++{
++	struct drx39xxj_state *state = fe->demodulator_priv;
++	DRXDemodInstance_t *demod = state->demod;
++	DRXStatus_t result;
++	DRXPowerMode_t powerMode;
++
++	if (enable)
++		powerMode = DRX_POWER_UP;
++	else
++		powerMode = DRX_POWER_DOWN;
++
++	result = DRX_Ctrl(demod, DRX_CTRL_POWER_MODE, &powerMode);
++	if (result != DRX_STS_OK) {
++		printk("Power state change failed\n");
++		return 0;
++	}
++
++	state->powered_up = enable;
++	return 0;
++}
++
++static int drx39xxj_read_status(struct dvb_frontend* fe, fe_status_t* status)
++{
++	struct drx39xxj_state* state = fe->demodulator_priv;
++	DRXDemodInstance_t  *demod = state->demod;
++	DRXStatus_t result;
++	DRXLockStatus_t lock_status;
++
++	*status = 0;
++
++	result = DRX_Ctrl(demod, DRX_CTRL_LOCK_STATUS, &lock_status);
++	if (result != DRX_STS_OK) {
++		printk("drx39xxj: could not get lock status!\n");
++		*status = 0;
++	}
++
++	switch (lock_status) {
++	case DRX_NEVER_LOCK:
++		*status = 0;
++		printk("drx says NEVER_LOCK\n");
++		break;
++	case DRX_NOT_LOCKED:
++		*status = 0;
++		break;
++	case DRX_LOCK_STATE_1:
++	case DRX_LOCK_STATE_2:
++	case DRX_LOCK_STATE_3:
++	case DRX_LOCK_STATE_4:
++	case DRX_LOCK_STATE_5:
++	case DRX_LOCK_STATE_6:
++	case DRX_LOCK_STATE_7:
++	case DRX_LOCK_STATE_8:
++	case DRX_LOCK_STATE_9:
++		*status = FE_HAS_SIGNAL
++			| FE_HAS_CARRIER
++			| FE_HAS_VITERBI
++			| FE_HAS_SYNC;
++		break;
++	case DRX_LOCKED:
++		*status = FE_HAS_SIGNAL
++			| FE_HAS_CARRIER
++			| FE_HAS_VITERBI
++			| FE_HAS_SYNC
++			| FE_HAS_LOCK;
++		break;
++	default:
++		printk("Lock state unknown %d\n", lock_status);
++	}
++
++	return 0;
++}
++
++static int drx39xxj_read_ber(struct dvb_frontend* fe, u32* ber)
++{
++	struct drx39xxj_state* state = fe->demodulator_priv;
++	DRXDemodInstance_t  *demod = state->demod;
++	DRXStatus_t result;
++	DRXSigQuality_t sig_quality;
++
++	result = DRX_Ctrl(demod, DRX_CTRL_SIG_QUALITY, &sig_quality);
++	if (result != DRX_STS_OK) {
++		printk("drx39xxj: could not get ber!\n");
++		*ber = 0;
++		return 0;
++	}
++
++	*ber = sig_quality.postReedSolomonBER;
++	return 0;
++}
++
++static int drx39xxj_read_signal_strength(struct dvb_frontend* fe, u16* strength)
++{
++	struct drx39xxj_state* state = fe->demodulator_priv;
++	DRXDemodInstance_t  *demod = state->demod;
++	DRXStatus_t result;
++	DRXSigQuality_t sig_quality;
++
++	result = DRX_Ctrl(demod, DRX_CTRL_SIG_QUALITY, &sig_quality);
++	if (result != DRX_STS_OK) {
++		printk("drx39xxj: could not get signal strength!\n");
++		*strength = 0;
++		return 0;
++	}
++
++	/* 1-100% scaled to 0-65535 */
++	*strength = (sig_quality.indicator * 65535 / 100);
++	return 0;
++}
++
++static int drx39xxj_read_snr(struct dvb_frontend* fe, u16* snr)
++{
++	struct drx39xxj_state* state = fe->demodulator_priv;
++	DRXDemodInstance_t  *demod = state->demod;
++	DRXStatus_t result;
++	DRXSigQuality_t sig_quality;
++
++	result = DRX_Ctrl(demod, DRX_CTRL_SIG_QUALITY, &sig_quality);
++	if (result != DRX_STS_OK) {
++		printk("drx39xxj: could not read snr!\n");
++		*snr = 0;
++		return 0;
++	}
++
++	*snr = sig_quality.MER;
++	return 0;
++}
++
++static int drx39xxj_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
++{
++	struct drx39xxj_state* state = fe->demodulator_priv;
++	DRXDemodInstance_t  *demod = state->demod;
++	DRXStatus_t result;
++	DRXSigQuality_t sig_quality;
++
++	result = DRX_Ctrl(demod, DRX_CTRL_SIG_QUALITY, &sig_quality);
++	if (result != DRX_STS_OK) {
++		printk("drx39xxj: could not get uc blocks!\n");
++		*ucblocks = 0;
++		return 0;
++	}
++
++	*ucblocks = sig_quality.packetError;
++	return 0;
++}
++
++static int drx39xxj_get_frontend(struct dvb_frontend* fe,
++				struct dvb_frontend_parameters *p)
++{
++	return 0;
++}
++
++static int drx39xxj_set_frontend(struct dvb_frontend* fe,
++				struct dvb_frontend_parameters *p)
++{
++#ifdef DJH_DEBUG
++	int i;
++#endif
++
++	struct drx39xxj_state* state = fe->demodulator_priv;
++	DRXDemodInstance_t  *demod = state->demod;
++	DRXStandard_t standard = DRX_STANDARD_8VSB;
++	DRXChannel_t channel;
++	DRXStatus_t result;
++	DRXUIOData_t uioData;
++	DRXChannel_t defChannel = {/* frequency      */ 0,
++			 /* bandwidth      */ DRX_BANDWIDTH_6MHZ,
++			 /* mirror         */ DRX_MIRROR_NO,
++			 /* constellation  */ DRX_CONSTELLATION_AUTO,
++			 /* hierarchy      */ DRX_HIERARCHY_UNKNOWN,
++			 /* priority       */ DRX_PRIORITY_UNKNOWN,
++			 /* coderate       */ DRX_CODERATE_UNKNOWN,
++			 /* guard          */ DRX_GUARD_UNKNOWN,
++			 /* fftmode        */ DRX_FFTMODE_UNKNOWN,
++			 /* classification */ DRX_CLASSIFICATION_AUTO,
++			 /* symbolrate     */ 5057000,
++			 /* interleavemode */ DRX_INTERLEAVEMODE_UNKNOWN,
++			 /* ldpc           */ DRX_LDPC_UNKNOWN,
++			 /* carrier        */ DRX_CARRIER_UNKNOWN,
++			 /* frame mode     */ DRX_FRAMEMODE_UNKNOWN
++			 };
++
++	/* Bring the demod out of sleep */
++	drx39xxj_set_powerstate(fe, 1);
++
++	/* Now make the tuner do it's thing... */
++	if (fe->ops.tuner_ops.set_params) {
++		if (fe->ops.i2c_gate_ctrl)
++			fe->ops.i2c_gate_ctrl(fe, 1);
++		fe->ops.tuner_ops.set_params(fe, p);
++		if (fe->ops.i2c_gate_ctrl)
++			fe->ops.i2c_gate_ctrl(fe, 0);
++	}
++
++	if (standard != state->current_standard || state->powered_up == 0) {
++		/* Set the standard (will be powered up if necessary */
++		result = DRX_Ctrl(demod, DRX_CTRL_SET_STANDARD, &standard);
++		if (result != DRX_STS_OK) {
++			printk("Failed to set standard! result=%02x\n", result);
++			return -EINVAL;
++		}
++		state->powered_up = 1;
++		state->current_standard = standard;
++	}
++
++	/* set channel parameters */
++	channel = defChannel;
++	channel.frequency      = p->frequency / 1000;
++	channel.bandwidth      = DRX_BANDWIDTH_6MHZ;
++	channel.constellation  = DRX_CONSTELLATION_AUTO;
++
++	/* program channel */
++	result = DRX_Ctrl(demod, DRX_CTRL_SET_CHANNEL, &channel);
++	if (result != DRX_STS_OK) {
++		printk("Failed to set channel!\n");
++		return -EINVAL;
++	}
++
++	// Just for giggles, let's shut off the LNA again....
++	uioData.uio   = DRX_UIO1;
++	uioData.value = FALSE;
++	result = DRX_Ctrl(demod, DRX_CTRL_UIO_WRITE, &uioData);
++	if (result != DRX_STS_OK) {
++		printk("Failed to disable LNA!\n");
++		return 0;
++	}
++
++#ifdef DJH_DEBUG
++	for(i = 0; i < 2000; i++) {
++	  fe_status_t  status;
++	  drx39xxj_read_status(fe,  &status);
++	  printk("i=%d status=%d\n", i, status);
++	  msleep(100);
++	  i += 100;
++	}
++#endif
++
++	return 0;
++}
++
++
++static int drx39xxj_sleep(struct dvb_frontend* fe)
++{
++	/* power-down the demodulator */
++	return drx39xxj_set_powerstate(fe, 0);
++}
++
++static int drx39xxj_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
++{
++	struct drx39xxj_state *state = fe->demodulator_priv;
++	DRXDemodInstance_t *demod = state->demod;
++	Bool_t i2c_gate_state;
++	DRXStatus_t result;
++
++#ifdef DJH_DEBUG
++	printk("i2c gate call: enable=%d state=%d\n", enable,
++	       state->i2c_gate_open);
++#endif
++
++	if (enable)
++		i2c_gate_state = TRUE;
++	else
++		i2c_gate_state = FALSE;
++
++	if (state->i2c_gate_open == enable) {
++		/* We're already in the desired state */
++		return 0;
++	}
++
++	result = DRX_Ctrl(demod, DRX_CTRL_I2C_BRIDGE, &i2c_gate_state);
++	if (result != DRX_STS_OK) {
++		printk("drx39xxj: could not open i2c gate [%d]\n", result);
++		dump_stack();
++	} else {
++		state->i2c_gate_open = enable;
++	}
++	return 0;
++}
++
++
++static int drx39xxj_init(struct dvb_frontend* fe)
++{
++	/* Bring the demod out of sleep */
++	drx39xxj_set_powerstate(fe, 1);
++
++	return 0;
++}
++
++static int drx39xxj_get_tune_settings(struct dvb_frontend *fe,
++				     struct dvb_frontend_tune_settings *tune)
++{
++	tune->min_delay_ms = 1000;
++	return 0;
++}
++
++static void drx39xxj_release(struct dvb_frontend* fe)
++{
++	struct drx39xxj_state* state = fe->demodulator_priv;
++	kfree(state);
++}
++
++static struct dvb_frontend_ops drx39xxj_ops;
++
++struct dvb_frontend *drx39xxj_attach(struct i2c_adapter *i2c)
++{
++	struct drx39xxj_state* state = NULL;
++
++	I2CDeviceAddr_t     *demodAddr = NULL;
++	DRXCommonAttr_t     *demodCommAttr = NULL;
++	DRXJData_t          *demodExtAttr = NULL;
++	DRXDemodInstance_t  *demod = NULL;
++	DRXUIOCfg_t uioCfg;
++	DRXUIOData_t uioData;
++	DRXStatus_t result;
++
++	/* allocate memory for the internal state */
++	state = kmalloc(sizeof(struct drx39xxj_state), GFP_KERNEL);
++	if (state == NULL)
++		goto error;
++
++	demod = kmalloc(sizeof(DRXDemodInstance_t), GFP_KERNEL);
++	if (demod == NULL)
++		goto error;
++
++	demodAddr = kmalloc(sizeof(I2CDeviceAddr_t), GFP_KERNEL);
++	if (demodAddr == NULL)
++		goto error;
++
++	demodCommAttr = kmalloc(sizeof(DRXCommonAttr_t), GFP_KERNEL);
++	if (demodCommAttr == NULL)
++		goto error;
++
++	demodExtAttr = kmalloc(sizeof(DRXJData_t), GFP_KERNEL);
++	if (demodExtAttr == NULL)
++		goto error;
++
++	/* setup the state */
++	state->i2c = i2c;
++	state->demod = demod;
++
++	memcpy(demod, &DRXJDefaultDemod_g, sizeof(DRXDemodInstance_t));
++
++	demod->myI2CDevAddr = demodAddr;
++	memcpy(demod->myI2CDevAddr, &DRXJDefaultAddr_g,
++	       sizeof(I2CDeviceAddr_t));
++	demod->myI2CDevAddr->userData = state;
++	demod->myCommonAttr = demodCommAttr;
++	memcpy(demod->myCommonAttr, &DRXJDefaultCommAttr_g,
++	       sizeof(DRXCommonAttr_t));
++	demod->myCommonAttr->microcode = DRXJ_MC_MAIN;
++	//	demod->myCommonAttr->verifyMicrocode = FALSE;
++	demod->myCommonAttr->verifyMicrocode = TRUE;
++	demod->myCommonAttr->intermediateFreq = 5000;
++
++	demod->myExtAttr = demodExtAttr;
++	memcpy(demod->myExtAttr, &DRXJData_g, sizeof(DRXJData_t));
++	((DRXJData_t *) demod->myExtAttr)->uioSmaTxMode = DRX_UIO_MODE_READWRITE;
++
++	demod->myTuner = NULL;
++
++	result = DRX_Open(demod);
++	if (result != DRX_STS_OK) {
++		printk("DRX open failed!  Aborting\n");
++		kfree(state);
++		return NULL;
++	}
++
++	/* Turn off the LNA */
++	uioCfg.uio    = DRX_UIO1;
++	uioCfg.mode   = DRX_UIO_MODE_READWRITE;
++	/* Configure user-I/O #3: enable read/write */
++	result = DRX_Ctrl(demod, DRX_CTRL_UIO_CFG, &uioCfg);
++	if (result != DRX_STS_OK) {
++		printk("Failed to setup LNA GPIO!\n");
++		return NULL;
++	}
++
++	uioData.uio   = DRX_UIO1;
++	uioData.value = FALSE;
++	result = DRX_Ctrl(demod, DRX_CTRL_UIO_WRITE, &uioData);
++	if (result != DRX_STS_OK) {
++		printk("Failed to disable LNA!\n");
++		return NULL;
++	}
++
++	/* create dvb_frontend */
++	memcpy(&state->frontend.ops, &drx39xxj_ops,
++	       sizeof(struct dvb_frontend_ops));
++
++	state->frontend.demodulator_priv = state;
++	return &state->frontend;
++
++error:
++	if (state != NULL)
++		kfree(state);
++	if (demod != NULL)
++		kfree(demod);
++	return NULL;
++}
++
++static struct dvb_frontend_ops drx39xxj_ops = {
++
++	.info = {
++		.name			= "Micronas DRX39xxj family Frontend",
++		.type			= FE_ATSC | FE_QAM,
++		.frequency_stepsize	= 62500,
++		.frequency_min		= 51000000,
++		.frequency_max		= 858000000,
++		.caps = FE_CAN_QAM_64 | FE_CAN_QAM_256 | FE_CAN_8VSB
++	},
++
++	.init = drx39xxj_init,
++	.i2c_gate_ctrl = drx39xxj_i2c_gate_ctrl,
++	.sleep = drx39xxj_sleep,
++	.set_frontend = drx39xxj_set_frontend,
++	.get_frontend = drx39xxj_get_frontend,
++	.get_tune_settings = drx39xxj_get_tune_settings,
++	.read_status = drx39xxj_read_status,
++	.read_ber = drx39xxj_read_ber,
++	.read_signal_strength = drx39xxj_read_signal_strength,
++	.read_snr = drx39xxj_read_snr,
++	.read_ucblocks = drx39xxj_read_ucblocks,
++	.release = drx39xxj_release,
++};
++
++MODULE_DESCRIPTION("Micronas DRX39xxj Frontend");
++MODULE_AUTHOR("Devin Heitmueller");
++MODULE_LICENSE("GPL");
++
++EXPORT_SYMBOL(drx39xxj_attach);
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.5.4
+
