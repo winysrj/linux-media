@@ -1,1106 +1,827 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38825 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753298Ab1KNATF (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:37478 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752674Ab1KJLxq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Nov 2011 19:19:05 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Thu, 10 Nov 2011 06:53:46 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LUG00MVE11KAE50@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 Nov 2011 11:53:44 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LUG00BIG11JHW@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 Nov 2011 11:53:44 +0000 (GMT)
+Date: Thu, 10 Nov 2011 12:53:35 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 5/5] v4l: s5p-tv: mixer: add support for selection API
+In-reply-to: <1320926015-5841-1-git-send-email-t.stanislaws@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com,
-	andriy.shevchenko@linux.intel.com
-Subject: [PATCH v2 2/2] as3645a: Add driver for LED flash controller
-Date: Mon, 14 Nov 2011 01:19:10 +0100
-Message-Id: <1321229950-31451-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1321229950-31451-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1321229950-31451-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	mchehab@redhat.com
+Message-id: <1320926015-5841-6-git-send-email-t.stanislaws@samsung.com>
+References: <1320926015-5841-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the driver for the as3645a LED flash controller. This
-controller supports a high power led in flash and torch modes and an
-indicator light, sometimes also called privacy light.
+This patch add support for V4L2 selection API to s5p-tv driver.  Moreover it
+removes old API for cropping.  Old applications would still work because the
+crop ioctls are emulated using the selection API.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Nayden Kanchev <nkanchev@mm-sol.com>
-Signed-off-by: Tuukka Toivonen <tuukkat76@gmail.com>
-Signed-off-by: Antti Koskipaa <antti.koskipaa@gmail.com>
-Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@gmail.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Signed-off-by: Ivan T. Ivanov <iivanov@mm-sol.com>
-Signed-off-by: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
-Signed-off-by: David Cohen <dacohen@gmail.com>
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/Kconfig   |    7 +
- drivers/media/video/Makefile  |    1 +
- drivers/media/video/as3645a.c |  951 +++++++++++++++++++++++++++++++++++++++++
- include/media/as3645a.h       |   69 +++
- 4 files changed, 1028 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/as3645a.c
- create mode 100644 include/media/as3645a.h
+ drivers/media/video/s5p-tv/mixer.h           |   14 +-
+ drivers/media/video/s5p-tv/mixer_grp_layer.c |  157 +++++++++---
+ drivers/media/video/s5p-tv/mixer_video.c     |  342 +++++++++++++++++---------
+ drivers/media/video/s5p-tv/mixer_vp_layer.c  |  108 +++++---
+ 4 files changed, 425 insertions(+), 196 deletions(-)
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 4e8a0c4..ba27f89 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -533,6 +533,13 @@ config VIDEO_ADP1653
- 	  This is a driver for the ADP1653 flash controller. It is used for
- 	  example in Nokia N900.
+diff --git a/drivers/media/video/s5p-tv/mixer.h b/drivers/media/video/s5p-tv/mixer.h
+index 51ad59b..1597078 100644
+--- a/drivers/media/video/s5p-tv/mixer.h
++++ b/drivers/media/video/s5p-tv/mixer.h
+@@ -86,6 +86,17 @@ struct mxr_crop {
+ 	unsigned int field;
+ };
  
-+config VIDEO_AS3645A
-+	tristate "AS3645A flash driver support"
-+	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-+	---help---
-+	  This is a driver for the AS3645A flash chip. It has build in control
-+	  for Flash, Torch and Indicator LEDs.
-+
- comment "Video improvement chips"
- 
- config VIDEO_UPD64031A
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index ddeaa6c..86aabd6 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -74,6 +74,7 @@ obj-$(CONFIG_VIDEO_NOON010PC30)	+= noon010pc30.o
- obj-$(CONFIG_VIDEO_M5MOLS)	+= m5mols/
- obj-$(CONFIG_VIDEO_S5K6AA)	+= s5k6aa.o
- obj-$(CONFIG_VIDEO_ADP1653)	+= adp1653.o
-+obj-$(CONFIG_VIDEO_AS3645A)	+= as3645a.o
- 
- obj-$(CONFIG_SOC_CAMERA_IMX074)		+= imx074.o
- obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
-diff --git a/drivers/media/video/as3645a.c b/drivers/media/video/as3645a.c
-new file mode 100644
-index 0000000..4138eb7
---- /dev/null
-+++ b/drivers/media/video/as3645a.c
-@@ -0,0 +1,951 @@
-+/*
-+ * drivers/media/video/as3645a.c
-+ *
-+ * Copyright (C) 2008-2011 Nokia Corporation
-+ *
-+ * Contact: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ * NOTES:
-+ * - Inductor peak current limit setting fixed to 1.75A
-+ * - VREF offset fixed to 0V
-+ *
-+ * TODO:
-+ * - Check hardware FSTROBE control when sensor driver add support for this
-+ *
-+ */
-+
-+#include <linux/delay.h>
-+#include <linux/i2c.h>
-+#include <linux/mutex.h>
-+
-+#include <media/as3645a.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+
-+#define AS_TIMER_MS_TO_CODE(t)			(((t) - 100) / 50)
-+#define AS_TIMER_CODE_TO_MS(c)			(50 * (c) + 100)
-+
-+/* Register definitions */
-+
-+/* Read-only Design info register: Reset state: xxxx 0001 */
-+#define AS_DESIGN_INFO_REG			0x00
-+#define AS_DESIGN_INFO_FACTORY(x)		(((x) >> 4))
-+#define AS_DESIGN_INFO_MODEL(x)			((x) & 0x0f)
-+
-+/* Read-only Version control register: Reset state: 0000 0000
-+ * for first engineering samples
-+ */
-+#define AS_VERSION_CONTROL_REG			0x01
-+#define AS_VERSION_CONTROL_RFU(x)		(((x) >> 4))
-+#define AS_VERSION_CONTROL_VERSION(x)		((x) & 0x0f)
-+
-+/* Read / Write	(Indicator and timer register): Reset state: 0000 1111 */
-+#define AS_INDICATOR_AND_TIMER_REG		0x02
-+#define AS_INDICATOR_AND_TIMER_TIMEOUT_SHIFT	0
-+#define AS_INDICATOR_AND_TIMER_VREF_SHIFT	4
-+#define AS_INDICATOR_AND_TIMER_INDICATOR_SHIFT	6
-+
-+/* Read / Write	(Current set register): Reset state: 0110 1001 */
-+#define AS_CURRENT_SET_REG			0x03
-+#define AS_CURRENT_ASSIST_LIGHT_SHIFT		0
-+#define AS_CURRENT_LED_DET_ON			(1 << 3)
-+#define AS_CURRENT_FLASH_CURRENT_SHIFT		4
-+
-+/* Read / Write	(Control register): Reset state: 1011 0100 */
-+#define AS_CONTROL_REG				0x04
-+#define AS_CONTROL_MODE_SETTING_SHIFT		0
-+#define AS_CONTROL_STROBE_ON			(1 << 2)
-+#define AS_CONTROL_OUT_ON			(1 << 3)
-+#define AS_CONTROL_EXT_TORCH_ON			(1 << 4)
-+#define AS_CONTROL_STROBE_TYPE_EDGE		(0 << 5)
-+#define AS_CONTROL_STROBE_TYPE_LEVEL		(1 << 5)
-+#define AS_CONTROL_COIL_PEAK_SHIFT		6
-+
-+/* Read only (D3 is read / write) (Fault and info): Reset state: 0000 x000 */
-+#define AS_FAULT_INFO_REG			0x05
-+#define AS_FAULT_INFO_INDUCTOR_PEAK_LIMIT	(1 << 1)
-+#define AS_FAULT_INFO_INDICATOR_LED		(1 << 2)
-+#define AS_FAULT_INFO_LED_AMOUNT		(1 << 3)
-+#define AS_FAULT_INFO_TIMEOUT			(1 << 4)
-+#define AS_FAULT_INFO_OVER_TEMPERATURE		(1 << 5)
-+#define AS_FAULT_INFO_SHORT_CIRCUIT		(1 << 6)
-+#define AS_FAULT_INFO_OVER_VOLTAGE		(1 << 7)
-+
-+/* Boost register */
-+#define AS_BOOST_REG				0x0d
-+#define AS_BOOST_CURRENT_DISABLE		(0 << 0)
-+#define AS_BOOST_CURRENT_ENABLE			(1 << 0)
-+
-+/* Password register is used to unlock boost register writing */
-+#define AS_PASSWORD_REG				0x0f
-+#define AS_PASSWORD_UNLOCK_VALUE		0x55
-+
-+/* AS_CONTROL_EXT_TORCH_ON - on, 0 - off */
-+#define TORCH_IN_STANDBY			0
-+
-+#define AS3645A_FLASH_TIMEOUT_MIN		100000	/* us */
-+#define AS3645A_FLASH_TIMEOUT_MAX		850000
-+#define AS3645A_FLASH_TIMEOUT_STEP		50000
-+
-+#define AS3645A_FLASH_INTENSITY_MIN		200	/* mA */
-+#define AS3645A_FLASH_INTENSITY_MAX_1LED	500
-+#define AS3645A_FLASH_INTENSITY_MAX_2LEDS	400
-+#define AS3645A_FLASH_INTENSITY_STEP		20
-+
-+#define AS3645A_TORCH_INTENSITY_MIN		20	/* mA */
-+#define AS3645A_TORCH_INTENSITY_MAX		160
-+#define AS3645A_TORCH_INTENSITY_STEP		20
-+
-+#define AS3645A_INDICATOR_INTENSITY_MIN		0	/* uA */
-+#define AS3645A_INDICATOR_INTENSITY_MAX		10000
-+#define AS3645A_INDICATOR_INTENSITY_STEP	2500
-+
-+enum as_mode {
-+	AS_MODE_EXT_TORCH = 0 << AS_CONTROL_MODE_SETTING_SHIFT,
-+	AS_MODE_INDICATOR = 1 << AS_CONTROL_MODE_SETTING_SHIFT,
-+	AS_MODE_ASSIST = 2 << AS_CONTROL_MODE_SETTING_SHIFT,
-+	AS_MODE_FLASH = 3 << AS_CONTROL_MODE_SETTING_SHIFT,
++/** stages of geometry operations */
++enum mxr_geometry_stage {
++	MXR_GEOMETRY_SINK,
++	MXR_GEOMETRY_COMPOSE,
++	MXR_GEOMETRY_CROP,
++	MXR_GEOMETRY_SOURCE,
 +};
 +
-+/*
-+ * struct as3645a
-+ *
-+ * @subdev:		V4L2 subdev
-+ * @platform_data:	Flash platform data
-+ * @power_lock:		Protects power_count
-+ * @power_count:	Power reference count
-+ * @vref:		VREF offset (0=0V, 1=+0.3V, 2=-0.3V, 3=+0.6V)
-+ * @peak:		Inductor peak current limit (0=1.25A, 1=1.5A, 2=1.75A,
-+ *			3=2.0A)
-+ * @led_mode:		V4L2 flash LED mode
-+ * @timeout:		Flash timeout in microseconds
-+ * @flash_current:	Flash current (0=200mA ... 15=500mA). Maximum
-+ *			values are 400mA for two LEDs and 500mA for one LED.
-+ * @assist_current:	Torch/Assist light current (0=20mA, 1=40mA ... 7=160mA)
-+ * @indicator_current:	Indicator LED current (0=0mA, 1=2.5mA ... 4=10mA)
-+ * @strobe_source:	Flash strobe source (software or external)
-+ */
-+struct as3645a {
-+	struct v4l2_subdev subdev;
-+	struct as3645a_platform_data *platform_data;
++/* flag indicating that offset should be 0 */
++#define MXR_NO_OFFSET	0x80000000
 +
-+	struct mutex power_lock;
-+	int power_count;
-+
-+	/* Static parameters */
-+	u8 vref;
-+	u8 peak;
-+
-+	/* Controls */
-+	struct v4l2_ctrl_handler ctrls;
-+
-+	enum v4l2_flash_led_mode led_mode;
-+	unsigned int timeout;
-+	u8 flash_current;
-+	u8 assist_current;
-+	u8 indicator_current;
-+	enum v4l2_flash_strobe_source strobe_source;
-+};
-+
-+#define to_as3645a(sd) container_of(sd, struct as3645a, subdev)
-+
-+/* Return negative errno else zero on success */
-+static int as3645a_write(struct as3645a *flash, u8 addr, u8 val)
+ /** description of transformation from source to destination image */
+ struct mxr_geometry {
+ 	/** cropping for source image */
+@@ -133,7 +144,8 @@ struct mxr_layer_ops {
+ 	/** streaming stop/start */
+ 	void (*stream_set)(struct mxr_layer *, int);
+ 	/** adjusting geometry */
+-	void (*fix_geometry)(struct mxr_layer *);
++	void (*fix_geometry)(struct mxr_layer *,
++		enum mxr_geometry_stage, unsigned long);
+ };
+ 
+ /** layer instance, a single window and content displayed on output */
+diff --git a/drivers/media/video/s5p-tv/mixer_grp_layer.c b/drivers/media/video/s5p-tv/mixer_grp_layer.c
+index de8270c..b93a21f 100644
+--- a/drivers/media/video/s5p-tv/mixer_grp_layer.c
++++ b/drivers/media/video/s5p-tv/mixer_grp_layer.c
+@@ -101,47 +101,132 @@ static void mxr_graph_format_set(struct mxr_layer *layer)
+ 		layer->fmt, &layer->geo);
+ }
+ 
+-static void mxr_graph_fix_geometry(struct mxr_layer *layer)
++static inline unsigned int closest(unsigned int x, unsigned int a,
++	unsigned int b, unsigned long flags)
 +{
-+	struct i2c_client *client = v4l2_get_subdevdata(&flash->subdev);
-+	int rval;
++	unsigned int mid = (a + b) / 2;
 +
-+	rval = i2c_smbus_write_byte_data(client, addr, val);
-+
-+	dev_dbg(&client->dev, "Write Addr:%02X Val:%02X %s\n", addr, val,
-+		rval < 0 ? "fail" : "ok");
-+
-+	return rval;
-+}
-+
-+/* Return negative errno else a data byte received from the device. */
-+static int as3645a_read(struct as3645a *flash, u8 addr)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&flash->subdev);
-+	int rval;
-+
-+	rval = i2c_smbus_read_byte_data(client, addr);
-+
-+	dev_dbg(&client->dev, "Read Addr:%02X Val:%02X %s\n", addr, rval,
-+		rval < 0 ? "fail" : "ok");
-+
-+	return rval;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * Hardware configuration and trigger
-+ */
-+
-+/*
-+ * as3645a_set_config - Set flash configuration registers
-+ * @flash: The flash
-+ *
-+ * Configure the hardware with flash, assist and indicator currents, as well as
-+ * flash timeout.
-+ *
-+ * Return 0 on success, or a negative error code if an I2C communication error
-+ * occurred.
-+ */
-+static int as3645a_set_config(struct as3645a *flash)
-+{
-+	int ret;
-+	u8 val;
-+
-+	val = (flash->flash_current << AS_CURRENT_FLASH_CURRENT_SHIFT)
-+	    | (flash->assist_current << AS_CURRENT_ASSIST_LIGHT_SHIFT)
-+	    | AS_CURRENT_LED_DET_ON;
-+
-+	ret = as3645a_write(flash, AS_CURRENT_SET_REG, val);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (flash->strobe_source == V4L2_FLASH_STROBE_SOURCE_EXTERNAL) {
-+		/* Use timeout to protect the flash in case the external
-+		 * strobe gets stuck. Minimum value 100 ms, maximum 850 ms.
-+		 */
-+		u32 timeout = DIV_ROUND_UP(flash->timeout, 1000);
-+		timeout = max_t(u32, DIV_ROUND_UP(timeout, 50) * 50, 100);
-+		val = AS_TIMER_MS_TO_CODE(timeout)
-+		    << AS_INDICATOR_AND_TIMER_TIMEOUT_SHIFT;
-+	} else {
-+		val = AS_TIMER_MS_TO_CODE(flash->timeout / 1000)
-+		    << AS_INDICATOR_AND_TIMER_TIMEOUT_SHIFT;
-+	}
-+
-+	val |= (flash->vref << AS_INDICATOR_AND_TIMER_VREF_SHIFT)
-+	    |  ((flash->indicator_current ? flash->indicator_current - 1 : 0)
-+		 << AS_INDICATOR_AND_TIMER_INDICATOR_SHIFT);
-+
-+	return as3645a_write(flash, AS_INDICATOR_AND_TIMER_REG, val);
-+}
-+
-+/*
-+ * as3645a_set_control - Set flash control register
-+ * @flash: The flash
-+ * @mode: Desired output mode
-+ * @on: Desired output state
-+ *
-+ * Configure the hardware with output mode and state.
-+ *
-+ * Return 0 on success, or a negative error code if an I2C communication error
-+ * occurred.
-+ */
-+static int
-+as3645a_set_control(struct as3645a *flash, enum as_mode mode, bool on)
-+{
-+	u8 reg;
-+
-+	/* Configure output parameters and operation mode. */
-+	reg = (flash->peak << AS_CONTROL_COIL_PEAK_SHIFT)
-+	    | TORCH_IN_STANDBY
-+	    | (on ? AS_CONTROL_OUT_ON : 0)
-+	    | mode;
-+
-+	if (flash->led_mode == V4L2_FLASH_LED_MODE_FLASH &&
-+	    flash->strobe_source == V4L2_FLASH_STROBE_SOURCE_EXTERNAL) {
-+		if (flash->platform_data->setup_ext_strobe)
-+			flash->platform_data->setup_ext_strobe(1);
-+		reg |= AS_CONTROL_STROBE_TYPE_LEVEL
-+		    |  AS_CONTROL_STROBE_ON;
-+	}
-+
-+	return as3645a_write(flash, AS_CONTROL_REG, reg);
-+}
-+
-+/*
-+ * as3645a_set_output - Configure output and operation mode
-+ * @flash: Flash controller
-+ * @strobe: Strobe the flash (only valid in flash mode)
-+ *
-+ * Turn the LEDs output on/off and set the operation mode based on the current
-+ * parameters.
-+ *
-+ * The AS3645A can't control the indicator LED independently of the flash/torch
-+ * LED. If the flash controller is in V4L2_FLASH_LED_MODE_NONE mode, set the
-+ * chip to indicator mode. Otherwise set it to assist light (torch) or flash
-+ * mode.
-+ *
-+ * In indicator and assist modes, turn the output on/off based on the indicator
-+ * and torch currents. In software strobe flash mode, turn the output on/off
-+ * based on the strobe parameter.
-+ */
-+static int as3645a_set_output(struct as3645a *flash, bool strobe)
-+{
-+	enum as_mode mode;
-+	bool on;
-+	int ret;
-+
-+	switch (flash->led_mode) {
-+	case V4L2_FLASH_LED_MODE_NONE:
-+		on = flash->indicator_current != 0;
-+		mode = AS_MODE_INDICATOR;
-+		break;
-+	case V4L2_FLASH_LED_MODE_TORCH:
-+		on = true;
-+		mode = AS_MODE_ASSIST;
-+		break;
-+	case V4L2_FLASH_LED_MODE_FLASH:
-+		on = strobe;
-+		mode = AS_MODE_FLASH;
-+		break;
-+	default:
-+		return 0;
-+	}
-+
-+	/* Configure output parameters and operation mode. */
-+	ret = as3645a_set_control(flash, mode, on);
-+	if (ret < 0)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 controls
-+ */
-+
-+static int as3645a_read_fault(struct as3645a *flash)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&flash->subdev);
-+	int rval;
-+
-+	/* NOTE: reading register clear fault status */
-+	rval = as3645a_read(flash, AS_FAULT_INFO_REG);
-+	if (rval < 0)
-+		return rval;
-+
-+	if (rval & AS_FAULT_INFO_INDUCTOR_PEAK_LIMIT)
-+		dev_err(&client->dev, "Inductor Peak limit fault\n");
-+
-+	if (rval & AS_FAULT_INFO_INDICATOR_LED)
-+		dev_err(&client->dev, "Indicator LED fault: "
-+			"Short circuit or open loop\n");
-+
-+	dev_dbg(&client->dev, "%u connected LEDs\n",
-+		rval & AS_FAULT_INFO_LED_AMOUNT ? 2 : 1);
-+
-+	if (rval & AS_FAULT_INFO_TIMEOUT)
-+		dev_err(&client->dev, "Timeout fault\n");
-+
-+	if (rval & AS_FAULT_INFO_OVER_TEMPERATURE)
-+		dev_err(&client->dev, "Over temperature fault\n");
-+
-+	if (rval & AS_FAULT_INFO_SHORT_CIRCUIT)
-+		dev_err(&client->dev, "Short circuit fault\n");
-+
-+	if (rval & AS_FAULT_INFO_OVER_VOLTAGE)
-+		dev_err(&client->dev, "Over voltage fault: "
-+			"Indicates missing capacitor or open connection\n");
-+
-+	if (rval & ~AS_FAULT_INFO_INDICATOR_LED)
-+		dev_dbg(&client->dev, "No faults, nice\n");
-+
-+	return rval;
-+}
-+
-+static int as3645a_get_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct as3645a *flash =
-+		container_of(ctrl->handler, struct as3645a, ctrls);
-+	struct i2c_client *client = v4l2_get_subdevdata(&flash->subdev);
-+	int fault;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_FLASH_FAULT:
-+		fault = as3645a_read_fault(flash);
-+		if (fault < 0)
-+			return fault;
-+
-+		if (fault & AS_FAULT_INFO_SHORT_CIRCUIT)
-+			ctrl->cur.val |= V4L2_FLASH_FAULT_SHORT_CIRCUIT;
-+		if (fault & AS_FAULT_INFO_OVER_TEMPERATURE)
-+			ctrl->cur.val |= V4L2_FLASH_FAULT_OVER_TEMPERATURE;
-+		if (fault & AS_FAULT_INFO_TIMEOUT)
-+			ctrl->cur.val |= V4L2_FLASH_FAULT_TIMEOUT;
-+		if (fault & AS_FAULT_INFO_OVER_VOLTAGE)
-+			ctrl->cur.val |= V4L2_FLASH_FAULT_OVER_VOLTAGE;
-+		if (fault & AS_FAULT_INFO_INDUCTOR_PEAK_LIMIT)
-+			ctrl->cur.val |= V4L2_FLASH_FAULT_OVER_CURRENT;
-+		if (fault & AS_FAULT_INFO_INDICATOR_LED)
-+			ctrl->cur.val |= V4L2_FLASH_FAULT_INDICATOR;
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	dev_dbg(&client->dev, "G_CTRL %08x:%d\n", ctrl->id, ctrl->cur.val);
-+
-+	return 0;
-+}
-+
-+static int as3645a_set_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct as3645a *flash =
-+		container_of(ctrl->handler, struct as3645a, ctrls);
-+	struct i2c_client *client = v4l2_get_subdevdata(&flash->subdev);
-+	int ret;
-+
-+	dev_dbg(&client->dev, "S_CTRL %08x:%d\n", ctrl->id, ctrl->val);
-+
-+	/* If a control that doesn't apply to the current mode is modified,
-+	 * we store the value and return immediately. The setting will be
-+	 * applied when the LED mode is changed. Otherwise we apply the setting
-+	 * immediately.
++	/* choosing closest value with constraints according to table:
++	 * -------------+-----+-----+-----+-------+
++	 * flags	|  0  |  LE |  GE | LE|GE |
++	 * -------------+-----+-----+-----+-------+
++	 * x <= a	|  a  |  a  |  a  |   a   |
++	 * a < x <= mid	|  a  |  a  |  b  |   a   |
++	 * mid < x < b	|  b  |  a  |  b  |   b   |
++	 * b <= x	|  b  |  b  |  b  |   b   |
++	 * -------------+-----+-----+-----+-------+
 +	 */
 +
-+	switch (ctrl->id) {
-+	case V4L2_CID_FLASH_LED_MODE:
-+		if (flash->indicator_current)
-+			return -EBUSY;
++	/* remove all non-constraint flags */
++	flags &= V4L2_SEL_FLAG_LE | V4L2_SEL_FLAG_GE;
 +
-+		ret = as3645a_set_config(flash);
-+		if (ret < 0)
-+			return ret;
++	if (x <= a)
++		return  a;
++	if (x >= b)
++		return b;
++	if (flags == V4L2_SEL_FLAG_LE)
++		return a;
++	if (flags == V4L2_SEL_FLAG_GE)
++		return b;
++	if (x <= mid)
++		return a;
++	return b;
++}
 +
-+		flash->led_mode = ctrl->val;
-+		return as3645a_set_output(flash, false);
++static inline unsigned int do_center(unsigned int center,
++	unsigned int size, unsigned int upper, unsigned int flags)
++{
++	unsigned int lower;
 +
-+	case V4L2_CID_FLASH_STROBE_SOURCE:
-+		flash->strobe_source = ctrl->val;
++	if (flags & MXR_NO_OFFSET)
++		return 0;
 +
-+		/* Applies to flash mode only. */
-+		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
-+			break;
++	lower = center - min(center, size / 2);
++	return min(lower, upper - size);
++}
 +
-+		return as3645a_set_output(flash, false);
++static void mxr_graph_fix_geometry(struct mxr_layer *layer,
++	enum mxr_geometry_stage stage, unsigned long flags)
+ {
+ 	struct mxr_geometry *geo = &layer->geo;
++	struct mxr_crop *src = &geo->src;
++	struct mxr_crop *dst = &geo->dst;
++	unsigned int x_center, y_center;
+ 
+-	/* limit to boundary size */
+-	geo->src.full_width = clamp_val(geo->src.full_width, 1, 32767);
+-	geo->src.full_height = clamp_val(geo->src.full_height, 1, 2047);
+-	geo->src.width = clamp_val(geo->src.width, 1, geo->src.full_width);
+-	geo->src.width = min(geo->src.width, 2047U);
+-	/* not possible to crop of Y axis */
+-	geo->src.y_offset = min(geo->src.y_offset, geo->src.full_height - 1);
+-	geo->src.height = geo->src.full_height - geo->src.y_offset;
+-	/* limitting offset */
+-	geo->src.x_offset = min(geo->src.x_offset,
+-		geo->src.full_width - geo->src.width);
+-
+-	/* setting position in output */
+-	geo->dst.width = min(geo->dst.width, geo->dst.full_width);
+-	geo->dst.height = min(geo->dst.height, geo->dst.full_height);
+-
+-	/* Mixer supports only 1x and 2x scaling */
+-	if (geo->dst.width >= 2 * geo->src.width) {
+-		geo->x_ratio = 1;
+-		geo->dst.width = 2 * geo->src.width;
+-	} else {
+-		geo->x_ratio = 0;
+-		geo->dst.width = geo->src.width;
+-	}
++	switch (stage) {
+ 
+-	if (geo->dst.height >= 2 * geo->src.height) {
+-		geo->y_ratio = 1;
+-		geo->dst.height = 2 * geo->src.height;
+-	} else {
+-		geo->y_ratio = 0;
+-		geo->dst.height = geo->src.height;
+-	}
++	case MXR_GEOMETRY_SINK: /* nothing to be fixed here */
++		flags = 0;
++		/* fall through */
 +
-+	case V4L2_CID_FLASH_STROBE:
-+		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
-+			return -EBUSY;
-+
-+		return as3645a_set_output(flash, true);
-+
-+	case V4L2_CID_FLASH_STROBE_STOP:
-+		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
-+			return -EBUSY;
-+
-+		return as3645a_set_output(flash, false);
-+
-+	case V4L2_CID_FLASH_TIMEOUT:
-+		/* This is ugly. The step value is different depending on strobe
-+		 * mode, so only round the value when using I2C strobing.
-+		 */
-+		if (flash->strobe_source == V4L2_FLASH_STROBE_SOURCE_EXTERNAL &&
-+		    flash->platform_data->set_strobe_width != NULL) {
-+			flash->platform_data->set_strobe_width(ctrl->val);
++	case MXR_GEOMETRY_COMPOSE:
++		/* remember center of the area */
++		x_center = dst->x_offset + dst->width / 2;
++		y_center = dst->y_offset + dst->height / 2;
++		/* round up/down to 2 multiple depending on flags */
++		if (flags & V4L2_SEL_FLAG_LE) {
++			dst->width = round_down(dst->width, 2);
++			dst->height = round_down(dst->height, 2);
 +		} else {
-+			if (ctrl->val < AS3645A_FLASH_TIMEOUT_MIN)
-+				ctrl->val = AS3645A_FLASH_TIMEOUT_MIN;
-+			ctrl->val = ctrl->val / AS3645A_FLASH_TIMEOUT_STEP
-+				  * AS3645A_FLASH_TIMEOUT_STEP;
++			dst->width = round_up(dst->width, 2);
++			dst->height = round_up(dst->height, 2);
 +		}
-+		flash->timeout = ctrl->val;
++		/* assure that compose rect is inside display area */
++		dst->width = min(dst->width, dst->full_width);
++		dst->height = min(dst->height, dst->full_height);
 +
-+		/* Applies to flash mode only. */
-+		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
-+			break;
++		/* ensure that compose is reachable using 2x scaling */
++		dst->width = min(dst->width, 2 * src->full_width);
++		dst->height = min(dst->height, 2 * src->full_height);
 +
-+		return as3645a_set_config(flash);
++		/* setup offsets */
++		dst->x_offset = do_center(x_center, dst->width,
++			dst->full_width, flags);
++		dst->y_offset = do_center(y_center, dst->height,
++			dst->full_height, flags);
++		flags = 0;
++		/* fall through */
+ 
+-	geo->dst.x_offset = min(geo->dst.x_offset,
+-		geo->dst.full_width - geo->dst.width);
+-	geo->dst.y_offset = min(geo->dst.y_offset,
+-		geo->dst.full_height - geo->dst.height);
++	case MXR_GEOMETRY_CROP:
++		/* remember center of the area */
++		x_center = src->x_offset + src->width / 2;
++		y_center = src->y_offset + src->height / 2;
++		/* ensure that cropping area lies inside the buffer */
++		if (src->full_width < dst->width)
++			src->width = dst->width / 2;
++		else
++			src->width = closest(src->width, dst->width / 2,
++				dst->width, flags);
 +
-+	case V4L2_CID_FLASH_INTENSITY:
-+		flash->flash_current = (ctrl->val - AS3645A_FLASH_INTENSITY_MIN)
-+				     / AS3645A_FLASH_INTENSITY_STEP;
++		if (src->width == dst->width)
++			geo->x_ratio = 0;
++		else
++			geo->x_ratio = 1;
 +
-+		/* Applies to flash mode only. */
-+		if (flash->led_mode != V4L2_FLASH_LED_MODE_FLASH)
-+			break;
++		if (src->full_height < dst->height)
++			src->height = dst->height / 2;
++		else
++			src->height = closest(src->height, dst->height / 2,
++				dst->height, flags);
 +
-+		return as3645a_set_config(flash);
++		if (src->height == dst->height)
++			geo->y_ratio = 0;
++		else
++			geo->y_ratio = 1;
 +
-+	case V4L2_CID_FLASH_TORCH_INTENSITY:
-+		flash->assist_current =
-+			(ctrl->val - AS3645A_TORCH_INTENSITY_MIN)
-+			/ AS3645A_TORCH_INTENSITY_STEP;
++		/* setup offsets */
++		src->x_offset = do_center(x_center, src->width,
++			src->full_width, flags);
++		src->y_offset = do_center(y_center, src->height,
++			src->full_height, flags);
++		flags = 0;
++		/* fall through */
++	case MXR_GEOMETRY_SOURCE:
++		src->full_width = clamp_val(src->full_width,
++			src->width + src->x_offset, 32767);
++		src->full_height = clamp_val(src->full_height,
++			src->height + src->y_offset, 2047);
++	};
+ }
+ 
+ /* PUBLIC API */
+diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
+index e16d3a4..228470e 100644
+--- a/drivers/media/video/s5p-tv/mixer_video.c
++++ b/drivers/media/video/s5p-tv/mixer_video.c
+@@ -169,18 +169,22 @@ static int mxr_querycap(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-/* Geometry handling */
+-static void mxr_layer_geo_fix(struct mxr_layer *layer)
++static void mxr_geometry_dump(struct mxr_device *mdev, struct mxr_geometry *geo)
+ {
+-	struct mxr_device *mdev = layer->mdev;
+-	struct v4l2_mbus_framefmt mbus_fmt;
+-
+-	/* TODO: add some dirty flag to avoid unnecessary adjustments */
+-	mxr_get_mbus_fmt(mdev, &mbus_fmt);
+-	layer->geo.dst.full_width = mbus_fmt.width;
+-	layer->geo.dst.full_height = mbus_fmt.height;
+-	layer->geo.dst.field = mbus_fmt.field;
+-	layer->ops.fix_geometry(layer);
++	mxr_dbg(mdev, "src.full_size = (%u, %u)\n",
++		geo->src.full_width, geo->src.full_height);
++	mxr_dbg(mdev, "src.size = (%u, %u)\n",
++		geo->src.width, geo->src.height);
++	mxr_dbg(mdev, "src.offset = (%u, %u)\n",
++		geo->src.x_offset, geo->src.y_offset);
++	mxr_dbg(mdev, "dst.full_size = (%u, %u)\n",
++		geo->dst.full_width, geo->dst.full_height);
++	mxr_dbg(mdev, "dst.size = (%u, %u)\n",
++		geo->dst.width, geo->dst.height);
++	mxr_dbg(mdev, "dst.offset = (%u, %u)\n",
++		geo->dst.x_offset, geo->dst.y_offset);
++	mxr_dbg(mdev, "ratio = (%u, %u)\n",
++		geo->x_ratio, geo->y_ratio);
+ }
+ 
+ static void mxr_layer_default_geo(struct mxr_layer *layer)
+@@ -203,27 +207,29 @@ static void mxr_layer_default_geo(struct mxr_layer *layer)
+ 	layer->geo.src.width = layer->geo.src.full_width;
+ 	layer->geo.src.height = layer->geo.src.full_height;
+ 
+-	layer->ops.fix_geometry(layer);
++	mxr_geometry_dump(mdev, &layer->geo);
++	layer->ops.fix_geometry(layer, MXR_GEOMETRY_SINK, 0);
++	mxr_geometry_dump(mdev, &layer->geo);
+ }
+ 
+-static void mxr_geometry_dump(struct mxr_device *mdev, struct mxr_geometry *geo)
++static void mxr_layer_update_output(struct mxr_layer *layer)
+ {
+-	mxr_dbg(mdev, "src.full_size = (%u, %u)\n",
+-		geo->src.full_width, geo->src.full_height);
+-	mxr_dbg(mdev, "src.size = (%u, %u)\n",
+-		geo->src.width, geo->src.height);
+-	mxr_dbg(mdev, "src.offset = (%u, %u)\n",
+-		geo->src.x_offset, geo->src.y_offset);
+-	mxr_dbg(mdev, "dst.full_size = (%u, %u)\n",
+-		geo->dst.full_width, geo->dst.full_height);
+-	mxr_dbg(mdev, "dst.size = (%u, %u)\n",
+-		geo->dst.width, geo->dst.height);
+-	mxr_dbg(mdev, "dst.offset = (%u, %u)\n",
+-		geo->dst.x_offset, geo->dst.y_offset);
+-	mxr_dbg(mdev, "ratio = (%u, %u)\n",
+-		geo->x_ratio, geo->y_ratio);
+-}
++	struct mxr_device *mdev = layer->mdev;
++	struct v4l2_mbus_framefmt mbus_fmt;
 +
-+		/* Applies to torch mode only. */
-+		if (flash->led_mode != V4L2_FLASH_LED_MODE_TORCH)
-+			break;
++	mxr_get_mbus_fmt(mdev, &mbus_fmt);
++	/* checking if update is needed */
++	if (layer->geo.dst.full_width == mbus_fmt.width &&
++		layer->geo.dst.full_height == mbus_fmt.width)
++		return;
+ 
++	layer->geo.dst.full_width = mbus_fmt.width;
++	layer->geo.dst.full_height = mbus_fmt.height;
++	layer->geo.dst.field = mbus_fmt.field;
++	layer->ops.fix_geometry(layer, MXR_GEOMETRY_SINK, 0);
 +
-+		return as3645a_set_config(flash);
++	mxr_geometry_dump(mdev, &layer->geo);
++}
+ 
+ static const struct mxr_format *find_format_by_fourcc(
+ 	struct mxr_layer *layer, unsigned long fourcc);
+@@ -248,37 +254,6 @@ static int mxr_enum_fmt(struct file *file, void  *priv,
+ 	return 0;
+ }
+ 
+-static int mxr_s_fmt(struct file *file, void *priv,
+-	struct v4l2_format *f)
+-{
+-	struct mxr_layer *layer = video_drvdata(file);
+-	const struct mxr_format *fmt;
+-	struct v4l2_pix_format_mplane *pix;
+-	struct mxr_device *mdev = layer->mdev;
+-	struct mxr_geometry *geo = &layer->geo;
+-
+-	mxr_dbg(mdev, "%s:%d\n", __func__, __LINE__);
+-
+-	pix = &f->fmt.pix_mp;
+-	fmt = find_format_by_fourcc(layer, pix->pixelformat);
+-	if (fmt == NULL) {
+-		mxr_warn(mdev, "not recognized fourcc: %08x\n",
+-			pix->pixelformat);
+-		return -EINVAL;
+-	}
+-	layer->fmt = fmt;
+-	geo->src.full_width = pix->width;
+-	geo->src.width = pix->width;
+-	geo->src.full_height = pix->height;
+-	geo->src.height = pix->height;
+-	/* assure consistency of geometry */
+-	mxr_layer_geo_fix(layer);
+-	mxr_dbg(mdev, "width=%u height=%u span=%u\n",
+-		geo->src.width, geo->src.height, geo->src.full_width);
+-
+-	return 0;
+-}
+-
+ static unsigned int divup(unsigned int divident, unsigned int divisor)
+ {
+ 	return (divident + divisor - 1) / divisor;
+@@ -298,6 +273,10 @@ static void mxr_mplane_fill(struct v4l2_plane_pix_format *planes,
+ {
+ 	int i;
+ 
++	/* checking if nothing to fill */
++	if (!planes)
++		return;
 +
-+	case V4L2_CID_FLASH_INDICATOR_INTENSITY:
-+		if (flash->led_mode != V4L2_FLASH_LED_MODE_NONE)
-+			return -EBUSY;
+ 	memset(planes, 0, sizeof(*planes) * fmt->num_subframes);
+ 	for (i = 0; i < fmt->num_planes; ++i) {
+ 		struct v4l2_plane_pix_format *plane = planes
+@@ -331,73 +310,194 @@ static int mxr_g_fmt(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static inline struct mxr_crop *choose_crop_by_type(struct mxr_geometry *geo,
+-	enum v4l2_buf_type type)
+-{
+-	switch (type) {
+-	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+-	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+-		return &geo->dst;
+-	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+-		return &geo->src;
+-	default:
+-		return NULL;
+-	}
+-}
+-
+-static int mxr_g_crop(struct file *file, void *fh, struct v4l2_crop *a)
++static int mxr_s_fmt(struct file *file, void *priv,
++	struct v4l2_format *f)
+ {
+ 	struct mxr_layer *layer = video_drvdata(file);
+-	struct mxr_crop *crop;
++	const struct mxr_format *fmt;
++	struct v4l2_pix_format_mplane *pix;
++	struct mxr_device *mdev = layer->mdev;
++	struct mxr_geometry *geo = &layer->geo;
+ 
+-	mxr_dbg(layer->mdev, "%s:%d\n", __func__, __LINE__);
+-	crop = choose_crop_by_type(&layer->geo, a->type);
+-	if (crop == NULL)
++	mxr_dbg(mdev, "%s:%d\n", __func__, __LINE__);
 +
-+		flash->indicator_current =
-+			(ctrl->val - AS3645A_INDICATOR_INTENSITY_MIN)
-+			/ AS3645A_INDICATOR_INTENSITY_STEP;
++	pix = &f->fmt.pix_mp;
++	fmt = find_format_by_fourcc(layer, pix->pixelformat);
++	if (fmt == NULL) {
++		mxr_warn(mdev, "not recognized fourcc: %08x\n",
++			pix->pixelformat);
+ 		return -EINVAL;
+-	mxr_layer_geo_fix(layer);
+-	a->c.left = crop->x_offset;
+-	a->c.top = crop->y_offset;
+-	a->c.width = crop->width;
+-	a->c.height = crop->height;
++	}
++	layer->fmt = fmt;
++	/* set source size to highest accepted value */
++	geo->src.full_width = max(geo->dst.full_width, pix->width);
++	geo->src.full_height = max(geo->dst.full_height, pix->height);
++	layer->ops.fix_geometry(layer, MXR_GEOMETRY_SOURCE, 0);
++	mxr_geometry_dump(mdev, &layer->geo);
++	/* set cropping to total visible screen */
++	geo->src.width = pix->width;
++	geo->src.height = pix->height;
++	geo->src.x_offset = 0;
++	geo->src.y_offset = 0;
++	/* assure consistency of geometry */
++	layer->ops.fix_geometry(layer, MXR_GEOMETRY_CROP, MXR_NO_OFFSET);
++	mxr_geometry_dump(mdev, &layer->geo);
++	/* set full size to lowest possible value */
++	geo->src.full_width = 0;
++	geo->src.full_height = 0;
++	layer->ops.fix_geometry(layer, MXR_GEOMETRY_SOURCE, 0);
++	mxr_geometry_dump(mdev, &layer->geo);
 +
-+		ret = as3645a_set_config(flash);
-+		if (ret < 0)
-+			return ret;
++	/* returning results */
++	mxr_g_fmt(file, priv, f);
 +
-+		if ((ctrl->val == 0) == (ctrl->cur.val == 0))
-+			break;
+ 	return 0;
+ }
+ 
+-static int mxr_s_crop(struct file *file, void *fh, struct v4l2_crop *a)
++static int mxr_g_selection(struct file *file, void *fh,
++	struct v4l2_selection *s)
+ {
+ 	struct mxr_layer *layer = video_drvdata(file);
+-	struct mxr_crop *crop;
++	struct mxr_geometry *geo = &layer->geo;
+ 
+ 	mxr_dbg(layer->mdev, "%s:%d\n", __func__, __LINE__);
+-	crop = choose_crop_by_type(&layer->geo, a->type);
+-	if (crop == NULL)
 +
-+		return as3645a_set_output(flash, false);
++	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT &&
++		s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		return -EINVAL;
 +
++	switch (s->target) {
++	case V4L2_SEL_TGT_CROP_ACTIVE:
++		s->r.left = geo->src.x_offset;
++		s->r.top = geo->src.y_offset;
++		s->r.width = geo->src.width;
++		s->r.height = geo->src.height;
++		break;
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++		s->r.left = 0;
++		s->r.top = 0;
++		s->r.width = geo->src.full_width;
++		s->r.height = geo->src.full_height;
++		break;
++	case V4L2_SEL_TGT_COMPOSE_ACTIVE:
++	case V4L2_SEL_TGT_COMPOSE_PADDED:
++		s->r.left = geo->dst.x_offset;
++		s->r.top = geo->dst.y_offset;
++		s->r.width = geo->dst.width;
++		s->r.height = geo->dst.height;
++		break;
++	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
++		s->r.left = 0;
++		s->r.top = 0;
++		s->r.width = geo->dst.full_width;
++		s->r.height = geo->dst.full_height;
++		break;
++	default:
+ 		return -EINVAL;
+-	crop->x_offset = a->c.left;
+-	crop->y_offset = a->c.top;
+-	crop->width = a->c.width;
+-	crop->height = a->c.height;
+-	mxr_layer_geo_fix(layer);
++	}
++
+ 	return 0;
+ }
+ 
+-static int mxr_cropcap(struct file *file, void *fh, struct v4l2_cropcap *a)
++/* returns 1 if rectangle 'a' is inside 'b' */
++static int mxr_is_rect_inside(struct v4l2_rect *a, struct v4l2_rect *b)
++{
++	if (a->left < b->left)
++		return 0;
++	if (a->top < b->top)
++		return 0;
++	if (a->left + a->width > b->left + b->width)
++		return 0;
++	if (a->top + a->height > b->top + b->height)
++		return 0;
++	return 1;
++}
++
++static int mxr_s_selection(struct file *file, void *fh,
++	struct v4l2_selection *s)
+ {
+ 	struct mxr_layer *layer = video_drvdata(file);
+-	struct mxr_crop *crop;
++	struct mxr_geometry *geo = &layer->geo;
++	struct mxr_crop *target = NULL;
++	enum mxr_geometry_stage stage;
++	struct mxr_geometry tmp;
++	struct v4l2_rect res;
+ 
+-	mxr_dbg(layer->mdev, "%s:%d\n", __func__, __LINE__);
+-	crop = choose_crop_by_type(&layer->geo, a->type);
+-	if (crop == NULL)
++	memset(&res, 0, sizeof res);
++
++	mxr_dbg(layer->mdev, "%s: rect: %dx%d@%d,%d\n", __func__,
++		s->r.width, s->r.height, s->r.left, s->r.top);
++
++	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT &&
++		s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+ 		return -EINVAL;
+-	mxr_layer_geo_fix(layer);
+-	a->bounds.left = 0;
+-	a->bounds.top = 0;
+-	a->bounds.width = crop->full_width;
+-	a->bounds.top = crop->full_height;
+-	a->defrect = a->bounds;
+-	/* setting pixel aspect to 1/1 */
+-	a->pixelaspect.numerator = 1;
+-	a->pixelaspect.denominator = 1;
++
++	switch (s->target) {
++	/* ignore read-only targets */
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++		res.width = geo->src.full_width;
++		res.height = geo->src.full_height;
++		break;
++
++	/* ignore read-only targets */
++	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
++		res.width = geo->dst.full_width;
++		res.height = geo->dst.full_height;
++		break;
++
++	case V4L2_SEL_TGT_CROP_ACTIVE:
++		target = &geo->src;
++		stage = MXR_GEOMETRY_CROP;
++		break;
++	case V4L2_SEL_TGT_COMPOSE_ACTIVE:
++	case V4L2_SEL_TGT_COMPOSE_PADDED:
++		target = &geo->dst;
++		stage = MXR_GEOMETRY_COMPOSE;
++		break;
 +	default:
 +		return -EINVAL;
 +	}
++	/* apply change and update geometry if needed */
++	if (target) {
++		/* backup current geometry if setup fails */
++		memcpy(&tmp, geo, sizeof tmp);
 +
++		/* apply requested selection */
++		target->x_offset = s->r.left;
++		target->y_offset = s->r.top;
++		target->width = s->r.width;
++		target->height = s->r.height;
++
++		layer->ops.fix_geometry(layer, stage, s->flags);
++
++		/* retrieve update selection rectangle */
++		res.left = target->x_offset;
++		res.top = target->y_offset;
++		res.width = target->width;
++		res.height = target->height;
++
++		mxr_geometry_dump(layer->mdev, &layer->geo);
++	}
++
++	/* checking if the rectangle satisfies constraints */
++	if ((s->flags & V4L2_SEL_FLAG_LE) && !mxr_is_rect_inside(&res, &s->r))
++		goto fail;
++	if ((s->flags & V4L2_SEL_FLAG_GE) && !mxr_is_rect_inside(&s->r, &res))
++		goto fail;
++
++	/* return result rectangle */
++	s->r = res;
++
+ 	return 0;
++fail:
++	/* restore old geometry, which is not touched if target is NULL */
++	if (target)
++		memcpy(geo, &tmp, sizeof tmp);
++	return -ERANGE;
+ }
+ 
+ static int mxr_enum_dv_presets(struct file *file, void *fh,
+@@ -437,6 +537,8 @@ static int mxr_s_dv_preset(struct file *file, void *fh,
+ 
+ 	mutex_unlock(&mdev->mutex);
+ 
++	mxr_layer_update_output(layer);
++
+ 	/* any failure should return EINVAL according to V4L2 doc */
+ 	return ret ? -EINVAL : 0;
+ }
+@@ -477,6 +579,8 @@ static int mxr_s_std(struct file *file, void *fh, v4l2_std_id *norm)
+ 
+ 	mutex_unlock(&mdev->mutex);
+ 
++	mxr_layer_update_output(layer);
++
+ 	return ret ? -EINVAL : 0;
+ }
+ 
+@@ -525,25 +629,27 @@ static int mxr_s_output(struct file *file, void *fh, unsigned int i)
+ 	struct video_device *vfd = video_devdata(file);
+ 	struct mxr_layer *layer = video_drvdata(file);
+ 	struct mxr_device *mdev = layer->mdev;
+-	int ret = 0;
+ 
+ 	if (i >= mdev->output_cnt || mdev->output[i] == NULL)
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&mdev->mutex);
+ 	if (mdev->n_output > 0) {
+-		ret = -EBUSY;
+-		goto done;
++		mutex_unlock(&mdev->mutex);
++		return -EBUSY;
+ 	}
+ 	mdev->current_output = i;
+ 	vfd->tvnorms = 0;
+ 	v4l2_subdev_call(to_outsd(mdev), video, g_tvnorms_output,
+ 		&vfd->tvnorms);
++	mutex_unlock(&mdev->mutex);
++
++	/* update layers geometry */
++	mxr_layer_update_output(layer);
++
+ 	mxr_dbg(mdev, "tvnorms = %08llx\n", vfd->tvnorms);
+ 
+-done:
+-	mutex_unlock(&mdev->mutex);
+-	return ret;
 +	return 0;
-+}
+ }
+ 
+ static int mxr_g_output(struct file *file, void *fh, unsigned int *p)
+@@ -632,10 +738,9 @@ static const struct v4l2_ioctl_ops mxr_ioctl_ops = {
+ 	.vidioc_enum_output = mxr_enum_output,
+ 	.vidioc_s_output = mxr_s_output,
+ 	.vidioc_g_output = mxr_g_output,
+-	/* Crop ioctls */
+-	.vidioc_g_crop = mxr_g_crop,
+-	.vidioc_s_crop = mxr_s_crop,
+-	.vidioc_cropcap = mxr_cropcap,
++	/* selection ioctls */
++	.vidioc_g_selection = mxr_g_selection,
++	.vidioc_s_selection = mxr_s_selection,
+ };
+ 
+ static int mxr_video_open(struct file *file)
+@@ -804,10 +909,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	/* block any changes in output configuration */
+ 	mxr_output_get(mdev);
+ 
+-	/* update layers geometry */
+-	mxr_layer_geo_fix(layer);
+-	mxr_geometry_dump(mdev, &layer->geo);
+-
++	mxr_layer_update_output(layer);
+ 	layer->ops.format_set(layer);
+ 	/* enabling layer in hardware */
+ 	spin_lock_irqsave(&layer->enq_slock, flags);
+diff --git a/drivers/media/video/s5p-tv/mixer_vp_layer.c b/drivers/media/video/s5p-tv/mixer_vp_layer.c
+index f3bb2e3..e41ec2e 100644
+--- a/drivers/media/video/s5p-tv/mixer_vp_layer.c
++++ b/drivers/media/video/s5p-tv/mixer_vp_layer.c
+@@ -127,47 +127,77 @@ static void mxr_vp_format_set(struct mxr_layer *layer)
+ 	mxr_reg_vp_format(layer->mdev, layer->fmt, &layer->geo);
+ }
+ 
+-static void mxr_vp_fix_geometry(struct mxr_layer *layer)
++static inline unsigned int do_center(unsigned int center,
++	unsigned int size, unsigned int upper, unsigned int flags)
+ {
+-	struct mxr_geometry *geo = &layer->geo;
++	unsigned int lower;
 +
-+static const struct v4l2_ctrl_ops as3645a_ctrl_ops = {
-+	.g_volatile_ctrl = as3645a_get_ctrl,
-+	.s_ctrl = as3645a_set_ctrl,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 subdev core operations
-+ */
-+
-+/* Put device into know state. */
-+static int as3645a_setup(struct as3645a *flash)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&flash->subdev);
-+	int ret;
-+
-+	/* clear errors */
-+	ret = as3645a_read(flash, AS_FAULT_INFO_REG);
-+	if (ret < 0)
-+		return ret;
-+
-+	dev_dbg(&client->dev, "Fault info: %02x\n", ret);
-+
-+	ret = as3645a_set_config(flash);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = as3645a_set_output(flash, false);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* read status */
-+	ret = as3645a_read_fault(flash);
-+	if (ret < 0)
-+		return ret;
-+
-+	dev_dbg(&client->dev, "AS_INDICATOR_AND_TIMER_REG: %02x\n",
-+		as3645a_read(flash, AS_INDICATOR_AND_TIMER_REG));
-+	dev_dbg(&client->dev, "AS_CURRENT_SET_REG: %02x\n",
-+		as3645a_read(flash, AS_CURRENT_SET_REG));
-+	dev_dbg(&client->dev, "AS_CONTROL_REG: %02x\n",
-+		as3645a_read(flash, AS_CONTROL_REG));
-+
-+	return ret & ~AS_FAULT_INFO_LED_AMOUNT ? -EIO : 0;
-+}
-+
-+static int __as3645a_set_power(struct as3645a *flash, int on)
-+{
-+	int ret;
-+
-+	if (!on)
-+		as3645a_set_control(flash, AS_MODE_EXT_TORCH, false);
-+
-+	if (flash->platform_data && flash->platform_data->set_power) {
-+		ret = flash->platform_data->set_power(&flash->subdev, on);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return on ? as3645a_setup(flash) : 0;
-+}
-+
-+static int as3645a_set_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct as3645a *flash = to_as3645a(sd);
-+	int ret = 0;
-+
-+	mutex_lock(&flash->power_lock);
-+
-+	if (flash->power_count == !on) {
-+		ret = __as3645a_set_power(flash, !!on);
-+		if (ret < 0)
-+			goto done;
-+	}
-+
-+	flash->power_count += on ? 1 : -1;
-+	WARN_ON(flash->power_count < 0);
-+
-+done:
-+	mutex_unlock(&flash->power_lock);
-+	return ret;
-+}
-+
-+static int as3645a_registered(struct v4l2_subdev *sd)
-+{
-+	struct as3645a *flash = to_as3645a(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	int rval, man, model, rfu, version;
-+	const char *factory;
-+
-+	/* Power up the flash driver and read manufacturer ID, model ID, RFU
-+	 * and version.
-+	 */
-+	as3645a_set_power(&flash->subdev, 1);
-+
-+	rval = as3645a_read(flash, AS_DESIGN_INFO_REG);
-+	if (rval < 0)
-+		goto power_off;
-+
-+	man = AS_DESIGN_INFO_FACTORY(rval);
-+	model = AS_DESIGN_INFO_MODEL(rval);
-+
-+	rval = as3645a_read(flash, AS_VERSION_CONTROL_REG);
-+	if (rval < 0)
-+		goto power_off;
-+
-+	rfu = AS_VERSION_CONTROL_RFU(rval);
-+	version = AS_VERSION_CONTROL_VERSION(rval);
-+
-+	/* Verify the chip model and version. */
-+	if (model != 0x0001 || rfu != 0x0000) {
-+		dev_err(&client->dev, "AS3645A not detected "
-+			"(model %d rfu %d)\n", model, rfu);
-+		rval = -ENODEV;
-+		goto power_off;
-+	}
-+
-+	switch (man) {
-+	case 1:
-+		factory = "AMS, Austria Micro Systems";
-+		break;
-+	case 2:
-+		factory = "ADI, Analog Devices Inc.";
-+		break;
-+	case 3:
-+		factory = "NSC, National Semiconductor";
-+		break;
-+	case 4:
-+		factory = "NXP";
-+		break;
-+	case 5:
-+		factory = "TI, Texas Instrument";
-+		break;
-+	default:
-+		factory = "Unknown";
-+	}
-+
-+	dev_dbg(&client->dev, "Factory: %s(%d) Version: %d\n", factory, man,
-+		version);
-+
-+	rval = as3645a_write(flash, AS_PASSWORD_REG, AS_PASSWORD_UNLOCK_VALUE);
-+	if (rval < 0)
-+		goto power_off;
-+
-+	rval = as3645a_write(flash, AS_BOOST_REG, AS_BOOST_CURRENT_DISABLE);
-+	if (rval < 0)
-+		goto power_off;
-+
-+	/* Setup default values. This makes sure that the chip is in a known
-+	 * state, in case the power rail can't be controlled.
-+	 */
-+	rval = as3645a_setup(flash);
-+
-+power_off:
-+	as3645a_set_power(&flash->subdev, 0);
-+
-+	return rval;
-+}
-+
-+static int as3645a_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	return as3645a_set_power(sd, 1);
-+}
-+
-+static int as3645a_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	return as3645a_set_power(sd, 0);
-+}
-+
-+static const struct v4l2_subdev_core_ops as3645a_core_ops = {
-+	.s_power		= as3645a_set_power,
-+};
-+
-+static const struct v4l2_subdev_ops as3645a_ops = {
-+	.core = &as3645a_core_ops,
-+};
-+
-+static const struct v4l2_subdev_internal_ops as3645a_internal_ops = {
-+	.registered = as3645a_registered,
-+	.open = as3645a_open,
-+	.close = as3645a_close,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ *  I2C driver
-+ */
-+#ifdef CONFIG_PM
-+
-+static int as3645a_suspend(struct i2c_client *client, pm_message_t mesg)
-+{
-+	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-+	struct as3645a *flash = to_as3645a(subdev);
-+	int rval;
-+
-+	if (flash->power_count == 0)
++	if (flags & MXR_NO_OFFSET)
 +		return 0;
 +
-+	rval = __as3645a_set_power(flash, 0);
-+
-+	dev_dbg(&client->dev, "Suspend %s\n", rval < 0 ? "failed" : "ok");
-+
-+	return rval;
++	lower = center - min(center, size / 2);
++	return min(lower, upper - size);
 +}
-+
-+static int as3645a_resume(struct i2c_client *client)
+ 
+-	/* align horizontal size to 8 pixels */
+-	geo->src.full_width = ALIGN(geo->src.full_width, 8);
+-	/* limit to boundary size */
+-	geo->src.full_width = clamp_val(geo->src.full_width, 8, 8192);
+-	geo->src.full_height = clamp_val(geo->src.full_height, 1, 8192);
+-	geo->src.width = clamp_val(geo->src.width, 32, geo->src.full_width);
+-	geo->src.width = min(geo->src.width, 2047U);
+-	geo->src.height = clamp_val(geo->src.height, 4, geo->src.full_height);
+-	geo->src.height = min(geo->src.height, 2047U);
+-
+-	/* setting size of output window */
+-	geo->dst.width = clamp_val(geo->dst.width, 8, geo->dst.full_width);
+-	geo->dst.height = clamp_val(geo->dst.height, 1, geo->dst.full_height);
+-
+-	/* ensure that scaling is in range 1/4x to 16x */
+-	if (geo->src.width >= 4 * geo->dst.width)
+-		geo->src.width = 4 * geo->dst.width;
+-	if (geo->dst.width >= 16 * geo->src.width)
+-		geo->dst.width = 16 * geo->src.width;
+-	if (geo->src.height >= 4 * geo->dst.height)
+-		geo->src.height = 4 * geo->dst.height;
+-	if (geo->dst.height >= 16 * geo->src.height)
+-		geo->dst.height = 16 * geo->src.height;
+-
+-	/* setting scaling ratio */
+-	geo->x_ratio = (geo->src.width << 16) / geo->dst.width;
+-	geo->y_ratio = (geo->src.height << 16) / geo->dst.height;
+-
+-	/* adjust offsets */
+-	geo->src.x_offset = min(geo->src.x_offset,
+-		geo->src.full_width - geo->src.width);
+-	geo->src.y_offset = min(geo->src.y_offset,
+-		geo->src.full_height - geo->src.height);
+-	geo->dst.x_offset = min(geo->dst.x_offset,
+-		geo->dst.full_width - geo->dst.width);
+-	geo->dst.y_offset = min(geo->dst.y_offset,
+-		geo->dst.full_height - geo->dst.height);
++static void mxr_vp_fix_geometry(struct mxr_layer *layer,
++	enum mxr_geometry_stage stage, unsigned long flags)
 +{
-+	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-+	struct as3645a *flash = to_as3645a(subdev);
-+	int rval;
++	struct mxr_geometry *geo = &layer->geo;
++	struct mxr_crop *src = &geo->src;
++	struct mxr_crop *dst = &geo->dst;
++	unsigned long x_center, y_center;
 +
-+	if (flash->power_count == 0)
-+		return 0;
++	switch (stage) {
 +
-+	rval = __as3645a_set_power(flash, 1);
++	case MXR_GEOMETRY_SINK: /* nothing to be fixed here */
++	case MXR_GEOMETRY_COMPOSE:
++		/* remember center of the area */
++		x_center = dst->x_offset + dst->width / 2;
++		y_center = dst->y_offset + dst->height / 2;
 +
-+	dev_dbg(&client->dev, "Resume %s\n", rval < 0 ? "fail" : "ok");
++		/* ensure that compose is reachable using 16x scaling */
++		dst->width = clamp(dst->width, 8U, 16 * src->full_width);
++		dst->height = clamp(dst->height, 1U, 16 * src->full_height);
 +
-+	return rval;
-+}
++		/* setup offsets */
++		dst->x_offset = do_center(x_center, dst->width,
++			dst->full_width, flags);
++		dst->y_offset = do_center(y_center, dst->height,
++			dst->full_height, flags);
++		flags = 0; /* remove possible MXR_NO_OFFSET flag */
++		/* fall through */
++	case MXR_GEOMETRY_CROP:
++		/* remember center of the area */
++		x_center = src->x_offset + src->width / 2;
++		y_center = src->y_offset + src->height / 2;
 +
-+#else
++		/* ensure scaling is between 0.25x .. 16x */
++		src->width = clamp(src->width, round_up(dst->width, 4),
++			dst->width * 16);
++		src->height = clamp(src->height, round_up(dst->height, 4),
++			dst->height * 16);
 +
-+#define as3645a_suspend	NULL
-+#define as3645a_resume	NULL
++		/* hardware limits */
++		src->width = clamp(src->width, 32U, 2047U);
++		src->height = clamp(src->height, 4U, 2047U);
 +
-+#endif /* CONFIG_PM */
++		/* setup offsets */
++		src->x_offset = do_center(x_center, src->width,
++			src->full_width, flags);
++		src->y_offset = do_center(y_center, src->height,
++			src->full_height, flags);
 +
-+/*
-+ * as3645a_init_controls - Create controls
-+ * @flash: The flash
-+ *
-+ * The number of LEDs reported in platform data is used to compute default
-+ * limits. Parameters passed through platform data can override those limits.
-+ */
-+static int as3645a_init_controls(struct as3645a *flash)
-+{
-+	struct as3645a_flash_torch_parms *flash_params = NULL;
-+	bool use_ext_strobe = false;
-+	unsigned int leds = 2;
-+	struct v4l2_ctrl *ctrl;
-+	int minimum;
-+	int maximum;
++		/* setting scaling ratio */
++		geo->x_ratio = (src->width << 16) / dst->width;
++		geo->y_ratio = (src->height << 16) / dst->height;
++		/* fall through */
 +
-+	if (flash->platform_data) {
-+		if (flash->platform_data->num_leds)
-+			leds = flash->platform_data->num_leds;
-+
-+		flash_params = flash->platform_data->flash_torch_limits;
-+		use_ext_strobe = flash->platform_data->use_ext_flash_strobe;
-+	}
-+
-+	v4l2_ctrl_handler_init(&flash->ctrls, 9);
-+
-+	/* V4L2_CID_FLASH_LED_MODE */
-+	v4l2_ctrl_new_std_menu(&flash->ctrls, &as3645a_ctrl_ops,
-+			       V4L2_CID_FLASH_LED_MODE, 2, ~7,
-+			       V4L2_FLASH_LED_MODE_NONE);
-+
-+	/* V4L2_CID_FLASH_STROBE_SOURCE */
-+	v4l2_ctrl_new_std_menu(&flash->ctrls, &as3645a_ctrl_ops,
-+			       V4L2_CID_FLASH_STROBE_SOURCE,
-+			       use_ext_strobe ? 1 : 0, use_ext_strobe ? ~3 : ~1,
-+			       V4L2_FLASH_STROBE_SOURCE_SOFTWARE);
-+
-+	flash->strobe_source = V4L2_FLASH_STROBE_SOURCE_SOFTWARE;
-+
-+	/* V4L2_CID_FLASH_STROBE */
-+	v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
-+			  V4L2_CID_FLASH_STROBE, 0, 0, 0, 0);
-+
-+	/* V4L2_CID_FLASH_STROBE_STOP */
-+	v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
-+			  V4L2_CID_FLASH_STROBE_STOP, 0, 0, 0, 0);
-+
-+	/* V4L2_CID_FLASH_TIMEOUT */
-+	if (flash_params) {
-+		minimum = flash_params->timeout_min;
-+		maximum = flash_params->timeout_max;
-+	} else {
-+		minimum = 1;
-+		maximum = AS3645A_FLASH_TIMEOUT_MAX;
-+	}
-+
-+	v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
-+			  V4L2_CID_FLASH_TIMEOUT, minimum, maximum,
-+			  1, maximum);
-+
-+	flash->timeout = maximum;
-+
-+	/* V4L2_CID_FLASH_INTENSITY */
-+	if (flash_params) {
-+		minimum = flash_params->flash_min_current;
-+		maximum = flash_params->flash_max_current;
-+	} else {
-+		minimum = AS3645A_FLASH_INTENSITY_MIN;
-+		maximum = leds == 1 ? AS3645A_FLASH_INTENSITY_MAX_1LED
-+				    : AS3645A_FLASH_INTENSITY_MAX_2LEDS;
-+	}
-+
-+	v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
-+			  V4L2_CID_FLASH_INTENSITY, minimum, maximum,
-+			  AS3645A_FLASH_INTENSITY_STEP, maximum);
-+
-+	flash->flash_current = (maximum - AS3645A_FLASH_INTENSITY_MIN)
-+			     / AS3645A_FLASH_INTENSITY_STEP;
-+
-+	/* V4L2_CID_FLASH_TORCH_INTENSITY */
-+	if (flash_params) {
-+		minimum = flash_params->torch_min_current;
-+		maximum = flash_params->torch_max_current;
-+	} else {
-+		minimum = AS3645A_TORCH_INTENSITY_MIN;
-+		maximum = AS3645A_TORCH_INTENSITY_MAX;
-+	}
-+
-+	v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
-+			  V4L2_CID_FLASH_TORCH_INTENSITY, minimum, maximum,
-+			  AS3645A_TORCH_INTENSITY_STEP, minimum);
-+
-+	flash->assist_current = (minimum - AS3645A_TORCH_INTENSITY_MIN)
-+			      / AS3645A_TORCH_INTENSITY_STEP;
-+
-+	/* V4L2_CID_FLASH_INDICATOR_INTENSITY */
-+	v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
-+			  V4L2_CID_FLASH_INDICATOR_INTENSITY,
-+			  AS3645A_INDICATOR_INTENSITY_MIN,
-+			  AS3645A_INDICATOR_INTENSITY_MAX,
-+			  AS3645A_INDICATOR_INTENSITY_STEP,
-+			  AS3645A_INDICATOR_INTENSITY_MIN);
-+
-+	flash->indicator_current = 0;
-+
-+	/* V4L2_CID_FLASH_FAULT */
-+	ctrl = v4l2_ctrl_new_std(&flash->ctrls, &as3645a_ctrl_ops,
-+				 V4L2_CID_FLASH_FAULT, 0,
-+				 V4L2_FLASH_FAULT_OVER_VOLTAGE |
-+				 V4L2_FLASH_FAULT_TIMEOUT |
-+				 V4L2_FLASH_FAULT_OVER_TEMPERATURE |
-+				 V4L2_FLASH_FAULT_SHORT_CIRCUIT, 0, 0);
-+	if (ctrl != NULL)
-+		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
-+
-+	flash->subdev.ctrl_handler = &flash->ctrls;
-+
-+	return flash->ctrls.error;
-+}
-+
-+static int as3645a_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *devid)
-+{
-+	struct as3645a *flash;
-+	int ret;
-+
-+	flash = kzalloc(sizeof(*flash), GFP_KERNEL);
-+	if (flash == NULL)
-+		return -ENOMEM;
-+
-+	flash->platform_data = client->dev.platform_data;
-+
-+	v4l2_i2c_subdev_init(&flash->subdev, client, &as3645a_ops);
-+	flash->subdev.internal_ops = &as3645a_internal_ops;
-+	flash->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+
-+	ret = media_entity_init(&flash->subdev.entity, 0, NULL, 0);
-+	if (ret < 0) {
-+		kfree(flash);
-+		return ret;
-+	}
-+
-+	mutex_init(&flash->power_lock);
-+
-+	/* FIXME: These are hard coded for now */
-+	flash->vref = 0;	/* 0V */
-+	flash->peak = 2;	/* 1.75A */
-+
-+	flash->led_mode = V4L2_FLASH_LED_MODE_NONE;
-+
-+	ret = as3645a_init_controls(flash);
-+	if (ret < 0) {
-+		kfree(flash);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int __exit as3645a_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-+	struct as3645a *flash = to_as3645a(subdev);
-+
-+	v4l2_device_unregister_subdev(subdev);
-+	v4l2_ctrl_handler_free(&flash->ctrls);
-+
-+	kfree(flash);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id as3645a_id_table[] = {
-+	{ AS3645A_NAME, 0 },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(i2c, as3645a_id_table);
-+
-+static struct i2c_driver as3645a_i2c_driver = {
-+	.driver	= {
-+		.name = AS3645A_NAME,
-+	},
-+	.probe	= as3645a_probe,
-+	.remove	= __exit_p(as3645a_remove),
-+	.suspend = as3645a_suspend,
-+	.resume = as3645a_resume,
-+	.id_table = as3645a_id_table,
-+};
-+
-+static int __init as3645a_init(void)
-+{
-+	int rval;
-+
-+	rval = i2c_add_driver(&as3645a_i2c_driver);
-+	if (rval)
-+		printk(KERN_ERR "Failed registering driver" AS3645A_NAME"\n");
-+
-+	return rval;
-+}
-+
-+static void __exit as3645a_exit(void)
-+{
-+	i2c_del_driver(&as3645a_i2c_driver);
-+}
-+
-+module_init(as3645a_init);
-+module_exit(as3645a_exit);
-+
-+MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
-+MODULE_DESCRIPTION("AS3645A Flash driver");
-+MODULE_LICENSE("GPL");
-diff --git a/include/media/as3645a.h b/include/media/as3645a.h
-new file mode 100644
-index 0000000..1556a97
---- /dev/null
-+++ b/include/media/as3645a.h
-@@ -0,0 +1,69 @@
-+/*
-+ * include/media/as3645a.h
-+ *
-+ * Copyright (C) 2008-2011 Nokia Corporation
-+ *
-+ * Contact: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
-+
-+#ifndef __AS3645A_H__
-+#define __AS3645A_H__
-+
-+#include <media/v4l2-subdev.h>
-+
-+#define AS3645A_NAME				"as3645a"
-+#define AS3645A_I2C_ADDR			(0x60 >> 1) /* W:0x60, R:0x61 */
-+
-+/*
-+ * as3645a_flash_torch_parms - Flash and torch currents and timeout limits
-+ * @flash_min_current:	Min flash current (mA)
-+ * @flash_max_current:	Max flash current (mA)
-+ * @torch_min_current:	Min torch current (mA)
-+ * @torch_max_current:	Max torch current (mA)
-+ * @timeout_min:	Min flash timeout (us)
-+ * @timeout_max:	Max flash timeout (us)
-+ */
-+struct as3645a_flash_torch_parms {
-+	unsigned int flash_min_current;
-+	unsigned int flash_max_current;
-+	unsigned int torch_min_current;
-+	unsigned int torch_max_current;
-+	unsigned int timeout_min;
-+	unsigned int timeout_max;
-+};
-+
-+struct as3645a_platform_data {
-+	int (*set_power)(struct v4l2_subdev *subdev, int on);
-+	/* used to notify the entity which trigger external strobe signal */
-+	void (*setup_ext_strobe)(int enable);
-+	/* Sends the strobe width to the sensor strobe configuration */
-+	void (*set_strobe_width)(u32 width_in_us);
-+	/* positive value if Torch pin is used */
-+	int ext_torch;
-+	/* positive value if Flash Strobe pin is used for triggering
-+	 * the Flash light (no matter where is connected to, host processor or
-+	 * image sensor)
-+	 */
-+	int use_ext_flash_strobe;
-+	/* Number of attached LEDs, 1 or 2 */
-+	int num_leds;
-+	/* LED limitations with this flash chip */
-+	struct as3645a_flash_torch_parms *flash_torch_limits;
-+};
-+
-+#endif /* __AS3645A_H__ */
++	case MXR_GEOMETRY_SOURCE:
++		src->full_width = clamp(src->full_width,
++			ALIGN(src->width + src->x_offset, 8), 8192U);
++		src->full_height = clamp(src->full_height,
++			src->height + src->y_offset, 8192U);
++	};
+ }
+ 
+ /* PUBLIC API */
 -- 
-1.7.3.4
+1.7.5.4
 
