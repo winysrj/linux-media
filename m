@@ -1,90 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52218 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751758Ab1KDLYE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2011 07:24:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: UVC with continuous video buffers.
-Date: Fri, 4 Nov 2011 12:24:04 +0100
-Cc: javier Martin <javier.martin@vista-silicon.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <CACKLOr2CvPofCcveh6ReYuEbAzsq+z4hu12nza_pTwSceYtRkQ@mail.gmail.com> <201111041141.28698.laurent.pinchart@ideasonboard.com> <201111041158.26578.hverkuil@xs4all.nl>
-In-Reply-To: <201111041158.26578.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111041224.05631.laurent.pinchart@ideasonboard.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:54266 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932182Ab1KJXe5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Nov 2011 18:34:57 -0500
+Received: by mail-iy0-f174.google.com with SMTP id e36so3520899iag.19
+        for <linux-media@vger.kernel.org>; Thu, 10 Nov 2011 15:34:57 -0800 (PST)
+From: Patrick Dickey <pdickeybeta@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Patrick Dickey <pdickeybeta@gmail.com>
+Subject: [PATCH 08/25] added drx39_dummy for pctv80e support
+Date: Thu, 10 Nov 2011 17:31:28 -0600
+Message-Id: <1320967905-7932-9-git-send-email-pdickeybeta@gmail.com>
+In-Reply-To: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
+References: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+---
+ drivers/media/dvb/frontends/drx39xxj_dummy.c |  135 ++++++++++++++++++++++++++
+ 1 files changed, 135 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/dvb/frontends/drx39xxj_dummy.c
 
-On Friday 04 November 2011 11:58:26 Hans Verkuil wrote:
-> On Friday 04 November 2011 11:41:28 Laurent Pinchart wrote:
-> > On Wednesday 02 November 2011 17:33:16 javier Martin wrote:
-> > > On 2 November 2011 17:12, Devin Heitmueller wrote:
-> > > > I've actually got a very similar issue and have been looking into it
-> > > > (an em28xx device on OMAP requiring contiguous physical memory for
-> > > > the hardware H.264 encoder).  One thing you may definitely want to
-> > > > check
-> > > 
-> > > > out is the patch sent earlier today with subject:
-> > > My case is a i.MX27 SoC with its internal H.264 encoder.
-> > > 
-> > > > [PATCH] media: vb2: vmalloc-based allocator user pointer handling
-> > > > 
-> > > > While that patch is intended for videobuf2, you might be able to copy
-> > > > the core logic into videobuf-vmalloc.
-> > > 
-> > > I've seen a recent patch by Laurent Pinchart which provides vb2 support
-> > > for UVC driver. It might also help:
-> > > 
-> > > [PATCH 2/2] uvcvideo: Use videobuf2-vmalloc
-> > 
-> > I've finally had time to work on that recently, so you should be able to
-> > get all the videobuf2 goodies for free :-)
-> > 
-> > However, the above patch that adds user pointer support in the videobuf2
-> > vmalloc-based allocator only supports memory backed by pages. If you
-> > contiguous buffer is in a memory area reserved by the system at boot
-> > time, the assumption will not be true. Supporting user pointers with no
-> > struct page backing is possible, but will require a new patch for vb2.
-> 
-> I'm a bit hesitant about this. If I understand correctly this is really
-> something that should be solved through the buffer sharing work that
-> Sumit Semwal is working on.
-
-That's correct. This will also require composition support in the V4L2 capture 
-drivers to be able to write in a frame buffer window for instance.
-
-> What several drivers do today is to allow user pointers that point to
-> contiguous physical memory (using videobuf2-dma-contig.c). I've always
-> found that pretty ugly, though. The buffer sharing API should make this
-> much easier to handle, however, it is still in alpha stage.
-
-That's the problem, we have no solution at the moment. User pointer support 
-for memory not backed by struct page is an interim solution.
-
-If we decide not to support this but use the buffer sharing API instead, user 
-pointer support in V4L2 will not be that useful anymore (not that it would 
-necessarily be a bad thing).
-
-> > > > There are other drivers which use USERPTR provided buffers (which are
-> > > > allocated as contiguous memory from userland [i.e. vfpe_capture
-> > > > accepting buffers from cmemk on the OMAP platform]), but they
-> > > > typically do DMA so it's not really useful as an example where you
-> > > > have a USB based device.
-> > > > 
-> > > > If you get it working, by all means send the code to the ML so others
-> > > > can benefit.
-> > > 
-> > > Sure, though I will need some help because it seems some related
-> > > frameworks are not ready for what we want to achieve.
-
+diff --git a/drivers/media/dvb/frontends/drx39xxj_dummy.c b/drivers/media/dvb/frontends/drx39xxj_dummy.c
+new file mode 100644
+index 0000000..3ed2c39
+--- /dev/null
++++ b/drivers/media/dvb/frontends/drx39xxj_dummy.c
+@@ -0,0 +1,135 @@
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/string.h>
++#include <linux/slab.h>
++#include <linux/delay.h>
++#include <linux/jiffies.h>
++#include <linux/types.h>
++
++#include "drx_driver.h"
++#include "bsp_types.h"
++#include "bsp_tuner.h"
++#include "drx39xxj.h"
++
++/* Dummy function to satisfy drxj.c */
++DRXStatus_t DRXBSP_TUNER_Open(pTUNERInstance_t tuner)
++{
++	return DRX_STS_OK;
++}
++
++DRXStatus_t DRXBSP_TUNER_Close(pTUNERInstance_t tuner)
++{
++	return DRX_STS_OK;
++}
++
++DRXStatus_t DRXBSP_TUNER_SetFrequency(pTUNERInstance_t tuner,
++				TUNERMode_t mode,
++				DRXFrequency_t centerFrequency)
++{
++	return DRX_STS_OK;
++}
++
++DRXStatus_t
++DRXBSP_TUNER_GetFrequency(pTUNERInstance_t tuner,
++			TUNERMode_t      mode,
++			pDRXFrequency_t  RFfrequency,
++			pDRXFrequency_t  IFfrequency)
++{
++	return DRX_STS_OK;
++}
++
++DRXStatus_t DRXBSP_HST_Sleep(u32_t n)
++{
++	msleep(n);
++	return DRX_STS_OK;
++}
++
++u32_t DRXBSP_HST_Clock(void)
++{
++	return jiffies_to_msecs(jiffies);
++}
++
++int DRXBSP_HST_Memcmp(void *s1, void *s2, u32_t n)
++{
++	return (memcmp(s1, s2, (size_t) n));
++}
++
++void* DRXBSP_HST_Memcpy(void *to, void *from, u32_t n)
++{
++	return (memcpy(to, from, (size_t) n));
++}
++
++DRXStatus_t DRXBSP_I2C_WriteRead(pI2CDeviceAddr_t wDevAddr,
++				u16_t            wCount,
++				pu8_t            wData,
++				pI2CDeviceAddr_t rDevAddr,
++				u16_t            rCount,
++				pu8_t            rData)
++{
++	struct drx39xxj_state *state;
++	struct i2c_msg msg[2];
++	unsigned int num_msgs;
++
++	if (wDevAddr == NULL) {
++		/* Read only */
++		state = rDevAddr->userData;
++		msg[0].addr = rDevAddr->i2cAddr >> 1;
++		msg[0].flags = I2C_M_RD;
++		msg[0].buf = rData;
++		msg[0].len = rCount;
++		num_msgs = 1;
++	} else if (rDevAddr == NULL) {
++		/* Write only */
++		state = wDevAddr->userData;
++		msg[0].addr = wDevAddr->i2cAddr >> 1;
++		msg[0].flags = 0;
++		msg[0].buf = wData;
++		msg[0].len = wCount;
++		num_msgs = 1;
++	} else {
++		/* Both write and read */
++		state = wDevAddr->userData;
++		msg[0].addr = wDevAddr->i2cAddr >> 1;
++		msg[0].flags = 0;
++		msg[0].buf = wData;
++		msg[0].len = wCount;
++		msg[1].addr = rDevAddr->i2cAddr >> 1;
++		msg[1].flags = I2C_M_RD;
++		msg[1].buf = rData;
++		msg[1].len = rCount;
++		num_msgs = 2;
++	}
++
++	if (state->i2c == NULL) {
++	  printk("i2c was zero, aborting\n");
++	  return 0;
++	}
++	if (i2c_transfer(state->i2c, msg, num_msgs) != num_msgs) {
++		printk(KERN_WARNING "drx3933: I2C write/read failed\n");
++		return -EREMOTEIO;
++	}
++
++	return DRX_STS_OK;
++
++#ifdef DJH_DEBUG
++
++	struct drx39xxj_state *state = wDevAddr->userData;
++
++	struct i2c_msg msg[2] = {
++		{ .addr = wDevAddr->i2cAddr,
++		  .flags = 0, .buf = wData, .len = wCount },
++		{ .addr = rDevAddr->i2cAddr,
++		  .flags = I2C_M_RD, .buf = rData, .len = rCount },
++	};
++
++	printk("drx3933 i2c operation addr=%x i2c=%p, wc=%x rc=%x\n",
++	       wDevAddr->i2cAddr, state->i2c, wCount, rCount);
++
++	if (i2c_transfer(state->i2c, msg, 2) != 2) {
++		printk(KERN_WARNING "drx3933: I2C write/read failed\n");
++		return -EREMOTEIO;
++	}
++#endif
++	return 0;
++}
 -- 
-Regards,
+1.7.5.4
 
-Laurent Pinchart
