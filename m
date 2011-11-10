@@ -1,262 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
 Received: from mail-iy0-f174.google.com ([209.85.210.174]:54266 "EHLO
 	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757190Ab1KJXey (ORCPT
+	with ESMTP id S932820Ab1KJXfm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Nov 2011 18:34:54 -0500
+	Thu, 10 Nov 2011 18:35:42 -0500
 Received: by mail-iy0-f174.google.com with SMTP id e36so3520899iag.19
-        for <linux-media@vger.kernel.org>; Thu, 10 Nov 2011 15:34:54 -0800 (PST)
+        for <linux-media@vger.kernel.org>; Thu, 10 Nov 2011 15:35:42 -0800 (PST)
 From: Patrick Dickey <pdickeybeta@gmail.com>
 To: linux-media@vger.kernel.org
 Cc: Patrick Dickey <pdickeybeta@gmail.com>
-Subject: [PATCH 05/25] added bsp_types for pctv80e support
-Date: Thu, 10 Nov 2011 17:31:25 -0600
-Message-Id: <1320967905-7932-6-git-send-email-pdickeybeta@gmail.com>
+Subject: [PATCH 24/25] modified em28xx-dvb for pctv80e support
+Date: Thu, 10 Nov 2011 17:31:44 -0600
+Message-Id: <1320967905-7932-25-git-send-email-pdickeybeta@gmail.com>
 In-Reply-To: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
 References: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 ---
- drivers/media/dvb/frontends/bsp_types.h |  229 +++++++++++++++++++++++++++++++
- 1 files changed, 229 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/dvb/frontends/bsp_types.h
+ drivers/media/video/em28xx/em28xx-dvb.c |   25 +++++++++++++++++++++++++
+ 1 files changed, 25 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/bsp_types.h b/drivers/media/dvb/frontends/bsp_types.h
-new file mode 100644
-index 0000000..1c48046
---- /dev/null
-+++ b/drivers/media/dvb/frontends/bsp_types.h
-@@ -0,0 +1,229 @@
-+/*
-+  Copyright (c), 2004-2005,2007-2010 Trident Microsystems, Inc.
-+  All rights reserved.
+diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
+index cef7a2d..b69e5f3 100644
+--- a/drivers/media/video/em28xx/em28xx-dvb.c
++++ b/drivers/media/video/em28xx/em28xx-dvb.c
+@@ -36,6 +36,7 @@
+ #include "mt352.h"
+ #include "mt352_priv.h" /* FIXME */
+ #include "tda1002x.h"
++#include "drx39xxj.h"
+ #include "tda18271.h"
+ #include "s921.h"
+ #include "drxd.h"
+@@ -309,6 +310,20 @@ static struct drxd_config em28xx_drxd = {
+ 	.disable_i2c_gate_ctrl = 1,
+ };
+ 
 +
-+  Redistribution and use in source and binary forms, with or without
-+  modification, are permitted provided that the following conditions are met:
++static struct tda18271_std_map drx_j_std_map = {
++	.atsc_6   = { .if_freq = 5000, .agc_mode = 3, .std = 0, .if_lvl = 1,
++			.rfagc_top = 0x37, },
++	.qam_6    = { .if_freq = 5380, .agc_mode = 3, .std = 3, .if_lvl = 1,
++			.rfagc_top = 0x37, },
++};
 +
-+  * Redistributions of source code must retain the above copyright notice,
-+    this list of conditions and the following disclaimer.
-+  * Redistributions in binary form must reproduce the above copyright notice,
-+    this list of conditions and the following disclaimer in the documentation
-+	and/or other materials provided with the distribution.
-+  * Neither the name of Trident Microsystems nor Hauppauge Computer Works
-+    nor the names of its contributors may be used to endorse or promote
-+	products derived from this software without specific prior written
-+	permission.
++static struct tda18271_config pinnacle_80e_dvb_config = {
++	.std_map = &drx_j_std_map,
++	.gate    = TDA18271_GATE_DIGITAL,
++	.role    = TDA18271_MASTER,
++};
 +
-+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-+  POSSIBILITY OF SUCH DAMAGE.
-+*/
-+
-+/**
-+* \file $Id: bsp_types.h,v 1.5 2009/08/06 12:55:57 carlo Exp $
-+*
-+* \brief General type definitions for board support packages
-+*
-+* This file contains type definitions that are needed for almost any
-+* board support package.
-+* The definitions are host and project independent.
-+*
-+*/
-+
-+#ifndef __BSP_TYPES_H__
-+#define __BSP_TYPES_H__
-+/*-------------------------------------------------------------------------
-+INCLUDES
-+-------------------------------------------------------------------------*/
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+/*-------------------------------------------------------------------------
-+TYPEDEFS
-+-------------------------------------------------------------------------*/
-+
-+/**
-+* \typedef unsigned char u8_t
-+* \brief type definition of an unsigned 8 bits integer
-+*/
-+typedef unsigned char  u8_t;
-+/**
-+* \typedef char s8_t
-+* \brief type definition of a signed 8 bits integer
-+*/
-+typedef char           s8_t;
-+/**
-+* \typedef unsigned short u16_t *pu16_t
-+* \brief type definition of an unsigned 16 bits integer
-+*/
-+typedef unsigned short u16_t;
-+/**
-+* \typedef short s16_t
-+* \brief type definition of a signed 16 bits integer
-+*/
-+typedef short          s16_t;
-+/**
-+* \typedef unsigned long u32_t
-+* \brief type definition of an unsigned 32 bits integer
-+*/
-+typedef unsigned long  u32_t;
-+/**
-+* \typedef long s32_t
-+* \brief type definition of a signed 32 bits integer
-+*/
-+typedef long           s32_t;
-+/*
-+* \typedef struct ... u64_t
-+* \brief type definition of an usigned 64 bits integer
-+*/
-+typedef struct {
-+	u32_t MSLW;
-+	u32_t LSLW;
-+} u64_t;
-+/*
-+* \typedef struct ... i64_t
-+* \brief type definition of a signed 64 bits integer
-+*/
-+typedef struct {
-+	s32_t MSLW;
-+	u32_t LSLW;
-+} s64_t;
-+
-+/**
-+* \typedef u8_t *pu8_t
-+* \brief type definition of pointer to an unsigned 8 bits integer
-+*/
-+typedef u8_t         *pu8_t;
-+/**
-+* \typedef s8_t *ps8_t
-+* \brief type definition of pointer to a signed 8 bits integer
-+*/
-+typedef s8_t         *ps8_t;
-+/**
-+* \typedef u16_t *pu16_t
-+* \brief type definition of pointer to an unsigned 16 bits integer
-+*/
-+typedef u16_t        *pu16_t;
-+/**
-+* \typedef s16_t *ps16_t
-+* \brief type definition of pointer to a signed 16 bits integer
-+*/
-+typedef s16_t        *ps16_t;
-+/**
-+* \typedef u32_t *pu32_t
-+* \brief type definition of pointer to an unsigned 32 bits integer
-+*/
-+typedef u32_t        *pu32_t;
-+/**
-+* \typedef s32_t *ps32_t
-+* \brief type definition of pointer to a signed 32 bits integer
-+*/
-+typedef s32_t        *ps32_t;
-+/**
-+* \typedef u64_t *pu64_t
-+* \brief type definition of pointer to an usigned 64 bits integer
-+*/
-+typedef u64_t        *pu64_t;
-+/**
-+* \typedef s64_t *ps64_t
-+* \brief type definition of pointer to a signed 64 bits integer
-+*/
-+typedef s64_t        *ps64_t;
-+
-+
-+/**
-+* \typedef s32_t DRXFrequency_t
-+* \brief type definition of frequency
-+*/
-+typedef s32_t DRXFrequency_t;
-+
-+/**
-+* \typedef DRXFrequency_t *pDRXFrequency_t
-+* \brief type definition of a pointer to a frequency
-+*/
-+typedef DRXFrequency_t *pDRXFrequency_t;
-+
-+/**
-+* \typedef u32_t DRXSymbolrate_t
-+* \brief type definition of symbol rate
-+*/
-+typedef u32_t DRXSymbolrate_t;
-+
-+/**
-+* \typedef DRXSymbolrate_t *pDRXSymbolrate_t
-+* \brief type definition of a pointer to a symbol rate
-+*/
-+typedef DRXSymbolrate_t *pDRXSymbolrate_t;
-+
-+/*-------------------------------------------------------------------------
-+DEFINES
-+-------------------------------------------------------------------------*/
-+/**
-+* \def NULL
-+* \brief Define NULL for target.
-+*/
-+#ifndef NULL
-+#define NULL            (0)
-+#endif
-+
-+/*-------------------------------------------------------------------------
-+ENUM
-+-------------------------------------------------------------------------*/
-+
-+/*
-+* Boolean datatype. Only define if not already defined TRUE or FALSE.
-+*/
-+#if defined (TRUE) || defined (FALSE)
-+typedef int Bool_t;
-+#else
-+/**
-+* \enum Bool_t
-+* \brief Boolean type
-+*/
-+typedef enum {
-+   FALSE = 0,
-+   TRUE
-+} Bool_t;
-+#endif
-+typedef Bool_t  *pBool_t;
-+
-+/**
-+* \enum DRXStatus_t
-+* \brief Various return statusses
-+*/
-+typedef enum {
-+	DRX_STS_READY = 3,               /**< device/service is ready     */
-+	DRX_STS_BUSY = 2,                /**< device/service is busy      */
-+	DRX_STS_OK = 1,                  /**< everything is OK            */
-+	DRX_STS_INVALID_ARG = -1,        /**< invalid arguments           */
-+	DRX_STS_ERROR = -2,              /**< general error               */
-+	DRX_STS_FUNC_NOT_AVAILABLE = -3  /**< unavailable functionality   */
-+} DRXStatus_t, *pDRXStatus_t;
-+
-+
-+/*-------------------------------------------------------------------------
-+STRUCTS
-+-------------------------------------------------------------------------*/
-+
-+/**
-+Exported FUNCTIONS
-+-------------------------------------------------------------------------*/
-+
-+/*-------------------------------------------------------------------------
-+THE END
-+-------------------------------------------------------------------------*/
-+#ifdef __cplusplus
-+}
-+#endif
-+#endif /* __BSP_TYPES_H__ */
-+
+ struct drxk_config terratec_h5_drxk = {
+ 	.adr = 0x29,
+ 	.single_master = 1,
+@@ -625,6 +640,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ {
+ 	int result = 0, mfe_shared = 0;
+ 	struct em28xx_dvb *dvb;
++	struct dvb_frontend *fe;
+ 
+ 	if (!dev->board.has_dvb) {
+ 		/* This device does not support the extension */
+@@ -752,6 +768,15 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			}
+ 		}
+ 		break;
++	case EM2874_BOARD_PCTV_HD_MINI_80E:
++		dvb->fe[0] = dvb_attach(drx39xxj_attach, &dev->i2c_adap);
++		if (dvb->fe[0] != NULL) {
++			fe = dvb_attach(tda18271_attach, dvb->fe[0], 0x60,
++					&dev->i2c_adap,
++					&pinnacle_80e_dvb_config);
++			printk(KERN_ERR "dvb_attach tuner result=%p\n", fe);
++		}
++		break;
+ 	case EM2870_BOARD_KWORLD_A340:
+ 		dvb->fe[0] = dvb_attach(lgdt3305_attach,
+ 					   &em2870_lgdt3304_dev,
 -- 
 1.7.5.4
 
