@@ -1,53 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55663 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755411Ab1KWNW3 (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:54266 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757190Ab1KJXey (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Nov 2011 08:22:29 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: [PATCH 4/4] uvcvideo: Add UVC timestamps support
-Date: Wed, 23 Nov 2011 14:22:22 +0100
-Cc: linux-media@vger.kernel.org, Yann Sionneau <yann@minet.net>
-References: <1320753962-14079-1-git-send-email-laurent.pinchart@ideasonboard.com> <1320753962-14079-5-git-send-email-laurent.pinchart@ideasonboard.com> <CACKLOr2XoEWba_aYvV==6czbinHaAVK1Ufxu0kHpZcoWpz7DDQ@mail.gmail.com>
-In-Reply-To: <CACKLOr2XoEWba_aYvV==6czbinHaAVK1Ufxu0kHpZcoWpz7DDQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111231422.23898.laurent.pinchart@ideasonboard.com>
+	Thu, 10 Nov 2011 18:34:54 -0500
+Received: by mail-iy0-f174.google.com with SMTP id e36so3520899iag.19
+        for <linux-media@vger.kernel.org>; Thu, 10 Nov 2011 15:34:54 -0800 (PST)
+From: Patrick Dickey <pdickeybeta@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Patrick Dickey <pdickeybeta@gmail.com>
+Subject: [PATCH 05/25] added bsp_types for pctv80e support
+Date: Thu, 10 Nov 2011 17:31:25 -0600
+Message-Id: <1320967905-7932-6-git-send-email-pdickeybeta@gmail.com>
+In-Reply-To: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
+References: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+---
+ drivers/media/dvb/frontends/bsp_types.h |  229 +++++++++++++++++++++++++++++++
+ 1 files changed, 229 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/dvb/frontends/bsp_types.h
 
-On Thursday 17 November 2011 13:14:26 javier Martin wrote:
-> On 8 November 2011 13:06, Laurent Pinchart wrote:
-> >  void uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type
-> > type, diff --git a/drivers/media/video/uvc/uvc_video.c
-> > b/drivers/media/video/uvc/uvc_video.c index 513ba30..d0600a5 100644
-> > --- a/drivers/media/video/uvc/uvc_video.c
-> > +++ b/drivers/media/video/uvc/uvc_video.c
-> 
-> [snip]
-> 
-> > +       ts.tv_sec = first->host_ts.tv_sec - 1 + y / NSEC_PER_SEC;
-> > +       ts.tv_nsec = first->host_ts.tv_nsec + y % NSEC_PER_SEC;
-> 
-> I'm trying to build the uvcvideo-next branch which includes this patch
-> and the previous two lines give the following error:
-> 
-> drivers/built-in.o: In function `uvc_video_clock_update':
-> /home/javier/GIT/linux-uvc/drivers/media/video/uvc/uvc_video.c:656:
-> undefined reference to `__aeabi_uldivmod'
-> /home/javier/GIT/linux-uvc/drivers/media/video/uvc/uvc_video.c:657:
-> undefined reference to `__aeabi_uldivmod'
-> 
-> I am using gcc version 4.2.3 (Sourcery G++ Lite 2008q1-126) for ARM.
-
-Thanks for the report. I've fixed this and updated the uvcvideo-next branch.
-
+diff --git a/drivers/media/dvb/frontends/bsp_types.h b/drivers/media/dvb/frontends/bsp_types.h
+new file mode 100644
+index 0000000..1c48046
+--- /dev/null
++++ b/drivers/media/dvb/frontends/bsp_types.h
+@@ -0,0 +1,229 @@
++/*
++  Copyright (c), 2004-2005,2007-2010 Trident Microsystems, Inc.
++  All rights reserved.
++
++  Redistribution and use in source and binary forms, with or without
++  modification, are permitted provided that the following conditions are met:
++
++  * Redistributions of source code must retain the above copyright notice,
++    this list of conditions and the following disclaimer.
++  * Redistributions in binary form must reproduce the above copyright notice,
++    this list of conditions and the following disclaimer in the documentation
++	and/or other materials provided with the distribution.
++  * Neither the name of Trident Microsystems nor Hauppauge Computer Works
++    nor the names of its contributors may be used to endorse or promote
++	products derived from this software without specific prior written
++	permission.
++
++  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
++  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++  POSSIBILITY OF SUCH DAMAGE.
++*/
++
++/**
++* \file $Id: bsp_types.h,v 1.5 2009/08/06 12:55:57 carlo Exp $
++*
++* \brief General type definitions for board support packages
++*
++* This file contains type definitions that are needed for almost any
++* board support package.
++* The definitions are host and project independent.
++*
++*/
++
++#ifndef __BSP_TYPES_H__
++#define __BSP_TYPES_H__
++/*-------------------------------------------------------------------------
++INCLUDES
++-------------------------------------------------------------------------*/
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++/*-------------------------------------------------------------------------
++TYPEDEFS
++-------------------------------------------------------------------------*/
++
++/**
++* \typedef unsigned char u8_t
++* \brief type definition of an unsigned 8 bits integer
++*/
++typedef unsigned char  u8_t;
++/**
++* \typedef char s8_t
++* \brief type definition of a signed 8 bits integer
++*/
++typedef char           s8_t;
++/**
++* \typedef unsigned short u16_t *pu16_t
++* \brief type definition of an unsigned 16 bits integer
++*/
++typedef unsigned short u16_t;
++/**
++* \typedef short s16_t
++* \brief type definition of a signed 16 bits integer
++*/
++typedef short          s16_t;
++/**
++* \typedef unsigned long u32_t
++* \brief type definition of an unsigned 32 bits integer
++*/
++typedef unsigned long  u32_t;
++/**
++* \typedef long s32_t
++* \brief type definition of a signed 32 bits integer
++*/
++typedef long           s32_t;
++/*
++* \typedef struct ... u64_t
++* \brief type definition of an usigned 64 bits integer
++*/
++typedef struct {
++	u32_t MSLW;
++	u32_t LSLW;
++} u64_t;
++/*
++* \typedef struct ... i64_t
++* \brief type definition of a signed 64 bits integer
++*/
++typedef struct {
++	s32_t MSLW;
++	u32_t LSLW;
++} s64_t;
++
++/**
++* \typedef u8_t *pu8_t
++* \brief type definition of pointer to an unsigned 8 bits integer
++*/
++typedef u8_t         *pu8_t;
++/**
++* \typedef s8_t *ps8_t
++* \brief type definition of pointer to a signed 8 bits integer
++*/
++typedef s8_t         *ps8_t;
++/**
++* \typedef u16_t *pu16_t
++* \brief type definition of pointer to an unsigned 16 bits integer
++*/
++typedef u16_t        *pu16_t;
++/**
++* \typedef s16_t *ps16_t
++* \brief type definition of pointer to a signed 16 bits integer
++*/
++typedef s16_t        *ps16_t;
++/**
++* \typedef u32_t *pu32_t
++* \brief type definition of pointer to an unsigned 32 bits integer
++*/
++typedef u32_t        *pu32_t;
++/**
++* \typedef s32_t *ps32_t
++* \brief type definition of pointer to a signed 32 bits integer
++*/
++typedef s32_t        *ps32_t;
++/**
++* \typedef u64_t *pu64_t
++* \brief type definition of pointer to an usigned 64 bits integer
++*/
++typedef u64_t        *pu64_t;
++/**
++* \typedef s64_t *ps64_t
++* \brief type definition of pointer to a signed 64 bits integer
++*/
++typedef s64_t        *ps64_t;
++
++
++/**
++* \typedef s32_t DRXFrequency_t
++* \brief type definition of frequency
++*/
++typedef s32_t DRXFrequency_t;
++
++/**
++* \typedef DRXFrequency_t *pDRXFrequency_t
++* \brief type definition of a pointer to a frequency
++*/
++typedef DRXFrequency_t *pDRXFrequency_t;
++
++/**
++* \typedef u32_t DRXSymbolrate_t
++* \brief type definition of symbol rate
++*/
++typedef u32_t DRXSymbolrate_t;
++
++/**
++* \typedef DRXSymbolrate_t *pDRXSymbolrate_t
++* \brief type definition of a pointer to a symbol rate
++*/
++typedef DRXSymbolrate_t *pDRXSymbolrate_t;
++
++/*-------------------------------------------------------------------------
++DEFINES
++-------------------------------------------------------------------------*/
++/**
++* \def NULL
++* \brief Define NULL for target.
++*/
++#ifndef NULL
++#define NULL            (0)
++#endif
++
++/*-------------------------------------------------------------------------
++ENUM
++-------------------------------------------------------------------------*/
++
++/*
++* Boolean datatype. Only define if not already defined TRUE or FALSE.
++*/
++#if defined (TRUE) || defined (FALSE)
++typedef int Bool_t;
++#else
++/**
++* \enum Bool_t
++* \brief Boolean type
++*/
++typedef enum {
++   FALSE = 0,
++   TRUE
++} Bool_t;
++#endif
++typedef Bool_t  *pBool_t;
++
++/**
++* \enum DRXStatus_t
++* \brief Various return statusses
++*/
++typedef enum {
++	DRX_STS_READY = 3,               /**< device/service is ready     */
++	DRX_STS_BUSY = 2,                /**< device/service is busy      */
++	DRX_STS_OK = 1,                  /**< everything is OK            */
++	DRX_STS_INVALID_ARG = -1,        /**< invalid arguments           */
++	DRX_STS_ERROR = -2,              /**< general error               */
++	DRX_STS_FUNC_NOT_AVAILABLE = -3  /**< unavailable functionality   */
++} DRXStatus_t, *pDRXStatus_t;
++
++
++/*-------------------------------------------------------------------------
++STRUCTS
++-------------------------------------------------------------------------*/
++
++/**
++Exported FUNCTIONS
++-------------------------------------------------------------------------*/
++
++/*-------------------------------------------------------------------------
++THE END
++-------------------------------------------------------------------------*/
++#ifdef __cplusplus
++}
++#endif
++#endif /* __BSP_TYPES_H__ */
++
 -- 
-Regards,
+1.7.5.4
 
-Laurent Pinchart
