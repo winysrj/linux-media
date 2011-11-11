@@ -1,71 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:42988 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753611Ab1KYONX convert rfc822-to-8bit (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:40280 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751879Ab1KKMFf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Nov 2011 09:13:23 -0500
-MIME-Version: 1.0
-In-Reply-To: <1318325033-32688-2-git-send-email-sumit.semwal@ti.com>
-References: <1318325033-32688-1-git-send-email-sumit.semwal@ti.com>
-	<1318325033-32688-2-git-send-email-sumit.semwal@ti.com>
-Date: Fri, 25 Nov 2011 14:13:22 +0000
-Message-ID: <CAPM=9tzAgCSDgdvi=9QZa-gEVXwKp_gpCPTtQ10XS=Z9K4805w@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFC 1/2] dma-buf: Introduce dma buffer sharing mechanism
-From: Dave Airlie <airlied@gmail.com>
-To: Sumit Semwal <sumit.semwal@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	linux@arm.linux.org.uk, arnd@arndb.de, jesse.barker@linaro.org,
-	daniel@ffwll.ch
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 11 Nov 2011 07:05:35 -0500
+Received: from epcpsbgm2.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LUH00LY6W8RPGT0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 11 Nov 2011 21:05:34 +0900 (KST)
+Received: from riverful-ubuntu.165.213.246.161 ([165.213.219.119])
+ by mmp2.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTPA id <0LUH00JHDW997900@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 11 Nov 2011 21:05:33 +0900 (KST)
+From: "HeungJun, Kim" <riverful.kim@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: "HeungJun, Kim" <riverful.kim@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] MAINTAINERS: Add m5mols driver maintainers
+Date: Fri, 11 Nov 2011 21:05:33 +0900
+Message-id: <1321013133-8763-1-git-send-email-riverful.kim@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 11, 2011 at 10:23 AM, Sumit Semwal <sumit.semwal@ti.com> wrote:
-> This is the first step in defining a dma buffer sharing mechanism.
->
-> A new buffer object dma_buf is added, with operations and API to allow easy
-> sharing of this buffer object across devices.
->
-> The framework allows:
-> - a new buffer-object to be created with fixed size.
-> - different devices to 'attach' themselves to this buffer, to facilitate
->  backing storage negotiation, using dma_buf_attach() API.
-> - association of a file pointer with each user-buffer and associated
->   allocator-defined operations on that buffer. This operation is called the
->   'export' operation.
-> - this exported buffer-object to be shared with the other entity by asking for
->   its 'file-descriptor (fd)', and sharing the fd across.
-> - a received fd to get the buffer object back, where it can be accessed using
->   the associated exporter-defined operations.
-> - the exporter and user to share the scatterlist using get_scatterlist and
->   put_scatterlist operations.
->
-> Atleast one 'attach()' call is required to be made prior to calling the
-> get_scatterlist() operation.
->
-> Couple of building blocks in get_scatterlist() are added to ease introduction
-> of sync'ing across exporter and users, and late allocation by the exporter.
->
-> mmap() file operation is provided for the associated 'fd', as wrapper over the
-> optional allocator defined mmap(), to be used by devices that might need one.
->
-> More details are there in the documentation patch.
->
+Add the maintainers for the m5mols driver
 
-Some questions, I've started playing around with using this framework
-to do buffer sharing between DRM devices,
+Signed-off-by: HeungJun, Kim <riverful.kim@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ MAINTAINERS |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-Why struct scatterlist and not struct sg_table? it seems like I really
-want to use an sg_table,
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 5e587fc..91c5511 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2804,6 +2804,14 @@ L:	platform-driver-x86@vger.kernel.org
+ S:	Maintained
+ F:	drivers/platform/x86/fujitsu-laptop.c
+ 
++FUJITSU M-5MO LS CAMERA ISP DRIVER
++M:	Kyungmin Park <kyungmin.park@samsung.com>
++M:	Heungjun Kim <riverful.kim@samsung.com>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/video/m5mols/
++F:	include/media/m5mols.h
++
+ FUSE: FILESYSTEM IN USERSPACE
+ M:	Miklos Szeredi <miklos@szeredi.hu>
+ L:	fuse-devel@lists.sourceforge.net
+-- 
+1.7.4.1
 
-I'm not convinced fd's are really useful over just some idr allocated
-handle, so far I'm just returning the "fd" to userspace as a handle,
-and passing it back in the other side, so I'm not really sure what an
-fd wins us here, apart from the mmap thing which I think shouldn't be
-here anyways.
-(if fd's do win us more we should probably record that in the docs patch).
-
-Dave.
