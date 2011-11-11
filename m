@@ -1,118 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:52347 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753077Ab1KPFxo convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Nov 2011 00:53:44 -0500
-Message-ID: <1321422815.2885.55.camel@deadeye>
-Subject: [PATCH 4/5] staging: lirc_serial: Fix bogus error codes
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Greg Kroah-Hartman <gregkh@suse.de>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Date: Wed, 16 Nov 2011 05:53:35 +0000
-In-Reply-To: <1321422581.2885.50.camel@deadeye>
-References: <1321422581.2885.50.camel@deadeye>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Received: from os.inf.tu-dresden.de ([141.76.48.99]:45458 "EHLO
+	os.inf.tu-dresden.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751744Ab1KKV2o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Nov 2011 16:28:44 -0500
+Date: Fri, 11 Nov 2011 21:58:45 +0100
+From: Udo Steinberg <udo@hypervisor.org>
+To: mchehab@redhat.com, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Subject: bttv: tuner doesn't work for radio
+Message-ID: <20111111215845.50ccf920@x220>
 Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/nJx1lyVgYqvn8iVZlMg2DT+"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Device not found?  ENODEV, not EINVAL.
-Write to read-only device?  EPERM, not EBADF.
-Invalid argument?  EINVAL, not ENOSYS.
-Unsupported ioctl?  ENOIOCTLCMD, not ENOSYS.
-Another function returned an error code?  Use that, don't replace it.
+--Sig_/nJx1lyVgYqvn8iVZlMg2DT+
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
----
- drivers/staging/media/lirc/lirc_serial.c |   23 ++++++++++++-----------
- 1 files changed, 12 insertions(+), 11 deletions(-)
+Hi Mauro,
 
-diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
-index befe626..6f5257e 100644
---- a/drivers/staging/media/lirc/lirc_serial.c
-+++ b/drivers/staging/media/lirc/lirc_serial.c
-@@ -773,7 +773,7 @@ static int hardware_init_port(void)
- 		/* we fail, there's nothing here */
- 		printk(KERN_ERR LIRC_DRIVER_NAME ": port existence test "
- 		       "failed, cannot continue\n");
--		return -EINVAL;
-+		return -ENODEV;
- 	}
- 
+I have a Hauppauge Bt878 card with radio tuner. Recent kernels can switch
+between TV channels, but the tuner fails for radio. If no channel had been
+previously selected, choosing a radio program yields white noise. Otherwise,
+if a TV channel was previously selected, I can always hear the previous TV
+channel audio, no matter what radio station I tune to.
 
-@@ -879,10 +879,9 @@ static int __devinit lirc_serial_probe(struct platform_device *dev)
- 		goto exit_free_irq;
- 	}
- 
--	if (hardware_init_port() < 0) {
--		result = -EINVAL;
-+	result = hardware_init_port();
-+	if (result < 0)
- 		goto exit_release_region;
--	}
- 
- 	/* Initialize pulse/space widths */
- 	init_timing_params(duty_cycle, freq);
-@@ -980,7 +979,7 @@ static ssize_t lirc_write(struct file *file, const char *buf,
- 	int *wbuf;
- 
- 	if (!(hardware[type].features & LIRC_CAN_SEND_PULSE))
--		return -EBADF;
-+		return -EPERM;
- 
- 	count = n / sizeof(int);
- 	if (n % sizeof(int) || count % 2 == 0)
-@@ -1031,11 +1030,11 @@ static long lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
- 			return result;
- 		/* only LIRC_MODE_PULSE supported */
- 		if (value != LIRC_MODE_PULSE)
--			return -ENOSYS;
-+			return -EINVAL;
- 		break;
- 
- 	case LIRC_GET_LENGTH:
--		return -ENOSYS;
-+		return -ENOIOCTLCMD;
- 		break;
- 
- 	case LIRC_SET_SEND_DUTY_CYCLE:
-@@ -1126,9 +1125,11 @@ static void lirc_serial_exit(void);
- static int lirc_serial_resume(struct platform_device *dev)
- {
- 	unsigned long flags;
-+	int result;
- 
--	if (hardware_init_port() < 0)
--		return -EINVAL;
-+	result = hardware_init_port();
-+	if (result < 0)
-+		return result;
- 
- 	spin_lock_irqsave(&hardware[type].lock, flags);
- 	/* Enable Interrupt */
-@@ -1161,7 +1162,7 @@ static int __init lirc_serial_init(void)
- 	/* Init read buffer. */
- 	result = lirc_buffer_init(&rbuf, sizeof(int), RBUF_LEN);
- 	if (result < 0)
--		return -ENOMEM;
-+		return result;
- 
- 	result = platform_driver_register(&lirc_serial_driver);
- 	if (result) {
-@@ -1247,7 +1248,7 @@ static int __init lirc_serial_init_module(void)
- 		printk(KERN_ERR  LIRC_DRIVER_NAME
- 		       ": register_chrdev failed!\n");
- 		lirc_serial_exit();
--		return -EIO;
-+		return driver.minor;
- 	}
- 	return 0;
- }
--- 
-1.7.7.2
+I've bisected the problem. The commit that breaks things is:
 
+commit cbde689823776d187ba1b307a171625dbc02dd4f
+Author: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date:   Fri Feb 4 10:42:09 2011 -0300
 
+    [media] tuner-core: Better implement standby mode
+   =20
+    In the past, T_STANDBY were used on devices with a separate radio tuner=
+ to
+    mark a tuner that were disabled. With the time, it got newer meanings.
+   =20
+    Also, due to a bug at the logic, the driver might incorrectly return
+    T_STANDBY to userspace.
+   =20
+    So, instead of keeping the abuse, just use a boolean for storing
+    such information.
+   =20
+    We can't remove T_STANDBY yet, as this is used on two other drivers. A
+    latter patch will address its usage outside tuner-core.
+   =20
+    Thanks-to: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
+This is the relevant dmesg output of a kernel one commit before the breakag=
+e.
+
+Linux video capture interface: v2.00
+i2c-core: driver [tuner] using legacy suspend method
+i2c-core: driver [tuner] using legacy resume method
+i2c-core: driver [msp3400] using legacy suspend method
+i2c-core: driver [msp3400] using legacy resume method
+bttv: driver version 0.9.18 loaded
+bttv: using 8 buffers with 2080k (520 pages) each for capture
+bttv: Bt8xx card found (0).
+bttv 0000:06:00.0: PCI INT A -> GSI 21 (level, low) -> IRQ 21
+bttv0: Bt878 (rev 2) at 0000:06:00.0, irq: 21, latency: 32, mmio: 0x50001000
+bttv0: detected: Hauppauge WinTV [card=3D10], PCI subsystem ID is 0070:13eb
+bttv0: using: Hauppauge (bt878) [card=3D10,autodetected]
+bttv0: gpio: en=3D00000000, out=3D00000000 in=3D00ffffdb [init]
+bttv0: Hauppauge/Voodoo msp34xx: reset line init [5]
+tveeprom 16-0050: Hauppauge model 37284, rev B221, serial# 3546046
+tveeprom 16-0050: tuner model is Philips FM1216 (idx 21, type 5)
+tveeprom 16-0050: TV standards PAL(B/G) (eeprom 0x04)
+tveeprom 16-0050: audio processor is MSP3410D (idx 5)
+tveeprom 16-0050: has radio
+bttv0: Hauppauge eeprom indicates model#37284
+bttv0: tuner type=3D5
+msp3400 16-0040: MSP3410D-B4 found @ 0x80 (bt878 #0 [sw])
+msp3400 16-0040: msp3400 supports nicam, mode is autodetect
+tuner 16-0042: chip found @ 0x84 (bt878 #0 [sw])
+tda9887 16-0042: creating new instance
+tda9887 16-0042: tda988[5/6/7] found
+tuner 16-0061: chip found @ 0xc2 (bt878 #0 [sw])
+tuner-simple 16-0061: creating new instance
+tuner-simple 16-0061: type set to 5 (Philips PAL_BG (FI1216 and compatibles=
+))
+bttv0: registered device video0
+bttv0: registered device vbi0
+bttv0: registered device radio0
+bttv0: PLL: 28636363 =3D> 35468950 .. ok
+
+Please let me know if I can help getting this fixed, e.g. by testing patche=
+s.
+
+Cheers,
+
+	- Udo
+
+--Sig_/nJx1lyVgYqvn8iVZlMg2DT+
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEARECAAYFAk69jIUACgkQnhRzXSM7nSnNVACffql+F92/KBiy9CbkSl2RjfJS
+x1AAn0VpI7i/Y88j26VQDJMLph1K+JMH
+=XRNl
+-----END PGP SIGNATURE-----
+
+--Sig_/nJx1lyVgYqvn8iVZlMg2DT+--
