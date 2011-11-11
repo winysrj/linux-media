@@ -1,50 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:56637 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756248Ab1KWPTv (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:58993 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751233Ab1KKH76 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Nov 2011 10:19:51 -0500
-Received: by eaak14 with SMTP id k14so23565eaa.19
-        for <linux-media@vger.kernel.org>; Wed, 23 Nov 2011 07:19:49 -0800 (PST)
+	Fri, 11 Nov 2011 02:59:58 -0500
+Date: Fri, 11 Nov 2011 08:59:54 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: soc_camera.h compiler warning: should be fixed
+In-Reply-To: <201111101026.47226.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1111110856350.4608@axis700.grange>
+References: <201111101026.47226.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1322061227-6631-3-git-send-email-javier.martin@vista-silicon.com>
-References: <1322061227-6631-1-git-send-email-javier.martin@vista-silicon.com>
-	<1322061227-6631-3-git-send-email-javier.martin@vista-silicon.com>
-Date: Wed, 23 Nov 2011 13:19:49 -0200
-Message-ID: <CAOMZO5AEZZEYSMXtXwCw4Qx9sY5hzZmd7t7b4teROntskBmbVQ@mail.gmail.com>
-Subject: Re: [PATCH v3 2/2] MEM2MEM: Add support for eMMa-PrP mem2mem operations.
-From: Fabio Estevam <festevam@gmail.com>
-To: Javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, shawn.guo@linaro.org,
-	richard.zhao@linaro.org, fabio.estevam@freescale.com,
-	kernel@pengutronix.de, s.hauer@pengutronix.de,
-	r.schwebel@pengutronix.de
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Javier,
+Hi Hans
 
-On Wed, Nov 23, 2011 at 1:13 PM, Javier Martin
-<javier.martin@vista-silicon.com> wrote:
-> Changes since v2:
-> - Use devres to simplify error handling.
-> - Remove unused structures.
-> - Fix clock handling.
-> - Other minor problems.
+On Thu, 10 Nov 2011, Hans Verkuil wrote:
 
-It would be better if you put such comments below the --- line.
+> Hi Guennadi,
+> 
+> The daily build gives these compiler warnings when compiling on a 64-bit
+> platform:
+> 
+> In file included from drivers/media/video/imx074.c:19:0:
+> include/media/soc_camera.h: In function ‘soc_camera_i2c_to_vdev’:
+> include/media/soc_camera.h:257:34: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+> In file included from drivers/media/video/mt9m111.c:18:0:
+> include/media/soc_camera.h: In function ‘soc_camera_i2c_to_vdev’:
+> include/media/soc_camera.h:257:34: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
 
-For the commit message you can use the one you did for the cover
-letter (0/2) patch:
+Yes, this warnings have already been reported and yes, they should be 
+fixed.
 
-"i.MX2x SoCs have a PrP which is capable of resizing and format
-conversion of video frames. This driver provides support for
-resizing and format conversion from YUYV to YUV420.
+> (and a whole bunch more of these warnings).
+> 
+> The culprit is this inline function:
+> 
+> static inline struct video_device *soc_camera_i2c_to_vdev(const struct i2c_client *client)
+> {
+>         struct v4l2_subdev *sd = i2c_get_clientdata(client);
+>         struct soc_camera_device *icd = (struct soc_camera_device *)sd->grp_id;
+>         return icd ? icd->vdev : NULL;
+> }
+> 
+> sd->grp_id is a u32, so obviously this will fail on a 64-bit arch.
+> 
+> Since ARM is moving to 64-bits as well we should fix this.
+> 
+> Instead of abusing grp_id it is better to use the relatively new v4l2_subdev
+> 'host_priv' field. This is a proper void pointer, and can be used by the host
+> driver as it pleases.
 
-This operation is of the utmost importance since some of these
-SoCs like i.MX27 include an H.264 video codec which only
-accepts YUV420 as input."
+I don't think this would work though. .grp_id is not only used to pass a 
+value between drivers, but also to filter, which subdevices will execute 
+this operation, as in v4l2_device_call_all(). I'll have to find time to 
+think of a solution.
+
+> Can you make a patch for this? It would be nice to get rid of these warnings.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
