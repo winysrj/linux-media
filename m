@@ -1,45 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4369 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752360Ab1KXIr7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 03:47:59 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [Query] V4L2 Integer (?) menu control
-Date: Thu, 24 Nov 2011 09:47:22 +0100
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-References: <4ECD730E.3080808@gmail.com>
-In-Reply-To: <4ECD730E.3080808@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:13891 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753248Ab1KKSlp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Nov 2011 13:41:45 -0500
+Message-ID: <4EBD6C5F.3050703@redhat.com>
+Date: Fri, 11 Nov 2011 16:41:35 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com
+Subject: Re: [PATCH v3 0/3] fbdev: Add FOURCC-based format configuration API
+References: <1314789501-824-1-git-send-email-laurent.pinchart@ideasonboard.com> <4E764B35.2090009@gmx.de> <201109182249.39536.laurent.pinchart@ideasonboard.com> <4EBD4DD1.7030809@gmx.de>
+In-Reply-To: <4EBD4DD1.7030809@gmx.de>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201111240947.22895.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday, November 23, 2011 23:26:22 Sylwester Nawrocki wrote:
-> Hi,
+Em 11-11-2011 14:31, Florian Tobias Schandinat escreveu:
+> On 09/18/2011 08:49 PM, Laurent Pinchart wrote:
+>>> As the second patch has nothing to do with fbdev it should go mainline via
+>>> V4L2. Any problems/comments?
+>>
+>> The NV24/42 patch will need to reach mainline before the sh_mobile_lcdc YUV 
+>> API patch, or compilation will break.
+>>
+>> Mauro, what's your preference ? Should the patch go through the media tree ? 
+>> If so, how should we synchronize it with the fbdev tree ? Should I push it to 
+>> 3.2 ?
 > 
-> I was wondering how to implement in v4l2 a standard menu control having integer 
-> values as the menu items. The menu item values would be irregular, e.g. ascending
-> logarithmically and thus the step value would not be a constant.
-> I'm not interested in private control and symbolic enumeration for each value at
-> the series. It should be a standard control where drivers could define an array 
-> of integers reflecting the control menu items. And then the applications could
-> enumerate what integer values are valid and can be happily applied to a device.  
+> ping
 > 
-> I don't seem to find a way to implement this in current v4l2 control framework. 
-> Such functionality isn't there, or is it ?
+> What's going on? I could carry the patch but I'd want an Ack to do so.
 
-No it doesn't exist.
+I think I had answered it before, on some previous version. I'm OK if you merge
+it via your tree.
 
-I'd have sworn that I saw a proposal for adding something like that on the
-mailinglist some time ago, but I can't find it anymore. It wouldn't be
-difficult to add.
+Just replied to the patch with my ACK.
 
-Regards,
+> 
+> 
+> Best regards,
+> 
+> Florian Tobias Schandinat
 
-	Hans
