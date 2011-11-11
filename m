@@ -1,59 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:8450 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753395Ab1KDQIi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2011 12:08:38 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-15
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LU500IZJ8UCEO70@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Nov 2011 16:08:36 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LU50050Q8UBE5@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Nov 2011 16:08:36 +0000 (GMT)
-Date: Fri, 04 Nov 2011 17:08:35 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH] v4l: Add VIDIOC_LOG_STATUS support for sub-device nodes
-In-reply-to: <201111041143.17621.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, riverful.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <4EB40E03.2040908@samsung.com>
-References: <1320250557-20880-1-git-send-email-s.nawrocki@samsung.com>
- <201111041143.17621.laurent.pinchart@ideasonboard.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:37864 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752151Ab1KKXQV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Nov 2011 18:16:21 -0500
+Received: by wyh15 with SMTP id 15so4333204wyh.19
+        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2011 15:16:19 -0800 (PST)
+Message-ID: <4ebdacc2.04c6e30a.29e4.58ff@mx.google.com>
+Subject: Re: AF9015 Dual tuner i2c write failures
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Jason Hecker <jwhecker@gmail.com>
+Cc: Josu Lazkano <josu.lazkano@gmail.com>,
+	Tim Draper <veehexx@gmail.com>, linux-media@vger.kernel.org
+Date: Fri, 11 Nov 2011 23:16:13 +0000
+In-Reply-To: <CAATJ+ftr76OMckcpf_ceX4cPwv0840C9HL+UuHivAtub+OC+jw@mail.gmail.com>
+References: <CAB33W8dW0Yts_dxz=WyYEK9-bcoQ_9gM-t3+aR5s-G_5QswOyA@mail.gmail.com>
+	 <CAB33W8eMEG6cxM9x0aGRe+1xx6TwvjBZL4KSdRY4Ti2sTHk9hg@mail.gmail.com>
+	 <CAL9G6WXq_MSu+6Ogjis43bsszDri0y5JQrhHrAQ8tiTKv09YKQ@mail.gmail.com>
+	 <CAATJ+ftr76OMckcpf_ceX4cPwv0840C9HL+UuHivAtub+OC+jw@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On 11/04/2011 11:43 AM, Laurent Pinchart wrote:
-> On Wednesday 02 November 2011 17:15:57 Sylwester Nawrocki wrote:
-...
->> diff --git a/drivers/media/video/v4l2-subdev.c
->> b/drivers/media/video/v4l2-subdev.c index 179e20e..4fe1e7a 100644
->> --- a/drivers/media/video/v4l2-subdev.c
->> +++ b/drivers/media/video/v4l2-subdev.c
->> @@ -192,6 +192,9 @@ static long subdev_do_ioctl(struct file *file, unsigned
->> int cmd, void *arg) return v4l2_subdev_call(sd, core, s_register, p);
->>  	}
->>  #endif
+On Sat, 2011-11-12 at 09:51 +1100, Jason Hecker wrote:
+> I concur.  I have been using Malcolm Priestly's patches with both my
+> AF9015 dual tuner cards (which are PCI but still look like USB to the
+> kernel) for a few weeks now and have (finally!) got consistently
+> perfect recordings in MythTV simultaneously with both tuners on a
+> card. Malcolm, when do you think you'll submit these patches to the
+> tree for inclusion?  Is there anything else to test?
 > 
-> I would have put a blank line here, but that's probably just me :-)
+> I agree about the power cycling.  Every time I reboot I disconnect the
+> AC supply for 20secs to be sure the cards are power cycled properly -
+> you do the same thing by pulling out the stick.
 
-Doesn't sound like a significant improvement, but indeed looks better;)
-I'll update this when adding to a pull request.
+Yes, this is what is holding up the patches to media_build.
 
-> 
->> +	case VIDIOC_LOG_STATUS:
->> +		return v4l2_subdev_call(sd, core, log_status);
->> +
->>  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
->>  	case VIDIOC_SUBDEV_G_FMT: {
->>  		struct v4l2_subdev_format *format = arg;
+The bug appears to be a race condition that appears in get config with
+some usb controllers.
 
---
-Thanks,
-Sylwester
+Josu, your patch is for the older hg version on s2, so this will not
+work on media_build.
+
+I have being trying to a way to do it without the bus lock, but can't
+
+I will try and finish the patches tomorrow.
+
+Regards
+
+
+Malcolm
+
