@@ -1,191 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49024 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751650Ab1KNAgi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Nov 2011 19:36:38 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: whittenburg@gmail.com
-Subject: Re: mt9p031 on 3.0.8 kernel problems
-Date: Mon, 14 Nov 2011 01:36:44 +0100
-Cc: linux-media@vger.kernel.org
-References: <CABcw_Ok7W2EHkCwBDm=Zz7kzYWJQA6+mx7QvL9=teAif9M2sVQ@mail.gmail.com>
-In-Reply-To: <CABcw_Ok7W2EHkCwBDm=Zz7kzYWJQA6+mx7QvL9=teAif9M2sVQ@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:49835 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756803Ab1KKSl7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Nov 2011 13:41:59 -0500
+Message-ID: <4EBD6C71.4040604@redhat.com>
+Date: Fri, 11 Nov 2011 16:41:53 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com
+Subject: Re: [PATCH v3 2/3] v4l: Add V4L2_PIX_FMT_NV24 and V4L2_PIX_FMT_NV42
+ formats
+References: <1314789501-824-1-git-send-email-laurent.pinchart@ideasonboard.com> <1314789501-824-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1314789501-824-3-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201111140136.45661.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Chris,
+Em 31-08-2011 08:18, Laurent Pinchart escreveu:
+> NV24 and NV42 are planar YCbCr 4:4:4 and YCrCb 4:4:4 formats with a
+> luma plane followed by an interleaved chroma plane.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-On Sunday 13 November 2011 23:46:02 Chris Whittenburg wrote:
-> I'm continuing my journey of adding mt9p031 (LI-5M03 board) into 3.0.7
-> kernel built using oe-core for a beagleboard-xm.
-> 
-> I'm down to starting yavta, but getting the error "Unable to start
-> streaming: 32."
-> 
-> The mt9p031 is detected correctly at boot.
-> 
-> Here are my setup commands:
-> media-ctl -v -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3
-> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> media-ctl -v -f '"mt9p031 2-0048":0[SGRBG12 320x240], "OMAP3 ISP
-> CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
-> yavta -f SGRBG8 -s 320x240 -n 4 --capture=10 --skip 3 -F `media-ctl -e
-> "OMAP3 ISP CCDC output"`
-> 
-> After setup, my media-ctl output looks like:
-> 
-> root@beagleboard:~# media-ctl -p
-> Opening media device /dev/media0
-> Enumerating entities
-> Found 16 entities
-> Enumerating pads and links
-> Device topology
-> - entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
->             type V4L2 subdev subtype Unknown
->             device node name /dev/v4l-subdev0
->         pad0: Input [SGRBG10 4096x4096]
->                 <- 'OMAP3 ISP CCP2 input':pad0 []
->         pad1: Output [SGRBG10 4096x4096]
->                 -> 'OMAP3 ISP CCDC':pad0 []
-> 
-> - entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
->             type Node subtype V4L
->             device node name /dev/video0
->         pad0: Output
->                 -> 'OMAP3 ISP CCP2':pad0 []
-> 
-> - entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
->             type V4L2 subdev subtype Unknown
->             device node name /dev/v4l-subdev1
->         pad0: Input [SGRBG10 4096x4096]
->         pad1: Output [SGRBG10 4096x4096]
->                 -> 'OMAP3 ISP CSI2a output':pad0 []
->                 -> 'OMAP3 ISP CCDC':pad0 []
-> 
-> - entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
->             type Node subtype V4L
->             device node name /dev/video1
->         pad0: Input
->                 <- 'OMAP3 ISP CSI2a':pad1 []
-> 
-> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
->             type V4L2 subdev subtype Unknown
->             device node name /dev/v4l-subdev2
->         pad0: Input [SGRBG8 320x240]
->                 <- 'OMAP3 ISP CCP2':pad1 []
->                 <- 'OMAP3 ISP CSI2a':pad1 []
->                 <- 'mt9p031 2-0048':pad0 [ACTIVE]
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-The CCDC sink pad is configured for SGRBG8 320x240...
+> ---
+>  Documentation/DocBook/media/v4l/pixfmt-nv24.xml |  129 +++++++++++++++++++++++
+>  Documentation/DocBook/media/v4l/pixfmt.xml      |    1 +
+>  include/linux/videodev2.h                       |    2 +
+>  3 files changed, 132 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+> 
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv24.xml b/Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+> new file mode 100644
+> index 0000000..939c803
+> --- /dev/null
+> +++ b/Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+> @@ -0,0 +1,129 @@
+> +    <refentry>
+> +      <refmeta>
+> +	<refentrytitle>V4L2_PIX_FMT_NV24 ('NV24'), V4L2_PIX_FMT_NV42 ('NV42')</refentrytitle>
+> +	&manvol;
+> +      </refmeta>
+> +      <refnamediv>
+> +	<refname id="V4L2-PIX-FMT-NV24"><constant>V4L2_PIX_FMT_NV24</constant></refname>
+> +	<refname id="V4L2-PIX-FMT-NV42"><constant>V4L2_PIX_FMT_NV42</constant></refname>
+> +	<refpurpose>Formats with full horizontal and vertical
+> +chroma resolutions, also known as YUV 4:4:4. One luminance and one
+> +chrominance plane with alternating chroma samples as opposed to
+> +<constant>V4L2_PIX_FMT_YVU420</constant></refpurpose>
+> +      </refnamediv>
+> +      <refsect1>
+> +	<title>Description</title>
+> +
+> +	<para>These are two-plane versions of the YUV 4:4:4 format. The three
+> +	components are separated into two sub-images or planes. The Y plane is
+> +	first, with each Y sample stored in one byte per pixel. For
+> +	<constant>V4L2_PIX_FMT_NV24</constant>, a combined CbCr plane
+> +	immediately follows the Y plane in memory. The CbCr plane has the same
+> +	width and height, in pixels, as the Y plane (and the image). Each line
+> +	contains one CbCr pair per pixel, with each Cb and Cr sample stored in
+> +	one byte. <constant>V4L2_PIX_FMT_NV42</constant> is the same except that
+> +	the Cb and Cr samples are swapped, the CrCb plane starts with a Cr
+> +	sample.</para>
+> +
+> +	<para>If the Y plane has pad bytes after each row, then the CbCr plane
+> +	has twice as many pad bytes after its rows.</para>
+> +
+> +	<example>
+> +	  <title><constant>V4L2_PIX_FMT_NV24</constant> 4 &times; 4
+> +pixel image</title>
+> +
+> +	  <formalpara>
+> +	    <title>Byte Order.</title>
+> +	    <para>Each cell is one byte.
+> +		<informaltable frame="none">
+> +		<tgroup cols="9" align="center">
+> +		  <colspec align="left" colwidth="2*" />
+> +		  <tbody valign="top">
+> +		    <row>
+> +		      <entry>start&nbsp;+&nbsp;0:</entry>
+> +		      <entry>Y'<subscript>00</subscript></entry>
+> +		      <entry>Y'<subscript>01</subscript></entry>
+> +		      <entry>Y'<subscript>02</subscript></entry>
+> +		      <entry>Y'<subscript>03</subscript></entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry>start&nbsp;+&nbsp;4:</entry>
+> +		      <entry>Y'<subscript>10</subscript></entry>
+> +		      <entry>Y'<subscript>11</subscript></entry>
+> +		      <entry>Y'<subscript>12</subscript></entry>
+> +		      <entry>Y'<subscript>13</subscript></entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry>start&nbsp;+&nbsp;8:</entry>
+> +		      <entry>Y'<subscript>20</subscript></entry>
+> +		      <entry>Y'<subscript>21</subscript></entry>
+> +		      <entry>Y'<subscript>22</subscript></entry>
+> +		      <entry>Y'<subscript>23</subscript></entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry>start&nbsp;+&nbsp;12:</entry>
+> +		      <entry>Y'<subscript>30</subscript></entry>
+> +		      <entry>Y'<subscript>31</subscript></entry>
+> +		      <entry>Y'<subscript>32</subscript></entry>
+> +		      <entry>Y'<subscript>33</subscript></entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry>start&nbsp;+&nbsp;16:</entry>
+> +		      <entry>Cb<subscript>00</subscript></entry>
+> +		      <entry>Cr<subscript>00</subscript></entry>
+> +		      <entry>Cb<subscript>01</subscript></entry>
+> +		      <entry>Cr<subscript>01</subscript></entry>
+> +		      <entry>Cb<subscript>02</subscript></entry>
+> +		      <entry>Cr<subscript>02</subscript></entry>
+> +		      <entry>Cb<subscript>03</subscript></entry>
+> +		      <entry>Cr<subscript>03</subscript></entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry>start&nbsp;+&nbsp;24:</entry>
+> +		      <entry>Cb<subscript>10</subscript></entry>
+> +		      <entry>Cr<subscript>10</subscript></entry>
+> +		      <entry>Cb<subscript>11</subscript></entry>
+> +		      <entry>Cr<subscript>11</subscript></entry>
+> +		      <entry>Cb<subscript>12</subscript></entry>
+> +		      <entry>Cr<subscript>12</subscript></entry>
+> +		      <entry>Cb<subscript>13</subscript></entry>
+> +		      <entry>Cr<subscript>13</subscript></entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry>start&nbsp;+&nbsp;32:</entry>
+> +		      <entry>Cb<subscript>20</subscript></entry>
+> +		      <entry>Cr<subscript>20</subscript></entry>
+> +		      <entry>Cb<subscript>21</subscript></entry>
+> +		      <entry>Cr<subscript>21</subscript></entry>
+> +		      <entry>Cb<subscript>22</subscript></entry>
+> +		      <entry>Cr<subscript>22</subscript></entry>
+> +		      <entry>Cb<subscript>23</subscript></entry>
+> +		      <entry>Cr<subscript>23</subscript></entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry>start&nbsp;+&nbsp;40:</entry>
+> +		      <entry>Cb<subscript>30</subscript></entry>
+> +		      <entry>Cr<subscript>30</subscript></entry>
+> +		      <entry>Cb<subscript>31</subscript></entry>
+> +		      <entry>Cr<subscript>31</subscript></entry>
+> +		      <entry>Cb<subscript>32</subscript></entry>
+> +		      <entry>Cr<subscript>32</subscript></entry>
+> +		      <entry>Cb<subscript>33</subscript></entry>
+> +		      <entry>Cr<subscript>33</subscript></entry>
+> +		    </row>
+> +		  </tbody>
+> +		</tgroup>
+> +		</informaltable>
+> +	      </para>
+> +	  </formalpara>
+> +	</example>
+> +      </refsect1>
+> +    </refentry>
+> +
+> +  <!--
+> +Local Variables:
+> +mode: sgml
+> +sgml-parent-document: "pixfmt.sgml"
+> +indent-tabs-mode: nil
+> +End:
+> +  -->
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+> index 2ff6b77..aef4615 100644
+> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
+> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+> @@ -714,6 +714,7 @@ information.</para>
+>      &sub-nv12m;
+>      &sub-nv12mt;
+>      &sub-nv16;
+> +    &sub-nv24;
+>      &sub-m420;
+>    </section>
+>  
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index fca24cc..8225163 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -343,6 +343,8 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V', '2', '1') /* 12  Y/CrCb 4:2:0  */
+>  #define V4L2_PIX_FMT_NV16    v4l2_fourcc('N', 'V', '1', '6') /* 16  Y/CbCr 4:2:2  */
+>  #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
+> +#define V4L2_PIX_FMT_NV24    v4l2_fourcc('N', 'V', '2', '4') /* 24  Y/CbCr 4:4:4  */
+> +#define V4L2_PIX_FMT_NV42    v4l2_fourcc('N', 'V', '4', '2') /* 24  Y/CrCb 4:4:4  */
+>  
+>  /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
+>  #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
 
->         pad1: Output [SGRBG8 320x240]
->                 -> 'OMAP3 ISP CCDC output':pad0 [ACTIVE]
->                 -> 'OMAP3 ISP resizer':pad0 []
->         pad2: Output [SGRBG8 320x239]
->                 -> 'OMAP3 ISP preview':pad0 []
->                 -> 'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
->                 -> 'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
->                 -> 'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
-> 
-> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
->             type Node subtype V4L
->             device node name /dev/video2
->         pad0: Input
->                 <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
-> 
-> - entity 7: OMAP3 ISP preview (2 pads, 4 links)
->             type V4L2 subdev subtype Unknown
->             device node name /dev/v4l-subdev3
->         pad0: Input [SGRBG10 4096x4096]
->                 <- 'OMAP3 ISP CCDC':pad2 []
->                 <- 'OMAP3 ISP preview input':pad0 []
->         pad1: Output [YUYV 4082x4088]
->                 -> 'OMAP3 ISP preview output':pad0 []
->                 -> 'OMAP3 ISP resizer':pad0 []
-> 
-> - entity 8: OMAP3 ISP preview input (1 pad, 1 link)
->             type Node subtype V4L
->             device node name /dev/video3
->         pad0: Output
->                 -> 'OMAP3 ISP preview':pad0 []
-> 
-> - entity 9: OMAP3 ISP preview output (1 pad, 1 link)
->             type Node subtype V4L
->             device node name /dev/video4
->         pad0: Input
->                 <- 'OMAP3 ISP preview':pad1 []
-> 
-> - entity 10: OMAP3 ISP resizer (2 pads, 4 links)
->              type V4L2 subdev subtype Unknown
->              device node name /dev/v4l-subdev4
->         pad0: Input [YUYV 4095x4095 (4,6)/4086x4082]
->                 <- 'OMAP3 ISP CCDC':pad1 []
->                 <- 'OMAP3 ISP preview':pad1 []
->                 <- 'OMAP3 ISP resizer input':pad0 []
->         pad1: Output [YUYV 4096x4095]
->                 -> 'OMAP3 ISP resizer output':pad0 []
-> 
-> - entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
->              type Node subtype V4L
->              device node name /dev/video5
->         pad0: Output
->                 -> 'OMAP3 ISP resizer':pad0 []
-> 
-> - entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
->              type Node subtype V4L
->              device node name /dev/video6
->         pad0: Input
->                 <- 'OMAP3 ISP resizer':pad1 []
-> 
-> - entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
->              type V4L2 subdev subtype Unknown
->              device node name /dev/v4l-subdev5
->         pad0: Input
->                 <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
-> 
-> - entity 14: OMAP3 ISP AF (1 pad, 1 link)
->              type V4L2 subdev subtype Unknown
->              device node name /dev/v4l-subdev6
->         pad0: Input
->                 <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
-> 
-> - entity 15: OMAP3 ISP histogram (1 pad, 1 link)
->              type V4L2 subdev subtype Unknown
->              device node name /dev/v4l-subdev7
->         pad0: Input
->                 <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
-> 
-> - entity 16: mt9p031 2-0048 (1 pad, 1 link)
->              type V4L2 subdev subtype Unknown
->              device node name /dev/v4l-subdev8
->         pad0: Output [SGRBG12 370x243 (16,54)/2592x1944]
->                 -> 'OMAP3 ISP CCDC':pad0 [ACTIVE]
-
-But the sensor outputs SGRBG12 370x243. You can't configure the sensor to 
-output 320x240 without additional explicit cropping.
-
-If you really need a 320x240 output you should configure the sensor to output 
-a 1292x972 image, and use the OMAP3 ISP resizer to downscale to 320x240.
-
-> I see 21.6mhz on clka.
-> I see that /OE is low, and /RESET is high.
-> I don't see anything on PCLK, or the data lines D0 to D11, which confuses
-> me.
-> 
-> Output from yavta is here: http://pastebin.com/q0mB4ArN
-> 
-> Does this sound like a hardware or software issue?
-
-Definitely software, the pipeline is not configured properly as explained 
-above.
-
--- 
-Regards,
-
-Laurent Pinchart
