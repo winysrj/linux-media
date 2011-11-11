@@ -1,115 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25412 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754074Ab1KBKNK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Nov 2011 06:13:10 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: hverkuil@xs4all.nl,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 3/5] v4l2-event: Don't set sev->fh to NULL on unsubscribe
-Date: Wed,  2 Nov 2011 11:13:23 +0100
-Message-Id: <1320228805-9097-4-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1320228805-9097-1-git-send-email-hdegoede@redhat.com>
-References: <1320228805-9097-1-git-send-email-hdegoede@redhat.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:59591 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752116Ab1KKQbL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Nov 2011 11:31:11 -0500
+Message-ID: <4EBD4DD1.7030809@gmx.de>
+Date: Fri, 11 Nov 2011 16:31:13 +0000
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com, Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH v3 0/3] fbdev: Add FOURCC-based format configuration API
+References: <1314789501-824-1-git-send-email-laurent.pinchart@ideasonboard.com> <4E764B35.2090009@gmx.de> <201109182249.39536.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201109182249.39536.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Setting sev->fh to NULL causes problems for the del op added in the next
-patch of this series, since this op needs a way to get to its own data
-structures, and typically this will be done by using container_of on an
-embedded v4l2_fh struct.
+On 09/18/2011 08:49 PM, Laurent Pinchart wrote:
+>> As the second patch has nothing to do with fbdev it should go mainline via
+>> V4L2. Any problems/comments?
+> 
+> The NV24/42 patch will need to reach mainline before the sh_mobile_lcdc YUV 
+> API patch, or compilation will break.
+> 
+> Mauro, what's your preference ? Should the patch go through the media tree ? 
+> If so, how should we synchronize it with the fbdev tree ? Should I push it to 
+> 3.2 ?
 
-The reason the original code is setting sev->fh to NULL is to signal
-to users of the event framework that the unsubscription has happened,
-but since their is no shared lock between the event framework and users
-of it, this is inherently racy, and it also turns out to be unnecessary
-as long as both the event framework and the user of the framework do their
-own locking properly and the user guarantees that it holds no references
-to the subcribed_event structure after its del operation has been called.
+ping
 
-This is best explained by looking at the only code currently checking for
-sev->fh being set to NULL on unsubscribe, which is the v4l2-ctrls.c send_event
-function. Here is the relevant code from v4l2-ctrls: send_event():
+What's going on? I could carry the patch but I'd want an Ack to do so.
 
-	if (sev->fh && (sev->fh != fh ||
-			(sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK)))
-		v4l2_event_queue_fh(sev->fh, &ev);
 
-Now lets say that v4l2_event_unsubscribe and v4l2-ctrls: send_event() race
-on the same sev, then the following could happens:
+Best regards,
 
-1) send_event checks sev->fh, finds it is not NULL
-<thread switch>
-2) v4l2_event_unsubscribe sets sev->fh NULL
-3) v4l2_event_unsubscribe calls v4l2_ctrls del_event function, this blocks
-   as the thread calling send_event holds the ctrl_lock
-<thread switch>
-4) send_event calls v4l2_event_queue_fh(sev->fh, &ev) which not is equivalent
-   to calling: v4l2_event_queue_fh(NULL, &ev)
-5) oops, NULL pointer deref.
-
-Now again without setting sev->fh to NULL in v4l2_event_unsubscribe and
-without the (now senseless since always true) sev->fh != NULL check in
-send_event:
-
-1) send_event is about to call v4l2_event_queue_fh(sev->fh, &ev)
-<thread switch>
-2) v4l2_event_unsubscribe removes sev->list from the fh->subscribed list
-<thread switch>
-3) send_event calls v4l2_event_queue_fh(sev->fh, &ev)
-4) v4l2_event_queue_fh blocks on the fh_lock spinlock
-<thread switch>
-5) v4l2_event_unsubscribe unlocks the fh_lock spinlock
-6) v4l2_event_unsubscribe calls v4l2_ctrls del_event function, this blocks
-   as the thread calling send_event holds the ctrl_lock
-<thread switch>
-8) v4l2_event_queue_fh takes the fh_lock
-7) v4l2_event_queue_fh calls v4l2_event_subscribed, does not find it since
-   sev->list has been removed from fh->subscribed already -> does nothing
-9) v4l2_event_queue_fh releases the fh_lock
-10) the caller of send_event releases the ctrl lock (mutex)
-<thread switch>
-11) v4l2_ctrls del_event takes the ctrl lock
-12) v4l2_ctrls del_event removes sev->node from the ev_subs list
-13) v4l2_ctrls del_event releases the ctrl lock
-14) v4l2_event_unsubscribe frees the sev, to which no references are being
-    held anymore
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/video/v4l2-ctrls.c |    4 ++--
- drivers/media/video/v4l2-event.c |    1 -
- 2 files changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 69e24f4..1832a87 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -819,8 +819,8 @@ static void send_event(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 changes)
- 	fill_event(&ev, ctrl, changes);
- 
- 	list_for_each_entry(sev, &ctrl->ev_subs, node)
--		if (sev->fh && (sev->fh != fh ||
--				(sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK)))
-+		if (sev->fh != fh ||
-+		    (sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK))
- 			v4l2_event_queue_fh(sev->fh, &ev);
- }
- 
-diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
-index 4d01f17..3d93251 100644
---- a/drivers/media/video/v4l2-event.c
-+++ b/drivers/media/video/v4l2-event.c
-@@ -302,7 +302,6 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- 			fh->navailable--;
- 		}
- 		list_del(&sev->list);
--		sev->fh = NULL;
- 	}
- 
- 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
--- 
-1.7.7
-
+Florian Tobias Schandinat
