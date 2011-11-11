@@ -1,76 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:55829 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752508Ab1KUV2p (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:49467 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754764Ab1KKJzS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Nov 2011 16:28:45 -0500
-Received: by wwe3 with SMTP id 3so6165467wwe.1
-        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:28:44 -0800 (PST)
+	Fri, 11 Nov 2011 04:55:18 -0500
+Received: by wyh15 with SMTP id 15so3657369wyh.19
+        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2011 01:55:16 -0800 (PST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: FE_CAN-bits (was: Re: PATCH: Query DVB frontend capabilities)
+Date: Fri, 11 Nov 2011 10:55:11 +0100
+Cc: Manu Abraham <abraham.manu@gmail.com>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Steven Toth <stoth@kernellabs.com>
+References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com> <CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com> <4EBC402E.20208@redhat.com>
+In-Reply-To: <4EBC402E.20208@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CAOcJUbyPPJe_ONV5bOXx_r+cwNd43eyThyRrawA0Gi1JydQV=Q@mail.gmail.com>
-References: <CAHFNz9+e0K__EWdc=ckHURjjYMbez22=xup0d7=H7k2xQNVnyw@mail.gmail.com>
-	<CAOcJUbyPPJe_ONV5bOXx_r+cwNd43eyThyRrawA0Gi1JydQV=Q@mail.gmail.com>
-Date: Tue, 22 Nov 2011 02:58:44 +0530
-Message-ID: <CAHFNz9Lt11cy9kJtAaVWDRs5tQ938caupB-Tm0Ju6woBF3USUg@mail.gmail.com>
-Subject: Re: PATCH 04/13: 0004-TDA18271-Allow-frontend-to-set-DELSYS
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andreas Oberritter <obi@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111111055.12496.pboettcher@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/22/11, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> Thank you, Manu... After the Linux Kernel Summit in Prague, I had
-> intentions of solving this exact problem, but you did it first -- good
-> job!
->
-> I have reviewed the patch to the tda18271 driver, and the changes make
-> good sense to me.  I have one question, however:
->
-> Perhaps my eyes have overlooked something -- I fail to see any code
-> that defines the new "set_state" callback or any code that calls this
-> new callback within dvb-core (assuming dvb_frontend.c)  I also can't
-> find the structure declaration of the "tuner_state" struct... ... is
-> this patch missing from your series, or did I just overlook it?
+Hi,
 
-I guess more like that. The data structure existed for quite a long
-while in dvb_frontend.h and hence you don't find any new changes. Only
-delivery and modulation added to it.
+On Thursday, November 10, 2011 10:20:46 PM Mauro Carvalho Chehab wrote:
+> 
+> We should also think on a way to enumerate the supported values for each
+> DVB properties, the enum fe_caps is not enough anymore to store
+> everything. It currently has 30 bits filled (of a total of 32 bits), and
+> we currently have:
+> 	12 code rates (including AUTO/NONE);
+> 	13 modulation types;
+> 	7 transmission modes;
+> 	7 bandwidths;
+> 	8 guard intervals (including AUTO);
+> 	5 hierarchy names;
+> 	4 rolloff's (probably, we'll need to add 2 more, to distinguish between
+> DVB-C Annex A and Annex C).
+> 
+> So, if we would need to add one CAN_foo for each of the above, we would
+> need 56 to 58 bits, plus 5-6 bits to the other capabilities that
+> currently exists there. So, even 64 bits won't be enough for the current
+> needs (even having the delivery system caps addressed by something
+> else).
 
->
-> That missing patch is what interests me most.  Once I can see that
-> missing code, I'd like to begin discussion on whether we actually need
-> the additional callback, or if it can simply be handled by the
-> set_params call.  Likewise, I'm not exactly sure why we need this
-> affional "struct tuner_state" ...  Perhaps the answer will be
-> self-explanatory once I see the code - maybe no discussion is
-> necessary :-P
->
-> But this does look good to me so far.  I'd be happy to provide my
-> "reviewed-by" tag once I can see the missing code mentioned above.
+IMHO, we don't need such a fine FE_CAN_-bit distinguishing for most 
+standards. A well defined sub-standard definition is sufficient, which can be 
+handled with a delivery-system-like query as proposed in the original patch. 
+This also will be much simpler for most user-space applications and users.
 
-The callback is used from within a demodulator context as usual and hence.
-eg:
+DVB-T means: 
+- 8K or 2K, 
+- 1/4-1/32 Guard, 
+- 1/2, 2/3, 3/4, 5/6 and 7/8 coderate, 
+- QPSK, 64QAM or 16QAM
 
- 	/* program tuner */
--	if (fe->ops.tuner_ops.set_params)
--		fe->ops.tuner_ops.set_params(fe, params);
-+	tstate.delsys = SYS_DVBC_ANNEX_AC;
-+	tstate.frequency = c->frequency;
-+
-+	if (fe->ops.tuner_ops.set_state) {
-+		fe->ops.tuner_ops.set_state(fe,
-+					    DVBFE_TUNER_DELSYS    |
-+					    DVBFE_TUNER_FREQUENCY,
-+					    &tstate);
-+	} else {
-+		if (fe->ops.tuner_ops.set_params)
-+			fe->ops.tuner_ops.set_params(fe, params);
-+	}
+DVB-H (RIP as Remi wrote somewhere) would have meant:
+- DVB-T + 4K + in-depth-interleaver mode
 
+The same applies to ISDB-T and ISDB-T 1seg. And for CMMB, CTTB, DVB-SH. 
 
-Best Regards,
-Manu
+If there are demods which can't do one particular thing, we should forget 
+about them. At least this is what almost all applications I have seen so far 
+are doing implicitly. 
+
+Though, I see at least one inconvenience is if someone is using linux-dvb 
+for developping dsp-software and wants to deliver things which aren't done. 
+But is this a case we want to "support" within the official API.
+
+regards,
+--
+Patrick Boettcher - KernelLabs
+http://www.kernellabs.com/
