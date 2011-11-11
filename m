@@ -1,66 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:46977 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752219Ab1KSTkp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Nov 2011 14:40:45 -0500
-Received: by ghbz2 with SMTP id z2so1654014ghb.19
-        for <linux-media@vger.kernel.org>; Sat, 19 Nov 2011 11:40:45 -0800 (PST)
-Date: Sat, 19 Nov 2011 16:40:37 -0300
-From: Ezequiel <elezegarcia@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org, moinejf@free.fr
-Subject: Re: [PATCH] [media] gspca: replaced static allocation by
- video_device_alloc/video_device_release
-Message-ID: <20111119194037.GA3709@localhost>
-References: <20111119185015.GA3048@localhost>
- <4EC80176.5000802@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:47124 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754007Ab1KKTEk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Nov 2011 14:04:40 -0500
+Message-ID: <4EBD6B61.7020605@redhat.com>
+Date: Fri, 11 Nov 2011 16:37:21 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4EC80176.5000802@redhat.com>
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: PATCH: Query DVB frontend capabilities
+References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com> <4EBBE336.8050501@linuxtv.org> <CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com> <4EBC402E.20208@redhat.com> <alpine.DEB.2.01.1111111759060.6676@localhost.localdomain>
+In-Reply-To: <alpine.DEB.2.01.1111111759060.6676@localhost.localdomain>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 19, 2011 at 08:20:22PM +0100, Hans de Goede wrote:
-> Hi,
+Em 11-11-2011 15:43, BOUWSMA Barry escreveu:
 > 
-> On 11/19/2011 07:50 PM, Ezequiel wrote:
-> > Pushed video_device initialization into a separate function.
-> > Replaced static allocation of struct video_device by
-> > video_device_alloc/video_device_release usage.
+> On Do (Donnerstag) 10.Nov (November) 2011, 22:20,  Mauro Carvalho Chehab wrote:
 > 
-> NACK! I see a video_device_release call here, but not a
-> video_device_alloc, also you're messing with quite sensitive code
-> here (because a usb device can be unplugged at any time, including
-> when the /dev/video node is open by a process), and changing it
-> from static to dynamic allocation my have more consequences
-> then you see at first (I did not analyze all the code paths
-> for the proposed change, since the last time I audited them for
-> the current static allocation of the videodevice struct code took
-> me hours).
+>> We should also think on a way to enumerate the supported values for each DVB $
+>> the enum fe_caps is not enough anymore to store everything. It currently has $
+>> filled (of a total of 32 bits), and we currently have:
+>> 	12 code rates (including AUTO/NONE);
 > 
-> Also static allocation (as part of the driver struct) in general is
-> better then dynamic as it needs less code and helps avoiding memory
-> fragmentation.
-> 
-> All in all I cannot help but feel that you're diving into a piece
-> of code with some drive by shooting style patch without knowing
-> the code in question at all, please don't do that!
-> 
-> Regards,
-> 
-> Hans
-> 
+> I'm probably not looking at the correct source, but the numbers
+> seem to match, so I'll just note that in what I'm looking at,
+> there are missing the values  1/3  and  2/5 .
 
-Hi Hans,
+Those were not added yet, as no driver currently uses it.
 
-Sorry, really dont know what happened, 
-I sent an incomplete patch version.
-(some vim yank-key error).
+> 
+> But I have to apologise in that I've also not been paying
+> attention to this conversation, and haven't even been trying
+> to follow recent developments.
+> 
+> 
+>> 	13 modulation types;
+> 
+> Here I see missing  QAM1024  and  QAM4096 .
 
-I understand your observations about static vs dynamic, 
-but please could you review the right patch.
+Same here.
 
-Thanks,
-Ezequiel.
+> 
+> 
+>> 	7 transmission modes;
+>> 	7 bandwidths;
+> 
+> Apparently DVB-C2 allows us any bandwidth from 8MHz to 450MHz,
+> rather than the discrete values used by the other systems.
+> If this is also applicable to other countries with 6MHz rasters,
+> would it be necessary in addition to specify carrier spacing,
+> either 2,232kHz or 1,674kHz as opposed to getting this from the
+> channel bandwidth?
+
+There are 3 parameters for Satellite and Cable systems:
+	- Roll off factor;
+	- Symbol Rate;
+	- Bandwidth.
+
+Only two of the tree are independent, as the spec defines:
+	Bandwidth = symbol rate * (1  + roll off).
+
+For DVB-C Annex A and C, roll off is fixed (0.15 and 0.13, respectively).
+
+ITU-T J 83 Annex B doesn't say anything about it, but the ANSI SCTE07 spec
+says that the roll-off is approx. 0.18 for 256-QAM and approx. 0.12 for
+256-QAM.
+
+DVB-S also has a fixed roll-off of 0.35, while DVB-S2 allows configuring it.
+
+Not 100% sure, but ISDB-S also seems to use a per-modulation roll-off factor.
+
+Anyway, when the roll-off is known, only symbol rate is needed, in order
+to know the needed bandwidth.
+
+IMHO, we should add some function inside the DVB core to calculate the
+bandwidth for DVB-C (and DVB-C2), as the tuner saw filters require it,
+in order to filter spurious frequencies from adjacent channels. Some
+demods may also need such info.
+
+The DVBv5 API doesn't impose any step for the carrier value, as it is
+specified in Hz. So, I don't think that any change would be needed at 
+the userspace API, in order to support DVB-C2 "continuous" carrier spacing.
+
+> 
+> 
+>> 	8 guard intervals (including AUTO);
+> 
+> Here I observe the absence of  1/64 .
+
+Same here: currently, no driver implements it.
+
+> 
+> 
+>> 	5 hierarchy names;
+>> 	4 rolloff's (probably, we'll need to add 2 more, to distinguish between$
+> 
+> 
+> Of course, I'm just pointing out what I find, as I really don't
+> know anything about the transport systems, and someone who 
+> actually does might be able to say more, and correct my errors.
+> 
+> So just ignore me -- I'd rather see these values added sooner
+> than later if needed.  Apparently the broadcasts from Borups
+> Allé scheduled to start sometime around now will be switching
+> over to use those mentioned to test their increased robustness.
+
+Implementing those parameters is not a matter of just adding new stuff at
+the core. Developers need DVB-C2 capable hardware, and access to a broadcaster
+using it (or access to some testing facility where DVB-C2 could be
+simulated).
+
+Regards,
+Mauro
