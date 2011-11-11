@@ -1,177 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:49195 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750876Ab1K1Nu2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 08:50:28 -0500
-Date: Mon, 28 Nov 2011 14:50:26 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Nicolas Ferre <nicolas.ferre@atmel.com>
-cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	josh.wu@atmel.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] V4L: atmel-isi: add code to enable/disable
- ISI_MCK clock
-In-Reply-To: <1322487284-3381-1-git-send-email-nicolas.ferre@atmel.com>
-Message-ID: <Pine.LNX.4.64.1111281448440.13013@axis700.grange>
-References: <1322487284-3381-1-git-send-email-nicolas.ferre@atmel.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:41568 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751689Ab1KKLg4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Nov 2011 06:36:56 -0500
+Message-ID: <4EBD08D0.6030701@iki.fi>
+Date: Fri, 11 Nov 2011 13:36:48 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: Re: FE_CAN-bits
+References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com> <CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com> <4EBC402E.20208@redhat.com> <201111111055.12496.pboettcher@kernellabs.com>
+In-Reply-To: <201111111055.12496.pboettcher@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas
+On 11/11/2011 11:55 AM, Patrick Boettcher wrote:
+> On Thursday, November 10, 2011 10:20:46 PM Mauro Carvalho Chehab wrote:
+>>
+>> We should also think on a way to enumerate the supported values for each
+>> DVB properties, the enum fe_caps is not enough anymore to store
+>> everything. It currently has 30 bits filled (of a total of 32 bits), and
+>> we currently have:
+>> 	12 code rates (including AUTO/NONE);
+>> 	13 modulation types;
+>> 	7 transmission modes;
+>> 	7 bandwidths;
+>> 	8 guard intervals (including AUTO);
+>> 	5 hierarchy names;
+>> 	4 rolloff's (probably, we'll need to add 2 more, to distinguish between
+>> DVB-C Annex A and Annex C).
+>>
+>> So, if we would need to add one CAN_foo for each of the above, we would
+>> need 56 to 58 bits, plus 5-6 bits to the other capabilities that
+>> currently exists there. So, even 64 bits won't be enough for the current
+>> needs (even having the delivery system caps addressed by something
+>> else).
+>
+> IMHO, we don't need such a fine FE_CAN_-bit distinguishing for most
+> standards. A well defined sub-standard definition is sufficient, which can be
+> handled with a delivery-system-like query as proposed in the original patch.
+> This also will be much simpler for most user-space applications and users.
 
-On Mon, 28 Nov 2011, Nicolas Ferre wrote:
+I agree that. Those are totally useless in general. Let driver return 
+error to userspace if it cannot handle.
 
-> From: Josh Wu <josh.wu@atmel.com>
-> 
-> This patch
-> - add ISI_MCK clock enable/disable code.
-> - change field name in isi_platform_data structure
-> 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> [g.liakhovetski@gmx.de: fix label names]
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+> DVB-T means:
+> - 8K or 2K,
+> - 1/4-1/32 Guard,
+> - 1/2, 2/3, 3/4, 5/6 and 7/8 coderate,
+> - QPSK, 64QAM or 16QAM
+>
+> DVB-H (RIP as Remi wrote somewhere) would have meant:
+> - DVB-T + 4K + in-depth-interleaver mode
+>
+> The same applies to ISDB-T and ISDB-T 1seg. And for CMMB, CTTB, DVB-SH.
+>
+> If there are demods which can't do one particular thing, we should forget
+> about them. At least this is what almost all applications I have seen so far
+> are doing implicitly.
 
-Thanks for the ack. All patches, affecting drivers/media & include/media 
-should go via the media tree, I'll push this one along with others for 3.3 
-as appropriate.
+I know only one case where device cannot support all standard 
+parameters. It is one TDA10023 device and looks like stream goes too 
+wide when QAM256 is used.
 
-Thanks
-Guennadi
+> Though, I see at least one inconvenience is if someone is using linux-dvb
+> for developping dsp-software and wants to deliver things which aren't done.
+> But is this a case we want to "support" within the official API.
 
-> ---
-> Guennadi,
-> 
-> Here is the pach form Josh and yourself about the Atmel ISI driver
-> modifications. I have rebased it on top of 3.2-rc3 (and tested it on
-> linux-next also).
-> I plan to submit the board/device related patches (2-3/3 of this series) to
-> the arm-soc tree real soon. Do you whant me to include this one or can you
-> schedulle an inclusion in mainline for 3.3?
-> 
-> Best regards,
-> 
->  drivers/media/video/atmel-isi.c |   31 +++++++++++++++++++++++++++++--
->  include/media/atmel-isi.h       |    4 +++-
->  2 files changed, 32 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
-> index 8c775c5..5a7ab84 100644
-> --- a/drivers/media/video/atmel-isi.c
-> +++ b/drivers/media/video/atmel-isi.c
-> @@ -90,7 +90,10 @@ struct atmel_isi {
->  	struct isi_dma_desc		dma_desc[MAX_BUFFER_NUM];
->  
->  	struct completion		complete;
-> +	/* ISI peripherial clock */
->  	struct clk			*pclk;
-> +	/* ISI_MCK, feed to camera sensor to generate pixel clock */
-> +	struct clk			*mck;
->  	unsigned int			irq;
->  
->  	struct isi_platform_data	*pdata;
-> @@ -766,6 +769,12 @@ static int isi_camera_add_device(struct soc_camera_device *icd)
->  	if (ret)
->  		return ret;
->  
-> +	ret = clk_enable(isi->mck);
-> +	if (ret) {
-> +		clk_disable(isi->pclk);
-> +		return ret;
-> +	}
-> +
->  	isi->icd = icd;
->  	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
->  		 icd->devnum);
-> @@ -779,6 +788,7 @@ static void isi_camera_remove_device(struct soc_camera_device *icd)
->  
->  	BUG_ON(icd != isi->icd);
->  
-> +	clk_disable(isi->mck);
->  	clk_disable(isi->pclk);
->  	isi->icd = NULL;
->  
-> @@ -874,7 +884,7 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd, u32 pixfmt)
->  
->  	if (isi->pdata->has_emb_sync)
->  		cfg1 |= ISI_CFG1_EMB_SYNC;
-> -	if (isi->pdata->isi_full_mode)
-> +	if (isi->pdata->full_mode)
->  		cfg1 |= ISI_CFG1_FULL_MODE;
->  
->  	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
-> @@ -912,6 +922,7 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
->  			isi->fb_descriptors_phys);
->  
->  	iounmap(isi->regs);
-> +	clk_put(isi->mck);
->  	clk_put(isi->pclk);
->  	kfree(isi);
->  
-> @@ -930,7 +941,7 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
->  	struct isi_platform_data *pdata;
->  
->  	pdata = dev->platform_data;
-> -	if (!pdata || !pdata->data_width_flags) {
-> +	if (!pdata || !pdata->data_width_flags || !pdata->mck_hz) {
->  		dev_err(&pdev->dev,
->  			"No config available for Atmel ISI\n");
->  		return -EINVAL;
-> @@ -959,6 +970,19 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
->  	INIT_LIST_HEAD(&isi->video_buffer_list);
->  	INIT_LIST_HEAD(&isi->dma_desc_head);
->  
-> +	/* Get ISI_MCK, provided by programmable clock or external clock */
-> +	isi->mck = clk_get(dev, "isi_mck");
-> +	if (IS_ERR_OR_NULL(isi->mck)) {
-> +		dev_err(dev, "Failed to get isi_mck\n");
-> +		ret = isi->mck ? PTR_ERR(isi->mck) : -EINVAL;
-> +		goto err_clk_get;
-> +	}
-> +
-> +	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
-> +	ret = clk_set_rate(isi->mck, pdata->mck_hz);
-> +	if (ret < 0)
-> +		goto err_set_mck_rate;
-> +
->  	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
->  				sizeof(struct fbd) * MAX_BUFFER_NUM,
->  				&isi->fb_descriptors_phys,
-> @@ -1034,6 +1058,9 @@ err_alloc_ctx:
->  			isi->p_fb_descriptors,
->  			isi->fb_descriptors_phys);
->  err_alloc_descriptors:
-> +err_set_mck_rate:
-> +	clk_put(isi->mck);
-> +err_clk_get:
->  	kfree(isi);
->  err_alloc_isi:
->  	clk_put(isi->pclk);
-> diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
-> index 26cece5..6568230 100644
-> --- a/include/media/atmel-isi.h
-> +++ b/include/media/atmel-isi.h
-> @@ -110,10 +110,12 @@ struct isi_platform_data {
->  	u8 hsync_act_low;
->  	u8 vsync_act_low;
->  	u8 pclk_act_falling;
-> -	u8 isi_full_mode;
-> +	u8 full_mode;
->  	u32 data_width_flags;
->  	/* Using for ISI_CFG1 */
->  	u32 frate;
-> +	/* Using for ISI_MCK */
-> +	u32 mck_hz;
->  };
->  
->  #endif /* __ATMEL_ISI_H__ */
-> -- 
-> 1.7.5.4
-> 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+regards
+Antti
+
+
+-- 
+http://palosaari.fi/
