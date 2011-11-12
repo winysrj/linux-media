@@ -1,74 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:35089 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753284Ab1KXSv5 (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:40756 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752951Ab1KLP40 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 13:51:57 -0500
-Received: by wwp14 with SMTP id 14so2203509wwp.1
-        for <linux-media@vger.kernel.org>; Thu, 24 Nov 2011 10:51:56 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4ECE913A.9090001@redhat.com>
-References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
-	<dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com>
-	<4ECE79F5.9000402@linuxtv.org>
-	<201111241844.23292.hverkuil@xs4all.nl>
-	<CAHFNz9J+3DYW-Gf0FPYhcZqHf7XPtM+dmK0Y15HhkWQZOzNzuQ@mail.gmail.com>
-	<4ECE8839.8040606@redhat.com>
-	<CAHFNz9LOYHTXjhk2yTqhoC90HQQ0AGiOp4A6Gki-vsEtJr_UOw@mail.gmail.com>
-	<4ECE913A.9090001@redhat.com>
-Date: Fri, 25 Nov 2011 00:21:56 +0530
-Message-ID: <CAHFNz9JMRST=g3UGQQXQgvF=aXf_AZwLeTZPXrHYBOpBxG2QKg@mail.gmail.com>
-Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sat, 12 Nov 2011 10:56:26 -0500
+Received: by wyh15 with SMTP id 15so4693629wyh.19
+        for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 07:56:25 -0800 (PST)
+Message-ID: <4ebe9728.4dc6e30a.47c5.ffff8fc3@mx.google.com>
+Subject: [PATCH 5/7] af9015 usb bus repeater.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Sat, 12 Nov 2011 15:56:20 +0000
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 25, 2011 at 12:17 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 24-11-2011 16:13, Manu Abraham escreveu:
->> On Thu, Nov 24, 2011 at 11:38 PM, Mauro Carvalho Chehab
->> <mchehab@redhat.com> wrote:
->>> Em 24-11-2011 16:01, Manu Abraham escreveu:
->>>> On Thu, Nov 24, 2011 at 11:14 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>>> On Thursday, November 24, 2011 18:08:05 Andreas Oberritter wrote:
->>>>>> Don't break existing Userspace APIs for no reason! It's OK to add the
->>>>>> new API, but - pretty please - don't just blindly remove audio.h and
->>>>>> video.h. They are in use since many years by av7110, out-of-tree drivers
->>>>>> *and more importantly* by applications. Yes, I know, you'd like to see
->>>>>> those out-of-tree drivers merged, but it isn't possible for many
->>>>>> reasons. And even if they were merged, you'd say "Port them and your
->>>>>> apps to V4L". No! That's not an option.
->>>>>
->>>>> I'm not breaking anything. All apps will still work.
->>>>>
->>>>> One option (and it depends on whether people like it or not) is to have
->>>>> audio.h, video.h and osd.h just include av7110.h and add a #warning
->>>>> that these headers need to be replaced by the new av7110.h.
->>>>
->>>>
->>>> That won't work with other non av7110 hardware.
->>>
->>> There isn't any non-av7110 driver using it at the Kernel. Anyway, we can put
->>> a warning at the existing headers as-is, for now, putting them to be removed
->>> for a new kernel version, like 3.4.
->>
->>
->> No, that's not an option. The to-be merged saa716x driver depends on it.
->
-> If the driver is not merged yet, it can be changed.
->
->> A DVB alone device need not depend V4L2 for it's operation.
->
-> Why not? DVB drivers with IR should implement the input/event/IR API. DVB drivers with net
-> should implement the Linux Network API.
+This a bus repeater for af9015 devices. Commands usually fail because of other
+activity on the usb bus. 
+
+Afatech drivers can repeat up to ten times on the usb bus.
+
+bulk failures that report -ETIMEDOUT or -EBUSY are repeated. If the device fails
+it usually return 0x55 in the first byte.
+
+I am working on a patch to move parts of this to the dvb-usb common area to
+be used by other drivers.
 
 
-A  DVB device having DVB alone associated with it, I see no reason for it to be
-using V4L framework, while that same framework exists within DVB, just because
-someone has created some artificial reasons to remove it and put it to V4L.
-That's so wicked and full of politics.
+Signed-off-by: Malcolm Priestley<tvboxspy@gmail.com>
+
+---
+ drivers/media/dvb/dvb-usb/af9015.c |   61 ++++++++++++++++++++++--------------
+ 1 files changed, 37 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+index 9077ac4..ac134b6 100644
+--- a/drivers/media/dvb/dvb-usb/af9015.c
++++ b/drivers/media/dvb/dvb-usb/af9015.c
+@@ -68,7 +68,7 @@ static struct af9013_config af9015_af9013_config[] = {
+ 	}
+ };
+ 
+-static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
++static int af9015_io_udev(struct usb_device *udev, struct req_t *req)
+ {
+ #define BUF_LEN 63
+ #define REQ_HDR_LEN 8 /* send header size */
+@@ -79,9 +79,6 @@ static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
+ 	u8 msg_len = REQ_HDR_LEN;
+ 	static u8 seq; /* packet sequence number */
+ 
+-	if (mutex_lock_interruptible(&af9015_usb_mutex) < 0)
+-		return -EAGAIN;
+-
+ 	buf[0] = req->cmd;
+ 	buf[1] = seq++;
+ 	buf[2] = req->i2c_addr;
+@@ -114,16 +111,14 @@ static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
+ 		break;
+ 	default:
+ 		err("unknown command:%d", req->cmd);
+-		ret = -1;
+-		goto error_unlock;
++		return -EINVAL;
+ 	}
+ 
+ 	/* buffer overflow check */
+ 	if ((write && (req->data_len > BUF_LEN - REQ_HDR_LEN)) ||
+ 		(!write && (req->data_len > BUF_LEN - ACK_HDR_LEN))) {
+ 		err("too much data; cmd:%d len:%d", req->cmd, req->data_len);
+-		ret = -EINVAL;
+-		goto error_unlock;
++		return -EINVAL;
+ 	}
+ 
+ 	/* write requested */
+@@ -142,13 +137,13 @@ static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
+ 		err("bulk message failed:%d (%d/%d)", ret, msg_len, act_len);
+ 	else
+ 		if (act_len != msg_len)
+-			ret = -1; /* all data is not send */
++			return -EAGAIN; /* all data is not send */
+ 	if (ret)
+-		goto error_unlock;
++		goto error;
+ 
+ 	/* no ack for those packets */
+ 	if (req->cmd == DOWNLOAD_FIRMWARE || req->cmd == RECONNECT_USB)
+-		goto exit_unlock;
++		return 0;
+ 
+ 	/* write receives seq + status = 2 bytes
+ 	   read receives seq + status + data = 2 + N bytes */
+@@ -158,30 +153,48 @@ static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
+ 
+ 	ret = usb_bulk_msg(udev, usb_rcvbulkpipe(udev, 0x81), buf, msg_len,
+ 		&act_len, AF9015_USB_TIMEOUT);
+-	if (ret) {
+-		err("recv bulk message failed:%d", ret);
+-		ret = -1;
+-		goto error_unlock;
+-	}
++	if (ret)
++		goto error;
+ 
+ 	deb_xfer("<<< ");
+ 	debug_dump(buf, act_len, deb_xfer);
+ 
+ 	/* check status */
+-	if (buf[1]) {
+-		err("command failed:%d", buf[1]);
+-		ret = -1;
+-		goto error_unlock;
+-	}
++	if (buf[1])
++		return -EAGAIN;
+ 
+ 	/* read request, copy returned data to return buf */
+ 	if (!write)
+ 		memcpy(req->data, &buf[ACK_HDR_LEN], req->data_len);
+ 
+-error_unlock:
+-exit_unlock:
+-	mutex_unlock(&af9015_usb_mutex);
++error:
++	if (ret == -ETIMEDOUT || ret == -EBUSY)
++		return -EAGAIN;
++
++	return ret;
++}
++
++#define AF9015_RETRY 5
++static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
++{
++	int ret = 0, i;
++
++	if (mutex_lock_interruptible(&af9015_usb_mutex) < 0)
++		return -EAGAIN;
++
++	for (i = 0; i < AF9015_RETRY; i++) {
++		if (req == NULL)
++			break;
++		ret = af9015_io_udev(udev, req);
++		if (ret != -EAGAIN)
++			break;
++		udelay(250);
++	}
++	if (ret && req)
++		err("Command failed:%x i2c addr:%x error:%d",
++			req->cmd, req->i2c_addr, ret);
+ 
++	mutex_unlock(&af9015_usb_mutex);
+ 	return ret;
+ }
+ 
+-- 
+1.7.5.4
+
+
+
+
