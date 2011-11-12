@@ -1,188 +1,220 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:56165 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754640Ab1KZMrS (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:58521 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753281Ab1KLPzd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Nov 2011 07:47:18 -0500
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
-Date: Sat, 26 Nov 2011 13:46:41 +0100
-Cc: linux-media@vger.kernel.org, Andreas Oberritter <obi@linuxtv.org>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <4ED0CE6A.3030703@redhat.com> <4ED0D48F.40007@redhat.com>
-In-Reply-To: <4ED0D48F.40007@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+	Sat, 12 Nov 2011 10:55:33 -0500
+Received: by wyh15 with SMTP id 15so4693278wyh.19
+        for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 07:55:32 -0800 (PST)
+Message-ID: <4ebe96f4.6359b40a.5cac.3970@mx.google.com>
+Subject: [PATCH 3/7] af9015/af9013 full pid filtering
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Sat, 12 Nov 2011 15:55:26 +0000
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201111261346.43345@orion.escape-edv.de>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 26 November 2011 12:59:11 Mauro Carvalho Chehab wrote:
-> Em 26-11-2011 09:32, Mauro Carvalho Chehab escreveu:
-> > Em 26-11-2011 03:55, Oliver Endriss escreveu:
-> >> On Friday 25 November 2011 23:06:34 Andreas Oberritter wrote:
-> >>> On 25.11.2011 17:51, Manu Abraham wrote:
-> >>>> On Fri, Nov 25, 2011 at 9:56 PM, Mauro Carvalho Chehab
-> >>>> <mchehab@redhat.com> wrote:
-> >>>>> Em 25-11-2011 14:03, Andreas Oberritter escreveu:
-> >>>>>> On 25.11.2011 16:38, Mauro Carvalho Chehab wrote:
-> >>>>>>> Em 25-11-2011 12:41, Andreas Oberritter escreveu:
-> >>>>>>>> On 25.11.2011 14:48, Mauro Carvalho Chehab wrote:
-> >>>>>>>>> If your complain is about the removal of audio.h, video.h
-> >>>>>>>>
-> >>>>>>>> We're back on topic, thank you!
-> >>>>>>>>
-> >>>>>>>>> and osd.h, then my proposal is
-> >>>>>>>>> to keep it there, writing a text that they are part of a deprecated API,
-> >>>>>>>>
-> >>>>>>>> That's exactly what I proposed. Well, you shouldn't write "deprecated",
-> >>>>>>>> because it's not. Just explain - inside this text - when V4L2 should be
-> >>>>>>>> preferred over DVB.
-> >>>>>>>
-> >>>>>>> It is deprecated, as the API is not growing to fulfill today's needs, and
-> >>>>>>> no patches adding new stuff to it to it will be accepted anymore.
-> >>>>>>
-> >>>>>> Haha, nice one. "It doesn't grow because I don't allow it to." Great!
-> >>>>>
-> >>>>> No. It didn't grow because nobody cared with it for years:
-> >>>>>
-> >>>>> Since 2.6.12-rc2 (start of git history), no changes ever happened at osd.h.
-> >>>>>
-> >>>>> Excluding Hans changes for using it on a pure V4L device, and other trivial
-> >>>>> patches not related to API changes, the last API change on audio.h and video.h
-> >>>>> was this patch:
-> >>>>>        commit f05cce863fa399dd79c5aa3896d608b8b86d8030
-> >>>>>        Author: Andreas Oberritter <obi@linuxtv.org>
-> >>>>>        Date:   Mon Feb 27 00:09:00 2006 -0300
-> >>>>>
-> >>>>>            V4L/DVB (3375): Add AUDIO_GET_PTS and VIDEO_GET_PTS ioctls
-> >>>>>
-> >>>>>        (yet not used on any upstream driver)
-> >>>>>
-> >>>>> An then:
-> >>>>>        commit 1da177e4c3f41524e886b7f1b8a0c1fc7321cac2
-> >>>>>        Author: Linus Torvalds <torvalds@ppc970.osdl.org>
-> >>>>>        Date:   Sat Apr 16 15:20:36 2005 -0700
-> >>>>>
-> >>>>>            Linux-2.6.12-rc2
-> >>>>>
-> >>>>> No changes adding support for any in-kernel driver were ever added there.
-> >>>>>
-> >>>>> So, it didn't grow over the last 5 or 6 years because nobody submitted
-> >>>>> driver patches requiring new things or _even_ using it.
-> >>>>>
-> >>>>>>
-> >>>>>>>>> but keeping
-> >>>>>>>>> the rest of the patches
-> >>>>>>>>
-> >>>>>>>> Which ones?
-> >>>>>>>
-> >>>>>>> V4L2, ivtv and DocBook patches.
-> >>>>>>
-> >>>>>> Fine.
-> >>>>>>
-> >>>>>>>>> and not accepting anymore any submission using them
-> >>>>>>>>
-> >>>>>>>> Why? First you complain about missing users and then don't want to allow
-> >>>>>>>> any new ones.
-> >>>>>>>
-> >>>>>>> I didn't complain about missing users. What I've said is that, between a
-> >>>>>>> one-user API and broad used APIs like ALSA and V4L2, the choice is to freeze
-> >>>>>>> the one-user API and mark it as deprecated.
-> >>>>>>
-> >>>>>> Your assumtion about only one user still isn't true.
-> >>>>>>
-> >>>>>>> Also, today's needs are properly already covered by V4L/ALSA/MC/subdev.
-> >>>>>>> It is easier to add what's missing there for DVB than to work the other
-> >>>>>>> way around, and deprecate V4L2/ALSA/MC/subdev.
-> >>>>>>
-> >>>>>> Yes. Please! Add it! But leave the DVB API alone!
-> >>>>>>
-> >>>>>>>>> , removing
-> >>>>>>>>> the ioctl's that aren't used by av7110 from them.
-> >>>>>>>>
-> >>>>>>>> That's just stupid. I can easily provide a list of used and valuable
-> >>>>>>>> ioctls, which need to remain present in order to not break userspace
-> >>>>>>>> applications.
-> >>>>>>>
-> >>>>>>> Those ioctl's aren't used by any Kernel driver, and not even documented.
-> >>>>>>> So, why to keep/maintain them?
-> >>>>>>
-> >>>>>> If you already deprecated it, why bother deleting random stuff from it
-> >>>>>> that people are using?
-> >>>>>>
-> >>>>>> There's a difference in keeping and maintaining something. You don't
-> >>>>>> need to maintain ioctls that haven't changed in years. Deleting
-> >>>>>> something is more work than letting it there to be used by those who
-> >>>>>> want to.
-> >>>>>
-> >>>>> Ok. Let's just keep the headers as is, just adding a comment that it is now
-> >>>>> considered superseded.
-> >>>
-> >>> Thank you! This is a step into the right direction.
-> >>>
-> >>>> http://dictionary.reference.com/browse/superseded
-> >>>>
-> >>>> to set aside or cause to be set aside as void, useless, or obsolete, usually
-> >>>> in favor of something mentioned; make obsolete: They superseded the
-> >>>> old statute with a new one.
-> >>>>
-> >>>> No, that's not acceptable. New DVB devices as they come will make use
-> >>>> of the API and API changes might be applied.
-> >>>
-> >>> Honestly, I think we all should accept this proposal and just hope that
-> >>> the comment is going to be written objectively.
-> >>
-> >> 'Hoping' is not enough for me anymore. I am deeply disappointed.
-> >> Mauro and Hans have severely damaged my trust, that v4ldvb APIs are
-> >> stable in Linux, and how things are handled in this project.
-> >>
-> >> So I request a public statement from the subsystem maintainer that
-> >> 1. The DVB Decoder API will not be removed.
-> >> 2. It can be updated if required (e.g. adding a missing function).
-> >> 3. New drivers are allowed to use this architecture.
-> >> 4. These driver will be accepted, if they follow the kernel standards.
-> >>
-> >> The reason is simple: I need to know, whether this project is still
-> >> worth investing some time, or it is better to do something else.
-> >>
-> > 
-> > What it is agreed so far is to keep it there untouched, doing the evolution
-> > for the decoder API via V4L2, in order to merge efforts on decoding
-> > features, and use the proper existing systems to output decoded audio and
-> > video streams (ALSA and V4L2). 
-> > 
-> > In other words, (item 1) the headers will stay there, with a note pointing 
-> > that the evolution will be via V4L2. As the evolution will follow another
-> > direction, I don't agree it your items 2, 3 and 4.
-> 
-> A small addendum: drivers can still be merged at staging. I can help the efforts
-> of porting them to use ALSA/V4L2.
+Allowing the pid to be enabled seems to suppress corrupted stream packets
+from the first frontend.  This is mainly caused by other high speed devices
+on the usb bus.
 
-Thanks for the clarification. This is exactly what I expected.
-New drivers using the old API will end up in staging, and stay there
-until they are converted to the new API.
+Full pid filtering on all frontends.
+no_pid is defaulted to on.
+TS frame size it limited to 21, this because if we are only filtering
+pid 0000, it takes too long to fill up the buffer when tuning or
+scanning.
 
-I think it is time to think about drivers in user-space...
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/dvb/dvb-usb/af9015.c |   82 ++++++++++++++++++++++++++++++------
+ 1 files changed, 69 insertions(+), 13 deletions(-)
 
-Bye,
-Oliver
-
+diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+index eb464c8..c9da2aa 100644
+--- a/drivers/media/dvb/dvb-usb/af9015.c
++++ b/drivers/media/dvb/dvb-usb/af9015.c
+@@ -41,6 +41,9 @@ static int dvb_usb_af9015_remote;
+ module_param_named(remote, dvb_usb_af9015_remote, int, 0644);
+ MODULE_PARM_DESC(remote, "select remote");
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
++static int no_pid_filter;
++module_param_named(no_pid, no_pid_filter, int, 0644);
++MODULE_PARM_DESC(no_pid, "set default 0=on 1=off");
+ 
+ static DEFINE_MUTEX(af9015_usb_mutex);
+ 
+@@ -223,6 +226,25 @@ static int af9015_write_reg_i2c(struct dvb_usb_device *d, u8 addr, u16 reg,
+ 	return af9015_ctrl_msg(d, &req);
+ }
+ 
++static int af9015_write_fe(struct dvb_usb_device *d, u8 adap, u16 reg,
++	u8 val)
++{
++	int ret;
++	u8 addr1 = af9015_af9013_config[1].demod_address;
++
++	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
++		return -EAGAIN;
++
++	if (adap == 0)
++		ret = af9015_write_reg(d, reg, val);
++	else
++		ret = af9015_write_reg_i2c(d, addr1, reg, val);
++
++
++	mutex_unlock(&d->i2c_mutex);
++	return ret;
++}
++
+ static int af9015_read_reg_i2c(struct dvb_usb_device *d, u8 addr, u16 reg,
+ 	u8 *val)
+ {
+@@ -407,6 +429,9 @@ static int af9015_init_endpoint(struct dvb_usb_device *d)
+ #define TS_USB20_PACKET_COUNT      87
+ #define TS_USB20_FRAME_SIZE       (TS_PACKET_SIZE*TS_USB20_PACKET_COUNT)
+ 
++#define TS_PID_PACKET_COUNT	21
++#define TS_PID_FRAME_SIZE	(TS_PACKET_SIZE*TS_PID_PACKET_COUNT)
++
+ #define TS_USB11_PACKET_COUNT       5
+ #define TS_USB11_FRAME_SIZE       (TS_PACKET_SIZE*TS_USB11_PACKET_COUNT)
+ 
+@@ -420,6 +445,8 @@ static int af9015_init_endpoint(struct dvb_usb_device *d)
+ 		frame_size = TS_USB20_FRAME_SIZE/4;
+ 		packet_size = TS_USB20_MAX_PACKET_SIZE/4;
+ 	}
++	if (!no_pid_filter)
++		frame_size = TS_PID_FRAME_SIZE/4;
+ 
+ 	ret = af9015_set_reg_bit(d, 0xd507, 2); /* assert EP4 reset */
+ 	if (ret)
+@@ -635,9 +662,9 @@ static int af9015_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ 	deb_info("%s: onoff:%d\n", __func__, onoff);
+ 
+ 	if (onoff)
+-		ret = af9015_set_reg_bit(adap->dev, 0xd503, 0);
++		ret = af9015_write_fe(adap->dev, adap->id, 0xd503, 0x1);
+ 	else
+-		ret = af9015_clear_reg_bit(adap->dev, 0xd503, 0);
++		ret = af9015_write_fe(adap->dev, adap->id, 0xd503, 0x0);
+ 
+ 	return ret;
+ }
+@@ -651,16 +678,15 @@ static int af9015_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid,
+ 	deb_info("%s: set pid filter, index %d, pid %x, onoff %d\n",
+ 		__func__, index, pid, onoff);
+ 
+-	ret = af9015_write_reg(adap->dev, 0xd505, (pid & 0xff));
++	ret = af9015_write_fe(adap->dev, adap->id, 0xd505, (pid & 0xff));
+ 	if (ret)
+ 		goto error;
+-
+-	ret = af9015_write_reg(adap->dev, 0xd506, (pid >> 8));
++	ret = af9015_write_fe(adap->dev, adap->id, 0xd506, (pid >> 8));
+ 	if (ret)
+ 		goto error;
+ 
+ 	idx = ((index & 0x1f) | (1 << 5));
+-	ret = af9015_write_reg(adap->dev, 0xd504, idx);
++	ret = af9015_write_fe(adap->dev, adap->id, 0xd504, idx);
+ 
+ error:
+ 	return ret;
+@@ -859,15 +885,20 @@ static int af9015_read_config(struct usb_device *udev,
+ 	/* Set adapter0 buffer size according to USB port speed, adapter1 buffer
+ 	   size can be static because it is enabled only USB2.0 */
+ 	/* USB1.1 set smaller buffersize and disable 2nd adapter */
+-	if (udev->speed == USB_SPEED_FULL) {
+-		props->adapter[0].fe[0].stream.u.bulk.buffersize
+-			= TS_USB11_FRAME_SIZE;
++	for (i = 0; i < props->num_adapters; i++) {
++		if (udev->speed == USB_SPEED_FULL) {
++			props->adapter[i].fe[0].stream.u.bulk.buffersize
++				= TS_USB11_FRAME_SIZE;
+ 		/* disable 2nd adapter because we don't have
+ 			   PID-filters */
+ 		af9015_config.dual_mode = 0;
+-	} else {
+-		props->adapter[0].fe[0].stream.u.bulk.buffersize
+-			= TS_USB20_FRAME_SIZE;
++		break;
++		} else if (!no_pid_filter)
++			props->adapter[i].fe[0].stream.u.bulk.buffersize
++				= TS_PID_FRAME_SIZE;
++		else
++			props->adapter[i].fe[0].stream.u.bulk.buffersize
++				= TS_USB20_FRAME_SIZE;
+ 	}
+ 
+ 	if (af9015_config.dual_mode) {
+@@ -1001,7 +1032,7 @@ static int af9015_identify_state(struct usb_device *udev,
+ 				 struct dvb_usb_device_description **desc,
+ 				 int *cold)
+ {
+-	int ret;
++	int ret, i;
+ 	u8 reply;
+ 	struct req_t req = {GET_CONFIG, 0, 0, 0, 0, 1, &reply};
+ 
+@@ -1019,6 +1050,12 @@ static int af9015_identify_state(struct usb_device *udev,
+ 	else
+ 		*cold = 1;
+ 
++	for (i = 0; i < props->num_adapters; i++) {
++		if (!no_pid_filter)
++			props->adapter[i].fe[0].caps |=
++				DVB_USB_ADAP_NEED_PID_FILTERING;
++	}
++
+ 	return ret;
+ }
+ 
+@@ -1324,6 +1361,12 @@ static struct dvb_usb_device_properties af9015_properties[] = {
+ 			{
+ 			.num_frontends = 1,
+ 			.fe = {{
++				.caps = DVB_USB_ADAP_HAS_PID_FILTER |
++				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
++
++				.pid_filter_count = 32,
++				.pid_filter       = af9015_pid_filter,
++				.pid_filter_ctrl  = af9015_pid_filter_ctrl,
+ 				.frontend_attach =
+ 					af9015_af9013_frontend_attach,
+ 				.tuner_attach    = af9015_tuner_attach,
+@@ -1458,6 +1501,12 @@ static struct dvb_usb_device_properties af9015_properties[] = {
+ 			{
+ 			.num_frontends = 1,
+ 			.fe = {{
++				.caps = DVB_USB_ADAP_HAS_PID_FILTER |
++				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
++
++				.pid_filter_count = 32,
++				.pid_filter       = af9015_pid_filter,
++				.pid_filter_ctrl  = af9015_pid_filter_ctrl,
+ 				.frontend_attach =
+ 					af9015_af9013_frontend_attach,
+ 				.tuner_attach    = af9015_tuner_attach,
+@@ -1581,6 +1630,13 @@ static struct dvb_usb_device_properties af9015_properties[] = {
+ 			{
+ 			.num_frontends = 1,
+ 			.fe = {{
++				.caps = DVB_USB_ADAP_HAS_PID_FILTER |
++				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
++
++				.pid_filter_count = 32,
++				.pid_filter       = af9015_pid_filter,
++				.pid_filter_ctrl  = af9015_pid_filter_ctrl,
++
+ 				.frontend_attach =
+ 					af9015_af9013_frontend_attach,
+ 				.tuner_attach    = af9015_tuner_attach,
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
-Oliver Endriss                         ESCAPE GmbH
-e-mail:  o.endriss@escape-edv.de       EDV-Loesungen
-phone:   +49 (0)7722 21504             Birkenweg 9
-fax:     +49 (0)7722 21510             D-78098 Triberg
-----------------------------------------------------------------
+1.7.5.4
+
+
+
+
