@@ -1,53 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:59660 "EHLO
-	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932094Ab1KGN0h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2011 08:26:37 -0500
-From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
-To: "Ralph Metzler" <rjkm@metzlerbros.de>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>
-Subject: [DVB] ddbridge driver oops
-Date: Mon, 7 Nov 2011 14:26:35 +0100
-Message-ID: <008901cc9d50$dff1c4d0$9fd54e70$@coexsi.fr>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:43119 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752951Ab1KLQoz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Nov 2011 11:44:55 -0500
+Received: by vws1 with SMTP id 1so4170867vws.19
+        for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 08:44:54 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Language: fr
+In-Reply-To: <CAA7M+FCG4Q5Xyu45rnQs9qecHOWRm4sw9bYvoe6neu44E6=xZg@mail.gmail.com>
+References: <CAA7M+FBvP0A7L6o-Fw4CQ2xR2CYqu233L+83BGGOcLooK0bk7w@mail.gmail.com>
+	<CAGoCfiw+yy3Hz=7yvGTYrYQn5VfNh3CrabS_Kxx7G88jcwt9aQ@mail.gmail.com>
+	<20111112141403.53708f28@hana.gusto>
+	<CAGoCfiwnOTv=yhFeAsjQ+=5vrsUfy5b8HqtXGiFuimXe2M-+Bw@mail.gmail.com>
+	<CAA7M+FAi517fUjLUxLsVSMr99N+2gpuhJMoiTbsuxyKGuf7-Kw@mail.gmail.com>
+	<CAA7M+FCWHwRvX4UYGOqnN2yd+SyUDhbs7sn9djVy=Px0EMw6eg@mail.gmail.com>
+	<CAGoCfixS30Tkm4B3PUOutos74vwLwMNAjwBrPR=jisZergg7=w@mail.gmail.com>
+	<CAA7M+FCG4Q5Xyu45rnQs9qecHOWRm4sw9bYvoe6neu44E6=xZg@mail.gmail.com>
+Date: Sat, 12 Nov 2011 16:44:54 +0000
+Message-ID: <CAA7M+FAtwHt82rsSB_GgDcNt-Fqm-L3a4RvxQssba_gr_iR-fA@mail.gmail.com>
+Subject: Fwd: HVR-4000 may be broken in kernel mods (again) ?
+From: "jonathanjstevens@gmail.com" <jonathanjstevens@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Ralph,
+---------- Forwarded message ----------
+From: jonathanjstevens@gmail.com <jonathanjstevens@gmail.com>
+Date: 12 November 2011 16:44
+Subject: Re: HVR-4000 may be broken in kernel mods (again) ?
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
 
-I had a crash when testing the latest ddbridge driver.
-I didn't manage to get all the call trace, but I manage to get some
-information where the crash is coming from.
-It seems to be related with a irq processing problem or scheduling/power
-management.
 
-Using gdb and the call trace address, it shows me an origin in line 2021
-from this code "tasklet_schedule(&dev->dma[0].tasklet);" :
+On 12 November 2011 15:08, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> If you're running Xen, then as far as I'm concerned you're on a
+> *totally* unsupported path.  If it happened to have worked in some
+> previous version, it was dumb luck.
+>
 
-2016                    if (s & 0x00000004)
-2017                            irq_handle_i2c(dev, 2);
-2018                    if (s & 0x00000008)
-2019                            irq_handle_i2c(dev, 3);
-2020
-2021                    if (s & 0x00000100)
-2022                            tasklet_schedule(&dev->dma[0].tasklet);
-2023                    if (s & 0x00000200)
-2024                            tasklet_schedule(&dev->dma[1].tasklet);
-2025                    if (s & 0x00000400)
+That seems a bit harsh but I understand your point. Running a
+hypervisor is far from unusual. I half expected this sort of response
+(not my problem mate). But, considering it's Xen dom0, I'm surprised
+there is nothing I can do?
 
-Here is a part of the call trace I managed to get:
+> As for you issue when not using Xen, you're probably just missing the
+> Kaffeine libraries required for video playback (a common problem).
+> Did you try the Nova-T on that box to confirm playback works at all?
 
-error_code
-init_sched_groups_power
-get_signal_to_deliver
-wake_up_common
-spin_lock_irqsave
-wake_up
-irq_handler+0x2a5/0x490 [ddbridge] => this translate to the code above
+Nova-T works perfectly in MythTV on Xen. I haven't tried it in
+Kaffeine - you could be entirely right here. Whichever - because it's
+apparent there is a Xen versus dvb issue.
 
-Sebastien
+I guess what I'd fall back to, xen dom0 support is now a part of the
+mainline kernel - so it shouldn't conflict with with particular
+hardware support such as that for the HVR-4000. It's obvious it "can"
+work, but from what I'm hearing from you - no-one would own this.
 
+I don't mind putting the hours in to resolve this, I really don't, but
+I don't have sufficient knowledge to do this on my own.
