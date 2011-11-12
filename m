@@ -1,37 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46862 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:51930 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752542Ab1KNSnD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Nov 2011 13:43:03 -0500
-Message-ID: <4EC16133.8090300@redhat.com>
-Date: Mon, 14 Nov 2011 16:42:59 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1751651Ab1KLSsX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Nov 2011 13:48:23 -0500
+Message-ID: <4EBEBF74.2030008@iki.fi>
+Date: Sat, 12 Nov 2011 20:48:20 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
+To: Malcolm Priestley <tvboxspy@gmail.com>
 CC: linux-media@vger.kernel.org
-Subject: Re: PATCH: Query DVB frontend capabilities
-References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com> <4EBBE336.8050501@linuxtv.org> <CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com> <4EBC402E.20208@redhat.com> <alpine.DEB.2.01.1111111759060.6676@localhost.localdomain> <4EBD6B61.7020605@redhat.com> <CAHFNz9JSk+TeptBZ8F9SEiyaa8q5OO8qwBiBxR9KEsOT8o_J-w@mail.gmail.com> <4EBFC6F3.50404@redhat.com> <CAHFNz9+Gia40gQkW_VtRrwpawqhLDzwL5Qf_AGW4zQSJ3yj1Yg@mail.gmail.com> <4EC0FFCA.6060006@redhat.com> <CAHFNz9KRGwcPwfndg322Fso_i=zuArJDijoP2evLjJuaOFviDA@mail.gmail.com> <4EC1445C.4030503@redhat.com> <CAHFNz9JLmqVO-ViK_22vrcpSN3sz82dKtwo6yepgUooHZ5qn9A@mail.gmail.com> <4EC1590E.8040302@redhat.com> <CAHFNz9KqYYtH4YdLwkROXN=94Fr8pbbvJspQLu6VM8LuSNNjKA@mail.gmail.com>
-In-Reply-To: <CAHFNz9KqYYtH4YdLwkROXN=94Fr8pbbvJspQLu6VM8LuSNNjKA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Subject: Re: [PATCH 1/7] af9015 Slow down download firmware
+References: <4ebe96cb.85c7e30a.27d9.ffff9098@mx.google.com>	 <4EBE9B54.9050202@iki.fi> <4ebeb688.aa6db40a.5f99.ffffb173@mx.google.com>
+In-Reply-To: <4ebeb688.aa6db40a.5f99.ffffb173@mx.google.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 14-11-2011 16:30, Manu Abraham escreveu:
-> On Mon, Nov 14, 2011 at 11:38 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Yet, this doesn't require any changes at DVB API, as all that the demodulator
->> need to know is the sub-carrier parameters (frequency, roll-off, symbol
->> rate, etc).
-> 
-> You do: this is why there were changes to the V3 API to accomodate
-> DVB-S2, which eventually became V5. The major change that underwent is
-> the addition of newer modulations. The demodulator need to be
-> explicitly told of the modulation. With some demodulators, the
-> modulation order could be detected from the PL signaling, rather than
-> the user space application telling it.
+On 11/12/2011 08:10 PM, Malcolm Priestley wrote:
+> On Sat, 2011-11-12 at 18:14 +0200, Antti Palosaari wrote:
+>> On 11/12/2011 05:54 PM, Malcolm Priestley wrote:
+>>> It is noticed that sometimes the device fails to download parts of the firmware.
+>>>
+>>> Since there is no ack from firmware write a 250u second delay has been added.
+>>>
+>>> Signed-off-by: Malcolm Priestley<tvboxspy@gmail.com>
+>>> ---
+>>>    drivers/media/dvb/dvb-usb/af9015.c |    1 +
+>>>    1 files changed, 1 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+>>> index c6c275b..dc6e4ec 100644
+>>> --- a/drivers/media/dvb/dvb-usb/af9015.c
+>>> +++ b/drivers/media/dvb/dvb-usb/af9015.c
+>>> @@ -698,6 +698,7 @@ static int af9015_download_firmware(struct usb_device *udev,
+>>>    			err("firmware download failed:%d", ret);
+>>>    			goto error;
+>>>    		}
+>>> +		udelay(250);
+>>>    	}
+>>>
+>>>    	/* firmware loaded, request boot */
+>>
+>> That sleep is not critical as all, so defining it as udelay() is wrong
+>> in my understanding. Refer Kernel documentation about delays.
+>
+> So we just go faster and faster, without acknowledgements and  due
+> respect for the hardware?
+>
+> Typical download time is about 100ms, download on some systems was less
+> than 50ms and failing.
+>
+> A 250uS wait brought the time back up to arround 100ms.
 
-DVB-S2 doesn't require DVB bandwidth to be specified.
+I said you should not use udelay() since that sleep is not critical. 
+udelay() have bad effect in system level. You didn't looked 
+documentation as I asked, here it is: 
+Documentation/timers/timers-howto.txt . I think usleep_range() is 
+correct function.
 
-Regards,
-Mauro
+Antti
+
+
+-- 
+http://palosaari.fi/
