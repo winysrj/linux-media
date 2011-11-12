@@ -1,131 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:23580 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974Ab1KDOsE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2011 10:48:04 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: "'Jonghun Han'" <jonghun.han@samsung.com>
-Subject: Re: Query the meaning of variable in v4l2_pix_format and v4l2_plane
-Date: Fri, 4 Nov 2011 15:48:01 +0100
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org,
-	"'Hans Verkuil'" <hans.verkuil@cisco.com>
-References: <001c01cc9af2$c607e0f0$5217a2d0$%han@samsung.com> <007701cc9af5$af267560$0d736020$%szyprowski@samsung.com>
-In-Reply-To: <007701cc9af5$af267560$0d736020$%szyprowski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:52920 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753158Ab1KLQyH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Nov 2011 11:54:07 -0500
+Message-ID: <4EBEA4AD.4070906@iki.fi>
+Date: Sat, 12 Nov 2011 18:54:05 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Malcolm Priestley <tvboxspy@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/7] af9015 usb bus repeater.
+References: <4ebe9728.4dc6e30a.47c5.ffff8fc3@mx.google.com>
+In-Reply-To: <4ebe9728.4dc6e30a.47c5.ffff8fc3@mx.google.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201111041548.01326.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 04 November 2011 14:28:48 Marek Szyprowski wrote:
-> Hello,
-> 
-> On Friday, November 04, 2011 2:08 PM Jonghun Han wrote:
-> > I'm not sure the meaning of variables in v4l2_pix_format and v4l2_plane.
-> > Especially bytesperline, sizeimage, length and bytesused.
-> > 
-> > v4l2_pix_format.width		= width
-> > v4l2_pix_format.height		= height
+On 11/12/2011 05:56 PM, Malcolm Priestley wrote:
+> This a bus repeater for af9015 devices. Commands usually fail because of other
+> activity on the usb bus.
+>
+> Afatech drivers can repeat up to ten times on the usb bus.
+>
+> bulk failures that report -ETIMEDOUT or -EBUSY are repeated. If the device fails
+> it usually return 0x55 in the first byte.
+>
+> I am working on a patch to move parts of this to the dvb-usb common area to
+> be used by other drivers.
 
-buf_height, actually (based on your picture).
+Repeating does not help for those I2C errors. I have already tested it. 
+IIRC 01 and 02 was the error codes returned in case of I2C read / write.
 
-> > v4l2_pix_format.bytesperline	= bytesperline [in bytes]
-> > v4l2_pix_format.sizeimage	= bytesperline * buf height  -> Is this
-> > right ?
-> 
-> Yes, I would expect it to be calculated this way for formats where
-> bytesperline can be defined (for macroblock format bytesperline is hard
-> to define).
+Which command gives 0x55 for failing?
 
-Correct. For formats where bytesperline is meaningless I guess most drivers
-will leave this at 0. It's not actually specced what it should be in those
-cases.
+And generally only very first command will fail. There is already repeat 
+for that. Generally I think it is good idea to add some repeating, since 
+it is needed. But it does not make much sense to repeat for those common 
+I2C errors since it does not matter - you can repeat forever it still 
+fails. So first need to fix main error source.
 
-> > v4l2_plane.length	= bytesperline * buf height  -> Is this right ?
-> > I don't which is right.
-> > v4l2_plane.bytesused	= bytesperline * (top + height)
-> > v4l2_plane.bytesused	= bytesperline * height
-> > v4l2_plane.bytesused	= width * height * bytesperpixel
-> > v4l2_plane.bytesused	= bytesperline * (top + height) - 
-(pixelperline -
-> > (left + width)) * bytesperpixel
-> 
-> bytesused should indicate how many bytes have been modified from the
-> beginning of the buffer, so memcpy(dst, buf->mem, byteused) will copy
-> all the video data.
-> 
-> So probably the most appropriate value for bytesused is:
-> v4l2_plane.bytesused	= bytesperline * (top + height)
+And it is indeed good idea to generalize it, but I think it is possible 
+only for error situations when error is returned by platform call.
+1. general repeat for platform calls
+2. repeat for firmware command fail (is there need?)
 
-The bytesused field is set by the driver when you capture video and will 
-typically be equal to bytesperline * buf_height. For compressed formats it can 
-be any value <= sizeimage though.
+regards
+Antti
 
-For video output it is the application that fills in bytesused.
-
-However, I want to add something here: it is currently not possible to specify
-anything other than horizontal padding. I.e., bytesperline can be more than 
-the width, allowing for a right margin, but you can't specify a left margin.
-So left == 0 at the moment. Also, in the current API top == 0 as well.
-
-Drivers can set the data_offset field in v4l2_plane to a non-zero value, and
-that might be a way to create a top margin, but this is really meant for meta 
-data that is carried at the beginning of a buffer.
-
-Recent discussions led to a proposal to add a app_offset field where 
-applications can specify an additional offset from the beginning of the 
-buffer. But this has not been added.
-
-Regards,
-
-	Hans
-
-> I hope my assumptions are correct, but I would also like Hans to comment
-> on this.
-> 
-> > I assumed the following buffer.
-> > 
-> > |<--------------------- bytesperline --------------------->|
-> > 
-> > +----------------------------------------------------------+-----
-> > 
-> > |          ^                                               |  ^
-> > |          
-> > |          
-> > |          t                                               |  |
-> > |          o                                               |  |
-> > |          p                                               |  |
-> > |          
-> > |          
-> > |          V |<--------- width ---------->|                |  |
-> > |
-> > |<-- left -->+----------------------------+ -              |  |
-> > |
-> > |            |                            | ^              |
-> > |            |                            | 
-> > |            |                            | |              |  b
-> > |            |                            | |              |  u
-> > |            |                            | |              |  
-> > |            |                            |                |  f
-> > |            |                            | 
-> > |            |                            | h              |
-> > |            |                            | e              |  h
-> > |            |                            | i              |  e
-> > |            |                            | g              |  i
-> > |            |                            | h              |  g
-> > |            |                            | t              |  h
-> > |            |                            | 
-> > |            |                            |                |  t
-> > |            |                            | 
-> > |            |                            | v              |  |
-> > |            
-> > |            +----------------------------+ -              |  |
-> > |            
-> > |                                                          |  v
-> > 
-> > +----------------------------------------------------------+-----
-> 
-> Best regards
+-- 
+http://palosaari.fi/
