@@ -1,123 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38273 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750943Ab1KOAsK (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:58057 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752951Ab1KLP52 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Nov 2011 19:48:10 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Clemens Ladisch <clemens@ladisch.de>
-Subject: Re: [PATCH] media: fix truncated entity specification
-Date: Tue, 15 Nov 2011 01:47:41 +0100
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	linux-kernel@vger.kernel.org
-References: <4EB5ADA9.6010104@ladisch.de>
-In-Reply-To: <4EB5ADA9.6010104@ladisch.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Sat, 12 Nov 2011 10:57:28 -0500
+Received: by wwe5 with SMTP id 5so2613032wwe.1
+        for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 07:57:27 -0800 (PST)
+Message-ID: <4ebe9767.8366b40a.1a27.4371@mx.google.com>
+Subject: [PATCH 0/7] af9015 dual tuner and othe fixes from my builds.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Date: Sat, 12 Nov 2011 15:57:22 +0000
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201111150148.07957.laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Clemens,
+Here is the lastest patches, for dual tuner and other fixes on the patchwork server.
 
-Thanks for the patch.
 
-On Saturday 05 November 2011 22:42:01 Clemens Ladisch wrote:
-> When enumerating an entity, assign the entire entity specification
-> instead of only the first two words.  (This requires giving the
-> specification union a name.)
-> 
-> So far, no driver actually uses more than two words, but this will
-> be needed for ALSA entities.
-> 
-> Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
-> ---
->  include/media/media-entity.h      |    2 +-
->  drivers/media/media-device.c      |    3 +--
->  drivers/media/video/v4l2-dev.c    |    4 ++--
->  drivers/media/video/v4l2-device.c |    4 ++--
->  4 files changed, 6 insertions(+), 7 deletions(-)
+Malcolm Priestley (7):
+  af9015 Slow down download firmware
+  af9015 Remove call to get config from probe.
+  af9015/af9013 full pid filtering.
+  af9013 frontend tuner bus lock and gate changes v2
+  af9015 bus repeater
+  af9013 Stop OFSM while channel changing.
+  af9013 empty buffer overflow command.
 
-What about this (untested) simpler patch ?
-
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 16b70b4..34404f6 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -107,8 +107,7 @@ static long media_device_enum_entities(struct media_device 
- 	u_ent.group_id = ent->group_id;
- 	u_ent.pads = ent->num_pads;
- 	u_ent.links = ent->num_links - ent->num_backlinks;
--	u_ent.v4l.major = ent->v4l.major;
--	u_ent.v4l.minor = ent->v4l.minor;
-+	memcpy(&u_ent.raw, &ent->raw, sizeof(u_ent.raw));
- 	if (copy_to_user(uent, &u_ent, sizeof(u_ent)))
- 		return -EFAULT;
- 	return 0;
-
-> 
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index cd8bca6..d13de27 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -98,7 +98,7 @@ struct media_entity {
-> 
->  		/* Sub-device specifications */
->  		/* Nothing needed yet */
-> -	};
-> +	} specification;
->  };
-> 
->  static inline u32 media_entity_type(struct media_entity *entity)
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 16b70b4..bfb4e0b 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -107,8 +107,7 @@ static long media_device_enum_entities(struct
-> media_device *mdev, u_ent.group_id = ent->group_id;
->  	u_ent.pads = ent->num_pads;
->  	u_ent.links = ent->num_links - ent->num_backlinks;
-> -	u_ent.v4l.major = ent->v4l.major;
-> -	u_ent.v4l.minor = ent->v4l.minor;
-> +	memcpy(&u_ent.v4l, &ent->specification, sizeof(ent->specification));
->  	if (copy_to_user(uent, &u_ent, sizeof(u_ent)))
->  		return -EFAULT;
->  	return 0;
-> diff --git a/drivers/media/video/v4l2-dev.c
-> b/drivers/media/video/v4l2-dev.c index a5c9ed1..1eb9ba1 100644
-> --- a/drivers/media/video/v4l2-dev.c
-> +++ b/drivers/media/video/v4l2-dev.c
-> @@ -703,8 +703,8 @@ int __video_register_device(struct video_device *vdev,
-> int type, int nr, vdev->vfl_type != VFL_TYPE_SUBDEV) {
->  		vdev->entity.type = MEDIA_ENT_T_DEVNODE_V4L;
->  		vdev->entity.name = vdev->name;
-> -		vdev->entity.v4l.major = VIDEO_MAJOR;
-> -		vdev->entity.v4l.minor = vdev->minor;
-> +		vdev->entity.specification.v4l.major = VIDEO_MAJOR;
-> +		vdev->entity.specification.v4l.minor = vdev->minor;
->  		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
->  			&vdev->entity);
->  		if (ret < 0)
-> diff --git a/drivers/media/video/v4l2-device.c
-> b/drivers/media/video/v4l2-device.c index e6a2c3b..d8f58d8 100644
-> --- a/drivers/media/video/v4l2-device.c
-> +++ b/drivers/media/video/v4l2-device.c
-> @@ -217,8 +217,8 @@ int v4l2_device_register_subdev_nodes(struct
-> v4l2_device *v4l2_dev) if (err < 0)
->  			return err;
->  #if defined(CONFIG_MEDIA_CONTROLLER)
-> -		sd->entity.v4l.major = VIDEO_MAJOR;
-> -		sd->entity.v4l.minor = vdev->minor;
-> +		sd->entity.specification.v4l.major = VIDEO_MAJOR;
-> +		sd->entity.specification.v4l.minor = vdev->minor;
->  #endif
->  	}
->  	return 0;
+ drivers/media/dvb/dvb-usb/af9015.c   |  220 +++++++++++++++++++++-------------
+ drivers/media/dvb/frontends/af9013.c |   18 +++-
+ drivers/media/dvb/frontends/af9013.h |    5 +-
+ 3 files changed, 158 insertions(+), 85 deletions(-)
 
 -- 
-Regards,
+1.7.5.4
 
-Laurent Pinchart
+
+
+
+
+
