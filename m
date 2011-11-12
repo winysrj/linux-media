@@ -1,50 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:43675 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752304Ab1KNI3Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Nov 2011 03:29:16 -0500
-Received: by mail-bw0-f47.google.com with SMTP id zs2so6500096bkb.20
-        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2011 00:29:15 -0800 (PST)
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: linux-media@vger.kernel.org, hvaibhav@ti.com
-Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH] omap_vout: fix crash if no driver for a display
-Date: Mon, 14 Nov 2011 10:28:59 +0200
-Message-Id: <1321259339-5202-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:45432 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751791Ab1KLS6p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Nov 2011 13:58:45 -0500
+Message-ID: <4EBEC1E3.2020500@iki.fi>
+Date: Sat, 12 Nov 2011 20:58:43 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Malcolm Priestley <tvboxspy@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/7] af9015/af9013 full pid filtering
+References: <4ebe96f4.6359b40a.5cac.3970@mx.google.com>	 <4EBE9E0F.3060707@iki.fi> <4ebebfba.5b6be30a.26ea.ffffaa15@mx.google.com>
+In-Reply-To: <4ebebfba.5b6be30a.26ea.ffffaa15@mx.google.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-omap_vout crashes on start if a corresponding driver is not loaded for a
-display device.
+On 11/12/2011 08:49 PM, Malcolm Priestley wrote:
+> On Sat, 2011-11-12 at 18:25 +0200, Antti Palosaari wrote:
 
-This patch changes omap_vout init sequence to skip devices without a
-driver.
+>> Does that patch force PID filter always on or what?
+>
+> Yes, and why not?
+>
+> Pid filtering has it uses in usb 2.0 and works very well. Low power and
+> low bus usage.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/media/video/omap/omap_vout.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+Actually, I do not know the exact reason. That is how it was defaulted 
+by DVB USB framework.
 
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index 9c5c19f..2d2a136 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -2169,6 +2169,14 @@ static int __init omap_vout_probe(struct platform_device *pdev)
- 	vid_dev->num_displays = 0;
- 	for_each_dss_dev(dssdev) {
- 		omap_dss_get_device(dssdev);
-+
-+		if (!dssdev->driver) {
-+			dev_warn(&pdev->dev, "no driver for display: %s\n",
-+					dssdev->name);
-+			omap_dss_put_device(dssdev);
-+			continue;
-+		}
-+
- 		vid_dev->displays[vid_dev->num_displays++] = dssdev;
- 	}
- 
+Sending whole TS to Kernel demux still sounds good idea for my ears.
+
+Is there anyone who can say why we send whole TS to Kernel demux in case 
+of USB2.0 ?
+
+Antti
+
+
 -- 
-1.7.4.1
-
+http://palosaari.fi/
