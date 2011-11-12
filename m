@@ -1,56 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:58548 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755565Ab1K3RX1 (ORCPT
+Received: from nm35-vm5.bullet.mail.bf1.yahoo.com ([72.30.238.77]:33235 "HELO
+	nm35-vm5.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753820Ab1KLOoE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 12:23:27 -0500
-Received: by iage36 with SMTP id e36so1058504iag.19
-        for <linux-media@vger.kernel.org>; Wed, 30 Nov 2011 09:23:26 -0800 (PST)
+	Sat, 12 Nov 2011 09:44:04 -0500
+Message-ID: <4EBE84D7.5000800@yahoo.com>
+Date: Sat, 12 Nov 2011 15:38:15 +0100
+From: Norret Thierry <tnorret@yahoo.com>
 MIME-Version: 1.0
-In-Reply-To: <4ED65C46.20502@netup.ru>
-References: <4ED65C46.20502@netup.ru>
-Date: Wed, 30 Nov 2011 12:23:26 -0500
-Message-ID: <CAGoCfiwShvPSgAPHKaxj=sMG-Fs9RdH0_3mLHYWuY96Z33AOag@mail.gmail.com>
-Subject: Re: LinuxTV ported to Windows
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Abylay Ospan <aospan@netup.ru>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Linux Media <linux-media@vger.kernel.org>
+CC: rory@technomancy.org
+Subject: Re: Any update on the Hauppauge WinTV-HVR-900H?
+References: <4EBE73F4.4080002@technomancy.org> <4EBE8018.6010005@gmail.com>
+In-Reply-To: <4EBE8018.6010005@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/11/30 Abylay Ospan <aospan@netup.ru>:
-> Hello,
->
-> We have ported linuxtv's cx23885+CAM en50221+Diseq to Windows OS (Vista, XP,
-> win7 tested). Results available under GPL and can be checkout from git
-> repository:
-> https://github.com/netup/netup-dvb-s2-ci-dual
->
-> Binary builds (ready to install) available in build directory. Currently
-> NetUP Dual DVB-S2 CI card supported (
-> http://www.netup.tv/en-EN/dual_dvb-s2-ci_card.php ).
->
-> Driver based on Microsoft BDA standard, but some features (DiSEqC, CI)
-> supported by custom API, for more details see netup_bda_api.h file.
->
-> Any comments, suggestions are welcome.
->
+Le 12/11/2011 15:18, Patrick Dickey a écrit :
+> On 11/12/2011 07:26 AM, Rory McCann wrote:
+>> Hi,
+>>
+>> I recently bought a Hauppauge WinTV-HVR-900H (usb id: 2040:b138), but I
+>> see from this wiki page
+>> http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-900H that there is
+>> no driver for it. However that's as of 2008.
+>>
+>> Has there been any progress on this since? Is that wiki page correct
+>> that there is still no support for that card? Is there anyway to get
+>> this USB device to work under linux?
+>>
+>> Thanks,
+>>
+> 
+> Hi Rory,
+> 
+> If you search for the 900H, you'll find a thread titled "Hauppauge
+> HVR900H don't work with kernel 3.*". The original submitter stated that
+> it worked in 2.6.x, but when the computer was upgraded to a 3.x kernel,
+> it stopped working.  This was two days ago (9 November 2011), so I'm not
+> sure how much progress was made (if any).
+> 
+> So, if your running a 2.6.x kernel, it *may* work, but it seems to be
+> broken on the 3.x kernels (Ubuntu 11.10 or similar distros).
+> Unfortunately I don't have that tuner, so I can't help out with it.
+> 
+> I would say try it. You can check dmesg to see if the tuner is even
+> being recognized (and drivers loaded). If so, then see if it works. If
+> not, then you might need the latest build of the v4l. You can get
+> information on installing the latest version from
+> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+> .  Then make it (without your tuner plugged in) and try plugging it in
+> again. Check dmesg again, and if it's recognized, try it.
+> 
+> Sorry I couldn't find more information on this. Also if anyone else
+> posts a reply, I would defer to their suggestions--as they have more
+> experience with this than me.
+> 
+> Have a good weekend.:)
+> Patrick.
 > --
-> Abylai Ospan<aospan@netup.ru>
-> NetUP Inc.
+> 
+I confirm, I've this card
 
-Am I the only one who thinks this is a legally ambigious grey area?
-Seems like this could be a violation of the GPL as the driver code in
-question links against a proprietary kernel.
+Support for this card is break since kernel 2.6.39
+http://www.spinics.net/lists/linux-media/msg39917.html
 
-I don't want to start a flame war, but I don't see how this is legal.
-And you could definitely question whether it goes against the
-intentions of the original authors to see their GPL driver code being
-used in non-free operating systems.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Building v4l from git don't solve the problem.
+This card work fine with < 2.6.38 kernels.
