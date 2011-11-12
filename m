@@ -1,210 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:45925 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753086Ab1KLECV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Nov 2011 23:02:21 -0500
-Message-ID: <4EBDEFC8.7030408@linuxtv.org>
-Date: Sat, 12 Nov 2011 05:02:16 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:58632 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752727Ab1KLTq3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Nov 2011 14:46:29 -0500
+Received: by bke11 with SMTP id 11so4409858bke.19
+        for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 11:46:28 -0800 (PST)
+Message-ID: <4EBECD11.8090709@gmail.com>
+Date: Sat, 12 Nov 2011 20:46:25 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Manu Abraham <abraham.manu@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: PATCH: Query DVB frontend capabilities
-References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com> <4EBBE336.8050501@linuxtv.org> <CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com> <4EBC402E.20208@redhat.com> <CAHFNz9KFv7XvK4Uafuk8UDZiu1GEHSZ8bUp3nAyM21ck09yOCQ@mail.gmail.com> <4EBD3191.2040107@linuxtv.org> <4EBD347C.40801@redhat.com> <4EBD39DF.8060909@linuxtv.org> <4EBD57E8.1010501@redhat.com> <4EBD80EF.2010002@linuxtv.org> <4EBD9B78.6080301@redhat.com>
-In-Reply-To: <4EBD9B78.6080301@redhat.com>
+To: linux-media <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Luca Risolia <luca.risolia@studio.unibo.it>
+Subject: [RFC] JPEG encoders control class
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11.11.2011 23:02, Mauro Carvalho Chehab wrote:
-> Em 11-11-2011 18:09, Andreas Oberritter escreveu:
->> On 11.11.2011 18:14, Mauro Carvalho Chehab wrote:
->>> Em 11-11-2011 13:06, Andreas Oberritter escreveu:
->>>> On 11.11.2011 15:43, Mauro Carvalho Chehab wrote:
->>>>> IMHO, the better is to set all parameters via stb0899_get_property(). We should
->>>>> work on deprecate the old way, as, by having all frontends implementing the
->>>>> get/set property ops, we can remove part of the legacy code inside the DVB core.
->>>>
->>>> I'm not sure what "legacy code" you're referring to. If you're referring
->>>> to the big switch in dtv_property_process_get(), which presets output
->>>> values based on previously set tuning parameters, then no, please don't
->>>> deprecate it. It doesn't improve driver code if you move this switch
->>>> down into every driver.
->>>
->>> What I mean is that drivers should get rid of implementing get_frontend() and 
->>> set_frontend(), restricting the usage of struct dvb_frontend_parameters for DVBv3
->>> calls from userspace.
->>
->> This would generate quite some work without much benefit.
-> 
-> Some effort is indeed needed. There are some benefits, though. Tests I made
-> when writing a v5 library showed some hard to fix bugs with the current way:
-> 
-> 	1) DVB-C Annex C is currently broken, as there's no way to select it
-> with the current API. A fix for it is simple, but requires adding one more
-> parameter for example, to represent the roll-off (Annex C uses 0.13 for roll-off, 
-> instead of 0.15 for Annex A);
+Hi all,
 
-An alternative would be to rename SYS_DVBC_ANNEX_AC to SYS_DVBC_ANNEX_A,
-add SYS_DVBC_ANNEX_C, and add SYS_DVBC_ANNEX_AC as a define for
-backwards compatibility.
+This RFC is discussing the current support of JPEG encoders in V4L2 and 
+a proposal of new JPEG control class.
 
-> 
-> 	2) The *legacy*() calls at the code don't handle well ATSC x ANNEX B, e. g.
-> a get after a set returns the wrong delivery system.
 
-Do you know what exactly is wrong with it?
+Motivation
+==========
 
-> Ok, we may be able to find some workarounds, but that means adding some hacks at
-> the core.
-> 
->>> In other words, it should be part of the core logic to get all the parameters
->>> passed from userspace and passing them via one single call to something similar
->>> to set_property.
->>
->> That's exactly what we have now with the set_frontend, tune, search and
->> track callbacks.
-> 
-> Yes, except that the same information is passed twice at the driver for DVB-C,
-> DVB-S, DVB-T and ATSC/J.83 Annex B.
-> 
-> The core needs to duplicate everything into the legacy structure, as it assumes
-> that the drivers could use the legacy stuff.
+JPEG encoder control is also required at the sub-device level, but currently 
+there are only defined ioctls in regular V4L2 device API. It doesn't seem
+to make sense for these current ioctls to be inherited by sub-device nodes, 
+since they're not generic enough, incomplete and rather not compliant with
+JFIF JPEG standard [2], [3].
 
-Yes.
 
->>> In other words, ideally, the implementation for DTV set should be
->>> like:
->>>
->>> static int dtv_property_process_set(struct dvb_frontend *fe,
->>> 				    struct dtv_property *tvp,
->>> 				    struct file *file)
->>> {
->>> 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->>>
->>> 	switch(tvp->cmd) {
->>> 	case DTV_CLEAR:
->>> 		dvb_frontend_clear_cache(fe);
->>> 		break;
->>> 	case DTV_FREQUENCY:
->>> 		c->frequency = tvp->u.data;
->>> 		break;
->>> 	case DTV_MODULATION:
->>> 		c->modulation = tvp->u.data;
->>> 		break;
->>> 	case DTV_BANDWIDTH_HZ:
->>> 		c->bandwidth_hz = tvp->u.data;
->>> 		break;
->>> ...
->>> 	case DTV_TUNE:
->>> 		/* interpret the cache of data */
->>> 		if (fe->ops.new_set_frontend) {
->>> 			r = fe->ops.new_set_frontend(fe);
->>> 			if (r < 0)
->>> 				return r;
->>> 		}
->>
->> set_frontend is called by the frontend thread, multiple times with
->> alternating parameters if necessary. Depending on the tuning algorithm,
->> drivers may implement tune or search and track instead. You cannot just
->> call a "new_set_frontend" driver function from here and expect it to
->> work as before.
-> 
-> I know. The solution is not as simple as the above.
-> 
->>> 		break;
->>>
->>> E. g. instead of using the struct dvb_frontend_parameters, the drivers would
->>> use struct dtv_frontend_properties (already stored at the frontend
->>> struct as fe->dtv_property_cache).
->>
->> Drivers are already free to ignore dvb_frontend_parameters and use the
->> properties stored in dtv_property_cache today.
-> 
-> True, and they do that already, but this still data needs to be copied
-> twice. There is also a problem with this approach on get_properties:
-> as some drivers may be storing returned data into dvb_frontend_parameters, while
-> others may be storing at dtv_frontend_properties, the code will need to know
-> what data is reliable and what data should be discarded.
-> 
-> The current code assumes that "legacy" delivery systems will always return data
-> via dtv_frontend_properties.
-> 
-> Btw, the emulation code is currently broken for ISDB-T and DVB-T2: both emulate
-> a DVB-T delivery system, so, at the DVB structure info.type = FE_OFDM.
-> 
-> If you look at the code, you'll see things like:
-> 
-> ...
-> 	switch (fe->ops.info.type) {
-> ...
-> 	case FE_OFDM:
-> 		c->delivery_system = SYS_DVBT;
-> 		break;
-> ...
+Current implementation
+======================
 
-This code path only gets executed when calling FE_SET_FRONTEND from
-userspace. There's no DVB-T2 support in v3, so this should be ok.
+Currently two ioctls are available [4]:
 
-> static void dtv_property_cache_sync(struct dvb_frontend *fe,
-> ...
-> case FE_OFDM:
->                 if (p->u.ofdm.bandwidth == BANDWIDTH_6_MHZ)
->                        	c->bandwidth_hz = 6000000;
->                 else if (p->u.ofdm.bandwidth == BANDWIDTH_7_MHZ)
->                         c->bandwidth_hz = 7000000;
->                 else if (p->u.ofdm.bandwidth == BANDWIDTH_8_MHZ)
->                         c->bandwidth_hz = 8000000;
->                	else
->                     	/* Including BANDWIDTH_AUTO */
->                         c->bandwidth_hz = 0;
->                 c->code_rate_HP = p->u.ofdm.code_rate_HP;
->                 c->code_rate_LP = p->u.ofdm.code_rate_LP;
->                 c->modulation = p->u.ofdm.constellation;
->                 c->transmission_mode = p->u.ofdm.transmission_mode;
->                 c->guard_interval = p->u.ofdm.guard_interval;
->                 c->hierarchy = p->u.ofdm.hierarchy_information;
->                 break;
-> 
-> So, even a pure ISDB-T driver will need to change DVB-T u.ofdm.*, as touching
-> at c->* will be discarded by dtv_property_cache_sync().
+#define VIDIOC_G_JPEGCOMP	 _IOR('V', 61, struct v4l2_jpegcompression)
+#define VIDIOC_S_JPEGCOMP	 _IOW('V', 62, struct v4l2_jpegcompression)
 
-Why do ISDB-T drivers pretend to be DVB-T drivers by specifying FE_OFDM?
-Even though it's called FE_OFDM, it really means "DVB-T" and not "any
-delivery system using OFDM".
+And the corresponding data structure is defined as:
 
-ISDB-T doesn't have a v3 interface, so ISDB-T drivers shouldn't
-implement the legacy get_frontend callback, in which case
-dtv_property_cache_sync won't be called. Furthermore, a driver may set
-all properties in its get_property callback, whether
-dtv_property_cache_sync was called or not.
+struct v4l2_jpegcompression {
+	int quality;
 
-> The same thing will also occur with all 2 GEN drivers that fill info.type.
-> 
-> Such behavior is ugly, and not expected, and may lead into hard to detect
-> bugs, as the driver code will look right, but won't behave as expected.
-> 
-> The thing is that those emulation stuff are broken, and fixing it will probably
-> be more complex than a simple scriptable change applied at the drivers that would
-> replace the union by a direct access to the cache info. On most drivers, the change 
-> is as simple as:
-> 	s/p->u.ofdm./c->/
-> 	s/p->u.qpsk./c->/
-> 	s/p->u.vsm./c->/
-> 	s/p->u.qam./c->/
-> 
->>> Btw, with such change, it would actually make sense the original proposal
->>> from Manu of having a separate callback for supported delivery systems.
->>
->> Why? How does setting parameters relate to querying capabilies?
-> 
-> Because, after such change, set_property() could likely be removed.
+	int  APPn;              /* Number of APP segment to be written,
+				 * must be 0..15 */
+	int  APP_len;           /* Length of data in JPEG APPn segment */
+	char APP_data[60];      /* Data in the JPEG APPn segment. */
 
-But how does this relate to get_property? set_property isn't used to
-query capabilities.
+	int  COM_len;           /* Length of data in JPEG COM segment */
+	char COM_data[60];      /* Data in JPEG COM segment */
 
-Regards,
-Andreas
+	__u32 jpeg_markers;     /* Which markers should go into the JPEG
+				 * output. Unless you exactly know what
+				 * you do, leave them untouched.
+				 * Inluding less markers will make the
+				 * resulting code smaller, but there will
+				 * be fewer applications which can read it.
+				 * The presence of the APP and COM marker
+				 * is influenced by APP_len and COM_len
+				 * ONLY, not by this property! */
+
+#define V4L2_JPEG_MARKER_DHT (1<<3)    /* Define Huffman Tables */
+#define V4L2_JPEG_MARKER_DQT (1<<4)    /* Define Quantization Tables */
+#define V4L2_JPEG_MARKER_DRI (1<<5)    /* Define Restart Interval */
+#define V4L2_JPEG_MARKER_COM (1<<6)    /* Comment segment */
+#define V4L2_JPEG_MARKER_APP (1<<7)    /* App segment, driver will
+					* allways use APP0 */
+};
+
+
+What are the issues with such an implementation ?
+
+These ioctls don't allow to re-program the quantization and Huffman tables 
+(DQT, DHT). Additionally, the standard valid segment length for the application
+defined APPn and the comment COM segment is 2...65535, while currently this is
+limited to 60 bytes.
+
+Therefore APP_data and COM_data, rather than fixed size arrays, should be 
+pointers to a variable length buffer.
+
+Only two drivers upstream really use VIDIOC_[S/G]_JPEGCOMP ioctls for anything
+more than compression quality query/control. It might make sense to create 
+separate control for image quality and to obsolete the v4l2_jpegcompressin::quality 
+field.
+
+Below is a brief review of usage of VIDIOC_[S/G]_JPEGCOMP ioctls in current mainline 
+drivers. Listed are parts of struct v4l2_jpegcompression used in each case.
+
+
+cpia2
+-----
+
+vidioc_g_jpegcomp, vidioc_s_jpegcomp
+- compression quality ignored, returns fixed value (80)
+- uses APP_data/len, COM_data/len
+- markers (only DHT can be disabled by the applications) 
+
+
+zoran
+-----
+
+vidioc_g_jpegcomp, vidioc_s_jpegcomp
+- compression quality, values 5...100, used only to calculate buffer size
+- APP_data/len, COM_data/len
+- markers field used to control inclusion of selected JPEG markers
+  in the output buffer
+
+
+et61x251, sn9c102, s2255drv.c
+-----------------------------
+
+vidioc_g_jpegcomp, vidioc_s_jpegcomp 
+- compression quality only, 
+  valid values: et61x251, sn9c102use - {0, 1}, s2255drv.c - (0..100)
+
+
+staging/media/go7007
+--------------------
+
+vidioc_g_jpegcomp
+- only for reporting JPEG markers (_DHT and _DQT returned),
+- always returns fixed value of compression quality (50)
+
+vidioc_s_jpegcomp
+ - does nothing, only returns error code when passed parameter
+   do not match the device capabilities
+
+
+drivers/media/video/gspca/conex.c  
+drivers/media/video/gspca/jeilinj.c
+drivers/media/video/gspca/mars.c
+drivers/media/video/gspca/ov519.c
+drivers/media/video/gspca/spca500.c
+drivers/media/video/gspca/stk014.c
+drivers/media/video/gspca/sunplus.c
+drivers/media/video/gspca/topro.c
+drivers/media/video/gspca/zc3xx.c
+------------------------------------
+
+vidioc_s_jpegcomp
+- compression quality
+
+vidioc_g_jpegcomp
+ - compression quality, marker flags
+
+
+drivers/media/video/gspca/sonixj.c
+------------------------------------
+
+vidioc_g_jpegcomp
+ - compression quality, marker flags
+ 
+--------------------------------------
+
+The following is an initial draft of the new control class
+
+o V4L2_CTRL_CLASS_JPEG
+
+As not everything might be covered by the controls (the application data and comment
+segments, quantization and Huffman tables, etc.) the control class should probably
+just complement VIDIOC_[G/S]_JPEGCOMP ioctls, rather than entirely replacing them.
+
+
+Proposed controls
+=================
+
+1. Chroma sub-sampling
+---------------------
+
+The subsampling factors describe how each component of an input image is sampled,
+in respect to maximum sample rate in each spatial dimension.
+More general description can be found in [2], clause A.1.1., "Dimensions and 
+sampling factors".
+
+The chroma subsampling would describe how Cb, Cr components should be downsampled
+after coverting an input image from RGB to Y'CbCr color space.
+
+o V4L2_CID_JPEG_CHROMA_SUBSAMPLING
+
+  - V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY - only luminance component is present,
+  - V4L2_JPEG_CHROMA_SUBSAMPLING_410  - subsample Cr, Cb signals horizontally by
+                                        4 and vertically by 2
+  - V4L2_JPEG_CHROMA_SUBSAMPLING_411  - horizontally subsample Cr, Cb signals by
+                                        a factor of 4
+  - V4L2_JPEG_CHROMA_SUBSAMPLING_420  - subsample Cr, Cb signals horizontally and
+                                        vertically by 2
+  - V4L2_JPEG_CHROMA_SUBSAMPLING_422  - horizontally subsample Cr, Cb signals by
+                                        a factor of 2,
+  - V4L2_JPEG_CHROMA_SUBSAMPLING_444  - no chroma subsampling, each pixel has Y, 
+                                        Cr and Cb values.
+
+Using no subsampling produces sharper colours, even with higher compression
+(in order to achieve similar file size) [7], thus it seems important to provide 
+the user with a method of precise subsampling control. 
+
+
+2. Restart interval (DRI)
+-----------------------
+
+o V4L2_CID_JPEG_RESTART_INTERVAL
+
+The restart interval (DRI marker) determines the interval of inserting RSTm
+markers. The purpose of RSTm markers is to additionally reinitialize decoder 
+process' predictor with initial default value. For lossy compression processes
+the restart interval is expressed in MCU (Minimm Coded Unit).
+If restart interval value is 0 DRI and RSTm (m = 0..7) markers will not be 
+inserted. Consequently this control would make current V4L2_JPEG_MARKER_DRI 
+markers flag redundant. This control would be useful for S5P JPEG IP block [6].
+
+
+3. Image quality
+----------------
+
+o V4L2_CID_JPEG_QUALITY	
+
+Image quality is not defined in the standard but it is used as an intermediate 
+parameter by many encoders to control set of encoding parameters, which then 
+allow to obtain certain image quality and corresponding file size.
+IMHO it makes sense to add the quality control to the JPEG class as it's widely
+used, not only for webcams. 
+
+As far as the value range is concerned, probably it's better to leave this driver
+specific. The applications would then be more aware of what is supported by 
+a device (min, max, step) and they could translate driver specific range into 
+standardised values (0..100) if needed. Still the drivers could do the translation
+themselves if required. The specification would only say the 0..100 range is 
+recommended.
+
+
+4. JPEG markers presence
+------------------------
+
+Markers serve as identifiers of various structural parts of compressed data 
+formats. All markers are assigned two-byte codes: an 0xFF byte followed by 
+a byte which is not equal to 0 or 0xFF. [2] Excluding the reserved ones there
+is 39 valid codes.
+
+I'm not really sure how the markers inhibit feature is useful, but since some
+drivers use it let's assume it is needed. Likely a 32-bit bitmask control could
+be used for activating/deactivating markers, as it doesn't make sense for some 
+of markers to be freely discarded from the compressed data.
+
+o V4L2_CID_JPEG_ACTIVE_MARKERS
+
+Following markers might be covered by this control, listed in Table E.1, [2]: 
+APP0..15, COM, DHT, DQT, DAC and additionally DNL. 
+There is still room for 10 additional markers which might be added if required.
+
+
+The above list of controls is most likely not exhaustive, it's just an attempt
+to cover features available in the mainline drivers and the S5P SoC JPEG codec
+IP block [6].
+
+In order to support reconfiguration of quantization and Huffman tables the 
+VIDIOC_[G/S]_JPEGCOMP probably need to be re-designed, but it's out of scope
+of this RFC. 
+
+
+References
+==========
+
+[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg01783.html
+
+[2] http://www.w3.org/Graphics/JPEG/itu-t81.pdf
+
+[3] http://www.w3.org/Graphics/JPEG/jfif3.pdf
+
+[4] http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-jpegcomp.html
+
+[5] http://www.mail-archive.com/linux-media@vger.kernel.org/msg01784.html
+
+[6] http://patchwork.linuxtv.org/patch/8197
+
+[7] http://www.ampsoft.net/webdesign-l/jpeg-compression.html
+
+
+--
+Thanks,
+Sylwester
