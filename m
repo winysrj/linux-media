@@ -1,71 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52214 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755168Ab1KDMqU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2011 08:46:20 -0400
-Received: from localhost.localdomain (unknown [91.178.160.144])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 1173835A00
-	for <linux-media@vger.kernel.org>; Fri,  4 Nov 2011 12:46:19 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 6/6] uvcvideo: Ignore GET_RES error for XU controls
-Date: Fri,  4 Nov 2011 13:46:17 +0100
-Message-Id: <1320410777-14108-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1320410777-14108-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1320410777-14108-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:53477 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752005Ab1KLKdS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Nov 2011 05:33:18 -0500
+Received: by vws1 with SMTP id 1so4049078vws.19
+        for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 02:33:17 -0800 (PST)
+MIME-Version: 1.0
+Date: Sat, 12 Nov 2011 10:33:17 +0000
+Message-ID: <CAA7M+FBvP0A7L6o-Fw4CQ2xR2CYqu233L+83BGGOcLooK0bk7w@mail.gmail.com>
+Subject: HVR-4000 may be broken in kernel mods (again) ?
+From: "jonathanjstevens@gmail.com" <jonathanjstevens@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux and Kernel Video <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-GET_RES request support is mandatory for extension units, but some
-cameras still choke on it (one example is the Logitech QuickCam PTZ that
-returns a single byte for the PTZ relative control instead of four).
+Description of problem:
+Support for Hauupauge HVR-4000 appears to be broken (again) in kernel mods.
+This is a bit of a tale of woe, but this hardware is supposed to have been
+sorted in stock kernel roundabout 3.0.
+Stock F16 kernel cannot scan or tune in mythtv, kaffeine, w_scan, or dvbscan.
+Compiled/Installed latest video-media build still no joy.
+I used another USB DVB (nova-t) to scan, and using the results obtained from
+w_scan on this managed to get tzap to FE LOCK. However this only worked with
+tzap - no other app can get a lock.
+Have tested with i2c reset patch enabled and not, and also with strobing patch
+enabled and not (cs88-dvb.c). Also with mythtv kludge (delaying on FE close in
+dvbutils.cpp). All make no difference.
+So sad :(
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/uvc/uvc_ctrl.c |   17 +++++++++++++++--
- drivers/media/video/uvc/uvcvideo.h |    1 +
- 2 files changed, 16 insertions(+), 2 deletions(-)
+Version-Release number of selected component (if applicable):
+Linux mythtvtuner.home 3.1.0-7.fc16.x86_64 #1 SMP Tue Nov 1 21:10:48 UTC 2011
+x86_64 x86_64 x86_64 GNU/Linux
 
-diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
-index 254d326..3e849d9 100644
---- a/drivers/media/video/uvc/uvc_ctrl.c
-+++ b/drivers/media/video/uvc/uvc_ctrl.c
-@@ -878,8 +878,21 @@ static int uvc_ctrl_populate_cache(struct uvc_video_chain *chain,
- 				     chain->dev->intfnum, ctrl->info.selector,
- 				     uvc_ctrl_data(ctrl, UVC_CTRL_DATA_RES),
- 				     ctrl->info.size);
--		if (ret < 0)
--			return ret;
-+		if (ret < 0) {
-+			if (UVC_ENTITY_TYPE(ctrl->entity) !=
-+			    UVC_VC_EXTENSION_UNIT)
-+				return ret;
-+
-+			/* GET_RES is mandatory for XU controls, but some
-+			 * cameras still choke on it. Ignore errors and set the
-+			 * resolution value to zero.
-+			 */
-+			uvc_warn_once(chain->dev, UVC_WARN_XU_GET_RES,
-+				      "UVC non compliance - GET_RES failed on "
-+				      "an XU control. Enabling workaround.\n");
-+			memset(uvc_ctrl_data(ctrl, UVC_CTRL_DATA_RES), 0,
-+			       ctrl->info.size);
-+		}
- 	}
- 
- 	ctrl->cached = 1;
-diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
-index 882159a..2b84cbb 100644
---- a/drivers/media/video/uvc/uvcvideo.h
-+++ b/drivers/media/video/uvc/uvcvideo.h
-@@ -477,6 +477,7 @@ struct uvc_driver {
- 
- #define UVC_WARN_MINMAX		0
- #define UVC_WARN_PROBE_DEF	1
-+#define UVC_WARN_XU_GET_RES	2
- 
- extern unsigned int uvc_clock_param;
- extern unsigned int uvc_no_drop_param;
--- 
-1.7.3.4
+How reproducible:
+Install F16 and try to make use of HVR-4000.
 
+Steps to Reproduce:
+1. Install F16 on a machine with HVR-4000
+2. Try to use it
+3. Cry
+Actual results:
+Can't scan or tune.
+Expected results:
+Can scan and tune and be happy.
+Additional info:
+Should mention this machine is also running Xen.
+If necessary I have a spare machine I can put a HVR-4000 into and can compile
+whatever you want to try to fix this. Pretty sure this is a problem upstream in
+video-media, but will report here to try and get some help!
+Willing to put in the hours this side to get to the bottom of this,
+sorry I don't have the programming skills to attack it myself.
+All the problems historically that the HVR-4000 has had in v4l were supposed to
+be fixed in 3.0...
+Let me know what additional info you might want?
+Jonathan
