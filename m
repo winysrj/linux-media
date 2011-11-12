@@ -1,99 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:60277 "EHLO mga01.intel.com"
+Received: from lo.gmane.org ([80.91.229.12]:50828 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755643Ab1KOQz7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Nov 2011 11:55:59 -0500
-Message-ID: <1321376155.30587.23.camel@smile>
-Subject: Re: [PATCH v2 2/2] as3645a: Add driver for LED flash controller
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	linux-media@vger.kernel.org
-Date: Tue, 15 Nov 2011 18:55:55 +0200
-In-Reply-To: <201111151412.39333.laurent.pinchart@ideasonboard.com>
-References: <1321229950-31451-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <1321229950-31451-3-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <4EC0E0C1.6090101@maxwell.research.nokia.com>
-	 <201111151412.39333.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+	id S1753866Ab1KLOPI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Nov 2011 09:15:08 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1RPEMM-00049k-SM
+	for linux-media@vger.kernel.org; Sat, 12 Nov 2011 15:15:06 +0100
+Received: from AMarseille-551-1-91-234.w92-137.abo.wanadoo.fr ([92.137.194.234])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 15:15:06 +0100
+Received: from tnorret by AMarseille-551-1-91-234.w92-137.abo.wanadoo.fr with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 15:15:06 +0100
+To: linux-media@vger.kernel.org
+From: Norret Thierry <tnorret@yahoo.com>
+Subject: Re: HVR-4000 may be broken in kernel mods (again) ?
+Date: Sat, 12 Nov 2011 14:10:15 +0000 (UTC)
+Message-ID: <loom.20111112T150258-917@post.gmane.org>
+References: <CAA7M+FBvP0A7L6o-Fw4CQ2xR2CYqu233L+83BGGOcLooK0bk7w@mail.gmail.com> <CAGoCfiw+yy3Hz=7yvGTYrYQn5VfNh3CrabS_Kxx7G88jcwt9aQ@mail.gmail.com> <20111112141403.53708f28@hana.gusto> <CAGoCfiwnOTv=yhFeAsjQ+=5vrsUfy5b8HqtXGiFuimXe2M-+Bw@mail.gmail.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2011-11-15 at 14:12 +0100, Laurent Pinchart wrote:
+Devin Heitmueller <dheitmueller <at> kernellabs.com> writes:
 
-> > > +struct as3645a {
-> > > +	struct v4l2_subdev subdev;
-> > > +	struct as3645a_platform_data *platform_data;
-> > > +
-> > > +	struct mutex power_lock;
-> > > +	int power_count;
-> > > +
-> > > +	/* Static parameters */
-> > > +	u8 vref;
-> > > +	u8 peak;
-> > > +
-> > > +	/* Controls */
-> > > +	struct v4l2_ctrl_handler ctrls;
-> > > +
-> > > +	enum v4l2_flash_led_mode led_mode;
-> > > +	unsigned int timeout;
-> > > +	u8 flash_current;
-> > > +	u8 assist_current;
-> > > +	u8 indicator_current;
-> > > +	enum v4l2_flash_strobe_source strobe_source;
-> > 
-> > Do you think we should store this information in the controls instead,
-> > or not?
 > 
-> I've been thinking about that as well. The reason why the control values were 
-> copied to the as3645a structure is that they were accessed in timer context, 
-> where taking the control lock wasn't possible.
+> On Sat, Nov 12, 2011 at 8:14 AM, Lars Schotte <gusto <at> guttok.net> wrote:
+> > i am alos curious what he means by "try to use it". i mean did he try
+> > to use it with tzap, or szap, or w_scan, or what? because i dont even
+> > know about mythtv, i only use dvbutils, mplayer, xine and vdr.
 > 
-> I could switch to accessing the information in controls directly now, but that 
-> would require storing pointers to the controls in the as3645a structure, which 
-> might not be that better :-) And the code will need to change back to storing 
-> values when overheat protection will be implemented anyway. If you still think 
-> it's better, I can change it.
-We don't need to solve the issue which is absent. We have in-kernel
-adp1653 driver w/o overheat  protection. It requires to be updated
-anyway. I prefer to update drivers in common way when we will have
-overheat protection framework in place.
-
-> > > +	switch (man) {
-> > > +	case 1:
-> > > +		factory = "AMS, Austria Micro Systems";
-> > > +		break;
-> > > +	case 2:
-> > > +		factory = "ADI, Analog Devices Inc.";
-> > > +		break;
-> > > +	case 3:
-> > > +		factory = "NSC, National Semiconductor";
-> > > +		break;
-> > > +	case 4:
-> > > +		factory = "NXP";
-> > > +		break;
-> > > +	case 5:
-> > > +		factory = "TI, Texas Instrument";
-> > > +		break;
-> > > +	default:
-> > > +		factory = "Unknown";
-> > > +	}
-> > > +
-> > > +	dev_dbg(&client->dev, "Factory: %s(%d) Version: %d\n", factory, man,
-> > > +		version);
-> > 
-> > Is that really a factor or is it the chip vendor --- which might
-> > contract another factory to actually manufacture the chips?
+> I agree with Lars on this.  It would be useful if the user could
+> describe in more detail his testing methodology.  Also, is there some
+> previous kernel in which he knew it was working properly?  Has he
+> *ever* seen it work in his environment?  Do we know definitively that
+> this really a regression or has the user never seen the board work?
 > 
-> I don't know :-)
-I guess the vendor is proper word here. For example, lm3555 (NSC) is
-slightly different from as3645a.
+> Devin
+> 
 
-And why dev_dbg? I think dev_info here might be suitable.
+I think your problem and mine are the same
+I've too an hauppauge dvb-t
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+http://www.spinics.net/lists/linux-media/msg39917.html
+
+Since upgrade from kernel 2.6.38 to 2.6.39/3.0 channels can't be lock.
+
