@@ -1,71 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from server88-208-211-118.live-servers.net ([88.208.211.118]:7515
-	"EHLO mail.redrat.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750875Ab1KILN3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2011 06:13:29 -0500
-From: Andrew Vincer <Andrew.Vincer@redrat.co.uk>
-CC: "mchehab@infradead.org" <mchehab@infradead.org>,
-	"jarod@redhat.com" <jarod@redhat.com>,
-	"error27@gmail.com" <error27@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Andrew Vincer <Andrew.Vincer@redrat.co.uk>
-Subject: [PATCH 1/1] rc: Fix redrat3_transmit_ir to use unsigned
-Date: Wed, 9 Nov 2011 11:13:26 +0000
-Message-ID: <DA69C24DC634074E9591C2B60BFDBC1C741A90@CP5-3512.fh.redrat.co.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:33842 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751035Ab1KLStc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Nov 2011 13:49:32 -0500
+Received: by wyh15 with SMTP id 15so4767400wyh.19
+        for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 10:49:31 -0800 (PST)
+Message-ID: <4ebebfba.5b6be30a.26ea.ffffaa15@mx.google.com>
+Subject: Re: [PATCH 3/7] af9015/af9013 full pid filtering
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Date: Sat, 12 Nov 2011 18:49:25 +0000
+In-Reply-To: <4EBE9E0F.3060707@iki.fi>
+References: <4ebe96f4.6359b40a.5cac.3970@mx.google.com>
+	 <4EBE9E0F.3060707@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As per 5588dc2, change arguments of redrat3_transmit_ir to unsigned
-and update code to treat last arg as number of ints rather than
-number of bytes
+On Sat, 2011-11-12 at 18:25 +0200, Antti Palosaari wrote:
+> On 11/12/2011 05:55 PM, Malcolm Priestley wrote:
+> > Allowing the pid to be enabled seems to suppress corrupted stream packets
+> > from the first frontend.  This is mainly caused by other high speed devices
+> > on the usb bus.
+> >
+> > Full pid filtering on all frontends.
+> > no_pid is defaulted to on.
+> > TS frame size it limited to 21, this because if we are only filtering
+> > pid 0000, it takes too long to fill up the buffer when tuning or
+> > scanning.
+> 
+> Could you explain that?
 
-Signed-off-by: Andrew Vincer <andrew@redrat.co.uk>
----
- drivers/media/rc/redrat3.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+Pid 0 transport stream id on some channels is not transmitted very
+often.
 
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index 61287fc..5e571ac 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -905,12 +905,13 @@ static int redrat3_set_tx_carrier(struct rc_dev *dev, u32 carrier)
- 	return carrier;
- }
+It needs to be transmitted at least 84 times to fill the devices buffer
+up which is typically 5 or 6 seconds, enough for a time out.
+
+The pid packet size is reduced to 21 bring it back in tolerance of most
+applications.
  
--static int redrat3_transmit_ir(struct rc_dev *rcdev, int *txbuf, u32 n)
-+static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
-+				unsigned count)
- {
- 	struct redrat3_dev *rr3 = rcdev->priv;
- 	struct device *dev = rr3->dev;
- 	struct redrat3_signal_header header;
--	int i, j, count, ret, ret_len, offset;
-+	int i, j, ret, ret_len, offset;
- 	int lencheck, cur_sample_len, pipe;
- 	char *buffer = NULL, *sigdata = NULL;
- 	int *sample_lens = NULL;
-@@ -928,7 +929,6 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, int *txbuf, u32 n)
- 		return -EAGAIN;
- 	}
- 
--	count = n / sizeof(int);
- 	if (count > (RR3_DRIVER_MAXLENS * 2))
- 		return -EINVAL;
- 
-@@ -1055,7 +1055,7 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, int *txbuf, u32 n)
- 	if (ret < 0)
- 		dev_err(dev, "Error: control msg send failed, rc %d\n", ret);
- 	else
--		ret = n;
-+		ret = count;
- 
- out:
- 	kfree(sample_lens);
--- 
-1.7.1
+
+> PID filter should not be used unless there is no USB1.1 or it is forced 
+> using DVB USB module param. PID filter is controlled by DVB USB.
+Why?
+
+It can't be module controlled?
+
+> 
+> Logic about PID-filtering was done way that it disables 2nd FE when 
+> USB1.1 is used since I did not see way to set PID filtering for FE1 and 
+> without filtering stream is too wide for USB1.1.
+The second frontend is still disabled in USB1.1
+
+> 
+> Does that patch force PID filter always on or what?
+
+Yes, and why not?
+
+Pid filtering has it uses in usb 2.0 and works very well. Low power and
+low bus usage.
+
+Regards
+
+
+Malcolm
+
