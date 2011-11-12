@@ -1,193 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15983 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:52199 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755039Ab1KKWDC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Nov 2011 17:03:02 -0500
-Message-ID: <4EBD9B78.6080301@redhat.com>
-Date: Fri, 11 Nov 2011 20:02:32 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1754470Ab1KLQSH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Nov 2011 11:18:07 -0500
+Message-ID: <4EBE9C3C.4070201@iki.fi>
+Date: Sat, 12 Nov 2011 18:18:04 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Manu Abraham <abraham.manu@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: PATCH: Query DVB frontend capabilities
-References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com> <4EBBE336.8050501@linuxtv.org> <CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com> <4EBC402E.20208@redhat.com> <CAHFNz9KFv7XvK4Uafuk8UDZiu1GEHSZ8bUp3nAyM21ck09yOCQ@mail.gmail.com> <4EBD3191.2040107@linuxtv.org> <4EBD347C.40801@redhat.com> <4EBD39DF.8060909@linuxtv.org> <4EBD57E8.1010501@redhat.com> <4EBD80EF.2010002@linuxtv.org>
-In-Reply-To: <4EBD80EF.2010002@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8
+To: Malcolm Priestley <tvboxspy@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/7] af9015 Remove call to get config from probe.
+References: <4ebe96dc.d467e30a.389b.ffff8e28@mx.google.com>
+In-Reply-To: <4ebe96dc.d467e30a.389b.ffff8e28@mx.google.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 11-11-2011 18:09, Andreas Oberritter escreveu:
-> On 11.11.2011 18:14, Mauro Carvalho Chehab wrote:
->> Em 11-11-2011 13:06, Andreas Oberritter escreveu:
->>> On 11.11.2011 15:43, Mauro Carvalho Chehab wrote:
->>>> IMHO, the better is to set all parameters via stb0899_get_property(). We should
->>>> work on deprecate the old way, as, by having all frontends implementing the
->>>> get/set property ops, we can remove part of the legacy code inside the DVB core.
->>>
->>> I'm not sure what "legacy code" you're referring to. If you're referring
->>> to the big switch in dtv_property_process_get(), which presets output
->>> values based on previously set tuning parameters, then no, please don't
->>> deprecate it. It doesn't improve driver code if you move this switch
->>> down into every driver.
->>
->> What I mean is that drivers should get rid of implementing get_frontend() and 
->> set_frontend(), restricting the usage of struct dvb_frontend_parameters for DVBv3
->> calls from userspace.
-> 
-> This would generate quite some work without much benefit.
+On 11/12/2011 05:55 PM, Malcolm Priestley wrote:
+> Remove get config from probe and move to identify_state.
+>
+> intf->cur_altsetting->desc.bInterfaceNumber is always expected to be zero, so there
+> no point in checking for it.
 
-Some effort is indeed needed. There are some benefits, though. Tests I made
-when writing a v5 library showed some hard to fix bugs with the current way:
+Are you sure? IIRC there is HID remote on interface 1 or 2 or so (some 
+other than 0). Please double check.
 
-	1) DVB-C Annex C is currently broken, as there's no way to select it
-with the current API. A fix for it is simple, but requires adding one more
-parameter for example, to represent the roll-off (Annex C uses 0.13 for roll-off, 
-instead of 0.15 for Annex A);
+> Calling from probe seems to cause a race condition with some USB controllers.
 
-	2) The *legacy*() calls at the code don't handle well ATSC x ANNEX B, e. g.
-a get after a set returns the wrong delivery system.
+Why?
 
-Ok, we may be able to find some workarounds, but that means adding some hacks at
-the core.
+Unless reasons are not clear it should not be moved.
 
->> In other words, it should be part of the core logic to get all the parameters
->> passed from userspace and passing them via one single call to something similar
->> to set_property.
-> 
-> That's exactly what we have now with the set_frontend, tune, search and
-> track callbacks.
+Antti
 
-Yes, except that the same information is passed twice at the driver for DVB-C,
-DVB-S, DVB-T and ATSC/J.83 Annex B.
+> The first call fails as the device appears to busy with USB sub system
+> control calls.
+>
+> Signed-off-by: Malcolm Priestley<tvboxspy@gmail.com>
+> ---
+>   drivers/media/dvb/dvb-usb/af9015.c |   87 ++++++++++++++---------------------
+>   1 files changed, 35 insertions(+), 52 deletions(-)
+>
+> diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+> index dc6e4ec..eb464c8 100644
+> --- a/drivers/media/dvb/dvb-usb/af9015.c
+> +++ b/drivers/media/dvb/dvb-usb/af9015.c
+> @@ -820,7 +820,8 @@ static void af9015_set_remote_config(struct usb_device *udev,
+>   	return;
+>   }
+>
+> -static int af9015_read_config(struct usb_device *udev)
+> +static int af9015_read_config(struct usb_device *udev,
+> +		struct dvb_usb_device_properties *props)
+>   {
+>   	int ret;
+>   	u8 val, i, offset = 0;
+> @@ -842,12 +843,10 @@ static int af9015_read_config(struct usb_device *udev)
+>   		goto error;
+>
+>   	deb_info("%s: IR mode:%d\n", __func__, val);
+> -	for (i = 0; i<  af9015_properties_count; i++) {
+> -		if (val == AF9015_IR_MODE_DISABLED)
+> -			af9015_properties[i].rc.core.rc_codes = NULL;
+> -		else
+> -			af9015_set_remote_config(udev,&af9015_properties[i]);
+> -	}
+> +	if (val == AF9015_IR_MODE_DISABLED)
+> +		props->rc.core.rc_codes = NULL;
+> +	else
+> +		af9015_set_remote_config(udev, props);
+>
+>   	/* TS mode - one or two receivers */
+>   	req.addr = AF9015_EEPROM_TS_MODE;
+> @@ -859,18 +858,16 @@ static int af9015_read_config(struct usb_device *udev)
+>
+>   	/* Set adapter0 buffer size according to USB port speed, adapter1 buffer
+>   	   size can be static because it is enabled only USB2.0 */
+> -	for (i = 0; i<  af9015_properties_count; i++) {
+> -		/* USB1.1 set smaller buffersize and disable 2nd adapter */
+> -		if (udev->speed == USB_SPEED_FULL) {
+> -			af9015_properties[i].adapter[0].fe[0].stream.u.bulk.buffersize
+> -				= TS_USB11_FRAME_SIZE;
+> -			/* disable 2nd adapter because we don't have
+> +	/* USB1.1 set smaller buffersize and disable 2nd adapter */
+> +	if (udev->speed == USB_SPEED_FULL) {
+> +		props->adapter[0].fe[0].stream.u.bulk.buffersize
+> +			= TS_USB11_FRAME_SIZE;
+> +		/* disable 2nd adapter because we don't have
+>   			   PID-filters */
+> -			af9015_config.dual_mode = 0;
+> -		} else {
+> -			af9015_properties[i].adapter[0].fe[0].stream.u.bulk.buffersize
+> -				= TS_USB20_FRAME_SIZE;
+> -		}
+> +		af9015_config.dual_mode = 0;
+> +	} else {
+> +		props->adapter[0].fe[0].stream.u.bulk.buffersize
+> +			= TS_USB20_FRAME_SIZE;
+>   	}
+>
+>   	if (af9015_config.dual_mode) {
+> @@ -882,16 +879,11 @@ static int af9015_read_config(struct usb_device *udev)
+>   		af9015_af9013_config[1].demod_address = val;
+>
+>   		/* enable 2nd adapter */
+> -		for (i = 0; i<  af9015_properties_count; i++)
+> -			af9015_properties[i].num_adapters = 2;
+> +		props->num_adapters = 2;
+> +	} else /* disable 2nd adapter */
+> +		props->num_adapters = 1;
+>
+> -	} else {
+> -		 /* disable 2nd adapter */
+> -		for (i = 0; i<  af9015_properties_count; i++)
+> -			af9015_properties[i].num_adapters = 1;
+> -	}
+> -
+> -	for (i = 0; i<  af9015_properties[0].num_adapters; i++) {
+> +	for (i = 0; i<  props->num_adapters; i++) {
+>   		if (i == 1)
+>   			offset = AF9015_EEPROM_OFFSET;
+>   		/* xtal */
+> @@ -995,8 +987,7 @@ error:
+>   		/* disable dual mode */
+>   		af9015_config.dual_mode = 0;
+>   		 /* disable 2nd adapter */
+> -		for (i = 0; i<  af9015_properties_count; i++)
+> -			af9015_properties[i].num_adapters = 1;
+> +		props->num_adapters = 1;
+>
+>   		/* set correct IF */
+>   		af9015_af9013_config[0].tuner_if = 4570;
+> @@ -1014,6 +1005,10 @@ static int af9015_identify_state(struct usb_device *udev,
+>   	u8 reply;
+>   	struct req_t req = {GET_CONFIG, 0, 0, 0, 0, 1,&reply};
+>
+> +	ret = af9015_read_config(udev, props);
+> +	if (ret)
+> +		return ret;
+> +
+>   	ret = af9015_rw_udev(udev,&req);
+>   	if (ret)
+>   		return ret;
+> @@ -1675,33 +1670,21 @@ static int af9015_usb_probe(struct usb_interface *intf,
+>   {
+>   	int ret = 0;
+>   	struct dvb_usb_device *d = NULL;
+> -	struct usb_device *udev = interface_to_usbdev(intf);
+>   	u8 i;
+>
+> -	deb_info("%s: interface:%d\n", __func__,
+> -		intf->cur_altsetting->desc.bInterfaceNumber);
+> -
+> -	/* interface 0 is used by DVB-T receiver and
+> -	   interface 1 is for remote controller (HID) */
+> -	if (intf->cur_altsetting->desc.bInterfaceNumber == 0) {
+> -		ret = af9015_read_config(udev);
+> -		if (ret)
+> -			return ret;
+> -
+> -		for (i = 0; i<  af9015_properties_count; i++) {
+> -			ret = dvb_usb_device_init(intf,&af9015_properties[i],
+> -				THIS_MODULE,&d, adapter_nr);
+> -			if (!ret)
+> -				break;
+> -			if (ret != -ENODEV)
+> -				return ret;
+> -		}
+> -		if (ret)
+> +	for (i = 0; i<  af9015_properties_count; i++) {
+> +		ret = dvb_usb_device_init(intf,&af9015_properties[i],
+> +			THIS_MODULE,&d, adapter_nr);
+> +		if (!ret)
+> +			break;
+> +		if (ret != -ENODEV)
+>   			return ret;
+> -
+> -		if (d)
+> -			ret = af9015_init(d);
+>   	}
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (d)
+> +		ret = af9015_init(d);
+>
+>   	return ret;
+>   }
 
-The core needs to duplicate everything into the legacy structure, as it assumes
-that the drivers could use the legacy stuff.
 
->> In other words, ideally, the implementation for DTV set should be
->> like:
->>
->> static int dtv_property_process_set(struct dvb_frontend *fe,
->> 				    struct dtv_property *tvp,
->> 				    struct file *file)
->> {
->> 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->>
->> 	switch(tvp->cmd) {
->> 	case DTV_CLEAR:
->> 		dvb_frontend_clear_cache(fe);
->> 		break;
->> 	case DTV_FREQUENCY:
->> 		c->frequency = tvp->u.data;
->> 		break;
->> 	case DTV_MODULATION:
->> 		c->modulation = tvp->u.data;
->> 		break;
->> 	case DTV_BANDWIDTH_HZ:
->> 		c->bandwidth_hz = tvp->u.data;
->> 		break;
->> ...
->> 	case DTV_TUNE:
->> 		/* interpret the cache of data */
->> 		if (fe->ops.new_set_frontend) {
->> 			r = fe->ops.new_set_frontend(fe);
->> 			if (r < 0)
->> 				return r;
->> 		}
-> 
-> set_frontend is called by the frontend thread, multiple times with
-> alternating parameters if necessary. Depending on the tuning algorithm,
-> drivers may implement tune or search and track instead. You cannot just
-> call a "new_set_frontend" driver function from here and expect it to
-> work as before.
-
-I know. The solution is not as simple as the above.
-
->> 		break;
->>
->> E. g. instead of using the struct dvb_frontend_parameters, the drivers would
->> use struct dtv_frontend_properties (already stored at the frontend
->> struct as fe->dtv_property_cache).
-> 
-> Drivers are already free to ignore dvb_frontend_parameters and use the
-> properties stored in dtv_property_cache today.
-
-True, and they do that already, but this still data needs to be copied
-twice. There is also a problem with this approach on get_properties:
-as some drivers may be storing returned data into dvb_frontend_parameters, while
-others may be storing at dtv_frontend_properties, the code will need to know
-what data is reliable and what data should be discarded.
-
-The current code assumes that "legacy" delivery systems will always return data
-via dtv_frontend_properties.
-
-Btw, the emulation code is currently broken for ISDB-T and DVB-T2: both emulate
-a DVB-T delivery system, so, at the DVB structure info.type = FE_OFDM.
-
-If you look at the code, you'll see things like:
-
-...
-	switch (fe->ops.info.type) {
-...
-	case FE_OFDM:
-		c->delivery_system = SYS_DVBT;
-		break;
-...
-
-static void dtv_property_cache_sync(struct dvb_frontend *fe,
-...
-case FE_OFDM:
-                if (p->u.ofdm.bandwidth == BANDWIDTH_6_MHZ)
-                       	c->bandwidth_hz = 6000000;
-                else if (p->u.ofdm.bandwidth == BANDWIDTH_7_MHZ)
-                        c->bandwidth_hz = 7000000;
-                else if (p->u.ofdm.bandwidth == BANDWIDTH_8_MHZ)
-                        c->bandwidth_hz = 8000000;
-               	else
-                    	/* Including BANDWIDTH_AUTO */
-                        c->bandwidth_hz = 0;
-                c->code_rate_HP = p->u.ofdm.code_rate_HP;
-                c->code_rate_LP = p->u.ofdm.code_rate_LP;
-                c->modulation = p->u.ofdm.constellation;
-                c->transmission_mode = p->u.ofdm.transmission_mode;
-                c->guard_interval = p->u.ofdm.guard_interval;
-                c->hierarchy = p->u.ofdm.hierarchy_information;
-                break;
-
-So, even a pure ISDB-T driver will need to change DVB-T u.ofdm.*, as touching
-at c->* will be discarded by dtv_property_cache_sync().
-
-The same thing will also occur with all 2 GEN drivers that fill info.type.
-
-Such behavior is ugly, and not expected, and may lead into hard to detect
-bugs, as the driver code will look right, but won't behave as expected.
-
-The thing is that those emulation stuff are broken, and fixing it will probably
-be more complex than a simple scriptable change applied at the drivers that would
-replace the union by a direct access to the cache info. On most drivers, the change 
-is as simple as:
-	s/p->u.ofdm./c->/
-	s/p->u.qpsk./c->/
-	s/p->u.vsm./c->/
-	s/p->u.qam./c->/
-
->> Btw, with such change, it would actually make sense the original proposal
->> from Manu of having a separate callback for supported delivery systems.
-> 
-> Why? How does setting parameters relate to querying capabilies?
-
-Because, after such change, set_property() could likely be removed.
-
-Anyway, first things first. Let's apply Manu's patches (after the proposed changes),
-and then work on it.
-
-> 
-> Regards,
-> Andreas
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+-- 
+http://palosaari.fi/
