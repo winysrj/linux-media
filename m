@@ -1,99 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:32628 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753666Ab1KRQnX (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:36379 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752190Ab1KLNTM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Nov 2011 11:43:23 -0500
-Date: Fri, 18 Nov 2011 17:43:10 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 03/11] mm: mmzone: introduce zone_pfn_same_memmap()
-In-reply-to: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>
-Message-id: <1321634598-16859-4-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+	Sat, 12 Nov 2011 08:19:12 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id pACDJ8Au023253
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 07:19:10 -0600
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Nagabhushana Netagunte <nagabhushana.netagunte@ti.com>
+Subject: [RFC PATCH v4 8/8] davinci: vpfe: build infrastructure for dm365
+Date: Sat, 12 Nov 2011 18:49:02 +0530
+Message-ID: <1321103942-2778-9-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1321103942-2778-1-git-send-email-manjunath.hadli@ti.com>
+References: <1321103942-2778-1-git-send-email-manjunath.hadli@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <mina86@mina86.com>
+add build infrastructure for dm365 specific modules
+such as IPIPE, AEW, AF.
 
-This commit introduces zone_pfn_same_memmap() function which checkes
-whether two PFNs within the same zone have struct pages within the
-same memmap.  This check is needed because in general pointer
-arithmetic on struct pages may lead to invalid pointers.
-
-On memory models that are not affected, zone_pfn_same_memmap() is
-defined as always returning true so the call should be optimised
-at compile time.
-
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Nagabhushana Netagunte <nagabhushana.netagunte@ti.com>
 ---
- include/linux/mmzone.h |   16 ++++++++++++++++
- mm/compaction.c        |    5 ++++-
- 2 files changed, 20 insertions(+), 1 deletions(-)
+ drivers/media/video/davinci/Kconfig  |   46 ++++++++++++++++++++++++++++++++-
+ drivers/media/video/davinci/Makefile |   17 +++++++++++-
+ 2 files changed, 59 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index 188cb2f..84e07d0 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -1166,6 +1166,22 @@ static inline int memmap_valid_within(unsigned long pfn,
- }
- #endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
+diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
+index 6b19540..6f6da53 100644
+--- a/drivers/media/video/davinci/Kconfig
++++ b/drivers/media/video/davinci/Kconfig
+@@ -11,6 +11,48 @@ config DISPLAY_DAVINCI_DM646X_EVM
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called vpif_display.
  
-+#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
-+/*
-+ * Both PFNs must be from the same zone!  If this function returns
-+ * true, pfn_to_page(pfn1) + (pfn2 - pfn1) == pfn_to_page(pfn2).
-+ */
-+static inline bool zone_pfn_same_memmap(unsigned long pfn1, unsigned long pfn2)
-+{
-+	return pfn_to_section_nr(pfn1) == pfn_to_section_nr(pfn2);
-+}
++config VIDEO_DM365_3A_HW
++	tristate "DM365 Auto Focus, Auto Exposure/ White Balance HW module"
++	depends on ARCH_DAVINCI_DM365
++	help
++	  DM365 Auto Focus, Auto Exposure and Auto White Balancing HW module
 +
-+#else
++	  This module has functions which configure AEW/AF hardware, high level
++	  AF module and AEW module use these functionalities. It collects metrics
++	  about the image or video data
 +
-+#define zone_pfn_same_memmap(pfn1, pfn2) (true)
++config VIDEO_DM365_AF
++	tristate "DM365 Auto Focus Driver"
++	depends on ARCH_DAVINCI_DM365
++	select VIDEO_DM365_3A_HW
++	help
++	  DM365 Auto Focus hardware module.
 +
-+#endif
++	  Auto Focus driver is used to support control loop for Auto Focus.
++	  It collects metrics about the image or video data. This provides
++	  hooks to AF subdevice driver.
 +
- #endif /* !__GENERATING_BOUNDS.H */
- #endif /* !__ASSEMBLY__ */
- #endif /* _LINUX_MMZONE_H */
-diff --git a/mm/compaction.c b/mm/compaction.c
-index 6afae0e..09c9702 100644
---- a/mm/compaction.c
-+++ b/mm/compaction.c
-@@ -111,7 +111,10 @@ skip:
++config VIDEO_DM365_AEW
++	tristate "DM365 Auto exposure /White Balance Driver"
++	depends on ARCH_DAVINCI_DM365
++	select VIDEO_DM365_3A_HW
++	help
++	  DM365 Auto Exposure and Auto White Balance hardware module.
++
++	  This is used to support the control loops for Auto Exposure
++	  and Auto White Balance. It collects metrics about the image
++	  or video data
++
++config DM365_IPIPE
++	depends on ARCH_DAVINCI && ARCH_DAVINCI_DM365
++	tristate "DM365 IPIPE"
++	help
++	  dm365 IPIPE hardware module.
++
++	  This is the hardware module that implements imp_hw_interface
++	  for DM365. This hardware module provides previewer and resizer
++	  functionality for image processing.
++
+ config CAPTURE_DAVINCI_DM646X_EVM
+ 	tristate "DM646x EVM Video Capture"
+ 	depends on VIDEO_DEV && MACH_DAVINCI_DM6467_EVM
+@@ -51,7 +93,7 @@ config VIDEO_VPFE_CAPTURE
  
- next:
- 		pfn += isolated;
--		page += isolated;
-+		if (zone_pfn_same_memmap(pfn - isolated, pfn))
-+			page += isolated;
-+		else
-+			page = pfn_to_page(pfn);
- 	}
+ config VIDEO_DM6446_CCDC
+ 	tristate "DM6446 CCDC HW module"
+-	depends on VIDEO_VPFE_CAPTURE
++	depends on VIDEO_VPFE_CAPTURE && ARCH_DAVINCI_DM644x
+ 	select VIDEO_VPSS_SYSTEM
+ 	default y
+ 	help
+@@ -80,7 +122,7 @@ config VIDEO_DM355_CCDC
+ 	   module will be called vpfe.
  
- 	trace_mm_compaction_isolate_freepages(nr_scanned, total_isolated);
+ config VIDEO_ISIF
+-	tristate "ISIF HW module"
++	tristate "DM365 ISIF HW module"
+ 	depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_CAPTURE
+ 	select VIDEO_VPSS_SYSTEM
+ 	default y
+diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
+index a379557..8544040 100644
+--- a/drivers/media/video/davinci/Makefile
++++ b/drivers/media/video/davinci/Makefile
+@@ -12,7 +12,20 @@ obj-$(CONFIG_CAPTURE_DAVINCI_DM646X_EVM) += vpif_capture.o
+ 
+ # Capture: DM6446 and DM355
+ obj-$(CONFIG_VIDEO_VPSS_SYSTEM) += vpss.o
+-obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
++obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o vpfe_ccdc.o \
++                                       vpfe_resizer.o vpfe_previewer.o \
++                                       vpfe_aew.o vpfe_af.o vpfe_video.o
+ obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
+ obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
+-obj-$(CONFIG_VIDEO_ISIF) += isif.o
++obj-$(CONFIG_VIDEO_ISIF) += dm365_ccdc.o
++
++dm365_a3_hw_driver-objs := dm365_a3_hw.o
++obj-$(CONFIG_VIDEO_DM365_3A_HW) += dm365_a3_hw_driver.o
++dm365_af_driver-objs := dm365_af.o
++obj-$(CONFIG_VIDEO_DM365_AF)    += dm365_af_driver.o
++dm365_aew_driver-objs := dm365_aew.o
++obj-$(CONFIG_VIDEO_DM365_AEW)   += dm365_aew_driver.o
++
++dm365_imp-objs                  := dm365_ipipe.o dm365_def_para.o \
++                                        dm365_ipipe_hw.o dm3xx_ipipeif.o
++obj-$(CONFIG_DM365_IPIPE)       += dm365_imp.o
 -- 
-1.7.1.569.g6f426
+1.6.2.4
 
