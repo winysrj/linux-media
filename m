@@ -1,63 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:53451 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755028Ab1KXXqA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 18:46:00 -0500
-Date: Fri, 25 Nov 2011 00:45:12 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] V4L: omap1_camera: fix missing <linux/module.h> include
-In-Reply-To: <1322176595-31837-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Message-ID: <Pine.LNX.4.64.1111250044200.17376@axis700.grange>
-References: <1322176595-31837-1-git-send-email-jkrzyszt@tis.icnet.pl>
+Received: from mail.kapsi.fi ([217.30.184.167]:39328 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754470Ab1KLQON (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Nov 2011 11:14:13 -0500
+Message-ID: <4EBE9B54.9050202@iki.fi>
+Date: Sat, 12 Nov 2011 18:14:12 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Malcolm Priestley <tvboxspy@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/7] af9015 Slow down download firmware
+References: <4ebe96cb.85c7e30a.27d9.ffff9098@mx.google.com>
+In-Reply-To: <4ebe96cb.85c7e30a.27d9.ffff9098@mx.google.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Janusz
-
-On Fri, 25 Nov 2011, Janusz Krzysztofik wrote:
-
-> Otherwise compilation breaks with:
-> 
-> drivers/media/video/omap1_camera.c:1535: error: 'THIS_MODULE' undeclared here (not in a function)
-> ...
-> 
-> after apparently no longer included recursively from other header files.
-> 
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-
-Thanks, will push with other 3.2-rc soc-camera fixes, when I find time to 
-organise them...
-
-Thanks
-Guennadi
-
+On 11/12/2011 05:54 PM, Malcolm Priestley wrote:
+> It is noticed that sometimes the device fails to download parts of the firmware.
+>
+> Since there is no ack from firmware write a 250u second delay has been added.
+>
+> Signed-off-by: Malcolm Priestley<tvboxspy@gmail.com>
 > ---
->  drivers/media/video/omap1_camera.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap1_camera.c b/drivers/media/video/omap1_camera.c
-> index e87ae2f..6a6cf38 100644
-> --- a/drivers/media/video/omap1_camera.c
-> +++ b/drivers/media/video/omap1_camera.c
-> @@ -24,6 +24,7 @@
->  #include <linux/clk.h>
->  #include <linux/dma-mapping.h>
->  #include <linux/interrupt.h>
-> +#include <linux/module.h>
->  #include <linux/platform_device.h>
->  #include <linux/slab.h>
->  
-> -- 
-> 1.7.3.4
-> 
+>   drivers/media/dvb/dvb-usb/af9015.c |    1 +
+>   1 files changed, 1 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+> index c6c275b..dc6e4ec 100644
+> --- a/drivers/media/dvb/dvb-usb/af9015.c
+> +++ b/drivers/media/dvb/dvb-usb/af9015.c
+> @@ -698,6 +698,7 @@ static int af9015_download_firmware(struct usb_device *udev,
+>   			err("firmware download failed:%d", ret);
+>   			goto error;
+>   		}
+> +		udelay(250);
+>   	}
+>
+>   	/* firmware loaded, request boot */
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+That sleep is not critical as all, so defining it as udelay() is wrong 
+in my understanding. Refer Kernel documentation about delays.
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
