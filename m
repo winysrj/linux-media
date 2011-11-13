@@ -1,66 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:38944 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754800Ab1KIKwP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2011 05:52:15 -0500
-Date: Wed, 9 Nov 2011 11:52:04 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@kernellabs.com>
-Subject: Re: [RFC 1/2] dvb-core: add generic helper function for I2C
- register
-Message-ID: <20111109115204.401a8aa5@endymion.delvare>
-In-Reply-To: <4EBA58E0.8080704@iki.fi>
-References: <4EB9C13A.2060707@iki.fi>
-	<4EBA4E3D.80105@redhat.com>
-	<4EBA58E0.8080704@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from rcsinet15.oracle.com ([148.87.113.117]:35080 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753221Ab1KMPKO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Nov 2011 10:10:14 -0500
+Date: Sun, 13 Nov 2011 18:09:47 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [patch] [media] pwc: unlock on error in pwc_ioctl()
+Message-ID: <20111113150946.GA10072@elgon.mountain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 09 Nov 2011 12:41:36 +0200, Antti Palosaari wrote:
-> On 11/09/2011 11:56 AM, Mauro Carvalho Chehab wrote:
-> > Due to the way I2C locks are bound, doing something like the above and something like:
-> >
-> >      struct i2c_msg msg[2] = {
-> >          {
-> >              .addr = i2c_cfg->addr,
-> >              .flags = 0,
-> >              .buf = buf,
-> >          },
-> >          {
-> >              .addr = i2c_cfg->addr,
-> >              .flags = 0,
-> >              .buf = buf2,
-> >          }
-> >
-> >      };
-> >
-> >      ret = i2c_transfer(i2c_cfg->adapter, msg, 2);
-> >
-> > Produces a different result. In the latter case, I2C core avoids having any other
-> > transaction in the middle of the 2 messages.
-> 
-> In my understanding adding more messages than one means those should be 
-> handled as one I2C transaction using REPEATED START.
-> I see one big problem here, it is our adapters. I think again, for the 
-> experience I have, most of our I2C-adapters can do only 3 different 
-> types of I2C xfers;
-> * I2C write
-> * I2C write + I2C read (combined with REPEATED START)
-> * I2C read (I suspect many adapters does not support that)
-> That means, I2C REPEATED writes  are not possible.
+In 82dfdada40 "pwc: rework locking" we changed the locking so that
+we handle it ourselves instead of doing it at the vl42 layer.  There
+were a couple ioctls, VIDIOCPWCSLED and VIDIOCPWCGLED, where we
+didn't unlock on the error path.
 
-Also, some adapters _or slaves_ won't support more than one repeated
-start in a given transaction, so splitting block reads in continuous
-chunks won't always work either. Which makes some sense if you think
-about it: if both the slave and the controller supported larger blocks
-then there would be no need to split the transfer into multiple
-messages in the first place.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
--- 
-Jean Delvare
+diff --git a/drivers/media/video/pwc/pwc-ctrl.c b/drivers/media/video/pwc/pwc-ctrl.c
+index ad77b23..ea17230 100644
+--- a/drivers/media/video/pwc/pwc-ctrl.c
++++ b/drivers/media/video/pwc/pwc-ctrl.c
+@@ -840,13 +840,15 @@ long pwc_ioctl(struct pwc_device *pdev, unsigned int cmd, void *arg)
+ 
+ 		mutex_lock(&pdev->udevlock);
+ 		if (!pdev->udev) {
++			mutex_unlock(&pdev->udevlock);
+ 			ret = -ENODEV;
+-			goto leave;
++			break;
+ 		}
+ 
+ 		if (pdev->iso_init) {
++			mutex_unlock(&pdev->udevlock);
+ 			ret = -EBUSY;
+-			goto leave;
++			break;
+ 		}
+ 
+ 		ARG_IN(qual)
+@@ -854,7 +856,6 @@ long pwc_ioctl(struct pwc_device *pdev, unsigned int cmd, void *arg)
+ 			ret = -EINVAL;
+ 		else
+ 			ret = pwc_set_video_mode(pdev, pdev->view.x, pdev->view.y, pdev->vframes, ARGR(qual), pdev->vsnapshot);
+-leave:
+ 		mutex_unlock(&pdev->udevlock);
+ 		break;
+ 	}
+@@ -978,6 +979,7 @@ leave:
+ 
+ 		mutex_lock(&pdev->udevlock);
+ 		if (!pdev->udev) {
++			mutex_unlock(&pdev->udevlock);
+ 			ret = -ENODEV;
+ 			break;
+ 		}
+@@ -996,6 +998,7 @@ leave:
+ 
+ 		mutex_lock(&pdev->udevlock);
+ 		if (!pdev->udev) {
++			mutex_unlock(&pdev->udevlock);
+ 			ret = -ENODEV;
+ 			break;
+ 		}
