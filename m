@@ -1,66 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:25177 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753661Ab1KZTCa (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:65042 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752025Ab1KMJ7D convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Nov 2011 14:02:30 -0500
-Date: Sat, 26 Nov 2011 22:02:37 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Peter Huewe <peterhuewe@gmx.de>,
-	Steven Toth <stoth@kernellabs.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] saa7164: fix endian conversion in
- saa7164_bus_set()
-Message-ID: <20111126190237.GA21128@mwanda>
-References: <20111123070911.GA8561@elgon.mountain>
- <4ECFD56E.3040200@infradead.org>
+	Sun, 13 Nov 2011 04:59:03 -0500
+Received: by ggnb2 with SMTP id b2so5368165ggn.19
+        for <linux-media@vger.kernel.org>; Sun, 13 Nov 2011 01:59:02 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FCuugMFkClbJLl1L"
-Content-Disposition: inline
-In-Reply-To: <4ECFD56E.3040200@infradead.org>
+In-Reply-To: <CAL9G6WXHfA-n0u_yB7QvUAN_8TxSSA2M_O0m6kbsOrcgE+nMsA@mail.gmail.com>
+References: <CAB33W8dW0Yts_dxz=WyYEK9-bcoQ_9gM-t3+aR5s-G_5QswOyA@mail.gmail.com>
+	<CAB33W8eMEG6cxM9x0aGRe+1xx6TwvjBZL4KSdRY4Ti2sTHk9hg@mail.gmail.com>
+	<CAL9G6WXq_MSu+6Ogjis43bsszDri0y5JQrhHrAQ8tiTKv09YKQ@mail.gmail.com>
+	<CAATJ+ftr76OMckcpf_ceX4cPwv0840C9HL+UuHivAtub+OC+jw@mail.gmail.com>
+	<4ebdacc2.04c6e30a.29e4.58ff@mx.google.com>
+	<CAB33W8eYnQbKAkNobiez0yH5tgCVN4s84ncT5cmKHxeqHm8P3Q@mail.gmail.com>
+	<CAL9G6WXHfA-n0u_yB7QvUAN_8TxSSA2M_O0m6kbsOrcgE+nMsA@mail.gmail.com>
+Date: Sun, 13 Nov 2011 09:59:01 +0000
+Message-ID: <CAB33W8cJYoXe+1yCPhEGgSpHM7AYd_b-sm5dSy8g+jT=98X=eg@mail.gmail.com>
+Subject: Re: AF9015 Dual tuner i2c write failures
+From: Tim Draper <veehexx@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 12 November 2011 15:44, Josu Lazkano <josu.lazkano@gmail.com> wrote:
+> 2011/11/12 Tim Draper <veehexx@gmail.com>:
+>> On 11 November 2011 23:16, Malcolm Priestley <tvboxspy@gmail.com> wrote:
+>>> On Sat, 2011-11-12 at 09:51 +1100, Jason Hecker wrote:
+>>>> I concur.  I have been using Malcolm Priestly's patches with both my
+>>>> AF9015 dual tuner cards (which are PCI but still look like USB to the
+>>>> kernel) for a few weeks now and have (finally!) got consistently
+>>>> perfect recordings in MythTV simultaneously with both tuners on a
+>>>> card. Malcolm, when do you think you'll submit these patches to the
+>>>> tree for inclusion?  Is there anything else to test?
+>>>>
+>>>> I agree about the power cycling.  Every time I reboot I disconnect the
+>>>> AC supply for 20secs to be sure the cards are power cycled properly -
+>>>> you do the same thing by pulling out the stick.
+>>>
+>>> Yes, this is what is holding up the patches to media_build.
+>>>
+>>> The bug appears to be a race condition that appears in get config with
+>>> some usb controllers.
+>>>
+>>> Josu, your patch is for the older hg version on s2, so this will not
+>>> work on media_build.
+>>>
+>>> I have being trying to a way to do it without the bus lock, but can't
+>>>
+>>> I will try and finish the patches tomorrow.
+>>>
+>>> Regards
+>>>
+>>>
+>>> Malcolm
+>>>
+>>>
+>>
+>> thanks for the quick responses guys! i look forward to the update.
+>> since i'm new to this mailing list, and have only used v4l in
+>> pre-configured linux distro's, how will this fix be distributed to
+>> people - as a patch i presume?
+>> are there any how-to's with prerequisites of whats required to apply a patch?
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+> Hello Tim, I am not expert on this. I use to install this way:
+>
+> apt-get install linux-headers-`uname -r` build-essential
+> mkdir /usr/local/src/dvb
+> cd /usr/local/src/dvb
+>
+> wget http://mercurial.intuxication.org/hg/s2-liplianin/archive/tip.zip
+> unzip s2-liplianin-0b7d3cc65161.zip
+> cd s2-liplianin-0b7d3cc65161
+>
+> cp /home/lazkano/Dropbox/repository/dvb/af9015_v3.patch.tar.gz .
+> tar xvzf af9015_v3.patch.tar.gz
+> patch -p1 < af9015_v3.patch
+>
+> make CONFIG_DVB_FIREDTV:=n
+> make install
+>
+> With this method, I get working the Kworld dual DVB-T and Tevii S660 DVB-S2.
+>
+> Malcolm, thanks for your work, with this patches you will make useful
+> 3 DVB-T devices I have.
+>
+> Regards.
+>
+>
+> --
+> Josu Lazkano
+>
 
---FCuugMFkClbJLl1L
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+thanks for the help all - the recent patch ('[PATCH 0/7] af9015 dual
+tuner and othe fixes from my builds') was applied yesterday (or so i
+believe!), and so far it's been perfect! before, the patch, the tuner
+would become un-usable after a short timeframe (30-60mins).
 
-On Fri, Nov 25, 2011 at 03:50:38PM -0200, Mauro Carvalho Chehab wrote:
-> le16_to_cpu() is used for command. If one place needs fix, so the other o=
-ne also
-> requires it.
->=20
+i both fixed my issue, and learnt a bit about patching, so that was a
+good day :)
 
-Ah yeah.  I should have looked for that.  I'll take another look and
-see if there was anything else I missed and resend.
+fwiw, i used Malcolms' suggestion that he sent me off this ML, which
+is as follows:
 
-regards,
-dan carpenter
+here is how to patch Ubuntu 11.04
+----------------------------------------------------------------
+To patch and update check you have the following installed using
+terminal.
 
---FCuugMFkClbJLl1L
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+sudo apt-get install git
+sudo apt-get install patchutils
+sudo apt-get install libdigest-sha1-perl
+sudo apt-get install libproc-processtable-perl
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+find a suitable location in your home directory and run the following
+commands.
 
-iQIcBAEBAgAGBQJO0TfMAAoJEOnZkXI/YHqRAKgP/0YqVgnmjfnsSYMzxVgXJsx7
-9GVpQ8eJ7ZGzjJwRIQEDKASVMRQdpwJG5OL9W4aFJ55Cjrm+6j0DjJl0r6N1vys/
-8YOJ55IUcNvSpcP7EdugJRRhoBRU6+kRPpBIzrB2Ylu5LssTWPlnVNUn0TK9HFbY
-lwzVAkUegOJKd/q4R51HoJuYsVKaL7QHDediXkGPwv0TmVDZTiBkZGFqlSphxmmq
-0BssNif4lMooUO5vZw8B3v32DjFQt6OPq25lzpiCHGgSAo5yVZJoLCPjCsBAfFke
-ZAce7pixTO7/uVtIKyFqglP25FF+mTY5hiq/OtBqqZL9BXTkeP+a9RHPt40umavL
-Nc20G4qbfTAEb4lrqyrQSyeGCIblPryAcSVx9l8RIhr4v+688n3zTMWrOsPr8KWi
-H080hhJrgi7lBGg48ydLIVt3c3m57eYrAPJ5hb4h0kirAAE0s0rMV7MvBiI4/rlG
-6dPGpaeqW4n5G7H8FSMr0qU0Tb8vBOtjffNK4XsIqL1GlH3elJxe7OHxtjPkjK69
-1ttIWYhPDw/EwDi9RboXoTOp+HeDrq1Vyqk9l5nhkeHxVq0iElFruePGg5sDU+tF
-h3sPR1fcwH5c9FB2FE6LgXL+ikLk2IiCrXCaZFggt8J/wBhtDim5NqPxBm0S7vOK
-lRD3C6pB49gZixNr5cqU
-=K8kW
------END PGP SIGNATURE-----
+git clone git://linuxtv.org/media_build.git
 
---FCuugMFkClbJLl1L--
+cd media_build
+
+./build
+
+Now put the 0000.patch in the media_build directory and run the
+following command.
+
+patch -d linux -p1 < 0000.patch
+
+make
+
+sudo make install
+
+then reboot
