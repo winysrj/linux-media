@@ -1,103 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42260 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750783Ab1KIPvt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Nov 2011 10:51:49 -0500
-Message-ID: <4EBAA190.30305@iki.fi>
-Date: Wed, 09 Nov 2011 17:51:44 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mailout-de.gmx.net ([213.165.64.23]:46409 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753124Ab1KMXRy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Nov 2011 18:17:54 -0500
+Message-ID: <4EC05024.6050509@gmx.de>
+Date: Mon, 14 Nov 2011 00:17:56 +0100
+From: Ninja <Ninja15@gmx.de>
 MIME-Version: 1.0
-To: Jean Delvare <khali@linux-fr.org>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@kernellabs.com>
-Subject: Re: [RFC 1/2] dvb-core: add generic helper function for I2C register
-References: <4EB9C13A.2060707@iki.fi>	<4EBA4E3D.80105@redhat.com> <20111109113740.4b345130@endymion.delvare>
-In-Reply-To: <20111109113740.4b345130@endymion.delvare>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: linux-media@vger.kernel.org
+Subject: Mantis CAM not SMP safe / Activating CAM on Technisat Skystar HD2
+ (DVB-S2)
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-I compared all I2C-client drivers I have done and here are the results:
-name = name of driver module
-reg = reg addr len (bytes)
-val = reg val len (bytes)
-auto = auto increment
-other = register banks, etc.
+Hi,
 
-name       reg  val auto   other
-qt1010       1    1    ?
-af9013       2    1    Y
-ec100        1    1    ?
-tda18218     1    1    Y
-tua9001      1    2    ?
-tda18212     1    1    Y
-cxd2820r     1    1    ?   bank
-tda10071     1    1    Y
-a8293        not relevant, only one control byte
-rtl2830      1    1    Y   bank
-rtl2832      1    1    Y   bank
-af9033       3*   1    Y   *bank/mailbox
-<noname>     2    1    Y
+I'm using a Technisat Skystar HD2 (DVB-S2) with a CI Module under Ubuntu 
+11.04.
+As some people already noticed, the mantis_ca_init() is never called to 
+initialize the CAM.
+Since s2-liplianin used almost the same code, I basically just put the 
+mantis_ca_init back in,
+which is working quite good. But I hope somebody can help me to remove a 
+bug rendering the driver not SMP safe,
+since I believe my work around for this makes the driver less reliable.
 
-As we can see I2C msg structure where is address first ans after that 
-payload is quite de Facto. There was only one driver which didn't meet 
-that condition, it is LNB-controller which uses only one byte.
+First of all the description of the bug:
+I'm using a dual core cpu and noticed that I don't get all the interrupt 
+i should get when writing to/ reading from the card using a function 
+which uses "mantis_hif_sbuf_opdone_wait" in "mantis_hif.c".
+This leads to the 500 ms timeout. Interesting enough, when reading the 
+data despite the timeout, the data is valid and available. Using 
+max_cpus=1 parameter when starting ubuntu 11.04 solves the problem; all 
+interrupts are received and no timeout occurs.
+In addition to this, i think the return value of "msecs_to_jiffies" 
+changed with some kernel update an thus "mantis_hif_sbuf_opdone_wait" 
+never returns an error.
+How hope someone can help figuraing out, why the card send less 
+interrupt on SMP enabled machines. I know the core which handles the IRQ 
+can change, but even all the IRQs from all core are less than when 
+disabling SMP.
 
-tda10071 driver has most typical register read and write routines and 
-size of those are 70 LOC, including rd_reg, rd_regs, wr_reg, wr_regs, 
-excluding bit based register functions.
-12 drivers, ca. 70 LOC per driver makes 840 LOC of less code. And you 
-can save even more if generalize bit register access functions too 
-(commonly: wr_reg_mask, rd_reg_mask, wr_reg_bits, rd_reg_bits).
+Now the description how I added the CI support again:
 
-More comments below.
+File mantis_hif.c (workaround for the SMP bug):
+- Change the call from msecs_to_jiffies(500) to msecs_to_jiffies(2) in 
+function "mantis_hif_sbuf_opdone_wait" (we just get the data after 2 ms, 
+regardless if we got the data ready IRQ or not).
 
-On 11/09/2011 12:37 PM, Jean Delvare wrote:
-> If code is duplicated, then something should indeed be done about it.
-> But preferably after analyzing properly what the helper functions
-> should look like, and for this you'll have to look at "all" drivers
-> that could benefit from it. At the moment only the tda18218 driver was
-> reported to need it, that's not enough to generalize.
->
-> You should take a look at drivers/misc/eeprom/at24.c, it contains
-> fairly complete transfer functions which cover the various EEPROM
-> types. Non-EEPROM devices could behave differently, but this would
-> still seem to be a good start for any I2C device using block transfers.
-> It was once proposed that these functions could make their way into
-> i2c-core or a generic i2c helper function.
->
-> Both at24 and Antti's proposal share the idea of storing information
-> about the device capabilities (max block read and write lengths, but we
-> could also put there alignment requirements or support for repeated
-> start condition.) in a private structure. If we generalize the
-> functions then this information would have to be stored in struct
-> i2c_client and possibly struct i2c_adapter (or struct i2c_algorithm) so
-> that the function can automatically find out the right sequence of
-> commands for the adapter/slave combination.
->
-> Speaking of struct i2c_client, I seem to remember that the dvb
-> subsystem doesn't use it much at the moment. This might be an issue if
-> you intend to get the generic code into i2c-core, as most helper
-> functions rely on a valid i2c_client structure by design.
+File mantis_pci.c:
+- Move the function set_direction from mantis_core.c to mantis_pci.c (I 
+tried to just add the forward declaration to mantis_core.h, but I 
+couldn't get it to work...)
+- Add its function declaration to mantis_pci.h (extern void 
+mantis_set_direction(struct mantis_pci *mantis, int direction);).
+- Add "mantis_set_direction(mantis, 0);" after "mantis->revision = 
+pdev->revision;" in function "mantis_pci_init".
+- Add "mmwrite(0x00, MANTIS_INT_MASK);" before "err = 
+request_irq(pdev->irq,"... in function "mantis_pci_init".
 
-As we have now some kind of understanding what is needed, could you 
-start direct planning? I am ready to implement some basic stuff that I 
-see most benefit (listed below).
+File mantis_ca.c:
+- Add the include #include "mantis_pci.h"
+- Comment in "mantis_set_direction(mantis, 1);" in function 
+"mantis_ts_control" in file mantis_ca.c
 
-The functions I see most important are:
-wr_regs
-rd_regs
-wr_reg
-rg_reg
-wr_reg_mask
-wr_reg_bits
-rd_reg_bits
+File manits_dvb.c:
+- Add the function call "mantis_ca_init(mantis);" right before the 
+return 0 in function "mantis_dvb_init".
+- Add th function call "mantis_ca_exit(mantis);" right before 
+"tasklet_kill(&mantis->tasklet);" in function "mantis_dvb_exit".
 
+Regards,
+Manuel
 
-regards
-Antti
--- 
-http://palosaari.fi/
