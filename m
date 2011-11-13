@@ -1,61 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog114.obsmtp.com ([207.126.144.137]:40540 "EHLO
-	eu1sys200aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934318Ab1KJLcQ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Nov 2011 06:32:16 -0500
-From: Alain VOLMAT <alain.volmat@st.com>
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Thu, 10 Nov 2011 12:32:09 +0100
-Subject: RE: MediaController support in LinuxDVB demux
-Message-ID: <E27519AE45311C49887BE8C438E68FAA01010C68B139@SAFEX1MAIL1.st.com>
-References: <E27519AE45311C49887BE8C438E68FAA01010C61F5A6@SAFEX1MAIL1.st.com>
- <201111041057.26112.pboettcher@kernellabs.com>
-In-Reply-To: <201111041057.26112.pboettcher@kernellabs.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:24110 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751937Ab1KMNcj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Nov 2011 08:32:39 -0500
+Message-ID: <4EBFC6F3.50404@redhat.com>
+Date: Sun, 13 Nov 2011 11:32:35 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: BOUWSMA Barry <freebeer.bouwsma@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: PATCH: Query DVB frontend capabilities
+References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com> <4EBBE336.8050501@linuxtv.org> <CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com> <4EBC402E.20208@redhat.com> <alpine.DEB.2.01.1111111759060.6676@localhost.localdomain> <4EBD6B61.7020605@redhat.com> <CAHFNz9JSk+TeptBZ8F9SEiyaa8q5OO8qwBiBxR9KEsOT8o_J-w@mail.gmail.com>
+In-Reply-To: <CAHFNz9JSk+TeptBZ8F9SEiyaa8q5OO8qwBiBxR9KEsOT8o_J-w@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Patrick,
-
-> Would it be a problem for you to elaborate a little bit more around 
-> the why and how and what around MC in DVB? Before starting to 
-> implement it like Mauro suggested. Could you go more in detail for you 
-> actual problem (like what is missing in the current dvb-demux)?
+Em 11-11-2011 20:34, Manu Abraham escreveu:
+> On Sat, Nov 12, 2011 at 12:07 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Em 11-11-2011 15:43, BOUWSMA Barry escreveu:
+>>>
+>>> On Do (Donnerstag) 10.Nov (November) 2011, 22:20,  Mauro Carvalho Chehab wrote:
+>>>
+>>>> We should also think on a way to enumerate the supported values for each DVB $
+>>>> the enum fe_caps is not enough anymore to store everything. It currently has $
+>>>> filled (of a total of 32 bits), and we currently have:
+>>>>      12 code rates (including AUTO/NONE);
+>>>
+>>> I'm probably not looking at the correct source, but the numbers
+>>> seem to match, so I'll just note that in what I'm looking at,
+>>> there are missing the values  1/3  and  2/5 .
+>>
+>> Those were not added yet, as no driver currently uses it.
+>>
+>>>
+>>> But I have to apologise in that I've also not been paying
+>>> attention to this conversation, and haven't even been trying
+>>> to follow recent developments.
+>>>
+>>>
+>>>>      13 modulation types;
+>>>
+>>> Here I see missing  QAM1024  and  QAM4096 .
+>>
+>> Same here.
+>>
+>>>
+>>>
+>>>>      7 transmission modes;
+>>>>      7 bandwidths;
+>>>
+>>> Apparently DVB-C2 allows us any bandwidth from 8MHz to 450MHz,
+>>> rather than the discrete values used by the other systems.
+>>> If this is also applicable to other countries with 6MHz rasters,
+>>> would it be necessary in addition to specify carrier spacing,
+>>> either 2,232kHz or 1,674kHz as opposed to getting this from the
+>>> channel bandwidth?
+>>
+>> There are 3 parameters for Satellite and Cable systems:
+>>        - Roll off factor;
+>>        - Symbol Rate;
+>>        - Bandwidth.
+>>
+>> Only two of the tree are independent, as the spec defines:
+>>        Bandwidth = symbol rate * (1  + roll off).
+>>
+>> For DVB-C Annex A and C, roll off is fixed (0.15 and 0.13, respectively).
+>>
+>> ITU-T J 83 Annex B doesn't say anything about it, but the ANSI SCTE07 spec
+>> says that the roll-off is approx. 0.18 for 256-QAM and approx. 0.12 for
+>> 256-QAM.
+>>
+>> DVB-S also has a fixed roll-off of 0.35, while DVB-S2 allows configuring it.
 > 
-> I think it is absolutely necessary to know more about the reasoning 
-> around MC - as it has a big potential - before any implementation.
 > 
-> Maybe there are some block-diagrams and presentations around somewhere.
-> Until now I only saw this Email-thread and this:
-> http://www.linuxtv.org/events.php (at the very bottom).
+> DVB-S uses 3 different rolloffs just like DVB-S2. In fact the rolloff
+> doesn't have anything to do with the delivery system at all, but
+> something that which is independant and physical to the channel,
+> rather than something logical such as a delivery system, looking at a
+> satellite transponder's viewpoint.
+> 
+> For general (home) broadcast purposes, we use only 0.35. There are
+> many other usages, which is not yet applicable with especially Linux
+> DVB with regards to narrow band operations such as DVB feeds and DSNG.
 
-Unfortunately, the slides we presented last month in Prague are not available online.
-In our SoCs, it is possible to create one or several PES filters from one or multiple demux devices. Those PES can then be either pulled to user space via the demux or dvr device node or tunneled in the kernel directly to audio and video decoders. (we have several audio or video decoders that we can use in parallel).
-So what we end up with is several sets of demux/audio/video entry points in order to exercise our demux and decoders.
+Ok.
 
-We also have to keep a relation between our decoders input (in LinuxDVB world) and output (in V4L2 worlds) since after decode, V4L2 capture, A/V sync, display stuff are done via the V4L2 world.
+> 
+> There are many usages for the second generation delivery systems,
+> which will likely realize only a very small part.
+> 
+> Eg: there are other aspects to DVB-S2 such as ACM and VCM, which most
+> likely we wouldn't cover. the reason is that the users of it are most
+> likely propreitary users of it and neither would they prefer to have
+> an open source version for it, nor would any Open Source users be
+> likely to implement it. Eg: Ericson's Director CA system, where they
+> have complete control over the box, rather than the user. As far as I
+> am aware they have a return path as well.
+> 
+>>
+>> Not 100% sure, but ISDB-S also seems to use a per-modulation roll-off factor.
+>>
+>> Anyway, when the roll-off is known, only symbol rate is needed, in order
+>> to know the needed bandwidth.
+> 
+> 
+> You need to know FEC, modulation too .. Eg: If you have 16APSK where
+> you have 4 bits, in comparison to 3 bits as with 8PSK, then you
+> require lesser bandwidth.
 
-So at the end we now have stuff like
-	demux0 ------ audio0
-                |-- video0
+Manu, you're probably thinking in terms of the TS bit rate, and not the
+modulator symbol rate.
 
-	demux1 ------ audio1
-                |-- video1
+The number of bits don't matter here, as the symbol rate is specified
+in bauds (e. g. symbols per second), and not in bits/s.
 
-This mapping helps to "know" which audio/video decoder will be use when doing direct tunneling between demux and decoders. (in real nothing prevent the demux0 to be ordered to send stuff to audio1 also ... ).
-We however have some use case where we need to demux/decode more than 2 PES/streams in parallel (ex: 2 audio/1 video in case of you have a video stream displayed on TV with 1 language sent to TV speakers and a second language sent to headsets let say). In such case the demux0->(audio0,video0) mapping is not enough and we need to have a way to say demux0 will send its data to yet another decoder that is not audio0 not video0.
+The conversion from bauds to bits/s is to multiply the number of bits per
+symbol by the rate, in bauds.
 
-MediaController for sure would allow us to do that by linking demux output pad (PES filter) with a decoder entity.
+A higher number of bits for a given modulation just increase the number of 
+possible states that the modulation will use. So, it will require a higher
+signal to noise relation at the demod, to avoid miss-detection, but this is
+a separate issue.
 
-That said, actually MediaController is not the only solution here and we can actually think of something even more simple such as adding outputs in the dmx_output_t field of struct dmx_pes_filter_params. For example in our case we would have DMX_OUT_DECODER1, DMX_OUT_DECODER2, DMX_OUT_DECODER3 and so on. 
+The roll-off, minimal bandwidth (referred as "Nyquist frequency" by the DVB-C
+specs) and symbol rate are related by this equation:
+	f = symbol_rate * (1 + roll_off)
 
-So my feeling is that the MediaController would most probably help in some cases in the LinuxDVB and also it seems to be good to be able to link all together within a same pipeline LinuxDVB FE/DEMUX and V4L2 decoders/planes and outputs (in our cases). That done it would allow to exercise the whole pipeline from a single place in the pipeline (V4L2 or LinuxDVB) while currently we have to configure and control LinuxDVB and V4L2 separately. However, for the very time being, the first solution that it would solve it the case described above.
+The f value is the Nyquist frequency, and it will dictate the low-pass filter
+needed to confine the entire signal of the channel (with is, basically, the
+amount of bandwidth required by the channel).
 
-Regards,
+> Also, higher the Error correction information bits set in (redundant),
+> the more bandwidth it needs to occupy.
 
-Alain
+The error correction algorithm will reduce the bit rate of the TS stream,
+but won't affect the symbol rate at the modulator.
+
+> This is the same with any
+> Digital Channel whether it be Satellite/Cable/Terrestrial, whatever
+> delivery system it is.
+
+Yes.
+
+> 
+> Regards,
+> Manu
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
