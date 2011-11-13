@@ -1,167 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:44729 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752143Ab1KBKw4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 06:52:56 -0400
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LU100B4Q4W5Z6@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 02 Nov 2011 10:52:54 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LU1008AJ4W5AO@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 02 Nov 2011 10:52:53 +0000 (GMT)
-Date: Wed, 02 Nov 2011 11:52:02 +0100
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Subject: [PATCH] media: vb2: vmalloc-based allocator user pointer handling
+Received: from mailout-de.gmx.net ([213.165.64.23]:47982 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750870Ab1KMX3Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Nov 2011 18:29:16 -0500
+Message-ID: <4EC052CE.1080002@gmx.de>
+Date: Mon, 14 Nov 2011 00:29:18 +0100
+From: Ninja <Ninja15@gmx.de>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Message-id: <1320231122-22518-1-git-send-email-andrzej.p@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Subject: Mantis CAM not SMP safe / Activating CAM on Technisat Skystar HD2
+ (DVB-S2)
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-vmalloc-based allocator user pointer handling
+Hi,
 
-Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/videobuf2-vmalloc.c |   86 ++++++++++++++++++++++++++++++-
- 1 files changed, 85 insertions(+), 1 deletions(-)
+I'm using a Technisat Skystar HD2 (DVB-S2) with a CI Module under Ubuntu 
+11.04.
+As some people already noticed, the mantis_ca_init() is never called to 
+initialize the CAM.
+Since s2-liplianin used almost the same code, I basically just put the 
+mantis_ca_init back in,
+which is working quite good. But I hope somebody can help me to remove a 
+bug rendering the driver not SMP safe,
+since I believe my work around for this makes the driver less reliable.
 
-diff --git a/drivers/media/video/videobuf2-vmalloc.c b/drivers/media/video/videobuf2-vmalloc.c
-index a3a8842..ee0ee37 100644
---- a/drivers/media/video/videobuf2-vmalloc.c
-+++ b/drivers/media/video/videobuf2-vmalloc.c
-@@ -12,6 +12,7 @@
- 
- #include <linux/module.h>
- #include <linux/mm.h>
-+#include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
- 
-@@ -20,7 +21,10 @@
- 
- struct vb2_vmalloc_buf {
- 	void				*vaddr;
-+	struct page			**pages;
-+	int				write;
- 	unsigned long			size;
-+	unsigned int			n_pages;
- 	atomic_t			refcount;
- 	struct vb2_vmarea_handler	handler;
- };
-@@ -66,6 +70,83 @@ static void vb2_vmalloc_put(void *buf_priv)
- 	}
- }
- 
-+static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
-+				     unsigned long size, int write)
-+{
-+	struct vb2_vmalloc_buf *buf;
-+
-+	unsigned long first, last;
-+	int n_pages_from_user, offset;
-+
-+	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-+	if (!buf)
-+		return NULL;
-+
-+	buf->vaddr = NULL;
-+	buf->write = write;
-+	offset = vaddr & ~PAGE_MASK;
-+	buf->size = size;
-+
-+	first = (vaddr & PAGE_MASK) >> PAGE_SHIFT;
-+	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
-+	buf->n_pages = last - first + 1;
-+	buf->pages = kzalloc(buf->n_pages * sizeof(struct page *), GFP_KERNEL);
-+	if (!buf->pages)
-+		goto userptr_fail_pages_array_alloc;
-+
-+	down_read(&current->mm->mmap_sem);
-+	n_pages_from_user = get_user_pages(current, current->mm,
-+					     vaddr & PAGE_MASK,
-+					     buf->n_pages,
-+					     write,
-+					     1, /* force */
-+					     buf->pages,
-+					     NULL);
-+	up_read(&current->mm->mmap_sem);
-+	if (n_pages_from_user != buf->n_pages)
-+		goto userptr_fail_get_user_pages;
-+
-+	buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1, PAGE_KERNEL);
-+
-+	if (buf->vaddr) {
-+		buf->vaddr += offset;
-+		return buf;
-+	}
-+
-+userptr_fail_get_user_pages:
-+	printk(KERN_DEBUG "get_user_pages requested/got: %d/%d]\n",
-+	       n_pages_from_user, buf->n_pages);
-+	while (--n_pages_from_user >= 0)
-+		put_page(buf->pages[n_pages_from_user]);
-+	kfree(buf->pages);
-+
-+userptr_fail_pages_array_alloc:
-+	kfree(buf);
-+
-+	return NULL;
-+}
-+
-+static void vb2_vmalloc_put_userptr(void *buf_priv)
-+{
-+	struct vb2_vmalloc_buf *buf = buf_priv;
-+
-+	int i = buf->n_pages;
-+	int offset = (unsigned long)buf->vaddr & ~PAGE_MASK;
-+
-+	printk(KERN_DEBUG "%s: Releasing userspace buffer of %d pages\n",
-+	       __func__, buf->n_pages);
-+	if (buf->vaddr)
-+		vm_unmap_ram((const void *)((unsigned long)buf->vaddr - offset),
-+			     buf->n_pages);
-+	while (--i >= 0) {
-+		if (buf->write)
-+			set_page_dirty_lock(buf->pages[i]);
-+		put_page(buf->pages[i]);
-+	}
-+	kfree(buf->pages);
-+	kfree(buf);
-+}
-+
- static void *vb2_vmalloc_vaddr(void *buf_priv)
- {
- 	struct vb2_vmalloc_buf *buf = buf_priv;
-@@ -73,7 +154,8 @@ static void *vb2_vmalloc_vaddr(void *buf_priv)
- 	BUG_ON(!buf);
- 
- 	if (!buf->vaddr) {
--		printk(KERN_ERR "Address of an unallocated plane requested\n");
-+		printk(KERN_ERR "Address of an unallocated plane requested "
-+		       "or cannot map user pointer\n");
- 		return NULL;
- 	}
- 
-@@ -121,6 +203,8 @@ static int vb2_vmalloc_mmap(void *buf_priv, struct vm_area_struct *vma)
- const struct vb2_mem_ops vb2_vmalloc_memops = {
- 	.alloc		= vb2_vmalloc_alloc,
- 	.put		= vb2_vmalloc_put,
-+	.get_userptr	= vb2_vmalloc_get_userptr,
-+	.put_userptr	= vb2_vmalloc_put_userptr,
- 	.vaddr		= vb2_vmalloc_vaddr,
- 	.mmap		= vb2_vmalloc_mmap,
- 	.num_users	= vb2_vmalloc_num_users,
--- 
-1.7.0.4
+First of all the description of the bug:
+I'm using a dual core cpu and noticed that I don't get all the interrupt 
+i should get when writing to/ reading from the card using a function 
+which uses "mantis_hif_sbuf_opdone_wait" in "mantis_hif.c".
+This leads to the 500 ms timeout. Interesting enough, when reading the 
+data despite the timeout, the data is valid and available. Using 
+max_cpus=1 parameter when starting ubuntu 11.04 solves the problem; all 
+interrupts are received and no timeout occurs.
+In addition to this, i think the return value of "msecs_to_jiffies" 
+changed with some kernel update an thus "mantis_hif_sbuf_opdone_wait" 
+never returns an error.
+How hope someone can help figuraing out, why the card send less 
+interrupt on SMP enabled machines. I know the core which handles the IRQ 
+can change, but even all the IRQs from all core are less than when 
+disabling SMP.
+
+Now the description how I added the CI support again:
+
+File mantis_hif.c (workaround for the SMP bug):
+- Change the call from msecs_to_jiffies(500) to msecs_to_jiffies(2) in 
+function "mantis_hif_sbuf_opdone_wait" (we just get the data after 2 ms, 
+regardless if we got the data ready IRQ or not).
+
+File mantis_pci.c:
+- Move the function set_direction from mantis_core.c to mantis_pci.c (I 
+tried to just add the forward declaration to mantis_core.h, but I 
+couldn't get it to work...)
+- Add its function declaration to mantis_pci.h (extern void 
+mantis_set_direction(struct mantis_pci *mantis, int direction);).
+- Add "mantis_set_direction(mantis, 0);" after "mantis->revision = 
+pdev->revision;" in function "mantis_pci_init".
+- Add "mmwrite(0x00, MANTIS_INT_MASK);" before "err = 
+request_irq(pdev->irq,"... in function "mantis_pci_init".
+
+File mantis_ca.c:
+- Add the include #include "mantis_pci.h"
+- Comment in "mantis_set_direction(mantis, 1);" in function 
+"mantis_ts_control" in file mantis_ca.c
+
+File manits_dvb.c:
+- Add the function call "mantis_ca_init(mantis);" right before the 
+return 0 in function "mantis_dvb_init".
+- Add th function call "mantis_ca_exit(mantis);" right before 
+"tasklet_kill(&mantis->tasklet);" in function "mantis_dvb_exit".
+
+Regards,
+Manuel
 
