@@ -1,101 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:12471 "EHLO mx1.redhat.com"
+Received: from smtp.nexicom.net ([216.168.96.13]:39551 "EHLO smtp.nexicom.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752086Ab1KSTTv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Nov 2011 14:19:51 -0500
-Message-ID: <4EC80176.5000802@redhat.com>
-Date: Sat, 19 Nov 2011 20:20:22 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1754066Ab1KMPhP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Nov 2011 10:37:15 -0500
+Received: from mail.lockie.ca (dyn-dsl-mb-216-168-118-207.nexicom.net [216.168.118.207])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id pADFbB6n027403
+	for <linux-media@vger.kernel.org>; Sun, 13 Nov 2011 10:37:12 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by mail.lockie.ca (Postfix) with ESMTP id 6D1561E01B1
+	for <linux-media@vger.kernel.org>; Sun, 13 Nov 2011 10:37:11 -0500 (EST)
+Message-ID: <4EBFE427.9010605@lockie.ca>
+Date: Sun, 13 Nov 2011 10:37:11 -0500
+From: James <bjlockie@lockie.ca>
 MIME-Version: 1.0
-To: Ezequiel <elezegarcia@gmail.com>
-CC: linux-media@vger.kernel.org, moinejf@free.fr
-Subject: Re: [PATCH] [media] gspca: replaced static allocation by video_device_alloc/video_device_release
-References: <20111119185015.GA3048@localhost>
-In-Reply-To: <20111119185015.GA3048@localhost>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: HVR-4000 may be broken in kernel mods (again) ?
+References: <CAA7M+FBvP0A7L6o-Fw4CQ2xR2CYqu233L+83BGGOcLooK0bk7w@mail.gmail.com> <CAGoCfiw+yy3Hz=7yvGTYrYQn5VfNh3CrabS_Kxx7G88jcwt9aQ@mail.gmail.com> <20111112141403.53708f28@hana.gusto> <CAGoCfiwnOTv=yhFeAsjQ+=5vrsUfy5b8HqtXGiFuimXe2M-+Bw@mail.gmail.com> <CAA7M+FAi517fUjLUxLsVSMr99N+2gpuhJMoiTbsuxyKGuf7-Kw@mail.gmail.com> <CAA7M+FCWHwRvX4UYGOqnN2yd+SyUDhbs7sn9djVy=Px0EMw6eg@mail.gmail.com>
+In-Reply-To: <CAA7M+FCWHwRvX4UYGOqnN2yd+SyUDhbs7sn9djVy=Px0EMw6eg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 11/12/11 09:53, jonathanjstevens@gmail.com wrote:
+> I've just done some tests without Xen.
+> 
+> The situation does change, in that scandvb finds the services (so no
+> more "filter timeouts"). Kaffeine also manages to scan the channels OK
+> - however despite managing to scan, tune and get the EPG there is no
+> picture on any channel.
+> 
+> I can't test MythTV without Xen, as it relies on an SQL database that
+> is on a Xen VM.
+> 
+> Not sure where to go with this next? The card worked Ok through Xen
+> (am running all this in dom0 by the way) with Opensuse (once patches
+> applied) and the version of Xen is not very different - although the
+> dom0 kernel will be I guess.
 
-On 11/19/2011 07:50 PM, Ezequiel wrote:
-> Pushed video_device initialization into a separate function.
-> Replaced static allocation of struct video_device by
-> video_device_alloc/video_device_release usage.
-
-NACK! I see a video_device_release call here, but not a
-video_device_alloc, also you're messing with quite sensitive code
-here (because a usb device can be unplugged at any time, including
-when the /dev/video node is open by a process), and changing it
-from static to dynamic allocation my have more consequences
-then you see at first (I did not analyze all the code paths
-for the proposed change, since the last time I audited them for
-the current static allocation of the videodevice struct code took
-me hours).
-
-Also static allocation (as part of the driver struct) in general is
-better then dynamic as it needs less code and helps avoiding memory
-fragmentation.
-
-All in all I cannot help but feel that you're diving into a piece
-of code with some drive by shooting style patch without knowing
-the code in question at all, please don't do that!
-
-Regards,
-
-Hans
-
-
-
->
-> Signed-off-by: Ezequiel Garcia<elezegarcia@gmail.com>
-> ---
->
-> diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-> index 881e04c..1f27f05 100644
-> --- a/drivers/media/video/gspca/gspca.c
-> +++ b/drivers/media/video/gspca/gspca.c
-> @@ -1292,10 +1292,12 @@ static int vidioc_enum_frameintervals(struct file *filp, void *priv,
->
->   static void gspca_release(struct video_device *vfd)
->   {
-> -	struct gspca_dev *gspca_dev = container_of(vfd, struct gspca_dev, vdev);
-> +	struct gspca_dev *gspca_dev = video_get_drvdata(vfd);
->
->   	PDEBUG(D_PROBE, "%s released",
-> -		video_device_node_name(&gspca_dev->vdev));
-> +		video_device_node_name(gspca_dev->vdev));
-> +
-> +	video_device_release(vfd);
->
->   	kfree(gspca_dev->usb_buf);
->   	kfree(gspca_dev);
-> @@ -1304,9 +1306,11 @@ static void gspca_release(struct video_device *vfd)
->   static int dev_open(struct file *file)
->   {
->   	struct gspca_dev *gspca_dev;
-> +	struct video_device *vdev;
->
->   	PDEBUG(D_STREAM, "[%s] open", current->comm);
-> -	gspca_dev = (struct gspca_dev *) video_devdata(file);
-> +	vdev = video_devdata(file);
-> +	gspca_dev = video_get_drvdata(vdev);
->   	if (!gspca_dev->present)
->   		return -ENODEV;
->
-> @@ -1318,10 +1322,10 @@ static int dev_open(struct file *file)
->   #ifdef GSPCA_DEBUG
->   	/* activate the v4l2 debug */
->   	if (gspca_debug&  D_V4L2)
-> -		gspca_dev->vdev.debug |= V4L2_DEBUG_IOCTL
-> +		gspca_dev->vdev->debug |= V4L2_DEBUG_IOCTL
->   					| V4L2_DEBUG_IOCTL_ARG;
->   	else
-> -		gspca_dev->vdev.debug&= ~(V4L2_DEBUG_IOCTL
-> +		gspca_dev->vdev->debug&= ~(V4L2_DEBUG_IOCTL
->   					| V4L2_DEBUG_IOCTL_ARG);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Try mplayer (or VLC) directly.
+Kaffeine uses a pipe from mplayer.
+I use VLC to open my channels.conf (I forget which file format, mplayer format?) which works.
+Mplayer doesn't work very well on my system but vlc does.
