@@ -1,325 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35475 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752086Ab1KHMGG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 07:06:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2855 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755850Ab1KNSVS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Nov 2011 13:21:18 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Yann Sionneau <yann@minet.net>
-Subject: [PATCH 2/4] uvcvideo: Extract video stream statistics
-Date: Tue,  8 Nov 2011 13:06:00 +0100
-Message-Id: <1320753962-14079-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1320753962-14079-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1320753962-14079-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
+	davinci-linux-open-source@linux.davincidsp.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] board-dm646x-evm.c: wrong register used in setup_vpif_input_channel_mode
+Date: Mon, 14 Nov 2011 19:20:49 +0100
+Message-Id: <986dc5c6de4525aa3427ccded735d8e982080b0e.1321294701.git.hans.verkuil@cisco.com>
+In-Reply-To: <1321294849-2738-1-git-send-email-hverkuil@xs4all.nl>
+References: <1321294849-2738-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alexey Fisher <bug-track@fisher-privat.net>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Export the statistics through debugfs.
+The function setup_vpif_input_channel_mode() used the VSCLKDIS register
+instead of VIDCLKCTL. This meant that when in HD mode videoport channel 0
+used a different clock from channel 1.
 
-Signed-off-by: Alexey Fisher <bug-track@fisher-privat.net>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Clearly a copy-and-paste error.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/uvc/uvc_debugfs.c |   60 ++++++++++++++++++
- drivers/media/video/uvc/uvc_video.c   |  109 ++++++++++++++++++++++++++++++++-
- drivers/media/video/uvc/uvcvideo.h    |   32 +++++++++-
- 3 files changed, 198 insertions(+), 3 deletions(-)
+ arch/arm/mach-davinci/board-dm646x-evm.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/video/uvc/uvc_debugfs.c b/drivers/media/video/uvc/uvc_debugfs.c
-index f58969a..bdba016 100644
---- a/drivers/media/video/uvc/uvc_debugfs.c
-+++ b/drivers/media/video/uvc/uvc_debugfs.c
-@@ -18,6 +18,57 @@
- #include "uvcvideo.h"
+diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
+index 337c45e..607a527 100644
+--- a/arch/arm/mach-davinci/board-dm646x-evm.c
++++ b/arch/arm/mach-davinci/board-dm646x-evm.c
+@@ -563,7 +563,7 @@ static int setup_vpif_input_channel_mode(int mux_mode)
+ 	int val;
+ 	u32 value;
  
- /* -----------------------------------------------------------------------------
-+ * Statistics
-+ */
-+
-+#define UVC_DEBUGFS_BUF_SIZE	1024
-+
-+struct uvc_debugfs_buffer {
-+	size_t count;
-+	char data[UVC_DEBUGFS_BUF_SIZE];
-+};
-+
-+static int uvc_debugfs_stats_open(struct inode *inode, struct file *file)
-+{
-+	struct uvc_streaming *stream = inode->i_private;
-+	struct uvc_debugfs_buffer *buf;
-+
-+	buf = kmalloc(sizeof(*buf), GFP_KERNEL);
-+	if (buf == NULL)
-+		return -ENOMEM;
-+
-+	buf->count = uvc_video_stats_dump(stream, buf->data, sizeof(buf->data));
-+
-+	file->private_data = buf;
-+	return 0;
-+}
-+
-+static ssize_t uvc_debugfs_stats_read(struct file *file, char __user *user_buf,
-+				      size_t nbytes, loff_t *ppos)
-+{
-+	struct uvc_debugfs_buffer *buf = file->private_data;
-+
-+	return simple_read_from_buffer(user_buf, nbytes, ppos, buf->data,
-+				       buf->count);
-+}
-+
-+static int uvc_debugfs_stats_release(struct inode *inode, struct file *file)
-+{
-+	kfree(file->private_data);
-+	file->private_data = NULL;
-+
-+	return 0;
-+}
-+
-+static const struct file_operations uvc_debugfs_stats_fops = {
-+	.owner = THIS_MODULE,
-+	.open = uvc_debugfs_stats_open,
-+	.llseek = no_llseek,
-+	.read = uvc_debugfs_stats_read,
-+	.release = uvc_debugfs_stats_release,
-+};
-+
-+/* -----------------------------------------------------------------------------
-  * Global and stream initialization/cleanup
-  */
+-	if (!vpif_vsclkdis_reg || !cpld_client)
++	if (!vpif_vidclkctl_reg || !cpld_client)
+ 		return -ENXIO;
  
-@@ -43,6 +94,15 @@ int uvc_debugfs_init_stream(struct uvc_streaming *stream)
+ 	val = i2c_smbus_read_byte(cpld_client);
+@@ -571,7 +571,7 @@ static int setup_vpif_input_channel_mode(int mux_mode)
+ 		return val;
  
- 	stream->debugfs_dir = dent;
+ 	spin_lock_irqsave(&vpif_reg_lock, flags);
+-	value = __raw_readl(vpif_vsclkdis_reg);
++	value = __raw_readl(vpif_vidclkctl_reg);
+ 	if (mux_mode) {
+ 		val &= VPIF_INPUT_TWO_CHANNEL;
+ 		value |= VIDCH1CLK;
+@@ -579,7 +579,7 @@ static int setup_vpif_input_channel_mode(int mux_mode)
+ 		val |= VPIF_INPUT_ONE_CHANNEL;
+ 		value &= ~VIDCH1CLK;
+ 	}
+-	__raw_writel(value, vpif_vsclkdis_reg);
++	__raw_writel(value, vpif_vidclkctl_reg);
+ 	spin_unlock_irqrestore(&vpif_reg_lock, flags);
  
-+	dent = debugfs_create_file("stats", 0600, stream->debugfs_dir,
-+				   stream, &uvc_debugfs_stats_fops);
-+	if (IS_ERR_OR_NULL(dent)) {
-+		uvc_printk(KERN_INFO, "Unable to create debugfs %s directory.\n",
-+			   dir_name);
-+		uvc_debugfs_cleanup_stream(stream);
-+		return -ENODEV;
-+	}
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/video/uvc/uvc_video.c b/drivers/media/video/uvc/uvc_video.c
-index a57f813..1908dd8 100644
---- a/drivers/media/video/uvc/uvc_video.c
-+++ b/drivers/media/video/uvc/uvc_video.c
-@@ -358,6 +358,100 @@ static int uvc_commit_video(struct uvc_streaming *stream,
- }
- 
- /* ------------------------------------------------------------------------
-+ * Stream statistics
-+ */
-+
-+static void uvc_video_stats_decode(struct uvc_streaming *stream,
-+		const __u8 *data, int len)
-+{
-+	unsigned int header_size;
-+
-+	if (stream->stats.stream.nb_frames == 0 &&
-+	    stream->stats.frame.nb_packets == 0)
-+		ktime_get_ts(&stream->stats.stream.start_ts);
-+
-+	switch (data[1] & (UVC_STREAM_PTS | UVC_STREAM_SCR)) {
-+	case UVC_STREAM_PTS | UVC_STREAM_SCR:
-+		header_size = 12;
-+		break;
-+	case UVC_STREAM_PTS:
-+		header_size = 6;
-+		break;
-+	case UVC_STREAM_SCR:
-+		header_size = 8;
-+		break;
-+	default:
-+		header_size = 2;
-+		break;
-+	}
-+
-+	/* Check for invalid headers. */
-+	if (len < header_size || data[0] < header_size) {
-+		stream->stats.frame.nb_invalid++;
-+		return;
-+	}
-+
-+	/* Record the first non-empty packet number. */
-+	if (stream->stats.frame.size == 0 && len > header_size)
-+		stream->stats.frame.first_data = stream->stats.frame.nb_packets;
-+
-+	/* Update the frame size. */
-+	stream->stats.frame.size += len - header_size;
-+
-+	/* Update the packets counters. */
-+	stream->stats.frame.nb_packets++;
-+	if (len > header_size)
-+		stream->stats.frame.nb_empty++;
-+
-+	if (data[1] & UVC_STREAM_ERR)
-+		stream->stats.frame.nb_errors++;
-+}
-+
-+static void uvc_video_stats_update(struct uvc_streaming *stream)
-+{
-+	struct uvc_stats_frame *frame = &stream->stats.frame;
-+
-+	uvc_trace(UVC_TRACE_STATS, "frame %u stats: %u/%u/%u packets\n",
-+		  stream->sequence, frame->first_data,
-+		  frame->nb_packets - frame->nb_empty, frame->nb_packets);
-+
-+	stream->stats.stream.nb_frames++;
-+	stream->stats.stream.nb_packets += stream->stats.frame.nb_packets;
-+	stream->stats.stream.nb_empty += stream->stats.frame.nb_empty;
-+	stream->stats.stream.nb_errors += stream->stats.frame.nb_errors;
-+	stream->stats.stream.nb_invalid += stream->stats.frame.nb_invalid;
-+
-+	memset(&stream->stats.frame, 0, sizeof(stream->stats.frame));
-+}
-+
-+size_t uvc_video_stats_dump(struct uvc_streaming *stream, char *buf,
-+			    size_t size)
-+{
-+	size_t count = 0;
-+
-+	count += scnprintf(buf + count, size - count,
-+			   "frames:  %u\npackets: %u\nempty:   %u\n"
-+			   "errors:  %u\ninvalid: %u\n",
-+			   stream->stats.stream.nb_frames,
-+			   stream->stats.stream.nb_packets,
-+			   stream->stats.stream.nb_empty,
-+			   stream->stats.stream.nb_errors,
-+			   stream->stats.stream.nb_invalid);
-+
-+	return count;
-+}
-+
-+static void uvc_video_stats_start(struct uvc_streaming *stream)
-+{
-+	memset(&stream->stats, 0, sizeof(stream->stats));
-+}
-+
-+static void uvc_video_stats_stop(struct uvc_streaming *stream)
-+{
-+	ktime_get_ts(&stream->stats.stream.stop_ts);
-+}
-+
-+/* ------------------------------------------------------------------------
-  * Video codecs
-  */
- 
-@@ -406,16 +500,23 @@ static int uvc_video_decode_start(struct uvc_streaming *stream,
- 	 * - bHeaderLength value must be at least 2 bytes (see above)
- 	 * - bHeaderLength value can't be larger than the packet size.
- 	 */
--	if (len < 2 || data[0] < 2 || data[0] > len)
-+	if (len < 2 || data[0] < 2 || data[0] > len) {
-+		stream->stats.frame.nb_invalid++;
- 		return -EINVAL;
-+	}
- 
- 	fid = data[1] & UVC_STREAM_FID;
- 
- 	/* Increase the sequence number regardless of any buffer states, so
- 	 * that discontinuous sequence numbers always indicate lost frames.
- 	 */
--	if (stream->last_fid != fid)
-+	if (stream->last_fid != fid) {
- 		stream->sequence++;
-+		if (stream->sequence)
-+			uvc_video_stats_update(stream);
-+	}
-+
-+	uvc_video_stats_decode(stream, data, len);
- 
- 	/* Store the payload FID bit and return immediately when the buffer is
- 	 * NULL.
-@@ -860,6 +961,8 @@ static void uvc_uninit_video(struct uvc_streaming *stream, int free_buffers)
- 	struct urb *urb;
- 	unsigned int i;
- 
-+	uvc_video_stats_stop(stream);
-+
- 	for (i = 0; i < UVC_URBS; ++i) {
- 		urb = stream->urb[i];
- 		if (urb == NULL)
-@@ -999,6 +1102,8 @@ static int uvc_init_video(struct uvc_streaming *stream, gfp_t gfp_flags)
- 	stream->bulk.skip_payload = 0;
- 	stream->bulk.payload_size = 0;
- 
-+	uvc_video_stats_start(stream);
-+
- 	if (intf->num_altsetting > 1) {
- 		struct usb_host_endpoint *best_ep = NULL;
- 		unsigned int best_psize = 3 * 1024;
-diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
-index d975636..f9ee62e 100644
---- a/drivers/media/video/uvc/uvcvideo.h
-+++ b/drivers/media/video/uvc/uvcvideo.h
-@@ -356,6 +356,28 @@ struct uvc_video_chain {
- 	struct mutex ctrl_mutex;		/* Protects ctrl.info */
- };
- 
-+struct uvc_stats_frame {
-+	unsigned int size;		/* Number of bytes captured */
-+	unsigned int first_data;	/* Index of the first non-empty packet */
-+
-+	unsigned int nb_packets;	/* Number of packets */
-+	unsigned int nb_empty;		/* Number of empty packets */
-+	unsigned int nb_invalid;	/* Number of packets with an invalid header */
-+	unsigned int nb_errors;		/* Number of packets with the error bit set */
-+};
-+
-+struct uvc_stats_stream {
-+	struct timespec start_ts;	/* Stream start timestamp */
-+	struct timespec stop_ts;	/* Stream stop timestamp */
-+
-+	unsigned int nb_frames;		/* Number of frames */
-+
-+	unsigned int nb_packets;	/* Number of packets */
-+	unsigned int nb_empty;		/* Number of empty packets */
-+	unsigned int nb_invalid;	/* Number of packets with an invalid header */
-+	unsigned int nb_errors;		/* Number of packets with the error bit set */
-+};
-+
- struct uvc_streaming {
- 	struct list_head list;
- 	struct uvc_device *dev;
-@@ -406,6 +428,10 @@ struct uvc_streaming {
- 
- 	/* debugfs */
- 	struct dentry *debugfs_dir;
-+	struct {
-+		struct uvc_stats_frame frame;
-+		struct uvc_stats_stream stream;
-+	} stats;
- };
- 
- enum uvc_device_state {
-@@ -477,6 +503,7 @@ struct uvc_driver {
- #define UVC_TRACE_SUSPEND	(1 << 8)
- #define UVC_TRACE_STATUS	(1 << 9)
- #define UVC_TRACE_VIDEO		(1 << 10)
-+#define UVC_TRACE_STATS		(1 << 11)
- 
- #define UVC_WARN_MINMAX		0
- #define UVC_WARN_PROBE_DEF	1
-@@ -609,10 +636,13 @@ extern struct usb_host_endpoint *uvc_find_endpoint(
- void uvc_video_decode_isight(struct urb *urb, struct uvc_streaming *stream,
- 		struct uvc_buffer *buf);
- 
--/* debugfs */
-+/* debugfs and statistics */
- int uvc_debugfs_init(void);
- void uvc_debugfs_cleanup(void);
- int uvc_debugfs_init_stream(struct uvc_streaming *stream);
- void uvc_debugfs_cleanup_stream(struct uvc_streaming *stream);
- 
-+size_t uvc_video_stats_dump(struct uvc_streaming *stream, char *buf,
-+			    size_t size);
-+
- #endif
+ 	err = i2c_smbus_write_byte(cpld_client, val);
 -- 
-1.7.3.4
+1.7.7
 
