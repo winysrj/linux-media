@@ -1,109 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:50969 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753493Ab1KUXBQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Nov 2011 18:01:16 -0500
-Received: by eye27 with SMTP id 27so5954202eye.19
-        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 15:01:15 -0800 (PST)
+Received: from comal.ext.ti.com ([198.47.26.152]:51225 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752056Ab1KNPJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Nov 2011 10:09:32 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>
+CC: Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v2 3/5] davinci: dm646x: remove the macros from the header to move to c file
+Date: Mon, 14 Nov 2011 20:39:15 +0530
+Message-ID: <1321283357-27698-4-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1321283357-27698-1-git-send-email-manjunath.hadli@ti.com>
+References: <1321283357-27698-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <4ECAD07F.9010708@iki.fi>
-References: <CAHFNz9KmxyBB4nRQZg1RdU+6wXHmaR9WHejuMqp6g9qrXykjQQ@mail.gmail.com>
-	<4ECAD07F.9010708@iki.fi>
-Date: Tue, 22 Nov 2011 04:31:14 +0530
-Message-ID: <CAHFNz9KJ2LOhS2uoHM4iKVFTLyhe4aF6YzbqTLymdMXS2jgRqg@mail.gmail.com>
-Subject: Re: PATCH 12/13: 0012-CXD2820r-Query-DVB-frontend-delivery-capabilities
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andreas Oberritter <obi@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+move the register base addresses and offsets used only by dm646x
+platform file from platform header dm646x.h to dm646x.c as they
+are used only in the c file.
 
-On Tue, Nov 22, 2011 at 3:58 AM, Antti Palosaari <crope@iki.fi> wrote:
-> Hello
->
-> On 11/21/2011 11:09 PM, Manu Abraham wrote:
->>
->>        /* program tuner */
->> -       if (fe->ops.tuner_ops.set_params)
->> -               fe->ops.tuner_ops.set_params(fe, params);
->> +       tstate.delsys = SYS_DVBC_ANNEX_AC;
->> +       tstate.frequency = c->frequency;
->> +
->> +       if (fe->ops.tuner_ops.set_state) {
->> +               fe->ops.tuner_ops.set_state(fe,
->> +                                           DVBFE_TUNER_DELSYS    |
->> +                                           DVBFE_TUNER_FREQUENCY,
->> +                                       &tstate);
->
-> I want to raise that point, switch from .set_params() to .set_state() when
-> programming tuner. I don't see it reasonable to introduce (yes, it have
-> existed ages but not used) new way to program tuner.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+---
+ arch/arm/mach-davinci/dm646x.c              |    7 +++++++
+ arch/arm/mach-davinci/include/mach/dm646x.h |    7 -------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
+diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
+index 0b68ed5..0560e82 100644
+--- a/arch/arm/mach-davinci/dm646x.c
++++ b/arch/arm/mach-davinci/dm646x.c
+@@ -46,6 +46,13 @@
+ #define DM646X_REF_FREQ		27000000
+ #define DM646X_AUX_FREQ		24000000
+ 
++#define DM646X_EMAC_BASE		0x01c80000
++#define DM646X_EMAC_MDIO_BASE		(DM646X_EMAC_BASE + 0x4000)
++#define DM646X_EMAC_CNTRL_OFFSET	0x0000
++#define DM646X_EMAC_CNTRL_MOD_OFFSET	0x1000
++#define DM646X_EMAC_CNTRL_RAM_OFFSET	0x2000
++#define DM646X_EMAC_CNTRL_RAM_SIZE	0x2000
++
+ static struct pll_data pll1_data = {
+ 	.num       = 1,
+ 	.phys_base = DAVINCI_PLL1_BASE,
+diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h b/arch/arm/mach-davinci/include/mach/dm646x.h
+index a8ee6c9..eb95864 100644
+--- a/arch/arm/mach-davinci/include/mach/dm646x.h
++++ b/arch/arm/mach-davinci/include/mach/dm646x.h
+@@ -18,13 +18,6 @@
+ #include <linux/davinci_emac.h>
+ #include <media/davinci/vpif_types.h>
+ 
+-#define DM646X_EMAC_BASE		(0x01C80000)
+-#define DM646X_EMAC_MDIO_BASE		(DM646X_EMAC_BASE + 0x4000)
+-#define DM646X_EMAC_CNTRL_OFFSET	(0x0000)
+-#define DM646X_EMAC_CNTRL_MOD_OFFSET	(0x1000)
+-#define DM646X_EMAC_CNTRL_RAM_OFFSET	(0x2000)
+-#define DM646X_EMAC_CNTRL_RAM_SIZE	(0x2000)
+-
+ #define DM646X_ASYNC_EMIF_CONTROL_BASE	0x20008000
+ #define DM646X_ASYNC_EMIF_CS2_SPACE_BASE 0x42000000
+ 
+-- 
+1.6.2.4
 
-I didn't introduce set_state() now. It was there for quite a long
-while, as old v5API itself, IIRC.
-
-
->
-> Both demod and tuner got same params;
-> .set_frontend(struct dvb_frontend *, struct dvb_frontend_parameters *)
-> .set_params(struct dvb_frontend *, struct dvb_frontend_parameters *)
-
-
-The argument passed to set_params: struct dvb_frontend_parameters is
-useless for any device that's been around recently. Although one can
-get the parameters from the property_cache.
-
-Using set_state(), makes it independant and less kludgy, simplifying
-things. on the other hand it may be used with analog as well, llly to
-Michael Krufky said.
-
-Eventually, it just provides the tuner an independence from struct
-dvb_frontend_parameters (which is rigid) and the frontend cache.
-
-That said, a few tuners already uses the mentioned callback, stb6100,
-tda8261, tda665x,
-
-If you imply that you feel overly depressed by the use of the
-set_state in the cxd2820r module ;-), then as a workaround, the
-parameters required for operation can be retrieved from the property
-cache, but then if tuner drivers are cleaned up by someone to remove
-obsolete ? set_params, then you wouldn't have any other option, but to
-later on fall back to set_state.
-
-I am fine with either way, but for the tuners themselves, set_state
-behaves a bit more better as it provides independence from the legacy
-dvb_frontend_properties. It takes a bit of time for someone new to
-understand that (he cannot use dvb_frontend_properties anymore)
-
-
->
-> and can get access to APIv5 property_cache similarly. Both, demod and tuner,
-> can read all those params that are now passed using .set_state()
-
-
-If you want to pass other parameters, as what exists already in
-tuner_state, that is not possible with set_params. If you can't have
-the required parameters through a parameters which is passed, but then
-why would you want to have such a parameter itself passed in the first
-case ?
-
->
-> There is some new tuner drivers which are already using APIv5.
->
->
-> regards
-> Antti
-
-
-Eventually it is all a matter of taste. I am fine with either. ;-)
-
-Regards,
-Manu
