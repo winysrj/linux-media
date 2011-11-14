@@ -1,169 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48372 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:45117 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751426Ab1KMTFN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Nov 2011 14:05:13 -0500
-Message-ID: <4EC014E5.5090303@iki.fi>
-Date: Sun, 13 Nov 2011 21:05:09 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1755462Ab1KNW26 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Nov 2011 17:28:58 -0500
+Message-ID: <4EC19622.80304@redhat.com>
+Date: Mon, 14 Nov 2011 20:28:50 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Malcolm Priestley <tvboxspy@gmail.com>
-Subject: [PATCH FOR 3.2 FIX] af9015: limit I2C access to keep FW happy
-Content-Type: text/plain; charset=ISO-8859-1
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Andreas Oberritter <obi@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: Re: PATCH v3: Query DVB frontend delivery capabilities (was: Re:
+ PATCH: Query DVB frontend capabilities)
+References: <CAHFNz9JW-CyOsFutMNkfVZ-KuJX2FE1DZ_AQ5TZne4CCypLYng@mail.gmail.com> <4EC17E31.5010407@redhat.com> <CAHFNz9+44KMXYDpXKswkp5a3eah8UFLX4oe5GnKpnP4fHTqCLw@mail.gmail.com>
+In-Reply-To: <CAHFNz9+44KMXYDpXKswkp5a3eah8UFLX4oe5GnKpnP4fHTqCLw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-AF9015 firmware does not like if it gets interrupted by I2C adapter
-request on some critical phases. During normal operation I2C adapter
-is used only 2nd demodulator and tuner on dual tuner devices.
+Em 14-11-2011 20:08, Manu Abraham escreveu:
+> On Tue, Nov 15, 2011 at 2:16 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Em 14-11-2011 17:39, Manu Abraham escreveu:
+>>> On 11/12/11, Andreas Oberritter <obi@linuxtv.org> wrote:
+>>>> On 11.11.2011 23:38, Mauro Carvalho Chehab wrote:
+>>>>> Em 11-11-2011 20:07, Manu Abraham escreveu:
+>>>>>> On Fri, Nov 11, 2011 at 3:42 PM, Mauro Carvalho Chehab
+>>>>>> <mchehab@redhat.com> wrote:
+>>>>>>> Em 11-11-2011 04:26, Manu Abraham escreveu:
+>>>>>>>> On Fri, Nov 11, 2011 at 2:50 AM, Mauro Carvalho Chehab
+>>>>>>>> <mchehab@redhat.com> wrote:
+>>>>>>>>> Em 10-11-2011 13:30, Manu Abraham escreveu:
+>>>>>>>> The purpose of the patch is to
+>>>>>>>> query DVB delivery system capabilities alone, rather than DVB frontend
+>>>>>>>> info/capability.
+>>>>>>>>
+>>>>>>>> Attached is a revised version 2 of the patch, which addresses the
+>>>>>>>> issues that were raised.
+>>>>>>>
+>>>>>>> It looks good for me. I would just rename it to DTV_SUPPORTED_DELIVERY.
+>>>>>>> Please, when submitting upstream, don't forget to increment DVB version
+>>>>>>> and
+>>>>>>> add touch at DocBook, in order to not increase the gap between API specs
+>>>>>>> and the
+>>>>>>> implementation.
+>>>>>>
+>>>>>> Ok, thanks for the feedback, will do that.
+>>>>>>
+>>>>>> The naming issue is trivial. I would like to have a shorter name
+>>>>>> rather that SUPPORTED. CAPS would have been ideal, since it refers to
+>>>>>> device capability.
+>>>>>
+>>>>> CAPS is not a good name, as there are those two CAPABILITIES calls there
+>>>>> (well, currently not implemented). So, it can lead in to some confusion.
+>>>>>
+>>>>> DTV_ENUM_DELIVERY could be an alternative for a short name to be used
+>>>>> there.
+>>>>
+>>>> I like "enum", because it suggests that it's a read-only property.
+>>>>
+>>>> DVB calls them "delivery systems", so maybe DTV_ENUM_DELSYS may be an
+>>>> alternative.
+>>>
+>>> This is a bit more sensible and meaningful than the others. I like
+>>> this one better than the others.
+>>>
+>>> Attached is a version 3 patch which addresses all the issues that were raised
+>>
+>> Ok from my side. A minor issue is that we've renamed the cmd, but the
+>> internal function name was the same:
+>>
+>> dtv_set_default_delivery_caps()
+>>
+>> Anyway, ACK from my side.
+>>
+> 
+> Ok, thanks.
+> 
+> 
+>> I'll merge it upstream when you submit the DocBook patches (or send me a git
+>> pull request with both things - whatever work better for you).
+> 
+> Those xml docs seem to have some issue ?
+> I get this following error on opening the docs:
+> 
+> XML error while loading the document:
+> The markup in the document following the root element must be well
+> formed. at line3
 
-Override demodulator callbacks and use mutex for limit access to
-those "critical" paths to keep AF9015 happy.
+Never saw this error before. I doubt that there are any issues, as otherwise,
+kernel people would have complained already. Also, linuxtv rebuilds it every
+day.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb/dvb-usb/af9015.c |   97 ++++++++++++++++++++++++++++++++++++
- drivers/media/dvb/dvb-usb/af9015.h |    7 +++
- 2 files changed, 104 insertions(+), 0 deletions(-)
+Are you just doing:
+	make htmldocs
+?
 
-diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
-index c6c275b..033aa8a 100644
---- a/drivers/media/dvb/dvb-usb/af9015.c
-+++ b/drivers/media/dvb/dvb-usb/af9015.c
-@@ -1093,9 +1093,80 @@ error:
- 	return ret;
- }
- 
-+/* override demod callbacks for resource locking */
-+static int af9015_af9013_set_frontend(struct dvb_frontend *fe,
-+	struct dvb_frontend_parameters *params)
-+{
-+	int ret;
-+	struct dvb_usb_adapter *adap = fe->dvb->priv;
-+	struct af9015_state *priv = adap->dev->priv;
-+
-+	if (mutex_lock_interruptible(&adap->dev->usb_mutex))
-+		return -EAGAIN;
-+
-+	ret = priv->set_frontend[adap->id](fe, params);
-+
-+	mutex_unlock(&adap->dev->usb_mutex);
-+
-+	return ret;
-+}
-+
-+/* override demod callbacks for resource locking */
-+static int af9015_af9013_read_status(struct dvb_frontend *fe,
-+	fe_status_t *status)
-+{
-+	int ret;
-+	struct dvb_usb_adapter *adap = fe->dvb->priv;
-+	struct af9015_state *priv = adap->dev->priv;
-+
-+	if (mutex_lock_interruptible(&adap->dev->usb_mutex))
-+		return -EAGAIN;
-+
-+	ret = priv->read_status[adap->id](fe, status);
-+
-+	mutex_unlock(&adap->dev->usb_mutex);
-+
-+	return ret;
-+}
-+
-+/* override demod callbacks for resource locking */
-+static int af9015_af9013_init(struct dvb_frontend *fe)
-+{
-+	int ret;
-+	struct dvb_usb_adapter *adap = fe->dvb->priv;
-+	struct af9015_state *priv = adap->dev->priv;
-+
-+	if (mutex_lock_interruptible(&adap->dev->usb_mutex))
-+		return -EAGAIN;
-+
-+	ret = priv->init[adap->id](fe);
-+
-+	mutex_unlock(&adap->dev->usb_mutex);
-+
-+	return ret;
-+}
-+
-+/* override demod callbacks for resource locking */
-+static int af9015_af9013_sleep(struct dvb_frontend *fe)
-+{
-+	int ret;
-+	struct dvb_usb_adapter *adap = fe->dvb->priv;
-+	struct af9015_state *priv = adap->dev->priv;
-+
-+	if (mutex_lock_interruptible(&adap->dev->usb_mutex))
-+		return -EAGAIN;
-+
-+	ret = priv->init[adap->id](fe);
-+
-+	mutex_unlock(&adap->dev->usb_mutex);
-+
-+	return ret;
-+}
-+
- static int af9015_af9013_frontend_attach(struct dvb_usb_adapter *adap)
- {
- 	int ret;
-+	struct af9015_state *state = adap->dev->priv;
- 
- 	if (adap->id == 1) {
- 		/* copy firmware to 2nd demodulator */
-@@ -1116,6 +1187,32 @@ static int af9015_af9013_frontend_attach(struct dvb_usb_adapter *adap)
- 	adap->fe_adap[0].fe = dvb_attach(af9013_attach, &af9015_af9013_config[adap->id],
- 		&adap->dev->i2c_adap);
- 
-+	/*
-+	 * AF9015 firmware does not like if it gets interrupted by I2C adapter
-+	 * request on some critical phases. During normal operation I2C adapter
-+	 * is used only 2nd demodulator and tuner on dual tuner devices.
-+	 * Override demodulator callbacks and use mutex for limit access to
-+	 * those "critical" paths to keep AF9015 happy.
-+	 * Note: we abuse unused usb_mutex here.
-+	 */
-+	if (adap->fe_adap[0].fe) {
-+		state->set_frontend[adap->id] =
-+			adap->fe_adap[0].fe->ops.set_frontend;
-+		adap->fe_adap[0].fe->ops.set_frontend =
-+			af9015_af9013_set_frontend;
-+
-+		state->read_status[adap->id] =
-+			adap->fe_adap[0].fe->ops.read_status;
-+		adap->fe_adap[0].fe->ops.read_status =
-+			af9015_af9013_read_status;
-+
-+		state->init[adap->id] = adap->fe_adap[0].fe->ops.init;
-+		adap->fe_adap[0].fe->ops.init = af9015_af9013_init;
-+
-+		state->sleep[adap->id] = adap->fe_adap[0].fe->ops.sleep;
-+		adap->fe_adap[0].fe->ops.sleep = af9015_af9013_sleep;
-+	}
-+
- 	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
- }
- 
-diff --git a/drivers/media/dvb/dvb-usb/af9015.h b/drivers/media/dvb/dvb-usb/af9015.h
-index 6252ea6..4a12617 100644
---- a/drivers/media/dvb/dvb-usb/af9015.h
-+++ b/drivers/media/dvb/dvb-usb/af9015.h
-@@ -102,6 +102,13 @@ struct af9015_state {
- 	u8 rc_repeat;
- 	u32 rc_keycode;
- 	u8 rc_last[4];
-+
-+	/* for demod callback override */
-+	int (*set_frontend[2]) (struct dvb_frontend *fe,
-+		struct dvb_frontend_parameters *params);
-+	int (*read_status[2]) (struct dvb_frontend *fe, fe_status_t *status);
-+	int (*init[2]) (struct dvb_frontend *fe);
-+	int (*sleep[2]) (struct dvb_frontend *fe);
- };
- 
- struct af9015_config {
--- 
-1.7.4.4
+If so, then perhaps you have some missing dependencies. I remember I had some
+dependency issues when I've made it to work on Ubuntu, at linuxtv.org. Some
+of the xml tools there, on that time, had some troubles (wrong versions on
+some docbook templates at the Ubuntu packages).
+
+Regards,
+Mauro
