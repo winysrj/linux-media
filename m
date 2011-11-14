@@ -1,30 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1025 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751115Ab1KBKvm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Nov 2011 06:51:42 -0400
-Message-ID: <4EB120D3.2010207@redhat.com>
-Date: Wed, 02 Nov 2011 11:52:03 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49024 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751650Ab1KNAgi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Nov 2011 19:36:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: whittenburg@gmail.com
+Subject: Re: mt9p031 on 3.0.8 kernel problems
+Date: Mon, 14 Nov 2011 01:36:44 +0100
+Cc: linux-media@vger.kernel.org
+References: <CABcw_Ok7W2EHkCwBDm=Zz7kzYWJQA6+mx7QvL9=teAif9M2sVQ@mail.gmail.com>
+In-Reply-To: <CABcw_Ok7W2EHkCwBDm=Zz7kzYWJQA6+mx7QvL9=teAif9M2sVQ@mail.gmail.com>
 MIME-Version: 1.0
-To: hverkuil@xs4all.nl
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Various ctrl and event frame work patches (version 3)
-References: <1320228805-9097-1-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1320228805-9097-1-git-send-email-hdegoede@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111140136.45661.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans V.,
+Hi Chris,
 
-Thanks for the review and the acks. So do you want to get these
-patches in through my tree, or through yours?
+On Sunday 13 November 2011 23:46:02 Chris Whittenburg wrote:
+> I'm continuing my journey of adding mt9p031 (LI-5M03 board) into 3.0.7
+> kernel built using oe-core for a beagleboard-xm.
+> 
+> I'm down to starting yavta, but getting the error "Unable to start
+> streaming: 32."
+> 
+> The mt9p031 is detected correctly at boot.
+> 
+> Here are my setup commands:
+> media-ctl -v -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+> media-ctl -v -f '"mt9p031 2-0048":0[SGRBG12 320x240], "OMAP3 ISP
+> CCDC":0[SGRBG8 320x240], "OMAP3 ISP CCDC":1[SGRBG8 320x240]'
+> yavta -f SGRBG8 -s 320x240 -n 4 --capture=10 --skip 3 -F `media-ctl -e
+> "OMAP3 ISP CCDC output"`
+> 
+> After setup, my media-ctl output looks like:
+> 
+> root@beagleboard:~# media-ctl -p
+> Opening media device /dev/media0
+> Enumerating entities
+> Found 16 entities
+> Enumerating pads and links
+> Device topology
+> - entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
+>             type V4L2 subdev subtype Unknown
+>             device node name /dev/v4l-subdev0
+>         pad0: Input [SGRBG10 4096x4096]
+>                 <- 'OMAP3 ISP CCP2 input':pad0 []
+>         pad1: Output [SGRBG10 4096x4096]
+>                 -> 'OMAP3 ISP CCDC':pad0 []
+> 
+> - entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
+>             type Node subtype V4L
+>             device node name /dev/video0
+>         pad0: Output
+>                 -> 'OMAP3 ISP CCP2':pad0 []
+> 
+> - entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
+>             type V4L2 subdev subtype Unknown
+>             device node name /dev/v4l-subdev1
+>         pad0: Input [SGRBG10 4096x4096]
+>         pad1: Output [SGRBG10 4096x4096]
+>                 -> 'OMAP3 ISP CSI2a output':pad0 []
+>                 -> 'OMAP3 ISP CCDC':pad0 []
+> 
+> - entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
+>             type Node subtype V4L
+>             device node name /dev/video1
+>         pad0: Input
+>                 <- 'OMAP3 ISP CSI2a':pad1 []
+> 
+> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+>             type V4L2 subdev subtype Unknown
+>             device node name /dev/v4l-subdev2
+>         pad0: Input [SGRBG8 320x240]
+>                 <- 'OMAP3 ISP CCP2':pad1 []
+>                 <- 'OMAP3 ISP CSI2a':pad1 []
+>                 <- 'mt9p031 2-0048':pad0 [ACTIVE]
 
-I believe we should get patches 1-3 into 3.2, 4 & 5 could also
-go to 3.2, or we can delay them to 3.3 .
+The CCDC sink pad is configured for SGRBG8 320x240...
 
+>         pad1: Output [SGRBG8 320x240]
+>                 -> 'OMAP3 ISP CCDC output':pad0 [ACTIVE]
+>                 -> 'OMAP3 ISP resizer':pad0 []
+>         pad2: Output [SGRBG8 320x239]
+>                 -> 'OMAP3 ISP preview':pad0 []
+>                 -> 'OMAP3 ISP AEWB':pad0 [IMMUTABLE,ACTIVE]
+>                 -> 'OMAP3 ISP AF':pad0 [IMMUTABLE,ACTIVE]
+>                 -> 'OMAP3 ISP histogram':pad0 [IMMUTABLE,ACTIVE]
+> 
+> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+>             type Node subtype V4L
+>             device node name /dev/video2
+>         pad0: Input
+>                 <- 'OMAP3 ISP CCDC':pad1 [ACTIVE]
+> 
+> - entity 7: OMAP3 ISP preview (2 pads, 4 links)
+>             type V4L2 subdev subtype Unknown
+>             device node name /dev/v4l-subdev3
+>         pad0: Input [SGRBG10 4096x4096]
+>                 <- 'OMAP3 ISP CCDC':pad2 []
+>                 <- 'OMAP3 ISP preview input':pad0 []
+>         pad1: Output [YUYV 4082x4088]
+>                 -> 'OMAP3 ISP preview output':pad0 []
+>                 -> 'OMAP3 ISP resizer':pad0 []
+> 
+> - entity 8: OMAP3 ISP preview input (1 pad, 1 link)
+>             type Node subtype V4L
+>             device node name /dev/video3
+>         pad0: Output
+>                 -> 'OMAP3 ISP preview':pad0 []
+> 
+> - entity 9: OMAP3 ISP preview output (1 pad, 1 link)
+>             type Node subtype V4L
+>             device node name /dev/video4
+>         pad0: Input
+>                 <- 'OMAP3 ISP preview':pad1 []
+> 
+> - entity 10: OMAP3 ISP resizer (2 pads, 4 links)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev4
+>         pad0: Input [YUYV 4095x4095 (4,6)/4086x4082]
+>                 <- 'OMAP3 ISP CCDC':pad1 []
+>                 <- 'OMAP3 ISP preview':pad1 []
+>                 <- 'OMAP3 ISP resizer input':pad0 []
+>         pad1: Output [YUYV 4096x4095]
+>                 -> 'OMAP3 ISP resizer output':pad0 []
+> 
+> - entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
+>              type Node subtype V4L
+>              device node name /dev/video5
+>         pad0: Output
+>                 -> 'OMAP3 ISP resizer':pad0 []
+> 
+> - entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
+>              type Node subtype V4L
+>              device node name /dev/video6
+>         pad0: Input
+>                 <- 'OMAP3 ISP resizer':pad1 []
+> 
+> - entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev5
+>         pad0: Input
+>                 <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+> 
+> - entity 14: OMAP3 ISP AF (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev6
+>         pad0: Input
+>                 <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+> 
+> - entity 15: OMAP3 ISP histogram (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev7
+>         pad0: Input
+>                 <- 'OMAP3 ISP CCDC':pad2 [IMMUTABLE,ACTIVE]
+> 
+> - entity 16: mt9p031 2-0048 (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev8
+>         pad0: Output [SGRBG12 370x243 (16,54)/2592x1944]
+>                 -> 'OMAP3 ISP CCDC':pad0 [ACTIVE]
+
+But the sensor outputs SGRBG12 370x243. You can't configure the sensor to 
+output 320x240 without additional explicit cropping.
+
+If you really need a 320x240 output you should configure the sensor to output 
+a 1292x972 image, and use the OMAP3 ISP resizer to downscale to 320x240.
+
+> I see 21.6mhz on clka.
+> I see that /OE is low, and /RESET is high.
+> I don't see anything on PCLK, or the data lines D0 to D11, which confuses
+> me.
+> 
+> Output from yavta is here: http://pastebin.com/q0mB4ArN
+> 
+> Does this sound like a hardware or software issue?
+
+Definitely software, the pipeline is not configured properly as explained 
+above.
+
+-- 
 Regards,
 
-Hansg
+Laurent Pinchart
