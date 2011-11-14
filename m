@@ -1,65 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:54350 "EHLO ffm.saftware.de"
+Received: from comal.ext.ti.com ([198.47.26.152]:51232 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750809Ab1K3SCm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 13:02:42 -0500
-Message-ID: <4ED66FBC.5090504@linuxtv.org>
-Date: Wed, 30 Nov 2011 19:02:36 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+	id S1753793Ab1KNPJe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Nov 2011 10:09:34 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>
+CC: Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v2 0/5] davinci: re-arrange definitions to have a common davinci header
+Date: Mon, 14 Nov 2011 20:39:12 +0530
+Message-ID: <1321283357-27698-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Abylay Ospan <aospan@netup.ru>, linux-media@vger.kernel.org
-Subject: Re: LinuxTV ported to Windows
-References: <4ED65C46.20502@netup.ru> <CAGoCfiwShvPSgAPHKaxj=sMG-Fs9RdH0_3mLHYWuY96Z33AOag@mail.gmail.com>
-In-Reply-To: <CAGoCfiwShvPSgAPHKaxj=sMG-Fs9RdH0_3mLHYWuY96Z33AOag@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30.11.2011 18:23, Devin Heitmueller wrote:
-> 2011/11/30 Abylay Ospan <aospan@netup.ru>:
->> Hello,
->>
->> We have ported linuxtv's cx23885+CAM en50221+Diseq to Windows OS (Vista, XP,
->> win7 tested). Results available under GPL and can be checkout from git
->> repository:
->> https://github.com/netup/netup-dvb-s2-ci-dual
+Re-arrange definitions and remove unnecessary code so that we can 
+have a common header for all davinci platforms. This will enable
+us to share defines and enable common routines to be used without
+polluting hardware.h.
+ This patch set forms the base for a later set of patches for having
+a common system module base address (DAVINCI_SYSTEM_MODULE_BASE).
 
-That's nice to hear, Abylay!
+Manjunath Hadli (5):
+  davinci: dm644x: remove the macros from the header to move to c file
+  davinci: dm365: remove the macros from the header to move to c file
+  davinci: dm646x: remove the macros from the header to move to c file
+  davinci: create new common platform header for davinci
+  davinci: delete individual platform header files and use a common
+    header
 
->> Binary builds (ready to install) available in build directory. Currently
->> NetUP Dual DVB-S2 CI card supported (
->> http://www.netup.tv/en-EN/dual_dvb-s2-ci_card.php ).
->>
->> Driver based on Microsoft BDA standard, but some features (DiSEqC, CI)
->> supported by custom API, for more details see netup_bda_api.h file.
->>
->> Any comments, suggestions are welcome.
->>
->> --
->> Abylai Ospan<aospan@netup.ru>
->> NetUP Inc.
-> 
-> Am I the only one who thinks this is a legally ambigious grey area?
-> Seems like this could be a violation of the GPL as the driver code in
-> question links against a proprietary kernel.
+ arch/arm/mach-davinci/board-dm355-evm.c            |    2 +-
+ arch/arm/mach-davinci/board-dm355-leopard.c        |    2 +-
+ arch/arm/mach-davinci/board-dm365-evm.c            |    2 +-
+ arch/arm/mach-davinci/board-dm644x-evm.c           |    2 +-
+ arch/arm/mach-davinci/board-dm646x-evm.c           |    2 +-
+ arch/arm/mach-davinci/board-neuros-osd2.c          |    2 +-
+ arch/arm/mach-davinci/board-sffsdr.c               |    2 +-
+ arch/arm/mach-davinci/dm355.c                      |    2 +-
+ arch/arm/mach-davinci/dm365.c                      |   18 ++++-
+ arch/arm/mach-davinci/dm644x.c                     |    8 ++-
+ arch/arm/mach-davinci/dm646x.c                     |    9 ++-
+ 
+ arch/arm/mach-davinci/include/mach/dm355.h         |   32 -------
+ arch/arm/mach-davinci/include/mach/dm365.h         |   52 ------------
+ arch/arm/mach-davinci/include/mach/dm644x.h        |   47 -----------
+ arch/arm/mach-davinci/include/mach/dm646x.h        |   41 ---------
+ drivers/media/video/davinci/vpif.h                 |    3 +-
+ drivers/media/video/davinci/vpif_capture.h         |    1 +
+ drivers/media/video/davinci/vpif_display.c         |    2 +-
+ 19 files changed, 131 insertions(+), 186 deletions(-)
+ create mode 100644 arch/arm/mach-davinci/include/mach/davinci_common.h
+ delete mode 100644 arch/arm/mach-davinci/include/mach/dm355.h
+ delete mode 100644 arch/arm/mach-davinci/include/mach/dm365.h
+ delete mode 100644 arch/arm/mach-davinci/include/mach/dm644x.h
+ delete mode 100644 arch/arm/mach-davinci/include/mach/dm646x.h
 
-Devin, please! Are you implying that the windows kernel becomes a
-derived work of the driver, or that it's generally impossible to publish
-windows drivers under the terms of the GPL?
-
-> I don't want to start a flame war, but I don't see how this is legal.
-> And you could definitely question whether it goes against the
-> intentions of the original authors to see their GPL driver code being
-> used in non-free operating systems.
-
-The GPL doesn't cover such intentions.
-
-Regards,
-Andreas
-
-P.S.: "The licenses for most software are designed to take away your
-freedom to share and change it.  By contrast, the GNU General Public
-License is intended to guarantee your freedom to share and change free
-software--to make sure the software is free for all its users."
