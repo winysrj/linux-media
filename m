@@ -1,124 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:44799 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753673Ab1K1Mx0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 07:53:26 -0500
-Message-ID: <4ED3843E.4050207@mlbassoc.com>
-Date: Mon, 28 Nov 2011 05:53:18 -0700
-From: Gary Thomas <gary@mlbassoc.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:47316 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752136Ab1KNQeR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Nov 2011 11:34:17 -0500
+Message-ID: <4EC14306.7010408@iki.fi>
+Date: Mon, 14 Nov 2011 18:34:14 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Javier Martinez Canillas <martinez.javier@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Using MT9P031 digital sensor
-References: <4EB04001.9050803@mlbassoc.com> <201111281207.46625.laurent.pinchart@ideasonboard.com> <4ED381C7.8000007@mlbassoc.com> <201111281349.47411.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201111281349.47411.laurent.pinchart@ideasonboard.com>
+To: Malcolm Priestley <tvboxspy@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/7] af9015 dual tuner and othe fixes from my builds.
+References: <4ebe9767.8366b40a.1a27.4371@mx.google.com> <4EBE9AA6.8090500@iki.fi> <4EBEA5F3.1050103@iki.fi> <4EBF2320.2060408@iki.fi>
+In-Reply-To: <4EBF2320.2060408@iki.fi>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2011-11-28 05:49, Laurent Pinchart wrote:
-> Hi Gary,
->
-> On Monday 28 November 2011 13:42:47 Gary Thomas wrote:
->> On 2011-11-28 04:07, Laurent Pinchart wrote:
->>> On Friday 25 November 2011 12:50:25 Gary Thomas wrote:
->>>> On 2011-11-24 04:28, Laurent Pinchart wrote:
->>>>> On Wednesday 16 November 2011 13:03:11 Gary Thomas wrote:
->>>>>> On 2011-11-15 18:26, Laurent Pinchart wrote:
->>>>>>> On Monday 14 November 2011 12:42:54 Gary Thomas wrote:
->
-> [snip]
->
->>>>>>>> Here's my pipeline:
->>>>>>>>        media-ctl -r
->>>>>>>>        media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
->>>>>>>>        media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
->>>>>>>>        media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
->>>>>>>>        media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
->>>>>>>>        output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12
->>>>>>>>        2592x1944]' media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG10
->>>>>>>>        2592x1944]'
->>>>>>>>        media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
->>>>>>>>        media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
->>>>>>>>        media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
->>>>>>>>        media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 642x483]'
->>>>>>>>
->>>>>>>> The full media-ctl dump is at
->>>>>>>> http://www.mlbassoc.com/misc/pipeline.out
->>>>>>>>
->>>>>>>> When I try to grab from /dev/video6 (output node of resizer), I see
->>>>>>>> only previewer interrupts, no resizer interrrupts.  I added a simple
->>>>>>>> printk at each of the previewer/resizer *_isr functions, and I only
->>>>>>>>
->>>>>>>> ever see this one:
->>>>>>>>        omap3isp_preview_isr_frame_sync.1373
->>>>>>>>
->>>>>>>> Can you give me an overview of what events/interrupts should occur
->>>>>>>> so I can try to trace through the ISP to see where it is failing?
->>>>>>>
->>>>>>> The CCDC generates VD0, VD1 and HS/VS interrupts regardless of
->>>>>>> whether it processes video or not, as long as it receives a video
->>>>>>> stream at its input. The preview engine and resizer will only
->>>>>>> generate an interrupt after writing an image to memory. With your
->>>>>>> above
->>>>>>> configuration VD0, VD1, HS/VS and resizer interrupts should be
->>>>>>> generated.
->>>>>>>
->>>>>>> Your pipeline configuration looks correct, except that the
->>>>>>> downscaling factor is slightly larger than 4. Could you try to setup
->>>>>>> the resizer to output a 2574x1935 image instead of 642x483 ? If that
->>>>>>> works, try to downscale to 660x496. If that works as well, the
->>>>>>> driver should be fixed to disallow resolutions that won't work.
->>>>>>
->>>>>> No change.  I also tried using only the previewer like this:
->>>>>>       media-ctl -r
->>>>>>       media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
->>>>>>       media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
->>>>>>       media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP preview
->>>>>>       output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12
->>>>>>       2592x1944]' media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG12
->>>>>>       2592x1944]'
->>>>>>       media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
->>>>>>       media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
->>>>>>       media-ctl -f  '"OMAP3 ISP preview":1 [YUYV 2574x1935]'
->>>>>>
->>>>>>       yavta --capture=4 -f YUYV -s 2574x1935 -F /dev/video4
->>>>>>
->>>>>> I still only get the frame sync interrupts in the previewer, no buffer
->>>>>> interrupts, hence no data flowing to my application.  What else can I
->>>>>> look at?
->>>>>
->>>>> Do you get VD0 and VD1 interrupts ?
->>>>
->>>> Yes, the CCDC is working correctly, but nothing moves through the
->>>> previewer. Here's a trace of the interrupt sequence I get, repeated over
->>>> and over.  These are printed as __FUNCTION__.__LINE__
->>>> --- ccdc_vd0_isr.1615
->>>> --- ccdc_hs_vs_isr.1482
->>>> --- ccdc_vd1_isr.1664
->>>> --- omap3isp_preview_isr_frame_sync.1373
->>>>
->>>> What's the best tree to try this against?  3.2-rc2 doesn't have the
->>>> BT656 stuff in it yet, so I've been still using my older tree (3.0.0 +
->>>> drivers/media from your tree)
->>>
->>> I thought you were using an MT9P031 ? That doesn't require BT656 support.
->>
->> True, but I have one board that supports either sensor and I want to stay
->> with one source tree.
->
-> Sure, but let's start with a non-BT656 tree to rule out issues caused by BT656
-> patches. Could you please try mainline v3.1 ?
+On 11/13/2011 03:53 AM, Antti Palosaari wrote:
+> On 11/12/2011 06:59 PM, Antti Palosaari wrote:
+> I fixed that I2C failing, simply blocking problematic demod callbacks
+> that only other demod can access at once. Basically problem is that
+> AF9015 FW don't like to get interrupted for I2C access in certain cases.
+> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9015
 
-OK, I'll give that a try & get back to you.
+> I haven't looked stream corruptions and I will not even look, since
+> those not happening much my hw. I think your fix is based the fact you
+> forced PID-filter always on. Could you remove all the other changes you
+> did and force it using dvb-usb orce_pid_filter_usage param to see if
+> thats really the only only problem? And also testing using max packet
+> sizes could be interesting to see.
 
-Thanks
+I think I have now found the problem. It seems happen when you watch FE0 
+and then do some tuning using other FE1. If you just watch both FEs same 
+time it works rather nicely. That's why I haven't seen that earlier. 
+Very good way to corruptions is to stream FE0 and then start tuning in 
+loop through some channels, especially there is channels having no 
+signal at all.
+
+I just tested you patch series and result was bad. A lot of corruptions. 
+I was using dual device having MXL5007T tuner.
+
+As I found out how to reproduce errors I did some small test and find 
+out problem seem to be I2C traffic from 2nd tuner and demod. When you do 
+some tuning for 2nd FE there is a lot I2C traffic all the time, which I 
+think overloads AF9015 and couses stream corruption. Disabling all 
+statistics and returning all the time HAS_LOCK for fe0 and NO LOCK for 
+FE without any I2C traffic seems to help a lot.
+
+So what's the source of problematic I2C traffic
+1) demod status/statistic reading (that have been always optimized by 
+limiting queries using jiffies)
+2) set_frontend()
+3) set_params()
+
+I have MXL5007T and MXL5005S. If you look sniffs from windows those 
+tuner drivers are optimized I2C traffic something like "one go". Linux 
+drivers generate huge amount of register access because they don't 
+support writing multiple regs as one go. This leads very bad performance 
+as a I2C I/O combined to fact I2C-gate open/close is bit field - 
+changing one bit takes 2 USB messages. So every single tuner register 
+change generates 2xmsg for gate open, 1xmsg for tuner reg write, 2xmsg 
+for gate close = 5 messages, where is 4 msg wasted for only I2C gate. 
+After all, it may generate something ~10-50 times more I/O than Windows 
+driver.
+
+* I think it is maybe good idea to implement multireg access like 
+Windows to these tuner drivers first.
+* cache gate-control register value inside driver
+* program only demod register needed. eg. BW is not changed no need to 
+program those registers. same for IF frequency. see cxd2820r I did that
+* reduce satistics polling. maybe start timer that polls statistics once 
+per 2 sec or so and return those from cache
+
+
+regards
+Antti
 
 -- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+http://palosaari.fi/
