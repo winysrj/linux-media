@@ -1,84 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20682 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754881Ab1KDKTj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Nov 2011 06:19:39 -0400
-Message-ID: <4EB3BC39.9000404@redhat.com>
-Date: Fri, 04 Nov 2011 08:19:37 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:62095 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751384Ab1KNScU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Nov 2011 13:32:20 -0500
+Received: by gyc15 with SMTP id 15so5176348gyc.19
+        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2011 10:32:19 -0800 (PST)
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans De Goede <hdegoede@redhat.com>
-Subject: Re: [GIT PULL FOR v3.2] Compilation fixes
-References: <201111041039.58290.hverkuil@xs4all.nl> <4EB3BAE4.2080303@redhat.com>
-In-Reply-To: <4EB3BAE4.2080303@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAA7M+FDbjMOck12hQu4CDCw8q7uVJw_ErZc-TB0bGb0Ucko40A@mail.gmail.com>
+References: <CAA7M+FBvP0A7L6o-Fw4CQ2xR2CYqu233L+83BGGOcLooK0bk7w@mail.gmail.com>
+	<CAGoCfiw+yy3Hz=7yvGTYrYQn5VfNh3CrabS_Kxx7G88jcwt9aQ@mail.gmail.com>
+	<20111112141403.53708f28@hana.gusto>
+	<CAGoCfiwnOTv=yhFeAsjQ+=5vrsUfy5b8HqtXGiFuimXe2M-+Bw@mail.gmail.com>
+	<CAA7M+FAi517fUjLUxLsVSMr99N+2gpuhJMoiTbsuxyKGuf7-Kw@mail.gmail.com>
+	<CAA7M+FCWHwRvX4UYGOqnN2yd+SyUDhbs7sn9djVy=Px0EMw6eg@mail.gmail.com>
+	<4EBFE427.9010605@lockie.ca>
+	<CAA7M+FBKQ+uk-D9-ZZbvXW7-w3yfZ0sftpjLgd4xU7Ce2uRYFw@mail.gmail.com>
+	<CAA7M+FDbjMOck12hQu4CDCw8q7uVJw_ErZc-TB0bGb0Ucko40A@mail.gmail.com>
+Date: Mon, 14 Nov 2011 18:32:19 +0000
+Message-ID: <CAA7M+FBtk2t_7_yPnBA6rLSh-0R5fmascmu63MrGW-YNOxQTCg@mail.gmail.com>
+Subject: Re: HVR-4000 may be broken in kernel mods (again) ?
+From: "jonathanjstevens@gmail.com" <jonathanjstevens@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 04-11-2011 08:13, Mauro Carvalho Chehab escreveu:
-> Em 04-11-2011 07:39, Hans Verkuil escreveu:
->> Mauro,
->>
->> This fixes two compilation problems when using the media_build system.
->>
->> Both gspca and the solo driver have a header with the same name, and that
->> clashes when using media_build.
-> 
-> This the kind of patch that doesn't make much sense upstream. Granted, the
-> files weren't properly named, but there's not requirement upstream that
-> denies naming two different files with the same name.
-> 
-> Btw, looking at both, it seems that they can be merged: both defines the jpeg
-> header. The basic difference is that, while gspca jpeg header can have a size of
-> either 556 or 589 bytes, the one at solo6x10 has 575 bytes.
-> 
-> IMHO, the proper fix is to make solo6x10 driver to use the gspca jpeg.h header.
-> Assuming that this driver would find his way out of staging, then the jpeg.h
-> file should also be moved to another place, like include/linux/media, as I
-> don't think that solo6x10 driver should be a gspca sub-driver.
-> 
-> Hans G, what do you think?
-
-The quantization tables are completely different on Solo driver. Merging them
-will probably be very messy. I withdraw the proposal of merging them.
-
-Your patch makes sense to me.
-
-> 
->> And the solo driver uses an incorrect Makefile construct, which (somewhat
->> mysteriously) skips the compilation of 90% of all media drivers.
-> 
-> Hmm.. probably they're using "=" or ":=" instead of "+=". While this works at 
-> leaf Makefiles, this breaks compilation when there's just one Makefile, or
-> when you add another thing to be compiled there. This is something that requires
-> a fix.
-> 
->>
->> Hopefully this pull request makes it to patchwork as well.
->>
->> Regards,
->>
->>         Hans
->>
->>
->> The following changes since commit bd90649834a322ff70925db9ac37bf7a461add52:
->>
->>   staging/Makefile: Don't compile a media driver there (2011-11-02 09:17:00 -0200)
->>
->> are available in the git repository at:
->>   git://linuxtv.org/hverkuil/media_tree.git fixes
->>
->> Hans Verkuil (2):
->>       solo6x10: rename jpeg.h to solo6x10-jpeg.h
->>       solo6x10: fix broken Makefile
->>
->>  drivers/staging/media/solo6x10/Makefile            |    2 +-
->>  .../media/solo6x10/{jpeg.h => solo6x10-jpeg.h}     |    0
->>  drivers/staging/media/solo6x10/v4l2-enc.c          |    2 +-
->>  3 files changed, 2 insertions(+), 2 deletions(-)
->>  rename drivers/staging/media/solo6x10/{jpeg.h => solo6x10-jpeg.h} (100%)
-> 
-
+Sorry - hit the wrong button and sent too early... please ignore that
+last email.
