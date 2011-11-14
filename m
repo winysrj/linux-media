@@ -1,739 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57671 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754360Ab1K2K1A (ORCPT
+Received: from mxweb10.versatel.de ([82.140.32.150]:40811 "EHLO
+	mxweb10.versatel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755928Ab1KNSsA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Nov 2011 05:27:00 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-fbdev@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v4 3/3] fbdev: sh_mobile_lcdc: Support FOURCC-based format API
-Date: Tue, 29 Nov 2011 11:26:59 +0100
-Message-Id: <1322562419-9934-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1322562419-9934-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1322562419-9934-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 14 Nov 2011 13:48:00 -0500
+Received: from cinnamon-sage.de (i577A3D32.versanet.de [87.122.61.50])
+	(authenticated bits=0)
+	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id pAEIZJm3023198
+	for <linux-media@vger.kernel.org>; Mon, 14 Nov 2011 19:35:19 +0100
+Received: from 192.168.23.2:49784 by cinnamon-sage.de for <linux-media@vger.kernel.org> ; 14.11.2011 19:35:19
+Message-ID: <4EC15F67.8010801@flensrocker.de>
+Date: Mon, 14 Nov 2011 19:35:19 +0100
+From: "L. Hanisch" <dvb@flensrocker.de>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: HVR 4000 drivers broken - adapter0/frontend1 busy
+References: <0F9690932B81064FB7B6FCE776BC26C719A34076@FALEX02.au.fjanz.com>
+In-Reply-To: <0F9690932B81064FB7B6FCE776BC26C719A34076@FALEX02.au.fjanz.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- arch/arm/mach-shmobile/board-ag5evm.c   |    2 +-
- arch/arm/mach-shmobile/board-ap4evb.c   |    4 +-
- arch/arm/mach-shmobile/board-mackerel.c |    4 +-
- arch/sh/boards/mach-ap325rxa/setup.c    |    2 +-
- arch/sh/boards/mach-ecovec24/setup.c    |    2 +-
- arch/sh/boards/mach-kfr2r09/setup.c     |    2 +-
- arch/sh/boards/mach-migor/setup.c       |    4 +-
- arch/sh/boards/mach-se/7724/setup.c     |    2 +-
- drivers/video/sh_mobile_lcdcfb.c        |  360 ++++++++++++++++++++----------
- include/video/sh_mobile_lcdc.h          |    4 +-
- 10 files changed, 253 insertions(+), 133 deletions(-)
+Hi,
 
-diff --git a/arch/arm/mach-shmobile/board-ag5evm.c b/arch/arm/mach-shmobile/board-ag5evm.c
-index 7e3dd73..80319f2 100644
---- a/arch/arm/mach-shmobile/board-ag5evm.c
-+++ b/arch/arm/mach-shmobile/board-ag5evm.c
-@@ -271,7 +271,7 @@ static struct sh_mobile_lcdc_info lcdc0_info = {
- 		.flags = LCDC_FLAGS_DWPOL,
- 		.lcd_size_cfg.width = 44,
- 		.lcd_size_cfg.height = 79,
--		.bpp = 16,
-+		.fourcc = V4L2_PIX_FMT_RGB565,
- 		.lcd_cfg = lcdc0_modes,
- 		.num_cfg = ARRAY_SIZE(lcdc0_modes),
- 		.board_cfg = {
-diff --git a/arch/arm/mach-shmobile/board-ap4evb.c b/arch/arm/mach-shmobile/board-ap4evb.c
-index 904b608..42b4dda 100644
---- a/arch/arm/mach-shmobile/board-ap4evb.c
-+++ b/arch/arm/mach-shmobile/board-ap4evb.c
-@@ -491,7 +491,7 @@ static struct sh_mobile_lcdc_info lcdc_info = {
- 	.meram_dev = &meram_info,
- 	.ch[0] = {
- 		.chan = LCDC_CHAN_MAINLCD,
--		.bpp = 16,
-+		.fourcc = V4L2_PIX_FMT_RGB565,
- 		.lcd_cfg = ap4evb_lcdc_modes,
- 		.num_cfg = ARRAY_SIZE(ap4evb_lcdc_modes),
- 		.meram_cfg = &lcd_meram_cfg,
-@@ -813,7 +813,7 @@ static struct sh_mobile_lcdc_info sh_mobile_lcdc1_info = {
- 	.meram_dev = &meram_info,
- 	.ch[0] = {
- 		.chan = LCDC_CHAN_MAINLCD,
--		.bpp = 16,
-+		.fourcc = V4L2_PIX_FMT_RGB565,
- 		.interface_type = RGB24,
- 		.clock_divider = 1,
- 		.flags = LCDC_FLAGS_DWPOL,
-diff --git a/arch/arm/mach-shmobile/board-mackerel.c b/arch/arm/mach-shmobile/board-mackerel.c
-index 9c5e598..7db6a17 100644
---- a/arch/arm/mach-shmobile/board-mackerel.c
-+++ b/arch/arm/mach-shmobile/board-mackerel.c
-@@ -388,7 +388,7 @@ static struct sh_mobile_lcdc_info lcdc_info = {
- 	.clock_source = LCDC_CLK_BUS,
- 	.ch[0] = {
- 		.chan = LCDC_CHAN_MAINLCD,
--		.bpp = 16,
-+		.fourcc = V4L2_PIX_FMT_RGB565,
- 		.lcd_cfg = mackerel_lcdc_modes,
- 		.num_cfg = ARRAY_SIZE(mackerel_lcdc_modes),
- 		.interface_type		= RGB24,
-@@ -451,7 +451,7 @@ static struct sh_mobile_lcdc_info hdmi_lcdc_info = {
- 	.clock_source = LCDC_CLK_EXTERNAL,
- 	.ch[0] = {
- 		.chan = LCDC_CHAN_MAINLCD,
--		.bpp = 16,
-+		.fourcc = V4L2_PIX_FMT_RGB565,
- 		.interface_type = RGB24,
- 		.clock_divider = 1,
- 		.flags = LCDC_FLAGS_DWPOL,
-diff --git a/arch/sh/boards/mach-ap325rxa/setup.c b/arch/sh/boards/mach-ap325rxa/setup.c
-index 7030f4c..7977911 100644
---- a/arch/sh/boards/mach-ap325rxa/setup.c
-+++ b/arch/sh/boards/mach-ap325rxa/setup.c
-@@ -207,7 +207,7 @@ static struct sh_mobile_lcdc_info lcdc_info = {
- 	.clock_source = LCDC_CLK_EXTERNAL,
- 	.ch[0] = {
- 		.chan = LCDC_CHAN_MAINLCD,
--		.bpp = 16,
-+		.fourcc = V4L2_PIX_FMT_RGB565,
- 		.interface_type = RGB18,
- 		.clock_divider = 1,
- 		.lcd_cfg = ap325rxa_lcdc_modes,
-diff --git a/arch/sh/boards/mach-ecovec24/setup.c b/arch/sh/boards/mach-ecovec24/setup.c
-index 92ddce4..1d4a706 100644
---- a/arch/sh/boards/mach-ecovec24/setup.c
-+++ b/arch/sh/boards/mach-ecovec24/setup.c
-@@ -330,7 +330,7 @@ static struct sh_mobile_lcdc_info lcdc_info = {
- 	.ch[0] = {
- 		.interface_type = RGB18,
- 		.chan = LCDC_CHAN_MAINLCD,
--		.bpp = 16,
-+		.fourcc = V4L2_PIX_FMT_RGB565,
- 		.lcd_size_cfg = { /* 7.0 inch */
- 			.width = 152,
- 			.height = 91,
-diff --git a/arch/sh/boards/mach-kfr2r09/setup.c b/arch/sh/boards/mach-kfr2r09/setup.c
-index f65271a..208c9b0 100644
---- a/arch/sh/boards/mach-kfr2r09/setup.c
-+++ b/arch/sh/boards/mach-kfr2r09/setup.c
-@@ -146,7 +146,7 @@ static struct sh_mobile_lcdc_info kfr2r09_sh_lcdc_info = {
- 	.clock_source = LCDC_CLK_BUS,
- 	.ch[0] = {
- 		.chan = LCDC_CHAN_MAINLCD,
--		.bpp = 16,
-+		.fourcc = V4L2_PIX_FMT_RGB565,
- 		.interface_type = SYS18,
- 		.clock_divider = 6,
- 		.flags = LCDC_FLAGS_DWPOL,
-diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
-index e4c8119..ccf61fb 100644
---- a/arch/sh/boards/mach-migor/setup.c
-+++ b/arch/sh/boards/mach-migor/setup.c
-@@ -244,7 +244,7 @@ static struct sh_mobile_lcdc_info sh_mobile_lcdc_info = {
- 	.clock_source = LCDC_CLK_BUS,
- 	.ch[0] = {
- 		.chan = LCDC_CHAN_MAINLCD,
--		.bpp = 16,
-+		.fourcc = V4L2_PIX_FMT_RGB565,
- 		.interface_type = RGB16,
- 		.clock_divider = 2,
- 		.lcd_cfg = migor_lcd_modes,
-@@ -258,7 +258,7 @@ static struct sh_mobile_lcdc_info sh_mobile_lcdc_info = {
- 	.clock_source = LCDC_CLK_PERIPHERAL,
- 	.ch[0] = {
- 		.chan = LCDC_CHAN_MAINLCD,
--		.bpp = 16,
-+		.fourcc = V4L2_PIX_FMT_RGB565,
- 		.interface_type = SYS16A,
- 		.clock_divider = 10,
- 		.lcd_cfg = migor_lcd_modes,
-diff --git a/arch/sh/boards/mach-se/7724/setup.c b/arch/sh/boards/mach-se/7724/setup.c
-index b747c0a..3aab70c 100644
---- a/arch/sh/boards/mach-se/7724/setup.c
-+++ b/arch/sh/boards/mach-se/7724/setup.c
-@@ -179,7 +179,7 @@ static struct sh_mobile_lcdc_info lcdc_info = {
- 	.clock_source = LCDC_CLK_EXTERNAL,
- 	.ch[0] = {
- 		.chan = LCDC_CHAN_MAINLCD,
--		.bpp = 16,
-+		.fourcc = V4L2_PIX_FMT_RGB565,
- 		.clock_divider = 1,
- 		.lcd_size_cfg = { /* 7.0 inch */
- 			.width = 152,
-diff --git a/drivers/video/sh_mobile_lcdcfb.c b/drivers/video/sh_mobile_lcdcfb.c
-index 1f49ab4..2046666 100644
---- a/drivers/video/sh_mobile_lcdcfb.c
-+++ b/drivers/video/sh_mobile_lcdcfb.c
-@@ -17,6 +17,7 @@
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
- #include <linux/interrupt.h>
-+#include <linux/videodev2.h>
- #include <linux/vmalloc.h>
- #include <linux/ioctl.h>
- #include <linux/slab.h>
-@@ -102,7 +103,7 @@ struct sh_mobile_lcdc_priv {
- 	struct sh_mobile_lcdc_chan ch[2];
- 	struct notifier_block notifier;
- 	int started;
--	int forced_bpp; /* 2 channel LCDC must share bpp setting */
-+	int forced_fourcc; /* 2 channel LCDC must share fourcc setting */
- 	struct sh_mobile_meram_info *meram_dev;
- };
- 
-@@ -215,6 +216,47 @@ struct sh_mobile_lcdc_sys_bus_ops sh_mobile_lcdc_sys_bus_ops = {
- 	lcdc_sys_read_data,
- };
- 
-+static int sh_mobile_format_fourcc(const struct fb_var_screeninfo *var)
-+{
-+	if (var->grayscale > 1)
-+		return var->grayscale;
-+
-+	switch (var->bits_per_pixel) {
-+	case 16:
-+		return V4L2_PIX_FMT_RGB565;
-+	case 24:
-+		return V4L2_PIX_FMT_BGR24;
-+	case 32:
-+		return V4L2_PIX_FMT_BGR32;
-+	default:
-+		return 0;
-+	}
-+}
-+
-+static int sh_mobile_format_is_fourcc(const struct fb_var_screeninfo *var)
-+{
-+	return var->grayscale > 1;
-+}
-+
-+static bool sh_mobile_format_is_yuv(const struct fb_var_screeninfo *var)
-+{
-+	if (var->grayscale <= 1)
-+		return false;
-+
-+	switch (var->grayscale) {
-+	case V4L2_PIX_FMT_NV12:
-+	case V4L2_PIX_FMT_NV21:
-+	case V4L2_PIX_FMT_NV16:
-+	case V4L2_PIX_FMT_NV61:
-+	case V4L2_PIX_FMT_NV24:
-+	case V4L2_PIX_FMT_NV42:
-+		return true;
-+
-+	default:
-+		return false;
-+	}
-+}
-+
- static void sh_mobile_lcdc_clk_on(struct sh_mobile_lcdc_priv *priv)
- {
- 	if (atomic_inc_and_test(&priv->hw_usecnt)) {
-@@ -435,7 +477,6 @@ static void __sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
- {
- 	struct sh_mobile_lcdc_chan *ch;
- 	unsigned long tmp;
--	int bpp = 0;
- 	int k, m;
- 
- 	/* Enable LCDC channels. Read data from external memory, avoid using the
-@@ -454,9 +495,6 @@ static void __sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
- 		if (!ch->enabled)
- 			continue;
- 
--		if (!bpp)
--			bpp = ch->info->var.bits_per_pixel;
--
- 		/* Power supply */
- 		lcdc_write_chan(ch, LDPMR, 0);
- 
-@@ -487,31 +525,37 @@ static void __sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
- 
- 		sh_mobile_lcdc_geometry(ch);
- 
--		if (ch->info->var.nonstd) {
--			tmp = (ch->info->var.nonstd << 16);
--			switch (ch->info->var.bits_per_pixel) {
--			case 12:
--				tmp |= LDDFR_YF_420;
--				break;
--			case 16:
--				tmp |= LDDFR_YF_422;
--				break;
--			case 24:
--			default:
--				tmp |= LDDFR_YF_444;
--				break;
--			}
--		} else {
--			switch (ch->info->var.bits_per_pixel) {
--			case 16:
--				tmp = LDDFR_PKF_RGB16;
--				break;
--			case 24:
--				tmp = LDDFR_PKF_RGB24;
-+		switch (sh_mobile_format_fourcc(&ch->info->var)) {
-+		case V4L2_PIX_FMT_RGB565:
-+			tmp = LDDFR_PKF_RGB16;
-+			break;
-+		case V4L2_PIX_FMT_BGR24:
-+			tmp = LDDFR_PKF_RGB24;
-+			break;
-+		case V4L2_PIX_FMT_BGR32:
-+			tmp = LDDFR_PKF_ARGB32;
-+			break;
-+		case V4L2_PIX_FMT_NV12:
-+		case V4L2_PIX_FMT_NV21:
-+			tmp = LDDFR_CC | LDDFR_YF_420;
-+			break;
-+		case V4L2_PIX_FMT_NV16:
-+		case V4L2_PIX_FMT_NV61:
-+			tmp = LDDFR_CC | LDDFR_YF_422;
-+			break;
-+		case V4L2_PIX_FMT_NV24:
-+		case V4L2_PIX_FMT_NV42:
-+			tmp = LDDFR_CC | LDDFR_YF_444;
-+			break;
-+		}
-+
-+		if (sh_mobile_format_is_yuv(&ch->info->var)) {
-+			switch (ch->info->var.colorspace) {
-+			case V4L2_COLORSPACE_REC709:
-+				tmp |= LDDFR_CF1;
- 				break;
--			case 32:
--			default:
--				tmp = LDDFR_PKF_ARGB32;
-+			case V4L2_COLORSPACE_JPEG:
-+				tmp |= LDDFR_CF0;
- 				break;
- 			}
- 		}
-@@ -519,7 +563,7 @@ static void __sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
- 		lcdc_write_chan(ch, LDDFR, tmp);
- 		lcdc_write_chan(ch, LDMLSR, ch->pitch);
- 		lcdc_write_chan(ch, LDSA1R, ch->base_addr_y);
--		if (ch->info->var.nonstd)
-+		if (sh_mobile_format_is_yuv(&ch->info->var))
- 			lcdc_write_chan(ch, LDSA2R, ch->base_addr_c);
- 
- 		/* When using deferred I/O mode, configure the LCDC for one-shot
-@@ -536,21 +580,23 @@ static void __sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
- 	}
- 
- 	/* Word and long word swap. */
--	if  (priv->ch[0].info->var.nonstd)
-+	switch (sh_mobile_format_fourcc(&priv->ch[0].info->var)) {
-+	case V4L2_PIX_FMT_RGB565:
-+	case V4L2_PIX_FMT_NV21:
-+	case V4L2_PIX_FMT_NV61:
-+	case V4L2_PIX_FMT_NV42:
-+		tmp = LDDDSR_LS | LDDDSR_WS;
-+		break;
-+	case V4L2_PIX_FMT_BGR24:
-+	case V4L2_PIX_FMT_NV12:
-+	case V4L2_PIX_FMT_NV16:
-+	case V4L2_PIX_FMT_NV24:
- 		tmp = LDDDSR_LS | LDDDSR_WS | LDDDSR_BS;
--	else {
--		switch (bpp) {
--		case 16:
--			tmp = LDDDSR_LS | LDDDSR_WS;
--			break;
--		case 24:
--			tmp = LDDDSR_LS | LDDDSR_WS | LDDDSR_BS;
--			break;
--		case 32:
--		default:
--			tmp = LDDDSR_LS;
--			break;
--		}
-+		break;
-+	case V4L2_PIX_FMT_BGR32:
-+	default:
-+		tmp = LDDDSR_LS;
-+		break;
- 	}
- 	lcdc_write(priv, _LDDDSR, tmp);
- 
-@@ -622,12 +668,24 @@ static int sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
- 			ch->meram_enabled = 0;
- 		}
- 
--		if (!ch->info->var.nonstd)
--			pixelformat = SH_MOBILE_MERAM_PF_RGB;
--		else if (ch->info->var.bits_per_pixel == 24)
--			pixelformat = SH_MOBILE_MERAM_PF_NV24;
--		else
-+		switch (sh_mobile_format_fourcc(&ch->info->var)) {
-+		case V4L2_PIX_FMT_NV12:
-+		case V4L2_PIX_FMT_NV21:
-+		case V4L2_PIX_FMT_NV16:
-+		case V4L2_PIX_FMT_NV61:
- 			pixelformat = SH_MOBILE_MERAM_PF_NV;
-+			break;
-+		case V4L2_PIX_FMT_NV24:
-+		case V4L2_PIX_FMT_NV42:
-+			pixelformat = SH_MOBILE_MERAM_PF_NV24;
-+			break;
-+		case V4L2_PIX_FMT_RGB565:
-+		case V4L2_PIX_FMT_BGR24:
-+		case V4L2_PIX_FMT_BGR32:
-+		default:
-+			pixelformat = SH_MOBILE_MERAM_PF_RGB;
-+			break;
-+		}
- 
- 		ret = mdev->ops->meram_register(mdev, cfg, ch->pitch,
- 					ch->info->var.yres, pixelformat,
-@@ -845,6 +903,7 @@ static struct fb_fix_screeninfo sh_mobile_lcdc_fix  = {
- 	.xpanstep =	0,
- 	.ypanstep =	1,
- 	.ywrapstep =	0,
-+	.capabilities =	FB_CAP_FOURCC,
- };
- 
- static void sh_mobile_lcdc_fillrect(struct fb_info *info,
-@@ -877,8 +936,9 @@ static int sh_mobile_fb_pan_display(struct fb_var_screeninfo *var,
- 	unsigned long new_pan_offset;
- 	unsigned long base_addr_y, base_addr_c;
- 	unsigned long c_offset;
-+	bool yuv = sh_mobile_format_is_yuv(&info->var);
- 
--	if (!info->var.nonstd)
-+	if (!yuv)
- 		new_pan_offset = var->yoffset * info->fix.line_length
- 			       + var->xoffset * (info->var.bits_per_pixel / 8);
- 	else
-@@ -892,7 +952,7 @@ static int sh_mobile_fb_pan_display(struct fb_var_screeninfo *var,
- 
- 	/* Set the source address for the next refresh */
- 	base_addr_y = ch->dma_handle + new_pan_offset;
--	if (info->var.nonstd) {
-+	if (yuv) {
- 		/* Set y offset */
- 		c_offset = var->yoffset * info->fix.line_length
- 			 * (info->var.bits_per_pixel - 8) / 8;
-@@ -900,7 +960,7 @@ static int sh_mobile_fb_pan_display(struct fb_var_screeninfo *var,
- 			    + info->var.xres * info->var.yres_virtual
- 			    + c_offset;
- 		/* Set x offset */
--		if (info->var.bits_per_pixel == 24)
-+		if (sh_mobile_format_fourcc(&info->var) == V4L2_PIX_FMT_NV24)
- 			base_addr_c += 2 * var->xoffset;
- 		else
- 			base_addr_c += var->xoffset;
-@@ -924,7 +984,7 @@ static int sh_mobile_fb_pan_display(struct fb_var_screeninfo *var,
- 	ch->base_addr_c = base_addr_c;
- 
- 	lcdc_write_chan_mirror(ch, LDSA1R, base_addr_y);
--	if (info->var.nonstd)
-+	if (yuv)
- 		lcdc_write_chan_mirror(ch, LDSA2R, base_addr_c);
- 
- 	if (lcdc_chan_is_sublcd(ch))
-@@ -1100,51 +1160,84 @@ static int sh_mobile_check_var(struct fb_var_screeninfo *var, struct fb_info *in
- 	if (var->yres_virtual < var->yres)
- 		var->yres_virtual = var->yres;
- 
--	if (var->bits_per_pixel <= 16) {		/* RGB 565 */
--		var->bits_per_pixel = 16;
--		var->red.offset = 11;
--		var->red.length = 5;
--		var->green.offset = 5;
--		var->green.length = 6;
--		var->blue.offset = 0;
--		var->blue.length = 5;
--		var->transp.offset = 0;
--		var->transp.length = 0;
--	} else if (var->bits_per_pixel <= 24) {		/* RGB 888 */
--		var->bits_per_pixel = 24;
--		var->red.offset = 16;
--		var->red.length = 8;
--		var->green.offset = 8;
--		var->green.length = 8;
--		var->blue.offset = 0;
--		var->blue.length = 8;
--		var->transp.offset = 0;
--		var->transp.length = 0;
--	} else if (var->bits_per_pixel <= 32) {		/* RGBA 888 */
--		var->bits_per_pixel = 32;
--		var->red.offset = 16;
--		var->red.length = 8;
--		var->green.offset = 8;
--		var->green.length = 8;
--		var->blue.offset = 0;
--		var->blue.length = 8;
--		var->transp.offset = 24;
--		var->transp.length = 8;
--	} else
--		return -EINVAL;
-+	if (sh_mobile_format_is_fourcc(var)) {
-+		switch (var->grayscale) {
-+		case V4L2_PIX_FMT_NV12:
-+		case V4L2_PIX_FMT_NV21:
-+			var->bits_per_pixel = 12;
-+			break;
-+		case V4L2_PIX_FMT_RGB565:
-+		case V4L2_PIX_FMT_NV16:
-+		case V4L2_PIX_FMT_NV61:
-+			var->bits_per_pixel = 16;
-+			break;
-+		case V4L2_PIX_FMT_BGR24:
-+		case V4L2_PIX_FMT_NV24:
-+		case V4L2_PIX_FMT_NV42:
-+			var->bits_per_pixel = 24;
-+			break;
-+		case V4L2_PIX_FMT_BGR32:
-+			var->bits_per_pixel = 32;
-+			break;
-+		default:
-+			return -EINVAL;
-+		}
-+
-+		/* Default to RGB and JPEG color-spaces for RGB and YUV formats
-+		 * respectively.
-+		 */
-+		if (!sh_mobile_format_is_yuv(var))
-+			var->colorspace = V4L2_COLORSPACE_SRGB;
-+		else if (var->colorspace != V4L2_COLORSPACE_REC709)
-+			var->colorspace = V4L2_COLORSPACE_JPEG;
-+	} else {
-+		if (var->bits_per_pixel <= 16) {		/* RGB 565 */
-+			var->bits_per_pixel = 16;
-+			var->red.offset = 11;
-+			var->red.length = 5;
-+			var->green.offset = 5;
-+			var->green.length = 6;
-+			var->blue.offset = 0;
-+			var->blue.length = 5;
-+			var->transp.offset = 0;
-+			var->transp.length = 0;
-+		} else if (var->bits_per_pixel <= 24) {		/* RGB 888 */
-+			var->bits_per_pixel = 24;
-+			var->red.offset = 16;
-+			var->red.length = 8;
-+			var->green.offset = 8;
-+			var->green.length = 8;
-+			var->blue.offset = 0;
-+			var->blue.length = 8;
-+			var->transp.offset = 0;
-+			var->transp.length = 0;
-+		} else if (var->bits_per_pixel <= 32) {		/* RGBA 888 */
-+			var->bits_per_pixel = 32;
-+			var->red.offset = 16;
-+			var->red.length = 8;
-+			var->green.offset = 8;
-+			var->green.length = 8;
-+			var->blue.offset = 0;
-+			var->blue.length = 8;
-+			var->transp.offset = 24;
-+			var->transp.length = 8;
-+		} else
-+			return -EINVAL;
- 
--	var->red.msb_right = 0;
--	var->green.msb_right = 0;
--	var->blue.msb_right = 0;
--	var->transp.msb_right = 0;
-+		var->red.msb_right = 0;
-+		var->green.msb_right = 0;
-+		var->blue.msb_right = 0;
-+		var->transp.msb_right = 0;
-+	}
- 
- 	/* Make sure we don't exceed our allocated memory. */
- 	if (var->xres_virtual * var->yres_virtual * var->bits_per_pixel / 8 >
- 	    info->fix.smem_len)
- 		return -EINVAL;
- 
--	/* only accept the forced_bpp for dual channel configurations */
--	if (p->forced_bpp && p->forced_bpp != var->bits_per_pixel)
-+	/* only accept the forced_fourcc for dual channel configurations */
-+	if (p->forced_fourcc &&
-+	    p->forced_fourcc != sh_mobile_format_fourcc(var))
- 		return -EINVAL;
- 
- 	return 0;
-@@ -1158,7 +1251,7 @@ static int sh_mobile_set_par(struct fb_info *info)
- 
- 	sh_mobile_lcdc_stop(ch->lcdc);
- 
--	if (info->var.nonstd)
-+	if (sh_mobile_format_is_yuv(&info->var))
- 		info->fix.line_length = info->var.xres;
- 	else
- 		info->fix.line_length = info->var.xres
-@@ -1170,6 +1263,14 @@ static int sh_mobile_set_par(struct fb_info *info)
- 		info->fix.line_length = line_length;
- 	}
- 
-+	if (sh_mobile_format_is_fourcc(&info->var)) {
-+		info->fix.type = FB_TYPE_FOURCC;
-+		info->fix.visual = FB_VISUAL_FOURCC;
-+	} else {
-+		info->fix.type = FB_TYPE_PACKED_PIXELS;
-+		info->fix.visual = FB_VISUAL_TRUECOLOR;
-+	}
-+
- 	return ret;
- }
- 
-@@ -1464,9 +1565,9 @@ static int __devinit sh_mobile_lcdc_channel_init(struct sh_mobile_lcdc_chan *ch,
- 	for (i = 0, mode = cfg->lcd_cfg; i < cfg->num_cfg; i++, mode++) {
- 		unsigned int size = mode->yres * mode->xres;
- 
--		/* NV12 buffers must have even number of lines */
--		if ((cfg->nonstd) && cfg->bpp == 12 &&
--				(mode->yres & 0x1)) {
-+		/* NV12/NV21 buffers must have even number of lines */
-+		if ((cfg->fourcc == V4L2_PIX_FMT_NV12 ||
-+		     cfg->fourcc == V4L2_PIX_FMT_NV21) && (mode->yres & 0x1)) {
- 			dev_err(dev, "yres must be multiple of 2 for YCbCr420 "
- 				"mode.\n");
- 			return -EINVAL;
-@@ -1484,14 +1585,6 @@ static int __devinit sh_mobile_lcdc_channel_init(struct sh_mobile_lcdc_chan *ch,
- 		dev_dbg(dev, "Found largest videomode %ux%u\n",
- 			max_mode->xres, max_mode->yres);
- 
--	/* Initialize fixed screen information. Restrict pan to 2 lines steps
--	 * for NV12.
--	 */
--	info->fix = sh_mobile_lcdc_fix;
--	info->fix.smem_len = max_size * 2 * cfg->bpp / 8;
--	if (cfg->nonstd && cfg->bpp == 12)
--		info->fix.ypanstep = 2;
--
- 	/* Create the mode list. */
- 	if (cfg->lcd_cfg == NULL) {
- 		mode = &default_720p;
-@@ -1509,19 +1602,38 @@ static int __devinit sh_mobile_lcdc_channel_init(struct sh_mobile_lcdc_chan *ch,
- 	 */
- 	var = &info->var;
- 	fb_videomode_to_var(var, mode);
--	var->bits_per_pixel = cfg->bpp;
- 	var->width = cfg->lcd_size_cfg.width;
- 	var->height = cfg->lcd_size_cfg.height;
- 	var->yres_virtual = var->yres * 2;
- 	var->activate = FB_ACTIVATE_NOW;
- 
-+	switch (cfg->fourcc) {
-+	case V4L2_PIX_FMT_RGB565:
-+		var->bits_per_pixel = 16;
-+		break;
-+	case V4L2_PIX_FMT_BGR24:
-+		var->bits_per_pixel = 24;
-+		break;
-+	case V4L2_PIX_FMT_BGR32:
-+		var->bits_per_pixel = 32;
-+		break;
-+	default:
-+		var->grayscale = cfg->fourcc;
-+		break;
-+	}
-+
-+	/* Make sure the memory size check won't fail. smem_len is initialized
-+	 * later based on var.
-+	 */
-+	info->fix.smem_len = UINT_MAX;
- 	ret = sh_mobile_check_var(var, info);
- 	if (ret)
- 		return ret;
- 
-+	max_size = max_size * var->bits_per_pixel / 8 * 2;
-+
- 	/* Allocate frame buffer memory and color map. */
--	buf = dma_alloc_coherent(dev, info->fix.smem_len, &ch->dma_handle,
--				 GFP_KERNEL);
-+	buf = dma_alloc_coherent(dev, max_size, &ch->dma_handle, GFP_KERNEL);
- 	if (!buf) {
- 		dev_err(dev, "unable to allocate buffer\n");
- 		return -ENOMEM;
-@@ -1530,16 +1642,27 @@ static int __devinit sh_mobile_lcdc_channel_init(struct sh_mobile_lcdc_chan *ch,
- 	ret = fb_alloc_cmap(&info->cmap, PALETTE_NR, 0);
- 	if (ret < 0) {
- 		dev_err(dev, "unable to allocate cmap\n");
--		dma_free_coherent(dev, info->fix.smem_len,
--				  buf, ch->dma_handle);
-+		dma_free_coherent(dev, max_size, buf, ch->dma_handle);
- 		return ret;
- 	}
- 
-+	/* Initialize fixed screen information. Restrict pan to 2 lines steps
-+	 * for NV12 and NV21.
-+	 */
-+	info->fix = sh_mobile_lcdc_fix;
- 	info->fix.smem_start = ch->dma_handle;
--	if (var->nonstd)
-+	info->fix.smem_len = max_size;
-+	if (cfg->fourcc == V4L2_PIX_FMT_NV12 ||
-+	    cfg->fourcc == V4L2_PIX_FMT_NV21)
-+		info->fix.ypanstep = 2;
-+
-+	if (sh_mobile_format_is_yuv(var)) {
- 		info->fix.line_length = var->xres;
--	else
--		info->fix.line_length = var->xres * (cfg->bpp / 8);
-+		info->fix.visual = FB_VISUAL_FOURCC;
-+	} else {
-+		info->fix.line_length = var->xres * var->bits_per_pixel / 8;
-+		info->fix.visual = FB_VISUAL_TRUECOLOR;
-+	}
- 
- 	info->screen_base = buf;
- 	info->device = dev;
-@@ -1626,9 +1749,9 @@ static int __devinit sh_mobile_lcdc_probe(struct platform_device *pdev)
- 		goto err1;
- 	}
- 
--	/* for dual channel LCDC (MAIN + SUB) force shared bpp setting */
-+	/* for dual channel LCDC (MAIN + SUB) force shared format setting */
- 	if (num_channels == 2)
--		priv->forced_bpp = pdata->ch[0].bpp;
-+		priv->forced_fourcc = pdata->ch[0].fourcc;
- 
- 	priv->base = ioremap_nocache(res->start, resource_size(res));
- 	if (!priv->base)
-@@ -1675,13 +1798,10 @@ static int __devinit sh_mobile_lcdc_probe(struct platform_device *pdev)
- 		if (error < 0)
- 			goto err1;
- 
--		dev_info(info->dev,
--			 "registered %s/%s as %dx%d %dbpp.\n",
--			 pdev->name,
--			 (ch->cfg.chan == LCDC_CHAN_MAINLCD) ?
--			 "mainlcd" : "sublcd",
--			 info->var.xres, info->var.yres,
--			 ch->cfg.bpp);
-+		dev_info(info->dev, "registered %s/%s as %dx%d %dbpp.\n",
-+			 pdev->name, (ch->cfg.chan == LCDC_CHAN_MAINLCD) ?
-+			 "mainlcd" : "sublcd", info->var.xres, info->var.yres,
-+			 info->var.bits_per_pixel);
- 
- 		/* deferred io mode: disable clock to save power */
- 		if (info->fbdefio || info->state == FBINFO_STATE_SUSPENDED)
-diff --git a/include/video/sh_mobile_lcdc.h b/include/video/sh_mobile_lcdc.h
-index 8101b72..fe30b75 100644
---- a/include/video/sh_mobile_lcdc.h
-+++ b/include/video/sh_mobile_lcdc.h
-@@ -174,7 +174,8 @@ struct sh_mobile_lcdc_bl_info {
- 
- struct sh_mobile_lcdc_chan_cfg {
- 	int chan;
--	int bpp;
-+	int fourcc;
-+	int colorspace;
- 	int interface_type; /* selects RGBn or SYSn I/F, see above */
- 	int clock_divider;
- 	unsigned long flags; /* LCDC_FLAGS_... */
-@@ -184,7 +185,6 @@ struct sh_mobile_lcdc_chan_cfg {
- 	struct sh_mobile_lcdc_board_cfg board_cfg;
- 	struct sh_mobile_lcdc_bl_info bl_info;
- 	struct sh_mobile_lcdc_sys_bus_cfg sys_bus_cfg; /* only for SYSn I/F */
--	int nonstd;
- 	struct sh_mobile_meram_cfg *meram_cfg;
- };
- 
--- 
-1.7.3.4
+Am 14.11.2011 04:14, schrieb Hawes, Mark:
+> Hi,
+>
+> I have just acquired a Hauppauge HVR 4000 hybrid DVB-S2 / DVB-T / Analogue card
+ > which I am trying to use with VDR 1.7.21 on the latest Slackware stable release
+ > using kernel 2.6.37.6.
 
+  vdr doesn't know anything about hybrid cards where you can access only one frontend at the same time.
+  On startup vdr opens all frontends, so when accessing the second one this is blocked.
+
+  Since I don't know this card exactly, what devices does it create? Is there also a demux[01] and dvr[01] or just a 
+demux0 and dvr0? Which frontend do you want to use? For now you have to choose one and start vdr with the "-D" parameter 
+to tell it which to use.
+  If there's no demux1 and dvr1 and you want to use frontend1 you'll have the next problem since vdr asumes that every 
+frontend has its own demux/dvr. I wrote a patch, so vdr uses demux0 with frontend1.
+
+  http://linuxtv.org/pipermail/vdr/2011-November/025411.html
+
+  Soon I will have some DVB-C/T hybrid device so I will try to extend the patch so both frontends can be used (not at 
+the same time of course).
+
+  It would be nice if you can send me the output of "ls -la /dev/dvb/adapter0/*".
+
+  I don't know exactly what the dvb/v4l spec is saying about hybrid devices and how they should expose their 
+capabilities but it seems to me there's some discussion about this topic from time to time.
+
+  After all this is a problem at application level, not driver level. If I'm wrong please correct me.
+  And maybe you want to read the vdr mailing list...
+
+Regards,
+Lars.
+
+>
+> The drivers seem to detect the card OK as seen in dmesg output:
+>
+> [    7.501729] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.9 loaded
+> [    7.503174] cx88[0]: subsystem: 0070:6902, board: Hauppauge WinTV-HVR4000 DVB-S/S2/T/Hybrid [card=68,autodetected], frontend(s): 2
+> [    7.503373] cx88[0]: TV tuner type 63, Radio tuner type -1
+> [    7.551718] i915 0000:00:02.0: PCI INT A ->  GSI 16 (level, low) ->  IRQ 16
+> [    7.551788] i915 0000:00:02.0: setting latency timer to 64
+> [    7.564218] i915 0000:00:02.0: irq 41 for MSI/MSI-X
+> [    7.564399] vgaarb: device changed decodes: PCI:0000:00:02.0,olddecodes=io+mem,decodes=io+mem:owns=io+mem
+> [    7.564825] [drm] initialized overlay support
+> [    7.579830] cx88/0: cx2388x v4l2 driver version 0.0.9 loaded
+> [    7.583007] No connectors reported connected with modes
+> [    7.583077] [drm] Cannot find any crtc or sizes - going 1024x768
+> [    7.588874] Console: switching to colour frame buffer device 128x48
+> [    7.591121] fb0: inteldrmfb frame buffer device
+> [    7.591144] drm: registered panic notifier
+> [    7.591174] No ACPI video bus found
+> [    7.591316] [drm] Initialized i915 1.6.0 20080730 for 0000:00:02.0 on minor 0
+> [    7.617097] cx88[0]: i2c init: enabling analog demod on HVR1300/3000/4000 tuner
+> [    7.702578] IR RC5(x) protocol handler initialized
+> [    7.728589] IR RC6 protocol handler initialized
+> [    7.730628] cx2388x alsa driver version 0.0.9 loaded
+> [    7.746096] IR JVC protocol handler initialized
+> [    7.749962] IR Sony protocol handler initialized
+> [    7.918601] IR MCE Keyboard/mouse protocol handler initialized
+> [    7.980484] lirc_dev: IR Remote Control driver registered, major 243
+> [    7.994039] IR LIRC bridge handler initialized
+> [    7.994767] tda9887 15-0043: creating new instance
+> [    7.994795] tda9887 15-0043: tda988[5/6/7] found
+> [    7.995608] tuner 15-0043: Tuner 74 found with type(s) Radio TV.
+> [    7.997560] tuner 15-0061: Tuner -1 found with type(s) Radio TV.
+> [    8.035897] tveeprom 15-0050: Hauppauge model 69009, rev B2D3, serial# 3313260
+> [    8.035934] tveeprom 15-0050: MAC address is 00:0d:fe:32:8e:6c
+> [    8.035965] tveeprom 15-0050: tuner model is Philips FMD1216MEX (idx 133, type 78)
+> [    8.036005] tveeprom 15-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xf4)
+> [    8.036055] tveeprom 15-0050: audio processor is CX882 (idx 33)
+> [    8.036085] tveeprom 15-0050: decoder processor is CX882 (idx 25)
+> [    8.037240] tveeprom 15-0050: has radio, has IR receiver, has no IR transmitter
+> [    8.038391] cx88[0]: hauppauge eeprom: model=69009
+> [    8.042759] tuner-simple 15-0061: creating new instance
+> [    8.043910] tuner-simple 15-0061: type set to 78 (Philips FMD1216MEX MK3 Hybrid Tuner)
+> [    8.087006] Registered IR keymap rc-hauppauge
+> [    8.088273] input: cx88 IR (Hauppauge WinTV-HVR400 as /devices/pci0000:00/0000:00:1e.0/0000:03:00.2/rc/rc0/input6
+> [    8.089502] rc0: cx88 IR (Hauppauge WinTV-HVR400 as /devices/pci0000:00/0000:00:1e.0/0000:03:00.2/rc/rc0
+> [    8.090743] input: MCE IR Keyboard/Mouse (cx88xx) as /devices/virtual/input/input7
+> [    8.092315] rc rc0: lirc_dev: driver ir-lirc-codec (cx88xx) registered at minor = 0
+> [    8.093521] cx88[0]/2: cx2388x 8802 Driver Manager
+> [    8.094694] cx88-mpeg driver manager 0000:03:00.2: PCI INT A ->  GSI 19 (level, low) ->  IRQ 19
+> [    8.095882] cx88[0]/2: found at 0000:03:00.2, rev: 5, irq: 19, latency: 64, mmio: 0xfc000000
+> [    8.097825] cx8800 0000:03:00.0: PCI INT A ->  GSI 19 (level, low) ->  IRQ 19
+> [    8.099081] cx88[0]/0: found at 0000:03:00.0, rev: 5, irq: 19, latency: 64, mmio: 0xfa000000
+> [    8.112941] WARNING: You are using an experimental version of the media stack.
+> [    8.112943]  As the driver is backported to an older kernel, it doesn't offer
+> [    8.112944]  enough quality for its usage in production.
+> [    8.112945]  Use it with care.
+> [    8.112945] Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
+> [    8.112946]  e9eb0dadba932940f721f9d27544a7818b2fa1c5 [media] V4L menu: add submenu for platform devices
+> [    8.112947]  1df3a2c6d036f4923c229fa98725deda320680e1 [media] cx88: fix menu level for the VP-3054 module
+> [    8.112948]  486eeb5628f812b4836405e2b2e76594287dd873 [media] V4L menu: move all PCI(e) devices to their own submenu
+> [    8.197600] wm8775 15-001b: chip found @ 0x36 (cx88[0])
+> [    8.211895] cx88/2: cx2388x dvb driver version 0.0.9 loaded
+> [    8.213155] cx88/2: registering cx8802 driver, type: dvb access: shared
+> [    8.213801] cx88[0]/0: registered device video0 [v4l2]
+> [    8.213847] cx88[0]/0: registered device vbi0
+> [    8.213891] cx88[0]/0: registered device radio0
+> [    8.215082] cx88_audio 0000:03:00.1: PCI INT A ->  GSI 19 (level, low) ->  IRQ 19
+> [    8.215106] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
+> [    8.220763] cx88[0]/2: subsystem: 0070:6902, board: Hauppauge WinTV-HVR4000 DVB-S/S2/T/Hybrid [card=68]
+> [    8.222053] cx88[0]/2: cx2388x based DVB/ATSC card
+> [    8.223339] cx8802_alloc_frontends() allocating 2 frontend(s)
+> [    8.272844] tuner-simple 15-0061: attaching existing instance
+> [    8.274126] tuner-simple 15-0061: couldn't set type to 63. Using 78 (Philips FMD1216MEX MK3 Hybrid Tuner) instead
+> [    8.279264] DVB: registering new adapter (cx88[0])
+> [    8.280558] DVB: registering adapter 0 frontend 0 (Conexant CX24116/CX24118)...
+> [    8.282871] DVB: registering adapter 0 frontend 1 (Conexant CX22702 DVB-T)...
+> [    8.423842] Adding 1954444k swap on /dev/sda2.  Priority:-1 extents:1 across:1954444k
+> [    8.503564] fuse init (API version 7.15)
+> [    9.184585] EXT4-fs (sda1): re-mounted. Opts: (null)
+> [    9.308820] EXT4-fs (sda1): re-mounted. Opts: (null)
+> [    9.581725] lp0: using parport0 (interrupt-driven).
+> [    9.583036] lp0: console ready
+> [   14.900540] ATL1E 0000:01:00.0: irq 42 for MSI/MSI-X
+> [   20.345506] ATL1E 0000:01:00.0: eth0: NIC Link is Up<10 Mbps Full Duplex>
+> [   29.618702] NET: Registered protocol family 10
+> [   29.618871] lo: Disabled Privacy Extensions
+> [   40.210009] eth0: no IPv6 routers present
+> [  308.497672] start_kdeinit (2104): /proc/2104/oom_adj is deprecated, please use /proc/2104/oom_score_adj instead.
+> [  313.497259] ata3.00: configured for UDMA/133
+> [  313.497262] ata3: EH complete
+> [  314.195827] EXT4-fs (sda1): re-mounted. Opts: commit=0
+>
+> However, VDR is only able to use the first of the two frontends, reporting that the second frontend (DVB/T) is busy:
+>
+> Nov 13 20:04:06 Nutrigrain vdr: [2426] VDR version 1.7.21 started
+> Nov 13 20:04:06 Nutrigrain vdr: [2426] codeset is 'ISO-8859-1' - known
+> Nov 13 20:04:06 Nutrigrain vdr: [2426] found 28 locales in ./locale
+> Nov 13 20:04:06 Nutrigrain vdr: [2426] loading plugin: ./PLUGINS/lib/libvdr-sc.so.1.7.21
+> Nov 13 20:04:06 Nutrigrain vdr: [2426] cTimeMs: using monotonic clock (resolution is 1 ns)
+> Nov 13 20:04:06 Nutrigrain vdr: [2426] loading plugin: ./PLUGINS/lib/libvdr-rotor.so.1.7.21
+> Nov 13 20:04:06 Nutrigrain vdr: [2426] loading /home/digitalTV/config/setup.conf
+> Nov 13 20:04:07 Nutrigrain vdr: [2426] unknown locale: '0'
+> Nov 13 20:04:07 Nutrigrain vdr: [2426] loading /home/digitalTV/config/sources.conf
+> Nov 13 20:04:07 Nutrigrain vdr: [2426] loading /home/digitalTV/config/diseqc.conf
+> Nov 13 20:04:07 Nutrigrain vdr: [2426] loading /home/digitalTV/config/channels.conf
+> Nov 13 20:04:07 Nutrigrain vdr: [2426] loading /home/digitalTV/config/timers.conf
+> Nov 13 20:04:07 Nutrigrain vdr: [2426] loading /home/digitalTV/config/commands.conf
+> Nov 13 20:04:07 Nutrigrain vdr: [2426] loading /home/digitalTV/config/svdrphosts.conf
+> Nov 13 20:04:07 Nutrigrain vdr: [2426] loading /home/digitalTV/config/remote.conf
+> Nov 13 20:04:07 Nutrigrain vdr: [2426] loading /home/digitalTV/config/keymacros.conf
+> Nov 13 20:04:07 Nutrigrain vdr: [2427] video directory scanner thread started (pid=2426, tid=2427)
+> Nov 13 20:04:07 Nutrigrain vdr: [2428] video directory scanner thread started (pid=2426, tid=2428)
+> Nov 13 20:04:07 Nutrigrain vdr: [2426] reading EPG data from /home/digitalTV/video/epg.data
+> Nov 13 20:04:07 Nutrigrain vdr: [2427] video directory scanner thread ended (pid=2426, tid=2427)
+> Nov 13 20:04:07 Nutrigrain vdr: [2428] video directory scanner thread ended (pid=2426, tid=2428)
+> Nov 13 20:04:07 Nutrigrain vdr: [2426] registered source parameters for 'A - ATSC'
+> Nov 13 20:04:07 Nutrigrain vdr: [2426] registered source parameters for 'C - DVB-C'
+> Nov 13 20:04:07 Nutrigrain vdr: [2426] registered source parameters for 'S - DVB-S'
+> Nov 13 20:04:07 Nutrigrain vdr: [2426] registered source parameters for 'T - DVB-T'
+> Nov 13 20:04:07 Nutrigrain vdr: [2426] probing /dev/dvb/adapter0/frontend0
+> Nov 13 20:04:07 Nutrigrain vdr: [2426] new device number 1
+> Nov 13 20:04:12 Nutrigrain vdr: [2426] frontend 0/0 provides DVB-S2 with QPSK ("Conexant CX24116/CX24118")
+> Nov 13 20:04:12 Nutrigrain vdr: [2431] tuner on frontend 0/0 thread started (pid=2426, tid=2431)
+> Nov 13 20:04:12 Nutrigrain vdr: [2432] section handler thread started (pid=2426, tid=2432)
+> Nov 13 20:04:17 Nutrigrain vdr: [2426] ERROR: /dev/dvb/adapter0/frontend1: Device or resource busy
+> Nov 13 20:04:17 Nutrigrain vdr: [2426] found 1 DVB device
+>
+> I initially tried using the stock drivers that came with  2.6.37.6 which is where I first experienced the problem. I then tried the latest s2-liplianin- f5cd7d75370e drivers and finally (in the example above) the latest v4l-dvb drivers, all of which exhibit the same problem. I have also tried to use the mfe drivers from November 2008 but could not get them to compile.
+>
+> Any assistance in resolving this issue would be much appreciated.
+>
+> Thanks,
+>
+> Mark Hawes.
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
