@@ -1,55 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1465 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932250Ab1KJJ0w convert rfc822-to-8bit (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:34525 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754264Ab1KNV1F (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Nov 2011 04:26:52 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: soc_camera.h compiler warning: should be fixed
-Date: Thu, 10 Nov 2011 10:26:47 +0100
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201111101026.47226.hverkuil@xs4all.nl>
+	Mon, 14 Nov 2011 16:27:05 -0500
+Received: by wwe5 with SMTP id 5so5039072wwe.1
+        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2011 13:27:03 -0800 (PST)
+Message-ID: <4ec187a6.c6d0e30a.2cea.ffff9e85@mx.google.com>
+Subject: Re: AF9015 Dual tuner i2c write failures
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Tim Draper <veehexx@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <CAB33W8eTZg3Q9xZg9Ebz5C+Cb_H2SHH_R1u30V4i+_Oe8N1ysA@mail.gmail.com>
+References: <CAB33W8dW0Yts_dxz=WyYEK9-bcoQ_9gM-t3+aR5s-G_5QswOyA@mail.gmail.com>
+	 <CAB33W8eMEG6cxM9x0aGRe+1xx6TwvjBZL4KSdRY4Ti2sTHk9hg@mail.gmail.com>
+	 <CAL9G6WXq_MSu+6Ogjis43bsszDri0y5JQrhHrAQ8tiTKv09YKQ@mail.gmail.com>
+	 <CAATJ+ftr76OMckcpf_ceX4cPwv0840C9HL+UuHivAtub+OC+jw@mail.gmail.com>
+	 <4ebdacc2.04c6e30a.29e4.58ff@mx.google.com>
+	 <CAB33W8eYnQbKAkNobiez0yH5tgCVN4s84ncT5cmKHxeqHm8P3Q@mail.gmail.com>
+	 <CAL9G6WXHfA-n0u_yB7QvUAN_8TxSSA2M_O0m6kbsOrcgE+nMsA@mail.gmail.com>
+	 <CAB33W8cJYoXe+1yCPhEGgSpHM7AYd_b-sm5dSy8g+jT=98X=eg@mail.gmail.com>
+	 <CAB33W8eTZg3Q9xZg9Ebz5C+Cb_H2SHH_R1u30V4i+_Oe8N1ysA@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 14 Nov 2011 21:26:06 +0000
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On Mon, 2011-11-14 at 13:35 +0000, Tim Draper wrote:
+> ok, looks like the patch has fixed the issue in my initial response,
+> but now i've got a new issue (related?) when i reboot - the
+> dvb-usb-af9015 module is not being loaded.
+> 
+> if i try to modprobe it (sudo modprobe dvb-usb-af9015), then i get the error:
+> FATAL: Error inserting dvb_usb_af9015
+> (/lib/modules/2.6.38-12-generic/kernel/drivers/media/dvb/dvb-usb/dvb-usb-af9015.ko):
+> Unknown symbol in module, or unknown parameter (see dmesg)
+> 
+> dmesg |tail:
+> [  170.406969] dvb_usb_af9015: Unknown parameter `adapter'
+> 
+> thats the only 2 lines related to the issue.
+> 
+> what i did was apply the patch that Malcolm sent to me, and then
+> rebooted. af9015 still not working, so removed USB device and
+> reinserted. tuner now worked flawlessly.
+> gave the PC a reboot, and now i've got the above error.
+> 
+> any ideas?
 
-The daily build gives these compiler warnings when compiling on a 64-bit
-platform:
+Are you sure that your system hasn't rolled to 2.6.38-13-generic
+yesterday or today even?
 
-In file included from drivers/media/video/imx074.c:19:0:
-include/media/soc_camera.h: In function ‘soc_camera_i2c_to_vdev’:
-include/media/soc_camera.h:257:34: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-In file included from drivers/media/video/mt9m111.c:18:0:
-include/media/soc_camera.h: In function ‘soc_camera_i2c_to_vdev’:
-include/media/soc_camera.h:257:34: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+In terminal
 
-(and a whole bunch more of these warnings).
+uname -r
 
-The culprit is this inline function:
+Regards
 
-static inline struct video_device *soc_camera_i2c_to_vdev(const struct i2c_client *client)
-{
-        struct v4l2_subdev *sd = i2c_get_clientdata(client);
-        struct soc_camera_device *icd = (struct soc_camera_device *)sd->grp_id;
-        return icd ? icd->vdev : NULL;
-}
 
-sd->grp_id is a u32, so obviously this will fail on a 64-bit arch.
+Malcolm
 
-Since ARM is moving to 64-bits as well we should fix this.
-
-Instead of abusing grp_id it is better to use the relatively new v4l2_subdev
-'host_priv' field. This is a proper void pointer, and can be used by the host
-driver as it pleases.
-
-Can you make a patch for this? It would be nice to get rid of these warnings.
-
-Regards,
-
-	Hans
