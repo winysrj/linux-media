@@ -1,125 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from apfelkorn.psychaos.be ([195.144.77.38]:42099 "EHLO
-	apfelkorn.psychaos.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752155Ab1KFOgl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 09:36:41 -0500
-From: Peter De Schrijver <p2@psychaos.be>
-To: p2@psychaos.be
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jeff Verheyen <jeff.verheyen@ampersant.be>
-Subject: [PATCH] bt8xx: add support for Tongwei Video Technology TD-3116
-Date: Sun,  6 Nov 2011 16:15:47 +0200
-Message-Id: <1320588947-9541-1-git-send-email-p2@psychaos.be>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:11079 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751065Ab1KNNws (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Nov 2011 08:52:48 -0500
+Date: Mon, 14 Nov 2011 14:52:36 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFC 1/2] dvb-core: add generic helper function for I2C
+ register
+Message-ID: <20111114145236.34c343c0@endymion.delvare>
+In-Reply-To: <4EB9C13A.2060707@iki.fi>
+References: <4EB9C13A.2060707@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following patch adds support for the Tongwei Video Technology TD-3116 board. This
-is a Bt878 based capture card with 16 inputs meant for surveilance applications.
-It also offers a way to check which inputs have a video signal while capturing another
-input. In addition there are a number of alarm inputs and outputs available and there
-is microcontroller which is presumably intended for use as a system watchdog. None of
-these extra capabilities are supported by the patch.
+Hi Antti,
 
-Signed-off-by: Peter De Schrijver <p2@psychaos.be>
----
- drivers/media/video/bt8xx/bttv-cards.c |   49 ++++++++++++++++++++++++++++++++
- drivers/media/video/bt8xx/bttv.h       |    1 +
- 2 files changed, 50 insertions(+), 0 deletions(-)
+As an additional note, it just occurred to me that what you are working
+on is somewhat related to Mark Brown's regmap. Look in
+drivers/base/regmap and see if maybe you can reuse and/or extend Mark's
+approach.
 
-diff --git a/drivers/media/video/bt8xx/bttv-cards.c b/drivers/media/video/bt8xx/bttv-cards.c
-index 5939021..9ac71b89 100644
---- a/drivers/media/video/bt8xx/bttv-cards.c
-+++ b/drivers/media/video/bt8xx/bttv-cards.c
-@@ -80,6 +80,8 @@ static void phytec_muxsel(struct bttv *btv, unsigned int input);
- static void gv800s_muxsel(struct bttv *btv, unsigned int input);
- static void gv800s_init(struct bttv *btv);
- 
-+static void td3116_muxsel(struct bttv *btv, unsigned int input);
-+
- static int terratec_active_radio_upgrade(struct bttv *btv);
- static int tea5757_read(struct bttv *btv);
- static int tea5757_write(struct bttv *btv, int value);
-@@ -341,6 +343,7 @@ static struct CARD {
- 	{ 0x15401835, BTTV_BOARD_PV183,         "Provideo PV183-6" },
- 	{ 0x15401836, BTTV_BOARD_PV183,         "Provideo PV183-7" },
- 	{ 0x15401837, BTTV_BOARD_PV183,         "Provideo PV183-8" },
-+	{ 0x3116f200, BTTV_BOARD_TVT_TD3116,	"Tongwei Video Technology TD-3116" },
- 
- 	{ 0, -1, NULL }
- };
-@@ -2879,6 +2882,16 @@ struct tvcard bttv_tvcards[] = {
- 		.tuner_type     = TUNER_ABSENT,
- 		.tuner_addr	= ADDR_UNSET,
- 	},
-+	[BTTV_BOARD_TVT_TD3116] = {
-+		.name           = "Tongwei Video Technology TD-3116",
-+		.video_inputs   = 16,
-+		.gpiomask       = 0xc00ff,
-+		.muxsel         = MUXSEL(2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2),
-+		.muxsel_hook    = td3116_muxsel,
-+		.svhs           = NO_SVHS,
-+		.pll		= PLL_28,
-+		.tuner_type     = TUNER_ABSENT,
-+	},
- };
- 
- static const unsigned int bttv_num_tvcards = ARRAY_SIZE(bttv_tvcards);
-@@ -3228,6 +3241,42 @@ static void geovision_muxsel(struct bttv *btv, unsigned int input)
- 	gpio_bits(0xf, inmux);
- }
- 
-+/*
-+ * The TD3116 has 2 74HC4051 muxes wired to the MUX0 input of a bt878.
-+ * The first 74HC4051 has the lower 8 inputs, the second one the higher 8.
-+ * The muxes are controlled via a 74HC373 latch which is connected to
-+ * GPIOs 0-7. GPIO 18 is connected to the LE signal of the latch.
-+ * Q0 of the latch is connected to the Enable (~E) input of the first
-+ * 74HC4051. Q1 - Q3 are connected to S0 - S2 of the same 74HC4051.
-+ * Q4 - Q7 are connected to the second 74HC4051 in the same way.
-+ */
-+
-+static void td3116_latch_value(struct bttv *btv, u32 value)
-+{
-+	gpio_bits((1<<18) | 0xff, value);
-+	gpio_bits((1<<18) | 0xff, (1<<18) | value);
-+	udelay(1);
-+	gpio_bits((1<<18) | 0xff, value);
-+}
-+
-+static void td3116_muxsel(struct bttv *btv, unsigned int input)
-+{
-+	u32 value;
-+	u32 highbit;
-+
-+	highbit = (input & 0x8) >> 3 ;
-+
-+	/* Disable outputs and set value in the mux */
-+	value = 0x11; /* Disable outputs */
-+	value |= ((input & 0x7) << 1)  << (4 * highbit);
-+	td3116_latch_value(btv, value);
-+
-+	/* Enable the correct output */
-+	value &= ~0x11;
-+	value |= ((highbit ^ 0x1) << 4) | highbit;
-+	td3116_latch_value(btv, value);
-+}
-+
- /* ----------------------------------------------------------------------- */
- 
- static void bttv_reset_audio(struct bttv *btv)
-diff --git a/drivers/media/video/bt8xx/bttv.h b/drivers/media/video/bt8xx/bttv.h
-index c633359..32bca32 100644
---- a/drivers/media/video/bt8xx/bttv.h
-+++ b/drivers/media/video/bt8xx/bttv.h
-@@ -183,6 +183,7 @@
- #define BTTV_BOARD_GEOVISION_GV800S	   0x9d
- #define BTTV_BOARD_GEOVISION_GV800S_SL	   0x9e
- #define BTTV_BOARD_PV183                   0x9f
-+#define BTTV_BOARD_TVT_TD3116		   0xa0
- 
- 
- /* more card-specific defines */
 -- 
-1.7.4.1
-
+Jean Delvare
