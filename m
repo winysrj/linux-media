@@ -1,81 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54205 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754272Ab1KMTUx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Nov 2011 14:20:53 -0500
-Message-ID: <4EC01892.3090307@iki.fi>
-Date: Sun, 13 Nov 2011 21:20:50 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-CC: Michael Krufky <mkrufky@kernellabs.com>
-Subject: Re: [GIT PULL FOR 3.2] misc small changes, mostly get/set IF related
-References: <4EC016B9.1080306@iki.fi>
-In-Reply-To: <4EC016B9.1080306@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38821 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752796Ab1KNATD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Nov 2011 19:19:03 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com,
+	andriy.shevchenko@linux.intel.com
+Subject: [PATCH v2 1/2] v4l: Add over-current and indicator flash fault bits
+Date: Mon, 14 Nov 2011 01:19:09 +0100
+Message-Id: <1321229950-31451-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1321229950-31451-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1321229950-31451-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
-and these too for 3.3. Sorry about mistakes.
+Flash controllers can report over-current and indicator fault
+conditions. Define flash fault control bits for them.
 
-regards
-Antti
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |   10 ++++++++++
+ include/linux/videodev2.h                    |    2 ++
+ 2 files changed, 12 insertions(+), 0 deletions(-)
 
-On 11/13/2011 09:12 PM, Antti Palosaari wrote:
-> Moro
->
-> These patches are rather small enchantments and should not have any
-> visible effect.
->
-> mxl5007t change is that register read fix I have mentioned earlier. Reg
-> read is used only for checking chip ID and even if ID is not detected
-> correctly it will still work. So no functional changes.
->
-> Antti
->
-> The following changes since commit
-> df5f76dfef9bfaec1ff27d0a60a57a773bf87f0f:
->
-> af9015: limit I2C access to keep FW happy (2011-11-13 03:33:30 +0200)
->
-> are available in the git repository at:
-> git://linuxtv.org/anttip/media_tree.git af9015
->
-> Antti Palosaari (12):
-> tda18218: implement .get_if_frequency()
-> tda18218: fix 6 MHz default IF frequency
-> af9013: use .get_if_frequency() when possible
-> mt2060: implement .get_if_frequency()
-> qt1010: implement .get_if_frequency()
-> tda18212: implement .get_if_frequency()
-> tda18212: round IF frequency to close hardware value
-> cxd2820r: switch to .get_if_frequency()
-> cxd2820r: check bandwidth earlier for DVB-T/T2
-> mxl5007t: fix reg read
-> ce6230: remove experimental from Kconfig
-> ce168: remove experimental from Kconfig
->
-> drivers/media/common/tuners/mt2060.c | 9 +++-
-> drivers/media/common/tuners/mxl5007t.c | 3 +-
-> drivers/media/common/tuners/qt1010.c | 9 +++-
-> drivers/media/common/tuners/tda18212.c | 17 +++++++-
-> drivers/media/common/tuners/tda18218.c | 18 ++++++-
-> drivers/media/common/tuners/tda18218_priv.h | 2 +
-> drivers/media/dvb/dvb-usb/Kconfig | 4 +-
-> drivers/media/dvb/dvb-usb/anysee.c | 7 ---
-> drivers/media/dvb/frontends/af9013.c | 43 ++++--------------
-> drivers/media/dvb/frontends/cxd2820r.h | 13 ------
-> drivers/media/dvb/frontends/cxd2820r_c.c | 13 +++++-
-> drivers/media/dvb/frontends/cxd2820r_t.c | 55 +++++++++++++----------
-> drivers/media/dvb/frontends/cxd2820r_t2.c | 62 +++++++++++++++------------
-> drivers/media/video/em28xx/em28xx-dvb.c | 7 ---
-> 14 files changed, 140 insertions(+), 122 deletions(-)
->
->
-
-
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 3bc5ee8..a978b88 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3329,6 +3329,16 @@ interface and may change in the future.</para>
+ 		  <entry>The short circuit protection of the flash
+ 		  controller has been triggered.</entry>
+ 		</row>
++		<row>
++		  <entry><constant>V4L2_FLASH_FAULT_OVER_CURRENT</constant></entry>
++		  <entry>Current in the LED power supply has exceeded the limit
++		  specific to the flash controller.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_FLASH_FAULT_INDICATOR</constant></entry>
++		  <entry>The flash controller has detected a short or open
++		  circuit condition on the indicator LED.</entry>
++		</row>
+ 	      </tbody>
+ 	    </entrytbl>
+ 	  </row>
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 4b752d5..3d62631 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1682,6 +1682,8 @@ enum v4l2_flash_strobe_source {
+ #define V4L2_FLASH_FAULT_TIMEOUT		(1 << 1)
+ #define V4L2_FLASH_FAULT_OVER_TEMPERATURE	(1 << 2)
+ #define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
++#define V4L2_FLASH_FAULT_OVER_CURRENT		(1 << 4)
++#define V4L2_FLASH_FAULT_INDICATOR		(1 << 5)
+ 
+ #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
+ #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
 -- 
-http://palosaari.fi/
+1.7.3.4
+
