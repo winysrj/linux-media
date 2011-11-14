@@ -1,133 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:32636 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751709Ab1KIR2H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2011 12:28:07 -0500
-Date: Wed, 9 Nov 2011 18:27:53 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andy Walls <awalls@md.metrocast.net>, ivtv-devel@ivtvdriver.org
-Subject: [PATCH] [media] video: Drop undue references to i2c-algo-bit
-Message-ID: <20111109182753.5f996f3e@endymion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:44293 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752394Ab1KNWfY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Nov 2011 17:35:24 -0500
+Received: by bke11 with SMTP id 11so6425611bke.19
+        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2011 14:35:22 -0800 (PST)
+Message-ID: <4EC197A6.3090101@gmail.com>
+Date: Mon, 14 Nov 2011 23:35:18 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Heungjun Kim <riverful.kim@samsung.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH 4/5] m5mols: Add boot flag for not showing the msg of
+ I2C error
+References: <1319182554-10645-1-git-send-email-riverful.kim@samsung.com> <1319182554-10645-4-git-send-email-riverful.kim@samsung.com>
+In-Reply-To: <1319182554-10645-4-git-send-email-riverful.kim@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's one comment that has been copied from bttv to many other
-media/video drivers:
+Hi HeungJun,
 
-/* init + register i2c algo-bit adapter */
+Sorry for late review. Please see my comments below..
 
-Meanwhile, many drivers use hardware I2C implementations instead of
-relying on i2c-algo-bit, so this comment is misleading. Remove the
-reference to "algo-bit" from all drivers, to avoid any confusion. This
-is the best way to ensure that the comments won't go out of sync
-again. Anyone interested in the implementation details would rather
-look at the code itself.
+On 10/21/2011 09:35 AM, HeungJun, Kim wrote:
+> In M-5MOLS sensor, the I2C error can be occured before sensor booting done,
+> becase I2C interface is not stabilized although the sensor have done already
+> for booting, so the right value is deliver through I2C interface. In case,
+> it needs to make the I2C error msg not to be printed.
+> 
+> Signed-off-by: HeungJun, Kim<riverful.kim@samsung.com>
+> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+> ---
+>   drivers/media/video/m5mols/m5mols.h      |    2 ++
+>   drivers/media/video/m5mols/m5mols_core.c |   17 +++++++++++++----
+>   2 files changed, 15 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
+> index 75f7984..0d7e202 100644
+> --- a/drivers/media/video/m5mols/m5mols.h
+> +++ b/drivers/media/video/m5mols/m5mols.h
+> @@ -175,6 +175,7 @@ struct m5mols_version {
+>    * @ver: information of the version
+>    * @cap: the capture mode attributes
+>    * @power: current sensor's power status
+> + * @boot: "true" means the M-5MOLS sensor done ARM Booting
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/media/video/au0828/au0828-i2c.c   |    2 +-
- drivers/media/video/bt8xx/bttv-i2c.c      |    2 +-
- drivers/media/video/cx18/cx18-i2c.c       |    2 +-
- drivers/media/video/cx18/cx18-i2c.h       |    2 +-
- drivers/media/video/cx23885/cx23885-i2c.c |    2 +-
- drivers/media/video/cx25821/cx25821-i2c.c |    2 +-
- drivers/media/video/cx88/cx88-i2c.c       |    2 +-
- drivers/media/video/ivtv/ivtv-i2c.h       |    2 +-
- 8 files changed, 8 insertions(+), 8 deletions(-)
+How about making this "booting" instead (the opposite meaning) ? Also there is
+no need for quotation marks.
 
---- linux-3.2-rc0.orig/drivers/media/video/au0828/au0828-i2c.c	2011-07-22 04:17:23.000000000 +0200
-+++ linux-3.2-rc0/drivers/media/video/au0828/au0828-i2c.c	2011-11-07 18:50:50.000000000 +0100
-@@ -348,7 +348,7 @@ static void do_i2c_scan(char *name, stru
- 	}
- }
- 
--/* init + register i2c algo-bit adapter */
-+/* init + register i2c adapter */
- int au0828_i2c_register(struct au0828_dev *dev)
- {
- 	dprintk(1, "%s()\n", __func__);
---- linux-3.2-rc0.orig/drivers/media/video/bt8xx/bttv-i2c.c	2011-11-06 17:44:24.000000000 +0100
-+++ linux-3.2-rc0/drivers/media/video/bt8xx/bttv-i2c.c	2011-11-07 18:51:13.000000000 +0100
-@@ -346,7 +346,7 @@ static void do_i2c_scan(char *name, stru
- 	}
- }
- 
--/* init + register i2c algo-bit adapter */
-+/* init + register i2c adapter */
- int __devinit init_bttv_i2c(struct bttv *btv)
- {
- 	strlcpy(btv->i2c_client.name, "bttv internal", I2C_NAME_SIZE);
---- linux-3.2-rc0.orig/drivers/media/video/cx18/cx18-i2c.c	2011-07-22 04:17:23.000000000 +0200
-+++ linux-3.2-rc0/drivers/media/video/cx18/cx18-i2c.c	2011-11-07 18:50:44.000000000 +0100
-@@ -232,7 +232,7 @@ static struct i2c_algo_bit_data cx18_i2c
- 	.timeout	= CX18_ALGO_BIT_TIMEOUT*HZ /* jiffies */
- };
- 
--/* init + register i2c algo-bit adapter */
-+/* init + register i2c adapter */
- int init_cx18_i2c(struct cx18 *cx)
- {
- 	int i, err;
---- linux-3.2-rc0.orig/drivers/media/video/cx18/cx18-i2c.h	2011-07-22 04:17:23.000000000 +0200
-+++ linux-3.2-rc0/drivers/media/video/cx18/cx18-i2c.h	2011-11-07 18:50:38.000000000 +0100
-@@ -24,6 +24,6 @@
- int cx18_i2c_register(struct cx18 *cx, unsigned idx);
- struct v4l2_subdev *cx18_find_hw(struct cx18 *cx, u32 hw);
- 
--/* init + register i2c algo-bit adapter */
-+/* init + register i2c adapter */
- int init_cx18_i2c(struct cx18 *cx);
- void exit_cx18_i2c(struct cx18 *cx);
---- linux-3.2-rc0.orig/drivers/media/video/cx23885/cx23885-i2c.c	2011-11-06 17:44:24.000000000 +0100
-+++ linux-3.2-rc0/drivers/media/video/cx23885/cx23885-i2c.c	2011-11-07 18:51:25.000000000 +0100
-@@ -309,7 +309,7 @@ static void do_i2c_scan(char *name, stru
- 	}
- }
- 
--/* init + register i2c algo-bit adapter */
-+/* init + register i2c adapter */
- int cx23885_i2c_register(struct cx23885_i2c *bus)
- {
- 	struct cx23885_dev *dev = bus->dev;
---- linux-3.2-rc0.orig/drivers/media/video/cx25821/cx25821-i2c.c	2011-11-06 17:44:24.000000000 +0100
-+++ linux-3.2-rc0/drivers/media/video/cx25821/cx25821-i2c.c	2011-11-07 18:51:01.000000000 +0100
-@@ -300,7 +300,7 @@ static struct i2c_client cx25821_i2c_cli
- 	.name = "cx25821 internal",
- };
- 
--/* init + register i2c algo-bit adapter */
-+/* init + register i2c adapter */
- int cx25821_i2c_register(struct cx25821_i2c *bus)
- {
- 	struct cx25821_dev *dev = bus->dev;
---- linux-3.2-rc0.orig/drivers/media/video/cx88/cx88-i2c.c	2011-07-22 04:17:23.000000000 +0200
-+++ linux-3.2-rc0/drivers/media/video/cx88/cx88-i2c.c	2011-11-07 18:51:07.000000000 +0100
-@@ -132,7 +132,7 @@ static void do_i2c_scan(const char *name
- 	}
- }
- 
--/* init + register i2c algo-bit adapter */
-+/* init + register i2c adapter */
- int cx88_i2c_init(struct cx88_core *core, struct pci_dev *pci)
- {
- 	/* Prevents usage of invalid delay values */
---- linux-3.2-rc0.orig/drivers/media/video/ivtv/ivtv-i2c.h	2011-07-22 04:17:23.000000000 +0200
-+++ linux-3.2-rc0/drivers/media/video/ivtv/ivtv-i2c.h	2011-11-07 18:50:55.000000000 +0100
-@@ -25,7 +25,7 @@ struct i2c_client *ivtv_i2c_new_ir_legac
- int ivtv_i2c_register(struct ivtv *itv, unsigned idx);
- struct v4l2_subdev *ivtv_find_hw(struct ivtv *itv, u32 hw);
- 
--/* init + register i2c algo-bit adapter */
-+/* init + register i2c adapter */
- int init_ivtv_i2c(struct ivtv *itv);
- void exit_ivtv_i2c(struct ivtv *itv);
- 
+>    * @ctrl_sync: true means all controls of the sensor are initialized
+>    * @int_capture: true means the capture interrupt is issued once
+>    * @lock_ae: true means the Auto Exposure is locked
+> @@ -210,6 +211,7 @@ struct m5mols_info {
+>   	struct m5mols_version ver;
+>   	struct m5mols_capture cap;
+>   	bool power;
+> +	bool boot;
+>   	bool issue;
+>   	bool ctrl_sync;
+>   	bool lock_ae;
+> diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
+> index 24e66ad..0aae868 100644
+> --- a/drivers/media/video/m5mols/m5mols_core.c
+> +++ b/drivers/media/video/m5mols/m5mols_core.c
+> @@ -138,6 +138,7 @@ static u32 m5mols_swap_byte(u8 *data, u8 length)
+>   static int m5mols_read(struct v4l2_subdev *sd, u32 size, u32 reg, u32 *val)
+>   {
+>   	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	struct m5mols_info *info = to_m5mols(sd);
+>   	u8 rbuf[M5MOLS_I2C_MAX_SIZE + 1];
+>   	u8 category = I2C_CATEGORY(reg);
+>   	u8 cmd = I2C_COMMAND(reg);
+> @@ -168,8 +169,10 @@ static int m5mols_read(struct v4l2_subdev *sd, u32 size, u32 reg, u32 *val)
+> 
+>   	ret = i2c_transfer(client->adapter, msg, 2);
+>   	if (ret<  0) {
+> -		v4l2_err(sd, "read failed: size:%d cat:%02x cmd:%02x. %d\n",
+> -			 size, category, cmd, ret);
+> +		if (info->boot)
+> +			v4l2_err(sd,
+> +				"read failed: cat:%02x cmd:%02x ret:%d\n",
+> +				category, cmd, ret);
+>   		return ret;
 
+To avoid dodgy indentation, this could be for instance rewritten as:
 
--- 
-Jean Delvare
+   	ret = i2c_transfer(client->adapter, msg, 2);
+   	if (ret == 2)
+		return 0;
+
+	if (!info->booting)
+		v4l2_err(sd, "read failed: size:%d cat:%02x cmd:%02x. %d\n",
+			 size, category, cmd, ret);
+
+  	return ret < 0 ? ret : -EIO;
+
+>   	}
+> 
+> @@ -232,6 +235,7 @@ int m5mols_read_u32(struct v4l2_subdev *sd, u32 reg, u32 *val)
+>   int m5mols_write(struct v4l2_subdev *sd, u32 reg, u32 val)
+>   {
+>   	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	struct m5mols_info *info = to_m5mols(sd);
+>   	u8 wbuf[M5MOLS_I2C_MAX_SIZE + 4];
+>   	u8 category = I2C_CATEGORY(reg);
+>   	u8 cmd = I2C_COMMAND(reg);
+> @@ -263,8 +267,10 @@ int m5mols_write(struct v4l2_subdev *sd, u32 reg, u32 val)
+> 
+>   	ret = i2c_transfer(client->adapter, msg, 1);
+>   	if (ret<  0) {
+> -		v4l2_err(sd, "write failed: size:%d cat:%02x cmd:%02x. %d\n",
+> -			size, category, cmd, ret);
+> +		if (info->boot)
+> +			v4l2_err(sd,
+> +				"write failed: cat:%02x cmd:%02x ret:%d\n",
+> +				category, cmd, ret);
+
+Ditto.
+
+>   		return ret;
+>   	}
+> 
+> @@ -778,6 +784,7 @@ int __attribute__ ((weak)) m5mols_update_fw(struct v4l2_subdev *sd,
+>    */
+>   static int m5mols_sensor_armboot(struct v4l2_subdev *sd)
+>   {
+> +	struct m5mols_info *info = to_m5mols(sd);
+>   	int ret;
+> 
+>   	/* Execute ARM boot sequence */
+> @@ -786,6 +793,8 @@ static int m5mols_sensor_armboot(struct v4l2_subdev *sd)
+>   		ret = m5mols_write(sd, FLASH_CAM_START, REG_START_ARM_BOOT);
+>   	if (!ret)
+>   		ret = m5mols_timeout_interrupt(sd, REG_INT_MODE, 2000);
+> +	if (!ret)
+> +		info->boot = true;
+
+If you move this line after the check below, there is no need for "if (!ret)".
+
+>   	if (ret<  0)
+>   		return ret;
+> 
+
+--
+Regards,
+Sylwester
