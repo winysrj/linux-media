@@ -1,87 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51220 "EHLO comal.ext.ti.com"
+Received: from mga02.intel.com ([134.134.136.20]:52364 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753455Ab1KNPJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Nov 2011 10:09:31 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>
-CC: Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v2 2/5] davinci: dm365: remove the macros from the header to move to c file
-Date: Mon, 14 Nov 2011 20:39:14 +0530
-Message-ID: <1321283357-27698-3-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1321283357-27698-1-git-send-email-manjunath.hadli@ti.com>
-References: <1321283357-27698-1-git-send-email-manjunath.hadli@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	id S1756988Ab1KORuL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Nov 2011 12:50:11 -0500
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	sakari.ailus@maxwell.research.nokia.com
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH 7/9] as3645a: use struct dev_pm_ops
+Date: Tue, 15 Nov 2011 19:49:59 +0200
+Message-Id: <5ecd481727e221aa7526b5580a727637a305496e.1321379276.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <cover.1321379276.git.andriy.shevchenko@linux.intel.com>
+References: <1321374065-20063-3-git-send-email-laurent.pinchart@ideasonboard.com>
+ <cover.1321379276.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <cover.1321379276.git.andriy.shevchenko@linux.intel.com>
+References: <cover.1321379276.git.andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-move the register base addresses and offsets used only by dm365
-platform file from platform header dm365.h to dm365.c as they
-are used only in the c file.
-
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- arch/arm/mach-davinci/dm365.c              |   16 ++++++++++++++++
- arch/arm/mach-davinci/include/mach/dm365.h |   16 ----------------
- 2 files changed, 16 insertions(+), 16 deletions(-)
+ drivers/media/video/as3645a.c |   14 ++++++++++----
+ 1 files changed, 10 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
-index 679e168..77edee8 100644
---- a/arch/arm/mach-davinci/dm365.c
-+++ b/arch/arm/mach-davinci/dm365.c
-@@ -40,6 +40,22 @@
+diff --git a/drivers/media/video/as3645a.c b/drivers/media/video/as3645a.c
+index 9aebaa2..774f797 100644
+--- a/drivers/media/video/as3645a.c
++++ b/drivers/media/video/as3645a.c
+@@ -646,8 +646,9 @@ static const struct v4l2_subdev_internal_ops as3645a_internal_ops = {
+  */
+ #ifdef CONFIG_PM
  
- #define DM365_REF_FREQ		24000000	/* 24 MHz on the DM365 EVM */
+-static int as3645a_suspend(struct i2c_client *client, pm_message_t mesg)
++static int as3645a_suspend(struct device *dev)
+ {
++	struct i2c_client *client = to_i2c_client(dev);
+ 	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+ 	struct as3645a *flash = to_as3645a(subdev);
+ 	int rval;
+@@ -662,8 +663,9 @@ static int as3645a_suspend(struct i2c_client *client, pm_message_t mesg)
+ 	return rval;
+ }
  
-+/* Base of key scan register bank */
-+#define DM365_KEYSCAN_BASE		0x01c69400
-+
-+#define DM365_RTC_BASE			0x01c69000
-+
-+#define DAVINCI_DM365_VC_BASE		0x01d0c000
-+#define DAVINCI_DMA_VC_TX		2
-+#define DAVINCI_DMA_VC_RX		3
-+
-+#define DM365_EMAC_BASE			0x01d07000
-+#define DM365_EMAC_MDIO_BASE		(DM365_EMAC_BASE + 0x4000)
-+#define DM365_EMAC_CNTRL_OFFSET		0x0000
-+#define DM365_EMAC_CNTRL_MOD_OFFSET	0x3000
-+#define DM365_EMAC_CNTRL_RAM_OFFSET	0x1000
-+#define DM365_EMAC_CNTRL_RAM_SIZE	0x2000
-+
- static struct pll_data pll1_data = {
- 	.num		= 1,
- 	.phys_base	= DAVINCI_PLL1_BASE,
-diff --git a/arch/arm/mach-davinci/include/mach/dm365.h b/arch/arm/mach-davinci/include/mach/dm365.h
-index 2563bf4..51924de 100644
---- a/arch/arm/mach-davinci/include/mach/dm365.h
-+++ b/arch/arm/mach-davinci/include/mach/dm365.h
-@@ -20,22 +20,6 @@
- #include <mach/keyscan.h>
- #include <media/davinci/vpfe_capture.h>
+-static int as3645a_resume(struct i2c_client *client)
++static int as3645a_resume(struct device *dev)
+ {
++	struct i2c_client *client = to_i2c_client(dev);
+ 	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+ 	struct as3645a *flash = to_as3645a(subdev);
+ 	int rval;
+@@ -841,14 +843,18 @@ static const struct i2c_device_id as3645a_id_table[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, as3645a_id_table);
  
--#define DM365_EMAC_BASE			(0x01D07000)
--#define DM365_EMAC_MDIO_BASE		(DM365_EMAC_BASE + 0x4000)
--#define DM365_EMAC_CNTRL_OFFSET		(0x0000)
--#define DM365_EMAC_CNTRL_MOD_OFFSET	(0x3000)
--#define DM365_EMAC_CNTRL_RAM_OFFSET	(0x1000)
--#define DM365_EMAC_CNTRL_RAM_SIZE	(0x2000)
--
--/* Base of key scan register bank */
--#define DM365_KEYSCAN_BASE		(0x01C69400)
--
--#define DM365_RTC_BASE			(0x01C69000)
--
--#define DAVINCI_DM365_VC_BASE		(0x01D0C000)
--#define DAVINCI_DMA_VC_TX		2
--#define DAVINCI_DMA_VC_RX		3
--
- #define DM365_ASYNC_EMIF_CONTROL_BASE	0x01D10000
- #define DM365_ASYNC_EMIF_DATA_CE0_BASE	0x02000000
- #define DM365_ASYNC_EMIF_DATA_CE1_BASE	0x04000000
++static const struct dev_pm_ops as3645a_pm_ops = {
++	.suspend = as3645a_suspend,
++	.resume = as3645a_resume,
++};
++
+ static struct i2c_driver as3645a_i2c_driver = {
+ 	.driver	= {
+ 		.name = AS3645A_NAME,
++		.pm   = &as3645a_pm_ops,
+ 	},
+ 	.probe	= as3645a_probe,
+ 	.remove	= __exit_p(as3645a_remove),
+-	.suspend = as3645a_suspend,
+-	.resume = as3645a_resume,
+ 	.id_table = as3645a_id_table,
+ };
+ 
 -- 
-1.6.2.4
+1.7.7.1
 
