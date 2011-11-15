@@ -1,81 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10580 "EHLO mx1.redhat.com"
+Received: from mga01.intel.com ([192.55.52.88]:60277 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750711Ab1KXXBA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 18:01:00 -0500
-Message-ID: <4ECECCA2.50802@redhat.com>
-Date: Thu, 24 Nov 2011 21:00:50 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: PULL request for 3.2 (fixes 'n' features)
-References: <alpine.LRH.2.00.1110041130530.28076@pub4.ifh.de> <alpine.LRH.2.02.1111241023410.16976@pub4.ifh.de> <4ECE477A.5060707@infradead.org>
-In-Reply-To: <4ECE477A.5060707@infradead.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	id S1755643Ab1KOQz7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Nov 2011 11:55:59 -0500
+Message-ID: <1321376155.30587.23.camel@smile>
+Subject: Re: [PATCH v2 2/2] as3645a: Add driver for LED flash controller
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	linux-media@vger.kernel.org
+Date: Tue, 15 Nov 2011 18:55:55 +0200
+In-Reply-To: <201111151412.39333.laurent.pinchart@ideasonboard.com>
+References: <1321229950-31451-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	 <1321229950-31451-3-git-send-email-laurent.pinchart@ideasonboard.com>
+	 <4EC0E0C1.6090101@maxwell.research.nokia.com>
+	 <201111151412.39333.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 24-11-2011 11:32, Mauro Carvalho Chehab escreveu:
-> Em 24-11-2011 07:26, Patrick Boettcher escreveu:
->> Hi Mauro,
->>
->> On Tue, 4 Oct 2011, Patrick Boettcher wrote:
->>
->>> Hi Mauro,
->>>
->>> if it's not too late for 3.2 could you please pull from
->>>
->>> git://linuxtv.org/pb/media_tree.git staging/for_v3.2
->>>
->>> for
->>>
->>> [media] dib9090: limit the I2C speed [media] dib8096P: add the reference board [media] add the support for DiBcom [media] dib7090: add the reference board [media] DiB8000: improve the tuning and the SNR monitoring
->>> [media] DiBcom: correct warnings
->>> [media] dib7090: add the reference board TFE7090E
->>> [media] dib7000p/dib0090: update the driver
->>
->> I think this PULL request got lost. (as usual for my pull-requests :( ).
-> 
-> Yes, I didn't get your pull request. Now that we're using patchwork, to also track pull
-> requests, it is easy for you to check if the pull request is on my queue. Just take a
-> look at http://patchwork.linuxtv.org.
-> 
-> It should be noticed that patchwork relies on the way that git request-pull formats the
-> message:
-> 
-> $  git request-pull HEAD^1 .
-> The following changes since commit db9bc660cf4d1a09565f5db2bab9d3b86e3e32a5:
-> 
->   [media] ir-rc6-decoder: Support RC6-6A variable length data (2011-11-23 22:23:15 -0200)
-> 
-> are available in the git repository at:
->   . staging/for_v3.3
-> 
-> Dan Carpenter (1):
->       [media] V4L: mt9t112: use after free in mt9t112_probe()
-> 
->  drivers/media/video/mt9t112.c |    4 +++-
->  1 files changed, 3 insertions(+), 1 deletions(-)
-> 
-> It basically seeks for "The following...at: <url> <branch>" part of the message. If found,
-> it will add it at its repository, like:
-> 
-> 	http://patchwork.linuxtv.org/patch/8279/
-> 
->> It was meant for 3.2 and was sent in advance.
->>
->> Do you think you will get it in?
-> 
-> We can get the fixes, and new board additions for 3.2, but driver updates should
-> go to 3.3.
+On Tue, 2011-11-15 at 14:12 +0100, Laurent Pinchart wrote:
 
-The fixes there seems to be linked to the driver improvements, and they're not trivial,
-so I've merged them for 3.3.
+> > > +struct as3645a {
+> > > +	struct v4l2_subdev subdev;
+> > > +	struct as3645a_platform_data *platform_data;
+> > > +
+> > > +	struct mutex power_lock;
+> > > +	int power_count;
+> > > +
+> > > +	/* Static parameters */
+> > > +	u8 vref;
+> > > +	u8 peak;
+> > > +
+> > > +	/* Controls */
+> > > +	struct v4l2_ctrl_handler ctrls;
+> > > +
+> > > +	enum v4l2_flash_led_mode led_mode;
+> > > +	unsigned int timeout;
+> > > +	u8 flash_current;
+> > > +	u8 assist_current;
+> > > +	u8 indicator_current;
+> > > +	enum v4l2_flash_strobe_source strobe_source;
+> > 
+> > Do you think we should store this information in the controls instead,
+> > or not?
+> 
+> I've been thinking about that as well. The reason why the control values were 
+> copied to the as3645a structure is that they were accessed in timer context, 
+> where taking the control lock wasn't possible.
+> 
+> I could switch to accessing the information in controls directly now, but that 
+> would require storing pointers to the controls in the as3645a structure, which 
+> might not be that better :-) And the code will need to change back to storing 
+> values when overheat protection will be implemented anyway. If you still think 
+> it's better, I can change it.
+We don't need to solve the issue which is absent. We have in-kernel
+adp1653 driver w/o overheat  protection. It requires to be updated
+anyway. I prefer to update drivers in common way when we will have
+overheat protection framework in place.
 
-If is there any patch that is just a fix for the existing code, please point me and I'll
-add for 3.2.
+> > > +	switch (man) {
+> > > +	case 1:
+> > > +		factory = "AMS, Austria Micro Systems";
+> > > +		break;
+> > > +	case 2:
+> > > +		factory = "ADI, Analog Devices Inc.";
+> > > +		break;
+> > > +	case 3:
+> > > +		factory = "NSC, National Semiconductor";
+> > > +		break;
+> > > +	case 4:
+> > > +		factory = "NXP";
+> > > +		break;
+> > > +	case 5:
+> > > +		factory = "TI, Texas Instrument";
+> > > +		break;
+> > > +	default:
+> > > +		factory = "Unknown";
+> > > +	}
+> > > +
+> > > +	dev_dbg(&client->dev, "Factory: %s(%d) Version: %d\n", factory, man,
+> > > +		version);
+> > 
+> > Is that really a factor or is it the chip vendor --- which might
+> > contract another factory to actually manufacture the chips?
+> 
+> I don't know :-)
+I guess the vendor is proper word here. For example, lm3555 (NSC) is
+slightly different from as3645a.
 
-Regards,
-Mauro
+And why dev_dbg? I think dev_info here might be suitable.
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
