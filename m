@@ -1,41 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:35913 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752338Ab1KUW4q (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35134 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756299Ab1KOPpY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Nov 2011 17:56:46 -0500
-Received: by ggnr5 with SMTP id r5so2894198ggn.19
-        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 14:56:45 -0800 (PST)
-Date: Mon, 21 Nov 2011 20:02:17 -0300
-From: Ezequiel <elezegarcia@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org, moinejf@free.fr,
-	ospite@studenti.unina.it
-Subject: Re: [PATCH v2] [media] gspca: replaced static allocation by
- video_device_alloc/video_device_release
-Message-ID: <20111121230217.GA2569@devel2>
-References: <20111119214621.GA2739@localhost>
- <4EC8D069.1080204@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4EC8D069.1080204@redhat.com>
+	Tue, 15 Nov 2011 10:45:24 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com,
+	andriy.shevchenko@linux.intel.com
+Subject: [PATCH v3 1/2] v4l: Add over-current and indicator flash fault bits
+Date: Tue, 15 Nov 2011 16:45:31 +0100
+Message-Id: <1321371932-28399-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1321371932-28399-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1321371932-28399-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 20, 2011 at 11:03:21AM +0100, Hans de Goede wrote:
-> NACK again! There is no reason to do this, it just makes
-> the code more complicated without gaining anything. As already
-> commented by Antonio Ospite your commit message lacks the why of
-> this patch / the reason to do such a patch. The diffstat clearly
-> shows it is adding code not removing / simplifying it and it
-> so doing so without any good reasons!
-> 
-Yes, it's true: I omit the the reason in the commit message.
-The point of the patch was improving readability of the code.
+Flash controllers can report over-current and indicator fault
+conditions. Define flash fault control bits for them.
 
-But it was altogether wrong, as Jean-Francois patiently
-explained to me in another thread. 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |   10 ++++++++++
+ include/linux/videodev2.h                    |    2 ++
+ 2 files changed, 12 insertions(+), 0 deletions(-)
 
-Thanks to you too for the patience,
-Ezequiel.
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 3bc5ee8..a978b88 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3329,6 +3329,16 @@ interface and may change in the future.</para>
+ 		  <entry>The short circuit protection of the flash
+ 		  controller has been triggered.</entry>
+ 		</row>
++		<row>
++		  <entry><constant>V4L2_FLASH_FAULT_OVER_CURRENT</constant></entry>
++		  <entry>Current in the LED power supply has exceeded the limit
++		  specific to the flash controller.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_FLASH_FAULT_INDICATOR</constant></entry>
++		  <entry>The flash controller has detected a short or open
++		  circuit condition on the indicator LED.</entry>
++		</row>
+ 	      </tbody>
+ 	    </entrytbl>
+ 	  </row>
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 4b752d5..3d62631 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1682,6 +1682,8 @@ enum v4l2_flash_strobe_source {
+ #define V4L2_FLASH_FAULT_TIMEOUT		(1 << 1)
+ #define V4L2_FLASH_FAULT_OVER_TEMPERATURE	(1 << 2)
+ #define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
++#define V4L2_FLASH_FAULT_OVER_CURRENT		(1 << 4)
++#define V4L2_FLASH_FAULT_INDICATOR		(1 << 5)
+ 
+ #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
+ #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
+-- 
+1.7.3.4
+
