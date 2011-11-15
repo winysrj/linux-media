@@ -1,42 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45432 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:33023 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751791Ab1KLS6p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Nov 2011 13:58:45 -0500
-Message-ID: <4EBEC1E3.2020500@iki.fi>
-Date: Sat, 12 Nov 2011 20:58:43 +0200
+	id S1755103Ab1KOLmD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Nov 2011 06:42:03 -0500
+Message-ID: <4EC25008.4020804@iki.fi>
+Date: Tue, 15 Nov 2011 13:42:00 +0200
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
+To: Claus Olesen <ceolesen@gmail.com>
 CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/7] af9015/af9013 full pid filtering
-References: <4ebe96f4.6359b40a.5cac.3970@mx.google.com>	 <4EBE9E0F.3060707@iki.fi> <4ebebfba.5b6be30a.26ea.ffffaa15@mx.google.com>
-In-Reply-To: <4ebebfba.5b6be30a.26ea.ffffaa15@mx.google.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Subject: Re: PCTV 290e and 520e
+References: <CAGa-wNMx7DhppkBQNowuXBKwitkU3tCQYLzNJuhqx=ZcytcjVQ@mail.gmail.com>
+In-Reply-To: <CAGa-wNMx7DhppkBQNowuXBKwitkU3tCQYLzNJuhqx=ZcytcjVQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/12/2011 08:49 PM, Malcolm Priestley wrote:
-> On Sat, 2011-11-12 at 18:25 +0200, Antti Palosaari wrote:
+On 11/15/2011 01:14 PM, Claus Olesen wrote:
+> PCTV 290e usb stick - locking issue
+> ===================================
+> The locking issue with the 290e is not resolved as of
+> yesterdays auto update to kernel 3.1.1-1.fc16.i686.PAE on Fedora 16.
+> The symptoms are that no usb stick is usable unless the em28xx_dvb
+> module is manually unloaded and the 290e unplugged in that order.
 
->> Does that patch force PID filter always on or what?
+It is fixed to 3.2. I have had 3.2 few days and it works as it should. 
+Thanks for the  Chris Rankin for fixing that long time and annoying 
+em28xx driver bug!
+
+> PCTV 290e usb stick - dvb-c support
+> ===================================
+> dvb-c is supported by the 290e (although not advertised)
+> according to stevekerrison.com/290e/, my tests with dvbviewer on windows and
+> dmesg on my Fedora 16 as follows (3rd line from the bottom)
+
+> [   80.031343] DVB: registering adapter 0 frontend 0 (Sony CXD2820R
+> (DVB-T/T2))...
+> [   80.031579] DVB: registering adapter 0 frontend 1 (Sony CXD2820R (DVB-C))...
+
+> but not by the latest kernel 3.1.1-1.fc16.i686.PAE of Fedora 16
+> as the command
+> find /dev/dvb
+> outputs
+
+> /dev/dvb/adapter0/frontend1
+> /dev/dvb/adapter0/frontend0
+> showing all the index-0 (dvb-t) devices but mostly no index-1 (dvb-c) devices
 >
-> Yes, and why not?
+> Does anyone know of an intent to add support for dvb-c from the PCTV
+> 290e? in the near future?
+
+There is two frontends, frontend0 for DVB-T/T2 and frontend1 for DVB-C 
+(as the logs says too).
+
+> PCTV 520e usb stick - dvb-c support
+> ===================================
+> The 520e supports dvb-c in addition to dvb-t.
+> Does anyone know of an intent to add support for (dvb-c in particular
+> from) the 520e? in the near
+> future?
+
+It should be rather easy stuff and I am also interested. But I have no 
+time currently nor device (have some other ~similar devices waiting here 
+too).
+
+> PCTV 290e and 520e usb sticks - compared
+> ========================================
+> The 520e applies tda18271 according to
+> www.mail-archive.com/linux-media@vger.kernel.org/msg38091.html
+> as also applied by the 290e hinting perhaps that the 290e and 520e are
+> very alike.
 >
-> Pid filtering has it uses in usb 2.0 and works very well. Low power and
-> low bus usage.
+> Does that mean that dvb-c support if added for the 520e also will apply to the
+> 290e? thereby making the 290e a better deal as it also supports dvb-t2?
 
-Actually, I do not know the exact reason. That is how it was defaulted 
-by DVB USB framework.
+If you need DVB-C then it maybe better to get some other stick than 
+290e. Using it for DVB-C is out-of-specs.
 
-Sending whole TS to Kernel demux still sounds good idea for my ears.
-
-Is there anyone who can say why we send whole TS to Kernel demux in case 
-of USB2.0 ?
-
+regards
 Antti
-
-
 -- 
 http://palosaari.fi/
