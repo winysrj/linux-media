@@ -1,112 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:55944 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751209Ab1KVMC0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Nov 2011 07:02:26 -0500
-Received: by mail-ey0-f174.google.com with SMTP id 27so79062eye.19
-        for <linux-media@vger.kernel.org>; Tue, 22 Nov 2011 04:02:25 -0800 (PST)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, shawn.guo@linaro.org,
-	richard.zhao@linaro.org, fabio.estevam@freescale.com,
-	kernel@pengutronix.de, s.hauer@pengutronix.de,
-	r.schwebel@pengutronix.de
-Cc: Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH v2 1/2] MX2: Add platform definitions for eMMa-PrP device.
-Date: Tue, 22 Nov 2011 13:01:55 +0100
-Message-Id: <1321963316-9058-2-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1321963316-9058-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1321963316-9058-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from mga14.intel.com ([143.182.124.37]:56126 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757020Ab1KORuL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Nov 2011 12:50:11 -0500
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	sakari.ailus@maxwell.research.nokia.com
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH 6/9] as3645a: free resources in case of error properly
+Date: Tue, 15 Nov 2011 19:49:58 +0200
+Message-Id: <20ff3c96498a0e9e0a1c1d09690fbbf6a59bee15.1321379276.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <cover.1321379276.git.andriy.shevchenko@linux.intel.com>
+References: <1321374065-20063-3-git-send-email-laurent.pinchart@ideasonboard.com>
+ <cover.1321379276.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <cover.1321379276.git.andriy.shevchenko@linux.intel.com>
+References: <cover.1321379276.git.andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-eMMa-PrP device included in Freescale i.MX2 chips can also
-be used separately to process memory buffers.
-
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- arch/arm/mach-imx/devices-imx27.h               |    2 +
- arch/arm/plat-mxc/devices/platform-mx2-camera.c |   33 +++++++++++++++++++++++
- arch/arm/plat-mxc/include/mach/devices-common.h |    2 +
- 3 files changed, 37 insertions(+), 0 deletions(-)
+ drivers/media/video/as3645a.c |   23 ++++++++++++-----------
+ 1 files changed, 12 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/mach-imx/devices-imx27.h b/arch/arm/mach-imx/devices-imx27.h
-index 2f727d7..519aa36 100644
---- a/arch/arm/mach-imx/devices-imx27.h
-+++ b/arch/arm/mach-imx/devices-imx27.h
-@@ -50,6 +50,8 @@ extern const struct imx_imx_uart_1irq_data imx27_imx_uart_data[];
- extern const struct imx_mx2_camera_data imx27_mx2_camera_data;
- #define imx27_add_mx2_camera(pdata)	\
- 	imx_add_mx2_camera(&imx27_mx2_camera_data, pdata)
-+#define imx27_alloc_mx2_emmaprp(pdata)	\
-+	imx_alloc_mx2_emmaprp(&imx27_mx2_camera_data)
+diff --git a/drivers/media/video/as3645a.c b/drivers/media/video/as3645a.c
+index 541f8bc..9aebaa2 100644
+--- a/drivers/media/video/as3645a.c
++++ b/drivers/media/video/as3645a.c
+@@ -800,11 +800,13 @@ static int as3645a_probe(struct i2c_client *client,
+ 	flash->subdev.internal_ops = &as3645a_internal_ops;
+ 	flash->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
  
- extern const struct imx_mxc_ehci_data imx27_mxc_ehci_otg_data;
- #define imx27_add_mxc_ehci_otg(pdata)	\
-diff --git a/arch/arm/plat-mxc/devices/platform-mx2-camera.c b/arch/arm/plat-mxc/devices/platform-mx2-camera.c
-index b3f4828..4a8bd73 100644
---- a/arch/arm/plat-mxc/devices/platform-mx2-camera.c
-+++ b/arch/arm/plat-mxc/devices/platform-mx2-camera.c
-@@ -6,6 +6,7 @@
-  * the terms of the GNU General Public License version 2 as published by the
-  * Free Software Foundation.
-  */
-+#include <linux/dma-mapping.h>
- #include <mach/hardware.h>
- #include <mach/devices-common.h>
++	ret = as3645a_init_controls(flash);
++	if (ret < 0)
++		goto free_and_quit;
++
+ 	ret = media_entity_init(&flash->subdev.entity, 0, NULL, 0);
+-	if (ret < 0) {
+-		kfree(flash);
+-		return ret;
+-	}
++	if (ret < 0)
++		goto free_and_quit;
  
-@@ -62,3 +63,35 @@ struct platform_device *__init imx_add_mx2_camera(
- 			res, data->iobaseemmaprp ? 4 : 2,
- 			pdata, sizeof(*pdata), DMA_BIT_MASK(32));
+ 	flash->subdev.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
+ 
+@@ -812,13 +814,12 @@ static int as3645a_probe(struct i2c_client *client,
+ 
+ 	flash->led_mode = V4L2_FLASH_LED_MODE_NONE;
+ 
+-	ret = as3645a_init_controls(flash);
+-	if (ret < 0) {
+-		kfree(flash);
+-		return ret;
+-	}
+-
+ 	return 0;
++
++free_and_quit:
++	v4l2_ctrl_handler_free(&flash->ctrls);
++	kfree(flash);
++	return ret;
  }
-+
-+struct platform_device *__init imx_alloc_mx2_emmaprp(
-+		const struct imx_mx2_camera_data *data)
-+{
-+	struct resource res[] = {
-+		{
-+			.start = data->iobaseemmaprp,
-+			.end = data->iobaseemmaprp + data->iosizeemmaprp - 1,
-+			.flags = IORESOURCE_MEM,
-+		}, {
-+			.start = data->irqemmaprp,
-+			.end = data->irqemmaprp,
-+			.flags = IORESOURCE_IRQ,
-+		},
-+	};
-+	struct platform_device *pdev;
-+	int ret = -ENOMEM;
-+
-+	pdev = platform_device_alloc("m2m-emmaprp", 0);
-+	if (!pdev)
-+		goto err;
-+
-+	ret = platform_device_add_resources(pdev, res, ARRAY_SIZE(res));
-+	if (ret)
-+		goto err;
-+
-+	return pdev;
-+err:
-+	platform_device_put(pdev);
-+	return ERR_PTR(-ENODEV);
-+
-+}
-diff --git a/arch/arm/plat-mxc/include/mach/devices-common.h b/arch/arm/plat-mxc/include/mach/devices-common.h
-index def9ba5..ce64bd5 100644
---- a/arch/arm/plat-mxc/include/mach/devices-common.h
-+++ b/arch/arm/plat-mxc/include/mach/devices-common.h
-@@ -223,6 +223,8 @@ struct imx_mx2_camera_data {
- struct platform_device *__init imx_add_mx2_camera(
- 		const struct imx_mx2_camera_data *data,
- 		const struct mx2_camera_platform_data *pdata);
-+struct platform_device *__init imx_alloc_mx2_emmaprp(
-+		const struct imx_mx2_camera_data *data);
  
- #include <mach/mxc_ehci.h>
- struct imx_mxc_ehci_data {
+ static int __exit as3645a_remove(struct i2c_client *client)
+@@ -828,7 +829,7 @@ static int __exit as3645a_remove(struct i2c_client *client)
+ 
+ 	v4l2_device_unregister_subdev(subdev);
+ 	v4l2_ctrl_handler_free(&flash->ctrls);
+-
++	media_entity_cleanup(&flash->subdev.entity);
+ 	kfree(flash);
+ 
+ 	return 0;
 -- 
-1.7.0.4
+1.7.7.1
 
