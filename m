@@ -1,60 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:9786 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753334Ab1KXJRc (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:50748 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754625Ab1KOKEK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 04:17:32 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 8BIT
-Content-type: text/plain; charset=UTF-8
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LV500F99R558H40@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Nov 2011 09:17:29 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LV5002NWR55FR@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Nov 2011 09:17:29 +0000 (GMT)
-Date: Thu, 24 Nov 2011 10:17:29 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [Query] V4L2 Integer (?) menu control
-In-reply-to: <0acb6fa3fc87692f1f8ac7f1a908e1e7@chewa.net>
-To: =?UTF-8?B?UsOpbWkgRGVuaXMtQ291cm1vbnQ=?= <remi@remlab.net>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Message-id: <4ECE0BA9.90207@samsung.com>
-References: <4ECD730E.3080808@gmail.com>
- <0acb6fa3fc87692f1f8ac7f1a908e1e7@chewa.net>
+	Tue, 15 Nov 2011 05:04:10 -0500
+Received: by fagn18 with SMTP id n18so181964fag.19
+        for <linux-media@vger.kernel.org>; Tue, 15 Nov 2011 02:04:08 -0800 (PST)
+Message-ID: <4EC238E2.3040600@mvista.com>
+Date: Tue, 15 Nov 2011 14:03:14 +0400
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+MIME-Version: 1.0
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>
+Subject: Re: [PATCH v2 4/5] davinci: create new common platform header for
+ davinci
+References: <1321283357-27698-1-git-send-email-manjunath.hadli@ti.com> <1321283357-27698-5-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1321283357-27698-5-git-send-email-manjunath.hadli@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/24/2011 07:24 AM, Rémi Denis-Courmont wrote:
-> On Wed, 23 Nov 2011 23:26:22 +0100, Sylwester Nawrocki <snjw23@gmail.com>
-> wrote:
->> I don't seem to find a way to implement this in current v4l2 control
->> framework.  Such functionality isn't there, or is it ?
-> 
-> You can use the menu control type, but you will need to remap the control
-> values so they are continuous.
+Hello.
 
-Yes, but what I'm missing is a method for the drivers to inform the application
-how the mapping looks like. Something like custom queryctrl for standard control CID.
+On 14-11-2011 19:09, Manjunath Hadli wrote:
 
-So for instance if we have a standard control V4L2_CID_CAMERA_ISO, two devices could
-support different series of values, e.g.
+> remove the code from individual platform header files for
+> dm365, dm355, dm644x and dm646x and consolidate it into a
+> single and common header file davinci_common.h.
+> Include the new header file in individual platform header
+> files as a pre-cursor for deleting these headers in follow
+> up patches.
 
-50, 200, 400, 800, ..
-100, 180, 300, 600, ...
+> Signed-off-by: Manjunath Hadli<manjunath.hadli@ti.com>
+> ---
+>   .../arm/mach-davinci/include/mach/davinci_common.h |   88 ++++++++++++++++++++
+>   arch/arm/mach-davinci/include/mach/dm355.h         |   18 +----
+>   arch/arm/mach-davinci/include/mach/dm365.h         |   20 +----
+>   arch/arm/mach-davinci/include/mach/dm644x.h        |   15 +---
+>   arch/arm/mach-davinci/include/mach/dm646x.h        |   20 +----
+>   5 files changed, 92 insertions(+), 69 deletions(-)
+>   create mode 100644 arch/arm/mach-davinci/include/mach/davinci_common.h
 
-Currently the menu items are hard coded in the kernel for standard controls,
-and AFAIU we can only query the control names.
+> diff --git a/arch/arm/mach-davinci/include/mach/davinci_common.h b/arch/arm/mach-davinci/include/mach/davinci_common.h
+> new file mode 100644
+> index 0000000..a859318
+> --- /dev/null
+> +++ b/arch/arm/mach-davinci/include/mach/davinci_common.h
 
-In fact the continuous enumeration in the driver might do, which would be then
-mapped to register values. But the meaning of this values need to be made known
-to the applications.
+    Why not call it just davinci.h?
 
---
-Thanks,
-Sylwester
+WBR, Sergei
