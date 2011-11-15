@@ -1,44 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from h1954367.stratoserver.net ([85.214.253.27]:58010 "EHLO
-	h1954367.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752979Ab1K1RKl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 12:10:41 -0500
-From: Hendrik Sattler <post@hendrik-sattler.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Problem with linux-3.1.3
-Date: Mon, 28 Nov 2011 18:10:38 +0100
-Cc: linux-media@vger.kernel.org
-References: <201111271404.02435.post@hendrik-sattler.de> <201111281137.53063.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201111281137.53063.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111281810.38715.post@hendrik-sattler.de>
+Received: from mga14.intel.com ([143.182.124.37]:56126 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756965Ab1KORuK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Nov 2011 12:50:10 -0500
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	sakari.ailus@maxwell.research.nokia.com
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH 0/9] as3645a: set of fixes up
+Date: Tue, 15 Nov 2011 19:49:52 +0200
+Message-Id: <cover.1321379276.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <1321374065-20063-3-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1321374065-20063-3-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This series incorporates Sakari's comments and couple of fixes from my version
+of the driver.
 
-Am Montag, 28. November 2011, 11:37:52 schrieb Laurent Pinchart:
-> > uvcvideo: Failed to submit URB 0 (-28).
-> > 
-> > 
-> > Same for using e.g. Google+ Hangouts which worked fine using v3.1.
-> > 
-> > Any ideas what might be wrong?
-> 
-> I'm tempted to blame
-> http://git.kernel.org/?p=linux/kernel/git/stable/linux-
-> stable.git;a=commit;h=f0cc710a6dec5b808a6f13f1f8853c094fce5f12. Could you
-> please try reverting that patch and see if it fixes your issue ?
+Andy Shevchenko (9):
+  as3645a: mention lm3555 as a clone of that chip
+  as3645a: print vendor and revision of the chip
+  as3645a: remove unused code
+  as3645a: No error, no message.
+  as3645a: move limits to the platform_data
+  as3645a: free resources in case of error properly
+  as3645a: use struct dev_pm_ops
+  as3645a: use pr_err macro instead of printk KERN_ERR
+  as3645a: use the same timeout for hw and sw strobes
 
-That's it :-D
-I reverted f0cc710a6dec5b808a6f13f1f8853c094fce5f12 on-top of v3.1.3 and now 
-the webcam is working again.
-Should this go to v3.1.4 and 3.2?
+ drivers/media/video/as3645a.c |   76 ++++++++++++++++++-----------------------
+ include/media/as3645a.h       |   32 +++++++----------
+ 2 files changed, 46 insertions(+), 62 deletions(-)
 
-Thanks...
+-- 
+1.7.7.1
 
-HS
