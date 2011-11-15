@@ -1,47 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:62051 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756491Ab1KQKlH (ORCPT
+Received: from smtprelay04.ispgateway.de ([80.67.31.42]:48575 "EHLO
+	smtprelay04.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754512Ab1KONKW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Nov 2011 05:41:07 -0500
-Received: by vcbfk1 with SMTP id fk1so1485841vcb.19
-        for <linux-media@vger.kernel.org>; Thu, 17 Nov 2011 02:41:07 -0800 (PST)
+	Tue, 15 Nov 2011 08:10:22 -0500
+Message-ID: <4EC262DD.1070502@ladisch.de>
+Date: Tue, 15 Nov 2011 14:02:21 +0100
+From: Clemens Ladisch <clemens@ladisch.de>
 MIME-Version: 1.0
-In-Reply-To: <006a01cc9e29$19da33c0$4d8e9b40$%szyprowski@samsung.com>
-References: <1320231122-22518-1-git-send-email-andrzej.p@samsung.com>
-	<201111081501.00656.laurent.pinchart@ideasonboard.com>
-	<004e01cc9e22$c1c0b390$45421ab0$%szyprowski@samsung.com>
-	<201111081543.43122.laurent.pinchart@ideasonboard.com>
-	<006a01cc9e29$19da33c0$4d8e9b40$%szyprowski@samsung.com>
-Date: Thu, 17 Nov 2011 11:41:05 +0100
-Message-ID: <CACKLOr2AnJtga7+vjUYQDbhzuZimX1iSHaW+rUVR+62iH_0JuA@mail.gmail.com>
-Subject: Re: [PATCH] media: vb2: vmalloc-based allocator user pointer handling
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: fix truncated entity specification
+References: <4EB5ADA9.6010104@ladisch.de> <201111150148.07957.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201111150148.07957.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
-what is the current status of this patch? Do you plan to send an
-improved version?
+Laurent Pinchart wrote:
+> On Saturday 05 November 2011 22:42:01 Clemens Ladisch wrote:
+> > When enumerating an entity, assign the entire entity specification
+> > instead of only the first two words.  (This requires giving the
+> > specification union a name.)
+> 
+> What about this (untested) simpler patch ?
+> 
+> -	u_ent.v4l.major = ent->v4l.major;
+> -	u_ent.v4l.minor = ent->v4l.minor;
+> +	memcpy(&u_ent.raw, &ent->raw, sizeof(u_ent.raw));
 
-I want to test it against my mem2mem driver I recently submitted
-(emma-PrP) and a UVC camera in order to transform YUYV to YUV420.
+I would have written it this way if ent->raw actually existed.
+(And please don't tell me you want to increase the size of
+struct media_entity by 172 bytes.  :)
 
-Provided we ignore the locking  problems you have mentioned is it in a
-'working' state?
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Regards,
+Clemens
