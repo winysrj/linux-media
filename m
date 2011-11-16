@@ -1,36 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from utm.netup.ru ([193.203.36.250]:49492 "EHLO utm.netup.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751684Ab1K3RKA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 12:10:00 -0500
-Message-ID: <4ED65C46.20502@netup.ru>
-Date: Wed, 30 Nov 2011 19:39:34 +0300
-From: Abylay Ospan <aospan@netup.ru>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40170 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932696Ab1KPAcy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Nov 2011 19:32:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Clemens Ladisch <clemens@ladisch.de>
+Subject: Re: [PATCH] media: fix truncated entity specification
+Date: Wed, 16 Nov 2011 01:33:04 +0100
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	linux-kernel@vger.kernel.org
+References: <4EB5ADA9.6010104@ladisch.de> <201111150148.07957.laurent.pinchart@ideasonboard.com> <4EC262DD.1070502@ladisch.de>
+In-Reply-To: <4EC262DD.1070502@ladisch.de>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: LinuxTV ported to Windows
-Content-Type: text/plain; charset=KOI8-R; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111160133.04816.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Clemens,
 
-We have ported linuxtv's cx23885+CAM en50221+Diseq to Windows OS (Vista, 
-XP, win7 tested). Results available under GPL and can be checkout from 
-git repository:
-https://github.com/netup/netup-dvb-s2-ci-dual
+On Tuesday 15 November 2011 14:02:21 Clemens Ladisch wrote:
+> Laurent Pinchart wrote:
+> > On Saturday 05 November 2011 22:42:01 Clemens Ladisch wrote:
+> > > When enumerating an entity, assign the entire entity specification
+> > > instead of only the first two words.  (This requires giving the
+> > > specification union a name.)
+> > 
+> > What about this (untested) simpler patch ?
+> > 
+> > -	u_ent.v4l.major = ent->v4l.major;
+> > -	u_ent.v4l.minor = ent->v4l.minor;
+> > +	memcpy(&u_ent.raw, &ent->raw, sizeof(u_ent.raw));
+> 
+> I would have written it this way if ent->raw actually existed.
+> (And please don't tell me you want to increase the size of
+> struct media_entity by 172 bytes.  :)
 
-Binary builds (ready to install) available in build directory. Currently 
-NetUP Dual DVB-S2 CI card supported ( 
-http://www.netup.tv/en-EN/dual_dvb-s2-ci_card.php ).
+Oops, my bad :-)
 
-Driver based on Microsoft BDA standard, but some features (DiSEqC, CI) 
-supported by custom API, for more details see netup_bda_api.h file.
-
-Any comments, suggestions are welcome.
+Your patch looks good then, except that I would memcpy to u_ent.raw instead of 
+u_ent.v4l. Would you also be ok with shortening specification to spec (or 
+info) ?
 
 -- 
-Abylai Ospan<aospan@netup.ru>
-NetUP Inc.
+Regards,
 
+Laurent Pinchart
