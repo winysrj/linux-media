@@ -1,66 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49196 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40399 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757856Ab1KPOKr (ORCPT
+	with ESMTP id S1753353Ab1KPB0X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Nov 2011 09:10:47 -0500
+	Tue, 15 Nov 2011 20:26:23 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com,
-	andriy.shevchenko@linux.intel.com
-Subject: [PATCH v5 1/2] v4l: Add over-current and indicator flash fault bits
-Date: Wed, 16 Nov 2011 15:10:56 +0100
-Message-Id: <1321452657-24424-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1321452657-24424-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1321452657-24424-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: Using MT9P031 digital sensor
+Date: Wed, 16 Nov 2011 02:26:34 +0100
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4EB04001.9050803@mlbassoc.com> <201111111526.05270.laurent.pinchart@ideasonboard.com> <4EC0FEBE.5070607@mlbassoc.com>
+In-Reply-To: <4EC0FEBE.5070607@mlbassoc.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111160226.34977.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Flash controllers can report over-current and indicator fault
-conditions. Define flash fault control bits for them.
+Hi Gary,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- Documentation/DocBook/media/v4l/controls.xml |   10 ++++++++++
- include/linux/videodev2.h                    |    2 ++
- 2 files changed, 12 insertions(+), 0 deletions(-)
+On Monday 14 November 2011 12:42:54 Gary Thomas wrote:
+> On 2011-11-11 07:26, Laurent Pinchart wrote:
+> > On Wednesday 09 November 2011 17:24:26 Gary Thomas wrote:
+> >> On 2011-11-09 09:18, Laurent Pinchart wrote:
+> >>> On Wednesday 09 November 2011 12:01:34 Gary Thomas wrote:
+> >>>> On 2011-11-08 17:54, Laurent Pinchart wrote:
+> >>>>> On Tuesday 08 November 2011 14:38:55 Gary Thomas wrote:
+> >>>>>> On 2011-11-08 06:06, Laurent Pinchart wrote:
+> >>>>>>> On Tuesday 08 November 2011 13:52:25 Gary Thomas wrote:
+> >>>>>>>> On 2011-11-08 05:30, Javier Martinez Canillas wrote:
+> >>>>>>>>> On Tue, Nov 8, 2011 at 1:20 PM, Gary Thomas wrote:
+> >>>>>>>>>> On 2011-11-04 04:37, Laurent Pinchart wrote:
+> >>>>>>>>>>> On Tuesday 01 November 2011 19:52:49 Gary Thomas wrote:
+> >>>>>>>>>>>> I'm trying to use the MT9P031 digital sensor with the Media
+> >>>>>>>>>>>> Controller Framework.  media-ctl tells me that the sensor is
+> >>>>>>>>>>>> set to capture using SGRBG12  2592x1944
+> >>>>>>>>>>>> 
+> >>>>>>>>>>>> Questions:
+> >>>>>>>>>>>> * What pixel format in ffmpeg does this correspond to?
+> >>>>>>>>>>> 
+> >>>>>>>>>>> I don't know if ffmpeg supports Bayer formats. The
+> >>>>>>>>>>> corresponding fourcc in V4L2 is BA12.
+> >>>>>>>>>> 
+> >>>>>>>>>> ffmpeg doesn't seem to support these formats
+> >>>>>>>>>> 
+> >>>>>>>>>>> If your sensor is hooked up to the OMAP3 ISP, you can then
+> >>>>>>>>>>> configure the pipeline to include the preview engine and the
+> >>>>>>>>>>> resizer, and capture YUV data
+> >>>>>>>>>>> at the resizer output.
+> >>>>>>>>>> 
+> >>>>>>>>>> I am using the OMAP3 ISP, but it's a bit unclear to me how to
+> >>>>>>>>>> set up the pipeline
+> >>>>>>>>> 
+> >>>>>>>>> Hi Gary,
+> >>>>>>>>> 
+> >>>>>>>>> I'm also using another sensor mtv9034 with OMAP3 ISP, so maybe I
+> >>>>>>>>> can help you.
+> >>>>>>>>> 
+> >>>>>>>>>> using media-ctl (I looked for documentation on this tool, but
+> >>>>>>>>>> came up dry - is there any?)
+> >>>>>>>>>> 
+> >>>>>>>>>> Do you have an example of how to configure this using the OMAP3
+> >>>>>>>>>> ISP?
+> >>>>>>>>> 
+> >>>>>>>>> This is how I configure the pipeline to connect the CCDC with the
+> >>>>>>>>> Previewer and Resizer:
+> >>>>>>>>> 
+> >>>>>>>>> ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
+> >>>>>>>>> ./media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+> >>>>>>>>> ./media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+> >>>>>>>>> ./media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
+> >>>>>>>>> output":0[1]' ./media-ctl -f '"mt9v032 3-005c":0[SGRBG10
+> >>>>>>>>> 752x480]' ./media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG10 752x480]'
+> >>>>>>>>> ./media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 752x480]'
+> >>>>>>>>> ./media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 752x479]'
+> >>>>>>>>> ./media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 734x471]'
+> >>>>>>>>> ./media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 640x480]'
+> >>>>>>>>> 
+> >>>>>>>>> Hope it helps,
+> >>>>>>>> 
+> >>>>>>>> Thanks, I'll give this a try.
+> >>>>>>>> 
+> >>>>>>>> I assume that your sensor is probably larger than 752x480 (the
+> >>>>>>>> mt9p031 is 2592x1944 raw) and that setting the smaller frame size
+> >>>>>>>> enables some scaling and/or cropping in the driver?
+> >>>>>>> 
+> >>>>>>> The mt9v034 is a wide VGA 752x480 sensor if I'm not mistaken. You
+> >>>>>>> should modify the resolutions in the above commands according to
+> >>>>>>> your sensor. Note that the CCDC crops online line when outputting
+> >>>>>>> data to the preview engine, and that the preview engine crops 18
+> >>>>>>> columsn and 8 lines. You can then scale the image by modifying the
+> >>>>>>> resizer output size.
+> >>>>>> 
+> >>>>>> Thanks.  After much trial and error (and some kernel printks to
+> >>>>>> 
+> >>>>>> understand what parameters were failing), I came up with this 
+sequence:
+> >>>>>>       media-ctl -r
+> >>>>>>       media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+> >>>>>>       media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+> >>>>>>       media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+> >>>>>>       media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
+> >>>>>>       output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12
+> >>>>>>       2592x1944]' media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG12
+> >>>>>>       2592x1944]'
+> >>>>>>       media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG12 2592x1944]'
+> >>>>>>       media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG12 2592x1943]'
+> >>>>>>       media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
+> >>>>>>       media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 642x483]'
+> >>>>>> 
+> >>>>>> When I tried to grab though, I got this:
+> >>>>>> 
+> >>>>>> # yavta --capture=4 -f YUYV -s 642x483 -F /dev/video6
+> >>>>>> Device /dev/video6 opened.
+> >>>>>> Device `OMAP3 ISP resizer output' on `media' is a video capture
+> >>>>>> device. Video format set: YUYV (56595559) 642x483 buffer size 633696
+> >>>>>> Video format: YUYV (56595559) 642x483 buffer size 633696
+> >>>>>> 8 buffers requested.
+> >>>>>> length: 633696 offset: 0
+> >>>>>> Buffer 0 mapped at address 0x4028c000.
+> >>>>>> length: 633696 offset: 634880
+> >>>>>> Buffer 1 mapped at address 0x403d0000.
+> >>>>>> length: 633696 offset: 1269760
+> >>>>>> Buffer 2 mapped at address 0x404b3000.
+> >>>>>> length: 633696 offset: 1904640
+> >>>>>> Buffer 3 mapped at address 0x4062b000.
+> >>>>>> length: 633696 offset: 2539520
+> >>>>>> Buffer 4 mapped at address 0x406d6000.
+> >>>>>> length: 633696 offset: 3174400
+> >>>>>> Buffer 5 mapped at address 0x40821000.
+> >>>>>> length: 633696 offset: 3809280
+> >>>>>> Buffer 6 mapped at address 0x4097c000.
+> >>>>>> length: 633696 offset: 4444160
+> >>>>>> Buffer 7 mapped at address 0x40adf000.
+> >>>>>> 
+> >>>>>> Unable to handle kernel NULL pointer dereference at virtual address
+> >>>>>> 00000018
+> >>>>> 
+> >>>>> Ouch :-(
+> >>>>> 
+> >>>>> Could you please verify that arch/arm/mach-omap2/board-overo.c
+> >>>>> includes the following code, and that CONFIG_OMAP_MUX is enabled ?
+> >>>> 
+> >>>> I'm not using an Overo board - rather one of our own internal designs.
+> >>> 
+> >>> My bad, sorry.
+> >>> 
+> >>>> I have verified that the pull up/down on those pins is disabled.
+> >>>> 
+> >>>> The failure is coming from this code in ispccdc.c
+> >>>> 
+> >>>>      static void ccdc_hs_vs_isr(struct isp_ccdc_device *ccdc)
+> >>>>      {
+> >>>> 	  
+> >>>> 	  struct isp_pipeline *pipe =
+> >>>> 		
+> >>>> 		to_isp_pipeline(&ccdc->video_out.video.entity);
+> >>>> 
+> >>>> The value of pipe is NULL which leads to the failure.
+> >>>> 
+> >>>> Questions:
+> >>>> * I assume that getting HS/VS interrupts is correct in this mode?
+> >>>> * Why is the statement not written (as all others are)
+> >>>> 
+> >>>> 	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
+> >>>> 	
+> >>>>      I tried this change and the kernel doesn't crash.
+> >>>> 
+> >>>> I've found that I can get raw frames out of CCDC, but I don't get
+> >>>> anything at all when the output continues through the preview and/or
+> >>>> resize nodes.
+> >>>> 
+> >>>> Ideas?
+> >>> 
+> >>> I'm really puzzled, this should have been caught much earlier :-)
+> >>> 
+> >>> Your analysis makes sense. Would you like to submit a patch yourself ?
+> >>> If not I can do it.
+> >> 
+> >> Sure, I can submit a patch. I would like to figure out why it's not
+> >> working first.
+> > 
+> > Oops, I've overlooked that, sorry.
+> > 
+> >> Any ideas how I can debug this? I can't seem to get anything past the
+> >> CCDC, e.g. into the preview or resize units. Is there some way to trace
+> >> packets/data through the various stages? Any ideas what might cause it
+> >> to stall?
+> > 
+> > How have you configured your pipeline ? Can you try tracing the preview
+> > engine and/or resizer interrupts ?
+> 
+> Here's my pipeline:
+>    media-ctl -r
+>    media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+>    media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>    media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+>    media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+>    media-ctl -f '"mt9p031 3-005d":0[SGRBG12 2592x1944]'
+>    media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG10 2592x1944]'
+>    media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
+>    media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
+>    media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
+>    media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 642x483]'
+> The full media-ctl dump is at http://www.mlbassoc.com/misc/pipeline.out
+> 
+> When I try to grab from /dev/video6 (output node of resizer), I see
+> only previewer interrupts, no resizer interrrupts.  I added a simple
+> printk at each of the previewer/resizer *_isr functions, and I only
+> ever see this one:
+>    omap3isp_preview_isr_frame_sync.1373
+> 
+> Can you give me an overview of what events/interrupts should occur so
+> I can try to trace through the ISP to see where it is failing?
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 3bc5ee8..a978b88 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3329,6 +3329,16 @@ interface and may change in the future.</para>
- 		  <entry>The short circuit protection of the flash
- 		  controller has been triggered.</entry>
- 		</row>
-+		<row>
-+		  <entry><constant>V4L2_FLASH_FAULT_OVER_CURRENT</constant></entry>
-+		  <entry>Current in the LED power supply has exceeded the limit
-+		  specific to the flash controller.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_FLASH_FAULT_INDICATOR</constant></entry>
-+		  <entry>The flash controller has detected a short or open
-+		  circuit condition on the indicator LED.</entry>
-+		</row>
- 	      </tbody>
- 	    </entrytbl>
- 	  </row>
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 4b752d5..3d62631 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1682,6 +1682,8 @@ enum v4l2_flash_strobe_source {
- #define V4L2_FLASH_FAULT_TIMEOUT		(1 << 1)
- #define V4L2_FLASH_FAULT_OVER_TEMPERATURE	(1 << 2)
- #define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
-+#define V4L2_FLASH_FAULT_OVER_CURRENT		(1 << 4)
-+#define V4L2_FLASH_FAULT_INDICATOR		(1 << 5)
- 
- #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
- #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
+The CCDC generates VD0, VD1 and HS/VS interrupts regardless of whether it 
+processes video or not, as long as it receives a video stream at its input. 
+The preview engine and resizer will only generate an interrupt after writing 
+an image to memory. With your above configuration VD0, VD1, HS/VS and resizer 
+interrupts should be generated.
+
+Your pipeline configuration looks correct, except that the downscaling factor 
+is slightly larger than 4. Could you try to setup the resizer to output a 
+2574x1935 image instead of 642x483 ? If that works, try to downscale to 
+660x496. If that works as well, the driver should be fixed to disallow 
+resolutions that won't work.
+
 -- 
-1.7.3.4
+Regards,
 
+Laurent Pinchart
