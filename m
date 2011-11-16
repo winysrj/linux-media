@@ -1,90 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:61319 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751247Ab1KHRla (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 12:41:30 -0500
-Date: Tue, 8 Nov 2011 18:42:27 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: "Clark, Rob" <rob@ti.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	linux@arm.linux.org.uk, arnd@arndb.de, jesse.barker@linaro.org,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: Re: [RFC 1/2] dma-buf: Introduce dma buffer sharing mechanismch
-Message-ID: <20111108174122.GA4754@phenom.ffwll.local>
-References: <1318325033-32688-1-git-send-email-sumit.semwal@ti.com>
- <1318325033-32688-2-git-send-email-sumit.semwal@ti.com>
- <4E98085A.8080803@samsung.com>
- <20111014152139.GA2908@phenom.ffwll.local>
- <000001cc99ff$47cfe960$d76fbc20$%szyprowski@samsung.com>
- <CAO8GWqnNMGwADVnO4-RfJu0TPzHhANBdyctv2RyhCxbBJ0beXw@mail.gmail.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:55060 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752018Ab1KPUNr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Nov 2011 15:13:47 -0500
+Message-ID: <4EC41978.1020309@iki.fi>
+Date: Wed, 16 Nov 2011 22:13:44 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAO8GWqnNMGwADVnO4-RfJu0TPzHhANBdyctv2RyhCxbBJ0beXw@mail.gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/4] Miscellaneous omap3-isp patches
+References: <1321474006-24589-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1321474006-24589-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 08, 2011 at 10:59:56AM -0600, Clark, Rob wrote:
-> On Thu, Nov 3, 2011 at 3:04 AM, Marek Szyprowski
-> > 2. dma-mapping api is very limited in the area of the dynamic buffer management,
-> > this API has been designed definitely for static buffer allocation and mapping.
-> >
-> > It looks that fully dynamic buffer management requires a complete change of
-> > v4l2 api principles (V4L3?) and a completely new DMA API interface. That's
-> > probably the reason by none of the GPU driver relies on the DMA-mapping API
-> > and implements custom solution for managing the mappings.
-> >
-> > This reminds me one more issue I've noticed in the current dma buf proof-of-
-> > concept. You assumed that the exporter will be responsible for mapping the
-> > buffer into io address space of all the client devices. What if the device
-> > needs additional custom hooks/hacks during the mappings? This will be a serious
-> > problem for the current GPU drivers for example. IMHO the API will be much
-> > clearer if each client driver will map the scatter list gathered from the
-> > dma buf by itself. Only the client driver has the complete knowledge how
-> > to do this correctly for this particular device. This way it will also work
-> > with devices that don't do the real DMA (like for example USB devices that
-> > copy all data from usb packets to the target buffer with the cpu).
-> 
-> The exporter doesn't map.. it returns a scatterlist to the importer.
-> But the exporter does allocate and pin backing pages.  And it is
-> preferable if the exporter has the opportunity to wait until as much
-> is known about the various importing devices to know if it must
-> allocate contiguous pages, or pages in a certain range.
+Laurent Pinchart wrote:
+> Hi everybody,
+>
+> The subject says it all. Two of the patches fix crashes, while the other two
+> are minor modifications with no impact on the compiled code. I'll push them
+> for v3.3.
+>
+> Laurent Pinchart (4):
+>    omap3isp: preview: Rename max output sizes defines
+>    omap3isp: ccdc: Fix crash in HS/VS interrupt handler
+>    omap3isp: Fix crash caused by subdevs now having a pointer to
+>      devnodes
+>    omap3isp: Clarify the clk_pol field in platform data
+>
+>   drivers/media/video/omap3isp/ispccdc.c    |    5 ++---
+>   drivers/media/video/omap3isp/isppreview.c |   16 ++++++++--------
+>   drivers/media/video/omap3isp/ispstat.c    |    2 +-
+>   include/media/omap3isp.h                  |    2 +-
+>   4 files changed, 12 insertions(+), 13 deletions(-)
 
-Actually I think the importer should get a _mapped_ scatterlist when it
-calls get_scatterlist. The simple reason is that for strange stuff like
-memory remapped into e.g. omaps TILER doesn't have any sensible notion of
-an address in physical memory. For the USB-example I think the right
-approach is to attach the usb hci to the dma_buf, after all that is the
-device that will read the data and move over the usb bus to the udl
-device. Similar for any other device that sits behind a bus that can't do
-dma (or it doesn't make sense to do dma).
+Thanks, Laurent!
 
-Imo if there's a use-case where the client needs to frob the sg_list
-before calling dma_map_sg, we have an issue with the dma subsystem in
-general.
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-> That said, on a platform where everything had iommu's or somehow
-> didn't have any particular memory requirements, or where the exporter
-> had the strictest requirements (or at least knew of the strictest
-> requirements), then the exporter is free to allocate/pin the backing
-> pages earlier, such as even before the buffer is exported.
-
-Yeah, I think the important thing is that the dma_buf api should allow
-decent buffer management. If certain subsystems ignore that and just
-allocate up-front, no problem for me. But given how all graphics drivers
-for essentially all OS have moved to dynamic buffer management, I expect
-decoders, encoders, v4l devices and whatever else might sit in a graphics
-pipeline to follow.
-
-Yours, Daniel
 -- 
-Daniel Vetter
-Mail: daniel@ffwll.ch
-Mobile: +41 (0)79 365 57 48
+Sakari Ailus
+sakari.ailus@iki.fi
