@@ -1,59 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:55611 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756489Ab1KWPXj (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48462 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755394Ab1KPKcl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Nov 2011 10:23:39 -0500
-Received: by bke11 with SMTP id 11so1706818bke.19
-        for <linux-media@vger.kernel.org>; Wed, 23 Nov 2011 07:23:38 -0800 (PST)
+	Wed, 16 Nov 2011 05:32:41 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 2/9] as3645a: print vendor and revision of the chip
+Date: Wed, 16 Nov 2011 11:32:43 +0100
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1321374065-20063-3-git-send-email-laurent.pinchart@ideasonboard.com> <cover.1321379276.git.andriy.shevchenko@linux.intel.com> <461cc7fb0ff5b466b2a53b823241c5792ba7900a.1321379276.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <461cc7fb0ff5b466b2a53b823241c5792ba7900a.1321379276.git.andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAOMZO5AEZZEYSMXtXwCw4Qx9sY5hzZmd7t7b4teROntskBmbVQ@mail.gmail.com>
-References: <1322061227-6631-1-git-send-email-javier.martin@vista-silicon.com>
-	<1322061227-6631-3-git-send-email-javier.martin@vista-silicon.com>
-	<CAOMZO5AEZZEYSMXtXwCw4Qx9sY5hzZmd7t7b4teROntskBmbVQ@mail.gmail.com>
-Date: Wed, 23 Nov 2011 16:23:34 +0100
-Message-ID: <CACKLOr15XpqX2f0zjXRJHpj0YjQsU=STkKrTztpqkzdBKUoqtA@mail.gmail.com>
-Subject: Re: [PATCH v3 2/2] MEM2MEM: Add support for eMMa-PrP mem2mem operations.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, shawn.guo@linaro.org,
-	richard.zhao@linaro.org, fabio.estevam@freescale.com,
-	kernel@pengutronix.de, s.hauer@pengutronix.de,
-	r.schwebel@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111161132.48907.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio,
+Hi Andy,
 
-On 23 November 2011 16:19, Fabio Estevam <festevam@gmail.com> wrote:
-> Javier,
->
-> On Wed, Nov 23, 2011 at 1:13 PM, Javier Martin
-> <javier.martin@vista-silicon.com> wrote:
->> Changes since v2:
->> - Use devres to simplify error handling.
->> - Remove unused structures.
->> - Fix clock handling.
->> - Other minor problems.
->
-> It would be better if you put such comments below the --- line.
->
-> For the commit message you can use the one you did for the cover
-> letter (0/2) patch:
+Thanks for the patch.
 
-Thanks that's good advice.
-I assume this is not quite an issue that requires the patch to be sent again.
-Right?
+On Tuesday 15 November 2011 18:49:54 Andy Shevchenko wrote:
+> The as3645a_registered() is used to detect connected chip. It would be nice
+> to print the detected value every time we load the module. The "Vendor" is
+> probably better word to use there. For example, lm3555 (NSC) is slightly
+> different to as3645a.
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/media/video/as3645a.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/as3645a.c b/drivers/media/video/as3645a.c
+> index ef1226d..8882a14 100644
+> --- a/drivers/media/video/as3645a.c
+> +++ b/drivers/media/video/as3645a.c
+> @@ -602,8 +602,8 @@ static int as3645a_registered(struct v4l2_subdev *sd)
+>  		factory = "Unknown";
+>  	}
+> 
+> -	dev_dbg(&client->dev, "Factory: %s(%d) Version: %d\n", factory, man,
+> -		version);
+> +	dev_info(&client->dev, "Chip vendor: %s(%d) Version: %d\n", factory,
+> +			man, version);
+
+I'll rename the factory variable to vendor.
+
+>  	rval = as3645a_write(flash, AS_PASSWORD_REG, AS_PASSWORD_UNLOCK_VALUE);
+>  	if (rval < 0)
 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Regards,
+
+Laurent Pinchart
