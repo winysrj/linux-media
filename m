@@ -1,92 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:50164 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751028Ab1KKRng (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:33358 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753951Ab1KPGxK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Nov 2011 12:43:36 -0500
-Received: by eye27 with SMTP id 27so3587661eye.19
-        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2011 09:43:34 -0800 (PST)
-Date: Fri, 11 Nov 2011 18:43:04 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: PATCH: Query DVB frontend capabilities
-In-Reply-To: <4EBC402E.20208@redhat.com>
-Message-ID: <alpine.DEB.2.01.1111111759060.6676@localhost.localdomain>
-References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com> <4EBBE336.8050501@linuxtv.org> <CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com> <4EBC402E.20208@redhat.com>
+	Wed, 16 Nov 2011 01:53:10 -0500
+Date: Wed, 16 Nov 2011 08:53:06 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	sakari.ailus@maxwell.research.nokia.com
+Subject: Re: [PATCH 0/9] as3645a: set of fixes up
+Message-ID: <20111116065306.GB27021@valkosipuli.localdomain>
+References: <1321374065-20063-3-git-send-email-laurent.pinchart@ideasonboard.com>
+ <cover.1321379276.git.andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1321379276.git.andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Tue, Nov 15, 2011 at 07:49:52PM +0200, Andy Shevchenko wrote:
+> This series incorporates Sakari's comments and couple of fixes from my version
+> of the driver.
+> 
+> Andy Shevchenko (9):
+>   as3645a: mention lm3555 as a clone of that chip
+>   as3645a: print vendor and revision of the chip
+>   as3645a: remove unused code
+>   as3645a: No error, no message.
+>   as3645a: move limits to the platform_data
+>   as3645a: free resources in case of error properly
+>   as3645a: use struct dev_pm_ops
+>   as3645a: use pr_err macro instead of printk KERN_ERR
+>   as3645a: use the same timeout for hw and sw strobes
+> 
+>  drivers/media/video/as3645a.c |   76 ++++++++++++++++++-----------------------
+>  include/media/as3645a.h       |   32 +++++++----------
+>  2 files changed, 46 insertions(+), 62 deletions(-)
 
+Thanks for the patches, Andy!
 
-On Do (Donnerstag) 10.Nov (November) 2011, 22:20,  Mauro Carvalho Chehab wrote:
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-> We should also think on a way to enumerate the supported values for each DVB $
-> the enum fe_caps is not enough anymore to store everything. It currently has $
-> filled (of a total of 32 bits), and we currently have:
-> 	12 code rates (including AUTO/NONE);
-
-I'm probably not looking at the correct source, but the numbers
-seem to match, so I'll just note that in what I'm looking at,
-there are missing the values  1/3  and  2/5 .
-
-But I have to apologise in that I've also not been paying
-attention to this conversation, and haven't even been trying
-to follow recent developments.
-
-
-> 	13 modulation types;
-
-Here I see missing  QAM1024  and  QAM4096 .
-
-
-> 	7 transmission modes;
-> 	7 bandwidths;
-
-Apparently DVB-C2 allows us any bandwidth from 8MHz to 450MHz,
-rather than the discrete values used by the other systems.
-If this is also applicable to other countries with 6MHz rasters,
-would it be necessary in addition to specify carrier spacing,
-either 2,232kHz or 1,674kHz as opposed to getting this from the
-channel bandwidth?
-
-
-> 	8 guard intervals (including AUTO);
-
-Here I observe the absence of  1/64 .
-
-
-> 	5 hierarchy names;
-> 	4 rolloff's (probably, we'll need to add 2 more, to distinguish between$
-
-
-Of course, I'm just pointing out what I find, as I really don't
-know anything about the transport systems, and someone who 
-actually does might be able to say more, and correct my errors.
-
-So just ignore me -- I'd rather see these values added sooner
-than later if needed.  Apparently the broadcasts from Borups
-Allé scheduled to start sometime around now will be switching
-over to use those mentioned to test their increased robustness.
-
-
-thanks,
-barry bouwsma
-
-
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Key found at http://vax.chrillesen.dk/~barry/gpg.key
-Comment: Anständige Signaturen und Verschlüsselung gibt es nur mit GNUpg
-Comment: und nicht mit De-Mail.
-
-iEYEARECAAYFAk69XqgACgkQPTWIZbDoOFfp0gCcDOxKlVrjbfGtEMLqNZ/Jkqkk
-ngsAn3hoMOF5rPkqzZKD2QnDTifA2+of
-=vN6k
------END PGP SIGNATURE-----
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
