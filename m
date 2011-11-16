@@ -1,116 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57498 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753315Ab1KIM34 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2011 07:29:56 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id pA9CTqaY028319
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 9 Nov 2011 06:29:55 -0600
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Taneja, Archit" <archit@ti.com>
-Subject: RE: [PATCH] omap_vout: fix section mismatch
-Date: Wed, 9 Nov 2011 12:29:48 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A80283FC@DBDE01.ent.ti.com>
-References: <1320745628-20603-1-git-send-email-tomi.valkeinen@ti.com>
-	 <79CD15C6BA57404B839C016229A409A802693C@DBDE01.ent.ti.com>
- <1320765839.1907.55.camel@deskari>
-In-Reply-To: <1320765839.1907.55.camel@deskari>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from ffm.saftware.de ([83.141.3.46]:35089 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752678Ab1KPPHE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Nov 2011 10:07:04 -0500
+Message-ID: <4EC3D18A.1060402@linuxtv.org>
+Date: Wed, 16 Nov 2011 16:06:50 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org, TerraTux@terratec.de
+Subject: [PATCH] em28xx: Add Terratec Cinergy HTC Stick
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+- Can receive DVB-C and DVB-T. No analogue television or radio yet.
+- For now it's a copy of the Terratec H5 code with a different name.
 
-> -----Original Message-----
-> From: Valkeinen, Tomi
-> Sent: Tuesday, November 08, 2011 8:54 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-media@vger.kernel.org; Taneja, Archit
-> Subject: RE: [PATCH] omap_vout: fix section mismatch
-> 
-> On Tue, 2011-11-08 at 15:15 +0000, Hiremath, Vaibhav wrote:
-> 
-> > I am not sure whether you had tested it, but kernel doesn't boot with
-> V4L2 display enabled in defconfig. I have patch to fix this, will submit
-> shortly -
-> >
-> >
-> > diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c
-> > index 9c5c19f..9031c39 100644
-> > --- a/drivers/media/video/omap/omap_vout.c
-> > +++ b/drivers/media/video/omap/omap_vout.c
-> > @@ -2140,6 +2140,8 @@ static int omap_vout_remove(struct platform_device
-> *pdev)
-> >                 omap_vout_cleanup_device(vid_dev->vouts[k]);
-> >
-> >         for (k = 0; k < vid_dev->num_displays; k++) {
-> > +               if (!vid_dev->displays[k] && !vid_dev->displays[k]-
-> >driver)
-> > +                       continue;
-> >                 if (vid_dev->displays[k]->state !=
-> OMAP_DSS_DISPLAY_DISABLED)
-> >                         vid_dev->displays[k]->driver->disable(vid_dev-
-> >displays[k]);
-> >
-> > @@ -2226,7 +2228,7 @@ static int __init omap_vout_probe(struct
-> platform_device *pdev)
-> >         for (i = 0; i < vid_dev->num_displays; i++) {
-> >                 struct omap_dss_device *display = vid_dev->displays[i];
-> >
-> > -               if (display->driver->update)
-> > +               if (display && display->driver && display->driver-
-> >update)
-> >                         display->driver->update(display, 0, 0,
-> >                                         display->panel.timings.x_res,
-> >                                         display->panel.timings.y_res);
-> >
-> >
-> > Reason being,
-> >
-> > If you have enabled certain device and fail to enable in defconfig, this
-> will lead to kernel crash in omap_vout driver.
-> 
-> Hmm, I didn't quite understand the explanation. But now that you mention
-> this, I did have the following patch in one of my work trees, but I seem
-> to have forgotten to post it.
-> 
-> It fixes the case where a display device defined in the board file
-> doesn't have a driver loaded. I guess this is the same problem you
-> mention? Is my patch fixing the same problem?
-> 
-> diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c
-> index 30d8896..18fe02f 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -2159,6 +2159,14 @@ static int __init omap_vout_probe(struct
-> platform_device *pdev)
->         vid_dev->num_displays = 0;
->         for_each_dss_dev(dssdev) {
->                 omap_dss_get_device(dssdev);
-> +
-> +               if (!dssdev->driver) {
-> +                       dev_warn(&pdev->dev, "no driver for display: %s\n",
-> +                                       dssdev->name);
-> +                       omap_dss_put_device(dssdev);
-> +                       continue;
-> +               }
-> +
->                 vid_dev->displays[vid_dev->num_displays++] = dssdev;
->         }
-> 
+Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+---
+ linux/drivers/media/video/em28xx/em28xx-cards.c |   15 +++++++++++++++
+ linux/drivers/media/video/em28xx/em28xx-dvb.c   |    1 +
+ linux/drivers/media/video/em28xx/em28xx.h       |    1 +
+ 3 files changed, 17 insertions(+), 0 deletions(-)
 
-Can you submit the patch? I have tested this and it works for me.
-
-Thanks,
-Vaibhav
-
-
->  Tomi
-
+diff --git a/linux/drivers/media/video/em28xx/em28xx-cards.c b/linux/drivers/media/video/em28xx/em28xx-cards.c
+index 9b747c2..03322d0 100644
+--- a/linux/drivers/media/video/em28xx/em28xx-cards.c
++++ b/linux/drivers/media/video/em28xx/em28xx-cards.c
+@@ -892,6 +892,19 @@ struct em28xx_board em28xx_boards[] = {
+ 				EM28XX_I2C_CLK_WAIT_ENABLE |
+ 				EM28XX_I2C_FREQ_400_KHZ,
+ 	},
++	[EM2884_BOARD_CINERGY_HTC_STICK] = {
++		.name         = "Terratec Cinergy HTC Stick",
++		.has_dvb      = 1,
++#if 0
++		.tuner_type   = TUNER_PHILIPS_TDA8290,
++		.tuner_addr   = 0x41,
++		.dvb_gpio     = terratec_h5_digital, /* FIXME: probably wrong */
++		.tuner_gpio   = terratec_h5_gpio,
++#endif
++		.i2c_speed    = EM2874_I2C_SECONDARY_BUS_SELECT |
++				EM28XX_I2C_CLK_WAIT_ENABLE |
++				EM28XX_I2C_FREQ_400_KHZ,
++	},
+ 	[EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900] = {
+ 		.name         = "Hauppauge WinTV HVR 900",
+ 		.tda9887_conf = TDA9887_PRESENT,
+@@ -1925,6 +1938,8 @@ struct usb_device_id em28xx_id_table[] = {
+ 			.driver_info = EM2860_BOARD_TERRATEC_GRABBY },
+ 	{ USB_DEVICE(0x0ccd, 0x10AF),
+ 			.driver_info = EM2860_BOARD_TERRATEC_GRABBY },
++	{ USB_DEVICE(0x0ccd, 0x00b2),
++			.driver_info = EM2884_BOARD_CINERGY_HTC_STICK },
+ 	{ USB_DEVICE(0x0fd9, 0x0033),
+ 			.driver_info = EM2860_BOARD_ELGATO_VIDEO_CAPTURE},
+ 	{ USB_DEVICE(0x185b, 0x2870),
+diff --git a/linux/drivers/media/video/em28xx/em28xx-dvb.c b/linux/drivers/media/video/em28xx/em28xx-dvb.c
+index cef7a2d..270cb98 100644
+--- a/linux/drivers/media/video/em28xx/em28xx-dvb.c
++++ b/linux/drivers/media/video/em28xx/em28xx-dvb.c
+@@ -789,6 +789,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 		}
+ 		break;
+ 	case EM2884_BOARD_TERRATEC_H5:
++	case EM2884_BOARD_CINERGY_HTC_STICK:
+ 		terratec_h5_init(dev);
+ 
+ 		dvb->dont_attach_fe1 = 1;
+diff --git a/linux/drivers/media/video/em28xx/em28xx.h b/linux/drivers/media/video/em28xx/em28xx.h
+index 2a2cb7e..5d763f7 100644
+--- a/linux/drivers/media/video/em28xx/em28xx.h
++++ b/linux/drivers/media/video/em28xx/em28xx.h
+@@ -121,6 +121,7 @@
+ #define EM28174_BOARD_PCTV_290E                   78
+ #define EM2884_BOARD_TERRATEC_H5		  79
+ #define EM28174_BOARD_PCTV_460E                   80
++#define EM2884_BOARD_CINERGY_HTC_STICK		  81
+ 
+ /* Limits minimum and default number of buffers */
+ #define EM28XX_MIN_BUF 4
