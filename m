@@ -1,59 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:43385 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753194Ab1KHMUN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 07:20:13 -0500
-Message-ID: <4EB91E7C.4050302@mlbassoc.com>
-Date: Tue, 08 Nov 2011 05:20:12 -0700
-From: Gary Thomas <gary@mlbassoc.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Using MT9P031 digital sensor
-References: <4EB04001.9050803@mlbassoc.com> <201111041137.08254.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201111041137.08254.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:52342 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753077Ab1KPFxe convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Nov 2011 00:53:34 -0500
+Message-ID: <1321422805.2885.54.camel@deadeye>
+Subject: [PATCH 3/5] staging: lirc_serial: Fix deadlock on resume failure
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Date: Wed, 16 Nov 2011 05:53:25 +0000
+In-Reply-To: <1321422581.2885.50.camel@deadeye>
+References: <1321422581.2885.50.camel@deadeye>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2011-11-04 04:37, Laurent Pinchart wrote:
-> Hi Gary,
->
-> On Tuesday 01 November 2011 19:52:49 Gary Thomas wrote:
->> I'm trying to use the MT9P031 digital sensor with the Media Controller
->> Framework.  media-ctl tells me that the sensor is set to capture using
->> SGRBG12  2592x1944
->>
->> Questions:
->> * What pixel format in ffmpeg does this correspond to?
->
-> I don't know if ffmpeg supports Bayer formats. The corresponding fourcc in
-> V4L2 is BA12.
+A resume function cannot remove the device it is resuming!
 
-ffmpeg doesn't seem to support these formats
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+I haven't seen any report of this deadlock, but it seems pretty obvious.
 
->
-> If your sensor is hooked up to the OMAP3 ISP, you can then configure the
-> pipeline to include the preview engine and the resizer, and capture YUV data
-> at the resizer output.
+Ben.
 
-I am using the OMAP3 ISP, but it's a bit unclear to me how to set up the pipeline
-using media-ctl (I looked for documentation on this tool, but came up dry - is there any?)
+ drivers/staging/media/lirc/lirc_serial.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
-Do you have an example of how to configure this using the OMAP3 ISP?
-
->
->> * Can I zoom/crop with this driver using the MCF?  If so, how?
->
-> That depends on what host/bridge you use. The OMAP3 ISP has scaling
-> capabilities (controller by the crop rectangle at the resizer input and the
-> format at the resizer output), others might not.
-
-Thanks
-
+diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
+index d833772..befe626 100644
+--- a/drivers/staging/media/lirc/lirc_serial.c
++++ b/drivers/staging/media/lirc/lirc_serial.c
+@@ -1127,10 +1127,8 @@ static int lirc_serial_resume(struct platform_device *dev)
+ {
+ 	unsigned long flags;
+ 
+-	if (hardware_init_port() < 0) {
+-		lirc_serial_exit();
++	if (hardware_init_port() < 0)
+ 		return -EINVAL;
+-	}
+ 
+ 	spin_lock_irqsave(&hardware[type].lock, flags);
+ 	/* Enable Interrupt */
 -- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+1.7.7.2
+
+
+
