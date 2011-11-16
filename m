@@ -1,44 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www17.your-server.de ([213.133.104.17]:48445 "EHLO
-	www17.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757090Ab1KRJ11 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Nov 2011 04:27:27 -0500
-Subject: [PATCH] [media] drxd: Use kmemdup rather than duplicating its
- implementation
-From: Thomas Meyer <thomas@m3y3r.de>
-To: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:52332 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753077Ab1KPFwT convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Nov 2011 00:52:19 -0500
+Message-ID: <1321422731.2885.52.camel@deadeye>
+Subject: [PATCH 2/5] staging: lirc_serial: Free resources on failure paths
+ of lirc_serial_probe()
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Torsten Crass <torsten.crass@eBiology.de>
+Date: Wed, 16 Nov 2011 05:52:11 +0000
+In-Reply-To: <1321422581.2885.50.camel@deadeye>
+References: <1321422581.2885.50.camel@deadeye>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Mime-Version: 1.0
-Date: Thu, 17 Nov 2011 23:43:40 +0100
-Message-ID: <1321569820.1624.283.camel@localhost.localdomain>
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The semantic patch that makes this change is available
-in scripts/coccinelle/api/memdup.cocci.
+Failure to allocate the I/O region leaves the IRQ allocated.
+A later failure leaves them both allocated.
 
-Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+Reported-by: Torsten Crass <torsten.crass@eBiology.de>
+References: http://bugs.debian.org/645811
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
+ drivers/staging/media/lirc/lirc_serial.c |   19 ++++++++++++++++---
+ 1 files changed, 16 insertions(+), 3 deletions(-)
 
-diff -u -p a/drivers/media/dvb/frontends/drxd_hard.c b/drivers/media/dvb/frontends/drxd_hard.c
---- a/drivers/media/dvb/frontends/drxd_hard.c 2011-11-07 19:37:48.623295422 +0100
-+++ b/drivers/media/dvb/frontends/drxd_hard.c 2011-11-08 10:48:49.317800208 +0100
-@@ -914,14 +914,13 @@ static int load_firmware(struct drxd_sta
- 		return -EIO;
+diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
+index 8637631..d833772 100644
+--- a/drivers/staging/media/lirc/lirc_serial.c
++++ b/drivers/staging/media/lirc/lirc_serial.c
+@@ -875,11 +875,14 @@ static int __devinit lirc_serial_probe(struct platform_device *dev)
+ 		       ": or compile the serial port driver as module and\n");
+ 		printk(KERN_WARNING LIRC_DRIVER_NAME
+ 		       ": make sure this module is loaded first\n");
+-		return -EBUSY;
++		result = -EBUSY;
++		goto exit_free_irq;
  	}
  
--	state->microcode = kmalloc(fw->size, GFP_KERNEL);
-+	state->microcode = kmemdup(fw->data, fw->size, GFP_KERNEL);
- 	if (state->microcode == NULL) {
- 		release_firmware(fw);
- 		printk(KERN_ERR "drxd: firmware load failure: no memory\n");
- 		return -ENOMEM;
- 	}
+-	if (hardware_init_port() < 0)
+-		return -EINVAL;
++	if (hardware_init_port() < 0) {
++		result = -EINVAL;
++		goto exit_release_region;
++	}
  
--	memcpy(state->microcode, fw->data, fw->size);
- 	state->microcode_length = fw->size;
- 	release_firmware(fw);
+ 	/* Initialize pulse/space widths */
+ 	init_timing_params(duty_cycle, freq);
+@@ -911,6 +914,16 @@ static int __devinit lirc_serial_probe(struct platform_device *dev)
+ 
+ 	dprintk("Interrupt %d, port %04x obtained\n", irq, io);
  	return 0;
++
++exit_release_region:
++	if (iommap != 0)
++		release_mem_region(iommap, 8 << ioshift);
++	else
++		release_region(io, 8);
++exit_free_irq:
++	free_irq(irq, (void *)&hardware);
++
++	return result;
+ }
+ 
+ static int __devexit lirc_serial_remove(struct platform_device *dev)
+-- 
+1.7.7.2
+
+
+
