@@ -1,66 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51930 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751651Ab1KLSsX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Nov 2011 13:48:23 -0500
-Message-ID: <4EBEBF74.2030008@iki.fi>
-Date: Sat, 12 Nov 2011 20:48:20 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42092 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755394Ab1KPKhp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Nov 2011 05:37:45 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 6/9] as3645a: free resources in case of error properly
+Date: Wed, 16 Nov 2011 11:37:52 +0100
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1321374065-20063-3-git-send-email-laurent.pinchart@ideasonboard.com> <cover.1321379276.git.andriy.shevchenko@linux.intel.com> <20ff3c96498a0e9e0a1c1d09690fbbf6a59bee15.1321379276.git.andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20ff3c96498a0e9e0a1c1d09690fbbf6a59bee15.1321379276.git.andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/7] af9015 Slow down download firmware
-References: <4ebe96cb.85c7e30a.27d9.ffff9098@mx.google.com>	 <4EBE9B54.9050202@iki.fi> <4ebeb688.aa6db40a.5f99.ffffb173@mx.google.com>
-In-Reply-To: <4ebeb688.aa6db40a.5f99.ffffb173@mx.google.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111161137.54083.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/12/2011 08:10 PM, Malcolm Priestley wrote:
-> On Sat, 2011-11-12 at 18:14 +0200, Antti Palosaari wrote:
->> On 11/12/2011 05:54 PM, Malcolm Priestley wrote:
->>> It is noticed that sometimes the device fails to download parts of the firmware.
->>>
->>> Since there is no ack from firmware write a 250u second delay has been added.
->>>
->>> Signed-off-by: Malcolm Priestley<tvboxspy@gmail.com>
->>> ---
->>>    drivers/media/dvb/dvb-usb/af9015.c |    1 +
->>>    1 files changed, 1 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
->>> index c6c275b..dc6e4ec 100644
->>> --- a/drivers/media/dvb/dvb-usb/af9015.c
->>> +++ b/drivers/media/dvb/dvb-usb/af9015.c
->>> @@ -698,6 +698,7 @@ static int af9015_download_firmware(struct usb_device *udev,
->>>    			err("firmware download failed:%d", ret);
->>>    			goto error;
->>>    		}
->>> +		udelay(250);
->>>    	}
->>>
->>>    	/* firmware loaded, request boot */
->>
->> That sleep is not critical as all, so defining it as udelay() is wrong
->> in my understanding. Refer Kernel documentation about delays.
->
-> So we just go faster and faster, without acknowledgements and  due
-> respect for the hardware?
->
-> Typical download time is about 100ms, download on some systems was less
-> than 50ms and failing.
->
-> A 250uS wait brought the time back up to arround 100ms.
+Hi Andy,
 
-I said you should not use udelay() since that sleep is not critical. 
-udelay() have bad effect in system level. You didn't looked 
-documentation as I asked, here it is: 
-Documentation/timers/timers-howto.txt . I think usleep_range() is 
-correct function.
+Thanks for the patch.
 
-Antti
+On Tuesday 15 November 2011 18:49:58 Andy Shevchenko wrote:
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/media/video/as3645a.c |   23 ++++++++++++-----------
+>  1 files changed, 12 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/video/as3645a.c b/drivers/media/video/as3645a.c
+> index 541f8bc..9aebaa2 100644
+> --- a/drivers/media/video/as3645a.c
+> +++ b/drivers/media/video/as3645a.c
+> @@ -800,11 +800,13 @@ static int as3645a_probe(struct i2c_client *client,
+>  	flash->subdev.internal_ops = &as3645a_internal_ops;
+>  	flash->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> 
+> +	ret = as3645a_init_controls(flash);
+> +	if (ret < 0)
+> +		goto free_and_quit;
+> +
+>  	ret = media_entity_init(&flash->subdev.entity, 0, NULL, 0);
+> -	if (ret < 0) {
+> -		kfree(flash);
+> -		return ret;
+> -	}
+> +	if (ret < 0)
+> +		goto free_and_quit;
+> 
+>  	flash->subdev.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
+> 
+> @@ -812,13 +814,12 @@ static int as3645a_probe(struct i2c_client *client,
+> 
+>  	flash->led_mode = V4L2_FLASH_LED_MODE_NONE;
+> 
+> -	ret = as3645a_init_controls(flash);
+> -	if (ret < 0) {
+> -		kfree(flash);
+> -		return ret;
+> -	}
+> -
 
+Would you mind if I replace this code below
+
+>  	return 0;
+> +
+> +free_and_quit:
+> +	v4l2_ctrl_handler_free(&flash->ctrls);
+> +	kfree(flash);
+> +	return ret;
+
+with
+
+done:
+	if (ret < 0) {
+		v4l2_ctrl_handler_free(&flash->ctrls);
+		kfree(flash);
+	}
+
+	return ret;
+
+>  }
+> 
+>  static int __exit as3645a_remove(struct i2c_client *client)
+> @@ -828,7 +829,7 @@ static int __exit as3645a_remove(struct i2c_client
+> *client)
+> 
+>  	v4l2_device_unregister_subdev(subdev);
+>  	v4l2_ctrl_handler_free(&flash->ctrls);
+> -
+> +	media_entity_cleanup(&flash->subdev.entity);
+>  	kfree(flash);
+> 
+>  	return 0;
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
