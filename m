@@ -1,83 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:58813 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750795Ab1K0G7b convert rfc822-to-8bit (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:31885 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751765Ab1KPTWe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Nov 2011 01:59:31 -0500
-MIME-Version: 1.0
-In-Reply-To: <CAKMK7uE14gOsTUYZknmSArkzG2zSSbpDeU0dxqAtLVUmvh-5bA@mail.gmail.com>
-References: <1318325033-32688-1-git-send-email-sumit.semwal@ti.com>
-	<1318325033-32688-2-git-send-email-sumit.semwal@ti.com>
-	<CAPM=9tzjO7poyz_uYFFgONxzuTB86kKej8f2XBDHLGdUPZHvjg@mail.gmail.com>
-	<CAPM=9txtWiQuF+jNZXDogCMy+nsM=00Bv3uxAiu5oKnn-KxjAA@mail.gmail.com>
-	<CAKMK7uE14gOsTUYZknmSArkzG2zSSbpDeU0dxqAtLVUmvh-5bA@mail.gmail.com>
-Date: Sun, 27 Nov 2011 00:59:30 -0600
-Message-ID: <CAF6AEGtgjjtVraeji09zKJSTmokmQqfk5S8LfHoMhHJY03dLkg@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFC 1/2] dma-buf: Introduce dma buffer sharing mechanism
-From: Rob Clark <robdclark@gmail.com>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Dave Airlie <airlied@gmail.com>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	linux@arm.linux.org.uk, arnd@arndb.de, jesse.barker@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 16 Nov 2011 14:22:34 -0500
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LUR002TVPTKE6@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 16 Nov 2011 19:22:32 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LUR00B5DPTKZ9@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 16 Nov 2011 19:22:32 +0000 (GMT)
+Date: Wed, 16 Nov 2011 20:22:28 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH] media: vb2: fix queueing of userptr buffers with null buffer
+ pointer
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>
+Message-id: <1321471348-11567-1-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 26, 2011 at 8:00 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> On Fri, Nov 25, 2011 at 17:28, Dave Airlie <airlied@gmail.com> wrote:
->> I've rebuilt my PRIME interface on top of dmabuf to see how it would work,
->>
->> I've got primed gears running again on top, but I expect all my object
->> lifetime and memory ownership rules need fixing up (i.e. leaks like a
->> sieve).
->>
->> http://cgit.freedesktop.org/~airlied/linux/log/?h=drm-prime-dmabuf
->>
->> has the i915/nouveau patches for the kernel to produce the prime interface.
->
-> I've noticed that your implementations for get_scatterlist (at least
-> for the i915 driver) doesn't return the sg table mapped into the
-> device address space. I've checked and the documentation makes it
-> clear that this should be the case (and we really need this to support
-> certain insane hw), but the get/put_scatterlist names are a bit
-> misleading. Proposal:
->
-> - use struct sg_table instead of scatterlist like you've already done
-> in you branch. Simply more consistent with the dma api.
+Heuristic that checks if the memory pointer has been changed lacked a check
+if the pointer was actually provided by the userspace, what allowed one to
+queue a NULL pointer which was accepted without further checking. This
+patch fixes this issue.
 
-yup
+Reported-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/video/videobuf2-core.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-> - rename get/put_scatterlist into map/unmap for consistency with all
-> the map/unmap dma api functions. The attachement would then serve as
-> the abstract cookie to the backing storage, similar to how struct page
-> * works as an abstract cookie for dma_map/unmap_page. The only special
-> thing is that struct device * parameter because that's already part of
-> the attachment.
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index ec49fed..24f11ae 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -765,7 +765,8 @@ static int __qbuf_userptr(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 
+ 	for (plane = 0; plane < vb->num_planes; ++plane) {
+ 		/* Skip the plane if already verified */
+-		if (vb->v4l2_planes[plane].m.userptr == planes[plane].m.userptr
++		if (vb->v4l2_planes[plane].m.userptr &&
++		    vb->v4l2_planes[plane].m.userptr == planes[plane].m.userptr
+ 		    && vb->v4l2_planes[plane].length == planes[plane].length)
+ 			continue;
+ 
+-- 
+1.7.1.569.g6f426
 
-yup
-
-> - add new wrapper functions dma_buf_map_attachment and
-> dma_buf_unmap_attachement to hide all the pointer/vtable-chasing that
-> we currently expose to users of this interface.
-
-I thought that was one of the earlier comments on the initial dmabuf
-patch, but either way: yup
-
-BR,
--R
-
-> Comments?
->
-> Cheers, Daniel
-> --
-> Daniel Vetter
-> daniel.vetter@ffwll.ch - +41 (0) 79 364 57 48 - http://blog.ffwll.ch
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
