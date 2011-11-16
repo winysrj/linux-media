@@ -1,135 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:54764 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753390Ab1KYWGl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Nov 2011 17:06:41 -0500
-Message-ID: <4ED0116A.6050108@linuxtv.org>
-Date: Fri, 25 Nov 2011 23:06:34 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
-References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com> <4ECE79F5.9000402@linuxtv.org> <201111241844.23292.hverkuil@xs4all.nl> <CAHFNz9J+3DYW-Gf0FPYhcZqHf7XPtM+dmK0Y15HhkWQZOzNzuQ@mail.gmail.com> <4ECE8839.8040606@redhat.com> <CAHFNz9LOYHTXjhk2yTqhoC90HQQ0AGiOp4A6Gki-vsEtJr_UOw@mail.gmail.com> <4ECE913A.9090001@redhat.com> <4ECF8359.5080705@linuxtv.org> <4ECF9C92.2040607@redhat.com> <4ECFA927.10108@linuxtv.org> <4ECFB686.2090204@redhat.com> <4ECFBC5E.6080308@linuxtv.org> <4ECFC1C7.8010600@redhat.com> <CAHFNz9LS1OxumLvWBXaLFri8_dW3jAOvJJ4NpeZFCDbCiJd+YA@mail.gmail.com>
-In-Reply-To: <CAHFNz9LS1OxumLvWBXaLFri8_dW3jAOvJJ4NpeZFCDbCiJd+YA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49196 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757856Ab1KPOKr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Nov 2011 09:10:47 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com,
+	andriy.shevchenko@linux.intel.com
+Subject: [PATCH v5 1/2] v4l: Add over-current and indicator flash fault bits
+Date: Wed, 16 Nov 2011 15:10:56 +0100
+Message-Id: <1321452657-24424-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1321452657-24424-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1321452657-24424-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25.11.2011 17:51, Manu Abraham wrote:
-> On Fri, Nov 25, 2011 at 9:56 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Em 25-11-2011 14:03, Andreas Oberritter escreveu:
->>> On 25.11.2011 16:38, Mauro Carvalho Chehab wrote:
->>>> Em 25-11-2011 12:41, Andreas Oberritter escreveu:
->>>>> On 25.11.2011 14:48, Mauro Carvalho Chehab wrote:
->>>>>> If your complain is about the removal of audio.h, video.h
->>>>>
->>>>> We're back on topic, thank you!
->>>>>
->>>>>> and osd.h, then my proposal is
->>>>>> to keep it there, writing a text that they are part of a deprecated API,
->>>>>
->>>>> That's exactly what I proposed. Well, you shouldn't write "deprecated",
->>>>> because it's not. Just explain - inside this text - when V4L2 should be
->>>>> preferred over DVB.
->>>>
->>>> It is deprecated, as the API is not growing to fulfill today's needs, and
->>>> no patches adding new stuff to it to it will be accepted anymore.
->>>
->>> Haha, nice one. "It doesn't grow because I don't allow it to." Great!
->>
->> No. It didn't grow because nobody cared with it for years:
->>
->> Since 2.6.12-rc2 (start of git history), no changes ever happened at osd.h.
->>
->> Excluding Hans changes for using it on a pure V4L device, and other trivial
->> patches not related to API changes, the last API change on audio.h and video.h
->> was this patch:
->>        commit f05cce863fa399dd79c5aa3896d608b8b86d8030
->>        Author: Andreas Oberritter <obi@linuxtv.org>
->>        Date:   Mon Feb 27 00:09:00 2006 -0300
->>
->>            V4L/DVB (3375): Add AUDIO_GET_PTS and VIDEO_GET_PTS ioctls
->>
->>        (yet not used on any upstream driver)
->>
->> An then:
->>        commit 1da177e4c3f41524e886b7f1b8a0c1fc7321cac2
->>        Author: Linus Torvalds <torvalds@ppc970.osdl.org>
->>        Date:   Sat Apr 16 15:20:36 2005 -0700
->>
->>            Linux-2.6.12-rc2
->>
->> No changes adding support for any in-kernel driver were ever added there.
->>
->> So, it didn't grow over the last 5 or 6 years because nobody submitted
->> driver patches requiring new things or _even_ using it.
->>
->>>
->>>>>> but keeping
->>>>>> the rest of the patches
->>>>>
->>>>> Which ones?
->>>>
->>>> V4L2, ivtv and DocBook patches.
->>>
->>> Fine.
->>>
->>>>>> and not accepting anymore any submission using them
->>>>>
->>>>> Why? First you complain about missing users and then don't want to allow
->>>>> any new ones.
->>>>
->>>> I didn't complain about missing users. What I've said is that, between a
->>>> one-user API and broad used APIs like ALSA and V4L2, the choice is to freeze
->>>> the one-user API and mark it as deprecated.
->>>
->>> Your assumtion about only one user still isn't true.
->>>
->>>> Also, today's needs are properly already covered by V4L/ALSA/MC/subdev.
->>>> It is easier to add what's missing there for DVB than to work the other
->>>> way around, and deprecate V4L2/ALSA/MC/subdev.
->>>
->>> Yes. Please! Add it! But leave the DVB API alone!
->>>
->>>>>> , removing
->>>>>> the ioctl's that aren't used by av7110 from them.
->>>>>
->>>>> That's just stupid. I can easily provide a list of used and valuable
->>>>> ioctls, which need to remain present in order to not break userspace
->>>>> applications.
->>>>
->>>> Those ioctl's aren't used by any Kernel driver, and not even documented.
->>>> So, why to keep/maintain them?
->>>
->>> If you already deprecated it, why bother deleting random stuff from it
->>> that people are using?
->>>
->>> There's a difference in keeping and maintaining something. You don't
->>> need to maintain ioctls that haven't changed in years. Deleting
->>> something is more work than letting it there to be used by those who
->>> want to.
->>
->> Ok. Let's just keep the headers as is, just adding a comment that it is now
->> considered superseded.
+Flash controllers can report over-current and indicator fault
+conditions. Define flash fault control bits for them.
 
-Thank you! This is a step into the right direction.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |   10 ++++++++++
+ include/linux/videodev2.h                    |    2 ++
+ 2 files changed, 12 insertions(+), 0 deletions(-)
 
-> http://dictionary.reference.com/browse/superseded
-> 
-> to set aside or cause to be set aside as void, useless, or obsolete, usually
-> in favor of something mentioned; make obsolete: They superseded the
-> old statute with a new one.
-> 
-> No, that's not acceptable. New DVB devices as they come will make use
-> of the API and API changes might be applied.
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 3bc5ee8..a978b88 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3329,6 +3329,16 @@ interface and may change in the future.</para>
+ 		  <entry>The short circuit protection of the flash
+ 		  controller has been triggered.</entry>
+ 		</row>
++		<row>
++		  <entry><constant>V4L2_FLASH_FAULT_OVER_CURRENT</constant></entry>
++		  <entry>Current in the LED power supply has exceeded the limit
++		  specific to the flash controller.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_FLASH_FAULT_INDICATOR</constant></entry>
++		  <entry>The flash controller has detected a short or open
++		  circuit condition on the indicator LED.</entry>
++		</row>
+ 	      </tbody>
+ 	    </entrytbl>
+ 	  </row>
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 4b752d5..3d62631 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1682,6 +1682,8 @@ enum v4l2_flash_strobe_source {
+ #define V4L2_FLASH_FAULT_TIMEOUT		(1 << 1)
+ #define V4L2_FLASH_FAULT_OVER_TEMPERATURE	(1 << 2)
+ #define V4L2_FLASH_FAULT_SHORT_CIRCUIT		(1 << 3)
++#define V4L2_FLASH_FAULT_OVER_CURRENT		(1 << 4)
++#define V4L2_FLASH_FAULT_INDICATOR		(1 << 5)
+ 
+ #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
+ #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
+-- 
+1.7.3.4
 
-Honestly, I think we all should accept this proposal and just hope that
-the comment is going to be written objectively.
-
-Regards,
-Andreas
