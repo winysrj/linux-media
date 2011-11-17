@@ -1,68 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:28990 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753426Ab1KGKpC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2011 05:45:02 -0500
-Received: from epcpsbgm2.samsung.com (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LUA00HHADV084P0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 07 Nov 2011 19:45:00 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0LUA00F1NDUVSC30@mmp1.samsung.com>
- for linux-media@vger.kernel.org; Mon, 07 Nov 2011 19:45:00 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Jeongtae Park' <jtp.park@samsung.com>,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Cc: kgene.kim@samsung.com, 'Kyungmin Park' <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-References: <1318512922-21287-1-git-send-email-jtp.park@samsung.com>
-In-reply-to: <1318512922-21287-1-git-send-email-jtp.park@samsung.com>
-Subject: RE: [PATCH] MAINTAINERS: add a maintainer for s5p-mfc driver
-Date: Mon, 07 Nov 2011 11:44:50 +0100
-Message-id: <004c01cc9d3a$498f16c0$dcad4440$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: en-gb
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:35573 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756494Ab1KQKz3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Nov 2011 05:55:29 -0500
+Received: by vcbfk1 with SMTP id fk1so1498122vcb.19
+        for <linux-media@vger.kernel.org>; Thu, 17 Nov 2011 02:55:28 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201111041141.28698.laurent.pinchart@ideasonboard.com>
+References: <CACKLOr2CvPofCcveh6ReYuEbAzsq+z4hu12nza_pTwSceYtRkQ@mail.gmail.com>
+	<CAGoCfiym+uCKq7ZuxrryO-ofboA2WG_R4JEGZ6AgN18JbX_YQQ@mail.gmail.com>
+	<CACKLOr3toejVFDgKzi+=KC6_O5qWaQxcwV6qc3zwK_r2H+mkNw@mail.gmail.com>
+	<201111041141.28698.laurent.pinchart@ideasonboard.com>
+Date: Thu, 17 Nov 2011 11:55:28 +0100
+Message-ID: <CACKLOr0jPK0Oi9yXzZ2Tk-1EM+Pava=qByGCqpT1nuxjmoNMXA@mail.gmail.com>
+Subject: Re: UVC with continuous video buffers.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> From: Jeongtae Park [mailto:jtp.park@samsung.com]
-> Subject: [PATCH] MAINTAINERS: add a maintainer for s5p-mfc driver
-> 
-> Add a maintainer for s5p-mfc driver.
-> 
-> Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
+On 4 November 2011 11:41, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Javier,
+>
+> On Wednesday 02 November 2011 17:33:16 javier Martin wrote:
+>> On 2 November 2011 17:12, Devin Heitmueller wrote:
+>> > I've actually got a very similar issue and have been looking into it
+>> > (an em28xx device on OMAP requiring contiguous physical memory for the
+>> > hardware H.264 encoder).  One thing you may definitely want to check
+>> > out is the patch sent earlier today with subject:
+>>
+>> My case is a i.MX27 SoC with its internal H.264 encoder.
+>>
+>> > [PATCH] media: vb2: vmalloc-based allocator user pointer handling
+>> >
+> However, the above patch that adds user pointer support in the videobuf2
+> vmalloc-based allocator only supports memory backed by pages. If you
+> contiguous buffer is in a memory area reserved by the system at boot time, the
+> assumption will not be true. Supporting user pointers with no struct page
+> backing is possible, but will require a new patch for vb2.
+>
 
-Acked-by: Kamil Debski <k.debski@samsung.com>
+Hi Laurent,
+thanks for your help.
 
-> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-> Cc: Kamil Debski <k.debski@samsung.com>
-> ---
->  MAINTAINERS |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 5e207a8..ef16770 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -1087,6 +1087,7 @@ F:	drivers/media/video/s5p-fimc/
->  ARM/SAMSUNG S5P SERIES Multi Format Codec (MFC) SUPPORT
->  M:	Kyungmin Park <kyungmin.park@samsung.com>
->  M:	Kamil Debski <k.debski@samsung.com>
-> +M:	Jeongtae Park <jtp.park@samsung.com>
->  L:	linux-arm-kernel@lists.infradead.org
->  L:	linux-media@vger.kernel.org
->  S:	Maintained
-> --
-> 1.7.1
+I am using dma_declare_coherent_memory() at startup to reserve memory.
+Then I use dma_alloc_coherent() in my driver through
+'videobuf2-dma-contig.h' (emma-PrP I've recently submitted). I
+understand these functions provide memory backed by pages and you are
+referring to the case where you use the 'mem' argument of the kernel
+to leave memory unused. Am I right?
 
 
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
-
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
