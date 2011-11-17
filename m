@@ -1,65 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:35863 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933393Ab1KBQdT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 12:33:19 -0400
-Received: by faao14 with SMTP id o14so584686faa.19
-        for <linux-media@vger.kernel.org>; Wed, 02 Nov 2011 09:33:17 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAGoCfiym+uCKq7ZuxrryO-ofboA2WG_R4JEGZ6AgN18JbX_YQQ@mail.gmail.com>
-References: <CACKLOr2CvPofCcveh6ReYuEbAzsq+z4hu12nza_pTwSceYtRkQ@mail.gmail.com>
-	<CAGoCfiym+uCKq7ZuxrryO-ofboA2WG_R4JEGZ6AgN18JbX_YQQ@mail.gmail.com>
-Date: Wed, 2 Nov 2011 17:33:16 +0100
-Message-ID: <CACKLOr3toejVFDgKzi+=KC6_O5qWaQxcwV6qc3zwK_r2H+mkNw@mail.gmail.com>
-Subject: Re: UVC with continuous video buffers.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:14572 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751365Ab1KQJIZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Nov 2011 04:08:25 -0500
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LUS0022YS1Z7W@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 17 Nov 2011 09:08:23 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LUS005YPS1YDS@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 17 Nov 2011 09:08:22 +0000 (GMT)
+Date: Thu, 17 Nov 2011 10:08:11 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH] media: vb2: fix potential deadlock in mmap vs. get_userptr
+ handling
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Message-id: <1321520891-30769-1-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Devin,
-thank you for your answer.
+To get direct access to userspace memory pages vb2 allocator needs to
+gather read access on mmap semaphore in the current process.
+The same semaphore is taken before calling mmap operation, while
+both mmap and qbuf are called by the driver or v4l2 core with
+driver's lock held. To avoid a AB-BA deadlock (mmap_sem then
+driver's lock in mmap and driver's lock then mmap_sem in qbuf)
+the videobuf2 core release driver's lock, takes mmap_sem and then
+takes again driver's lock. get_userptr methods are now called with
+all needed locks already taken to avoid further lock magic inside
+memory allocator's code.
 
-On 2 November 2011 17:12, Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
-> I've actually got a very similar issue and have been looking into it
-> (an em28xx device on OMAP requiring contiguous physical memory for the
-> hardware H.264 encoder).  One thing you may definitely want to check
-> out is the patch sent earlier today with subject:
+Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/videobuf2-core.c   |   51 ++++++++++++++++++++++++++-----
+ drivers/media/video/videobuf2-dma-sg.c |    3 +-
+ drivers/media/video/videobuf2-memops.c |   28 ++++++-----------
+ 3 files changed, 53 insertions(+), 29 deletions(-)
 
-My case is a i.MX27 SoC with its internal H.264 encoder.
-
-
-> [PATCH] media: vb2: vmalloc-based allocator user pointer handling
->
-> While that patch is intended for videobuf2, you might be able to copy
-> the core logic into videobuf-vmalloc.
-
-I've seen a recent patch by Laurent Pinchart which provides vb2
-support for UVC driver. It might also help:
-
-[PATCH 2/2] uvcvideo: Use videobuf2-vmalloc
-
-
-> There are other drivers which use USERPTR provided buffers (which are
-> allocated as contiguous memory from userland [i.e. vfpe_capture
-> accepting buffers from cmemk on the OMAP platform]), but they
-> typically do DMA so it's not really useful as an example where you
-> have a USB based device.
->
-> If you get it working, by all means send the code to the ML so others
-> can benefit.
-
-Sure, though I will need some help because it seems some related
-frameworks are not ready for what we want to achieve.
-
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 4d22b82..a3a9bf9 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -1082,46 +1082,76 @@ EXPORT_SYMBOL_GPL(vb2_prepare_buf);
+  */
+ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ {
++	struct rw_semaphore *mmap_sem = NULL;
+ 	struct vb2_buffer *vb;
+-	int ret;
++	int ret = 0;
++
++	/*
++	 * In case of user pointer buffers vb2 allocator needs to get direct
++	 * access to userspace pages. This requires getting read access on
++	 * mmap semaphore in the current process structure. The same
++	 * semaphore is taken before calling mmap operation, while both mmap
++	 * and qbuf are called by the driver or v4l2 core with driver's lock
++	 * held. To avoid a AB-BA deadlock (mmap_sem then driver's lock in
++	 * mmap and driver's lock then mmap_sem in qbuf) the videobuf2 core
++	 * release driver's lock, takes mmap_sem and then takes again driver's
++	 * lock.
++	 *
++	 * To avoid race with other vb2 calls, which might be called after
++	 * releasing driver's lock, this operation is performed at the
++	 * beggining of qbuf processing. This way the queue status is
++	 * consistent after getting driver's lock back.
++	 */
++	if (b->type == V4L2_MEMORY_USERPTR) {
++		mmap_sem = &current->mm->mmap_sem;
++		call_qop(q, wait_prepare, q);
++		down_read(mmap_sem);
++		call_qop(q, wait_finish, q);
++	}
+ 
+ 	if (q->fileio) {
+ 		dprintk(1, "qbuf: file io in progress\n");
+-		return -EBUSY;
++		ret = -EBUSY;
++		goto unlock;
+ 	}
+ 
+ 	if (b->type != q->type) {
+ 		dprintk(1, "qbuf: invalid buffer type\n");
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto unlock;
+ 	}
+ 
+ 	if (b->index >= q->num_buffers) {
+ 		dprintk(1, "qbuf: buffer index out of range\n");
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto unlock;
+ 	}
+ 
+ 	vb = q->bufs[b->index];
+ 	if (NULL == vb) {
+ 		/* Should never happen */
+ 		dprintk(1, "qbuf: buffer is NULL\n");
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto unlock;
+ 	}
+ 
+ 	if (b->memory != q->memory) {
+ 		dprintk(1, "qbuf: invalid memory type\n");
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto unlock;
+ 	}
+ 
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_DEQUEUED:
+ 		ret = __buf_prepare(vb, b);
+ 		if (ret)
+-			return ret;
++			goto unlock;
+ 	case VB2_BUF_STATE_PREPARED:
+ 		break;
+ 	default:
+ 		dprintk(1, "qbuf: buffer already in use\n");
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto unlock;
+ 	}
+ 
+ 	/*
+@@ -1142,7 +1172,10 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 	__fill_v4l2_buffer(vb, b);
+ 
+ 	dprintk(1, "qbuf of buffer %d succeeded\n", vb->v4l2_buf.index);
+-	return 0;
++unlock:
++	if (mmap_sem)
++		up_read(mmap_sem);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(vb2_qbuf);
+ 
+diff --git a/drivers/media/video/videobuf2-dma-sg.c b/drivers/media/video/videobuf2-dma-sg.c
+index 3bad8b1..25c3b36 100644
+--- a/drivers/media/video/videobuf2-dma-sg.c
++++ b/drivers/media/video/videobuf2-dma-sg.c
+@@ -140,7 +140,6 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	if (!buf->pages)
+ 		goto userptr_fail_pages_array_alloc;
+ 
+-	down_read(&current->mm->mmap_sem);
+ 	num_pages_from_user = get_user_pages(current, current->mm,
+ 					     vaddr & PAGE_MASK,
+ 					     buf->sg_desc.num_pages,
+@@ -148,7 +147,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 					     1, /* force */
+ 					     buf->pages,
+ 					     NULL);
+-	up_read(&current->mm->mmap_sem);
++
+ 	if (num_pages_from_user != buf->sg_desc.num_pages)
+ 		goto userptr_fail_get_user_pages;
+ 
+diff --git a/drivers/media/video/videobuf2-memops.c b/drivers/media/video/videobuf2-memops.c
+index 71a7a78..c41cb60 100644
+--- a/drivers/media/video/videobuf2-memops.c
++++ b/drivers/media/video/videobuf2-memops.c
+@@ -100,29 +100,26 @@ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+ 	unsigned long offset, start, end;
+ 	unsigned long this_pfn, prev_pfn;
+ 	dma_addr_t pa = 0;
+-	int ret = -EFAULT;
+ 
+ 	start = vaddr;
+ 	offset = start & ~PAGE_MASK;
+ 	end = start + size;
+ 
+-	down_read(&mm->mmap_sem);
+ 	vma = find_vma(mm, start);
+ 
+ 	if (vma == NULL || vma->vm_end < end)
+-		goto done;
++		return -EFAULT;
+ 
+ 	for (prev_pfn = 0; start < end; start += PAGE_SIZE) {
+-		ret = follow_pfn(vma, start, &this_pfn);
++		int ret = follow_pfn(vma, start, &this_pfn);
+ 		if (ret)
+-			goto done;
++			return ret;
+ 
+ 		if (prev_pfn == 0)
+ 			pa = this_pfn << PAGE_SHIFT;
+-		else if (this_pfn != prev_pfn + 1) {
+-			ret = -EFAULT;
+-			goto done;
+-		}
++		else if (this_pfn != prev_pfn + 1)
++			return -EFAULT;
++
+ 		prev_pfn = this_pfn;
+ 	}
+ 
+@@ -130,16 +127,11 @@ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+ 	 * Memory is contigous, lock vma and return to the caller
+ 	 */
+ 	*res_vma = vb2_get_vma(vma);
+-	if (*res_vma == NULL) {
+-		ret = -ENOMEM;
+-		goto done;
+-	}
+-	*res_pa = pa + offset;
+-	ret = 0;
++	if (*res_vma == NULL)
++		return -ENOMEM;
+ 
+-done:
+-	up_read(&mm->mmap_sem);
+-	return ret;
++	*res_pa = pa + offset;
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
+ 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.1.569.g6f426
+
