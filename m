@@ -1,186 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1747 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932409Ab1KHOZh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 09:25:37 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: Re: [PATCH] v4l2 doc: Added FBUF_CAP_SRC_CHROMAKEY/FLAG_SRC_CHROMAKEY
-Date: Tue, 8 Nov 2011 15:25:31 +0100
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <hvaibhav@ti.com> <201111071435.39805.hverkuil@xs4all.nl> <79CD15C6BA57404B839C016229A409A8025FDD@DBDE01.ent.ti.com>
-In-Reply-To: <79CD15C6BA57404B839C016229A409A8025FDD@DBDE01.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49931 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756543Ab1KQKTL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Nov 2011 05:19:11 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>
+CC: Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v3 1/5] ARM: davinci: dm644x: remove the macros from the header to move to c file
+Date: Thu, 17 Nov 2011 15:48:54 +0530
+Message-ID: <1321525138-3928-2-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1321525138-3928-1-git-send-email-manjunath.hadli@ti.com>
+References: <1321525138-3928-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111081525.31108.hverkuil@xs4all.nl>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday, November 08, 2011 12:46:32 Hiremath, Vaibhav wrote:
-> > -----Original Message-----
-> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> > Sent: Monday, November 07, 2011 7:06 PM
-> > To: Hiremath, Vaibhav
-> > Cc: linux-media@vger.kernel.org
-> > Subject: Re: [PATCH] v4l2 doc: Added
-> > FBUF_CAP_SRC_CHROMAKEY/FLAG_SRC_CHROMAKEY
-> > 
-> > Hi Vaibhav!
-> > 
-> > This is a bit of a 'blast from the past', but when I went through the
-> > documentation of the framebuffer flags in the V4L2 spec I noticed that the
-> > definition of V4L2_FBUF_CAP_SRC_CHROMAKEY seemed to be wrong.
-> > 
-> > The definition of V4L2_FBUF_CAP_CHROMAKEY says:
-> 	> 
-> > 'The device supports clipping by chroma-keying the
-> > images. That is, image pixels replace pixels in the VGA or video
-> > signal only where the latter assume a certain color. Chroma-keying
-> > makes no sense for destructive overlays.'
-> > 
-> > The definition of V4L2_FBUF_CAP_SRC_CHROMAKEY says:
-> > 
-> > 'The device supports Source Chroma-keying. Framebuffer pixels
-> > with the chroma-key colors are replaced by video pixels, which
-> > is exactly opposite of V4L2_FBUF_CAP_CHROMAKEY.'
-> > 
-> > As far as I can tell these definitions are really the same. I would expect
-> > that V4L2_FBUF_CAP_SRC_CHROMAKEY was defined as:
-> > 
-> > 'The device supports Source Chroma-keying. Video pixels
-> > with the chroma-key colors are replaced by framebuffer pixels, which
-> > is exactly opposite of V4L2_FBUF_CAP_CHROMAKEY.'
-> > 
-> > The only driver that implements this is omap_vout.c. So is the mistake
-> > in the documentation or in the driver? I think the documentation is wrong
-> > in this case.
-> > 
-> I remember long time back we had discussion on this, we consider
-> V4L2_FBUF_CAP_CHROMAKEY as a destination color keying (term used in OMAP
-> spec) and V4L2_FBUF_CAP_SRC_CHROMAKEY as a source color keying(term used in
-> OMAP spec).
-> 
-> As per OMAP spec the source color key is, replace video pixels by underneath gfx pixels based on chroma-key color. I think we aligned in this at that time, isn't it? AM I missing something?
+move the register base addresses and offsets used only by dm644x
+platform file from platform header dm644x.h to dm644x.c as they
+are used only in the c file.
 
-No, just that the current definition in the spec for V4L2_FBUF_CAP_SRC_CHROMAKEY
-is indeed the wrong way around.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+---
+ arch/arm/mach-davinci/dm644x.c              |    7 +++++++
+ arch/arm/mach-davinci/include/mach/dm644x.h |    7 -------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-It should read:
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index 3470983..27d1371 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -35,6 +35,13 @@
+  */
+ #define DM644X_REF_FREQ		27000000
+ 
++#define DM644X_EMAC_BASE		0x01c80000
++#define DM644X_EMAC_MDIO_BASE		(DM644X_EMAC_BASE + 0x4000)
++#define DM644X_EMAC_CNTRL_OFFSET	0x0000
++#define DM644X_EMAC_CNTRL_MOD_OFFSET	0x1000
++#define DM644X_EMAC_CNTRL_RAM_OFFSET	0x2000
++#define DM644X_EMAC_CNTRL_RAM_SIZE	0x2000
++
+ static struct pll_data pll1_data = {
+ 	.num       = 1,
+ 	.phys_base = DAVINCI_PLL1_BASE,
+diff --git a/arch/arm/mach-davinci/include/mach/dm644x.h b/arch/arm/mach-davinci/include/mach/dm644x.h
+index 5a1b26d..724377f 100644
+--- a/arch/arm/mach-davinci/include/mach/dm644x.h
++++ b/arch/arm/mach-davinci/include/mach/dm644x.h
+@@ -27,13 +27,6 @@
+ #include <mach/asp.h>
+ #include <media/davinci/vpfe_capture.h>
+ 
+-#define DM644X_EMAC_BASE		(0x01C80000)
+-#define DM644X_EMAC_MDIO_BASE		(DM644X_EMAC_BASE + 0x4000)
+-#define DM644X_EMAC_CNTRL_OFFSET	(0x0000)
+-#define DM644X_EMAC_CNTRL_MOD_OFFSET	(0x1000)
+-#define DM644X_EMAC_CNTRL_RAM_OFFSET	(0x2000)
+-#define DM644X_EMAC_CNTRL_RAM_SIZE	(0x2000)
+-
+ #define DM644X_ASYNC_EMIF_CONTROL_BASE	0x01E00000
+ #define DM644X_ASYNC_EMIF_DATA_CE0_BASE 0x02000000
+ #define DM644X_ASYNC_EMIF_DATA_CE1_BASE 0x04000000
+-- 
+1.6.2.4
 
-'The device supports Source Chroma-keying. Video pixels
-with the chroma-key colors are replaced by framebuffer pixels, which
-is exactly opposite of V4L2_FBUF_CAP_CHROMAKEY.'
-
-I'll make a patch fixing this.
-
-Regards,
-
-	Hans
-
-> 
-> 
-> FYI, as per OMAP spec,
-> 
-> Destination color keying:
-> The graphics destination transparency color key value defines the encoded
-> pixels in the video layers to be displayed. The encoded pixel values with
-> the destination color key value are pixels not visible on the screen and the
-> pixels different from the transparency color key are displayed over the
-> video layers. The destination transparency color key is applicable only in
-> the graphics region when graphics and video overlap; otherwise, the
-> destination transparency color key is ignored.
-> 
-> 
-> Source color keying:
-> The video source transparency color key value defines the encoded pixel data
-> considered as the transparent pixel. The encoded pixel values with the
-> source color key value are pixels not visible on the screen, and the
-> underlayer encoded pixel values or solid background color are visible.
-> 
-> 
-> Thanks,
-> Vaibhav
-> 
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> > On Tuesday, November 10, 2009 15:45:45 hvaibhav@ti.com wrote:
-> > > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > >
-> > >
-> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > ---
-> > >  linux/Documentation/DocBook/v4l/videodev2.h.xml   |    2 ++
-> > >  linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml |   17
-> > +++++++++++++++++
-> > >  2 files changed, 19 insertions(+), 0 deletions(-)
-> > >
-> > > diff --git a/linux/Documentation/DocBook/v4l/videodev2.h.xml
-> > b/linux/Documentation/DocBook/v4l/videodev2.h.xml
-> > > index 9700206..eef7ba4 100644
-> > > --- a/linux/Documentation/DocBook/v4l/videodev2.h.xml
-> > > +++ b/linux/Documentation/DocBook/v4l/videodev2.h.xml
-> > > @@ -565,6 +565,7 @@ struct <link linkend="v4l2-
-> > framebuffer">v4l2_framebuffer</link> {
-> > >  #define V4L2_FBUF_CAP_LOCAL_ALPHA       0x0010
-> > >  #define V4L2_FBUF_CAP_GLOBAL_ALPHA      0x0020
-> > >  #define V4L2_FBUF_CAP_LOCAL_INV_ALPHA   0x0040
-> > > +#define V4L2_FBUF_CAP_SRC_CHROMAKEY     0x0080
-> > >  /*  Flags for the 'flags' field. */
-> > >  #define V4L2_FBUF_FLAG_PRIMARY          0x0001
-> > >  #define V4L2_FBUF_FLAG_OVERLAY          0x0002
-> > > @@ -572,6 +573,7 @@ struct <link linkend="v4l2-
-> > framebuffer">v4l2_framebuffer</link> {
-> > >  #define V4L2_FBUF_FLAG_LOCAL_ALPHA      0x0008
-> > >  #define V4L2_FBUF_FLAG_GLOBAL_ALPHA     0x0010
-> > >  #define V4L2_FBUF_FLAG_LOCAL_INV_ALPHA  0x0020
-> > > +#define V4L2_FBUF_FLAG_SRC_CHROMAKEY    0x0040
-> > >
-> > >  struct <link linkend="v4l2-clip">v4l2_clip</link> {
-> > >          struct <link linkend="v4l2-rect">v4l2_rect</link>        c;
-> > > diff --git a/linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml
-> > b/linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml
-> > > index f701706..e7dda48 100644
-> > > --- a/linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml
-> > > +++ b/linux/Documentation/DocBook/v4l/vidioc-g-fbuf.xml
-> > > @@ -336,6 +336,13 @@ alpha value. Alpha blending makes no sense for
-> > destructive overlays.</entry>
-> > >  inverted alpha channel of the framebuffer or VGA signal. Alpha
-> > >  blending makes no sense for destructive overlays.</entry>
-> > >  	  </row>
-> > > +	  <row>
-> > > +	    <entry><constant>V4L2_FBUF_CAP_SRC_CHROMAKEY</constant></entry>
-> > > +	    <entry>0x0080</entry>
-> > > +	    <entry>The device supports Source Chroma-keying. Framebuffer
-> > pixels
-> > > +with the chroma-key colors are replaced by video pixels, which is
-> > exactly opposite of
-> > > +<constant>V4L2_FBUF_CAP_CHROMAKEY</constant></entry>
-> > > +	  </row>
-> > >  	</tbody>
-> > >        </tgroup>
-> > >      </table>
-> > > @@ -411,6 +418,16 @@ images, but with an inverted alpha value. The blend
-> > function is:
-> > >  output = framebuffer pixel * (1 - alpha) + video pixel * alpha. The
-> > >  actual alpha depth depends on the framebuffer pixel format.</entry>
-> > >  	  </row>
-> > > +	  <row>
-> > > +	    <entry><constant>V4L2_FBUF_FLAG_SRC_CHROMAKEY</constant></entry>
-> > > +	    <entry>0x0040</entry>
-> > > +	    <entry>Use source chroma-keying. The source chroma-key color is
-> > > +determined by the <structfield>chromakey</structfield> field of
-> > > +&v4l2-window; and negotiated with the &VIDIOC-S-FMT; ioctl, see <xref
-> > > +linkend="overlay" /> and <xref linkend="osd" />.
-> > > +Both chroma-keying are mutual exclusive to each other, so same
-> > > +<structfield>chromakey</structfield> field of &v4l2-window; is being
-> > used.</entry>
-> > > +	  </row>
-> > >  	</tbody>
-> > >        </tgroup>
-> > >      </table>
-> > >
-> 
