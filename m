@@ -1,70 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:37426 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756680Ab1KUVJa (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:54981 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753809Ab1KQQfJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Nov 2011 16:09:30 -0500
-Received: by wwe5 with SMTP id 5so11149033wwe.1
-        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:09:29 -0800 (PST)
+	Thu, 17 Nov 2011 11:35:09 -0500
+Received: by mail-bw0-f46.google.com with SMTP id 11so2230020bke.19
+        for <linux-media@vger.kernel.org>; Thu, 17 Nov 2011 08:35:08 -0800 (PST)
+Message-ID: <4EC537B9.7060501@gmail.com>
+Date: Thu, 17 Nov 2011 17:35:05 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
 MIME-Version: 1.0
-Date: Tue, 22 Nov 2011 02:39:29 +0530
-Message-ID: <CAHFNz9+maZ2xC5mPAgkw7W6+vY5tDZ7F9mD_s=Namyk=5tF1Ww@mail.gmail.com>
-Subject: PATCH 13/13: 0013-PCTV290E-Attach-a-single-frontend
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	Antti Palosaari <crope@iki.fi>
-Content-Type: multipart/mixed; boundary=0016367fb03138747c04b2451a8e
+To: linux-media@vger.kernel.org
+CC: Sylwester Nawrocki <snjw23@gmail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] staging: as102:  Add support for Sky Italia Digital Key based
+ on the same chip.
+References: <4EB9304C.5020305@redhat.com> <1320794164-11537-1-git-send-email-snjw23@gmail.com>
+In-Reply-To: <1320794164-11537-1-git-send-email-snjw23@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0016367fb03138747c04b2451a8e
-Content-Type: text/plain; charset=ISO-8859-1
+Add support for the Sky Italia Digital Key, an USB dongle offered
+by Sky Italia to its customers for use with their satellite set-top-boxes.
+This is the "green led" model based on the Abilis as102 chip, while the
+so called "blue led" model is based on the Avermedia A867 design.
 
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
 
+---
+ drivers/staging/media/as102/as102_usb_drv.c |    2 ++
+ drivers/staging/media/as102/as102_usb_drv.h |    5 +++++
+ 2 files changed, 7 insertions(+), 0 deletions(-)
 
---0016367fb03138747c04b2451a8e
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0013-PCTV290E-Attach-a-single-frontend-rather-than-a-fron.patch"
-Content-Disposition: attachment;
-	filename="0013-PCTV290E-Attach-a-single-frontend-rather-than-a-fron.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
+diff --git a/drivers/staging/media/as102/as102_usb_drv.c
+b/drivers/staging/media/as102/as102_usb_drv.c
+index 9faab5b..7bcb28c 100644
+--- a/drivers/staging/media/as102/as102_usb_drv.c
++++ b/drivers/staging/media/as102/as102_usb_drv.c
+@@ -42,6 +42,7 @@ static struct usb_device_id as102_usb_id_table[] = {
+ 	{ USB_DEVICE(PCTV_74E_USB_VID, PCTV_74E_USB_PID) },
+ 	{ USB_DEVICE(ELGATO_EYETV_DTT_USB_VID, ELGATO_EYETV_DTT_USB_PID) },
+ 	{ USB_DEVICE(NBOX_DVBT_DONGLE_USB_VID, NBOX_DVBT_DONGLE_USB_PID) },
++	{ USB_DEVICE(SKY_IT_DIGITAL_KEY_USB_VID, SKY_IT_DIGITAL_KEY_USB_PID) },
+ 	{ } /* Terminating entry */
+ };
 
-RnJvbSA5MzdjOGIyZDI0ZGRkNmRmNGFmOGUxOTAyNjgyN2E4Y2IxZTM1NDdiIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
-CkRhdGU6IE1vbiwgMjEgTm92IDIwMTEgMjA6MTU6MzYgKzA1MzAKU3ViamVjdDogW1BBVENIIDEz
-LzEzXSBQQ1RWMjkwRTogQXR0YWNoIGEgc2luZ2xlIGZyb250ZW5kLCByYXRoZXIgdGhhbiBhIGZy
-b250ZW5kIGVhY2gKIHBlciBkZWxpdmVyeSBzeXN0ZW0sIHdoZXJlYnkgYSBtdWx0aXN0YW5kYXJk
-IGZyb250ZW5kIGNhbiBhZHZlcnRpc2UKIGFsbCBhc3NvY2lhdGVkIGRlbGl2ZXJ5IHN5c3RlbXMu
-CgpTaWduZWQtb2ZmLWJ5OiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+Ci0t
-LQogZHJpdmVycy9tZWRpYS92aWRlby9lbTI4eHgvZW0yOHh4LWR2Yi5jIHwgICAyNyArKysrKysr
-KystLS0tLS0tLS0tLS0tLS0tLS0KIDEgZmlsZXMgY2hhbmdlZCwgOSBpbnNlcnRpb25zKCspLCAx
-OCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3ZpZGVvL2VtMjh4eC9l
-bTI4eHgtZHZiLmMgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2VtMjh4eC9lbTI4eHgtZHZiLmMKaW5k
-ZXggY2VmN2EyZC4uOGExMjA5NCAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9lbTI4
-eHgvZW0yOHh4LWR2Yi5jCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4L2VtMjh4eC1k
-dmIuYwpAQCAtNzYxLDMxICs3NjEsMjIgQEAgc3RhdGljIGludCBlbTI4eHhfZHZiX2luaXQoc3Ry
-dWN0IGVtMjh4eCAqZGV2KQogCQkJCSAgICZkZXYtPmkyY19hZGFwLCAma3dvcmxkX2EzNDBfY29u
-ZmlnKTsKIAkJYnJlYWs7CiAJY2FzZSBFTTI4MTc0X0JPQVJEX1BDVFZfMjkwRToKLQkJLyogTUZF
-Ci0JCSAqIEZFIDAgPSBEVkItVC9UMiArIEZFIDEgPSBEVkItQywgYm90aCBzaGFyaW5nIHNhbWUg
-dHVuZXIuICovCi0JCS8qIEZFIDAgKi8KIAkJZHZiLT5mZVswXSA9IGR2Yl9hdHRhY2goY3hkMjgy
-MHJfYXR0YWNoLAotCQkJJmVtMjh4eF9jeGQyODIwcl9jb25maWcsICZkZXYtPmkyY19hZGFwLCBO
-VUxMKTsKKwkJCQkJJmVtMjh4eF9jeGQyODIwcl9jb25maWcsCisJCQkJCSZkZXYtPmkyY19hZGFw
-LAorCQkJCQlOVUxMKTsKIAkJaWYgKGR2Yi0+ZmVbMF0pIHsKIAkJCS8qIEZFIDAgYXR0YWNoIHR1
-bmVyICovCi0JCQlpZiAoIWR2Yl9hdHRhY2godGRhMTgyNzFfYXR0YWNoLCBkdmItPmZlWzBdLCAw
-eDYwLAotCQkJCSZkZXYtPmkyY19hZGFwLCAmZW0yOHh4X2N4ZDI4MjByX3RkYTE4MjcxX2NvbmZp
-ZykpIHsKKwkJCWlmICghZHZiX2F0dGFjaCh0ZGExODI3MV9hdHRhY2gsCisJCQkJCWR2Yi0+ZmVb
-MF0sCisJCQkJCTB4NjAsCisJCQkJCSZkZXYtPmkyY19hZGFwLAorCQkJCQkmZW0yOHh4X2N4ZDI4
-MjByX3RkYTE4MjcxX2NvbmZpZykpIHsKKwogCQkJCWR2Yl9mcm9udGVuZF9kZXRhY2goZHZiLT5m
-ZVswXSk7CiAJCQkJcmVzdWx0ID0gLUVJTlZBTDsKIAkJCQlnb3RvIG91dF9mcmVlOwogCQkJfQot
-CQkJLyogRkUgMS4gVGhpcyBkdmJfYXR0YWNoKCkgY2Fubm90IGZhaWwuICovCi0JCQlkdmItPmZl
-WzFdID0gZHZiX2F0dGFjaChjeGQyODIwcl9hdHRhY2gsIE5VTEwsIE5VTEwsCi0JCQkJZHZiLT5m
-ZVswXSk7Ci0JCQlkdmItPmZlWzFdLT5pZCA9IDE7Ci0JCQkvKiBGRSAxIGF0dGFjaCB0dW5lciAq
-LwotCQkJaWYgKCFkdmJfYXR0YWNoKHRkYTE4MjcxX2F0dGFjaCwgZHZiLT5mZVsxXSwgMHg2MCwK
-LQkJCQkmZGV2LT5pMmNfYWRhcCwgJmVtMjh4eF9jeGQyODIwcl90ZGExODI3MV9jb25maWcpKSB7
-Ci0JCQkJZHZiX2Zyb250ZW5kX2RldGFjaChkdmItPmZlWzFdKTsKLQkJCQkvKiBsZWF2ZSBGRSAw
-IHN0aWxsIGFjdGl2ZSAqLwotCQkJfQotCi0JCQltZmVfc2hhcmVkID0gMTsKIAkJfQogCQlicmVh
-azsKIAljYXNlIEVNMjg4NF9CT0FSRF9URVJSQVRFQ19INToKLS0gCjEuNy4xCgo=
---0016367fb03138747c04b2451a8e--
+@@ -52,6 +53,7 @@ static const char * const as102_device_names[] = {
+ 	AS102_PCTV_74E,
+ 	AS102_ELGATO_EYETV_DTT_NAME,
+ 	AS102_NBOX_DVBT_DONGLE_NAME,
++	AS102_SKY_IT_DIGITAL_KEY_NAME,
+ 	NULL /* Terminating entry */
+ };
+
+diff --git a/drivers/staging/media/as102/as102_usb_drv.h
+b/drivers/staging/media/as102/as102_usb_drv.h
+index 35925b7..fc2884a 100644
+--- a/drivers/staging/media/as102/as102_usb_drv.h
++++ b/drivers/staging/media/as102/as102_usb_drv.h
+@@ -47,6 +47,11 @@
+ #define NBOX_DVBT_DONGLE_USB_VID	0x0b89
+ #define NBOX_DVBT_DONGLE_USB_PID	0x0007
+
++/* Sky Italia: Digital Key (green led) */
++#define AS102_SKY_IT_DIGITAL_KEY_NAME	"Sky IT Digital Key (green led)"
++#define SKY_IT_DIGITAL_KEY_USB_VID	0x2137
++#define SKY_IT_DIGITAL_KEY_USB_PID	0x0001
++
+ void as102_urb_stream_irq(struct urb *urb);
+
+ struct as10x_usb_token_cmd_t {
+-- 
+1.7.0.4
