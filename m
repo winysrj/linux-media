@@ -1,50 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34110 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754462Ab1KAMts convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Nov 2011 08:49:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "=?utf-8?q?R=C3=A9mi?= Denis-Courmont" <remi@remlab.net>
-Subject: Re: [RFC] Monotonic clock usage in buffer timestamps
-Date: Tue, 1 Nov 2011 13:49:46 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <201111011324.36742.laurent.pinchart@ideasonboard.com> <b3e1d11fbdb6c1fe02954f7b2dd29b01@chewa.net>
-In-Reply-To: <b3e1d11fbdb6c1fe02954f7b2dd29b01@chewa.net>
+Received: from cantor2.suse.de ([195.135.220.15]:48171 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754346Ab1KQT3x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Nov 2011 14:29:53 -0500
+Date: Thu, 17 Nov 2011 11:22:16 -0800
+From: Greg KH <gregkh@suse.de>
+To: Tomas Winkler <tomasw@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	devel@driverdev.osuosl.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/3] Move media staging drivers to staging/media
+Message-ID: <20111117192216.GA32280@suse.de>
+References: <20111102094509.4954fead@redhat.com>
+ <20111102151009.GA22699@suse.de>
+ <CA+i0qc4v=X+swmTdc26nTcjFSnj1kSpKvhG2vvQeaRbKTxjmQQ@mail.gmail.com>
+ <20111117180941.GA13717@suse.de>
+ <CA+i0qc6yCjo+abxf8L5LvLqUfXPE8xN0fBqaFigLAmgXLNZvqg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201111011349.47132.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CA+i0qc6yCjo+abxf8L5LvLqUfXPE8xN0fBqaFigLAmgXLNZvqg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rémi,
-
-On Tuesday 01 November 2011 13:36:50 Rémi Denis-Courmont wrote:
-> On Tue, 1 Nov 2011 13:24:35 +0100, Laurent Pinchart wrote:
-> > We should instead fix the V4L2 specification to mandate the use of a
-> > monotonic clock (which could then also support hardware timestamps when
-> > they are available). Would such a change be acceptable ?
+On Thu, Nov 17, 2011 at 09:10:27PM +0200, Tomas Winkler wrote:
+> On Thu, Nov 17, 2011 at 8:09 PM, Greg KH <gregkh@suse.de> wrote:
+> > On Thu, Nov 17, 2011 at 07:47:50PM +0200, Tomas Winkler wrote:
+> >> On Wed, Nov 2, 2011 at 5:10 PM, Greg KH <gregkh@suse.de> wrote:
+> >> > On Wed, Nov 02, 2011 at 09:45:09AM -0200, Mauro Carvalho Chehab wrote:
+> >> >> Greg,
+> >> >>
+> >> >> As agreed, this is the patches that move media drivers to their
+> >>
+> >> I've probably missed the news so �I'd like ask what is the current
+> >> patch flow for staging/media?
+> >> Are the patches applied first to linux-media and then merged to the
+> >> greg's staging tree or the staging tree remains the first sync point?
+> >
+> > Mauro handles all of the drivers/staging/media/ patches, I'm going to
+> > just ignore them all, or, worse case, just bounce them to him :)
 > 
-> I'd rather have the real time clock everywhere, than a driver-dependent
-> clock, if it comes to that.
+> Thanks for clarification. One more thing should I also omit posting to
+> the  driverdev mailing list?
 
-That's my opinion as well. Modifying drivers to use a monotonic clock is easy, 
-and I can provide patches. The real issue is whether this can be accepted, as 
-it would change the spec.
+Probably, I doubt anyone there cares about these drivers, but hey, it
+can't hurt :)
 
-> Nevertheless, I agree that the monotonic clock is better than the real
-> time clock.
-> In user space, VLC, Gstreamer already switched to monotonic a while ago as
-> far as I know.
-> 
-> And I guess there is no way to detect this, other than detect ridiculously
-> large gap between the timestamp and the current clock value?
+thanks,
 
-That's right. We could add a device capability flag if needed, but that 
-wouldn't help older applications that expect system time in the timestamps.
-
--- 
-Regards,
-
-Laurent Pinchart
+greg k-h
