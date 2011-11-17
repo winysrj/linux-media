@@ -1,80 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3532 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751402Ab1KVKjG (ORCPT
+Received: from www17.your-server.de ([213.133.104.17]:48600 "EHLO
+	www17.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757210Ab1KRJ2k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Nov 2011 05:39:06 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Pawel Osciak <pawel@osciak.com>
-Subject: Re: [PATCH v1 2/2] vb2: add support for app_offset field of the v4l2_plane struct
-Date: Tue, 22 Nov 2011 11:38:40 +0100
-Cc: linux-media@vger.kernel.org, mingchen@quicinc.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-References: <1321939597-6239-1-git-send-email-pawel@osciak.com> <1321939597-6239-3-git-send-email-pawel@osciak.com>
-In-Reply-To: <1321939597-6239-3-git-send-email-pawel@osciak.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+	Fri, 18 Nov 2011 04:28:40 -0500
+Subject: [PATCH] [media] v4l: Casting (void *) value returned by kmalloc is
+ useless
+From: Thomas Meyer <thomas@m3y3r.de>
+To: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Date: Thu, 17 Nov 2011 23:43:40 +0100
+Message-ID: <1321569820.1624.247.camel@localhost.localdomain>
 Content-Transfer-Encoding: 7bit
-Message-Id: <201111221138.40499.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pawel!
+The semantic patch that makes this change is available
+in scripts/coccinelle/api/alloc/drop_kmalloc_cast.cocci.
 
-Thanks for doing this work, but I have a few comments...
+Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+---
 
-On Tuesday, November 22, 2011 06:26:37 Pawel Osciak wrote:
-> The app_offset can only be set by userspace and will be passed by vb2 to
-> the driver.
-> 
-> Signed-off-by: Pawel Osciak <pawel@osciak.com>
-> CC: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
->  drivers/media/video/videobuf2-core.c |    5 +++++
->  1 files changed, 5 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-> index 979e544..41cc8e9 100644
-> --- a/drivers/media/video/videobuf2-core.c
-> +++ b/drivers/media/video/videobuf2-core.c
-> @@ -830,6 +830,11 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
->  			}
->  		}
->  
-> +		/* App offset can only be set by userspace, for all types */
-> +		for (plane = 0; plane < vb->num_planes; ++plane)
-> +			v4l2_planes[plane].app_offset =
-> +				b->m.planes[plane].app_offset;
-> +
->  		if (b->memory == V4L2_MEMORY_USERPTR) {
->  			for (plane = 0; plane < vb->num_planes; ++plane) {
->  				v4l2_planes[plane].m.userptr =
-> 
-
-I'd like to see this implemented in vivi and preferably one other driver.
-
-What also needs to be clarified is how this affects queue_setup (should the
-sizes include the app_offset or not?) and e.g. vb2_plane_size (again, is the
-size with or without app_offset?).
-
-Should app_offset handling be enforced (i.e. should all vb2 drivers support
-it?) or should it be optional? If optional, then app_offset should be set to
-0 somehow.
-
-This code in __qbuf_userptr should probably also be modified as this
-currently does not take app_offset into account.
-
-                /* Check if the provided plane buffer is large enough */
-                if (planes[plane].length < q->plane_sizes[plane]) {
-                        ret = -EINVAL;
-                        goto err;
-                }
-
-
-I think there are some subtleties that we don't know about yet, so implementing
-this in a real driver would hopefully bring those subtleties out in the open.
-
-Regards,
-
-	Hans
+diff -u -p a/drivers/media/video/vino.c b/drivers/media/video/vino.c
+--- a/drivers/media/video/vino.c 2011-11-07 19:37:51.673341747 +0100
++++ b/drivers/media/video/vino.c 2011-11-08 09:05:04.618617718 +0100
+@@ -708,7 +708,7 @@ static int vino_allocate_buffer(struct v
+ 		size, count);
+ 
+ 	/* allocate memory for table with virtual (page) addresses */
+-	fb->desc_table.virtual = (unsigned long *)
++	fb->desc_table.virtual =
+ 		kmalloc(count * sizeof(unsigned long), GFP_KERNEL);
+ 	if (!fb->desc_table.virtual)
+ 		return -ENOMEM;
