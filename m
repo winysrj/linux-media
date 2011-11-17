@@ -1,44 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35132 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756102Ab1KOPpY (ORCPT
+Received: from oproxy7-pub.bluehost.com ([67.222.55.9]:48189 "HELO
+	oproxy7-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755101Ab1KQCS7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Nov 2011 10:45:24 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com,
-	andriy.shevchenko@linux.intel.com
-Subject: [PATCH v3 0/2] as3645a flash driver
-Date: Tue, 15 Nov 2011 16:45:30 +0100
-Message-Id: <1321371932-28399-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 16 Nov 2011 21:18:59 -0500
+Message-ID: <4EC46E9F.3060508@xenotime.net>
+Date: Wed, 16 Nov 2011 18:17:03 -0800
+From: Randy Dunlap <rdunlap@xenotime.net>
+MIME-Version: 1.0
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pierrick Hascoet <pierrick.hascoet@abilis.com>
+Subject: [PATCH] media/staging: fix allyesconfig build error
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-Here's the third version of the as3645a flash controller driver.
+Fix x86 allyesconfig builds.  Builds fail due to a non-static variable
+named 'debug' in drivers/staging/media/as102/.
 
-Compared to v2, it addresses most of Sakari's comments. I've left an unneeded
-default case in a switch statement to avoid gcc complaining about uninitialized
-variables, and I haven't removed the control values cache from the as3645a
-structure as this is still being discussed.
+arch/x86/built-in.o:arch/x86/kernel/entry_32.S:1296: first defined here
+ld: Warning: size of symbol `debug' changed from 90 in arch/x86/built-in.o to 4 in drivers/built-in.o
 
-Laurent Pinchart (2):
-  v4l: Add over-current and indicator flash fault bits
-  as3645a: Add driver for LED flash controller
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Pierrick Hascoet <pierrick.hascoet@abilis.com>
+---
+ drivers/staging/media/as102/as102_drv.c |    4 ++--
+ drivers/staging/media/as102/as102_drv.h |    3 ++-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
- Documentation/DocBook/media/v4l/controls.xml |   10 +
- drivers/media/video/Kconfig                  |    7 +
- drivers/media/video/Makefile                 |    1 +
- drivers/media/video/as3645a.c                |  880 ++++++++++++++++++++++++++
- include/linux/videodev2.h                    |    2 +
- include/media/as3645a.h                      |   83 +++
- 6 files changed, 983 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/as3645a.c
- create mode 100644 include/media/as3645a.h
+Thou shalt have no non-static identifiers that are named 'debug'.
 
--- 
-Regards,
 
-Laurent Pinchart
-
+--- lnx-32-rc2.orig/drivers/staging/media/as102/as102_drv.c
++++ lnx-32-rc2/drivers/staging/media/as102/as102_drv.c
+@@ -32,8 +32,8 @@
+ #include "as102_fw.h"
+ #include "dvbdev.h"
+ 
+-int debug;
+-module_param_named(debug, debug, int, 0644);
++int as102_debug;
++module_param_named(debug, as102_debug, int, 0644);
+ MODULE_PARM_DESC(debug, "Turn on/off debugging (default: off)");
+ 
+ int dual_tuner;
+--- lnx-32-rc2.orig/drivers/staging/media/as102/as102_drv.h
++++ lnx-32-rc2/drivers/staging/media/as102/as102_drv.h
+@@ -37,7 +37,8 @@ extern struct spi_driver as102_spi_drive
+ #define DRIVER_FULL_NAME "Abilis Systems as10x usb driver"
+ #define DRIVER_NAME "as10x_usb"
+ 
+-extern int debug;
++extern int as102_debug;
++#define debug	as102_debug
+ 
+ #define dprintk(debug, args...) \
+ 	do { if (debug) {	\
