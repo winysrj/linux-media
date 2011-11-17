@@ -1,83 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:59366 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752937Ab1KLMzi (ORCPT
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:44743 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754434Ab1KQTK3 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Nov 2011 07:55:38 -0500
-Received: by ywt32 with SMTP id 32so1005084ywt.19
-        for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 04:55:38 -0800 (PST)
+	Thu, 17 Nov 2011 14:10:29 -0500
+Received: by wwe3 with SMTP id 3so3870358wwe.1
+        for <linux-media@vger.kernel.org>; Thu, 17 Nov 2011 11:10:27 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <CAA7M+FBvP0A7L6o-Fw4CQ2xR2CYqu233L+83BGGOcLooK0bk7w@mail.gmail.com>
-References: <CAA7M+FBvP0A7L6o-Fw4CQ2xR2CYqu233L+83BGGOcLooK0bk7w@mail.gmail.com>
-Date: Sat, 12 Nov 2011 07:55:37 -0500
-Message-ID: <CAGoCfiw+yy3Hz=7yvGTYrYQn5VfNh3CrabS_Kxx7G88jcwt9aQ@mail.gmail.com>
-Subject: Re: HVR-4000 may be broken in kernel mods (again) ?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: "jonathanjstevens@gmail.com" <jonathanjstevens@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux and Kernel Video <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <20111117180941.GA13717@suse.de>
+References: <20111102094509.4954fead@redhat.com>
+	<20111102151009.GA22699@suse.de>
+	<CA+i0qc4v=X+swmTdc26nTcjFSnj1kSpKvhG2vvQeaRbKTxjmQQ@mail.gmail.com>
+	<20111117180941.GA13717@suse.de>
+Date: Thu, 17 Nov 2011 21:10:27 +0200
+Message-ID: <CA+i0qc6yCjo+abxf8L5LvLqUfXPE8xN0fBqaFigLAmgXLNZvqg@mail.gmail.com>
+Subject: Re: [PATCH 0/3] Move media staging drivers to staging/media
+From: Tomas Winkler <tomasw@gmail.com>
+To: Greg KH <gregkh@suse.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	devel@driverdev.osuosl.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 12, 2011 at 5:33 AM, jonathanjstevens@gmail.com
-<jonathanjstevens@gmail.com> wrote:
-> Description of problem:
-> Support for Hauupauge HVR-4000 appears to be broken (again) in kernel mods.
-> This is a bit of a tale of woe, but this hardware is supposed to have been
-> sorted in stock kernel roundabout 3.0.
-> Stock F16 kernel cannot scan or tune in mythtv, kaffeine, w_scan, or dvbscan.
-> Compiled/Installed latest video-media build still no joy.
-> I used another USB DVB (nova-t) to scan, and using the results obtained from
-> w_scan on this managed to get tzap to FE LOCK. However this only worked with
-> tzap - no other app can get a lock.
-> Have tested with i2c reset patch enabled and not, and also with strobing patch
-> enabled and not (cs88-dvb.c). Also with mythtv kludge (delaying on FE close in
-> dvbutils.cpp). All make no difference.
-> So sad :(
+On Thu, Nov 17, 2011 at 8:09 PM, Greg KH <gregkh@suse.de> wrote:
+> On Thu, Nov 17, 2011 at 07:47:50PM +0200, Tomas Winkler wrote:
+>> On Wed, Nov 2, 2011 at 5:10 PM, Greg KH <gregkh@suse.de> wrote:
+>> > On Wed, Nov 02, 2011 at 09:45:09AM -0200, Mauro Carvalho Chehab wrote:
+>> >> Greg,
+>> >>
+>> >> As agreed, this is the patches that move media drivers to their
+>>
+>> I've probably missed the news so  I'd like ask what is the current
+>> patch flow for staging/media?
+>> Are the patches applied first to linux-media and then merged to the
+>> greg's staging tree or the staging tree remains the first sync point?
 >
-> Version-Release number of selected component (if applicable):
-> Linux mythtvtuner.home 3.1.0-7.fc16.x86_64 #1 SMP Tue Nov 1 21:10:48 UTC 2011
-> x86_64 x86_64 x86_64 GNU/Linux
->
-> How reproducible:
-> Install F16 and try to make use of HVR-4000.
->
-> Steps to Reproduce:
-> 1. Install F16 on a machine with HVR-4000
-> 2. Try to use it
-> 3. Cry
-> Actual results:
-> Can't scan or tune.
-> Expected results:
-> Can scan and tune and be happy.
-> Additional info:
-> Should mention this machine is also running Xen.
-> If necessary I have a spare machine I can put a HVR-4000 into and can compile
-> whatever you want to try to fix this. Pretty sure this is a problem upstream in
-> video-media, but will report here to try and get some help!
-> Willing to put in the hours this side to get to the bottom of this,
-> sorry I don't have the programming skills to attack it myself.
-> All the problems historically that the HVR-4000 has had in v4l were supposed to
-> be fixed in 3.0...
-> Let me know what additional info you might want?
-> Jonathan
+> Mauro handles all of the drivers/staging/media/ patches, I'm going to
+> just ignore them all, or, worse case, just bounce them to him :)
 
-Hi Jonathan,
+Thanks for clarification. One more thing should I also omit posting to
+the  driverdev mailing list?
 
-It was actually broken for months (including 3.0), and not fixed until 3.1.
-
-I'm assuming you're having problems with dvb-s and dvb-t?  Please
-clarify exactly which standards aren't working for you?
-
-Also, take Xen out of the picture.  Validate it isn't working in a
-regular system.  Virtualization is definitely a source of problems and
-should be ruled out.
-
-Any suspicious output in dmesg?
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Thanks
+Tomas
