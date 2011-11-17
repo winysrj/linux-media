@@ -1,67 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50479 "EHLO mx1.redhat.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60635 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751531Ab1KXUGL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 15:06:11 -0500
-Message-ID: <4ECEA3A9.1080506@redhat.com>
-Date: Thu, 24 Nov 2011 18:06:01 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1753225Ab1KQLPK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Nov 2011 06:15:10 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: "'Hans Verkuil'" <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: RE: [PATCH] board-dm646x-evm.c: wrong register used in
+ setup_vpif_input_channel_mode
+Date: Thu, 17 Nov 2011 11:15:01 +0000
+Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F75010801@DBDE01.ent.ti.com>
+References: <1321294849-2738-1-git-send-email-hverkuil@xs4all.nl>
+ <986dc5c6de4525aa3427ccded735d8e982080b0e.1321294701.git.hans.verkuil@cisco.com>
+In-Reply-To: <986dc5c6de4525aa3427ccded735d8e982080b0e.1321294701.git.hans.verkuil@cisco.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: "Nori, Sekhar" <nsekhar@ti.com>
-CC: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RESEND] davinci: dm646x: move vpif related code to driver
- core header from platform
-References: <1321110362-6699-1-git-send-email-manjunath.hadli@ti.com> <4ECE8764.60800@redhat.com> <DF0F476B391FA8409C78302C7BA518B602DDD6@DBDE01.ent.ti.com>
-In-Reply-To: <DF0F476B391FA8409C78302C7BA518B602DDD6@DBDE01.ent.ti.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 24-11-2011 16:22, Nori, Sekhar escreveu:
-> Hi Mauro,
-> 
-> On Thu, Nov 24, 2011 at 23:35:24, Mauro Carvalho Chehab wrote:
->> Em 12-11-2011 13:06, Manjunath Hadli escreveu:
->>> move vpif related code for capture and display drivers
->>> from dm646x platform header file to vpif_types.h as these definitions
->>> are related to driver code more than the platform or board.
->>>
->>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
->>
->> Manju,
->>
->> Why are you re-sending a patch?
->>
->> My understanding is that you're maintaining the davinci patches, so it is
->> up to you to put those patches on your tree and send me a pull request when
->> they're done. So, please, don't pollute the ML re-sending emails that
->> are for yourself to handle.
-> 
-> Since this particular patch touches arch/arm/mach-davinci
-> as well as drivers/media/video, the plan was to queue the
-> patch through ARM tree with your Ack. We did not get your
-> ack the last time around[1] so it was resent.
-> 
-> Do let me know if your ack is not needed.
-> 
-> Thanks,
-> Sekhar
-> 
-> [1] http://www.mail-archive.com/davinci-linux-open-source@linux.davincidsp.com/msg21840.html
+Hans,
+ Thank you for the patch. I have verified from the data sheet. 
+It might be a copy mistake. It also says the vpif_vsclkdis_reg
+can be used to disable and enable in case we make any clock switches
+so as to avoid glitches.
+In this case I would imagine we would stream off before switching, so
+That might not be a necessity.
+I have not been able to test this however. Trust you would have.
 
-Hmm.. I missed this email, but just re-sending it without request my ACK doesn't help
-much ;)
+Acked-by: Manjunath Hadli 
+<manjunath.hadli@ti.com>
 
-If this ever happens again, next time the better is to forward me the patch again, on
-an email asking for my ack.
 
-With regards to the patch:
+Thanks and Regards,
+-Manju
 
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+On Mon, Nov 14, 2011 at 23:50:49, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The function setup_vpif_input_channel_mode() used the VSCLKDIS register instead of VIDCLKCTL. This meant that when in HD mode videoport channel 0 used a different clock from channel 1.
+> 
+> Clearly a copy-and-paste error.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  arch/arm/mach-davinci/board-dm646x-evm.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
+> index 337c45e..607a527 100644
+> --- a/arch/arm/mach-davinci/board-dm646x-evm.c
+> +++ b/arch/arm/mach-davinci/board-dm646x-evm.c
+> @@ -563,7 +563,7 @@ static int setup_vpif_input_channel_mode(int mux_mode)
+>  	int val;
+>  	u32 value;
+>  
+> -	if (!vpif_vsclkdis_reg || !cpld_client)
+> +	if (!vpif_vidclkctl_reg || !cpld_client)
+>  		return -ENXIO;
+>  
+>  	val = i2c_smbus_read_byte(cpld_client); @@ -571,7 +571,7 @@ static int setup_vpif_input_channel_mode(int mux_mode)
+>  		return val;
+>  
+>  	spin_lock_irqsave(&vpif_reg_lock, flags);
+> -	value = __raw_readl(vpif_vsclkdis_reg);
+> +	value = __raw_readl(vpif_vidclkctl_reg);
+>  	if (mux_mode) {
+>  		val &= VPIF_INPUT_TWO_CHANNEL;
+>  		value |= VIDCH1CLK;
+> @@ -579,7 +579,7 @@ static int setup_vpif_input_channel_mode(int mux_mode)
+>  		val |= VPIF_INPUT_ONE_CHANNEL;
+>  		value &= ~VIDCH1CLK;
+>  	}
+> -	__raw_writel(value, vpif_vsclkdis_reg);
+> +	__raw_writel(value, vpif_vidclkctl_reg);
+>  	spin_unlock_irqrestore(&vpif_reg_lock, flags);
+>  
+>  	err = i2c_smbus_write_byte(cpld_client, val);
+> --
+> 1.7.7
+> 
+> 
 
-Regards,
-Mauro
