@@ -1,271 +1,690 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:53780 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750804Ab1KFGdn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 01:33:43 -0500
-Received: by ggnb2 with SMTP id b2so4054444ggn.19
-        for <linux-media@vger.kernel.org>; Sat, 05 Nov 2011 23:33:43 -0700 (PDT)
-Message-ID: <4EB62ADA.9090909@gmail.com>
-Date: Sat, 05 Nov 2011 23:36:10 -0700
-From: John McMaster <johndmcmaster@gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:53149 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756531Ab1KQKot (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Nov 2011 05:44:49 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id pAHAikF0008788
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 17 Nov 2011 04:44:48 -0600
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [RESEND RFC PATCH v4 01/15] davinci: vpfe: add dm3xx IPIPEIF hardware support module
+Date: Thu, 17 Nov 2011 16:14:27 +0530
+Message-ID: <1321526681-22574-2-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1321526681-22574-1-git-send-email-manjunath.hadli@ti.com>
+References: <1321526681-22574-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Anchor Chips V4L2 driver
-References: <4DE873B4.4050306@gmail.com> <4DE8D065.7020502@redhat.com> <4DE8E018.7070007@redhat.com> <4DEC6862.8000006@gmail.com> <4DEC851B.7030000@redhat.com> <4DEDB623.2010200@gmail.com> <4DEDD4B5.9020801@redhat.com>
-In-Reply-To: <4DEDD4B5.9020801@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/07/2011 12:35 AM, Hans de Goede wrote:
-> Hi,
->
-> On 06/07/2011 07:24 AM, John McMaster wrote:
->> On 06/06/2011 12:43 AM, Hans de Goede wrote:
->>> Hi,
->>>
->>> On 06/06/2011 07:40 AM, John McMaster wrote:
->>>> On 06/03/2011 06:22 AM, Hans de Goede wrote:
->>>>> Hi,
->>>>>
->>>>> On 06/03/2011 02:15 PM, Mauro Carvalho Chehab wrote:
->>>>>> Em 03-06-2011 02:40, John McMaster escreveu:
->>>>>>> I'd like to write a driver for an Anchor Chips (seems to be
->>>>>>> bought by
->>>>>>> Cypress) USB camera Linux driver sold as an AmScope MD1800.  It
->>>>>>> seems
->>>>>>> like this implies I need to write a V4L2 driver.  The camera
->>>>>>> does not
->>>>>>> seem its currently supported (checked on Fedora 13 / 2.6.34.8)
->>>>>>> and I
->>>>>>> did
->>>>>>> not find any information on it in mailing list archives.  Does
->>>>>>> anyone
->>>>>>> know or can help me identify if a similar camera might already be
->>>>>>> supported?
->>>>>>
->>>>>> I've no idea. Better to wait for a couple days for developers to
->>>>>> manifest
->>>>>> about that, if they're already working on it.
->>>>>>
->>>>>>> lsusb gives the following output:
->>>>>>>
->>>>>>> Bus 001 Device 111: ID 0547:4d88 Anchor Chips, Inc.
->>>>>>>
->>>>>>> I've started reading the "Video for Linux Two API Specification"
->>>>>>> which
->>>>>>> seems like a good starting point and will move onto using source
->>>>>>> code as
->>>>>>> appropriate.  Any help would be appreciated.  Thanks!
->>>>>>
->>>>>> You'll find other useful information at linuxtv.org wiki page. The
->>>>>> better
->>>>>> is to write it as a sub-driver for gspca. The gspca core have
->>>>>> already
->>>>>> all
->>>>>> that it is needed for cameras. So, you'll need to focus only at the
->>>>>> device-specific
->>>>>> stuff.
->>>>>
->>>>> I can second that you should definitely use gspca for usb webcam(ish)
->>>>> device
->>>>> drivers. As for how to go about this, first of all grep through the
->>>>> windows drivers
->>>>> for strings which may hint on the actual bridge chip used, chances
->>>>> are
->>>>> good
->>>>> there is an already supported bridge inside the camera.
->>>>>
->>>>> If not then make usb dumps, and start reverse engineering ...
->>>>>
->>>>> Usually it is enough to replay the windows init sequence to get the
->>>>> device
->>>>> to stream over either an bulk or iso endpoint, and then it is time to
->>>>> figure out what that stream contains (jpeg, raw bayer, some custom
->>>>> format ???)
->>>>>
->>>>> Regards,
->>>>>
->>>>> Hans
->>>> Thanks for the response.  I replayed some packets (using libusb)
->>>> and am
->>>> able to get something resembling the desired image through its bulk
->>>> endpoint.  So now I just need to figure out how to decode it better,
->>>> options, etc.  I'll post back to the list once I get something
->>>> moderately stable running and have taken a swing at the kernel driver.
->>>>
->>>
->>> Hmm, bulk you say and cypress and 8mp usb2.0 have you tried looking
->>> at the gspca-ovfx2 driver? Likely you've an ovfx2 cam with an as of
->>> yet unknown usb-id. Chances are just adding the id is enough, although
->>> your sensor may be unknown.
->>>
->>> Regards,
->>>
->>> Hans
->> If it helps, I should have also mentioned that with a small amount of
->> digging I found that the camera unit is put together by ScopeTek.  My
->> reference WIP implementation is at
->> https://github.com/JohnDMcMaster/uvscopetek which I'm comparing to
->> 2.6.39.1 drivers.
->>
->> Anyway, looking at reg_w() I see that it likes to make 0x00, 0x02, or
->> 0x0A requests where as mine makes 0x01, 0x0A, and mostly 0x0B requests.
->> I do see that it tends to want a byte back though like mine (0x0A except
->> at end).  My code has a few 3 byte returns (byte 0 varies, byte 1 fixed
->> at 0x00, byte 2 fixed at 0x08 like others), so I'm not sure if its a
->> good match for reg read.  Following that I tried to grep around some
->> more for a number of the more interesting numbers (eg: 90D8 as opposed
->> to 0001) in the $SRC/drivers/media/video dir and could only find
->> scattered matches.  I do realize that a lot of the more esoteric numbers
->> could be specific settings and not registers, commands, etc.  Or maybe
->> tofx2 is related and I'm not understanding the bridge concept?
->
-> I think you may have been looking at the wrong driver, if your trace
-> shows
-> mostly 0x0a, 0x0b and 0x02 requests then chances are high it is indeed
-> an ovfx2, the ovfx2 driver is part of drivers/media/video/gspca/ov519.c
-> because it shares a bunch of functions (mostly sensor detect stuff) with
-> the ov511/ov518/ov519 driver.
->
-> And it makes 0x0a request for ovfx2 (bridge) register writes, 0x0b
-> requests for ovfx2 (bridge) register reads and 0x02 requests for i2c
-> writes.
->
-> If things indeed seem a better match with the ovfx2 support in ov519.c,
-> one quick way to find out if it is an ovfx2 is to just add the usb-id of
-> your camera to ov519.c as an ovfx2 camera, and load the driver, first
-> thing the driver does is try to detect the sensor type through the i2c
-> bus between the bridge and the sensor, if that works (even if it
-> detects an unknown sensor, but the sensor id found seems sensible) it
-> it likely is an ovfx2.
->
-> You could also try grapping for strings like fx2 and cypress in the
-> windows
-> driver. Also try looking at the .inf file from the windows driver, if
-> that
-> contains different (maybe commented out) usb-ids of potentially
-> compatible
-> cams.
->
-> Regards,
->
-> Hans
->
->
->>
->> John
->>
+add support for dm3xx IPIPEIF hardware setup. This is the
+lowest software layer for the dm3x vpfe driver which directly
+accesses hardware. Add support for features like default
+pixel correction, dark frame substraction  and hardware setup.
 
-Hi,
-Time to resurrect a dead thread ;)   Got busy with work but I'm still
-determined to get this working. 
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+---
+ drivers/media/video/davinci/dm3xx_ipipeif.c |  312 +++++++++++++++++++++++++++
+ drivers/media/video/davinci/dm3xx_ipipeif.h |  255 ++++++++++++++++++++++
+ include/linux/dm3xx_ipipeif.h               |   64 ++++++
+ 3 files changed, 631 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/davinci/dm3xx_ipipeif.c
+ create mode 100644 drivers/media/video/davinci/dm3xx_ipipeif.h
+ create mode 100644 include/linux/dm3xx_ipipeif.h
 
-A lot of things sound close but maybe not quite right?  I will not doubt
-your fx2 was a good guess.  I also dug a little more and found some
-addition Windows driver files I didn't notice before and tried to grep
-for FX.  I did previously try to match up some of the other VID/PIDs
-before and no luck there.  I finally decided to open it up and its a
-Cypress CY7C68013A, an "EZ-USB-FX2LP".  This is what happens when I
-patch it to my VID / PID with some debugging turned on:
-
-gspca: main v2.9.0 registered
-usbcore: registered new interface driver ov519
-registered
-usb 2-1: new high speed USB device using ehci_hcd and address 5
-usb 2-1: config 1 interface 0 altsetting 0 bulk endpoint 0x82 has
-invalid maxpacket 1024
-usb 2-1: New USB device found, idVendor=0547, idProduct=4d88
-usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-usb 2-1: Product: DCM800
-usb 2-1: Manufacturer: ScopeTek
-gspca: probing 0547:4d88
-Write reg 0x0060 -> [0x00]
-Write reg 0x0001 -> [0x02]
-Write reg 0x001d -> [0x0f]
-Write reg 0x0082 -> [0xe9]
-Write reg 0x00c7 -> [0xea]
-Write reg 0x0010 -> [0xeb]
-Write reg 0x00f6 -> [0xec]
-Write reg 0x0042 -> [0x00]
-i2c 0x80 -> [0x12] failed
-Write reg 0x00c0 -> [0x00]
-i2c 0x80 -> [0x12] failed
-Write reg 0x00a0 -> [0x00]
-i2c 0x80 -> [0x12] failed
-Write reg 0x0060 -> [0x00]
-i2c 0x80 -> [0x12] failed
-Can't determine sensor slave IDs
-OV519 Config failed
-ov519: probe of 2-1:1.0 failed with error -16
-
-Maybe a key piece of data I gleaned that might help identify it.  To set
-the resolution it sends:
-
-request = 0x0B, request type = USB_DIR_IN | USB_TYPE_VENDOR |
-USB_RECIP_DEVICE, value = width, index = 0x034C, ret = {0x08}
-
-and
-
-request = 0x0B, request type = USB_DIR_IN | USB_TYPE_VENDOR |
-USB_RECIP_DEVICE, value = height index = 0x034E, ret = {0x08}
-
-This seems to point that a 0x0B request would be some sort of write,
-wValue is a register value, and wIndex is the register.  However in the
-OV519 this type of request seems to be a read:
-
-static int reg_r(struct sd *sd, __u16 index)
-...
-    case BRIDGE_OVFX2:
-        req = 0x0b;
-...
-
-
-On the off chance that the numbers were just switched around I tried the
-following quick switches as a long shot:
-
-reg_w()
-Does bulk setup
-Orig: 0x0A
-Switched to 0x0B
-
-reg_r()
-Orig: 0x0B
-Switched to 0x0A
-
-
-i2c_w() => ovfx2_i2c_w()
-Orig: 0x02
-Switched to 0x01
-
-i2c_r() => ovfx2_i2c_r()
-Orig: 0x03
-Switched to 0x02 on loose grounds
-
-
-But not too surprisingly it didn't do very well and stopped right after
-"Write reg 0x0060 -> [0x00] failed".  Additionally, I haven't been able
-to figure out how to find SOF/EOF and none of the algorithms presented
-in ov519.c seem to be applicable to the data streams I'm seeing.  The
-biggest hint I have is that there seems to be a darkened pixel row the
-second from the top and left in case that's familiar.
-
-In any case, I got a bit more serious and learned the basic V4L API as
-well as GSPCA enough to write a proof of concept driver for it (I used
-dead reckoning on frame size to find SOF/EOF but it of course gets
-messed up if a packet drops which sometimes happens during init).  I
-figure even if there is an existing driver it was a good experience for
-me and it should help fitting it in.  I also read the datasheet enough
-to figure out how to rip the firmware off although I don't know if it
-would be of any use.  From what I can tell from the datasheet though
-even if its the same chip it could be configured in a number of
-different ways and there is no guarantee the requests would line up.  Of
-course, I'm not going to deny that they are the same requests and I'm
-still misinterpreting it since you did predict the chip before me ;) 
-Thanks for the help and hopefully with a little more prodding we'll be
-able to straighten this out.
-
-John
+diff --git a/drivers/media/video/davinci/dm3xx_ipipeif.c b/drivers/media/video/davinci/dm3xx_ipipeif.c
+new file mode 100644
+index 0000000..a3a4554
+--- /dev/null
++++ b/drivers/media/video/davinci/dm3xx_ipipeif.c
+@@ -0,0 +1,312 @@
++/*
++* Copyright (C) 2011 Texas Instruments Inc
++*
++* This program is free software; you can redistribute it and/or
++* modify it under the terms of the GNU General Public License as
++* published by the Free Software Foundation version 2.
++*
++* This program is distributed in the hope that it will be useful,
++* but WITHOUT ANY WARRANTY; without even the implied warranty of
++* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++* GNU General Public License for more details.
++*
++* You should have received a copy of the GNU General Public License
++* along with this program; if not, write to the Free Software
++* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++*
++* ipipe module to hold common functionality across DM355 and DM365
++*/
++#include <linux/kernel.h>
++#include <linux/platform_device.h>
++#include <linux/uaccess.h>
++#include <linux/io.h>
++#include <linux/v4l2-mediabus.h>
++#include "dm3xx_ipipeif.h"
++
++static void *__iomem ipipeif_base_addr;
++
++static inline u32 regr_if(u32 offset)
++{
++	return readl(ipipeif_base_addr + offset);
++}
++
++static inline void regw_if(u32 val, u32 offset)
++{
++	writel(val, ipipeif_base_addr + offset);
++}
++
++void ipipeif_set_enable(char en, unsigned int mode)
++{
++	regw_if(1, IPIPEIF_ENABLE);
++}
++
++u32 ipipeif_get_enable(void)
++{
++	return regr_if(IPIPEIF_ENABLE);
++}
++
++int ipipeif_set_address(struct ipipeif *params, unsigned int address)
++{
++	u32 val;
++
++	if (params->source == 0)
++		return -EINVAL;
++
++	val = (params->adofs >> 5) & IPIPEIF_ADOFS_LSB_MASK;
++	regw_if(val, IPIPEIF_ADOFS);
++
++	/* lower sixteen bit */
++	val = (address >> IPIPEIF_ADDRL_SHIFT) & IPIPEIF_ADDRL_MASK;
++	regw_if(val, IPIPEIF_ADDRL);
++
++	/* upper next seven bit */
++	val = (address >> IPIPEIF_ADDRU_SHIFT) & IPIPEIF_ADDRU_MASK;
++	regw_if(val, IPIPEIF_ADDRU);
++
++	return 0;
++}
++
++static void ipipeif_config_dpc(struct ipipeif_dpc *dpc)
++{
++	u32 val = 0;
++
++	if (dpc->en) {
++		val = (dpc->en & 1) << IPIPEIF_DPC2_EN_SHIFT;
++		val |= dpc->thr & IPIPEIF_DPC2_THR_MASK;
++	}
++
++	regw_if(val, IPIPEIF_DPC2);
++}
++
++#define RD_DATA_15_2	0x7
++/* This function sets up IPIPEIF and is called from
++ * ipipe_hw_setup()
++ */
++int ipipeif_hw_setup(struct ipipeif *params, int device_type)
++{
++	enum v4l2_mbus_pixelcode isif_port_if;
++	unsigned int val;
++
++	if (params == NULL)
++		return -EINVAL;
++
++	/* Enable clock to IPIPEIF and IPIPE */
++	if (device_type == DM365)
++		vpss_enable_clock(VPSS_IPIPEIF_CLOCK, 1);
++
++	/* Combine all the fields to make CFG1 register of IPIPEIF */
++	val = params->mode << ONESHOT_SHIFT;
++	val |= params->source << INPSRC_SHIFT;
++	val |= params->clock_select << CLKSEL_SHIFT;
++	val |= params->avg_filter << AVGFILT_SHIFT;
++	val |= params->decimation << DECIM_SHIFT;
++
++	if (device_type == DM355) {
++		val |= params->var.if_base.ialaw << IALAW_SHIFT;
++		val |= params->var.if_base.pack_mode << PACK8IN_SHIFT;
++		val |= params->var.if_base.clk_div << CLKDIV_SHIFT;
++		val |= params->var.if_base.data_shift << DATASFT_SHIFT;
++	} else {
++		/* DM365 IPIPE 5.1 */
++		val |= params->var.if_5_1.pack_mode << PACK8IN_SHIFT;
++		val |= params->var.if_5_1.source1 << INPSRC1_SHIFT;
++		if (params->source != IPIPEIF_SDRAM_YUV)
++			val |= params->var.if_5_1.data_shift << DATASFT_SHIFT;
++		else
++			val &= ~(RD_DATA_15_2 << DATASFT_SHIFT);
++	}
++	regw_if(val, IPIPEIF_CFG1);
++
++	switch (params->source) {
++	case IPIPEIF_CCDC:
++		regw_if(params->gain, IPIPEIF_GAIN);
++		break;
++	case IPIPEIF_SDRAM_RAW:
++	case IPIPEIF_CCDC_DARKFM:
++		regw_if(params->gain, IPIPEIF_GAIN);
++		/* fall through */
++	case IPIPEIF_SDRAM_YUV:
++		val |= params->var.if_5_1.data_shift << DATASFT_SHIFT;
++		regw_if(params->glob_hor_size, IPIPEIF_PPLN);
++		regw_if(params->glob_ver_size, IPIPEIF_LPFR);
++		regw_if(params->hnum, IPIPEIF_HNUM);
++		regw_if(params->vnum, IPIPEIF_VNUM);
++		break;
++	default:
++		/* Do nothing */
++		return -EINVAL;
++	}
++
++	/*check if decimation is enable or not */
++	if (params->decimation)
++		regw_if(params->rsz, IPIPEIF_RSZ);
++
++	if (device_type != DM365)
++		return 0;
++
++	/* Setup sync alignment and initial rsz position */
++	val = params->var.if_5_1.align_sync & 1;
++	val <<= IPIPEIF_INIRSZ_ALNSYNC_SHIFT;
++	val |= params->var.if_5_1.rsz_start & IPIPEIF_INIRSZ_MASK;
++	regw_if(val, IPIPEIF_INIRSZ);
++
++	/* Enable DPCM decompression */
++	switch (params->source) {
++	case IPIPEIF_SDRAM_RAW:
++		val = 0;
++		if (params->var.if_5_1.dpcm.en) {
++			val = params->var.if_5_1.dpcm.en & 1;
++			val |= (params->var.if_5_1.dpcm.type & 1) <<
++				IPIPEIF_DPCM_BITS_SHIFT;
++			val |= (params->var.if_5_1.dpcm.pred & 1) <<
++				IPIPEIF_DPCM_PRED_SHIFT;
++		}
++		regw_if(val, IPIPEIF_DPCM);
++
++		/* set DPC */
++		ipipeif_config_dpc(&params->var.if_5_1.dpc);
++
++		regw_if(params->var.if_5_1.clip, IPIPEIF_OCLIP);
++		/* fall through for SDRAM YUV mode */
++		isif_port_if = params->var.if_5_1.isif_port.if_type;
++		/* configure CFG2 */
++		val = regr_if(IPIPEIF_CFG2);
++		switch (isif_port_if) {
++		case V4L2_MBUS_FMT_YUYV8_1X16:
++			RESETBIT(val, IPIPEIF_CFG2_YUV8_SHIFT);
++			SETBIT(val, IPIPEIF_CFG2_YUV16_SHIFT);
++			regw_if(val, IPIPEIF_CFG2);
++			break;
++		default:
++			RESETBIT(val, IPIPEIF_CFG2_YUV8_SHIFT);
++			RESETBIT(val, IPIPEIF_CFG2_YUV16_SHIFT);
++			regw_if(val, IPIPEIF_CFG2);
++			break;
++		}
++		break;
++	case IPIPEIF_SDRAM_YUV:
++		/* Set clock divider */
++		if (params->clock_select == IPIPEIF_SDRAM_CLK) {
++			val = regr_if(IPIPEIF_CLKDIV);
++			val |= (params->var.if_5_1.clk_div.m - 1) <<
++				IPIPEIF_CLKDIV_M_SHIFT;
++			val |= (params->var.if_5_1.clk_div.n - 1);
++			regw_if(val, IPIPEIF_CLKDIV);
++		}
++		break;
++	case IPIPEIF_CCDC:
++	case IPIPEIF_CCDC_DARKFM:
++		/* set DPC */
++		ipipeif_config_dpc(&params->var.if_5_1.dpc);
++
++		/* Set DF gain & threshold control */
++		val = 0;
++		if (params->var.if_5_1.df_gain_en) {
++			val = params->var.if_5_1.df_gain_thr &
++				IPIPEIF_DF_GAIN_THR_MASK;
++			regw_if(val, IPIPEIF_DFSGTH);
++			val = (params->var.if_5_1.df_gain_en & 1) <<
++				IPIPEIF_DF_GAIN_EN_SHIFT;
++			val |= params->var.if_5_1.df_gain &
++				IPIPEIF_DF_GAIN_MASK;
++		}
++		regw_if(val, IPIPEIF_DFSGVL);
++		isif_port_if = params->var.if_5_1.isif_port.if_type;
++
++		/* configure CFG2 */
++		val = params->var.if_5_1.isif_port.hdpol <<
++			IPIPEIF_CFG2_HDPOL_SHIFT;
++		val |= params->var.if_5_1.isif_port.vdpol <<
++			IPIPEIF_CFG2_VDPOL_SHIFT;
++
++		switch (isif_port_if) {
++		case V4L2_MBUS_FMT_YUYV8_1X16:
++		case V4L2_MBUS_FMT_YUYV10_1X20:
++			RESETBIT(val, IPIPEIF_CFG2_YUV8_SHIFT);
++			SETBIT(val, IPIPEIF_CFG2_YUV16_SHIFT);
++			break;
++		case V4L2_MBUS_FMT_YUYV8_2X8:
++		case V4L2_MBUS_FMT_Y8_1X8:
++		case V4L2_MBUS_FMT_YUYV10_2X10:
++			SETBIT(val, IPIPEIF_CFG2_YUV8_SHIFT);
++			SETBIT(val, IPIPEIF_CFG2_YUV16_SHIFT);
++			val |= params->var.if_5_1.pix_order <<
++				IPIPEIF_CFG2_YUV8P_SHIFT;
++			break;
++		default:
++			/* Bayer */
++			regw_if(params->var.if_5_1.clip,
++				IPIPEIF_OCLIP);
++		}
++		regw_if(val, IPIPEIF_CFG2);
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int __devinit dm3xx_ipipeif_probe(struct platform_device *pdev)
++{
++	static resource_size_t  res_len;
++	struct resource *res;
++	int status;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
++		return -ENOENT;
++
++	res_len = resource_size(res);
++
++	res = request_mem_region(res->start, res_len, res->name);
++	if (!res)
++		return -EBUSY;
++
++	ipipeif_base_addr = ioremap_nocache(res->start, res_len);
++	if (!ipipeif_base_addr) {
++		status = -EBUSY;
++		goto fail;
++	}
++	return 0;
++
++fail:
++	release_mem_region(res->start, res_len);
++
++	return status;
++}
++
++static int dm3xx_ipipeif_remove(struct platform_device *pdev)
++{
++	struct resource *res;
++
++	iounmap(ipipeif_base_addr);
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (res)
++		release_mem_region(res->start, resource_size(res));
++	return 0;
++}
++
++static struct platform_driver dm3xx_ipipeif_driver = {
++	.driver = {
++		.name   = "dm3xx_ipipeif",
++		.owner = THIS_MODULE,
++	},
++	.remove = __devexit_p(dm3xx_ipipeif_remove),
++	.probe = dm3xx_ipipeif_probe,
++};
++
++static int dm3xx_ipipeif_init(void)
++{
++	return platform_driver_register(&dm3xx_ipipeif_driver);
++}
++
++static void dm3xx_ipipeif_exit(void)
++{
++	platform_driver_unregister(&dm3xx_ipipeif_driver);
++}
++
++module_init(dm3xx_ipipeif_init);
++module_exit(dm3xx_ipipeif_exit);
++
++MODULE_LICENSE("GPL2");
+diff --git a/drivers/media/video/davinci/dm3xx_ipipeif.h b/drivers/media/video/davinci/dm3xx_ipipeif.h
+new file mode 100644
+index 0000000..3995eb0
+--- /dev/null
++++ b/drivers/media/video/davinci/dm3xx_ipipeif.h
+@@ -0,0 +1,255 @@
++/*
++* Copyright (C) 2011 Texas Instruments Inc
++*
++* This program is free software; you can redistribute it and/or
++* modify it under the terms of the GNU General Public License as
++* published by the Free Software Foundation version 2.
++*
++* This program is distributed in the hope that it will be useful,
++* but WITHOUT ANY WARRANTY; without even the implied warranty of
++* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++* GNU General Public License for more details.
++*
++* You should have received a copy of the GNU General Public License
++* along with this program; if not, write to the Free Software
++* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++*/
++
++#ifndef _DM3XX_IPIPEIF_H
++#define _DM3XX_IPIPEIF_H
++
++#include <linux/kernel.h>
++#include <linux/dm3xx_ipipeif.h>
++#include <mach/hardware.h>
++#include <linux/io.h>
++#include "vpss.h"
++
++/* Used to shift input image data based on the data lines connected
++ * to parallel port
++ */
++/* IPIPE base specific types */
++enum ipipeif_data_shift {
++	IPIPEIF_BITS15_2,
++	IPIPEIF_BITS14_1,
++	IPIPEIF_BITS13_0,
++	IPIPEIF_BITS12_0,
++	IPIPEIF_BITS11_0,
++	IPIPEIF_BITS10_0,
++	IPIPEIF_BITS9_0
++};
++
++enum ipipeif_clkdiv {
++	IPIPEIF_DIVIDE_HALF,
++	IPIPEIF_DIVIDE_THIRD,
++	IPIPEIF_DIVIDE_FOURTH,
++	IPIPEIF_DIVIDE_FIFTH,
++	IPIPEIF_DIVIDE_SIXTH,
++	IPIPEIF_DIVIDE_EIGHTH,
++	IPIPEIF_DIVIDE_SIXTEENTH,
++	IPIPEIF_DIVIDE_THIRTY
++};
++
++enum ipipeif_clock {
++	IPIPEIF_PIXCEL_CLK,
++	IPIPEIF_SDRAM_CLK
++};
++
++enum ipipeif_pack_mode  {
++	IPIPEIF_PACK_16_BIT,
++	IPIPEIF_PACK_8_BIT
++};
++
++enum ipipe_oper_mode {
++	IPIPEIF_CONTINUOUS,
++	IPIPEIF_ONE_SHOT
++};
++
++enum ipipeif_5_1_pack_mode  {
++	IPIPEIF_5_1_PACK_16_BIT,
++	IPIPEIF_5_1_PACK_8_BIT,
++	IPIPEIF_5_1_PACK_8_BIT_A_LAW,
++	IPIPEIF_5_1_PACK_12_BIT
++};
++
++enum  ipipeif_avg_filter {
++	IPIPEIF_AVG_OFF,
++	IPIPEIF_AVG_ON
++};
++
++enum  ipipeif_input_source {
++	IPIPEIF_CCDC,
++	IPIPEIF_SDRAM_RAW,
++	IPIPEIF_CCDC_DARKFM,
++	IPIPEIF_SDRAM_YUV
++};
++
++enum ipipeif_ialaw {
++	IPIPEIF_ALAW_OFF,
++	IPIPEIF_ALAW_ON
++};
++
++struct ipipeif_base {
++	enum ipipeif_ialaw ialaw;
++	enum ipipeif_pack_mode pack_mode;
++	enum ipipeif_data_shift data_shift;
++	enum ipipeif_clkdiv clk_div;
++};
++
++enum  ipipeif_input_src1 {
++	IPIPEIF_SRC1_PARALLEL_PORT,
++	IPIPEIF_SRC1_SDRAM_RAW,
++	IPIPEIF_SRC1_ISIF_DARKFM,
++	IPIPEIF_SRC1_SDRAM_YUV
++};
++
++enum ipipeif_dpcm_type {
++	IPIPEIF_DPCM_8BIT_10BIT,
++	IPIPEIF_DPCM_8BIT_12BIT
++};
++
++struct ipipeif_dpcm_decomp {
++	unsigned char en;
++	enum ipipeif_dpcm_type type;
++	enum ipipeif_dpcm_pred pred;
++};
++
++enum ipipeif_dfs_dir {
++	IPIPEIF_PORT_MINUS_SDRAM,
++	IPIPEIF_SDRAM_MINUS_PORT
++};
++
++struct ipipeif_5_1 {
++	enum ipipeif_5_1_pack_mode pack_mode;
++	enum ipipeif_5_1_data_shift data_shift;
++	enum ipipeif_input_src1 source1;
++	struct ipipeif_5_1_clkdiv clk_div;
++	/* Defect pixel correction */
++	struct ipipeif_dpc dpc;
++	/* DPCM decompression */
++	struct ipipeif_dpcm_decomp dpcm;
++	/* ISIF port pixel order */
++	enum ipipeif_pixel_order pix_order;
++	/* interface parameters from isif */
++	struct vpfe_hw_if_param isif_port;
++	/* clipped to this value */
++	unsigned short clip;
++	/* Align HSync and VSync to rsz_start */
++	unsigned char align_sync;
++	/* resizer start position */
++	unsigned int rsz_start;
++	/* DF gain enable */
++	unsigned char df_gain_en;
++	/* DF gain value */
++	unsigned short df_gain;
++	/* DF gain threshold value */
++	unsigned short df_gain_thr;
++};
++
++/* ipipeif structures common to DM350 and DM365 used by ipipeif API */
++struct ipipeif {
++	enum ipipe_oper_mode mode;
++	enum ipipeif_input_source source;
++	enum ipipeif_clock clock_select;
++	unsigned int glob_hor_size;
++	unsigned int glob_ver_size;
++	unsigned int hnum;
++	unsigned int vnum;
++	unsigned int adofs;
++	unsigned char rsz;
++	enum ipipeif_decimation decimation;
++	enum ipipeif_avg_filter avg_filter;
++	unsigned short gain;
++	/* IPIPE 5.1 */
++	union var_part {
++		struct ipipeif_base if_base;
++		struct ipipeif_5_1  if_5_1;
++	} var;
++};
++
++/* IPIPEIF Register Offsets from the base address */
++#define IPIPEIF_ENABLE			0x00
++#define IPIPEIF_CFG1			0x04
++#define IPIPEIF_PPLN			0x08
++#define IPIPEIF_LPFR			0x0c
++#define IPIPEIF_HNUM			0x10
++#define IPIPEIF_VNUM			0x14
++#define IPIPEIF_ADDRU			0x18
++#define IPIPEIF_ADDRL			0x1c
++#define IPIPEIF_ADOFS			0x20
++#define IPIPEIF_RSZ			0x24
++#define IPIPEIF_GAIN			0x28
++
++/* Below registers are available only on IPIPE 5.1 */
++#define IPIPEIF_DPCM			0x2c
++#define IPIPEIF_CFG2			0x30
++#define IPIPEIF_INIRSZ			0x34
++#define IPIPEIF_OCLIP			0x38
++#define IPIPEIF_DTUDF			0x3c
++#define IPIPEIF_CLKDIV			0x40
++#define IPIPEIF_DPC1			0x44
++#define IPIPEIF_DPC2			0x48
++#define IPIPEIF_DFSGVL			0x4c
++#define IPIPEIF_DFSGTH			0x50
++#define IPIPEIF_RSZ3A			0x54
++#define IPIPEIF_INIRSZ3A		0x58
++#define IPIPEIF_RSZ_MIN			16
++#define IPIPEIF_RSZ_MAX			112
++#define IPIPEIF_RSZ_CONST		16
++#define SETBIT(reg, bit)   (reg = ((reg) | ((0x00000001)<<(bit))))
++#define RESETBIT(reg, bit) (reg = ((reg) & (~(0x00000001<<(bit)))))
++
++#define IPIPEIF_ADOFS_LSB_MASK		0x1ff
++#define IPIPEIF_ADOFS_LSB_SHIFT		5
++#define IPIPEIF_ADOFS_MSB_MASK		0x200
++#define IPIPEIF_ADDRU_MASK		0x7ff
++#define IPIPEIF_ADDRL_SHIFT		5
++#define IPIPEIF_ADDRL_MASK		0xffff
++#define IPIPEIF_ADDRU_SHIFT		21
++#define IPIPEIF_ADDRMSB_SHIFT		31
++#define IPIPEIF_ADDRMSB_LEFT_SHIFT	10
++
++/* CFG1 Masks and shifts */
++#define ONESHOT_SHIFT			0
++#define DECIM_SHIFT			1
++#define INPSRC_SHIFT			2
++#define CLKDIV_SHIFT			4
++#define AVGFILT_SHIFT			7
++#define PACK8IN_SHIFT			8
++#define IALAW_SHIFT			9
++#define CLKSEL_SHIFT			10
++#define DATASFT_SHIFT			11
++#define INPSRC1_SHIFT			14
++
++/* DPC2 */
++#define IPIPEIF_DPC2_EN_SHIFT		12
++#define IPIPEIF_DPC2_THR_MASK		0xfff
++/* Applicable for IPIPE 5.1 */
++#define IPIPEIF_DF_GAIN_EN_SHIFT	10
++#define IPIPEIF_DF_GAIN_MASK		0x3ff
++#define IPIPEIF_DF_GAIN_THR_MASK	0xfff
++/* DPCM */
++#define IPIPEIF_DPCM_BITS_SHIFT		2
++#define IPIPEIF_DPCM_PRED_SHIFT		1
++/* CFG2 */
++#define IPIPEIF_CFG2_HDPOL_SHIFT	1
++#define IPIPEIF_CFG2_VDPOL_SHIFT	2
++#define IPIPEIF_CFG2_YUV8_SHIFT		6
++#define	IPIPEIF_CFG2_YUV16_SHIFT	3
++#define	IPIPEIF_CFG2_YUV8P_SHIFT	7
++
++/* INIRSZ */
++#define IPIPEIF_INIRSZ_ALNSYNC_SHIFT	13
++#define IPIPEIF_INIRSZ_MASK		0x1fff
++
++/* CLKDIV */
++#define IPIPEIF_CLKDIV_M_SHIFT		8
++
++int ipipeif_set_address(struct ipipeif *if_params, unsigned int address);
++void ipipeif_set_enable(char en, unsigned int mode);
++int ipipeif_hw_setup(struct ipipeif *if_params, int device_type);
++u32 ipipeif_get_enable(void);
++
++#define DM355	0
++#define DM365	1
++
++#endif
+diff --git a/include/linux/dm3xx_ipipeif.h b/include/linux/dm3xx_ipipeif.h
+new file mode 100644
+index 0000000..a63ead5
+--- /dev/null
++++ b/include/linux/dm3xx_ipipeif.h
+@@ -0,0 +1,64 @@
++/*
++* Copyright (C) 2011 Texas Instruments Inc
++*
++* This program is free software; you can redistribute it and/or
++* modify it under the terms of the GNU General Public License as
++* published by the Free Software Foundation version 2.
++*
++* This program is distributed in the hope that it will be useful,
++* but WITHOUT ANY WARRANTY; without even the implied warranty of
++* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++* GNU General Public License for more details.
++*
++* You should have received a copy of the GNU General Public License
++* along with this program; if not, write to the Free Software
++* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++*/
++
++#ifndef _DM3XX_IPIPEIF_INCLUDE_H
++#define _DM3XX_IPIPEIF_INCLUDE_H
++
++#include <media/davinci/vpfe.h>
++
++/* IPIPE 5.1 interface types */
++/* dpcm predicator for IPIPE 5.1 */
++enum ipipeif_dpcm_pred {
++	IPIPEIF_DPCM_SIMPLE_PRED,
++	IPIPEIF_DPCM_ADV_PRED
++};
++
++/* clockdiv for IPIPE 5.1 */
++struct ipipeif_5_1_clkdiv {
++	unsigned char m;
++	unsigned char n;
++};
++
++/* data shift for IPIPE 5.1 */
++enum ipipeif_5_1_data_shift {
++	IPIPEIF_5_1_BITS11_0,
++	IPIPEIF_5_1_BITS10_0,
++	IPIPEIF_5_1_BITS9_0,
++	IPIPEIF_5_1_BITS8_0,
++	IPIPEIF_5_1_BITS7_0,
++	IPIPEIF_5_1_BITS15_4,
++};
++
++enum ipipeif_decimation {
++	IPIPEIF_DECIMATION_OFF,
++	IPIPEIF_DECIMATION_ON
++};
++
++/* DPC at the if for IPIPE 5.1 */
++struct ipipeif_dpc {
++	/* 0 - disable, 1 - enable */
++	unsigned char en;
++	/* threshold */
++	unsigned short thr;
++};
++
++enum	ipipeif_pixel_order {
++	IPIPEIF_CBCR_Y,
++	IPIPEIF_Y_CBCR
++};
++
++#endif
+-- 
+1.6.2.4
 
