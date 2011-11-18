@@ -1,62 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:63416 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755293Ab1KCPni convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2011 11:43:38 -0400
-Received: by iage36 with SMTP id e36so1465381iag.19
-        for <linux-media@vger.kernel.org>; Thu, 03 Nov 2011 08:43:38 -0700 (PDT)
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:52777 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757402Ab1KRXbb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Nov 2011 18:31:31 -0500
 MIME-Version: 1.0
-Date: Thu, 3 Nov 2011 11:43:38 -0400
-Message-ID: <CAOcJUbybUwq9Oc=torsnfiUO5ThQoH4pugjamSnxy9UMom2=gw@mail.gmail.com>
-Subject: [PULL] git://linuxtv.org/mkrufky/tuners if_freq
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <op.v45u6zyy3l0zgt@mpn-glaptop>
+References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+ <CA+K6fF6SH6BNoKgwArcqvyav4b=C5SGvymo5LS3akfD_yE_beg@mail.gmail.com> <op.v45u6zyy3l0zgt@mpn-glaptop>
+From: sandeep patil <psandeep.s@gmail.com>
+Date: Fri, 18 Nov 2011 15:30:49 -0800
+Message-ID: <CA+K6fF6iDivqmN9kfY34tWNg+g_rYBBmyS_Mxb6gvLuSgA2JyQ@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCHv17 0/11] Contiguous Memory Allocator
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+2011/11/18 Michal Nazarewicz <mina86@mina86.com>:
+> On Fri, 18 Nov 2011 22:20:48 +0100, sandeep patil <psandeep.s@gmail.com>
+> wrote:
+>>
+>> I am running a simple test to allocate contiguous regions and write a log
+>> on
+>> in a file on sdcard simultaneously. I can reproduce this migration failure
+>> 100%
+>> times with it.
+>> when I tracked the pages that failed to migrate, I found them on the
+>> buffer head lru
+>> list with a reference held on the buffer_head in the page, which
+>> causes drop_buffers()
+>> to fail.
+>>
+>> So, i guess my question is, until all the migration failures are
+>> tracked down and fixed,
+>> is there a plan to retry the contiguous allocation from a new range in
+>> the CMA region?
+>
+> No.  Current CMA implementation will stick to the same range of pages also
+> on consequent allocations of the same size.
+>
 
-I've pushed some additional patches since my last "mxl111sf bug-fix"
-patches, all into a single branch.  This fixes an actual bug in the
-mxl111sf driver, and also adds the get_if_frequency calls to three
-tuner drivers.  Please merge.
+Doesn't that mean the drivers that fail to allocate from contiguous DMA region
+will fail, if the migration fails?
 
-Please note that I still have a pending pull request from the same
-tree waiting for merge - the "atscdemod" branch.  Please merge both
-branches as soon as you can.
-
-
-The following changes since commit a63366b935456dd0984f237642f6d4001dcf8017:
-  Michael Krufky (1):
-        [media] mxl111sf: update demod_ops.info.name to "MaxLinear
-MxL111SF DVB-T demodulator"
-
-are available in the git repository at:
-
-  git://linuxtv.org/mkrufky/tuners if_freq
-
-Michael Krufky (7):
-      mxl111sf: fix return value of mxl111sf_idac_config
-      mxl111sf: check for errors after mxl111sf_write_reg in
-mxl111sf_idac_config
-      mxl111sf: remove pointless if condition in mxl111sf_config_spi
-      mxl111sf: fix build warning: variable âretâ set but not used in
-function âmxl111sf_i2c_readagainâ
-      mxl111sf: add mxl111sf_tuner_get_if_frequency
-      mxl5007t: add mxl5007t_get_if_frequency
-      tda18271: add tda18271_get_if_frequency
-
- drivers/media/common/tuners/mxl5007t.c      |   49 +++++++++++++++++++++++
- drivers/media/common/tuners/tda18271-fe.c   |   10 +++++
- drivers/media/common/tuners/tda18271-priv.h |    2 +
- drivers/media/dvb/dvb-usb/mxl111sf-i2c.c    |    3 +-
- drivers/media/dvb/dvb-usb/mxl111sf-phy.c    |    7 ++-
- drivers/media/dvb/dvb-usb/mxl111sf-tuner.c  |   56 ++++++++++++++++++++++++++-
- 6 files changed, 121 insertions(+), 6 deletions(-)
-
-Best regards,
-
-Michael Krufky
+~ sandeep
