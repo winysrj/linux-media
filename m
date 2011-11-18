@@ -1,72 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:47289 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620Ab1KZQUB (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:32628 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757975Ab1KRQnY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Nov 2011 11:20:01 -0500
-Received: by bke11 with SMTP id 11so5851124bke.19
-        for <linux-media@vger.kernel.org>; Sat, 26 Nov 2011 08:20:00 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAO=zWDJD19uCJJfdZQVQzHOSxLcXb11D+Avw--YV5mCk8qxPww@mail.gmail.com>
-References: <CAO=zWDJD19uCJJfdZQVQzHOSxLcXb11D+Avw--YV5mCk8qxPww@mail.gmail.com>
-Date: Sat, 26 Nov 2011 17:20:00 +0100
-Message-ID: <CAO=zWDJREu+AomDtuWTf5CaTwJh4BbQ79b4BtYJODhGvTqW9fg@mail.gmail.com>
-Subject: Re: Status of RTL283xU support?
-From: Maik Zumstrull <maik@zumstrull.net>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+	Fri, 18 Nov 2011 11:43:24 -0500
+Date: Fri, 18 Nov 2011 17:43:08 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 01/11] mm: page_alloc: handle MIGRATE_ISOLATE in
+ free_pcppages_bulk()
+In-reply-to: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>
+Message-id: <1321634598-16859-2-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 26, 2011 at 13:47, Maik Zumstrull <maik@zumstrull.net> wrote:
+From: Michal Nazarewicz <mina86@mina86.com>
 
-> it seems I've found myself with an rtl2832u-based DVB-T USB stick. The
-> latest news on that seems to be that you were working on cleaning up
-> the code of the Realtek-provided GPL driver, with the goal of
-> eventually getting it into mainline.
->
-> Would you mind giving a short status update?
+If page is on PCP list while pageblock it belongs to gets isolated,
+the page's private still holds the old migrate type.  This means
+that free_pcppages_bulk() will put the page on a freelist of the
+old migrate type instead of MIGRATE_ISOLATE.
 
-FYI, someone has contacted me off-list to point out that the newest(?)
-Realtek tree for these devices is available online:
+This commit changes that by explicitly checking whether page's
+pageblock's migrate type is MIGRATE_ISOLATE and if it is, overwrites
+page's private data.
 
-Alessandro Ambrosini wrote:
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ mm/page_alloc.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
-> Dear maik,
->
-> I've read your post here
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg39559.html
-> I have not a subscription to linux-media mailing list. I see your post
-> looking for in archive.
->
-> Some days ago I've asked to Realtek if there are newer driver (latest on the
-> net was 2.2.0)
-> They kindly send me latest driver 2.2.2 kernel 2.6.x
->
-> I've patched it yesterday for kernel 3.0.0 (Ubuntu 11.10) and they looks to
-> work fine.
-> I'm not an expert C coder, only an hobbyist. So I suppose there are
-> problems.
->
-> Anyway here you can find:
->
-> 1) original Realtek 2.2.2 driver "simplified version" (DVB-T only and 4
-> tuners only)
-> https://github.com/ambrosa/DVB-Realtek-RTL2832U-2.2.2-4_tuner
->
-> 2) original Realtek 2.2.2 driver "full version" (DVB-T/ DTMB and 10 tuners)
-> https://github.com/ambrosa/DVB-Realtek-RTL2832U-2.2.2-10_tuner
->
-> 3) driver "full" modded by me for kernel 3.0.0
-> https://github.com/ambrosa/DVB-Realtek-RTL2832U-2.2.2-10tuner-mod_kernel-3.0.0
-> README file explain about all
->
-> They compile fine in Ubuntu 11.10 64 bit and works great.
->
-> I've NOT tried to compile in 32bit system
-> I've compile successfully in a Set-Top-Box Linux based (kernel 3.1.0 ,
-> ENIGMA2, cpu Broadcom) and looks to work fine BUT they doesn't work with
-> ENIGMA2. I'm investigating about this issue.
->
-> If you can re-post this messages in linux-media I will appreciated (omit my
-> email address please)
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 9dd443d..58d1a2e 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -628,6 +628,18 @@ static void free_pcppages_bulk(struct zone *zone, int count,
+ 			page = list_entry(list->prev, struct page, lru);
+ 			/* must delete as __free_one_page list manipulates */
+ 			list_del(&page->lru);
++
++			/*
++			 * When page is isolated in set_migratetype_isolate()
++			 * function it's page_private is not changed since the
++			 * function has no way of knowing if it can touch it.
++			 * This means that when a page is on PCP list, it's
++			 * page_private no longer matches the desired migrate
++			 * type.
++			 */
++			if (get_pageblock_migratetype(page) == MIGRATE_ISOLATE)
++				set_page_private(page, MIGRATE_ISOLATE);
++
+ 			/* MIGRATE_MOVABLE list may include MIGRATE_RESERVEs */
+ 			__free_one_page(page, zone, 0, page_private(page));
+ 			trace_mm_page_pcpu_drain(page, 0, page_private(page));
+-- 
+1.7.1.569.g6f426
+
