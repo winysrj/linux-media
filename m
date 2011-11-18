@@ -1,276 +1,308 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:42378 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753373Ab1KNRJK convert rfc822-to-8bit (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:33343 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756975Ab1KRQnY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Nov 2011 12:09:10 -0500
-Received: by wyh15 with SMTP id 15so6090345wyh.19
-        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2011 09:09:09 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4EC1445C.4030503@redhat.com>
-References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com>
-	<4EBBE336.8050501@linuxtv.org>
-	<CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com>
-	<4EBC402E.20208@redhat.com>
-	<alpine.DEB.2.01.1111111759060.6676@localhost.localdomain>
-	<4EBD6B61.7020605@redhat.com>
-	<CAHFNz9JSk+TeptBZ8F9SEiyaa8q5OO8qwBiBxR9KEsOT8o_J-w@mail.gmail.com>
-	<4EBFC6F3.50404@redhat.com>
-	<CAHFNz9+Gia40gQkW_VtRrwpawqhLDzwL5Qf_AGW4zQSJ3yj1Yg@mail.gmail.com>
-	<4EC0FFCA.6060006@redhat.com>
-	<CAHFNz9KRGwcPwfndg322Fso_i=zuArJDijoP2evLjJuaOFviDA@mail.gmail.com>
-	<4EC1445C.4030503@redhat.com>
-Date: Mon, 14 Nov 2011 22:39:08 +0530
-Message-ID: <CAHFNz9JLmqVO-ViK_22vrcpSN3sz82dKtwo6yepgUooHZ5qn9A@mail.gmail.com>
-Subject: Re: PATCH: Query DVB frontend capabilities
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 18 Nov 2011 11:43:24 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Fri, 18 Nov 2011 17:43:09 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 02/11] mm: compaction: introduce
+ isolate_{free,migrate}pages_range().
+In-reply-to: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>
+Message-id: <1321634598-16859-3-git-send-email-m.szyprowski@samsung.com>
+References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 14, 2011 at 10:09 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 14-11-2011 13:02, Manu Abraham escreveu:
->> On Mon, Nov 14, 2011 at 5:17 PM, Mauro Carvalho Chehab
->> <mchehab@redhat.com> wrote:
->>> Em 13-11-2011 13:27, Manu Abraham escreveu:
->>>> On Sun, Nov 13, 2011 at 7:02 PM, Mauro Carvalho Chehab
->>>> <mchehab@redhat.com> wrote:
->>>>> Em 11-11-2011 20:34, Manu Abraham escreveu:
->>>>>> On Sat, Nov 12, 2011 at 12:07 AM, Mauro Carvalho Chehab
->>>>>> <mchehab@redhat.com> wrote:
->>>>>>> Em 11-11-2011 15:43, BOUWSMA Barry escreveu:
->>>>>>>>
->>>>>>>> On Do (Donnerstag) 10.Nov (November) 2011, 22:20,  Mauro Carvalho Chehab wrote:
->>>>>>>>
->>>>>>>>> We should also think on a way to enumerate the supported values for each DVB $
->>>>>>>>> the enum fe_caps is not enough anymore to store everything. It currently has $
->>>>>>>>> filled (of a total of 32 bits), and we currently have:
->>>>>>>>>      12 code rates (including AUTO/NONE);
->>>>>>>>
->>>>>>>> I'm probably not looking at the correct source, but the numbers
->>>>>>>> seem to match, so I'll just note that in what I'm looking at,
->>>>>>>> there are missing the values  1/3  and  2/5 .
->>>>>>>
->>>>>>> Those were not added yet, as no driver currently uses it.
->>>>>>>
->>>>>>>>
->>>>>>>> But I have to apologise in that I've also not been paying
->>>>>>>> attention to this conversation, and haven't even been trying
->>>>>>>> to follow recent developments.
->>>>>>>>
->>>>>>>>
->>>>>>>>>      13 modulation types;
->>>>>>>>
->>>>>>>> Here I see missing  QAM1024  and  QAM4096 .
->>>>>>>
->>>>>>> Same here.
->>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>>>      7 transmission modes;
->>>>>>>>>      7 bandwidths;
->>>>>>>>
->>>>>>>> Apparently DVB-C2 allows us any bandwidth from 8MHz to 450MHz,
->>>>>>>> rather than the discrete values used by the other systems.
->>>>>>>> If this is also applicable to other countries with 6MHz rasters,
->>>>>>>> would it be necessary in addition to specify carrier spacing,
->>>>>>>> either 2,232kHz or 1,674kHz as opposed to getting this from the
->>>>>>>> channel bandwidth?
->>>>>>>
->>>>>>> There are 3 parameters for Satellite and Cable systems:
->>>>>>>        - Roll off factor;
->>>>>>>        - Symbol Rate;
->>>>>>>        - Bandwidth.
->>>>>>>
->>>>>>> Only two of the tree are independent, as the spec defines:
->>>>>>>        Bandwidth = symbol rate * (1  + roll off).
->>>>>>>
->>>>>>> For DVB-C Annex A and C, roll off is fixed (0.15 and 0.13, respectively).
->>>>>>>
->>>>>>> ITU-T J 83 Annex B doesn't say anything about it, but the ANSI SCTE07 spec
->>>>>>> says that the roll-off is approx. 0.18 for 256-QAM and approx. 0.12 for
->>>>>>> 256-QAM.
->>>>>>>
->>>>>>> DVB-S also has a fixed roll-off of 0.35, while DVB-S2 allows configuring it.
->>>>>>
->>>>>>
->>>>>> DVB-S uses 3 different rolloffs just like DVB-S2. In fact the rolloff
->>>>>> doesn't have anything to do with the delivery system at all, but
->>>>>> something that which is independant and physical to the channel,
->>>>>> rather than something logical such as a delivery system, looking at a
->>>>>> satellite transponder's viewpoint.
->>>>>>
->>>>>> For general (home) broadcast purposes, we use only 0.35. There are
->>>>>> many other usages, which is not yet applicable with especially Linux
->>>>>> DVB with regards to narrow band operations such as DVB feeds and DSNG.
->>>>>
->>>>> Ok.
->>>>>
->>>>>>
->>>>>> There are many usages for the second generation delivery systems,
->>>>>> which will likely realize only a very small part.
->>>>>>
->>>>>> Eg: there are other aspects to DVB-S2 such as ACM and VCM, which most
->>>>>> likely we wouldn't cover. the reason is that the users of it are most
->>>>>> likely propreitary users of it and neither would they prefer to have
->>>>>> an open source version for it, nor would any Open Source users be
->>>>>> likely to implement it. Eg: Ericson's Director CA system, where they
->>>>>> have complete control over the box, rather than the user. As far as I
->>>>>> am aware they have a return path as well.
->>>>>>
->>>>>>>
->>>>>>> Not 100% sure, but ISDB-S also seems to use a per-modulation roll-off factor.
->>>>>>>
->>>>>>> Anyway, when the roll-off is known, only symbol rate is needed, in order
->>>>>>> to know the needed bandwidth.
->>>>>>
->>>>>>
->>>>>> You need to know FEC, modulation too .. Eg: If you have 16APSK where
->>>>>> you have 4 bits, in comparison to 3 bits as with 8PSK, then you
->>>>>> require lesser bandwidth.
->>>>>
->>>>> Manu, you're probably thinking in terms of the TS bit rate, and not the
->>>>> modulator symbol rate.
->>>>>
->>>>> The number of bits don't matter here, as the symbol rate is specified
->>>>> in bauds (e. g. symbols per second), and not in bits/s.
->>>>
->>>>
->>>> A PSK modulator is a state machine:
->>>> where states/symbols are logically represented by bits, given that the
->>>> state can either be a 0 or 1
->>>>
->>>> BPSK  states=2    bits=1
->>>> QPSK  states=4    bits=2
->>>> 8PSK  states=8     bits=3
->>>> 16PSK states=16  bits=4
->>>> 32PSK states=32  bits=5
->>>>
->>>> http://en.wikipedia.org/wiki/Constellation_diagram
->>>> http://en.wikipedia.org/wiki/Gray_code
->>>>
->>>> Symbol Rate is generally specified in SPS, ie Symbols/sec, or in
->>>> Bauds. AFAICS, We generally use Symbols Per Second rather than bauds.
->>>>
->>>> http://www.asiasat.com/asiasat/contentView.php?section=69&lang=0
->>>> http://www.b4utv.com/subs/technology.shtml
->>>> http://www.skynewsinternational.com/watch/satellite-information
->>>>
->>>> I haven't seen a demodulator specification which states Mbaud, but
->>>> have seen them stated as MSPS or kSPS.
->>>>
->>>> Now, assuming a 36MHz TP as an example: The given bandwidth is better
->>>> or efficiently used by a higher order modulation. This is the reason
->>>> why DVB.org states that DVB-S2 saves 30% bandwidth.
->>>>
->>>> Quoting you: "Anyway, when the roll-off is known, only symbol rate is
->>>> needed, in order to know the needed bandwidth."
->>>>
->>>> Given a fixed TP CHBW, according to you: Channel Bandwidth can be
->>>> calculated by knowing Symbol Rate alone, with a known rolloff.
->>>>
->>>> I say that this is not possible. Since the number of states/symbols
->>>> for any given channel depends on the modulation order as well.
->>>>
->>>> I hope that clears up things for you.
->>>>
->>>>
->>>>> The conversion from bauds to bits/s is to multiply the number of bits per
->>>>> symbol by the rate, in bauds.
->>>>>
->>>>> A higher number of bits for a given modulation just increase the number of
->>>>> possible states that the modulation will use. So, it will require a higher
->>>>> signal to noise relation at the demod, to avoid miss-detection, but this is
->>>>> a separate issue.
->>>>
->>>>
->>>> That's why for higher order modulations, demodulators use better Error
->>>> Correction Schemes (eg: BCH/Turbo) when the modulation order is
->>>> higher.
->>>>
->>>> http://en.wikipedia.org/wiki/Modulation_order
->>>> http://en.wikipedia.org/wiki/BCH_code
->>>>
->>>>
->>>>> The roll-off, minimal bandwidth (referred as "Nyquist frequency" by the DVB-C
->>>>> specs) and symbol rate are related by this equation:
->>>>>        f = symbol_rate * (1 + roll_off)
->>>>>
->>>>> The f value is the Nyquist frequency, and it will dictate the low-pass filter
->>>>> needed to confine the entire signal of the channel (with is, basically, the
->>>>> amount of bandwidth required by the channel).
->>>>>
->>>>>> Also, higher the Error correction information bits set in (redundant),
->>>>>> the more bandwidth it needs to occupy.
->>>>>
->>>>> The error correction algorithm will reduce the bit rate of the TS stream,
->>>>> but won't affect the symbol rate at the modulator.
->>>>
->>>>
->>>> No. That's an incorrect statement. FEC gives the receiver the ability
->>>> to correct errors without needing a reverse channel to request
->>>> retransmission of data, but at the cost of a fixed, higher forward
->>>> channel bandwidth.
->>>>
->>>> http://en.wikipedia.org/wiki/Forward_error_correction
->>>
->>> Manu,
->>>
->>> A good reference for working with those stuff is the Symon Haykin book:
->>>        http://www.amazon.com/Communication-Systems-4th-Simon-Haykin/dp/0471178691
->>>
->>> I used it a lot during the time I was studying Electrical Engineering it at University,
->>> and during my post-graduation.
->>
->>
->> Mauro,
->>
->> Well, if the discussion is about know the person whom you are talking
->> to: I did my Engineering degree in Electronics and Communication;
->> Simon and Haykin was just one among them in one of the semesters. I
->> still have those college books somewhere in an old dusty shelf. Later
->> on, I worked at the (Remote Sensing and CVAI labs) Indian Institute of
->> Sciences, Bangalore. Further down the lane, did work with media
->> broadcast organizations.
->>
->> I am not going to get into an argument session, where you keep on
->> changing the topic, with unrelated or incorrect stuff altogether.
->
-> I'm not changing topic. All I'm saying since the beginning is that
-> there's no need to add Bandwidth at the DVB API for cable/satellite, as,
-> for the supported delivery systems, the symbol rate + roll-off can be used
-> for bandwidth estimation, where needed,
+From: Michal Nazarewicz <mina86@mina86.com>
 
-What you stated:
+This commit introduces isolate_freepages_range() and
+isolate_migratepages_range() functions.  The first one replaces
+isolate_freepages_block() and the second one extracts functionality
+from isolate_migratepages().
 
-"Anyway, when the roll-off is known, only symbol rate is needed, in
-order to know the needed bandwidth."
+They are more generic and instead of operating on pageblocks operate
+on PFN ranges.
 
-What I stated:
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ mm/compaction.c |  170 ++++++++++++++++++++++++++++++++++++-------------------
+ 1 files changed, 111 insertions(+), 59 deletions(-)
 
-"the number of states/symbols for any given channel depends on the
-modulation order as well."
+diff --git a/mm/compaction.c b/mm/compaction.c
+index 899d956..6afae0e 100644
+--- a/mm/compaction.c
++++ b/mm/compaction.c
+@@ -54,51 +54,64 @@ static unsigned long release_freepages(struct list_head *freelist)
+ 	return count;
+ }
+ 
+-/* Isolate free pages onto a private freelist. Must hold zone->lock */
+-static unsigned long isolate_freepages_block(struct zone *zone,
+-				unsigned long blockpfn,
+-				struct list_head *freelist)
++/**
++ * isolate_freepages_range() - isolate free pages, must hold zone->lock.
++ * @zone:	Zone pages are in.
++ * @start:	The first PFN to start isolating.
++ * @end:	The one-past-last PFN.
++ * @freelist:	A list to save isolated pages to.
++ *
++ * If @freelist is not provided, holes in range (either non-free pages
++ * or invalid PFNs) are considered an error and function undos its
++ * actions and returns zero.
++ *
++ * If @freelist is provided, function will simply skip non-free and
++ * missing pages and put only the ones isolated on the list.
++ *
++ * Returns number of isolated pages.  This may be more then end-start
++ * if end fell in a middle of a free page.
++ */
++static unsigned long
++isolate_freepages_range(struct zone *zone,
++			unsigned long start, unsigned long end,
++			struct list_head *freelist)
+ {
+-	unsigned long zone_end_pfn, end_pfn;
+-	int nr_scanned = 0, total_isolated = 0;
+-	struct page *cursor;
+-
+-	/* Get the last PFN we should scan for free pages at */
+-	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
+-	end_pfn = min(blockpfn + pageblock_nr_pages, zone_end_pfn);
++	unsigned long nr_scanned = 0, total_isolated = 0;
++	unsigned long pfn = start;
++	struct page *page;
+ 
+-	/* Find the first usable PFN in the block to initialse page cursor */
+-	for (; blockpfn < end_pfn; blockpfn++) {
+-		if (pfn_valid_within(blockpfn))
+-			break;
+-	}
+-	cursor = pfn_to_page(blockpfn);
++	VM_BUG_ON(!pfn_valid(pfn));
++	page = pfn_to_page(pfn);
+ 
+ 	/* Isolate free pages. This assumes the block is valid */
+-	for (; blockpfn < end_pfn; blockpfn++, cursor++) {
+-		int isolated, i;
+-		struct page *page = cursor;
+-
+-		if (!pfn_valid_within(blockpfn))
+-			continue;
+-		nr_scanned++;
+-
+-		if (!PageBuddy(page))
+-			continue;
++	while (pfn < end) {
++		unsigned isolated = 1, i;
++
++		if (!pfn_valid_within(pfn))
++			goto skip;
++		++nr_scanned;
++
++		if (!PageBuddy(page)) {
++skip:
++			if (freelist)
++				goto next;
++			for (; start < pfn; ++start)
++				__free_page(pfn_to_page(pfn));
++			return 0;
++		}
+ 
+ 		/* Found a free page, break it into order-0 pages */
+ 		isolated = split_free_page(page);
+ 		total_isolated += isolated;
+-		for (i = 0; i < isolated; i++) {
+-			list_add(&page->lru, freelist);
+-			page++;
++		if (freelist) {
++			struct page *p = page;
++			for (i = isolated; i; --i, ++p)
++				list_add(&p->lru, freelist);
+ 		}
+ 
+-		/* If a page was split, advance to the end of it */
+-		if (isolated) {
+-			blockpfn += isolated - 1;
+-			cursor += isolated - 1;
+-		}
++next:
++		pfn += isolated;
++		page += isolated;
+ 	}
+ 
+ 	trace_mm_compaction_isolate_freepages(nr_scanned, total_isolated);
+@@ -135,7 +148,7 @@ static void isolate_freepages(struct zone *zone,
+ 				struct compact_control *cc)
+ {
+ 	struct page *page;
+-	unsigned long high_pfn, low_pfn, pfn;
++	unsigned long high_pfn, low_pfn, pfn, zone_end_pfn, end_pfn;
+ 	unsigned long flags;
+ 	int nr_freepages = cc->nr_freepages;
+ 	struct list_head *freelist = &cc->freepages;
+@@ -155,6 +168,8 @@ static void isolate_freepages(struct zone *zone,
+ 	 */
+ 	high_pfn = min(low_pfn, pfn);
+ 
++	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
++
+ 	/*
+ 	 * Isolate free pages until enough are available to migrate the
+ 	 * pages on cc->migratepages. We stop searching if the migrate
+@@ -191,7 +206,9 @@ static void isolate_freepages(struct zone *zone,
+ 		isolated = 0;
+ 		spin_lock_irqsave(&zone->lock, flags);
+ 		if (suitable_migration_target(page)) {
+-			isolated = isolate_freepages_block(zone, pfn, freelist);
++			end_pfn = min(pfn + pageblock_nr_pages, zone_end_pfn);
++			isolated = isolate_freepages_range(zone, pfn,
++					end_pfn, freelist);
+ 			nr_freepages += isolated;
+ 		}
+ 		spin_unlock_irqrestore(&zone->lock, flags);
+@@ -250,31 +267,34 @@ typedef enum {
+ 	ISOLATE_SUCCESS,	/* Pages isolated, migrate */
+ } isolate_migrate_t;
+ 
+-/*
+- * Isolate all pages that can be migrated from the block pointed to by
+- * the migrate scanner within compact_control.
++/**
++ * isolate_migratepages_range() - isolate all migrate-able pages in range.
++ * @zone:	Zone pages are in.
++ * @cc:		Compaction control structure.
++ * @low_pfn:	The first PFN of the range.
++ * @end_pfn:	The one-past-the-last PFN of the range.
++ *
++ * Isolate all pages that can be migrated from the range specified by
++ * [low_pfn, end_pfn).  Returns zero if there is a fatal signal
++ * pending), otherwise PFN of the first page that was not scanned
++ * (which may be both less, equal to or more then end_pfn).
++ *
++ * Assumes that cc->migratepages is empty and cc->nr_migratepages is
++ * zero.
++ *
++ * Other then cc->migratepages and cc->nr_migratetypes this function
++ * does not modify any cc's fields, ie. it does not modify (or read
++ * for that matter) cc->migrate_pfn.
+  */
+-static isolate_migrate_t isolate_migratepages(struct zone *zone,
+-					struct compact_control *cc)
++static unsigned long
++isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
++			   unsigned long low_pfn, unsigned long end_pfn)
+ {
+-	unsigned long low_pfn, end_pfn;
+ 	unsigned long last_pageblock_nr = 0, pageblock_nr;
+ 	unsigned long nr_scanned = 0, nr_isolated = 0;
+ 	struct list_head *migratelist = &cc->migratepages;
+ 	isolate_mode_t mode = ISOLATE_ACTIVE|ISOLATE_INACTIVE;
+ 
+-	/* Do not scan outside zone boundaries */
+-	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
+-
+-	/* Only scan within a pageblock boundary */
+-	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
+-
+-	/* Do not cross the free scanner or scan within a memory hole */
+-	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
+-		cc->migrate_pfn = end_pfn;
+-		return ISOLATE_NONE;
+-	}
+-
+ 	/*
+ 	 * Ensure that there are not too many pages isolated from the LRU
+ 	 * list by either parallel reclaimers or compaction. If there are,
+@@ -283,12 +303,12 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
+ 	while (unlikely(too_many_isolated(zone))) {
+ 		/* async migration should just abort */
+ 		if (!cc->sync)
+-			return ISOLATE_ABORT;
++			return 0;
+ 
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 
+ 		if (fatal_signal_pending(current))
+-			return ISOLATE_ABORT;
++			return 0;
+ 	}
+ 
+ 	/* Time to isolate some pages for migration */
+@@ -365,17 +385,49 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
+ 		nr_isolated++;
+ 
+ 		/* Avoid isolating too much */
+-		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX)
++		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX) {
++			++low_pfn;
+ 			break;
++		}
+ 	}
+ 
+ 	acct_isolated(zone, cc);
+ 
+ 	spin_unlock_irq(&zone->lru_lock);
+-	cc->migrate_pfn = low_pfn;
+ 
+ 	trace_mm_compaction_isolate_migratepages(nr_scanned, nr_isolated);
+ 
++	return low_pfn;
++}
++
++/*
++ * Isolate all pages that can be migrated from the block pointed to by
++ * the migrate scanner within compact_control.
++ */
++static isolate_migrate_t isolate_migratepages(struct zone *zone,
++					struct compact_control *cc)
++{
++	unsigned long low_pfn, end_pfn;
++
++	/* Do not scan outside zone boundaries */
++	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
++
++	/* Only scan within a pageblock boundary */
++	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
++
++	/* Do not cross the free scanner or scan within a memory hole */
++	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
++		cc->migrate_pfn = end_pfn;
++		return ISOLATE_NONE;
++	}
++
++	/* Perform the isolation */
++	low_pfn = isolate_migratepages_range(zone, cc, low_pfn, end_pfn);
++	if (!low_pfn)
++		return ISOLATE_ABORT;
++
++	cc->migrate_pfn = low_pfn;
++
+ 	return ISOLATE_SUCCESS;
+ }
+ 
+-- 
+1.7.1.569.g6f426
 
-When you don't know the modulation, you don't know how many bits are
-packed into a given Digital channel. It is that simple. rolloff
-provides you only the slope (or 3dB cutoff) of the channel.
-
-Eg: A TP having a b/w of 36 MHz can contain more symbols with a higher
-order modulation.
-(Bandwidth allocated to a media broadcaster, is fixed in terms of MHz
-alone. A media broadcaster, let's say "X", purchases a transponder
-with a fixed bandwidth of "Y" for "Z" thousand USD)
-
-ie, bw = f(m) + f(sr)
-
-Generally, the concept with a fixed modulation, it is bw = f(sr)
-alone. But this is not the case, when we are dealing with multiple
-modulations on the same device. I hope by now, you understand where
-you are going wrong.
-
-Regards,
-Manu
