@@ -1,154 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46535 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751799Ab1KJMFM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Nov 2011 07:05:12 -0500
-Message-ID: <4EBBBDF1.2050601@redhat.com>
-Date: Thu, 10 Nov 2011 10:05:05 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:36387 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752382Ab1KRWfQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Nov 2011 17:35:16 -0500
+Date: Fri, 18 Nov 2011 23:35:10 +0100
+From: Robert Schwebel <r.schwebel@pengutronix.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: Sylwester Nawrocki <snjw23@gmail.com>, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	shawn.guo@linaro.org, richard.zhao@linaro.org,
+	fabio.estevam@freescale.com, kernel@pengutronix.de,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [PATCH] MEM2MEM: Add support for eMMa-PrP mem2mem operations.
+Message-ID: <20111118223510.GN12903@pengutronix.de>
+References: <1321460614-2108-1-git-send-email-javier.martin@vista-silicon.com>
+ <4EC682B8.10300@gmail.com>
+ <CACKLOr0spqXzYZUPcDkDxCqZXkCM+F6crEQ3R0VbS-HGvZADtA@mail.gmail.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?UsOpbWkgRGVuaXMtQ291cm1vbnQ=?= <remi@remlab.net>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: DVBv5 frontend library
-References: <4EBACE27.8000907@redhat.com> <b0eac44a264432f586edf13983ea6829@chewa.net>
-In-Reply-To: <b0eac44a264432f586edf13983ea6829@chewa.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <CACKLOr0spqXzYZUPcDkDxCqZXkCM+F6crEQ3R0VbS-HGvZADtA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 10-11-2011 05:08, Rémi Denis-Courmont escreveu:
->    Hello kernel-space friends,
-> 
-> On Wed, 09 Nov 2011 17:01:59 -0200, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> As I've commented with some at the KS, I started writing a new DVB
->> library, based on DVBv5.
->> It is currently at very early stages. Help and suggestions are welcome.
->>
-> 
->> It is at:
->>
-> 	http://git.linuxtv.org/mchehab/experimental-v4l-utils.git/shortlog/refs/heads/dvb-utils
->>
->> It currently doesn't do much, but the hole idea is to offer a library that
->> can easily upgraded to support new standards, and based on DVBv5.
->
-> IMHO, adding new standards with DVBv5 is already fairly easy, as opposed
-> to with DVBv3.
-> 
-> The only issue I've had (while porting VLC to DVBv5) lied in determining
-> which parameters needed to be set and what values they would accept.
+On Fri, Nov 18, 2011 at 05:27:12PM +0100, javier Martin wrote:
+> But yes, it could be possible. AFAIK, Sascha Hauer (added to CC) has a
+> prototype driver for this one though.
 
-Yes, this is one of the problems on implementing a proper DVBv5 support:
-there was a gap at the specs and the parameters/accepted values for each
-delivery system.
+Yes, we have indeed a prototype for the VPU, both on MX27 and MX53.
+However, it wasn't changed to a mem2mem device yet, although that is
+what needs to be done. Unfortunately, we currently do not have a
+customer who would let us drive that forward, so it probably needs some
+time until we find somebody and can work on that again.
 
-In order to fix it, we've created a topics inside the DVB specs where the
-parameters to be used for each delivery system are defined. I'm sure some 
-improvements there are needed, but writing a reference library will help
-to detect and address such gaps.
-
-As discussed at KS Workshop, some gaps were already identified, and Steven
-offered to work fixing them. They are, basically:
-	- DVB delivery support enumeration, in order to properly identify
-what delivery systems are supported by each frontend;
-	- Satellite properties that weren't implemented so far.
-
->> The frontend library is inside:
->> 	dvb-fe.c  
->> 	dvb-fe.h 
->> 
->> And the pertinent parameters needed by each delivery system is provided
->> into a separate header:
->> 	dvb-v5-std.h  
->
-> As a documentation, it's nice to have. It should also enumerate the legal
-> values, a bit like V4L2 user controls.
-
-I'd say it should also document there the default value, when pertinent
-(e. g. *_AUTO). I'll add it soon to the library.
-
-> However, I'm not sure how useful it can really be used to abstract away
-> tuning standards. There are a number of problems remaining:
-> 
-> 1) User-space may need localization of parameters names and enumeration
-> value names. 
-
-Yes, locales can be added in future.
-
-Enumeration of value names are generated by the perl script. I opted for this
-approach, as it will likely simplify the sync between new additions at the
-Kernel and the userspace counterpart.
-
-> For frequency, we also need a unit, since it depends on the
-> delivery system.
-
-The spec says:
-	DTV_FREQUENCY
-
-	Central frequency of the channel, in HZ.
-
-So, the unit should be Hz. If is there any place where something different is
-used, we should fix it to match what's specified there.
-
-> In VLC, we have to replicate and keep the list of
-> well-known V4L2 controls parameters just so gettext sees them. The same
-> problem would affect DVB if you carry on with this.
-> 
-> And unfortunately, even if v4l-utils had its own gettext domain, I doubt
-> it would get as good visibility among translators as end-user applications
-> have (e.g. VLC has 78 locales as of today).
-
-Maintaining locales database can be painful. Not sure if is there an easy
-way of keeping it inside a library, or if the better is to let userspace
-apps that use it to have their own locales.
-
-> 2) Some user-space are cross-platform, say across Linux DVB and Windows
-> BDA. Since Windows BDA does not abstract delivery subsystems, such software
-> cannot leverage dvb-v5-std.h.
-
-I'd say that the usage of it should be internal to the OS-specific part of
-the code, e. g. if you'll need an abstraction layer on the top of it, in order
-to make it work with Windows and Linux. Another alternative would be to have
-a separate plugin for Windows and for Linux.
-
-> 3) Some settings are absolutely required (e.g. frequency), some may be
-> required depending on hardware and/or driver, some are not normally
-> required to tune. When writing a UI, you need to know that.
-
-It all depends on the channel to be tuned. For example, for normal usage, an
-ISDB-T tuning requires just the same parameters as a DVB-T. But, if you want
-to tune to radio stations, the layers info are needed.
-
-In other words, IMO, the scan tool needs to provide a more complete set of
-fields, delivery-system-specific, that would include all the parameters that
-can be used for that delivery system, using the default value when some
-parameter is not needed, in order to tune to that channel.
-
-> 4) Systems like DVB-H (R.I.P.) or ATSC-M/H cannot be abstracted
-> meaningfully as they don't provide a TS feed, so the user-space can't use
-> them.
-
-Yes, delivery systems like that will require more work.
-
-I opted to release the code on such early stage as Michael told us at KS that
-he's working on a solution for ATSC-M/H. So, releasing the code early would
-give him the opportunity to propose some ways to abstract the differences between
-those IP-based delivery systems and the "traditional" ones.
-
-> 5) Unless/Until the library implements scanning and some kind of channel
-> or transponder abstraction (e.g. unique ID per transponder), it is dubious
-> that it can really abstract new delivery systems. I mean, the tuning
-> parameters need to come from somewhere, so the application will have to
-> know about the delivery systems.
-
-Sure. This is the next item on my TODO list ;)
-
-> So hmm, that's a lot of problems before I could use that library. Maybe
-> some other user-space guys are less demanding bitches though :-)
-
-Thank you for your feedback!
-Mauro
+rsc
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
