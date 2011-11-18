@@ -1,75 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:43370 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933865Ab1KCSeh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2011 14:34:37 -0400
-Message-ID: <4EB2DEB6.7030508@infradead.org>
-Date: Thu, 03 Nov 2011 16:34:30 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:63252 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753372Ab1KRQ1O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Nov 2011 11:27:14 -0500
+Received: by bke11 with SMTP id 11so3623787bke.19
+        for <linux-media@vger.kernel.org>; Fri, 18 Nov 2011 08:27:13 -0800 (PST)
 MIME-Version: 1.0
-To: Paul Bolle <pebolle@tiscali.nl>
-CC: Randy Dunlap <rdunlap@xenotime.net>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [RESEND] media: tea5764: reconcile Kconfig symbol and
- macro
-References: <1319976530.14409.17.camel@x61.thuisdomein>  <4EAD7E9F.6050709@xenotime.net> <1319994738.14409.37.camel@x61.thuisdomein>  <4EAD8832.9090509@xenotime.net> <1319995903.14409.42.camel@x61.thuisdomein>
-In-Reply-To: <1319995903.14409.42.camel@x61.thuisdomein>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4EC682B8.10300@gmail.com>
+References: <1321460614-2108-1-git-send-email-javier.martin@vista-silicon.com>
+	<4EC682B8.10300@gmail.com>
+Date: Fri, 18 Nov 2011 17:27:12 +0100
+Message-ID: <CACKLOr0spqXzYZUPcDkDxCqZXkCM+F6crEQ3R0VbS-HGvZADtA@mail.gmail.com>
+Subject: Re: [PATCH] MEM2MEM: Add support for eMMa-PrP mem2mem operations.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, shawn.guo@linaro.org,
+	richard.zhao@linaro.org, fabio.estevam@freescale.com,
+	kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 30-10-2011 15:31, Paul Bolle escreveu:
-> On Sun, 2011-10-30 at 10:24 -0700, Randy Dunlap wrote:
->> On 10/30/11 10:12, Paul Bolle wrote:
->>> 2) I'm not sure why things are done that way. Why can't builtin drivers
->>> and loadable drivers default to identical values? But perhaps I'm just
->>> misunderstanding the code.
->>
->> They could default to identical values.
-> 
-> That would make the cleaning up I'm trying to do now somewhat easier. It
-> would allow to simplify the drivers a bit too.
-> 
->> Maybe someone thinks that
->> it's more difficult to pass parameters to builtin drivers so they
->> just try to use some sane defaults for them instead, whereas it's
->> easy (easier) to pass parameters to loadable modules.  ??
-> 
-> Perhaps Mauro or the people at linux-media know the reasoning here. Or
-> they can show us that I didn't parse the code correctly, of course.
+Hi Sylwester,
+thank you for your review.
 
-I can't remember the dirty details about this driver, sorry. The first
-patch on it might shed some light:
+On 18 November 2011 17:07, Sylwester Nawrocki <snjw23@gmail.com> wrote:
+> Hi Javier,
+>
+> Good to see non Samsung device using v4l2 mem-to-mem framework. What is your
+> experience, have you encountered any specific problems with it ?
 
+I've found the framework quite convenient and comfortable, it
+definitely saves a lot of work and coding once you understand it
+properly.
+For a simple device as i.MX2 eMMa-PrP a driver can be in a working
+state in a couple of days. I've not found any drawbacks.
 
-commit 46a60cfef581307d8273919182ae939d44ff7cca
-Author: Fabio Belavenuto <belavenuto@gmail.com>
-Date:   Tue Dec 30 19:27:09 2008 -0300
+> And just out of curiosity, are you planning to develop video codec driver
+> in v4l2 for i.MX27 as well ?
 
-    V4L/DVB (10155): Add TEA5764 radio driver
-    
-    Add support for radio driver TEA5764 from NXP.
-    This chip is connected in pxa I2C bus in EZX phones
-    from Motorola, the chip is used in phone model A1200.
-    This driver is for OpenEZX project (www.openezx.org)
-    Tested with A1200 phone, openezx kernel and fm-tools
-    
-    [mchehab@redhat.com: Fixed CodingStyle and solved some merge conflicts]
-    Signed-off-by: Fabio Belavenuto <belavenuto@gmail.com>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+It depends on the result of a proof of concept we are preparing now.
+But yes, it could be possible. AFAIK, Sascha Hauer (added to CC) has a
+prototype driver for this one though.
 
->From the above, I _suspect_ that the default (whatever it is) is due to
-the Motorola A1200 phone. Not sure if it is compiled as module or as builtin
-at OpenEZX.
+> I have a few comments, please see below...
 
+It seems I'll have to prepare a second version with all the fixes
+you've pointed out which seem quite reasonable to me.
 
-> 
-> 
-> Paul Bolle
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards.
 
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
