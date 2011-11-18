@@ -1,41 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:53380 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754811Ab1KBOO5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 10:14:57 -0400
-Received: by ggnb2 with SMTP id b2so166891ggn.19
-        for <linux-media@vger.kernel.org>; Wed, 02 Nov 2011 07:14:56 -0700 (PDT)
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:33715 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755505Ab1KRVVa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Nov 2011 16:21:30 -0500
 MIME-Version: 1.0
-In-Reply-To: <CAOcJUbw8ASb9fqeGQJyvod=03-Yi8MLEhjYL3oTsZztDhMbNiw@mail.gmail.com>
-References: <CAL9G6WV=4xxara7vw+jRfydnwqEoc4_qrz6p_z_wowDeEV0scA@mail.gmail.com>
-	<CAGoCfiy=FKo5vRiAV8m-maRZ7aQfmgdivQBrhGSfjF-NGZ=Lpg@mail.gmail.com>
-	<CAOcJUbw8ASb9fqeGQJyvod=03-Yi8MLEhjYL3oTsZztDhMbNiw@mail.gmail.com>
-Date: Wed, 2 Nov 2011 10:14:56 -0400
-Message-ID: <CAGoCfizk7jsKcCSzhyz0PWtj3yUidB_vjjYTCoZ0nfj9L60u5Q@mail.gmail.com>
-Subject: Re: Hauppauge WIN-TV DUET HD
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Cc: Josu Lazkano <josu.lazkano@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@kernellabs.com>
+In-Reply-To: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+From: sandeep patil <psandeep.s@gmail.com>
+Date: Fri, 18 Nov 2011 13:20:48 -0800
+Message-ID: <CA+K6fF6SH6BNoKgwArcqvyav4b=C5SGvymo5LS3akfD_yE_beg@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCHv17 0/11] Contiguous Memory Allocator
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 2, 2011 at 10:11 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> INCORRECT.  The WinTV Duet is just a rebranding of the NOVA-TD ... It
-> is, in fact, supported, and quite possibly Hauppauge's coolest DVB-T
-> stick.
+On Fri, Nov 18, 2011 at 8:43 AM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+> Welcome everyone once again,
 
-My mistake.  I must have gotten it confused with something else.
+> Please notice that this patch series is aimed to start further
+> discussion. There are still few issues that need to be resolved before
+> CMA will be really ready. The most hot problem is the issue with movable
+> pages that causes migration to fail from time to time. Our investigation
+> leads us to the point that these rare pages cannot be migrated because
+> there are some pending io operations on them.
 
-Despite assertions that it's Hauppauge's coolest stick, the user is
-claiming that it isn't working.  Did they use new USB VID/PIDs that
-will require a driver change to add support for it?
 
-Devin
+I am running a simple test to allocate contiguous regions and write a log on
+in a file on sdcard simultaneously. I can reproduce this migration failure 100%
+times with it.
+when I tracked the pages that failed to migrate, I found them on the
+buffer head lru
+list with a reference held on the buffer_head in the page, which
+causes drop_buffers()
+to fail.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+So, i guess my question is, until all the migration failures are
+tracked down and fixed,
+is there a plan to retry the contiguous allocation from a new range in
+the CMA region?
+
+~ sandeep
