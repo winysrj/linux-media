@@ -1,44 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1844 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751209Ab1KVMDb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Nov 2011 07:03:31 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Ian Armstrong <mail01@iarmst.co.uk>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 2/3] zoran: do not set V4L2_FBUF_FLAG_OVERLAY.
-Date: Tue, 22 Nov 2011 13:03:21 +0100
-Message-Id: <c8c16066497a1b9e1236ff56f2be89395d47b4ec.1321963291.git.hans.verkuil@cisco.com>
-In-Reply-To: <1321963402-1259-1-git-send-email-hverkuil@xs4all.nl>
-References: <1321963402-1259-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <22fb81ba5ba878d10fe996d5421f983dd34a1988.1321963291.git.hans.verkuil@cisco.com>
-References: <22fb81ba5ba878d10fe996d5421f983dd34a1988.1321963291.git.hans.verkuil@cisco.com>
+Received: from smtp205.alice.it ([82.57.200.101]:41606 "EHLO smtp205.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752394Ab1KSWs4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Nov 2011 17:48:56 -0500
+Date: Sat, 19 Nov 2011 23:48:45 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Ezequiel <elezegarcia@gmail.com>
+Cc: linux-media@vger.kernel.org, elezegarcia@yahoo.com.ar,
+	moinejf@free.fr
+Subject: Re: [PATCH v2] [media] gspca: replaced static allocation by
+ video_device_alloc/video_device_release
+Message-Id: <20111119234845.df8dd3f244c2044a26798941@studenti.unina.it>
+In-Reply-To: <20111119214621.GA2739@localhost>
+References: <20111119214621.GA2739@localhost>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Sat__19_Nov_2011_23_48_45_+0100_fQa1ZxSVFeItGVsL"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+--Signature=_Sat__19_Nov_2011_23_48_45_+0100_fQa1ZxSVFeItGVsL
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The zoran driver does not support this flag, so don't set it.
+On Sat, 19 Nov 2011 18:46:21 -0300
+Ezequiel <elezegarcia@gmail.com> wrote:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/zoran/zoran_driver.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+> Pushed video_device initialization into a separate function.
+> Replace static allocation of struct video_device by=20
+> video_device_alloc/video_device_release usage.
+>=20
+> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+> ---
 
-diff --git a/drivers/media/video/zoran/zoran_driver.c b/drivers/media/video/zoran/zoran_driver.c
-index d4d05d2..f7d236a 100644
---- a/drivers/media/video/zoran/zoran_driver.c
-+++ b/drivers/media/video/zoran/zoran_driver.c
-@@ -1958,7 +1958,6 @@ static int zoran_g_fbuf(struct file *file, void *__fh,
- 	mutex_unlock(&zr->resource_lock);
- 	fb->fmt.colorspace = V4L2_COLORSPACE_SRGB;
- 	fb->fmt.field = V4L2_FIELD_INTERLACED;
--	fb->flags = V4L2_FBUF_FLAG_OVERLAY;
- 	fb->capability = V4L2_FBUF_CAP_LIST_CLIPPING;
- 
- 	return 0;
--- 
-1.7.7.3
+Hi Ezequiel,
 
+just a general comment on commit messages: when doing some invasive
+changes it is especially important to explain the WHY next to the WHAT
+and the high-level HOW.
+
+[...]
+> diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspc=
+a/gspca.c
+> index 881e04c..1f27f05 100644
+> --- a/drivers/media/video/gspca/gspca.c
+> +++ b/drivers/media/video/gspca/gspca.c
+> @@ -1292,10 +1292,12 @@ static int vidioc_enum_frameintervals(struct file=
+ *filp, void *priv,
+> =20
+[...]
+
+Thanks,
+   Antonio
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+
+--Signature=_Sat__19_Nov_2011_23_48_45_+0100_fQa1ZxSVFeItGVsL
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEARECAAYFAk7IMk0ACgkQ5xr2akVTsAEjQQCgri47XCgnyaXZYP1DUmyh29KZ
+gBsAn0+n6O3VaEVWTn9tFYHJoTgDpVCp
+=g+hm
+-----END PGP SIGNATURE-----
+
+--Signature=_Sat__19_Nov_2011_23_48_45_+0100_fQa1ZxSVFeItGVsL--
