@@ -1,85 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:47679 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754671Ab1K2QNe (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:38234 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751826Ab1KSSJc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Nov 2011 11:13:34 -0500
-Subject: Re: drm pixel formats update
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: dri-devel@lists.freedesktop.org, ville.syrjala@linux.intel.com,
-	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org
-In-Reply-To: <201111291310.36589.laurent.pinchart@ideasonboard.com>
-References: <1321468945-28224-1-git-send-email-ville.syrjala@linux.intel.com>
-	 <201111291310.36589.laurent.pinchart@ideasonboard.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-z3v8gCpLmUyq26DXkzIu"
-Date: Tue, 29 Nov 2011 18:13:27 +0200
-Message-ID: <1322583207.1869.194.camel@deskari>
-Mime-Version: 1.0
+	Sat, 19 Nov 2011 13:09:32 -0500
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "sandeep patil" <psandeep.s@gmail.com>
+Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Russell King" <linux@arm.linux.org.uk>,
+	"Arnd Bergmann" <arnd@arndb.de>,
+	"Jonathan Corbet" <corbet@lwn.net>, "Mel Gorman" <mel@csn.ul.ie>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Ankita Garg" <ankita@in.ibm.com>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Re: [Linaro-mm-sig] [PATCHv17 0/11] Contiguous Memory Allocator
+References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+ <CA+K6fF6SH6BNoKgwArcqvyav4b=C5SGvymo5LS3akfD_yE_beg@mail.gmail.com>
+ <op.v45u6zyy3l0zgt@mpn-glaptop>
+ <CA+K6fF6iDivqmN9kfY34tWNg+g_rYBBmyS_Mxb6gvLuSgA2JyQ@mail.gmail.com>
+Date: Sat, 19 Nov 2011 19:09:23 +0100
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.v47gpxi03l0zgt@mpn-glaptop>
+In-Reply-To: <CA+K6fF6iDivqmN9kfY34tWNg+g_rYBBmyS_Mxb6gvLuSgA2JyQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+>> On Fri, 18 Nov 2011 22:20:48 +0100, sandeep patil wrote:
+>>> So, i guess my question is, until all the migration failures are
+>>> tracked down and fixed, is there a plan to retry the contiguous
+>>> allocation from a new range in the CMA region?
 
---=-z3v8gCpLmUyq26DXkzIu
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> 2011/11/18 Michal Nazarewicz <mina86@mina86.com>:
+>> No.  Current CMA implementation will stick to the same range of pages also
+>> on consequent allocations of the same size.
 
-On Tue, 2011-11-29 at 13:10 +0100, Laurent Pinchart wrote:
+On Sat, 19 Nov 2011 00:30:49 +0100, sandeep patil <psandeep.s@gmail.com> wrote:
+> Doesn't that mean the drivers that fail to allocate from contiguous DMA region
+> will fail, if the migration fails?
 
-> To make it perfectly clear, I want to emphasize that I'm not trying to re=
-place=20
-> DRM, FBDEV and V4L2 with a new shared subsystem. What I would like to see=
- in=20
-> the (near future) is collaboration and sharing of core features that make=
-=20
-> sense to share. I believe we should address this from a "pain point" poin=
-t of=20
-> view. The one that lead me to writing this e-mail is that developing a dr=
-iver=20
-> that implements both the DRM and FBDEV APIs for video output currently=
-=20
-> requires various similar structures, and code to translate between all of=
-=20
-> them. That code can't be shared between multiple drivers, is error-prone,=
- and=20
-> painful to maintin.
+Yes.
 
-We've been in the same situation with OMAP display driver for years. The
-same low level display driver is used by FB, V4L2 and now DRM drivers,
-so I didn't have much choice but to implement omapdss versions for
-things like video timings and color formats.
+I have some ideas how that could be mitigated.  The easiest would be to try
+another region to allocate from on failure.  More complicated could be to try
+and wait for the I/O transfer to finish.  I'll try to work on it during
+upcoming week.
 
-I've been planning to write code for this almost as long as omapdss has
-had this problem, but there's always been
-yet-another-important-thing-to-do. So good that somebody finally brought
-this up =3D).
-
-I'm happy to test any code related to this with omapdss.
-
- Tomi
-
-
---=-z3v8gCpLmUyq26DXkzIu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJO1QSnAAoJEPo9qoy8lh71X24P/0XGlVuXd2O0ouJ9bZB2vI+u
-ho0VLx7hOZlfyOwa/cJu2dylcSnK86/N9RiRlb/5iyCmqazVeJXhUTvlTiPS30kL
-KRgv4ScrNFVfDUHZc3mgH7bI/sXKOi2jXC8dOIiQ9MDLYcpzPWtEW0Wq32Q5uufY
-9yztLCQXF8G0DGfyIMjNPNiRbZm8v37YbPG9yRgaiZn8yhAG2eb9vJt7U5xGtYo9
-XYhrbKLhwgvyAjjQaPW7OP2huXmUNCf4mT0pI9Y+4hzT5TgCI7qwDCOFzdnSxQEV
-s2KBxLP3hUmp+OWKoKUOg3XXZCfEsqh5AMbRSPAaiB/ewyDvQpF8hQYpANTA7C3L
-8v02zuKYFyzUj+1BuUtq1yU+UgrFWWf9eJgL28x0gS0Hexz33IBEBq9gdpmPFUzh
-Hr0mKWrXIaMZPTTGuqtJma6kccDAXc2ka5Rb1EmAVTCjdrKmQ21o4PeY/uyYfPVW
-CP61tkBmt+1RGhJ3qk3vRf6TIwv/Zned8YQunN5ZSSrhSGrFqua3Tec7h7QIIDWM
-s3J/A4AndDjkJoTUnSp4ms+muywavtSej9hV5cEuM8mT/K054skIryTMHX+FF2VZ
-bwFYcttwFe9gODLwAiWOD/N8oXJnkOCMz+GSBmvyhH7TooK26l5lKguzY3kC1hHl
-QQMsX/JYBOA/b6jH3xjz
-=mIIU
------END PGP SIGNATURE-----
-
---=-z3v8gCpLmUyq26DXkzIu--
-
+-- 
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
+ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
