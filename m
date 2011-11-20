@@ -1,80 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1923 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754394Ab1KGNY0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2011 08:24:26 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: RFC: Use of V4L2_FBUF_FLAG_OVERLAY
-Date: Mon, 7 Nov 2011 14:24:17 +0100
+Received: from mx1.redhat.com ([209.132.183.28]:65505 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750993Ab1KTPD1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Nov 2011 10:03:27 -0500
+Message-ID: <4EC916BB.9000200@redhat.com>
+Date: Sun, 20 Nov 2011 13:03:23 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ian Armstrong <mail01@iarmst.co.uk>
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Eddi De Pieri <eddi@depieri.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] initial support for HAUPPAUGE HVR-930C again...
+References: <CAKdnbx5_qfotsKh0-s+DN7skx-J2=1HRw-qZOw=3mUHCQFHo2g@mail.gmail.com> <4EC8F94F.8090800@redhat.com> <CAKdnbx6Leux7+6h5FFRiay709ogwH6v34BCq=U7Qve8YwfA=VQ@mail.gmail.com>
+In-Reply-To: <CAKdnbx6Leux7+6h5FFRiay709ogwH6v34BCq=U7Qve8YwfA=VQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201111071424.17938.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-During the recent V4L-DVB workshop we discussed the usage of the
-V4L2_FBUF_FLAG_OVERLAY flag.
+Em 20-11-2011 13:00, Eddi De Pieri escreveu:
+> Attached the patch for for get_firmware
 
-There are currently two drivers that use it: bttv uses it for the capture
-overlay, and ivtv uses it for the output overlay (OSD).
+Thanks!
 
-In the case of bttv the behavior seems to be as follows:
+Could you please sign it?
 
-If this flag is set by VIDIOC_S_FBUF, then the internal data structures are
-setup so that the captured video covers the full framebuffer.
+> 
+> Regards,
+> 
+> Eddi
+> 
+> On Sun, Nov 20, 2011 at 1:57 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Em 19-11-2011 13:37, Eddi De Pieri escreveu:
+>>> With this patch I try again to add initial support for HVR930C.
+>>>
+>>> Tested only DVB-T, since in Italy Analog service is stopped.
+>>>
+>>> Actually "scan -a0 -f1", find only about 50 channel while 400 should
+>>> be available.
+>>>
+>>> Signed-off-by: Eddi De Pieri <eddi@depieri.net>
+>>
+>> Tested here with DVB-C, using the Terratec firmware. It worked as expected:
+>> 213 channels scanned, tested a few non-encrypted ones, and it seems to be
+>> working as expected.
+>>
+>> It didn't work with the firmware used by ddbrigde driver (the one that get_dvb_firmware
+>> script is capable of retrieving).
+>>
+>>>
+>>> Regards
+>>>
+>>> Eddi
+>>
+>>
 
-If this flag is cleared, then the current overlay geometry is kept. If you
-want to update that, then you have to call S_FMT.
-
-I am not really sure how to express this in the spec. The best I can come
-up with is this:
-
-'If FLAG_OVERLAY is set, then the video capture overlay is initially scaled
-to cover the full framebuffer area. Otherwise the old S_FMT values are used.'
-
-The problem with this is that it doesn't add any useful functionality, and
-that the other drivers that implement capture overlay do not support it.
-
-Even if the application sets this flag, then it won't know whether it was
-effective. If we want to fully support this flag, then those other drivers
-either need to clear it (thus telling the application that this flag wasn't
-supported), or actually implement this functionality. Just clearing the
-flag is of course the easiest course of action.
-
-Mauro, does this make sense? What is your opinion?
-
-
-In the case of ivtv the behavior is as follows (from the original commit
-message):
-
-    The existing yuv code limits output to the display area occupied by the
-    framebuffer. This patch allows the yuv output to be 'detached' via
-    V4L2_FBUF_FLAG_OVERLAY.
-    
-    By default, the yuv output window will be restricted to the framebuffer
-    dimensions and the output position is relative to the top left corner of the
-    framebuffer. This matches the behaviour of previous versions.
-    
-    If V4L2_FBUF_FLAG_OVERLAY is cleared, the yuv output will no longer be linked
-    to the framebuffer. The maximum dimensions are either 720x576 or 720x480
-    depending on the current broadcast standard, with the output position
-    relative to the top left corner of the display. The framebuffer itself can be
-    resized, moved and panned without affecting the yuv output.
-
-So, the definition for FLAG_OVERLAY for output overlays would be:
-
-'If FLAG_OVERLAY is set, then the video output overlay window is relative to
-the top-left corner of the framebuffer and restricted to the size of the
-framebuffer. If it is cleared, then the video output overlay window is relative
-to the video output display.'
-
-Ian, does this make sense?
-
-Does anyone else have any comments regarding this flag?
-
-	Hans
