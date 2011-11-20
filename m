@@ -1,69 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:44180 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751494Ab1K1WWx (ORCPT
+Received: from fallback8.mail.ru ([94.100.176.136]:51546 "EHLO
+	fallback8.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753555Ab1KTRFH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 17:22:53 -0500
-Received: by wwo28 with SMTP id 28so8273425wwo.1
-        for <linux-media@vger.kernel.org>; Mon, 28 Nov 2011 14:22:52 -0800 (PST)
-Message-ID: <1322518961.2121.26.camel@tvbox>
-Subject: [PATCH] it913x support for NEC extended keys
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Mon, 28 Nov 2011 22:22:41 +0000
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+	Sun, 20 Nov 2011 12:05:07 -0500
+Received: from smtp24.mail.ru (smtp24.mail.ru [94.100.176.177])
+	by fallback8.mail.ru (mPOP.Fallback_MX) with ESMTP id 7F69930CE7F6
+	for <linux-media@vger.kernel.org>; Sun, 20 Nov 2011 20:54:53 +0400 (MSK)
+From: Dmitry Artamonow <mad_soft@inbox.ru>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH] [media] omap3isp: fix compilation of ispvideo.c
+Date: Sun, 20 Nov 2011 20:54:26 +0400
+Message-Id: <1321808066-1791-1-git-send-email-mad_soft@inbox.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Fix following build error by explicitely including <linux/module.h>
+header file.
 
-Add support for NEC extended keys.
+  CC      drivers/media/video/omap3isp/ispvideo.o
+drivers/media/video/omap3isp/ispvideo.c:1267: error: 'THIS_MODULE' undeclared here (not in a function)
+make[4]: *** [drivers/media/video/omap3isp/ispvideo.o] Error 1
+make[3]: *** [drivers/media/video/omap3isp] Error 2
+make[2]: *** [drivers/media/video] Error 2
+make[1]: *** [drivers/media] Error 2
+make: *** [drivers] Error 2
 
-The default remote has now changed to RC_MAP_MSI_DIGIVOX_III
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Dmitry Artamonow <mad_soft@inbox.ru>
 ---
- drivers/media/dvb/dvb-usb/it913x.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/media/video/omap3isp/ispvideo.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-usb/it913x.c b/drivers/media/dvb/dvb-usb/it913x.c
-index d57e062..394bbf4 100644
---- a/drivers/media/dvb/dvb-usb/it913x.c
-+++ b/drivers/media/dvb/dvb-usb/it913x.c
-@@ -328,11 +328,13 @@ static int it913x_rc_query(struct dvb_usb_device *d)
- 
- 	if ((ibuf[2] + ibuf[3]) == 0xff) {
- 		key = ibuf[2];
--		key += ibuf[0] << 8;
--		deb_info(1, "INT Key =%08x", key);
-+		key += ibuf[0] << 16;
-+		key += ibuf[1] << 8;
-+		deb_info(1, "NEC Extended Key =%08x", key);
- 		if (d->rc_dev != NULL)
- 			rc_keydown(d->rc_dev, key, 0);
- 	}
-+
- 	mutex_unlock(&d->i2c_mutex);
- 
- 	return ret;
-@@ -701,7 +703,7 @@ static struct dvb_usb_device_properties it913x_properties = {
- 		.rc_query	= it913x_rc_query,
- 		.rc_interval	= IT913X_POLL,
- 		.allowed_protos	= RC_TYPE_NEC,
--		.rc_codes	= RC_MAP_KWORLD_315U,
-+		.rc_codes	= RC_MAP_MSI_DIGIVOX_III,
- 	},
- 	.i2c_algo         = &it913x_i2c_algo,
- 	.num_device_descs = 3,
-@@ -748,5 +750,5 @@ module_exit(it913x_module_exit);
- 
- MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
- MODULE_DESCRIPTION("it913x USB 2 Driver");
--MODULE_VERSION("1.09");
-+MODULE_VERSION("1.11");
- MODULE_LICENSE("GPL");
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index d100072..f229057 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -26,6 +26,7 @@
+ #include <asm/cacheflush.h>
+ #include <linux/clk.h>
+ #include <linux/mm.h>
++#include <linux/module.h>
+ #include <linux/pagemap.h>
+ #include <linux/scatterlist.h>
+ #include <linux/sched.h>
 -- 
-1.7.7.1
-
+1.7.4.rc3
 
