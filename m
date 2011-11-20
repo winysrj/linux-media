@@ -1,75 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from skyboo.net ([82.160.187.4]:36855 "EHLO skyboo.net"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754844Ab1K2PLE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Nov 2011 10:11:04 -0500
-From: Mariusz Bialonczyk <manio@skyboo.net>
-To: linux-media@vger.kernel.org
-Cc: Mariusz Bialonczyk <manio@skyboo.net>
-Date: Tue, 29 Nov 2011 15:31:23 +0100
-Message-Id: <1322577083-24728-1-git-send-email-manio@skyboo.net>
-Subject: [PATCH] stv090x: implement function for reading uncorrected blocks count
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:45790 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753841Ab1KTVoj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Nov 2011 16:44:39 -0500
+Received: by bke11 with SMTP id 11so5742994bke.19
+        for <linux-media@vger.kernel.org>; Sun, 20 Nov 2011 13:44:37 -0800 (PST)
+Message-ID: <4EC974C2.1040500@gmail.com>
+Date: Sun, 20 Nov 2011 22:44:34 +0100
+From: Sebastian Steinhuber <sebastian.steinhuber@googlemail.com>
+MIME-Version: 1.0
+CC: linux-media@vger.kernel.org
+Subject: Re: Regression with kernel 3.1 and bt87x?
+References: <ja3cpe$6qm$1@dough.gmane.org>
+In-Reply-To: <ja3cpe$6qm$1@dough.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add support for reading UNC blocks for stv090x frontend.
-Partially based on stv0900 code by Abylay Ospan <aospan@netup.ru>
+Am 17.11.2011 17:29, schrieb Sebastian Steinhuber:
+> Hi all,
+> 
+> I've got a Hauppauge WinTV pci board that used to be working until
+> kernel 3.1 was used; I tried 3.1.1, too, without luck. 3.0.7 is working,
+> with the same config as the 3.1s regarding the media parts.
+> 
+> I'm compiling my customized kernel from vanilla sources and a
+> linux-vserver patch, and I also tested the 3.1.0-1-amd64 from debian
+> stock with very result.
+> 
+> 
+> On starting up Zapping, I got these messages:
+> 'Unable to open /dev/video0.'
+> 'The device cannot be attached to any controller.'
+> Tvtime simply complained about 'No signal'.
+> 
+> I couldn't find further messages or any errors in syslog nor in
+> messages, so I'm feeling there might be a bug somewhere.
+> 
+> 
+> The same modules are loaded into the kernel with 3.0.7 (working, with
+> the same config as the 3.1s regarding the media parts), 3.1 and also 3.1.1:
+> bttv
+> btcx_risc
+> rc_core
+> tuner
+> tuner_simple
+> tuner_types
+> videobuf_dma_sg
+> videobuf_core
+> tveeprom
+> 
+> 
+> $lspci -vv
+> …
+> 05:00.0 Multimedia video controller: Brooktree Corporation Bt878 Video
+> Capture (rev 02)
+> 	Subsystem: Hauppauge computer works Inc. WinTV Series
+> 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+> Stepping- SERR- FastB2B- DisINTx-
+> 	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+> <TAbort- <MAbort- >SERR- <PERR- INTx-
+> 	Latency: 64 (4000ns min, 10000ns max)
+> 	Interrupt: pin A routed to IRQ 16
+> 	Region 0: Memory at d0001000 (32-bit, prefetchable) [size=4K]
+> 	Kernel driver in use: bttv
+> 
+> 05:00.1 Multimedia controller: Brooktree Corporation Bt878 Audio Capture
+> (rev 02)
+> 	Subsystem: Hauppauge computer works Inc. WinTV Series
+> 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+> Stepping- SERR- FastB2B- DisINTx-
+> 	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+> <TAbort- <MAbort- >SERR- <PERR- INTx-
+> 	Latency: 64 (1000ns min, 63750ns max)
+> 	Interrupt: pin A routed to IRQ 16
+> 	Region 0: Memory at d0000000 (32-bit, prefetchable) [size=4K]
+> 	Kernel driver in use: Bt87x
 
-Signed-off-by: Mariusz Bialonczyk <manio@skyboo.net>
----
- drivers/media/dvb/frontends/stv090x.c |   32 +++++++++++++++++++++++++++++++-
- 1 files changed, 31 insertions(+), 1 deletions(-)
+Update: There are no issues with 3.0.9.
 
-diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
-index 52d8712..ad6141f 100644
---- a/drivers/media/dvb/frontends/stv090x.c
-+++ b/drivers/media/dvb/frontends/stv090x.c
-@@ -3687,6 +3687,35 @@ static int stv090x_read_cnr(struct dvb_frontend *fe, u16 *cnr)
- 	return 0;
- }
- 
-+static int stv090x_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
-+{
-+	struct stv090x_state *state = fe->demodulator_priv;
-+	u32 reg_0, reg_1;
-+	u32 val_header_err, val_packet_err;
-+
-+	switch (state->delsys) {
-+	case STV090x_DVBS2:
-+		/* DVB-S2 delineator error count */
-+
-+		/* retrieving number for erronous headers */
-+		reg_1 = stv090x_read_reg(state, STV090x_P1_BBFCRCKO1);
-+		reg_0 = stv090x_read_reg(state, STV090x_P1_BBFCRCKO0);
-+		val_header_err = MAKEWORD16(reg_1, reg_0);
-+
-+		/* retrieving number for erronous packets */
-+		reg_1 = stv090x_read_reg(state, STV090x_P1_UPCRCKO1);
-+		reg_0 = stv090x_read_reg(state, STV090x_P1_UPCRCKO0);
-+		val_packet_err = MAKEWORD16(reg_1, reg_0);
-+
-+		*ucblocks = val_packet_err + val_header_err;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
- static int stv090x_set_tone(struct dvb_frontend *fe, fe_sec_tone_mode_t tone)
- {
- 	struct stv090x_state *state = fe->demodulator_priv;
-@@ -4748,7 +4777,8 @@ static struct dvb_frontend_ops stv090x_ops = {
- 	.read_status			= stv090x_read_status,
- 	.read_ber			= stv090x_read_per,
- 	.read_signal_strength		= stv090x_read_signal_strength,
--	.read_snr			= stv090x_read_cnr
-+	.read_snr			= stv090x_read_cnr,
-+	.read_ucblocks			= stv090x_read_ucblocks
- };
- 
- 
--- 
-1.7.7.3
+If someone has an idea which commit could cause the problem, I would
+like to check it out. I have cloned the stable kernel repository and
+despite of being new to git, I can test every commit with the hardware.
+Thanks in advance,
 
+Sebastian
