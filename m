@@ -1,38 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59602 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756459Ab1K3JOf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 04:14:35 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Haogang Chen <haogangchen@gmail.com>
-Subject: Re: [PATCH] Media: video: uvc: integer overflow in uvc_ioctl_ctrl_map()
-Date: Wed, 30 Nov 2011 10:14:41 +0100
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-References: <1322602345-26279-1-git-send-email-haogangchen@gmail.com> <201111300222.42162.laurent.pinchart@ideasonboard.com> <CAHrvArQy2N4jUBQpBG+mey9KE412cURK9CU=1xZ_xodA_Vb8Jw@mail.gmail.com>
-In-Reply-To: <CAHrvArQy2N4jUBQpBG+mey9KE412cURK9CU=1xZ_xodA_Vb8Jw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111301014.41810.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:59390 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753053Ab1KTO4b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Nov 2011 09:56:31 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pAKEuUP5028808
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 20 Nov 2011 09:56:30 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 4/8] [media] xc5000: Add support for get_if_frequency
+Date: Sun, 20 Nov 2011 12:56:14 -0200
+Message-Id: <1321800978-27912-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1321800978-27912-3-git-send-email-mchehab@redhat.com>
+References: <1321800978-27912-1-git-send-email-mchehab@redhat.com>
+ <1321800978-27912-2-git-send-email-mchehab@redhat.com>
+ <1321800978-27912-3-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Haogang,
+This is needed for devices with DRX-K and xc5000.
 
-On Wednesday 30 November 2011 03:28:32 Haogang Chen wrote:
-> The hard limit sounds good to me.
+Tested with a HVR 930C hardware.
 
-OK.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/xc5000.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-> But if you want to centralize error handling, please make sure that "goto
-> done" only frees map, but not map->menu_info in that case.
-
-map->menu_info will be NULL, so it's safe to kfree() it.
-
+diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
+index 88b329c..ecd1f95 100644
+--- a/drivers/media/common/tuners/xc5000.c
++++ b/drivers/media/common/tuners/xc5000.c
+@@ -968,6 +968,14 @@ static int xc5000_get_frequency(struct dvb_frontend *fe, u32 *freq)
+ 	return 0;
+ }
+ 
++static int xc5000_get_if_frequency(struct dvb_frontend *fe, u32 *freq)
++{
++	struct xc5000_priv *priv = fe->tuner_priv;
++	dprintk(1, "%s()\n", __func__);
++	*freq = priv->if_khz * 1000;
++	return 0;
++}
++
+ static int xc5000_get_bandwidth(struct dvb_frontend *fe, u32 *bw)
+ {
+ 	struct xc5000_priv *priv = fe->tuner_priv;
+@@ -1108,6 +1116,7 @@ static const struct dvb_tuner_ops xc5000_tuner_ops = {
+ 	.set_params	   = xc5000_set_params,
+ 	.set_analog_params = xc5000_set_analog_params,
+ 	.get_frequency	   = xc5000_get_frequency,
++	.get_if_frequency  = xc5000_get_if_frequency,
+ 	.get_bandwidth	   = xc5000_get_bandwidth,
+ 	.get_status	   = xc5000_get_status
+ };
 -- 
-Regards,
+1.7.7.1
 
-Laurent Pinchart
