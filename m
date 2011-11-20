@@ -1,369 +1,368 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:38643 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751177Ab1KCNc2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2011 09:32:28 -0400
-Message-ID: <4EB297E6.6060608@infradead.org>
-Date: Thu, 03 Nov 2011 11:32:22 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PULL] soc-camera, v4l for 3.2
-References: <Pine.LNX.4.64.1109291714560.1082@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1109291714560.1082@axis700.grange>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:61752 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753163Ab1KTO4d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Nov 2011 09:56:33 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Eddi De Pieri <eddi@depieri.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 5/8] [media] em28xx: initial support for HAUPPAUGE HVR-930C again
+Date: Sun, 20 Nov 2011 12:56:15 -0200
+Message-Id: <1321800978-27912-5-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1321800978-27912-4-git-send-email-mchehab@redhat.com>
+References: <1321800978-27912-1-git-send-email-mchehab@redhat.com>
+ <1321800978-27912-2-git-send-email-mchehab@redhat.com>
+ <1321800978-27912-3-git-send-email-mchehab@redhat.com>
+ <1321800978-27912-4-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 29-09-2011 12:25, Guennadi Liakhovetski escreveu:
-> Hi Mauro
-> 
-> I'm finally ready to push my soc-camera and generic v4l collection for 
-> 3.2. The absolute highlight is, of course, the addition of the two new 
-> IOCTLs, which, I think, are now in a good shape to go. A huge pile of 
-> soc-camera patches, largely releasing subdevice drivers into the wild for 
-> all subdevice API compatible bridge drivers, the addition of the control 
-> framework to soc-camera - thanks to Hans Verkuil. A few patches outside of 
-> the V4L / media area are supplied with respective acks. I think, this is 
-> going to be my largest push so far.
-> 
-> The following changes since commit 446b792c6bd87de4565ba200b75a708b4c575a06:
-> 
->   [media] media: DocBook: Fix trivial typo in Sub-device Interface (2011-09-27 09:14:58 -0300)
-> 
-> are available in the git repository at:
->   git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.2
-> 
-> Bastian Hecht (1):
->       media: ov5642: Add support for arbitrary resolution
-> 
-> Guennadi Liakhovetski (86):
->       V4L: mt9p031 and mt9t001 drivers depend on VIDEO_V4L2_SUBDEV_API
->       V4L: sh_mobile_ceu_camera: output image sizes must be a multiple of 4
->       V4L: sh_mobile_ceu_camera: don't try to improve client scaling, if perfect
->       V4L: sh_mobile_ceu_camera: fix field addresses in interleaved mode
->       V4L: sh_mobile_ceu_camera: remove duplicated code
->       V4L: imx074: support the new mbus-config subdev ops
->       V4L: soc-camera: add helper functions for new bus configuration type
->       V4L: mt9m001: support the new mbus-config subdev ops
->       V4L: mt9m111: support the new mbus-config subdev ops
->       V4L: mt9t031: support the new mbus-config subdev ops
->       V4L: mt9t112: support the new mbus-config subdev ops
->       V4L: mt9v022: support the new mbus-config subdev ops
->       V4L: ov2640: support the new mbus-config subdev ops
->       V4L: ov5642: support the new mbus-config subdev ops
->       V4L: ov6650: support the new mbus-config subdev ops
->       V4L: ov772x: rename macros to not pollute the global namespace
->       V4L: ov772x: support the new mbus-config subdev ops
->       V4L: ov9640: support the new mbus-config subdev ops
->       V4L: ov9740: support the new mbus-config subdev ops
->       V4L: rj54n1cb0c: support the new mbus-config subdev ops
->       ARM: ap4evb: switch imx074 configuration to default number of lanes
->       V4L: sh_mobile_csi2: verify client compatibility
->       V4L: sh_mobile_csi2: support the new mbus-config subdev ops
->       V4L: tw9910: remove a not really implemented cropping support
->       V4L: tw9910: support the new mbus-config subdev ops
->       V4L: soc_camera_platform: support the new mbus-config subdev ops
->       V4L: soc-camera: compatible bus-width flags
->       ARM: mach-shmobile: convert mackerel to mediabus flags
->       sh: convert ap325rxa to mediabus flags
->       ARM: PXA: use gpio_set_value_cansleep() on pcm990
->       V4L: atmel-isi: convert to the new mbus-config subdev operations
->       V4L: mx1_camera: convert to the new mbus-config subdev operations
->       V4L: mx2_camera: convert to the new mbus-config subdev operations
->       V4L: ov2640: remove undefined struct
->       V4L: mx3_camera: convert to the new mbus-config subdev operations
->       V4L: mt9m001, mt9v022: add a clarifying comment
->       V4L: omap1_camera: convert to the new mbus-config subdev operations
->       V4L: pxa_camera: convert to the new mbus-config subdev operations
->       V4L: sh_mobile_ceu_camera: convert to the new mbus-config subdev operations
->       V4L: soc-camera: camera client operations no longer compulsory
->       V4L: mt9m001: remove superfluous soc-camera client operations
->       V4L: mt9m111: remove superfluous soc-camera client operations
->       V4L: imx074: remove superfluous soc-camera client operations
->       V4L: mt9t031: remove superfluous soc-camera client operations
->       V4L: mt9t112: remove superfluous soc-camera client operations
->       V4L: mt9v022: remove superfluous soc-camera client operations
->       V4L: ov2640: remove superfluous soc-camera client operations
->       V4L: ov5642: remove superfluous soc-camera client operations
->       V4L: ov6650: remove superfluous soc-camera client operations
->       sh: ap3rxa: remove redundant soc-camera platform data fields
->       sh: migor: remove unused ov772x buswidth flag
->       V4L: ov772x: remove superfluous soc-camera client operations
->       V4L: ov9640: remove superfluous soc-camera client operations
->       V4L: ov9740: remove superfluous soc-camera client operations
->       V4L: rj54n1cb0c: remove superfluous soc-camera client operations
->       V4L: sh_mobile_csi2: remove superfluous soc-camera client operations
->       ARM: mach-shmobile: mackerel doesn't need legacy SOCAM_* flags anymore
->       V4L: soc_camera_platform: remove superfluous soc-camera client operations
->       V4L: tw9910: remove superfluous soc-camera client operations
->       V4L: soc-camera: remove soc-camera client bus-param operations and supporting code
->       V4L: mt9t112: fix broken cropping and scaling
->       V4L: sh-mobile-ceu-camera: fix mixed CSI2 & parallel camera case
->       V4L: omap1-camera: fix Oops with NULL platform data
->       V4L: add a new videobuf2 buffer state VB2_BUF_STATE_PREPARED
->       V4L: add two new ioctl()s for multi-size videobuffer management
->       V4L: videobuf2: update buffer state on VIDIOC_QBUF
->       V4L: document the new VIDIOC_CREATE_BUFS and VIDIOC_PREPARE_BUF ioctl()s
->       V4L: vb2: prepare to support multi-size buffers
->       V4L: vb2: add support for buffers of different sizes on a single queue
->       V4L: sh-mobile-ceu-camera: prepare to support multi-size buffers
->       dmaengine: ipu-idmac: add support for the DMA_PAUSE control
->       V4L: mx3-camera: prepare to support multi-size buffers
+From: Eddi De Pieri <eddi@depieri.net>
 
-> patches/0070-V4L-sh-mobile-ceu-camera-prepare-to-support-multi-si.patch
-> From bbc1c627edaffd40b76de841fa09c03ad5453bb4 Mon Sep 17 00:00:00 2001
-> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Date: Wed, 31 Aug 2011 12:00:02 +0200
-> Subject: V4L: sh-mobile-ceu-camera: prepare to support multi-size buffers
-> Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-> 
-> Prepare the sh_mobile_ceu_camera friver to support the new
-> VIDIOC_CREATE_BUFS and VIDIOC_PREPARE_BUF ioctl()s. The .queue_setup()
-> vb2 operation must be able to handle buffer sizes, provided by the
-> caller, and the .buf_prepare() operation must not use the currently
-> configured frame format for its operation.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/video/sh_mobile_ceu_camera.c |  122 ++++++++++++++++++----------
->  1 files changed, 79 insertions(+), 43 deletions(-)
-> 
-> diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-> index 0cb1968..3be8915 100644
-> --- a/drivers/media/video/sh_mobile_ceu_camera.c
-> +++ b/drivers/media/video/sh_mobile_ceu_camera.c
-> @@ -90,7 +90,6 @@
->  struct sh_mobile_ceu_buffer {
->  	struct vb2_buffer vb; /* v4l buffer must be first */
->  	struct list_head queue;
-> -	enum v4l2_mbus_pixelcode code;
->  };
->  
->  struct sh_mobile_ceu_dev {
-> @@ -100,7 +99,8 @@ struct sh_mobile_ceu_dev {
->  
->  	unsigned int irq;
->  	void __iomem *base;
-> -	unsigned long video_limit;
-> +	size_t video_limit;
-> +	size_t buf_total;
->  
->  	spinlock_t lock;		/* Protects video buffer lists */
->  	struct list_head capture;
-> @@ -192,6 +192,12 @@ static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
->  /*
->   *  Videobuf operations
->   */
-> +
-> +/*
-> + * .queue_setup() is called to check, whether the driver can accept the
-> + *		  requested number of buffers and to fill in plane sizes
-> + *		  for the current frame format if required
-> + */
->  static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
->  			const struct v4l2_format *fmt,
->  			unsigned int *count, unsigned int *num_planes,
-> @@ -200,26 +206,45 @@ static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
->  	struct soc_camera_device *icd = container_of(vq, struct soc_camera_device, vb2_vidq);
->  	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
->  	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-> -	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
-> -						icd->current_fmt->host_fmt);
-> +	int bytes_per_line;
-> +	unsigned int height;
->  
-> +	if (fmt) {
-> +		const struct soc_camera_format_xlate *xlate = soc_camera_xlate_by_fourcc(icd,
-> +								fmt->fmt.pix.pixelformat);
-> +		bytes_per_line = soc_mbus_bytes_per_line(fmt->fmt.pix.width,
-> +							 xlate->host_fmt);
+With this patch I try again to add initial support for HVR930C.
 
-This doesn't sound right, as xlate could be NULL.
+Tested only DVB-T, since in Italy Analog service is stopped.
 
-> +		height = fmt->fmt.pix.height;
-> +	} else {
-> +		/* Called from VIDIOC_REQBUFS or in compatibility mode */
-> +		bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
-> +						icd->current_fmt->host_fmt);
-> +		height = icd->user_height;
-> +	}
->  	if (bytes_per_line < 0)
->  		return bytes_per_line;
->  
-> -	*num_planes = 1;
-> +	sizes[0] = bytes_per_line * height;
->  
-> -	pcdev->sequence = 0;
-> -	sizes[0] = bytes_per_line * icd->user_height;
->  	alloc_ctxs[0] = pcdev->alloc_ctx;
->  
-> +	if (!vq->num_buffers)
-> +		pcdev->sequence = 0;
-> +
->  	if (!*count)
->  		*count = 2;
->  
-> -	if (pcdev->video_limit) {
-> -		if (PAGE_ALIGN(sizes[0]) * *count > pcdev->video_limit)
-> -			*count = pcdev->video_limit / PAGE_ALIGN(sizes[0]);
-> +	/* If *num_planes != 0, we have already verified *count. */
-> +	if (pcdev->video_limit && !*num_planes) {
-> +		size_t size = PAGE_ALIGN(sizes[0]) * *count;
+Actually "scan -a0 -f1", find only about 50 channel while 400 should
+be available.
 
-This looks ugly. Better to write it as:
-	size_t size = PAGE_ALIGN(sizes[0]) * (*count);
+[mchehab@redhat.com: Tested with DVB-C and fixed a few whitespace issues]
+Tested-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Eddi De Pieri <eddi@depieri.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/xc5000.c      |    4 +
+ drivers/media/dvb/frontends/drxk.h        |    2 +
+ drivers/media/dvb/frontends/drxk_hard.c   |    4 +-
+ drivers/media/video/em28xx/em28xx-cards.c |   37 ++++++++-
+ drivers/media/video/em28xx/em28xx-dvb.c   |  136 ++++++++++++++++++++++++++++-
+ drivers/media/video/em28xx/em28xx.h       |    2 +
+ 6 files changed, 181 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
+index ecd1f95..048f489 100644
+--- a/drivers/media/common/tuners/xc5000.c
++++ b/drivers/media/common/tuners/xc5000.c
+@@ -1004,6 +1004,8 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
+ 	struct xc5000_priv *priv = fe->tuner_priv;
+ 	int ret = 0;
+ 
++	mutex_lock(&xc5000_list_mutex);
++
+ 	if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS) {
+ 		ret = xc5000_fwupload(fe);
+ 		if (ret != XC_RESULT_SUCCESS)
+@@ -1023,6 +1025,8 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
+ 	/* Default to "CABLE" mode */
+ 	ret |= xc_write_reg(priv, XREG_SIGNALSOURCE, XC_RF_MODE_CABLE);
+ 
++	mutex_unlock(&xc5000_list_mutex);
++
+ 	return ret;
+ }
+ 
+diff --git a/drivers/media/dvb/frontends/drxk.h b/drivers/media/dvb/frontends/drxk.h
+index 58baf41..e6d42e2 100644
+--- a/drivers/media/dvb/frontends/drxk.h
++++ b/drivers/media/dvb/frontends/drxk.h
+@@ -26,6 +26,8 @@ struct drxk_config {
+ 	bool	antenna_dvbt;
+ 	u16	antenna_gpio;
+ 
++	int    chunk_size;
++
+ 	const char *microcode_name;
+ };
+ 
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index dc13fd8..2392092 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -681,7 +681,8 @@ static int init_state(struct drxk_state *state)
+ 	state->m_hasOOB = false;
+ 	state->m_hasAudio = false;
+ 
+-	state->m_ChunkSize = 124;
++	if (!state->m_ChunkSize)
++	    state->m_ChunkSize = 124;
+ 
+ 	state->m_oscClockFreq = 0;
+ 	state->m_smartAntInverted = false;
+@@ -6430,6 +6431,7 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
+ 	state->no_i2c_bridge = config->no_i2c_bridge;
+ 	state->antenna_gpio = config->antenna_gpio;
+ 	state->antenna_dvbt = config->antenna_dvbt;
++	state->m_ChunkSize = config->chunk_size;
+ 
+ 	/* NOTE: as more UIO bits will be used, add them to the mask */
+ 	state->UIO_mask = config->antenna_gpio;
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index 19a5be3..705aedf 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -336,6 +336,24 @@ static struct em28xx_reg_seq pctv_460e[] = {
+ 	{             -1,   -1,   -1,  -1},
+ };
+ 
++static struct em28xx_reg_seq hauppauge_930c_gpio[] = {
++// xc5000 reset
++	{EM2874_R80_GPIO,	0x6f,	0xff,	10},
++	{EM2874_R80_GPIO,	0x4f,	0xff,	10},
++	{EM2874_R80_GPIO,	0x6f,	0xff,	10},
++	{EM2874_R80_GPIO,	0x4f,	0xff,	10},
++	{ -1,			-1,	-1,	-1},
++};
++
++#if 0
++static struct em28xx_reg_seq hauppauge_930c_digital[] = {
++	{EM2874_R80_GPIO,	0xf6,	0xff,	10},
++	{EM2874_R80_GPIO,	0xe6,	0xff,	100},
++	{EM2874_R80_GPIO,	0xa6,	0xff,	10},
++	{ -1,			-1,	-1,	-1},
++};
++#endif
++
+ /*
+  *  Board definitions
+  */
+@@ -892,6 +910,19 @@ struct em28xx_board em28xx_boards[] = {
+ 				EM28XX_I2C_CLK_WAIT_ENABLE |
+ 				EM28XX_I2C_FREQ_400_KHZ,
+ 	},
++	[EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C] = {
++		.name         = "Hauppauge WinTV HVR 930C",
++		.has_dvb      = 1,
++//#if 0
++//		.tuner_type   = TUNER_XC5000,
++//		.tuner_addr   = 0x41,
++//		.dvb_gpio     = hauppauge_930c_digital, /* FIXME: probably wrong */
++		.tuner_gpio   = hauppauge_930c_gpio,
++//#endif
++		.i2c_speed    = EM2874_I2C_SECONDARY_BUS_SELECT |
++				EM28XX_I2C_CLK_WAIT_ENABLE |
++				EM28XX_I2C_FREQ_400_KHZ,
++	},
+ 	[EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900] = {
+ 		.name         = "Hauppauge WinTV HVR 900",
+ 		.tda9887_conf = TDA9887_PRESENT,
+@@ -1975,6 +2006,8 @@ struct usb_device_id em28xx_id_table[] = {
+ 			.driver_info = EM28174_BOARD_PCTV_290E },
+ 	{ USB_DEVICE(0x2013, 0x024c),
+ 			.driver_info = EM28174_BOARD_PCTV_460E },
++	{ USB_DEVICE(0x2040, 0x1605),
++			.driver_info = EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(usb, em28xx_id_table);
+@@ -2028,10 +2061,10 @@ int em28xx_tuner_callback(void *ptr, int component, int command, int arg)
+ 	int rc = 0;
+ 	struct em28xx *dev = ptr;
+ 
+-	if (dev->tuner_type != TUNER_XC2028)
++	if (dev->tuner_type != TUNER_XC2028 && dev->tuner_type != TUNER_XC5000)
+ 		return 0;
+ 
+-	if (command != XC2028_TUNER_RESET)
++	if (command != XC2028_TUNER_RESET && command != XC5000_TUNER_RESET)
+ 		return 0;
+ 
+ 	rc = em28xx_gpio_set(dev, dev->board.tuner_gpio);
+diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
+index cef7a2d..d19939b 100644
+--- a/drivers/media/video/em28xx/em28xx-dvb.c
++++ b/drivers/media/video/em28xx/em28xx-dvb.c
+@@ -316,6 +316,14 @@ struct drxk_config terratec_h5_drxk = {
+ 	.microcode_name = "dvb-usb-terratec-h5-drxk.fw",
+ };
+ 
++struct drxk_config hauppauge_930c_drxk = {
++	.adr = 0x29,
++	.single_master = 1,
++	.no_i2c_bridge = 1,
++	.microcode_name = "dvb-usb-hauppauge-hvr930c-drxk.fw",
++	.chunk_size = 56,
++};
++
+ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
+ {
+ 	struct em28xx_dvb *dvb = fe->sec_priv;
+@@ -334,6 +342,90 @@ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
+ 	return status;
+ }
+ 
++static void hauppauge_hvr930c_init(struct em28xx *dev)
++{
++	int i;
++
++	struct em28xx_reg_seq hauppauge_hvr930c_init[] = {
++		{EM2874_R80_GPIO,	0xff,	0xff,	101},  //11111111
++//		{0xd            ,	0xff,	0xff,	101},  //11111111
++		{EM2874_R80_GPIO,	0xfb,	0xff,	50},   //11111011  init bit 3
++		{EM2874_R80_GPIO,	0xff,	0xff,	184},  //11111111
++		{ -1,                   -1,     -1,     -1},
++	};
++	struct em28xx_reg_seq hauppauge_hvr930c_end[] = {
++		{EM2874_R80_GPIO,	0xef,	0xff,	1},    //11101111
++		{EM2874_R80_GPIO,	0xaf,	0xff,	101},  //10101111  init bit 7
++		{EM2874_R80_GPIO,	0xef,	0xff,	118},   //11101111
++
++
++//per il tuner?
++		{EM2874_R80_GPIO,	0xef,	0xff,	1},  //11101111
++		{EM2874_R80_GPIO,	0xcf,	0xff,	11},    //11001111  init bit 6
++		{EM2874_R80_GPIO,	0xef,	0xff,	64},  //11101111
++
++		{EM2874_R80_GPIO,	0xcf,	0xff,	101},  //11001111  init bit 6
++		{EM2874_R80_GPIO,	0xef,	0xff,	101},  //11101111
++		{EM2874_R80_GPIO,	0xcf,	0xff,	11},  //11001111  init bit 6
++		{EM2874_R80_GPIO,	0xef,	0xff,	101},  //11101111
++
++//		{EM2874_R80_GPIO,	0x6f,	0xff,	10},    //01101111
++//		{EM2874_R80_GPIO,	0x6d,	0xff,	100},  //01101101  init bit 2
++		{ -1,                   -1,     -1,     -1},
++	};
++
++	struct em28xx_reg_seq hauppauge_hvr930c_end2[] = {
++//		{EM2874_R80_GPIO,	0x6f,	0xff,	124},  //01101111
++//		{EM2874_R80_GPIO,	0x4f,	0xff,	11},   //01001111  init bit 6
++//		{EM2874_R80_GPIO,	0x6f,	0xff,	1},    //01101111
++//		{EM2874_R80_GPIO,	0x4f,	0xff,	10},   //01001111  init bit 6
++//		{EM2874_R80_GPIO,	0x6f,	0xff,	100},  //01101111
++//		{0xd            ,	0x42,	0xff,	101},  //11111111
++		{ -1,                   -1,     -1,     -1},
++	};
++	struct {
++		unsigned char r[4];
++		int len;
++	} regs[] = {
++		{{ 0x06, 0x02, 0x00, 0x31 }, 4},
++		{{ 0x01, 0x02 }, 2},
++		{{ 0x01, 0x02, 0x00, 0xc6 }, 4},
++		{{ 0x01, 0x00 }, 2},
++		{{ 0x01, 0x00, 0xff, 0xaf }, 4},
++		{{ 0x01, 0x00, 0x03, 0xa0 }, 4},
++		{{ 0x01, 0x00 }, 2},
++		{{ 0x01, 0x00, 0x73, 0xaf }, 4},
++		{{ 0x04, 0x00 }, 2},
++		{{ 0x00, 0x04 }, 2},
++		{{ 0x00, 0x04, 0x00, 0x0a }, 4},
++		{{ 0x04, 0x14 }, 2},
++		{{ 0x04, 0x14, 0x00, 0x00 }, 4},
++	};
++
++	em28xx_gpio_set(dev, hauppauge_hvr930c_init);
++	em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x40);
++	msleep(10);
++	em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x44);
++	msleep(10);
++
++	dev->i2c_client.addr = 0x82 >> 1;
++
++	for (i = 0; i < ARRAY_SIZE(regs); i++)
++		i2c_master_send(&dev->i2c_client, regs[i].r, regs[i].len);
++	em28xx_gpio_set(dev, hauppauge_hvr930c_end);
++
++	msleep(100);
++
++	em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x44);
++	msleep(30);
++
++	em28xx_gpio_set(dev, hauppauge_hvr930c_end2);
++	msleep(10);
++	em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x45);
++	msleep(10);
++
++}
++
+ static void terratec_h5_init(struct em28xx *dev)
+ {
+ 	int i;
+@@ -788,6 +880,47 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			mfe_shared = 1;
+ 		}
+ 		break;
++	case EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C:
++		hauppauge_hvr930c_init(dev);
++
++		dvb->dont_attach_fe1 = 1;
++
++		dvb->fe[0] = dvb_attach(drxk_attach, &hauppauge_930c_drxk, &dev->i2c_adap, &dvb->fe[1]);
++		if (!dvb->fe[0]) {
++			result = -EINVAL;
++			goto out_free;
++		}
++		/* FIXME: do we need a pll semaphore? */
++		dvb->fe[0]->sec_priv = dvb;
++		sema_init(&dvb->pll_mutex, 1);
++		dvb->gate_ctrl = dvb->fe[0]->ops.i2c_gate_ctrl;
++		dvb->fe[0]->ops.i2c_gate_ctrl = drxk_gate_ctrl;
++		dvb->fe[1]->id = 1;
++
++		/* Attach xc5000 */
++		struct xc5000_config cfg;
++		memset(&cfg, 0, sizeof(cfg));
++		cfg.i2c_address  = 0x61;
++		//cfg.if_khz = 4570; //FIXME
++		cfg.if_khz = 4000; //FIXME (should be ok) read from i2c traffic
++
++		if (dvb->fe[0]->ops.i2c_gate_ctrl)
++			dvb->fe[0]->ops.i2c_gate_ctrl(dvb->fe[0], 1);
++		if (!dvb_attach(xc5000_attach, dvb->fe[0], &dev->i2c_adap, &cfg)) {
++			result = -EINVAL;
++			goto out_free;
++		}
++
++		if (dvb->fe[0]->ops.i2c_gate_ctrl)
++			dvb->fe[0]->ops.i2c_gate_ctrl(dvb->fe[0], 0);
++
++		/* Hack - needed by drxk/tda18271c2dd */
++		dvb->fe[1]->tuner_priv = dvb->fe[0]->tuner_priv;
++		memcpy(&dvb->fe[1]->ops.tuner_ops,
++		       &dvb->fe[0]->ops.tuner_ops,
++		       sizeof(dvb->fe[0]->ops.tuner_ops));
++
++		break;
+ 	case EM2884_BOARD_TERRATEC_H5:
+ 		terratec_h5_init(dev);
+ 
+@@ -798,7 +931,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			result = -EINVAL;
+ 			goto out_free;
+ 		}
+-
+ 		/* FIXME: do we need a pll semaphore? */
+ 		dvb->fe[0]->sec_priv = dvb;
+ 		sema_init(&dvb->pll_mutex, 1);
+@@ -845,6 +977,8 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 	}
+ 	/* define general-purpose callback pointer */
+ 	dvb->fe[0]->callback = em28xx_tuner_callback;
++	if (dvb->fe[1])
++	    dvb->fe[1]->callback = em28xx_tuner_callback;
+ 
+ 	/* register everything */
+ 	result = em28xx_register_dvb(dvb, THIS_MODULE, dev, &dev->udev->dev);
+diff --git a/drivers/media/video/em28xx/em28xx.h b/drivers/media/video/em28xx/em28xx.h
+index 2a2cb7e..c16ae8f 100644
+--- a/drivers/media/video/em28xx/em28xx.h
++++ b/drivers/media/video/em28xx/em28xx.h
+@@ -38,6 +38,7 @@
+ #include <media/videobuf-dvb.h>
+ #endif
+ #include "tuner-xc2028.h"
++#include "xc5000.h"
+ #include "em28xx-reg.h"
+ 
+ /* Boards supported by driver */
+@@ -121,6 +122,7 @@
+ #define EM28174_BOARD_PCTV_290E                   78
+ #define EM2884_BOARD_TERRATEC_H5		  79
+ #define EM28174_BOARD_PCTV_460E                   80
++#define EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C	  81
+ 
+ /* Limits minimum and default number of buffers */
+ #define EM28XX_MIN_BUF 4
+-- 
+1.7.7.1
 
-> +
-> +		if (size + pcdev->buf_total > pcdev->video_limit)
-> +			*count = (pcdev->video_limit - pcdev->buf_total) /
-> +				PAGE_ALIGN(sizes[0]);
->  	}
->  
-> +	*num_planes = 1;
-> +
->  	dev_dbg(icd->parent, "count=%d, size=%u\n", *count, sizes[0]);
->  
->  	return 0;
-> @@ -331,23 +356,40 @@ static int sh_mobile_ceu_capture(struct sh_mobile_ceu_dev *pcdev)
->  
->  static int sh_mobile_ceu_videobuf_prepare(struct vb2_buffer *vb)
->  {
-> +	struct sh_mobile_ceu_buffer *buf = to_ceu_vb(vb);
-> +
-> +	/* Added list head initialization on alloc */
-> +	WARN(!list_empty(&buf->queue), "Buffer %p on queue!\n", vb);
-> +
-> +	return 0;
-> +}
-> +
-> +static void sh_mobile_ceu_videobuf_queue(struct vb2_buffer *vb)
-> +{
->  	struct soc_camera_device *icd = container_of(vb->vb2_queue, struct soc_camera_device, vb2_vidq);
-> -	struct sh_mobile_ceu_buffer *buf;
-> +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> +	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-> +	struct sh_mobile_ceu_buffer *buf = to_ceu_vb(vb);
-> +	unsigned long size;
->  	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
->  						icd->current_fmt->host_fmt);
-> -	unsigned long size;
->  
->  	if (bytes_per_line < 0)
-> -		return bytes_per_line;
-> +		goto error;
-> +
-> +	size = icd->user_height * bytes_per_line;
-> +
-> +	if (vb2_plane_size(vb, 0) < size) {
-> +		dev_err(icd->parent, "Buffer #%d too small (%lu < %lu)\n",
-> +			vb->v4l2_buf.index, vb2_plane_size(vb, 0), size);
-> +		goto error;
-> +	}
->  
-> -	buf = to_ceu_vb(vb);
-> +	vb2_set_plane_payload(vb, 0, size);
->  
->  	dev_dbg(icd->parent, "%s (vb=0x%p) 0x%p %lu\n", __func__,
->  		vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
->  
-> -	/* Added list head initialization on alloc */
-> -	WARN(!list_empty(&buf->queue), "Buffer %p on queue!\n", vb);
-> -
->  #ifdef DEBUG
->  	/*
->  	 * This can be useful if you want to see if we actually fill
-> @@ -357,31 +399,6 @@ static int sh_mobile_ceu_videobuf_prepare(struct vb2_buffer *vb)
->  		memset(vb2_plane_vaddr(vb, 0), 0xaa, vb2_get_plane_payload(vb, 0));
->  #endif
->  
-> -	BUG_ON(NULL == icd->current_fmt);
-> -
-> -	size = icd->user_height * bytes_per_line;
-> -
-> -	if (vb2_plane_size(vb, 0) < size) {
-> -		dev_err(icd->parent, "Buffer too small (%lu < %lu)\n",
-> -			vb2_plane_size(vb, 0), size);
-> -		return -ENOBUFS;
-> -	}
-> -
-> -	vb2_set_plane_payload(vb, 0, size);
-> -
-> -	return 0;
-> -}
-> -
-> -static void sh_mobile_ceu_videobuf_queue(struct vb2_buffer *vb)
-> -{
-> -	struct soc_camera_device *icd = container_of(vb->vb2_queue, struct soc_camera_device, vb2_vidq);
-> -	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> -	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-> -	struct sh_mobile_ceu_buffer *buf = to_ceu_vb(vb);
-> -
-> -	dev_dbg(icd->parent, "%s (vb=0x%p) 0x%p %lu\n", __func__,
-> -		vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
-> -
->  	spin_lock_irq(&pcdev->lock);
->  	list_add_tail(&buf->queue, &pcdev->capture);
->  
-> @@ -395,6 +412,11 @@ static void sh_mobile_ceu_videobuf_queue(struct vb2_buffer *vb)
->  		sh_mobile_ceu_capture(pcdev);
->  	}
->  	spin_unlock_irq(&pcdev->lock);
-> +
-> +	return;
-> +
-> +error:
-> +	vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
->  }
->  
->  static void sh_mobile_ceu_videobuf_release(struct vb2_buffer *vb)
-> @@ -419,11 +441,23 @@ static void sh_mobile_ceu_videobuf_release(struct vb2_buffer *vb)
->  	if (buf->queue.next)
->  		list_del_init(&buf->queue);
->  
-> +	pcdev->buf_total -= PAGE_ALIGN(vb2_plane_size(vb, 0));
-> +	dev_dbg(icd->parent, "%s() %zu bytes buffers\n", __func__,
-> +		pcdev->buf_total);
-> +
->  	spin_unlock_irq(&pcdev->lock);
->  }
->  
->  static int sh_mobile_ceu_videobuf_init(struct vb2_buffer *vb)
->  {
-> +	struct soc_camera_device *icd = container_of(vb->vb2_queue, struct soc_camera_device, vb2_vidq);
-> +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> +	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-> +
-> +	pcdev->buf_total += PAGE_ALIGN(vb2_plane_size(vb, 0));
-> +	dev_dbg(icd->parent, "%s() %zu bytes buffers\n", __func__,
-> +		pcdev->buf_total);
-> +
->  	/* This is for locking debugging only */
->  	INIT_LIST_HEAD(&to_ceu_vb(vb)->queue);
->  	return 0;
-> @@ -525,6 +559,8 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
->  
->  	pm_runtime_get_sync(ici->v4l2_dev.dev);
->  
-> +	pcdev->buf_total = 0;
-> +
->  	ret = sh_mobile_ceu_soft_reset(pcdev);
->  
->  	csi2_sd = find_csi2(pcdev);
-> @@ -1674,7 +1710,7 @@ static int sh_mobile_ceu_set_fmt(struct soc_camera_device *icd,
->  		image_mode = false;
->  	}
->  
-> -	dev_info(dev, "S_FMT(pix=0x%x, fld 0x%x, code 0x%x, %ux%u)\n", pixfmt, mf.field, mf.code,
-> +	dev_geo(dev, "S_FMT(pix=0x%x, fld 0x%x, code 0x%x, %ux%u)\n", pixfmt, mf.field, mf.code,
->  		pix->width, pix->height);
->  
->  	dev_geo(dev, "4: request camera output %ux%u\n", mf.width, mf.height);
-> -- 
-> 1.7.6.4
-> 
