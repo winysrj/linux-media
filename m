@@ -1,77 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3200 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756086Ab1K2Sac (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:38488 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752508Ab1KUVI6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Nov 2011 13:30:32 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 1/2] v4l: Add new alpha component control
-Date: Tue, 29 Nov 2011 19:30:25 +0100
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com,
-	m.szyprowski@samsung.com, jonghun.han@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-References: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com> <4ED50AEA.4050109@samsung.com> <201111291910.40076.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201111291910.40076.laurent.pinchart@ideasonboard.com>
+	Mon, 21 Nov 2011 16:08:58 -0500
+Received: by fagn18 with SMTP id n18so6452002fag.19
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:08:57 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111291930.25608.hverkuil@xs4all.nl>
+Date: Tue, 22 Nov 2011 02:38:56 +0530
+Message-ID: <CAHFNz9L_yuqQGR+X078=d2Zz4iQNJHzZKaXJYykM8iMiQk6eLw@mail.gmail.com>
+Subject: PATCH 11/13: 0011-STV0900-Query-DVB-frontend-delivery-capabilities
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	"Igor M. Liplianin" <liplianin@netup.ru>
+Content-Type: multipart/mixed; boundary=f46d0435c0684acc9904b24518bf
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday, November 29, 2011 19:10:39 Laurent Pinchart wrote:
-> Hi Sylwester,
-> 
-> On Tuesday 29 November 2011 17:40:10 Sylwester Nawrocki wrote:
-> > On 11/29/2011 12:08 PM, Hans Verkuil wrote:
-> > > On Monday 28 November 2011 14:02:49 Sylwester Nawrocki wrote:
-> > >> On 11/28/2011 01:39 PM, Hans Verkuil wrote:
-> > >>> On Monday 28 November 2011 13:13:32 Sylwester Nawrocki wrote:
-> > >>>> On 11/28/2011 12:38 PM, Hans Verkuil wrote:
-> > >>>>> On Friday 25 November 2011 16:39:31 Sylwester Nawrocki wrote:
-> > > Here is a patch that updates the range. It also sends a control event
-> > > telling any listener that the range has changed. Tested with vivi and a
-> > > modified v4l2-ctl.
-> > > 
-> > > The only thing missing is a DocBook entry for that new event flag and
-> > > perhaps some more documentation in places.
-> > > 
-> > > Let me know how this works for you, and if it is really needed, then I
-> > > can add it to the control framework.
-> > 
-> > Thanks for your work, it's very appreciated.
-> > 
-> > I've tested the patch with s5p-fimc and it works well. I just didn't check
-> > the event part yet.
-> > 
-> > I spoke to Kamil as in the past he considered the control range updating
-> > at the codec driver. But since separate controls are used for different
-> > encoding standards, this is not needed it any more.
-> > 
-> > Nevertheless I have at least two use cases, for the alpha control and
-> > for the image sensor driver. In case of the camera sensor, different device
-> > revisions may have different step and maximum value for some controls,
-> > depending on firmware.
-> > By using v4l2_ctrl_range_update() I don't need to invoke lengthy sensor
-> > start-up procedure just to find out properties of some controls.
-> 
-> Wouldn't it be confusing for applications to start with a range and have it 
-> updated at runtime ?
+--f46d0435c0684acc9904b24518bf
+Content-Type: text/plain; charset=ISO-8859-1
 
-Good question. It was a nice exercise creating the range_update() function and
-it works well, but it this something we want to do?
 
-If we do, then we should mark such controls with a flag (_VOLATILE_RANGE or
-something like that) so apps know that the range isn't fixed.
 
-I think that when it comes to apps writing or reading such a control directly
-it isn't a problem. But for applications that automatically generate control
-panels (xawtv et al) it is rather complex to support such things.
+--f46d0435c0684acc9904b24518bf
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0011-STV0900-Query-DVB-frontend-delivery-capabilities.patch"
+Content-Disposition: attachment;
+	filename="0011-STV0900-Query-DVB-frontend-delivery-capabilities.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
 
-Regards,
-
-	Hans
+RnJvbSBlODNiZjViMDFiMWE1MDg0ZGYzYzFhOGY4YjE1YzUyMTliZTYxOGQyIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
+CkRhdGU6IFRodSwgMTcgTm92IDIwMTEgMTM6NDA6NDkgKzA1MzAKU3ViamVjdDogW1BBVENIIDEx
+LzEzXSBTVFYwOTAwOiBRdWVyeSBEVkIgZnJvbnRlbmQgZGVsaXZlcnkgY2FwYWJpbGl0aWVzCgpP
+dmVycmlkZSBkZWZhdWx0IGRlbGl2ZXJ5IHN5c3RlbSBpbmZvcm1hdGlvbiBwcm92aWRlZCBieSBG
+RV9HRVRfSU5GTywgc28KdGhhdCBhcHBsaWNhdGlvbnMgY2FuIGVudW1lcmF0ZSBkZWxpdmVyeSBz
+eXN0ZW1zIHByb3ZpZGVkIGJ5IHRoZSBmcm9udGVuZC4KClNpZ25lZC1vZmYtYnk6IE1hbnUgQWJy
+YWhhbSA8YWJyYWhhbS5tYW51QGdtYWlsLmNvbT4KLS0tCiBkcml2ZXJzL21lZGlhL2R2Yi9mcm9u
+dGVuZHMvc3R2MDkwMF9jb3JlLmMgfCAgIDExICsrKysrKysrKystCiAxIGZpbGVzIGNoYW5nZWQs
+IDEwIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9t
+ZWRpYS9kdmIvZnJvbnRlbmRzL3N0djA5MDBfY29yZS5jIGIvZHJpdmVycy9tZWRpYS9kdmIvZnJv
+bnRlbmRzL3N0djA5MDBfY29yZS5jCmluZGV4IDBjYTMxNmQuLjJiOGQ3OGMgMTAwNjQ0Ci0tLSBh
+L2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9zdHYwOTAwX2NvcmUuYworKysgYi9kcml2ZXJz
+L21lZGlhL2R2Yi9mcm9udGVuZHMvc3R2MDkwMF9jb3JlLmMKQEAgLTk4NSw3ICs5ODUsMTYgQEAg
+c3RhdGljIGludCBzdGIwOTAwX2dldF9wcm9wZXJ0eShzdHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSwK
+IAkJCQlzdHJ1Y3QgZHR2X3Byb3BlcnR5ICp0dnApCiB7CiAJZHByaW50aygiJXMoLi4pXG4iLCBf
+X2Z1bmNfXyk7Ci0KKwlzd2l0Y2ggKHR2cC0+Y21kKSB7CisJY2FzZSBEVFZfRU5VTV9ERUxTWVM6
+CisJCXR2cC0+dS5idWZmZXIuZGF0YVswXSA9IFNZU19EU1M7CisJCXR2cC0+dS5idWZmZXIuZGF0
+YVsxXSA9IFNZU19EVkJTOworCQl0dnAtPnUuYnVmZmVyLmRhdGFbMl0gPSBTWVNfRFZCUzI7CisJ
+CXR2cC0+dS5idWZmZXIubGVuID0gMzsKKwkJYnJlYWs7CisJZGVmYXVsdDoKKwkJYnJlYWs7CisJ
+fQogCXJldHVybiAwOwogfQogCi0tIAoxLjcuMQoK
+--f46d0435c0684acc9904b24518bf--
