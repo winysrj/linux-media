@@ -1,82 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:48187 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754020Ab1KXU5i (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:38670 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103Ab1KUVF1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 15:57:38 -0500
-Message-ID: <4ECEAFBE.1010303@iki.fi>
-Date: Thu, 24 Nov 2011 22:57:34 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Mon, 21 Nov 2011 16:05:27 -0500
+Received: by mail-ww0-f44.google.com with SMTP id 5so11143604wwe.1
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:05:26 -0800 (PST)
 MIME-Version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-CC: Sylwester Nawrocki <snjw23@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	=?ISO-8859-1?Q?R=E9mi_Denis-Courmon?= =?ISO-8859-1?Q?t?=
-	<remi@remlab.net>
-Subject: Re: [Query] V4L2 Integer (?) menu control
-References: <4ECD730E.3080808@gmail.com> <20111124085018.GF27136@valkosipuli.localdomain> <4ECE0FA5.1040205@samsung.com>
-In-Reply-To: <4ECE0FA5.1040205@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Tue, 22 Nov 2011 02:35:26 +0530
+Message-ID: <CAHFNz9K-3Kk39R62P6t1og9me1WXVJv484_-2QYhAMB4fB_8WA@mail.gmail.com>
+Subject: PATCH 01/13: 0001-DVB-Query-DVB-frontend-delivery-capabilities
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andreas Oberritter <obi@linuxtv.org>
+Content-Type: multipart/mixed; boundary=0015174c4642c16d2e04b2450bb7
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+--0015174c4642c16d2e04b2450bb7
+Content-Type: text/plain; charset=ISO-8859-1
 
-Sylwester Nawrocki wrote:
-> Thank you all for the comments.
->
-> On 11/24/2011 09:50 AM, Sakari Ailus wrote:
->> Hi Sylwester,
->>
->> There is not currently, but I have patches for it. The issue is that I need
->> them myself but the driver I need them for isn't ready to be released yet.
->> And as usual, I assume others than vivo is required to show they're really
->> useful so I haven't sent them.
->
-> That's great news. Then I might not need to do all the work on my own;)
 
-I hope mine will do. ;-)
 
-I'm working on 2.6.32 kernel (ouch!) so I haven't been able to test them 
-properly yet. Please provide feedback on them if you find any issues.
+--0015174c4642c16d2e04b2450bb7
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0001-DVB-Query-DVB-frontend-delivery-capabilities.patch"
+Content-Disposition: attachment;
+	filename="0001-DVB-Query-DVB-frontend-delivery-capabilities.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
 
->>
->> Good that you asked so we won't end up writing essentially the same code
->> again. I'll try to send the patches today.
->
-> All right, there is no rush. I was just looking around how to support the
-> camera scene mode with m5mols sort of sensors. The scene mode is essentially
-> a compilation of several different parameters, for some of which there are
-> standard controls in V4L2 but for many there are not.
-
-I fully agree with this approach. Scene modes should not be implemented 
-at the level of the V4L2 API. Instead, the parameters that the scene 
-modes consist of must be shown separately on the V4L2 API, if that is 
-the level of API they belong to. Depending on your camera stack control 
-algorithms could reside in the user space, which I believe is however 
-not the case with the M5-MOLS.
-
-> I've got a feeling the best way to handle this would be to create controls
-> for each single parameter and then do a batch set from user space, and keep
-> the scene mode mappings in user space. The only concern is there is a couple
-> of ISP-specific parameters involved with that scene mode thing. Perhaps they
-> just could be set initially to fixed values.
-
-Can you describe what kind of parameters this is about? Is there an 
-issue in just setting those using the ISP driver V4L2 subdev API?
-
-This makes your user space to depend both on the sensor and the ISP, but 
-there's really no way around that if both do non-trivial 
-hardware-specific things.
-
-I think we need to further standardise image processing configuration 
-such as RGB-to-RGB matrices and gamma tables. This would make the ISP 
-interfaces less hardware specific.
-
-Kind regards,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+RnJvbSA2MzU5NTU1NjQ3ZjcwODI4NDZhMWJiOGYyMjkyOTkyNjBhZjBkYjVmIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
+CkRhdGU6IE1vbiwgMTQgTm92IDIwMTEgMDM6MTc6NDQgKzA1MzAKU3ViamVjdDogW1BBVENIIDAx
+LzEzXSBEVkI6IFF1ZXJ5IERWQiBmcm9udGVuZCBkZWxpdmVyeSBjYXBhYmlsaXRpZXMuCgogQ3Vy
+cmVudGx5LCBmb3IgYW55IG11bHRpLXN0YW5kYXJkIGZyb250ZW5kIGl0IGlzIGFzc3VtZWQgdGhh
+dCBpdCBqdXN0CiBoYXMgYSBzaW5nbGUgc3RhbmRhcmQgY2FwYWJpbGl0eS4gVGhpcyBpcyBmaW5l
+IGluIHNvbWUgY2FzZXMsIGJ1dAogbWFrZXMgdGhpbmdzIGhhcmQgd2hlbiB0aGVyZSBhcmUgaW5j
+b21wYXRpYmxlIHN0YW5kYXJkcyBpbiBjb25qdWN0aW9uLgogRWc6IERWQi1TIGNhbiBiZSBzZWVu
+IGFzIGEgc3Vic2V0IG9mIERWQi1TMiwgYnV0IHRoZSBzYW1lIGRvZXNuJ3QgaG9sZAogdGhlIHNh
+bWUgZm9yIERTUy4gVGhpcyBpcyBub3Qgc3BlY2lmaWMgdG8gYW55IGRyaXZlciBhcyBpdCBpcywg
+YnV0IGEKIGdlbmVyaWMgaXNzdWUuIFRoaXMgd2FzIGhhbmRsZWQgY29ycmVjdGx5IGluIHRoZSBt
+dWx0aXByb3RvIHRyZWUsCiB3aGlsZSBzdWNoIGZ1bmN0aW9uYWxpdHkgaXMgbWlzc2luZyBmcm9t
+IHRoZSB2NSBBUEkgdXBkYXRlLgoKIGh0dHA6Ly93d3cubGludXh0di5vcmcvcGlwZXJtYWlsL3Zk
+ci8yMDA4LU5vdmVtYmVyLzAxODQxNy5odG1sCgogTGF0ZXIgb24gYSBGRV9DQU5fMkdfTU9EVUxB
+VElPTiB3YXMgYWRkZWQgYXMgYSBoYWNrIHRvIHdvcmthcm91bmQgdGhpcwogaXNzdWUgaW4gdGhl
+IHY1IEFQSSwgYnV0IHRoYXQgaGFjayBpcyBpbmNhcGFibGUgb2YgYWRkcmVzc2luZyB0aGUKIGlz
+c3VlLCBhcyBpdCBjYW4gYmUgdXNlZCB0byBzaW1wbHkgZGlzdGluZ3Vpc2ggYmV0d2VlbiBEVkIt
+UyBhbmQKIERWQi1TMiBhbG9uZSwgb3IgYW5vdGhlciBYIHZzIFgyIG1vZHVsYXRpb24uIElmIHRo
+ZXJlIGFyZSBtb3JlIHN5c3RlbXMsCiB0aGVuIHlvdSBoYXZlIGEgcG90ZW50aWFsIGlzc3VlLgoK
+IEFuIGFwcGxpY2F0aW9uIG5lZWRzIHRvIHF1ZXJ5IHRoZSBkZXZpY2UgY2FwYWJpbGl0aWVzIGJl
+Zm9yZSByZXF1ZXN0aW5nCiBhbnkgb3BlcmF0aW9uIGZyb20gdGhlIGRldmljZS4KClNpZ25lZC1v
+ZmYtYnk6IE1hbnUgQWJyYWhhbSA8YWJyYWhhbS5tYW51QGdtYWlsLmNvbT4KLS0tCiBkcml2ZXJz
+L21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQuYyB8ICAgMzYgKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysKIGluY2x1ZGUvbGludXgvZHZiL2Zyb250ZW5kLmggICAgICAgICAgICAg
+IHwgICAgNCArKy0KIGluY2x1ZGUvbGludXgvZHZiL3ZlcnNpb24uaCAgICAgICAgICAgICAgIHwg
+ICAgMiArLQogMyBmaWxlcyBjaGFuZ2VkLCA0MCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygt
+KQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi1jb3JlL2R2Yl9mcm9udGVuZC5j
+IGIvZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2Zyb250ZW5kLmMKaW5kZXggMmMwYWNk
+Yi4uMTM2OGQ4YyAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2Zy
+b250ZW5kLmMKKysrIGIvZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2Zyb250ZW5kLmMK
+QEAgLTk3Myw2ICs5NzMsOCBAQCBzdGF0aWMgc3RydWN0IGR0dl9jbWRzX2ggZHR2X2NtZHNbRFRW
+X01BWF9DT01NQU5EICsgMV0gPSB7CiAJX0RUVl9DTUQoRFRWX0dVQVJEX0lOVEVSVkFMLCAwLCAw
+KSwKIAlfRFRWX0NNRChEVFZfVFJBTlNNSVNTSU9OX01PREUsIDAsIDApLAogCV9EVFZfQ01EKERU
+Vl9ISUVSQVJDSFksIDAsIDApLAorCisJX0RUVl9DTUQoRFRWX0VOVU1fREVMU1lTLCAwLCAwKSwK
+IH07CiAKIHN0YXRpYyB2b2lkIGR0dl9wcm9wZXJ0eV9kdW1wKHN0cnVjdCBkdHZfcHJvcGVydHkg
+KnR2cCkKQEAgLTEyMDcsNiArMTIwOSwzNyBAQCBzdGF0aWMgaW50IGR2Yl9mcm9udGVuZF9pb2N0
+bF9sZWdhY3koc3RydWN0IGZpbGUgKmZpbGUsCiBzdGF0aWMgaW50IGR2Yl9mcm9udGVuZF9pb2N0
+bF9wcm9wZXJ0aWVzKHN0cnVjdCBmaWxlICpmaWxlLAogCQkJdW5zaWduZWQgaW50IGNtZCwgdm9p
+ZCAqcGFyZyk7CiAKK3N0YXRpYyB2b2lkIGR0dl9zZXRfZGVmYXVsdF9kZWxpdmVyeV9jYXBzKGNv
+bnN0IHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCBzdHJ1Y3QgZHR2X3Byb3BlcnR5ICpwKQorewor
+CWNvbnN0IHN0cnVjdCBkdmJfZnJvbnRlbmRfaW5mbyAqaW5mbyA9ICZmZS0+b3BzLmluZm87CisJ
+dTMyIG5jYXBzID0gMDsKKworCXN3aXRjaCAoaW5mby0+dHlwZSkgeworCWNhc2UgRkVfUVBTSzoK
+KwkJcC0+dS5idWZmZXIuZGF0YVtuY2FwcysrXSA9IFNZU19EVkJTOworCQlpZiAoaW5mby0+Y2Fw
+cyAmIEZFX0NBTl8yR19NT0RVTEFUSU9OKQorCQkJcC0+dS5idWZmZXIuZGF0YVtuY2FwcysrXSA9
+IFNZU19EVkJTMjsKKwkJaWYgKGluZm8tPmNhcHMgJiBGRV9DQU5fVFVSQk9fRkVDKQorCQkJcC0+
+dS5idWZmZXIuZGF0YVtuY2FwcysrXSA9IFNZU19UVVJCTzsKKwkJYnJlYWs7CisJY2FzZSBGRV9R
+QU06CisJCXAtPnUuYnVmZmVyLmRhdGFbbmNhcHMrK10gPSBTWVNfRFZCQ19BTk5FWF9BQzsKKwkJ
+YnJlYWs7CisJY2FzZSBGRV9PRkRNOgorCQlwLT51LmJ1ZmZlci5kYXRhW25jYXBzKytdID0gU1lT
+X0RWQlQ7CisJCWlmIChpbmZvLT5jYXBzICYgRkVfQ0FOXzJHX01PRFVMQVRJT04pCisJCQlwLT51
+LmJ1ZmZlci5kYXRhW25jYXBzKytdID0gU1lTX0RWQlQyOworCQlicmVhazsKKwljYXNlIEZFX0FU
+U0M6CisJCWlmIChpbmZvLT5jYXBzICYgKEZFX0NBTl84VlNCIHwgRkVfQ0FOXzE2VlNCKSkKKwkJ
+CXAtPnUuYnVmZmVyLmRhdGFbbmNhcHMrK10gPSBTWVNfQVRTQzsKKwkJaWYgKGluZm8tPmNhcHMg
+JiAoRkVfQ0FOX1FBTV8xNiB8IEZFX0NBTl9RQU1fNjQgfCBGRV9DQU5fUUFNXzEyOCB8IEZFX0NB
+Tl9RQU1fMjU2KSkKKwkJCXAtPnUuYnVmZmVyLmRhdGFbbmNhcHMrK10gPSBTWVNfRFZCQ19BTk5F
+WF9COworCQlicmVhazsKKwl9CisJcC0+dS5idWZmZXIubGVuID0gbmNhcHM7Cit9CisKIHN0YXRp
+YyBpbnQgZHR2X3Byb3BlcnR5X3Byb2Nlc3NfZ2V0KHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLAog
+CQkJCSAgICBzdHJ1Y3QgZHR2X3Byb3BlcnR5ICp0dnAsCiAJCQkJICAgIHN0cnVjdCBmaWxlICpm
+aWxlKQpAQCAtMTIyNyw2ICsxMjYwLDkgQEAgc3RhdGljIGludCBkdHZfcHJvcGVydHlfcHJvY2Vz
+c19nZXQoc3RydWN0IGR2Yl9mcm9udGVuZCAqZmUsCiAJfQogCiAJc3dpdGNoKHR2cC0+Y21kKSB7
+CisJY2FzZSBEVFZfRU5VTV9ERUxTWVM6CisJCWR0dl9zZXRfZGVmYXVsdF9kZWxpdmVyeV9jYXBz
+KGZlLCB0dnApOworCQlicmVhazsKIAljYXNlIERUVl9GUkVRVUVOQ1k6CiAJCXR2cC0+dS5kYXRh
+ID0gYy0+ZnJlcXVlbmN5OwogCQlicmVhazsKZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvZHZi
+L2Zyb250ZW5kLmggYi9pbmNsdWRlL2xpbnV4L2R2Yi9mcm9udGVuZC5oCmluZGV4IDFiMTA5NGMu
+LmY4MGI4NjMgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvbGludXgvZHZiL2Zyb250ZW5kLmgKKysrIGIv
+aW5jbHVkZS9saW51eC9kdmIvZnJvbnRlbmQuaApAQCAtMzE2LDcgKzMxNiw5IEBAIHN0cnVjdCBk
+dmJfZnJvbnRlbmRfZXZlbnQgewogCiAjZGVmaW5lIERUVl9EVkJUMl9QTFBfSUQJNDMKIAotI2Rl
+ZmluZSBEVFZfTUFYX0NPTU1BTkQJCQkJRFRWX0RWQlQyX1BMUF9JRAorI2RlZmluZSBEVFZfRU5V
+TV9ERUxTWVMJCTQ0CisKKyNkZWZpbmUgRFRWX01BWF9DT01NQU5ECQkJCURUVl9FTlVNX0RFTFNZ
+UwogCiB0eXBlZGVmIGVudW0gZmVfcGlsb3QgewogCVBJTE9UX09OLApkaWZmIC0tZ2l0IGEvaW5j
+bHVkZS9saW51eC9kdmIvdmVyc2lvbi5oIGIvaW5jbHVkZS9saW51eC9kdmIvdmVyc2lvbi5oCmlu
+ZGV4IDY2NTk0YjEuLjA1NTllMmIgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvbGludXgvZHZiL3ZlcnNp
+b24uaAorKysgYi9pbmNsdWRlL2xpbnV4L2R2Yi92ZXJzaW9uLmgKQEAgLTI0LDYgKzI0LDYgQEAK
+ICNkZWZpbmUgX0RWQlZFUlNJT05fSF8KIAogI2RlZmluZSBEVkJfQVBJX1ZFUlNJT04gNQotI2Rl
+ZmluZSBEVkJfQVBJX1ZFUlNJT05fTUlOT1IgNAorI2RlZmluZSBEVkJfQVBJX1ZFUlNJT05fTUlO
+T1IgNQogCiAjZW5kaWYgLypfRFZCVkVSU0lPTl9IXyovCi0tIAoxLjcuMQoK
+--0015174c4642c16d2e04b2450bb7--
