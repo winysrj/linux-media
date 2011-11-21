@@ -1,127 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:62255 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753479Ab1K2Nap (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:52420 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752855Ab1KUM7M convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Nov 2011 08:30:45 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: drm pixel formats update
-Date: Tue, 29 Nov 2011 14:30:42 +0100
-Cc: dri-devel@lists.freedesktop.org, ville.syrjala@linux.intel.com,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	Jesse Barker <jesse.barker@linaro.org>
-References: <1321468945-28224-1-git-send-email-ville.syrjala@linux.intel.com> <201111291310.36589.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201111291310.36589.laurent.pinchart@ideasonboard.com>
+	Mon, 21 Nov 2011 07:59:12 -0500
+Received: by wwe5 with SMTP id 5so10437438wwe.1
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 04:59:10 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111291430.42608.hverkuil@xs4all.nl>
+In-Reply-To: <E1RSTA6-00086e-3F@www.linuxtv.org>
+References: <E1RSTA6-00086e-3F@www.linuxtv.org>
+Date: Mon, 21 Nov 2011 18:29:09 +0530
+Message-ID: <CAHFNz9+p5Xz++6J-S2EJX9P2z96+HywZB3O9TqzHJLruWek4aQ@mail.gmail.com>
+Subject: Re: [git:v4l-dvb/for_v3.3] [media] dvb: Allow select between DVB-C
+ Annex A and Annex C
+From: Manu Abraham <abraham.manu@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linuxtv-commits@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 29 November 2011 13:10:35 Laurent Pinchart wrote:
-> Hi Ville,
-> 
-> Sorry for the late reply.
-> 
-> (Cross-posting to the linux-fbdev and linux-media mailing lists, as the
-> topics I'm about to discuss are of interest to everybody)
-> 
-> On Wednesday 16 November 2011 19:42:23 ville.syrjala@linux.intel.com wrote:
-> > I decided to go all out with the pixel format definitions. Added pretty
-> > much all of the possible RGB/BGR variations. Just left out ones with
-> > 16bit components and floats. Also added a whole bunch of YUV formats,
-> > and 8 bit pseudocolor for good measure.
-> > 
-> > I'm sure some of the fourccs now clash with the ones used by v4l2,
-> > but that's life.
-> 
-> Disclaimer: I realize this is a somehow controversial topic, and I'm not
-> trying to start a flame war :-)
-> 
-> What about defining a common set of fourccs for both subsystem (and using
-> them in FBDEV, which currently uses the V4L2 fourccs) ?
-> 
-> There's more and more overlap between DRM, FBDEV and V4L2, which results in
-> confusion for the user and mess in the kernel. I believe cleaning this up
-> will become more and more important with time, and also probably more and
-> more difficult if we don't act now.
-> 
-> There's no way we will all quickly agree on a big picture unified
-> architecture (I don't even know what it should look like), so I'm thinking
-> about starting small and see where it will lead us. Sharing fourccs would
-> be such a first step, and would make it easier for drivers to implement
-> several of the DRM, FBDEV and V4L2 APIs.
-> 
-> Another step I'd like to take would be working on sharing the video mode
-> definitions between subsystems. DRM has struct drm_mode_modeinfo and FBDEV
-> has struct fb_videomode. The former can't be modified as it's used in
-> userspace APIs, but I believe we should create a common in-kernel
-> structure to represent modes. This would also make it easier to share the
-> EDID parser between DRM and FBDEV.
-> 
-> One issue here is names. I understand that using names from another
-> subsystem in a driver that has nothing to do with it (like using
-> V4L2_PIX_FMT_* in DRM, or drm_mode_modeinfo in FBDEV) can be frustrating
-> for many developers, so I'd like to propose an alternative. We have a
-> media-related kernel API that is cross-subsystem, that's the media
-> controller. It uses the prefix media_. We could use more specific versions
-> of that preview (such as media_video_ and media_display_) as a neutral
-> ground.
+Hi Mauro,
 
-I agree.
 
-> Another issue is control. It's quite natural to be suspicious about
-> subsystems we're not familiar with, and giving up control on things we
-> consider as highly important to other subsystems feels dangerous and
-> wrong. Once again, media_* could be an answer to this problem. Instead of
-> trying to push other subsystems to use our APIs (which are, obviously, the
-> best possible ever, as they're the ones we work on :-)) with the promise
-> that we will extend them to fullfill their needs if necessary, we could
-> design new shared structures and core functions together with a media_
-> prefix, and make sure they fullfill all the needs from the start. What I
-> like about this approach is that each of the 3 video-related subsystems
-> would then benefit from the experience of the other 2.
-> 
-> To make it perfectly clear, I want to emphasize that I'm not trying to
-> replace DRM, FBDEV and V4L2 with a new shared subsystem. What I would like
-> to see in the (near future) is collaboration and sharing of core features
-> that make sense to share. I believe we should address this from a "pain
-> point" point of view. The one that lead me to writing this e-mail is that
-> developing a driver that implements both the DRM and FBDEV APIs for video
-> output currently requires various similar structures, and code to
-> translate between all of them. That code can't be shared between multiple
-> drivers, is error-prone, and painful to maintin.
-> 
-> I can (and actually would like to) submit an RFC, but I would first like to
-> hear your opinion on the topic.
+On Fri, Nov 11, 2011 at 8:16 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the
+> http://git.linuxtv.org/media_tree.git tree:
+>
+> Subject: [media] dvb: Allow select between DVB-C Annex A and Annex C
+> Author:  Mauro Carvalho Chehab <mchehab@redhat.com>
+> Date:    Fri Nov 11 12:46:23 2011 -0200
+>
+> DVB-C, as defined by ITU-T J.83 has 3 annexes. The differences between
+> Annex A and Annex C is that Annex C uses a subset of the modulation
+> types, and uses a different rolloff factor. A different rolloff means
+> that the bandwidth required is slicely different, and may affect the
+> saw filter configuration at the tuners. Also, some demods have different
+> configurations, depending on using Annex A or Annex C.
+>
+> So, allow userspace to specify it, by changing the rolloff factor.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+>  Documentation/DocBook/media/dvb/dvbproperty.xml |    4 ++++
+>  drivers/media/dvb/dvb-core/dvb_frontend.c       |    2 ++
+>  include/linux/dvb/frontend.h                    |    2 ++
+>  3 files changed, 8 insertions(+), 0 deletions(-)
+>
+> ---
+>
+> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=39ce61a846c8e1fa00cb57ad5af021542e6e8403
+>
+> diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+> index 3bc8a61..6ac8039 100644
+> --- a/Documentation/DocBook/media/dvb/dvbproperty.xml
+> +++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+> @@ -311,6 +311,8 @@ typedef enum fe_rolloff {
+>        ROLLOFF_20,
+>        ROLLOFF_25,
+>        ROLLOFF_AUTO,
+> +       ROLLOFF_15, /* DVB-C Annex A */
+> +       ROLLOFF_13, /* DVB-C Annex C */
+>  } fe_rolloff_t;
+>                </programlisting>
+>                </section>
+> @@ -778,8 +780,10 @@ typedef enum fe_hierarchy {
+>                        <listitem><para><link linkend="DTV-MODULATION"><constant>DTV_MODULATION</constant></link></para></listitem>
+>                        <listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
+>                        <listitem><para><link linkend="DTV-SYMBOL-RATE"><constant>DTV_SYMBOL_RATE</constant></link></para></listitem>
+> +                       <listitem><para><link linkend="DTV-ROLLOFF"><constant>DTV_ROLLOFF</constant></link></para></listitem>
+>                        <listitem><para><link linkend="DTV-INNER-FEC"><constant>DTV_INNER_FEC</constant></link></para></listitem>
+>                </itemizedlist>
+> +               <para>The Rolloff of 0.15 (ROLLOFF_15) is assumed, as ITU-T J.83 Annex A is more common. For Annex C, rolloff should be 0.13 (ROLLOFF_13). All other values are invalid.</para>
+>        </section>
+>        <section id="dvbc-annex-b-params">
+>                <title>DVB-C Annex B delivery system</title>
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> index 2c0acdb..c849455 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> @@ -876,6 +876,7 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+>        c->symbol_rate = QAM_AUTO;
+>        c->code_rate_HP = FEC_AUTO;
+>        c->code_rate_LP = FEC_AUTO;
+> +       c->rolloff = ROLLOFF_AUTO;
+>
+>        c->isdbt_partial_reception = -1;
+>        c->isdbt_sb_mode = -1;
+> @@ -1030,6 +1031,7 @@ static void dtv_property_cache_init(struct dvb_frontend *fe,
+>                break;
+>        case FE_QAM:
+>                c->delivery_system = SYS_DVBC_ANNEX_AC;
+> +               c->rolloff = ROLLOFF_15; /* implied for Annex A */
+>                break;
+>        case FE_OFDM:
+>                c->delivery_system = SYS_DVBT;
+> diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+> index 1b1094c..d9251df 100644
+> --- a/include/linux/dvb/frontend.h
+> +++ b/include/linux/dvb/frontend.h
+> @@ -329,6 +329,8 @@ typedef enum fe_rolloff {
+>        ROLLOFF_20,
+>        ROLLOFF_25,
+>        ROLLOFF_AUTO,
+> +       ROLLOFF_15,     /* DVB-C Annex A */
+> +       ROLLOFF_13,     /* DVB-C Annex C */
+>  } fe_rolloff_t;
+>
+>  typedef enum fe_delivery_system {
 
-I have added Jesse Barker to the CC list. I think that to achieve closer
-cooperation between the various subsystems we need to organize a few days
-of talks between the main developers to 1) understand each others subsystem,
-2) to discover what functionality would be good to share, and 3) figure out
-some sort of roadmap on how to do this.
 
-Linaro might be a suitable organization that can assist with at least the
-organizational part of setting up such a meeting. They did a good job in the
-past (in Budapest and Cambourne) with the buffer sharing discussions.
 
-One week of discussions/brainstorming between a small(ish) group of developers
-can be very, very productive in my experience.
+Please don't do this.
+
+Why ?
+
+ - It is an API bug: DVBC_ANNEX_AC should not have existed.
+ - We should handle systems by their delivery systems and each
+delivery system should be unique.
+ - We wouldn't want the user to know more details, such as rolloff,
+the user would know whether they are in the Europe, US or Japan, which
+would imply ANNEX_A, ANNEX_B, ANNEX_C respectively.
+
+Ok, that said there exists the issue and you found some way to
+workaround the issue. But it doesn't look nice.
+
+- I would instead like to have the API bug fix instead, as Andreas
+suggested in another thread.
+
+ in frontend.h
+
+#define DVBC_ANNEX_AC      DVBC_ANNEX_A
+
+and in enum fe_delivery system_t
+
+replace DVBC_ANNEX_AC with DVBC_ANNEX_A
+
+add in DVBC_ANNEX_B and DVBC_ANNEX_C
+
+
+What would this gain ?
+
+- A unique delivery system descriptor (This is what I am trying to
+address in the query fe delivery system capabilities. If you have a
+device that supports both DVBC_ANNEX_A and C as in the current case
+with DRXK, the same old problems resurface again)
+
+- Simplicity to users, they don't have to know what rolloff it is, but
+just their geographical location
+
+- Fixing of a bug in the API, rather than a workaround.
+
+I would appreciate, if you would revert this patch and amend it such
+that it reflects to fix the bug, rather than to work around it.
 
 Regards,
-
-	Hans
-
-> 
-> > If anyone has problems with the way the formats are defined, please
-> > speak up now! Since only Jesse has bothered to comment on my rantings
-> > I can only assume people are happy with my approach to things.
-> > 
-> > These patches should apply on top of Jesse's v3+v5 set... I think.
-> > I sort of lost track of things when the patches started having
-> > different version numbers. At least we're not yet into two digits
-> > numbers ;)
+Manu
