@@ -1,48 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:54531 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752116Ab1KKQsf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Nov 2011 11:48:35 -0500
-Received: by ywt32 with SMTP id 32so373869ywt.19
-        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2011 08:48:35 -0800 (PST)
-Message-ID: <4EBD5162.2010406@gmail.com>
-Date: Fri, 11 Nov 2011 11:46:26 -0500
-From: damateem <damateem4@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:56009 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751332Ab1KUW2T (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Nov 2011 17:28:19 -0500
+Message-ID: <4ECAD07F.9010708@iki.fi>
+Date: Tue, 22 Nov 2011 00:28:15 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-media list <linux-media@vger.kernel.org>
-Subject: select() timeout in video capture example
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andreas Oberritter <obi@linuxtv.org>
+Subject: Re: PATCH 12/13: 0012-CXD2820r-Query-DVB-frontend-delivery-capabilities
+References: <CAHFNz9KmxyBB4nRQZg1RdU+6wXHmaR9WHejuMqp6g9qrXykjQQ@mail.gmail.com>
+In-Reply-To: <CAHFNz9KmxyBB4nRQZg1RdU+6wXHmaR9WHejuMqp6g9qrXykjQQ@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm trying to use a dm355-leopardboard to capture images.
+Hello
 
-When I execute the capture example from the Video for Linux Two API 
-Specification: Revision 0.24 
-(http://v4l2spec.bytesex.org/spec/a16706.htm), it always time's out on 
-the select() call. I'm not sure where to start looking for the cause of 
-this problem. The ccdc and camera are passing registration.
+On 11/21/2011 11:09 PM, Manu Abraham wrote:
+>   	/* program tuner */
+> -	if (fe->ops.tuner_ops.set_params)
+> -		fe->ops.tuner_ops.set_params(fe, params);
+> +	tstate.delsys = SYS_DVBC_ANNEX_AC;
+> +	tstate.frequency = c->frequency;
+> +
+> +	if (fe->ops.tuner_ops.set_state) {
+> +		fe->ops.tuner_ops.set_state(fe,
+> +					    DVBFE_TUNER_DELSYS    |
+> +					    DVBFE_TUNER_FREQUENCY,
+> +					&tstate);
 
-[    2.020000] vpfe_init
-[    2.020000] vpfe-capture: vpss clock vpss_master enabled
-[    2.030000] vpfe-capture: vpss clock vpss_slave enabled
-[    2.040000] vpfe-capture vpfe-capture: v4l2 device registered
-[    2.040000] vpfe-capture vpfe-capture: video device registered
-[    2.050000] mt9v113 1-003c: Detected a mt9v113 chip ID 2280
-[    2.170000] mt9v113 1-003c: mt9v113 1-003c decoder driver registered !!
-[    2.180000] vpfe-capture vpfe-capture: v4l2 sub device mt9v113 registered
-[    2.190000] vpfe_register_ccdc_device: DM355 CCDC
-[    2.190000] DM355 CCDC is registered with vpfe.
+I want to raise that point, switch from .set_params() to .set_state() 
+when programming tuner. I don't see it reasonable to introduce (yes, it 
+have existed ages but not used) new way to program tuner.
 
-Furthermore, by inspecting the electrical interface to the camera, I 
-have verified that the camera is transmitting pixel data.
+Both demod and tuner got same params;
+.set_frontend(struct dvb_frontend *, struct dvb_frontend_parameters *)
+.set_params(struct dvb_frontend *, struct dvb_frontend_parameters *)
 
-What things would cause select() to timeout? Should I look for something 
-in the drivers?
+and can get access to APIv5 property_cache similarly. Both, demod and 
+tuner, can read all those params that are now passed using .set_state()
 
-I'm using kernel version  Arago/2.6.31+2.6.32-rc2-r52+gitr.
+There is some new tuner drivers which are already using APIv5.
 
-Thanks,
-David
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
