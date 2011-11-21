@@ -1,43 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:41643 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751159Ab1KVF0x (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:57593 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751837Ab1KUVHq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Nov 2011 00:26:53 -0500
-Received: by iage36 with SMTP id e36so8242144iag.19
-        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 21:26:52 -0800 (PST)
-From: Pawel Osciak <pawel@osciak.com>
-To: linux-media@vger.kernel.org
-Cc: mingchen@quicinc.com, hverkuil@xs4all.nl,
-	Pawel Osciak <pawel@osciak.com>
-Subject: [PATCH/RFC v1 0/2] app_offset field for plane format
-Date: Mon, 21 Nov 2011 21:26:35 -0800
-Message-Id: <1321939597-6239-1-git-send-email-pawel@osciak.com>
+	Mon, 21 Nov 2011 16:07:46 -0500
+Received: by eye27 with SMTP id 27so5856546eye.19
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:07:45 -0800 (PST)
+MIME-Version: 1.0
+Date: Tue, 22 Nov 2011 02:37:45 +0530
+Message-ID: <CAHFNz9Kz8g6U_cHMZmpSDQ-QCvwwPY8wftn3dW-hprJ6DjE0sw@mail.gmail.com>
+Subject: PATCH 07/13: 0007-CX24116-Query-DVB-frontend-delivery-capabilities
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	Steven Toth <stoth@hauppauge.com>
+Content-Type: multipart/mixed; boundary=f46d0435c06804870004b2451413
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-At the Media Workshop during the Linux Kernel Summit we discussed the need for an additional field in the plane format struct, which we named the 'app_offset'.
-This field is intended to allow userspace to reserve a piece of memory at the very beginning of the plane that would be guaranteed not to be touched by kernel or hardware (apart from zeroing it out on allocation, if done by the kernel). This field could be used to store information that would be useful after the buffer has been processed, for example if the buffer were to be passed to another thread/process/module or to different hardware (in pipelines).
-There already exists a similar field in the plane format struct - data_offset, which should not be confused with this field. Memory reserved using data_offset can be filled by both userspace (for OUTPUT buffers) and driver/hardware (for CAPTURE buffers) and is intended to contain metadata related to the image data stored in the buffer and generated together with it, such as headers, etc. Memory reserved using app_offset, on the other hand, is intended for use solely by userspace and is a way to attach additional information to be read/passed along after the buffer is dequeued and there is no difference in its handling for OUTPUT and CAPTURE types (i.e. just passing it to the driver so it can skip enough memory at the beginning of the buffer).
-app_offset is to be added to the data_offset, i.e. each plane looks like this:
+--f46d0435c06804870004b2451413
+Content-Type: text/plain; charset=ISO-8859-1
 
-|<-- app_offset -->|<-- data_offset -->|<-- image data -->|
 
-Regards,
-Pawel Osciak
 
-Pawel Osciak (2):
-  media: Add app_offset field to the v4l2_plane structure
-  vb2: add support for app_offset field of the v4l2_plane struct
+--f46d0435c06804870004b2451413
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0007-CX24116-Query-DVB-frontend-delivery-capabilities.patch"
+Content-Disposition: attachment;
+	filename="0007-CX24116-Query-DVB-frontend-delivery-capabilities.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
 
- Documentation/DocBook/media/v4l/io.xml    |   21 ++++++++++++++++++++-
- drivers/media/video/v4l2-compat-ioctl32.c |   11 ++++++++---
- drivers/media/video/v4l2-ioctl.c          |   10 ++++++----
- drivers/media/video/videobuf2-core.c      |    5 +++++
- include/linux/videodev2.h                 |   18 ++++++++++++++++--
- 5 files changed, 55 insertions(+), 10 deletions(-)
-
--- 
-1.7.7.3
-
+RnJvbSBjMzE0Yjk1MDg1ZjQ1NjdkOTBiNGUwMjI3MmU2MGY4ZTE1Mzg1YWFjIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
+CkRhdGU6IFRodSwgMTcgTm92IDIwMTEgMDc6MDY6MjYgKzA1MzAKU3ViamVjdDogW1BBVENIIDA3
+LzEzXSBDWDI0MTE2OiBRdWVyeSBEVkIgZnJvbnRlbmQgZGVsaXZlcnkgY2FwYWJpbGl0aWVzCgpP
+dmVycmlkZSBkZWZhdWx0IGRlbGl2ZXJ5IHN5c3RlbSBpbmZvcm1hdGlvbiBwcm92aWRlZCBieSBG
+RV9HRVRfSU5GTywgc28KdGhhdCBhcHBsaWNhdGlvbnMgY2FuIGVudW1lcmF0ZSBkZWxpdmVyeSBz
+eXN0ZW1zIHByb3ZpZGVkIGJ5IHRoZSBmcm9udGVuZC4KVGhlIGhhcmR3YXJlIGFsc28gc3VwcG9y
+dHMgRFNTLCBidXQgdGhlcmUgaXMgY3VycmVudGx5IG5vIGNvZGUgd2l0aGluIHRoZQpkcml2ZXIg
+dG8gaGFuZGxlIHRoZSBkZWxpdmVyeSBzeXN0ZW0uIFdoZW4gY29kZSBleGlzdHMgdG8gaGFuZGxl
+IERTUywgdGhlCmZyb250ZW5kIG5lZWRzIHRvIGFkdmVydGlzZSBpdCdzIERTUyBkZWxpdmVyeSBz
+eXN0ZW0gY2FwYWJpbGl0eS4KClNpZ25lZC1vZmYtYnk6IE1hbnUgQWJyYWhhbSA8YWJyYWhhbS5t
+YW51QGdtYWlsLmNvbT4KLS0tCiBkcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvY3gyNDExNi5j
+IHwgICAgOSArKysrKysrKysKIDEgZmlsZXMgY2hhbmdlZCwgOSBpbnNlcnRpb25zKCspLCAwIGRl
+bGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9jeDI0
+MTE2LmMgYi9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvY3gyNDExNi5jCmluZGV4IGNjZDA1
+MjUuLjg4NjAyODUgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9jeDI0
+MTE2LmMKKysrIGIvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL2N4MjQxMTYuYwpAQCAtMTIy
+Myw2ICsxMjIzLDE1IEBAIHN0YXRpYyBpbnQgY3gyNDExNl9nZXRfcHJvcGVydHkoc3RydWN0IGR2
+Yl9mcm9udGVuZCAqZmUsCiAJc3RydWN0IGR0dl9wcm9wZXJ0eSAqdHZwKQogewogCWRwcmludGso
+IiVzKC4uKVxuIiwgX19mdW5jX18pOworCXN3aXRjaCAodHZwLT5jbWQpIHsKKwljYXNlIERUVl9F
+TlVNX0RFTFNZUzoKKwkJdHZwLT51LmJ1ZmZlci5kYXRhWzBdID0gU1lTX0RWQlM7CisJCXR2cC0+
+dS5idWZmZXIuZGF0YVsxXSA9IFNZU19EVkJTMjsKKwkJdHZwLT51LmJ1ZmZlci5sZW4gPSAyOwor
+CQlicmVhazsKKwlkZWZhdWx0OgorCQlicmVhazsKKwl9CiAJcmV0dXJuIDA7CiB9CiAKLS0gCjEu
+Ny4xCgo=
+--f46d0435c06804870004b2451413--
