@@ -1,62 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3584 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751940Ab1KWLMs (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:37251 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752508Ab1KUVIk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Nov 2011 06:12:48 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
+	Mon, 21 Nov 2011 16:08:40 -0500
+Received: by mail-ww0-f44.google.com with SMTP id 5so11147238wwe.1
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:08:39 -0800 (PST)
+MIME-Version: 1.0
+Date: Tue, 22 Nov 2011 02:38:38 +0530
+Message-ID: <CAHFNz9J9Hd2sGURVZOU1qGaBskmjORZd3hKk=r-Dodp9uc+5Qw@mail.gmail.com>
+Subject: PATCH 10/13: 0010-TDA10071-Query-DVB-frontend-delivery-capabilities
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 3/4] cx18/ddbridge: remove unused headers.
-Date: Wed, 23 Nov 2011 12:12:35 +0100
-Message-Id: <572687cf2a512deeec920e25a0f125baebdfec93.1322045294.git.hans.verkuil@cisco.com>
-In-Reply-To: <1322046756-22870-1-git-send-email-hverkuil@xs4all.nl>
-References: <1322046756-22870-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <5f3ea26a94437e97b4b7ddfb3f7dc8dd4c2a8f12.1322045294.git.hans.verkuil@cisco.com>
-References: <5f3ea26a94437e97b4b7ddfb3f7dc8dd4c2a8f12.1322045294.git.hans.verkuil@cisco.com>
+	Andreas Oberritter <obi@linuxtv.org>,
+	Antti Palosaari <crope@iki.fi>
+Content-Type: multipart/mixed; boundary=00163646c0f23a82c404b2451747
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+--00163646c0f23a82c404b2451747
+Content-Type: text/plain; charset=ISO-8859-1
 
-Work is in progress to deprecate include/linux/dvb/audio.h and video.h.
-The cx18 and ddbridge drivers include these headers without using them.
 
-Remove those includes.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/dvb/ddbridge/ddbridge.h  |    2 --
- drivers/media/video/cx18/cx18-driver.h |    2 --
- 2 files changed, 0 insertions(+), 4 deletions(-)
+--00163646c0f23a82c404b2451747
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0010-TDA10071-Query-DVB-frontend-delivery-capabilities.patch"
+Content-Disposition: attachment;
+	filename="0010-TDA10071-Query-DVB-frontend-delivery-capabilities.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
 
-diff --git a/drivers/media/dvb/ddbridge/ddbridge.h b/drivers/media/dvb/ddbridge/ddbridge.h
-index 6d14893..8b1b41d 100644
---- a/drivers/media/dvb/ddbridge/ddbridge.h
-+++ b/drivers/media/dvb/ddbridge/ddbridge.h
-@@ -32,8 +32,6 @@
- #include <asm/dma.h>
- #include <linux/dvb/frontend.h>
- #include <linux/dvb/ca.h>
--#include <linux/dvb/video.h>
--#include <linux/dvb/audio.h>
- #include <linux/socket.h>
- 
- #include "dmxdev.h"
-diff --git a/drivers/media/video/cx18/cx18-driver.h b/drivers/media/video/cx18/cx18-driver.h
-index b9a94fc..7a37e0e 100644
---- a/drivers/media/video/cx18/cx18-driver.h
-+++ b/drivers/media/video/cx18/cx18-driver.h
-@@ -44,8 +44,6 @@
- #include <linux/slab.h>
- #include <asm/byteorder.h>
- 
--#include <linux/dvb/video.h>
--#include <linux/dvb/audio.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-device.h>
--- 
-1.7.7.3
-
+RnJvbSBhN2Q3Y2ViNjJiMGEwMGJhMzA5M2RmNmIxOTY2Njk4MjZhM2M2MjVmIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
+CkRhdGU6IFRodSwgMTcgTm92IDIwMTEgMTM6Mjg6MjkgKzA1MzAKU3ViamVjdDogW1BBVENIIDEw
+LzEzXSBUREExMDA3MTogUXVlcnkgRFZCIGZyb250ZW5kIGRlbGl2ZXJ5IGNhcGFiaWxpdGllcwoK
+T3ZlcnJpZGUgZGVmYXVsdCBkZWxpdmVyeSBzeXN0ZW0gaW5mb3JtYXRpb24gcHJvdmlkZWQgYnkg
+RkVfR0VUX0lORk8sIHNvCnRoYXQgYXBwbGljYXRpb25zIGNhbiBlbnVtZXJhdGUgZGVsaXZlcnkg
+c3lzdGVtcyBwcm92aWRlZCBieSB0aGUgZnJvbnRlbmQuCgpTaWduZWQtb2ZmLWJ5OiBNYW51IEFi
+cmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+Ci0tLQogZHJpdmVycy9tZWRpYS9kdmIvZnJv
+bnRlbmRzL3RkYTEwMDcxLmMgfCAgIDE2ICsrKysrKysrKysrKysrKysKIDEgZmlsZXMgY2hhbmdl
+ZCwgMTYgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJz
+L21lZGlhL2R2Yi9mcm9udGVuZHMvdGRhMTAwNzEuYyBiL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250
+ZW5kcy90ZGExMDA3MS5jCmluZGV4IDBjMzc0MzQuLmY5YWJlMWQgMTAwNjQ0Ci0tLSBhL2RyaXZl
+cnMvbWVkaWEvZHZiL2Zyb250ZW5kcy90ZGExMDA3MS5jCisrKyBiL2RyaXZlcnMvbWVkaWEvZHZi
+L2Zyb250ZW5kcy90ZGExMDA3MS5jCkBAIC0xMjE2LDYgKzEyMTYsMjAgQEAgZXJyb3I6CiB9CiBF
+WFBPUlRfU1lNQk9MKHRkYTEwMDcxX2F0dGFjaCk7CiAKK3N0YXRpYyBpbnQgdGRhMTAwNzFfZ2V0
+X3Byb3BlcnR5KHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCBzdHJ1Y3QgZHR2X3Byb3BlcnR5ICpw
+KQoreworCXN3aXRjaCAocC0+Y21kKSB7CisJY2FzZSBEVFZfRU5VTV9ERUxTWVM6CisJCXAtPnUu
+YnVmZmVyLmRhdGFbMF0gPSBTWVNfRFZCUzsKKwkJcC0+dS5idWZmZXIuZGF0YVsxXSA9IFNZU19E
+VkJTMjsKKwkJcC0+dS5idWZmZXIubGVuID0gMjsKKwkJYnJlYWs7CisJZGVmYXVsdDoKKwkJYnJl
+YWs7CisJfQorCXJldHVybiAwOworfQorCiBzdGF0aWMgc3RydWN0IGR2Yl9mcm9udGVuZF9vcHMg
+dGRhMTAwNzFfb3BzID0gewogCS5pbmZvID0gewogCQkubmFtZSA9ICJOWFAgVERBMTAwNzEiLApA
+QCAtMTI2Miw2ICsxMjc2LDggQEAgc3RhdGljIHN0cnVjdCBkdmJfZnJvbnRlbmRfb3BzIHRkYTEw
+MDcxX29wcyA9IHsKIAogCS5zZXRfdG9uZSA9IHRkYTEwMDcxX3NldF90b25lLAogCS5zZXRfdm9s
+dGFnZSA9IHRkYTEwMDcxX3NldF92b2x0YWdlLAorCisJLmdldF9wcm9wZXJ0eSA9IHRkYTEwMDcx
+X2dldF9wcm9wZXJ0eSwKIH07CiAKIE1PRFVMRV9BVVRIT1IoIkFudHRpIFBhbG9zYWFyaSA8Y3Jv
+cGVAaWtpLmZpPiIpOwotLSAKMS43LjEKCg==
+--00163646c0f23a82c404b2451747--
