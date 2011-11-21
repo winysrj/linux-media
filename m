@@ -1,99 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:60583 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753016Ab1KZJgX (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:64953 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751596Ab1KUVVd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Nov 2011 04:36:23 -0500
-Date: Sat, 26 Nov 2011 11:36:18 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	=?iso-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>
-Subject: Re: [Query] V4L2 Integer (?) menu control
-Message-ID: <20111126093618.GF29342@valkosipuli.localdomain>
-References: <4ECD730E.3080808@gmail.com>
- <20111124085018.GF27136@valkosipuli.localdomain>
- <4ECE0FA5.1040205@samsung.com>
- <4ECEAFBE.1010303@iki.fi>
- <4ECED8EC.8010807@gmail.com>
+	Mon, 21 Nov 2011 16:21:33 -0500
+Received: by mail-yw0-f46.google.com with SMTP id 32so5170847ywt.19
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:21:33 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4ECED8EC.8010807@gmail.com>
+In-Reply-To: <CAHFNz9+e0K__EWdc=ckHURjjYMbez22=xup0d7=H7k2xQNVnyw@mail.gmail.com>
+References: <CAHFNz9+e0K__EWdc=ckHURjjYMbez22=xup0d7=H7k2xQNVnyw@mail.gmail.com>
+Date: Mon, 21 Nov 2011 16:21:32 -0500
+Message-ID: <CAOcJUbyPPJe_ONV5bOXx_r+cwNd43eyThyRrawA0Gi1JydQV=Q@mail.gmail.com>
+Subject: Re: PATCH 04/13: 0004-TDA18271-Allow-frontend-to-set-DELSYS
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andreas Oberritter <obi@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Thank you, Manu... After the Linux Kernel Summit in Prague, I had
+intentions of solving this exact problem, but you did it first -- good
+job!
 
-On Fri, Nov 25, 2011 at 12:53:16AM +0100, Sylwester Nawrocki wrote:
-> On 11/24/2011 09:57 PM, Sakari Ailus wrote:
-> > Sylwester Nawrocki wrote:
-> >> On 11/24/2011 09:50 AM, Sakari Ailus wrote:
-> >>>
-> >>> There is not currently, but I have patches for it. The issue is that I need
-> >>> them myself but the driver I need them for isn't ready to be released yet.
-> >>> And as usual, I assume others than vivo is required to show they're really
-> >>> useful so I haven't sent them.
-> >>
-> >> That's great news. Then I might not need to do all the work on my own;)
-> > 
-> > I hope mine will do. ;-)
-> > 
-> > I'm working on 2.6.32 kernel (ouch!) so I haven't been able to test them properly
-> > yet. Please provide feedback on them if you find any issues.
-> > 
-> >>>
-> >>> Good that you asked so we won't end up writing essentially the same code
-> >>> again. I'll try to send the patches today.
-> >>
-> >> All right, there is no rush. I was just looking around how to support the
-> >> camera scene mode with m5mols sort of sensors. The scene mode is essentially
-> >> a compilation of several different parameters, for some of which there are
-> >> standard controls in V4L2 but for many there are not.
-> > 
-> > I fully agree with this approach. Scene modes should not be implemented at the
-> > level of the V4L2 API. Instead, the parameters that the scene modes consist of
-> > must be shown separately on the V4L2 API, if that is the level of API they belong
-> > to. Depending on your camera stack control algorithms could reside in the user 
-> > space, which I believe is however not the case with the M5-MOLS.
-> 
-> No, with these hybrid camera devices the algorithms are built in their own ISP.
-> And there is quite many advanced algorithms, e.g. auto focus/face detection that 
-> are difficult to control at the subdevice API level.
+I have reviewed the patch to the tda18271 driver, and the changes make
+good sense to me.  I have one question, however:
 
-Can you tell what makes it difficult?
+Perhaps my eyes have overlooked something -- I fail to see any code
+that defines the new "set_state" callback or any code that calls this
+new callback within dvb-core (assuming dvb_frontend.c)  I also can't
+find the structure declaration of the "tuner_state" struct... ... is
+this patch missing from your series, or did I just overlook it?
 
-> The issue is that the subdev API seems to low level for the device but it's
-> the only API available at the user space ;) 
+That missing patch is what interests me most.  Once I can see that
+missing code, I'd like to begin discussion on whether we actually need
+the additional callback, or if it can simply be handled by the
+set_params call.  Likewise, I'm not exactly sure why we need this
+affional "struct tuner_state" ...  Perhaps the answer will be
+self-explanatory once I see the code - maybe no discussion is
+necessary :-P
 
-...
+But this does look good to me so far.  I'd be happy to provide my
+"reviewed-by" tag once I can see the missing code mentioned above.
 
-> > This makes your user space to depend both on the sensor and the ISP, but there's
-> > really no way around that if both do non-trivial hardware-specific things.
-> 
-> I guess a dedicated library for the sensor itself is needed on top of subdevice API
-> to be able to use advanced features. And even then subdevice/V4L2 API is a limitation.
+Best regards,
 
-How is it a limitation?
+Michael Krufky
 
-Whe whole intent is to provide as standard as possible way to access the
-hardware features through an interface provided by the driver. So what is
-missing in your opinion? :-)
-
-> > I think we need to further standardise image processing configuration such as 
-> > RGB-to-RGB matrices and gamma tables. This would make the ISP interfaces less 
-> > hardware specific.
-> 
-> I guess first we need at least one more OMAP3 ISP like device driver in mainline 
-> to identify common features and design APIs for them. On the other hand gamma tables
-> are also present in some embedded ISPs, e.g. in s5k6aafx IIRC. 
-
-Or get more public specs for different ISPs. Or just read the existing specs
-more. ;-) The OMAP 4 ISS spec is public. Even if it's from TI as well it's
-very different from the OMAP 3 ISP.
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+On Mon, Nov 21, 2011 at 4:06 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
+>
+>
