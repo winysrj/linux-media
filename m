@@ -1,58 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46141 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754121Ab1KFSHd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Nov 2011 13:07:33 -0500
-Message-ID: <4EB6CCE3.4020809@iki.fi>
-Date: Sun, 06 Nov 2011 20:07:31 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:37251 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754575Ab1KUVIF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Nov 2011 16:08:05 -0500
+Received: by wwe5 with SMTP id 5so11147238wwe.1
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:08:04 -0800 (PST)
 MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: FX2 FW: conversion from Intel HEX to DVB USB "hexline"
-References: <4EB6990C.8000904@iki.fi> <201111061858.00709.pboettcher@kernellabs.com>
-In-Reply-To: <201111061858.00709.pboettcher@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Tue, 22 Nov 2011 02:38:04 +0530
+Message-ID: <CAHFNz9K0G1gz8RDZnVhmrtP7S7dUcrFsBSCis=EOEL1c7vfqKQ@mail.gmail.com>
+Subject: PATCH 08/13: 0008-STV090x-Query-DVB-frontend-delivery-capabilities
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	"abraham.manu" <abraham.manu@gmail.com>
+Content-Type: multipart/mixed; boundary=0015175cf7da2b08de04b2451581
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Many thanks!
-
-Actually, I was just started to write similar Python script! You got 
-maybe 15min late but still 15min before mine was ready :)
-
-Format was nothing more than convert ASCII hex values to binary bytes 
-and stripping out all white spaces and Intel HEX start code ":".
-
-Why it was initially converted to binary and not used Intel HEX as it 
-is? I think you know, as a original author, history about that decision?
-
-regards
-Antti
-
-On 11/06/2011 07:58 PM, Patrick Boettcher wrote:
-> Hi Antti,
->
-> On Sunday, November 06, 2011 03:26:20 PM Antti Palosaari wrote:
->> Is there any simple tool (or one liner script :) to convert normal Intel
->> HEX firmware to format used by DVB USB Cypress firmware loader?
->>
->> Or is there some other way those are created?
->>
->> Loader is here:
->> dvb-usb-firmware.c
->> int usb_cypress_load_firmware()
->
-> I'm sure that you have found something yourself in the meantime, but I used
-> the attached script to convert .hex to binaries.
->
-> HTH,
->
-> --
-> Patrick Boettcher - KernelLabs
-> http://www.kernellabs.com/
+--0015175cf7da2b08de04b2451581
+Content-Type: text/plain; charset=ISO-8859-1
 
 
--- 
-http://palosaari.fi/
+
+--0015175cf7da2b08de04b2451581
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0008-STV090x-Query-DVB-frontend-delivery-capabilities.patch"
+Content-Disposition: attachment;
+	filename="0008-STV090x-Query-DVB-frontend-delivery-capabilities.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
+
+RnJvbSA1YmIxZTY3YjVkNGYxNjEzMmJhYzE4YzM3YzkzMTUzZTllNWE4YWJhIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
+CkRhdGU6IFRodSwgMTcgTm92IDIwMTEgMTA6MDc6MDYgKzA1MzAKU3ViamVjdDogW1BBVENIIDA4
+LzEzXSBTVFYwOTB4OiBRdWVyeSBEVkIgZnJvbnRlbmQgZGVsaXZlcnkgY2FwYWJpbGl0aWVzCgpP
+dmVycmlkZSBkZWZhdWx0IGRlbGl2ZXJ5IHN5c3RlbSBpbmZvcm1hdGlvbiBwcm92aWRlZCBieSBG
+RV9HRVRfSU5GTywgc28KdGhhdCBhcHBsaWNhdGlvbnMgY2FuIGVudW1lcmF0ZSBkZWxpdmVyeSBz
+eXN0ZW1zIHByb3ZpZGVkIGJ5IHRoZSBmcm9udGVuZC4KClNpZ25lZC1vZmYtYnk6IE1hbnUgQWJy
+YWhhbSA8YWJyYWhhbS5tYW51QGdtYWlsLmNvbT4KLS0tCiBkcml2ZXJzL21lZGlhL2R2Yi9mcm9u
+dGVuZHMvc3R2MDkweC5jIHwgICAxOSArKysrKysrKysrKysrKysrKystCiAxIGZpbGVzIGNoYW5n
+ZWQsIDE4IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVy
+cy9tZWRpYS9kdmIvZnJvbnRlbmRzL3N0djA5MHguYyBiL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250
+ZW5kcy9zdHYwOTB4LmMKaW5kZXggZWJkYTQxOS4uOGEyNjM3YyAxMDA2NDQKLS0tIGEvZHJpdmVy
+cy9tZWRpYS9kdmIvZnJvbnRlbmRzL3N0djA5MHguYworKysgYi9kcml2ZXJzL21lZGlhL2R2Yi9m
+cm9udGVuZHMvc3R2MDkweC5jCkBAIC00NzExLDYgKzQ3MTEsMjEgQEAgaW50IHN0djA5MHhfc2V0
+X2dwaW8oc3RydWN0IGR2Yl9mcm9udGVuZCAqZmUsIHU4IGdwaW8sIHU4IGRpciwgdTggdmFsdWUs
+CiB9CiBFWFBPUlRfU1lNQk9MKHN0djA5MHhfc2V0X2dwaW8pOwogCitzdGF0aWMgaW50IHN0djA5
+MHhfZ2V0X3Byb3BlcnR5KHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCBzdHJ1Y3QgZHR2X3Byb3Bl
+cnR5ICpwKQoreworCXN3aXRjaCAocC0+Y21kKSB7CisJY2FzZSBEVFZfRU5VTV9ERUxTWVM6CisJ
+CXAtPnUuYnVmZmVyLmRhdGFbMF0gPSBTWVNfRFNTOworCQlwLT51LmJ1ZmZlci5kYXRhWzFdID0g
+U1lTX0RWQlM7CisJCXAtPnUuYnVmZmVyLmRhdGFbMl0gPSBTWVNfRFZCUzI7CisJCXAtPnUuYnVm
+ZmVyLmxlbiA9IDM7CisJCWJyZWFrOworCWRlZmF1bHQ6CisJCWJyZWFrOworCX0KKwlyZXR1cm4g
+MDsKK30KKwogc3RhdGljIHN0cnVjdCBkdmJfZnJvbnRlbmRfb3BzIHN0djA5MHhfb3BzID0gewog
+CiAJLmluZm8gPSB7CkBAIC00NzQzLDcgKzQ3NTgsOSBAQCBzdGF0aWMgc3RydWN0IGR2Yl9mcm9u
+dGVuZF9vcHMgc3R2MDkweF9vcHMgPSB7CiAJLnJlYWRfc3RhdHVzCQkJPSBzdHYwOTB4X3JlYWRf
+c3RhdHVzLAogCS5yZWFkX2JlcgkJCT0gc3R2MDkweF9yZWFkX3BlciwKIAkucmVhZF9zaWduYWxf
+c3RyZW5ndGgJCT0gc3R2MDkweF9yZWFkX3NpZ25hbF9zdHJlbmd0aCwKLQkucmVhZF9zbnIJCQk9
+IHN0djA5MHhfcmVhZF9jbnIKKwkucmVhZF9zbnIJCQk9IHN0djA5MHhfcmVhZF9jbnIsCisKKwku
+Z2V0X3Byb3BlcnR5CQkJPSBzdHYwOTB4X2dldF9wcm9wZXJ0eSwKIH07CiAKIAotLSAKMS43LjEK
+Cg==
+--0015175cf7da2b08de04b2451581--
