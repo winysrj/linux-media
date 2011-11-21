@@ -1,164 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:40756 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752951Ab1KLP40 (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:36244 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753457Ab1KUVGt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Nov 2011 10:56:26 -0500
-Received: by wyh15 with SMTP id 15so4693629wyh.19
-        for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 07:56:25 -0800 (PST)
-Message-ID: <4ebe9728.4dc6e30a.47c5.ffff8fc3@mx.google.com>
-Subject: [PATCH 5/7] af9015 usb bus repeater.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Sat, 12 Nov 2011 15:56:20 +0000
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+	Mon, 21 Nov 2011 16:06:49 -0500
+Received: by mail-ey0-f174.google.com with SMTP id 27so5854834eye.19
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:06:49 -0800 (PST)
+MIME-Version: 1.0
+Date: Tue, 22 Nov 2011 02:36:48 +0530
+Message-ID: <CAHFNz9+JkusvQ=_gazEGDqgBpCrua0088Rh7bhcUdkn53PEAeg@mail.gmail.com>
+Subject: PATCH 05/13: 0005-TDA18271c2dd-Allow-frontend-to-set-DELSYS
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	Ralph Metzler <rjkm@metzlerbros.de>
+Content-Type: multipart/mixed; boundary=f46d0435c068abfe3404b245102b
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This a bus repeater for af9015 devices. Commands usually fail because of other
-activity on the usb bus. 
-
-Afatech drivers can repeat up to ten times on the usb bus.
-
-bulk failures that report -ETIMEDOUT or -EBUSY are repeated. If the device fails
-it usually return 0x55 in the first byte.
-
-I am working on a patch to move parts of this to the dvb-usb common area to
-be used by other drivers.
-
-
-Signed-off-by: Malcolm Priestley<tvboxspy@gmail.com>
-
----
- drivers/media/dvb/dvb-usb/af9015.c |   61 ++++++++++++++++++++++--------------
- 1 files changed, 37 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
-index 9077ac4..ac134b6 100644
---- a/drivers/media/dvb/dvb-usb/af9015.c
-+++ b/drivers/media/dvb/dvb-usb/af9015.c
-@@ -68,7 +68,7 @@ static struct af9013_config af9015_af9013_config[] = {
- 	}
- };
- 
--static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
-+static int af9015_io_udev(struct usb_device *udev, struct req_t *req)
- {
- #define BUF_LEN 63
- #define REQ_HDR_LEN 8 /* send header size */
-@@ -79,9 +79,6 @@ static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
- 	u8 msg_len = REQ_HDR_LEN;
- 	static u8 seq; /* packet sequence number */
- 
--	if (mutex_lock_interruptible(&af9015_usb_mutex) < 0)
--		return -EAGAIN;
--
- 	buf[0] = req->cmd;
- 	buf[1] = seq++;
- 	buf[2] = req->i2c_addr;
-@@ -114,16 +111,14 @@ static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
- 		break;
- 	default:
- 		err("unknown command:%d", req->cmd);
--		ret = -1;
--		goto error_unlock;
-+		return -EINVAL;
- 	}
- 
- 	/* buffer overflow check */
- 	if ((write && (req->data_len > BUF_LEN - REQ_HDR_LEN)) ||
- 		(!write && (req->data_len > BUF_LEN - ACK_HDR_LEN))) {
- 		err("too much data; cmd:%d len:%d", req->cmd, req->data_len);
--		ret = -EINVAL;
--		goto error_unlock;
-+		return -EINVAL;
- 	}
- 
- 	/* write requested */
-@@ -142,13 +137,13 @@ static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
- 		err("bulk message failed:%d (%d/%d)", ret, msg_len, act_len);
- 	else
- 		if (act_len != msg_len)
--			ret = -1; /* all data is not send */
-+			return -EAGAIN; /* all data is not send */
- 	if (ret)
--		goto error_unlock;
-+		goto error;
- 
- 	/* no ack for those packets */
- 	if (req->cmd == DOWNLOAD_FIRMWARE || req->cmd == RECONNECT_USB)
--		goto exit_unlock;
-+		return 0;
- 
- 	/* write receives seq + status = 2 bytes
- 	   read receives seq + status + data = 2 + N bytes */
-@@ -158,30 +153,48 @@ static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
- 
- 	ret = usb_bulk_msg(udev, usb_rcvbulkpipe(udev, 0x81), buf, msg_len,
- 		&act_len, AF9015_USB_TIMEOUT);
--	if (ret) {
--		err("recv bulk message failed:%d", ret);
--		ret = -1;
--		goto error_unlock;
--	}
-+	if (ret)
-+		goto error;
- 
- 	deb_xfer("<<< ");
- 	debug_dump(buf, act_len, deb_xfer);
- 
- 	/* check status */
--	if (buf[1]) {
--		err("command failed:%d", buf[1]);
--		ret = -1;
--		goto error_unlock;
--	}
-+	if (buf[1])
-+		return -EAGAIN;
- 
- 	/* read request, copy returned data to return buf */
- 	if (!write)
- 		memcpy(req->data, &buf[ACK_HDR_LEN], req->data_len);
- 
--error_unlock:
--exit_unlock:
--	mutex_unlock(&af9015_usb_mutex);
-+error:
-+	if (ret == -ETIMEDOUT || ret == -EBUSY)
-+		return -EAGAIN;
-+
-+	return ret;
-+}
-+
-+#define AF9015_RETRY 5
-+static int af9015_rw_udev(struct usb_device *udev, struct req_t *req)
-+{
-+	int ret = 0, i;
-+
-+	if (mutex_lock_interruptible(&af9015_usb_mutex) < 0)
-+		return -EAGAIN;
-+
-+	for (i = 0; i < AF9015_RETRY; i++) {
-+		if (req == NULL)
-+			break;
-+		ret = af9015_io_udev(udev, req);
-+		if (ret != -EAGAIN)
-+			break;
-+		udelay(250);
-+	}
-+	if (ret && req)
-+		err("Command failed:%x i2c addr:%x error:%d",
-+			req->cmd, req->i2c_addr, ret);
- 
-+	mutex_unlock(&af9015_usb_mutex);
- 	return ret;
- }
- 
--- 
-1.7.5.4
+--f46d0435c068abfe3404b245102b
+Content-Type: text/plain; charset=ISO-8859-1
 
 
 
+--f46d0435c068abfe3404b245102b
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0005-TDA18271c2dd-Allow-frontend-to-set-DELSYS-rather-tha.patch"
+Content-Disposition: attachment;
+	filename="0005-TDA18271c2dd-Allow-frontend-to-set-DELSYS-rather-tha.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
 
+RnJvbSA3M2MwYjdjMzg2YmVhZTM5MmNmZjU2OGUwODkxNDU4MmVkNjMyOWQxIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
+CkRhdGU6IFNhdCwgMTkgTm92IDIwMTEgMjE6MDE6MDMgKzA1MzAKU3ViamVjdDogW1BBVENIIDA1
+LzEzXSBUREExODI3MWMyZGQ6IEFsbG93IGZyb250ZW5kIHRvIHNldCBERUxTWVMsIHJhdGhlciB0
+aGFuIHF1ZXJ5aW5nIGZlLT5vcHMuaW5mby50eXBlCgpXaXRoIGFueSB0dW5lciB0aGF0IGNhbiB0
+dW5lIHRvIG11bHRpcGxlIGRlbGl2ZXJ5IHN5c3RlbXMvc3RhbmRhcmRzLCBpdCBkb2VzCnF1ZXJ5
+IGZlLT5vcHMuaW5mby50eXBlIHRvIGRldGVybWluZSBmcm9udGVuZCB0eXBlIGFuZCBzZXQgdGhl
+IGRlbGl2ZXJ5CnN5c3RlbSB0eXBlLiBmZS0+b3BzLmluZm8udHlwZSBjYW4gaGFuZGxlIG9ubHkg
+NCBkZWxpdmVyeSBzeXN0ZW1zLCB2aXogRkVfUVBTSywKRkVfUUFNLCBGRV9PRkRNIGFuZCBGRV9B
+VFNDLgoKU2lnbmVkLW9mZi1ieTogTWFudSBBYnJhaGFtIDxhYnJhaGFtLm1hbnVAZ21haWwuY29t
+PgotLS0KIGRyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy90ZGExODI3MWMyZGQuYyB8ICAgNTYg
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKwogMSBmaWxlcyBjaGFuZ2VkLCA1NiBpbnNlcnRp
+b25zKCspLCAwIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2Zy
+b250ZW5kcy90ZGExODI3MWMyZGQuYyBiL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy90ZGEx
+ODI3MWMyZGQuYwppbmRleCAxYjFiZjIwLi42MDc3Njc0IDEwMDY0NAotLS0gYS9kcml2ZXJzL21l
+ZGlhL2R2Yi9mcm9udGVuZHMvdGRhMTgyNzFjMmRkLmMKKysrIGIvZHJpdmVycy9tZWRpYS9kdmIv
+ZnJvbnRlbmRzL3RkYTE4MjcxYzJkZC5jCkBAIC0xMTgwLDYgKzExODAsNjEgQEAgc3RhdGljIGlu
+dCBzZXRfcGFyYW1zKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLAogCXJldHVybiBzdGF0dXM7CiB9
+CiAKK3N0YXRpYyBpbnQgc2V0X3N0YXRlKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCBlbnVtIHR1
+bmVyX3BhcmFtIHBhcmFtLCBzdHJ1Y3QgdHVuZXJfc3RhdGUgKnR1bmVyKQoreworCXN0cnVjdCB0
+ZGFfc3RhdGUgKnN0YXRlID0gZmUtPnR1bmVyX3ByaXY7CisJZmVfZGVsaXZlcnlfc3lzdGVtX3Qg
+ZGVsc3lzID0gU1lTX1VOREVGSU5FRDsKKwl1MzIgYmFuZHdpZHRoID0gMDsKKwlpbnQgc3RhdHVz
+ID0gMDsKKwlpbnQgU3RhbmRhcmQgPSAwOworCisJaWYgKHBhcmFtICYgRFZCRkVfVFVORVJfREVM
+U1lTKQorCQlkZWxzeXMgPSB0dW5lci0+ZGVsc3lzOworCWlmIChwYXJhbSAmIERWQkZFX1RVTkVS
+X0ZSRVFVRU5DWSkKKwkJc3RhdGUtPm1fRnJlcXVlbmN5ID0gdHVuZXItPmZyZXF1ZW5jeTsKKwlp
+ZiAocGFyYW0gJiBEVkJGRV9UVU5FUl9CQU5EV0lEVEgpCisJCWJhbmR3aWR0aCA9IHR1bmVyLT5i
+YW5kd2lkdGg7CisKKwlzd2l0Y2ggKGRlbHN5cykgeworCWNhc2UgU1lTX0RWQlQ6CisJCXN3aXRj
+aCAoYmFuZHdpZHRoKSB7CisJCWNhc2UgNjAwMDAwMDoKKwkJCVN0YW5kYXJkID0gSEZfRFZCVF82
+TUhaOworCQkJYnJlYWs7CisJCWNhc2UgNzAwMDAwMDoKKwkJCVN0YW5kYXJkID0gSEZfRFZCVF83
+TUhaOworCQkJYnJlYWs7CisJCWNhc2UgODAwMDAwMDoKKwkJCVN0YW5kYXJkID0gSEZfRFZCVF84
+TUhaOworCQkJYnJlYWs7CisJCX0KKwkJYnJlYWs7CisJY2FzZSBTWVNfRFZCQ19BTk5FWF9BQzoK
+KwkJLyoKKwkJICogRklYTUUhIEFQSSBCVUchIERWQi1DIEFOTkVYIEEgJiBDIGFyZSBkaWZmZXJl
+bnQKKwkJICogVGhpcyBzaG91bGQgaGF2ZSBiZWVuIHNpbXBseSBEVkJDX0FOTkVYX0EKKwkJICov
+CisJCVN0YW5kYXJkID0gSEZfRFZCQ182TUhaOworCQlicmVhazsKKwlkZWZhdWx0OgorCQlzdGF0
+dXMgPSAtRUlOVkFMOworCQlnb3RvIGVycjsKKwl9CisKKwlkbyB7CisJCXN0YXR1cyA9IFJGVHJh
+Y2tpbmdGaWx0ZXJzQ29ycmVjdGlvbihzdGF0ZSwgc3RhdGUtPm1fRnJlcXVlbmN5KTsKKwkJaWYg
+KHN0YXR1cyA8IDApCisJCQlicmVhazsKKwkJc3RhdHVzID0gQ2hhbm5lbENvbmZpZ3VyYXRpb24o
+c3RhdGUsIHN0YXRlLT5tX0ZyZXF1ZW5jeSwgU3RhbmRhcmQpOworCQlpZiAoc3RhdHVzIDwgMCkK
+KwkJCWJyZWFrOworCisJCW1zbGVlcChzdGF0ZS0+bV9TZXR0bGluZ1RpbWUpOyAgLyogQWxsb3cg
+QUdDJ3MgdG8gc2V0dGxlIGRvd24gKi8KKwl9IHdoaWxlICgwKTsKK2VycjoKKwlyZXR1cm4gc3Rh
+dHVzOworfQorCiAjaWYgMAogc3RhdGljIGludCBHZXRTaWduYWxTdHJlbmd0aChzMzIgKnBTaWdu
+YWxTdHJlbmd0aCwgdTMyIFJGQWdjLCB1MzIgSUZBZ2MpCiB7CkBAIC0xMjIxLDYgKzEyNzYsNyBA
+QCBzdGF0aWMgc3RydWN0IGR2Yl90dW5lcl9vcHMgdHVuZXJfb3BzID0gewogCS5pbml0ICAgICAg
+ICAgICAgICA9IGluaXQsCiAJLnNsZWVwICAgICAgICAgICAgID0gc2xlZXAsCiAJLnNldF9wYXJh
+bXMgICAgICAgID0gc2V0X3BhcmFtcywKKwkuc2V0X3N0YXRlCSAgID0gc2V0X3N0YXRlLAogCS5y
+ZWxlYXNlICAgICAgICAgICA9IHJlbGVhc2UsCiAJLmdldF9pZl9mcmVxdWVuY3kgID0gZ2V0X2lm
+X2ZyZXF1ZW5jeSwKIAkuZ2V0X2JhbmR3aWR0aCAgICAgPSBnZXRfYmFuZHdpZHRoLAotLSAKMS43
+LjEKCg==
+--f46d0435c068abfe3404b245102b--
