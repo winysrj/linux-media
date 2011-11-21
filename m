@@ -1,145 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:28518 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755144Ab1KXQNB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 11:13:01 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, snjw23@gmail.com,
-	hverkuil@xs4all.nl
-Subject: [RFC/PATCH 2/3] v4l: Document integer menu controls
-Date: Thu, 24 Nov 2011 18:12:51 +0200
-Message-Id: <1322151172-5362-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20111124161228.GA29342@valkosipuli.localdomain>
-References: <20111124161228.GA29342@valkosipuli.localdomain>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:51838 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752645Ab1KUVmL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Nov 2011 16:42:11 -0500
+Received: by iage36 with SMTP id e36so7839762iag.19
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:42:10 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAHFNz9Lt11cy9kJtAaVWDRs5tQ938caupB-Tm0Ju6woBF3USUg@mail.gmail.com>
+References: <CAHFNz9+e0K__EWdc=ckHURjjYMbez22=xup0d7=H7k2xQNVnyw@mail.gmail.com>
+	<CAOcJUbyPPJe_ONV5bOXx_r+cwNd43eyThyRrawA0Gi1JydQV=Q@mail.gmail.com>
+	<CAHFNz9Lt11cy9kJtAaVWDRs5tQ938caupB-Tm0Ju6woBF3USUg@mail.gmail.com>
+Date: Mon, 21 Nov 2011 16:42:10 -0500
+Message-ID: <CAOcJUbw-dLfY-nocioQXhJSP-ig3FTkL351f2RQhL_LC+d=MSg@mail.gmail.com>
+Subject: Re: PATCH 04/13: 0004-TDA18271-Allow-frontend-to-set-DELSYS
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andreas Oberritter <obi@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/DocBook/media/v4l/compat.xml         |   10 +++++
- Documentation/DocBook/media/v4l/v4l2.xml           |    7 ++++
- .../DocBook/media/v4l/vidioc-queryctrl.xml         |   39 +++++++++++++++++++-
- 3 files changed, 54 insertions(+), 2 deletions(-)
+On Mon, Nov 21, 2011 at 4:28 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
+> On 11/22/11, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>> Thank you, Manu... After the Linux Kernel Summit in Prague, I had
+>> intentions of solving this exact problem, but you did it first -- good
+>> job!
+>>
+>> I have reviewed the patch to the tda18271 driver, and the changes make
+>> good sense to me.  I have one question, however:
+>>
+>> Perhaps my eyes have overlooked something -- I fail to see any code
+>> that defines the new "set_state" callback or any code that calls this
+>> new callback within dvb-core (assuming dvb_frontend.c)  I also can't
+>> find the structure declaration of the "tuner_state" struct... ... is
+>> this patch missing from your series, or did I just overlook it?
+>
+> I guess more like that. The data structure existed for quite a long
+> while in dvb_frontend.h and hence you don't find any new changes. Only
+> delivery and modulation added to it.
+>
+>>
+>> That missing patch is what interests me most.  Once I can see that
+>> missing code, I'd like to begin discussion on whether we actually need
+>> the additional callback, or if it can simply be handled by the
+>> set_params call.  Likewise, I'm not exactly sure why we need this
+>> affional "struct tuner_state" ...  Perhaps the answer will be
+>> self-explanatory once I see the code - maybe no discussion is
+>> necessary :-P
+>>
+>> But this does look good to me so far.  I'd be happy to provide my
+>> "reviewed-by" tag once I can see the missing code mentioned above.
+>
+> The callback is used from within a demodulator context as usual and hence.
+> eg:
+>
+>        /* program tuner */
+> -       if (fe->ops.tuner_ops.set_params)
+> -               fe->ops.tuner_ops.set_params(fe, params);
+> +       tstate.delsys = SYS_DVBC_ANNEX_AC;
+> +       tstate.frequency = c->frequency;
+> +
+> +       if (fe->ops.tuner_ops.set_state) {
+> +               fe->ops.tuner_ops.set_state(fe,
+> +                                           DVBFE_TUNER_DELSYS    |
+> +                                           DVBFE_TUNER_FREQUENCY,
+> +                                           &tstate);
+> +       } else {
+> +               if (fe->ops.tuner_ops.set_params)
+> +                       fe->ops.tuner_ops.set_params(fe, params);
+> +       }
+>
+>
+> Best Regards,
+> Manu
+>
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index b68698f..569efd1 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2379,6 +2379,16 @@ that used it. It was originally scheduled for removal in 2.6.35.
-       </orderedlist>
-     </section>
- 
-+    <section>
-+      <title>V4L2 in Linux 3.3</title>
-+      <orderedlist>
-+        <listitem>
-+	  <para>Added integer menus, the new type will be
-+	  V4L2_CTRL_TYPE_INTEGER_MENU.</para>
-+        </listitem>
-+      </orderedlist>
-+    </section>
-+
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
- 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 2ab365c..affe1ba 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -128,6 +128,13 @@ structs, ioctls) must be noted in more detail in the history chapter
- applications. -->
- 
-       <revision>
-+	<revnumber>3.3</revnumber>
-+	<date>2011-11-24</date>
-+	<authorinitials>sa</authorinitials>
-+	<revremark>Added V4L2_CTRL_TYPE_INTEGER_MENU.</revremark>
-+      </revision>
-+
-+      <revision>
- 	<revnumber>3.2</revnumber>
- 	<date>2011-08-26</date>
- 	<authorinitials>hv</authorinitials>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-index 0ac0057..049cd46 100644
---- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-@@ -215,11 +215,12 @@ the array to zero.</entry>
- 
-     <table pgwide="1" frame="none" id="v4l2-querymenu">
-       <title>struct <structname>v4l2_querymenu</structname></title>
--      <tgroup cols="3">
-+      <tgroup cols="4">
- 	&cs-str;
- 	<tbody valign="top">
- 	  <row>
- 	    <entry>__u32</entry>
-+	    <entry></entry>
- 	    <entry><structfield>id</structfield></entry>
- 	    <entry>Identifies the control, set by the application
- from the respective &v4l2-queryctrl;
-@@ -227,18 +228,38 @@ from the respective &v4l2-queryctrl;
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-+	    <entry></entry>
- 	    <entry><structfield>index</structfield></entry>
- 	    <entry>Index of the menu item, starting at zero, set by
- 	    the application.</entry>
- 	  </row>
- 	  <row>
-+	    <entry>union</entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
- 	    <entry>__u8</entry>
- 	    <entry><structfield>name</structfield>[32]</entry>
- 	    <entry>Name of the menu item, a NUL-terminated ASCII
--string. This information is intended for the user.</entry>
-+string. This information is intended for the user. This field is valid
-+for <constant>V4L2_CTRL_FLAG_MENU</constant> type controls.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>__s64</entry>
-+	    <entry><structfield>value</structfield></entry>
-+	    <entry>
-+              Value of the integer menu item. This field is valid for
-+              <constant>V4L2_CTRL_FLAG_INTEGER_MENU</constant> type
-+              controls.
-+            </entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-+	    <entry></entry>
- 	    <entry><structfield>reserved</structfield></entry>
- 	    <entry>Reserved for future extensions. Drivers must set
- the array to zero.</entry>
-@@ -292,6 +313,20 @@ the menu items can be enumerated with the
- <constant>VIDIOC_QUERYMENU</constant> ioctl.</entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_CTRL_TYPE_INTEGER_MENU</constant></entry>
-+	    <entry>&ge; 0</entry>
-+	    <entry>1</entry>
-+	    <entry>N-1</entry>
-+	    <entry>
-+              The control has a menu of N choices. The names of the
-+              menu items can be enumerated with the
-+              <constant>VIDIOC_QUERYMENU</constant> ioctl. This is
-+              similar to <constant>V4L2_CTRL_TYPE_MENU</constant>
-+              except that instead of integers, the menu items are
-+              signed 64-bit integers.
-+            </entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_CTRL_TYPE_BITMASK</constant></entry>
- 	    <entry>0</entry>
- 	    <entry>n/a</entry>
--- 
-1.7.2.5
+Manu,
 
+Thank you for explaining -- I found that structure in dvb_frontend.h,
+now that you've pointed that out.
+
+I am on board with this change -- it is a positive move in the right
+direction.  I believe that after this is merged, we may be able to
+obsolete and remove the set_params callback.  In fact, we can even
+obsolete the set_analog_params callback as well, using set_state as
+the single entry point for setting the tuner.  Of course, one step at
+a time -- this is great for now.  We should consider the other
+optimizations after this has been merged and tested. :-)
+
+Reviewed-by: Michael Krufky <mkrufky@linuxtv.org>
