@@ -1,118 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:44704 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752544Ab1KFUcQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 15:32:16 -0500
-Received: by faao14 with SMTP id o14so4498582faa.19
-        for <linux-media@vger.kernel.org>; Sun, 06 Nov 2011 12:32:15 -0800 (PST)
-From: Sylwester Nawrocki <snjw23@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Piotr Chmura <chmooreck@poczta.onet.pl>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>
-Subject: [PATCH 01/13] staging: as102: Remove comment tags for editors configuration
-Date: Sun,  6 Nov 2011 21:31:38 +0100
-Message-Id: <1320611510-3326-2-git-send-email-snjw23@gmail.com>
-In-Reply-To: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
-References: <1320611510-3326-1-git-send-email-snjw23@gmail.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:37426 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756680Ab1KUVJa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Nov 2011 16:09:30 -0500
+Received: by wwe5 with SMTP id 5so11149033wwe.1
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:09:29 -0800 (PST)
+MIME-Version: 1.0
+Date: Tue, 22 Nov 2011 02:39:29 +0530
+Message-ID: <CAHFNz9+maZ2xC5mPAgkw7W6+vY5tDZ7F9mD_s=Namyk=5tF1Ww@mail.gmail.com>
+Subject: PATCH 13/13: 0013-PCTV290E-Attach-a-single-frontend
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	Antti Palosaari <crope@iki.fi>
+Content-Type: multipart/mixed; boundary=0016367fb03138747c04b2451a8e
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Piotr Chmura <chmooreck@poczta.onet.pl>
+--0016367fb03138747c04b2451a8e
+Content-Type: text/plain; charset=ISO-8859-1
 
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Signed-off-by: Piotr Chmura <chmooreck@poczta.onet.pl>
-Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
----
- drivers/staging/media/as102/as102_drv.c     |    2 --
- drivers/staging/media/as102/as102_drv.h     |    2 --
- drivers/staging/media/as102/as102_fe.c      |    2 --
- drivers/staging/media/as102/as102_fw.c      |    2 --
- drivers/staging/media/as102/as102_fw.h      |    2 --
- drivers/staging/media/as102/as102_usb_drv.c |    2 --
- drivers/staging/media/as102/as102_usb_drv.h |    1 -
- drivers/staging/media/as102/as10x_cmd.h     |    1 -
- 8 files changed, 0 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/staging/media/as102/as102_drv.c b/drivers/staging/media/as102/as102_drv.c
-index d335c7d..771d550 100644
---- a/drivers/staging/media/as102/as102_drv.c
-+++ b/drivers/staging/media/as102/as102_drv.c
-@@ -347,5 +347,3 @@ module_exit(as102_driver_exit);
- MODULE_DESCRIPTION(DRIVER_FULL_NAME);
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Pierrick Hascoet <pierrick.hascoet@abilis.com>");
--
--/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
-diff --git a/drivers/staging/media/as102/as102_drv.h b/drivers/staging/media/as102/as102_drv.h
-index bcda635..7f56f64 100644
---- a/drivers/staging/media/as102/as102_drv.h
-+++ b/drivers/staging/media/as102/as102_drv.h
-@@ -137,5 +137,3 @@ void as102_dvb_unregister(struct as102_dev_t *dev);
- 
- int as102_dvb_register_fe(struct as102_dev_t *dev, struct dvb_frontend *fe);
- int as102_dvb_unregister_fe(struct dvb_frontend *dev);
--
--/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
-diff --git a/drivers/staging/media/as102/as102_fe.c b/drivers/staging/media/as102/as102_fe.c
-index 3550f90..7d7dd55 100644
---- a/drivers/staging/media/as102/as102_fe.c
-+++ b/drivers/staging/media/as102/as102_fe.c
-@@ -599,5 +599,3 @@ static void as102_fe_copy_tune_parameters(struct as10x_tune_args *tune_args,
- 			as102_fe_get_code_rate(params->u.ofdm.code_rate_HP);
- 	}
- }
--
--/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
-diff --git a/drivers/staging/media/as102/as102_fw.c b/drivers/staging/media/as102/as102_fw.c
-index c019df9..4fb2987 100644
---- a/drivers/staging/media/as102/as102_fw.c
-+++ b/drivers/staging/media/as102/as102_fw.c
-@@ -247,5 +247,3 @@ error:
- 	return errno;
- }
- #endif
--
--/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
-diff --git a/drivers/staging/media/as102/as102_fw.h b/drivers/staging/media/as102/as102_fw.h
-index 27e5347..951a1fa 100644
---- a/drivers/staging/media/as102/as102_fw.h
-+++ b/drivers/staging/media/as102/as102_fw.h
-@@ -38,5 +38,3 @@ struct as10x_fw_pkt_t {
- #ifdef __KERNEL__
- int as102_fw_upload(struct as102_bus_adapter_t *bus_adap);
- #endif
--
--/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
-diff --git a/drivers/staging/media/as102/as102_usb_drv.c b/drivers/staging/media/as102/as102_usb_drv.c
-index 264be2d..0a8f12b 100644
---- a/drivers/staging/media/as102/as102_usb_drv.c
-+++ b/drivers/staging/media/as102/as102_usb_drv.c
-@@ -474,5 +474,3 @@ static int as102_release(struct inode *inode, struct file *file)
- }
- 
- MODULE_DEVICE_TABLE(usb, as102_usb_id_table);
--
--/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
-diff --git a/drivers/staging/media/as102/as102_usb_drv.h b/drivers/staging/media/as102/as102_usb_drv.h
-index fb1fc41..35925b7 100644
---- a/drivers/staging/media/as102/as102_usb_drv.h
-+++ b/drivers/staging/media/as102/as102_usb_drv.h
-@@ -56,4 +56,3 @@ struct as10x_usb_token_cmd_t {
- 	struct as10x_cmd_t r;
- };
- #endif
--/* EOF - vim: set textwidth=80 ts=8 sw=8 sts=8 noet: */
-diff --git a/drivers/staging/media/as102/as10x_cmd.h b/drivers/staging/media/as102/as10x_cmd.h
-index 01a7163..6f837b1 100644
---- a/drivers/staging/media/as102/as10x_cmd.h
-+++ b/drivers/staging/media/as102/as10x_cmd.h
-@@ -537,4 +537,3 @@ int as10x_context_rsp_parse(struct as10x_cmd_t *prsp, uint16_t proc_id);
- }
- #endif
- #endif
--/* EOF - vim: set textwidth=80 ts=3 sw=3 sts=3 et: */
--- 
-1.7.5.4
 
+--0016367fb03138747c04b2451a8e
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0013-PCTV290E-Attach-a-single-frontend-rather-than-a-fron.patch"
+Content-Disposition: attachment;
+	filename="0013-PCTV290E-Attach-a-single-frontend-rather-than-a-fron.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
+
+RnJvbSA5MzdjOGIyZDI0ZGRkNmRmNGFmOGUxOTAyNjgyN2E4Y2IxZTM1NDdiIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
+CkRhdGU6IE1vbiwgMjEgTm92IDIwMTEgMjA6MTU6MzYgKzA1MzAKU3ViamVjdDogW1BBVENIIDEz
+LzEzXSBQQ1RWMjkwRTogQXR0YWNoIGEgc2luZ2xlIGZyb250ZW5kLCByYXRoZXIgdGhhbiBhIGZy
+b250ZW5kIGVhY2gKIHBlciBkZWxpdmVyeSBzeXN0ZW0sIHdoZXJlYnkgYSBtdWx0aXN0YW5kYXJk
+IGZyb250ZW5kIGNhbiBhZHZlcnRpc2UKIGFsbCBhc3NvY2lhdGVkIGRlbGl2ZXJ5IHN5c3RlbXMu
+CgpTaWduZWQtb2ZmLWJ5OiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+Ci0t
+LQogZHJpdmVycy9tZWRpYS92aWRlby9lbTI4eHgvZW0yOHh4LWR2Yi5jIHwgICAyNyArKysrKysr
+KystLS0tLS0tLS0tLS0tLS0tLS0KIDEgZmlsZXMgY2hhbmdlZCwgOSBpbnNlcnRpb25zKCspLCAx
+OCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3ZpZGVvL2VtMjh4eC9l
+bTI4eHgtZHZiLmMgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2VtMjh4eC9lbTI4eHgtZHZiLmMKaW5k
+ZXggY2VmN2EyZC4uOGExMjA5NCAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9lbTI4
+eHgvZW0yOHh4LWR2Yi5jCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4L2VtMjh4eC1k
+dmIuYwpAQCAtNzYxLDMxICs3NjEsMjIgQEAgc3RhdGljIGludCBlbTI4eHhfZHZiX2luaXQoc3Ry
+dWN0IGVtMjh4eCAqZGV2KQogCQkJCSAgICZkZXYtPmkyY19hZGFwLCAma3dvcmxkX2EzNDBfY29u
+ZmlnKTsKIAkJYnJlYWs7CiAJY2FzZSBFTTI4MTc0X0JPQVJEX1BDVFZfMjkwRToKLQkJLyogTUZF
+Ci0JCSAqIEZFIDAgPSBEVkItVC9UMiArIEZFIDEgPSBEVkItQywgYm90aCBzaGFyaW5nIHNhbWUg
+dHVuZXIuICovCi0JCS8qIEZFIDAgKi8KIAkJZHZiLT5mZVswXSA9IGR2Yl9hdHRhY2goY3hkMjgy
+MHJfYXR0YWNoLAotCQkJJmVtMjh4eF9jeGQyODIwcl9jb25maWcsICZkZXYtPmkyY19hZGFwLCBO
+VUxMKTsKKwkJCQkJJmVtMjh4eF9jeGQyODIwcl9jb25maWcsCisJCQkJCSZkZXYtPmkyY19hZGFw
+LAorCQkJCQlOVUxMKTsKIAkJaWYgKGR2Yi0+ZmVbMF0pIHsKIAkJCS8qIEZFIDAgYXR0YWNoIHR1
+bmVyICovCi0JCQlpZiAoIWR2Yl9hdHRhY2godGRhMTgyNzFfYXR0YWNoLCBkdmItPmZlWzBdLCAw
+eDYwLAotCQkJCSZkZXYtPmkyY19hZGFwLCAmZW0yOHh4X2N4ZDI4MjByX3RkYTE4MjcxX2NvbmZp
+ZykpIHsKKwkJCWlmICghZHZiX2F0dGFjaCh0ZGExODI3MV9hdHRhY2gsCisJCQkJCWR2Yi0+ZmVb
+MF0sCisJCQkJCTB4NjAsCisJCQkJCSZkZXYtPmkyY19hZGFwLAorCQkJCQkmZW0yOHh4X2N4ZDI4
+MjByX3RkYTE4MjcxX2NvbmZpZykpIHsKKwogCQkJCWR2Yl9mcm9udGVuZF9kZXRhY2goZHZiLT5m
+ZVswXSk7CiAJCQkJcmVzdWx0ID0gLUVJTlZBTDsKIAkJCQlnb3RvIG91dF9mcmVlOwogCQkJfQot
+CQkJLyogRkUgMS4gVGhpcyBkdmJfYXR0YWNoKCkgY2Fubm90IGZhaWwuICovCi0JCQlkdmItPmZl
+WzFdID0gZHZiX2F0dGFjaChjeGQyODIwcl9hdHRhY2gsIE5VTEwsIE5VTEwsCi0JCQkJZHZiLT5m
+ZVswXSk7Ci0JCQlkdmItPmZlWzFdLT5pZCA9IDE7Ci0JCQkvKiBGRSAxIGF0dGFjaCB0dW5lciAq
+LwotCQkJaWYgKCFkdmJfYXR0YWNoKHRkYTE4MjcxX2F0dGFjaCwgZHZiLT5mZVsxXSwgMHg2MCwK
+LQkJCQkmZGV2LT5pMmNfYWRhcCwgJmVtMjh4eF9jeGQyODIwcl90ZGExODI3MV9jb25maWcpKSB7
+Ci0JCQkJZHZiX2Zyb250ZW5kX2RldGFjaChkdmItPmZlWzFdKTsKLQkJCQkvKiBsZWF2ZSBGRSAw
+IHN0aWxsIGFjdGl2ZSAqLwotCQkJfQotCi0JCQltZmVfc2hhcmVkID0gMTsKIAkJfQogCQlicmVh
+azsKIAljYXNlIEVNMjg4NF9CT0FSRF9URVJSQVRFQ19INToKLS0gCjEuNy4xCgo=
+--0016367fb03138747c04b2451a8e--
