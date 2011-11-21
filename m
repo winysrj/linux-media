@@ -1,54 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from old.radier.ca ([76.10.149.124]:55984 "EHLO server.radier.ca"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755630Ab1KBOrb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 10:47:31 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by server.radier.ca (Postfix) with ESMTP id 6A4337A4AE1
-	for <linux-media@vger.kernel.org>; Wed,  2 Nov 2011 10:39:40 -0400 (EDT)
-Received: from server.radier.ca ([127.0.0.1])
-	by localhost (server.radier.ca [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id N1OzvcRQswHz for <linux-media@vger.kernel.org>;
-	Wed,  2 Nov 2011 10:39:38 -0400 (EDT)
-Received: from server.radier.ca (server.radier.ca [76.10.144.93])
-	by server.radier.ca (Postfix) with ESMTPA id 7A13C7A4ACE
-	for <linux-media@vger.kernel.org>; Wed,  2 Nov 2011 10:39:38 -0400 (EDT)
-From: Dmitriy Fitisov <dmitriy@radier.ca>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Subject: KWorld USB UB435-Q v2 vid 0x1B80 pid 0xE346
-Date: Wed, 2 Nov 2011 10:39:37 -0400
-Message-Id: <FB79ECA9-6D75-4FEC-8938-746CDA7C5987@radier.ca>
-To: linux-media <linux-media@vger.kernel.org>
-Mime-Version: 1.0 (Apple Message framework v1251.1)
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:36244 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753457Ab1KUVGO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Nov 2011 16:06:14 -0500
+Received: by mail-ey0-f174.google.com with SMTP id 27so5854834eye.19
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:06:13 -0800 (PST)
+MIME-Version: 1.0
+Date: Tue, 22 Nov 2011 02:36:13 +0530
+Message-ID: <CAHFNz9+ZZ2KTvCLcj+Eu+FtnEti1wZfKf9My-FMcSf-Ns-Z4QQ@mail.gmail.com>
+Subject: PATCH 03/13: 0003-DVB-Allow-frontend-to-set-DELSYS-Modulation
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andreas Oberritter <obi@linuxtv.org>
+Content-Type: multipart/mixed; boundary=bcaec52c623392de9d04b2450ea1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everyone,
-I have made modifications to em28xx and lgdt3305 
-making it "kinda work".
-I'm using scan program from dvb-apps for testing.
-I'm saying "kinda work" because I cannot verify for sure, I suspect something is missing.
-When I run scan it successfully locks on all channels which I have on my TV,
-but cannot find PAT on most channels.
-In MPEG2 stream I see that there is TS with PID 0x0000, but in most cases adaptation_field is 0,
-which treated by DVB as a no payload.
-Interesting enough that PUSI is set in this case.
-Could not find any info on this situation, except that packets with adaptation_field == 0
-must be discarded. 
-I live in Toronto and this data is for CBLT channel 9 DVB-T antenna.
-Windows shows everything ok.
-A little bit info on the stick to help others.
-It has 4 main chips on the board, em2874b, which has 2 I2C buses (guessed from em28xx source files).
-First bus is connected to Atmel's AT24C32D - 32kbit flash memory with I2C address 0xA0,
-second bus is connected to LGDT3305 with I2C address 0x1C, so, in order to communicate with LGDT3305
-flag for secondary bus must be set (EM2874_I2C_SECONDARY_BUS_SELECT),
-TDA18271HDC2 is connected through repeater of LGDT3305, so, disable_repeater field in 
-lgdt configuration must not be set, and lgdt gate control should be called before starting to talk 
-to TDA18271.
+--bcaec52c623392de9d04b2450ea1
+Content-Type: text/plain; charset=ISO-8859-1
 
-So, may someone provide info on PID 0000 steam packets?
-Or, perhaps I'm doing something wrong and should test it in different way?
 
-Thank you.
-Dmitriy  
+
+--bcaec52c623392de9d04b2450ea1
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0003-DVB-Allow-frontend-to-set-DELSYS-Modulation-rather-t.patch"
+Content-Disposition: attachment;
+	filename="0003-DVB-Allow-frontend-to-set-DELSYS-Modulation-rather-t.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
+
+RnJvbSAwZjEwMTBiZDViMTgxM2NmZjA4N2RiOWNjYWFmOTVhYmU1ODU4ZTUzIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
+CkRhdGU6IFNhdCwgMTkgTm92IDIwMTEgMTk6MDA6MzggKzA1MzAKU3ViamVjdDogW1BBVENIIDAz
+LzEzXSBEVkI6IEFsbG93IGZyb250ZW5kIHRvIHNldCBERUxTWVMvTW9kdWxhdGlvbiByYXRoZXIg
+dGhhbiBxdWVyeWluZyBmZS0+b3BzLmluZm8udHlwZQoKV2l0aCBhbnkgdHVuZXIgdGhhdCBjYW4g
+dHVuZSB0byBtdWx0aXBsZSBkZWxpdmVyeSBzeXN0ZW1zL3N0YW5kYXJkcywgaXQgZG9lcwpxdWVy
+eSBmZS0+b3BzLmluZm8udHlwZSB0byBkZXRlcm1pbmUgZnJvbnRlbmQgdHlwZSBhbmQgc2V0IHRo
+ZSBkZWxpdmVyeQpzeXN0ZW0gdHlwZS4gZmUtPm9wcy5pbmZvLnR5cGUgY2FuIGhhbmRsZSBvbmx5
+IDQgZGVsaXZlcnkgc3lzdGVtcywgdml6IEZFX1FQU0ssCkZFX1FBTSwgRkVfT0ZETSBhbmQgRkVf
+QVRTQy4KClRoZSBjaGFuZ2UgYWxsb3dzIHRoZSB0dW5lciB0byBiZSBzZXQgdG8gYW55IGRlbGl2
+ZXJ5IHN5c3RlbSBzcGVjaWZpZWQgaW4KZmVfZGVsaXZlcnlfc3lzdGVtX3QgYW5kIGFueSBtb2R1
+bGF0aW9uIGFzIHNwZWNpZmllZCBpbiBmZV9tb2R1bGF0aW9uX3QsCnRoZXJlYnkgc2ltcGxpZmlj
+YXRpb24gb2YgaXNzdWVzLgoKU2lnbmVkLW9mZi1ieTogTWFudSBBYnJhaGFtIDxhYnJhaGFtLm1h
+bnVAZ21haWwuY29tPgotLS0KIGRyaXZlcnMvbWVkaWEvZHZiL2R2Yi1jb3JlL2R2Yl9mcm9udGVu
+ZC5oIHwgICAgNCArKysrCiAxIGZpbGVzIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwgMCBkZWxl
+dGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJv
+bnRlbmQuaCBiL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi1jb3JlL2R2Yl9mcm9udGVuZC5oCmluZGV4
+IDY3YmJmYTcuLmVjNmU4ZTkgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi1jb3Jl
+L2R2Yl9mcm9udGVuZC5oCisrKyBiL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi1jb3JlL2R2Yl9mcm9u
+dGVuZC5oCkBAIC0xMTMsNiArMTEzLDggQEAgZW51bSB0dW5lcl9wYXJhbSB7CiAJRFZCRkVfVFVO
+RVJfQkFORFdJRFRICQk9ICgxIDw8ICAzKSwKIAlEVkJGRV9UVU5FUl9SRUZDTE9DSwkJPSAoMSA8
+PCAgNCksCiAJRFZCRkVfVFVORVJfSVFTRU5TRQkJPSAoMSA8PCAgNSksCisJRFZCRkVfVFVORVJf
+REVMU1lTICAgICAgICAgICAgICA9ICgxIDw8ICA2KSwKKwlEVkJGRV9UVU5FUl9NT0RVTEFUSU9O
+CQk9ICgxIDw8ICA3KSwKIAlEVkJGRV9UVU5FUl9EVU1NWQkJPSAoMSA8PCAzMSkKIH07CiAKQEAg
+LTE0OSw2ICsxNTEsOCBAQCBlbnVtIGR2YmZlX2FsZ28gewogfTsKIAogc3RydWN0IHR1bmVyX3N0
+YXRlIHsKKwlmZV9kZWxpdmVyeV9zeXN0ZW1fdCBkZWxzeXM7CisJZmVfbW9kdWxhdGlvbl90IG1v
+ZHVsYXRpb247CiAJdTMyIGZyZXF1ZW5jeTsKIAl1MzIgdHVuZXJzdGVwOwogCXUzMiBpZnJlcTsK
+LS0gCjEuNy4xCgo=
+--bcaec52c623392de9d04b2450ea1--
