@@ -1,149 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:33109 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753218Ab1KXKx0 (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:36244 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103Ab1KUVGe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 05:53:26 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LV500DPMVL0FH50@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Nov 2011 10:53:24 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LV500AJTVKZWL@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Nov 2011 10:53:24 +0000 (GMT)
-Date: Thu, 24 Nov 2011 11:53:16 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC 1/2] v4l: Add a global color alpha control
-In-reply-to: <1322131997-26195-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, hverkuil@xs4all.nl, m.szyprowski@samsung.com,
-	jonghun.han@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1322131997-26195-2-git-send-email-s.nawrocki@samsung.com>
-References: <1322131997-26195-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 21 Nov 2011 16:06:34 -0500
+Received: by mail-ey0-f174.google.com with SMTP id 27so5854834eye.19
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:06:33 -0800 (PST)
+MIME-Version: 1.0
+Date: Tue, 22 Nov 2011 02:36:33 +0530
+Message-ID: <CAHFNz9+e0K__EWdc=ckHURjjYMbez22=xup0d7=H7k2xQNVnyw@mail.gmail.com>
+Subject: PATCH 04/13: 0004-TDA18271-Allow-frontend-to-set-DELSYS
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Content-Type: multipart/mixed; boundary=f46d0435c068c4080504b2450fe5
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This control is intended for video capture or memory-to-memory
-devices that are capable of setting up the alpha conponent to
-some arbitrary value.
-The V4L2_CID_COLOR_ALPHA control allows to set the alpha channel
-globally to a value in range from 0 to 255.
+--f46d0435c068c4080504b2450fe5
+Content-Type: text/plain; charset=ISO-8859-1
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/controls.xml       |   20 ++++++++++++++------
- .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |    7 +++++--
- drivers/media/video/v4l2-ctrls.c                   |    7 +++++++
- include/linux/videodev2.h                          |    6 +++---
- 4 files changed, 29 insertions(+), 11 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 3bc5ee8..7f99222 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -324,12 +324,6 @@ minimum value disables backlight compensation.</entry>
- 		(usually a microscope).</entry>
- 	  </row>
- 	  <row>
--	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
--	    <entry></entry>
--	    <entry>End of the predefined control IDs (currently
--<constant>V4L2_CID_ILLUMINATORS_2</constant> + 1).</entry>
--	  </row>
--	  <row>
- 	    <entry><constant>V4L2_CID_MIN_BUFFERS_FOR_CAPTURE</constant></entry>
- 	    <entry>integer</entry>
- 	    <entry>This is a read-only control that can be read by the application
-@@ -345,6 +339,20 @@ and used as a hint to determine the number of OUTPUT buffers to pass to REQBUFS.
- The value is the minimum number of OUTPUT buffers that is necessary for hardware
- to work.</entry>
- 	  </row>
-+	  <row id="v4l2-color-alpha">
-+	    <entry><constant>V4L2_CID_COLOR_ALPHA</constant></entry>
-+	    <entry>integer</entry>
-+	    <entry> Sets the color alpha component on the capture device. It is
-+	    applicable to any pixel formats that contain the alpha component,
-+	    e.g. <link linkend="rgb-formats">packed RGB image formats</link>.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
-+	    <entry></entry>
-+	    <entry>End of the predefined control IDs (currently
-+	      <constant>V4L2_CID_COLOR_ALPHA</constant> + 1).</entry>
-+	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_CID_PRIVATE_BASE</constant></entry>
- 	    <entry></entry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-index 4db272b..da4c360 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-@@ -428,8 +428,11 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
-     <para>Bit 7 is the most significant bit. The value of a = alpha
- bits is undefined when reading from the driver, ignored when writing
- to the driver, except when alpha blending has been negotiated for a
--<link linkend="overlay">Video Overlay</link> or <link
--linkend="osd">Video Output Overlay</link>.</para>
-+<link linkend="overlay">Video Overlay</link> or <link linkend="osd">
-+Video Output Overlay</link> or when global alpha has been configured
-+for a <link linkend="capture">Video Capture</link> by means of
-+<link linkend="v4l2-color-alpha"> <constant>V4L2_CID_COLOR_ALPHA
-+</constant> </link> control.</para>
- 
-     <example>
-       <title><constant>V4L2_PIX_FMT_BGR24</constant> 4 &times; 4 pixel
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 5552f81..bd90955 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -466,6 +466,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_ILLUMINATORS_2:		return "Illuminator 2";
- 	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:	return "Minimum Number of Capture Buffers";
- 	case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT:	return "Minimum Number of Output Buffers";
-+	case V4L2_CID_COLOR_ALPHA:		return "Color Alpha";
- 
- 	/* MPEG controls */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-@@ -714,6 +715,12 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 		/* Max is calculated as RGB888 that is 2^24 */
- 		*max = 0xFFFFFF;
- 		break;
-+	case V4L2_CID_COLOR_ALPHA:
-+		*type = V4L2_CTRL_TYPE_INTEGER;
-+		*step = 1;
-+		*min = 0;
-+		*max = 0xff;
-+		break;
- 	case V4L2_CID_FLASH_FAULT:
- 		*type = V4L2_CTRL_TYPE_BITMASK;
- 		break;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 4b752d5..42192c1 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1204,10 +1204,10 @@ enum v4l2_colorfx {
- #define V4L2_CID_MIN_BUFFERS_FOR_CAPTURE	(V4L2_CID_BASE+39)
- #define V4L2_CID_MIN_BUFFERS_FOR_OUTPUT		(V4L2_CID_BASE+40)
- 
--/* last CID + 1 */
--#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+41)
-+#define V4L2_CID_COLOR_ALPHA			(V4L2_CID_BASE+41)
- 
--/* Minimum number of buffer neede by the device */
-+/* last CID + 1 */
-+#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+42)
- 
- /*  MPEG-class control IDs defined by V4L2 */
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
--- 
-1.7.7.2
 
+--f46d0435c068c4080504b2450fe5
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0004-TDA18271-Allow-frontend-to-set-DELSYS-rather-than-qu.patch"
+Content-Disposition: attachment;
+	filename="0004-TDA18271-Allow-frontend-to-set-DELSYS-rather-than-qu.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
+
+RnJvbSAyZWNlMzg2MDI2NzhhZTMyMzQ1MGQwZTM1Mzc5MTQ3ZTZlMDg2MzI2IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
+CkRhdGU6IFNhdCwgMTkgTm92IDIwMTEgMTk6NTA6MDkgKzA1MzAKU3ViamVjdDogW1BBVENIIDA0
+LzEzXSBUREExODI3MTogQWxsb3cgZnJvbnRlbmQgdG8gc2V0IERFTFNZUywgcmF0aGVyIHRoYW4g
+cXVlcnlpbmcgZmUtPm9wcy5pbmZvLnR5cGUKCldpdGggYW55IHR1bmVyIHRoYXQgY2FuIHR1bmUg
+dG8gbXVsdGlwbGUgZGVsaXZlcnkgc3lzdGVtcy9zdGFuZGFyZHMsIGl0IGRvZXMKcXVlcnkgZmUt
+Pm9wcy5pbmZvLnR5cGUgdG8gZGV0ZXJtaW5lIGZyb250ZW5kIHR5cGUgYW5kIHNldCB0aGUgZGVs
+aXZlcnkKc3lzdGVtIHR5cGUuIGZlLT5vcHMuaW5mby50eXBlIGNhbiBoYW5kbGUgb25seSA0IGRl
+bGl2ZXJ5IHN5c3RlbXMsIHZpeiBGRV9RUFNLLApGRV9RQU0sIEZFX09GRE0gYW5kIEZFX0FUU0Mu
+CgpUaGUgY2hhbmdlIGFsbG93cyB0aGUgdHVuZXIgdG8gYmUgc2V0IHRvIGFueSBkZWxpdmVyeSBz
+eXN0ZW0gc3BlY2lmaWVkIGluCmZlX2RlbGl2ZXJ5X3N5c3RlbV90LCB0aGVyZWJ5IHNpbXBsaWZ5
+aW5nIGEgbG90IG9mIGlzc3Vlcy4KClNpZ25lZC1vZmYtYnk6IE1hbnUgQWJyYWhhbSA8YWJyYWhh
+bS5tYW51QGdtYWlsLmNvbT4KLS0tCiBkcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMvdGRhMTgy
+NzEtZmUuYyAgIHwgICA4MCArKysrKysrKysrKysrKysrKysrKysrKysrKysKIGRyaXZlcnMvbWVk
+aWEvY29tbW9uL3R1bmVycy90ZGExODI3MS1wcml2LmggfCAgICAyICsKIDIgZmlsZXMgY2hhbmdl
+ZCwgODIgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJz
+L21lZGlhL2NvbW1vbi90dW5lcnMvdGRhMTgyNzEtZmUuYyBiL2RyaXZlcnMvbWVkaWEvY29tbW9u
+L3R1bmVycy90ZGExODI3MS1mZS5jCmluZGV4IDMzNDdjNWIuLjZlMjlmYWYgMTAwNjQ0Ci0tLSBh
+L2RyaXZlcnMvbWVkaWEvY29tbW9uL3R1bmVycy90ZGExODI3MS1mZS5jCisrKyBiL2RyaXZlcnMv
+bWVkaWEvY29tbW9uL3R1bmVycy90ZGExODI3MS1mZS5jCkBAIC05MjgsNiArOTI4LDg1IEBAIGZh
+aWw6CiAKIC8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLSAqLwogCitzdGF0aWMgaW50IHRkYTE4MjcxX3NldF9zdGF0ZShz
+dHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSwKKwkJCSAgICAgIGVudW0gdHVuZXJfcGFyYW0gcGFyYW0s
+CisJCQkgICAgICBzdHJ1Y3QgdHVuZXJfc3RhdGUgKnN0YXRlKQoreworCXN0cnVjdCB0ZGExODI3
+MV9wcml2ICpwcml2ID0gZmUtPnR1bmVyX3ByaXY7CisJc3RydWN0IHR1bmVyX3N0YXRlICpyZXEg
+PSAmcHJpdi0+cmVxdWVzdDsKKwlzdHJ1Y3QgdGRhMTgyNzFfc3RkX21hcCAqc3RkX21hcCA9ICZw
+cml2LT5zdGQ7CisJc3RydWN0IHRkYTE4MjcxX3N0ZF9tYXBfaXRlbSAqbWFwOworCWludCByZXQ7
+CisKKwlCVUdfT04oIXByaXYpOworCWlmIChwYXJhbSAmIERWQkZFX1RVTkVSX0RFTFNZUykKKwkJ
+cmVxLT5kZWxzeXMgPSBzdGF0ZS0+ZGVsc3lzOworCWlmIChwYXJhbSAmIERWQkZFX1RVTkVSX0ZS
+RVFVRU5DWSkKKwkJcmVxLT5mcmVxdWVuY3kgPSBzdGF0ZS0+ZnJlcXVlbmN5OworCWlmIChwYXJh
+bSAmIERWQkZFX1RVTkVSX0JBTkRXSURUSCkKKwkJcmVxLT5iYW5kd2lkdGggPSBzdGF0ZS0+YmFu
+ZHdpZHRoOworCisJcHJpdi0+bW9kZSA9IFREQTE4MjcxX0RJR0lUQUw7CisKKwlzd2l0Y2ggKHJl
+cS0+ZGVsc3lzKSB7CisJY2FzZSBTWVNfQVRTQzoKKwkJbWFwID0gJnN0ZF9tYXAtPmF0c2NfNjsK
+KwkJcmVxLT5iYW5kd2lkdGggPSA2MDAwMDAwOworCQlicmVhazsKKwljYXNlIFNZU19EVkJDX0FO
+TkVYX0I6CisJCW1hcCA9ICZzdGRfbWFwLT5xYW1fNjsKKwkJcmVxLT5iYW5kd2lkdGggPSA2MDAw
+MDAwOworCQlicmVhazsKKwljYXNlIFNZU19EVkJUOgorCWNhc2UgU1lTX0RWQlQyOgorCQlzd2l0
+Y2ggKHJlcS0+YmFuZHdpZHRoKSB7CisJCWNhc2UgNjAwMDAwMDoKKwkJCW1hcCA9ICZzdGRfbWFw
+LT5kdmJ0XzY7CisJCQlicmVhazsKKwkJY2FzZSA3MDAwMDAwOgorCQkJbWFwID0gJnN0ZF9tYXAt
+PmR2YnRfNzsKKwkJCWJyZWFrOworCQljYXNlIDgwMDAwMDA6CisJCQltYXAgPSAmc3RkX21hcC0+
+ZHZidF84OworCQkJYnJlYWs7CisJCWRlZmF1bHQ6CisJCQlyZXQgPSAtRUlOVkFMOworCQkJZ290
+byBmYWlsOworCQl9CisJCWJyZWFrOworCWNhc2UgU1lTX0RWQkNfQU5ORVhfQUM6CisJCW1hcCA9
+ICZzdGRfbWFwLT5xYW1fODsKKwkJcmVxLT5iYW5kd2lkdGggPSA4MDAwMDAwOworCQlicmVhazsK
+KwlkZWZhdWx0OgorCQl0ZGFfd2FybigiSW52YWxpZCBkZWxpdmVyeSBzeXN0ZW0hXG4iKTsKKwkJ
+cmV0ID0gLUVJTlZBTDsKKwkJZ290byBmYWlsOworCX0KKwl0ZGFfZGJnKCJUcnlpbmcgdG8gdHVu
+ZSAuLiBkZWxzeXM9JWQgbW9kdWxhdGlvbj0lZCBmcmVxdWVuY3k9JWQgYmFuZHdpZHRoPSVkIiwK
+KwkJcmVxLT5kZWxzeXMsCisJCXJlcS0+bW9kdWxhdGlvbiwKKwkJcmVxLT5mcmVxdWVuY3ksCisJ
+CXJlcS0+YmFuZHdpZHRoKTsKKworCS8qIFdoZW4gdHVuaW5nIGRpZ2l0YWwsIHRoZSBhbmFsb2cg
+ZGVtb2QgbXVzdCBiZSB0cmktc3RhdGVkICovCisJaWYgKGZlLT5vcHMuYW5hbG9nX29wcy5zdGFu
+ZGJ5KQorCQlmZS0+b3BzLmFuYWxvZ19vcHMuc3RhbmRieShmZSk7CisKKwlyZXQgPSB0ZGExODI3
+MV90dW5lKGZlLCBtYXAsIHJlcS0+ZnJlcXVlbmN5LCByZXEtPmJhbmR3aWR0aCk7CisKKwlpZiAo
+dGRhX2ZhaWwocmV0KSkKKwkJZ290byBmYWlsOworCisJcHJpdi0+aWZfZnJlcSAgID0gbWFwLT5p
+Zl9mcmVxOworCXByaXYtPmZyZXF1ZW5jeSA9IHJlcS0+ZnJlcXVlbmN5OworCXByaXYtPmJhbmR3
+aWR0aCA9IChyZXEtPmRlbHN5cyA9PSBTWVNfRFZCVCB8fCByZXEtPmRlbHN5cyA9PSBTWVNfRFZC
+VDIpID8KKwkJCSAgIHJlcS0+YmFuZHdpZHRoIDogMDsKK2ZhaWw6CisJcmV0dXJuIHJldDsKK30K
+KworCiBzdGF0aWMgaW50IHRkYTE4MjcxX3NldF9wYXJhbXMoc3RydWN0IGR2Yl9mcm9udGVuZCAq
+ZmUsCiAJCQkgICAgICAgc3RydWN0IGR2Yl9mcm9udGVuZF9wYXJhbWV0ZXJzICpwYXJhbXMpCiB7
+CkBAIC0xMjQ5LDYgKzEzMjgsNyBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IGR2Yl90dW5lcl9vcHMg
+dGRhMTgyNzFfdHVuZXJfb3BzID0gewogCS5pbml0ICAgICAgICAgICAgICA9IHRkYTE4MjcxX2lu
+aXQsCiAJLnNsZWVwICAgICAgICAgICAgID0gdGRhMTgyNzFfc2xlZXAsCiAJLnNldF9wYXJhbXMg
+ICAgICAgID0gdGRhMTgyNzFfc2V0X3BhcmFtcywKKwkuc2V0X3N0YXRlICAgICAgICAgPSB0ZGEx
+ODI3MV9zZXRfc3RhdGUsCiAJLnNldF9hbmFsb2dfcGFyYW1zID0gdGRhMTgyNzFfc2V0X2FuYWxv
+Z19wYXJhbXMsCiAJLnJlbGVhc2UgICAgICAgICAgID0gdGRhMTgyNzFfcmVsZWFzZSwKIAkuc2V0
+X2NvbmZpZyAgICAgICAgPSB0ZGExODI3MV9zZXRfY29uZmlnLApkaWZmIC0tZ2l0IGEvZHJpdmVy
+cy9tZWRpYS9jb21tb24vdHVuZXJzL3RkYTE4MjcxLXByaXYuaCBiL2RyaXZlcnMvbWVkaWEvY29t
+bW9uL3R1bmVycy90ZGExODI3MS1wcml2LmgKaW5kZXggNDU0YzE1Mi4uYmQxYmY1OCAxMDA2NDQK
+LS0tIGEvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3RkYTE4MjcxLXByaXYuaAorKysgYi9k
+cml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMvdGRhMTgyNzEtcHJpdi5oCkBAIC0xMjYsNiArMTI2
+LDggQEAgc3RydWN0IHRkYTE4MjcxX3ByaXYgewogCiAJdTMyIGZyZXF1ZW5jeTsKIAl1MzIgYmFu
+ZHdpZHRoOworCisJc3RydWN0IHR1bmVyX3N0YXRlIHJlcXVlc3Q7CiB9OwogCiAvKi0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLSovCi0tIAoxLjcuMQoK
+--f46d0435c068c4080504b2450fe5--
