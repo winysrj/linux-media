@@ -1,84 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38588 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757724Ab1K3Lhb convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:42671 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753457Ab1KUVHL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 06:37:31 -0500
-From: "Nori, Sekhar" <nsekhar@ti.com>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>
-Subject: RE: [PATCH v3 0/5] ARM: davinci: re-arrange definitions to have a
- common	davinci header
-Date: Wed, 30 Nov 2011 11:37:21 +0000
-Message-ID: <DF0F476B391FA8409C78302C7BA518B60354BC@DBDE01.ent.ti.com>
-References: <1321525138-3928-1-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1321525138-3928-1-git-send-email-manjunath.hadli@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Mon, 21 Nov 2011 16:07:11 -0500
+Received: by fagn18 with SMTP id n18so6450396fag.19
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:07:10 -0800 (PST)
 MIME-Version: 1.0
+Date: Tue, 22 Nov 2011 02:37:10 +0530
+Message-ID: <CAHFNz9Ji2fushgZmLnAbY_xsnQZFhYL4xCb24DxyqnruicvLgQ@mail.gmail.com>
+Subject: PATCH 06/13: 0006-STB0899-Query-DVB-frontend-delivery-capabilities
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	"abraham.manu" <abraham.manu@gmail.com>
+Content-Type: multipart/mixed; boundary=bcaec52c6233f101ac04b245119f
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manju,
+--bcaec52c6233f101ac04b245119f
+Content-Type: text/plain; charset=ISO-8859-1
 
-On Thu, Nov 17, 2011 at 15:48:53, Hadli, Manjunath wrote:
-> Re-arrange definitions and remove unnecessary code so that we canx
 
-These are two different things and should be done in separate
-patches. Sergei has already pointed out couple of instances.
 
-> have a common header for all davinci platforms. This will enable
+--bcaec52c6233f101ac04b245119f
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0006-STB0899-Query-DVB-frontend-delivery-capabilities.patch"
+Content-Disposition: attachment;
+	filename="0006-STB0899-Query-DVB-frontend-delivery-capabilities.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
 
-You mean all DMx platforms? DA8x and TNETVx will still have
-their own header files after this patch set.
-
-> us to share defines and enable common routines to be used without
-> polluting hardware.h.
->  This patch set forms the base for a later set of patches for having
-> a common system module base address (DAVINCI_SYSTEM_MODULE_BASE).
-> 
-> Changes from previous version(As per Sergei's comments):
-> 1. Renamed davinci_common.h to davinci.h.
-> 2. Added extra line whereever appropriate.
-> 3. removed unnecessary header inclusion.
-> 
-> Manjunath Hadli (5):
->   ARM: davinci: dm644x: remove the macros from the header to move to c
->     file
->   ARM: davinci: dm365: remove the macros from the header to move to c
->     file
->   ARM: davinci: dm646x: remove the macros from the header to move to c
->     file
-
-These headlines should describe the changes better. You are moving
-_private_ defines to C file (to reduce header file pollution). That
-should be clear from the headline.
-
->   ARM: davinci: create new common platform header for davinci
->   ARM: davinci: delete individual platform header files and use a
->     common header
-> 
->  arch/arm/mach-davinci/board-dm355-evm.c      |    2 +-
->  arch/arm/mach-davinci/board-dm355-leopard.c  |    2 +-
->  arch/arm/mach-davinci/board-dm365-evm.c      |    2 +-
->  arch/arm/mach-davinci/board-dm644x-evm.c     |    2 +-
->  arch/arm/mach-davinci/board-dm646x-evm.c     |    2 +-
->  arch/arm/mach-davinci/board-neuros-osd2.c    |    2 +-
->  arch/arm/mach-davinci/board-sffsdr.c         |    2 +-
->  arch/arm/mach-davinci/dm355.c                |    2 +-
->  arch/arm/mach-davinci/dm365.c                |   18 +++++-
->  arch/arm/mach-davinci/dm644x.c               |    9 +++-
->  arch/arm/mach-davinci/dm646x.c               |    9 +++-
->  arch/arm/mach-davinci/include/mach/davinci.h |   88 ++++++++++++++++++++++++++
-
-This file should be placed in arch/arm/mach-davinci itself
-since the definitions are private to arch/arm/mach-davinci.
-Russell has been complaining about placing unnecessary files
-in include/mach.
-
-Thanks,
-Sekhar
-
+RnJvbSAwYTZiNmNhYjVjNjRjNmY4Mjg3ZWMxOWFjMmQ0MTk3NzdlNzIzMjAzIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
+CkRhdGU6IFRodSwgMTcgTm92IDIwMTEgMDY6NDQ6NTMgKzA1MzAKU3ViamVjdDogW1BBVENIIDA2
+LzEzXSBTVEIwODk5OiBRdWVyeSBEVkIgZnJvbnRlbmQgZGVsaXZlcnkgY2FwYWJpbGl0aWVzCgpP
+dmVycmlkZSBkZWZhdWx0IGRlbGl2ZXJ5IHN5c3RlbSBpbmZvcm1hdGlvbiBwcm92aWRlZCBieSBG
+RV9HRVRfSU5GTywgc28KdGhhdCBhcHBsaWNhdGlvbnMgY2FuIGVudW1lcmF0ZSBkZWxpdmVyeSBz
+eXN0ZW1zIHByb3ZpZGVkIGJ5IHRoZSBmcm9udGVuZC4KClNpZ25lZC1vZmYtYnk6IE1hbnUgQWJy
+YWhhbSA8YWJyYWhhbS5tYW51QGdtYWlsLmNvbT4KLS0tCiBkcml2ZXJzL21lZGlhL2R2Yi9mcm9u
+dGVuZHMvc3RiMDg5OV9kcnYuYyB8ICAgMTcgKysrKysrKysrKysrKysrKysKIDEgZmlsZXMgY2hh
+bmdlZCwgMTcgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2
+ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvc3RiMDg5OV9kcnYuYyBiL2RyaXZlcnMvbWVkaWEvZHZi
+L2Zyb250ZW5kcy9zdGIwODk5X2Rydi5jCmluZGV4IDg0MDhlZjguLjljOTNkOWYgMTAwNjQ0Ci0t
+LSBhL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9zdGIwODk5X2Rydi5jCisrKyBiL2RyaXZl
+cnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9zdGIwODk5X2Rydi5jCkBAIC0xNjA1LDYgKzE2MDUsMjEg
+QEAgc3RhdGljIGVudW0gZHZiZmVfYWxnbyBzdGIwODk5X2Zyb250ZW5kX2FsZ28oc3RydWN0IGR2
+Yl9mcm9udGVuZCAqZmUpCiAJcmV0dXJuIERWQkZFX0FMR09fQ1VTVE9NOwogfQogCitzdGF0aWMg
+aW50IHN0YjA4OTlfZ2V0X3Byb3BlcnR5KHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCBzdHJ1Y3Qg
+ZHR2X3Byb3BlcnR5ICpwKQoreworCXN3aXRjaCAocC0+Y21kKSB7CisJY2FzZSBEVFZfRU5VTV9E
+RUxTWVM6CisJCXAtPnUuYnVmZmVyLmRhdGFbMF0gPSBTWVNfRFNTOworCQlwLT51LmJ1ZmZlci5k
+YXRhWzFdID0gU1lTX0RWQlM7CisJCXAtPnUuYnVmZmVyLmRhdGFbMl0gPSBTWVNfRFZCUzI7CisJ
+CXAtPnUuYnVmZmVyLmxlbiA9IDM7CisJCWJyZWFrOworCWRlZmF1bHQ6CisJCWJyZWFrOworCX0K
+KwlyZXR1cm4gMDsKK30KKwogc3RhdGljIHN0cnVjdCBkdmJfZnJvbnRlbmRfb3BzIHN0YjA4OTlf
+b3BzID0gewogCiAJLmluZm8gPSB7CkBAIC0xNjQ3LDYgKzE2NjIsOCBAQCBzdGF0aWMgc3RydWN0
+IGR2Yl9mcm9udGVuZF9vcHMgc3RiMDg5OV9vcHMgPSB7CiAJLmRpc2VxY19zZW5kX21hc3Rlcl9j
+bWQJCT0gc3RiMDg5OV9zZW5kX2Rpc2VxY19tc2csCiAJLmRpc2VxY19yZWN2X3NsYXZlX3JlcGx5
+CT0gc3RiMDg5OV9yZWN2X3NsYXZlX3JlcGx5LAogCS5kaXNlcWNfc2VuZF9idXJzdAkJPSBzdGIw
+ODk5X3NlbmRfZGlzZXFjX2J1cnN0LAorCisJLmdldF9wcm9wZXJ0eQkJCT0gc3RiMDg5OV9nZXRf
+cHJvcGVydHksCiB9OwogCiBzdHJ1Y3QgZHZiX2Zyb250ZW5kICpzdGIwODk5X2F0dGFjaChzdHJ1
+Y3Qgc3RiMDg5OV9jb25maWcgKmNvbmZpZywgc3RydWN0IGkyY19hZGFwdGVyICppMmMpCi0tIAox
+LjcuMQoK
+--bcaec52c6233f101ac04b245119f--
