@@ -1,49 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp22.services.sfr.fr ([93.17.128.12]:11541 "EHLO
-	smtp22.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753895Ab1KER5k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Nov 2011 13:57:40 -0400
-Received: from filter.sfr.fr (localhost [127.0.0.1])
-	by msfrf2211.sfr.fr (SMTP Server) with ESMTP id 0852E70000C9
-	for <linux-media@vger.kernel.org>; Sat,  5 Nov 2011 18:57:38 +0100 (CET)
-Received: from smtp-in.softsystem.co.uk (183.95.30.93.rev.sfr.net [93.30.95.183])
-	by msfrf2211.sfr.fr (SMTP Server) with SMTP id BD61370000C6
-	for <linux-media@vger.kernel.org>; Sat,  5 Nov 2011 18:57:37 +0100 (CET)
-Received: FROM [192.168.1.62] (gagarin [192.168.1.62])
-	BY smtp-in.softsystem.co.uk [93.30.95.183] (SoftMail 1.0.6, www.softsystem.co.uk) WITH ESMTP
-	FOR <linux-media@vger.kernel.org>; Sat, 05 Nov 2011 18:57:36 +0100
-Subject: Re: [PATCH] Revert most of 15cc2bb [media] DVB:
- dtv_property_cache_submit shouldn't modifiy the cache
-From: Lawrence Rust <lawrence@softsystem.co.uk>
-To: Andreas Oberritter <obi@linuxtv.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <4EB574A3.8050503@linuxtv.org>
-References: <1320506379.1731.12.camel@gagarin>
-	 <4EB566CD.7050704@linuxtv.org> <1320513624.1731.20.camel@gagarin>
-	 <4EB574A3.8050503@linuxtv.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 05 Nov 2011 18:57:35 +0100
-Message-ID: <1320515855.1731.28.camel@gagarin>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60673 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756201Ab1KVVGh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Nov 2011 16:06:37 -0500
+Date: Tue, 22 Nov 2011 22:06:32 +0100
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, shawn.guo@linaro.org,
+	richard.zhao@linaro.org, fabio.estevam@freescale.com,
+	kernel@pengutronix.de, r.schwebel@pengutronix.de
+Subject: Re: [PATCH v2 1/2] MX2: Add platform definitions for eMMa-PrP device.
+Message-ID: <20111122210632.GS27267@pengutronix.de>
+References: <1321963316-9058-1-git-send-email-javier.martin@vista-silicon.com>
+ <1321963316-9058-2-git-send-email-javier.martin@vista-silicon.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1321963316-9058-2-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2011-11-05 at 18:38 +0100, Andreas Oberritter wrote:
-[snip]
-> I don't get how this could be useful. MythTV knows what delivery system
-> it wants to use, so it should pass this information to the kernel.
-> Trying to set an invalid delivery system must fail.
+On Tue, Nov 22, 2011 at 01:01:55PM +0100, Javier Martin wrote:
+> eMMa-PrP device included in Freescale i.MX2 chips can also
+> be used separately to process memory buffers.
 > 
-> Using SYS_UNDEFINED as a pre-set default is different from setting
-> SYS_UNDEFINED from userspace, which should always generate an error IMO,
-> unless this is documented otherwise in the API specification.
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> ---
+>  arch/arm/mach-imx/devices-imx27.h               |    2 +
+>  arch/arm/plat-mxc/devices/platform-mx2-camera.c |   33 +++++++++++++++++++++++
+>  arch/arm/plat-mxc/include/mach/devices-common.h |    2 +
+>  3 files changed, 37 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-imx/devices-imx27.h b/arch/arm/mach-imx/devices-imx27.h
+> index 2f727d7..519aa36 100644
+> --- a/arch/arm/mach-imx/devices-imx27.h
+> +++ b/arch/arm/mach-imx/devices-imx27.h
+> @@ -50,6 +50,8 @@ extern const struct imx_imx_uart_1irq_data imx27_imx_uart_data[];
+>  extern const struct imx_mx2_camera_data imx27_mx2_camera_data;
+>  #define imx27_add_mx2_camera(pdata)	\
+>  	imx_add_mx2_camera(&imx27_mx2_camera_data, pdata)
+> +#define imx27_alloc_mx2_emmaprp(pdata)	\
+> +	imx_alloc_mx2_emmaprp(&imx27_mx2_camera_data)
+>  
+>  extern const struct imx_mxc_ehci_data imx27_mxc_ehci_otg_data;
+>  #define imx27_add_mxc_ehci_otg(pdata)	\
+> diff --git a/arch/arm/plat-mxc/devices/platform-mx2-camera.c b/arch/arm/plat-mxc/devices/platform-mx2-camera.c
+> index b3f4828..4a8bd73 100644
+> --- a/arch/arm/plat-mxc/devices/platform-mx2-camera.c
+> +++ b/arch/arm/plat-mxc/devices/platform-mx2-camera.c
+> @@ -6,6 +6,7 @@
+>   * the terms of the GNU General Public License version 2 as published by the
+>   * Free Software Foundation.
+>   */
+> +#include <linux/dma-mapping.h>
+>  #include <mach/hardware.h>
+>  #include <mach/devices-common.h>
+>  
+> @@ -62,3 +63,35 @@ struct platform_device *__init imx_add_mx2_camera(
+>  			res, data->iobaseemmaprp ? 4 : 2,
+>  			pdata, sizeof(*pdata), DMA_BIT_MASK(32));
+>  }
+> +
+> +struct platform_device *__init imx_alloc_mx2_emmaprp(
+> +		const struct imx_mx2_camera_data *data)
 
-It's not ideal that MythTV is setting DTV_DELIVERY_SYSTEM to 0 and I
-have filed a bug against this.  But that doesn't change the fact that
-the original patch significantly changed user parameter handling for no
-significant benefit.  MythTV is probably the biggest client of v4l and
-will greatly hinder users upgrading to (Myth)Ubuntu 12.04 or Fedora 16
-both of which use Linux 3.x.
+Why only alloc and not register?
+
+> +{
+> +	struct resource res[] = {
+> +		{
+> +			.start = data->iobaseemmaprp,
+> +			.end = data->iobaseemmaprp + data->iosizeemmaprp - 1,
+> +			.flags = IORESOURCE_MEM,
+> +		}, {
+> +			.start = data->irqemmaprp,
+> +			.end = data->irqemmaprp,
+> +			.flags = IORESOURCE_IRQ,
+> +		},
+> +	};
+> +	struct platform_device *pdev;
+> +	int ret = -ENOMEM;
+> +
+> +	pdev = platform_device_alloc("m2m-emmaprp", 0);
+> +	if (!pdev)
+> +		goto err;
+> +
+> +	ret = platform_device_add_resources(pdev, res, ARRAY_SIZE(res));
+> +	if (ret)
+> +		goto err;
+> +
+> +	return pdev;
+> +err:
+> +	platform_device_put(pdev);
+> +	return ERR_PTR(-ENODEV);
+> +
+> +}
+> diff --git a/arch/arm/plat-mxc/include/mach/devices-common.h b/arch/arm/plat-mxc/include/mach/devices-common.h
+> index def9ba5..ce64bd5 100644
+> --- a/arch/arm/plat-mxc/include/mach/devices-common.h
+> +++ b/arch/arm/plat-mxc/include/mach/devices-common.h
+> @@ -223,6 +223,8 @@ struct imx_mx2_camera_data {
+>  struct platform_device *__init imx_add_mx2_camera(
+>  		const struct imx_mx2_camera_data *data,
+>  		const struct mx2_camera_platform_data *pdata);
+> +struct platform_device *__init imx_alloc_mx2_emmaprp(
+> +		const struct imx_mx2_camera_data *data);
+>  
+>  #include <mach/mxc_ehci.h>
+>  struct imx_mxc_ehci_data {
+> -- 
+> 1.7.0.4
+> 
+> 
+
 -- 
-Lawrence
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
