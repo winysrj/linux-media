@@ -1,97 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:44592 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752055Ab1KBKQv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 06:16:51 -0400
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1863 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753094Ab1KVKtJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Nov 2011 05:49:09 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [RFC/PATCH v1 1/3] v4l: Add new framesamples field to struct v4l2_mbus_framefmt
+Date: Tue, 22 Nov 2011 11:48:57 +0100
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
+	sakari.ailus@iki.fi, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+References: <1321955740-24452-1-git-send-email-s.nawrocki@samsung.com> <1321955740-24452-2-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1321955740-24452-2-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <1320185752-568-5-git-send-email-omar.ramirez@ti.com>
-References: <1320185752-568-1-git-send-email-omar.ramirez@ti.com>
-	<1320185752-568-5-git-send-email-omar.ramirez@ti.com>
-Date: Wed, 2 Nov 2011 19:16:50 +0900
-Message-ID: <CAJ0PZbSpxtp1bvbdWxK-hsg=XUbfodgY-7D37rOn=s3yB-Upjw@mail.gmail.com>
-Subject: Re: [PATCH v3 4/4] OMAP3/4: iommu: adapt to runtime pm
-From: MyungJoo Ham <myungjoo.ham@gmail.com>
-To: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>,
-	Benoit Cousson <b-cousson@ti.com>,
-	Ohad Ben-Cohen <ohad@wizery.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	lkml <linux-kernel@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	lo <linux-omap@vger.kernel.org>,
-	lak <linux-arm-kernel@lists.infradead.org>,
-	lm <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111221148.57445.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 2, 2011 at 7:15 AM, Omar Ramirez Luna <omar.ramirez@ti.com> wrote:
-> Use runtime PM functionality interfaced with hwmod enable/idle
-> functions, to replace direct clock operations, reset and sysconfig
-> handling.
->
-> Tidspbridge uses a macro removed with this patch, for now the value
-> is hardcoded to avoid breaking compilation.
->
-> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+On Tuesday, November 22, 2011 10:55:38 Sylwester Nawrocki wrote:
+> The purpose of the new field is to allow the video pipeline elements to
+> negotiate memory buffer size for compressed data frames, where the buffer
+> size cannot be derived from pixel width and height and the pixel code.
+> 
+> For VIDIOC_SUBDEV_S_FMT and VIDIOC_SUBDEV_G_FMT ioctls, the framesamples
+> parameter should be calculated by the driver from pixel width, height,
+> color format and other parameters if required and returned to the caller.
+> This applies to compressed data formats only.
+> 
+> The application should propagate the framesamples value, whatever returned
+> at the first sub-device within a data pipeline, i.e. at the pipeline's data
+> source.
+> 
+> For compressed data formats the host drivers should internally validate
+> the framesamples parameter values before streaming is enabled, to make sure
+> the memory buffer size requirements are satisfied along the pipeline.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 > ---
->  arch/arm/mach-omap2/iommu2.c                      |   17 --------
->  arch/arm/mach-omap2/omap-iommu.c                  |    1 -
->  arch/arm/plat-omap/include/plat/iommu.h           |    2 -
->  arch/arm/plat-omap/include/plat/iommu2.h          |    2 -
->  drivers/iommu/omap-iommu.c                        |   46 ++++++++-------------
->  drivers/staging/tidspbridge/core/tiomap3430_pwr.c |    2 +-
->  6 files changed, 19 insertions(+), 51 deletions(-)
->
-> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-> index bbbf747..3c55be0 100644
-> --- a/drivers/iommu/omap-iommu.c
-> +++ b/drivers/iommu/omap-iommu.c
-> @@ -123,11 +123,11 @@ static int iommu_enable(struct omap_iommu *obj)
->        if (!arch_iommu)
->                return -ENODEV;
->
-> -       clk_enable(obj->clk);
-> +       pm_runtime_enable(obj->dev);
-> +       pm_runtime_get_sync(obj->dev);
->
->        err = arch_iommu->enable(obj);
->
-> -       clk_disable(obj->clk);
->        return err;
->  }
->
-> @@ -136,11 +136,10 @@ static void iommu_disable(struct omap_iommu *obj)
->        if (!obj)
->                return;
->
-> -       clk_enable(obj->clk);
-> -
->        arch_iommu->disable(obj);
->
-> -       clk_disable(obj->clk);
-> +       pm_runtime_put_sync(obj->dev);
-> +       pm_runtime_disable(obj->dev);
->  }
+>  Documentation/DocBook/media/v4l/subdev-formats.xml |    7 ++++++-
+>  include/linux/v4l2-mediabus.h                      |    4 +++-
+>  2 files changed, 9 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> index 49c532e..d0827b4 100644
+> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
+> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> @@ -35,7 +35,12 @@
+>  	</row>
+>  	<row>
+>  	  <entry>__u32</entry>
+> -	  <entry><structfield>reserved</structfield>[7]</entry>
+> +	  <entry><structfield>framesamples</structfield></entry>
+> +	  <entry>Number of data samples on media bus per frame.</entry>
 
-Hello Omar,
+Is this the *maximum* number of data samples, or is this the *required* number
+of data samples?
 
+I think you mean 'maximum', but the documentation does not actually state that.
 
-I'm just curious here... Is there any reason to do
-pm_runtime_enable/disable at iommu_enable/iommu_disable which are
-called by iommu_attach/detach?
-I thought that normally, ideal locations of pm_runtime_enable/disable
-for such devices are in probe/remove() because it assures that the
-device is suspended after the probe.
-It seems that the device might be kept on after probe and before the
-first iommu_attach if it is default-on.
+It should also clearly state that this field is used only for compressed
+formats (right?). Should drivers be required to set this to 0 for uncompressed
+formats?
 
+Regards,
 
-Thanks,
-MyungJoo
+	Hans
 
-
--- 
-MyungJoo Ham, Ph.D.
-Mobile Software Platform Lab, DMC Business, Samsung Electronics
+> +	</row>
+> +	<row>
+> +	  <entry>__u32</entry>
+> +	  <entry><structfield>reserved</structfield>[6]</entry>
+>  	  <entry>Reserved for future extensions. Applications and drivers must
+>  	  set the array to zero.</entry>
+>  	</row>
+> diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+> index 5ea7f75..ce776e8 100644
+> --- a/include/linux/v4l2-mediabus.h
+> +++ b/include/linux/v4l2-mediabus.h
+> @@ -101,6 +101,7 @@ enum v4l2_mbus_pixelcode {
+>   * @code:	data format code (from enum v4l2_mbus_pixelcode)
+>   * @field:	used interlacing type (from enum v4l2_field)
+>   * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
+> + * @framesamples: number of data samples per frame
+>   */
+>  struct v4l2_mbus_framefmt {
+>  	__u32			width;
+> @@ -108,7 +109,8 @@ struct v4l2_mbus_framefmt {
+>  	__u32			code;
+>  	__u32			field;
+>  	__u32			colorspace;
+> -	__u32			reserved[7];
+> +	__u32			framesamples;
+> +	__u32			reserved[6];
+>  };
+>  
+>  #endif
+> 
