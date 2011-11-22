@@ -1,284 +1,1116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35972 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752878Ab1K1LHl (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:55944 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751387Ab1KVMCc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 06:07:41 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: Using MT9P031 digital sensor
-Date: Mon, 28 Nov 2011 12:07:46 +0100
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4EB04001.9050803@mlbassoc.com> <201111241228.38082.laurent.pinchart@ideasonboard.com> <4ECF8101.7050603@mlbassoc.com>
-In-Reply-To: <4ECF8101.7050603@mlbassoc.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111281207.46625.laurent.pinchart@ideasonboard.com>
+	Tue, 22 Nov 2011 07:02:32 -0500
+Received: by mail-ey0-f174.google.com with SMTP id 27so79062eye.19
+        for <linux-media@vger.kernel.org>; Tue, 22 Nov 2011 04:02:31 -0800 (PST)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, shawn.guo@linaro.org,
+	richard.zhao@linaro.org, fabio.estevam@freescale.com,
+	kernel@pengutronix.de, s.hauer@pengutronix.de,
+	r.schwebel@pengutronix.de
+Cc: Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH v2 2/2] MEM2MEM: Add support for eMMa-PrP mem2mem operations.
+Date: Tue, 22 Nov 2011 13:01:56 +0100
+Message-Id: <1321963316-9058-3-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1321963316-9058-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1321963316-9058-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gary,
+Changes since v1:
+- Embed queue data in ctx structure to allow multi instance.
+- Remove redundant job_ready callback.
+- Adjust format against device capabilities.
+- Register/unregister video device at the right time.
+- Other minor coding fixes.
 
-On Friday 25 November 2011 12:50:25 Gary Thomas wrote:
-> On 2011-11-24 04:28, Laurent Pinchart wrote:
-> > On Wednesday 16 November 2011 13:03:11 Gary Thomas wrote:
-> >> On 2011-11-15 18:26, Laurent Pinchart wrote:
-> >>> On Monday 14 November 2011 12:42:54 Gary Thomas wrote:
-> >>>> On 2011-11-11 07:26, Laurent Pinchart wrote:
-> >>>>> On Wednesday 09 November 2011 17:24:26 Gary Thomas wrote:
-> >>>>>> On 2011-11-09 09:18, Laurent Pinchart wrote:
-> >>>>>>> On Wednesday 09 November 2011 12:01:34 Gary Thomas wrote:
-> >>>>>>>> On 2011-11-08 17:54, Laurent Pinchart wrote:
-> >>>>>>>>> On Tuesday 08 November 2011 14:38:55 Gary Thomas wrote:
-> >>>>>>>>>> On 2011-11-08 06:06, Laurent Pinchart wrote:
-> >>>>>>>>>>> On Tuesday 08 November 2011 13:52:25 Gary Thomas wrote:
-> >>>>>>>>>>>> On 2011-11-08 05:30, Javier Martinez Canillas wrote:
-> >>>>>>>>>>>>> On Tue, Nov 8, 2011 at 1:20 PM, Gary Thomas wrote:
-> >>>>>>>>>>>>>> On 2011-11-04 04:37, Laurent Pinchart wrote:
-> >>>>>>>>>>>>>>> On Tuesday 01 November 2011 19:52:49 Gary Thomas wrote:
-> >>>>>>>>>>>>>>>> I'm trying to use the MT9P031 digital sensor with the
-> >>>>>>>>>>>>>>>> Media Controller Framework.  media-ctl tells me that the
-> >>>>>>>>>>>>>>>> sensor is set to capture using SGRBG12  2592x1944
-> >>>>>>>>>>>>>>>> 
-> >>>>>>>>>>>>>>>> Questions:
-> >>>>>>>>>>>>>>>> * What pixel format in ffmpeg does this correspond to?
-> >>>>>>>>>>>>>>> 
-> >>>>>>>>>>>>>>> I don't know if ffmpeg supports Bayer formats. The
-> >>>>>>>>>>>>>>> corresponding fourcc in V4L2 is BA12.
-> >>>>>>>>>>>>>> 
-> >>>>>>>>>>>>>> ffmpeg doesn't seem to support these formats
-> >>>>>>>>>>>>>> 
-> >>>>>>>>>>>>>>> If your sensor is hooked up to the OMAP3 ISP, you can then
-> >>>>>>>>>>>>>>> configure the pipeline to include the preview engine and
-> >>>>>>>>>>>>>>> the resizer, and capture YUV data
-> >>>>>>>>>>>>>>> at the resizer output.
-> >>>>>>>>>>>>>> 
-> >>>>>>>>>>>>>> I am using the OMAP3 ISP, but it's a bit unclear to me how
-> >>>>>>>>>>>>>> to set up the pipeline
-> >>>>>>>>>>>>> 
-> >>>>>>>>>>>>> Hi Gary,
-> >>>>>>>>>>>>> 
-> >>>>>>>>>>>>> I'm also using another sensor mtv9034 with OMAP3 ISP, so
-> >>>>>>>>>>>>> maybe I can help you.
-> >>>>>>>>>>>>> 
-> >>>>>>>>>>>>>> using media-ctl (I looked for documentation on this tool,
-> >>>>>>>>>>>>>> but came up dry - is there any?)
-> >>>>>>>>>>>>>> 
-> >>>>>>>>>>>>>> Do you have an example of how to configure this using the
-> >>>>>>>>>>>>>> OMAP3 ISP?
-> >>>>>>>>>>>>> 
-> >>>>>>>>>>>>> This is how I configure the pipeline to connect the CCDC with
-> >>>>>>>>>>>>> the Previewer and Resizer:
-> >>>>>>>>>>>>> 
-> >>>>>>>>>>>>> ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
-> >>>>>>>>>>>>> ./media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
-> >>>>>>>>>>>>> ./media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP
-> >>>>>>>>>>>>> resizer":0[1]' ./media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3
-> >>>>>>>>>>>>> ISP resizer output":0[1]' ./media-ctl -f '"mt9v032
-> >>>>>>>>>>>>> 3-005c":0[SGRBG10 752x480]' ./media-ctl -f  '"OMAP3 ISP
-> >>>>>>>>>>>>> CCDC":0 [SGRBG10 752x480]' ./media-ctl -f  '"OMAP3 ISP
-> >>>>>>>>>>>>> CCDC":1 [SGRBG10 752x480]' ./media-ctl -f  '"OMAP3 ISP
-> >>>>>>>>>>>>> preview":0 [SGRBG10 752x479]' ./media-ctl -f  '"OMAP3 ISP
-> >>>>>>>>>>>>> resizer":0 [YUYV 734x471]' ./media-ctl -f  '"OMAP3 ISP
-> >>>>>>>>>>>>> resizer":1 [YUYV 640x480]'
-> >>>>>>>>>>>>> 
-> >>>>>>>>>>>>> Hope it helps,
-> >>>>>>>>>>>> 
-> >>>>>>>>>>>> Thanks, I'll give this a try.
-> >>>>>>>>>>>> 
-> >>>>>>>>>>>> I assume that your sensor is probably larger than 752x480 (the
-> >>>>>>>>>>>> mt9p031 is 2592x1944 raw) and that setting the smaller frame
-> >>>>>>>>>>>> size enables some scaling and/or cropping in the driver?
-> >>>>>>>>>>> 
-> >>>>>>>>>>> The mt9v034 is a wide VGA 752x480 sensor if I'm not mistaken.
-> >>>>>>>>>>> You should modify the resolutions in the above commands
-> >>>>>>>>>>> according to your sensor. Note that the CCDC crops online line
-> >>>>>>>>>>> when outputting data to the preview engine, and that the
-> >>>>>>>>>>> preview engine crops 18 columsn and 8 lines. You can then
-> >>>>>>>>>>> scale the image by modifying the resizer output size.
-> >>>>>>>>>> 
-> >>>>>>>>>> Thanks.  After much trial and error (and some kernel printks to
-> >>>>>>>>>> 
-> >>>>>>>>>> understand what parameters were failing), I came up with this
-> >>> 
-> >>> sequence:
-> >>>>>>>>>>         media-ctl -r
-> >>>>>>>>>>         media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
-> >>>>>>>>>>         media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP
-> >>>>>>>>>>         preview":0[1]' media-ctl -l '"OMAP3 ISP
-> >>>>>>>>>>         preview":1->"OMAP3 ISP resizer":0[1]' media-ctl -l
-> >>>>>>>>>>         '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
-> >>>>>>>>>>         output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12
-> >>>>>>>>>>         2592x1944]' media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG12
-> >>>>>>>>>>         2592x1944]'
-> >>>>>>>>>>         media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG12 2592x1944]'
-> >>>>>>>>>>         media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG12
-> >>>>>>>>>>         2592x1943]' media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV
-> >>>>>>>>>>         2574x1935]' media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV
-> >>>>>>>>>>         642x483]'
-> >>>>>>>>>> 
-> >>>>>>>>>> When I tried to grab though, I got this:
-> >>>>>>>>>> 
-> >>>>>>>>>> # yavta --capture=4 -f YUYV -s 642x483 -F /dev/video6
-> >>>>>>>>>> Device /dev/video6 opened.
-> >>>>>>>>>> Device `OMAP3 ISP resizer output' on `media' is a video capture
-> >>>>>>>>>> device. Video format set: YUYV (56595559) 642x483 buffer size
-> >>>>>>>>>> 633696 Video format: YUYV (56595559) 642x483 buffer size 633696
-> >>>>>>>>>> 8 buffers requested.
-> >>>>>>>>>> length: 633696 offset: 0
-> >>>>>>>>>> Buffer 0 mapped at address 0x4028c000.
-> >>>>>>>>>> length: 633696 offset: 634880
-> >>>>>>>>>> Buffer 1 mapped at address 0x403d0000.
-> >>>>>>>>>> length: 633696 offset: 1269760
-> >>>>>>>>>> Buffer 2 mapped at address 0x404b3000.
-> >>>>>>>>>> length: 633696 offset: 1904640
-> >>>>>>>>>> Buffer 3 mapped at address 0x4062b000.
-> >>>>>>>>>> length: 633696 offset: 2539520
-> >>>>>>>>>> Buffer 4 mapped at address 0x406d6000.
-> >>>>>>>>>> length: 633696 offset: 3174400
-> >>>>>>>>>> Buffer 5 mapped at address 0x40821000.
-> >>>>>>>>>> length: 633696 offset: 3809280
-> >>>>>>>>>> Buffer 6 mapped at address 0x4097c000.
-> >>>>>>>>>> length: 633696 offset: 4444160
-> >>>>>>>>>> Buffer 7 mapped at address 0x40adf000.
-> >>>>>>>>>> 
-> >>>>>>>>>> Unable to handle kernel NULL pointer dereference at virtual
-> >>>>>>>>>> address 00000018
-> >>>>>>>>> 
-> >>>>>>>>> Ouch :-(
-> >>>>>>>>> 
-> >>>>>>>>> Could you please verify that arch/arm/mach-omap2/board-overo.c
-> >>>>>>>>> includes the following code, and that CONFIG_OMAP_MUX is enabled
-> >>>>>>>>> ?
-> >>>>>>>> 
-> >>>>>>>> I'm not using an Overo board - rather one of our own internal
-> >>>>>>>> designs.
-> >>>>>>> 
-> >>>>>>> My bad, sorry.
-> >>>>>>> 
-> >>>>>>>> I have verified that the pull up/down on those pins is disabled.
-> >>>>>>>> 
-> >>>>>>>> The failure is coming from this code in ispccdc.c
-> >>>>>>>> 
-> >>>>>>>>        static void ccdc_hs_vs_isr(struct isp_ccdc_device *ccdc)
-> >>>>>>>>        {
-> >>>>>>>> 	  
-> >>>>>>>> 	  struct isp_pipeline *pipe =
-> >>>>>>>> 		
-> >>>>>>>> 		to_isp_pipeline(&ccdc->video_out.video.entity);
-> >>>>>>>> 
-> >>>>>>>> The value of pipe is NULL which leads to the failure.
-> >>>>>>>> 
-> >>>>>>>> Questions:
-> >>>>>>>> * I assume that getting HS/VS interrupts is correct in this mode?
-> >>>>>>>> * Why is the statement not written (as all others are)
-> >>>>>>>> 
-> >>>>>>>> 	struct isp_pipeline *pipe =
-> >>>>>>>> 	to_isp_pipeline(&ccdc->subdev.entity);
-> >>>>>>>> 	
-> >>>>>>>>        I tried this change and the kernel doesn't crash.
-> >>>>>>>> 
-> >>>>>>>> I've found that I can get raw frames out of CCDC, but I don't get
-> >>>>>>>> anything at all when the output continues through the preview
-> >>>>>>>> and/or resize nodes.
-> >>>>>>>> 
-> >>>>>>>> Ideas?
-> >>>>>>> 
-> >>>>>>> I'm really puzzled, this should have been caught much earlier :-)
-> >>>>>>> 
-> >>>>>>> Your analysis makes sense. Would you like to submit a patch
-> >>>>>>> yourself ? If not I can do it.
-> >>>>>> 
-> >>>>>> Sure, I can submit a patch. I would like to figure out why it's not
-> >>>>>> working first.
-> >>>>> 
-> >>>>> Oops, I've overlooked that, sorry.
-> >>>>> 
-> >>>>>> Any ideas how I can debug this? I can't seem to get anything past
-> >>>>>> the CCDC, e.g. into the preview or resize units. Is there some way
-> >>>>>> to trace packets/data through the various stages? Any ideas what
-> >>>>>> might cause it to stall?
-> >>>>> 
-> >>>>> How have you configured your pipeline ? Can you try tracing the
-> >>>>> preview engine and/or resizer interrupts ?
-> >>>> 
-> >>>> Here's my pipeline:
-> >>>>      media-ctl -r
-> >>>>      media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
-> >>>>      media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
-> >>>>      media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
-> >>>>      media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
-> >>>>      output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12
-> >>>>      2592x1944]' media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG10
-> >>>>      2592x1944]'
-> >>>>      media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
-> >>>>      media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
-> >>>>      media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
-> >>>>      media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 642x483]'
-> >>>> 
-> >>>> The full media-ctl dump is at
-> >>>> http://www.mlbassoc.com/misc/pipeline.out
-> >>>> 
-> >>>> When I try to grab from /dev/video6 (output node of resizer), I see
-> >>>> only previewer interrupts, no resizer interrrupts.  I added a simple
-> >>>> printk at each of the previewer/resizer *_isr functions, and I only
-> >>>> 
-> >>>> ever see this one:
-> >>>>      omap3isp_preview_isr_frame_sync.1373
-> >>>> 
-> >>>> Can you give me an overview of what events/interrupts should occur so
-> >>>> I can try to trace through the ISP to see where it is failing?
-> >>> 
-> >>> The CCDC generates VD0, VD1 and HS/VS interrupts regardless of whether
-> >>> it processes video or not, as long as it receives a video stream at
-> >>> its input. The preview engine and resizer will only generate an
-> >>> interrupt after writing an image to memory. With your above
-> >>> configuration VD0, VD1, HS/VS and resizer interrupts should be
-> >>> generated.
-> >>> 
-> >>> Your pipeline configuration looks correct, except that the downscaling
-> >>> factor is slightly larger than 4. Could you try to setup the resizer to
-> >>> output a 2574x1935 image instead of 642x483 ? If that works, try to
-> >>> downscale to 660x496. If that works as well, the driver should be fixed
-> >>> to disallow resolutions that won't work.
-> >> 
-> >> No change.  I also tried using only the previewer like this:
-> >>     media-ctl -r
-> >>     media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
-> >>     media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
-> >>     media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP preview
-> >>     output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12 2592x1944]'
-> >>     media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG12 2592x1944]'
-> >>     media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
-> >>     media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
-> >>     media-ctl -f  '"OMAP3 ISP preview":1 [YUYV 2574x1935]'
-> >>     
-> >>     yavta --capture=4 -f YUYV -s 2574x1935 -F /dev/video4
-> >> 
-> >> I still only get the frame sync interrupts in the previewer, no buffer
-> >> interrupts, hence no data flowing to my application.  What else can I
-> >> look at?
-> > 
-> > Do you get VD0 and VD1 interrupts ?
-> 
-> Yes, the CCDC is working correctly, but nothing moves through the
-> previewer. Here's a trace of the interrupt sequence I get, repeated over
-> and over.  These are printed as __FUNCTION__.__LINE__
-> --- ccdc_vd0_isr.1615
-> --- ccdc_hs_vs_isr.1482
-> --- ccdc_vd1_isr.1664
-> --- omap3isp_preview_isr_frame_sync.1373
-> 
-> What's the best tree to try this against?  3.2-rc2 doesn't have the BT656
-> stuff in it yet, so I've been still using my older tree (3.0.0 +
-> drivers/media from your tree)
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ drivers/media/video/Kconfig       |   10 +
+ drivers/media/video/Makefile      |    2 +
+ drivers/media/video/mx2_emmaprp.c | 1035 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 1047 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/mx2_emmaprp.c
 
-I thought you were using an MT9P031 ? That doesn't require BT656 support.
-
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index b303a3f..77d7921 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -1107,4 +1107,14 @@ config VIDEO_SAMSUNG_S5P_MFC
+ 	help
+ 	    MFC 5.1 driver for V4L2.
+ 
++config VIDEO_MX2_EMMAPRP
++	tristate "MX2 eMMa-PrP support"
++	depends on VIDEO_DEV && VIDEO_V4L2 && MACH_MX27
++	select VIDEOBUF2_DMA_CONTIG
++	select V4L2_MEM2MEM_DEV
++	help
++	    MX2X chips have a PrP that can be used to process buffers from
++	    memory to memory. Operations include resizing and format
++	    conversion.
++
+ endif # V4L_MEM2MEM_DRIVERS
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 117f9c4..7ae711e 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -176,6 +176,8 @@ obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
+ obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
+ obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
+ 
++obj-$(CONFIG_VIDEO_MX2_EMMAPRP)		+= mx2_emmaprp.o
++
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_FIMC) 	+= s5p-fimc/
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC)	+= s5p-mfc/
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
+diff --git a/drivers/media/video/mx2_emmaprp.c b/drivers/media/video/mx2_emmaprp.c
+new file mode 100644
+index 0000000..6b98aac
+--- /dev/null
++++ b/drivers/media/video/mx2_emmaprp.c
+@@ -0,0 +1,1035 @@
++/*
++ * Support eMMa-PrP through mem2mem framework.
++ *
++ * eMMa-PrP is a piece of HW that allows fetching buffers
++ * from one memory location and do several operations on
++ * them such as scaling or format conversion giving, as a result
++ * a new processed buffer in another memory location.
++ *
++ * Based on mem2mem_testdev.c by Pawel Osciak.
++ *
++ * Copyright (c) 2011 Vista Silicon S.L.
++ * Javier Martin <javier.martin@vista-silicon.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the
++ * License, or (at your option) any later version
++ */
++#include <linux/module.h>
++#include <linux/clk.h>
++#include <linux/slab.h>
++#include <linux/interrupt.h>
++
++#include <linux/platform_device.h>
++#include <media/v4l2-mem2mem.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-dma-contig.h>
++
++#define EMMAPRP_MODULE_NAME "mem2mem-emmaprp"
++
++MODULE_DESCRIPTION("mem2mem device which supports eMMa-PrP present in mx2 SoCs");
++MODULE_AUTHOR("Javier Martin <javier.martin@vista-silicon.com");
++MODULE_LICENSE("GPL");
++MODULE_VERSION("0.0.1");
++
++static bool debug;
++module_param(debug, bool, 0644);
++
++#define MIN_W 32
++#define MIN_H 32
++#define MAX_W 2040
++#define MAX_H 2046
++
++#define W_ALIGN_MASK_YUV420	0x07 /* multiple of 8 */
++#define W_ALIGN_MASK_OTHERS	0x03 /* multiple of 4 */
++#define H_ALIGN_MASK		0x01 /* multiple of 2 */
++
++/* Flags that indicate a format can be used for capture/output */
++#define MEM2MEM_CAPTURE	(1 << 0)
++#define MEM2MEM_OUTPUT	(1 << 1)
++
++#define MEM2MEM_NAME		"m2m-emmaprp"
++
++/* In bytes, per queue */
++#define MEM2MEM_VID_MEM_LIMIT	(16 * SZ_1M)
++
++#define dprintk(dev, fmt, arg...) \
++	v4l2_dbg(1, debug, &dev->v4l2_dev, "%s: " fmt, __func__, ## arg)
++
++/* EMMA PrP */
++#define PRP_CNTL                        0x00
++#define PRP_INTR_CNTL                   0x04
++#define PRP_INTRSTATUS                  0x08
++#define PRP_SOURCE_Y_PTR                0x0c
++#define PRP_SOURCE_CB_PTR               0x10
++#define PRP_SOURCE_CR_PTR               0x14
++#define PRP_DEST_RGB1_PTR               0x18
++#define PRP_DEST_RGB2_PTR               0x1c
++#define PRP_DEST_Y_PTR                  0x20
++#define PRP_DEST_CB_PTR                 0x24
++#define PRP_DEST_CR_PTR                 0x28
++#define PRP_SRC_FRAME_SIZE              0x2c
++#define PRP_DEST_CH1_LINE_STRIDE        0x30
++#define PRP_SRC_PIXEL_FORMAT_CNTL       0x34
++#define PRP_CH1_PIXEL_FORMAT_CNTL       0x38
++#define PRP_CH1_OUT_IMAGE_SIZE          0x3c
++#define PRP_CH2_OUT_IMAGE_SIZE          0x40
++#define PRP_SRC_LINE_STRIDE             0x44
++#define PRP_CSC_COEF_012                0x48
++#define PRP_CSC_COEF_345                0x4c
++#define PRP_CSC_COEF_678                0x50
++#define PRP_CH1_RZ_HORI_COEF1           0x54
++#define PRP_CH1_RZ_HORI_COEF2           0x58
++#define PRP_CH1_RZ_HORI_VALID           0x5c
++#define PRP_CH1_RZ_VERT_COEF1           0x60
++#define PRP_CH1_RZ_VERT_COEF2           0x64
++#define PRP_CH1_RZ_VERT_VALID           0x68
++#define PRP_CH2_RZ_HORI_COEF1           0x6c
++#define PRP_CH2_RZ_HORI_COEF2           0x70
++#define PRP_CH2_RZ_HORI_VALID           0x74
++#define PRP_CH2_RZ_VERT_COEF1           0x78
++#define PRP_CH2_RZ_VERT_COEF2           0x7c
++#define PRP_CH2_RZ_VERT_VALID           0x80
++
++#define PRP_CNTL_CH1EN          (1 << 0)
++#define PRP_CNTL_CH2EN          (1 << 1)
++#define PRP_CNTL_CSIEN          (1 << 2)
++#define PRP_CNTL_DATA_IN_YUV420 (0 << 3)
++#define PRP_CNTL_DATA_IN_YUV422 (1 << 3)
++#define PRP_CNTL_DATA_IN_RGB16  (2 << 3)
++#define PRP_CNTL_DATA_IN_RGB32  (3 << 3)
++#define PRP_CNTL_CH1_OUT_RGB8   (0 << 5)
++#define PRP_CNTL_CH1_OUT_RGB16  (1 << 5)
++#define PRP_CNTL_CH1_OUT_RGB32  (2 << 5)
++#define PRP_CNTL_CH1_OUT_YUV422 (3 << 5)
++#define PRP_CNTL_CH2_OUT_YUV420 (0 << 7)
++#define PRP_CNTL_CH2_OUT_YUV422 (1 << 7)
++#define PRP_CNTL_CH2_OUT_YUV444 (2 << 7)
++#define PRP_CNTL_CH1_LEN        (1 << 9)
++#define PRP_CNTL_CH2_LEN        (1 << 10)
++#define PRP_CNTL_SKIP_FRAME     (1 << 11)
++#define PRP_CNTL_SWRST          (1 << 12)
++#define PRP_CNTL_CLKEN          (1 << 13)
++#define PRP_CNTL_WEN            (1 << 14)
++#define PRP_CNTL_CH1BYP         (1 << 15)
++#define PRP_CNTL_IN_TSKIP(x)    ((x) << 16)
++#define PRP_CNTL_CH1_TSKIP(x)   ((x) << 19)
++#define PRP_CNTL_CH2_TSKIP(x)   ((x) << 22)
++#define PRP_CNTL_INPUT_FIFO_LEVEL(x)    ((x) << 25)
++#define PRP_CNTL_RZ_FIFO_LEVEL(x)       ((x) << 27)
++#define PRP_CNTL_CH2B1EN        (1 << 29)
++#define PRP_CNTL_CH2B2EN        (1 << 30)
++#define PRP_CNTL_CH2FEN         (1 << 31)
++
++#define PRP_SIZE_HEIGHT(x)	(x)
++#define PRP_SIZE_WIDTH(x)	((x) << 16)
++
++/* IRQ Enable and status register */
++#define PRP_INTR_RDERR          (1 << 0)
++#define PRP_INTR_CH1WERR        (1 << 1)
++#define PRP_INTR_CH2WERR        (1 << 2)
++#define PRP_INTR_CH1FC          (1 << 3)
++#define PRP_INTR_CH2FC          (1 << 5)
++#define PRP_INTR_LBOVF          (1 << 7)
++#define PRP_INTR_CH2OVF         (1 << 8)
++
++#define PRP_INTR_ST_RDERR	(1 << 0)
++#define PRP_INTR_ST_CH1WERR	(1 << 1)
++#define PRP_INTR_ST_CH2WERR	(1 << 2)
++#define PRP_INTR_ST_CH2B2CI	(1 << 3)
++#define PRP_INTR_ST_CH2B1CI	(1 << 4)
++#define PRP_INTR_ST_CH1B2CI	(1 << 5)
++#define PRP_INTR_ST_CH1B1CI	(1 << 6)
++#define PRP_INTR_ST_LBOVF	(1 << 7)
++#define PRP_INTR_ST_CH2OVF	(1 << 8)
++
++struct emmaprp_fmt {
++	char	*name;
++	u32	fourcc;
++	/* Types the format can be used for */
++	u32	types;
++};
++
++static struct emmaprp_fmt formats[] = {
++	{
++		.name	= "YUV 4:2:0 Planar",
++		.fourcc	= V4L2_PIX_FMT_YUV420,
++		.types	= MEM2MEM_CAPTURE,
++	},
++	{
++		.name	= "4:2:2, packed, YUYV",
++		.fourcc	= V4L2_PIX_FMT_YUYV,
++		.types	= MEM2MEM_OUTPUT,
++	},
++};
++
++/* Per-queue, driver-specific private data */
++struct emmaprp_q_data {
++	unsigned int		width;
++	unsigned int		height;
++	unsigned int		sizeimage;
++	struct emmaprp_fmt	*fmt;
++};
++
++enum {
++	V4L2_M2M_SRC = 0,
++	V4L2_M2M_DST = 1,
++};
++
++#define NUM_FORMATS ARRAY_SIZE(formats)
++
++static struct emmaprp_fmt *find_format(struct v4l2_format *f)
++{
++	struct emmaprp_fmt *fmt;
++	unsigned int k;
++
++	for (k = 0; k < NUM_FORMATS; k++) {
++		fmt = &formats[k];
++		if (fmt->fourcc == f->fmt.pix.pixelformat)
++			break;
++	}
++
++	if (k == NUM_FORMATS)
++		return NULL;
++
++	return &formats[k];
++}
++
++struct emmaprp_dev {
++	struct v4l2_device	v4l2_dev;
++	struct video_device	*vfd;
++
++	struct mutex		dev_mutex;
++	spinlock_t		irqlock;
++
++	int			irq_emma;
++	void __iomem		*base_emma;
++	struct clk		*clk_emma;
++	struct resource		*res_emma;
++
++	struct v4l2_m2m_dev	*m2m_dev;
++	struct vb2_alloc_ctx	*alloc_ctx;
++};
++
++struct emmaprp_ctx {
++	struct emmaprp_dev	*dev;
++	/* Abort requested by m2m */
++	int			aborting;
++	struct emmaprp_q_data	q_data[2];
++	struct v4l2_m2m_ctx	*m2m_ctx;
++};
++
++static struct emmaprp_q_data *get_q_data(struct emmaprp_ctx *ctx,
++					 enum v4l2_buf_type type)
++{
++	switch (type) {
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		return &(ctx->q_data[V4L2_M2M_SRC]);
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++		return &(ctx->q_data[V4L2_M2M_DST]);
++	default:
++		BUG();
++	}
++	return NULL;
++}
++
++/*
++ * mem2mem callbacks
++ */
++static void emmaprp_job_abort(void *priv)
++{
++	struct emmaprp_ctx *ctx = priv;
++	struct emmaprp_dev *pcdev = ctx->dev;
++
++	ctx->aborting = 1;
++
++	dprintk(pcdev, "Aborting task\n");
++
++	v4l2_m2m_job_finish(pcdev->m2m_dev, ctx->m2m_ctx);
++}
++
++static void emmaprp_lock(void *priv)
++{
++	struct emmaprp_ctx *ctx = priv;
++	struct emmaprp_dev *pcdev = ctx->dev;
++	mutex_lock(&pcdev->dev_mutex);
++}
++
++static void emmaprp_unlock(void *priv)
++{
++	struct emmaprp_ctx *ctx = priv;
++	struct emmaprp_dev *pcdev = ctx->dev;
++	mutex_unlock(&pcdev->dev_mutex);
++}
++
++static inline void emmaprp_dump_regs(struct emmaprp_dev *pcdev)
++{
++	dprintk(pcdev,
++		"eMMa-PrP Registers:\n"
++		"  SOURCE_Y_PTR = 0x%08X\n"
++		"  SRC_FRAME_SIZE = 0x%08X\n"
++		"  DEST_Y_PTR = 0x%08X\n"
++		"  DEST_CR_PTR = 0x%08X\n"
++		"  DEST_CB_PTR = 0x%08X\n"
++		"  CH2_OUT_IMAGE_SIZE = 0x%08X\n"
++		"  CNTL = 0x%08X\n",
++		readl(pcdev->base_emma + PRP_SOURCE_Y_PTR),
++		readl(pcdev->base_emma + PRP_SRC_FRAME_SIZE),
++		readl(pcdev->base_emma + PRP_DEST_Y_PTR),
++		readl(pcdev->base_emma + PRP_DEST_CR_PTR),
++		readl(pcdev->base_emma + PRP_DEST_CB_PTR),
++		readl(pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE),
++		readl(pcdev->base_emma + PRP_CNTL));
++}
++
++static void emmaprp_device_run(void *priv)
++{
++	struct emmaprp_ctx *ctx = priv;
++	struct emmaprp_q_data *s_q_data, *d_q_data;
++	struct vb2_buffer *src_buf, *dst_buf;
++	struct emmaprp_dev *pcdev = ctx->dev;
++	unsigned int s_width, s_height;
++	unsigned int d_width, d_height;
++	unsigned int d_size;
++	dma_addr_t p_in, p_out;
++	u32 tmp;
++
++	src_buf = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
++	dst_buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
++
++	s_q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
++	s_width	= s_q_data->width;
++	s_height = s_q_data->height;
++
++	d_q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
++	d_width = d_q_data->width;
++	d_height = d_q_data->height;
++	d_size = d_width * d_height;
++
++	p_in = vb2_dma_contig_plane_dma_addr(src_buf, 0);
++	p_out = vb2_dma_contig_plane_dma_addr(dst_buf, 0);
++	if (!p_in || !p_out) {
++		v4l2_err(&pcdev->v4l2_dev,
++			 "Acquiring kernel pointers to buffers failed\n");
++		return;
++	}
++
++	/* Input frame parameters */
++	writel(p_in, pcdev->base_emma + PRP_SOURCE_Y_PTR);
++	writel(PRP_SIZE_WIDTH(s_width) | PRP_SIZE_HEIGHT(s_height),
++	       pcdev->base_emma + PRP_SRC_FRAME_SIZE);
++
++	/* Output frame parameters */
++	writel(p_out, pcdev->base_emma + PRP_DEST_Y_PTR);
++	writel(p_out + d_size, pcdev->base_emma + PRP_DEST_CB_PTR);
++	writel(p_out + d_size + (d_size >> 2),
++	       pcdev->base_emma + PRP_DEST_CR_PTR);
++	writel(PRP_SIZE_WIDTH(d_width) | PRP_SIZE_HEIGHT(d_height),
++	       pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE);
++
++	/* IRQ configuration */
++	tmp = readl(pcdev->base_emma + PRP_INTR_CNTL);
++	writel(tmp | PRP_INTR_RDERR |
++		PRP_INTR_CH2WERR |
++		PRP_INTR_CH2FC,
++		pcdev->base_emma + PRP_INTR_CNTL);
++
++	emmaprp_dump_regs(pcdev);
++
++	/* Enable transfer */
++	tmp = readl(pcdev->base_emma + PRP_CNTL);
++	writel(tmp | PRP_CNTL_CH2_OUT_YUV420 |
++		PRP_CNTL_DATA_IN_YUV422 |
++		PRP_CNTL_CH2EN,
++		pcdev->base_emma + PRP_CNTL);
++}
++
++static irqreturn_t emmaprp_irq(int irq_emma, void *data)
++{
++	struct emmaprp_dev *pcdev = data;
++	struct emmaprp_ctx *curr_ctx;
++	struct vb2_buffer *src_vb, *dst_vb;
++	unsigned long flags;
++	u32 irqst;
++
++	/* Check irq flags and clear irq */
++	irqst = readl(pcdev->base_emma + PRP_INTRSTATUS);
++	writel(irqst, pcdev->base_emma + PRP_INTRSTATUS);
++	dprintk(pcdev, "irqst = 0x%08x\n", irqst);
++
++	curr_ctx = v4l2_m2m_get_curr_priv(pcdev->m2m_dev);
++	if (NULL == curr_ctx) {
++		pr_err("Instance released before the end of transaction\n");
++		return IRQ_HANDLED;
++	}
++
++	if (curr_ctx->aborting)
++		goto irq_ok;
++
++	if ((irqst & PRP_INTR_ST_RDERR) ||
++	    (irqst & PRP_INTR_ST_CH2WERR)) {
++		pr_err("PrP bus error ocurred, this transfer is probably corrupted\n");
++		writel(PRP_CNTL_SWRST, pcdev->base_emma + PRP_CNTL);
++		goto irq_ok;
++	}
++
++	if (irqst & PRP_INTR_ST_CH2B1CI) { /* buffer ready */
++		src_vb = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
++		dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
++
++		spin_lock_irqsave(&pcdev->irqlock, flags);
++		v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
++		v4l2_m2m_buf_done(dst_vb, VB2_BUF_STATE_DONE);
++		spin_unlock_irqrestore(&pcdev->irqlock, flags);
++		goto irq_ok;
++	}
++
++irq_ok:
++	v4l2_m2m_job_finish(pcdev->m2m_dev, curr_ctx->m2m_ctx);
++
++	return IRQ_HANDLED;
++}
++
++/*
++ * video ioctls
++ */
++static int vidioc_querycap(struct file *file, void *priv,
++			   struct v4l2_capability *cap)
++{
++	strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
++	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
++	cap->bus_info[0] = 0;
++	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
++			  | V4L2_CAP_STREAMING;
++
++	return 0;
++}
++
++static int enum_fmt(struct v4l2_fmtdesc *f, u32 type)
++{
++	int i, num;
++	struct emmaprp_fmt *fmt;
++
++	num = 0;
++
++	for (i = 0; i < NUM_FORMATS; ++i) {
++		if (formats[i].types & type) {
++			/* index-th format of type type found ? */
++			if (num == f->index)
++				break;
++			/* Correct type but haven't reached our index yet,
++			 * just increment per-type index */
++			++num;
++		}
++	}
++
++	if (i < NUM_FORMATS) {
++		/* Format found */
++		fmt = &formats[i];
++		strncpy(f->description, fmt->name, sizeof(f->description) - 1);
++		f->pixelformat = fmt->fourcc;
++		return 0;
++	}
++
++	/* Format not found */
++	return -EINVAL;
++}
++
++static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
++				   struct v4l2_fmtdesc *f)
++{
++	return enum_fmt(f, MEM2MEM_CAPTURE);
++}
++
++static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
++				   struct v4l2_fmtdesc *f)
++{
++	return enum_fmt(f, MEM2MEM_OUTPUT);
++}
++
++static int vidioc_g_fmt(struct emmaprp_ctx *ctx, struct v4l2_format *f)
++{
++	struct vb2_queue *vq;
++	struct emmaprp_q_data *q_data;
++
++	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
++	if (!vq)
++		return -EINVAL;
++
++	q_data = get_q_data(ctx, f->type);
++
++	f->fmt.pix.width	= q_data->width;
++	f->fmt.pix.height	= q_data->height;
++	f->fmt.pix.field	= V4L2_FIELD_NONE;
++	f->fmt.pix.pixelformat	= q_data->fmt->fourcc;
++	if (f->fmt.pix.pixelformat == V4L2_PIX_FMT_YUV420)
++		f->fmt.pix.bytesperline = q_data->width * 3 / 2;
++	else /* YUYV */
++		f->fmt.pix.bytesperline = q_data->width * 2;
++	f->fmt.pix.sizeimage	= q_data->sizeimage;
++
++	return 0;
++}
++
++static int vidioc_g_fmt_vid_out(struct file *file, void *priv,
++				struct v4l2_format *f)
++{
++	return vidioc_g_fmt(priv, f);
++}
++
++static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
++				struct v4l2_format *f)
++{
++	return vidioc_g_fmt(priv, f);
++}
++
++static int vidioc_try_fmt(struct v4l2_format *f)
++{
++	enum v4l2_field field;
++
++
++	if (!find_format(f))
++		return -EINVAL;
++
++	field = f->fmt.pix.field;
++	if (field == V4L2_FIELD_ANY)
++		field = V4L2_FIELD_NONE;
++	else if (V4L2_FIELD_NONE != field)
++		return -EINVAL;
++
++	/* V4L2 specification suggests the driver corrects the format struct
++	 * if any of the dimensions is unsupported */
++	f->fmt.pix.field = field;
++
++	f->fmt.pix.height = clamp_t(u32, f->fmt.pix.height, MIN_H, MAX_H);
++	f->fmt.pix.width = clamp_t(u32, f->fmt.pix.width, MIN_W, MAX_W);
++
++	f->fmt.pix.height &= ~H_ALIGN_MASK;
++	if (f->fmt.pix.pixelformat == V4L2_PIX_FMT_YUV420) {
++		f->fmt.pix.width &= ~W_ALIGN_MASK_YUV420;
++		f->fmt.pix.bytesperline = f->fmt.pix.width * 3 / 2;
++	} else { /* YUYV */
++		f->fmt.pix.width &= ~W_ALIGN_MASK_OTHERS;
++		f->fmt.pix.bytesperline = f->fmt.pix.width * 2;
++	}
++	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
++
++	return 0;
++}
++
++static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
++				  struct v4l2_format *f)
++{
++	struct emmaprp_fmt *fmt;
++	struct emmaprp_ctx *ctx = priv;
++
++	fmt = find_format(f);
++	if (!fmt || !(fmt->types & MEM2MEM_CAPTURE)) {
++		v4l2_err(&ctx->dev->v4l2_dev,
++			 "Fourcc format (0x%08x) invalid.\n",
++			 f->fmt.pix.pixelformat);
++		return -EINVAL;
++	}
++
++	return vidioc_try_fmt(f);
++}
++
++static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
++				  struct v4l2_format *f)
++{
++	struct emmaprp_fmt *fmt;
++	struct emmaprp_ctx *ctx = priv;
++
++	fmt = find_format(f);
++	if (!fmt || !(fmt->types & MEM2MEM_OUTPUT)) {
++		v4l2_err(&ctx->dev->v4l2_dev,
++			 "Fourcc format (0x%08x) invalid.\n",
++			 f->fmt.pix.pixelformat);
++		return -EINVAL;
++	}
++
++	return vidioc_try_fmt(f);
++}
++
++static int vidioc_s_fmt(struct emmaprp_ctx *ctx, struct v4l2_format *f)
++{
++	struct emmaprp_q_data *q_data;
++	struct vb2_queue *vq;
++	int ret;
++
++	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
++	if (!vq)
++		return -EINVAL;
++
++	q_data = get_q_data(ctx, f->type);
++	if (!q_data)
++		return -EINVAL;
++
++	if (vb2_is_busy(vq)) {
++		v4l2_err(&ctx->dev->v4l2_dev, "%s queue busy\n", __func__);
++		return -EBUSY;
++	}
++
++	ret = vidioc_try_fmt(f);
++	if (ret)
++		return ret;
++
++	q_data->fmt		= find_format(f);
++	q_data->width		= f->fmt.pix.width;
++	q_data->height		= f->fmt.pix.height;
++	if (q_data->fmt->fourcc == V4L2_PIX_FMT_YUV420)
++		q_data->sizeimage = q_data->width * q_data->height * 3 / 2;
++	else /* YUYV */
++		q_data->sizeimage = q_data->width * q_data->height * 2;
++
++	dprintk(ctx->dev,
++		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
++		f->type, q_data->width, q_data->height, q_data->fmt->fourcc);
++
++	return 0;
++}
++
++static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
++				struct v4l2_format *f)
++{
++	int ret;
++
++	ret = vidioc_try_fmt_vid_cap(file, priv, f);
++	if (ret)
++		return ret;
++
++	return vidioc_s_fmt(priv, f);
++}
++
++static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
++				struct v4l2_format *f)
++{
++	int ret;
++
++	ret = vidioc_try_fmt_vid_out(file, priv, f);
++	if (ret)
++		return ret;
++
++	return vidioc_s_fmt(priv, f);
++}
++
++static int vidioc_reqbufs(struct file *file, void *priv,
++			  struct v4l2_requestbuffers *reqbufs)
++{
++	struct emmaprp_ctx *ctx = priv;
++
++	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
++}
++
++static int vidioc_querybuf(struct file *file, void *priv,
++			   struct v4l2_buffer *buf)
++{
++	struct emmaprp_ctx *ctx = priv;
++
++	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
++}
++
++static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
++{
++	struct emmaprp_ctx *ctx = priv;
++
++	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
++}
++
++static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
++{
++	struct emmaprp_ctx *ctx = priv;
++
++	return v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
++}
++
++static int vidioc_streamon(struct file *file, void *priv,
++			   enum v4l2_buf_type type)
++{
++	struct emmaprp_ctx *ctx = priv;
++
++	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
++}
++
++static int vidioc_streamoff(struct file *file, void *priv,
++			    enum v4l2_buf_type type)
++{
++	struct emmaprp_ctx *ctx = priv;
++
++	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
++}
++
++static const struct v4l2_ioctl_ops emmaprp_ioctl_ops = {
++	.vidioc_querycap	= vidioc_querycap,
++
++	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap	= vidioc_g_fmt_vid_cap,
++	.vidioc_try_fmt_vid_cap	= vidioc_try_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap	= vidioc_s_fmt_vid_cap,
++
++	.vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
++	.vidioc_g_fmt_vid_out	= vidioc_g_fmt_vid_out,
++	.vidioc_try_fmt_vid_out	= vidioc_try_fmt_vid_out,
++	.vidioc_s_fmt_vid_out	= vidioc_s_fmt_vid_out,
++
++	.vidioc_reqbufs		= vidioc_reqbufs,
++	.vidioc_querybuf	= vidioc_querybuf,
++
++	.vidioc_qbuf		= vidioc_qbuf,
++	.vidioc_dqbuf		= vidioc_dqbuf,
++
++	.vidioc_streamon	= vidioc_streamon,
++	.vidioc_streamoff	= vidioc_streamoff,
++};
++
++
++/*
++ * Queue operations
++ */
++struct vb2_dc_conf {
++	struct device           *dev;
++};
++
++static int emmaprp_queue_setup(struct vb2_queue *vq,
++				const struct v4l2_format *fmt,
++				unsigned int *nbuffers, unsigned int *nplanes,
++				unsigned int sizes[], void *alloc_ctxs[])
++{
++	struct emmaprp_ctx *ctx = vb2_get_drv_priv(vq);
++	struct emmaprp_q_data *q_data;
++	unsigned int size, count = *nbuffers;
++
++	q_data = get_q_data(ctx, vq->type);
++
++	if (q_data->fmt->fourcc == V4L2_PIX_FMT_YUV420)
++		size = q_data->width * q_data->height * 3 / 2;
++	else
++		size = q_data->width * q_data->height * 2;
++
++	while (size * count > MEM2MEM_VID_MEM_LIMIT)
++		(count)--;
++
++	*nplanes = 1;
++	*nbuffers = count;
++	sizes[0] = size;
++
++	alloc_ctxs[0] = ctx->dev->alloc_ctx;
++
++	dprintk(ctx->dev, "get %d buffer(s) of size %d each.\n", count, size);
++
++	return 0;
++}
++
++static int emmaprp_buf_prepare(struct vb2_buffer *vb)
++{
++	struct emmaprp_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++	struct emmaprp_q_data *q_data;
++
++	dprintk(ctx->dev, "type: %d\n", vb->vb2_queue->type);
++
++	q_data = get_q_data(ctx, vb->vb2_queue->type);
++
++	if (vb2_plane_size(vb, 0) < q_data->sizeimage) {
++		dprintk(ctx->dev, "%s data will not fit into plane"
++				  "(%lu < %lu)\n", __func__,
++				  vb2_plane_size(vb, 0),
++				  (long)q_data->sizeimage);
++		return -EINVAL;
++	}
++
++	vb2_set_plane_payload(vb, 0, q_data->sizeimage);
++
++	return 0;
++}
++
++static void emmaprp_buf_queue(struct vb2_buffer *vb)
++{
++	struct emmaprp_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++	v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
++}
++
++static struct vb2_ops emmaprp_qops = {
++	.queue_setup	 = emmaprp_queue_setup,
++	.buf_prepare	 = emmaprp_buf_prepare,
++	.buf_queue	 = emmaprp_buf_queue,
++};
++
++static int queue_init(void *priv, struct vb2_queue *src_vq,
++		      struct vb2_queue *dst_vq)
++{
++	struct emmaprp_ctx *ctx = priv;
++	int ret;
++
++	memset(src_vq, 0, sizeof(*src_vq));
++	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
++	src_vq->io_modes = VB2_MMAP;
++	src_vq->drv_priv = ctx;
++	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
++	src_vq->ops = &emmaprp_qops;
++	src_vq->mem_ops = &vb2_dma_contig_memops;
++
++	ret = vb2_queue_init(src_vq);
++	if (ret)
++		return ret;
++
++	memset(dst_vq, 0, sizeof(*dst_vq));
++	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	dst_vq->io_modes = VB2_MMAP;
++	dst_vq->drv_priv = ctx;
++	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
++	dst_vq->ops = &emmaprp_qops;
++	dst_vq->mem_ops = &vb2_dma_contig_memops;
++
++	return vb2_queue_init(dst_vq);
++}
++
++/*
++ * File operations
++ */
++static int emmaprp_open(struct file *file)
++{
++	struct emmaprp_dev *pcdev = video_drvdata(file);
++	struct emmaprp_ctx *ctx;
++
++	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
++	if (!ctx)
++		return -ENOMEM;
++
++	file->private_data = ctx;
++	ctx->dev = pcdev;
++
++	ctx->m2m_ctx = v4l2_m2m_ctx_init(pcdev->m2m_dev, ctx, &queue_init);
++
++	if (IS_ERR(ctx->m2m_ctx)) {
++		int ret = PTR_ERR(ctx->m2m_ctx);
++
++		kfree(ctx);
++		return ret;
++	}
++
++	clk_enable(pcdev->clk_emma);
++	ctx->q_data[V4L2_M2M_SRC].fmt = &formats[1];
++	ctx->q_data[V4L2_M2M_DST].fmt = &formats[0];
++
++	dprintk(pcdev, "Created instance %p, m2m_ctx: %p\n", ctx, ctx->m2m_ctx);
++
++	return 0;
++}
++
++static int emmaprp_release(struct file *file)
++{
++	struct emmaprp_dev *pcdev = video_drvdata(file);
++	struct emmaprp_ctx *ctx = file->private_data;
++
++	dprintk(pcdev, "Releasing instance %p\n", ctx);
++
++	clk_disable(pcdev->clk_emma);
++	v4l2_m2m_ctx_release(ctx->m2m_ctx);
++	kfree(ctx);
++
++	return 0;
++}
++
++static unsigned int emmaprp_poll(struct file *file,
++				 struct poll_table_struct *wait)
++{
++	struct emmaprp_ctx *ctx = file->private_data;
++
++	return v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
++}
++
++static int emmaprp_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct emmaprp_ctx *ctx = file->private_data;
++
++	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
++}
++
++static const struct v4l2_file_operations emmaprp_fops = {
++	.owner		= THIS_MODULE,
++	.open		= emmaprp_open,
++	.release	= emmaprp_release,
++	.poll		= emmaprp_poll,
++	.unlocked_ioctl	= video_ioctl2,
++	.mmap		= emmaprp_mmap,
++};
++
++static struct video_device emmaprp_videodev = {
++	.name		= MEM2MEM_NAME,
++	.fops		= &emmaprp_fops,
++	.ioctl_ops	= &emmaprp_ioctl_ops,
++	.minor		= -1,
++	.release	= video_device_release,
++};
++
++static struct v4l2_m2m_ops m2m_ops = {
++	.device_run	= emmaprp_device_run,
++	.job_abort	= emmaprp_job_abort,
++	.lock		= emmaprp_lock,
++	.unlock		= emmaprp_unlock,
++};
++
++static int emmaprp_probe(struct platform_device *pdev)
++{
++	struct emmaprp_dev *pcdev;
++	struct video_device *vfd;
++	struct resource *res_emma;
++	int irq_emma;
++	int ret;
++
++	pcdev = kzalloc(sizeof *pcdev, GFP_KERNEL);
++	if (!pcdev)
++		return -ENOMEM;
++
++	spin_lock_init(&pcdev->irqlock);
++
++	pcdev->clk_emma = clk_get(NULL, "emma");
++	if (IS_ERR(pcdev->clk_emma)) {
++		ret = PTR_ERR(pcdev->clk_emma);
++		goto free_dev;
++	}
++
++	irq_emma = platform_get_irq(pdev, 0);
++	res_emma = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (irq_emma < 0 || res_emma == NULL) {
++		dev_err(&pdev->dev, "Missing platform resources data\n");
++		ret = -ENODEV;
++		goto free_clk;
++	}
++
++	ret = v4l2_device_register(&pdev->dev, &pcdev->v4l2_dev);
++	if (ret)
++		goto free_clk;
++
++	mutex_init(&pcdev->dev_mutex);
++
++	vfd = video_device_alloc();
++	if (!vfd) {
++		v4l2_err(&pcdev->v4l2_dev, "Failed to allocate video device\n");
++		ret = -ENOMEM;
++		goto unreg_dev;
++	}
++
++	*vfd = emmaprp_videodev;
++	vfd->lock = &pcdev->dev_mutex;
++
++	video_set_drvdata(vfd, pcdev);
++	snprintf(vfd->name, sizeof(vfd->name), "%s", emmaprp_videodev.name);
++	pcdev->vfd = vfd;
++	v4l2_info(&pcdev->v4l2_dev, EMMAPRP_MODULE_NAME
++			" Device registered as /dev/video%d\n", vfd->num);
++
++	platform_set_drvdata(pdev, pcdev);
++
++	if (!request_mem_region(res_emma->start, resource_size(res_emma),
++				MEM2MEM_NAME)) {
++		ret = -EBUSY;
++		goto rel_vdev;
++	}
++
++	pcdev->base_emma = ioremap(res_emma->start, resource_size(res_emma));
++	if (!pcdev->base_emma) {
++		ret = -ENOMEM;
++		goto rel_mem;
++	}
++	pcdev->irq_emma = irq_emma;
++	pcdev->res_emma = res_emma;
++
++	ret = request_irq(pcdev->irq_emma, emmaprp_irq, 0,
++			  MEM2MEM_NAME, pcdev);
++	if (ret)
++		goto rel_map;
++
++
++	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
++	if (IS_ERR(pcdev->alloc_ctx)) {
++		v4l2_err(&pcdev->v4l2_dev, "Failed to alloc vb2 context\n");
++		ret = PTR_ERR(pcdev->alloc_ctx);
++		goto rel_irq;
++	}
++
++	pcdev->m2m_dev = v4l2_m2m_init(&m2m_ops);
++	if (IS_ERR(pcdev->m2m_dev)) {
++		v4l2_err(&pcdev->v4l2_dev, "Failed to init mem2mem device\n");
++		ret = PTR_ERR(pcdev->m2m_dev);
++		goto rel_ctx;
++	}
++
++	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
++	if (ret) {
++		v4l2_err(&pcdev->v4l2_dev, "Failed to register video device\n");
++		goto rel_m2m;
++	}
++
++	return 0;
++
++
++rel_m2m:
++	v4l2_m2m_release(pcdev->m2m_dev);
++rel_ctx:
++	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
++rel_irq:
++	free_irq(pcdev->irq_emma, pcdev);
++rel_map:
++	iounmap(pcdev->base_emma);
++rel_mem:
++	release_mem_region(res_emma->start, resource_size(res_emma));
++rel_vdev:
++	video_device_release(vfd);
++unreg_dev:
++	v4l2_device_unregister(&pcdev->v4l2_dev);
++free_clk:
++	clk_put(pcdev->clk_emma);
++free_dev:
++	kfree(pcdev);
++
++	return ret;
++}
++
++static int emmaprp_remove(struct platform_device *pdev)
++{
++	struct resource *res_emma;
++	struct emmaprp_dev *pcdev = platform_get_drvdata(pdev);
++
++	v4l2_info(&pcdev->v4l2_dev, "Removing " EMMAPRP_MODULE_NAME);
++
++	video_unregister_device(pcdev->vfd);
++	v4l2_m2m_release(pcdev->m2m_dev);
++	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
++	free_irq(pcdev->irq_emma, pcdev);
++	iounmap(pcdev->base_emma);
++
++	res_emma = pcdev->res_emma;
++	release_mem_region(res_emma->start, resource_size(res_emma));
++
++	v4l2_device_unregister(&pcdev->v4l2_dev);
++	clk_put(pcdev->clk_emma);
++	kfree(pcdev);
++
++	return 0;
++}
++
++static struct platform_driver emmaprp_pdrv = {
++	.probe		= emmaprp_probe,
++	.remove		= emmaprp_remove,
++	.driver		= {
++		.name	= MEM2MEM_NAME,
++		.owner	= THIS_MODULE,
++	},
++};
++
++static void __exit emmaprp_exit(void)
++{
++	platform_driver_unregister(&emmaprp_pdrv);
++}
++
++static int __init emmaprp_init(void)
++{
++	return platform_driver_register(&emmaprp_pdrv);
++}
++
++module_init(emmaprp_init);
++module_exit(emmaprp_exit);
++
 -- 
-Regards,
+1.7.0.4
 
-Laurent Pinchart
