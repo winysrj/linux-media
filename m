@@ -1,66 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4220 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752789Ab1KYLiE (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:42341 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751766Ab1KVJzw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Nov 2011 06:38:04 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 22 Nov 2011 04:55:52 -0500
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LV200GPK3L271@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 22 Nov 2011 09:55:50 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LV200IDW3L18F@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 22 Nov 2011 09:55:50 +0000 (GMT)
+Date: Tue, 22 Nov 2011 10:55:37 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RFC] v4l: Compressed data formats on the video bus
 To: linux-media@vger.kernel.org
-Subject: More missing module.h includes
-Date: Fri, 25 Nov 2011 12:37:58 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111251237.58993.hverkuil@xs4all.nl>
+Cc: mchehab@redhat.com, laurent.pinchart@ideasonboard.com,
+	g.liakhovetski@gmx.de, sakari.ailus@iki.fi,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com
+Message-id: <1321955740-24452-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While compiling the very latest for_v3.3 branch with the very latest media_build
-on a 3.1 kernel I got more compile errors for a missing module.h header.
+Hello,
 
-Add these includes.
+This patch series tries to solve the issue presented in my other posting [1] by
+extending the media bus format data structure with a new parameter, rather than
+adding a new subdev video ops callback.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Although there are opinions [2] the 'framesamples' parameter should not be a part
+of v4l2_mbus_framefmt data structure, it might be a better approach than creating 
+a new subdev callback for a few reasons: 
 
-Regards,
+ - the frame size parameter is usually needed altogether with other parameters
+   already included in struct v4l2_mbus_framefmt;
+ - it allows to clearly associate the frame length with the media entity pads;
+ - the semantics is more straightforward and would yield simpler implementations,
+   it's similar to current 'sizeimage' handling at struct v4l2_pix_format;
+ - the applications could simply propagate the 'framesamples' value along the 
+   pipeline, starting from the data source (sensor) subdev, only for compressed 
+   data formats;
 
-	Hans
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 6edc9ba..b826867 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -21,6 +21,7 @@
-  */
- 
- #include <linux/types.h>
-+#include <linux/module.h>
- #include <linux/ioctl.h>
- #include <linux/media.h>
- #include <linux/export.h>
-diff --git a/drivers/media/video/hdpvr/hdpvr-i2c.c b/drivers/media/video/hdpvr/hdpvr-i2c.c
-index 82e819f..48cf133 100644
---- a/drivers/media/video/hdpvr/hdpvr-i2c.c
-+++ b/drivers/media/video/hdpvr/hdpvr-i2c.c
-@@ -15,6 +15,7 @@
- 
- #if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
- 
-+#include <linux/module.h>
- #include <linux/i2c.h>
- #include <linux/slab.h>
- #include <linux/export.h>
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 65ade5f..5c3abc5 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -20,6 +20,7 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- 
-+#include <linux/module.h>
- #include <linux/ioctl.h>
- #include <linux/slab.h>
- #include <linux/types.h>
+The new struct v4l2_mbus_framefmt would look as follows:
+
+struct v4l2_mbus_framefmt {
+	__u32			width;
+	__u32			height;
+	__u32			code;
+	__u32			field;
+	__u32			colorspace;
+	__u32			framesamples;
+	__u32			reserved[6];
+};
+
+The proposed semantics for the 'framesamples' parameter is roughly as follows:
+
+ - the value is propagated at video pipeline entities where 'code' indicates
+   compressed format;
+ - the subdevs adjust the value if needed;
+ - although currently there is only one compressed data format at the media 
+   bus - V4L2_MBUS_FMT_JPEG_1X8 which corresponds to V4L2_PIX_FMT_JPEG and
+   one sample at the media bus equals to one byte in memory, it is assumed
+   that the host knows exactly what is framesamples/sizeimage ratio and it will 
+   validate framesamples/sizeimage values before starting streaming;
+ - the host will query internally a relevant subdev to properly handle 'sizeimage' 
+   at the VIDIOC_TRY/S_FMT ioctl 
+      
+
+Comments ?
+
+--- 
+Regards, 
+Sylwester Nawrocki 
+Samsung Poland R&D Center
+
+[1] http://www.spinics.net/lists/linux-media/msg39703.html 
+[2] http://www.spinics.net/lists/linux-media/msg37703.html
