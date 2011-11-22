@@ -1,50 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:35647 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755843Ab1KHONW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 09:13:22 -0500
-Received: by qyk2 with SMTP id 2so556073qyk.19
-        for <linux-media@vger.kernel.org>; Tue, 08 Nov 2011 06:13:21 -0800 (PST)
-From: Rick Bronson <rickbronson@gmail.com>
-To: laurent.pinchart@ideasonboard.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [RFC/PATCH 1/2] v4l: Add generic board subdev registration function
-Message-Id: <E1RNmQP-0001km-Oy@amazonia.comcast.net>
-Date: Tue, 08 Nov 2011 06:13:17 -0800
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:55944 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750945Ab1KVMCI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Nov 2011 07:02:08 -0500
+Received: by eye27 with SMTP id 27so79062eye.19
+        for <linux-media@vger.kernel.org>; Tue, 22 Nov 2011 04:02:07 -0800 (PST)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, shawn.guo@linaro.org,
+	richard.zhao@linaro.org, fabio.estevam@freescale.com,
+	kernel@pengutronix.de, s.hauer@pengutronix.de,
+	r.schwebel@pengutronix.de
+Subject: Add support form eMMa-PrP in i.MX2 chips as a mem2mem device.
+Date: Tue, 22 Nov 2011 13:01:54 +0100
+Message-Id: <1321963316-9058-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
 
-  I'm trying to add a SPI camera to 2.6.39 but ran into trouble with
-isp_register_subdev_group() in drivers/media/video/omap3isp/isp.c
-hardcoded to use i2c.  The platform is a BeagleBoardXM.  I tried these
-two patches:
+i.MX2x SoCs have a PrP which is capable of resizing and format
+conversion of video frames. This driver provides support for
+resizing and format conversion from YUYV to YUV420.
 
-http://patchwork.linuxtv.org/patch/6651/mbox/
-http://patchwork.linuxtv.org/patch/6650/raw/
+This operation is of the utmost importance since some of these
+SoCs like i.MX27 include an H.264 video codec which only
+accepts YUV420 as input.
 
-  or:
-
-RFC-PATCH-2-2-omap3isp-Use-generic-subdev-registration-function.patch
-RFC-PATCH-1-2-v4l-Add-generic-board-subdev-registration-function.patch
-
-  It crashes, from what I can tell, it seems to be coming into
-isp_register_entities(), then iterating in:
-
----------------------------------
-	/* Register external entities */
-	for (subdevs = pdata->subdevs; subdevs->subdevs; ++subdevs) {
----------------------------------
-
-  But it's iterating through ev76c560_camera_subdevs (see
-http://efn.org/~rick/pub/board-portal7-camera.c), seems like
-it should be iterating through portal7_camera_subdevs in the same
-file.
-
-  Any help would be greatly appreciated.
-
-  Thanks,
-
-  Rick Bronson
+Changes since v1:
+- Split patch in a series of two.
+- Some fixes to mem2mem driver file.
 
