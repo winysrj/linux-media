@@ -1,55 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51146 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751603Ab1KDLtW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2011 07:49:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: whittenburg@gmail.com
-Subject: Re: media0 not showing up on beagleboard-xm
-Date: Fri, 4 Nov 2011 12:49:24 +0100
-Cc: linux-media@vger.kernel.org
-References: <CABcw_OkE=ANKDCVRRxgj33Mt=b3KAtGpe3RMnL3h0UMgOQ0ZdQ@mail.gmail.com>
-In-Reply-To: <CABcw_OkE=ANKDCVRRxgj33Mt=b3KAtGpe3RMnL3h0UMgOQ0ZdQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111041249.24661.laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1916 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751387Ab1KVMDc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Nov 2011 07:03:32 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Ian Armstrong <mail01@iarmst.co.uk>
+Subject: [RFCv2 PATCH 0/2] Clarify usage of V4L2_FBUF_FLAG_OVERLAY
+Date: Tue, 22 Nov 2011 13:03:19 +0100
+Message-Id: <1321963402-1259-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Chris,
+This is the second RFC regarding the usage of V4L2_FBUF_FLAG_OVERLAY.
 
-On Tuesday 25 October 2011 04:48:13 Chris Whittenburg wrote:
-> I'm using oe-core to build the 3.0.7+ kernel, which runs fine on my
-> beagleboard-xm.
-> 
-> I'm interested in the media controller framework, which I believe is
-> in this kernel.
+The first is here:
 
-Yes it is.
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg38769.html
 
-> I expected there to be a /dev/media0, but it is not there.  I do see
-> "Linux media interface: v0.10" in my dmesg log, so I know
-> media_devnode_init() is being called.
-> 
-> Even without a sensor connected and camera defined, I should still get
-> a media0 which represents the ISP, correct?  I do have
-> CONFIG_VIDEO_OMAP3=y in my kernel config.  The only reference in the
-> log that I see related to the isp is:
-> omap-iommu omap-iommu.0: isp registered
-> 
-> It looks like the kernel I'm using doesn't have support for the
-> "camera=" cmdline option, so hopefully the presence of the camera is
-> not required to kick things off.
+I didn't get many comments, so I decided to go ahead and update the spec
+as I think it should be.
 
-You will need board code to register the OMAP3 ISP platform device that will 
-then be picked by the OMAP3 ISP driver. Example of such board code can be 
-found at
+Note that this patch series build on this pull request:
 
-http://git.linuxtv.org/pinchartl/media.git/commit/37f505296ccd3fb055e03b2ab15ccf6ad4befb8d
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/40691
 
--- 
-Regards,
+The first patch clarifies the usage of the flag, the other patches make sure
+all drivers comply to the definition.
 
-Laurent Pinchart
+Comments are welcome,
+
+	Hans
+
