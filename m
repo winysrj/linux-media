@@ -1,41 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41223 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753636Ab1KYQAc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Nov 2011 11:00:32 -0500
-Message-ID: <4ECFBB9C.3060100@redhat.com>
-Date: Fri, 25 Nov 2011 14:00:28 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Andreas Oberritter <obi@linuxtv.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
-References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <4ECF9038.6050208@linuxtv.org> <4ECFB1DC.2090304@redhat.com> <201111251625.44135.hverkuil@xs4all.nl>
-In-Reply-To: <201111251625.44135.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1844 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751209Ab1KVMDb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Nov 2011 07:03:31 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Ian Armstrong <mail01@iarmst.co.uk>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 2/3] zoran: do not set V4L2_FBUF_FLAG_OVERLAY.
+Date: Tue, 22 Nov 2011 13:03:21 +0100
+Message-Id: <c8c16066497a1b9e1236ff56f2be89395d47b4ec.1321963291.git.hans.verkuil@cisco.com>
+In-Reply-To: <1321963402-1259-1-git-send-email-hverkuil@xs4all.nl>
+References: <1321963402-1259-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <22fb81ba5ba878d10fe996d5421f983dd34a1988.1321963291.git.hans.verkuil@cisco.com>
+References: <22fb81ba5ba878d10fe996d5421f983dd34a1988.1321963291.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 25-11-2011 13:25, Hans Verkuil escreveu:
-> On Friday, November 25, 2011 16:18:52 Mauro Carvalho Chehab wrote:
->> The V4L2 API complements the ALSA API. Audio streaming, audio format negotiation
->> etc are via the ALSA API.
->>
->>> Can you control pass-through of digital audio to SPDIF for example? Can
->>> you control which decoder should be the master when synchronizing AV?
->>
->> Patches for that are being proposed and should be merged soon. They are part
->> of the set of patches under discussion with ALSA people, as part of the Media
->> Controller API.
-> 
-> Can you provide a link to those patches? I haven't seen anything cross-posted
-> to linux-media.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-That was my understanding when I was discussing with Sakari about the MC presentation
-for KS. I'll double check with him if he can provide us more details about the
-status of this subject.
+The zoran driver does not support this flag, so don't set it.
 
-Regards,
-Mauro
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/zoran/zoran_driver.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/zoran/zoran_driver.c b/drivers/media/video/zoran/zoran_driver.c
+index d4d05d2..f7d236a 100644
+--- a/drivers/media/video/zoran/zoran_driver.c
++++ b/drivers/media/video/zoran/zoran_driver.c
+@@ -1958,7 +1958,6 @@ static int zoran_g_fbuf(struct file *file, void *__fh,
+ 	mutex_unlock(&zr->resource_lock);
+ 	fb->fmt.colorspace = V4L2_COLORSPACE_SRGB;
+ 	fb->fmt.field = V4L2_FIELD_INTERLACED;
+-	fb->flags = V4L2_FBUF_FLAG_OVERLAY;
+ 	fb->capability = V4L2_FBUF_CAP_LIST_CLIPPING;
+ 
+ 	return 0;
+-- 
+1.7.7.3
+
