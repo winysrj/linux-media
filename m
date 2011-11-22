@@ -1,106 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:36244 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751103Ab1KUVGe (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:56240 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755832Ab1KVLyn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Nov 2011 16:06:34 -0500
-Received: by mail-ey0-f174.google.com with SMTP id 27so5854834eye.19
-        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:06:33 -0800 (PST)
-MIME-Version: 1.0
-Date: Tue, 22 Nov 2011 02:36:33 +0530
-Message-ID: <CAHFNz9+e0K__EWdc=ckHURjjYMbez22=xup0d7=H7k2xQNVnyw@mail.gmail.com>
-Subject: PATCH 04/13: 0004-TDA18271-Allow-frontend-to-set-DELSYS
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	Michael Krufky <mkrufky@linuxtv.org>
-Content-Type: multipart/mixed; boundary=f46d0435c068c4080504b2450fe5
+	Tue, 22 Nov 2011 06:54:43 -0500
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LV200F2X936V3@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 22 Nov 2011 11:54:42 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LV200IC89358F@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 22 Nov 2011 11:54:42 +0000 (GMT)
+Date: Tue, 22 Nov 2011 12:54:41 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [RFC/PATCH v1 1/3] v4l: Add new framesamples field to struct
+ v4l2_mbus_framefmt
+In-reply-to: <4ECB827A.7020405@samsung.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
+	sakari.ailus@iki.fi, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <4ECB8D81.90108@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7BIT
+References: <1321955740-24452-1-git-send-email-s.nawrocki@samsung.com>
+ <1321955740-24452-2-git-send-email-s.nawrocki@samsung.com>
+ <4ECB827A.7020405@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---f46d0435c068c4080504b2450fe5
-Content-Type: text/plain; charset=ISO-8859-1
+Hi Tomasz,
+
+On 11/22/2011 12:07 PM, Tomasz Stanislawski wrote:
+> On 11/22/2011 10:55 AM, Sylwester Nawrocki wrote:
+>> The purpose of the new field is to allow the video pipeline elements to
+>> negotiate memory buffer size for compressed data frames, where the buffer
+>> size cannot be derived from pixel width and height and the pixel code.
+>>
+>> For VIDIOC_SUBDEV_S_FMT and VIDIOC_SUBDEV_G_FMT ioctls, the framesamples
+>> parameter should be calculated by the driver from pixel width, height,
+>> color format and other parameters if required and returned to the caller.
+>> This applies to compressed data formats only.
+>>
+>> The application should propagate the framesamples value, whatever returned
+>> at the first sub-device within a data pipeline, i.e. at the pipeline's data
+>> source.
+>>
+>> For compressed data formats the host drivers should internally validate
+>> the framesamples parameter values before streaming is enabled, to make sure
+>> the memory buffer size requirements are satisfied along the pipeline.
+>>
+>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>> ---
+>>   Documentation/DocBook/media/v4l/subdev-formats.xml |    7 ++++++-
+>>   include/linux/v4l2-mediabus.h                      |    4 +++-
+>>   2 files changed, 9 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml
+>> b/Documentation/DocBook/media/v4l/subdev-formats.xml
+>> index 49c532e..d0827b4 100644
+>> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
+>> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+>> @@ -35,7 +35,12 @@
+>>       </row>
+>>       <row>
+>>       <entry>__u32</entry>
+>> -    <entry><structfield>reserved</structfield>[7]</entry>
+>> +    <entry><structfield>framesamples</structfield></entry>
+> 
+> Why you do not use name sizeimage?
+
+The media bus format data structure describes data as seen on the media bus,
+in general single subdevs might not know how data samples are translated into
+data in memory. So, not in my opinion only, the name 'framesamples' is more 
+appropriate, even though the translation of some media bus data formats into 
+data in memory is straightforward.
+We've discussed this roughly several times, e.g. during the Cambourne meeting.
+
+> It is used in struct v4l2_plane_pix_format and struct v4l2_pix_format?
+> 
+> Should old drivers be modified to update this field?
+
+I think the drivers that expose a sub-device node to user space might need to
+be modified to set the framesamples field to 0 for raw formats. There is about
+9 of them in the mainline AFAICS, and only two use compressed formats.
 
 
-
---f46d0435c068c4080504b2450fe5
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0004-TDA18271-Allow-frontend-to-set-DELSYS-rather-than-qu.patch"
-Content-Disposition: attachment;
-	filename="0004-TDA18271-Allow-frontend-to-set-DELSYS-rather-than-qu.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
-
-RnJvbSAyZWNlMzg2MDI2NzhhZTMyMzQ1MGQwZTM1Mzc5MTQ3ZTZlMDg2MzI2IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
-CkRhdGU6IFNhdCwgMTkgTm92IDIwMTEgMTk6NTA6MDkgKzA1MzAKU3ViamVjdDogW1BBVENIIDA0
-LzEzXSBUREExODI3MTogQWxsb3cgZnJvbnRlbmQgdG8gc2V0IERFTFNZUywgcmF0aGVyIHRoYW4g
-cXVlcnlpbmcgZmUtPm9wcy5pbmZvLnR5cGUKCldpdGggYW55IHR1bmVyIHRoYXQgY2FuIHR1bmUg
-dG8gbXVsdGlwbGUgZGVsaXZlcnkgc3lzdGVtcy9zdGFuZGFyZHMsIGl0IGRvZXMKcXVlcnkgZmUt
-Pm9wcy5pbmZvLnR5cGUgdG8gZGV0ZXJtaW5lIGZyb250ZW5kIHR5cGUgYW5kIHNldCB0aGUgZGVs
-aXZlcnkKc3lzdGVtIHR5cGUuIGZlLT5vcHMuaW5mby50eXBlIGNhbiBoYW5kbGUgb25seSA0IGRl
-bGl2ZXJ5IHN5c3RlbXMsIHZpeiBGRV9RUFNLLApGRV9RQU0sIEZFX09GRE0gYW5kIEZFX0FUU0Mu
-CgpUaGUgY2hhbmdlIGFsbG93cyB0aGUgdHVuZXIgdG8gYmUgc2V0IHRvIGFueSBkZWxpdmVyeSBz
-eXN0ZW0gc3BlY2lmaWVkIGluCmZlX2RlbGl2ZXJ5X3N5c3RlbV90LCB0aGVyZWJ5IHNpbXBsaWZ5
-aW5nIGEgbG90IG9mIGlzc3Vlcy4KClNpZ25lZC1vZmYtYnk6IE1hbnUgQWJyYWhhbSA8YWJyYWhh
-bS5tYW51QGdtYWlsLmNvbT4KLS0tCiBkcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMvdGRhMTgy
-NzEtZmUuYyAgIHwgICA4MCArKysrKysrKysrKysrKysrKysrKysrKysrKysKIGRyaXZlcnMvbWVk
-aWEvY29tbW9uL3R1bmVycy90ZGExODI3MS1wcml2LmggfCAgICAyICsKIDIgZmlsZXMgY2hhbmdl
-ZCwgODIgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJz
-L21lZGlhL2NvbW1vbi90dW5lcnMvdGRhMTgyNzEtZmUuYyBiL2RyaXZlcnMvbWVkaWEvY29tbW9u
-L3R1bmVycy90ZGExODI3MS1mZS5jCmluZGV4IDMzNDdjNWIuLjZlMjlmYWYgMTAwNjQ0Ci0tLSBh
-L2RyaXZlcnMvbWVkaWEvY29tbW9uL3R1bmVycy90ZGExODI3MS1mZS5jCisrKyBiL2RyaXZlcnMv
-bWVkaWEvY29tbW9uL3R1bmVycy90ZGExODI3MS1mZS5jCkBAIC05MjgsNiArOTI4LDg1IEBAIGZh
-aWw6CiAKIC8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLSAqLwogCitzdGF0aWMgaW50IHRkYTE4MjcxX3NldF9zdGF0ZShz
-dHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSwKKwkJCSAgICAgIGVudW0gdHVuZXJfcGFyYW0gcGFyYW0s
-CisJCQkgICAgICBzdHJ1Y3QgdHVuZXJfc3RhdGUgKnN0YXRlKQoreworCXN0cnVjdCB0ZGExODI3
-MV9wcml2ICpwcml2ID0gZmUtPnR1bmVyX3ByaXY7CisJc3RydWN0IHR1bmVyX3N0YXRlICpyZXEg
-PSAmcHJpdi0+cmVxdWVzdDsKKwlzdHJ1Y3QgdGRhMTgyNzFfc3RkX21hcCAqc3RkX21hcCA9ICZw
-cml2LT5zdGQ7CisJc3RydWN0IHRkYTE4MjcxX3N0ZF9tYXBfaXRlbSAqbWFwOworCWludCByZXQ7
-CisKKwlCVUdfT04oIXByaXYpOworCWlmIChwYXJhbSAmIERWQkZFX1RVTkVSX0RFTFNZUykKKwkJ
-cmVxLT5kZWxzeXMgPSBzdGF0ZS0+ZGVsc3lzOworCWlmIChwYXJhbSAmIERWQkZFX1RVTkVSX0ZS
-RVFVRU5DWSkKKwkJcmVxLT5mcmVxdWVuY3kgPSBzdGF0ZS0+ZnJlcXVlbmN5OworCWlmIChwYXJh
-bSAmIERWQkZFX1RVTkVSX0JBTkRXSURUSCkKKwkJcmVxLT5iYW5kd2lkdGggPSBzdGF0ZS0+YmFu
-ZHdpZHRoOworCisJcHJpdi0+bW9kZSA9IFREQTE4MjcxX0RJR0lUQUw7CisKKwlzd2l0Y2ggKHJl
-cS0+ZGVsc3lzKSB7CisJY2FzZSBTWVNfQVRTQzoKKwkJbWFwID0gJnN0ZF9tYXAtPmF0c2NfNjsK
-KwkJcmVxLT5iYW5kd2lkdGggPSA2MDAwMDAwOworCQlicmVhazsKKwljYXNlIFNZU19EVkJDX0FO
-TkVYX0I6CisJCW1hcCA9ICZzdGRfbWFwLT5xYW1fNjsKKwkJcmVxLT5iYW5kd2lkdGggPSA2MDAw
-MDAwOworCQlicmVhazsKKwljYXNlIFNZU19EVkJUOgorCWNhc2UgU1lTX0RWQlQyOgorCQlzd2l0
-Y2ggKHJlcS0+YmFuZHdpZHRoKSB7CisJCWNhc2UgNjAwMDAwMDoKKwkJCW1hcCA9ICZzdGRfbWFw
-LT5kdmJ0XzY7CisJCQlicmVhazsKKwkJY2FzZSA3MDAwMDAwOgorCQkJbWFwID0gJnN0ZF9tYXAt
-PmR2YnRfNzsKKwkJCWJyZWFrOworCQljYXNlIDgwMDAwMDA6CisJCQltYXAgPSAmc3RkX21hcC0+
-ZHZidF84OworCQkJYnJlYWs7CisJCWRlZmF1bHQ6CisJCQlyZXQgPSAtRUlOVkFMOworCQkJZ290
-byBmYWlsOworCQl9CisJCWJyZWFrOworCWNhc2UgU1lTX0RWQkNfQU5ORVhfQUM6CisJCW1hcCA9
-ICZzdGRfbWFwLT5xYW1fODsKKwkJcmVxLT5iYW5kd2lkdGggPSA4MDAwMDAwOworCQlicmVhazsK
-KwlkZWZhdWx0OgorCQl0ZGFfd2FybigiSW52YWxpZCBkZWxpdmVyeSBzeXN0ZW0hXG4iKTsKKwkJ
-cmV0ID0gLUVJTlZBTDsKKwkJZ290byBmYWlsOworCX0KKwl0ZGFfZGJnKCJUcnlpbmcgdG8gdHVu
-ZSAuLiBkZWxzeXM9JWQgbW9kdWxhdGlvbj0lZCBmcmVxdWVuY3k9JWQgYmFuZHdpZHRoPSVkIiwK
-KwkJcmVxLT5kZWxzeXMsCisJCXJlcS0+bW9kdWxhdGlvbiwKKwkJcmVxLT5mcmVxdWVuY3ksCisJ
-CXJlcS0+YmFuZHdpZHRoKTsKKworCS8qIFdoZW4gdHVuaW5nIGRpZ2l0YWwsIHRoZSBhbmFsb2cg
-ZGVtb2QgbXVzdCBiZSB0cmktc3RhdGVkICovCisJaWYgKGZlLT5vcHMuYW5hbG9nX29wcy5zdGFu
-ZGJ5KQorCQlmZS0+b3BzLmFuYWxvZ19vcHMuc3RhbmRieShmZSk7CisKKwlyZXQgPSB0ZGExODI3
-MV90dW5lKGZlLCBtYXAsIHJlcS0+ZnJlcXVlbmN5LCByZXEtPmJhbmR3aWR0aCk7CisKKwlpZiAo
-dGRhX2ZhaWwocmV0KSkKKwkJZ290byBmYWlsOworCisJcHJpdi0+aWZfZnJlcSAgID0gbWFwLT5p
-Zl9mcmVxOworCXByaXYtPmZyZXF1ZW5jeSA9IHJlcS0+ZnJlcXVlbmN5OworCXByaXYtPmJhbmR3
-aWR0aCA9IChyZXEtPmRlbHN5cyA9PSBTWVNfRFZCVCB8fCByZXEtPmRlbHN5cyA9PSBTWVNfRFZC
-VDIpID8KKwkJCSAgIHJlcS0+YmFuZHdpZHRoIDogMDsKK2ZhaWw6CisJcmV0dXJuIHJldDsKK30K
-KworCiBzdGF0aWMgaW50IHRkYTE4MjcxX3NldF9wYXJhbXMoc3RydWN0IGR2Yl9mcm9udGVuZCAq
-ZmUsCiAJCQkgICAgICAgc3RydWN0IGR2Yl9mcm9udGVuZF9wYXJhbWV0ZXJzICpwYXJhbXMpCiB7
-CkBAIC0xMjQ5LDYgKzEzMjgsNyBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IGR2Yl90dW5lcl9vcHMg
-dGRhMTgyNzFfdHVuZXJfb3BzID0gewogCS5pbml0ICAgICAgICAgICAgICA9IHRkYTE4MjcxX2lu
-aXQsCiAJLnNsZWVwICAgICAgICAgICAgID0gdGRhMTgyNzFfc2xlZXAsCiAJLnNldF9wYXJhbXMg
-ICAgICAgID0gdGRhMTgyNzFfc2V0X3BhcmFtcywKKwkuc2V0X3N0YXRlICAgICAgICAgPSB0ZGEx
-ODI3MV9zZXRfc3RhdGUsCiAJLnNldF9hbmFsb2dfcGFyYW1zID0gdGRhMTgyNzFfc2V0X2FuYWxv
-Z19wYXJhbXMsCiAJLnJlbGVhc2UgICAgICAgICAgID0gdGRhMTgyNzFfcmVsZWFzZSwKIAkuc2V0
-X2NvbmZpZyAgICAgICAgPSB0ZGExODI3MV9zZXRfY29uZmlnLApkaWZmIC0tZ2l0IGEvZHJpdmVy
-cy9tZWRpYS9jb21tb24vdHVuZXJzL3RkYTE4MjcxLXByaXYuaCBiL2RyaXZlcnMvbWVkaWEvY29t
-bW9uL3R1bmVycy90ZGExODI3MS1wcml2LmgKaW5kZXggNDU0YzE1Mi4uYmQxYmY1OCAxMDA2NDQK
-LS0tIGEvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3RkYTE4MjcxLXByaXYuaAorKysgYi9k
-cml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMvdGRhMTgyNzEtcHJpdi5oCkBAIC0xMjYsNiArMTI2
-LDggQEAgc3RydWN0IHRkYTE4MjcxX3ByaXYgewogCiAJdTMyIGZyZXF1ZW5jeTsKIAl1MzIgYmFu
-ZHdpZHRoOworCisJc3RydWN0IHR1bmVyX3N0YXRlIHJlcXVlc3Q7CiB9OwogCiAvKi0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLSovCi0tIAoxLjcuMQoK
---f46d0435c068c4080504b2450fe5--
+--
+Regards,
+Sylwester
