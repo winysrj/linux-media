@@ -1,47 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:33655 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754462Ab1KNNfL (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3215 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751387Ab1KVMDf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Nov 2011 08:35:11 -0500
-Received: by gyc15 with SMTP id 15so4872248gyc.19
-        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2011 05:35:10 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAB33W8cJYoXe+1yCPhEGgSpHM7AYd_b-sm5dSy8g+jT=98X=eg@mail.gmail.com>
-References: <CAB33W8dW0Yts_dxz=WyYEK9-bcoQ_9gM-t3+aR5s-G_5QswOyA@mail.gmail.com>
-	<CAB33W8eMEG6cxM9x0aGRe+1xx6TwvjBZL4KSdRY4Ti2sTHk9hg@mail.gmail.com>
-	<CAL9G6WXq_MSu+6Ogjis43bsszDri0y5JQrhHrAQ8tiTKv09YKQ@mail.gmail.com>
-	<CAATJ+ftr76OMckcpf_ceX4cPwv0840C9HL+UuHivAtub+OC+jw@mail.gmail.com>
-	<4ebdacc2.04c6e30a.29e4.58ff@mx.google.com>
-	<CAB33W8eYnQbKAkNobiez0yH5tgCVN4s84ncT5cmKHxeqHm8P3Q@mail.gmail.com>
-	<CAL9G6WXHfA-n0u_yB7QvUAN_8TxSSA2M_O0m6kbsOrcgE+nMsA@mail.gmail.com>
-	<CAB33W8cJYoXe+1yCPhEGgSpHM7AYd_b-sm5dSy8g+jT=98X=eg@mail.gmail.com>
-Date: Mon, 14 Nov 2011 13:35:10 +0000
-Message-ID: <CAB33W8eTZg3Q9xZg9Ebz5C+Cb_H2SHH_R1u30V4i+_Oe8N1ysA@mail.gmail.com>
-Subject: Re: AF9015 Dual tuner i2c write failures
-From: Tim Draper <veehexx@gmail.com>
+	Tue, 22 Nov 2011 07:03:35 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Cc: Ian Armstrong <mail01@iarmst.co.uk>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Archit Taneja <archit@ti.com>,
+	Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [RFCv2 PATCH 3/3] omap_vout: add missing OVERLAY_OUTPUT cap and set V4L2_FBUF_FLAG_OVERLAY
+Date: Tue, 22 Nov 2011 13:03:22 +0100
+Message-Id: <02961843cbfd0aac821861157893b3be6aeef365.1321963291.git.hans.verkuil@cisco.com>
+In-Reply-To: <1321963402-1259-1-git-send-email-hverkuil@xs4all.nl>
+References: <1321963402-1259-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <22fb81ba5ba878d10fe996d5421f983dd34a1988.1321963291.git.hans.verkuil@cisco.com>
+References: <22fb81ba5ba878d10fe996d5421f983dd34a1988.1321963291.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ok, looks like the patch has fixed the issue in my initial response,
-but now i've got a new issue (related?) when i reboot - the
-dvb-usb-af9015 module is not being loaded.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-if i try to modprobe it (sudo modprobe dvb-usb-af9015), then i get the error:
-FATAL: Error inserting dvb_usb_af9015
-(/lib/modules/2.6.38-12-generic/kernel/drivers/media/dvb/dvb-usb/dvb-usb-af9015.ko):
-Unknown symbol in module, or unknown parameter (see dmesg)
+The omap_vout driver has an output overlay, but never advertised that
+capability.
 
-dmesg |tail:
-[  170.406969] dvb_usb_af9015: Unknown parameter `adapter'
+The driver should also set the V4L2_FBUF_FLAG_OVERLAY flag.
 
-thats the only 2 lines related to the issue.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+CC: Archit Taneja <archit@ti.com>
+CC: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ drivers/media/video/omap/omap_vout.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-what i did was apply the patch that Malcolm sent to me, and then
-rebooted. af9015 still not working, so removed USB device and
-reinserted. tuner now worked flawlessly.
-gave the PC a reboot, and now i've got the above error.
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index def6472..632f38e 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -1045,7 +1045,8 @@ static int vidioc_querycap(struct file *file, void *fh,
+ 	strlcpy(cap->driver, VOUT_NAME, sizeof(cap->driver));
+ 	strlcpy(cap->card, vout->vfd->name, sizeof(cap->card));
+ 	cap->bus_info[0] = '\0';
+-	cap->capabilities = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_OUTPUT;
++	cap->capabilities = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_OUTPUT |
++		V4L2_CAP_VIDEO_OUTPUT_OVERLAY;
+ 
+ 	return 0;
+ }
+@@ -1827,7 +1828,9 @@ static int vidioc_g_fbuf(struct file *file, void *fh,
+ 	ovid = &vout->vid_info;
+ 	ovl = ovid->overlays[0];
+ 
+-	a->flags = 0x0;
++	/* The video overlay must stay within the framebuffer and can't be
++	   positioned independently. */
++	a->flags = V4L2_FBUF_FLAG_OVERLAY;
+ 	a->capability = V4L2_FBUF_CAP_LOCAL_ALPHA | V4L2_FBUF_CAP_CHROMAKEY
+ 		| V4L2_FBUF_CAP_SRC_CHROMAKEY;
+ 
+-- 
+1.7.7.3
 
-any ideas?
