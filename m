@@ -1,54 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:41436 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754767Ab1KWToQ (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:57296 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753768Ab1KWW02 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Nov 2011 14:44:16 -0500
-From: Martin Dauskardt <martin.dauskardt@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 4/4] ivtv: implement new decoder command ioctls.
-Date: Wed, 23 Nov 2011 20:44:14 +0100
-Cc: linux-media@vger.kernel.org
-References: <201111231254.18805.martin.dauskardt@gmx.de> <201111231314.42496.hverkuil@xs4all.nl>
-In-Reply-To: <201111231314.42496.hverkuil@xs4all.nl>
+	Wed, 23 Nov 2011 17:26:28 -0500
+Received: by bke11 with SMTP id 11so2133593bke.19
+        for <linux-media@vger.kernel.org>; Wed, 23 Nov 2011 14:26:26 -0800 (PST)
+Message-ID: <4ECD730E.3080808@gmail.com>
+Date: Wed, 23 Nov 2011 23:26:22 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: linux-media <linux-media@vger.kernel.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [Query] V4L2 Integer (?) menu control
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201111232044.14863.martin.dauskardt@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> > I suggest to increase the ivtv driver version number when implementing
-> > the  changes. The application (which must be backward compatible) should
-> > be able to determine which ioctl it has to use.
-> 
-> These days the version number of all drivers is the same as the kernel
-> version number, so it is easy to check when new ioctls became available.
+Hi,
 
-Does this mean that the ivtv driver version is also 3.3 when somebody uses an 
-older kernel with updated drivers from media_build?
+I was wondering how to implement in v4l2 a standard menu control having integer 
+values as the menu items. The menu item values would be irregular, e.g. ascending
+logarithmically and thus the step value would not be a constant.
+I'm not interested in private control and symbolic enumeration for each value at
+the series. It should be a standard control where drivers could define an array 
+of integers reflecting the control menu items. And then the applications could
+enumerate what integer values are valid and can be happily applied to a device.  
 
-I am worried that this might be the case if somebody checks out from the 
-staging/for_v3.3 Branch **before** the patch is merged.
- 
->  
-> 
-> > It would be much better if the ivtv driver would continue to support the
-> > old  ioctl for the few years we still have any PVR350 user.
-> 
-> Don't worry, I won't be removing anything.
+I don't seem to find a way to implement this in current v4l2 control framework. 
+Such functionality isn't there, or is it ?
 
-good :-)
-
-> 
-> I checked the plugin code and you aren't using VIDEO_GET_EVENT. The
-> VIDEO_GET_EVENT ioctl is the only one I'd really like to get rid of in
-> ivtv in favor of the V4L2 event API. It's only used as far as I can tell
-> in ivtv-ctl and ivtvplay, both ivtv utilities that can easily be changed.
-> 
-> Are you perhaps aware of any other userspace applications that use that
-> ioctl?
-
-no. I think mythtv used it, but I doubt that the dropped support for the 
-decoder will come back anytime. 
+-- 
+Regards,
+Sylwester Nawrocki
