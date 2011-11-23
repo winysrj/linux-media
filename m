@@ -1,84 +1,300 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:35089 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752678Ab1KPPHE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Nov 2011 10:07:04 -0500
-Message-ID: <4EC3D18A.1060402@linuxtv.org>
-Date: Wed, 16 Nov 2011 16:06:50 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, TerraTux@terratec.de
-Subject: [PATCH] em28xx: Add Terratec Cinergy HTC Stick
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4306 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751965Ab1KWLMs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Nov 2011 06:12:48 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 2/4] v4l spec: document VIDIOC_(TRY_)DECODER_CMD.
+Date: Wed, 23 Nov 2011 12:12:34 +0100
+Message-Id: <9f5cf3b545b1b9e71a81ffb133f71c25268b9d79.1322045294.git.hans.verkuil@cisco.com>
+In-Reply-To: <1322046756-22870-1-git-send-email-hverkuil@xs4all.nl>
+References: <1322046756-22870-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <5f3ea26a94437e97b4b7ddfb3f7dc8dd4c2a8f12.1322045294.git.hans.verkuil@cisco.com>
+References: <5f3ea26a94437e97b4b7ddfb3f7dc8dd4c2a8f12.1322045294.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- Can receive DVB-C and DVB-T. No analogue television or radio yet.
-- For now it's a copy of the Terratec H5 code with a different name.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- linux/drivers/media/video/em28xx/em28xx-cards.c |   15 +++++++++++++++
- linux/drivers/media/video/em28xx/em28xx-dvb.c   |    1 +
- linux/drivers/media/video/em28xx/em28xx.h       |    1 +
- 3 files changed, 17 insertions(+), 0 deletions(-)
+ Documentation/DocBook/media/v4l/v4l2.xml           |    1 +
+ .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |  250 ++++++++++++++++++++
+ 2 files changed, 251 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
 
-diff --git a/linux/drivers/media/video/em28xx/em28xx-cards.c b/linux/drivers/media/video/em28xx/em28xx-cards.c
-index 9b747c2..03322d0 100644
---- a/linux/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/linux/drivers/media/video/em28xx/em28xx-cards.c
-@@ -892,6 +892,19 @@ struct em28xx_board em28xx_boards[] = {
- 				EM28XX_I2C_CLK_WAIT_ENABLE |
- 				EM28XX_I2C_FREQ_400_KHZ,
- 	},
-+	[EM2884_BOARD_CINERGY_HTC_STICK] = {
-+		.name         = "Terratec Cinergy HTC Stick",
-+		.has_dvb      = 1,
-+#if 0
-+		.tuner_type   = TUNER_PHILIPS_TDA8290,
-+		.tuner_addr   = 0x41,
-+		.dvb_gpio     = terratec_h5_digital, /* FIXME: probably wrong */
-+		.tuner_gpio   = terratec_h5_gpio,
-+#endif
-+		.i2c_speed    = EM2874_I2C_SECONDARY_BUS_SELECT |
-+				EM28XX_I2C_CLK_WAIT_ENABLE |
-+				EM28XX_I2C_FREQ_400_KHZ,
-+	},
- 	[EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900] = {
- 		.name         = "Hauppauge WinTV HVR 900",
- 		.tda9887_conf = TDA9887_PRESENT,
-@@ -1925,6 +1938,8 @@ struct usb_device_id em28xx_id_table[] = {
- 			.driver_info = EM2860_BOARD_TERRATEC_GRABBY },
- 	{ USB_DEVICE(0x0ccd, 0x10AF),
- 			.driver_info = EM2860_BOARD_TERRATEC_GRABBY },
-+	{ USB_DEVICE(0x0ccd, 0x00b2),
-+			.driver_info = EM2884_BOARD_CINERGY_HTC_STICK },
- 	{ USB_DEVICE(0x0fd9, 0x0033),
- 			.driver_info = EM2860_BOARD_ELGATO_VIDEO_CAPTURE},
- 	{ USB_DEVICE(0x185b, 0x2870),
-diff --git a/linux/drivers/media/video/em28xx/em28xx-dvb.c b/linux/drivers/media/video/em28xx/em28xx-dvb.c
-index cef7a2d..270cb98 100644
---- a/linux/drivers/media/video/em28xx/em28xx-dvb.c
-+++ b/linux/drivers/media/video/em28xx/em28xx-dvb.c
-@@ -789,6 +789,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 		}
- 		break;
- 	case EM2884_BOARD_TERRATEC_H5:
-+	case EM2884_BOARD_CINERGY_HTC_STICK:
- 		terratec_h5_init(dev);
- 
- 		dvb->dont_attach_fe1 = 1;
-diff --git a/linux/drivers/media/video/em28xx/em28xx.h b/linux/drivers/media/video/em28xx/em28xx.h
-index 2a2cb7e..5d763f7 100644
---- a/linux/drivers/media/video/em28xx/em28xx.h
-+++ b/linux/drivers/media/video/em28xx/em28xx.h
-@@ -121,6 +121,7 @@
- #define EM28174_BOARD_PCTV_290E                   78
- #define EM2884_BOARD_TERRATEC_H5		  79
- #define EM28174_BOARD_PCTV_460E                   80
-+#define EM2884_BOARD_CINERGY_HTC_STICK		  81
- 
- /* Limits minimum and default number of buffers */
- #define EM28XX_MIN_BUF 4
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 2ab365c..7fc11db 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -473,6 +473,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-cropcap;
+     &sub-dbg-g-chip-ident;
+     &sub-dbg-g-register;
++    &sub-decoder-cmd;
+     &sub-dqevent;
+     &sub-encoder-cmd;
+     &sub-enumaudio;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
+new file mode 100644
+index 0000000..bf016f0
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
+@@ -0,0 +1,250 @@
++<refentry id="vidioc-decoder-cmd">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_DECODER_CMD, VIDIOC_TRY_DECODER_CMD</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_DECODER_CMD</refname>
++    <refname>VIDIOC_TRY_DECODER_CMD</refname>
++    <refpurpose>Execute an decoder command</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_decoder_cmd *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_DECODER_CMD, VIDIOC_TRY_DECODER_CMD</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <note>
++      <title>Experimental</title>
++
++      <para>This is an <link linkend="experimental">experimental</link>
++interface and may change in the future.</para>
++    </note>
++
++    <para>These ioctls control an audio/video (usually MPEG-) decoder.
++<constant>VIDIOC_DECODER_CMD</constant> sends a command to the
++decoder, <constant>VIDIOC_TRY_DECODER_CMD</constant> can be used to
++try a command without actually executing it. To send a command applications
++must initialize all fields of a &v4l2-decoder-cmd; and call
++<constant>VIDIOC_DECODER_CMD</constant> or <constant>VIDIOC_TRY_DECODER_CMD</constant>
++with a pointer to this structure.</para>
++
++    <para>The <structfield>cmd</structfield> field must contain the
++command code. Some commands use the <structfield>flags</structfield> field for
++additional information.
++</para>
++
++    <para>A <function>write</function>() call sends a START command to
++the decoder if it has not been started yet.
++</para>
++
++    <para>A <function>close</function>() call sends an immediate STOP
++to the decoder, and all buffered data is discarded.</para>
++
++    <para>These ioctls are optional, not all drivers may support
++them. They were introduced in Linux 3.3.</para>
++
++    <table pgwide="1" frame="none" id="v4l2-decoder-cmd">
++      <title>struct <structname>v4l2_decoder_cmd</structname></title>
++      <tgroup cols="5">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>cmd</structfield></entry>
++            <entry></entry>
++            <entry></entry>
++	    <entry>The decoder command, see <xref linkend="decoder-cmds" />.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>flags</structfield></entry>
++            <entry></entry>
++            <entry></entry>
++	    <entry>Flags to go with the command. If no flags are defined for
++this command, drivers and applications must set this field to zero.</entry>
++	  </row>
++	  <row>
++	    <entry>union</entry>
++	    <entry>(anonymous)</entry>
++            <entry></entry>
++	    <entry></entry>
++            <entry></entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>struct</entry>
++            <entry><structfield>start</structfield></entry>
++            <entry></entry>
++            <entry>Structure containing additional data for the
++<constant>V4L2_DEC_CMD_START</constant> command.</entry>
++	  </row>
++	  <row>
++            <entry></entry>
++            <entry></entry>
++	    <entry>__u32</entry>
++	    <entry><structfield>speed</structfield></entry>
++            <entry>Playback speed and direction. The playback speed is defined as
++<structfield>speed</structfield>/1000 of the normal speed. So 1000 is normal playback.
++Negative numbers denote reverse playback, so -1000 does reverse playback at normal
++speed. Speeds -1, 0 and 1 have special meanings: speed 0 is shorthand for 1000
++(normal playback). A speed of 1 steps just one frame forward, a speed of -1 steps
++just one frame back.
++	    </entry>
++	  </row>
++	  <row>
++            <entry></entry>
++            <entry></entry>
++	    <entry>__u32</entry>
++	    <entry><structfield>format</structfield></entry>
++            <entry>Format restrictions. This field is set by the driver, not the
++application. Possible values are <constant>V4L2_DEC_START_FMT_NONE</constant> if
++there are no format restrictions or <constant>V4L2_DEC_START_FMT_GOP</constant>
++if the decoder operates on full GOPs (<wordasword>Group Of Pictures</wordasword>).
++This is usually the case for reverse playback: the decoder needs full GOPs, which
++it can then play in reverse order. So to implement reverse playback the application
++must feed the decoder the last GOP in the video file, then the GOP before that, etc. etc.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>struct</entry>
++            <entry><structfield>stop</structfield></entry>
++            <entry></entry>
++            <entry>Structure containing additional data for the
++<constant>V4L2_DEC_CMD_STOP</constant> command.</entry>
++	  </row>
++	  <row>
++            <entry></entry>
++            <entry></entry>
++	    <entry>__u64</entry>
++	    <entry><structfield>pts</structfield></entry>
++            <entry>Stop playback at this <structfield>pts</structfield> or immediately
++if the playback is already past that timestamp. Leave to 0 if you want to stop after the
++last frame was decoded.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>struct</entry>
++            <entry><structfield>raw</structfield></entry>
++            <entry></entry>
++            <entry></entry>
++	  </row>
++	  <row>
++            <entry></entry>
++            <entry></entry>
++	    <entry>__u32</entry>
++	    <entry><structfield>data</structfield>[16]</entry>
++	    <entry>Reserved for future extensions. Drivers and
++applications must set the array to zero.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table pgwide="1" frame="none" id="decoder-cmds">
++      <title>Decoder Commands</title>
++      <tgroup cols="3">
++	&cs-def;
++	<tbody valign="top">
++	  <row>
++	    <entry><constant>V4L2_DEC_CMD_START</constant></entry>
++	    <entry>0</entry>
++	    <entry>Start the decoder. When the decoder is already
++running or paused, this command does nothing. There are no flags
++associated with this command.
++            </entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_DEC_CMD_STOP</constant></entry>
++	    <entry>1</entry>
++	    <entry>Stop the decoder. When the decoder is already stopped,
++this command does nothing. This command has two flags:
++if <constant>V4L2_DEC_CMD_STOP_TO_BLACK</constant> is set, then the decoder will
++set the picture to black after it stopped decoding. Otherwise the last image will
++repeat. If <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the decoder
++stops immediately (ignoring the <structfield>pts</structfield> value), otherwise it
++will keep decoding until timestamp >= pts or until the last of the pending data from
++its internal buffers was decoded.
++</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_DEC_CMD_PAUSE</constant></entry>
++	    <entry>2</entry>
++	    <entry>Pause the decoder. When the decoder has not been
++started yet, the driver will return an &EPERM;. When the decoder is
++already paused, this command does nothing. This command has one flag:
++if <constant>V4L2_DEC_CMD_PAUSE_TO_BLACK</constant> is set, then set the
++decoder output to black when paused.
++</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_DEC_CMD_RESUME</constant></entry>
++	    <entry>3</entry>
++	    <entry>Resume decoding after a PAUSE command. When the
++decoder has not been started yet, the driver will return an &EPERM;.
++When the decoder is already running, this command does nothing. No
++flags are defined for this command.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>The <structfield>cmd</structfield> field is invalid.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><errorcode>EPERM</errorcode></term>
++	<listitem>
++	  <para>The application sent a PAUSE or RESUME command when
++the decoder was not running.</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
+-- 
+1.7.7.3
+
