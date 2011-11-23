@@ -1,96 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:47142 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751699Ab1KSTAA (ORCPT
+Received: from acsinet15.oracle.com ([141.146.126.227]:33780 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755867Ab1KWHJg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Nov 2011 14:00:00 -0500
-Received: by ywt32 with SMTP id 32so3533704ywt.19
-        for <linux-media@vger.kernel.org>; Sat, 19 Nov 2011 11:00:00 -0800 (PST)
-Date: Sat, 19 Nov 2011 15:59:50 -0300
-From: Ezequiel <elezegarcia@gmail.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org, elezegarcia@gmail.com
-Subject: Re: Cleanup proposal for media/gspca
-Message-ID: <20111119185950.GB3048@localhost>
-References: <20111116013445.GA5273@localhost>
- <CALF0-+V+rEYi1of3jUGeVZsF2Ms215k0_CQjJx0qnPDUuC1BQQ@mail.gmail.com>
- <20111117110716.6343d46c@tele>
+	Wed, 23 Nov 2011 02:09:36 -0500
+Date: Wed, 23 Nov 2011 10:09:12 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Peter Huewe <peterhuewe@gmx.de>,
+	Steven Toth <stoth@kernellabs.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] saa7164: fix endian conversion in saa7164_bus_set()
+Message-ID: <20111123070911.GA8561@elgon.mountain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20111117110716.6343d46c@tele>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 17, 2011 at 11:07:16AM +0100, Jean-Francois Moine wrote:
-> On Wed, 16 Nov 2011 15:19:04 -0300
-> Ezequiel Garc??a <elezegarcia@gmail.com> wrote:
-> 
-> > In 'media/video/gspca/gspca.c' I really hated this cast (maybe because
-> > I am too dumb to understand it):
-> > 
-> >   gspca_dev = (struct gspca_dev *) video_devdata(file);
-> > 
-> > wich is only legal because a struct video_device is the first member
-> > of gspca_dev. IMHO, this is 'unnecesary obfuscation'.
-> > The thing is the driver is surely working fine and there is no good
-> > reasong for the change.
-> > 
-> > Is it ok to submit a patchset to change this? Something like this:
-> > 
-> > diff --git a/drivers/media/video/gspca/gspca.c
-> > b/drivers/media/video/gspca/gspca.c
-> > index 881e04c..5d962ce 100644
-> > --- a/drivers/media/video/gspca/gspca.c
-> > +++ b/drivers/media/video/gspca/gspca.c
-> > @@ -1304,9 +1306,11 @@ static void gspca_release(struct video_device *vfd)
-> >  static int dev_open(struct file *file)
-> >  {
-> >  	struct gspca_dev *gspca_dev;
-> > +	struct video_device *vdev;
-> > 
-> >  	PDEBUG(D_STREAM, "[%s] open", current->comm);
-> > -	gspca_dev = (struct gspca_dev *) video_devdata(file);
-> > +	vdev = video_devdata(file);
-> > +	gspca_dev = video_get_drvdata(vdev);
-> >  	if (!gspca_dev->present)
-> 
-> Hi Ezequiel,
-> 
-> You are right, the cast is not a good way (and there are a lot of them
-> in the gspca subdrivers), but your patch does not work because the
-> 'private_data' of the device is not initialized (there is no call to
-> video_set_drvdata).
-> 
-> So, a possible cleanup could be:
-> 
-> > -	gspca_dev = (struct gspca_dev *) video_devdata(file);
-> > +	gspca_dev = container_of(video_devdata(file), struct gspca_dev, vdev);
-> 
-> Is it OK for you?
-> 
+The msg->command field is 32 bits, and we should fill it with a call
+to cpu_to_le32().  The current code is broken on big endian systems,
+and on little endian systems it just truncates the 32 bit value to
+16 bits.
 
-Hi Jef,
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+This is a static checker bug.  I haven't tested it.
 
-I just sent a patch to linux-media for this little issue. 
-
-I realize it is only a very minor patch, 
-so I am not sure If I am helping or just annoying the developers ;)
-
-Anyway, if you could check the patch I would appreciate it. 
-
-A few questions arose:
-
-* I made the patch on this tree: git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media
-  not sure if this is ok.
-
-* Should I send gspca's patches to anyone else besides you and the list?
-
-* I have this on my MAINTANIERS file: git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
-  But that repo seems no longer alive, maybe MAINTAINERS need some
-  updating.
-
-Again, hope the patch helps, 
-
-Thanks,
-Ezequiel.
+diff --git a/drivers/media/video/saa7164/saa7164-bus.c b/drivers/media/video/saa7164/saa7164-bus.c
+index 466e1b0..8f853d1 100644
+--- a/drivers/media/video/saa7164/saa7164-bus.c
++++ b/drivers/media/video/saa7164/saa7164-bus.c
+@@ -149,7 +149,7 @@ int saa7164_bus_set(struct saa7164_dev *dev, struct tmComResInfo* msg,
+ 	saa7164_bus_verify(dev);
+ 
+ 	msg->size = cpu_to_le16(msg->size);
+-	msg->command = cpu_to_le16(msg->command);
++	msg->command = cpu_to_le32(msg->command);
+ 	msg->controlselector = cpu_to_le16(msg->controlselector);
+ 
+ 	if (msg->size > dev->bus.m_wMaxReqSize) {
