@@ -1,42 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38908 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757960Ab1K3RId (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 12:08:33 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pAUH8XWB030383
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 30 Nov 2011 12:08:33 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 1/5] [media] tuner-xc2028: Better report signal strength
-Date: Wed, 30 Nov 2011 15:08:20 -0200
-Message-Id: <1322672904-17340-1-git-send-email-mchehab@redhat.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:48492 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751161Ab1KWKFm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Nov 2011 05:05:42 -0500
+Received: by ggnr5 with SMTP id r5so1221675ggn.19
+        for <linux-media@vger.kernel.org>; Wed, 23 Nov 2011 02:05:42 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4ECBF80C.20701@gmail.com>
+References: <1321963316-9058-1-git-send-email-javier.martin@vista-silicon.com>
+	<1321963316-9058-2-git-send-email-javier.martin@vista-silicon.com>
+	<4ECBF80C.20701@gmail.com>
+Date: Wed, 23 Nov 2011 11:05:41 +0100
+Message-ID: <CACKLOr1om8qwXL_pFr+aFGCh7paH-px9+FpmKNCPJyQmjf-zvA@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] MX2: Add platform definitions for eMMa-PrP device.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, shawn.guo@linaro.org,
+	richard.zhao@linaro.org, fabio.estevam@freescale.com,
+	kernel@pengutronix.de, s.hauer@pengutronix.de,
+	r.schwebel@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix lock bit to better indicate signal strength, from 4096 to
-65535.
+On 22 November 2011 20:29, Sylwester Nawrocki <snjw23@gmail.com> wrote:
+> Hi Javier,
+>> +struct platform_device *__init imx_alloc_mx2_emmaprp(
+>> +             const struct imx_mx2_camera_data *data)
+>> +{
+>> +     struct resource res[] = {
+>> +             {
+>> +                     .start = data->iobaseemmaprp,
+>> +                     .end = data->iobaseemmaprp + data->iosizeemmaprp - 1,
+>> +                     .flags = IORESOURCE_MEM,
+>> +             }, {
+>> +                     .start = data->irqemmaprp,
+>> +                     .end = data->irqemmaprp,
+>> +                     .flags = IORESOURCE_IRQ,
+>> +             },
+>> +     };
+>> +     struct platform_device *pdev;
+>> +     int ret = -ENOMEM;
+>> +
+>> +     pdev = platform_device_alloc("m2m-emmaprp", 0);
+>> +     if (!pdev)
+>> +             goto err;
+>> +
+>> +     ret = platform_device_add_resources(pdev, res, ARRAY_SIZE(res));
+>> +     if (ret)
+>> +             goto err;
+>> +
+>> +     return pdev;
+>> +err:
+>> +     platform_device_put(pdev);
+>> +     return ERR_PTR(-ENODEV);
+>
+> I guess you intended to have
+>
+> +       return ERR_PTR(ret);
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/tuner-xc2028.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Sure, thanks for the tip.
 
-diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
-index 3acbaa0..e531267 100644
---- a/drivers/media/common/tuners/tuner-xc2028.c
-+++ b/drivers/media/common/tuners/tuner-xc2028.c
-@@ -891,7 +891,7 @@ static int xc2028_signal(struct dvb_frontend *fe, u16 *strength)
- 
- 	/* Frequency is locked */
- 	if (frq_lock == 1)
--		signal = 32768;
-+		signal = 1 << 11;
- 
- 	/* Get SNR of the video signal */
- 	rc = xc2028_get_reg(priv, 0x0040, &signal);
 -- 
-1.7.7.3
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
