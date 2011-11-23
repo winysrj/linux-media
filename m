@@ -1,31 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailfe09.c2i.net ([212.247.155.2]:33207 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750936Ab1KHVbz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Nov 2011 16:31:55 -0500
-Received: from [188.126.198.129] (account mc467741@c2i.net HELO laptop002.hselasky.homeunix.org)
-  by mailfe09.swip.net (CommuniGate Pro SMTP 5.2.19)
-  with ESMTPA id 26322736 for linux-media@vger.kernel.org; Tue, 08 Nov 2011 22:26:51 +0100
-From: Hans Petter Selasky <hselasky@c2i.net>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3584 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751940Ab1KWLMs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Nov 2011 06:12:48 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Media tree build log from FreeBSD 8-stable
-Date: Tue, 8 Nov 2011 22:24:00 +0100
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111082224.00813.hselasky@c2i.net>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 3/4] cx18/ddbridge: remove unused headers.
+Date: Wed, 23 Nov 2011 12:12:35 +0100
+Message-Id: <572687cf2a512deeec920e25a0f125baebdfec93.1322045294.git.hans.verkuil@cisco.com>
+In-Reply-To: <1322046756-22870-1-git-send-email-hverkuil@xs4all.nl>
+References: <1322046756-22870-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <5f3ea26a94437e97b4b7ddfb3f7dc8dd4c2a8f12.1322045294.git.hans.verkuil@cisco.com>
+References: <5f3ea26a94437e97b4b7ddfb3f7dc8dd4c2a8f12.1322045294.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The following link shows the build log of the webcamd port built on FreeBSD 8-
-stable. The webcamd port includes many Linux USB [media] device drivers which 
-are built like a user-space daemon.
+Work is in progress to deprecate include/linux/dvb/audio.h and video.h.
+The cx18 and ddbridge drivers include these headers without using them.
 
-http://hselasky.homeunix.org:8192/medie_tree_build_log_freebsd.txt.gz
+Remove those includes.
 
-I'll try to send this regularly if you are interested.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/dvb/ddbridge/ddbridge.h  |    2 --
+ drivers/media/video/cx18/cx18-driver.h |    2 --
+ 2 files changed, 0 insertions(+), 4 deletions(-)
 
---HPS
+diff --git a/drivers/media/dvb/ddbridge/ddbridge.h b/drivers/media/dvb/ddbridge/ddbridge.h
+index 6d14893..8b1b41d 100644
+--- a/drivers/media/dvb/ddbridge/ddbridge.h
++++ b/drivers/media/dvb/ddbridge/ddbridge.h
+@@ -32,8 +32,6 @@
+ #include <asm/dma.h>
+ #include <linux/dvb/frontend.h>
+ #include <linux/dvb/ca.h>
+-#include <linux/dvb/video.h>
+-#include <linux/dvb/audio.h>
+ #include <linux/socket.h>
+ 
+ #include "dmxdev.h"
+diff --git a/drivers/media/video/cx18/cx18-driver.h b/drivers/media/video/cx18/cx18-driver.h
+index b9a94fc..7a37e0e 100644
+--- a/drivers/media/video/cx18/cx18-driver.h
++++ b/drivers/media/video/cx18/cx18-driver.h
+@@ -44,8 +44,6 @@
+ #include <linux/slab.h>
+ #include <asm/byteorder.h>
+ 
+-#include <linux/dvb/video.h>
+-#include <linux/dvb/audio.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-device.h>
+-- 
+1.7.7.3
+
