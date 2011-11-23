@@ -1,144 +1,1089 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59945 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751119Ab1KYA16 (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:33965 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756358Ab1KWPOR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 19:27:58 -0500
-Subject: Re: BUG: scheduling while atomic: kworker/0:0/0/0x00000100
-From: Andy Walls <awalls@md.metrocast.net>
-To: Stefan Macher <maker76s@yahoo.de>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 24 Nov 2011 19:27:51 -0500
-In-Reply-To: <1322161379.18402.YahooMailNeo@web28008.mail.ukl.yahoo.com>
-References: <1322161379.18402.YahooMailNeo@web28008.mail.ukl.yahoo.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1322180874.4178.11.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Wed, 23 Nov 2011 10:14:17 -0500
+Received: by mail-bw0-f46.google.com with SMTP id 11so1696573bke.19
+        for <linux-media@vger.kernel.org>; Wed, 23 Nov 2011 07:14:16 -0800 (PST)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, shawn.guo@linaro.org,
+	richard.zhao@linaro.org, fabio.estevam@freescale.com,
+	kernel@pengutronix.de, s.hauer@pengutronix.de,
+	r.schwebel@pengutronix.de
+Cc: Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH v3 2/2] MEM2MEM: Add support for eMMa-PrP mem2mem operations.
+Date: Wed, 23 Nov 2011 16:13:47 +0100
+Message-Id: <1322061227-6631-3-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1322061227-6631-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1322061227-6631-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2011-11-24 at 19:02 +0000, Stefan Macher wrote:
-> 
-> Hi,
-> 
-> I have setup a new vdr with yavdr 0.4 with one TT full-featured DVB-S
-> card (S2300) and one Mystique SaTiX-S2 Sky Xpress dual. As soon as I
-> pause the video I get endless reports like the one in the headline and
-> the vdr is dead.
-> 
-> Because of the new SaTiX card I had to update the DVB drivers to the
-> latest media-tree. I tried the yavdr kernel 2.6.38-12, a vanilla 3.0.9
-> kernel and I also tested the DVB driver from dvbsky.net on top of
-> vanilla 3.0.9. I always get the same result - working perfectly until
-> I press pause.
-> 
-> In the log below schedule is called by play_video_cb (dvb-ttpci). Any
-> help is appreciated.
+Changes since v2:
+- Use devres to simplify error handling.
+- Remove unused structures.
+- Fix clock handling.
+- Other minor problems.
 
-It appears the ttpci driver has an architectural problem.
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ drivers/media/video/Kconfig       |   10 +
+ drivers/media/video/Makefile      |    2 +
+ drivers/media/video/mx2_emmaprp.c | 1008 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 1020 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/mx2_emmaprp.c
 
-There are two obvious courses of action to fix the driver:
-
-1. Rework the driver so that it uses workqueues instead of tasklets
-(tasklets are deprecated).  Code executed by a workqueue worker thread
-is permitted to sleep.  Code executed in a tasklet context is not
-permitted to sleep.
-
-or
-
-2. Rework the driver to avoid all mutex locks, or other schedule()-ing
-calls, in all code paths possibly called in a tasklet context.
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index b303a3f..e8ce0c2 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -1107,4 +1107,14 @@ config VIDEO_SAMSUNG_S5P_MFC
+ 	help
+ 	    MFC 5.1 driver for V4L2.
  
-
-Both options require a non-trivial amount of work and regression
-testing, but I estimate option #1 requires less effort.
-
-You have a 3rd option option:
-
-3. Don't press "pause"
-
-Regards,
-Andy
-
-> /Stefan
-> 
-> LOG:
-> 
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295798] BUG: scheduling while atomic: kworker/0:0/0/0x00000100
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295806] Modules linked in: snd_hda_codec_hdmi snd_hda_codec_realtek speedstep_lib nfsd exportfs nfs lockd fscache auth_rpcgss nfs_acl rc_dvbsky ds3000 lnbp21 sunrpc stv0299 cx25840 ir_lirc_codec lirc_dev snd_hda_intel snd_hda_codec ir_mce_kbd_decoder snd_hwdep ir_sony_decoder ir_jvc_decoder ir_rc6_decoder ir_rc5_decoder ir_nec_decoder cx23885 rc_core snd_pcm snd_seq_midi snd_rawmidi snd_seq_midi_event cx2341x videobuf_dvb v4l2_common snd_seq dvb_ttpci dvb_core saa7146_vv snd_timer snd_seq_device snd mxm_wmi saa7146 videodev soundcore videobuf_dma_sg videobuf_core v4l2_compat_ioctl32 ttpci_eeprom psmouse snd_page_alloc serio_raw video btcx_risc tveeprom edac_core edac_mce_amd k8temp shpchp i2c_nforce2 lp parport floppy firewire_ohci firewire_core crc_itu_t forcedeth ahci libahci
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295863] CPU 1 
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295864] Modules linked in: snd_hda_codec_hdmi snd_hda_codec_realtek speedstep_lib nfsd exportfs nfs lockd fscache auth_rpcgss nfs_acl rc_dvbsky ds3000 lnbp21 sunrpc stv0299 cx25840 ir_lirc_codec lirc_dev snd_hda_intel snd_hda_codec ir_mce_kbd_decoder snd_hwdep ir_sony_decoder ir_jvc_decoder ir_rc6_decoder ir_rc5_decoder ir_nec_decoder cx23885 rc_core snd_pcm snd_seq_midi snd_rawmidi snd_seq_midi_event cx2341x videobuf_dvb v4l2_common snd_seq dvb_ttpci dvb_core saa7146_vv snd_timer snd_seq_device snd mxm_wmi saa7146 videodev soundcore videobuf_dma_sg videobuf_core v4l2_compat_ioctl32 ttpci_eeprom psmouse snd_page_alloc serio_raw video btcx_risc tveeprom edac_core edac_mce_amd k8temp shpchp i2c_nforce2 lp parport floppy firewire_ohci firewire_core crc_itu_t forcedeth ahci libahci
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295910] 
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295913] Pid: 0, comm: kworker/0:0 Not tainted 3.1.0-media+ #1 System manufacturer System Product Name/M3N78-EM
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295919] RIP: 0010:[<ffffffff8103b14b>]  [<ffffffff8103b14b>] native_safe_halt+0xb/0x10
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295928] RSP: 0018:ffff88007432fe88  EFLAGS: 00000246
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295931] RAX: 0000000000000000 RBX: ffffffff8101aa95 RCX: 0000000000000000
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295934] RDX: 0000000000000000 RSI: ffff88007432fec4 RDI: 0000000000000000
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295936] RBP: ffff88007432fe88 R08: 0000000000000000 R09: 0000000000000000
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295939] R10: 0000000000000000 R11: 0000000000000000 R12: ffff880077c91200
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295941] R13: 00ff880000000000 R14: 0000000000000000 R15: ffff880071760058
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295945] FS:  00007fe326c31740(0000) GS:ffff880077c80000(0000) knlGS:0000000000000000
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295948] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295951] CR2: 00007fe2fc5efac4 CR3: 0000000071d26000 CR4: 00000000000006e0
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295953] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295956] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295959] Process kworker/0:0 (pid: 0, threadinfo ffff88007432e000, task ffff880074330000)
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295962] Stack:
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295964]  ffff88007432fea8 ffffffff8101b901 ffff88007432fec4 ffffffff81abccc0
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295968]  ffff88007432fed8 ffffffff8101b9fd ffff88007432fec8 000000007432e000
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295973]  ffff88007432e000 ffffffff81abccc0 ffff88007432ff18 ffffffff81012276
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295977] Call Trace:
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295983]  [<ffffffff8101b901>] default_idle+0x41/0xe0
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295987]  [<ffffffff8101b9fd>] amd_e400_idle+0x5d/0x120
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295991]  [<ffffffff81012276>] cpu_idle+0xd6/0x110
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295997]  [<ffffffff815dd074>] start_secondary+0x1e0/0x1e7
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.295999] Code: 55 48 89 e5 66 66 66 66 90 fa c9 c3 0f 1f 40 00 55 48 89 e5 66 66 66 66 90 fb c9 c3 0f 1f 40 00 55 48 89 e5 66 66 66 66 90 fb f4 <c9> c3 0f 1f 00 55 48 89 e5 66 66 66 66 90 f4 c9 c3 0f 1f 40 00 
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296047] Call Trace:
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296050]  [<ffffffff8101b901>] default_idle+0x41/0xe0
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296053]  [<ffffffff8101b9fd>] amd_e400_idle+0x5d/0x120
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296057]  [<ffffffff81012276>] cpu_idle+0xd6/0x110
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296061]  [<ffffffff815dd074>] start_secondary+0x1e0/0x1e7
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296064] bad: scheduling from the idle thread!
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296068] Pid: 0, comm: kworker/0:0 Not tainted 3.1.0-media+ #1
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296070] Call Trace:
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296072]  <IRQ>  [<ffffffff81051dfa>] dequeue_task_idle+0x3a/0x50
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296080]  [<ffffffff8104c993>] dequeue_task+0x93/0xb0
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296083]  [<ffffffff8104c9d3>] deactivate_task+0x23/0x30
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296087]  [<ffffffff815e22d9>] __schedule+0x4c9/0x8a0
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296091]  [<ffffffff815e29df>] schedule+0x3f/0x60
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296102]  [<ffffffffa017e3b5>] play_video_cb+0x295/0x4f0 [dvb_ttpci]
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296107]  [<ffffffff81087030>] ? wake_up_bit+0x40/0x40
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296111]  [<ffffffff81059860>] ? try_to_wake_up+0x250/0x2b0
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296119]  [<ffffffffa018562d>] send_ipack+0xed/0x250 [dvb_ttpci]
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296122]  [<ffffffff810598d2>] ? default_wake_function+0x12/0x20
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296130]  [<ffffffffa0185815>] write_ipack+0x85/0xd0 [dvb_ttpci]
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296137]  [<ffffffffa0185d6a>] av7110_ipack_instant_repack+0x35a/0x890 [dvb_ttpci]
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296144]  [<ffffffffa017cb74>] write_ts_to_decoder+0x74/0xc0 [dvb_ttpci]
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296151]  [<ffffffffa017feb9>] av7110_write_to_decoder+0x99/0xf0 [dvb_ttpci]
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296163]  [<ffffffffa0155d8c>] dvb_dmx_swfilter_packet+0x1fc/0x5b0 [dvb_core]
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296170]  [<ffffffffa01771bd>] ? av7110_debiread+0x4d/0x160 [dvb_ttpci]
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296175]  [<ffffffff8103bed9>] ? default_spin_lock_flags+0x9/0x10
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296182]  [<ffffffffa01563aa>] dvb_dmx_swfilter_packets+0x5a/0x80 [dvb_core]
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296189]  [<ffffffffa01828a9>] debiirq+0x1d9/0x490 [dvb_ttpci]
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296193]  [<ffffffff8106ab73>] tasklet_action+0x73/0x120
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296197]  [<ffffffff8106b1a8>] __do_softirq+0xa8/0x1c0
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296201]  [<ffffffff81033dd6>] ? ack_apic_level+0x76/0x1f0
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296206]  [<ffffffff815ef02c>] call_softirq+0x1c/0x30
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296210]  [<ffffffff810152b5>] do_softirq+0x65/0xa0
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296213]  [<ffffffff8106b53e>] irq_exit+0x8e/0xb0
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296217]  [<ffffffff815ef8e6>] do_IRQ+0x66/0xe0
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296222]  [<ffffffff815e502e>] common_interrupt+0x6e/0x6e
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296224]  <EOI>  [<ffffffff8101aa95>] ? native_sched_clock+0x15/0x70
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296230]  [<ffffffff8103b14b>] ? native_safe_halt+0xb/0x10
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296233]  [<ffffffff8101b901>] default_idle+0x41/0xe0
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296237]  [<ffffffff8101b9fd>] amd_e400_idle+0x5d/0x120
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296240]  [<ffffffff81012276>] cpu_idle+0xd6/0x110
-> Nov 22 20:19:23 vdr4 kernel: [ 1881.296244]  [<ffffffff815dd074>] start_secondary+0x1e0/0x1e7
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
++config VIDEO_MX2_EMMAPRP
++	tristate "MX2 eMMa-PrP support"
++	depends on VIDEO_DEV && VIDEO_V4L2 && SOC_IMX27
++	select VIDEOBUF2_DMA_CONTIG
++	select V4L2_MEM2MEM_DEV
++	help
++	    MX2X chips have a PrP that can be used to process buffers from
++	    memory to memory. Operations include resizing and format
++	    conversion.
++
+ endif # V4L_MEM2MEM_DRIVERS
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 117f9c4..7ae711e 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -176,6 +176,8 @@ obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
+ obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
+ obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
+ 
++obj-$(CONFIG_VIDEO_MX2_EMMAPRP)		+= mx2_emmaprp.o
++
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_FIMC) 	+= s5p-fimc/
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC)	+= s5p-mfc/
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
+diff --git a/drivers/media/video/mx2_emmaprp.c b/drivers/media/video/mx2_emmaprp.c
+new file mode 100644
+index 0000000..fef996e
+--- /dev/null
++++ b/drivers/media/video/mx2_emmaprp.c
+@@ -0,0 +1,1008 @@
++/*
++ * Support eMMa-PrP through mem2mem framework.
++ *
++ * eMMa-PrP is a piece of HW that allows fetching buffers
++ * from one memory location and do several operations on
++ * them such as scaling or format conversion giving, as a result
++ * a new processed buffer in another memory location.
++ *
++ * Based on mem2mem_testdev.c by Pawel Osciak.
++ *
++ * Copyright (c) 2011 Vista Silicon S.L.
++ * Javier Martin <javier.martin@vista-silicon.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the
++ * License, or (at your option) any later version
++ */
++#include <linux/module.h>
++#include <linux/clk.h>
++#include <linux/slab.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++
++#include <linux/platform_device.h>
++#include <media/v4l2-mem2mem.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-dma-contig.h>
++#include <asm/sizes.h>
++
++#define EMMAPRP_MODULE_NAME "mem2mem-emmaprp"
++
++MODULE_DESCRIPTION("Mem-to-mem device which supports eMMa-PrP present in mx2 SoCs");
++MODULE_AUTHOR("Javier Martin <javier.martin@vista-silicon.com");
++MODULE_LICENSE("GPL");
++MODULE_VERSION("0.0.1");
++
++static bool debug;
++module_param(debug, bool, 0644);
++
++#define MIN_W 32
++#define MIN_H 32
++#define MAX_W 2040
++#define MAX_H 2046
++
++#define W_ALIGN_MASK_YUV420	0x07 /* multiple of 8 */
++#define W_ALIGN_MASK_OTHERS	0x03 /* multiple of 4 */
++#define H_ALIGN_MASK		0x01 /* multiple of 2 */
++
++/* Flags that indicate a format can be used for capture/output */
++#define MEM2MEM_CAPTURE	(1 << 0)
++#define MEM2MEM_OUTPUT	(1 << 1)
++
++#define MEM2MEM_NAME		"m2m-emmaprp"
++
++/* In bytes, per queue */
++#define MEM2MEM_VID_MEM_LIMIT	SZ_16M
++
++#define dprintk(dev, fmt, arg...) \
++	v4l2_dbg(1, debug, &dev->v4l2_dev, "%s: " fmt, __func__, ## arg)
++
++/* EMMA PrP */
++#define PRP_CNTL                        0x00
++#define PRP_INTR_CNTL                   0x04
++#define PRP_INTRSTATUS                  0x08
++#define PRP_SOURCE_Y_PTR                0x0c
++#define PRP_SOURCE_CB_PTR               0x10
++#define PRP_SOURCE_CR_PTR               0x14
++#define PRP_DEST_RGB1_PTR               0x18
++#define PRP_DEST_RGB2_PTR               0x1c
++#define PRP_DEST_Y_PTR                  0x20
++#define PRP_DEST_CB_PTR                 0x24
++#define PRP_DEST_CR_PTR                 0x28
++#define PRP_SRC_FRAME_SIZE              0x2c
++#define PRP_DEST_CH1_LINE_STRIDE        0x30
++#define PRP_SRC_PIXEL_FORMAT_CNTL       0x34
++#define PRP_CH1_PIXEL_FORMAT_CNTL       0x38
++#define PRP_CH1_OUT_IMAGE_SIZE          0x3c
++#define PRP_CH2_OUT_IMAGE_SIZE          0x40
++#define PRP_SRC_LINE_STRIDE             0x44
++#define PRP_CSC_COEF_012                0x48
++#define PRP_CSC_COEF_345                0x4c
++#define PRP_CSC_COEF_678                0x50
++#define PRP_CH1_RZ_HORI_COEF1           0x54
++#define PRP_CH1_RZ_HORI_COEF2           0x58
++#define PRP_CH1_RZ_HORI_VALID           0x5c
++#define PRP_CH1_RZ_VERT_COEF1           0x60
++#define PRP_CH1_RZ_VERT_COEF2           0x64
++#define PRP_CH1_RZ_VERT_VALID           0x68
++#define PRP_CH2_RZ_HORI_COEF1           0x6c
++#define PRP_CH2_RZ_HORI_COEF2           0x70
++#define PRP_CH2_RZ_HORI_VALID           0x74
++#define PRP_CH2_RZ_VERT_COEF1           0x78
++#define PRP_CH2_RZ_VERT_COEF2           0x7c
++#define PRP_CH2_RZ_VERT_VALID           0x80
++
++#define PRP_CNTL_CH1EN          (1 << 0)
++#define PRP_CNTL_CH2EN          (1 << 1)
++#define PRP_CNTL_CSIEN          (1 << 2)
++#define PRP_CNTL_DATA_IN_YUV420 (0 << 3)
++#define PRP_CNTL_DATA_IN_YUV422 (1 << 3)
++#define PRP_CNTL_DATA_IN_RGB16  (2 << 3)
++#define PRP_CNTL_DATA_IN_RGB32  (3 << 3)
++#define PRP_CNTL_CH1_OUT_RGB8   (0 << 5)
++#define PRP_CNTL_CH1_OUT_RGB16  (1 << 5)
++#define PRP_CNTL_CH1_OUT_RGB32  (2 << 5)
++#define PRP_CNTL_CH1_OUT_YUV422 (3 << 5)
++#define PRP_CNTL_CH2_OUT_YUV420 (0 << 7)
++#define PRP_CNTL_CH2_OUT_YUV422 (1 << 7)
++#define PRP_CNTL_CH2_OUT_YUV444 (2 << 7)
++#define PRP_CNTL_CH1_LEN        (1 << 9)
++#define PRP_CNTL_CH2_LEN        (1 << 10)
++#define PRP_CNTL_SKIP_FRAME     (1 << 11)
++#define PRP_CNTL_SWRST          (1 << 12)
++#define PRP_CNTL_CLKEN          (1 << 13)
++#define PRP_CNTL_WEN            (1 << 14)
++#define PRP_CNTL_CH1BYP         (1 << 15)
++#define PRP_CNTL_IN_TSKIP(x)    ((x) << 16)
++#define PRP_CNTL_CH1_TSKIP(x)   ((x) << 19)
++#define PRP_CNTL_CH2_TSKIP(x)   ((x) << 22)
++#define PRP_CNTL_INPUT_FIFO_LEVEL(x)    ((x) << 25)
++#define PRP_CNTL_RZ_FIFO_LEVEL(x)       ((x) << 27)
++#define PRP_CNTL_CH2B1EN        (1 << 29)
++#define PRP_CNTL_CH2B2EN        (1 << 30)
++#define PRP_CNTL_CH2FEN         (1 << 31)
++
++#define PRP_SIZE_HEIGHT(x)	(x)
++#define PRP_SIZE_WIDTH(x)	((x) << 16)
++
++/* IRQ Enable and status register */
++#define PRP_INTR_RDERR          (1 << 0)
++#define PRP_INTR_CH1WERR        (1 << 1)
++#define PRP_INTR_CH2WERR        (1 << 2)
++#define PRP_INTR_CH1FC          (1 << 3)
++#define PRP_INTR_CH2FC          (1 << 5)
++#define PRP_INTR_LBOVF          (1 << 7)
++#define PRP_INTR_CH2OVF         (1 << 8)
++
++#define PRP_INTR_ST_RDERR	(1 << 0)
++#define PRP_INTR_ST_CH1WERR	(1 << 1)
++#define PRP_INTR_ST_CH2WERR	(1 << 2)
++#define PRP_INTR_ST_CH2B2CI	(1 << 3)
++#define PRP_INTR_ST_CH2B1CI	(1 << 4)
++#define PRP_INTR_ST_CH1B2CI	(1 << 5)
++#define PRP_INTR_ST_CH1B1CI	(1 << 6)
++#define PRP_INTR_ST_LBOVF	(1 << 7)
++#define PRP_INTR_ST_CH2OVF	(1 << 8)
++
++struct emmaprp_fmt {
++	char	*name;
++	u32	fourcc;
++	/* Types the format can be used for */
++	u32	types;
++};
++
++static struct emmaprp_fmt formats[] = {
++	{
++		.name	= "YUV 4:2:0 Planar",
++		.fourcc	= V4L2_PIX_FMT_YUV420,
++		.types	= MEM2MEM_CAPTURE,
++	},
++	{
++		.name	= "4:2:2, packed, YUYV",
++		.fourcc	= V4L2_PIX_FMT_YUYV,
++		.types	= MEM2MEM_OUTPUT,
++	},
++};
++
++/* Per-queue, driver-specific private data */
++struct emmaprp_q_data {
++	unsigned int		width;
++	unsigned int		height;
++	unsigned int		sizeimage;
++	struct emmaprp_fmt	*fmt;
++};
++
++enum {
++	V4L2_M2M_SRC = 0,
++	V4L2_M2M_DST = 1,
++};
++
++#define NUM_FORMATS ARRAY_SIZE(formats)
++
++static struct emmaprp_fmt *find_format(struct v4l2_format *f)
++{
++	struct emmaprp_fmt *fmt;
++	unsigned int k;
++
++	for (k = 0; k < NUM_FORMATS; k++) {
++		fmt = &formats[k];
++		if (fmt->fourcc == f->fmt.pix.pixelformat)
++			break;
++	}
++
++	if (k == NUM_FORMATS)
++		return NULL;
++
++	return &formats[k];
++}
++
++struct emmaprp_dev {
++	struct v4l2_device	v4l2_dev;
++	struct video_device	*vfd;
++
++	struct mutex		dev_mutex;
++	spinlock_t		irqlock;
++
++	int			irq_emma;
++	void __iomem		*base_emma;
++	struct clk		*clk_emma;
++	struct resource		*res_emma;
++
++	struct v4l2_m2m_dev	*m2m_dev;
++	struct vb2_alloc_ctx	*alloc_ctx;
++};
++
++struct emmaprp_ctx {
++	struct emmaprp_dev	*dev;
++	/* Abort requested by m2m */
++	int			aborting;
++	struct emmaprp_q_data	q_data[2];
++	struct v4l2_m2m_ctx	*m2m_ctx;
++};
++
++static struct emmaprp_q_data *get_q_data(struct emmaprp_ctx *ctx,
++					 enum v4l2_buf_type type)
++{
++	switch (type) {
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		return &(ctx->q_data[V4L2_M2M_SRC]);
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++		return &(ctx->q_data[V4L2_M2M_DST]);
++	default:
++		BUG();
++	}
++	return NULL;
++}
++
++/*
++ * mem2mem callbacks
++ */
++static void emmaprp_job_abort(void *priv)
++{
++	struct emmaprp_ctx *ctx = priv;
++	struct emmaprp_dev *pcdev = ctx->dev;
++
++	ctx->aborting = 1;
++
++	dprintk(pcdev, "Aborting task\n");
++
++	v4l2_m2m_job_finish(pcdev->m2m_dev, ctx->m2m_ctx);
++}
++
++static void emmaprp_lock(void *priv)
++{
++	struct emmaprp_ctx *ctx = priv;
++	struct emmaprp_dev *pcdev = ctx->dev;
++	mutex_lock(&pcdev->dev_mutex);
++}
++
++static void emmaprp_unlock(void *priv)
++{
++	struct emmaprp_ctx *ctx = priv;
++	struct emmaprp_dev *pcdev = ctx->dev;
++	mutex_unlock(&pcdev->dev_mutex);
++}
++
++static inline void emmaprp_dump_regs(struct emmaprp_dev *pcdev)
++{
++	dprintk(pcdev,
++		"eMMa-PrP Registers:\n"
++		"  SOURCE_Y_PTR = 0x%08X\n"
++		"  SRC_FRAME_SIZE = 0x%08X\n"
++		"  DEST_Y_PTR = 0x%08X\n"
++		"  DEST_CR_PTR = 0x%08X\n"
++		"  DEST_CB_PTR = 0x%08X\n"
++		"  CH2_OUT_IMAGE_SIZE = 0x%08X\n"
++		"  CNTL = 0x%08X\n",
++		readl(pcdev->base_emma + PRP_SOURCE_Y_PTR),
++		readl(pcdev->base_emma + PRP_SRC_FRAME_SIZE),
++		readl(pcdev->base_emma + PRP_DEST_Y_PTR),
++		readl(pcdev->base_emma + PRP_DEST_CR_PTR),
++		readl(pcdev->base_emma + PRP_DEST_CB_PTR),
++		readl(pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE),
++		readl(pcdev->base_emma + PRP_CNTL));
++}
++
++static void emmaprp_device_run(void *priv)
++{
++	struct emmaprp_ctx *ctx = priv;
++	struct emmaprp_q_data *s_q_data, *d_q_data;
++	struct vb2_buffer *src_buf, *dst_buf;
++	struct emmaprp_dev *pcdev = ctx->dev;
++	unsigned int s_width, s_height;
++	unsigned int d_width, d_height;
++	unsigned int d_size;
++	dma_addr_t p_in, p_out;
++	u32 tmp;
++
++	src_buf = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
++	dst_buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
++
++	s_q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
++	s_width	= s_q_data->width;
++	s_height = s_q_data->height;
++
++	d_q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
++	d_width = d_q_data->width;
++	d_height = d_q_data->height;
++	d_size = d_width * d_height;
++
++	p_in = vb2_dma_contig_plane_dma_addr(src_buf, 0);
++	p_out = vb2_dma_contig_plane_dma_addr(dst_buf, 0);
++	if (!p_in || !p_out) {
++		v4l2_err(&pcdev->v4l2_dev,
++			 "Acquiring kernel pointers to buffers failed\n");
++		return;
++	}
++
++	/* Input frame parameters */
++	writel(p_in, pcdev->base_emma + PRP_SOURCE_Y_PTR);
++	writel(PRP_SIZE_WIDTH(s_width) | PRP_SIZE_HEIGHT(s_height),
++	       pcdev->base_emma + PRP_SRC_FRAME_SIZE);
++
++	/* Output frame parameters */
++	writel(p_out, pcdev->base_emma + PRP_DEST_Y_PTR);
++	writel(p_out + d_size, pcdev->base_emma + PRP_DEST_CB_PTR);
++	writel(p_out + d_size + (d_size >> 2),
++	       pcdev->base_emma + PRP_DEST_CR_PTR);
++	writel(PRP_SIZE_WIDTH(d_width) | PRP_SIZE_HEIGHT(d_height),
++	       pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE);
++
++	/* IRQ configuration */
++	tmp = readl(pcdev->base_emma + PRP_INTR_CNTL);
++	writel(tmp | PRP_INTR_RDERR |
++		PRP_INTR_CH2WERR |
++		PRP_INTR_CH2FC,
++		pcdev->base_emma + PRP_INTR_CNTL);
++
++	emmaprp_dump_regs(pcdev);
++
++	/* Enable transfer */
++	tmp = readl(pcdev->base_emma + PRP_CNTL);
++	writel(tmp | PRP_CNTL_CH2_OUT_YUV420 |
++		PRP_CNTL_DATA_IN_YUV422 |
++		PRP_CNTL_CH2EN,
++		pcdev->base_emma + PRP_CNTL);
++}
++
++static irqreturn_t emmaprp_irq(int irq_emma, void *data)
++{
++	struct emmaprp_dev *pcdev = data;
++	struct emmaprp_ctx *curr_ctx;
++	struct vb2_buffer *src_vb, *dst_vb;
++	unsigned long flags;
++	u32 irqst;
++
++	/* Check irq flags and clear irq */
++	irqst = readl(pcdev->base_emma + PRP_INTRSTATUS);
++	writel(irqst, pcdev->base_emma + PRP_INTRSTATUS);
++	dprintk(pcdev, "irqst = 0x%08x\n", irqst);
++
++	curr_ctx = v4l2_m2m_get_curr_priv(pcdev->m2m_dev);
++	if (curr_ctx == NULL) {
++		pr_err("Instance released before the end of transaction\n");
++		return IRQ_HANDLED;
++	}
++
++	if (!curr_ctx->aborting) {
++		if ((irqst & PRP_INTR_ST_RDERR) ||
++		(irqst & PRP_INTR_ST_CH2WERR)) {
++			pr_err("PrP bus error ocurred, this transfer is probably corrupted\n");
++			writel(PRP_CNTL_SWRST, pcdev->base_emma + PRP_CNTL);
++		} else if (irqst & PRP_INTR_ST_CH2B1CI) { /* buffer ready */
++			src_vb = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
++			dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
++
++			spin_lock_irqsave(&pcdev->irqlock, flags);
++			v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
++			v4l2_m2m_buf_done(dst_vb, VB2_BUF_STATE_DONE);
++			spin_unlock_irqrestore(&pcdev->irqlock, flags);
++		}
++	}
++
++	v4l2_m2m_job_finish(pcdev->m2m_dev, curr_ctx->m2m_ctx);
++	return IRQ_HANDLED;
++}
++
++/*
++ * video ioctls
++ */
++static int vidioc_querycap(struct file *file, void *priv,
++			   struct v4l2_capability *cap)
++{
++	strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
++	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
++	cap->bus_info[0] = 0;
++	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
++			  | V4L2_CAP_STREAMING;
++
++	return 0;
++}
++
++static int enum_fmt(struct v4l2_fmtdesc *f, u32 type)
++{
++	int i, num;
++	struct emmaprp_fmt *fmt;
++
++	num = 0;
++
++	for (i = 0; i < NUM_FORMATS; ++i) {
++		if (formats[i].types & type) {
++			/* index-th format of type type found ? */
++			if (num == f->index)
++				break;
++			/* Correct type but haven't reached our index yet,
++			 * just increment per-type index */
++			++num;
++		}
++	}
++
++	if (i < NUM_FORMATS) {
++		/* Format found */
++		fmt = &formats[i];
++		strlcpy(f->description, fmt->name, sizeof(f->description) - 1);
++		f->pixelformat = fmt->fourcc;
++		return 0;
++	}
++
++	/* Format not found */
++	return -EINVAL;
++}
++
++static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
++				   struct v4l2_fmtdesc *f)
++{
++	return enum_fmt(f, MEM2MEM_CAPTURE);
++}
++
++static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
++				   struct v4l2_fmtdesc *f)
++{
++	return enum_fmt(f, MEM2MEM_OUTPUT);
++}
++
++static int vidioc_g_fmt(struct emmaprp_ctx *ctx, struct v4l2_format *f)
++{
++	struct vb2_queue *vq;
++	struct emmaprp_q_data *q_data;
++
++	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
++	if (!vq)
++		return -EINVAL;
++
++	q_data = get_q_data(ctx, f->type);
++
++	f->fmt.pix.width	= q_data->width;
++	f->fmt.pix.height	= q_data->height;
++	f->fmt.pix.field	= V4L2_FIELD_NONE;
++	f->fmt.pix.pixelformat	= q_data->fmt->fourcc;
++	if (f->fmt.pix.pixelformat == V4L2_PIX_FMT_YUV420)
++		f->fmt.pix.bytesperline = q_data->width * 3 / 2;
++	else /* YUYV */
++		f->fmt.pix.bytesperline = q_data->width * 2;
++	f->fmt.pix.sizeimage	= q_data->sizeimage;
++
++	return 0;
++}
++
++static int vidioc_g_fmt_vid_out(struct file *file, void *priv,
++				struct v4l2_format *f)
++{
++	return vidioc_g_fmt(priv, f);
++}
++
++static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
++				struct v4l2_format *f)
++{
++	return vidioc_g_fmt(priv, f);
++}
++
++static int vidioc_try_fmt(struct v4l2_format *f)
++{
++	enum v4l2_field field;
++
++
++	if (!find_format(f))
++		return -EINVAL;
++
++	field = f->fmt.pix.field;
++	if (field == V4L2_FIELD_ANY)
++		field = V4L2_FIELD_NONE;
++	else if (V4L2_FIELD_NONE != field)
++		return -EINVAL;
++
++	/* V4L2 specification suggests the driver corrects the format struct
++	 * if any of the dimensions is unsupported */
++	f->fmt.pix.field = field;
++
++	f->fmt.pix.height = clamp_t(u32, f->fmt.pix.height, MIN_H, MAX_H);
++	f->fmt.pix.width = clamp_t(u32, f->fmt.pix.width, MIN_W, MAX_W);
++
++	f->fmt.pix.height &= ~H_ALIGN_MASK;
++	if (f->fmt.pix.pixelformat == V4L2_PIX_FMT_YUV420) {
++		f->fmt.pix.width &= ~W_ALIGN_MASK_YUV420;
++		f->fmt.pix.bytesperline = f->fmt.pix.width * 3 / 2;
++	} else { /* YUYV */
++		f->fmt.pix.width &= ~W_ALIGN_MASK_OTHERS;
++		f->fmt.pix.bytesperline = f->fmt.pix.width * 2;
++	}
++	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
++
++	return 0;
++}
++
++static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
++				  struct v4l2_format *f)
++{
++	struct emmaprp_fmt *fmt;
++	struct emmaprp_ctx *ctx = priv;
++
++	fmt = find_format(f);
++	if (!fmt || !(fmt->types & MEM2MEM_CAPTURE)) {
++		v4l2_err(&ctx->dev->v4l2_dev,
++			 "Fourcc format (0x%08x) invalid.\n",
++			 f->fmt.pix.pixelformat);
++		return -EINVAL;
++	}
++
++	return vidioc_try_fmt(f);
++}
++
++static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
++				  struct v4l2_format *f)
++{
++	struct emmaprp_fmt *fmt;
++	struct emmaprp_ctx *ctx = priv;
++
++	fmt = find_format(f);
++	if (!fmt || !(fmt->types & MEM2MEM_OUTPUT)) {
++		v4l2_err(&ctx->dev->v4l2_dev,
++			 "Fourcc format (0x%08x) invalid.\n",
++			 f->fmt.pix.pixelformat);
++		return -EINVAL;
++	}
++
++	return vidioc_try_fmt(f);
++}
++
++static int vidioc_s_fmt(struct emmaprp_ctx *ctx, struct v4l2_format *f)
++{
++	struct emmaprp_q_data *q_data;
++	struct vb2_queue *vq;
++	int ret;
++
++	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
++	if (!vq)
++		return -EINVAL;
++
++	q_data = get_q_data(ctx, f->type);
++	if (!q_data)
++		return -EINVAL;
++
++	if (vb2_is_busy(vq)) {
++		v4l2_err(&ctx->dev->v4l2_dev, "%s queue busy\n", __func__);
++		return -EBUSY;
++	}
++
++	ret = vidioc_try_fmt(f);
++	if (ret)
++		return ret;
++
++	q_data->fmt		= find_format(f);
++	q_data->width		= f->fmt.pix.width;
++	q_data->height		= f->fmt.pix.height;
++	if (q_data->fmt->fourcc == V4L2_PIX_FMT_YUV420)
++		q_data->sizeimage = q_data->width * q_data->height * 3 / 2;
++	else /* YUYV */
++		q_data->sizeimage = q_data->width * q_data->height * 2;
++
++	dprintk(ctx->dev,
++		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
++		f->type, q_data->width, q_data->height, q_data->fmt->fourcc);
++
++	return 0;
++}
++
++static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
++				struct v4l2_format *f)
++{
++	int ret;
++
++	ret = vidioc_try_fmt_vid_cap(file, priv, f);
++	if (ret)
++		return ret;
++
++	return vidioc_s_fmt(priv, f);
++}
++
++static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
++				struct v4l2_format *f)
++{
++	int ret;
++
++	ret = vidioc_try_fmt_vid_out(file, priv, f);
++	if (ret)
++		return ret;
++
++	return vidioc_s_fmt(priv, f);
++}
++
++static int vidioc_reqbufs(struct file *file, void *priv,
++			  struct v4l2_requestbuffers *reqbufs)
++{
++	struct emmaprp_ctx *ctx = priv;
++
++	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
++}
++
++static int vidioc_querybuf(struct file *file, void *priv,
++			   struct v4l2_buffer *buf)
++{
++	struct emmaprp_ctx *ctx = priv;
++
++	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
++}
++
++static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
++{
++	struct emmaprp_ctx *ctx = priv;
++
++	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
++}
++
++static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
++{
++	struct emmaprp_ctx *ctx = priv;
++
++	return v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
++}
++
++static int vidioc_streamon(struct file *file, void *priv,
++			   enum v4l2_buf_type type)
++{
++	struct emmaprp_ctx *ctx = priv;
++
++	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
++}
++
++static int vidioc_streamoff(struct file *file, void *priv,
++			    enum v4l2_buf_type type)
++{
++	struct emmaprp_ctx *ctx = priv;
++
++	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
++}
++
++static const struct v4l2_ioctl_ops emmaprp_ioctl_ops = {
++	.vidioc_querycap	= vidioc_querycap,
++
++	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap	= vidioc_g_fmt_vid_cap,
++	.vidioc_try_fmt_vid_cap	= vidioc_try_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap	= vidioc_s_fmt_vid_cap,
++
++	.vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
++	.vidioc_g_fmt_vid_out	= vidioc_g_fmt_vid_out,
++	.vidioc_try_fmt_vid_out	= vidioc_try_fmt_vid_out,
++	.vidioc_s_fmt_vid_out	= vidioc_s_fmt_vid_out,
++
++	.vidioc_reqbufs		= vidioc_reqbufs,
++	.vidioc_querybuf	= vidioc_querybuf,
++
++	.vidioc_qbuf		= vidioc_qbuf,
++	.vidioc_dqbuf		= vidioc_dqbuf,
++
++	.vidioc_streamon	= vidioc_streamon,
++	.vidioc_streamoff	= vidioc_streamoff,
++};
++
++
++/*
++ * Queue operations
++ */
++static int emmaprp_queue_setup(struct vb2_queue *vq,
++				const struct v4l2_format *fmt,
++				unsigned int *nbuffers, unsigned int *nplanes,
++				unsigned int sizes[], void *alloc_ctxs[])
++{
++	struct emmaprp_ctx *ctx = vb2_get_drv_priv(vq);
++	struct emmaprp_q_data *q_data;
++	unsigned int size, count = *nbuffers;
++
++	q_data = get_q_data(ctx, vq->type);
++
++	if (q_data->fmt->fourcc == V4L2_PIX_FMT_YUV420)
++		size = q_data->width * q_data->height * 3 / 2;
++	else
++		size = q_data->width * q_data->height * 2;
++
++	while (size * count > MEM2MEM_VID_MEM_LIMIT)
++		(count)--;
++
++	*nplanes = 1;
++	*nbuffers = count;
++	sizes[0] = size;
++
++	alloc_ctxs[0] = ctx->dev->alloc_ctx;
++
++	dprintk(ctx->dev, "get %d buffer(s) of size %d each.\n", count, size);
++
++	return 0;
++}
++
++static int emmaprp_buf_prepare(struct vb2_buffer *vb)
++{
++	struct emmaprp_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++	struct emmaprp_q_data *q_data;
++
++	dprintk(ctx->dev, "type: %d\n", vb->vb2_queue->type);
++
++	q_data = get_q_data(ctx, vb->vb2_queue->type);
++
++	if (vb2_plane_size(vb, 0) < q_data->sizeimage) {
++		dprintk(ctx->dev, "%s data will not fit into plane"
++				  "(%lu < %lu)\n", __func__,
++				  vb2_plane_size(vb, 0),
++				  (long)q_data->sizeimage);
++		return -EINVAL;
++	}
++
++	vb2_set_plane_payload(vb, 0, q_data->sizeimage);
++
++	return 0;
++}
++
++static void emmaprp_buf_queue(struct vb2_buffer *vb)
++{
++	struct emmaprp_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++	v4l2_m2m_buf_queue(ctx->m2m_ctx, vb);
++}
++
++static struct vb2_ops emmaprp_qops = {
++	.queue_setup	 = emmaprp_queue_setup,
++	.buf_prepare	 = emmaprp_buf_prepare,
++	.buf_queue	 = emmaprp_buf_queue,
++};
++
++static int queue_init(void *priv, struct vb2_queue *src_vq,
++		      struct vb2_queue *dst_vq)
++{
++	struct emmaprp_ctx *ctx = priv;
++	int ret;
++
++	memset(src_vq, 0, sizeof(*src_vq));
++	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
++	src_vq->io_modes = VB2_MMAP;
++	src_vq->drv_priv = ctx;
++	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
++	src_vq->ops = &emmaprp_qops;
++	src_vq->mem_ops = &vb2_dma_contig_memops;
++
++	ret = vb2_queue_init(src_vq);
++	if (ret)
++		return ret;
++
++	memset(dst_vq, 0, sizeof(*dst_vq));
++	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	dst_vq->io_modes = VB2_MMAP;
++	dst_vq->drv_priv = ctx;
++	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
++	dst_vq->ops = &emmaprp_qops;
++	dst_vq->mem_ops = &vb2_dma_contig_memops;
++
++	return vb2_queue_init(dst_vq);
++}
++
++/*
++ * File operations
++ */
++static int emmaprp_open(struct file *file)
++{
++	struct emmaprp_dev *pcdev = video_drvdata(file);
++	struct emmaprp_ctx *ctx;
++
++	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
++	if (!ctx)
++		return -ENOMEM;
++
++	file->private_data = ctx;
++	ctx->dev = pcdev;
++
++	ctx->m2m_ctx = v4l2_m2m_ctx_init(pcdev->m2m_dev, ctx, &queue_init);
++
++	if (IS_ERR(ctx->m2m_ctx)) {
++		int ret = PTR_ERR(ctx->m2m_ctx);
++
++		kfree(ctx);
++		return ret;
++	}
++
++	clk_enable(pcdev->clk_emma);
++	ctx->q_data[V4L2_M2M_SRC].fmt = &formats[1];
++	ctx->q_data[V4L2_M2M_DST].fmt = &formats[0];
++
++	dprintk(pcdev, "Created instance %p, m2m_ctx: %p\n", ctx, ctx->m2m_ctx);
++
++	return 0;
++}
++
++static int emmaprp_release(struct file *file)
++{
++	struct emmaprp_dev *pcdev = video_drvdata(file);
++	struct emmaprp_ctx *ctx = file->private_data;
++
++	dprintk(pcdev, "Releasing instance %p\n", ctx);
++
++	clk_disable(pcdev->clk_emma);
++	v4l2_m2m_ctx_release(ctx->m2m_ctx);
++	kfree(ctx);
++
++	return 0;
++}
++
++static unsigned int emmaprp_poll(struct file *file,
++				 struct poll_table_struct *wait)
++{
++	struct emmaprp_ctx *ctx = file->private_data;
++
++	return v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
++}
++
++static int emmaprp_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct emmaprp_ctx *ctx = file->private_data;
++
++	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
++}
++
++static const struct v4l2_file_operations emmaprp_fops = {
++	.owner		= THIS_MODULE,
++	.open		= emmaprp_open,
++	.release	= emmaprp_release,
++	.poll		= emmaprp_poll,
++	.unlocked_ioctl	= video_ioctl2,
++	.mmap		= emmaprp_mmap,
++};
++
++static struct video_device emmaprp_videodev = {
++	.name		= MEM2MEM_NAME,
++	.fops		= &emmaprp_fops,
++	.ioctl_ops	= &emmaprp_ioctl_ops,
++	.minor		= -1,
++	.release	= video_device_release,
++};
++
++static struct v4l2_m2m_ops m2m_ops = {
++	.device_run	= emmaprp_device_run,
++	.job_abort	= emmaprp_job_abort,
++	.lock		= emmaprp_lock,
++	.unlock		= emmaprp_unlock,
++};
++
++static int emmaprp_probe(struct platform_device *pdev)
++{
++	struct emmaprp_dev *pcdev;
++	struct video_device *vfd;
++	struct resource *res_emma;
++	int irq_emma;
++	int ret;
++
++	pcdev = kzalloc(sizeof *pcdev, GFP_KERNEL);
++	if (!pcdev)
++		return -ENOMEM;
++
++	spin_lock_init(&pcdev->irqlock);
++
++	pcdev->clk_emma = clk_get(&pdev->dev, NULL);
++	if (IS_ERR(pcdev->clk_emma)) {
++		ret = PTR_ERR(pcdev->clk_emma);
++		goto free_dev;
++	}
++
++	irq_emma = platform_get_irq(pdev, 0);
++	res_emma = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (irq_emma < 0 || res_emma == NULL) {
++		dev_err(&pdev->dev, "Missing platform resources data\n");
++		ret = -ENODEV;
++		goto free_clk;
++	}
++
++	ret = v4l2_device_register(&pdev->dev, &pcdev->v4l2_dev);
++	if (ret)
++		goto free_clk;
++
++	mutex_init(&pcdev->dev_mutex);
++
++	vfd = video_device_alloc();
++	if (!vfd) {
++		v4l2_err(&pcdev->v4l2_dev, "Failed to allocate video device\n");
++		ret = -ENOMEM;
++		goto unreg_dev;
++	}
++
++	*vfd = emmaprp_videodev;
++	vfd->lock = &pcdev->dev_mutex;
++
++	video_set_drvdata(vfd, pcdev);
++	snprintf(vfd->name, sizeof(vfd->name), "%s", emmaprp_videodev.name);
++	pcdev->vfd = vfd;
++	v4l2_info(&pcdev->v4l2_dev, EMMAPRP_MODULE_NAME
++			" Device registered as /dev/video%d\n", vfd->num);
++
++	platform_set_drvdata(pdev, pcdev);
++
++	if (devm_request_mem_region(&pdev->dev, res_emma->start,
++	    resource_size(res_emma), MEM2MEM_NAME) == NULL)
++		goto rel_vdev;
++
++	pcdev->base_emma = devm_ioremap(&pdev->dev, res_emma->start,
++					resource_size(res_emma));
++	if (!pcdev->base_emma)
++		goto rel_vdev;
++
++	pcdev->irq_emma = irq_emma;
++	pcdev->res_emma = res_emma;
++
++	if (devm_request_irq(&pdev->dev, pcdev->irq_emma, emmaprp_irq,
++			     0, MEM2MEM_NAME, pcdev) < 0)
++		goto rel_vdev;
++
++	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
++	if (IS_ERR(pcdev->alloc_ctx)) {
++		v4l2_err(&pcdev->v4l2_dev, "Failed to alloc vb2 context\n");
++		ret = PTR_ERR(pcdev->alloc_ctx);
++		goto rel_vdev;
++	}
++
++	pcdev->m2m_dev = v4l2_m2m_init(&m2m_ops);
++	if (IS_ERR(pcdev->m2m_dev)) {
++		v4l2_err(&pcdev->v4l2_dev, "Failed to init mem2mem device\n");
++		ret = PTR_ERR(pcdev->m2m_dev);
++		goto rel_ctx;
++	}
++
++	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
++	if (ret) {
++		v4l2_err(&pcdev->v4l2_dev, "Failed to register video device\n");
++		goto rel_m2m;
++	}
++
++	return 0;
++
++
++rel_m2m:
++	v4l2_m2m_release(pcdev->m2m_dev);
++rel_ctx:
++	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
++rel_vdev:
++	video_device_release(vfd);
++unreg_dev:
++	v4l2_device_unregister(&pcdev->v4l2_dev);
++free_clk:
++	clk_put(pcdev->clk_emma);
++free_dev:
++	kfree(pcdev);
++
++	return ret;
++}
++
++static int emmaprp_remove(struct platform_device *pdev)
++{
++	struct emmaprp_dev *pcdev = platform_get_drvdata(pdev);
++
++	v4l2_info(&pcdev->v4l2_dev, "Removing " EMMAPRP_MODULE_NAME);
++
++	video_unregister_device(pcdev->vfd);
++	v4l2_m2m_release(pcdev->m2m_dev);
++	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
++	v4l2_device_unregister(&pcdev->v4l2_dev);
++	clk_put(pcdev->clk_emma);
++	kfree(pcdev);
++
++	return 0;
++}
++
++static struct platform_driver emmaprp_pdrv = {
++	.probe		= emmaprp_probe,
++	.remove		= emmaprp_remove,
++	.driver		= {
++		.name	= MEM2MEM_NAME,
++		.owner	= THIS_MODULE,
++	},
++};
++
++static void __exit emmaprp_exit(void)
++{
++	platform_driver_unregister(&emmaprp_pdrv);
++}
++
++static int __init emmaprp_init(void)
++{
++	return platform_driver_register(&emmaprp_pdrv);
++}
++
++module_init(emmaprp_init);
++module_exit(emmaprp_exit);
+-- 
+1.7.0.4
 
