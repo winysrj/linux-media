@@ -1,52 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:50640 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751473Ab1K3Ri0 (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.22]:53269 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754991Ab1KXXfA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 12:38:26 -0500
-Date: Wed, 30 Nov 2011 19:38:21 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: snjw23@gmail.com, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl
-Subject: [RFC/PATCH v2 0/3] 64-bit integer menus
-Message-ID: <20111130173821.GH29805@valkosipuli.localdomain>
+	Thu, 24 Nov 2011 18:35:00 -0500
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
+Date: Fri, 25 Nov 2011 00:32:44 +0100
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <4ECE79F5.9000402@linuxtv.org> <4ECE80BE.4090109@redhat.com>
+In-Reply-To: <4ECE80BE.4090109@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
+Message-Id: <201111250032.46260@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Thursday 24 November 2011 18:37:02 Mauro Carvalho Chehab wrote:
+> Userspace applications that support av7110 can include the new linux/av7110.h
+> header. Other applications that support out-of-tree drivers can just have
+> their own copy of audio.h, osd.h and video.h. So, it won't break or prevent
+> existing applications to keep working.
 
-This patchset, which I'm sending as RFC since it has not been really tested
-(including compiling the vivi patch), adds 64-bit integer menu controls. The
-control items in the integer menu are just like in regular menus but they
-are 64-bit integers instead of strings.
+No way! Changes of the user-space API are not acceptable.
+If you do not believe that, ask Linux Torwalds!
 
-I'm also pondering whether to assign 1 to ctrl->step for menu type controls
-as well but haven't checked what may have been the original reason to
-implement it as it is now implemented.
+> The thing is that the media API presents two interfaces to control mpeg decoders.
+> This is confusing, and, while one of them has active upstream developers working
+> on it, adding new drivers and new features on it, the other API is not being
+> updated accordingly, and no new upstream drivers use it.
 
-The reason why I don't use a union for qmenu and qmenu_int in
-v4l2_ctrl_config is that a lot of drivers use that field in the initialiser
-and GCC < 4.6 does not support initialisers with anonymous unions.
+The decoder API is as old as the DVB spec.
 
-Similar union is created in v4l2_querymenu but I do not see this as a
-problem since I do not expect initialisers to be used with this field in the
-user space code.
+NACK to any attempts to remove these files.
 
-Comments and questions are welcome.
-
----
-Changes since RFC/PATCH v1:
-
-- Fix documentation according to suggestions from Sylwester and Laurent.
-- Don't allow creating new standard integer menu controls using
-  v4l2_ctrl_new_std_menu() since we don't have them yet.
-
-Kind regards,
+Oliver
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
