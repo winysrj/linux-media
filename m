@@ -1,52 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52920 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753158Ab1KLQyH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Nov 2011 11:54:07 -0500
-Message-ID: <4EBEA4AD.4070906@iki.fi>
-Date: Sat, 12 Nov 2011 18:54:05 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4260 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751129Ab1KXLBE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 06:01:04 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH/RFC 1/2] v4l: Add a global color alpha control
+Date: Thu, 24 Nov 2011 12:00:45 +0100
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	m.szyprowski@samsung.com, jonghun.han@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+References: <1322131997-26195-1-git-send-email-s.nawrocki@samsung.com> <1322131997-26195-2-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1322131997-26195-2-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 5/7] af9015 usb bus repeater.
-References: <4ebe9728.4dc6e30a.47c5.ffff8fc3@mx.google.com>
-In-Reply-To: <4ebe9728.4dc6e30a.47c5.ffff8fc3@mx.google.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111241200.45479.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/12/2011 05:56 PM, Malcolm Priestley wrote:
-> This a bus repeater for af9015 devices. Commands usually fail because of other
-> activity on the usb bus.
->
-> Afatech drivers can repeat up to ten times on the usb bus.
->
-> bulk failures that report -ETIMEDOUT or -EBUSY are repeated. If the device fails
-> it usually return 0x55 in the first byte.
->
-> I am working on a patch to move parts of this to the dvb-usb common area to
-> be used by other drivers.
+On Thursday, November 24, 2011 11:53:16 Sylwester Nawrocki wrote:
+> This control is intended for video capture or memory-to-memory
+> devices that are capable of setting up the alpha conponent to
+> some arbitrary value.
+> The V4L2_CID_COLOR_ALPHA control allows to set the alpha channel
+> globally to a value in range from 0 to 255.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  Documentation/DocBook/media/v4l/controls.xml       |   20 ++++++++++++++------
+>  .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |    7 +++++--
+>  drivers/media/video/v4l2-ctrls.c                   |    7 +++++++
+>  include/linux/videodev2.h                          |    6 +++---
+>  4 files changed, 29 insertions(+), 11 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index 3bc5ee8..7f99222 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -324,12 +324,6 @@ minimum value disables backlight compensation.</entry>
+>  		(usually a microscope).</entry>
+>  	  </row>
+>  	  <row>
+> -	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
+> -	    <entry></entry>
+> -	    <entry>End of the predefined control IDs (currently
+> -<constant>V4L2_CID_ILLUMINATORS_2</constant> + 1).</entry>
+> -	  </row>
+> -	  <row>
+>  	    <entry><constant>V4L2_CID_MIN_BUFFERS_FOR_CAPTURE</constant></entry>
+>  	    <entry>integer</entry>
+>  	    <entry>This is a read-only control that can be read by the application
+> @@ -345,6 +339,20 @@ and used as a hint to determine the number of OUTPUT buffers to pass to REQBUFS.
+>  The value is the minimum number of OUTPUT buffers that is necessary for hardware
+>  to work.</entry>
+>  	  </row>
+> +	  <row id="v4l2-color-alpha">
+> +	    <entry><constant>V4L2_CID_COLOR_ALPHA</constant></entry>
+> +	    <entry>integer</entry>
+> +	    <entry> Sets the color alpha component on the capture device. It is
+> +	    applicable to any pixel formats that contain the alpha component,
+> +	    e.g. <link linkend="rgb-formats">packed RGB image formats</link>.
+> +	    </entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
+> +	    <entry></entry>
+> +	    <entry>End of the predefined control IDs (currently
+> +	      <constant>V4L2_CID_COLOR_ALPHA</constant> + 1).</entry>
+> +	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_CID_PRIVATE_BASE</constant></entry>
+>  	    <entry></entry>
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> index 4db272b..da4c360 100644
+> --- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> +++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> @@ -428,8 +428,11 @@ colorspace <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+>      <para>Bit 7 is the most significant bit. The value of a = alpha
+>  bits is undefined when reading from the driver, ignored when writing
+>  to the driver, except when alpha blending has been negotiated for a
+> -<link linkend="overlay">Video Overlay</link> or <link
+> -linkend="osd">Video Output Overlay</link>.</para>
+> +<link linkend="overlay">Video Overlay</link> or <link linkend="osd">
+> +Video Output Overlay</link> or when global alpha has been configured
+> +for a <link linkend="capture">Video Capture</link> by means of
+> +<link linkend="v4l2-color-alpha"> <constant>V4L2_CID_COLOR_ALPHA
+> +</constant> </link> control.</para>
+>  
+>      <example>
+>        <title><constant>V4L2_PIX_FMT_BGR24</constant> 4 &times; 4 pixel
+> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+> index 5552f81..bd90955 100644
+> --- a/drivers/media/video/v4l2-ctrls.c
+> +++ b/drivers/media/video/v4l2-ctrls.c
+> @@ -466,6 +466,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_ILLUMINATORS_2:		return "Illuminator 2";
+>  	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:	return "Minimum Number of Capture Buffers";
+>  	case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT:	return "Minimum Number of Output Buffers";
+> +	case V4L2_CID_COLOR_ALPHA:		return "Color Alpha";
 
-Repeating does not help for those I2C errors. I have already tested it. 
-IIRC 01 and 02 was the error codes returned in case of I2C read / write.
+I prefer CID_ALPHA_COLOR and string "Alpha Color". I think it is more
+natural than the other way around.
 
-Which command gives 0x55 for failing?
+Other than that I'm OK with this.
 
-And generally only very first command will fail. There is already repeat 
-for that. Generally I think it is good idea to add some repeating, since 
-it is needed. But it does not make much sense to repeat for those common 
-I2C errors since it does not matter - you can repeat forever it still 
-fails. So first need to fix main error source.
+Regards,
 
-And it is indeed good idea to generalize it, but I think it is possible 
-only for error situations when error is returned by platform call.
-1. general repeat for platform calls
-2. repeat for firmware command fail (is there need?)
+	Hans
 
-regards
-Antti
-
--- 
-http://palosaari.fi/
+>  
+>  	/* MPEG controls */
+>  	/* Keep the order of the 'case's the same as in videodev2.h! */
+> @@ -714,6 +715,12 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  		/* Max is calculated as RGB888 that is 2^24 */
+>  		*max = 0xFFFFFF;
+>  		break;
+> +	case V4L2_CID_COLOR_ALPHA:
+> +		*type = V4L2_CTRL_TYPE_INTEGER;
+> +		*step = 1;
+> +		*min = 0;
+> +		*max = 0xff;
+> +		break;
+>  	case V4L2_CID_FLASH_FAULT:
+>  		*type = V4L2_CTRL_TYPE_BITMASK;
+>  		break;
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 4b752d5..42192c1 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -1204,10 +1204,10 @@ enum v4l2_colorfx {
+>  #define V4L2_CID_MIN_BUFFERS_FOR_CAPTURE	(V4L2_CID_BASE+39)
+>  #define V4L2_CID_MIN_BUFFERS_FOR_OUTPUT		(V4L2_CID_BASE+40)
+>  
+> -/* last CID + 1 */
+> -#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+41)
+> +#define V4L2_CID_COLOR_ALPHA			(V4L2_CID_BASE+41)
+>  
+> -/* Minimum number of buffer neede by the device */
+> +/* last CID + 1 */
+> +#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+42)
+>  
+>  /*  MPEG-class control IDs defined by V4L2 */
+>  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
+> 
