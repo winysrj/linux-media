@@ -1,95 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yop.chewa.net ([91.121.105.214]:56416 "EHLO yop.chewa.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:47003 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752630Ab1KBLQw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Nov 2011 07:16:52 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFC] Monotonic clock usage in buffer timestamps
+	id S1754354Ab1KXXLz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 18:11:55 -0500
+Message-ID: <4ECECF37.2010202@iki.fi>
+Date: Fri, 25 Nov 2011 01:11:51 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Date: Wed, 02 Nov 2011 12:16:51 +0100
-From: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
-In-Reply-To: <20111102105804.GA15491@minime.bse>
-References: <201111011324.36742.laurent.pinchart@ideasonboard.com> <b3e1d11fbdb6c1fe02954f7b2dd29b01@chewa.net> <201111011349.47132.laurent.pinchart@ideasonboard.com> <20111102091046.GA14955@minime.bse> <20111102101449.GC22159@valkosipuli.localdomain> <20111102105804.GA15491@minime.bse>
-Message-ID: <346e9709d02ee99af76e0d2ccaf698d8@chewa.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: Re: [GIT PULL FOR 3.2] misc small changes, mostly get/set IF related
+References: <4EC016B9.1080306@iki.fi> <4EC01892.3090307@iki.fi> <4ECEA1E9.2000107@redhat.com>
+In-Reply-To: <4ECEA1E9.2000107@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2 Nov 2011 11:58:04 +0100, Daniel Glöckner <daniel-gl@gmx.net>
+On 11/24/2011 09:58 PM, Mauro Carvalho Chehab wrote:
+> Em 13-11-2011 17:20, Antti Palosaari escreveu:
+>> Mauro,
+>> and these too for 3.3. Sorry about mistakes.
+>
+> In fact, those 3 patches seemed to be good for 3.2:
+>
+> 576b849 [media] mxl5007t: fix reg read
+> d7d89dc [media] tda18218: fix 6 MHz default IF frequency
+> ff83bd8 [media] af9015: limit I2C access to keep FW happy
+>
+> So, I've backported d7d89dc to 3.2, and applied there. the others,
+> I've added for 3.3.
 
-wrote:
+You could put mxl5007t and tda18218. But as I changed tda18218 to 
+support .get_if_frequency() just before that fix and it touches same 
+code lines, it will not apply unless you do some hand editing or apply 
+tda18218 get_if_frequency() patch too.
 
->> Converting between the two can be done when making the timestamp but
+DO *NOT* push af9015 I2C patch to the 3.2. I see there could be 
+potential problems if there is heavy demodulator I2C traffic since it 
+forces to wait some I2C related tasks. I suspect that could lead bad 
+situation when there is more traffic we can handle due to I2C access 
+waiting coming from patch.
 
-it's
+I have optimized af9013 I2C load, reduced it rather much switching 
+multibyte I2C where possible and running statistic polls using timers in 
+backround. Now it returns all statistics from cache and not make any 
+statistics queries directly when userspace app is asking.
 
->> non-trivial at other times and likely isn't supported. I could be
-
-wrong,
-
->> though. This might lead to e.g. timestamps that are taken before
-
->> switching
-
->> to summer time and for which the conversion is done after the switch.
-
->> This might be a theoretical possibility, but there might be also
-
->> unfavourable interaction with the NTP.
-
-> 
-
-> Summertime/wintertime is purely a userspace thing. UTC as returned by
-
-> gettimeofday is unaffected by that.
-
-
-
-Right, DST is a non-issue.
-
-
-
-> NTP AFAIK adjusts the speed of the monotonic clock, so there is a
-
-constant
-
-> delta between wall clock time and clock monotonic
+After my af9013 optimizations are ready those could be put to master, 
+which will happen likely 3.3 schedule. It is absolutely too risky put 
+that single patch to 3.2.
 
 
-
-For NTP it depends. Simple NTP, as in ntpdate, warps the wall clock.
-
-Full-blown NTP only adjusts the speed.
-
-
-
-> unless there is a leap
-
-> second or someone calls settimeofday. Applications currently using the
-
-> wall clock timestamps should have trouble dealing with that as well.
-
-
-
-I can think of at least three other sources of wall clock time, that could
-
-trigger a warp:
-
- - GPS receiver (TAI),
-
- - cellular modem (NITZ),
-
- - and, of course, manual setting.
-
-
-
-So if at all possible I'd much prefer monotonic over real timestamps.
-
-
+regards
+Antti
 
 -- 
-
-Rémi Denis-Courmont
-
-http://www.remlab.net/
+http://palosaari.fi/
