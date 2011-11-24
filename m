@@ -1,1537 +1,689 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:54266 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757183Ab1KJXfC (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3537 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755991Ab1KXNjW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Nov 2011 18:35:02 -0500
-Received: by mail-iy0-f174.google.com with SMTP id e36so3520899iag.19
-        for <linux-media@vger.kernel.org>; Thu, 10 Nov 2011 15:35:02 -0800 (PST)
-From: Patrick Dickey <pdickeybeta@gmail.com>
+	Thu, 24 Nov 2011 08:39:22 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Patrick Dickey <pdickeybeta@gmail.com>
-Subject: [PATCH 11/25] added drx_driver for pctv80e support
-Date: Thu, 10 Nov 2011 17:31:31 -0600
-Message-Id: <1320967905-7932-12-git-send-email-pdickeybeta@gmail.com>
-In-Reply-To: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
-References: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: =?UTF-8?q?=5BRFCv2=20PATCH=2010/12=5D=20av7110=3A=20replace=20audio=2Eh=2C=20video=2Eh=20and=20osd=2Eh=20by=20av7110=2Eh=2E?=
+Date: Thu, 24 Nov 2011 14:39:07 +0100
+Message-Id: <5276295e57ca56ed2a27148d918b63b00dd05b34.1322141686.git.hans.verkuil@cisco.com>
+In-Reply-To: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <07c1a0737016dcf588e866cde0f3bc1a59e35bfb.1322141686.git.hans.verkuil@cisco.com>
+References: <07c1a0737016dcf588e866cde0f3bc1a59e35bfb.1322141686.git.hans.verkuil@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- drivers/media/dvb/frontends/drx_driver.c | 1504 ++++++++++++++++++++++++++++++
- 1 files changed, 1504 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/dvb/frontends/drx_driver.c
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/dvb/frontends/drx_driver.c b/drivers/media/dvb/frontends/drx_driver.c
+Create a new public header, av7110.h, that contains all the av7110
+specific audio, video and osd APIs that used to be defined in dvb/audio.h,
+dvb/video.h and dvb/osd.h. These APIs are no longer part of DVBv5 but are
+now av7110-specific.
+
+This decision was taken during the 2011 Prague V4L-DVB workshop.
+
+Ideally av7110 would be converted to use the replacement V4L2 MPEG
+decoder API, but that's a huge job for such an old driver.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/dvb/ttpci/av7110.h |    4 +-
+ include/linux/Kbuild             |    1 +
+ include/linux/av7110.h           |  609 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 611 insertions(+), 3 deletions(-)
+ create mode 100644 include/linux/av7110.h
+
+diff --git a/drivers/media/dvb/ttpci/av7110.h b/drivers/media/dvb/ttpci/av7110.h
+index d85b851..e36d6bd 100644
+--- a/drivers/media/dvb/ttpci/av7110.h
++++ b/drivers/media/dvb/ttpci/av7110.h
+@@ -7,11 +7,9 @@
+ #include <linux/i2c.h>
+ #include <linux/input.h>
+ 
+-#include <linux/dvb/video.h>
+-#include <linux/dvb/audio.h>
++#include <linux/av7110.h>
+ #include <linux/dvb/dmx.h>
+ #include <linux/dvb/ca.h>
+-#include <linux/dvb/osd.h>
+ #include <linux/dvb/net.h>
+ #include <linux/mutex.h>
+ 
+diff --git a/include/linux/Kbuild b/include/linux/Kbuild
+index 619b565..51bd25f 100644
+--- a/include/linux/Kbuild
++++ b/include/linux/Kbuild
+@@ -68,6 +68,7 @@ header-y += audit.h
+ header-y += auto_fs.h
+ header-y += auto_fs4.h
+ header-y += auxvec.h
++header-y += av7110.h
+ header-y += ax25.h
+ header-y += b1lli.h
+ header-y += baycom.h
+diff --git a/include/linux/av7110.h b/include/linux/av7110.h
 new file mode 100644
-index 0000000..1f58de7
+index 0000000..a192480
 --- /dev/null
-+++ b/drivers/media/dvb/frontends/drx_driver.c
-@@ -0,0 +1,1504 @@
++++ b/include/linux/av7110.h
+@@ -0,0 +1,609 @@
 +/*
-+  Copyright (c), 2004-2005,2007-2010 Trident Microsystems, Inc.
-+  All rights reserved.
++ * av7110.h
++ *
++ * Copyright (C) 2000 Marcus Metzler <marcus@convergence.de>
++ *                  & Ralph  Metzler <ralph@convergence.de>
++ *                    for convergence integrated media GmbH
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public License
++ * as published by the Free Software Foundation; either version 2.1
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ *
++ */
 +
-+  Redistribution and use in source and binary forms, with or without
-+  modification, are permitted provided that the following conditions are met:
++#ifndef _AV7110_API_H_
++#define _AV7110_API_H_
 +
-+  * Redistributions of source code must retain the above copyright notice,
-+    this list of conditions and the following disclaimer.
-+  * Redistributions in binary form must reproduce the above copyright notice,
-+    this list of conditions and the following disclaimer in the documentation
-+	and/or other materials provided with the distribution.
-+  * Neither the name of Trident Microsystems nor Hauppauge Computer Works
-+    nor the names of its contributors may be used to endorse or promote
-+	products derived from this software without specific prior written
-+	permission.
-+
-+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-+  POSSIBILITY OF SUCH DAMAGE.
-+*/
-+
-+/**
-+* \file $Id: drx_driver.c,v 1.40 2010/01/12 01:24:56 lfeng Exp $
-+*
-+* \brief Generic DRX functionality, DRX driver core.
-+*
-+*/
-+
-+/*------------------------------------------------------------------------------
-+INCLUDE FILES
-+------------------------------------------------------------------------------*/
-+#include "drx_driver.h"
-+#include "bsp_host.h"
-+
-+#define VERSION_FIXED 0
-+#if     VERSION_FIXED
-+#define VERSION_MAJOR 0
-+#define VERSION_MINOR 0
-+#define VERSION_PATCH 0
++#include <linux/types.h>
++#ifdef __KERNEL__
++#include <linux/compiler.h>
 +#else
-+#include "drx_driver_version.h"
++#include <stdint.h>
++#include <time.h>
 +#endif
 +
-+/*------------------------------------------------------------------------------
-+DEFINES
-+------------------------------------------------------------------------------*/
 +
-+/*============================================================================*/
-+/*=== MICROCODE RELATED DEFINES ==============================================*/
-+/*============================================================================*/
++/* av7110 video ioctls
++ *
++ * The DVB video device controls the MPEG2 video decoder of the av7110 DVB
++ * hardware. It can be accessed through /dev/dvb/adapter0/video0.
++ *
++ * Note that the DVB video device only controls decoding of the MPEG video
++ * stream, not its presentation on the TV or computer screen. On PCs this
++ * is typically handled by an associated video4linux device, e.g. /dev/video,
++ * which allows scaling and defining output windows.
++ *
++ * Only one user can open the Video Device in O_RDWR mode. All other attempts
++ * to open the device in this mode will fail and an error code will be returned.
++ * If the Video Device is opened in O_RDONLY mode, the only ioctl call that can
++ * be used is VIDEO_GET_STATUS. All other calls will return with an error code.
++ *
++ * The write() system call can only be used if VIDEO_SOURCE_MEMORY is selected
++ * in the ioctl call VIDEO_SELECT_SOURCE. The data provided shall be in PES
++ * format. If O_NONBLOCK is not specified the function will block until buffer
++ * space is available. The amount of data to be transferred is implied by count.
++ */
 +
-+/** \brief Magic word for checking correct Endianess of microcode data. */
-+#ifndef DRX_UCODE_MAGIC_WORD
-+#define DRX_UCODE_MAGIC_WORD         ((((u16_t)'H')<<8)+((u16_t)'L'))
-+#endif
++/** video_format_t
++ * Used in the VIDEO_SET_FORMAT ioctl to tell the driver which aspect ratio
++ * the output hardware (e.g. TV) has. It is also used in the data structures
++ * video_status returned by VIDEO_GET_STATUS and video_event returned by
++ * VIDEO_GET_EVENT which report about the display format of the current video
++ * stream.
++ */
++typedef enum {
++	VIDEO_FORMAT_4_3,     /* Select 4:3 format */
++	VIDEO_FORMAT_16_9,    /* Select 16:9 format. */
++	VIDEO_FORMAT_221_1    /* 2.21:1 */
++} video_format_t;
 +
-+/** \brief CRC flag in ucode header, flags field. */
-+#ifndef DRX_UCODE_CRC_FLAG
-+#define DRX_UCODE_CRC_FLAG           (0x0001)
-+#endif
 +
-+/** \brief Compression flag in ucode header, flags field. */
-+#ifndef DRX_UCODE_COMPRESSION_FLAG
-+#define DRX_UCODE_COMPRESSION_FLAG   (0x0002)
-+#endif
++/** video_displayformat_t
++ * In case the display format of the video stream and of the display hardware
++ * differ the application has to specify how to handle the cropping of the
++ * picture. This can be done using the VIDEO_SET_DISPLAY_FORMAT call.
++ */
++typedef enum {
++	VIDEO_PAN_SCAN,       /* use pan and scan format */
++	VIDEO_LETTER_BOX,     /* use letterbox format */
++	VIDEO_CENTER_CUT_OUT  /* use center cut out format */
++} video_displayformat_t;
 +
-+/** \brief Maximum size of buffer used to verify the microcode.
-+   Must be an even number. */
-+#ifndef DRX_UCODE_MAX_BUF_SIZE
-+#define DRX_UCODE_MAX_BUF_SIZE       (DRXDAP_MAX_RCHUNKSIZE)
-+#endif
-+#if DRX_UCODE_MAX_BUF_SIZE & 1
-+#error DRX_UCODE_MAX_BUF_SIZE must be an even number
-+#endif
-+
-+/*============================================================================*/
-+/*=== CHANNEL SCAN RELATED DEFINES ===========================================*/
-+/*============================================================================*/
-+
-+/**
-+* \brief Maximum progress indication.
-+*
-+* Progress indication will run from 0 upto DRX_SCAN_MAX_PROGRESS during scan.
-+*
-+*/
-+#ifndef DRX_SCAN_MAX_PROGRESS
-+#define DRX_SCAN_MAX_PROGRESS 1000
-+#endif
-+
-+/*============================================================================*/
-+/*=== MACROS =================================================================*/
-+/*============================================================================*/
-+
-+#define DRX_ISPOWERDOWNMODE(mode) ((mode == DRX_POWER_MODE_9) || \
-+					(mode == DRX_POWER_MODE_10) || \
-+					(mode == DRX_POWER_MODE_11) || \
-+					(mode == DRX_POWER_MODE_12) || \
-+					(mode == DRX_POWER_MODE_13) || \
-+					(mode == DRX_POWER_MODE_14) || \
-+					(mode == DRX_POWER_MODE_15) || \
-+					(mode == DRX_POWER_MODE_16) || \
-+					(mode == DRX_POWER_DOWN))
-+
-+/*------------------------------------------------------------------------------
-+GLOBAL VARIABLES
-+------------------------------------------------------------------------------*/
-+
-+/*------------------------------------------------------------------------------
-+STRUCTURES
-+------------------------------------------------------------------------------*/
-+/** \brief  Structure of the microcode block headers */
 +typedef struct {
-+	u32_t addr;    /**<  Destination address of the data in this block */
-+	u16_t size;    /**<  Size of the block data following this header counted in
-+			16 bits words */
-+	u16_t flags;   /**<  Flags for this data block:
-+			- bit[0]= CRC on/off
-+			- bit[1]= compression on/off
-+			- bit[15..2]=reserved */
-+	u16_t CRC;     /**<  CRC value of the data block, only valid if CRC flag is
-+			set. */
-+} DRXUCodeBlockHdr_t, *pDRXUCodeBlockHdr_t;
-+
-+/*------------------------------------------------------------------------------
-+FUNCTIONS
-+------------------------------------------------------------------------------*/
-+
-+/*============================================================================*/
-+/*============================================================================*/
-+/*== Channel Scan Functions ==================================================*/
-+/*============================================================================*/
-+/*============================================================================*/
-+
-+#ifndef DRX_EXCLUDE_SCAN
-+
-+/* Prototype of default scanning function */
-+static DRXStatus_t
-+ScanFunctionDefault(void                 *scanContext,
-+			DRXScanCommand_t     scanCommand,
-+			pDRXChannel_t        scanChannel,
-+			pBool_t              getNextChannel);
-+
-+/**
-+* \brief Get pointer to scanning function.
-+* \param demod:    Pointer to demodulator instance.
-+* \return DRXScanFunc_t.
-+*/
-+static DRXScanFunc_t
-+GetScanFunction(pDRXDemodInstance_t demod)
-+{
-+	pDRXCommonAttr_t commonAttr = (pDRXCommonAttr_t)(NULL);
-+	DRXScanFunc_t    scanFunc   = (DRXScanFunc_t)(NULL);
-+
-+	/* get scan function from common attributes */
-+	commonAttr  = (pDRXCommonAttr_t)demod->myCommonAttr;
-+	scanFunc    = commonAttr->scanFunction;
-+
-+	if (scanFunc != NULL) {
-+		/* return device-specific scan function if it's not NULL */
-+		return scanFunc;
-+	}
-+	/* otherwise return default scan function in core driver */
-+	return &ScanFunctionDefault;
-+}
-+
-+/**
-+* \brief Get Context pointer.
-+* \param demod:    Pointer to demodulator instance.
-+* \param scanContext: Context Pointer.
-+* \return DRXScanFunc_t.
-+*/
-+void  *GetScanContext(pDRXDemodInstance_t  demod,
-+			void                 *scanContext)
-+{
-+	pDRXCommonAttr_t commonAttr = (pDRXCommonAttr_t)(NULL);
-+
-+	/* get scan function from common attributes */
-+	commonAttr  = (pDRXCommonAttr_t) demod->myCommonAttr;
-+	scanContext = commonAttr->scanContext;
-+
-+	if (scanContext == NULL) {
-+		scanContext = (void *) demod;
-+	}
-+
-+	return scanContext;
-+}
-+
-+/**
-+* \brief Wait for lock while scanning.
-+* \param demod:    Pointer to demodulator instance.
-+* \param lockStat: Pointer to bool indicating if end result is lock or not.
-+* \return DRXStatus_t.
-+* \retval DRX_STS_OK:    Success
-+* \retval DRX_STS_ERROR: I2C failure or bsp function failure.
-+*
-+* Wait until timeout, desired lock or NEVER_LOCK.
-+* Assume:
-+* - lock function returns : at least DRX_NOT_LOCKED and a lock state
-+*   higher than DRX_NOT_LOCKED.
-+* - BSP has a clock function to retrieve a millisecond ticker value.
-+* - BSP has a sleep function to enable sleep of n millisecond.
-+*
-+* In case DRX_NEVER_LOCK is returned the poll-wait will be aborted.
-+*
-+*/
-+static DRXStatus_t
-+ScanWaitForLock(pDRXDemodInstance_t demod,
-+			pBool_t             isLocked)
-+{
-+	Bool_t           doneWaiting        = FALSE;
-+	DRXLockStatus_t  lockState          = DRX_NOT_LOCKED;
-+	DRXLockStatus_t  desiredLockState   = DRX_NOT_LOCKED;
-+	u32_t            timeoutValue       = 0;
-+	u32_t            startTimeLockStage = 0;
-+	u32_t            currentTime        = 0;
-+	u32_t            timerValue         = 0;
-+
-+	*isLocked            = FALSE;
-+	timeoutValue         = (u32_t) demod->myCommonAttr->scanDemodLockTimeout;
-+	desiredLockState     = demod->myCommonAttr->scanDesiredLock;
-+	startTimeLockStage   = DRXBSP_HST_Clock();
-+
-+	/* Start polling loop, checking for lock & timeout */
-+	while (doneWaiting == FALSE)
-+	{
-+
-+		if (DRX_Ctrl(demod, DRX_CTRL_LOCK_STATUS, &lockState) !=
-+							DRX_STS_OK) {
-+			return DRX_STS_ERROR;
-+		}
-+		currentTime = DRXBSP_HST_Clock();
-+
-+		timerValue = currentTime - startTimeLockStage;
-+		if (lockState >= desiredLockState) {
-+			*isLocked = TRUE;
-+			doneWaiting = TRUE;
-+		}  /* if (lockState >= desiredLockState) .. */
-+		else if (lockState == DRX_NEVER_LOCK) {
-+			doneWaiting = TRUE;
-+		}  /* if (lockState == DRX_NEVER_LOCK) .. */
-+		else if (timerValue > timeoutValue) {
-+			/* lockState == DRX_NOT_LOCKED  and timeout */
-+			doneWaiting = TRUE;
-+		}
-+		else {
-+			if (DRXBSP_HST_Sleep(10) != DRX_STS_OK) {
-+			return DRX_STS_ERROR;
-+			}
-+		}  /* if (timerValue > timeoutValue) .. */
-+
-+	} /* while */
-+
-+	return DRX_STS_OK;
-+}
-+
-+/*============================================================================*/
-+
-+/**
-+* \brief Determine next frequency to scan.
-+* \param demod: Pointer to demodulator instance.
-+* \param skip : Minimum frequency step to take.
-+* \return DRXStatus_t.
-+* \retval DRX_STS_OK:          Succes.
-+* \retval DRX_STS_INVALID_ARG: Invalid frequency plan.
-+*
-+* Helper function for CtrlScanNext() function.
-+* Compute next frequency & index in frequency plan.
-+* Check if scan is ready.
-+*
-+*/
-+static DRXStatus_t
-+ScanPrepareNextScan (pDRXDemodInstance_t  demod,
-+			DRXFrequency_t       skip)
-+{
-+	pDRXCommonAttr_t     commonAttr        = (pDRXCommonAttr_t)(NULL);
-+	u16_t                tableIndex        = 0;
-+	u16_t                frequencyPlanSize = 0;
-+	pDRXFrequencyPlan_t  frequencyPlan     = (pDRXFrequencyPlan_t)(NULL);
-+	DRXFrequency_t       nextFrequency     = 0;
-+	DRXFrequency_t       tunerMinFrequency = 0;
-+	DRXFrequency_t       tunerMaxFrequency = 0;
-+
-+	commonAttr        = (pDRXCommonAttr_t)demod->myCommonAttr;
-+	tableIndex        = commonAttr->scanFreqPlanIndex;
-+	frequencyPlan     = commonAttr->scanParam->frequencyPlan;
-+	nextFrequency     = commonAttr->scanNextFrequency;
-+	tunerMinFrequency = commonAttr->tunerMinFreqRF;
-+	tunerMaxFrequency = commonAttr->tunerMaxFreqRF;
-+
-+	do
-+	{
-+		/* Search next frequency to scan */
-+
-+		/* always take at least one step */
-+		(commonAttr->scanChannelsScanned) ++;
-+		nextFrequency += frequencyPlan[tableIndex].step;
-+		skip -= frequencyPlan[tableIndex].step;
-+
-+		/* and then as many steps necessary to exceed 'skip'
-+		 without exceeding end of the band */
-+		while ((skip > 0) &&
-+			(nextFrequency <= frequencyPlan[tableIndex].last))
-+		{
-+			(commonAttr->scanChannelsScanned) ++;
-+			nextFrequency += frequencyPlan[tableIndex].step;
-+			skip -= frequencyPlan[tableIndex].step;
-+		}
-+		/* reset skip, in case we move to the next band later */
-+		skip = 0;
-+
-+		if (nextFrequency > frequencyPlan[tableIndex].last) {
-+			/* reached end of this band */
-+			tableIndex++;
-+			frequencyPlanSize = commonAttr->scanParam->frequencyPlanSize;
-+			if (tableIndex >= frequencyPlanSize) {
-+				/* reached end of frequency plan */
-+				commonAttr->scanReady = TRUE;
-+			}
-+			else {
-+				nextFrequency = frequencyPlan[tableIndex].first;
-+			}
-+		}
-+		if (nextFrequency > (tunerMaxFrequency)) {
-+			/* reached end of tuner range */
-+			commonAttr->scanReady = TRUE;
-+		}
-+	} while((nextFrequency < tunerMinFrequency) &&
-+			(commonAttr->scanReady == FALSE));
-+
-+	/* Store new values */
-+	commonAttr->scanFreqPlanIndex = tableIndex;
-+	commonAttr->scanNextFrequency = nextFrequency;
-+
-+	return DRX_STS_OK;
-+}
-+
-+/*============================================================================*/
-+
-+/**
-+* \brief Default DTV scanning function.
-+*
-+* \param demod:          Pointer to demodulator instance.
-+* \param scanCommand:    Scanning command: INIT, NEXT or STOP.
-+* \param scanChannel:    Channel to check: frequency and bandwidth, others AUTO
-+* \param getNextChannel: Return TRUE if next frequency is desired at next call
-+*
-+* \return DRXStatus_t.
-+* \retval DRX_STS_OK:      Channel found, DRX_CTRL_GET_CHANNEL can be used
-+*                             to retrieve channel parameters.
-+* \retval DRX_STS_BUSY:    Channel not found (yet).
-+* \retval DRX_STS_ERROR:   Something went wrong.
-+*
-+* scanChannel and getNextChannel will be NULL for INIT and STOP.
-+*/
-+static DRXStatus_t
-+ScanFunctionDefault (void                 *scanContext,
-+			DRXScanCommand_t     scanCommand,
-+			pDRXChannel_t        scanChannel,
-+			pBool_t              getNextChannel)
-+{
-+	pDRXDemodInstance_t demod = NULL;
-+	DRXStatus_t status   = DRX_STS_ERROR;
-+	Bool_t      isLocked = FALSE;
-+
-+	demod = (pDRXDemodInstance_t) scanContext;
-+
-+	if (scanCommand != DRX_SCAN_COMMAND_NEXT) {
-+		/* just return OK if not doing "scan next" */
-+		return DRX_STS_OK;
-+	}
-+
-+	*getNextChannel = FALSE;
-+
-+	status = DRX_Ctrl (demod, DRX_CTRL_SET_CHANNEL, scanChannel);
-+	if (status != DRX_STS_OK) {
-+		return (status);
-+	}
-+
-+	status = ScanWaitForLock (demod, &isLocked);
-+	if (status != DRX_STS_OK) {
-+		return status;
-+	}
-+
-+	/* done with this channel, move to next one */
-+	*getNextChannel = TRUE;
-+
-+	if (isLocked == FALSE) {
-+		/* no channel found */
-+		return DRX_STS_BUSY;
-+	}
-+	/* channel found */
-+	return DRX_STS_OK;
-+}
-+
-+/*============================================================================*/
-+
-+/**
-+* \brief Initialize for channel scan.
-+* \param demod:     Pointer to demodulator instance.
-+* \param scanParam: Pointer to scan parameters.
-+* \return DRXStatus_t.
-+* \retval DRX_STS_OK:          Initialized for scan.
-+* \retval DRX_STS_ERROR:       No overlap between frequency plan and tuner
-+*                              range.
-+* \retval DRX_STS_INVALID_ARG: Wrong parameters.
-+*
-+* This function should be called before starting a complete channel scan.
-+* It will prepare everything for a complete channel scan.
-+* After calling this function the DRX_CTRL_SCAN_NEXT control function can be
-+* used to perform the actual scanning. Scanning will start at the first
-+* center frequency of the frequency plan that is within the tuner range.
-+*
-+*/
-+static DRXStatus_t
-+CtrlScanInit(pDRXDemodInstance_t  demod,
-+		pDRXScanParam_t      scanParam)
-+{
-+	DRXStatus_t       status            = DRX_STS_ERROR;
-+	pDRXCommonAttr_t  commonAttr        =(pDRXCommonAttr_t)(NULL);
-+	DRXFrequency_t    maxTunerFreq      = 0;
-+	DRXFrequency_t    minTunerFreq      = 0;
-+	u16_t             nrChannelsInPlan  = 0;
-+	u16_t             i                 = 0;
-+	void              *scanContext      = NULL;
-+
-+	commonAttr              = (pDRXCommonAttr_t)demod->myCommonAttr;
-+	commonAttr->scanActive  = TRUE;
-+
-+	/* invalidate a previous SCAN_INIT */
-+	commonAttr->scanParam         = (pDRXScanParam_t)(NULL);
-+	commonAttr->scanNextFrequency = 0;
-+
-+	/* Check parameters */
-+	if (((demod->myTuner == NULL)          &&
-+		(scanParam->numTries !=1))        ||
-+
-+		(scanParam == NULL)                ||
-+		(scanParam->numTries == 0)         ||
-+		(scanParam->frequencyPlan == NULL) ||
-+		(scanParam->frequencyPlanSize == 0)
-+		) {
-+		commonAttr->scanActive = FALSE;
-+		return DRX_STS_INVALID_ARG;
-+	}
-+
-+	/* Check frequency plan contents */
-+	maxTunerFreq = commonAttr->tunerMaxFreqRF;
-+	minTunerFreq = commonAttr->tunerMinFreqRF;
-+	for(i = 0; i < (scanParam->frequencyPlanSize); i++) {
-+		DRXFrequency_t width = 0;
-+		DRXFrequency_t step      = scanParam->frequencyPlan[i].step;
-+		DRXFrequency_t firstFreq = scanParam->frequencyPlan[i].first;
-+		DRXFrequency_t lastFreq  = scanParam->frequencyPlan[i].last;
-+		DRXFrequency_t minFreq = 0;
-+		DRXFrequency_t maxFreq = 0;
-+
-+		if (step <= 0) {
-+			/* Step must be positive and non-zero */
-+			commonAttr->scanActive = FALSE;
-+			return DRX_STS_INVALID_ARG;
-+		}
-+
-+		if (firstFreq > lastFreq) {
-+			/* First center frequency is higher than last center frequency */
-+			commonAttr->scanActive = FALSE;
-+			return DRX_STS_INVALID_ARG;
-+		}
-+
-+		width = lastFreq - firstFreq;
-+
-+		if ((width % step) != 0) {
-+			/* Difference between last and first center frequency is not
-+			an integer number of steps */
-+			commonAttr->scanActive = FALSE;
-+			return DRX_STS_INVALID_ARG;
-+		}
-+
-+		/* Check if frequency plan entry intersects with tuner range */
-+		if (lastFreq >= minTunerFreq) {
-+			if (firstFreq <= maxTunerFreq) {
-+				if (firstFreq >= minTunerFreq) {
-+					minFreq = firstFreq;
-+				}
-+				else {
-+					DRXFrequency_t n = 0;
-+
-+					n = (minTunerFreq - firstFreq) / step;
-+					if (((minTunerFreq - firstFreq) % step) != 0) {
-+						n++;
-+					}
-+				minFreq = firstFreq + n*step;
-+				}
-+
-+				if (lastFreq <= maxTunerFreq) {
-+					maxFreq = lastFreq;
-+				}
-+				else {
-+					DRXFrequency_t n=0;
-+
-+					n=(lastFreq - maxTunerFreq)/step;
-+					if (((lastFreq - maxTunerFreq)%step) !=0) {
-+						n++;
-+					}
-+					maxFreq = lastFreq - n*step;
-+				}
-+			}
-+		}
-+
-+		/* Keep track of total number of channels within tuner range
-+		 in this frequency plan. */
-+		if ((minFreq !=0) && (maxFreq != 0)) {
-+			nrChannelsInPlan += (u16_t)(((maxFreq-minFreq) / step) +1);
-+
-+			/* Determine first frequency (within tuner range) to scan */
-+			if (commonAttr->scanNextFrequency == 0) {
-+				commonAttr->scanNextFrequency = minFreq;
-+				commonAttr->scanFreqPlanIndex = i;
-+			}
-+		}
-+
-+	}/* for (...) */
-+
-+	if (nrChannelsInPlan == 0) {
-+		/* Tuner range and frequency plan ranges do not overlap */
-+		commonAttr->scanActive = FALSE;
-+		return DRX_STS_ERROR;
-+	}
-+
-+	/* Store parameters */
-+	commonAttr->scanReady            = FALSE;
-+	commonAttr->scanMaxChannels      = nrChannelsInPlan;
-+	commonAttr->scanChannelsScanned  = 0;
-+	commonAttr->scanParam            = scanParam; /* SCAN_NEXT is now allowed */
-+
-+	scanContext = GetScanContext(demod, scanContext);
-+
-+	status = (*(GetScanFunction(demod)))
-+		(scanContext, DRX_SCAN_COMMAND_INIT, NULL, NULL);
-+
-+	commonAttr->scanActive = FALSE;
-+
-+	return DRX_STS_OK;
-+}
-+
-+/*============================================================================*/
-+
-+/**
-+* \brief Stop scanning.
-+* \param demod:         Pointer to demodulator instance.
-+* \return DRXStatus_t.
-+* \retval DRX_STS_OK:          Scan stopped.
-+* \retval DRX_STS_ERROR:       Something went wrong.
-+* \retval DRX_STS_INVALID_ARG: Wrong parameters.
-+*/
-+static DRXStatus_t
-+CtrlScanStop(pDRXDemodInstance_t  demod)
-+{
-+	DRXStatus_t       status         = DRX_STS_ERROR;
-+	pDRXCommonAttr_t  commonAttr     = (pDRXCommonAttr_t) (NULL);
-+	void              *scanContext   = NULL;
-+
-+	commonAttr              = (pDRXCommonAttr_t)demod->myCommonAttr;
-+	commonAttr->scanActive  = TRUE;
-+
-+	if ((commonAttr->scanParam == NULL) ||
-+		(commonAttr->scanMaxChannels == 0)) {
-+		/* Scan was not running, just return OK */
-+		commonAttr->scanActive = FALSE;
-+		return DRX_STS_OK;
-+	}
-+
-+	/* Call default or device-specific scanning stop function */
-+	scanContext = GetScanContext(demod, scanContext);
-+
-+	status = (*(GetScanFunction(demod)))
-+		(scanContext, DRX_SCAN_COMMAND_STOP, NULL, NULL);
-+
-+	/* All done, invalidate scan-init */
-+	commonAttr->scanParam         = NULL;
-+	commonAttr->scanMaxChannels   = 0;
-+	commonAttr->scanActive        = FALSE;
-+
-+	return status;
-+}
-+
-+/*============================================================================*/
-+
-+/**
-+* \brief Scan for next channel.
-+* \param demod:         Pointer to demodulator instance.
-+* \param scanProgress:  Pointer to scan progress.
-+* \return DRXStatus_t.
-+* \retval DRX_STS_OK:          Channel found, DRX_CTRL_GET_CHANNEL can be used
-+*                              to retrieve channel parameters.
-+* \retval DRX_STS_BUSY:        Tried part of the channels, as specified in
-+*                              numTries field of scan parameters. At least one
-+*                              more call to DRX_CTRL_SCAN_NEXT is needed to
-+*                              complete scanning.
-+* \retval DRX_STS_READY:       Reached end of scan range.
-+* \retval DRX_STS_ERROR:       Something went wrong.
-+* \retval DRX_STS_INVALID_ARG: Wrong parameters. The scanProgress may be NULL.
-+*
-+* Progress indication will run from 0 upto DRX_SCAN_MAX_PROGRESS during scan.
-+*
-+*/
-+static DRXStatus_t
-+CtrlScanNext (pDRXDemodInstance_t  demod,
-+		pu16_t               scanProgress)
-+{
-+	pDRXCommonAttr_t  commonAttr  = (pDRXCommonAttr_t)(NULL);
-+	pBool_t           scanReady   = (pBool_t)(NULL);
-+	u16_t             maxProgress = DRX_SCAN_MAX_PROGRESS;
-+	u32_t             numTries    = 0;
-+	u32_t             i           = 0;
-+
-+	commonAttr              = (pDRXCommonAttr_t)demod->myCommonAttr;
-+
-+	/* Check scan parameters */
-+	if (scanProgress == NULL) {
-+		commonAttr->scanActive = FALSE;
-+		return DRX_STS_INVALID_ARG;
-+	}
-+
-+	*scanProgress           = 0;
-+	commonAttr->scanActive  = TRUE;
-+	if ((commonAttr->scanParam == NULL) ||
-+		(commonAttr->scanMaxChannels == 0)) {
-+		/* CtrlScanInit() was not called succesfully before CtrlScanNext() */
-+		commonAttr->scanActive = FALSE;
-+		return DRX_STS_ERROR;
-+	}
-+
-+	*scanProgress = (u16_t)(((commonAttr->scanChannelsScanned)*
-+				((u32_t)(maxProgress))) /
-+				(commonAttr->scanMaxChannels));
-+
-+	/* Scan */
-+	numTries    = commonAttr->scanParam->numTries;
-+	scanReady   = &(commonAttr->scanReady);
-+
-+	for (i = 0; ((i < numTries) && ((*scanReady) == FALSE)); i++) {
-+		DRXChannel_t         scanChannel    = { 0 };
-+		DRXStatus_t          status         = DRX_STS_ERROR;
-+		pDRXFrequencyPlan_t  freqPlan       = (pDRXFrequencyPlan_t) (NULL);
-+		Bool_t               nextChannel    = FALSE;
-+		void                 *scanContext   = NULL;
-+
-+		/* Next channel to scan */
-+		freqPlan =
-+			&(commonAttr->scanParam->frequencyPlan[commonAttr->scanFreqPlanIndex]);
-+		scanChannel.frequency      = commonAttr->scanNextFrequency;
-+		scanChannel.bandwidth      = freqPlan->bandwidth;
-+		scanChannel.mirror         = DRX_MIRROR_AUTO;
-+		scanChannel.constellation  = DRX_CONSTELLATION_AUTO;
-+		scanChannel.hierarchy      = DRX_HIERARCHY_AUTO;
-+		scanChannel.priority       = DRX_PRIORITY_HIGH;
-+		scanChannel.coderate       = DRX_CODERATE_AUTO;
-+		scanChannel.guard          = DRX_GUARD_AUTO;
-+		scanChannel.fftmode        = DRX_FFTMODE_AUTO;
-+		scanChannel.classification = DRX_CLASSIFICATION_AUTO;
-+		scanChannel.symbolrate     = 0;
-+		scanChannel.interleavemode = DRX_INTERLEAVEMODE_AUTO;
-+		scanChannel.ldpc           = DRX_LDPC_AUTO;
-+		scanChannel.carrier        = DRX_CARRIER_AUTO;
-+		scanChannel.framemode      = DRX_FRAMEMODE_AUTO;
-+		scanChannel.pilot          = DRX_PILOT_AUTO;
-+
-+		/* Call default or device-specific scanning function */
-+		scanContext = GetScanContext(demod, scanContext);
-+
-+		status = (*(GetScanFunction(demod)))
-+			(scanContext,DRX_SCAN_COMMAND_NEXT,&scanChannel,&nextChannel);
-+
-+		/* Proceed to next channel if requested */
-+		if (nextChannel == TRUE) {
-+			DRXStatus_t nextStatus = DRX_STS_ERROR;
-+			DRXFrequency_t skip = 0;
-+
-+			if (status == DRX_STS_OK) {
-+				/* a channel was found, so skip some frequency steps */
-+				skip = commonAttr->scanParam->skip;
-+			}
-+			nextStatus = ScanPrepareNextScan(demod, skip);
-+
-+			/* keep track of progress */
-+			*scanProgress = (u16_t)(((commonAttr->scanChannelsScanned)*
-+					((u32_t)(maxProgress)))/
-+					(commonAttr->scanMaxChannels));
-+
-+			if (nextStatus != DRX_STS_OK) {
-+				commonAttr->scanActive = FALSE;
-+				return (nextStatus);
-+			}
-+		}
-+		if (status != DRX_STS_BUSY) {
-+			/* channel found or error */
-+			commonAttr->scanActive = FALSE;
-+			return status;
-+		}
-+	} /* for (i = 0; i < (... numTries); i++) */
-+
-+	if ((*scanReady) == TRUE) {
-+		/* End of scan reached: call stop-scan, ignore any error */
-+		CtrlScanStop(demod);
-+		commonAttr->scanActive = FALSE;
-+		return (DRX_STS_READY);
-+	}
-+
-+	commonAttr->scanActive = FALSE;
-+
-+	return DRX_STS_BUSY;
-+}
-+
-+#endif /* #ifndef DRX_EXCLUDE_SCAN */
-+
-+/*============================================================================*/
-+
-+/**
-+* \brief Program tuner.
-+* \param demod:         Pointer to demodulator instance.
-+* \param tunerChannel:  Pointer to tuning parameters.
-+* \return DRXStatus_t.
-+* \retval DRX_STS_OK:          Tuner programmed successfully.
-+* \retval DRX_STS_ERROR:       Something went wrong.
-+* \retval DRX_STS_INVALID_ARG: Wrong parameters.
-+*
-+* tunerChannel passes parameters to program the tuner,
-+* but also returns the actual RF and IF frequency from the tuner.
-+*
-+*/
-+static DRXStatus_t
-+CtrlProgramTuner(pDRXDemodInstance_t  demod,
-+		pDRXChannel_t        channel)
-+{
-+	pDRXCommonAttr_t  commonAttr     = (pDRXCommonAttr_t)(NULL);
-+	DRXStandard_t     standard       = DRX_STANDARD_UNKNOWN;
-+	TUNERMode_t       tunerMode      = 0;
-+	DRXStatus_t       status         = DRX_STS_ERROR;
-+	DRXFrequency_t    ifFrequency    = 0;
-+	Bool_t            tunerSlowMode  = FALSE;
-+
-+	/* can't tune without a tuner */
-+	if (demod->myTuner == NULL) {
-+		return DRX_STS_INVALID_ARG;
-+	}
-+
-+	commonAttr = (pDRXCommonAttr_t) demod->myCommonAttr;
-+
-+	/* select analog or digital tuner mode based on current standard */
-+	if (DRX_Ctrl(demod, DRX_CTRL_GET_STANDARD, &standard) != DRX_STS_OK) {
-+		return DRX_STS_ERROR;
-+	}
-+
-+	if (DRX_ISATVSTD(standard)) {
-+		tunerMode |= TUNER_MODE_ANALOG;
-+	}
-+	else /* note: also for unknown standard */ {
-+		tunerMode |= TUNER_MODE_DIGITAL;
-+	}
-+
-+	/* select tuner bandwidth */
-+	switch (channel->bandwidth) {
-+	case DRX_BANDWIDTH_6MHZ:
-+		tunerMode |= TUNER_MODE_6MHZ;
-+		break;
-+	case DRX_BANDWIDTH_7MHZ:
-+		tunerMode |= TUNER_MODE_7MHZ;
-+		break;
-+	case DRX_BANDWIDTH_8MHZ:
-+		tunerMode |= TUNER_MODE_8MHZ;
-+		break;
-+	default: /* note: also for unknown bandwidth */
-+		return DRX_STS_INVALID_ARG;
-+	}
-+
-+	DRX_GET_TUNERSLOWMODE (demod, tunerSlowMode);
-+
-+	/* select fast (switch) or slow (lock) tuner mode */
-+	if (tunerSlowMode) {
-+		tunerMode |= TUNER_MODE_LOCK;
-+	}
-+	else {
-+		tunerMode |= TUNER_MODE_SWITCH;
-+	}
-+
-+	if (commonAttr->tunerPortNr == 1) {
-+		Bool_t      bridgeClosed = TRUE;
-+		DRXStatus_t statusBridge = DRX_STS_ERROR;
-+
-+		statusBridge = DRX_Ctrl(demod, DRX_CTRL_I2C_BRIDGE, &bridgeClosed);
-+		if (statusBridge != DRX_STS_OK) {
-+			return statusBridge;
-+		}
-+	}
-+
-+	status = DRXBSP_TUNER_SetFrequency(demod->myTuner,
-+					tunerMode,
-+					channel->frequency);
-+
-+	/* attempt restoring bridge before checking status of SetFrequency */
-+	if (commonAttr->tunerPortNr == 1) {
-+		Bool_t      bridgeClosed = FALSE;
-+		DRXStatus_t statusBridge = DRX_STS_ERROR;
-+
-+		statusBridge = DRX_Ctrl(demod, DRX_CTRL_I2C_BRIDGE, &bridgeClosed);
-+		if (statusBridge != DRX_STS_OK) {
-+			return statusBridge;
-+		}
-+	}
-+
-+	/* now check status of DRXBSP_TUNER_SetFrequency */
-+	if (status != DRX_STS_OK) {
-+		return status;
-+	}
-+
-+	/* get actual RF and IF frequencies from tuner */
-+	status = DRXBSP_TUNER_GetFrequency(demod->myTuner,
-+					tunerMode,
-+					&(channel->frequency),
-+					&(ifFrequency));
-+	if (status != DRX_STS_OK) {
-+		return status;
-+	}
-+
-+	/* update common attributes with information available from this function;
-+		TODO: check if this is required and safe */
-+	DRX_SET_INTERMEDIATEFREQ(demod, ifFrequency);
-+
-+	return DRX_STS_OK;
-+}
-+
-+/*============================================================================*/
-+
-+/**
-+* \brief function to do a register dump.
-+* \param demod:            Pointer to demodulator instance.
-+* \param registers:        Registers to dump.
-+* \return DRXStatus_t.
-+* \retval DRX_STS_OK:          Dump executed successfully.
-+* \retval DRX_STS_ERROR:       Something went wrong.
-+* \retval DRX_STS_INVALID_ARG: Wrong parameters.
-+*
-+*/
-+DRXStatus_t CtrlDumpRegisters(pDRXDemodInstance_t  demod,
-+				 pDRXRegDump_t        registers)
-+{
-+	u16_t i = 0;
-+
-+	if (registers == NULL) {
-+		/* registers not supplied */
-+		return DRX_STS_INVALID_ARG;
-+	}
-+
-+	/* start dumping registers */
-+	while (registers[i].address != 0) {
-+		DRXStatus_t status = DRX_STS_ERROR;
-+		u16_t       value  = 0;
-+		u32_t       data   = 0;
-+
-+		status = demod->myAccessFunct->readReg16Func(
-+			demod->myI2CDevAddr, registers[i].address, &value, 0);
-+
-+		data = (u32_t)value;
-+
-+		if (status != DRX_STS_OK) {
-+			/* no breakouts;
-+			depending on device ID, some HW blocks might not be available */
-+			data |= ((u32_t)status) << 16;
-+		}
-+		registers[i].data = data;
-+		i++;
-+	}
-+
-+	/* all done, all OK (any errors are saved inside data) */
-+	return DRX_STS_OK;
-+}
-+
-+/*============================================================================*/
-+/*============================================================================*/
-+/*===Microcode related functions==============================================*/
-+/*============================================================================*/
-+/*============================================================================*/
-+
-+/**
-+* \brief Read a 16 bits word, expects big endian data.
-+* \param addr: Pointer to memory from which to read the 16 bits word.
-+* \return u16_t The data read.
-+*
-+* This function takes care of the possible difference in endianness between the
-+* host and the data contained in the microcode image file.
-+*
-+*/
-+static u16_t
-+UCodeRead16(pu8_t addr)
-+{
-+	/* Works fo any host processor */
-+
-+	u16_t word=0;
-+
-+	word = ((u16_t)addr[0]);
-+	word <<= 8;
-+	word |=((u16_t)addr[1]);
-+
-+	return word;
-+}
-+
-+/*============================================================================*/
-+
-+/**
-+* \brief Read a 32 bits word, expects big endian data.
-+* \param addr: Pointer to memory from which to read the 32 bits word.
-+* \return u32_t The data read.
-+*
-+* This function takes care of the possible difference in endianness between the
-+* host and the data contained in the microcode image file.
-+*
-+*/
-+static u32_t
-+UCodeRead32(pu8_t addr)
-+{
-+	/* Works fo any host processor */
-+
-+	u32_t word=0;
-+
-+	word = ((u16_t)addr[0]);
-+	word <<= 8;
-+	word |= ((u16_t)addr[1]);
-+	word <<= 8;
-+	word |= ((u16_t)addr[2]);
-+	word <<= 8;
-+	word |= ((u16_t)addr[3]);
-+
-+	return word ;
-+}
-+
-+/*============================================================================*/
-+
-+/**
-+* \brief Compute CRC of block of microcode data.
-+* \param blockData: Pointer to microcode data.
-+* \param nrWords:   Size of microcode block (number of 16 bits words).
-+* \return u16_t The computed CRC residu.
-+*/
-+static u16_t
-+UCodeComputeCRC (pu8_t blockData, u16_t nrWords)
-+{
-+	u16_t i        = 0;
-+	u16_t j        = 0;
-+	u32_t CRCWord  = 0;
-+	u32_t carry    = 0;
-+
-+	while (i < nrWords) {
-+		CRCWord |= (u32_t) UCodeRead16(blockData);
-+		for (j = 0; j < 16; j++) {
-+			CRCWord <<= 1;
-+			if (carry != 0) {
-+				CRCWord ^= 0x80050000UL;
-+			}
-+			carry = CRCWord & 0x80000000UL;
-+		}
-+		i++;
-+		blockData+=(sizeof(u16_t));
-+	}
-+	return ((u16_t) (CRCWord >> 16));
-+}
-+
-+/*============================================================================*/
-+
-+/**
-+* \brief Handle microcode upload or verify.
-+* \param devAddr: Address of device.
-+* \param mcInfo:  Pointer to information about microcode data.
-+* \param action:  Either UCODE_UPLOAD or UCODE_VERIFY
-+* \return DRXStatus_t.
-+* \retval DRX_STS_OK:
-+*                    - In case of UCODE_UPLOAD: code is successfully uploaded.
-+*                    - In case of UCODE_VERIFY: image on device is equal to
-+*                      image provided to this control function.
-+* \retval DRX_STS_ERROR:
-+*                    - In case of UCODE_UPLOAD: I2C error.
-+*                    - In case of UCODE_VERIFY: I2C error or image on device
-+*                      is not equal to image provided to this control function.
-+* \retval DRX_STS_INVALID_ARG:
-+*                    - Invalid arguments.
-+*                    - Provided image is corrupt
-+*/
-+static DRXStatus_t
-+CtrlUCode(pDRXDemodInstance_t demod,
-+	pDRXUCodeInfo_t  mcInfo,
-+	DRXUCodeAction_t action)
-+{
-+	DRXStatus_t rc;
-+	u16_t  i = 0;
-+	u16_t  mcNrOfBlks = 0;
-+	u16_t  mcMagicWord = 0;
-+	pu8_t  mcData = (pu8_t)(NULL);
-+	pI2CDeviceAddr_t devAddr = (pI2CDeviceAddr_t)(NULL);
-+
-+	devAddr = demod -> myI2CDevAddr;
-+
-+	/* Check arguments */
-+	if ((mcInfo == NULL) ||
-+		(mcInfo->mcData == NULL)) {
-+		return DRX_STS_INVALID_ARG;
-+	}
-+
-+	mcData = mcInfo->mcData;
-+
-+	/* Check data */
-+	mcMagicWord = UCodeRead16(mcData);
-+	mcData += sizeof(u16_t);
-+	mcNrOfBlks = UCodeRead16(mcData);
-+	mcData += sizeof(u16_t);
-+
-+	if ((mcMagicWord != DRX_UCODE_MAGIC_WORD) ||
-+		(mcNrOfBlks == 0)) {
-+		/* wrong endianess or wrong data ? */
-+		return DRX_STS_INVALID_ARG;
-+	}
-+
-+	/* Scan microcode blocks first for version info if uploading */
-+	if (action == UCODE_UPLOAD) {
-+		/* Clear version block */
-+		DRX_SET_MCVERTYPE (demod, 0);
-+		DRX_SET_MCDEV     (demod, 0);
-+		DRX_SET_MCVERSION (demod, 0);
-+		DRX_SET_MCPATCH   (demod, 0);
-+		for (i = 0; i < mcNrOfBlks; i++) {
-+			DRXUCodeBlockHdr_t blockHdr;
-+
-+			/* Process block header */
-+			blockHdr.addr = UCodeRead32(mcData);
-+			mcData += sizeof(u32_t);
-+			blockHdr.size = UCodeRead16(mcData);
-+			mcData += sizeof(u16_t);
-+			blockHdr.flags = UCodeRead16(mcData);
-+			mcData += sizeof(u16_t);
-+			blockHdr.CRC = UCodeRead16(mcData);
-+			mcData += sizeof(u16_t);
-+
-+			if (blockHdr.flags & 0x8) {
-+				/* Aux block. Check type */
-+				pu8_t auxblk = mcInfo->mcData + blockHdr.addr;
-+				u16_t auxtype = UCodeRead16 (auxblk);
-+				if (DRX_ISMCVERTYPE (auxtype)) {
-+					DRX_SET_MCVERTYPE (demod, UCodeRead16 (auxblk));
-+					auxblk += sizeof (u16_t);
-+					DRX_SET_MCDEV     (demod, UCodeRead32 (auxblk));
-+					auxblk += sizeof (u32_t);
-+					DRX_SET_MCVERSION (demod, UCodeRead32 (auxblk));
-+					auxblk += sizeof (u32_t);
-+					DRX_SET_MCPATCH   (demod, UCodeRead32 (auxblk));
-+				}
-+			}
-+
-+			/* Next block */
-+			mcData += blockHdr.size * sizeof (u16_t);
-+		}
-+		/* After scanning, validate the microcode.
-+		 It is also valid if no validation control exists.
-+		*/
-+		rc = DRX_Ctrl (demod, DRX_CTRL_VALIDATE_UCODE, NULL);
-+		if (rc != DRX_STS_OK && rc != DRX_STS_FUNC_NOT_AVAILABLE) {
-+			return rc;
-+		}
-+
-+		/* Restore data pointer */
-+		mcData = mcInfo->mcData + 2 * sizeof(u16_t);
-+		}
-+
-+	/* Process microcode blocks */
-+	for(i = 0 ; i<mcNrOfBlks ; i++) {
-+		DRXUCodeBlockHdr_t blockHdr;
-+		u16_t mcBlockNrBytes = 0;
-+
-+		/* Process block header */
-+		blockHdr.addr = UCodeRead32(mcData);
-+		mcData += sizeof(u32_t);
-+		blockHdr.size = UCodeRead16(mcData);
-+		mcData += sizeof(u16_t);
-+		blockHdr.flags = UCodeRead16(mcData);
-+		mcData += sizeof(u16_t);
-+		blockHdr.CRC = UCodeRead16(mcData);
-+		mcData += sizeof(u16_t);
-+
-+		/* Check block header on:
-+		 - data larger than 64Kb
-+		 - if CRC enabled check CRC
-+		*/
-+		if ((blockHdr.size > 0x7FFF) ||
-+			(((blockHdr.flags & DRX_UCODE_CRC_FLAG) != 0) &&
-+			(blockHdr.CRC != UCodeComputeCRC (mcData, blockHdr.size)))
-+			) {
-+				/* Wrong data ! */
-+				return DRX_STS_INVALID_ARG;
-+		}
-+
-+		mcBlockNrBytes = blockHdr.size * ((u16_t)sizeof(u16_t));
-+
-+		if (blockHdr.size != 0) {
-+			/* Perform the desired action */
-+			switch (action) {
-+			/*================================================================*/
-+			case UCODE_UPLOAD : {
-+				/* Upload microcode */
-+				if (demod->myAccessFunct->writeBlockFunc(
-+					devAddr,
-+					(DRXaddr_t) blockHdr.addr,
-+					mcBlockNrBytes,
-+					mcData,
-+					0x0000) != DRX_STS_OK) {
-+					return (DRX_STS_ERROR);
-+				} /* if */
-+			};
-+			break;
-+
-+			/*================================================================*/
-+			case UCODE_VERIFY : {
-+				int         result = 0;
-+				u8_t        mcDataBuffer[DRX_UCODE_MAX_BUF_SIZE];
-+				u32_t       bytesToCompare=0;
-+				u32_t       bytesLeftToCompare=0;
-+				DRXaddr_t   currAddr = (DRXaddr_t)0;
-+				pu8_t       currPtr =NULL;
-+
-+				bytesLeftToCompare = mcBlockNrBytes;
-+				currAddr           = blockHdr.addr;
-+				currPtr            = mcData;
-+
-+				while(bytesLeftToCompare != 0) {
-+					if (bytesLeftToCompare > ((u32_t)DRX_UCODE_MAX_BUF_SIZE)) {
-+						bytesToCompare = ((u32_t)DRX_UCODE_MAX_BUF_SIZE);
-+					}
-+					else {
-+						bytesToCompare = bytesLeftToCompare;
-+					}
-+
-+					if (demod->myAccessFunct->readBlockFunc(
-+						devAddr,
-+						currAddr,
-+						(u16_t)bytesToCompare,
-+						(pu8_t)mcDataBuffer,
-+						0x0000) != DRX_STS_OK) {
-+						return (DRX_STS_ERROR);
-+					}
-+
-+					result = DRXBSP_HST_Memcmp(currPtr,
-+						mcDataBuffer,
-+						bytesToCompare);
-+
-+					if (result != 0) {
-+						return DRX_STS_ERROR;
-+					}
-+
-+					currAddr           += ((DRXaddr_t)(bytesToCompare/2));
-+					currPtr            = &(currPtr[bytesToCompare]);
-+					bytesLeftToCompare -= ((u32_t)bytesToCompare);
-+				} /* while(bytesToCompare > DRX_UCODE_MAX_BUF_SIZE) */
-+			};
-+			break;
-+
-+			/*================================================================*/
-+			default:
-+				return DRX_STS_INVALID_ARG;
-+				break;
-+
-+			} /* switch (action) */
-+		} /* if (blockHdr.size != 0) */
-+
-+		/* Next block */
-+		mcData += mcBlockNrBytes;
-+
-+	} /* for(i = 0 ; i<mcNrOfBlks ; i++) */
-+
-+	return DRX_STS_OK;
-+}
-+
-+/*============================================================================*/
-+
-+/**
-+* \brief Build list of version information.
-+* \param demod: A pointer to a demodulator instance.
-+* \param versionList: Pointer to linked list of versions.
-+* \return DRXStatus_t.
-+* \retval DRX_STS_OK:          Version information stored in versionList
-+* \retval DRX_STS_INVALID_ARG: Invalid arguments.
-+*/
-+static DRXStatus_t
-+CtrlVersion(pDRXDemodInstance_t demod,
-+	pDRXVersionList_t   *versionList)
-+{
-+	static char drxDriverCoreModuleName[]  = "Core driver";
-+	static char drxDriverCoreVersionText[] =
-+		DRX_VERSIONSTRING(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
-+
-+	static DRXVersion_t drxDriverCoreVersion;
-+	static DRXVersionList_t drxDriverCoreVersionList;
-+
-+	pDRXVersionList_t demodVersionList = (pDRXVersionList_t)(NULL);
-+	DRXStatus_t returnStatus = DRX_STS_ERROR;
-+
-+	/* Check arguments */
-+	if (versionList == NULL) {
-+		return DRX_STS_INVALID_ARG;
-+	}
-+
-+	/* Get version info list from demod */
-+	returnStatus = (*(demod->myDemodFunct->ctrlFunc))(
-+				demod,
-+				DRX_CTRL_VERSION,
-+				(void *) &demodVersionList);
-+
-+	/* Always fill in the information of the driver SW . */
-+	drxDriverCoreVersion.moduleType  = DRX_MODULE_DRIVERCORE;
-+	drxDriverCoreVersion.moduleName  = drxDriverCoreModuleName;
-+	drxDriverCoreVersion.vMajor      = VERSION_MAJOR;
-+	drxDriverCoreVersion.vMinor      = VERSION_MINOR;
-+	drxDriverCoreVersion.vPatch      = VERSION_PATCH;
-+	drxDriverCoreVersion.vString     = drxDriverCoreVersionText;
-+
-+	drxDriverCoreVersionList.version = &drxDriverCoreVersion;
-+	drxDriverCoreVersionList.next    = (pDRXVersionList_t)(NULL);
-+
-+	if ((returnStatus == DRX_STS_OK) && (demodVersionList != NULL)) {
-+		/* Append versioninfo from driver to versioninfo from demod  */
-+		/* Return version info in "bottom-up" order. This way, multiple
-+		 devices can be handled without using malloc. */
-+		pDRXVersionList_t currentListElement = demodVersionList;
-+		while (currentListElement->next != NULL) {
-+			currentListElement = currentListElement->next;
-+		}
-+		currentListElement->next = &drxDriverCoreVersionList;
-+
-+		*versionList = demodVersionList;
-+	}
-+	else {
-+		/* Just return versioninfo from driver */
-+		*versionList = &drxDriverCoreVersionList;
-+	}
-+
-+	return DRX_STS_OK;
-+}
-+
-+/*============================================================================*/
-+/*============================================================================*/
-+/*== Exported functions ======================================================*/
-+/*============================================================================*/
-+/*============================================================================*/
-+
-+
-+
-+/**
-+* \brief This function is obsolete.
-+* \param demods: Don't care, parameter is ignored.
-+* \return DRXStatus_t Return status.
-+* \retval DRX_STS_OK: Initialization completed.
-+*
-+* This function is obsolete, prototype available for backward compatability.
-+*
-+*/
-+
-+DRXStatus_t
-+DRX_Init(pDRXDemodInstance_t demods[])
-+{
-+	return DRX_STS_OK;
-+}
-+
-+/*============================================================================*/
-+
-+/**
-+* \brief This function is obsolete.
-+* \return DRXStatus_t Return status.
-+* \retval DRX_STS_OK: Terminated driver successful.
-+*
-+* This function is obsolete, prototype available for backward compatability.
-+*
-+*/
-+
-+DRXStatus_t
-+DRX_Term(void)
-+{
-+	return DRX_STS_OK;
-+}
-+
-+/*============================================================================*/
-+
-+/**
-+* \brief Open a demodulator instance.
-+* \param demod: A pointer to a demodulator instance.
-+* \return DRXStatus_t Return status.
-+* \retval DRX_STS_OK:          Opened demod instance with succes.
-+* \retval DRX_STS_ERROR:       Driver not initialized or unable to initialize
-+*                              demod.
-+* \retval DRX_STS_INVALID_ARG: Demod instance has invalid content.
-+*
-+*/
-+
-+DRXStatus_t
-+DRX_Open(pDRXDemodInstance_t demod)
-+{
-+	DRXStatus_t status = DRX_STS_OK;
-+
-+	if ((demod == NULL)               ||
-+		(demod->myDemodFunct == NULL) ||
-+		(demod->myCommonAttr == NULL) ||
-+		(demod->myExtAttr == NULL)    ||
-+		(demod->myI2CDevAddr == NULL) ||
-+		(demod->myCommonAttr->isOpened == TRUE)) {
-+		return (DRX_STS_INVALID_ARG);
-+	}
-+
-+	status = (*(demod->myDemodFunct->openFunc))(demod);
-+
-+	if (status == DRX_STS_OK) {
-+		demod->myCommonAttr->isOpened = TRUE;
-+	}
-+
-+	return status;
-+}
-+
-+/*============================================================================*/
-+
-+/**
-+* \brief Close device.
-+* \param demod: A pointer to a demodulator instance.
-+* \return DRXStatus_t Return status.
-+* \retval DRX_STS_OK:          Closed demod instance with succes.
-+* \retval DRX_STS_ERROR:       Driver not initialized or error during close
-+*                              demod.
-+* \retval DRX_STS_INVALID_ARG: Demod instance has invalid content.
-+*
-+* Free resources occupied by device instance.
-+* Put device into sleep mode.
-+*/
-+
-+DRXStatus_t
-+DRX_Close(pDRXDemodInstance_t demod)
-+{
-+	DRXStatus_t status = DRX_STS_OK;
-+
-+	if ((demod == NULL)               ||
-+		(demod->myDemodFunct == NULL) ||
-+		(demod->myCommonAttr == NULL) ||
-+		(demod->myExtAttr == NULL)    ||
-+		(demod->myI2CDevAddr == NULL) ||
-+		(demod->myCommonAttr->isOpened == FALSE)) {
-+		return DRX_STS_INVALID_ARG;
-+	}
-+
-+	status = (*(demod->myDemodFunct->closeFunc))(demod);
-+
-+	DRX_SET_ISOPENED (demod, FALSE);
-+
-+	return status;
-+}
-+
-+/*============================================================================*/
-+
-+/**
-+* \brief Control the device.
-+* \param demod:    A pointer to a demodulator instance.
-+* \param ctrl:     Reference to desired control function.
-+* \param ctrlData: Pointer to data structure for control function.
-+* \return DRXStatus_t Return status.
-+* \retval DRX_STS_OK:                 Control function completed successfully.
-+* \retval DRX_STS_ERROR:              Driver not initialized or error during
-+*                                     control demod.
-+* \retval DRX_STS_INVALID_ARG:        Demod instance or ctrlData has invalid
-+*                                     content.
-+* \retval DRX_STS_FUNC_NOT_AVAILABLE: Specified control function is not
-+*                                     available.
-+*
-+* Data needed or returned by the control function is stored in ctrlData.
-+*
-+*/
-+
-+DRXStatus_t
-+DRX_Ctrl(pDRXDemodInstance_t demod, DRXCtrlIndex_t ctrl, void *ctrlData)
-+{
-+	DRXStatus_t status = DRX_STS_ERROR;
-+
-+	if ((demod               == NULL) ||
-+		(demod->myDemodFunct == NULL) ||
-+		(demod->myCommonAttr == NULL) ||
-+		(demod->myExtAttr    == NULL) ||
-+		(demod->myI2CDevAddr == NULL)
-+		) {
-+		return (DRX_STS_INVALID_ARG);
-+	}
-+
-+	if (((demod->myCommonAttr->isOpened == FALSE) &&
-+		(ctrl != DRX_CTRL_PROBE_DEVICE) &&
-+		(ctrl != DRX_CTRL_VERSION))
-+		) {
-+		return (DRX_STS_INVALID_ARG);
-+	}
-+
-+	if ((DRX_ISPOWERDOWNMODE(demod->myCommonAttr->currentPowerMode) &&
-+		(ctrl != DRX_CTRL_POWER_MODE)   &&
-+		(ctrl != DRX_CTRL_PROBE_DEVICE) &&
-+		(ctrl != DRX_CTRL_NOP)          &&
-+		(ctrl != DRX_CTRL_VERSION)
-+		)
-+		) {
-+		return DRX_STS_FUNC_NOT_AVAILABLE;
-+	}
-+
-+	/* Fixed control functions */
-+	switch (ctrl) {
-+	/*======================================================================*/
-+	case DRX_CTRL_NOP:
-+		/* No operation */
-+		return DRX_STS_OK;
-+		break;
-+
-+	/*======================================================================*/
-+	case DRX_CTRL_VERSION:
-+		return CtrlVersion(demod, (pDRXVersionList_t *) ctrlData);
-+		break;
-+
-+	/*======================================================================*/
-+	default :
-+		/* Do nothing */
-+		break;
-+	}
-+
-+	/* Virtual functions */
-+	/* First try calling function from derived class */
-+	status = (*(demod->myDemodFunct->ctrlFunc))(demod, ctrl, ctrlData);
-+	if (status == DRX_STS_FUNC_NOT_AVAILABLE) {
-+		/* Now try calling a the base class function */
-+		switch (ctrl) {
-+		/*===================================================================*/
-+		case DRX_CTRL_LOAD_UCODE:
-+			return CtrlUCode (demod,
-+				(pDRXUCodeInfo_t) ctrlData,
-+				UCODE_UPLOAD);
-+			break;
-+
-+		/*===================================================================*/
-+		case DRX_CTRL_VERIFY_UCODE: {
-+			return CtrlUCode (demod,
-+				(pDRXUCodeInfo_t) ctrlData,
-+				UCODE_VERIFY);
-+		}
-+			break;
-+
-+#ifndef DRX_EXCLUDE_SCAN
-+		/*===================================================================*/
-+		case DRX_CTRL_SCAN_INIT: {
-+			return CtrlScanInit(demod, (pDRXScanParam_t) ctrlData);
-+		}
-+			break;
-+
-+		/*===================================================================*/
-+		case DRX_CTRL_SCAN_NEXT: {
-+			return CtrlScanNext(demod, (pu16_t) ctrlData);
-+		}
-+			break;
-+
-+		/*===================================================================*/
-+		case DRX_CTRL_SCAN_STOP: {
-+			return CtrlScanStop(demod);
-+		}
-+			break;
-+#endif /* #ifndef DRX_EXCLUDE_SCAN */
-+
-+		/*===================================================================*/
-+		case DRX_CTRL_PROGRAM_TUNER: {
-+			return CtrlProgramTuner(demod, (pDRXChannel_t) ctrlData);
-+		}
-+			break;
-+
-+		/*===================================================================*/
-+		case DRX_CTRL_DUMP_REGISTERS: {
-+			return CtrlDumpRegisters(demod, (pDRXRegDump_t) ctrlData);
-+		}
-+			break;
-+
-+		/*===================================================================*/
-+		default :
-+			return DRX_STS_FUNC_NOT_AVAILABLE;
-+		}
-+	}
-+	else {
-+		return (status);
-+	}
-+
-+	return DRX_STS_OK;
-+}
-+
-+
-+/*============================================================================*/
-+
-+/* END OF FILE */
++	int w;
++	int h;
++	video_format_t aspect_ratio;
++} video_size_t;
++
++/** video_stream_source_t
++ * The video stream source is set through the VIDEO_SELECT_SOURCE call and
++ * can take the following values, depending on whether we are replaying from
++ * an internal (demuxer) or external (user write) source.
++ *
++ * VIDEO_SOURCE_DEMUX selects the demultiplexer (fed either by the frontend
++ * or the DVR device) as the source of the video stream. If VIDEO_SOURCE_MEMORY
++ * is selected the stream comes from the application through the write() system call.
++ */
++typedef enum {
++	VIDEO_SOURCE_DEMUX, /* Select the demux as the main source */
++	VIDEO_SOURCE_MEMORY /* If this source is selected, the stream
++			       comes from the user through the write
++			       system call */
++} video_stream_source_t;
++
++
++/** video_play_state_t
++ * The following values can be returned by the VIDEO_GET_STATUS call
++ * representing the state of video playback.
++ */
++typedef enum {
++	VIDEO_STOPPED, /* Video is stopped */
++	VIDEO_PLAYING, /* Video is currently playing */
++	VIDEO_FREEZED  /* Video is freezed */
++} video_play_state_t;
++
++
++/* Decoder commands */
++#define VIDEO_CMD_PLAY        (0)
++#define VIDEO_CMD_STOP        (1)
++#define VIDEO_CMD_FREEZE      (2)
++#define VIDEO_CMD_CONTINUE    (3)
++
++struct video_event {
++	__s32 type;
++#define VIDEO_EVENT_SIZE_CHANGED	1
++	__kernel_time_t timestamp;
++	union {
++		video_size_t size;
++	} u;
++};
++
++
++/** struct video_status
++ * The VIDEO_GET_STATUS call returns this structure informing about various
++ * states of the playback operation.
++ *
++ * @video_blank: if set video will be blanked out if the channel is changed
++ * or if playback is stopped. Otherwise, the last picture will be displayed.
++ * @play_state: indicates if the video is currently frozen, stopped, or being
++ * played back.
++ * @stream_source: corresponds to the selected source for the
++ * video stream. It can come either from the demultiplexer or from memory.
++ * @video_format: indicates the aspect ratio (one of 4:3 or 16:9) of the
++ * currently played video stream.
++ * @display_format: corresponds to the selected cropping mode in case the
++ * source video format is not the same as the format of the output device.
++ */
++struct video_status {
++	int                   video_blank;   /* blank video on freeze? */
++	video_play_state_t    play_state;    /* current state of playback */
++	video_stream_source_t stream_source; /* current source (demux/memory) */
++	video_format_t        video_format;  /* current aspect ratio of stream*/
++	video_displayformat_t display_format;/* selected cropping mode */
++};
++
++
++/** struct video_still_picture
++ * An I-frame displayed via the VIDEO_STILLPICTURE call is passed on within the
++ * following structure.
++ */
++struct video_still_picture {
++	char __user *iFrame;        /* pointer to a single iframe in memory */
++	__s32 size;
++};
++
++typedef __u16 video_attributes_t;
++/*   bits: descr. */
++/*   15-14 Video compression mode (0=MPEG-1, 1=MPEG-2) */
++/*   13-12 TV system (0=525/60, 1=625/50) */
++/*   11-10 Aspect ratio (0=4:3, 3=16:9) */
++/*    9- 8 permitted display mode on 4:3 monitor (0=both, 1=only pan-sca */
++/*    7    line 21-1 data present in GOP (1=yes, 0=no) */
++/*    6    line 21-2 data present in GOP (1=yes, 0=no) */
++/*    5- 3 source resolution (0=720x480/576, 1=704x480/576, 2=352x480/57 */
++/*    2    source letterboxed (1=yes, 0=no) */
++/*    0    film/camera mode (0=camera, 1=film (625/50 only)) */
++
++
++/* bit definitions for capabilities: */
++/* can the hardware decode MPEG1 and/or MPEG2? */
++#define VIDEO_CAP_MPEG1   1
++#define VIDEO_CAP_MPEG2   2
++/* can you send a system and/or program stream to video device?
++   (you still have to open the video and the audio device but only
++    send the stream to the video device) */
++#define VIDEO_CAP_SYS     4
++#define VIDEO_CAP_PROG    8
++/* can the driver also handle SPU, NAVI and CSS encoded data?
++   (CSS API is not present yet) */
++#define VIDEO_CAP_SPU    16
++#define VIDEO_CAP_NAVI   32
++#define VIDEO_CAP_CSS    64
++
++/** VIDEO_STOP - Stop playing the current stream.
++ */
++#define VIDEO_STOP                 _IO('o', 21)
++
++/** VIDEO_PLAY - Start playing a video stream from the selected source.
++ * Depending on the input parameter, the screen can be blanked out (1)
++ * or displaying the last decoded frame (0).
++ */
++#define VIDEO_PLAY                 _IO('o', 22)
++
++/** VIDEO_FREEZE
++ * This ioctl call suspends the live video stream being played. Decoding and
++ * playing are frozen. It is then possible to restart the decoding and playing
++ * process of the video stream using the VIDEO_CONTINUE command. If
++ * VIDEO_SOURCE_MEMORY is selected in the ioctl call VIDEO_SELECT_SOURCE, the
++ * DVB subsystem will not decode any more data until the ioctl call
++ * VIDEO_CONTINUE or VIDEO_PLAY is performed.
++ */
++#define VIDEO_FREEZE               _IO('o', 23)
++
++/** VIDEO_CONTINUE
++ * Restarts decoding and playing processes of the video stream which was played
++ * before a call to VIDEO_FREEZE was made.
++ */
++#define VIDEO_CONTINUE             _IO('o', 24)
++
++/** VIDEO_SELECT_SOURCE
++ * This ioctl call informs the video device which source shall be used for the
++ * input data. The possible sources are demux or memory. If memory is selected,
++ * the data is fed to the video device through the write command.
++ */
++#define VIDEO_SELECT_SOURCE        _IO('o', 25)
++
++/** VIDEO_SET_BLANK
++ * Blank out the picture (1) or show last decoded frame (0).
++ */
++#define VIDEO_SET_BLANK            _IO('o', 26)
++
++/** VIDEO_GET_STATUS - Return the current status of the device.
++ */
++#define VIDEO_GET_STATUS           _IOR('o', 27, struct video_status)
++
++/** VIDEO_GET_EVENT
++ * This ioctl call returns an event of type video_event if available. If an
++ * event is not available, the behavior depends on whether the device is in
++ * blocking or non-blocking mode. In the latter case, the call fails immediately
++ * with errno set to EWOULDBLOCK. In the former case, the call blocks until an
++ * event becomes available. The standard Linux poll() and/or select() system
++ * calls can be used with the device file descriptor to watch for new events.
++ * For select(), the file descriptor should be included in the exceptfds
++ * argument, and for poll(), POLLPRI should be specified as the wake-up
++ * condition. Read-only permissions are sufficient for this ioctl call.
++ */
++#define VIDEO_GET_EVENT            _IOR('o', 28, struct video_event)
++
++/** VIDEO_SET_DISPLAY_FORMAT - Select the video format to be applied by the MPEG chip on the video.
++ */
++#define VIDEO_SET_DISPLAY_FORMAT   _IO('o', 29)
++
++/** VIDEO_STILLPICTURE
++ * This ioctl call asks the Video Device to display a still picture (I-frame).
++ * The input data shall contain an I-frame. If the pointer is NULL, then the
++ * current displayed still picture is blanked.
++ */
++#define VIDEO_STILLPICTURE         _IOW('o', 30, struct video_still_picture)
++
++/** VIDEO_FAST_FORWARD
++ * This ioctl call asks the Video Device to skip decoding of N number of
++ * I-frames. This call can only be used if VIDEO_SOURCE_MEMORY is selected.
++ */
++#define VIDEO_FAST_FORWARD         _IO('o', 31)
++
++/** VIDEO_SLOWMOTION
++ * This ioctl call asks the video device to repeat decoding frames N number
++ * of times. This call can only be used if VIDEO_SOURCE_MEMORY is selected.
++ */
++#define VIDEO_SLOWMOTION           _IO('o', 32)
++
++/** VIDEO_GET_CAPABILITIES
++ * This ioctl call asks the video device about its decoding capabilities.
++ * On success it returns an integer which has bits set according to the
++ * video capability defines.
++ */
++#define VIDEO_GET_CAPABILITIES     _IOR('o', 33, unsigned int)
++
++/** VIDEO_CLEAR_BUFFER - Clear all video buffers in the driver and in the decoder hardware.
++ */
++#define VIDEO_CLEAR_BUFFER         _IO('o',  34)
++
++/** VIDEO_SET_STREAMTYPE
++ * This ioctl tells the driver which kind of stream to expect being written
++ * to it. If this call is not used the default of video PES is used.
++ * Note: this call doesn't do anything in the av7110 driver and just returns 0.
++ */
++#define VIDEO_SET_STREAMTYPE       _IO('o', 36)
++
++/** VIDEO_SET_FORMAT
++ * This ioctl sets the screen format (aspect ratio) of the connected output
++ * device (TV) so that the output of the decoder can be adjusted accordingly.
++ */
++#define VIDEO_SET_FORMAT           _IO('o', 37)
++
++/** VIDEO_GET_SIZE
++ */
++#define VIDEO_GET_SIZE             _IOR('o', 55, video_size_t)
++
++
++
++/* av7110 audio ioctls
++ *
++ * The DVB audio device controls the MPEG2 audio decoder of the av7110 DVB
++ * hardware. It can be accessed through /dev/dvb/adapter0/audio0.
++ *
++ * Only one user can open the Audio Device in O_RDWR mode. All other attempts
++ * to open the device in this mode will fail and an error code will be returned.
++ * If the Audio Device is opened in O_RDONLY mode, the only ioctl call that can
++ * be used is AUDIO_GET_STATUS. All other calls will return with an error code.
++ *
++ * The write() system call can only be used if AUDIO_SOURCE_MEMORY is selected
++ * in the ioctl call AUDIO_SELECT_SOURCE. The data provided shall be in PES
++ * format. If O_NONBLOCK is not specified the function will block until buffer
++ * space is available. The amount of data to be transferred is implied by count.
++ */
++
++/** audio_stream_source_t
++ *
++ * The audio stream source is set through the AUDIO_SELECT_SOURCE call and can take
++ * the following values, depending on whether we are replaying from an internal (demux) or
++ * external (user write) source.
++ *
++ * AUDIO_SOURCE_DEMUX selects the demultiplexer (fed either by the frontend or the
++ * DVR device) as the source of the video stream. If AUDIO_SOURCE_MEMORY
++ * is selected the stream comes from the application through the write() system
++ * call.
++ */
++typedef enum {
++	AUDIO_SOURCE_DEMUX, /* Select the demux as the main source */
++	AUDIO_SOURCE_MEMORY /* Select internal memory as the main source */
++} audio_stream_source_t;
++
++
++/** audio_play_state_t
++ *
++ * The following values can be returned by the AUDIO_GET_STATUS call representing the
++ * state of audio playback.
++ */
++typedef enum {
++	AUDIO_STOPPED,      /* Device is stopped */
++	AUDIO_PLAYING,      /* Device is currently playing */
++	AUDIO_PAUSED        /* Device is paused */
++} audio_play_state_t;
++
++
++/** audio_channel_select_t
++ *
++ * The audio channel selected via AUDIO_CHANNEL_SELECT is determined by the
++ * following values.
++ */
++typedef enum {
++	AUDIO_STEREO,
++	AUDIO_MONO_LEFT,
++	AUDIO_MONO_RIGHT,
++	AUDIO_MONO,
++	AUDIO_STEREO_SWAPPED
++} audio_channel_select_t;
++
++
++/** struct audio_mixer
++ *
++ * The following structure is used by the AUDIO_SET_MIXER call to set the audio
++ * volume.
++ */
++typedef struct audio_mixer {
++	unsigned int volume_left;
++	unsigned int volume_right;
++  // what else do we need? bass, pass-through, ...
++} audio_mixer_t;
++
++
++/** struct audio_status
++ *
++ * The AUDIO_GET_STATUS call returns the following structure informing about various
++ * states of the playback operation.
++ */
++typedef struct audio_status {
++	int                    AV_sync_state;  /* sync audio and video? */
++	int                    mute_state;     /* audio is muted */
++	audio_play_state_t     play_state;     /* current playback state */
++	audio_stream_source_t  stream_source;  /* current stream source */
++	audio_channel_select_t channel_select; /* currently selected channel */
++	int                    bypass_mode;    /* pass on audio data to */
++	audio_mixer_t	       mixer_state;    /* current mixer state */
++} audio_status_t;                              /* separate decoder hardware */
++
++/** audio encodings
++ *
++ * A call to AUDIO_GET_CAPABILITIES returns an unsigned integer with the following
++ * bits set according to the hardware's capabilities.
++ */
++#define AUDIO_CAP_DTS    1
++#define AUDIO_CAP_LPCM   2
++#define AUDIO_CAP_MP1    4
++#define AUDIO_CAP_MP2    8
++#define AUDIO_CAP_MP3   16
++#define AUDIO_CAP_AAC   32
++#define AUDIO_CAP_OGG   64
++#define AUDIO_CAP_SDDS 128
++#define AUDIO_CAP_AC3  256
++
++/** AUDIO_STOP - Stop playing the current stream.
++ */
++#define AUDIO_STOP                 _IO('o', 1)
++
++/** AUDIO_PLAY - Start playing an audio stream from the selected source.
++ */
++#define AUDIO_PLAY                 _IO('o', 2)
++
++/** AUDIO_PAUSE
++ * Suspends the audio stream being played. Decoding and playing are paused.
++ * It is then possible to restart again decoding and playing process of the
++ * audio stream using AUDIO_CONTINUE command.
++ *
++ * If AUDIO_SOURCE_MEMORY is selected in the ioctl call AUDIO_SELECT_SOURCE,
++ * the DVB-subsystem will not decode (consume) any more data until the ioctl
++ * call AUDIO_CONTINUE or AUDIO_PLAY is performed.
++ */
++#define AUDIO_PAUSE                _IO('o', 3)
++
++/** AUDIO_CONTINUE - Restarts the decoding and playing process previously paused with AUDIO_PAUSE command.
++ *
++ * It only works if the stream were previously stopped with AUDIO_PAUSE.
++ */
++#define AUDIO_CONTINUE             _IO('o', 4)
++
++/** AUDIO_SELECT_SOURCE
++ * This ioctl call informs the audio device which source shall be used for
++ * the input data. The possible sources are demux or memory. If
++ * AUDIO_SOURCE_MEMORY is selected, the data is fed to the Audio Device
++ * through the write command.
++ */
++#define AUDIO_SELECT_SOURCE        _IO('o', 5)
++
++/** AUDIO_SET_MUTE - Mute the stream that is currently being played.
++ */
++#define AUDIO_SET_MUTE             _IO('o', 6)
++
++/** AUDIO_SET_AV_SYNC - Turn ON or OFF A/V synchronization.
++ */
++#define AUDIO_SET_AV_SYNC          _IO('o', 7)
++
++/** AUDIO_SET_BYPASS_MODE
++ * This ioctl call asks the Audio Device to bypass the Audio decoder and forward
++ * the stream without decoding. This mode shall be used if streams that can’t be
++ * handled by the DVB system shall be decoded. Dolby DigitalTM streams are
++ * automatically forwarded by the DVB subsystem if the hardware can handle it.
++ */
++#define AUDIO_SET_BYPASS_MODE      _IO('o', 8)
++
++/** AUDIO_CHANNEL_SELECT - Select the requested channel if possible.
++ */
++#define AUDIO_CHANNEL_SELECT       _IO('o', 9)
++
++/** AUDIO_GET_STATUS - Return the current state of the Audio Device.
++ */
++#define AUDIO_GET_STATUS           _IOR('o', 10, audio_status_t)
++
++/** AUDIO_GET_CAPABILITIES - Return the decoding capabilities of the audio hardware.
++ * Returns a bit array of supported sound formats.
++ */
++#define AUDIO_GET_CAPABILITIES     _IOR('o', 11, unsigned int)
++
++/** AUDIO_CLEAR_BUFFER - Clear all software and hardware buffers of the audio decoder device.
++ */
++#define AUDIO_CLEAR_BUFFER         _IO('o',  12)
++
++/** AUDIO_SET_ID
++ * This ioctl selects which sub-stream is to be decoded if a program or system
++ * stream is sent to the video device. If no audio stream type is set the id
++ * has to be in [0xC0,0xDF] for MPEG sound, in [0x80,0x87] for AC3 and in
++ * [0xA0,0xA7] for LPCM. More specifications may follow for other stream types.
++ * If the stream type is set the id just specifies the substream id of the
++ * audio stream and only the first 5 bits are recognized.
++ * Note: this call doesn't do anything in the av7110 driver and just returns 0.
++ */
++#define AUDIO_SET_ID               _IO('o', 13)
++
++/** AUDIO_SET_MIXER - Adjusts the mixer settings of the audio decoder.
++ */
++#define AUDIO_SET_MIXER            _IOW('o', 14, audio_mixer_t)
++
++/** AUDIO_SET_STREAMTYPE
++ * This ioctl tells the driver which kind of audio stream to expect. This is
++ * useful if the stream offers several audio sub-streams like LPCM and AC3.
++ * Note: this call doesn't do anything in the av7110 driver and just returns 0.
++ */
++#define AUDIO_SET_STREAMTYPE       _IO('o', 15)
++
++
++/* av7110 OSD ioctls */
++
++typedef enum {
++  // All functions return -2 on "not open"
++  OSD_Close=1,    // ()
++  // Disables OSD and releases the buffers
++  // returns 0 on success
++  OSD_Open,       // (x0,y0,x1,y1,BitPerPixel[2/4/8](color&0x0F),mix[0..15](color&0xF0))
++  // Opens OSD with this size and bit depth
++  // returns 0 on success, -1 on DRAM allocation error, -2 on "already open"
++  OSD_Show,       // ()
++  // enables OSD mode
++  // returns 0 on success
++  OSD_Hide,       // ()
++  // disables OSD mode
++  // returns 0 on success
++  OSD_Clear,      // ()
++  // Sets all pixel to color 0
++  // returns 0 on success
++  OSD_Fill,       // (color)
++  // Sets all pixel to color <col>
++  // returns 0 on success
++  OSD_SetColor,   // (color,R{x0},G{y0},B{x1},opacity{y1})
++  // set palette entry <num> to <r,g,b>, <mix> and <trans> apply
++  // R,G,B: 0..255
++  // R=Red, G=Green, B=Blue
++  // opacity=0:      pixel opacity 0% (only video pixel shows)
++  // opacity=1..254: pixel opacity as specified in header
++  // opacity=255:    pixel opacity 100% (only OSD pixel shows)
++  // returns 0 on success, -1 on error
++  OSD_SetPalette, // (firstcolor{color},lastcolor{x0},data)
++  // Set a number of entries in the palette
++  // sets the entries "firstcolor" through "lastcolor" from the array "data"
++  // data has 4 byte for each color:
++  // R,G,B, and a opacity value: 0->transparent, 1..254->mix, 255->pixel
++  OSD_SetTrans,   // (transparency{color})
++  // Sets transparency of mixed pixel (0..15)
++  // returns 0 on success
++  OSD_SetPixel,   // (x0,y0,color)
++  // sets pixel <x>,<y> to color number <col>
++  // returns 0 on success, -1 on error
++  OSD_GetPixel,   // (x0,y0)
++  // returns color number of pixel <x>,<y>,  or -1
++  OSD_SetRow,     // (x0,y0,x1,data)
++  // fills pixels x0,y through  x1,y with the content of data[]
++  // returns 0 on success, -1 on clipping all pixel (no pixel drawn)
++  OSD_SetBlock,   // (x0,y0,x1,y1,increment{color},data)
++  // fills pixels x0,y0 through  x1,y1 with the content of data[]
++  // inc contains the width of one line in the data block,
++  // inc<=0 uses blockwidth as linewidth
++  // returns 0 on success, -1 on clipping all pixel
++  OSD_FillRow,    // (x0,y0,x1,color)
++  // fills pixels x0,y through  x1,y with the color <col>
++  // returns 0 on success, -1 on clipping all pixel
++  OSD_FillBlock,  // (x0,y0,x1,y1,color)
++  // fills pixels x0,y0 through  x1,y1 with the color <col>
++  // returns 0 on success, -1 on clipping all pixel
++  OSD_Line,       // (x0,y0,x1,y1,color)
++  // draw a line from x0,y0 to x1,y1 with the color <col>
++  // returns 0 on success
++  OSD_Query,      // (x0,y0,x1,y1,xasp{color}}), yasp=11
++  // fills parameters with the picture dimensions and the pixel aspect ratio
++  // returns 0 on success
++  OSD_Test,       // ()
++  // draws a test picture. for debugging purposes only
++  // returns 0 on success
++// TODO: remove "test" in final version
++  OSD_Text,       // (x0,y0,size,color,text)
++  OSD_SetWindow, //  (x0) set window with number 0<x0<8 as current
++  OSD_MoveWindow, //  move current window to (x0, y0)
++  OSD_OpenRaw,	// Open other types of OSD windows
++} OSD_Command;
++
++typedef struct osd_cmd_s {
++	OSD_Command cmd;
++	int x0;
++	int y0;
++	int x1;
++	int y1;
++	int color;
++	void __user *data;
++} osd_cmd_t;
++
++/* OSD_OpenRaw: set 'color' to desired window type */
++typedef enum {
++	OSD_BITMAP1,           /* 1 bit bitmap */
++	OSD_BITMAP2,           /* 2 bit bitmap */
++	OSD_BITMAP4,           /* 4 bit bitmap */
++	OSD_BITMAP8,           /* 8 bit bitmap */
++	OSD_BITMAP1HR,         /* 1 Bit bitmap half resolution */
++	OSD_BITMAP2HR,         /* 2 bit bitmap half resolution */
++	OSD_BITMAP4HR,         /* 4 bit bitmap half resolution */
++	OSD_BITMAP8HR,         /* 8 bit bitmap half resolution */
++	OSD_YCRCB422,          /* 4:2:2 YCRCB Graphic Display */
++	OSD_YCRCB444,          /* 4:4:4 YCRCB Graphic Display */
++	OSD_YCRCB444HR,        /* 4:4:4 YCRCB graphic half resolution */
++	OSD_VIDEOTSIZE,        /* True Size Normal MPEG Video Display */
++	OSD_VIDEOHSIZE,        /* MPEG Video Display Half Resolution */
++	OSD_VIDEOQSIZE,        /* MPEG Video Display Quarter Resolution */
++	OSD_VIDEODSIZE,        /* MPEG Video Display Double Resolution */
++	OSD_VIDEOTHSIZE,       /* True Size MPEG Video Display Half Resolution */
++	OSD_VIDEOTQSIZE,       /* True Size MPEG Video Display Quarter Resolution*/
++	OSD_VIDEOTDSIZE,       /* True Size MPEG Video Display Double Resolution */
++	OSD_VIDEONSIZE,        /* Full Size MPEG Video Display */
++	OSD_CURSOR             /* Cursor */
++} osd_raw_window_t;
++
++typedef struct osd_cap_s {
++	int  cmd;
++#define OSD_CAP_MEMSIZE         1  /* memory size */
++	long val;
++} osd_cap_t;
++
++
++#define OSD_SEND_CMD            _IOW('o', 160, osd_cmd_t)
++#define OSD_GET_CAPABILITY      _IOR('o', 161, osd_cap_t)
++
++#endif
++
 -- 
-1.7.5.4
+1.7.7.3
 
