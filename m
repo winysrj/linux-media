@@ -1,105 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:14399 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752707Ab1KGJY5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2011 04:24:57 -0500
-Date: Mon, 7 Nov 2011 10:24:49 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ondrej Zary <linux@rainbow-software.org>
-Subject: [PATCH] [media] usbvision: Drop broken 10-bit I2C address support
-Message-ID: <20111107102449.485da579@endymion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3349 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755991Ab1KXNjT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 08:39:19 -0500
+Received: from alastor.dyndns.org (215.80-203-102.nextgentel.com [80.203.102.215])
+	(authenticated bits=0)
+	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id pAODdGYT046606
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 24 Nov 2011 14:39:18 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from durdane.cisco.com (64-103-25-233.cisco.com [64.103.25.233])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id BDF7611800C1
+	for <linux-media@vger.kernel.org>; Thu, 24 Nov 2011 14:39:11 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Remove audio and video DVBv5 API
+Date: Thu, 24 Nov 2011 14:38:57 +0100
+Message-Id: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The support for 10-bit I2C addresses in usbvision seems plain broken
-to me. I had already noticed that back in February 2007 [1]. The code
-was not fixed since then, so I take it that it's not actually needed.
-And as a matter of fact I don't know of any 10-bit addressed I2C
-tuner, encode, decoder or the like.
+During the 2011 workshop we discussed replacing the decoder commands in
+include/linux/dvb/video.h and audio.h by a proper V4L2 API.
 
-So let's simply get rid of the broken and useless code.
+This patch series does that. It adds new VIDIOC_(TRY_)DECODER_CMD
+ioctls to the V4L2 API. These are identical to the VIDEO_(TRY_)COMMAND from
+dvb/video.h, but the names of the fields and defines now conform to the V4L2
+API conventions.
 
-I'm also adding I2C_FUNC_I2C, as the driver and hardware support plain
-I2C messaging.
+Also new controls are added to replace the remaining functionality needed
+by ivtv.
 
-[1] http://marc.info/?l=linux-i2c&m=117499415208244&w=2
+The new API has been documented. The ivtv.h header has been extended with
+the 'old' DVB API, making ivtv independent from the old headers.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/media/video/usbvision/usbvision-i2c.c |   46 ++++++-------------------
- 1 file changed, 12 insertions(+), 34 deletions(-)
+A new av7110.h header has been created that does the same for the av7110.h
+driver. All the existing relevant DocBook documentation regarding those
+DVB audio and video APIs has been copied as comments to the av7110.h header.
 
---- linux-3.2-rc0.orig/drivers/media/video/usbvision/usbvision-i2c.c	2011-07-22 04:17:23.000000000 +0200
-+++ linux-3.2-rc0/drivers/media/video/usbvision/usbvision-i2c.c	2011-11-07 09:54:14.000000000 +0100
-@@ -110,42 +110,20 @@ static inline int usb_find_address(struc
- 
- 	unsigned char addr;
- 	int ret;
--	if ((flags & I2C_M_TEN)) {
--		/* a ten bit address */
--		addr = 0xf0 | ((msg->addr >> 7) & 0x03);
--		/* try extended address code... */
--		ret = try_write_address(i2c_adap, addr, retries);
--		if (ret != 1) {
--			dev_err(&i2c_adap->dev,
--				"died at extended address code,	while writing\n");
--			return -EREMOTEIO;
--		}
--		add[0] = addr;
--		if (flags & I2C_M_RD) {
--			/* okay, now switch into reading mode */
--			addr |= 0x01;
--			ret = try_read_address(i2c_adap, addr, retries);
--			if (ret != 1) {
--				dev_err(&i2c_adap->dev,
--					"died at extended address code, while reading\n");
--				return -EREMOTEIO;
--			}
--		}
- 
--	} else {		/* normal 7bit address  */
--		addr = (msg->addr << 1);
--		if (flags & I2C_M_RD)
--			addr |= 1;
-+	addr = (msg->addr << 1);
-+	if (flags & I2C_M_RD)
-+		addr |= 1;
- 
--		add[0] = addr;
--		if (flags & I2C_M_RD)
--			ret = try_read_address(i2c_adap, addr, retries);
--		else
--			ret = try_write_address(i2c_adap, addr, retries);
-+	add[0] = addr;
-+	if (flags & I2C_M_RD)
-+		ret = try_read_address(i2c_adap, addr, retries);
-+	else
-+		ret = try_write_address(i2c_adap, addr, retries);
-+
-+	if (ret != 1)
-+		return -EREMOTEIO;
- 
--		if (ret != 1)
--			return -EREMOTEIO;
--	}
- 	return 0;
- }
- 
-@@ -184,7 +162,7 @@ usbvision_i2c_xfer(struct i2c_adapter *i
- 
- static u32 functionality(struct i2c_adapter *adap)
- {
--	return I2C_FUNC_SMBUS_EMUL | I2C_FUNC_10BIT_ADDR;
-+	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
- }
- 
- /* -----exported algorithm data: -------------------------------------	*/
+As a final step the old headers and documentation have been removed.
 
+Feedback is welcome.
 
--- 
-Jean Delvare
+Regards,
+
+	Hans
+
