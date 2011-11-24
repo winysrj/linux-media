@@ -1,59 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34407 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751476Ab1KKWij (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Nov 2011 17:38:39 -0500
-Message-ID: <4EBDA3D2.6060506@redhat.com>
-Date: Fri, 11 Nov 2011 20:38:10 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from casper.infradead.org ([85.118.1.10]:42277 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754856Ab1KXNcr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 08:32:47 -0500
+Message-ID: <4ECE477A.5060707@infradead.org>
+Date: Thu, 24 Nov 2011 11:32:42 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Andreas Oberritter <obi@linuxtv.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: PATCH: Query DVB frontend capabilities
-References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com> <4EBBE336.8050501@linuxtv.org> <CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com> <4EBC402E.20208@redhat.com> <CAHFNz9KFv7XvK4Uafuk8UDZiu1GEHSZ8bUp3nAyM21ck09yOCQ@mail.gmail.com> <4EBCF4F1.2030606@redhat.com> <CAHFNz9JWi3f3kB2UdBQXJBP2Q3Y+a0qBVNBAiZPVxtcCVZCN7g@mail.gmail.com>
-In-Reply-To: <CAHFNz9JWi3f3kB2UdBQXJBP2Q3Y+a0qBVNBAiZPVxtcCVZCN7g@mail.gmail.com>
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: PULL request for 3.2 (fixes 'n' features)
+References: <alpine.LRH.2.00.1110041130530.28076@pub4.ifh.de> <alpine.LRH.2.02.1111241023410.16976@pub4.ifh.de>
+In-Reply-To: <alpine.LRH.2.02.1111241023410.16976@pub4.ifh.de>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 11-11-2011 20:07, Manu Abraham escreveu:
-> On Fri, Nov 11, 2011 at 3:42 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Em 11-11-2011 04:26, Manu Abraham escreveu:
->>> On Fri, Nov 11, 2011 at 2:50 AM, Mauro Carvalho Chehab
->>> <mchehab@redhat.com> wrote:
->>>> Em 10-11-2011 13:30, Manu Abraham escreveu:
->>> The purpose of the patch is to
->>> query DVB delivery system capabilities alone, rather than DVB frontend
->>> info/capability.
->>>
->>> Attached is a revised version 2 of the patch, which addresses the
->>> issues that were raised.
+Em 24-11-2011 07:26, Patrick Boettcher escreveu:
+> Hi Mauro,
+> 
+> On Tue, 4 Oct 2011, Patrick Boettcher wrote:
+> 
+>> Hi Mauro,
 >>
->> It looks good for me. I would just rename it to DTV_SUPPORTED_DELIVERY.
->> Please, when submitting upstream, don't forget to increment DVB version and
->> add touch at DocBook, in order to not increase the gap between API specs and the
->> implementation.
+>> if it's not too late for 3.2 could you please pull from
+>>
+>> git://linuxtv.org/pb/media_tree.git staging/for_v3.2
+>>
+>> for
+>>
+>> [media] dib9090: limit the I2C speed [media] dib8096P: add the reference board [media] add the support for DiBcom [media] dib7090: add the reference board [media] DiB8000: improve the tuning and the SNR monitoring
+>> [media] DiBcom: correct warnings
+>> [media] dib7090: add the reference board TFE7090E
+>> [media] dib7000p/dib0090: update the driver
 > 
-> Ok, thanks for the feedback, will do that.
+> I think this PULL request got lost. (as usual for my pull-requests :( ).
+
+Yes, I didn't get your pull request. Now that we're using patchwork, to also track pull
+requests, it is easy for you to check if the pull request is on my queue. Just take a
+look at http://patchwork.linuxtv.org.
+
+It should be noticed that patchwork relies on the way that git request-pull formats the
+message:
+
+$  git request-pull HEAD^1 .
+The following changes since commit db9bc660cf4d1a09565f5db2bab9d3b86e3e32a5:
+
+  [media] ir-rc6-decoder: Support RC6-6A variable length data (2011-11-23 22:23:15 -0200)
+
+are available in the git repository at:
+  . staging/for_v3.3
+
+Dan Carpenter (1):
+      [media] V4L: mt9t112: use after free in mt9t112_probe()
+
+ drivers/media/video/mt9t112.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+It basically seeks for "The following...at: <url> <branch>" part of the message. If found,
+it will add it at its repository, like:
+
+	http://patchwork.linuxtv.org/patch/8279/
+
+> It was meant for 3.2 and was sent in advance.
 > 
-> The naming issue is trivial. I would like to have a shorter name
-> rather that SUPPORTED. CAPS would have been ideal, since it refers to
-> device capability.
+> Do you think you will get it in?
 
-CAPS is not a good name, as there are those two CAPABILITIES calls there
-(well, currently not implemented). So, it can lead in to some confusion.
-
-DTV_ENUM_DELIVERY could be an alternative for a short name to be used there.
+We can get the fixes, and new board additions for 3.2, but driver updates should
+go to 3.3.
 
 > 
-> Regards,
-> Manu
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> regards,
+> -- 
+> 
+> Patrick Boettcher - Kernel Labs
+> http://www.kernellabs.com/
 
