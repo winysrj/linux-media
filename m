@@ -1,55 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56009 "EHLO mail.kapsi.fi"
+Received: from yop.chewa.net ([91.121.105.214]:40710 "EHLO yop.chewa.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751332Ab1KUW2T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Nov 2011 17:28:19 -0500
-Message-ID: <4ECAD07F.9010708@iki.fi>
-Date: Tue, 22 Nov 2011 00:28:15 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1751888Ab1KXGYX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 01:24:23 -0500
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Subject: Re: [Query] V4L2 Integer =?UTF-8?Q?=28=3F=29=20menu=20control?=
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andreas Oberritter <obi@linuxtv.org>
-Subject: Re: PATCH 12/13: 0012-CXD2820r-Query-DVB-frontend-delivery-capabilities
-References: <CAHFNz9KmxyBB4nRQZg1RdU+6wXHmaR9WHejuMqp6g9qrXykjQQ@mail.gmail.com>
-In-Reply-To: <CAHFNz9KmxyBB4nRQZg1RdU+6wXHmaR9WHejuMqp6g9qrXykjQQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Date: Thu, 24 Nov 2011 07:24:20 +0100
+From: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+In-Reply-To: <4ECD730E.3080808@gmail.com>
+References: <4ECD730E.3080808@gmail.com>
+Message-ID: <0acb6fa3fc87692f1f8ac7f1a908e1e7@chewa.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+On Wed, 23 Nov 2011 23:26:22 +0100, Sylwester Nawrocki <snjw23@gmail.com>
 
-On 11/21/2011 11:09 PM, Manu Abraham wrote:
->   	/* program tuner */
-> -	if (fe->ops.tuner_ops.set_params)
-> -		fe->ops.tuner_ops.set_params(fe, params);
-> +	tstate.delsys = SYS_DVBC_ANNEX_AC;
-> +	tstate.frequency = c->frequency;
-> +
-> +	if (fe->ops.tuner_ops.set_state) {
-> +		fe->ops.tuner_ops.set_state(fe,
-> +					    DVBFE_TUNER_DELSYS    |
-> +					    DVBFE_TUNER_FREQUENCY,
-> +					&tstate);
+wrote:
 
-I want to raise that point, switch from .set_params() to .set_state() 
-when programming tuner. I don't see it reasonable to introduce (yes, it 
-have existed ages but not used) new way to program tuner.
+> I don't seem to find a way to implement this in current v4l2 control
 
-Both demod and tuner got same params;
-.set_frontend(struct dvb_frontend *, struct dvb_frontend_parameters *)
-.set_params(struct dvb_frontend *, struct dvb_frontend_parameters *)
-
-and can get access to APIv5 property_cache similarly. Both, demod and 
-tuner, can read all those params that are now passed using .set_state()
-
-There is some new tuner drivers which are already using APIv5.
+> framework.  Such functionality isn't there, or is it ?
 
 
-regards
-Antti
+
+You can use the menu control type, but you will need to remap the control
+
+values so they are continuous.
+
+
 
 -- 
-http://palosaari.fi/
+
+Rémi Denis-Courmont
+
+http://www.remlab.net/
