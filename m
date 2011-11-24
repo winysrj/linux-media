@@ -1,42 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49193 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757854Ab1KPOKr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Nov 2011 09:10:47 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com,
-	andriy.shevchenko@linux.intel.com
-Subject: [PATCH v5 0/2] as3645a flash driver
-Date: Wed, 16 Nov 2011 15:10:55 +0100
-Message-Id: <1321452657-24424-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:39412 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755026Ab1KXXtf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 18:49:35 -0500
+Message-ID: <4ECED807.7090200@redhat.com>
+Date: Thu, 24 Nov 2011 21:49:27 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Andreas Oberritter <obi@linuxtv.org>
+Subject: Re: PATCH 03/13: 0003-DVB-Allow-frontend-to-set-DELSYS-Modulation
+References: <CAHFNz9+ZZ2KTvCLcj+Eu+FtnEti1wZfKf9My-FMcSf-Ns-Z4QQ@mail.gmail.com>
+In-Reply-To: <CAHFNz9+ZZ2KTvCLcj+Eu+FtnEti1wZfKf9My-FMcSf-Ns-Z4QQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
+Em 21-11-2011 19:06, Manu Abraham escreveu:
 
-Here's the 5th (and hopefully final) version of the as3645a flash driver.
-Compared to v4, it incorporates Andy's patches, adds support for the
-V4L2_CID_FLASH_STROBE_STATUS control and removes the minimum limits from
-platform data.
+> With any tuner that can tune to multiple delivery systems/standards, it does
+> query fe->ops.info.type to determine frontend type and set the delivery
+> system type. fe->ops.info.type can handle only 4 delivery systems, viz FE_QPSK,
+> FE_QAM, FE_OFDM and FE_ATSC.
+> 
+> The change allows the tuner to be set to any delivery system specified in
+> fe_delivery_system_t and any modulation as specified in fe_modulation_t,
+> thereby simplification of issues.
+> 
+> Signed-off-by: Manu Abraham <abraham.manu@gmail.com>
+> ---
+>  drivers/media/dvb/dvb-core/dvb_frontend.h |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
+> index 67bbfa7..ec6e8e9 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.h
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
+> @@ -113,6 +113,8 @@ enum tuner_param {
+>  	DVBFE_TUNER_BANDWIDTH		= (1 <<  3),
+>  	DVBFE_TUNER_REFCLOCK		= (1 <<  4),
+>  	DVBFE_TUNER_IQSENSE		= (1 <<  5),
+> +	DVBFE_TUNER_DELSYS              = (1 <<  6),
+> +	DVBFE_TUNER_MODULATION		= (1 <<  7),
+>  	DVBFE_TUNER_DUMMY		= (1 << 31)
+>  };
+>  
+> @@ -149,6 +151,8 @@ enum dvbfe_algo {
+>  };
+>  
+>  struct tuner_state {
+> +	fe_delivery_system_t delsys;
+> +	fe_modulation_t modulation;
+>  	u32 frequency;
+>  	u32 tunerstep;
+>  	u32 ifreq;
 
-Laurent Pinchart (2):
-  v4l: Add over-current and indicator flash fault bits
-  as3645a: Add driver for LED flash controller
+Not sure about this patch.
 
- Documentation/DocBook/media/v4l/controls.xml |   10 +
- drivers/media/video/Kconfig                  |    7 +
- drivers/media/video/Makefile                 |    1 +
- drivers/media/video/as3645a.c                |  892 ++++++++++++++++++++++++++
- include/linux/videodev2.h                    |    2 +
- include/media/as3645a.h                      |   71 ++
- 6 files changed, 983 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/as3645a.c
- create mode 100644 include/media/as3645a.h
+Currently, tuners with newer standards just don't use the dvb_frontend_parameters 
+passed into them, using instead fe->dtv_property_cache.
 
--- 
+So, in the long term, it seems to make more sense to just change the
+set_parameters callback parameters from:
+
+	static int set_params(struct dvb_frontend *fe,
+		struct dvb_frontend_parameters *params)
+
+to:
+
+	static int set_params(struct dvb_frontend *fe)
+
+or to explicitly pass the cache as an argument.
+
+
 Regards,
-
-Laurent Pinchart
-
+Mauro.
