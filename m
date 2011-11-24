@@ -1,77 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28595 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:31493 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750819Ab1KGOux (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Nov 2011 09:50:53 -0500
-Message-ID: <4EB7F048.1050307@redhat.com>
-Date: Mon, 07 Nov 2011 12:50:48 -0200
+	id S1752824Ab1KXT6o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 14:58:44 -0500
+Message-ID: <4ECEA1E9.2000107@redhat.com>
+Date: Thu, 24 Nov 2011 17:58:33 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Gilles Gigan <gilles.gigan@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Switching input during capture
-References: <CAJWu0HN8WC-xfAy3cNnA_o3YPj7+9Eo5+YCvNtqRNs9dG18+8A@mail.gmail.com> <201110281442.21776.laurent.pinchart@ideasonboard.com> <4EAB2CF4.4040007@gmail.com> <201110290952.17916.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201110290952.17916.laurent.pinchart@ideasonboard.com>
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: Re: [GIT PULL FOR 3.2] misc small changes, mostly get/set IF related
+References: <4EC016B9.1080306@iki.fi> <4EC01892.3090307@iki.fi>
+In-Reply-To: <4EC01892.3090307@iki.fi>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 29-10-2011 05:52, Laurent Pinchart escreveu:
-> Hi Mauro,
-> 
-> On Saturday 29 October 2011 00:30:12 Mauro Carvalho Chehab wrote:
->> Em 28-10-2011 14:42, Laurent Pinchart escreveu:
->>> On Friday 28 October 2011 03:31:53 Gilles Gigan wrote:
->>>> Hi,
->>>> I would like to know what is the correct way to switch the current
->>>> video input during capture on a card with a single BT878 chip and 4
->>>> inputs
->>>> (http://store.bluecherry.net/products/PV%252d143-%252d-4-port-video-capt
->>>> ur e-card-%2830FPS%29-%252d-OEM.html). I tried doing it in two ways: -
->>>> using VIDIOC_S_INPUT to change the current input. While this works, the
->>>> next captured frame shows video from the old input in its top half and
->>>> video from the new input in the bottom half.
->>
->> This is is likely easy to fix. The driver has already a logic to prevent
->> changing the buffer while in the middle of a buffer filling. I suspect
->> that the BKL removal patches might have broken it somewhat, allowing
->> things like that. basically, it should be as simple as not allowing
->> changing the input at the top half.
-> 
-> This will work optimally only if the input analog signals are synchronized, 
-> right ? If we switch to a new input right when the frame start, can the first 
-> frame captured on the new input be corrupted ?
+Em 13-11-2011 17:20, Antti Palosaari escreveu:
+> Mauro,
+> and these too for 3.3. Sorry about mistakes.
 
-That's a good question. I'm not sure how those bttv cards solve it, but as
-they're widely used on such configurations, I suspect that the hardware used
-on those CCTV boards have some logic to keep them in sync.
+In fact, those 3 patches seemed to be good for 3.2:
+
+576b849 [media] mxl5007t: fix reg read
+d7d89dc [media] tda18218: fix 6 MHz default IF frequency
+ff83bd8 [media] af9015: limit I2C access to keep FW happy
+
+So, I've backported d7d89dc to 3.2, and applied there. the others,
+I've added for 3.3.
 
 > 
->> Please try the enclosed patch.
+> regards
+> Antti
+> 
+> On 11/13/2011 09:12 PM, Antti Palosaari wrote:
+>> Moro
 >>
->> Regards,
->> Mauro
+>> These patches are rather small enchantments and should not have any
+>> visible effect.
 >>
->> -
+>> mxl5007t change is that register read fix I have mentioned earlier. Reg
+>> read is used only for checking chip ID and even if ID is not detected
+>> correctly it will still work. So no functional changes.
 >>
->> bttv: Avoid switching the video input at the top half.
+>> Antti
 >>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> The following changes since commit
+>> df5f76dfef9bfaec1ff27d0a60a57a773bf87f0f:
 >>
->> diff --git a/drivers/media/video/bt8xx/bttv-driver.c
->> b/drivers/media/video/bt8xx/bttv-driver.c index 3dd0660..6a3be6f 100644
->> --- a/drivers/media/video/bt8xx/bttv-driver.c
->> +++ b/drivers/media/video/bt8xx/bttv-driver.c
->> @@ -3978,7 +3978,7 @@ bttv_irq_switch_video(struct bttv *btv)
->>  	bttv_set_dma(btv, 0);
+>> af9015: limit I2C access to keep FW happy (2011-11-13 03:33:30 +0200)
 >>
->>  	/* switch input */
->> -	if (UNSET != btv->new_input) {
->> +	if (! btv->curr.top && UNSET != btv->new_input) {
->>  		video_mux(btv,btv->new_input);
->>  		btv->new_input = UNSET;
->>  	}
+>> are available in the git repository at:
+>> git://linuxtv.org/anttip/media_tree.git af9015
+>>
+>> Antti Palosaari (12):
+>> tda18218: implement .get_if_frequency()
+>> tda18218: fix 6 MHz default IF frequency
+>> af9013: use .get_if_frequency() when possible
+>> mt2060: implement .get_if_frequency()
+>> qt1010: implement .get_if_frequency()
+>> tda18212: implement .get_if_frequency()
+>> tda18212: round IF frequency to close hardware value
+>> cxd2820r: switch to .get_if_frequency()
+>> cxd2820r: check bandwidth earlier for DVB-T/T2
+>> mxl5007t: fix reg read
+>> ce6230: remove experimental from Kconfig
+>> ce168: remove experimental from Kconfig
+>>
+>> drivers/media/common/tuners/mt2060.c | 9 +++-
+>> drivers/media/common/tuners/mxl5007t.c | 3 +-
+>> drivers/media/common/tuners/qt1010.c | 9 +++-
+>> drivers/media/common/tuners/tda18212.c | 17 +++++++-
+>> drivers/media/common/tuners/tda18218.c | 18 ++++++-
+>> drivers/media/common/tuners/tda18218_priv.h | 2 +
+>> drivers/media/dvb/dvb-usb/Kconfig | 4 +-
+>> drivers/media/dvb/dvb-usb/anysee.c | 7 ---
+>> drivers/media/dvb/frontends/af9013.c | 43 ++++--------------
+>> drivers/media/dvb/frontends/cxd2820r.h | 13 ------
+>> drivers/media/dvb/frontends/cxd2820r_c.c | 13 +++++-
+>> drivers/media/dvb/frontends/cxd2820r_t.c | 55 +++++++++++++----------
+>> drivers/media/dvb/frontends/cxd2820r_t2.c | 62 +++++++++++++++------------
+>> drivers/media/video/em28xx/em28xx-dvb.c | 7 ---
+>> 14 files changed, 140 insertions(+), 122 deletions(-)
+>>
+>>
+> 
 > 
 
