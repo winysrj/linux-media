@@ -1,42 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yop.chewa.net ([91.121.105.214]:40710 "EHLO yop.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751888Ab1KXGYX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 01:24:23 -0500
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [Query] V4L2 Integer =?UTF-8?Q?=28=3F=29=20menu=20control?=
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Date: Thu, 24 Nov 2011 07:24:20 +0100
-From: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
-Cc: linux-media <linux-media@vger.kernel.org>,
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:11862 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750880Ab1KXJec (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 04:34:32 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LV5006CGRXI6G40@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Nov 2011 09:34:30 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LV500NJBRXH1A@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Nov 2011 09:34:30 +0000 (GMT)
+Date: Thu, 24 Nov 2011 10:34:29 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [Query] V4L2 Integer (?) menu control
+In-reply-to: <20111124085018.GF27136@valkosipuli.localdomain>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sylwester Nawrocki <snjw23@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-In-Reply-To: <4ECD730E.3080808@gmail.com>
+	=?ISO-8859-1?Q?R=E9mi_Denis-Courmon?= =?ISO-8859-1?Q?t?=
+	<remi@remlab.net>
+Message-id: <4ECE0FA5.1040205@samsung.com>
 References: <4ECD730E.3080808@gmail.com>
-Message-ID: <0acb6fa3fc87692f1f8ac7f1a908e1e7@chewa.net>
+ <20111124085018.GF27136@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 23 Nov 2011 23:26:22 +0100, Sylwester Nawrocki <snjw23@gmail.com>
+Thank you all for the comments.
 
-wrote:
+On 11/24/2011 09:50 AM, Sakari Ailus wrote:
+> Hi Sylwester,
+> 
+> There is not currently, but I have patches for it. The issue is that I need
+> them myself but the driver I need them for isn't ready to be released yet.
+> And as usual, I assume others than vivo is required to show they're really
+> useful so I haven't sent them.
 
-> I don't seem to find a way to implement this in current v4l2 control
+That's great news. Then I might not need to do all the work on my own;)
 
-> framework.  Such functionality isn't there, or is it ?
+> 
+> Good that you asked so we won't end up writing essentially the same code
+> again. I'll try to send the patches today.
 
+All right, there is no rush. I was just looking around how to support the
+camera scene mode with m5mols sort of sensors. The scene mode is essentially
+a compilation of several different parameters, for some of which there are
+standard controls in V4L2 but for many there are not.
 
-
-You can use the menu control type, but you will need to remap the control
-
-values so they are continuous.
-
-
+I've got a feeling the best way to handle this would be to create controls
+for each single parameter and then do a batch set from user space, and keep
+the scene mode mappings in user space. The only concern is there is a couple
+of ISP-specific parameters involved with that scene mode thing. Perhaps they
+just could be set initially to fixed values.
 
 -- 
+Regards,
+Sylwester
 
-Rémi Denis-Courmont
-
-http://www.remlab.net/
