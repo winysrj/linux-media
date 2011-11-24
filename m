@@ -1,65 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:36244 "EHLO
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:63684 "EHLO
 	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751966Ab1KUVFu (ORCPT
+	with ESMTP id S1752580Ab1KXSeF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Nov 2011 16:05:50 -0500
-Received: by eye27 with SMTP id 27so5854834eye.19
-        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:05:49 -0800 (PST)
+	Thu, 24 Nov 2011 13:34:05 -0500
+Received: by eaak14 with SMTP id k14so349875eaa.19
+        for <linux-media@vger.kernel.org>; Thu, 24 Nov 2011 10:34:04 -0800 (PST)
 MIME-Version: 1.0
-Date: Tue, 22 Nov 2011 02:35:48 +0530
-Message-ID: <CAHFNz9KrkU8F_tq_XPbf-kVL-QSSURrY6sKzXxtRKAK=st3VHg@mail.gmail.com>
-Subject: PATCH 02/13: 0002-DVB-Docbook-update-for-DTV_ENUM_DELSYS
+In-Reply-To: <4ECE8C06.2070302@redhat.com>
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
+	<dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com>
+	<4ECE79F5.9000402@linuxtv.org>
+	<201111241844.23292.hverkuil@xs4all.nl>
+	<4ECE8434.5060106@linuxtv.org>
+	<4ECE85CE.7040807@redhat.com>
+	<4ECE87EA.9000001@linuxtv.org>
+	<4ECE8C06.2070302@redhat.com>
+Date: Fri, 25 Nov 2011 00:04:04 +0530
+Message-ID: <CAHFNz9JbETiNWzJ_zrFEmb8HOOy-Jmsc-NzGo=AJ_sS1ND=3SA@mail.gmail.com>
+Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
 From: Manu Abraham <abraham.manu@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andreas Oberritter <obi@linuxtv.org>
-Content-Type: multipart/mixed; boundary=f46d0435c068184c0a04b2450d8c
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---f46d0435c068184c0a04b2450d8c
-Content-Type: text/plain; charset=ISO-8859-1
+On Thu, Nov 24, 2011 at 11:55 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 24-11-2011 16:07, Andreas Oberritter escreveu:
+>> On 24.11.2011 18:58, Mauro Carvalho Chehab wrote:
+>>> Em 24-11-2011 15:51, Andreas Oberritter escreveu:
+>>>> On 24.11.2011 18:44, Hans Verkuil wrote:
+>>>>> On Thursday, November 24, 2011 18:08:05 Andreas Oberritter wrote:
+>>>>>> Don't break existing Userspace APIs for no reason! It's OK to add the
+>>>>>> new API, but - pretty please - don't just blindly remove audio.h and
+>>>>>> video.h. They are in use since many years by av7110, out-of-tree drivers
+>>>>>> *and more importantly* by applications. Yes, I know, you'd like to see
+>>>>>> those out-of-tree drivers merged, but it isn't possible for many
+>>>>>> reasons. And even if they were merged, you'd say "Port them and your
+>>>>>> apps to V4L". No! That's not an option.
+>>>>>
+>>>>> I'm not breaking anything. All apps will still work.
+>>>>>
+>>>>> One option (and it depends on whether people like it or not) is to have
+>>>>> audio.h, video.h and osd.h just include av7110.h and add a #warning
+>>>>> that these headers need to be replaced by the new av7110.h.
+>>>>>
+>>>>> And really remove them at some point in the future.
+>>>>>
+>>>>> But the important thing to realize is that the ABI hasn't changed (unless
+>>>>> I made a mistake somewhere).
+>>>>
+>>>> So why don't you just leave the headers where they are and add a notice
+>>>> about the new V4L API as a comment?
+>>>>
+>>>> What you proposed breaks compilation. If you add a warning, it breaks
+>>>> compilation for programs compiled with -Werror. Both are regressions.
+>>>
+>>> I don't mind doing it for 3.3 kernel, and add a note at
+>>> Documentation/feature-removal-schedule.txt that the
+>>> headers will go away on 3.4. This should give distributions
+>>> and app developers enough time to prevent build failures, and
+>>> prepare for the upcoming changes.
+>>
+>> Are you serious?
+>>
+>> Breaking things that worked well for many years - for an artificially
+>> invented reason - is so annoying, I can't even find the words to express
+>> how much this sucks.
+>
+> Andreas,
+>
+> All the in-kernel API's are there to support in-kernel drivers.
+>
+> Out of tree drivers can do whatever they want. As you likely know, several STB
+> vendors have their own API's.
+>
+> Some use some variants of DVBv3 or DVBv5, and some use their own proprietary
+> API's, that are even incompatible with DVB (and some even provide both).
+>
+> Even the ones that use DVBv3 (or v5) have their own implementation that diverges
+> from the upstream one.
+>
+> Provided that such vendors don't violate the Kernel GPLv2 license where it applies,
+> they're free do do whatever they want, forking the DVB API, or creating their own
+> stacks.
+>
+> So, keeping the in-kernel unused ioctl's don't bring any real benefit, as vendors
+> can still do their forks, and applications designed to work with those hardware
+> need to support the vendor's stack.
 
 
-
---f46d0435c068184c0a04b2450d8c
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0002-DVB-Docbook-update-for-DTV_ENUM_DELSYS.patch"
-Content-Disposition: attachment;
-	filename="0002-DVB-Docbook-update-for-DTV_ENUM_DELSYS.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
-
-RnJvbSBlYjQyMGU3NjZiNzlhYTNiNTVmMTgyMjdmMzM3Mjg4ZjI4MjM3Zjg2IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
-CkRhdGU6IFdlZCwgMTYgTm92IDIwMTEgMTk6MDQ6MjQgKzA1MzAKU3ViamVjdDogW1BBVENIIDAy
-LzEzXSBEVkI6IERvY2Jvb2sgdXBkYXRlIGZvciBEVFZfRU5VTV9ERUxTWVMKClNpZ25lZC1vZmYt
-Ynk6IE1hbnUgQWJyYWhhbSA8YWJyYWhhbS5tYW51QGdtYWlsLmNvbT4KLS0tCiBEb2N1bWVudGF0
-aW9uL0RvY0Jvb2svbWVkaWEvZHZiL2R2YnByb3BlcnR5LnhtbCB8ICAgMTIgKysrKysrKysrKysr
-CiAxIGZpbGVzIGNoYW5nZWQsIDEyIGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pCgpkaWZm
-IC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9Eb2NCb29rL21lZGlhL2R2Yi9kdmJwcm9wZXJ0eS54bWwg
-Yi9Eb2N1bWVudGF0aW9uL0RvY0Jvb2svbWVkaWEvZHZiL2R2YnByb3BlcnR5LnhtbAppbmRleCAz
-YmM4YTYxLi4wOWFkYTZjIDEwMDY0NAotLS0gYS9Eb2N1bWVudGF0aW9uL0RvY0Jvb2svbWVkaWEv
-ZHZiL2R2YnByb3BlcnR5LnhtbAorKysgYi9Eb2N1bWVudGF0aW9uL0RvY0Jvb2svbWVkaWEvZHZi
-L2R2YnByb3BlcnR5LnhtbApAQCAtNjQ3LDYgKzY0NywxOCBAQCB0eXBlZGVmIGVudW0gZmVfaGll
-cmFyY2h5IHsKIAkJCW1hbnkgZGF0YSB0eXBlcyB2aWEgYSBzaW5nbGUgbXVsdGlwbGV4LiBUaGUg
-QVBJIHdpbGwgc29vbiBzdXBwb3J0IHRoaXMKIAkJCWF0IHdoaWNoIHBvaW50IHRoaXMgc2VjdGlv
-biB3aWxsIGJlIGV4cGFuZGVkLjwvcGFyYT4KIAk8L3NlY3Rpb24+CisJPHNlY3Rpb24gaWQ9IkRU
-Vl9FTlVNX0RFTFNZUyI+CisJCTx0aXRsZT48Y29uc3RhbnQ+RFRWX0VOVU1fREVMU1lTPC9jb25z
-dGFudD48L3RpdGxlPgorCQk8cGFyYT5BIE11bHRpIHN0YW5kYXJkIGZyb250ZW5kIG5lZWRzIHRv
-IGFkdmVydGlzZSB0aGUgZGVsaXZlcnkgc3lzdGVtcyBwcm92aWRlZC4KKwkJCUFwcGxpY2F0aW9u
-cyBuZWVkIHRvIGVudW1lcmF0ZSB0aGUgcHJvdmlkZWQgZGVsaXZlcnkgc3lzdGVtcywgYmVmb3Jl
-IHVzaW5nCisJCQlhbnkgb3RoZXIgb3BlcmF0aW9uIHdpdGggdGhlIGZyb250ZW5kLiBQcmlvciB0
-byBpdCdzIGludHJvZHVjdGlvbiwKKwkJCUZFX0dFVF9JTkZPIHdhcyB1c2VkIHRvIGRldGVybWlu
-ZSBhIGZyb250ZW5kIHR5cGUuIEEgZnJvbnRlbmQgd2hpY2gKKwkJCXByb3ZpZGVzIG1vcmUgdGhh
-biBhIHNpbmdsZSBkZWxpdmVyeSBzeXN0ZW0sIEZFX0dFVF9JTkZPIGRvZXNuJ3QgaGVscCBtdWNo
-LgorCQkJQXBwbGljYXRpb25zIHdoaWNoIGludGVuZHMgdG8gdXNlIGEgbXVsdGlzdGFuZGFyZCBm
-cm9udGVuZCBtdXN0IGVudW1lcmF0ZQorCQkJdGhlIGRlbGl2ZXJ5IHN5c3RlbXMgYXNzb2NpYXRl
-ZCB3aXRoIGl0LCByYXRoZXIgdGhhbiB0cnlpbmcgdG8gdXNlCisJCQlGRV9HRVRfSU5GTy4gSW4g
-dGhlIGNhc2Ugb2YgYSBsZWdhY3kgZnJvbnRlbmQsIHRoZSByZXN1bHQgaXMganVzdCB0aGUgc2Ft
-ZQorCQkJYXMgd2l0aCBGRV9HRVRfSU5GTywgYnV0IGluIGEgbW9yZSBzdHJ1Y3R1cmVkIGZvcm1h
-dCA8L3BhcmE+CisJPC9zZWN0aW9uPgogPC9zZWN0aW9uPgogCTxzZWN0aW9uIGlkPSJmcm9udGVu
-ZC1wcm9wZXJ0eS10ZXJyZXN0cmlhbC1zeXN0ZW1zIj4KIAk8dGl0bGU+UHJvcGVydGllcyB1c2Vk
-IG9uIHRlcnJlc3RyaWFsIGRlbGl2ZXJ5IHN5c3RlbXM8L3RpdGxlPgotLSAKMS43LjEKCg==
---f46d0435c068184c0a04b2450d8c--
+In another thread, where I requested you to revert the audio/video
+ioctl removal
+patch, I did chime in that those headers are in use. If you consider a
+driver that's
+to be merged as an out-of tree driver, then you are asking people to go away.
