@@ -1,164 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:24024 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754180Ab1KYLAe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Nov 2011 06:00:34 -0500
-Message-ID: <4ECF754F.3090207@redhat.com>
-Date: Fri, 25 Nov 2011 09:00:31 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46235 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753789Ab1KXMGM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 07:06:12 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 3/3] ivtv: setup per-device caps.
-References: <1321956322-25084-1-git-send-email-hverkuil@xs4all.nl> <a74598d6964e8582de02d3cfbc22d52fc000d033.1321956058.git.hans.verkuil@cisco.com>
-In-Reply-To: <a74598d6964e8582de02d3cfbc22d52fc000d033.1321956058.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=UTF-8
+Subject: Re: [PATCH/RFC 1/2] v4l: Add a global color alpha control
+Date: Thu, 24 Nov 2011 13:06:09 +0100
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	m.szyprowski@samsung.com, jonghun.han@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+References: <1322131997-26195-1-git-send-email-s.nawrocki@samsung.com> <4ECE2D0A.8060209@samsung.com> <201111241249.00601.hverkuil@xs4all.nl>
+In-Reply-To: <201111241249.00601.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111241306.11651.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 22-11-2011 08:05, Hans Verkuil escreveu:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
+
+On Thursday 24 November 2011 12:49:00 Hans Verkuil wrote:
+> On Thursday, November 24, 2011 12:39:54 Sylwester Nawrocki wrote:
+> > On 11/24/2011 12:09 PM, Laurent Pinchart wrote:
+> > > On Thursday 24 November 2011 12:00:45 Hans Verkuil wrote:
+> > >> On Thursday, November 24, 2011 11:53:16 Sylwester Nawrocki wrote:
+> > >>> This control is intended for video capture or memory-to-memory
+> > >>> devices that are capable of setting up the alpha conponent to
+> > >>> some arbitrary value.
+> > >>> The V4L2_CID_COLOR_ALPHA control allows to set the alpha channel
+> > >>> globally to a value in range from 0 to 255.
+> > >>> 
+> > >>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > >>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > >>> ---
+> > >>> 
+> > >>>  Documentation/DocBook/media/v4l/controls.xml       |   20
+> > >>>  ++++++++++++++------ .../DocBook/media/v4l/pixfmt-packed-rgb.xml
+> > >>>  
+> > >>>  |    7 +++++-- drivers/media/video/v4l2-ctrls.c                   |
+> > >>>  
+> > >>>  7 +++++++ include/linux/videodev2.h                          |    6
+> > >>>  +++--- 4 files changed, 29 insertions(+), 11 deletions(-)
+> > >>> 
+> > >>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> > >>> b/Documentation/DocBook/media/v4l/controls.xml index 3bc5ee8..7f99222
+> > >>> 100644
+> > >>> --- a/Documentation/DocBook/media/v4l/controls.xml
+> > >>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> > >>> @@ -324,12 +324,6 @@ minimum value disables backlight
+> > >>> compensation.</entry>
+> > >>> 
+> > >>>  		(usually a microscope).</entry>
+> > >>>  		
+> > >>>  	  </row>
+> > >>>  	  <row>
+> > >>> 
+> > >>> -	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
+> > >>> -	    <entry></entry>
+> > >>> -	    <entry>End of the predefined control IDs (currently
+> > >>> -<constant>V4L2_CID_ILLUMINATORS_2</constant> + 1).</entry>
+> > >>> -	  </row>
+> > >>> -	  <row>
+> > >>> 
+> > >>>  	    <entry><constant>V4L2_CID_MIN_BUFFERS_FOR_CAPTURE</constant></e
+> > >>>  	    ntry
+> > >>>  	    
+> > >>>  	    > <entry>integer</entry>
+> > >>>  	    
+> > >>>  	    <entry>This is a read-only control that can be read by the
+> > >>>  	    application
+> > >>> 
+> > >>> @@ -345,6 +339,20 @@ and used as a hint to determine the number of
+> > >>> OUTPUT buffers to pass to REQBUFS.
+> > >>> 
+> > >>>  The value is the minimum number of OUTPUT buffers that is necessary
+> > >>>  for hardware to work.</entry>
+> > >>>  
+> > >>>  	  </row>
+> > >>> 
+> > >>> +	  <row id="v4l2-color-alpha">
+> > >>> +	    <entry><constant>V4L2_CID_COLOR_ALPHA</constant></entry>
+> > >>> +	    <entry>integer</entry>
+> > >>> +	    <entry> Sets the color alpha component on the capture device.
+> > >>> It is +	    applicable to any pixel formats that contain the alpha
+> > >>> component, +	    e.g. <link linkend="rgb-formats">packed RGB image
+> > >>> formats</link>. +	    </entry>
+> > > 
+> > > As the alpha value is global, isn't it applicable to formats with no
+> > > alpha component as well ?
+> > 
+> > Hmm, I can't say no.. The control was intended as a means of setting up
+> > the alpha value for packed RGB formats:
+> > http://linuxtv.org/downloads/v4l-dvb-apis/packed-rgb.html#rgb-formats
+> > 
+> > However it could well be used for formats with no alpha. Do you think
+> > the second sentence above should be removed or should something else be
+> > added to indicate it doesn't necessarily have to have a connection
+> > with ARGB color formats ?
+
+I think we should make it explicit that this global alpha value is applied in 
+addition to a possibly per-pixel alpha value (if available in the selected 
+format).
+
+> Huh? How can this be used for formats without an alpha channel?
+
+If my understanding is correct, this control sets a global alpha value for the 
+whole overlay. For instance, with V4L2_CID_COLOR_ALPHA set to 0.5, an overlay 
+using a non-alpha format (such as YUYV), or an overlay using an alpha format  
+with the alpha value set to 1 for every pixel, would be half transparent.
+
+In other words, the resulting alpha value is the product of the global alpha 
+value and the per-pixel alpha value. Non-alpha formats have an implicit per-
+pixel alpha value equal to 1 for every pixel.
+
+> > >>> +	  </row>
+> > >>> +	  <row>
+> > >>> +	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
+> > >>> +	    <entry></entry>
+> > >>> +	    <entry>End of the predefined control IDs (currently
+> > >>> +	      <constant>V4L2_CID_COLOR_ALPHA</constant> + 1).</entry>
+> > >>> +	  </row>
+> > >>> 
+> > >>>  	  <row>
+> > >>>  	  
+> > >>>  	    <entry><constant>V4L2_CID_PRIVATE_BASE</constant></entry>
+> > >>>  	    <entry></entry>
+> > >>> 
+> > >>> diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> > >>> b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml index
+> > >>> 4db272b..da4c360 100644
+> > >>> --- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> > >>> +++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> > >>> @@ -428,8 +428,11 @@ colorspace
+> > >>> <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+> > >>> 
+> > >>>      <para>Bit 7 is the most significant bit. The value of a = alpha
+> > >>>  
+> > >>>  bits is undefined when reading from the driver, ignored when writing
+> > >>>  to the driver, except when alpha blending has been negotiated for a
+> > >>> 
+> > >>> -<link linkend="overlay">Video Overlay</link> or <link
+> > >>> -linkend="osd">Video Output Overlay</link>.</para>
+> > >>> +<link linkend="overlay">Video Overlay</link> or <link linkend="osd">
+> > >>> +Video Output Overlay</link> or when global alpha has been configured
+> > >>> +for a <link linkend="capture">Video Capture</link> by means of
+> > >>> +<link linkend="v4l2-color-alpha"> <constant>V4L2_CID_COLOR_ALPHA
+> > >>> +</constant> </link> control.</para>
+> > >>> 
+> > >>>      <example>
+> > >>>      
+> > >>>        <title><constant>V4L2_PIX_FMT_BGR24</constant> 4 &times; 4
+> > >>>        pixel
+> > >>> 
+> > >>> diff --git a/drivers/media/video/v4l2-ctrls.c
+> > >>> b/drivers/media/video/v4l2-ctrls.c index 5552f81..bd90955 100644
+> > >>> --- a/drivers/media/video/v4l2-ctrls.c
+> > >>> +++ b/drivers/media/video/v4l2-ctrls.c
+> > >>> @@ -466,6 +466,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+> > >>> 
+> > >>>  	case V4L2_CID_ILLUMINATORS_2:		return "Illuminator 2";
+> > >>>  	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:	return "Minimum Number of
+> > >>>  	Capture Buffers"; case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT:	return
+> > >>>  	"Minimum Number of Output Buffers";
+> > >>> 
+> > >>> +	case V4L2_CID_COLOR_ALPHA:		return "Color Alpha";
+> > >> 
+> > >> I prefer CID_ALPHA_COLOR and string "Alpha Color". I think it is more
+> > >> natural than the other way around.
+> > 
+> > OK, I guess you're right. And Google returns about twice as many hits for
+> > "alpha color" than for "color alpha"...
+> > 
+> > > I'm not too found of "color" in the name. Is the alpha value considered
+> > > as a color ?
+> > 
+> > Certainly it isn't, but Alpha alone looks a bit odd. It's too generic
+> > IMHO.
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/ivtv/ivtv-driver.h  |    1 +
->  drivers/media/video/ivtv/ivtv-ioctl.c   |    7 +++++--
->  drivers/media/video/ivtv/ivtv-streams.c |   14 ++++++++++++++
->  3 files changed, 20 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/ivtv/ivtv-driver.h b/drivers/media/video/ivtv/ivtv-driver.h
-> index 8f9cc17..06b9efd 100644
-> --- a/drivers/media/video/ivtv/ivtv-driver.h
-> +++ b/drivers/media/video/ivtv/ivtv-driver.h
-> @@ -331,6 +331,7 @@ struct ivtv_stream {
->  	struct ivtv *itv; 		/* for ease of use */
->  	const char *name;		/* name of the stream */
->  	int type;			/* stream type */
-> +	u32 caps;			/* V4L2 capabilities */
->  
->  	u32 id;
->  	spinlock_t qlock; 		/* locks access to the queues */
-> diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
-> index ecafa69..6be63e9 100644
-> --- a/drivers/media/video/ivtv/ivtv-ioctl.c
-> +++ b/drivers/media/video/ivtv/ivtv-ioctl.c
-> @@ -752,12 +752,15 @@ static int ivtv_s_register(struct file *file, void *fh, struct v4l2_dbg_register
->  
->  static int ivtv_querycap(struct file *file, void *fh, struct v4l2_capability *vcap)
->  {
-> -	struct ivtv *itv = fh2id(fh)->itv;
-> +	struct ivtv_open_id *id = fh2id(file->private_data);
-> +	struct ivtv *itv = id->itv;
-> +	struct ivtv_stream *s = &itv->streams[id->type];
->  
->  	strlcpy(vcap->driver, IVTV_DRIVER_NAME, sizeof(vcap->driver));
->  	strlcpy(vcap->card, itv->card_name, sizeof(vcap->card));
->  	snprintf(vcap->bus_info, sizeof(vcap->bus_info), "PCI:%s", pci_name(itv->pdev));
-> -	vcap->capabilities = itv->v4l2_cap; 	    /* capabilities */
-> +	vcap->capabilities = itv->v4l2_cap | V4L2_CAP_DEVICE_CAPS;
+> How about V4L2_CID_ALPHA_COMPONENT?
 
-IMO, the right thing to do here would be:
+Or V4L2_CID_GLOBAL_ALPHA ?
 
-	vcap->capabilities = V4L2_CAP_DEVICE_CAPS;
-	for (i = 0; i < ARRAY_SIZE(ivtv_stream_info); i++)
-		vcap->capabilities |= ivtv_stream_info[v4l2_caps];
+-- 
+Regards,
 
-This avoids the risk of future patches adding new device_caps at the devices, but
-forgetting to update the physical device capabilities.
-
-Also, as the initial patches will be used as implementation reference by others,
-such implementation will be more effective than a "magic" set of features that
-may or may not match the union of all device capabilities.
-
-> +	vcap->device_caps = s->caps;
->  	return 0;
->  }
->  
-> diff --git a/drivers/media/video/ivtv/ivtv-streams.c b/drivers/media/video/ivtv/ivtv-streams.c
-> index e7794dc..4d4ae6e 100644
-> --- a/drivers/media/video/ivtv/ivtv-streams.c
-> +++ b/drivers/media/video/ivtv/ivtv-streams.c
-> @@ -78,60 +78,73 @@ static struct {
->  	int num_offset;
->  	int dma, pio;
->  	enum v4l2_buf_type buf_type;
-> +	u32 v4l2_caps;
->  	const struct v4l2_file_operations *fops;
->  } ivtv_stream_info[] = {
->  	{	/* IVTV_ENC_STREAM_TYPE_MPG */
->  		"encoder MPG",
->  		VFL_TYPE_GRABBER, 0,
->  		PCI_DMA_FROMDEVICE, 0, V4L2_BUF_TYPE_VIDEO_CAPTURE,
-> +		V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TUNER |
-> +			V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
->  		&ivtv_v4l2_enc_fops
->  	},
->  	{	/* IVTV_ENC_STREAM_TYPE_YUV */
->  		"encoder YUV",
->  		VFL_TYPE_GRABBER, IVTV_V4L2_ENC_YUV_OFFSET,
->  		PCI_DMA_FROMDEVICE, 0, V4L2_BUF_TYPE_VIDEO_CAPTURE,
-> +		V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TUNER |
-> +			V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
->  		&ivtv_v4l2_enc_fops
->  	},
->  	{	/* IVTV_ENC_STREAM_TYPE_VBI */
->  		"encoder VBI",
->  		VFL_TYPE_VBI, 0,
->  		PCI_DMA_FROMDEVICE, 0, V4L2_BUF_TYPE_VBI_CAPTURE,
-> +		V4L2_CAP_VBI_CAPTURE | V4L2_CAP_SLICED_VBI_CAPTURE | V4L2_CAP_TUNER |
-> +			V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
->  		&ivtv_v4l2_enc_fops
->  	},
->  	{	/* IVTV_ENC_STREAM_TYPE_PCM */
->  		"encoder PCM",
->  		VFL_TYPE_GRABBER, IVTV_V4L2_ENC_PCM_OFFSET,
->  		PCI_DMA_FROMDEVICE, 0, V4L2_BUF_TYPE_PRIVATE,
-> +		V4L2_CAP_TUNER | V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
->  		&ivtv_v4l2_enc_fops
->  	},
->  	{	/* IVTV_ENC_STREAM_TYPE_RAD */
->  		"encoder radio",
->  		VFL_TYPE_RADIO, 0,
->  		PCI_DMA_NONE, 1, V4L2_BUF_TYPE_PRIVATE,
-> +		V4L2_CAP_RADIO | V4L2_CAP_TUNER,
->  		&ivtv_v4l2_enc_fops
->  	},
->  	{	/* IVTV_DEC_STREAM_TYPE_MPG */
->  		"decoder MPG",
->  		VFL_TYPE_GRABBER, IVTV_V4L2_DEC_MPG_OFFSET,
->  		PCI_DMA_TODEVICE, 0, V4L2_BUF_TYPE_VIDEO_OUTPUT,
-> +		V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
->  		&ivtv_v4l2_dec_fops
->  	},
->  	{	/* IVTV_DEC_STREAM_TYPE_VBI */
->  		"decoder VBI",
->  		VFL_TYPE_VBI, IVTV_V4L2_DEC_VBI_OFFSET,
->  		PCI_DMA_NONE, 1, V4L2_BUF_TYPE_VBI_CAPTURE,
-> +		V4L2_CAP_SLICED_VBI_CAPTURE | V4L2_CAP_READWRITE,
->  		&ivtv_v4l2_enc_fops
->  	},
->  	{	/* IVTV_DEC_STREAM_TYPE_VOUT */
->  		"decoder VOUT",
->  		VFL_TYPE_VBI, IVTV_V4L2_DEC_VOUT_OFFSET,
->  		PCI_DMA_NONE, 1, V4L2_BUF_TYPE_VBI_OUTPUT,
-> +		V4L2_CAP_SLICED_VBI_OUTPUT | V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
->  		&ivtv_v4l2_dec_fops
->  	},
->  	{	/* IVTV_DEC_STREAM_TYPE_YUV */
->  		"decoder YUV",
->  		VFL_TYPE_GRABBER, IVTV_V4L2_DEC_YUV_OFFSET,
->  		PCI_DMA_TODEVICE, 0, V4L2_BUF_TYPE_VIDEO_OUTPUT,
-> +		V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
->  		&ivtv_v4l2_dec_fops
->  	}
->  };
-> @@ -149,6 +162,7 @@ static void ivtv_stream_init(struct ivtv *itv, int type)
->  	s->itv = itv;
->  	s->type = type;
->  	s->name = ivtv_stream_info[type].name;
-> +	s->caps = ivtv_stream_info[type].v4l2_caps;
->  
->  	if (ivtv_stream_info[type].pio)
->  		s->dma = PCI_DMA_NONE;
-
+Laurent Pinchart
