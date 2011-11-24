@@ -1,36 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:44737 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754291Ab1KYQ2v (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:53451 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755028Ab1KXXqA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Nov 2011 11:28:51 -0500
+	Thu, 24 Nov 2011 18:46:00 -0500
+Date: Fri, 25 Nov 2011 00:45:12 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] V4L: omap1_camera: fix missing <linux/module.h> include
+In-Reply-To: <1322176595-31837-1-git-send-email-jkrzyszt@tis.icnet.pl>
+Message-ID: <Pine.LNX.4.64.1111250044200.17376@axis700.grange>
+References: <1322176595-31837-1-git-send-email-jkrzyszt@tis.icnet.pl>
 MIME-Version: 1.0
-In-Reply-To: <CAPM=9tzjO7poyz_uYFFgONxzuTB86kKej8f2XBDHLGdUPZHvjg@mail.gmail.com>
-References: <1318325033-32688-1-git-send-email-sumit.semwal@ti.com>
-	<1318325033-32688-2-git-send-email-sumit.semwal@ti.com>
-	<CAPM=9tzjO7poyz_uYFFgONxzuTB86kKej8f2XBDHLGdUPZHvjg@mail.gmail.com>
-Date: Fri, 25 Nov 2011 16:28:50 +0000
-Message-ID: <CAPM=9txtWiQuF+jNZXDogCMy+nsM=00Bv3uxAiu5oKnn-KxjAA@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFC 1/2] dma-buf: Introduce dma buffer sharing mechanism
-From: Dave Airlie <airlied@gmail.com>
-To: Sumit Semwal <sumit.semwal@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	linux@arm.linux.org.uk, arnd@arndb.de, jesse.barker@linaro.org,
-	daniel@ffwll.ch
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've rebuilt my PRIME interface on top of dmabuf to see how it would work,
+Hi Janusz
 
-I've got primed gears running again on top, but I expect all my object
-lifetime and memory ownership rules need fixing up (i.e. leaks like a
-sieve).
+On Fri, 25 Nov 2011, Janusz Krzysztofik wrote:
 
-http://cgit.freedesktop.org/~airlied/linux/log/?h=drm-prime-dmabuf
+> Otherwise compilation breaks with:
+> 
+> drivers/media/video/omap1_camera.c:1535: error: 'THIS_MODULE' undeclared here (not in a function)
+> ...
+> 
+> after apparently no longer included recursively from other header files.
+> 
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-has the i915/nouveau patches for the kernel to produce the prime interface.
+Thanks, will push with other 3.2-rc soc-camera fixes, when I find time to 
+organise them...
 
-Dave.
+Thanks
+Guennadi
+
+> ---
+>  drivers/media/video/omap1_camera.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap1_camera.c b/drivers/media/video/omap1_camera.c
+> index e87ae2f..6a6cf38 100644
+> --- a/drivers/media/video/omap1_camera.c
+> +++ b/drivers/media/video/omap1_camera.c
+> @@ -24,6 +24,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/dma-mapping.h>
+>  #include <linux/interrupt.h>
+> +#include <linux/module.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/slab.h>
+>  
+> -- 
+> 1.7.3.4
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
