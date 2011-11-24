@@ -1,71 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm35-vm5.bullet.mail.bf1.yahoo.com ([72.30.238.77]:33235 "HELO
-	nm35-vm5.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753820Ab1KLOoE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Nov 2011 09:44:04 -0500
-Message-ID: <4EBE84D7.5000800@yahoo.com>
-Date: Sat, 12 Nov 2011 15:38:15 +0100
-From: Norret Thierry <tnorret@yahoo.com>
-MIME-Version: 1.0
-To: Linux Media <linux-media@vger.kernel.org>
-CC: rory@technomancy.org
-Subject: Re: Any update on the Hauppauge WinTV-HVR-900H?
-References: <4EBE73F4.4080002@technomancy.org> <4EBE8018.6010005@gmail.com>
-In-Reply-To: <4EBE8018.6010005@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp.nokia.com ([147.243.1.48]:59764 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754950Ab1KXQM4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 11:12:56 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, snjw23@gmail.com,
+	hverkuil@xs4all.nl
+Subject: [RFC/PATCH 3/3] vivi: Add an integer menu test control
+Date: Thu, 24 Nov 2011 18:12:52 +0200
+Message-Id: <1322151172-5362-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20111124161228.GA29342@valkosipuli.localdomain>
+References: <20111124161228.GA29342@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 12/11/2011 15:18, Patrick Dickey a écrit :
-> On 11/12/2011 07:26 AM, Rory McCann wrote:
->> Hi,
->>
->> I recently bought a Hauppauge WinTV-HVR-900H (usb id: 2040:b138), but I
->> see from this wiki page
->> http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-900H that there is
->> no driver for it. However that's as of 2008.
->>
->> Has there been any progress on this since? Is that wiki page correct
->> that there is still no support for that card? Is there anyway to get
->> this USB device to work under linux?
->>
->> Thanks,
->>
-> 
-> Hi Rory,
-> 
-> If you search for the 900H, you'll find a thread titled "Hauppauge
-> HVR900H don't work with kernel 3.*". The original submitter stated that
-> it worked in 2.6.x, but when the computer was upgraded to a 3.x kernel,
-> it stopped working.  This was two days ago (9 November 2011), so I'm not
-> sure how much progress was made (if any).
-> 
-> So, if your running a 2.6.x kernel, it *may* work, but it seems to be
-> broken on the 3.x kernels (Ubuntu 11.10 or similar distros).
-> Unfortunately I don't have that tuner, so I can't help out with it.
-> 
-> I would say try it. You can check dmesg to see if the tuner is even
-> being recognized (and drivers loaded). If so, then see if it works. If
-> not, then you might need the latest build of the v4l. You can get
-> information on installing the latest version from
-> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
-> .  Then make it (without your tuner plugged in) and try plugging it in
-> again. Check dmesg again, and if it's recognized, try it.
-> 
-> Sorry I couldn't find more information on this. Also if anyone else
-> posts a reply, I would defer to their suggestions--as they have more
-> experience with this than me.
-> 
-> Have a good weekend.:)
-> Patrick.
-> --
-> 
-I confirm, I've this card
+Add an integer menu test control for the vivi driver.
 
-Support for this card is break since kernel 2.6.39
-http://www.spinics.net/lists/linux-media/msg39917.html
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/vivi.c |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
 
-Building v4l from git don't solve the problem.
-This card work fine with < 2.6.38 kernels.
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index 7d754fb..763ec23 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -177,6 +177,7 @@ struct vivi_dev {
+ 	struct v4l2_ctrl	   *menu;
+ 	struct v4l2_ctrl	   *string;
+ 	struct v4l2_ctrl	   *bitmask;
++	struct v4l2_ctrl	   *int_menu;
+ 
+ 	spinlock_t                 slock;
+ 	struct mutex		   mutex;
+@@ -503,6 +504,10 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
+ 			dev->boolean->cur.val,
+ 			dev->menu->qmenu[dev->menu->cur.val],
+ 			dev->string->cur.string);
++	snprintf(str, sizeof(str), " integer_menu %s, value %lld ",
++			dev->int_menu->qmenu[dev->int_menu->cur.val],
++			dev->int64->cur.val64);
++	gen_text(dev, vbuf, line++ * 16, 16, str);
+ 	mutex_unlock(&dev->ctrl_handler.lock);
+ 	gen_text(dev, vbuf, line++ * 16, 16, str);
+ 	if (dev->button_pressed) {
+@@ -1183,6 +1188,22 @@ static const struct v4l2_ctrl_config vivi_ctrl_bitmask = {
+ 	.step = 0,
+ };
+ 
++static const s64 * const vivi_ctrl_int_menu_values[] = {
++	1, 1, 2, 3, 5, 8, 13, 21, 42,
++};
++
++static const struct v4l2_ctrl_config vivi_ctrl_string = {
++	.ops = &vivi_ctrl_ops,
++	.id = VIDI_CID_CUSTOM_BASE + 7
++	.name = "Integer menu",
++	.type = V4L2_CTRL_TYPE_INTEGER_MENU,
++	.min = 1,
++	.max = 8,
++	.def = 4,
++	.menu_skip_mask = 0x02,
++	.qmenu_int = &vivi_ctrl_int_menu_values,
++};
++
+ static const struct v4l2_file_operations vivi_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open           = v4l2_fh_open,
+-- 
+1.7.2.5
+
