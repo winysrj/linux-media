@@ -1,47 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50005 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752100Ab1KAJSG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Nov 2011 05:18:06 -0400
-Message-ID: <4EAFB960.8040706@redhat.com>
-Date: Tue, 01 Nov 2011 10:18:24 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Various ctrl and event frame work patches (version 2)
-References: <1320074209-23473-1-git-send-email-hdegoede@redhat.com> <201110311717.32581.hverkuil@xs4all.nl>
-In-Reply-To: <201110311717.32581.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:57170 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753710Ab1KXKx0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 05:53:26 -0500
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LV500EKGVL0EU@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Nov 2011 10:53:24 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LV500AJRVKZWL@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Nov 2011 10:53:24 +0000 (GMT)
+Date: Thu, 24 Nov 2011 11:53:15 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC] Add V4L2_CID_COLOR_ALPHA control for global color alpha
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, hverkuil@xs4all.nl, m.szyprowski@samsung.com,
+	jonghun.han@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com
+Message-id: <1322131997-26195-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello,
 
-On 10/31/2011 05:17 PM, Hans Verkuil wrote:
-> Hi Hans!
->
-> On Monday, October 31, 2011 16:16:43 Hans de Goede wrote:
->> Hi All,
->>
->> This patch set obsoletes my previous "add v4l2_subscribed_event_ops" set,
->> while working on adding support for ctrl-events to the uvc driver I found
->> a few bugs in the event code, which this patchset fixes.
->
-> Did you see my comments to patches 3/6, 4/6 and 5/6 in version 1?
-> Those need to be addressed before I can ack them.
+This changeset adds new V4L2_CID_COLOR_ALPHA control that allows to configure 
+per image plane color alpha value on the capture queue buffers.
 
-No I'm afraid I somehow completely missed those, I see them in the mailing
-list archive. I'll reply to them by copy pasting from the archive,
-so if my next replies look a bit out of place wrt their place in
-threaded mail readers, that is why.
+There was a short discussion in the past about the global alpha control
+support started by Jonghun Han:
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg27128.html
 
-After that I'll respin the patchset addressing the issues you've pointed out.
+The second patch adds the control to s5p-fimc video capture and mem-to-mem
+driver.
 
+
+Sylwester Nawrocki (2):
+  v4l: Add a global color alpha control
+  s5p-fimc: Add support for global color alpha configuration
+
+ Documentation/DocBook/media/v4l/controls.xml       |   20 +++++--
+ .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |    7 ++-
+ drivers/media/video/s5p-fimc/fimc-capture.c        |    4 ++
+ drivers/media/video/s5p-fimc/fimc-core.c           |   49 ++++++++++++++++--
+ drivers/media/video/s5p-fimc/fimc-core.h           |   13 ++++-
+ drivers/media/video/s5p-fimc/fimc-reg.c            |   53 +++++++++++++++-----
+ drivers/media/video/s5p-fimc/regs-fimc.h           |    5 ++
+ drivers/media/video/v4l2-ctrls.c                   |    7 +++
+ include/linux/videodev2.h                          |    6 +-
+ 9 files changed, 134 insertions(+), 30 deletions(-)
+
+
+-- 
 Regards,
-
-Hans
-
-
+ 
+Sylwester Nawrocki 
+Samsung Poland R&D Center
