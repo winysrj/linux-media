@@ -1,53 +1,406 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:62872 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932383Ab1KBPuF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 11:50:05 -0400
-Received: by wyh15 with SMTP id 15so286327wyh.19
-        for <linux-media@vger.kernel.org>; Wed, 02 Nov 2011 08:50:04 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAOcJUbzJZTirAsAgS7=FiBdg3L4bNeTVCp6tD9cFrUfqwD3azg@mail.gmail.com>
-References: <CAL9G6WV=4xxara7vw+jRfydnwqEoc4_qrz6p_z_wowDeEV0scA@mail.gmail.com>
-	<CAGoCfiy=FKo5vRiAV8m-maRZ7aQfmgdivQBrhGSfjF-NGZ=Lpg@mail.gmail.com>
-	<CAOcJUbw8ASb9fqeGQJyvod=03-Yi8MLEhjYL3oTsZztDhMbNiw@mail.gmail.com>
-	<CAGoCfizk7jsKcCSzhyz0PWtj3yUidB_vjjYTCoZ0nfj9L60u5Q@mail.gmail.com>
-	<CAOcJUbz8j6UrLeEKXVOJ+6sf40cbZ_Cp1C6u+GCMkqrRbLVDLQ@mail.gmail.com>
-	<CAL9G6WVCqw4vLm+Ew-jfRPosvHBxyTM4QUoL0P6-UXEH_L4tzw@mail.gmail.com>
-	<CAOcJUbzJZTirAsAgS7=FiBdg3L4bNeTVCp6tD9cFrUfqwD3azg@mail.gmail.com>
-Date: Wed, 2 Nov 2011 16:50:04 +0100
-Message-ID: <CAL9G6WUwhSqbKoOMu1nOCzNffN6DmqjrJNqX_-yRv9Yr03OZgw@mail.gmail.com>
-Subject: Re: Hauppauge WIN-TV DUET HD
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:20993 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752177Ab1KXKx0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 05:53:26 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LV5009NVVL0JX50@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Nov 2011 10:53:24 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LV500AKIVKZLW@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Nov 2011 10:53:24 +0000 (GMT)
+Date: Thu, 24 Nov 2011 11:53:17 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 2/2] s5p-fimc: Add support for global color alpha configuration
+In-reply-to: <1322131997-26195-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, hverkuil@xs4all.nl, m.szyprowski@samsung.com,
+	jonghun.han@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1322131997-26195-3-git-send-email-s.nawrocki@samsung.com>
+References: <1322131997-26195-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks!
+On Exynos SoCs the FIMC IP allows to configure globally the alpha
+color channel for V4L2_PIX_FMT_RGB32, V4L2_PIX_FMT_RGB555 and
+V4L2_PIX_FMT_RGB444 pixel formats. This patch adds a v4l2 control
+in order to let the applications control the global alpha value.
 
-2011/11/2 Michael Krufky <mkrufky@linuxtv.org>:
-> On Wed, Nov 2, 2011 at 10:53 AM, Josu Lazkano <josu.lazkano@gmail.com> wrote:
->> Hello, I have no trouble, I have not buy it yet.
->>
->> I have some DVB-T (most of them with af9015), and I am having lots of
->> I2C problems.
->>
->> I just want to know that it is working as dual tuner.
->
-> Josu,
->
-> Yes, it works correctly as a dual tuner.  This is one of Hauppauge's
-> more popular tuner sticks for use both in Windows *and* Linux.
->
-> Best regards,
->
-> Mike
->
+The alpha value range depends on the pixel format, for RGB32
+it's 0..255, for RGB555 - 0..1 and for RGB444 - 0..7. The v4l2
+control range is always 0..255 and the driver will ignore most
+significant bits of the alpha value where the alpha channel width
+is less than 8 bits. The applications need to match the alpha
+channel data width and the pixel format.
 
+An option is added to the variant description data structure
+so an additional control is created only where really supported
+in hardware.
 
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |    4 ++
+ drivers/media/video/s5p-fimc/fimc-core.c    |   49 ++++++++++++++++++++++---
+ drivers/media/video/s5p-fimc/fimc-core.h    |   13 ++++++-
+ drivers/media/video/s5p-fimc/fimc-reg.c     |   53 +++++++++++++++++++++------
+ drivers/media/video/s5p-fimc/regs-fimc.h    |    5 +++
+ 5 files changed, 105 insertions(+), 19 deletions(-)
 
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 82d9ab6..70176e5 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -63,6 +63,8 @@ static int fimc_init_capture(struct fimc_dev *fimc)
+ 		fimc_hw_set_effect(ctx, false);
+ 		fimc_hw_set_output_path(ctx);
+ 		fimc_hw_set_out_dma(ctx);
++		if (fimc->variant->has_alpha)
++			fimc_hw_set_rgb_alpha(ctx);
+ 		clear_bit(ST_CAPT_APPLY_CFG, &fimc->state);
+ 	}
+ 	spin_unlock_irqrestore(&fimc->slock, flags);
+@@ -154,6 +156,8 @@ int fimc_capture_config_update(struct fimc_ctx *ctx)
+ 		fimc_hw_set_rotation(ctx);
+ 		fimc_prepare_dma_offset(ctx, &ctx->d_frame);
+ 		fimc_hw_set_out_dma(ctx);
++		if (fimc->variant->has_alpha)
++			fimc_hw_set_rgb_alpha(ctx);
+ 		clear_bit(ST_CAPT_APPLY_CFG, &fimc->state);
+ 	}
+ 	spin_unlock(&ctx->slock);
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 567e9ea..20f9da8 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -52,13 +52,29 @@ static struct fimc_fmt fimc_formats[] = {
+ 		.colplanes	= 1,
+ 		.flags		= FMT_FLAGS_M2M,
+ 	}, {
+-		.name		= "XRGB-8-8-8-8, 32 bpp",
++		.name		= "XRGB8888, 32 bpp",
+ 		.fourcc		= V4L2_PIX_FMT_RGB32,
+ 		.depth		= { 32 },
+ 		.color		= S5P_FIMC_RGB888,
+ 		.memplanes	= 1,
+ 		.colplanes	= 1,
+-		.flags		= FMT_FLAGS_M2M,
++		.flags		= FMT_FLAGS_M2M | FMT_HAS_ALPHA,
++	}, {
++		.name		= "ARGB1555",
++		.fourcc		= V4L2_PIX_FMT_RGB555,
++		.depth		= { 16 },
++		.color		= S5P_FIMC_RGB555,
++		.memplanes	= 1,
++		.colplanes	= 1,
++		.flags		= FMT_FLAGS_M2M | FMT_HAS_ALPHA,
++	}, {
++		.name		= "ARGB4444",
++		.fourcc		= V4L2_PIX_FMT_RGB444,
++		.depth		= { 16 },
++		.color		= S5P_FIMC_RGB444,
++		.memplanes	= 1,
++		.colplanes	= 1,
++		.flags		= FMT_FLAGS_M2M | FMT_HAS_ALPHA,
+ 	}, {
+ 		.name		= "YUV 4:2:2 packed, YCbYCr",
+ 		.fourcc		= V4L2_PIX_FMT_YUYV,
+@@ -652,8 +668,11 @@ static void fimc_dma_run(void *priv)
+ 	if (ctx->state & (FIMC_DST_ADDR | FIMC_PARAMS))
+ 		fimc_hw_set_output_addr(fimc, &ctx->d_frame.paddr, -1);
+ 
+-	if (ctx->state & FIMC_PARAMS)
++	if (ctx->state & FIMC_PARAMS) {
+ 		fimc_hw_set_out_dma(ctx);
++		if (fimc->variant->has_alpha)
++			fimc_hw_set_rgb_alpha(ctx);
++	}
+ 
+ 	fimc_activate_capture(ctx);
+ 
+@@ -790,6 +809,11 @@ static int fimc_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		ctx->rotation = ctrl->val;
+ 		break;
+ 
++	case V4L2_CID_COLOR_ALPHA:
++		spin_lock_irqsave(&ctx->slock, flags);
++		ctx->d_frame.alpha = ctrl->val;
++		break;
++
+ 	default:
+ 		v4l2_err(fimc->v4l2_dev, "Invalid control: 0x%X\n", ctrl->id);
+ 		return -EINVAL;
+@@ -806,9 +830,11 @@ static const struct v4l2_ctrl_ops fimc_ctrl_ops = {
+ 
+ int fimc_ctrls_create(struct fimc_ctx *ctx)
+ {
++	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
++
+ 	if (ctx->ctrls_rdy)
+ 		return 0;
+-	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 3);
++	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 4);
+ 
+ 	ctx->ctrl_rotate = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
+ 				     V4L2_CID_HFLIP, 0, 1, 1, 0);
+@@ -816,6 +842,14 @@ int fimc_ctrls_create(struct fimc_ctx *ctx)
+ 				    V4L2_CID_VFLIP, 0, 1, 1, 0);
+ 	ctx->ctrl_vflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
+ 				    V4L2_CID_ROTATE, 0, 270, 90, 0);
++
++	if (variant->has_alpha)
++		ctx->ctrl_alpha = v4l2_ctrl_new_std(&ctx->ctrl_handler,
++				    &fimc_ctrl_ops, V4L2_CID_COLOR_ALPHA,
++				    0, 0xff, 1, 0);
++	else
++		ctx->ctrl_alpha = NULL;
++
+ 	ctx->ctrls_rdy = ctx->ctrl_handler.error == 0;
+ 
+ 	return ctx->ctrl_handler.error;
+@@ -838,6 +872,8 @@ void fimc_ctrls_activate(struct fimc_ctx *ctx, bool active)
+ 	v4l2_ctrl_activate(ctx->ctrl_rotate, active);
+ 	v4l2_ctrl_activate(ctx->ctrl_hflip, active);
+ 	v4l2_ctrl_activate(ctx->ctrl_vflip, active);
++	if (ctx->ctrl_alpha)
++		v4l2_ctrl_activate(ctx->ctrl_alpha, active);
+ 
+ 	if (active) {
+ 		ctx->rotation = ctx->ctrl_rotate->val;
+@@ -1374,6 +1410,8 @@ static int fimc_m2m_open(struct file *file)
+ 	if (!ctx)
+ 		return -ENOMEM;
+ 	v4l2_fh_init(&ctx->fh, fimc->m2m.vfd);
++	ctx->fimc_dev = fimc;
++
+ 	ret = fimc_ctrls_create(ctx);
+ 	if (ret)
+ 		goto error_fh;
+@@ -1383,7 +1421,6 @@ static int fimc_m2m_open(struct file *file)
+ 	file->private_data = &ctx->fh;
+ 	v4l2_fh_add(&ctx->fh);
+ 
+-	ctx->fimc_dev = fimc;
+ 	/* Default color format */
+ 	ctx->s_frame.fmt = &fimc_formats[0];
+ 	ctx->d_frame.fmt = &fimc_formats[0];
+@@ -1892,6 +1929,7 @@ static struct samsung_fimc_variant fimc0_variant_exynos4 = {
+ 	.has_cam_if	 = 1,
+ 	.has_cistatus2	 = 1,
+ 	.has_mainscaler_ext = 1,
++	.has_alpha	 = 1,
+ 	.min_inp_pixsize = 16,
+ 	.min_out_pixsize = 16,
+ 	.hor_offs_align	 = 2,
+@@ -1905,6 +1943,7 @@ static struct samsung_fimc_variant fimc3_variant_exynos4 = {
+ 	.has_cam_if	 = 1,
+ 	.has_cistatus2	 = 1,
+ 	.has_mainscaler_ext = 1,
++	.has_alpha	 = 1,
+ 	.min_inp_pixsize = 16,
+ 	.min_out_pixsize = 16,
+ 	.hor_offs_align	 = 2,
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index c7f01c4..9d1f669 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -85,11 +85,14 @@ enum fimc_datapath {
+ };
+ 
+ enum fimc_color_fmt {
+-	S5P_FIMC_RGB565 = 0x10,
++	S5P_FIMC_RGB444 = 0x10,
++	S5P_FIMC_RGB555,
++	S5P_FIMC_RGB565,
+ 	S5P_FIMC_RGB666,
+ 	S5P_FIMC_RGB888,
+ 	S5P_FIMC_RGB30_LOCAL,
+ 	S5P_FIMC_YCBCR420 = 0x20,
++	S5P_FIMC_YCBCR422,
+ 	S5P_FIMC_YCBYCR422,
+ 	S5P_FIMC_YCRYCB422,
+ 	S5P_FIMC_CBYCRY422,
+@@ -162,6 +165,7 @@ struct fimc_fmt {
+ 	u16	flags;
+ #define FMT_FLAGS_CAM	(1 << 0)
+ #define FMT_FLAGS_M2M	(1 << 1)
++#define FMT_HAS_ALPHA	(1 << 2)
+ };
+ 
+ /**
+@@ -283,6 +287,7 @@ struct fimc_frame {
+ 	struct fimc_addr	paddr;
+ 	struct fimc_dma_offset	dma_offset;
+ 	struct fimc_fmt		*fmt;
++	u8			alpha;
+ };
+ 
+ /**
+@@ -387,6 +392,7 @@ struct samsung_fimc_variant {
+ 	unsigned int	has_cistatus2:1;
+ 	unsigned int	has_mainscaler_ext:1;
+ 	unsigned int	has_cam_if:1;
++	unsigned int	has_alpha:1;
+ 	struct fimc_pix_limit *pix_limit;
+ 	u16		min_inp_pixsize;
+ 	u16		min_out_pixsize;
+@@ -482,7 +488,8 @@ struct fimc_dev {
+  * @ctrl_handler:	v4l2 controls handler
+  * @ctrl_rotate		image rotation control
+  * @ctrl_hflip		horizontal flip control
+- * @ctrl_vflip		vartical flip control
++ * @ctrl_vflip		vertical flip control
++ * @ctrl_alpha		RGB alpha control
+  * @ctrls_rdy:		true if the control handler is initialized
+  */
+ struct fimc_ctx {
+@@ -509,6 +516,7 @@ struct fimc_ctx {
+ 	struct v4l2_ctrl	*ctrl_rotate;
+ 	struct v4l2_ctrl	*ctrl_hflip;
+ 	struct v4l2_ctrl	*ctrl_vflip;
++	struct v4l2_ctrl	*ctrl_alpha;
+ 	bool			ctrls_rdy;
+ };
+ 
+@@ -674,6 +682,7 @@ void fimc_hw_set_prescaler(struct fimc_ctx *ctx);
+ void fimc_hw_set_mainscaler(struct fimc_ctx *ctx);
+ void fimc_hw_en_capture(struct fimc_ctx *ctx);
+ void fimc_hw_set_effect(struct fimc_ctx *ctx, bool active);
++void fimc_hw_set_rgb_alpha(struct fimc_ctx *ctx);
+ void fimc_hw_set_in_dma(struct fimc_ctx *ctx);
+ void fimc_hw_set_input_path(struct fimc_ctx *ctx);
+ void fimc_hw_set_output_path(struct fimc_ctx *ctx);
+diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
+index 44f5c2d..15466d0 100644
+--- a/drivers/media/video/s5p-fimc/fimc-reg.c
++++ b/drivers/media/video/s5p-fimc/fimc-reg.c
+@@ -117,7 +117,7 @@ void fimc_hw_set_target_format(struct fimc_ctx *ctx)
+ 		  S5P_CITRGFMT_VSIZE_MASK);
+ 
+ 	switch (frame->fmt->color) {
+-	case S5P_FIMC_RGB565...S5P_FIMC_RGB888:
++	case S5P_FIMC_RGB444...S5P_FIMC_RGB888:
+ 		cfg |= S5P_CITRGFMT_RGB;
+ 		break;
+ 	case S5P_FIMC_YCBCR420:
+@@ -175,6 +175,7 @@ void fimc_hw_set_out_dma(struct fimc_ctx *ctx)
+ 	struct fimc_dev *dev = ctx->fimc_dev;
+ 	struct fimc_frame *frame = &ctx->d_frame;
+ 	struct fimc_dma_offset *offset = &frame->dma_offset;
++	struct fimc_fmt *fmt = frame->fmt;
+ 
+ 	/* Set the input dma offsets. */
+ 	cfg = 0;
+@@ -198,15 +199,22 @@ void fimc_hw_set_out_dma(struct fimc_ctx *ctx)
+ 	cfg = readl(dev->regs + S5P_CIOCTRL);
+ 
+ 	cfg &= ~(S5P_CIOCTRL_ORDER2P_MASK | S5P_CIOCTRL_ORDER422_MASK |
+-		 S5P_CIOCTRL_YCBCR_PLANE_MASK);
++		 S5P_CIOCTRL_YCBCR_PLANE_MASK | S5P_CIOCTRL_RGB16FMT_MASK);
+ 
+-	if (frame->fmt->colplanes == 1)
++	if (fmt->colplanes == 1)
+ 		cfg |= ctx->out_order_1p;
+-	else if (frame->fmt->colplanes == 2)
++	else if (fmt->colplanes == 2)
+ 		cfg |= ctx->out_order_2p | S5P_CIOCTRL_YCBCR_2PLANE;
+-	else if (frame->fmt->colplanes == 3)
++	else if (fmt->colplanes == 3)
+ 		cfg |= S5P_CIOCTRL_YCBCR_3PLANE;
+ 
++	if (fmt->color == S5P_FIMC_RGB565)
++		cfg |= S5P_CIOCTRL_RGB565;
++	else if (fmt->color == S5P_FIMC_RGB555)
++		cfg |= S5P_CIOCTRL_ARGB1555;
++	else if (fmt->color == S5P_FIMC_RGB444)
++		cfg |= S5P_CIOCTRL_ARGB4444;
++
+ 	writel(cfg, dev->regs + S5P_CIOCTRL);
+ }
+ 
+@@ -278,22 +286,28 @@ static void fimc_hw_set_scaler(struct fimc_ctx *ctx)
+ 	if (sc->copy_mode)
+ 		cfg |= S5P_CISCCTRL_ONE2ONE;
+ 
+-
+ 	if (ctx->in_path == FIMC_DMA) {
+-		if (src_frame->fmt->color == S5P_FIMC_RGB565)
++		switch (src_frame->fmt->color) {
++		case S5P_FIMC_RGB565:
+ 			cfg |= S5P_CISCCTRL_INRGB_FMT_RGB565;
+-		else if (src_frame->fmt->color == S5P_FIMC_RGB666)
++			break;
++		case S5P_FIMC_RGB666:
+ 			cfg |= S5P_CISCCTRL_INRGB_FMT_RGB666;
+-		else if (src_frame->fmt->color == S5P_FIMC_RGB888)
++			break;
++		case S5P_FIMC_RGB888:
+ 			cfg |= S5P_CISCCTRL_INRGB_FMT_RGB888;
++			break;
++		}
+ 	}
+ 
+ 	if (ctx->out_path == FIMC_DMA) {
+-		if (dst_frame->fmt->color == S5P_FIMC_RGB565)
++		u32 color = dst_frame->fmt->color;
++
++		if (color >= S5P_FIMC_RGB444 && color <= S5P_FIMC_RGB565)
+ 			cfg |= S5P_CISCCTRL_OUTRGB_FMT_RGB565;
+-		else if (dst_frame->fmt->color == S5P_FIMC_RGB666)
++		else if (color == S5P_FIMC_RGB666)
+ 			cfg |= S5P_CISCCTRL_OUTRGB_FMT_RGB666;
+-		else if (dst_frame->fmt->color == S5P_FIMC_RGB888)
++		else if (color == S5P_FIMC_RGB888)
+ 			cfg |= S5P_CISCCTRL_OUTRGB_FMT_RGB888;
+ 	} else {
+ 		cfg |= S5P_CISCCTRL_OUTRGB_FMT_RGB888;
+@@ -379,6 +393,21 @@ void fimc_hw_set_effect(struct fimc_ctx *ctx, bool active)
+ 	writel(cfg, dev->regs + S5P_CIIMGEFF);
+ }
+ 
++void fimc_hw_set_rgb_alpha(struct fimc_ctx *ctx)
++{
++	struct fimc_dev *dev = ctx->fimc_dev;
++	struct fimc_frame *frame = &ctx->d_frame;
++	u32 cfg;
++
++	if (!(frame->fmt->flags & FMT_HAS_ALPHA))
++		return;
++
++	cfg = readl(dev->regs + S5P_CIOCTRL);
++	cfg &= ~S5P_CIOCTRL_ALPHA_OUT_MASK;
++	cfg |= (frame->alpha << 4);
++	writel(cfg, dev->regs + S5P_CIOCTRL);
++}
++
+ static void fimc_hw_set_in_dma_size(struct fimc_ctx *ctx)
+ {
+ 	struct fimc_dev *dev = ctx->fimc_dev;
+diff --git a/drivers/media/video/s5p-fimc/regs-fimc.h b/drivers/media/video/s5p-fimc/regs-fimc.h
+index c8e3b94..c7a5bc5 100644
+--- a/drivers/media/video/s5p-fimc/regs-fimc.h
++++ b/drivers/media/video/s5p-fimc/regs-fimc.h
+@@ -107,6 +107,11 @@
+ #define S5P_CIOCTRL_YCBCR_3PLANE	(0 << 3)
+ #define S5P_CIOCTRL_YCBCR_2PLANE	(1 << 3)
+ #define S5P_CIOCTRL_YCBCR_PLANE_MASK	(1 << 3)
++#define S5P_CIOCTRL_ALPHA_OUT_MASK	(0xff << 4)
++#define S5P_CIOCTRL_RGB16FMT_MASK	(3 << 16)
++#define S5P_CIOCTRL_RGB565		(0 << 16)
++#define S5P_CIOCTRL_ARGB1555		(1 << 16)
++#define S5P_CIOCTRL_ARGB4444		(2 << 16)
+ #define S5P_CIOCTRL_ORDER2P_SHIFT	(24)
+ #define S5P_CIOCTRL_ORDER2P_MASK	(3 << 24)
+ #define S5P_CIOCTRL_ORDER422_2P_LSB_CRCB (0 << 24)
 -- 
-Josu Lazkano
+1.7.7.2
+
