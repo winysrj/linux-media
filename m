@@ -1,77 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:49467 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754764Ab1KKJzS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Nov 2011 04:55:18 -0500
-Received: by wyh15 with SMTP id 15so3657369wyh.19
-        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2011 01:55:16 -0800 (PST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: FE_CAN-bits (was: Re: PATCH: Query DVB frontend capabilities)
-Date: Fri, 11 Nov 2011 10:55:11 +0100
-Cc: Manu Abraham <abraham.manu@gmail.com>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Steven Toth <stoth@kernellabs.com>
-References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com> <CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com> <4EBC402E.20208@redhat.com>
-In-Reply-To: <4EBC402E.20208@redhat.com>
+Received: from ffm.saftware.de ([83.141.3.46]:50476 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755945Ab1KXRvv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 12:51:51 -0500
+Message-ID: <4ECE8434.5060106@linuxtv.org>
+Date: Thu, 24 Nov 2011 18:51:48 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com> <4ECE79F5.9000402@linuxtv.org> <201111241844.23292.hverkuil@xs4all.nl>
+In-Reply-To: <201111241844.23292.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201111111055.12496.pboettcher@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On Thursday, November 10, 2011 10:20:46 PM Mauro Carvalho Chehab wrote:
+On 24.11.2011 18:44, Hans Verkuil wrote:
+> On Thursday, November 24, 2011 18:08:05 Andreas Oberritter wrote:
+>> Don't break existing Userspace APIs for no reason! It's OK to add the
+>> new API, but - pretty please - don't just blindly remove audio.h and
+>> video.h. They are in use since many years by av7110, out-of-tree drivers
+>> *and more importantly* by applications. Yes, I know, you'd like to see
+>> those out-of-tree drivers merged, but it isn't possible for many
+>> reasons. And even if they were merged, you'd say "Port them and your
+>> apps to V4L". No! That's not an option.
 > 
-> We should also think on a way to enumerate the supported values for each
-> DVB properties, the enum fe_caps is not enough anymore to store
-> everything. It currently has 30 bits filled (of a total of 32 bits), and
-> we currently have:
-> 	12 code rates (including AUTO/NONE);
-> 	13 modulation types;
-> 	7 transmission modes;
-> 	7 bandwidths;
-> 	8 guard intervals (including AUTO);
-> 	5 hierarchy names;
-> 	4 rolloff's (probably, we'll need to add 2 more, to distinguish between
-> DVB-C Annex A and Annex C).
+> I'm not breaking anything. All apps will still work.
 > 
-> So, if we would need to add one CAN_foo for each of the above, we would
-> need 56 to 58 bits, plus 5-6 bits to the other capabilities that
-> currently exists there. So, even 64 bits won't be enough for the current
-> needs (even having the delivery system caps addressed by something
-> else).
+> One option (and it depends on whether people like it or not) is to have
+> audio.h, video.h and osd.h just include av7110.h and add a #warning
+> that these headers need to be replaced by the new av7110.h.
+> 
+> And really remove them at some point in the future.
+> 
+> But the important thing to realize is that the ABI hasn't changed (unless
+> I made a mistake somewhere).
 
-IMHO, we don't need such a fine FE_CAN_-bit distinguishing for most 
-standards. A well defined sub-standard definition is sufficient, which can be 
-handled with a delivery-system-like query as proposed in the original patch. 
-This also will be much simpler for most user-space applications and users.
+So why don't you just leave the headers where they are and add a notice
+about the new V4L API as a comment?
 
-DVB-T means: 
-- 8K or 2K, 
-- 1/4-1/32 Guard, 
-- 1/2, 2/3, 3/4, 5/6 and 7/8 coderate, 
-- QPSK, 64QAM or 16QAM
+What you proposed breaks compilation. If you add a warning, it breaks
+compilation for programs compiled with -Werror. Both are regressions.
 
-DVB-H (RIP as Remi wrote somewhere) would have meant:
-- DVB-T + 4K + in-depth-interleaver mode
-
-The same applies to ISDB-T and ISDB-T 1seg. And for CMMB, CTTB, DVB-SH. 
-
-If there are demods which can't do one particular thing, we should forget 
-about them. At least this is what almost all applications I have seen so far 
-are doing implicitly. 
-
-Though, I see at least one inconvenience is if someone is using linux-dvb 
-for developping dsp-software and wants to deliver things which aren't done. 
-But is this a case we want to "support" within the official API.
-
-regards,
---
-Patrick Boettcher - KernelLabs
-http://www.kernellabs.com/
+Regards,
+Andreas
