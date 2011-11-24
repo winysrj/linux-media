@@ -1,48 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13891 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:25273 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753248Ab1KKSlp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Nov 2011 13:41:45 -0500
-Message-ID: <4EBD6C5F.3050703@redhat.com>
-Date: Fri, 11 Nov 2011 16:41:35 -0200
+	id S1756674Ab1KXRFf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 12:05:35 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pAOH5YBf032223
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 24 Nov 2011 12:05:34 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 2/2] [media] firedtv-avc: Fix compilation warnings
+Date: Thu, 24 Nov 2011 15:05:21 -0200
+Message-Id: <1322154321-24028-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1322154321-24028-1-git-send-email-mchehab@redhat.com>
+References: <1322154321-24028-1-git-send-email-mchehab@redhat.com>
 MIME-Version: 1.0
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com
-Subject: Re: [PATCH v3 0/3] fbdev: Add FOURCC-based format configuration API
-References: <1314789501-824-1-git-send-email-laurent.pinchart@ideasonboard.com> <4E764B35.2090009@gmx.de> <201109182249.39536.laurent.pinchart@ideasonboard.com> <4EBD4DD1.7030809@gmx.de>
-In-Reply-To: <4EBD4DD1.7030809@gmx.de>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 11-11-2011 14:31, Florian Tobias Schandinat escreveu:
-> On 09/18/2011 08:49 PM, Laurent Pinchart wrote:
->>> As the second patch has nothing to do with fbdev it should go mainline via
->>> V4L2. Any problems/comments?
->>
->> The NV24/42 patch will need to reach mainline before the sh_mobile_lcdc YUV 
->> API patch, or compilation will break.
->>
->> Mauro, what's your preference ? Should the patch go through the media tree ? 
->> If so, how should we synchronize it with the fbdev tree ? Should I push it to 
->> 3.2 ?
-> 
-> ping
-> 
-> What's going on? I could carry the patch but I'd want an Ack to do so.
+drivers/media/dvb/firewire/firedtv-avc.c: In function ‘avc_tuner_tuneqpsk’:
+drivers/media/dvb/firewire/firedtv-avc.c:394:4: warning: enumeration value ‘ROLLOFF_15’ not handled in switch [-Wswitch]
+drivers/media/dvb/firewire/firedtv-avc.c:394:4: warning: enumeration value ‘ROLLOFF_13’ not handled in switch [-Wswitch]
 
-I think I had answered it before, on some previous version. I'm OK if you merge
-it via your tree.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/firewire/firedtv-avc.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-Just replied to the patch with my ACK.
-
-> 
-> 
-> Best regards,
-> 
-> Florian Tobias Schandinat
+diff --git a/drivers/media/dvb/firewire/firedtv-avc.c b/drivers/media/dvb/firewire/firedtv-avc.c
+index 489ae82..9debf0f 100644
+--- a/drivers/media/dvb/firewire/firedtv-avc.c
++++ b/drivers/media/dvb/firewire/firedtv-avc.c
+@@ -392,10 +392,11 @@ static int avc_tuner_tuneqpsk(struct firedtv *fdtv,
+ 			default:		c->operand[13] = 0x2; break;
+ 			}
+ 			switch (fdtv->fe.dtv_property_cache.rolloff) {
+-			case ROLLOFF_AUTO:	c->operand[14] = 0x2; break;
+ 			case ROLLOFF_35:	c->operand[14] = 0x2; break;
+ 			case ROLLOFF_20:	c->operand[14] = 0x0; break;
+ 			case ROLLOFF_25:	c->operand[14] = 0x1; break;
++			case ROLLOFF_AUTO:
++			default:		c->operand[14] = 0x2; break;
+ 			/* case ROLLOFF_NONE:	c->operand[14] = 0xff; break; */
+ 			}
+ 			switch (fdtv->fe.dtv_property_cache.pilot) {
+-- 
+1.7.7.1
 
