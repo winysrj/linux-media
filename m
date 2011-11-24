@@ -1,64 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog111.obsmtp.com ([207.126.144.131]:38232 "EHLO
-	eu1sys200aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752605Ab1KCOFd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Nov 2011 10:05:33 -0400
-From: Alain VOLMAT <alain.volmat@st.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Thu, 3 Nov 2011 15:05:20 +0100
-Subject: RE: MediaController support in LinuxDVB demux
-Message-ID: <E27519AE45311C49887BE8C438E68FAA01010C61F643@SAFEX1MAIL1.st.com>
-References: <E27519AE45311C49887BE8C438E68FAA01010C61F5A6@SAFEX1MAIL1.st.com>
- <4EB294C9.90204@redhat.com>
-In-Reply-To: <4EB294C9.90204@redhat.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from ffm.saftware.de ([83.141.3.46]:49020 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750789Ab1KXSHl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 13:07:41 -0500
+Message-ID: <4ECE87EA.9000001@linuxtv.org>
+Date: Thu, 24 Nov 2011 19:07:38 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com> <4ECE79F5.9000402@linuxtv.org> <201111241844.23292.hverkuil@xs4all.nl> <4ECE8434.5060106@linuxtv.org> <4ECE85CE.7040807@redhat.com>
+In-Reply-To: <4ECE85CE.7040807@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgTWF1cm8NCg0KPiA+IER1cmluZyBsYXN0IHdvcmtzaG9wLCBJIHRoaW5rIHdlIGFncmVlZCB0
-aGF0IGEgcGFkIHdvdWxkIHJlcHJlc2VudCBhDQo+IGRlbXV4IGZpbHRlci4NCj4gPiBNeSBwZXJz
-b25hbCBpZGVhIHdvdWxkIGJlIHRvIGhhdmUgZmlsdGVycyBjcmVhdGVkIHZpYSB0aGUgZGVtdXgN
-Cj4gZGV2aWNlIG5vZGUgYW5kIGZpbHRlcnMgYWNjZXNzaWJsZSB2aWEgTUMgcGFkcyB0b3RhbGx5
-IGluZGVwZW5kZW50Lg0KPiA+IE1lYW5pbmcgdGhhdCwganVzdCBhcyBjdXJyZW50IGRlbXV4LCBp
-dCBpcyBwb3NzaWJsZSB0byBvcGVuIHRoZSBkZW11eA0KPiBkZXZpY2Ugbm9kZSwgY3JlYXRlIGZp
-bHRlciwgc2V0IFBJRHMgZXRjLiBUaG9zZSBmaWx0ZXJzIGhhdmUgdG90YWxseSBubw0KPiByZWxh
-dGlvbiB3aXRoIE1DIHBhZHMsIGZpbHRlcnMgY3JlYXRlZCB2aWEgdGhlIGRlbXV4IGRldmljZSBu
-b2RlIGFyZQ0KPiBqdXN0IG5vdCBhY2Nlc3NpYmxlIHZpYSBNQyBwYWRzLg0KPiA+IEFzIGZhciBh
-cyBkZW11eCBNQyBwYWRzIGFyZSBjb25jZXJuZWQsIGl0IHdvdWxkIGJlIHBvc3NpYmxlIHRvIGxp
-bmsgYQ0KPiBwYWQgdG8gYW5vdGhlciBlbnRpdHkgcGFkIChwcm9iYWJseSBkZWNvZGVyIG9yIExp
-bnV4RFZCIENBKSBhbmQgdGh1cw0KPiBjcmVhdGUgYSBuZXcgZmlsdGVyIGluIHRoZSBkZW11eC4g
-Qnkgc2V0dGluZyB0aGUgZGVtdXggTUMgcGFkIGZvcm1hdA0KPiAobm90IHN1cmUgZm9ybWF0IGlz
-IHRoZSBwcm9wZXIgdGVybSBoZXJlKSwgaXQgd291bGQgYmUgcG9zc2libGUgdG8gc2V0DQo+IGZv
-ciBleGFtcGxlIHRoZSBQSUQgb2YgYSBmaWx0ZXIuDQo+ID4gSW50ZXJuYWxseSBvZiBjb3Vyc2Ug
-YWxsIGZpbHRlcnMgKE1DIGZpbHRlcnMgYW5kIGRlbXV4IGRldmljZSBub2RlDQo+IGZpbHRlcnMp
-IGFyZSBhbGwgdG9nZXRoZXIgYnV0IHRoZXkgYXJlIG9ubHkgYWNjZXNzaWJsZSB2aWEgZWl0aGVy
-IHRoZQ0KPiBkZW11eCBkZXZpY2Ugbm9kZSBvciB0aGUgTUMgcGFkLg0KPiANCj4gV2UgbmVlZCB0
-byB0aGluayBhIGxpdHRsZSBtb3JlIGFib3V0IHRoYXQuIEluIHByaW5jaXBsZSwgaXQgZG9lc24n
-dA0KPiBzb3VuZCBhIGdvb2QgaWRlYQ0KPiB0byBtZSB0byBoYXZlIGZpbHRlcnMgbXV0dWFsbHkg
-ZXhjbHVzaXZlIHRvIG9uZSBvZiB0aGUgQVBJJ3MsIGJ1dCBtYXliZQ0KPiB0aGVyZSBhcmUNCj4g
-c29tZSBpbXBsZW1lbnRhdGlvbiBhbmQvb3IgQVBJIHNwZWNpZmljIGRldGFpbHMgdGhhdCBtaWdo
-dCBmb3JjZSB1cyB0bw0KPiBnZXQgb24gdGhpcw0KPiBkaXJlY3Rpb24uDQoNClRoZSByZWFzb24g
-d2h5IEkgcHJvcG9zZSB0byBoYXZlIG11dGV4IG11dHVhbGx5IGV4Y2x1c2l2ZSBpcyB0aGF0IEkg
-dGhpbmsgaXQgaXMgaGFyZCB0byBmaWd1cmUgb3V0IHRoZSByZWxhdGlvbiBiZXR3ZWVuIGEgZmls
-ZSBoYW5kbGUgYW5kIGEgUEFELg0KTWVhbmluZywgeW91IGNvdWxkIG9wZW4gdGhlIGRlbXV4IGRl
-dmljZSBmaWxlLCB0aGVuIGNyZWF0ZSBhIGZpbHRlciBhbmQgc2V0IGEgUElEIGZvciBpbnN0YW5j
-ZSBidXQgaG93IHdvdWxkIHlvdSBmaWd1cmUgb3V0IHdoaWNoIHBhZCBpcyBjb3JyZXNwb25kaW5n
-IHRvIHRoZSBmaWx0ZXIgeW91J3ZlIGp1c3QgY3JlYXRlZCB2aWEgdGhlIGRlbXV4IGRldmljZSBm
-aWxlLiBIYXZpbmcgTUMgZmlsdGVycyBhbmQgZGVtdXggZGV2aWNlIG5vZGUgZmlsdGVyIHNlcGFy
-YXRlbHkgYWxzbyBoZWxwIG5vdCB0byBicmVhayBleGlzdGluZyBMaW51eERWQiBkZW11eCBBUEku
-DQoNCj4gU28sIEknZCBzYXkgdGhhdCB3ZSBzaG91bGQgdHJ5IHRvIHdyaXRlIGEgcGF0Y2ggZm9y
-IGl0IGZpcnN0LCB0cnlpbmcgdG8NCj4gYWxsb3cNCj4gc2V0dGluZyBpdCB2aWEgYm90aCBBUEkn
-cyBhbmQgdGhlbiBkaXNjdXNzIGFib3V0IGltcGxlbWVudGF0aW9uLQ0KPiBzcGVjaWZpYyBpc3N1
-ZXMsDQo+IGlmIHRoaXMgaXMgbm90IGZlYXNpYmxlLCBvciB3b3VsZCBiZSB2ZXJ5IG1lc3N5Lg0K
-DQpDdXJyZW50bHksIG9mIGRyaXZlcnMgaW50ZWdyYXRlZCBpbiB1cHN0cmVhbSBsaW51eCwgSSBn
-dWVzcyB0aGF0IG9ubHkgdGhlIGF2NzExMCBkcml2ZXIgKHRvbyBvbGQgcmlnaHQpIGlzIGFjdHVh
-bGx5IGhhdmluZyB0aGUgZGVtdXggb3V0cHV0IHB1c2hlZCB0byBzb21ldGhpbmcgb3RoZXIgdGhh
-biB1c2VyIGxhbmQgcmlnaHQgPyAoaW4gdGhpcyBjYXNlIHRoZSBkZWNvZGVyKS4gSW1wbGVtZW50
-aW5nIE1DIHN1cHBvcnQgZm9yIHRoZSBrZXJuZWwgZGVtdXggZHJpdmVyIHdvdWxkIGJlIHBvc3Np
-YmxlIEkgdGhpbmsgYnV0IHByb2JhYmx5IG5vdCByZWFsbHkgbWVhbmluZ2Z1bCBzaW5jZSBoYXZp
-bmcgcGFkcyB3b3VsZG4ndCBoZWxwIG11Y2ggLi4uDQoNClJlZ2FyZHMsDQoNCkFsYWluDQo=
+On 24.11.2011 18:58, Mauro Carvalho Chehab wrote:
+> Em 24-11-2011 15:51, Andreas Oberritter escreveu:
+>> On 24.11.2011 18:44, Hans Verkuil wrote:
+>>> On Thursday, November 24, 2011 18:08:05 Andreas Oberritter wrote:
+>>>> Don't break existing Userspace APIs for no reason! It's OK to add the
+>>>> new API, but - pretty please - don't just blindly remove audio.h and
+>>>> video.h. They are in use since many years by av7110, out-of-tree drivers
+>>>> *and more importantly* by applications. Yes, I know, you'd like to see
+>>>> those out-of-tree drivers merged, but it isn't possible for many
+>>>> reasons. And even if they were merged, you'd say "Port them and your
+>>>> apps to V4L". No! That's not an option.
+>>>
+>>> I'm not breaking anything. All apps will still work.
+>>>
+>>> One option (and it depends on whether people like it or not) is to have
+>>> audio.h, video.h and osd.h just include av7110.h and add a #warning
+>>> that these headers need to be replaced by the new av7110.h.
+>>>
+>>> And really remove them at some point in the future.
+>>>
+>>> But the important thing to realize is that the ABI hasn't changed (unless
+>>> I made a mistake somewhere).
+>>
+>> So why don't you just leave the headers where they are and add a notice
+>> about the new V4L API as a comment?
+>>
+>> What you proposed breaks compilation. If you add a warning, it breaks
+>> compilation for programs compiled with -Werror. Both are regressions.
+> 
+> I don't mind doing it for 3.3 kernel, and add a note at
+> Documentation/feature-removal-schedule.txt that the
+> headers will go away on 3.4. This should give distributions
+> and app developers enough time to prevent build failures, and
+> prepare for the upcoming changes.
+
+Are you serious?
+
+Breaking things that worked well for many years - for an artificially
+invented reason - is so annoying, I can't even find the words to express
+how much this sucks.
