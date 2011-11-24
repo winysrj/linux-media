@@ -1,78 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:48711 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750783Ab1KKBpt (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38645 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752621Ab1KXLJN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Nov 2011 20:45:49 -0500
-Received: by yenr9 with SMTP id r9so2649345yen.19
-        for <linux-media@vger.kernel.org>; Thu, 10 Nov 2011 17:45:48 -0800 (PST)
+	Thu, 24 Nov 2011 06:09:13 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH/RFC 1/2] v4l: Add a global color alpha control
+Date: Thu, 24 Nov 2011 12:09:09 +0100
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	m.szyprowski@samsung.com, jonghun.han@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+References: <1322131997-26195-1-git-send-email-s.nawrocki@samsung.com> <1322131997-26195-2-git-send-email-s.nawrocki@samsung.com> <201111241200.45479.hverkuil@xs4all.nl>
+In-Reply-To: <201111241200.45479.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
-References: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
-Date: Thu, 10 Nov 2011 20:45:48 -0500
-Message-ID: <CAGoCfiz5O4_GHnYWtt4RQsRCWV7iXEh8DYYNFX1_R7Ni2e3Yvg@mail.gmail.com>
-Subject: Re: [PATCH 00/25] Add PCTV-80e Support to v4l
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Patrick Dickey <pdickeybeta@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111241209.12377.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 10, 2011 at 6:31 PM, Patrick Dickey <pdickeybeta@gmail.com> wrote:
-> These are the files required to support the Pinnacle PCTV-80e USB Tuner in
-> video-4-linux. The files were originally downloaded from
-> http://www.kernellabs.com/hg/~dheitmueller/v4l-dvb-80e and modified to fix
-> compilation errors and also to move the driver files from the drx39xy
-> subdirectory to the frontends directory.
-<snip>
+Hi Sylwester and Hans,
 
-Hi Patrick,
+On Thursday 24 November 2011 12:00:45 Hans Verkuil wrote:
+> On Thursday, November 24, 2011 11:53:16 Sylwester Nawrocki wrote:
+> > This control is intended for video capture or memory-to-memory
+> > devices that are capable of setting up the alpha conponent to
+> > some arbitrary value.
+> > The V4L2_CID_COLOR_ALPHA control allows to set the alpha channel
+> > globally to a value in range from 0 to 255.
+> > 
+> > Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > ---
+> > 
+> >  Documentation/DocBook/media/v4l/controls.xml       |   20
+> >  ++++++++++++++------ .../DocBook/media/v4l/pixfmt-packed-rgb.xml       
+> >  |    7 +++++-- drivers/media/video/v4l2-ctrls.c                   |   
+> >  7 +++++++ include/linux/videodev2.h                          |    6
+> >  +++--- 4 files changed, 29 insertions(+), 11 deletions(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> > b/Documentation/DocBook/media/v4l/controls.xml index 3bc5ee8..7f99222
+> > 100644
+> > --- a/Documentation/DocBook/media/v4l/controls.xml
+> > +++ b/Documentation/DocBook/media/v4l/controls.xml
+> > @@ -324,12 +324,6 @@ minimum value disables backlight
+> > compensation.</entry>
+> > 
+> >  		(usually a microscope).</entry>
+> >  		
+> >  	  </row>
+> >  	  <row>
+> > 
+> > -	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
+> > -	    <entry></entry>
+> > -	    <entry>End of the predefined control IDs (currently
+> > -<constant>V4L2_CID_ILLUMINATORS_2</constant> + 1).</entry>
+> > -	  </row>
+> > -	  <row>
+> > 
+> >  	    <entry><constant>V4L2_CID_MIN_BUFFERS_FOR_CAPTURE</constant></entry
+> >  	    > <entry>integer</entry>
+> >  	    <entry>This is a read-only control that can be read by the
+> >  	    application
+> > 
+> > @@ -345,6 +339,20 @@ and used as a hint to determine the number of OUTPUT
+> > buffers to pass to REQBUFS.
+> > 
+> >  The value is the minimum number of OUTPUT buffers that is necessary for
+> >  hardware to work.</entry>
+> >  
+> >  	  </row>
+> > 
+> > +	  <row id="v4l2-color-alpha">
+> > +	    <entry><constant>V4L2_CID_COLOR_ALPHA</constant></entry>
+> > +	    <entry>integer</entry>
+> > +	    <entry> Sets the color alpha component on the capture device. It is
+> > +	    applicable to any pixel formats that contain the alpha component,
+> > +	    e.g. <link linkend="rgb-formats">packed RGB image formats</link>.
+> > +	    </entry>
 
-It's great to see someone taking the time to work to get this
-upstream.  A few comments though:
+As the alpha value is global, isn't it applicable to formats with no alpha 
+component as well ?
 
-None of these patches appear to have an Signed-off-by line.  Since I'm
-the one vouching for the Micronas code being legitimately allowed to
-be submitted (in conformance with the Developer's Certificate of
-Origin), I am the one who needs to be the top signed-off-by (in fact,
-by arbitrarily breaking my tree into 25 patches, you effectively
-stripped off my authorship).
+> > +	  </row>
+> > +	  <row>
+> > +	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
+> > +	    <entry></entry>
+> > +	    <entry>End of the predefined control IDs (currently
+> > +	      <constant>V4L2_CID_COLOR_ALPHA</constant> + 1).</entry>
+> > +	  </row>
+> > 
+> >  	  <row>
+> >  	  
+> >  	    <entry><constant>V4L2_CID_PRIVATE_BASE</constant></entry>
+> >  	    <entry></entry>
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> > b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml index
+> > 4db272b..da4c360 100644
+> > --- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> > +++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> > @@ -428,8 +428,11 @@ colorspace
+> > <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+> > 
+> >      <para>Bit 7 is the most significant bit. The value of a = alpha
+> >  
+> >  bits is undefined when reading from the driver, ignored when writing
+> >  to the driver, except when alpha blending has been negotiated for a
+> > 
+> > -<link linkend="overlay">Video Overlay</link> or <link
+> > -linkend="osd">Video Output Overlay</link>.</para>
+> > +<link linkend="overlay">Video Overlay</link> or <link linkend="osd">
+> > +Video Output Overlay</link> or when global alpha has been configured
+> > +for a <link linkend="capture">Video Capture</link> by means of
+> > +<link linkend="v4l2-color-alpha"> <constant>V4L2_CID_COLOR_ALPHA
+> > +</constant> </link> control.</para>
+> > 
+> >      <example>
+> >      
+> >        <title><constant>V4L2_PIX_FMT_BGR24</constant> 4 &times; 4 pixel
+> > 
+> > diff --git a/drivers/media/video/v4l2-ctrls.c
+> > b/drivers/media/video/v4l2-ctrls.c index 5552f81..bd90955 100644
+> > --- a/drivers/media/video/v4l2-ctrls.c
+> > +++ b/drivers/media/video/v4l2-ctrls.c
+> > @@ -466,6 +466,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+> > 
+> >  	case V4L2_CID_ILLUMINATORS_2:		return "Illuminator 2";
+> >  	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:	return "Minimum Number of
+> >  	Capture Buffers"; case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT:	return
+> >  	"Minimum Number of Output Buffers";
+> > 
+> > +	case V4L2_CID_COLOR_ALPHA:		return "Color Alpha";
+> 
+> I prefer CID_ALPHA_COLOR and string "Alpha Color". I think it is more
+> natural than the other way around.
 
-Further, while it's commendable that you broke this into 25 patches, I
-think it's perfectly fine that it essentially be the two patches as
-found in my hg tree (plus the very minor change needed to get the code
-to compile against 3.x).  In fact, I suspect you could probably take
-my two patches, apply them to the current 3.x tree, fix the two or
-three conflicts, and have something that is submittable to staging.
+I'm not too found of "color" in the name. Is the alpha value considered as a 
+color ?
 
-It's not clear to me why you moved the driver files from
-frontends/drx39xxj to just frontends.  I don't think anybody has ever
-complained about having a subdirectory if there is a large enough set
-of files.  Did somebody ask you to do that and I didn't see the email?
-
-As you indicated, the code hasn't gone through any form of codingstyle
-cleanup, and as a result needs to go against the staging tree instead
-of the main tree.  You should consult with Mauro on how to approach
-this problem, because currently you cannot do a demodulator driver
-against staging because of the dependency on the em28xx bridge which
-is already in stable (adding Mauro to the cc: to get his opinion).
-
-In short, it almost feels like you did *too much* work given you
-didn't make any material changes to the code itself as it's in my
-tree.  I would suggest just submitting my two patches, and then on top
-of that you can submit a whole series of patches doing cleanups.
-
-And you should definitely review the following page on submitting
-patches if you haven't already:
-
-http://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
-
-Cheers,
-
-Devin
+> Other than that I'm OK with this.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> >  	/* MPEG controls */
+> >  	/* Keep the order of the 'case's the same as in videodev2.h! */
+> > 
+> > @@ -714,6 +715,12 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
+> > v4l2_ctrl_type *type,
+> > 
+> >  		/* Max is calculated as RGB888 that is 2^24 */
+> >  		*max = 0xFFFFFF;
+> >  		break;
+> > 
+> > +	case V4L2_CID_COLOR_ALPHA:
+> > +		*type = V4L2_CTRL_TYPE_INTEGER;
+> > +		*step = 1;
+> > +		*min = 0;
+> > +		*max = 0xff;
+> > +		break;
+> > 
+> >  	case V4L2_CID_FLASH_FAULT:
+> >  		*type = V4L2_CTRL_TYPE_BITMASK;
+> >  		break;
+> > 
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index 4b752d5..42192c1 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -1204,10 +1204,10 @@ enum v4l2_colorfx {
+> > 
+> >  #define V4L2_CID_MIN_BUFFERS_FOR_CAPTURE	(V4L2_CID_BASE+39)
+> >  #define V4L2_CID_MIN_BUFFERS_FOR_OUTPUT		(V4L2_CID_BASE+40)
+> > 
+> > -/* last CID + 1 */
+> > -#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+41)
+> > +#define V4L2_CID_COLOR_ALPHA			(V4L2_CID_BASE+41)
+> > 
+> > -/* Minimum number of buffer neede by the device */
+> > +/* last CID + 1 */
+> > +#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+42)
+> > 
+> >  /*  MPEG-class control IDs defined by V4L2 */
+> >  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
