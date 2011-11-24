@@ -1,61 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59390 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:11942 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753053Ab1KTO4b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Nov 2011 09:56:31 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pAKEuUP5028808
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 20 Nov 2011 09:56:30 -0500
+	id S1752397Ab1KXSZP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 13:25:15 -0500
+Message-ID: <4ECE8C06.2070302@redhat.com>
+Date: Thu, 24 Nov 2011 16:25:10 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 4/8] [media] xc5000: Add support for get_if_frequency
-Date: Sun, 20 Nov 2011 12:56:14 -0200
-Message-Id: <1321800978-27912-4-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1321800978-27912-3-git-send-email-mchehab@redhat.com>
-References: <1321800978-27912-1-git-send-email-mchehab@redhat.com>
- <1321800978-27912-2-git-send-email-mchehab@redhat.com>
- <1321800978-27912-3-git-send-email-mchehab@redhat.com>
+MIME-Version: 1.0
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com> <4ECE79F5.9000402@linuxtv.org> <201111241844.23292.hverkuil@xs4all.nl> <4ECE8434.5060106@linuxtv.org> <4ECE85CE.7040807@redhat.com> <4ECE87EA.9000001@linuxtv.org>
+In-Reply-To: <4ECE87EA.9000001@linuxtv.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is needed for devices with DRX-K and xc5000.
+Em 24-11-2011 16:07, Andreas Oberritter escreveu:
+> On 24.11.2011 18:58, Mauro Carvalho Chehab wrote:
+>> Em 24-11-2011 15:51, Andreas Oberritter escreveu:
+>>> On 24.11.2011 18:44, Hans Verkuil wrote:
+>>>> On Thursday, November 24, 2011 18:08:05 Andreas Oberritter wrote:
+>>>>> Don't break existing Userspace APIs for no reason! It's OK to add the
+>>>>> new API, but - pretty please - don't just blindly remove audio.h and
+>>>>> video.h. They are in use since many years by av7110, out-of-tree drivers
+>>>>> *and more importantly* by applications. Yes, I know, you'd like to see
+>>>>> those out-of-tree drivers merged, but it isn't possible for many
+>>>>> reasons. And even if they were merged, you'd say "Port them and your
+>>>>> apps to V4L". No! That's not an option.
+>>>>
+>>>> I'm not breaking anything. All apps will still work.
+>>>>
+>>>> One option (and it depends on whether people like it or not) is to have
+>>>> audio.h, video.h and osd.h just include av7110.h and add a #warning
+>>>> that these headers need to be replaced by the new av7110.h.
+>>>>
+>>>> And really remove them at some point in the future.
+>>>>
+>>>> But the important thing to realize is that the ABI hasn't changed (unless
+>>>> I made a mistake somewhere).
+>>>
+>>> So why don't you just leave the headers where they are and add a notice
+>>> about the new V4L API as a comment?
+>>>
+>>> What you proposed breaks compilation. If you add a warning, it breaks
+>>> compilation for programs compiled with -Werror. Both are regressions.
+>>
+>> I don't mind doing it for 3.3 kernel, and add a note at
+>> Documentation/feature-removal-schedule.txt that the
+>> headers will go away on 3.4. This should give distributions
+>> and app developers enough time to prevent build failures, and
+>> prepare for the upcoming changes.
+> 
+> Are you serious?
+> 
+> Breaking things that worked well for many years - for an artificially
+> invented reason - is so annoying, I can't even find the words to express
+> how much this sucks.
 
-Tested with a HVR 930C hardware.
+Andreas,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/xc5000.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+All the in-kernel API's are there to support in-kernel drivers.
 
-diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
-index 88b329c..ecd1f95 100644
---- a/drivers/media/common/tuners/xc5000.c
-+++ b/drivers/media/common/tuners/xc5000.c
-@@ -968,6 +968,14 @@ static int xc5000_get_frequency(struct dvb_frontend *fe, u32 *freq)
- 	return 0;
- }
- 
-+static int xc5000_get_if_frequency(struct dvb_frontend *fe, u32 *freq)
-+{
-+	struct xc5000_priv *priv = fe->tuner_priv;
-+	dprintk(1, "%s()\n", __func__);
-+	*freq = priv->if_khz * 1000;
-+	return 0;
-+}
-+
- static int xc5000_get_bandwidth(struct dvb_frontend *fe, u32 *bw)
- {
- 	struct xc5000_priv *priv = fe->tuner_priv;
-@@ -1108,6 +1116,7 @@ static const struct dvb_tuner_ops xc5000_tuner_ops = {
- 	.set_params	   = xc5000_set_params,
- 	.set_analog_params = xc5000_set_analog_params,
- 	.get_frequency	   = xc5000_get_frequency,
-+	.get_if_frequency  = xc5000_get_if_frequency,
- 	.get_bandwidth	   = xc5000_get_bandwidth,
- 	.get_status	   = xc5000_get_status
- };
--- 
-1.7.7.1
+Out of tree drivers can do whatever they want. As you likely know, several STB 
+vendors have their own API's. 
 
+Some use some variants of DVBv3 or DVBv5, and some use their own proprietary
+API's, that are even incompatible with DVB (and some even provide both).
+
+Even the ones that use DVBv3 (or v5) have their own implementation that diverges
+from the upstream one.
+
+Provided that such vendors don't violate the Kernel GPLv2 license where it applies, 
+they're free do do whatever they want, forking the DVB API, or creating their own
+stacks.
+
+So, keeping the in-kernel unused ioctl's don't bring any real benefit, as vendors
+can still do their forks, and applications designed to work with those hardware 
+need to support the vendor's stack.
+
+On the other hand, keeping an outdated API that doesn't fit well for the vendors
+that want to upstream their STB drivers is bad, as it creates confusion for
+them, and prevents innovation, as they may try to workaround on the limitation of
+an API designed for the first generation DVB standards.
+
+That's what Hans patches are addressing.
+
+If you have a better approach, feel free to suggest it, provided that, at the end,
+the API that aren't used by non-legacy drivers are removed (or moved to driver's
+specific ioctl's).
+
+Regards,
+Mauro
