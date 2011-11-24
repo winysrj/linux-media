@@ -1,50 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41120 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751795Ab1K1QBW (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:35156 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753460Ab1KXIuX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 11:01:22 -0500
-Date: Mon, 28 Nov 2011 16:00:55 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: linux-arm-kernel@lists.infradead.org, g.liakhovetski@gmx.de,
-	josh.wu@atmel.com, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] V4L: atmel-isi: add code to enable/disable
-	ISI_MCK clock
-Message-ID: <20111128160055.GD11432@n2100.arm.linux.org.uk>
-References: <1322487284-3381-1-git-send-email-nicolas.ferre@atmel.com>
+	Thu, 24 Nov 2011 03:50:23 -0500
+Date: Thu, 24 Nov 2011 10:50:19 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [Query] V4L2 Integer (?) menu control
+Message-ID: <20111124085018.GF27136@valkosipuli.localdomain>
+References: <4ECD730E.3080808@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1322487284-3381-1-git-send-email-nicolas.ferre@atmel.com>
+In-Reply-To: <4ECD730E.3080808@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 28, 2011 at 02:34:44PM +0100, Nicolas Ferre wrote:
-> From: Josh Wu <josh.wu@atmel.com>
+On Wed, Nov 23, 2011 at 11:26:22PM +0100, Sylwester Nawrocki wrote:
+> Hi,
 > 
-> This patch
-> - add ISI_MCK clock enable/disable code.
-> - change field name in isi_platform_data structure
+> I was wondering how to implement in v4l2 a standard menu control having integer 
+> values as the menu items. The menu item values would be irregular, e.g. ascending
+> logarithmically and thus the step value would not be a constant.
+> I'm not interested in private control and symbolic enumeration for each value at
+> the series. It should be a standard control where drivers could define an array 
+> of integers reflecting the control menu items. And then the applications could
+> enumerate what integer values are valid and can be happily applied to a device.  
 > 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> [g.liakhovetski@gmx.de: fix label names]
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-> ---
-> Guennadi,
-> 
-> Here is the pach form Josh and yourself about the Atmel ISI driver
-> modifications. I have rebased it on top of 3.2-rc3 (and tested it on
-> linux-next also).
-> I plan to submit the board/device related patches (2-3/3 of this series) to
-> the arm-soc tree real soon. Do you whant me to include this one or can you
-> schedulle an inclusion in mainline for 3.3?
+> I don't seem to find a way to implement this in current v4l2 control framework. 
+> Such functionality isn't there, or is it ?
 
-While you're doing this, why not also prepare for the common clk API by
-adding support for clk_prepare()/clk_unprepare() to these drivers?
+Hi Sylwester,
 
-We are actually now at the point where we should be saying a firm no to
-any new introductions of clk_enable()/clk_disable() without there being
-corresponding clk_prepare()/clk_unprepare() calls for that clk.
+There is not currently, but I have patches for it. The issue is that I need
+them myself but the driver I need them for isn't ready to be released yet.
+And as usual, I assume others than vivo is required to show they're really
+useful so I haven't sent them.
+
+Good that you asked so we won't end up writing essentially the same code
+again. I'll try to send the patches today.
+
+Kind regards,
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
