@@ -1,352 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:47401 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753476Ab1K2Rze (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Nov 2011 12:55:34 -0500
-Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LVF000TJOGJFO@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 29 Nov 2011 17:55:31 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LVF00JM5OGIAZ@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 29 Nov 2011 17:55:31 +0000 (GMT)
-Date: Tue, 29 Nov 2011 18:55:25 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 1/3] v4l-ctrl: Add a method for control value range update
-In-reply-to: <1322589327-4415-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, m.szyprowski@samsung.com,
-	jonghun.han@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com
-Message-id: <1322589327-4415-2-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1322589327-4415-1-git-send-email-s.nawrocki@samsung.com>
+Received: from nm5.bullet.mail.ukl.yahoo.com ([217.146.182.226]:30706 "HELO
+	nm5.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753850Ab1KXTJX convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 14:09:23 -0500
+Message-ID: <1322161379.18402.YahooMailNeo@web28008.mail.ukl.yahoo.com>
+Date: Thu, 24 Nov 2011 19:02:59 +0000 (GMT)
+From: Stefan Macher <maker76s@yahoo.de>
+Reply-To: Stefan Macher <maker76s@yahoo.de>
+Subject: BUG: scheduling while atomic: kworker/0:0/0/0x00000100
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hverkuil@xs4all.nl>
 
----
-This patch is not for merging, I'm just resending it as patch 3/3 depends on
-this one.
 
----
- drivers/media/video/v4l2-ctrls.c |  147 +++++++++++++++++++++++++++-----------
- include/linux/videodev2.h        |    1 +
- include/media/v4l2-ctrls.h       |   17 +++++
- 3 files changed, 122 insertions(+), 43 deletions(-)
+Hi,
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 5552f81..b59b00a 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -912,8 +912,7 @@ static int new_to_user(struct v4l2_ext_control *c,
- }
- 
- /* Copy the new value to the current value. */
--static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
--						bool update_inactive)
-+static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, u32 ch_flags)
- {
- 	bool changed = false;
- 
-@@ -937,8 +936,8 @@ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
- 		ctrl->cur.val = ctrl->val;
- 		break;
- 	}
--	if (update_inactive) {
--		/* Note: update_inactive can only be true for auto clusters. */
-+	if (ch_flags & V4L2_EVENT_CTRL_CH_FLAGS) {
-+		/* Note: CH_FLAGS is only set for auto clusters. */
- 		ctrl->flags &=
- 			~(V4L2_CTRL_FLAG_INACTIVE | V4L2_CTRL_FLAG_VOLATILE);
- 		if (!is_cur_manual(ctrl->cluster[0])) {
-@@ -947,14 +946,13 @@ static void new_to_cur(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
- 				ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
- 		}
- 	}
--	if (changed || update_inactive) {
-+	if (changed || ch_flags) {
- 		/* If a control was changed that was not one of the controls
- 		   modified by the application, then send the event to all. */
- 		if (!ctrl->is_new)
- 			fh = NULL;
- 		send_event(fh, ctrl,
--			(changed ? V4L2_EVENT_CTRL_CH_VALUE : 0) |
--			(update_inactive ? V4L2_EVENT_CTRL_CH_FLAGS : 0));
-+			(changed ? V4L2_EVENT_CTRL_CH_VALUE : 0) | ch_flags);
- 	}
- }
- 
-@@ -1288,6 +1286,40 @@ unlock:
- 	return 0;
- }
- 
-+/* Control range checking */
-+static int check_range(enum v4l2_ctrl_type type,
-+		s32 min, s32 max, u32 step, s32 def)
-+{
-+	switch (type) {
-+	case V4L2_CTRL_TYPE_BOOLEAN:
-+		if (step != 1 || max > 1 || min < 0)
-+			return -ERANGE;
-+		/* fall through */
-+	case V4L2_CTRL_TYPE_INTEGER:
-+		if (step <= 0 || min > max || def < min || def > max)
-+			return -ERANGE;
-+		return 0;
-+	case V4L2_CTRL_TYPE_BITMASK:
-+		if (step || min || !max || (def & ~max))
-+			return -ERANGE;
-+		return 0;
-+	case V4L2_CTRL_TYPE_MENU:
-+		if (min > max || def < min || def > max)
-+			return -ERANGE;
-+		/* Note: step == menu_skip_mask for menu controls.
-+		   So here we check if the default value is masked out. */
-+		if (step && ((1 << def) & step))
-+			return -EINVAL;
-+		return 0;
-+	case V4L2_CTRL_TYPE_STRING:
-+		if (min > max || min < 0 || step < 1 || def)
-+			return -ERANGE;
-+		return 0;
-+	default:
-+		return 0;
-+	}
-+}
-+
- /* Add a new control */
- static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
-@@ -1297,32 +1329,20 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- {
- 	struct v4l2_ctrl *ctrl;
- 	unsigned sz_extra = 0;
-+	int err;
- 
- 	if (hdl->error)
- 		return NULL;
- 
- 	/* Sanity checks */
- 	if (id == 0 || name == NULL || id >= V4L2_CID_PRIVATE_BASE ||
--	    (type == V4L2_CTRL_TYPE_INTEGER && step == 0) ||
--	    (type == V4L2_CTRL_TYPE_BITMASK && max == 0) ||
--	    (type == V4L2_CTRL_TYPE_MENU && qmenu == NULL) ||
--	    (type == V4L2_CTRL_TYPE_STRING && max == 0)) {
--		handler_set_err(hdl, -ERANGE);
--		return NULL;
--	}
--	if (type != V4L2_CTRL_TYPE_BITMASK && max < min) {
-+	    (type == V4L2_CTRL_TYPE_MENU && qmenu == NULL)) {
- 		handler_set_err(hdl, -ERANGE);
- 		return NULL;
- 	}
--	if ((type == V4L2_CTRL_TYPE_INTEGER ||
--	     type == V4L2_CTRL_TYPE_MENU ||
--	     type == V4L2_CTRL_TYPE_BOOLEAN) &&
--	    (def < min || def > max)) {
--		handler_set_err(hdl, -ERANGE);
--		return NULL;
--	}
--	if (type == V4L2_CTRL_TYPE_BITMASK && ((def & ~max) || min || step)) {
--		handler_set_err(hdl, -ERANGE);
-+	err = check_range(type, min, max, step, def);
-+	if (err) {
-+		handler_set_err(hdl, err);
- 		return NULL;
- 	}
- 
-@@ -2060,7 +2080,7 @@ EXPORT_SYMBOL(v4l2_ctrl_g_ctrl);
-    copied to the current value on a set.
-    Must be called with ctrl->handler->lock held. */
- static int try_or_set_cluster(struct v4l2_fh *fh,
--			      struct v4l2_ctrl *master, bool set)
-+			      struct v4l2_ctrl *master, bool set, u32 ch_flags)
- {
- 	bool update_flag;
- 	int ret;
-@@ -2098,7 +2118,8 @@ static int try_or_set_cluster(struct v4l2_fh *fh,
- 	/* If OK, then make the new values permanent. */
- 	update_flag = is_cur_manual(master) != is_new_manual(master);
- 	for (i = 0; i < master->ncontrols; i++)
--		new_to_cur(fh, master->cluster[i], update_flag && i > 0);
-+		new_to_cur(fh, master->cluster[i], ch_flags |
-+			((update_flag && i > 0) ? V4L2_EVENT_CTRL_CH_FLAGS : 0));
- 	return 0;
- }
- 
-@@ -2224,7 +2245,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 		} while (!ret && idx);
- 
- 		if (!ret)
--			ret = try_or_set_cluster(fh, master, set);
-+			ret = try_or_set_cluster(fh, master, set, 0);
- 
- 		/* Copy the new values back to userspace. */
- 		if (!ret) {
-@@ -2269,18 +2290,12 @@ int v4l2_subdev_s_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
- EXPORT_SYMBOL(v4l2_subdev_s_ext_ctrls);
- 
- /* Helper function for VIDIOC_S_CTRL compatibility */
--static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, s32 *val)
-+static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl,
-+		    s32 val, u32 ch_flags)
- {
- 	struct v4l2_ctrl *master = ctrl->cluster[0];
--	int ret;
- 	int i;
- 
--	ret = validate_new_int(ctrl, val);
--	if (ret)
--		return ret;
--
--	v4l2_ctrl_lock(ctrl);
--
- 	/* Reset the 'is_new' flags of the cluster */
- 	for (i = 0; i < master->ncontrols; i++)
- 		if (master->cluster[i])
-@@ -2290,13 +2305,25 @@ static int set_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, s32 *val)
- 	   manual mode we have to update the current volatile values since
- 	   those will become the initial manual values after such a switch. */
- 	if (master->is_auto && master->has_volatiles && ctrl == master &&
--	    !is_cur_manual(master) && *val == master->manual_mode_value)
-+	    !is_cur_manual(master) && val == master->manual_mode_value)
- 		update_from_auto_cluster(master);
--	ctrl->val = *val;
-+	ctrl->val = val;
- 	ctrl->is_new = 1;
--	ret = try_or_set_cluster(fh, master, true);
--	*val = ctrl->cur.val;
--	v4l2_ctrl_unlock(ctrl);
-+	return try_or_set_cluster(fh, master, true, ch_flags);
-+}
-+
-+/* Helper function for VIDIOC_S_CTRL compatibility */
-+static int set_ctrl_lock(struct v4l2_fh *fh, struct v4l2_ctrl *ctrl, s32 *val)
-+{
-+	int ret = validate_new_int(ctrl, val);
-+
-+	if (!ret) {
-+		v4l2_ctrl_lock(ctrl);
-+		ret = set_ctrl(fh, ctrl, *val, 0);
-+		if (!ret)
-+			*val = ctrl->cur.val;
-+		v4l2_ctrl_unlock(ctrl);
-+	}
- 	return ret;
- }
- 
-@@ -2311,7 +2338,7 @@ int v4l2_s_ctrl(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 	if (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY)
- 		return -EACCES;
- 
--	return set_ctrl(fh, ctrl, &control->value);
-+	return set_ctrl_lock(fh, ctrl, &control->value);
- }
- EXPORT_SYMBOL(v4l2_s_ctrl);
- 
-@@ -2325,10 +2352,44 @@ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
- {
- 	/* It's a driver bug if this happens. */
- 	WARN_ON(!type_is_int(ctrl));
--	return set_ctrl(NULL, ctrl, &val);
-+	return set_ctrl_lock(NULL, ctrl, &val);
- }
- EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
- 
-+int v4l2_ctrl_update_range(struct v4l2_ctrl *ctrl,
-+			s32 min, s32 max, u32 step, s32 def)
-+{
-+	int ret = check_range(ctrl->type, min, max, step, def);
-+	s32 val;
-+
-+	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_INTEGER:
-+	case V4L2_CTRL_TYPE_BOOLEAN:
-+	case V4L2_CTRL_TYPE_MENU:
-+	case V4L2_CTRL_TYPE_BITMASK:
-+		if (ret)
-+			return ret;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	v4l2_ctrl_lock(ctrl);
-+	ctrl->minimum = min;
-+	ctrl->maximum = max;
-+	ctrl->step = step;
-+	ctrl->default_value = def;
-+	val = ctrl->cur.val;
-+	if (validate_new_int(ctrl, &val))
-+		val = def;
-+	if (val != ctrl->cur.val)
-+		ret = set_ctrl(NULL, ctrl, val, V4L2_EVENT_CTRL_CH_RANGE);
-+	else
-+		send_event(NULL, ctrl, V4L2_EVENT_CTRL_CH_RANGE);
-+	v4l2_ctrl_unlock(ctrl);
-+	return ret;
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_update_range);
-+
- void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
- 				struct v4l2_subscribed_event *sev)
- {
-@@ -2337,7 +2398,7 @@ void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
- 	if (ctrl->type != V4L2_CTRL_TYPE_CTRL_CLASS &&
- 	    (sev->flags & V4L2_EVENT_SUB_FL_SEND_INITIAL)) {
- 		struct v4l2_event ev;
--		u32 changes = V4L2_EVENT_CTRL_CH_FLAGS;
-+		u32 changes = V4L2_EVENT_CTRL_CH_FLAGS | V4L2_EVENT_CTRL_CH_RANGE;
- 
- 		if (!(ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY))
- 			changes |= V4L2_EVENT_CTRL_CH_VALUE;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 4b752d5..22e632a 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -2063,6 +2063,7 @@ struct v4l2_event_vsync {
- /* Payload for V4L2_EVENT_CTRL */
- #define V4L2_EVENT_CTRL_CH_VALUE		(1 << 0)
- #define V4L2_EVENT_CTRL_CH_FLAGS		(1 << 1)
-+#define V4L2_EVENT_CTRL_CH_RANGE		(1 << 2)
- 
- struct v4l2_event_ctrl {
- 	__u32 changes;
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index eeb3df6..69ea0d5 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -445,6 +445,23 @@ void v4l2_ctrl_activate(struct v4l2_ctrl *ctrl, bool active);
-   */
- void v4l2_ctrl_grab(struct v4l2_ctrl *ctrl, bool grabbed);
- 
-+/** v4l2_ctrl_update_range() - Update the range of a control.
-+  * @ctrl:	The control to update.
-+  * @min:	The control's minimum value.
-+  * @max:	The control's maximum value.
-+  * @step:	The control's step value
-+  * @def: 	The control's default value.
-+  *
-+  * Update the range of a control on the fly. This works for control types
-+  * INTEGER, BOOLEAN, MENU and BITMASK. For menu controls the @step value
-+  * is interpreted as a menu_skip_mask.
-+  *
-+  * An error is returned if one of the range arguments is invalid for this
-+  * control type.
-+  */
-+int v4l2_ctrl_update_range(struct v4l2_ctrl *ctrl,
-+			s32 min, s32 max, u32 step, s32 def);
-+
- /** v4l2_ctrl_lock() - Helper function to lock the handler
-   * associated with the control.
-   * @ctrl:	The control to lock.
--- 
-1.7.7.2
+I have setup a new vdr with yavdr 0.4 with one TT full-featured DVB-S card (S2300) and one Mystique SaTiX-S2 Sky Xpress dual. As soon as I pause the video I get endless reports like the one in the headline and the vdr is dead.
+
+Because of the new SaTiX card I had to update the DVB drivers to the latest media-tree. I tried the yavdr kernel 2.6.38-12, a vanilla 3.0.9 kernel and I also tested the DVB driver from dvbsky.net on top of vanilla 3.0.9. I always get the same result - working perfectly until I press pause.
+
+In the log below schedule is called by play_video_cb (dvb-ttpci). Any help is appreciated.
+
+/Stefan
+
+LOG:
+
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295798] BUG: scheduling while atomic: kworker/0:0/0/0x00000100
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295806] Modules linked in: snd_hda_codec_hdmi snd_hda_codec_realtek speedstep_lib nfsd exportfs nfs lockd fscache auth_rpcgss nfs_acl rc_dvbsky ds3000 lnbp21 sunrpc stv0299 cx25840 ir_lirc_codec lirc_dev snd_hda_intel snd_hda_codec ir_mce_kbd_decoder snd_hwdep ir_sony_decoder ir_jvc_decoder ir_rc6_decoder ir_rc5_decoder ir_nec_decoder cx23885 rc_core snd_pcm snd_seq_midi snd_rawmidi snd_seq_midi_event cx2341x videobuf_dvb v4l2_common snd_seq dvb_ttpci dvb_core saa7146_vv snd_timer snd_seq_device snd mxm_wmi saa7146 videodev soundcore videobuf_dma_sg videobuf_core v4l2_compat_ioctl32 ttpci_eeprom psmouse snd_page_alloc serio_raw video btcx_risc tveeprom edac_core edac_mce_amd k8temp shpchp i2c_nforce2 lp parport floppy firewire_ohci firewire_core crc_itu_t forcedeth ahci libahci
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295863] CPU 1 
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295864] Modules linked in: snd_hda_codec_hdmi snd_hda_codec_realtek speedstep_lib nfsd exportfs nfs lockd fscache auth_rpcgss nfs_acl rc_dvbsky ds3000 lnbp21 sunrpc stv0299 cx25840 ir_lirc_codec lirc_dev snd_hda_intel snd_hda_codec ir_mce_kbd_decoder snd_hwdep ir_sony_decoder ir_jvc_decoder ir_rc6_decoder ir_rc5_decoder ir_nec_decoder cx23885 rc_core snd_pcm snd_seq_midi snd_rawmidi snd_seq_midi_event cx2341x videobuf_dvb v4l2_common snd_seq dvb_ttpci dvb_core saa7146_vv snd_timer snd_seq_device snd mxm_wmi saa7146 videodev soundcore videobuf_dma_sg videobuf_core v4l2_compat_ioctl32 ttpci_eeprom psmouse snd_page_alloc serio_raw video btcx_risc tveeprom edac_core edac_mce_amd k8temp shpchp i2c_nforce2 lp parport floppy firewire_ohci firewire_core crc_itu_t forcedeth ahci libahci
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295910] 
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295913] Pid: 0, comm: kworker/0:0 Not tainted 3.1.0-media+ #1 System manufacturer System Product Name/M3N78-EM
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295919] RIP: 0010:[<ffffffff8103b14b>]  [<ffffffff8103b14b>] native_safe_halt+0xb/0x10
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295928] RSP: 0018:ffff88007432fe88  EFLAGS: 00000246
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295931] RAX: 0000000000000000 RBX: ffffffff8101aa95 RCX: 0000000000000000
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295934] RDX: 0000000000000000 RSI: ffff88007432fec4 RDI: 0000000000000000
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295936] RBP: ffff88007432fe88 R08: 0000000000000000 R09: 0000000000000000
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295939] R10: 0000000000000000 R11: 0000000000000000 R12: ffff880077c91200
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295941] R13: 00ff880000000000 R14: 0000000000000000 R15: ffff880071760058
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295945] FS:  00007fe326c31740(0000) GS:ffff880077c80000(0000) knlGS:0000000000000000
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295948] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295951] CR2: 00007fe2fc5efac4 CR3: 0000000071d26000 CR4: 00000000000006e0
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295953] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295956] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295959] Process kworker/0:0 (pid: 0, threadinfo ffff88007432e000, task ffff880074330000)
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295962] Stack:
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295964]  ffff88007432fea8 ffffffff8101b901 ffff88007432fec4 ffffffff81abccc0
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295968]  ffff88007432fed8 ffffffff8101b9fd ffff88007432fec8 000000007432e000
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295973]  ffff88007432e000 ffffffff81abccc0 ffff88007432ff18 ffffffff81012276
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295977] Call Trace:
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295983]  [<ffffffff8101b901>] default_idle+0x41/0xe0
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295987]  [<ffffffff8101b9fd>] amd_e400_idle+0x5d/0x120
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295991]  [<ffffffff81012276>] cpu_idle+0xd6/0x110
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295997]  [<ffffffff815dd074>] start_secondary+0x1e0/0x1e7
+Nov 22 20:19:23 vdr4 kernel: [ 1881.295999] Code: 55 48 89 e5 66 66 66 66 90 fa c9 c3 0f 1f 40 00 55 48 89 e5 66 66 66 66 90 fb c9 c3 0f 1f 40 00 55 48 89 e5 66 66 66 66 90 fb f4 <c9> c3 0f 1f 00 55 48 89 e5 66 66 66 66 90 f4 c9 c3 0f 1f 40 00 
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296047] Call Trace:
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296050]  [<ffffffff8101b901>] default_idle+0x41/0xe0
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296053]  [<ffffffff8101b9fd>] amd_e400_idle+0x5d/0x120
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296057]  [<ffffffff81012276>] cpu_idle+0xd6/0x110
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296061]  [<ffffffff815dd074>] start_secondary+0x1e0/0x1e7
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296064] bad: scheduling from the idle thread!
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296068] Pid: 0, comm: kworker/0:0 Not tainted 3.1.0-media+ #1
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296070] Call Trace:
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296072]  <IRQ>  [<ffffffff81051dfa>] dequeue_task_idle+0x3a/0x50
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296080]  [<ffffffff8104c993>] dequeue_task+0x93/0xb0
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296083]  [<ffffffff8104c9d3>] deactivate_task+0x23/0x30
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296087]  [<ffffffff815e22d9>] __schedule+0x4c9/0x8a0
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296091]  [<ffffffff815e29df>] schedule+0x3f/0x60
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296102]  [<ffffffffa017e3b5>] play_video_cb+0x295/0x4f0 [dvb_ttpci]
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296107]  [<ffffffff81087030>] ? wake_up_bit+0x40/0x40
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296111]  [<ffffffff81059860>] ? try_to_wake_up+0x250/0x2b0
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296119]  [<ffffffffa018562d>] send_ipack+0xed/0x250 [dvb_ttpci]
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296122]  [<ffffffff810598d2>] ? default_wake_function+0x12/0x20
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296130]  [<ffffffffa0185815>] write_ipack+0x85/0xd0 [dvb_ttpci]
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296137]  [<ffffffffa0185d6a>] av7110_ipack_instant_repack+0x35a/0x890 [dvb_ttpci]
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296144]  [<ffffffffa017cb74>] write_ts_to_decoder+0x74/0xc0 [dvb_ttpci]
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296151]  [<ffffffffa017feb9>] av7110_write_to_decoder+0x99/0xf0 [dvb_ttpci]
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296163]  [<ffffffffa0155d8c>] dvb_dmx_swfilter_packet+0x1fc/0x5b0 [dvb_core]
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296170]  [<ffffffffa01771bd>] ? av7110_debiread+0x4d/0x160 [dvb_ttpci]
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296175]  [<ffffffff8103bed9>] ? default_spin_lock_flags+0x9/0x10
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296182]  [<ffffffffa01563aa>] dvb_dmx_swfilter_packets+0x5a/0x80 [dvb_core]
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296189]  [<ffffffffa01828a9>] debiirq+0x1d9/0x490 [dvb_ttpci]
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296193]  [<ffffffff8106ab73>] tasklet_action+0x73/0x120
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296197]  [<ffffffff8106b1a8>] __do_softirq+0xa8/0x1c0
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296201]  [<ffffffff81033dd6>] ? ack_apic_level+0x76/0x1f0
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296206]  [<ffffffff815ef02c>] call_softirq+0x1c/0x30
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296210]  [<ffffffff810152b5>] do_softirq+0x65/0xa0
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296213]  [<ffffffff8106b53e>] irq_exit+0x8e/0xb0
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296217]  [<ffffffff815ef8e6>] do_IRQ+0x66/0xe0
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296222]  [<ffffffff815e502e>] common_interrupt+0x6e/0x6e
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296224]  <EOI>  [<ffffffff8101aa95>] ? native_sched_clock+0x15/0x70
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296230]  [<ffffffff8103b14b>] ? native_safe_halt+0xb/0x10
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296233]  [<ffffffff8101b901>] default_idle+0x41/0xe0
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296237]  [<ffffffff8101b9fd>] amd_e400_idle+0x5d/0x120
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296240]  [<ffffffff81012276>] cpu_idle+0xd6/0x110
+Nov 22 20:19:23 vdr4 kernel: [ 1881.296244]  [<ffffffff815dd074>] start_secondary+0x1e0/0x1e7
 
