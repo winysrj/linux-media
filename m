@@ -1,105 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:57233 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751496Ab1KYRBr convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2498 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750757Ab1KXLtH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Nov 2011 12:01:47 -0500
-Received: by ggnr5 with SMTP id r5so3658201ggn.19
-        for <linux-media@vger.kernel.org>; Fri, 25 Nov 2011 09:01:47 -0800 (PST)
+	Thu, 24 Nov 2011 06:49:07 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH/RFC 1/2] v4l: Add a global color alpha control
+Date: Thu, 24 Nov 2011 12:49:00 +0100
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	m.szyprowski@samsung.com, jonghun.han@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+References: <1322131997-26195-1-git-send-email-s.nawrocki@samsung.com> <201111241209.12377.laurent.pinchart@ideasonboard.com> <4ECE2D0A.8060209@samsung.com>
+In-Reply-To: <4ECE2D0A.8060209@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <201111221138.40499.hverkuil@xs4all.nl>
-References: <1321939597-6239-1-git-send-email-pawel@osciak.com>
- <1321939597-6239-3-git-send-email-pawel@osciak.com> <201111221138.40499.hverkuil@xs4all.nl>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Fri, 25 Nov 2011 09:01:05 -0800
-Message-ID: <CAMm-=zCcEZQBE2Fyf=-wYoi_Q3asr_4sZfwnAX8+9u6nMSP68g@mail.gmail.com>
-Subject: Re: [PATCH v1 2/2] vb2: add support for app_offset field of the
- v4l2_plane struct
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, mingchen@quicinc.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111241249.00601.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-Thanks for comments.
+On Thursday, November 24, 2011 12:39:54 Sylwester Nawrocki wrote:
+> Hi Laurent,
+> 
+> On 11/24/2011 12:09 PM, Laurent Pinchart wrote:
+> > Hi Sylwester and Hans,
+> > 
+> > On Thursday 24 November 2011 12:00:45 Hans Verkuil wrote:
+> >> On Thursday, November 24, 2011 11:53:16 Sylwester Nawrocki wrote:
+> >>> This control is intended for video capture or memory-to-memory
+> >>> devices that are capable of setting up the alpha conponent to
+> >>> some arbitrary value.
+> >>> The V4L2_CID_COLOR_ALPHA control allows to set the alpha channel
+> >>> globally to a value in range from 0 to 255.
+> >>>
+> >>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> >>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>> ---
+> >>>
+> >>>  Documentation/DocBook/media/v4l/controls.xml       |   20
+> >>>  ++++++++++++++------ .../DocBook/media/v4l/pixfmt-packed-rgb.xml       
+> >>>  |    7 +++++-- drivers/media/video/v4l2-ctrls.c                   |   
+> >>>  7 +++++++ include/linux/videodev2.h                          |    6
+> >>>  +++--- 4 files changed, 29 insertions(+), 11 deletions(-)
+> >>>
+> >>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> >>> b/Documentation/DocBook/media/v4l/controls.xml index 3bc5ee8..7f99222
+> >>> 100644
+> >>> --- a/Documentation/DocBook/media/v4l/controls.xml
+> >>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> >>> @@ -324,12 +324,6 @@ minimum value disables backlight
+> >>> compensation.</entry>
+> >>>
+> >>>  		(usually a microscope).</entry>
+> >>>  		
+> >>>  	  </row>
+> >>>  	  <row>
+> >>>
+> >>> -	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
+> >>> -	    <entry></entry>
+> >>> -	    <entry>End of the predefined control IDs (currently
+> >>> -<constant>V4L2_CID_ILLUMINATORS_2</constant> + 1).</entry>
+> >>> -	  </row>
+> >>> -	  <row>
+> >>>
+> >>>  	    <entry><constant>V4L2_CID_MIN_BUFFERS_FOR_CAPTURE</constant></entry
+> >>>  	    > <entry>integer</entry>
+> >>>  	    <entry>This is a read-only control that can be read by the
+> >>>  	    application
+> >>>
+> >>> @@ -345,6 +339,20 @@ and used as a hint to determine the number of OUTPUT
+> >>> buffers to pass to REQBUFS.
+> >>>
+> >>>  The value is the minimum number of OUTPUT buffers that is necessary for
+> >>>  hardware to work.</entry>
+> >>>  
+> >>>  	  </row>
+> >>>
+> >>> +	  <row id="v4l2-color-alpha">
+> >>> +	    <entry><constant>V4L2_CID_COLOR_ALPHA</constant></entry>
+> >>> +	    <entry>integer</entry>
+> >>> +	    <entry> Sets the color alpha component on the capture device. It is
+> >>> +	    applicable to any pixel formats that contain the alpha component,
+> >>> +	    e.g. <link linkend="rgb-formats">packed RGB image formats</link>.
+> >>> +	    </entry>
+> > 
+> > As the alpha value is global, isn't it applicable to formats with no alpha 
+> > component as well ?
+> 
+> Hmm, I can't say no.. The control was intended as a means of setting up
+> the alpha value for packed RGB formats:
+> http://linuxtv.org/downloads/v4l-dvb-apis/packed-rgb.html#rgb-formats
+> 
+> However it could well be used for formats with no alpha. Do you think
+> the second sentence above should be removed or should something else be
+> added to indicate it doesn't necessarily have to have a connection
+> with ARGB color formats ?
 
-On Tue, Nov 22, 2011 at 02:38, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Pawel!
->
-> Thanks for doing this work, but I have a few comments...
->
-> On Tuesday, November 22, 2011 06:26:37 Pawel Osciak wrote:
->> The app_offset can only be set by userspace and will be passed by vb2 to
->> the driver.
-(..,)
->
-> I'd like to see this implemented in vivi and preferably one other driver.
->
+Huh? How can this be used for formats without an alpha channel?
 
-Yes, I just wanted to show how the V4L2 API would change and make sure
-people agreed before starting to implement in drivers. Looks like no
-one is questioning it.
+> 
+> > 
+> >>> +	  </row>
+> >>> +	  <row>
+> >>> +	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
+> >>> +	    <entry></entry>
+> >>> +	    <entry>End of the predefined control IDs (currently
+> >>> +	      <constant>V4L2_CID_COLOR_ALPHA</constant> + 1).</entry>
+> >>> +	  </row>
+> >>>
+> >>>  	  <row>
+> >>>  	  
+> >>>  	    <entry><constant>V4L2_CID_PRIVATE_BASE</constant></entry>
+> >>>  	    <entry></entry>
+> >>>
+> >>> diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> >>> b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml index
+> >>> 4db272b..da4c360 100644
+> >>> --- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> >>> +++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
+> >>> @@ -428,8 +428,11 @@ colorspace
+> >>> <constant>V4L2_COLORSPACE_SRGB</constant>.</para>
+> >>>
+> >>>      <para>Bit 7 is the most significant bit. The value of a = alpha
+> >>>  
+> >>>  bits is undefined when reading from the driver, ignored when writing
+> >>>  to the driver, except when alpha blending has been negotiated for a
+> >>>
+> >>> -<link linkend="overlay">Video Overlay</link> or <link
+> >>> -linkend="osd">Video Output Overlay</link>.</para>
+> >>> +<link linkend="overlay">Video Overlay</link> or <link linkend="osd">
+> >>> +Video Output Overlay</link> or when global alpha has been configured
+> >>> +for a <link linkend="capture">Video Capture</link> by means of
+> >>> +<link linkend="v4l2-color-alpha"> <constant>V4L2_CID_COLOR_ALPHA
+> >>> +</constant> </link> control.</para>
+> >>>
+> >>>      <example>
+> >>>      
+> >>>        <title><constant>V4L2_PIX_FMT_BGR24</constant> 4 &times; 4 pixel
+> >>>
+> >>> diff --git a/drivers/media/video/v4l2-ctrls.c
+> >>> b/drivers/media/video/v4l2-ctrls.c index 5552f81..bd90955 100644
+> >>> --- a/drivers/media/video/v4l2-ctrls.c
+> >>> +++ b/drivers/media/video/v4l2-ctrls.c
+> >>> @@ -466,6 +466,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+> >>>
+> >>>  	case V4L2_CID_ILLUMINATORS_2:		return "Illuminator 2";
+> >>>  	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:	return "Minimum Number of
+> >>>  	Capture Buffers"; case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT:	return
+> >>>  	"Minimum Number of Output Buffers";
+> >>>
+> >>> +	case V4L2_CID_COLOR_ALPHA:		return "Color Alpha";
+> >>
+> >> I prefer CID_ALPHA_COLOR and string "Alpha Color". I think it is more
+> >> natural than the other way around.
+> 
+> OK, I guess you're right. And Google returns about twice as many hits for
+> "alpha color" than for "color alpha"...
+> 
+> > 
+> > I'm not too found of "color" in the name. Is the alpha value considered as a 
+> > color ?
+> 
+> Certainly it isn't, but Alpha alone looks a bit odd. It's too generic IMHO.
 
-> What also needs to be clarified is how this affects queue_setup (should the
-> sizes include the app_offset or not?) and e.g. vb2_plane_size (again, is the
-> size with or without app_offset?).
->
-> Should app_offset handling be enforced (i.e. should all vb2 drivers support
-> it?) or should it be optional? If optional, then app_offset should be set to
-> 0 somehow.
->
+How about V4L2_CID_ALPHA_COMPONENT?
 
-There are several design questions:
-1. Enforcing handling of app_offset.
-I would prefer enforcing it. If we don't, we'll need some kind of new
-capability if forcing to 0 or would have to otherwise communicate it
-(zero it out in kernel when setting the format maybe). I'd like to try
-enforcing while hiding it in vb2 layer, so the drivers would not have
-to be concerned about that. Note also that this applies only to
-multiplanar drivers.
-2. Allocation - additional memory must be allocated for mmap and one
-problem is that the hardware will usually need buffer_addr +
-app_offset to be page-aligned, so we'd be "wasting" up to a page per
-buffer for this. Not a big deal probably though.
-3. Handling in vb2
-For mmap, vb2 (i.e. allocators) would have to allocate this memory in
-addition to the required buffer size, provided by the driver. I hope
-it could be made transparent to drivers by returning addresses to
-buffers after app_offset to them only. So only the allocator would
-need to be aware of both, but it's internal to vb2 as well.
-4. queue_setup
-I would like to make it oblivious to app_offset and keep and handle it
-only in vb2 and allocators. Need to see how it works out by
-implementing though.
-5. And other things most probably. I will go ahead and start
-implementing to see what less obvious subtleties I might be missing.
+Regards,
 
-> This code in __qbuf_userptr should probably also be modified as this
-> currently does not take app_offset into account.
->
->                /* Check if the provided plane buffer is large enough */
->                if (planes[plane].length < q->plane_sizes[plane]) {
->                        ret = -EINVAL;
->                        goto err;
->                }
->
->
-
-As for userptr, at first I thought that the correct behavior would be
-to ignore that app memory entirely, i.e. make vb2 give pointers after
-app_offset, but this won't fly with for more advanced allocators that
-may need the app memory as well. Will rethink.
-
-> I think there are some subtleties that we don't know about yet, so implementing
-> this in a real driver would hopefully bring those subtleties out in the open.
->
-
-Yes, I will implement it in vivi as a pilot now and add support in all
-drivers once we have everything sorted out.
-
--- 
-Best regards,
-Pawel Osciak
+	Hans
