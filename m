@@ -1,69 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51225 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752056Ab1KNPJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Nov 2011 10:09:32 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>
-CC: Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v2 3/5] davinci: dm646x: remove the macros from the header to move to c file
-Date: Mon, 14 Nov 2011 20:39:15 +0530
-Message-ID: <1321283357-27698-4-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1321283357-27698-1-git-send-email-manjunath.hadli@ti.com>
-References: <1321283357-27698-1-git-send-email-manjunath.hadli@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57634 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750777Ab1KXOA0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 09:00:26 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH/RFC 1/2] v4l: Add a global color alpha control
+Date: Thu, 24 Nov 2011 15:00:21 +0100
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	m.szyprowski@samsung.com, jonghun.han@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+References: <1322131997-26195-1-git-send-email-s.nawrocki@samsung.com> <201111241306.11651.laurent.pinchart@ideasonboard.com> <201111241322.10889.hverkuil@xs4all.nl>
+In-Reply-To: <201111241322.10889.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111241500.23204.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-move the register base addresses and offsets used only by dm646x
-platform file from platform header dm646x.h to dm646x.c as they
-are used only in the c file.
+Hi,
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
----
- arch/arm/mach-davinci/dm646x.c              |    7 +++++++
- arch/arm/mach-davinci/include/mach/dm646x.h |    7 -------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+On Thursday 24 November 2011 13:22:10 Hans Verkuil wrote:
+> On Thursday, November 24, 2011 13:06:09 Laurent Pinchart wrote:
+> > On Thursday 24 November 2011 12:49:00 Hans Verkuil wrote:
+> > > On Thursday, November 24, 2011 12:39:54 Sylwester Nawrocki wrote:
+> > > > On 11/24/2011 12:09 PM, Laurent Pinchart wrote:
+> > > > > On Thursday 24 November 2011 12:00:45 Hans Verkuil wrote:
+> > > > >> On Thursday, November 24, 2011 11:53:16 Sylwester Nawrocki wrote:
+> > > > >>> This control is intended for video capture or memory-to-memory
+> > > > >>> devices that are capable of setting up the alpha conponent to
+> > > > >>> some arbitrary value.
+> > > > >>> The V4L2_CID_COLOR_ALPHA control allows to set the alpha channel
+> > > > >>> globally to a value in range from 0 to 255.
+> > > > >>> 
+> > > > >>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > > > >>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > > > >>> ---
+> > > > >>> 
+> > > > >>>  Documentation/DocBook/media/v4l/controls.xml       |   20
+> > > > >>>  ++++++++++++++------ .../DocBook/media/v4l/pixfmt-packed-rgb.xml
+> > > > >>>  
+> > > > >>>  |    7 +++++-- drivers/media/video/v4l2-ctrls.c                 
+> > > > >>>  |     |
+> > > > >>>  
+> > > > >>>  7 +++++++ include/linux/videodev2.h                          |  
+> > > > >>>   6 +++--- 4 files changed, 29 insertions(+), 11 deletions(-)
+> > > > >>> 
+> > > > >>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> > > > >>> b/Documentation/DocBook/media/v4l/controls.xml index
+> > > > >>> 3bc5ee8..7f99222 100644
+> > > > >>> --- a/Documentation/DocBook/media/v4l/controls.xml
+> > > > >>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> > > > >>> @@ -324,12 +324,6 @@ minimum value disables backlight
+> > > > >>> compensation.</entry>
+> > > > >>> 
+> > > > >>>  		(usually a microscope).</entry>
+> > > > >>>  		
+> > > > >>>  	  </row>
+> > > > >>>  	  <row>
+> > > > >>> 
+> > > > >>> -	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
+> > > > >>> -	    <entry></entry>
+> > > > >>> -	    <entry>End of the predefined control IDs (currently
+> > > > >>> -<constant>V4L2_CID_ILLUMINATORS_2</constant> + 1).</entry>
+> > > > >>> -	  </row>
+> > > > >>> -	  <row>
+> > > > >>> 
+> > > > >>>  	    
+<entry><constant>V4L2_CID_MIN_BUFFERS_FOR_CAPTURE</constant
+> > > > >>>  	    ></e ntry
+> > > > >>>  	    
+> > > > >>>  	    > <entry>integer</entry>
+> > > > >>>  	    
+> > > > >>>  	    <entry>This is a read-only control that can be read by the
+> > > > >>>  	    application
+> > > > >>> 
+> > > > >>> @@ -345,6 +339,20 @@ and used as a hint to determine the number
+> > > > >>> of OUTPUT buffers to pass to REQBUFS.
+> > > > >>> 
+> > > > >>>  The value is the minimum number of OUTPUT buffers that is
+> > > > >>>  necessary for hardware to work.</entry>
+> > > > >>>  
+> > > > >>>  	  </row>
+> > > > >>> 
+> > > > >>> +	  <row id="v4l2-color-alpha">
+> > > > >>> +	    <entry><constant>V4L2_CID_COLOR_ALPHA</constant></entry>
+> > > > >>> +	    <entry>integer</entry>
+> > > > >>> +	    <entry> Sets the color alpha component on the capture
+> > > > >>> device. It is +	    applicable to any pixel formats that contain
+> > > > >>> the alpha component, +	    e.g. <link
+> > > > >>> linkend="rgb-formats">packed RGB image formats</link>. +	   
+> > > > >>> </entry>
+> > > > > 
+> > > > > As the alpha value is global, isn't it applicable to formats with
+> > > > > no alpha component as well ?
+> > > > 
+> > > > Hmm, I can't say no.. The control was intended as a means of setting
+> > > > up the alpha value for packed RGB formats:
+> > > > http://linuxtv.org/downloads/v4l-dvb-apis/packed-rgb.html#rgb-formats
+> > > > 
+> > > > However it could well be used for formats with no alpha. Do you think
+> > > > the second sentence above should be removed or should something else
+> > > > be added to indicate it doesn't necessarily have to have a
+> > > > connection with ARGB color formats ?
+> > 
+> > I think we should make it explicit that this global alpha value is
+> > applied in addition to a possibly per-pixel alpha value (if available in
+> > the selected format).
+> > 
+> > > Huh? How can this be used for formats without an alpha channel?
+> > 
+> > If my understanding is correct, this control sets a global alpha value
+> > for the whole overlay. For instance, with V4L2_CID_COLOR_ALPHA set to
+> > 0.5, an overlay using a non-alpha format (such as YUYV), or an overlay
+> > using an alpha format with the alpha value set to 1 for every pixel,
+> > would be half transparent.
+> > 
+> > In other words, the resulting alpha value is the product of the global
+> > alpha value and the per-pixel alpha value. Non-alpha formats have an
+> > implicit per- pixel alpha value equal to 1 for every pixel.
+> 
+> Well, if that's the case, then we already have an API for that
+> (http://hverkuil.home.xs4all.nl/spec/media.html#v4l2-window, field
+> global_alpha).
+> 
+> It was my understanding that this is used with a mem2mem device where you
+> just want to fill in the alpha channel to the desired value. It's not used
+> inside the device at all (that happens later in the pipeline).
 
-diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
-index 0b68ed5..0560e82 100644
---- a/arch/arm/mach-davinci/dm646x.c
-+++ b/arch/arm/mach-davinci/dm646x.c
-@@ -46,6 +46,13 @@
- #define DM646X_REF_FREQ		27000000
- #define DM646X_AUX_FREQ		24000000
- 
-+#define DM646X_EMAC_BASE		0x01c80000
-+#define DM646X_EMAC_MDIO_BASE		(DM646X_EMAC_BASE + 0x4000)
-+#define DM646X_EMAC_CNTRL_OFFSET	0x0000
-+#define DM646X_EMAC_CNTRL_MOD_OFFSET	0x1000
-+#define DM646X_EMAC_CNTRL_RAM_OFFSET	0x2000
-+#define DM646X_EMAC_CNTRL_RAM_SIZE	0x2000
-+
- static struct pll_data pll1_data = {
- 	.num       = 1,
- 	.phys_base = DAVINCI_PLL1_BASE,
-diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h b/arch/arm/mach-davinci/include/mach/dm646x.h
-index a8ee6c9..eb95864 100644
---- a/arch/arm/mach-davinci/include/mach/dm646x.h
-+++ b/arch/arm/mach-davinci/include/mach/dm646x.h
-@@ -18,13 +18,6 @@
- #include <linux/davinci_emac.h>
- #include <media/davinci/vpif_types.h>
- 
--#define DM646X_EMAC_BASE		(0x01C80000)
--#define DM646X_EMAC_MDIO_BASE		(DM646X_EMAC_BASE + 0x4000)
--#define DM646X_EMAC_CNTRL_OFFSET	(0x0000)
--#define DM646X_EMAC_CNTRL_MOD_OFFSET	(0x1000)
--#define DM646X_EMAC_CNTRL_RAM_OFFSET	(0x2000)
--#define DM646X_EMAC_CNTRL_RAM_SIZE	(0x2000)
--
- #define DM646X_ASYNC_EMIF_CONTROL_BASE	0x20008000
- #define DM646X_ASYNC_EMIF_CS2_SPACE_BASE 0x42000000
- 
+OK, now I understand. Maybe the documentation should describe this a bit more 
+explicitly ?
+
 -- 
-1.6.2.4
+Regards,
 
+Laurent Pinchart
