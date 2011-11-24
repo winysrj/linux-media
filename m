@@ -1,97 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:63674 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754897Ab1KOLOL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Nov 2011 06:14:11 -0500
-Received: by bke11 with SMTP id 11so7006706bke.19
-        for <linux-media@vger.kernel.org>; Tue, 15 Nov 2011 03:14:10 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:26989 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752268Ab1KXQUU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 11:20:20 -0500
+Message-ID: <4ECE6EBC.8020006@redhat.com>
+Date: Thu, 24 Nov 2011 14:20:12 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Date: Tue, 15 Nov 2011 12:14:10 +0100
-Message-ID: <CAGa-wNMx7DhppkBQNowuXBKwitkU3tCQYLzNJuhqx=ZcytcjVQ@mail.gmail.com>
-Subject: PCTV 290e and 520e
-From: Claus Olesen <ceolesen@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Dmitri Belimov <d.belimov@gmail.com>
+CC: Stefan Ringel <stefan.ringel@arcor.de>,
+	linux-media@vger.kernel.org, fabbione@redhat.com
+Subject: Re: [PATCH] Fix tm6010 audio
+References: <4E8C5675.8070604@arcor.de> <20111017155537.6c55aec8@glory.local> <4E9C65CD.2070409@arcor.de> <20111108104500.2f0fc14f@glory.local>
+In-Reply-To: <20111108104500.2f0fc14f@glory.local>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PCTV 290e usb stick - locking issue
-===================================
-The locking issue with the 290e is not resolved as of
-yesterdays auto update to kernel 3.1.1-1.fc16.i686.PAE on Fedora 16.
-The symptoms are that no usb stick is usable unless the em28xx_dvb
-module is manually unloaded and the 290e unplugged in that order.
+Em 07-11-2011 22:45, Dmitri Belimov escreveu:
+> Hi
+> 
+> I found why audio dosn't work for me and fix it.
+> 
+> 2Stefan:
+> The V4L2_STD_DK has V4L2_STD_SECAM_DK but not equal 
+> switch-case statement not worked
+> 
+> you can use 
+> if (dev->norm & V4L2_STD_DK) { 
+> }
+> 
+> This patch fix this problem.
+> 
+> Other, please don't remove any workarounds without important reason.
+> For your chip revision it can be work but for other audio will be bad.
+> 
+> I can watch TV but radio not work. After start Gnomeradio I see 
+> VIDIOCGAUDIO incorrect
+> VIDIOCSAUDIO incorrect
+> VIDIOCSFREQ incorrect
+> 
+> Try found what happens with radio.
 
-PCTV 290e usb stick - dvb-c support
-===================================
-dvb-c is supported by the 290e (although not advertised)
-according to stevekerrison.com/290e/, my tests with dvbviewer on windows and
-dmesg on my Fedora 16 as follows (3rd line from the bottom)
-[   79.119320] usb 2-3: new high speed USB device number 2 using ehci_hcd
-[   79.234598] usb 2-3: New USB device found, idVendor=2013, idProduct=024f
-[   79.234608] usb 2-3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-[   79.234615] usb 2-3: Product: PCTV 290e
-[   79.234622] usb 2-3: Manufacturer: PCTV Systems
-[   79.234629] usb 2-3: SerialNumber: 00000006VEJQ
-[   79.520459] em28xx: New device PCTV Systems PCTV 290e @ 480 Mbps
-(2013:024f, interface 0, class 0)
-[   79.520577] em28xx #0: chip ID is em28174
-[   79.817101] em28xx #0: Identified as PCTV nanoStick T2 290e (card=78)
-[   79.849274] Registered IR keymap rc-pinnacle-pctv-hd
-[   79.849563] input: em28xx IR (em28xx #0) as
-/devices/pci0000:00/0000:00:1d.7/usb2/2-3/rc/rc1/input19
-[   79.850270] rc1: em28xx IR (em28xx #0) as
-/devices/pci0000:00/0000:00:1d.7/usb2/2-3/rc/rc1
-[   79.850950] em28xx #0: v4l2 driver version 0.1.3
-[   79.855863] em28xx #0: V4L2 video device registered as video1
-[   79.856426] usbcore: registered new interface driver em28xx
-[   79.856428] em28xx driver loaded
-[   79.864584] tda18271 18-0060: creating new instance
-[   79.866825] TDA18271HD/C2 detected @ 18-0060
-[   80.031337] tda18271 18-0060: attaching existing instance
-[   80.031340] DVB: registering new adapter (em28xx #0)
-[   80.031343] DVB: registering adapter 0 frontend 0 (Sony CXD2820R
-(DVB-T/T2))...
-[   80.031579] DVB: registering adapter 0 frontend 1 (Sony CXD2820R (DVB-C))...
-[   80.034136] em28xx #0: Successfully loaded em28xx-dvb
-[   80.034142] Em28xx: Initialized (Em28xx dvb Extension) extension
+This patch has several issues. The usage of switch for video doesn't work
+well. A better approach follows. Not tested yet.
 
-but not by the latest kernel 3.1.1-1.fc16.i686.PAE of Fedora 16
-as the command
-find /dev/dvb
-outputs
-/dev/dvb
-/dev/dvb/adapter0
-/dev/dvb/adapter0/net0
-/dev/dvb/adapter0/dvr0
-/dev/dvb/adapter0/demux0
-/dev/dvb/adapter0/frontend1
-/dev/dvb/adapter0/frontend0
-showing all the index-0 (dvb-t) devices but mostly no index-1 (dvb-c) devices
+PS.: I couldn't test it: not sure why, but the audio source is not working
+for me: arecord is not able to read from the device input.
 
-Does anyone know of an intent to add support for dvb-c from the PCTV
-290e? in the near future?
 
-PCTV 520e usb stick - dvb-c support
-===================================
-The 520e supports dvb-c in addition to dvb-t.
-Does anyone know of an intent to add support for (dvb-c in particular
-from) the 520e? in the near
-future?
+-
+[media] tm6000: Fix tm6010 audio standard selection
 
-PCTV 290e and 520e usb sticks - compared
-========================================
-The 520e applies tda18271 according to
-www.mail-archive.com/linux-media@vger.kernel.org/msg38091.html
-as also applied by the 290e hinting perhaps that the 290e and 520e are
-very alike.
+A V4L2 standards mask may contain several standards. A more restricted
+mask with just one standard is used when user needs to bind to an specific
+standard that can't be auto-detect among a more generic mask.
 
-Does that mean that dvb-c support if added for the 520e also will apply to the
-290e? thereby making the 290e a better deal as it also supports dvb-t2?
+So, Improve the autodetection logic to detect the correct audio standard
+most of the time.
 
-dvb-c usb stick
-===============
-Does anyone know of any other dvb-c usb sticks that works on Linux
-aside from those listed on linuxtv.org/wiki/index.php/DVB-C_USB_Devices?
+Based on a patch made by Dmitri Belimov <d.belimov@gmail.com>.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+
+diff --git a/drivers/media/video/tm6000/tm6000-core.c b/drivers/media/video/tm6000/tm6000-core.c
+index 9783616..55d097e 100644
+--- a/drivers/media/video/tm6000/tm6000-core.c
++++ b/drivers/media/video/tm6000/tm6000-core.c
+@@ -696,11 +696,13 @@ int tm6000_set_audio_rinput(struct tm6000_core *dev)
+ 	if (dev->dev_type == TM6010) {
+ 		/* Audio crossbar setting, default SIF1 */
+ 		u8 areg_f0;
++		u8 areg_07 = 0x10;
+ 
+ 		switch (dev->rinput.amux) {
+ 		case TM6000_AMUX_SIF1:
+ 		case TM6000_AMUX_SIF2:
+ 			areg_f0 = 0x03;
++			areg_07 = 0x30;
+ 			break;
+ 		case TM6000_AMUX_ADC1:
+ 			areg_f0 = 0x00;
+@@ -720,6 +722,9 @@ int tm6000_set_audio_rinput(struct tm6000_core *dev)
+ 		/* Set audio input crossbar */
+ 		tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
+ 							areg_f0, 0x0f);
++		/* Mux overflow workaround */
++		tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
++			areg_07, 0xf0);
+ 	} else {
+ 		u8 areg_eb;
+ 		/* Audio setting, default LINE1 */
+diff --git a/drivers/media/video/tm6000/tm6000-stds.c b/drivers/media/video/tm6000/tm6000-stds.c
+index 9a4145d..9dc0831 100644
+--- a/drivers/media/video/tm6000/tm6000-stds.c
++++ b/drivers/media/video/tm6000/tm6000-stds.c
+@@ -361,82 +361,51 @@ static int tm6000_set_audio_std(struct tm6000_core *dev)
+ 		return 0;
+ 	}
+ 
+-	switch (tm6010_a_mode) {
++	/*
++	 * STD/MN shouldn't be affected by tm6010_a_mode, as there's just one
++	 * audio standard for each V4L2_STD type.
++	 */
++	if ((dev->norm & V4L2_STD_NTSC) == V4L2_STD_NTSC_M_KR) {
++		areg_05 |= 0x04;
++	} else if ((dev->norm & V4L2_STD_NTSC) == V4L2_STD_NTSC_M_JP) {
++		areg_05 |= 0x43;
++	} else if (dev->norm & V4L2_STD_MN) {
++		areg_05 |= 0x22;
++	} else switch (tm6010_a_mode) {
+ 	/* auto */
+ 	case 0:
+-		switch (dev->norm) {
+-		case V4L2_STD_NTSC_M_KR:
++		if ((dev->norm & V4L2_STD_SECAM) == V4L2_STD_SECAM_L)
+ 			areg_05 |= 0x00;
+-			break;
+-		case V4L2_STD_NTSC_M_JP:
+-			areg_05 |= 0x40;
+-			break;
+-		case V4L2_STD_NTSC_M:
+-		case V4L2_STD_PAL_M:
+-		case V4L2_STD_PAL_N:
+-			areg_05 |= 0x20;
+-			break;
+-		case V4L2_STD_PAL_Nc:
+-			areg_05 |= 0x60;
+-			break;
+-		case V4L2_STD_SECAM_L:
+-			areg_05 |= 0x00;
+-			break;
+-		case V4L2_STD_DK:
++		else	/* Other PAL/SECAM standards */
+ 			areg_05 |= 0x10;
+-			break;
+-		}
+ 		break;
+ 	/* A2 */
+ 	case 1:
+-		switch (dev->norm) {
+-		case V4L2_STD_B:
+-		case V4L2_STD_GH:
+-			areg_05 = 0x05;
+-			break;
+-		case V4L2_STD_DK:
++		if (dev->norm & V4L2_STD_DK)
+ 			areg_05 = 0x09;
+-			break;
+-		}
++		else
++			areg_05 = 0x05;
+ 		break;
+ 	/* NICAM */
+ 	case 2:
+-		switch (dev->norm) {
+-		case V4L2_STD_B:
+-		case V4L2_STD_GH:
+-			areg_05 = 0x07;
+-			break;
+-		case V4L2_STD_DK:
++		if (dev->norm & V4L2_STD_DK) {
+ 			areg_05 = 0x06;
+-			break;
+-		case V4L2_STD_PAL_I:
++		} else if (dev->norm & V4L2_STD_PAL_I) {
+ 			areg_05 = 0x08;
+-			break;
+-		case V4L2_STD_SECAM_L:
++		} else if (dev->norm & V4L2_STD_SECAM_L) {
+ 			areg_05 = 0x0a;
+ 			areg_02 = 0x02;
+-			break;
++		} else {
++			areg_05 = 0x07;
+ 		}
+ 		nicam_flag = 1;
+ 		break;
+ 	/* other */
+ 	case 3:
+-		switch (dev->norm) {
+-		/* DK3_A2 */
+-		case V4L2_STD_DK:
++		if (dev->norm & V4L2_STD_DK) {
+ 			areg_05 = 0x0b;
+-			break;
+-		/* Korea */
+-		case V4L2_STD_NTSC_M_KR:
+-			areg_05 = 0x04;
+-			break;
+-		/* EIAJ */
+-		case V4L2_STD_NTSC_M_JP:
+-			areg_05 = 0x03;
+-			break;
+-		default:
++		} else {
+ 			areg_05 = 0x02;
+-			break;
+ 		}
+ 		break;
+ 	}
+@@ -557,10 +526,16 @@ int tm6000_set_standard(struct tm6000_core *dev)
+ 		case TM6000_AMUX_ADC1:
+ 			tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
+ 				0x00, 0x0f);
++			/* Mux overflow workaround */
++			tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
++				0x10, 0xf0);
+ 			break;
+ 		case TM6000_AMUX_ADC2:
+ 			tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
+ 				0x08, 0x0f);
++			/* Mux overflow workaround */
++			tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
++				0x10, 0xf0);
+ 			break;
+ 		case TM6000_AMUX_SIF1:
+ 			reg_08_e2 |= 0x02;
+@@ -570,6 +545,9 @@ int tm6000_set_standard(struct tm6000_core *dev)
+ 			tm6000_set_reg(dev, TM6010_REQ08_RE4_ADC_IN2_SEL, 0xf3);
+ 			tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
+ 				0x02, 0x0f);
++			/* Mux overflow workaround */
++			tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
++				0x30, 0xf0);
+ 			break;
+ 		case TM6000_AMUX_SIF2:
+ 			reg_08_e2 |= 0x02;
+@@ -579,6 +557,9 @@ int tm6000_set_standard(struct tm6000_core *dev)
+ 			tm6000_set_reg(dev, TM6010_REQ08_RE4_ADC_IN2_SEL, 0xf7);
+ 			tm6000_set_reg_mask(dev, TM6010_REQ08_RF0_DAUDIO_INPUT_CONFIG,
+ 				0x02, 0x0f);
++			/* Mux overflow workaround */
++			tm6000_set_reg_mask(dev, TM6010_REQ07_R07_OUTPUT_CONTROL,
++				0x30, 0xf0);
+ 			break;
+ 		default:
+ 			break;
