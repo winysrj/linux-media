@@ -1,102 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42092 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755394Ab1KPKhp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Nov 2011 05:37:45 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 6/9] as3645a: free resources in case of error properly
-Date: Wed, 16 Nov 2011 11:37:52 +0100
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1321374065-20063-3-git-send-email-laurent.pinchart@ideasonboard.com> <cover.1321379276.git.andriy.shevchenko@linux.intel.com> <20ff3c96498a0e9e0a1c1d09690fbbf6a59bee15.1321379276.git.andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20ff3c96498a0e9e0a1c1d09690fbbf6a59bee15.1321379276.git.andriy.shevchenko@linux.intel.com>
+Received: from mx1.redhat.com ([209.132.183.28]:50479 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751531Ab1KXUGL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 15:06:11 -0500
+Message-ID: <4ECEA3A9.1080506@redhat.com>
+Date: Thu, 24 Nov 2011 18:06:01 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: "Nori, Sekhar" <nsekhar@ti.com>
+CC: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RESEND] davinci: dm646x: move vpif related code to driver
+ core header from platform
+References: <1321110362-6699-1-git-send-email-manjunath.hadli@ti.com> <4ECE8764.60800@redhat.com> <DF0F476B391FA8409C78302C7BA518B602DDD6@DBDE01.ent.ti.com>
+In-Reply-To: <DF0F476B391FA8409C78302C7BA518B602DDD6@DBDE01.ent.ti.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201111161137.54083.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
-
-Thanks for the patch.
-
-On Tuesday 15 November 2011 18:49:58 Andy Shevchenko wrote:
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  drivers/media/video/as3645a.c |   23 ++++++++++++-----------
->  1 files changed, 12 insertions(+), 11 deletions(-)
+Em 24-11-2011 16:22, Nori, Sekhar escreveu:
+> Hi Mauro,
 > 
-> diff --git a/drivers/media/video/as3645a.c b/drivers/media/video/as3645a.c
-> index 541f8bc..9aebaa2 100644
-> --- a/drivers/media/video/as3645a.c
-> +++ b/drivers/media/video/as3645a.c
-> @@ -800,11 +800,13 @@ static int as3645a_probe(struct i2c_client *client,
->  	flash->subdev.internal_ops = &as3645a_internal_ops;
->  	flash->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> On Thu, Nov 24, 2011 at 23:35:24, Mauro Carvalho Chehab wrote:
+>> Em 12-11-2011 13:06, Manjunath Hadli escreveu:
+>>> move vpif related code for capture and display drivers
+>>> from dm646x platform header file to vpif_types.h as these definitions
+>>> are related to driver code more than the platform or board.
+>>>
+>>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+>>
+>> Manju,
+>>
+>> Why are you re-sending a patch?
+>>
+>> My understanding is that you're maintaining the davinci patches, so it is
+>> up to you to put those patches on your tree and send me a pull request when
+>> they're done. So, please, don't pollute the ML re-sending emails that
+>> are for yourself to handle.
 > 
-> +	ret = as3645a_init_controls(flash);
-> +	if (ret < 0)
-> +		goto free_and_quit;
-> +
->  	ret = media_entity_init(&flash->subdev.entity, 0, NULL, 0);
-> -	if (ret < 0) {
-> -		kfree(flash);
-> -		return ret;
-> -	}
-> +	if (ret < 0)
-> +		goto free_and_quit;
+> Since this particular patch touches arch/arm/mach-davinci
+> as well as drivers/media/video, the plan was to queue the
+> patch through ARM tree with your Ack. We did not get your
+> ack the last time around[1] so it was resent.
 > 
->  	flash->subdev.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_FLASH;
+> Do let me know if your ack is not needed.
 > 
-> @@ -812,13 +814,12 @@ static int as3645a_probe(struct i2c_client *client,
+> Thanks,
+> Sekhar
 > 
->  	flash->led_mode = V4L2_FLASH_LED_MODE_NONE;
-> 
-> -	ret = as3645a_init_controls(flash);
-> -	if (ret < 0) {
-> -		kfree(flash);
-> -		return ret;
-> -	}
-> -
+> [1] http://www.mail-archive.com/davinci-linux-open-source@linux.davincidsp.com/msg21840.html
 
-Would you mind if I replace this code below
+Hmm.. I missed this email, but just re-sending it without request my ACK doesn't help
+much ;)
 
->  	return 0;
-> +
-> +free_and_quit:
-> +	v4l2_ctrl_handler_free(&flash->ctrls);
-> +	kfree(flash);
-> +	return ret;
+If this ever happens again, next time the better is to forward me the patch again, on
+an email asking for my ack.
 
-with
+With regards to the patch:
 
-done:
-	if (ret < 0) {
-		v4l2_ctrl_handler_free(&flash->ctrls);
-		kfree(flash);
-	}
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-	return ret;
-
->  }
-> 
->  static int __exit as3645a_remove(struct i2c_client *client)
-> @@ -828,7 +829,7 @@ static int __exit as3645a_remove(struct i2c_client
-> *client)
-> 
->  	v4l2_device_unregister_subdev(subdev);
->  	v4l2_ctrl_handler_free(&flash->ctrls);
-> -
-> +	media_entity_cleanup(&flash->subdev.entity);
->  	kfree(flash);
-> 
->  	return 0;
-
--- 
 Regards,
-
-Laurent Pinchart
+Mauro
