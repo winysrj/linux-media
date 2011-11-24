@@ -1,64 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:37251 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754575Ab1KUVIF (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4054 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756091Ab1KXNjZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Nov 2011 16:08:05 -0500
-Received: by wwe5 with SMTP id 5so11147238wwe.1
-        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:08:04 -0800 (PST)
-MIME-Version: 1.0
-Date: Tue, 22 Nov 2011 02:38:04 +0530
-Message-ID: <CAHFNz9K0G1gz8RDZnVhmrtP7S7dUcrFsBSCis=EOEL1c7vfqKQ@mail.gmail.com>
-Subject: PATCH 08/13: 0008-STV090x-Query-DVB-frontend-delivery-capabilities
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	"abraham.manu" <abraham.manu@gmail.com>
-Content-Type: multipart/mixed; boundary=0015175cf7da2b08de04b2451581
+	Thu, 24 Nov 2011 08:39:25 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 07/12] cx18/ddbridge: remove unused headers.
+Date: Thu, 24 Nov 2011 14:39:04 +0100
+Message-Id: <6b1eb1df8a77998a0ada0685b18f8aadb9ac70ea.1322141686.git.hans.verkuil@cisco.com>
+In-Reply-To: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <07c1a0737016dcf588e866cde0f3bc1a59e35bfb.1322141686.git.hans.verkuil@cisco.com>
+References: <07c1a0737016dcf588e866cde0f3bc1a59e35bfb.1322141686.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0015175cf7da2b08de04b2451581
-Content-Type: text/plain; charset=ISO-8859-1
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+Work is in progress to deprecate include/linux/dvb/audio.h and video.h.
+The cx18 and ddbridge drivers include these headers without using them.
 
+Remove those includes.
 
---0015175cf7da2b08de04b2451581
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0008-STV090x-Query-DVB-frontend-delivery-capabilities.patch"
-Content-Disposition: attachment;
-	filename="0008-STV090x-Query-DVB-frontend-delivery-capabilities.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/dvb/ddbridge/ddbridge.h  |    2 --
+ drivers/media/video/cx18/cx18-driver.h |    2 --
+ 2 files changed, 0 insertions(+), 4 deletions(-)
 
-RnJvbSA1YmIxZTY3YjVkNGYxNjEzMmJhYzE4YzM3YzkzMTUzZTllNWE4YWJhIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
-CkRhdGU6IFRodSwgMTcgTm92IDIwMTEgMTA6MDc6MDYgKzA1MzAKU3ViamVjdDogW1BBVENIIDA4
-LzEzXSBTVFYwOTB4OiBRdWVyeSBEVkIgZnJvbnRlbmQgZGVsaXZlcnkgY2FwYWJpbGl0aWVzCgpP
-dmVycmlkZSBkZWZhdWx0IGRlbGl2ZXJ5IHN5c3RlbSBpbmZvcm1hdGlvbiBwcm92aWRlZCBieSBG
-RV9HRVRfSU5GTywgc28KdGhhdCBhcHBsaWNhdGlvbnMgY2FuIGVudW1lcmF0ZSBkZWxpdmVyeSBz
-eXN0ZW1zIHByb3ZpZGVkIGJ5IHRoZSBmcm9udGVuZC4KClNpZ25lZC1vZmYtYnk6IE1hbnUgQWJy
-YWhhbSA8YWJyYWhhbS5tYW51QGdtYWlsLmNvbT4KLS0tCiBkcml2ZXJzL21lZGlhL2R2Yi9mcm9u
-dGVuZHMvc3R2MDkweC5jIHwgICAxOSArKysrKysrKysrKysrKysrKystCiAxIGZpbGVzIGNoYW5n
-ZWQsIDE4IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVy
-cy9tZWRpYS9kdmIvZnJvbnRlbmRzL3N0djA5MHguYyBiL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250
-ZW5kcy9zdHYwOTB4LmMKaW5kZXggZWJkYTQxOS4uOGEyNjM3YyAxMDA2NDQKLS0tIGEvZHJpdmVy
-cy9tZWRpYS9kdmIvZnJvbnRlbmRzL3N0djA5MHguYworKysgYi9kcml2ZXJzL21lZGlhL2R2Yi9m
-cm9udGVuZHMvc3R2MDkweC5jCkBAIC00NzExLDYgKzQ3MTEsMjEgQEAgaW50IHN0djA5MHhfc2V0
-X2dwaW8oc3RydWN0IGR2Yl9mcm9udGVuZCAqZmUsIHU4IGdwaW8sIHU4IGRpciwgdTggdmFsdWUs
-CiB9CiBFWFBPUlRfU1lNQk9MKHN0djA5MHhfc2V0X2dwaW8pOwogCitzdGF0aWMgaW50IHN0djA5
-MHhfZ2V0X3Byb3BlcnR5KHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCBzdHJ1Y3QgZHR2X3Byb3Bl
-cnR5ICpwKQoreworCXN3aXRjaCAocC0+Y21kKSB7CisJY2FzZSBEVFZfRU5VTV9ERUxTWVM6CisJ
-CXAtPnUuYnVmZmVyLmRhdGFbMF0gPSBTWVNfRFNTOworCQlwLT51LmJ1ZmZlci5kYXRhWzFdID0g
-U1lTX0RWQlM7CisJCXAtPnUuYnVmZmVyLmRhdGFbMl0gPSBTWVNfRFZCUzI7CisJCXAtPnUuYnVm
-ZmVyLmxlbiA9IDM7CisJCWJyZWFrOworCWRlZmF1bHQ6CisJCWJyZWFrOworCX0KKwlyZXR1cm4g
-MDsKK30KKwogc3RhdGljIHN0cnVjdCBkdmJfZnJvbnRlbmRfb3BzIHN0djA5MHhfb3BzID0gewog
-CiAJLmluZm8gPSB7CkBAIC00NzQzLDcgKzQ3NTgsOSBAQCBzdGF0aWMgc3RydWN0IGR2Yl9mcm9u
-dGVuZF9vcHMgc3R2MDkweF9vcHMgPSB7CiAJLnJlYWRfc3RhdHVzCQkJPSBzdHYwOTB4X3JlYWRf
-c3RhdHVzLAogCS5yZWFkX2JlcgkJCT0gc3R2MDkweF9yZWFkX3BlciwKIAkucmVhZF9zaWduYWxf
-c3RyZW5ndGgJCT0gc3R2MDkweF9yZWFkX3NpZ25hbF9zdHJlbmd0aCwKLQkucmVhZF9zbnIJCQk9
-IHN0djA5MHhfcmVhZF9jbnIKKwkucmVhZF9zbnIJCQk9IHN0djA5MHhfcmVhZF9jbnIsCisKKwku
-Z2V0X3Byb3BlcnR5CQkJPSBzdHYwOTB4X2dldF9wcm9wZXJ0eSwKIH07CiAKIAotLSAKMS43LjEK
-Cg==
---0015175cf7da2b08de04b2451581--
+diff --git a/drivers/media/dvb/ddbridge/ddbridge.h b/drivers/media/dvb/ddbridge/ddbridge.h
+index 6d14893..8b1b41d 100644
+--- a/drivers/media/dvb/ddbridge/ddbridge.h
++++ b/drivers/media/dvb/ddbridge/ddbridge.h
+@@ -32,8 +32,6 @@
+ #include <asm/dma.h>
+ #include <linux/dvb/frontend.h>
+ #include <linux/dvb/ca.h>
+-#include <linux/dvb/video.h>
+-#include <linux/dvb/audio.h>
+ #include <linux/socket.h>
+ 
+ #include "dmxdev.h"
+diff --git a/drivers/media/video/cx18/cx18-driver.h b/drivers/media/video/cx18/cx18-driver.h
+index b9a94fc..7a37e0e 100644
+--- a/drivers/media/video/cx18/cx18-driver.h
++++ b/drivers/media/video/cx18/cx18-driver.h
+@@ -44,8 +44,6 @@
+ #include <linux/slab.h>
+ #include <asm/byteorder.h>
+ 
+-#include <linux/dvb/video.h>
+-#include <linux/dvb/audio.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-device.h>
+-- 
+1.7.7.3
+
