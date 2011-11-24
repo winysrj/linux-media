@@ -1,30 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpout.ac-paris.fr ([195.98.241.141]:53030 "EHLO
-	smtpout.ac-paris.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750813Ab1KBEW7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 00:22:59 -0400
-From: Savigny Emmanuelle <Emmanuelle.Savigny@ac-paris.fr>
-Reply-To: mrallenailliams537@hotmail.com
-Message-ID: <601a1a58104617c3.4eb06116@ac-paris.fr>
-Date: Tue, 01 Nov 2011 21:13:58 -0700
+Received: from mx1.redhat.com ([209.132.183.28]:17592 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750789Ab1KXSFf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 13:05:35 -0500
+Message-ID: <4ECE8764.60800@redhat.com>
+Date: Thu, 24 Nov 2011 16:05:24 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Language: en
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>
+Subject: Re: [PATCH RESEND] davinci: dm646x: move vpif related code to driver
+ core header from platform
+References: <1321110362-6699-1-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1321110362-6699-1-git-send-email-manjunath.hadli@ti.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em 12-11-2011 13:06, Manjunath Hadli escreveu:
+> move vpif related code for capture and display drivers
+> from dm646x platform header file to vpif_types.h as these definitions
+> are related to driver code more than the platform or board.
+> 
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
 
+Manju,
 
-Dear beneficiary,
+Why are you re-sending a patch?
 
-This is to re-notify you of the $300,000.00 USD that was deposited
-here in the western union office in your name is available for pickup.
-Contact us via email for your M.T.C.N Numbers.
+My understanding is that you're maintaining the davinci patches, so it is
+up to you to put those patches on your tree and send me a pull request when
+they're done. So, please, don't pollute the ML re-sending emails that
+are for yourself to handle.
 
-Contact Person:Mr. Allen Williams
-Email:mrallenailliams537@hotmail.com
-Tel. +447024037299
+Regards,
+Mauro.
 
