@@ -1,186 +1,3201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1648 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751940Ab1KWLMv (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3374 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756060Ab1KXNjZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Nov 2011 06:12:51 -0500
+	Thu, 24 Nov 2011 08:39:25 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 1/4] v4l2: add VIDIOC_(TRY_)DECODER_CMD.
-Date: Wed, 23 Nov 2011 12:12:33 +0100
-Message-Id: <5f3ea26a94437e97b4b7ddfb3f7dc8dd4c2a8f12.1322045294.git.hans.verkuil@cisco.com>
-In-Reply-To: <1322046756-22870-1-git-send-email-hverkuil@xs4all.nl>
-References: <1322046756-22870-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 11/12] Replace audio.xml and video.xml with av.xml.
+Date: Thu, 24 Nov 2011 14:39:08 +0100
+Message-Id: <285b29f64581cef195b05fef77139dc99a2dc019.1322141686.git.hans.verkuil@cisco.com>
+In-Reply-To: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <07c1a0737016dcf588e866cde0f3bc1a59e35bfb.1322141686.git.hans.verkuil@cisco.com>
+References: <07c1a0737016dcf588e866cde0f3bc1a59e35bfb.1322141686.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-As discussed during the 2011 V4L-DVB workshop, the API in dvb/video.h should
-be replaced by a proper V4L2 API. This patch turns the VIDEO_(TRY_)DECODER_CMD
-ioctls into proper V4L2 ioctls.
-
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/v4l2-compat-ioctl32.c |    2 +
- drivers/media/video/v4l2-ioctl.c          |   30 +++++++++++++++++
- include/linux/videodev2.h                 |   50 +++++++++++++++++++++++++++++
- include/media/v4l2-ioctl.h                |    4 ++
- 4 files changed, 86 insertions(+), 0 deletions(-)
+ Documentation/DocBook/media/Makefile         |   32 +-
+ Documentation/DocBook/media/dvb/audio.xml    | 1203 -------------------
+ Documentation/DocBook/media/dvb/av.xml       |  108 ++
+ Documentation/DocBook/media/dvb/dvbapi.xml   |   16 +-
+ Documentation/DocBook/media/dvb/examples.xml |    1 -
+ Documentation/DocBook/media/dvb/intro.xml    |    9 -
+ Documentation/DocBook/media/dvb/video.xml    | 1657 --------------------------
+ 7 files changed, 111 insertions(+), 2915 deletions(-)
+ delete mode 100644 Documentation/DocBook/media/dvb/audio.xml
+ create mode 100644 Documentation/DocBook/media/dvb/av.xml
+ delete mode 100644 Documentation/DocBook/media/dvb/video.xml
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index c68531b..ffd9b1e 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -1003,6 +1003,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	case VIDIOC_G_ENC_INDEX:
- 	case VIDIOC_ENCODER_CMD:
- 	case VIDIOC_TRY_ENCODER_CMD:
-+	case VIDIOC_DECODER_CMD:
-+	case VIDIOC_TRY_DECODER_CMD:
- 	case VIDIOC_DBG_S_REGISTER:
- 	case VIDIOC_DBG_G_REGISTER:
- 	case VIDIOC_DBG_G_CHIP_IDENT:
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index e1da8fc..e3bda4e 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -258,6 +258,8 @@ static const char *v4l2_ioctls[] = {
- 	[_IOC_NR(VIDIOC_ENCODER_CMD)] 	   = "VIDIOC_ENCODER_CMD",
- 	[_IOC_NR(VIDIOC_TRY_ENCODER_CMD)]  = "VIDIOC_TRY_ENCODER_CMD",
+diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
+index 6628b4b..fb40a52 100644
+--- a/Documentation/DocBook/media/Makefile
++++ b/Documentation/DocBook/media/Makefile
+@@ -11,12 +11,10 @@ MEDIA_TEMP =  media-entities.tmpl \
+ 	      media-indices.tmpl \
+ 	      videodev2.h.xml \
+ 	      v4l2.xml \
+-	      audio.h.xml \
+ 	      ca.h.xml \
+ 	      dmx.h.xml \
+ 	      frontend.h.xml \
+ 	      net.h.xml \
+-	      video.h.xml \
  
-+	[_IOC_NR(VIDIOC_DECODER_CMD)]	   = "VIDIOC_DECODER_CMD",
-+	[_IOC_NR(VIDIOC_TRY_DECODER_CMD)]  = "VIDIOC_TRY_DECODER_CMD",
- 	[_IOC_NR(VIDIOC_DBG_S_REGISTER)]   = "VIDIOC_DBG_S_REGISTER",
- 	[_IOC_NR(VIDIOC_DBG_G_REGISTER)]   = "VIDIOC_DBG_G_REGISTER",
+ IMGFILES := $(patsubst %.b64,%, $(notdir $(shell ls $(MEDIA_SRC_DIR)/*.b64)))
+ OBJIMGFILES := $(addprefix $(MEDIA_OBJ_DIR)/, $(IMGFILES))
+@@ -57,12 +55,10 @@ FUNCS = \
  
-@@ -1658,6 +1660,32 @@ static long __video_do_ioctl(struct file *file,
- 			dbgarg(cmd, "cmd=%d, flags=%x\n", p->cmd, p->flags);
- 		break;
- 	}
-+	case VIDIOC_DECODER_CMD:
-+	{
-+		struct v4l2_decoder_cmd *p = arg;
-+
-+		if (!ops->vidioc_decoder_cmd)
-+			break;
-+		if (ret_prio) {
-+			ret = ret_prio;
-+			break;
-+		}
-+		ret = ops->vidioc_decoder_cmd(file, fh, p);
-+		if (!ret)
-+			dbgarg(cmd, "cmd=%d, flags=%x\n", p->cmd, p->flags);
-+		break;
-+	}
-+	case VIDIOC_TRY_DECODER_CMD:
-+	{
-+		struct v4l2_decoder_cmd *p = arg;
-+
-+		if (!ops->vidioc_try_decoder_cmd)
-+			break;
-+		ret = ops->vidioc_try_decoder_cmd(file, fh, p);
-+		if (!ret)
-+			dbgarg(cmd, "cmd=%d, flags=%x\n", p->cmd, p->flags);
-+		break;
-+	}
- 	case VIDIOC_G_PARM:
- 	{
- 		struct v4l2_streamparm *p = arg;
-@@ -2188,6 +2216,8 @@ static unsigned long cmd_input_size(unsigned int cmd)
- 		CMDINSIZE(ENUMAUDOUT,		audioout, 	index);
- 		CMDINSIZE(ENCODER_CMD,		encoder_cmd,	flags);
- 		CMDINSIZE(TRY_ENCODER_CMD,	encoder_cmd,	flags);
-+		CMDINSIZE(DECODER_CMD,		decoder_cmd,	flags);
-+		CMDINSIZE(TRY_DECODER_CMD,	decoder_cmd,	flags);
- 		CMDINSIZE(G_SLICED_VBI_CAP,	sliced_vbi_cap,	type);
- 		CMDINSIZE(ENUM_FRAMESIZES,	frmsizeenum,	pixel_format);
- 		CMDINSIZE(ENUM_FRAMEINTERVALS,	frmivalenum,	height);
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 4b752d5..de3737a 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1849,6 +1849,51 @@ struct v4l2_encoder_cmd {
- 	};
- };
+ IOCTLS = \
+ 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/videodev2.h) \
+-	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/audio.h) \
+ 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/ca.h) \
+ 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/dmx.h) \
+ 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/frontend.h) \
+ 	$(shell perl -ne 'print "$$1 " if /\#define\s+([A-Z][^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/net.h) \
+-	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/video.h) \
+ 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/media.h) \
+ 	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/v4l2-subdev.h) \
+ 	VIDIOC_SUBDEV_G_FRAME_INTERVAL \
+@@ -77,24 +73,20 @@ TYPES = \
  
-+/* Decoder commands */
-+#define V4L2_DEC_CMD_START       (0)
-+#define V4L2_DEC_CMD_STOP        (1)
-+#define V4L2_DEC_CMD_PAUSE       (2)
-+#define V4L2_DEC_CMD_RESUME      (3)
-+
-+/* Flags for V4L2_DEC_CMD_PAUSE */
-+#define V4L2_DEC_CMD_PAUSE_TO_BLACK	(1 << 0)
-+
-+/* Flags for V4L2_DEC_CMD_STOP */
-+#define V4L2_DEC_CMD_STOP_TO_BLACK	(1 << 0)
-+#define V4L2_DEC_CMD_STOP_IMMEDIATELY	(1 << 1)
-+
-+/* Play format requirements (returned by the driver): */
-+
-+/* The decoder has no special format requirements */
-+#define V4L2_DEC_START_FMT_NONE		(0)
-+/* The decoder requires full GOPs */
-+#define V4L2_DEC_START_FMT_GOP		(1)
-+
-+/* The structure must be zeroed before use by the application
-+   This ensures it can be extended safely in the future. */
-+struct v4l2_decoder_cmd {
-+	__u32 cmd;
-+	__u32 flags;
-+	union {
-+		struct {
-+			__u64 pts;
-+		} stop;
-+
-+		struct {
-+			/* 0 or 1000 specifies normal speed,
-+			   1 specifies forward single stepping,
-+			   -1 specifies backward single stepping,
-+			   >1: playback at speed/1000 of the normal speed,
-+			   <-1: reverse playback at (-speed/1000) of the normal speed. */
-+			__s32 speed;
-+			__u32 format;
-+		} start;
-+
-+		struct {
-+			__u32 data[16];
-+		} raw;
-+	};
-+};
- #endif
+ ENUMS = \
+ 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/videodev2.h) \
+-	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/audio.h) \
+ 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/ca.h) \
+ 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/dmx.h) \
+ 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/frontend.h) \
+ 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/net.h) \
+-	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/video.h) \
+ 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/media.h) \
+ 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/v4l2-mediabus.h) \
+ 	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/v4l2-subdev.h)
  
+ STRUCTS = \
+ 	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/linux/videodev2.h) \
+-	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s\{]+)\s*/)' $(srctree)/include/linux/dvb/audio.h) \
+ 	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s]+)\s+/)' $(srctree)/include/linux/dvb/ca.h) \
+ 	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s]+)\s+/)' $(srctree)/include/linux/dvb/dmx.h) \
+ 	$(shell perl -ne 'print "$$1 " if (!/dtv\_cmds\_h/ && /^struct\s+([^\s]+)\s+/)' $(srctree)/include/linux/dvb/frontend.h) \
+ 	$(shell perl -ne 'print "$$1 " if (/^struct\s+([A-Z][^\s]+)\s+/)' $(srctree)/include/linux/dvb/net.h) \
+-	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s]+)\s+/)' $(srctree)/include/linux/dvb/video.h) \
+ 	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/linux/media.h) \
+ 	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/linux/v4l2-subdev.h) \
+ 	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/linux/v4l2-mediabus.h)
+@@ -183,7 +175,7 @@ DVB_DOCUMENTED = \
+ 	-e "s,\(define\s\+\)\(DTV_[A-Z0-9_]\+\)\(\s\+[0-9]\+\),\1\<link linkend=\"\2\">\2\<\/link\>\3,g" \
+ 	-e "s,<link\s\+linkend=\".*\">\(DTV_IOCTL_MAX_MSGS\|dtv_cmds_h\|__.*_old\)<\/link>,\1,g" \
+ 	-e ":a;s/\(linkend=\".*\)_\(.*\">\)/\1-\2/;ta" \
+-	-e "s,\(audio-mixer\|audio-karaoke\|audio-status\|ca-slot-info\|ca-descr-info\|ca-caps\|ca-msg\|ca-descr\|ca-pid\|dmx-filter\|dmx-caps\|video-system\|video-highlight\|video-spu\|video-spu-palette\|video-navi-pack\)-t,\1,g" \
++	-e "s,\(ca-slot-info\|ca-descr-info\|ca-caps\|ca-msg\|ca-descr\|ca-pid\|dmx-filter\|dmx-caps\)-t,\1,g" \
+ 	-e "s,DTV-ISDBT-LAYER[A-C],DTV-ISDBT-LAYER,g" \
+ 	-e "s,\(define\s\+\)\([A-Z0-9_]\+\)\(\s\+_IO\),\1\<link linkend=\"\2\">\2\<\/link\>\3,g" \
+ 	-e "s,<link\s\+linkend=\".*\">\(__.*_OLD\)<\/link>,\1,g" \
+@@ -214,17 +206,6 @@ $(MEDIA_OBJ_DIR)/videodev2.h.xml: $(srctree)/include/linux/videodev2.h $(MEDIA_O
+ 	@(					\
+ 	echo "</programlisting>") >> $@
  
-@@ -2255,6 +2300,11 @@ struct v4l2_create_buffers {
- #define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
- #define VIDIOC_PREPARE_BUF	_IOWR('V', 93, struct v4l2_buffer)
+-$(MEDIA_OBJ_DIR)/audio.h.xml: $(srctree)/include/linux/dvb/audio.h $(MEDIA_OBJ_DIR)/v4l2.xml
+-	@$($(quiet)gen_xml)
+-	@(					\
+-	echo "<programlisting>") > $@
+-	@(					\
+-	expand --tabs=8 < $< |			\
+-	  sed $(ESCAPE) $(DVB_DOCUMENTED) |	\
+-	  sed 's/i\.e\./&ie;/') >> $@
+-	@(					\
+-	echo "</programlisting>") >> $@
+-
+ $(MEDIA_OBJ_DIR)/ca.h.xml: $(srctree)/include/linux/dvb/ca.h $(MEDIA_OBJ_DIR)/v4l2.xml
+ 	@$($(quiet)gen_xml)
+ 	@(					\
+@@ -269,17 +250,6 @@ $(MEDIA_OBJ_DIR)/net.h.xml: $(srctree)/include/linux/dvb/net.h $(MEDIA_OBJ_DIR)/
+ 	@(					\
+ 	echo "</programlisting>") >> $@
  
-+/* Experimental, these two ioctls may change over the next couple of kernel
-+   versions. */
-+#define VIDIOC_DECODER_CMD	_IOWR('V', 94, struct v4l2_decoder_cmd)
-+#define VIDIOC_TRY_DECODER_CMD	_IOWR('V', 95, struct v4l2_decoder_cmd)
-+
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+-$(MEDIA_OBJ_DIR)/video.h.xml: $(srctree)/include/linux/dvb/video.h $(MEDIA_OBJ_DIR)/v4l2.xml
+-	@$($(quiet)gen_xml)
+-	@(					\
+-	echo "<programlisting>") > $@
+-	@(					\
+-	expand --tabs=8 < $< |			\
+-	  sed $(ESCAPE) $(DVB_DOCUMENTED) |	\
+-	  sed 's/i\.e\./&ie;/') >> $@
+-	@(					\
+-	echo "</programlisting>") >> $@
+-
+ $(MEDIA_OBJ_DIR)/media-entities.tmpl: $(MEDIA_OBJ_DIR)/v4l2.xml
+ 	@$($(quiet)gen_xml)
+ 	@(								\
+diff --git a/Documentation/DocBook/media/dvb/audio.xml b/Documentation/DocBook/media/dvb/audio.xml
+deleted file mode 100644
+index d643862..0000000
+--- a/Documentation/DocBook/media/dvb/audio.xml
++++ /dev/null
+@@ -1,1203 +0,0 @@
+-<title>DVB Audio Device</title>
+-<para>The DVB audio device controls the MPEG2 audio decoder of the DVB hardware. It
+-can be accessed through <emphasis role="tt">/dev/dvb/adapter0/audio0</emphasis>. Data types and and
+-ioctl definitions can be accessed by including <emphasis role="tt">linux/dvb/video.h</emphasis> in your
+-application.
+-</para>
+-<para>Please note that some DVB cards don&#8217;t have their own MPEG decoder, which results in
+-the omission of the audio and video device.
+-</para>
+-
+-<section id="audio_data_types">
+-<title>Audio Data Types</title>
+-<para>This section describes the structures, data types and defines used when talking to the
+-audio device.
+-</para>
+-
+-<section id="audio-stream-source-t">
+-<title>audio_stream_source_t</title>
+-<para>The audio stream source is set through the AUDIO_SELECT_SOURCE call and can take
+-the following values, depending on whether we are replaying from an internal (demux) or
+-external (user write) source.
+-</para>
+-<programlisting>
+-typedef enum {
+-	AUDIO_SOURCE_DEMUX,
+-	AUDIO_SOURCE_MEMORY
+-} audio_stream_source_t;
+-</programlisting>
+-<para>AUDIO_SOURCE_DEMUX selects the demultiplexer (fed either by the frontend or the
+-DVR device) as the source of the video stream. If AUDIO_SOURCE_MEMORY
+-is selected the stream comes from the application through the <emphasis role="tt">write()</emphasis> system
+-call.
+-</para>
+-
+-</section>
+-<section id="audio-play-state-t">
+-<title>audio_play_state_t</title>
+-<para>The following values can be returned by the AUDIO_GET_STATUS call representing the
+-state of audio playback.
+-</para>
+-<programlisting>
+-typedef enum {
+-	AUDIO_STOPPED,
+-	AUDIO_PLAYING,
+-	AUDIO_PAUSED
+-} audio_play_state_t;
+-</programlisting>
+-
+-</section>
+-<section id="audio-channel-select-t">
+-<title>audio_channel_select_t</title>
+-<para>The audio channel selected via AUDIO_CHANNEL_SELECT is determined by the
+-following values.
+-</para>
+-<programlisting>
+-typedef enum {
+-	AUDIO_STEREO,
+-	AUDIO_MONO_LEFT,
+-	AUDIO_MONO_RIGHT,
+-	AUDIO_MONO,
+-	AUDIO_STEREO_SWAPPED
+-} audio_channel_select_t;
+-</programlisting>
+-
+-</section>
+-<section id="audio-status">
+-<title>struct audio_status</title>
+-<para>The AUDIO_GET_STATUS call returns the following structure informing about various
+-states of the playback operation.
+-</para>
+-<programlisting>
+-typedef struct audio_status {
+-	boolean AV_sync_state;
+-	boolean mute_state;
+-	audio_play_state_t play_state;
+-	audio_stream_source_t stream_source;
+-	audio_channel_select_t channel_select;
+-	boolean bypass_mode;
+-	audio_mixer_t mixer_state;
+-} audio_status_t;
+-</programlisting>
+-
+-</section>
+-<section id="audio-mixer">
+-<title>struct audio_mixer</title>
+-<para>The following structure is used by the AUDIO_SET_MIXER call to set the audio
+-volume.
+-</para>
+-<programlisting>
+-typedef struct audio_mixer {
+-	unsigned int volume_left;
+-	unsigned int volume_right;
+-} audio_mixer_t;
+-</programlisting>
+-
+-</section>
+-<section id="audio_encodings">
+-<title>audio encodings</title>
+-<para>A call to AUDIO_GET_CAPABILITIES returns an unsigned integer with the following
+-bits set according to the hardwares capabilities.
+-</para>
+-<programlisting>
+- #define AUDIO_CAP_DTS    1
+- #define AUDIO_CAP_LPCM   2
+- #define AUDIO_CAP_MP1    4
+- #define AUDIO_CAP_MP2    8
+- #define AUDIO_CAP_MP3   16
+- #define AUDIO_CAP_AAC   32
+- #define AUDIO_CAP_OGG   64
+- #define AUDIO_CAP_SDDS 128
+- #define AUDIO_CAP_AC3  256
+-</programlisting>
+-
+-</section>
+-<section id="audio-karaoke">
+-<title>struct audio_karaoke</title>
+-<para>The ioctl AUDIO_SET_KARAOKE uses the following format:
+-</para>
+-<programlisting>
+-typedef
+-struct audio_karaoke {
+-	int vocal1;
+-	int vocal2;
+-	int melody;
+-} audio_karaoke_t;
+-</programlisting>
+-<para>If Vocal1 or Vocal2 are non-zero, they get mixed into left and right t at 70% each. If both,
+-Vocal1 and Vocal2 are non-zero, Vocal1 gets mixed into the left channel and Vocal2 into the
+-right channel at 100% each. Ff Melody is non-zero, the melody channel gets mixed into left
+-and right.
+-</para>
+-
+-</section>
+-<section id="audio-attributes-t">
+-<title>audio attributes</title>
+-<para>The following attributes can be set by a call to AUDIO_SET_ATTRIBUTES:
+-</para>
+-<programlisting>
+- typedef uint16_t audio_attributes_t;
+- /&#x22C6;   bits: descr. &#x22C6;/
+- /&#x22C6;   15-13 audio coding mode (0=ac3, 2=mpeg1, 3=mpeg2ext, 4=LPCM, 6=DTS, &#x22C6;/
+- /&#x22C6;   12    multichannel extension &#x22C6;/
+- /&#x22C6;   11-10 audio type (0=not spec, 1=language included) &#x22C6;/
+- /&#x22C6;    9- 8 audio application mode (0=not spec, 1=karaoke, 2=surround) &#x22C6;/
+- /&#x22C6;    7- 6 Quantization / DRC (mpeg audio: 1=DRC exists)(lpcm: 0=16bit,  &#x22C6;/
+- /&#x22C6;    5- 4 Sample frequency fs (0=48kHz, 1=96kHz) &#x22C6;/
+- /&#x22C6;    2- 0 number of audio channels (n+1 channels) &#x22C6;/
+-</programlisting>
+- </section></section>
+-<section id="audio_function_calls">
+-<title>Audio Function Calls</title>
+-
+-
+-<section id="audio_fopen">
+-<title>open()</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This system call opens a named audio device (e.g. /dev/dvb/adapter0/audio0)
+- for subsequent use. When an open() call has succeeded, the device will be ready
+- for use. The significance of blocking or non-blocking mode is described in the
+- documentation for functions where there is a difference. It does not affect the
+- semantics of the open() call itself. A device opened in blocking mode can later
+- be put into non-blocking mode (and vice versa) using the F_SETFL command
+- of the fcntl system call. This is a standard system call, documented in the Linux
+- manual page for fcntl. Only one user can open the Audio Device in O_RDWR
+- mode. All other attempts to open the device in this mode will fail, and an error
+- code will be returned. If the Audio Device is opened in O_RDONLY mode, the
+- only ioctl call that can be used is AUDIO_GET_STATUS. All other call will
+- return with an error code.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int open(const char &#x22C6;deviceName, int flags);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>const char
+- *deviceName</para>
+-</entry><entry
+- align="char">
+-<para>Name of specific audio device.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int flags</para>
+-</entry><entry
+- align="char">
+-<para>A bit-wise OR of the following flags:</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>O_RDONLY read-only access</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>O_RDWR read/write access</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>O_NONBLOCK open in non-blocking mode</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>(blocking mode is the default)</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>RETURN VALUE</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>ENODEV</para>
+-</entry><entry
+- align="char">
+-<para>Device driver not loaded/available.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EBUSY</para>
+-</entry><entry
+- align="char">
+-<para>Device or resource busy.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>Invalid argument.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section>
+-<section id="audio_fclose">
+-<title>close()</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This system call closes a previously opened audio device.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int close(int fd);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>RETURN VALUE</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EBADF</para>
+-</entry><entry
+- align="char">
+-<para>fd is not a valid open file descriptor.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section>
+-<section id="audio_fwrite">
+-<title>write()</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This system call can only be used if AUDIO_SOURCE_MEMORY is selected
+- in the ioctl call AUDIO_SELECT_SOURCE. The data provided shall be in
+- PES format. If O_NONBLOCK is not specified the function will block until
+- buffer space is available. The amount of data to be transferred is implied by
+- count.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>size_t write(int fd, const void &#x22C6;buf, size_t count);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>void *buf</para>
+-</entry><entry
+- align="char">
+-<para>Pointer to the buffer containing the PES data.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>size_t count</para>
+-</entry><entry
+- align="char">
+-<para>Size of buf.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>RETURN VALUE</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EPERM</para>
+-</entry><entry
+- align="char">
+-<para>Mode AUDIO_SOURCE_MEMORY not selected.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>ENOMEM</para>
+-</entry><entry
+- align="char">
+-<para>Attempted to write more data than the internal buffer can
+- hold.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EBADF</para>
+-</entry><entry
+- align="char">
+-<para>fd is not a valid open file descriptor.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section><section id="AUDIO_STOP"
+-role="subsection"><title>AUDIO_STOP</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the Audio Device to stop playing the current stream.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request = AUDIO_STOP);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_STOP for this command.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="AUDIO_PLAY"
+-role="subsection"><title>AUDIO_PLAY</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the Audio Device to start playing an audio stream from the
+- selected source.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request = AUDIO_PLAY);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_PLAY for this command.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="AUDIO_PAUSE"
+-role="subsection"><title>AUDIO_PAUSE</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call suspends the audio stream being played. Decoding and playing
+- are paused. It is then possible to restart again decoding and playing process of
+- the audio stream using AUDIO_CONTINUE command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>If AUDIO_SOURCE_MEMORY is selected in the ioctl call
+- AUDIO_SELECT_SOURCE, the DVB-subsystem will not decode (consume)
+- any more data until the ioctl call AUDIO_CONTINUE or AUDIO_PLAY is
+- performed.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request = AUDIO_PAUSE);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_PAUSE for this command.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="AUDIO_CONTINUE"
+-role="subsection"><title>AUDIO_CONTINUE</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl restarts the decoding and playing process previously paused
+-with AUDIO_PAUSE command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>It only works if the stream were previously stopped with AUDIO_PAUSE</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request = AUDIO_CONTINUE);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_CONTINUE for this command.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="AUDIO_SELECT_SOURCE"
+-role="subsection"><title>AUDIO_SELECT_SOURCE</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call informs the audio device which source shall be used
+- for the input data. The possible sources are demux or memory. If
+- AUDIO_SOURCE_MEMORY is selected, the data is fed to the Audio Device
+- through the write command.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request = AUDIO_SELECT_SOURCE,
+- audio_stream_source_t source);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_SELECT_SOURCE for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>audio_stream_source_t
+- source</para>
+-</entry><entry
+- align="char">
+-<para>Indicates the source that shall be used for the Audio
+- stream.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="AUDIO_SET_MUTE"
+-role="subsection"><title>AUDIO_SET_MUTE</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the audio device to mute the stream that is currently being
+- played.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request = AUDIO_SET_MUTE,
+- boolean state);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_SET_MUTE for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>boolean state</para>
+-</entry><entry
+- align="char">
+-<para>Indicates if audio device shall mute or not.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>TRUE Audio Mute</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>FALSE Audio Un-mute</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="AUDIO_SET_AV_SYNC"
+-role="subsection"><title>AUDIO_SET_AV_SYNC</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the Audio Device to turn ON or OFF A/V synchronization.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request = AUDIO_SET_AV_SYNC,
+- boolean state);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_AV_SYNC for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>boolean state</para>
+-</entry><entry
+- align="char">
+-<para>Tells the DVB subsystem if A/V synchronization shall be
+- ON or OFF.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>TRUE AV-sync ON</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>FALSE AV-sync OFF</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="AUDIO_SET_BYPASS_MODE"
+-role="subsection"><title>AUDIO_SET_BYPASS_MODE</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the Audio Device to bypass the Audio decoder and forward
+- the stream without decoding. This mode shall be used if streams that can&#8217;t be
+- handled by the DVB system shall be decoded. Dolby DigitalTM streams are
+- automatically forwarded by the DVB subsystem if the hardware can handle it.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request =
+- AUDIO_SET_BYPASS_MODE, boolean mode);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_SET_BYPASS_MODE for this
+- command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>boolean mode</para>
+-</entry><entry
+- align="char">
+-<para>Enables or disables the decoding of the current Audio
+- stream in the DVB subsystem.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>TRUE Bypass is disabled</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>FALSE Bypass is enabled</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="AUDIO_CHANNEL_SELECT"
+-role="subsection"><title>AUDIO_CHANNEL_SELECT</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the Audio Device to select the requested channel if possible.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request =
+- AUDIO_CHANNEL_SELECT, audio_channel_select_t);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_CHANNEL_SELECT for this
+- command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>audio_channel_select_t
+- ch</para>
+-</entry><entry
+- align="char">
+-<para>Select the output format of the audio (mono left/right,
+- stereo).</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="AUDIO_GET_STATUS"
+-role="subsection"><title>AUDIO_GET_STATUS</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the Audio Device to return the current state of the Audio
+- Device.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request = AUDIO_GET_STATUS,
+- struct audio_status &#x22C6;status);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_GET_STATUS for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>struct audio_status
+- *status</para>
+-</entry><entry
+- align="char">
+-<para>Returns the current state of Audio Device.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="AUDIO_GET_CAPABILITIES"
+-role="subsection"><title>AUDIO_GET_CAPABILITIES</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the Audio Device to tell us about the decoding capabilities
+- of the audio hardware.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request =
+- AUDIO_GET_CAPABILITIES, unsigned int &#x22C6;cap);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_GET_CAPABILITIES for this
+- command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>unsigned int *cap</para>
+-</entry><entry
+- align="char">
+-<para>Returns a bit array of supported sound formats.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="AUDIO_CLEAR_BUFFER"
+-role="subsection"><title>AUDIO_CLEAR_BUFFER</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the Audio Device to clear all software and hardware buffers
+- of the audio decoder device.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request = AUDIO_CLEAR_BUFFER);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_CLEAR_BUFFER for this command.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="AUDIO_SET_ID"
+-role="subsection"><title>AUDIO_SET_ID</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl selects which sub-stream is to be decoded if a program or system
+- stream is sent to the video device. If no audio stream type is set the id has to be
+- in [0xC0,0xDF] for MPEG sound, in [0x80,0x87] for AC3 and in [0xA0,0xA7]
+- for LPCM. More specifications may follow for other stream types. If the stream
+- type is set the id just specifies the substream id of the audio stream and only
+- the first 5 bits are recognized.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request = AUDIO_SET_ID, int
+- id);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_SET_ID for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int id</para>
+-</entry><entry
+- align="char">
+-<para>audio sub-stream id</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="AUDIO_SET_MIXER"
+-role="subsection"><title>AUDIO_SET_MIXER</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl lets you adjust the mixer settings of the audio decoder.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request = AUDIO_SET_MIXER,
+- audio_mixer_t &#x22C6;mix);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_SET_ID for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>audio_mixer_t *mix</para>
+-</entry><entry
+- align="char">
+-<para>mixer settings.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="AUDIO_SET_STREAMTYPE"
+-role="subsection"><title>AUDIO_SET_STREAMTYPE</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl tells the driver which kind of audio stream to expect. This is useful
+- if the stream offers several audio sub-streams like LPCM and AC3.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(fd, int request = AUDIO_SET_STREAMTYPE,
+- int type);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_SET_STREAMTYPE for this
+- command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int type</para>
+-</entry><entry
+- align="char">
+-<para>stream type</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>type is not a valid or supported stream type.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section><section id="AUDIO_SET_EXT_ID"
+-role="subsection"><title>AUDIO_SET_EXT_ID</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl can be used to set the extension id for MPEG streams in DVD
+- playback. Only the first 3 bits are recognized.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(fd, int request = AUDIO_SET_EXT_ID, int
+- id);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_SET_EXT_ID for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int id</para>
+-</entry><entry
+- align="char">
+-<para>audio sub_stream_id</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>id is not a valid id.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section><section id="AUDIO_SET_ATTRIBUTES"
+-role="subsection"><title>AUDIO_SET_ATTRIBUTES</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl is intended for DVD playback and allows you to set certain
+- information about the audio stream.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(fd, int request = AUDIO_SET_ATTRIBUTES,
+- audio_attributes_t attr );</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_SET_ATTRIBUTES for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>audio_attributes_t
+- attr</para>
+-</entry><entry
+- align="char">
+-<para>audio attributes according to section ??</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>attr is not a valid or supported attribute setting.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section><section id="AUDIO_SET_KARAOKE"
+-role="subsection"><title>AUDIO_SET_KARAOKE</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl allows one to set the mixer settings for a karaoke DVD.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(fd, int request = AUDIO_SET_KARAOKE,
+- audio_karaoke_t &#x22C6;karaoke);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals AUDIO_SET_KARAOKE for this
+- command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>audio_karaoke_t
+- *karaoke</para>
+-</entry><entry
+- align="char">
+-<para>karaoke settings according to section ??.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>karaoke is not a valid or supported karaoke setting.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+- </section>
+-</section>
+diff --git a/Documentation/DocBook/media/dvb/av.xml b/Documentation/DocBook/media/dvb/av.xml
+new file mode 100644
+index 0000000..0a4f443
+--- /dev/null
++++ b/Documentation/DocBook/media/dvb/av.xml
+@@ -0,0 +1,108 @@
++<title>DVB Audio/Video Devices</title>
++<para>The original DVBv5 API defined audio and video devices to control MPEG2 decoders inside
++DVB hardware. The MPEG2 audio decoder was accessed through
++<emphasis role="tt">/dev/dvb/adapter0/audio0</emphasis> and data types and
++ioctl definitions could be accessed by including <emphasis role="tt">linux/dvb/audio.h</emphasis>.
++The MPEG2 video decoder was accessed through <emphasis role="tt">/dev/dvb/adapter0/video0</emphasis>
++and data types and ioctl definitions could be accessed by including <emphasis role="tt">linux/dvb/video.h</emphasis>.
++</para>
++<para>In practice the only drivers that ever used this API were av7110 and ivtv. During the
++Prague V4L-DVB 2011 workshop it was decided that this functionality didn't belong in the
++DVB API but should be moved to the V4L2 API. So a new V4L2 API for MPEG decoders was created
++for kernel 3.3 and the ivtv driver was converted to use that API. The existing DVB API was
++turned into an av7110-specific API which can be found in <emphasis role="tt">linux/av7110.h</emphasis>.
++</para>
++<para>The old <emphasis role="tt">linux/dvb/audio.h</emphasis>, <emphasis role="tt">linux/dvb/video.h</emphasis>
++and <emphasis role="tt">linux/dvb/osd.h</emphasis> headers were removed.
++</para>
++<para>The following table shows how to map the old DVB ioctls to the new V4L2 ioctls/controls.
++Not all of the old DVB ioctls have a V4L2 counterpart. Please contact the linux-media mailing
++list (&v4l-ml;) should new functionality be required.
++    <table frame="none" pgwide="1" id="av-mapping">
++      <title>DVB audio/video API to V4L2 API mapping</title>
++      <tgroup cols="2">
++	<colspec colname="c1" colwidth="1*" />
++	<colspec colname="c2" colwidth="5*" />
++	<tbody valign="top">
++	  <row>
++	    <entry><constant>AUDIO_SET_MUTE</constant></entry>
++	    <entry>Use the <constant>V4L2_CID_AUDIO_MUTE</constant> control and/or use the
++	    &VIDIOC-DECODER-CMD; ioctl with the <constant>V4L2_DEC_CMD_START</constant> command
++	    together with the <constant>V4L2_DEC_CMD_START_MUTE_AUDIO</constant> flag.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>AUDIO_CHANNEL_SELECT</constant></entry>
++	    <entry>Use the <constant>V4L2_CID_MPEG_AUDIO_DEC_PLAYBACK</constant> control.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>AUDIO_BILINGUAL_CHANNEL_SELECT</constant></entry>
++	    <entry>Use the <constant>V4L2_CID_MPEG_AUDIO_DEC_MULTILINGUAL_PLAYBACK</constant> control.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>AUDIO_SELECT_SOURCE</constant></entry>
++	    <entry>Use the media controller to change internal audio routing (<xref linkend="media_controller" />).</entry>
++	  </row>
++	  <row>
++	    <entry><constant>AUDIO_SET_MIXER</constant></entry>
++	    <entry>Use the <constant>V4L2_CID_AUDIO_VOLUME</constant> and <constant>V4L2_CID_AUDIO_BALANCE</constant> controls.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>VIDEO_STOP</constant></entry>
++	    <entry>Use the &VIDIOC-DECODER-CMD; ioctl with the <constant>V4L2_DEC_CMD_STOP</constant> command.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>VIDEO_PLAY</constant></entry>
++	    <entry>Use the &VIDIOC-DECODER-CMD; ioctl with the <constant>V4L2_DEC_CMD_START</constant> command.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>VIDEO_FREEZE</constant></entry>
++	    <entry>Use the &VIDIOC-DECODER-CMD; ioctl with the <constant>V4L2_DEC_CMD_PAUSE</constant> command.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>VIDEO_CONTINUE</constant></entry>
++	    <entry>Use the &VIDIOC-DECODER-CMD; ioctl with the <constant>V4L2_DEC_CMD_RESUME</constant> command.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>VIDEO_FAST_FORWARD</constant></entry>
++	    <entry>Use the &VIDIOC-DECODER-CMD; ioctl with the <constant>V4L2_DEC_CMD_START</constant> command and
++	    set the <structfield>speed</structfield> value to a value &gt; 1000.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>VIDEO_SLOWMOTION</constant></entry>
++	    <entry>Use the &VIDIOC-DECODER-CMD; ioctl with the <constant>V4L2_DEC_CMD_START</constant> command and
++	    set the <structfield>speed</structfield> value to a value &lt; 1000.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>VIDEO_SET_BLANK</constant></entry>
++	    <entry>Use the &VIDIOC-DECODER-CMD; ioctl with the <constant>V4L2_DEC_CMD_STOP</constant> command
++	    together with the <constant>V4L2_DEC_CMD_STOP_TO_BLACK</constant> flag or use the <constant>V4L2_DEC_CMD_PAUSE</constant>
++	    command together with the <constant>V4L2_DEC_CMD_PAUSE_TO_BLACK</constant> flag.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>VIDEO_COMMAND</constant></entry>
++	    <entry>Use the &VIDIOC-DECODER-CMD; ioctl.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>VIDEO_TRY_COMMAND</constant></entry>
++	    <entry>Use the &VIDIOC-TRY-DECODER-CMD; ioctl.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>VIDEO_SELECT_SOURCE</constant></entry>
++	    <entry>Use the media controller to change internal video routing (<xref linkend="media_controller" />).</entry>
++	  </row>
++	  <row>
++	    <entry><constant>VIDEO_GET_EVENT</constant></entry>
++	    <entry>Use the V4L2 event API (<xref linkend="event" />).</entry>
++	  </row>
++	  <row>
++	    <entry><constant>VIDEO_GET_PTS</constant></entry>
++	    <entry>Use the <constant>V4L2_CID_MPEG_STREAM_DEC_PTS</constant> control.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>VIDEO_GET_FRAME_COUNT</constant></entry>
++	    <entry>Use the <constant>V4L2_CID_MPEG_VIDEO_DEC_FRAME</constant> control.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++</para>
+diff --git a/Documentation/DocBook/media/dvb/dvbapi.xml b/Documentation/DocBook/media/dvb/dvbapi.xml
+index 2ab6ddc..2baea24 100644
+--- a/Documentation/DocBook/media/dvb/dvbapi.xml
++++ b/Documentation/DocBook/media/dvb/dvbapi.xml
+@@ -95,11 +95,8 @@ Added ISDB-T test originally written by Patrick Boettcher
+   <chapter id="dvb_demux">
+     &sub-demux;
+   </chapter>
+-  <chapter id="dvb_video">
+-    &sub-video;
+-  </chapter>
+-  <chapter id="dvb_audio">
+-    &sub-audio;
++  <chapter id="dvb_video_audio">
++    &sub-av;
+   </chapter>
+   <chapter id="dvb_ca">
+     &sub-ca;
+@@ -114,10 +111,6 @@ Added ISDB-T test originally written by Patrick Boettcher
+     &sub-examples;
+   </chapter>
+ <!-- END OF CHAPTERS -->
+-  <appendix id="audio_h">
+-    <title>DVB Audio Header File</title>
+-    &sub-audio-h;
+-  </appendix>
+   <appendix id="ca_h">
+     <title>DVB Conditional Access Header File</title>
+     &sub-ca-h;
+@@ -134,8 +127,3 @@ Added ISDB-T test originally written by Patrick Boettcher
+     <title>DVB Network Header File</title>
+     &sub-net-h;
+   </appendix>
+-  <appendix id="video_h">
+-    <title>DVB Video Header File</title>
+-    &sub-video-h;
+-  </appendix>
+-
+diff --git a/Documentation/DocBook/media/dvb/examples.xml b/Documentation/DocBook/media/dvb/examples.xml
+index f037e56..a25af87 100644
+--- a/Documentation/DocBook/media/dvb/examples.xml
++++ b/Documentation/DocBook/media/dvb/examples.xml
+@@ -238,7 +238,6 @@ necessary.
+  #include &#x003C;unistd.h&#x003E;
  
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index 4d1c74a..46c13ba 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -207,6 +207,10 @@ struct v4l2_ioctl_ops {
- 					struct v4l2_encoder_cmd *a);
- 	int (*vidioc_try_encoder_cmd)  (struct file *file, void *fh,
- 					struct v4l2_encoder_cmd *a);
-+	int (*vidioc_decoder_cmd)      (struct file *file, void *fh,
-+					struct v4l2_decoder_cmd *a);
-+	int (*vidioc_try_decoder_cmd)  (struct file *file, void *fh,
-+					struct v4l2_decoder_cmd *a);
+  #include &#x003C;linux/dvb/dmx.h&#x003E;
+- #include &#x003C;linux/dvb/video.h&#x003E;
+  #include &#x003C;sys/poll.h&#x003E;
+  #define DVR "/dev/dvb/adapter0/dvr1"
+  #define AUDIO "/dev/dvb/adapter0/audio1"
+diff --git a/Documentation/DocBook/media/dvb/intro.xml b/Documentation/DocBook/media/dvb/intro.xml
+index 170064a..3cde9a5 100644
+--- a/Documentation/DocBook/media/dvb/intro.xml
++++ b/Documentation/DocBook/media/dvb/intro.xml
+@@ -180,9 +180,6 @@ The DVB API include files should be included in application sources with
+ a partial path like:</para>
  
- 	/* Stream type-dependent parameter ioctls */
- 	int (*vidioc_g_parm)           (struct file *file, void *fh,
+ <programlisting>
+-	#include &#x003C;linux/dvb/audio.h&#x003E;
+-</programlisting>
+-<programlisting>
+ 	#include &#x003C;linux/dvb/ca.h&#x003E;
+ </programlisting>
+ <programlisting>
+@@ -194,12 +191,6 @@ a partial path like:</para>
+ <programlisting>
+ 	#include &#x003C;linux/dvb/net.h&#x003E;
+ </programlisting>
+-<programlisting>
+-	#include &#x003C;linux/dvb/osd.h&#x003E;
+-</programlisting>
+-<programlisting>
+-	#include &#x003C;linux/dvb/video.h&#x003E;
+-</programlisting>
+ 
+ <para>To enable applications to support different API version, an
+ additional include file <emphasis
+diff --git a/Documentation/DocBook/media/dvb/video.xml b/Documentation/DocBook/media/dvb/video.xml
+deleted file mode 100644
+index 25fb823..0000000
+--- a/Documentation/DocBook/media/dvb/video.xml
++++ /dev/null
+@@ -1,1657 +0,0 @@
+-<title>DVB Video Device</title>
+-<para>The DVB video device controls the MPEG2 video decoder of the DVB hardware. It
+-can be accessed through <emphasis role="tt">/dev/dvb/adapter0/video0</emphasis>. Data types and and
+-ioctl definitions can be accessed by including <emphasis role="tt">linux/dvb/video.h</emphasis> in your
+-application.
+-</para>
+-<para>Note that the DVB video device only controls decoding of the MPEG video stream, not
+-its presentation on the TV or computer screen. On PCs this is typically handled by an
+-associated video4linux device, e.g. <emphasis role="tt">/dev/video</emphasis>, which allows scaling and defining output
+-windows.
+-</para>
+-<para>Some DVB cards don&#8217;t have their own MPEG decoder, which results in the omission of
+-the audio and video device as well as the video4linux device.
+-</para>
+-<para>The ioctls that deal with SPUs (sub picture units) and navigation packets are only
+-supported on some MPEG decoders made for DVD playback.
+-</para>
+-<section id="video_types">
+-<title>Video Data Types</title>
+-
+-<section id="video-format-t">
+-<title>video_format_t</title>
+-<para>The <emphasis role="tt">video_format_t</emphasis> data type defined by
+-</para>
+-<programlisting>
+-typedef enum {
+-	VIDEO_FORMAT_4_3,     /&#x22C6; Select 4:3 format &#x22C6;/
+-	VIDEO_FORMAT_16_9,    /&#x22C6; Select 16:9 format. &#x22C6;/
+-	VIDEO_FORMAT_221_1    /&#x22C6; 2.21:1 &#x22C6;/
+-} video_format_t;
+-</programlisting>
+-<para>is used in the VIDEO_SET_FORMAT function (??) to tell the driver which aspect ratio
+-the output hardware (e.g. TV) has. It is also used in the data structures video_status
+-(??) returned by VIDEO_GET_STATUS (??) and video_event (??) returned by
+-VIDEO_GET_EVENT (??) which report about the display format of the current video
+-stream.
+-</para>
+-</section>
+-
+-<section id="video-displayformat-t">
+-<title>video_displayformat_t</title>
+-<para>In case the display format of the video stream and of the display hardware differ the
+-application has to specify how to handle the cropping of the picture. This can be done using
+-the VIDEO_SET_DISPLAY_FORMAT call (??) which accepts
+-</para>
+-<programlisting>
+-typedef enum {
+-	VIDEO_PAN_SCAN,       /&#x22C6; use pan and scan format &#x22C6;/
+-	VIDEO_LETTER_BOX,     /&#x22C6; use letterbox format &#x22C6;/
+-	VIDEO_CENTER_CUT_OUT  /&#x22C6; use center cut out format &#x22C6;/
+-} video_displayformat_t;
+-</programlisting>
+-<para>as argument.
+-</para>
+-</section>
+-
+-<section id="video-stream-source-t">
+-<title>video stream source</title>
+-<para>The video stream source is set through the VIDEO_SELECT_SOURCE call and can take
+-the following values, depending on whether we are replaying from an internal (demuxer) or
+-external (user write) source.
+-</para>
+-<programlisting>
+-typedef enum {
+-	VIDEO_SOURCE_DEMUX, /&#x22C6; Select the demux as the main source &#x22C6;/
+-	VIDEO_SOURCE_MEMORY /&#x22C6; If this source is selected, the stream
+-			       comes from the user through the write
+-			       system call &#x22C6;/
+-} video_stream_source_t;
+-</programlisting>
+-<para>VIDEO_SOURCE_DEMUX selects the demultiplexer (fed either by the frontend or the
+-DVR device) as the source of the video stream. If VIDEO_SOURCE_MEMORY
+-is selected the stream comes from the application through the <emphasis role="tt">write()</emphasis> system
+-call.
+-</para>
+-</section>
+-
+-<section id="video-play-state-t">
+-<title>video play state</title>
+-<para>The following values can be returned by the VIDEO_GET_STATUS call representing the
+-state of video playback.
+-</para>
+-<programlisting>
+-typedef enum {
+-	VIDEO_STOPPED, /&#x22C6; Video is stopped &#x22C6;/
+-	VIDEO_PLAYING, /&#x22C6; Video is currently playing &#x22C6;/
+-	VIDEO_FREEZED  /&#x22C6; Video is freezed &#x22C6;/
+-} video_play_state_t;
+-</programlisting>
+-</section>
+-
+-<section id="video-command">
+-<para>The structure must be zeroed before use by the application
+-This ensures it can be extended safely in the future.</para>
+-<title>struct video-command</title>
+-<programlisting>
+-struct video_command {
+-	__u32 cmd;
+-	__u32 flags;
+-	union {
+-		struct {
+-			__u64 pts;
+-		} stop;
+-
+-		struct {
+-			/&#x22C6; 0 or 1000 specifies normal speed,
+-			   1 specifies forward single stepping,
+-			   -1 specifies backward single stepping,
+-			   &gt;>1: playback at speed/1000 of the normal speed,
+-			   &lt;-1: reverse playback at (-speed/1000) of the normal speed. &#x22C6;/
+-			__s32 speed;
+-			__u32 format;
+-		} play;
+-
+-		struct {
+-			__u32 data[16];
+-		} raw;
+-	};
+-};
+-</programlisting>
+-</section>
+-
+-<section id="video-size-t">
+-<title>struct video_size-t</title>
+-<programlisting>
+-typedef struct {
+-	int w;
+-	int h;
+-	video_format_t aspect_ratio;
+-} video_size_t;
+-</programlisting>
+-</section>
+-
+-
+-<section id="video-event">
+-<title>struct video_event</title>
+-<para>The following is the structure of a video event as it is returned by the VIDEO_GET_EVENT
+-call.
+-</para>
+-<programlisting>
+-struct video_event {
+-	__s32 type;
+-#define VIDEO_EVENT_SIZE_CHANGED	1
+-#define VIDEO_EVENT_FRAME_RATE_CHANGED	2
+-#define VIDEO_EVENT_DECODER_STOPPED 	3
+-#define VIDEO_EVENT_VSYNC 		4
+-	__kernel_time_t timestamp;
+-	union {
+-		video_size_t size;
+-		unsigned int frame_rate;	/&#x22C6; in frames per 1000sec &#x22C6;/
+-		unsigned char vsync_field;	/&#x22C6; unknown/odd/even/progressive &#x22C6;/
+-	} u;
+-};
+-</programlisting>
+-</section>
+-
+-<section id="video-status">
+-<title>struct video_status</title>
+-<para>The VIDEO_GET_STATUS call returns the following structure informing about various
+-states of the playback operation.
+-</para>
+-<programlisting>
+-struct video_status {
+-	int                   video_blank;   /&#x22C6; blank video on freeze? &#x22C6;/
+-	video_play_state_t    play_state;    /&#x22C6; current state of playback &#x22C6;/
+-	video_stream_source_t stream_source; /&#x22C6; current source (demux/memory) &#x22C6;/
+-	video_format_t        video_format;  /&#x22C6; current aspect ratio of stream &#x22C6;/
+-	video_displayformat_t display_format;/&#x22C6; selected cropping mode &#x22C6;/
+-};
+-</programlisting>
+-<para>If video_blank is set video will be blanked out if the channel is changed or if playback is
+-stopped. Otherwise, the last picture will be displayed. play_state indicates if the video is
+-currently frozen, stopped, or being played back. The stream_source corresponds to the seleted
+-source for the video stream. It can come either from the demultiplexer or from memory.
+-The video_format indicates the aspect ratio (one of 4:3 or 16:9) of the currently
+-played video stream. Finally, display_format corresponds to the selected cropping
+-mode in case the source video format is not the same as the format of the output
+-device.
+-</para>
+-</section>
+-
+-<section id="video-still-picture">
+-<title>struct video_still_picture</title>
+-<para>An I-frame displayed via the VIDEO_STILLPICTURE call is passed on within the
+-following structure.
+-</para>
+-<programlisting>
+-/&#x22C6; pointer to and size of a single iframe in memory &#x22C6;/
+-struct video_still_picture {
+-	char &#x22C6;iFrame;        /&#x22C6; pointer to a single iframe in memory &#x22C6;/
+-	int32_t size;
+-};
+-</programlisting>
+-</section>
+-
+-<section id="video_caps">
+-<title>video capabilities</title>
+-<para>A call to VIDEO_GET_CAPABILITIES returns an unsigned integer with the following
+-bits set according to the hardwares capabilities.
+-</para>
+-<programlisting>
+- /&#x22C6; bit definitions for capabilities: &#x22C6;/
+- /&#x22C6; can the hardware decode MPEG1 and/or MPEG2? &#x22C6;/
+- #define VIDEO_CAP_MPEG1   1
+- #define VIDEO_CAP_MPEG2   2
+- /&#x22C6; can you send a system and/or program stream to video device?
+-    (you still have to open the video and the audio device but only
+-     send the stream to the video device) &#x22C6;/
+- #define VIDEO_CAP_SYS     4
+- #define VIDEO_CAP_PROG    8
+- /&#x22C6; can the driver also handle SPU, NAVI and CSS encoded data?
+-    (CSS API is not present yet) &#x22C6;/
+- #define VIDEO_CAP_SPU    16
+- #define VIDEO_CAP_NAVI   32
+- #define VIDEO_CAP_CSS    64
+-</programlisting>
+-</section>
+-
+-<section id="video-system">
+-<title>video system</title>
+-<para>A call to VIDEO_SET_SYSTEM sets the desired video system for TV output. The
+-following system types can be set:
+-</para>
+-<programlisting>
+-typedef enum {
+-	 VIDEO_SYSTEM_PAL,
+-	 VIDEO_SYSTEM_NTSC,
+-	 VIDEO_SYSTEM_PALN,
+-	 VIDEO_SYSTEM_PALNc,
+-	 VIDEO_SYSTEM_PALM,
+-	 VIDEO_SYSTEM_NTSC60,
+-	 VIDEO_SYSTEM_PAL60,
+-	 VIDEO_SYSTEM_PALM60
+-} video_system_t;
+-</programlisting>
+-</section>
+-
+-<section id="video-highlight">
+-<title>struct video_highlight</title>
+-<para>Calling the ioctl VIDEO_SET_HIGHLIGHTS posts the SPU highlight information. The
+-call expects the following format for that information:
+-</para>
+-<programlisting>
+- typedef
+- struct video_highlight {
+-	 boolean active;      /&#x22C6;    1=show highlight, 0=hide highlight &#x22C6;/
+-	 uint8_t contrast1;   /&#x22C6;    7- 4  Pattern pixel contrast &#x22C6;/
+-			      /&#x22C6;    3- 0  Background pixel contrast &#x22C6;/
+-	 uint8_t contrast2;   /&#x22C6;    7- 4  Emphasis pixel-2 contrast &#x22C6;/
+-			      /&#x22C6;    3- 0  Emphasis pixel-1 contrast &#x22C6;/
+-	 uint8_t color1;      /&#x22C6;    7- 4  Pattern pixel color &#x22C6;/
+-			      /&#x22C6;    3- 0  Background pixel color &#x22C6;/
+-	 uint8_t color2;      /&#x22C6;    7- 4  Emphasis pixel-2 color &#x22C6;/
+-			      /&#x22C6;    3- 0  Emphasis pixel-1 color &#x22C6;/
+-	 uint32_t ypos;       /&#x22C6;   23-22  auto action mode &#x22C6;/
+-			      /&#x22C6;   21-12  start y &#x22C6;/
+-			      /&#x22C6;    9- 0  end y &#x22C6;/
+-	 uint32_t xpos;       /&#x22C6;   23-22  button color number &#x22C6;/
+-			      /&#x22C6;   21-12  start x &#x22C6;/
+-			      /&#x22C6;    9- 0  end x &#x22C6;/
+- } video_highlight_t;
+-</programlisting>
+-
+-</section>
+-<section id="video-spu">
+-<title>video SPU</title>
+-<para>Calling VIDEO_SET_SPU deactivates or activates SPU decoding, according to the
+-following format:
+-</para>
+-<programlisting>
+- typedef
+- struct video_spu {
+-	 boolean active;
+-	 int stream_id;
+- } video_spu_t;
+-</programlisting>
+-
+-</section>
+-<section id="video-spu-palette">
+-<title>video SPU palette</title>
+-<para>The following structure is used to set the SPU palette by calling VIDEO_SPU_PALETTE:
+-</para>
+-<programlisting>
+- typedef
+- struct video_spu_palette{
+-	 int length;
+-	 uint8_t &#x22C6;palette;
+- } video_spu_palette_t;
+-</programlisting>
+-
+-</section>
+-<section id="video-navi-pack">
+-<title>video NAVI pack</title>
+-<para>In order to get the navigational data the following structure has to be passed to the ioctl
+-VIDEO_GET_NAVI:
+-</para>
+-<programlisting>
+- typedef
+- struct video_navi_pack{
+-	 int length;         /&#x22C6; 0 ... 1024 &#x22C6;/
+-	 uint8_t data[1024];
+- } video_navi_pack_t;
+-</programlisting>
+-</section>
+-
+-
+-<section id="video-attributes-t">
+-<title>video attributes</title>
+-<para>The following attributes can be set by a call to VIDEO_SET_ATTRIBUTES:
+-</para>
+-<programlisting>
+- typedef uint16_t video_attributes_t;
+- /&#x22C6;   bits: descr. &#x22C6;/
+- /&#x22C6;   15-14 Video compression mode (0=MPEG-1, 1=MPEG-2) &#x22C6;/
+- /&#x22C6;   13-12 TV system (0=525/60, 1=625/50) &#x22C6;/
+- /&#x22C6;   11-10 Aspect ratio (0=4:3, 3=16:9) &#x22C6;/
+- /&#x22C6;    9- 8 permitted display mode on 4:3 monitor (0=both, 1=only pan-sca &#x22C6;/
+- /&#x22C6;    7    line 21-1 data present in GOP (1=yes, 0=no) &#x22C6;/
+- /&#x22C6;    6    line 21-2 data present in GOP (1=yes, 0=no) &#x22C6;/
+- /&#x22C6;    5- 3 source resolution (0=720x480/576, 1=704x480/576, 2=352x480/57 &#x22C6;/
+- /&#x22C6;    2    source letterboxed (1=yes, 0=no) &#x22C6;/
+- /&#x22C6;    0    film/camera mode (0=camera, 1=film (625/50 only)) &#x22C6;/
+-</programlisting>
+-</section></section>
+-
+-
+-<section id="video_function_calls">
+-<title>Video Function Calls</title>
+-
+-
+-<section id="video_fopen">
+-<title>open()</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This system call opens a named video device (e.g. /dev/dvb/adapter0/video0)
+- for subsequent use.</para>
+-<para>When an open() call has succeeded, the device will be ready for use.
+- The significance of blocking or non-blocking mode is described in the
+- documentation for functions where there is a difference. It does not affect the
+- semantics of the open() call itself. A device opened in blocking mode can later
+- be put into non-blocking mode (and vice versa) using the F_SETFL command
+- of the fcntl system call. This is a standard system call, documented in the Linux
+- manual page for fcntl. Only one user can open the Video Device in O_RDWR
+- mode. All other attempts to open the device in this mode will fail, and an
+- error-code will be returned. If the Video Device is opened in O_RDONLY
+- mode, the only ioctl call that can be used is VIDEO_GET_STATUS. All other
+- call will return an error code.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int open(const char &#x22C6;deviceName, int flags);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>const char
+- *deviceName</para>
+-</entry><entry
+- align="char">
+-<para>Name of specific video device.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int flags</para>
+-</entry><entry
+- align="char">
+-<para>A bit-wise OR of the following flags:</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>O_RDONLY read-only access</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>O_RDWR read/write access</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>O_NONBLOCK open in non-blocking mode</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>(blocking mode is the default)</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>RETURN VALUE</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>ENODEV</para>
+-</entry><entry
+- align="char">
+-<para>Device driver not loaded/available.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EINTERNAL</para>
+-</entry><entry
+- align="char">
+-<para>Internal error.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EBUSY</para>
+-</entry><entry
+- align="char">
+-<para>Device or resource busy.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>Invalid argument.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section>
+-<section id="video_fclose">
+-<title>close()</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This system call closes a previously opened video device.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int close(int fd);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>RETURN VALUE</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EBADF</para>
+-</entry><entry
+- align="char">
+-<para>fd is not a valid open file descriptor.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section>
+-<section id="video_fwrite">
+-<title>write()</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This system call can only be used if VIDEO_SOURCE_MEMORY is selected
+- in the ioctl call VIDEO_SELECT_SOURCE. The data provided shall be in
+- PES format, unless the capability allows other formats. If O_NONBLOCK is
+- not specified the function will block until buffer space is available. The amount
+- of data to be transferred is implied by count.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>size_t write(int fd, const void &#x22C6;buf, size_t count);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>void *buf</para>
+-</entry><entry
+- align="char">
+-<para>Pointer to the buffer containing the PES data.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>size_t count</para>
+-</entry><entry
+- align="char">
+-<para>Size of buf.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>RETURN VALUE</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EPERM</para>
+-</entry><entry
+- align="char">
+-<para>Mode VIDEO_SOURCE_MEMORY not selected.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>ENOMEM</para>
+-</entry><entry
+- align="char">
+-<para>Attempted to write more data than the internal buffer can
+- hold.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EBADF</para>
+-</entry><entry
+- align="char">
+-<para>fd is not a valid open file descriptor.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section><section id="VIDEO_STOP"
+-role="subsection"><title>VIDEO_STOP</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the Video Device to stop playing the current stream.
+- Depending on the input parameter, the screen can be blanked out or displaying
+- the last decoded frame.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(fd, int request = VIDEO_STOP, boolean
+- mode);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_STOP for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>Boolean mode</para>
+-</entry><entry
+- align="char">
+-<para>Indicates how the screen shall be handled.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>TRUE: Blank screen when stop.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>FALSE: Show last decoded frame.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="VIDEO_PLAY"
+-role="subsection"><title>VIDEO_PLAY</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the Video Device to start playing a video stream from the
+- selected source.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(fd, int request = VIDEO_PLAY);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_PLAY for this command.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="VIDEO_FREEZE"
+-role="subsection"><title>VIDEO_FREEZE</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call suspends the live video stream being played. Decoding
+- and playing are frozen. It is then possible to restart the decoding
+- and playing process of the video stream using the VIDEO_CONTINUE
+- command. If VIDEO_SOURCE_MEMORY is selected in the ioctl call
+- VIDEO_SELECT_SOURCE, the DVB subsystem will not decode any more
+- data until the ioctl call VIDEO_CONTINUE or VIDEO_PLAY is performed.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(fd, int request = VIDEO_FREEZE);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_FREEZE for this command.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="VIDEO_CONTINUE"
+-role="subsection"><title>VIDEO_CONTINUE</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call restarts decoding and playing processes of the video stream
+- which was played before a call to VIDEO_FREEZE was made.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(fd, int request = VIDEO_CONTINUE);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_CONTINUE for this command.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="VIDEO_SELECT_SOURCE"
+-role="subsection"><title>VIDEO_SELECT_SOURCE</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call informs the video device which source shall be used for the input
+- data. The possible sources are demux or memory. If memory is selected, the
+- data is fed to the video device through the write command.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(fd, int request = VIDEO_SELECT_SOURCE,
+- video_stream_source_t source);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_SELECT_SOURCE for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>video_stream_source_t
+- source</para>
+-</entry><entry
+- align="char">
+-<para>Indicates which source shall be used for the Video stream.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="VIDEO_SET_BLANK"
+-role="subsection"><title>VIDEO_SET_BLANK</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the Video Device to blank out the picture.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(fd, int request = VIDEO_SET_BLANK, boolean
+- mode);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_SET_BLANK for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>boolean mode</para>
+-</entry><entry
+- align="char">
+-<para>TRUE: Blank screen when stop.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-</entry><entry
+- align="char">
+-<para>FALSE: Show last decoded frame.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="VIDEO_GET_STATUS"
+-role="subsection"><title>VIDEO_GET_STATUS</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the Video Device to return the current status of the device.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para> int ioctl(fd, int request = VIDEO_GET_STATUS, struct
+- video_status &#x22C6;status);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_GET_STATUS for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>struct video_status
+- *status</para>
+-</entry><entry
+- align="char">
+-<para>Returns the current status of the Video Device.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="VIDEO_GET_EVENT"
+-role="subsection"><title>VIDEO_GET_EVENT</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call returns an event of type video_event if available. If an event is
+- not available, the behavior depends on whether the device is in blocking or
+- non-blocking mode. In the latter case, the call fails immediately with errno
+- set to EWOULDBLOCK. In the former case, the call blocks until an event
+- becomes available. The standard Linux poll() and/or select() system calls can
+- be used with the device file descriptor to watch for new events. For select(),
+- the file descriptor should be included in the exceptfds argument, and for
+- poll(), POLLPRI should be specified as the wake-up condition. Read-only
+- permissions are sufficient for this ioctl call.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para> int ioctl(fd, int request = VIDEO_GET_EVENT, struct
+- video_event &#x22C6;ev);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_GET_EVENT for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>struct video_event
+- *ev</para>
+-</entry><entry
+- align="char">
+-<para>Points to the location where the event, if any, is to be
+- stored.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EWOULDBLOCK</para>
+-</entry><entry
+- align="char">
+-<para>There is no event pending, and the device is in
+- non-blocking mode.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>EOVERFLOW</para>
+-</entry><entry
+- align="char">
+-<para>Overflow in event queue - one or more events were lost.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section><section id="VIDEO_SET_DISPLAY_FORMAT"
+-role="subsection"><title>VIDEO_SET_DISPLAY_FORMAT</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the Video Device to select the video format to be applied
+- by the MPEG chip on the video.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para> int ioctl(fd, int request =
+- VIDEO_SET_DISPLAY_FORMAT, video_display_format_t
+- format);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_SET_DISPLAY_FORMAT for this
+- command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>video_display_format_t
+- format</para>
+-</entry><entry
+- align="char">
+-<para>Selects the video format to be used.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="VIDEO_STILLPICTURE"
+-role="subsection"><title>VIDEO_STILLPICTURE</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the Video Device to display a still picture (I-frame). The
+- input data shall contain an I-frame. If the pointer is NULL, then the current
+- displayed still picture is blanked.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(fd, int request = VIDEO_STILLPICTURE,
+- struct video_still_picture &#x22C6;sp);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_STILLPICTURE for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>struct
+- video_still_picture
+- *sp</para>
+-</entry><entry
+- align="char">
+-<para>Pointer to a location where an I-frame and size is stored.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="VIDEO_FAST_FORWARD"
+-role="subsection"><title>VIDEO_FAST_FORWARD</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the Video Device to skip decoding of N number of I-frames.
+- This call can only be used if VIDEO_SOURCE_MEMORY is selected.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(fd, int request = VIDEO_FAST_FORWARD, int
+- nFrames);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_FAST_FORWARD for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int nFrames</para>
+-</entry><entry
+- align="char">
+-<para>The number of frames to skip.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EPERM</para>
+-</entry><entry
+- align="char">
+-<para>Mode VIDEO_SOURCE_MEMORY not selected.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section><section id="VIDEO_SLOWMOTION"
+-role="subsection"><title>VIDEO_SLOWMOTION</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the video device to repeat decoding frames N number of
+- times. This call can only be used if VIDEO_SOURCE_MEMORY is selected.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(fd, int request = VIDEO_SLOWMOTION, int
+- nFrames);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_SLOWMOTION for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int nFrames</para>
+-</entry><entry
+- align="char">
+-<para>The number of times to repeat each frame.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EPERM</para>
+-</entry><entry
+- align="char">
+-<para>Mode VIDEO_SOURCE_MEMORY not selected.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section><section id="VIDEO_GET_CAPABILITIES"
+-role="subsection"><title>VIDEO_GET_CAPABILITIES</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call asks the video device about its decoding capabilities. On success
+- it returns and integer which has bits set according to the defines in section ??.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(fd, int request = VIDEO_GET_CAPABILITIES,
+- unsigned int &#x22C6;cap);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_GET_CAPABILITIES for this
+- command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>unsigned int *cap</para>
+-</entry><entry
+- align="char">
+-<para>Pointer to a location where to store the capability
+- information.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="VIDEO_SET_ID"
+-role="subsection"><title>VIDEO_SET_ID</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl selects which sub-stream is to be decoded if a program or system
+- stream is sent to the video device.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(int fd, int request = VIDEO_SET_ID, int
+- id);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_SET_ID for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int id</para>
+-</entry><entry
+- align="char">
+-<para>video sub-stream id</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>Invalid sub-stream id.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section><section id="VIDEO_CLEAR_BUFFER"
+-role="subsection"><title>VIDEO_CLEAR_BUFFER</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl call clears all video buffers in the driver and in the decoder hardware.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(fd, int request = VIDEO_CLEAR_BUFFER);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_CLEAR_BUFFER for this command.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="VIDEO_SET_STREAMTYPE"
+-role="subsection"><title>VIDEO_SET_STREAMTYPE</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl tells the driver which kind of stream to expect being written to it. If
+- this call is not used the default of video PES is used. Some drivers might not
+- support this call and always expect PES.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>int ioctl(fd, int request = VIDEO_SET_STREAMTYPE,
+- int type);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_SET_STREAMTYPE for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int type</para>
+-</entry><entry
+- align="char">
+-<para>stream type</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="VIDEO_SET_FORMAT"
+-role="subsection"><title>VIDEO_SET_FORMAT</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl sets the screen format (aspect ratio) of the connected output device
+- (TV) so that the output of the decoder can be adjusted accordingly.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para> int ioctl(fd, int request = VIDEO_SET_FORMAT,
+- video_format_t format);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_SET_FORMAT for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>video_format_t
+- format</para>
+-</entry><entry
+- align="char">
+-<para>video format of TV as defined in section ??.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>format is not a valid video format.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section><section id="VIDEO_SET_SYSTEM"
+-role="subsection"><title>VIDEO_SET_SYSTEM</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl sets the television output format. The format (see section ??) may
+- vary from the color format of the displayed MPEG stream. If the hardware is
+- not able to display the requested format the call will return an error.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para> int ioctl(fd, int request = VIDEO_SET_SYSTEM ,
+- video_system_t system);</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_SET_FORMAT for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>video_system_t
+- system</para>
+-</entry><entry
+- align="char">
+-<para>video system of TV output.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>system is not a valid or supported video system.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section><section id="VIDEO_SET_HIGHLIGHT"
+-role="subsection"><title>VIDEO_SET_HIGHLIGHT</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl sets the SPU highlight information for the menu access of a DVD.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para> int ioctl(fd, int request = VIDEO_SET_HIGHLIGHT
+- ,video_highlight_t &#x22C6;vhilite)</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_SET_HIGHLIGHT for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>video_highlight_t
+- *vhilite</para>
+-</entry><entry
+- align="char">
+-<para>SPU Highlight information according to section ??.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-
+-</section><section id="VIDEO_SET_SPU"
+-role="subsection"><title>VIDEO_SET_SPU</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl activates or deactivates SPU decoding in a DVD input stream. It can
+- only be used, if the driver is able to handle a DVD stream.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para> int ioctl(fd, int request = VIDEO_SET_SPU ,
+- video_spu_t &#x22C6;spu)</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_SET_SPU for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>video_spu_t *spu</para>
+-</entry><entry
+- align="char">
+-<para>SPU decoding (de)activation and subid setting according
+- to section ??.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>input is not a valid spu setting or driver cannot handle
+- SPU.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section><section id="VIDEO_SET_SPU_PALETTE"
+-role="subsection"><title>VIDEO_SET_SPU_PALETTE</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl sets the SPU color palette.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para> int ioctl(fd, int request = VIDEO_SET_SPU_PALETTE
+- ,video_spu_palette_t &#x22C6;palette )</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_SET_SPU_PALETTE for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>video_spu_palette_t
+- *palette</para>
+-</entry><entry
+- align="char">
+-<para>SPU palette according to section ??.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>input is not a valid palette or driver doesn&#8217;t handle SPU.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section><section id="VIDEO_GET_NAVI"
+-role="subsection"><title>VIDEO_GET_NAVI</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl returns navigational information from the DVD stream. This is
+- especially needed if an encoded stream has to be decoded by the hardware.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para> int ioctl(fd, int request = VIDEO_GET_NAVI ,
+- video_navi_pack_t &#x22C6;navipack)</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_GET_NAVI for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>video_navi_pack_t
+- *navipack</para>
+-</entry><entry
+- align="char">
+-<para>PCI or DSI pack (private stream 2) according to section
+- ??.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EFAULT</para>
+-</entry><entry
+- align="char">
+-<para>driver is not able to return navigational information</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-
+-</section><section id="VIDEO_SET_ATTRIBUTES"
+-role="subsection"><title>VIDEO_SET_ATTRIBUTES</title>
+-<para>DESCRIPTION
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para>This ioctl is intended for DVD playback and allows you to set certain
+- information about the stream. Some hardware may not need this information,
+- but the call also tells the hardware to prepare for DVD playback.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>SYNOPSIS
+-</para>
+-<informaltable><tgroup cols="1"><tbody><row><entry
+- align="char">
+-<para> int ioctl(fd, int request = VIDEO_SET_ATTRIBUTE
+- ,video_attributes_t vattr)</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-<para>PARAMETERS
+-</para>
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>int fd</para>
+-</entry><entry
+- align="char">
+-<para>File descriptor returned by a previous call to open().</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>int request</para>
+-</entry><entry
+- align="char">
+-<para>Equals VIDEO_SET_ATTRIBUTE for this command.</para>
+-</entry>
+- </row><row><entry
+- align="char">
+-<para>video_attributes_t
+- vattr</para>
+-</entry><entry
+- align="char">
+-<para>video attributes according to section ??.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+-&return-value-dvb;
+-<informaltable><tgroup cols="2"><tbody><row><entry
+- align="char">
+-<para>EINVAL</para>
+-</entry><entry
+- align="char">
+-<para>input is not a valid attribute setting.</para>
+-</entry>
+- </row></tbody></tgroup></informaltable>
+- </section></section>
 -- 
 1.7.7.3
 
