@@ -1,147 +1,707 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:49833 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755210Ab1KHPO2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 10:14:28 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LUC00IMSL01P080@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 08 Nov 2011 15:14:26 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LUC00AB4L0134@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 08 Nov 2011 15:14:25 +0000 (GMT)
-Date: Tue, 08 Nov 2011 16:14:25 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH] media: vb2: vmalloc-based allocator user pointer handling
-In-reply-to: <201111081543.43122.laurent.pinchart@ideasonboard.com>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	linux-media@vger.kernel.org,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Pawel Osciak' <pawel@osciak.com>
-Message-id: <006a01cc9e29$19da33c0$4d8e9b40$%szyprowski@samsung.com>
-Content-language: pl
-References: <1320231122-22518-1-git-send-email-andrzej.p@samsung.com>
- <201111081501.00656.laurent.pinchart@ideasonboard.com>
- <004e01cc9e22$c1c0b390$45421ab0$%szyprowski@samsung.com>
- <201111081543.43122.laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3962 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755991Ab1KXNjZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 08:39:25 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
+Date: Thu, 24 Nov 2011 14:39:09 +0100
+Message-Id: <dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com>
+In-Reply-To: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <07c1a0737016dcf588e866cde0f3bc1a59e35bfb.1322141686.git.hans.verkuil@cisco.com>
+References: <07c1a0737016dcf588e866cde0f3bc1a59e35bfb.1322141686.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Tuesday, November 08, 2011 3:44 PM Laurent Pinchart wrote:
-> On Tuesday 08 November 2011 15:29:00 Marek Szyprowski wrote:
-> > On Tuesday, November 08, 2011 3:01 PM Laurent Pinchart wrote:
-> > > On Tuesday 08 November 2011 14:57:40 Marek Szyprowski wrote:
-> > > > On Tuesday, November 08, 2011 12:32 PM Laurent Pinchart wrote:
-> > > > > On Thursday 03 November 2011 08:40:26 Marek Szyprowski wrote:
-> > > > > > On Wednesday, November 02, 2011 2:54 PM Laurent Pinchart wrote:
-> 
-> [snip]
-> 
-> > > > > > > This can cause an AB-BA deadlock, and will be reported by
-> > > > > > > deadlock detection if enabled.
-> > > > > > >
-> > > > > > > The issue is that the mmap() handler is called by the MM core
-> > > > > > > with current->mm->mmap_sem held, and then takes the driver's
-> > > > > > > lock before calling videobuf2's mmap handler. The VIDIOC_QBUF
-> > > > > > > handler, on the other hand, will first take the driver's lock
-> > > > > > > and will then try to take current->mm->mmap_sem here.
-> > > > > > >
-> > > > > > > This can result in a deadlock if both MMAP and USERPTR buffers
-> > > > > > > are used by the same driver at the same time.
-> > > > > > >
-> > > > > > > If we assume that MMAP and USERPTR buffers can't be used on the
-> > > > > > > same queue at the same time (VIDIOC_CREATEBUFS doesn't allow
-> > > > > > > that if I'm not mistaken, so we should be safe, at least for
-> > > > > > > now), this can be fixed by having a per-queue lock in the driver
-> > > > > > > instead of a global device lock. However, that means that
-> > > > > > > drivers that want to support USERPTR will not be allowed to
-> > > > > > > delegate lock handling to the V4L2 core and
-> > > > > > > video_ioctl2().
-> > > > > >
-> > > > > > Thanks for pointing this issue! This problem is already present in
-> > > > > > the other videobuf2 memory allocators as well as the old videobuf
-> > > > > > and other v4l2 drivers which implement queue handling by
-> > > > > > themselves.
-> > > > >
-> > > > > The problem is present in most (but not all) drivers, yes. That's one
-> > > > > more reason to fix it in videobuf2 :-)
-> > > > >
-> > > > > > The only solution that will not complicate the videobuf2 and
-> > > > > > allocators code is to move taking current->mm->mmap_sem lock into
-> > > > > > videobuf2 core. Before acquiring this lock, vb2 calls wait_prepare
-> > > > > > to release device lock and then once mmap_sem is locked, calls
-> > > > > > wait_finish to get it again. This way the deadlock is avoided and
-> > > > > > allocators are free to call
-> > > > > > get_user_pages() without further messing with locks. The only
-> > > > > > drawback is the fact that a bit more code will be executed under
-> > > > > > mmap_sem lock.
-> > > > > >
-> > > > > > What do you think about such solution?
-> > > > >
-> > > > > Won't that create a race condition ? Wouldn't an application for
-> > > > > instance be able to call VIDIOC_REQBUFS(0) during the time window
-> > > > > where the device lock is released ?
-> > > >
-> > > > Hmm... Right...
-> > > >
-> > > > The only solution I see now is to move acquiring mmap_sem as early as
-> > > > possible to make the possible race harmless. The first operation in
-> > > > vb2_qbuf will be then:
-> > > >
-> > > > if (b->memory == V4L2_MEMORY_USERPTR) {
-> > > >
-> > > >        call_qop(q, wait_prepare, q);
-> > > >        down_read(&current->mm->mmap_sem);
-> > > >        call_qop(q, wait_finish, q);
-> > > >
-> > > > }
-> > > >
-> > > > This should solve the race although all userptr buffers will be handled
-> > > > under mmap_sem lock. Do you have any other idea?
-> > >
-> > > If queues don't mix MMAP and USERPTR buffers (is that something we want
-> > > to allow ?), wouldn't using a per-queue lock instead of a device-wide
-> > > lock be a better way to fix the problem ?
-> >
-> > It is not really about allowing mixing MMAP & USERPTR. Even if your
-> > application use only USRPTR  buffers, a malicious task might open the video
-> > node and call mmap operation what might cause a deadlock in certain rare
-> > cases.
-> 
-> Right :-/
-> 
-> The mmap() call would fail, but it still takes the lock before failing.
-> 
-> Would there be a way to make mmap() fail on queues configured for USERPTR
-> without taking the lock ?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ fs/compat_ioctl.c         |   41 +-------
+ include/linux/dvb/Kbuild  |    3 -
+ include/linux/dvb/audio.h |  135 ----------------------
+ include/linux/dvb/osd.h   |  144 -----------------------
+ include/linux/dvb/video.h |  276 ---------------------------------------------
+ 5 files changed, 1 insertions(+), 598 deletions(-)
+ delete mode 100644 include/linux/dvb/audio.h
+ delete mode 100644 include/linux/dvb/osd.h
+ delete mode 100644 include/linux/dvb/video.h
 
-The problem is the fact that mmap_sem is taken first by the kernel core before
-calling driver's mmap method and you can do nothing about it. You also cannot
-release mmap_sem lock in mmap method and take it again to avoid deadlock because
-you will exchange one race (ioctl race) into another (mmap vs. other user memory
-related functions).
-
-> > I'm against adding internal locks to vb2 queue. Avoiding deadlocks will be
-> > a nightmare when you will try to handle or synchronize more than one queue
-> > in a single call...
-> 
-> I wasn't proposing adding internal locks to vb2 queue, but using per-queue
-> locks inside the driver. vb2 would still not handle locking itself.
-
-How will it solve the issue? mmap_sem is taken by the kernel core for calling
-mmap method, where you need to take your driver/queue lock(s) and preform the
-operation. In qbuf you usually take your driver/queue lock(s) first and then 
-you would like to take mmap_sem to grab userpages...
-
-Best regards
+diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
+index 51352de..71adea1 100644
+--- a/fs/compat_ioctl.c
++++ b/fs/compat_ioctl.c
+@@ -105,10 +105,9 @@
+ 
+ #include <linux/hiddev.h>
+ 
+-#include <linux/dvb/audio.h>
++#include <linux/av7110.h>
+ #include <linux/dvb/dmx.h>
+ #include <linux/dvb/frontend.h>
+-#include <linux/dvb/video.h>
+ 
+ #include <linux/sort.h>
+ 
+@@ -196,32 +195,6 @@ static int do_video_stillpicture(unsigned int fd, unsigned int cmd,
+ 	return err;
+ }
+ 
+-struct compat_video_spu_palette {
+-	int length;
+-	compat_uptr_t palette;
+-};
+-
+-static int do_video_set_spu_palette(unsigned int fd, unsigned int cmd,
+-		struct compat_video_spu_palette __user *up)
+-{
+-	struct video_spu_palette __user *up_native;
+-	compat_uptr_t palp;
+-	int length, err;
+-
+-	err  = get_user(palp, &up->palette);
+-	err |= get_user(length, &up->length);
+-
+-	up_native = compat_alloc_user_space(sizeof(struct video_spu_palette));
+-	err  = put_user(compat_ptr(palp), &up_native->palette);
+-	err |= put_user(length, &up_native->length);
+-	if (err)
+-		return -EFAULT;
+-
+-	err = sys_ioctl(fd, cmd, (unsigned long) up_native);
+-
+-	return err;
+-}
+-
+ #ifdef CONFIG_BLOCK
+ typedef struct sg_io_hdr32 {
+ 	compat_int_t interface_id;	/* [i] 'S' for SCSI generic (required) */
+@@ -1317,9 +1290,6 @@ COMPATIBLE_IOCTL(AUDIO_CLEAR_BUFFER)
+ COMPATIBLE_IOCTL(AUDIO_SET_ID)
+ COMPATIBLE_IOCTL(AUDIO_SET_MIXER)
+ COMPATIBLE_IOCTL(AUDIO_SET_STREAMTYPE)
+-COMPATIBLE_IOCTL(AUDIO_SET_EXT_ID)
+-COMPATIBLE_IOCTL(AUDIO_SET_ATTRIBUTES)
+-COMPATIBLE_IOCTL(AUDIO_SET_KARAOKE)
+ COMPATIBLE_IOCTL(DMX_START)
+ COMPATIBLE_IOCTL(DMX_STOP)
+ COMPATIBLE_IOCTL(DMX_SET_FILTER)
+@@ -1358,16 +1328,9 @@ COMPATIBLE_IOCTL(VIDEO_FAST_FORWARD)
+ COMPATIBLE_IOCTL(VIDEO_SLOWMOTION)
+ COMPATIBLE_IOCTL(VIDEO_GET_CAPABILITIES)
+ COMPATIBLE_IOCTL(VIDEO_CLEAR_BUFFER)
+-COMPATIBLE_IOCTL(VIDEO_SET_ID)
+ COMPATIBLE_IOCTL(VIDEO_SET_STREAMTYPE)
+ COMPATIBLE_IOCTL(VIDEO_SET_FORMAT)
+-COMPATIBLE_IOCTL(VIDEO_SET_SYSTEM)
+-COMPATIBLE_IOCTL(VIDEO_SET_HIGHLIGHT)
+-COMPATIBLE_IOCTL(VIDEO_SET_SPU)
+-COMPATIBLE_IOCTL(VIDEO_GET_NAVI)
+-COMPATIBLE_IOCTL(VIDEO_SET_ATTRIBUTES)
+ COMPATIBLE_IOCTL(VIDEO_GET_SIZE)
+-COMPATIBLE_IOCTL(VIDEO_GET_FRAME_RATE)
+ 
+ /* joystick */
+ COMPATIBLE_IOCTL(JSIOCGVERSION)
+@@ -1468,8 +1431,6 @@ static long do_ioctl_trans(int fd, unsigned int cmd,
+ 		return do_video_get_event(fd, cmd, argp);
+ 	case VIDEO_STILLPICTURE:
+ 		return do_video_stillpicture(fd, cmd, argp);
+-	case VIDEO_SET_SPU_PALETTE:
+-		return do_video_set_spu_palette(fd, cmd, argp);
+ 	}
+ 
+ 	/*
+diff --git a/include/linux/dvb/Kbuild b/include/linux/dvb/Kbuild
+index f4dba86..f5aa137 100644
+--- a/include/linux/dvb/Kbuild
++++ b/include/linux/dvb/Kbuild
+@@ -1,8 +1,5 @@
+-header-y += audio.h
+ header-y += ca.h
+ header-y += dmx.h
+ header-y += frontend.h
+ header-y += net.h
+-header-y += osd.h
+ header-y += version.h
+-header-y += video.h
+diff --git a/include/linux/dvb/audio.h b/include/linux/dvb/audio.h
+deleted file mode 100644
+index d47bccd..0000000
+--- a/include/linux/dvb/audio.h
++++ /dev/null
+@@ -1,135 +0,0 @@
+-/*
+- * audio.h
+- *
+- * Copyright (C) 2000 Ralph  Metzler <ralph@convergence.de>
+- *                  & Marcus Metzler <marcus@convergence.de>
+- *                    for convergence integrated media GmbH
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Lesser Public License
+- * as published by the Free Software Foundation; either version 2.1
+- * of the License, or (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU Lesser General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+- *
+- */
+-
+-#ifndef _DVBAUDIO_H_
+-#define _DVBAUDIO_H_
+-
+-#include <linux/types.h>
+-
+-typedef enum {
+-	AUDIO_SOURCE_DEMUX, /* Select the demux as the main source */
+-	AUDIO_SOURCE_MEMORY /* Select internal memory as the main source */
+-} audio_stream_source_t;
+-
+-
+-typedef enum {
+-	AUDIO_STOPPED,      /* Device is stopped */
+-	AUDIO_PLAYING,      /* Device is currently playing */
+-	AUDIO_PAUSED        /* Device is paused */
+-} audio_play_state_t;
+-
+-
+-typedef enum {
+-	AUDIO_STEREO,
+-	AUDIO_MONO_LEFT,
+-	AUDIO_MONO_RIGHT,
+-	AUDIO_MONO,
+-	AUDIO_STEREO_SWAPPED
+-} audio_channel_select_t;
+-
+-
+-typedef struct audio_mixer {
+-	unsigned int volume_left;
+-	unsigned int volume_right;
+-  // what else do we need? bass, pass-through, ...
+-} audio_mixer_t;
+-
+-
+-typedef struct audio_status {
+-	int                    AV_sync_state;  /* sync audio and video? */
+-	int                    mute_state;     /* audio is muted */
+-	audio_play_state_t     play_state;     /* current playback state */
+-	audio_stream_source_t  stream_source;  /* current stream source */
+-	audio_channel_select_t channel_select; /* currently selected channel */
+-	int                    bypass_mode;    /* pass on audio data to */
+-	audio_mixer_t	       mixer_state;    /* current mixer state */
+-} audio_status_t;                              /* separate decoder hardware */
+-
+-
+-typedef
+-struct audio_karaoke {  /* if Vocal1 or Vocal2 are non-zero, they get mixed  */
+-	int vocal1;    /* into left and right t at 70% each */
+-	int vocal2;    /* if both, Vocal1 and Vocal2 are non-zero, Vocal1 gets*/
+-	int melody;    /* mixed into the left channel and */
+-		       /* Vocal2 into the right channel at 100% each. */
+-		       /* if Melody is non-zero, the melody channel gets mixed*/
+-} audio_karaoke_t;     /* into left and right  */
+-
+-
+-typedef __u16 audio_attributes_t;
+-/*   bits: descr. */
+-/*   15-13 audio coding mode (0=ac3, 2=mpeg1, 3=mpeg2ext, 4=LPCM, 6=DTS, */
+-/*   12    multichannel extension */
+-/*   11-10 audio type (0=not spec, 1=language included) */
+-/*    9- 8 audio application mode (0=not spec, 1=karaoke, 2=surround) */
+-/*    7- 6 Quantization / DRC (mpeg audio: 1=DRC exists)(lpcm: 0=16bit,  */
+-/*    5- 4 Sample frequency fs (0=48kHz, 1=96kHz) */
+-/*    2- 0 number of audio channels (n+1 channels) */
+-
+-
+-/* for GET_CAPABILITIES and SET_FORMAT, the latter should only set one bit */
+-#define AUDIO_CAP_DTS    1
+-#define AUDIO_CAP_LPCM   2
+-#define AUDIO_CAP_MP1    4
+-#define AUDIO_CAP_MP2    8
+-#define AUDIO_CAP_MP3   16
+-#define AUDIO_CAP_AAC   32
+-#define AUDIO_CAP_OGG   64
+-#define AUDIO_CAP_SDDS 128
+-#define AUDIO_CAP_AC3  256
+-
+-#define AUDIO_STOP                 _IO('o', 1)
+-#define AUDIO_PLAY                 _IO('o', 2)
+-#define AUDIO_PAUSE                _IO('o', 3)
+-#define AUDIO_CONTINUE             _IO('o', 4)
+-#define AUDIO_SELECT_SOURCE        _IO('o', 5)
+-#define AUDIO_SET_MUTE             _IO('o', 6)
+-#define AUDIO_SET_AV_SYNC          _IO('o', 7)
+-#define AUDIO_SET_BYPASS_MODE      _IO('o', 8)
+-#define AUDIO_CHANNEL_SELECT       _IO('o', 9)
+-#define AUDIO_GET_STATUS           _IOR('o', 10, audio_status_t)
+-
+-#define AUDIO_GET_CAPABILITIES     _IOR('o', 11, unsigned int)
+-#define AUDIO_CLEAR_BUFFER         _IO('o',  12)
+-#define AUDIO_SET_ID               _IO('o', 13)
+-#define AUDIO_SET_MIXER            _IOW('o', 14, audio_mixer_t)
+-#define AUDIO_SET_STREAMTYPE       _IO('o', 15)
+-#define AUDIO_SET_EXT_ID           _IO('o', 16)
+-#define AUDIO_SET_ATTRIBUTES       _IOW('o', 17, audio_attributes_t)
+-#define AUDIO_SET_KARAOKE          _IOW('o', 18, audio_karaoke_t)
+-
+-/**
+- * AUDIO_GET_PTS
+- *
+- * Read the 33 bit presentation time stamp as defined
+- * in ITU T-REC-H.222.0 / ISO/IEC 13818-1.
+- *
+- * The PTS should belong to the currently played
+- * frame if possible, but may also be a value close to it
+- * like the PTS of the last decoded frame or the last PTS
+- * extracted by the PES parser.
+- */
+-#define AUDIO_GET_PTS              _IOR('o', 19, __u64)
+-#define AUDIO_BILINGUAL_CHANNEL_SELECT _IO('o', 20)
+-
+-#endif /* _DVBAUDIO_H_ */
+diff --git a/include/linux/dvb/osd.h b/include/linux/dvb/osd.h
+deleted file mode 100644
+index 880e684..0000000
+--- a/include/linux/dvb/osd.h
++++ /dev/null
+@@ -1,144 +0,0 @@
+-/*
+- * osd.h
+- *
+- * Copyright (C) 2001 Ralph  Metzler <ralph@convergence.de>
+- *                  & Marcus Metzler <marcus@convergence.de>
+- *                    for convergence integrated media GmbH
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Lesser Public License
+- * as published by the Free Software Foundation; either version 2.1
+- * of the License, or (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU Lesser General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+- *
+- */
+-
+-#ifndef _DVBOSD_H_
+-#define _DVBOSD_H_
+-
+-#include <linux/compiler.h>
+-
+-typedef enum {
+-  // All functions return -2 on "not open"
+-  OSD_Close=1,    // ()
+-  // Disables OSD and releases the buffers
+-  // returns 0 on success
+-  OSD_Open,       // (x0,y0,x1,y1,BitPerPixel[2/4/8](color&0x0F),mix[0..15](color&0xF0))
+-  // Opens OSD with this size and bit depth
+-  // returns 0 on success, -1 on DRAM allocation error, -2 on "already open"
+-  OSD_Show,       // ()
+-  // enables OSD mode
+-  // returns 0 on success
+-  OSD_Hide,       // ()
+-  // disables OSD mode
+-  // returns 0 on success
+-  OSD_Clear,      // ()
+-  // Sets all pixel to color 0
+-  // returns 0 on success
+-  OSD_Fill,       // (color)
+-  // Sets all pixel to color <col>
+-  // returns 0 on success
+-  OSD_SetColor,   // (color,R{x0},G{y0},B{x1},opacity{y1})
+-  // set palette entry <num> to <r,g,b>, <mix> and <trans> apply
+-  // R,G,B: 0..255
+-  // R=Red, G=Green, B=Blue
+-  // opacity=0:      pixel opacity 0% (only video pixel shows)
+-  // opacity=1..254: pixel opacity as specified in header
+-  // opacity=255:    pixel opacity 100% (only OSD pixel shows)
+-  // returns 0 on success, -1 on error
+-  OSD_SetPalette, // (firstcolor{color},lastcolor{x0},data)
+-  // Set a number of entries in the palette
+-  // sets the entries "firstcolor" through "lastcolor" from the array "data"
+-  // data has 4 byte for each color:
+-  // R,G,B, and a opacity value: 0->transparent, 1..254->mix, 255->pixel
+-  OSD_SetTrans,   // (transparency{color})
+-  // Sets transparency of mixed pixel (0..15)
+-  // returns 0 on success
+-  OSD_SetPixel,   // (x0,y0,color)
+-  // sets pixel <x>,<y> to color number <col>
+-  // returns 0 on success, -1 on error
+-  OSD_GetPixel,   // (x0,y0)
+-  // returns color number of pixel <x>,<y>,  or -1
+-  OSD_SetRow,     // (x0,y0,x1,data)
+-  // fills pixels x0,y through  x1,y with the content of data[]
+-  // returns 0 on success, -1 on clipping all pixel (no pixel drawn)
+-  OSD_SetBlock,   // (x0,y0,x1,y1,increment{color},data)
+-  // fills pixels x0,y0 through  x1,y1 with the content of data[]
+-  // inc contains the width of one line in the data block,
+-  // inc<=0 uses blockwidth as linewidth
+-  // returns 0 on success, -1 on clipping all pixel
+-  OSD_FillRow,    // (x0,y0,x1,color)
+-  // fills pixels x0,y through  x1,y with the color <col>
+-  // returns 0 on success, -1 on clipping all pixel
+-  OSD_FillBlock,  // (x0,y0,x1,y1,color)
+-  // fills pixels x0,y0 through  x1,y1 with the color <col>
+-  // returns 0 on success, -1 on clipping all pixel
+-  OSD_Line,       // (x0,y0,x1,y1,color)
+-  // draw a line from x0,y0 to x1,y1 with the color <col>
+-  // returns 0 on success
+-  OSD_Query,      // (x0,y0,x1,y1,xasp{color}}), yasp=11
+-  // fills parameters with the picture dimensions and the pixel aspect ratio
+-  // returns 0 on success
+-  OSD_Test,       // ()
+-  // draws a test picture. for debugging purposes only
+-  // returns 0 on success
+-// TODO: remove "test" in final version
+-  OSD_Text,       // (x0,y0,size,color,text)
+-  OSD_SetWindow, //  (x0) set window with number 0<x0<8 as current
+-  OSD_MoveWindow, //  move current window to (x0, y0)
+-  OSD_OpenRaw,	// Open other types of OSD windows
+-} OSD_Command;
+-
+-typedef struct osd_cmd_s {
+-	OSD_Command cmd;
+-	int x0;
+-	int y0;
+-	int x1;
+-	int y1;
+-	int color;
+-	void __user *data;
+-} osd_cmd_t;
+-
+-/* OSD_OpenRaw: set 'color' to desired window type */
+-typedef enum {
+-	OSD_BITMAP1,           /* 1 bit bitmap */
+-	OSD_BITMAP2,           /* 2 bit bitmap */
+-	OSD_BITMAP4,           /* 4 bit bitmap */
+-	OSD_BITMAP8,           /* 8 bit bitmap */
+-	OSD_BITMAP1HR,         /* 1 Bit bitmap half resolution */
+-	OSD_BITMAP2HR,         /* 2 bit bitmap half resolution */
+-	OSD_BITMAP4HR,         /* 4 bit bitmap half resolution */
+-	OSD_BITMAP8HR,         /* 8 bit bitmap half resolution */
+-	OSD_YCRCB422,          /* 4:2:2 YCRCB Graphic Display */
+-	OSD_YCRCB444,          /* 4:4:4 YCRCB Graphic Display */
+-	OSD_YCRCB444HR,        /* 4:4:4 YCRCB graphic half resolution */
+-	OSD_VIDEOTSIZE,        /* True Size Normal MPEG Video Display */
+-	OSD_VIDEOHSIZE,        /* MPEG Video Display Half Resolution */
+-	OSD_VIDEOQSIZE,        /* MPEG Video Display Quarter Resolution */
+-	OSD_VIDEODSIZE,        /* MPEG Video Display Double Resolution */
+-	OSD_VIDEOTHSIZE,       /* True Size MPEG Video Display Half Resolution */
+-	OSD_VIDEOTQSIZE,       /* True Size MPEG Video Display Quarter Resolution*/
+-	OSD_VIDEOTDSIZE,       /* True Size MPEG Video Display Double Resolution */
+-	OSD_VIDEONSIZE,        /* Full Size MPEG Video Display */
+-	OSD_CURSOR             /* Cursor */
+-} osd_raw_window_t;
+-
+-typedef struct osd_cap_s {
+-	int  cmd;
+-#define OSD_CAP_MEMSIZE         1  /* memory size */
+-	long val;
+-} osd_cap_t;
+-
+-
+-#define OSD_SEND_CMD            _IOW('o', 160, osd_cmd_t)
+-#define OSD_GET_CAPABILITY      _IOR('o', 161, osd_cap_t)
+-
+-#endif
+diff --git a/include/linux/dvb/video.h b/include/linux/dvb/video.h
+deleted file mode 100644
+index 1d750c0..0000000
+--- a/include/linux/dvb/video.h
++++ /dev/null
+@@ -1,276 +0,0 @@
+-/*
+- * video.h
+- *
+- * Copyright (C) 2000 Marcus Metzler <marcus@convergence.de>
+- *                  & Ralph  Metzler <ralph@convergence.de>
+- *                    for convergence integrated media GmbH
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU Lesser General Public License
+- * as published by the Free Software Foundation; either version 2.1
+- * of the License, or (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU Lesser General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+- *
+- */
+-
+-#ifndef _DVBVIDEO_H_
+-#define _DVBVIDEO_H_
+-
+-#include <linux/types.h>
+-#ifdef __KERNEL__
+-#include <linux/compiler.h>
+-#else
+-#include <stdint.h>
+-#include <time.h>
+-#endif
+-
+-typedef enum {
+-	VIDEO_FORMAT_4_3,     /* Select 4:3 format */
+-	VIDEO_FORMAT_16_9,    /* Select 16:9 format. */
+-	VIDEO_FORMAT_221_1    /* 2.21:1 */
+-} video_format_t;
+-
+-
+-typedef enum {
+-	 VIDEO_SYSTEM_PAL,
+-	 VIDEO_SYSTEM_NTSC,
+-	 VIDEO_SYSTEM_PALN,
+-	 VIDEO_SYSTEM_PALNc,
+-	 VIDEO_SYSTEM_PALM,
+-	 VIDEO_SYSTEM_NTSC60,
+-	 VIDEO_SYSTEM_PAL60,
+-	 VIDEO_SYSTEM_PALM60
+-} video_system_t;
+-
+-
+-typedef enum {
+-	VIDEO_PAN_SCAN,       /* use pan and scan format */
+-	VIDEO_LETTER_BOX,     /* use letterbox format */
+-	VIDEO_CENTER_CUT_OUT  /* use center cut out format */
+-} video_displayformat_t;
+-
+-typedef struct {
+-	int w;
+-	int h;
+-	video_format_t aspect_ratio;
+-} video_size_t;
+-
+-typedef enum {
+-	VIDEO_SOURCE_DEMUX, /* Select the demux as the main source */
+-	VIDEO_SOURCE_MEMORY /* If this source is selected, the stream
+-			       comes from the user through the write
+-			       system call */
+-} video_stream_source_t;
+-
+-
+-typedef enum {
+-	VIDEO_STOPPED, /* Video is stopped */
+-	VIDEO_PLAYING, /* Video is currently playing */
+-	VIDEO_FREEZED  /* Video is freezed */
+-} video_play_state_t;
+-
+-
+-/* Decoder commands */
+-#define VIDEO_CMD_PLAY        (0)
+-#define VIDEO_CMD_STOP        (1)
+-#define VIDEO_CMD_FREEZE      (2)
+-#define VIDEO_CMD_CONTINUE    (3)
+-
+-/* Flags for VIDEO_CMD_FREEZE */
+-#define VIDEO_CMD_FREEZE_TO_BLACK     	(1 << 0)
+-
+-/* Flags for VIDEO_CMD_STOP */
+-#define VIDEO_CMD_STOP_TO_BLACK      	(1 << 0)
+-#define VIDEO_CMD_STOP_IMMEDIATELY     	(1 << 1)
+-
+-/* Play input formats: */
+-/* The decoder has no special format requirements */
+-#define VIDEO_PLAY_FMT_NONE         (0)
+-/* The decoder requires full GOPs */
+-#define VIDEO_PLAY_FMT_GOP          (1)
+-
+-/* The structure must be zeroed before use by the application
+-   This ensures it can be extended safely in the future. */
+-struct video_command {
+-	__u32 cmd;
+-	__u32 flags;
+-	union {
+-		struct {
+-			__u64 pts;
+-		} stop;
+-
+-		struct {
+-			/* 0 or 1000 specifies normal speed,
+-			   1 specifies forward single stepping,
+-			   -1 specifies backward single stepping,
+-			   >1: playback at speed/1000 of the normal speed,
+-			   <-1: reverse playback at (-speed/1000) of the normal speed. */
+-			__s32 speed;
+-			__u32 format;
+-		} play;
+-
+-		struct {
+-			__u32 data[16];
+-		} raw;
+-	};
+-};
+-
+-/* FIELD_UNKNOWN can be used if the hardware does not know whether
+-   the Vsync is for an odd, even or progressive (i.e. non-interlaced)
+-   field. */
+-#define VIDEO_VSYNC_FIELD_UNKNOWN  	(0)
+-#define VIDEO_VSYNC_FIELD_ODD 		(1)
+-#define VIDEO_VSYNC_FIELD_EVEN		(2)
+-#define VIDEO_VSYNC_FIELD_PROGRESSIVE	(3)
+-
+-struct video_event {
+-	__s32 type;
+-#define VIDEO_EVENT_SIZE_CHANGED	1
+-#define VIDEO_EVENT_FRAME_RATE_CHANGED	2
+-#define VIDEO_EVENT_DECODER_STOPPED 	3
+-#define VIDEO_EVENT_VSYNC 		4
+-	__kernel_time_t timestamp;
+-	union {
+-		video_size_t size;
+-		unsigned int frame_rate;	/* in frames per 1000sec */
+-		unsigned char vsync_field;	/* unknown/odd/even/progressive */
+-	} u;
+-};
+-
+-
+-struct video_status {
+-	int                   video_blank;   /* blank video on freeze? */
+-	video_play_state_t    play_state;    /* current state of playback */
+-	video_stream_source_t stream_source; /* current source (demux/memory) */
+-	video_format_t        video_format;  /* current aspect ratio of stream*/
+-	video_displayformat_t display_format;/* selected cropping mode */
+-};
+-
+-
+-struct video_still_picture {
+-	char __user *iFrame;        /* pointer to a single iframe in memory */
+-	__s32 size;
+-};
+-
+-
+-typedef
+-struct video_highlight {
+-	int     active;      /*    1=show highlight, 0=hide highlight */
+-	__u8    contrast1;   /*    7- 4  Pattern pixel contrast */
+-			     /*    3- 0  Background pixel contrast */
+-	__u8    contrast2;   /*    7- 4  Emphasis pixel-2 contrast */
+-			     /*    3- 0  Emphasis pixel-1 contrast */
+-	__u8    color1;      /*    7- 4  Pattern pixel color */
+-			     /*    3- 0  Background pixel color */
+-	__u8    color2;      /*    7- 4  Emphasis pixel-2 color */
+-			     /*    3- 0  Emphasis pixel-1 color */
+-	__u32    ypos;       /*   23-22  auto action mode */
+-			     /*   21-12  start y */
+-			     /*    9- 0  end y */
+-	__u32    xpos;       /*   23-22  button color number */
+-			     /*   21-12  start x */
+-			     /*    9- 0  end x */
+-} video_highlight_t;
+-
+-
+-typedef struct video_spu {
+-	int active;
+-	int stream_id;
+-} video_spu_t;
+-
+-
+-typedef struct video_spu_palette {      /* SPU Palette information */
+-	int length;
+-	__u8 __user *palette;
+-} video_spu_palette_t;
+-
+-
+-typedef struct video_navi_pack {
+-	int length;          /* 0 ... 1024 */
+-	__u8 data[1024];
+-} video_navi_pack_t;
+-
+-
+-typedef __u16 video_attributes_t;
+-/*   bits: descr. */
+-/*   15-14 Video compression mode (0=MPEG-1, 1=MPEG-2) */
+-/*   13-12 TV system (0=525/60, 1=625/50) */
+-/*   11-10 Aspect ratio (0=4:3, 3=16:9) */
+-/*    9- 8 permitted display mode on 4:3 monitor (0=both, 1=only pan-sca */
+-/*    7    line 21-1 data present in GOP (1=yes, 0=no) */
+-/*    6    line 21-2 data present in GOP (1=yes, 0=no) */
+-/*    5- 3 source resolution (0=720x480/576, 1=704x480/576, 2=352x480/57 */
+-/*    2    source letterboxed (1=yes, 0=no) */
+-/*    0    film/camera mode (0=camera, 1=film (625/50 only)) */
+-
+-
+-/* bit definitions for capabilities: */
+-/* can the hardware decode MPEG1 and/or MPEG2? */
+-#define VIDEO_CAP_MPEG1   1
+-#define VIDEO_CAP_MPEG2   2
+-/* can you send a system and/or program stream to video device?
+-   (you still have to open the video and the audio device but only
+-    send the stream to the video device) */
+-#define VIDEO_CAP_SYS     4
+-#define VIDEO_CAP_PROG    8
+-/* can the driver also handle SPU, NAVI and CSS encoded data?
+-   (CSS API is not present yet) */
+-#define VIDEO_CAP_SPU    16
+-#define VIDEO_CAP_NAVI   32
+-#define VIDEO_CAP_CSS    64
+-
+-
+-#define VIDEO_STOP                 _IO('o', 21)
+-#define VIDEO_PLAY                 _IO('o', 22)
+-#define VIDEO_FREEZE               _IO('o', 23)
+-#define VIDEO_CONTINUE             _IO('o', 24)
+-#define VIDEO_SELECT_SOURCE        _IO('o', 25)
+-#define VIDEO_SET_BLANK            _IO('o', 26)
+-#define VIDEO_GET_STATUS           _IOR('o', 27, struct video_status)
+-#define VIDEO_GET_EVENT            _IOR('o', 28, struct video_event)
+-#define VIDEO_SET_DISPLAY_FORMAT   _IO('o', 29)
+-#define VIDEO_STILLPICTURE         _IOW('o', 30, struct video_still_picture)
+-#define VIDEO_FAST_FORWARD         _IO('o', 31)
+-#define VIDEO_SLOWMOTION           _IO('o', 32)
+-#define VIDEO_GET_CAPABILITIES     _IOR('o', 33, unsigned int)
+-#define VIDEO_CLEAR_BUFFER         _IO('o',  34)
+-#define VIDEO_SET_ID               _IO('o', 35)
+-#define VIDEO_SET_STREAMTYPE       _IO('o', 36)
+-#define VIDEO_SET_FORMAT           _IO('o', 37)
+-#define VIDEO_SET_SYSTEM           _IO('o', 38)
+-#define VIDEO_SET_HIGHLIGHT        _IOW('o', 39, video_highlight_t)
+-#define VIDEO_SET_SPU              _IOW('o', 50, video_spu_t)
+-#define VIDEO_SET_SPU_PALETTE      _IOW('o', 51, video_spu_palette_t)
+-#define VIDEO_GET_NAVI             _IOR('o', 52, video_navi_pack_t)
+-#define VIDEO_SET_ATTRIBUTES       _IO('o', 53)
+-#define VIDEO_GET_SIZE             _IOR('o', 55, video_size_t)
+-#define VIDEO_GET_FRAME_RATE       _IOR('o', 56, unsigned int)
+-
+-/**
+- * VIDEO_GET_PTS
+- *
+- * Read the 33 bit presentation time stamp as defined
+- * in ITU T-REC-H.222.0 / ISO/IEC 13818-1.
+- *
+- * The PTS should belong to the currently played
+- * frame if possible, but may also be a value close to it
+- * like the PTS of the last decoded frame or the last PTS
+- * extracted by the PES parser.
+- */
+-#define VIDEO_GET_PTS              _IOR('o', 57, __u64)
+-
+-/* Read the number of displayed frames since the decoder was started */
+-#define VIDEO_GET_FRAME_COUNT  	   _IOR('o', 58, __u64)
+-
+-#define VIDEO_COMMAND     	   _IOWR('o', 59, struct video_command)
+-#define VIDEO_TRY_COMMAND 	   _IOWR('o', 60, struct video_command)
+-
+-#endif /*_DVBVIDEO_H_*/
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
+1.7.7.3
 
