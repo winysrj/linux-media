@@ -1,139 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23176 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:13889 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750900Ab1KXLPa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 06:15:30 -0500
-Message-ID: <4ECE274D.1050801@redhat.com>
-Date: Thu, 24 Nov 2011 09:15:25 -0200
+	id S1752148Ab1KXSr2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 13:47:28 -0500
+Message-ID: <4ECE913A.9090001@redhat.com>
+Date: Thu, 24 Nov 2011 16:47:22 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Doron Cohen <doronc@siano-ms.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] Add version number to all siano modules description
- lines.
-References: <D945C405928A9949A0F33C69E64A1A3BD8D5D7@s-mail.siano-ms.ent>
-In-Reply-To: <D945C405928A9949A0F33C69E64A1A3BD8D5D7@s-mail.siano-ms.ent>
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com> <4ECE79F5.9000402@linuxtv.org> <201111241844.23292.hverkuil@xs4all.nl> <CAHFNz9J+3DYW-Gf0FPYhcZqHf7XPtM+dmK0Y15HhkWQZOzNzuQ@mail.gmail.com> <4ECE8839.8040606@redhat.com> <CAHFNz9LOYHTXjhk2yTqhoC90HQQ0AGiOp4A6Gki-vsEtJr_UOw@mail.gmail.com>
+In-Reply-To: <CAHFNz9LOYHTXjhk2yTqhoC90HQQ0AGiOp4A6Gki-vsEtJr_UOw@mail.gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 03-11-2011 09:34, Doron Cohen escreveu:
+Em 24-11-2011 16:13, Manu Abraham escreveu:
+> On Thu, Nov 24, 2011 at 11:38 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Em 24-11-2011 16:01, Manu Abraham escreveu:
+>>> On Thu, Nov 24, 2011 at 11:14 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>> On Thursday, November 24, 2011 18:08:05 Andreas Oberritter wrote:
+>>>>> Don't break existing Userspace APIs for no reason! It's OK to add the
+>>>>> new API, but - pretty please - don't just blindly remove audio.h and
+>>>>> video.h. They are in use since many years by av7110, out-of-tree drivers
+>>>>> *and more importantly* by applications. Yes, I know, you'd like to see
+>>>>> those out-of-tree drivers merged, but it isn't possible for many
+>>>>> reasons. And even if they were merged, you'd say "Port them and your
+>>>>> apps to V4L". No! That's not an option.
+>>>>
+>>>> I'm not breaking anything. All apps will still work.
+>>>>
+>>>> One option (and it depends on whether people like it or not) is to have
+>>>> audio.h, video.h and osd.h just include av7110.h and add a #warning
+>>>> that these headers need to be replaced by the new av7110.h.
+>>>
+>>>
+>>> That won't work with other non av7110 hardware.
+>>
+>> There isn't any non-av7110 driver using it at the Kernel. Anyway, we can put
+>> a warning at the existing headers as-is, for now, putting them to be removed
+>> for a new kernel version, like 3.4.
 > 
 > 
->>From 595a6726947b032ce355ac0d838f07d937ed7f57 Mon Sep 17 00:00:00 2001
-> From: Doron Cohen <lab@Doron-Ubuntu.(none)>
-> Date: Thu, 15 Sep 2011 11:38:53 +0300
-> Subject: [PATCH 2/2] Add version number to all siano modules description
-> line.
+> No, that's not an option. The to-be merged saa716x driver depends on it.
 
-Patch looks ok, but it is also line-wrapped.
-> 
-> Signed-off-by: Doron Cohen <doronc@siano-ms.com>
-> ---
->  drivers/media/dvb/siano/smscoreapi.c |    3 ++-
->  drivers/media/dvb/siano/smscoreapi.h |   13 +++++++++++++
->  drivers/media/dvb/siano/smsdvb.c     |    3 ++-
->  drivers/media/dvb/siano/smssdio.c    |    3 ++-
->  drivers/media/dvb/siano/smsspidrv.c  |    3 ++-
->  drivers/media/dvb/siano/smsusb.c     |    3 ++-
->  6 files changed, 23 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/siano/smscoreapi.c 
-> b/drivers/media/dvb/siano/smscoreapi.c
-> index c0acacc..dfbc648 100644
-> --- a/drivers/media/dvb/siano/smscoreapi.c
-> +++ b/drivers/media/dvb/siano/smscoreapi.c
-> @@ -1639,6 +1639,7 @@ static void __exit smscore_module_exit(void)
->  module_init(smscore_module_init);
->  module_exit(smscore_module_exit);
->  
-> +MODULE_VERSION(VERSION_STRING);
->  MODULE_DESCRIPTION("Siano MDTV Core module");
-> -MODULE_AUTHOR("Siano Mobile Silicon, Inc. (uris@siano-ms.com)");
-> +MODULE_AUTHOR(MODULE_AUTHOR_STRING);
->  MODULE_LICENSE("GPL");
-> diff --git a/drivers/media/dvb/siano/smscoreapi.h 
-> b/drivers/media/dvb/siano/smscoreapi.h
-> index bd1cafc..aabcad3 100644
-> --- a/drivers/media/dvb/siano/smscoreapi.h
-> +++ b/drivers/media/dvb/siano/smscoreapi.h
-> @@ -35,6 +35,19 @@ along with this program.  If not, see 
-> <http://www.gnu.org/licenses/>.
->  
->  #include "smsir.h"
->  
-> +
-> +#define MAJOR_VERSION 2
-> +#define MINOR_VERSION 3
-> +#define SUB_VERSION 0
-> +
-> +#define STRINGIZE2(z) #z
-> +#define STRINGIZE(z) STRINGIZE2(z)
-> +
-> +#define VERSION_STRING "Version: " STRINGIZE(MAJOR_VERSION) "." \
-> +STRINGIZE(MINOR_VERSION) "." STRINGIZE(SUB_VERSION)
-> +
-> +#define MODULE_AUTHOR_STRING "Siano Mobile Silicon, Inc.
-> (doronc@siano-ms.com)"
-> +
->  #define kmutex_init(_p_) mutex_init(_p_)
->  #define kmutex_lock(_p_) mutex_lock(_p_)
->  #define kmutex_trylock(_p_) mutex_trylock(_p_)
-> diff --git a/drivers/media/dvb/siano/smsdvb.c
-> b/drivers/media/dvb/siano/smsdvb.c
-> index b1f4911..dc0e73f 100644
-> --- a/drivers/media/dvb/siano/smsdvb.c
-> +++ b/drivers/media/dvb/siano/smsdvb.c
-> @@ -953,6 +953,7 @@ static void __exit smsdvb_module_exit(void)
->  module_init(smsdvb_module_init);
->  module_exit(smsdvb_module_exit);
->  
-> +MODULE_VERSION(VERSION_STRING);
->  MODULE_DESCRIPTION("SMS DVB subsystem adaptation module");
-> -MODULE_AUTHOR("Siano Mobile Silicon, Inc. (uris@siano-ms.com)");
-> +MODULE_AUTHOR(MODULE_AUTHOR_STRING);
->  MODULE_LICENSE("GPL");
-> diff --git a/drivers/media/dvb/siano/smssdio.c 
-> b/drivers/media/dvb/siano/smssdio.c
-> index e57d38b..e735949 100644
-> --- a/drivers/media/dvb/siano/smssdio.c
-> +++ b/drivers/media/dvb/siano/smssdio.c
-> @@ -359,6 +359,7 @@ static void __exit smssdio_module_exit(void)
->  module_init(smssdio_module_init);
->  module_exit(smssdio_module_exit);
->  
-> +MODULE_VERSION(VERSION_STRING);
->  MODULE_DESCRIPTION("Siano SMS1xxx SDIO driver");
-> -MODULE_AUTHOR("Pierre Ossman");
-> +MODULE_AUTHOR(MODULE_AUTHOR_STRING);
->  MODULE_LICENSE("GPL");
-> diff --git a/drivers/media/dvb/siano/smsspidrv.c 
-> b/drivers/media/dvb/siano/smsspidrv.c
-> index 4526cb8..c855fa2 100644
-> --- a/drivers/media/dvb/siano/smsspidrv.c
-> +++ b/drivers/media/dvb/siano/smsspidrv.c
-> @@ -467,6 +467,7 @@ static void __exit smsspi_module_exit(void)
->  module_init(smsspi_module_init);
->  module_exit(smsspi_module_exit);
->  
-> +MODULE_VERSION(VERSION_STRING);
->  MODULE_DESCRIPTION("Siano MDTV SPI device driver");
-> -MODULE_AUTHOR("Siano Mobile Silicon, Inc. (doronc@siano-ms.com)");
-> +MODULE_AUTHOR(MODULE_AUTHOR_STRING);
->  MODULE_LICENSE("GPL");
-> diff --git a/drivers/media/dvb/siano/smsusb.c
-> b/drivers/media/dvb/siano/smsusb.c
-> index f8dca55..cc688c5 100644
-> --- a/drivers/media/dvb/siano/smsusb.c
-> +++ b/drivers/media/dvb/siano/smsusb.c
-> @@ -573,6 +573,7 @@ static void __exit smsusb_module_exit(void)
->  module_init(smsusb_module_init);
->  module_exit(smsusb_module_exit);
->  
-> +MODULE_VERSION(VERSION_STRING);
->  MODULE_DESCRIPTION("Driver for the Siano SMS1xxx USB dongle");
-> -MODULE_AUTHOR("Siano Mobile Silicon, INC. (uris@siano-ms.com)");
-> +MODULE_AUTHOR(MODULE_AUTHOR_STRING);
->  MODULE_LICENSE("GPL");
+If the driver is not merged yet, it can be changed.
 
+> A DVB alone device need not depend V4L2 for it's operation.
+
+Why not? DVB drivers with IR should implement the input/event/IR API. DVB drivers with net
+should implement the Linux Network API.
+
+There is nothing wrong on using the ALSA API for audio and the V4L2 API for video,
+as both API fits the needs for decoding audio and video streams, and new features
+could be added there when needed.
+
+Duplicated API's that become legacy are removed with time. Just to mention two
+notable cases, this happened with the old audio stack (OSS), with the old Wireless
+stack.
+
+Do you have any issues that needs to be addressed by the V4L2 API for it to fit
+on your needs?
+
+> Also, it doesn't
+> make any sense to have device specific headers to be used by an application,
+> when drivers share more than one commonality.
+
+The only in-kernel driver using audio/video/osd is av7110. There are some other
+cases on driver-specific API's. The bttv and ivtv drivers used to have it. 
+Their private API's were gradually replaced by other API's that are more flexible
+and become standardized. In some cases, the same API that used to be private
+were moved to the core API
+
+Regards,
+Mauro
