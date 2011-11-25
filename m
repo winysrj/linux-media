@@ -1,172 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39362 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753527Ab1KIQTF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2011 11:19:05 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: Using MT9P031 digital sensor
-Date: Wed, 9 Nov 2011 17:18:54 +0100
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4EB04001.9050803@mlbassoc.com> <201111090154.03796.laurent.pinchart@ideasonboard.com> <4EBA5D8E.30609@mlbassoc.com>
-In-Reply-To: <4EBA5D8E.30609@mlbassoc.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:57233 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751496Ab1KYRBr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Nov 2011 12:01:47 -0500
+Received: by ggnr5 with SMTP id r5so3658201ggn.19
+        for <linux-media@vger.kernel.org>; Fri, 25 Nov 2011 09:01:47 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111091719.03586.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201111221138.40499.hverkuil@xs4all.nl>
+References: <1321939597-6239-1-git-send-email-pawel@osciak.com>
+ <1321939597-6239-3-git-send-email-pawel@osciak.com> <201111221138.40499.hverkuil@xs4all.nl>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Fri, 25 Nov 2011 09:01:05 -0800
+Message-ID: <CAMm-=zCcEZQBE2Fyf=-wYoi_Q3asr_4sZfwnAX8+9u6nMSP68g@mail.gmail.com>
+Subject: Re: [PATCH v1 2/2] vb2: add support for app_offset field of the
+ v4l2_plane struct
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, mingchen@quicinc.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gary,
+Hi Hans,
+Thanks for comments.
 
-On Wednesday 09 November 2011 12:01:34 Gary Thomas wrote:
-> On 2011-11-08 17:54, Laurent Pinchart wrote:
-> > On Tuesday 08 November 2011 14:38:55 Gary Thomas wrote:
-> >> On 2011-11-08 06:06, Laurent Pinchart wrote:
-> >>> On Tuesday 08 November 2011 13:52:25 Gary Thomas wrote:
-> >>>> On 2011-11-08 05:30, Javier Martinez Canillas wrote:
-> >>>>> On Tue, Nov 8, 2011 at 1:20 PM, Gary Thomas wrote:
-> >>>>>> On 2011-11-04 04:37, Laurent Pinchart wrote:
-> >>>>>>> On Tuesday 01 November 2011 19:52:49 Gary Thomas wrote:
-> >>>>>>>> I'm trying to use the MT9P031 digital sensor with the Media
-> >>>>>>>> Controller Framework.  media-ctl tells me that the sensor is set
-> >>>>>>>> to capture using SGRBG12  2592x1944
-> >>>>>>>> 
-> >>>>>>>> Questions:
-> >>>>>>>> * What pixel format in ffmpeg does this correspond to?
-> >>>>>>> 
-> >>>>>>> I don't know if ffmpeg supports Bayer formats. The corresponding
-> >>>>>>> fourcc in V4L2 is BA12.
-> >>>>>> 
-> >>>>>> ffmpeg doesn't seem to support these formats
-> >>>>>> 
-> >>>>>>> If your sensor is hooked up to the OMAP3 ISP, you can then
-> >>>>>>> configure the pipeline to include the preview engine and the
-> >>>>>>> resizer, and capture YUV data
-> >>>>>>> at the resizer output.
-> >>>>>> 
-> >>>>>> I am using the OMAP3 ISP, but it's a bit unclear to me how to set up
-> >>>>>> the pipeline
-> >>>>> 
-> >>>>> Hi Gary,
-> >>>>> 
-> >>>>> I'm also using another sensor mtv9034 with OMAP3 ISP, so maybe I can
-> >>>>> help you.
-> >>>>> 
-> >>>>>> using media-ctl (I looked for documentation on this tool, but came
-> >>>>>> up dry - is there any?)
-> >>>>>> 
-> >>>>>> Do you have an example of how to configure this using the OMAP3 ISP?
-> >>>>> 
-> >>>>> This is how I configure the pipeline to connect the CCDC with the
-> >>>>> Previewer and Resizer:
-> >>>>> 
-> >>>>> ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
-> >>>>> ./media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
-> >>>>> ./media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
-> >>>>> ./media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
-> >>>>> output":0[1]' ./media-ctl -f '"mt9v032 3-005c":0[SGRBG10 752x480]'
-> >>>>> ./media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG10 752x480]'
-> >>>>> ./media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 752x480]'
-> >>>>> ./media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 752x479]'
-> >>>>> ./media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 734x471]'
-> >>>>> ./media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 640x480]'
-> >>>>> 
-> >>>>> Hope it helps,
-> >>>> 
-> >>>> Thanks, I'll give this a try.
-> >>>> 
-> >>>> I assume that your sensor is probably larger than 752x480 (the mt9p031
-> >>>> is 2592x1944 raw) and that setting the smaller frame size enables some
-> >>>> scaling and/or cropping in the driver?
-> >>> 
-> >>> The mt9v034 is a wide VGA 752x480 sensor if I'm not mistaken. You
-> >>> should modify the resolutions in the above commands according to your
-> >>> sensor. Note that the CCDC crops online line when outputting data to
-> >>> the preview engine, and that the preview engine crops 18 columsn and 8
-> >>> lines. You can then scale the image by modifying the resizer output
-> >>> size.
-> >> 
-> >> Thanks.  After much trial and error (and some kernel printks to
-> >> 
-> >> understand what parameters were failing), I came up with this sequence:
-> >>     media-ctl -r
-> >>     media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
-> >>     media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
-> >>     media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
-> >>     media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
-> >>     output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12 2592x1944]'
-> >>     media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG12 2592x1944]'
-> >>     media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG12 2592x1944]'
-> >>     media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG12 2592x1943]'
-> >>     media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
-> >>     media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 642x483]'
-> >> 
-> >> When I tried to grab though, I got this:
-> >> 
-> >> # yavta --capture=4 -f YUYV -s 642x483 -F /dev/video6
-> >> Device /dev/video6 opened.
-> >> Device `OMAP3 ISP resizer output' on `media' is a video capture device.
-> >> Video format set: YUYV (56595559) 642x483 buffer size 633696
-> >> Video format: YUYV (56595559) 642x483 buffer size 633696
-> >> 8 buffers requested.
-> >> length: 633696 offset: 0
-> >> Buffer 0 mapped at address 0x4028c000.
-> >> length: 633696 offset: 634880
-> >> Buffer 1 mapped at address 0x403d0000.
-> >> length: 633696 offset: 1269760
-> >> Buffer 2 mapped at address 0x404b3000.
-> >> length: 633696 offset: 1904640
-> >> Buffer 3 mapped at address 0x4062b000.
-> >> length: 633696 offset: 2539520
-> >> Buffer 4 mapped at address 0x406d6000.
-> >> length: 633696 offset: 3174400
-> >> Buffer 5 mapped at address 0x40821000.
-> >> length: 633696 offset: 3809280
-> >> Buffer 6 mapped at address 0x4097c000.
-> >> length: 633696 offset: 4444160
-> >> Buffer 7 mapped at address 0x40adf000.
-> >> 
-> >> Unable to handle kernel NULL pointer dereference at virtual address
-> >> 00000018
-> > 
-> > Ouch :-(
-> > 
-> > Could you please verify that arch/arm/mach-omap2/board-overo.c includes
-> > the following code, and that CONFIG_OMAP_MUX is enabled ?
-> 
-> I'm not using an Overo board - rather one of our own internal designs.
+On Tue, Nov 22, 2011 at 02:38, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Pawel!
+>
+> Thanks for doing this work, but I have a few comments...
+>
+> On Tuesday, November 22, 2011 06:26:37 Pawel Osciak wrote:
+>> The app_offset can only be set by userspace and will be passed by vb2 to
+>> the driver.
+(..,)
+>
+> I'd like to see this implemented in vivi and preferably one other driver.
+>
 
-My bad, sorry.
+Yes, I just wanted to show how the V4L2 API would change and make sure
+people agreed before starting to implement in drivers. Looks like no
+one is questioning it.
 
-> I have verified that the pull up/down on those pins is disabled.
-> 
-> The failure is coming from this code in ispccdc.c
->    static void ccdc_hs_vs_isr(struct isp_ccdc_device *ccdc)
->    {
-> 	  struct isp_pipeline *pipe =
-> 		to_isp_pipeline(&ccdc->video_out.video.entity);
-> The value of pipe is NULL which leads to the failure.
-> 
-> Questions:
-> * I assume that getting HS/VS interrupts is correct in this mode?
-> * Why is the statement not written (as all others are)
-> 	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
->    I tried this change and the kernel doesn't crash.
-> 
-> I've found that I can get raw frames out of CCDC, but I don't get anything
-> at all when the output continues through the preview and/or resize nodes.
-> 
-> Ideas?
+> What also needs to be clarified is how this affects queue_setup (should the
+> sizes include the app_offset or not?) and e.g. vb2_plane_size (again, is the
+> size with or without app_offset?).
+>
+> Should app_offset handling be enforced (i.e. should all vb2 drivers support
+> it?) or should it be optional? If optional, then app_offset should be set to
+> 0 somehow.
+>
 
-I'm really puzzled, this should have been caught much earlier :-)
+There are several design questions:
+1. Enforcing handling of app_offset.
+I would prefer enforcing it. If we don't, we'll need some kind of new
+capability if forcing to 0 or would have to otherwise communicate it
+(zero it out in kernel when setting the format maybe). I'd like to try
+enforcing while hiding it in vb2 layer, so the drivers would not have
+to be concerned about that. Note also that this applies only to
+multiplanar drivers.
+2. Allocation - additional memory must be allocated for mmap and one
+problem is that the hardware will usually need buffer_addr +
+app_offset to be page-aligned, so we'd be "wasting" up to a page per
+buffer for this. Not a big deal probably though.
+3. Handling in vb2
+For mmap, vb2 (i.e. allocators) would have to allocate this memory in
+addition to the required buffer size, provided by the driver. I hope
+it could be made transparent to drivers by returning addresses to
+buffers after app_offset to them only. So only the allocator would
+need to be aware of both, but it's internal to vb2 as well.
+4. queue_setup
+I would like to make it oblivious to app_offset and keep and handle it
+only in vb2 and allocators. Need to see how it works out by
+implementing though.
+5. And other things most probably. I will go ahead and start
+implementing to see what less obvious subtleties I might be missing.
 
-Your analysis makes sense. Would you like to submit a patch yourself ? If not 
-I can do it.
+> This code in __qbuf_userptr should probably also be modified as this
+> currently does not take app_offset into account.
+>
+>                /* Check if the provided plane buffer is large enough */
+>                if (planes[plane].length < q->plane_sizes[plane]) {
+>                        ret = -EINVAL;
+>                        goto err;
+>                }
+>
+>
+
+As for userptr, at first I thought that the correct behavior would be
+to ignore that app memory entirely, i.e. make vb2 give pointers after
+app_offset, but this won't fly with for more advanced allocators that
+may need the app memory as well. Will rethink.
+
+> I think there are some subtleties that we don't know about yet, so implementing
+> this in a real driver would hopefully bring those subtleties out in the open.
+>
+
+Yes, I will implement it in vivi as a pilot now and add support in all
+drivers once we have everything sorted out.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Best regards,
+Pawel Osciak
