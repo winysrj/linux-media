@@ -1,73 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:49887 "EHLO smtp1-g21.free.fr"
+Received: from lo.gmane.org ([80.91.229.12]:39766 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756246Ab1KQKG5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Nov 2011 05:06:57 -0500
-Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:8db5])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id 9554F94042B
-	for <linux-media@vger.kernel.org>; Thu, 17 Nov 2011 11:06:48 +0100 (CET)
-Date: Thu, 17 Nov 2011 11:07:16 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Cleanup proposal for media/gspca
-Message-ID: <20111117110716.6343d46c@tele>
-In-Reply-To: <CALF0-+V+rEYi1of3jUGeVZsF2Ms215k0_CQjJx0qnPDUuC1BQQ@mail.gmail.com>
-References: <20111116013445.GA5273@localhost>
-	<CALF0-+V+rEYi1of3jUGeVZsF2Ms215k0_CQjJx0qnPDUuC1BQQ@mail.gmail.com>
+	id S1753219Ab1KYNhA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Nov 2011 08:37:00 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1RTvxZ-0000aQ-V7
+	for linux-media@vger.kernel.org; Fri, 25 Nov 2011 14:36:57 +0100
+Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 25 Nov 2011 14:36:57 +0100
+Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 25 Nov 2011 14:36:57 +0100
+To: linux-media@vger.kernel.org
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: Re: gnutv should not ignore SIGPIPE
+Date: Fri, 25 Nov 2011 08:36:40 -0500
+Message-ID: <jao5l8$v03$1@dough.gmane.org>
+References: <jao3r9$i9e$1@dough.gmane.org> <201111251534.05480.remi@remlab.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig43DC9E316F4B923C21C70095"
+In-Reply-To: <201111251534.05480.remi@remlab.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 16 Nov 2011 15:19:04 -0300
-Ezequiel García <elezegarcia@gmail.com> wrote:
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig43DC9E316F4B923C21C70095
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-> In 'media/video/gspca/gspca.c' I really hated this cast (maybe because
-> I am too dumb to understand it):
-> 
->   gspca_dev = (struct gspca_dev *) video_devdata(file);
-> 
-> wich is only legal because a struct video_device is the first member
-> of gspca_dev. IMHO, this is 'unnecesary obfuscation'.
-> The thing is the driver is surely working fine and there is no good
-> reasong for the change.
-> 
-> Is it ok to submit a patchset to change this? Something like this:
-> 
-> diff --git a/drivers/media/video/gspca/gspca.c
-> b/drivers/media/video/gspca/gspca.c
-> index 881e04c..5d962ce 100644
-> --- a/drivers/media/video/gspca/gspca.c
-> +++ b/drivers/media/video/gspca/gspca.c
-> @@ -1304,9 +1306,11 @@ static void gspca_release(struct video_device *vfd)
->  static int dev_open(struct file *file)
->  {
->  	struct gspca_dev *gspca_dev;
-> +	struct video_device *vdev;
-> 
->  	PDEBUG(D_STREAM, "[%s] open", current->comm);
-> -	gspca_dev = (struct gspca_dev *) video_devdata(file);
-> +	vdev = video_devdata(file);
-> +	gspca_dev = video_get_drvdata(vdev);
->  	if (!gspca_dev->present)
+On 11-11-25 08:34 AM, R=E9mi Denis-Courmont wrote:
+>=20
+> Anyway, the problem is not so mucgh ignoring SIGPIPE as ignoring EPIPE =
+write=20
+> errors.
 
-Hi Ezequiel,
+Yes, that is the other way to skin that cat I suppose.
 
-You are right, the cast is not a good way (and there are a lot of them
-in the gspca subdrivers), but your patch does not work because the
-'private_data' of the device is not initialized (there is no call to
-video_set_drvdata).
+What's the best/proper way to go about getting this fixed?
 
-So, a possible cleanup could be:
+Cheers,
+b.
 
-> -	gspca_dev = (struct gspca_dev *) video_devdata(file);
-> +	gspca_dev = container_of(video_devdata(file), struct gspca_dev, vdev);
 
-Is it OK for you?
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+--------------enig43DC9E316F4B923C21C70095
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iEYEARECAAYFAk7PmegACgkQl3EQlGLyuXBCuQCgz2MlCL7YiSLskBT0qX07Czbk
+exAAoLYoID5HVPO2YIZGP+iW9XRFs+PC
+=ht2g
+-----END PGP SIGNATURE-----
+
+--------------enig43DC9E316F4B923C21C70095--
+
