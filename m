@@ -1,51 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2943 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751457Ab1KWLMp (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34936 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751138Ab1KYMnN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Nov 2011 06:12:45 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [RFC PATCH 0/4] Replace VIDEO_COMMAND with VIDIOC_DECODER_CMD
-Date: Wed, 23 Nov 2011 12:12:32 +0100
-Message-Id: <1322046756-22870-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 25 Nov 2011 07:43:13 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC/PATCH 1/3] v4l: Introduce integer menu controls
+Date: Fri, 25 Nov 2011 13:43:12 +0100
+Cc: linux-media@vger.kernel.org, snjw23@gmail.com, hverkuil@xs4all.nl
+References: <20111124161228.GA29342@valkosipuli.localdomain> <201111251128.47106.laurent.pinchart@ideasonboard.com> <20111125120202.GC29342@valkosipuli.localdomain>
+In-Reply-To: <20111125120202.GC29342@valkosipuli.localdomain>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111251343.13776.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-During the 2011 workshop we discussed replacing the decoder commands in
-include/linux/dvb/video.h and audio.h by a proper V4L2 API.
+Hi Sakari,
 
-This patch series is the first phase of that. It adds new VIDIOC_(TRY_)DECODER_CMD
-ioctls to the V4L2 API. These are identical to the VIDEO_(TRY_)COMMAND from
-dvb/video.h, but the names of the fields and defines now conform to the V4L2
-API conventions.
+On Friday 25 November 2011 13:02:02 Sakari Ailus wrote:
+> On Fri, Nov 25, 2011 at 11:28:46AM +0100, Laurent Pinchart wrote:
+> > On Thursday 24 November 2011 17:12:50 Sakari Ailus wrote:
+> ...
+> 
+> > > @@ -1440,12 +1458,13 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct
+> > > v4l2_ctrl_handler *hdl, u32 flags;
+> > > 
+> > >  	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
+> > > 
+> > > -	if (type != V4L2_CTRL_TYPE_MENU) {
+> > > +	if (type != V4L2_CTRL_TYPE_MENU
+> > > +	    && type != V4L2_CTRL_TYPE_INTEGER_MENU) {
+> > > 
+> > >  		handler_set_err(hdl, -EINVAL);
+> > >  		return NULL;
+> > >  	
+> > >  	}
+> > >  	return v4l2_ctrl_new(hdl, ops, id, name, type,
+> > > 
+> > > -				    0, max, mask, def, flags, qmenu, NULL);
+> > > +			     0, max, mask, def, flags, qmenu, NULL, NULL);
+> > 
+> > You pass NULL to the v4l2_ctrl_new() qmenu_int argument, which will make
+> > the function fail for integer menu controls. Do you expect standard
+> > integer menu controls to share a list of values ? If not, what about
+> > modifying v4l2_ctrl_new_std_menu() to take a list of values (or
+> > alternatively forbidding the function from being used for integer menu
+> > controls) ?
+> 
+> We currently have no integer menu controls, let alone one which would have
+> a set of standard values. We need same functionality as in
+> v4l2_ctrl_get_menu() for integer menus when we add the first standardised
+> integer menu control. I think it could be added at that time, or I could
+> implement a v4l2_ctrl_get_integer_menu() which would do nothing.
+> 
+> What do you think?
 
-Documentation has been added and ivtv (the only V4L2 driver that used VIDEO_COMMAND)
-has been adapted to support the new V4L2 API.
+I was just wondering if we will ever have a standard menu control with 
+standard integer items. If that never happens, v4l2_ctrl_new_std_menu() needs 
+to either take a qmenu_int array, or reject integer menu controls completely. 
+I would thus delay adding the V4L2_CTRL_TYPE_INTEGER_MENU check to the 
+function as it wouldn't work anyway (or, alternatively, we would add the 
+qmenu_int argument now).
 
-I do have one question for Mauro: what do you want to do with video.h? Should it be
-removed altogether eventually?
-
-Some of the commands defined there aren't used by any driver (e.g. VIDEO_GET_NAVI),
-some are specific to the av7110 driver (e.g. VIDEO_STILLPICTURE), some are specific
-to ivtv (VIDEO_COMMAND) and some are used by both ivtv and av7110 (e.g. VIDEO_PLAY).
-
-My proposal would be to:
-
-1) remove anything that is not used by any driver from audio.h and video.h
-2) move av7110 specific stuff to a new linux/av7110.h header
-3) move ivtv specific stuff to the linux/ivtv.h header
-4) shared code should be moved to the new linux/av7110.h header and also copied
-   to linux/ivtv.h. The ivtv version will rename the names (e.g. VIDEO_ becomes
-   IVTV_) but is otherwise unchanged to preserve the ABI. Comments are added
-   on how to convert the legacy ioctls to standard V4L2 API in applications.
-   Perhaps these legacy ioctls in ivtv can even be removed in a few years time.
-5) remove linux/dvb/audio.h and video.h.
-
-What do you think, Mauro?
-
+-- 
 Regards,
 
-	Hans
-
+Laurent Pinchart
