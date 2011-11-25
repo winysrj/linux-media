@@ -1,52 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56800 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754470Ab1KLQLV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Nov 2011 11:11:21 -0500
-Message-ID: <4EBE9AA6.8090500@iki.fi>
-Date: Sat, 12 Nov 2011 18:11:18 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:42988 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753611Ab1KYONX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Nov 2011 09:13:23 -0500
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/7] af9015 dual tuner and othe fixes from my builds.
-References: <4ebe9767.8366b40a.1a27.4371@mx.google.com>
-In-Reply-To: <4ebe9767.8366b40a.1a27.4371@mx.google.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1318325033-32688-2-git-send-email-sumit.semwal@ti.com>
+References: <1318325033-32688-1-git-send-email-sumit.semwal@ti.com>
+	<1318325033-32688-2-git-send-email-sumit.semwal@ti.com>
+Date: Fri, 25 Nov 2011 14:13:22 +0000
+Message-ID: <CAPM=9tzAgCSDgdvi=9QZa-gEVXwKp_gpCPTtQ10XS=Z9K4805w@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [RFC 1/2] dma-buf: Introduce dma buffer sharing mechanism
+From: Dave Airlie <airlied@gmail.com>
+To: Sumit Semwal <sumit.semwal@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	linux@arm.linux.org.uk, arnd@arndb.de, jesse.barker@linaro.org,
+	daniel@ffwll.ch
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/12/2011 05:57 PM, Malcolm Priestley wrote:
-> Here is the lastest patches, for dual tuner and other fixes on the patchwork server.
+On Tue, Oct 11, 2011 at 10:23 AM, Sumit Semwal <sumit.semwal@ti.com> wrote:
+> This is the first step in defining a dma buffer sharing mechanism.
 >
+> A new buffer object dma_buf is added, with operations and API to allow easy
+> sharing of this buffer object across devices.
 >
-> Malcolm Priestley (7):
->    af9015 Slow down download firmware
->    af9015 Remove call to get config from probe.
->    af9015/af9013 full pid filtering.
->    af9013 frontend tuner bus lock and gate changes v2
->    af9015 bus repeater
->    af9013 Stop OFSM while channel changing.
->    af9013 empty buffer overflow command.
+> The framework allows:
+> - a new buffer-object to be created with fixed size.
+> - different devices to 'attach' themselves to this buffer, to facilitate
+>  backing storage negotiation, using dma_buf_attach() API.
+> - association of a file pointer with each user-buffer and associated
+>   allocator-defined operations on that buffer. This operation is called the
+>   'export' operation.
+> - this exported buffer-object to be shared with the other entity by asking for
+>   its 'file-descriptor (fd)', and sharing the fd across.
+> - a received fd to get the buffer object back, where it can be accessed using
+>   the associated exporter-defined operations.
+> - the exporter and user to share the scatterlist using get_scatterlist and
+>   put_scatterlist operations.
 >
->   drivers/media/dvb/dvb-usb/af9015.c   |  220 +++++++++++++++++++++-------------
->   drivers/media/dvb/frontends/af9013.c |   18 +++-
->   drivers/media/dvb/frontends/af9013.h |    5 +-
->   3 files changed, 158 insertions(+), 85 deletions(-)
+> Atleast one 'attach()' call is required to be made prior to calling the
+> get_scatterlist() operation.
+>
+> Couple of building blocks in get_scatterlist() are added to ease introduction
+> of sync'ing across exporter and users, and late allocation by the exporter.
+>
+> mmap() file operation is provided for the associated 'fd', as wrapper over the
+> optional allocator defined mmap(), to be used by devices that might need one.
+>
+> More details are there in the documentation patch.
+>
 
-Uhhuh, you have done rather much changes. Are you really sure those all 
-are needed and OK ?
+Some questions, I've started playing around with using this framework
+to do buffer sharing between DRM devices,
 
-I think the issues are stream corruption and I2C some write fails. As I 
-did some tests earlier it looked like I2C writes happens to fail when 
-you program tuner and it is interrupted by some other command (read_snr, 
-read_status, etc.).
+Why struct scatterlist and not struct sg_table? it seems like I really
+want to use an sg_table,
 
-regards
-Antti
+I'm not convinced fd's are really useful over just some idr allocated
+handle, so far I'm just returning the "fd" to userspace as a handle,
+and passing it back in the other side, so I'm not really sure what an
+fd wins us here, apart from the mmap thing which I think shouldn't be
+here anyways.
+(if fd's do win us more we should probably record that in the docs patch).
 
-
-
--- 
-http://palosaari.fi/
+Dave.
