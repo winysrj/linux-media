@@ -1,232 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:35903 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751597Ab1KSPhg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Nov 2011 10:37:36 -0500
-Received: by eye27 with SMTP id 27so4288530eye.19
-        for <linux-media@vger.kernel.org>; Sat, 19 Nov 2011 07:37:35 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:57545 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753872Ab1KYQEG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Nov 2011 11:04:06 -0500
+Message-ID: <4ECFBC6F.3080607@redhat.com>
+Date: Fri, 25 Nov 2011 14:03:59 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-From: Eddi De Pieri <eddi@depieri.net>
-Date: Sat, 19 Nov 2011 16:37:14 +0100
-Message-ID: <CAKdnbx5_qfotsKh0-s+DN7skx-J2=1HRw-qZOw=3mUHCQFHo2g@mail.gmail.com>
-Subject: [PATCH] initial support for HAUPPAUGE HVR-930C again...
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=f46d043c05cc8f4a9904b2183bdf
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <4ECF8359.5080705@linuxtv.org> <4ECF9C92.2040607@redhat.com> <201111251622.52582.hverkuil@xs4all.nl> <CAHFNz9KkVzJ8719NOJLzcGJPf_LSaSUwNr1KgqSANCtkpX--tA@mail.gmail.com>
+In-Reply-To: <CAHFNz9KkVzJ8719NOJLzcGJPf_LSaSUwNr1KgqSANCtkpX--tA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---f46d043c05cc8f4a9904b2183bdf
-Content-Type: text/plain; charset=ISO-8859-1
+Em 25-11-2011 13:58, Manu Abraham escreveu:
+> On Fri, Nov 25, 2011 at 8:52 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On Friday, November 25, 2011 14:48:02 Mauro Carvalho Chehab wrote:
+>>> Em 25-11-2011 10:00, Andreas Oberritter escreveu:
+>>>> On 24.11.2011 19:47, Mauro Carvalho Chehab wrote:
+>>>>> Em 24-11-2011 16:13, Manu Abraham escreveu:
+>>>>>> On Thu, Nov 24, 2011 at 11:38 PM, Mauro Carvalho Chehab
+>>>>>> <mchehab@redhat.com> wrote:
+>>>>>>> Em 24-11-2011 16:01, Manu Abraham escreveu:
+>>>>>>>> On Thu, Nov 24, 2011 at 11:14 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>>>>>>> On Thursday, November 24, 2011 18:08:05 Andreas Oberritter wrote:
+>>>>>>>>>> Don't break existing Userspace APIs for no reason! It's OK to add the
+>>>>>>>>>> new API, but - pretty please - don't just blindly remove audio.h and
+>>>>>>>>>> video.h. They are in use since many years by av7110, out-of-tree drivers
+>>>>>>>>>> *and more importantly* by applications. Yes, I know, you'd like to see
+>>>>>>>>>> those out-of-tree drivers merged, but it isn't possible for many
+>>>>>>>>>> reasons. And even if they were merged, you'd say "Port them and your
+>>>>>>>>>> apps to V4L". No! That's not an option.
+>>>>>>>>>
+>>>>>>>>> I'm not breaking anything. All apps will still work.
+>>>>>>>>>
+>>>>>>>>> One option (and it depends on whether people like it or not) is to have
+>>>>>>>>> audio.h, video.h and osd.h just include av7110.h and add a #warning
+>>>>>>>>> that these headers need to be replaced by the new av7110.h.
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> That won't work with other non av7110 hardware.
+>>>>>>>
+>>>>>>> There isn't any non-av7110 driver using it at the Kernel. Anyway, we can put
+>>>>>>> a warning at the existing headers as-is, for now, putting them to be removed
+>>>>>>> for a new kernel version, like 3.4.
+>>>>>>
+>>>>>>
+>>>>>> No, that's not an option. The to-be merged saa716x driver depends on it.
+>>>>>
+>>>>> If the driver is not merged yet, it can be changed.
+>>>>>
+>>>>>> A DVB alone device need not depend V4L2 for it's operation.
+>>>>>
+>>>>> Why not? DVB drivers with IR should implement the input/event/IR API. DVB drivers with net
+>>>>> should implement the Linux Network API.
+>>>>
+>>>> DVB doesn't specify IR. There's no such thing like a DVB IR device.
+>>>>
+>>>> IP over DVB is implemented transparently. No driver needs to do anything
+>>>> but register its device's MAC address, therefore no driver implements
+>>>> the Linux Network API.
+>>>>
+>>>>> There is nothing wrong on using the ALSA API for audio and the V4L2 API for video,
+>>>>> as both API fits the needs for decoding audio and video streams, and new features
+>>>>> could be added there when needed.
+>>>>
+>>>> Yes. There's nothing wrong with it and I'm not complaining. I don't care
+>>>> about the implementation of the API in ivtv either. Just don't remove
+>>>> the API from dvb-core, period.
+>>>>
+>>>>> Duplicated API's that become legacy are removed with time. Just to mention two
+>>>>> notable cases, this happened with the old audio stack (OSS), with the old Wireless
+>>>>> stack.
+>>>>
+>>>> I can still use iwconfig and linux/wireless.h is still available on my
+>>>> system.
+>>>
+>>> Yes, but both iwconfig and the API changed.
+>>>
+>>>> ALSA still provides OSS emulation and the real OSS stack was marked
+>>>> deprecated but still present for ages.
+>>>
+>>> OSS driver submission stopped years ago. I remember it clearly as they denied cx88-oss
+>>> driver submission (2004 or 2005). The saa7134-oss and bttv-oss drivers were dropped in 2007[1]
+>>> in favor of the alsa drivers. The only hardware that are still there at OSS are the
+>>> legacy ones that probably no alsa developer has anymore.
+>>>
+>>> [1] http://kerneltrap.org/mailarchive/linux-kernel/2007/11/9/398438/thread
+>>>
+>>>> In contrast, you want to remove a
+>>>> stable API and introduce a new *completely untested* API between 3.3 and
+>>>> 3.4.
+>>>
+>>> Please read the patches again. The API for the devices are still there:
+>>> any binary compiled for older kernels will still work with av7110 and ivtv.
+>>> With the patches applied, the only difference is that the header file has
+>>> renamed, as they were moved to device-specific headers.
+>>>
+>>> It should be noticed that, while both av7110 and ivtv uses the same ioctl's, av7110
+>>> creates devices over /dev/dvb, while ivtv uses it over /dev/video?. So, in practice,
+>>> each driver has a different API.
+>>>
+>>> There are no plans to remove the API for av7110.
+>>>
+>>> As discussed on this thread, it seems that the agreed plans for the ivtv API is to put
+>>> it into the standard kernel procedure to get rid of legacy API. That means that the API
+>>> will be there for a few kernel versions.
+>>>
+>>> Hans proposal is to remove the ivtv API on 3.8, with seems reasonable. So, the first
+>>> API removal will happen in about 18 months from now (assuming about 2 months per kernel
+>>> version).
+>>>
+>>>>> Do you have any issues that needs to be addressed by the V4L2 API for it to fit
+>>>>> on your needs?
+>>>>
+>>>> I don't want to be forced to use the V4L2 API for no reason and no gain.
+>>>
+>>> As already explained on the other email, there are gains on using it, like the support
+>>> for other types of encoding, the pipeline setup, sub-device control, shared buffer interface
+>>> with GPU, proper support for SoC, etc.
+>>>
+>>> Also, currently, just one device uses it (av7110). I don't think that the chipset is
+>>> still manufactured. At least Google didn't help finding anything:
+>>>       http://www.google.com/search?q=av7110&tbm=shop&hl=en
+>>>
+>>> On the other hand, there are thousands of devices using V4L2 API.
+>>>
+>>> As both API's provide support for decoded video, one API has to be deprecated in favor
+>>> to the other. We should select for deprecation the one that is more restrictive
+>>> and that has just one driver using it.
+>>>
+>>>>
+>>>>>> Also, it doesn't
+>>>>>> make any sense to have device specific headers to be used by an application,
+>>>>>> when drivers share more than one commonality.
+>>>>>
+>>>>> The only in-kernel driver using audio/video/osd is av7110.
+>>>>
+>>>> Once again: Manu is going to submit a new driver soon.
+>>>
+>>> The API is there for several years (since 2002?), with just one driver supporting it.
+>>> It shouldn't be hard to convert Manu's work to the V4L2. I can help him on converting
+>>> his driver to use the V4L2 API if needed.
+>>>
+>>>> You're trying to remove an API that you've never used. The people who
+>>>> use the API want it to stay.
+>>>
+>>> As I said, it will stay there. Nobody will remove av7110 or remove the old API from it.
+>>>
+>>> The idea is that no new driver should use it, as it is a legacy one-driver-only API.
+>>>
+>>> If your complain is about the removal of audio.h, video.h and osd.h, then my proposal is
+>>> to keep it there, writing a text that they are part of a deprecated API, but keeping
+>>> the rest of the patches and not accepting anymore any submission using them, removing
+>>> the ioctl's that aren't used by av7110 from them.
+>>
+>> I have no problem with that. Something along those lines was my initial idea anyway,
+>> but I forgot about it.
+>>
+>> I've taken a quick look at Manu's driver: it uses very few ioctls from audio.h and
+>> video.h and it seems that that driver uses the video device as a classic video output
+>> device able to handle compressed video (I presume an elementary video stream).
+> 
+> 
+> How will you handle CI+ ? The CI+ descrambler is tightly married to
+> the DVB decoder.
+> So you will move the CA API also to V4L, eventually ?
 
-With this patch I try again to add initial support for HVR930C.
+No. The idea is to integrate frontend, demux and ca at the Media Controller, in order
+to allow complex devices to use it. This should solve the issues with:
+	drivers/staging/media/cxd2099/
 
-Tested only DVB-T, since in Italy Analog service is stopped.
+allowing to move it out of staging.
 
-Actually "scan -a0 -f1", find only about 50 channel while 400 should
-be available.
+Regards,
+Mauro
 
-Signed-off-by: Eddi De Pieri <eddi@depieri.net>
-
-Regards
-
-Eddi
-
---f46d043c05cc8f4a9904b2183bdf
-Content-Type: text/x-patch; charset=US-ASCII; name="hauppauge-hvr930c_r1.patch"
-Content-Disposition: attachment; filename="hauppauge-hvr930c_r1.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gv6s1jpx0
-
-ZGlmZiAtdSAtTiAtciBsaW51eC9kcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMveGM1MDAwLmMg
-bGludXgucGF0Y2hlZC9kcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMveGM1MDAwLmMKLS0tIGxp
-bnV4L2RyaXZlcnMvbWVkaWEvY29tbW9uL3R1bmVycy94YzUwMDAuYwkyMDExLTAzLTMxIDIzOjU2
-OjQ5LjAwMDAwMDAwMCArMDIwMAorKysgbGludXgucGF0Y2hlZC9kcml2ZXJzL21lZGlhL2NvbW1v
-bi90dW5lcnMveGM1MDAwLmMJMjAxMS0xMS0xOSAxNTozNzoyMC41MTYxMzg2OTUgKzAxMDAKQEAg
-LTk3Nyw2ICs5NzcsMTMgQEAKIAlyZXR1cm4gMDsKIH0KIAorc3RhdGljIGludCB4YzUwMDBfZ2V0
-X2lmX2ZyZXF1ZW5jeShzdHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSwgdTMyICpmcmVxdWVuY3kpCit7
-CisJc3RydWN0IHhjNTAwMF9wcml2ICpwcml2ID0gZmUtPnR1bmVyX3ByaXY7CisJKmZyZXF1ZW5j
-eSA9IHByaXYtPmlmX2toeiAqIDEwMDA7CisJcmV0dXJuIDA7Cit9CisKIHN0YXRpYyBpbnQgeGM1
-MDAwX2dldF9zdGF0dXMoc3RydWN0IGR2Yl9mcm9udGVuZCAqZmUsIHUzMiAqc3RhdHVzKQogewog
-CXN0cnVjdCB4YzUwMDBfcHJpdiAqcHJpdiA9IGZlLT50dW5lcl9wcml2OwpAQCAtOTk2LDYgKzEw
-MDMsOCBAQAogCXN0cnVjdCB4YzUwMDBfcHJpdiAqcHJpdiA9IGZlLT50dW5lcl9wcml2OwogCWlu
-dCByZXQgPSAwOwogCisJbXV0ZXhfbG9jaygmeGM1MDAwX2xpc3RfbXV0ZXgpOworCiAJaWYgKHhj
-NTAwMF9pc19maXJtd2FyZV9sb2FkZWQoZmUpICE9IFhDX1JFU1VMVF9TVUNDRVNTKSB7CiAJCXJl
-dCA9IHhjNTAwMF9md3VwbG9hZChmZSk7CiAJCWlmIChyZXQgIT0gWENfUkVTVUxUX1NVQ0NFU1Mp
-CkBAIC0xMDE1LDYgKzEwMjQsOCBAQAogCS8qIERlZmF1bHQgdG8gIkNBQkxFIiBtb2RlICovCiAJ
-cmV0IHw9IHhjX3dyaXRlX3JlZyhwcml2LCBYUkVHX1NJR05BTFNPVVJDRSwgWENfUkZfTU9ERV9D
-QUJMRSk7CiAKKwltdXRleF91bmxvY2soJnhjNTAwMF9saXN0X211dGV4KTsKKwogCXJldHVybiBy
-ZXQ7CiB9CiAKQEAgLTExMDksNiArMTEyMCw3IEBACiAJLnNldF9hbmFsb2dfcGFyYW1zID0geGM1
-MDAwX3NldF9hbmFsb2dfcGFyYW1zLAogCS5nZXRfZnJlcXVlbmN5CSAgID0geGM1MDAwX2dldF9m
-cmVxdWVuY3ksCiAJLmdldF9iYW5kd2lkdGgJICAgPSB4YzUwMDBfZ2V0X2JhbmR3aWR0aCwKKwku
-Z2V0X2lmX2ZyZXF1ZW5jeSAgPSB4YzUwMDBfZ2V0X2lmX2ZyZXF1ZW5jeSwKIAkuZ2V0X3N0YXR1
-cwkgICA9IHhjNTAwMF9nZXRfc3RhdHVzCiB9OwogCmRpZmYgLXUgLU4gLXIgbGludXgvZHJpdmVy
-cy9tZWRpYS9kdmIvZnJvbnRlbmRzL2RyeGsuaCBsaW51eC5wYXRjaGVkL2RyaXZlcnMvbWVkaWEv
-ZHZiL2Zyb250ZW5kcy9kcnhrLmgKLS0tIGxpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5k
-cy9kcnhrLmgJMjAxMS0wNy0xMSAyMDowOTo1My4wMDAwMDAwMDAgKzAyMDAKKysrIGxpbnV4LnBh
-dGNoZWQvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL2RyeGsuaAkyMDExLTExLTE5IDE1OjIw
-OjMyLjExOTEzNzIwNiArMDEwMApAQCAtMjUsNiArMjUsOCBAQAogCiAJYm9vbAlhbnRlbm5hX2R2
-YnQ7CiAJdTE2CWFudGVubmFfZ3BpbzsKKwkKKwlpbnQgICAgY2h1bmtfc2l6ZTsKIAogCWNvbnN0
-IGNoYXIgKm1pY3JvY29kZV9uYW1lOwogfTsKZGlmZiAtdSAtTiAtciBsaW51eC9kcml2ZXJzL21l
-ZGlhL2R2Yi9mcm9udGVuZHMvZHJ4a19oYXJkLmMgbGludXgucGF0Y2hlZC9kcml2ZXJzL21lZGlh
-L2R2Yi9mcm9udGVuZHMvZHJ4a19oYXJkLmMKLS0tIGxpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2Zy
-b250ZW5kcy9kcnhrX2hhcmQuYwkyMDExLTA5LTA0IDA1OjQ1OjA5LjAwMDAwMDAwMCArMDIwMAor
-KysgbGludXgucGF0Y2hlZC9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvZHJ4a19oYXJkLmMJ
-MjAxMS0xMS0xOSAxNToyMDozMi4xMjMxMzcyMTAgKzAxMDAKQEAgLTY4MSw3ICs2ODEsOCBAQAog
-CXN0YXRlLT5tX2hhc09PQiA9IGZhbHNlOwogCXN0YXRlLT5tX2hhc0F1ZGlvID0gZmFsc2U7CiAK
-LQlzdGF0ZS0+bV9DaHVua1NpemUgPSAxMjQ7CisJaWYgKCFzdGF0ZS0+bV9DaHVua1NpemUpCisJ
-ICAgIHN0YXRlLT5tX0NodW5rU2l6ZSA9IDEyNDsKIAogCXN0YXRlLT5tX29zY0Nsb2NrRnJlcSA9
-IDA7CiAJc3RhdGUtPm1fc21hcnRBbnRJbnZlcnRlZCA9IGZhbHNlOwpAQCAtNjQyMyw2ICs2NDI0
-LDcgQEAKIAlzdGF0ZS0+bm9faTJjX2JyaWRnZSA9IGNvbmZpZy0+bm9faTJjX2JyaWRnZTsKIAlz
-dGF0ZS0+YW50ZW5uYV9ncGlvID0gY29uZmlnLT5hbnRlbm5hX2dwaW87CiAJc3RhdGUtPmFudGVu
-bmFfZHZidCA9IGNvbmZpZy0+YW50ZW5uYV9kdmJ0OworCXN0YXRlLT5tX0NodW5rU2l6ZSA9IGNv
-bmZpZy0+Y2h1bmtfc2l6ZTsKIAogCS8qIE5PVEU6IGFzIG1vcmUgVUlPIGJpdHMgd2lsbCBiZSB1
-c2VkLCBhZGQgdGhlbSB0byB0aGUgbWFzayAqLwogCXN0YXRlLT5VSU9fbWFzayA9IGNvbmZpZy0+
-YW50ZW5uYV9ncGlvOwpkaWZmIC11IC1OIC1yIGxpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vZW0y
-OHh4L2VtMjh4eC1jYXJkcy5jIGxpbnV4LnBhdGNoZWQvZHJpdmVycy9tZWRpYS92aWRlby9lbTI4
-eHgvZW0yOHh4LWNhcmRzLmMKLS0tIGxpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4L2Vt
-Mjh4eC1jYXJkcy5jCTIwMTEtMTEtMDQgMDU6NDU6NDAuMDAwMDAwMDAwICswMTAwCisrKyBsaW51
-eC5wYXRjaGVkL2RyaXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4L2VtMjh4eC1jYXJkcy5jCTIwMTEt
-MTEtMTkgMTU6MjE6MTguMjQ3MzY1OTIyICswMTAwCkBAIC0zMzYsNiArMzM2LDI0IEBACiAJeyAg
-ICAgICAgICAgICAtMSwgICAtMSwgICAtMSwgIC0xfSwKIH07CiAKK3N0YXRpYyBzdHJ1Y3QgZW0y
-OHh4X3JlZ19zZXEgaGF1cHBhdWdlXzkzMGNfZ3Bpb1tdID0geworLy8geGM1MDAwIHJlc2V0CisJ
-e0VNMjg3NF9SODBfR1BJTywJMHg2ZiwJMHhmZiwJMTB9LAorCXtFTTI4NzRfUjgwX0dQSU8sCTB4
-NGYsCTB4ZmYsCTEwfSwKKwl7RU0yODc0X1I4MF9HUElPLAkweDZmLAkweGZmLAkxMH0sCisJe0VN
-Mjg3NF9SODBfR1BJTywJMHg0ZiwJMHhmZiwJMTB9LAorCXsgLTEsCQkJLTEsCS0xLAktMX0sCit9
-OworCisjaWYgMAorc3RhdGljIHN0cnVjdCBlbTI4eHhfcmVnX3NlcSBoYXVwcGF1Z2VfOTMwY19k
-aWdpdGFsW10gPSB7CisJe0VNMjg3NF9SODBfR1BJTywJMHhmNiwJMHhmZiwJMTB9LAorCXtFTTI4
-NzRfUjgwX0dQSU8sCTB4ZTYsCTB4ZmYsCTEwMH0sCisJe0VNMjg3NF9SODBfR1BJTywJMHhhNiwJ
-MHhmZiwJMTB9LAorCXsgLTEsCQkJLTEsCS0xLAktMX0sCit9OworI2VuZGlmCisKIC8qCiAgKiAg
-Qm9hcmQgZGVmaW5pdGlvbnMKICAqLwpAQCAtODkyLDYgKzkxMCwxOSBAQAogCQkJCUVNMjhYWF9J
-MkNfQ0xLX1dBSVRfRU5BQkxFIHwKIAkJCQlFTTI4WFhfSTJDX0ZSRVFfNDAwX0tIWiwKIAl9LAor
-CVtFTTI4ODRfQk9BUkRfSEFVUFBBVUdFX1dJTlRWX0hWUl85MzBDXSA9IHsKKwkJLm5hbWUgICAg
-ICAgICA9ICJIYXVwcGF1Z2UgV2luVFYgSFZSIDkzMEMiLAorCQkuaGFzX2R2YiAgICAgID0gMSwK
-Ky8vI2lmIDAKKy8vCQkudHVuZXJfdHlwZSAgID0gVFVORVJfWEM1MDAwLAorLy8JCS50dW5lcl9h
-ZGRyICAgPSAweDQxLAorLy8JCS5kdmJfZ3BpbyAgICAgPSBoYXVwcGF1Z2VfOTMwY19kaWdpdGFs
-LCAvKiBGSVhNRTogcHJvYmFibHkgd3JvbmcgKi8KKwkJLnR1bmVyX2dwaW8gICA9IGhhdXBwYXVn
-ZV85MzBjX2dwaW8sCisvLyNlbmRpZgorCQkuaTJjX3NwZWVkICAgID0gRU0yODc0X0kyQ19TRUNP
-TkRBUllfQlVTX1NFTEVDVCB8CisJCQkJRU0yOFhYX0kyQ19DTEtfV0FJVF9FTkFCTEUgfAorCQkJ
-CUVNMjhYWF9JMkNfRlJFUV80MDBfS0haLAorCX0sCiAJW0VNMjg4MF9CT0FSRF9IQVVQUEFVR0Vf
-V0lOVFZfSFZSXzkwMF0gPSB7CiAJCS5uYW1lICAgICAgICAgPSAiSGF1cHBhdWdlIFdpblRWIEhW
-UiA5MDAiLAogCQkudGRhOTg4N19jb25mID0gVERBOTg4N19QUkVTRU5ULApAQCAtMTk3NSw2ICsy
-MDA2LDggQEAKIAkJCS5kcml2ZXJfaW5mbyA9IEVNMjgxNzRfQk9BUkRfUENUVl8yOTBFIH0sCiAJ
-eyBVU0JfREVWSUNFKDB4MjAxMywgMHgwMjRjKSwKIAkJCS5kcml2ZXJfaW5mbyA9IEVNMjgxNzRf
-Qk9BUkRfUENUVl80NjBFIH0sCisJeyBVU0JfREVWSUNFKDB4MjA0MCwgMHgxNjA1KSwKKwkJCS5k
-cml2ZXJfaW5mbyA9IEVNMjg4NF9CT0FSRF9IQVVQUEFVR0VfV0lOVFZfSFZSXzkzMEMgfSwKIAl7
-IH0sCiB9OwogTU9EVUxFX0RFVklDRV9UQUJMRSh1c2IsIGVtMjh4eF9pZF90YWJsZSk7CkBAIC0y
-MDI4LDEwICsyMDYxLDEwIEBACiAJaW50IHJjID0gMDsKIAlzdHJ1Y3QgZW0yOHh4ICpkZXYgPSBw
-dHI7CiAKLQlpZiAoZGV2LT50dW5lcl90eXBlICE9IFRVTkVSX1hDMjAyOCkKKwlpZiAoZGV2LT50
-dW5lcl90eXBlICE9IFRVTkVSX1hDMjAyOCAmJiBkZXYtPnR1bmVyX3R5cGUgIT0gVFVORVJfWEM1
-MDAwKQogCQlyZXR1cm4gMDsKIAotCWlmIChjb21tYW5kICE9IFhDMjAyOF9UVU5FUl9SRVNFVCkK
-KwlpZiAoY29tbWFuZCAhPSBYQzIwMjhfVFVORVJfUkVTRVQgJiYgY29tbWFuZCAhPSBYQzUwMDBf
-VFVORVJfUkVTRVQpCiAJCXJldHVybiAwOwogCiAJcmMgPSBlbTI4eHhfZ3Bpb19zZXQoZGV2LCBk
-ZXYtPmJvYXJkLnR1bmVyX2dwaW8pOwpkaWZmIC11IC1OIC1yIGxpbnV4L2RyaXZlcnMvbWVkaWEv
-dmlkZW8vZW0yOHh4L2VtMjh4eC1kdmIuYyBsaW51eC5wYXRjaGVkL2RyaXZlcnMvbWVkaWEvdmlk
-ZW8vZW0yOHh4L2VtMjh4eC1kdmIuYwotLS0gbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9lbTI4
-eHgvZW0yOHh4LWR2Yi5jCTIwMTEtMDktMjIgMDU6NDU6MjMuMDAwMDAwMDAwICswMjAwCisrKyBs
-aW51eC5wYXRjaGVkL2RyaXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4L2VtMjh4eC1kdmIuYwkyMDEx
-LTExLTE5IDE1OjIwOjMyLjEyNzEzNzIwNSArMDEwMApAQCAtMSw0ICsxLDQgQEAKLS8qCisvKjYK
-ICBEVkIgZGV2aWNlIGRyaXZlciBmb3IgZW0yOHh4CiAKICAoYykgMjAwOC0yMDExIE1hdXJvIENh
-cnZhbGhvIENoZWhhYiA8bWNoZWhhYkBpbmZyYWRlYWQub3JnPgpAQCAtMzE2LDYgKzMxNiwxNCBA
-QAogCS5taWNyb2NvZGVfbmFtZSA9ICJkdmItdXNiLXRlcnJhdGVjLWg1LWRyeGsuZnciLAogfTsK
-IAorc3RydWN0IGRyeGtfY29uZmlnIGhhdXBwYXVnZV85MzBjX2RyeGsgPSB7CisJLmFkciA9IDB4
-MjksCisJLnNpbmdsZV9tYXN0ZXIgPSAxLAorCS5ub19pMmNfYnJpZGdlID0gMSwKKwkubWljcm9j
-b2RlX25hbWUgPSAiZHZiLXVzYi1oYXVwcGF1Z2UtaHZyOTMwYy1kcnhrLmZ3IiwKKwkuY2h1bmtf
-c2l6ZSA9IDU2LAorfTsKKwogc3RhdGljIGludCBkcnhrX2dhdGVfY3RybChzdHJ1Y3QgZHZiX2Zy
-b250ZW5kICpmZSwgaW50IGVuYWJsZSkKIHsKIAlzdHJ1Y3QgZW0yOHh4X2R2YiAqZHZiID0gZmUt
-PnNlY19wcml2OwpAQCAtMzM0LDYgKzM0Miw5MSBAQAogCXJldHVybiBzdGF0dXM7CiB9CiAKK3N0
-YXRpYyB2b2lkIGhhdXBwYXVnZV9odnI5MzBjX2luaXQoc3RydWN0IGVtMjh4eCAqZGV2KQorewor
-CWludCBpOworCQorCisJc3RydWN0IGVtMjh4eF9yZWdfc2VxIGhhdXBwYXVnZV9odnI5MzBjX2lu
-aXRbXSA9IHsKKwkJe0VNMjg3NF9SODBfR1BJTywJMHhmZiwJMHhmZiwJMTAxfSwgIC8vMTExMTEx
-MTEKKy8vCQl7MHhkICAgICAgICAgICAgLAkweGZmLAkweGZmLAkxMDF9LCAgLy8xMTExMTExMQor
-CQl7RU0yODc0X1I4MF9HUElPLAkweGZiLAkweGZmLAk1MH0sICAgLy8xMTExMTAxMSAgaW5pdCBi
-aXQgMworCQl7RU0yODc0X1I4MF9HUElPLAkweGZmLAkweGZmLAkxODR9LCAgLy8xMTExMTExMQor
-CQl7IC0xLCAgICAgICAgICAgICAgICAgICAtMSwgICAgIC0xLCAgICAgLTF9LAorCX07CisJc3Ry
-dWN0IGVtMjh4eF9yZWdfc2VxIGhhdXBwYXVnZV9odnI5MzBjX2VuZFtdID0geworCQl7RU0yODc0
-X1I4MF9HUElPLAkweGVmLAkweGZmLAkxfSwgICAgLy8xMTEwMTExMQorCQl7RU0yODc0X1I4MF9H
-UElPLAkweGFmLAkweGZmLAkxMDF9LCAgLy8xMDEwMTExMSAgaW5pdCBiaXQgNworCQl7RU0yODc0
-X1I4MF9HUElPLAkweGVmLAkweGZmLAkxMTh9LCAgIC8vMTExMDExMTEKKworCisvL3BlciBpbCB0
-dW5lcj8KKwkJe0VNMjg3NF9SODBfR1BJTywJMHhlZiwJMHhmZiwJMX0sICAvLzExMTAxMTExCisJ
-CXtFTTI4NzRfUjgwX0dQSU8sCTB4Y2YsCTB4ZmYsCTExfSwgICAgLy8xMTAwMTExMSAgaW5pdCBi
-aXQgNgorCQl7RU0yODc0X1I4MF9HUElPLAkweGVmLAkweGZmLAk2NH0sICAvLzExMTAxMTExCisK
-KwkJe0VNMjg3NF9SODBfR1BJTywJMHhjZiwJMHhmZiwJMTAxfSwgIC8vMTEwMDExMTEgIGluaXQg
-Yml0IDYKKwkJe0VNMjg3NF9SODBfR1BJTywJMHhlZiwJMHhmZiwJMTAxfSwgIC8vMTExMDExMTEK
-KwkJe0VNMjg3NF9SODBfR1BJTywJMHhjZiwJMHhmZiwJMTF9LCAgLy8xMTAwMTExMSAgaW5pdCBi
-aXQgNgorCQl7RU0yODc0X1I4MF9HUElPLAkweGVmLAkweGZmLAkxMDF9LCAgLy8xMTEwMTExMQor
-CisvLwkJe0VNMjg3NF9SODBfR1BJTywJMHg2ZiwJMHhmZiwJMTB9LCAgICAvLzAxMTAxMTExCisv
-LwkJe0VNMjg3NF9SODBfR1BJTywJMHg2ZCwJMHhmZiwJMTAwfSwgIC8vMDExMDExMDEgIGluaXQg
-Yml0IDIKKwkJeyAtMSwgICAgICAgICAgICAgICAgICAgLTEsICAgICAtMSwgICAgIC0xfSwKKwl9
-OworCisJc3RydWN0IGVtMjh4eF9yZWdfc2VxIGhhdXBwYXVnZV9odnI5MzBjX2VuZDJbXSA9IHsK
-Ky8vCQl7RU0yODc0X1I4MF9HUElPLAkweDZmLAkweGZmLAkxMjR9LCAgLy8wMTEwMTExMQorLy8J
-CXtFTTI4NzRfUjgwX0dQSU8sCTB4NGYsCTB4ZmYsCTExfSwgICAvLzAxMDAxMTExICBpbml0IGJp
-dCA2CisvLwkJe0VNMjg3NF9SODBfR1BJTywJMHg2ZiwJMHhmZiwJMX0sICAgIC8vMDExMDExMTEK
-Ky8vCQl7RU0yODc0X1I4MF9HUElPLAkweDRmLAkweGZmLAkxMH0sICAgLy8wMTAwMTExMSAgaW5p
-dCBiaXQgNgorLy8JCXtFTTI4NzRfUjgwX0dQSU8sCTB4NmYsCTB4ZmYsCTEwMH0sICAvLzAxMTAx
-MTExCisvLwkJezB4ZCAgICAgICAgICAgICwJMHg0MiwJMHhmZiwJMTAxfSwgIC8vMTExMTExMTEK
-KwkJeyAtMSwgICAgICAgICAgICAgICAgICAgLTEsICAgICAtMSwgICAgIC0xfSwKKwl9OworCXN0
-cnVjdCB7CisJCXVuc2lnbmVkIGNoYXIgcls0XTsKKwkJaW50IGxlbjsKKwl9IHJlZ3NbXSA9IHsK
-KwkJe3sgMHgwNiwgMHgwMiwgMHgwMCwgMHgzMSB9LCA0fSwKKwkJe3sgMHgwMSwgMHgwMiB9LCAy
-fSwKKwkJe3sgMHgwMSwgMHgwMiwgMHgwMCwgMHhjNiB9LCA0fSwKKwkJe3sgMHgwMSwgMHgwMCB9
-LCAyfSwKKwkJe3sgMHgwMSwgMHgwMCwgMHhmZiwgMHhhZiB9LCA0fSwKKwkJe3sgMHgwMSwgMHgw
-MCwgMHgwMywgMHhhMCB9LCA0fSwKKwkJe3sgMHgwMSwgMHgwMCB9LCAyfSwKKwkJe3sgMHgwMSwg
-MHgwMCwgMHg3MywgMHhhZiB9LCA0fSwKKwkJe3sgMHgwNCwgMHgwMCB9LCAyfSwKKwkJe3sgMHgw
-MCwgMHgwNCB9LCAyfSwKKwkJe3sgMHgwMCwgMHgwNCwgMHgwMCwgMHgwYSB9LCA0fSwKKwkJe3sg
-MHgwNCwgMHgxNCB9LCAyfSwKKwkJe3sgMHgwNCwgMHgxNCwgMHgwMCwgMHgwMCB9LCA0fSwKKwl9
-OworCisJZW0yOHh4X2dwaW9fc2V0KGRldiwgaGF1cHBhdWdlX2h2cjkzMGNfaW5pdCk7CisJZW0y
-OHh4X3dyaXRlX3JlZyhkZXYsIEVNMjhYWF9SMDZfSTJDX0NMSywgMHg0MCk7CisJbXNsZWVwKDEw
-KTsKKwllbTI4eHhfd3JpdGVfcmVnKGRldiwgRU0yOFhYX1IwNl9JMkNfQ0xLLCAweDQ0KTsKKwlt
-c2xlZXAoMTApOworCisJZGV2LT5pMmNfY2xpZW50LmFkZHIgPSAweDgyID4+IDE7CisKKwlmb3Ig
-KGkgPSAwOyBpIDwgQVJSQVlfU0laRShyZWdzKTsgaSsrKQorCQlpMmNfbWFzdGVyX3NlbmQoJmRl
-di0+aTJjX2NsaWVudCwgcmVnc1tpXS5yLCByZWdzW2ldLmxlbik7CisJZW0yOHh4X2dwaW9fc2V0
-KGRldiwgaGF1cHBhdWdlX2h2cjkzMGNfZW5kKTsKKworCW1zbGVlcCgxMDApOworCisJZW0yOHh4
-X3dyaXRlX3JlZyhkZXYsIEVNMjhYWF9SMDZfSTJDX0NMSywgMHg0NCk7CisJbXNsZWVwKDMwKTsK
-KworCWVtMjh4eF9ncGlvX3NldChkZXYsIGhhdXBwYXVnZV9odnI5MzBjX2VuZDIpOworCW1zbGVl
-cCgxMCk7CisJZW0yOHh4X3dyaXRlX3JlZyhkZXYsIEVNMjhYWF9SMDZfSTJDX0NMSywgMHg0NSk7
-CisJbXNsZWVwKDEwKTsKKworfQorCiBzdGF0aWMgdm9pZCB0ZXJyYXRlY19oNV9pbml0KHN0cnVj
-dCBlbTI4eHggKmRldikKIHsKIAlpbnQgaTsKQEAgLTc4OCw2ICs4ODEsNDcgQEAKIAkJCW1mZV9z
-aGFyZWQgPSAxOwogCQl9CiAJCWJyZWFrOworCWNhc2UgRU0yODg0X0JPQVJEX0hBVVBQQVVHRV9X
-SU5UVl9IVlJfOTMwQzoKKwkJaGF1cHBhdWdlX2h2cjkzMGNfaW5pdChkZXYpOworCisJCWR2Yi0+
-ZG9udF9hdHRhY2hfZmUxID0gMTsKKworCQlkdmItPmZlWzBdID0gZHZiX2F0dGFjaChkcnhrX2F0
-dGFjaCwgJmhhdXBwYXVnZV85MzBjX2RyeGssICZkZXYtPmkyY19hZGFwLCAmZHZiLT5mZVsxXSk7
-CisJCWlmICghZHZiLT5mZVswXSkgeworCQkJcmVzdWx0ID0gLUVJTlZBTDsKKwkJCWdvdG8gb3V0
-X2ZyZWU7CisJCX0KKwkJLyogRklYTUU6IGRvIHdlIG5lZWQgYSBwbGwgc2VtYXBob3JlPyAqLwor
-CQlkdmItPmZlWzBdLT5zZWNfcHJpdiA9IGR2YjsKKwkJc2VtYV9pbml0KCZkdmItPnBsbF9tdXRl
-eCwgMSk7CisJCWR2Yi0+Z2F0ZV9jdHJsID0gZHZiLT5mZVswXS0+b3BzLmkyY19nYXRlX2N0cmw7
-CisJCWR2Yi0+ZmVbMF0tPm9wcy5pMmNfZ2F0ZV9jdHJsID0gZHJ4a19nYXRlX2N0cmw7CisJCWR2
-Yi0+ZmVbMV0tPmlkID0gMTsKKworCQkvKiBBdHRhY2ggeGM1MDAwICovCisJCXN0cnVjdCB4YzUw
-MDBfY29uZmlnIGNmZzsKKwkJbWVtc2V0KCZjZmcsIDAsIHNpemVvZihjZmcpKTsKKwkJY2ZnLmky
-Y19hZGRyZXNzICA9IDB4NjE7CisJCS8vY2ZnLmlmX2toeiA9IDQ1NzA7IC8vRklYTUUKKwkJY2Zn
-LmlmX2toeiA9IDQwMDA7IC8vRklYTUUgKHNob3VsZCBiZSBvaykgcmVhZCBmcm9tIGkyYyB0cmFm
-ZmljCisKKwkJaWYgKGR2Yi0+ZmVbMF0tPm9wcy5pMmNfZ2F0ZV9jdHJsKQorCQkJZHZiLT5mZVsw
-XS0+b3BzLmkyY19nYXRlX2N0cmwoZHZiLT5mZVswXSwgMSk7CisJCWlmICghZHZiX2F0dGFjaCh4
-YzUwMDBfYXR0YWNoLCBkdmItPmZlWzBdLCAmZGV2LT5pMmNfYWRhcCwgJmNmZykpIHsKKwkJCXJl
-c3VsdCA9IC1FSU5WQUw7CisJCQlnb3RvIG91dF9mcmVlOworCQl9CisKKwkJaWYgKGR2Yi0+ZmVb
-MF0tPm9wcy5pMmNfZ2F0ZV9jdHJsKQorCQkJZHZiLT5mZVswXS0+b3BzLmkyY19nYXRlX2N0cmwo
-ZHZiLT5mZVswXSwgMCk7CisKKwkJLyogSGFjayAtIG5lZWRlZCBieSBkcnhrL3RkYTE4MjcxYzJk
-ZCAqLworCQlkdmItPmZlWzFdLT50dW5lcl9wcml2ID0gZHZiLT5mZVswXS0+dHVuZXJfcHJpdjsK
-KwkJbWVtY3B5KCZkdmItPmZlWzFdLT5vcHMudHVuZXJfb3BzLAorCQkgICAgICAgJmR2Yi0+ZmVb
-MF0tPm9wcy50dW5lcl9vcHMsCisJCSAgICAgICBzaXplb2YoZHZiLT5mZVswXS0+b3BzLnR1bmVy
-X29wcykpOworCisJCWJyZWFrOwogCWNhc2UgRU0yODg0X0JPQVJEX1RFUlJBVEVDX0g1OgogCQl0
-ZXJyYXRlY19oNV9pbml0KGRldik7CiAKQEAgLTc5OCw3ICs5MzIsNiBAQAogCQkJcmVzdWx0ID0g
-LUVJTlZBTDsKIAkJCWdvdG8gb3V0X2ZyZWU7CiAJCX0KLQogCQkvKiBGSVhNRTogZG8gd2UgbmVl
-ZCBhIHBsbCBzZW1hcGhvcmU/ICovCiAJCWR2Yi0+ZmVbMF0tPnNlY19wcml2ID0gZHZiOwogCQlz
-ZW1hX2luaXQoJmR2Yi0+cGxsX211dGV4LCAxKTsKQEAgLTg0NSw3ICs5NzgsOSBAQAogCX0KIAkv
-KiBkZWZpbmUgZ2VuZXJhbC1wdXJwb3NlIGNhbGxiYWNrIHBvaW50ZXIgKi8KIAlkdmItPmZlWzBd
-LT5jYWxsYmFjayA9IGVtMjh4eF90dW5lcl9jYWxsYmFjazsKLQorCWlmIChkdmItPmZlWzFdKQor
-CSAgICBkdmItPmZlWzFdLT5jYWxsYmFjayA9IGVtMjh4eF90dW5lcl9jYWxsYmFjazsKKwkKIAkv
-KiByZWdpc3RlciBldmVyeXRoaW5nICovCiAJcmVzdWx0ID0gZW0yOHh4X3JlZ2lzdGVyX2R2Yihk
-dmIsIFRISVNfTU9EVUxFLCBkZXYsICZkZXYtPnVkZXYtPmRldik7CiAKZGlmZiAtdSAtTiAtciBs
-aW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2VtMjh4eC9lbTI4eHguaCBsaW51eC5wYXRjaGVkL2Ry
-aXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4L2VtMjh4eC5oCi0tLSBsaW51eC9kcml2ZXJzL21lZGlh
-L3ZpZGVvL2VtMjh4eC9lbTI4eHguaAkyMDExLTA5LTI3IDA1OjQ1OjIxLjAwMDAwMDAwMCArMDIw
-MAorKysgbGludXgucGF0Y2hlZC9kcml2ZXJzL21lZGlhL3ZpZGVvL2VtMjh4eC9lbTI4eHguaAky
-MDExLTExLTE5IDE1OjIxOjQ3LjE5OTUwOTQ2NiArMDEwMApAQCAtMzgsNiArMzgsNyBAQAogI2lu
-Y2x1ZGUgPG1lZGlhL3ZpZGVvYnVmLWR2Yi5oPgogI2VuZGlmCiAjaW5jbHVkZSAidHVuZXIteGMy
-MDI4LmgiCisjaW5jbHVkZSAieGM1MDAwLmgiCiAjaW5jbHVkZSAiZW0yOHh4LXJlZy5oIgogCiAv
-KiBCb2FyZHMgc3VwcG9ydGVkIGJ5IGRyaXZlciAqLwpAQCAtMTIxLDYgKzEyMiw3IEBACiAjZGVm
-aW5lIEVNMjgxNzRfQk9BUkRfUENUVl8yOTBFICAgICAgICAgICAgICAgICAgIDc4CiAjZGVmaW5l
-IEVNMjg4NF9CT0FSRF9URVJSQVRFQ19INQkJICA3OQogI2RlZmluZSBFTTI4MTc0X0JPQVJEX1BD
-VFZfNDYwRSAgICAgICAgICAgICAgICAgICA4MAorI2RlZmluZSBFTTI4ODRfQk9BUkRfSEFVUFBB
-VUdFX1dJTlRWX0hWUl85MzBDCSAgODEKIAogLyogTGltaXRzIG1pbmltdW0gYW5kIGRlZmF1bHQg
-bnVtYmVyIG9mIGJ1ZmZlcnMgKi8KICNkZWZpbmUgRU0yOFhYX01JTl9CVUYgNAo=
---f46d043c05cc8f4a9904b2183bdf--
