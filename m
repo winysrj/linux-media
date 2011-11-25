@@ -1,58 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:34807 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750878Ab1K1QEM (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1645 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751173Ab1KYPZt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 11:04:12 -0500
-Date: Mon, 28 Nov 2011 18:04:09 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Joe Perches <joe@perches.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@nokia.com>
-Subject: Re: [trivial PATCH] omap24xxcam-dma: Fix logical test
-Message-ID: <20111128160409.GF29805@valkosipuli.localdomain>
-References: <1322422935.27199.3.camel@Joe-Laptop>
+	Fri, 25 Nov 2011 10:25:49 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
+Date: Fri, 25 Nov 2011 16:25:44 +0100
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <4ECF9038.6050208@linuxtv.org> <4ECFB1DC.2090304@redhat.com>
+In-Reply-To: <4ECFB1DC.2090304@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1322422935.27199.3.camel@Joe-Laptop>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111251625.44135.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 27, 2011 at 11:42:15AM -0800, Joe Perches wrote:
-> Likely misuse of & vs &&.
+On Friday, November 25, 2011 16:18:52 Mauro Carvalho Chehab wrote:
+> The V4L2 API complements the ALSA API. Audio streaming, audio format negotiation
+> etc are via the ALSA API.
 > 
-> Signed-off-by: Joe Perches <joe@perches.com>
-
-Thanks, Joe!
-
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-
-> ---
->  drivers/media/video/omap24xxcam-dma.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+> > Can you control pass-through of digital audio to SPDIF for example? Can
+> > you control which decoder should be the master when synchronizing AV?
 > 
-> diff --git a/drivers/media/video/omap24xxcam-dma.c b/drivers/media/video/omap24xxcam-dma.c
-> index 1d54b86..3ea38a8 100644
-> --- a/drivers/media/video/omap24xxcam-dma.c
-> +++ b/drivers/media/video/omap24xxcam-dma.c
-> @@ -506,7 +506,7 @@ int omap24xxcam_sgdma_queue(struct omap24xxcam_sgdma *sgdma,
->  	unsigned long flags;
->  	struct sgdma_state *sg_state;
->  
-> -	if ((sglen < 0) || ((sglen > 0) & !sglist))
-> +	if ((sglen < 0) || ((sglen > 0) && !sglist))
->  		return -EINVAL;
->  
->  	spin_lock_irqsave(&sgdma->lock, flags);
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Patches for that are being proposed and should be merged soon. They are part
+> of the set of patches under discussion with ALSA people, as part of the Media
+> Controller API.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Can you provide a link to those patches? I haven't seen anything cross-posted
+to linux-media.
+
+Regards,
+
+	Hans
