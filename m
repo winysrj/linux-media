@@ -1,83 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25797 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756674Ab1KXRFc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 12:05:32 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pAOH5WEX019647
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 24 Nov 2011 12:05:32 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 1/2] [media] em28xx: Fix a few warnings due to HVR-930C addition
-Date: Thu, 24 Nov 2011 15:05:20 -0200
-Message-Id: <1322154321-24028-1-git-send-email-mchehab@redhat.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:60824 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753872Ab1KYQBx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Nov 2011 11:01:53 -0500
+Date: Fri, 25 Nov 2011 17:02:54 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Dave Airlie <airlied@gmail.com>
+Cc: Sumit Semwal <sumit.semwal@ti.com>, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, linux@arm.linux.org.uk, arnd@arndb.de,
+	jesse.barker@linaro.org, daniel@ffwll.ch
+Subject: Re: [Linaro-mm-sig] [RFC 1/2] dma-buf: Introduce dma buffer sharing
+ mechanism
+Message-ID: <20111125160254.GA3980@phenom.ffwll.local>
+References: <1318325033-32688-1-git-send-email-sumit.semwal@ti.com>
+ <1318325033-32688-2-git-send-email-sumit.semwal@ti.com>
+ <CAPM=9tzAgCSDgdvi=9QZa-gEVXwKp_gpCPTtQ10XS=Z9K4805w@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPM=9tzAgCSDgdvi=9QZa-gEVXwKp_gpCPTtQ10XS=Z9K4805w@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/video/em28xx/em28xx-cards.c:339:30: warning: â€˜hauppauge_930c_gpioâ€™ defined but not used [-Wunused-variable]
-drivers/media/video/em28xx/em28xx-dvb.c: In function â€˜em28xx_dvb_initâ€™:
-drivers/media/video/em28xx/em28xx-dvb.c:886:3: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+On Fri, Nov 25, 2011 at 02:13:22PM +0000, Dave Airlie wrote:
+> On Tue, Oct 11, 2011 at 10:23 AM, Sumit Semwal <sumit.semwal@ti.com> wrote:
+> > This is the first step in defining a dma buffer sharing mechanism.
+> >
+> > A new buffer object dma_buf is added, with operations and API to allow easy
+> > sharing of this buffer object across devices.
+> >
+> > The framework allows:
+> > - a new buffer-object to be created with fixed size.
+> > - different devices to 'attach' themselves to this buffer, to facilitate
+> >  backing storage negotiation, using dma_buf_attach() API.
+> > - association of a file pointer with each user-buffer and associated
+> >   allocator-defined operations on that buffer. This operation is called the
+> >   'export' operation.
+> > - this exported buffer-object to be shared with the other entity by asking for
+> >   its 'file-descriptor (fd)', and sharing the fd across.
+> > - a received fd to get the buffer object back, where it can be accessed using
+> >   the associated exporter-defined operations.
+> > - the exporter and user to share the scatterlist using get_scatterlist and
+> >   put_scatterlist operations.
+> >
+> > Atleast one 'attach()' call is required to be made prior to calling the
+> > get_scatterlist() operation.
+> >
+> > Couple of building blocks in get_scatterlist() are added to ease introduction
+> > of sync'ing across exporter and users, and late allocation by the exporter.
+> >
+> > mmap() file operation is provided for the associated 'fd', as wrapper over the
+> > optional allocator defined mmap(), to be used by devices that might need one.
+> >
+> > More details are there in the documentation patch.
+> >
+> 
+> Some questions, I've started playing around with using this framework
+> to do buffer sharing between DRM devices,
+> 
+> Why struct scatterlist and not struct sg_table? it seems like I really
+> want to use an sg_table,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/video/em28xx/em28xx-cards.c |    2 +-
- drivers/media/video/em28xx/em28xx-dvb.c   |    4 +++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+No reason at all besides that intel-gtt is using scatterlist internally
+(and only kludges the sg_table together in an ad-hoc fashion) and so I
+haven't noticed. sg_table for more consistency with the dma api sounds
+good.
 
-diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-index f63a715..5b0336b 100644
---- a/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/drivers/media/video/em28xx/em28xx-cards.c
-@@ -336,6 +336,7 @@ static struct em28xx_reg_seq pctv_460e[] = {
- 	{             -1,   -1,   -1,  -1},
- };
- 
-+#if 0
- static struct em28xx_reg_seq hauppauge_930c_gpio[] = {
- 	{EM2874_R80_GPIO,	0x6f,	0xff,	10},
- 	{EM2874_R80_GPIO,	0x4f,	0xff,	10}, /* xc5000 reset */
-@@ -344,7 +345,6 @@ static struct em28xx_reg_seq hauppauge_930c_gpio[] = {
- 	{ -1,			-1,	-1,	-1},
- };
- 
--#if 0
- static struct em28xx_reg_seq hauppauge_930c_digital[] = {
- 	{EM2874_R80_GPIO,	0xf6,	0xff,	10},
- 	{EM2874_R80_GPIO,	0xe6,	0xff,	100},
-diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
-index 55a9008..ea2208e 100644
---- a/drivers/media/video/em28xx/em28xx-dvb.c
-+++ b/drivers/media/video/em28xx/em28xx-dvb.c
-@@ -864,6 +864,8 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 		}
- 		break;
- 	case EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C:
-+	{
-+		struct xc5000_config cfg;
- 		hauppauge_hvr930c_init(dev);
- 
- 		dvb->dont_attach_fe1 = 1;
-@@ -883,7 +885,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 		dvb->fe[1]->id = 1;
- 
- 		/* Attach xc5000 */
--		struct xc5000_config cfg;
- 		memset(&cfg, 0, sizeof(cfg));
- 		cfg.i2c_address  = 0x61;
- 		cfg.if_khz = 4000;
-@@ -906,6 +907,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 		       sizeof(dvb->fe[0]->ops.tuner_ops));
- 
- 		break;
-+	}
- 	case EM2884_BOARD_TERRATEC_H5:
- 		terratec_h5_init(dev);
- 
+> I'm not convinced fd's are really useful over just some idr allocated
+> handle, so far I'm just returning the "fd" to userspace as a handle,
+> and passing it back in the other side, so I'm not really sure what an
+> fd wins us here, apart from the mmap thing which I think shouldn't be
+> here anyways.
+> (if fd's do win us more we should probably record that in the docs patch).
+
+Imo fds are nice because their known and there's already all the
+preexisting infrastructure for them around. And if we ever get fancy with
+e.g. sync objects we can easily add poll support (or some insane ioctls).
+But I agree that "we can mmap" is bust as a reason and should just die.
+-Daniel
 -- 
-1.7.7.1
-
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
