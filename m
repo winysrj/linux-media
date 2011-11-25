@@ -1,83 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:36244 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753457Ab1KUVGt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Nov 2011 16:06:49 -0500
-Received: by mail-ey0-f174.google.com with SMTP id 27so5854834eye.19
-        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 13:06:49 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:17724 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752555Ab1KYABO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Nov 2011 19:01:14 -0500
+Message-ID: <4ECEDAC0.7090403@redhat.com>
+Date: Thu, 24 Nov 2011 22:01:04 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Date: Tue, 22 Nov 2011 02:36:48 +0530
-Message-ID: <CAHFNz9+JkusvQ=_gazEGDqgBpCrua0088Rh7bhcUdkn53PEAeg@mail.gmail.com>
-Subject: PATCH 05/13: 0005-TDA18271c2dd-Allow-frontend-to-set-DELSYS
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Andreas Oberritter <obi@linuxtv.org>,
 	Ralph Metzler <rjkm@metzlerbros.de>
-Content-Type: multipart/mixed; boundary=f46d0435c068abfe3404b245102b
+Subject: Re: PATCH 05/13: 0005-TDA18271c2dd-Allow-frontend-to-set-DELSYS
+References: <CAHFNz9+JkusvQ=_gazEGDqgBpCrua0088Rh7bhcUdkn53PEAeg@mail.gmail.com>
+In-Reply-To: <CAHFNz9+JkusvQ=_gazEGDqgBpCrua0088Rh7bhcUdkn53PEAeg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---f46d0435c068abfe3404b245102b
-Content-Type: text/plain; charset=ISO-8859-1
+Em 21-11-2011 19:06, Manu Abraham escreveu:
+> patches/lmml_8518_patch_05_13_0005_tda18271c2dd_allow_frontend_to_set_delsys.patch
+> Content-Type: text/plain; charset="utf-8"
+> MIME-Version: 1.0
+> Content-Transfer-Encoding: 7bit
+> Subject: PATCH 05/13: 0005-TDA18271c2dd-Allow-frontend-to-set-DELSYS
+> Date: Mon, 21 Nov 2011 20:06:48 -0000
+> From: Manu Abraham <abraham.manu@gmail.com>
+> X-Patchwork-Id: 8518
+> Message-Id: <CAHFNz9+JkusvQ=_gazEGDqgBpCrua0088Rh7bhcUdkn53PEAeg@mail.gmail.com>
+> To: Linux Media Mailing List <linux-media@vger.kernel.org>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+> 	Andreas Oberritter <obi@linuxtv.org>, Ralph Metzler <rjkm@metzlerbros.de>
+> 
+> 
+> 
+> 
+> >From 73c0b7c386beae392cff568e08914582ed6329d1 Mon Sep 17 00:00:00 2001
+> From: Manu Abraham <abraham.manu@gmail.com>
+> Date: Sat, 19 Nov 2011 21:01:03 +0530
+> Subject: [PATCH 05/13] TDA18271c2dd: Allow frontend to set DELSYS, rather than querying fe->ops.info.type
+> 
+> With any tuner that can tune to multiple delivery systems/standards, it does
+> query fe->ops.info.type to determine frontend type and set the delivery
+> system type. fe->ops.info.type can handle only 4 delivery systems, viz FE_QPSK,
+> FE_QAM, FE_OFDM and FE_ATSC.
+> 
+> Signed-off-by: Manu Abraham <abraham.manu@gmail.com>
+> ---
+>  drivers/media/dvb/frontends/tda18271c2dd.c |   56 ++++++++++++++++++++++++++++
+>  1 files changed, 56 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/dvb/frontends/tda18271c2dd.c b/drivers/media/dvb/frontends/tda18271c2dd.c
+> index 1b1bf20..6077674 100644
+> --- a/drivers/media/dvb/frontends/tda18271c2dd.c
+> +++ b/drivers/media/dvb/frontends/tda18271c2dd.c
+> @@ -1180,6 +1180,61 @@ static int set_params(struct dvb_frontend *fe,
+>  	return status;
+>  }
+>  
+> +static int set_state(struct dvb_frontend *fe, enum tuner_param param, struct tuner_state *tuner)
+> +{
+> +	struct tda_state *state = fe->tuner_priv;
+> +	fe_delivery_system_t delsys = SYS_UNDEFINED;
+> +	u32 bandwidth = 0;
+> +	int status = 0;
+> +	int Standard = 0;
+> +
+> +	if (param & DVBFE_TUNER_DELSYS)
+> +		delsys = tuner->delsys;
+> +	if (param & DVBFE_TUNER_FREQUENCY)
+> +		state->m_Frequency = tuner->frequency;
+> +	if (param & DVBFE_TUNER_BANDWIDTH)
+> +		bandwidth = tuner->bandwidth;
+> +
+> +	switch (delsys) {
+> +	case SYS_DVBT:
+> +		switch (bandwidth) {
+> +		case 6000000:
+> +			Standard = HF_DVBT_6MHZ;
+> +			break;
+> +		case 7000000:
+> +			Standard = HF_DVBT_7MHZ;
+> +			break;
+> +		case 8000000:
+> +			Standard = HF_DVBT_8MHZ;
+> +			break;
+> +		}
+> +		break;
+> +	case SYS_DVBC_ANNEX_AC:
+> +		/*
+> +		 * FIXME! API BUG! DVB-C ANNEX A & C are different
+> +		 * This should have been simply DVBC_ANNEX_A
+> +		 */
+> +		Standard = HF_DVBC_6MHZ;
 
+API inconsistency were fixed by those two patches:
+	http://patchwork.linuxtv.org/patch/8501/
+	http://patchwork.linuxtv.org/patch/8503/
 
+As I've commented on patch 4/13, bandwidth is not constant. It should be calculated
+based on roll-off and signal rate.
 
---f46d0435c068abfe3404b245102b
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0005-TDA18271c2dd-Allow-frontend-to-set-DELSYS-rather-tha.patch"
-Content-Disposition: attachment;
-	filename="0005-TDA18271c2dd-Allow-frontend-to-set-DELSYS-rather-tha.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
-
-RnJvbSA3M2MwYjdjMzg2YmVhZTM5MmNmZjU2OGUwODkxNDU4MmVkNjMyOWQxIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
-CkRhdGU6IFNhdCwgMTkgTm92IDIwMTEgMjE6MDE6MDMgKzA1MzAKU3ViamVjdDogW1BBVENIIDA1
-LzEzXSBUREExODI3MWMyZGQ6IEFsbG93IGZyb250ZW5kIHRvIHNldCBERUxTWVMsIHJhdGhlciB0
-aGFuIHF1ZXJ5aW5nIGZlLT5vcHMuaW5mby50eXBlCgpXaXRoIGFueSB0dW5lciB0aGF0IGNhbiB0
-dW5lIHRvIG11bHRpcGxlIGRlbGl2ZXJ5IHN5c3RlbXMvc3RhbmRhcmRzLCBpdCBkb2VzCnF1ZXJ5
-IGZlLT5vcHMuaW5mby50eXBlIHRvIGRldGVybWluZSBmcm9udGVuZCB0eXBlIGFuZCBzZXQgdGhl
-IGRlbGl2ZXJ5CnN5c3RlbSB0eXBlLiBmZS0+b3BzLmluZm8udHlwZSBjYW4gaGFuZGxlIG9ubHkg
-NCBkZWxpdmVyeSBzeXN0ZW1zLCB2aXogRkVfUVBTSywKRkVfUUFNLCBGRV9PRkRNIGFuZCBGRV9B
-VFNDLgoKU2lnbmVkLW9mZi1ieTogTWFudSBBYnJhaGFtIDxhYnJhaGFtLm1hbnVAZ21haWwuY29t
-PgotLS0KIGRyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy90ZGExODI3MWMyZGQuYyB8ICAgNTYg
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKwogMSBmaWxlcyBjaGFuZ2VkLCA1NiBpbnNlcnRp
-b25zKCspLCAwIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2Zy
-b250ZW5kcy90ZGExODI3MWMyZGQuYyBiL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy90ZGEx
-ODI3MWMyZGQuYwppbmRleCAxYjFiZjIwLi42MDc3Njc0IDEwMDY0NAotLS0gYS9kcml2ZXJzL21l
-ZGlhL2R2Yi9mcm9udGVuZHMvdGRhMTgyNzFjMmRkLmMKKysrIGIvZHJpdmVycy9tZWRpYS9kdmIv
-ZnJvbnRlbmRzL3RkYTE4MjcxYzJkZC5jCkBAIC0xMTgwLDYgKzExODAsNjEgQEAgc3RhdGljIGlu
-dCBzZXRfcGFyYW1zKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLAogCXJldHVybiBzdGF0dXM7CiB9
-CiAKK3N0YXRpYyBpbnQgc2V0X3N0YXRlKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCBlbnVtIHR1
-bmVyX3BhcmFtIHBhcmFtLCBzdHJ1Y3QgdHVuZXJfc3RhdGUgKnR1bmVyKQoreworCXN0cnVjdCB0
-ZGFfc3RhdGUgKnN0YXRlID0gZmUtPnR1bmVyX3ByaXY7CisJZmVfZGVsaXZlcnlfc3lzdGVtX3Qg
-ZGVsc3lzID0gU1lTX1VOREVGSU5FRDsKKwl1MzIgYmFuZHdpZHRoID0gMDsKKwlpbnQgc3RhdHVz
-ID0gMDsKKwlpbnQgU3RhbmRhcmQgPSAwOworCisJaWYgKHBhcmFtICYgRFZCRkVfVFVORVJfREVM
-U1lTKQorCQlkZWxzeXMgPSB0dW5lci0+ZGVsc3lzOworCWlmIChwYXJhbSAmIERWQkZFX1RVTkVS
-X0ZSRVFVRU5DWSkKKwkJc3RhdGUtPm1fRnJlcXVlbmN5ID0gdHVuZXItPmZyZXF1ZW5jeTsKKwlp
-ZiAocGFyYW0gJiBEVkJGRV9UVU5FUl9CQU5EV0lEVEgpCisJCWJhbmR3aWR0aCA9IHR1bmVyLT5i
-YW5kd2lkdGg7CisKKwlzd2l0Y2ggKGRlbHN5cykgeworCWNhc2UgU1lTX0RWQlQ6CisJCXN3aXRj
-aCAoYmFuZHdpZHRoKSB7CisJCWNhc2UgNjAwMDAwMDoKKwkJCVN0YW5kYXJkID0gSEZfRFZCVF82
-TUhaOworCQkJYnJlYWs7CisJCWNhc2UgNzAwMDAwMDoKKwkJCVN0YW5kYXJkID0gSEZfRFZCVF83
-TUhaOworCQkJYnJlYWs7CisJCWNhc2UgODAwMDAwMDoKKwkJCVN0YW5kYXJkID0gSEZfRFZCVF84
-TUhaOworCQkJYnJlYWs7CisJCX0KKwkJYnJlYWs7CisJY2FzZSBTWVNfRFZCQ19BTk5FWF9BQzoK
-KwkJLyoKKwkJICogRklYTUUhIEFQSSBCVUchIERWQi1DIEFOTkVYIEEgJiBDIGFyZSBkaWZmZXJl
-bnQKKwkJICogVGhpcyBzaG91bGQgaGF2ZSBiZWVuIHNpbXBseSBEVkJDX0FOTkVYX0EKKwkJICov
-CisJCVN0YW5kYXJkID0gSEZfRFZCQ182TUhaOworCQlicmVhazsKKwlkZWZhdWx0OgorCQlzdGF0
-dXMgPSAtRUlOVkFMOworCQlnb3RvIGVycjsKKwl9CisKKwlkbyB7CisJCXN0YXR1cyA9IFJGVHJh
-Y2tpbmdGaWx0ZXJzQ29ycmVjdGlvbihzdGF0ZSwgc3RhdGUtPm1fRnJlcXVlbmN5KTsKKwkJaWYg
-KHN0YXR1cyA8IDApCisJCQlicmVhazsKKwkJc3RhdHVzID0gQ2hhbm5lbENvbmZpZ3VyYXRpb24o
-c3RhdGUsIHN0YXRlLT5tX0ZyZXF1ZW5jeSwgU3RhbmRhcmQpOworCQlpZiAoc3RhdHVzIDwgMCkK
-KwkJCWJyZWFrOworCisJCW1zbGVlcChzdGF0ZS0+bV9TZXR0bGluZ1RpbWUpOyAgLyogQWxsb3cg
-QUdDJ3MgdG8gc2V0dGxlIGRvd24gKi8KKwl9IHdoaWxlICgwKTsKK2VycjoKKwlyZXR1cm4gc3Rh
-dHVzOworfQorCiAjaWYgMAogc3RhdGljIGludCBHZXRTaWduYWxTdHJlbmd0aChzMzIgKnBTaWdu
-YWxTdHJlbmd0aCwgdTMyIFJGQWdjLCB1MzIgSUZBZ2MpCiB7CkBAIC0xMjIxLDYgKzEyNzYsNyBA
-QCBzdGF0aWMgc3RydWN0IGR2Yl90dW5lcl9vcHMgdHVuZXJfb3BzID0gewogCS5pbml0ICAgICAg
-ICAgICAgICA9IGluaXQsCiAJLnNsZWVwICAgICAgICAgICAgID0gc2xlZXAsCiAJLnNldF9wYXJh
-bXMgICAgICAgID0gc2V0X3BhcmFtcywKKwkuc2V0X3N0YXRlCSAgID0gc2V0X3N0YXRlLAogCS5y
-ZWxlYXNlICAgICAgICAgICA9IHJlbGVhc2UsCiAJLmdldF9pZl9mcmVxdWVuY3kgID0gZ2V0X2lm
-X2ZyZXF1ZW5jeSwKIAkuZ2V0X2JhbmR3aWR0aCAgICAgPSBnZXRfYmFuZHdpZHRoLAotLSAKMS43
-LjEKCg==
---f46d0435c068abfe3404b245102b--
+> +		break;
+> +	default:
+> +		status = -EINVAL;
+> +		goto err;
+> +	}
+> +
+> +	do {
+> +		status = RFTrackingFiltersCorrection(state, state->m_Frequency);
+> +		if (status < 0)
+> +			break;
+> +		status = ChannelConfiguration(state, state->m_Frequency, Standard);
+> +		if (status < 0)
+> +			break;
+> +
+> +		msleep(state->m_SettlingTime);  /* Allow AGC's to settle down */
+> +	} while (0);
+> +err:
+> +	return status;
+> +}
+> +
+>  #if 0
+>  static int GetSignalStrength(s32 *pSignalStrength, u32 RFAgc, u32 IFAgc)
+>  {
+> @@ -1221,6 +1276,7 @@ static struct dvb_tuner_ops tuner_ops = {
+>  	.init              = init,
+>  	.sleep             = sleep,
+>  	.set_params        = set_params,
+> +	.set_state	   = set_state,
+>  	.release           = release,
+>  	.get_if_frequency  = get_if_frequency,
+>  	.get_bandwidth     = get_bandwidth,
+> -- 
+> 1.7.1
+> 
