@@ -1,52 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:50828 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753866Ab1KLOPI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Nov 2011 09:15:08 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1RPEMM-00049k-SM
-	for linux-media@vger.kernel.org; Sat, 12 Nov 2011 15:15:06 +0100
-Received: from AMarseille-551-1-91-234.w92-137.abo.wanadoo.fr ([92.137.194.234])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 15:15:06 +0100
-Received: from tnorret by AMarseille-551-1-91-234.w92-137.abo.wanadoo.fr with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 15:15:06 +0100
-To: linux-media@vger.kernel.org
-From: Norret Thierry <tnorret@yahoo.com>
-Subject: Re: HVR-4000 may be broken in kernel mods (again) ?
-Date: Sat, 12 Nov 2011 14:10:15 +0000 (UTC)
-Message-ID: <loom.20111112T150258-917@post.gmane.org>
-References: <CAA7M+FBvP0A7L6o-Fw4CQ2xR2CYqu233L+83BGGOcLooK0bk7w@mail.gmail.com> <CAGoCfiw+yy3Hz=7yvGTYrYQn5VfNh3CrabS_Kxx7G88jcwt9aQ@mail.gmail.com> <20111112141403.53708f28@hana.gusto> <CAGoCfiwnOTv=yhFeAsjQ+=5vrsUfy5b8HqtXGiFuimXe2M-+Bw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47337 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753368Ab1KYN2l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Nov 2011 08:28:41 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH/RFC 1/2] v4l: Add a global color alpha control
+Date: Fri, 25 Nov 2011 14:28:43 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	mchehab@redhat.com, m.szyprowski@samsung.com,
+	jonghun.han@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+References: <1322131997-26195-1-git-send-email-s.nawrocki@samsung.com> <201111251357.30605.laurent.pinchart@ideasonboard.com> <4ECF971F.2030602@samsung.com>
+In-Reply-To: <4ECF971F.2030602@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111251428.43609.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller <dheitmueller <at> kernellabs.com> writes:
+Hi Sylwester,
+
+On Friday 25 November 2011 14:24:47 Sylwester Nawrocki wrote:
+> On 11/25/2011 01:57 PM, Laurent Pinchart wrote:
+> > On Thursday 24 November 2011 16:53:12 Sylwester Nawrocki wrote:
+> >> On 11/24/2011 03:00 PM, Laurent Pinchart wrote:
+> >>> On Thursday 24 November 2011 13:22:10 Hans Verkuil wrote:
+> >>>> On Thursday, November 24, 2011 13:06:09 Laurent Pinchart wrote:
+> >>>>> On Thursday 24 November 2011 12:49:00 Hans Verkuil wrote:
+> >>>>>> On Thursday, November 24, 2011 12:39:54 Sylwester Nawrocki wrote:
+> >>>>>>> On 11/24/2011 12:09 PM, Laurent Pinchart wrote:
+> >>>>>>>> On Thursday 24 November 2011 12:00:45 Hans Verkuil wrote:
+> >>>>>>>>> On Thursday, November 24, 2011 11:53:16 Sylwester Nawrocki wrote:
+> >>>> Well, if that's the case, then we already have an API for that
+> >>>> (http://hverkuil.home.xs4all.nl/spec/media.html#v4l2-window, field
+> >>>> global_alpha).
+> >>>> 
+> >>>> It was my understanding that this is used with a mem2mem device where
+> >>>> you just want to fill in the alpha channel to the desired value. It's
+> >>>> not used inside the device at all (that happens later in the
+> >>>> pipeline).
+> >>> 
+> >>> OK, now I understand. Maybe the documentation should describe this a
+> >>> bit more explicitly ?
+> >> 
+> >> I've modified the control description so now it is:
+> >> 
+> >> V4L2_CID_ALPHA_COMPONENT
+> >> integer
+> > 
+> > What about clarifying it further with something like
+> > 
+> > "When a mem-to-mem device produces a frame format that includes an alpha
+> > component (e.g. _packed RGB image_ formats), the alpha value is not
+> > defined by the mem-to-mem input data. This control lets you select the
+> > alpha component value of all pixels in such a case. It is applicable to
+> > any pixel format that contains an alpha component."
+> 
+> Thanks for the help. Since there are also mem-to-mem devices that account
+> an input alpha when producing an output frame (e.g. S5P SoC G2D IP block
+> supports alpha blending), I would change that to:
+> 
+> 
+>  "When a mem-to-mem device produces a frame format that includes an alpha
+>  component (e.g. _packed RGB image_ formats) and the alpha value is not
+> defined by the mem-to-mem input data this control lets you select the
+> alpha component value of all pixels. It is applicable to any pixel format
+> that contains an alpha component."
+
+That sounds good to me.
 
 > 
-> On Sat, Nov 12, 2011 at 8:14 AM, Lars Schotte <gusto <at> guttok.net> wrote:
-> > i am alos curious what he means by "try to use it". i mean did he try
-> > to use it with tzap, or szap, or w_scan, or what? because i dont even
-> > know about mythtv, i only use dvbutils, mplayer, xine and vdr.
+> OR
 > 
-> I agree with Lars on this.  It would be useful if the user could
-> describe in more detail his testing methodology.  Also, is there some
-> previous kernel in which he knew it was working properly?  Has he
-> *ever* seen it work in his environment?  Do we know definitively that
-> this really a regression or has the user never seen the board work?
+>  "When data format of a frame produced by a mem-to-mem device includes an
+> alpha component (e.g. _packed RGB image_ formats) and the alpha value is
+> not defined by the mem-to-mem input data this control lets you select the
+> alpha component value of all pixels. The control is applicable to any
+> pixel format that contains an alpha component."
 > 
-> Devin
+> How do you think ?
 > 
+> >> And the part below Table 2.6
+> >> 
+> >> Bit 7 is the most significant bit. The value of a = alpha bits is
+> >> undefined when reading from the driver, ignored when writing to the
+> >> driver, except when alpha blending has been negotiated for a Video
+> >> Overlay or Video Output Overlay or when alpha component has been
+> >> configured for a Video Capture by means of V4L2_CID_ALPHA_COMPONENT
+> >> control.
 
-I think your problem and mine are the same
-I've too an hauppauge dvb-t
+-- 
+Regards,
 
-http://www.spinics.net/lists/linux-media/msg39917.html
-
-Since upgrade from kernel 2.6.38 to 2.6.39/3.0 channels can't be lock.
-
+Laurent Pinchart
