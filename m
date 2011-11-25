@@ -1,177 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:43792 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757620Ab1K3RA6 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39617 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752788Ab1KYM53 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 12:00:58 -0500
-Message-ID: <4ED66147.8090109@mlbassoc.com>
-Date: Wed, 30 Nov 2011 10:00:55 -0700
-From: Gary Thomas <gary@mlbassoc.com>
+	Fri, 25 Nov 2011 07:57:29 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH/RFC 1/2] v4l: Add a global color alpha control
+Date: Fri, 25 Nov 2011 13:57:29 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	mchehab@redhat.com, m.szyprowski@samsung.com,
+	jonghun.han@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+References: <1322131997-26195-1-git-send-email-s.nawrocki@samsung.com> <201111241500.23204.laurent.pinchart@ideasonboard.com> <4ECE6868.8000503@samsung.com>
+In-Reply-To: <4ECE6868.8000503@samsung.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Javier Martinez Canillas <martinez.javier@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Using MT9P031 digital sensor
-References: <4EB04001.9050803@mlbassoc.com> <201111281349.47411.laurent.pinchart@ideasonboard.com> <4ED639FE.7020503@mlbassoc.com> <201111301530.58977.laurent.pinchart@ideasonboard.com> <4ED6445A.2070908@mlbassoc.com>
-In-Reply-To: <4ED6445A.2070908@mlbassoc.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111251357.30605.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2011-11-30 07:57, Gary Thomas wrote:
-> On 2011-11-30 07:30, Laurent Pinchart wrote:
->> Hi Gary,
->>
->> On Wednesday 30 November 2011 15:13:18 Gary Thomas wrote:
->>> On 2011-11-28 05:49, Laurent Pinchart wrote:
->>>> On Monday 28 November 2011 13:42:47 Gary Thomas wrote:
->>>>> On 2011-11-28 04:07, Laurent Pinchart wrote:
->>>>>> On Friday 25 November 2011 12:50:25 Gary Thomas wrote:
->>>>>>> On 2011-11-24 04:28, Laurent Pinchart wrote:
->>>>>>>> On Wednesday 16 November 2011 13:03:11 Gary Thomas wrote:
->>>>>>>>> On 2011-11-15 18:26, Laurent Pinchart wrote:
->>>>>>>>>> On Monday 14 November 2011 12:42:54 Gary Thomas wrote:
->>>> [snip]
->>>>
->>>>>>>>>>> Here's my pipeline:
->>>>>>>>>>> media-ctl -r
->>>>>>>>>>> media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
->>>>>>>>>>> media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
->>>>>>>>>>> media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP
->>>>>>>>>>> resizer":0[1]' media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3
->>>>>>>>>>> ISP resizer output":0[1]' media-ctl -f '"mt9p031
->>>>>>>>>>> 3-005d":0[SGRBG12 2592x1944]' media-ctl -f '"OMAP3 ISP
->>>>>>>>>>> CCDC":0 [SGRBG10 2592x1944]'
->>>>>>>>>>> media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
->>>>>>>>>>> media-ctl -f '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
->>>>>>>>>>> media-ctl -f '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
->>>>>>>>>>> media-ctl -f '"OMAP3 ISP resizer":1 [YUYV 642x483]'
->>>>>>>>>>>
->>>>>>>>>>> The full media-ctl dump is at
->>>>>>>>>>> http://www.mlbassoc.com/misc/pipeline.out
->>>>>>>>>>>
->>>>>>>>>>> When I try to grab from /dev/video6 (output node of resizer), I
->>>>>>>>>>> see only previewer interrupts, no resizer interrrupts. I added a
->>>>>>>>>>> simple printk at each of the previewer/resizer *_isr functions,
->>>>>>>>>>> and I only
->>>>>>>>>>>
->>>>>>>>>>> ever see this one:
->>>>>>>>>>> omap3isp_preview_isr_frame_sync.1373
->>>>>>>>>>>
->>>>>>>>>>> Can you give me an overview of what events/interrupts should occur
->>>>>>>>>>> so I can try to trace through the ISP to see where it is failing?
->>>>>>>>>>
->>>>>>>>>> The CCDC generates VD0, VD1 and HS/VS interrupts regardless of
->>>>>>>>>> whether it processes video or not, as long as it receives a video
->>>>>>>>>> stream at its input. The preview engine and resizer will only
->>>>>>>>>> generate an interrupt after writing an image to memory. With your
->>>>>>>>>> above
->>>>>>>>>> configuration VD0, VD1, HS/VS and resizer interrupts should be
->>>>>>>>>> generated.
->>>>>>>>>>
->>>>>>>>>> Your pipeline configuration looks correct, except that the
->>>>>>>>>> downscaling factor is slightly larger than 4. Could you try to
->>>>>>>>>> setup the resizer to output a 2574x1935 image instead of 642x483 ?
->>>>>>>>>> If that works, try to downscale to 660x496. If that works as well,
->>>>>>>>>> the driver should be fixed to disallow resolutions that won't
->>>>>>>>>> work.
->>>>>>>>>
->>>>>>>>> No change. I also tried using only the previewer like this:
->>>>>>>>> media-ctl -r
->>>>>>>>> media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
->>>>>>>>> media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
->>>>>>>>> media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP preview
->>>>>>>>> output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12
->>>>>>>>> 2592x1944]' media-ctl -f '"OMAP3 ISP CCDC":0 [SGRBG12
->>>>>>>>> 2592x1944]'
->>>>>>>>> media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
->>>>>>>>> media-ctl -f '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
->>>>>>>>> media-ctl -f '"OMAP3 ISP preview":1 [YUYV 2574x1935]'
->>>>>>>>>
->>>>>>>>> yavta --capture=4 -f YUYV -s 2574x1935 -F /dev/video4
->>>>>>>>>
->>>>>>>>> I still only get the frame sync interrupts in the previewer, no
->>>>>>>>> buffer interrupts, hence no data flowing to my application. What
->>>>>>>>> else can I look at?
->>>>>>>>
->>>>>>>> Do you get VD0 and VD1 interrupts ?
->>>>>>>
->>>>>>> Yes, the CCDC is working correctly, but nothing moves through the
->>>>>>> previewer. Here's a trace of the interrupt sequence I get, repeated
->>>>>>> over and over. These are printed as __FUNCTION__.__LINE__
->>>>>>> --- ccdc_vd0_isr.1615
->>>>>>> --- ccdc_hs_vs_isr.1482
->>>>>>> --- ccdc_vd1_isr.1664
->>>>>>> --- omap3isp_preview_isr_frame_sync.1373
->>>>>>>
->>>>>>> What's the best tree to try this against? 3.2-rc2 doesn't have the
->>>>>>> BT656 stuff in it yet, so I've been still using my older tree (3.0.0 +
->>>>>>> drivers/media from your tree)
->>>>>>
->>>>>> I thought you were using an MT9P031 ? That doesn't require BT656
->>>>>> support.
->>>>>
->>>>> True, but I have one board that supports either sensor and I want to
->>>>> stay with one source tree.
->>>>
->>>> Sure, but let's start with a non-BT656 tree to rule out issues caused by
->>>> BT656 patches. Could you please try mainline v3.1 ?
->>>
->>> This sort of works(*), but I'm still having issues (at least I can move
->>> frames!) When I configure the pipeline like this:
->>> media-ctl -r
->>> media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
->>> media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
->>> media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
->>> media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
->>> media-ctl -f '"mt9p031 3-005d":0[SGRBG12 2592x1944]'
->>> media-ctl -f '"OMAP3 ISP CCDC":0 [SGRBG12 2592x1944]'
->>> media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
->>> media-ctl -f '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
->>> media-ctl -f '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
->>> media-ctl -f '"OMAP3 ISP resizer":1 [YUYV 660x496]'
->>> the resulting frames are 666624 bytes each instead of 654720
->>>
->>> When I tried to grab from the previewer, the frames were 9969120 instead of
->>> 9961380
->>>
->>> Any ideas what resolution is actually being moved through?
->>
->> Because the OMAP3 ISP has alignment requirements. Both the preview engine and
->> the resizer output line lenghts must be multiple of 32 bytes. The driver adds
->> padding at end of lines when the output width isn't a multiple of 16 pixels.
->
-> Any guess which resolution(s) I should change and to what?
+Hi Sylwester,
 
-I changed the resizer output to be 672x496 and was able to capture video using ffmpeg.
+On Thursday 24 November 2011 16:53:12 Sylwester Nawrocki wrote:
+> On 11/24/2011 03:00 PM, Laurent Pinchart wrote:
+> > On Thursday 24 November 2011 13:22:10 Hans Verkuil wrote:
+> >> On Thursday, November 24, 2011 13:06:09 Laurent Pinchart wrote:
+> >>> On Thursday 24 November 2011 12:49:00 Hans Verkuil wrote:
+> >>>> On Thursday, November 24, 2011 12:39:54 Sylwester Nawrocki wrote:
+> >>>>> On 11/24/2011 12:09 PM, Laurent Pinchart wrote:
+> >>>>>> On Thursday 24 November 2011 12:00:45 Hans Verkuil wrote:
+> >>>>>>> On Thursday, November 24, 2011 11:53:16 Sylwester Nawrocki wrote:
+> >> Well, if that's the case, then we already have an API for that
+> >> (http://hverkuil.home.xs4all.nl/spec/media.html#v4l2-window, field
+> >> global_alpha).
+> >> 
+> >> It was my understanding that this is used with a mem2mem device where
+> >> you just want to fill in the alpha channel to the desired value. It's
+> >> not used inside the device at all (that happens later in the pipeline).
+> > 
+> > OK, now I understand. Maybe the documentation should describe this a bit
+> > more explicitly ?
+> 
+> I've modified the control description so now it is:
+> 
+> V4L2_CID_ALPHA_COMPONENT
+> integer
+> 
 
-I don't know what to expect with this sensor (I've never seen it in use before), but
-the image seems to have color balance issues - it's awash in a green hue.  It may be
-the poor lighting in my office...  I did try the 9 test patterns which I was able
-to select via
-   # v4l2-ctl -d /dev/v4l-subdev8 --set-ctrl=test_pattern=N
-and these looked OK.  You can see them at http://www.mlbassoc.com/misc/mt9p031_images/
+What about clarifying it further with something like
 
->
->>
->> So this means that your original problem comes from the BT656 patches.
->
-> Yes, it does look that way. Now that I have something that moves data, I can
-> compare how the ISP is setup between the two versions and come up with a fix.
->
+"When a mem-to-mem device produces a frame format that includes an alpha 
+component (e.g. _packed RGB image_ formats), the alpha value is not defined by 
+the mem-to-mem input data. This control lets you select the alpha component 
+value of all pixels in such a case. It is applicable to any pixel format that 
+contains an alpha component."
 
-This is next on my plate, but it may take a while to figure it out.
-
-Is there some recent tree which will have this digital (mt9p031) part working
-that also has the BT656 support in it?  I'd like to try that rather than spending
-time figuring out why an older tree isn't working.
-
-Thanks
-
+> And the part below Table 2.6
+> 
+> Bit 7 is the most significant bit. The value of a = alpha bits is undefined
+> when reading from the driver, ignored when writing to the driver, except
+> when alpha blending has been negotiated for a Video Overlay or Video
+> Output Overlay or when alpha component has been configured for a Video
+> Capture by means of V4L2_CID_ALPHA_COMPONENT control.
 
 -- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+Regards,
+
+Laurent Pinchart
