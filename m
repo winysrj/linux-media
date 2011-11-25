@@ -1,57 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:52911 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753957Ab1KRV0x convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Nov 2011 16:26:53 -0500
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	"sandeep patil" <psandeep.s@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	"Daniel Walker" <dwalker@codeaurora.org>,
-	"Russell King" <linux@arm.linux.org.uk>,
-	"Arnd Bergmann" <arnd@arndb.de>,
-	"Jonathan Corbet" <corbet@lwn.net>, "Mel Gorman" <mel@csn.ul.ie>,
-	"Dave Hansen" <dave@linux.vnet.ibm.com>,
-	"Jesse Barker" <jesse.barker@linaro.org>,
-	"Kyungmin Park" <kyungmin.park@samsung.com>,
-	"Ankita Garg" <ankita@in.ibm.com>,
-	"Andrew Morton" <akpm@linux-foundation.org>,
-	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: Re: [Linaro-mm-sig] [PATCHv17 0/11] Contiguous Memory Allocator
-References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
- <CA+K6fF6SH6BNoKgwArcqvyav4b=C5SGvymo5LS3akfD_yE_beg@mail.gmail.com>
-Date: Fri, 18 Nov 2011 22:26:49 +0100
+Received: from ffm.saftware.de ([83.141.3.46]:54764 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753390Ab1KYWGl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Nov 2011 17:06:41 -0500
+Message-ID: <4ED0116A.6050108@linuxtv.org>
+Date: Fri, 25 Nov 2011 23:06:34 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.v45u6zyy3l0zgt@mpn-glaptop>
-In-Reply-To: <CA+K6fF6SH6BNoKgwArcqvyav4b=C5SGvymo5LS3akfD_yE_beg@mail.gmail.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com> <4ECE79F5.9000402@linuxtv.org> <201111241844.23292.hverkuil@xs4all.nl> <CAHFNz9J+3DYW-Gf0FPYhcZqHf7XPtM+dmK0Y15HhkWQZOzNzuQ@mail.gmail.com> <4ECE8839.8040606@redhat.com> <CAHFNz9LOYHTXjhk2yTqhoC90HQQ0AGiOp4A6Gki-vsEtJr_UOw@mail.gmail.com> <4ECE913A.9090001@redhat.com> <4ECF8359.5080705@linuxtv.org> <4ECF9C92.2040607@redhat.com> <4ECFA927.10108@linuxtv.org> <4ECFB686.2090204@redhat.com> <4ECFBC5E.6080308@linuxtv.org> <4ECFC1C7.8010600@redhat.com> <CAHFNz9LS1OxumLvWBXaLFri8_dW3jAOvJJ4NpeZFCDbCiJd+YA@mail.gmail.com>
+In-Reply-To: <CAHFNz9LS1OxumLvWBXaLFri8_dW3jAOvJJ4NpeZFCDbCiJd+YA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 18 Nov 2011 22:20:48 +0100, sandeep patil <psandeep.s@gmail.com> wrote:
-> I am running a simple test to allocate contiguous regions and write a log on
-> in a file on sdcard simultaneously. I can reproduce this migration failure 100%
-> times with it.
-> when I tracked the pages that failed to migrate, I found them on the
-> buffer head lru
-> list with a reference held on the buffer_head in the page, which
-> causes drop_buffers()
-> to fail.
->
-> So, i guess my question is, until all the migration failures are
-> tracked down and fixed,
-> is there a plan to retry the contiguous allocation from a new range in
-> the CMA region?
+On 25.11.2011 17:51, Manu Abraham wrote:
+> On Fri, Nov 25, 2011 at 9:56 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Em 25-11-2011 14:03, Andreas Oberritter escreveu:
+>>> On 25.11.2011 16:38, Mauro Carvalho Chehab wrote:
+>>>> Em 25-11-2011 12:41, Andreas Oberritter escreveu:
+>>>>> On 25.11.2011 14:48, Mauro Carvalho Chehab wrote:
+>>>>>> If your complain is about the removal of audio.h, video.h
+>>>>>
+>>>>> We're back on topic, thank you!
+>>>>>
+>>>>>> and osd.h, then my proposal is
+>>>>>> to keep it there, writing a text that they are part of a deprecated API,
+>>>>>
+>>>>> That's exactly what I proposed. Well, you shouldn't write "deprecated",
+>>>>> because it's not. Just explain - inside this text - when V4L2 should be
+>>>>> preferred over DVB.
+>>>>
+>>>> It is deprecated, as the API is not growing to fulfill today's needs, and
+>>>> no patches adding new stuff to it to it will be accepted anymore.
+>>>
+>>> Haha, nice one. "It doesn't grow because I don't allow it to." Great!
+>>
+>> No. It didn't grow because nobody cared with it for years:
+>>
+>> Since 2.6.12-rc2 (start of git history), no changes ever happened at osd.h.
+>>
+>> Excluding Hans changes for using it on a pure V4L device, and other trivial
+>> patches not related to API changes, the last API change on audio.h and video.h
+>> was this patch:
+>>        commit f05cce863fa399dd79c5aa3896d608b8b86d8030
+>>        Author: Andreas Oberritter <obi@linuxtv.org>
+>>        Date:   Mon Feb 27 00:09:00 2006 -0300
+>>
+>>            V4L/DVB (3375): Add AUDIO_GET_PTS and VIDEO_GET_PTS ioctls
+>>
+>>        (yet not used on any upstream driver)
+>>
+>> An then:
+>>        commit 1da177e4c3f41524e886b7f1b8a0c1fc7321cac2
+>>        Author: Linus Torvalds <torvalds@ppc970.osdl.org>
+>>        Date:   Sat Apr 16 15:20:36 2005 -0700
+>>
+>>            Linux-2.6.12-rc2
+>>
+>> No changes adding support for any in-kernel driver were ever added there.
+>>
+>> So, it didn't grow over the last 5 or 6 years because nobody submitted
+>> driver patches requiring new things or _even_ using it.
+>>
+>>>
+>>>>>> but keeping
+>>>>>> the rest of the patches
+>>>>>
+>>>>> Which ones?
+>>>>
+>>>> V4L2, ivtv and DocBook patches.
+>>>
+>>> Fine.
+>>>
+>>>>>> and not accepting anymore any submission using them
+>>>>>
+>>>>> Why? First you complain about missing users and then don't want to allow
+>>>>> any new ones.
+>>>>
+>>>> I didn't complain about missing users. What I've said is that, between a
+>>>> one-user API and broad used APIs like ALSA and V4L2, the choice is to freeze
+>>>> the one-user API and mark it as deprecated.
+>>>
+>>> Your assumtion about only one user still isn't true.
+>>>
+>>>> Also, today's needs are properly already covered by V4L/ALSA/MC/subdev.
+>>>> It is easier to add what's missing there for DVB than to work the other
+>>>> way around, and deprecate V4L2/ALSA/MC/subdev.
+>>>
+>>> Yes. Please! Add it! But leave the DVB API alone!
+>>>
+>>>>>> , removing
+>>>>>> the ioctl's that aren't used by av7110 from them.
+>>>>>
+>>>>> That's just stupid. I can easily provide a list of used and valuable
+>>>>> ioctls, which need to remain present in order to not break userspace
+>>>>> applications.
+>>>>
+>>>> Those ioctl's aren't used by any Kernel driver, and not even documented.
+>>>> So, why to keep/maintain them?
+>>>
+>>> If you already deprecated it, why bother deleting random stuff from it
+>>> that people are using?
+>>>
+>>> There's a difference in keeping and maintaining something. You don't
+>>> need to maintain ioctls that haven't changed in years. Deleting
+>>> something is more work than letting it there to be used by those who
+>>> want to.
+>>
+>> Ok. Let's just keep the headers as is, just adding a comment that it is now
+>> considered superseded.
 
-No.  Current CMA implementation will stick to the same range of pages also
-on consequent allocations of the same size.
+Thank you! This is a step into the right direction.
 
--- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
-ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
+> http://dictionary.reference.com/browse/superseded
+> 
+> to set aside or cause to be set aside as void, useless, or obsolete, usually
+> in favor of something mentioned; make obsolete: They superseded the
+> old statute with a new one.
+> 
+> No, that's not acceptable. New DVB devices as they come will make use
+> of the API and API changes might be applied.
+
+Honestly, I think we all should accept this proposal and just hope that
+the comment is going to be written objectively.
+
+Regards,
+Andreas
