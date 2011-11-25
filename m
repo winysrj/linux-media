@@ -1,87 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:33297 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755501Ab1KDNH7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2011 09:07:59 -0400
-Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LU500I1M0HAWVH0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Nov 2011 22:07:58 +0900 (KST)
-Received: from JONGHUNHA11 ([12.23.121.116])
- by mmp2.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0LU5007YG0HASN60@mmp2.samsung.com>
- for linux-media@vger.kernel.org; Fri, 04 Nov 2011 22:07:58 +0900 (KST)
-From: Jonghun Han <jonghun.han@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com
-Subject: Query the meaning of variable in v4l2_pix_format and v4l2_plane
-Date: Fri, 04 Nov 2011 22:07:58 +0900
-Message-id: <001c01cc9af2$c607e0f0$5217a2d0$%han@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:45542 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751571Ab1KYQPM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Nov 2011 11:15:12 -0500
+MIME-Version: 1.0
+In-Reply-To: <1318325033-32688-2-git-send-email-sumit.semwal@ti.com>
+References: <1318325033-32688-1-git-send-email-sumit.semwal@ti.com>
+	<1318325033-32688-2-git-send-email-sumit.semwal@ti.com>
+Date: Fri, 25 Nov 2011 16:15:11 +0000
+Message-ID: <CAPM=9tzjO7poyz_uYFFgONxzuTB86kKej8f2XBDHLGdUPZHvjg@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [RFC 1/2] dma-buf: Introduce dma buffer sharing mechanism
+From: Dave Airlie <airlied@gmail.com>
+To: Sumit Semwal <sumit.semwal@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	linux@arm.linux.org.uk, arnd@arndb.de, jesse.barker@linaro.org,
+	daniel@ffwll.ch
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+> +struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+> +                                               struct device *dev)
+> +{
+> +       struct dma_buf_attachment *attach;
+> +       int ret;
+> +
+> +       BUG_ON(!dmabuf || !dev);
+> +
+> +       mutex_lock(&dmabuf->lock);
+> +
+> +       attach = kzalloc(sizeof(struct dma_buf_attachment), GFP_KERNEL);
+> +       if (attach == NULL)
+> +               goto err_alloc;
+> +
+> +       attach->dev = dev;
+> +       if (dmabuf->ops->attach) {
+> +               ret = dmabuf->ops->attach(dmabuf, dev, attach);
+> +               if (!ret)
+> +                       goto err_attach;
+> +       }
+> +       list_add(&attach->node, &dmabuf->attachments);
+> +
 
-Hi,
+I would assume at some point this needed at
+attach->dmabuf = dmabuf;
+added.
 
-I'm not sure the meaning of variables in v4l2_pix_format and v4l2_plane.
-Especially bytesperline, sizeimage, length and bytesused.
-
-v4l2_pix_format.width		= width
-v4l2_pix_format.height		= height
-v4l2_pix_format.bytesperline	= bytesperline [in bytes]
-v4l2_pix_format.sizeimage	= bytesperline * buf height  -> Is this
-right ?
-
-v4l2_plane.length	= bytesperline * buf height  -> Is this right ?
-I don't which is right.
-v4l2_plane.bytesused	= bytesperline * (top + height)
-v4l2_plane.bytesused	= bytesperline * height
-v4l2_plane.bytesused	= width * height * bytesperpixel
-v4l2_plane.bytesused	= bytesperline * (top + height) - (pixelperline -
-(left + width)) * bytesperpixel
-
-I assumed the following buffer.
-
-|                                                          |
-|<--------------------- bytesperline --------------------->|
-|                                                          |
-+----------------------------------------------------------+-----
-|          ^                                               |  ^
-|          |                                               |  |
-|                                                          |  |
-|          t                                               |  |
-|          o                                               |  |
-|          p                                               |  |
-|                                                          |  |
-|          |                                               |  |
-|          V |<--------- width ---------->|                |  |
-|<-- left -->+----------------------------+ -              |  |
-|            |                            | ^              |
-|            |                            | |              |  b
-|            |                            | |              |  u
-|            |                            |                |  f
-|            |                            | h              |
-|            |                            | e              |  h
-|            |                            | i              |  e
-|            |                            | g              |  i
-|            |                            | h              |  g
-|            |                            | t              |  h
-|            |                            |                |  t
-|            |                            | |              |  
-|            |                            | |              |  |
-|            |                            | v              |  |
-|            +----------------------------+ -              |  |
-|                                                          |  |
-|                                                          |  |
-|                                                          |  v
-+----------------------------------------------------------+-----
-
-
-Best regards,
-
-
+Dave.
