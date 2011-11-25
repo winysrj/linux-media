@@ -1,72 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:42201 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751053Ab1KZJ43 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39627 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752788Ab1KYM6Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Nov 2011 04:56:29 -0500
-Date: Sat, 26 Nov 2011 11:56:25 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH v4][media] Exynos4 JPEG codec v4l2 driver
-Message-ID: <20111126095625.GA29805@valkosipuli.localdomain>
-References: <1322213893-5462-1-git-send-email-andrzej.p@samsung.com>
+	Fri, 25 Nov 2011 07:58:25 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC/PATCH 1/3] v4l: Introduce integer menu controls
+Date: Fri, 25 Nov 2011 13:58:27 +0100
+Cc: linux-media@vger.kernel.org, snjw23@gmail.com, hverkuil@xs4all.nl
+References: <20111124161228.GA29342@valkosipuli.localdomain> <201111251343.13776.laurent.pinchart@ideasonboard.com> <20111125125650.GE29342@valkosipuli.localdomain>
+In-Reply-To: <20111125125650.GE29342@valkosipuli.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1322213893-5462-1-git-send-email-andrzej.p@samsung.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111251358.27725.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej and others,
+Hi Sakari,
 
-On Fri, Nov 25, 2011 at 10:38:13AM +0100, Andrzej Pietrasiewicz wrote:
-...
-> +static int s5p_jpeg_s_jpegcomp(struct file *file, void *priv,
-> +			       struct v4l2_jpegcompression *compr)
-> +{
-> +	struct s5p_jpeg_ctx *ctx = priv;
-> +
-> +	if (ctx->mode == S5P_JPEG_DECODE)
-> +		return -ENOTTY;
-> +
-> +	compr->quality = clamp(compr->quality, S5P_JPEG_COMPR_QUAL_BEST,
-> +			       S5P_JPEG_COMPR_QUAL_WORST);
-> +
-> +	ctx->compr_quality = S5P_JPEG_COMPR_QUAL_WORST - compr->quality;
-> +
-> +	return 0;
+On Friday 25 November 2011 13:56:50 Sakari Ailus wrote:
+> On Fri, Nov 25, 2011 at 01:43:12PM +0100, Laurent Pinchart wrote:
+> > On Friday 25 November 2011 13:02:02 Sakari Ailus wrote:
+> > > On Fri, Nov 25, 2011 at 11:28:46AM +0100, Laurent Pinchart wrote:
+> > > > On Thursday 24 November 2011 17:12:50 Sakari Ailus wrote:
+> > > ...
+> > > 
+> > > > > @@ -1440,12 +1458,13 @@ struct v4l2_ctrl
+> > > > > *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl, u32 flags;
+> > > > > 
+> > > > >  	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def,
+> > > > >  	&flags);
+> > > > > 
+> > > > > -	if (type != V4L2_CTRL_TYPE_MENU) {
+> > > > > +	if (type != V4L2_CTRL_TYPE_MENU
+> > > > > +	    && type != V4L2_CTRL_TYPE_INTEGER_MENU) {
+> > > > > 
+> > > > >  		handler_set_err(hdl, -EINVAL);
+> > > > >  		return NULL;
+> > > > >  	
+> > > > >  	}
+> > > > >  	return v4l2_ctrl_new(hdl, ops, id, name, type,
+> > > > > 
+> > > > > -				    0, max, mask, def, flags, qmenu, NULL);
+> > > > > +			     0, max, mask, def, flags, qmenu, NULL, NULL);
+> > > > 
+> > > > You pass NULL to the v4l2_ctrl_new() qmenu_int argument, which will
+> > > > make the function fail for integer menu controls. Do you expect
+> > > > standard integer menu controls to share a list of values ? If not,
+> > > > what about modifying v4l2_ctrl_new_std_menu() to take a list of
+> > > > values (or alternatively forbidding the function from being used for
+> > > > integer menu controls) ?
+> > > 
+> > > We currently have no integer menu controls, let alone one which would
+> > > have a set of standard values. We need same functionality as in
+> > > v4l2_ctrl_get_menu() for integer menus when we add the first
+> > > standardised integer menu control. I think it could be added at that
+> > > time, or I could implement a v4l2_ctrl_get_integer_menu() which would
+> > > do nothing.
+> > > 
+> > > What do you think?
+> > 
+> > I was just wondering if we will ever have a standard menu control with
+> > standard integer items. If that never happens, v4l2_ctrl_new_std_menu()
+> > needs to either take a qmenu_int array, or reject integer menu controls
+> > completely. I would thus delay adding the V4L2_CTRL_TYPE_INTEGER_MENU
+> > check to the function as it wouldn't work anyway (or, alternatively, we
+> > would add the qmenu_int argument now).
+> 
+> Either one, yes. I think I'll add a separate patch adding standard integer
+> menus and remove the check from this one.
+> 
+> There'll definitely be a need for them. For example, there are bit rate
+> menus in the standard menu type controls that ideally should be integers.
 
-The quality paramaeter of VIDIOC_S_JPEGCOMP is badly documented and its
-value range is unspecified. To make the matter worse, VIDIOC_S_JPEGCOMP is a
-write-only IOCTL, so the user won't be able to know the value the driver
-uses. This forces the user space to know the value range for quality. I
-think we have a good change to resolve the matter properly now.
+Sure, but I doubt that the bit rates themselves will be standard.
 
-I can think of two alternatives, both of which are very simple.
-
-1) Define the value range for v4l2_jpegcompression. The driver implements
-four, so they essentially would be 0, 33, 66 and 100, if 0--100 is chosen as
-the standard range. This is what I have seen is often used by jpeg
-compression programs.
-
-2) Define a new control for jpeg quality. Its value range can be what the
-hardware supports and the user space gets much better information on the
-capabilities of the hardware and the granularity of the quality setting.
-
-I might even favour the second one. I also wonder how many user space
-applications use this IOCTL, so if we're breaking anything by not supporting
-it.
-
-Or we could decide to do option 1 right now and implement 2) later on. I can
-write a patch to change the documentation.
-
-Kind regards,
+> We won't change them but there will be others. Or I'd be very surprised if
+> there were not!
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Regards,
+
+Laurent Pinchart
