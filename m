@@ -1,100 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54508 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:39958 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751572Ab1KBKDU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Nov 2011 06:03:20 -0400
-Message-ID: <4EB1157D.2000602@redhat.com>
-Date: Wed, 02 Nov 2011 11:03:41 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1755421Ab1KYNsJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Nov 2011 08:48:09 -0500
+Message-ID: <4ECF9C92.2040607@redhat.com>
+Date: Fri, 25 Nov 2011 11:48:02 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 4/6] v4l2-event: Don't set sev->fh to NULL on unsubscribe
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: Manu Abraham <abraham.manu@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com> <4ECE79F5.9000402@linuxtv.org> <201111241844.23292.hverkuil@xs4all.nl> <CAHFNz9J+3DYW-Gf0FPYhcZqHf7XPtM+dmK0Y15HhkWQZOzNzuQ@mail.gmail.com> <4ECE8839.8040606@redhat.com> <CAHFNz9LOYHTXjhk2yTqhoC90HQQ0AGiOp4A6Gki-vsEtJr_UOw@mail.gmail.com> <4ECE913A.9090001@redhat.com> <4ECF8359.5080705@linuxtv.org>
+In-Reply-To: <4ECF8359.5080705@linuxtv.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-<resend with correct subject, sorry for the confusing wrong subject with the previous mail>
+Em 25-11-2011 10:00, Andreas Oberritter escreveu:
+> On 24.11.2011 19:47, Mauro Carvalho Chehab wrote:
+>> Em 24-11-2011 16:13, Manu Abraham escreveu:
+>>> On Thu, Nov 24, 2011 at 11:38 PM, Mauro Carvalho Chehab
+>>> <mchehab@redhat.com> wrote:
+>>>> Em 24-11-2011 16:01, Manu Abraham escreveu:
+>>>>> On Thu, Nov 24, 2011 at 11:14 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>>>> On Thursday, November 24, 2011 18:08:05 Andreas Oberritter wrote:
+>>>>>>> Don't break existing Userspace APIs for no reason! It's OK to add the
+>>>>>>> new API, but - pretty please - don't just blindly remove audio.h and
+>>>>>>> video.h. They are in use since many years by av7110, out-of-tree drivers
+>>>>>>> *and more importantly* by applications. Yes, I know, you'd like to see
+>>>>>>> those out-of-tree drivers merged, but it isn't possible for many
+>>>>>>> reasons. And even if they were merged, you'd say "Port them and your
+>>>>>>> apps to V4L". No! That's not an option.
+>>>>>>
+>>>>>> I'm not breaking anything. All apps will still work.
+>>>>>>
+>>>>>> One option (and it depends on whether people like it or not) is to have
+>>>>>> audio.h, video.h and osd.h just include av7110.h and add a #warning
+>>>>>> that these headers need to be replaced by the new av7110.h.
+>>>>>
+>>>>>
+>>>>> That won't work with other non av7110 hardware.
+>>>>
+>>>> There isn't any non-av7110 driver using it at the Kernel. Anyway, we can put
+>>>> a warning at the existing headers as-is, for now, putting them to be removed
+>>>> for a new kernel version, like 3.4.
+>>>
+>>>
+>>> No, that's not an option. The to-be merged saa716x driver depends on it.
+>>
+>> If the driver is not merged yet, it can be changed.
+>>
+>>> A DVB alone device need not depend V4L2 for it's operation.
+>>
+>> Why not? DVB drivers with IR should implement the input/event/IR API. DVB drivers with net
+>> should implement the Linux Network API.
+> 
+> DVB doesn't specify IR. There's no such thing like a DVB IR device.
+> 
+> IP over DVB is implemented transparently. No driver needs to do anything
+> but register its device's MAC address, therefore no driver implements
+> the Linux Network API.
+> 
+>> There is nothing wrong on using the ALSA API for audio and the V4L2 API for video,
+>> as both API fits the needs for decoding audio and video streams, and new features
+>> could be added there when needed.
+> 
+> Yes. There's nothing wrong with it and I'm not complaining. I don't care
+> about the implementation of the API in ivtv either. Just don't remove
+> the API from dvb-core, period.
+> 
+>> Duplicated API's that become legacy are removed with time. Just to mention two
+>> notable cases, this happened with the old audio stack (OSS), with the old Wireless
+>> stack.
+> 
+> I can still use iwconfig and linux/wireless.h is still available on my
+> system.
 
-Hi,
+Yes, but both iwconfig and the API changed.
 
-hverkuil wrote:
+> ALSA still provides OSS emulation and the real OSS stack was marked
+> deprecated but still present for ages. 
 
- >On Thursday, October 27, 2011 13:18:01 Hans de Goede wrote:
->> 1: There is no reason for this after v4l2_event_unsubscribe releases the
->> spinlock nothing is holding a reference to the sev anymore except for the
->> local reference in the v4l2_event_unsubscribe function.
->
-> Not true. v4l2-ctrls.c may still have a reference to the sev through the
-> ev_subs list in struct v4l2_ctrl. The send_event() function checks for a
-> non-zero fh.
+OSS driver submission stopped years ago. I remember it clearly as they denied cx88-oss 
+driver submission (2004 or 2005). The saa7134-oss and bttv-oss drivers were dropped in 2007[1]
+in favor of the alsa drivers. The only hardware that are still there at OSS are the 
+legacy ones that probably no alsa developer has anymore.
 
-Ah, yes. You're right v4l2-ctrls.c may still hold a reference after
-releasing the spinlock.
+[1] http://kerneltrap.org/mailarchive/linux-kernel/2007/11/9/398438/thread
 
-*But* setting sev->fh to NULL and checking for this in v4l2-ctrls: send_event(),
-or doing something similar, is not only not needed it is outright wrong.
-v4l2_event_unsubscribe() and v4l2-ctrls: send_event() don't hold any shared
-lock, so any form of test then use in v4l2-ctrls: send_event() is inherent racy.
+> In contrast, you want to remove a
+> stable API and introduce a new *completely untested* API between 3.3 and
+> 3.4.
 
-Here is the relevant code from v4l2-ctrls: send_event():
+Please read the patches again. The API for the devices are still there:
+any binary compiled for older kernels will still work with av7110 and ivtv.
+With the patches applied, the only difference is that the header file has
+renamed, as they were moved to device-specific headers.
 
-	if (sev->fh && (sev->fh != fh ||
-			(sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK)))
-		v4l2_event_queue_fh(sev->fh, &ev);
+It should be noticed that, while both av7110 and ivtv uses the same ioctl's, av7110
+creates devices over /dev/dvb, while ivtv uses it over /dev/video?. So, in practice, 
+each driver has a different API.
 
-Now lets say that v4l2_event_unsubscribe and v4l2-ctrls: send_event() race
-on the same sev, then the following could happens:
+There are no plans to remove the API for av7110. 
 
-1) send_event checks sev->fh, finds it is not NULL
-<thread switch>
-2) v4l2_event_unsubscribe sets sev->fh NULL
-3) v4l2_event_unsubscribe calls v4l2_ctrls del_event function, this blocks
-    as the thread calling send_event holds the ctrl_lock
-<thread switch>
-4) send_event calls v4l2_event_queue_fh(sev->fh, &ev) which not is equivalent
-    to calling: v4l2_event_queue_fh(NULL, &ev)
-5) oops, NULL pointer deref.
+As discussed on this thread, it seems that the agreed plans for the ivtv API is to put
+it into the standard kernel procedure to get rid of legacy API. That means that the API 
+will be there for a few kernel versions.
 
-Now again without setting sev->fh to NULL in v4l2_event_unsubscribe and
-without the (now senseless since always true) sev->fh != NULL check in
-send_event:
+Hans proposal is to remove the ivtv API on 3.8, with seems reasonable. So, the first
+API removal will happen in about 18 months from now (assuming about 2 months per kernel 
+version).
 
-1) send_event is about to call v4l2_event_queue_fh(sev->fh, &ev)
-<thread switch>
-2) v4l2_event_unsubscribe removes sev->list from the fh->subscribed list
-<thread switch>
-3) send_event calls v4l2_event_queue_fh(sev->fh, &ev)
-4) v4l2_event_queue_fh blocks on the fh_lock spinlock
-<thread switch>
-5) v4l2_event_unsubscribe unlocks the fh_lock spinlock
-6) v4l2_event_unsubscribe calls v4l2_ctrls del_event function, this blocks
-    as the thread calling send_event holds the ctrl_lock
-<thread switch>
-8) v4l2_event_queue_fh takes the fh_lock
-7) v4l2_event_queue_fh calls v4l2_event_subscribed, does not find it since
-    sev->list has been removed from fh->subscribed already -> does nothing
-9) v4l2_event_queue_fh releases the fh_lock
-10) the caller of send_event releases the ctrl lock (mutex)
-<thread switch>
-11) v4l2_ctrls del_event takes the ctrl lock
-12) v4l2_ctrls del_event removes sev->node from the ev_subs list
-13) v4l2_ctrls del_event releases the ctrl lock
-14) v4l2_event_unsubscribe frees the sev, to which no references are being
-     held anymore
+>> Do you have any issues that needs to be addressed by the V4L2 API for it to fit
+>> on your needs?
+> 
+> I don't want to be forced to use the V4L2 API for no reason and no gain.
 
-> All that is needed is to find some different way of letting send_event()
-> know that this sev is no longer used. Perhaps by making sev->list empty?
+As already explained on the other email, there are gains on using it, like the support
+for other types of encoding, the pipeline setup, sub-device control, shared buffer interface
+with GPU, proper support for SoC, etc.
 
-Actually as explained above the fix is to not do any checks and let both
-"subsystems" take care of their own locking / consistency without any
-interactions (other then that v4l2_ctrls should not hold any references
-to the sev after its del op has completed).
+Also, currently, just one device uses it (av7110). I don't think that the chipset is
+still manufactured. At least Google didn't help finding anything:
+	http://www.google.com/search?q=av7110&tbm=shop&hl=en
 
-I'll update the patch to also remove the sev->fh check from v4l2_ctrls:
-send_event() and update the commit message.
+On the other hand, there are thousands of devices using V4L2 API.
+
+As both API's provide support for decoded video, one API has to be deprecated in favor
+to the other. We should select for deprecation the one that is more restrictive
+and that has just one driver using it.
+
+> 
+>>> Also, it doesn't
+>>> make any sense to have device specific headers to be used by an application,
+>>> when drivers share more than one commonality.
+>>
+>> The only in-kernel driver using audio/video/osd is av7110.
+> 
+> Once again: Manu is going to submit a new driver soon.
+
+The API is there for several years (since 2002?), with just one driver supporting it.
+It shouldn't be hard to convert Manu's work to the V4L2. I can help him on converting
+his driver to use the V4L2 API if needed.
+
+> You're trying to remove an API that you've never used. The people who
+> use the API want it to stay.
+
+As I said, it will stay there. Nobody will remove av7110 or remove the old API from it.
+
+The idea is that no new driver should use it, as it is a legacy one-driver-only API.
+
+If your complain is about the removal of audio.h, video.h and osd.h, then my proposal is
+to keep it there, writing a text that they are part of a deprecated API, but keeping
+the rest of the patches and not accepting anymore any submission using them, removing
+the ioctl's that aren't used by av7110 from them.
 
 Regards,
-
-Hans
+Mauro
