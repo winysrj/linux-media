@@ -1,41 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37693 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753618Ab1KANl2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Nov 2011 09:41:28 -0400
-Message-ID: <4EAFF719.4020301@redhat.com>
-Date: Tue, 01 Nov 2011 14:41:45 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:35053 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750840Ab1KYHKF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Nov 2011 02:10:05 -0500
+Date: Fri, 25 Nov 2011 09:09:59 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl
+Subject: Re: [RFC/PATCH 2/3] v4l: Document integer menu controls
+Message-ID: <20111125070959.GB29342@valkosipuli.localdomain>
+References: <20111124161228.GA29342@valkosipuli.localdomain>
+ <1322151172-5362-2-git-send-email-sakari.ailus@iki.fi>
+ <4ECED0A6.40607@gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/6] v4l2-event: Remove pending events from fh event queue
- when unsubscribing
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4ECED0A6.40607@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sylwester,
 
-hverkuil wrote:
+On Fri, Nov 25, 2011 at 12:17:58AM +0100, Sylwester Nawrocki wrote:
+...
+> > @@ -292,6 +313,20 @@ the menu items can be enumerated with the
+> >   <constant>VIDIOC_QUERYMENU</constant>  ioctl.</entry>
+> >   	</row>
+> >   	<row>
+> > +	<entry><constant>V4L2_CTRL_TYPE_INTEGER_MENU</constant></entry>
+> > +	<entry>&ge; 0</entry>
+> > +	<entry>1</entry>
+> > +	<entry>N-1</entry>
+> > +	<entry>
+> > +              The control has a menu of N choices. The names of the
+> > +              menu items can be enumerated with the
+> 
+> Shouldn't it be something along the lines of "The integer values of
+> the menu items can be enumerated..." ?
 
- > > This patch fixes these dangling pointers in the available queue by removing
- > > all matching pending events on unsubscription.
- >
- > The idea is fine, but the implementation is inefficient.
- >
- > Instead of the list_for_each_entry_safe you can just do:
- >
- >	for (i = 0; i < sev->in_use; i++) {
- >		list_del(&sev->events[sev_pos(sev, i)].list);
- >		fh->navailable--;
- >	}
- >
- > It's untested, but this should do the trick.
+Right. This is left from the original menu control definition I copied. I'll
+fix this in the next version of the patchset.
 
-Agreed, I've modified my patch to use this construction instead.
+Cheers,
 
-Regards,
-
-Hans
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
