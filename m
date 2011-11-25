@@ -1,83 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:61563 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810Ab1K0WOQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Nov 2011 17:14:16 -0500
-Received: by wwp14 with SMTP id 14so7707555wwp.1
-        for <linux-media@vger.kernel.org>; Sun, 27 Nov 2011 14:14:14 -0800 (PST)
-Message-ID: <1322432045.29202.2.camel@tvbox>
-Subject: [PATCH] for 3_3 it913x-fe more user and debugging info.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Sun, 27 Nov 2011 22:14:05 +0000
-Content-Type: text/plain; charset="UTF-8"
+Received: from ffm.saftware.de ([83.141.3.46]:51906 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755843Ab1KYOlq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Nov 2011 09:41:46 -0500
+Message-ID: <4ECFA927.10108@linuxtv.org>
+Date: Fri, 25 Nov 2011 15:41:43 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Manu Abraham <abraham.manu@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com> <4ECE79F5.9000402@linuxtv.org> <201111241844.23292.hverkuil@xs4all.nl> <CAHFNz9J+3DYW-Gf0FPYhcZqHf7XPtM+dmK0Y15HhkWQZOzNzuQ@mail.gmail.com> <4ECE8839.8040606@redhat.com> <CAHFNz9LOYHTXjhk2yTqhoC90HQQ0AGiOp4A6Gki-vsEtJr_UOw@mail.gmail.com> <4ECE913A.9090001@redhat.com> <4ECF8359.5080705@linuxtv.org> <4ECF9C92.2040607@redhat.com>
+In-Reply-To: <4ECF9C92.2040607@redhat.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-More debugging and user info from it913x-fe.
+On 25.11.2011 14:48, Mauro Carvalho Chehab wrote:
+> If your complain is about the removal of audio.h, video.h
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/dvb/frontends/it913x-fe.c |   14 +++++++++++---
- 1 files changed, 11 insertions(+), 3 deletions(-)
+We're back on topic, thank you!
 
-diff --git a/drivers/media/dvb/frontends/it913x-fe.c b/drivers/media/dvb/frontends/it913x-fe.c
-index 07c1b46..e0cf881 100644
---- a/drivers/media/dvb/frontends/it913x-fe.c
-+++ b/drivers/media/dvb/frontends/it913x-fe.c
-@@ -46,6 +46,8 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info (or-able)).");
- 	  dprintk(level, name" (%02x%02x%02x%02x%02x%02x%02x%02x)", \
- 		*p, *(p+1), *(p+2), *(p+3), *(p+4), \
- 			*(p+5), *(p+6), *(p+7));
-+#define info(format, arg...) \
-+	printk(KERN_INFO "it913x-fe: " format "\n" , ## arg)
- 
- struct it913x_fe_state {
- 	struct dvb_frontend frontend;
-@@ -739,6 +741,8 @@ static int it913x_fe_start(struct it913x_fe_state *state)
- 	if (state->config->chip_ver == 1)
- 		ret = it913x_init_tuner(state);
- 
-+	info("ADF table value	:%02x", adf);
-+
- 	if (adf < 10) {
- 		state->crystalFrequency = fe_clockTable[adf].xtal ;
- 		state->table = fe_clockTable[adf].table;
-@@ -750,9 +754,6 @@ static int it913x_fe_start(struct it913x_fe_state *state)
- 	} else
- 		return -EINVAL;
- 
--	deb_info("Xtal Freq :%d Adc Freq :%d Adc %08x Xtal %08x",
--		state->crystalFrequency, state->adcFrequency, adc, xtal);
--
- 	/* Set LED indicator on GPIOH3 */
- 	ret = it913x_write_reg(state, PRO_LINK, GPIOH3_EN, 0x1);
- 	ret |= it913x_write_reg(state, PRO_LINK, GPIOH3_ON, 0x1);
-@@ -772,6 +773,11 @@ static int it913x_fe_start(struct it913x_fe_state *state)
- 	b[1] = (adc >> 8) & 0xff;
- 	b[2] = (adc >> 16) & 0xff;
- 	ret |= it913x_write(state, PRO_DMOD, ADC_FREQ, b, 3);
-+
-+	info("Crystal Frequency :%d Adc Frequency :%d",
-+		state->crystalFrequency, state->adcFrequency);
-+	deb_info("Xtal value :%04x Adc value :%04x", xtal, adc);
-+
- 	if (ret < 0)
- 		return -ENODEV;
- 
-@@ -804,6 +810,8 @@ static int it913x_fe_start(struct it913x_fe_state *state)
- 	default:
- 		set_lna = it9135_38;
- 	}
-+	info("Tuner LNA type :%02x", state->tuner_type);
-+
- 	ret = it913x_fe_script_loader(state, set_lna);
- 	if (ret < 0)
- 		return ret;
--- 
-1.7.7.1
+> and osd.h, then my proposal is
+> to keep it there, writing a text that they are part of a deprecated API,
 
+That's exactly what I proposed. Well, you shouldn't write "deprecated",
+because it's not. Just explain - inside this text - when V4L2 should be
+preferred over DVB.
 
+> but keeping
+> the rest of the patches
+
+Which ones?
+
+> and not accepting anymore any submission using them
+
+Why? First you complain about missing users and then don't want to allow
+any new ones.
+
+>, removing
+> the ioctl's that aren't used by av7110 from them.
+
+That's just stupid. I can easily provide a list of used and valuable
+ioctls, which need to remain present in order to not break userspace
+applications.
+
+Btw.: It's not easy to submit a driver for a SoC. Even if you are
+legally allowed to do it, you have to first merge and maintain the board
+support code before even thinking about multimedia.
+
+Regards,
+Andreas
