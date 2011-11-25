@@ -1,70 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:57916 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752964Ab1K3T6o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 14:58:44 -0500
-Message-ID: <4ED68AF0.8000903@linuxtv.org>
-Date: Wed, 30 Nov 2011 20:58:40 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:53294 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754276Ab1KYMCH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Nov 2011 07:02:07 -0500
+Date: Fri, 25 Nov 2011 14:02:02 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, snjw23@gmail.com, hverkuil@xs4all.nl
+Subject: Re: [RFC/PATCH 1/3] v4l: Introduce integer menu controls
+Message-ID: <20111125120202.GC29342@valkosipuli.localdomain>
+References: <20111124161228.GA29342@valkosipuli.localdomain>
+ <1322151172-5362-1-git-send-email-sakari.ailus@iki.fi>
+ <201111251128.47106.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Abylay Ospan <aospan@netup.ru>, linux-media@vger.kernel.org
-Subject: Re: LinuxTV ported to Windows
-References: <4ED65C46.20502@netup.ru> <CAGoCfiwShvPSgAPHKaxj=sMG-Fs9RdH0_3mLHYWuY96Z33AOag@mail.gmail.com> <4ED66FBC.5090504@linuxtv.org> <CAGoCfiw16bAtPHfrtsDDOBL4BeFnH+zMqcz9wBitGGSq_RZtJA@mail.gmail.com>
-In-Reply-To: <CAGoCfiw16bAtPHfrtsDDOBL4BeFnH+zMqcz9wBitGGSq_RZtJA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201111251128.47106.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30.11.2011 20:33, Devin Heitmueller wrote:
-> On Wed, Nov 30, 2011 at 1:02 PM, Andreas Oberritter <obi@linuxtv.org> wrote:
->>> Am I the only one who thinks this is a legally ambigious grey area?
->>> Seems like this could be a violation of the GPL as the driver code in
->>> question links against a proprietary kernel.
->>
->> Devin, please! Are you implying that the windows kernel becomes a
->> derived work of the driver, or that it's generally impossible to publish
->> windows drivers under the terms of the GPL?
+On Fri, Nov 25, 2011 at 11:28:46AM +0100, Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> The simple answer is that "I don't know".  I'm not a lawyer (and as
-> far as I know, neither are you).  Nor have I researched the topic to
-> significant lengths.  That said though, whether it was the intention
-> of either copyright holder it's entirely possible that the two
-> software licenses are simply incompatible.  For example, while both
-> the Apache group and the FSF never really intended to prevent each
-> others' software from being linked against each other, the net effect
-> is still that you cannot redistribute such software together since the
-> Apache license is incompatible with the GPL.
+> Thanks for the patch.
 
-Neither is Abylay distributing Windows together with this driver, nor is
-this driver a library Windows links against, i.e. Windows is able to run
-with this driver removed.
+Hi Laurent,
 
->>> I don't want to start a flame war, but I don't see how this is legal.
->>> And you could definitely question whether it goes against the
->>> intentions of the original authors to see their GPL driver code being
->>> used in non-free operating systems.
->>
->> The GPL doesn't cover such intentions.
+Thanks for the comments!
+
+> On Thursday 24 November 2011 17:12:50 Sakari Ailus wrote:
+...
+> > @@ -1440,12 +1458,13 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct
+> > v4l2_ctrl_handler *hdl, u32 flags;
+> > 
+> >  	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
+> > -	if (type != V4L2_CTRL_TYPE_MENU) {
+> > +	if (type != V4L2_CTRL_TYPE_MENU
+> > +	    && type != V4L2_CTRL_TYPE_INTEGER_MENU) {
+> >  		handler_set_err(hdl, -EINVAL);
+> >  		return NULL;
+> >  	}
+> >  	return v4l2_ctrl_new(hdl, ops, id, name, type,
+> > -				    0, max, mask, def, flags, qmenu, NULL);
+> > +			     0, max, mask, def, flags, qmenu, NULL, NULL);
 > 
-> This isn't necessarily true.  Anybody who has written a library and
-> released it under the GPL instead of the LGPL has made a conscious
-> decision that the library is only to be used by software that is GPL
-> compatible.  By their actions they have inherently forbidden it's use
-> by non-free software.  You could certainly make the same argument
-> about a driver -- that they authors intent was to ensure that it only
-> be linked against other free software.
+> You pass NULL to the v4l2_ctrl_new() qmenu_int argument, which will make the 
+> function fail for integer menu controls. Do you expect standard integer menu 
+> controls to share a list of values ? If not, what about modifying 
+> v4l2_ctrl_new_std_menu() to take a list of values (or alternatively forbidding 
+> the function from being used for integer menu controls) ?
 
-That's something completely different than "being used in non-free
-operating systems" and not necessarily comparable to a driver, which
-implements a well-defined interface.
+We currently have no integer menu controls, let alone one which would have a
+set of standard values. We need same functionality as in
+v4l2_ctrl_get_menu() for integer menus when we add the first standardised
+integer menu control. I think it could be added at that time, or I could
+implement a v4l2_ctrl_get_integer_menu() which would do nothing.
 
-The point I'm trying to make: Someone made a presumably nice open source
-port to a new platform and the first thing you're doing is to play the
-GPL-has-been-violated-card, even though you're admitting that you don't
-know whether any right is being violated or not. Please don't do that.
-It's not very encouraging to someone who just announced free software.
+What do you think?
 
-Regards,
-Andreas
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
