@@ -1,71 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:19689 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756030Ab1KHRKk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2011 12:10:40 -0500
-Date: Tue, 8 Nov 2011 20:11:23 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Andrew Vincer <Andrew.Vincer@redrat.co.uk>
-Cc: "mchehab@infradead.org" <mchehab@infradead.org>,
-	"jarod@redhat.com" <jarod@redhat.com>,
-	"error27@gmail.com" <error27@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 1/1] rc: Fix input deadlock and transmit error in redrat3
- driver
-Message-ID: <20111108171122.GA4682@mwanda>
-References: <DA69C24DC634074E9591C2B60BFDBC1C730E13@CP5-3512.fh.redrat.co.uk>
+Received: from mx1.redhat.com ([209.132.183.28]:52002 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754254Ab1KZLdL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Nov 2011 06:33:11 -0500
+Message-ID: <4ED0CE6A.3030703@redhat.com>
+Date: Sat, 26 Nov 2011 09:32:58 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4vu0d+lqoSa2/ZEk"
-Content-Disposition: inline
-In-Reply-To: <DA69C24DC634074E9591C2B60BFDBC1C730E13@CP5-3512.fh.redrat.co.uk>
+To: linux-media@vger.kernel.org
+CC: Oliver Endriss <o.endriss@gmx.de>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl> <CAHFNz9LS1OxumLvWBXaLFri8_dW3jAOvJJ4NpeZFCDbCiJd+YA@mail.gmail.com> <4ED0116A.6050108@linuxtv.org> <201111260655.54570@orion.escape-edv.de>
+In-Reply-To: <201111260655.54570@orion.escape-edv.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em 26-11-2011 03:55, Oliver Endriss escreveu:
+> On Friday 25 November 2011 23:06:34 Andreas Oberritter wrote:
+>> On 25.11.2011 17:51, Manu Abraham wrote:
+>>> On Fri, Nov 25, 2011 at 9:56 PM, Mauro Carvalho Chehab
+>>> <mchehab@redhat.com> wrote:
+>>>> Em 25-11-2011 14:03, Andreas Oberritter escreveu:
+>>>>> On 25.11.2011 16:38, Mauro Carvalho Chehab wrote:
+>>>>>> Em 25-11-2011 12:41, Andreas Oberritter escreveu:
+>>>>>>> On 25.11.2011 14:48, Mauro Carvalho Chehab wrote:
+>>>>>>>> If your complain is about the removal of audio.h, video.h
+>>>>>>>
+>>>>>>> We're back on topic, thank you!
+>>>>>>>
+>>>>>>>> and osd.h, then my proposal is
+>>>>>>>> to keep it there, writing a text that they are part of a deprecated API,
+>>>>>>>
+>>>>>>> That's exactly what I proposed. Well, you shouldn't write "deprecated",
+>>>>>>> because it's not. Just explain - inside this text - when V4L2 should be
+>>>>>>> preferred over DVB.
+>>>>>>
+>>>>>> It is deprecated, as the API is not growing to fulfill today's needs, and
+>>>>>> no patches adding new stuff to it to it will be accepted anymore.
+>>>>>
+>>>>> Haha, nice one. "It doesn't grow because I don't allow it to." Great!
+>>>>
+>>>> No. It didn't grow because nobody cared with it for years:
+>>>>
+>>>> Since 2.6.12-rc2 (start of git history), no changes ever happened at osd.h.
+>>>>
+>>>> Excluding Hans changes for using it on a pure V4L device, and other trivial
+>>>> patches not related to API changes, the last API change on audio.h and video.h
+>>>> was this patch:
+>>>>        commit f05cce863fa399dd79c5aa3896d608b8b86d8030
+>>>>        Author: Andreas Oberritter <obi@linuxtv.org>
+>>>>        Date:   Mon Feb 27 00:09:00 2006 -0300
+>>>>
+>>>>            V4L/DVB (3375): Add AUDIO_GET_PTS and VIDEO_GET_PTS ioctls
+>>>>
+>>>>        (yet not used on any upstream driver)
+>>>>
+>>>> An then:
+>>>>        commit 1da177e4c3f41524e886b7f1b8a0c1fc7321cac2
+>>>>        Author: Linus Torvalds <torvalds@ppc970.osdl.org>
+>>>>        Date:   Sat Apr 16 15:20:36 2005 -0700
+>>>>
+>>>>            Linux-2.6.12-rc2
+>>>>
+>>>> No changes adding support for any in-kernel driver were ever added there.
+>>>>
+>>>> So, it didn't grow over the last 5 or 6 years because nobody submitted
+>>>> driver patches requiring new things or _even_ using it.
+>>>>
+>>>>>
+>>>>>>>> but keeping
+>>>>>>>> the rest of the patches
+>>>>>>>
+>>>>>>> Which ones?
+>>>>>>
+>>>>>> V4L2, ivtv and DocBook patches.
+>>>>>
+>>>>> Fine.
+>>>>>
+>>>>>>>> and not accepting anymore any submission using them
+>>>>>>>
+>>>>>>> Why? First you complain about missing users and then don't want to allow
+>>>>>>> any new ones.
+>>>>>>
+>>>>>> I didn't complain about missing users. What I've said is that, between a
+>>>>>> one-user API and broad used APIs like ALSA and V4L2, the choice is to freeze
+>>>>>> the one-user API and mark it as deprecated.
+>>>>>
+>>>>> Your assumtion about only one user still isn't true.
+>>>>>
+>>>>>> Also, today's needs are properly already covered by V4L/ALSA/MC/subdev.
+>>>>>> It is easier to add what's missing there for DVB than to work the other
+>>>>>> way around, and deprecate V4L2/ALSA/MC/subdev.
+>>>>>
+>>>>> Yes. Please! Add it! But leave the DVB API alone!
+>>>>>
+>>>>>>>> , removing
+>>>>>>>> the ioctl's that aren't used by av7110 from them.
+>>>>>>>
+>>>>>>> That's just stupid. I can easily provide a list of used and valuable
+>>>>>>> ioctls, which need to remain present in order to not break userspace
+>>>>>>> applications.
+>>>>>>
+>>>>>> Those ioctl's aren't used by any Kernel driver, and not even documented.
+>>>>>> So, why to keep/maintain them?
+>>>>>
+>>>>> If you already deprecated it, why bother deleting random stuff from it
+>>>>> that people are using?
+>>>>>
+>>>>> There's a difference in keeping and maintaining something. You don't
+>>>>> need to maintain ioctls that haven't changed in years. Deleting
+>>>>> something is more work than letting it there to be used by those who
+>>>>> want to.
+>>>>
+>>>> Ok. Let's just keep the headers as is, just adding a comment that it is now
+>>>> considered superseded.
+>>
+>> Thank you! This is a step into the right direction.
+>>
+>>> http://dictionary.reference.com/browse/superseded
+>>>
+>>> to set aside or cause to be set aside as void, useless, or obsolete, usually
+>>> in favor of something mentioned; make obsolete: They superseded the
+>>> old statute with a new one.
+>>>
+>>> No, that's not acceptable. New DVB devices as they come will make use
+>>> of the API and API changes might be applied.
+>>
+>> Honestly, I think we all should accept this proposal and just hope that
+>> the comment is going to be written objectively.
+> 
+> 'Hoping' is not enough for me anymore. I am deeply disappointed.
+> Mauro and Hans have severely damaged my trust, that v4ldvb APIs are
+> stable in Linux, and how things are handled in this project.
+> 
+> So I request a public statement from the subsystem maintainer that
+> 1. The DVB Decoder API will not be removed.
+> 2. It can be updated if required (e.g. adding a missing function).
+> 3. New drivers are allowed to use this architecture.
+> 4. These driver will be accepted, if they follow the kernel standards.
+> 
+> The reason is simple: I need to know, whether this project is still
+> worth investing some time, or it is better to do something else.
+> 
 
---4vu0d+lqoSa2/ZEk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+What it is agreed so far is to keep it there untouched, doing the evolution
+for the decoder API via V4L2, in order to merge efforts on decoding
+features, and use the proper existing systems to output decoded audio and
+video streams (ALSA and V4L2). 
 
-On Tue, Nov 08, 2011 at 04:43:45PM +0000, Andrew Vincer wrote:
-> Fixed submit urb logic so hardware doesn't hang trying to transmit
-> signal data
->=20
-> Removed unneeded enable/disable detector commands in
-> redrat3_transmit_ir (the hardware does this anyway) and converted
-> arguments to unsigned as per 5588dc2
->=20
+In other words, (item 1) the headers will stay there, with a note pointing 
+that the evolution will be via V4L2. As the evolution will follow another
+direction, I don't agree it your items 2, 3 and 4.
 
-This would be easier to review it you put the changes to enable and
-disable into one patch and the changes so that we now measure the
-buffer length in bytes instead of ints into a second patch.
-
-regards,
-dan carpenter
-
-
---4vu0d+lqoSa2/ZEk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJOuWK6AAoJEOnZkXI/YHqRW/oP/RRbpcB1bqc36u7mlM3VFYv0
-5DHxeQC/hV+eSEFqvEbxLK2fcEtmNj0256Ch2Z+utrZdKs1K9DvYsNp7VneYEu5H
-CfIZJQrM7O0MGM9USACqIhTEuJINU9BxEszpKSyfnPjlZYaTk2T5gV0ScRv2u8dJ
-6Cc/hxwk8/Nc/7AxlyB0+TjyjX8tX1wMhEgMkyfhilCMM5ylMQ2G2QBBgWzysQtp
-v7D0r0j9GH46Bvuk+pfG/t0YrNqtrOUivKF2/16iU/8iWzQsSAk6+WwXOJqItvLx
-sX0XC8a5ZCwu/qaPilUXo7440Mj/NJJUGL9SxbAMHt5CHuy1g/xwNVA19RrvSVI8
-Anv5ltRaSFWiDyWZYbRMKGfUODzj56Fa8CVx7Mvx9Ln09sxPDKSkrWGP2K5VFSp0
-EfYKDCWMh9a/OJvZFGbPVyyHQysFEobMurneRkqsNIgVr7WrT5z44tF/JsuBzHw2
-4rECNi+aui8f8F4p2TpqqWuEw4WbPMxSYOPu9KkBb3HYGcKCFhlEZ78nUUbOnHcI
-qyYPONW7v3YO90slXIL1trhUGKgJ9lXVcScxv081hfPOZmKicsPMYMt5Iy/LsXtS
-Uug4oTyvcmGQwi4p7QiFtkjNTXwDLnj6plr+6ci2H3kOLX5Oe0FClN/lGDO3L2pT
-41xhyT/ZvjYnmn4aibON
-=W0mn
------END PGP SIGNATURE-----
-
---4vu0d+lqoSa2/ZEk--
+Regards,
+Mauro.
