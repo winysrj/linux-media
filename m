@@ -1,63 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2064 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752357Ab1KGJKl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2011 04:10:41 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [GIT FIXES FOR 3.2 <resend>] Fixes for event framework
-Date: Mon, 7 Nov 2011 10:10:33 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4EB79528.60106@redhat.com>
-In-Reply-To: <4EB79528.60106@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:52096 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754993Ab1KZXKu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Nov 2011 18:10:50 -0500
+Message-ID: <4ed171f8.e312b40a.54fa.ffffcbc1@mx.google.com>
+Subject: Re: PROBLEM: EHCI disconnects DVB & HDD
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Johann Klammer <klammerr@aon.at>
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org
+Date: Sat, 26 Nov 2011 23:10:42 +0000
+In-Reply-To: <4ECEFBA3.7010808@aon.at>
+References: <4ECEFBA3.7010808@aon.at>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201111071010.33633.hverkuil@xs4all.nl>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Fri, 2011-11-25 at 03:21 +0100, Johann Klammer wrote:
+> When using a DVB-T Dongle and an external HDD simultaneously, EHCI 
+> almost always disconnects.
+> 
 
-Is there a reason why this fix:
+Ideally HDD, and DVB devices shouldn't share the the same controller. 
 
-v4l2-ctrl: Send change events to all fh for auto cluster slave controls
+Most systems have two.
 
-isn't part of this pull request? Or do you want me to make a pull request for
-that?
+However, it is difficult for users know how these are assigned as
+sockets on a motherboard, or whether just one is available externally.
 
-Regards,
+With respect to af9015 devices it is are not alone, were messages are
+lost by operations of other devices.
 
-	Hans
+On the patchwork server is a patch for bus repeating on af9015 usb
+bridge TIMEOUT or BUSY errors.
 
-On Monday, November 07, 2011 09:22:00 Hans de Goede wrote:
-> Hi Mauro et all,
-> 
-> Please pull from me tree for the following event framework fixes:
-> 
-> The following changes since commit b82b12633773804713fc10ae5d0006be2b5bf943:
-> 
->    staging: Move media drivers to staging/media (2011-11-01 23:55:06 -0200)
-> 
-> are available in the git repository at:
->    git://linuxtv.org/hgoede/gspca.git eventfixes
-> 
-> Hans de Goede (3):
->        v4l2-event: Deny subscribing with a type of V4L2_EVENT_ALL
->        v4l2-event: Remove pending events from fh event queue when unsubscribing
->        v4l2-event: Don't set sev->fh to NULL on unsubscribe
-> 
->   drivers/media/video/v4l2-ctrls.c |    4 ++--
->   drivers/media/video/v4l2-event.c |   10 +++++++++-
->   2 files changed, 11 insertions(+), 3 deletions(-)
-> 
-> Thanks & Regards,
-> 
-> Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+http://patchwork.linuxtv.org/patch/8406/
+
+
