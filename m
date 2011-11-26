@@ -1,103 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10680 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753872Ab1K1XXh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 18:23:37 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pASNNb8G031071
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 28 Nov 2011 18:23:37 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 1/2] [media] tm6000: Add a few missing bits to alsa
-Date: Mon, 28 Nov 2011 21:23:30 -0200
-Message-Id: <1322522611-26392-1-git-send-email-mchehab@redhat.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:60583 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753016Ab1KZJgX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Nov 2011 04:36:23 -0500
+Date: Sat, 26 Nov 2011 11:36:18 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	=?iso-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>
+Subject: Re: [Query] V4L2 Integer (?) menu control
+Message-ID: <20111126093618.GF29342@valkosipuli.localdomain>
+References: <4ECD730E.3080808@gmail.com>
+ <20111124085018.GF27136@valkosipuli.localdomain>
+ <4ECE0FA5.1040205@samsung.com>
+ <4ECEAFBE.1010303@iki.fi>
+ <4ECED8EC.8010807@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4ECED8EC.8010807@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are some properties found on em28xx, but not on tm6000. Add
-them, in order to be more consistent.
+Hi Sylwester,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/video/tm6000/tm6000-alsa.c |   21 ++++++++++++++++++---
- 1 files changed, 18 insertions(+), 3 deletions(-)
+On Fri, Nov 25, 2011 at 12:53:16AM +0100, Sylwester Nawrocki wrote:
+> On 11/24/2011 09:57 PM, Sakari Ailus wrote:
+> > Sylwester Nawrocki wrote:
+> >> On 11/24/2011 09:50 AM, Sakari Ailus wrote:
+> >>>
+> >>> There is not currently, but I have patches for it. The issue is that I need
+> >>> them myself but the driver I need them for isn't ready to be released yet.
+> >>> And as usual, I assume others than vivo is required to show they're really
+> >>> useful so I haven't sent them.
+> >>
+> >> That's great news. Then I might not need to do all the work on my own;)
+> > 
+> > I hope mine will do. ;-)
+> > 
+> > I'm working on 2.6.32 kernel (ouch!) so I haven't been able to test them properly
+> > yet. Please provide feedback on them if you find any issues.
+> > 
+> >>>
+> >>> Good that you asked so we won't end up writing essentially the same code
+> >>> again. I'll try to send the patches today.
+> >>
+> >> All right, there is no rush. I was just looking around how to support the
+> >> camera scene mode with m5mols sort of sensors. The scene mode is essentially
+> >> a compilation of several different parameters, for some of which there are
+> >> standard controls in V4L2 but for many there are not.
+> > 
+> > I fully agree with this approach. Scene modes should not be implemented at the
+> > level of the V4L2 API. Instead, the parameters that the scene modes consist of
+> > must be shown separately on the V4L2 API, if that is the level of API they belong
+> > to. Depending on your camera stack control algorithms could reside in the user 
+> > space, which I believe is however not the case with the M5-MOLS.
+> 
+> No, with these hybrid camera devices the algorithms are built in their own ISP.
+> And there is quite many advanced algorithms, e.g. auto focus/face detection that 
+> are difficult to control at the subdevice API level.
 
-diff --git a/drivers/media/video/tm6000/tm6000-alsa.c b/drivers/media/video/tm6000/tm6000-alsa.c
-index 7d675c7..ddffd67 100644
---- a/drivers/media/video/tm6000/tm6000-alsa.c
-+++ b/drivers/media/video/tm6000/tm6000-alsa.c
-@@ -146,20 +146,21 @@ static int dsp_buffer_alloc(struct snd_pcm_substream *substream, int size)
- #define DEFAULT_FIFO_SIZE	4096
- 
- static struct snd_pcm_hardware snd_tm6000_digital_hw = {
--	.info = SNDRV_PCM_INFO_MMAP |
-+	.info = SNDRV_PCM_INFO_BATCH |
-+		SNDRV_PCM_INFO_MMAP |
- 		SNDRV_PCM_INFO_INTERLEAVED |
- 		SNDRV_PCM_INFO_BLOCK_TRANSFER |
- 		SNDRV_PCM_INFO_MMAP_VALID,
- 	.formats = SNDRV_PCM_FMTBIT_S16_LE,
- 
--	.rates = SNDRV_PCM_RATE_CONTINUOUS,
-+	.rates = SNDRV_PCM_RATE_CONTINUOUS | SNDRV_PCM_RATE_KNOT,
- 	.rate_min = 48000,
- 	.rate_max = 48000,
- 	.channels_min = 2,
- 	.channels_max = 2,
- 	.period_bytes_min = 64,
- 	.period_bytes_max = 12544,
--	.periods_min = 1,
-+	.periods_min = 2,
- 	.periods_max = 98,
- 	.buffer_bytes_max = 62720 * 8,
- };
-@@ -181,6 +182,7 @@ static int snd_tm6000_pcm_open(struct snd_pcm_substream *substream)
- 	chip->substream = substream;
- 
- 	runtime->hw = snd_tm6000_digital_hw;
-+	snd_pcm_hw_constraint_integer(runtime, SNDRV_PCM_HW_PARAM_PERIODS);
- 
- 	return 0;
- _error:
-@@ -347,9 +349,13 @@ static int snd_tm6000_card_trigger(struct snd_pcm_substream *substream, int cmd)
- 	int err = 0;
- 
- 	switch (cmd) {
-+	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE: /* fall through */
-+	case SNDRV_PCM_TRIGGER_RESUME: /* fall through */
- 	case SNDRV_PCM_TRIGGER_START:
- 		atomic_set(&core->stream_started, 1);
- 		break;
-+	case SNDRV_PCM_TRIGGER_PAUSE_PUSH: /* fall through */
-+	case SNDRV_PCM_TRIGGER_SUSPEND: /* fall through */
- 	case SNDRV_PCM_TRIGGER_STOP:
- 		atomic_set(&core->stream_started, 0);
- 		break;
-@@ -371,6 +377,14 @@ static snd_pcm_uframes_t snd_tm6000_pointer(struct snd_pcm_substream *substream)
- 	return chip->buf_pos;
- }
- 
-+static struct page *snd_pcm_get_vmalloc_page(struct snd_pcm_substream *subs,
-+					     unsigned long offset)
-+{
-+	void *pageptr = subs->runtime->dma_area + offset;
-+
-+	return vmalloc_to_page(pageptr);
-+}
-+
- /*
-  * operators
-  */
-@@ -383,6 +397,7 @@ static struct snd_pcm_ops snd_tm6000_pcm_ops = {
- 	.prepare = snd_tm6000_prepare,
- 	.trigger = snd_tm6000_card_trigger,
- 	.pointer = snd_tm6000_pointer,
-+	.page = snd_pcm_get_vmalloc_page,
- };
- 
- /*
+Can you tell what makes it difficult?
+
+> The issue is that the subdev API seems to low level for the device but it's
+> the only API available at the user space ;) 
+
+...
+
+> > This makes your user space to depend both on the sensor and the ISP, but there's
+> > really no way around that if both do non-trivial hardware-specific things.
+> 
+> I guess a dedicated library for the sensor itself is needed on top of subdevice API
+> to be able to use advanced features. And even then subdevice/V4L2 API is a limitation.
+
+How is it a limitation?
+
+Whe whole intent is to provide as standard as possible way to access the
+hardware features through an interface provided by the driver. So what is
+missing in your opinion? :-)
+
+> > I think we need to further standardise image processing configuration such as 
+> > RGB-to-RGB matrices and gamma tables. This would make the ISP interfaces less 
+> > hardware specific.
+> 
+> I guess first we need at least one more OMAP3 ISP like device driver in mainline 
+> to identify common features and design APIs for them. On the other hand gamma tables
+> are also present in some embedded ISPs, e.g. in s5k6aafx IIRC. 
+
+Or get more public specs for different ISPs. Or just read the existing specs
+more. ;-) The OMAP 4 ISS spec is public. Even if it's from TI as well it's
+very different from the OMAP 3 ISP.
+
 -- 
-1.7.7.3
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
