@@ -1,28 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4659 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755850Ab1KNSVH (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:64341 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754198Ab1KZWLf convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Nov 2011 13:21:07 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
-	davinci-linux-open-source@linux.davincidsp.com
-Subject: board-dm646x-evm.c: clock setup fix
-Date: Mon, 14 Nov 2011 19:20:48 +0100
-Message-Id: <1321294849-2738-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 26 Nov 2011 17:11:35 -0500
+Received: by wwp14 with SMTP id 14so6147324wwp.1
+        for <linux-media@vger.kernel.org>; Sat, 26 Nov 2011 14:11:34 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201111261249.09740.hverkuil@xs4all.nl>
+References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
+	<4ED0116A.6050108@linuxtv.org>
+	<201111260655.54570@orion.escape-edv.de>
+	<201111261249.09740.hverkuil@xs4all.nl>
+Date: Sun, 27 Nov 2011 03:41:34 +0530
+Message-ID: <CAHFNz9Ke9z2Nvo1L3Jg_QKqtJzqyPQ3KAZBXp6oM7zgqMD=LYQ@mail.gmail.com>
+Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Andreas Oberritter <obi@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The setup_vpif_input_channel_mode function uses the wrong register.
+On Sat, Nov 26, 2011 at 5:19 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Saturday, November 26, 2011 06:55:52 Oliver Endriss wrote:
+>> On Friday 25 November 2011 23:06:34 Andreas Oberritter wrote:
+>> > On 25.11.2011 17:51, Manu Abraham wrote:
+>> > > On Fri, Nov 25, 2011 at 9:56 PM, Mauro Carvalho Chehab
+>> > > <mchehab@redhat.com> wrote:
+>> > >> Em 25-11-2011 14:03, Andreas Oberritter escreveu:
+>> > >>> On 25.11.2011 16:38, Mauro Carvalho Chehab wrote:
+>> > >>>> Em 25-11-2011 12:41, Andreas Oberritter escreveu:
+>> > >>>>> On 25.11.2011 14:48, Mauro Carvalho Chehab wrote:
+>> > >>>>>> If your complain is about the removal of audio.h, video.h
+>> > >>>>>
+>> > >>>>> We're back on topic, thank you!
+>> > >>>>>
+>> > >>>>>> and osd.h, then my proposal is
+>> > >>>>>> to keep it there, writing a text that they are part of a deprecated API,
+>> > >>>>>
+>> > >>>>> That's exactly what I proposed. Well, you shouldn't write "deprecated",
+>> > >>>>> because it's not. Just explain - inside this text - when V4L2 should be
+>> > >>>>> preferred over DVB.
+>> > >>>>
+>> > >>>> It is deprecated, as the API is not growing to fulfill today's needs, and
+>> > >>>> no patches adding new stuff to it to it will be accepted anymore.
+>> > >>>
+>> > >>> Haha, nice one. "It doesn't grow because I don't allow it to." Great!
+>> > >>
+>> > >> No. It didn't grow because nobody cared with it for years:
+>> > >>
+>> > >> Since 2.6.12-rc2 (start of git history), no changes ever happened at osd.h.
+>> > >>
+>> > >> Excluding Hans changes for using it on a pure V4L device, and other trivial
+>> > >> patches not related to API changes, the last API change on audio.h and video.h
+>> > >> was this patch:
+>> > >>        commit f05cce863fa399dd79c5aa3896d608b8b86d8030
+>> > >>        Author: Andreas Oberritter <obi@linuxtv.org>
+>> > >>        Date:   Mon Feb 27 00:09:00 2006 -0300
+>> > >>
+>> > >>            V4L/DVB (3375): Add AUDIO_GET_PTS and VIDEO_GET_PTS ioctls
+>> > >>
+>> > >>        (yet not used on any upstream driver)
+>> > >>
+>> > >> An then:
+>> > >>        commit 1da177e4c3f41524e886b7f1b8a0c1fc7321cac2
+>> > >>        Author: Linus Torvalds <torvalds@ppc970.osdl.org>
+>> > >>        Date:   Sat Apr 16 15:20:36 2005 -0700
+>> > >>
+>> > >>            Linux-2.6.12-rc2
+>> > >>
+>> > >> No changes adding support for any in-kernel driver were ever added there.
+>> > >>
+>> > >> So, it didn't grow over the last 5 or 6 years because nobody submitted
+>> > >> driver patches requiring new things or _even_ using it.
+>> > >>
+>> > >>>
+>> > >>>>>> but keeping
+>> > >>>>>> the rest of the patches
+>> > >>>>>
+>> > >>>>> Which ones?
+>> > >>>>
+>> > >>>> V4L2, ivtv and DocBook patches.
+>> > >>>
+>> > >>> Fine.
+>> > >>>
+>> > >>>>>> and not accepting anymore any submission using them
+>> > >>>>>
+>> > >>>>> Why? First you complain about missing users and then don't want to allow
+>> > >>>>> any new ones.
+>> > >>>>
+>> > >>>> I didn't complain about missing users. What I've said is that, between a
+>> > >>>> one-user API and broad used APIs like ALSA and V4L2, the choice is to freeze
+>> > >>>> the one-user API and mark it as deprecated.
+>> > >>>
+>> > >>> Your assumtion about only one user still isn't true.
+>> > >>>
+>> > >>>> Also, today's needs are properly already covered by V4L/ALSA/MC/subdev.
+>> > >>>> It is easier to add what's missing there for DVB than to work the other
+>> > >>>> way around, and deprecate V4L2/ALSA/MC/subdev.
+>> > >>>
+>> > >>> Yes. Please! Add it! But leave the DVB API alone!
+>> > >>>
+>> > >>>>>> , removing
+>> > >>>>>> the ioctl's that aren't used by av7110 from them.
+>> > >>>>>
+>> > >>>>> That's just stupid. I can easily provide a list of used and valuable
+>> > >>>>> ioctls, which need to remain present in order to not break userspace
+>> > >>>>> applications.
+>> > >>>>
+>> > >>>> Those ioctl's aren't used by any Kernel driver, and not even documented.
+>> > >>>> So, why to keep/maintain them?
+>> > >>>
+>> > >>> If you already deprecated it, why bother deleting random stuff from it
+>> > >>> that people are using?
+>> > >>>
+>> > >>> There's a difference in keeping and maintaining something. You don't
+>> > >>> need to maintain ioctls that haven't changed in years. Deleting
+>> > >>> something is more work than letting it there to be used by those who
+>> > >>> want to.
+>> > >>
+>> > >> Ok. Let's just keep the headers as is, just adding a comment that it is now
+>> > >> considered superseded.
+>> >
+>> > Thank you! This is a step into the right direction.
+>> >
+>> > > http://dictionary.reference.com/browse/superseded
+>> > >
+>> > > to set aside or cause to be set aside as void, useless, or obsolete, usually
+>> > > in favor of something mentioned; make obsolete: They superseded the
+>> > > old statute with a new one.
+>> > >
+>> > > No, that's not acceptable. New DVB devices as they come will make use
+>> > > of the API and API changes might be applied.
+>> >
+>> > Honestly, I think we all should accept this proposal and just hope that
+>> > the comment is going to be written objectively.
+>>
+>> 'Hoping' is not enough for me anymore. I am deeply disappointed.
+>> Mauro and Hans have severely damaged my trust, that v4ldvb APIs are
+>> stable in Linux, and how things are handled in this project.
+>>
+>> So I request a public statement from the subsystem maintainer that
+>> 1. The DVB Decoder API will not be removed.
+>> 2. It can be updated if required (e.g. adding a missing function).
+>> 3. New drivers are allowed to use this architecture.
+>> 4. These driver will be accepted, if they follow the kernel standards.
+>>
+>> The reason is simple: I need to know, whether this project is still
+>> worth investing some time, or it is better to do something else.
+>
+> 1) There are two APIs that do the same thing: the DVB decoder API and the
+>   V4L2 API.
+> 2) That's bad because it confuses driver developers and application developers
+>   who have to support *two* APIs to do the same thing.
+> 3) The DVB decoder API is used in only one DVB driver (av7110), and in one
+>   V4L2 driver (ivtv). The latter is easily converted to V4L2 which leaves only
+>   one driver, av7110.
+> 4) A decoder API has nothing to do with DVB as a standard, it simply takes
+>   the output of the DVB part of the hardware and decodes it to the output.
+>   That's basic V4L2 functionality.
+> 5) Video output is present in quite a few V4L2 drivers (10 at a quick count)
+>   and that already includes support for decoders (just not decoder operations
+>   like PLAY/STOP/PAUSE/RESUME etc., that's where the V4L2 additions come in).
+>   Note that most of the video output drivers these days are from SoCs. That's
+>   where all the activity is these days. Ensuring that SoC vendors know what to
+>   do and that they have the right APIs and frameworks is an important part of
+>   our work these days.
+> 6) So with 10 V4L2 video output drivers and 1 DVB output driver it is not
+>   hard to see that the easiest solution is to make the DVB decoder API an
+>   av7110-specific API and prohibit its use for new drivers.
 
-Manju, can you review?
 
-I'm not sure whether this should be merged for v3.3 through the linux-media
-tree or the davinci tree. Opinions welcome.
-
-Actually, this fix should probably go in for v3.2 since it is a clear bug fix.
-
-Regards,
-
-	Hans
+As I said, moving all those to V4L makes it even more harder/impossible to be
+used by DVB devices as used with newer descrambling systems where it is tightly
+integrated, unless you move all of DVB to V4L, which then is more like moving
+ALSA, Networking and others into V4L. Doesn't make any sense at all.
