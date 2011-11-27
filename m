@@ -1,98 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:54266 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932741Ab1KJXfj (ORCPT
+Received: from nm26.bullet.mail.sp2.yahoo.com ([98.139.91.96]:25042 "HELO
+	nm26.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750743Ab1K0Iyp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Nov 2011 18:35:39 -0500
-Received: by mail-iy0-f174.google.com with SMTP id e36so3520899iag.19
-        for <linux-media@vger.kernel.org>; Thu, 10 Nov 2011 15:35:39 -0800 (PST)
-From: Patrick Dickey <pdickeybeta@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Patrick Dickey <pdickeybeta@gmail.com>
-Subject: [PATCH 20/25] added drxj_options header for pctv80e support
-Date: Thu, 10 Nov 2011 17:31:40 -0600
-Message-Id: <1320967905-7932-21-git-send-email-pdickeybeta@gmail.com>
-In-Reply-To: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
-References: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com>
+	Sun, 27 Nov 2011 03:54:45 -0500
+Message-ID: <1322384084.24357.YahooMailNeo@web112419.mail.gq1.yahoo.com>
+Date: Sun, 27 Nov 2011 00:54:44 -0800 (PST)
+From: music man <music_man1352000@yahoo.com.au>
+Reply-To: music man <music_man1352000@yahoo.com.au>
+Subject: saa7162 support status
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- drivers/media/dvb/frontends/drxj_options.h |   65 ++++++++++++++++++++++++++++
- 1 files changed, 65 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/dvb/frontends/drxj_options.h
+Hello everyone
 
-diff --git a/drivers/media/dvb/frontends/drxj_options.h b/drivers/media/dvb/frontends/drxj_options.h
-new file mode 100644
-index 0000000..962bd61
---- /dev/null
-+++ b/drivers/media/dvb/frontends/drxj_options.h
-@@ -0,0 +1,65 @@
-+/*
-+  Copyright (c), 2004-2005,2007-2010 Trident Microsystems, Inc.
-+  All rights reserved.
-+
-+  Redistribution and use in source and binary forms, with or without
-+  modification, are permitted provided that the following conditions are met:
-+
-+  * Redistributions of source code must retain the above copyright notice,
-+    this list of conditions and the following disclaimer.
-+  * Redistributions in binary form must reproduce the above copyright notice,
-+    this list of conditions and the following disclaimer in the documentation
-+	and/or other materials provided with the distribution.
-+  * Neither the name of Trident Microsystems nor Hauppauge Computer Works
-+    nor the names of its contributors may be used to endorse or promote
-+	products derived from this software without specific prior written
-+	permission.
-+
-+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-+  POSSIBILITY OF SUCH DAMAGE.
-+*/
-+
-+/**
-+* \file $Id: drxj_options.h,v 1.5 2009/10/05 21:32:49 dingtao Exp $
-+*
-+* \brief DRXJ optional settings
-+*
-+* \author Tao Ding
-+*/
-+
-+/* Note: Please add preprocessor DRXJ_OPTIONS_H for drxj.c to include this file */
-+#ifndef __DRXJ_OPTIONS_H__
-+#define __DRXJ_OPTIONS_H__
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+/* #define DRXJ_DIGITAL_ONLY     */
-+/* #define DRXJ_VSB_ONLY         */
-+/* #define DRXJ_SIGNAL_ACCUM_ERR */
-+/* #define MPEG_SERIAL_OUTPUT_PIN_DRIVE_STRENGTH   0x03  */
-+/* #define MPEG_PARALLEL_OUTPUT_PIN_DRIVE_STRENGTH 0x04  */
-+/* #define MPEG_OUTPUT_CLK_DRIVE_STRENGTH    0x05  */
-+/* #define OOB_CRX_DRIVE_STRENGTH            0x04  */
-+/* #define OOB_DRX_DRIVE_STRENGTH            0x05  */
-+/* #define DRXJ_QAM_MAX_WAITTIME             1000  */
-+/* #define DRXJ_QAM_FEC_LOCK_WAITTIME        200   */
-+/* #define DRXJ_QAM_DEMOD_LOCK_EXT_WAITTIME  250   */
-+
-+/*-------------------------------------------------------------------------
-+THE END
-+-------------------------------------------------------------------------*/
-+#ifdef __cplusplus
-+}
-+#endif
-+#endif /* __DRXJ_OPTIONS_H__ */
--- 
-1.7.5.4
+I apologise in advance if this is the wrong place to ask these questions.
 
+I'm hoping somebody here could be so kind as to help me to understand what is happening with support for the NXP saa716x (saa7160, 7162) chipset - I'm totally confused...
+
+1. Until 24 hours ago I was only aware of Manu Abraham's work (http://www.jusst.de/hg/saa716x/). I've been following his work for several years but his progress seems to have been quite slow. Given that there have been no updates for about a year I've been wondering whether he considers the driver complete, whether he doesn't have time to work on it at the moment, or whether the project is completely abandoned (?).
+
+2. My [Windows] HTPC died so I figured it would be a good opportunity to try Ubuntu [again]. I discovered that Manu's driver won't compile with the new 3.x kernel in Ubuntu 11.10. I did some searching and found what seems to be a new and quite active repository that Andreas Regel is working on (http://powarman.dyndns.org/hg/v4l-dvb-saa716x/). Unfortunately that work is being done on the backported branch (so again, only compatible with kernel 2.6.x). What is the purpose of the backport branch and why is the saa716x development work being done on that branch?
+
+3. Is there any way to test the latest saa716x code on Ubuntu 11.10? Alternatively when will the saa716x code be updated to support the 3.x kernel?
+
+Thank you in advance for any comments!
+mm
