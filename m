@@ -1,76 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www17.your-server.de ([213.133.104.17]:48440 "EHLO
-	www17.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757067Ab1KRJ10 (ORCPT
+Received: from h1954367.stratoserver.net ([85.214.253.27]:36086 "EHLO
+	h1954367.stratoserver.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753165Ab1K0NMg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Nov 2011 04:27:26 -0500
-Subject: [PATCH] [media] dw2102: Use kmemdup rather than duplicating its
- implementation
-From: Thomas Meyer <thomas@m3y3r.de>
-To: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Date: Thu, 17 Nov 2011 23:43:40 +0100
-Message-ID: <1321569820.1624.282.camel@localhost.localdomain>
+	Sun, 27 Nov 2011 08:12:36 -0500
+From: Hendrik Sattler <post@hendrik-sattler.de>
+To: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Problem with linux-3.1.3
+Date: Sun, 27 Nov 2011 14:04:02 +0100
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111271404.02435.post@hendrik-sattler.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The semantic patch that makes this change is available
-in scripts/coccinelle/api/memdup.cocci.
+Hi,
 
-Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
----
+I just updated by self-built kernel-from v3.1 to v3.1.3.
+With the new version, my built-in webcam[1] does not work anymore but it did 
+with v3.1.
+$ luvcview 
+luvcview 0.2.6
 
-diff -u -p a/drivers/media/dvb/dvb-usb/dw2102.c b/drivers/media/dvb/dvb-usb/dw2102.c
---- a/drivers/media/dvb/dvb-usb/dw2102.c 2011-11-07 19:37:48.086620605 +0100
-+++ b/drivers/media/dvb/dvb-usb/dw2102.c 2011-11-08 10:48:56.977902892 +0100
-@@ -1859,12 +1859,11 @@ static struct dvb_usb_device_properties
- static int dw2102_probe(struct usb_interface *intf,
- 		const struct usb_device_id *id)
- {
--	p1100 = kzalloc(sizeof(struct dvb_usb_device_properties), GFP_KERNEL);
-+	p1100 = kmemdup(&s6x0_properties,
-+			sizeof(struct dvb_usb_device_properties), GFP_KERNEL);
- 	if (!p1100)
- 		return -ENOMEM;
- 	/* copy default structure */
--	memcpy(p1100, &s6x0_properties,
--			sizeof(struct dvb_usb_device_properties));
- 	/* fill only different fields */
- 	p1100->firmware = "dvb-usb-p1100.fw";
- 	p1100->devices[0] = d1100;
-@@ -1872,13 +1871,12 @@ static int dw2102_probe(struct usb_inter
- 	p1100->rc.legacy.rc_map_size = ARRAY_SIZE(rc_map_tbs_table);
- 	p1100->adapter->fe[0].frontend_attach = stv0288_frontend_attach;
- 
--	s660 = kzalloc(sizeof(struct dvb_usb_device_properties), GFP_KERNEL);
-+	s660 = kmemdup(&s6x0_properties,
-+		       sizeof(struct dvb_usb_device_properties), GFP_KERNEL);
- 	if (!s660) {
- 		kfree(p1100);
- 		return -ENOMEM;
- 	}
--	memcpy(s660, &s6x0_properties,
--			sizeof(struct dvb_usb_device_properties));
- 	s660->firmware = "dvb-usb-s660.fw";
- 	s660->num_device_descs = 3;
- 	s660->devices[0] = d660;
-@@ -1886,14 +1884,13 @@ static int dw2102_probe(struct usb_inter
- 	s660->devices[2] = d480_2;
- 	s660->adapter->fe[0].frontend_attach = ds3000_frontend_attach;
- 
--	p7500 = kzalloc(sizeof(struct dvb_usb_device_properties), GFP_KERNEL);
-+	p7500 = kmemdup(&s6x0_properties,
-+			sizeof(struct dvb_usb_device_properties), GFP_KERNEL);
- 	if (!p7500) {
- 		kfree(p1100);
- 		kfree(s660);
- 		return -ENOMEM;
- 	}
--	memcpy(p7500, &s6x0_properties,
--			sizeof(struct dvb_usb_device_properties));
- 	p7500->firmware = "dvb-usb-p7500.fw";
- 	p7500->devices[0] = d7500;
- 	p7500->rc.legacy.rc_map_table = rc_map_tbs_table;
+SDL information:
+  Video driver: x11
+  A window manager is available
+Device information:
+  Device path:  /dev/video0
+Stream settings:
+  Frame format: MJPG
+  Frame size:   640x480
+  Frame rate:   30 fps
+libv4l2: error turning on stream: No space left on device
+Unable to start capture: No space left on device
+Error grabbing
+Cleanup done. Exiting ...
+
+The following kernel message pop up with those tries:
+uvcvideo: UVC non compliance - GET_MIN/MAX(PROBE) incorrectly supported. 
+Enabling workaround.
+uvcvideo: Failed to submit URB 0 (-28).
+
+
+Same for using e.g. Google+ Hangouts which worked fine using v3.1.
+
+Any ideas what might be wrong?
+
+Thanks,
+
+HS
+
+[1]: Bus 001 Device 002: ID 5986:0102 Acer, Inc Crystal Eye Webcam
