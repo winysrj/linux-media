@@ -1,77 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38705 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932097Ab1KBOMF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 10:12:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 2/3] omap3isp: preview: Rename min/max input/output sizes defines
-Date: Wed, 2 Nov 2011 15:12:04 +0100
-Cc: linux-media@vger.kernel.org
-References: <1318972497-8367-1-git-send-email-laurent.pinchart@ideasonboard.com> <1318972497-8367-3-git-send-email-laurent.pinchart@ideasonboard.com> <20111026011330.GB20295@valkosipuli.localdomain>
-In-Reply-To: <20111026011330.GB20295@valkosipuli.localdomain>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:46408 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752705Ab1K0ScS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Nov 2011 13:32:18 -0500
+Received: by bke11 with SMTP id 11so7340518bke.19
+        for <linux-media@vger.kernel.org>; Sun, 27 Nov 2011 10:32:17 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111021512.04596.laurent.pinchart@ideasonboard.com>
+Reply-To: whittenburg@gmail.com
+Date: Sun, 27 Nov 2011 12:32:17 -0600
+Message-ID: <CABcw_O=YQqwXp1h4qLPpQ5zX0Y6xvfih3e_FMuMUDhD2Qz_Vpw@mail.gmail.com>
+Subject: mt9p031 on omap3530, no interrupts from ISP
+From: Chris Whittenburg <whittenburg@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+I'm using the 3.0.8 kernel, with a few changes to add support for
+mt9p031 on a beagleboard xm.
 
-On Wednesday 26 October 2011 03:13:30 Sakari Ailus wrote:
-> Hi Laurent,
-> 
-> Thanks for the patch. I have a single comment below.
-> 
-> On Tue, Oct 18, 2011 at 11:14:56PM +0200, Laurent Pinchart wrote:
-> > The macros that define the minimum/maximum input and output sizes are
-> > defined in seperate files and have no consistent naming. In preparation
-> > for preview engine cropping support, move them all to isppreview.c and
-> > rename them to PREV_{MIN|MAX}_{IN|OUT}_{WIDTH|HEIGHT}*.
-> > 
-> > Remove unused and/or unneeded local variables that store the maximum
-> > output width.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/video/omap3isp/isppreview.c |   33 ++++++++++++------------
-> >  drivers/media/video/omap3isp/ispreg.h     |    3 --
-> >  2 files changed, 17 insertions(+), 19 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/omap3isp/isppreview.c
-> > b/drivers/media/video/omap3isp/isppreview.c index c920c1e..d5cce42
-> > 100644
-> > --- a/drivers/media/video/omap3isp/isppreview.c
-> > +++ b/drivers/media/video/omap3isp/isppreview.c
-> > @@ -76,9 +76,15 @@ static struct omap3isp_prev_csc flr_prev_csc = {
-> > 
-> >  #define DEF_DETECT_CORRECT_VAL	0xe
-> > 
-> > -#define PREV_MIN_WIDTH		64
-> > -#define PREV_MIN_HEIGHT		8
-> > -#define PREV_MAX_HEIGHT		16384
-> > +#define PREV_MIN_IN_WIDTH	64
-> > +#define PREV_MIN_IN_HEIGHT	8
-> > +#define PREV_MAX_IN_HEIGHT	16384
-> > +
-> > +#define PREV_MIN_OUT_WIDTH	0
-> > +#define PREV_MIN_OUT_HEIGHT	0
-> > +#define PREV_MAX_OUT_WIDTH	1280
-> > +#define PREV_MAX_OUT_WIDTH_ES2	3300
-> > +#define PREV_MAX_OUT_WIDTH_3630	4096
-> 
-> The preview line buffer size very probably depends on the ISP revision and
-> not OMAP revision. I think this name is such for historical reasons.
-> 
-> I just thought this now that you're changing them anyway. :)
+I'm configuring with:
 
-As it seems I'll have to resubmit the patches to v3.3, I'll fix this. Thanks 
-for pointing it out.
+media-ctl -v -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
 
--- 
-Regards,
+media-ctl -v -f '"mt9p031 2-0048":0[SGRBG12 370x243], "OMAP3 ISP
+CCDC":0[SGRBG12 370x243], "OMAP3 ISP CCDC":1[SGRBG12 370x243]'
 
-Laurent Pinchart
+and then running:
+
+yavta -f SGRBG12 -s 368x243 -n 4 --capture=10 --skip 3 -F `media-ctl
+-e "OMAP3 ISP CCDC output"`
+
+Which hangs trying to de-queue a buffer:
+
+root@beagleboard:~# yavta -f SGRBG12 -s 368x243 -n 4 --capture=10
+--skip 3 -F `media-ctl -e "OMAP3 ISP CCDC output"`
+Device /dev/video2 opened.
+Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
+Video format set: SGRBG12 (32314142) 368x243 buffer size 178848
+Video format: SGRBG12 (32314142) 368x243 buffer size 178848
+4 buffers requested.
+length: 178848 offset: 0
+Buffer 0 mapped at address 0x4023d000.
+length: 178848 offset: 180224
+Buffer 1 mapped at address 0x402b9000.
+length: 178848 offset: 360448
+Buffer 2 mapped at address 0x4039e000.
+length: 178848 offset: 540672
+Buffer 3 mapped at address 0x40435000.
+
+Communication is good with the mt9p031, and I can see pclk, and
+signals on the data lines, but I don't seem to be getting any
+interrupts from the ISP.
+
+Any pointers on what I should check?
+
+Thanks,
+Chris
