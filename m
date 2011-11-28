@@ -1,124 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52678 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751527Ab1KSBO5 (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:44044 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753464Ab1K1ObX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Nov 2011 20:14:57 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH] omap3isp: Prevent pipelines that contain a crashed entity from starting
-Date: Sat, 19 Nov 2011 02:15:10 +0100
-Message-Id: <1321665310-25362-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 28 Nov 2011 09:31:23 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH 1/3] v4l: Introduce integer menu controls
+Date: Mon, 28 Nov 2011 15:31:10 +0100
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	snjw23@gmail.com
+References: <20111124161228.GA29342@valkosipuli.localdomain> <20111125125650.GE29342@valkosipuli.localdomain> <201111251358.27725.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201111251358.27725.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111281531.10365.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The OMAP3 ISP preview engine will violate the L4 bus protocol if we try
-to write some of its internal registers after it failed to stop
-properly. This generates an external abort on non-linefetch fault,
-triggering a fatal kernel oops.
+On Friday 25 November 2011 13:58:27 Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Friday 25 November 2011 13:56:50 Sakari Ailus wrote:
+> > On Fri, Nov 25, 2011 at 01:43:12PM +0100, Laurent Pinchart wrote:
+> > > On Friday 25 November 2011 13:02:02 Sakari Ailus wrote:
+> > > > On Fri, Nov 25, 2011 at 11:28:46AM +0100, Laurent Pinchart wrote:
+> > > > > On Thursday 24 November 2011 17:12:50 Sakari Ailus wrote:
+> > > > ...
+> > > > 
+> > > > > > @@ -1440,12 +1458,13 @@ struct v4l2_ctrl
+> > > > > > *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl, u32 flags;
+> > > > > > 
+> > > > > >  	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def,
+> > > > > >  	&flags);
+> > > > > > 
+> > > > > > -	if (type != V4L2_CTRL_TYPE_MENU) {
+> > > > > > +	if (type != V4L2_CTRL_TYPE_MENU
+> > > > > > +	    && type != V4L2_CTRL_TYPE_INTEGER_MENU) {
+> > > > > > 
+> > > > > >  		handler_set_err(hdl, -EINVAL);
+> > > > > >  		return NULL;
+> > > > > >  	
+> > > > > >  	}
+> > > > > >  	return v4l2_ctrl_new(hdl, ops, id, name, type,
+> > > > > > 
+> > > > > > -				    0, max, mask, def, flags, qmenu, 
+NULL);
+> > > > > > +			     0, max, mask, def, flags, qmenu, NULL, 
+NULL);
+> > > > > 
+> > > > > You pass NULL to the v4l2_ctrl_new() qmenu_int argument, which will
+> > > > > make the function fail for integer menu controls. Do you expect
+> > > > > standard integer menu controls to share a list of values ? If not,
+> > > > > what about modifying v4l2_ctrl_new_std_menu() to take a list of
+> > > > > values (or alternatively forbidding the function from being used
+> > > > > for integer menu controls) ?
+> > > > 
+> > > > We currently have no integer menu controls, let alone one which would
+> > > > have a set of standard values. We need same functionality as in
+> > > > v4l2_ctrl_get_menu() for integer menus when we add the first
+> > > > standardised integer menu control. I think it could be added at that
+> > > > time, or I could implement a v4l2_ctrl_get_integer_menu() which would
+> > > > do nothing.
+> > > > 
+> > > > What do you think?
+> > > 
+> > > I was just wondering if we will ever have a standard menu control with
+> > > standard integer items. If that never happens, v4l2_ctrl_new_std_menu()
+> > > needs to either take a qmenu_int array, or reject integer menu controls
+> > > completely. I would thus delay adding the V4L2_CTRL_TYPE_INTEGER_MENU
+> > > check to the function as it wouldn't work anyway (or, alternatively, we
+> > > would add the qmenu_int argument now).
+> > 
+> > Either one, yes. I think I'll add a separate patch adding standard
+> > integer menus and remove the check from this one.
+> > 
+> > There'll definitely be a need for them. For example, there are bit rate
+> > menus in the standard menu type controls that ideally should be integers.
+> 
+> Sure, but I doubt that the bit rates themselves will be standard.
 
-We can't always prevent preview engine stop failures (they can for
-instance be caused by a sensor crash), but we can improve the system
-reliability by refusing to start streaming on a pipeline that contains
-a block that failed to crash. The driver will then eventually reset the
-ISP (when all applications will have closed their file handles related
-to OMAP3 ISP device nodes), making the ISP usable again.
+Actually, they are. MPEG audio level 1, 2, 3 and AC3 audio all have their own
+standardized set of possible bitrates. If I had an integer menu at the time
+I'm sure I would have used it.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/omap3isp/isp.c |   24 ++++++++++++++++++------
- drivers/media/video/omap3isp/isp.h |    3 ++-
- 2 files changed, 20 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index b818cac..bad3f24 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -761,10 +761,21 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
- 		entity = pad->entity;
- 		subdev = media_entity_to_v4l2_subdev(entity);
- 
-+		/* The entity can already be running only if it failed to stop
-+		 * at the last isp_disable_pipeline() call. This is a sign that
-+		 * it likely crashed, and might not respond to read/write
-+		 * operations on the L4 bus. This would result in a bus fault
-+		 * and a kernel oops. Refuse to start streaming in that case.
-+		 */
-+		if (isp->running & (1 << subdev->entity.id))
-+			return -EIO;
-+
- 		ret = v4l2_subdev_call(subdev, video, s_stream, mode);
- 		if (ret < 0 && ret != -ENOIOCTLCMD)
- 			return ret;
- 
-+		isp->running |= 1 << subdev->entity.id;
-+
- 		if (subdev == &isp->isp_ccdc.subdev) {
- 			v4l2_subdev_call(&isp->isp_aewb.subdev, video,
- 					s_stream, mode);
-@@ -882,12 +893,11 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
- 		if (ret) {
- 			dev_info(isp->dev, "Unable to stop %s\n", subdev->name);
- 			failure = -ETIMEDOUT;
-+		} else {
-+			isp->running &= ~(1 << subdev->entity.id);
- 		}
- 	}
- 
--	if (failure < 0)
--		isp->needs_reset = true;
--
- 	return failure;
- }
- 
-@@ -1071,6 +1081,7 @@ static int isp_reset(struct isp_device *isp)
- 		udelay(1);
- 	}
- 
-+	isp->running = 0;
- 	return 0;
- }
- 
-@@ -1500,10 +1511,11 @@ void omap3isp_put(struct isp_device *isp)
- 	if (--isp->ref_count == 0) {
- 		isp_disable_interrupts(isp);
- 		isp_save_ctx(isp);
--		if (isp->needs_reset) {
-+		/* Reset the ISP if an entity has failed to stop. This is the
-+		 * only way to recover from such conditions.
-+		 */
-+		if (isp->running)
- 			isp_reset(isp);
--			isp->needs_reset = false;
--		}
- 		isp_disable_clocks(isp);
- 	}
- 	mutex_unlock(&isp->isp_mutex);
-diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
-index 705946e..c958f07 100644
---- a/drivers/media/video/omap3isp/isp.h
-+++ b/drivers/media/video/omap3isp/isp.h
-@@ -145,6 +145,7 @@ struct isp_platform_callback {
-  * @raw_dmamask: Raw DMA mask
-  * @stat_lock: Spinlock for handling statistics
-  * @isp_mutex: Mutex for serializing requests to ISP.
-+ * @running: Bitmask of running entities (indexed by entity ID)
-  * @has_context: Context has been saved at least once and can be restored.
-  * @ref_count: Reference count for handling multiple ISP requests.
-  * @cam_ick: Pointer to camera interface clock structure.
-@@ -184,7 +185,7 @@ struct isp_device {
- 	/* ISP Obj */
- 	spinlock_t stat_lock;	/* common lock for statistic drivers */
- 	struct mutex isp_mutex;	/* For handling ref_count field */
--	bool needs_reset;
-+	u32 running;
- 	int has_context;
- 	int ref_count;
- 	unsigned int autoidle;
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
 
+> 
+> > We won't change them but there will be others. Or I'd be very surprised
+> > if there were not!
