@@ -1,53 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43466 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754317Ab1KYKxy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Nov 2011 05:53:54 -0500
-Message-ID: <4ECF73C0.6090904@redhat.com>
-Date: Fri, 25 Nov 2011 08:53:52 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:52708 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752455Ab1K1MhU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Nov 2011 07:37:20 -0500
+Received: by yenl6 with SMTP id l6so2799150yen.19
+        for <linux-media@vger.kernel.org>; Mon, 28 Nov 2011 04:37:19 -0800 (PST)
+Message-ID: <4ED3807A.8060200@gmail.com>
+Date: Mon, 28 Nov 2011 15:37:14 +0300
+From: Alexander Zhavnerchik <alex.vizor@gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 2/3] vivi: set device_caps.
-References: <1321956322-25084-1-git-send-email-hverkuil@xs4all.nl> <bd80eb41a795b4fac63dff9005b10835e4aa8b17.1321956058.git.hans.verkuil@cisco.com>
-In-Reply-To: <bd80eb41a795b4fac63dff9005b10835e4aa8b17.1321956058.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=UTF-8
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: uvcvideo: Failed to query (SET_CUR) UVC control 10 on unit 2:
+ -32 (exp. 2).
+References: <4ED29713.1010202@gmail.com> <201111281135.57435.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201111281135.57435.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 22-11-2011 08:05, Hans Verkuil escreveu:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/vivi.c |    5 +++--
->  1 files changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-> index 7d754fb..84ea88d 100644
-> --- a/drivers/media/video/vivi.c
-> +++ b/drivers/media/video/vivi.c
-> @@ -819,8 +819,9 @@ static int vidioc_querycap(struct file *file, void  *priv,
->  	strcpy(cap->driver, "vivi");
->  	strcpy(cap->card, "vivi");
->  	strlcpy(cap->bus_info, dev->v4l2_dev.name, sizeof(cap->bus_info));
-> -	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING | \
-> -			    V4L2_CAP_READWRITE;
-> +	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
-> +			    V4L2_CAP_READWRITE | V4L2_CAP_DEVICE_CAPS;
-> +	cap->device_caps = cap->capabilities;
+Hi Laurent,
 
-Hmm... should V4L2_CAP_DEVICE_CAPS be present at both device_caps and capabilities?
+Unfortunately my laptop died today, I'll sent details once I repair it.
 
-IMHO, the better would be to do:
+Thanks,
+Alex
 
-	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
-			    V4L2_CAP_READWRITE | V4L2_CAP_DEVICE_CAPS;
-	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+On 28.11.2011 13:35, Laurent Pinchart wrote:
+> Hi Alex,
+>
+> On Sunday 27 November 2011 21:01:23 Alex wrote:
+>> Hi guys,
+>>
+>> I'm using kernel 3.2-rc3 and get following in dmesg on every try to use
+>> thinkpad integrated camera (here I did rmmod and modprobe before test):
+>> [ 9481.258170] usbcore: deregistering interface driver uvcvideo
+>> [ 9481.296659] uvcvideo: Failed to submit URB 0 (-28).
+>> [ 9481.296677] uvcvideo 1-1.6:1.1: resume error -28
+>> [ 9490.117546] uvcvideo: Found UVC 1.00 device Integrated Camera
+>> (04f2:b221) [ 9490.119166] input: Integrated Camera as
+>> /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.6/1-1.6:1.0/input/input13
+>> [ 9490.119298] usbcore: registered new interface driver uvcvideo
+>> [ 9490.119302] USB Video Class driver (1.1.1)
+>> [ 9498.101683] uvcvideo: Failed to query (SET_CUR) UVC control 10 on
+>> unit 2: -32 (exp. 2).
+>> [ 9498.113603] uvcvideo: Failed to submit URB 0 (-28).
+> Those two errors might be unrelated.
+>
+> For the second one, I'm tempted to blame
+> http://git.kernel.org/?p=linux/kernel/git/stable/linux-
+> stable.git;a=commit;h=f0cc710a6dec5b808a6f13f1f8853c094fce5f12. Could you
+> please try reverting it, and see if it fixes your issue ? If so, let's report
+> that to the linux-usb mailing list.
+>
+> For the first one, could you please send me the lsusb -v output for your
+> webcam ?
+>
 
-Btw, this ambiguity should also be solved at the V4L2 spec.
-
-Regards,
-Mauro
