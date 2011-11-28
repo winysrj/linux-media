@@ -1,62 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:35032 "EHLO
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:56069 "EHLO
 	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751435Ab1KXR7H (ORCPT
+	with ESMTP id S1753498Ab1K1WEa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 12:59:07 -0500
-Received: by wwp14 with SMTP id 14so2137587wwp.1
-        for <linux-media@vger.kernel.org>; Thu, 24 Nov 2011 09:59:06 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4ECE80BE.4090109@redhat.com>
-References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
-	<dd96a72481deae71a90ae0ebf49cd48545ab894a.1322141686.git.hans.verkuil@cisco.com>
-	<4ECE79F5.9000402@linuxtv.org>
-	<4ECE80BE.4090109@redhat.com>
-Date: Thu, 24 Nov 2011 23:29:05 +0530
-Message-ID: <CAHFNz9LWjUF-ddKefK29w29NwNhZDAv3kxibbJ-TRknD5GJTGA@mail.gmail.com>
-Subject: Re: [RFCv2 PATCH 12/12] Remove audio.h, video.h and osd.h.
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 28 Nov 2011 17:04:30 -0500
+Received: by wwp14 with SMTP id 14so9830167wwp.1
+        for <linux-media@vger.kernel.org>; Mon, 28 Nov 2011 14:04:29 -0800 (PST)
+Message-ID: <1322517861.2121.23.camel@tvbox>
+Subject: PATCH] for 3.3 it913x support for different tuner regs.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Mon, 28 Nov 2011 22:04:21 +0000
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 24, 2011 at 11:07 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 24-11-2011 15:08, Andreas Oberritter escreveu:
->> Don't break existing Userspace APIs for no reason! It's OK to add the
->> new API, but - pretty please - don't just blindly remove audio.h and
->> video.h. They are in use since many years by av7110, out-of-tree drivers
->> *and more importantly* by applications. Yes, I know, you'd like to see
->> those out-of-tree drivers merged, but it isn't possible for many
->> reasons. And even if they were merged, you'd say "Port them and your
->> apps to V4L". No! That's not an option.
->
-> Hi Andreas,
->
-> Userspace applications that support av7110 can include the new linux/av7110.h
-> header. Other applications that support out-of-tree drivers can just have
-> their own copy of audio.h, osd.h and video.h. So, it won't break or prevent
-> existing applications to keep working.
->
-> The thing is that the media API presents two interfaces to control mpeg decoders.
-> This is confusing, and, while one of them has active upstream developers working
-> on it, adding new drivers and new features on it, the other API is not being
-> updated accordingly, and no new upstream drivers use it.
->
-> Worse than that, several ioctl's are there, with not a single in-kernel implementation,
-> nor any documentation about how they are supposed to work.
->
-> We noticed in Prague that new DVB developers got confused about what should be the
-> proper implementation for new drivers, so marking it as deprecated is important,
-> otherwise, we'll end by having different approaches for the same thing.
->
-> Just to give you one example, newer DTV standards like ISDB-T and DVB-T2 now uses
-> H.264 video streams. Support for H.264 were added recently at V4L2 API, but the
-> dvb video API doesn't support it.
+There appears to be differences in the tuner registers
+on earlier IT9135 devices.
+
+Using the current IT9137 settings cause corruptions on
+some channels
+
+This patch is in preparation for multi firmware loading and
+current unsupported types.
+
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/dvb/dvb-usb/it913x.c           |   37 ++++++++++++++++++++++++-
+ drivers/media/dvb/frontends/it913x-fe-priv.h |   20 ++++++++++++++
+ drivers/media/dvb/frontends/it913x-fe.c      |   23 ++++++++++++---
+ drivers/media/dvb/frontends/it913x-fe.h      |    9 ++++++
+ 4 files changed, 82 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/it913x.c b/drivers/media/dvb/dvb-usb/it913x.c
+index 24f04b4..d57e062 100644
+--- a/drivers/media/dvb/dvb-usb/it913x.c
++++ b/drivers/media/dvb/dvb-usb/it913x.c
+@@ -338,6 +338,31 @@ static int it913x_rc_query(struct dvb_usb_device *d)
+ 	return ret;
+ }
+ 
++static int ite_firmware_select(struct usb_device *udev,
++	struct dvb_usb_device_properties *props)
++{
++	int sw;
++	/* auto switch */
++	if (le16_to_cpu(udev->descriptor.idProduct) ==
++			USB_PID_ITETECH_IT9135)
++		sw = IT9135_V1_FW;
++	else
++		sw = IT9137_FW;
++
++	switch (sw) {
++	case IT9135_V1_FW:
++		it913x_config.firmware_ver = 0;
++		it913x_config.adc_x2 = 1;
++		break;
++	case IT9137_FW:
++	default:
++		it913x_config.firmware_ver = 0;
++		it913x_config.adc_x2 = 0;
++	}
++
++	return 0;
++}
++
+ #define TS_MPEG_PKT_SIZE	188
+ #define EP_LOW			21
+ #define TS_BUFFER_SIZE_PID	(EP_LOW*TS_MPEG_PKT_SIZE)
+@@ -392,6 +417,8 @@ static int it913x_identify_state(struct usb_device *udev,
+ 		props->adapter[1].fe[0].stream.u.bulk.buffersize =
+ 			props->adapter[0].fe[0].stream.u.bulk.buffersize;
+ 
++	ret = ite_firmware_select(udev, props);
++
+ 	if (firm_no > 0) {
+ 		*cold = 0;
+ 		return 0;
+@@ -421,10 +448,16 @@ static int it913x_identify_state(struct usb_device *udev,
+ 
+ 	if (it913x_config.dual_mode) {
+ 		ret |= it913x_wr_reg(udev, DEV_0, 0x4bfb, CHIP2_I2C_ADDR);
+-		ret |= it913x_wr_reg(udev, DEV_0,  CLK_O_EN, 0x1);
++		if (it913x_config.firmware_ver == 1)
++			ret |= it913x_wr_reg(udev, DEV_0,  0xcfff, 0x1);
++		else
++			ret |= it913x_wr_reg(udev, DEV_0,  CLK_O_EN, 0x1);
+ 	} else {
+ 		ret |= it913x_wr_reg(udev, DEV_0, 0x4bfb, 0x0);
+-		ret |= it913x_wr_reg(udev, DEV_0,  CLK_O_EN, 0x0);
++		if (it913x_config.firmware_ver == 1)
++			ret |= it913x_wr_reg(udev, DEV_0,  0xcfff, 0x0);
++		else
++			ret |= it913x_wr_reg(udev, DEV_0,  CLK_O_EN, 0x0);
+ 	}
+ 
+ 	*cold = 1;
+diff --git a/drivers/media/dvb/frontends/it913x-fe-priv.h b/drivers/media/dvb/frontends/it913x-fe-priv.h
+index 836a5b8..ad2b644 100644
+--- a/drivers/media/dvb/frontends/it913x-fe-priv.h
++++ b/drivers/media/dvb/frontends/it913x-fe-priv.h
+@@ -230,6 +230,7 @@ static struct it913xset init_1[] = {
+ 	{PRO_LINK, LOCK3_OUT, {0x01}, 0x01},
+ 	{PRO_LINK, PADMISCDRSR, {0x01}, 0x01},
+ 	{PRO_LINK, PADMISCDR2, {0x00}, 0x01},
++	{PRO_DMOD, 0xec57, {0x00, 0x00}, 0x02},
+ 	{PRO_LINK, PADMISCDR4, {0x00}, 0x01}, /* Power up */
+ 	{PRO_LINK, PADMISCDR8, {0x00}, 0x01},
+ 	{0xff, 0x0000, {0x00}, 0x00} /* Terminating Entry */
+@@ -1010,10 +1011,29 @@ static struct it913xset it9137_tuner_off[] = {
+ 	{PRO_DMOD, 0xfba8, {0x01}, 0x01}, /* Tuner Clock Off  */
+ 	{PRO_DMOD, 0xec40, {0x00}, 0x01}, /* Power Down Tuner */
+ 	{PRO_DMOD, 0xec02, {0x3f, 0x1f, 0x3f, 0x3f}, 0x04},
++	{PRO_DMOD, 0xec06, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++				0x00, 0x00, 0x00, 0x00}, 0x0c},
++	{PRO_DMOD, 0xec12, {0x00, 0x00, 0x00, 0x00}, 0x04},
++	{PRO_DMOD, 0xec17, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++				0x00}, 0x09},
++	{PRO_DMOD, 0xec22, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++				0x00, 0x00}, 0x0a},
++	{PRO_DMOD, 0xec20, {0x00}, 0x01},
+ 	{PRO_DMOD, 0xec3f, {0x01}, 0x01},
+ 	{0xff, 0x0000, {0x00}, 0x00}, /* Terminating Entry */
+ };
+ 
++static struct it913xset set_it9135_template[] = {
++	{PRO_DMOD, 0xee06, {0x00}, 0x01},
++	{PRO_DMOD, 0xec56, {0x00}, 0x01},
++	{PRO_DMOD, 0xec4c, {0x00}, 0x01},
++	{PRO_DMOD, 0xec4d, {0x00}, 0x01},
++	{PRO_DMOD, 0xec4e, {0x00}, 0x01},
++	{PRO_DMOD, 0x011e, {0x00}, 0x01}, /* Older Devices */
++	{PRO_DMOD, 0x011f, {0x00}, 0x01},
++	{0xff, 0x0000, {0x00}, 0x00}, /* Terminating Entry */
++};
++
+ static struct it913xset set_it9137_template[] = {
+ 	{PRO_DMOD, 0xee06, {0x00}, 0x01},
+ 	{PRO_DMOD, 0xec56, {0x00}, 0x01},
+diff --git a/drivers/media/dvb/frontends/it913x-fe.c b/drivers/media/dvb/frontends/it913x-fe.c
+index e0cf881..8088e62 100644
+--- a/drivers/media/dvb/frontends/it913x-fe.c
++++ b/drivers/media/dvb/frontends/it913x-fe.c
+@@ -245,6 +245,11 @@ static int it9137_set_tuner(struct it913x_fe_state *state,
+ 	u8 lna_band;
+ 	u8 bw;
+ 
++	if (state->config->firmware_ver == 1)
++		set_tuner = set_it9135_template;
++	else
++		set_tuner = set_it9137_template;
++
+ 	deb_info("Tuner Frequency %d Bandwidth %d", frequency, bandwidth);
+ 
+ 	if (frequency >= 51000 && frequency <= 440000) {
+@@ -774,8 +779,16 @@ static int it913x_fe_start(struct it913x_fe_state *state)
+ 	b[2] = (adc >> 16) & 0xff;
+ 	ret |= it913x_write(state, PRO_DMOD, ADC_FREQ, b, 3);
+ 
+-	info("Crystal Frequency :%d Adc Frequency :%d",
+-		state->crystalFrequency, state->adcFrequency);
++	if (state->config->adc_x2)
++		ret |= it913x_write_reg(state, PRO_DMOD, ADC_X_2, 0x01);
++	b[0] = 0;
++	b[1] = 0;
++	b[2] = 0;
++	ret |= it913x_write(state, PRO_DMOD, 0x0029, b, 3);
++
++	info("Crystal Frequency :%d Adc Frequency :%d ADC X2: %02x",
++		state->crystalFrequency, state->adcFrequency,
++			state->config->adc_x2);
+ 	deb_info("Xtal value :%04x Adc value :%04x", xtal, adc);
+ 
+ 	if (ret < 0)
+@@ -840,10 +853,10 @@ static int it913x_fe_init(struct dvb_frontend *fe)
+ 	/* Power Up Tuner - common all versions */
+ 	ret = it913x_write_reg(state, PRO_DMOD, 0xec40, 0x1);
+ 
+-	ret |= it913x_write_reg(state, PRO_DMOD, AFE_MEM0, 0x0);
+-
+ 	ret |= it913x_fe_script_loader(state, init_1);
+ 
++	ret |= it913x_write_reg(state, PRO_DMOD, AFE_MEM0, 0x0);
++
+ 	ret |= it913x_write_reg(state, PRO_DMOD, 0xfba8, 0x0);
+ 
+ 	return (ret < 0) ? -ENODEV : 0;
+@@ -938,5 +951,5 @@ static struct dvb_frontend_ops it913x_fe_ofdm_ops = {
+ 
+ MODULE_DESCRIPTION("it913x Frontend and it9137 tuner");
+ MODULE_AUTHOR("Malcolm Priestley tvboxspy@gmail.com");
+-MODULE_VERSION("1.10");
++MODULE_VERSION("1.12");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/dvb/frontends/it913x-fe.h b/drivers/media/dvb/frontends/it913x-fe.h
+index 43f879a..4143ef9 100644
+--- a/drivers/media/dvb/frontends/it913x-fe.h
++++ b/drivers/media/dvb/frontends/it913x-fe.h
+@@ -28,6 +28,8 @@ struct ite_config {
+ 	u8 chip_ver;
+ 	u16 chip_type;
+ 	u32 firmware;
++	u8 firmware_ver;
++	u8 adc_x2;
+ 	u8 tuner_id_0;
+ 	u8 tuner_id_1;
+ 	u8 dual_mode;
+@@ -211,4 +213,11 @@ enum {
+ 	WRITE_CMD,
+ };
+ 
++enum {
++	IT9135_AUTO = 0,
++	IT9137_FW,
++	IT9135_V1_FW,
++	IT9135_V2_FW,
++};
++
+ #endif /* IT913X_FE_H */
+-- 
+1.7.7.1
 
 
-That's not true at all. I am testing DVB-S2/H.264 with the current DVB API.
