@@ -1,45 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:58057 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752951Ab1KLP52 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53262 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753095Ab1K1Lhc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Nov 2011 10:57:28 -0500
-Received: by wwe5 with SMTP id 5so2613032wwe.1
-        for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 07:57:27 -0800 (PST)
-Message-ID: <4ebe9767.8366b40a.1a27.4371@mx.google.com>
-Subject: [PATCH 0/7] af9015 dual tuner and othe fixes from my builds.
-From: Malcolm Priestley <tvboxspy@gmail.com>
+	Mon, 28 Nov 2011 06:37:32 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Date: Sat, 12 Nov 2011 15:57:22 +0000
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH] omap3isp: video: Don't WARN() on unknown pixel formats
+Date: Mon, 28 Nov 2011 12:37:34 +0100
+Message-Id: <1322480254-10461-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here is the lastest patches, for dual tuner and other fixes on the patchwork server.
+When mapping from a V4L2 pixel format to a media bus format in the
+VIDIOC_TRY_FMT and VIDIOC_S_FMT handlers, the requested format may be
+unsupported by the driver. Return a hardcoded format instead of
+WARN()ing in that case.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/ispvideo.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-Malcolm Priestley (7):
-  af9015 Slow down download firmware
-  af9015 Remove call to get config from probe.
-  af9015/af9013 full pid filtering.
-  af9013 frontend tuner bus lock and gate changes v2
-  af9015 bus repeater
-  af9013 Stop OFSM while channel changing.
-  af9013 empty buffer overflow command.
-
- drivers/media/dvb/dvb-usb/af9015.c   |  220 +++++++++++++++++++++-------------
- drivers/media/dvb/frontends/af9013.c |   18 +++-
- drivers/media/dvb/frontends/af9013.h |    5 +-
- 3 files changed, 158 insertions(+), 85 deletions(-)
-
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index d100072..ffe7ce9 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -210,14 +210,14 @@ static void isp_video_pix_to_mbus(const struct v4l2_pix_format *pix,
+ 	mbus->width = pix->width;
+ 	mbus->height = pix->height;
+ 
+-	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
++	/* Skip the last format in the loop so that it will be selected if no
++	 * match is found.
++	 */
++	for (i = 0; i < ARRAY_SIZE(formats) - 1; ++i) {
+ 		if (formats[i].pixelformat == pix->pixelformat)
+ 			break;
+ 	}
+ 
+-	if (WARN_ON(i == ARRAY_SIZE(formats)))
+-		return;
+-
+ 	mbus->code = formats[i].code;
+ 	mbus->colorspace = pix->colorspace;
+ 	mbus->field = pix->field;
 -- 
-1.7.5.4
+Regards,
 
-
-
-
-
+Laurent Pinchart
 
