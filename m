@@ -1,76 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33986 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751262Ab1KDKN7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Nov 2011 06:13:59 -0400
-Message-ID: <4EB3BAE4.2080303@redhat.com>
-Date: Fri, 04 Nov 2011 08:13:56 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:65510 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750821Ab1K1KdA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Nov 2011 05:33:00 -0500
+Date: Mon, 28 Nov 2011 11:34:15 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: 'Daniel Vetter' <daniel@ffwll.ch>, "'Clark, Rob'" <rob@ti.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	'Sumit Semwal' <sumit.semwal@ti.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org,
+	'Sumit Semwal' <sumit.semwal@linaro.org>,
+	'Russell King - ARM Linux' <linux@arm.linux.org.uk>
+Subject: Re: [RFC 1/2] dma-buf: Introduce dma buffer sharing mechanismch
+Message-ID: <20111128103212.GA3840@phenom.ffwll.local>
+References: <1318325033-32688-1-git-send-email-sumit.semwal@ti.com>
+ <1318325033-32688-2-git-send-email-sumit.semwal@ti.com>
+ <4E98085A.8080803@samsung.com>
+ <20111014152139.GA2908@phenom.ffwll.local>
+ <000001cc99ff$47cfe960$d76fbc20$%szyprowski@samsung.com>
+ <CAO8GWqnNMGwADVnO4-RfJu0TPzHhANBdyctv2RyhCxbBJ0beXw@mail.gmail.com>
+ <20111108174122.GA4754@phenom.ffwll.local>
+ <20111108175517.GG12913@n2100.arm.linux.org.uk>
+ <20111108184314.GB4754@phenom.ffwll.local>
+ <000401ccada1$fbdcc030$f3964090$%szyprowski@samsung.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans De Goede <hdegoede@redhat.com>
-Subject: Re: [GIT PULL FOR v3.2] Compilation fixes
-References: <201111041039.58290.hverkuil@xs4all.nl>
-In-Reply-To: <201111041039.58290.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <000401ccada1$fbdcc030$f3964090$%szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 04-11-2011 07:39, Hans Verkuil escreveu:
-> Mauro,
+On Mon, Nov 28, 2011 at 08:47:31AM +0100, Marek Szyprowski wrote:
+> On Tuesday, November 08, 2011 7:43 PM Daniel Vetter wrote:
+> > Thanks for the clarification. I think this is another reason why
+> > get_scatterlist should return the sg_list already mapped into the device
+> > address space - it's more consisten with the other dma apis. Another
+> > reason to completely hide everything but mapped addresses is crazy stuff
+> > like this
+> > 
+> > 	mem <---> tiling iommu <-+-> gpu
+> > 	                         |
+> > 	                         +-> scanout engine
+> > 	                         |
+> > 				 +-> mpeg decoder
+> > 
+> > where it doesn't really make sense to talk about the memory backing the
+> > dma buffer because that's smeared all over the place due to tiling. IIRC
+> > for the case of omap these devices can also access memory through other
+> > paths and iommut that don't tile (but just remap like a normal iommu)
 > 
-> This fixes two compilation problems when using the media_build system.
-> 
-> Both gspca and the solo driver have a header with the same name, and that
-> clashes when using media_build.
+> I really don't get why you want to force the exporter to map the buffer into
+> clients dma address space. Only the client device might know all the quirks
+> required to do this correctly. Exporter should only provide a scatter-list 
+> with the memory that belongs to the exported buffer (might be pinned). How
+> do you want to solve the following case - the gpu hardware from your diagram
+> and a simple usb webcam with generic driver. The application would like to
+> export a buffer from the webcam to scanout engine. How the generic webcam 
+> driver might know HOW to set up the tiller to create correct mappings for 
+> the GPU/scanout? IMHO only a GPU driver is capable of doing that assuming
+> it got just a scatter list from the webcam driver.
 
-This the kind of patch that doesn't make much sense upstream. Granted, the
-files weren't properly named, but there's not requirement upstream that
-denies naming two different files with the same name.
+You're correct that only the gpu knows how to put things into the tiler
+(and maybe other devices that have access to it). Let me expand my diagram
+so that you're webcam fits into the picture.
 
-Btw, looking at both, it seems that they can be merged: both defines the jpeg
-header. The basic difference is that, while gspca jpeg header can have a size of
-either 556 or 589 bytes, the one at solo6x10 has 575 bytes.
+ 	mem <-+-> tiling iommu <-+-> gpu
+ 	      |                  |
+ 	      |                  +-> scanout engine
+ 	      |                  |
+              |                  +-> mpeg decoder
+              |                  |                
+              |                  |                
+              +-> direct dma   <-+
+              |                                  
+              +-> iommua A <-+-> usb hci                                   
+                             |                    
+                             +-> other devices                   
+                             |                    
+                             ...                    
 
-IMHO, the proper fix is to make solo6x10 driver to use the gspca jpeg.h header.
-Assuming that this driver would find his way out of staging, then the jpeg.h
-file should also be moved to another place, like include/linux/media, as I
-don't think that solo6x10 driver should be a gspca sub-driver.
+A few notes:
+- might not be exactly how omap really looks like
+- the devices behind tiler have different device address space windows to
+  access the different paths to main memory. No other device can access
+  the tiler, iirc.
+- your webcam doesn't exist on this because we can't dma from it's memory,
+  we can only zero-copy from the memory the usb hci transferred the frame
+  to.
 
-Hans G, what do you think?
+Now when when e.g. the scanout engine calls get_scatterlist you only call
+dma_map_sg (which does nothing, because there's no iommu that's managed by
+the core kernel code for it). The scanout engine will then complain that
+your stuff is not contiguous and bail out. Or it is indeed contiguous and
+things Just Work.
 
-> And the solo driver uses an incorrect Makefile construct, which (somewhat
-> mysteriously) skips the compilation of 90% of all media drivers.
+The much more interesting case is when the mpeg decoder and the gpu share
+a buffer (think video on rotating cube or whatever other gui transition
+you fancy). Then the omap tiler code can check whether the the device sits
+behind the tiler (e.g. with some omap-specific device tree attribute) and
+hand out a linear view to a tiled buffer.
 
-Hmm.. probably they're using "=" or ":=" instead of "+=". While this works at 
-leaf Makefiles, this breaks compilation when there's just one Makefile, or
-when you add another thing to be compiled there. This is something that requires
-a fix.
+In other words, whereever you're currently calling one of the map/unmap
+dma api variants, you would call get/put_scatterlist (or better the new
+name I'm proposing). So I also don't see your argument about only the
+client knows how to map something into address space.
 
-> 
-> Hopefully this pull request makes it to patchwork as well.
-> 
-> Regards,
-> 
->         Hans
-> 
-> 
-> The following changes since commit bd90649834a322ff70925db9ac37bf7a461add52:
-> 
->   staging/Makefile: Don't compile a media driver there (2011-11-02 09:17:00 -0200)
-> 
-> are available in the git repository at:
->   git://linuxtv.org/hverkuil/media_tree.git fixes
-> 
-> Hans Verkuil (2):
->       solo6x10: rename jpeg.h to solo6x10-jpeg.h
->       solo6x10: fix broken Makefile
-> 
->  drivers/staging/media/solo6x10/Makefile            |    2 +-
->  .../media/solo6x10/{jpeg.h => solo6x10-jpeg.h}     |    0
->  drivers/staging/media/solo6x10/v4l2-enc.c          |    2 +-
->  3 files changed, 2 insertions(+), 2 deletions(-)
->  rename drivers/staging/media/solo6x10/{jpeg.h => solo6x10-jpeg.h} (100%)
-
+Yours, Daniel
+-- 
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
