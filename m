@@ -1,47 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63496 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757981Ab1K3RIe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 12:08:34 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pAUH8YZN024430
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 30 Nov 2011 12:08:34 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 5/5] [media] tm6000: Use a 16 scancode bitmask for IR
-Date: Wed, 30 Nov 2011 15:08:24 -0200
-Message-Id: <1322672904-17340-5-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1322672904-17340-4-git-send-email-mchehab@redhat.com>
-References: <1322672904-17340-1-git-send-email-mchehab@redhat.com>
- <1322672904-17340-2-git-send-email-mchehab@redhat.com>
- <1322672904-17340-3-git-send-email-mchehab@redhat.com>
- <1322672904-17340-4-git-send-email-mchehab@redhat.com>
+Received: from acsinet15.oracle.com ([141.146.126.227]:48429 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751013Ab1K1NIo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Nov 2011 08:08:44 -0500
+Date: Mon, 28 Nov 2011 16:08:53 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Peter Huewe <peterhuewe@gmx.de>,
+	Steven Toth <stoth@kernellabs.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch v2] [media] saa7164: fix endian conversion in
+ saa7164_bus_set()
+Message-ID: <20111128130852.GJ21128@mwanda>
+References: <20111123070911.GA8561@elgon.mountain>
+ <4ECFD56E.3040200@infradead.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="M9pltayyoy9lWEMH"
+Content-Disposition: inline
+In-Reply-To: <4ECFD56E.3040200@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This should allow using 24 or 32 bits NEC IR decoding tables with
-those devices.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+--M9pltayyoy9lWEMH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+The msg->command field is 32 bits, and we should fill it with a call
+to cpu_to_le32().  The current code is broke on big endian systems.
+On little endian systems it truncates the 32 bit value to 16 bits
+which probably still works fine.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 ---
- drivers/media/video/tm6000/tm6000-input.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+v2: Mauro pointed out that I missed the conversion back to cpu endian.
 
-diff --git a/drivers/media/video/tm6000/tm6000-input.c b/drivers/media/video/tm6000/tm6000-input.c
-index 6eaf770..e3467d4 100644
---- a/drivers/media/video/tm6000/tm6000-input.c
-+++ b/drivers/media/video/tm6000/tm6000-input.c
-@@ -416,6 +416,8 @@ int tm6000_ir_init(struct tm6000_core *dev)
- 
- 	/* input setup */
- 	rc->allowed_protos = RC_TYPE_RC5 | RC_TYPE_NEC;
-+	/* Neded, in order to support NEC remotes with 24 or 32 bits */
-+	rc->scanmask = 0xffff;
- 	rc->priv = ir;
- 	rc->change_protocol = tm6000_ir_change_protocol;
- 	if (&dev->int_in) {
--- 
-1.7.7.3
+This is a static checker bug.  The current code is definitely broken on
+big endian systems.  I'm pretty sure my fix is correct, but I don't
+have the hardware to test it.
 
+diff --git a/drivers/media/video/saa7164/saa7164-bus.c b/drivers/media/vide=
+o/saa7164/saa7164-bus.c
+index 466e1b0..a7f58a9 100644
+--- a/drivers/media/video/saa7164/saa7164-bus.c
++++ b/drivers/media/video/saa7164/saa7164-bus.c
+@@ -149,7 +149,7 @@ int saa7164_bus_set(struct saa7164_dev *dev, struct tmC=
+omResInfo* msg,
+ 	saa7164_bus_verify(dev);
+=20
+ 	msg->size =3D cpu_to_le16(msg->size);
+-	msg->command =3D cpu_to_le16(msg->command);
++	msg->command =3D cpu_to_le32(msg->command);
+ 	msg->controlselector =3D cpu_to_le16(msg->controlselector);
+=20
+ 	if (msg->size > dev->bus.m_wMaxReqSize) {
+@@ -464,7 +464,7 @@ int saa7164_bus_get(struct saa7164_dev *dev, struct tmC=
+omResInfo* msg,
+=20
+ peekout:
+ 	msg->size =3D le16_to_cpu(msg->size);
+-	msg->command =3D le16_to_cpu(msg->command);
++	msg->command =3D le32_to_cpu(msg->command);
+ 	msg->controlselector =3D le16_to_cpu(msg->controlselector);
+ 	ret =3D SAA_OK;
+ out:
+
+--M9pltayyoy9lWEMH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJO04fkAAoJEOnZkXI/YHqRZeIP/Ajr7zhyA3sYflT6964H4Uam
+s1E9pMEOXM0ZbDBAopeyTtnTOtpMv6KjBsDFA3WTARfiYSK0UsA+lrBx2rFXTsGw
+Xw0GbWZZYadpwh1ISFnWEG2WrCwl7L/hI725LEytFAxL1NzTjTCA1+GjFKy64ynS
+opmvA575AyeaP2qHxNFJCJ3/KpSjTGFZT0pJ6qkwPz4hHd2p/B0fR92briIEqAFq
+HesngSuD2PNgAosEHvMtqNoHJlnZbDCN3pwSEae1tPHL5K36kfBR6WP8SVgtCOEi
+Pzm67y4Gc+iL3FYyY6K9g4YqBDgJjO3Eps4sfiI37T/beQF5qV1Oe1nHLQGg1IMM
+f82zSfHb34rhv1jUaa1xEAlzIMe2JfXR+6i7/BJ5OjhhAKUAlf/1OgFS5BzVeLkp
+4/s8Qah+B+bq5bI5ju+cEWEasYPp/HS0nVgDDOA0XUAyuVpHcNdG1vEmXKcYZBfx
++FnREtaYg8PNl4YN2kREgNNjr+TG5ui8xahD/qXwzKjn5z80iB01DPWyJ1d1m6jg
+L3RAc9hLg+1fv8uTfp81b2jxLvJW6fZUGIe4yKkXDD7Phz1GTfeZMHQOrFrnwZB5
+0GF9qDR61nFOi+rjbP+9V/G+GkS3l6RbJHdpOjESXg7jgSJ2Ngt1AEeAjiZxTNkC
+9cV2wEpXouPppXmo7+B2
+=O/Kx
+-----END PGP SIGNATURE-----
+
+--M9pltayyoy9lWEMH--
