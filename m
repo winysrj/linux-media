@@ -1,80 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:30704 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754631Ab1KKMLY (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35967 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751518Ab1K1LGu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Nov 2011 07:11:24 -0500
-Received: from epcpsbgm2.samsung.com (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LUH008XWWIZCJ10@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 11 Nov 2011 21:11:23 +0900 (KST)
-Received: from NORIVERFULK04 ([165.213.219.118])
- by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0LUH00I01WIZQZ60@mmp1.samsung.com>
- for linux-media@vger.kernel.org; Fri, 11 Nov 2011 21:11:23 +0900 (KST)
-From: "HeungJun, Kim" <riverful.kim@samsung.com>
-To: "'HeungJun, Kim'" <riverful.kim@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com
-Cc: kyungmin.park@samsung.com
-References: <1319625402-1299-1-git-send-email-riverful.kim@samsung.com>
-In-reply-to: <1319625402-1299-1-git-send-email-riverful.kim@samsung.com>
-Subject: RE: [GIT PULL FOR v3.2] m5mols misc fixes about booting time
-Date: Fri, 11 Nov 2011 21:09:45 +0900
-Message-id: <003001cca06a$ccf3a980$66dafc80$%kim@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+	Mon, 28 Nov 2011 06:06:50 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC] SUBDEV_S/G_SELECTION IOCTLs
+Date: Mon, 28 Nov 2011 12:06:54 +0100
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, sylvester.nawrocki@gmail.com,
+	g.liakhovetski@gmx.de, hverkuil@xs4all.nl, dacohen@gmail.com,
+	andriy.shevchenko@linux.intel.com
+References: <20111108215514.GJ22159@valkosipuli.localdomain> <201111161807.38080.laurent.pinchart@ideasonboard.com> <4ED0B07F.9010208@maxwell.research.nokia.com>
+In-Reply-To: <4ED0B07F.9010208@maxwell.research.nokia.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111281206.55316.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+Hi Sakari,
 
-Please, check this patch series and let me know how's about submission.
+On Saturday 26 November 2011 10:25:19 Sakari Ailus wrote:
+> Laurent Pinchart wrote:
+> > On Thursday 10 November 2011 23:29:34 Sakari Ailus wrote:
+> >> On Thu, Nov 10, 2011 at 04:23:19PM +0100, Tomasz Stanislawski wrote:
+> >>> On 11/08/2011 10:55 PM, Sakari Ailus wrote:
 
-Is needed more any Ack??
+[snip]
 
+> >>>> A sensor
+> >>>> --------
+> >>>> 
+> >>>> The intent is to obtain a VGA image from a 8 MP sensor which provides
+> >>>> following pipeline:
+> >>>> 
+> >>>> pixel_array:0 [crop] --->   0:binner:1 --->   [crop] 0:scaler:1 [crop]
+> >>>> 
+> >>>> Binner is an entity which can perform scaling, but only in factor of
+> >>>> 1/n, where n is a positive integer. No cropping is needed. The intent
+> >>>> is to get a 640x480 image from such sensor. (This doesn't involve any
+> >>>> other configuration as the image size related one.)
+> >>>> 
+> >>>> 	The initial state of the pipeline
+> >>>> 	
+> >>>> 	pixel_array:0	binner:0	binner:1	scaler:0	scaler:1
+> >>>> 
+> >>>> compose
+> >>>> (0,0)/3600x2464	(0,0)/3600x2464	(0,0)/3600x2464	(0,0)/3600x2464	(0,0)/
+> >>>> 3 600x2464
+> >>>> crop	(0,0)/3600x2464	(0,0)/3600x2464	(0,0)/3600x2464	(0,0)/3600x2464	(
+> >>>> 0 ,0)/3600x2464 fmt	3600x2464	3600x2464	3600x2464	3600x2464	3600x2464
+> >>>> 
+> >>>> 	This will configure the binning on the binner subdev sink pad:
+> >>>> 	
+> >>>> 	SUBDEV_S_SELECTION(binner:0, COMPOSE_ACTIVE, (0,0)/1800x1232);
+> >>>> 	
+> >>>> 	pixel_array:0	binner:0	binner:1	scaler:0	scaler:1
+> >>>> 
+> >>>> compose
+> >>>> (0,0)/3600x2464	(0,0)/1800x1232	(0,0)/1800x1232	(0,0)/3600x2464	(0,0)/
+> >>>> 3 600x2464
+> >>>> crop	(0,0)/3600x2464	(0,0)/3600x2464	(0,0)/1800x1232	(0,0)/3600x2464	(
+> >>>> 0 ,0)/3600x2464 fmt	3600x2464	3600x2464	1800x1232	3600x2464	3600x2464
+> >>>> 
+> >>>> 	The same format must be set on the scaler pad 0 as well. This will
+> >>>> 	reset the size inside the scaler to a sane default, which is no
+> >>>> 	scaling:
+> >>>> 	
+> >>>> 	SUBDEV_S_FMT(scaler:0, 1800x1232);
+> >>>> 	
+> >>>> 	pixel_array:0	binner:0	binner:1	scaler:0	scaler:1
+> >>>> 
+> >>>> compose
+> >>>> (0,0)/3600x2464	(0,0)/1800x1232	(0,0)/1800x1232	(0,0)/1800x1232	(0,0)/
+> >>>> 1 800x1232
+> >>>> crop	(0,0)/3600x2464	(0,0)/3600x2464	(0,0)/1800x1232	(0,0)/1800x1232	(
+> >>>> 0 ,0)/1800x1232 fmt	3600x2464	3600x2464	1800x1232	1800x1232	1800x1232
+> >>> 
+> >>> I assume that scaler can upscale image 1800x1232 on scaler:0 to
+> >>> 3600x2464 on pad scaler:1. Therefore the format and compose targets
+> >>> on scaler:1 should not be changed.
+> >> 
+> >> Open question one: do we need a flag for other than s_selection to not
+> >> to reset the following stages?
+> >> 
+> >> That said, we also need to define a behaviour for that: if changes must
+> >> be made e.g. to crop and compose  rectangle on both sink and source
+> >> pads, then how are they made?
+> > 
+> > Shouldn't that be left to the drivers to decide ? Different devices will
+> > likely have different requirements.
+> 
+> That's quite possible, but still there should be a general rule that
+> should be obeyed if possible, or if it makes sense; hopefully both.
+> 
+> I think that enabling the keep-pipeline bit should tell that the changes
+> should be propagated as little as possible while not making too smart
+> decisions. The expected behaviour should be defined.
+
+Shouldn't the keep-pipeline bit prevent any propagation ?
+
+> Say, if one has configured crop and scaling on the sink pad, how does
+> the change of the sink pad format affect the two?
+> 
+> How about this: as the sink format still consists of the whole image,
+> the crop rectangle should be scaled (by the driver) to fit to the new
+> image and the scaling factor should be adjusted so that result after
+> scaling in the sink pad changes as little as possible. There still may
+> be changes to the image size after scaling depending on the properties
+> of the hardware.
+> 
+> Do you think that would that make sense?
+
+I think we should make it simpler. What about just setting all rectangles 
+downstream to the same size as the sink format ? That's if the keep-pipeline 
+bit isn't set, if it's set modifying the sink format should probably be 
+disallowed.
+
+> >>>> 	To perform further scaling on the scaler, the COMPOSE target is used
+> >>>> 	on the scaler subdev's SOURCE pad:
+> >>>> 	
+> >>>> 	SUBDEV_S_SELECTION(scaler:0, COMPOSE_ACTIVE, (0,0)/640x480);
+> >>>> 	
+> >>>> 	pixel_array:0	binner:0	binner:1	scaler:0	scaler:1
+> >>>> 
+> >>>> compose
+> >>>> (0,0)/3600x2464	(0,0)/1800x1232	(0,0)/1800x1232	(0,0)/640x480
+> > 
+> > (0,0)/640
+> > 
+> >>>> x480
+> >>>> crop	(0,0)/3600x2464	(0,0)/3600x2464	(0,0)/1800x1232	(0,0)/1800x1232	(
+> >>>> 0 ,0)/640x480 fmt	3600x2464	3600x2464	1800x1232	1800x1232	640x480
+> >>> 
+> >>> It is possible to compose 640x480 image into 1800x1232 data stream
+> >>> produced on scaler:1. Therefore the format on scaler:1 should not be
+> >>> changed. The area outside 640x480 would left undefined or filled by
+> >>> some pattern configured using controls. This situation was the
+> >>> reason of introducing PADDED target.
+> >> 
+> >> Consider the same example but scaling factor larger than 1. Should there
+> >> be cropping or should the compose rectangle be changed?
+> >> 
+> >> Would it make sense to do as few changes as possible if the
+> >> aforementioned flag is given?
+> >> 
+> >>>> The result is a 640x480 image from the scaler's output pad. The aspect
+> >>>> ratio of the resulting image is different from 4/3 since no cropping
+> >>>> was performed in this example.
+
+-- 
 Regards,
-Heungjun Kim
 
-
-> -----Original Message-----
-> From: HeungJun, Kim [mailto:riverful.kim@samsung.com]
-> Sent: Wednesday, October 26, 2011 7:37 PM
-> To: linux-media@vger.kernel.org
-> Cc: kyungmin.park@samsung.com; HeungJun, Kim
-> Subject: [GIT PULL FOR v3.2] m5mols misc fixes about booting time
-> 
-> Hello Mauro,
-> 
-> the following changes since commit
-35a912455ff5640dc410e91279b03e04045265b2:
-> 
->   merge branch 'v4l_for_linus' into staging/for_v3.2 (2011-10-19 12:41:18
--
-> 0200)
-> 
-> are available in the git repository at:
-> 
->   git://git.infradead.org/users/kmpark/linux-2.6-samsung m5mols
-> 
-> heungjun, kim (5):
->       m5mols: add more functions to check busy status
->       m5mols: replace irq workqueue to waitqueue only
->       m5mols: support for interrupt in the sensor's booting time
->       m5mols: add boot flag for not showing the msg of i2c error
->       m5mols: relocation the order and count for capture interrupt
-> 
->  drivers/media/video/m5mols/m5mols.h         |   10 +-
->  drivers/media/video/m5mols/m5mols_capture.c |   71 +++----------
->  drivers/media/video/m5mols/m5mols_core.c    |  140
-++++++++++++++++--------
-> ---
->  drivers/media/video/m5mols/m5mols_reg.h     |    3 +-
->  4 files changed, 109 insertions(+), 115 deletions(-)
-> --
-> Regards,
-> HeungJun Kim
-> --
-
+Laurent Pinchart
