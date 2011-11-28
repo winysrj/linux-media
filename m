@@ -1,76 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:36650 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753051Ab1KFR6H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2011 12:58:07 -0500
-Received: by mail-wy0-f174.google.com with SMTP id 15so3779416wyh.19
-        for <linux-media@vger.kernel.org>; Sun, 06 Nov 2011 09:58:07 -0800 (PST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Subject: Re: FX2 FW: conversion from Intel HEX to DVB USB "hexline"
-Date: Sun, 6 Nov 2011 18:58:00 +0100
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <4EB6990C.8000904@iki.fi>
-In-Reply-To: <4EB6990C.8000904@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37929 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751223Ab1K1Kfw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Nov 2011 05:35:52 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Alex <alex.vizor@gmail.com>
+Subject: Re: uvcvideo: Failed to query (SET_CUR) UVC control 10 on unit 2: -32 (exp. 2).
+Date: Mon, 28 Nov 2011 11:35:57 +0100
+Cc: linux-media@vger.kernel.org
+References: <4ED29713.1010202@gmail.com>
+In-Reply-To: <4ED29713.1010202@gmail.com>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_oqstO7LoV3K4a26"
-Message-Id: <201111061858.00709.pboettcher@kernellabs.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111281135.57435.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Boundary-00=_oqstO7LoV3K4a26
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Hi Alex,
 
-Hi Antti,
-
-On Sunday, November 06, 2011 03:26:20 PM Antti Palosaari wrote:
-> Is there any simple tool (or one liner script :) to convert normal Intel
-> HEX firmware to format used by DVB USB Cypress firmware loader?
+On Sunday 27 November 2011 21:01:23 Alex wrote:
+> Hi guys,
 > 
-> Or is there some other way those are created?
-> 
-> Loader is here:
-> dvb-usb-firmware.c
-> int usb_cypress_load_firmware()
+> I'm using kernel 3.2-rc3 and get following in dmesg on every try to use
+> thinkpad integrated camera (here I did rmmod and modprobe before test):
+> [ 9481.258170] usbcore: deregistering interface driver uvcvideo
+> [ 9481.296659] uvcvideo: Failed to submit URB 0 (-28).
+> [ 9481.296677] uvcvideo 1-1.6:1.1: resume error -28
+> [ 9490.117546] uvcvideo: Found UVC 1.00 device Integrated Camera
+> (04f2:b221) [ 9490.119166] input: Integrated Camera as
+> /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.6/1-1.6:1.0/input/input13
+> [ 9490.119298] usbcore: registered new interface driver uvcvideo
+> [ 9490.119302] USB Video Class driver (1.1.1)
+> [ 9498.101683] uvcvideo: Failed to query (SET_CUR) UVC control 10 on
+> unit 2: -32 (exp. 2).
+> [ 9498.113603] uvcvideo: Failed to submit URB 0 (-28).
 
-I'm sure that you have found something yourself in the meantime, but I used 
-the attached script to convert .hex to binaries.
+Those two errors might be unrelated.
 
-HTH,
+For the second one, I'm tempted to blame 
+http://git.kernel.org/?p=linux/kernel/git/stable/linux-
+stable.git;a=commit;h=f0cc710a6dec5b808a6f13f1f8853c094fce5f12. Could you 
+please try reverting it, and see if it fixes your issue ? If so, let's report 
+that to the linux-usb mailing list.
 
---
-Patrick Boettcher - KernelLabs
-http://www.kernellabs.com/
+For the first one, could you please send me the lsusb -v output for your 
+webcam ?
 
---Boundary-00=_oqstO7LoV3K4a26
-Content-Type: application/x-perl;
-  name="hex2bin.pl"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="hex2bin.pl"
+-- 
+Regards,
 
-#!/usr/bin/perl -w
-
-use strict;
-
-print STDERR "hex-file2binary converter.\n";
-
-
-while (<>) {
-	last if $_ =~ /:00000001FF/;
-	my @line = $_ =~ /([0-9A-Fa-f]{2})/g;
-
-	# intel address 16Bit address
-	my $t = $line[1];
-	$line[1] = $line[2];
-	$line[2] = $t;
-
-	foreach (@line) {
-		printf "%c", eval "0x$_";
-	}
-}
-
---Boundary-00=_oqstO7LoV3K4a26--
+Laurent Pinchart
