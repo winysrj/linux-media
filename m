@@ -1,40 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:59591 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752116Ab1KKQbL (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:41302 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750878Ab1K1QBR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Nov 2011 11:31:11 -0500
-Message-ID: <4EBD4DD1.7030809@gmx.de>
-Date: Fri, 11 Nov 2011 16:31:13 +0000
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-MIME-Version: 1.0
+	Mon, 28 Nov 2011 11:01:17 -0500
+Date: Mon, 28 Nov 2011 18:01:12 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com, Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH v3 0/3] fbdev: Add FOURCC-based format configuration API
-References: <1314789501-824-1-git-send-email-laurent.pinchart@ideasonboard.com> <4E764B35.2090009@gmx.de> <201109182249.39536.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201109182249.39536.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] omap3isp: video: Don't WARN() on unknown pixel formats
+Message-ID: <20111128160112.GE29805@valkosipuli.localdomain>
+References: <1322480254-10461-1-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1322480254-10461-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/18/2011 08:49 PM, Laurent Pinchart wrote:
->> As the second patch has nothing to do with fbdev it should go mainline via
->> V4L2. Any problems/comments?
+Thanks for the patch, Laurent!
+
+On Mon, Nov 28, 2011 at 12:37:34PM +0100, Laurent Pinchart wrote:
+> When mapping from a V4L2 pixel format to a media bus format in the
+> VIDIOC_TRY_FMT and VIDIOC_S_FMT handlers, the requested format may be
+> unsupported by the driver. Return a hardcoded format instead of
+> WARN()ing in that case.
 > 
-> The NV24/42 patch will need to reach mainline before the sh_mobile_lcdc YUV 
-> API patch, or compilation will break.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/video/omap3isp/ispvideo.c |    8 ++++----
+>  1 files changed, 4 insertions(+), 4 deletions(-)
 > 
-> Mauro, what's your preference ? Should the patch go through the media tree ? 
-> If so, how should we synchronize it with the fbdev tree ? Should I push it to 
-> 3.2 ?
+> diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+> index d100072..ffe7ce9 100644
+> --- a/drivers/media/video/omap3isp/ispvideo.c
+> +++ b/drivers/media/video/omap3isp/ispvideo.c
+> @@ -210,14 +210,14 @@ static void isp_video_pix_to_mbus(const struct v4l2_pix_format *pix,
+>  	mbus->width = pix->width;
+>  	mbus->height = pix->height;
+>  
+> -	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
+> +	/* Skip the last format in the loop so that it will be selected if no
+> +	 * match is found.
+> +	 */
+> +	for (i = 0; i < ARRAY_SIZE(formats) - 1; ++i) {
+>  		if (formats[i].pixelformat == pix->pixelformat)
+>  			break;
+>  	}
+>  
+> -	if (WARN_ON(i == ARRAY_SIZE(formats)))
+> -		return;
+> -
+>  	mbus->code = formats[i].code;
+>  	mbus->colorspace = pix->colorspace;
+>  	mbus->field = pix->field;
 
-ping
+In case of setting or trying an invalid format, instead of selecting a
+default format, shouldn't we leave the format unchanced --- the current
+setting is valid after all.
 
-What's going on? I could carry the patch but I'd want an Ack to do so.
-
-
-Best regards,
-
-Florian Tobias Schandinat
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
