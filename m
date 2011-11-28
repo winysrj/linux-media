@@ -1,84 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33023 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755103Ab1KOLmD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Nov 2011 06:42:03 -0500
-Message-ID: <4EC25008.4020804@iki.fi>
-Date: Tue, 15 Nov 2011 13:42:00 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:31575 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753400Ab1K1MjQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Nov 2011 07:39:16 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v2 1/2] v4l: Add new alpha component control
+Date: Mon, 28 Nov 2011 13:39:02 +0100
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	laurent.pinchart@ideasonboard.com, m.szyprowski@samsung.com,
+	jonghun.han@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+References: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com> <201111281238.42045.hverkuil@xs4all.nl> <4ED37AEC.80105@samsung.com>
+In-Reply-To: <4ED37AEC.80105@samsung.com>
 MIME-Version: 1.0
-To: Claus Olesen <ceolesen@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: PCTV 290e and 520e
-References: <CAGa-wNMx7DhppkBQNowuXBKwitkU3tCQYLzNJuhqx=ZcytcjVQ@mail.gmail.com>
-In-Reply-To: <CAGa-wNMx7DhppkBQNowuXBKwitkU3tCQYLzNJuhqx=ZcytcjVQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111281339.03100.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/15/2011 01:14 PM, Claus Olesen wrote:
-> PCTV 290e usb stick - locking issue
-> ===================================
-> The locking issue with the 290e is not resolved as of
-> yesterdays auto update to kernel 3.1.1-1.fc16.i686.PAE on Fedora 16.
-> The symptoms are that no usb stick is usable unless the em28xx_dvb
-> module is manually unloaded and the 290e unplugged in that order.
+On Monday 28 November 2011 13:13:32 Sylwester Nawrocki wrote:
+> On 11/28/2011 12:38 PM, Hans Verkuil wrote:
+> > On Friday 25 November 2011 16:39:31 Sylwester Nawrocki wrote:
+> >> This control is intended for the video capture or memory-to-memory
+> >> devices that are capable of setting up a per-pixel alpha component to
+> >> some arbitrary value. The V4L2_CID_ALPHA_COMPONENT control allows to
+> >> set the alpha component for all pixels to a value in range from 0 to
+> >> 255.
+> >> 
+> >> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> >> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >> ---
+> >> 
+> >>  Documentation/DocBook/media/v4l/compat.xml         |   11 ++++++++
+> >>  Documentation/DocBook/media/v4l/controls.xml       |   25
+> >> 
+> >> +++++++++++++++---- .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |
+> >> 
+> >>  7 ++++-
+> >>  drivers/media/video/v4l2-ctrls.c                   |    7 +++++
+> >>  include/linux/videodev2.h                          |    6 ++--
+> >>  5 files changed, 45 insertions(+), 11 deletions(-)
+> 
+> ...
+> 
+> >>  	/* MPEG controls */
+> >>  	/* Keep the order of the 'case's the same as in videodev2.h! */
+> >> 
+> >> @@ -714,6 +715,12 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
+> >> v4l2_ctrl_type *type, /* Max is calculated as RGB888 that is 2^24 */
+> >> 
+> >>  		*max = 0xFFFFFF;
+> >>  		break;
+> >> 
+> >> +	case V4L2_CID_ALPHA_COMPONENT:
+> >> +		*type = V4L2_CTRL_TYPE_INTEGER;
+> >> +		*step = 1;
+> >> +		*min = 0;
+> >> +		*max = 0xff;
+> >> +		break;
+> > 
+> > Hmm. Do we really want to fix the max value to 0xff? The bits assigned to
+> > the alpha component will vary between 1 (V4L2_PIX_FMT_RGB555X), 4
+> > (V4L2_PIX_FMT_RGB444) or 8 (V4L2_PIX_FMT_RGB32). It wouldn't surprise me
+> > to see larger sizes as well in the future (e.g. 16 bits).
+> > 
+> > I think the max value should be the largest alpha value the hardware can
+> > support. The application has to set it to the right value that
+> > corresponds to the currently chosen pixel format. The driver just copies
+> > the first N bits into the alpha value where N depends on the pixel
+> > format.
+> > 
+> > what do you think?
+> 
+> Yes, ideally the maximum value of the alpha control should be changing
+> depending on the set colour format.
+> Currently the maximum value of the control equals maximum alpha value for
+> the fourcc of maximum colour depth (V4L2_PIX_FMT_RGB32).
+> 
+> What I found missing was a method for changing the control range
+> dynamically, without deleting and re-initializing the control handler.
+> If we reinitalize whole control handler the previously set control values
+> are lost.
 
-It is fixed to 3.2. I have had 3.2 few days and it works as it should. 
-Thanks for the  Chris Rankin for fixing that long time and annoying 
-em28xx driver bug!
+You can just change the maximum field of struct v4l2_ctrl on the fly like 
+this:
 
-> PCTV 290e usb stick - dvb-c support
-> ===================================
-> dvb-c is supported by the 290e (although not advertised)
-> according to stevekerrison.com/290e/, my tests with dvbviewer on windows and
-> dmesg on my Fedora 16 as follows (3rd line from the bottom)
+struct v4l2_ctrl *my_ctrl;
 
-> [   80.031343] DVB: registering adapter 0 frontend 0 (Sony CXD2820R
-> (DVB-T/T2))...
-> [   80.031579] DVB: registering adapter 0 frontend 1 (Sony CXD2820R (DVB-C))...
+v4l2_ctrl_lock(my_ctrl);
+my_ctrl->maximum = 10;
+if (my_ctrl->cur.val > my_ctrl->maximum)
+	my_ctrl->cur.val = my_ctrl->maximum;
+v4l2_ctrl_unlock(my_ctrl);
 
-> but not by the latest kernel 3.1.1-1.fc16.i686.PAE of Fedora 16
-> as the command
-> find /dev/dvb
-> outputs
+Although this might warrant a v4l2_ctrl_update_range() function that does this
+for you. Because after a change like this a V4L2_EVENT_CTRL should also be 
+sent.
 
-> /dev/dvb/adapter0/frontend1
-> /dev/dvb/adapter0/frontend0
-> showing all the index-0 (dvb-t) devices but mostly no index-1 (dvb-c) devices
->
-> Does anyone know of an intent to add support for dvb-c from the PCTV
-> 290e? in the near future?
+In any case, this functionality isn't hard to add. Just let me know if you 
+need it and I can make a patch for this.
 
-There is two frontends, frontend0 for DVB-T/T2 and frontend1 for DVB-C 
-(as the logs says too).
+Regards,
 
-> PCTV 520e usb stick - dvb-c support
-> ===================================
-> The 520e supports dvb-c in addition to dvb-t.
-> Does anyone know of an intent to add support for (dvb-c in particular
-> from) the 520e? in the near
-> future?
+	Hans
 
-It should be rather easy stuff and I am also interested. But I have no 
-time currently nor device (have some other ~similar devices waiting here 
-too).
-
-> PCTV 290e and 520e usb sticks - compared
-> ========================================
-> The 520e applies tda18271 according to
-> www.mail-archive.com/linux-media@vger.kernel.org/msg38091.html
-> as also applied by the 290e hinting perhaps that the 290e and 520e are
-> very alike.
->
-> Does that mean that dvb-c support if added for the 520e also will apply to the
-> 290e? thereby making the 290e a better deal as it also supports dvb-t2?
-
-If you need DVB-C then it maybe better to get some other stick than 
-290e. Using it for DVB-C is out-of-specs.
-
-regards
-Antti
--- 
-http://palosaari.fi/
+> 
+> And, AFAIU, single control cannot be currently removed and re-added to the
+> control handler.
+> 
+> --
+> 
+> Regards,
+> Sylwester
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
