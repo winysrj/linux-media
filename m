@@ -1,98 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:36258 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752450Ab1KLPo0 convert rfc822-to-8bit (ORCPT
+Received: from hermes.mlbassoc.com ([64.234.241.98]:44704 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753729Ab1K1Mmx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Nov 2011 10:44:26 -0500
-Received: by wyh15 with SMTP id 15so4688811wyh.19
-        for <linux-media@vger.kernel.org>; Sat, 12 Nov 2011 07:44:25 -0800 (PST)
+	Mon, 28 Nov 2011 07:42:53 -0500
+Message-ID: <4ED381C7.8000007@mlbassoc.com>
+Date: Mon, 28 Nov 2011 05:42:47 -0700
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-In-Reply-To: <CAB33W8eYnQbKAkNobiez0yH5tgCVN4s84ncT5cmKHxeqHm8P3Q@mail.gmail.com>
-References: <CAB33W8dW0Yts_dxz=WyYEK9-bcoQ_9gM-t3+aR5s-G_5QswOyA@mail.gmail.com>
-	<CAB33W8eMEG6cxM9x0aGRe+1xx6TwvjBZL4KSdRY4Ti2sTHk9hg@mail.gmail.com>
-	<CAL9G6WXq_MSu+6Ogjis43bsszDri0y5JQrhHrAQ8tiTKv09YKQ@mail.gmail.com>
-	<CAATJ+ftr76OMckcpf_ceX4cPwv0840C9HL+UuHivAtub+OC+jw@mail.gmail.com>
-	<4ebdacc2.04c6e30a.29e4.58ff@mx.google.com>
-	<CAB33W8eYnQbKAkNobiez0yH5tgCVN4s84ncT5cmKHxeqHm8P3Q@mail.gmail.com>
-Date: Sat, 12 Nov 2011 16:44:24 +0100
-Message-ID: <CAL9G6WXHfA-n0u_yB7QvUAN_8TxSSA2M_O0m6kbsOrcgE+nMsA@mail.gmail.com>
-Subject: Re: AF9015 Dual tuner i2c write failures
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: Tim Draper <veehexx@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Javier Martinez Canillas <martinez.javier@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Using MT9P031 digital sensor
+References: <4EB04001.9050803@mlbassoc.com> <201111241228.38082.laurent.pinchart@ideasonboard.com> <4ECF8101.7050603@mlbassoc.com> <201111281207.46625.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201111281207.46625.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/11/12 Tim Draper <veehexx@gmail.com>:
-> On 11 November 2011 23:16, Malcolm Priestley <tvboxspy@gmail.com> wrote:
->> On Sat, 2011-11-12 at 09:51 +1100, Jason Hecker wrote:
->>> I concur.  I have been using Malcolm Priestly's patches with both my
->>> AF9015 dual tuner cards (which are PCI but still look like USB to the
->>> kernel) for a few weeks now and have (finally!) got consistently
->>> perfect recordings in MythTV simultaneously with both tuners on a
->>> card. Malcolm, when do you think you'll submit these patches to the
->>> tree for inclusion?  Is there anything else to test?
+On 2011-11-28 04:07, Laurent Pinchart wrote:
+> Hi Gary,
+>
+> On Friday 25 November 2011 12:50:25 Gary Thomas wrote:
+>> On 2011-11-24 04:28, Laurent Pinchart wrote:
+>>> On Wednesday 16 November 2011 13:03:11 Gary Thomas wrote:
+>>>> On 2011-11-15 18:26, Laurent Pinchart wrote:
+>>>>> On Monday 14 November 2011 12:42:54 Gary Thomas wrote:
+>>>>>> On 2011-11-11 07:26, Laurent Pinchart wrote:
+>>>>>>> On Wednesday 09 November 2011 17:24:26 Gary Thomas wrote:
+>>>>>>>> On 2011-11-09 09:18, Laurent Pinchart wrote:
+>>>>>>>>> On Wednesday 09 November 2011 12:01:34 Gary Thomas wrote:
+>>>>>>>>>> On 2011-11-08 17:54, Laurent Pinchart wrote:
+>>>>>>>>>>> On Tuesday 08 November 2011 14:38:55 Gary Thomas wrote:
+>>>>>>>>>>>> On 2011-11-08 06:06, Laurent Pinchart wrote:
+>>>>>>>>>>>>> On Tuesday 08 November 2011 13:52:25 Gary Thomas wrote:
+>>>>>>>>>>>>>> On 2011-11-08 05:30, Javier Martinez Canillas wrote:
+>>>>>>>>>>>>>>> On Tue, Nov 8, 2011 at 1:20 PM, Gary Thomas wrote:
+>>>>>>>>>>>>>>>> On 2011-11-04 04:37, Laurent Pinchart wrote:
+>>>>>>>>>>>>>>>>> On Tuesday 01 November 2011 19:52:49 Gary Thomas wrote:
+>>>>>>>>>>>>>>>>>> I'm trying to use the MT9P031 digital sensor with the
+>>>>>>>>>>>>>>>>>> Media Controller Framework.  media-ctl tells me that the
+>>>>>>>>>>>>>>>>>> sensor is set to capture using SGRBG12  2592x1944
+>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>> Questions:
+>>>>>>>>>>>>>>>>>> * What pixel format in ffmpeg does this correspond to?
+>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>> I don't know if ffmpeg supports Bayer formats. The
+>>>>>>>>>>>>>>>>> corresponding fourcc in V4L2 is BA12.
+>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>> ffmpeg doesn't seem to support these formats
+>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>> If your sensor is hooked up to the OMAP3 ISP, you can then
+>>>>>>>>>>>>>>>>> configure the pipeline to include the preview engine and
+>>>>>>>>>>>>>>>>> the resizer, and capture YUV data
+>>>>>>>>>>>>>>>>> at the resizer output.
+>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>> I am using the OMAP3 ISP, but it's a bit unclear to me how
+>>>>>>>>>>>>>>>> to set up the pipeline
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>> Hi Gary,
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>> I'm also using another sensor mtv9034 with OMAP3 ISP, so
+>>>>>>>>>>>>>>> maybe I can help you.
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>> using media-ctl (I looked for documentation on this tool,
+>>>>>>>>>>>>>>>> but came up dry - is there any?)
+>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>> Do you have an example of how to configure this using the
+>>>>>>>>>>>>>>>> OMAP3 ISP?
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>> This is how I configure the pipeline to connect the CCDC with
+>>>>>>>>>>>>>>> the Previewer and Resizer:
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>> ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
+>>>>>>>>>>>>>>> ./media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>>>>>>>>>>>>>>> ./media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP
+>>>>>>>>>>>>>>> resizer":0[1]' ./media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3
+>>>>>>>>>>>>>>> ISP resizer output":0[1]' ./media-ctl -f '"mt9v032
+>>>>>>>>>>>>>>> 3-005c":0[SGRBG10 752x480]' ./media-ctl -f  '"OMAP3 ISP
+>>>>>>>>>>>>>>> CCDC":0 [SGRBG10 752x480]' ./media-ctl -f  '"OMAP3 ISP
+>>>>>>>>>>>>>>> CCDC":1 [SGRBG10 752x480]' ./media-ctl -f  '"OMAP3 ISP
+>>>>>>>>>>>>>>> preview":0 [SGRBG10 752x479]' ./media-ctl -f  '"OMAP3 ISP
+>>>>>>>>>>>>>>> resizer":0 [YUYV 734x471]' ./media-ctl -f  '"OMAP3 ISP
+>>>>>>>>>>>>>>> resizer":1 [YUYV 640x480]'
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>> Hope it helps,
+>>>>>>>>>>>>>>
+>>>>>>>>>>>>>> Thanks, I'll give this a try.
+>>>>>>>>>>>>>>
+>>>>>>>>>>>>>> I assume that your sensor is probably larger than 752x480 (the
+>>>>>>>>>>>>>> mt9p031 is 2592x1944 raw) and that setting the smaller frame
+>>>>>>>>>>>>>> size enables some scaling and/or cropping in the driver?
+>>>>>>>>>>>>>
+>>>>>>>>>>>>> The mt9v034 is a wide VGA 752x480 sensor if I'm not mistaken.
+>>>>>>>>>>>>> You should modify the resolutions in the above commands
+>>>>>>>>>>>>> according to your sensor. Note that the CCDC crops online line
+>>>>>>>>>>>>> when outputting data to the preview engine, and that the
+>>>>>>>>>>>>> preview engine crops 18 columsn and 8 lines. You can then
+>>>>>>>>>>>>> scale the image by modifying the resizer output size.
+>>>>>>>>>>>>
+>>>>>>>>>>>> Thanks.  After much trial and error (and some kernel printks to
+>>>>>>>>>>>>
+>>>>>>>>>>>> understand what parameters were failing), I came up with this
+>>>>>
+>>>>> sequence:
+>>>>>>>>>>>>          media-ctl -r
+>>>>>>>>>>>>          media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+>>>>>>>>>>>>          media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP
+>>>>>>>>>>>>          preview":0[1]' media-ctl -l '"OMAP3 ISP
+>>>>>>>>>>>>          preview":1->"OMAP3 ISP resizer":0[1]' media-ctl -l
+>>>>>>>>>>>>          '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
+>>>>>>>>>>>>          output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12
+>>>>>>>>>>>>          2592x1944]' media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG12
+>>>>>>>>>>>>          2592x1944]'
+>>>>>>>>>>>>          media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG12 2592x1944]'
+>>>>>>>>>>>>          media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG12
+>>>>>>>>>>>>          2592x1943]' media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV
+>>>>>>>>>>>>          2574x1935]' media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV
+>>>>>>>>>>>>          642x483]'
+>>>>>>>>>>>>
+>>>>>>>>>>>> When I tried to grab though, I got this:
+>>>>>>>>>>>>
+>>>>>>>>>>>> # yavta --capture=4 -f YUYV -s 642x483 -F /dev/video6
+>>>>>>>>>>>> Device /dev/video6 opened.
+>>>>>>>>>>>> Device `OMAP3 ISP resizer output' on `media' is a video capture
+>>>>>>>>>>>> device. Video format set: YUYV (56595559) 642x483 buffer size
+>>>>>>>>>>>> 633696 Video format: YUYV (56595559) 642x483 buffer size 633696
+>>>>>>>>>>>> 8 buffers requested.
+>>>>>>>>>>>> length: 633696 offset: 0
+>>>>>>>>>>>> Buffer 0 mapped at address 0x4028c000.
+>>>>>>>>>>>> length: 633696 offset: 634880
+>>>>>>>>>>>> Buffer 1 mapped at address 0x403d0000.
+>>>>>>>>>>>> length: 633696 offset: 1269760
+>>>>>>>>>>>> Buffer 2 mapped at address 0x404b3000.
+>>>>>>>>>>>> length: 633696 offset: 1904640
+>>>>>>>>>>>> Buffer 3 mapped at address 0x4062b000.
+>>>>>>>>>>>> length: 633696 offset: 2539520
+>>>>>>>>>>>> Buffer 4 mapped at address 0x406d6000.
+>>>>>>>>>>>> length: 633696 offset: 3174400
+>>>>>>>>>>>> Buffer 5 mapped at address 0x40821000.
+>>>>>>>>>>>> length: 633696 offset: 3809280
+>>>>>>>>>>>> Buffer 6 mapped at address 0x4097c000.
+>>>>>>>>>>>> length: 633696 offset: 4444160
+>>>>>>>>>>>> Buffer 7 mapped at address 0x40adf000.
+>>>>>>>>>>>>
+>>>>>>>>>>>> Unable to handle kernel NULL pointer dereference at virtual
+>>>>>>>>>>>> address 00000018
+>>>>>>>>>>>
+>>>>>>>>>>> Ouch :-(
+>>>>>>>>>>>
+>>>>>>>>>>> Could you please verify that arch/arm/mach-omap2/board-overo.c
+>>>>>>>>>>> includes the following code, and that CONFIG_OMAP_MUX is enabled
+>>>>>>>>>>> ?
+>>>>>>>>>>
+>>>>>>>>>> I'm not using an Overo board - rather one of our own internal
+>>>>>>>>>> designs.
+>>>>>>>>>
+>>>>>>>>> My bad, sorry.
+>>>>>>>>>
+>>>>>>>>>> I have verified that the pull up/down on those pins is disabled.
+>>>>>>>>>>
+>>>>>>>>>> The failure is coming from this code in ispccdc.c
+>>>>>>>>>>
+>>>>>>>>>>         static void ccdc_hs_vs_isr(struct isp_ccdc_device *ccdc)
+>>>>>>>>>>         {
+>>>>>>>>>> 	
+>>>>>>>>>> 	  struct isp_pipeline *pipe =
+>>>>>>>>>> 		
+>>>>>>>>>> 		to_isp_pipeline(&ccdc->video_out.video.entity);
+>>>>>>>>>>
+>>>>>>>>>> The value of pipe is NULL which leads to the failure.
+>>>>>>>>>>
+>>>>>>>>>> Questions:
+>>>>>>>>>> * I assume that getting HS/VS interrupts is correct in this mode?
+>>>>>>>>>> * Why is the statement not written (as all others are)
+>>>>>>>>>>
+>>>>>>>>>> 	struct isp_pipeline *pipe =
+>>>>>>>>>> 	to_isp_pipeline(&ccdc->subdev.entity);
+>>>>>>>>>> 	
+>>>>>>>>>>         I tried this change and the kernel doesn't crash.
+>>>>>>>>>>
+>>>>>>>>>> I've found that I can get raw frames out of CCDC, but I don't get
+>>>>>>>>>> anything at all when the output continues through the preview
+>>>>>>>>>> and/or resize nodes.
+>>>>>>>>>>
+>>>>>>>>>> Ideas?
+>>>>>>>>>
+>>>>>>>>> I'm really puzzled, this should have been caught much earlier :-)
+>>>>>>>>>
+>>>>>>>>> Your analysis makes sense. Would you like to submit a patch
+>>>>>>>>> yourself ? If not I can do it.
+>>>>>>>>
+>>>>>>>> Sure, I can submit a patch. I would like to figure out why it's not
+>>>>>>>> working first.
+>>>>>>>
+>>>>>>> Oops, I've overlooked that, sorry.
+>>>>>>>
+>>>>>>>> Any ideas how I can debug this? I can't seem to get anything past
+>>>>>>>> the CCDC, e.g. into the preview or resize units. Is there some way
+>>>>>>>> to trace packets/data through the various stages? Any ideas what
+>>>>>>>> might cause it to stall?
+>>>>>>>
+>>>>>>> How have you configured your pipeline ? Can you try tracing the
+>>>>>>> preview engine and/or resizer interrupts ?
+>>>>>>
+>>>>>> Here's my pipeline:
+>>>>>>       media-ctl -r
+>>>>>>       media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+>>>>>>       media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>>>>>>       media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+>>>>>>       media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
+>>>>>>       output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12
+>>>>>>       2592x1944]' media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG10
+>>>>>>       2592x1944]'
+>>>>>>       media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
+>>>>>>       media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
+>>>>>>       media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
+>>>>>>       media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 642x483]'
+>>>>>>
+>>>>>> The full media-ctl dump is at
+>>>>>> http://www.mlbassoc.com/misc/pipeline.out
+>>>>>>
+>>>>>> When I try to grab from /dev/video6 (output node of resizer), I see
+>>>>>> only previewer interrupts, no resizer interrrupts.  I added a simple
+>>>>>> printk at each of the previewer/resizer *_isr functions, and I only
+>>>>>>
+>>>>>> ever see this one:
+>>>>>>       omap3isp_preview_isr_frame_sync.1373
+>>>>>>
+>>>>>> Can you give me an overview of what events/interrupts should occur so
+>>>>>> I can try to trace through the ISP to see where it is failing?
+>>>>>
+>>>>> The CCDC generates VD0, VD1 and HS/VS interrupts regardless of whether
+>>>>> it processes video or not, as long as it receives a video stream at
+>>>>> its input. The preview engine and resizer will only generate an
+>>>>> interrupt after writing an image to memory. With your above
+>>>>> configuration VD0, VD1, HS/VS and resizer interrupts should be
+>>>>> generated.
+>>>>>
+>>>>> Your pipeline configuration looks correct, except that the downscaling
+>>>>> factor is slightly larger than 4. Could you try to setup the resizer to
+>>>>> output a 2574x1935 image instead of 642x483 ? If that works, try to
+>>>>> downscale to 660x496. If that works as well, the driver should be fixed
+>>>>> to disallow resolutions that won't work.
+>>>>
+>>>> No change.  I also tried using only the previewer like this:
+>>>>      media-ctl -r
+>>>>      media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+>>>>      media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>>>>      media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP preview
+>>>>      output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12 2592x1944]'
+>>>>      media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG12 2592x1944]'
+>>>>      media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
+>>>>      media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
+>>>>      media-ctl -f  '"OMAP3 ISP preview":1 [YUYV 2574x1935]'
+>>>>
+>>>>      yavta --capture=4 -f YUYV -s 2574x1935 -F /dev/video4
+>>>>
+>>>> I still only get the frame sync interrupts in the previewer, no buffer
+>>>> interrupts, hence no data flowing to my application.  What else can I
+>>>> look at?
 >>>
->>> I agree about the power cycling.  Every time I reboot I disconnect the
->>> AC supply for 20secs to be sure the cards are power cycled properly -
->>> you do the same thing by pulling out the stick.
+>>> Do you get VD0 and VD1 interrupts ?
 >>
->> Yes, this is what is holding up the patches to media_build.
+>> Yes, the CCDC is working correctly, but nothing moves through the
+>> previewer. Here's a trace of the interrupt sequence I get, repeated over
+>> and over.  These are printed as __FUNCTION__.__LINE__
+>> --- ccdc_vd0_isr.1615
+>> --- ccdc_hs_vs_isr.1482
+>> --- ccdc_vd1_isr.1664
+>> --- omap3isp_preview_isr_frame_sync.1373
 >>
->> The bug appears to be a race condition that appears in get config with
->> some usb controllers.
->>
->> Josu, your patch is for the older hg version on s2, so this will not
->> work on media_build.
->>
->> I have being trying to a way to do it without the bus lock, but can't
->>
->> I will try and finish the patches tomorrow.
->>
->> Regards
->>
->>
->> Malcolm
->>
->>
+>> What's the best tree to try this against?  3.2-rc2 doesn't have the BT656
+>> stuff in it yet, so I've been still using my older tree (3.0.0 +
+>> drivers/media from your tree)
 >
-> thanks for the quick responses guys! i look forward to the update.
-> since i'm new to this mailing list, and have only used v4l in
-> pre-configured linux distro's, how will this fix be distributed to
-> people - as a patch i presume?
-> are there any how-to's with prerequisites of whats required to apply a patch?
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I thought you were using an MT9P031 ? That doesn't require BT656 support.
 >
 
-Hello Tim, I am not expert on this. I use to install this way:
-
-apt-get install linux-headers-`uname -r` build-essential
-mkdir /usr/local/src/dvb
-cd /usr/local/src/dvb
-
-wget http://mercurial.intuxication.org/hg/s2-liplianin/archive/tip.zip
-unzip s2-liplianin-0b7d3cc65161.zip
-cd s2-liplianin-0b7d3cc65161
-
-cp /home/lazkano/Dropbox/repository/dvb/af9015_v3.patch.tar.gz .
-tar xvzf af9015_v3.patch.tar.gz
-patch -p1 < af9015_v3.patch
-
-make CONFIG_DVB_FIREDTV:=n
-make install
-
-With this method, I get working the Kworld dual DVB-T and Tevii S660 DVB-S2.
-
-Malcolm, thanks for your work, with this patches you will make useful
-3 DVB-T devices I have.
-
-Regards.
-
+True, but I have one board that supports either sensor and I want to stay
+with one source tree.
 
 -- 
-Josu Lazkano
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
