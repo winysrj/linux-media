@@ -1,204 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45261 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754305Ab1KVU4G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Nov 2011 15:56:06 -0500
-Date: Tue, 22 Nov 2011 21:55:52 +0100
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, shawn.guo@linaro.org,
-	richard.zhao@linaro.org, fabio.estevam@freescale.com,
-	kernel@pengutronix.de, r.schwebel@pengutronix.de
-Subject: Re: [PATCH v2 2/2] MEM2MEM: Add support for eMMa-PrP mem2mem
- operations.
-Message-ID: <20111122205552.GO27267@pengutronix.de>
-References: <1321963316-9058-1-git-send-email-javier.martin@vista-silicon.com>
- <1321963316-9058-3-git-send-email-javier.martin@vista-silicon.com>
+Received: from mx1.redhat.com ([209.132.183.28]:18968 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750743Ab1K1VHs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Nov 2011 16:07:48 -0500
+Message-ID: <4ED3F81F.303@redhat.com>
+Date: Mon, 28 Nov 2011 19:07:43 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1321963316-9058-3-git-send-email-javier.martin@vista-silicon.com>
+To: "Fabio M. Di Nitto" <fdinitto@redhat.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Stefan Ringel <linuxtv@stefanringel.de>,
+	Dmitri Belimov <d.belimov@gmail.com>
+Subject: Re: HVR-900H dvb-t regression(s)
+References: <4ED39D88.507@redhat.com>
+In-Reply-To: <4ED39D88.507@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+On 28-11-2011 12:41, Fabio M. Di Nitto wrote:
+> Hi all,
+>
+> short summary is that dvb-t on $subject doesn´t work with head of the
+> tree (for_3.3 branch) and scan or mplayer stop working.
+>
+> Here is the breakdown of what I found with all logs. Please let me know
+> if you need any extra info. Can easily test patches and gather more logs
+> if necessary.
+>
+> Also please note that I am no media guru of any kind. I had to work on
+> some assumptions from time to time.
+>
+> Based on git bisect:
+>
+> The last known good commit is e872bb9a7ddfc025ed727cc922b0aa32a7582004
+>
+> The first known bad commit is f010dca2e52d8dcc0445d695192df19241afacdb
+>
+> commit f010dca2e52d8dcc0445d695192df19241afacdb
+> Author: Stefan Ringel<stefan.ringel@arcor.de>
+> Date:   Mon May 9 16:53:58 2011 -0300
+>
+>      [media] tm6000: move from tm6000_set_reg to tm6000_set_reg_mask
+>
+>      move from tm6000_set_reg to tm6000_set_reg_mask
+>
+>      Signed-off-by: Stefan Ringel<stefan.ringel@arcor.de>
+>      Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+>
+> While this commit appears rather innocent, it changes the way some
+> registries are set.
+>
+> the original code did:
+>
+> read_reg...
+> change value
+> write_reg.. (unconditionally)
+>
+> the new code path:
+>
+> read_reg...
+> calculate new value
+> check if it is same
+> if not, write_reg...
+>
+> So I did the simplest test as possible by removing the conditional in
+> tm6000_set_reg_mask and dvb-t started working again.
+>
+> something along those lines:
+>
+> diff --git a/drivers/media/video/tm6000/tm6000-core.c
+> b/drivers/media/video/tm6000/tm6000-core.c
+> index 9783616..818f542 100644
+> --- a/drivers/media/video/tm6000/tm6000-core.c
+> +++ b/drivers/media/video/tm6000/tm6000-core.c
+> @@ -132,8 +132,8 @@ int tm6000_set_reg_mask(struct tm6000_core *dev, u8
+> req, u16 value,
+>
+>          new_index = (buf[0]&  ~mask) | (index&  mask);
+>
+> -       if (new_index == index)
+> -               return 0;
+> +//     if (new_index == index)
+> +//             return 0;
+>
+>          return tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR,
+>                                        req, value, new_index, NULL, 0);
+>
+> but moving this change to the HEAD of for_v3.3 doesn´t solve the
+> problem, possibly hinting to multiple regressions in the driver but at
+> this point I am slightly lost because i can´t figure out what else is
+> wrong. Some semi-random git bisect didn´t bring me anywhere useful at
+> this point.
 
-On Tue, Nov 22, 2011 at 01:01:56PM +0100, Javier Martin wrote:
-> Changes since v1:
-> - Embed queue data in ctx structure to allow multi instance.
-> - Remove redundant job_ready callback.
-> - Adjust format against device capabilities.
-> - Register/unregister video device at the right time.
-> - Other minor coding fixes.
-> 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> ---
->  drivers/media/video/Kconfig       |   10 +
->  drivers/media/video/Makefile      |    2 +
->  drivers/media/video/mx2_emmaprp.c | 1035 +++++++++++++++++++++++++++++++++++++
->  3 files changed, 1047 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/mx2_emmaprp.c
-> 
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index b303a3f..77d7921 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -1107,4 +1107,14 @@ config VIDEO_SAMSUNG_S5P_MFC
->  	help
->  	    MFC 5.1 driver for V4L2.
->  
-> +config VIDEO_MX2_EMMAPRP
-> +	tristate "MX2 eMMa-PrP support"
-> +	depends on VIDEO_DEV && VIDEO_V4L2 && MACH_MX27
+Hmm... It occurred to me that HVR-900H has a bug at device initialization.
+Sometimes, after a device connect it can't read anything from eeprom. As result,
+it will print:
 
-Please do not add new references to MACH_MX27. Use SOC_IMX27 instead.
+[ 7867.776612] tm6000: Found Generic tm6010 board
+[ 7867.841177] tm6000 #1: i2c eeprom 00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[ 7867.958753] tm6000 #1: i2c eeprom 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[ 7868.075698] tm6000 #1: i2c eeprom 20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[ 7868.193607] tm6000 #1: i2c eeprom 30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[ 7868.310546] tm6000 #1: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[ 7868.427507] tm6000 #1: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[ 7868.544442] tm6000 #1: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[ 7868.662375] tm6000 #1: i2c eeprom 70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[ 7868.779319] tm6000 #1: i2c eeprom 80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[ 7868.896238] tm6000 #1: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[ 7869.013195] tm6000 #1: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[ 7869.130135] tm6000 #1: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[ 7869.247069] tm6000 #1: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[ 7869.363981] tm6000 #1: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[ 7869.480948] tm6000 #1: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[ 7869.597884] tm6000 #1: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+[ 7869.707769] Device has eeprom but is currently unknown
 
-> +	select VIDEOBUF2_DMA_CONTIG
-> +	select V4L2_MEM2MEM_DEV
-> +	help
-> +	    MX2X chips have a PrP that can be used to process buffers from
-> +	    memory to memory. Operations include resizing and format
-> +	    conversion.
-> +
+and the device will be miss-detected.
 
-[...]
+You can fix it by forcing the driver to use "card=9" via modprobe option.
 
-> +
-> +static int emmaprp_probe(struct platform_device *pdev)
-> +{
-> +	struct emmaprp_dev *pcdev;
-> +	struct video_device *vfd;
-> +	struct resource *res_emma;
-> +	int irq_emma;
-> +	int ret;
-> +
-> +	pcdev = kzalloc(sizeof *pcdev, GFP_KERNEL);
-> +	if (!pcdev)
-> +		return -ENOMEM;
-> +
-> +	spin_lock_init(&pcdev->irqlock);
-> +
-> +	pcdev->clk_emma = clk_get(NULL, "emma");
+Btw, Stefan sent some fixes to the ML. I'll test if the patch solves the
+audio issue with HVR-900H on analog mode.
 
-You should change the entry for the emma in
-arch/arm/mach-imx/clock-imx27.c to the following:
+>
+> In an poor attempt to be a good boy, I collected all the data here:
+> http://fabbione.fedorapeople.org/dvblogs.tar.xz
+> (NOTE: 76MB file, 101MB unpacked)
+>
+> The file contains 5 dirs:
+>
+> last-known-good-e872bb9a7ddfc025ed727cc922b0aa32a7582004
+> first-known-bad-f010dca2e52d8dcc0445d695192df19241afacdb
+> test1-change-set-reg-mask-f010dca2e52d8dcc0445d695192df19241afacdb+
+> head-known-bad-7e5219d18e93dd23e834a53b1ea73ead19cfeeb1
+> test2-change-set-reg-mask-7e5219d18e93dd23e834a53b1ea73ead19cfeeb1+
+>
+> and each directory has:
+>
+> dmesg
+> scan_results
+> tcpdump (tcpdump -i usbmod1 -w tcpdump)
+> usbmon0u (cat /sys....>  usbmod0u)
+>
+> captures are started before modprobe tm6000-dvb and stop after a "scan
+> -a 0 dk"
+>
+> The testX are marked "+" as they contain the workaround mentioned above
+> (test1 also adds a build workaround fixed a few commits later in the
+> tree to unexport a symbol).
+>
+> Thanks
+> Fabio
 
-_REGISTER_CLOCK("m2m-emmaprp", NULL, emma_clk)
-
-and use clk_get(&pdev->dev, NULL) here.
-
-> +	if (IS_ERR(pcdev->clk_emma)) {
-> +		ret = PTR_ERR(pcdev->clk_emma);
-> +		goto free_dev;
-> +	}
-> +
-> +	irq_emma = platform_get_irq(pdev, 0);
-> +	res_emma = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (irq_emma < 0 || res_emma == NULL) {
-> +		dev_err(&pdev->dev, "Missing platform resources data\n");
-> +		ret = -ENODEV;
-> +		goto free_clk;
-> +	}
-> +
-> +	ret = v4l2_device_register(&pdev->dev, &pcdev->v4l2_dev);
-> +	if (ret)
-> +		goto free_clk;
-> +
-> +	mutex_init(&pcdev->dev_mutex);
-> +
-> +	vfd = video_device_alloc();
-> +	if (!vfd) {
-> +		v4l2_err(&pcdev->v4l2_dev, "Failed to allocate video device\n");
-> +		ret = -ENOMEM;
-> +		goto unreg_dev;
-> +	}
-> +
-> +	*vfd = emmaprp_videodev;
-> +	vfd->lock = &pcdev->dev_mutex;
-> +
-> +	video_set_drvdata(vfd, pcdev);
-> +	snprintf(vfd->name, sizeof(vfd->name), "%s", emmaprp_videodev.name);
-> +	pcdev->vfd = vfd;
-> +	v4l2_info(&pcdev->v4l2_dev, EMMAPRP_MODULE_NAME
-> +			" Device registered as /dev/video%d\n", vfd->num);
-> +
-> +	platform_set_drvdata(pdev, pcdev);
-> +
-> +	if (!request_mem_region(res_emma->start, resource_size(res_emma),
-> +				MEM2MEM_NAME)) {
-> +		ret = -EBUSY;
-> +		goto rel_vdev;
-> +	}
-> +
-> +	pcdev->base_emma = ioremap(res_emma->start, resource_size(res_emma));
-> +	if (!pcdev->base_emma) {
-> +		ret = -ENOMEM;
-> +		goto rel_mem;
-> +	}
-> +	pcdev->irq_emma = irq_emma;
-> +	pcdev->res_emma = res_emma;
-> +
-> +	ret = request_irq(pcdev->irq_emma, emmaprp_irq, 0,
-> +			  MEM2MEM_NAME, pcdev);
-> +	if (ret)
-> +		goto rel_map;
-> +
-
-consider using devm_request_mem_region, devm_ioremap and
-devm_request_irq here. It simplifies your error handling considerably.
-
-> +
-> +	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
-> +	if (IS_ERR(pcdev->alloc_ctx)) {
-> +		v4l2_err(&pcdev->v4l2_dev, "Failed to alloc vb2 context\n");
-> +		ret = PTR_ERR(pcdev->alloc_ctx);
-> +		goto rel_irq;
-> +	}
-> +
-> +	pcdev->m2m_dev = v4l2_m2m_init(&m2m_ops);
-> +	if (IS_ERR(pcdev->m2m_dev)) {
-> +		v4l2_err(&pcdev->v4l2_dev, "Failed to init mem2mem device\n");
-> +		ret = PTR_ERR(pcdev->m2m_dev);
-> +		goto rel_ctx;
-> +	}
-> +
-
-[...]
-
-> +
-> +static struct platform_driver emmaprp_pdrv = {
-> +	.probe		= emmaprp_probe,
-> +	.remove		= emmaprp_remove,
-> +	.driver		= {
-> +		.name	= MEM2MEM_NAME,
-> +		.owner	= THIS_MODULE,
-> +	},
-> +};
-> +
-> +static void __exit emmaprp_exit(void)
-> +{
-> +	platform_driver_unregister(&emmaprp_pdrv);
-> +}
-> +
-> +static int __init emmaprp_init(void)
-> +{
-> +	return platform_driver_register(&emmaprp_pdrv);
-> +}
-> +
-> +module_init(emmaprp_init);
-> +module_exit(emmaprp_exit);
-> +
-
-No blank line at end of file please.
-
-Sascha
-
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
