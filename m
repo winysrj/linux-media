@@ -1,242 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:58596 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756677Ab1KJPaX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Nov 2011 10:30:23 -0500
-Received: by wyh15 with SMTP id 15so2823782wyh.19
-        for <linux-media@vger.kernel.org>; Thu, 10 Nov 2011 07:30:22 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:61187 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752072Ab1K1OlW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Nov 2011 09:41:22 -0500
+Message-ID: <4ED39D88.507@redhat.com>
+Date: Mon, 28 Nov 2011 15:41:12 +0100
+From: "Fabio M. Di Nitto" <fdinitto@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4EBBE336.8050501@linuxtv.org>
-References: <CAHFNz9Lf8CXb2pqmO0669VV2HAqxCpM9mmL9kU=jM19oNp0dbg@mail.gmail.com>
-	<4EBBE336.8050501@linuxtv.org>
-Date: Thu, 10 Nov 2011 21:00:22 +0530
-Message-ID: <CAHFNz9JNLAFnjd14dviJJDKcN3cxgB+MFrZ72c1MVXPLDsuT0Q@mail.gmail.com>
-Subject: Re: PATCH: Query DVB frontend capabilities
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Andreas Oberritter <obi@linuxtv.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Mauro Chehab <mchehab@redhat.com>,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: HVR-900H dvb-t regression(s)
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andreas,
+Hi all,
 
-On Thu, Nov 10, 2011 at 8:14 PM, Andreas Oberritter <obi@linuxtv.org> wrote:
-> Hello Manu,
->
-> please see my comments below:
->
-> On 10.11.2011 15:18, Manu Abraham wrote:
->> Hi,
->>
->> Currently, for a multi standard frontend it is assumed that it just
->> has a single standard capability. This is fine in some cases, but
->> makes things hard when there are incompatible standards in conjuction.
->> Eg: DVB-S can be seen as a subset of DVB-S2, but the same doesn't hold
->> the same for DSS. This is not specific to any driver as it is, but a
->> generic issue. This was handled correctly in the multiproto tree,
->> while such functionality is missing from the v5 API update.
->>
->> http://www.linuxtv.org/pipermail/vdr/2008-November/018417.html
->>
->> Later on a FE_CAN_2G_MODULATION was added as a hack to workaround this
->> issue in the v5 API, but that hack is incapable of addressing the
->> issue, as it can be used to simply distinguish between DVB-S and
->> DVB-S2 alone, or another x vs X2 modulation. If there are more
->> systems, then you have a potential issue.
->>
->> In addition to the patch, for illustrative purposes the stb0899 driver
->> is depicted providing the said capability information.
->>
->> An application needs to query the device capabilities before
->> requesting an operation from the device.
->>
->> If people don't have any objections, Probably other drivers can be
->> adapted similarly. In fact the change is quite simple.
->>
->> Comments ?
->>
->> Regards,
->> Manu
->>
->>
->> query_frontend_capabilities.diff
->>
->>
->> diff -r b6eb04718aa9 linux/drivers/media/dvb/dvb-core/dvb_frontend.c
->> --- a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c Wed Nov 09 19:52:36 2011 +0530
->> +++ b/linux/drivers/media/dvb/dvb-core/dvb_frontend.c Thu Nov 10 13:51:35 2011 +0530
->> @@ -973,6 +973,8 @@
->>       _DTV_CMD(DTV_GUARD_INTERVAL, 0, 0),
->>       _DTV_CMD(DTV_TRANSMISSION_MODE, 0, 0),
->>       _DTV_CMD(DTV_HIERARCHY, 0, 0),
->> +
->> +     _DTV_CMD(DTV_DELIVERY_CAPS, 0, 0),
->>  };
->>
->>  static void dtv_property_dump(struct dtv_property *tvp)
->> @@ -1226,7 +1228,18 @@
->>               c = &cdetected;
->>       }
->>
->> +     dprintk("%s\n", __func__);
->> +
->>       switch(tvp->cmd) {
->> +     case DTV_DELIVERY_CAPS:
->> +             if (fe->ops.delivery_caps) {
->> +                     r = fe->ops.delivery_caps(fe, tvp);
->> +                     if (r < 0)
->> +                             return r;
->> +                     else
->> +                             goto done;
->
-> What's the reason for introducing that label and goto?
+short summary is that dvb-t on $subject doesn´t work with head of the
+tree (for_3.3 branch) and scan or mplayer stop working.
 
+Here is the breakdown of what I found with all logs. Please let me know
+if you need any extra info. Can easily test patches and gather more logs
+if necessary.
 
-The idea was to avoid using get_property callback being called.
+Also please note that I am no media guru of any kind. I had to work on
+some assumptions from time to time.
 
+Based on git bisect:
 
+The last known good commit is e872bb9a7ddfc025ed727cc922b0aa32a7582004
 
->
->> +             }
->> +             break;
->>       case DTV_FREQUENCY:
->>               tvp->u.data = c->frequency;
->>               break;
->> @@ -1350,7 +1363,7 @@
->>               if (r < 0)
->>                       return r;
->>       }
->> -
->> +done:
->>       dtv_property_dump(tvp);
->>
->>       return 0;
->> diff -r b6eb04718aa9 linux/drivers/media/dvb/dvb-core/dvb_frontend.h
->> --- a/linux/drivers/media/dvb/dvb-core/dvb_frontend.h Wed Nov 09 19:52:36 2011 +0530
->> +++ b/linux/drivers/media/dvb/dvb-core/dvb_frontend.h Thu Nov 10 13:51:35 2011 +0530
->> @@ -305,6 +305,8 @@
->>
->>       int (*set_property)(struct dvb_frontend* fe, struct dtv_property* tvp);
->>       int (*get_property)(struct dvb_frontend* fe, struct dtv_property* tvp);
->> +
->> +     int (*delivery_caps)(struct dvb_frontend *fe, struct dtv_property *tvp);
->>  };
->
-> I don't think that another function pointer is required. Drivers can
-> implement this in their get_property callback. The core could provide a
-> default implementation, returning values derived from fe->ops.info.type
-> and the 2G flag.
+The first known bad commit is f010dca2e52d8dcc0445d695192df19241afacdb
 
+commit f010dca2e52d8dcc0445d695192df19241afacdb
+Author: Stefan Ringel <stefan.ringel@arcor.de>
+Date:   Mon May 9 16:53:58 2011 -0300
 
-I see your point. While trying to address the issue I had originally
-get_property being used. One Issue that came across to me was that:
+    [media] tm6000: move from tm6000_set_reg to tm6000_set_reg_mask
 
- - while currently this is just one capability field, things do look
-fine. As we move ahead we will possibly have more capability related
-information, given the idea that with shared hardware infrastructure
-on frontends, this list of properties could grow.
+    move from tm6000_set_reg to tm6000_set_reg_mask
 
-- Once we have a few properties, then we will need to have switches in
-that callback, given that it is generic and that length will grow.
-Considering different hardware capabilities, we will have quite a bit
-of shared code amongst drivers in that large switch, causing code
-duplication.
-Eg: with hardware having shared infrastructure - while globally it
-might have a larger set of capabilities, when a sub part of it is run
-in some mode, the other sub parts would have reduced set of
-capabilities, which won't be the same as that exists globally for the
-device. The driver alone will know the change depending on what's
-being used.
+    Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
+While this commit appears rather innocent, it changes the way some
+registries are set.
 
-- Additionally, though insignificant a separate callback for each
-capability will make the drivers look a bit more consistent with
-regards to code style.
+the original code did:
 
-The basic issue is a switch that will be duplicated across drivers and
-that which is expected to grow in length, eventually readability a
-question. That said, this shouldn't be an issue at all. Given the
-situation at this exact moment, having a generic callback is just
-fine, as that will be the only which would be there, right now.
+read_reg...
+change value
+write_reg.. (unconditionally)
 
+the new code path:
 
->
->>  #define MAX_EVENT 8
->> @@ -362,6 +364,8 @@
->>
->>       /* DVB-T2 specifics */
->>       u32                     dvbt2_plp_id;
->> +
->> +     fe_delivery_system_t    delivery_caps[32];
->>  };
->
-> This array seems to be unused.
+read_reg...
+calculate new value
+check if it is same
+if not, write_reg...
 
+So I did the simplest test as possible by removing the conditional in
+tm6000_set_reg_mask and dvb-t started working again.
 
-That just walked in astray while I worked on it. Didn't notice at all. :-)
-I will send an updated patch, do you still think the generic callback
-is better ?
+something along those lines:
 
+diff --git a/drivers/media/video/tm6000/tm6000-core.c
+b/drivers/media/video/tm6000/tm6000-core.c
+index 9783616..818f542 100644
+--- a/drivers/media/video/tm6000/tm6000-core.c
++++ b/drivers/media/video/tm6000/tm6000-core.c
+@@ -132,8 +132,8 @@ int tm6000_set_reg_mask(struct tm6000_core *dev, u8
+req, u16 value,
 
+        new_index = (buf[0] & ~mask) | (index & mask);
 
->
-> Regards,
-> Andreas
->
->>  struct dvb_frontend {
->> diff -r b6eb04718aa9 linux/drivers/media/dvb/frontends/stb0899_drv.c
->> --- a/linux/drivers/media/dvb/frontends/stb0899_drv.c Wed Nov 09 19:52:36 2011 +0530
->> +++ b/linux/drivers/media/dvb/frontends/stb0899_drv.c Thu Nov 10 13:51:35 2011 +0530
->> @@ -1605,6 +1605,19 @@
->>       return DVBFE_ALGO_CUSTOM;
->>  }
->>
->> +static int stb0899_delivery_caps(struct dvb_frontend *fe, struct dtv_property *caps)
->> +{
->> +     struct stb0899_state *state             = fe->demodulator_priv;
->> +
->> +     dprintk(state->verbose, FE_DEBUG, 1, "Get caps");
->> +     caps->u.buffer.data[0] = SYS_DSS;
->> +     caps->u.buffer.data[1] = SYS_DVBS;
->> +     caps->u.buffer.data[2] = SYS_DVBS2;
->> +     caps->u.buffer.len = 3;
->> +
->> +     return 0;
->> +}
->> +
->>  static struct dvb_frontend_ops stb0899_ops = {
->>
->>       .info = {
->> @@ -1647,6 +1660,8 @@
->>       .diseqc_send_master_cmd         = stb0899_send_diseqc_msg,
->>       .diseqc_recv_slave_reply        = stb0899_recv_slave_reply,
->>       .diseqc_send_burst              = stb0899_send_diseqc_burst,
->> +
->> +     .delivery_caps                  = stb0899_delivery_caps,
->>  };
->>
->>  struct dvb_frontend *stb0899_attach(struct stb0899_config *config, struct i2c_adapter *i2c)
->> diff -r b6eb04718aa9 linux/include/linux/dvb/frontend.h
->> --- a/linux/include/linux/dvb/frontend.h      Wed Nov 09 19:52:36 2011 +0530
->> +++ b/linux/include/linux/dvb/frontend.h      Thu Nov 10 13:51:35 2011 +0530
->> @@ -316,7 +316,9 @@
->>
->>  #define DTV_DVBT2_PLP_ID     43
->>
->> -#define DTV_MAX_COMMAND                              DTV_DVBT2_PLP_ID
->> +#define DTV_DELIVERY_CAPS    44
->> +
->> +#define DTV_MAX_COMMAND                              DTV_DELIVERY_CAPS
->>
->>  typedef enum fe_pilot {
->>       PILOT_ON,
->>
->
->
+-       if (new_index == index)
+-               return 0;
++//     if (new_index == index)
++//             return 0;
 
-Thanks,
-Manu
+        return tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR,
+                                      req, value, new_index, NULL, 0);
+
+but moving this change to the HEAD of for_v3.3 doesn´t solve the
+problem, possibly hinting to multiple regressions in the driver but at
+this point I am slightly lost because i can´t figure out what else is
+wrong. Some semi-random git bisect didn´t bring me anywhere useful at
+this point.
+
+In an poor attempt to be a good boy, I collected all the data here:
+http://fabbione.fedorapeople.org/dvblogs.tar.xz
+(NOTE: 76MB file, 101MB unpacked)
+
+The file contains 5 dirs:
+
+last-known-good-e872bb9a7ddfc025ed727cc922b0aa32a7582004
+first-known-bad-f010dca2e52d8dcc0445d695192df19241afacdb
+test1-change-set-reg-mask-f010dca2e52d8dcc0445d695192df19241afacdb+
+head-known-bad-7e5219d18e93dd23e834a53b1ea73ead19cfeeb1
+test2-change-set-reg-mask-7e5219d18e93dd23e834a53b1ea73ead19cfeeb1+
+
+and each directory has:
+
+dmesg
+scan_results
+tcpdump (tcpdump -i usbmod1 -w tcpdump)
+usbmon0u (cat /sys.... > usbmod0u)
+
+captures are started before modprobe tm6000-dvb and stop after a "scan
+-a 0 dk"
+
+The testX are marked "+" as they contain the workaround mentioned above
+(test1 also adds a build workaround fixed a few commits later in the
+tree to unexport a symbol).
+
+Thanks
+Fabio
