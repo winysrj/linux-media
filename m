@@ -1,110 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-dy0-f46.google.com ([209.85.220.46]:57134 "EHLO
-	mail-dy0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756333Ab1KWPOO (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:56511 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750743Ab1K1HdF convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Nov 2011 10:14:14 -0500
-Received: by dyi18 with SMTP id 18so104233dyi.19
-        for <linux-media@vger.kernel.org>; Wed, 23 Nov 2011 07:14:13 -0800 (PST)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, shawn.guo@linaro.org,
-	richard.zhao@linaro.org, fabio.estevam@freescale.com,
-	kernel@pengutronix.de, s.hauer@pengutronix.de,
-	r.schwebel@pengutronix.de
-Cc: Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH v3 1/2] MX2: Add platform definitions for eMMa-PrP device.
-Date: Wed, 23 Nov 2011 16:13:46 +0100
-Message-Id: <1322061227-6631-2-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1322061227-6631-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1322061227-6631-1-git-send-email-javier.martin@vista-silicon.com>
+	Mon, 28 Nov 2011 02:33:05 -0500
+Date: Mon, 28 Nov 2011 08:31:37 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH] [media] convert drivers/media/* to use
+ module_platform_driver()
+In-reply-to: <1322290135.20464.1.camel@phoenix>
+To: 'Axel Lin' <axel.lin@gmail.com>, linux-kernel@vger.kernel.org
+Cc: 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Hans Verkuil' <hans.verkuil@cisco.com>,
+	=?utf-8?Q?'Richard_R=C3=B6jfors'?= <richard.rojfors@pelagicore.com>,
+	"'Matti J. Aaltonen'" <matti.j.aaltonen@nokia.com>,
+	'Lucas De Marchi' <lucas.demarchi@profusion.mobi>,
+	'Manjunath Hadli' <manjunath.hadli@ti.com>,
+	'Muralidharan Karicheri' <m-karicheri2@ti.com>,
+	'Anatolij Gustschin' <agust@denx.de>,
+	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
+	'Robert Jarzmik' <robert.jarzmik@free.fr>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Daniel Drake' <dsd@laptop.org>, linux-media@vger.kernel.org
+Message-id: <000001ccad9f$c371c440$4a554cc0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-language: pl
+Content-transfer-encoding: 8BIT
+References: <1322290135.20464.1.camel@phoenix>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-eMMa-PrP device included in Freescale i.MX2 chips can also
-be used separately to process memory buffers.
+Hello,
 
-Changes since v2:
-- Define imx_add_mx2_emmaprp function which also registers device,
-not only alloc.
-- Change definition of emma_clk.
-- Minor fixes.
+On Saturday, November 26, 2011 7:49 AM Axel Lin wrote:
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- arch/arm/mach-imx/clock-imx27.c                 |    2 +-
- arch/arm/mach-imx/devices-imx27.h               |    2 ++
- arch/arm/plat-mxc/devices/platform-mx2-camera.c |   18 ++++++++++++++++++
- arch/arm/plat-mxc/include/mach/devices-common.h |    2 ++
- 4 files changed, 23 insertions(+), 1 deletions(-)
+> This patch converts the drivers in drivers/media/* to use the
+> module_platform_driver() macro which makes the code smaller and a bit
+> simpler.
+> 
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: "Richard Röjfors" <richard.rojfors@pelagicore.com>
+> Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+> Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>
+> Cc: Manjunath Hadli <manjunath.hadli@ti.com>
+> Cc: Muralidharan Karicheri <m-karicheri2@ti.com>
+> Cc: Anatolij Gustschin <agust@denx.de>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> Cc: Robert Jarzmik <robert.jarzmik@free.fr>
+> Cc: Jonathan Corbet <corbet@lwn.net>
+> Cc: Daniel Drake <dsd@laptop.org>
+> Signed-off-by: Axel Lin <axel.lin@gmail.com>
+> ---
+>  drivers/media/radio/radio-si4713.c         |   15 +----------
+>  drivers/media/radio/radio-timb.c           |   15 +----------
+>  drivers/media/radio/radio-wl1273.c         |   17 +-----------
+>  drivers/media/video/davinci/dm355_ccdc.c   |   13 +---------
+>  drivers/media/video/davinci/dm644x_ccdc.c  |   13 +---------
+>  drivers/media/video/davinci/isif.c         |   13 +---------
+>  drivers/media/video/davinci/vpbe.c         |   24 +-----------------
+>  drivers/media/video/davinci/vpbe_display.c |   38 +---------------------------
+>  drivers/media/video/davinci/vpbe_osd.c     |   18 +------------
+>  drivers/media/video/davinci/vpbe_venc.c    |   18 +------------
+>  drivers/media/video/davinci/vpfe_capture.c |   18 +------------
+>  drivers/media/video/fsl-viu.c              |   13 +---------
+>  drivers/media/video/mx3_camera.c           |   14 +---------
+>  drivers/media/video/omap1_camera.c         |   12 +--------
+>  drivers/media/video/omap24xxcam.c          |   19 +-------------
+>  drivers/media/video/omap3isp/isp.c         |   19 +-------------
+>  drivers/media/video/pxa_camera.c           |   14 +---------
+>  drivers/media/video/s5p-g2d/g2d.c          |   16 +-----------
+>  drivers/media/video/s5p-mfc/s5p_mfc.c      |   22 +---------------
+>  drivers/media/video/s5p-tv/hdmi_drv.c      |   26 +------------------
+>  drivers/media/video/s5p-tv/sdo_drv.c       |   22 +---------------
 
-diff --git a/arch/arm/mach-imx/clock-imx27.c b/arch/arm/mach-imx/clock-imx27.c
-index 88fe00a..dc2d7a5 100644
---- a/arch/arm/mach-imx/clock-imx27.c
-+++ b/arch/arm/mach-imx/clock-imx27.c
-@@ -661,7 +661,7 @@ static struct clk_lookup lookups[] = {
- 	_REGISTER_CLOCK(NULL, "dma", dma_clk)
- 	_REGISTER_CLOCK(NULL, "rtic", rtic_clk)
- 	_REGISTER_CLOCK(NULL, "brom", brom_clk)
--	_REGISTER_CLOCK(NULL, "emma", emma_clk)
-+	_REGISTER_CLOCK("m2m-emmaprp.0", NULL, emma_clk)
- 	_REGISTER_CLOCK(NULL, "slcdc", slcdc_clk)
- 	_REGISTER_CLOCK("imx27-fec.0", NULL, fec_clk)
- 	_REGISTER_CLOCK(NULL, "emi", emi_clk)
-diff --git a/arch/arm/mach-imx/devices-imx27.h b/arch/arm/mach-imx/devices-imx27.h
-index 2f727d7..28537a5 100644
---- a/arch/arm/mach-imx/devices-imx27.h
-+++ b/arch/arm/mach-imx/devices-imx27.h
-@@ -50,6 +50,8 @@ extern const struct imx_imx_uart_1irq_data imx27_imx_uart_data[];
- extern const struct imx_mx2_camera_data imx27_mx2_camera_data;
- #define imx27_add_mx2_camera(pdata)	\
- 	imx_add_mx2_camera(&imx27_mx2_camera_data, pdata)
-+#define imx27_add_mx2_emmaprp(pdata)	\
-+	imx_add_mx2_emmaprp(&imx27_mx2_camera_data)
- 
- extern const struct imx_mxc_ehci_data imx27_mxc_ehci_otg_data;
- #define imx27_add_mxc_ehci_otg(pdata)	\
-diff --git a/arch/arm/plat-mxc/devices/platform-mx2-camera.c b/arch/arm/plat-mxc/devices/platform-mx2-camera.c
-index b3f4828..11eace9 100644
---- a/arch/arm/plat-mxc/devices/platform-mx2-camera.c
-+++ b/arch/arm/plat-mxc/devices/platform-mx2-camera.c
-@@ -62,3 +62,21 @@ struct platform_device *__init imx_add_mx2_camera(
- 			res, data->iobaseemmaprp ? 4 : 2,
- 			pdata, sizeof(*pdata), DMA_BIT_MASK(32));
- }
-+
-+struct platform_device *__init imx_add_mx2_emmaprp(
-+		const struct imx_mx2_camera_data *data)
-+{
-+	struct resource res[] = {
-+		{
-+			.start = data->iobaseemmaprp,
-+			.end = data->iobaseemmaprp + data->iosizeemmaprp - 1,
-+			.flags = IORESOURCE_MEM,
-+		}, {
-+			.start = data->irqemmaprp,
-+			.end = data->irqemmaprp,
-+			.flags = IORESOURCE_IRQ,
-+		},
-+	};
-+	return imx_add_platform_device_dmamask("m2m-emmaprp", 0,
-+			res, 2, NULL, 0, DMA_BIT_MASK(32));
-+}
-diff --git a/arch/arm/plat-mxc/include/mach/devices-common.h b/arch/arm/plat-mxc/include/mach/devices-common.h
-index def9ba5..1b2258d 100644
---- a/arch/arm/plat-mxc/include/mach/devices-common.h
-+++ b/arch/arm/plat-mxc/include/mach/devices-common.h
-@@ -223,6 +223,8 @@ struct imx_mx2_camera_data {
- struct platform_device *__init imx_add_mx2_camera(
- 		const struct imx_mx2_camera_data *data,
- 		const struct mx2_camera_platform_data *pdata);
-+struct platform_device *__init imx_add_mx2_emmaprp(
-+		const struct imx_mx2_camera_data *data);
- 
- #include <mach/mxc_ehci.h>
- struct imx_mxc_ehci_data {
+For Samsung drivers in drivers/media/video/s5p-*
+
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+
+>  drivers/media/video/sh_mobile_csi2.c       |   13 +---------
+>  drivers/media/video/soc_camera_platform.c  |   13 +---------
+>  drivers/media/video/timblogiw.c            |   15 +----------
+>  drivers/media/video/via-camera.c           |   12 +--------
+>  25 files changed, 26 insertions(+), 406 deletions(-)
+
+Best regards
 -- 
-1.7.0.4
+Marek Szyprowski
+Samsung Poland R&D Center
+
 
