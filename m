@@ -1,131 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:54452 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755093Ab1KQC3M (ORCPT
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:47679 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754671Ab1K2QNe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Nov 2011 21:29:12 -0500
-Received: by eye27 with SMTP id 27so1282025eye.19
-        for <linux-media@vger.kernel.org>; Wed, 16 Nov 2011 18:29:11 -0800 (PST)
-Date: Thu, 17 Nov 2011 12:29:04 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Stefan Ringel <stefan.ringel@arcor.de>, linux-media@vger.kernel.org
-Subject: Re: good programm for FM radio
-Message-ID: <20111117122904.3035d63c@glory.local>
-In-Reply-To: <4EC3CE52.2000408@arcor.de>
-References: <20111115174052.1dee9737@glory.local>
-	<4EC3CE52.2000408@arcor.de>
+	Tue, 29 Nov 2011 11:13:34 -0500
+Subject: Re: drm pixel formats update
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: dri-devel@lists.freedesktop.org, ville.syrjala@linux.intel.com,
+	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org
+In-Reply-To: <201111291310.36589.laurent.pinchart@ideasonboard.com>
+References: <1321468945-28224-1-git-send-email-ville.syrjala@linux.intel.com>
+	 <201111291310.36589.laurent.pinchart@ideasonboard.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-z3v8gCpLmUyq26DXkzIu"
+Date: Tue, 29 Nov 2011 18:13:27 +0200
+Message-ID: <1322583207.1869.194.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
 
-kradio from Debian Squeeze 0.1.1.1-20061112-4 with KDE 4.4.5 doesn't work.
-It wants V4L1 API.
+--=-z3v8gCpLmUyq26DXkzIu
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-I think the tm6000-alsa has some problem with alsa compatibility.
-This log when start gnomeradio with arecord helper
+On Tue, 2011-11-29 at 13:10 +0100, Laurent Pinchart wrote:
 
-[ 2198.067414] pcm_open start
-[ 2198.067417] pcm_open stop
-[ 2198.067554] hw_params start
-[ 2198.067556] tm6000 #0/1: Allocating buffer
-[ 2198.067577] hw_params stop
-[ 2198.067622] tm6000 #0/1: starting capture
-[ 2198.067624] tm6000 #0/1: Starting audio DMA
-[ 2198.070012] ALSA sound/pci/hda/hda_intel.c:1732 azx_pcm_prepare: bufsize=0x10000, format=0x31
-[ 2198.070022] ALSA sound/pci/hda/hda_codec.c:1400 hda_codec_setup_stream: NID=0x6, stream=0x5, channel=0, format=0x31
-[ 2198.072038] ALSA sound/pci/hda/hda_codec.c:1400 hda_codec_setup_stream: NID=0x2, stream=0x5, channel=0, format=0x31
-[ 2198.074015] ALSA sound/pci/hda/hda_codec.c:1400 hda_codec_setup_stream: NID=0x3, stream=0x5, channel=0, format=0x31
-[ 2198.076015] ALSA sound/pci/hda/hda_codec.c:1400 hda_codec_setup_stream: NID=0x4, stream=0x5, channel=0, format=0x31
-[ 2198.078014] ALSA sound/pci/hda/hda_codec.c:1400 hda_codec_setup_stream: NID=0x5, stream=0x5, channel=0, format=0x31
-[ 2200.298157] tm6000: open called (dev=radio0)
-[ 2201.380947] vidioc_s_frequency
-[ 2208.067017] ALSA sound/core/pcm_lib.c:1805 capture write error (DMA or IRQ trouble?)
-[ 2208.067512] tm6000 #0/1: stopping capture
-[ 2208.067514] tm6000 #0/1: Stopping audio DMA
-[ 2208.108146] ALSA sound/pci/hda/hda_codec.c:1463 hda_codec_cleanup_stream: NID=0x2
-[ 2208.108152] ALSA sound/pci/hda/hda_codec.c:1463 hda_codec_cleanup_stream: NID=0x3
-[ 2208.108157] ALSA sound/pci/hda/hda_codec.c:1463 hda_codec_cleanup_stream: NID=0x4
-[ 2208.108162] ALSA sound/pci/hda/hda_codec.c:1463 hda_codec_cleanup_stream: NID=0x5
-[ 2208.108167] ALSA sound/pci/hda/hda_codec.c:1463 hda_codec_cleanup_stream: NID=0x6
-[ 2223.847895] tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-[ 2223.853650] tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-[ 2223.859394] tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
+> To make it perfectly clear, I want to emphasize that I'm not trying to re=
+place=20
+> DRM, FBDEV and V4L2 with a new shared subsystem. What I would like to see=
+ in=20
+> the (near future) is collaboration and sharing of core features that make=
+=20
+> sense to share. I believe we should address this from a "pain point" poin=
+t of=20
+> view. The one that lead me to writing this e-mail is that developing a dr=
+iver=20
+> that implements both the DRM and FBDEV APIs for video output currently=
+=20
+> requires various similar structures, and code to translate between all of=
+=20
+> them. That code can't be shared between multiple drivers, is error-prone,=
+ and=20
+> painful to maintin.
 
-This log when start watch TV via mplayer
+We've been in the same situation with OMAP display driver for years. The
+same low level display driver is used by FB, V4L2 and now DRM drivers,
+so I didn't have much choice but to implement omapdss versions for
+things like video timings and color formats.
 
-[  526.160673] tm6000: open called (dev=video0)
-[  530.279059] vidioc_s_frequency
-[  530.952893] pcm_open start
-[  530.952896] pcm_open stop
-[  530.953019] hw_params start
-[  530.953022] tm6000 #0/1: Allocating buffer
-[  530.953049] hw_params stop
+I've been planning to write code for this almost as long as omapdss has
+had this problem, but there's always been
+yet-another-important-thing-to-do. So good that somebody finally brought
+this up =3D).
 
-[  530.953236] hw_params start
-[  530.953238] tm6000 #0/1: Allocating buffer
-[  530.953240] tm6000 #0/1: Freeing buffer
-[  530.953254] hw_params stop
-[  530.970871] tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-[  530.976625] tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-<snip>
-[  531.233367] tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-[  531.239114] tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
+I'm happy to test any code related to this with omapdss.
 
-This part is not available when start radio. No start IRQ callback befor start DMA.
+ Tomi
 
-[  531.383461] ALSA sound/pci/hda/hda_intel.c:1732 azx_pcm_prepare: bufsize=0x10000, format=0x4011
-[  531.383470] ALSA sound/pci/hda/hda_codec.c:1400 hda_codec_setup_stream: NID=0x6, stream=0x5, channel=0, format=0x4011
-[  531.383474] ALSA sound/pci/hda/hda_codec.c:1400 hda_codec_setup_stream: NID=0x2, stream=0x5, channel=0, format=0x4011
-[  531.383477] ALSA sound/pci/hda/hda_codec.c:1400 hda_codec_setup_stream: NID=0x3, stream=0x5, channel=0, format=0x4011
-[  531.383480] ALSA sound/pci/hda/hda_codec.c:1400 hda_codec_setup_stream: NID=0x4, stream=0x5, channel=0, format=0x4011
-[  531.383483] ALSA sound/pci/hda/hda_codec.c:1400 hda_codec_setup_stream: NID=0x5, stream=0x5, channel=0, format=0x4011
-[  531.383496] ALSA sound/pci/hda/hda_intel.c:1732 azx_pcm_prepare: bufsize=0x10000, format=0x4011
-[  531.383502] ALSA sound/pci/hda/hda_codec.c:1400 hda_codec_setup_stream: NID=0x6, stream=0x5, channel=0, format=0x4011
-[  531.383505] ALSA sound/pci/hda/hda_codec.c:1400 hda_codec_setup_stream: NID=0x2, stream=0x5, channel=0, format=0x4011
-[  531.383509] ALSA sound/pci/hda/hda_codec.c:1400 hda_codec_setup_stream: NID=0x3, stream=0x5, channel=0, format=0x4011
-[  531.383512] ALSA sound/pci/hda/hda_codec.c:1400 hda_codec_setup_stream: NID=0x4, stream=0x5, channel=0, format=0x4011
-[  531.383515] ALSA sound/pci/hda/hda_codec.c:1400 hda_codec_setup_stream: NID=0x5, stream=0x5, channel=0, format=0x4011
-[  531.392039] tm6000 #0/1: starting capture
-[  531.392042] tm6000 #0/1: Starting audio DMA
-[  531.394037] tm6000 #0/1: Copying 180 bytes at f8264000[0] - buf size=48000 x 4
-[  531.394057] tm6000 #0/1: Copying 180 bytes at f8264000[45] - buf size=48000 x 4
-[  531.394077] tm6000 #0/1: Copying 180 bytes at f8264000[90] - buf size=48000 x 4
-[  531.394096] tm6000 #0/1: Copying 180 bytes at f8264000[135] - buf size=48000 x 4
-[  531.394114] tm6000 #0/1: Copying 180 bytes at f8264000[180] - buf size=48000 x 4
 
-> Am 15.11.2011 08:40, schrieb Dmitri Belimov:
-> > Hi
-> >
-> > Right now the gnomeradio don't work with tm6000 USB stick. No any
-> > audio. I try use this script:
-> >
-> > #!/bin/sh
-> >
-> > if [ -f /usr/bin/arecord ]; then
-> > arecord -q -D hw:1,0 -r 48000 -c 2 -f S16_LE | aplay -q -&
-> > fi
-> >
-> > if [ -f /usr/bin/gnomeradio ]; then
-> > gnomeradio -f 102.6
-> > fi
-> >
-> > pid=`pidof arecord`
-> >
-> > if [ $pid ]; then
-> > kill -9 $pid
-> > fi
-> >
-> > But arecord return input/output error.
-> > Anyone know good programm for FM radio worked with v4l2 and alsa??
-> > I can't understand tm6000 work with FM radio or not.
-> >
-> > With my best regards, Dmitry.
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe
-> > linux-media" in the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Dmitri, have you test kradio4 (it can v4l2)?
+--=-z3v8gCpLmUyq26DXkzIu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJO1QSnAAoJEPo9qoy8lh71X24P/0XGlVuXd2O0ouJ9bZB2vI+u
+ho0VLx7hOZlfyOwa/cJu2dylcSnK86/N9RiRlb/5iyCmqazVeJXhUTvlTiPS30kL
+KRgv4ScrNFVfDUHZc3mgH7bI/sXKOi2jXC8dOIiQ9MDLYcpzPWtEW0Wq32Q5uufY
+9yztLCQXF8G0DGfyIMjNPNiRbZm8v37YbPG9yRgaiZn8yhAG2eb9vJt7U5xGtYo9
+XYhrbKLhwgvyAjjQaPW7OP2huXmUNCf4mT0pI9Y+4hzT5TgCI7qwDCOFzdnSxQEV
+s2KBxLP3hUmp+OWKoKUOg3XXZCfEsqh5AMbRSPAaiB/ewyDvQpF8hQYpANTA7C3L
+8v02zuKYFyzUj+1BuUtq1yU+UgrFWWf9eJgL28x0gS0Hexz33IBEBq9gdpmPFUzh
+Hr0mKWrXIaMZPTTGuqtJma6kccDAXc2ka5Rb1EmAVTCjdrKmQ21o4PeY/uyYfPVW
+CP61tkBmt+1RGhJ3qk3vRf6TIwv/Zned8YQunN5ZSSrhSGrFqua3Tec7h7QIIDWM
+s3J/A4AndDjkJoTUnSp4ms+muywavtSej9hV5cEuM8mT/K054skIryTMHX+FF2VZ
+bwFYcttwFe9gODLwAiWOD/N8oXJnkOCMz+GSBmvyhH7TooK26l5lKguzY3kC1hHl
+QQMsX/JYBOA/b6jH3xjz
+=mIIU
+-----END PGP SIGNATURE-----
+
+--=-z3v8gCpLmUyq26DXkzIu--
+
