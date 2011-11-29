@@ -1,106 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:39891 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752404Ab1KYANY (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57668 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750880Ab1K2K0z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 19:13:24 -0500
-Received: by bke11 with SMTP id 11so3611619bke.19
-        for <linux-media@vger.kernel.org>; Thu, 24 Nov 2011 16:13:23 -0800 (PST)
-Date: Fri, 25 Nov 2011 10:13:17 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Stefan Ringel <stefan.ringel@arcor.de>,
-	linux-media@vger.kernel.org, fabbione@redhat.com
-Subject: Re: [PATCH] Fix tm6010 audio
-Message-ID: <20111125101317.1794963d@glory.local>
-In-Reply-To: <4ECE6EBC.8020006@redhat.com>
-References: <4E8C5675.8070604@arcor.de>
-	<20111017155537.6c55aec8@glory.local>
-	<4E9C65CD.2070409@arcor.de>
-	<20111108104500.2f0fc14f@glory.local>
-	<4ECE6EBC.8020006@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 29 Nov 2011 05:26:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-fbdev@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v4 0/3] fbdev: Add FOURCC-based format configuration API
+Date: Tue, 29 Nov 2011 11:26:56 +0100
+Message-Id: <1322562419-9934-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Hi everybody,
 
-> Em 07-11-2011 22:45, Dmitri Belimov escreveu:
-> > Hi
-> > 
-> > I found why audio dosn't work for me and fix it.
-> > 
-> > 2Stefan:
-> > The V4L2_STD_DK has V4L2_STD_SECAM_DK but not equal 
-> > switch-case statement not worked
-> > 
-> > you can use 
-> > if (dev->norm & V4L2_STD_DK) { 
-> > }
-> > 
-> > This patch fix this problem.
-> > 
-> > Other, please don't remove any workarounds without important reason.
-> > For your chip revision it can be work but for other audio will be
-> > bad.
-> > 
-> > I can watch TV but radio not work. After start Gnomeradio I see 
-> > VIDIOCGAUDIO incorrect
-> > VIDIOCSAUDIO incorrect
-> > VIDIOCSFREQ incorrect
-> > 
-> > Try found what happens with radio.
-> 
-> This patch has several issues. The usage of switch for video doesn't
-> work well. A better approach follows. Not tested yet.
-> 
-> PS.: I couldn't test it: not sure why, but the audio source is not
-> working for me: arecord is not able to read from the device input.
+Here's the fourth version of the fbdev FOURCC-based format configuration API.
 
-URB_MSG_AUDIO is zero size no data for fill to audio buffer.
+The third version nearly got merged, but we noticed that gcc choked on
+anonymous union initializers. This has been fixed in gcc 4.6, but I don't have
+the power to force Linux to set the base gcc version to 4.6 :-)
 
-for watch TV I used this command
+There were two ways to fix the issue, neither of which was particularly
+attractive to me. The first one involved a 10k lines patch that modified all
+the drivers, and the second one required using one of the reserved fields in
+the fb_var_screeninfo structure. After discussing this with Florian, I've
+decided to go for the second fix.
 
-mplayer -v tv:// -tv driver=v4l2:fps=25:outfmt=i420:width=720:height=576:alsa:adevice=hw.1,0:amode=1:audiorate=48000:forceaudio:immediatemode=0:freq=77.25:normid=15 -aspect 4:3 -vo xv
+The colorspace field is thus now stored in a previously reserved field. The
+fourcc field is still shared with the grayscale field, but doesn't have its
+own name anymore.
 
-AFTER this command radio can works
+I've updated the fbdev-test tool to this new API. The code is available in the
+fbdev-test yuv branch at
+http://git.ideasonboard.org/?p=fbdev-test.git;a=shortlog;h=refs/heads/yuv.
 
-URB_MSG_AUDIO is not zero and audio buffer filled.
+Laurent Pinchart (3):
+  fbdev: Add FOURCC-based format configuration API
+  v4l: Add V4L2_PIX_FMT_NV24 and V4L2_PIX_FMT_NV42 formats
+  fbdev: sh_mobile_lcdc: Support FOURCC-based format API
 
-I think incorrect init a register. When I start mplayer a register set correct mode and audio
-via arecord and sox can work.
+ Documentation/DocBook/media/v4l/pixfmt-nv24.xml |  129 ++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml      |    1 +
+ Documentation/fb/api.txt                        |  306 +++++++++++++++++++
+ arch/arm/mach-shmobile/board-ag5evm.c           |    2 +-
+ arch/arm/mach-shmobile/board-ap4evb.c           |    4 +-
+ arch/arm/mach-shmobile/board-mackerel.c         |    4 +-
+ arch/sh/boards/mach-ap325rxa/setup.c            |    2 +-
+ arch/sh/boards/mach-ecovec24/setup.c            |    2 +-
+ arch/sh/boards/mach-kfr2r09/setup.c             |    2 +-
+ arch/sh/boards/mach-migor/setup.c               |    4 +-
+ arch/sh/boards/mach-se/7724/setup.c             |    2 +-
+ drivers/video/sh_mobile_lcdcfb.c                |  360 +++++++++++++++--------
+ include/linux/fb.h                              |   14 +-
+ include/linux/videodev2.h                       |    2 +
+ include/video/sh_mobile_lcdc.h                  |    4 +-
+ 15 files changed, 701 insertions(+), 137 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+ create mode 100644 Documentation/fb/api.txt
 
-I try found it.
+-- 
+Regards,
 
-With my best regards, Dmitry.
+Laurent Pinchart
 
-> -
-> [media] tm6000: Fix tm6010 audio standard selection
-> 
-> A V4L2 standards mask may contain several standards. A more restricted
-> mask with just one standard is used when user needs to bind to an
-> specific standard that can't be auto-detect among a more generic mask.
-> 
-> So, Improve the autodetection logic to detect the correct audio
-> standard most of the time.
-> 
-> Based on a patch made by Dmitri Belimov <d.belimov@gmail.com>.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> 
-> diff --git a/drivers/media/video/tm6000/tm6000-core.c
-> b/drivers/media/video/tm6000/tm6000-core.c index 9783616..55d097e
-> 100644 --- a/drivers/media/video/tm6000/tm6000-core.c
-> +++ b/drivers/media/video/tm6000/tm6000-core.c
-> @@ -696,11 +696,13 @@ int tm6000_set_audio_rinput(struct tm6000_core
-> *dev) if (dev->dev_type == TM6010) {
->  		/* Audio crossbar setting, default SIF1 */
->  		u8 areg_f0;
-<snip>
-> +				0x30, 0xf0);
->  			break;
->  		default:
->  			break;
