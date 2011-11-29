@@ -1,70 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52460 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751413Ab1KMTM7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Nov 2011 14:12:59 -0500
-Message-ID: <4EC016B9.1080306@iki.fi>
-Date: Sun, 13 Nov 2011 21:12:57 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.126.187]:55095 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756813Ab1K2Xo3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Nov 2011 18:44:29 -0500
+Date: Wed, 30 Nov 2011 00:44:22 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Lei Wen <adrian.wenl@gmail.com>
+cc: Lei Wen <leiwen@marvell.com>, linux-media@vger.kernel.org,
+	jqsu@marvell.com, qingx@marvell.com, fswu@marvell.com,
+	twang13@marvell.com, ytang5@marvell.com, wwang27@marvell.com,
+	wzhu10@marvell.com
+Subject: Re: [PATCH] [media] V4L: soc-camera: change order of removing device
+In-Reply-To: <CALZhoSR6+E41KsJL6ChbF26y4nRR+TXEOHk8HPnvxiYnuC=fGA@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1111300038550.23114@axis700.grange>
+References: <1321970669-23423-1-git-send-email-leiwen@marvell.com>
+ <CALZhoSR6+E41KsJL6ChbF26y4nRR+TXEOHk8HPnvxiYnuC=fGA@mail.gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-CC: Michael Krufky <mkrufky@kernellabs.com>
-Subject: [GIT PULL FOR 3.2] misc small changes, mostly get/set IF related
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moro
+Hi Lei
 
-These patches are rather small enchantments and should not have any 
-visible effect.
+On Tue, 29 Nov 2011, Lei Wen wrote:
 
-mxl5007t change is that register read fix I have mentioned earlier. Reg 
-read is used only for checking chip ID and even if ID is not detected 
-correctly it will still work. So no functional changes.
+> Hi,
+> 
+> On Tue, Nov 22, 2011 at 10:04 PM, Lei Wen <leiwen@marvell.com> wrote:
+> > As our general practice, we use stream off before we close
+> > the video node. So that the drivers its stream off function
+> > would be called before its remove function.
+> >
+> > But for the case for ctrl+c, the program would be force closed.
+> > We have no chance to call that vb2 stream off from user space,
+> > but directly call the remove function in soc_camera.
+> >
+> > In that common code of soc_camera:
+> >
+> >                ici->ops->remove(icd);
+> >                if (ici->ops->init_videobuf2)
+> >                        vb2_queue_release(&icd->vb2_vidq);
+> >
+> > It would first call the device remove function, then release vb2,
+> > in which stream off function is called. Thus it create different
+> > order for the driver.
+> >
+> > This patch change the order to make driver see the same sequence
+> > to make it happy.
 
-Antti
+This is a change, that would affect all soc-camera host drivers. Since you 
+don't describe the actual problem and the platform, on which it occurs, I 
+suppose, it is not a regression, and, possibly, it only affects an 
+off-tree driver from your employer. Therefore I don't think it would be 
+reasonable to push it in the middle of an -rc* period. Still, this change 
+seems logical, and I'll consider including it in the 3.3 kernel. I'll come 
+back to you if I have further questions.
 
-The following changes since commit df5f76dfef9bfaec1ff27d0a60a57a773bf87f0f:
+Thanks
+Guennadi
 
-   af9015: limit I2C access to keep FW happy (2011-11-13 03:33:30 +0200)
+> >
+> > Signed-off-by: Lei Wen <leiwen@marvell.com>
+> > ---
+> >  drivers/media/video/soc_camera.c |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+> > index b72580c..fdc6167 100644
+> > --- a/drivers/media/video/soc_camera.c
+> > +++ b/drivers/media/video/soc_camera.c
+> > @@ -600,9 +600,9 @@ static int soc_camera_close(struct file *file)
+> >                pm_runtime_suspend(&icd->vdev->dev);
+> >                pm_runtime_disable(&icd->vdev->dev);
+> >
+> > -               ici->ops->remove(icd);
+> >                if (ici->ops->init_videobuf2)
+> >                        vb2_queue_release(&icd->vb2_vidq);
+> > +               ici->ops->remove(icd);
+> >
+> >                soc_camera_power_off(icd, icl);
+> >        }
+> > --
+> > 1.7.0.4
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
+> Any comments?
+> 
+> Thanks,
+> Lei
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-are available in the git repository at:
-   git://linuxtv.org/anttip/media_tree.git af9015
-
-Antti Palosaari (12):
-       tda18218: implement .get_if_frequency()
-       tda18218: fix 6 MHz default IF frequency
-       af9013: use .get_if_frequency() when possible
-       mt2060: implement .get_if_frequency()
-       qt1010: implement .get_if_frequency()
-       tda18212: implement .get_if_frequency()
-       tda18212: round IF frequency to close hardware value
-       cxd2820r: switch to .get_if_frequency()
-       cxd2820r: check bandwidth earlier for DVB-T/T2
-       mxl5007t: fix reg read
-       ce6230: remove experimental from Kconfig
-       ce168: remove experimental from Kconfig
-
-  drivers/media/common/tuners/mt2060.c        |    9 +++-
-  drivers/media/common/tuners/mxl5007t.c      |    3 +-
-  drivers/media/common/tuners/qt1010.c        |    9 +++-
-  drivers/media/common/tuners/tda18212.c      |   17 +++++++-
-  drivers/media/common/tuners/tda18218.c      |   18 ++++++-
-  drivers/media/common/tuners/tda18218_priv.h |    2 +
-  drivers/media/dvb/dvb-usb/Kconfig           |    4 +-
-  drivers/media/dvb/dvb-usb/anysee.c          |    7 ---
-  drivers/media/dvb/frontends/af9013.c        |   43 ++++--------------
-  drivers/media/dvb/frontends/cxd2820r.h      |   13 ------
-  drivers/media/dvb/frontends/cxd2820r_c.c    |   13 +++++-
-  drivers/media/dvb/frontends/cxd2820r_t.c    |   55 +++++++++++++----------
-  drivers/media/dvb/frontends/cxd2820r_t2.c   |   62 
-+++++++++++++++------------
-  drivers/media/video/em28xx/em28xx-dvb.c     |    7 ---
-  14 files changed, 140 insertions(+), 122 deletions(-)
-
-
--- 
-http://palosaari.fi/
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
