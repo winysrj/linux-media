@@ -1,49 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:34570 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751896Ab1KORuI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Nov 2011 12:50:08 -0500
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	sakari.ailus@maxwell.research.nokia.com
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH 2/9] as3645a: print vendor and revision of the chip
-Date: Tue, 15 Nov 2011 19:49:54 +0200
-Message-Id: <461cc7fb0ff5b466b2a53b823241c5792ba7900a.1321379276.git.andriy.shevchenko@linux.intel.com>
-In-Reply-To: <cover.1321379276.git.andriy.shevchenko@linux.intel.com>
-References: <1321374065-20063-3-git-send-email-laurent.pinchart@ideasonboard.com>
- <cover.1321379276.git.andriy.shevchenko@linux.intel.com>
-In-Reply-To: <cover.1321379276.git.andriy.shevchenko@linux.intel.com>
-References: <cover.1321379276.git.andriy.shevchenko@linux.intel.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:42257 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756710Ab1K2Vdu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Nov 2011 16:33:50 -0500
+From: Haogang Chen <haogangchen@gmail.com>
+To: laurent.pinchart@ideasonboard.com, mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Haogang Chen <haogangchen@gmail.com>
+Subject: [PATCH] Media: video: uvc: integer overflow in uvc_ioctl_ctrl_map()
+Date: Tue, 29 Nov 2011 16:32:25 -0500
+Message-Id: <1322602345-26279-1-git-send-email-haogangchen@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The as3645a_registered() is used to detect connected chip. It would be nice to
-print the detected value every time we load the module. The "Vendor" is
-probably better word to use there. For example, lm3555 (NSC) is slightly
-different to as3645a.
+There is a potential integer overflow in uvc_ioctl_ctrl_map(). When a
+large xmap->menu_count is passed from the userspace, the subsequent call
+to kmalloc() will allocate a buffer smaller than expected.
+map->menu_count and map->menu_info would later be used in a loop (e.g.
+in uvc_query_v4l2_ctrl), which leads to out-of-bound access.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+The patch checks the ioctl argument and returns -EINVAL for zero or too
+large values in xmap->menu_count.
+
+Signed-off-by: Haogang Chen <haogangchen@gmail.com>
 ---
- drivers/media/video/as3645a.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/video/uvc/uvc_v4l2.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/as3645a.c b/drivers/media/video/as3645a.c
-index ef1226d..8882a14 100644
---- a/drivers/media/video/as3645a.c
-+++ b/drivers/media/video/as3645a.c
-@@ -602,8 +602,8 @@ static int as3645a_registered(struct v4l2_subdev *sd)
- 		factory = "Unknown";
- 	}
+diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
+index dadf11f..9a180d6 100644
+--- a/drivers/media/video/uvc/uvc_v4l2.c
++++ b/drivers/media/video/uvc/uvc_v4l2.c
+@@ -58,6 +58,12 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain *chain,
+ 		break;
  
--	dev_dbg(&client->dev, "Factory: %s(%d) Version: %d\n", factory, man,
--		version);
-+	dev_info(&client->dev, "Chip vendor: %s(%d) Version: %d\n", factory,
-+			man, version);
- 
- 	rval = as3645a_write(flash, AS_PASSWORD_REG, AS_PASSWORD_UNLOCK_VALUE);
- 	if (rval < 0)
+ 	case V4L2_CTRL_TYPE_MENU:
++		if (xmap->menu_count == 0 ||
++		    xmap->menu_count > INT_MAX / sizeof(*map->menu_info)) {
++			kfree(map);
++			return -EINVAL;
++		}
++
+ 		size = xmap->menu_count * sizeof(*map->menu_info);
+ 		map->menu_info = kmalloc(size, GFP_KERNEL);
+ 		if (map->menu_info == NULL) {
 -- 
-1.7.7.1
+1.7.5.4
 
