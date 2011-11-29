@@ -1,61 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53062 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756417Ab1KCSEX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Nov 2011 14:04:23 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pA3I4NqG022483
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 3 Nov 2011 14:04:23 -0400
-Received: from [10.11.11.101] (vpn-11-101.rdu.redhat.com [10.11.11.101])
-	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id pA3I4Mkf008885
-	for <linux-media@vger.kernel.org>; Thu, 3 Nov 2011 14:04:23 -0400
-Message-ID: <4EB2D7A5.1080208@redhat.com>
-Date: Thu, 03 Nov 2011 16:04:21 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from fmmailgate05.web.de ([217.72.192.243]:64467 "EHLO
+	fmmailgate05.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754876Ab1K2MNo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Nov 2011 07:13:44 -0500
+Received: from moweb002.kundenserver.de (moweb002.kundenserver.de [172.19.20.108])
+	by fmmailgate05.web.de (Postfix) with ESMTP id 3FF3E67AA952
+	for <linux-media@vger.kernel.org>; Tue, 29 Nov 2011 13:04:59 +0100 (CET)
+From: Jens Erdmann <Jens.Erdmann@web.de>
+To: Andreas Oberritter <obi@linuxtv.org>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] em28xx: Add Terratec Cinergy HTC Stick
+Date: Tue, 29 Nov 2011 13:04:57 +0100
+References: <11607963.5467764.1322494881126.JavaMail.fmail@mwmweb051> <4ED3BD7F.1020406@linuxtv.org>
+In-Reply-To: <4ED3BD7F.1020406@linuxtv.org>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] edac: Only build sb_edac on 64-bit
-References: <1320343211-10665-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1320343211-10665-1-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-ID: <0MQf77-1RNtkl3pe9-00U2UK@smtp.web.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 03-11-2011 16:00, Mauro Carvalho Chehab escreveu:
-> From: Josh Boyer <jwboyer@redhat.com>
+Hi Andreas,
+
+On Monday, November 28, 2011 05:57:35 PM you wrote:
+> Hello Jens,
 > 
-> The sb_edac driver is marginally useful on a 32-bit kernel, and
-> currently has 64-bit divide compile errors when building that config.
-> For now, make this build on only for 64-bit kernels.
+> On 28.11.2011 16:41, Jens Erdmann wrote:
+> > Hi folks,
+> > 
+> > just a few quetstions:
+> > 1. Why is the device named EM2884_BOARD_CINERGY_HTC_STICK and not
+> > 
+> >     EM2884_BOARD_TERRATEC_HTC_STICK like all the other devices from that
+> >     vendor? Looks inconsistent to me.
 > 
-> Signed-off-by: Josh Boyer <jwboyer@redhat.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-Please discard this patch... my fingers just automatically typed "--cc lmml",
-as they used to do it most of the time when typing a git send-email command ;)
-
-> ---
->  drivers/edac/Kconfig |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+> that's because it's the product name. Even though TERRATEC is the
+> vendor, the TERRATEC series of devices is different from the Cinergy
+> series (mostly due to software bundles, IMHO). See their homepage for
+> details.
 > 
-> diff --git a/drivers/edac/Kconfig b/drivers/edac/Kconfig
-> index 203361e..5948a21 100644
-> --- a/drivers/edac/Kconfig
-> +++ b/drivers/edac/Kconfig
-> @@ -214,7 +214,7 @@ config EDAC_I7300
->  
->  config EDAC_SBRIDGE
->  	tristate "Intel Sandy-Bridge Integrated MC"
-> -	depends on EDAC_MM_EDAC && PCI && X86 && X86_MCE_INTEL
-> +	depends on EDAC_MM_EDAC && PCI && X86_64 && X86_MCE_INTEL
->  	depends on EXPERIMENTAL
->  	help
->  	  Support for error detection and correction the Intel
+> So, TERRATEC_HTC_STICK would be wrong. You could change it to
+> TERRATEC_CINERGY_HTC_STICK, if it's important to you. However, following
+> the same logic, the TERRATEC H5 should then be called
+> TERRATEC_TERRATEC_H5, which seems rather odd.
+> 
+> Btw.: The em28xx driver wrongly lists the H5 as "Terratec Cinergy H5".
+> 
 
-For the silly patchwork at linuxtv:
+Don't get me wrong on this. I am just asking. You have made the desicion
+and if you are fine with it its ok.
 
-Nacked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > 2. I stumbled over http://linux.terratec.de/tv_en.html where they list a
+> > NXP TDA18271
+> > 
+> >     as used tuner for H5 and HTC Stick devices. I dont have any
+> >     experience in this kind of stuff but i am just asking.
+> 
+> That's right.
+> 
 
-(as it doesn't bellong to media stuff ;) )
+So this should be made like the other devices which are using the TDA18271?
+Or is there no driver for this tuner yet?
+
+Regards,
+
+  Jens
+
+PS: Thanks to Antti Palosaari for the detailed explanation.
