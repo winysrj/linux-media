@@ -1,197 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8811 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753055Ab1KTO4b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Nov 2011 09:56:31 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pAKEuUVc028812
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 20 Nov 2011 09:56:31 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 6/8] [media] em28xx: Fix CodingStyle issues introduced by changeset 82e7dbb
-Date: Sun, 20 Nov 2011 12:56:16 -0200
-Message-Id: <1321800978-27912-6-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1321800978-27912-5-git-send-email-mchehab@redhat.com>
-References: <1321800978-27912-1-git-send-email-mchehab@redhat.com>
- <1321800978-27912-2-git-send-email-mchehab@redhat.com>
- <1321800978-27912-3-git-send-email-mchehab@redhat.com>
- <1321800978-27912-4-git-send-email-mchehab@redhat.com>
- <1321800978-27912-5-git-send-email-mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57670 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753989Ab1K2K05 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Nov 2011 05:26:57 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-fbdev@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v4 2/3] v4l: Add V4L2_PIX_FMT_NV24 and V4L2_PIX_FMT_NV42 formats
+Date: Tue, 29 Nov 2011 11:26:58 +0100
+Message-Id: <1322562419-9934-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1322562419-9934-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1322562419-9934-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/drxk_hard.c   |    2 +-
- drivers/media/video/em28xx/em28xx-cards.c |   17 +++++----
- drivers/media/video/em28xx/em28xx-dvb.c   |   57 +++++++++++------------------
- 3 files changed, 32 insertions(+), 44 deletions(-)
+NV24 and NV42 are planar YCbCr 4:4:4 and YCrCb 4:4:4 formats with a
+luma plane followed by an interleaved chroma plane.
 
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index 2392092..95cbc98 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -682,7 +682,7 @@ static int init_state(struct drxk_state *state)
- 	state->m_hasAudio = false;
- 
- 	if (!state->m_ChunkSize)
--	    state->m_ChunkSize = 124;
-+		state->m_ChunkSize = 124;
- 
- 	state->m_oscClockFreq = 0;
- 	state->m_smartAntInverted = false;
-diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-index 705aedf..d92e0af 100644
---- a/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/drivers/media/video/em28xx/em28xx-cards.c
-@@ -337,9 +337,8 @@ static struct em28xx_reg_seq pctv_460e[] = {
- };
- 
- static struct em28xx_reg_seq hauppauge_930c_gpio[] = {
--// xc5000 reset
- 	{EM2874_R80_GPIO,	0x6f,	0xff,	10},
--	{EM2874_R80_GPIO,	0x4f,	0xff,	10},
-+	{EM2874_R80_GPIO,	0x4f,	0xff,	10}, /* xc5000 reset */
- 	{EM2874_R80_GPIO,	0x6f,	0xff,	10},
- 	{EM2874_R80_GPIO,	0x4f,	0xff,	10},
- 	{ -1,			-1,	-1,	-1},
-@@ -905,6 +904,8 @@ struct em28xx_board em28xx_boards[] = {
- 		.tuner_addr   = 0x41,
- 		.dvb_gpio     = terratec_h5_digital, /* FIXME: probably wrong */
- 		.tuner_gpio   = terratec_h5_gpio,
-+#else
-+		.tuner_type   = TUNER_ABSENT,
- #endif
- 		.i2c_speed    = EM2874_I2C_SECONDARY_BUS_SELECT |
- 				EM28XX_I2C_CLK_WAIT_ENABLE |
-@@ -913,12 +914,14 @@ struct em28xx_board em28xx_boards[] = {
- 	[EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C] = {
- 		.name         = "Hauppauge WinTV HVR 930C",
- 		.has_dvb      = 1,
--//#if 0
--//		.tuner_type   = TUNER_XC5000,
--//		.tuner_addr   = 0x41,
--//		.dvb_gpio     = hauppauge_930c_digital, /* FIXME: probably wrong */
-+#if 0 /* FIXME: Add analog support */
-+		.tuner_type   = TUNER_XC5000,
-+		.tuner_addr   = 0x41,
-+		.dvb_gpio     = hauppauge_930c_digital,
- 		.tuner_gpio   = hauppauge_930c_gpio,
--//#endif
-+#else
-+		.tuner_type   = TUNER_ABSENT,
-+#endif
- 		.i2c_speed    = EM2874_I2C_SECONDARY_BUS_SELECT |
- 				EM28XX_I2C_CLK_WAIT_ENABLE |
- 				EM28XX_I2C_FREQ_400_KHZ,
-diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
-index d19939b..55a9008 100644
---- a/drivers/media/video/em28xx/em28xx-dvb.c
-+++ b/drivers/media/video/em28xx/em28xx-dvb.c
-@@ -347,42 +347,27 @@ static void hauppauge_hvr930c_init(struct em28xx *dev)
- 	int i;
- 
- 	struct em28xx_reg_seq hauppauge_hvr930c_init[] = {
--		{EM2874_R80_GPIO,	0xff,	0xff,	101},  //11111111
--//		{0xd            ,	0xff,	0xff,	101},  //11111111
--		{EM2874_R80_GPIO,	0xfb,	0xff,	50},   //11111011  init bit 3
--		{EM2874_R80_GPIO,	0xff,	0xff,	184},  //11111111
-+		{EM2874_R80_GPIO,	0xff,	0xff,	0x65},
-+		{EM2874_R80_GPIO,	0xfb,	0xff,	0x32},
-+		{EM2874_R80_GPIO,	0xff,	0xff,	0xb8},
- 		{ -1,                   -1,     -1,     -1},
- 	};
- 	struct em28xx_reg_seq hauppauge_hvr930c_end[] = {
--		{EM2874_R80_GPIO,	0xef,	0xff,	1},    //11101111
--		{EM2874_R80_GPIO,	0xaf,	0xff,	101},  //10101111  init bit 7
--		{EM2874_R80_GPIO,	0xef,	0xff,	118},   //11101111
-+		{EM2874_R80_GPIO,	0xef,	0xff,	0x01},
-+		{EM2874_R80_GPIO,	0xaf,	0xff,	0x65},
-+		{EM2874_R80_GPIO,	0xef,	0xff,	0x76},
-+		{EM2874_R80_GPIO,	0xef,	0xff,	0x01},
-+		{EM2874_R80_GPIO,	0xcf,	0xff,	0x0b},
-+		{EM2874_R80_GPIO,	0xef,	0xff,	0x40},
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/DocBook/media/v4l/pixfmt-nv24.xml |  129 +++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml      |    1 +
+ include/linux/videodev2.h                       |    2 +
+ 3 files changed, 132 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv24.xml b/Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+new file mode 100644
+index 0000000..939c803
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+@@ -0,0 +1,129 @@
++    <refentry>
++      <refmeta>
++	<refentrytitle>V4L2_PIX_FMT_NV24 ('NV24'), V4L2_PIX_FMT_NV42 ('NV42')</refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname id="V4L2-PIX-FMT-NV24"><constant>V4L2_PIX_FMT_NV24</constant></refname>
++	<refname id="V4L2-PIX-FMT-NV42"><constant>V4L2_PIX_FMT_NV42</constant></refname>
++	<refpurpose>Formats with full horizontal and vertical
++chroma resolutions, also known as YUV 4:4:4. One luminance and one
++chrominance plane with alternating chroma samples as opposed to
++<constant>V4L2_PIX_FMT_YVU420</constant></refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
 +
-+		{EM2874_R80_GPIO,	0xcf,	0xff,	0x65},
-+		{EM2874_R80_GPIO,	0xef,	0xff,	0x65},
-+		{EM2874_R80_GPIO,	0xcf,	0xff,	0x0b},
-+		{EM2874_R80_GPIO,	0xef,	0xff,	0x65},
++	<para>These are two-plane versions of the YUV 4:4:4 format. The three
++	components are separated into two sub-images or planes. The Y plane is
++	first, with each Y sample stored in one byte per pixel. For
++	<constant>V4L2_PIX_FMT_NV24</constant>, a combined CbCr plane
++	immediately follows the Y plane in memory. The CbCr plane has the same
++	width and height, in pixels, as the Y plane (and the image). Each line
++	contains one CbCr pair per pixel, with each Cb and Cr sample stored in
++	one byte. <constant>V4L2_PIX_FMT_NV42</constant> is the same except that
++	the Cb and Cr samples are swapped, the CrCb plane starts with a Cr
++	sample.</para>
++
++	<para>If the Y plane has pad bytes after each row, then the CbCr plane
++	has twice as many pad bytes after its rows.</para>
++
++	<example>
++	  <title><constant>V4L2_PIX_FMT_NV24</constant> 4 &times; 4
++pixel image</title>
++
++	  <formalpara>
++	    <title>Byte Order.</title>
++	    <para>Each cell is one byte.
++		<informaltable frame="none">
++		<tgroup cols="9" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start&nbsp;+&nbsp;0:</entry>
++		      <entry>Y'<subscript>00</subscript></entry>
++		      <entry>Y'<subscript>01</subscript></entry>
++		      <entry>Y'<subscript>02</subscript></entry>
++		      <entry>Y'<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;4:</entry>
++		      <entry>Y'<subscript>10</subscript></entry>
++		      <entry>Y'<subscript>11</subscript></entry>
++		      <entry>Y'<subscript>12</subscript></entry>
++		      <entry>Y'<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;8:</entry>
++		      <entry>Y'<subscript>20</subscript></entry>
++		      <entry>Y'<subscript>21</subscript></entry>
++		      <entry>Y'<subscript>22</subscript></entry>
++		      <entry>Y'<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;12:</entry>
++		      <entry>Y'<subscript>30</subscript></entry>
++		      <entry>Y'<subscript>31</subscript></entry>
++		      <entry>Y'<subscript>32</subscript></entry>
++		      <entry>Y'<subscript>33</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;16:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++		      <entry>Cb<subscript>02</subscript></entry>
++		      <entry>Cr<subscript>02</subscript></entry>
++		      <entry>Cb<subscript>03</subscript></entry>
++		      <entry>Cr<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;24:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++		      <entry>Cb<subscript>12</subscript></entry>
++		      <entry>Cr<subscript>12</subscript></entry>
++		      <entry>Cb<subscript>13</subscript></entry>
++		      <entry>Cr<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;32:</entry>
++		      <entry>Cb<subscript>20</subscript></entry>
++		      <entry>Cr<subscript>20</subscript></entry>
++		      <entry>Cb<subscript>21</subscript></entry>
++		      <entry>Cr<subscript>21</subscript></entry>
++		      <entry>Cb<subscript>22</subscript></entry>
++		      <entry>Cr<subscript>22</subscript></entry>
++		      <entry>Cb<subscript>23</subscript></entry>
++		      <entry>Cr<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;40:</entry>
++		      <entry>Cb<subscript>30</subscript></entry>
++		      <entry>Cr<subscript>30</subscript></entry>
++		      <entry>Cb<subscript>31</subscript></entry>
++		      <entry>Cr<subscript>31</subscript></entry>
++		      <entry>Cb<subscript>32</subscript></entry>
++		      <entry>Cr<subscript>32</subscript></entry>
++		      <entry>Cb<subscript>33</subscript></entry>
++		      <entry>Cr<subscript>33</subscript></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++	</example>
++      </refsect1>
++    </refentry>
++
++  <!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "pixfmt.sgml"
++indent-tabs-mode: nil
++End:
++  -->
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 2ff6b77..aef4615 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -714,6 +714,7 @@ information.</para>
+     &sub-nv12m;
+     &sub-nv12mt;
+     &sub-nv16;
++    &sub-nv24;
+     &sub-m420;
+   </section>
  
--
--//per il tuner?
--		{EM2874_R80_GPIO,	0xef,	0xff,	1},  //11101111
--		{EM2874_R80_GPIO,	0xcf,	0xff,	11},    //11001111  init bit 6
--		{EM2874_R80_GPIO,	0xef,	0xff,	64},  //11101111
--
--		{EM2874_R80_GPIO,	0xcf,	0xff,	101},  //11001111  init bit 6
--		{EM2874_R80_GPIO,	0xef,	0xff,	101},  //11101111
--		{EM2874_R80_GPIO,	0xcf,	0xff,	11},  //11001111  init bit 6
--		{EM2874_R80_GPIO,	0xef,	0xff,	101},  //11101111
--
--//		{EM2874_R80_GPIO,	0x6f,	0xff,	10},    //01101111
--//		{EM2874_R80_GPIO,	0x6d,	0xff,	100},  //01101101  init bit 2
- 		{ -1,                   -1,     -1,     -1},
- 	};
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 4b752d5..d2f74f8 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -343,6 +343,8 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V', '2', '1') /* 12  Y/CrCb 4:2:0  */
+ #define V4L2_PIX_FMT_NV16    v4l2_fourcc('N', 'V', '1', '6') /* 16  Y/CbCr 4:2:2  */
+ #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
++#define V4L2_PIX_FMT_NV24    v4l2_fourcc('N', 'V', '2', '4') /* 24  Y/CbCr 4:4:4  */
++#define V4L2_PIX_FMT_NV42    v4l2_fourcc('N', 'V', '4', '2') /* 24  Y/CrCb 4:4:4  */
  
--	struct em28xx_reg_seq hauppauge_hvr930c_end2[] = {
--//		{EM2874_R80_GPIO,	0x6f,	0xff,	124},  //01101111
--//		{EM2874_R80_GPIO,	0x4f,	0xff,	11},   //01001111  init bit 6
--//		{EM2874_R80_GPIO,	0x6f,	0xff,	1},    //01101111
--//		{EM2874_R80_GPIO,	0x4f,	0xff,	10},   //01001111  init bit 6
--//		{EM2874_R80_GPIO,	0x6f,	0xff,	100},  //01101111
--//		{0xd            ,	0x42,	0xff,	101},  //11111111
--		{ -1,                   -1,     -1,     -1},
--	};
- 	struct {
- 		unsigned char r[4];
- 		int len;
-@@ -419,8 +404,6 @@ static void hauppauge_hvr930c_init(struct em28xx *dev)
- 	em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x44);
- 	msleep(30);
- 
--	em28xx_gpio_set(dev, hauppauge_hvr930c_end2);
--	msleep(10);
- 	em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x45);
- 	msleep(10);
- 
-@@ -885,7 +868,9 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 
- 		dvb->dont_attach_fe1 = 1;
- 
--		dvb->fe[0] = dvb_attach(drxk_attach, &hauppauge_930c_drxk, &dev->i2c_adap, &dvb->fe[1]);
-+		dvb->fe[0] = dvb_attach(drxk_attach,
-+					&hauppauge_930c_drxk, &dev->i2c_adap,
-+					&dvb->fe[1]);
- 		if (!dvb->fe[0]) {
- 			result = -EINVAL;
- 			goto out_free;
-@@ -901,12 +886,12 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 		struct xc5000_config cfg;
- 		memset(&cfg, 0, sizeof(cfg));
- 		cfg.i2c_address  = 0x61;
--		//cfg.if_khz = 4570; //FIXME
--		cfg.if_khz = 4000; //FIXME (should be ok) read from i2c traffic
-+		cfg.if_khz = 4000;
- 
- 		if (dvb->fe[0]->ops.i2c_gate_ctrl)
- 			dvb->fe[0]->ops.i2c_gate_ctrl(dvb->fe[0], 1);
--		if (!dvb_attach(xc5000_attach, dvb->fe[0], &dev->i2c_adap, &cfg)) {
-+		if (!dvb_attach(xc5000_attach, dvb->fe[0], &dev->i2c_adap,
-+				&cfg)) {
- 			result = -EINVAL;
- 			goto out_free;
- 		}
-@@ -978,7 +963,7 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 	/* define general-purpose callback pointer */
- 	dvb->fe[0]->callback = em28xx_tuner_callback;
- 	if (dvb->fe[1])
--	    dvb->fe[1]->callback = em28xx_tuner_callback;
-+		dvb->fe[1]->callback = em28xx_tuner_callback;
- 
- 	/* register everything */
- 	result = em28xx_register_dvb(dvb, THIS_MODULE, dev, &dev->udev->dev);
+ /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
+ #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
 -- 
-1.7.7.1
+1.7.3.4
 
