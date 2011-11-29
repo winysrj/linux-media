@@ -1,99 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:46530 "EHLO ffm.saftware.de"
+Received: from mx1.redhat.com ([209.132.183.28]:48627 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753253Ab1KEQt7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Nov 2011 12:49:59 -0400
-Message-ID: <4EB566CD.7050704@linuxtv.org>
-Date: Sat, 05 Nov 2011 17:39:41 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+	id S1752216Ab1K2Ex5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Nov 2011 23:53:57 -0500
+Message-ID: <4ED4655F.5050905@redhat.com>
+Date: Tue, 29 Nov 2011 05:53:51 +0100
+From: "Fabio M. Di Nitto" <fdinitto@redhat.com>
 MIME-Version: 1.0
-To: Lawrence Rust <lawrence@softsystem.co.uk>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Revert most of 15cc2bb [media] DVB: dtv_property_cache_submit
- shouldn't modifiy the cache
-References: <1320506379.1731.12.camel@gagarin>
-In-Reply-To: <1320506379.1731.12.camel@gagarin>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Stefan Ringel <linuxtv@stefanringel.de>,
+	Dmitri Belimov <d.belimov@gmail.com>
+Subject: Re: HVR-900H dvb-t regression(s)
+References: <4ED39D88.507@redhat.com> <4ED3F81F.303@redhat.com>
+In-Reply-To: <4ED3F81F.303@redhat.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05.11.2011 16:19, Lawrence Rust wrote:
-> Hi,
+On 11/28/2011 10:07 PM, Mauro Carvalho Chehab wrote:
+> On 28-11-2011 12:41, Fabio M. Di Nitto wrote:
+>> Hi all,
+>>
+>> short summary is that dvb-t on $subject doesn´t work with head of the
+>> tree (for_3.3 branch) and scan or mplayer stop working.
+>>
+>> Here is the breakdown of what I found with all logs. Please let me know
+>> if you need any extra info. Can easily test patches and gather more logs
+>> if necessary.
+>>
+>> Also please note that I am no media guru of any kind. I had to work on
+>> some assumptions from time to time.
+>>
+>> Based on git bisect:
+>>
+>> The last known good commit is e872bb9a7ddfc025ed727cc922b0aa32a7582004
+>>
+>> The first known bad commit is f010dca2e52d8dcc0445d695192df19241afacdb
+>>
+>> commit f010dca2e52d8dcc0445d695192df19241afacdb
+>> Author: Stefan Ringel<stefan.ringel@arcor.de>
+>> Date:   Mon May 9 16:53:58 2011 -0300
+>>
+>>      [media] tm6000: move from tm6000_set_reg to tm6000_set_reg_mask
+>>
+>>      move from tm6000_set_reg to tm6000_set_reg_mask
+>>
+>>      Signed-off-by: Stefan Ringel<stefan.ringel@arcor.de>
+>>      Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+>>
+>> While this commit appears rather innocent, it changes the way some
+>> registries are set.
+>>
+>> the original code did:
+>>
+>> read_reg...
+>> change value
+>> write_reg.. (unconditionally)
+>>
+>> the new code path:
+>>
+>> read_reg...
+>> calculate new value
+>> check if it is same
+>> if not, write_reg...
+>>
+>> So I did the simplest test as possible by removing the conditional in
+>> tm6000_set_reg_mask and dvb-t started working again.
+>>
+>> something along those lines:
+>>
+>> diff --git a/drivers/media/video/tm6000/tm6000-core.c
+>> b/drivers/media/video/tm6000/tm6000-core.c
+>> index 9783616..818f542 100644
+>> --- a/drivers/media/video/tm6000/tm6000-core.c
+>> +++ b/drivers/media/video/tm6000/tm6000-core.c
+>> @@ -132,8 +132,8 @@ int tm6000_set_reg_mask(struct tm6000_core *dev, u8
+>> req, u16 value,
+>>
+>>          new_index = (buf[0]&  ~mask) | (index&  mask);
+>>
+>> -       if (new_index == index)
+>> -               return 0;
+>> +//     if (new_index == index)
+>> +//             return 0;
+>>
+>>          return tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR,
+>>                                        req, value, new_index, NULL, 0);
+>>
+>> but moving this change to the HEAD of for_v3.3 doesn´t solve the
+>> problem, possibly hinting to multiple regressions in the driver but at
+>> this point I am slightly lost because i can´t figure out what else is
+>> wrong. Some semi-random git bisect didn´t bring me anywhere useful at
+>> this point.
 > 
-> I believe that I have found a problem with dtv_property_cache updating
-> when handling the legacy API.  This was introduced between 2.6.39 and
-> 3.0.
+> Hmm... It occurred to me that HVR-900H has a bug at device initialization.
+> Sometimes, after a device connect it can't read anything from eeprom. As
+> result,
+> it will print:
 > 
-> dtv_property_cache_submit() in dvb_frontend.c tests the field
-> delivery_system and if it's a legacy type (including SYS_UNDEFINED) then
-> it calls dtv_property_legacy_params_sync().
+> [ 7867.776612] tm6000: Found Generic tm6010 board
+> [ 7867.841177] tm6000 #1: i2c eeprom 00: 00 00 00 00 00 00 00 00 00 00
+> 00 00 00 00 00 00  ................
+[SNIP]
+> [ 7869.707769] Device has eeprom but is currently unknown
 > 
-> The original patch removed the assignment to delivery_system in this
-> function.  However, the legacy API allows delivery_system to be
-> SYS_UNDEFINED - in fact is_legacy_delivery_system() tests for this
-> value.
-> 
-> If the delivery_system field is left as SYS_UNDEFINED then when tuning
-> is started, fe->ops.set_frontend() fails.
-> 
-> The current version of MythTV 0.24.1 is affected by this bug when using
-> a dvb-s2 card (tbs6981) tuned to a dvb-s channel.
+> and the device will be miss-detected.
 
-How does MythTV set the parameters (i.e. using which interface, calls)?
-If using S2API, it should also set DTV_DELIVERY_SYSTEM.
+I don't think this was ever the case, but I can easily check the dmesg
+output that I collected.
 
-SYS_UNDEFINED get's set by dvb_frontend_clear_cache() only. I think it
-would be better to call dtv_property_cache_init() from there to get rid
-of it.
-
-> Signed-off-by: Lawrence Rust <lvr@softsystem.co.uk>
-> ---
->  drivers/media/dvb/dvb-core/dvb_frontend.c |    9 ++++++++-
->  1 files changed, 8 insertions(+), 1 deletions(-)
 > 
-> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-> index 5b6b451..06c3975 100644
-> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-> @@ -1076,7 +1076,7 @@ static void dtv_property_cache_sync(struct dvb_frontend *fe,
->   */
->  static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
->  {
-> -	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
->  	struct dvb_frontend_parameters *p = &fepriv->parameters_in;
->  
-> @@ -1088,12 +1088,14 @@ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
->  		dprintk("%s() Preparing QPSK req\n", __func__);
->  		p->u.qpsk.symbol_rate = c->symbol_rate;
->  		p->u.qpsk.fec_inner = c->fec_inner;
-> +		c->delivery_system = SYS_DVBS;
->  		break;
->  	case FE_QAM:
->  		dprintk("%s() Preparing QAM req\n", __func__);
->  		p->u.qam.symbol_rate = c->symbol_rate;
->  		p->u.qam.fec_inner = c->fec_inner;
->  		p->u.qam.modulation = c->modulation;
-> +		c->delivery_system = SYS_DVBC_ANNEX_AC;
->  		break;
->  	case FE_OFDM:
->  		dprintk("%s() Preparing OFDM req\n", __func__);
-> @@ -1111,10 +1113,15 @@ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
->  		p->u.ofdm.transmission_mode = c->transmission_mode;
->  		p->u.ofdm.guard_interval = c->guard_interval;
->  		p->u.ofdm.hierarchy_information = c->hierarchy;
-> +		c->delivery_system = SYS_DVBT;
->  		break;
->  	case FE_ATSC:
->  		dprintk("%s() Preparing VSB req\n", __func__);
->  		p->u.vsb.modulation = c->modulation;
-> +		if ((c->modulation == VSB_8) || (c->modulation == VSB_16))
-> +			c->delivery_system = SYS_ATSC;
-> +		else
-> +			c->delivery_system = SYS_DVBC_ANNEX_B;
->  		break;
->  	}
->  }
+> You can fix it by forcing the driver to use "card=9" via modprobe option.
+> 
+> Btw, Stefan sent some fixes to the ML. I'll test if the patch solves the
+> audio issue with HVR-900H on analog mode.
 
+Ok, I'll try to grab them. It appears that mail relay from linux-media
+to my inbox is not reliable.
+
+As for the analog, I should be able to test it today.
+
+Fabio
