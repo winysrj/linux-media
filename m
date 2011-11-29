@@ -1,44 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56502 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752067Ab1KGIVg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Nov 2011 03:21:36 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pA78LZmO030273
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 7 Nov 2011 03:21:35 -0500
-Message-ID: <4EB79528.60106@redhat.com>
-Date: Mon, 07 Nov 2011 09:22:00 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42183 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755968Ab1K2SLH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Nov 2011 13:11:07 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v4 2/3] v4l: Add V4L2_PIX_FMT_NV24 and V4L2_PIX_FMT_NV42 formats
+Date: Tue, 29 Nov 2011 19:11:13 +0100
+Cc: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org
+References: <1322562419-9934-1-git-send-email-laurent.pinchart@ideasonboard.com> <1322562419-9934-3-git-send-email-laurent.pinchart@ideasonboard.com> <4ED5140D.4080200@samsung.com>
+In-Reply-To: <4ED5140D.4080200@samsung.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT FIXES FOR 3.2 <resend>] Fixes for event framework
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111291911.14082.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro et all,
+Hi Sylwester,
 
-Please pull from me tree for the following event framework fixes:
+On Tuesday 29 November 2011 18:19:09 Sylwester Nawrocki wrote:
+> On 11/29/2011 11:26 AM, Laurent Pinchart wrote:
+> > NV24 and NV42 are planar YCbCr 4:4:4 and YCrCb 4:4:4 formats with a
+> > luma plane followed by an interleaved chroma plane.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> 
+> ...
+> 
+> > +	</example>
+> > +      </refsect1>
+> > +    </refentry>
+> > +
+> > 
+> > +  <!--
+> > +Local Variables:
+> > +mode: sgml
+> > +sgml-parent-document: "pixfmt.sgml"
+> > +indent-tabs-mode: nil
+> > +End:
+> > +  -->
+> 
+> I think this comment chunk is redundant, it's just for emacs configuration.
+> Every time I open the file containing litter like this I get a
+> not-so-useful message, asking if I want to load the variables defined
+> there or not.
 
-The following changes since commit b82b12633773804713fc10ae5d0006be2b5bf943:
+I agree. I'll remove it. Thanks for pointing it out.
 
-   staging: Move media drivers to staging/media (2011-11-01 23:55:06 -0200)
+> I'm considering a patch cleaning up the Docbook from this emacs stuff, as I
+> also made a mistake copying this comment when adding NV12M, NV12MT formats.
+> 
+> Looks like most of people are doing that, e.g. see
+> 
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg38637.html
+> 
+> ;)
 
-are available in the git repository at:
-   git://linuxtv.org/hgoede/gspca.git eventfixes
+-- 
+Regards,
 
-Hans de Goede (3):
-       v4l2-event: Deny subscribing with a type of V4L2_EVENT_ALL
-       v4l2-event: Remove pending events from fh event queue when unsubscribing
-       v4l2-event: Don't set sev->fh to NULL on unsubscribe
-
-  drivers/media/video/v4l2-ctrls.c |    4 ++--
-  drivers/media/video/v4l2-event.c |   10 +++++++++-
-  2 files changed, 11 insertions(+), 3 deletions(-)
-
-Thanks & Regards,
-
-Hans
+Laurent Pinchart
