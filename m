@@ -1,98 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:35380 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755009Ab1KKLj1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Nov 2011 06:39:27 -0500
-Received: by iage36 with SMTP id e36so4039715iag.19
-        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2011 03:39:26 -0800 (PST)
-Message-ID: <4EBD096F.8080406@gmail.com>
-Date: Fri, 11 Nov 2011 05:39:27 -0600
-From: Patrick Dickey <pdickeybeta@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:42040 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754102Ab1K2Ltj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Nov 2011 06:49:39 -0500
+Message-ID: <4ED4C6CB.1000609@redhat.com>
+Date: Tue, 29 Nov 2011 12:49:31 +0100
+From: "Fabio M. Di Nitto" <fdinitto@redhat.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 00/25] Add PCTV-80e Support to v4l
-References: <1320967905-7932-1-git-send-email-pdickeybeta@gmail.com> <CAGoCfiz5O4_GHnYWtt4RQsRCWV7iXEh8DYYNFX1_R7Ni2e3Yvg@mail.gmail.com> <4EBC8A2C.40305@gmail.com> <CAGoCfiyox6rW_g4paHXL7_U4wx3MF_178xCta3n2R58OgvZVCQ@mail.gmail.com>
-In-Reply-To: <CAGoCfiyox6rW_g4paHXL7_U4wx3MF_178xCta3n2R58OgvZVCQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: "Fabio M. Di Nitto" <fdinitto@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Stefan Ringel <linuxtv@stefanringel.de>,
+	Dmitri Belimov <d.belimov@gmail.com>
+Subject: Re: HVR-900H dvb-t regression(s)
+References: <4ED39D88.507@redhat.com> <4ED3F81F.303@redhat.com>
+In-Reply-To: <4ED3F81F.303@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On 11/28/2011 10:07 PM, Mauro Carvalho Chehab wrote:
 
-On 11/10/2011 09:19 PM, Devin Heitmueller wrote:
-> On Thu, Nov 10, 2011 at 9:36 PM, Patrick Dickey
-> <pdickeybeta@gmail.com> wrote:
->> Also, I started to clean up the files tonight. Then I started
->> thinking about what you told me about the as102 drivers, and
->> thought I should submit them "as is" and then start the cleanup
->> and submit those patches separately. Also that way others could
->> help with some of the cleanup. I have to figure out if there's an
->> easy way to convert all of the "DOS Line Endings" to the
->> appropriate style, or if I'll have to do that manually (and
->> whether my editor(s) caused this).
-> 
-> Definitely you want the cleanup fixes to be in separate patches
-> from the original patch with the driver.  This is necessary because
-> it makes it *much* easier to figure out if something got broken as
-> a result of a cleanup patch (which isn't supposed to make any
-> functional change).
-> 
->> One reason I did the extra work is because your tree had other
->> files (the cx18 drivers for example) that didn't seem to be
->> needed by the tuner. So, I cleaned them out (partially because I
->> have two cards that use those drivers and didn't want to break
->> those).  I can review all of the files to make sure that I didn't
->> miss any.  And I can update all of the files from your tree to
->> the most current versions and submit everything again.
-> 
-> This shouldn't be the case (the two patches will have no
-> interaction with any driver other than em28xx).  I would suggest
-> that instead of treating it as a tree, just suck the two patches
-> off the top and apply them to your current tree one at a time, and
-> fix any conflicts that pop up.
-> 
-> http://kernellabs.com/hg/~dheitmueller/v4l-dvb-80e/raw-rev/c119f08c4dd2
->
-> 
-http://kernellabs.com/hg/~dheitmueller/v4l-dvb-80e/raw-rev/30c6512030ac
-> 
-> If you just apply the patches instead of trying to hand-merge the
-> two trees together, you will only get the delta and will likely
-> just have to fix the 4 or five conflicts in em28xx.h and
-> em28xx-cards.c (related to the fact that subsequent boards were
-> added to the driver after my patch).
-> 
-> That approach should only take a few minutes, given the conflicts
-> are trivial to resolve.
-> 
-> Good luck!
-> 
-> Devin
-> 
+> Btw, Stefan sent some fixes to the ML. I'll test if the patch solves the
+> audio issue with HVR-900H on analog mode.
 
-Thank you again for the quick reply. I think that the problem I had
-was that I hand merged everything (using meld, but that's beside the
-point). While I was at work last night, I decided that I need to do
-exactly what you suggested here.  Hopefully that will take care of the
-Signed Off By problems too (if not, then I'll manually enter them).
+I just finished testing those ones and they seem to fix my specific issue.
 
-If this works as it should, how do I retract this patch series (as
-they'll no longer be valid) or is it safe to say that they'll be
-ignored from here out?
+There is still one thing that puzzles me, but maybe it´s just my
+misunderstanding on how dvb-t protocol works.
 
-Have a great day:)
-Patrick.
+> root@cerberus:~# scan -a 0 /home/fabbione/dk
+> scanning /home/fabbione/dk
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> initial transponder 586000000 0 2 9 3 1 3 0
+>>>> tune to: 586000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
+> 0x0000 0x0065: pmt_pid 0x0065 DR -- DR1 (running)
+> 0x0000 0x00d9: pmt_pid 0x0835 TV 2 -- TV 2 (Lorry) (running)
+> 0x0000 0x01a1: pmt_pid 0x0191 DIGI-TV -- Hovedstaden (running)
+> 0x0000 0x0066: pmt_pid 0x00c9 DR -- DR2 (running)
+> 0x0000 0x006f: pmt_pid 0x0068 DR -- DR Synstolkning (running)
+> 0x0000 0x0051: pmt_pid 0x0051 DIGI-TV -- OAD MUX1 (running)
+> Network Name 'Mux1 kbhv-glx'
+>>>> tune to: 730000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
+> WARNING: filter timeout pid 0x0011
+> WARNING: filter timeout pid 0x0000
+> WARNING: filter timeout pid 0x0010
+> dumping lists (6 services)
+> OAD MUX1:586000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:0:81
+> DR1:586000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:111:121:101
+> DR2:586000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:211:221:102
+> DR Synstolkning:586000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:111:122:111
+> TV 2 (Lorry):586000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:2111:2121:217
+> Hovedstaden:586000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:411:421:417
+> Done.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+In my dk file I only specify:
 
-iEYEARECAAYFAk69CW8ACgkQMp6rvjb3CAQm+QCcD9W6MlDVOWyLF6g9pK8GJPOs
-YLoAn3YINjWVGBRW+nhP02YHxAmT4nAu
-=ll3c
------END PGP SIGNATURE-----
+> root@cerberus:~# cat /home/fabbione/dk
+> # Denmark, whole country
+> # Created from http://www.digi-tv.dk/Indhold_og_tilbud/frekvenser.asp
+> # and http://www.digi-tv.dk/Sendenettets_opbygning/
+> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> T 586000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
+
+because for simple testing I don´t need to scan the whole spectrum.
+
+Now, in some versions of the driver, it automatically picks up 730MHz (I
+know it´s a good frequency in the area as I get it at my home and shares
+the same channels as 586).
+
+What I noticed is that sometimes it tunes and time outs, sometime it
+tunes and scan correctly, but with the latest driver from HEAD, it
+failed completely to tune with the usual error.
+Not sure if this info might be relevant.
+
+As for analog I am not able to even get scantv to find the channel
+broadcasted from the VCR. I´ll need to investigate if it´s a problem
+with the VCR/tuner/driver etc. (there is no analog broadcast in dk).
+
+So far this is what I get:
+
+> scantv -n PAL-DK -f europe-west -c /dev/video0 -C /dev/null 
+> [global]
+> freqtab = europe-west
+> 
+> [defaults]
+> input = Television
+> norm = PAL-DK
+> 
+> ioctl: VIDIOC_S_CTRL(id=9963778;value=0): Inappropriate ioctl for device
+> ioctl: VIDIOC_S_CTRL(id=9963776;value=0): Inappropriate ioctl for device
+> ioctl: VIDIOC_S_CTRL(id=9963779;value=0): Inappropriate ioctl for device
+> ioctl: VIDIOC_S_CTRL(id=9963777;value=130): Inappropriate ioctl for device
+> scanning channel list europe-west...
+> E2   ( 48.25 MHz): ioctl: VIDIOC_S_CTRL(id=9963785;value=1): Inappropriate ioctl for device
+> ioctl: VIDIOC_S_CTRL(id=9963785;value=0): Inappropriate ioctl for device
+> no station
+(repeat the above for every single channel and no channels found)
+
+The result is pretty much the same with or without tm6000-dvb loaded.
+
+Fabio
