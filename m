@@ -1,70 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:49828 "EHLO mgw-da02.nokia.com"
+Received: from lo.gmane.org ([80.91.229.12]:33599 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751411Ab1K2LPU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Nov 2011 06:15:20 -0500
-Subject: Re: [PATCH] [media] convert drivers/media/* to use
- module_platform_driver()
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Axel Lin <axel.lin@gmail.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Richard =?ISO-8859-1?Q?R=F6jfors?=
-	<richard.rojfors@pelagicore.com>,
-	Lucas De Marchi <lucas.demarchi@profusion.mobi>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Daniel Drake <dsd@laptop.org>, linux-media@vger.kernel.org
-In-Reply-To: <1322290135.20464.1.camel@phoenix>
-References: <1322290135.20464.1.camel@phoenix>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 29 Nov 2011 13:24:37 +0200
-Message-ID: <1322565877.5588.8.camel@trdhcp003120.localdomain>
+	id S1755648Ab1K2OWU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Nov 2011 09:22:20 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1RVOZf-0001EU-5r
+	for linux-media@vger.kernel.org; Tue, 29 Nov 2011 15:22:19 +0100
+Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 29 Nov 2011 15:22:19 +0100
+Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 29 Nov 2011 15:22:19 +0100
+To: linux-media@vger.kernel.org
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: Re: gnutv should not ignore SIGPIPE
+Date: Tue, 29 Nov 2011 09:22:05 -0500
+Message-ID: <jb2pqe$h8d$1@dough.gmane.org>
+References: <jao3r9$i9e$1@dough.gmane.org> <201111251534.05480.remi@remlab.net> <jao5l8$v03$1@dough.gmane.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigD4E057360ADAED0BDF53929B"
+In-Reply-To: <jao5l8$v03$1@dough.gmane.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigD4E057360ADAED0BDF53929B
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-On Sat, 2011-11-26 at 14:48 +0800, ext Axel Lin wrote:
-> This patch converts the drivers in drivers/media/* to use the
-> module_platform_driver() macro which makes the code smaller and a bit
-> simpler.
-> 
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: "Richard Röjfors" <richard.rojfors@pelagicore.com>
-> Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-> Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>
-> Cc: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Muralidharan Karicheri <m-karicheri2@ti.com>
-> Cc: Anatolij Gustschin <agust@denx.de>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-> Cc: Robert Jarzmik <robert.jarzmik@free.fr>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Daniel Drake <dsd@laptop.org>
-> Signed-off-by: Axel Lin <axel.lin@gmail.com>
+On 11-11-25 08:36 AM, Brian J. Murrell wrote:
+>=20
+> Yes, that is the other way to skin that cat I suppose.
+
+I couldn't figure out what the right thing for writer thread to do to
+terminate the application so I used SIGPIPE instead.  Here's the patch:
+
+--- linuxtv-dvb-apps-1.1.1+rev1273~/util/gnutv/gnutv_data.c	2011-11-28 09=
+:10:33.010407011 -0500
++++ linuxtv-dvb-apps-1.1.1+rev1273/util/gnutv/gnutv_data.c	2011-11-28 09:=
+10:26.446258282 -0500
+@@ -265,7 +265,10 @@
+ 		while(written < size) {
+ 			int tmp =3D write(outfd, buf + written, size - written);
+ 			if (tmp =3D=3D -1) {
+-				if (errno !=3D EINTR) {
++				if (errno =3D=3D EPIPE) {
++					fprintf(stderr, "processing EPIPE\n");
++					return 0;
++				} else if (errno !=3D EINTR) {
+ 					fprintf(stderr, "Write error: %m\n");
+ 					break;
+ 				}
+--- linuxtv-dvb-apps-1.1.1+rev1273~/util/gnutv/gnutv.c	2011-11-28 10:13:1=
+3.294445131 -0500
++++ linuxtv-dvb-apps-1.1.1+rev1273/util/gnutv/gnutv.c.new	2011-11-28 10:1=
+3:10.510492321 -0500
+@@ -262,7 +262,7 @@
+=20
+ 	// setup any signals
+ 	signal(SIGINT, signal_handler);
+-	signal(SIGPIPE, SIG_IGN);
++	signal(SIGPIPE, signal_handler);
+=20
+ 	// start the CA stuff
+ 	gnutv_ca_params.adapter_id =3D adapter_id;
 
 
->  drivers/media/radio/radio-wl1273.c         |   17 +-----------
+--------------enigD4E057360ADAED0BDF53929B
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-For the above:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
 
-Acked-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+iEYEARECAAYFAk7U6o0ACgkQl3EQlGLyuXAftQCg0+d9mqVC9fu7EaXxOqSEuj+9
+1gQAoL2Fzr13QvL9hXr/486007CG5351
+=zpWy
+-----END PGP SIGNATURE-----
 
- 
-
+--------------enigD4E057360ADAED0BDF53929B--
 
