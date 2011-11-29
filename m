@@ -1,181 +1,739 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35991 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57671 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752527Ab1K1LJb (ORCPT
+	with ESMTP id S1754360Ab1K2K1A (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 06:09:31 -0500
+	Tue, 29 Nov 2011 05:27:00 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v2 1/2] v4l: Add new alpha component control
-Date: Mon, 28 Nov 2011 12:09:36 +0100
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, m.szyprowski@samsung.com,
-	jonghun.han@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-References: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com> <1322235572-22016-2-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1322235572-22016-2-git-send-email-s.nawrocki@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111281209.37375.laurent.pinchart@ideasonboard.com>
+To: linux-fbdev@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v4 3/3] fbdev: sh_mobile_lcdc: Support FOURCC-based format API
+Date: Tue, 29 Nov 2011 11:26:59 +0100
+Message-Id: <1322562419-9934-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1322562419-9934-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1322562419-9934-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ arch/arm/mach-shmobile/board-ag5evm.c   |    2 +-
+ arch/arm/mach-shmobile/board-ap4evb.c   |    4 +-
+ arch/arm/mach-shmobile/board-mackerel.c |    4 +-
+ arch/sh/boards/mach-ap325rxa/setup.c    |    2 +-
+ arch/sh/boards/mach-ecovec24/setup.c    |    2 +-
+ arch/sh/boards/mach-kfr2r09/setup.c     |    2 +-
+ arch/sh/boards/mach-migor/setup.c       |    4 +-
+ arch/sh/boards/mach-se/7724/setup.c     |    2 +-
+ drivers/video/sh_mobile_lcdcfb.c        |  360 ++++++++++++++++++++----------
+ include/video/sh_mobile_lcdc.h          |    4 +-
+ 10 files changed, 253 insertions(+), 133 deletions(-)
 
-On Friday 25 November 2011 16:39:31 Sylwester Nawrocki wrote:
-> This control is intended for the video capture or memory-to-memory devices
-> that are capable of setting up a per-pixel alpha component to some
-> arbitrary value. The V4L2_CID_ALPHA_COMPONENT control allows to set the
-> alpha component for all pixels to a value in range from 0 to 255.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  Documentation/DocBook/media/v4l/compat.xml         |   11 ++++++++
->  Documentation/DocBook/media/v4l/controls.xml       |   25
-> +++++++++++++++---- .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |  
->  7 ++++-
->  drivers/media/video/v4l2-ctrls.c                   |    7 +++++
->  include/linux/videodev2.h                          |    6 ++--
->  5 files changed, 45 insertions(+), 11 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/compat.xml
-> b/Documentation/DocBook/media/v4l/compat.xml index b68698f..0adda43 100644
-> --- a/Documentation/DocBook/media/v4l/compat.xml
-> +++ b/Documentation/DocBook/media/v4l/compat.xml
-> @@ -2379,6 +2379,17 @@ that used it. It was originally scheduled for
-> removal in 2.6.35. </orderedlist>
->      </section>
-> 
-> +    <section>
-> +      <title>V4L2 in Linux 3.3</title>
-> +      <orderedlist>
-> +        <listitem>
-> +	  <para>Added <constant>V4L2_CID_ALPHA_COMPONENT</constant> control
-> +	    to the <link linkend="control">User controls class</link>.
-> +	  </para>
-> +        </listitem>
-> +      </orderedlist>
-> +    </section>
-> +
->      <section id="other">
->        <title>Relation of V4L2 to other Linux multimedia APIs</title>
-> 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml
-> b/Documentation/DocBook/media/v4l/controls.xml index 3bc5ee8..4fd83c0
-> 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -324,12 +324,6 @@ minimum value disables backlight compensation.</entry>
->  		(usually a microscope).</entry>
->  	  </row>
->  	  <row>
-> -	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
-> -	    <entry></entry>
-> -	    <entry>End of the predefined control IDs (currently
-> -<constant>V4L2_CID_ILLUMINATORS_2</constant> + 1).</entry>
-> -	  </row>
-> -	  <row>
->  	    <entry><constant>V4L2_CID_MIN_BUFFERS_FOR_CAPTURE</constant></entry>
->  	    <entry>integer</entry>
->  	    <entry>This is a read-only control that can be read by the
-> application @@ -345,6 +339,25 @@ and used as a hint to determine the
-> number of OUTPUT buffers to pass to REQBUFS. The value is the minimum
-> number of OUTPUT buffers that is necessary for hardware to work.</entry>
->  	  </row>
-> +	  <row id="v4l2-alpha-component">
-> +	    <entry><constant>V4L2_CID_ALPHA_COMPONENT</constant></entry>
-> +	    <entry>integer</entry>
-> +	    <entry> Sets the alpha color component on the capture device or on
-> +	    the capture buffer queue of a mem-to-mem device. When a mem-to-mem
-> +	    device produces frame format that includes an alpha component
-> +	    (e.g. <link linkend="rgb-formats">packed RGB image formats</link>)
-> +	    and the alpha value is not defined by the mem-to-mem input data
-> +	    this control lets you select the alpha component value of all
-> +	    pixels. It is applicable to any pixel format that contains an alpha
-> +	    component.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
-> +	    <entry></entry>
-> +	    <entry>End of the predefined control IDs (currently
-> +	      <constant>V4L2_CID_ALPHA_COMPONENT</constant> + 1).</entry>
-> +	  </row>
->  	  <row>
->  	    <entry><constant>V4L2_CID_PRIVATE_BASE</constant></entry>
->  	    <entry></entry>
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-> b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml index
-> 4db272b..c13278b 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml
-> @@ -428,8 +428,11 @@ colorspace
-> <constant>V4L2_COLORSPACE_SRGB</constant>.</para> <para>Bit 7 is the most
-> significant bit. The value of a = alpha bits is undefined when reading
-> from the driver, ignored when writing to the driver, except when alpha
-> blending has been negotiated for a -<link linkend="overlay">Video
-> Overlay</link> or <link
-> -linkend="osd">Video Output Overlay</link>.</para>
-> +<link linkend="overlay">Video Overlay</link> or <link linkend="osd">
-> +Video Output Overlay</link> or when alpha component has been configured
-> +for a <link linkend="capture">Video Capture</link> by means of <link
-> +linkend="v4l2-alpha-component"> <constant>V4L2_CID_ALPHA_COMPONENT
-> +</constant> </link> control.</para>
-> 
->      <example>
->        <title><constant>V4L2_PIX_FMT_BGR24</constant> 4 &times; 4 pixel
-> diff --git a/drivers/media/video/v4l2-ctrls.c
-> b/drivers/media/video/v4l2-ctrls.c index 5552f81..882cc84 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -466,6 +466,7 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_ILLUMINATORS_2:		return "Illuminator 2";
->  	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:	return "Minimum Number of Capture
-> Buffers"; case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT:	return "Minimum Number of
-> Output Buffers"; +	case V4L2_CID_ALPHA_COMPONENT:		return "Alpha
-> Component";
-> 
->  	/* MPEG controls */
->  	/* Keep the order of the 'case's the same as in videodev2.h! */
-> @@ -714,6 +715,12 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
-> v4l2_ctrl_type *type, /* Max is calculated as RGB888 that is 2^24 */
->  		*max = 0xFFFFFF;
->  		break;
-> +	case V4L2_CID_ALPHA_COMPONENT:
-> +		*type = V4L2_CTRL_TYPE_INTEGER;
-> +		*step = 1;
-> +		*min = 0;
-> +		*max = 0xff;
-> +		break;
->  	case V4L2_CID_FLASH_FAULT:
->  		*type = V4L2_CTRL_TYPE_BITMASK;
->  		break;
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 4b752d5..fdda200 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -1204,10 +1204,10 @@ enum v4l2_colorfx {
->  #define V4L2_CID_MIN_BUFFERS_FOR_CAPTURE	(V4L2_CID_BASE+39)
->  #define V4L2_CID_MIN_BUFFERS_FOR_OUTPUT		(V4L2_CID_BASE+40)
-> 
-> -/* last CID + 1 */
-> -#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+41)
-> +#define V4L2_CID_ALPHA_COMPONENT		(V4L2_CID_BASE+41)
-> 
-> -/* Minimum number of buffer neede by the device */
-> +/* last CID + 1 */
-> +#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+42)
-> 
->  /*  MPEG-class control IDs defined by V4L2 */
->  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
-
+diff --git a/arch/arm/mach-shmobile/board-ag5evm.c b/arch/arm/mach-shmobile/board-ag5evm.c
+index 7e3dd73..80319f2 100644
+--- a/arch/arm/mach-shmobile/board-ag5evm.c
++++ b/arch/arm/mach-shmobile/board-ag5evm.c
+@@ -271,7 +271,7 @@ static struct sh_mobile_lcdc_info lcdc0_info = {
+ 		.flags = LCDC_FLAGS_DWPOL,
+ 		.lcd_size_cfg.width = 44,
+ 		.lcd_size_cfg.height = 79,
+-		.bpp = 16,
++		.fourcc = V4L2_PIX_FMT_RGB565,
+ 		.lcd_cfg = lcdc0_modes,
+ 		.num_cfg = ARRAY_SIZE(lcdc0_modes),
+ 		.board_cfg = {
+diff --git a/arch/arm/mach-shmobile/board-ap4evb.c b/arch/arm/mach-shmobile/board-ap4evb.c
+index 904b608..42b4dda 100644
+--- a/arch/arm/mach-shmobile/board-ap4evb.c
++++ b/arch/arm/mach-shmobile/board-ap4evb.c
+@@ -491,7 +491,7 @@ static struct sh_mobile_lcdc_info lcdc_info = {
+ 	.meram_dev = &meram_info,
+ 	.ch[0] = {
+ 		.chan = LCDC_CHAN_MAINLCD,
+-		.bpp = 16,
++		.fourcc = V4L2_PIX_FMT_RGB565,
+ 		.lcd_cfg = ap4evb_lcdc_modes,
+ 		.num_cfg = ARRAY_SIZE(ap4evb_lcdc_modes),
+ 		.meram_cfg = &lcd_meram_cfg,
+@@ -813,7 +813,7 @@ static struct sh_mobile_lcdc_info sh_mobile_lcdc1_info = {
+ 	.meram_dev = &meram_info,
+ 	.ch[0] = {
+ 		.chan = LCDC_CHAN_MAINLCD,
+-		.bpp = 16,
++		.fourcc = V4L2_PIX_FMT_RGB565,
+ 		.interface_type = RGB24,
+ 		.clock_divider = 1,
+ 		.flags = LCDC_FLAGS_DWPOL,
+diff --git a/arch/arm/mach-shmobile/board-mackerel.c b/arch/arm/mach-shmobile/board-mackerel.c
+index 9c5e598..7db6a17 100644
+--- a/arch/arm/mach-shmobile/board-mackerel.c
++++ b/arch/arm/mach-shmobile/board-mackerel.c
+@@ -388,7 +388,7 @@ static struct sh_mobile_lcdc_info lcdc_info = {
+ 	.clock_source = LCDC_CLK_BUS,
+ 	.ch[0] = {
+ 		.chan = LCDC_CHAN_MAINLCD,
+-		.bpp = 16,
++		.fourcc = V4L2_PIX_FMT_RGB565,
+ 		.lcd_cfg = mackerel_lcdc_modes,
+ 		.num_cfg = ARRAY_SIZE(mackerel_lcdc_modes),
+ 		.interface_type		= RGB24,
+@@ -451,7 +451,7 @@ static struct sh_mobile_lcdc_info hdmi_lcdc_info = {
+ 	.clock_source = LCDC_CLK_EXTERNAL,
+ 	.ch[0] = {
+ 		.chan = LCDC_CHAN_MAINLCD,
+-		.bpp = 16,
++		.fourcc = V4L2_PIX_FMT_RGB565,
+ 		.interface_type = RGB24,
+ 		.clock_divider = 1,
+ 		.flags = LCDC_FLAGS_DWPOL,
+diff --git a/arch/sh/boards/mach-ap325rxa/setup.c b/arch/sh/boards/mach-ap325rxa/setup.c
+index 7030f4c..7977911 100644
+--- a/arch/sh/boards/mach-ap325rxa/setup.c
++++ b/arch/sh/boards/mach-ap325rxa/setup.c
+@@ -207,7 +207,7 @@ static struct sh_mobile_lcdc_info lcdc_info = {
+ 	.clock_source = LCDC_CLK_EXTERNAL,
+ 	.ch[0] = {
+ 		.chan = LCDC_CHAN_MAINLCD,
+-		.bpp = 16,
++		.fourcc = V4L2_PIX_FMT_RGB565,
+ 		.interface_type = RGB18,
+ 		.clock_divider = 1,
+ 		.lcd_cfg = ap325rxa_lcdc_modes,
+diff --git a/arch/sh/boards/mach-ecovec24/setup.c b/arch/sh/boards/mach-ecovec24/setup.c
+index 92ddce4..1d4a706 100644
+--- a/arch/sh/boards/mach-ecovec24/setup.c
++++ b/arch/sh/boards/mach-ecovec24/setup.c
+@@ -330,7 +330,7 @@ static struct sh_mobile_lcdc_info lcdc_info = {
+ 	.ch[0] = {
+ 		.interface_type = RGB18,
+ 		.chan = LCDC_CHAN_MAINLCD,
+-		.bpp = 16,
++		.fourcc = V4L2_PIX_FMT_RGB565,
+ 		.lcd_size_cfg = { /* 7.0 inch */
+ 			.width = 152,
+ 			.height = 91,
+diff --git a/arch/sh/boards/mach-kfr2r09/setup.c b/arch/sh/boards/mach-kfr2r09/setup.c
+index f65271a..208c9b0 100644
+--- a/arch/sh/boards/mach-kfr2r09/setup.c
++++ b/arch/sh/boards/mach-kfr2r09/setup.c
+@@ -146,7 +146,7 @@ static struct sh_mobile_lcdc_info kfr2r09_sh_lcdc_info = {
+ 	.clock_source = LCDC_CLK_BUS,
+ 	.ch[0] = {
+ 		.chan = LCDC_CHAN_MAINLCD,
+-		.bpp = 16,
++		.fourcc = V4L2_PIX_FMT_RGB565,
+ 		.interface_type = SYS18,
+ 		.clock_divider = 6,
+ 		.flags = LCDC_FLAGS_DWPOL,
+diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
+index e4c8119..ccf61fb 100644
+--- a/arch/sh/boards/mach-migor/setup.c
++++ b/arch/sh/boards/mach-migor/setup.c
+@@ -244,7 +244,7 @@ static struct sh_mobile_lcdc_info sh_mobile_lcdc_info = {
+ 	.clock_source = LCDC_CLK_BUS,
+ 	.ch[0] = {
+ 		.chan = LCDC_CHAN_MAINLCD,
+-		.bpp = 16,
++		.fourcc = V4L2_PIX_FMT_RGB565,
+ 		.interface_type = RGB16,
+ 		.clock_divider = 2,
+ 		.lcd_cfg = migor_lcd_modes,
+@@ -258,7 +258,7 @@ static struct sh_mobile_lcdc_info sh_mobile_lcdc_info = {
+ 	.clock_source = LCDC_CLK_PERIPHERAL,
+ 	.ch[0] = {
+ 		.chan = LCDC_CHAN_MAINLCD,
+-		.bpp = 16,
++		.fourcc = V4L2_PIX_FMT_RGB565,
+ 		.interface_type = SYS16A,
+ 		.clock_divider = 10,
+ 		.lcd_cfg = migor_lcd_modes,
+diff --git a/arch/sh/boards/mach-se/7724/setup.c b/arch/sh/boards/mach-se/7724/setup.c
+index b747c0a..3aab70c 100644
+--- a/arch/sh/boards/mach-se/7724/setup.c
++++ b/arch/sh/boards/mach-se/7724/setup.c
+@@ -179,7 +179,7 @@ static struct sh_mobile_lcdc_info lcdc_info = {
+ 	.clock_source = LCDC_CLK_EXTERNAL,
+ 	.ch[0] = {
+ 		.chan = LCDC_CHAN_MAINLCD,
+-		.bpp = 16,
++		.fourcc = V4L2_PIX_FMT_RGB565,
+ 		.clock_divider = 1,
+ 		.lcd_size_cfg = { /* 7.0 inch */
+ 			.width = 152,
+diff --git a/drivers/video/sh_mobile_lcdcfb.c b/drivers/video/sh_mobile_lcdcfb.c
+index 1f49ab4..2046666 100644
+--- a/drivers/video/sh_mobile_lcdcfb.c
++++ b/drivers/video/sh_mobile_lcdcfb.c
+@@ -17,6 +17,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/interrupt.h>
++#include <linux/videodev2.h>
+ #include <linux/vmalloc.h>
+ #include <linux/ioctl.h>
+ #include <linux/slab.h>
+@@ -102,7 +103,7 @@ struct sh_mobile_lcdc_priv {
+ 	struct sh_mobile_lcdc_chan ch[2];
+ 	struct notifier_block notifier;
+ 	int started;
+-	int forced_bpp; /* 2 channel LCDC must share bpp setting */
++	int forced_fourcc; /* 2 channel LCDC must share fourcc setting */
+ 	struct sh_mobile_meram_info *meram_dev;
+ };
+ 
+@@ -215,6 +216,47 @@ struct sh_mobile_lcdc_sys_bus_ops sh_mobile_lcdc_sys_bus_ops = {
+ 	lcdc_sys_read_data,
+ };
+ 
++static int sh_mobile_format_fourcc(const struct fb_var_screeninfo *var)
++{
++	if (var->grayscale > 1)
++		return var->grayscale;
++
++	switch (var->bits_per_pixel) {
++	case 16:
++		return V4L2_PIX_FMT_RGB565;
++	case 24:
++		return V4L2_PIX_FMT_BGR24;
++	case 32:
++		return V4L2_PIX_FMT_BGR32;
++	default:
++		return 0;
++	}
++}
++
++static int sh_mobile_format_is_fourcc(const struct fb_var_screeninfo *var)
++{
++	return var->grayscale > 1;
++}
++
++static bool sh_mobile_format_is_yuv(const struct fb_var_screeninfo *var)
++{
++	if (var->grayscale <= 1)
++		return false;
++
++	switch (var->grayscale) {
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV16:
++	case V4L2_PIX_FMT_NV61:
++	case V4L2_PIX_FMT_NV24:
++	case V4L2_PIX_FMT_NV42:
++		return true;
++
++	default:
++		return false;
++	}
++}
++
+ static void sh_mobile_lcdc_clk_on(struct sh_mobile_lcdc_priv *priv)
+ {
+ 	if (atomic_inc_and_test(&priv->hw_usecnt)) {
+@@ -435,7 +477,6 @@ static void __sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
+ {
+ 	struct sh_mobile_lcdc_chan *ch;
+ 	unsigned long tmp;
+-	int bpp = 0;
+ 	int k, m;
+ 
+ 	/* Enable LCDC channels. Read data from external memory, avoid using the
+@@ -454,9 +495,6 @@ static void __sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
+ 		if (!ch->enabled)
+ 			continue;
+ 
+-		if (!bpp)
+-			bpp = ch->info->var.bits_per_pixel;
+-
+ 		/* Power supply */
+ 		lcdc_write_chan(ch, LDPMR, 0);
+ 
+@@ -487,31 +525,37 @@ static void __sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
+ 
+ 		sh_mobile_lcdc_geometry(ch);
+ 
+-		if (ch->info->var.nonstd) {
+-			tmp = (ch->info->var.nonstd << 16);
+-			switch (ch->info->var.bits_per_pixel) {
+-			case 12:
+-				tmp |= LDDFR_YF_420;
+-				break;
+-			case 16:
+-				tmp |= LDDFR_YF_422;
+-				break;
+-			case 24:
+-			default:
+-				tmp |= LDDFR_YF_444;
+-				break;
+-			}
+-		} else {
+-			switch (ch->info->var.bits_per_pixel) {
+-			case 16:
+-				tmp = LDDFR_PKF_RGB16;
+-				break;
+-			case 24:
+-				tmp = LDDFR_PKF_RGB24;
++		switch (sh_mobile_format_fourcc(&ch->info->var)) {
++		case V4L2_PIX_FMT_RGB565:
++			tmp = LDDFR_PKF_RGB16;
++			break;
++		case V4L2_PIX_FMT_BGR24:
++			tmp = LDDFR_PKF_RGB24;
++			break;
++		case V4L2_PIX_FMT_BGR32:
++			tmp = LDDFR_PKF_ARGB32;
++			break;
++		case V4L2_PIX_FMT_NV12:
++		case V4L2_PIX_FMT_NV21:
++			tmp = LDDFR_CC | LDDFR_YF_420;
++			break;
++		case V4L2_PIX_FMT_NV16:
++		case V4L2_PIX_FMT_NV61:
++			tmp = LDDFR_CC | LDDFR_YF_422;
++			break;
++		case V4L2_PIX_FMT_NV24:
++		case V4L2_PIX_FMT_NV42:
++			tmp = LDDFR_CC | LDDFR_YF_444;
++			break;
++		}
++
++		if (sh_mobile_format_is_yuv(&ch->info->var)) {
++			switch (ch->info->var.colorspace) {
++			case V4L2_COLORSPACE_REC709:
++				tmp |= LDDFR_CF1;
+ 				break;
+-			case 32:
+-			default:
+-				tmp = LDDFR_PKF_ARGB32;
++			case V4L2_COLORSPACE_JPEG:
++				tmp |= LDDFR_CF0;
+ 				break;
+ 			}
+ 		}
+@@ -519,7 +563,7 @@ static void __sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
+ 		lcdc_write_chan(ch, LDDFR, tmp);
+ 		lcdc_write_chan(ch, LDMLSR, ch->pitch);
+ 		lcdc_write_chan(ch, LDSA1R, ch->base_addr_y);
+-		if (ch->info->var.nonstd)
++		if (sh_mobile_format_is_yuv(&ch->info->var))
+ 			lcdc_write_chan(ch, LDSA2R, ch->base_addr_c);
+ 
+ 		/* When using deferred I/O mode, configure the LCDC for one-shot
+@@ -536,21 +580,23 @@ static void __sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
+ 	}
+ 
+ 	/* Word and long word swap. */
+-	if  (priv->ch[0].info->var.nonstd)
++	switch (sh_mobile_format_fourcc(&priv->ch[0].info->var)) {
++	case V4L2_PIX_FMT_RGB565:
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV61:
++	case V4L2_PIX_FMT_NV42:
++		tmp = LDDDSR_LS | LDDDSR_WS;
++		break;
++	case V4L2_PIX_FMT_BGR24:
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV16:
++	case V4L2_PIX_FMT_NV24:
+ 		tmp = LDDDSR_LS | LDDDSR_WS | LDDDSR_BS;
+-	else {
+-		switch (bpp) {
+-		case 16:
+-			tmp = LDDDSR_LS | LDDDSR_WS;
+-			break;
+-		case 24:
+-			tmp = LDDDSR_LS | LDDDSR_WS | LDDDSR_BS;
+-			break;
+-		case 32:
+-		default:
+-			tmp = LDDDSR_LS;
+-			break;
+-		}
++		break;
++	case V4L2_PIX_FMT_BGR32:
++	default:
++		tmp = LDDDSR_LS;
++		break;
+ 	}
+ 	lcdc_write(priv, _LDDDSR, tmp);
+ 
+@@ -622,12 +668,24 @@ static int sh_mobile_lcdc_start(struct sh_mobile_lcdc_priv *priv)
+ 			ch->meram_enabled = 0;
+ 		}
+ 
+-		if (!ch->info->var.nonstd)
+-			pixelformat = SH_MOBILE_MERAM_PF_RGB;
+-		else if (ch->info->var.bits_per_pixel == 24)
+-			pixelformat = SH_MOBILE_MERAM_PF_NV24;
+-		else
++		switch (sh_mobile_format_fourcc(&ch->info->var)) {
++		case V4L2_PIX_FMT_NV12:
++		case V4L2_PIX_FMT_NV21:
++		case V4L2_PIX_FMT_NV16:
++		case V4L2_PIX_FMT_NV61:
+ 			pixelformat = SH_MOBILE_MERAM_PF_NV;
++			break;
++		case V4L2_PIX_FMT_NV24:
++		case V4L2_PIX_FMT_NV42:
++			pixelformat = SH_MOBILE_MERAM_PF_NV24;
++			break;
++		case V4L2_PIX_FMT_RGB565:
++		case V4L2_PIX_FMT_BGR24:
++		case V4L2_PIX_FMT_BGR32:
++		default:
++			pixelformat = SH_MOBILE_MERAM_PF_RGB;
++			break;
++		}
+ 
+ 		ret = mdev->ops->meram_register(mdev, cfg, ch->pitch,
+ 					ch->info->var.yres, pixelformat,
+@@ -845,6 +903,7 @@ static struct fb_fix_screeninfo sh_mobile_lcdc_fix  = {
+ 	.xpanstep =	0,
+ 	.ypanstep =	1,
+ 	.ywrapstep =	0,
++	.capabilities =	FB_CAP_FOURCC,
+ };
+ 
+ static void sh_mobile_lcdc_fillrect(struct fb_info *info,
+@@ -877,8 +936,9 @@ static int sh_mobile_fb_pan_display(struct fb_var_screeninfo *var,
+ 	unsigned long new_pan_offset;
+ 	unsigned long base_addr_y, base_addr_c;
+ 	unsigned long c_offset;
++	bool yuv = sh_mobile_format_is_yuv(&info->var);
+ 
+-	if (!info->var.nonstd)
++	if (!yuv)
+ 		new_pan_offset = var->yoffset * info->fix.line_length
+ 			       + var->xoffset * (info->var.bits_per_pixel / 8);
+ 	else
+@@ -892,7 +952,7 @@ static int sh_mobile_fb_pan_display(struct fb_var_screeninfo *var,
+ 
+ 	/* Set the source address for the next refresh */
+ 	base_addr_y = ch->dma_handle + new_pan_offset;
+-	if (info->var.nonstd) {
++	if (yuv) {
+ 		/* Set y offset */
+ 		c_offset = var->yoffset * info->fix.line_length
+ 			 * (info->var.bits_per_pixel - 8) / 8;
+@@ -900,7 +960,7 @@ static int sh_mobile_fb_pan_display(struct fb_var_screeninfo *var,
+ 			    + info->var.xres * info->var.yres_virtual
+ 			    + c_offset;
+ 		/* Set x offset */
+-		if (info->var.bits_per_pixel == 24)
++		if (sh_mobile_format_fourcc(&info->var) == V4L2_PIX_FMT_NV24)
+ 			base_addr_c += 2 * var->xoffset;
+ 		else
+ 			base_addr_c += var->xoffset;
+@@ -924,7 +984,7 @@ static int sh_mobile_fb_pan_display(struct fb_var_screeninfo *var,
+ 	ch->base_addr_c = base_addr_c;
+ 
+ 	lcdc_write_chan_mirror(ch, LDSA1R, base_addr_y);
+-	if (info->var.nonstd)
++	if (yuv)
+ 		lcdc_write_chan_mirror(ch, LDSA2R, base_addr_c);
+ 
+ 	if (lcdc_chan_is_sublcd(ch))
+@@ -1100,51 +1160,84 @@ static int sh_mobile_check_var(struct fb_var_screeninfo *var, struct fb_info *in
+ 	if (var->yres_virtual < var->yres)
+ 		var->yres_virtual = var->yres;
+ 
+-	if (var->bits_per_pixel <= 16) {		/* RGB 565 */
+-		var->bits_per_pixel = 16;
+-		var->red.offset = 11;
+-		var->red.length = 5;
+-		var->green.offset = 5;
+-		var->green.length = 6;
+-		var->blue.offset = 0;
+-		var->blue.length = 5;
+-		var->transp.offset = 0;
+-		var->transp.length = 0;
+-	} else if (var->bits_per_pixel <= 24) {		/* RGB 888 */
+-		var->bits_per_pixel = 24;
+-		var->red.offset = 16;
+-		var->red.length = 8;
+-		var->green.offset = 8;
+-		var->green.length = 8;
+-		var->blue.offset = 0;
+-		var->blue.length = 8;
+-		var->transp.offset = 0;
+-		var->transp.length = 0;
+-	} else if (var->bits_per_pixel <= 32) {		/* RGBA 888 */
+-		var->bits_per_pixel = 32;
+-		var->red.offset = 16;
+-		var->red.length = 8;
+-		var->green.offset = 8;
+-		var->green.length = 8;
+-		var->blue.offset = 0;
+-		var->blue.length = 8;
+-		var->transp.offset = 24;
+-		var->transp.length = 8;
+-	} else
+-		return -EINVAL;
++	if (sh_mobile_format_is_fourcc(var)) {
++		switch (var->grayscale) {
++		case V4L2_PIX_FMT_NV12:
++		case V4L2_PIX_FMT_NV21:
++			var->bits_per_pixel = 12;
++			break;
++		case V4L2_PIX_FMT_RGB565:
++		case V4L2_PIX_FMT_NV16:
++		case V4L2_PIX_FMT_NV61:
++			var->bits_per_pixel = 16;
++			break;
++		case V4L2_PIX_FMT_BGR24:
++		case V4L2_PIX_FMT_NV24:
++		case V4L2_PIX_FMT_NV42:
++			var->bits_per_pixel = 24;
++			break;
++		case V4L2_PIX_FMT_BGR32:
++			var->bits_per_pixel = 32;
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		/* Default to RGB and JPEG color-spaces for RGB and YUV formats
++		 * respectively.
++		 */
++		if (!sh_mobile_format_is_yuv(var))
++			var->colorspace = V4L2_COLORSPACE_SRGB;
++		else if (var->colorspace != V4L2_COLORSPACE_REC709)
++			var->colorspace = V4L2_COLORSPACE_JPEG;
++	} else {
++		if (var->bits_per_pixel <= 16) {		/* RGB 565 */
++			var->bits_per_pixel = 16;
++			var->red.offset = 11;
++			var->red.length = 5;
++			var->green.offset = 5;
++			var->green.length = 6;
++			var->blue.offset = 0;
++			var->blue.length = 5;
++			var->transp.offset = 0;
++			var->transp.length = 0;
++		} else if (var->bits_per_pixel <= 24) {		/* RGB 888 */
++			var->bits_per_pixel = 24;
++			var->red.offset = 16;
++			var->red.length = 8;
++			var->green.offset = 8;
++			var->green.length = 8;
++			var->blue.offset = 0;
++			var->blue.length = 8;
++			var->transp.offset = 0;
++			var->transp.length = 0;
++		} else if (var->bits_per_pixel <= 32) {		/* RGBA 888 */
++			var->bits_per_pixel = 32;
++			var->red.offset = 16;
++			var->red.length = 8;
++			var->green.offset = 8;
++			var->green.length = 8;
++			var->blue.offset = 0;
++			var->blue.length = 8;
++			var->transp.offset = 24;
++			var->transp.length = 8;
++		} else
++			return -EINVAL;
+ 
+-	var->red.msb_right = 0;
+-	var->green.msb_right = 0;
+-	var->blue.msb_right = 0;
+-	var->transp.msb_right = 0;
++		var->red.msb_right = 0;
++		var->green.msb_right = 0;
++		var->blue.msb_right = 0;
++		var->transp.msb_right = 0;
++	}
+ 
+ 	/* Make sure we don't exceed our allocated memory. */
+ 	if (var->xres_virtual * var->yres_virtual * var->bits_per_pixel / 8 >
+ 	    info->fix.smem_len)
+ 		return -EINVAL;
+ 
+-	/* only accept the forced_bpp for dual channel configurations */
+-	if (p->forced_bpp && p->forced_bpp != var->bits_per_pixel)
++	/* only accept the forced_fourcc for dual channel configurations */
++	if (p->forced_fourcc &&
++	    p->forced_fourcc != sh_mobile_format_fourcc(var))
+ 		return -EINVAL;
+ 
+ 	return 0;
+@@ -1158,7 +1251,7 @@ static int sh_mobile_set_par(struct fb_info *info)
+ 
+ 	sh_mobile_lcdc_stop(ch->lcdc);
+ 
+-	if (info->var.nonstd)
++	if (sh_mobile_format_is_yuv(&info->var))
+ 		info->fix.line_length = info->var.xres;
+ 	else
+ 		info->fix.line_length = info->var.xres
+@@ -1170,6 +1263,14 @@ static int sh_mobile_set_par(struct fb_info *info)
+ 		info->fix.line_length = line_length;
+ 	}
+ 
++	if (sh_mobile_format_is_fourcc(&info->var)) {
++		info->fix.type = FB_TYPE_FOURCC;
++		info->fix.visual = FB_VISUAL_FOURCC;
++	} else {
++		info->fix.type = FB_TYPE_PACKED_PIXELS;
++		info->fix.visual = FB_VISUAL_TRUECOLOR;
++	}
++
+ 	return ret;
+ }
+ 
+@@ -1464,9 +1565,9 @@ static int __devinit sh_mobile_lcdc_channel_init(struct sh_mobile_lcdc_chan *ch,
+ 	for (i = 0, mode = cfg->lcd_cfg; i < cfg->num_cfg; i++, mode++) {
+ 		unsigned int size = mode->yres * mode->xres;
+ 
+-		/* NV12 buffers must have even number of lines */
+-		if ((cfg->nonstd) && cfg->bpp == 12 &&
+-				(mode->yres & 0x1)) {
++		/* NV12/NV21 buffers must have even number of lines */
++		if ((cfg->fourcc == V4L2_PIX_FMT_NV12 ||
++		     cfg->fourcc == V4L2_PIX_FMT_NV21) && (mode->yres & 0x1)) {
+ 			dev_err(dev, "yres must be multiple of 2 for YCbCr420 "
+ 				"mode.\n");
+ 			return -EINVAL;
+@@ -1484,14 +1585,6 @@ static int __devinit sh_mobile_lcdc_channel_init(struct sh_mobile_lcdc_chan *ch,
+ 		dev_dbg(dev, "Found largest videomode %ux%u\n",
+ 			max_mode->xres, max_mode->yres);
+ 
+-	/* Initialize fixed screen information. Restrict pan to 2 lines steps
+-	 * for NV12.
+-	 */
+-	info->fix = sh_mobile_lcdc_fix;
+-	info->fix.smem_len = max_size * 2 * cfg->bpp / 8;
+-	if (cfg->nonstd && cfg->bpp == 12)
+-		info->fix.ypanstep = 2;
+-
+ 	/* Create the mode list. */
+ 	if (cfg->lcd_cfg == NULL) {
+ 		mode = &default_720p;
+@@ -1509,19 +1602,38 @@ static int __devinit sh_mobile_lcdc_channel_init(struct sh_mobile_lcdc_chan *ch,
+ 	 */
+ 	var = &info->var;
+ 	fb_videomode_to_var(var, mode);
+-	var->bits_per_pixel = cfg->bpp;
+ 	var->width = cfg->lcd_size_cfg.width;
+ 	var->height = cfg->lcd_size_cfg.height;
+ 	var->yres_virtual = var->yres * 2;
+ 	var->activate = FB_ACTIVATE_NOW;
+ 
++	switch (cfg->fourcc) {
++	case V4L2_PIX_FMT_RGB565:
++		var->bits_per_pixel = 16;
++		break;
++	case V4L2_PIX_FMT_BGR24:
++		var->bits_per_pixel = 24;
++		break;
++	case V4L2_PIX_FMT_BGR32:
++		var->bits_per_pixel = 32;
++		break;
++	default:
++		var->grayscale = cfg->fourcc;
++		break;
++	}
++
++	/* Make sure the memory size check won't fail. smem_len is initialized
++	 * later based on var.
++	 */
++	info->fix.smem_len = UINT_MAX;
+ 	ret = sh_mobile_check_var(var, info);
+ 	if (ret)
+ 		return ret;
+ 
++	max_size = max_size * var->bits_per_pixel / 8 * 2;
++
+ 	/* Allocate frame buffer memory and color map. */
+-	buf = dma_alloc_coherent(dev, info->fix.smem_len, &ch->dma_handle,
+-				 GFP_KERNEL);
++	buf = dma_alloc_coherent(dev, max_size, &ch->dma_handle, GFP_KERNEL);
+ 	if (!buf) {
+ 		dev_err(dev, "unable to allocate buffer\n");
+ 		return -ENOMEM;
+@@ -1530,16 +1642,27 @@ static int __devinit sh_mobile_lcdc_channel_init(struct sh_mobile_lcdc_chan *ch,
+ 	ret = fb_alloc_cmap(&info->cmap, PALETTE_NR, 0);
+ 	if (ret < 0) {
+ 		dev_err(dev, "unable to allocate cmap\n");
+-		dma_free_coherent(dev, info->fix.smem_len,
+-				  buf, ch->dma_handle);
++		dma_free_coherent(dev, max_size, buf, ch->dma_handle);
+ 		return ret;
+ 	}
+ 
++	/* Initialize fixed screen information. Restrict pan to 2 lines steps
++	 * for NV12 and NV21.
++	 */
++	info->fix = sh_mobile_lcdc_fix;
+ 	info->fix.smem_start = ch->dma_handle;
+-	if (var->nonstd)
++	info->fix.smem_len = max_size;
++	if (cfg->fourcc == V4L2_PIX_FMT_NV12 ||
++	    cfg->fourcc == V4L2_PIX_FMT_NV21)
++		info->fix.ypanstep = 2;
++
++	if (sh_mobile_format_is_yuv(var)) {
+ 		info->fix.line_length = var->xres;
+-	else
+-		info->fix.line_length = var->xres * (cfg->bpp / 8);
++		info->fix.visual = FB_VISUAL_FOURCC;
++	} else {
++		info->fix.line_length = var->xres * var->bits_per_pixel / 8;
++		info->fix.visual = FB_VISUAL_TRUECOLOR;
++	}
+ 
+ 	info->screen_base = buf;
+ 	info->device = dev;
+@@ -1626,9 +1749,9 @@ static int __devinit sh_mobile_lcdc_probe(struct platform_device *pdev)
+ 		goto err1;
+ 	}
+ 
+-	/* for dual channel LCDC (MAIN + SUB) force shared bpp setting */
++	/* for dual channel LCDC (MAIN + SUB) force shared format setting */
+ 	if (num_channels == 2)
+-		priv->forced_bpp = pdata->ch[0].bpp;
++		priv->forced_fourcc = pdata->ch[0].fourcc;
+ 
+ 	priv->base = ioremap_nocache(res->start, resource_size(res));
+ 	if (!priv->base)
+@@ -1675,13 +1798,10 @@ static int __devinit sh_mobile_lcdc_probe(struct platform_device *pdev)
+ 		if (error < 0)
+ 			goto err1;
+ 
+-		dev_info(info->dev,
+-			 "registered %s/%s as %dx%d %dbpp.\n",
+-			 pdev->name,
+-			 (ch->cfg.chan == LCDC_CHAN_MAINLCD) ?
+-			 "mainlcd" : "sublcd",
+-			 info->var.xres, info->var.yres,
+-			 ch->cfg.bpp);
++		dev_info(info->dev, "registered %s/%s as %dx%d %dbpp.\n",
++			 pdev->name, (ch->cfg.chan == LCDC_CHAN_MAINLCD) ?
++			 "mainlcd" : "sublcd", info->var.xres, info->var.yres,
++			 info->var.bits_per_pixel);
+ 
+ 		/* deferred io mode: disable clock to save power */
+ 		if (info->fbdefio || info->state == FBINFO_STATE_SUSPENDED)
+diff --git a/include/video/sh_mobile_lcdc.h b/include/video/sh_mobile_lcdc.h
+index 8101b72..fe30b75 100644
+--- a/include/video/sh_mobile_lcdc.h
++++ b/include/video/sh_mobile_lcdc.h
+@@ -174,7 +174,8 @@ struct sh_mobile_lcdc_bl_info {
+ 
+ struct sh_mobile_lcdc_chan_cfg {
+ 	int chan;
+-	int bpp;
++	int fourcc;
++	int colorspace;
+ 	int interface_type; /* selects RGBn or SYSn I/F, see above */
+ 	int clock_divider;
+ 	unsigned long flags; /* LCDC_FLAGS_... */
+@@ -184,7 +185,6 @@ struct sh_mobile_lcdc_chan_cfg {
+ 	struct sh_mobile_lcdc_board_cfg board_cfg;
+ 	struct sh_mobile_lcdc_bl_info bl_info;
+ 	struct sh_mobile_lcdc_sys_bus_cfg sys_bus_cfg; /* only for SYSn I/F */
+-	int nonstd;
+ 	struct sh_mobile_meram_cfg *meram_cfg;
+ };
+ 
 -- 
-Regards,
+1.7.3.4
 
-Laurent Pinchart
