@@ -1,62 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:50958 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752491Ab1KGTQo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Nov 2011 14:16:44 -0500
-Message-ID: <4EB82E98.9030105@linuxtv.org>
-Date: Mon, 07 Nov 2011 20:16:40 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42176 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755968Ab1K2SKe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Nov 2011 13:10:34 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v2 1/2] v4l: Add new alpha component control
+Date: Tue, 29 Nov 2011 19:10:39 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	mchehab@redhat.com, m.szyprowski@samsung.com,
+	jonghun.han@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+References: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com> <201111291208.10495.hverkuil@xs4all.nl> <4ED50AEA.4050109@samsung.com>
+In-Reply-To: <4ED50AEA.4050109@samsung.com>
 MIME-Version: 1.0
-To: Luca Olivetti <luca@ventoso.org>
-CC: linux-media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: femon signal strength
-References: <4EA78E3C.2020308@lockie.ca> <CAGoCfiwS=O75uyaaueNSrq275MS9eednR+Y=yrgsJo0XaExRKA@mail.gmail.com> <4EA86366.1020906@lockie.ca> <CAGoCfiww_5pF_S3M_mpN4gk1qqLYn7H7PPcieZXZNnjvK-RHHA@mail.gmail.com> <4EA86668.6090508@lockie.ca> <20111105111050.5b8762fa@grobi> <CAGoCfiwC+7pkY6ZchySBYRkyY1XjFjKeJYQEPTc2ZiBN-pdoyw@mail.gmail.com> <20111106141515.5b56a377@grobi> <CAGoCfixoOwZumohwJrLVKhfpUNGYwbD9uSq7nM0GhqriOx0FxA@mail.gmail.com> <20111106205907.47b9102b@grobi> <4EB7B75B.70004@linuxtv.org> <4EB7F57E.4060303@ventoso.org>
-In-Reply-To: <4EB7F57E.4060303@ventoso.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111291910.40076.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07.11.2011 16:13, Luca Olivetti wrote:
-> Al 07/11/2011 11:47, En/na Andreas Oberritter ha escrit:
->> I didn't receive Devin's mail, so I'm replying to this one instead, see
->> below:
-> 
-> [...]
->> Quoting myself from three years ago, I propose to add an interface to
->> read SNR in units of db/100:
-> 
-> A previous version of the dvb api specified the unit of snr as db/1000000
-> 
-> http://linuxtv.org/downloads/legacy/old/linux_dvb_api-20020304.pdf
-> 
-> page 55, FE_READ_SIGNAL_STRENGTH
-> 
-> "The signal-to-noise ratio, as a multiple of 10E-6 dB, is stored into *snr.
-> Example: a value of 12,300,000 corresponds to a signal-
-> to-noise ratio of 12.3 dB."
-> 
-> It also defined the unit for ber (multiple of 10E-9).
-> 
-> However it was dropped from subsequent revisions, I don't know why.
-> 
-> Bye
+Hi Sylwester,
 
-It was dropped because most (or all?) of the drivers available at the
-time were created without access to register descriptions and thus
-nobody of the developers knew how to calculate meaningful values and/or
-nobody was allowed to publish code based on confidential information. It
-was decided that big values meant good signal instead, which was good
-enough to print a signal meter bar without any real numbers.
+On Tuesday 29 November 2011 17:40:10 Sylwester Nawrocki wrote:
+> On 11/29/2011 12:08 PM, Hans Verkuil wrote:
+> > On Monday 28 November 2011 14:02:49 Sylwester Nawrocki wrote:
+> >> On 11/28/2011 01:39 PM, Hans Verkuil wrote:
+> >>> On Monday 28 November 2011 13:13:32 Sylwester Nawrocki wrote:
+> >>>> On 11/28/2011 12:38 PM, Hans Verkuil wrote:
+> >>>>> On Friday 25 November 2011 16:39:31 Sylwester Nawrocki wrote:
+> > Here is a patch that updates the range. It also sends a control event
+> > telling any listener that the range has changed. Tested with vivi and a
+> > modified v4l2-ctl.
+> > 
+> > The only thing missing is a DocBook entry for that new event flag and
+> > perhaps some more documentation in places.
+> > 
+> > Let me know how this works for you, and if it is really needed, then I
+> > can add it to the control framework.
+> 
+> Thanks for your work, it's very appreciated.
+> 
+> I've tested the patch with s5p-fimc and it works well. I just didn't check
+> the event part yet.
+> 
+> I spoke to Kamil as in the past he considered the control range updating
+> at the codec driver. But since separate controls are used for different
+> encoding standards, this is not needed it any more.
+> 
+> Nevertheless I have at least two use cases, for the alpha control and
+> for the image sensor driver. In case of the camera sensor, different device
+> revisions may have different step and maximum value for some controls,
+> depending on firmware.
+> By using v4l2_ctrl_range_update() I don't need to invoke lengthy sensor
+> start-up procedure just to find out properties of some controls.
 
-The situation has changed since then. I think two decimal digits should
-be sufficient. A value displayed to the user would probably have at most
-one decimal digit. The SNR measured by a demodulator isn't very
-accurate, so adding more decimal digits doesn't improve the precision.
+Wouldn't it be confusing for applications to start with a range and have it 
+updated at runtime ?
 
-Personally, I don't care much whether the unit is db/10, db/100 or
-db/1000. I just think db/100 is a reasonable choice and IIRC it's the
-unit that most of the vendor drivers I've seen in the past are using.
+> It would be nice to have this enhancement in mainline.
 
+-- 
 Regards,
-Andreas
+
+Laurent Pinchart
