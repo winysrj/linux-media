@@ -1,61 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4054 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756091Ab1KXNjZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 08:39:25 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from skyboo.net ([82.160.187.4]:36855 "EHLO skyboo.net"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754844Ab1K2PLE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Nov 2011 10:11:04 -0500
+From: Mariusz Bialonczyk <manio@skyboo.net>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 07/12] cx18/ddbridge: remove unused headers.
-Date: Thu, 24 Nov 2011 14:39:04 +0100
-Message-Id: <6b1eb1df8a77998a0ada0685b18f8aadb9ac70ea.1322141686.git.hans.verkuil@cisco.com>
-In-Reply-To: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
-References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <07c1a0737016dcf588e866cde0f3bc1a59e35bfb.1322141686.git.hans.verkuil@cisco.com>
-References: <07c1a0737016dcf588e866cde0f3bc1a59e35bfb.1322141686.git.hans.verkuil@cisco.com>
+Cc: Mariusz Bialonczyk <manio@skyboo.net>
+Date: Tue, 29 Nov 2011 15:31:23 +0100
+Message-Id: <1322577083-24728-1-git-send-email-manio@skyboo.net>
+Subject: [PATCH] stv090x: implement function for reading uncorrected blocks count
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch add support for reading UNC blocks for stv090x frontend.
+Partially based on stv0900 code by Abylay Ospan <aospan@netup.ru>
 
-Work is in progress to deprecate include/linux/dvb/audio.h and video.h.
-The cx18 and ddbridge drivers include these headers without using them.
-
-Remove those includes.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mariusz Bialonczyk <manio@skyboo.net>
 ---
- drivers/media/dvb/ddbridge/ddbridge.h  |    2 --
- drivers/media/video/cx18/cx18-driver.h |    2 --
- 2 files changed, 0 insertions(+), 4 deletions(-)
+ drivers/media/dvb/frontends/stv090x.c |   32 +++++++++++++++++++++++++++++++-
+ 1 files changed, 31 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/dvb/ddbridge/ddbridge.h b/drivers/media/dvb/ddbridge/ddbridge.h
-index 6d14893..8b1b41d 100644
---- a/drivers/media/dvb/ddbridge/ddbridge.h
-+++ b/drivers/media/dvb/ddbridge/ddbridge.h
-@@ -32,8 +32,6 @@
- #include <asm/dma.h>
- #include <linux/dvb/frontend.h>
- #include <linux/dvb/ca.h>
--#include <linux/dvb/video.h>
--#include <linux/dvb/audio.h>
- #include <linux/socket.h>
+diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
+index 52d8712..ad6141f 100644
+--- a/drivers/media/dvb/frontends/stv090x.c
++++ b/drivers/media/dvb/frontends/stv090x.c
+@@ -3687,6 +3687,35 @@ static int stv090x_read_cnr(struct dvb_frontend *fe, u16 *cnr)
+ 	return 0;
+ }
  
- #include "dmxdev.h"
-diff --git a/drivers/media/video/cx18/cx18-driver.h b/drivers/media/video/cx18/cx18-driver.h
-index b9a94fc..7a37e0e 100644
---- a/drivers/media/video/cx18/cx18-driver.h
-+++ b/drivers/media/video/cx18/cx18-driver.h
-@@ -44,8 +44,6 @@
- #include <linux/slab.h>
- #include <asm/byteorder.h>
++static int stv090x_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
++{
++	struct stv090x_state *state = fe->demodulator_priv;
++	u32 reg_0, reg_1;
++	u32 val_header_err, val_packet_err;
++
++	switch (state->delsys) {
++	case STV090x_DVBS2:
++		/* DVB-S2 delineator error count */
++
++		/* retrieving number for erronous headers */
++		reg_1 = stv090x_read_reg(state, STV090x_P1_BBFCRCKO1);
++		reg_0 = stv090x_read_reg(state, STV090x_P1_BBFCRCKO0);
++		val_header_err = MAKEWORD16(reg_1, reg_0);
++
++		/* retrieving number for erronous packets */
++		reg_1 = stv090x_read_reg(state, STV090x_P1_UPCRCKO1);
++		reg_0 = stv090x_read_reg(state, STV090x_P1_UPCRCKO0);
++		val_packet_err = MAKEWORD16(reg_1, reg_0);
++
++		*ucblocks = val_packet_err + val_header_err;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ static int stv090x_set_tone(struct dvb_frontend *fe, fe_sec_tone_mode_t tone)
+ {
+ 	struct stv090x_state *state = fe->demodulator_priv;
+@@ -4748,7 +4777,8 @@ static struct dvb_frontend_ops stv090x_ops = {
+ 	.read_status			= stv090x_read_status,
+ 	.read_ber			= stv090x_read_per,
+ 	.read_signal_strength		= stv090x_read_signal_strength,
+-	.read_snr			= stv090x_read_cnr
++	.read_snr			= stv090x_read_cnr,
++	.read_ucblocks			= stv090x_read_ucblocks
+ };
  
--#include <linux/dvb/video.h>
--#include <linux/dvb/audio.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-device.h>
+ 
 -- 
 1.7.7.3
 
