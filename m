@@ -1,47 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:37546 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932719Ab1KBOub convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2011 10:50:31 -0400
-Received: by iage36 with SMTP id e36so193411iag.19
-        for <linux-media@vger.kernel.org>; Wed, 02 Nov 2011 07:50:31 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAGoCfizk7jsKcCSzhyz0PWtj3yUidB_vjjYTCoZ0nfj9L60u5Q@mail.gmail.com>
-References: <CAL9G6WV=4xxara7vw+jRfydnwqEoc4_qrz6p_z_wowDeEV0scA@mail.gmail.com>
-	<CAGoCfiy=FKo5vRiAV8m-maRZ7aQfmgdivQBrhGSfjF-NGZ=Lpg@mail.gmail.com>
-	<CAOcJUbw8ASb9fqeGQJyvod=03-Yi8MLEhjYL3oTsZztDhMbNiw@mail.gmail.com>
-	<CAGoCfizk7jsKcCSzhyz0PWtj3yUidB_vjjYTCoZ0nfj9L60u5Q@mail.gmail.com>
-Date: Wed, 2 Nov 2011 10:50:31 -0400
-Message-ID: <CAOcJUbz8j6UrLeEKXVOJ+6sf40cbZ_Cp1C6u+GCMkqrRbLVDLQ@mail.gmail.com>
-Subject: Re: Hauppauge WIN-TV DUET HD
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Josu Lazkano <josu.lazkano@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from devils.ext.ti.com ([198.47.26.153]:57689 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757161Ab1K3KrX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Nov 2011 05:47:23 -0500
+From: "Nori, Sekhar" <nsekhar@ti.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	LMML <linux-media@vger.kernel.org>
+Subject: RE: [PATCH RESEND] davinci: dm646x: move vpif related code to
+ driver core header from platform
+Date: Wed, 30 Nov 2011 10:47:04 +0000
+Message-ID: <DF0F476B391FA8409C78302C7BA518B60353C8@DBDE01.ent.ti.com>
+References: <1321110362-6699-1-git-send-email-manjunath.hadli@ti.com>
+ <4ECE8764.60800@redhat.com>
+ <DF0F476B391FA8409C78302C7BA518B602DDD6@DBDE01.ent.ti.com>
+ <4ECEA3A9.1080506@redhat.com>
+In-Reply-To: <4ECEA3A9.1080506@redhat.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 2, 2011 at 10:14 AM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Wed, Nov 2, 2011 at 10:11 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->> INCORRECT.  The WinTV Duet is just a rebranding of the NOVA-TD ... It
->> is, in fact, supported, and quite possibly Hauppauge's coolest DVB-T
->> stick.
->
-> My mistake.  I must have gotten it confused with something else.
->
-> Despite assertions that it's Hauppauge's coolest stick, the user is
-> claiming that it isn't working.  Did they use new USB VID/PIDs that
-> will require a driver change to add support for it?
->
-> Devin
+On Fri, Nov 25, 2011 at 01:36:01, Mauro Carvalho Chehab wrote:
+> Em 24-11-2011 16:22, Nori, Sekhar escreveu:
+> > Hi Mauro,
+> > 
+> > On Thu, Nov 24, 2011 at 23:35:24, Mauro Carvalho Chehab wrote:
+> >> Em 12-11-2011 13:06, Manjunath Hadli escreveu:
+> >>> move vpif related code for capture and display drivers
+> >>> from dm646x platform header file to vpif_types.h as these definitions
+> >>> are related to driver code more than the platform or board.
+> >>>
+> >>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> >>
+> >> Manju,
+> >>
+> >> Why are you re-sending a patch?
+> >>
+> >> My understanding is that you're maintaining the davinci patches, so it is
+> >> up to you to put those patches on your tree and send me a pull request when
+> >> they're done. So, please, don't pollute the ML re-sending emails that
+> >> are for yourself to handle.
+> > 
+> > Since this particular patch touches arch/arm/mach-davinci
+> > as well as drivers/media/video, the plan was to queue the
+> > patch through ARM tree with your Ack. We did not get your
+> > ack the last time around[1] so it was resent.
+> > 
+> > Do let me know if your ack is not needed.
+> > 
+> > Thanks,
+> > Sekhar
+> > 
+> > [1] http://www.mail-archive.com/davinci-linux-open-source@linux.davincidsp.com/msg21840.html
+> 
+> Hmm.. I missed this email, but just re-sending it without request my ACK doesn't help
+> much ;)
+> 
+> If this ever happens again, next time the better is to forward me the patch again, on
+> an email asking for my ack.
+> 
+> With regards to the patch:
+> 
+> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-I just took a look on our model matrix, and confirmed with hardware -
-we did not assigned new ID's, and the WinTV Duet is identical to the
-Nova TD ... From the post I see, the user is simply asking if the
-device is supported -- it is in fact supported.  Where is the post
-that says he's having trouble?
+Thanks Mauro. Queuing this for v3.3 submission.
 
--Mike
+Manju, while committing I changed the subject line to:
+
+"ARM: davinci: vpif: move code to driver core header from platform"
+
+to better match the current subject line conventions.
+
+Regards,
+Sekhar
+
