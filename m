@@ -1,62 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:37170 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755817Ab1KGSVn convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Nov 2011 13:21:43 -0500
-MIME-Version: 1.0
-In-Reply-To: <87obwr1n9i.fsf@ti.com>
-References: <1320185752-568-1-git-send-email-omar.ramirez@ti.com>
-	<1320185752-568-5-git-send-email-omar.ramirez@ti.com>
-	<87obwr1n9i.fsf@ti.com>
-Date: Mon, 7 Nov 2011 12:21:41 -0600
-Message-ID: <CAB-zwWhkdv430aD8Osgi7Kyi6ScvhkwZ7BSW1cs3Nyzxc10VYg@mail.gmail.com>
-Subject: Re: [PATCH v3 4/4] OMAP3/4: iommu: adapt to runtime pm
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>,
-	Benoit Cousson <b-cousson@ti.com>,
-	Ohad Ben-Cohen <ohad@wizery.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	lkml <linux-kernel@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	lo <linux-omap@vger.kernel.org>,
-	lak <linux-arm-kernel@lists.infradead.org>,
-	lm <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:47013 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750895Ab1K3SuG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Nov 2011 13:50:06 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pAUIo5uj032510
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 30 Nov 2011 13:50:05 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 1/2] [media] tm6000: automatically load alsa and dvb modules
+Date: Wed, 30 Nov 2011 16:49:59 -0200
+Message-Id: <1322679000-26453-1-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+All devices should support alsa module. Devices with DVB will
+auto-load the dvb module. This way, tm6000-based devices should
+now have hot plugin.
 
-On Fri, Nov 4, 2011 at 6:27 PM, Kevin Hilman <khilman@ti.com> wrote:
->> @@ -821,9 +820,7 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
->>       if (!obj->refcount)
->>               return IRQ_NONE;
->>
->> -     clk_enable(obj->clk);
->>       errs = iommu_report_fault(obj, &da);
->> -     clk_disable(obj->clk);
->>       if (errs == 0)
->>               return IRQ_HANDLED;
->
-> I'm not terribly familiar with this IOMMU code, but this one looks
-> suspiciou because you're removing the clock calls but not replacing them
-> with runtime PM get/put calls.
->
-> I just want to make sure that's intentional.  If so, you might want to
-> add a comment about that to the changelog.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/video/tm6000/tm6000-cards.c |   31 +++++++++++++++++++++++++++++
+ drivers/media/video/tm6000/tm6000.h       |    3 ++
+ 2 files changed, 34 insertions(+), 0 deletions(-)
 
-Yes it is intentional, reason is that in order to get an interrupt,
-the device should be powered on in advance, right now it is working
-because the modules share a common clock so the users of the
-omap-iommu indirectly give power to it. However I made another change
-to do pm_runtime_get/put on attach/detach so it doesn't rely on others
-to keep the clocks on.
+diff --git a/drivers/media/video/tm6000/tm6000-cards.c b/drivers/media/video/tm6000/tm6000-cards.c
+index 3873ce4..6b74259 100644
+--- a/drivers/media/video/tm6000/tm6000-cards.c
++++ b/drivers/media/video/tm6000/tm6000-cards.c
+@@ -1052,6 +1052,33 @@ static void use_alternative_detection_method(struct tm6000_core *dev)
+ 	       tm6000_boards[model].name, model);
+ }
+ 
++#if defined(CONFIG_MODULES) && defined(MODULE)
++static void request_module_async(struct work_struct *work)
++{
++	struct tm6000_core *dev = container_of(work, struct tm6000_core,
++					       request_module_wk);
++
++	request_module("tm6000-alsa");
++
++	if (dev->caps.has_dvb)
++		request_module("tm6000-dvb");
++}
++
++static void request_modules(struct tm6000_core *dev)
++{
++	INIT_WORK(&dev->request_module_wk, request_module_async);
++	schedule_work(&dev->request_module_wk);
++}
++
++static void flush_request_modules(struct tm6000_core *dev)
++{
++	flush_work_sync(&dev->request_module_wk);
++}
++#else
++#define request_modules(dev)
++#define flush_request_modules(dev)
++#endif /* CONFIG_MODULES */
++
+ static int tm6000_init_dev(struct tm6000_core *dev)
+ {
+ 	struct v4l2_frequency f;
+@@ -1114,6 +1141,8 @@ static int tm6000_init_dev(struct tm6000_core *dev)
+ 
+ 	tm6000_ir_init(dev);
+ 
++	request_modules(dev);
++
+ 	mutex_unlock(&dev->lock);
+ 	return 0;
+ 
+@@ -1326,6 +1355,8 @@ static void tm6000_usb_disconnect(struct usb_interface *interface)
+ 
+ 	printk(KERN_INFO "tm6000: disconnecting %s\n", dev->name);
+ 
++	flush_request_modules(dev);
++
+ 	tm6000_ir_fini(dev);
+ 
+ 	if (dev->gpio.power_led) {
+diff --git a/drivers/media/video/tm6000/tm6000.h b/drivers/media/video/tm6000/tm6000.h
+index 2777e51..27ba659 100644
+--- a/drivers/media/video/tm6000/tm6000.h
++++ b/drivers/media/video/tm6000/tm6000.h
+@@ -188,6 +188,9 @@ struct tm6000_core {
+ 	/* Device Capabilities*/
+ 	struct tm6000_capabilities	caps;
+ 
++	/* Used to load alsa/dvb */
++        struct work_struct		request_module_wk;
++
+ 	/* Tuner configuration */
+ 	int				tuner_type;		/* type of the tuner */
+ 	int				tuner_addr;		/* tuner address */
+-- 
+1.7.7.3
 
-I'll add the comment.
-
-Thanks,
-
-Omar
