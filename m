@@ -1,144 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:56576 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755455Ab1LERTH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 12:19:07 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Sumit Semwal <sumit.semwal@ti.com>
-Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
-Date: Mon, 5 Dec 2011 17:18:48 +0000
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	linux@arm.linux.org.uk, jesse.barker@linaro.org,
-	m.szyprowski@samsung.com, rob@ti.com, daniel@ffwll.ch,
-	t.stanislaws@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>
-References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com> <1322816252-19955-2-git-send-email-sumit.semwal@ti.com>
-In-Reply-To: <1322816252-19955-2-git-send-email-sumit.semwal@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56691 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752133Ab1K3Xmn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Nov 2011 18:42:43 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: Using MT9P031 digital sensor
+Date: Thu, 1 Dec 2011 00:42:47 +0100
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4EB04001.9050803@mlbassoc.com> <201111301530.58977.laurent.pinchart@ideasonboard.com> <4ED6445A.2070908@mlbassoc.com>
+In-Reply-To: <4ED6445A.2070908@mlbassoc.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201112051718.48324.arnd@arndb.de>
+Message-Id: <201112010042.48660.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 02 December 2011, Sumit Semwal wrote:
-> This is the first step in defining a dma buffer sharing mechanism.
+Hi Gary,
 
-This looks very nice, but there are a few things I don't understand yet
-and a bunch of trivial comments I have about things I spotted.
+On Wednesday 30 November 2011 15:57:30 Gary Thomas wrote:
+> On 2011-11-30 07:30, Laurent Pinchart wrote:
+> > On Wednesday 30 November 2011 15:13:18 Gary Thomas wrote:
+> >> On 2011-11-28 05:49, Laurent Pinchart wrote:
+> >>> On Monday 28 November 2011 13:42:47 Gary Thomas wrote:
+> >>>> On 2011-11-28 04:07, Laurent Pinchart wrote:
+> >>>>> On Friday 25 November 2011 12:50:25 Gary Thomas wrote:
+> >>>>>> On 2011-11-24 04:28, Laurent Pinchart wrote:
+> >>>>>>> On Wednesday 16 November 2011 13:03:11 Gary Thomas wrote:
+> >>>>>>>> On 2011-11-15 18:26, Laurent Pinchart wrote:
+> >>>>>>>>> On Monday 14 November 2011 12:42:54 Gary Thomas wrote:
+> >>> [snip]
+> >>> 
+> >>>>>>>>>> Here's my pipeline:
+> >>>>>>>>>>         media-ctl -r
+> >>>>>>>>>>         media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+> >>>>>>>>>>         media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP
+> >>>>>>>>>>         preview":0[1]' media-ctl -l '"OMAP3 ISP
+> >>>>>>>>>>         preview":1->"OMAP3 ISP resizer":0[1]' media-ctl -l
+> >>>>>>>>>>         '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
+> >>>>>>>>>>         output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12
+> >>>>>>>>>>         2592x1944]' media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG10
+> >>>>>>>>>>         2592x1944]'
+> >>>>>>>>>>         media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
+> >>>>>>>>>>         media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10
+> >>>>>>>>>>         2592x1943]' media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV
+> >>>>>>>>>>         2574x1935]' media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV
+> >>>>>>>>>>         642x483]'
+> >>>>>>>>>> 
+> >>>>>>>>>> The full media-ctl dump is at
+> >>>>>>>>>> http://www.mlbassoc.com/misc/pipeline.out
+> >>>>>>>>>> 
+> >>>>>>>>>> When I try to grab from /dev/video6 (output node of resizer), I
+> >>>>>>>>>> see only previewer interrupts, no resizer interrrupts.  I added
+> >>>>>>>>>> a simple printk at each of the previewer/resizer *_isr
+> >>>>>>>>>> functions, and I only
+> >>>>>>>>>> 
+> >>>>>>>>>> ever see this one:
+> >>>>>>>>>>         omap3isp_preview_isr_frame_sync.1373
+> >>>>>>>>>> 
+> >>>>>>>>>> Can you give me an overview of what events/interrupts should
+> >>>>>>>>>> occur so I can try to trace through the ISP to see where it is
+> >>>>>>>>>> failing?
+> >>>>>>>>> 
+> >>>>>>>>> The CCDC generates VD0, VD1 and HS/VS interrupts regardless of
+> >>>>>>>>> whether it processes video or not, as long as it receives a video
+> >>>>>>>>> stream at its input. The preview engine and resizer will only
+> >>>>>>>>> generate an interrupt after writing an image to memory. With your
+> >>>>>>>>> above
+> >>>>>>>>> configuration VD0, VD1, HS/VS and resizer interrupts should be
+> >>>>>>>>> generated.
+> >>>>>>>>> 
+> >>>>>>>>> Your pipeline configuration looks correct, except that the
+> >>>>>>>>> downscaling factor is slightly larger than 4. Could you try to
+> >>>>>>>>> setup the resizer to output a 2574x1935 image instead of 642x483
+> >>>>>>>>> ? If that works, try to downscale to 660x496. If that works as
+> >>>>>>>>> well, the driver should be fixed to disallow resolutions that
+> >>>>>>>>> won't work.
+> >>>>>>>> 
+> >>>>>>>> No change.  I also tried using only the previewer like this:
+> >>>>>>>>        media-ctl -r
+> >>>>>>>>        media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+> >>>>>>>>        media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+> >>>>>>>>        media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP preview
+> >>>>>>>>        output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12
+> >>>>>>>>        2592x1944]' media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG12
+> >>>>>>>>        2592x1944]'
+> >>>>>>>>        media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
+> >>>>>>>>        media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
+> >>>>>>>>        media-ctl -f  '"OMAP3 ISP preview":1 [YUYV 2574x1935]'
+> >>>>>>>>        
+> >>>>>>>>        yavta --capture=4 -f YUYV -s 2574x1935 -F /dev/video4
+> >>>>>>>> 
+> >>>>>>>> I still only get the frame sync interrupts in the previewer, no
+> >>>>>>>> buffer interrupts, hence no data flowing to my application.  What
+> >>>>>>>> else can I look at?
+> >>>>>>> 
+> >>>>>>> Do you get VD0 and VD1 interrupts ?
+> >>>>>> 
+> >>>>>> Yes, the CCDC is working correctly, but nothing moves through the
+> >>>>>> previewer. Here's a trace of the interrupt sequence I get, repeated
+> >>>>>> over and over.  These are printed as __FUNCTION__.__LINE__
+> >>>>>> --- ccdc_vd0_isr.1615
+> >>>>>> --- ccdc_hs_vs_isr.1482
+> >>>>>> --- ccdc_vd1_isr.1664
+> >>>>>> --- omap3isp_preview_isr_frame_sync.1373
+> >>>>>> 
+> >>>>>> What's the best tree to try this against?  3.2-rc2 doesn't have the
+> >>>>>> BT656 stuff in it yet, so I've been still using my older tree (3.0.0
+> >>>>>> + drivers/media from your tree)
+> >>>>> 
+> >>>>> I thought you were using an MT9P031 ? That doesn't require BT656
+> >>>>> support.
+> >>>> 
+> >>>> True, but I have one board that supports either sensor and I want to
+> >>>> stay with one source tree.
+> >>> 
+> >>> Sure, but let's start with a non-BT656 tree to rule out issues caused
+> >>> by BT656 patches. Could you please try mainline v3.1 ?
+> >> 
+> >> This sort of works(*), but I'm still having issues (at least I can move
+> >> 
+> >> frames!) When I configure the pipeline like this:
+> >>     media-ctl -r
+> >>     media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+> >>     media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+> >>     media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+> >>     media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
+> >>     output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12 2592x1944]'
+> >>     media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG12 2592x1944]'
+> >>     media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
+> >>     media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
+> >>     media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
+> >>     media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 660x496]'
+> >> 
+> >> the resulting frames are 666624 bytes each instead of 654720
+> >> 
+> >> When I tried to grab from the previewer, the frames were 9969120 instead
+> >> of 9961380
+> >> 
+> >> Any ideas what resolution is actually being moved through?
+> > 
+> > Because the OMAP3 ISP has alignment requirements. Both the preview engine
+> > and the resizer output line lenghts must be multiple of 32 bytes. The
+> > driver adds padding at end of lines when the output width isn't a
+> > multiple of 16 pixels.
+> 
+> Any guess which resolution(s) I should change and to what?
 
-Do you have prototype exporter and consumer drivers that you can post
-for clarification?
+You don't have to change any resolution. The driver reports the line length 
+through the bytesperline field in response to G_FMT/TRY_FMT/S_FMT, you can use 
+the value to find out whether there's padding at the end of lines. 
+Alternatively, if you want frames with no line padding, you will need to set 
+the width to a multiple of 16 on the source pad connected to the video node 
+you capture video from.
 
-In the patch 2, you have a section about migration that mentions that
-it is possible to export a buffer that can be migrated after it
-is already mapped into one user driver. How does that work when
-the physical addresses are mapped into a consumer device already?
+> > So this means that your original problem comes from the BT656 patches.
+> 
+> Yes, it does look that way.  Now that I have something that moves data, I
+> can compare how the ISP is setup between the two versions and come up with
+> a fix.
+> 
+> >> (*) to build on v3.1, I had to manually add the mt9p031 driver and fix a
+> >> compile error in drivers/media/video/omap/omap_vout.c
+> > 
+> > I'm surprised that omap_vout doesn't compile on v3.1. What was the error
+> > ?
+> 
+> The old 'kzalloc' isn't defined.  I fixed it like this:
+> 
+> $ git diff v3.1 drivers/media/video/omap/omap_vout.c
+> diff --git a/drivers/media/video/omap/omap_vout.c
+> b/drivers/media/video/omap/omap_vout.c index b3a5ecd..3422da0 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -38,6 +38,7 @@
+>   #include <linux/irq.h>
+>   #include <linux/videodev2.h>
+>   #include <linux/dma-mapping.h>
+> +#include <linux/slab.h>
+> 
+>   #include <media/videobuf-dma-contig.h>
+>   #include <media/v4l2-device.h>
 
-> diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
-> index 21cf46f..07d8095 100644
-> --- a/drivers/base/Kconfig
-> +++ b/drivers/base/Kconfig
-> @@ -174,4 +174,14 @@ config SYS_HYPERVISOR
->  
->  source "drivers/base/regmap/Kconfig"
->  
-> +config DMA_SHARED_BUFFER
-> +	bool "Buffer framework to be shared between drivers"
-> +	default n
-> +	depends on ANON_INODES
+Could you submit a patch to the linux-media mailing list (CC'ing Vaibhav) ? I 
+can do it if that's more convenient for you.
 
-I would make this 'select ANON_INODES', like the other users of this
-feature.
+-- 
+Regards,
 
-> +	return dmabuf;
-> +}
-> +EXPORT_SYMBOL(dma_buf_export);
-
-I agree with Konrad, this should definitely be EXPORT_SYMBOL_GPL,
-because it's really a low-level function that I would expect
-to get used by in-kernel subsystems providing the feature to
-users and having back-end drivers, but it's not the kind of thing
-we want out-of-tree drivers to mess with.
-
-> +/**
-> + * dma_buf_fd - returns a file descriptor for the given dma_buf
-> + * @dmabuf:	[in]	pointer to dma_buf for which fd is required.
-> + *
-> + * On success, returns an associated 'fd'. Else, returns error.
-> + */
-> +int dma_buf_fd(struct dma_buf *dmabuf)
-> +{
-> +	int error, fd;
-> +
-> +	if (!dmabuf->file)
-> +		return -EINVAL;
-> +
-> +	error = get_unused_fd_flags(0);
-
-Why not simply get_unused_fd()?
-
-> +/**
-> + * dma_buf_attach - Add the device to dma_buf's attachments list; optionally,
-> + * calls attach() of dma_buf_ops to allow device-specific attach functionality
-> + * @dmabuf:	[in]	buffer to attach device to.
-> + * @dev:	[in]	device to be attached.
-> + *
-> + * Returns struct dma_buf_attachment * for this attachment; may return NULL.
-> + *
-
-Or may return a negative error code. It's better to be consistent here:
-either always return NULL on error, or change the allocation error to
-ERR_PTR(-ENOMEM).
-
-> + */
-> +struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
-> +						struct device *dev)
-> +{
-> +	struct dma_buf_attachment *attach;
-> +	int ret;
-> +
-> +	BUG_ON(!dmabuf || !dev);
-> +
-> +	attach = kzalloc(sizeof(struct dma_buf_attachment), GFP_KERNEL);
-> +	if (attach == NULL)
-> +		goto err_alloc;
-> +
-> +	mutex_lock(&dmabuf->lock);
-> +
-> +	attach->dev = dev;
-> +	attach->dmabuf = dmabuf;
-> +	if (dmabuf->ops->attach) {
-> +		ret = dmabuf->ops->attach(dmabuf, dev, attach);
-> +		if (!ret)
-> +			goto err_attach;
-
-You probably mean "if (ret)" here instead of "if (!ret)", right?
-
-> +	/* allow allocator to take care of cache ops */
-> +	void (*sync_sg_for_cpu) (struct dma_buf *, struct device *);
-> +	void (*sync_sg_for_device)(struct dma_buf *, struct device *);
-
-I don't see how this works with multiple consumers: For the streaming
-DMA mapping, there must be exactly one owner, either the device or
-the CPU. Obviously, this rule needs to be extended when you get to
-multiple devices and multiple device drivers, plus possibly user
-mappings. Simply assigning the buffer to "the device" from one
-driver does not block other drivers from touching the buffer, and
-assigning it to "the cpu" does not stop other hardware that the
-code calling sync_sg_for_cpu is not aware of.
-
-The only way to solve this that I can think of right now is to
-mandate that the mappings are all coherent (i.e. noncachable
-on noncoherent architectures like ARM). If you do that, you no
-longer need the sync_sg_for_* calls.
-
-> +#ifdef CONFIG_DMA_SHARED_BUFFER
-
-Do you have a use case for making the interface compile-time disabled?
-I had assumed that any code using it would make no sense if it's not
-available so you don't actually need this.
-
-	Arnd
+Laurent Pinchart
