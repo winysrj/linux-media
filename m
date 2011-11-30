@@ -1,68 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:51852 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752385Ab1LaL4T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 06:56:19 -0500
-Received: by iaeh11 with SMTP id h11so26692546iae.19
-        for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 03:56:19 -0800 (PST)
-Date: Sat, 31 Dec 2011 05:56:11 -0600
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: David Fries <david@fries.net>
-Cc: Istvan Varga <istvan_v@mailbox.hu>, linux-media@vger.kernel.org,
-	Darron Broad <darron@kewl.org>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: [PATCH 2/9] [media] videobuf-dvb: avoid spurious ENOMEM when
- CONFIG_DVB_NET=n
-Message-ID: <20111231115611.GD16802@elie.Belkin>
-References: <E1RgiId-0003Qe-SC@www.linuxtv.org>
- <20111231115117.GB16802@elie.Belkin>
+Received: from mx1.redhat.com ([209.132.183.28]:18141 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751493Ab1K3VWW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Nov 2011 16:22:22 -0500
+Message-ID: <4ED69E88.6020302@redhat.com>
+Date: Wed, 30 Nov 2011 19:22:16 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20111231115117.GB16802@elie.Belkin>
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: linux-media@vger.kernel.org, Jens.Erdmann@web.de
+Subject: Re: [PATCH] em28xx: Add Terratec Cinergy HTC Stick
+References: <11607963.5467764.1322494881126.JavaMail.fmail@mwmweb051> <0MQf77-1RNtkl3pe9-00U2UK@smtp.web.de> <4ED4D683.40508@linuxtv.org> <201111302039.48970.Jens.Erdmann@web.de> <4ED694E3.6080500@linuxtv.org>
+In-Reply-To: <4ED694E3.6080500@linuxtv.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-videobuf_dvb_register_bus relies on dvb_net_init to set dvbnet->dvbdev
-on success, but ever since commit fcc8e7d8c0e2 ("dvb_net: Simplify the
-code if DVB NET is not defined"), ->dvbdev is left unset when
-networking support is disabled.  Therefore in such configurations
-videobuf_dvb_register_bus always returns failure, tripping
-little-tested error handling paths and preventing the device from
-being initialized and used.
+On 30-11-2011 18:41, Andreas Oberritter wrote:
+> On 30.11.2011 20:39, Jens Erdmann wrote:
+>> Dear Andreas,
+>>
+>> On Tuesday, November 29, 2011 01:56:35 PM you wrote:
+>> <snip>
+>>>
+>>>>>> 2. I stumbled over http://linux.terratec.de/tv_en.html where they list
+>>>>>> a NXP TDA18271
+>>>>>>
+>>>>>>      as used tuner for H5 and HTC Stick devices. I dont have any
+>>>>>>      experience in this kind of stuff but i am just asking.
+>>>>>
+>>>>> That's right.
+>>>>
+>>>> So this should be made like the other devices which are using the
+>>>> TDA18271? Or is there no driver for this tuner yet?
+>>>
+>>> I don't understand your question. Both TERRATEC H5 and Cinergy HTC Stick
+>>> are already supported by Linux (at least for digital signals, the latter
+>>> since the patch you're referring to), so a driver for every relevant
+>>> chip, including TDA18271, is already involved.
+>>>
+>>
+>> If i remember correctly there was used another tuner driver in the out
+>> commended code. Is this just a coyp paste leftover?
+>
+> Hm. When Mauro committed the patch, the description got lost:
+>
+>> - Can receive DVB-C and DVB-T. No analogue television or radio yet.
+>> - For now it's a copy of the Terratec H5 code with a different name.
 
-Now that dvb_net_init returns a nonzero value on error, we can use
-that as a more reliable error indication.  Do so.
+Gah! sorry for that. Not sure what happened there. I'll try to remember
+about it when sending upstream, in order to recover the original comment.
 
-Now your card be used with CONFIG_DVB_NET=n, and the kernel will pass
-on a more useful error code describing what happened when
-CONFIG_DVB_NET=y but dvb_net_init fails due to resource exhaustion.
+Feel free to ping me closer to the next merge window, in order to remind
+me.
 
-Reported-by: David Fries <David@Fries.net>
-Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
----
- drivers/media/video/videobuf-dvb.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+>
+> So, to answer your question: The disabled code was copied from the H5
+> right above the new code, in the hope that if someone is going to fix
+> analogue TV for the H5, he or she might just fix it for the HTC Stick as
+> well, assuming that there's only little or no difference.
 
-diff --git a/drivers/media/video/videobuf-dvb.c b/drivers/media/video/videobuf-dvb.c
-index 3de7c7e4402d..59cb54aa2946 100644
---- a/drivers/media/video/videobuf-dvb.c
-+++ b/drivers/media/video/videobuf-dvb.c
-@@ -226,9 +226,10 @@ static int videobuf_dvb_register_frontend(struct dvb_adapter *adapter,
- 	}
- 
- 	/* register network adapter */
--	dvb_net_init(adapter, &dvb->net, &dvb->demux.dmx);
--	if (dvb->net.dvbdev == NULL) {
--		result = -ENOMEM;
-+	result = dvb_net_init(adapter, &dvb->net, &dvb->demux.dmx);
-+	if (result < 0) {
-+		printk(KERN_WARNING "%s: dvb_net_init failed (errno = %d)\n",
-+		       dvb->name, result);
- 		goto fail_fe_conn;
- 	}
- 	return 0;
--- 
-1.7.8.2+next.20111228
+Support for analog is not trivial, as it requires writing a driver for
+tvf4910b. Not sure if is there any publicly released driver with some
+code for it. Maybe this could be done via sniffing the USB traffic, but, if
+this device is as complicated as DRX, then I doubt people would try to
+do it.
+
+> HTH,
+> Andreas
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
