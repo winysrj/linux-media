@@ -1,60 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39593 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752438Ab1KDNXM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Nov 2011 09:23:12 -0400
-Message-ID: <4EB3E733.4000406@iki.fi>
-Date: Fri, 04 Nov 2011 15:22:59 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for 3.2-rc1] media updates part 2
-References: <4EB3D7FC.7030507@redhat.com>
-In-Reply-To: <4EB3D7FC.7030507@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from newsmtp5.atmel.com ([204.2.163.5]:53538 "EHLO
+	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753024Ab1K3KHN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Nov 2011 05:07:13 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	nicolas.ferre@atmel.com, linux@arm.linux.org.uk
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH 2/2] [media] V4L: atmel-isi: add clk_prepare()/clk_unprepare() functions
+Date: Wed, 30 Nov 2011 18:06:44 +0800
+Message-Id: <1322647604-30662-2-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1322647604-30662-1-git-send-email-josh.wu@atmel.com>
+References: <1322647604-30662-1-git-send-email-josh.wu@atmel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
 
-Could you still try PULL some rather small Anysee changes for 3.2 I have 
-requested two weeks ago?
-http://patchwork.linuxtv.org/patch/8182/
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+ drivers/media/video/atmel-isi.c |   17 ++++++++++++++++-
+ 1 files changed, 16 insertions(+), 1 deletions(-)
 
-Those are Common Interface support and new board layout for Anysee E7 T2C.
-
-
-Antti
-
-
-On 11/04/2011 02:18 PM, Mauro Carvalho Chehab wrote:
-> Hi Linus,
->
-> Please pull from:
-> 	git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
->
-> For:
-> 	- move cx25821 out of staging;
-> 	  (acked by Greg KH)
-> 	- move the remaining media staging drivers to drivers/staging/media;
-> 	  (acked by Greg KH)
-> 	- a new staging driver at drivers/staging/media: as102;
-> 	- a huge pile of patches that will allow soc_camera sensors to be re-used by
-> 	  other drivers;
-> 	- a new driver for MaxLinear MxL111SF DVB-T devices;
-> 	- A new Exynos4 driver (s5k6aa);
-> 	- some other random driver fixes, board additions;
-> 	- Support for single ITE 9135 devices;
-> 	- a few minor improvements needed by some drivers (like adding support for devices
-> 	  capable of auto-detecting illumination blinking frequency);
->
-> Thanks!
-> Mauro
-
+diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
+index ea4eef4..5da4381 100644
+--- a/drivers/media/video/atmel-isi.c
++++ b/drivers/media/video/atmel-isi.c
+@@ -922,7 +922,9 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
+ 			isi->fb_descriptors_phys);
+ 
+ 	iounmap(isi->regs);
++	clk_unprepare(isi->mck);
+ 	clk_put(isi->mck);
++	clk_unprepare(isi->pclk);
+ 	clk_put(isi->pclk);
+ 	kfree(isi);
+ 
+@@ -955,6 +957,12 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+ 	if (IS_ERR(pclk))
+ 		return PTR_ERR(pclk);
+ 
++	ret = clk_prepare(pclk);
++	if (ret) {
++		clk_put(pclk);
++		return ret;
++	}
++
+ 	isi = kzalloc(sizeof(struct atmel_isi), GFP_KERNEL);
+ 	if (!isi) {
+ 		ret = -ENOMEM;
+@@ -978,10 +986,14 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+ 		goto err_clk_get;
+ 	}
+ 
++	ret = clk_prepare(isi->mck);
++	if (ret)
++		goto err_set_mck_rate;
++
+ 	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
+ 	ret = clk_set_rate(isi->mck, pdata->mck_hz);
+ 	if (ret < 0)
+-		goto err_set_mck_rate;
++		goto err_unprepare_mck;
+ 
+ 	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
+ 				sizeof(struct fbd) * MAX_BUFFER_NUM,
+@@ -1058,11 +1070,14 @@ err_alloc_ctx:
+ 			isi->p_fb_descriptors,
+ 			isi->fb_descriptors_phys);
+ err_alloc_descriptors:
++err_unprepare_mck:
++	clk_unprepare(isi->mck);
+ err_set_mck_rate:
+ 	clk_put(isi->mck);
+ err_clk_get:
+ 	kfree(isi);
+ err_alloc_isi:
++	clk_unprepare(pclk);
+ 	clk_put(pclk);
+ 
+ 	return ret;
 -- 
-http://palosaari.fi/
+1.6.3.3
+
