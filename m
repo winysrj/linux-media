@@ -1,57 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55671 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37189 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755408Ab1KWNXU (ORCPT
+	with ESMTP id S1754540Ab1K3Bkh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Nov 2011 08:23:20 -0500
+	Tue, 29 Nov 2011 20:40:37 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: UVC with continuous video buffers.
-Date: Wed, 23 Nov 2011 14:23:19 +0100
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <CACKLOr2CvPofCcveh6ReYuEbAzsq+z4hu12nza_pTwSceYtRkQ@mail.gmail.com> <201111041141.28698.laurent.pinchart@ideasonboard.com> <CACKLOr0jPK0Oi9yXzZ2Tk-1EM+Pava=qByGCqpT1nuxjmoNMXA@mail.gmail.com>
-In-Reply-To: <CACKLOr0jPK0Oi9yXzZ2Tk-1EM+Pava=qByGCqpT1nuxjmoNMXA@mail.gmail.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Subject: Re: [PATCH v2 1/2] v4l: Add new alpha component control
+Date: Wed, 30 Nov 2011 02:40:40 +0100
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	mchehab@redhat.com, m.szyprowski@samsung.com,
+	jonghun.han@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+References: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com> <201111291910.40076.laurent.pinchart@ideasonboard.com> <4ED534FB.5060401@gmail.com>
+In-Reply-To: <4ED534FB.5060401@gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201111231423.19700.laurent.pinchart@ideasonboard.com>
+Message-Id: <201111300240.41774.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+Hi Sylwester,
 
-On Thursday 17 November 2011 11:55:28 javier Martin wrote:
-> On 4 November 2011 11:41, Laurent Pinchart wrote:
-> > On Wednesday 02 November 2011 17:33:16 javier Martin wrote:
-> >> On 2 November 2011 17:12, Devin Heitmueller wrote:
-> >> > I've actually got a very similar issue and have been looking into it
-> >> > (an em28xx device on OMAP requiring contiguous physical memory for the
-> >> > hardware H.264 encoder).  One thing you may definitely want to check
-> >> 
-> >> > out is the patch sent earlier today with subject:
-> >> My case is a i.MX27 SoC with its internal H.264 encoder.
-> >> 
-> >> > [PATCH] media: vb2: vmalloc-based allocator user pointer handling
+On Tuesday 29 November 2011 20:39:39 Sylwester Nawrocki wrote:
+> On 11/29/2011 07:10 PM, Laurent Pinchart wrote:
+> > On Tuesday 29 November 2011 17:40:10 Sylwester Nawrocki wrote:
+> >> On 11/29/2011 12:08 PM, Hans Verkuil wrote:
+> >>> On Monday 28 November 2011 14:02:49 Sylwester Nawrocki wrote:
+> >>>> On 11/28/2011 01:39 PM, Hans Verkuil wrote:
+> >>>>> On Monday 28 November 2011 13:13:32 Sylwester Nawrocki wrote:
+> >>>>>> On 11/28/2011 12:38 PM, Hans Verkuil wrote:
+> >>>>>>> On Friday 25 November 2011 16:39:31 Sylwester Nawrocki wrote:
+> >> Nevertheless I have at least two use cases, for the alpha control and
+> >> for the image sensor driver. In case of the camera sensor, different
+> >> device revisions may have different step and maximum value for some
+> >> controls, depending on firmware.
+> >> By using v4l2_ctrl_range_update() I don't need to invoke lengthy sensor
+> >> start-up procedure just to find out properties of some controls.
 > > 
-> > However, the above patch that adds user pointer support in the videobuf2
-> > vmalloc-based allocator only supports memory backed by pages. If you
-> > contiguous buffer is in a memory area reserved by the system at boot
-> > time, the assumption will not be true. Supporting user pointers with no
-> > struct page backing is possible, but will require a new patch for vb2.
+> > Wouldn't it be confusing for applications to start with a range and have
+> > it updated at runtime ?
 > 
-> Hi Laurent,
-> thanks for your help.
+> Indeed, changing a control range like this is not the brightest idea ever.
+> I would not consider doing something like this commonly. However if the
+> applications are aware that the control range may change at any time and
+> they handle the events, there shouldn't be a problem. Of course life for
+> applications is getting harder. The complexity for applications is
+> increasing maybe a bit too much at this point already...
 > 
-> I am using dma_declare_coherent_memory() at startup to reserve memory.
-> Then I use dma_alloc_coherent() in my driver through
-> 'videobuf2-dma-contig.h' (emma-PrP I've recently submitted). I
-> understand these functions provide memory backed by pages and you are
-> referring to the case where you use the 'mem' argument of the kernel
-> to leave memory unused. Am I right?
+> I guess you would agree that it's best to power up the sensor when
+> sub-device node is opened and do all necessary setup before any subdev
+> file operation is commenced.
 
-I think you're right, yes.
+And applications won't be able to query the control range without opening the 
+subdev anyway.
+
+> For that I'm just looking forward for the common struct clk to be merged and
+> all platforms to be converted to it. So we can use a struct clk object to
+> enable sensor clock from subdev drivers level.
+
+I think we're all looking for that :-)
 
 -- 
 Regards,
