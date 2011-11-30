@@ -1,120 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:2788 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758005Ab1K3RWG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 12:22:06 -0500
-Message-ID: <4ED66637.2050406@redhat.com>
-Date: Wed, 30 Nov 2011 15:21:59 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from hermes.mlbassoc.com ([64.234.241.98]:43792 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757620Ab1K3RA6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Nov 2011 12:00:58 -0500
+Message-ID: <4ED66147.8090109@mlbassoc.com>
+Date: Wed, 30 Nov 2011 10:00:55 -0700
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-To: linuxtv@stefanringel.de
-CC: linux-media@vger.kernel.org, d.belimov@gmail.com
-Subject: Re: [PATCH 5/5] tm6000: bugfix data check
-References: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de> <1322509580-14460-5-git-send-email-linuxtv@stefanringel.de>
-In-Reply-To: <1322509580-14460-5-git-send-email-linuxtv@stefanringel.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Javier Martinez Canillas <martinez.javier@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Using MT9P031 digital sensor
+References: <4EB04001.9050803@mlbassoc.com> <201111281349.47411.laurent.pinchart@ideasonboard.com> <4ED639FE.7020503@mlbassoc.com> <201111301530.58977.laurent.pinchart@ideasonboard.com> <4ED6445A.2070908@mlbassoc.com>
+In-Reply-To: <4ED6445A.2070908@mlbassoc.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stefan and Dmitri,
-
-The entire RC input looked badly implemented. It never worked with HVR-900H,
-and it were doing polling even on URB interrupt mode.
-
-I've rewritten the entire code, and fixed it to be more reliable.
-
-I've tested both interrupt and polling modes, with HVR-900H. On HVR-900H,
-polling mode returns 0 when a scancode arrives, 0xff otherwise. This is
-not the expected behavior on polling mode, but it seems to e due to the
-way this device is wired. Anyway, the test were enough to test both ways
-of receiving scancodes.
-
-So, I broke the code for interrupt-driven and for polling-driven IR. This
-made the code simpler to understand and more reliable. Also, on interrupt
-driven mode, the CPU won't need to wake on every 50ms due to IR.
-
-Both NEC and RC-5 protocols were tested, and I tried to make sure that the
-driver would support 1 byte scancode, where devices can't provide
-two bytes.
-
-Please double check the patches I've made against your devices, in order
-to be sure that nothing went wrong. Maybe something more would be needed
-for IR on tm5600/tm6000.
-
-I should be applying them upstream later today or tomorrow.
-
-Regards,
-Mauro
-
-On 28-11-2011 17:46, linuxtv@stefanringel.de wrote:
-> From: Stefan Ringel<linuxtv@stefanringel.de>
+On 2011-11-30 07:57, Gary Thomas wrote:
+> On 2011-11-30 07:30, Laurent Pinchart wrote:
+>> Hi Gary,
+>>
+>> On Wednesday 30 November 2011 15:13:18 Gary Thomas wrote:
+>>> On 2011-11-28 05:49, Laurent Pinchart wrote:
+>>>> On Monday 28 November 2011 13:42:47 Gary Thomas wrote:
+>>>>> On 2011-11-28 04:07, Laurent Pinchart wrote:
+>>>>>> On Friday 25 November 2011 12:50:25 Gary Thomas wrote:
+>>>>>>> On 2011-11-24 04:28, Laurent Pinchart wrote:
+>>>>>>>> On Wednesday 16 November 2011 13:03:11 Gary Thomas wrote:
+>>>>>>>>> On 2011-11-15 18:26, Laurent Pinchart wrote:
+>>>>>>>>>> On Monday 14 November 2011 12:42:54 Gary Thomas wrote:
+>>>> [snip]
+>>>>
+>>>>>>>>>>> Here's my pipeline:
+>>>>>>>>>>> media-ctl -r
+>>>>>>>>>>> media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+>>>>>>>>>>> media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>>>>>>>>>>> media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP
+>>>>>>>>>>> resizer":0[1]' media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3
+>>>>>>>>>>> ISP resizer output":0[1]' media-ctl -f '"mt9p031
+>>>>>>>>>>> 3-005d":0[SGRBG12 2592x1944]' media-ctl -f '"OMAP3 ISP
+>>>>>>>>>>> CCDC":0 [SGRBG10 2592x1944]'
+>>>>>>>>>>> media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
+>>>>>>>>>>> media-ctl -f '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
+>>>>>>>>>>> media-ctl -f '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
+>>>>>>>>>>> media-ctl -f '"OMAP3 ISP resizer":1 [YUYV 642x483]'
+>>>>>>>>>>>
+>>>>>>>>>>> The full media-ctl dump is at
+>>>>>>>>>>> http://www.mlbassoc.com/misc/pipeline.out
+>>>>>>>>>>>
+>>>>>>>>>>> When I try to grab from /dev/video6 (output node of resizer), I
+>>>>>>>>>>> see only previewer interrupts, no resizer interrrupts. I added a
+>>>>>>>>>>> simple printk at each of the previewer/resizer *_isr functions,
+>>>>>>>>>>> and I only
+>>>>>>>>>>>
+>>>>>>>>>>> ever see this one:
+>>>>>>>>>>> omap3isp_preview_isr_frame_sync.1373
+>>>>>>>>>>>
+>>>>>>>>>>> Can you give me an overview of what events/interrupts should occur
+>>>>>>>>>>> so I can try to trace through the ISP to see where it is failing?
+>>>>>>>>>>
+>>>>>>>>>> The CCDC generates VD0, VD1 and HS/VS interrupts regardless of
+>>>>>>>>>> whether it processes video or not, as long as it receives a video
+>>>>>>>>>> stream at its input. The preview engine and resizer will only
+>>>>>>>>>> generate an interrupt after writing an image to memory. With your
+>>>>>>>>>> above
+>>>>>>>>>> configuration VD0, VD1, HS/VS and resizer interrupts should be
+>>>>>>>>>> generated.
+>>>>>>>>>>
+>>>>>>>>>> Your pipeline configuration looks correct, except that the
+>>>>>>>>>> downscaling factor is slightly larger than 4. Could you try to
+>>>>>>>>>> setup the resizer to output a 2574x1935 image instead of 642x483 ?
+>>>>>>>>>> If that works, try to downscale to 660x496. If that works as well,
+>>>>>>>>>> the driver should be fixed to disallow resolutions that won't
+>>>>>>>>>> work.
+>>>>>>>>>
+>>>>>>>>> No change. I also tried using only the previewer like this:
+>>>>>>>>> media-ctl -r
+>>>>>>>>> media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+>>>>>>>>> media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>>>>>>>>> media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP preview
+>>>>>>>>> output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12
+>>>>>>>>> 2592x1944]' media-ctl -f '"OMAP3 ISP CCDC":0 [SGRBG12
+>>>>>>>>> 2592x1944]'
+>>>>>>>>> media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
+>>>>>>>>> media-ctl -f '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
+>>>>>>>>> media-ctl -f '"OMAP3 ISP preview":1 [YUYV 2574x1935]'
+>>>>>>>>>
+>>>>>>>>> yavta --capture=4 -f YUYV -s 2574x1935 -F /dev/video4
+>>>>>>>>>
+>>>>>>>>> I still only get the frame sync interrupts in the previewer, no
+>>>>>>>>> buffer interrupts, hence no data flowing to my application. What
+>>>>>>>>> else can I look at?
+>>>>>>>>
+>>>>>>>> Do you get VD0 and VD1 interrupts ?
+>>>>>>>
+>>>>>>> Yes, the CCDC is working correctly, but nothing moves through the
+>>>>>>> previewer. Here's a trace of the interrupt sequence I get, repeated
+>>>>>>> over and over. These are printed as __FUNCTION__.__LINE__
+>>>>>>> --- ccdc_vd0_isr.1615
+>>>>>>> --- ccdc_hs_vs_isr.1482
+>>>>>>> --- ccdc_vd1_isr.1664
+>>>>>>> --- omap3isp_preview_isr_frame_sync.1373
+>>>>>>>
+>>>>>>> What's the best tree to try this against? 3.2-rc2 doesn't have the
+>>>>>>> BT656 stuff in it yet, so I've been still using my older tree (3.0.0 +
+>>>>>>> drivers/media from your tree)
+>>>>>>
+>>>>>> I thought you were using an MT9P031 ? That doesn't require BT656
+>>>>>> support.
+>>>>>
+>>>>> True, but I have one board that supports either sensor and I want to
+>>>>> stay with one source tree.
+>>>>
+>>>> Sure, but let's start with a non-BT656 tree to rule out issues caused by
+>>>> BT656 patches. Could you please try mainline v3.1 ?
+>>>
+>>> This sort of works(*), but I'm still having issues (at least I can move
+>>> frames!) When I configure the pipeline like this:
+>>> media-ctl -r
+>>> media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+>>> media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>>> media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+>>> media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+>>> media-ctl -f '"mt9p031 3-005d":0[SGRBG12 2592x1944]'
+>>> media-ctl -f '"OMAP3 ISP CCDC":0 [SGRBG12 2592x1944]'
+>>> media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
+>>> media-ctl -f '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
+>>> media-ctl -f '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
+>>> media-ctl -f '"OMAP3 ISP resizer":1 [YUYV 660x496]'
+>>> the resulting frames are 666624 bytes each instead of 654720
+>>>
+>>> When I tried to grab from the previewer, the frames were 9969120 instead of
+>>> 9961380
+>>>
+>>> Any ideas what resolution is actually being moved through?
+>>
+>> Because the OMAP3 ISP has alignment requirements. Both the preview engine and
+>> the resizer output line lenghts must be multiple of 32 bytes. The driver adds
+>> padding at end of lines when the output width isn't a multiple of 16 pixels.
 >
-> beholder use a map with 3 bytes, but many rc maps have 2 bytes, so I add a workaround for beholder rc.
+> Any guess which resolution(s) I should change and to what?
+
+I changed the resizer output to be 672x496 and was able to capture video using ffmpeg.
+
+I don't know what to expect with this sensor (I've never seen it in use before), but
+the image seems to have color balance issues - it's awash in a green hue.  It may be
+the poor lighting in my office...  I did try the 9 test patterns which I was able
+to select via
+   # v4l2-ctl -d /dev/v4l-subdev8 --set-ctrl=test_pattern=N
+and these looked OK.  You can see them at http://www.mlbassoc.com/misc/mt9p031_images/
+
 >
-> Signed-off-by: Stefan Ringel<linuxtv@stefanringel.de>
-> ---
->   drivers/media/video/tm6000/tm6000-input.c |   21 ++++++++++++++++-----
->   1 files changed, 16 insertions(+), 5 deletions(-)
+>>
+>> So this means that your original problem comes from the BT656 patches.
 >
-> diff --git a/drivers/media/video/tm6000/tm6000-input.c b/drivers/media/video/tm6000/tm6000-input.c
-> index 405d127..ae7772e 100644
-> --- a/drivers/media/video/tm6000/tm6000-input.c
-> +++ b/drivers/media/video/tm6000/tm6000-input.c
-> @@ -178,9 +178,21 @@ static int default_polling_getkey(struct tm6000_IR *ir,
->   			poll_result->rc_data = ir->urb_data[0];
->   			break;
->   		case RC_TYPE_NEC:
-> -			if (ir->urb_data[1] == ((ir->key_addr>>  8)&  0xff)) {
-> +			switch (dev->model) {
-> +			case 10:
-> +			case 11:
-> +			case 14:
-> +			case 15:
-
-Using magic numbers here is a very bad idea.
-
-> +				if (ir->urb_data[1] ==
-> +					((ir->key_addr>>  8)&  0xff)) {
-> +					poll_result->rc_data =
-> +					ir->urb_data[0]
-> +					| ir->urb_data[1]<<  8;
-> +				}
-
-Despite your comment, this is a 2 bytes scancode.
-
-> +				break;
-> +			default:
->   				poll_result->rc_data = ir->urb_data[0]
-> -							| ir->urb_data[1]<<  8;
-> +					| ir->urb_data[1]<<  8;
->   			}
->   			break;
->   		default:
-> @@ -238,8 +250,6 @@ static void tm6000_ir_handle_key(struct tm6000_IR *ir)
->   		return;
->   	}
+> Yes, it does look that way. Now that I have something that moves data, I can
+> compare how the ISP is setup between the two versions and come up with a fix.
 >
-> -	dprintk("ir->get_key result data=%04x\n", poll_result.rc_data);
-> -
->   	if (ir->pwled) {
->   		if (ir->pwledcnt>= PWLED_OFF) {
->   			ir->pwled = 0;
-> @@ -250,6 +260,7 @@ static void tm6000_ir_handle_key(struct tm6000_IR *ir)
->   	}
->
->   	if (ir->key) {
-> +		dprintk("ir->get_key result data=%04x\n", poll_result.rc_data);
->   		rc_keydown(ir->rc, poll_result.rc_data, 0);
->   		ir->key = 0;
->   		ir->pwled = 1;
-> @@ -333,7 +344,7 @@ int tm6000_ir_int_start(struct tm6000_core *dev)
->   		ir->int_urb->transfer_buffer, size,
->   		tm6000_ir_urb_received, dev,
->   		dev->int_in.endp->desc.bInterval);
-> -	err = usb_submit_urb(ir->int_urb, GFP_KERNEL);
-> +	err = usb_submit_urb(ir->int_urb, GFP_ATOMIC);
->   	if (err) {
->   		kfree(ir->int_urb->transfer_buffer);
->   		usb_free_urb(ir->int_urb);
 
+This is next on my plate, but it may take a while to figure it out.
+
+Is there some recent tree which will have this digital (mt9p031) part working
+that also has the BT656 support in it?  I'd like to try that rather than spending
+time figuring out why an older tree isn't working.
+
+Thanks
+
+
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
