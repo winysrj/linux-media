@@ -1,94 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:31607 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752607Ab1K1MNe (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:35144 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752267Ab1K3VRw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 07:13:34 -0500
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LVD00GMBDYLYG@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 28 Nov 2011 12:13:33 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LVD00C0YDYKJ5@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 28 Nov 2011 12:13:33 +0000 (GMT)
-Date: Mon, 28 Nov 2011 13:13:32 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v2 1/2] v4l: Add new alpha component control
-In-reply-to: <201111281238.42045.hverkuil@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	laurent.pinchart@ideasonboard.com, m.szyprowski@samsung.com,
-	jonghun.han@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <4ED37AEC.80105@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-15
-Content-transfer-encoding: 7BIT
-References: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com>
- <1322235572-22016-2-git-send-email-s.nawrocki@samsung.com>
- <201111281238.42045.hverkuil@xs4all.nl>
+	Wed, 30 Nov 2011 16:17:52 -0500
+Received: by eeuu47 with SMTP id u47so653102eeu.19
+        for <linux-media@vger.kernel.org>; Wed, 30 Nov 2011 13:17:51 -0800 (PST)
+Message-ID: <1322687863.2476.10.camel@tvbox>
+Subject: [PATCH 3/3] [For 3.3] it913x dvb-get-firmware update
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Wed, 30 Nov 2011 21:17:43 +0000
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/28/2011 12:38 PM, Hans Verkuil wrote:
-> On Friday 25 November 2011 16:39:31 Sylwester Nawrocki wrote:
->> This control is intended for the video capture or memory-to-memory devices
->> that are capable of setting up a per-pixel alpha component to some
->> arbitrary value. The V4L2_CID_ALPHA_COMPONENT control allows to set the
->> alpha component for all pixels to a value in range from 0 to 255.
->>
->> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->> ---
->>  Documentation/DocBook/media/v4l/compat.xml         |   11 ++++++++
->>  Documentation/DocBook/media/v4l/controls.xml       |   25
->> +++++++++++++++---- .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |  
->>  7 ++++-
->>  drivers/media/video/v4l2-ctrls.c                   |    7 +++++
->>  include/linux/videodev2.h                          |    6 ++--
->>  5 files changed, 45 insertions(+), 11 deletions(-)
->>
-...
->>  	/* MPEG controls */
->>  	/* Keep the order of the 'case's the same as in videodev2.h! */
->> @@ -714,6 +715,12 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
->> v4l2_ctrl_type *type, /* Max is calculated as RGB888 that is 2^24 */
->>  		*max = 0xFFFFFF;
->>  		break;
->> +	case V4L2_CID_ALPHA_COMPONENT:
->> +		*type = V4L2_CTRL_TYPE_INTEGER;
->> +		*step = 1;
->> +		*min = 0;
->> +		*max = 0xff;
->> +		break;
-> 
-> Hmm. Do we really want to fix the max value to 0xff? The bits assigned to the
-> alpha component will vary between 1 (V4L2_PIX_FMT_RGB555X), 4 
-> (V4L2_PIX_FMT_RGB444) or 8 (V4L2_PIX_FMT_RGB32). It wouldn't surprise me to
-> see larger sizes as well in the future (e.g. 16 bits).
-> 
-> I think the max value should be the largest alpha value the hardware can 
-> support. The application has to set it to the right value that corresponds
-> to the currently chosen pixel format. The driver just copies the first N bits 
-> into the alpha value where N depends on the pixel format.
-> 
-> what do you think?
+Changes to extract firmware for it913x devices
 
-Yes, ideally the maximum value of the alpha control should be changing depending
-on the set colour format.
-Currently the maximum value of the control equals maximum alpha value for the fourcc
-of maximum colour depth (V4L2_PIX_FMT_RGB32).
+./get_dvb_firmware it9135
+extracts
+dvb-usb-it9135-01.fw
+dvb-usb-it9135-02.fw
 
-What I found missing was a method for changing the control range dynamically, without 
-deleting and re-initializing the control handler.
-If we reinitalize whole control handler the previously set control values are lost.
+./get_dvb_firmware it9137
+extracts
+dvb-usb-it9137-01.fw
 
-And, AFAIU, single control cannot be currently removed and re-added to the control 
-handler.
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ Documentation/dvb/get_dvb_firmware |   22 +++++++++++++++++++++-
+ 1 files changed, 21 insertions(+), 1 deletions(-)
 
---
+diff --git a/Documentation/dvb/get_dvb_firmware b/Documentation/dvb/get_dvb_firmware
+index 0f15ab7..d1d4a17 100755
+--- a/Documentation/dvb/get_dvb_firmware
++++ b/Documentation/dvb/get_dvb_firmware
+@@ -28,7 +28,7 @@ use IO::Handle;
+ 		"opera1", "cx231xx", "cx18", "cx23885", "pvrusb2", "mpc718",
+ 		"af9015", "ngene", "az6027", "lme2510_lg", "lme2510c_s7395",
+ 		"lme2510c_s7395_old", "drxk", "drxk_terratec_h5",
+-		"drxk_hauppauge_hvr930c", "tda10071", "it9135" );
++		"drxk_hauppauge_hvr930c", "tda10071", "it9135", "it9137");
+ 
+ # Check args
+ syntax() if (scalar(@ARGV) != 1);
+@@ -676,6 +676,26 @@ sub drxk_terratec_h5 {
+ }
+ 
+ sub it9135 {
++	my $sourcefile = "dvb-usb-it9135.zip";
++	my $url = "http://www.ite.com.tw/uploads/firmware/v3.6.0.0/$sourcefile";
++	my $hash = "1e55f6c8833f1d0ae067c2bb2953e6a9";
++	my $tmpdir = tempdir(DIR => "/tmp", CLEANUP => 0);
++	my $outfile = "dvb-usb-it9135.fw";
++	my $fwfile1 = "dvb-usb-it9135-01.fw";
++	my $fwfile2 = "dvb-usb-it9135-02.fw";
++
++	checkstandard();
++
++	wgetfile($sourcefile, $url);
++	unzip($sourcefile, $tmpdir);
++	verify("$tmpdir/$outfile", $hash);
++	extract("$tmpdir/$outfile", 64, 8128, "$fwfile1");
++	extract("$tmpdir/$outfile", 12866, 5817, "$fwfile2");
++
++	"$fwfile1 $fwfile2"
++}
++
++sub it9137 {
+     my $url = "http://kworld.server261.com/kworld/CD/ITE_TiVme/V1.00/";
+     my $zipfile = "Driver_V10.323.1.0412.100412.zip";
+     my $hash = "79b597dc648698ed6820845c0c9d0d37";
+-- 
+1.7.7.1
 
-Regards,
-Sylwester
+
+
