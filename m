@@ -1,80 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50572 "EHLO arroyo.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:26583 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755887Ab1KOOQy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Nov 2011 09:16:54 -0500
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "'Sergei Shtylyov'" <sshtylyov@mvista.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>
-Subject: RE: [PATCH v2 5/5] davinci: delete individual platform header files
- and use a common header
-Date: Tue, 15 Nov 2011 14:16:38 +0000
-Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F750101DA@DBDE01.ent.ti.com>
-References: <1321283357-27698-1-git-send-email-manjunath.hadli@ti.com>
- <1321283357-27698-6-git-send-email-manjunath.hadli@ti.com>
- <4EC244F9.1030604@mvista.com>
-In-Reply-To: <4EC244F9.1030604@mvista.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	id S1757966Ab1K3RIe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Nov 2011 12:08:34 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pAUH8Y3r024426
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 30 Nov 2011 12:08:34 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 4/5] [media] tm6000: Allow auto-detecting tm6000 devices
+Date: Wed, 30 Nov 2011 15:08:23 -0200
+Message-Id: <1322672904-17340-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1322672904-17340-3-git-send-email-mchehab@redhat.com>
+References: <1322672904-17340-1-git-send-email-mchehab@redhat.com>
+ <1322672904-17340-2-git-send-email-mchehab@redhat.com>
+ <1322672904-17340-3-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sergei,
+Now that the tm6000 driver is on a good shape, we can enable
+device autodetection, based on the USB ID.
 
-On Tue, Nov 15, 2011 at 16:24:49, Sergei Shtylyov wrote:
-> Hello.
-> 
-> On 14-11-2011 19:09, Manjunath Hadli wrote:
-> 
-> > include davinci_common.h file in files using the platform header file 
-> > for dm355, dm365, dm644x and dm646x and delete the individual platform 
-> > header files.
-> 
-> > Signed-off-by: Manjunath Hadli<manjunath.hadli@ti.com>
-> [...]
-> 
-> > diff --git a/drivers/media/video/davinci/vpif.h 
-> > b/drivers/media/video/davinci/vpif.h
-> > index 25036cb..73b00bd 100644
-> > --- a/drivers/media/video/davinci/vpif.h
-> > +++ b/drivers/media/video/davinci/vpif.h
-> > @@ -18,8 +18,7 @@
-> >
-> >   #include<linux/io.h>
-> >   #include<linux/videodev2.h>
-> > -#include<mach/hardware.h>
-> 
->     Why are you removing this?
-It currently builds without the hardware.h. Perhaps it is not using any of the defines.
-> 
-> > -#include<mach/dm646x.h>
-> > +#include<mach/davinci_common.h>
-> >   #include<media/davinci/vpif_types.h>
-> >
-> >   /* Maximum channel allowed */
-> > diff --git a/drivers/media/video/davinci/vpif_capture.h 
-> > b/drivers/media/video/davinci/vpif_capture.h
-> > index a693d4e..c019d26 100644
-> > --- a/drivers/media/video/davinci/vpif_capture.h
-> > +++ b/drivers/media/video/davinci/vpif_capture.h
-> > @@ -27,6 +27,7 @@
-> >   #include<media/v4l2-device.h>
-> >   #include<media/videobuf-core.h>
-> >   #include<media/videobuf-dma-contig.h>
-> > +#include<mach/davinci_common.h>
-> 
->     Not clear why are you adding this when no platform header was included before.
-There was an inner inclusion of i2c.h. Will correct it for i2c.h only and remove davinci_common.h
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/video/tm6000/tm6000-cards.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-> 
-> WBR, Sergei
-> 
-> 
-Thx,
--Manju
+diff --git a/drivers/media/video/tm6000/tm6000-cards.c b/drivers/media/video/tm6000/tm6000-cards.c
+index 0b54132..3873ce4 100644
+--- a/drivers/media/video/tm6000/tm6000-cards.c
++++ b/drivers/media/video/tm6000/tm6000-cards.c
+@@ -640,6 +640,7 @@ static struct usb_device_id tm6000_id_table[] = {
+ 	{ USB_DEVICE(0x6000, 0xdec3), .driver_info = TM6010_BOARD_BEHOLD_VOYAGER_LITE },
+ 	{ }
+ };
++MODULE_DEVICE_TABLE(usb, tm6000_id_table);
+ 
+ /* Control power led for show some activity */
+ void tm6000_flash_led(struct tm6000_core *dev, u8 state)
+-- 
+1.7.7.3
 
