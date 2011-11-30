@@ -1,307 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48788 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750862Ab1KXLOi (ORCPT
+Received: from acsinet15.oracle.com ([141.146.126.227]:48090 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752383Ab1K3It1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 06:14:38 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 2/4] v4l spec: document VIDIOC_(TRY_)DECODER_CMD.
-Date: Thu, 24 Nov 2011 12:14:36 +0100
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1322046756-22870-1-git-send-email-hverkuil@xs4all.nl> <9f5cf3b545b1b9e71a81ffb133f71c25268b9d79.1322045294.git.hans.verkuil@cisco.com>
-In-Reply-To: <9f5cf3b545b1b9e71a81ffb133f71c25268b9d79.1322045294.git.hans.verkuil@cisco.com>
+	Wed, 30 Nov 2011 03:49:27 -0500
+Date: Wed, 30 Nov 2011 11:48:47 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Eddi De Pieri <eddi@depieri.net>,
+	"Igor M. Liplianin" <liplianin@netup.ru>,
+	"Beholder Intl. Ltd. Dmitry Belimov" <d.belimov@gmail.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] xc5000: unlock on error in
+ xc_load_fw_and_init_tuner()
+Message-ID: <20111130084847.GH6268@elgon.mountain>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111241214.38133.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+We recently added locking to this function, but we missed an error path
+which needs an unlock.
 
-Thanks for the patch.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-On Wednesday 23 November 2011 12:12:34 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-
-[snip]
-
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-> b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml new file mode
-> 100644
-> index 0000000..bf016f0
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-> @@ -0,0 +1,250 @@
-> +<refentry id="vidioc-decoder-cmd">
-> +  <refmeta>
-> +    <refentrytitle>ioctl VIDIOC_DECODER_CMD,
-> VIDIOC_TRY_DECODER_CMD</refentrytitle> +    &manvol;
-> +  </refmeta>
-> +
-> +  <refnamediv>
-> +    <refname>VIDIOC_DECODER_CMD</refname>
-> +    <refname>VIDIOC_TRY_DECODER_CMD</refname>
-> +    <refpurpose>Execute an decoder command</refpurpose>
-> +  </refnamediv>
-> +
-> +  <refsynopsisdiv>
-> +    <funcsynopsis>
-> +      <funcprototype>
-> +	<funcdef>int <function>ioctl</function></funcdef>
-> +	<paramdef>int <parameter>fd</parameter></paramdef>
-> +	<paramdef>int <parameter>request</parameter></paramdef>
-> +	<paramdef>struct v4l2_decoder_cmd *<parameter>argp</parameter></paramdef>
-> +      </funcprototype>
-> +    </funcsynopsis>
-> +  </refsynopsisdiv>
-> +
-> +  <refsect1>
-> +    <title>Arguments</title>
-> +
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><parameter>fd</parameter></term>
-> +	<listitem>
-> +	  <para>&fd;</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>request</parameter></term>
-> +	<listitem>
-> +	  <para>VIDIOC_DECODER_CMD, VIDIOC_TRY_DECODER_CMD</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>argp</parameter></term>
-> +	<listitem>
-> +	  <para></para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    <title>Description</title>
-> +
-> +    <note>
-> +      <title>Experimental</title>
-> +
-> +      <para>This is an <link linkend="experimental">experimental</link>
-> +interface and may change in the future.</para>
-> +    </note>
-> +
-> +    <para>These ioctls control an audio/video (usually MPEG-) decoder.
-> +<constant>VIDIOC_DECODER_CMD</constant> sends a command to the
-> +decoder, <constant>VIDIOC_TRY_DECODER_CMD</constant> can be used to
-> +try a command without actually executing it. To send a command
-> applications +must initialize all fields of a &v4l2-decoder-cmd; and call
-> +<constant>VIDIOC_DECODER_CMD</constant> or
-> <constant>VIDIOC_TRY_DECODER_CMD</constant> +with a pointer to this
-> structure.</para>
-> +
-> +    <para>The <structfield>cmd</structfield> field must contain the
-> +command code. Some commands use the <structfield>flags</structfield> field
-> for +additional information.
-> +</para>
-> +
-> +    <para>A <function>write</function>() call sends a START command to
-> +the decoder if it has not been started yet.
-> +</para>
-> +
-> +    <para>A <function>close</function>() call sends an immediate STOP
-> +to the decoder, and all buffered data is discarded.</para>
-> +
-> +    <para>These ioctls are optional, not all drivers may support
-> +them. They were introduced in Linux 3.3.</para>
-> +
-> +    <table pgwide="1" frame="none" id="v4l2-decoder-cmd">
-> +      <title>struct <structname>v4l2_decoder_cmd</structname></title>
-> +      <tgroup cols="5">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>cmd</structfield></entry>
-> +            <entry></entry>
-> +            <entry></entry>
-> +	    <entry>The decoder command, see <xref linkend="decoder-cmds"
-> />.</entry> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>flags</structfield></entry>
-> +            <entry></entry>
-> +            <entry></entry>
-> +	    <entry>Flags to go with the command. If no flags are defined for
-> +this command, drivers and applications must set this field to
-> zero.</entry> +	  </row>
-> +	  <row>
-> +	    <entry>union</entry>
-> +	    <entry>(anonymous)</entry>
-> +            <entry></entry>
-> +	    <entry></entry>
-> +            <entry></entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry></entry>
-> +	    <entry>struct</entry>
-> +            <entry><structfield>start</structfield></entry>
-> +            <entry></entry>
-> +            <entry>Structure containing additional data for the
-> +<constant>V4L2_DEC_CMD_START</constant> command.</entry>
-> +	  </row>
-> +	  <row>
-> +            <entry></entry>
-> +            <entry></entry>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>speed</structfield></entry>
-> +            <entry>Playback speed and direction. The playback speed is
-> defined as +<structfield>speed</structfield>/1000 of the normal speed. So
-> 1000 is normal playback. +Negative numbers denote reverse playback, so
-> -1000 does reverse playback at normal +speed. Speeds -1, 0 and 1 have
-> special meanings: speed 0 is shorthand for 1000 +(normal playback). A
-> speed of 1 steps just one frame forward, a speed of -1 steps +just one
-> frame back.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +            <entry></entry>
-> +            <entry></entry>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>format</structfield></entry>
-> +            <entry>Format restrictions. This field is set by the driver,
-> not the +application. Possible values are
-> <constant>V4L2_DEC_START_FMT_NONE</constant> if +there are no format
-> restrictions or <constant>V4L2_DEC_START_FMT_GOP</constant> +if the
-> decoder operates on full GOPs (<wordasword>Group Of
-> Pictures</wordasword>). +This is usually the case for reverse playback:
-> the decoder needs full GOPs, which +it can then play in reverse order. So
-> to implement reverse playback the application +must feed the decoder the
-> last GOP in the video file, then the GOP before that, etc. etc. +	   
-> </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry></entry>
-> +	    <entry>struct</entry>
-> +            <entry><structfield>stop</structfield></entry>
-> +            <entry></entry>
-> +            <entry>Structure containing additional data for the
-> +<constant>V4L2_DEC_CMD_STOP</constant> command.</entry>
-> +	  </row>
-> +	  <row>
-> +            <entry></entry>
-> +            <entry></entry>
-> +	    <entry>__u64</entry>
-> +	    <entry><structfield>pts</structfield></entry>
-> +            <entry>Stop playback at this <structfield>pts</structfield> or
-> immediately +if the playback is already past that timestamp. Leave to 0 if
-> you want to stop after the +last frame was decoded.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry></entry>
-> +	    <entry>struct</entry>
-> +            <entry><structfield>raw</structfield></entry>
-> +            <entry></entry>
-> +            <entry></entry>
-> +	  </row>
-> +	  <row>
-> +            <entry></entry>
-> +            <entry></entry>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>data</structfield>[16]</entry>
-> +	    <entry>Reserved for future extensions. Drivers and
-> +applications must set the array to zero.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table pgwide="1" frame="none" id="decoder-cmds">
-> +      <title>Decoder Commands</title>
-> +      <tgroup cols="3">
-> +	&cs-def;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry><constant>V4L2_DEC_CMD_START</constant></entry>
-> +	    <entry>0</entry>
-> +	    <entry>Start the decoder. When the decoder is already
-> +running or paused, this command does nothing. There are no flags
-> +associated with this command.
-> +            </entry>
-> +	  </row>
-
-How does the start command interact with VIDIOC_STREAMON ? Are applications 
-expected to both start the video stream with VIDIOC_STREAMON and start the 
-decoder with V4L2_DEC_CMD_START ?
-
-> +	  <row>
-> +	    <entry><constant>V4L2_DEC_CMD_STOP</constant></entry>
-> +	    <entry>1</entry>
-> +	    <entry>Stop the decoder. When the decoder is already stopped,
-> +this command does nothing. This command has two flags:
-> +if <constant>V4L2_DEC_CMD_STOP_TO_BLACK</constant> is set, then the
-> decoder will +set the picture to black after it stopped decoding.
-> Otherwise the last image will +repeat. If
-> <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the
-> decoder +stops immediately (ignoring the <structfield>pts</structfield>
-> value), otherwise it +will keep decoding until timestamp >= pts or until
-> the last of the pending data from +its internal buffers was decoded.
-> +</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_DEC_CMD_PAUSE</constant></entry>
-> +	    <entry>2</entry>
-> +	    <entry>Pause the decoder. When the decoder has not been
-> +started yet, the driver will return an &EPERM;. When the decoder is
-> +already paused, this command does nothing. This command has one flag:
-> +if <constant>V4L2_DEC_CMD_PAUSE_TO_BLACK</constant> is set, then set the
-> +decoder output to black when paused.
-> +</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_DEC_CMD_RESUME</constant></entry>
-> +	    <entry>3</entry>
-> +	    <entry>Resume decoding after a PAUSE command. When the
-> +decoder has not been started yet, the driver will return an &EPERM;.
-> +When the decoder is already running, this command does nothing. No
-> +flags are defined for this command.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    &return-value;
-> +
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><errorcode>EINVAL</errorcode></term>
-> +	<listitem>
-> +	  <para>The <structfield>cmd</structfield> field is invalid.</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><errorcode>EPERM</errorcode></term>
-> +	<listitem>
-> +	  <para>The application sent a PAUSE or RESUME command when
-> +the decoder was not running.</para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +</refentry>
-
--- 
-Regards,
-
-Laurent Pinchart
+diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
+index 048f489..a3fcc59 100644
+--- a/drivers/media/common/tuners/xc5000.c
++++ b/drivers/media/common/tuners/xc5000.c
+@@ -1009,7 +1009,7 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
+ 	if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS) {
+ 		ret = xc5000_fwupload(fe);
+ 		if (ret != XC_RESULT_SUCCESS)
+-			return ret;
++			goto out;
+ 	}
+ 
+ 	/* Start the tuner self-calibration process */
+@@ -1025,6 +1025,7 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
+ 	/* Default to "CABLE" mode */
+ 	ret |= xc_write_reg(priv, XREG_SIGNALSOURCE, XC_RF_MODE_CABLE);
+ 
++out:
+ 	mutex_unlock(&xc5000_list_mutex);
+ 
+ 	return ret;
