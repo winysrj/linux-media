@@ -1,59 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52003 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753285Ab1K2AKB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 19:10:01 -0500
-Message-ID: <4ED422D5.60701@iki.fi>
-Date: Tue, 29 Nov 2011 02:09:57 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:50640 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751473Ab1K3Ri0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Nov 2011 12:38:26 -0500
+Date: Wed, 30 Nov 2011 19:38:21 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: snjw23@gmail.com, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl
+Subject: [RFC/PATCH v2 0/3] 64-bit integer menus
+Message-ID: <20111130173821.GH29805@valkosipuli.localdomain>
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH FOR 3.2 FIX] af9015: limit I2C access to keep FW happy
-References: <4EC014E5.5090303@iki.fi> <4EC01857.5050000@iki.fi> <4ec1955e.e813b40a.37be.3fce@mx.google.com>
-In-Reply-To: <4ec1955e.e813b40a.37be.3fce@mx.google.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/15/2011 12:25 AM, Malcolm Priestley wrote:
-> I have tried this patch, while it initially got MythTV working, there is
-> too many call backs and some failed to acquire the lock. The device
-> became unstable on both single and dual devices.
->
-> The callbacks
->
-> af9015_af9013_read_status,
-> af9015_af9013_init
-> af9015_af9013_sleep
->
-> had to be removed.
->
-> I take your point, a call back can be an alternative.
->
-> The patch didn't stop the firmware fails either.
->
-> The af9015 usb bridge on the whole is so unstable in its early stages,
-> especially on a cold boot and when the USB controller has another device
-> on it, such as card reader or wifi device.
->
-> I am, at the moment looking to see if the fails are due to interface 1
-> being claimed by HID.
+Hi all,
 
-I just got af9013 rewrite ready. Feel free to test.
-http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/misc
+This patchset, which I'm sending as RFC since it has not been really tested
+(including compiling the vivi patch), adds 64-bit integer menu controls. The
+control items in the integer menu are just like in regular menus but they
+are 64-bit integers instead of strings.
 
-It reduces typical statistics polling load maybe 1/4 from the original.
+I'm also pondering whether to assign 1 to ctrl->step for menu type controls
+as well but haven't checked what may have been the original reason to
+implement it as it is now implemented.
 
-I see still small glitch when switching to channel. That seems to come 
-from tuner driver I2C load. There is 3 tuners used for dual devices; 
-MXL5005S, MXL5007T and TDA18271. I have only MXL5005S and MXL5007T dual 
-devices here. MXL5005S is worse than MXL5007T but both makes still 
-rather much I/O.
+The reason why I don't use a union for qmenu and qmenu_int in
+v4l2_ctrl_config is that a lot of drivers use that field in the initialiser
+and GCC < 4.6 does not support initialisers with anonymous unions.
 
-regards
-Antti
+Similar union is created in v4l2_querymenu but I do not see this as a
+problem since I do not expect initialisers to be used with this field in the
+user space code.
+
+Comments and questions are welcome.
+
+---
+Changes since RFC/PATCH v1:
+
+- Fix documentation according to suggestions from Sylwester and Laurent.
+- Don't allow creating new standard integer menu controls using
+  v4l2_ctrl_new_std_menu() since we don't have them yet.
+
+Kind regards,
+
 -- 
-http://palosaari.fi/
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
