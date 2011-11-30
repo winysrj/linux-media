@@ -1,52 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41243 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751617Ab1KIWS4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Nov 2011 17:18:56 -0500
-Message-ID: <4EBAFC4C.1060608@iki.fi>
-Date: Thu, 10 Nov 2011 00:18:52 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46404 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754661Ab1K3CGg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Nov 2011 21:06:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] omap3isp: video: Don't WARN() on unknown pixel formats
+Date: Wed, 30 Nov 2011 03:06:41 +0100
+Cc: linux-media@vger.kernel.org
+References: <1322480254-10461-1-git-send-email-laurent.pinchart@ideasonboard.com> <20111128160112.GE29805@valkosipuli.localdomain>
+In-Reply-To: <20111128160112.GE29805@valkosipuli.localdomain>
 MIME-Version: 1.0
-To: tvboxspy <malcolmpriestley@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jean Delvare <khali@linux-fr.org>
-Subject: Re: [RFC 2/2] tda18218: use generic dvb_wr_regs()
-References: <4EB9C272.2010607@iki.fi> <4EBAF97F.4000105@test.com>
-In-Reply-To: <4EBAF97F.4000105@test.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201111300306.41892.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/10/2011 12:06 AM, tvboxspy wrote:
-> The only thing I am not sure is whether devices such as af9013 are
-> keeping their gate control continuously open through the write
-> operations and not timing out.
->
-> This applies to tda18218, mxl5005s and other tuners, which have
-> multipliable writes with no gate control between the writes, only at the
-> start and end of the sequence.
->
-> Afatech seem to imply that full gate control is required on all I2C
-> read/write operations.
->
-> With other devices such as stv0288 do close their gate after a stop
-> condition.
+Hi Sakari,
 
-You mean AF9013 demod will close it gate automatically after the I2C 
-STOP ? Answer is no.
+On Monday 28 November 2011 17:01:12 Sakari Ailus wrote:
+> On Mon, Nov 28, 2011 at 12:37:34PM +0100, Laurent Pinchart wrote:
+> > When mapping from a V4L2 pixel format to a media bus format in the
+> > VIDIOC_TRY_FMT and VIDIOC_S_FMT handlers, the requested format may be
+> > unsupported by the driver. Return a hardcoded format instead of
+> > WARN()ing in that case.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/video/omap3isp/ispvideo.c |    8 ++++----
+> >  1 files changed, 4 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/omap3isp/ispvideo.c
+> > b/drivers/media/video/omap3isp/ispvideo.c index d100072..ffe7ce9 100644
+> > --- a/drivers/media/video/omap3isp/ispvideo.c
+> > +++ b/drivers/media/video/omap3isp/ispvideo.c
+> > @@ -210,14 +210,14 @@ static void isp_video_pix_to_mbus(const struct
+> > v4l2_pix_format *pix,
+> > 
+> >  	mbus->width = pix->width;
+> >  	mbus->height = pix->height;
+> > 
+> > -	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
+> > +	/* Skip the last format in the loop so that it will be selected if no
+> > +	 * match is found.
+> > +	 */
+> > +	for (i = 0; i < ARRAY_SIZE(formats) - 1; ++i) {
+> > 
+> >  		if (formats[i].pixelformat == pix->pixelformat)
+> >  		
+> >  			break;
+> >  	
+> >  	}
+> > 
+> > -	if (WARN_ON(i == ARRAY_SIZE(formats)))
+> > -		return;
+> > -
+> > 
+> >  	mbus->code = formats[i].code;
+> >  	mbus->colorspace = pix->colorspace;
+> >  	mbus->field = pix->field;
+> 
+> In case of setting or trying an invalid format, instead of selecting a
+> default format, shouldn't we leave the format unchanced --- the current
+> setting is valid after all.
 
-There are some demods which closes it automatically, like RTL2830, and 
-some may have configuration if close automatically or not. But most 
-common is that gate needs to be opened and closed manually.
+TRY/SET operations must succeed. The format we select when an invalid format 
+is requested isn't specified. We could keep the current format, but wouldn't 
+that be more confusing for applications ? The format they would get in 
+response to a TRY/SET operation would then potentially depend on the previous 
+SET operations.
 
-In case of automatic gate close it is easiest way to implement own 
-I2C-adapter for demod. There is few such demods drivers already 
-(implementing their own I2C-adapter).
-
-regards
-Antti
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
