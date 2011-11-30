@@ -1,163 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yop.chewa.net ([91.121.105.214]:55188 "EHLO yop.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751277Ab1KJHIw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Nov 2011 02:08:52 -0500
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: DVBv5 frontend library
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48963 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754661Ab1K3BWi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Nov 2011 20:22:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Haogang Chen <haogangchen@gmail.com>
+Subject: Re: [PATCH] Media: video: uvc: integer overflow in uvc_ioctl_ctrl_map()
+Date: Wed, 30 Nov 2011 02:22:32 +0100
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+References: <1322602345-26279-1-git-send-email-haogangchen@gmail.com>
+In-Reply-To: <1322602345-26279-1-git-send-email-haogangchen@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Date: Thu, 10 Nov 2011 08:08:50 +0100
-From: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@kernellabs.com>
-In-Reply-To: <4EBACE27.8000907@redhat.com>
-References: <4EBACE27.8000907@redhat.com>
-Message-ID: <b0eac44a264432f586edf13983ea6829@chewa.net>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201111300222.42162.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-   Hello kernel-space friends,
+Hi Haogang,
 
-
-
-On Wed, 09 Nov 2011 17:01:59 -0200, Mauro Carvalho Chehab
-
-<mchehab@redhat.com> wrote:
-
-> As I've commented with some at the KS, I started writing a new DVB
-
-> library, based on DVBv5.
-
-> It is currently at very early stages. Help and suggestions are welcome.
-
+On Tuesday 29 November 2011 22:32:25 Haogang Chen wrote:
+> There is a potential integer overflow in uvc_ioctl_ctrl_map(). When a
+> large xmap->menu_count is passed from the userspace, the subsequent call
+> to kmalloc() will allocate a buffer smaller than expected.
+> map->menu_count and map->menu_info would later be used in a loop (e.g.
+> in uvc_query_v4l2_ctrl), which leads to out-of-bound access.
 > 
+> The patch checks the ioctl argument and returns -EINVAL for zero or too
+> large values in xmap->menu_count.
 
-> It is at:
+Thanks for the patch.
 
->
-
-	http://git.linuxtv.org/mchehab/experimental-v4l-utils.git/shortlog/refs/heads/dvb-utils
-
+> Signed-off-by: Haogang Chen <haogangchen@gmail.com>
+> ---
+>  drivers/media/video/uvc/uvc_v4l2.c |    6 ++++++
+>  1 files changed, 6 insertions(+), 0 deletions(-)
 > 
-
-> It currently doesn't do much, but the hole idea is to offer a library
-
-that
-
-> can easily upgraded to support new standards, and based on DVBv5.
-
-
-
-IMHO, adding new standards with DVBv5 is already fairly easy, as opposed
-
-to with DVBv3.
-
-
-
-The only issue I've had (while porting VLC to DVBv5) lied in determining
-
-which parameters needed to be set and what values they would accept.
-
-
-
-(...)
-
-> The frontend library is inside:
-
-> 	dvb-fe.c  
-
-> 	dvb-fe.h 
-
+> diff --git a/drivers/media/video/uvc/uvc_v4l2.c
+> b/drivers/media/video/uvc/uvc_v4l2.c index dadf11f..9a180d6 100644
+> --- a/drivers/media/video/uvc/uvc_v4l2.c
+> +++ b/drivers/media/video/uvc/uvc_v4l2.c
+> @@ -58,6 +58,12 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain
+> *chain, break;
 > 
+>  	case V4L2_CTRL_TYPE_MENU:
+> +		if (xmap->menu_count == 0 ||
+> +		    xmap->menu_count > INT_MAX / sizeof(*map->menu_info)) {
 
-> And the pertinent parameters needed by each delivery system is provided
+I'd like to prevent excessive memory consumption by limiting the number of 
+menu entries, similarly to how the driver limits the number of mappings. 
+Defining UVC_MAX_CONTROL_MENU_ENTRIES to 32 in uvcvideo.h should be a 
+reasonable value.
 
-> into a separate header:
+> +			kfree(map);
+> +			return -EINVAL;
 
-> 	dvb-v5-std.h  
+I'd rather do
 
+	ret = -EINVAL;
+	goto done;
 
+to centralize error handling.
 
-As a documentation, it's nice to have. It should also enumerate the legal
+If you're fine with both changes I can modify the patch, there's no need to 
+resubmit.
 
-values, a bit like V4L2 user controls.
-
-
-
-However, I'm not sure how useful it can really be used to abstract away
-
-tuning standards. There are a number of problems remaining:
-
-
-
-1) User-space may need localization of parameters names and enumeration
-
-value names. For frequency, we also need a unit, since it depends on the
-
-delivery system. In VLC, we have to replicate and keep the list of
-
-well-known V4L2 controls parameters just so gettext sees them. The same
-
-problem would affect DVB if you carry on with this.
-
-
-
-And unfortunately, even if v4l-utils had its own gettext domain, I doubt
-
-it would get as good visibility among translators as end-user applications
-
-have (e.g. VLC has 78 locales as of today).
-
-
-
-2) Some user-space are cross-platform, say across Linux DVB and Windows
-
-BDA. Since Windows BDA does not abstract delivery subsystems, such software
-
-cannot leverage dvb-v5-std.h.
-
-
-
-3) Some settings are absolutely required (e.g. frequency), some may be
-
-required depending on hardware and/or driver, some are not normally
-
-required to tune. When writing a UI, you need to know that.
-
-
-
-4) Systems like DVB-H (R.I.P.) or ATSC-M/H cannot be abstracted
-
-meaningfully as they don't provide a TS feed, so the user-space can't use
-
-them.
-
-
-
-5) Unless/Until the library implements scanning and some kind of channel
-
-or transponder abstraction (e.g. unique ID per transponder), it is dubious
-
-that it can really abstract new delivery systems. I mean, the tuning
-
-parameters need to come from somewhere, so the application will have to
-
-know about the delivery systems.
-
-
-
-
-
-So hmm, that's a lot of problems before I could use that library. Maybe
-
-some other user-space guys are less demanding bitches though :-)
-
-
+> +		}
+> +
+>  		size = xmap->menu_count * sizeof(*map->menu_info);
+>  		map->menu_info = kmalloc(size, GFP_KERNEL);
+>  		if (map->menu_info == NULL) {
 
 -- 
+Regards,
 
-Rémi Denis-Courmont
-
-http://www.remlab.net/
+Laurent Pinchart
