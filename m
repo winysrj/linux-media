@@ -1,54 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40152 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753955Ab1K1TUn (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:50978 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751933Ab1K3ULH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Nov 2011 14:20:43 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Alex <alex.vizor@gmail.com>
-Subject: Re: uvcvideo: Failed to query (SET_CUR) UVC control 10 on unit 2: -32 (exp. 2).
-Date: Mon, 28 Nov 2011 20:20:46 +0100
-Cc: linux-media@vger.kernel.org
-References: <4ED29713.1010202@gmail.com> <201111282008.44684.laurent.pinchart@ideasonboard.com> <4ED3DD91.1060505@gmail.com>
-In-Reply-To: <4ED3DD91.1060505@gmail.com>
+	Wed, 30 Nov 2011 15:11:07 -0500
+Received: by yenl6 with SMTP id l6so901021yen.19
+        for <linux-media@vger.kernel.org>; Wed, 30 Nov 2011 12:11:06 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201111282020.47745.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4ED68AF0.8000903@linuxtv.org>
+References: <4ED65C46.20502@netup.ru>
+	<CAGoCfiwShvPSgAPHKaxj=sMG-Fs9RdH0_3mLHYWuY96Z33AOag@mail.gmail.com>
+	<4ED66FBC.5090504@linuxtv.org>
+	<CAGoCfiw16bAtPHfrtsDDOBL4BeFnH+zMqcz9wBitGGSq_RZtJA@mail.gmail.com>
+	<4ED68AF0.8000903@linuxtv.org>
+Date: Wed, 30 Nov 2011 15:11:06 -0500
+Message-ID: <CAGoCfizomO3RYmULtaKJ60qkSEKuWRjZ2yYmb2cyTJe5SqZ2gw@mail.gmail.com>
+Subject: Re: LinuxTV ported to Windows
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Andreas Oberritter <obi@linuxtv.org>
+Cc: Abylay Ospan <aospan@netup.ru>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alex,
+On Wed, Nov 30, 2011 at 2:58 PM, Andreas Oberritter <obi@linuxtv.org> wrote:
+> The point I'm trying to make: Someone made a presumably nice open source
+> port to a new platform and the first thing you're doing is to play the
+> GPL-has-been-violated-card, even though you're admitting that you don't
+> know whether any right is being violated or not. Please don't do that.
+> It's not very encouraging to someone who just announced free software.
 
-On Monday 28 November 2011 20:14:25 Alex wrote:
-> On 11/28/2011 10:08 PM, Laurent Pinchart wrote:
-> > On Monday 28 November 2011 19:04:22 Alex wrote:
-> >> 
-> >> Fortunately my laptop is alive now so I'm sending you lsusb output.
-> > 
-> > Thanks. Would you mind re-running lsusb -v -d '04f2:b221' as root ? What
-> > laptop brand/model is the camera embedded in ?
-> > 
-> >> About reverting commit - will try bit later.
-> > 
-> > I've received reports that reverting the commit helps. A proper patch has
-> > also been posted to the linux-usb mailing list ("EHCI : Fix a regression
-> > in the ISO scheduler"). It would be nice if you could check whether that
-> > fixes your first issue as well.
-> 
-> That is lsusb output you asked. Laptop is Thinkpad T420s. Camera works
-> OK with 3.1.x kernel BTW.
+To be clear, at no point did I say the GPL has been violated.  I am
+*asking* if others think this represents a GPL violation since at
+first glance it appears that this software very well might.
 
-Thank you.
+I don't really have a problem with GPL drivers running on Windows.
+But if I were the original author of one of the drivers Abylay has
+ported, I might think differently.
 
-> Could you send this fix patch to me please?
-
-http://www.spinics.net/lists/linux-usb/msg54992.html
-
-It was the first hit on Google...
+Devin
 
 -- 
-Regards,
-
-Laurent Pinchart
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
