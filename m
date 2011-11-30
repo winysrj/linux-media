@@ -1,136 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:46619 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752008Ab1KUXNd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Nov 2011 18:13:33 -0500
-Received: by ggnr5 with SMTP id r5so2907280ggn.19
-        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2011 15:13:33 -0800 (PST)
+Received: from smtp.nokia.com ([147.243.128.24]:33848 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752383Ab1K3IfX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Nov 2011 03:35:23 -0500
+Message-ID: <4ED5EADA.502@iki.fi>
+Date: Wed, 30 Nov 2011 10:35:38 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CAHFNz9KJ2LOhS2uoHM4iKVFTLyhe4aF6YzbqTLymdMXS2jgRqg@mail.gmail.com>
-References: <CAHFNz9KmxyBB4nRQZg1RdU+6wXHmaR9WHejuMqp6g9qrXykjQQ@mail.gmail.com>
-	<4ECAD07F.9010708@iki.fi>
-	<CAHFNz9KJ2LOhS2uoHM4iKVFTLyhe4aF6YzbqTLymdMXS2jgRqg@mail.gmail.com>
-Date: Mon, 21 Nov 2011 18:13:32 -0500
-Message-ID: <CAOcJUbzsEmO-f2dkugQL=ZkoYDm+ybCwamG4wYRDDiX=9thtKw@mail.gmail.com>
-Subject: Re: PATCH 12/13: 0012-CXD2820r-Query-DVB-frontend-delivery-capabilities
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andreas Oberritter <obi@linuxtv.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] omap3isp: video: Don't WARN() on unknown pixel formats
+References: <1322480254-10461-1-git-send-email-laurent.pinchart@ideasonboard.com> <20111128160112.GE29805@valkosipuli.localdomain> <201111300306.41892.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201111300306.41892.laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 21, 2011 at 6:01 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
-> Hi,
->
-> On Tue, Nov 22, 2011 at 3:58 AM, Antti Palosaari <crope@iki.fi> wrote:
->> Hello
->>
->> On 11/21/2011 11:09 PM, Manu Abraham wrote:
+Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Monday 28 November 2011 17:01:12 Sakari Ailus wrote:
+>> On Mon, Nov 28, 2011 at 12:37:34PM +0100, Laurent Pinchart wrote:
+>>> When mapping from a V4L2 pixel format to a media bus format in the
+>>> VIDIOC_TRY_FMT and VIDIOC_S_FMT handlers, the requested format may be
+>>> unsupported by the driver. Return a hardcoded format instead of
+>>> WARN()ing in that case.
 >>>
->>>        /* program tuner */
->>> -       if (fe->ops.tuner_ops.set_params)
->>> -               fe->ops.tuner_ops.set_params(fe, params);
->>> +       tstate.delsys = SYS_DVBC_ANNEX_AC;
->>> +       tstate.frequency = c->frequency;
->>> +
->>> +       if (fe->ops.tuner_ops.set_state) {
->>> +               fe->ops.tuner_ops.set_state(fe,
->>> +                                           DVBFE_TUNER_DELSYS    |
->>> +                                           DVBFE_TUNER_FREQUENCY,
->>> +                                       &tstate);
+>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>> ---
+>>>
+>>>  drivers/media/video/omap3isp/ispvideo.c |    8 ++++----
+>>>  1 files changed, 4 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/drivers/media/video/omap3isp/ispvideo.c
+>>> b/drivers/media/video/omap3isp/ispvideo.c index d100072..ffe7ce9 100644
+>>> --- a/drivers/media/video/omap3isp/ispvideo.c
+>>> +++ b/drivers/media/video/omap3isp/ispvideo.c
+>>> @@ -210,14 +210,14 @@ static void isp_video_pix_to_mbus(const struct
+>>> v4l2_pix_format *pix,
+>>>
+>>>  	mbus->width = pix->width;
+>>>  	mbus->height = pix->height;
+>>>
+>>> -	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
+>>> +	/* Skip the last format in the loop so that it will be selected if no
+>>> +	 * match is found.
+>>> +	 */
+>>> +	for (i = 0; i < ARRAY_SIZE(formats) - 1; ++i) {
+>>>
+>>>  		if (formats[i].pixelformat == pix->pixelformat)
+>>>  		
+>>>  			break;
+>>>  	
+>>>  	}
+>>>
+>>> -	if (WARN_ON(i == ARRAY_SIZE(formats)))
+>>> -		return;
+>>> -
+>>>
+>>>  	mbus->code = formats[i].code;
+>>>  	mbus->colorspace = pix->colorspace;
+>>>  	mbus->field = pix->field;
 >>
->> I want to raise that point, switch from .set_params() to .set_state() when
->> programming tuner. I don't see it reasonable to introduce (yes, it have
->> existed ages but not used) new way to program tuner.
->
->
-> I didn't introduce set_state() now. It was there for quite a long
-> while, as old v5API itself, IIRC.
->
->
->>
->> Both demod and tuner got same params;
->> .set_frontend(struct dvb_frontend *, struct dvb_frontend_parameters *)
->> .set_params(struct dvb_frontend *, struct dvb_frontend_parameters *)
->
->
-> The argument passed to set_params: struct dvb_frontend_parameters is
-> useless for any device that's been around recently. Although one can
-> get the parameters from the property_cache.
->
-> Using set_state(), makes it independant and less kludgy, simplifying
-> things. on the other hand it may be used with analog as well, llly to
-> Michael Krufky said.
->
-> Eventually, it just provides the tuner an independence from struct
-> dvb_frontend_parameters (which is rigid) and the frontend cache.
->
-> That said, a few tuners already uses the mentioned callback, stb6100,
-> tda8261, tda665x,
->
-> If you imply that you feel overly depressed by the use of the
-> set_state in the cxd2820r module ;-), then as a workaround, the
-> parameters required for operation can be retrieved from the property
-> cache, but then if tuner drivers are cleaned up by someone to remove
-> obsolete ? set_params, then you wouldn't have any other option, but to
-> later on fall back to set_state.
->
-> I am fine with either way, but for the tuners themselves, set_state
-> behaves a bit more better as it provides independence from the legacy
-> dvb_frontend_properties. It takes a bit of time for someone new to
-> understand that (he cannot use dvb_frontend_properties anymore)
->
->
->>
->> and can get access to APIv5 property_cache similarly. Both, demod and tuner,
->> can read all those params that are now passed using .set_state()
->
->
-> If you want to pass other parameters, as what exists already in
-> tuner_state, that is not possible with set_params. If you can't have
-> the required parameters through a parameters which is passed, but then
-> why would you want to have such a parameter itself passed in the first
-> case ?
->
->>
->> There is some new tuner drivers which are already using APIv5.
->>
->>
->> regards
->> Antti
->
->
-> Eventually it is all a matter of taste. I am fine with either. ;-)
->
-> Regards,
-> Manu
+>> In case of setting or trying an invalid format, instead of selecting a
+>> default format, shouldn't we leave the format unchanced --- the current
+>> setting is valid after all.
+> 
+> TRY/SET operations must succeed. The format we select when an invalid format 
+> is requested isn't specified. We could keep the current format, but wouldn't 
+> that be more confusing for applications ? The format they would get in 
+> response to a TRY/SET operation would then potentially depend on the previous 
+> SET operations.
 
+I don't think a change to something that has nothing to do what was
+requested is better than not changing it. The application has requested
+a particular format; changing it to something else isn't useful for the
+application. And if the application would try more than invalid format
+in a row, they both would yield to the same default format.
 
-Antti is correct, this *can* be done by accessing the property cache,
-and I would naturally agree with him that we should not add yet a 3rd
-entry point for tuning.
+I would personally not change it.
 
-However, this set_state is v4l/dvb agnostic.  if we go with this
-set_state callback, we can in fact eliminate both set_params *and*
-set_analog_params callbacks, finally having a single entry point for
-setting the tuner.
+What I can find in the spec is this:
 
-If the community would prefer to use set_params, I am fine with
-that... but I also like the idea of unifying the set_params and
-set_analog_params into a single call.  If the community wants to see
-*that*, then lets go ahead with set_state.  I think this is a good
-step into that direction.
+"When the application calls the VIDIOC_S_FMT ioctl with a pointer to a
+v4l2_format structure the driver checks and adjusts the parameters
+against hardware abilities."
 
-Agreeing with Manu, it is indeed a matter of taste and I am fine with
-either way.  If we choose the set_state way, then future steps can
-unify the calls into a single entry point -- that would be the best,
-ultimately, in my opinion.
+I wonder how other drivers behave.
 
-Regards,
-Mike Krufky
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
