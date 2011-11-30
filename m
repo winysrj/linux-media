@@ -1,179 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4642 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034Ab1KXNjQ (ORCPT
+Received: from hermes.mlbassoc.com ([64.234.241.98]:42027 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752176Ab1K3ONY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Nov 2011 08:39:16 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 01/12] v4l2: add VIDIOC_(TRY_)DECODER_CMD.
-Date: Thu, 24 Nov 2011 14:38:58 +0100
-Message-Id: <07c1a0737016dcf588e866cde0f3bc1a59e35bfb.1322141686.git.hans.verkuil@cisco.com>
-In-Reply-To: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
-References: <1322141949-5795-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 30 Nov 2011 09:13:24 -0500
+Message-ID: <4ED639FE.7020503@mlbassoc.com>
+Date: Wed, 30 Nov 2011 07:13:18 -0700
+From: Gary Thomas <gary@mlbassoc.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Javier Martinez Canillas <martinez.javier@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Using MT9P031 digital sensor
+References: <4EB04001.9050803@mlbassoc.com> <201111281207.46625.laurent.pinchart@ideasonboard.com> <4ED381C7.8000007@mlbassoc.com> <201111281349.47411.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201111281349.47411.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 2011-11-28 05:49, Laurent Pinchart wrote:
+> Hi Gary,
+>
+> On Monday 28 November 2011 13:42:47 Gary Thomas wrote:
+>> On 2011-11-28 04:07, Laurent Pinchart wrote:
+>>> On Friday 25 November 2011 12:50:25 Gary Thomas wrote:
+>>>> On 2011-11-24 04:28, Laurent Pinchart wrote:
+>>>>> On Wednesday 16 November 2011 13:03:11 Gary Thomas wrote:
+>>>>>> On 2011-11-15 18:26, Laurent Pinchart wrote:
+>>>>>>> On Monday 14 November 2011 12:42:54 Gary Thomas wrote:
+>
+> [snip]
+>
+>>>>>>>> Here's my pipeline:
+>>>>>>>>        media-ctl -r
+>>>>>>>>        media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+>>>>>>>>        media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>>>>>>>>        media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+>>>>>>>>        media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
+>>>>>>>>        output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12
+>>>>>>>>        2592x1944]' media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG10
+>>>>>>>>        2592x1944]'
+>>>>>>>>        media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
+>>>>>>>>        media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
+>>>>>>>>        media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
+>>>>>>>>        media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 642x483]'
+>>>>>>>>
+>>>>>>>> The full media-ctl dump is at
+>>>>>>>> http://www.mlbassoc.com/misc/pipeline.out
+>>>>>>>>
+>>>>>>>> When I try to grab from /dev/video6 (output node of resizer), I see
+>>>>>>>> only previewer interrupts, no resizer interrrupts.  I added a simple
+>>>>>>>> printk at each of the previewer/resizer *_isr functions, and I only
+>>>>>>>>
+>>>>>>>> ever see this one:
+>>>>>>>>        omap3isp_preview_isr_frame_sync.1373
+>>>>>>>>
+>>>>>>>> Can you give me an overview of what events/interrupts should occur
+>>>>>>>> so I can try to trace through the ISP to see where it is failing?
+>>>>>>>
+>>>>>>> The CCDC generates VD0, VD1 and HS/VS interrupts regardless of
+>>>>>>> whether it processes video or not, as long as it receives a video
+>>>>>>> stream at its input. The preview engine and resizer will only
+>>>>>>> generate an interrupt after writing an image to memory. With your
+>>>>>>> above
+>>>>>>> configuration VD0, VD1, HS/VS and resizer interrupts should be
+>>>>>>> generated.
+>>>>>>>
+>>>>>>> Your pipeline configuration looks correct, except that the
+>>>>>>> downscaling factor is slightly larger than 4. Could you try to setup
+>>>>>>> the resizer to output a 2574x1935 image instead of 642x483 ? If that
+>>>>>>> works, try to downscale to 660x496. If that works as well, the
+>>>>>>> driver should be fixed to disallow resolutions that won't work.
+>>>>>>
+>>>>>> No change.  I also tried using only the previewer like this:
+>>>>>>       media-ctl -r
+>>>>>>       media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+>>>>>>       media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>>>>>>       media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP preview
+>>>>>>       output":0[1]' media-ctl -f '"mt9p031 3-005d":0[SGRBG12
+>>>>>>       2592x1944]' media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG12
+>>>>>>       2592x1944]'
+>>>>>>       media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
+>>>>>>       media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
+>>>>>>       media-ctl -f  '"OMAP3 ISP preview":1 [YUYV 2574x1935]'
+>>>>>>
+>>>>>>       yavta --capture=4 -f YUYV -s 2574x1935 -F /dev/video4
+>>>>>>
+>>>>>> I still only get the frame sync interrupts in the previewer, no buffer
+>>>>>> interrupts, hence no data flowing to my application.  What else can I
+>>>>>> look at?
+>>>>>
+>>>>> Do you get VD0 and VD1 interrupts ?
+>>>>
+>>>> Yes, the CCDC is working correctly, but nothing moves through the
+>>>> previewer. Here's a trace of the interrupt sequence I get, repeated over
+>>>> and over.  These are printed as __FUNCTION__.__LINE__
+>>>> --- ccdc_vd0_isr.1615
+>>>> --- ccdc_hs_vs_isr.1482
+>>>> --- ccdc_vd1_isr.1664
+>>>> --- omap3isp_preview_isr_frame_sync.1373
+>>>>
+>>>> What's the best tree to try this against?  3.2-rc2 doesn't have the
+>>>> BT656 stuff in it yet, so I've been still using my older tree (3.0.0 +
+>>>> drivers/media from your tree)
+>>>
+>>> I thought you were using an MT9P031 ? That doesn't require BT656 support.
+>>
+>> True, but I have one board that supports either sensor and I want to stay
+>> with one source tree.
+>
+> Sure, but let's start with a non-BT656 tree to rule out issues caused by BT656
+> patches. Could you please try mainline v3.1 ?
 
-As discussed during the 2011 V4L-DVB workshop, the API in dvb/video.h should
-be replaced by a proper V4L2 API. This patch turns the VIDEO_(TRY_)DECODER_CMD
-ioctls into proper V4L2 ioctls.
+This sort of works(*), but I'm still having issues (at least I can move frames!)
+When I configure the pipeline like this:
+   media-ctl -r
+   media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+   media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+   media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+   media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+   media-ctl -f '"mt9p031 3-005d":0[SGRBG12 2592x1944]'
+   media-ctl -f  '"OMAP3 ISP CCDC":0 [SGRBG12 2592x1944]'
+   media-ctl -f  '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
+   media-ctl -f  '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
+   media-ctl -f  '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
+   media-ctl -f  '"OMAP3 ISP resizer":1 [YUYV 660x496]'
+the resulting frames are 666624 bytes each instead of 654720
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-compat-ioctl32.c |    2 +
- drivers/media/video/v4l2-ioctl.c          |   28 +++++++++++++++
- include/linux/videodev2.h                 |   53 +++++++++++++++++++++++++++++
- include/media/v4l2-ioctl.h                |    4 ++
- 4 files changed, 87 insertions(+), 0 deletions(-)
+When I tried to grab from the previewer, the frames were 9969120 instead of 9961380
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index c68531b..ffd9b1e 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -1003,6 +1003,8 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	case VIDIOC_G_ENC_INDEX:
- 	case VIDIOC_ENCODER_CMD:
- 	case VIDIOC_TRY_ENCODER_CMD:
-+	case VIDIOC_DECODER_CMD:
-+	case VIDIOC_TRY_DECODER_CMD:
- 	case VIDIOC_DBG_S_REGISTER:
- 	case VIDIOC_DBG_G_REGISTER:
- 	case VIDIOC_DBG_G_CHIP_IDENT:
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index e1da8fc..2355510 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -258,6 +258,8 @@ static const char *v4l2_ioctls[] = {
- 	[_IOC_NR(VIDIOC_ENCODER_CMD)] 	   = "VIDIOC_ENCODER_CMD",
- 	[_IOC_NR(VIDIOC_TRY_ENCODER_CMD)]  = "VIDIOC_TRY_ENCODER_CMD",
- 
-+	[_IOC_NR(VIDIOC_DECODER_CMD)]	   = "VIDIOC_DECODER_CMD",
-+	[_IOC_NR(VIDIOC_TRY_DECODER_CMD)]  = "VIDIOC_TRY_DECODER_CMD",
- 	[_IOC_NR(VIDIOC_DBG_S_REGISTER)]   = "VIDIOC_DBG_S_REGISTER",
- 	[_IOC_NR(VIDIOC_DBG_G_REGISTER)]   = "VIDIOC_DBG_G_REGISTER",
- 
-@@ -1658,6 +1660,32 @@ static long __video_do_ioctl(struct file *file,
- 			dbgarg(cmd, "cmd=%d, flags=%x\n", p->cmd, p->flags);
- 		break;
- 	}
-+	case VIDIOC_DECODER_CMD:
-+	{
-+		struct v4l2_decoder_cmd *p = arg;
-+
-+		if (!ops->vidioc_decoder_cmd)
-+			break;
-+		if (ret_prio) {
-+			ret = ret_prio;
-+			break;
-+		}
-+		ret = ops->vidioc_decoder_cmd(file, fh, p);
-+		if (!ret)
-+			dbgarg(cmd, "cmd=%d, flags=%x\n", p->cmd, p->flags);
-+		break;
-+	}
-+	case VIDIOC_TRY_DECODER_CMD:
-+	{
-+		struct v4l2_decoder_cmd *p = arg;
-+
-+		if (!ops->vidioc_try_decoder_cmd)
-+			break;
-+		ret = ops->vidioc_try_decoder_cmd(file, fh, p);
-+		if (!ret)
-+			dbgarg(cmd, "cmd=%d, flags=%x\n", p->cmd, p->flags);
-+		break;
-+	}
- 	case VIDIOC_G_PARM:
- 	{
- 		struct v4l2_streamparm *p = arg;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 4b752d5..406f7f7 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1849,6 +1849,54 @@ struct v4l2_encoder_cmd {
- 	};
- };
- 
-+/* Decoder commands */
-+#define V4L2_DEC_CMD_START       (0)
-+#define V4L2_DEC_CMD_STOP        (1)
-+#define V4L2_DEC_CMD_PAUSE       (2)
-+#define V4L2_DEC_CMD_RESUME      (3)
-+
-+/* Flags for V4L2_DEC_CMD_START */
-+#define V4L2_DEC_CMD_START_MUTE_AUDIO	(1 << 0)
-+
-+/* Flags for V4L2_DEC_CMD_PAUSE */
-+#define V4L2_DEC_CMD_PAUSE_TO_BLACK	(1 << 0)
-+
-+/* Flags for V4L2_DEC_CMD_STOP */
-+#define V4L2_DEC_CMD_STOP_TO_BLACK	(1 << 0)
-+#define V4L2_DEC_CMD_STOP_IMMEDIATELY	(1 << 1)
-+
-+/* Play format requirements (returned by the driver): */
-+
-+/* The decoder has no special format requirements */
-+#define V4L2_DEC_START_FMT_NONE		(0)
-+/* The decoder requires full GOPs */
-+#define V4L2_DEC_START_FMT_GOP		(1)
-+
-+/* The structure must be zeroed before use by the application
-+   This ensures it can be extended safely in the future. */
-+struct v4l2_decoder_cmd {
-+	__u32 cmd;
-+	__u32 flags;
-+	union {
-+		struct {
-+			__u64 pts;
-+		} stop;
-+
-+		struct {
-+			/* 0 or 1000 specifies normal speed,
-+			   1 specifies forward single stepping,
-+			   -1 specifies backward single stepping,
-+			   >1: playback at speed/1000 of the normal speed,
-+			   <-1: reverse playback at (-speed/1000) of the normal speed. */
-+			__s32 speed;
-+			__u32 format;
-+		} start;
-+
-+		struct {
-+			__u32 data[16];
-+		} raw;
-+	};
-+};
- #endif
- 
- 
-@@ -2255,6 +2303,11 @@ struct v4l2_create_buffers {
- #define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
- #define VIDIOC_PREPARE_BUF	_IOWR('V', 93, struct v4l2_buffer)
- 
-+/* Experimental, these two ioctls may change over the next couple of kernel
-+   versions. */
-+#define VIDIOC_DECODER_CMD	_IOWR('V', 94, struct v4l2_decoder_cmd)
-+#define VIDIOC_TRY_DECODER_CMD	_IOWR('V', 95, struct v4l2_decoder_cmd)
-+
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
- 
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index 4d1c74a..46c13ba 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -207,6 +207,10 @@ struct v4l2_ioctl_ops {
- 					struct v4l2_encoder_cmd *a);
- 	int (*vidioc_try_encoder_cmd)  (struct file *file, void *fh,
- 					struct v4l2_encoder_cmd *a);
-+	int (*vidioc_decoder_cmd)      (struct file *file, void *fh,
-+					struct v4l2_decoder_cmd *a);
-+	int (*vidioc_try_decoder_cmd)  (struct file *file, void *fh,
-+					struct v4l2_decoder_cmd *a);
- 
- 	/* Stream type-dependent parameter ioctls */
- 	int (*vidioc_g_parm)           (struct file *file, void *fh,
+Any ideas what resolution is actually being moved through?
+
+(*) to build on v3.1, I had to manually add the mt9p031 driver and fix a compile error
+in drivers/media/video/omap/omap_vout.c
+
+Thanks
+
 -- 
-1.7.7.3
-
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
