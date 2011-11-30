@@ -1,58 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway12.websitewelcome.com ([70.85.6.5]:60196 "EHLO
-	gateway.websitewelcome.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753436Ab1KRSwN (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:43898 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752709Ab1K3N1r convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Nov 2011 13:52:13 -0500
-Received: from gator886.hostgator.com (gator886.hostgator.com [174.120.40.226])
-	by gateway.websitewelcome.com (Postfix) with ESMTP id 7F0DD4D737026
-	for <linux-media@vger.kernel.org>; Fri, 18 Nov 2011 12:29:16 -0600 (CST)
-Received: from [50.43.67.106] (port=55938 helo=[10.140.1.40])
-	by gator886.hostgator.com with esmtpsa (SSLv3:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <pete@sensoray.com>)
-	id 1RRTBc-0005tG-7E
-	for linux-media@vger.kernel.org; Fri, 18 Nov 2011 12:29:16 -0600
-Subject: [PATCH] go7007: Fix 2250 urb type
-From: Pete Eberlein <pete@sensoray.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 18 Nov 2011 10:29:16 -0800
-Message-ID: <1321640956.2253.16.camel@pete-Aspire-M5700>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 30 Nov 2011 08:27:47 -0500
+From: "Nori, Sekhar" <nsekhar@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: RE: [PATCH] board-dm646x-evm.c: wrong register used in
+ setup_vpif_input_channel_mode
+Date: Wed, 30 Nov 2011 13:27:38 +0000
+Message-ID: <DF0F476B391FA8409C78302C7BA518B6035772@DBDE01.ent.ti.com>
+References: <1321294849-2738-1-git-send-email-hverkuil@xs4all.nl>
+ <986dc5c6de4525aa3427ccded735d8e982080b0e.1321294701.git.hans.verkuil@cisco.com>
+In-Reply-To: <986dc5c6de4525aa3427ccded735d8e982080b0e.1321294701.git.hans.verkuil@cisco.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-commit a846d8fce9e8be30046be3c512982bd0345e7015
-Author: Pete Eberlein <pete@sensoray.com>
-Date:   Fri Nov 18 10:00:15 2011 -0800
+Hi Hans,
 
-go7007: Fix 2250 urb type
+On Mon, Nov 14, 2011 at 23:50:49, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The function setup_vpif_input_channel_mode() used the VSCLKDIS register
+> instead of VIDCLKCTL. This meant that when in HD mode videoport channel 0
+> used a different clock from channel 1.
+> 
+> Clearly a copy-and-paste error.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-The 2250 board uses bulk endpoint for interrupt handling,
-and should use a bulk urb instead of an int urb.
+Queuing this for v3.2-rc. I changed the headline to match current convention
+Being used in ARM:
 
-Signed-off-by: Pete Eberlein <pete@sensoray.com>
+ARM: davinci: dm646x evm: wrong register used in setup_vpif_input_channel_mode
 
-diff --git a/drivers/staging/media/go7007/go7007-usb.c b/drivers/staging/media/go7007/go7007-usb.c
-index 3db3b0a..cffb0b3 100644
---- a/drivers/staging/media/go7007/go7007-usb.c
-+++ b/drivers/staging/media/go7007/go7007-usb.c
-@@ -1054,7 +1054,13 @@ static int go7007_usb_probe(struct usb_interface *intf,
- 	else
- 		go->hpi_ops = &go7007_usb_onboard_hpi_ops;
- 	go->hpi_context = usb;
--	usb_fill_int_urb(usb->intr_urb, usb->usbdev,
-+	if (go->board_id == GO7007_BOARDID_SENSORAY_2250)
-+		usb_fill_bulk_urb(usb->intr_urb, usb->usbdev,
-+			usb_rcvbulkpipe(usb->usbdev, 4),
-+			usb->intr_urb->transfer_buffer, 2*sizeof(u16),
-+			go7007_usb_readinterrupt_complete, go);
-+	else
-+		usb_fill_int_urb(usb->intr_urb, usb->usbdev,
- 			usb_rcvintpipe(usb->usbdev, 4),
- 			usb->intr_urb->transfer_buffer, 2*sizeof(u16),
- 			go7007_usb_readinterrupt_complete, go, 8);
+Also, the code in question has not changed for a long time, so added the
+stable tag.
 
+Regards,
+Sekhar
 
