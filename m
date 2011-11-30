@@ -1,91 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14737 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933345Ab1LFOmE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Dec 2011 09:42:04 -0500
-Message-ID: <4EDE29AA.8090203@redhat.com>
-Date: Tue, 06 Dec 2011 12:41:46 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:45677 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751032Ab1K3Vwl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Nov 2011 16:52:41 -0500
 MIME-Version: 1.0
-To: "'Sakari Ailus'" <sakari.ailus@iki.fi>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	linux-media@vger.kernel.org,
-	=?UTF-8?B?J1NlYmFzdGlhbiBEcsO2Z2Un?=
-	<sebastian.droege@collabora.co.uk>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC] Resolution change support in video codecs in v4l2
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01> <4ED905E0.5020706@redhat.com> <007201ccb118$633ff890$29bfe9b0$%debski@samsung.com> <201112061301.01010.laurent.pinchart@ideasonboard.com> <20111206142821.GC938@valkosipuli.localdomain>
-In-Reply-To: <20111206142821.GC938@valkosipuli.localdomain>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
+Date: Wed, 30 Nov 2011 16:52:40 -0500
+Message-ID: <CAOcJUbw6YKM8ysV_R8SWfFSHuUPNDR2WBjuKAhYPPYM9+EUfPA@mail.gmail.com>
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
+ because of worrying about possible misusage?
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: HoP <jpetrous@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06-12-2011 12:28, 'Sakari Ailus' wrote:
-> Hi all,
+On Wed, Nov 30, 2011 at 4:38 PM, HoP <jpetrous@gmail.com> wrote:
+> Hi folks.
 >
-> On Tue, Dec 06, 2011 at 01:00:59PM +0100, Laurent Pinchart wrote:
-> ...
->>>>>>> 2) new requirement is for a bigger buffer. DMA transfers need to be
->>>>>>> stopped before actually writing inside the buffer (otherwise, memory
->>>>>>> will be corrupted).
->>>>>>>
->>>>>>> In this case, all queued buffers should be marked with an error flag.
->>>>>>> So, both V4L2_BUF_FLAG_FORMATCHANGED and V4L2_BUF_FLAG_ERROR should
->>>>>>> raise. The new format should be available via G_FMT.
->>
->> I'd like to reword this as follows:
->>
->> 1. In all cases, the application needs to be informed that the format has
->> changed.
->>
->> V4L2_BUF_FLAG_FORMATCHANGED (or a similar flag) is all we need. G_FMT will
->> report the new format.
->>
->> 2. In all cases, the application must have the option of reallocating buffers
->> if it wishes.
->>
->> In order to support this, the driver needs to wait until the application
->> acknowledged the format change before it starts decoding the stream.
->> Otherwise, if the codec started decoding the new stream to the existing
->> buffers by itself, applications wouldn't have the option of freeing the
->> existing buffers and allocating smaller ones.
->>
->> STREAMOFF/STREAMON is one way of acknowledging the format change. I'm not
->> opposed to other ways of doing that, but I think we need an acknowledgment API
->> to tell the driver to proceed.
+> I need to warn you that my mail is a bit little longer then I would like
+> to be.But I'm not able to ask my question without some
+> background information.
 >
-> Forcing STRAEMOFF/STRAEMON has two major advantages:
+> On June 19th, I was sending the driver to the Linux-media
+> mailing list. Original announcement is there:
 >
-> 1) The application will have an ability to free and reallocate buffers if it
-> wishes so, and
+> http://www.spinics.net/lists/linux-media/msg34240.html
 >
-> 2) It will get explicit information on the changed format. Alternative would
-> require an additional API to query the format of buffers in cases the
-> information isn't implicitly available.
+> One would say that the code describes very well what it does = adds
+> virtual DVB device. To be more clear on it I have even done some
+> small picture:
+>
+> http://www.nessiedvb.org/wiki/doku.php?id=vtuner_bigpicture
+>
+> I was hoping to get any feedback regarding code implementation.
+> It was my first code for the kernel and I felt very well that some
+> part can be done better or even simpler.
+>
+> What really surprised me badly was that when I read all 54 responses
+> I have counted only two real technical answers!!! All rest were about
+> POLITICAL issues - code was NACKed w/o any technical discussion.
+> Because of fear of possible abusing of driver.
+>
+> I didn't know that there existed very big movement against such
+> code in dvb-core subsystem before.
+>
+> I have one big problem with it. I can even imagine that some "bad guys"
+> could abuse virtual driver to use it for distribution close-source drivers
+> in the binary blobs. But is it that - worrying about bad boys abusing -
+> the sufficient reason for such aggressive NACK which I did? Then would
+> be better to remove loadable module API fully from kernel. Is it the right way?
+>
+> Please confirm me that worrying about abusive act is enough to NACK
+> particular driver. Then I may be definitely understand I'm doing something
+> wrong and will stay (with such enemy driver) out of tree.
+>
+> I can't understand that because I see very similar drivers in kernel for ages
+> (nbd, or even more similar is usbip) and seems they don't hamper to anybody.
+>
+> I would like to note that I don't want to start any flame-war, so very short
+> answer would be enough for me.
+>
+> Regards
+>
+> Honza
+>
+> PS: Please be so kind and CC the answer/comment to me, I'm
+> only on linux-media ML, not on linux-kernel ML. Thanks.
+>
+> BTW, if accidentally, somebody find it interesting and would like to
+> help me doing code review, there is the code hosted now:
+> http://code.google.com/p/vtuner/source/browse?repo=linux-driver
 
-As already said, a simple flag may give this meaning. Alternatively (or complementary,
-an event may be generated, containing the new format).
->
-> If we do not require STRAEMOFF/STREAMON, the stream would have to be paused
-> until the application chooses to continue it after dealing with its buffers
-> and formats.
 
-No. STREAMOFF is always used to stop the stream. We can't make it mean otherwise.
+Honza,
 
-So, after calling it, application should assume that frames will be lost, while
-the DMA engine doesn't start again.
+I, for one, would love to see your virtual DVB device driver hosted in
+a repository for the purposes of experimentation and additional
+development.  I can think of many, many good uses for such a virtual
+device driver.  Unfortunately, however, all the device vendors also
+have uses for it.  It a guarunteed fact that if a driver like that got
+merged into the kernel, any software company that previously sponsored
+open-source kernel development would opt instead for closed source
+userspace drivers that depend on a virtual DVB device.
 
-For things like MPEG decoders, Hans proposed an ioctl, that could use to pause
-and continue the decoding.
+Please don't let that discourage you -- I think you should continue
+your work on this virtual DVB device driver, and I'd love to play with
+it myself, and possibly even contribute to it.  ...but I will never
+support the merging of this into the kernel.
 
-> I'd still return a specific error when the size changes since it's more
-> explicit that something is not right, rather than just a flag. But if I'm
-> alone in thinking so I won't insist.
->
-> Regards,
->
+I do not nack the existence of the driver -- I love the idea, and I
+encourage more development.  I only nack it's merging into any
+open-source linux kernel.
 
+Please accept my answer with the greatest intentions for furthering
+the development of the open-source community.  My opinion is only for
+the best intentions of continued contributions from companies such as
+Hauppauge and any others that have contributed thus far to v4l/dvb.
+
+Please, keep up the work.  I repeat -- I would love to play with your work.
+
+Best regards,
+
+Mike Krufky
