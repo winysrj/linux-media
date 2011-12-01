@@ -1,156 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25301 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753797Ab1L0BJl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:41 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19eSH032655
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:40 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 47/91] [media] s921: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:08:35 -0200
-Message-Id: <1324948159-23709-48-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-47-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
- <1324948159-23709-22-git-send-email-mchehab@redhat.com>
- <1324948159-23709-23-git-send-email-mchehab@redhat.com>
- <1324948159-23709-24-git-send-email-mchehab@redhat.com>
- <1324948159-23709-25-git-send-email-mchehab@redhat.com>
- <1324948159-23709-26-git-send-email-mchehab@redhat.com>
- <1324948159-23709-27-git-send-email-mchehab@redhat.com>
- <1324948159-23709-28-git-send-email-mchehab@redhat.com>
- <1324948159-23709-29-git-send-email-mchehab@redhat.com>
- <1324948159-23709-30-git-send-email-mchehab@redhat.com>
- <1324948159-23709-31-git-send-email-mchehab@redhat.com>
- <1324948159-23709-32-git-send-email-mchehab@redhat.com>
- <1324948159-23709-33-git-send-email-mchehab@redhat.com>
- <1324948159-23709-34-git-send-email-mchehab@redhat.com>
- <1324948159-23709-35-git-send-email-mchehab@redhat.com>
- <1324948159-23709-36-git-send-email-mchehab@redhat.com>
- <1324948159-23709-37-git-send-email-mchehab@redhat.com>
- <1324948159-23709-38-git-send-email-mchehab@redhat.com>
- <1324948159-23709-39-git-send-email-mchehab@redhat.com>
- <1324948159-23709-40-git-send-email-mchehab@redhat.com>
- <1324948159-23709-41-git-send-email-mchehab@redhat.com>
- <1324948159-23709-42-git-send-email-mchehab@redhat.com>
- <1324948159-23709-43-git-send-email-mchehab@redhat.com>
- <1324948159-23709-44-git-send-email-mchehab@redhat.com>
- <1324948159-23709-45-git-send-email-mchehab@redhat.com>
- <1324948159-23709-46-git-send-email-mchehab@redhat.com>
- <1324948159-23709-47-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from smtp-68.nebula.fi ([83.145.220.68]:59470 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755293Ab1LAQOM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2011 11:14:12 -0500
+Date: Thu, 1 Dec 2011 18:14:07 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sergio Aguirre <saaguirre@ti.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v2 00/11] v4l2: OMAP4 ISS driver + Sensor + Board
+ support
+Message-ID: <20111201161407.GK29805@valkosipuli.localdomain>
+References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Hi Sergio,
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+Thanks for the patchset!!
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/s921.c |   19 ++++++++++---------
- 1 files changed, 10 insertions(+), 9 deletions(-)
+On Wed, Nov 30, 2011 at 06:14:49PM -0600, Sergio Aguirre wrote:
+> Hi everyone,
+> 
+> This is the second version of the OMAP4 ISS driver,
+> now ported to the Media Controller framework AND supporting
+> videobuf2 framework.
+> 
+> This patchset should apply cleanly on top of v3.2-rc3 kernel tag.
+> 
+> This driver attempts to provide an fully open source solution to
+> control the OMAP4 Imaging SubSystem (a.k.a. ISS).
+> 
+> Starts with just CSI2-A interface support, and pretends to be
+> ready for expansion to add support to the many ISS block modules
+> as possible.
+> 
+> Please see newly added documentation for more details:
+> 
+> Documentation/video4linux/omap4_camera.txt
 
-diff --git a/drivers/media/dvb/frontends/s921.c b/drivers/media/dvb/frontends/s921.c
-index 5e8f2a8..4c452f4 100644
---- a/drivers/media/dvb/frontends/s921.c
-+++ b/drivers/media/dvb/frontends/s921.c
-@@ -262,9 +262,9 @@ static int s921_i2c_readreg(struct s921_state *state, u8 i2c_addr, u8 reg)
- 	s921_i2c_writeregdata(state, state->config->demod_address, \
- 	regdata, ARRAY_SIZE(regdata))
- 
--static int s921_pll_tune(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p)
-+static int s921_pll_tune(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct s921_state *state = fe->demodulator_priv;
- 	int band, rc, i;
- 	unsigned long f_offset;
-@@ -414,9 +414,9 @@ static int s921_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- 	return 0;
- }
- 
--static int s921_set_frontend(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p)
-+static int s921_set_frontend(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct s921_state *state = fe->demodulator_priv;
- 	int rc;
- 
-@@ -424,7 +424,7 @@ static int s921_set_frontend(struct dvb_frontend *fe,
- 
- 	/* FIXME: We don't know how to use non-auto mode */
- 
--	rc = s921_pll_tune(fe, p);
-+	rc = s921_pll_tune(fe);
- 	if (rc < 0)
- 		return rc;
- 
-@@ -434,7 +434,7 @@ static int s921_set_frontend(struct dvb_frontend *fe,
- }
- 
- static int s921_get_frontend(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p)
-+	struct dtv_frontend_properties *p)
- {
- 	struct s921_state *state = fe->demodulator_priv;
- 
-@@ -455,7 +455,7 @@ static int s921_tune(struct dvb_frontend *fe,
- 	dprintk("\n");
- 
- 	if (params != NULL)
--		rc = s921_set_frontend(fe, params);
-+		rc = s921_set_frontend(fe);
- 
- 	if (!(mode_flags & FE_TUNE_MODE_ONESHOT))
- 		s921_read_status(fe, status);
-@@ -510,6 +510,7 @@ rcor:
- EXPORT_SYMBOL(s921_attach);
- 
- static struct dvb_frontend_ops s921_ops = {
-+	.delsys = { SYS_ISDBT },
- 	/* Use dib8000 values per default */
- 	.info = {
- 		.name = "Sharp S921",
-@@ -534,8 +535,8 @@ static struct dvb_frontend_ops s921_ops = {
- 	.release = s921_release,
- 
- 	.init = s921_initfe,
--	.set_frontend_legacy = s921_set_frontend,
--	.get_frontend_legacy = s921_get_frontend,
-+	.set_frontend = s921_set_frontend,
-+	.get_frontend = s921_get_frontend,
- 	.read_status = s921_read_status,
- 	.read_signal_strength = s921_read_signal_strength,
- 	.tune = s921_tune,
+I propose s/omap4_camera/omap4iss/, according to the path name in the
+drivers/media/video directory.
+
+> Any comments/complaints are welcome. :)
+> 
+> Changes since v1:
+> - Simplification of auxclk handling in board files. (Pointed out by: Roger Quadros)
+> - Cleanup of Camera support enablement for 4430sdp & panda. (Pointed out by: Roger Quadros)
+> - Use of HWMOD declaration for assisted platform_device creation. (Pointed out by: Felipe Balbi)
+> - Videobuf2 migration (Removal of custom iss_queue buffer handling driver)
+
+I'm happy to see it's using videobuf2!
+
+I have no other comments quite yet. :-)
+
+Cheers,
+
 -- 
-1.7.8.352.g876a6
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
