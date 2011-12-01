@@ -1,86 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:56687 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755810Ab1LGNz7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 08:55:59 -0500
-Received: by iakc1 with SMTP id c1so969493iak.19
-        for <linux-media@vger.kernel.org>; Wed, 07 Dec 2011 05:55:59 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:35741 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756199Ab1LATSe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Dec 2011 14:18:34 -0500
+Message-ID: <4ED7D306.6040603@redhat.com>
+Date: Thu, 01 Dec 2011 17:18:30 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.00.1111201746210.32047@urchin.earth.li>
-References: <alpine.DEB.2.00.1111201746210.32047@urchin.earth.li>
-Date: Wed, 7 Dec 2011 14:55:57 +0100
-Message-ID: <CAL7owaDVVqeM_-8LReEgZSeWnwMMkb9mEt=DLXDV61f4_TOqTw@mail.gmail.com>
-Subject: Re: [PATCH] Update dvb-t scan frequencies for uk-Oxford, following
- digital switchover
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Nick Burch <v4l@gagravarr.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: damateem <damateem4@gmail.com>
+CC: linux-media list <linux-media@vger.kernel.org>
+Subject: Re: Debug output
+References: <4ED6CE53.7010806@gmail.com> <4ED7CF04.8050906@gmail.com>
+In-Reply-To: <4ED7CF04.8050906@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Updated, thanks.
+On 01-12-2011 17:01, damateem wrote:
+> Ok, if I set debug as follows
+>
+> vfd->debug =V4L2_DEBUG_IOCTL | V4L2_DEBUG_IOCTL_ARG;
+>
+> I can see the debug trace in dmesg, but this doesn't seem like the
+> correct way to set the flags.
 
-Christoph
+In general, what it is none is to add a debug modprobe parameter that
+would enable those logs with something like:
+
+static unsigned int debug;
+module_param(debug, int, 0644);
+MODULE_PARM_DESC(debug, "debug message mask (1 = ioctl, 2 = ioctl args)");
 
 
-2011/11/20 Nick Burch <v4l@gagravarr.org>:
-> Hi All
+...
+	vfd->debug = debug;
+
 >
-> The scan channels file in dvb-apps/util/scan/dvb-t/uk-Oxford needs to be
-> updated with the new frequencies for Oxford, UK, following the digital
-> switchover here that happend a short time ago.
+> What is the typical method of setting these debug flags?
 >
-> Based on some public information, w_scan and some trial+error, I believe the
-> patch below will update the file to the new frequencies
+> Is this the best place to ask these type of questions?
 >
-> Cheers
-> Nick
+> Thanks,
+> David
 >
-> ------------
 >
-> --- a/util/scan/dvb-t/uk-Oxford Fri Oct 07 01:26:04 2011 +0530
-> +++ b/util/scan/dvb-t/uk-Oxford Sun Nov 20 17:44:17 2011 +0000
-> @@ -1,10 +1,26 @@
->  # UK, Oxford
-> -# Auto-generated from http://www.dtg.org.uk/retailer/dtt_channels.html
-> -# and http://www.ofcom.org.uk/static/reception_advice/index.asp.html
-> -# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> -T 578000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE
-> -T 850000000 8MHz 2/3 NONE QAM64 2k 1/32 NONE
-> +#
-> +# Post-Switchover, found from a mixture of w_scan, trial+error
-> +# and http://www.ukfree.tv/txdetail.php?a=SP567105
-> +
-> +# Local Channels, C51, details still TBA
->  T 713833000 8MHz 2/3 NONE QAM64 2k 1/32 NONE
-> -T 721833000 8MHz 3/4 NONE QAM16 2k 1/32 NONE
-> -T 690000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE
-> -T 538000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE
-> +
-> +# PSB1 BBC-A, C53+. Apparently 730.2 but actually looks to be 730.167
-> +T 730167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> +
-> +# ArqB (COM6), C55, 746.0
-> +T 746000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> +
-> +# PSB3 BBC-B, C57, 256QAM DVB-T2, TBA
-> +# May well be wrong, needs a DVB-T2 tuner to be sure!
-> +T 762000000 8MHz 2/3 NONE QAM256 8k 1/32 NONE
-> +
-> +# ArqA (COM5), C59-, Apparently 777.8 but actually looks to be 777.833
-> +T 777833000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> +
-> +# PSB2, D3+4, C60-, Apparently 785.0 but actually looks to be 785.833
-> +T 785833000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> +
-> +# SDN (COM4), C62, 802.0
-> +T 802000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
->
-> ------------
->
+> On 11/30/2011 7:46 PM, damateem wrote:
+>> There are a fair number of debug print statements in the V4L2 code. How
+>> do I turn those on?
+>>
+>> For instance, I'd like the following code to print
+>>
+>> if ((vfd->debug&  V4L2_DEBUG_IOCTL)&&
+>>                  !(vfd->debug&  V4L2_DEBUG_IOCTL_ARG)) {
+>>          v4l_print_ioctl(vfd->name, cmd);
+>>          printk(KERN_CONT "\n");
+>>      }
+>>
+>> so I can trace the IOCTL calls.
+>>
+>> Thanks,
+>> David
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
