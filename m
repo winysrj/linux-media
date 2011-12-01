@@ -1,248 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:54133 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751779Ab1LQKFf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Dec 2011 05:05:35 -0500
-From: Martin Hostettler <martin@neutronstar.dyndns.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-	Hiremath Vaibhav <hvaibhav@ti.com>,
-	Igor Grinberg <grinberg@compulab.co.il>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: [PATCH v4] arm: omap3evm: Add support for an MT9M032 based camera board.
-Date: Sat, 17 Dec 2011 11:05:20 +0100
-Message-Id: <1324116320-13007-1-git-send-email-martin@neutronstar.dyndns.org>
+Received: from ffm.saftware.de ([83.141.3.46]:33867 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754210Ab1LAXKj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Dec 2011 18:10:39 -0500
+Message-ID: <4ED80969.6060404@linuxtv.org>
+Date: Fri, 02 Dec 2011 00:10:33 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
+MIME-Version: 1.0
+To: Steven Toth <stoth@kernellabs.com>
+CC: linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Abylay Ospan <aospan@netup.ru>,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: LinuxTV ported to Windows
+References: <4ED65C46.20502@netup.ru> <CAGoCfiw16bAtPHfrtsDDOBL4BeFnH+zMqcz9wBitGGSq_RZtJA@mail.gmail.com> <4ED68AF0.8000903@linuxtv.org> <201112012042.57343.laurent.pinchart@ideasonboard.com> <CALzAhNW_BSf-MbD8yM8YyrjaaGnTsni4NOzaRBu0zZ6zFxgP7Q@mail.gmail.com>
+In-Reply-To: <CALzAhNW_BSf-MbD8yM8YyrjaaGnTsni4NOzaRBu0zZ6zFxgP7Q@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds board support for an MT9M032 based camera to omap3evm.
+Hello Steven,
 
-Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
----
- arch/arm/mach-omap2/Makefile                |    3 +-
- arch/arm/mach-omap2/board-omap3evm-camera.c |  159 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-omap3evm.c        |    4 +
- 3 files changed, 165 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
+On 01.12.2011 22:18, Steven Toth wrote:
+>>> The point I'm trying to make: Someone made a presumably nice open source
+>>> port to a new platform and the first thing you're doing is to play the
+>>> GPL-has-been-violated-card, even though you're admitting that you don't
+>>> know whether any right is being violated or not. Please don't do that.
+>>> It's not very encouraging to someone who just announced free software.
+>>
+>> Thanks for pointing this out. I would have reacted similarly to Devin, not to
+>> discourage Abylay from working on this interesting project, but to warn him
+>> that there might be legal issues (I think we would all prefer early
+>> notifications from the community than late notifications from unfriendly
+>> lawyers :-)). You understanding this as an attack shows that we need to be
+>> more careful in the way we word our messages on license-related issues.
+> 
+> I've been silent as I wanted to see how the thread evolved. This is a
+> response in general to the group - not any individual.
+> 
+> Speaking as the maintainer and copyright owner I can say that it would
+> have been nice if someone had contacted me privately re the matter,
+> before hand. Not to assert any legal right, not for any approval,
+> simply as a courtesy and a perhaps a small 'Thank You'. NetUp could
+> have happily had my personal blessing on their project.
 
-Changes in V4
- * Fix includes
- * Add comment to clearify that the mux is a seperate gpio controlled chip.
- * remove useless variable initialisation.
+you could have said thank you for porting the driver as well: The port
+enlarges the user base, is likely to uncover bugs and you might even
+receive fixes to those bugs for free (unless the ranting goes on).
 
-Changes in V3
- * Added missing copyright and attribution.
- * switched to gpio_request_array for gpio init.
- * removed device_initcall and added call to omap3_evm_camera_init into omap3_evm_init
+> My first concern is that this only benefits NetUp on Windows, no other
+> company benefits on windows - as they all already have legal access to
+> the Conexant source reference driver.
 
-Changes in V2:
- * ported to current mainline
- * Style fixes
- * Fix error handling
+Are you implying that
+a) it's not the users who benefit most?
+b) other companies won't be able to use this driver?
+c) NetUp doesn't have legal access to the reference driver?
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index b009f17..6045789 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -196,7 +196,8 @@ obj-$(CONFIG_MACH_OMAP3530_LV_SOM)      += board-omap3logic.o
- obj-$(CONFIG_MACH_OMAP3_TORPEDO)        += board-omap3logic.o
- obj-$(CONFIG_MACH_ENCORE)		+= board-omap3encore.o
- obj-$(CONFIG_MACH_OVERO)		+= board-overo.o
--obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
-+obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
-+					   board-omap3evm-camera.o
- obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o
- obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o
- obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
-diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c b/arch/arm/mach-omap2/board-omap3evm-camera.c
-new file mode 100644
-index 0000000..82a4ec2
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
-@@ -0,0 +1,159 @@
-+/*
-+ * Copyright (C) 2011 Texas Instruments Inc
-+ * Copyright (C) 2010-2011 Lund Engineering
-+ * Contact: Gil Lund <gwlund@lundeng.com>
-+ * Authors:
-+ *    Vaibhav Hiremath <hvaibhav@ti.com>
-+ *    Martin Hostettler <martin@neutronstar.dyndns.org>
-+ *
-+ * Board intregration for a MT9M032 camera connected to IMAGE_CONN and I2C Bus 2
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#include <linux/i2c.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+
-+#include <linux/gpio.h>
-+#include <plat/mux.h>
-+#include "mux.h"
-+
-+#include <media/omap3isp.h>
-+#include <media/mt9m032.h>
-+
-+#include "devices.h"
-+
-+#define EVM_TWL_GPIO_BASE OMAP_MAX_GPIO_LINES
-+#define GPIO98_VID_DEC_RES	98
-+#define nCAM_VD_SEL		157
-+
-+#define MT9M032_I2C_BUS_NUM	2
-+
-+
-+enum omap3evmdc_mux {
-+	MUX_TVP5146,
-+	MUX_CAMERA_SENSOR,
-+	MUX_EXP_CAMERA_SENSOR,
-+};
-+
-+/**
-+ * omap3evm_set_mux - Sets mux to enable signal routing to
-+ *                           different peripherals present on new EVM board
-+ * @mux_id: enum, mux id to enable
-+ *
-+ * Returns 0 for success or a negative error code
-+ */
-+static int omap3evm_set_mux(enum omap3evmdc_mux mux_id)
-+{
-+	/*
-+	 * The video mux on the EVM board is controlled by various
-+	 * GPIO pins.
-+         */
-+	/* Set GPIO6 = 1 */
-+	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 6, 1);
-+	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
-+
-+	switch (mux_id) {
-+	case MUX_TVP5146:
-+		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
-+		gpio_set_value(nCAM_VD_SEL, 1);
-+		break;
-+
-+	case MUX_CAMERA_SENSOR:
-+		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
-+		gpio_set_value(nCAM_VD_SEL, 0);
-+		break;
-+
-+	case MUX_EXP_CAMERA_SENSOR:
-+		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 1);
-+		break;
-+
-+	default:
-+		pr_err("omap3evm-camera: Invalid mux id #%d\n", mux_id);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct mt9m032_platform_data mt9m032_platform_data = {
-+	.ext_clock = 13500000,
-+	.pll_pre_div = 6,
-+	.pll_mul = 120,
-+	.pll_out_div = 5,
-+	.invert_pixclock = 1,
-+};
-+
-+static struct i2c_board_info camera_i2c_devices[] = {
-+	{
-+		I2C_BOARD_INFO(MT9M032_NAME, MT9M032_I2C_ADDR),
-+		.platform_data = &mt9m032_platform_data,
-+	},
-+};
-+
-+static struct isp_subdev_i2c_board_info camera_i2c_subdevs[] = {
-+	{
-+		.board_info = &camera_i2c_devices[0],
-+		.i2c_adapter_id = MT9M032_I2C_BUS_NUM,
-+	},
-+	{},
-+};
-+
-+static struct isp_v4l2_subdevs_group camera_subdevs[] = {
-+	{
-+		.subdevs = camera_i2c_subdevs,
-+		.interface = ISP_INTERFACE_PARALLEL,
-+		.bus = {
-+			.parallel = {
-+				.data_lane_shift = 1,
-+				.clk_pol = 0,
-+				.bridge = ISP_BRIDGE_DISABLE,
-+			}
-+		},
-+	},
-+	{},
-+};
-+
-+static struct isp_platform_data isp_platform_data = {
-+	.subdevs = camera_subdevs,
-+};
-+
-+
-+static struct gpio setup_gpios[] = {
-+	{ nCAM_VD_SEL,           GPIOF_OUT_INIT_HIGH, "nCAM_VD_SEL" },
-+	{ EVM_TWL_GPIO_BASE + 2, GPIOF_OUT_INIT_LOW,  "T2_GPIO2" },
-+	{ EVM_TWL_GPIO_BASE + 8, GPIOF_OUT_INIT_LOW, "nCAM_VD_EN" },
-+};
-+
-+
-+int __init omap3_evm_camera_init(void)
-+{
-+	int ret;
-+
-+	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
-+	ret = gpio_request_array(setup_gpios, ARRAY_SIZE(setup_gpios));
-+	if (ret < 0) {
-+		pr_err("omap3evm-camera: Failed to setup camera signal routing.\n");
-+		return ret;
-+	}
-+	omap3evm_set_mux(MUX_CAMERA_SENSOR);
-+	ret = omap3_init_camera(&isp_platform_data);
-+	if (ret < 0) {
-+		gpio_free_array(setup_gpios, ARRAY_SIZE(setup_gpios));
-+		return ret;
-+	}
-+	return 0;
-+}
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index ec00b2e..1b50539 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -617,6 +617,8 @@ static struct gpio omap3_evm_ehci_gpios[] __initdata = {
- 	{ OMAP3_EVM_EHCI_SELECT, GPIOF_OUT_INIT_LOW,   "select EHCI port" },
- };
- 
-+int omap3_evm_camera_init(void);
-+
- static void __init omap3_evm_init(void)
- {
- 	omap3_evm_get_revision();
-@@ -672,6 +674,8 @@ static void __init omap3_evm_init(void)
- 		pr_err("error setting wl12xx data\n");
- 	platform_device_register(&omap3evm_wlan_regulator);
- #endif
-+
-+	omap3_evm_camera_init();
- }
- 
- MACHINE_START(OMAP3EVM, "OMAP3 EVM")
--- 
-1.7.2.5
+> The Windows GPL driver
+> could/will evolve much faster than the Linux driver and that will suit
+> NetUp commercially and nobody else. Time will not be taken to
+> "backport" changes into the Linux driver and that's bad for the Linux
+> community. (Or, for commercial reasons, the backports will take longer
+> than expected)
 
+Why don't you do the backports yourself? You want NetUp to do the work
+for you? The code is published in a Git repository. You can easily track
+any changes.
+
+> My second concern is that NetUp have made it very simply for the
+> hundreds of no-name third party far-east companies (with zero
+> legitimate access to the Conexant windows source reference driver), to
+> take the windows driver, close source it, not distribute their changes
+> and compete against the few legitimate TVTuner companies left in the
+> world. If/when the one or two remaining TVTuner companies die because
+> their bread and butter Windows sales are being eroded to zero - how
+> does this help this community? It doesn't, it only helps NetUp.
+
+Any company doing that could use any existing binary driver as well.
+Besides that, I'm sure it's no problem for them to get access to any
+reference driver they want.
+
+> I embrace open source, I welcome new developers, debate and growth....
+> I just think if you are going to get my 18 year old daughter pregnant
+> then it's courtesy to knock on my door and introduce yourself first -
+> regardless of my opinion or your legal rights.
+
+A very compelling analogy.
+
+Regards,
+Andreas
