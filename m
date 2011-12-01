@@ -1,83 +1,314 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13464 "EHLO mx1.redhat.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37104 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755530Ab1LXPvH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Dec 2011 10:51:07 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp7JF030853
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:07 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v4 29/47] [media] stb6000: use DVBv5 parameters on set_params()
-Date: Sat, 24 Dec 2011 13:50:34 -0200
-Message-Id: <1324741852-26138-30-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324741852-26138-29-git-send-email-mchehab@redhat.com>
-References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
- <1324741852-26138-2-git-send-email-mchehab@redhat.com>
- <1324741852-26138-3-git-send-email-mchehab@redhat.com>
- <1324741852-26138-4-git-send-email-mchehab@redhat.com>
- <1324741852-26138-5-git-send-email-mchehab@redhat.com>
- <1324741852-26138-6-git-send-email-mchehab@redhat.com>
- <1324741852-26138-7-git-send-email-mchehab@redhat.com>
- <1324741852-26138-8-git-send-email-mchehab@redhat.com>
- <1324741852-26138-9-git-send-email-mchehab@redhat.com>
- <1324741852-26138-10-git-send-email-mchehab@redhat.com>
- <1324741852-26138-11-git-send-email-mchehab@redhat.com>
- <1324741852-26138-12-git-send-email-mchehab@redhat.com>
- <1324741852-26138-13-git-send-email-mchehab@redhat.com>
- <1324741852-26138-14-git-send-email-mchehab@redhat.com>
- <1324741852-26138-15-git-send-email-mchehab@redhat.com>
- <1324741852-26138-16-git-send-email-mchehab@redhat.com>
- <1324741852-26138-17-git-send-email-mchehab@redhat.com>
- <1324741852-26138-18-git-send-email-mchehab@redhat.com>
- <1324741852-26138-19-git-send-email-mchehab@redhat.com>
- <1324741852-26138-20-git-send-email-mchehab@redhat.com>
- <1324741852-26138-21-git-send-email-mchehab@redhat.com>
- <1324741852-26138-22-git-send-email-mchehab@redhat.com>
- <1324741852-26138-23-git-send-email-mchehab@redhat.com>
- <1324741852-26138-24-git-send-email-mchehab@redhat.com>
- <1324741852-26138-25-git-send-email-mchehab@redhat.com>
- <1324741852-26138-26-git-send-email-mchehab@redhat.com>
- <1324741852-26138-27-git-send-email-mchehab@redhat.com>
- <1324741852-26138-28-git-send-email-mchehab@redhat.com>
- <1324741852-26138-29-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S1753264Ab1LAAPT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Nov 2011 19:15:19 -0500
+From: Sergio Aguirre <saaguirre@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-omap@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+	<sakari.ailus@iki.fi>, Sergio Aguirre <saaguirre@ti.com>
+Subject: [PATCH v2 09/11] arm: omap4430sdp: Add support for omap4iss camera
+Date: Wed, 30 Nov 2011 18:14:58 -0600
+Message-ID: <1322698500-29924-10-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
+References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using DVBv3 parameters, rely on DVBv5 parameters to
-set the tuner
+This adds support for camera interface with the support for
+following sensors:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+- OV5640
+- OV5650
+
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- drivers/media/dvb/frontends/stb6000.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/Kconfig                |   27 ++++
+ arch/arm/mach-omap2/Makefile               |    2 +
+ arch/arm/mach-omap2/board-4430sdp-camera.c |  221 ++++++++++++++++++++++++++++
+ 3 files changed, 250 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-4430sdp-camera.c
 
-diff --git a/drivers/media/dvb/frontends/stb6000.c b/drivers/media/dvb/frontends/stb6000.c
-index ed69964..d4f4ebb 100644
---- a/drivers/media/dvb/frontends/stb6000.c
-+++ b/drivers/media/dvb/frontends/stb6000.c
-@@ -78,6 +78,7 @@ static int stb6000_sleep(struct dvb_frontend *fe)
- static int stb6000_set_params(struct dvb_frontend *fe,
- 				struct dvb_frontend_parameters *params)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct stb6000_priv *priv = fe->tuner_priv;
- 	unsigned int n, m;
- 	int ret;
-@@ -93,8 +94,8 @@ static int stb6000_set_params(struct dvb_frontend *fe,
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 5034147..f883abb 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -323,6 +323,33 @@ config MACH_OMAP_4430SDP
+ 	select OMAP_PACKAGE_CBS
+ 	select REGULATOR_FIXED_VOLTAGE
  
- 	dprintk("%s:\n", __func__);
++config MACH_OMAP_4430SDP_CAMERA_SUPPORT
++	bool "OMAP 4430 SDP board Camera support"
++	depends on MACH_OMAP_4430SDP
++	select MEDIA_SUPPORT
++	select MEDIA_CONTROLLER
++	select VIDEO_DEV
++	select VIDEO_V4L2_SUBDEV_API
++	select VIDEO_OMAP4
++	help
++	  Enable Camera HW support for OMAP 4430 SDP board
++	  This is for using the OMAP4 ISS CSI2A Camera sensor
++	  interface.
++
++choice
++	prompt "Camera sensor to use"
++	depends on MACH_OMAP_4430SDP_CAMERA_SUPPORT
++	default MACH_OMAP_4430SDP_CAM_OV5650
++
++	config MACH_OMAP_4430SDP_CAM_OV5640
++		bool "Use OmniVision OV5640 Camera"
++		select VIDEO_OV5640
++
++	config MACH_OMAP_4430SDP_CAM_OV5650
++		bool "Use OmniVision OV5650 Camera"
++		select VIDEO_OV5650
++endchoice
++
+ config MACH_OMAP4_PANDA
+ 	bool "OMAP4 Panda Board"
+ 	default y
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 69ab1c0..8bc446a 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -235,6 +235,8 @@ obj-$(CONFIG_MACH_TI8168EVM)		+= board-ti8168evm.o
  
--	freq_mhz = params->frequency / 1000;
--	bandwidth = params->u.qpsk.symbol_rate / 1000000;
-+	freq_mhz = p->frequency / 1000;
-+	bandwidth = p->symbol_rate / 1000000;
+ # Platform specific device init code
  
- 	if (bandwidth > 31)
- 		bandwidth = 31;
++obj-$(CONFIG_MACH_OMAP_4430SDP_CAMERA_SUPPORT)	+= board-4430sdp-camera.o
++
+ omap-flash-$(CONFIG_MTD_NAND_OMAP2)	:= board-flash.o
+ omap-flash-$(CONFIG_MTD_ONENAND_OMAP2)	:= board-flash.o
+ obj-y					+= $(omap-flash-y) $(omap-flash-m)
+diff --git a/arch/arm/mach-omap2/board-4430sdp-camera.c b/arch/arm/mach-omap2/board-4430sdp-camera.c
+new file mode 100644
+index 0000000..e62ee50
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-4430sdp-camera.c
+@@ -0,0 +1,221 @@
++#include <linux/gpio.h>
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/i2c/twl.h>
++#include <linux/mfd/twl6040.h>
++
++#include <plat/i2c.h>
++#include <plat/omap-pm.h>
++
++#include <asm/mach-types.h>
++
++#include <media/ov5640.h>
++#include <media/ov5650.h>
++
++#include "devices.h"
++#include "../../../drivers/media/video/omap4iss/iss.h"
++
++#include "control.h"
++#include "mux.h"
++
++#define OMAP4430SDP_GPIO_CAM_PDN_C	39
++
++static struct clk *sdp4430_cam_aux_clk;
++
++static int sdp4430_ov5640_power(struct v4l2_subdev *subdev, int on)
++{
++	struct iss_device *iss = v4l2_dev_to_iss_device(subdev->v4l2_dev);
++	int ret = 0;
++	struct iss_csiphy_dphy_cfg dphy;
++	struct iss_csiphy_lanes_cfg lanes;
++#ifdef CONFIG_MACH_OMAP_4430SDP_CAM_OV5650
++	unsigned int ddr_freq = 480; /* FIXME: Do an actual query for this */
++#elif defined(CONFIG_MACH_OMAP_4430SDP_CAM_OV5640)
++	unsigned int ddr_freq = 336; /* FIXME: Do an actual query for this */
++#endif
++
++	memset(&lanes, 0, sizeof(lanes));
++	memset(&dphy, 0, sizeof(dphy));
++
++	lanes.clk.pos = 1;
++	lanes.clk.pol = 0;
++	lanes.data[0].pos = 2;
++	lanes.data[0].pol = 0;
++#ifdef CONFIG_MACH_OMAP_4430SDP_CAM_OV5650
++	lanes.data[1].pos = 3;
++	lanes.data[1].pol = 0;
++#endif
++
++	dphy.ths_term = ((((12500 * ddr_freq + 1000000) / 1000000) - 1) & 0xFF);
++	dphy.ths_settle = ((((90000 * ddr_freq + 1000000) / 1000000) + 3) & 0xFF);
++	dphy.tclk_term = 0;
++	dphy.tclk_miss = 1;
++	dphy.tclk_settle = 14;
++
++	if (on) {
++		u8 gpoctl = 0;
++
++		/* TWL6030_BASEADD_AUX */
++		twl_i2c_write_u8(15, 0x00, 0xB);
++		twl_i2c_write_u8(15, 0x80, 0x1);
++
++		mdelay(50);
++
++		/* TWL6030_BASEADD_PM_SLAVE_MISC */
++		twl_i2c_write_u8(21, 0xFF, 0x5E);
++		twl_i2c_write_u8(21, 0x13, 0x5F);
++
++		mdelay(50);
++
++		twl_i2c_write_u8(15, 0x40, 0x1);
++
++		twl_i2c_read_u8(TWL_MODULE_AUDIO_VOICE, &gpoctl,
++				TWL6040_REG_GPOCTL);
++		twl_i2c_write_u8(TWL_MODULE_AUDIO_VOICE, gpoctl | TWL6040_GPO3,
++				TWL6040_REG_GPOCTL);
++
++		mdelay(10);
++
++		gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_C, 1);
++		mdelay(10);
++		clk_enable(sdp4430_cam_aux_clk); /* Enable XCLK */
++		mdelay(10);
++
++		iss->platform_cb.csiphy_config(&iss->csiphy1, &dphy, &lanes);
++	} else {
++		clk_disable(sdp4430_cam_aux_clk);
++		mdelay(1);
++		gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_C, 0);
++	}
++
++	return ret;
++}
++
++#define OV5640_I2C_ADDRESS   (0x3C)
++#define OV5650_I2C_ADDRESS   (0x36)
++
++#ifdef CONFIG_MACH_OMAP_4430SDP_CAM_OV5650
++static struct ov5650_platform_data ov_platform_data = {
++#elif defined(CONFIG_MACH_OMAP_4430SDP_CAM_OV5640)
++static struct ov5640_platform_data ov_platform_data = {
++#endif
++      .s_power = sdp4430_ov5640_power,
++};
++
++static struct i2c_board_info ov_camera_i2c_device = {
++#ifdef CONFIG_MACH_OMAP_4430SDP_CAM_OV5650
++	I2C_BOARD_INFO("ov5650", OV5650_I2C_ADDRESS),
++#elif defined(CONFIG_MACH_OMAP_4430SDP_CAM_OV5640)
++	I2C_BOARD_INFO("ov5640", OV5640_I2C_ADDRESS),
++#endif
++	.platform_data = &ov_platform_data,
++};
++
++static struct iss_subdev_i2c_board_info ov_camera_subdevs[] = {
++	{
++		.board_info = &ov_camera_i2c_device,
++		.i2c_adapter_id = 3,
++	},
++	{ NULL, 0, },
++};
++
++static struct iss_v4l2_subdevs_group sdp4430_camera_subdevs[] = {
++	{
++		.subdevs = ov_camera_subdevs,
++		.interface = ISS_INTERFACE_CSI2A_PHY1,
++	},
++	{ },
++};
++
++static void sdp4430_omap4iss_set_constraints(struct iss_device *iss, bool enable)
++{
++	if (!iss)
++		return;
++
++	/* FIXME: Look for something more precise as a good throughtput limit */
++	omap_pm_set_min_bus_tput(iss->dev, OCP_INITIATOR_AGENT,
++				 enable ? 800000 : -1);
++}
++
++static struct iss_platform_data sdp4430_iss_platform_data = {
++	.subdevs = sdp4430_camera_subdevs,
++	.set_constraints = sdp4430_omap4iss_set_constraints,
++};
++
++static struct omap_device_pad omap4iss_pads[] = {
++	{
++		.name   = "csi21_dx0.csi21_dx0",
++		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
++	},
++	{
++		.name   = "csi21_dy0.csi21_dy0",
++		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
++	},
++	{
++		.name   = "csi21_dx1.csi21_dx1",
++		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
++	},
++	{
++		.name   = "csi21_dy1.csi21_dy1",
++		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
++	},
++	{
++		.name   = "csi21_dx2.csi21_dx2",
++		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
++	},
++	{
++		.name   = "csi21_dy2.csi21_dy2",
++		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
++	},
++};
++
++static struct omap_board_data omap4iss_data = {
++	.id	    		= 1,
++	.pads	 		= omap4iss_pads,
++	.pads_cnt       	= ARRAY_SIZE(omap4iss_pads),
++};
++
++static int __init sdp4430_camera_init(void)
++{
++	if (!machine_is_omap_4430sdp())
++		return 0;
++
++	sdp4430_cam_aux_clk = clk_get(NULL, "auxclk3_ck");
++	if (IS_ERR(sdp4430_cam_aux_clk)) {
++		printk(KERN_ERR "Unable to get auxclk3_ck\n");
++		return -ENODEV;
++	}
++
++	if (clk_set_rate(sdp4430_cam_aux_clk,
++			clk_round_rate(sdp4430_cam_aux_clk, 24000000)))
++		return -EINVAL;
++
++	/*
++	 * CSI2 1(A):
++	 *   LANEENABLE[4:0] = 00111(0x7) - Lanes 0, 1 & 2 enabled
++	 *   CTRLCLKEN = 1 - Active high enable for CTRLCLK
++	 *   CAMMODE = 0 - DPHY mode
++	 */
++	omap4_ctrl_pad_writel((omap4_ctrl_pad_readl(
++				OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX) &
++			  ~(OMAP4_CAMERARX_CSI21_LANEENABLE_MASK |
++			    OMAP4_CAMERARX_CSI21_CAMMODE_MASK)) |
++			 (0x7 << OMAP4_CAMERARX_CSI21_LANEENABLE_SHIFT) |
++			 OMAP4_CAMERARX_CSI21_CTRLCLKEN_MASK,
++			 OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX);
++
++	omap_mux_init_gpio(OMAP4430SDP_GPIO_CAM_PDN_C, OMAP_PIN_OUTPUT);
++
++	/* Init FREF_CLK3_OUT */
++	omap_mux_init_signal("fref_clk3_out", OMAP_PIN_OUTPUT);
++
++	if (gpio_request(OMAP4430SDP_GPIO_CAM_PDN_C, "CAM_PDN_C"))
++		printk(KERN_WARNING "Cannot request GPIO %d\n",
++			OMAP4430SDP_GPIO_CAM_PDN_C);
++	else
++		gpio_direction_output(OMAP4430SDP_GPIO_CAM_PDN_C, 0);
++
++	omap4_init_camera(&sdp4430_iss_platform_data, &omap4iss_data);
++	return 0;
++}
++late_initcall(sdp4430_camera_init);
 -- 
-1.7.8.352.g876a6
+1.7.7.4
 
