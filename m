@@ -1,89 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50431 "EHLO mx1.redhat.com"
+Received: from ffm.saftware.de ([83.141.3.46]:45405 "EHLO ffm.saftware.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751775Ab1L3Szw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 13:55:52 -0500
-Message-ID: <4EFE0967.6020904@redhat.com>
-Date: Fri, 30 Dec 2011 19:56:39 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1752222Ab1LAAJd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Nov 2011 19:09:33 -0500
+Message-ID: <4ED6C5B8.8040803@linuxtv.org>
+Date: Thu, 01 Dec 2011 01:09:28 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-To: "'Sakari Ailus'" <sakari.ailus@iki.fi>
-CC: "HeungJun, Kim" <riverful.kim@samsung.com>,
-	"'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
-	"'Sylwester Nawrocki'" <snjw23@gmail.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com
-Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu control
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com> <1325053428-2626-2-git-send-email-riverful.kim@samsung.com> <4EFB1B04.6060305@gmail.com> <201112281451.39399.laurent.pinchart@ideasonboard.com> <20111229233406.GU3677@valkosipuli.localdomain> <000801ccc6bd$4b844520$e28ccf60$%kim@samsung.com> <4EFD7955.8070603@redhat.com> <20111230184212.GW3677@valkosipuli.localdomain>
-In-Reply-To: <20111230184212.GW3677@valkosipuli.localdomain>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: HoP <jpetrous@gmail.com>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
+ of worrying about possible misusage?
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
+In-Reply-To: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 30.11.2011 22:38, HoP wrote:
+> Hi folks.
+> 
+> I need to warn you that my mail is a bit little longer then I would like
+> to be.But I'm not able to ask my question without some
+> background information.
+> 
+> On June 19th, I was sending the driver to the Linux-media
+> mailing list. Original announcement is there:
+> 
+> http://www.spinics.net/lists/linux-media/msg34240.html
+> 
+> One would say that the code describes very well what it does = adds
+> virtual DVB device. To be more clear on it I have even done some
+> small picture:
+> 
+> http://www.nessiedvb.org/wiki/doku.php?id=vtuner_bigpicture
+> 
+> I was hoping to get any feedback regarding code implementation.
+> It was my first code for the kernel and I felt very well that some
+> part can be done better or even simpler.
+> 
+> What really surprised me badly was that when I read all 54 responses
+> I have counted only two real technical answers!!! All rest were about
+> POLITICAL issues - code was NACKed w/o any technical discussion.
+> Because of fear of possible abusing of driver.
+> 
+> I didn't know that there existed very big movement against such
+> code in dvb-core subsystem before.
+> 
+> I have one big problem with it. I can even imagine that some "bad guys"
+> could abuse virtual driver to use it for distribution close-source drivers
+> in the binary blobs. But is it that - worrying about bad boys abusing -
+> the sufficient reason for such aggressive NACK which I did? Then would
+> be better to remove loadable module API fully from kernel. Is it the right way?
+> 
+> Please confirm me that worrying about abusive act is enough to NACK
+> particular driver. Then I may be definitely understand I'm doing something
+> wrong and will stay (with such enemy driver) out of tree.
+> 
+> I can't understand that because I see very similar drivers in kernel for ages
+> (nbd, or even more similar is usbip) and seems they don't hamper to anybody.
+> 
+> I would like to note that I don't want to start any flame-war, so very short
+> answer would be enough for me.,
 
-On 12/30/2011 07:42 PM, 'Sakari Ailus' wrote:
-> Hi Hans,
->
-> On Fri, Dec 30, 2011 at 09:41:57AM +0100, Hans de Goede wrote:
-> ...
->> Right, so the above is exactly why I ended up making the pwc whitebalance
->> control the way it is, the user can essentially choice between a number
->> of options:
->> 1) auto whitebal
->> 2) a number of preset whitebal values (seems your proposal has some more then the pwc
->>     driver, which is fine)
->> 3) manual whitebal, at which point the user may set whitebal through one of:
->>     a) a color temperature control
->>     b) red and blue balance controls
->>     c) red, green and blue gains
->
-> d) red, green, blue and... another green. This is how some raw bayer sensors
-> can be controlled.
->
+Hello Honza,
 
-Yes, but have you ever tried setting the 2 green gains to different values?
-(Hint the result is not pretty) I strongly believe the 2 separate green gains are
-only there as it is easier to do things that way (it keeps the sensor array symmetric) and
-there is no value in controlling them separately.
+I still support the inclusion of your virtual DVB device driver, once
+the technical issues[1] are solved (design clean interface based on
+DVBv5 etc.). Mauro promised to consider it for inclusion then[2]. A
+quick view at your code indicates that this clean-up hasn't happened
+yet, e.g. there are hacks to support DVB-S2 over DVBv3 which aren't
+necessary anymore with v5.
 
->> Notice that we also need to add some standardized controls for the 3c case, but that
->> is a different discussion.
->
-> I was planning to add the gain to low-level controls once the other  sensor
-> controls have been properly discussed, and hopefully approved, first.
->
->> Seeing how this discussion has evolved I believe that what I did in the pwc driver
->> is actually right from the user pov, the user gets one simple menu control which
->> allows the user to choice between auto / preset 1 - x / manual and since as
->> described above choosing one of the options excludes the other options from being
->> active I believe having this all in one control is the right thing to do.
->
-> I still think automatic white balance should be separate from the rest, as
-> it currently is (V4L2_CID_AUTO_WHITE_BALANCE). If such presets aren't
-> available, the way the user would enable automatic white balance changes,
-> which is bad.
-
-Well we can just put in the spec that the control can be either a boolean or
-a menu control depending on if it has presets. I really believe that we should
-not make this 2 separate controls, it does not match from a user pov.
-
-There are 2 things which the user wants to control here:
-
-1) How the value of the white balance controls gets controlled, which is
-one of: a) auto b) select values from preset 1 - # c) manaul
-
-2) The white balance controls themselves (temperature, or color balances ...),
-but only if 1) is set to manual
-
-There is no reason to separate 1) in 2 separate controls, that will only serve
-to confuse the user.
-
-As for the theoretical automatic wb which takes some hints like the presets,
-AFAIK no such device exists and it is unlikely one will show up in the near
-future. IOW it is purely theoretical and thus not interesting.
+Regarding the kernellabs.com people[3] lobbying against your
+contribution: Don't give up! If all attempts of merging your work
+through the media subsystem are failing, try convincing some major
+distributions to include your work. This would make their arguments
+meaningless. On the long run, good code is likely to win over politics.
 
 Regards,
+Andreas
 
-Hans
+[1] http://www.spinics.net/lists/linux-media/msg34349.html
+[2] http://www.spinics.net/lists/linux-media/msg34352.html
+[3] http://www.kernellabs.com/blog/?page_id=6
+[4]
+http://code.google.com/p/vtuner/source/browse/vtunerc_proxyfe.c?repo=linux-driver#177
