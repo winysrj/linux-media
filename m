@@ -1,40 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:37028 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756143Ab1LOMBm (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:45611 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752910Ab1LAAPP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 07:01:42 -0500
-Received: by werm1 with SMTP id m1so70936wer.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 04:01:40 -0800 (PST)
+	Wed, 30 Nov 2011 19:15:15 -0500
+From: Sergio Aguirre <saaguirre@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-omap@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+	<sakari.ailus@iki.fi>, Sergio Aguirre <saaguirre@ti.com>
+Subject: [PATCH v2 01/11] TWL6030: Add mapping for auxiliary regs
+Date: Wed, 30 Nov 2011 18:14:50 -0600
+Message-ID: <1322698500-29924-2-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
+References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <4EE9DF50.20904@infradead.org>
-References: <1323941987-23428-1-git-send-email-javier.martin@vista-silicon.com>
-	<4EE9C7FA.8070607@infradead.org>
-	<CACKLOr1DLj_uc-NDQPNjXHcej2isE==d=_wUinXDDfJLgFiPKg@mail.gmail.com>
-	<4EE9DF50.20904@infradead.org>
-Date: Thu, 15 Dec 2011 13:01:40 +0100
-Message-ID: <CACKLOr0KG9hS0a=qdYHfjrZzse2etbhPmCPpUjXwi5TLSqP5SA@mail.gmail.com>
-Subject: Re: [PATCH 1/2] media: tvp5150 Fix default input selection.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> The mx2_camera needs some code to forward calls to S_INPUT/S_ROUTING to
-> tvp5150, in order to set the pipelines there.
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ drivers/mfd/twl-core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-This sounds like a sensible solution I will work on that soon.
-
-Regards.
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index bfbd660..e26b564 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -323,7 +323,7 @@ static struct twl_mapping twl6030_map[] = {
+ 	{ SUB_CHIP_ID0, TWL6030_BASEADD_ZERO },
+ 	{ SUB_CHIP_ID1, TWL6030_BASEADD_ZERO },
+ 
+-	{ SUB_CHIP_ID2, TWL6030_BASEADD_ZERO },
++	{ SUB_CHIP_ID1, TWL6030_BASEADD_AUX },
+ 	{ SUB_CHIP_ID2, TWL6030_BASEADD_ZERO },
+ 	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+ 	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.7.4
+
