@@ -1,55 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:59785 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752140Ab1LSLBf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Dec 2011 06:01:35 -0500
-Received: by wibhm6 with SMTP id hm6so890024wib.19
-        for <linux-media@vger.kernel.org>; Mon, 19 Dec 2011 03:01:34 -0800 (PST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42229 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754826Ab1LARYr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2011 12:24:47 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sergio Aguirre <saaguirre@ti.com>
+Subject: Re: [PATCH v2 02/11] mfd: twl6040: Fix wrong TWL6040_GPO3 bitfield value
+Date: Thu, 1 Dec 2011 18:24:53 +0100
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	sakari.ailus@iki.fi
+References: <1322698500-29924-1-git-send-email-saaguirre@ti.com> <1322698500-29924-3-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1322698500-29924-3-git-send-email-saaguirre@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <201112190119.08008.laurent.pinchart@ideasonboard.com>
-References: <CACKLOr1qSpJXjyptUF3OEWR2b7XNoRdMjiVWzZ9gtuanfgJZDQ@mail.gmail.com>
-	<201112190119.08008.laurent.pinchart@ideasonboard.com>
-Date: Mon, 19 Dec 2011 12:01:34 +0100
-Message-ID: <CACKLOr2zx_xcHS0059N0mAaZb2kiCj+xfyE1D5iDsZkNyvTwcw@mail.gmail.com>
-Subject: Re: Trying to figure out reasons for lost pictures in UVC driver.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112011824.54207.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 19 December 2011 01:19, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Javier,
->
-> On Thursday 15 December 2011 17:02:47 javier Martin wrote:
->> Hi,
->> we are testing a logitech Webcam M/N: V-U0012 in the UVC tree (commit
->> ef7728797039bb6a20f22cc2d96ef72d9338cba0).
->> It is configured at 25fps, VGA.
->>
->> We've observed that the following debugging message appears sometimes
->> "Frame complete (FID bit toggled).". Whenever this happens a v4l2
->> frame is lost (i.e. one sequence number has been skipped).
->>
->> Is this behavior expected? What could we do to avoid frame loss?
->
-> Could you check the frame intervals to see if a frame is really lost, or if
-> the driver erroneously reports frame loss ?
+Hi Sergio,
 
-Hi Laurent,
-sequence number in the v4l2 buffer returned is one step bigger than
-expected, however the timestamp difference with the previous buffer is
-40ms which is what it is expected at 25fps.
-So, sequence number indicates a buffer has been lost but timestamp does not.
+On Thursday 01 December 2011 01:14:51 Sergio Aguirre wrote:
+> The define should be the result of 1 << Bit number.
+> 
+> Bit number for GPOCTL.GPO3 field is 2, which results
+> in 0x4 value.
+> 
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> ---
+>  include/linux/mfd/twl6040.h |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/include/linux/mfd/twl6040.h b/include/linux/mfd/twl6040.h
+> index 2463c261..2a7ff16 100644
+> --- a/include/linux/mfd/twl6040.h
+> +++ b/include/linux/mfd/twl6040.h
+> @@ -142,7 +142,7 @@
+> 
+>  #define TWL6040_GPO1			0x01
+>  #define TWL6040_GPO2			0x02
+> -#define TWL6040_GPO3			0x03
+> +#define TWL6040_GPO3			0x04
+
+What about defining the fields as (1 << x) instead then ?
+
+> 
+>  /* ACCCTL (0x2D) fields */
 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Regards,
+
+Laurent Pinchart
