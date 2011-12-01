@@ -1,44 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61002 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:11129 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752507Ab1L3LiH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 06:38:07 -0500
-Message-ID: <4EFDA2D6.7000202@redhat.com>
-Date: Fri, 30 Dec 2011 12:39:02 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1753198Ab1LALsb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Dec 2011 06:48:31 -0500
+Message-ID: <4ED7698C.4070602@redhat.com>
+Date: Thu, 01 Dec 2011 09:48:28 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Subject: Re: [GIT PATCHES FOR 3.3] gspca patches and new jl2005bcd driver
-References: <4EFD8494.4050506@redhat.com> <20111230112411.3089e281@tele> <4EFD98E6.6010107@redhat.com> <20111230122608.7f08efe7@tele>
-In-Reply-To: <20111230122608.7f08efe7@tele>
+To: Hamad Kadmany <hkadmany@codeaurora.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: Support for multiple section feeds with same PIDs
+References: <001101ccae6d$9900b350$cb0219f0$@org> <000001ccaff1$cb1cc060$61564120$@org>
+In-Reply-To: <000001ccaff1$cb1cc060$61564120$@org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On 12/30/2011 12:26 PM, Jean-Francois Moine wrote:
-> On Fri, 30 Dec 2011 11:56:38 +0100
-> Hans de Goede<hdegoede@redhat.com>  wrote:
+On 01-12-2011 04:23, Hamad Kadmany wrote:
+> Hi,
 >
->> I took it as is from Theodore, I guess we should do a separate cleanup
->> patch on top to preserve the history / authorship. Since I'm busy testing
->> the new isoc bandwidth stuff today, could you perhaps do a cleanup patch for this?
+> Sorry to repeat the question, anyone has an idea on this? I appreciate your
+> feedback.
 >
-> Yes, but the first step is to remove this patch from the pull request, and only you may do it (it is only 3 git commands and an email - otherwise, it has no sense to add two empty lines in a patch and to remove them in an other one!).
+> Thank you
+> Hamad
+>
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org
+> [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Hamad Kadmany
+> Sent: Tuesday, November 29, 2011 10:05 AM
+> To: linux-media@vger.kernel.org
+> Subject: Support for multiple section feeds with same PIDs
+>
+> Hello
+>
+> Question on the current behavior of dvb_dmxdev_filter_start (dmxdev.c)
+>
+> In case of DMXDEV_TYPE_SEC, the code restricts of having multiple sections
+> feeds allocated (allocate_section_feed) with same PID. From my experience,
+> applications might request allocating several section feeds using same PID
+> but with different filters (for example, in DVB standard, SDT and BAT tables
+> have same PID).
+>
+> The current implementation only supports of having multiple filters on the
+> same section feed.
+>
+> Any special reason why it was implemented this way?
 
-Done.
+Eventually, you might be able to find some reason by digging into the patches
+that introduced such feature. If this went before 2.6.12-rc2, you'll need to
+take a look at the Linux history git trees or at the mercurial tree.
 
-I'll re-add it later, squashing the white-space fixes into the
-patch and adding a patch on top to fix:
--err versus pr_err
--PDEBUG used with D_ERR everywhere where most cases should have
-  a different level
--the missing pixfmt documentation
+In any case, if you need to extend it to support multiple sections, just
+propose a patch extending it, yet maintaining backward compatibility with the
+existing behavior.
 
 Regards,
+Mauro.
 
-Hans
+>
+> Thank you
+> Hamad
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
