@@ -1,80 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:57836 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753917Ab1LWJW1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Dec 2011 04:22:27 -0500
+Received: from smtp-68.nebula.fi ([83.145.220.68]:60799 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754740Ab1LAOez (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2011 09:34:55 -0500
+Date: Thu, 1 Dec 2011 16:34:51 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] omap3isp: video: Don't WARN() on unknown pixel formats
+Message-ID: <20111201143451.GJ29805@valkosipuli.localdomain>
+References: <1322480254-10461-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <201111300306.41892.laurent.pinchart@ideasonboard.com>
+ <4ED5EADA.502@iki.fi>
+ <201112010026.07592.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <010501ccc08c$1c7b7870$55726950$%szyprowski@samsung.com>
-References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
-	<1323871214-25435-5-git-send-email-ming.lei@canonical.com>
-	<010501ccc08c$1c7b7870$55726950$%szyprowski@samsung.com>
-Date: Fri, 23 Dec 2011 17:22:23 +0800
-Message-ID: <CACVXFVOqMmakPW-aAdp005RDLuV5oc6-JfjQHr-2bFRzZi2zDQ@mail.gmail.com>
-Subject: Re: [RFC PATCH v2 4/8] media: videobuf2: introduce VIDEOBUF2_PAGE memops
-From: Ming Lei <ming.lei@canonical.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, Pawel Osciak <p.osciak@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201112010026.07592.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 22, 2011 at 5:28 PM, Marek Szyprowski
-<m.szyprowski@samsung.com> wrote:
-> Hello,
->
-> On Wednesday, December 14, 2011 3:00 PM Ming Lei wrote:
->
->> DMA contig memory resource is very limited and precious, also
->> accessing to it from CPU is very slow on some platform.
->>
->> For some cases(such as the comming face detection driver), DMA Streaming
->> buffer is enough, so introduce VIDEOBUF2_PAGE to allocate continuous
->> physical memory but letting video device driver to handle DMA buffer mapping
->> and unmapping things.
->>
->> Signed-off-by: Ming Lei <ming.lei@canonical.com>
->
-> Could you elaborate a bit why do you think that DMA contig memory resource
-> is so limited? If dma_alloc_coherent fails because of the memory fragmentation,
-> the alloc_pages() call with order > 0 will also fail.
+Hi Laurent,
 
-For example, on ARM, there is very limited kernel virtual address space reserved
-for DMA coherent buffer mapping, the default size is about 2M if I
-don't remember
-mistakenly.
+On Thu, Dec 01, 2011 at 12:26:07AM +0100, Laurent Pinchart wrote:
+> On Wednesday 30 November 2011 09:35:38 Sakari Ailus wrote:
+> > Laurent Pinchart wrote:
+> > > On Monday 28 November 2011 17:01:12 Sakari Ailus wrote:
+> > >> On Mon, Nov 28, 2011 at 12:37:34PM +0100, Laurent Pinchart wrote:
+> > >>> When mapping from a V4L2 pixel format to a media bus format in the
+> > >>> VIDIOC_TRY_FMT and VIDIOC_S_FMT handlers, the requested format may be
+> > >>> unsupported by the driver. Return a hardcoded format instead of
+> > >>> WARN()ing in that case.
+> > >>> 
+> > >>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > >>> ---
+> > >>> 
+> > >>>  drivers/media/video/omap3isp/ispvideo.c |    8 ++++----
+> > >>>  1 files changed, 4 insertions(+), 4 deletions(-)
+> > >>> 
+> > >>> diff --git a/drivers/media/video/omap3isp/ispvideo.c
+> > >>> b/drivers/media/video/omap3isp/ispvideo.c index d100072..ffe7ce9 100644
+> > >>> --- a/drivers/media/video/omap3isp/ispvideo.c
+> > >>> +++ b/drivers/media/video/omap3isp/ispvideo.c
+> > >>> @@ -210,14 +210,14 @@ static void isp_video_pix_to_mbus(const struct
+> > >>> v4l2_pix_format *pix,
+> > >>> 
+> > >>>  	mbus->width = pix->width;
+> > >>>  	mbus->height = pix->height;
+> > >>> 
+> > >>> -	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
+> > >>> +	/* Skip the last format in the loop so that it will be selected if 
+> no
+> > >>> +	 * match is found.
+> > >>> +	 */
+> > >>> +	for (i = 0; i < ARRAY_SIZE(formats) - 1; ++i) {
+> > >>> 
+> > >>>  		if (formats[i].pixelformat == pix->pixelformat)
+> > >>>  		
+> > >>>  			break;
+> > >>>  	
+> > >>>  	}
+> > >>> 
+> > >>> -	if (WARN_ON(i == ARRAY_SIZE(formats)))
+> > >>> -		return;
+> > >>> -
+> > >>> 
+> > >>>  	mbus->code = formats[i].code;
+> > >>>  	mbus->colorspace = pix->colorspace;
+> > >>>  	mbus->field = pix->field;
+> > >> 
+> > >> In case of setting or trying an invalid format, instead of selecting a
+> > >> default format, shouldn't we leave the format unchanced --- the current
+> > >> setting is valid after all.
+> > > 
+> > > TRY/SET operations must succeed. The format we select when an invalid
+> > > format is requested isn't specified. We could keep the current format,
+> > > but wouldn't that be more confusing for applications ? The format they
+> > > would get in response to a TRY/SET operation would then potentially
+> > > depend on the previous SET operations.
+> > 
+> > I don't think a change to something that has nothing to do what was
+> > requested is better than not changing it. The application has requested
+> > a particular format; changing it to something else isn't useful for the
+> > application. And if the application would try more than invalid format
+> > in a row, they both would yield to the same default format.
+> > 
+> > I would personally not change it.
+> 
+> I can agree with you for S_FMT, but I have more doubts about TRY_FMT. Making 
+> TRY_FMT return the current format if the requested format is not supported 
+> seems confusing to me. And if we make TRY_FMT return a fixed format in that 
+> case, why not making S_FMT do the same ? :-)
 
->
-> I understand that there might be some speed issues with coherent (uncached)
-> userspace mappings, but I would solve it in completely different way. The interface
+I'd rather have it the other way around. :-)
 
-Also there is poor performance inside kernel space, see [1]
+Hans; what do you think? (Cc Hans.)
 
-> for both coherent/uncached and non-coherent/cached contig allocator should be the
-> same, so exchanging them is easy and will not require changes in the driver.
-> I'm planning to introduce some design changes in memory allocator api and introduce
-> prepare and finish callbacks in allocator ops. I hope to post the rfc after
-> Christmas. For your face detection driver using standard dma-contig allocator
-> shouldn't be a big issue.
->
-> Your current implementation also abuses the design and api of videobuf2 memory
-> allocators. If the allocator needs to return a custom structure to the driver
+> > What I can find in the spec is this:
+> > 
+> > "When the application calls the VIDIOC_S_FMT ioctl with a pointer to a
+> > v4l2_format structure the driver checks and adjusts the parameters
+> > against hardware abilities."
+> > 
+> > I wonder how other drivers behave.
+> 
+> uvcvideo returns -EINVAL, which I think should be fixed.
+> 
+> The sensor drivers I wrote return a fixed format (this isn't strictly 
+> S_FMT/TRY_FMT, but I think it's related).
 
-I think returning vaddr is enough.
+For the mbus format it's a little bit different: if the format is something
+else than what the user asked for, chances are high there's no use for it.
 
-> you should use cookie method. vaddr is intended to provide only a pointer to
-> kernel virtual mapping, but you pass a struct page * there.
+Cheers,
 
-No, __get_free_pages returns virtual address instead of 'struct page *'.
-
-
-thanks,
---
-Ming Lei
-
-[1], http://marc.info/?t=131198148500001&r=1&w=2
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
