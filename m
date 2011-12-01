@@ -1,127 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:64878 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751585Ab1LUWqw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Dec 2011 17:46:52 -0500
-Date: Wed, 21 Dec 2011 23:46:24 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 2/2] v4l2: add new pixel formats supported on dm365
-In-Reply-To: <201112212323.26971.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1112212338200.30646@axis700.grange>
-References: <1323951898-16330-1-git-send-email-manjunath.hadli@ti.com>
- <201112210102.09117.laurent.pinchart@ideasonboard.com>
- <E99FAA59F8D8D34D8A118DD37F7C8F75018915@DBDE01.ent.ti.com>
- <201112212323.26971.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:48860 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751622Ab1LALE6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Dec 2011 06:04:58 -0500
+Message-ID: <4ED75F53.30709@redhat.com>
+Date: Thu, 01 Dec 2011 09:04:51 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: HoP <jpetrous@gmail.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
+ of worrying about possible misusage?
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org>
+In-Reply-To: <4ED6C5B8.8040803@linuxtv.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 21 Dec 2011, Laurent Pinchart wrote:
+On 30-11-2011 22:09, Andreas Oberritter wrote:
+> On 30.11.2011 22:38, HoP wrote:
+>> Hi folks.
+>>
+>> I need to warn you that my mail is a bit little longer then I would like
+>> to be.But I'm not able to ask my question without some
+>> background information.
+>>
+>> On June 19th, I was sending the driver to the Linux-media
+>> mailing list. Original announcement is there:
+>>
+>> http://www.spinics.net/lists/linux-media/msg34240.html
+>>
+>> One would say that the code describes very well what it does = adds
+>> virtual DVB device. To be more clear on it I have even done some
+>> small picture:
+>>
+>> http://www.nessiedvb.org/wiki/doku.php?id=vtuner_bigpicture
+>>
+>> I was hoping to get any feedback regarding code implementation.
+>> It was my first code for the kernel and I felt very well that some
+>> part can be done better or even simpler.
+>>
+>> What really surprised me badly was that when I read all 54 responses
+>> I have counted only two real technical answers!!! All rest were about
+>> POLITICAL issues - code was NACKed w/o any technical discussion.
+>> Because of fear of possible abusing of driver.
+>>
+>> I didn't know that there existed very big movement against such
+>> code in dvb-core subsystem before.
+>>
+>> I have one big problem with it. I can even imagine that some "bad guys"
+>> could abuse virtual driver to use it for distribution close-source drivers
+>> in the binary blobs. But is it that - worrying about bad boys abusing -
+>> the sufficient reason for such aggressive NACK which I did? Then would
+>> be better to remove loadable module API fully from kernel. Is it the right way?
+>>
+>> Please confirm me that worrying about abusive act is enough to NACK
+>> particular driver. Then I may be definitely understand I'm doing something
+>> wrong and will stay (with such enemy driver) out of tree.
+>>
+>> I can't understand that because I see very similar drivers in kernel for ages
+>> (nbd, or even more similar is usbip) and seems they don't hamper to anybody.
+>>
+>> I would like to note that I don't want to start any flame-war, so very short
+>> answer would be enough for me.,
+>
+> Hello Honza,
+>
+> I still support the inclusion of your virtual DVB device driver, once
+> the technical issues[1] are solved (design clean interface based on
+> DVBv5 etc.). Mauro promised to consider it for inclusion then[2].
 
-> Hi Manju,
-> 
-> On Wednesday 21 December 2011 14:56:36 Hadli, Manjunath wrote:
-> > On Wed, Dec 21, 2011 at 05:32:08, Laurent Pinchart wrote:
-> > > On Friday 16 December 2011 14:42:48 Hadli, Manjunath wrote:
-> > > > On Thu, Dec 15, 2011 at 18:30:47, Laurent Pinchart wrote:
-> > > > > On Thursday 15 December 2011 13:24:58 Manjunath Hadli wrote:
-> > > > > > add new macro V4L2_PIX_FMT_SGRBG10ALAW8 to represent Bayer format
-> > > > > > frames compressed by A-LAW alogorithm.
-> > > > > > add V4L2_PIX_FMT_UV8 to represent storage of C (UV interleved)
-> > > > > > only.
-> > > > > > 
-> > > > > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> > > > > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > > > > ---
-> > > > > > 
-> > > > > >  include/linux/videodev2.h |    6 ++++++
-> > > > > >  1 files changed, 6 insertions(+), 0 deletions(-)
-> > > > > 
-> > > > > Could you please also document these formats in
-> > > > > Documentation/DocBook/media/v4l ?
-> > > > 
-> > > > I will. Sorry to have missed that out.
-> > > > 
-> > > > > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > > > > > index 4b752d5..969112d 100644
-> > > > > > --- a/include/linux/videodev2.h
-> > > > > > +++ b/include/linux/videodev2.h
-> > > > > > @@ -338,6 +338,9 @@ struct v4l2_pix_format {
-> > > > > > 
-> > > > > >  #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2') /*  8
-> > > > > >  YUV
-> > > > > > 
-> > > > > > 4:2:0 16x16 macroblocks */ #define V4L2_PIX_FMT_M420
-> > > > > > v4l2_fourcc('M', '4', '2', '0') /* 12  YUV 4:2:0 2 lines y, 1 line
-> > > > > > uv interleaved */
-> > > > > > 
-> > > > > > +/* Chrominance formats */
-> > > > > > +#define V4L2_PIX_FMT_UV8      v4l2_fourcc('U', 'V', '8', ' ') /* 
-> > > > > > 8 UV 4:4 */ +
-> > > > > > 
-> > > > > >  /* two planes -- one Y, one Cr + Cb interleaved  */
-> > > > > >  #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2') /* 12
-> > > > > >  Y/CbCr
-> > > > > > 
-> > > > > > 4:2:0  */ #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V', '2',
-> > > > > > '1') /* 12  Y/CrCb 4:2:0  */ @@ -366,6 +369,9 @@ struct
-> > > > > > v4l2_pix_format { #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R',
-> > > > > > 'G', '1', '2') /* 12 RGRG.. GBGB.. */ /* 10bit raw bayer DPCM
-> > > > > > compressed to 8 bits */ #define V4L2_PIX_FMT_SGRBG10DPCM8
-> > > > > > v4l2_fourcc('B', 'D', '1', '0')
-> > > > > > +	/* 10bit raw bayer a-law compressed to 8 bits */ #define
-> > > > > > +V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('A', 'L', 'W', '8')
-> > > > > > +
-> > > > > 
-> > > > > That's not very future-proof, how would you describe SGBRG10ALAW8
-> > > > > for instance ?
-> > > > > 
-> > > > > Maybe it's time to standardize FOURCCs for Bayer new formats. We
-> > > > > have 4 characters, we could start with 'B' to denote Bayer, followed
-> > > > > by one character for the order, one for the compression, and one for
-> > > > > the number of bits.
-> > > > 
-> > > > I agree.
-> > > > May be ('B', 'G', 'A', '8') is fine for the above?
-> > > 
-> > > We need to describe at last BGGR, GBRG, GRBG and RGGB. We could use 'B',
-> > > 'g', 'G' and 'R' respectively for the second character. The third
-> > > character would be 'A' for A-law and 'D' for DPCM, and the fourth
-> > > character could describe the bus width in bits from 0 to 15 with '0' -
-> > > '9', 'A' - 'F'. However, I suspect that we will need 16-bit wide busses
-> > > for raw Bayer at some point, and a 0 width is definitely not useful. We
-> > > could thus offset the width by some value.
-> > > 
-> > > This is just a preliminary idea, I'm open to suggestions.
-> > 
-> > I think it is a very good suggestion that we can go with.
-> > B : BGGR
-> > g : GBRG
-> > G : GRBG
-> > R : RGGB
-> > 
-> > and 0-F can signify 1-16.
-> 
-> Hans, Guennadi, Sakari, any opinion on that as well ?
+What I said on that time is that  a virtual driver to run at the OS on a
+VM machine (kvm or xen) that would export the DVB devices that are available
+at the OS at the local host or on a remote host running the spice client
+could be an interesting contribution, and would fit into kernelspace.
 
-Is there any risk of confusion, if we don't reserve the first character 
-for 'B'? I'm just trying to avoid mixed cases, I'm not a great fan of 
-those;-) What if we use the first two characters for the order like "GR", 
-"GB",... AFAICS, 'G' so far only also occurs in GREY and various RGB* / 
-BGR* / ... formats, which we wouldn't be confusing with. We could further 
-reduce confusion, if we use some other character for A-law ('L' or 'W'?)
+I'm not sure about such need nowadays, as very recent patches added on kvm
+are now allowing to use USB 2.0 video devices on it (I tested and used it
+a few days ago - it seems to be working at least with the devices I tested),
+and PCI passthrough is already there also. Yet, a DVB-optimized passthrough
+module there would likely perform better than just exporting the physical
+device to the VM.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+The driver, as proposed, is not really a driver, as it doesn't support any
+hardware. The kernel driver would be used to just copy data from one userspace
+application to the other. The same result could be obtained in userspace,
+by implementing a library. Such library could even use LD_PRELOAD to support
+binary only applications, like what libv4l does. In terms of performance,
+such library would probably perform better than a kernel driver, as there's
+no need to do context switching for each call, and no need to talk with a
+device (where kernel outperforms userspace). Also, depending on how such library
+is implemented, double buffering might be avoided.
+
+So, from architectural POV, this code should be written as an userspace library.
+BTW, alsa also came with the same results, years ago, as audio remote
+streaming is supported via userspace tools, like pulseaudio.
+
+> A quick view at your code indicates that this clean-up hasn't happened
+> yet, e.g. there are hacks to support DVB-S2 over DVBv3 which aren't
+> necessary anymore with v5.
+>
+> Regarding the kernellabs.com people[3] lobbying against your
+> contribution: Don't give up! If all attempts of merging your work
+> through the media subsystem are failing, try convincing some major
+> distributions to include your work. This would make their arguments
+> meaningless. On the long run, good code is likely to win over politics.
+>
+> Regards,
+> Andreas
+>
+> [1] http://www.spinics.net/lists/linux-media/msg34349.html
+> [2] http://www.spinics.net/lists/linux-media/msg34352.html
+
+> [3] http://www.kernellabs.com/blog/?page_id=6
+> [4]
+> http://code.google.com/p/vtuner/source/browse/vtunerc_proxyfe.c?repo=linux-driver#177
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
