@@ -1,73 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:37057 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754615Ab1LDXWX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Dec 2011 18:22:23 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37094 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753075Ab1LAAPQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Nov 2011 19:15:16 -0500
+From: Sergio Aguirre <saaguirre@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-omap@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+	<sakari.ailus@iki.fi>, Sergio Aguirre <saaguirre@ti.com>
+Subject: [PATCH v2 04/11] OMAP4: hwmod: Include CSI2A and CSIPHY1 memory sections
+Date: Wed, 30 Nov 2011 18:14:53 -0600
+Message-ID: <1322698500-29924-5-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
+References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <CAA7C2qjfWW8=kePZDO4nYR913RyuP-t+u8P9LV4mDh9bANr3=Q@mail.gmail.com>
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
-	<4ED6C5B8.8040803@linuxtv.org>
-	<4ED75F53.30709@redhat.com>
-	<CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
-	<20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
-	<4EDA4AB4.90303@linuxtv.org>
-	<CAA7C2qjfWW8=kePZDO4nYR913RyuP-t+u8P9LV4mDh9bANr3=Q@mail.gmail.com>
-Date: Mon, 5 Dec 2011 00:22:22 +0100
-Message-ID: <CAJbz7-15mzUNV7ZLSkAOg1Vb8briysitsR7xK94G+3-KT=ZXbA@mail.gmail.com>
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
- because of worrying about possible misusage?
-From: HoP <jpetrous@gmail.com>
-To: VDR User <user.vdr@gmail.com>
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi.
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   16 +++++++++++++---
+ 1 files changed, 13 insertions(+), 3 deletions(-)
 
-2011/12/3 VDR User <user.vdr@gmail.com>:
-> On Sat, Dec 3, 2011 at 8:13 AM, Andreas Oberritter <obi@linuxtv.org> wrote:
->> You could certainly build a library to reach a different goal. The goal
->> of vtuner is to access remote tuners with any existing program
->> implementing the DVB API.
->
-> So you could finally use VDR as a server/client setup using vtuner,
-> right? With full OSD, timer, etc? Yes, I'm aware that streamdev
-> exists. It was horrible when I tried it last (a long time ago) and I
-> understand it's gotten better. But it's not a suitable replacement for
-> a real server/client setup. It sounds like using vtuner, this would
-> finally be possible and since Klaus has no intention of ever
-> modernizing VDR into server/client (that I'm aware of), it's also the
-> only suitable option as well.
->
-> Or am I wrong about anything?  If not, I know several users who would
-> like to use this, myself included.
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 7695e5d..1b59e2f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -2623,8 +2623,18 @@ static struct omap_hwmod_ocp_if *omap44xx_iss_masters[] = {
+ 
+ static struct omap_hwmod_addr_space omap44xx_iss_addrs[] = {
+ 	{
+-		.pa_start	= 0x52000000,
+-		.pa_end		= 0x520000ff,
++		.pa_start	= OMAP44XX_ISS_TOP_BASE,
++		.pa_end		= OMAP44XX_ISS_TOP_END,
++		.flags		= ADDR_TYPE_RT
++	},
++	{
++		.pa_start	= OMAP44XX_ISS_CSI2_A_REGS1_BASE,
++		.pa_end		= OMAP44XX_ISS_CSI2_A_REGS1_END,
++		.flags		= ADDR_TYPE_RT
++	},
++	{
++		.pa_start	= OMAP44XX_ISS_CAMERARX_CORE1_BASE,
++		.pa_end		= OMAP44XX_ISS_CAMERARX_CORE1_END,
+ 		.flags		= ADDR_TYPE_RT
+ 	},
+ 	{ }
+@@ -5350,7 +5360,7 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	&omap44xx_ipu_c1_hwmod,
+ 
+ 	/* iss class */
+-/*	&omap44xx_iss_hwmod, */
++	&omap44xx_iss_hwmod,
+ 
+ 	/* iva class */
+ 	&omap44xx_iva_hwmod,
+-- 
+1.7.7.4
 
-Well, initial report was made on vdr-portal because of our hardware announce,
-but you can be sure the same is true if server is build on any linux hardware.
-Here is some note:
-http://www.vdr-portal.de/board18-vdr-hardware/board84-allgemein/106610-das-neue-netzwerk-client-der-f%C3%BCr-vdr-verwenden-k%C3%B6nnen/?highlight=vtuner
-
-Additional info you can find (or ask) on our forum:
-http://forum.nessiedvb.org/forum/viewforum.php?f=11
-
-Please note, that compilation of vtunerc kernel driver (or loopback, or pigback
-or whatever name the code should be used) is simple - no need for any
-kernel real patching is required. Code can be compiled outside of the
-kernel tree
-(of course kernel headers are still needed).
-
-Some useful hints regarding userland application daemons you
-can find in our wiki:
-http://wiki.nessiedvb.org/wiki/doku.php?id=vtuner_mode
-
-When you get vtunerc and vtunerd applications connected, try
-simple command line tuning (szap/tzap or czap) to check
-if it works correctly. Only if you get zapping working switch
-to vdr.
-
-Honza
