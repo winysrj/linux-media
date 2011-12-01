@@ -1,129 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41108 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752251Ab1LQNY6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Dec 2011 08:24:58 -0500
-Message-ID: <4EEC9822.3080308@redhat.com>
-Date: Sat, 17 Dec 2011 11:24:50 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:52338 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755280Ab1LARrh convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Dec 2011 12:47:37 -0500
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Manu Abraham <abraham.manu@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: v4 [PATCH 06/10] DVB: Use a unique delivery system identifier
- for DVBC_ANNEX_C
-References: <CAHFNz9+MM16waF0eLUKwFpX7fBistkb=9OgtXvo+ZOYkk67UQQ@mail.gmail.com> <4EE350BF.1090402@redhat.com> <CAHFNz9JUEBy5WPuGqKGWuTKYZ6D18GZh+4DEhhDu4+GBTV5R=w@mail.gmail.com> <4EE5FF58.8060409@redhat.com> <CAHFNz9K-5LCrqFvxFfJUaQX0sYRNgH26Q9eWgiMiWg4F3hGnmw@mail.gmail.com> <4EE60814.80706@redhat.com> <4EE67126.8080000@linuxtv.org>
-In-Reply-To: <4EE67126.8080000@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CANrkHUZb=ZtMcPyFXkktE0LztBzLcB7vmWPPgriTo7O0yeOPzw@mail.gmail.com>
+References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
+ <1322698500-29924-2-git-send-email-saaguirre@ti.com> <CANrkHUZb=ZtMcPyFXkktE0LztBzLcB7vmWPPgriTo7O0yeOPzw@mail.gmail.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Date: Thu, 1 Dec 2011 11:47:15 -0600
+Message-ID: <CAKnK67QKwBCGoQdBALqBjqxx4fNXz_6o3kz7O7y4xffew1c-QA@mail.gmail.com>
+Subject: Re: [PATCH v2 01/11] TWL6030: Add mapping for auxiliary regs
+To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 12-12-2011 19:24, Andreas Oberritter escreveu:
-> On 12.12.2011 14:56, Mauro Carvalho Chehab wrote:
->> On 12-12-2011 11:40, Manu Abraham wrote:
->>> On Mon, Dec 12, 2011 at 6:49 PM, Mauro Carvalho Chehab
+Hi Balaji,
+
+Thanks for the review.
+
+On Thu, Dec 1, 2011 at 9:58 AM, T Krishnamoorthy, Balaji
+<balajitk@ti.com> wrote:
+> On Thu, Dec 1, 2011 at 5:44 AM, Sergio Aguirre <saaguirre@ti.com> wrote:
+>> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+>> ---
+>>  drivers/mfd/twl-core.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
 >>
->>>> This also means that just doing an alias from FE_QAM and
->>>> SYS_DVBC_ANNEX_AC
->>>> to
->>>> SYS_DVBC_ANNEX_A may break something, as, for most devices,
->>>> SYS_DVBC_ANNEX_AC
->>>> really means both Annex A and C.
->>>
->>>
->>>
->>> With the current approach, the application can determine whether
->>> the hardware supports through the DELSYS enumeration.
->>>
->>> So, if you have a device that needs to support both ANNEX_A and
->>> ANNEX_C, it should be rather doing
->>>
->>> case DTV_ENUM_DELSYS:
->>>           buffer.data[0] = SYS_DVBC_ANNEX_A;
->>>           buffer.data[1] = SYS_DVBC_ANNEX_C;
->>>           break;
+>> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+>> index bfbd660..e26b564 100644
+>> --- a/drivers/mfd/twl-core.c
+>> +++ b/drivers/mfd/twl-core.c
+>> @@ -323,7 +323,7 @@ static struct twl_mapping twl6030_map[] = {
+>>        { SUB_CHIP_ID0, TWL6030_BASEADD_ZERO },
+>>        { SUB_CHIP_ID1, TWL6030_BASEADD_ZERO },
 >>
->> Sure, but we'll need a logic to handle queries for SYS_DVBC_ANNEX_AC
->> anyway, if any of the existing DVB-C drivers is currently prepared to
->> support both.
+>> -       { SUB_CHIP_ID2, TWL6030_BASEADD_ZERO },
+>> +       { SUB_CHIP_ID1, TWL6030_BASEADD_AUX },
+>
+> Instead you can use TWL6030_MODULE_ID1, with base address as
+> zero for all registers in auxiliaries register map.
+
+Ok.
+
+I'm actually thinking about this, and in the process on reviewing the
+need to access those registers.
+
+I should probably be using the regulator framework to control VAUX3 instead...
+
+Thanks for your inputs.
+
+Regards,
+Sergio
+
+>
+>>        { SUB_CHIP_ID2, TWL6030_BASEADD_ZERO },
+>>        { SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+>>        { SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+>> --
+>> 1.7.7.4
 >>
->> I'm not concerned with drx-k. The support for both standards are for
->> kernel 3.3. So, no backward compatibility is needed here.
->>
->> While there is no explicit option, the code for stv0297, stv0367,
->> tda10021 and tda10023 drivers are not clear if they support both
->> (maybe roll-off might be auto-detected?) or just SYS_DVBC_ANNEX_A.
-> 
-> tda10021: Driver sets roll-off to 0.15. No auto-detection.
-> tda10023: Driver sets roll-off to 0.18. No auto-detection.
-> 
-> In general, auto-detection seems unlikely. Do you know any chip that
-> does it? Unless you do, we shouldn't expect it to exist. stv0297 doesn't
-> even detect IQ inversion.
-> 
->> That's said, the difference between a 0.15 and a 0.13 rolloff is not big.
->> I won't doubt that a demod set to 0.15 rolloff would be capable of working
->> (non-optimized) with a 0.13 rolloff.
->>
->> What I'm saing is that, if any of the existing drivers currently works
->> with both Annex A and Annex C, we'll need something equivalent to:
->>
->> if (delsys == SYS_DVBC_ANNEX_AC) {
->>     int ret = try_annex_a();
->>     if (ret < 0)
->>         ret = try_annex_c();
->> }
-> 
-> I'd prefer treating ANNEX_AC just like ANNEX_A. It won't break anything,
-> because register writes for ANNEX_A will be the same. i.e. applications
-> using SYS_DVBC_ANNEX_AC will still get the same result as before.
-> 
-> What may change for a user: An updated application may allow him to
-> select between A and C, if the frontend advertises both. In this case,
-> both A and C are supposed to work, depending on the location of the
-> user. Someone who successfully used his tuner in Japan before, and who's
-> frontend doesn't advertise C, will still be able to choose A and thus
-> use the same register settings as before.
-
-
-As all existing DVB-C drivers currently upstream seem to be assuming a
-Annex A, I don't have any troubles on doing that.
-
-
-> 
->>>> I didn't look inside the drivers for stv0297, stv0367, tda10021 and
->>>> tda10023.
->>>> I suspect that some will need an additional code to change the roll-off,
->>>> based on
->>>> the delivery system.
->>>
->>>
->>>
->>> Of course, yes this would need to make the change across multiple
->>> drivers.
->>>
->>> We can fix the drivers, that's no issue at all, as it is a small change.
->>
->> Indeed, it is a small change. Tuners are trivial to change, but, at the
->> demod, we need to discover if roll-off is auto-detected somehow, or if
->> they require manual settings, in order to fix the demod drivers.
-> 
-> tda10021: Register 0x3d & 0x01: 0 -> 0.15; 1 -> 0.13
-> tda10023: Register 0x3d & 0x03: 2 -> 0.15; 3 -> 0.13
-
-Thanks for the info!
-
-I'll prepare a patchset with Manu's patch 06 on it, plus the required
-changes at the DocBook specs and the fixes for the drx-k based drivers
-and for tda10021/tda10023. I should be sending the patches to the ML
-later today.
-
-> 
-> Regards,
-> Andreas
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
