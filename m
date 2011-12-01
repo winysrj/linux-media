@@ -1,300 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37283 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752607Ab1L3PJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:31 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9V46009155
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:31 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 69/94] [media] staging/as102: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:08:06 -0200
-Message-Id: <1325257711-12274-70-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:63775 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752826Ab1LAKVB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2011 05:21:01 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LVI00LLPSQX8B40@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 01 Dec 2011 10:20:57 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LVI00M2CSQWG5@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 01 Dec 2011 10:20:57 +0000 (GMT)
+Date: Thu, 01 Dec 2011 11:20:53 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC v2 4/4] v4l: Update subdev drivers to handle framesamples
+ parameter
+In-reply-to: <1322734853-8759-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, laurent.pinchart@ideasonboard.com,
+	g.liakhovetski@gmx.de, sakari.ailus@iki.fi,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1322734853-8759-5-git-send-email-s.nawrocki@samsung.com>
+References: <1322734853-8759-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Update the sub-device drivers having a devnode enabled so they properly
+handle the new framesamples field of struct v4l2_mbus_framefmt.
+These drivers don't support compressed (entropy encoded) formats so the
+framesamples field is simply initialized to 0.
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+There is a few other drivers that expose a devnode (mt9p031, mt9t001,
+mt9v032) but they already implicitly initialize the new data structure
+field to 0, so they don't need to be touched.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/staging/media/as102/as102_fe.c    |   78 ++++++++++++++--------------
- drivers/staging/media/as102/as10x_cmd.c   |    4 +-
- drivers/staging/media/as102/as10x_types.h |    4 +-
- 3 files changed, 43 insertions(+), 43 deletions(-)
+ drivers/media/video/noon010pc30.c         |    6 ++++--
+ drivers/media/video/omap3isp/ispccdc.c    |    1 +
+ drivers/media/video/omap3isp/ispccp2.c    |    1 +
+ drivers/media/video/omap3isp/ispcsi2.c    |    1 +
+ drivers/media/video/omap3isp/isppreview.c |    1 +
+ drivers/media/video/omap3isp/ispresizer.c |    1 +
+ drivers/media/video/s5k6aa.c              |    1 +
+ 7 files changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/as102/as102_fe.c b/drivers/staging/media/as102/as102_fe.c
-index b0c5128..d6472ea 100644
---- a/drivers/staging/media/as102/as102_fe.c
-+++ b/drivers/staging/media/as102/as102_fe.c
-@@ -23,15 +23,15 @@
- #include "as10x_types.h"
- #include "as10x_cmd.h"
- 
--static void as10x_fe_copy_tps_parameters(struct dvb_frontend_parameters *dst,
-+static void as10x_fe_copy_tps_parameters(struct dtv_frontend_properties *dst,
- 					 struct as10x_tps *src);
- 
- static void as102_fe_copy_tune_parameters(struct as10x_tune_args *dst,
--					  struct dvb_frontend_parameters *src);
-+					  struct dtv_frontend_properties *src);
- 
--static int as102_fe_set_frontend(struct dvb_frontend *fe,
--				 struct dvb_frontend_parameters *params)
-+static int as102_fe_set_frontend(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	int ret = 0;
- 	struct as102_dev_t *dev;
- 	struct as10x_tune_args tune_args = { 0 };
-@@ -45,7 +45,7 @@ static int as102_fe_set_frontend(struct dvb_frontend *fe,
- 	if (mutex_lock_interruptible(&dev->bus_adap.lock))
- 		return -EBUSY;
- 
--	as102_fe_copy_tune_parameters(&tune_args, params);
-+	as102_fe_copy_tune_parameters(&tune_args, p);
- 
- 	/* send abilis command: SET_TUNE */
- 	ret =  as10x_cmd_set_tune(&dev->bus_adap, &tune_args);
-@@ -59,7 +59,8 @@ static int as102_fe_set_frontend(struct dvb_frontend *fe,
- }
- 
- static int as102_fe_get_frontend(struct dvb_frontend *fe,
--				 struct dvb_frontend_parameters *p) {
-+				 struct dtv_frontend_properties *p)
-+{
- 	int ret = 0;
- 	struct as102_dev_t *dev;
- 	struct as10x_tps tps = { 0 };
-@@ -278,6 +279,7 @@ static int as102_fe_ts_bus_ctrl(struct dvb_frontend *fe, int acquire)
- }
- 
- static struct dvb_frontend_ops as102_fe_ops = {
-+	.delsys = { SYS_DVBT },
- 	.info = {
- 		.name			= "Unknown AS102 device",
- 		.type			= FE_OFDM,
-@@ -296,8 +298,8 @@ static struct dvb_frontend_ops as102_fe_ops = {
- 			| FE_CAN_MUTE_TS
- 	},
- 
--	.set_frontend_legacy	= as102_fe_set_frontend,
--	.get_frontend_legacy	= as102_fe_get_frontend,
-+	.set_frontend		= as102_fe_set_frontend,
-+	.get_frontend		= as102_fe_get_frontend,
- 	.get_tune_settings	= as102_fe_get_tune_settings,
- 
- 	.read_status		= as102_fe_read_status,
-@@ -344,38 +346,36 @@ int as102_dvb_register_fe(struct as102_dev_t *as102_dev,
- 	return errno;
- }
- 
--static void as10x_fe_copy_tps_parameters(struct dvb_frontend_parameters *dst,
-+static void as10x_fe_copy_tps_parameters(struct dtv_frontend_properties *fe_tps,
- 					 struct as10x_tps *as10x_tps)
- {
- 
--	struct dvb_ofdm_parameters *fe_tps = &dst->u.ofdm;
+diff --git a/drivers/media/video/noon010pc30.c b/drivers/media/video/noon010pc30.c
+index 50838bf..ad94ffe 100644
+--- a/drivers/media/video/noon010pc30.c
++++ b/drivers/media/video/noon010pc30.c
+@@ -523,9 +523,10 @@ static int noon010_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	mf->height = info->curr_win->height;
+ 	mf->code = info->curr_fmt->code;
+ 	mf->colorspace = info->curr_fmt->colorspace;
+-	mf->field = V4L2_FIELD_NONE;
 -
- 	/* extract consteallation */
--	switch (as10x_tps->constellation) {
-+	switch (as10x_tps->modulation) {
- 	case CONST_QPSK:
--		fe_tps->constellation = QPSK;
-+		fe_tps->modulation = QPSK;
- 		break;
- 	case CONST_QAM16:
--		fe_tps->constellation = QAM_16;
-+		fe_tps->modulation = QAM_16;
- 		break;
- 	case CONST_QAM64:
--		fe_tps->constellation = QAM_64;
-+		fe_tps->modulation = QAM_64;
- 		break;
- 	}
- 
- 	/* extract hierarchy */
- 	switch (as10x_tps->hierarchy) {
- 	case HIER_NONE:
--		fe_tps->hierarchy_information = HIERARCHY_NONE;
-+		fe_tps->hierarchy = HIERARCHY_NONE;
- 		break;
- 	case HIER_ALPHA_1:
--		fe_tps->hierarchy_information = HIERARCHY_1;
-+		fe_tps->hierarchy = HIERARCHY_1;
- 		break;
- 	case HIER_ALPHA_2:
--		fe_tps->hierarchy_information = HIERARCHY_2;
-+		fe_tps->hierarchy = HIERARCHY_2;
- 		break;
- 	case HIER_ALPHA_4:
--		fe_tps->hierarchy_information = HIERARCHY_4;
-+		fe_tps->hierarchy = HIERARCHY_4;
- 		break;
- 	}
- 
-@@ -473,7 +473,7 @@ static uint8_t as102_fe_get_code_rate(fe_code_rate_t arg)
+ 	mutex_unlock(&info->lock);
++
++	mf->field = V4L2_FIELD_NONE;
++	mf->framesamples = 0;
+ 	return 0;
  }
  
- static void as102_fe_copy_tune_parameters(struct as10x_tune_args *tune_args,
--			  struct dvb_frontend_parameters *params)
-+			  struct dtv_frontend_properties *params)
- {
+@@ -555,6 +556,7 @@ static int noon010_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	nf = noon010_try_fmt(sd, &fmt->format);
+ 	noon010_try_frame_size(&fmt->format, &size);
+ 	fmt->format.colorspace = V4L2_COLORSPACE_JPEG;
++	fmt->format.framesamples = 0;
  
- 	/* set frequency */
-@@ -482,21 +482,21 @@ static void as102_fe_copy_tune_parameters(struct as10x_tune_args *tune_args,
- 	/* fix interleaving_mode */
- 	tune_args->interleaving_mode = INTLV_NATIVE;
- 
--	switch (params->u.ofdm.bandwidth) {
--	case BANDWIDTH_8_MHZ:
-+	switch (params->bandwidth_hz) {
-+	case 8000000:
- 		tune_args->bandwidth = BW_8_MHZ;
- 		break;
--	case BANDWIDTH_7_MHZ:
-+	case 7000000:
- 		tune_args->bandwidth = BW_7_MHZ;
- 		break;
--	case BANDWIDTH_6_MHZ:
-+	case 6000000:
- 		tune_args->bandwidth = BW_6_MHZ;
- 		break;
- 	default:
- 		tune_args->bandwidth = BW_8_MHZ;
- 	}
- 
--	switch (params->u.ofdm.guard_interval) {
-+	switch (params->guard_interval) {
- 	case GUARD_INTERVAL_1_32:
- 		tune_args->guard_interval = GUARD_INT_1_32;
- 		break;
-@@ -515,22 +515,22 @@ static void as102_fe_copy_tune_parameters(struct as10x_tune_args *tune_args,
- 		break;
- 	}
- 
--	switch (params->u.ofdm.constellation) {
-+	switch (params->modulation) {
- 	case QPSK:
--		tune_args->constellation = CONST_QPSK;
-+		tune_args->modulation = CONST_QPSK;
- 		break;
- 	case QAM_16:
--		tune_args->constellation = CONST_QAM16;
-+		tune_args->modulation = CONST_QAM16;
- 		break;
- 	case QAM_64:
--		tune_args->constellation = CONST_QAM64;
-+		tune_args->modulation = CONST_QAM64;
- 		break;
- 	default:
--		tune_args->constellation = CONST_UNKNOWN;
-+		tune_args->modulation = CONST_UNKNOWN;
- 		break;
- 	}
- 
--	switch (params->u.ofdm.transmission_mode) {
-+	switch (params->transmission_mode) {
- 	case TRANSMISSION_MODE_2K:
- 		tune_args->transmission_mode = TRANS_MODE_2K;
- 		break;
-@@ -541,7 +541,7 @@ static void as102_fe_copy_tune_parameters(struct as10x_tune_args *tune_args,
- 		tune_args->transmission_mode = TRANS_MODE_UNKNOWN;
- 	}
- 
--	switch (params->u.ofdm.hierarchy_information) {
-+	switch (params->hierarchy) {
- 	case HIERARCHY_NONE:
- 		tune_args->hierarchy = HIER_NONE;
- 		break;
-@@ -569,19 +569,19 @@ static void as102_fe_copy_tune_parameters(struct as10x_tune_args *tune_args,
- 	 * if HP/LP are both set to FEC_NONE, HP will be selected.
+ 	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+ 		if (fh) {
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index b0b0fa5..3dff028 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -1863,6 +1863,7 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
  	 */
- 	if ((tune_args->hierarchy != HIER_NONE) &&
--		       ((params->u.ofdm.code_rate_LP == FEC_NONE) ||
--			(params->u.ofdm.code_rate_HP == FEC_NONE))) {
-+		       ((params->code_rate_LP == FEC_NONE) ||
-+			(params->code_rate_HP == FEC_NONE))) {
- 
--		if (params->u.ofdm.code_rate_LP == FEC_NONE) {
-+		if (params->code_rate_LP == FEC_NONE) {
- 			tune_args->hier_select = HIER_HIGH_PRIORITY;
- 			tune_args->code_rate =
--			   as102_fe_get_code_rate(params->u.ofdm.code_rate_HP);
-+			   as102_fe_get_code_rate(params->code_rate_HP);
- 		}
- 
--		if (params->u.ofdm.code_rate_HP == FEC_NONE) {
-+		if (params->code_rate_HP == FEC_NONE) {
- 			tune_args->hier_select = HIER_LOW_PRIORITY;
- 			tune_args->code_rate =
--			   as102_fe_get_code_rate(params->u.ofdm.code_rate_LP);
-+			   as102_fe_get_code_rate(params->code_rate_LP);
- 		}
- 
- 		dprintk(debug, "\thierarchy: 0x%02x  "
-@@ -594,6 +594,6 @@ static void as102_fe_copy_tune_parameters(struct as10x_tune_args *tune_args,
- 			tune_args->code_rate);
- 	} else {
- 		tune_args->code_rate =
--			as102_fe_get_code_rate(params->u.ofdm.code_rate_HP);
-+			as102_fe_get_code_rate(params->code_rate_HP);
- 	}
+ 	fmt->colorspace = V4L2_COLORSPACE_SRGB;
+ 	fmt->field = V4L2_FIELD_NONE;
++	fmt->framesamples = 0;
  }
-diff --git a/drivers/staging/media/as102/as10x_cmd.c b/drivers/staging/media/as102/as10x_cmd.c
-index 0387bb8..262bb94 100644
---- a/drivers/staging/media/as102/as10x_cmd.c
-+++ b/drivers/staging/media/as102/as10x_cmd.c
-@@ -141,7 +141,7 @@ int as10x_cmd_set_tune(struct as10x_bus_adapter_t *adap,
- 	preq->body.set_tune.req.args.freq = cpu_to_le32(ptune->freq);
- 	preq->body.set_tune.req.args.bandwidth = ptune->bandwidth;
- 	preq->body.set_tune.req.args.hier_select = ptune->hier_select;
--	preq->body.set_tune.req.args.constellation = ptune->constellation;
-+	preq->body.set_tune.req.args.modulation = ptune->modulation;
- 	preq->body.set_tune.req.args.hierarchy = ptune->hierarchy;
- 	preq->body.set_tune.req.args.interleaving_mode  =
- 		ptune->interleaving_mode;
-@@ -279,7 +279,7 @@ int as10x_cmd_get_tps(struct as10x_bus_adapter_t *adap, struct as10x_tps *ptps)
- 		goto out;
  
- 	/* Response OK -> get response data */
--	ptps->constellation = prsp->body.get_tps.rsp.tps.constellation;
-+	ptps->modulation = prsp->body.get_tps.rsp.tps.modulation;
- 	ptps->hierarchy = prsp->body.get_tps.rsp.tps.hierarchy;
- 	ptps->interleaving_mode = prsp->body.get_tps.rsp.tps.interleaving_mode;
- 	ptps->code_rate_HP = prsp->body.get_tps.rsp.tps.code_rate_HP;
-diff --git a/drivers/staging/media/as102/as10x_types.h b/drivers/staging/media/as102/as10x_types.h
-index c40c812..fde8140 100644
---- a/drivers/staging/media/as102/as10x_types.h
-+++ b/drivers/staging/media/as102/as10x_types.h
-@@ -112,7 +112,7 @@
- #define CFG_MODE_AUTO	2
+ /*
+diff --git a/drivers/media/video/omap3isp/ispccp2.c b/drivers/media/video/omap3isp/ispccp2.c
+index 904ca8c..fd9dba6 100644
+--- a/drivers/media/video/omap3isp/ispccp2.c
++++ b/drivers/media/video/omap3isp/ispccp2.c
+@@ -711,6 +711,7 @@ static void ccp2_try_format(struct isp_ccp2_device *ccp2,
  
- struct as10x_tps {
--	uint8_t constellation;
-+	uint8_t modulation;
- 	uint8_t hierarchy;
- 	uint8_t interleaving_mode;
- 	uint8_t code_rate_HP;
-@@ -132,7 +132,7 @@ struct as10x_tune_args {
- 	/* hierarchy selection */
- 	uint8_t hier_select;
- 	/* constellation */
--	uint8_t constellation;
-+	uint8_t modulation;
- 	/* hierarchy */
- 	uint8_t hierarchy;
- 	/* interleaving mode */
+ 	fmt->field = V4L2_FIELD_NONE;
+ 	fmt->colorspace = V4L2_COLORSPACE_SRGB;
++	fmt->framesamples = 0;
+ }
+ 
+ /*
+diff --git a/drivers/media/video/omap3isp/ispcsi2.c b/drivers/media/video/omap3isp/ispcsi2.c
+index 0c5f1cb..6b973f5 100644
+--- a/drivers/media/video/omap3isp/ispcsi2.c
++++ b/drivers/media/video/omap3isp/ispcsi2.c
+@@ -888,6 +888,7 @@ csi2_try_format(struct isp_csi2_device *csi2, struct v4l2_subdev_fh *fh,
+ 	/* RGB, non-interlaced */
+ 	fmt->colorspace = V4L2_COLORSPACE_SRGB;
+ 	fmt->field = V4L2_FIELD_NONE;
++	fmt->framesamples = 0;
+ }
+ 
+ /*
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index ccb876f..6f4bdf0 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -1720,6 +1720,7 @@ static void preview_try_format(struct isp_prev_device *prev,
+ 	}
+ 
+ 	fmt->field = V4L2_FIELD_NONE;
++	fmt->framesamples = 0;
+ }
+ 
+ /*
+diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
+index 50e593b..923ba1b 100644
+--- a/drivers/media/video/omap3isp/ispresizer.c
++++ b/drivers/media/video/omap3isp/ispresizer.c
+@@ -1363,6 +1363,7 @@ static void resizer_try_format(struct isp_res_device *res,
+ 
+ 	fmt->colorspace = V4L2_COLORSPACE_JPEG;
+ 	fmt->field = V4L2_FIELD_NONE;
++	fmt->framesamples = 0;
+ }
+ 
+ /*
+diff --git a/drivers/media/video/s5k6aa.c b/drivers/media/video/s5k6aa.c
+index 86ee35b..efc5ba3 100644
+--- a/drivers/media/video/s5k6aa.c
++++ b/drivers/media/video/s5k6aa.c
+@@ -1087,6 +1087,7 @@ static void s5k6aa_try_format(struct s5k6aa *s5k6aa,
+ 	mf->colorspace	= s5k6aa_formats[index].colorspace;
+ 	mf->code	= s5k6aa_formats[index].code;
+ 	mf->field	= V4L2_FIELD_NONE;
++	mf->framesamples = 0;
+ }
+ 
+ static int s5k6aa_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
 -- 
-1.7.8.352.g876a6
+1.7.7.2
 
