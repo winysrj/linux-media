@@ -1,137 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:41380 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750883Ab1L2F5c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Dec 2011 00:57:32 -0500
-Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LWY00HORB6WZ2B0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 29 Dec 2011 14:57:15 +0900 (KST)
-Received: from NORIVERFULK04 ([165.213.219.118])
- by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0LWY00IH5B7FFB60@mmp1.samsung.com>
- for linux-media@vger.kernel.org; Thu, 29 Dec 2011 14:57:15 +0900 (KST)
-From: "HeungJun, Kim" <riverful.kim@samsung.com>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	kyungmin.park@samsung.com
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
- <1325053428-2626-5-git-send-email-riverful.kim@samsung.com>
- <201112281458.29992.laurent.pinchart@ideasonboard.com>
-In-reply-to: <201112281458.29992.laurent.pinchart@ideasonboard.com>
-Subject: RE: [RFC PATCH 4/4] v4l: Add V4L2_CID_ANTISHAKE button control
-Date: Thu, 29 Dec 2011 14:57:15 +0900
-Message-id: <001501ccc5ee$b7617e90$26247bb0$%kim@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from mailout-de.gmx.net ([213.165.64.22]:54537 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753646Ab1LANLy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2011 08:11:54 -0500
+Content-Type: text/plain; charset="utf-8"
+Date: Thu, 01 Dec 2011 14:11:49 +0100
+From: "Barts Builder" <pe-builder@gmx.de>
+Message-ID: <20111201131149.231660@gmx.net>
+MIME-Version: 1.0
+Subject: DVB-T Muxes Germany / Berlin outdated, please update...
+To: linux-media@vger.kernel.org
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, 
+Problem:
+The Muxes from 'Network by Location' of tvheadend are outdated for Germany / Berlin.
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
-> Sent: Wednesday, December 28, 2011 10:58 PM
-> To: HeungJun, Kim
-> Cc: linux-media@vger.kernel.org; mchehab@redhat.com; hverkuil@xs4all.nl;
-> sakari.ailus@iki.fi; s.nawrocki@samsung.com; kyungmin.park@samsung.com
-> Subject: Re: [RFC PATCH 4/4] v4l: Add V4L2_CID_ANTISHAKE button control
-> 
-> Hi,
-> 
-> On Wednesday 28 December 2011 07:23:48 HeungJun, Kim wrote:
-> > It adds the new CID for setting Anti-shake. This CID is provided as
-> > button type. This can commands only if the camera turn on/off this
-> > function.
-> 
-> Shouldn't it be a boolean control ?
-It's also similar case with WDR. Yes, for now, I've never seen this function
-needs more modes or settings. On status of turning on, the image can be
-compensated shaking and blurring.
+tvheadend bugtracker answer:
+Please report outdated mux information the the linux-media mailing list. Tvheadend is taking the list from the dvb-apps initial tuning files as the basis for the list of dvb networks.
 
-> 
-> > Signed-off-by: HeungJun, Kim <riverful.kim@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > ---
-> >  Documentation/DocBook/media/v4l/controls.xml |   11 +++++++++++
-> >  drivers/media/video/v4l2-ctrls.c             |    2 ++
-> >  include/linux/videodev2.h                    |    1 +
-> >  3 files changed, 14 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/Documentation/DocBook/media/v4l/controls.xml
-> > b/Documentation/DocBook/media/v4l/controls.xml index bed6c66..73ff05c
-> > 100644
-> > --- a/Documentation/DocBook/media/v4l/controls.xml
-> > +++ b/Documentation/DocBook/media/v4l/controls.xml
-> > @@ -2970,6 +2970,17 @@ it one step further. This is a write-only
-> > control.</entry> </row>
-> >
-> >  	  <row>
-> > +	    <entry spanname="id"><constant>V4L2_CID_ANTISHAKE</constant></entry>
-> > +	    <entry>button</entry>
-> > +	  </row>
-> > +	  <row>
-> > +	    <entry spanname="descr">Anti-Shake. It makes
-> > +	    the image be more stabilized from the image's shakeness.
-> > +	    This function can be provided according to the capability
-> > +	    of the hardware(sensor or AP's multimedia block).</entry>
-> 
-> Isn't this usually called image (or video) stabilization ? What stabilization
-> techniques does this control cover ?
-> 
-> > +	  </row>
-> > +
-> > +	  <row>
-> >  	    <entry
-> > spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry>
-> > <entry>boolean</entry>
-> >  	  </row><row><entry spanname="descr">Prevent video from being acquired
-> > diff --git a/drivers/media/video/v4l2-ctrls.c
-> > b/drivers/media/video/v4l2-ctrls.c index 66110bc..05ff6bb 100644
-> > --- a/drivers/media/video/v4l2-ctrls.c
-> > +++ b/drivers/media/video/v4l2-ctrls.c
-> > @@ -599,6 +599,7 @@ const char *v4l2_ctrl_get_name(u32 id)
-> >  	case V4L2_CID_PRESET_WHITE_BALANCE:	return "White Balance, Preset";
-> >  	case V4L2_CID_SCENEMODE:		return "Scenemode";
-> >  	case V4L2_CID_WDR:			return "Wide Dynamic Range";
-> > +	case V4L2_CID_ANTISHAKE:		return "Antishake";
-> >
-> >  	/* FM Radio Modulator control */
-> >  	/* Keep the order of the 'case's the same as in videodev2.h! */
-> > @@ -689,6 +690,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
-> > v4l2_ctrl_type *type, case V4L2_CID_PAN_RESET:
-> >  	case V4L2_CID_TILT_RESET:
-> >  	case V4L2_CID_WDR:
-> > +	case V4L2_CID_ANTISHAKE:
-> >  	case V4L2_CID_FLASH_STROBE:
-> >  	case V4L2_CID_FLASH_STROBE_STOP:
-> >  		*type = V4L2_CTRL_TYPE_BUTTON;
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index f85ad6c..ddd775f 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -1647,6 +1647,7 @@ enum v4l2_scenemode {
-> >  };
-> >
-> >  #define V4L2_CID_WDR
-(V4L2_CID_CAMERA_CLASS_BASE+21)
-> > +#define V4L2_CID_ANTISHAKE			(V4L2_CID_CAMERA_CLASS_BASE+22)
-> >
-> >  /* FM Modulator class control IDs */
-> >  #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Freqency:QAM:MHz:k-mode:MuxID
+506000:16:8:8:773
+522000:16:8:8:258
+570000:16:8:8:514
+618000:64:?:?:775
+658000:16:8:8:769
+706000:64:8:8:772
+754000:16:8:8:774
 
+w_scan version 20101001 (compiled for DVB API 5.2) scan result 37 services (Ubuntu 11.04) Germany / Berlin
+-----------------------------------------------------------------------------------------
+Das Erste;ARD:522000:I999B8C23D0M16T8G8Y0:T:27500:1401:1402=deu,1403=mis:1404:0:14:8468:258:0
+rbb Berlin;ARD:522000:I999B8C23D0M16T8G8Y0:T:27500:1201:1202=ger:1204:0:12:8468:258:0
+rbb Brandenburg;ARD:522000:I999B8C23D0M16T8G8Y0:T:27500:1201:1202=ger:1504:0:11:8468:258:0
+Phoenix;ARD:522000:I999B8C23D0M16T8G8Y0:T:27500:1301:1302=ger:1304:0:13:8468:258:0
+EinsExtra;ARD:522000:I999B8C23D0M16T8G8Y0:T:27500:1501:1502=ger:1404:0:15:8468:258:0
+SAT.1;ProSiebenSat.1:658000:I999B8C23D0M16T8G8Y0:T:27500:385:386=deu:391:0:16408:8468:769:0
+ProSieben;ProSiebenSat.1:658000:I999B8C23D0M16T8G8Y0:T:27500:305:306=deu:311:0:16403:8468:769:0
+kabel eins;ProSiebenSat.1:658000:I999B8C23D0M16T8G8Y0:T:27500:161:162=deu:167:0:16394:8468:769:0
+N24;ProSiebenSat.1:658000:I999B8C23D0M16T8G8Y0:T:27500:225:226=deu:231:0:16398:8468:769:0
+WDR Köln;ARD:706000:I999B8C23D0M16T8G8Y0:T:27500:4193:4194=deu:4199:0:262:8468:772:0
+Südwest BW/RP;ARD:706000:I999B8C23D0M16T8G8Y0:T:27500:3601:3602=deu:3607:0:225:8468:772:0
+HSE24;MEDIA BROADCAST:706000:I999B8C23D0M16T8G8Y0:T:27500:49:50=deu:55:0:16387:8468:772:0
+TELE 5;MEDIA BROADCAST:706000:I999B8C23D0M16T8G8Y0:T:27500:465:466=deu:471:0:16413:8468:772:0
+Eurosport;Media Broadcast:754000:I999B8C23D0M16T8G8Y0:T:27500:577:578=ger:583:0:16420:8468:774:0
+TV.Berlin;Media Broadcast:754000:I999B8C23D0M16T8G8Y0:T:27500:3121:3122=ger:3127:0:16579:8468:774:0
+imusic TV;Media Broadcast:754000:I999B8C23D0M16T8G8Y0:T:27500:129:130=deu:0:0:16392:8468:774:0
+sixx;ProSiebenSat.1:754000:I999B8C23D0M16T8G8Y0:T:27500:273:274=deu:279:0:16401:8468:774:0
+Bayerisches FS;ARD:618000:I999B8C23D0M64T8G8Y0:T:27500:545:546=deu:551:0:34:8468:775:0
+n-tv;RTL World:618000:I999B8C23D0M64T8G8Y0:T:27500:257:258=ger:263:0:16400:8468:775:0
+QVC;MEDIA BROADCAST:618000:I999B8C23D0M64T8G8Y0:T:27500:321:322=ger:327:0:16404:8468:775:0
+Channel 21/Euronews;MEDIA BROADCAST:618000:I999B8C23D0M64T8G8Y0:T:27500:593:594=deu,595=eng,596=fra:599:0:16421:8468:775:0
+Bibel TV;MEDIA BROADCAST:618000:I999B8C23D0M64T8G8Y0:T:27500:673:674=ger:679:0:16426:8468:775:0
+DAS VIERTE;BetaDigital:618000:I999B8C23D0M64T8G8Y0:T:27500:737:738=deu:743:0:16430:8468:775:0
+sunshine live;BetaDigital:618000:I999B8C23D0M64T8G8Y0:T:27500:0:274=deu:0:0:24593:8468:775:0
+ERF Radio;BetaDigital:618000:I999B8C23D0M64T8G8Y0:T:27500:0:290=deu:0:0:24594:8468:775:0
+Radio Horeb;Eurociel:618000:I999B8C23D0M64T8G8Y0:T:27500:0:306=ger:0:0:24595:8468:775:0
+the wave - relaxing radio;MEDIA BROADCAST:618000:I999B8C23D0M64T8G8Y0:T:27500:0:610=DEU:0:0:24614:8468:775:0
+104.6 RTL;MEDIA BROADCAST:618000:I999B8C23D0M64T8G8Y0:T:27500:0:2082=DEU:0:0:26498:8468:775:0
+Radio Paloma;MEDIA BROADCAST:618000:I999B8C23D0M64T8G8Y0:T:27500:0:2162=DEU:0:0:26503:8468:775:0
+Spreeradio;MEDIA BROADCAST:618000:I999B8C23D0M64T8G8Y0:T:27500:0:2210=DEU:0:0:26506:8468:775:0
+NDR FERNSEHEN;ARD:682000:I999B8C23D0M16T8G8Y0:T:27500:4881:4882=ger:4884:0:129:8468:257:0
+MDR Sachsen;ARD:682000:I999B8C23D0M16T8G8Y0:T:27500:4897:4898=ger:4900:0:97:8468:257:0
+arte;ARD:682000:I999B8C23D0M16T8G8Y0:T:27500:4913:4914=deu,4915=fra:4916:0:2:8468:257:0
+ZDF;ZDFmobil:570000:I999B8C23D0M16T8G4Y0:T:27500:545:546=deu,547=mis:551:0:514:8468:514:0
+3sat;ZDFmobil:570000:I999B8C23D0M16T8G4Y0:T:27500:561:562=deu,563=mis:567:0:515:8468:514:0
+neo/KI.KA;ZDFmobil:570000:I999B8C23D0M16T8G4Y0:T:27500:593:594=deu:599:0:517:8468:514:0
+ZDFinfo;ZDFmobil:570000:I999B8C23D0M16T8G4Y0:T:27500:577:578=deu:551:0:516:8468:514:0
+-- 
+Empfehlen Sie GMX DSL Ihren Freunden und Bekannten und wir
+belohnen Sie mit bis zu 50,- Euro! https://freundschaftswerbung.gmx.de
+-- 
+Empfehlen Sie GMX DSL Ihren Freunden und Bekannten und wir
+belohnen Sie mit bis zu 50,- Euro! https://freundschaftswerbung.gmx.de
