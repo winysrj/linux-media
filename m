@@ -1,44 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43672 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933327Ab1LFMeh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 07:34:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [RFC/PATCH 0/5] v4l: New camera controls
-Date: Tue, 6 Dec 2011 13:34:45 +0100
-Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi,
-	hverkuil@xs4all.nl, riverful.kim@samsung.com,
-	s.nawrocki@samsung.com
-References: <1323011776-15967-1-git-send-email-snjw23@gmail.com>
-In-Reply-To: <1323011776-15967-1-git-send-email-snjw23@gmail.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:46265 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755789Ab1LATBb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2011 14:01:31 -0500
+Received: by iage36 with SMTP id e36so2879935iag.19
+        for <linux-media@vger.kernel.org>; Thu, 01 Dec 2011 11:01:31 -0800 (PST)
+Message-ID: <4ED7CF04.8050906@gmail.com>
+Date: Thu, 01 Dec 2011 14:01:24 -0500
+From: damateem <damateem4@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: linux-media list <linux-media@vger.kernel.org>
+Subject: Re: Debug output
+References: <4ED6CE53.7010806@gmail.com>
+In-Reply-To: <4ED6CE53.7010806@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201112061334.45936.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Ok, if I set debug as follows
 
-On Sunday 04 December 2011 16:16:11 Sylwester Nawrocki wrote:
-> Hi All,
-> 
-> I put some effort in preparing a documentation for a couple of new controls
-> in the camera control class. It's a preeliminary work, it's mainly just
-> documentation. There is yet no patches for any driver using these controls.
-> I just wanted to get some possible feedback on them, if this sort of stuff
-> is welcome and what might need to be done differently.
+vfd->debug =V4L2_DEBUG_IOCTL | V4L2_DEBUG_IOCTL_ARG;
 
-Thanks for the patches.
+I can see the debug trace in dmesg, but this doesn't seem like the
+correct way to set the flags.
 
-Regarding patches 3/5, 4/5 and 5/5, we should perhaps try to brainstorm this a 
-bit. There's more to exposure setting than just those controls, maybe it's 
-time to think about a proper exposure API. We could start by gathering 
-requirements on the list, and maybe have an IRC meeting if needed.
+What is the typical method of setting these debug flags?
 
--- 
-Regards,
+Is this the best place to ask these type of questions?
 
-Laurent Pinchart
+Thanks,
+David
+
+
+On 11/30/2011 7:46 PM, damateem wrote:
+> There are a fair number of debug print statements in the V4L2 code. How
+> do I turn those on?
+>
+> For instance, I'd like the following code to print
+>
+> if ((vfd->debug & V4L2_DEBUG_IOCTL) &&
+>                 !(vfd->debug & V4L2_DEBUG_IOCTL_ARG)) {
+>         v4l_print_ioctl(vfd->name, cmd);
+>         printk(KERN_CONT "\n");
+>     }
+>
+> so I can trace the IOCTL calls.
+>
+> Thanks,
+> David
