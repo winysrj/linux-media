@@ -1,113 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28306 "EHLO mx1.redhat.com"
+Received: from ffm.saftware.de ([83.141.3.46]:36866 "EHLO ffm.saftware.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753920Ab1L0BJq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:46 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19jqx015714
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:45 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 21/91] [media] dib8000: Remove the old DVBv3 struct from it and add delsys
-Date: Mon, 26 Dec 2011 23:08:09 -0200
-Message-Id: <1324948159-23709-22-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-21-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S1755172Ab1LAWzN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Dec 2011 17:55:13 -0500
+Message-ID: <4ED805CB.5020302@linuxtv.org>
+Date: Thu, 01 Dec 2011 23:55:07 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: HoP <jpetrous@gmail.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
+ of worrying about possible misusage?
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <4ED7BBA3.5020002@redhat.com> <CAJbz7-1_Nb8d427bOMzCDbRcvwQ3QjD=2KhdPQS_h_jaYY5J3w@mail.gmail.com> <4ED7E5D7.8070909@redhat.com>
+In-Reply-To: <4ED7E5D7.8070909@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver only uses the DVBv5 struct. All it needs is to remove
-the non-used params var, and to add the ISDB-T to the delivery
-systems.
+On 01.12.2011 21:38, Mauro Carvalho Chehab wrote:
+> I fail to see where do you need to duplicate dvb-core. An userspace
+> LD_PRELOAD handler that would do:
+> 
+> int socket;
+> 
+> int dvb_ioctl(int fd, unsigned long int request, ...)
+> {
+>         void *arg;
+>         va_list ap;
+>  
+>         va_start(ap, request);
+>         arg = va_arg(ap, void *);
+>         va_end(ap);
+> 
+>     send_net_ioctl_packet(socket, request, arg);
+> }
+> 
+> Is probably all you need to send _any_ ioctl's to a remote machine
+> (plus client's machine that would decode the ioctl packet and send
+> the ioctl to the actual driver).
+> 
+> Of course, you'll need hooks for all syscalls used (likely open, close,
+> ioctl, read, poll).
+> 
+> So, there's not much duplication, even if, for whatever reason, you
+> might need to hook some specific ioctls in order to optimize the
+> network performance.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/dib8000.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+Mauro, we've already had that discussion last time. In order to
+intercept ioctls of a device, the device needs to exist to begin with,
+right? That's where vtuner comes in: It creates the virtual device.
 
-diff --git a/drivers/media/dvb/frontends/dib8000.c b/drivers/media/dvb/frontends/dib8000.c
-index 9860062..115c099 100644
---- a/drivers/media/dvb/frontends/dib8000.c
-+++ b/drivers/media/dvb/frontends/dib8000.c
-@@ -2810,7 +2810,7 @@ int dib8000_set_tune_state(struct dvb_frontend *fe, enum frontend_tune_state tun
- }
- EXPORT_SYMBOL(dib8000_set_tune_state);
- 
--static int dib8000_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *fep)
-+static int dib8000_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *c)
- {
- 	struct dib8000_state *state = fe->demodulator_priv;
- 	u16 i, val = 0;
-@@ -2824,7 +2824,7 @@ static int dib8000_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
- 		if (stat&FE_HAS_SYNC) {
- 			dprintk("TMCC lock on the slave%i", index_frontend);
- 			/* synchronize the cache with the other frontends */
--			state->fe[index_frontend]->ops.get_frontend_legacy(state->fe[index_frontend], fep);
-+			state->fe[index_frontend]->ops.get_frontend(state->fe[index_frontend], c);
- 			for (sub_index_frontend = 0; (sub_index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[sub_index_frontend] != NULL); sub_index_frontend++) {
- 				if (sub_index_frontend != index_frontend) {
- 					state->fe[sub_index_frontend]->dtv_property_cache.isdbt_sb_mode = state->fe[index_frontend]->dtv_property_cache.isdbt_sb_mode;
-@@ -2956,7 +2956,7 @@ static int dib8000_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
- 	return 0;
- }
- 
--static int dib8000_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *fep)
-+static int dib8000_set_frontend(struct dvb_frontend *fe)
- {
- 	struct dib8000_state *state = fe->demodulator_priv;
- 	u8 nbr_pending, exit_condition, index_frontend;
-@@ -3088,7 +3088,7 @@ static int dib8000_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
- 
- 		dprintk("tune success on frontend%i", index_frontend_success);
- 
--		dib8000_get_frontend(fe, fep);
-+		dib8000_get_frontend(fe, &state->fe[0]->dtv_property_cache);
- 	}
- 
- 	for (index_frontend = 0, ret = 0; (ret >= 0) && (index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[index_frontend] != NULL); index_frontend++)
-@@ -3461,6 +3461,7 @@ int dib8000_pid_filter(struct dvb_frontend *fe, u8 id, u16 pid, u8 onoff)
- EXPORT_SYMBOL(dib8000_pid_filter);
- 
- static const struct dvb_frontend_ops dib8000_ops = {
-+	.delsys = { SYS_ISDBT },
- 	.info = {
- 		 .name = "DiBcom 8000 ISDB-T",
- 		 .type = FE_OFDM,
-@@ -3479,9 +3480,9 @@ static const struct dvb_frontend_ops dib8000_ops = {
- 	.init = dib8000_wakeup,
- 	.sleep = dib8000_sleep,
- 
--	.set_frontend_legacy = dib8000_set_frontend,
-+	.set_frontend = dib8000_set_frontend,
- 	.get_tune_settings = dib8000_fe_get_tune_settings,
--	.get_frontend_legacy = dib8000_get_frontend,
-+	.get_frontend = dib8000_get_frontend,
- 
- 	.read_status = dib8000_read_status,
- 	.read_ber = dib8000_read_ber,
--- 
-1.7.8.352.g876a6
+For that reason your suggested approach using LD_PRELOAD won't work.
 
+Besides that, suggesting LD_PRELOAD for something other than a hack
+can't be taken seriously.
+
+I think you didn't even understand what vtuner does, after all the
+discussion that took place.
+
+>>>> Of course
+>>>> I can be wrong, I'm no big kernel hacker. So please show me the
+>>>> way for it. BTW, even if you can find the way, then data copying
+>>>> from userspace to the kernel and back is also necessery.
+>>>
+>>> See libv4l, at v4l2-utils.git (at linuxtv.org).
+>>>
+>>>> I really
+>>>> don't see any advantage of you solution.
+>>>
+>>> And I can't see any advantage on yours ;) Putting something that belongs
+>>> to userspace into kernelspace just because it is easier to re-use the
+>>> existing code inside the kernel is not a good argument.
+>>
+>> It is only your POV that it should be in userspace.
+>>
+>> Creating additional code which not only enlarge code size by 2
+>> but I think by 10 is really not good idea.  And it get no advantage
+>> only disadvantages.
+>>
+>>>
+>>> Don't get me wrong but if you want to submit a code to be merged
+>>> on any existing software (being open source or not), you should be
+>>> prepared to defend your code and justify the need for it to the
+>>> other developers.
+>>
+>> Sure. I was prepared for technical disscussion, but was fully suprised
+>> that it was not happend (ok, to be correct, few guys are exception, like
+>> Andreas and few others. I really appreciate it).
+>>
+>> So, my question was still not answered: "Can be driver NACKed only
+>> because of worrying about possible misuse?"
+> 
+> To answer your question: your driver were nacked because of several
+> reasons:
+> it is not a driver for an unsupported hardware,
+
+It's not a driver for supported hardware either. You named it before:
+It's not a driver in your definition at all. It's a way to remotely
+access digital TV tuners over a network.
+
+> you failed to convince
+> people
+> why this can't be implemented on userspace,
+
+Wrong. You failed to convince people why this must be implemented in
+userspace. Even Michael Krufky, who's "only" against merging it, likes
+the idea, because it's useful.
+
+Just because something can be implemented in userspace doesn't mean that
+it's technically superior.
+
+> the driver adds hooks at
+> kernelspace
+> that would open internal API's that several developers don't agree on
+> exposing
+> at userspace, as would allow non GPL license compatible drivers to re-use
+> their work in a way they are against.
+
+What's left is your unreasonable GPL blah blah. So the answer to Honza's
+question is: Yes, Mauro is nacking the driver because he's worrying
+about possible misuse.
+
+Regards,
+Andreas
