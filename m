@@ -1,177 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33277 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751185Ab1LPFxM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Dec 2011 00:53:12 -0500
-Date: Thu, 15 Dec 2011 22:53:11 -0700 (MST)
-From: Paul Walmsley <paul@pwsan.com>
-To: b-cousson@ti.com
-cc: Ming Lei <ming.lei@canonical.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v2 1/8] omap4: introduce fdif(face detect module)
- hwmod
-In-Reply-To: <1323871214-25435-2-git-send-email-ming.lei@canonical.com>
-Message-ID: <alpine.DEB.2.00.1112152252260.12660@utopia.booyaka.com>
-References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com> <1323871214-25435-2-git-send-email-ming.lei@canonical.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:43434 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755746Ab1LARlv convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Dec 2011 12:41:51 -0500
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-247848974-1324014791=:12660"
+In-Reply-To: <20111201161407.GK29805@valkosipuli.localdomain>
+References: <1322698500-29924-1-git-send-email-saaguirre@ti.com> <20111201161407.GK29805@valkosipuli.localdomain>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Date: Thu, 1 Dec 2011 11:41:29 -0600
+Message-ID: <CAKnK67RiuuFDutRT-BWGOhCy8aQtfk=RGRdqdt6kGg63qeYyew@mail.gmail.com>
+Subject: Re: [PATCH v2 00/11] v4l2: OMAP4 ISS driver + Sensor + Board support
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi Sakari,
 
---155748971-247848974-1324014791=:12660
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+On Thu, Dec 1, 2011 at 10:14 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Sergio,
+>
+> Thanks for the patchset!!
 
-Hi Beno=EEt
+And thanks for your attention :)
 
-On Wed, 14 Dec 2011, Ming Lei wrote:
+>
+> On Wed, Nov 30, 2011 at 06:14:49PM -0600, Sergio Aguirre wrote:
+>> Hi everyone,
+>>
+>> This is the second version of the OMAP4 ISS driver,
+>> now ported to the Media Controller framework AND supporting
+>> videobuf2 framework.
+>>
+>> This patchset should apply cleanly on top of v3.2-rc3 kernel tag.
+>>
+>> This driver attempts to provide an fully open source solution to
+>> control the OMAP4 Imaging SubSystem (a.k.a. ISS).
+>>
+>> Starts with just CSI2-A interface support, and pretends to be
+>> ready for expansion to add support to the many ISS block modules
+>> as possible.
+>>
+>> Please see newly added documentation for more details:
+>>
+>> Documentation/video4linux/omap4_camera.txt
+>
+> I propose s/omap4_camera/omap4iss/, according to the path name in the
+> drivers/media/video directory.
 
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   81 ++++++++++++++++++++++=
-++++++
->  1 files changed, 81 insertions(+), 0 deletions(-)
+Makes sense. Will fix.
 
-any comments on this patch?  I'd like to queue it if it looks good to you.
+>
+>> Any comments/complaints are welcome. :)
+>>
+>> Changes since v1:
+>> - Simplification of auxclk handling in board files. (Pointed out by: Roger Quadros)
+>> - Cleanup of Camera support enablement for 4430sdp & panda. (Pointed out by: Roger Quadros)
+>> - Use of HWMOD declaration for assisted platform_device creation. (Pointed out by: Felipe Balbi)
+>> - Videobuf2 migration (Removal of custom iss_queue buffer handling driver)
+>
+> I'm happy to see it's using videobuf2!
 
-- Paul
+Yeah, I'll definitely need it for multi-planar buffer handling for
+NV12 buffer capturing.
 
->=20
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-o=
-map2/omap_hwmod_44xx_data.c
-> index 6cf21ee..30db754 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -53,6 +53,7 @@ static struct omap_hwmod omap44xx_dmm_hwmod;
->  static struct omap_hwmod omap44xx_dsp_hwmod;
->  static struct omap_hwmod omap44xx_dss_hwmod;
->  static struct omap_hwmod omap44xx_emif_fw_hwmod;
-> +static struct omap_hwmod omap44xx_fdif_hwmod;
->  static struct omap_hwmod omap44xx_hsi_hwmod;
->  static struct omap_hwmod omap44xx_ipu_hwmod;
->  static struct omap_hwmod omap44xx_iss_hwmod;
-> @@ -354,6 +355,14 @@ static struct omap_hwmod_ocp_if omap44xx_dma_system_=
-_l3_main_2 =3D {
->  =09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
->  };
-> =20
-> +/* fdif -> l3_main_2 */
-> +static struct omap_hwmod_ocp_if omap44xx_fdif__l3_main_2 =3D {
-> +=09.master=09=09=3D &omap44xx_fdif_hwmod,
-> +=09.slave=09=09=3D &omap44xx_l3_main_2_hwmod,
-> +=09.clk=09=09=3D "l3_div_ck",
-> +=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->  /* hsi -> l3_main_2 */
->  static struct omap_hwmod_ocp_if omap44xx_hsi__l3_main_2 =3D {
->  =09.master=09=09=3D &omap44xx_hsi_hwmod,
-> @@ -5444,6 +5453,75 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod =
-=3D {
->  =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_wd_timer3_slaves),
->  };
-> =20
-> +/* 'fdif' class */
-> +static struct omap_hwmod_class_sysconfig omap44xx_fdif_sysc =3D {
-> +=09.rev_offs=09=3D 0x0000,
-> +=09.sysc_offs=09=3D 0x0010,
-> +=09.sysc_flags=09=3D (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
-> +=09=09=09   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
-> +=09.idlemodes=09=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-> +=09=09=09   MSTANDBY_FORCE | MSTANDBY_NO |
-> +=09=09=09   MSTANDBY_SMART),
-> +=09.sysc_fields=09=3D &omap_hwmod_sysc_type2,
-> +};
-> +
-> +static struct omap_hwmod_class omap44xx_fdif_hwmod_class =3D {
-> +=09.name=09=3D "fdif",
-> +=09.sysc=09=3D &omap44xx_fdif_sysc,
-> +};
-> +
-> +/*fdif*/
-> +static struct omap_hwmod_addr_space omap44xx_fdif_addrs[] =3D {
-> +=09{
-> +=09=09.pa_start=09=3D 0x4a10a000,
-> +=09=09.pa_end=09=09=3D 0x4a10afff,
-> +=09=09.flags=09=09=3D ADDR_TYPE_RT
-> +=09},
-> +=09{ }
-> +};
-> +
-> +/* l4_cfg -> fdif */
-> +static struct omap_hwmod_ocp_if omap44xx_l4_cfg__fdif =3D {
-> +=09.master=09=09=3D &omap44xx_l4_cfg_hwmod,
-> +=09.slave=09=09=3D &omap44xx_fdif_hwmod,
-> +=09.clk=09=09=3D "l4_div_ck",
-> +=09.addr=09=09=3D omap44xx_fdif_addrs,
-> +=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* fdif slave ports */
-> +static struct omap_hwmod_ocp_if *omap44xx_fdif_slaves[] =3D {
-> +=09&omap44xx_l4_cfg__fdif,
-> +};
-> +static struct omap_hwmod_irq_info omap44xx_fdif_irqs[] =3D {
-> +=09{ .irq =3D 69 + OMAP44XX_IRQ_GIC_START },
-> +=09{ .irq =3D -1 }
-> +};
-> +
-> +/* fdif master ports */
-> +static struct omap_hwmod_ocp_if *omap44xx_fdif_masters[] =3D {
-> +=09&omap44xx_fdif__l3_main_2,
-> +};
-> +
-> +static struct omap_hwmod omap44xx_fdif_hwmod =3D {
-> +=09.name=09=09=3D "fdif",
-> +=09.class=09=09=3D &omap44xx_fdif_hwmod_class,
-> +=09.clkdm_name=09=3D "iss_clkdm",
-> +=09.mpu_irqs=09=3D omap44xx_fdif_irqs,
-> +=09.main_clk=09=3D "fdif_fck",
-> +=09.prcm =3D {
-> +=09=09.omap4 =3D {
-> +=09=09=09.clkctrl_offs =3D OMAP4_CM_CAM_FDIF_CLKCTRL_OFFSET,
-> +=09=09=09.context_offs =3D OMAP4_RM_CAM_FDIF_CONTEXT_OFFSET,
-> +=09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
-> +=09=09},
-> +=09},
-> +=09.slaves=09=09=3D omap44xx_fdif_slaves,
-> +=09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_fdif_slaves),
-> +=09.masters=09=3D omap44xx_fdif_masters,
-> +=09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_fdif_masters),
-> +};
-> +
->  static __initdata struct omap_hwmod *omap44xx_hwmods[] =3D {
-> =20
->  =09/* dmm class */
-> @@ -5593,6 +5671,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmod=
-s[] =3D {
->  =09&omap44xx_wd_timer2_hwmod,
->  =09&omap44xx_wd_timer3_hwmod,
-> =20
-> +=09/* fdif class */
-> +=09&omap44xx_fdif_hwmod,
-> +
->  =09NULL,
->  };
-> =20
-> --=20
-> 1.7.5.4
->=20
+Resizer can color convert from YUV422->YUV420 NV12 now, and expects 2 pointers
+(1 for Y, and 1 for UV 2x2 sampled) to be programmed in HW.
+
+>
+> I have no other comments quite yet. :-)
+
+Ok, let me know if you find something eye-popping ugly in there. I'll
+be happy to fix it. :)
+
+Thanks and Regards,
+Sergio
+
+>
+> Cheers,
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
-
-
-- Paul
---155748971-247848974-1324014791=:12660--
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     jabber/XMPP/Gmail: sailus@retiisi.org.uk
