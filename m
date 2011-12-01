@@ -1,133 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41106 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750783Ab1LIKNh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 05:13:37 -0500
-Date: Fri, 9 Dec 2011 11:13:32 +0100
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, shawn.guo@linaro.org,
-	richard.zhao@linaro.org, fabio.estevam@freescale.com,
-	kernel@pengutronix.de, r.schwebel@pengutronix.de
-Subject: Re: [PATCH v3 1/2] MX2: Add platform definitions for eMMa-PrP device.
-Message-ID: <20111209101332.GE27267@pengutronix.de>
-References: <1322061227-6631-1-git-send-email-javier.martin@vista-silicon.com>
- <1322061227-6631-2-git-send-email-javier.martin@vista-silicon.com>
- <4EE0B478.8080205@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53876 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754051Ab1LAR0p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2011 12:26:45 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sergio Aguirre <saaguirre@ti.com>
+Subject: Re: [PATCH v2 00/11] v4l2: OMAP4 ISS driver + Sensor + Board support
+Date: Thu, 1 Dec 2011 18:26:51 +0100
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	sakari.ailus@iki.fi
+References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4EE0B478.8080205@redhat.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112011826.51587.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 08, 2011 at 10:58:32AM -0200, Mauro Carvalho Chehab wrote:
-> On 23-11-2011 13:13, Javier Martin wrote:
-> >eMMa-PrP device included in Freescale i.MX2 chips can also
-> >be used separately to process memory buffers.
-> 
-> This patch is just the arch glue to the driver, so it should be applied via the
-> media tree, and likely as patch 2, in order to avoid breaking git bisect.
-> 
-> Yet, I'd like to have the mach-imx maintainer's ack on this.
+Hi Sergio,
 
-Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
+On Thursday 01 December 2011 01:14:49 Sergio Aguirre wrote:
+> Hi everyone,
+> 
+> This is the second version of the OMAP4 ISS driver,
+> now ported to the Media Controller framework AND supporting
+> videobuf2 framework.
 
-Sascha
+Thanks a lot for working on this.
 
+> This patchset should apply cleanly on top of v3.2-rc3 kernel tag.
 > 
-> Regards,
-> Mauro.
+> This driver attempts to provide an fully open source solution to
+> control the OMAP4 Imaging SubSystem (a.k.a. ISS).
 > 
-> >
-> >Changes since v2:
-> >- Define imx_add_mx2_emmaprp function which also registers device,
-> >not only alloc.
-> >- Change definition of emma_clk.
-> >- Minor fixes.
-> >
-> >Signed-off-by: Javier Martin<javier.martin@vista-silicon.com>
-> >---
-> >  arch/arm/mach-imx/clock-imx27.c                 |    2 +-
-> >  arch/arm/mach-imx/devices-imx27.h               |    2 ++
-> >  arch/arm/plat-mxc/devices/platform-mx2-camera.c |   18 ++++++++++++++++++
-> >  arch/arm/plat-mxc/include/mach/devices-common.h |    2 ++
-> >  4 files changed, 23 insertions(+), 1 deletions(-)
-> >
-> >diff --git a/arch/arm/mach-imx/clock-imx27.c b/arch/arm/mach-imx/clock-imx27.c
-> >index 88fe00a..dc2d7a5 100644
-> >--- a/arch/arm/mach-imx/clock-imx27.c
-> >+++ b/arch/arm/mach-imx/clock-imx27.c
-> >@@ -661,7 +661,7 @@ static struct clk_lookup lookups[] = {
-> >  	_REGISTER_CLOCK(NULL, "dma", dma_clk)
-> >  	_REGISTER_CLOCK(NULL, "rtic", rtic_clk)
-> >  	_REGISTER_CLOCK(NULL, "brom", brom_clk)
-> >-	_REGISTER_CLOCK(NULL, "emma", emma_clk)
-> >+	_REGISTER_CLOCK("m2m-emmaprp.0", NULL, emma_clk)
-> >  	_REGISTER_CLOCK(NULL, "slcdc", slcdc_clk)
-> >  	_REGISTER_CLOCK("imx27-fec.0", NULL, fec_clk)
-> >  	_REGISTER_CLOCK(NULL, "emi", emi_clk)
-> >diff --git a/arch/arm/mach-imx/devices-imx27.h b/arch/arm/mach-imx/devices-imx27.h
-> >index 2f727d7..28537a5 100644
-> >--- a/arch/arm/mach-imx/devices-imx27.h
-> >+++ b/arch/arm/mach-imx/devices-imx27.h
-> >@@ -50,6 +50,8 @@ extern const struct imx_imx_uart_1irq_data imx27_imx_uart_data[];
-> >  extern const struct imx_mx2_camera_data imx27_mx2_camera_data;
-> >  #define imx27_add_mx2_camera(pdata)	\
-> >  	imx_add_mx2_camera(&imx27_mx2_camera_data, pdata)
-> >+#define imx27_add_mx2_emmaprp(pdata)	\
-> >+	imx_add_mx2_emmaprp(&imx27_mx2_camera_data)
-> >
-> >  extern const struct imx_mxc_ehci_data imx27_mxc_ehci_otg_data;
-> >  #define imx27_add_mxc_ehci_otg(pdata)	\
-> >diff --git a/arch/arm/plat-mxc/devices/platform-mx2-camera.c b/arch/arm/plat-mxc/devices/platform-mx2-camera.c
-> >index b3f4828..11eace9 100644
-> >--- a/arch/arm/plat-mxc/devices/platform-mx2-camera.c
-> >+++ b/arch/arm/plat-mxc/devices/platform-mx2-camera.c
-> >@@ -62,3 +62,21 @@ struct platform_device *__init imx_add_mx2_camera(
-> >  			res, data->iobaseemmaprp ? 4 : 2,
-> >  			pdata, sizeof(*pdata), DMA_BIT_MASK(32));
-> >  }
-> >+
-> >+struct platform_device *__init imx_add_mx2_emmaprp(
-> >+		const struct imx_mx2_camera_data *data)
-> >+{
-> >+	struct resource res[] = {
-> >+		{
-> >+			.start = data->iobaseemmaprp,
-> >+			.end = data->iobaseemmaprp + data->iosizeemmaprp - 1,
-> >+			.flags = IORESOURCE_MEM,
-> >+		}, {
-> >+			.start = data->irqemmaprp,
-> >+			.end = data->irqemmaprp,
-> >+			.flags = IORESOURCE_IRQ,
-> >+		},
-> >+	};
-> >+	return imx_add_platform_device_dmamask("m2m-emmaprp", 0,
-> >+			res, 2, NULL, 0, DMA_BIT_MASK(32));
-> >+}
-> >diff --git a/arch/arm/plat-mxc/include/mach/devices-common.h b/arch/arm/plat-mxc/include/mach/devices-common.h
-> >index def9ba5..1b2258d 100644
-> >--- a/arch/arm/plat-mxc/include/mach/devices-common.h
-> >+++ b/arch/arm/plat-mxc/include/mach/devices-common.h
-> >@@ -223,6 +223,8 @@ struct imx_mx2_camera_data {
-> >  struct platform_device *__init imx_add_mx2_camera(
-> >  		const struct imx_mx2_camera_data *data,
-> >  		const struct mx2_camera_platform_data *pdata);
-> >+struct platform_device *__init imx_add_mx2_emmaprp(
-> >+		const struct imx_mx2_camera_data *data);
-> >
-> >  #include<mach/mxc_ehci.h>
-> >  struct imx_mxc_ehci_data {
+> Starts with just CSI2-A interface support, and pretends to be
+> ready for expansion to add support to the many ISS block modules
+> as possible.
 > 
+> Please see newly added documentation for more details:
 > 
+> Documentation/video4linux/omap4_camera.txt
+> 
+> Any comments/complaints are welcome. :)
+
+I've started reviewing the patches, but it might take some time as I got lots 
+on my plate at the moment. I will concentrate on the ISS patch (06/11) first. 
+The sensor drivers are needed now for testing purpose, but can get their share 
+of love later.
+
+> Changes since v1:
+> - Simplification of auxclk handling in board files. (Pointed out by: Roger
+> Quadros) - Cleanup of Camera support enablement for 4430sdp & panda.
+> (Pointed out by: Roger Quadros) - Use of HWMOD declaration for assisted
+> platform_device creation. (Pointed out by: Felipe Balbi) - Videobuf2
+> migration (Removal of custom iss_queue buffer handling driver) - Proper
+> GPO3 handling for CAM_SEL in 4430sdp.
+> 
+> Sergio Aguirre (10):
+>   TWL6030: Add mapping for auxiliary regs
+>   mfd: twl6040: Fix wrong TWL6040_GPO3 bitfield value
+>   OMAP4: hwmod: Include CSI2A and CSIPHY1 memory sections
+>   OMAP4: Add base addresses for ISS
+>   v4l: Add support for omap4iss driver
+>   v4l: Add support for ov5640 sensor
+>   v4l: Add support for ov5650 sensor
+>   arm: omap4430sdp: Add support for omap4iss camera
+>   arm: omap4panda: Add support for omap4iss camera
+>   arm: Add support for CMA for omap4iss driver
+> 
+> Stanimir Varbanov (1):
+>   v4l: Introduce sensor operation for getting interface configuration
+> 
+>  Documentation/video4linux/omap4_camera.txt    |   60 ++
+>  arch/arm/mach-omap2/Kconfig                   |   54 +
+>  arch/arm/mach-omap2/Makefile                  |    3 +
+>  arch/arm/mach-omap2/board-4430sdp-camera.c    |  221 ++++
+>  arch/arm/mach-omap2/board-omap4panda-camera.c |  198 ++++
+>  arch/arm/mach-omap2/devices.c                 |   40 +
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |   16 +-
+>  arch/arm/plat-omap/include/plat/omap4-iss.h   |   42 +
+>  arch/arm/plat-omap/include/plat/omap44xx.h    |    9 +
+>  drivers/media/video/Kconfig                   |   25 +
+>  drivers/media/video/Makefile                  |    3 +
+>  drivers/media/video/omap4iss/Makefile         |    6 +
+>  drivers/media/video/omap4iss/iss.c            | 1179
+> ++++++++++++++++++++++ drivers/media/video/omap4iss/iss.h            | 
+> 133 +++
+>  drivers/media/video/omap4iss/iss_csi2.c       | 1324
+> +++++++++++++++++++++++++ drivers/media/video/omap4iss/iss_csi2.h       | 
+> 166 +++
+>  drivers/media/video/omap4iss/iss_csiphy.c     |  215 ++++
+>  drivers/media/video/omap4iss/iss_csiphy.h     |   69 ++
+>  drivers/media/video/omap4iss/iss_regs.h       |  238 +++++
+>  drivers/media/video/omap4iss/iss_video.c      | 1192
+> ++++++++++++++++++++++ drivers/media/video/omap4iss/iss_video.h      | 
+> 205 ++++
+>  drivers/media/video/ov5640.c                  |  972 ++++++++++++++++++
+>  drivers/media/video/ov5650.c                  |  524 ++++++++++
+>  drivers/mfd/twl-core.c                        |    2 +-
+>  include/linux/mfd/twl6040.h                   |    2 +-
+>  include/media/ov5640.h                        |   10 +
+>  include/media/ov5650.h                        |   10 +
+>  include/media/v4l2-chip-ident.h               |    2 +
+>  include/media/v4l2-subdev.h                   |   42 +
+>  29 files changed, 6957 insertions(+), 5 deletions(-)
+>  create mode 100644 Documentation/video4linux/omap4_camera.txt
+>  create mode 100644 arch/arm/mach-omap2/board-4430sdp-camera.c
+>  create mode 100644 arch/arm/mach-omap2/board-omap4panda-camera.c
+>  create mode 100644 arch/arm/plat-omap/include/plat/omap4-iss.h
+>  create mode 100644 drivers/media/video/omap4iss/Makefile
+>  create mode 100644 drivers/media/video/omap4iss/iss.c
+>  create mode 100644 drivers/media/video/omap4iss/iss.h
+>  create mode 100644 drivers/media/video/omap4iss/iss_csi2.c
+>  create mode 100644 drivers/media/video/omap4iss/iss_csi2.h
+>  create mode 100644 drivers/media/video/omap4iss/iss_csiphy.c
+>  create mode 100644 drivers/media/video/omap4iss/iss_csiphy.h
+>  create mode 100644 drivers/media/video/omap4iss/iss_regs.h
+>  create mode 100644 drivers/media/video/omap4iss/iss_video.c
+>  create mode 100644 drivers/media/video/omap4iss/iss_video.h
+>  create mode 100644 drivers/media/video/ov5640.c
+>  create mode 100644 drivers/media/video/ov5650.c
+>  create mode 100644 include/media/ov5640.h
+>  create mode 100644 include/media/ov5650.h
 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Regards,
+
+Laurent Pinchart
