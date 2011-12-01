@@ -1,53 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61901 "EHLO mx1.redhat.com"
+Received: from yop.chewa.net ([91.121.105.214]:39983 "EHLO yop.chewa.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753358Ab1L2Ufn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Dec 2011 15:35:43 -0500
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH for 3.2 URGENT] gspca: Fix bulk mode cameras no longer working (regression fix)
-Date: Thu, 29 Dec 2011 21:36:42 +0100
-Message-Id: <1325191002-25074-2-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1325191002-25074-1-git-send-email-hdegoede@redhat.com>
-References: <1325191002-25074-1-git-send-email-hdegoede@redhat.com>
+	id S1753505Ab1LAMdO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Dec 2011 07:33:14 -0500
+To: <linux-media@vger.kernel.org>
+Subject: Re: [RFC] vtunerc: virtual DVB device
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Date: Thu, 01 Dec 2011 13:33:13 +0100
+From: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
+In-Reply-To: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
+Message-ID: <84bdeea7e55d1c5db1251e48309f2e36@chewa.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The new iso bandwidth calculation code accidentally has broken support
-for bulk mode cameras. This has broken the following drivers:
-finepix, jeilinj, ovfx2, ov534, ov534_9, se401, sq905, sq905c, sq930x,
-stv0680, vicam.
+   Hello,
 
-Thix patch fixes this. Fix tested with: se401, sq905, sq905c, stv0680 & vicam
-cams.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/video/gspca/gspca.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index 271be98..5ce3557 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -838,13 +838,13 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
- 	gspca_dev->usb_err = 0;
- 
- 	/* do the specific subdriver stuff before endpoint selection */
--	gspca_dev->alt = 0;
-+	intf = usb_ifnum_to_if(gspca_dev->dev, gspca_dev->iface);
-+	gspca_dev->alt = gspca_dev->cam.bulk ? intf->num_altsetting : 0;
- 	if (gspca_dev->sd_desc->isoc_init) {
- 		ret = gspca_dev->sd_desc->isoc_init(gspca_dev);
- 		if (ret < 0)
- 			goto unlock;
- 	}
--	intf = usb_ifnum_to_if(gspca_dev->dev, gspca_dev->iface);
- 	xfer = gspca_dev->cam.bulk ? USB_ENDPOINT_XFER_BULK
- 				   : USB_ENDPOINT_XFER_ISOC;
- 
+On Wed, 30 Nov 2011 22:38:33 +0100, HoP <jpetrous@gmail.com> wrote:
+
+> I have one big problem with it. I can even imagine that some "bad guys"
+
+> could abuse virtual driver to use it for distribution close-source
+
+drivers
+
+> in the binary blobs. But is it that - worrying about bad boys abusing -
+
+> the sufficient reason for such aggressive NACK which I did?
+
+
+
+I am not a LinuxTV developer so I am not in position to take a stand for
+
+or against this. Ultimately though, either your driver is rejected or it is
+
+accepted. This is not really a matter of being aggressive or not. It just
+
+so happens that many Linux-DVB contributors feel the same way against that
+
+class of driver.
+
+
+
+Also note the fear of GPL avoidance is not unique to Linux-DVB. If I am
+
+not mistaken there is no user-space socket API back-end for the same
+
+reasons. And there is also no _in-tree_ loopback V4L2 device driver in
+
+kernel.
+
+
+
+> Then would be better to remove loadable module API fully from kernel.
+
+> Is it the right way?
+
+
+
+You seem to been misrepresenting things on purpose here, and this will
+
+never play in your favor.
+
+
+
+> Please confirm me that worrying about abusive act is enough to NACK
+
+> particular driver. Then I may be definitely understand I'm doing
+
+something
+
+> wrong and will stay (with such enemy driver) out of tree.
+
+> 
+
+> I can't understand that because I see very similar drivers in kernel for
+
+> ages (nbd, or even more similar is usbip) and seems they don't hamper to
+
+> anybody.
+
+
+
+Sure. On That said, the Network Block Device, USB-IP and TUNTAP are not
+
+really competing with real drivers because of their high perfomance impact,
+
+so they are probably not the best examples to support your argument. uinput
+
+and ALSA loopback would seem like better examples to me.
+
+
+
+> I would like to note that I don't want to start any flame-war,
+
+> so very short answer would be enough for me.
+
+
+
+Did you try to implement this through CUSE? Then there should be no GPL
+
+problems. Also then you do not need to convince anybody to take your driver
+
+in the kernel.
+
+
+
 -- 
-1.7.7.4
 
+Rémi Denis-Courmont
+
+http://www.remlab.net/
