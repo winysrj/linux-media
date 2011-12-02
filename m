@@ -1,92 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:52649 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757536Ab1LNSkV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 13:40:21 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1RatkZ-00031l-QV
-	for linux-media@vger.kernel.org; Wed, 14 Dec 2011 19:40:19 +0100
-Received: from 77-253-230-77.ip.netia.com.pl ([77.253.230.77])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 14 Dec 2011 19:40:19 +0100
-Received: from adexmail by 77-253-230-77.ip.netia.com.pl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 14 Dec 2011 19:40:19 +0100
-To: linux-media@vger.kernel.org
-From: Adeq <adexmail@tlen.pl>
-Subject: Re: [PATCH] it913x add support for IT9135 9006 devices
-Date: Wed, 14 Dec 2011 06:13:42 +0000 (UTC)
-Message-ID: <loom.20111214T071004-336@post.gmane.org>
-References: <1323719580.2235.3.camel@tvbox>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:53362 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756801Ab1LBQFH convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Dec 2011 11:05:07 -0500
+MIME-Version: 1.0
+In-Reply-To: <4ED8D374.1030206@mm-sol.com>
+References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
+ <1322698500-29924-4-git-send-email-saaguirre@ti.com> <4ED8D374.1030206@mm-sol.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Date: Fri, 2 Dec 2011 10:04:42 -0600
+Message-ID: <CAKnK67REjC110pywXA+Uy_6N7UEibsci=EDbsUw3CqrQWp+ZKA@mail.gmail.com>
+Subject: Re: [PATCH v2 03/11] v4l: Introduce sensor operation for getting
+ interface configuration
+To: Stanimir Varbanov <svarbanov@mm-sol.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Malcolm Priestley <tvboxspy <at> gmail.com> writes:
+Hi Stan,
 
-> 
-> Support for IT1935 9006 devices.
-> 
-> 9006 have version 2 type chip.
-> 
-> 9006 devices should use dvb-usb-it9135-02.fw firmware.
-> 
-> On the device tested the tuner id was set to 0 which meant
-> the driver used tuner id 0x38. The device functioned normally.
-> 
+On Fri, Dec 2, 2011 at 7:32 AM, Stanimir Varbanov <svarbanov@mm-sol.com> wrote:
+> Hi, Sergio
+>
+> This change in interface is not used from the omap4iss driver.
+>
+> You could drop it from the patch set, if so.
 
-Hello,
+Oops, yes... I used to depend on this for my soc_camera implementation before...
 
-my device (048d:9006) isn't fully working, here is dmesg log:
+You're absolutely right, i'll remove it in the next iteration.
 
-[code]
-[  281.724044] usb 1-3: new high-speed USB device number 10 using ehci_hcd
-[  281.860585] usb 1-3: New USB device found, idVendor=048d, idProduct=9006
-[  281.860594] usb 1-3: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-[  281.860601] usb 1-3: Product: DVB-T TV Stick
-[  281.860607] usb 1-3: Manufacturer: ITE Technologies, Inc.
-[  281.861694] it913x: Chip Version=02 Chip Type=9135
-[  281.863193] it913x: Dual mode=0 Remote=1 Tuner Type=0
-[  281.864444] dvb-usb: found a 'ITE 9135(9006) Generic' in cold state, will try
-to load a firmware
-[  281.870053] dvb-usb: downloading firmware from file 'dvb-usb-it9135-02.fw'
-[  281.870438] it913x: FRM Starting Firmware Download
-[  282.388032] it913x: FRM Firmware Download Failed (ffffffff)
-[  282.588116] it913x: Chip Version=79 Chip Type=4af3
-[  283.224203] it913x: DEV it913x Error
-[  283.227753] input: ITE Technologies, Inc. DVB-T TV Stick as
-/devices/pci0000:00/0000:00:1d.7/usb1/1-3/1-3:1.1/input/input17
-[  283.228415] generic-usb 0003:048D:9006.0007: input,hidraw0: USB HID v1.01
-Keyboard [ITE Technologies, Inc. DVB-T TV Stick] on usb-0000:00:1d.7-3/input1
+Merci!
 
-or
-
-[  292.444049] usb 1-3: new high-speed USB device number 11 using ehci_hcd
-[  292.580449] usb 1-3: New USB device found, idVendor=048d, idProduct=9006
-[  292.580458] usb 1-3: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-[  292.580465] usb 1-3: Product: DVB-T TV Stick
-[  292.580471] usb 1-3: Manufacturer: ITE Technologies, Inc.
-[  292.581557] it913x: Chip Version=02 Chip Type=9135
-[  292.583051] it913x: Dual mode=0 Remote=1 Tuner Type=0
-[  292.584284] dvb-usb: found a 'ITE 9135(9006) Generic' in cold state, will try
-to load a firmware
-[  292.589938] dvb-usb: downloading firmware from file 'dvb-usb-it9135-02.fw'
-[  292.590302] it913x: FRM Starting Firmware Download
-[  292.908023] it913x: FRM Firmware Download Completed - Resetting Device
-[  292.908534] it913x: Chip Version=02 Chip Type=9135
-[  292.909032] it913x: Firmware Version 52887808
-[  293.144182] it913x: DEV it913x Error
-[  293.147862] input: ITE Technologies, Inc. DVB-T TV Stick as
-/devices/pci0000:00/0000:00:1d.7/usb1/1-3/1-3:1.1/input/input18
-[  293.152345] generic-usb 0003:048D:9006.0008: input,hidraw0: USB HID v1.01
-Keyboard [ITE Technologies, Inc. DVB-T TV Stick] on usb-0000:00:1d.7-3/input1
-[/code]
-
-I'm using this device: http://www.runteck.com/products_view.php?Id=24&S_Id=2
-
-
-
+>
+> On 12/01/2011 02:14 AM, Sergio Aguirre wrote:
+>> From: Stanimir Varbanov <svarbanov@mm-sol.com>
+>>
+>> Introduce g_interface_parms sensor operation for getting sensor
+>> interface parameters. These parameters are needed from the host side
+>> to determine it's own configuration.
+>>
+>> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+>> ---
+>>  include/media/v4l2-subdev.h |   42 ++++++++++++++++++++++++++++++++++++++++++
+>>  1 files changed, 42 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+>> index f0f3358..0d322ed 100644
+>> --- a/include/media/v4l2-subdev.h
+>> +++ b/include/media/v4l2-subdev.h
+>> @@ -362,6 +362,42 @@ struct v4l2_subdev_vbi_ops {
+>>       int (*s_sliced_fmt)(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *fmt);
+>>  };
+>>
+>> +/* Which interface the sensor use to provide it's image data */
+>> +enum v4l2_subdev_sensor_iface {
+>> +     V4L2_SUBDEV_SENSOR_PARALLEL,
+>> +     V4L2_SUBDEV_SENSOR_SERIAL,
+>> +};
+>> +
+>> +/* Each interface could use the following modes */
+>> +/* Image sensor provides horizontal and vertical sync signals */
+>> +#define V4L2_SUBDEV_SENSOR_MODE_PARALLEL_SYNC        0
+>> +/* BT.656 interface. Embedded sync */
+>> +#define V4L2_SUBDEV_SENSOR_MODE_PARALLEL_ITU 1
+>> +/* MIPI CSI1 */
+>> +#define V4L2_SUBDEV_SENSOR_MODE_SERIAL_CSI1  2
+>> +/* MIPI CSI2 */
+>> +#define V4L2_SUBDEV_SENSOR_MODE_SERIAL_CSI2  3
+>> +
+>> +struct v4l2_subdev_sensor_serial_parms {
+>> +     unsigned char lanes;            /* number of lanes used */
+>> +     unsigned char channel;          /* virtual channel */
+>> +     unsigned int phy_rate;          /* output rate at CSI phy in bps */
+>> +     unsigned int pix_clk;           /* pixel clock in Hz */
+>> +};
+>> +
+>> +struct v4l2_subdev_sensor_parallel_parms {
+>> +     unsigned int pix_clk;           /* pixel clock in Hz */
+>> +};
+>> +
+>> +struct v4l2_subdev_sensor_interface_parms {
+>> +     enum v4l2_subdev_sensor_iface if_type;
+>> +     unsigned int if_mode;
+>> +     union {
+>> +             struct v4l2_subdev_sensor_serial_parms serial;
+>> +             struct v4l2_subdev_sensor_parallel_parms parallel;
+>> +     } parms;
+>> +};
+>> +
+>>  /**
+>>   * struct v4l2_subdev_sensor_ops - v4l2-subdev sensor operations
+>>   * @g_skip_top_lines: number of lines at the top of the image to be skipped.
+>> @@ -371,10 +407,16 @@ struct v4l2_subdev_vbi_ops {
+>>   * @g_skip_frames: number of frames to skip at stream start. This is needed for
+>>   *              buggy sensors that generate faulty frames when they are
+>>   *              turned on.
+>> + * @g_interface_parms: get sensor interface parameters. The sensor subdev should
+>> + *                  fill this structure with current interface params. These
+>> + *                  interface parameters are needed on host side to configure
+>> + *                  it's own hardware receivers.
+>>   */
+>>  struct v4l2_subdev_sensor_ops {
+>>       int (*g_skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
+>>       int (*g_skip_frames)(struct v4l2_subdev *sd, u32 *frames);
+>> +     int (*g_interface_parms)(struct v4l2_subdev *sd,
+>> +                     struct v4l2_subdev_sensor_interface_parms *parms);
+>>  };
+>>
+>>  /*
+>
+>
+> --
+> best regards,
+> Stan
