@@ -1,108 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:45455 "EHLO ffm.saftware.de"
+Received: from yop.chewa.net ([91.121.105.214]:33514 "EHLO yop.chewa.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750737Ab1LJCGT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Dec 2011 21:06:19 -0500
-Message-ID: <4EE2BE97.6020209@linuxtv.org>
-Date: Sat, 10 Dec 2011 03:06:15 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+	id S932065Ab1LBRtY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 12:49:24 -0500
+From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
+To: linux-media@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because of worrying about possible misusage?
+Date: Fri, 2 Dec 2011 19:49:18 +0200
+Cc: linux-kernel@vger.kernel.org
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED7BBA3.5020002@redhat.com> <CAJbz7-1_Nb8d427bOMzCDbRcvwQ3QjD=2KhdPQS_h_jaYY5J3w@mail.gmail.com>
+In-Reply-To: <CAJbz7-1_Nb8d427bOMzCDbRcvwQ3QjD=2KhdPQS_h_jaYY5J3w@mail.gmail.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] DVB: dvb_frontend: fix delayed thread exit
-References: <1323454852-7426-1-git-send-email-mchehab@redhat.com> <4EE252E5.2050204@iki.fi> <4EE25A3C.9040404@redhat.com> <4EE25CB4.3000501@iki.fi> <4EE287A9.3000502@redhat.com> <CAGoCfiyE8JhX5fT_SYjb6_X5Mkjx1Vx34_pKYaTjXu+muWxxwg@mail.gmail.com> <4EE29BA6.1030909@redhat.com> <4EE29D1A.6010900@redhat.com> <4EE2B7BC.9090501@linuxtv.org> <CAGoCfizNCqHv1iwrFNTdOxpawVB3NzJnOF=U4hn8CXZQne=Vkw@mail.gmail.com>
-In-Reply-To: <CAGoCfizNCqHv1iwrFNTdOxpawVB3NzJnOF=U4hn8CXZQne=Vkw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201112021949.19395.remi@remlab.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10.12.2011 02:59, Devin Heitmueller wrote:
-> On Fri, Dec 9, 2011 at 8:37 PM, Andreas Oberritter <obi@linuxtv.org> wrote:
->> On 10.12.2011 00:43, Mauro Carvalho Chehab wrote:
->>> On 09-12-2011 21:37, Mauro Carvalho Chehab wrote:
->>>> On 09-12-2011 20:33, Devin Heitmueller wrote:
->>>>> On Fri, Dec 9, 2011 at 5:11 PM, Mauro Carvalho Chehab
->>>>> <mchehab@redhat.com> wrote:
->>>>>>> Could someone explain reason for that?
->>>>>>
->>>>>>
->>>>>> I dunno, but I think this needs to be fixed, at least when the frontend
->>>>>> is opened with O_NONBLOCK.
->>>>>
->>>>> Are you doing the drx-k firmware load on dvb_init()? That could
->>>>> easily take 4 seconds.
->>>>
->>>> No. The firmware were opened previously.
->>>
->>> Maybe the delay is due to this part of dvb_frontend.c:
->>>
->>> static int dvb_mfe_wait_time = 5;
->>> ...
->>>                         int mferetry = (dvb_mfe_wait_time << 1);
->>>
->>>                         mutex_unlock (&adapter->mfe_lock);
->>>                         while (mferetry-- && (mfedev->users != -1 ||
->>>                                         mfepriv->thread != NULL)) {
->>>                                 if(msleep_interruptible(500)) {
->>>                                         if(signal_pending(current))
->>>                                                 return -EINTR;
->>>                                 }
->>>                         }
->>
->> I haven't looked at the mfe code, but in case it's waiting for the
->> frontend thread to exit, there's a problem that causes the thread
->> not to exit immediately. Here's a patch that's been sitting in my
->> queue for a while:
->>
->> ---
->>
->> Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
->>
->> diff --git a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c b/linux/drivers/media/dvb/dvb-core/dvb_frontend.c
->> index 7784d74..6823c2b 100644
->> --- a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c   2011-09-07 12:32:24.000000000 +0200
->> +++ a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c   2011-09-13 15:55:48.865742791 +0200
->> @@ -514,7 +514,7 @@
->>                return 1;
->>
->>        if (fepriv->dvbdev->writers == 1)
->> -               if (time_after(jiffies, fepriv->release_jiffies +
->> +               if (time_after_eq(jiffies, fepriv->release_jiffies +
->>                                  dvb_shutdown_timeout * HZ))
->>                        return 1;
->>
->> @@ -2070,12 +2070,15 @@
->>
->>        dprintk ("%s\n", __func__);
->>
->> -       if ((file->f_flags & O_ACCMODE) != O_RDONLY)
->> +       if ((file->f_flags & O_ACCMODE) != O_RDONLY) {
->>                fepriv->release_jiffies = jiffies;
->> +               mb();
->> +       }
->>
->>        ret = dvb_generic_release (inode, file);
->>
->>        if (dvbdev->users == -1) {
->> +               wake_up(&fepriv->wait_queue);
->>                if (fepriv->exit != DVB_FE_NO_EXIT) {
->>                        fops_put(file->f_op);
->>                        file->f_op = NULL;
+Le jeudi 1 décembre 2011 21:59:56 HoP, vous avez écrit :
+> > Kernel code is GPLv2. You can use its code on a GPLv2 licensed library.
 > 
-> This patch needs to have a much better explanation of exactly what it
-> does and what problem it solves.  We have a history of race conditions
-> in dvb_frontend.c, and it's patches like this with virtually no
-> details just makes it worse.
-> 
-> I'm not arguing the actual merits of the code change - it *may* be
-> correct.  But without the appropriate background there is no real way
-> of knowing...
-> 
-> Mauro, this patch should be NACK'd and resubmitted with a detailed
-> explanation of the current behavior, what the problem is, and how the
-> code changes proposed solve that problem.
+> I see. So if you think it is nice to get dvb-core, make a wrapper around
+> to get it usable in userspace and maintain totally same functionality
+> by myself then I say it is no go. If it looks for you like good idea
+> I must disagree. Code duplication?
 
-WTF, Devin, you again? I haven't asked anyone to upstream it. Feel free
-to analyze the code and resubmit it.
+Sure, some core code would be duplicated. That is not a big deal.
+
+This proposal however has three big advantages:
+- Proprietary drivers are not enabled as the library would be GPL.
+- The virtual DVB device runs in the same process as the DVB application, 
+which saves context switching and memory copying.
+- It would be your project. You do not need to agree with Mauro ;-)
+
+> Two maintaners? That is crazy idea man.
+
+Someone would have to maintain the device driver anyway. I don't see much of a 
+difference on maintainance side.
+
+> > And I can't see any advantage on yours ;) Putting something that belongs
+> > to userspace into kernelspace just because it is easier to re-use the
+> > existing code inside the kernel is not a good argument.
+> 
+> It is only your POV that it should be in userspace.
+
+Except for backward compatiblity, this would actually belong in userspace. It 
+would be more efficient and easier to maintain as a userspace library than as 
+a kernel driver.
+
+If you need backward compatibility, I am still inclined to believe that you 
+could write a CUSE frontend, so it does involve some extra work and looses the 
+performance benefit.
+
+-- 
+Rémi Denis-Courmont
+http://www.remlab.net/
+http://fi.linkedin.com/in/remidenis
