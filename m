@@ -1,176 +1,305 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:54225 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750943Ab1L3Ulu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 15:41:50 -0500
-Date: Fri, 30 Dec 2011 22:41:44 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"HeungJun, Kim" <riverful.kim@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu
- control
-Message-ID: <20111230204144.GX3677@valkosipuli.localdomain>
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
- <1325053428-2626-2-git-send-email-riverful.kim@samsung.com>
- <4EFB1B04.6060305@gmail.com>
- <201112281451.39399.laurent.pinchart@ideasonboard.com>
- <20111229233406.GU3677@valkosipuli.localdomain>
- <4EFD8F0F.6060505@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4EFD8F0F.6060505@gmail.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:56048 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753533Ab1LBKDc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 05:03:32 -0500
+From: Xi Wang <xi.wang@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Xi Wang <xi.wang@gmail.com>
+Subject: [PATCH 1/3] wl128x: fmdrv_common: fix signedness bugs
+Date: Fri,  2 Dec 2011 05:01:11 -0500
+Message-Id: <1322820073-19347-2-git-send-email-xi.wang@gmail.com>
+In-Reply-To: <1322820073-19347-1-git-send-email-xi.wang@gmail.com>
+References: <1322820073-19347-1-git-send-email-xi.wang@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+The error handling with (ret < 0) didn't work where ret is a u32.
+Use int instead.  To be consistent we also change the functions to
+return an int.
 
-On Fri, Dec 30, 2011 at 11:14:39AM +0100, Sylwester Nawrocki wrote:
-> Hi Sakari,
-> 
-> On 12/30/2011 12:34 AM, Sakari Ailus wrote:
-> > On Wed, Dec 28, 2011 at 02:51:38PM +0100, Laurent Pinchart wrote:
-> >> On Wednesday 28 December 2011 14:35:00 Sylwester Nawrocki wrote:
-> >>> On 12/28/2011 07:23 AM, HeungJun, Kim wrote:
-> >>>> It adds the new CID for setting White Balance Preset. This CID is
-> >>>> provided as menu type using the following items:
-> >>>> 0 - V4L2_WHITE_BALANCE_INCANDESCENT,
-> >>>> 1 - V4L2_WHITE_BALANCE_FLUORESCENT,
-> >>>> 2 - V4L2_WHITE_BALANCE_DAYLIGHT,
-> >>>> 3 - V4L2_WHITE_BALANCE_CLOUDY,
-> >>>> 4 - V4L2_WHITE_BALANCE_SHADE,
-> >>>
-> >>> I have been also investigating those white balance presets recently and
-> >>> noticed they're also needed for the pwc driver. Looking at
-> >>> drivers/media/video/pwc/pwc-v4l2.c there is something like:
-> >>>
-> >>> const char * const pwc_auto_whitebal_qmenu[] = {
-> >>> 	"Indoor (Incandescant Lighting) Mode",
-> >>> 	"Outdoor (Sunlight) Mode",
-> >>> 	"Indoor (Fluorescent Lighting) Mode",
-> >>> 	"Manual Mode",
-> >>> 	"Auto Mode",
-> >>> 	NULL
-> >>> };
-> >>>
-> >>> static const struct v4l2_ctrl_config pwc_auto_white_balance_cfg = {
-> >>> 	.ops	= &pwc_ctrl_ops,
-> >>> 	.id	= V4L2_CID_AUTO_WHITE_BALANCE,
-> >>> 	.type	= V4L2_CTRL_TYPE_MENU,
-> >>> 	.max	= awb_auto,
-> >>> 	.qmenu	= pwc_auto_whitebal_qmenu,
-> >>> };
-> >>>
-> >>> ...
-> >>>
-> >>> 	cfg = pwc_auto_white_balance_cfg;
-> >>> 	cfg.name = v4l2_ctrl_get_name(cfg.id);
-> >>> 	cfg.def = def;
-> >>> 	pdev->auto_white_balance = v4l2_ctrl_new_custom(hdl, &cfg, NULL);
-> >>>
-> >>> So this driver re-defines V4L2_CID_AUTO_WHITE_BALANCE as a menu control
-> >>> with custom entries. That's interesting... However it works in practice
-> >>> and applications have access to what's provided by hardware.
-> >>> Perhaps V4L2_CID_AUTO_WHITE_BALANCE_TEMPERATURE would be a better fit for
-> >>> that :)
-> >>>
-> >>> Nevertheless, redefining standard controls in particular drivers sounds
-> >>> a little dubious. I wonder if this is a generally agreed approach ?
-> >>
-> >> No agreed with me at least :-)
-> >>
-> >>> Then, how does your V4L2_CID_PRESET_WHITE_BALANCE control interact with
-> >>> V4L2_CID_AUTO_WHITE_BALANCE control ? Does V4L2_CID_AUTO_WHITE_BALANCE need
-> >>> to be set to false for V4L2_CID_PRESET_WHITE_BALANCE to be effective ?
-> >>
-> >> Is the preset a fixed white balance setting, or is it an auto white balance 
-> >> with the algorithm tuned for a particular configuration ? In the first case, 
-> >> does it correspond to a fixed white balance temperature value ?
-> > 
-> > While I'm waiting for a final answer to this, I guess it's the second. There
-> > are three things involved here:
-> > 
-> > - V4L2_CID_WHITE_BALANCE_TEMPERATURE: relatively low level control telling
-> >   the colour temperature of the light source. Setting a value for this
-> >   essentially means using manual white balance.
-> > 
-> > - V4L2_CID_AUTO_WHITE_BALANCE: automatic white balance enabled or disabled.
-> 
-> Was the third thing the V4L2_CID_DO_WHITE_BALANCE control that you wanted to
-> say ? It's also quite essential functionality, to be able to fix white balance
-> after pointing camera to a white object. And I would expect
-> V4L2_CID_WHITE_BALANCE_PRESET control's documentation to state how an
-> interaction with V4L2_CID_DO_WHITE_BALANCE looks like.
+Signed-off-by: Xi Wang <xi.wang@gmail.com>
+---
+ drivers/media/radio/wl128x/fmdrv_common.c |   58 ++++++++++++++---------------
+ drivers/media/radio/wl128x/fmdrv_common.h |   28 +++++++-------
+ 2 files changed, 42 insertions(+), 44 deletions(-)
 
-I expected the new control to be the third thing as configuration for the
-awb algorithm, which it turned out not to be.
-
-I don't quite understand the purpose of the do_white_balance; the automatic
-white balance algorithm is operational until it's disabled, and after
-disabling it the white balance shouldn't change. What is the extra
-functionality that the do_white_balance control implements?
-
-If we agree white_balance_preset works at the same level as
-white_balance_temerature control, this becomes more simple. I guess no
-driver should implement both.
-
-> > The new control proposed by HeungJun is input for the automatic white
-> > balance algorithm unless I'm mistaken. Whether or not the value is static,
-> > however, might be considered of secondary importance: it is a name instead
-> > of a number and clearly intended to be used as a high level control. I'd
-> > still expect it to be a hint for the algorithm.
-> > 
-> > The value of the new control would have an effect as long as automatic white
-> > balance is enabled.
-> 
-> The idea to treat the preset as a hint to the algorithm is interesting, however
-> as it turns out this are just static values (R/B balance) in manual WB mode.
-
-Agreed, if there's a device doing this we will add another control at that
-time.
-
-> I expect some parameters for adjusting auto WB algorithm (WB (R/G/B) gain bias
-> or something similar) to be present in sensor's ISP as well. If I remember well
-> I've seen something like this in one of sensor's documentations.
-
-Sounds reasonable.
-
-> 
-> >>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
-> >>>> b/Documentation/DocBook/media/v4l/controls.xml index c0422c6..350c138
-> >>>> 100644
-> >>>> --- a/Documentation/DocBook/media/v4l/controls.xml
-> >>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> >>>> @@ -2841,6 +2841,44 @@ it one step further. This is a write-only
-> >>>> control.</entry>
-> >>>>
-> >>>>  	  </row>
-> >>>>  	  <row><entry></entry></row>
-> >>>>
-> >>>> +	  <row id="v4l2-preset-white-balance">
-> >>>> +	    <entry
-> >>>> spanname="id"><constant>V4L2_CID_PRESET_WHITE_BALANCE</constant>&nbsp;</
-> >>>> entry>
-> >>>
-> >>> Wouldn't V4L2_CID_WHITE_BALANCE_PRESET be better ?
-> >>
-> >> That's what I was about to say.
-> > 
-> > And the menu items would contain the same prefix with CID_ removed. They're
-> > going to be long, but I don't see that as an issue for menu items.
-> 
-> Should we call it V4L2_CID_WB_PRESET then ?
-> 
-> Anyway V4L2_WHITE_BALANCE_PRESET_INCADESCENT for example is not that long,
-> we have control names that almost reach 80 characters :)
-
-I'd prefer the long one but I have no strong opinion either way.
-
+diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
+index 5991ab6..bf867a6 100644
+--- a/drivers/media/radio/wl128x/fmdrv_common.c
++++ b/drivers/media/radio/wl128x/fmdrv_common.c
+@@ -387,7 +387,7 @@ static void send_tasklet(unsigned long arg)
+  * Queues FM Channel-8 packet to FM TX queue and schedules FM TX tasklet for
+  * transmission
+  */
+-static u32 fm_send_cmd(struct fmdev *fmdev, u8 fm_op, u16 type,	void *payload,
++static int fm_send_cmd(struct fmdev *fmdev, u8 fm_op, u16 type,	void *payload,
+ 		int payload_len, struct completion *wait_completion)
+ {
+ 	struct sk_buff *skb;
+@@ -456,13 +456,13 @@ static u32 fm_send_cmd(struct fmdev *fmdev, u8 fm_op, u16 type,	void *payload,
+ }
+ 
+ /* Sends FM Channel-8 command to the chip and waits for the response */
+-u32 fmc_send_cmd(struct fmdev *fmdev, u8 fm_op, u16 type, void *payload,
++int fmc_send_cmd(struct fmdev *fmdev, u8 fm_op, u16 type, void *payload,
+ 		unsigned int payload_len, void *response, int *response_len)
+ {
+ 	struct sk_buff *skb;
+ 	struct fm_event_msg_hdr *evt_hdr;
+ 	unsigned long flags;
+-	u32 ret;
++	int ret;
+ 
+ 	init_completion(&fmdev->maintask_comp);
+ 	ret = fm_send_cmd(fmdev, fm_op, type, payload, payload_len,
+@@ -470,8 +470,8 @@ u32 fmc_send_cmd(struct fmdev *fmdev, u8 fm_op, u16 type, void *payload,
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = wait_for_completion_timeout(&fmdev->maintask_comp, FM_DRV_TX_TIMEOUT);
+-	if (!ret) {
++	if (!wait_for_completion_timeout(&fmdev->maintask_comp,
++					 FM_DRV_TX_TIMEOUT)) {
+ 		fmerr("Timeout(%d sec),didn't get reg"
+ 			   "completion signal from RX tasklet\n",
+ 			   jiffies_to_msecs(FM_DRV_TX_TIMEOUT) / 1000);
+@@ -508,7 +508,7 @@ u32 fmc_send_cmd(struct fmdev *fmdev, u8 fm_op, u16 type, void *payload,
+ }
+ 
+ /* --- Helper functions used in FM interrupt handlers ---*/
+-static inline u32 check_cmdresp_status(struct fmdev *fmdev,
++static inline int check_cmdresp_status(struct fmdev *fmdev,
+ 		struct sk_buff **skb)
+ {
+ 	struct fm_event_msg_hdr *fm_evt_hdr;
+@@ -1058,7 +1058,7 @@ static void fm_irq_handle_intmsk_cmd_resp(struct fmdev *fmdev)
+ }
+ 
+ /* Returns availability of RDS data in internel buffer */
+-u32 fmc_is_rds_data_available(struct fmdev *fmdev, struct file *file,
++int fmc_is_rds_data_available(struct fmdev *fmdev, struct file *file,
+ 				struct poll_table_struct *pts)
+ {
+ 	poll_wait(file, &fmdev->rx.rds.read_queue, pts);
+@@ -1069,7 +1069,7 @@ u32 fmc_is_rds_data_available(struct fmdev *fmdev, struct file *file,
+ }
+ 
+ /* Copies RDS data from internal buffer to user buffer */
+-u32 fmc_transfer_rds_from_internal_buff(struct fmdev *fmdev, struct file *file,
++int fmc_transfer_rds_from_internal_buff(struct fmdev *fmdev, struct file *file,
+ 		u8 __user *buf, size_t count)
+ {
+ 	u32 block_count;
+@@ -1113,7 +1113,7 @@ u32 fmc_transfer_rds_from_internal_buff(struct fmdev *fmdev, struct file *file,
+ 	return ret;
+ }
+ 
+-u32 fmc_set_freq(struct fmdev *fmdev, u32 freq_to_set)
++int fmc_set_freq(struct fmdev *fmdev, u32 freq_to_set)
+ {
+ 	switch (fmdev->curr_fmmode) {
+ 	case FM_MODE_RX:
+@@ -1127,7 +1127,7 @@ u32 fmc_set_freq(struct fmdev *fmdev, u32 freq_to_set)
+ 	}
+ }
+ 
+-u32 fmc_get_freq(struct fmdev *fmdev, u32 *cur_tuned_frq)
++int fmc_get_freq(struct fmdev *fmdev, u32 *cur_tuned_frq)
+ {
+ 	if (fmdev->rx.freq == FM_UNDEFINED_FREQ) {
+ 		fmerr("RX frequency is not set\n");
+@@ -1153,7 +1153,7 @@ u32 fmc_get_freq(struct fmdev *fmdev, u32 *cur_tuned_frq)
+ 
+ }
+ 
+-u32 fmc_set_region(struct fmdev *fmdev, u8 region_to_set)
++int fmc_set_region(struct fmdev *fmdev, u8 region_to_set)
+ {
+ 	switch (fmdev->curr_fmmode) {
+ 	case FM_MODE_RX:
+@@ -1167,7 +1167,7 @@ u32 fmc_set_region(struct fmdev *fmdev, u8 region_to_set)
+ 	}
+ }
+ 
+-u32 fmc_set_mute_mode(struct fmdev *fmdev, u8 mute_mode_toset)
++int fmc_set_mute_mode(struct fmdev *fmdev, u8 mute_mode_toset)
+ {
+ 	switch (fmdev->curr_fmmode) {
+ 	case FM_MODE_RX:
+@@ -1181,7 +1181,7 @@ u32 fmc_set_mute_mode(struct fmdev *fmdev, u8 mute_mode_toset)
+ 	}
+ }
+ 
+-u32 fmc_set_stereo_mono(struct fmdev *fmdev, u16 mode)
++int fmc_set_stereo_mono(struct fmdev *fmdev, u16 mode)
+ {
+ 	switch (fmdev->curr_fmmode) {
+ 	case FM_MODE_RX:
+@@ -1195,7 +1195,7 @@ u32 fmc_set_stereo_mono(struct fmdev *fmdev, u16 mode)
+ 	}
+ }
+ 
+-u32 fmc_set_rds_mode(struct fmdev *fmdev, u8 rds_en_dis)
++int fmc_set_rds_mode(struct fmdev *fmdev, u8 rds_en_dis)
+ {
+ 	switch (fmdev->curr_fmmode) {
+ 	case FM_MODE_RX:
+@@ -1210,10 +1210,10 @@ u32 fmc_set_rds_mode(struct fmdev *fmdev, u8 rds_en_dis)
+ }
+ 
+ /* Sends power off command to the chip */
+-static u32 fm_power_down(struct fmdev *fmdev)
++static int fm_power_down(struct fmdev *fmdev)
+ {
+ 	u16 payload;
+-	u32 ret;
++	int ret;
+ 
+ 	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
+ 		fmerr("FM core is not ready\n");
+@@ -1234,7 +1234,7 @@ static u32 fm_power_down(struct fmdev *fmdev)
+ }
+ 
+ /* Reads init command from FM firmware file and loads to the chip */
+-static u32 fm_download_firmware(struct fmdev *fmdev, const u8 *fw_name)
++static int fm_download_firmware(struct fmdev *fmdev, const u8 *fw_name)
+ {
+ 	const struct firmware *fw_entry;
+ 	struct bts_header *fw_header;
+@@ -1299,7 +1299,7 @@ rel_fw:
+ }
+ 
+ /* Loads default RX configuration to the chip */
+-static u32 load_default_rx_configuration(struct fmdev *fmdev)
++static int load_default_rx_configuration(struct fmdev *fmdev)
+ {
+ 	int ret;
+ 
+@@ -1311,7 +1311,7 @@ static u32 load_default_rx_configuration(struct fmdev *fmdev)
+ }
+ 
+ /* Does FM power on sequence */
+-static u32 fm_power_up(struct fmdev *fmdev, u8 mode)
++static int fm_power_up(struct fmdev *fmdev, u8 mode)
+ {
+ 	u16 payload, asic_id, asic_ver;
+ 	int resp_len, ret;
+@@ -1374,7 +1374,7 @@ rel:
+ }
+ 
+ /* Set FM Modes(TX, RX, OFF) */
+-u32 fmc_set_mode(struct fmdev *fmdev, u8 fm_mode)
++int fmc_set_mode(struct fmdev *fmdev, u8 fm_mode)
+ {
+ 	int ret = 0;
+ 
+@@ -1427,7 +1427,7 @@ u32 fmc_set_mode(struct fmdev *fmdev, u8 fm_mode)
+ }
+ 
+ /* Returns current FM mode (TX, RX, OFF) */
+-u32 fmc_get_mode(struct fmdev *fmdev, u8 *fmmode)
++int fmc_get_mode(struct fmdev *fmdev, u8 *fmmode)
+ {
+ 	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
+ 		fmerr("FM core is not ready\n");
+@@ -1483,10 +1483,10 @@ static void fm_st_reg_comp_cb(void *arg, char data)
+  * This function will be called from FM V4L2 open function.
+  * Register with ST driver and initialize driver data.
+  */
+-u32 fmc_prepare(struct fmdev *fmdev)
++int fmc_prepare(struct fmdev *fmdev)
+ {
+ 	static struct st_proto_s fm_st_proto;
+-	u32 ret;
++	int ret;
+ 
+ 	if (test_bit(FM_CORE_READY, &fmdev->flag)) {
+ 		fmdbg("FM Core is already up\n");
+@@ -1512,10 +1512,8 @@ u32 fmc_prepare(struct fmdev *fmdev)
+ 		fmdev->streg_cbdata = -EINPROGRESS;
+ 		fmdbg("%s waiting for ST reg completion signal\n", __func__);
+ 
+-		ret = wait_for_completion_timeout(&wait_for_fmdrv_reg_comp,
+-				FM_ST_REG_TIMEOUT);
+-
+-		if (!ret) {
++		if (!wait_for_completion_timeout(&wait_for_fmdrv_reg_comp,
++						 FM_ST_REG_TIMEOUT)) {
+ 			fmerr("Timeout(%d sec), didn't get reg "
+ 					"completion signal from ST\n",
+ 					jiffies_to_msecs(FM_ST_REG_TIMEOUT) / 1000);
+@@ -1589,10 +1587,10 @@ u32 fmc_prepare(struct fmdev *fmdev)
+  * This function will be called from FM V4L2 release function.
+  * Unregister from ST driver.
+  */
+-u32 fmc_release(struct fmdev *fmdev)
++int fmc_release(struct fmdev *fmdev)
+ {
+ 	static struct st_proto_s fm_st_proto;
+-	u32 ret;
++	int ret;
+ 
+ 	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
+ 		fmdbg("FM Core is already down\n");
+@@ -1631,7 +1629,7 @@ u32 fmc_release(struct fmdev *fmdev)
+ static int __init fm_drv_init(void)
+ {
+ 	struct fmdev *fmdev = NULL;
+-	u32 ret = -ENOMEM;
++	int ret = -ENOMEM;
+ 
+ 	fmdbg("FM driver version %s\n", FM_DRV_VERSION);
+ 
+diff --git a/drivers/media/radio/wl128x/fmdrv_common.h b/drivers/media/radio/wl128x/fmdrv_common.h
+index aee243b..d9b9c6c 100644
+--- a/drivers/media/radio/wl128x/fmdrv_common.h
++++ b/drivers/media/radio/wl128x/fmdrv_common.h
+@@ -368,27 +368,27 @@ struct fm_event_msg_hdr {
+ #define FM_TX_ANT_IMP_500		2
+ 
+ /* Functions exported by FM common sub-module */
+-u32 fmc_prepare(struct fmdev *);
+-u32 fmc_release(struct fmdev *);
++int fmc_prepare(struct fmdev *);
++int fmc_release(struct fmdev *);
+ 
+ void fmc_update_region_info(struct fmdev *, u8);
+-u32 fmc_send_cmd(struct fmdev *, u8, u16,
++int fmc_send_cmd(struct fmdev *, u8, u16,
+ 				void *, unsigned int, void *, int *);
+-u32 fmc_is_rds_data_available(struct fmdev *, struct file *,
++int fmc_is_rds_data_available(struct fmdev *, struct file *,
+ 				struct poll_table_struct *);
+-u32 fmc_transfer_rds_from_internal_buff(struct fmdev *, struct file *,
++int fmc_transfer_rds_from_internal_buff(struct fmdev *, struct file *,
+ 					u8 __user *, size_t);
+ 
+-u32 fmc_set_freq(struct fmdev *, u32);
+-u32 fmc_set_mode(struct fmdev *, u8);
+-u32 fmc_set_region(struct fmdev *, u8);
+-u32 fmc_set_mute_mode(struct fmdev *, u8);
+-u32 fmc_set_stereo_mono(struct fmdev *, u16);
+-u32 fmc_set_rds_mode(struct fmdev *, u8);
++int fmc_set_freq(struct fmdev *, u32);
++int fmc_set_mode(struct fmdev *, u8);
++int fmc_set_region(struct fmdev *, u8);
++int fmc_set_mute_mode(struct fmdev *, u8);
++int fmc_set_stereo_mono(struct fmdev *, u16);
++int fmc_set_rds_mode(struct fmdev *, u8);
+ 
+-u32 fmc_get_freq(struct fmdev *, u32 *);
+-u32 fmc_get_region(struct fmdev *, u8 *);
+-u32 fmc_get_mode(struct fmdev *, u8 *);
++int fmc_get_freq(struct fmdev *, u32 *);
++int fmc_get_region(struct fmdev *, u8 *);
++int fmc_get_mode(struct fmdev *, u8 *);
+ 
+ /*
+  * channel spacing
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.5.4
+
