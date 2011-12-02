@@ -1,38 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailfe05.c2i.net ([212.247.154.130]:46114 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753505Ab1LCSVL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Dec 2011 13:21:11 -0500
-From: Hans Petter Selasky <hselasky@c2i.net>
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because of worrying about possible misusage?
-Date: Sat, 3 Dec 2011 19:13:32 +0100
-Cc: VDR User <user.vdr@gmail.com>,
-	Andreas Oberritter <obi@linuxtv.org>, HoP <jpetrous@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <CAA7C2qjfWW8=kePZDO4nYR913RyuP-t+u8P9LV4mDh9bANr3=Q@mail.gmail.com> <20111203174247.0bbab100@lxorguk.ukuu.org.uk>
-In-Reply-To: <20111203174247.0bbab100@lxorguk.ukuu.org.uk>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:39886 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752694Ab1LBScJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 13:32:09 -0500
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112031913.32503.hselasky@c2i.net>
+In-Reply-To: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
+Date: Fri, 2 Dec 2011 10:32:08 -0800
+Message-ID: <CAA7C2qhiB19-vPFnZtxA+J1VqWqUV6fOd_VTgddeJE9D8mFLCg@mail.gmail.com>
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
+ because of worrying about possible misusage?
+From: VDR User <user.vdr@gmail.com>
+To: HoP <jpetrous@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+> What really surprised me badly was that when I read all 54 responses
+> I have counted only two real technical answers!!! All rest were about
+> POLITICAL issues - code was NACKed w/o any technical discussion.
+> Because of fear of possible abusing of driver.
 
-Some input from the sideline reading this discussion. As a FreeBSD'er I would 
-very much like to see two things happen:
-
-- vtunerc goes into userspace like a client/server daemon pair using CUSE and 
-can support _any_ /dev/dvb/adapter, also those created by CUSE itself. That 
-means I could potentially use vtunerc in FreeBSD with drivers like cx88:
-
-http://corona.homeunix.net/cx88wiki
-
-- DVB-X solution in Linux gets mmap support to avoid endless copying of data 
-between kernel and userspace.
-
---HPS
+To answer the original question -- absolutely not! Linux is not about
+and should not try policing what it's users do, or passing moral
+judgment. If there are technical reasons something shouldn't be merged
+as is, no problem. There are times when a persons personal preference
+should be left out of the equation, and this is an example of one.
