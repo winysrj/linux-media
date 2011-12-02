@@ -1,89 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:51333 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754241Ab1L0Ruf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Dec 2011 12:50:35 -0500
-Message-ID: <4EFA0563.2060906@infradead.org>
-Date: Tue, 27 Dec 2011 15:50:27 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Andreas Oberritter <obi@linuxtv.org>,
-	Antti Palosaari <crope@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [RFCv1] add DTMB support for DVB API
-References: <4EF3A171.3030906@iki.fi> <4EF48473.3020207@linuxtv.org> <201112231827.13375.pboettcher@kernellabs.com> <201112271726.33733.pboettcher@kernellabs.com>
-In-Reply-To: <201112271726.33733.pboettcher@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:55237 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754065Ab1LBPDl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 10:03:41 -0500
+From: Ming Lei <ming.lei@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Tony Lindgren <tony@atomide.com>
+Cc: Sylwester Nawrocki <snjw23@gmail.com>, Greg KH <greg@kroah.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Ming Lei <ming.lei@canonical.com>
+Subject: [RFC PATCH v1 3/7] media: videobuf2: move out of setting pgprot_noncached from vb2_mmap_pfn_range
+Date: Fri,  2 Dec 2011 23:02:48 +0800
+Message-Id: <1322838172-11149-4-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
+References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27-12-2011 14:26, Patrick Boettcher wrote:
-> On Friday 23 December 2011 18:27:12 Patrick Boettcher wrote:
->> On Friday, December 23, 2011 02:38:59 PM Andreas Oberritter wrote:
->>> On 22.12.2011 22:30, Antti Palosaari wrote:
->>>> @@ -201,6 +205,9 @@ typedef enum fe_guard_interval {
->>>>
->>>>      GUARD_INTERVAL_1_128,
->>>>      GUARD_INTERVAL_19_128,
->>>>      GUARD_INTERVAL_19_256,
->>>>
->>>> +    GUARD_INTERVAL_PN420,
->>>> +    GUARD_INTERVAL_PN595,
->>>> +    GUARD_INTERVAL_PN945,
->>>>
->>>>  } fe_guard_interval_t;
->>>
->>> What does PN mean in this context?
->>
->> While I (right now) cannot remember what the PN abbreviation stands
->> for, the numbers are the guard time in micro-seconds. At least if I
->> remember correctly.
-> 
-> Totally wrong.
-> 
-> The number indicated by the PN-value is in samples. Not in micro-
-> seconds.
-> 
-> To compare the PN value with the guard-time known from DVB-T we could do 
-> like that: in DVB-T's 8K mode we have 8192 samples which make one 
-> symbol. If the guard time is 1/32 we have 8192/32 samples which 
-> represent the protect the symbols from inter-symbol-interference: 256 in 
-> this case. 
-> 
-> In DTMB one symbol consists of 3780 samples + the PN-value. Using the 
-> classical representation we could say: PN420 is 1/9, PN595 is about 1/6 
-> and PN945 is 1/4.
+So that we can reuse vb2_mmap_pfn_range for the coming videobuf2_page
+memops.
 
-PN595 is then 595/3780 = 119/756 = 17/108
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/media/video/videobuf2-dma-contig.c |    1 +
+ drivers/media/video/videobuf2-memops.c     |    1 -
+ 2 files changed, 1 insertions(+), 1 deletions(-)
 
-While we might code it then as:
-
-      GUARD_INTERVAL_1_9,		/* PN 420 */
-      GUARD_INTERVAL_17_108,		/* PN 595 */
-      GUARD_INTERVAL_1_4,		/* PN 945 */
-
-in order to preserve the traditional way, maybe it should be coded, instead, as:
-
-    GUARD_INTERVAL_420_SAMPLES,		/* PN 420 */
-    GUARD_INTERVAL_595_SAMPLES,		/* PN 595 */
-    GUARD_INTERVAL_945_SAMPLES,		/* PN 945 */
-
-I would avoid "PN", as this meaning is not as clear as "samples" or as
-a fraction. Also, the traditional guard interval won't be obvious for the
-ones that know the DTMB spec.
-> 
-> HTH,
-> 
-> --
-> Patrick Boettcher
-> 
-> Kernel Labs Inc.
-> http://www.kernellabs.com/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index f17ad98..0ea8866 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -106,6 +106,7 @@ static int vb2_dma_contig_mmap(void *buf_priv, struct vm_area_struct *vma)
+ 		return -EINVAL;
+ 	}
+ 
++	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+ 	return vb2_mmap_pfn_range(vma, buf->dma_addr, buf->size,
+ 				  &vb2_common_vm_ops, &buf->handler);
+ }
+diff --git a/drivers/media/video/videobuf2-memops.c b/drivers/media/video/videobuf2-memops.c
+index 71a7a78..77e0def 100644
+--- a/drivers/media/video/videobuf2-memops.c
++++ b/drivers/media/video/videobuf2-memops.c
+@@ -162,7 +162,6 @@ int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
+ 
+ 	size = min_t(unsigned long, vma->vm_end - vma->vm_start, size);
+ 
+-	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+ 	ret = remap_pfn_range(vma, vma->vm_start, paddr >> PAGE_SHIFT,
+ 				size, vma->vm_page_prot);
+ 	if (ret) {
+-- 
+1.7.5.4
 
