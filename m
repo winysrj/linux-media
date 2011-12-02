@@ -1,106 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20262 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752833Ab1L3PJe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:34 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Y4Q024249
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:34 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 77/94] [media] vp702x-fe: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:08:14 -0200
-Message-Id: <1325257711-12274-78-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:35885 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753210Ab1LBKcR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 05:32:17 -0500
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LVK004FWNXQ4N40@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 02 Dec 2011 10:32:14 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LVK00EF6NXQSD@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 02 Dec 2011 10:32:14 +0000 (GMT)
+Date: Fri, 02 Dec 2011 11:31:38 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [RFC] Resolution change support in video codecs in v4l2
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	=?utf-8?B?J1NlYmFzdGlhbiBEcsO2Z2Un?=
+	<sebastian.droege@collabora.co.uk>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01>
+Content-language: en-US
+Content-transfer-encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
-
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-usb/vp702x-fe.c |   17 +++++++++--------
- 1 files changed, 9 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/vp702x-fe.c b/drivers/media/dvb/dvb-usb/vp702x-fe.c
-index 8ff5aab..fa0b811 100644
---- a/drivers/media/dvb/dvb-usb/vp702x-fe.c
-+++ b/drivers/media/dvb/dvb-usb/vp702x-fe.c
-@@ -135,9 +135,9 @@ static int vp702x_fe_get_tune_settings(struct dvb_frontend* fe, struct dvb_front
- 	return 0;
- }
- 
--static int vp702x_fe_set_frontend(struct dvb_frontend* fe,
--				  struct dvb_frontend_parameters *fep)
-+static int vp702x_fe_set_frontend(struct dvb_frontend* fe)
- {
-+	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
- 	struct vp702x_fe_state *st = fe->demodulator_priv;
- 	struct vp702x_device_state *dst = st->d->priv;
- 	u32 freq = fep->frequency/1000;
-@@ -155,14 +155,14 @@ static int vp702x_fe_set_frontend(struct dvb_frontend* fe,
- 	cmd[1] =  freq       & 0xff;
- 	cmd[2] = 1; /* divrate == 4 -> frequencyRef[1] -> 1 here */
- 
--	sr = (u64) (fep->u.qpsk.symbol_rate/1000) << 20;
-+	sr = (u64) (fep->symbol_rate/1000) << 20;
- 	do_div(sr,88000);
- 	cmd[3] = (sr >> 12) & 0xff;
- 	cmd[4] = (sr >> 4)  & 0xff;
- 	cmd[5] = (sr << 4)  & 0xf0;
- 
- 	deb_fe("setting frontend to: %u -> %u (%x) LNB-based GHz, symbolrate: %d -> %lu (%lx)\n",
--			fep->frequency,freq,freq, fep->u.qpsk.symbol_rate,
-+			fep->frequency,freq,freq, fep->symbol_rate,
- 			(unsigned long) sr, (unsigned long) sr);
- 
- /*	if (fep->inversion == INVERSION_ON)
-@@ -171,7 +171,7 @@ static int vp702x_fe_set_frontend(struct dvb_frontend* fe,
- 	if (st->voltage == SEC_VOLTAGE_18)
- 		cmd[6] |= 0x40;
- 
--/*	if (fep->u.qpsk.symbol_rate > 8000000)
-+/*	if (fep->symbol_rate > 8000000)
- 		cmd[6] |= 0x20;
- 
- 	if (fep->frequency < 1531000)
-@@ -212,7 +212,7 @@ static int vp702x_fe_sleep(struct dvb_frontend *fe)
- }
- 
- static int vp702x_fe_get_frontend(struct dvb_frontend* fe,
--				  struct dvb_frontend_parameters *fep)
-+				  struct dtv_frontend_properties *fep)
- {
- 	deb_fe("%s\n",__func__);
- 	return 0;
-@@ -350,6 +350,7 @@ error:
- 
- 
- static struct dvb_frontend_ops vp702x_fe_ops = {
-+	.delsys = { SYS_DVBS },
- 	.info = {
- 		.name           = "Twinhan DST-like frontend (VP7021/VP7020) DVB-S",
- 		.type           = FE_QPSK,
-@@ -370,8 +371,8 @@ static struct dvb_frontend_ops vp702x_fe_ops = {
- 	.init  = vp702x_fe_init,
- 	.sleep = vp702x_fe_sleep,
- 
--	.set_frontend_legacy = vp702x_fe_set_frontend,
--	.get_frontend_legacy = vp702x_fe_get_frontend,
-+	.set_frontend = vp702x_fe_set_frontend,
-+	.get_frontend = vp702x_fe_get_frontend,
- 	.get_tune_settings = vp702x_fe_get_tune_settings,
- 
- 	.read_status = vp702x_fe_read_status,
--- 
-1.7.8.352.g876a6
-
+SGksDQoNClllc3RlcmRheSB3ZSBoYWQgYSBjaGF0IGFib3V0IHZpZGVvIGNvZGVjcyBpbiBWNEwy
+IGFuZCBob3cgdG8gY2hhbmdlIHRoZQ0KaW50ZXJmYWNlIHRvIGFjY29tbW9kYXRlIHRoZSBuZWVk
+cyBvZiBHU3RyZWFtZXIgKGFuZCBwb3NzaWJseSBvdGhlciBtZWRpYQ0KcGxheWVycyBhbmQgYXBw
+bGljYXRpb25zIHVzaW5nIHZpZGVvIGNvZGVjcykuDQoNClRoZSBwcm9ibGVtIHRoYXQgbWFueSBo
+YXJkd2FyZSBjb2RlY3MgbmVlZCBhIGZpeGVkIG51bWJlciBvZiBwcmUtYWxsb2NhdGVkDQpidWZm
+ZXJzIHNob3VsZCBiZSByZXNvbHZlZCB3aGVuIGdzdHJlYW1lciAwLjExIHdpbGwgYmUgcmVsZWFz
+ZWQuDQoNClRoZSBtYWluIGlzc3VlIHRoYXQgd2UgYXJlIGZhY2luZyBpcyB0aGUgcmVzb2x1dGlv
+biBjaGFuZ2UgYW5kIGhvdyBpdCBzaG91bGQgYmUNCmhhbmRsZWQgYnkgdGhlIGRyaXZlciBhbmQg
+dGhlIGFwcGxpY2F0aW9uLiBUaGUgcmVzb2x1dGlvbiBjaGFuZ2UgaXMNCnBhcnRpY3VsYXJseSBj
+b21tb24gaW4gZGlnaXRhbCBUVi4gSXQgb2NjdXJzIHdoZW4gY29udGVudCBvbiBhIHNpbmdsZSBj
+aGFubmVsDQppcyBjaGFuZ2VkLiBGb3IgZXhhbXBsZSB0aGVyZSBpcyB0aGUgdHJhbnNpdGlvbiBm
+cm9tIGEgVFYgc2VyaWVzIHRvIGENCmNvbW1lcmNpYWxzIGJsb2NrLiBPdGhlciBzdHJlYW0gcGFy
+YW1ldGVycyBtYXkgYWxzbyBjaGFuZ2UuIFRoZSBtaW5pbXVtIG51bWJlcg0Kb2YgYnVmZmVycyBy
+ZXF1aXJlZCBmb3IgZGVjb2RpbmcgaXMgb2YgcGFydGljdWxhciBpbnRlcmVzdCBvZiB1cy4gSXQg
+aXMNCmNvbm5lY3RlZCB3aXRoIGhvdyBtYW55IG9sZCBidWZmZXJzIGFyZSB1c2VkIGZvciBwaWN0
+dXJlIHByZWRpY3Rpb24uDQoNCldoZW4gdGhpcyBvY2N1cnMgdGhlcmUgYXJlIHR3byBwb3NzaWJp
+bGl0aWVzOiByZXNvbHV0aW9uIGNhbiBiZSBpbmNyZWFzZWQgb3INCmRlY3JlYXNlZC4gSW4gdGhl
+IGZpcnN0IGNhc2UgaXQgaXMgdmVyeSBsaWtlbHkgdGhhdCB0aGUgY3VycmVudCBidWZmZXJzIGFy
+ZSB0b28NCnNtYWxsIHRvIGZpdCB0aGUgZGVjb2RlZCBmcmFtZXMuIEluIHRoZSBsYXR0ZXIgdGhl
+cmUgaXMgdGhlIGNob2ljZSB0byB1c2UgdGhlDQpleGlzdGluZyBidWZmZXJzIG9yIGFsbG9jYXRl
+IG5ldyBzZXQgb2YgYnVmZmVyIHdpdGggcmVkdWNlZCBzaXplLiBTYW1lIGFwcGxpZXMNCnRvIHRo
+ZSBudW1iZXIgb2YgYnVmZmVycyAtIGl0IGNhbiBiZSBkZWNyZWFzZWQgb3IgaW5jcmVhc2VkLg0K
+DQpPbiB0aGUgT1VUUFVUIHF1ZXVlIHRoZXJlIGlzIG5vdCBtdWNoIHRvIGJlIGRvbmUuIEEgYnVm
+ZmVyIHRoYXQgY29udGFpbnMgYQ0KZnJhbWUgd2l0aCB0aGUgbmV3IHJlc29sdXRpb24gd2lsbCBu
+b3QgYmUgZGVxdWV1ZWQgdW50aWwgaXQgaXMgZnVsbHkgcHJvY2Vzc2VkLg0KDQpPbiB0aGUgQ0FQ
+VFVSRSBxdWV1ZSB0aGUgYXBwbGljYXRpb24gaGFzIHRvIGJlIG5vdGlmaWVkIGFib3V0IHRoZSBy
+ZXNvbHV0aW9uDQpjaGFuZ2UuICBUaGUgaWRlYSBwcm9wb3NlZCBkdXJpbmcgdGhlIGNoYXQgaXMg
+dG8gaW50cm9kdWNlIGEgbmV3IGZsYWcNClY0TDJfQlVGX0ZMQUdfV1JPTkdGT1JNQVQuDQoNCjEp
+IEFmdGVyIGFsbCB0aGUgZnJhbWVzIHdpdGggdGhlIG9sZCByZXNvbHV0aW9uIGFyZSBkZXF1ZXVl
+ZCBhIGJ1ZmZlciB3aXRoIHRoZQ0KZm9sbG93aW5nIGZsYWdzIFY0TDJfQlVGX0ZMQUdfRVJST1Ig
+fCBWNEwyX0JVRl9GTEFHX1dST05HRk9STUFUIGlzIHJldHVybmVkLg0KMikgVG8gYWNrbm93bGVk
+Z2UgdGhlIHJlc29sdXRpb24gY2hhbmdlIHRoZSBhcHBsaWNhdGlvbiBzaG91bGQgU1RSRUFNT0ZG
+LCBjaGVjaw0Kd2hhdCBoYXMgY2hhbmdlZCBhbmQgdGhlbiBTVFJFQU1PTi4NCjMpIFRoZSBhcHBs
+aWNhdGlvbiBzaG91bGQgY2hlY2sgd2l0aCBHX0ZNVCBob3cgZGlkIHRoZSBmb3JtYXQgY2hhbmdl
+IGFuZCB0aGUNClY0TDJfQ0lEX01JTl9CVUZGRVJTX0ZPUl9DQVBUVVJFIGNvbnRyb2wgdG8gY2hl
+Y2sgaG93IG1hbnkgYnVmZmVycyBhcmUNCnJlcXVpcmVkLg0KNCkgTm93IGl0IGlzIG5lY2Vzc2Fy
+eSB0byByZXN1bWUgcHJvY2Vzc2luZzoNCiAgQS4gSWYgdGhlcmUgaXMgbm8gbmVlZCB0byBjaGFu
+Z2UgdGhlIHNpemUgb2YgYnVmZmVycyBvciB0aGVpciBudW1iZXIgdGhlDQphcHBsaWNhdGlvbiBu
+ZWVkcyBvbmx5IHRvIFNUUkVBTU9OLg0KICBCLiBJZiBpdCBpcyBuZWNlc3NhcnkgdG8gYWxsb2Nh
+dGUgYmlnZ2VyIGJ1ZmZlcnMgdGhlIGFwcGxpY2F0aW9uIHNob3VsZCB1c2UNCkNSRUFURV9CVUZT
+IHRvIGFsbG9jYXRlIG5ldyBidWZmZXJzLCB0aGUgb2xkIHNob3VsZCBiZSBsZWZ0IHVudGlsIHRo
+ZQ0KYXBwbGljYXRpb24gaXMgZmluaXNoZWQgYW5kIGZyZWVzIHRoZW0gd2l0aCB0aGUgREVTVFJP
+WV9CVUZTIGNhbGwuIFNfRk1UDQpzaG91bGQgYmUgdXNlZCB0byBhZGp1c3QgdGhlIG5ldyBmb3Jt
+YXQgKGlmIG5lY2Vzc2FyeSBhbmQgcG9zc2libGUgaW4gSFcpLg0KICBDLiBJZiBvbmx5IHRoZSBu
+dW1iZXIgb2YgYnVmZmVycyBoYXMgY2hhbmdlZCB0aGVuIGl0IGlzIHBvc3NpYmxlIHRvIGFkZA0K
+YnVmZmVycyB3aXRoIENSRUFURV9CVUYgb3IgcmVtb3ZlIHNwYXJlIGJ1ZmZlcnMgd2l0aCBERVNU
+Uk9ZX0JVRlMgKG5vdCB5ZXQNCmltcGxlbWVudGVkIHRvIG15IGtub3dsZWRnZSkuDQo1KSBBZnRl
+ciB0aGUgYXBwbGljYXRpb24gZG9lcyBTVFJFTU9OIHRoZSBwcm9jZXNzaW5nIHNob3VsZCBjb250
+aW51ZS4gT2xkDQpidWZmZXJzIGNhbiBzdGlsbCBiZSB1c2VkIGJ5IHRoZSBhcHBsaWNhdGlvbiAo
+YXMgQ1JFQVRFX0JVRlMgd2FzIHVzZWQpLCBidXQNCnRoZXkgc2hvdWxkIG5vdCBiZSBxdWV1ZWQg
+KGVycm9yIHNoYWxsIGJlIHJldHVybmVkIGluIHRoaXMgY2FzZSkuIEFmdGVyIHRoZQ0KYXBwbGlj
+YXRpb24gaXMgZmluaXNoZWQgd2l0aCB0aGUgb2xkIGJ1ZmZlcnMgaXQgc2hvdWxkIGZyZWUgdGhl
+bSB3aXRoDQpERVNUUk9ZX0JVRlMuDQoNCkkgaG9wZSBJIGhhdmVuJ3QgbWlzc2VkIGFueXRoaW5n
+IGZyb20gb3VyIGNoYXQuIEFsc28gcGxlYXNlIGZlZWwgZnJlZSB0byBzaGFyZQ0KeW91ciBjb21t
+ZW50cyBvciBzdWdnZXN0aW9ucy4NCg0KVGhlIGxvZyBmcm9tIG91ciBjaGF0IGNhbiBiZSBmb3Vu
+ZCBoZXJlDQpodHRwOi8vd3d3LnJldGlpc2kub3JnLnVrL3Y0bDIvdjRsMmNvZGVjcy0yMDExLTEy
+LTAxLnR4dCAodGhhbmtzIFNha2FyaSkuDQoNCkluIGEgY291cGxlIG9mIHdvcmRzIEkgd291bGQg
+bGlrZSBkZXNjcmliZSBob3cgaXQgaXMgZG9uZSBub3cgLSBpbiB0aGUgTUZDDQpkcml2ZXIgdGhh
+dCBoYXMgYmVlbiBwb3N0ZWQgYW5kIGFjY2VwdGVkIGluIFY0TDIuIEN1cnJlbnRseSB0aGUgYXBw
+cm9hY2ggaXMNCnZlcnkgc2ltaWxhciwgYnV0IHRoZXJlIGlzIG5vIHNwZWNpYWwgZmxhZyB0byBp
+bmRpY2F0ZSB0aGF0IHRoZSBmb3JtYXQgaGFzDQpjaGFuZ2VkLiBJbnN0ZWFkIGEgYnVmZmVyIHdp
+dGggbm8gZXJyb3IgYW5kIGJ5dGVzdXNlZD0wIGlzIHJldHVybmVkIHRvIG5vdGlmeQ0KdGhlIGFw
+cGxpY2F0aW9uIHRoYXQgdGhlIHJlc29sdXRpb24vbnVtYmVyIG9mIGJ1ZmZlcnMgaGFzIGNoYW5n
+ZWQuIEFmdGVyIHRoYXQNCnRoZSBhcHBsaWNhdGlvbiBkb2VzIFNUUkVBTU9GRiBvbiB0aGUgQ0FQ
+VFVSRSBxdWV1ZSwgY2hlY2tzIHRoZSBuZXcgZm9ybWF0IHdpdGgNCkdfRk1UIGFuZCB0aGVuIHJl
+YWxsb2NhdGVzIHRoZSBidWZmZXJzLiBUbyBkbyB0aGlzIHRoZSBidWZmZXJzIGFyZSB1bm1hcHBl
+ZCBhbmQNCnJlcWJ1ZnMoMCkgaXMgY2FsbGVkLiBOZXh0IHN0ZXAgaXMgYWxsb2NhdGluZyB0aGUg
+bmV3IG51bWJlci9zaXplIG9mIGJ1ZmZlcnMuDQpGaW5hbGx5IFNUUkVBTU9OIGlzIHVzZWQgdG8g
+cmVzdW1lIHByb2Nlc3NpbmcuIFdoZW4gdGhpcyBBUEkgd2FzIGltcGxlbWVudGVkDQp0aGVyZSB3
+YXMgbm8gQ1JFQVRFX0JVRlMvREVTVFJPWV9CVUYgaW1wbGVtZW50YXRpb24gYW5kIHBsYW5zIHRv
+IGltcGxlbWVudCBpdC4NCg0KSGFuZGxpbmcgcmVzb2x1dGlvbiBjaGFuZ2Ugd2l0aCBDUkVBVEVf
+QlVGUy9ERVNUT1JZX0JVRlMgYW5kIG5vdGlmeWluZyB0aGUNCmFwcGxpY2F0aW9uIHdpdGggYSBk
+ZWRpY2F0ZWQgZmxhZyBzZWVtcyBsaWtlIGEgbXVjaCBiZXR0ZXIgc29sdXRpb24uDQoNCkJlc3Qg
+d2lzaGVzLA0KLS0NCkthbWlsIERlYnNraQ0KTGludXggUGxhdGZvcm0gR3JvdXANClNhbXN1bmcg
+UG9sYW5kIFImRCBDZW50ZXINCg0KDQoNClRoZSBhYm92ZSBtZXNzYWdlIGlzIGludGVuZGVkIHNv
+bGVseSBmb3IgdGhlIG5hbWVkIGFkZHJlc3NlZSBhbmQgbWF5IGNvbnRhaW4gdHJhZGUgc2VjcmV0
+LCBpbmR1c3RyaWFsIHRlY2hub2xvZ3kgb3IgcHJpdmlsZWdlZCBhbmQgY29uZmlkZW50aWFsIGlu
+Zm9ybWF0aW9uIG90aGVyd2lzZSBwcm90ZWN0ZWQgdW5kZXIgYXBwbGljYWJsZSBsYXcuIEFueSB1
+bmF1dGhvcml6ZWQgZGlzc2VtaW5hdGlvbiwgZGlzdHJpYnV0aW9uLCBjb3B5aW5nIG9yIHVzZSBv
+ZiB0aGUgaW5mb3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgY29tbXVuaWNhdGlvbiBpcyBzdHJp
+Y3RseSBwcm9oaWJpdGVkLiBJZiB5b3UgaGF2ZSByZWNlaXZlZCB0aGlzIGNvbW11bmljYXRpb24g
+aW4gZXJyb3IsIHBsZWFzZSBub3RpZnkgc2VuZGVyIGJ5IGVtYWlsIGFuZCBkZWxldGUgdGhpcyBj
+b21tdW5pY2F0aW9uIGltbWVkaWF0ZWx5Lg0KDQoNClBvd3nFvHN6YSB3aWFkb21vxZvEhyBwcnpl
+em5hY3pvbmEgamVzdCB3ecWCxIVjem5pZSBkbGEgYWRyZXNhdGEgbmluaWVqc3plaiB3aWFkb21v
+xZtjaSBpIG1vxbxlIHphd2llcmHEhyBpbmZvcm1hY2plIGLEmWTEhWNlIHRhamVtbmljxIUgaGFu
+ZGxvd8SFLCB0YWplbW5pY8SFIHByemVkc2nEmWJpb3JzdHdhIG9yYXogaW5mb3JtYWNqZSBvIGNo
+YXJha3RlcnplIHBvdWZueW0gY2hyb25pb25lIG9ib3dpxIV6dWrEhWN5bWkgcHJ6ZXBpc2FtaSBw
+cmF3YS4gSmFraWVrb2x3aWVrIG5pZXVwcmF3bmlvbmUgaWNoIHJvenBvd3N6ZWNobmlhbmllLCBk
+eXN0cnlidWNqYSwga29waW93YW5pZSBsdWIgdcW8eWNpZSBpbmZvcm1hY2ppIHphd2FydHljaCB3
+IHBvd3nFvHN6ZWogd2lhZG9tb8WbY2kgamVzdCB6YWJyb25pb25lLiBKZcWbbGkgb3RyenltYcWC
+ZcWbIHBvd3nFvHN6xIUgd2lhZG9tb8WbxIcgb215xYJrb3dvLCB1cHJ6ZWptaWUgcHJvc3rEmSBw
+b2luZm9ybXVqIG8gdHltIGZha2NpZSBkcm9nxIUgbWFpbG93xIUgbmFkYXdjxJkgdGVqIHdpYWRv
+bW/Fm2NpIG9yYXogbmllenfFgm9jem5pZSB1c3XFhCBwb3d5xbxzesSFIHdpYWRvbW/Fm8SHIHpl
+IHN3b2plZ28ga29tcHV0ZXJhLg0K
