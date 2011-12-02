@@ -1,80 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:40419 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750718Ab1LWFo4 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Dec 2011 00:44:56 -0500
-MIME-Version: 1.0
-In-Reply-To: <CAF6AEGt9Ae_zVmhBmmtfyKrqC4EyBgAAO1RWdK_UhY-1RLfOSQ@mail.gmail.com>
-References: <1324283611-18344-1-git-send-email-sumit.semwal@ti.com>
- <20111220193117.GD3883@phenom.ffwll.local> <CAPM=9tzi5MyCBMJhWBM_ouL=QOaxX3K6KZ8K+t7dUYJLQrF+yA@mail.gmail.com>
- <CAF6AEGt9Ae_zVmhBmmtfyKrqC4EyBgAAO1RWdK_UhY-1RLfOSQ@mail.gmail.com>
-From: "Semwal, Sumit" <sumit.semwal@ti.com>
-Date: Fri, 23 Dec 2011 11:14:34 +0530
-Message-ID: <CAB2ybb-CN9-APAqGBjm7tzHDfpuih0vN2Wry1_RqxujxVOy=OA@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFC v3 0/2] Introduce DMA buffer sharing mechanism
-To: Rob Clark <rob@ti.com>
-Cc: Dave Airlie <airlied@gmail.com>, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, linux@arm.linux.org.uk, arnd@arndb.de,
-	jesse.barker@linaro.org, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, patches@linaro.org, daniel@ffwll.ch
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:55237 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754508Ab1LBPDQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 10:03:16 -0500
+From: Ming Lei <ming.lei@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Tony Lindgren <tony@atomide.com>
+Cc: Sylwester Nawrocki <snjw23@gmail.com>, Greg KH <greg@kroah.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [RFC PATCH v1 0/7] media&omap4: introduce face detection(FD) driver
+Date: Fri,  2 Dec 2011 23:02:45 +0800
+Message-Id: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 21, 2011 at 3:56 AM, Rob Clark <rob@ti.com> wrote:
-> On Tue, Dec 20, 2011 at 2:20 PM, Dave Airlie <airlied@gmail.com> wrote:
->>>>
-<snip>
->>>
->>> I think this is a really good v1 version of dma_buf. It contains all the
->>> required bits (with well-specified semantics in the doc patch) to
->>> implement some basic use-cases and start fleshing out the integration with
->>> various subsystem (like drm and v4l). All the things still under
->>> discussion like
->>> - userspace mmap support
->>> - more advanced (and more strictly specified) coherency models
->>> - and shared infrastructure for implementing exporters
->>> are imo much clearer once we have a few example drivers at hand and a
->>> better understanding of some of the insane corner cases we need to be able
->>> to handle.
->>>
->>> And I think any risk that the resulting clarifications will break a basic
->>> use-case is really minimal, so I think it'd be great if this could go into
->>> 3.3 (maybe as some kind of staging/experimental infrastructure).
->>>
->>> Hence for both patches:
->>> Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
->>
->> Yeah I'm with Daniel, I like this one, I can definitely build the drm
->> buffer sharing layer on top of this.
->>
->> How do we see this getting merged? I'm quite happy to push it to Linus
->> if we don't have an identified path, though it could go via a Linaro
->> tree as well.
->>
->> so feel free to add:
->> Reviewed-by: Dave Airlie <airlied@redhat.com>
->
-> fwiw, patches to share buffers between drm and v4l2 are here:
->
-> https://github.com/robclark/kernel-omap4/commits/drmplane-dmabuf
->
-> (need a bit of cleanup before the vb2 patches are submitted.. but that
-> is unrelated to the dmabuf patches)
->
-> so,
->
-> Reviewed-and-Tested-by: Rob Clark <rob.clark@linaro.org>
-Thanks Daniel, Dave, and Rob!
-BR,
-Sumit.
->
->> Dave.
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi,
+
+These v1 patches(against -next tree) introduce v4l2 based face
+detection(FD) device driver, and enable FD hardware[1] on omap4 SoC..
+The idea of implementing it on v4l2 is from from Alan Cox, Sylwester
+and Greg-Kh.
+
+For verification purpose, I write one user space utility[2] to
+test the module and driver, follows its basic functions:
+
+	- detect faces in input grayscal picture(PGM raw, 320 by 240)
+	- detect faces in input y8 format video stream
+	- plot a rectangle to mark the detected faces, and save it as 
+	another same type grayscal picture
+
+Looks the performance of the module is not bad, see some detection
+results on the link[3][4].
+
+Face detection can be used to implement some interesting applications
+(camera, face unlock, baby monitor, ...).
+
+TODO:
+	- implement FD setting interfaces with v4l2 controls or
+	ext controls
+
+thanks,
+--
+Ming Lei
+
+[1], Ch9 of OMAP4 Technical Reference Manual
+[2], http://kernel.ubuntu.com/git?p=ming/fdif.git;a=shortlog;h=refs/heads/v4l2-fdif
+[3], http://kernel.ubuntu.com/~ming/dev/fdif/output
+[4], All pictures are taken from http://www.google.com/imghp
+and converted to pnm from jpeg format, only for test purpose.
+
