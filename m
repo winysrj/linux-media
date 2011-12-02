@@ -1,222 +1,268 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7552 "EHLO mx1.redhat.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:41510 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752595Ab1L3PJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:31 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Vj3026586
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:31 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 70/94] [media] dst: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:08:07 -0200
-Message-Id: <1325257711-12274-71-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S1752853Ab1LBI7G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Dec 2011 03:59:06 -0500
+From: Sumit Semwal <sumit.semwal@ti.com>
+To: <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linux-mm@kvack.org>,
+	<linaro-mm-sig@lists.linaro.org>,
+	<dri-devel@lists.freedesktop.org>, <linux-media@vger.kernel.org>
+CC: <linux@arm.linux.org.uk>, <arnd@arndb.de>,
+	<jesse.barker@linaro.org>, <m.szyprowski@samsung.com>,
+	<rob@ti.com>, <daniel@ffwll.ch>, <t.stanislaws@samsung.com>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: [RFC v2 2/2] dma-buf: Documentation for buffer sharing framework
+Date: Fri, 2 Dec 2011 14:27:32 +0530
+Message-ID: <1322816252-19955-3-git-send-email-sumit.semwal@ti.com>
+In-Reply-To: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Add documentation for dma buffer sharing framework, explaining the
+various operations, members and API of the dma buffer sharing
+framework.
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
 ---
- drivers/media/dvb/bt8xx/dst.c |   63 +++++++++++++++++++++--------------------
- 1 files changed, 32 insertions(+), 31 deletions(-)
+ Documentation/dma-buf-sharing.txt |  223 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 223 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/dma-buf-sharing.txt
 
-diff --git a/drivers/media/dvb/bt8xx/dst.c b/drivers/media/dvb/bt8xx/dst.c
-index 6afc083..7d60893 100644
---- a/drivers/media/dvb/bt8xx/dst.c
-+++ b/drivers/media/dvb/bt8xx/dst.c
-@@ -386,7 +386,7 @@ static int dst_set_freq(struct dst_state *state, u32 freq)
- 	return 0;
- }
- 
--static int dst_set_bandwidth(struct dst_state *state, fe_bandwidth_t bandwidth)
-+static int dst_set_bandwidth(struct dst_state *state, u32 bandwidth)
- {
- 	state->bandwidth = bandwidth;
- 
-@@ -394,7 +394,7 @@ static int dst_set_bandwidth(struct dst_state *state, fe_bandwidth_t bandwidth)
- 		return -EOPNOTSUPP;
- 
- 	switch (bandwidth) {
--	case BANDWIDTH_6_MHZ:
-+	case 6000000:
- 		if (state->dst_hw_cap & DST_TYPE_HAS_CA)
- 			state->tx_tuna[7] = 0x06;
- 		else {
-@@ -402,7 +402,7 @@ static int dst_set_bandwidth(struct dst_state *state, fe_bandwidth_t bandwidth)
- 			state->tx_tuna[7] = 0x00;
- 		}
- 		break;
--	case BANDWIDTH_7_MHZ:
-+	case 7000000:
- 		if (state->dst_hw_cap & DST_TYPE_HAS_CA)
- 			state->tx_tuna[7] = 0x07;
- 		else {
-@@ -410,7 +410,7 @@ static int dst_set_bandwidth(struct dst_state *state, fe_bandwidth_t bandwidth)
- 			state->tx_tuna[7] = 0x00;
- 		}
- 		break;
--	case BANDWIDTH_8_MHZ:
-+	case 8000000:
- 		if (state->dst_hw_cap & DST_TYPE_HAS_CA)
- 			state->tx_tuna[7] = 0x08;
- 		else {
-@@ -1561,7 +1561,7 @@ static int dst_init(struct dvb_frontend *fe)
- 	state->tone = SEC_TONE_OFF;
- 	state->diseq_flags = 0;
- 	state->k22 = 0x02;
--	state->bandwidth = BANDWIDTH_7_MHZ;
-+	state->bandwidth = 7000000;
- 	state->cur_jiff = jiffies;
- 	if (state->dst_type == DST_TYPE_IS_SAT)
- 		memcpy(state->tx_tuna, ((state->type_flags & DST_TYPE_HAS_VLF) ? sat_tuna_188 : sat_tuna_204), sizeof (sat_tuna_204));
-@@ -1609,8 +1609,9 @@ static int dst_read_snr(struct dvb_frontend *fe, u16 *snr)
- 	return retval;
- }
- 
--static int dst_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
-+static int dst_set_frontend(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	int retval = -EINVAL;
- 	struct dst_state *state = fe->demodulator_priv;
- 
-@@ -1623,17 +1624,17 @@ static int dst_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_paramet
- 		if (state->dst_type == DST_TYPE_IS_SAT) {
- 			if (state->type_flags & DST_TYPE_HAS_OBS_REGS)
- 				dst_set_inversion(state, p->inversion);
--			dst_set_fec(state, p->u.qpsk.fec_inner);
--			dst_set_symbolrate(state, p->u.qpsk.symbol_rate);
-+			dst_set_fec(state, p->fec_inner);
-+			dst_set_symbolrate(state, p->symbol_rate);
- 			dst_set_polarization(state);
--			dprintk(verbose, DST_DEBUG, 1, "Set Symbolrate=[%d]", p->u.qpsk.symbol_rate);
-+			dprintk(verbose, DST_DEBUG, 1, "Set Symbolrate=[%d]", p->symbol_rate);
- 
- 		} else if (state->dst_type == DST_TYPE_IS_TERR)
--			dst_set_bandwidth(state, p->u.ofdm.bandwidth);
-+			dst_set_bandwidth(state, p->bandwidth_hz);
- 		else if (state->dst_type == DST_TYPE_IS_CABLE) {
--			dst_set_fec(state, p->u.qam.fec_inner);
--			dst_set_symbolrate(state, p->u.qam.symbol_rate);
--			dst_set_modulation(state, p->u.qam.modulation);
-+			dst_set_fec(state, p->fec_inner);
-+			dst_set_symbolrate(state, p->symbol_rate);
-+			dst_set_modulation(state, p->modulation);
- 		}
- 		retval = dst_write_tuna(fe);
- 	}
-@@ -1683,7 +1684,7 @@ static int dst_get_tuning_algo(struct dvb_frontend *fe)
- 	return dst_algo ? DVBFE_ALGO_HW : DVBFE_ALGO_SW;
- }
- 
--static int dst_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
-+static int dst_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *p)
- {
- 	struct dst_state *state = fe->demodulator_priv;
- 
-@@ -1691,14 +1692,14 @@ static int dst_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_paramet
- 	if (state->dst_type == DST_TYPE_IS_SAT) {
- 		if (state->type_flags & DST_TYPE_HAS_OBS_REGS)
- 			p->inversion = state->inversion;
--		p->u.qpsk.symbol_rate = state->symbol_rate;
--		p->u.qpsk.fec_inner = dst_get_fec(state);
-+		p->symbol_rate = state->symbol_rate;
-+		p->fec_inner = dst_get_fec(state);
- 	} else if (state->dst_type == DST_TYPE_IS_TERR) {
--		p->u.ofdm.bandwidth = state->bandwidth;
-+		p->bandwidth_hz = state->bandwidth;
- 	} else if (state->dst_type == DST_TYPE_IS_CABLE) {
--		p->u.qam.symbol_rate = state->symbol_rate;
--		p->u.qam.fec_inner = dst_get_fec(state);
--		p->u.qam.modulation = dst_get_modulation(state);
-+		p->symbol_rate = state->symbol_rate;
-+		p->fec_inner = dst_get_fec(state);
-+		p->modulation = dst_get_modulation(state);
- 	}
- 
- 	return 0;
-@@ -1756,7 +1757,7 @@ struct dst_state *dst_attach(struct dst_state *state, struct dvb_adapter *dvb_ad
- EXPORT_SYMBOL(dst_attach);
- 
- static struct dvb_frontend_ops dst_dvbt_ops = {
--
-+	.delsys = { SYS_DVBT },
- 	.info = {
- 		.name = "DST DVB-T",
- 		.type = FE_OFDM,
-@@ -1777,8 +1778,8 @@ static struct dvb_frontend_ops dst_dvbt_ops = {
- 	.release = dst_release,
- 	.init = dst_init,
- 	.tune = dst_tune_frontend,
--	.set_frontend_legacy = dst_set_frontend,
--	.get_frontend_legacy = dst_get_frontend,
-+	.set_frontend = dst_set_frontend,
-+	.get_frontend = dst_get_frontend,
- 	.get_frontend_algo = dst_get_tuning_algo,
- 	.read_status = dst_read_status,
- 	.read_signal_strength = dst_read_signal_strength,
-@@ -1786,7 +1787,7 @@ static struct dvb_frontend_ops dst_dvbt_ops = {
- };
- 
- static struct dvb_frontend_ops dst_dvbs_ops = {
--
-+	.delsys = { SYS_DVBS },
- 	.info = {
- 		.name = "DST DVB-S",
- 		.type = FE_QPSK,
-@@ -1803,8 +1804,8 @@ static struct dvb_frontend_ops dst_dvbs_ops = {
- 	.release = dst_release,
- 	.init = dst_init,
- 	.tune = dst_tune_frontend,
--	.set_frontend_legacy = dst_set_frontend,
--	.get_frontend_legacy = dst_get_frontend,
-+	.set_frontend = dst_set_frontend,
-+	.get_frontend = dst_get_frontend,
- 	.get_frontend_algo = dst_get_tuning_algo,
- 	.read_status = dst_read_status,
- 	.read_signal_strength = dst_read_signal_strength,
-@@ -1816,7 +1817,7 @@ static struct dvb_frontend_ops dst_dvbs_ops = {
- };
- 
- static struct dvb_frontend_ops dst_dvbc_ops = {
--
-+	.delsys = { SYS_DVBC_ANNEX_A },
- 	.info = {
- 		.name = "DST DVB-C",
- 		.type = FE_QAM,
-@@ -1837,8 +1838,8 @@ static struct dvb_frontend_ops dst_dvbc_ops = {
- 	.release = dst_release,
- 	.init = dst_init,
- 	.tune = dst_tune_frontend,
--	.set_frontend_legacy = dst_set_frontend,
--	.get_frontend_legacy = dst_get_frontend,
-+	.set_frontend = dst_set_frontend,
-+	.get_frontend = dst_get_frontend,
- 	.get_frontend_algo = dst_get_tuning_algo,
- 	.read_status = dst_read_status,
- 	.read_signal_strength = dst_read_signal_strength,
-@@ -1860,8 +1861,8 @@ static struct dvb_frontend_ops dst_atsc_ops = {
- 	.release = dst_release,
- 	.init = dst_init,
- 	.tune = dst_tune_frontend,
--	.set_frontend_legacy = dst_set_frontend,
--	.get_frontend_legacy = dst_get_frontend,
-+	.set_frontend = dst_set_frontend,
-+	.get_frontend = dst_get_frontend,
- 	.get_frontend_algo = dst_get_tuning_algo,
- 	.read_status = dst_read_status,
- 	.read_signal_strength = dst_read_signal_strength,
+diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+new file mode 100644
+index 0000000..2c1bdf6
+--- /dev/null
++++ b/Documentation/dma-buf-sharing.txt
+@@ -0,0 +1,223 @@
++                    DMA Buffer Sharing API Guide
++                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++                            Sumit Semwal
++                <sumit dot semwal at linaro dot org>
++                 <sumit dot semwal at ti dot com>
++
++This document serves as a guide to device-driver writers on what is the dma-buf
++buffer sharing API, how to use it for exporting and using shared buffers.
++
++Any device driver which wishes to be a part of DMA buffer sharing, can do so as
++either the 'exporter' of buffers, or the 'user' of buffers.
++
++Say a driver A wants to use buffers created by driver B, then we call B as the
++exporter, and A as buffer-user.
++
++The exporter
++- implements and manages operations[1] for the buffer
++- allows other users to share the buffer by using dma_buf sharing APIs,
++- manages the details of buffer allocation,
++- decides about the actual backing storage where this allocation happens,
++- takes care of any migration of scatterlist - for all (shared) users of this
++   buffer,
++- optionally, provides mmap capability for drivers that need it.
++
++The buffer-user
++- is one of (many) sharing users of the buffer.
++- doesn't need to worry about how the buffer is allocated, or where.
++- needs a mechanism to get access to the scatterlist that makes up this buffer
++   in memory, mapped into its own address space, so it can access the same area
++   of memory.
++
++
++The dma_buf buffer sharing API usage contains the following steps:
++
++1. Exporter announces that it wishes to export a buffer
++2. Userspace gets the file descriptor associated with the exported buffer, and
++   passes it around to potential buffer-users based on use case
++3. Each buffer-user 'connects' itself to the buffer
++4. When needed, buffer-user requests access to the buffer from exporter
++5. When finished with its use, the buffer-user notifies end-of-DMA to exporter
++6. when buffer-user is done using this buffer completely, it 'disconnects'
++   itself from the buffer.
++
++
++1. Exporter's announcement of buffer export
++
++   The buffer exporter announces its wish to export a buffer. In this, it
++   connects its own private buffer data, provides implementation for operations
++   that can be performed on the exported dma_buf, and flags for the file
++   associated with this buffer.
++
++   Interface:
++      struct dma_buf *dma_buf_export(void *priv, struct dma_buf_ops *ops,
++                                int flags)
++
++   If this succeeds, dma_buf_export allocates a dma_buf structure, and returns a
++   pointer to the same. It also associates an anonymous file with this buffer,
++   so it can be exported. On failure to allocate the dma_buf object, it returns
++   NULL.
++
++2. Userspace gets a handle to pass around to potential buffer-users
++
++   Userspace entity requests for a file-descriptor (fd) which is a handle to the
++   anonymous file associated with the buffer. It can then share the fd with other
++   drivers and/or processes.
++
++   Interface:
++      int dma_buf_fd(struct dma_buf *dmabuf)
++
++   This API installs an fd for the anonymous file associated with this buffer;
++   returns either 'fd', or error.
++
++3. Each buffer-user 'connects' itself to the buffer
++
++   Each buffer-user now gets a reference to the buffer, using the fd passed to
++   it.
++
++   Interface:
++      struct dma_buf *dma_buf_get(int fd)
++
++   This API will return a reference to the dma_buf, and increment refcount for
++   it.
++
++   After this, the buffer-user needs to attach its device with the buffer, which
++   helps the exporter to know of device buffer constraints.
++
++   Interface:
++      struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
++                                                struct device *dev)
++
++   This API returns reference to an attachment structure, which is then used
++   for scatterlist operations. It will optionally call the 'attach' dma_buf
++   operation, if provided by the exporter.
++
++   The dma-buf sharing framework does the bookkeeping bits related to managing
++   the list of all attachments to a buffer.
++
++Until this stage, the buffer-exporter has the option to choose not to actually
++allocate the backing storage for this buffer, but wait for the first buffer-user
++to request use of buffer for allocation.
++
++
++4. When needed, buffer-user requests access to the buffer
++
++   Whenever a buffer-user wants to use the buffer for any DMA, it asks for
++   access to the buffer using dma_buf_map_attachment API. At least one attach to
++   the buffer must have happened before map_dma_buf can be called.
++
++   Interface:
++      struct sg_table * dma_buf_map_attachment(struct dma_buf_attachment *,
++                                         enum dma_data_direction);
++
++   This is a wrapper to dma_buf->ops->map_dma_buf operation, which hides the
++   "dma_buf->ops->" indirection from the users of this interface.
++
++   In struct dma_buf_ops, map_dma_buf is defined as
++      struct sg_table * (*map_dma_buf)(struct dma_buf_attachment *,
++                                                enum dma_data_direction);
++
++   It is one of the buffer operations that must be implemented by the exporter.
++   It should return the sg_table containing scatterlist for this buffer, mapped
++   into caller's address space.
++
++   If this is being called for the first time, the exporter can now choose to
++   scan through the list of attachments for this buffer, collate the requirements
++   of the attached devices, and choose an appropriate backing storage for the
++   buffer.
++
++   Based on enum dma_data_direction, it might be possible to have multiple users
++   accessing at the same time (for reading, maybe), or any other kind of sharing
++   that the exporter might wish to make available to buffer-users.
++
++
++5. When finished, the buffer-user notifies end-of-DMA to exporter
++
++   Once the DMA for the current buffer-user is over, it signals 'end-of-DMA' to
++   the exporter using the dma_buf_unmap_attachment API.
++
++   Interface:
++      void dma_buf_unmap_attachment(struct dma_buf_attachment *,
++                                    struct sg_table *);
++
++   This is a wrapper to dma_buf->ops->unmap_dma_buf() operation, which hides the
++   "dma_buf->ops->" indirection from the users of this interface.
++
++   In struct dma_buf_ops, unmap_dma_buf is defined as
++      void (*unmap_dma_buf)(struct dma_buf_attachment *, struct sg_table *);
++
++   unmap_dma_buf signifies the end-of-DMA for the attachment provided. Like
++   map_dma_buf, this API also must be implemented by the exporter.
++
++
++6. when buffer-user is done using this buffer, it 'disconnects' itself from the
++   buffer.
++
++   After the buffer-user has no more interest in using this buffer, it should
++   disconnect itself from the buffer:
++
++   - it first detaches itself from the buffer.
++
++   Interface:
++      void dma_buf_detach(struct dma_buf *dmabuf,
++                          struct dma_buf_attachment *dmabuf_attach);
++
++   This API removes the attachment from the list in dmabuf, and optionally calls
++   dma_buf->ops->detach(), if provided by exporter, for any housekeeping bits.
++
++   - Then, the buffer-user returns the buffer reference to exporter.
++
++   Interface:
++     void dma_buf_put(struct dma_buf *dmabuf);
++
++   This API then reduces the refcount for this buffer.
++
++   If, as a result of this call, the refcount becomes 0, the 'release' file
++   operation related to this fd is called. It calls the dmabuf->ops->release()
++   operation in turn, and frees the memory allocated for dmabuf when exported.
++
++NOTES:
++- Importance of attach-detach and {map,unmap}_dma_buf operation pairs
++   The attach-detach calls allow the exporter to figure out backing-storage
++   constraints for the currently-interested devices. This allows preferential
++   allocation, and/or migration of pages across different types of storage
++   available, if possible.
++
++   Bracketing of DMA access with {map,unmap}_dma_buf operations is essential
++   to allow just-in-time backing of storage, and migration mid-way through a
++   use-case.
++
++- Migration of backing storage if needed
++   If after
++   - at least one map_dma_buf has happened,
++   - and the backing storage has been allocated for this buffer,
++   another new buffer-user intends to attach itself to this buffer, it might
++   be allowed, if possible for the exporter.
++
++   In case it is allowed by the exporter:
++    if the new buffer-user has stricter 'backing-storage constraints', and the
++    exporter can handle these constraints, the exporter can just stall on the
++    map_dma_buf until all outstanding access is completed (as signalled by
++    unmap_dma_buf).
++    Once all ongoing access is completed, the exporter could potentially move
++    the buffer to the stricter backing-storage, and then allow further
++    {map,unmap}_dma_buf operations from any buffer-user from the migrated
++    backing-storage.
++
++   If the exporter cannot fulfil the backing-storage constraints of the new
++   buffer-user device as requested, dma_buf_attach() would return an error to
++   denote non-compatibility of the new buffer-sharing request with the current
++   buffer.
++
++   If the exporter chooses not to allow an attach() operation once a
++   map_dma_buf() API has been called, it simply returns an error.
++
++- mmap file operation
++   An mmap() file operation is provided for the fd associated with the buffer.
++   If the exporter defines an mmap operation, the mmap() fop calls this to allow
++   mmap for devices that might need it; if not, it returns an error.
++
++References:
++[1] struct dma_buf_ops in include/linux/dma-buf.h
++[2] All interfaces mentioned above defined in include/linux/dma-buf.h
 -- 
-1.7.8.352.g876a6
+1.7.4.1
 
