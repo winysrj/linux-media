@@ -1,108 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from newsmtp5.atmel.com ([204.2.163.5]:1943 "EHLO sjogate2.atmel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:51178 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751054Ab1LGGKM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 01:10:12 -0500
-Content-class: urn:content-classes:message
+	id S1753547Ab1LBLO4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Dec 2011 06:14:56 -0500
+Message-ID: <4ED8B327.9090505@redhat.com>
+Date: Fri, 02 Dec 2011 09:14:47 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Subject: RE: [PATCH 2/2] [media] V4L: atmel-isi: add clk_prepare()/clk_unprepare() functions
-Date: Wed, 7 Dec 2011 14:09:56 +0800
-Message-ID: <4C79549CB6F772498162A641D92D5328039E98C1@penmb01.corp.atmel.com>
-In-Reply-To: <Pine.LNX.4.64.1112061045150.10715@axis700.grange>
-References: <1322647604-30662-1-git-send-email-josh.wu@atmel.com> <1322647604-30662-2-git-send-email-josh.wu@atmel.com> <Pine.LNX.4.64.1112061045150.10715@axis700.grange>
-From: "Wu, Josh" <Josh.wu@atmel.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-Cc: <linux-media@vger.kernel.org>,
-	"Ferre, Nicolas" <Nicolas.FERRE@atmel.com>,
-	<linux@arm.linux.org.uk>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: HoP <jpetrous@gmail.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
+ of worrying about possible misusage?
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <4ED7BBA3.5020002@redhat.com> <CAJbz7-1_Nb8d427bOMzCDbRcvwQ3QjD=2KhdPQS_h_jaYY5J3w@mail.gmail.com> <4ED7E5D7.8070909@redhat.com> <4ED805CB.5020302@linuxtv.org>
+In-Reply-To: <4ED805CB.5020302@linuxtv.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi
+On 01-12-2011 20:55, Andreas Oberritter wrote:
+> On 01.12.2011 21:38, Mauro Carvalho Chehab wrote:
+>> I fail to see where do you need to duplicate dvb-core. An userspace
+>> LD_PRELOAD handler that would do:
+>>
+>> int socket;
+>>
+>> int dvb_ioctl(int fd, unsigned long int request, ...)
+>> {
+>>          void *arg;
+>>          va_list ap;
+>>
+>>          va_start(ap, request);
+>>          arg = va_arg(ap, void *);
+>>          va_end(ap);
+>>
+>>      send_net_ioctl_packet(socket, request, arg);
+>> }
+>>
+>> Is probably all you need to send _any_ ioctl's to a remote machine
+>> (plus client's machine that would decode the ioctl packet and send
+>> the ioctl to the actual driver).
+>>
+>> Of course, you'll need hooks for all syscalls used (likely open, close,
+>> ioctl, read, poll).
+>>
+>> So, there's not much duplication, even if, for whatever reason, you
+>> might need to hook some specific ioctls in order to optimize the
+>> network performance.
+>
+> Mauro, we've already had that discussion last time. In order to
+> intercept ioctls of a device, the device needs to exist to begin with,
+> right? That's where vtuner comes in: It creates the virtual device.
 
-Thank you for explain the label name rules. I've sent the v2 version
-patch out. In v2 version I modified the code and make the label name
-consistent.
+Yes.
 
-On 12/06/2011 5:49PM, Guennadi Liakhovetski wrote:
+> For that reason your suggested approach using LD_PRELOAD won't work.
 
-> Hi Josh
+If you're referring to the device name under /dev, a daemon emulating
+a physical device could create Unix sockets under /dev/dvb.
 
-> Thanks for the patch, but I'll ask you to fix the same thing in it,
-that 
-> I've fixed for you in the first patch in this series:
+Or (with is the right solution) bind such library into the applications
+that will be used.
 
-> On Wed, 30 Nov 2011, Josh Wu wrote:
+> Besides that, suggesting LD_PRELOAD for something other than a hack
+> can't be taken seriously.
 
->> Signed-off-by: Josh Wu <josh.wu@atmel.com>
->> ---
->>  drivers/media/video/atmel-isi.c |   17 ++++++++++++++++-
->>  1 files changed, 16 insertions(+), 1 deletions(-)
->> 
->> diff --git a/drivers/media/video/atmel-isi.c
-b/drivers/media/video/atmel-isi.c
->> index ea4eef4..5da4381 100644
->> --- a/drivers/media/video/atmel-isi.c
->> +++ b/drivers/media/video/atmel-isi.c
+A Kernel pigback plugin is also a hack.
 
-> [snip]
+> I think you didn't even understand what vtuner does, after all the
+> discussion that took place.
+>
+>>>>> Of course
+>>>>> I can be wrong, I'm no big kernel hacker. So please show me the
+>>>>> way for it. BTW, even if you can find the way, then data copying
+>>>>> from userspace to the kernel and back is also necessery.
+>>>>
+>>>> See libv4l, at v4l2-utils.git (at linuxtv.org).
+>>>>
+>>>>> I really
+>>>>> don't see any advantage of you solution.
+>>>>
+>>>> And I can't see any advantage on yours ;) Putting something that belongs
+>>>> to userspace into kernelspace just because it is easier to re-use the
+>>>> existing code inside the kernel is not a good argument.
+>>>
+>>> It is only your POV that it should be in userspace.
+>>>
+>>> Creating additional code which not only enlarge code size by 2
+>>> but I think by 10 is really not good idea.  And it get no advantage
+>>> only disadvantages.
+>>>
+>>>>
+>>>> Don't get me wrong but if you want to submit a code to be merged
+>>>> on any existing software (being open source or not), you should be
+>>>> prepared to defend your code and justify the need for it to the
+>>>> other developers.
+>>>
+>>> Sure. I was prepared for technical disscussion, but was fully suprised
+>>> that it was not happend (ok, to be correct, few guys are exception, like
+>>> Andreas and few others. I really appreciate it).
+>>>
+>>> So, my question was still not answered: "Can be driver NACKed only
+>>> because of worrying about possible misuse?"
+>>
+>> To answer your question: your driver were nacked because of several
+>> reasons:
+>> it is not a driver for an unsupported hardware,
+>
+> It's not a driver for supported hardware either. You named it before:
+> It's not a driver in your definition at all. It's a way to remotely
+> access digital TV tuners over a network.
 
->> @@ -978,10 +986,14 @@ static int __devinit atmel_isi_probe(struct
-platform_device *pdev)
->>  		goto err_clk_get;
->>  	}
->>  
->> +	ret = clk_prepare(isi->mck);
->> +	if (ret)
->> +		goto err_set_mck_rate;
->> +
->>  	/* Set ISI_MCK's frequency, it should be faster than pixel clock
-*/
->>  	ret = clk_set_rate(isi->mck, pdata->mck_hz);
->>  	if (ret < 0)
->> -		goto err_set_mck_rate;
->> +		goto err_unprepare_mck;
->>  
->>  	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
->>  				sizeof(struct fbd) * MAX_BUFFER_NUM,
->> @@ -1058,11 +1070,14 @@ err_alloc_ctx:
->>  			isi->p_fb_descriptors,
->>  			isi->fb_descriptors_phys);
->>  err_alloc_descriptors:
->> +err_unprepare_mck:
->> +	clk_unprepare(isi->mck);
->>  err_set_mck_rate:
->>  	clk_put(isi->mck);
->>  err_clk_get:
->>  	kfree(isi);
->>  err_alloc_isi:
->> +	clk_unprepare(pclk);
->>  	clk_put(pclk);
->>  
->>  	return ret;
+Yes, this is not a driver. It is just a hack to avoid adding network
+support at the userspace applications.
 
-> Please, use error label names consistently. As you can see, currently
-the 
-> driver uses the convention
+>> you failed to convince
+>> people
+>> why this can't be implemented on userspace,
+>
+> Wrong. You failed to convince people why this must be implemented in
+> userspace. Even Michael Krufky, who's "only" against merging it, likes
+> the idea, because it's useful.
 
->	ret = do_something();
->	if (ret < 0)
->		goto err_do_something;
+Sometimes, when I'm debugging a driver, I use to add several hacks inside
+the kernelspace, in order to do things that are useful on my development
+(debug printk's, dirty hacks, etc). I even have my own set of patches that
+I apply on kvm, in order to sniff PCI traffic. This doesn't mean that
+I should send all those crap upstream.
 
-> i.e., the label is called after the operation, that has failed, not
-after 
-> the clean up step, that the control now has to jump to. Please, update
+> Just because something can be implemented in userspace doesn't mean that
+> it's technically superior.
 
-> your patch to also use this convention.
+True, but I didn't see anything at the submitted code or at the discussions
+showing that implementing it in kernelspace is technically superior.
 
-Understand it now. Thank you.
+What I'm seeing is what is coded there:
 
-> Thanks
-> Guennadi
+	http://code.google.com/p/vtuner/
 
-Best Regards,
-Josh Wu
+The kernelspace part is just a piggyback driver, that just copies data from/to
+the dvb calls into another device, that sends the request back to userspace.
+
+A separate userspace daemon will get such results and send to the network stack:
+	http://code.google.com/p/vtuner/source/browse/vtuner-network.c?repo=apps
+
+This is technically inferior of letting the application just talk to vtuner
+directly via some library call.
+
+Btw, applications like vdr, vlc, kaffeine and others already implement their
+own ways to remotelly access the DVB devices without requiring any
+kernelspace piggyback driver.
+
+>> the driver adds hooks at
+>> kernelspace
+>> that would open internal API's that several developers don't agree on
+>> exposing
+>> at userspace, as would allow non GPL license compatible drivers to re-use
+>> their work in a way they are against.
+>
+> What's left is your unreasonable GPL blah blah. So the answer to Honza's
+> question is: Yes, Mauro is nacking the driver because he's worrying
+> about possible misuse.
+>
+> Regards,
+> Andreas
+
