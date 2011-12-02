@@ -1,102 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh07.mail.saunalahti.fi ([62.142.5.117]:58778 "EHLO
-	emh07.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755032Ab1LNJqM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 04:46:12 -0500
-Message-ID: <4EE8705F.30609@kolumbus.fi>
-Date: Wed, 14 Dec 2011 11:46:07 +0200
-From: Marko Ristola <marko.ristola@kolumbus.fi>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:53610 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753866Ab1LBTpZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 14:45:25 -0500
+Received: by ywa9 with SMTP id 9so3099177ywa.19
+        for <linux-media@vger.kernel.org>; Fri, 02 Dec 2011 11:45:24 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: Manu Abraham <abraham.manu@gmail.com>
-Subject: [PATCH] Mantis and Hopper: Fix CAM hangup caused by losing GPIF status
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4ED929E7.2050808@gmail.com>
+References: <4ED929E7.2050808@gmail.com>
+Date: Fri, 2 Dec 2011 14:45:24 -0500
+Message-ID: <CAGoCfizgkfHJ-0YwcdTEQEhci=7eE7BTuSOj8KmMpLRhc4oqGg@mail.gmail.com>
+Subject: Re: Hauppauge HVR-930C problems
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Fredrik Lingvall <fredrik.lingvall@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, Dec 2, 2011 at 2:41 PM, Fredrik Lingvall
+<fredrik.lingvall@gmail.com> wrote:
+> The HVR 930C device has three connectors/inputs:  an antenna input, an
+> S-video, and a composite video, respectively,
+>
+> The provider I have here in Norway (Get) has both analog tv and digital
+> (DVB-C) so can I get analog tv using the antenna input or is analog only on
+> the S-video/composite inputs? And, how do I select which analog input that
+>  is used?
 
-Mantis and Hopper drivers: Fix CAM hangup problem,
-where interrupt handler clears GPIF status, even though
-GPIF interrupt isn't active.
+The analog support for that device isn't currently supported (due to a
+lack of a Linux driver for the analog demodulator).  The digital
+should work fine though (and if not, bring it to Mauro's attention
+since he has been actively working on it).
 
-Manuel  reported that this patch fixes his problem:
-http://www.spinics.net/lists/linux-media/msg41473.html
-(CAM hangs up about once per 20 minutes, each hangup takes about 3-5s.)
+Devin
 
-Signed-off-by: Marko Ristola <Marko.Ristola@kolumbus.fi>
-
-diff --git a/drivers/media/dvb/mantis/hopper_cards.c b/drivers/media/dvb/mantis/hopper_cards.c
-index 71622f6..c2084e9 100644
---- a/drivers/media/dvb/mantis/hopper_cards.c
-+++ b/drivers/media/dvb/mantis/hopper_cards.c
-@@ -84,15 +84,6 @@ static irqreturn_t hopper_irq_handler(int irq, void *dev_id)
-  	if (!(stat & mask))
-  		return IRQ_NONE;
-  
--	rst_mask  = MANTIS_GPIF_WRACK  |
--		    MANTIS_GPIF_OTHERR |
--		    MANTIS_SBUF_WSTO   |
--		    MANTIS_GPIF_EXTIRQ;
--
--	rst_stat  = mmread(MANTIS_GPIF_STATUS);
--	rst_stat &= rst_mask;
--	mmwrite(rst_stat, MANTIS_GPIF_STATUS);
--
-  	mantis->mantis_int_stat = stat;
-  	mantis->mantis_int_mask = mask;
-  	dprintk(MANTIS_DEBUG, 0, "\n-- Stat=<%02x> Mask=<%02x> --", stat, mask);
-@@ -101,6 +92,16 @@ static irqreturn_t hopper_irq_handler(int irq, void *dev_id)
-  	}
-  	if (stat & MANTIS_INT_IRQ0) {
-  		dprintk(MANTIS_DEBUG, 0, "<%s>", label[1]);
-+
-+		rst_mask  = MANTIS_GPIF_WRACK  |
-+			    MANTIS_GPIF_OTHERR |
-+			    MANTIS_SBUF_WSTO   |
-+			    MANTIS_GPIF_EXTIRQ;
-+
-+		rst_stat  = mmread(MANTIS_GPIF_STATUS);
-+		rst_stat &= rst_mask;
-+		mmwrite(rst_stat, MANTIS_GPIF_STATUS);
-+
-  		mantis->gpif_status = rst_stat;
-  		wake_up(&ca->hif_write_wq);
-  		schedule_work(&ca->hif_evm_work);
-diff --git a/drivers/media/dvb/mantis/mantis_cards.c b/drivers/media/dvb/mantis/mantis_cards.c
-index c2bb90b..109a5fb 100644
---- a/drivers/media/dvb/mantis/mantis_cards.c
-+++ b/drivers/media/dvb/mantis/mantis_cards.c
-@@ -92,15 +92,6 @@ static irqreturn_t mantis_irq_handler(int irq, void *dev_id)
-  	if (!(stat & mask))
-  		return IRQ_NONE;
-  
--	rst_mask  = MANTIS_GPIF_WRACK  |
--		    MANTIS_GPIF_OTHERR |
--		    MANTIS_SBUF_WSTO   |
--		    MANTIS_GPIF_EXTIRQ;
--
--	rst_stat  = mmread(MANTIS_GPIF_STATUS);
--	rst_stat &= rst_mask;
--	mmwrite(rst_stat, MANTIS_GPIF_STATUS);
--
-  	mantis->mantis_int_stat = stat;
-  	mantis->mantis_int_mask = mask;
-  	dprintk(MANTIS_DEBUG, 0, "\n-- Stat=<%02x> Mask=<%02x> --", stat, mask);
-@@ -109,6 +100,15 @@ static irqreturn_t mantis_irq_handler(int irq, void *dev_id)
-  	}
-  	if (stat & MANTIS_INT_IRQ0) {
-  		dprintk(MANTIS_DEBUG, 0, "<%s>", label[1]);
-+		rst_mask  = MANTIS_GPIF_WRACK  |
-+			    MANTIS_GPIF_OTHERR |
-+			    MANTIS_SBUF_WSTO   |
-+			    MANTIS_GPIF_EXTIRQ;
-+
-+		rst_stat  = mmread(MANTIS_GPIF_STATUS);
-+		rst_stat &= rst_mask;
-+		mmwrite(rst_stat, MANTIS_GPIF_STATUS);
-+
-  		mantis->gpif_status = rst_stat;
-  		wake_up(&ca->hif_write_wq);
-  		schedule_work(&ca->hif_evm_work);
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
