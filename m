@@ -1,88 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62780 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750896Ab1LQV7b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Dec 2011 16:59:31 -0500
-Message-ID: <4EED10B6.3050604@redhat.com>
-Date: Sat, 17 Dec 2011 19:59:18 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:59782 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753915Ab1LBL6B convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 06:58:01 -0500
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linuxtv@stefanringel.de, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] mt2063: add get_if_frequency call
-References: <1324155437-15834-1-git-send-email-linuxtv@stefanringel.de> <4EED0F8E.2000005@iki.fi>
-In-Reply-To: <4EED0F8E.2000005@iki.fi>
+In-Reply-To: <4ED8B327.9090505@redhat.com>
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
+	<4ED6C5B8.8040803@linuxtv.org>
+	<4ED75F53.30709@redhat.com>
+	<CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
+	<4ED7BBA3.5020002@redhat.com>
+	<CAJbz7-1_Nb8d427bOMzCDbRcvwQ3QjD=2KhdPQS_h_jaYY5J3w@mail.gmail.com>
+	<4ED7E5D7.8070909@redhat.com>
+	<4ED805CB.5020302@linuxtv.org>
+	<4ED8B327.9090505@redhat.com>
+Date: Fri, 2 Dec 2011 12:57:58 +0100
+Message-ID: <CAJbz7-2EVgwPY0wkqPVCoOyH2gM_7pf0DzP-Lf4Y65uZpci9GQ@mail.gmail.com>
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
+ because of worrying about possible misusage?
+From: HoP <jpetrous@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Andreas Oberritter <obi@linuxtv.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 17-12-2011 19:54, Antti Palosaari escreveu:
-> On 12/17/2011 10:57 PM, linuxtv@stefanringel.de wrote:
->> From: Stefan Ringel<linuxtv@stefanringel.de>
->>
->> Signed-off-by: Stefan Ringel<linuxtv@stefanringel.de>
->> ---
->>   drivers/media/common/tuners/mt2063.c |   24 ++++++++++++++++++------
->>   1 files changed, 18 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
->> index 6743ffe..5b4b1ec 100644
->> --- a/drivers/media/common/tuners/mt2063.c
->> +++ b/drivers/media/common/tuners/mt2063.c
->> @@ -2211,18 +2211,29 @@ static int mt2063_get_frequency(struct dvb_frontend *fe, u32 *freq)
->>       if (!state->init)
->>           return -ENODEV;
->>
->> -    /*
->> -     * FIXME: This is an API abuse at DRX-K driver: in order to allow
->> -     * tda18271 to change the IF based on the standard, it uses this
->> -     * callback as "get_if_frequency".
->> -     */
->> -    *freq = state->reference * 1000;
->> +    *freq = state->frequency;
->>
->>       dprintk(1, "frequency: %d\n", *freq);
->>
->>       return 0;
->>   }
->>
->> +static int mt2063_get_if_frequency(struct dvb_frontend *fe, u32 *freq)
->> +{
->> +    struct mt2063_state *state = fe->tuner_priv;
->> +
->> +    dprintk(2, "\n");
->> +
->> +    if (!state->init)
->> +        return -ENODEV;
->> +
->> +    *freq = state->AS_Data.f_out;
->> +
->> +    dprintk(1, "if frequency: %d\n", *freq);
->> +
->> +    return 0;
->> +}
->> +
->>   static int mt2063_get_bandwidth(struct dvb_frontend *fe, u32 *bw)
->>   {
->>       struct mt2063_state *state = fe->tuner_priv;
->> @@ -2253,6 +2264,7 @@ static struct dvb_tuner_ops mt2063_ops = {
->>       .set_analog_params = mt2063_set_analog_params,
->>       .set_params    = mt2063_set_params,
->>       .get_frequency = mt2063_get_frequency,
->> +    .get_if_frequency = mt2063_get_if_frequency,
->>       .get_bandwidth = mt2063_get_bandwidth,
->>       .release = mt2063_release,
->>   };
-> 
-> Without looking the code itself that seems like a little bit suspicious. As a understand .get_frequency was abused as .get_if_frequency and you changed it correctly now. Anyhow, earlier is was returning IF as (state->reference * 1000) and now it does (state->AS_Data.f_out). Is that correct? And if yes, why there is two variables in state having IF ?
+[...]
 
-Antti,
+>>> you failed to convince
+>>> people
+>>> why this can't be implemented on userspace,
+>>
+>> Wrong. You failed to convince people why this must be implemented in
+>> userspace. Even Michael Krufky, who's "only" against merging it, likes
+>> the idea, because it's useful.
+>
+> Sometimes, when I'm debugging a driver, I use to add several hacks inside
+> the kernelspace, in order to do things that are useful on my development
+> (debug printk's, dirty hacks, etc). I even have my own set of patches that
+> I apply on kvm, in order to sniff PCI traffic. This doesn't mean that
+> I should send all those crap upstream.
 
-Stefan based his patch on my az6007 development tree:
-	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/az6007-2
+If you want to disscuss, please better use wordings. Even my Subject was
+not about endless discussion that your userspace aproach is better
+(me, Andreas and few others doesn't agree with you, it is your own POV,
+nobody follows you, if you not noted) don't be so offensive regarding my code.
+I don't thing it is so crap.
 
-As there is a driver there for mt2063.
+>
+>> Just because something can be implemented in userspace doesn't mean that
+>> it's technically superior.
+>
+> True, but I didn't see anything at the submitted code or at the discussions
+> showing that implementing it in kernelspace is technically superior.
+>
+> What I'm seeing is what is coded there:
+>
+>        http://code.google.com/p/vtuner/
+>
+> The kernelspace part is just a piggyback driver, that just copies data
+> from/to
+> the dvb calls into another device, that sends the request back to userspace.
+>
+> A separate userspace daemon will get such results and send to the network
+> stack:
+>
+>  http://code.google.com/p/vtuner/source/browse/vtuner-network.c?repo=apps
+>
+> This is technically inferior of letting the application just talk to vtuner
+> directly via some library call.
+>
+> Btw, applications like vdr, vlc, kaffeine and others already implement their
+> own ways to remotelly access the DVB devices without requiring any
+> kernelspace piggyback driver.
 
-Regards,
-Mauro.
+This in not only about well-known "fatty" applications like vdr, kaffeine etc.
+Using vtunerc allows to use any dvb api compatible tools. Like tools
+from dvb-tools package (szap/dvbsnoop/...)
+
+There is no more general way of having dvb adapter virtualized.
+
+>
+>>> the driver adds hooks at
+>>> kernelspace
+>>> that would open internal API's that several developers don't agree on
+>>> exposing
+>>> at userspace, as would allow non GPL license compatible drivers to re-use
+>>> their work in a way they are against.
+>>
+>> What's left is your unreasonable GPL blah blah. So the answer to Honza's
+>> question is: Yes, Mauro is nacking the driver because he's worrying
+>> about possible misuse.
+
+Well, yes. I feel the same what wrote Andreas. The only pity is that
+nobody from outside linuxm-media need to comment that.
+
+Honza
