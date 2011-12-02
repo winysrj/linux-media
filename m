@@ -1,58 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52065 "EHLO mx1.redhat.com"
+Received: from ns.mm-sol.com ([213.240.235.226]:58262 "EHLO extserv.mm-sol.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752489Ab1L3PJ3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:29 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9T5X009125
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:29 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 51/94] [media] stb0899: convert get_frontend to the new struct
-Date: Fri, 30 Dec 2011 13:07:48 -0200
-Message-Id: <1325257711-12274-52-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S1755618Ab1LBNir (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Dec 2011 08:38:47 -0500
+Message-ID: <4ED8D374.1030206@mm-sol.com>
+Date: Fri, 02 Dec 2011 15:32:36 +0200
+From: Stanimir Varbanov <svarbanov@mm-sol.com>
+MIME-Version: 1.0
+To: Sergio Aguirre <saaguirre@ti.com>
+CC: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
+Subject: Re: [PATCH v2 03/11] v4l: Introduce sensor operation for getting
+ interface configuration
+References: <1322698500-29924-1-git-send-email-saaguirre@ti.com> <1322698500-29924-4-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1322698500-29924-4-git-send-email-saaguirre@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/stb0899_drv.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+Hi, Sergio
 
-diff --git a/drivers/media/dvb/frontends/stb0899_drv.c b/drivers/media/dvb/frontends/stb0899_drv.c
-index 9fa31d5..0c47a99 100644
---- a/drivers/media/dvb/frontends/stb0899_drv.c
-+++ b/drivers/media/dvb/frontends/stb0899_drv.c
-@@ -1589,13 +1589,13 @@ static int stb0899_track(struct dvb_frontend *fe, struct dvb_frontend_parameters
- 	return 0;
- }
- 
--static int stb0899_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
-+static int stb0899_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *p)
- {
- 	struct stb0899_state *state		= fe->demodulator_priv;
- 	struct stb0899_internal *internal	= &state->internal;
- 
- 	dprintk(state->verbose, FE_DEBUG, 1, "Get params");
--	p->u.qpsk.symbol_rate = internal->srate;
-+	p->symbol_rate = internal->srate;
- 
- 	return 0;
- }
-@@ -1648,7 +1648,7 @@ static struct dvb_frontend_ops stb0899_ops = {
- 	.get_frontend_algo		= stb0899_frontend_algo,
- 	.search				= stb0899_search,
- 	.track				= stb0899_track,
--	.get_frontend_legacy = stb0899_get_frontend,
-+	.get_frontend                   = stb0899_get_frontend,
- 
- 
- 	.read_status			= stb0899_read_status,
+This change in interface is not used from the omap4iss driver.
+
+You could drop it from the patch set, if so.
+
+On 12/01/2011 02:14 AM, Sergio Aguirre wrote:
+> From: Stanimir Varbanov <svarbanov@mm-sol.com>
+> 
+> Introduce g_interface_parms sensor operation for getting sensor
+> interface parameters. These parameters are needed from the host side
+> to determine it's own configuration.
+> 
+> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+> ---
+>  include/media/v4l2-subdev.h |   42 ++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 42 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index f0f3358..0d322ed 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -362,6 +362,42 @@ struct v4l2_subdev_vbi_ops {
+>  	int (*s_sliced_fmt)(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *fmt);
+>  };
+>  
+> +/* Which interface the sensor use to provide it's image data */
+> +enum v4l2_subdev_sensor_iface {
+> +	V4L2_SUBDEV_SENSOR_PARALLEL,
+> +	V4L2_SUBDEV_SENSOR_SERIAL,
+> +};
+> +
+> +/* Each interface could use the following modes */
+> +/* Image sensor provides horizontal and vertical sync signals */
+> +#define V4L2_SUBDEV_SENSOR_MODE_PARALLEL_SYNC	0
+> +/* BT.656 interface. Embedded sync */
+> +#define V4L2_SUBDEV_SENSOR_MODE_PARALLEL_ITU	1
+> +/* MIPI CSI1 */
+> +#define V4L2_SUBDEV_SENSOR_MODE_SERIAL_CSI1	2
+> +/* MIPI CSI2 */
+> +#define V4L2_SUBDEV_SENSOR_MODE_SERIAL_CSI2	3
+> +
+> +struct v4l2_subdev_sensor_serial_parms {
+> +	unsigned char lanes;		/* number of lanes used */
+> +	unsigned char channel;		/* virtual channel */
+> +	unsigned int phy_rate;		/* output rate at CSI phy in bps */
+> +	unsigned int pix_clk;		/* pixel clock in Hz */
+> +};
+> +
+> +struct v4l2_subdev_sensor_parallel_parms {
+> +	unsigned int pix_clk;		/* pixel clock in Hz */
+> +};
+> +
+> +struct v4l2_subdev_sensor_interface_parms {
+> +	enum v4l2_subdev_sensor_iface if_type;
+> +	unsigned int if_mode;
+> +	union {
+> +		struct v4l2_subdev_sensor_serial_parms serial;
+> +		struct v4l2_subdev_sensor_parallel_parms parallel;
+> +	} parms;
+> +};
+> +
+>  /**
+>   * struct v4l2_subdev_sensor_ops - v4l2-subdev sensor operations
+>   * @g_skip_top_lines: number of lines at the top of the image to be skipped.
+> @@ -371,10 +407,16 @@ struct v4l2_subdev_vbi_ops {
+>   * @g_skip_frames: number of frames to skip at stream start. This is needed for
+>   *		   buggy sensors that generate faulty frames when they are
+>   *		   turned on.
+> + * @g_interface_parms: get sensor interface parameters. The sensor subdev should
+> + *		       fill this structure with current interface params. These
+> + *		       interface parameters are needed on host side to configure
+> + *		       it's own hardware receivers.
+>   */
+>  struct v4l2_subdev_sensor_ops {
+>  	int (*g_skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
+>  	int (*g_skip_frames)(struct v4l2_subdev *sd, u32 *frames);
+> +	int (*g_interface_parms)(struct v4l2_subdev *sd,
+> +			struct v4l2_subdev_sensor_interface_parms *parms);
+>  };
+>  
+>  /*
+
+
 -- 
-1.7.8.352.g876a6
-
+best regards,
+Stan
