@@ -1,104 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45657 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566Ab1LKXh6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Dec 2011 18:37:58 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] V4L: add convenience macros to the subdevice / Media Controller API
-Date: Mon, 12 Dec 2011 00:38:12 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <Pine.LNX.4.64.1109291016250.30865@axis700.grange> <201112061149.08271.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1112061216300.10715@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1112061216300.10715@axis700.grange>
+Received: from yop.chewa.net ([91.121.105.214]:48667 "EHLO yop.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754341Ab1LBMFE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Dec 2011 07:05:04 -0500
+To: <linux-media@vger.kernel.org>
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because of
+ worrying about possible =?UTF-8?Q?misusage=3F?=
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112120038.13102.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Date: Fri, 02 Dec 2011 13:05:02 +0100
+From: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
+In-Reply-To: <4ED8BB13.7080407@linuxtv.org>
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <4ED7BBA3.5020002@redhat.com> <CAJbz7-1_Nb8d427bOMzCDbRcvwQ3QjD=2KhdPQS_h_jaYY5J3w@mail.gmail.com> <4ED7E5D7.8070909@redhat.com> <4ED805CB.5020302@linuxtv.org> <4ED8B327.9090505@redhat.com> <4ED8BB13.7080407@linuxtv.org>
+Message-ID: <018e89947ac5af62be7ebc9a1234ecab@chewa.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On Fri, 02 Dec 2011 12:48:35 +0100, Andreas Oberritter <obi@linuxtv.org>
 
-On Tuesday 06 December 2011 13:04:00 Guennadi Liakhovetski wrote:
-> On Tue, 6 Dec 2011, Laurent Pinchart wrote:
-> > On Tuesday 06 December 2011 09:40:41 Guennadi Liakhovetski wrote:
-> > > On Thu, 29 Sep 2011, Laurent Pinchart wrote:
-> > > > On Thursday 29 September 2011 10:44:14 Guennadi Liakhovetski wrote:
-> > > > > On Thu, 29 Sep 2011, Laurent Pinchart wrote:
-> > > > > > On Thursday 29 September 2011 10:18:31 Guennadi Liakhovetski 
 wrote:
-> > > > > > > Drivers, that can be built and work with and without
-> > > > > > > CONFIG_VIDEO_V4L2_SUBDEV_API, need the
-> > > > > > > v4l2_subdev_get_try_format() and v4l2_subdev_get_try_crop()
-> > > > > > > functions, even though their return value should never be
-> > > > > > > dereferenced. Also add convenience macros to init and clean up
-> > > > > > > subdevice internal media entities.
-> > > > > > 
-> > > > > > Why don't you just make the drivers depend on
-> > > > > > CONFIG_VIDEO_V4L2_SUBDEV_API ? They don't need to actually export
-> > > > > > a device node to userspace, but they require the in-kernel API.
-> > > > > 
-> > > > > Why? Why should the user build and load all the media controller
-> > > > > stuff, buy all the in-kernel objects and code to never actually
-> > > > > use it? Where OTOH all is needed to avoid that is a couple of NOP
-> > > > > macros?
-> > > > 
-> > > > Because the automatic compatibility layer that will translate video
-> > > > operations to pad operations will need to access pads, so subdevs
-> > > > that implement a pad- level API need to export it to the bridge,
-> > > > even if the bridge is not MC-aware.
-> > > 
-> > > I might be missing something, but it seems to me, that if
-> > > CONFIG_VIDEO_V4L2_SUBDEV_API is not defined, no pads are exported to
-> > > the user space (and you mean a compatibility layer in the user space,
-> > > don't you?), so, noone will be able to accesss them.
-> > 
-> > No, I meant a compatibility layer in kernel space. Basically something
-> > like (totally untested)
-> 
-> Aha, so, a "future" layer.
-> 
-> > int v4l2_subdev_get_mbus_format(struct v4l2_subdev *sd, struct
-> > v4l2_mbus_framefmt *format)
-> > {
-> > 
-> > 	struct v4l2_subdev_format fmt;
-> > 	int ret;
-> > 	
-> > 	ret = v4l2_subdev_call(sd, video, g_mbus_fmt, format);
-> > 	if (ret != ENOIOCTLCMD)
-> 
-> you mean "-E..."
-> 
-> > 		return ret;
-> > 	
-> > 	fmt.pad = 0;
-> > 	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > 	fmt.format = *format;
-> > 	
-> > 	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
-> > 	if (ret < 0 && ret != ENOIOCTLCMD)
-> 
-> You, probably, actually mean "if (!ret)"
-> 
-> > 		*format = fmt.format;
-> > 	
-> > 	return ret;
-> > 
-> > }
-> > 
-> > Or the other way around, trying pad::get_fmt before video::g_mbus_fmt.
-> 
-> Ok, I understand what you mean now. Any idea when this layer is going to
-> be implemented?
 
-As soon as someone needs it and works on it I guess :-) I can give it a try, 
-but I'm pretty busy at the moment. Do you have driver(s) that would be good 
-test candidates for that ?
+>> Btw, applications like vdr, vlc, kaffeine and others already implement
+
+>> their
+
+>> own ways to remotelly access the DVB devices without requiring any
+
+>> kernelspace piggyback driver.
+
+> 
+
+> Can vdr, vlc, kaffeine use remote tuners on hosts not running vdr, vlc
+
+> or kaffeine? Should we implement networking protocols in scan, w_scan,
+
+> czap, tzap, szap, mplayer, dvbsnoop, dvbstream, etc. instead?
+
+
+
+VLC does not support remote control of digital (nor analog) tuners as of
+
+today.
+
+
 
 -- 
-Regards,
 
-Laurent Pinchart
+Rémi Denis-Courmont
+
+http://www.remlab.net/
