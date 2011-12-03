@@ -1,153 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:63775 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752826Ab1LAKVB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2011 05:21:01 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LVI00LLPSQX8B40@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 01 Dec 2011 10:20:57 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LVI00M2CSQWG5@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 01 Dec 2011 10:20:57 +0000 (GMT)
-Date: Thu, 01 Dec 2011 11:20:53 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC v2 4/4] v4l: Update subdev drivers to handle framesamples
- parameter
-In-reply-to: <1322734853-8759-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, laurent.pinchart@ideasonboard.com,
-	g.liakhovetski@gmx.de, sakari.ailus@iki.fi,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1322734853-8759-5-git-send-email-s.nawrocki@samsung.com>
-References: <1322734853-8759-1-git-send-email-s.nawrocki@samsung.com>
+Received: from ffm.saftware.de ([83.141.3.46]:38220 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753329Ab1LCRil (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Dec 2011 12:38:41 -0500
+Message-ID: <4EDA5E98.4080205@linuxtv.org>
+Date: Sat, 03 Dec 2011 18:38:32 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
+MIME-Version: 1.0
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+CC: HoP <jpetrous@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
+ of worrying about possible misusage?
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <4EDA4AB4.90303@linuxtv.org> <20111203164252.3a66d638@lxorguk.ukuu.org.uk>
+In-Reply-To: <20111203164252.3a66d638@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update the sub-device drivers having a devnode enabled so they properly
-handle the new framesamples field of struct v4l2_mbus_framefmt.
-These drivers don't support compressed (entropy encoded) formats so the
-framesamples field is simply initialized to 0.
+On 03.12.2011 17:42, Alan Cox wrote:
+>> FWIW, the virtual DVB device we're talking about doesn't have any
+>> networking capabilities by itself. It only allows to create virtual DVB
+>> adapters and to relay DVB API ioctls to userspace in a
+>> transport-agnostic way.
+> 
+> Which you can do working from CUSE already, as has been pointed out or
+> with LD_PRELOAD. This btw makes the proprietary thing seem a rather odd
+> objection - they could do it too.
 
-There is a few other drivers that expose a devnode (mt9p031, mt9t001,
-mt9v032) but they already implicitly initialize the new data structure
-field to 0, so they don't need to be touched.
+Yes, both CUSE and LD_PRELOADED have already been suggested. But I
+already explained in previous mails why both options are unsuitable:
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/noon010pc30.c         |    6 ++++--
- drivers/media/video/omap3isp/ispccdc.c    |    1 +
- drivers/media/video/omap3isp/ispccp2.c    |    1 +
- drivers/media/video/omap3isp/ispcsi2.c    |    1 +
- drivers/media/video/omap3isp/isppreview.c |    1 +
- drivers/media/video/omap3isp/ispresizer.c |    1 +
- drivers/media/video/s5k6aa.c              |    1 +
- 7 files changed, 10 insertions(+), 2 deletions(-)
+- For LD_PRELOAD to intercept any calls to open, ioctl, read, write, the
+character device to be intercepted must exist first. But it doesn't
+exist, unless it was created by vtuner first. Of course you could also
+intercept stat(), readdir() and all other possible functions to list or
+access devices and fake entries, but I hope you're not suggesting this
+seriously. Well, proprietary drivers doing that already exist today
+(e.g. by sundtek), but implementing somthing like that if an easier
+solution is possible would be crazy at best.
 
-diff --git a/drivers/media/video/noon010pc30.c b/drivers/media/video/noon010pc30.c
-index 50838bf..ad94ffe 100644
---- a/drivers/media/video/noon010pc30.c
-+++ b/drivers/media/video/noon010pc30.c
-@@ -523,9 +523,10 @@ static int noon010_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 	mf->height = info->curr_win->height;
- 	mf->code = info->curr_fmt->code;
- 	mf->colorspace = info->curr_fmt->colorspace;
--	mf->field = V4L2_FIELD_NONE;
--
- 	mutex_unlock(&info->lock);
-+
-+	mf->field = V4L2_FIELD_NONE;
-+	mf->framesamples = 0;
- 	return 0;
- }
- 
-@@ -555,6 +556,7 @@ static int noon010_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 	nf = noon010_try_fmt(sd, &fmt->format);
- 	noon010_try_frame_size(&fmt->format, &size);
- 	fmt->format.colorspace = V4L2_COLORSPACE_JPEG;
-+	fmt->format.framesamples = 0;
- 
- 	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
- 		if (fh) {
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index b0b0fa5..3dff028 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -1863,6 +1863,7 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
- 	 */
- 	fmt->colorspace = V4L2_COLORSPACE_SRGB;
- 	fmt->field = V4L2_FIELD_NONE;
-+	fmt->framesamples = 0;
- }
- 
- /*
-diff --git a/drivers/media/video/omap3isp/ispccp2.c b/drivers/media/video/omap3isp/ispccp2.c
-index 904ca8c..fd9dba6 100644
---- a/drivers/media/video/omap3isp/ispccp2.c
-+++ b/drivers/media/video/omap3isp/ispccp2.c
-@@ -711,6 +711,7 @@ static void ccp2_try_format(struct isp_ccp2_device *ccp2,
- 
- 	fmt->field = V4L2_FIELD_NONE;
- 	fmt->colorspace = V4L2_COLORSPACE_SRGB;
-+	fmt->framesamples = 0;
- }
- 
- /*
-diff --git a/drivers/media/video/omap3isp/ispcsi2.c b/drivers/media/video/omap3isp/ispcsi2.c
-index 0c5f1cb..6b973f5 100644
---- a/drivers/media/video/omap3isp/ispcsi2.c
-+++ b/drivers/media/video/omap3isp/ispcsi2.c
-@@ -888,6 +888,7 @@ csi2_try_format(struct isp_csi2_device *csi2, struct v4l2_subdev_fh *fh,
- 	/* RGB, non-interlaced */
- 	fmt->colorspace = V4L2_COLORSPACE_SRGB;
- 	fmt->field = V4L2_FIELD_NONE;
-+	fmt->framesamples = 0;
- }
- 
- /*
-diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
-index ccb876f..6f4bdf0 100644
---- a/drivers/media/video/omap3isp/isppreview.c
-+++ b/drivers/media/video/omap3isp/isppreview.c
-@@ -1720,6 +1720,7 @@ static void preview_try_format(struct isp_prev_device *prev,
- 	}
- 
- 	fmt->field = V4L2_FIELD_NONE;
-+	fmt->framesamples = 0;
- }
- 
- /*
-diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
-index 50e593b..923ba1b 100644
---- a/drivers/media/video/omap3isp/ispresizer.c
-+++ b/drivers/media/video/omap3isp/ispresizer.c
-@@ -1363,6 +1363,7 @@ static void resizer_try_format(struct isp_res_device *res,
- 
- 	fmt->colorspace = V4L2_COLORSPACE_JPEG;
- 	fmt->field = V4L2_FIELD_NONE;
-+	fmt->framesamples = 0;
- }
- 
- /*
-diff --git a/drivers/media/video/s5k6aa.c b/drivers/media/video/s5k6aa.c
-index 86ee35b..efc5ba3 100644
---- a/drivers/media/video/s5k6aa.c
-+++ b/drivers/media/video/s5k6aa.c
-@@ -1087,6 +1087,7 @@ static void s5k6aa_try_format(struct s5k6aa *s5k6aa,
- 	mf->colorspace	= s5k6aa_formats[index].colorspace;
- 	mf->code	= s5k6aa_formats[index].code;
- 	mf->field	= V4L2_FIELD_NONE;
-+	mf->framesamples = 0;
- }
- 
- static int s5k6aa_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
--- 
-1.7.7.2
+Additionaly, preloaded libraries conflict with other preloaded libraries
+overwriting the same functions. Preloaded libraries don't work with
+statically linked programs. Preloaded libraries can't be used
+transparently, because you need to edit init scripts to use them, unless
+you want them to be used globally (in /etc/ld.so.preload).
 
+- CUSE would conflict with dvb-core. Once CUSE created a DVB adapter,
+registering another non-virtual DVB adapter (by plugging in a USB device
+for example) will try to assign the same adapter number.
+
+The following only applies to the original version of the interface, but
+is likely to apply to future development of the proposed interface: In
+order to add virtual tuners to existing DVB adapters, to be able to use
+their hardware demux or MPEG decoders with CUSE, the whole device driver
+of this adapter has to be implemented in userspace.
+
+Regards,
+Andreas
