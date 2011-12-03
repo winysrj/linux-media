@@ -1,108 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:45677 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032Ab1K3Vwl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 16:52:41 -0500
+Received: from ffm.saftware.de ([83.141.3.46]:49205 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751622Ab1LCQNv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Dec 2011 11:13:51 -0500
+Message-ID: <4EDA4AB4.90303@linuxtv.org>
+Date: Sat, 03 Dec 2011 17:13:40 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-In-Reply-To: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
-Date: Wed, 30 Nov 2011 16:52:40 -0500
-Message-ID: <CAOcJUbw6YKM8ysV_R8SWfFSHuUPNDR2WBjuKAhYPPYM9+EUfPA@mail.gmail.com>
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
- because of worrying about possible misusage?
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: HoP <jpetrous@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+CC: HoP <jpetrous@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
+ of worrying about possible misusage?
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
+In-Reply-To: <20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 30, 2011 at 4:38 PM, HoP <jpetrous@gmail.com> wrote:
-> Hi folks.
->
-> I need to warn you that my mail is a bit little longer then I would like
-> to be.But I'm not able to ask my question without some
-> background information.
->
-> On June 19th, I was sending the driver to the Linux-media
-> mailing list. Original announcement is there:
->
-> http://www.spinics.net/lists/linux-media/msg34240.html
->
-> One would say that the code describes very well what it does = adds
-> virtual DVB device. To be more clear on it I have even done some
-> small picture:
->
-> http://www.nessiedvb.org/wiki/doku.php?id=vtuner_bigpicture
->
-> I was hoping to get any feedback regarding code implementation.
-> It was my first code for the kernel and I felt very well that some
-> part can be done better or even simpler.
->
-> What really surprised me badly was that when I read all 54 responses
-> I have counted only two real technical answers!!! All rest were about
-> POLITICAL issues - code was NACKed w/o any technical discussion.
-> Because of fear of possible abusing of driver.
->
-> I didn't know that there existed very big movement against such
-> code in dvb-core subsystem before.
->
-> I have one big problem with it. I can even imagine that some "bad guys"
-> could abuse virtual driver to use it for distribution close-source drivers
-> in the binary blobs. But is it that - worrying about bad boys abusing -
-> the sufficient reason for such aggressive NACK which I did? Then would
-> be better to remove loadable module API fully from kernel. Is it the right way?
->
-> Please confirm me that worrying about abusive act is enough to NACK
-> particular driver. Then I may be definitely understand I'm doing something
-> wrong and will stay (with such enemy driver) out of tree.
->
-> I can't understand that because I see very similar drivers in kernel for ages
-> (nbd, or even more similar is usbip) and seems they don't hamper to anybody.
->
-> I would like to note that I don't want to start any flame-war, so very short
-> answer would be enough for me.
->
-> Regards
->
-> Honza
->
-> PS: Please be so kind and CC the answer/comment to me, I'm
-> only on linux-media ML, not on linux-kernel ML. Thanks.
->
-> BTW, if accidentally, somebody find it interesting and would like to
-> help me doing code review, there is the code hosted now:
-> http://code.google.com/p/vtuner/source/browse?repo=linux-driver
+Hello Alan,
 
+On 03.12.2011 00:19, Alan Cox wrote:
+> On Thu, 1 Dec 2011 15:58:41 +0100
+> HoP <jpetrous@gmail.com> wrote:
+> 
+>> Hi,
+>>
+>> let me ask you some details of your interesting idea (how to
+>> achieve the same functionality as with vtunerc driver):
+>>
+>> [...]
+>>
+>>> The driver, as proposed, is not really a driver, as it doesn't support any
+>>> hardware. The kernel driver would be used to just copy data from one
+>>> userspace
+>>
+>> Please stop learning me what can be called driver and what nope.
+>> Your definition is nonsense and I don't want to follow you on it.
+> 
+> You can stick your fingers in your ears and shout all you like but given
+> Mauro is the maintainer I'd suggest you work with him rather than making
+> it painful. One of the failures we routinely exclude code from the kernel
+> for is best described as "user interface of contributor"
+> 
+> It's a loopback that adds a performance hit. The right way to do this is
+> in userspace with the userspace infrastructure. At that point you can
+> handle all the corner cases properly, integrate things like service
+> discovery into your model and so on - stuff you'll never get to work that
+> well with kernel loopback hackery.
 
-Honza,
+FWIW, the virtual DVB device we're talking about doesn't have any
+networking capabilities by itself. It only allows to create virtual DVB
+adapters and to relay DVB API ioctls to userspace in a
+transport-agnostic way. Networking already takes place in a separate
+userspace process.
 
-I, for one, would love to see your virtual DVB device driver hosted in
-a repository for the purposes of experimentation and additional
-development.  I can think of many, many good uses for such a virtual
-device driver.  Unfortunately, however, all the device vendors also
-have uses for it.  It a guarunteed fact that if a driver like that got
-merged into the kernel, any software company that previously sponsored
-open-source kernel development would opt instead for closed source
-userspace drivers that depend on a virtual DVB device.
+>> Can you show me, how then can be reused most important part
+>> of dvb-core subsystem like tuning and demuxing? Or do you want me
+>> to invent wheels and to recode everything in the library? Of course
+> 
+> You could certainly build a library from the same code. That might well
+> be a good thing for all kinds of 'soft' DV applications. At that point
+> the discussion to have is the best way to make that code sharable between
+> a userspace library and the kernel and buildable for both.
 
-Please don't let that discourage you -- I think you should continue
-your work on this virtual DVB device driver, and I'd love to play with
-it myself, and possibly even contribute to it.  ...but I will never
-support the merging of this into the kernel.
+You could certainly build a library to reach a different goal. The goal
+of vtuner is to access remote tuners with any existing program
+implementing the DVB API.
 
-I do not nack the existence of the driver -- I love the idea, and I
-encourage more development.  I only nack it's merging into any
-open-source linux kernel.
+One of my primary use cases is to develop DVB API software on my
+notebook, while receiving the data from an embedded device, so I don't
+need an antenna cable connected to my notebook (or don't need to have an
+antenna at my location at all, if an internet connection is available).
 
-Please accept my answer with the greatest intentions for furthering
-the development of the open-source community.  My opinion is only for
-the best intentions of continued contributions from companies such as
-Hauppauge and any others that have contributed thus far to v4l/dvb.
+Another use case is to receive data streams over the internet from
+satellite, cable and terrestrial networks that are impossible to receive
+in my area to verify that my DVB API software works with those streams.
 
-Please, keep up the work.  I repeat -- I would love to play with your work.
+Furthermore, I'd like to use standard tools implementing theDid you even
+unders DVB API, e.g. to scan for channels, to measure signal quality or
+to decode streams on remote locations.
 
-Best regards,
+With vtuner, and an accompanying open source networking daemon, all of
+the above works out of the box. If I'd like to change the way data gets
+relayed between hosts (e.g. add IPv6 or SSL), I'd just need to update
+the userspace client and server.
 
-Mike Krufky
+With a library, I'd need to implement networking in every little DVB API
+tool I want to use, multiplying the code size of every tool, restricting
+each tool to some arbitrarily chosen network protocol. If I'd like to
+change the way data gets relayed between hosts, I'd need to update every
+application using it.
+
+>> I can be wrong, I'm no big kernel hacker. So please show me the
+>> way for it. BTW, even if you can find the way, then data copying
+>> from userspace to the kernel and back is also necessery. I really
+>> don't see any advantage of you solution.
+> 
+> In a properly built media subsystem you shouldn't need any copies beyond
+> those that naturally occur as part of a processing pass and are therefore
+> free.
+
+The original version of the vtuner interface makes use of demux hardware
+and also feeds the relevant streams to a/v decoders, in which case you
+cannot avoid copying the MPEG data to kernel space.
+
+That's also the way to playback local DVB recordings works today without
+vtuners.
+
+I'm fine with not merging this code, if there are technical arguments
+against it. And personally I don't need it to be merged to be able to
+use it.
+
+However, Mauro invents half-baked arguments against it, because he fears
+that the code may be "abused" by closed-source userspace drivers (he
+already declared the latter publicly on the linux-media list).
+
+Unfortunately, I must assume that your own arguments are based on
+Mauro's emails instead of on the source code, because you clearly didn't
+understand the architecture of vtuner, regarding what's supposed to
+happen in kernel space and what not.
+
+Regards,
+Andreas
