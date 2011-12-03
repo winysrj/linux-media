@@ -1,62 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23506 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751316Ab1LRAhM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Dec 2011 19:37:12 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Manu Abraham <abraham.manu@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 1/7] [media] DVB: Use a unique delivery system identifier for DVBC_ANNEX_C
-Date: Sat, 17 Dec 2011 22:36:55 -0200
-Message-Id: <1324168621-21506-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324168621-21506-1-git-send-email-mchehab@redhat.com>
-References: <1324168621-21506-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mailfe05.c2i.net ([212.247.154.130]:46114 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753505Ab1LCSVL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Dec 2011 13:21:11 -0500
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because of worrying about possible misusage?
+Date: Sat, 3 Dec 2011 19:13:32 +0100
+Cc: VDR User <user.vdr@gmail.com>,
+	Andreas Oberritter <obi@linuxtv.org>, HoP <jpetrous@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <CAA7C2qjfWW8=kePZDO4nYR913RyuP-t+u8P9LV4mDh9bANr3=Q@mail.gmail.com> <20111203174247.0bbab100@lxorguk.ukuu.org.uk>
+In-Reply-To: <20111203174247.0bbab100@lxorguk.ukuu.org.uk>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112031913.32503.hselasky@c2i.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manu Abraham <abraham.manu@gmail.com>
+Hi,
 
-Use a unique delivery system identifier for DVBC_ANNEX_C, just like any
-other.
+Some input from the sideline reading this discussion. As a FreeBSD'er I would 
+very much like to see two things happen:
 
-DVBC_ANNEX_A and DVBC_ANNEX_C have slightly different parameters
-and are used in 2 geographically different locations.
+- vtunerc goes into userspace like a client/server daemon pair using CUSE and 
+can support _any_ /dev/dvb/adapter, also those created by CUSE itself. That 
+means I could potentially use vtunerc in FreeBSD with drivers like cx88:
 
-Signed-off-by: Manu Abraham <abraham.manu@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- include/linux/dvb/frontend.h |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+http://corona.homeunix.net/cx88wiki
 
-diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-index cb114f5..b2a939f8 100644
---- a/include/linux/dvb/frontend.h
-+++ b/include/linux/dvb/frontend.h
-@@ -337,7 +337,7 @@ typedef enum fe_rolloff {
- 
- typedef enum fe_delivery_system {
- 	SYS_UNDEFINED,
--	SYS_DVBC_ANNEX_AC,
-+	SYS_DVBC_ANNEX_A,
- 	SYS_DVBC_ANNEX_B,
- 	SYS_DVBT,
- 	SYS_DSS,
-@@ -354,8 +354,13 @@ typedef enum fe_delivery_system {
- 	SYS_DAB,
- 	SYS_DVBT2,
- 	SYS_TURBO,
-+	SYS_DVBC_ANNEX_C,
- } fe_delivery_system_t;
- 
-+
-+#define SYS_DVBC_ANNEX_AC	SYS_DVBC_ANNEX_A
-+
-+
- struct dtv_cmds_h {
- 	char	*name;		/* A display name for debugging purposes */
- 
--- 
-1.7.8
+- DVB-X solution in Linux gets mmap support to avoid endless copying of data 
+between kernel and userspace.
 
+--HPS
