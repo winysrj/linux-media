@@ -1,92 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34127 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752606Ab1LLN4j (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 08:56:39 -0500
-Message-ID: <4EE60814.80706@redhat.com>
-Date: Mon, 12 Dec 2011 11:56:36 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from fallback5.mail.ru ([94.100.176.59]:39531 "EHLO
+	fallback5.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752920Ab1LCUqy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Dec 2011 15:46:54 -0500
+Message-ID: <4EDA894D.5020305@list.ru>
+Date: Sun, 04 Dec 2011 00:40:45 +0400
+From: Stas Sergeev <stsp@list.ru>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: v4 [PATCH 06/10] DVB: Use a unique delivery system identifier
- for DVBC_ANNEX_C
-References: <CAHFNz9+MM16waF0eLUKwFpX7fBistkb=9OgtXvo+ZOYkk67UQQ@mail.gmail.com> <4EE350BF.1090402@redhat.com> <CAHFNz9JUEBy5WPuGqKGWuTKYZ6D18GZh+4DEhhDu4+GBTV5R=w@mail.gmail.com> <4EE5FF58.8060409@redhat.com> <CAHFNz9K-5LCrqFvxFfJUaQX0sYRNgH26Q9eWgiMiWg4F3hGnmw@mail.gmail.com>
-In-Reply-To: <CAHFNz9K-5LCrqFvxFfJUaQX0sYRNgH26Q9eWgiMiWg4F3hGnmw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org,
+	"Nickolay V. Shmyrev" <nshmyrev@yandex.ru>,
+	Lennart Poettering <lpoetter@redhat.com>,
+	ALSA devel <alsa-devel@alsa-project.org>
+Subject: Re: [patch][saa7134] do not change mute state for capturing audio
+References: <4E19D2F7.6060803@list.ru> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru> <4E2A23C7.3040209@infradead.org> <4E2A7BF0.8080606@list.ru> <4E2AC742.8020407@infradead.org> <4E2ACAAD.4050602@list.ru> <4E2AE40F.7030108@infradead.org> <4E2C5A35.9030404@list.ru> <4E2C6638.2040707@infrade ad.org> <4E760BCA.6080900@list.ru> <4E7DB798.4060201@infradead.org> <4E7DBB1C.1090407@list.ru> <4E7DC93C.9080101@infradead.org> <4E7DCEC1.6010405@list.ru> <4E7DD1A5.5080204@infradead
+ .org>
+In-Reply-To: <4E7DD1A5.5080204@infradead.org>
+Content-Type: multipart/mixed;
+ boundary="------------010405050701050102000601"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12-12-2011 11:40, Manu Abraham wrote:
-> On Mon, Dec 12, 2011 at 6:49 PM, Mauro Carvalho Chehab
+This is a multi-part message in MIME format.
+--------------010405050701050102000601
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
->> This also means that just doing an alias from FE_QAM and SYS_DVBC_ANNEX_AC
->> to
->> SYS_DVBC_ANNEX_A may break something, as, for most devices,
->> SYS_DVBC_ANNEX_AC
->> really means both Annex A and C.
->
->
->
-> With the current approach, the application can determine whether
-> the hardware supports through the DELSYS enumeration.
->
-> So, if you have a device that needs to support both ANNEX_A and
-> ANNEX_C, it should be rather doing
->
-> case DTV_ENUM_DELSYS:
->           buffer.data[0] = SYS_DVBC_ANNEX_A;
->           buffer.data[1] = SYS_DVBC_ANNEX_C;
->           break;
+Hello.
 
-Sure, but we'll need a logic to handle queries for SYS_DVBC_ANNEX_AC
-anyway, if any of the existing DVB-C drivers is currently prepared to
-support both.
+24.09.2011 16:48, Mauro Carvalho Chehab wrote:
+> A first scan at driver's init can be removed, IMO.
+Done, sorry for the delay.
+Patch is attached.
 
-I'm not concerned with drx-k. The support for both standards are for
-kernel 3.3. So, no backward compatibility is needed here.
+The attached patch fixes the automute logic of saa7134.
+It avoids the white noise on the pulseaudio startup.
+(pulseaudio reads the saa7134 alsa device on startup)
 
-While there is no explicit option, the code for stv0297, stv0367,
-tda10021 and tda10023 drivers are not clear if they support both
-(maybe roll-off might be auto-detected?) or just SYS_DVBC_ANNEX_A.
+Signed-off-by: Stas Sergeev <stsp@users.sourceforge.net>
 
-That's said, the difference between a 0.15 and a 0.13 rolloff is not big.
-I won't doubt that a demod set to 0.15 rolloff would be capable of working
-(non-optimized) with a 0.13 rolloff.
+--------------010405050701050102000601
+Content-Type: text/plain;
+ name="0001-saa7134-fix-automute-logic.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="0001-saa7134-fix-automute-logic.patch"
 
-What I'm saing is that, if any of the existing drivers currently works
-with both Annex A and Annex C, we'll need something equivalent to:
-
-if (delsys == SYS_DVBC_ANNEX_AC) {
-	int ret = try_annex_a();
-	if (ret < 0)
-		ret = try_annex_c();
-}
-
-For FE_SET_FRONTEND (and the corresponding v5 logic), in order to avoid
-regressions.
-
->
->
->> I didn't look inside the drivers for stv0297, stv0367, tda10021 and
->> tda10023.
->> I suspect that some will need an additional code to change the roll-off,
->> based on
->> the delivery system.
->
->
->
-> Of course, yes this would need to make the change across multiple
-> drivers.
->
-> We can fix the drivers, that's no issue at all, as it is a small change.
-
-Indeed, it is a small change. Tuners are trivial to change, but, at the
-demod, we need to discover if roll-off is auto-detected somehow, or if
-they require manual settings, in order to fix the demod drivers.
-
->
-> Regards,
-> Manu
-
+RnJvbSBkOGM4YTA1NDQ5YjA2ZWU3NTk5ZTdjN2Q5ZThhYWVhYTA3ZDBmYWRiIE1vbiBTZXAg
+MTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBTdGFzIFNlcmdlZXYgPHN0c3BAdXNlcnMuc291cmNl
+Zm9yZ2UubmV0PgpEYXRlOiBTdW4sIDQgRGVjIDIwMTEgMDA6MzI6MDYgKzA0MDAKU3ViamVj
+dDogW1BBVENIXSBbc2FhNzEzNF0gZml4IGF1dG9tdXRlIGxvZ2ljCgotLS0KIGRyaXZlcnMv
+bWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWNvcmUuYyAgICB8ICAgIDEgLQogZHJpdmVy
+cy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtdHZhdWRpby5jIHwgICA2MyArKysrKysr
+KysrKysrKy0tLS0tLS0tLS0KIGRyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0
+LXZpZGVvLmMgICB8ICAgIDIgKwogZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcx
+MzQuaCAgICAgICAgIHwgICAgMSArCiA0IGZpbGVzIGNoYW5nZWQsIDQwIGluc2VydGlvbnMo
+KyksIDI3IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8v
+c2FhNzEzNC9zYWE3MTM0LWNvcmUuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9z
+YWE3MTM0LWNvcmUuYwppbmRleCBjYTY1Y2RhLi41ZmJiNGU0IDEwMDY0NAotLS0gYS9kcml2
+ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1jb3JlLmMKKysrIGIvZHJpdmVycy9t
+ZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtY29yZS5jCkBAIC0xMjYzLDcgKzEyNjMsNiBA
+QCBzdGF0aWMgaW50IHNhYTcxMzRfcmVzdW1lKHN0cnVjdCBwY2lfZGV2ICpwY2lfZGV2KQog
+CXNhYTcxMzRfdHZhdWRpb19zZXRtdXRlKGRldik7CiAJc2FhNzEzNF90dmF1ZGlvX3NldHZv
+bHVtZShkZXYsIGRldi0+Y3RsX3ZvbHVtZSk7CiAJc2FhNzEzNF90dmF1ZGlvX2luaXQoZGV2
+KTsKLQlzYWE3MTM0X3R2YXVkaW9fZG9fc2NhbihkZXYpOwogCXNhYTcxMzRfZW5hYmxlX2ky
+cyhkZXYpOwogCXNhYTcxMzRfaHdfZW5hYmxlMihkZXYpOwogCmRpZmYgLS1naXQgYS9kcml2
+ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC10dmF1ZGlvLmMgYi9kcml2ZXJzL21l
+ZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC10dmF1ZGlvLmMKaW5kZXggNTdlNjQ2Yi4uZWMx
+ZGY2ZiAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQt
+dHZhdWRpby5jCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LXR2
+YXVkaW8uYwpAQCAtMzMyLDYgKzMzMiwxMyBAQCBzdGF0aWMgaW50IHR2YXVkaW9fY2hlY2tj
+YXJyaWVyKHN0cnVjdCBzYWE3MTM0X2RldiAqZGV2LCBzdHJ1Y3QgbWFpbnNjYW4gKnNjYW4p
+CiB7CiAJX19zMzIgbGVmdCxyaWdodCx2YWx1ZTsKIAorCWlmICghKGRldi0+dHZub3JtLT5p
+ZCAmIHNjYW4tPnN0ZCkpIHsKKwkJdmFsdWUgPSAwOworCQlkcHJpbnRrKCJza2lwcGluZyAl
+ZC4lMDNkIE1IeiBbJTRzXVxuIiwKKwkJCXNjYW4tPmNhcnIgLyAxMDAwLCBzY2FuLT5jYXJy
+ICUgMTAwMCwgc2Nhbi0+bmFtZSk7CisJCXJldHVybiAwOworCX0KKwogCWlmIChhdWRpb19k
+ZWJ1ZyA+IDEpIHsKIAkJaW50IGk7CiAJCWRwcmludGsoImRlYnVnICVkOiIsc2Nhbi0+Y2Fy
+cik7CkBAIC0zNDgsMzAgKzM1NSwyNSBAQCBzdGF0aWMgaW50IHR2YXVkaW9fY2hlY2tjYXJy
+aWVyKHN0cnVjdCBzYWE3MTM0X2RldiAqZGV2LCBzdHJ1Y3QgbWFpbnNjYW4gKnNjYW4pCiAJ
+CX0KIAkJcHJpbnRrKCJcbiIpOwogCX0KLQlpZiAoZGV2LT50dm5vcm0tPmlkICYgc2Nhbi0+
+c3RkKSB7Ci0JCXR2YXVkaW9fc2V0Y2FycmllcihkZXYsc2Nhbi0+Y2Fyci05MCxzY2FuLT5j
+YXJyLTkwKTsKLQkJc2FhX3JlYWRsKFNBQTcxMzRfTEVWRUxfUkVBRE9VVDEgPj4gMik7Ci0J
+CWlmICh0dmF1ZGlvX3NsZWVwKGRldixTQ0FOX1NBTVBMRV9ERUxBWSkpCi0JCQlyZXR1cm4g
+LTE7Ci0JCWxlZnQgPSBzYWFfcmVhZGwoU0FBNzEzNF9MRVZFTF9SRUFET1VUMSA+PiAyKTsK
+LQotCQl0dmF1ZGlvX3NldGNhcnJpZXIoZGV2LHNjYW4tPmNhcnIrOTAsc2Nhbi0+Y2Fycis5
+MCk7Ci0JCXNhYV9yZWFkbChTQUE3MTM0X0xFVkVMX1JFQURPVVQxID4+IDIpOwotCQlpZiAo
+dHZhdWRpb19zbGVlcChkZXYsU0NBTl9TQU1QTEVfREVMQVkpKQotCQkJcmV0dXJuIC0xOwot
+CQlyaWdodCA9IHNhYV9yZWFkbChTQUE3MTM0X0xFVkVMX1JFQURPVVQxID4+IDIpOwotCi0J
+CWxlZnQgPj49IDE2OwotCQlyaWdodCA+Pj0gMTY7Ci0JCXZhbHVlID0gbGVmdCA+IHJpZ2h0
+ID8gbGVmdCAtIHJpZ2h0IDogcmlnaHQgLSBsZWZ0OwotCQlkcHJpbnRrKCJzY2FubmluZyAl
+ZC4lMDNkIE1IeiBbJTRzXSA9PiAgZGMgaXMgJTVkIFslZC8lZF1cbiIsCi0JCQlzY2FuLT5j
+YXJyIC8gMTAwMCwgc2Nhbi0+Y2FyciAlIDEwMDAsCi0JCQlzY2FuLT5uYW1lLCB2YWx1ZSwg
+bGVmdCwgcmlnaHQpOwotCX0gZWxzZSB7Ci0JCXZhbHVlID0gMDsKLQkJZHByaW50aygic2tp
+cHBpbmcgJWQuJTAzZCBNSHogWyU0c11cbiIsCi0JCQlzY2FuLT5jYXJyIC8gMTAwMCwgc2Nh
+bi0+Y2FyciAlIDEwMDAsIHNjYW4tPm5hbWUpOwotCX0KKworCXR2YXVkaW9fc2V0Y2Fycmll
+cihkZXYsc2Nhbi0+Y2Fyci05MCxzY2FuLT5jYXJyLTkwKTsKKwlzYWFfcmVhZGwoU0FBNzEz
+NF9MRVZFTF9SRUFET1VUMSA+PiAyKTsKKwlpZiAodHZhdWRpb19zbGVlcChkZXYsU0NBTl9T
+QU1QTEVfREVMQVkpKQorCQlyZXR1cm4gLTE7CisJbGVmdCA9IHNhYV9yZWFkbChTQUE3MTM0
+X0xFVkVMX1JFQURPVVQxID4+IDIpOworCisJdHZhdWRpb19zZXRjYXJyaWVyKGRldixzY2Fu
+LT5jYXJyKzkwLHNjYW4tPmNhcnIrOTApOworCXNhYV9yZWFkbChTQUE3MTM0X0xFVkVMX1JF
+QURPVVQxID4+IDIpOworCWlmICh0dmF1ZGlvX3NsZWVwKGRldixTQ0FOX1NBTVBMRV9ERUxB
+WSkpCisJCXJldHVybiAtMTsKKwlyaWdodCA9IHNhYV9yZWFkbChTQUE3MTM0X0xFVkVMX1JF
+QURPVVQxID4+IDIpOworCisJbGVmdCA+Pj0gMTY7CisJcmlnaHQgPj49IDE2OworCXZhbHVl
+ID0gbGVmdCA+IHJpZ2h0ID8gbGVmdCAtIHJpZ2h0IDogcmlnaHQgLSBsZWZ0OworCWRwcmlu
+dGsoInNjYW5uaW5nICVkLiUwM2QgTUh6IFslNHNdID0+ICBkYyBpcyAlNWQgWyVkLyVkXVxu
+IiwKKwkJc2Nhbi0+Y2FyciAvIDEwMDAsIHNjYW4tPmNhcnIgJSAxMDAwLAorCQlzY2FuLT5u
+YW1lLCB2YWx1ZSwgbGVmdCwgcmlnaHQpOwogCXJldHVybiB2YWx1ZTsKIH0KIApAQCAtNTQ2
+LDYgKzU0OCw3IEBAIHN0YXRpYyBpbnQgdHZhdWRpb190aHJlYWQodm9pZCAqZGF0YSkKIAkJ
+CQlkZXYtPnR2bm9ybS0+bmFtZSwgY2Fycmllci8xMDAwLCBjYXJyaWVyJTEwMDAsCiAJCQkJ
+bWF4MSwgbWF4Mik7CiAJCQlkZXYtPmxhc3RfY2FycmllciA9IGNhcnJpZXI7CisJCQlkZXYt
+PmF1dG9tdXRlID0gMDsKIAogCQl9IGVsc2UgaWYgKDAgIT0gZGV2LT5sYXN0X2NhcnJpZXIp
+IHsKIAkJCS8qIG5vIGNhcnJpZXIgLS0gdHJ5IGxhc3QgZGV0ZWN0ZWQgb25lIGFzIGZhbGxi
+YWNrICovCkBAIC01NTMsNiArNTU2LDcgQEAgc3RhdGljIGludCB0dmF1ZGlvX3RocmVhZCh2
+b2lkICpkYXRhKQogCQkJZHByaW50aygiYXVkaW8gY2FycmllciBzY2FuIGZhaWxlZCwgIgog
+CQkJCSJ1c2luZyAlZC4lMDNkIE1IeiBbbGFzdCBkZXRlY3RlZF1cbiIsCiAJCQkJY2Fycmll
+ci8xMDAwLCBjYXJyaWVyJTEwMDApOworCQkJZGV2LT5hdXRvbXV0ZSA9IDE7CiAKIAkJfSBl
+bHNlIHsKIAkJCS8qIG5vIGNhcnJpZXIgKyBubyBmYWxsYmFjayAtLSB1c2UgZGVmYXVsdCAq
+LwpAQCAtNTYwLDkgKzU2NCw5IEBAIHN0YXRpYyBpbnQgdHZhdWRpb190aHJlYWQodm9pZCAq
+ZGF0YSkKIAkJCWRwcmludGsoImF1ZGlvIGNhcnJpZXIgc2NhbiBmYWlsZWQsICIKIAkJCQki
+dXNpbmcgJWQuJTAzZCBNSHogW2RlZmF1bHRdXG4iLAogCQkJCWNhcnJpZXIvMTAwMCwgY2Fy
+cmllciUxMDAwKTsKKwkJCWRldi0+YXV0b211dGUgPSAxOwogCQl9CiAJCXR2YXVkaW9fc2V0
+Y2FycmllcihkZXYsY2FycmllcixjYXJyaWVyKTsKLQkJZGV2LT5hdXRvbXV0ZSA9IDA7CiAJ
+CXNhYV9hbmRvcmIoU0FBNzEzNF9TVEVSRU9fREFDX09VVFBVVF9TRUxFQ1QsIDB4MzAsIDB4
+MDApOwogCQlzYWE3MTM0X3R2YXVkaW9fc2V0bXV0ZShkZXYpOwogCQkvKiBmaW5kIHRoZSBl
+eGFjdCB0diBhdWRpbyBub3JtICovCkBAIC0xMDIwLDYgKzEwMjQsNyBAQCBpbnQgc2FhNzEz
+NF90dmF1ZGlvX2luaXQyKHN0cnVjdCBzYWE3MTM0X2RldiAqZGV2KQogCX0KIAogCWRldi0+
+dGhyZWFkLnRocmVhZCA9IE5VTEw7CisJZGV2LT50aHJlYWQuc2NhbjEgPSBkZXYtPnRocmVh
+ZC5zY2FuMiA9IDA7CiAJaWYgKG15X3RocmVhZCkgewogCQlzYWE3MTM0X3R2YXVkaW9faW5p
+dChkZXYpOwogCQkvKiBzdGFydCB0dmF1ZGlvIHRocmVhZCAqLwpAQCAtMTAyOSwxMyArMTAz
+NCwxOSBAQCBpbnQgc2FhNzEzNF90dmF1ZGlvX2luaXQyKHN0cnVjdCBzYWE3MTM0X2RldiAq
+ZGV2KQogCQkJICAgICAgIGRldi0+bmFtZSk7CiAJCQkvKiBYWFg6IG1pc3NpbmcgZXJyb3Ig
+aGFuZGxpbmcgaGVyZSAqLwogCQl9Ci0JCXNhYTcxMzRfdHZhdWRpb19kb19zY2FuKGRldik7
+CiAJfQogCiAJc2FhNzEzNF9lbmFibGVfaTJzKGRldik7CiAJcmV0dXJuIDA7CiB9CiAKK2lu
+dCBzYWE3MTM0X3R2YXVkaW9fY2xvc2Uoc3RydWN0IHNhYTcxMzRfZGV2ICpkZXYpCit7CisJ
+ZGV2LT5hdXRvbXV0ZSA9IDE7CisJLyogYW55dGhpbmcgZWxzZSB0byB1bmRvPyAqLworCXJl
+dHVybiAwOworfQorCiBpbnQgc2FhNzEzNF90dmF1ZGlvX2Zpbmkoc3RydWN0IHNhYTcxMzRf
+ZGV2ICpkZXYpCiB7CiAJLyogc2h1dGRvd24gdHZhdWRpbyB0aHJlYWQgKi8KZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LXZpZGVvLmMgYi9kcml2
+ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC12aWRlby5jCmluZGV4IDljZjc5MTRm
+Li40MTcwMzRlIDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2Fh
+NzEzNC12aWRlby5jCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0
+LXZpZGVvLmMKQEAgLTE0NjIsNiArMTQ2Miw4IEBAIHN0YXRpYyBpbnQgdmlkZW9fcmVsZWFz
+ZShzdHJ1Y3QgZmlsZSAqZmlsZSkKIAlzdHJ1Y3Qgc2FhNjU4OF9jb21tYW5kIGNtZDsKIAl1
+bnNpZ25lZCBsb25nIGZsYWdzOwogCisJc2FhNzEzNF90dmF1ZGlvX2Nsb3NlKGRldik7CisK
+IAkvKiB0dXJuIG9mZiBvdmVybGF5ICovCiAJaWYgKHJlc19jaGVjayhmaCwgUkVTT1VSQ0Vf
+T1ZFUkxBWSkpIHsKIAkJc3Bpbl9sb2NrX2lycXNhdmUoJmRldi0+c2xvY2ssZmxhZ3MpOwpk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQuaCBiL2Ry
+aXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LmgKaW5kZXggOWI1NTA2OC4uNjIx
+YjFlZCAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQu
+aAorKysgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC5oCkBAIC04MTcs
+NiArODE3LDcgQEAgdm9pZCBzYWE3MTM0X3R2YXVkaW9faW5pdChzdHJ1Y3Qgc2FhNzEzNF9k
+ZXYgKmRldik7CiBpbnQgc2FhNzEzNF90dmF1ZGlvX2luaXQyKHN0cnVjdCBzYWE3MTM0X2Rl
+diAqZGV2KTsKIGludCBzYWE3MTM0X3R2YXVkaW9fZmluaShzdHJ1Y3Qgc2FhNzEzNF9kZXYg
+KmRldik7CiBpbnQgc2FhNzEzNF90dmF1ZGlvX2RvX3NjYW4oc3RydWN0IHNhYTcxMzRfZGV2
+ICpkZXYpOworaW50IHNhYTcxMzRfdHZhdWRpb19jbG9zZShzdHJ1Y3Qgc2FhNzEzNF9kZXYg
+KmRldik7CiAKIGludCBzYWFfZHNwX3dyaXRlbChzdHJ1Y3Qgc2FhNzEzNF9kZXYgKmRldiwg
+aW50IHJlZywgdTMyIHZhbHVlKTsKIAotLSAKMS43LjYuNAoK
+--------------010405050701050102000601--
