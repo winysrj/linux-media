@@ -1,58 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56843 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752810Ab1LHJyD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2011 04:54:03 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Ohad Ben-Cohen" <ohad@wizery.com>
-Subject: Re: [PATCH] [media] omap3isp: fix compilation of ispvideo.c
-Date: Thu, 8 Dec 2011 10:53:59 +0100
-Cc: Dmitry Artamonow <mad_soft@inbox.ru>, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-References: <1321808066-1791-1-git-send-email-mad_soft@inbox.ru> <201111230253.21007.laurent.pinchart@ideasonboard.com> <CADMYwHzPJeu6ixNJ=uRVEF-wz7Uz4oYdfHme8g1sRAK20Cro0w@mail.gmail.com>
-In-Reply-To: <CADMYwHzPJeu6ixNJ=uRVEF-wz7Uz4oYdfHme8g1sRAK20Cro0w@mail.gmail.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:48684 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752479Ab1LDAOH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Dec 2011 19:14:07 -0500
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112081054.01240.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <aff8302dd6c3eb047c39d3a2d1fd2382@mail.eetvelt.be>
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
+	<4ED6C5B8.8040803@linuxtv.org>
+	<4ED75F53.30709@redhat.com>
+	<CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
+	<20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
+	<4EDA4AB4.90303@linuxtv.org>
+	<CAA7C2qjfWW8=kePZDO4nYR913RyuP-t+u8P9LV4mDh9bANr3=Q@mail.gmail.com>
+	<aff8302dd6c3eb047c39d3a2d1fd2382@mail.eetvelt.be>
+Date: Sat, 3 Dec 2011 16:14:06 -0800
+Message-ID: <CAA7C2qgz1GYhVwXwiO5dt09+Mv0719tfCBmK7ud07RZ2VDNxTw@mail.gmail.com>
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
+ because of worrying about possible misusage?
+From: VDR User <user.vdr@gmail.com>
+To: Walter Van Eetvelt <walter@van.eetvelt.be>
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>, HoP <jpetrous@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ohad,
+On Sat, Dec 3, 2011 at 3:30 PM, Walter Van Eetvelt
+<walter@van.eetvelt.be> wrote:
+>> So you could finally use VDR as a server/client setup using vtuner,
+>> right? With full OSD, timer, etc? Yes, I'm aware that streamdev
+>> exists. It was horrible when I tried it last (a long time ago) and I
+>> understand it's gotten better. But it's not a suitable replacement for
+>> a real server/client setup. It sounds like using vtuner, this would
+>> finally be possible and since Klaus has no intention of ever
+>> modernizing VDR into server/client (that I'm aware of), it's also the
+>> only suitable option as well.
+>>
+>> Or am I wrong about anything?  If not, I know several users who would
+>> like to use this, myself included.
+>
+> This is the question on how you provide (live)tv content to multiple users
+> and devices.
+> And I think this goes beyond the simple "second PC in the house" where you
+> want to watch TV or recordings.  How can you watch streams from your DVB
+> device on your small screen Mobile phone/tablet?  Or stream over the
+> internet and watch your last night recording when commuting in the train?
+> Some commercial solutions are already available for some scenario's.  Also
+> free software solutions support for some scenario's, but I think still too
+> limited.
+>
+> With that in mind, for me the future is for a client server combination
+> that can do proper live TV and recording streaming.
+> And technically, a virtual driver is not bringing better user experience
+> in the long term I think.  On the contrary, some users would use the
+> vtunerc to fill in some of their needs.  This could bring developers to
+> work less on client/server application supporting a broader range of use
+> cases.
 
-On Thursday 08 December 2011 07:31:29 Ohad Ben-Cohen wrote:
-> On Wed, Nov 23, 2011 at 3:53 AM, Laurent Pinchart wrote:
-> > On Sunday 20 November 2011 17:54:26 Dmitry Artamonow wrote:
-> >> Fix following build error by explicitely including <linux/module.h>
-> >> header file.
-> >> 
-> >>   CC      drivers/media/video/omap3isp/ispvideo.o
-> >> drivers/media/video/omap3isp/ispvideo.c:1267: error: 'THIS_MODULE'
-> >> undeclared here (not in a function) make[4]: ***
-> >> [drivers/media/video/omap3isp/ispvideo.o] Error 1
-> >> make[3]: *** [drivers/media/video/omap3isp] Error 2
-> >> make[2]: *** [drivers/media/video] Error 2
-> >> make[1]: *** [drivers/media] Error 2
-> >> make: *** [drivers] Error 2
-> >> 
-> >> Signed-off-by: Dmitry Artamonow <mad_soft@inbox.ru>
-> > 
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > Mauro, can you pick this for v3.2, or would you like me to send a pull
-> > request ?
-> 
-> Folks, was this one picked up by anyone ?
-> 
-> We seem to still have this issue in mainline (at least in rc4).
-
-According to http://patchwork.linuxtv.org/patch/8510/ the patch has been 
-accepted. Mauro, do you have any time estimate regarding when you will push 
-that to Linus ?
-
--- 
-Regards,
-
-Laurent Pinchart
+While I agree with your more broad view of the issue, I specifically
+talked about VDR.  AFAIK Klaus has no intention of adding true
+server/client support to VDR, so for VDR users, this sounds like it
+could be a working solution without the strict limitations of
+streamdev.
