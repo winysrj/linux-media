@@ -1,98 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42684 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750981Ab1LRAV0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Dec 2011 19:21:26 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBI0LQ89023870
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 17 Dec 2011 19:21:26 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:35399 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754073Ab1LDPQm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Dec 2011 10:16:42 -0500
+Received: by mail-ww0-f44.google.com with SMTP id dr13so5379144wgb.1
+        for <linux-media@vger.kernel.org>; Sun, 04 Dec 2011 07:16:42 -0800 (PST)
+From: Sylwester Nawrocki <snjw23@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 1/6] [media] Update documentation to reflect DVB-C Annex A/C support
-Date: Sat, 17 Dec 2011 22:21:08 -0200
-Message-Id: <1324167673-20787-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324167673-20787-1-git-send-email-mchehab@redhat.com>
-References: <1324167673-20787-1-git-send-email-mchehab@redhat.com>
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	hverkuil@xs4all.nl, riverful.kim@samsung.com,
+	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [RFC/PATCH 2/5] uvc: Adapt the driver to new type of V4L2_CID_FOCUS_AUTO control
+Date: Sun,  4 Dec 2011 16:16:13 +0100
+Message-Id: <1323011776-15967-3-git-send-email-snjw23@gmail.com>
+In-Reply-To: <1323011776-15967-1-git-send-email-snjw23@gmail.com>
+References: <1323011776-15967-1-git-send-email-snjw23@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- Documentation/DocBook/media/dvb/dvbproperty.xml |   11 +++++------
- Documentation/DocBook/media/dvb/frontend.xml    |    4 ++--
- 2 files changed, 7 insertions(+), 8 deletions(-)
+From: Heungjun Kim <riverful.kim@samsung.com>
 
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index b812e31..ffee1fb 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -311,8 +311,6 @@ typedef enum fe_rolloff {
- 	ROLLOFF_20,
- 	ROLLOFF_25,
- 	ROLLOFF_AUTO,
--	ROLLOFF_15, /* DVB-C Annex A */
--	ROLLOFF_13, /* DVB-C Annex C */
- } fe_rolloff_t;
- 		</programlisting>
- 		</section>
-@@ -336,9 +334,10 @@ typedef enum fe_rolloff {
- 		<title>fe_delivery_system type</title>
- 		<para>Possible values: </para>
- <programlisting>
+The V4L2_CID_FOCUS_AUTO control has been converted from boolean type,
+where control's value 0 and 1 were corresponding to manual and automatic
+focus respectively, to menu type with following menu items:
+  0 - V4L2_FOCUS_MANUAL,
+  1 - V4L2_FOCUS_AUTO,
+  2 - V4L2_FOCUS_AUTO_MACRO,
+  3 - V4L2_FOCUS_AUTO_CONTINUOUS.
+
+According to this change the uvc control mappings are modified to retain
+original sematics, where 0 corresponds to manual and 1 to auto focus.
+
+Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+
+---
+The V4L2_CID_FOCUS_AUTO control in V4L2_FOCUS_AUTO mode does only
+a one-shot auto focus, when switched from V4L2_FOCUS_MANUAL.
+It might be worth to implement also the V4L2_CID_DO_AUTO_FOCUS button
+control in uvc, however I didn't take time yet to better understand
+the driver and add this. I also don't have any uvc hardware to test
+this patch so it's just compile tested.
+---
+ drivers/media/video/uvc/uvc_ctrl.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
+index 254d326..6860ca1 100644
+--- a/drivers/media/video/uvc/uvc_ctrl.c
++++ b/drivers/media/video/uvc/uvc_ctrl.c
+@@ -365,6 +365,11 @@ static struct uvc_menu_info exposure_auto_controls[] = {
+ 	{ 8, "Aperture Priority Mode" },
+ };
+ 
++static struct uvc_menu_info focus_auto_controls[] = {
++	{ 0, "Manual Mode" },
++	{ 1, "Auto Mode" },
++};
 +
- typedef enum fe_delivery_system {
- 	SYS_UNDEFINED,
--	SYS_DVBC_ANNEX_AC,
-+	SYS_DVBC_ANNEX_A,
- 	SYS_DVBC_ANNEX_B,
- 	SYS_DVBT,
- 	SYS_DSS,
-@@ -355,6 +354,7 @@ typedef enum fe_delivery_system {
- 	SYS_DAB,
- 	SYS_DVBT2,
- 	SYS_TURBO,
-+	SYS_DVBC_ANNEX_C,
- } fe_delivery_system_t;
- </programlisting>
- 		</section>
-@@ -781,7 +781,8 @@ typedef enum fe_hierarchy {
- 	<title>Properties used on cable delivery systems</title>
- 	<section id="dvbc-params">
- 		<title>DVB-C delivery system</title>
--		<para>The DVB-C Annex-A/C is the widely used cable standard. Transmission uses QAM modulation.</para>
-+		<para>The DVB-C Annex-A is the widely used cable standard. Transmission uses QAM modulation.</para>
-+		<para>The DVB-C Annex-C is optimized for 6MHz, and is used in Japan. It supports a subset of the Annex A modulation types, and a roll-off of 0.13, instead of 0.15</para>
- 		<para>The following parameters are valid for DVB-C Annex A/C:</para>
- 		<itemizedlist mark='opencircle'>
- 			<listitem><para><link linkend="DTV-API-VERSION"><constant>DTV_API_VERSION</constant></link></para></listitem>
-@@ -792,10 +793,8 @@ typedef enum fe_hierarchy {
- 			<listitem><para><link linkend="DTV-MODULATION"><constant>DTV_MODULATION</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-SYMBOL-RATE"><constant>DTV_SYMBOL_RATE</constant></link></para></listitem>
--			<listitem><para><link linkend="DTV-ROLLOFF"><constant>DTV_ROLLOFF</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-INNER-FEC"><constant>DTV_INNER_FEC</constant></link></para></listitem>
- 		</itemizedlist>
--		<para>The Rolloff of 0.15 (ROLLOFF_15) is assumed, as ITU-T J.83 Annex A is more common. For Annex C, rolloff should be 0.13 (ROLLOFF_13). All other values are invalid.</para>
- 	</section>
- 	<section id="dvbc-annex-b-params">
- 		<title>DVB-C Annex B delivery system</title>
-diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-index 61407ea..28d7ea5 100644
---- a/Documentation/DocBook/media/dvb/frontend.xml
-+++ b/Documentation/DocBook/media/dvb/frontend.xml
-@@ -45,8 +45,8 @@ transmission. The fontend types are given by fe_type_t type, defined as:</para>
-   </row>
-   <row>
-      <entry id="FE_QAM"><constant>FE_QAM</constant></entry>
--     <entry>For DVB-C annex A/C standard</entry>
--     <entry><constant>SYS_DVBC_ANNEX_AC</constant></entry>
-+     <entry>For DVB-C annex A standard</entry>
-+     <entry><constant>SYS_DVBC_ANNEX_A</constant></entry>
-   </row>
-   <row>
-      <entry id="FE_OFDM"><constant>FE_OFDM</constant></entry>
+ static __s32 uvc_ctrl_get_zoom(struct uvc_control_mapping *mapping,
+ 	__u8 query, const __u8 *data)
+ {
+@@ -592,8 +597,10 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
+ 		.selector	= UVC_CT_FOCUS_AUTO_CONTROL,
+ 		.size		= 1,
+ 		.offset		= 0,
+-		.v4l2_type	= V4L2_CTRL_TYPE_BOOLEAN,
++		.v4l2_type	= V4L2_CTRL_TYPE_MENU,
+ 		.data_type	= UVC_CTRL_DATA_TYPE_BOOLEAN,
++		.menu_info	= focus_auto_controls,
++		.menu_count	= ARRAY_SIZE(focus_auto_controls),
+ 	},
+ 	{
+ 		.id		= V4L2_CID_IRIS_ABSOLUTE,
 -- 
-1.7.8
+1.7.4.1
 
