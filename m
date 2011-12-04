@@ -1,70 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:65497 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751051Ab1LPJTI convert rfc822-to-8bit (ORCPT
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:45368 "EHLO
+	earthlight.etchedpixels.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753968Ab1LDOnI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Dec 2011 04:19:08 -0500
-Received: by wgbdr13 with SMTP id dr13so5861064wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2011 01:19:07 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAHG8p1Cki1tbziatSXsB3e1NVtZ2VmKgCLpR3-8+6QAKrzFEVg@mail.gmail.com>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
-	<CAHG8p1Cki1tbziatSXsB3e1NVtZ2VmKgCLpR3-8+6QAKrzFEVg@mail.gmail.com>
-Date: Fri, 16 Dec 2011 10:19:07 +0100
-Message-ID: <CACKLOr3h4yCPSLHCV8j6JbxNrpXZ5Ws5AFWuJpO3MYWndase4Q@mail.gmail.com>
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	saaguirre@ti.com, mchehab@infradead.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Sun, 4 Dec 2011 09:43:08 -0500
+Date: Sun, 4 Dec 2011 14:44:42 +0000
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: VDR User <user.vdr@gmail.com>
+Cc: Walter Van Eetvelt <walter@van.eetvelt.be>,
+	Andreas Oberritter <obi@linuxtv.org>, HoP <jpetrous@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
+ because of worrying about possible misusage?
+Message-ID: <20111204144442.23d65ae8@lxorguk.ukuu.org.uk>
+In-Reply-To: <CAA7C2qgz1GYhVwXwiO5dt09+Mv0719tfCBmK7ud07RZ2VDNxTw@mail.gmail.com>
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
+	<4ED6C5B8.8040803@linuxtv.org>
+	<4ED75F53.30709@redhat.com>
+	<CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
+	<20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
+	<4EDA4AB4.90303@linuxtv.org>
+	<CAA7C2qjfWW8=kePZDO4nYR913RyuP-t+u8P9LV4mDh9bANr3=Q@mail.gmail.com>
+	<aff8302dd6c3eb047c39d3a2d1fd2382@mail.eetvelt.be>
+	<CAA7C2qgz1GYhVwXwiO5dt09+Mv0719tfCBmK7ud07RZ2VDNxTw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16 December 2011 09:34, Scott Jiang <scott.jiang.linux@gmail.com> wrote:
-> 2011/12/16 Javier Martin <javier.martin@vista-silicon.com>:
->> Some v4l-subdevs such as tvp5150 have multiple
->> inputs. This patch allows the user of a soc-camera
->> device to select between them.
->>
->> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
->> ---
->>  drivers/media/video/soc_camera.c |    6 +++---
->>  1 files changed, 3 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
->> index b72580c..1cea1a9 100644
->> --- a/drivers/media/video/soc_camera.c
->> +++ b/drivers/media/video/soc_camera.c
->> @@ -235,10 +235,10 @@ static int soc_camera_g_input(struct file *file, void *priv, unsigned int *i)
->>
->>  static int soc_camera_s_input(struct file *file, void *priv, unsigned int i)
->>  {
->> -       if (i > 0)
->> -               return -EINVAL;
-> should it check max input?
->
->> +       struct soc_camera_device *icd = file->private_data;
->> +       struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
->>
->> -       return 0;
->> +       return v4l2_subdev_call(sd, video, s_routing, i, 0, 0);
->>  }
->>
-> why must output be zero?
+> While I agree with your more broad view of the issue, I specifically
+> talked about VDR.  AFAIK Klaus has no intention of adding true
+> server/client support to VDR, so for VDR users, this sounds like it
+> could be a working solution without the strict limitations of
+> streamdev.
 
-Current behavior of soc-camera is not touching output at all, but
-s_routing() callback enforces to select both input and output values.
-The more neutral value I could think of for output is 0. Of course any
-other suggestions are welcome.
+So fix Klaus rather than mess up the kernel.
 
-
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+If you are trying to solve a VDR political problem then kernel hacks are
+not the way to go. Someone who cares about it needs to fix VDR, with or
+without its current maintainer.
