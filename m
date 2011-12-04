@@ -1,63 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:47661 "EHLO
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:47071 "EHLO
 	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751009Ab1LOMdT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 07:33:19 -0500
-Received: by wgbds13 with SMTP id ds13so1048941wgb.1
-        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 04:33:18 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CACKLOr0KG9hS0a=qdYHfjrZzse2etbhPmCPpUjXwi5TLSqP5SA@mail.gmail.com>
-References: <1323941987-23428-1-git-send-email-javier.martin@vista-silicon.com>
-	<4EE9C7FA.8070607@infradead.org>
-	<CACKLOr1DLj_uc-NDQPNjXHcej2isE==d=_wUinXDDfJLgFiPKg@mail.gmail.com>
-	<4EE9DF50.20904@infradead.org>
-	<CACKLOr0KG9hS0a=qdYHfjrZzse2etbhPmCPpUjXwi5TLSqP5SA@mail.gmail.com>
-Date: Thu, 15 Dec 2011 13:33:18 +0100
-Message-ID: <CACKLOr1N0i0tmA7f3WT+nZ6Tn45naRz0CtR6mHyKJ9P5_Lgr+w@mail.gmail.com>
-Subject: Re: [PATCH 1/2] media: tvp5150 Fix default input selection.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	with ESMTP id S1752321Ab1LDMUq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Dec 2011 07:20:46 -0500
+Received: by wgbds13 with SMTP id ds13so4678137wgb.1
+        for <linux-media@vger.kernel.org>; Sun, 04 Dec 2011 04:20:45 -0800 (PST)
+Message-ID: <1323001237.1960.11.camel@tvbox>
+Subject: [PATCH] it913x multiple devices on system. Copy ite_config to priv
+ area.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Sun, 04 Dec 2011 12:20:37 +0000
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15 December 2011 13:01, javier Martin
-<javier.martin@vista-silicon.com> wrote:
->> The mx2_camera needs some code to forward calls to S_INPUT/S_ROUTING to
->> tvp5150, in order to set the pipelines there.
->
-> This sounds like a sensible solution I will work on that soon.
->
+If there are two or more different it913x devices on the system they share the same
+ite_config and over write its settings.
 
-Hi Mauro,
-regarding this subject it seems soc-camera assumes the attached sensor
-has only one input: input 0. This means I am not able to forward
-S_INPUT/S_ROUTING as you suggested:
-http://lxr.linux.no/#linux+v3.1.5/drivers/media/video/soc_camera.c#L213
+To over come this, the ite_config is copied to the priv area.
 
-This trick is clearly a loss of functionality because it restricts
-sensors to output 0, but it should work since the subsystem can assume
-a sensor whose inputs have not been configured has input 0 as the one
-selected.
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/dvb/dvb-usb/it913x.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
-However, this trick in the tvp5150 which selects input 1 (instead of
-0) as the default input is breaking that assumption. The solution
-could be either apply my patch to set input 0 (COMPOSITE0) as default
-or swap input numbers so that COMPOSITE1 input is input 0.
-
-Personally I find my approach more convenient since it matches with
-the default behavior expected in the datasheet.
-
-Regards.
+diff --git a/drivers/media/dvb/dvb-usb/it913x.c b/drivers/media/dvb/dvb-usb/it913x.c
+index e847527..1aa3872 100644
+--- a/drivers/media/dvb/dvb-usb/it913x.c
++++ b/drivers/media/dvb/dvb-usb/it913x.c
+@@ -63,6 +63,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+ struct it913x_state {
+ 	u8 id;
++	struct ite_config it913x_config;
+ };
+ 
+ struct ite_config it913x_config;
+@@ -624,6 +625,7 @@ static int it913x_name(struct dvb_usb_adapter *adap)
+ static int it913x_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct usb_device *udev = adap->dev->udev;
++	struct it913x_state *st = adap->dev->priv;
+ 	int ret = 0;
+ 	u8 adap_addr = I2C_BASE_ADDR + (adap->id << 5);
+ 	u16 ep_size = adap->props.fe[0].stream.u.bulk.buffersize / 4;
+@@ -634,8 +636,12 @@ static int it913x_frontend_attach(struct dvb_usb_adapter *adap)
+ 
+ 	it913x_config.adf = it913x_read_reg(udev, IO_MUX_POWER_CLK);
+ 
++	if (adap->id == 0)
++		memcpy(&st->it913x_config, &it913x_config,
++			sizeof(struct ite_config));
++
+ 	adap->fe_adap[0].fe = dvb_attach(it913x_fe_attach,
+-		&adap->dev->i2c_adap, adap_addr, &it913x_config);
++		&adap->dev->i2c_adap, adap_addr, &st->it913x_config);
+ 
+ 	if (adap->id == 0 && adap->fe_adap[0].fe) {
+ 		ret = it913x_wr_reg(udev, DEV_0_DMOD, MP2_SW_RST, 0x1);
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.7.3
+
+
+
