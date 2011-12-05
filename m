@@ -1,74 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54838 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:38458 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757894Ab1LWVzP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Dec 2011 16:55:15 -0500
-Message-ID: <4EF4F8B3.3070709@iki.fi>
-Date: Fri, 23 Dec 2011 23:54:59 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S932147Ab1LEUQh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Dec 2011 15:16:37 -0500
+Message-ID: <4EDD268E.9010603@redhat.com>
+Date: Mon, 05 Dec 2011 18:16:14 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	Patrick Boettcher <pboettcher@kernellabs.com>
-Subject: Re: [RFCv1] add DTMB support for DVB API
-References: <4EF3A171.3030906@iki.fi> <4EF45E0D.1080509@redhat.com>
-In-Reply-To: <4EF45E0D.1080509@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Stefan Ringel <linuxtv@stefanringel.de>
+CC: Thierry Reding <thierry.reding@avionic-design.de>,
+	linux-media@vger.kernel.org, d.belimov@gmail.com
+Subject: Re: [PATCH 3/5] tm6000: bugfix interrupt reset
+References: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de> <1322509580-14460-3-git-send-email-linuxtv@stefanringel.de> <20111205072131.GB7341@avionic-0098.mockup.avionic-design.de> <4EDCB33E.8090100@redhat.com> <20111205153800.GA32512@avionic-0098.mockup.avionic-design.de> <4EDD0BBF.3020804@redhat.com> <4EDD235A.9000100@stefanringel.de>
+In-Reply-To: <4EDD235A.9000100@stefanringel.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/23/2011 12:55 PM, Mauro Carvalho Chehab wrote:
-> On 22-12-2011 19:30, Antti Palosaari wrote:
->> Rename DMB-TH to DTMB.
->
-> Patrick seems to believe that CTTB is a better name. In any case,
-> whatever name we pick, I think that the DocBook specs (and
-> maybe a comment at the header file) should point all the known
-> ways to call this standard. So, I'm fine with any choice.
-
-I am not going to change it for CTTB unless there is no some document 
-given says it is more correct than DTMB. I have looked very many papers 
-over there and DTMB is absolutely more common as far as I gave seen.
-
->> Add few new values for existing parameters.
+On 05-12-2011 18:02, Stefan Ringel wrote:
+> Am 05.12.2011 19:21, schrieb Mauro Carvalho Chehab:
+>> On 05-12-2011 13:38, Thierry Reding wrote:
+>>> * Mauro Carvalho Chehab wrote:
+>>>> On 05-12-2011 05:21, Thierry Reding wrote:
+>>>>> * linuxtv@stefanringel.de wrote:
+>>>>>> From: Stefan Ringel<linuxtv@stefanringel.de>
+>>>>>>
+>>>>>> Signed-off-by: Stefan Ringel<linuxtv@stefanringel.de>
+>>>>>
+>>>>> Your commit message needs more details. Why do you think this is a bugfix?
+>>>>> Also this commit seems to effectively revert (and then partially reimplement)
+>>>>> a patch that I posted some months ago.
+>>>>
+>>>> Thierry,
+>>>>
+>>>> I noticed this. I tested tm6000 with those changes with both the first gen
+>>>> tm5600 devices I have and HVR900H and I didn't notice any bad thing with this
+>>>> approach, and changing from one standard to another is now faster.
+>>>>
+>>>> So, I decided to apply it (with the remaining patches I've made to
+>>>> fix audio for PAL/M and NTSC/M).
+>>>>
+>>>> I also noticed that TM6000_QUIRK_NO_USB_DELAY is not needed anymore
+>>>> (still, Stefan's patches didn't remove it completely).
+>>>>
+>>>> Could you please test if the problems you've solved with your approach
+>>>> are still occurring?
+>>>
+>>> Unfortunately I don't have any hardware available anymore. I will see if I
+>>> can get my hands on some of the devices, but that may take a while. I guess
+>>> you'll just have to apply without me testing them first.
 >>
->> Add two new parameters, interleaving and carrier.
->> DTMB supports interleavers: 240 and 720.
->> DTMB supports carriers: 1 and 3780.
->
-> The API change looks sane to my eyes. I have just a couple
-> comments below.
-
-I think I will add carrier modes to enum fe_transmit_mode... I will send 
-new propose soon.
-
->> @@ -169,8 +170,11 @@ typedef enum fe_modulation {
->>       APSK_16,
->>       APSK_32,
->>       DQPSK,
->> +    QAM_4_NR,
->
-> While the NR is generally associated with the modulation,
-> this is a channel code, and not part of the modulation itself
-> (btw, the DVBv3 API calls it as "constellation").
->
-> Ok, it is easier to add it here, but maybe it would be safer
-> to add a separate field for channel coding that would be used
-> to enable or disable the Nordstrom-Robinson code.
->
-> This is currently used only with QAM-4, but nothing prevents this
-> parity code to be added to other types of modulation.
->
->>   } fe_modulation_t;
+>> Ok.
 >>
->> +#define QAM_4 QPSK
+>>> My comments should be addressed anyway, though.
+>>
+>> Sure.
+>>
+>> Stefan,
+>>
+>> Could you better explain a little more about this change?
+>>
 >
-> IMHO, this is overkill, but I'm ok with that.
+>
+> After add Thierry's patch the interrupt endpoint don't send data anymore.
+> I tested different ways to bring the interrupt endpoint in working. First in the function tm6000_uninit_isoc() -> nothing, but if I remove the function tm6000_reset(), then works.
+> The next what I tested are directly in the function tm6000_reset(), but it froze in.
+> Now I am adding this lines in function tm600_relese() in position it call tm6000() (after videobuf_mmap_free() and it froze in, but before videobuf_mmap_free() it don't froze in and I have now data over the interrupt endpoint, and IR works.
+>
+>
+> better now?
 
-Anyone else have comment about that?
+Ah, OK. Well, the IR code were re-written. If, for any reason, the interrupt
+endpoint refuses to accept an usb_submission, the IR code will defer work to
+re-try it again after 100ms.
 
-regards
-Antti
--- 
-http://palosaari.fi/
+That means that all we need is to get rid of TM6000_QUIRK_NO_USB_DELAY.
+
+>
+> Stefan
+>> Also, if this is not required anymore, please send us a patch removing the
+>> TM6000_QUIRK_NO_USB_DELAY quirk.
+>>
+> In a few days, if I have tested my next patch (signal detection)
+>> Regards,
+>> Mauro.
+>>>
+>>> Thierry
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>
+
