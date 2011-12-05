@@ -1,55 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40102 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753111Ab1LaUU6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 15:20:58 -0500
-Message-ID: <4EFF6E9E.8060202@redhat.com>
-Date: Sat, 31 Dec 2011 18:20:46 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.126.186]:60067 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932416Ab1LEPPg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 10:15:36 -0500
+Date: Mon, 5 Dec 2011 16:15:28 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: [PATCH] V4L: soc-camera: fix compiler warnings on 64-bit platforms
+Message-ID: <Pine.LNX.4.64.1112051542430.29177@axis700.grange>
 MIME-Version: 1.0
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCHv2 00/94] Only use DVBv5 internally on frontend drivers
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com> <20111231163145.251d526e@stein>
-In-Reply-To: <20111231163145.251d526e@stein>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 31-12-2011 13:31, Stefan Richter wrote:
-> On Dec 30 Mauro Carvalho Chehab wrote:
->> Basically, changes all DVB frontend drivers to work directly with
->> the DVBv5 structure.
-> [...]
->> Test reports are welcome.
-> [...]
->>   [media] firedtv: convert set_fontend to use DVBv5 parameters
-> [...]
->>  drivers/media/dvb/firewire/firedtv-avc.c     |   95 ++++++++--------
->>  drivers/media/dvb/firewire/firedtv-fe.c      |   31 ++----
->>  drivers/media/dvb/firewire/firedtv.h         |    4 +-
-> 
-> I briefly tested git://linuxtv.org/media_tree.gitstaging/for_v3.3
-> 7c61d80a9bcf on top of v3.2-rc7 on a FireDTV-T/CI with kaffeine and on a
-> FireDTV-C/CI with kaffeine and smplayer and didn't notice any runtime problem.
+On 64-bit platforms assigning a pointer to a 32-bit variable causes a
+compiler warning and cannot actually work. Soc-camera currently doesn't
+support any 64-bit systems, but such platforms can be added in the
+and in any case compiler warnings should be avoided.
 
-Thanks for testing it!
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-> Building fs/compat_ioctl.c failed for me though:
-> fs/compat_ioctl.c:1345:1: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’ 
-> fs/compat_ioctl.c:1345:1: error: array type has incomplete element type
-> etc. pp.
+This is a long-standing warning in the 3.2 kernel. The fix should only 
+affect sh-mobile platforms, of which I tested some, and the ov6650 camera 
+sensor driver.
 
-Yeah, I forgot about the compat stuff ;)
+ drivers/media/video/ov6650.c               |    2 +-
+ drivers/media/video/sh_mobile_ceu_camera.c |   34 +++++++++++++++++----------
+ drivers/media/video/sh_mobile_csi2.c       |    4 +-
+ drivers/media/video/soc_camera.c           |    2 +-
+ include/media/soc_camera.h                 |    7 +++++-
+ 5 files changed, 31 insertions(+), 18 deletions(-)
 
-The fix is simple:
-	http://git.linuxtv.org/media_tree.git/commit/e97a5d893fdf45c20799b72a1c11dca3b282c89c
+diff --git a/drivers/media/video/ov6650.c b/drivers/media/video/ov6650.c
+index 9f2d26b..6806345 100644
+--- a/drivers/media/video/ov6650.c
++++ b/drivers/media/video/ov6650.c
+@@ -540,7 +540,7 @@ static u8 to_clkrc(struct v4l2_fract *timeperframe,
+ static int ov6650_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_device *icd = (struct soc_camera_device *)sd->grp_id;
++	struct soc_camera_device *icd = v4l2_get_subdev_hostdata(sd);
+ 	struct soc_camera_sense *sense = icd->sense;
+ 	struct ov6650 *priv = to_ov6650(client);
+ 	bool half_scale = !is_unscaled_ok(mf->width, mf->height, &priv->rect);
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index f390682..c51decf 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -566,8 +566,10 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
+ 	ret = sh_mobile_ceu_soft_reset(pcdev);
+ 
+ 	csi2_sd = find_csi2(pcdev);
+-	if (csi2_sd)
+-		csi2_sd->grp_id = (long)icd;
++	if (csi2_sd) {
++		csi2_sd->grp_id = soc_camera_grp_id(icd);
++		v4l2_set_subdev_hostdata(csi2_sd, icd);
++	}
+ 
+ 	ret = v4l2_subdev_call(csi2_sd, core, s_power, 1);
+ 	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV) {
+@@ -768,7 +770,7 @@ static struct v4l2_subdev *find_bus_subdev(struct sh_mobile_ceu_dev *pcdev,
+ {
+ 	if (pcdev->csi2_pdev) {
+ 		struct v4l2_subdev *csi2_sd = find_csi2(pcdev);
+-		if (csi2_sd && csi2_sd->grp_id == (u32)icd)
++		if (csi2_sd && csi2_sd->grp_id == soc_camera_grp_id(icd))
+ 			return csi2_sd;
+ 	}
+ 
+@@ -1089,8 +1091,9 @@ static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, unsigned int
+ 			/* Try 2560x1920, 1280x960, 640x480, 320x240 */
+ 			mf.width	= 2560 >> shift;
+ 			mf.height	= 1920 >> shift;
+-			ret = v4l2_device_call_until_err(sd->v4l2_dev, (long)icd, video,
+-							 s_mbus_fmt, &mf);
++			ret = v4l2_device_call_until_err(sd->v4l2_dev,
++					soc_camera_grp_id(icd), video,
++					s_mbus_fmt, &mf);
+ 			if (ret < 0)
+ 				return ret;
+ 			shift++;
+@@ -1389,7 +1392,8 @@ static int client_s_fmt(struct soc_camera_device *icd,
+ 	bool ceu_1to1;
+ 	int ret;
+ 
+-	ret = v4l2_device_call_until_err(sd->v4l2_dev, (long)icd, video,
++	ret = v4l2_device_call_until_err(sd->v4l2_dev,
++					 soc_camera_grp_id(icd), video,
+ 					 s_mbus_fmt, mf);
+ 	if (ret < 0)
+ 		return ret;
+@@ -1426,8 +1430,9 @@ static int client_s_fmt(struct soc_camera_device *icd,
+ 		tmp_h = min(2 * tmp_h, max_height);
+ 		mf->width = tmp_w;
+ 		mf->height = tmp_h;
+-		ret = v4l2_device_call_until_err(sd->v4l2_dev, (long)icd, video,
+-						 s_mbus_fmt, mf);
++		ret = v4l2_device_call_until_err(sd->v4l2_dev,
++					soc_camera_grp_id(icd), video,
++					s_mbus_fmt, mf);
+ 		dev_geo(dev, "Camera scaled to %ux%u\n",
+ 			mf->width, mf->height);
+ 		if (ret < 0) {
+@@ -1580,8 +1585,9 @@ static int sh_mobile_ceu_set_crop(struct soc_camera_device *icd,
+ 	}
+ 
+ 	if (interm_width < icd->user_width || interm_height < icd->user_height) {
+-		ret = v4l2_device_call_until_err(sd->v4l2_dev, (int)icd, video,
+-						 s_mbus_fmt, &mf);
++		ret = v4l2_device_call_until_err(sd->v4l2_dev,
++					soc_camera_grp_id(icd), video,
++					s_mbus_fmt, &mf);
+ 		if (ret < 0)
+ 			return ret;
+ 
+@@ -1867,7 +1873,8 @@ static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
+ 	mf.code		= xlate->code;
+ 	mf.colorspace	= pix->colorspace;
+ 
+-	ret = v4l2_device_call_until_err(sd->v4l2_dev, (long)icd, video, try_mbus_fmt, &mf);
++	ret = v4l2_device_call_until_err(sd->v4l2_dev, soc_camera_grp_id(icd),
++					 video, try_mbus_fmt, &mf);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1891,8 +1898,9 @@ static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
+ 			 */
+ 			mf.width = 2560;
+ 			mf.height = 1920;
+-			ret = v4l2_device_call_until_err(sd->v4l2_dev, (long)icd, video,
+-							 try_mbus_fmt, &mf);
++			ret = v4l2_device_call_until_err(sd->v4l2_dev,
++					soc_camera_grp_id(icd), video,
++					try_mbus_fmt, &mf);
+ 			if (ret < 0) {
+ 				/* Shouldn't actually happen... */
+ 				dev_err(icd->parent,
+diff --git a/drivers/media/video/sh_mobile_csi2.c b/drivers/media/video/sh_mobile_csi2.c
+index ea4f047..8a652b5 100644
+--- a/drivers/media/video/sh_mobile_csi2.c
++++ b/drivers/media/video/sh_mobile_csi2.c
+@@ -143,7 +143,7 @@ static int sh_csi2_s_mbus_config(struct v4l2_subdev *sd,
+ 				 const struct v4l2_mbus_config *cfg)
+ {
+ 	struct sh_csi2 *priv = container_of(sd, struct sh_csi2, subdev);
+-	struct soc_camera_device *icd = (struct soc_camera_device *)sd->grp_id;
++	struct soc_camera_device *icd = v4l2_get_subdev_hostdata(sd);
+ 	struct v4l2_subdev *client_sd = soc_camera_to_subdev(icd);
+ 	struct v4l2_mbus_config client_cfg = {.type = V4L2_MBUS_CSI2,
+ 					      .flags = priv->mipi_flags};
+@@ -202,7 +202,7 @@ static void sh_csi2_hwinit(struct sh_csi2 *priv)
+ static int sh_csi2_client_connect(struct sh_csi2 *priv)
+ {
+ 	struct sh_csi2_pdata *pdata = priv->pdev->dev.platform_data;
+-	struct soc_camera_device *icd = (struct soc_camera_device *)priv->subdev.grp_id;
++	struct soc_camera_device *icd = v4l2_get_subdev_hostdata(&priv->subdev);
+ 	struct v4l2_subdev *client_sd = soc_camera_to_subdev(icd);
+ 	struct device *dev = v4l2_get_subdevdata(&priv->subdev);
+ 	struct v4l2_mbus_config cfg;
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index b72580c..8491cf7 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -1103,7 +1103,7 @@ static int soc_camera_probe(struct soc_camera_device *icd)
+ 	}
+ 
+ 	sd = soc_camera_to_subdev(icd);
+-	sd->grp_id = (long)icd;
++	sd->grp_id = soc_camera_grp_id(icd);
+ 
+ 	if (v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handler))
+ 		goto ectrl;
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index b1377b9..5fb2c3d 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -254,7 +254,7 @@ unsigned long soc_camera_apply_board_flags(struct soc_camera_link *icl,
+ static inline struct video_device *soc_camera_i2c_to_vdev(const struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+-	struct soc_camera_device *icd = (struct soc_camera_device *)sd->grp_id;
++	struct soc_camera_device *icd = v4l2_get_subdev_hostdata(sd);
+ 	return icd ? icd->vdev : NULL;
+ }
+ 
+@@ -279,6 +279,11 @@ static inline struct soc_camera_device *soc_camera_from_vbq(const struct videobu
+ 	return container_of(vq, struct soc_camera_device, vb_vidq);
+ }
+ 
++static inline u32 soc_camera_grp_id(const struct soc_camera_device *icd)
++{
++	return (icd->iface << 8) | (icd->devnum + 1);
++}
++
+ void soc_camera_lock(struct vb2_queue *vq);
+ void soc_camera_unlock(struct vb2_queue *vq);
+ 
+-- 
+1.7.2.5
 
-Basically, one patch at the tree avoids the usage of DVBv3 
-structs inside the drivers, as this is not supported by the
-DVB core anymore. The core itself (and compat) will need it,
-in order to provide DVBv3 compatibility.
-
-Regards,
-Mauro
