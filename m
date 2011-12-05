@@ -1,187 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:64210 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932377Ab1LEWPr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 17:15:47 -0500
-Message-ID: <4EDD428B.9010800@gmail.com>
-Date: Mon, 05 Dec 2011 23:15:39 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:55019 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755448Ab1LEKVx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 05:21:53 -0500
+Message-ID: <4EDC9B17.2080701@gmail.com>
+Date: Mon, 05 Dec 2011 11:21:11 +0100
+From: Florian Fainelli <f.fainelli@gmail.com>
 MIME-Version: 1.0
-To: Ming Lei <ming.lei@canonical.com>
-CC: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v1 5/7] media: v4l2: introduce two IOCTLs for face
- detection
-References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com> <1322838172-11149-6-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1322838172-11149-6-git-send-email-ming.lei@canonical.com>
-Content-Type: text/plain; charset=UTF-8
+To: HoP <jpetrous@gmail.com>
+CC: Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
+ of worrying about possible misusage?
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com>
+In-Reply-To: <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/02/2011 04:02 PM, Ming Lei wrote:
-> This patch introduces two new IOCTLs and related data
-> structure defination which will be used by the coming
-> face detection video device.
-> 
-> The two IOCTLs and related data structure are used by
-> user space application to retrieve the results of face
-> detection. They can be called after one v4l2_buffer
-> has been ioctl(VIDIOC_DQBUF) and before it will be
-> ioctl(VIDIOC_QBUF).
-> 
-> The utility fdif[1] is useing the two IOCTLs to find
-> faces deteced in raw images or video streams.
-> 
-> [1],http://kernel.ubuntu.com/git?p=ming/fdif.git;a=shortlog;h=refs/heads/v4l2-fdif
-> 
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
-> ---
->  drivers/media/video/v4l2-ioctl.c |   38 ++++++++++++++++++++
->  include/linux/videodev2.h        |   70 ++++++++++++++++++++++++++++++++++++++
->  include/media/v4l2-ioctl.h       |    6 +++
->  3 files changed, 114 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> index e1da8fc..fc6266f 100644
-> --- a/drivers/media/video/v4l2-ioctl.c
-> +++ b/drivers/media/video/v4l2-ioctl.c
-> @@ -2140,6 +2140,30 @@ static long __video_do_ioctl(struct file *file,
->  		dbgarg(cmd, "index=%d", b->index);
->  		break;
->  	}
-> +	case VIDIOC_G_FD_RESULT:
-> +	{
-> +		struct v4l2_fd_result *fr = arg;
-> +
-> +		if (!ops->vidioc_g_fd_result)
-> +			break;
-> +
-> +		ret = ops->vidioc_g_fd_result(file, fh, fr);
-> +
-> +		dbgarg(cmd, "index=%d", fr->buf_index);
-> +		break;
-> +	}
-> +	case VIDIOC_G_FD_COUNT:
-> +	{
-> +		struct v4l2_fd_count *fc = arg;
-> +
-> +		if (!ops->vidioc_g_fd_count)
-> +			break;
-> +
-> +		ret = ops->vidioc_g_fd_count(file, fh, fc);
-> +
-> +		dbgarg(cmd, "index=%d", fc->buf_index);
-> +		break;
-> +	}
->  	default:
->  		if (!ops->vidioc_default)
->  			break;
-> @@ -2234,6 +2258,20 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
->  		}
->  		break;
->  	}
-> +
-> +	case VIDIOC_G_FD_RESULT: {
-> +		struct v4l2_fd_result *fr = parg;
-> +
-> +		if (fr->face_cnt != 0) {
-> +			*user_ptr = (void __user *)fr->fd;
-> +			*kernel_ptr = (void *)&fr->fd;
-> +			*array_size = sizeof(struct v4l2_fd_detection)
-> +				    * fr->face_cnt;
-> +			ret = 1;
-> +		}
-> +		break;
-> +
-> +	}
->  	}
->  
->  	return ret;
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 4b752d5..073eb4d 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -2160,6 +2160,74 @@ struct v4l2_create_buffers {
->  	__u32			reserved[8];
->  };
->  
-> +/**
-> + * struct v4l2_obj_detection
-> + * @buf_index:	entry, index of v4l2_buffer for face detection
-> + * @centerx:	return, position in x direction of detected object
-> + * @centery:	return, position in y direction of detected object
-> + * @angle:	return, angle of detected object
-> + * 		0 deg ~ 359 deg, vertical is 0 deg, clockwise
-> + * @sizex:	return, size in x direction of detected object
-> + * @sizey:	return, size in y direction of detected object
-> + * @confidence:	return, confidence level of detection result
-> + * 		0: the heighest level, 9: the lowest level
+Hello,
 
-Hmm, not a good idea to align a public interface to the capabilities
-of a single hardware implementation. min/max confidence could be queried with
-relevant controls and here we could remove the line implying range.
+On 12/03/11 01:37, HoP wrote:
+> Hi Alan.
+>
+> 2011/12/3 Alan Cox<alan@lxorguk.ukuu.org.uk>:
+>> On Thu, 1 Dec 2011 15:58:41 +0100
+>> HoP<jpetrous@gmail.com>  wrote:
+>>
+>>> Hi,
+>>>
+>>> let me ask you some details of your interesting idea (how to
+>>> achieve the same functionality as with vtunerc driver):
+>>>
+>>> [...]
+>>>
+>>>> The driver, as proposed, is not really a driver, as it doesn't support any
+>>>> hardware. The kernel driver would be used to just copy data from one
+>>>> userspace
+>>>
+>>> Please stop learning me what can be called driver and what nope.
+>>> Your definition is nonsense and I don't want to follow you on it.
+>>
+>> You can stick your fingers in your ears and shout all you like but given
+>> Mauro is the maintainer I'd suggest you work with him rather than making
+>> it painful. One of the failures we routinely exclude code from the kernel
+>> for is best described as "user interface of contributor"
+>
+> You may be not read all my mails but I really tried to be very positive in them.
+> I wanted to focus on my Subject, but Mauro has, sometimes, the demand
+> to focus on insignificant things (like if the code is driver or not). At least
+> it is my feeling from all those disscussions with him.
+>
+>>
+>> It's a loopback that adds a performance hit. The right way to do this is
+>> in userspace with the userspace infrastructure. At that point you can
+>> handle all the corner cases properly, integrate things like service
+>> discovery into your model and so on - stuff you'll never get to work that
+>> well with kernel loopback hackery.
+>>
+>>> Can you show me, how then can be reused most important part
+>>> of dvb-core subsystem like tuning and demuxing? Or do you want me
+>>> to invent wheels and to recode everything in the library? Of course
+>>
+>> You could certainly build a library from the same code. That might well
+>> be a good thing for all kinds of 'soft' DV applications. At that point
+>> the discussion to have is the best way to make that code sharable between
+>> a userspace library and the kernel and buildable for both.
+>>
+>>> I can be wrong, I'm no big kernel hacker. So please show me the
+>>> way for it. BTW, even if you can find the way, then data copying
+>>> from userspace to the kernel and back is also necessery. I really
+>>> don't see any advantage of you solution.
+>>
+>> In a properly built media subsystem you shouldn't need any copies beyond
+>> those that naturally occur as part of a processing pass and are therefore
+>> free.
+>
+> I may describe project goal, in few sentences: We have small box, running
+> embedded linux with 2 satellite tuners on input and ethernet. Nothing more.
+> We have designed the box for live sat TV/Radio reception, distributing them
+> down to the network. One of the mode of working is "vtuner", what allows
+> reuse those tuners remotely on linux desktop. The kernel part is very simple
+> code exposing kernel's dvb-core to the userspace. Userspace client/server
+> tools do all resource discovery and connection management. It works
+> nicely and guys with vdr who is using it are rather satisfied with it.
+> So, the main
+> goal of vtuner code is to fully virtualize remote DVB adapter. To any
+> linux dvb api
+> compatible applications and tools. The vtuner kernel code seems to be
+> the simplest and straightforward way to achieve it.
 
-> + * @reserved:	future extensions
-> + */
-> +struct v4l2_obj_detection {
-> +	__u16		centerx;
-> +	__u16		centery;
-> +	__u16		angle;
-> +	__u16		sizex;
-> +	__u16		sizey;
+The company I work for also has something like this. We can attach a DVB 
+tuner to either the Gateway or the STB we provide and use it 
+indifferently , except that we have the following architecture:
 
-How about using struct v4l2_rect in place of centerx/centery, sizex/sizey ?
-After all it describes a rectangle. We could also use struct v4l2_frmsize_discrete
-for size but there seems to be missing en equivalent for position, e.g.
+- a DVB daemon controlling the physical DVB tuner and exposing methods 
+for tuning/scanning/zapping
+- a web server and web services for accessing the DVB daemon methods
+- a RTSP streamer with associated methods for controlling streaming
 
-struct v4l2_position {
-	__s32 x;
-	__s32 y;
-};
+The software running on both devices is the same (one compiled for ARM, 
+the other for x86).
 
-> +	__u16		confidence;
-> +	__u32		reserved[4];
-> +};
-> +
-> +#define V4L2_FD_HAS_LEFT_EYE	0x1
-> +#define V4L2_FD_HAS_RIGHT_EYE	0x2
-> +#define V4L2_FD_HAS_MOUTH	0x4
-> +#define V4L2_FD_HAS_FACE	0x8
-> +
-> +/**
-> + * struct v4l2_fd_detection - VIDIOC_G_FD_RESULT argument
-> + * @flag:	return, describe which objects are detected
-> + * @left_eye:	return, left_eye position if detected
-> + * @right_eye:	return, right_eye position if detected
-> + * @mouth_eye:	return, mouth_eye position if detected
+I do not see any problem with this solution, people wanting to get the 
+stream can still get the RTSP stream directly joining the multicast 
+group, which is fortunately OS agnostic at the same time.
 
-mouth_eye ? ;)
+>
+> I still think the code is very similar to NBD (Network block device) what sits
+> in the kernel and is using silently. I guess NBD also do data copying
+> from/to user space. Is there something what I overlooked?
+>
+> Can you show me the way (hint please) I can initiate TCP connection
+> from within kernel space? If I can do it, then the big disadvantage
+> of data passing to and from kernel can be removed.
 
-> + * @face:	return, face position if detected
-> + */
-> +struct v4l2_fd_detection {
-> +	__u32	flag;
-> +	struct v4l2_obj_detection	left_eye;
-> +	struct v4l2_obj_detection	right_eye;
-> +	struct v4l2_obj_detection	mouth;
-> +	struct v4l2_obj_detection	face;
+Don't do this in kernel-space (remember the mechanism/policy split).
 
-I would do this differently, i.e. put "flag" inside struct v4l2_obj_detection
-and then struct v4l2_fd_detection would be simply an array of
-struct v4l2_obj_detection, i.e.
+>
+> I must say that the box is primary focused to the DLNA/UpnP world, so
+> vtuner feature is something like interesting addon only. But I was myself
+> very nice surprised how good it behaves on real installations and that
+> was reason I decided to try to get it included in kernel. I see that
+> in present there is no willingness for code acceptation, so I will continue
+> out of the kernel tree.
+>
+> Anyway, if I can find the way how to start TCP connection from the kernel
+> part, I understand it can boost throughput very nicely up.
 
-struct v4l2_fd_detection {
-	unsigned int count;
-	struct v4l2_obj_detection [V4L2_MAX_FD_OBJECT_NUM];
-};
-
-This might be more flexible, e.g. if in the future some hardware supports
-detecting wrinkles, we could easily add that by just defining a new flag:
-V4L2_FD_HAS_WRINKLES, etc.
-
-
+And here is a new hack.
 --
-
-Regards,
-Sylwester
+Florian
