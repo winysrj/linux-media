@@ -1,257 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:17009 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751745Ab1LTU2M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 15:28:12 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com
-Subject: [RFC 01/17] v4l: Introduce integer menu controls
-Date: Tue, 20 Dec 2011 22:27:53 +0200
-Message-Id: <1324412889-17961-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4EF0EFC9.6080501@maxwell.research.nokia.com>
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:50623 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932588Ab1LEV4N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 16:56:13 -0500
+Message-ID: <4EDD3DEE.6060506@gmail.com>
+Date: Mon, 05 Dec 2011 22:55:58 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Ming Lei <ming.lei@canonical.com>
+CC: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detection driver
+ module
+References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com> <1322838172-11149-7-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1322838172-11149-7-git-send-email-ming.lei@canonical.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Hi Ming,
 
-Create a new control type called V4L2_CTRL_TYPE_INTEGER_MENU. Integer menu
-controls are just like menu controls but the menu items are 64-bit integers
-rather than strings.
+(I've pruned the Cc list, leaving just the mailing lists)
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/v4l2-ctrls.c |   60 +++++++++++++++++++++++++++----------
- include/linux/videodev2.h        |    6 +++-
- include/media/v4l2-ctrls.h       |    6 +++-
- 3 files changed, 54 insertions(+), 18 deletions(-)
+On 12/02/2011 04:02 PM, Ming Lei wrote:
+> This patch introduces one driver for face detection purpose.
+> 
+> The driver is responsible for all v4l2 stuff, buffer management
+> and other general things, and doesn't touch face detection hardware
+> directly. Several interfaces are exported to low level drivers
+> (such as the coming omap4 FD driver)which will communicate with
+> face detection hw module.
+> 
+> So the driver will make driving face detection hw modules more
+> easy.
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 0f415da..083bb79 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -804,7 +804,8 @@ static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 change
- 		ev->u.ctrl.value64 = ctrl->cur.val64;
- 	ev->u.ctrl.minimum = ctrl->minimum;
- 	ev->u.ctrl.maximum = ctrl->maximum;
--	if (ctrl->type == V4L2_CTRL_TYPE_MENU)
-+	if (ctrl->type == V4L2_CTRL_TYPE_MENU
-+	    || ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU)
- 		ev->u.ctrl.step = 1;
- 	else
- 		ev->u.ctrl.step = ctrl->step;
-@@ -1035,10 +1036,13 @@ static int validate_new_int(const struct v4l2_ctrl *ctrl, s32 *pval)
- 		return 0;
- 
- 	case V4L2_CTRL_TYPE_MENU:
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
- 		if (val < ctrl->minimum || val > ctrl->maximum)
- 			return -ERANGE;
--		if (ctrl->qmenu[val][0] == '\0' ||
--		    (ctrl->menu_skip_mask & (1 << val)))
-+		if (ctrl->menu_skip_mask & (1 << val))
-+			return -EINVAL;
-+		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
-+		    ctrl->qmenu[val][0] == '\0')
- 			return -EINVAL;
- 		return 0;
- 
-@@ -1295,7 +1299,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
- 			u32 id, const char *name, enum v4l2_ctrl_type type,
- 			s32 min, s32 max, u32 step, s32 def,
--			u32 flags, const char * const *qmenu, void *priv)
-+			u32 flags, const char * const *qmenu,
-+			const s64 *qmenu_int, void *priv)
- {
- 	struct v4l2_ctrl *ctrl;
- 	unsigned sz_extra = 0;
-@@ -1308,6 +1313,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	    (type == V4L2_CTRL_TYPE_INTEGER && step == 0) ||
- 	    (type == V4L2_CTRL_TYPE_BITMASK && max == 0) ||
- 	    (type == V4L2_CTRL_TYPE_MENU && qmenu == NULL) ||
-+	    (type == V4L2_CTRL_TYPE_INTEGER_MENU && qmenu_int == NULL) ||
- 	    (type == V4L2_CTRL_TYPE_STRING && max == 0)) {
- 		handler_set_err(hdl, -ERANGE);
- 		return NULL;
-@@ -1318,6 +1324,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	}
- 	if ((type == V4L2_CTRL_TYPE_INTEGER ||
- 	     type == V4L2_CTRL_TYPE_MENU ||
-+	     type == V4L2_CTRL_TYPE_INTEGER_MENU ||
- 	     type == V4L2_CTRL_TYPE_BOOLEAN) &&
- 	    (def < min || def > max)) {
- 		handler_set_err(hdl, -ERANGE);
-@@ -1352,7 +1359,10 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	ctrl->minimum = min;
- 	ctrl->maximum = max;
- 	ctrl->step = step;
--	ctrl->qmenu = qmenu;
-+	if (type == V4L2_CTRL_TYPE_MENU)
-+		ctrl->qmenu = qmenu;
-+	else if (type == V4L2_CTRL_TYPE_INTEGER_MENU)
-+		ctrl->qmenu_int = qmenu_int;
- 	ctrl->priv = priv;
- 	ctrl->cur.val = ctrl->val = ctrl->default_value = def;
- 
-@@ -1379,6 +1389,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 	struct v4l2_ctrl *ctrl;
- 	const char *name = cfg->name;
- 	const char * const *qmenu = cfg->qmenu;
-+	const s64 *qmenu_int = cfg->qmenu_int;
- 	enum v4l2_ctrl_type type = cfg->type;
- 	u32 flags = cfg->flags;
- 	s32 min = cfg->min;
-@@ -1390,18 +1401,24 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 		v4l2_ctrl_fill(cfg->id, &name, &type, &min, &max, &step,
- 								&def, &flags);
- 
--	is_menu = (cfg->type == V4L2_CTRL_TYPE_MENU);
-+	is_menu = (cfg->type == V4L2_CTRL_TYPE_MENU ||
-+		   cfg->type == V4L2_CTRL_TYPE_INTEGER_MENU);
- 	if (is_menu)
- 		WARN_ON(step);
- 	else
- 		WARN_ON(cfg->menu_skip_mask);
--	if (is_menu && qmenu == NULL)
-+	if (cfg->type == V4L2_CTRL_TYPE_MENU && qmenu == NULL)
- 		qmenu = v4l2_ctrl_get_menu(cfg->id);
-+	else if (cfg->type == V4L2_CTRL_TYPE_INTEGER_MENU &&
-+		 qmenu_int == NULL) {
-+		handler_set_err(hdl, -EINVAL);
-+		return NULL;
-+	}
- 
- 	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name,
- 			type, min, max,
- 			is_menu ? cfg->menu_skip_mask : step,
--			def, flags, qmenu, priv);
-+			def, flags, qmenu, qmenu_int, priv);
- 	if (ctrl)
- 		ctrl->is_private = cfg->is_private;
- 	return ctrl;
-@@ -1418,12 +1435,13 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
- 	u32 flags;
- 
- 	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
--	if (type == V4L2_CTRL_TYPE_MENU) {
-+	if (type == V4L2_CTRL_TYPE_MENU
-+	    || type == V4L2_CTRL_TYPE_INTEGER_MENU) {
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
- 	return v4l2_ctrl_new(hdl, ops, id, name, type,
--				    min, max, step, def, flags, NULL, NULL);
-+			     min, max, step, def, flags, NULL, NULL, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_std);
- 
-@@ -1445,7 +1463,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 		return NULL;
- 	}
- 	return v4l2_ctrl_new(hdl, ops, id, name, type,
--				    0, max, mask, def, flags, qmenu, NULL);
-+			     0, max, mask, def, flags, qmenu, NULL, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
- 
-@@ -1609,6 +1627,9 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
- 	case V4L2_CTRL_TYPE_MENU:
- 		printk(KERN_CONT "%s", ctrl->qmenu[ctrl->cur.val]);
- 		break;
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
-+		printk(KERN_CONT "%lld", ctrl->qmenu_int[ctrl->cur.val]);
-+		break;
- 	case V4L2_CTRL_TYPE_BITMASK:
- 		printk(KERN_CONT "0x%08x", ctrl->cur.val);
- 		break;
-@@ -1745,7 +1766,8 @@ int v4l2_queryctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_queryctrl *qc)
- 	qc->minimum = ctrl->minimum;
- 	qc->maximum = ctrl->maximum;
- 	qc->default_value = ctrl->default_value;
--	if (ctrl->type == V4L2_CTRL_TYPE_MENU)
-+	if (ctrl->type == V4L2_CTRL_TYPE_MENU
-+	    || ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU)
- 		qc->step = 1;
- 	else
- 		qc->step = ctrl->step;
-@@ -1775,16 +1797,22 @@ int v4l2_querymenu(struct v4l2_ctrl_handler *hdl, struct v4l2_querymenu *qm)
- 
- 	qm->reserved = 0;
- 	/* Sanity checks */
--	if (ctrl->qmenu == NULL ||
-+	if ((ctrl->type == V4L2_CTRL_TYPE_MENU && ctrl->qmenu == NULL) ||
-+	    (ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU
-+	     && ctrl->qmenu_int == NULL) ||
- 	    i < ctrl->minimum || i > ctrl->maximum)
- 		return -EINVAL;
- 	/* Use mask to see if this menu item should be skipped */
- 	if (ctrl->menu_skip_mask & (1 << i))
- 		return -EINVAL;
- 	/* Empty menu items should also be skipped */
--	if (ctrl->qmenu[i] == NULL || ctrl->qmenu[i][0] == '\0')
--		return -EINVAL;
--	strlcpy(qm->name, ctrl->qmenu[i], sizeof(qm->name));
-+	if (ctrl->type == V4L2_CTRL_TYPE_MENU) {
-+		if (ctrl->qmenu[i] == NULL || ctrl->qmenu[i][0] == '\0')
-+			return -EINVAL;
-+		strlcpy(qm->name, ctrl->qmenu[i], sizeof(qm->name));
-+	} else if (ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU) {
-+		qm->value = ctrl->qmenu_int[i];
-+	}
- 	return 0;
- }
- EXPORT_SYMBOL(v4l2_querymenu);
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 4b752d5..9633c69 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1094,6 +1094,7 @@ enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
- 	V4L2_CTRL_TYPE_STRING        = 7,
- 	V4L2_CTRL_TYPE_BITMASK       = 8,
-+	V4L2_CTRL_TYPE_INTEGER_MENU = 9,
- };
- 
- /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
-@@ -1113,7 +1114,10 @@ struct v4l2_queryctrl {
- struct v4l2_querymenu {
- 	__u32		id;
- 	__u32		index;
--	__u8		name[32];	/* Whatever */
-+	union {
-+		__u8	name[32];	/* Whatever */
-+		__s64	value;
-+	};
- 	__u32		reserved;
- };
- 
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index eeb3df6..f7819e7 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -129,7 +129,10 @@ struct v4l2_ctrl {
- 		u32 step;
- 		u32 menu_skip_mask;
- 	};
--	const char * const *qmenu;
-+	union {
-+		const char * const *qmenu;
-+		const s64 *qmenu_int;
-+	};
- 	unsigned long flags;
- 	union {
- 		s32 val;
-@@ -219,6 +222,7 @@ struct v4l2_ctrl_config {
- 	u32 flags;
- 	u32 menu_skip_mask;
- 	const char * const *qmenu;
-+	const s64 *qmenu_int;
- 	unsigned int is_private:1;
- };
- 
--- 
-1.7.2.5
 
+I would hold on for a moment on implementing generic face detection
+module which is based on the V4L2 video device interface. We need to
+first define an API that would be also usable at sub-device interface
+level (http://linuxtv.org/downloads/v4l-dvb-apis/subdev.html).
+AFAICS OMAP4 FDIF processes only data stored in memory, thus it seems
+reasonable to use the videodev interface for passing data to the kernel
+from user space.
+
+But there might be face detection devices that accept data from other
+H/W modules, e.g. transferred through SoC internal data buses between
+image processing pipeline blocks. Thus any new interfaces need to be
+designed with such devices in mind.
+
+Also the face detection hardware block might now have an input DMA
+engine in it, the data could be fed from memory through some other
+subsystem (e.g. resize/colour converter). Then the driver for that
+subsystem would implement a video node.
+
+I'm for leaving the buffer handling details for individual drivers
+and focusing on a standard interface for applications, i.e. new
+ioctl(s) and controls.
+
+> 
+> TODO:
+> 	- implement FD setting interfaces with v4l2 controls or
+> 	ext controls
+> 
+> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+> ---
+>  drivers/media/video/Kconfig       |    2 +
+>  drivers/media/video/Makefile      |    1 +
+>  drivers/media/video/fdif/Kconfig  |    7 +
+>  drivers/media/video/fdif/Makefile |    1 +
+>  drivers/media/video/fdif/fdif.c   |  645 +++++++++++++++++++++++++++++++++++++
+>  drivers/media/video/fdif/fdif.h   |  114 +++++++
+>  6 files changed, 770 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/fdif/Kconfig
+>  create mode 100644 drivers/media/video/fdif/Makefile
+>  create mode 100644 drivers/media/video/fdif/fdif.c
+>  create mode 100644 drivers/media/video/fdif/fdif.h
+
+[...]
+
+> diff --git a/drivers/media/video/fdif/fdif.h b/drivers/media/video/fdif/fdif.h
+> new file mode 100644
+> index 0000000..ae37ab8
+> --- /dev/null
+> +++ b/drivers/media/video/fdif/fdif.h
+> @@ -0,0 +1,114 @@
+> +#ifndef _LINUX_FDIF_H
+> +#define _LINUX_FDIF_H
+> +
+> +#include <linux/types.h>
+> +#include <linux/magic.h>
+> +#include <linux/errno.h>
+> +#include <linux/kref.h>
+> +#include <linux/kernel.h>
+> +#include <linux/videodev2.h>
+> +#include <media/videobuf2-page.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-fh.h>
+> +#include <media/v4l2-event.h>
+> +#include <media/v4l2-common.h>
+> +
+> +#define MAX_FACE_COUNT		40
+> +
+> +#define	FACE_SIZE_20_PIXELS	0
+> +#define	FACE_SIZE_25_PIXELS	1
+> +#define	FACE_SIZE_32_PIXELS	2
+> +#define	FACE_SIZE_40_PIXELS	3
+
+This is still OMAP4 FDIF specific, we need to think about v4l2 controls
+for this. An ideal would be a menu control type that supports pixel size
+(width/height), but unfortunately something like this isn't available
+in v4l2 yet.
+
+> +
+> +#define FACE_DIR_UP		0
+> +#define FACE_DIR_RIGHT		1
+> +#define FACE_DIR_LIFT		2
+> +
+> +struct fdif_fmt {
+> +	char  *name;
+> +	u32   fourcc;          /* v4l2 format id */
+> +	int   depth;
+> +	int   width, height;
+
+Could width/height be negative ? I don't think it's the case for pixel
+resolution. The more proper data type would be u32.
+
+Please refer to struct v4l2_pix_format or struct v4l2_rect.
+
+> +};
+> +
+> +struct fdif_setting {
+> +	struct fdif_fmt            *fmt;
+> +	enum v4l2_field            field;
+> +
+> +	int 			min_face_size;
+> +	int			face_dir;
+> +
+> +	int			startx, starty;
+
+s32
+
+> +	int			sizex, sizey;
+
+u32
+
+> +	int			lhit;
+> +
+> +	int			width, height;
+
+u32
+
+> +};
+> +
+> +/* buffer for one video frame */
+> +struct fdif_buffer {
+> +	/* common v4l buffer stuff -- must be first */
+> +	struct vb2_buffer	vb;
+> +	struct list_head	list;
+> +};
+> +
+> +
+> +struct v4l2_fdif_result {
+> +	struct list_head		list;
+> +	unsigned int			face_cnt;
+> +	struct v4l2_fd_detection	*faces;
+> +
+> +	/*v4l2 buffer index*/
+> +	__u32				index;
+> +};
+> +
+> +struct fdif_dmaqueue {
+> +	struct list_head	complete;
+> +	struct list_head	active;
+> +	wait_queue_head_t	wq;
+> +};
+> +
+> +
+> +struct fdif_dev {
+> +	struct kref		ref;
+> +	struct device		*dev;
+> +
+> +	struct list_head        fdif_devlist;
+> +	struct v4l2_device	v4l2_dev;
+> +	struct vb2_queue        vbq;
+> +	struct mutex            mutex;
+> +	spinlock_t		lock;
+> +
+> +	struct video_device        *vfd;
+> +	struct fdif_dmaqueue	fdif_dq;
+> +
+> +	/*setting*/
+> +	struct fdif_setting	s;
+
+yy, please make it more descriptive. e.g.
+
+	struct fdif_config	config;
+
+> +
+> +	struct fdif_ops	*ops;
+> +
+> +	unsigned long	priv[0];
+> +};
+> +
+[...]
+
+--
+
+Regards,
+Sylwester
