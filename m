@@ -1,146 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:65336 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754502Ab1LAVf4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2011 16:35:56 -0500
-Received: by eaak14 with SMTP id k14so2666282eaa.19
-        for <linux-media@vger.kernel.org>; Thu, 01 Dec 2011 13:35:55 -0800 (PST)
-Message-ID: <1322775348.2261.6.camel@tvbox>
-Subject: [PATCH] it913x add retry to USB bulk endpoints and IO.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Thu, 01 Dec 2011 21:35:48 +0000
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:43654 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932486Ab1LEWdp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 17:33:45 -0500
+MIME-Version: 1.0
+In-Reply-To: <1438420.NYDLGGgKNc@wuerfel>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+	<1426302.asOzFeeJzz@wuerfel>
+	<CAKMK7uG2U2gn-LW7Cozumfza8XngvQSWR7-S-Qiok5NA=94V=w@mail.gmail.com>
+	<1438420.NYDLGGgKNc@wuerfel>
+Date: Mon, 5 Dec 2011 23:33:44 +0100
+Message-ID: <CAKMK7uH3KUOXXWfvdTWQMy1cBkctpUR6TP=xks63jX5-3XsFaA@mail.gmail.com>
+Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org,
+	Daniel Vetter <daniel@ffwll.ch>, t.stanislaws@samsung.com,
+	linux@arm.linux.org.uk, Sumit Semwal <sumit.semwal@ti.com>,
+	linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	jesse.barker@linaro.org, rob@ti.com, linux-media@vger.kernel.org,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	m.szyprowski@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This a bus repeater for it913x devices. Commands usually fail because of other
-activity on the USB bus.
+On Mon, Dec 05, 2011 at 11:04:09PM +0100, Arnd Bergmann wrote:
+> On Monday 05 December 2011 21:58:39 Daniel Vetter wrote:
+> > On Mon, Dec 05, 2011 at 08:29:49PM +0100, Arnd Bergmann wrote:
+> > > ...
+> >
+> > Thanks a lot for this excellent overview. I think at least for the first
+> > version of dmabuf we should drop the sync_* interfaces and simply require
+> > users to bracket their usage of the buffer from the attached device by
+> > map/unmap. A dma_buf provider is always free to cache the mapping and
+> > simply call sync_sg_for of the streaming dma api.
+>
+> I think we still have the same problem if we allow multiple drivers
+> to access a noncoherent buffer using map/unmap:
+>
+> 	driver A				driver B
+>
+> 1.	read/write				
+> 2.						read/write
+> 3.	map()					
+> 4.						read/write
+> 5.	dma
+> 6.						map()
+> 7.	dma
+> 8.						dma
+> 9.	unmap()
+> 10.						dma
+> 11.	read/write
+> 12.						unmap()						
+>
+>
+> In step 4, the buffer is owned by device A, but accessed by driver B, which
+> is a bug. In step 11, the buffer is owned by device B but accessed by driver
+> A, which is the same bug on the other side. In steps 7 and 8, the buffer
+> is owned by both device A and B, which is currently undefined but would
+> be ok if both devices are on the same coherency domain. Whether that point
+> is meaningful depends on what the devices actually do. It would be ok
+> if both are only reading, but not if they write into the same location
+> concurrently.
+>
+> As I mentioned originally, the problem could be completely avoided if
+> we only allow consistent (e.g. uncached) mappings or buffers that
+> are not mapped into the kernel virtual address space at all.
+>
+> Alternatively, a clearer model would be to require each access to
+> nonconsistent buffers to be exclusive: a map() operation would have
+> to block until the current mapper (if any) has done an unmap(), and
+> any access from the CPU would also have to call a dma_buf_ops pointer
+> to serialize the CPU accesses with any device accesses. User
+> mappings of the buffer can be easily blocked during a DMA access
+> by unmapping the buffer from user space at map() time and blocking the
+> vm_ops->fault() operation until the unmap().
 
-Bulk failures that report -ETIMEDOUT or -EBUSY are repeated.
+See my other mail where I propose a more explicit coherency model, just a
+comment here: GPU drivers hate blocking interfaces. Loathe, actually. In
+general they're very happy to extend you any amount of rope if it can make
+userspace a few percent faster.
 
-Enpoints that return actlen not equal len request -EAGAIN.
+So I think the right answer here is: You've asked for trouble, you've got
+it. Also see the issue raised by Rob, at least for opengl (and also for
+other graphics interfaces) the kernel is not even aware of all outstanding
+rendering. So userspace needs to orchestrate access anyway if a gpu is
+involved.
 
-The retry is set at 10.
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/dvb/dvb-usb/it913x.c |   61 +++++++++++++++++++++++++++++------
- 1 files changed, 50 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/it913x.c b/drivers/media/dvb/dvb-usb/it913x.c
-index d7c86c2..e847527 100644
---- a/drivers/media/dvb/dvb-usb/it913x.c
-+++ b/drivers/media/dvb/dvb-usb/it913x.c
-@@ -67,23 +67,43 @@ struct it913x_state {
- 
- struct ite_config it913x_config;
- 
-+#define IT913X_RETRY	10
-+#define IT913X_SND_TIMEOUT	100
-+#define IT913X_RCV_TIMEOUT	200
-+
- static int it913x_bulk_write(struct usb_device *dev,
- 				u8 *snd, int len, u8 pipe)
- {
--	int ret, actual_l;
-+	int ret, actual_l, i;
-+
-+	for (i = 0; i < IT913X_RETRY; i++) {
-+		ret = usb_bulk_msg(dev, usb_sndbulkpipe(dev, pipe),
-+				snd, len , &actual_l, IT913X_SND_TIMEOUT);
-+		if (ret == 0 || ret != -EBUSY || ret != -ETIMEDOUT)
-+			break;
-+	}
-+
-+	if (len != actual_l && ret == 0)
-+		ret = -EAGAIN;
- 
--	ret = usb_bulk_msg(dev, usb_sndbulkpipe(dev, pipe),
--				snd, len , &actual_l, 100);
- 	return ret;
- }
- 
- static int it913x_bulk_read(struct usb_device *dev,
- 				u8 *rev, int len, u8 pipe)
- {
--	int ret, actual_l;
-+	int ret, actual_l, i;
-+
-+	for (i = 0; i < IT913X_RETRY; i++) {
-+		ret = usb_bulk_msg(dev, usb_rcvbulkpipe(dev, pipe),
-+				 rev, len , &actual_l, IT913X_RCV_TIMEOUT);
-+		if (ret == 0 || ret != -EBUSY || ret != -ETIMEDOUT)
-+			break;
-+	}
-+
-+	if (len != actual_l && ret == 0)
-+		ret = -EAGAIN;
- 
--	ret = usb_bulk_msg(dev, usb_rcvbulkpipe(dev, pipe),
--				 rev, len , &actual_l, 200);
- 	return ret;
- }
- 
-@@ -96,7 +116,7 @@ static u16 check_sum(u8 *p, u8 len)
- 	return ~sum;
- }
- 
--static int it913x_io(struct usb_device *udev, u8 mode, u8 pro,
-+static int it913x_usb_talk(struct usb_device *udev, u8 mode, u8 pro,
- 			u8 cmd, u32 reg, u8 addr, u8 *data, u8 len)
- {
- 	int ret = 0, i, buf_size = 1;
-@@ -155,22 +175,41 @@ static int it913x_io(struct usb_device *udev, u8 mode, u8 pro,
- 	buff[buf_size++] = (chk_sum & 0xff);
- 
- 	ret = it913x_bulk_write(udev, buff, buf_size , 0x02);
-+	if (ret < 0)
-+		goto error;
- 
--	ret |= it913x_bulk_read(udev, buff, (mode & 1) ?
-+	ret = it913x_bulk_read(udev, buff, (mode & 1) ?
- 			5 : len + 5 , 0x01);
-+	if (ret < 0)
-+		goto error;
- 
- 	rlen = (mode & 0x1) ? 0x1 : len;
- 
- 	if (mode & 1)
--		ret |= buff[2];
-+		ret = buff[2];
- 	else
- 		memcpy(data, &buff[3], rlen);
- 
- 	cmd_counter++;
- 
--	kfree(buff);
-+error:	kfree(buff);
- 
--	return (ret < 0) ? -ENODEV : 0;
-+	return ret;
-+}
-+
-+static int it913x_io(struct usb_device *udev, u8 mode, u8 pro,
-+			u8 cmd, u32 reg, u8 addr, u8 *data, u8 len)
-+{
-+	int ret, i;
-+
-+	for (i = 0; i < IT913X_RETRY; i++) {
-+		ret = it913x_usb_talk(udev, mode, pro,
-+			cmd, reg, addr, data, len);
-+		if (ret != -EAGAIN)
-+			break;
-+	}
-+
-+	return ret;
- }
- 
- static int it913x_wr_reg(struct usb_device *udev, u8 pro, u32 reg , u8 data)
+Otherwise I agree with your points in this mail.
+-Daniel
 -- 
-1.7.7.1
-
-
-
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
