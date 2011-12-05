@@ -1,66 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15610 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755309Ab1LXPvF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Dec 2011 10:51:05 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp5iw018663
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:05 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v4 10/47] [media] mxl5005s: fix: don't discard bandwidth changes
-Date: Sat, 24 Dec 2011 13:50:15 -0200
-Message-Id: <1324741852-26138-11-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324741852-26138-10-git-send-email-mchehab@redhat.com>
-References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
- <1324741852-26138-2-git-send-email-mchehab@redhat.com>
- <1324741852-26138-3-git-send-email-mchehab@redhat.com>
- <1324741852-26138-4-git-send-email-mchehab@redhat.com>
- <1324741852-26138-5-git-send-email-mchehab@redhat.com>
- <1324741852-26138-6-git-send-email-mchehab@redhat.com>
- <1324741852-26138-7-git-send-email-mchehab@redhat.com>
- <1324741852-26138-8-git-send-email-mchehab@redhat.com>
- <1324741852-26138-9-git-send-email-mchehab@redhat.com>
- <1324741852-26138-10-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:47644 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751354Ab1LEBpq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Dec 2011 20:45:46 -0500
+MIME-Version: 1.0
+In-Reply-To: <CAJbz7-15mzUNV7ZLSkAOg1Vb8briysitsR7xK94G+3-KT=ZXbA@mail.gmail.com>
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
+	<4ED6C5B8.8040803@linuxtv.org>
+	<4ED75F53.30709@redhat.com>
+	<CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
+	<20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
+	<4EDA4AB4.90303@linuxtv.org>
+	<CAA7C2qjfWW8=kePZDO4nYR913RyuP-t+u8P9LV4mDh9bANr3=Q@mail.gmail.com>
+	<CAJbz7-15mzUNV7ZLSkAOg1Vb8briysitsR7xK94G+3-KT=ZXbA@mail.gmail.com>
+Date: Sun, 4 Dec 2011 17:45:46 -0800
+Message-ID: <CAA7C2qgDOgqZqkXE+E=H1yTrA0Uc4r-31y40BVa2=BxOaJY6Kw@mail.gmail.com>
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
+ because of worrying about possible misusage?
+From: VDR User <user.vdr@gmail.com>
+To: HoP <jpetrous@gmail.com>
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is a bug on mxl5005s logic: when the bandwidth changes, but using
-the same delivery system, the code discard the set_params()
-reconfiguration request.
+On Sun, Dec 4, 2011 at 3:22 PM, HoP <jpetrous@gmail.com> wrote:
+> Well, initial report was made on vdr-portal because of our hardware announce,
+> but you can be sure the same is true if server is build on any linux hardware.
+> Here is some note:
+> http://www.vdr-portal.de/board18-vdr-hardware/board84-allgemein/106610-das-neue-netzwerk-client-der-f%C3%BCr-vdr-verwenden-k%C3%B6nnen/?highlight=vtuner
+>
+> Additional info you can find (or ask) on our forum:
+> http://forum.nessiedvb.org/forum/viewforum.php?f=11
+>
+> Please note, that compilation of vtunerc kernel driver (or loopback, or pigback
+> or whatever name the code should be used) is simple - no need for any
+> kernel real patching is required. Code can be compiled outside of the
+> kernel tree
+> (of course kernel headers are still needed).
+>
+> Some useful hints regarding userland application daemons you
+> can find in our wiki:
+> http://wiki.nessiedvb.org/wiki/doku.php?id=vtuner_mode
+>
+> When you get vtunerc and vtunerd applications connected, try
+> simple command line tuning (szap/tzap or czap) to check
+> if it works correctly. Only if you get zapping working switch
+> to vdr.
 
-This was happening because, in the previous coding, the bandwidth
-calculus were after the check for delivery system changes.
+Thanks for the info and links. I do know many guys who would be
+interested in this if it can provide good server/client ability with
+VDR. However, a large number of us only speak english so places like
+vdr-portal aren't much use a lot of the time. If you have english
+forums somewhere, that link would be far more useful I think.
 
-The previous patch changed the logic to estimate the bandwidth to
-happend together with the changes at the delivery system.
-
-So, with a one-statement change, it is possible to make the tuner to
-reconfigure, in order to adjust to bandwidth changes. this will
-likely fix issues on countries that use 7MHz/8MHz DVB-T channels.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/mxl5005s.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/common/tuners/mxl5005s.c b/drivers/media/common/tuners/mxl5005s.c
-index c63f767..c35d355 100644
---- a/drivers/media/common/tuners/mxl5005s.c
-+++ b/drivers/media/common/tuners/mxl5005s.c
-@@ -4019,7 +4019,8 @@ static int mxl5005s_set_params(struct dvb_frontend *fe,
- 	}
- 
- 	/* Change tuner for new modulation type if reqd */
--	if (req_mode != state->current_mode) {
-+	if (req_mode != state->current_mode ||
-+	    req_bw != state->Chan_Bandwidth) {
- 		state->current_mode = req_mode;
- 		ret = mxl5005s_reconfigure(fe, req_mode, req_bw);
- 
--- 
-1.7.8.352.g876a6
-
+Thanks
