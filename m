@@ -1,99 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:54571 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751585Ab1LLRpJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 12:45:09 -0500
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LW3000C7QN3JX@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 12 Dec 2011 17:45:03 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LW3007V2QN2EF@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 12 Dec 2011 17:45:03 +0000 (GMT)
-Date: Mon, 12 Dec 2011 18:44:58 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 14/14] s5p-csis: Enable v4l subdev device node
-In-reply-to: <1323711898-17162-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1323711898-17162-15-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1323711898-17162-1-git-send-email-s.nawrocki@samsung.com>
+Received: from moutng.kundenserver.de ([212.227.126.187]:61946 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751338Ab1LEHVr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 02:21:47 -0500
+Date: Mon, 5 Dec 2011 08:21:31 +0100
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: linuxtv@stefanringel.de
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	d.belimov@gmail.com
+Subject: Re: [PATCH 3/5] tm6000: bugfix interrupt reset
+Message-ID: <20111205072131.GB7341@avionic-0098.mockup.avionic-design.de>
+References: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de>
+ <1322509580-14460-3-git-send-email-linuxtv@stefanringel.de>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="CdrF4e02JqNVZeln"
+Content-Disposition: inline
+In-Reply-To: <1322509580-14460-3-git-send-email-linuxtv@stefanringel.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Set v4l2_subdev flags for a host driver to create a sub-device
-node for the driver so the subdev can be directly configured
-by applications. Add the subdev open() handler.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/mipi-csis.c |   22 ++++++++++++++++++++++
- drivers/media/video/s5p-fimc/mipi-csis.h |    3 +++
- 2 files changed, 25 insertions(+), 0 deletions(-)
+--CdrF4e02JqNVZeln
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/video/s5p-fimc/mipi-csis.c b/drivers/media/video/s5p-fimc/mipi-csis.c
-index 59d79bc..130335c 100644
---- a/drivers/media/video/s5p-fimc/mipi-csis.c
-+++ b/drivers/media/video/s5p-fimc/mipi-csis.c
-@@ -427,6 +427,23 @@ static int s5pcsis_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 	return 0;
- }
- 
-+static int s5pcsis_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	struct v4l2_mbus_framefmt *format = v4l2_subdev_get_try_format(fh, 0);
-+
-+	format->colorspace = V4L2_COLORSPACE_JPEG;
-+	format->code = s5pcsis_formats[0].code;
-+	format->width = S5PCSIS_DEF_PIX_WIDTH;
-+	format->height = S5PCSIS_DEF_PIX_HEIGHT;
-+	format->field = V4L2_FIELD_NONE;
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_internal_ops s5pcsis_sd_internal_ops = {
-+	.open = s5pcsis_open,
-+};
-+
- static struct v4l2_subdev_core_ops s5pcsis_core_ops = {
- 	.s_power = s5pcsis_s_power,
- };
-@@ -544,8 +561,13 @@ static int __devinit s5pcsis_probe(struct platform_device *pdev)
- 	v4l2_subdev_init(&state->sd, &s5pcsis_subdev_ops);
- 	state->sd.owner = THIS_MODULE;
- 	strlcpy(state->sd.name, dev_name(&pdev->dev), sizeof(state->sd.name));
-+	state->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	state->csis_fmt = &s5pcsis_formats[0];
- 
-+	state->format.code = s5pcsis_formats[0].code;
-+	state->format.width = S5PCSIS_DEF_PIX_WIDTH;
-+	state->format.height = S5PCSIS_DEF_PIX_HEIGHT;
-+
- 	state->pads[CSIS_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
- 	state->pads[CSIS_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
- 	ret = media_entity_init(&state->sd.entity,
-diff --git a/drivers/media/video/s5p-fimc/mipi-csis.h b/drivers/media/video/s5p-fimc/mipi-csis.h
-index f569133..2709286 100644
---- a/drivers/media/video/s5p-fimc/mipi-csis.h
-+++ b/drivers/media/video/s5p-fimc/mipi-csis.h
-@@ -19,4 +19,7 @@
- #define CSIS_PAD_SOURCE		1
- #define CSIS_PADS_NUM		2
- 
-+#define S5PCSIS_DEF_PIX_WIDTH	640
-+#define S5PCSIS_DEF_PIX_HEIGHT	480
-+
- #endif
--- 
-1.7.8
+* linuxtv@stefanringel.de wrote:
+> From: Stefan Ringel <linuxtv@stefanringel.de>
+>=20
+> Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
 
+Your commit message needs more details. Why do you think this is a bugfix?
+Also this commit seems to effectively revert (and then partially reimplemen=
+t)
+a patch that I posted some months ago.
+
+> ---
+>  drivers/media/video/tm6000/tm6000-core.c  |   49 -----------------------=
+------
+>  drivers/media/video/tm6000/tm6000-video.c |   21 ++++++++++--
+>  2 files changed, 17 insertions(+), 53 deletions(-)
+>=20
+> diff --git a/drivers/media/video/tm6000/tm6000-core.c b/drivers/media/vid=
+eo/tm6000/tm6000-core.c
+> index c007e6d..920299e 100644
+> --- a/drivers/media/video/tm6000/tm6000-core.c
+> +++ b/drivers/media/video/tm6000/tm6000-core.c
+> @@ -599,55 +599,6 @@ int tm6000_init(struct tm6000_core *dev)
+>  	return rc;
+>  }
+> =20
+> -int tm6000_reset(struct tm6000_core *dev)
+> -{
+> -	int pipe;
+> -	int err;
+> -
+> -	msleep(500);
+> -
+> -	err =3D usb_set_interface(dev->udev, dev->isoc_in.bInterfaceNumber, 0);
+> -	if (err < 0) {
+> -		tm6000_err("failed to select interface %d, alt. setting 0\n",
+> -				dev->isoc_in.bInterfaceNumber);
+> -		return err;
+> -	}
+> -
+> -	err =3D usb_reset_configuration(dev->udev);
+> -	if (err < 0) {
+> -		tm6000_err("failed to reset configuration\n");
+> -		return err;
+> -	}
+> -
+> -	if ((dev->quirks & TM6000_QUIRK_NO_USB_DELAY) =3D=3D 0)
+> -		msleep(5);
+> -
+> -	/*
+> -	 * Not all devices have int_in defined
+> -	 */
+> -	if (!dev->int_in.endp)
+> -		return 0;
+> -
+> -	err =3D usb_set_interface(dev->udev, dev->isoc_in.bInterfaceNumber, 2);
+> -	if (err < 0) {
+> -		tm6000_err("failed to select interface %d, alt. setting 2\n",
+> -				dev->isoc_in.bInterfaceNumber);
+> -		return err;
+> -	}
+> -
+> -	msleep(5);
+> -
+> -	pipe =3D usb_rcvintpipe(dev->udev,
+> -			dev->int_in.endp->desc.bEndpointAddress & USB_ENDPOINT_NUMBER_MASK);
+> -
+> -	err =3D usb_clear_halt(dev->udev, pipe);
+> -	if (err < 0) {
+> -		tm6000_err("usb_clear_halt failed: %d\n", err);
+> -		return err;
+> -	}
+> -
+> -	return 0;
+> -}
+> =20
+>  int tm6000_set_audio_bitrate(struct tm6000_core *dev, int bitrate)
+>  {
+> diff --git a/drivers/media/video/tm6000/tm6000-video.c b/drivers/media/vi=
+deo/tm6000/tm6000-video.c
+> index 1e5ace0..4db3535 100644
+> --- a/drivers/media/video/tm6000/tm6000-video.c
+> +++ b/drivers/media/video/tm6000/tm6000-video.c
+> @@ -1609,12 +1609,25 @@ static int tm6000_release(struct file *file)
+> =20
+>  		tm6000_uninit_isoc(dev);
+> =20
+> +		/* Stop interrupt USB pipe */
+> +		tm6000_ir_int_stop(dev);
+> +
+> +		usb_reset_configuration(dev->udev);
+> +
+> +		if (&dev->int_in)
+
+This check is wrong, &dev->int_in will always be true.
+
+> +			usb_set_interface(dev->udev,
+> +			dev->isoc_in.bInterfaceNumber,
+> +			2);
+> +		else
+> +			usb_set_interface(dev->udev,
+> +			dev->isoc_in.bInterfaceNumber,
+> +			0);
+
+This would need better indentation.
+
+> +
+> +		/* Start interrupt USB pipe */
+> +		tm6000_ir_int_start(dev);
+> +
+
+Why do you restart the IR interrupt pipe when the device is being released?
+
+>  		if (!fh->radio)
+>  			videobuf_mmap_free(&fh->vb_vidq);
+> -
+> -		err =3D tm6000_reset(dev);
+> -		if (err < 0)
+> -			dev_err(&vdev->dev, "reset failed: %d\n", err);
+>  	}
+> =20
+>  	kfree(fh);
+
+I think this whole patch should be much shorter. Something along the lines
+of:
+
+@@ -1609,12 +1609,25 @@ static int tm6000_release(struct file *file)
+=20
+ 		tm6000_uninit_isoc(dev);
+=20
++		/* Stop interrupt USB pipe */
++		tm6000_ir_int_stop(dev);
++
+ 		if (!fh->radio)
+ 			videobuf_mmap_free(&fh->vb_vidq);
+=20
+
+Thierry
+
+--CdrF4e02JqNVZeln
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEARECAAYFAk7ccPsACgkQZ+BJyKLjJp9IOACeNDx70Jfpisi/M/B2HuZG38sx
+mXAAn0VssMHo5OGSCPmaCM2FXhQGZNfA
+=vHQl
+-----END PGP SIGNATURE-----
+
+--CdrF4e02JqNVZeln--
