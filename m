@@ -1,45 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51580 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752477Ab1LSR3U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Dec 2011 12:29:20 -0500
-Received: from lancelot.localnet (unknown [91.178.121.111])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 8922635995
-	for <linux-media@vger.kernel.org>; Mon, 19 Dec 2011 17:29:19 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.2] OMAP3 ISP fix
-Date: Mon, 19 Dec 2011 18:29:19 +0100
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:51587 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932719Ab1LEXrX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 18:47:23 -0500
+Received: by yenm1 with SMTP id m1so2326427yen.19
+        for <linux-media@vger.kernel.org>; Mon, 05 Dec 2011 15:47:21 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112191829.21037.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <CAKdnbx7Ayg6AGS-u=z9Pg6pHV6UN_ZiB-kQ1rv78zG9nm+U9TA@mail.gmail.com>
+References: <1321800978-27912-1-git-send-email-mchehab@redhat.com>
+	<1321800978-27912-2-git-send-email-mchehab@redhat.com>
+	<1321800978-27912-3-git-send-email-mchehab@redhat.com>
+	<1321800978-27912-4-git-send-email-mchehab@redhat.com>
+	<1321800978-27912-5-git-send-email-mchehab@redhat.com>
+	<CAGoCfiwv1MWnJc+3HL+9-E=o+HG09jjdGYOfpoXSoPd+wW3oHg@mail.gmail.com>
+	<4EDD0F01.7040808@redhat.com>
+	<CAGoCfizRuBEgBhfnzyrE=aJD-WMXCz9OmkoEqQCDpqmYXU2=zA@mail.gmail.com>
+	<CAGoCfiywqY+U0+t9tget1X09=apDm46GpGCa-_QiGp+JhyLXxQ@mail.gmail.com>
+	<CAKdnbx7Ayg6AGS-u=z9Pg6pHV6UN_ZiB-kQ1rv78zG9nm+U9TA@mail.gmail.com>
+Date: Mon, 5 Dec 2011 18:47:20 -0500
+Message-ID: <CAGoCfiwwt898OwmNNwrboT7q5v-sNQuTP6TxCdtY-fFauAyHrA@mail.gmail.com>
+Subject: Re: [PATCH 5/8] [media] em28xx: initial support for HAUPPAUGE
+ HVR-930C again
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Eddi De Pieri <eddi@depieri.net>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Mark Lord <kernel@teksavvy.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Mon, Dec 5, 2011 at 6:32 PM, Eddi De Pieri <eddi@depieri.net> wrote:
+> Sorry,  I think I applied follow patch on my tree while I developed
+> the driver trying to fix tuner initialization.
+>
+> http://patchwork.linuxtv.org/patch/6617/
+>
+> I forgot to remove from my tree after I see that don't solve anything.
 
-Here's the patch we've discussed today, based on top of your latest pull 
-request.
+Ok, great.  At least that explains why it's there (since I couldn't
+figure out how on Earth the patch made sense otherwise).
 
-The following changes since commit 4b5d8da88e3fab76700e89488a8c65c54facb9a3:
+Eddi, could you please submit a patch removing the offending code?
 
-  Revert "[media] af9015: limit I2C access to keep FW happy" (2011-12-12 
-16:02:15 -0200)
+Thanks,
 
-are available in the git repository at:
-  git://linuxtv.org/pinchartl/media.git mauro-next
-
-Laurent Pinchart (1):
-      omap3isp: Fix crash caused by subdevs now having a pointer to devnodes
-
- drivers/media/video/omap3isp/ispccdc.c |    2 +-
- drivers/media/video/omap3isp/ispstat.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Devin
 
 -- 
-Regards,
-
-Laurent Pinchart
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
