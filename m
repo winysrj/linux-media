@@ -1,231 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:39013 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750815Ab1L2Fk7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Dec 2011 00:40:59 -0500
-Received: from epcpsbgm1.samsung.com (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LWY00K6IAG82HC0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 29 Dec 2011 14:40:58 +0900 (KST)
-Received: from NORIVERFULK04 ([165.213.219.118])
- by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0LWY00I8EAG9FB20@mmp1.samsung.com>
- for linux-media@vger.kernel.org; Thu, 29 Dec 2011 14:40:57 +0900 (KST)
-From: "HeungJun, Kim" <riverful.kim@samsung.com>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	kyungmin.park@samsung.com
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
- <1325053428-2626-3-git-send-email-riverful.kim@samsung.com>
- <201112281456.05515.laurent.pinchart@ideasonboard.com>
-In-reply-to: <201112281456.05515.laurent.pinchart@ideasonboard.com>
-Subject: RE: [RFC PATCH 2/4] v4l: Add V4L2_CID_SCENEMODE menu control
-Date: Thu, 29 Dec 2011 14:40:57 +0900
-Message-id: <001201ccc5ec$709ca6d0$51d5f470$%kim@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:37029 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751905Ab1LEGUn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 01:20:43 -0500
+MIME-Version: 1.0
+In-Reply-To: <CAA7C2qgDOgqZqkXE+E=H1yTrA0Uc4r-31y40BVa2=BxOaJY6Kw@mail.gmail.com>
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
+	<4ED6C5B8.8040803@linuxtv.org>
+	<4ED75F53.30709@redhat.com>
+	<CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
+	<20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
+	<4EDA4AB4.90303@linuxtv.org>
+	<CAA7C2qjfWW8=kePZDO4nYR913RyuP-t+u8P9LV4mDh9bANr3=Q@mail.gmail.com>
+	<CAJbz7-15mzUNV7ZLSkAOg1Vb8briysitsR7xK94G+3-KT=ZXbA@mail.gmail.com>
+	<CAA7C2qgDOgqZqkXE+E=H1yTrA0Uc4r-31y40BVa2=BxOaJY6Kw@mail.gmail.com>
+Date: Mon, 5 Dec 2011 07:20:42 +0100
+Message-ID: <CAJbz7-1JLc0yq=9NUTNiP5zcG7vyC9ao_seU8rudCwXi3YoGdQ@mail.gmail.com>
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
+ because of worrying about possible misusage?
+From: HoP <jpetrous@gmail.com>
+To: VDR User <user.vdr@gmail.com>
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+>> Well, initial report was made on vdr-portal because of our hardware announce,
+>> but you can be sure the same is true if server is build on any linux hardware.
+>> Here is some note:
+>> http://www.vdr-portal.de/board18-vdr-hardware/board84-allgemein/106610-das-neue-netzwerk-client-der-f%C3%BCr-vdr-verwenden-k%C3%B6nnen/?highlight=vtuner
+>>
+>> Additional info you can find (or ask) on our forum:
+>> http://forum.nessiedvb.org/forum/viewforum.php?f=11
+>>
+>> Please note, that compilation of vtunerc kernel driver (or loopback, or pigback
+>> or whatever name the code should be used) is simple - no need for any
+>> kernel real patching is required. Code can be compiled outside of the
+>> kernel tree
+>> (of course kernel headers are still needed).
+>>
+>> Some useful hints regarding userland application daemons you
+>> can find in our wiki:
+>> http://wiki.nessiedvb.org/wiki/doku.php?id=vtuner_mode
+>>
+>> When you get vtunerc and vtunerd applications connected, try
+>> simple command line tuning (szap/tzap or czap) to check
+>> if it works correctly. Only if you get zapping working switch
+>> to vdr.
+>
+> Thanks for the info and links. I do know many guys who would be
+> interested in this if it can provide good server/client ability with
+> VDR. However, a large number of us only speak english so places like
+> vdr-portal aren't much use a lot of the time. If you have english
+> forums somewhere, that link would be far more useful I think.
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
-> Sent: Wednesday, December 28, 2011 10:56 PM
-> To: HeungJun, Kim
-> Cc: linux-media@vger.kernel.org; mchehab@redhat.com; hverkuil@xs4all.nl;
-> sakari.ailus@iki.fi; s.nawrocki@samsung.com; kyungmin.park@samsung.com
-> Subject: Re: [RFC PATCH 2/4] v4l: Add V4L2_CID_SCENEMODE menu control
-> 
-> Hi,
-> 
-> On Wednesday 28 December 2011 07:23:46 HeungJun, Kim wrote:
-> > It adds the new CID for setting Scenemode. This CID is provided as
-> > menu type using the following items:
-> > enum v4l2_scenemode {
-> > 	V4L2_SCENEMODE_NONE = 0,
-> > 	V4L2_SCENEMODE_NORMAL = 1,
-> > 	V4L2_SCENEMODE_PORTRAIT = 2,
-> > 	V4L2_SCENEMODE_LANDSCAPE = 3,
-> > 	V4L2_SCENEMODE_SPORTS = 4,
-> > 	V4L2_SCENEMODE_PARTY_INDOOR = 5,
-> > 	V4L2_SCENEMODE_BEACH_SNOW = 6,
-> > 	V4L2_SCENEMODE_SUNSET = 7,
-> > 	V4L2_SCENEMODE_DAWN_DUSK = 8,
-> > 	V4L2_SCENEMODE_FALL = 9,
-> > 	V4L2_SCENEMODE_NIGHT = 10,
-> > 	V4L2_SCENEMODE_AGAINST_LIGHT = 11,
-> > 	V4L2_SCENEMODE_FIRE = 12,
-> > 	V4L2_SCENEMODE_TEXT = 13,
-> > 	V4L2_SCENEMODE_CANDLE = 14,
-> > };
-> >
-> > Signed-off-by: HeungJun, Kim <riverful.kim@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > ---
-> >  Documentation/DocBook/media/v4l/controls.xml |   88
-> > ++++++++++++++++++++++++++ drivers/media/video/v4l2-ctrls.c             |
-> >  21 ++++++
-> >  include/linux/videodev2.h                    |   19 ++++++
-> >  3 files changed, 128 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/Documentation/DocBook/media/v4l/controls.xml
-> > b/Documentation/DocBook/media/v4l/controls.xml index 350c138..afe1845
-> > 100644
-> > --- a/Documentation/DocBook/media/v4l/controls.xml
-> > +++ b/Documentation/DocBook/media/v4l/controls.xml
-> > @@ -2879,6 +2879,94 @@ it one step further. This is a write-only
-> > control.</entry> </row>
-> >  	  <row><entry></entry></row>
-> >
-> > +	  <row id="v4l2-scenemode">
-> > +	    <entry
-> > spanname="id"><constant>V4L2_CID_SCENEMODE</constant>&nbsp;</entry> +
-> > <entry>enum&nbsp;v4l2_scenemode</entry>
-> > +	  </row><row><entry spanname="descr">This control sets
-> > +	  the camera's scenemode, and it is provided by the type of
-> > +	  the enum values. The "None" mode means the status
-> > +	  when scenemode algorithm is not activated, like after booting time.
-> > +	  On the other hand, the "Normal" mode means the scenemode algorithm
-> > +	  is activated on the normal mode.</entry>
-> 
-> What low-level parameters do the scene mode control ? How does it interact
-> with the related controls ?
-For using this control, in M-5MOLS sensor case, several register is configured,
-like Exposure(locking/Indexed preset/mode), Focus(locking), WhiteBalance, etc.
-And I think the process interacting and syncing the register's value should be
-up to the each drivers, and the m5mols driver will be.
+No problem. Simply ignore first URL. All others are english :-)
 
-Anyways, could you explain the difference with low- and high- in more details?
-:)
-I still did not understand well.
+I would recommend start from how-it-works-diagram:
+http://code.google.com/p/vtuner/wiki/BigPicture
 
-> 
-> > +	  </row>
-> > +	  <row>
-> > +	    <entrytbl spanname="descr" cols="2">
-> > +	      <tbody valign="top">
-> > +		<row>
-> > +		  <entry><constant>V4L2_SCENEMODE_NONE</constant>&nbsp;</entry>
-> > +		  <entry>Scenemode None.</entry>
-> > +		</row>
-> > +		<row>
-> > +
-<entry><constant>V4L2_SCENEMODE_NORMAL</constant>&nbsp;</entry>
-> > +		  <entry>Scenemode Normal.</entry>
-> > +		</row>
-> > +		<row>
-> > +
-> <entry><constant>V4L2_SCENEMODE_PORTRAIT</constant>&nbsp;</entry>
-> > +		  <entry>Scenemode Portrait.</entry>
-> 
-> Could you please describe the scene modes in more details ?
-Yes, the photographer should adjust the exposure(luminance), focus, iso, etc,
-for getting better image according to each specific circumstances.
-But, it's uncomfortable to set all controls at every time.
-The scene mode can make this at one time. It is just not only setting once.
-According to fixed scene circumstance, the internal algorithm is also
-needed for it. 
+and then have a look  at wiki. where you can some
+step-by-step info.
 
-This function is usually provided as just preset, but, it's not just preset,
-because the specific algorithm is existed for "scene mode",
-except the collection of the camera control preset.
+Anyway, don't hesitate to ask any question in our forum
+or write me directly.
 
-The enumeration I suggest, can cover almost scene mode. Of course, the term
-is fixed. The M-5MOLS can use all the scene mode.
-Please, see drivers/media/video/m5mols/m5mols_contro.c.
-
-> 
-> > +		</row>
-> > +		<row>
-> > +
-> <entry><constant>V4L2_SCENEMODE_LANDSCAPE</constant>&nbsp;</entry>
-> > +		  <entry>Scenemode Landscape.</entry>
-> > +		</row>
-> > +		<row>
-> > +
-<entry><constant>V4L2_SCENEMODE_SPORTS</constant>&nbsp;</entry>
-> > +		  <entry>Scenemode Sports.</entry>
-> > +		</row>
-> > +		<row>
-> > +
-> <entry><constant>V4L2_SCENEMODE_PARTY_INDOOR</constant>&nbsp;</entry>
-> > +		  <entry>Scenemode Party Indoor.</entry>
-> > +		</row>
-> > +		<row>
-> > +
-> <entry><constant>V4L2_SCENEMODE_BEACH_SNOW</constant>&nbsp;</entry>
-> > +		  <entry>Scenemode Beach Snow.</entry>
-> > +		</row>
-> > +		<row>
-> > +
-<entry><constant>V4L2_SCENEMODE_SUNSET</constant>&nbsp;</entry>
-> > +		  <entry>Scenemode Beach Snow.</entry>
-> > +		</row>
-> > +		<row>
-> > +
-> <entry><constant>V4L2_SCENEMODE_DAWN_DUSK</constant>&nbsp;</entry>
-> > +		  <entry>Scenemode Dawn Dusk.</entry>
-> > +		</row>
-> > +		<row>
-> > +		  <entry><constant>V4L2_SCENEMODE_FALL</constant>&nbsp;</entry>
-> > +		  <entry>Scenemode Fall.</entry>
-> > +		</row>
-> > +		<row>
-> > +		  <entry><constant>V4L2_SCENEMODE_NIGHT</constant>&nbsp;</entry>
-> > +		  <entry>Scenemode Night.</entry>
-> > +		</row>
-> > +		<row>
-> > +
-> <entry><constant>V4L2_SCENEMODE_AGAINST_LIGHT</constant>&nbsp;</entry>
-> > +		  <entry>Scenemode Against Light.</entry>
-> > +		</row>
-> > +		<row>
-> > +		  <entry><constant>V4L2_SCENEMODE_FIRE</constant>&nbsp;</entry>
-> > +		  <entry>Scenemode Fire.</entry>
-> > +		</row>
-> > +		<row>
-> > +		  <entry><constant>V4L2_SCENEMODE_TEXT</constant>&nbsp;</entry>
-> > +		  <entry>Scenemode Text.</entry>
-> > +		</row>
-> > +		<row>
-> > +
-<entry><constant>V4L2_SCENEMODE_CANDLE</constant>&nbsp;</entry>
-> > +		  <entry>Scenemode Candle.</entry>
-> > +		</row>
-> > +	      </tbody>
-> > +	    </entrytbl>
-> > +	  </row>
-> > +	  <row><entry></entry></row>
-> > +
-> > +	  <row>
-> > +	    <entry
-> > spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry> +
-> > <entry>boolean</entry>
-> > +	  </row><row><entry spanname="descr">Prevent video from being acquired
-> > +by the camera. When this control is set to <constant>TRUE</constant> (1),
-> > no +image can be captured by the camera. Common means to enforce privacy
-> > are +mechanical obturation of the sensor and firmware image processing,
-> > but the +device is not restricted to these methods. Devices that implement
-> > the privacy +control must support read access and may support write
-> > access.</entry> +	  </row>
-> >  	  <row>
-> >  	    <entry
-> > spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry>
-> > <entry>boolean</entry>
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Honza
