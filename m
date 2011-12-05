@@ -1,164 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from r02s01.colo.vollmar.net ([83.151.24.194]:42853 "EHLO
-	holzeisen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754245Ab1L0QyS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Dec 2011 11:54:18 -0500
-Received: from [10.7.0.6] (unknown [10.7.0.6])
-	by holzeisen.de (Postfix) with ESMTPA id 71067807C316
-	for <linux-media@vger.kernel.org>; Tue, 27 Dec 2011 17:44:41 +0100 (CET)
-Message-ID: <4EF9F5E9.9020908@holzeisen.de>
-Date: Tue, 27 Dec 2011 17:44:25 +0100
-From: Thomas Holzeisen <thomas@holzeisen.de>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:63023 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755961Ab1LEUBZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 15:01:25 -0500
+Received: by ywa9 with SMTP id 9so4649925ywa.19
+        for <linux-media@vger.kernel.org>; Mon, 05 Dec 2011 12:01:25 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: af9015: Second Tuner hangs after a while
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAGoCfizRuBEgBhfnzyrE=aJD-WMXCz9OmkoEqQCDpqmYXU2=zA@mail.gmail.com>
+References: <1321800978-27912-1-git-send-email-mchehab@redhat.com>
+	<1321800978-27912-2-git-send-email-mchehab@redhat.com>
+	<1321800978-27912-3-git-send-email-mchehab@redhat.com>
+	<1321800978-27912-4-git-send-email-mchehab@redhat.com>
+	<1321800978-27912-5-git-send-email-mchehab@redhat.com>
+	<CAGoCfiwv1MWnJc+3HL+9-E=o+HG09jjdGYOfpoXSoPd+wW3oHg@mail.gmail.com>
+	<4EDD0F01.7040808@redhat.com>
+	<CAGoCfizRuBEgBhfnzyrE=aJD-WMXCz9OmkoEqQCDpqmYXU2=zA@mail.gmail.com>
+Date: Mon, 5 Dec 2011 15:01:24 -0500
+Message-ID: <CAGoCfiywqY+U0+t9tget1X09=apDm46GpGCa-_QiGp+JhyLXxQ@mail.gmail.com>
+Subject: Re: [PATCH 5/8] [media] em28xx: initial support for HAUPPAUGE
+ HVR-930C again
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, Eddi De Pieri <eddi@depieri.net>,
+	Mark Lord <kernel@teksavvy.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello there,
+On Mon, Dec 5, 2011 at 1:46 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Mon, Dec 5, 2011 at 1:35 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>>> What's up with this change?  Is this a bugfix for some race condition?
+>>>  Why is it jammed into a patch for some particular product?
+>>>
+>>> It seems like a change such as this could significantly change the
+>>> timing of tuner initialization if you have multiple xc5000 based
+>>> products that might have a slow i2c bus.  Was that intentional?
+>>>
+>>> This patch should be NACK'd and resubmitted as it's own bugfix where
+>>> it's implications can be fully understood in the context of all the
+>>> other products that use xc5000.
+>>
+>>
+>> It is too late for nacking the patch, as there are several other patches
+>> were already applied on the top of it, and we don't rebase the
+>> linux-media.git tree.
+>>
+>> Assuming that this is due to some bug that Eddi picked during xc5000
+>> init, what it can be done now is to write a patch that would replace
+>> this xc5000-global mutex lock into a some other per-device locking
+>> schema.
+>
+> At this point we have zero idea why it's there *at all*.  Eddi, can
+> you comment on what prompted this change?
+>
+> This patch should not have been accepted in the first place.  It's an
+> undocumented change on a different driver than is advertised in the
+> subject line.  Did you review the patch prior to merging?
+>
+> This change can result in a performance regression for all other
+> devices using xc5000, and it's not yet clear why it's there in the
+> first place.  If its use cannot be explained then it should be rolled
+> back.  If this breaks 930c, then the whole device support series
+> should be rolled back until somebody can figure out what is going on.
+>
+> It's crap like this that is the reason that every other week I get
+> complaints from some user that one of the drivers I wrote support for
+> worked fine for months/years until they upgraded to the latest kernel.
 
-I got a MSI DigiVox Duo stick identifying as:
+Speaking of which, Mark Lord just tried out this change (he has an
+800i and 950q - both xc5000 based), and now his DVB stack fails to
+load.  And yes, he already has the fix to the mutex_unlock()
+regression which Dan Carpenter found six days ago and which this patch
+introduced.
 
-Bus 001 Device 005: ID 1462:8801 Micro Star International
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0x1462 Micro Star International
-  idProduct          0x8801
-  bcdDevice            2.00
-  iManufacturer           1 Afatech
-  iProduct                2 DVB-T 2
-  iSerial                 0
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           46
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x85  EP 5 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
+Devin
 
-Until some time ago, there was not even a remote chance getting this Dual-Tuner Stick to work. When trying to tune in a
-second transponder, the log got spammed with these:
-
-[  835.412375] af9015: command failed:1
-[  835.412383] mxl5005s I2C write failed
-
-However, I applied the patches ba730b56cc9afbcb10f329c17320c9e535c43526 and 61875c55170f2cf275263b4ba77e6cc787596d9f
-from Antti Palosaari. For the first time I got able to receive two Transponders at once. Sadly after a while the second
-adapter stops working, showing the I2C erros above. The first adapter keeps working. Also attaching and removing the
-stick does not work out very well.
-
-First plugin attempt:
-[   78.552597] dvb-usb: found a 'MSI DIGIVOX Duo' in cold state, will try to load a firmware
-[   78.592456] dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
-[   78.662114] dvb-usb: found a 'MSI DIGIVOX Duo' in warm state.
-[   78.662251] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-[   78.663514] DVB: registering new adapter (MSI DIGIVOX Duo)
-[   78.709768] af9013: firmware version 0.0.0.0
-[   78.711858] DVB: registering adapter 0 frontend 0 (Afatech AF9013)...
-[   78.745265] MXL5005S: Attached at address 0xc6
-[   78.745278] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-[   78.746513] DVB: registering new adapter (MSI DIGIVOX Duo)
-[   79.361106] af9015: firmware did not run
-[   79.361117] af9015: firmware copy to 2nd frontend failed, will disable it
-[   79.361127] dvb-usb: no frontend was attached by 'MSI DIGIVOX Duo'
-[   79.361136] dvb-usb: MSI DIGIVOX Duo successfully initialized and connected.
-[   79.368407] usbcore: registered new interface driver dvb_usb_af9015
-
-removing and inserting again
-[  160.290935] dvb-usb: MSI DIGIVOX Duo successfully deinitialized and disconnected.
-[  197.576325] af9015: recv bulk message failed:-110
-[  197.576338] af9015: eeprom read failed=-1
-[  197.576363] dvb_usb_af9015: probe of 1-1:1.0 failed with error -1
-
-third one
-[  222.198442] dvb-usb: found a 'MSI DIGIVOX Duo' in cold state, will try to load a firmware
-[  222.205585] dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
-[  222.274229] dvb-usb: found a 'MSI DIGIVOX Duo' in warm state.
-[  222.274371] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-[  222.275468] DVB: registering new adapter (MSI DIGIVOX Duo)
-[  222.277066] af9013: firmware version 4.95.0.0
-[  222.280128] DVB: registering adapter 0 frontend 0 (Afatech AF9013)...
-[  222.280480] MXL5005S: Attached at address 0xc6
-[  222.280490] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-[  222.280978] DVB: registering new adapter (MSI DIGIVOX Duo)
-[  222.997193] af9013: found a 'Afatech AF9013' in warm state.
-[  223.000695] af9013: firmware version 4.95.0.0
-[  223.006960] DVB: registering adapter 1 frontend 0 (Afatech AF9013)...
-[  223.007258] MXL5005S: Attached at address 0xc6
-[  223.007269] dvb-usb: MSI DIGIVOX Duo successfully initialized and connected.
-
-this is repeatable to me every time. Removing the stick when in warm state, leads to kernel oops every time. Kernel
-Version is 3.1.2.
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
