@@ -1,71 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:63468 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750958Ab1LVOeT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 09:34:19 -0500
-Received: by wibhm6 with SMTP id hm6so2566645wib.19
-        for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:34:18 -0800 (PST)
+Received: from moutng.kundenserver.de ([212.227.126.171]:56576 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755455Ab1LERTH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 12:19:07 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Sumit Semwal <sumit.semwal@ti.com>
+Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
+Date: Mon, 5 Dec 2011 17:18:48 +0000
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	linux@arm.linux.org.uk, jesse.barker@linaro.org,
+	m.szyprowski@samsung.com, rob@ti.com, daniel@ffwll.ch,
+	t.stanislaws@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com> <1322816252-19955-2-git-send-email-sumit.semwal@ti.com>
+In-Reply-To: <1322816252-19955-2-git-send-email-sumit.semwal@ti.com>
 MIME-Version: 1.0
-Date: Thu, 22 Dec 2011 15:34:18 +0100
-Message-ID: <CACKLOr0H4enuADtWcUkZCS_V92mmLD8K5CgScbGo7w9nbT=-CA@mail.gmail.com>
-Subject: MEM2MEM devices: how to handle sequence number?
-From: javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	shawn.guo@linaro.org, richard.zhao@linaro.org,
-	fabio.estevam@freescale.com, kernel@pengutronix.de,
-	s.hauer@pengutronix.de, r.schwebel@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112051718.48324.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-we have a processing chain composed of three v4l2 devices:
+On Friday 02 December 2011, Sumit Semwal wrote:
+> This is the first step in defining a dma buffer sharing mechanism.
 
----------------------           -----------------------
-----------------------
-| v4l2 source  |            |     v4l2 fixer   |               |  v4l2 encoder |
-|  (capture)     |---------->|  (mem2mem)| ------------>|  (mem2mem) |
------------->
-|___________|            |____________|              |____________|
+This looks very nice, but there are a few things I don't understand yet
+and a bunch of trivial comments I have about things I spotted.
 
+Do you have prototype exporter and consumer drivers that you can post
+for clarification?
 
-"v4l2 source" generates consecutive sequence numbers so that we can
-detect whether a frame has been lost or not.
-"v4l2 fixer" and "v4l2 encoder" cannot lose frames because they don't
-interact with an external sensor.
+In the patch 2, you have a section about migration that mentions that
+it is possible to export a buffer that can be migrated after it
+is already mapped into one user driver. How does that work when
+the physical addresses are mapped into a consumer device already?
 
-How should "v4l2 fixer" and "v4l2 encoder" behave regarding frame
-sequence number? Should they just copy the sequence number from the
-input buffer to the output buffer or should they maintain their own
-count for the CAPTURE queue?
+> diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
+> index 21cf46f..07d8095 100644
+> --- a/drivers/base/Kconfig
+> +++ b/drivers/base/Kconfig
+> @@ -174,4 +174,14 @@ config SYS_HYPERVISOR
+>  
+>  source "drivers/base/regmap/Kconfig"
+>  
+> +config DMA_SHARED_BUFFER
+> +	bool "Buffer framework to be shared between drivers"
+> +	default n
+> +	depends on ANON_INODES
 
-If the former option is chosen we should apply a patch like the
-following so that the sequence number of the input buffer is passed to
-the videobuf2 layer:
+I would make this 'select ANON_INODES', like the other users of this
+feature.
 
-diff --git a/drivers/media/video/videobuf2-core.c
-b/drivers/media/video/videobuf2-core.c
-index 1250662..7d8a88b 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -1127,6 +1127,7 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
-         */
-        list_add_tail(&vb->queued_entry, &q->queued_list);
-        vb->state = VB2_BUF_STATE_QUEUED;
-+       vb->v4l2_buf.sequence = b->sequence;
+> +	return dmabuf;
+> +}
+> +EXPORT_SYMBOL(dma_buf_export);
 
-        /*
-         * If already streaming, give the buffer to driver for processing.
+I agree with Konrad, this should definitely be EXPORT_SYMBOL_GPL,
+because it's really a low-level function that I would expect
+to get used by in-kernel subsystems providing the feature to
+users and having back-end drivers, but it's not the kind of thing
+we want out-of-tree drivers to mess with.
 
-Regards.
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+> +/**
+> + * dma_buf_fd - returns a file descriptor for the given dma_buf
+> + * @dmabuf:	[in]	pointer to dma_buf for which fd is required.
+> + *
+> + * On success, returns an associated 'fd'. Else, returns error.
+> + */
+> +int dma_buf_fd(struct dma_buf *dmabuf)
+> +{
+> +	int error, fd;
+> +
+> +	if (!dmabuf->file)
+> +		return -EINVAL;
+> +
+> +	error = get_unused_fd_flags(0);
+
+Why not simply get_unused_fd()?
+
+> +/**
+> + * dma_buf_attach - Add the device to dma_buf's attachments list; optionally,
+> + * calls attach() of dma_buf_ops to allow device-specific attach functionality
+> + * @dmabuf:	[in]	buffer to attach device to.
+> + * @dev:	[in]	device to be attached.
+> + *
+> + * Returns struct dma_buf_attachment * for this attachment; may return NULL.
+> + *
+
+Or may return a negative error code. It's better to be consistent here:
+either always return NULL on error, or change the allocation error to
+ERR_PTR(-ENOMEM).
+
+> + */
+> +struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+> +						struct device *dev)
+> +{
+> +	struct dma_buf_attachment *attach;
+> +	int ret;
+> +
+> +	BUG_ON(!dmabuf || !dev);
+> +
+> +	attach = kzalloc(sizeof(struct dma_buf_attachment), GFP_KERNEL);
+> +	if (attach == NULL)
+> +		goto err_alloc;
+> +
+> +	mutex_lock(&dmabuf->lock);
+> +
+> +	attach->dev = dev;
+> +	attach->dmabuf = dmabuf;
+> +	if (dmabuf->ops->attach) {
+> +		ret = dmabuf->ops->attach(dmabuf, dev, attach);
+> +		if (!ret)
+> +			goto err_attach;
+
+You probably mean "if (ret)" here instead of "if (!ret)", right?
+
+> +	/* allow allocator to take care of cache ops */
+> +	void (*sync_sg_for_cpu) (struct dma_buf *, struct device *);
+> +	void (*sync_sg_for_device)(struct dma_buf *, struct device *);
+
+I don't see how this works with multiple consumers: For the streaming
+DMA mapping, there must be exactly one owner, either the device or
+the CPU. Obviously, this rule needs to be extended when you get to
+multiple devices and multiple device drivers, plus possibly user
+mappings. Simply assigning the buffer to "the device" from one
+driver does not block other drivers from touching the buffer, and
+assigning it to "the cpu" does not stop other hardware that the
+code calling sync_sg_for_cpu is not aware of.
+
+The only way to solve this that I can think of right now is to
+mandate that the mappings are all coherent (i.e. noncachable
+on noncoherent architectures like ARM). If you do that, you no
+longer need the sync_sg_for_* calls.
+
+> +#ifdef CONFIG_DMA_SHARED_BUFFER
+
+Do you have a use case for making the interface compile-time disabled?
+I had assumed that any code using it would make no sense if it's not
+available so you don't actually need this.
+
+	Arnd
