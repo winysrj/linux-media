@@ -1,61 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:36985 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753186Ab1LJEmn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 23:42:43 -0500
-Received: by mail-ww0-f44.google.com with SMTP id dr13so6983961wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 09 Dec 2011 20:42:43 -0800 (PST)
+Received: from ffm.saftware.de ([83.141.3.46]:53305 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932226Ab1LEVUJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Dec 2011 16:20:09 -0500
+Message-ID: <4EDD3583.30405@linuxtv.org>
+Date: Mon, 05 Dec 2011 22:20:03 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-Date: Sat, 10 Dec 2011 10:12:43 +0530
-Message-ID: <CAHFNz9KzhZrQw4RsKebuO8q+aFonHaZDHkMKOKyKje2QixeLDA@mail.gmail.com>
-Subject: v4 [PATCH 03/10] STB0899: Query DVB frontend delivery capabilities
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=0016e6dd96653ec3ac04b3b588e8
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	HoP <jpetrous@gmail.com>,
+	Florian Fainelli <f.fainelli@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
+ of worrying about possible misusage?
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com> <4EDC9B17.2080701@gmail.com> <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com> <4EDD01BA.40208@redhat.com> <4EDD2C82.7040804@linuxtv.org> <20111205205554.2caeb496@lxorguk.ukuu.org.uk>
+In-Reply-To: <20111205205554.2caeb496@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0016e6dd96653ec3ac04b3b588e8
-Content-Type: text/plain; charset=ISO-8859-1
+On 05.12.2011 21:55, Alan Cox wrote:
+> The USB case is quite different because your latency is very tightly
+> bounded, your dead device state is rigidly defined, and your loss of
+> device is accurately and immediately signalled.
+> 
+> Quite different.
 
+How can usbip work if networking and usb are so different and what's so
+different between vtunerc and usbip, that made it possible to put usbip
+into drivers/staging?
 
-
---0016e6dd96653ec3ac04b3b588e8
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0003-STB0899-Query-DVB-frontend-delivery-capabilities.patch"
-Content-Disposition: attachment;
-	filename="0003-STB0899-Query-DVB-frontend-delivery-capabilities.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
-
-RnJvbSA5MDVkNTkyOTUzMmRkNjZiOTUwZmJlNGE2ZGMzOTk2NjE1YmVjNGMxIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
-CkRhdGU6IFRodSwgMTcgTm92IDIwMTEgMDY6NDQ6NTMgKzA1MzAKU3ViamVjdDogW1BBVENIIDAz
-LzEwXSBTVEIwODk5OiBRdWVyeSBEVkIgZnJvbnRlbmQgZGVsaXZlcnkgY2FwYWJpbGl0aWVzCgpP
-dmVycmlkZSBkZWZhdWx0IGRlbGl2ZXJ5IHN5c3RlbSBpbmZvcm1hdGlvbiBwcm92aWRlZCBieSBG
-RV9HRVRfSU5GTywgc28KdGhhdCBhcHBsaWNhdGlvbnMgY2FuIGVudW1lcmF0ZSBkZWxpdmVyeSBz
-eXN0ZW1zIHByb3ZpZGVkIGJ5IHRoZSBmcm9udGVuZC4KClNpZ25lZC1vZmYtYnk6IE1hbnUgQWJy
-YWhhbSA8YWJyYWhhbS5tYW51QGdtYWlsLmNvbT4KLS0tCiBkcml2ZXJzL21lZGlhL2R2Yi9mcm9u
-dGVuZHMvc3RiMDg5OV9kcnYuYyB8ICAgMTcgKysrKysrKysrKysrKysrKysKIDEgZmlsZXMgY2hh
-bmdlZCwgMTcgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2
-ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvc3RiMDg5OV9kcnYuYyBiL2RyaXZlcnMvbWVkaWEvZHZi
-L2Zyb250ZW5kcy9zdGIwODk5X2Rydi5jCmluZGV4IDg0MDhlZjguLjljOTNkOWYgMTAwNjQ0Ci0t
-LSBhL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9zdGIwODk5X2Rydi5jCisrKyBiL2RyaXZl
-cnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9zdGIwODk5X2Rydi5jCkBAIC0xNjA1LDYgKzE2MDUsMjEg
-QEAgc3RhdGljIGVudW0gZHZiZmVfYWxnbyBzdGIwODk5X2Zyb250ZW5kX2FsZ28oc3RydWN0IGR2
-Yl9mcm9udGVuZCAqZmUpCiAJcmV0dXJuIERWQkZFX0FMR09fQ1VTVE9NOwogfQogCitzdGF0aWMg
-aW50IHN0YjA4OTlfZ2V0X3Byb3BlcnR5KHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCBzdHJ1Y3Qg
-ZHR2X3Byb3BlcnR5ICpwKQoreworCXN3aXRjaCAocC0+Y21kKSB7CisJY2FzZSBEVFZfRU5VTV9E
-RUxTWVM6CisJCXAtPnUuYnVmZmVyLmRhdGFbMF0gPSBTWVNfRFNTOworCQlwLT51LmJ1ZmZlci5k
-YXRhWzFdID0gU1lTX0RWQlM7CisJCXAtPnUuYnVmZmVyLmRhdGFbMl0gPSBTWVNfRFZCUzI7CisJ
-CXAtPnUuYnVmZmVyLmxlbiA9IDM7CisJCWJyZWFrOworCWRlZmF1bHQ6CisJCWJyZWFrOworCX0K
-KwlyZXR1cm4gMDsKK30KKwogc3RhdGljIHN0cnVjdCBkdmJfZnJvbnRlbmRfb3BzIHN0YjA4OTlf
-b3BzID0gewogCiAJLmluZm8gPSB7CkBAIC0xNjQ3LDYgKzE2NjIsOCBAQCBzdGF0aWMgc3RydWN0
-IGR2Yl9mcm9udGVuZF9vcHMgc3RiMDg5OV9vcHMgPSB7CiAJLmRpc2VxY19zZW5kX21hc3Rlcl9j
-bWQJCT0gc3RiMDg5OV9zZW5kX2Rpc2VxY19tc2csCiAJLmRpc2VxY19yZWN2X3NsYXZlX3JlcGx5
-CT0gc3RiMDg5OV9yZWN2X3NsYXZlX3JlcGx5LAogCS5kaXNlcWNfc2VuZF9idXJzdAkJPSBzdGIw
-ODk5X3NlbmRfZGlzZXFjX2J1cnN0LAorCisJLmdldF9wcm9wZXJ0eQkJCT0gc3RiMDg5OV9nZXRf
-cHJvcGVydHksCiB9OwogCiBzdHJ1Y3QgZHZiX2Zyb250ZW5kICpzdGIwODk5X2F0dGFjaChzdHJ1
-Y3Qgc3RiMDg5OV9jb25maWcgKmNvbmZpZywgc3RydWN0IGkyY19hZGFwdGVyICppMmMpCi0tIAox
-LjcuMQoK
---0016e6dd96653ec3ac04b3b588e8--
+Regards,
+Andreas
